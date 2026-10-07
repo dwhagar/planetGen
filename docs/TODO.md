@@ -114,7 +114,7 @@ that files it.
 |---|---|---|---|
 | 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 stays held until Boss sends the error text. | TEST.81, TEST.87, OPS.25, PERF.27, DB.12, MAP.114, GEN.65, PERF.26, ADM.27, GEN.76, GEN.77, GEN.78, GEN.79, GEN.80, GEN.82, UX.34, OPS.9, PERF.28, GEN.81, ADM.33, UX.28, UX.24, UX.29, UX.25, NAV.41, UX.36, SEC.31, UX.44, MAP.115, MAP.117, MAP.118, GEN.52, TEST.75, ADM.16, GEN.48, OPS.6, OPS.7, TEST.78, TEST.80, TEST.82, TEST.84, TEST.86, OPS.21, OPS.23, OPS.24, OPS.22, SEC.29, TEST.72, SEC.30, TEST.83, UX.39, OPS.20, DB.11, DB.13, ADM.21, GEN.66, GEN.74, GEN.68, GEN.69, GEN.70, GEN.71, TEST.71, GEN.72, GEN.73, GEN.67, PERF.19, PERF.24, OPS.19, PERF.25, ADM.22, ADM.23, ADM.24, ADM.25, ADM.26, UX.40, UX.26, UX.31, UX.27, UX.2, ADM.14, UX.41, UX.33, ADM.34, NAV.7, MAP.95, NAV.13, NAV.14, MAP.65, MAP.79, NAV.15, NAV.29, NAV.33, MAP.66, MAP.67, MAP.68, MAP.61, NAV.32, MAP.102, MAP.107, MAP.106, MAP.108, MAP.109, MAP.110, MAP.111, MAP.112, MAP.113, MAP.116, NAV.46, GEN.75, MAP.103, MAP.104, MAP.105, UX.38, UX.37, UX.21 |
 | 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, NAV.16, NAV.3, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.41, GEN.98, GEN.100, GEN.99, GEN.101, GEN.102, GEN.103, GEN.84, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, GEN.94, GEN.104, GEN.106, GEN.107, GEN.108, NAV.10, NAV.12, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, NAV.43, NAV.44, MAP.119, MAP.122, MAP.123, MAP.124, MAP.89, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, OPS.8, OPS.13, OPS.14, ADM.18, GEN.59 |
-| 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.58, MAP.75, MAP.59, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, API.16, MAP.69, MAP.70, ADM.17, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.48, UX.45, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, API.18, VIEW.5 |
+| 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.58, MAP.75, MAP.59, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, API.16, MAP.69, MAP.70, ADM.17, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, API.18, VIEW.5 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, repair that reads the newest settings JSON, and the anomalies chosen in phase 2. | MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, MAP.126, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, DB.10, ADM.20, GEN.114, MAP.125, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies, and the end state of reproducible galaxies (`generate.py reproduce`). | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, OPS.12, GEN.55 |
 
@@ -2719,7 +2719,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   nearby masses bend paths, with "reasonable limitations for when the
   math breaks down at the edge cases". `updateOrbits.py` is today's
   positional update. Done when its subitems are.
-  Prerequisites: GEN.106, GEN.107, GEN.108, GEN.109, GEN.110.
+  Prerequisites: GEN.106, GEN.107, GEN.108, GEN.115, GEN.109, GEN.110.
   Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
 
   - [ ] **GEN.106 Movement thresholds and a next-update-due column**
@@ -2762,6 +2762,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     Prerequisite: GEN.106.
     Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
 
+  - [ ] **GEN.115 The galaxy's own gravity: a smooth disk, bulge and halo potential**
+    Boss (2026-10-07 12:25Z): "We'll have to add a galactic gravitational
+    gradient but we need to make sure that it's consistent with actual
+    science." The orbital documents pull on a star only from its nearest
+    point masses and the central black hole; the smooth mass of the disk,
+    bulge and halo, which holds the Sun at about 230 km/s, is missing, so
+    stars would drift outward. Boss is researching the model and will add
+    a document to docs/design. Done: every galactic step adds the chosen
+    potential, scaled to the density model's disk and bulge
+    (galaxy-disk-density.md), with the point masses on top; tests check
+    the rotation curve, the vertical pull near the disk and the escape
+    speed against the document's values.
+    Prerequisites: GEN.106, GEN.108.
+    Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
+
   - [ ] **GEN.109 N-body influence from the nearest 10 bodies of equal or larger mass, with a Hill-radius warning**
     Boss (2026-10-03 05:38Z): "Add robust vector geometry updates for
     orbital path influenced by the nearest 10 gravitational bodies that
@@ -2774,7 +2789,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     tables, swept-sphere collision checks, then Hill-sphere crossings
     handled per system. Done: trajectories change only at updates,
     warnings go to the debug and activity logs.
-    Prerequisites: GEN.106, GEN.108.
+    Prerequisites: GEN.106, GEN.108, GEN.115.
     Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
 
   - [ ] **GEN.110 Rogue planet collisions: asteroid fields, merged giants and new stars**

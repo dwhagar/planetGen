@@ -187,13 +187,17 @@ come from numpy.
 None of the documents settle these. The defaults below hold until Boss
 decides otherwise:
 
-- **The galaxy's own gravity.** The documents pull on a star only from
-  its nearest point masses and the central black hole. The smooth mass
-  of the disk, bulge and halo, which keeps the Sun at about 230 km/s, is
-  missing, and without it stars drift outward. Default: a fixed analytic
-  potential (a Miyamoto-Nagai disk, a Hernquist bulge and an NFW halo,
-  scaled to the density model's disk and bulge in galaxy-disk-density.md) added to every
-  galactic step, with the point masses as perturbations on top.
+- **The galaxy's own gravity (GEN.115).** The documents pull on a star
+  only from its nearest point masses and the central black hole. The
+  smooth mass of the disk, bulge and halo, which keeps the Sun at about
+  230 km/s, is missing, and without it stars drift outward. Boss
+  (2026-10-07 12:25Z): "We'll have to add a galactic gravitational
+  gradient but we need to make sure that it's consistent with actual
+  science." He is researching the model and will add a document here.
+  Until then the working assumption is a fixed analytic potential (a
+  disk, a bulge and a halo, scaled to the density model's disk and bulge
+  in galaxy-disk-density.md) added to every galactic step, with the point
+  masses as perturbations on top.
 - **Frame axes.** The galactic and sector frames stay as
   galaxy-coordinate-system.md defines them: galactic +Z is galactic
   north, and slots count counterclockwise from +X; a sector's local +X

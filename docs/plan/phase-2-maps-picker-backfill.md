@@ -128,10 +128,11 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.109 | N-body influence from the nearest 10 bodies of equal or larger mass, with a Hill-radius warning | GEN.106, GEN.108 |  |
+| GEN.115 | The galaxy's own gravity: a smooth disk, bulge and halo potential | GEN.106, GEN.108 | Boss is researching the model (2026-10-07 12:25Z); waits for his document. |
+| GEN.109 | N-body influence from the nearest 10 bodies of equal or larger mass, with a Hill-radius warning | GEN.106, GEN.108, GEN.115 |  |
 | ADM.36 | Change an object's trajectory vector | GEN.74, GEN.109 |  |
 | GEN.110 | Rogue planet collisions: asteroid fields, merged giants and new stars | GEN.109 |  |
-| GEN.105 | Orbital updates | GEN.106, GEN.107, GEN.108, GEN.109, GEN.110 | Parent of the orbital update work. |
+| GEN.105 | Orbital updates | GEN.106, GEN.107, GEN.108, GEN.115, GEN.109, GEN.110 | Parent of the orbital update work. |
 
 ### Nebula planets
 

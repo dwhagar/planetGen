@@ -171,6 +171,8 @@ From Boss's list of 2026-10-03: ADM.23, ADM.24, ADM.25, ADM.27, ADM.31, GEN.67, 
 
 From Boss's list of 2026-10-07: ADM.26, ADM.28, ADM.29, ADM.30, ADM.32, ADM.33, ADM.34, ADM.35, ADM.36, API.18, API.19, DB.13, GEN.68, GEN.74, GEN.80, GEN.81, GEN.82, GEN.101, GEN.102, GEN.103, GEN.104, GEN.108, GEN.113, GEN.114, MAP.118, MAP.122, MAP.123, MAP.124, MAP.125, MAP.126, NAV.48, NAV.49, PERF.28, PERF.29, PERF.30, SEC.31, UX.43, UX.44, UX.46, UX.47, UX.48.
 
+From Boss's message of 2026-10-07 12:25Z (the galaxy's own gravity, a gap in the orbital documents): GEN.115.
+
 From PR #431's red CI (coordinator, 2026-10-03): PERF.27, DB.12, OPS.25, MAP.114; the MySQL 8.4 deadlock is TEST.81 (noted there).
 
 ### Merged into one item (duplicates)
@@ -270,7 +272,7 @@ Work goes ahead on each default until Boss says otherwise.
 | sectormap.js | MAP.114, MAP.79, MAP.113, MAP.66, MAP.68 | MAP.114 now (CI red); MAP.68 deletes the file. |
 | Templates and components (base.html, style.css, edit_controls.html) | UX.40, UX.2, UX.26, UX.31, UX.27, ADM.14, ADM.34, UX.37, UX.21, UX.42, UX.43 | Components first, then the sweep, then wording and the visual design. |
 | Planet physics and classes (planetPhysics.py, planetData.py, planetLife.py) | ADM.27, GEN.85 to GEN.89, GEN.33, GEN.28, GEN.27, GEN.29, GEN.91, GEN.92 | Phase 0 bug, then the habitability inputs, then the refactor. |
-| Positions (updateOrbits.py, keplerMotion.py, the new position object) | GEN.74, GEN.66, GEN.104, GEN.106 to GEN.110, MAP.70, VIEW.5 | GEN.74 first. |
+| Positions (updateOrbits.py, keplerMotion.py, the new position object) | GEN.74, GEN.66, GEN.104, GEN.106 to GEN.110, GEN.115, MAP.70, VIEW.5 | GEN.74 first. |
 | Generate page (generate.html, generate_page.py) | UX.40, ADM.16, ADM.28 and its subitems, GEN.96, GEN.24 | Components, then prevalence, then the rework. |
 | update.sh and update.ps1 (with install.* and deploy-common.*) | OPS.7, OPS.25, OPS.21, OPS.8, OPS.13, OPS.15, OPS.17 | OPS.7 and the CI fix first; then Redis and pins. |
 
