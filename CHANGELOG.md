@@ -1,5 +1,11 @@
 # Changelog
 
+## [7.230.618] - 2026-10-07
+
+### Fixed
+
+- The Generate page's "New galaxy" and "Generate sectors" forms (every mode, "around a sector" included) have a folded Prevalence section: one percentage per feature, blank or 0 for the usual chance, passed to the run as `--prevalence FEATURE=PERCENT` (ADM.16).
+
 ## [7.229.618] - 2026-10-07
 
 ### Added
