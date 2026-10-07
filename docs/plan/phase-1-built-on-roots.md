@@ -89,7 +89,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | POP.8 | A tech-level design from the six domain indices |  |  |
-| POP.9 | A tech level generated for every technological species | POP.8, GEN.80 |  |
+| POP.9 | A tech level generated for every technological species | POP.8 |  |
 | POP.7 | Tech levels for technological species | POP.8, POP.9 | Parent. |
 | POP.10 | Facility types: programmable, picked from a dropdown, with affiliation and Green/Yellow/Red ratings |  |  |
 

@@ -112,7 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 stays held until Boss sends the error text. | GEN.65, PERF.26, ADM.27, GEN.77, GEN.78, GEN.79, GEN.80, GEN.82, UX.34, OPS.9, PERF.28, GEN.81, ADM.33, UX.28, UX.24, UX.29, UX.25, NAV.41, UX.36, SEC.31, UX.44, MAP.115, MAP.117, MAP.118, GEN.52, TEST.75, ADM.16, GEN.48, OPS.6, OPS.7, TEST.78, TEST.82, TEST.84, TEST.86, TEST.88, TEST.89, OPS.24, OPS.22, SEC.29, TEST.72, SEC.30, TEST.83, UX.39, OPS.20, DB.11, DB.13, ADM.21, GEN.66, GEN.74, GEN.68, GEN.69, GEN.70, GEN.71, TEST.71, GEN.72, GEN.73, GEN.67, PERF.19, PERF.24, OPS.19, PERF.25, ADM.22, ADM.23, ADM.24, ADM.25, ADM.26, UX.40, UX.26, UX.31, UX.27, UX.2, ADM.14, UX.41, UX.33, ADM.34, NAV.7, MAP.95, NAV.13, NAV.14, MAP.65, MAP.79, NAV.15, NAV.29, NAV.33, MAP.66, MAP.67, MAP.68, MAP.61, NAV.32, MAP.102, MAP.107, MAP.106, MAP.108, MAP.109, MAP.110, MAP.111, MAP.112, MAP.113, MAP.116, NAV.46, GEN.75, MAP.103, MAP.104, MAP.105, UX.38, UX.37, UX.21 |
+| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 stays held until Boss sends the error text. | GEN.65, PERF.26, GEN.77, GEN.78, GEN.79, PERF.28, GEN.81, ADM.33, UX.28, UX.24, UX.29, UX.25, NAV.41, UX.36, SEC.31, UX.44, MAP.115, MAP.117, MAP.118, GEN.52, TEST.75, ADM.16, GEN.48, OPS.6, OPS.7, TEST.78, TEST.82, TEST.84, TEST.86, TEST.88, TEST.89, OPS.24, OPS.22, SEC.29, TEST.72, SEC.30, TEST.83, UX.39, OPS.20, DB.11, DB.13, ADM.21, GEN.66, GEN.74, GEN.68, GEN.69, GEN.70, GEN.71, TEST.71, GEN.72, GEN.73, GEN.67, PERF.19, PERF.24, OPS.19, PERF.25, ADM.22, ADM.23, ADM.24, ADM.25, ADM.26, UX.40, UX.26, UX.31, UX.27, UX.2, ADM.14, UX.41, UX.33, ADM.34, NAV.7, MAP.95, NAV.13, NAV.14, MAP.65, MAP.79, NAV.15, NAV.29, NAV.33, MAP.66, MAP.67, MAP.68, MAP.61, NAV.32, MAP.102, MAP.107, MAP.106, MAP.108, MAP.109, MAP.110, MAP.111, MAP.112, MAP.113, MAP.116, NAV.46, GEN.75, MAP.103, MAP.104, MAP.105, UX.38, UX.37, UX.21 |
 | 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, NAV.16, NAV.3, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.41, GEN.98, GEN.100, GEN.99, GEN.101, GEN.102, GEN.103, GEN.84, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, GEN.94, GEN.104, GEN.106, GEN.107, GEN.108, NAV.10, NAV.12, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, NAV.43, NAV.44, MAP.119, MAP.122, MAP.123, MAP.124, MAP.89, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, OPS.8, OPS.13, OPS.14, ADM.18, GEN.59 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.58, MAP.75, MAP.59, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, API.16, MAP.69, MAP.70, ADM.17, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, API.18, VIEW.5 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, repair that reads the newest settings JSON, and the anomalies chosen in phase 2. | MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, MAP.126, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, DB.10, ADM.20, GEN.114, MAP.125, API.19 |
@@ -434,12 +434,6 @@ with `clamp()`.
   Prerequisite: UX.41.
   Plan (2026-10-07): Folded into UX.41: the phenomena list gets faceted
   filters there.
-
-- [ ] **UX.34 The sector summary calls white dwarfs "B-type" and "A-type" systems (bug)**
-  Low. Found by the debug-mode bug hunt (2026-10-02; report and evidence in the project's shared files under `bug-hunt/`). The "Systems: 4 B-type, ..." line in `generate.py`
-  (around line 1449) groups by spectral letter only; in a 40-sector run,
-  all 4 "B-type" and 6 of 9 "A-type" systems were white dwarfs. Done:
-  white dwarfs (and giants) are counted under their own label.
 
 - [ ] **UX.35 The NAV page route shown horizontally, wrapping onto several lines on narrow screens**
   Boss (2026-10-02 01:53Z): "display the path horizontally and find a
@@ -2417,15 +2411,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   layer 121.
   Prerequisite: GEN.78.
 
-- [ ] **GEN.80 Population and species generation runs on worlds without a technological civilization (bug)**
-  Boss (2026-10-07 11:47Z): "Population and species generation should
-  only run for worlds which have a technological civilization."
-  `population.py` (`has_civilization`, `run_pass`) decides who gets a
-  species and polity. Done: species, polities and population are made
-  only for worlds whose life reaches a technological civilization, a
-  population pass over a galaxy removes or skips the others, and a test
-  checks no non-technological world has a species.
-
 - [ ] **GEN.81 The console refuses runs instead of warning and doing what was asked (bug)**
   Boss (2026-10-07 11:47Z): "The console will never tell the user no.
   It will warn about expected size but it will not say no. If there is a
@@ -2433,17 +2418,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   `generate.py` refusal that isn't a bad argument (density, qualify,
   size, "no room") becomes a warning and the run goes ahead; scripts
   that want the old stop get `--strict`.
-
-- [ ] **GEN.82 Black holes show a Hawking temperature and luminosity of zero (bug)**
-  Boss (2026-10-07 11:47Z): "Recheck calculations on Hawking temperature
-  and luminosity of black holes please.  I'm seeing a Luminosity of 0.00
-  x 10^0 W and a temp of 0.00e+00 K which are both absurd." A stellar
-  black hole's Hawking temperature is about 6e-8 K per solar mass and
-  its luminosity about 1e-29 W, so the values are real but tiny; zero
-  means they underflow, aren't stored, or are rounded (`system_pages.py`
-  line 519 prints `.2e`). Done: the formulas are checked against
-  references, the stored values are non-zero, the pages show them in
-  scientific notation, and a test checks a 10 M_sun case.
 
 - [ ] **GEN.83 A planetary habitability index (PHI)**
   Boss (2026-10-03 05:38Z): "Create a habitability index based on the
@@ -3338,16 +3312,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
     ETA.
     Prerequisite: ADM.22.
 
-- [ ] **ADM.27 Changing a planet's class doesn't regenerate its surface conditions (bug)**
-  Boss (2026-10-03 05:38Z): "When changing a class regenerate the
-  planet's surface conditions with the assumption it is that class.
-  Fail gracefully if it cannot do it." Today "Change class" (ADM.6,
-  `adminEdits.py`) stores the new class over the old values. Done: the
-  change regenerates temperature, pressure, atmosphere, composition and
-  life as that class (keeping orbit, mass and name), and when the class
-  can't fit (for example a gas giant class on a small rocky body) it
-  refuses with a message and changes nothing.
-
 - [ ] **ADM.28 A simpler Generate page: layer specs, a Customize window and plain controls**
   Boss (2026-10-07 11:47Z): "Actual specs on layers on the generation
   screen.  Let's also have a customize button that brings up a special
@@ -3754,12 +3718,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   it prints the command as today. macOS (gunicorn) and Windows stay as
   they are unless Boss asks.
 
-- [ ] **OPS.9 Multi-line messages lose their prefix in the debug log (bug)**
-  Low. Found by the debug-mode bug hunt (2026-10-02; report and evidence in the project's shared files under `bug-hunt/`). The sector summary is one log record with embedded
-  newlines, so its "Systems:", "Phenomena:" and "Star density:" lines
-  land in the debug log with no timestamp, process or source. Done: each
-  line is prefixed (or each is logged separately).
-
 - [ ] **OPS.19 The Generate jobs folder is /var/lib/planetgen while the checkout is /var/lib/planetGen (bug)**
   Boss (2026-10-02 03:40Z): "the jobs folder goes under
   /var/lib/planetgen while the main folder is /var/lib/planetGen so it
@@ -3928,7 +3886,7 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
     Done: every technological species stores its six indices and its
     tech level (columns), shown on the species page and searchable;
     existing species get theirs on the next population pass.
-    Prerequisites: POP.8, GEN.80.
+    Prerequisite: POP.8.
     Design: [docs/design/population-and-politics.md](design/population-and-politics.md)
 
 - [ ] **POP.10 Facility types: programmable, picked from a dropdown, with affiliation and Green/Yellow/Red ratings**
