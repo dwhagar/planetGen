@@ -686,6 +686,26 @@ def test_ensure_sector_generated_generates_a_near_empty_density_sector(mysql_con
     assert levels.get(address) == 0
 
 
+def test_a_neighborhood_from_a_sparse_centre_at_the_edge_fills_every_sector_in_range(mysql_config):
+    """
+    GEN.77: a neighborhood run whose centre sector predicts almost no
+    stars (here at the galaxy's outer edge) still generates every sector
+    in range that the outline holds, density-driven, none skipped.
+    """
+    centre = (995, 0, 0)
+    position = sector_position_pc(*centre, EDGE_PC)
+    assert relative_density(position, _SKELETON_SHAPE) < 0.01, "test setup needs a nearly empty centre"
+    _seed_skeleton(mysql_config, layers=_layers(999, 1))
+    _run_cli(["--ring", "995", "--layer", "0", "--slot", "0", "--radius-pc", "6"] + _mysql_argv(mysql_config),
+             planets=False)
+    generated = {_address(row) for row in _all_sectors(mysql_config)}
+    in_range = {(r, l, s) for r, l, s, *_ in enumerate_sectors_within_radius(position, 6.0, EDGE_PC)
+                if r <= 999 and -1 <= l <= 1}
+    assert centre in generated
+    assert len(in_range) > 5
+    assert generated == in_range
+
+
 def test_ensure_sector_generated_passes_relative_density_as_the_density_multiplier(mysql_config, monkeypatch):
     """
     A qualifying sector's actual system count should be driven by its own
