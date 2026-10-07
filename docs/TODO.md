@@ -893,6 +893,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the button order, sometimes appearing out of numerical order." Done:
   slab buttons and their leader lines are always in slab-number order
   (`galaxystageview.js`), with a test.
+  Progress (2026-10-07): PR #491 fixed the crossing lines only; the
+  buttons still follow on-screen order, which can differ from slab
+  number order after the view turns.
 
 - [ ] **MAP.111 "Generated only" should be "Charted only" and dim the stars too (bug)**
   Boss (2026-10-03 05:38Z): "In the full galaxy view when I select
