@@ -10,6 +10,7 @@ Run with: pytest src/tests/test_install_python_deps.py
 import ast
 import os
 import re
+import subprocess
 import sys
 
 import pytest
@@ -109,7 +110,7 @@ def test_managed_paths_try_apt_first():
     script = _code(_read("scripts", "install-python-deps.sh"))
     for name in ("install_managed", "check_requirements"):
         body = _function(script, name)
-        assert body.index("apt_install") < body.index("pip_install_system"), name
+        assert body.index("apt_install") < body.index("pip_install_needed"), name
         assert "remove_legacy_venv" in body, name
 
 
@@ -227,7 +228,7 @@ def test_bash_scripts_avoid_bash4_only_features(parts):
     code = _code(_read(*parts))
     for word in ("mapfile", "readarray", "declare -A", "local -A", "declare -n", "local -n", ",,}", "^^}"):
         assert word not in code, (parts, word)
-    never_empty = {"REQUIREMENTS", "SPECS", "enabled", "need", "pins", "owned", "databases", "wanted", "lacking", "before"}
+    never_empty = {"REQUIREMENTS", "SPECS", "NUMPY_STACK", "enabled", "need", "pins", "owned", "databases", "wanted", "lacking", "before"}
     for name in re.findall(r'(?<!\+)"\$\{(\w+)\[@\]', code):
         if name not in never_empty:
             unguarded = re.search(r'(?<!\+)"\$\{%s\[@\]' % name, code.replace('+"${%s[@]' % name, ""))
@@ -278,3 +279,75 @@ def test_server_lock_has_the_app_servers():
     assert {"gunicorn", "waitress"} <= names
     for name, version, _, hashes in pins:
         assert hashes, f"{name}=={version}"
+
+
+# --- OPS.26: the NumPy stack comes from one place ------------------------------
+
+NUMPY_LINKED = {"numpy", "scipy", "astropy", "scikit-image"}
+"""Runtime requirements with compiled code built against NumPy's C API."""
+
+
+def _numpy_stack():
+    text = _read("scripts", "install-python-deps.sh")
+    block = re.search(r"^NUMPY_STACK=\((.*?)\)", text, re.M).group(1)
+    names = re.search(r'^NUMPY_STACK_NAMES=" (.*) "', text, re.M).group(1).split()
+    return re.findall(r'"(\S+)"', block), names
+
+
+def test_the_numpy_stack_lists_every_numpy_built_requirement():
+    specs, names = _numpy_stack()
+    assert NUMPY_LINKED <= {spec.split(">=")[0] for spec in _script_requirements()}
+    assert {spec.split(">=")[0] for spec in specs} == NUMPY_LINKED | {"pyerfa"} == set(names)
+    # Each at setup.py's own floor.
+    for spec in specs:
+        if spec.split(">=")[0] in NUMPY_LINKED:
+            assert spec in _script_requirements(), spec
+    lock_pins = _lock_pins()
+    locked = {name for name, _, _, _ in lock_pins.read_lock(os.path.join(ROOT, "requirements.lock"))}
+    assert "pyerfa" in locked
+
+
+def test_managed_paths_install_the_numpy_stack_whole():
+    script = _code(_read("scripts", "install-python-deps.sh"))
+    for name in ("install_managed", "check_requirements"):
+        body = _function(script, name)
+        assert "pip_install_needed" in body and "pip_install_system" not in body, name
+    pip = _function(script, "pip_install_system")
+    assert "--ignore-installed" in pip and "return 4" in pip
+
+
+def _run_needed(tmp_path, specs, rest_status):
+    """Runs the script's pip_install_needed with a stub pip_install_system
+    that records each call and returns `rest_status` for one without
+    --whole."""
+    script = _read("scripts", "install-python-deps.sh")
+    stack = re.search(r"^NUMPY_STACK=.*$", script, re.M).group(0)
+    names = re.search(r"^NUMPY_STACK_NAMES=.*$", script, re.M).group(0)
+    needed = _function(script, "pip_install_needed") + "\n}\n"
+    calls = tmp_path / "calls"
+    harness = "\n".join([
+        "set -euo pipefail", stack, names,
+        f'pip_install_system() {{ echo "$*" >> "{calls}"; [[ "$1" == --whole ]] || return {rest_status}; }}',
+        needed, "pip_install_needed " + " ".join(f'"{spec}"' for spec in specs),
+    ])
+    subprocess.run(["bash", "-c", harness], check=True, capture_output=True, text=True)
+    return calls.read_text().splitlines() if calls.exists() else []
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="bash")
+def test_a_stack_library_brings_the_whole_stack(tmp_path):
+    specs, _names = _numpy_stack()
+    calls = _run_needed(tmp_path, ["redis>=5.0.0", "scipy>=1.13.0"], 0)
+    assert calls == ["redis>=5.0.0", "--whole " + " ".join(specs)]
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="bash")
+def test_a_library_that_would_pull_in_numpy_brings_the_whole_stack(tmp_path):
+    specs, _names = _numpy_stack()
+    calls = _run_needed(tmp_path, ["redis>=5.0.0"], 4)
+    assert calls == ["redis>=5.0.0", "--whole " + " ".join(specs)]
+
+
+@pytest.mark.skipif(sys.platform == "win32", reason="bash")
+def test_other_libraries_leave_the_stack_alone(tmp_path):
+    assert _run_needed(tmp_path, ["redis>=5.0.0"], 0) == ["redis>=5.0.0"]

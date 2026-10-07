@@ -610,7 +610,10 @@ GALAXY_FLOATS = ["5e-324", "1e-9", "0.5", "4", "12", "-1", "0", "1e300"]
 @st.composite
 def galaxy_argv(draw, center_id):
     mode = draw(st.sampled_from(["ring", "slot", "center", "random"]))
-    argv = ["galaxy", "--quiet"]
+    # --strict: the old refusals (an address outside the outline, a huge
+    # ring) stay refusals here, so nothing lands outside the outline and
+    # no hostile ring is generated whole (GEN.81 warns and goes ahead).
+    argv = ["galaxy", "--quiet", "--strict"]
     if mode in ("ring", "slot"):
         argv += ["--ring", draw(st.sampled_from(GALAXY_INTS))]
         if draw(st.booleans()):

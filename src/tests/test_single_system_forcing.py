@@ -14,7 +14,7 @@ from planetgen.generation.system import StarSystem
 from tests.bughunt_support import run_cli
 
 
-def test_a_system_that_never_meets_a_forced_option_is_not_saved(tmp_path, monkeypatch, capsys):
+def _never_habitable(monkeypatch):
     built = []
 
     class NeverHabitable(StarSystem):
@@ -24,14 +24,31 @@ def test_a_system_that_never_meets_a_forced_option_is_not_saved(tmp_path, monkey
             self.unmet_requirements = ["a habitable world"]
 
     monkeypatch.setattr(generate, "StarSystem", NeverHabitable)
+    return built
+
+
+def test_a_system_with_no_room_for_a_forced_option_warns_and_keeps_the_last_try(tmp_path, monkeypatch, capsys):
+    # GEN.81: the console warns and does what was asked.
+    built = _never_habitable(monkeypatch)
+    out = tmp_path / "system.md"
+    run_cli("system", ["--star-type", "O5V", "+habitable_world", "--output", str(out)])
+    assert len(built) == tuning.SINGLE_SYSTEM_GENERATION_ATTEMPTS
+    assert out.exists()
+    captured = capsys.readouterr()
+    assert "WARNING:" in captured.out + captured.err
+    assert "the last one is kept without it" in captured.out + captured.err
+
+
+def test_a_system_that_never_meets_a_forced_option_is_not_saved_under_strict(tmp_path, monkeypatch, capsys):
+    built = _never_habitable(monkeypatch)
     out = tmp_path / "system.md"
     with pytest.raises(SystemExit) as exc:
-        run_cli("system", ["--star-type", "O5V", "+habitable_world", "--output", str(out)])
+        run_cli("system", ["--star-type", "O5V", "+habitable_world", "--output", str(out), "--strict"])
     assert exc.value.code == 1
     assert len(built) == tuning.SINGLE_SYSTEM_GENERATION_ATTEMPTS
     assert not out.exists()
     captured = capsys.readouterr()
-    assert "nothing was saved" in captured.out + captured.err
+    assert "No system with a habitable world" in captured.out + captured.err
 
 
 def test_a_hot_star_with_a_forced_habitable_world_has_one_or_fails(tmp_path, monkeypatch):
