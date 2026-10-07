@@ -38,7 +38,6 @@ Done: all eight items landed in PR #442 (2026-10-07).
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| PERF.28 | The console's second progress bar (the bright-star backfill after a sector run) never updates its ETA (bug) |  |  |
 | GEN.81 | The console refuses runs instead of warning and doing what was asked (bug) |  |  |
 | ADM.33 | The owner can override "no room" warnings and generate anyway | GEN.81 | Groundwork for GEN.81 on the web side. |
 
@@ -201,7 +200,7 @@ sends the error text.
 The Sector and system pages lane is paused: UX.24 and UX.29 were
 committed only in its container (not pushed) and UX.25 is half
 built, so that work may be lost. UX.28's icon set is approved.
-MAP.101 is done (PR #431). OPS.23 is done (PR #435, the package layout plan). OPS.21 is done (PR #437, pins and Redis). The CI red group is done (PR #442: GEN.76, OPS.25, DB.12, PERF.27, TEST.80, TEST.81, TEST.87, MAP.114). GEN.82, UX.34, OPS.9, GEN.80 and ADM.27 are done (PR #448).
+MAP.101 is done (PR #431). OPS.23 is done (PR #435, the package layout plan). OPS.21 is done (PR #437, pins and Redis). The CI red group is done (PR #442: GEN.76, OPS.25, DB.12, PERF.27, TEST.80, TEST.81, TEST.87, MAP.114). GEN.82, UX.34, OPS.9, GEN.80 and ADM.27 are done (PR #448). PERF.28 is done (PR #454).
 
 ## Open questions for Boss
 
