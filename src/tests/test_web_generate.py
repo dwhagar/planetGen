@@ -25,7 +25,7 @@ from planetgen.api.authz import SESSION_COOKIE_NAME
 from planetgen.api.config import Config
 
 from planetgen.web.lib import apiclient  # noqa: E402
-from planetgen.queue import progress_file  # noqa: E402
+from planetgen.queue import progress_file, redisqueue  # noqa: E402
 from planetgen.web import csrf, generate_page, jobs  # noqa: E402
 
 DB = "planetgen_generate_test"
@@ -1157,7 +1157,7 @@ def test_without_redis_windows_runs_the_job_itself(jobs_root, monkeypatch):
     # then runs in planetgen.web.job_runner, started the same way.
     monkeypatch.setenv("PLANETGEN_REDIS_URL", "redis://127.0.0.1:1/0")
     monkeypatch.setattr(jobs, "WINDOWS", True)
-    monkeypatch.setattr(jobs, "_detached_options", lambda: [{"start_new_session": True}])
+    monkeypatch.setattr(redisqueue, "detached_options", lambda: [{"start_new_session": True}])
     job_id = jobs.start_job("reset", "Direct", [_step("x", "print('ran directly')")])
     monkeypatch.setattr(jobs, "WINDOWS", False)   # liveness checks as on this machine
     job = _wait_finished(job_id, jobs_root)
@@ -1166,7 +1166,6 @@ def test_without_redis_windows_runs_the_job_itself(jobs_root, monkeypatch):
 
 
 def test_a_job_runs_on_its_own_queue_and_leaves_none_behind(jobs_root, redis_server):
-    from planetgen.queue import redisqueue
 
     job_id = jobs.start_job("reset", "Queued", [_step("x", "print('queued')")])
     job = _wait_finished(job_id, jobs_root)

@@ -33,6 +33,7 @@ import pymysql
 from flask import Blueprint, current_app, g, jsonify, request
 
 from planetgen.generation import run_galaxy
+from planetgen.queue import api_jobs
 
 from planetgen.db.query import (
     facilities_for_system,
@@ -1157,29 +1158,64 @@ def generate_sector_neighborhood_route(sector_id):
     if not isinstance(estimate_only, bool):
         raise ApiError(f"'estimate_only' is invalid: {estimate_only!r}")
 
+    config = _resolve_requested_write_db_config()
+    if not estimate_only:
+        try:
+            run_galaxy.require_math_check()
+        except RuntimeError as exc:
+            raise ApiError(str(exc), status_code=409)
     try:
+        # A real run is estimated first, so an unknown sector (404), a
+        # missing skeleton (409) and a database disk that can't hold it
+        # (507) answer here, before anything is queued.
         result = run_galaxy.generate_sector_neighborhood(
-            sector_id, radius_ly=radius_ly, config=_resolve_requested_write_db_config(),
-            estimate_only=estimate_only,
+            sector_id, radius_ly=radius_ly, config=config, estimate_only=True,
         )
     except ValueError as exc:
         raise ApiError(str(exc), status_code=404)
-    except run_galaxy.GenerationRefused as exc:
-        # PERF.3: the database disk can't hold it; nothing was written.
-        raise ApiError(str(exc), status_code=507)
     except RuntimeError as exc:
-        # The galaxy's density skeleton (`planetgen plan`) has never
-        # been built -- generate_sector_neighborhood needs it to gate each
-        # candidate slot's own generation on local stellar density.
         raise ApiError(str(exc), status_code=409)
-
     if estimate_only:
         return jsonify(result)
+    if result["estimate"].get("refusal"):
+        # PERF.3: the database disk can't hold it; nothing is queued.
+        raise ApiError(result["estimate"]["refusal"], status_code=507)
+
+    try:
+        job_id = api_jobs.submit(api_jobs.generate_neighborhood, sector_id, radius_ly, config)
+    except api_jobs.NoQueue as exc:
+        raise ApiError(str(exc), status_code=503)
     audit(
         "sector.generate_neighborhood", target=f"sector:{sector_id}",
-        detail=f"radius_ly={radius_ly!r} generated={result['generated']}",
+        detail=f"radius_ly={radius_ly!r} job={job_id}",
     )
-    return jsonify(result)
+    return _accepted(job_id)
+
+
+def _accepted(job_id):
+    """`202 Accepted` for work queued as job `job_id`: its state is at the
+    `Location` header's `GET /api/jobs/<id>`."""
+    url = f"/api/jobs/{job_id}"
+    response = jsonify({"status": "accepted", "job_id": job_id, "status_url": url})
+    response.status_code = 202
+    response.headers["Location"] = url
+    return response
+
+
+@bp.route("/jobs/<job_id>", methods=["GET"])
+@require_admin()
+def job_status_route(job_id):
+    """`GET /api/jobs/<id>` -- where a queued API job stands: `state`
+    (`queued`, `running`, `succeeded` or `failed`), its `result` once it
+    succeeded and its `error` once it failed (PERF.24). 404 for an
+    unknown or expired id; results are kept for a day."""
+    try:
+        job = api_jobs.status(job_id)
+    except api_jobs.NoQueue as exc:
+        raise ApiError(str(exc), status_code=503)
+    if job is None:
+        raise ApiError(f"no such job: {job_id}", status_code=404)
+    return jsonify(job)
 
 
 SYSTEM_CONFIG_TRISTATE_FIELDS = {

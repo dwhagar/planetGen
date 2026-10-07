@@ -137,7 +137,7 @@ Done: all eight items landed in PR #442 (2026-10-07).
 | MAP.106 | The breadcrumb trail falls out of sync with the map (bug) | NAV.14, MAP.67, MAP.107 | Fixed by the engine's one URL and history scheme (MAP.67) and NAV.14's breadcrumb. |
 | MAP.108 | Empty slabs and wedges near the core can't be selected, and the side buttons block clicks (bug) | MAP.65 |  |
 | MAP.109 | Zooming in and out loads slowly (bug) | MAP.102 |  |
-| MAP.110 | Slab button lines come out of numerical order (bug) |  |  |
+| MAP.110 | Slab button lines come out of numerical order (bug) |  | PR #491 fixed the crossing lines only; buttons still follow on-screen order. |
 | MAP.111 | "Generated only" should be "Charted only" and dim the stars too (bug) |  |  |
 | MAP.112 | Nothing can be selected while "Generated only" is on (bug) | MAP.65, MAP.111 |  |
 | MAP.113 | A nebula covering the whole sector can't be unselected, and nebulae need a show/hide toggle (bug) | MAP.79 | The toggle is one of MAP.79's per-kind buttons. |

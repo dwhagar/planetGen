@@ -919,7 +919,7 @@ def generate_sector_neighborhood(center_sector_id, radius_ly=None, config=None, 
     # num_systems=10 default.
     args.density = None
     args.num_systems = None
-    args.workers = 1   # this runs in the web process, one sector at a time
+    args.workers = 1   # one sector at a time, in whichever process called this
 
     batch, already_existed, skipped = _neighborhood_batch(args, candidates, occupied, batch_density)
     counts = {
