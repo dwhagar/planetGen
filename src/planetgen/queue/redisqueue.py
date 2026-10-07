@@ -67,10 +67,10 @@ def worker_class():
     return rq.Worker if hasattr(os, "fork") else rq.SpawnWorker
 
 
-def worker_argv(names, url, name=None):
+def worker_argv(names, url, name=None, python=None):
     """The command line of one burst worker for queues `names`, called
-    `name` when given."""
-    return [sys.executable, "-m", "planetgen.cli.worker", "--burst", "--url", url,
+    `name` when given, run by `python` (default this interpreter)."""
+    return [python or sys.executable, "-m", "planetgen.cli.worker", "--burst", "--url", url,
             *(["--name", name] if name else []), *names]
 
 

@@ -19,7 +19,7 @@ import pytest
 
 from planetgen.cli import generate as generate_cli
 from planetgen.galaxy.geometry import ring_sector_count
-from planetgen.cli import job as jobRunner
+from planetgen.web import job_runner as jobRunner
 from planetgen.queue import work
 from planetgen.db import store as _db
 
@@ -128,7 +128,7 @@ def test_a_fresh_control_schema_matches_the_added_columns(control_config):
 # Nodes
 # ---------------------------------------------------------------------------
 
-def test_nodes_nest_and_every_node_is_timed(control_config):
+def test_nodes_nest_and_every_node_is_timed(control_config, redis_server):
     with work.job_node("plan", "Plan the galaxy", control_config, argv=["plan"], database="g1") as root:
         with work.job_node("skeleton", "Galaxy skeleton") as skeleton:
             time.sleep(0.02)

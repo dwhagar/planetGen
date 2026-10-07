@@ -2,7 +2,7 @@
 
 """
 The admin Generate page (`web/generate_page.py`), its background jobs
-(`web/jobs.py`) and their runner (`planetgen.cli.job`).
+(`web/jobs.py`) and their runner (`planetgen.web.job_runner`).
 
 The page tests fake the logged-in admin and the galaxy summary through
 `apiclient`, and point the jobs directory at `tmp_path`. The job tests
@@ -711,7 +711,7 @@ def _step(label, code):
     return {"label": label, "argv": [PY, "-c", code]}
 
 
-def test_runner_runs_steps_in_order_and_reports_progress(jobs_root):
+def test_runner_runs_steps_in_order_and_reports_progress(jobs_root, redis_server):
     progress = (
         "from planetgen.queue import progress_file; "
         "progress_file.report(3, 10, 'Sectors', force=True); print('made three')"
@@ -738,7 +738,7 @@ def test_runner_runs_steps_in_order_and_reports_progress(jobs_root):
         time.sleep(0.05)
 
 
-def test_runner_stops_at_the_first_failure(jobs_root):
+def test_runner_stops_at_the_first_failure(jobs_root, redis_server):
     job_id = jobs.start_job("new_galaxy", "Fails", [
         _step("Breaks", "import sys; print('boom'); sys.exit(3)"),
         _step("Never", "print('should not run')"),
@@ -749,7 +749,7 @@ def test_runner_stops_at_the_first_failure(jobs_root):
     assert "should not run" not in jobs.log_tail(job_id)
 
 
-def test_cancel_stops_the_running_step(site, client, jobs_root):
+def test_cancel_stops_the_running_step(site, client, jobs_root, redis_server):
     job_id = jobs.start_job("galaxy", "Slow", [
         _step("Sleeps", "import time; print('sleeping', flush=True); time.sleep(60)"),
         _step("Never", "print('should not run')"),
@@ -769,7 +769,7 @@ def test_cancel_stops_the_running_step(site, client, jobs_root):
     assert "cancelled" in html and "Cancel job" not in html
 
 
-def test_cancel_stops_the_steps_own_children(jobs_root, tmp_path):
+def test_cancel_stops_the_steps_own_children(jobs_root, tmp_path, redis_server):
     """Cancel stops the step's whole process tree (a `plan` pool's
     workers), not just the step: a grandchild that would write a file
     after a few seconds never gets to."""
@@ -797,7 +797,7 @@ def test_cancel_is_a_file_the_runner_reads(jobs_root):
     path = os.path.join(jobs_root, job_id)
     with open(os.path.join(path, jobs.CANCEL_NAME), "w") as f:
         f.write("now")
-    from planetgen.cli import job as jobRunner
+    from planetgen.web import job_runner as jobRunner
     assert jobRunner.CANCEL_NAME == jobs.CANCEL_NAME
     assert jobRunner.run(path) == 1
     job = jobs.get_job(job_id)
@@ -806,7 +806,7 @@ def test_cancel_is_a_file_the_runner_reads(jobs_root):
     assert jobs.active_job() is None
 
 
-def test_cancel_of_a_finished_job_does_nothing(jobs_root):
+def test_cancel_of_a_finished_job_does_nothing(jobs_root, redis_server):
     job_id = jobs.start_job("reset", "Quick", [_step("x", "pass")])
     _wait_finished(job_id, jobs_root)
     assert jobs.cancel_job(job_id) is False
@@ -816,7 +816,7 @@ def test_cancel_of_a_finished_job_does_nothing(jobs_root):
 def test_state_file_write_retries_while_the_page_reads_it(tmp_path, monkeypatch):
     """Windows refuses to replace a file another process has open; the
     runner waits for the reader to close it instead of failing."""
-    from planetgen.cli import job as jobRunner
+    from planetgen.web import job_runner as jobRunner
     real_replace = os.replace
     failures = []
 
@@ -848,7 +848,7 @@ def test_runner_liveness_on_this_platform(jobs_root):
         assert not jobs._runner_alive(os.getpid(), "any", 0.0 + 1)
 
 
-def test_old_jobs_are_pruned(jobs_root, monkeypatch):
+def test_old_jobs_are_pruned(jobs_root, monkeypatch, redis_server):
     monkeypatch.setattr(jobs, "keep_count", lambda: 2)
     ids = []
     for i in range(4):
@@ -885,7 +885,7 @@ def test_python_executable_falls_back_when_embedded(monkeypatch):
 
 # --- Real database ----------------------------------------------------------------
 
-def test_reset_job_empties_a_real_database(mysql_config, jobs_root):
+def test_reset_job_empties_a_real_database(mysql_config, jobs_root, redis_server):
     from planetgen.db import store as _db
     from planetgen.galaxy.sector import SpaceSector
 
@@ -1140,3 +1140,36 @@ def test_every_generating_job_checks_the_math_first(action, form):
 def test_a_plain_reset_has_no_math_step():
     kind, title, steps = generate_page.build_job("reset", {"confirm": DB}, DB)
     assert [step["label"] for step in steps] == ["Reset the galaxy"]
+
+
+# --- PERF.24: jobs run on Redis ------------------------------------------------------
+
+def test_without_redis_no_job_starts(jobs_root, monkeypatch):
+    monkeypatch.setenv("PLANETGEN_REDIS_URL", "redis://127.0.0.1:1/0")
+    monkeypatch.setattr(jobs, "WINDOWS", False)
+    with pytest.raises(OSError, match="no Redis server"):
+        jobs.start_job("reset", "No Redis", [_step("x", "pass")])
+    assert jobs.active_job(jobs_root) is None
+
+
+def test_without_redis_windows_runs_the_job_itself(jobs_root, monkeypatch):
+    # Redis on Windows runs in WSL, which a machine may not have: the job
+    # then runs in planetgen.web.job_runner, started the same way.
+    monkeypatch.setenv("PLANETGEN_REDIS_URL", "redis://127.0.0.1:1/0")
+    monkeypatch.setattr(jobs, "WINDOWS", True)
+    monkeypatch.setattr(jobs, "_detached_options", lambda: [{"start_new_session": True}])
+    job_id = jobs.start_job("reset", "Direct", [_step("x", "print('ran directly')")])
+    monkeypatch.setattr(jobs, "WINDOWS", False)   # liveness checks as on this machine
+    job = _wait_finished(job_id, jobs_root)
+    assert job["status"] == "succeeded"
+    assert "ran directly" in jobs.log_tail(job_id, root=jobs_root)
+
+
+def test_a_job_runs_on_its_own_queue_and_leaves_none_behind(jobs_root, redis_server):
+    from planetgen.queue import redisqueue
+
+    job_id = jobs.start_job("reset", "Queued", [_step("x", "print('queued')")])
+    job = _wait_finished(job_id, jobs_root)
+    assert job["status"] == "succeeded"
+    queue = redisqueue.queue(jobs.QUEUE_PREFIX + job_id, redisqueue.connect(redis_server))
+    assert queue.count == 0 and queue.key.encode() not in redisqueue.connect(redis_server).smembers("rq:queues")

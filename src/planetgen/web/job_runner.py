@@ -1,10 +1,12 @@
-#!/usr/bin/env python3
-# planetgen.cli.job
+# planetgen/web/job_runner.py
 
 """
-Runs one background job the web interface's admin Generate page started
-(`planetgen/web/jobs.py` spawns `python3 -m planetgen.cli.job <job dir>` detached
-from the web server, then returns right away).
+Runs one background job the web interface's admin Generate page started,
+as an RQ job (PERF.24 step 3): `planetgen.web.jobs.start_job` queues
+`run(<job dir>)` on a queue of the job's own and starts a burst worker
+(`planetgen.cli.worker`) for it, detached from the web server, then
+returns right away. On Windows without a Redis server it starts
+`python -m planetgen.web.job_runner <job dir>` instead.
 
 A job is a list of steps, each one command line (`planetgen.cli.reset`, then
 `planetgen plan`, then `planetgen galaxy ...`). This runs them in
@@ -16,10 +18,15 @@ running and how the job ended:
      "pid": 1234, "step": 2, "started_at": ..., "finished_at": ...,
      "exit_code": 0, "error": "..."}
 
+`pid` is the job's worker (`runner.pid`), whose command line carries the
+job's id, so the page can tell a live job from one whose worker died.
+
 It stops at the first step that fails. The page's Cancel button writes a
 `cancel` file into the job directory; this checks for it while a step
 runs, stops the step and every process it started, and marks the job
-cancelled. SIGTERM does the same (a server shutting down, on POSIX).
+cancelled. (A file rather than RQ's stop command: that kills the worker's
+work horse and would leave the step and its processes running.) SIGTERM
+does the same (a server shutting down, on POSIX).
 When it is done it removes the jobs directory's `active` lock, if the lock is still
 this job's, so the next job can start.
 
@@ -29,9 +36,9 @@ a "web-job" node with one "step" node per step, each step's
 (`work.PARENT_ENV_VAR`), so the admin queue page shows the whole
 job with timings. That part is best effort.
 
-Standard library only at the top: this starts before anything else is
-imported, so a broken install still leaves a readable `state.json`
-behind (`_JobTree` imports the rest only once that is written).
+Standard library only at the top, so a broken install still leaves a
+readable `state.json` behind (`_JobTree` imports the rest only once that
+is written).
 """
 
 import json
@@ -48,6 +55,9 @@ LOCK_NAME = "active"
 CANCEL_NAME = "cancel"
 """str: The file in a job's directory that asks it to stop (must match
 `jobs.CANCEL_NAME`)."""
+
+PID_NAME = "runner.pid"
+"""str: The job's worker's pid, written by `jobs.start_job`."""
 
 CANCELLED_EXIT_CODE = 130
 """int: A step's exit status when an admin cancelled it from the queue
@@ -98,6 +108,28 @@ def _stop_tree(proc):
     try:
         os.killpg(proc.pid, signal.SIGTERM)
     except OSError:
+        pass
+
+
+def _worker_pid(job_dir):
+    """The job's worker's pid (`PID_NAME`), else this process's."""
+    try:
+        with open(os.path.join(job_dir, PID_NAME), "r", encoding="utf-8") as f:
+            return int(f.read().strip())
+    except (OSError, ValueError):
+        return os.getpid()
+
+
+def _drop_queue(job_id):
+    """Forgets the job's own RQ queue once it's done (best effort); its
+    burst worker then finds it empty and exits."""
+    try:
+        from planetgen.queue import redisqueue
+        from planetgen.web import jobs
+
+        connection = redisqueue.connect()
+        redisqueue.queue(jobs.QUEUE_PREFIX + job_id, connection).delete(delete_jobs=False)
+    except Exception:  # noqa: BLE001 -- a leftover empty queue is harmless
         pass
 
 
@@ -207,7 +239,7 @@ def run(job_dir):
 
     state_path = os.path.join(job_dir, "state.json")
     progress_path = os.path.join(job_dir, "progress.json")
-    state = {"status": "running", "pid": os.getpid(), "step": 0, "started_at": time.time(),
+    state = {"status": "running", "pid": _worker_pid(job_dir), "step": 0, "started_at": time.time(),
              "finished_at": None, "exit_code": None, "error": None}
     _write_json(state_path, state)
 
@@ -294,6 +326,7 @@ def run(job_dir):
         state["finished_at"] = time.time()
         _write_json(state_path, state)
         _release_lock(jobs_dir, job["id"])
+        _drop_queue(job["id"])
         tree.close(step_node, "failed")
         tree.close(tree.root, _TREE_STATES.get(state["status"], "failed"))
     return 0 if state["status"] == "succeeded" else 1
@@ -301,5 +334,5 @@ def run(job_dir):
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
-        sys.exit("usage: planetgen.cli.job <job dir>")
+        sys.exit("usage: python -m planetgen.web.job_runner <job dir>")
     sys.exit(run(sys.argv[1]))

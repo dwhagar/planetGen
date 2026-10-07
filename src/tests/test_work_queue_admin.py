@@ -141,7 +141,7 @@ def test_a_cancelled_run_starts_no_new_phase(control_config):
                 raise AssertionError("should not start")
 
 
-def test_pausing_the_whole_queue_holds_every_run(control_config):
+def test_pausing_the_whole_queue_holds_every_run(control_config, redis_server):
     assert _call(control_config, workQueue.pause_queue, "boss")
     assert not _call(control_config, workQueue.pause_queue, "boss")
     waits = []
@@ -210,7 +210,7 @@ def test_stale_lease_is_cleared_and_live_one_kept(control_config):
     assert _call(control_config, workQueue.clear_stale_lease) is None
 
 
-def test_workers_active_counts_running_queues(control_config):
+def test_workers_active_counts_running_queues(control_config, redis_server):
     with workQueue.job_node("galaxy", "Run", control_config):
         with workQueue.WorkQueue("Pool", workers=3, control_config=control_config):
             status = _call(control_config, workQueue.queue_status)

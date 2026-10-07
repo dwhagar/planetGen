@@ -384,10 +384,25 @@ jobs:
     # The admin Generate page's background jobs on native Windows:
     # spawning the runner detached, liveness through OpenProcess, Cancel
     # through the job's cancel file and taskkill /T, and the state file
-    # write retry. No MySQL here; the one database test skips.
+    # write retry. No MySQL here; the one database test skips. Jobs run
+    # on Redis (PERF.24), which has no Windows build: it runs in WSL, as
+    # docs/deployment/windows.md sets it up (OPS.27), and the jobs' RQ
+    # workers are SpawnWorkers.
     runs-on: ${{ fromJSON((!github.event.pull_request.head.repo.fork && vars.SELF_HOSTED == 'true' && (vars.RUNNER_WINDOWS || '["self-hosted", "Windows"]')) || '"windows-latest"') }}
     steps:
       - uses: actions/checkout@v4
+
+      - uses: Vampire/setup-wsl@v5
+        with:
+          distribution: Ubuntu-24.04
+          additional-packages: redis-server
+
+      - name: Start Redis in WSL
+        shell: wsl-bash {0}
+        run: |
+          redis-server --daemonize yes --port 6379 --bind 0.0.0.0 --protected-mode no
+          sleep 1
+          redis-cli ping
 
       - uses: actions/setup-python@v5
         id: setup-python
@@ -449,7 +464,9 @@ jobs:
         run: python -m nltk.downloader words
 
       - name: Run the Generate page and job tests
-        run: pytest src/tests/test_web_generate.py -rs -p no:cacheprovider
+        env:
+          PLANETGEN_TEST_REDIS_URL: redis://127.0.0.1:6379/0
+        run: pytest src/tests/test_web_generate.py src/tests/test_redis_queue.py -rs -p no:cacheprovider
 
   macos-installers:
     needs: mathcheck
