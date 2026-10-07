@@ -36,7 +36,7 @@ def _is_api_request():
 
 def create_app(config_object=Config):
     # The HTML pages (planetgen/web/), imported here rather than at the top so
-    # `import api.app` stays cheap for callers that never build an app.
+    # `import planetgen.web.app` stays cheap for callers that never build an app.
     from planetgen import web
 
     # /static/ is src/html/static/ -- Apache serves it directly in

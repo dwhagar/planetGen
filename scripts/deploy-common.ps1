@@ -508,10 +508,9 @@ function Test-AppImports {
     & $python -c @"
 import os, sys
 root = sys.argv[1]
-sys.path[:0] = [os.path.join(root, 'src', 'html'), os.path.join(root, 'src')]
+sys.path.insert(0, os.path.join(root, 'src'))
 import stellarObjects
-from api.app import create_app
-import web
+from planetgen.web.app import create_app
 "@ $Root
     if ($LASTEXITCODE -ne 0) { throw "The web app does not import with $python (see above)." }
     Write-Host "The web app and stellarObjects import cleanly with $python."

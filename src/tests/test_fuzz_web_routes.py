@@ -3,7 +3,7 @@
 """
 Brute-force/property-based tests for every route of the Flask app: the
 HTML pages (`src/planetgen/web/`) and the JSON API (`src/planetgen/api/`), both
-served by `api.app.create_app`.
+served by `planetgen.web.app.create_app`.
 
 The routes are not hand-listed: the sweeps walk `app.url_map`, so a route
 added later is fuzzed without touching this file. Hypothesis throws

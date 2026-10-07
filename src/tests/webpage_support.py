@@ -1,7 +1,7 @@
 # tests/webpage_support.py
 
 """
-`live_api(mysql_config)`: a pytest fixture that starts `api.app.create_app()`
+`live_api(mysql_config)`: a pytest fixture that starts `planetgen.web.app.create_app()`
 on a real background thread (`werkzeug.serving.make_server`, not Flask's
 own `app.run()`, which blocks) bound to `127.0.0.1:0` (OS-assigned free
 port), pointed at the fixture's throwaway database. Yields the API's base

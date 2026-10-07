@@ -186,7 +186,7 @@ def _install_page_cache(app):
 
 def init_app(app, limiter=None):
     """
-    Registers the pages on `app`. Called by `api.app.create_app`.
+    Registers the pages on `app`. Called by `planetgen.web.app.create_app`.
 
     Args:
         app (flask.Flask): The app.
