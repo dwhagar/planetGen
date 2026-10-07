@@ -370,6 +370,16 @@ def _with_planet(system):
     return any(p.body_type != 'a' for p in system.planets)
 
 
+def _with_reclassable_planet(system):
+    """A planet first, and another class that fits its mass (ADM.27): a
+    rare mass can fit only its own class."""
+    if not _with_planet(system):
+        return False
+    planet = _first_planet(system)
+    return any(c != planet.planet_class and adminEdits.class_fits_mass(c, planet.mass)
+               for c in tuning.PLANET_CLASSES)
+
+
 def test_class_options_lists_recommended_classes(admin, mysql_config):
     _sector_id, system_id = _saved_system(mysql_config, _with_planet)
     system = _load(mysql_config, system_id)
@@ -505,7 +515,7 @@ def test_change_star_refuses_a_binary(mysql_config):
 
 
 def test_system_page_changes_a_class(web_app, mysql_config):
-    _sector_id, system_id = _saved_system(mysql_config, _with_planet)
+    _sector_id, system_id = _saved_system(mysql_config, _with_reclassable_planet)
     planet = _first_planet(_load(mysql_config, system_id))
     client = _web_admin(web_app, mysql_config)
     html = client.get(f"/system/{system_id}").get_data(as_text=True)
