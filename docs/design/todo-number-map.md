@@ -24,7 +24,7 @@ release is stamped.
 | SEC | SEC.32 |
 | TEST | TEST.90 |
 | USR | USR.9 |
-| OPS | OPS.26 |
+| OPS | OPS.27 |
 | DOC | DOC.4 |
 | VIEW | VIEW.6 |
 | POP | POP.11 |
@@ -776,6 +776,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.23 | A package layout plan for the reorganization | none | done, PR #435 |
 | OPS.24 | Move the code into the new package layout, one package per PR | none | open |
 | OPS.25 | Update tries to drop bright_star_blocks, a table that no longer exists (bug) | none | done, PR #442 |
+| OPS.26 | Installer mixes apt's NumPy-1 builds (astropy, erfa, scikit-image) with pip's NumPy 2, so the requirements probe fails (bug) | none | open |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
 | PERF.3 | Estimate size and time before bulk generation | 86 (2026-10-01 03:15Z to 05:29Z) | done, PR #238 (stats in control schema v6) |
