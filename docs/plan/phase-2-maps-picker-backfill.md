@@ -58,8 +58,8 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| UX.32 | Planet rows show the class only, without the type and moon labels | UX.29 | Same rows as UX.30; one thread. |
-| UX.30 | Planet information without the Markdown render | UX.22, UX.32, UX.29 | Uses the unit ladders; shows the composition rows DB.2 now reads (PR #347). |
+| UX.32 | Planet rows show the class only, without the type and moon labels |  | Same rows as UX.30; one thread. |
+| UX.30 | Planet information without the Markdown render | UX.22, UX.32 | Uses the unit ladders; shows the composition rows DB.2 now reads (PR #347). |
 | UX.43 | A visual design built like a pilot's starmap and navigation console | UX.42, UX.37 |  |
 
 ### Backfill
