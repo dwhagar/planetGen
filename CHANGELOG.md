@@ -1,5 +1,10 @@
 # Changelog
 
+## [7.184.607] - 2026-10-07
+
+### Changed
+- **The database modules and command-line scripts move into `planetgen.db` and `planetgen.cli` (OPS.24, step 8 of 14).** `_db`, `editStore`, `systemRender`, `queryDb`'s queries and `adminStats` are now `planetgen.db.store`, `edits`, `render`, `query` and `stats`, with `schema.sql` and `control_schema.sql` beside them. The `src/` scripts are gone: run `python3 -m planetgen.cli.query`, `migrate`, `reset`, `orbits`, `dedupe`, `lockouts` or `render_parity` from the checkout's `src/` folder. install, update, the Generate page's reset step and the maintenance examples do this already. Run `update.sh` (or `update.ps1`) after pulling.
+
 ## [7.183.607] - 2026-10-07
 
 ### Changed
