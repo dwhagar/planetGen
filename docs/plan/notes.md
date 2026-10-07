@@ -274,7 +274,7 @@ No decisions are open.
 | stellarObjects/workQueue.py, jobRunner.py, web/jobs.py | PERF.19, PERF.24, OPS.19, ADM.22, ADM.15, PERF.18, PERF.20 | PERF.19's audit, then PERF.24 with OPS.19, then ADM.22. |
 | _db.py and migrateDb.py | DB.11, DB.13, GEN.71, DB.7, NAV.10, API.11 | CI red fixes first; then DB.11; every later schema change is an Alembic migration, one writer at a time. |
 | Names (names.py, bodyNames.py, nameUniqueness.py, objectId.py) | GEN.68 to GEN.73, TEST.71, VIEW.4, API.12 | One stream, in TODO order. |
-| generate.py: qualify, density and backfill | GEN.81, GEN.98, GEN.100, GEN.101, GEN.41 to GEN.43, PERF.18 | Phase 0 bugs first, then phase 1 galaxy gen. |
+| generate.py: qualify, density and backfill | GEN.98, GEN.100, GEN.101, GEN.41 to GEN.43, PERF.18 | Phase 0 bugs first, then phase 1 galaxy gen. |
 | Galaxy Map (galaxymap3d.js, galaxystageview.js, galaxystages.js, galaxyblocks.js) | MAP.102, MAP.65 to MAP.68, MAP.110, MAP.111, MAP.95, MAP.103, MAP.122, MAP.123, MAP.124 | Bugfix lane items first; the engine group next; phase 1 map items after. |
 | sectormap.js | MAP.79, MAP.113, MAP.66, MAP.68 | MAP.68 deletes the file. |
 | Templates and components (base.html, style.css, edit_controls.html) | UX.40, UX.2, UX.26, UX.31, UX.27, ADM.14, ADM.34, UX.37, UX.21, UX.42, UX.43 | Components first, then the sweep, then wording and the visual design. |
