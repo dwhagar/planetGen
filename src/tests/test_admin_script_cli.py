@@ -6,7 +6,7 @@ TEST.60: the operator scripts' command lines, driven through their real
 uncaught exception -- the traceback an operator would see -- rather than
 being hidden behind a subprocess:
 
-- `main()` of `planetgen.db.query`, `planetgen.cli.render_parity` and `planetgen.cli.dedupe`
+- `main()` of `planetgen.cli.query`, `planetgen.cli.render_parity` and `planetgen.cli.dedupe`
   against a small seeded database; `planetgen.db.stats` has no command line
   (the admin stats page imports it), so its functions are checked against
   the same database instead.
@@ -39,7 +39,7 @@ from planetgen.db import stats as adminStats
 from planetgen.cli import render_parity
 from planetgen.cli import dedupe
 from planetgen.cli import lockouts as loginLockouts
-from planetgen.db import query
+from planetgen.cli import query
 from planetgen.cli import reset
 from planetgen.cli import orbits
 from planetgen.db import store
