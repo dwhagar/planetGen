@@ -81,7 +81,7 @@ def _body(db, target):
 
 
 def _stored_bytes(cache):
-    return sum(len(body) for body, _stored_at in cache._entries.values())
+    return sum(len(body) for body in cache._entries.values())
 
 
 def test_page_cache_fills_reads_and_clears_from_many_threads(_switch_often):
@@ -129,12 +129,12 @@ def test_page_cache_fills_reads_and_clears_from_many_threads(_switch_often):
     for db, target, body in served:
         assert body == _body(db, target), (db, target)
     assert len(cache) <= 50
-    assert cache._bytes == _stored_bytes(cache)
-    for (db, target), (body, _stored_at) in cache._entries.items():
+    assert cache._entries.currsize == _stored_bytes(cache)
+    for (db, target), body in cache._entries.items():
         assert body == _body(db, target)
 
     cache.clear()
-    assert len(cache) == 0 and cache._bytes == 0
+    assert len(cache) == 0 and cache._entries.currsize == 0
     for db in dbs:
         for target in targets:
             assert cache.get(db, target) is None
@@ -167,7 +167,7 @@ def test_page_cache_clear_beats_fills_in_flight_from_many_threads(_switch_often)
 
     errors = _run_threads([filler(seed) for seed in range(THREADS)] + [editor])
     assert errors == []
-    assert len(cache) == 0 and cache._bytes == 0
+    assert len(cache) == 0 and cache._entries.currsize == 0
 
 
 # --- The tile cache ---------------------------------------------------------------------

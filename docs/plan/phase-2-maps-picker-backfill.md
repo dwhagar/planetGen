@@ -75,7 +75,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| PERF.20 | Short-term caching through the work queue and API (needs planning) | PERF.19, PERF.24, PERF.25 | Plans on RQ results and the new caches. Plan with Boss. |
+| PERF.20 | Short-term caching through the work queue and API (needs planning) | PERF.19, PERF.24 | Plans on RQ results and the new caches. Plan with Boss. |
 
 ### API
 

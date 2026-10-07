@@ -112,7 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 stays held until Boss sends the error text. | GEN.65, ADM.33, UX.28, UX.24, UX.29, UX.25, GEN.52, TEST.75, ADM.16, GEN.48, TEST.78, TEST.82, TEST.84, TEST.86, TEST.88, TEST.89, SEC.29, TEST.72, SEC.30, TEST.83, UX.39, OPS.20, DB.11, DB.13, ADM.21, GEN.66, GEN.74, GEN.68, GEN.69, GEN.70, GEN.71, TEST.71, GEN.72, GEN.73, GEN.67, PERF.19, PERF.24, OPS.19, OPS.27, PERF.25, ADM.22, ADM.23, ADM.24, ADM.25, ADM.26, UX.40, UX.26, UX.31, UX.27, UX.2, ADM.14, UX.41, UX.33, ADM.34, NAV.7, MAP.95, NAV.13, NAV.14, MAP.65, MAP.79, NAV.15, NAV.29, NAV.33, MAP.66, MAP.67, MAP.68, MAP.61, NAV.32, MAP.102, MAP.107, MAP.106, MAP.108, MAP.109, MAP.110, MAP.111, MAP.112, MAP.113, MAP.116, NAV.46, GEN.75, MAP.103, MAP.104, MAP.105, UX.38, UX.37, UX.21 |
+| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 is done (PR #476); GEN.116 keeps watch for Boss's error text. | UX.28, UX.24, UX.29, UX.25, GEN.52, TEST.75, ADM.16, GEN.48, TEST.78, TEST.82, TEST.84, TEST.86, TEST.88, TEST.89, TEST.90, GEN.116, SEC.29, TEST.72, SEC.30, TEST.83, UX.39, OPS.20, DB.11, DB.13, ADM.21, GEN.66, GEN.74, GEN.68, GEN.69, GEN.70, GEN.71, TEST.71, GEN.72, GEN.73, GEN.67, PERF.19, PERF.24, OPS.19, ADM.22, ADM.23, ADM.24, ADM.25, ADM.26, UX.40, UX.26, UX.31, UX.27, UX.2, ADM.14, UX.41, UX.33, ADM.34, NAV.7, MAP.95, NAV.13, NAV.14, MAP.65, MAP.79, NAV.15, NAV.29, NAV.33, MAP.66, MAP.67, MAP.68, MAP.61, NAV.32, MAP.102, MAP.107, MAP.106, MAP.108, MAP.109, MAP.110, MAP.111, MAP.112, MAP.113, MAP.116, NAV.46, GEN.75, MAP.103, MAP.104, MAP.105, UX.38, UX.37, UX.21 |
 | 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, NAV.16, NAV.3, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.41, GEN.98, GEN.100, GEN.99, GEN.101, GEN.102, GEN.103, GEN.84, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, GEN.94, GEN.104, GEN.106, GEN.107, GEN.108, NAV.10, NAV.12, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, NAV.43, NAV.44, MAP.119, MAP.122, MAP.123, MAP.124, MAP.89, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, OPS.8, OPS.13, OPS.14, ADM.18, GEN.59 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.58, MAP.75, MAP.59, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, API.16, MAP.69, MAP.70, ADM.17, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, API.18, VIEW.5 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, repair that reads the newest settings JSON, and the anomalies chosen in phase 2. | MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, MAP.126, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, DB.10, ADM.20, GEN.114, MAP.125, API.19 |
@@ -2216,27 +2216,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     ADM.18.
     Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
-- [ ] **GEN.65 A generation run fails from the web UI but not from the CLI (bug)**
-  Boss (2026-10-02 08:08Z): "I had a strange generation error from the web
-  UI but it didn't happen in the CLI, that needs investigation.   Add a
-  TODO item with a high priority bugfix but don't start yet." The error
-  text and which page and options he used are not known yet; ask Boss
-  for them (or the run's log under the jobs folder) first. Done: the
-  error is reproduced from the web UI, the difference between the web
-  and CLI paths that causes it is found and fixed, and a test runs the
-  same generation through both paths. [generation, web]
-  Plan (2026-10-07): May be the same failure as GEN.76 (sectors below
-  the star threshold). Boss (2026-10-07 17:11Z): "I do not have the
+- [ ] **GEN.116 Error when generating a neighbourhood centred near the galaxy edge, awaiting Boss's error text (bug)**
+  Back burner. Boss (2026-10-07 17:11Z), on GEN.65: "I do not have the
   error message, keep an eye out for it, but put it on the back burner
-  for something to watch out for, design a test that will test for it
-  in a variety of situations, I think this error occurred when I was
-  attempting to generate  a neighborhood when the center was close to
-  the edge of the galaxy." So it is no longer held, but comes last in
-  its group. Done now means: a test generates neighbourhoods through
-  both the web job path and the CLI, centred at the galaxy's rim, just
-  inside and just outside it, at the top and bottom layers, at the core
-  and in a sparse region; any failure it finds is fixed; and if Boss
-  sees the error again, its text goes here.
+  for something to watch out for ... I think this error occurred when I
+  was attempting to generate  a neighborhood when the center was close
+  to the edge of the galaxy." GEN.65's tests (PR #476: 18 neighbourhood
+  runs at the rim, just inside and outside it, the top and bottom
+  layers, the core, mid-disk and around a filled sector, through both
+  the Generate page job and the CLI) all pass, and nothing web-only was
+  reproduced. Done: the error is reproduced from Boss's error text and
+  fixed with a test, or Boss confirms it no longer happens.
 
 - [ ] **GEN.66 Physics on scipy, and astropy constants and units**
   Today `keplerMotion.py` solves Kepler and Barker by hand and
@@ -2776,7 +2766,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the API and the queue hand results back and forth with fewer round
   trips. Done: an approved plan, with the build work filed as its own
   items from it.
-  Prerequisites: PERF.19, PERF.24, PERF.25.
+  Prerequisites: PERF.19, PERF.24.
   Plan (2026-10-07): Plans on RQ job results and the
   cachetools caches (PERF.24, PERF.25).
 
@@ -2794,21 +2784,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   worker count; and `workQueue.py`, `jobRunner.py` and the `work_lease`
   table go. PERF.19's audit is its first step.
   Prerequisite: PERF.19.
-  Design: [docs/design/library-migration.md](design/library-migration.md)
-
-- [ ] **PERF.25 The page cache on cachetools; the tile cache stays**
-  Today `pagecache.py` and `tilecache.py` hand-roll an in-memory LRU and
-  a disk cache. Boss agreed (2026-10-07 13:27Z, Foundations thread):
-  `pagecache.py` moves to `cachetools` (TTL and LRU); `tilecache.py`
-  stays, since it stores JSON only, never unpickles, prunes by size and
-  checks its folder is private. Out: diskcache and sqlitedict (unfixed
-  advisories PYSEC-2026-2447 and PYSEC-2026-1939 that pip-audit
-  rejects), cachelib and Flask-Caching (they pickle by default and count
-  items, not bytes). If disk caching later proves slow, the fallback is
-  an optional Redis backend through redis-py storing JSON, on its own
-  instance or with TTL'd keys so tile eviction can't evict rate-limit
-  counters. Done: pagecache.py is replaced by cachetools with the same
-  keys and invalidation, and the cache tests pass unchanged.
   Design: [docs/design/library-migration.md](design/library-migration.md)
 
 - [ ] **PERF.29 Record which runs a partly filled sector still needs**
@@ -3293,14 +3268,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   and changes nothing.
   Prerequisite: GEN.74.
 
-- [ ] **ADM.33 The owner can override "no room" warnings and generate anyway**
-  Boss (2026-10-07 11:47Z): "Ability to override warnings as owner and
-  tell it to generate things even if it doesn't think it has room."
-  Done: where the web interface warns that a sector or system has no
-  room (density, Hill spheres, size), the Owner (and admins until
-  accounts exist) gets a "Generate anyway" choice that is logged in the
-  activity log.
-
 - [ ] **ADM.34 One admin menu per screen, holding only that screen's actions**
   Boss (2026-10-07 11:47Z): "All admin items are hidden under a simple
   menu and each menu list is customized to the actual screen we're in."
@@ -3463,6 +3430,14 @@ clears each one.
   cause is found (likely a click landing before the stage finishes
   loading under parallel load), the test waits on the right condition,
   and it passes repeatedly under `-n auto`. [infra, MAP]
+
+- [ ] **TEST.90 test_old_jobs_are_pruned raises JobBusy under parallel tests (bug)**
+  `src/tests/test_web_generate.py::test_old_jobs_are_pruned` raised
+  `JobBusy` once under `-n 4` (Bugfixes lane 1, 2026-10-07) and passed
+  on 3 reruns. Likely another worker's job holding the shared jobs
+  folder or lock. Done: the cause is found (loop the test under `-n 4`),
+  the test uses its own jobs folder or waits for the lock as the code
+  intends, and it passes on every run tried. [infra, ADM]
 
 ## USR: User accounts
 
@@ -3643,15 +3618,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Plan (2026-10-07): Folded into PERF.24: the web jobs move to RQ, and
   the jobs folder default is fixed in the same PR.
 
-- [ ] **OPS.27 The Windows installer and docs point at Redis in WSL, not Memurai**
-  Boss (2026-10-07 17:11Z), on Redis for Windows: "Let's say Redis in
-  WSL". Today `scripts/deploy-common.ps1` (Test-Redis),
-  `docs/deployment/windows.md` and `docs/design/library-migration.md`
-  offer Memurai or Redis in WSL. Done: they name Redis in WSL2 only,
-  with the setup steps (`sudo apt install redis-server`, WSL2's
-  localhost forwarding, and keeping WSL running), and the warning says
-  the same.
-
 - [ ] **OPS.20 Move the code base from zero dependencies to third-party open-source libraries**
   Boss (2026-10-03 05:38Z): "Transition the code to open source 3rd
   party libraries and simplify the code base, also in this step we'll
@@ -3666,7 +3632,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Each library swap is its own subitem and PR, after the package layout
   (OPS.23, done in PR #435, then OPS.24) so code moves once. Done when every subitem is done
   and the hand-rolled modules they replace are deleted.
-  Prerequisites: SEC.29, UX.39, PERF.24, SEC.30, PERF.25, DB.11,
+  Prerequisites: SEC.29, UX.39, PERF.24, SEC.30, DB.11,
   ADM.21, GEN.66, UX.40, UX.41, ADM.22, MAP.102.
   Design: [docs/design/library-migration.md](design/library-migration.md)
 

@@ -1,5 +1,31 @@
 # Changelog
 
+## [7.211.612] - 2026-10-07
+
+### Changed
+- **The pages' in-memory API cache runs on cachetools (PERF.25).** `planetgen.web.lib.pagecache` keeps its entries in a `cachetools.TTLCache` sized by body length, with least recently used out first and nothing served past `max_age_seconds`. That replaces its hand-rolled ordered dict, byte count and age checks. The settings, the stamp check, clearing on writes and what gets cached are unchanged. The Galaxy Map's tile cache (`tilecache.py`) stays as it is.
+
+## [7.210.612] - 2026-10-07
+
+### Added
+- TODO: GEN.116 (bug) keeps watch for Boss's error when generating a neighbourhood near the galaxy edge, until his error text arrives. TEST.90 (bug) records a JobBusy flake in the old-job pruning test under parallel runs.
+
+## [7.209.610] - 2026-10-07
+
+### Fixed
+
+- When the database disk has no room for a run, the Generate page and a sector's "Generate more sectors around this one" now offer "Generate anyway" instead of only refusing (ADM.33). Choosing it starts the job and records the override in the activity log (`job.generate_anyway`).
+
+## [7.208.610] - 2026-10-07
+
+### Changed
+- **Redis on Windows means Redis in WSL2 (OPS.27).** The Windows guide, `config.md` and the warning `install.ps1`/`update.ps1` give when no Redis answers now point only at Redis in WSL2, with the setup steps (`sudo apt install redis-server`, `systemctl enable --now redis-server`, the default `redis.url` through WSL2's localhost forwarding, and keeping WSL running). Memurai is no longer suggested.
+
+## [7.207.610] - 2026-10-07
+
+### Changed
+- **planetGen is installed as an editable package, and the package move is done (OPS.24, step 14, second half).** install and update now install the checkout with `pip install -e` (no dependencies; they still come from the lock), so `planetgen` imports from anywhere and a `git pull` still takes effect without a reinstall. The web app, the job runner and the tests no longer add `src/` to `sys.path` or `PYTHONPATH`, every command-line tool runs from any directory (`python3 -m planetgen.cli.<name>`, on Windows with the venv's Python), and the `planetgen` command is pip's own console script (linked into `/usr/local/bin` from the venv on macOS). The wiki upload client moved from `src/wikiClient` to `planetgen.wiki`, the last module outside the package. Run `update.sh` (or `update.ps1`) once after pulling this so the editable install is made.
+
 ## [7.206.610] - 2026-10-07
 
 ### Changed
