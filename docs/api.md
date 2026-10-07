@@ -953,7 +953,7 @@ credentials are current and writes an audit-log row.
   `{"systems", "phenomena"}` deleted. `POST /api/sectors/<id>/regenerate`
   does the same, then generates the slot again from the galaxy's density
   plan; the new sector has a new id and name (`sector_id`,
-  `sector_name`; `null` when the slot no longer qualifies). It is a `409`
+  `sector_name`; `null` when the slot is outside the galaxy's outline). It is a `409`
   for a sector off the galaxy grid or before `generate.py plan`.
 
 ### Changing a class or a star

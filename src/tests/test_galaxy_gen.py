@@ -563,7 +563,7 @@ def test_slot_mode_rejects_out_of_range_slot(mysql_config):
     assert _all_sectors(mysql_config) == []
 
 
-def test_slot_mode_rejects_a_non_qualifying_slot(mysql_config):
+def test_slot_mode_rejects_a_slot_outside_the_outline(mysql_config):
     # No stored band at all -- ensure_sector_generated's own "certain no"
     # path (see test_ensure_sector_generated_reports_no_content_outside_every_stored_band).
     _seed_skeleton(mysql_config, layers=[])
@@ -615,20 +615,17 @@ def test_ensure_sector_generated_reports_no_content_outside_every_stored_band(my
     assert _all_sectors(mysql_config) == []
 
 
-def test_ensure_sector_generated_checks_exact_density_within_a_stored_band(mysql_config):
+def test_ensure_sector_generated_generates_sparse_slots_within_a_stored_band(mysql_config):
     """
-    A stored candidate band is a safe *superset*, not an exact membership
-    list (see `galaxySkeleton`'s own module docstring) -- a slot inside
-    the band can still fail the real, exact check. This seeds a band
-    deliberately wider than reality and confirms
-    ensure_sector_generated still tells a genuinely dense slot apart from
-    a genuinely sparse one within it, rather than trusting the band alone.
+    GEN.76: inside the galaxy's stored outline every address generates,
+    however sparse. The predicted density only sets the draw's expected
+    count; a slot far below one expected star still gets a sector, and
+    it is marked generated (`sector_stats.bright_level_sol` = 0) like
+    any other.
     """
     ring_index = 5
     n_k = ring_sector_count(ring_index)
 
-    # Ground truth, computed directly (not via the skeleton) --
-    # sort every layer-0 slot in this ring by its own exact relative_density.
     densities = sorted(
         ((relative_density(sector_position_pc(ring_index, 0, i, EDGE_PC), _SKELETON_SHAPE), i)
          for i in range(n_k)),
@@ -641,8 +638,8 @@ def test_ensure_sector_generated_checks_exact_density_within_a_stored_band(mysql
         "test setup needs a real spread of densities within this ring"
     )
 
-    # A deliberately over-wide band with a threshold picked so only some
-    # of layer 0 genuinely qualifies.
+    # The sparsest slot predicts under one star at this E value -- the
+    # old rule skipped it.
     _seed_skeleton(mysql_config, e_value=1.0 / threshold_rho, layers=_layers(ring_index, 5))
 
     dense_result = galaxyGen.ensure_sector_generated(ring_index, 0, densest_slot, config=mysql_config)
@@ -650,9 +647,42 @@ def test_ensure_sector_generated_checks_exact_density_within_a_stored_band(mysql
     assert dense_result["created"] is True
 
     sparse_result = galaxyGen.ensure_sector_generated(ring_index, 0, sparsest_slot, config=mysql_config)
-    assert sparse_result == {"created": False, "qualifies": False, "sector_id": None, "sector_name": None}
+    assert sparse_result["qualifies"] is True
+    assert sparse_result["created"] is True
+    assert sparse_result["sector_id"] is not None
 
-    assert len(_all_sectors(mysql_config)) == 1
+    assert len(_all_sectors(mysql_config)) == 2
+
+    conn = _db.get_connection(mysql_config)
+    try:
+        levels = _db.sector_bright_levels(conn, [(ring_index, 0, densest_slot), (ring_index, 0, sparsest_slot)])
+    finally:
+        conn.close()
+    assert levels.get((ring_index, 0, sparsest_slot)) == 0
+    assert levels.get((ring_index, 0, densest_slot)) == 0
+
+
+def test_ensure_sector_generated_generates_a_near_empty_density_sector(mysql_config):
+    """
+    GEN.76: a sector far out in the disk, where the density predicts
+    almost nothing, still runs its draw, is saved, and is marked
+    generated -- never refused.
+    """
+    address = (900, 0, 0)
+    assert relative_density(sector_position_pc(*address, EDGE_PC), _SKELETON_SHAPE) < 0.01, (
+        "test setup needs a nearly empty position"
+    )
+    _seed_skeleton(mysql_config, layers=_layers(999, 0))
+
+    result = galaxyGen.ensure_sector_generated(*address, config=mysql_config)
+    assert result["created"] is True and result["qualifies"] is True
+
+    conn = _db.get_connection(mysql_config)
+    try:
+        levels = _db.sector_bright_levels(conn, [address])
+    finally:
+        conn.close()
+    assert levels.get(address) == 0
 
 
 def test_ensure_sector_generated_passes_relative_density_as_the_density_multiplier(mysql_config, monkeypatch):
@@ -1058,12 +1088,11 @@ def _fake_args_for_direct_generation(mysql_config):
 # --num-systems/--density that makes _BatchDensity.resolve a no-op (see
 # its own docstring), so none of them exercise the actual "plan, then
 # galaxy with neither flag given" workflow an operator runs -- exactly the
-# combination that shipped a regression where --ring/--center-sector/
-# random-start mode saved a real (0-system, 0-phenomenon) sector for every
-# not-yet-occupied slot regardless of how far below the qualification
-# threshold its own position's density fell, instead of skipping it the
-# way ensure_sector_generated always did. These tests close that gap: a
-# real skeleton, real CLI generation, no bypass.
+# combination that once shipped a regression saving real (0-system,
+# 0-phenomenon) sectors. Since GEN.76 every slot inside the outline is
+# generated however sparse, and generate_sector's fallback keeps each one
+# from being empty. These tests close that gap: a real skeleton, real CLI
+# generation, no bypass.
 # ---------------------------------------------------------------------------
 
 _PLAN_SHAPE_ARGV = [
@@ -1137,14 +1166,17 @@ def test_random_start_neighborhood_matches_the_real_skeleton_plan(mysql_config, 
     1. Every candidate slot the run actually saved, and every one it
        didn't, agrees with an independent recomputation -- done here,
        against the real stored skeleton -- of whether that exact position
-       qualifies (`predicted_star_count >= 1.0` within its layer's stored
-       extent). This is the exact regression: a batch/neighborhood run
-       saving a sector regardless of qualification.
+       is inside its layer's stored extent. Inside, every slot is saved,
+       however sparse (GEN.76); outside, none is.
     2. The aggregate system count actually generated across the
-       neighborhood is in the right statistical ballpark of what the
-       plan's own density predicted at those same positions -- not a flat,
+       neighborhood's denser sectors (one or more predicted stars) is in
+       the right statistical ballpark of what the plan's own density
+       predicted at those same positions -- not a flat,
        position-independent count (`_default_generation_args`'s own
        num_systems=10 default, in particular, would badly fail this).
+       Sparser sectors are left out of the sum: one with nothing drawn
+       at all gets one fallback system, which would swamp their tiny
+       predictions.
     """
     radius_pc = ly_to_pc(25.0)
     summary = _build_real_skeleton(mysql_config)
@@ -1169,30 +1201,26 @@ def test_random_start_neighborhood_matches_the_real_skeleton_plan(mysql_config, 
         skeleton = _db.get_galaxy_shape(conn)
         outer_rings = dict(_db.get_galaxy_layers(conn))
 
-        def really_qualifies(ring_index, layer_index, position_pc):
-            if layer_index not in outer_rings or ring_index > outer_rings[layer_index]:
-                return False
-            return predicted_star_count(
-                position_pc, skeleton.shape, skeleton.expected_system_count_at_density_1,
-            ) >= 1.0
+        def inside_outline(ring_index, layer_index):
+            return layer_index in outer_rings and ring_index <= outer_rings[layer_index]
 
         expected_total = 0.0
         generated_sector_ids = []
         for ring_index, layer_index, slot_index, x, y, z, _dist in candidates:
             address = (ring_index, layer_index, slot_index)
             saved = address in by_address
-            qualifies = really_qualifies(ring_index, layer_index, (x, y, z))
-            assert saved == qualifies, (
+            inside = inside_outline(ring_index, layer_index)
+            assert saved == inside, (
                 f"address {address} was {'saved' if saved else 'skipped'} by 'generate.py galaxy', but "
-                f"an independent recomputation against the real stored skeleton says it "
-                f"{'qualifies' if qualifies else 'does not qualify'} -- generation has drifted from the "
-                f"plan it's supposed to follow."
+                f"it is {'inside' if inside else 'outside'} the real stored skeleton's outline -- "
+                f"generation has drifted from the plan it's supposed to follow."
             )
-            if qualifies:
+            predicted = predicted_star_count(
+                (x, y, z), skeleton.shape, skeleton.expected_system_count_at_density_1,
+            )
+            if inside and predicted >= 1.0:
                 generated_sector_ids.append(by_address[address]["id"])
-                expected_total += predicted_star_count(
-                    (x, y, z), skeleton.shape, skeleton.expected_system_count_at_density_1,
-                )
+                expected_total += predicted
     finally:
         conn.close()
 

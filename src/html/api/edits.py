@@ -371,8 +371,8 @@ def regenerate_sector(sector_id):
     """`POST /api/sectors/<id>/regenerate` -- deletes a galaxy-placed
     sector with everything in it (as `DELETE .../contents`) and generates
     its slot again from the galaxy's density plan. The new sector gets a
-    new id and name (`sector_id` in the answer; `null` if the slot no
-    longer qualifies for a sector). 409 for a sector off the galaxy grid
+    new id and name (`sector_id` in the answer; `null` if the slot is
+    outside the galaxy's outline). 409 for a sector off the galaxy grid
     or before `generate.py plan` has run."""
     _options()
     config = _resolve_requested_write_db_config()

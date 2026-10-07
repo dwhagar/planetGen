@@ -477,7 +477,10 @@ def change_star(system, star_type):
     for comet in system.comets:
         _rescale_comet(comet, factor, mass_ratio, new.mass / physical_constants.SOLAR_MASS_TO_KG)
 
-    report = validation.stabilize_star_system(system, allow_removal=True)
+    # Every planet keeps its class, as promised above: re-spacing must not
+    # reclassify one it nudged into another zone (TEST.80).
+    kept = [body for body in system.planets if body.body_type != 'a']
+    report = validation.stabilize_star_system(system, pinned=kept, allow_removal=True)
     warnings = [f"{p.body}: {p.message}." for p in report.problems]
     removed = report.removed + dropped_moons
     summary = f"The star is now {new.type}; orbits were scaled by {factor:.3g}."
