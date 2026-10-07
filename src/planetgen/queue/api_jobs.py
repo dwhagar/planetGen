@@ -115,3 +115,27 @@ def generate_neighborhood(sector_id, radius_ly, config):
     (a module-level function so a worker can import it by name)."""
     from planetgen.generation import run_galaxy
     return run_galaxy.generate_sector_neighborhood(sector_id, radius_ly=radius_ly, config=config)
+
+
+def regenerate_sector(sector_id, config):
+    """The queued body of `POST /api/sectors/<id>/regenerate`: deletes the
+    galaxy-placed sector with everything in it, then generates its slot
+    again.
+
+    Returns:
+        dict: `deleted` (the row counts), `sector_id` and `sector_name` of
+            the new sector (`None` when the slot is outside the outline).
+    """
+    import random
+    from planetgen.db import edits as editStore, store
+    from planetgen.generation import run_galaxy
+    conn = store.get_connection(config or store.DEFAULT_MYSQL_CONFIG)
+    try:
+        with conn:
+            address = editStore.sector_address(conn, sector_id)
+            counts = editStore.delete_sector_with_contents(conn, sector_id)
+    finally:
+        conn.close()
+    random.seed()
+    result = run_galaxy.ensure_sector_generated(*address, config=config)
+    return {"deleted": counts, "sector_id": result["sector_id"], "sector_name": result["sector_name"]}

@@ -22,7 +22,7 @@ release is stamped.
 | API | API.20 |
 | ADM | ADM.37 |
 | SEC | SEC.32 |
-| TEST | TEST.93 |
+| TEST | TEST.94 |
 | USR | USR.9 |
 | OPS | OPS.28 |
 | DOC | DOC.4 |
@@ -1094,6 +1094,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.90 | test_old_jobs_are_pruned raises JobBusy under parallel tests (bug) | none | done, PR #484 |
 | TEST.91 | The System Map drill-and-measure browser test can't click the first moon (bug) | none | done, PR #493 |
 | TEST.92 | The web job runner's first-failure test reports the job as interrupted under full-suite load (bug) | none | open |
+| TEST.93 | Timing tests fail and MariaDB drops connections under full-suite load (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

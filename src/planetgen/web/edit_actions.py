@@ -105,6 +105,9 @@ def _call(kind, target_id, action, drop_facilities):
 
 def _flash_result(kind, action, result):
     summary = result.get("summary")
+    if result.get("job_id"):
+        summary = ("Sector regeneration is queued (job %s). The old sector is removed and the slot filled "
+                   "again within a few minutes; reload the map to see it." % result["job_id"])
     if not summary:
         if kind == "system":
             summary = "System regenerated." if action == "regenerate" else "System deleted."
