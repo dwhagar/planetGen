@@ -1,2 +1,0 @@
-### Changed
-- **The pages' in-memory API cache runs on cachetools (PERF.25).** `planetgen.web.lib.pagecache` keeps its entries in a `cachetools.TTLCache` sized by body length, with least recently used out first and nothing served past `max_age_seconds`. That replaces its hand-rolled ordered dict, byte count and age checks. The settings, the stamp check, clearing on writes and what gets cached are unchanged. The Galaxy Map's tile cache (`tilecache.py`) stays as it is.
