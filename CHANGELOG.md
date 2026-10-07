@@ -1,5 +1,10 @@
 # Changelog
 
+## [7.224.618] - 2026-10-07
+
+### Changed
+- **The admin Generate page's jobs run on Redis with RQ (PERF.24, step 3).** Starting a job queues it on a queue of its own and starts one burst worker for it, detached from the web server; the worker exits when the job is done. The job's files (`state.json`, `output.log`, progress, the Cancel file) and the one-job lock work as before. Without a Redis server at `redis.url` no job starts and the page says so, except on Windows, where Redis runs in WSL: there the job runs in its own process as before. `planetgen.cli.job` is now `planetgen.web.job_runner`.
+
 ## [7.223.617] - 2026-10-07
 
 ### Added
