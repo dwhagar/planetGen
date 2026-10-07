@@ -180,7 +180,7 @@ ESTIMATE_CONFIRM_FIELD = "estimate_ok"
 GENERATE_ANYWAY_FIELD = "generate_anyway"
 """str: The form field the "Generate anyway" button adds to a run the
 database disk has no room for (ADM.33). The job then starts like any
-confirmed one (`generate.py` warns and goes ahead without `--strict`),
+confirmed one (`planetgen galaxy` warns and goes ahead without `--strict`),
 and the override goes in the activity log."""
 
 
