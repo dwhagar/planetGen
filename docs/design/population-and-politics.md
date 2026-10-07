@@ -173,7 +173,7 @@ Population is optional and off by default (Boss, 2026-10-01): nothing
 runs it unless asked. `generate.py galaxy` and `generate.py sector` run
 the whole pass after they save only with `--population` (this replaced
 7.49.0's `--no-population`); the admin Generate page's jobs don't pass
-it. `install.sh`/`update.sh` (and `install.ps1`/`update.ps1`) offer to
+it. `install.sh` (and `install.ps1`) offer to
 run it after the database step (`offer_population_pass`,
 `Invoke-OptionalPopulation`), y/N with a 30-second timeout defaulting to
 No and skipped with no terminal; `POPULATION=1` (`-Population` on

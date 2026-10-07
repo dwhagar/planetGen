@@ -311,9 +311,8 @@ When the update includes a schema migration, it first asks whether to
 **delete the galaxy data instead** (y/N, defaulting to N after 30
 seconds; admin logins are kept either way). Answer `y` when the release
 notes say to regenerate, then generate the galaxy again
-([step 7](#7-generate-the-galaxy)). It then offers the optional
-population pass the same way (`POPULATION=1` or `-Population` runs it
-without asking; a scheduled run never does). Then
+([step 7](#7-generate-the-galaxy)). The update never runs the
+population pass; run `generate.py population` by hand when wanted. Then
 reload the site as the script's last line says (Apache reload on Linux,
 a `SIGHUP` to gunicorn on macOS, restarting the service or app pool on
 Windows).
