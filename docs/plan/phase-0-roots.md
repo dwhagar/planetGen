@@ -57,6 +57,7 @@ Done: all eight items landed in PR #442 (2026-10-07).
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
+| TEST.91 | The System Map drill-and-measure browser test can't click the first moon (bug) |  | From PR #481's browser-a11y run: the scene's svg or the sticky header takes the click. |
 
 ### Groundwork: layout and libraries
 

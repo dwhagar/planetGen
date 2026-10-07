@@ -22,7 +22,7 @@ release is stamped.
 | API | API.20 |
 | ADM | ADM.37 |
 | SEC | SEC.32 |
-| TEST | TEST.91 |
+| TEST | TEST.92 |
 | USR | USR.9 |
 | OPS | OPS.28 |
 | DOC | DOC.4 |
@@ -1092,6 +1092,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.88 | The facilities test fails when the drawn gas giant's sphere of influence is too small (bug) | none | done, PR #484 |
 | TEST.89 | The Galaxy Map drill-down browser test fails intermittently (bug) | none | done, PR #484 |
 | TEST.90 | test_old_jobs_are_pruned raises JobBusy under parallel tests (bug) | none | done, PR #484 |
+| TEST.91 | The System Map drill-and-measure browser test can't click the first moon (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
