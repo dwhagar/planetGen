@@ -1649,7 +1649,7 @@ The Galaxy Map draws the pre-placed bright stars (every star of 500 L☉ or more
   navigation has its geometry: blocks 243, 27 and 3 sectors a side, each
   sitting wholly inside one block of the next size up, with the same
   rules on the page (`galaxyprisms.js`) and the server
-  (`stellarObjects/galaxyDrill.py`). Nothing on the map changes yet.
+  (`planetgen/galaxy/drill.py`). Nothing on the map changes yet.
 
 ## [7.41.1] - 2026-10-01
 
@@ -3570,7 +3570,7 @@ The Galaxy Map draws the pre-placed bright stars (every star of 500 L☉ or more
   scaling problem, without any special-case code.
   - **Live viewport queries, not one whole-galaxy payload.** New
     `GET /api/galaxy/view` (`queryDb.galaxy_view`, backed by a new pure
-    `stellarObjects.galaxyViewport` module) returns, for whatever the
+    `planetgen.galaxy.viewport` module) returns, for whatever the
     camera's current view actually covers: real, already-generated
     sectors nearby; real, not-yet-generated sector addresses this
     galaxy's own density model predicts would qualify (exact, out to a
@@ -5676,7 +5676,7 @@ Class W removal. No functional difference from the original release._
 
 ### Added
 - **Provisional sector designations for un-generated/unvisited addresses.**
-  `stellarObjects.galaxyGeometry.provisional_sector_designation(shell_index,
+  `planetgen.galaxy.geometry.provisional_sector_designation(shell_index,
   shell_slot_index, edge_pc, edge_ly)` builds a short, human-readable label
   for a `(shell_index, shell_slot_index)` sector address --
   `R<ring>-Q<quadrant>-<slot>`, Ring and slot index in uppercase hex, Quadrant
@@ -5723,13 +5723,13 @@ Class W removal. No functional difference from the original release._
 - **NAV feature: course, distance, and optimal routing between two
   systems.** Three new pure/query modules plus an API endpoint and a web
   page:
-  - `stellarObjects/navigation.py` -- `course_between` (Euclidean
+  - `planetgen/galaxy/navigation.py` -- `course_between` (Euclidean
     distance plus galactic-plane-relative azimuth/altitude: azimuth from
     +X in the galactic X-Y plane, altitude as elevation above/below that
     plane) and `warp_travel_times` (`velocity_multiple_of_c = warp_factor
     ** (10/3)`, reported at warp 1/3/6/9, formatted via the existing
     `utils.years_to_time_string`).
-  - `stellarObjects/navGraph.py` -- `build_knn_adjacency` (a symmetrized
+  - `planetgen/galaxy/nav_graph.py` -- `build_knn_adjacency` (a symmetrized
     k-nearest-neighbor adjacency graph over a `{id: (x, y, z)}` position
     set) and `shortest_path` (Dijkstra) for the "optimal route via
     adjacent systems" half of NAV.
@@ -5772,7 +5772,7 @@ Class W removal. No functional difference from the original release._
   `save_galaxy_shape`'s singleton-row upsert.
 
 ### Fixed
-- **`stellarObjects/galaxyGeometry.py` called an undefined
+- **`planetgen/galaxy/geometry.py` called an undefined
   `_theta_for_index` in both `sector_position_pc` and
   `sector_wedge_vertices_pc`** -- a pre-existing bug on `main` (confirmed
   present there independent of this merge), only `_phi_for_index` had
@@ -5882,7 +5882,7 @@ Class W removal. No functional difference from the original release._
 
 ### Added
 - **Galaxy-wide density "skeleton"** (schema v8: `galaxy_shape`,
-  `galaxy_shell_band`; `stellarObjects/galaxySkeleton.py`; `galaxyPlan.py`):
+  `galaxy_shell_band`; `planetgen/galaxy/skeleton.py`; `galaxyPlan.py`):
   precomputes and persists where the galaxy has any content at all,
   without storing a single sector's position/density/vertices -- those are
   pure deterministic functions of `(shell_index, shell_slot_index)` plus a
@@ -5908,7 +5908,7 @@ Class W removal. No functional difference from the original release._
   `sectors.UNIQUE (shell_index, shell_slot_index)` constraint (schema v8)
   turns a concurrent visit race into a recoverable `IntegrityError`
   instead of a duplicate row.
-- **Galaxy disk/spiral density model implemented** (`stellarObjects/galaxyDensity.py`):
+- **Galaxy disk/spiral density model implemented** (`planetgen/galaxy/density.py`):
   exponential disk radial falloff x sech^2 vertical scale-height x
   logarithmic spiral-arm modulation, plus a spherical bulge, normalized so
   `relative_density == 1.0` at a calibration point. `build_galaxy_shape`
@@ -6414,7 +6414,7 @@ enhancements") for where this started as a plan.
     updated in lockstep, per that function's "each hop maps straight to
     the current schema" design); `docs/database-schema.md`'s schema
     history documents the change.
-  - **`stellarObjects/galaxyGeometry.py`** (new): the shell/Fibonacci-sphere
+  - **`planetgen/galaxy/geometry.py`** (new): the shell/Fibonacci-sphere
     tiling primitives (`shell_sector_count`, `shell_radius_pc`,
     `sector_position_pc`) and `enumerate_sectors_within_radius` — an
     exact, two-prune generation-unit primitive that finds every sector

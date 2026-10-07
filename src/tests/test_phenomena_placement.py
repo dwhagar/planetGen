@@ -24,9 +24,9 @@ import queryDb
 from stellarObjects import _db
 from stellarObjects.asteroidFieldData import AsteroidField
 from stellarObjects.config import SystemConfig
-from stellarObjects.galaxyGeometry import sector_orientation
+from planetgen.galaxy.geometry import sector_orientation
 from stellarObjects.nebulaData import Nebula
-from stellarObjects.spaceSector import SpaceSector
+from planetgen.galaxy.sector import SpaceSector
 from stellarObjects.utils import ly_to_pc, mpc_to_pc, pc_to_ly
 
 
@@ -733,7 +733,7 @@ def test_phenomena_near_sector_leaves_out_a_neighbors_point_objects_but_keeps_it
 def test_sector_reach_holds_every_corner_of_a_small_rings_cell():
     # A ring-0 pie wedge's outer corners sit a whole edge from its center,
     # past the cube's half diagonal the neighbor-cloud search used to use.
-    from stellarObjects.galaxyGeometry import sector_cell_vertices_pc, sector_position_pc
+    from planetgen.galaxy.geometry import sector_cell_vertices_pc, sector_position_pc
 
     edge_pc = 4.0
     for address in ((0, 0, 0), (1, 2, 4), (40, -1, 7)):

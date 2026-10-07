@@ -20,7 +20,7 @@ Everything goes through `generate.process_args()` with a patched
 `sys.argv`: validation runs in full and nothing connects to a database.
 
 TEST.29: `MAX_GENERATE_LIMIT` is `ring_sector_count(MAX_GENERATE_RING)`
-and `MAX_GENERATE_RING` is `galaxySkeleton.DEFAULT_MAX_RING`, so both are
+and `MAX_GENERATE_RING` is `skeleton.DEFAULT_MAX_RING`, so both are
 derived at import; reloading `generationLimits` under a patched
 `DEFAULT_MAX_RING` shows they follow it (and the CLI's messages with them).
 """
@@ -31,9 +31,10 @@ import sys
 import pytest
 
 import generate
-from stellarObjects import galaxySkeleton, generationLimits
-from stellarObjects.galaxyDrill import parse_drill_key
-from stellarObjects.galaxyGeometry import ring_sector_count
+from stellarObjects import generationLimits
+from planetgen.galaxy import skeleton
+from planetgen.galaxy.drill import parse_drill_key
+from planetgen.galaxy.geometry import ring_sector_count
 
 MAX_RING = generationLimits.MAX_GENERATE_RING
 MAX_LIMIT = generationLimits.MAX_GENERATE_LIMIT
@@ -303,10 +304,10 @@ def test_mysql_port_is_checked_before_the_subcommands_own_options(monkeypatch, c
 # ---------------------------------------------------------------------------
 
 def test_limits_are_derived_from_the_skeletons_max_ring():
-    assert generationLimits.MAX_GENERATE_RING == galaxySkeleton.DEFAULT_MAX_RING
+    assert generationLimits.MAX_GENERATE_RING == skeleton.DEFAULT_MAX_RING
     assert generationLimits.MAX_GENERATE_LIMIT == ring_sector_count(generationLimits.MAX_GENERATE_RING)
     # The plan subcommand's own default scan cap is the same number.
-    assert generate.DEFAULT_MAX_RING == galaxySkeleton.DEFAULT_MAX_RING
+    assert generate.DEFAULT_MAX_RING == skeleton.DEFAULT_MAX_RING
 
 
 def test_no_ring_up_to_the_max_holds_more_slots_than_the_limit():
@@ -326,7 +327,7 @@ def test_limits_follow_a_changed_default_max_ring(monkeypatch, capsys, max_ring)
     moves both limits together, and generate.py's checks and messages
     (which read them through the module) move with them."""
     try:
-        monkeypatch.setattr(galaxySkeleton, "DEFAULT_MAX_RING", max_ring)
+        monkeypatch.setattr(skeleton, "DEFAULT_MAX_RING", max_ring)
         importlib.reload(generationLimits)
         assert generationLimits.MAX_GENERATE_RING == max_ring
         assert generationLimits.MAX_GENERATE_LIMIT == ring_sector_count(max_ring)
@@ -342,5 +343,5 @@ def test_limits_follow_a_changed_default_max_ring(monkeypatch, capsys, max_ring)
     finally:
         monkeypatch.undo()
         importlib.reload(generationLimits)
-    assert generationLimits.MAX_GENERATE_RING == galaxySkeleton.DEFAULT_MAX_RING == MAX_RING
+    assert generationLimits.MAX_GENERATE_RING == skeleton.DEFAULT_MAX_RING == MAX_RING
     assert generationLimits.MAX_GENERATE_LIMIT == MAX_LIMIT

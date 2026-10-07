@@ -75,7 +75,7 @@ except ImportError:
     SOLAR_RADIUS_M = 6.957e8
 
 try:
-    from stellarObjects.galaxyGeometry import (
+    from planetgen.galaxy.geometry import (
         layer_bounds_pc,
         ring_bounds_pc,
         sector_cell_vertices_pc,

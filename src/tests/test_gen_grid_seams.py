@@ -28,14 +28,14 @@ import pytest
 import generate
 from stellarObjects import _db
 from planetgen import tuning
-from stellarObjects.galaxyDensity import build_galaxy_shape
-from stellarObjects.galaxyDrill import parse_drill_key
-from stellarObjects.galaxyGeometry import (
+from planetgen.galaxy.density import build_galaxy_shape
+from planetgen.galaxy.drill import parse_drill_key
+from planetgen.galaxy.geometry import (
     SectorCell, galaxy_to_local_pc, layer_bounds_pc, layer_center_z_pc, neighbor_addresses,
     parse_sector_designation, provisional_sector_designation, ring_bounds_pc, ring_radius_pc,
     ring_sector_count, sector_address_at, sector_cell_vertices_pc, sector_position_pc, slot_angle_bounds,
 )
-from stellarObjects.galaxySkeleton import (
+from planetgen.galaxy.skeleton import (
     GalaxyBounds, bound_relative_density_at, build_layer_extents, column_extents,
     expected_system_count_at_density_1,
 )

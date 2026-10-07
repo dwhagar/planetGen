@@ -24,7 +24,7 @@ import apiclient  # noqa: E402
 from fmt import linkify_location, nearest_neighbors_location  # noqa: E402
 from stellarObjects import _db, adminAuth  # noqa: E402
 from stellarObjects.config import SystemConfig  # noqa: E402
-from stellarObjects.spaceSector import SpaceSector  # noqa: E402
+from planetgen.galaxy.sector import SpaceSector  # noqa: E402
 from stellarObjects.systemData import StarSystem  # noqa: E402
 from web import csrf  # noqa: E402
 

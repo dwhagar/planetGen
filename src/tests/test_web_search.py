@@ -15,7 +15,7 @@ import web  # noqa: F401 -- puts src/html/lib on sys.path
 import apiclient  # noqa: E402
 from stellarObjects import _db  # noqa: E402
 from stellarObjects.config import SystemConfig  # noqa: E402
-from stellarObjects.spaceSector import SpaceSector  # noqa: E402
+from planetgen.galaxy.sector import SpaceSector  # noqa: E402
 from stellarObjects.systemData import StarSystem  # noqa: E402
 
 from tests.test_web_pages import DB, FakeData, app, client, db_client  # noqa: F401 -- fixtures

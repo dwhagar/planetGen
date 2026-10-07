@@ -40,7 +40,7 @@ from api.config import Config
 from api.limiter import limiter
 from stellarObjects import _db, adminAuth
 from stellarObjects.config import SystemConfig
-from stellarObjects.spaceSector import SpaceSector
+from planetgen.galaxy.sector import SpaceSector
 from stellarObjects.systemData import StarSystem
 
 from tests.test_fuzz_web_routes import csrf_pair, session_of

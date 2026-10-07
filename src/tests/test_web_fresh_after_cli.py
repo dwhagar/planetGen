@@ -48,7 +48,7 @@ import pagecache  # noqa: E402
 import tilecache  # noqa: E402
 from stellarObjects import _db  # noqa: E402
 from planetgen import tuning
-from stellarObjects.galaxyDensity import build_galaxy_shape  # noqa: E402
+from planetgen.galaxy.density import build_galaxy_shape  # noqa: E402
 from stellarObjects.utils import ly_to_pc  # noqa: E402
 
 EDGE_PC = ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)

@@ -351,7 +351,7 @@ def format_density(edge_ly, system_count):
     Formats a sector's star density as systems per cubic light-year, with a
     percentage relative to `LOCAL_STELLAR_DENSITY_LY3` (the real local
     stellar density sector generation targets -- see
-    `stellarObjects.spaceSector`'s module docstring) when that comparison
+    `planetgen.galaxy.sector`'s module docstring) when that comparison
     can be computed.
 
     Args:

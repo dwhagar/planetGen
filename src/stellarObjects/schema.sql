@@ -166,10 +166,10 @@
 --   - `galaxy_shape`: one singleton row holding the whole galaxy's shape
 --     parameters, its calibration constant, its sector edge length, and
 --     its outer edge (the last shell with any qualifying content) -- the
---     handful of numbers `stellarObjects.galaxyDensity`/`galaxySkeleton`
+--     handful of numbers `planetgen.galaxy.density`/`galaxySkeleton`
 --     need to recompute any sector's exact position/density on demand.
 --   - `galaxy_shell_band`: one row per contiguous *candidate* slot-index
---     band per shell (`stellarObjects.galaxySkeleton.find_shell_bands`) --
+--     band per shell (`planetgen.galaxy.skeleton.find_shell_bands`) --
 --     the safe (possibly slightly wider than exact) range of slots that
 --     might hold qualifying content in that shell, found via the exact
 --     closed-form phi<->slot-index inverse
@@ -209,7 +209,7 @@
 --   in place based on `period_years` and real elapsed time, using the new
 --   `orbit_simulation_state` singleton row (one per database, same
 --   pattern as `galaxy_shape` above) to track when it last ran --
---   `stellarObjects.galaxyGeometry`'s "derive, don't store" principle
+--   `planetgen.galaxy.geometry`'s "derive, don't store" principle
 --   doesn't apply here: the whole point of this feature is a value that
 --   changes with real-world time rather than being a pure function of the
 --   body's other (fixed) generative facts, so it has to be stored and

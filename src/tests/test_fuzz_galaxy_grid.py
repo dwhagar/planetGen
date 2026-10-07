@@ -2,7 +2,7 @@
 
 """
 Brute-force and property tests for the galaxy's cylindrical sector grid
-(`stellarObjects/galaxyGeometry.py`), its planned outline
+(`planetgen/galaxy/geometry.py`), its planned outline
 (`galaxySkeleton.py`), the density model (`galaxyDensity.py`) and the
 Galaxy Map's tile math (`galaxyViewport.py`) -- the geometry every
 planning, placing and map request stands on.
@@ -21,7 +21,9 @@ import pytest
 from hypothesis import assume, example, given, settings
 from hypothesis import strategies as st
 
-from stellarObjects import galaxyDensity, galaxyGeometry as gg, galaxySkeleton, galaxyViewport as gv
+from planetgen.galaxy import (
+    density as galaxyDensity, geometry as gg, skeleton as galaxySkeleton, viewport as gv,
+)
 from tests.fuzz_support import finite
 
 EDGES = st.sampled_from([4.0, 1.0, 0.5, 3.26156, 10.0, 7.0])

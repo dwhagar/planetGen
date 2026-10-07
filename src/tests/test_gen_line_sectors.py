@@ -16,7 +16,7 @@ import subprocess
 
 import pytest
 
-from stellarObjects.galaxyGeometry import (
+from planetgen.galaxy.geometry import (
     layer_bounds_pc, ring_bounds_pc, ring_radius_pc, ring_sector_count, sector_address_at,
     sector_position_pc, sectors_along_segment, slot_angle_bounds,
 )

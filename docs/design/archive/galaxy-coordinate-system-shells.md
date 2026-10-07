@@ -21,7 +21,7 @@
 This document was originally the design pass `docs/TODO.md` Phase 4 called
 for ("needs its own design pass") before `galaxyGen.py` was written; the
 core design in sections 0-7 below now describes shipped behavior
-(`stellarObjects/galaxyGeometry.py`, `galaxyGen.py`'s `--shell K`/
+(`planetgen/galaxy/geometry.py`, `galaxyGen.py`'s `--shell K`/
 `--center-sector ID --radius-pc R`, and the v3->v4 `sectors` schema
 migration), extended by the addenda in sections 8 and 9, each separately
 marked "Status: implemented" where it lives.
@@ -35,7 +35,7 @@ unchanged; the shell material is kept as history.
 ## Cylindrical sector grid (current)
 
 Every galaxy-placed sector is one cell of a cylindrical grid around the
-galactic axis (`stellarObjects/galaxyGeometry.py`). The galaxy is a stack
+galactic axis (`planetgen/galaxy/geometry.py`). The galaxy is a stack
 of flat circular slices (layers); each slice is cut into concentric rings,
 and each ring into wedges. With edge `e`:
 
@@ -693,7 +693,7 @@ exactly the kind of case that flag matters for.
 
 ## 8. Generation unit: sector enumeration by radius (Track C addendum)
 
-**Status:** implemented (`src/stellarObjects/galaxyGeometry.py`). This
+**Status:** implemented (`src/planetgen/galaxy/geometry.py`). This
 section is a Track C addition, written after this document's original
 proposal (sections 0-7 above, including the open questions in §7 —
 several since resolved by the user for this track, see the top of this
@@ -994,7 +994,7 @@ Following on from the simulation above, the natural next question is what
 it costs to persist this galaxy's structure at real Milky-Way scale, not
 just a small toy simulation -- and, having measured that, how to shrink
 it. This section documents both the analysis and the actual design that
-resulted (`stellarObjects/galaxySkeleton.py`, `galaxyPlan.py`, schema v8),
+resulted (`planetgen/galaxy/skeleton.py`, `galaxyPlan.py`, schema v8),
 which supersedes `docs/design/galaxy-disk-density.md` revision 2's
 `galaxy_sector_plan` table (see that document's own status note).
 

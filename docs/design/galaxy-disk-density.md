@@ -1,6 +1,6 @@
 # Galaxy density model
 
-**Status:** built (`src/stellarObjects/galaxyDensity.py`). The model dates
+**Status:** built (`src/planetgen/galaxy/density.py`). The model dates
 from the "revision 2" design pass of 2026-09 (Track C). That revision's main
 proposal, a stored plan of every qualifying sector, was never built; it is
 kept in `archive/galaxy-disk-density-rev2.md`. This file describes the model

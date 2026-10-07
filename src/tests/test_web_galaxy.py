@@ -26,7 +26,7 @@ import web  # noqa: F401 -- puts src/html/lib on sys.path
 import apiclient  # noqa: E402
 import tilecache  # noqa: E402
 from stellarObjects import _db  # noqa: E402
-from stellarObjects.spaceSector import SpaceSector  # noqa: E402
+from planetgen.galaxy.sector import SpaceSector  # noqa: E402
 from web import csrf  # noqa: E402
 from web.helpers import page_url  # noqa: E402
 
@@ -496,7 +496,7 @@ def db_client(mysql_config, tmp_path, monkeypatch):
 
 
 def _place_sector(mysql_config, name, address=(5, 1, 20)):
-    from stellarObjects.galaxyGeometry import galactic_radius_pc, sector_position_pc
+    from planetgen.galaxy.geometry import galactic_radius_pc, sector_position_pc
 
     position = sector_position_pc(*address, 3.526)
     conn = _db.get_connection(mysql_config)

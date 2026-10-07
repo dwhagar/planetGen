@@ -15,7 +15,8 @@ import sys
 import pytest
 
 import generate
-from stellarObjects import _db, galaxySeed
+from stellarObjects import _db
+from planetgen.galaxy import seed as galaxySeed
 from tests.test_galaxy_gen import _SKELETON_SHAPE, _mysql_argv, _seed_skeleton
 
 SEED_HEX = "00112233445566778899AABBCCDDEEFF"

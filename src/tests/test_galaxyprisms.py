@@ -1,7 +1,7 @@
 """
 Tests for `html/static/galaxyprisms.js`, the Galaxy Map's density prisms,
 run under node (skipped where node isn't installed): its density must
-match `stellarObjects.galaxyDensity.relative_density` exactly, its
+match `planetgen.galaxy.density.relative_density` exactly, its
 mega-blocks must follow the pixel scale, hold whole sectors, list only the
 solid's surface and stay within budget, and its geometry must be well
 formed. Also `html/static/galaxyblocks.js`, which packs a view's blocks
@@ -17,8 +17,8 @@ import subprocess
 
 import pytest
 
-from stellarObjects.galaxyDensity import build_galaxy_shape, relative_density
-from stellarObjects.galaxyGeometry import ring_sector_count
+from planetgen.galaxy.density import build_galaxy_shape, relative_density
+from planetgen.galaxy.geometry import ring_sector_count
 
 NODE = shutil.which("node")
 STATIC = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "html", "static")
@@ -63,7 +63,7 @@ VIEW_RADIUS_PER_ORBIT = 1.6
 def _threshold_shape():
     """The test shape with the galaxy's own sector threshold, as the page
     embeds it (lib/galaxymap3d._density_shape)."""
-    from stellarObjects.galaxySkeleton import expected_system_count_at_density_1
+    from planetgen.galaxy.skeleton import expected_system_count_at_density_1
     from stellarObjects.utils import pc_to_ly
 
     return {**SHAPE._asdict(), "sector_min_density": 1.0 / expected_system_count_at_density_1(pc_to_ly(EDGE_PC))}
@@ -91,7 +91,7 @@ console.log(JSON.stringify({{m: P.blockSizeForScale({pc_per_px}, {EDGE_PC}, 0, {
 def test_block_boundaries_fall_on_sector_boundaries(m):
     """A block's rings and layers are whole sector rings and layers, and
     block layer 0 straddles the plane like sector layer 0."""
-    from stellarObjects.galaxyGeometry import layer_bounds_pc, ring_bounds_pc
+    from planetgen.galaxy.geometry import layer_bounds_pc, ring_bounds_pc
 
     for ring, slab in ((0, 0), (2, -1), (5, 3)):
         ranges = _run(f"console.log(JSON.stringify(P.blockSectorRanges({ring}, {slab}, {m})));")
@@ -132,7 +132,7 @@ console.log(JSON.stringify({json.dumps(rings)}.map(ring => {{
 
 
 def test_block_counts_skip_sectors_the_skeleton_leaves_out():
-    from stellarObjects.galaxySkeleton import bound_relative_density_at
+    from planetgen.galaxy.skeleton import bound_relative_density_at
 
     shape = _threshold_shape()
     threshold = shape["sector_min_density"]
@@ -186,7 +186,7 @@ def test_most_block_wedges_follow_master_lines(m):
     """A wedge count dividing the innermost member ring's master count puts
     every wedge side on a slot wall in every member ring; most rings get
     one once blocks are large."""
-    from stellarObjects.galaxyGeometry import ring_master_count
+    from planetgen.galaxy.geometry import ring_master_count
 
     rings = list(range(3855 // m))
     counts = _run(f"console.log(JSON.stringify({json.dumps(rings)}.map(i => P.blockWedgeCount(i, {m}))))")
@@ -270,7 +270,7 @@ console.log(JSON.stringify(out));
 
 
 def test_js_grid_matches_python():
-    from stellarObjects.galaxyGeometry import (
+    from planetgen.galaxy.geometry import (
         provisional_sector_designation, sector_address_at, sector_cell_vertices_pc,
     )
 
@@ -296,7 +296,7 @@ def test_js_grid_matches_python_one_ulp_inside_every_face():
     as in Python. Slots rest on atan2, which node and libm may round an
     ulp apart, so right at a slot face each language is checked against
     its own angle bounds instead."""
-    from stellarObjects.galaxyGeometry import (
+    from planetgen.galaxy.geometry import (
         layer_bounds_pc, ring_bounds_pc, ring_radius_pc, sector_address_at, slot_angle_bounds,
     )
 
@@ -442,7 +442,7 @@ def test_wedge_counts_follow_the_cylindrical_sector_rule():
 def test_js_master_wedge_rule_matches_python_to_the_edge():
     """ringSectorCount and ringMasterCount mirror galaxyGeometry ring by
     ring out to ring 4,000, past the default galaxy's edge (3,855)."""
-    from stellarObjects.galaxyGeometry import ring_master_count
+    from planetgen.galaxy.geometry import ring_master_count
 
     got = _run("""
 const out = [];
@@ -456,7 +456,7 @@ console.log(JSON.stringify(out));
 def test_one_sector_blocks_outline_exactly_the_skeletons_layers(center, view_radius):
     # With the galaxy's sector threshold, a single-sector block exists
     # exactly when build_layer_extents' bound lets that sector exist.
-    from stellarObjects.galaxySkeleton import bound_relative_density_at, expected_system_count_at_density_1
+    from planetgen.galaxy.skeleton import bound_relative_density_at, expected_system_count_at_density_1
     from stellarObjects.utils import pc_to_ly
 
     threshold = 1.0 / expected_system_count_at_density_1(pc_to_ly(EDGE_PC))

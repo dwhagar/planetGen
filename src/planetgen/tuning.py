@@ -2698,7 +2698,7 @@ storage-analysis addendum: ~320 billion addressable sector slots total).
 WARP_FACTORS_FOR_NAV = (1, 2, 4, 8, 9, 9.5, 9.9, 9.995)
 """
 The warp factors NAV output reports travel time at (see
-`stellarObjects.navigation.warp_travel_times`) -- the rows of Boss's warp
+`planetgen.galaxy.navigation.warp_travel_times`) -- the rows of Boss's warp
 table (docs/design/navigation-frames.md, "Travel speeds"), from warp 1
 (exactly c) up to 9.995, where the curve climbs steeply toward its
 asymptote at warp 10.
@@ -2709,7 +2709,7 @@ WARP_VELOCITY_EXPONENT = 10 / 3
 The exponent of the warp curve's base term, `warp_factor **
 WARP_VELOCITY_EXPONENT` (in multiples of light-speed) -- "warp factor to
 the 3.33...". Below about warp 9 the whole curve is effectively this term;
-see `stellarObjects.navigation.warp_speed_c` for the full formula.
+see `planetgen.galaxy.navigation.warp_speed_c` for the full formula.
 """
 
 WARP_TRANSITION_STEEPNESS = 9.3575
@@ -2754,14 +2754,14 @@ The unreachable top of the warp scale: the asymptotic term divides by
 FOLD_FACTORS_FOR_NAV = (4, 5, 6, 6.5, 7, 7.5, 8, 8.5)
 """
 The dimensional fold factors NAV output reports travel time at (see
-`stellarObjects.navigation.fold_travel_times`) -- the rows of Boss's fold
+`planetgen.galaxy.navigation.fold_travel_times`) -- the rows of Boss's fold
 table.
 """
 
 FOLD_SPEED_COEFFICIENT = 6
 """
 The coefficient in the dimensional fold curve, speed in c = `6 F^4 / (10 -
-F)` (see `stellarObjects.navigation.fold_speed_c`).
+F)` (see `planetgen.galaxy.navigation.fold_speed_c`).
 """
 
 FOLD_SPEED_EXPONENT = 4
@@ -2783,7 +2783,7 @@ Decimal places used when formatting NAV distance/azimuth/altitude output.
 NAV_ADJACENCY_K = 6
 """
 How many nearest neighbors each system is connected to when building the
-NAV adjacency graph (`stellarObjects.navGraph.build_knn_adjacency`) that
+NAV adjacency graph (`planetgen.galaxy.nav_graph.build_knn_adjacency`) that
 optimal-route pathfinding runs over. Symmetrized after building (see that
 function's docstring), so a system can end up connected to more than `k`
 neighbors if others chose it as one of theirs.
@@ -2792,7 +2792,7 @@ neighbors if others chose it as one of theirs.
 NAV_ISLAND_LINKS = 6
 """
 How many nearest islands each island of the NAV route graph is linked to
-(`stellarObjects.navGraph.join_islands`, NAV.34). The 6-nearest graph
+(`planetgen.galaxy.nav_graph.join_islands`, NAV.34). The 6-nearest graph
 splits into islands wherever separately generated areas sit apart; in
 the hop-length study (2026-10-02), linking each island to its 6 nearest
 joined all 714 islands of 2,000 scattered sectors and gave a

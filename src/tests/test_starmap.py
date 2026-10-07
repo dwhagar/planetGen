@@ -5,7 +5,7 @@ Covers `_rotate_to_galaxy_frame` -- the fix for the Sector Map's star dots
 being plotted as if their own sector-local (x, y, z) axes already ran
 parallel to the galaxy frame's, when the wedge outline/"Galactic Center"
 compass arrow were always correctly expressed in the galaxy frame
-directly -- via `stellarObjects.galaxyGeometry.sector_orientation`'s
+directly -- via `planetgen.galaxy.geometry.sector_orientation`'s
 convention (local +X radially outward from the galactic axis, +Y along the
 ring, +Z galactic north), applied at render time from the sector's own
 stored `center_x/y/z_pc` rather than needing any new stored orientation.
@@ -224,7 +224,7 @@ def test_render_map_panel_outline_is_a_cell_when_placed_and_a_cube_otherwise():
 
 def test_cell_outline_arcs_follow_the_ring_radius():
     import starmap
-    from stellarObjects.galaxyGeometry import ring_bounds_pc, sector_position_pc
+    from planetgen.galaxy.geometry import ring_bounds_pc, sector_position_pc
     from stellarObjects.utils import mpc_to_pc
 
     address, edge_mpc, half_edge = (3, 0, 7), 4000.0, 2000.0

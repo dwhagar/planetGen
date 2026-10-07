@@ -42,7 +42,7 @@ from flask import redirect, request, url_for
 import apiclient
 from fmt import format_distance_ly
 from navmap import render_nav_map_panel
-from stellarObjects.navigation import format_course
+from planetgen.galaxy.navigation import format_course
 from stellarObjects.utils import ly_to_pc
 
 from . import bp

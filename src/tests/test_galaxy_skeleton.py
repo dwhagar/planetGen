@@ -1,7 +1,7 @@
 # tests/test_galaxy_skeleton.py
 
 """
-Tests for `stellarObjects.galaxySkeleton` -- the per-layer outline the
+Tests for `planetgen.galaxy.skeleton` -- the per-layer outline the
 galaxy-wide density skeleton is built from. See that module's docstring
 for the reasoning: an exact upper bound over `theta` falls monotonically
 with both `R` and `|z|`, so the galaxy is a stack of layers symmetric
@@ -17,9 +17,9 @@ import math
 
 import pytest
 
-from stellarObjects.galaxyDensity import build_galaxy_shape, relative_density
-from stellarObjects.galaxyGeometry import ring_radius_pc, ring_sector_count, sector_position_pc
-from stellarObjects.galaxySkeleton import (
+from planetgen.galaxy.density import build_galaxy_shape, relative_density
+from planetgen.galaxy.geometry import ring_radius_pc, ring_sector_count, sector_position_pc
+from planetgen.galaxy.skeleton import (
     bound_relative_density_at,
     build_layer_extents,
     GalaxyBounds,
@@ -41,7 +41,7 @@ EDGE_PC = 4.0
 
 
 def test_expected_system_count_at_density_1_matches_spacesector():
-    from stellarObjects.spaceSector import SpaceSector
+    from planetgen.galaxy.sector import SpaceSector
     expected = SpaceSector(name="x", edge_ly=11.5).expected_system_count()
     assert expected_system_count_at_density_1(11.5) == pytest.approx(expected)
 

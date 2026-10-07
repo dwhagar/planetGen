@@ -15,7 +15,7 @@ import web  # noqa: F401 -- puts src/html/lib on sys.path
 import apiclient  # noqa: E402
 import pagecache  # noqa: E402
 from stellarObjects import _db  # noqa: E402
-from stellarObjects.spaceSector import SpaceSector  # noqa: E402
+from planetgen.galaxy.sector import SpaceSector  # noqa: E402
 
 
 class _Clock:

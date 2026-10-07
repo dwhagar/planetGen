@@ -46,7 +46,8 @@ from contextlib import contextmanager
 from dataclasses import dataclass, field
 from typing import Callable
 
-from stellarObjects import galaxyDensity, galaxyGeometry, spaceSector, utils
+from stellarObjects import utils
+from planetgen.galaxy import density as galaxyDensity, geometry, sector as spaceSector
 from planetgen.physics import constants as pc, kepler, stellar_evolution
 from planetgen import tuning
 from planetgen.util import log
@@ -489,8 +490,8 @@ def _ring_volume_error():
     edge = tuning.DEFAULT_SECTOR_EDGE_PC
     worst = 0.0
     for ring in list(range(0, 200)) + list(range(200, 4000, 97)):
-        cell = galaxyGeometry.SectorCell.for_ring(ring, edge)
-        total = cell.volume * galaxyGeometry.ring_sector_count(ring)
+        cell = geometry.SectorCell.for_ring(ring, edge)
+        total = cell.volume * geometry.ring_sector_count(ring)
         annulus = math.pi * ((ring + 1) ** 2 - ring ** 2) * edge ** 2 * edge
         worst = max(worst, _rel_err(total, annulus))
     return worst
@@ -502,15 +503,15 @@ def _sector_address_round_trip_failures():
     edge = tuning.DEFAULT_SECTOR_EDGE_PC
     failures = 0
     for ring in list(range(0, 60)) + list(range(60, 4000, 211)):
-        n = galaxyGeometry.ring_sector_count(ring)
+        n = geometry.ring_sector_count(ring)
         slots = range(n) if n <= 400 else list(range(0, n, max(1, n // 97))) + [n - 1]
         for layer in (-7, -1, 0, 1, 7):
             for slot in slots:
-                center = galaxyGeometry.sector_position_pc(ring, layer, slot, edge)
-                if galaxyGeometry.sector_address_at(center, edge) != (ring, layer, slot):
+                center = geometry.sector_position_pc(ring, layer, slot, edge)
+                if geometry.sector_address_at(center, edge) != (ring, layer, slot):
                     failures += 1
         try:
-            galaxyGeometry.sector_position_pc(ring, 0, n, edge)
+            geometry.sector_position_pc(ring, 0, n, edge)
             failures += 1  # slot n must be out of range
         except ValueError:
             pass
@@ -522,8 +523,8 @@ def _ring_count_rule_violations():
     or whose centerline arc strays outside 0.94-1.065 edges."""
     bad = 0
     for ring in range(0, 4000):
-        n = galaxyGeometry.ring_sector_count(ring)
-        if n % galaxyGeometry.ring_master_count(ring):
+        n = geometry.ring_sector_count(ring)
+        if n % geometry.ring_master_count(ring):
             bad += 1
         arc = 2 * math.pi * (ring + 0.5) / n
         if not 0.94 <= arc <= 1.065:
@@ -628,15 +629,15 @@ def _invariant_checks():
         Check("kepler_equation_residual", "invariant", "kepler.solve_eccentric_anomaly",
               _kepler_equation_residual, 1e-9, 0.0, f"{exact}: the solution satisfies M = E - e sin E",
               mode="max", unit="rad"),
-        Check("ring_cells_fill_annulus", "invariant", "galaxyGeometry.SectorCell.volume x ring_sector_count",
+        Check("ring_cells_fill_annulus", "invariant", "geometry.SectorCell.volume x ring_sector_count",
               _ring_volume_error, 1e-12, 0.0, f"{exact}: a ring's cells tile its annulus with no gap or overlap",
               mode="max", unit="relative error"),
         Check("sector_address_round_trip", "invariant",
-              "galaxyGeometry.sector_address_at(sector_position_pc(...))",
+              "geometry.sector_address_at(sector_position_pc(...))",
               _sector_address_round_trip_failures, 0, 0.0,
               f"{exact}: every cell's own center lies in that cell, and slot N is out of range",
               mode="max", unit="failures"),
-        Check("ring_sector_count_rule", "invariant", "galaxyGeometry.ring_sector_count",
+        Check("ring_sector_count_rule", "invariant", "geometry.ring_sector_count",
               _ring_count_rule_violations, 0, 0.0,
               "design (docs/design/galaxy-coordinate-system.md): a multiple of the master wedges, "
               "arc about one edge", mode="max", unit="violations"),

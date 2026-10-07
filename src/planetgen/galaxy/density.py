@@ -1,4 +1,4 @@
-# stellarObjects/galaxyDensity.py
+# planetgen/galaxy/density.py
 
 """
 Galaxy Disk/Spiral Density Model

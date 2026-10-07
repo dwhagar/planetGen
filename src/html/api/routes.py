@@ -80,7 +80,7 @@ from stellarObjects import facilities as facility_rules
 from stellarObjects._db import MySQLConfig, get_galaxy_bounds, get_galaxy_shape, get_sector_id_at, list_databases, resolve_database
 from planetgen.util.appconfig import load_config
 from stellarObjects.config import SystemConfig
-from stellarObjects.galaxyGeometry import describe_sector_cell, sector_address_at
+from planetgen.galaxy.geometry import describe_sector_cell, sector_address_at
 from stellarObjects.systemData import StarSystem
 from stellarObjects.systemRender import FORMATS as SYSTEM_TEXT_FORMATS
 from stellarObjects.systemRender import render_system_sections, render_system_text
@@ -770,7 +770,7 @@ def galaxy_tiles_route():
     """
     The 3D Galaxy Map's cube tiles -- `tiles` is a comma-separated list of
     `level/ix/iy/iz` keys (at most `MAX_TILES_PER_REQUEST`). See
-    `queryDb.galaxy_tiles` and `stellarObjects.galaxyViewport`'s "Cube
+    `queryDb.galaxy_tiles` and `planetgen.galaxy.viewport`'s "Cube
     tiles" section. Each tile's work is bounded, so no request can scan an
     unbounded region (the removed `/galaxy/view` route could). Called by
     `/galaxy/tiles` (`html/web/galaxy_views.py`), which caches every tile on disk and only forwards
@@ -800,7 +800,7 @@ def galaxy_locate_route():
 def galaxy_stage_route():
     """
     One Galaxy Map drill-down stage: `?at=m.ring.wedge.slab` (a block key,
-    `stellarObjects.galaxyDrill`), or no `at` for the galaxy. Returns how
+    `planetgen.galaxy.drill`), or no `at` for the galaxy. Returns how
     many generated sectors each child block holds, and at a level-3 block
     the generated sectors themselves -- see `queryDb.galaxy_stage`.
     Called by `/galaxy/stage` (`html/web/galaxy_views.py`), which caches

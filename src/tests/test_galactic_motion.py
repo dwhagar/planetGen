@@ -10,10 +10,10 @@ import pytest
 
 from stellarObjects import _db
 from stellarObjects.config import SystemConfig
-from stellarObjects.galaxyGeometry import (
+from planetgen.galaxy.geometry import (
     galaxy_to_local_pc, local_to_galaxy_pc, sector_position_pc, slot_angle_bounds,
 )
-from stellarObjects.spaceSector import SpaceSector
+from planetgen.galaxy.sector import SpaceSector
 from stellarObjects.systemData import StarSystem
 from stellarObjects.utils import pc_to_ly
 

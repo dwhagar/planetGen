@@ -1,7 +1,7 @@
 # tests/test_galaxy_geometry.py
 
 """
-Tests for `stellarObjects.galaxyGeometry` -- the cylindrical
+Tests for `planetgen.galaxy.geometry` -- the cylindrical
 ring/layer/slot sector grid (`docs/design/galaxy-coordinate-system.md`,
 "Cylindrical sector grid") and the radius-based neighborhood enumeration
 built on it.
@@ -17,7 +17,7 @@ import random
 
 import pytest
 
-from stellarObjects.galaxyGeometry import (
+from planetgen.galaxy.geometry import (
     SectorCell,
     enumerate_sectors_within_radius,
     galactic_radius_pc,
@@ -40,7 +40,7 @@ from stellarObjects.galaxyGeometry import (
     slot_angle_bounds,
 )
 
-from stellarObjects.galaxyGeometry import _overlapping_slots
+from planetgen.galaxy.geometry import _overlapping_slots
 
 EDGE_PC = 4.0
 
