@@ -220,6 +220,9 @@ def test_pass_names_species_founds_polities_and_draws_territories(mysql_config, 
         assert len(set(names)) == len(names)
         civilized = {row["star_system_id"] for row in species if row["life_stage"] == "technological_civilization"}
         assert {galaxy["a"], galaxy["b"]} <= civilized
+        # GEN.80: only a technological civilization gets a species.
+        assert all(row["life_stage"] == "technological_civilization" for row in species)
+        assert all(row["civilization_age_years"] is not None for row in species)
         for row in species:
             if row["civilization_age_years"] is not None:
                 assert row["era"] == population.era_for_age(row["civilization_age_years"])[0]
@@ -260,6 +263,28 @@ def test_pass_names_species_founds_polities_and_draws_territories(mysql_config, 
 
         # --rescan starts over.
         assert population.run_pass(conn, rescan=True)["new_species"] >= 1
+    finally:
+        conn.close()
+
+
+def test_a_pass_removes_species_stored_without_a_civilization(mysql_config, galaxy):
+    # Earlier passes named a species on every life world (GEN.80).
+    conn = _db.get_connection(mysql_config)
+    try:
+        population.run_pass(conn)
+        planet_id = conn.execute("SELECT id FROM planets WHERE star_system_id = ? ORDER BY id LIMIT 1",
+                                 (galaxy["plain"][0],)).fetchone()["id"]
+        with conn:
+            conn.execute(
+                "INSERT INTO species (name, homeworld_planet_id, star_system_id, life_chemical, life_stage, build, "
+                "climate, size, civilization_age_years, era, spacefaring) "
+                "VALUES ('Leftover', ?, ?, 'carbon', 'multicellularity', 'average', 'temperate', 'medium', "
+                "NULL, NULL, 0)", (planet_id, galaxy["plain"][0]),
+            )
+        population.run_pass(conn)
+        assert conn.execute("SELECT COUNT(*) AS n FROM species WHERE name = 'Leftover'").fetchone()["n"] == 0
+        assert conn.execute("SELECT COUNT(*) AS n FROM species WHERE civilization_age_years IS NULL"
+                            ).fetchone()["n"] == 0
     finally:
         conn.close()
 

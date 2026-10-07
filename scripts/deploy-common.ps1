@@ -540,6 +540,9 @@ function Test-Redis {
     Write-Warning ("No Redis server answers at $url (config.json's redis.url). Redis has no native " +
         "Windows build: install Memurai (https://www.memurai.com/) or run Redis in WSL " +
         "(docs/deployment/windows.md). Nothing needs it yet; the work queue will.")
+    # A warning, not a failure: don't let the probe's exit code become the
+    # script's (powershell -command exits with the last $LASTEXITCODE).
+    $global:LASTEXITCODE = 0
 }
 
 # What restarts the app after an update, for the closing message.

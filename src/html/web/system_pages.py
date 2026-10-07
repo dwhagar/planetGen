@@ -35,6 +35,7 @@ from tabledisplay import format_star_radius, to_plain_text
 from classref import ROGUE_MASS_CLASS_NAMES
 from planetgen.admin import activity_log
 from planetgen.generation.belt import format_composition_summary
+from planetgen.generation.phenomena.compact_remnant import hawking_luminosity_w, hawking_temperature_k
 from planetgen.generation.phenomena.rogue import format_comet_composition_summary
 from planetgen.tuning import NEBULA_CLASSES
 from planetgen.physics.rogue_surface import SURFACE_REGIME_LABELS
@@ -516,7 +517,7 @@ FIELD_SPECS = {
         ("event_horizon_radius_km", "Event Horizon Radius", _km),
         ("spin", "Spin (dimensionless)", lambda v: f"{v:.3f}"),
         ("has_accretion_disk", "Accretion Disk", _bool_text),
-        ("temperature_k", "Hawking Temperature", lambda v: f"{v:.2e} K"),
+        ("temperature_k", "Hawking Temperature", lambda v: f"{format_number(v, '.2e')} K"),
         ("luminosity_w", "Luminosity", lambda v: f"{format_number(v, '.2e')} W"),
         ("age_gy", "Age", lambda v: f"{format_number(v, ',.2f')} Gy"),
         (_SPEED[0], _SPEED[1], _optional(_SPEED[2])),
@@ -605,6 +606,13 @@ def phenomenon_fields(phenomenon_type, detail):
     """`[(label, text, url)]` for the data table; `url` is the value's
     class page, or `None`. Needs a request context."""
     fields = []
+    if phenomenon_type == "black_hole" and not detail.get("has_accretion_disk") and detail.get("mass_solar"):
+        # Stored before GEN.82 as a flat 0: show the Hawking values.
+        detail = dict(detail)
+        if not detail.get("temperature_k"):
+            detail["temperature_k"] = hawking_temperature_k(detail["mass_solar"])
+        if not detail.get("luminosity_w"):
+            detail["luminosity_w"] = hawking_luminosity_w(detail["mass_solar"])
     for column, label, formatter in FIELD_SPECS.get(phenomenon_type, []):
         raw = detail.get(column)
         if raw is None:

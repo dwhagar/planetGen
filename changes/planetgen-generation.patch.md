@@ -1,2 +1,0 @@
-### Changed
-- **The generation modules move into `planetgen.generation` (OPS.24, step 5 of 14).** Stars, planets, systems, binaries, belts, comets, life, evolution, the star population, bright stars, limits, stats, validation and the two plausibility engines now live in `planetgen.generation`. The six interstellar phenomena live in `planetgen.generation.phenomena` (`asteroid_field`, `compact_remnant`, `nebula`, `quasar`, `rogue`, `supernova_remnant`). Every caller moved with them.

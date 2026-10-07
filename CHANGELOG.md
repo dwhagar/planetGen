@@ -1,5 +1,33 @@
 # Changelog
 
+## [7.182.607] - 2026-10-07
+
+### Fixed
+- **install.ps1 and update.ps1 no longer fail when no Redis answers**:
+  the Redis check stays a warning instead of leaving its exit code as
+  the script's.
+
+## [7.181.607] - 2026-10-07
+
+### Fixed
+- **A black hole without a disk shows its Hawking temperature and
+  luminosity** (GEN.82) instead of zero, from its mass.
+- **The sector summary names star kinds plainly and logs one line per
+  entry** (UX.34, OPS.9): white dwarfs, neutron stars, black holes,
+  giants and supergiants instead of raw spectral codes.
+- **Species are kept only for worlds with a technological civilization**
+  (GEN.80); a population pass removes any stored species without one.
+- **Changing a planet's or moon's class re-generates it as that class**
+  (ADM.27): radius, density, composition, atmosphere, temperature,
+  pressure and life, keeping its orbit, mass and name. A class its mass
+  can't fit (a gas giant class for a small rocky world) is refused with
+  a message and nothing changes.
+
+## [7.180.607] - 2026-10-07
+
+### Changed
+- **The generation modules move into `planetgen.generation` (OPS.24, step 5 of 14).** Stars, planets, systems, binaries, belts, comets, life, evolution, the star population, bright stars, limits, stats, validation and the two plausibility engines now live in `planetgen.generation`. The six interstellar phenomena live in `planetgen.generation.phenomena` (`asteroid_field`, `compact_remnant`, `nebula`, `quasar`, `rogue`, `supernova_remnant`). Every caller moved with them.
+
 ## [7.179.607] - 2026-10-07
 
 ### Changed
