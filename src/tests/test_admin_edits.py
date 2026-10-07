@@ -9,12 +9,13 @@ import pytest
 
 from api.app import create_app
 from api.config import Config
-from stellarObjects import _db, adminAuth, adminEdits, editStore, validation
+from stellarObjects import _db, adminAuth, adminEdits, editStore
+from planetgen.generation import validation
 from planetgen import tuning
-from stellarObjects.config import SystemConfig
-from stellarObjects.nebulaData import Nebula
+from planetgen.generation.config import SystemConfig
+from planetgen.generation.phenomena.nebula import Nebula
 from planetgen.galaxy.sector import SpaceSector
-from stellarObjects.systemData import StarSystem
+from planetgen.generation.system import StarSystem
 
 
 @pytest.fixture

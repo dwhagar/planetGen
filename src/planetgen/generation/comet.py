@@ -1,4 +1,4 @@
-# stellarObjects/cometData.py
+# planetgen/generation/comet.py
 
 """
 Star-Bound Comet Generation
@@ -38,15 +38,15 @@ why that's out of scope for this pass).
 import math
 import random
 
-from .config import SystemConfig
+from planetgen.generation.config import SystemConfig
 from planetgen.physics import constants as physical_constants, kepler
 from planetgen import tuning
 from planetgen.util import log
 from planetgen.names.wordlists import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from planetgen.physics.planets import calculate_orbital_period_years
-from .roguePlanetData import format_comet_composition_summary
+from planetgen.generation.phenomena.rogue import format_comet_composition_summary
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
-from .utils import (
+from stellarObjects.utils import (
     format_distance_au, format_period_years, format_speed_kms, generate_phoneme_salad_name, minimum_update_interval_years,
 )
 

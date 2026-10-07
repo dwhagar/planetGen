@@ -25,9 +25,9 @@ import web  # noqa: F401 -- puts src/html/lib on sys.path
 import apiclient  # noqa: E402
 from stellarObjects import _db, adminAuth  # noqa: E402
 from planetgen import tuning
-from stellarObjects.config import SystemConfig  # noqa: E402
+from planetgen.generation.config import SystemConfig  # noqa: E402
 from planetgen.galaxy.sector import SpaceSector  # noqa: E402
-from stellarObjects.systemData import StarSystem  # noqa: E402
+from planetgen.generation.system import StarSystem  # noqa: E402
 from web import csrf, generate_page, jobs  # noqa: E402
 from web.helpers import page_url  # noqa: E402
 from web.nav_page import endpoint, nav_url  # noqa: E402
@@ -756,8 +756,8 @@ def test_real_sector_page_with_galaxy_placement_renders_neighbor_indicators(db_c
 
 
 def test_real_sector_page_lists_and_maps_every_phenomenon_type(db_client, mysql_config):
-    from stellarObjects.roguePlanetData import InterstellarComet, RoguePlanet
-    from stellarObjects.supernovaRemnantData import SupernovaRemnant
+    from planetgen.generation.phenomena.rogue import InterstellarComet, RoguePlanet
+    from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant
 
     sector = SpaceSector(name="Phenomena Contents Sector", edge_ly=40.0)
     cfg = SystemConfig()

@@ -29,8 +29,8 @@ import random
 
 from planetgen.galaxy import density as galaxyDensity, seed as galaxySeed
 from planetgen import tuning
-from stellarObjects.config import SystemConfig
-from stellarObjects.nebulaData import Nebula, NEBULA_CLASS_LETTERS
+from planetgen.generation.config import SystemConfig
+from planetgen.generation.phenomena.nebula import Nebula, NEBULA_CLASS_LETTERS
 from planetgen.galaxy.sector import _sample_poisson_count
 from stellarObjects.utils import ly_to_pc
 

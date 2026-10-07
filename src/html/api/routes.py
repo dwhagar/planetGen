@@ -74,14 +74,15 @@ from queryDb import (
     system_detail as query_system_detail,
     systems_within_radius,
 )
-from stellarObjects import _db, brightStars, generationLimits
+from stellarObjects import _db
+from planetgen.generation import bright_stars as brightStars, limits as generationLimits
 from planetgen import tuning
 from stellarObjects import facilities as facility_rules
 from stellarObjects._db import MySQLConfig, get_galaxy_bounds, get_galaxy_shape, get_sector_id_at, list_databases, resolve_database
 from planetgen.util.appconfig import load_config
-from stellarObjects.config import SystemConfig
+from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.geometry import describe_sector_cell, sector_address_at
-from stellarObjects.systemData import StarSystem
+from planetgen.generation.system import StarSystem
 from stellarObjects.systemRender import FORMATS as SYSTEM_TEXT_FORMATS
 from stellarObjects.systemRender import render_system_sections, render_system_text
 from stellarObjects.utils import format_distance_ly, ly_to_milliparsecs, ly_to_pc, pc_to_ly

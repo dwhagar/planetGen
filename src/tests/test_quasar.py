@@ -14,9 +14,9 @@ import generate
 import queryDb
 from stellarObjects import _db
 from planetgen import tuning
-from stellarObjects.config import SystemConfig
+from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.geometry import ring_sector_count, sector_position_pc
-from stellarObjects.quasarData import Quasar
+from planetgen.generation.phenomena.quasar import Quasar
 from planetgen.galaxy.sector import SpaceSector
 from stellarObjects.utils import pc_to_ly
 from tests.test_galaxy_gen import EDGE_PC, _seed_skeleton

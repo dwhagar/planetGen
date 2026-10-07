@@ -1,4 +1,4 @@
-# stellarObjects/evolution.py
+# planetgen/generation/evolution.py
 
 """
 Evolutionary Timeline Generation
@@ -18,7 +18,7 @@ import random
 
 from planetgen import tuning
 from planetgen.util import log
-from .utils import format_age_string, get_star_evolutionary_profile, to_paragraph
+from stellarObjects.utils import format_age_string, get_star_evolutionary_profile, to_paragraph
 # Removed: from . import config # Import the config module
 
 MILESTONE_KEYS = ("abiogenesis", "photosynthesis", "complex_cells", "multicellularity", "technological_civilization")

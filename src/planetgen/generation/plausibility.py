@@ -1,4 +1,4 @@
-# stellarObjects/plausibility.py
+# planetgen/generation/plausibility.py
 
 """
 Physical-plausibility anomaly finder.
@@ -73,9 +73,9 @@ from collections import defaultdict
 from planetgen.physics import constants as pc
 from planetgen.physics import planets as planetPhysics
 from planetgen import tuning as prog_c
-from .config import SystemConfig
-from .planetData import Planet
-from .starData import Star
+from planetgen.generation.config import SystemConfig
+from planetgen.generation.planet import Planet
+from planetgen.generation.star import Star
 
 ZONE_CHARS = "hec"
 

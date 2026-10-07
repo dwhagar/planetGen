@@ -188,14 +188,14 @@ import random
 from planetgen.physics import constants as physical_constants
 from planetgen import tuning as program_constants
 from planetgen.util import log
-from stellarObjects.asteroidFieldData import AsteroidField
-from stellarObjects.compactRemnant import BlackHole, NeutronStar
-from stellarObjects.config import SystemConfig
-from stellarObjects.nebulaData import Nebula
-from stellarObjects.quasarData import Quasar
-from stellarObjects.roguePlanetData import InterstellarComet, RoguePlanet
-from stellarObjects.supernovaRemnantData import SupernovaRemnant
-from stellarObjects.systemData import StarSystem
+from planetgen.generation.phenomena.asteroid_field import AsteroidField
+from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
+from planetgen.generation.config import SystemConfig
+from planetgen.generation.phenomena.nebula import Nebula
+from planetgen.generation.phenomena.quasar import Quasar
+from planetgen.generation.phenomena.rogue import InterstellarComet, RoguePlanet
+from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant
+from planetgen.generation.system import StarSystem
 
 class _GlobalStream(random.Random):
     """

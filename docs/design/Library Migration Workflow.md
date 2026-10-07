@@ -189,7 +189,7 @@ $\mu = G (M_1 + M_2) = 4\pi^2 M$
 #### Current Codebase State
 
 * `src/html/lib/mdconvert.py` (179 lines): Custom Markdown-to-HTML converter using regex string parsing to handle ATX headings, GFM pipe tables, and scientific superscript tags (`<sup>`).
-* `src/stellarObjects/validation.py` (783 lines): Imperative checking functions validating planet parameters, moon system orbits, and physical boundaries.
+* `src/planetgen/generation/validation.py` (783 lines): Imperative checking functions validating planet parameters, moon system orbits, and physical boundaries.
 
 #### Recommended Stack
 
@@ -226,7 +226,7 @@ Phase 3: Core Architecture Refactoring (Persistence & Task Execution)
 ├── Refactor src/stellarObjects/_db.py          --> SQLAlchemy Core / ORM
 ├── Replace src/migrateDb.py                    --> Alembic
 ├── Replace src/stellarObjects/workQueue.py     --> RQ or Huey
-└── Refactor src/stellarObjects/validation.py  --> Pydantic
+└── Refactor src/planetgen/generation/validation.py  --> Pydantic
 ```
 
 ## Reference List

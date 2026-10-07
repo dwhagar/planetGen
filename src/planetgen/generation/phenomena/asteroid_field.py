@@ -1,4 +1,4 @@
-# stellarObjects/asteroidFieldData.py
+# planetgen/generation/phenomena/asteroid_field.py
 
 """
 Asteroid Field Generation
@@ -22,13 +22,13 @@ normal per-slot rolls.
 import math
 import random
 
-from .asteroidData import format_composition_summary, generate_asteroid_composition
-from .config import SystemConfig
+from planetgen.generation.belt import format_composition_summary, generate_asteroid_composition
+from planetgen.generation.config import SystemConfig
 from planetgen.names.wordlists import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from planetgen import tuning
 from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
-from .utils import format_distance_ly, format_galactic_orbit, generate_galactic_orbit_fields, generate_phoneme_salad_name
+from stellarObjects.utils import format_distance_ly, format_galactic_orbit, generate_galactic_orbit_fields, generate_phoneme_salad_name
 
 
 AU_PER_LY = 63241.077

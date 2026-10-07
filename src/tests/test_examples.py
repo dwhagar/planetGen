@@ -15,8 +15,8 @@ import os
 import pytest
 
 import generate as systemGen
-from stellarObjects.config import SystemConfig
-from stellarObjects.systemData import StarSystem
+from planetgen.generation.config import SystemConfig
+from planetgen.generation.system import StarSystem
 from planetgen import tuning
 
 # This file lives at src/tests/, two levels under the repo root (src

@@ -283,7 +283,7 @@ CREATE TABLE IF NOT EXISTS work_lease (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- v6 (PERF.3, PERF.10): how fast this server generates and how much
--- space a galaxy takes (`stellarObjects/generationStats.py`).
+-- space a galaxy takes (`planetgen/generation/stats.py`).
 -- `generation_stats` is one row per kind of task ("sector" fill, or a
 -- "scatter" layer of bright stars) and log-scale density bucket (two per
 -- decade from 0.01, open-ended upward), each a decaying average over

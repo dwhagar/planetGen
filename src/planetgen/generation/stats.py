@@ -1,4 +1,4 @@
-# stellarObjects/generationStats.py
+# planetgen/generation/stats.py
 
 """
 How fast this server generates and how much space it takes (PERF.10),

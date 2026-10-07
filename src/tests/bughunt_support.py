@@ -10,7 +10,7 @@ generation, markdown-rendering breakage).
 
 This is deliberately *not* a new `hypothesis`-based property-testing
 layer -- it extends this repo's own existing convention instead:
-`stellarObjects/plausibility.py`/`phenomenaPlausibility.py` already split
+`planetgen/generation/plausibility.py`/`phenomenaPlausibility.py` already split
 checks into hard invariants (always enforced) and statistical outliers
 (Tukey's fences, reported for human review). Every `test_bughunt_*.py`
 file follows the same split, formalized here as two tiers:

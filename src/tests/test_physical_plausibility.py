@@ -1,7 +1,7 @@
 """
 Physical-plausibility anomaly-finder regression tests.
 
-See `stellarObjects/plausibility.py` for the full two-tier design rationale,
+See `planetgen/generation/plausibility.py` for the full two-tier design rationale,
 and TODO.md's "Physical-plausibility test suite (anomaly finder)" future
 idea for the original ask. This module only gates the *hard-invariant*
 half of that design (unambiguous bugs -- see `check_hard_invariants` and
@@ -30,7 +30,7 @@ import math
 
 import pytest
 
-from stellarObjects import plausibility
+from planetgen.generation import plausibility
 from planetgen import tuning as prog_c
 
 # Small on purpose -- see module docstring. Large enough to exercise each

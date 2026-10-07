@@ -16,11 +16,11 @@ import statistics
 
 import pytest
 
-from stellarObjects.config import SystemConfig
-from stellarObjects.planetData import Planet
-from stellarObjects.starData import Star
+from planetgen.generation.config import SystemConfig
+from planetgen.generation.planet import Planet
+from planetgen.generation.star import Star
 from planetgen import tuning as prog_c
-from stellarObjects import planetLife
+from planetgen.generation import life as planetLife
 
 ZONE_CHARS = "hec"
 

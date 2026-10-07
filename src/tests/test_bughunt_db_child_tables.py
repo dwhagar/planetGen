@@ -36,10 +36,10 @@ a reachable MySQL test server.
 import pytest
 
 from stellarObjects import _db
-from stellarObjects.asteroidData import AsteroidBelt
-from stellarObjects.config import SystemConfig
+from planetgen.generation.belt import AsteroidBelt
+from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.sector import SpaceSector
-from stellarObjects.systemData import StarSystem
+from planetgen.generation.system import StarSystem
 
 from tests.fuzz_support import deterministic_entropy
 

@@ -1,7 +1,7 @@
 """
 Exotic-phenomena plausibility anomaly-finder regression tests.
 
-See `stellarObjects/phenomenaPlausibility.py` for the full two-tier design
+See `planetgen/generation/phenomena_plausibility.py` for the full two-tier design
 rationale -- the seven-phenomenon counterpart to `plausibility.py`/
 `test_physical_plausibility.py`. This module only gates the *hard-
 invariant* half (unambiguous bugs -- see `check_hard_invariants`): a value
@@ -27,8 +27,8 @@ import math
 
 import pytest
 
-from stellarObjects import phenomenaPlausibility as pp
-from stellarObjects.compactRemnant import hawking_luminosity_w
+from planetgen.generation import phenomena_plausibility as pp
+from planetgen.generation.phenomena.compact_remnant import hawking_luminosity_w
 from planetgen.physics import constants as pc
 from planetgen import tuning as prog_c
 

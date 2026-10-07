@@ -15,7 +15,7 @@ import subprocess
 import pytest
 
 from planetgen import tuning
-from stellarObjects.generationLimits import MAX_GENERATE_RADIUS_LY
+from planetgen.generation.limits import MAX_GENERATE_RADIUS_LY
 from stellarObjects.utils import ly_to_pc, pc_to_ly
 
 NODE = shutil.which("node")

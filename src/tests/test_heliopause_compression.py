@@ -9,7 +9,7 @@ import pytest
 import queryDb
 from stellarObjects import _db
 from planetgen.physics import constants
-from stellarObjects.starData import cloud_pressure_pa, compressed_heliosphere_radius
+from planetgen.generation.star import cloud_pressure_pa, compressed_heliosphere_radius
 from tests.test_db_persistence import _placed_nebula, _sector_with_one_system
 
 

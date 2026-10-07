@@ -14,9 +14,9 @@ import pytest
 import web  # noqa: F401 -- puts src/html/lib on sys.path
 import apiclient  # noqa: E402
 from stellarObjects import _db  # noqa: E402
-from stellarObjects.config import SystemConfig  # noqa: E402
+from planetgen.generation.config import SystemConfig  # noqa: E402
 from planetgen.galaxy.sector import SpaceSector  # noqa: E402
-from stellarObjects.systemData import StarSystem  # noqa: E402
+from planetgen.generation.system import StarSystem  # noqa: E402
 
 from tests.test_web_pages import DB, FakeData, app, client, db_client  # noqa: F401 -- fixtures
 
@@ -258,8 +258,8 @@ def test_real_q_and_tags(db_client, mysql_config):
 
 
 def test_real_phenomenon_and_class_tags(db_client, mysql_config):
-    from stellarObjects.nebulaData import Nebula
-    from stellarObjects.compactRemnant import BlackHole
+    from planetgen.generation.phenomena.nebula import Nebula
+    from planetgen.generation.phenomena.compact_remnant import BlackHole
 
     for name, nebula_class in (("Crab Mist", "D"), ("Faint Veil", "A")):
         nebula = Nebula(SystemConfig(), name=name, nebula_class=nebula_class)

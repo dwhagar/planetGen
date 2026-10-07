@@ -23,9 +23,9 @@ import web  # noqa: F401 -- puts src/html/lib on sys.path
 import apiclient  # noqa: E402
 from fmt import linkify_location, nearest_neighbors_location  # noqa: E402
 from stellarObjects import _db, adminAuth  # noqa: E402
-from stellarObjects.config import SystemConfig  # noqa: E402
+from planetgen.generation.config import SystemConfig  # noqa: E402
 from planetgen.galaxy.sector import SpaceSector  # noqa: E402
-from stellarObjects.systemData import StarSystem  # noqa: E402
+from planetgen.generation.system import StarSystem  # noqa: E402
 from web import csrf  # noqa: E402
 
 DB = "planetgen_web_test"
@@ -531,7 +531,7 @@ def test_real_unknown_system_is_404(db_app, mysql_config):
 
 
 def test_real_phenomena_list_and_detail(db_app, mysql_config):
-    from stellarObjects.roguePlanetData import InterstellarComet, RoguePlanet
+    from planetgen.generation.phenomena.rogue import InterstellarComet, RoguePlanet
 
     sector = SpaceSector(name="Phenomena Sector", edge_ly=40.0)
     sector.add_phenomenon(RoguePlanet(SystemConfig()), "rogue-planet")

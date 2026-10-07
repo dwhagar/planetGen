@@ -14,9 +14,9 @@ from api.config import Config
 from stellarObjects import _db
 from planetgen.physics import constants
 from planetgen import tuning
-from stellarObjects import phenomenaPlausibility as pp
-from stellarObjects.config import SystemConfig
-from stellarObjects.roguePlanetData import (RoguePlanet, default_rogue_planet_class, rogue_planet_class_candidates,
+from planetgen.generation import phenomena_plausibility as pp
+from planetgen.generation.config import SystemConfig
+from planetgen.generation.phenomena.rogue import (RoguePlanet, default_rogue_planet_class, rogue_planet_class_candidates,
                                             rogue_planet_classes)
 
 import web  # noqa: F401 -- puts src/html/lib on sys.path

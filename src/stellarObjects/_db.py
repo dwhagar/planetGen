@@ -69,13 +69,13 @@ from planetgen.physics import constants as physical_constants, kepler
 from planetgen import tuning
 from planetgen.util import log
 from planetgen.util.appconfig import load_config
-from .asteroidData import AsteroidBelt
-from .asteroidFieldData import AsteroidField, asteroid_field_designation
-from .compactRemnant import BlackHole, NeutronStar
+from planetgen.generation.belt import AsteroidBelt
+from planetgen.generation.phenomena.asteroid_field import AsteroidField, asteroid_field_designation
+from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
 from . import facilities as facility_rules
-from .cometData import Comet, comet_designation, rename_comet_designation
-from .config import SystemConfig
-from .doubleStar import BinaryStarProxy
+from planetgen.generation.comet import Comet, comet_designation, rename_comet_designation
+from planetgen.generation.config import SystemConfig
+from planetgen.generation.binary import BinaryStarProxy
 from planetgen.galaxy.density import GalaxyShape
 from planetgen.galaxy.drill import DrillBlock
 from planetgen.galaxy.geometry import (
@@ -87,20 +87,20 @@ from planetgen.names.uniqueness import (
     MAX_SYSTEM_NAME_WORDS, fits_word_limit, has_diminutive, resolve_diminutive, resolve_greek_roman_collision,
     word_limit_for,
 )
-from .nebulaData import Nebula
-from .planetData import Planet
+from planetgen.generation.phenomena.nebula import Nebula
+from planetgen.generation.planet import Planet
 from planetgen.physics.rogue_surface import ROGUE_SURFACE_FIELDS, rogue_surface_conditions
-from .roguePlanetData import InterstellarComet, RoguePlanet, default_rogue_planet_class, interstellar_comet_designation
+from planetgen.generation.phenomena.rogue import InterstellarComet, RoguePlanet, default_rogue_planet_class, interstellar_comet_designation
 from planetgen.galaxy.sector import SectorSystemEntry, SpaceSector, classify_octant, distance_between
-from .starData import Star
-from .quasarData import Quasar
-from .supernovaRemnantData import SupernovaRemnant
-from .systemData import StarSystem
+from planetgen.generation.star import Star
+from planetgen.generation.phenomena.quasar import Quasar
+from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant
+from planetgen.generation.system import StarSystem
 from .utils import (
     calculate_galactic_orbit, generate_phoneme_salad_name, generate_sector_name, ly_to_milliparsecs, ly_to_pc,
     milliparsecs_to_ly, mpc_to_pc, pc_to_ly,
 )
-from .wideBinary import WideBinaryPair
+from planetgen.generation.wide_binary import WideBinaryPair
 
 SCHEMA_VERSION = 53
 """int: Matches `star_systems.schema_version` and the highest row in the
@@ -8498,9 +8498,9 @@ def _migrate_v37_to_v38(conn):
                            committed -- the caller commits once every step
                            up to `SCHEMA_VERSION` has run).
     """
-    from .asteroidFieldData import asteroid_field_class
-    from .nebulaData import infer_nebula_class, typical_class_contents
-    from .supernovaRemnantData import infer_remnant_class
+    from planetgen.generation.phenomena.asteroid_field import asteroid_field_class
+    from planetgen.generation.phenomena.nebula import infer_nebula_class, typical_class_contents
+    from planetgen.generation.phenomena.supernova_remnant import infer_remnant_class
 
     contents_columns = (
         "ADD COLUMN dominant_species VARCHAR(255) NOT NULL DEFAULT '', "

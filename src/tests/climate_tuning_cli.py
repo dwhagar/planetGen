@@ -4,7 +4,7 @@ src/tests/climate_tuning_cli.py -- interactive per-class climate tuning tool.
 
 Not a pytest test module itself (no `test_*` name, so pytest won't collect
 it) -- it lives alongside `physical_plausibility_cli.py` and shares its
-underlying engine (`stellarObjects/plausibility.py`), but exists specifically
+underlying engine (`planetgen/generation/plausibility.py`), but exists specifically
 to let a human iterate on one class's `albedo_range`,
 `atm_molar_density_range`, `atm_density_range`, and `greenhouse_multiplier_range`
 (see `stellarObjects/program_constants.PLANET_CLASSES`) without editing
@@ -34,7 +34,7 @@ import sys
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from stellarObjects import plausibility
+from planetgen.generation import plausibility
 from planetgen import tuning as prog_c
 
 logging.getLogger("transformers").setLevel(logging.ERROR)

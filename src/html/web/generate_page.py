@@ -53,13 +53,14 @@ from flask import abort, current_app, jsonify, make_response, redirect, request,
 
 import apiclient
 from fmt import utc_time_html
-from stellarObjects import activitylog, generationStats
+from stellarObjects import activitylog
+from planetgen.generation import stats
 from planetgen import tuning
 from planetgen.util import log
 from planetgen.galaxy.drill import format_drill_key, parse_drill_key
 from planetgen.galaxy.geometry import sector_address_at
 from stellarObjects.utils import format_number, ly_to_pc, pc_to_ly
-from stellarObjects.generationLimits import (
+from planetgen.generation.limits import (
     MAX_GENERATE_LIMIT, MAX_GENERATE_RADIUS_PC, MAX_GENERATE_RING,
 )
 
@@ -191,7 +192,7 @@ def run_estimate(argv, env):
         env (dict): `jobs.mysql_env`.
 
     Returns:
-        dict: `generationStats.Estimate.as_dict()` plus `what`.
+        dict: `stats.Estimate.as_dict()` plus `what`.
 
     Raises:
         FormError: The estimate couldn't be made; the message says why
@@ -746,11 +747,11 @@ def generate():
 def _estimate_view(estimate):
     """`run_estimate`'s dict plus the text the page shows."""
     view = dict(estimate)
-    view["size_text"] = generationStats.format_bytes(estimate.get("bytes"))
-    view["time_text"] = generationStats.format_duration(estimate.get("seconds"))
+    view["size_text"] = stats.format_bytes(estimate.get("bytes"))
+    view["time_text"] = stats.format_duration(estimate.get("seconds"))
     disk = estimate.get("disk")
-    view["disk_text"] = (f"{generationStats.format_bytes(disk['free_bytes'])} free of "
-                         f"{generationStats.format_bytes(disk['total_bytes'])}") if disk else None
+    view["disk_text"] = (f"{stats.format_bytes(disk['free_bytes'])} free of "
+                         f"{stats.format_bytes(disk['total_bytes'])}") if disk else None
     return view
 
 

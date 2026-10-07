@@ -64,10 +64,10 @@ from api.common import is_http_url
 from api.config import Config
 from stellarObjects import _db, adminAuth
 from stellarObjects._db import MySQLConfig
-from stellarObjects.config import SystemConfig
-from stellarObjects.nebulaData import Nebula
+from planetgen.generation.config import SystemConfig
+from planetgen.generation.phenomena.nebula import Nebula
 from planetgen.galaxy.sector import SpaceSector
-from stellarObjects.systemData import StarSystem
+from planetgen.generation.system import StarSystem
 
 import web  # noqa: F401 -- puts src/html/lib on sys.path
 from web import csrf  # noqa: E402

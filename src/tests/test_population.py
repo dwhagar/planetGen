@@ -13,8 +13,8 @@ from api.app import create_app
 from api.config import Config
 from stellarObjects import _db, population
 from planetgen import tuning
-from stellarObjects.config import SystemConfig
-from stellarObjects.systemData import StarSystem
+from planetgen.generation.config import SystemConfig
+from planetgen.generation.system import StarSystem
 from stellarObjects.utils import ly_to_pc
 
 import generate

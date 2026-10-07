@@ -44,17 +44,18 @@ import pytest
 from hypothesis import HealthCheck, assume, example, given, note, settings
 from hypothesis import strategies as st
 
-from stellarObjects import evolution
+from planetgen.generation import evolution
 from planetgen.physics import constants as pc, kepler as km
-from stellarObjects import planetLife
+from planetgen.generation import life as planetLife
 from planetgen.physics import planets as pp
 from planetgen import tuning as prog
-from stellarObjects import cometData, starData, utils
-from stellarObjects.compactRemnant import BlackHole, NeutronStar
-from stellarObjects.config import SystemConfig
-from stellarObjects.doubleStar import BinaryStarProxy
-from stellarObjects.starData import Star
-from stellarObjects.systemData import StarSystem
+from stellarObjects import utils
+from planetgen.generation import comet as cometData, star as starData
+from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
+from planetgen.generation.config import SystemConfig
+from planetgen.generation.binary import BinaryStarProxy
+from planetgen.generation.star import Star
+from planetgen.generation.system import StarSystem
 
 from tests.fuzz_support import deterministic_entropy as _deterministic_entropy, hostile_text, scaled
 

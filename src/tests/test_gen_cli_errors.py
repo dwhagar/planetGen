@@ -31,7 +31,7 @@ import sys
 import pytest
 
 import generate
-from stellarObjects import generationLimits
+from planetgen.generation import limits as generationLimits
 from planetgen.galaxy import skeleton
 from planetgen.galaxy.drill import parse_drill_key
 from planetgen.galaxy.geometry import ring_sector_count
@@ -331,7 +331,7 @@ def test_limits_follow_a_changed_default_max_ring(monkeypatch, capsys, max_ring)
         importlib.reload(generationLimits)
         assert generationLimits.MAX_GENERATE_RING == max_ring
         assert generationLimits.MAX_GENERATE_LIMIT == ring_sector_count(max_ring)
-        assert generate.generationLimits is generationLimits
+        assert generate.limits is generationLimits
 
         new_limit = generationLimits.MAX_GENERATE_LIMIT
         assert _parse(monkeypatch, "galaxy", ["--ring", max_ring]).ring == max_ring

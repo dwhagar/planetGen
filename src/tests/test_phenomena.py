@@ -26,14 +26,14 @@ import pytest
 from stellarObjects import _db
 from planetgen.physics import constants
 from planetgen import tuning
-from stellarObjects.asteroidFieldData import AsteroidField
-from stellarObjects.compactRemnant import (BlackHole, CompactRemnant, NeutronStar, hawking_luminosity_w,
-                                           hawking_temperature_k)
-from stellarObjects.config import SystemConfig
-from stellarObjects.nebulaData import Nebula
-from stellarObjects.roguePlanetData import InterstellarComet, RoguePlanet
-from stellarObjects.supernovaRemnantData import SupernovaRemnant
-from stellarObjects.systemData import StarSystem
+from planetgen.generation.phenomena.asteroid_field import AsteroidField
+from planetgen.generation.phenomena.compact_remnant import (BlackHole, CompactRemnant, NeutronStar, hawking_luminosity_w,
+                                                            hawking_temperature_k)
+from planetgen.generation.config import SystemConfig
+from planetgen.generation.phenomena.nebula import Nebula
+from planetgen.generation.phenomena.rogue import InterstellarComet, RoguePlanet
+from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant
+from planetgen.generation.system import StarSystem
 
 from tests.fuzz_support import deterministic_entropy
 
@@ -148,7 +148,7 @@ def test_neutron_star_mass_radius_and_temperature_within_configured_ranges():
 def test_compact_remnants_are_star_subclasses():
     assert issubclass(BlackHole, CompactRemnant)
     assert issubclass(NeutronStar, CompactRemnant)
-    from stellarObjects.starData import Star
+    from planetgen.generation.star import Star
     assert issubclass(CompactRemnant, Star)
 
 
@@ -185,7 +185,7 @@ def test_remnant_class_matches_its_progenitor_and_core():
 
 
 def test_asteroid_field_class_is_letter_plus_size_digit():
-    from stellarObjects.asteroidFieldData import asteroid_field_class
+    from planetgen.generation.phenomena.asteroid_field import asteroid_field_class
     assert asteroid_field_class("carbonaceous", "dense", 0.01) == "C2"
     assert asteroid_field_class("metallic", "sparse", 0.001) == "G1"
     assert asteroid_field_class("icy", "typical", 1.0) == "L4"

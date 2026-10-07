@@ -24,10 +24,10 @@ from api.config import Config
 from stellarObjects import _db, adminAuth
 from planetgen.galaxy import sector as spaceSector
 from stellarObjects._db import MySQLConfig
-from stellarObjects.config import SystemConfig
+from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.viewport import tile_keys_containing, tiles_intersecting_sphere
 from planetgen.galaxy.sector import SpaceSector
-from stellarObjects.systemData import StarSystem
+from planetgen.generation.system import StarSystem
 from wikiClient import WikiClientPageExistsError, WikiPage
 import queryDb
 
@@ -554,7 +554,7 @@ def test_nav_returns_direct_course_for_system_to_phenomenon(client, mysql_config
         "galactic_radius_pc": 0.0,
     })
 
-    from stellarObjects.nebulaData import Nebula
+    from planetgen.generation.phenomena.nebula import Nebula
     nebula = Nebula(SystemConfig())
     conn = _db.get_connection(mysql_config)
     try:
@@ -805,8 +805,8 @@ def test_galaxy_clouds_in_box_lists_every_cloud_reaching_the_box(mysql_config):
     """A tile lists each nebula or supernova remnant whose sphere reaches
     into it, wherever its center is, largest first; past `max_clouds` the
     smallest are dropped. Point-like phenomena aren't clouds."""
-    from stellarObjects.nebulaData import Nebula
-    from stellarObjects.supernovaRemnantData import SupernovaRemnant
+    from planetgen.generation.phenomena.nebula import Nebula
+    from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant
     from stellarObjects.utils import pc_to_ly
 
     cfg = SystemConfig()
@@ -1043,9 +1043,9 @@ def test_galaxy_tiles_list_every_star_and_point_phenomenon_at_sector_zoom(client
     and coarser tiles none."""
     import math
 
-    from stellarObjects.compactRemnant import BlackHole, NeutronStar
-    from stellarObjects.config import SystemConfig
-    from stellarObjects.quasarData import Quasar
+    from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
+    from planetgen.generation.config import SystemConfig
+    from planetgen.generation.phenomena.quasar import Quasar
 
     _sector_ids, star_ids = _generated_sectors(mysql_config, [0.001, 5.0, 0.3])
     sector_id = _sector_ids[0]

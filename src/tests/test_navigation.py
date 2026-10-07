@@ -16,15 +16,15 @@ import pytest
 
 from queryDb import NavUnavailable, nav_between
 from stellarObjects import _db
-from stellarObjects.config import SystemConfig
-from stellarObjects.nebulaData import Nebula
+from planetgen.generation.config import SystemConfig
+from planetgen.generation.phenomena.nebula import Nebula
 from planetgen.galaxy.nav_graph import build_knn_adjacency, shortest_path
 from planetgen.galaxy.navigation import (
     FRAME_GALACTIC, FRAME_SECTOR, FRAME_SYSTEM, course_between, fold_speed_c, format_course, fold_travel_times, warp_speed_c, warp_travel_times,
 )
 from planetgen.galaxy.sector import SpaceSector
-from stellarObjects.supernovaRemnantData import SupernovaRemnant
-from stellarObjects.systemData import StarSystem
+from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant
+from planetgen.generation.system import StarSystem
 
 
 # ---------------------------------------------------------------------

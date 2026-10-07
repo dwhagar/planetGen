@@ -20,8 +20,8 @@ import classref  # noqa: E402
 from markupsafe import escape  # noqa: E402
 from planetgen.physics import constants  # noqa: E402
 from planetgen import tuning
-from stellarObjects.cometData import PERIOD_CLASS_LABELS  # noqa: E402
-from stellarObjects.nebulaData import NEBULA_CLASS_LETTERS, REMNANT_CLASS_LETTERS  # noqa: E402
+from planetgen.generation.comet import PERIOD_CLASS_LABELS  # noqa: E402
+from planetgen.generation.phenomena.nebula import NEBULA_CLASS_LETTERS, REMNANT_CLASS_LETTERS  # noqa: E402
 from planetgen.physics.stellar_evolution import YERKES_CLASS_NAMES  # noqa: E402
 from systempage import stars_html, system_list_html  # noqa: E402
 

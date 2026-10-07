@@ -22,10 +22,10 @@ import pytest
 
 import queryDb
 from stellarObjects import _db
-from stellarObjects.asteroidFieldData import AsteroidField
-from stellarObjects.config import SystemConfig
+from planetgen.generation.phenomena.asteroid_field import AsteroidField
+from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.geometry import sector_orientation
-from stellarObjects.nebulaData import Nebula
+from planetgen.generation.phenomena.nebula import Nebula
 from planetgen.galaxy.sector import SpaceSector
 from stellarObjects.utils import ly_to_pc, mpc_to_pc, pc_to_ly
 
@@ -262,9 +262,9 @@ def test_pc_ly_round_trip_used_by_placement_math():
 # schema.sql's "v21" header note.
 # ---------------------------------------------------------------------------
 
-from stellarObjects.compactRemnant import BlackHole, NeutronStar
-from stellarObjects.roguePlanetData import InterstellarComet, RoguePlanet
-from stellarObjects.supernovaRemnantData import SupernovaRemnant
+from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
+from planetgen.generation.phenomena.rogue import InterstellarComet, RoguePlanet
+from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant
 
 
 def test_galaxy_placement_from_sector_offset_converts_ly_offset_to_absolute_pc():
@@ -434,9 +434,9 @@ def test_insert_sector_persists_every_phenomenon_type_with_correct_placement(mys
     galaxy-frame position converted from its own sector-relative offset
     (not an independently re-randomized jitter).
     """
-    from stellarObjects.asteroidFieldData import AsteroidField
-    from stellarObjects.nebulaData import Nebula
-    from stellarObjects.systemData import StarSystem
+    from planetgen.generation.phenomena.asteroid_field import AsteroidField
+    from planetgen.generation.phenomena.nebula import Nebula
+    from planetgen.generation.system import StarSystem
 
     sector = SpaceSector("Full Pipeline Sector", edge_ly=40.0)
     cfg = SystemConfig()

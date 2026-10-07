@@ -1,4 +1,4 @@
-# stellarObjects/compactRemnant.py
+# planetgen/generation/phenomena/compact_remnant.py
 
 """
 Compact Stellar Remnants
@@ -42,13 +42,13 @@ first version.
 import math
 import random
 
-from .config import SystemConfig
+from planetgen.generation.config import SystemConfig
 from planetgen.physics import constants
 from planetgen import tuning
 from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
-from .starData import Star
-from .utils import (calculate_habitable_zone, format_age_string, format_number, format_body_radius_km, format_distance_km,
+from planetgen.generation.star import Star
+from stellarObjects.utils import (calculate_habitable_zone, format_age_string, format_number, format_body_radius_km, format_distance_km,
                     format_duration_seconds, format_galactic_orbit, format_length_km, format_relative_to_sol,
                     generate_galactic_orbit_fields, properties_to_string)
 

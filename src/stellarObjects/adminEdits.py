@@ -19,12 +19,12 @@ import math
 import random
 from collections import namedtuple
 
-from . import validation
+from planetgen.generation import validation
 from planetgen.physics import constants, planets as planetPhysics
 from planetgen import tuning
-from .asteroidData import AsteroidBelt
+from planetgen.generation.belt import AsteroidBelt
 from planetgen.names.bodies import moon_letters
-from .planetData import Planet
+from planetgen.generation.planet import Planet
 
 EditResult = namedtuple("EditResult", ["summary", "moved", "reclassified", "removed", "warnings"])
 """What an edit did: a one-line `summary`, the names of the bodies the
@@ -444,9 +444,9 @@ def change_star(system, star_type):
         ValueError: For a binary system, a black hole or neutron star, or
             a malformed star type.
     """
-    from .compactRemnant import BlackHole, NeutronStar
-    from .starData import STAR_TYPE_PATTERN, Star
-    from .systemData import StarSystem
+    from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
+    from planetgen.generation.star import STAR_TYPE_PATTERN, Star
+    from planetgen.generation.system import StarSystem
 
     if system.binary_type is not None:
         raise ValueError("only a single star can be changed; regenerate a binary system instead")

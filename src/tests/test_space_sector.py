@@ -21,7 +21,7 @@ import pytest
 from planetgen.physics import constants
 from planetgen import tuning as program_constants
 from planetgen.galaxy import sector as spaceSector_module
-from stellarObjects.config import SystemConfig
+from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.sector import (
     SectorSystemEntry,
     SpaceSector,
@@ -34,7 +34,7 @@ from planetgen.galaxy.sector import (
     mean_nearest_neighbor_ly,
     required_separation_ly,
 )
-from stellarObjects.systemData import StarSystem
+from planetgen.generation.system import StarSystem
 
 TRIALS = 3
 
@@ -674,12 +674,12 @@ def test_space_sector_module_does_not_import_the_generate_script():
 # own module docstring, "Minimum separation (Hill spheres)".
 # ---------------------------------------------------------------------------
 
-from stellarObjects.asteroidFieldData import AsteroidField
-from stellarObjects.compactRemnant import BlackHole, NeutronStar
-from stellarObjects.nebulaData import Nebula
-from stellarObjects.roguePlanetData import InterstellarComet, RoguePlanet
+from planetgen.generation.phenomena.asteroid_field import AsteroidField
+from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
+from planetgen.generation.phenomena.nebula import Nebula
+from planetgen.generation.phenomena.rogue import InterstellarComet, RoguePlanet
 from planetgen.galaxy.sector import SectorPhenomenonEntry
-from stellarObjects.supernovaRemnantData import SupernovaRemnant
+from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant
 
 
 def make_black_hole():

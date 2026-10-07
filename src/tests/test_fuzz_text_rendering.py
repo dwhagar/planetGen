@@ -40,8 +40,8 @@ import mdconvert  # noqa: E402
 import pagination  # noqa: E402
 import tabledisplay  # noqa: E402
 from stellarObjects import systemRender  # noqa: E402
-from stellarObjects.config import SystemConfig  # noqa: E402
-from stellarObjects.systemData import StarSystem  # noqa: E402
+from planetgen.generation.config import SystemConfig  # noqa: E402
+from planetgen.generation.system import StarSystem  # noqa: E402
 from tests.fuzz_support import any_float, finite, hostile_text, non_finite, scaled  # noqa: E402
 
 _MARKDOWN_FRAGMENTS = [

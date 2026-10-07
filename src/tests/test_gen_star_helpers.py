@@ -14,11 +14,11 @@ import random
 
 import pytest
 
-from stellarObjects import starData, stellarPopulation
+from planetgen.generation import star as starData, star_population
 from planetgen.physics import constants, stellar_evolution
 from planetgen import tuning
-from stellarObjects.config import SystemConfig
-from stellarObjects.starData import Star
+from planetgen.generation.config import SystemConfig
+from planetgen.generation.star import Star
 from planetgen.physics.stellar_evolution import YERKES_CLASS_NAMES
 
 from tests.fuzz_support import deterministic_entropy
@@ -385,15 +385,15 @@ def test_evolved_mass_sampler_accepts_only_masses_that_have_evolved():
 @pytest.mark.parametrize("threshold", [math.nan, math.inf, "10", None])
 def test_bright_threshold_must_be_finite(threshold):
     with pytest.raises(ValueError, match="luminosity threshold must be a finite number"):
-        stellarPopulation._check_threshold(threshold)
+        star_population._check_threshold(threshold)
 
 
 def test_bright_threshold_must_clear_the_brightest_white_dwarf():
     too_low = PC.WD_LUMINOSITY_RANGE_SOL[1] / 2
     with pytest.raises(ValueError, match="must be at least the brightest white dwarf"):
-        stellarPopulation._check_threshold(too_low)
+        star_population._check_threshold(too_low)
 
 
 def test_bright_band_must_not_be_empty():
     with pytest.raises(ValueError, match=r"empty luminosity band \[100, 50\) Lsun"):
-        stellarPopulation.sample_bright_stars(1, 100.0, max_luminosity_sol=50.0)
+        star_population.sample_bright_stars(1, 100.0, max_luminosity_sol=50.0)

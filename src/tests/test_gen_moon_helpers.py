@@ -15,9 +15,9 @@ import pytest
 
 from planetgen.physics import constants, planets
 from planetgen import tuning
-from stellarObjects.config import SystemConfig
-from stellarObjects.planetData import Planet
-from stellarObjects.starData import Star
+from planetgen.generation.config import SystemConfig
+from planetgen.generation.planet import Planet
+from planetgen.generation.star import Star
 
 from tests.fuzz_support import deterministic_entropy
 
