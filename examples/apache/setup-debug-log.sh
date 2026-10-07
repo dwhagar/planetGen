@@ -2,7 +2,7 @@
 #
 # examples/apache/setup-debug-log.sh
 #
-# Prepares planetGen's debug log (see src/stellarObjects/log.py), its
+# Prepares planetGen's debug log (see src/planetgen/util/log.py), its
 # always-on activity log (src/stellarObjects/activitylog.py), and the
 # rotation for both. Safe to run again. Called by install.sh, and by
 # update.sh when there's nothing new to install.
@@ -73,7 +73,7 @@ if [[ -z "$PYTHON" ]]; then
 fi
 
 # Prints "<debug on: 1|0> <log file path>", read the same way the program
-# itself reads them (stellarObjects/appconfig.py). appconfig is loaded
+# itself reads them (planetgen/util/appconfig.py). appconfig is loaded
 # straight from its file, not through the stellarObjects package, so this
 # works before the package's own dependencies are installed. This runs as
 # root, so -I keeps the current directory, user site-packages and PYTHON*
@@ -87,7 +87,7 @@ import importlib.util
 import os
 import sys
 
-path = os.path.join(sys.argv[1], "src", "stellarObjects", "appconfig.py")
+path = os.path.join(sys.argv[1], "src", "planetgen", "util", "appconfig.py")
 spec = importlib.util.spec_from_file_location("planetgen_appconfig", path)
 appconfig = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(appconfig)

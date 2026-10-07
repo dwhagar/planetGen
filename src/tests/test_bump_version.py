@@ -27,7 +27,7 @@ ADDED_NOTE = "### Added\n- Added a thing.\n"
 
 
 def _make_repo(root, version="1.2.3"):
-    os.makedirs(os.path.join(root, "src", "stellarObjects"))
+    os.makedirs(os.path.join(root, os.path.dirname(bump_version.VERSION_FILE)))
     os.makedirs(os.path.join(root, "changes"))
     with open(os.path.join(root, bump_version.VERSION_FILE), "w") as f:
         f.write(f'"""Docstring."""\n\n__version__ = "{version}"\n\nREPO_URL = "x"\n')

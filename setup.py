@@ -21,19 +21,19 @@ with open(os.path.join(here, 'README.md'), encoding='utf-8') as f:
 
 def read_version():
     """
-    Reads `__version__` out of `stellarObjects/_version.py` as plain text
+    Reads `__version__` out of `planetgen/_version.py` as plain text
     (regex, not import) rather than `import stellarObjects` -- that package's
     `__init__.py` imports `Planet`, which imports `names.py`, which imports
     `nltk` at module load time, and this script runs in an isolated build
     environment that doesn't have `nltk` (or any other runtime dependency)
     installed yet (see the note above on the corpus download).
     """
-    version_path = os.path.join(here, 'src', 'stellarObjects', '_version.py')
+    version_path = os.path.join(here, 'src', 'planetgen', '_version.py')
     with open(version_path, encoding='utf-8') as f:
         contents = f.read()
     match = re.search(r"^__version__\s*=\s*['\"]([^'\"]+)['\"]", contents, re.M)
     if not match:
-        raise RuntimeError("Unable to find __version__ in stellarObjects/_version.py")
+        raise RuntimeError("Unable to find __version__ in planetgen/_version.py")
     return match.group(1)
 
 

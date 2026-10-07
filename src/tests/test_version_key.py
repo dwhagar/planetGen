@@ -17,7 +17,7 @@ import pytest
 
 import generate
 from stellarObjects import _db, galaxySeed, versionKey
-from stellarObjects._version import __version__
+from planetgen._version import __version__
 from tests.test_galaxy_gen import _mysql_argv, _seed_skeleton
 
 SEED = bytes.fromhex("00112233445566778899AABBCCDDEEFF")

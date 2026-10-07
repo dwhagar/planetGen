@@ -91,10 +91,12 @@ from rich.text import Text
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "src"))
 
 from stellarObjects import (
-    _db, activitylog, brightStars, galaxySeed, generationLimits, generationStats, log, mathCheck, nebulaField,
-    physical_constants, population, program_constants, progressFile, progressRate, versionKey, workQueue,
+    _db, activitylog, brightStars, galaxySeed, generationLimits, generationStats, mathCheck,
+    nebulaField, physical_constants, population, program_constants, progressFile, progressRate,
+    versionKey, workQueue,
 )
-from stellarObjects._version import VersionAction, version_banner
+from planetgen.util import log
+from planetgen._version import VersionAction, version_banner
 from stellarObjects.asteroidFieldData import AsteroidField
 from stellarObjects.compactRemnant import BlackHole, NeutronStar
 from stellarObjects.config import SystemConfig

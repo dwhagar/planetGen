@@ -194,9 +194,11 @@ One package per PR, each mechanical (`git mv`, import lines, callers),
 each with the full suite green and no change to behavior. Leaves first,
 so each PR's modules import ones that already moved:
 
-1. Scaffold `src/planetgen/` with `_version.py`, the editable install in
-   install, update and CI, and `planetgen.util` (log, appconfig,
-   serialization).
+1. Scaffold `src/planetgen/` with `_version.py` and `planetgen.util`
+   (log, appconfig, serialization). Every entry point already puts `src/`
+   on `sys.path`, so `planetgen` imports the way `stellarObjects` does;
+   the editable install comes with step 14, when those `sys.path` pushes
+   go.
 2. `planetgen.tuning` and `planetgen.physics`.
 3. `planetgen.galaxy`.
 4. `planetgen.names`.
@@ -217,9 +219,9 @@ so each PR's modules import ones that already moved:
 
 ### 6.6 Deployment
 
-The server needs `update.sh` once after step 1 (for the editable
-install) and again after each step that renames a script install or
-update runs (steps 8, 9 and 14). The Apache config doesn't change. The
+The server needs `update.sh` after each step that renames a script
+install or update runs (steps 8, 9 and 14; step 14 also brings the
+editable install). The Apache config doesn't change. The
 web server's user needs read access to `src/planetgen/`;
 `set-permissions.sh` covers it from step 1.
 

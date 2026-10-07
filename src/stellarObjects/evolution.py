@@ -16,7 +16,8 @@ purposes. They are not based on any established scientific models of astrobiolog
 
 import random
 
-from . import log, program_constants
+from . import program_constants
+from planetgen.util import log
 from .utils import format_age_string, get_star_evolutionary_profile, to_paragraph
 # Removed: from . import config # Import the config module
 

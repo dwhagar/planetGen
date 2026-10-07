@@ -67,7 +67,7 @@ import socket
 import threading
 import time
 
-from stellarObjects import log
+from planetgen.util import log
 
 CPU_SHARE = 0.8
 """float: The share of the machine's cores the pool may use."""

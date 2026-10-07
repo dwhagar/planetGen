@@ -18,7 +18,7 @@ It also exports `__version__`, this package's version string (see
 `_version.py` for why that lives in its own dependency-free module).
 """
 
-from ._version import __version__
+from planetgen._version import __version__
 from .planetData import Planet
 from .spaceSector import SectorSystemEntry, SpaceSector
 from .starData import Star

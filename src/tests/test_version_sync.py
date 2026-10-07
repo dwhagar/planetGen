@@ -2,7 +2,7 @@
 
 """
 Guards against `README.md`'s version badge and `CHANGELOG.md`'s top entry
-drifting out of sync with `stellarObjects._version.__version__` -- the
+drifting out of sync with `planetgen._version.__version__` -- the
 single source of truth `setup.py`/the CLI `--version` banners already read
 (see `_version.py`'s own docstring). Nothing enforces either file getting
 bumped alongside a real release; this caught README.md sitting 3 releases
@@ -18,7 +18,7 @@ them directly.
 import os
 import re
 
-from stellarObjects._version import __version__
+from planetgen._version import __version__
 
 # This file lives at src/tests/, two levels under the repo root (src
 # layout), same relative-path convention test_examples.py uses.
@@ -36,7 +36,7 @@ def test_readme_version_badge_matches_version_py():
     assert match, "README.md's '**Version:** ...' badge line is missing or reformatted"
     assert match.group(1) == __version__, (
         f"README.md's version badge says {match.group(1)!r}, but "
-        f"stellarObjects/_version.py's __version__ is {__version__!r} -- "
+        f"planetgen/_version.py's __version__ is {__version__!r} -- "
         "don't edit the version by hand; add a note under changes/ and let "
         "scripts/bump_version.py stamp it (see changes/README.md)."
     )
@@ -48,7 +48,7 @@ def test_changelog_top_entry_matches_version_py():
     assert match, "CHANGELOG.md's top '## [x.y.z] - ...' entry heading is missing or reformatted"
     assert match.group(1) == __version__, (
         f"CHANGELOG.md's top entry is [{match.group(1)}], but "
-        f"stellarObjects/_version.py's __version__ is {__version__!r} -- "
+        f"planetgen/_version.py's __version__ is {__version__!r} -- "
         "don't edit the version by hand; add a note under changes/ and let "
         "scripts/bump_version.py stamp it (see changes/README.md)."
     )

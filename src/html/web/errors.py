@@ -20,8 +20,8 @@ import time
 from flask import current_app, request
 
 import apiclient
-from stellarObjects import log
-from stellarObjects.appconfig import debug_enabled
+from planetgen.util import log
+from planetgen.util.appconfig import debug_enabled
 
 from .helpers import render_page
 

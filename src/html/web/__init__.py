@@ -51,7 +51,7 @@ import pagecache  # noqa: E402
 from fmt import STATIC_VERSION, format_number, utc_time_html  # noqa: E402
 from fmt import static_url as fmt_static_url  # noqa: E402
 from api.limiter import page_limit  # noqa: E402
-from stellarObjects.appconfig import load_config  # noqa: E402
+from planetgen.util.appconfig import load_config  # noqa: E402
 
 from . import csrf, errors, transport  # noqa: E402
 from .helpers import current_admin, page_url, visible_sections  # noqa: E402

@@ -22,7 +22,7 @@ from flask import current_app, request
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
-from stellarObjects.appconfig import DEFAULT_CONFIG
+from planetgen.util.appconfig import DEFAULT_CONFIG
 
 IN_PROCESS_ENVIRON_KEY = "planetgen.in_process"
 """str: WSGI environ key `web/transport.py` sets on the API requests the

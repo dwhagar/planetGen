@@ -1,4 +1,4 @@
-# stellarObjects/appconfig.py
+# planetgen/util/appconfig.py
 
 """
 Unified deployment configuration loader
@@ -40,9 +40,9 @@ import json
 import os
 import sys
 
-# stellarObjects/ lives at src/stellarObjects/ (src layout) -- three levels
-# up from this file, not two, to reach the actual repo root.
-_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# This file is src/planetgen/util/appconfig.py: four levels up is the repo
+# root.
+_PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
 CONFIG_PATH = os.path.join(_PROJECT_ROOT, "config.json")
 """str: Absolute path to the real config file, at the repo root -- a
@@ -187,7 +187,7 @@ def debug_enabled(config=None):
     environment variable when set (`0`/`false`/`no`/`off`/empty mean off,
     anything else on), else `config.json`'s `"debug"`, which defaults to
     off when missing (a string there is read the same way as the variable). Debug mode turns on the verbose debug log (see
-    `stellarObjects.log`) and the web interface's traceback-in-page 500
+    `planetgen.util.log`) and the web interface's traceback-in-page 500
     responses.
 
     Args:

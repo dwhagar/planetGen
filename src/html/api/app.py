@@ -12,7 +12,8 @@ import time
 import pymysql
 from flask import Flask, abort, current_app, g, jsonify, make_response, request
 
-from stellarObjects import _db, activitylog, log
+from stellarObjects import _db, activitylog
+from planetgen.util import log
 
 from .admin import bp as admin_bp
 from .auth import bp as auth_bp
@@ -124,7 +125,7 @@ _SECRET_WORDS = ("password", "token", "secret", "key")
 
 def _register_request_logging(app):
     """
-    With the debug log on (see `stellarObjects.log`), records every API
+    With the debug log on (see `planetgen.util.log`), records every API
     request as it arrives and as it's answered -- method, path, query,
     caller, which credential it carried (never the credential itself),
     status, size and time taken. Request bodies are summarized by their

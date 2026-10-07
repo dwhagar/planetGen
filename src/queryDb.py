@@ -47,7 +47,7 @@ from stellarObjects._db import (add_mysql_connection_args, escape_like, get_conn
 from stellarObjects import physical_constants, program_constants
 from stellarObjects.starData import compressed_heliosphere_radius
 from stellarObjects.brightStars import MPC_PER_PC
-from stellarObjects._version import VersionAction, __version__, version_banner
+from planetgen._version import VersionAction, __version__, version_banner
 from stellarObjects.galaxyGeometry import (
     galaxy_to_local_pc, layer_index_at, neighbor_addresses, provisional_sector_designation, ring_index_at,
     ring_sector_count, sector_cell_vertices_pc, sector_position_pc,

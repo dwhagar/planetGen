@@ -22,7 +22,7 @@ added up: a plain sum collides (7.127.352 and 7.128.351 both sum to 486).
 import platform
 import sys
 
-from ._version import __version__
+from planetgen._version import __version__
 
 KEY_DIGITS = 22
 """int: A version key's length in hex digits."""

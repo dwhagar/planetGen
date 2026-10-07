@@ -36,7 +36,7 @@ sys.path.insert(0, os.path.dirname(_HTML_DIR))
 sys.path.insert(0, _HTML_DIR)
 
 from api.app import create_app
-from stellarObjects import log
+from planetgen.util import log
 
 # The API's log lines are named "api" in the debug log; mod_wsgi owns
 # stdout, so nothing goes to the console.

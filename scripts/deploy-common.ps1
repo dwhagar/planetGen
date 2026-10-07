@@ -331,7 +331,7 @@ function Get-LogLocations {
     $python = Get-VenvPython
     $lines = @(& $python -I -c @"
 import importlib.util, os, sys
-spec = importlib.util.spec_from_file_location('appconfig', os.path.join(sys.argv[1], 'src', 'stellarObjects', 'appconfig.py'))
+spec = importlib.util.spec_from_file_location('appconfig', os.path.join(sys.argv[1], 'src', 'planetgen', 'util', 'appconfig.py'))
 appconfig = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(appconfig)
 config = appconfig.load_config()
@@ -524,7 +524,7 @@ import web
 # Redis yet, so a server that doesn't answer only warns.
 function Test-Redis {
     $python = Get-VenvPython
-    $url = & $python -c "import sys; sys.path.insert(0, sys.argv[1]); from stellarObjects.appconfig import load_config; print(load_config()['redis']['url'])" (Join-Path $Root "src")
+    $url = & $python -c "import sys; sys.path.insert(0, sys.argv[1]); from planetgen.util.appconfig import load_config; print(load_config()['redis']['url'])" (Join-Path $Root "src")
     if ($LASTEXITCODE -ne 0 -or -not $url) {
         Write-Warning "Couldn't read redis.url from config.json; skipping the Redis check."
         return

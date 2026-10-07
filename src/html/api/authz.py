@@ -13,7 +13,8 @@ from functools import wraps
 
 from flask import g, request
 
-from stellarObjects import activitylog, adminAuth, log
+from stellarObjects import activitylog, adminAuth
+from planetgen.util import log
 
 from .common import ApiError, get_control_db
 

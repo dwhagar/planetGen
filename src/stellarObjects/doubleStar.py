@@ -21,7 +21,7 @@ from .bodyNames import close_pair_label
 from .config import SystemConfig
 from . import physical_constants
 from .planetPhysics import calculate_orbital_period_years
-from .serialization import fields_from_dict, fields_to_dict
+from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from .starData import Star, adjust_pair_age_for_planets
 from .utils import (finite_domain, format_age_string, calculate_habitable_zone,
                     calculate_hill_sphere, circular_orbital_speed_kms,

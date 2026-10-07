@@ -47,7 +47,8 @@ from starmap import render_map_panel
 from systempage import facility_kind_label
 
 from api.common import is_http_url
-from stellarObjects import activitylog, log, program_constants
+from stellarObjects import activitylog, program_constants
+from planetgen.util import log
 from stellarObjects.galaxyGeometry import provisional_sector_designation
 from stellarObjects.utils import pc_to_ly
 

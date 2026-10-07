@@ -12,7 +12,7 @@ endpoints delegate straight to `queryDb.py`'s existing `list_sectors`/
 re-implementing the same SQL a third time; the two detail endpoints go
 through `stellarObjects._db.load_sector`/`load_star_system` for the full
 nested object graph, serialized via each class's own `to_dict()` (Phase 1
-serialization, `stellarObjects/serialization.py`).
+serialization, `planetgen/util/serialization.py`).
 
 Listing endpoints (`/sectors`, `/systems`) are paginated -- this project's
 own roadmap (docs/TODO.md, Phase 4) plans galaxy-scale generation, so an
@@ -77,7 +77,7 @@ from queryDb import (
 from stellarObjects import _db, brightStars, generationLimits, program_constants
 from stellarObjects import facilities as facility_rules
 from stellarObjects._db import MySQLConfig, get_galaxy_bounds, get_galaxy_shape, get_sector_id_at, list_databases, resolve_database
-from stellarObjects.appconfig import load_config
+from planetgen.util.appconfig import load_config
 from stellarObjects.config import SystemConfig
 from stellarObjects.galaxyGeometry import describe_sector_cell, sector_address_at
 from stellarObjects.systemData import StarSystem

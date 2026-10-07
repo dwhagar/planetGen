@@ -212,7 +212,7 @@ something other than the default -- see
 deployment's actual database server. `site_name`/`base_url` are cosmetic
 and safe to leave as-is.
 
-If `config.json` doesn't exist at all, `stellarObjects.appconfig.load_config()`
+If `config.json` doesn't exist at all, `planetgen.util.appconfig.load_config()`
 falls back to the built-in defaults shown in `config.json.example`, so
 every entry point keeps working (against `127.0.0.1:3306` as user
 `planetgen`) without this step -- exactly the environment-variable-only

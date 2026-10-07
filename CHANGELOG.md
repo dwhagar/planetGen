@@ -3746,7 +3746,7 @@ The Galaxy Map draws the pre-placed bright stars (every star of 500 L☉ or more
 
 ### Fixed
 - **`generate.py sector --debug` gave no way to see where a sector's generation
-  time actually went.** Added `stellarObjects.log.timed_phase`, a debug-only
+  time actually went.** Added `planetgen.util.log.timed_phase`, a debug-only
   context manager that logs `"<label>: <elapsed>ms"` (timestamped, like every
   other `--debug` line) around `generate_sector`'s and `StarSystem.__init__`'s
   major phases -- config building, each system's own generation and placement,
@@ -5014,7 +5014,7 @@ The Galaxy Map draws the pre-placed bright stars (every star of 500 L☉ or more
   existed to solve exactly this for the web interface, but only ever
   covered `site_name`/`base_url` plus three `db_*` placeholders that
   predated the MySQL port and were never wired to anything.
-  `stellarObjects.appconfig.load_config()` replaces it: a single
+  `planetgen.util.appconfig.load_config()` replaces it: a single
   `config.json` at the repo root, deep-merged onto built-in defaults, now
   covering the read-only and write-capable MySQL connections, the control
   schema name, the database-listing prefix, the API's rate limits, the
@@ -6770,7 +6770,7 @@ enhancements") for where this started as a plan.
   for this step. `--force-reinstall` is deliberate: a plain `pip install
   .` skips reinstalling when pip thinks the same version is already
   installed — true on every `update.sh` run between version bumps in
-  `stellarObjects/_version.py` — which would otherwise silently leave the
+  `planetgen/_version.py` — which would otherwise silently leave the
   previous run's install in place instead of the source `update.sh` just
   pulled.
 - `install.sh` and `update.sh` now re-`chmod +x` every `*.sh` file in the
@@ -6951,12 +6951,12 @@ enhancements") for where this started as a plan.
   program's version, this repository's URL
   (https://github.com/dwhagar/planetGen), and a license summary, then
   exiting immediately.
-- `stellarObjects/_version.py`: a single, dependency-free source of truth
+- `planetgen/_version.py`: a single, dependency-free source of truth
   for the project's version number, shared by both CLI scripts and
   `setup.py`.
 
 ### Changed
-- `setup.py` now reads its `version` from `stellarObjects/_version.py`
+- `setup.py` now reads its `version` from `planetgen/_version.py`
   instead of a hardcoded, never-updated placeholder.
 - README updated with current version information and a link to this
   changelog.

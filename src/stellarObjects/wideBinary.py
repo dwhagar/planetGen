@@ -37,7 +37,7 @@ import random
 
 from . import physical_constants
 from .planetPhysics import calculate_orbital_period_years
-from .serialization import fields_from_dict, fields_to_dict
+from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from .starData import Star
 from .utils import (circular_orbital_speed_kms, format_distance_au, format_distance_km,
                     holman_wiegert_critical_semimajor_axis,

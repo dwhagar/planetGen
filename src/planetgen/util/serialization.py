@@ -1,4 +1,4 @@
-# stellarObjects/serialization.py
+# planetgen/util/serialization.py
 
 """
 Shared Serialization Helpers

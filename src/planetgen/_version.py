@@ -1,19 +1,13 @@
-# stellarObjects/_version.py
+# planetgen/_version.py
 
 """
 Single Source of Truth for Version Information
 ================================================
 
-Deliberately kept in its own tiny, dependency-free module rather than
-directly in `stellarObjects/__init__.py`. `setup.py` needs to read the
-version number at build time, but `stellarObjects/__init__.py` imports
-`Planet`, which imports `names.py`, which imports `nltk` at module load time
--- and `setup.py` runs in an isolated build environment that doesn't have
-`nltk` (or any other runtime dependency) installed yet (see `setup.py`'s own
-comment on this). `setup.py` reads `__version__` out of this file as plain
-text (regex, not import) to avoid ever triggering that chain; anything
-importing this module normally (e.g. `stellarObjects/__init__.py`, or the
-CLI scripts) does so safely, same as any other submodule.
+Kept in its own tiny, dependency-free module: `setup.py` reads
+`__version__` out of this file as plain text (regex, not import) in an
+isolated build environment with no runtime dependency installed, and
+`scripts/bump_version.py` rewrites it after each merge.
 """
 
 import argparse

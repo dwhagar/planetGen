@@ -28,7 +28,7 @@ each *leaf* class's own `from_dict` already accepts (`Star.from_dict`,
 `BinaryStarProxy.from_dict`, `Planet.from_dict`, `AsteroidBelt.from_dict`),
 and `StarSystem` itself is assembled directly here the same way
 `StarSystem.from_dict` assembles it internally -- reusing the leaf
-allowlists/reconstruction logic from `stellarObjects/serialization.py`
+allowlists/reconstruction logic from `planetgen/util/serialization.py`
 (Phase 1) without a redundant object-to-dict-to-object round trip for data
 that was never nested to begin with.
 
@@ -62,8 +62,9 @@ import pymysql
 import pymysql.cursors
 from dbutils.pooled_db import PooledDB
 
-from . import activitylog, galaxySeed, keplerMotion, log, objectId, physical_constants, program_constants, versionKey
-from .appconfig import load_config
+from . import activitylog, galaxySeed, keplerMotion, objectId, physical_constants, program_constants, versionKey
+from planetgen.util import log
+from planetgen.util.appconfig import load_config
 from .asteroidData import AsteroidBelt
 from .asteroidFieldData import AsteroidField, asteroid_field_designation
 from .compactRemnant import BlackHole, NeutronStar
@@ -191,7 +192,7 @@ CONTROL_DB_ENV_VAR = "PLANETGEN_CONTROL_DATABASE"
 """str: Env var naming the one MySQL schema the control plane lives in
 (admin identities are global to a deployment, not per-galaxy -- see
 `control_schema.sql`'s header comment). Falls back to `config.json`'s
-`control_database` (see `stellarObjects.appconfig`), then
+`control_database` (see `planetgen.util.appconfig`), then
 `DEFAULT_CONTROL_DATABASE`, when unset."""
 
 DEFAULT_CONTROL_DATABASE = "planetgen_control"
@@ -236,7 +237,7 @@ class MySQLConfig:
 
     Precedence for each field left unset here is: the matching
     `PLANETGEN_MYSQL_*` environment variable, then `config.json`'s
-    `mysql` section (see `stellarObjects.appconfig`), then the
+    `mysql` section (see `planetgen.util.appconfig`), then the
     hardcoded default below.
     """
 
@@ -1098,7 +1099,7 @@ Shared by every entry point that offers a choice among several MySQL
 schemas on one server (the `html/` CGI browser's `?db=` picker, and the
 Flask API's own `?db=`/`/api/databases`, both via this one implementation).
 Falls back to `config.json`'s `mysql.database_prefix` (see
-`stellarObjects.appconfig`), then to `DEFAULT_DB_PREFIX`, when unset."""
+`planetgen.util.appconfig`), then to `DEFAULT_DB_PREFIX`, when unset."""
 
 DEFAULT_DB_PREFIX = "planetgen"
 """str: Matches `MySQLConfig`'s own default database name -- a deployment

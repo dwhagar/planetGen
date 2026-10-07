@@ -46,8 +46,8 @@ import threading
 import time
 
 from privatedir import ensure_private_dir
-from stellarObjects import log
-from stellarObjects.appconfig import load_config
+from planetgen.util import log
+from planetgen.util.appconfig import load_config
 
 REPO_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 """str: The planetGen checkout (`generate.py` lives here)."""
