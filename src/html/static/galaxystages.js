@@ -671,7 +671,7 @@ export function stageQuery(stage) {
 // ({ring, layer, slot}) is set by ?sector=<designation>, whose stage the
 // caller works out (sectorStage needs the outline); `open` by &open=1 with
 // it, the sector opened in place (MAP.66) and not only selected, and `system`
-// (&system=<id>, with open) the system of it opened in place too (MAP.125). An older link's
+// (&system=<id>, with open, and &object=<ref> a body of it) the system of it opened in place too (MAP.125). An older link's
 // ?slab=s reads as a pick of that one slab, before any others, and its
 // region picks (the 3 x 3 pick MAP.56 dropped) end its picks there: it
 // opens at the stage before the first one. Anything
@@ -685,7 +685,8 @@ export function parseStageQuery(search) {
     const sector = parseSectorDesignation(designation);
     if (!sector) return { stage: galaxy, sector: null, problem: "There is no sector " + designation + "." };
     const system = /^\d+$/.test(params.get("system") || "") ? Number(params.get("system")) : null;
-    return { stage: galaxy, sector: sector, open: params.get("open") === "1", system: system, problem: null };
+    const object = /^(star|planet|moon|belt|comet):\d+$/.test(params.get("object") || "") ? params.get("object") : null;
+    return { stage: galaxy, sector: sector, open: params.get("open") === "1", system: system, object: object, problem: null };
   }
   let at = null;
   if (params.has("at")) {

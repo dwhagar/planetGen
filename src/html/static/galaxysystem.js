@@ -21,6 +21,7 @@
 // - flyTo(entry): the map's camera flies to a body of the open system;
 // - viewport (optional): the map's viewport element, where the
 //   screen-reader list of the open system's bodies goes;
+// - picked(ref) (optional): a body was picked, or (null) the pick cleared;
 // - opened() / closed() (optional).
 
 const VERSION_QUERY = new URL(import.meta.url).search;
@@ -160,6 +161,7 @@ export function createSystemStage(host) {
         }
         host.showInfo(infoSpecFor(entry, state));
         state.selected = ringAround(selectionRing, entry);
+        if (host.picked) host.picked(entry.ref);
       },
     });
   }
@@ -188,6 +190,7 @@ export function createSystemStage(host) {
     selectionRing.hide();
     open.selected = null;
     if (host.deselected) host.deselected();
+    if (host.picked) host.picked(null);
     return true;
   }
 
