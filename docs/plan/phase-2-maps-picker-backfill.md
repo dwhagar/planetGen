@@ -46,7 +46,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| NAV.20 | Draw the direct line and the route apart | NAV.13 |  |
+| NAV.20 | Draw the direct line and the route apart |  |  |
 | NAV.21 | Fit the view to the whole course | MAP.58 | Same fit as MAP.53, exempt from MAP.58's lock. |
 | NAV.17 | A saved course record with both forms | NAV.7 |  |
 | NAV.18 | Save, list, open, rename and delete, per browser | NAV.17 | Sibling of bookmarks.js. |
