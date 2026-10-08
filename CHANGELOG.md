@@ -1,5 +1,10 @@
 # Changelog
 
+## [7.342.675] - 2026-10-08
+
+### Changed
+- The Admin menu of a sector page and of a phenomenon page is now the last button of the action bar, as on a system page, instead of a separate button above the page content.
+
 ## [7.341.675] - 2026-10-08
 
 ### Added
