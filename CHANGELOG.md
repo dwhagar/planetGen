@@ -1,5 +1,11 @@
 # Changelog
 
+## [7.300.664] - 2026-10-08
+
+### Added
+
+- TODO items UX.50 to UX.74: the 25 approved findings of the UX audit (UX.37), each a removal, merge or move that lets the interface get out of the way.
+
 ## [7.299.637] - 2026-10-08
 
 ### Added
