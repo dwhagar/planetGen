@@ -899,7 +899,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.28 | Investigate icons instead of words on buttons | none | done, PR #490 |
 | UX.29 | Every comet in a system shows its type as a link (bug) | none | done, PR #487 |
 | UX.30 | Planet information without the Markdown render | none | open |
-| UX.31 | Editing a star system: an edit button with a quick menu, not a long panel (bug) | none | open |
+| UX.31 | Editing a star system: an edit button with a quick menu, not a long panel (bug) | none | done, PR #533 |
 | UX.32 | Planet rows show the class only, without the type and moon labels | none | open |
 | UX.33 | Filter phenomena by their classes and types (bug) | none | open |
 | UX.34 | The sector summary calls white dwarfs "B-type" and "A-type" systems (bug) | none | done, PR #448 |
