@@ -1950,6 +1950,63 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   for small bodies, black hole spin distributions).
   Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
 
+- [ ] **GEN.121 A velocity on every object, filled at generation and stored with an epoch**
+  Boss (2026-10-08 23:11Z, 23:19Z): "so I want to add vector
+  information so we know not only where it's going but how fast"; "let's
+  go ahead and store the orbital information ... as part of the
+  coordinates, velocity, immediate vector of movement relative to the
+  center of the star system". Done: `SpatialPosition3D` carries a
+  velocity that generation fills in. A bound body (planet, moon, comet,
+  second star of a pair) stores its velocity relative to its primary; a
+  star or rogue body stores a galactic velocity (the rotation curve plus
+  any runaway or hypervelocity flag). The velocity carries an epoch (the
+  moment it is valid for, the same epoch the orbit simulation state
+  keeps), and both are stored in the database. A bound body's galactic
+  velocity is its primary's plus its relative one, so a planet's 30 km/s
+  is not lost in a star's 220 km/s. Each orbital update refreshes the
+  vector, so perturbation wobble shows up in it.
+  Build thread (not a lane): started 2026-10-08 after Boss's "Alright,
+  do it".
+  Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
+
+- [ ] **GEN.122 Orbital elements for planets, moons and comets, kept in step with the state vector**
+  Boss (2026-10-08 23:11Z): "Each orbital update we'll update the vector
+  (which will contain the wobble as part of it's changes etc) and update
+  the orbital ellipse." Done: planets, moons and comets (closed
+  ellipses) store orbital elements (size, eccentricity, inclination,
+  node, periapsis angle, phase) beside the vector, and each orbital
+  update converts between the two in both directions in `kepler.py`, so
+  the ellipse is always derived from the current vector and never a
+  second copy of the truth. The projected course is the closed ellipse
+  around the primary; wobble is ignored. Planets and moons are circular
+  today (`positions_at` uses distance and phase only); eccentric
+  planetary orbits are a generation decision that this item does not
+  make.
+  Build thread (not a lane). Prerequisite: GEN.121.
+
+- [ ] **GEN.123 The projected path of a body through a sector, saved as a spline**
+  Boss (2026-10-08 23:11Z, 23:16Z): "for objects that are not that easy,
+  that do not have a closed elipse, how about the path the object takes
+  through the sector, again, not in perfect terms"; "a planetary body
+  passes near a black hole but not close enough to be captured, that's
+  not a streight line, so I want a way to make sure the orbital path is
+  a spline that curves through the sector roughly the way the object
+  would. Some sectors are really dense". Done: for a body with no closed
+  ellipse (stars, rogue planets, hyperbolic and parabolic comets,
+  interstellar objects), a test particle is integrated across the
+  sector from its entry point and velocity against the sector's point
+  masses (stars, black holes, remnants; the masses are fixed during the
+  crossing and the particle does not pull back). The path is saved as
+  cubic Hermite spline knots (position and velocity), few where the path
+  is nearly straight and more near a heavy mass, with a hard cap, so a
+  sparse sector gets two knots. A single dominant flyby may use the
+  hyperbolic deflection formula instead. Each sector's exit point and
+  velocity are the next sector's entry, so the path chains across
+  sectors. Masses too weak or far to matter are skipped. MAP.126's orbit
+  drawing should use these paths later.
+  Build thread (not a lane). Prerequisite: GEN.121.
+  Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
+
 - [ ] **GEN.105 Orbital updates**
   Boss (2026-10-03 and 2026-10-07) asked for an orbital update that
   moves only what has visibly moved, counts what changed, and lets
