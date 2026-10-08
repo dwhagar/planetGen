@@ -825,6 +825,17 @@ def test_galaxy_map_stars_never_take_the_click(page, map_site):
     assert page.locator("#galaxymap3d-info", has_text="Address").count() == 1
 
 
+def test_galaxy_map_draws_a_nebula_from_its_shape_mesh(page, map_site):
+    """MAP.103: a nebula big enough on screen is drawn from its shape mesh
+    (fetched from the site), not only as a sprite; far out it stays a sprite."""
+    shape_requests = []
+    page.on("request", lambda request: shape_requests.append(request.url) if "/shape" in request.url else None)
+    _open_galaxy(page, map_site, "?at=27.27.0.0")
+    # A locator, not wait_for_function: the page's CSP forbids evaluating strings.
+    page.locator("#galaxymap3d-canvas[data-nebula-meshes='1']").wait_for(state="attached", timeout=15000)
+    assert any("/galaxy/nebula/801/shape?lod=low" in url for url in shape_requests), shape_requests
+
+
 # --- NAV.40: bookmarks keep a course pick ---------------------------------------------
 
 SEED_BOOKMARKS = """(entries) => {
