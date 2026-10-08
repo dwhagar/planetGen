@@ -135,6 +135,10 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.122 | A Select mode on every galaxy view: Galaxy (blocks and sectors) or Star | MAP.65 | Merges the 2026-10-07 "button to select a star" ask; MAP.101 (PR #431) made stars unpickable by default. |
 | MAP.123 | Show or hide star types and phenomena, and set the luminosity floor, on the Galaxy and Sector Maps | MAP.65, MAP.79 | Extends MAP.79's per-kind buttons to star types and the Galaxy Map. |
 | MAP.124 | The Galaxy Map opens zoomed to fit all charted space | MAP.67 |  |
+| DB.14 | Sector stats keep the raw star statistics (mean age, summed luminosity, star count) and no baked color |  | Boss 2026-10-08 01:59Z; drops color_r/g/b and fill_share (MAP.86). |
+| MAP.128 | The Galaxy Map and Sector Map tint a sector by star age, density and luminosity | DB.14 | Boss 2026-10-08 01:59Z. |
+| MAP.129 | Blocks colored from their sectors' statistics, weighted by star count | DB.14, MAP.128 | Aggregated where MAP.102 builds the block tiles. |
+| MAP.130 | Retire the average-star-color rule in the docs and tests | MAP.128 | test_sector_look.py, test_bright_star_scatter.py, test_api.py, docs. |
 
 ### System Map
 
