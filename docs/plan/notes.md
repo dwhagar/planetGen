@@ -233,7 +233,6 @@ From PR #431's red CI (coordinator, 2026-10-03): PERF.27, DB.12, OPS.25, MAP.114
 | MAP.66 | 3 → 0 | With the map engine in phase 0: the 2026-10-03 map bugs fold into it. |
 | MAP.67 | 3 → 0 | With the map engine in phase 0: the 2026-10-03 map bugs fold into it. |
 | MAP.68 | 3 → 0 | With the map engine in phase 0: the 2026-10-03 map bugs fold into it. |
-| MAP.61 | 3 → 0 | With the map engine in phase 0: the 2026-10-03 map bugs fold into it. |
 | NAV.32 | 3 → 0 | Moved into phase 0 with the engine (all bugs in phase 0). |
 | NAV.3 | 3 → 1 | Moved from phase 3: its parts are in phases 0 and 1. |
 | UX.21 | 3 → 0 | Moved into phase 0 (all bugs in phase 0), last. |

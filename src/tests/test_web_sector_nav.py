@@ -168,6 +168,12 @@ class FakeData:
         self.sectors[sector_id]["wiki_url"] = "https://wiki.example/sectors/fake"
         return {"url": "https://wiki.example/sectors/fake"}
 
+    def admin_set_sector_wiki_url(self, cookie_header, db, sector_id, wiki_url):
+        self.calls.append(("set_wiki_url", db, sector_id, wiki_url))
+        if self.action_error:
+            raise self.action_error
+        self.sectors[sector_id]["wiki_url"] = wiki_url
+
     estimate = {"sectors": 4, "summary": "About 280 KB and 3 s for 4 sectors.", "refused": False, "refusal": None}
 
     def generate_sector_neighborhood(self, cookie_header, sector_id, radius_ly=None, estimate_only=False):
@@ -180,7 +186,7 @@ class FakeData:
 
 
 _FAKED = ("get_sector", "get_galaxy_shape", "get_sector_facilities", "get_bright_stars_in_cell", "get_sectors", "get_system", "get_phenomenon", "get_nav", "get_wiki_config",
-          "auth_me", "upload_sector_to_wiki", "generate_sector_neighborhood")
+          "auth_me", "upload_sector_to_wiki", "admin_set_sector_wiki_url", "generate_sector_neighborhood")
 
 
 @pytest.fixture
@@ -401,9 +407,10 @@ def test_admin_sees_forms_with_csrf_token(client, fake):
         assert 'name="db"' not in form and 'name="id"' not in form
     # The Edit panel's Regenerate and Delete forms (ADM.8) aside:
     forms = [form for form in every_form if 'name="edit_action"' not in form]
-    assert len(forms) == 2 and len(every_form) == 4
+    assert len(forms) == 3 and len(every_form) == 5
     assert 'value="upload_wiki"' in forms[0] and 'value="wikijs"' in forms[0] and "mediawiki" not in forms[0]
-    assert 'value="generate_neighborhood"' in forms[1]
+    assert 'value="set_wiki_url"' in forms[1]  # UX.73
+    assert 'value="generate_neighborhood"' in forms[2]
 
 
 def test_admin_with_stale_credentials_gets_no_generate_form(client, fake):
@@ -508,6 +515,28 @@ def test_wiki_upload_posts_then_redirects_to_get(app, client, fake):
     html = client.get("/sector/5").get_data(as_text=True)
     assert "Uploaded to the wiki: https://wiki.example/sectors/fake" in html
     assert "View on Wiki" in html and 'value="upload_wiki"' not in html
+
+
+def test_set_wiki_link_posts_then_redirects_and_clears(app, client, fake):
+    """UX.73: the sector page's Admin menu sets or clears this sector's wiki link."""
+    _log_in(client, fake)
+    resp = client.post("/sector/5", data={"action": "set_wiki_url", "wiki_url": " https://wiki.example/S5 ",
+                                          csrf.FIELD_NAME: _csrf(app, client)})
+    assert resp.status_code == 303 and resp.headers["Location"] == "/sector/5"
+    assert ("set_wiki_url", DB, 5, "https://wiki.example/S5") in fake.calls
+    html = client.get("/sector/5").get_data(as_text=True)
+    assert "Wiki link set to https://wiki.example/S5." in html
+    assert 'value="https://wiki.example/S5"' in html  # the dialog starts from the current link
+    client.post("/sector/5", data={"action": "set_wiki_url", "wiki_url": "", csrf.FIELD_NAME: _csrf(app, client)})
+    assert ("set_wiki_url", DB, 5, None) in fake.calls
+    assert "Wiki link cleared." in client.get("/sector/5").get_data(as_text=True)
+
+
+def test_set_wiki_link_error_is_shown_inline(app, client, fake):
+    _log_in(client, fake)
+    fake.action_error = apiclient.ApiError("planetGen API error (400): bad url", status_code=400)
+    resp = client.post("/sector/5", data={"action": "set_wiki_url", "wiki_url": "x", csrf.FIELD_NAME: _csrf(app, client)})
+    assert resp.status_code == 200 and 'role="alert"' in resp.get_data(as_text=True)
 
 
 def test_wiki_upload_conflict_is_shown_inline(app, client, fake):
@@ -1144,3 +1173,14 @@ def test_sector_pick_mode_has_a_bookmarks_menu_that_keeps_the_pick(client, fake)
                       'data-keep-value="system:1001"', 'data-nav-url="/nav"', f'data-bookmark-db="{DB}"'):
         assert attribute in menu.group(0)
     assert "pick-bookmarks" not in client.get("/sector/5").get_data(as_text=True)
+
+
+def test_sector_header_chips_are_facts_only(client, fake):
+    """UX.65: the chips hold only counts; the quadrant is a plain link in the
+    header, and the comet estimate is a Details line under the map."""
+    fake.sectors[5]["interstellar_debris_count"] = 1.5e14
+    html = client.get("/sector/5").get_data(as_text=True)
+    chips = re.search(r'<p class="badges">(.*?)</p>', html, re.S).group(1)
+    assert "<a " not in chips and "interstellar" not in chips and "Quadrant" not in chips
+    assert re.search(r'<p class="location">In <a href="/galaxy\?quadrant=[^"]+">Quadrant \w+</a>', html)
+    assert re.search(r'<p class="hint sector-details"><strong>Details:</strong> About', html)

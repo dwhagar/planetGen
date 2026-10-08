@@ -112,7 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 is done (PR #476); GEN.117, and GEN.116 is closed (Boss 2026-10-08 17:46Z). | TEST.104, SEC.30, TEST.83, UX.39, OPS.20, DB.11, DB.13, ADM.21, GEN.66, GEN.74, GEN.70, GEN.71, GEN.72, GEN.73, GEN.67, NAV.7, MAP.67, MAP.61, NAV.32, UX.37, UX.50, UX.51, UX.52, UX.53, UX.54, UX.55, UX.56, UX.57, UX.58, UX.59, UX.60, UX.61, UX.62, UX.65, UX.67, UX.68, UX.69, UX.70, UX.71, UX.72, UX.73, UX.21 |
+| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 is done (PR #476); GEN.117, and GEN.116 is closed (Boss 2026-10-08 17:46Z). | TEST.104, SEC.30, TEST.83, UX.39, OPS.20, DB.11, DB.13, ADM.21, GEN.66, GEN.74, GEN.70, GEN.71, GEN.72, GEN.73, GEN.67, NAV.7, MAP.67, NAV.32, UX.37, UX.50, UX.51, UX.52, UX.53, UX.54, UX.55, UX.57, UX.58, UX.59, UX.60, UX.61, UX.62, UX.67, UX.68, UX.69, UX.70, UX.71, UX.21 |
 | 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, NAV.16, NAV.3, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.41, GEN.98, GEN.100, GEN.99, GEN.101, GEN.102, GEN.103, GEN.84, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, GEN.94, GEN.104, GEN.106, GEN.107, GEN.108, NAV.10, NAV.12, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, NAV.43, NAV.44, MAP.119, MAP.122, MAP.123, MAP.124, MAP.89, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, OPS.8, OPS.13, OPS.14, ADM.18, GEN.59, UX.49, NAV.50 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.58, MAP.75, MAP.59, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, API.16, MAP.69, MAP.70, ADM.17, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.131, MAP.132, API.18, VIEW.5 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, repair that reads the newest settings JSON, and the anomalies chosen in phase 2. | MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, MAP.126, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, DB.10, ADM.20, GEN.114, MAP.125, API.19 |
@@ -349,7 +349,6 @@ with `clamp()`.
   removed controls. Approved default: Help entry in the Menu on every
   map, same wording and dialog on all of them. Related: MAP.61,
   MAP.131, UX.21. Not a bug.
-  Prerequisite: MAP.61.
   Audit: https://claude.ai/artifact/4URTUHSvfLKMzZobyGdiHF (finding R1).
 
 - [ ] **UX.51 Cards that repeat the page title**
@@ -433,19 +432,6 @@ with `clamp()`.
   Prerequisites: none.
   Audit: https://claude.ai/artifact/4URTUHSvfLKMzZobyGdiHF (finding R6).
 
-- [ ] **UX.56 Admin hub repeats the gear menu**
-  UX audit finding R7 (UX.37; Boss approved the audit 2026-10-08
-  17:43Z: "All UX work on this is Phase 0"). Remove; audit priority 3;
-  pages: Admin. Seen: The Admin page opens with a Signed in card
-  listing “Change username or password”, “Server and database stats”
-  and “Log out”. All three are in the gear menu, and the page never
-  links Generate or Queue, which are only in the gear. Done: See
-  UX.72: make the hub list what is not in the gear (Generate, Queue,
-  Stats, Account) and drop the Signed in card. Approved default:
-  Handled by UX.72. Related: ADM.34. Not a bug.
-  Prerequisite: UX.72.
-  Audit: https://claude.ai/artifact/4URTUHSvfLKMzZobyGdiHF (finding R7).
-
 - [ ] **UX.57 Two controls both called Reset**
   UX audit finding M1 (UX.37; Boss approved the audit 2026-10-08
   17:43Z: "All UX work on this is Phase 0"). Rename; audit priority 1;
@@ -457,7 +443,6 @@ with `clamp()`.
   toolbar button Whole galaxy (or a Home icon with that label) and the
   Menu item Re-center. Fix the text with UX.50. Approved default:
   Whole galaxy / Re-center. Related: MAP.61, UX.42. Not a bug.
-  Prerequisite: MAP.61.
   Audit: https://claude.ai/artifact/4URTUHSvfLKMzZobyGdiHF (finding M1).
 
 - [ ] **UX.58 Move Current into the Steps menu**
@@ -471,7 +456,6 @@ with `clamp()`.
   at every width, and leave Back, Forward, Up, Whole galaxy,
   Bookmarks, Menu. Approved default: Current moves into the Steps
   menu. Related: MAP.94, MAP.95. Not a bug.
-  Prerequisite: MAP.61.
   Audit: https://claude.ai/artifact/4URTUHSvfLKMzZobyGdiHF (finding M2).
 
 - [ ] **UX.59 One breadcrumb trail on map pages**
@@ -488,7 +472,6 @@ with `clamp()`.
   as a labelled “Steps” control. Approved default: One trail; on
   phone, show the current level. Related: MAP.93, MAP.94, MAP.67. Not
   a bug.
-  Prerequisite: MAP.61.
   Audit: https://claude.ai/artifact/4URTUHSvfLKMzZobyGdiHF (finding M3).
 
 - [ ] **UX.60 The Slabs rail has nothing in it at the top level**
@@ -501,7 +484,6 @@ with `clamp()`.
   a sentence.) Done: Hide the rail until a stage has slab buttons. At
   the top level the sentence is not needed. Approved default: Hide
   until used. Related: MAP.58, MAP.59. Not a bug.
-  Prerequisite: MAP.61.
   Audit: https://claude.ai/artifact/4URTUHSvfLKMzZobyGdiHF (finding M4).
 
 - [ ] **UX.61 System Map: Measure distance floats beside an empty gap**
@@ -517,7 +499,6 @@ with `clamp()`.
   panel buttons; this only changes where the button lives. Approved
   default: Under the map, like the other maps. Related: MAP.65,
   MAP.61. Not a bug.
-  Prerequisite: MAP.61.
   Audit: https://claude.ai/artifact/4URTUHSvfLKMzZobyGdiHF (finding M5).
 
 - [ ] **UX.62 Map pages jump 64 px left**
@@ -532,19 +513,6 @@ with `clamp()`.
   a bug.
   Prerequisites: none.
   Audit: https://claude.ai/artifact/4URTUHSvfLKMzZobyGdiHF (finding M6).
-
-- [ ] **UX.65 Facts and links mixed in the Sector header chips**
-  UX audit finding P3 (UX.37; Boss approved the audit 2026-10-08
-  17:43Z: "All UX work on this is Phase 0"). Move; audit priority 2;
-  pages: Sector. Seen: The chip row mixes counts (14 systems, 21
-  stars, 137 phenomena) with links that look the same (Show on Galaxy
-  Map, Quadrant III) and a sentence (“About 1.50 × 10¹⁴ interstellar
-  comets and planetesimals (estimated)”). Done: Chips for facts only:
-  edge, systems, stars, phenomena. Show on Galaxy Map goes to the
-  action bar (done, UX.63). Quadrant III becomes a plain link in the facts
-  row. The comet estimate moves into a Details line under the map.
-  Approved default: Facts only in chips. Related: UX.42. Not a bug.
-  Audit: https://claude.ai/artifact/4URTUHSvfLKMzZobyGdiHF (finding P3).
 
 - [ ] **UX.67 Wikitext and Markdown buttons**
   UX audit finding P5 (UX.37; Boss approved the audit 2026-10-08
@@ -617,31 +585,6 @@ with `clamp()`.
   if NAV.3 replaces the page. Related: NAV.3, NAV.44. Not a bug.
   Prerequisites: none.
   Audit: https://claude.ai/artifact/4URTUHSvfLKMzZobyGdiHF (finding N2).
-
-- [ ] **UX.72 Gear menu mixes unrelated things; the admin hub is not the hub**
-  UX audit finding A1 (UX.37; Boss approved the audit 2026-10-08
-  17:43Z: "All UX work on this is Phase 0"). Move; audit priority 2;
-  pages: Header, Admin. Seen: For an admin, the gear holds the theme
-  switch, Account, Admin, Generate, Queue, Stats and Logout, and a
-  Search form when the bar is narrow. The Admin page then links Stats
-  and Log out again, and not Generate or Queue. Done: Gear: Theme,
-  Account, Admin, Logout. The Admin page lists Generate, Queue and
-  Stats as the hub, and each admin page gets the same small tab row to
-  move between them. Drop the Signed in card. Approved default: As
-  described. Related: ADM.34, UX.21. Not a bug.
-  Prerequisites: none.
-  Audit: https://claude.ai/artifact/4URTUHSvfLKMzZobyGdiHF (finding A1).
-
-- [ ] **UX.73 Sector wiki link form on the Admin hub**
-  UX audit finding A2 (UX.37; Boss approved the audit 2026-10-08
-  17:43Z: "All UX work on this is Phase 0"). Move; audit priority 3;
-  pages: Admin. Seen: The hub has a Sector ID and Wiki URL form, which
-  its own text says is only for fixing a link the sector page’s Upload
-  to Wiki button set. Done: Move it into the Sector page’s Admin menu
-  (like other sector actions) so no ID needs typing. Approved default:
-  Sector Admin menu. Related: ADM.34. Not a bug.
-  Prerequisites: none.
-  Audit: https://claude.ai/artifact/4URTUHSvfLKMzZobyGdiHF (finding A2).
 
 - [ ] **UX.39 Markdown rendered by the markdown library**
   Today `mdconvert.py` converts the system and wiki Markdown by hand.
@@ -883,40 +826,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     own renderer (one WebGL context, scissored like the System Map's
     sphere overlay).
 
-- [ ] **MAP.61 One map engine and control set for the Galaxy Map and the Sector Map**
-  Boss (2026-10-01 20:55Z): "unify the sector view with the galactic
-  view so it's all the same code and control set, because right now
-  they're different." Today the Galaxy Map (`galaxymap3d.js`,
-  `galaxystageview.js`, `galaxystages.js`) and the Sector Map
-  (`sectormap.js`) were separate three.js pages, with their own camera,
-  controls, picking, tooltips and scale readouts. Progress (2026-10-08):
-  the sector page now draws the Galaxy Map engine locked to its sector
-  (MAP.68, PR #573) and `sectormap.js` is gone; the system view
-  (MAP.62) is the part still apart. Done: one shared
-  engine (scene, camera, controls, picking, hover, info panel, scale
-  line, bookmarks, keys and touch) draws both. The sector is the
-  deepest stage of the galaxy drill-down, with the same buttons and
-  gestures, and the only differences are the data each level shows.
-  Ties in with NAV.3 (the shared picker), MAP.53 to MAP.60 (the
-  Galaxy Map controls being reworked now) and MAP.62 (the system view
-  joins the same engine).
-  Order: the first two sub-items change no behaviour and should land
-  before (or as the first PR of) the MAP.52 to MAP.60 work, because
-  those items rewrite the same files (`galaxymap3d.js`,
-  `galaxystageview.js`); the rest follow MAP.52 to MAP.60.
-  Prerequisite: MAP.67.
-  Plan (2026-10-07): Moved into phase 0 with its subitems. MAP.125
-  (infinite zoom) is its end state in phase 3.
-
-  - [ ] **MAP.67 One URL and history scheme for every level**
-    Galaxy stages, a sector, and (with MAP.62) a system and a body in
-    one URL form (for example `?at=` for stages, `?sector=`, `?object=<ref>`),
-    so Back, Forward, reload and bookmarks work the same at every level.
-    Progress (2026-10-08): the stage and sector levels are done (PR #573:
-    the sector page's map is the Galaxy Map engine locked to its sector,
-    with the one URL scheme). Done now means the system and body URL
-    forms, which ride with MAP.62.
-
 - [ ] **MAP.62 A full 3D star system view with a free camera**
   Boss (2026-10-01 20:55Z): "rendering a star system as a full 3D
   movable free-camera motion view." Today the System Map
@@ -927,6 +836,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   fly to a body), using the shared engine of MAP.61 and the shared
   picker of NAV.3. Clicking a body opens or selects it. The flat
   diagram stays available.
+  Plan (2026-10-08): MAP.61 is done (PR #629). MAP.62 is six subitems
+  (MAP.69 to MAP.74), and MAP.70 depends on the point-in-space object
+  (GEN.74), which is not built, so MAP.62 has a large prerequisite from
+  another stream. The map engine lane holds MAP.62 and MAP.125 until
+  Boss decides how to proceed.
+
+  - [ ] **MAP.67 One URL and history scheme for every level**
+    Galaxy stages, a sector, and (with MAP.62) a system and a body in
+    one URL form (for example `?at=` for stages, `?sector=`, `?object=<ref>`),
+    so Back, Forward, reload and bookmarks work the same at every level.
+    Progress (2026-10-08): the stage and sector levels are done (PR #573:
+    the sector page's map is the Galaxy Map engine locked to its sector,
+    with the one URL scheme). Done now means the system and body URL
+    forms, which ride with MAP.62.
 
   - [ ] **MAP.69 A system scene endpoint with 3D orbits**
     Today the System Map is drawn in Python as SVG (`lib/systemmap.py`):
@@ -1074,7 +997,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   continuously from the galaxy through block, sector and system to a
   planet and its moons, with the frames switched by the position object
   (GEN.74).
-  Prerequisites: MAP.61, MAP.62.
+  Prerequisite: MAP.62.
+  Plan (2026-10-08): Held with MAP.62 until Boss decides (see MAP.62:
+  MAP.70 waits on GEN.74).
 
 - [ ] **MAP.126 Show the orbital trajectories of selected objects in their frame of reference**
   Boss (2026-10-07 11:47Z): "Show orbital trajectories for selected

@@ -205,6 +205,10 @@ h2 {
   font-size: 0.9rem;
 }
 
+.page-subhead .location a {
+  text-decoration: underline;
+}
+
 .panel {
   background: var(--bg-elevated);
   border: 1px solid var(--border);
@@ -2525,6 +2529,48 @@ body.app {
   color: var(--link);
   background: var(--bg-subtle);
   box-shadow: inset 0 -2px 0 var(--accent);
+}
+
+/* UX.72: the tab row on every admin page (Overview, Generate, Queue,
+   Stats), and the hub's list. */
+.app .admin-tabs ul {
+  list-style: none;
+  margin: 0 0 1rem;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.15rem;
+}
+
+.app .admin-tabs a {
+  display: block;
+  padding: 0.35rem 0.7rem;
+  border-radius: 8px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.app .admin-tabs a:hover {
+  background: var(--bg-subtle);
+  color: var(--link);
+  text-decoration: none;
+}
+
+.app .admin-tabs a[aria-current="page"] {
+  color: var(--link);
+  background: var(--bg-subtle);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+
+.app .admin-hub {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.app .admin-hub li {
+  padding: 0.3rem 0;
 }
 
 .app .theme-toggle {

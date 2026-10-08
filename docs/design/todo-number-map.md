@@ -643,7 +643,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.58 | Galaxy Map zoom limits: a short manual range on the galaxy wedge, locked below it | none | open |
 | MAP.59 | Make it plain that a zoomed-in slab is a slab, not a wedge | none | open |
 | MAP.60 | Galaxy Map scale readout: one scale line | none | done, PR #369 |
-| MAP.61 | One map engine and control set for the Galaxy Map and the Sector Map | none | open |
+| MAP.61 | One map engine and control set for the Galaxy Map and the Sector Map | none | done, PR #629 |
 | MAP.62 | A full 3D star system view with a free camera | none | open |
 | MAP.63 | Shared map helpers in one module | none | done, PR #351 |
 | MAP.64 | One camera and input controller | none | done, PR #351 |
@@ -927,7 +927,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.53 | The same star shown three times on a system page | none | open |
 | UX.54 | Search shows empty result groups and echoes the query | none | open |
 | UX.55 | Home and Systems repeat other pages’ tables | none | open |
-| UX.56 | Admin hub repeats the gear menu | none | open |
+| UX.56 | Admin hub repeats the gear menu | none | done, PR #632 |
 | UX.57 | Two controls both called Reset | none | open |
 | UX.58 | Move Current into the Steps menu | none | open |
 | UX.59 | One breadcrumb trail on map pages | none | open |
@@ -936,15 +936,15 @@ Parents marked "new parent" had no old number of their own.
 | UX.62 | Map pages jump 64 px left | none | open |
 | UX.63 | One action bar on every object page | none | done, PR #618 |
 | UX.64 | Action buttons are all solid primary, with no hierarchy | none | done, PR #620 |
-| UX.65 | Facts and links mixed in the Sector header chips | none | open |
+| UX.65 | Facts and links mixed in the Sector header chips | none | done, PR #635 |
 | UX.66 | “Cube edge” on arc-shaped sectors | none | done, PR #617 |
 | UX.67 | Wikitext and Markdown buttons | none | open |
 | UX.68 | System Admin menu lists every planet and moon | none | open |
 | UX.69 | Tables are cut off on phones with no cue | none | open |
 | UX.70 | The result page repeats the route and puts the map last | none | open |
 | UX.71 | NAV landing page | none | open |
-| UX.72 | Gear menu mixes unrelated things; the admin hub is not the hub | none | open |
-| UX.73 | Sector wiki link form on the Admin hub | none | open |
+| UX.72 | Gear menu mixes unrelated things; the admin hub is not the hub | none | done, PR #632 |
+| UX.73 | Sector wiki link form on the Admin hub | none | done, PR #632 |
 | UX.74 | Generate page shows an empty Current job card | none | done, PR #617 |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
