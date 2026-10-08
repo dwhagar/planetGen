@@ -1,5 +1,11 @@
 # Changelog
 
+## [7.249.634] - 2026-10-08
+
+### Added
+
+- TODO item GEN.120: move the gated phoneme codec from the repo root into the naming package (Boss, 2026-10-08).
+
 ## [7.248.634] - 2026-10-08
 
 ### Changed
