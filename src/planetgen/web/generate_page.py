@@ -46,11 +46,11 @@ Every form carries `csrf_field()` (checked app-wide by `csrf.protect`).
 
 import json
 import os
-import subprocess
 import time
 
 from flask import abort, current_app, jsonify, make_response, redirect, request, url_for
 
+from planetgen.queue import api_jobs
 from planetgen.web.lib import apiclient
 from planetgen.web.lib.fmt import utc_time_html
 from planetgen.admin import activity_log
@@ -206,21 +206,20 @@ def run_estimate(argv, env):
             (`planetgen`'s own last lines, e.g. a ring too large to
             generate without a limit).
     """
-    try:
-        done = subprocess.run(argv + ["--estimate-only"], env={**os.environ, **env}, cwd=jobs.REPO_DIR,
-                              capture_output=True, text=True, timeout=ESTIMATE_TIMEOUT_S, check=False)
-    except subprocess.TimeoutExpired:
-        raise FormError("Working out the size and time took too long. Nothing was generated.") from None
-    except OSError as exc:
-        raise FormError(f"The size and time couldn't be worked out: {exc}") from None
-    for line in reversed(done.stdout.splitlines()):
+    done = api_jobs.command_and_wait(argv + ["--estimate-only"], {**os.environ, **env}, jobs.REPO_DIR,
+                                     ESTIMATE_TIMEOUT_S)
+    if done["timed_out"]:
+        raise FormError("Working out the size and time took too long. Nothing was generated.")
+    if done["error"]:
+        raise FormError(f"The size and time couldn't be worked out: {done['error']}")
+    for line in reversed(done["stdout"].splitlines()):
         if line.startswith(ESTIMATE_PREFIX):
             try:
                 return json.loads(line[len(ESTIMATE_PREFIX):])
             except ValueError:
                 break
-    tail = [line.strip() for line in (done.stderr + "\n" + done.stdout).splitlines() if line.strip()]
-    message = " ".join(tail[-3:]) if tail else f"the generator exited with {done.returncode}"
+    tail = [line.strip() for line in (done["stderr"] + "\n" + done["stdout"]).splitlines() if line.strip()]
+    message = " ".join(tail[-3:]) if tail else f"the generator exited with {done['returncode']}"
     raise FormError(f"Nothing was generated: {message}")
 
 
