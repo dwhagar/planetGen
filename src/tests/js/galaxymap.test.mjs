@@ -621,6 +621,71 @@ test("a pinch zooms a free stage within the same limits", async () => {
   touch("Up", 1, 300, 300);
 });
 
+// --- Slab buttons (MAP.110) -----------------------------------------------------
+
+test("slabOrder sorts by slab number, either way, whatever order it is given", () => {
+  const rows = [3, -1, 0, 7, 2].map((lo) => ({ pick: { lo: lo, hi: lo } }));
+  const los = (list) => list.map((r) => r.pick.lo);
+  assert.deepEqual(los(S.slabOrder(rows, true, (r) => r.pick)), [7, 3, 2, 0, -1]);
+  assert.deepEqual(los(S.slabOrder(rows, false, (r) => r.pick)), [-1, 0, 2, 3, 7]);
+  assert.deepEqual(los(rows), [3, -1, 0, 7, 2], "the rows given are left alone");
+});
+
+test("nearestOnPieces keeps a line's end at or below the one above it", () => {
+  // An outline slanting up to the right: its point nearest a button at
+  // the right is high up, above where the line above it ended.
+  const pieces = [[[0, 100], [200, 20]]];
+  const free = S.nearestOnPieces(pieces, [300, 30], null);
+  assert.ok(free.y < 60, `nearest is high (${free.y})`);
+  const kept = S.nearestOnPieces(pieces, [300, 30], null, 60);
+  assert.ok(Math.abs(kept.y - 60) < 1e-9 && Math.abs(kept.x - 100) < 1e-9, JSON.stringify(kept));
+  // Nothing of the outline reaches below: the nearest point of it all.
+  assert.deepEqual(S.nearestOnPieces(pieces, [300, 30], null, 500), free);
+  assert.equal(S.nearestOnPieces([], [0, 0], null), null);
+});
+
+// The slab buttons' numbers, top first, in each column.
+function slabColumns(m) {
+  const lists = [m.els.slabs, m.els.slabs.parentElement.querySelector("#galaxymap3d-slabs-side")].filter(Boolean)
+    .map((box) => box.querySelector("ol.galaxy-slab-buttons")).filter(Boolean);
+  return lists.map((list) => list.querySelectorAll(".galaxy-slab-button").map((b) => Number(b.dataset.slab)))
+    .filter((column) => column.length);
+}
+
+function inNumberOrder(column) {
+  const up = column.every((n, i) => i === 0 || n > column[i - 1]);
+  const down = column.every((n, i) => i === 0 || n < column[i - 1]);
+  return up ? "up" : down ? "down" : null;
+}
+
+test("the slab buttons stay in slab-number order however the view turns (MAP.110)", async () => {
+  const m = await freeStage();
+  // The map's row has a size, so the lines are drawn (and the buttons
+  // ordered) as the view turns.
+  m.els.slabs.parentElement.rect = { left: 0, top: 0, width: 1200, height: 700 };
+  m.view.step(performance.now() + 1e9);
+  let columns = slabColumns(m);
+  assert.ok(columns.flat().length >= 2, `slab buttons drawn: ${JSON.stringify(columns)}`);
+  columns.forEach((column) => assert.equal(inNumberOrder(column), "down", `top slab first from above: ${column}`));
+  const seen = new Set();
+  let most = 0;
+  m.view.onPointerDown(new FakeEvent("pointerdown", { clientX: 400, clientY: 300, pointerId: 1, button: 0, pointerType: "mouse" }));
+  for (let n = 1; n <= 40; n++) {
+    m.view.onPointerMove(new FakeEvent("pointermove", { clientX: 400 + 7 * n, clientY: 300 - 20 * n, pointerId: 1, pointerType: "mouse" }));
+    m.view.step(performance.now() + 1e9);
+    most = Math.max(most, lastCamera(m).tilt);
+    columns = slabColumns(m);
+    columns.forEach((column) => {
+      const way = inNumberOrder(column);
+      assert.ok(way, `out of number order after turn ${n}: ${column}`);
+      seen.add(way);
+    });
+  }
+  m.view.onPointerUp(new FakeEvent("pointerup", { clientX: 680, clientY: -500, pointerId: 1, button: 0, pointerType: "mouse" }));
+  assert.ok(most > Math.PI / 2 + 0.1, `the view turned under the plane (${most})`);
+  assert.ok(seen.has("up"), "seen from below, the bottom slab (lowest number) shows on top and leads");
+});
+
 // --- Picking by pointer --------------------------------------------------------
 
 // A screen point over a choice, found by moving the pointer over a grid
