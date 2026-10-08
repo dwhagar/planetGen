@@ -578,7 +578,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.114 | Add the chosen anomalies to the starmap | none | open |
 | GEN.115 | The galaxy's own gravity: a smooth disk, bulge and halo potential | none | open |
 | GEN.116 | Error when generating a neighbourhood centred near the galaxy edge, awaiting Boss's error text (bug) | none | open |
-| GEN.117 | The Galaxy Map shows bright stars only in a thin band on the galactic plane (bug) | none | open |
+| GEN.117 | The Galaxy Map shows bright stars only in a thin band on the galactic plane (bug) | none | done, PR #600 |
 | GEN.118 | The galaxy bulge is about 40 times too light, so edge-on views show no bulge (bug) | none | done, PR #491 |
 | GEN.119 | The galaxy density model has no thick disk (bug) | none | done, PR #491 |
 | GEN.120 | Integrate gatedPhonemeCodec.py into the naming package and remove it from the repo root | none | done, PR #554 |
@@ -696,8 +696,8 @@ Parents marked "new parent" had no old number of their own.
 | MAP.112 | Nothing can be selected while "Generated only" is on (bug) | none | done, PR #541 |
 | MAP.113 | A nebula covering the whole sector can't be unselected, and nebulae need a show/hide toggle (bug) | none | done, PR #584 |
 | MAP.114 | The Sector Map's Reset view leaves the picture unchanged (bug) | none | done, PR #442 |
-| MAP.115 | Comets, rogue planets and asteroid fields show above the sector level (bug) | none | merged into MAP.116 (2026-10-07) |
-| MAP.116 | Dense generated sectors crowd the Galaxy Map when zoomed out (bug) | none | open |
+| MAP.115 | Comets, rogue planets and asteroid fields show above the sector level (bug) | none | merged into MAP.116; done, PR #601 |
+| MAP.116 | Dense generated sectors crowd the Galaxy Map when zoomed out (bug) | none | done, PR #601 |
 | MAP.127 | See into and step to the neighbouring blocks and slabs on the Galaxy Map | none | merged into MAP.121 (2026-10-07) |
 | MAP.128 | Decide what the Sector Map tints by star age, density and luminosity, and test it | none | closed, decided: sector space is not tinted (Boss 2026-10-08 13:35Z); the Galaxy Map half was done in #556 |
 | MAP.129 | Blocks colored from their sectors' statistics, weighted by star count | none | done, PR #556 |
