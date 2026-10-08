@@ -68,7 +68,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.41 | Investigate: how much backfill work a density pre-pass would save |  | Investigation; go/no-go for GEN.42. |
 | GEN.98 | Bright-star backfill from the farthest generated boundary outward |  |  |
 | GEN.100 | Phenomena placed galaxy-wide first and kept when sectors fill |  | Merges the 2026-10-03 scatter-order item and the 2026-10-07 "generated through the entire galaxy first". |
-| GEN.99 | Nebula volume backfill with the star types the nebula needs | GEN.75, GEN.100 |  |
+| GEN.99 | Nebula volume backfill with the star types the nebula needs | GEN.100 |  |
 | GEN.101 | Fill order: nearest sectors first along a pruned Hilbert octree curve |  |  |
 | GEN.102 | Investigate filling all near-zero-density void space at once |  |  |
 | GEN.103 | Research where each star type and phenomenon belongs in the galaxy's structure |  |  |
@@ -106,7 +106,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | GEN.104 | A spin vector and a realistic axial tilt for every rotating object | GEN.74 | Rules from "Observational Kinetics for Rotational Vectors.md". |
 | GEN.106 | Movement thresholds and a next-update-due column | GEN.74, DB.11 |  |
-| GEN.107 | The update reports how many objects moved, changed sector, or entered or left a nebula | GEN.106, GEN.75 |  |
+| GEN.107 | The update reports how many objects moved, changed sector, or entered or left a nebula | GEN.106 |  |
 | GEN.108 | Orbital math limits: where each method breaks down and what happens there | GEN.106 | Boss (2026-10-07 11:47Z): "we need to ensure that reasonable limitations for when the math breaks down at the edge cases." |
 
 ### Routing
