@@ -259,7 +259,8 @@ def test_admin_menu_with_one_lookup_per_request(client, fake):
     fake.admin = {"username": "admin", "must_change_credentials": False}
     client.set_cookie(SESSION_COOKIE_NAME, "token-value")
     html = client.get("/").get_data(as_text=True)
-    assert ">Admin</a>" in html and ">Stats</a>" in html and ">Logout</a>" in html
+    assert ">Admin</a>" in html and ">Account</a>" in html and ">Logout</a>" in html
+    assert ">Stats</a>" not in html  # UX.72: it is under Admin
     assert ">Login</a>" not in html
     lookups = [call for call in fake.calls if call[0] == "auth_me"]
     assert len(lookups) == 1  # both menus (wide and narrow) share it

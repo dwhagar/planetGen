@@ -239,7 +239,7 @@ def test_header_links_point_at_new_urls(client, fake):
     _logged_in(client, fake)
     html = client.get("/admin").get_data(as_text=True)
     assert '<a href="/admin" aria-current="page">Admin</a>' in html
-    assert '<a href="/admin/stats">Stats</a>' in html
+    assert '<a href="/admin/stats">Stats</a>' in html  # the admin tab row
     assert '<a href="/logout">Logout</a>' in html
 
 
@@ -500,7 +500,6 @@ def test_admin_lists_keys(client, fake):
     assert html.count('value="revoke_key"') == 1
     revoke = re.search(r'<form method="post" action="/admin" class="table-form">.*?</form>', html, re.S).group(0)
     assert f'name="{csrf.FIELD_NAME}"' in revoke and 'name="key_id" value="1"' in revoke
-    assert f"<code>{DB}</code>" in html
     assert 'name="db"' not in html
 
 
@@ -658,24 +657,31 @@ def test_admin_post_requires_csrf(client, fake):
     assert not fake.called("auth_create_api_key")
 
 
-def test_admin_sets_wiki_url_in_configured_database(client, fake, admin_token):
+def test_admin_page_no_longer_has_the_sector_wiki_form(client, fake):
+    """UX.73: the form lives in the sector page's Admin menu."""
     _logged_in(client, fake)
-    resp = client.post("/admin", data={csrf.FIELD_NAME: admin_token, "action": "set_sector_wiki_url", "sector_id": "5",
-                                       "wiki_url": "https://wiki.example/S5", "db": "someone_elses_db"})
-    assert resp.headers["Location"] == "/admin#sector-wiki-link"
-    assert fake.called("admin_set_sector_wiki_url") == [
-        ("admin_set_sector_wiki_url", DB, 5, "https://wiki.example/S5")]
-    assert "Wiki link for sector 5 set to https://wiki.example/S5." in client.get("/admin").get_data(as_text=True)
+    html = client.get("/admin").get_data(as_text=True)
+    assert "Sector wiki link" not in html and 'value="set_sector_wiki_url"' not in html
 
 
-def test_admin_wiki_url_unknown_sector(client, fake, admin_token, monkeypatch):
+def test_admin_hub_lists_the_admin_pages_without_a_signed_in_card(client, fake):
+    """UX.72: the hub links the pages under it, and the tab row repeats them."""
     _logged_in(client, fake)
+    html = client.get("/admin").get_data(as_text=True)
+    assert "Signed in" not in html
+    hub = re.search(r'<ul class="admin-hub">.*?</ul>', html, re.S).group(0)
+    for path in ("/admin/generate", "/admin/queue", "/admin/stats", "/account"):
+        assert f'href="{path}"' in hub
+    tabs = re.search(r'<nav class="admin-tabs".*?</nav>', html, re.S).group(0)
+    assert '<a href="/admin" aria-current="page">Overview</a>' in tabs
+    assert all(f">{name}</a>" in tabs for name in ("Generate", "Queue", "Stats"))
 
-    def missing(*args):
-        raise apiclient.NotFoundError("Unknown sector 404")
-    monkeypatch.setattr(apiclient, "admin_set_sector_wiki_url", missing)
-    client.post("/admin", data={csrf.FIELD_NAME: admin_token, "action": "set_sector_wiki_url", "sector_id": "404"})
-    assert "Unknown sector 404" in client.get("/admin").get_data(as_text=True)
+
+def test_gear_menu_has_only_account_admin_and_logout(client, fake):
+    _logged_in(client, fake)
+    html = client.get("/admin").get_data(as_text=True)
+    gear = re.search(r'<nav class="site-account".*?</nav>', html, re.S).group(0)
+    assert re.findall(r">([A-Za-z: ]+)</(?:a|button)>", gear) == ["Theme: System", "Account", "Admin", "Logout"]
 
 
 def test_admin_unknown_action(client, fake, admin_token):
