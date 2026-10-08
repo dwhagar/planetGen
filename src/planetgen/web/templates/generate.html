@@ -20,6 +20,20 @@
   {%- endfor %}
 </div>
 {%- endmacro -%}
+{#- ADM.16: how much more or less often the run's systems get each
+    feature (GEN.52 `--prevalence`); blank or 0 is the usual chance. -#}
+{%- macro prevalence_inputs() -%}
+<details class="search-more">
+  <summary>Prevalence</summary>
+  <p class="hint">How much more or less often this run's systems get each feature, in percent of its usual chance:
+  50 is one and a half times as often, -100 never, blank or 0 as usual.</p>
+  <div class="search-fields">
+    {%- for name, label in prevalence_fields %}
+    {{ field(name, label ~ " (%)", placeholder="0", min=-100) }}
+    {%- endfor %}
+  </div>
+</details>
+{%- endmacro -%}
 {%- macro skip_scatter(id) -%}
 <label class="search-field generate-check"><span><input type="checkbox" id="{{ id }}" name="skip_bright_stars" value="1"
   {%- if form and form.get("skip_bright_stars") %} checked{% endif %}> Skip the bright-star scatter</span>
@@ -143,6 +157,7 @@
       <summary>Galaxy shape</summary>
       {{ plan_inputs() }}
     </details>
+    {{ prevalence_inputs() }}
     <div class="search-fields">
       {{ field("radius_pc", "First neighborhood radius (pc)", placeholder="12 (about 39 ly)", min=0.1, max=max_radius_pc) }}
       {{ field("min_start_density", "Minimum start density", placeholder="any", min=0,
@@ -247,6 +262,7 @@
       {%- endif %}
     </fieldset>
     {%- endfor %}
+    {{ prevalence_inputs() }}
     <div class="search-fields">
       {{ backfill_choice("galaxy-backfill-all") }}
     </div>

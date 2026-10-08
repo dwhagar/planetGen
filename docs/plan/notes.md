@@ -171,7 +171,7 @@ From Boss's list of 2026-10-03: ADM.23, ADM.24, ADM.25, ADM.27, ADM.31, GEN.67, 
 
 From Boss's list of 2026-10-07: ADM.26, ADM.28, ADM.29, ADM.30, ADM.32, ADM.33, ADM.34, ADM.35, ADM.36, API.18, API.19, DB.13, GEN.68, GEN.74, GEN.80, GEN.81, GEN.82, GEN.101, GEN.102, GEN.103, GEN.104, GEN.108, GEN.113, GEN.114, MAP.118, MAP.122, MAP.123, MAP.124, MAP.125, MAP.126, NAV.48, NAV.49, PERF.28, PERF.29, PERF.30, SEC.31, UX.43, UX.44, UX.46, UX.47, UX.48.
 
-From PR #434's CI (2026-10-07): TEST.88. From PR #442's run (2026-10-07): TEST.89. From Boss's message of 2026-10-07 16:26Z (three Galaxy Map problems): MAP.115 folded into MAP.116, and MAP.127 (filed then) folded into MAP.121. From Boss's install error of 2026-10-07 16:57Z: OPS.26. From his decision answers of 2026-10-07 17:11Z: OPS.27. From PR #476 (2026-10-07): GEN.116, TEST.90. From Boss's bright-star sweep of 2026-10-07 18:43Z: GEN.117. From the bulge check and Boss's choice of 2026-10-07 19:04Z: GEN.118, GEN.119. From PR #481's browser-a11y run (2026-10-07): TEST.91. From PR #496's local run (2026-10-07): TEST.92.
+From PR #434's CI (2026-10-07): TEST.88. From PR #442's run (2026-10-07): TEST.89. From Boss's message of 2026-10-07 16:26Z (three Galaxy Map problems): MAP.115 folded into MAP.116, and MAP.127 (filed then) folded into MAP.121. From Boss's install error of 2026-10-07 16:57Z: OPS.26. From his decision answers of 2026-10-07 17:11Z: OPS.27. From PR #476 (2026-10-07): GEN.116, TEST.90. From Boss's bright-star sweep of 2026-10-07 18:43Z: GEN.117. From the bulge check and Boss's choice of 2026-10-07 19:04Z: GEN.118, GEN.119. From PR #481's browser-a11y run (2026-10-07): TEST.91. From PR #496's local run (2026-10-07): TEST.92. From Foundations' full run after PRs #501 and #504 (2026-10-07): TEST.93.
 
 From Boss's message of 2026-10-07 12:25Z (the galaxy's own gravity, a gap in the orbital documents): GEN.115.
 
@@ -200,7 +200,7 @@ From PR #431's red CI (coordinator, 2026-10-03): PERF.27, DB.12, OPS.25, MAP.114
 | UX.2, ADM.14, UX.26, UX.31, UX.27 | UX.40 | Menus, buttons and form fields become Shoelace components. |
 | UX.33 | UX.41 | Faceted filters on the TanStack tables. |
 | UX.38 | MAP.105 | The 3D nebula view replaces the diagram. |
-| ADM.23, ADM.24, ADM.25, ADM.26 | ADM.22 | Logs and progress move to SSE and Xterm.js. |
+| ADM.24, ADM.25, ADM.26 | ADM.22 | Logs and progress move to SSE and Xterm.js. |
 | MAP.109, MAP.116 | MAP.102 | Tile streaming with level of detail. |
 | MAP.108, MAP.107, MAP.112, NAV.46 | MAP.65, NAV.15 | The shared picking layer and pick mode. |
 | MAP.106 | NAV.14, MAP.67 | One breadcrumb drawn from one URL and history state. |
@@ -279,7 +279,7 @@ No decisions are open.
 | Templates and components (base.html, style.css, edit_controls.html) | UX.40, UX.2, UX.26, UX.31, UX.27, ADM.14, ADM.34, UX.37, UX.21, UX.42, UX.43 | Components first, then the sweep, then wording and the visual design. |
 | Planet physics and classes (planetPhysics.py, planetData.py, planetLife.py) | GEN.85 to GEN.89, GEN.33, GEN.28, GEN.27, GEN.29, GEN.91, GEN.92 | Phase 0 bug, then the habitability inputs, then the refactor. |
 | Positions (updateOrbits.py, keplerMotion.py, the new position object) | GEN.74, GEN.66, GEN.104, GEN.106 to GEN.110, GEN.115, MAP.70, VIEW.5 | GEN.74 first. |
-| Generate page (generate.html, generate_page.py) | UX.40, ADM.16, ADM.28 and its subitems, GEN.96, GEN.24 | Components, then prevalence, then the rework. |
+| Generate page (generate.html, generate_page.py) | UX.40, ADM.28 and its subitems, GEN.96, GEN.24 | Components, then prevalence, then the rework. |
 | update.sh and update.ps1 (with install.* and deploy-common.*) | OPS.8, OPS.13, OPS.15, OPS.17 | OPS.7 (done, PR #457) went first; then Redis and pins. |
 
 ## Near-cycles and how they are broken

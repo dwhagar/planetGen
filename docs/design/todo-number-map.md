@@ -22,7 +22,7 @@ release is stamped.
 | API | API.20 |
 | ADM | ADM.37 |
 | SEC | SEC.32 |
-| TEST | TEST.93 |
+| TEST | TEST.94 |
 | USR | USR.9 |
 | OPS | OPS.28 |
 | DOC | DOC.4 |
@@ -404,14 +404,14 @@ Parents marked "new parent" had no old number of their own.
 | ADM.13 | Incomplete uploads page | none | open |
 | ADM.14 | Line up the Generate page's text boxes, not their headings (bug) | none | open |
 | ADM.15 | Change the worker count from the Queue page, with a "Ludicrous Speed" mode | none | open |
-| ADM.16 | Prevalence controls on the Generate page | none | open |
+| ADM.16 | Prevalence controls on the Generate page | none | done, PR #506 |
 | ADM.17 | The Generate page shows the galaxy's seed and version | none | open |
 | ADM.18 | The galaxy's creation settings saved as a JSON file, downloadable from the Admin dashboard | none | open |
 | ADM.19 | The Admin dashboard lists the 18 settings backups for download | none | open |
 | ADM.20 | A "merge now" button on the Admin dashboard (low priority) | none | open |
 | ADM.21 | Input validation on Pydantic models | none | open |
 | ADM.22 | Job logs streamed over SSE into Xterm.js, with native progress bars | none | open |
-| ADM.23 | Log output wraps with hard line breaks (bug) | none | open |
+| ADM.23 | Log output wraps with hard line breaks (bug) | none | done, PR #508 |
 | ADM.24 | A failed action's log closes before it can be read (bug) | none | open |
 | ADM.25 | Error tracebacks don't reach the console and the web log window (bug) | none | open |
 | ADM.26 | The bright-star backfill shows no progress bar on the web (bug) | none | open |
@@ -1094,6 +1094,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.90 | test_old_jobs_are_pruned raises JobBusy under parallel tests (bug) | none | done, PR #484 |
 | TEST.91 | The System Map drill-and-measure browser test can't click the first moon (bug) | none | done, PR #493 |
 | TEST.92 | The web job runner's first-failure test reports the job as interrupted under full-suite load (bug) | none | open |
+| TEST.93 | Timing tests fail and MariaDB drops connections under full-suite load (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

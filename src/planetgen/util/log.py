@@ -153,7 +153,10 @@ class _ConsoleHandler(logging.Handler):
     def emit(self, record):
         message = self.format(record)
         if self._console is not None:
-            self._console.print(message)
+            # ADM.23: one line, wrapped by whatever shows it (a terminal,
+            # the web job log), never hard-broken at the console's width
+            # (80 when piped); and brackets are text, not rich markup.
+            self._console.print(message, soft_wrap=True, markup=False)
         else:
             print(message, file=sys.stdout)
 
