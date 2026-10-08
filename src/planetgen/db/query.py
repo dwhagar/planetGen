@@ -48,6 +48,7 @@ from planetgen.galaxy.geometry import (
     galaxy_to_local_pc, layer_index_at, neighbor_addresses, provisional_sector_designation, ring_index_at,
     ring_sector_count, sector_cell_vertices_pc, sector_position_pc,
 )
+from planetgen.galaxy import objectref as object_ref
 from planetgen.galaxy import uid as galaxy_uid
 from planetgen.galaxy.sector import classify_octant
 from planetgen.galaxy.viewport import (
@@ -1648,6 +1649,154 @@ _PHENOMENON_TYPE_TO_TABLE = {
 `_PHENOMENON_TABLES`'s own `(table, type_label, ...)` order, used by
 `phenomenon_detail` to find the one table a `(type, id)` pair actually
 means without hand-listing the mapping a second time."""
+
+
+OBJECT_SIBLING_LIMIT = 200
+"""int: The most sibling references `resolve_object` returns."""
+
+
+def _sibling_refs(conn, kind, table, where, params, object_id):
+    """The references of the other rows of `table` matching `where` (the
+    object's parent), by id, up to `OBJECT_SIBLING_LIMIT`; `(refs, truncated)`."""
+    rows = conn.execute(
+        f"SELECT id FROM {table} WHERE {where} AND id <> ? ORDER BY id LIMIT {OBJECT_SIBLING_LIMIT + 1}",
+        (*params, object_id),
+    ).fetchall()
+    refs = [object_ref.format(kind, row["id"]) for row in rows[:OBJECT_SIBLING_LIMIT]]
+    return refs, len(rows) > OBJECT_SIBLING_LIMIT
+
+
+def resolve_object(conn, kind, object_id):
+    """
+    Resolves one object reference (NAV.7, `planetgen.galaxy.objectref`).
+
+    Returns:
+        dict: `ref`, `kind`, `id`, `name`; `parents` (the chain from the
+            galaxy down to the direct parent, each `{ref, kind, name}`);
+            `siblings` (the references of the other objects of the same
+            kind under the same parent, by id, at most
+            `OBJECT_SIBLING_LIMIT`) and `siblings_truncated`; and
+            `positions`: `galaxy_pc` (galaxy frame, parsecs), `sector_ly`
+            (sector-local, light-years) and `system_km` (system-local,
+            kilometers from the system's origin, the barycenter of its
+            stars), each `[x, y, z]` or `None` where the object has no
+            position in that frame. A body inside a system takes the
+            system's galaxy and sector positions (its offset is far below
+            the precision of either); an asteroid belt is a ring and has no
+            `system_km`.
+
+    Raises:
+        ValueError: For an unknown kind or a missing row.
+    """
+    if kind not in object_ref.KINDS:
+        raise ValueError(f"unknown object kind: {kind!r}")
+    galaxy = {"ref": object_ref.GALAXY, "kind": "galaxy", "name": "Galaxy"}
+    positions = {"galaxy_pc": None, "sector_ly": None, "system_km": None}
+
+    def one(table, row_id, columns):
+        row = conn.execute(f"SELECT {columns} FROM {table} WHERE id = ?", (row_id,)).fetchone()
+        if row is None:
+            raise ValueError(f"no {table} row with id {row_id}")
+        return row
+
+    def system_parents_and_positions(system_id):
+        """Parents (galaxy, sector, system) and the system's positions."""
+        row = conn.execute(
+            """
+            SELECT ss.name, ss.sector_id, sec.name AS sector_name,
+                   ss.position_x_mpc, ss.position_y_mpc, ss.position_z_mpc,
+                   sec.center_x_pc, sec.center_y_pc, sec.center_z_pc
+            FROM star_systems ss LEFT JOIN sectors sec ON sec.id = ss.sector_id
+            WHERE ss.id = ?
+            """, (system_id,)).fetchone()
+        if row is None:
+            raise ValueError(f"no star_systems row with id {system_id}")
+        chain = [galaxy]
+        if row["sector_id"] is not None:
+            chain.append({"ref": object_ref.format("sector", row["sector_id"]), "kind": "sector",
+                          "name": row["sector_name"]})
+        chain.append({"ref": object_ref.format("system", system_id), "kind": "system", "name": row["name"]})
+        pos = {"galaxy_pc": None, "sector_ly": None, "system_km": None}
+        if row["position_x_mpc"] is not None:
+            mpc = (row["position_x_mpc"], row["position_y_mpc"], row["position_z_mpc"])
+            pos["sector_ly"] = [milliparsecs_to_ly(v) for v in mpc]
+            if row["center_x_pc"] is not None:
+                center = (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"])
+                pos["galaxy_pc"] = [c + mpc_to_pc(v) for c, v in zip(center, mpc)]
+        return chain, pos
+
+    def star_offset(star_id):
+        """A star's system-local offset (km) from its system's origin."""
+        if star_id is None:
+            return [0.0, 0.0, 0.0]
+        row = conn.execute(
+            """
+            SELECT s.role, ss.binary_primary_position_x_km AS px, ss.binary_primary_position_y_km AS py,
+                   ss.binary_primary_position_z_km AS pz, ss.binary_secondary_position_x_km AS sx,
+                   ss.binary_secondary_position_y_km AS sy, ss.binary_secondary_position_z_km AS sz
+            FROM stars s JOIN star_systems ss ON ss.id = s.star_system_id WHERE s.id = ?
+            """, (star_id,)).fetchone()
+        if row is None:
+            return [0.0, 0.0, 0.0]
+        values = (row["sx"], row["sy"], row["sz"]) if row["role"] == "secondary" else (row["px"], row["py"], row["pz"])
+        return [v or 0.0 for v in values]
+
+    def add(a, b):
+        return [x + y for x, y in zip(a, b)]
+
+    def offset(row):
+        return [row["position_x_km"], row["position_y_km"], row["position_z_km"]]
+
+    if kind == "sector":
+        row = one("sectors", object_id, "name, center_x_pc, center_y_pc, center_z_pc")
+        name, parents = row["name"], [galaxy]
+        if row["center_x_pc"] is not None:
+            positions["galaxy_pc"] = [row["center_x_pc"], row["center_y_pc"], row["center_z_pc"]]
+        positions["sector_ly"] = [0.0, 0.0, 0.0]
+        siblings, truncated = _sibling_refs(conn, kind, "sectors", "1 = 1", (), object_id)
+    elif kind == "system":
+        sector_id = one("star_systems", object_id, "sector_id")["sector_id"]
+        parents, positions = system_parents_and_positions(object_id)
+        name = parents.pop()["name"]
+        positions["system_km"] = [0.0, 0.0, 0.0]
+        siblings, truncated = _sibling_refs(conn, kind, "star_systems", "sector_id <=> ?", (sector_id,), object_id)
+    elif kind in object_ref.PHENOMENON_KINDS:
+        row = one(_PHENOMENON_TYPE_TO_TABLE[kind], object_id, "name, center_x_pc, center_y_pc, center_z_pc")
+        name, parents = row["name"], [galaxy]
+        if row["center_x_pc"] is not None:
+            positions["galaxy_pc"] = [row["center_x_pc"], row["center_y_pc"], row["center_z_pc"]]
+        siblings, truncated = [], False
+    else:
+        table = object_ref.TABLES[kind]
+        columns = {
+            "star": "name, star_system_id",
+            "planet": "name, star_system_id, star_id, position_x_km, position_y_km, position_z_km",
+            "moon": "name, star_system_id, planet_id, star_id, position_x_km, position_y_km, position_z_km",
+            "belt": "star_system_id, orbital_index",
+            "comet": "name, star_system_id, star_id, position_x_km, position_y_km, position_z_km",
+        }[kind]
+        row = one(table, object_id, columns)
+        parents, positions = system_parents_and_positions(row["star_system_id"])
+        name = f"Asteroid belt {row['orbital_index'] + 1}" if kind == "belt" else row["name"]
+        if kind == "star":
+            positions["system_km"] = star_offset(object_id)
+        elif kind in ("planet", "comet"):
+            positions["system_km"] = add(star_offset(row["star_id"]), offset(row))
+        elif kind == "moon":
+            planet = one("planets", row["planet_id"], "name, position_x_km, position_y_km, position_z_km")
+            parents.append({"ref": object_ref.format("planet", row["planet_id"]), "kind": "planet",
+                            "name": planet["name"]})
+            positions["system_km"] = add(add(star_offset(row["star_id"]), offset(planet)), offset(row))
+        if kind == "moon":
+            siblings, truncated = _sibling_refs(conn, kind, table, "planet_id = ?", (row["planet_id"],), object_id)
+        else:
+            siblings, truncated = _sibling_refs(
+                conn, kind, table, "star_system_id = ?", (row["star_system_id"],), object_id)
+    return {
+        "ref": object_ref.format(kind, object_id), "kind": kind, "id": object_id, "name": name,
+        "parents": parents, "siblings": siblings, "siblings_truncated": truncated,
+        "positions": positions,
+    }
 
 
 def nebula_shape(conn, nebula_id):
