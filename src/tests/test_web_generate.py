@@ -111,11 +111,24 @@ def _post(client, headers=None, **form):
 
 
 def _wait_finished(job_id, root, timeout=30):
+    """Waits until the job is really over: its runner wrote a final status
+    and released the job lock. `get_job` can call a still-running job
+    interrupted for a moment under load (its runner's command line is not
+    readable), and the lock is released a moment after the final status is
+    written, so starting the next job on `finished` alone met JobBusy
+    (TEST.94)."""
     deadline = time.time() + timeout
     while time.time() < deadline:
         job = jobs.get_job(job_id, root)
         if job and job["finished"]:
-            return job
+            try:
+                with open(os.path.join(root, job_id, "state.json"), "r", encoding="utf-8") as f:
+                    final = json.load(f).get("status") in ("succeeded", "failed", "cancelled")
+            except (OSError, ValueError):
+                final = False
+            holder = jobs._read_lock(os.path.join(root, jobs.LOCK_NAME))
+            if final and holder != job_id:
+                return job
         time.sleep(0.05)
     raise AssertionError(f"job {job_id} did not finish: {jobs.get_job(job_id, root)}")
 

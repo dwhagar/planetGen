@@ -56,6 +56,7 @@ import sys
 
 import pymysql
 
+from planetgen.cli.stage_progress import StageProgress
 from planetgen.db.store import (
     SchemaTooNewError, add_mysql_connection_args, forget_id_blocks, get_connection, mysql_config_from_args,
 )
@@ -90,22 +91,21 @@ def _content_tables(conn, database):
             whole truncate pass below, so no table's own foreign keys can
             block truncating it regardless of order).
     """
+    return list(_table_estimates(conn, database))
+
+
+def _table_estimates(conn, database):
+    """Returns `{table: estimated_row_count}` for every table `_content_tables`
+    names. The estimate is `information_schema.tables.table_rows`, which
+    InnoDB keeps from its statistics -- free, where an exact `COUNT(*)` reads
+    the whole table (minutes across a galaxy's tables, the slow part of a
+    reset before this)."""
     rows = conn.execute(
-        "SELECT table_name AS name FROM information_schema.tables "
+        "SELECT table_name AS name, table_rows AS n FROM information_schema.tables "
         "WHERE table_schema = ? AND table_type = 'BASE TABLE'",
         (database,),
     ).fetchall()
-    return [row["name"] for row in rows if row["name"] not in _EXCLUDED_TABLES]
-
-
-def _row_counts(conn, tables):
-    """Returns `{table: row_count}` for every name in `tables` -- used to
-    show what a `--dry-run`/confirmation prompt is actually about to wipe,
-    not just which tables exist."""
-    counts = {}
-    for table in tables:
-        counts[table] = conn.execute(f"SELECT COUNT(*) AS n FROM {table}").fetchone()["n"]
-    return counts
+    return {row["name"]: int(row["n"] or 0) for row in rows if row["name"] not in _EXCLUDED_TABLES}
 
 
 def _confirm(database, host, total_rows):
@@ -118,7 +118,7 @@ def _confirm(database, host, total_rows):
     Returns:
         bool: Whether the operator confirmed.
     """
-    print(f"About to permanently wipe {total_rows:,} row(s) of galaxy content from:")
+    print(f"About to permanently wipe about {total_rows:,} row(s) of galaxy content from:")
     print(f"  database: {database}")
     print(f"  host:     {host}")
     print()
@@ -152,18 +152,18 @@ def reset_database(config, dry_run=False, assume_yes=False):
     """
     conn = get_connection(config)
     try:
-        tables = _content_tables(conn, config.database)
+        counts = _table_estimates(conn, config.database)
+        tables = list(counts)
         if not tables:
             print(f"'{config.database}' has no content tables to wipe (already empty schema).")
             return False
 
-        counts = _row_counts(conn, tables)
         total_rows = sum(counts.values())
 
         if dry_run:
-            print(f"Would truncate {len(tables)} table(s) in '{config.database}' ({total_rows:,} row(s) total):")
+            print(f"Would truncate {len(tables)} table(s) in '{config.database}' (about {total_rows:,} row(s) total):")
             for table in sorted(tables):
-                print(f"  {table}: {counts[table]:,} row(s)")
+                print(f"  {table}: about {counts[table]:,} row(s)")
             return False
 
         if not assume_yes and not _confirm(config.database, config.host, total_rows):
@@ -172,8 +172,10 @@ def reset_database(config, dry_run=False, assume_yes=False):
 
         conn.execute("SET FOREIGN_KEY_CHECKS = 0")
         try:
-            for table in tables:
-                conn.execute(f"TRUNCATE TABLE {table}")
+            with StageProgress(len(tables)) as bar:
+                for number, table in enumerate(tables, start=1):
+                    bar.stage(f"Wiping {table} (table {number} of {len(tables)})")
+                    conn.execute(f"TRUNCATE TABLE {table}")
         finally:
             conn.execute("SET FOREIGN_KEY_CHECKS = 1")
         conn.commit()
@@ -181,7 +183,7 @@ def reset_database(config, dry_run=False, assume_yes=False):
         # id_blocks is kept); not needed for safety, just tidy.
         forget_id_blocks(config._key())
 
-        print(f"Wiped {len(tables)} table(s) ({total_rows:,} row(s)) from '{config.database}'.")
+        print(f"Wiped {len(tables)} table(s) (about {total_rows:,} row(s)) from '{config.database}'.")
         print("Ready for a new galaxy -- e.g.:")
         print("  planetgen plan ...   # rebuild the density skeleton")
         print("  planetgen galaxy ... # generate sectors into it")

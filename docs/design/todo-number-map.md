@@ -13,7 +13,7 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.49 |
+| UX | UX.50 |
 | MAP | MAP.133 |
 | NAV | NAV.50 |
 | GEN | GEN.121 |
@@ -402,7 +402,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.11 | Jobs keep running after the browser closes | none | done, PR #302 |
 | ADM.12 | Jobs as a tree, with timing for every node | none | done, PR #285 |
 | ADM.13 | Incomplete uploads page | none | open |
-| ADM.14 | Line up the Generate page's text boxes, not their headings (bug) | none | open |
+| ADM.14 | Line up the Generate page's text boxes, not their headings (bug) | none | done, PR #544 |
 | ADM.15 | Change the worker count from the Queue page, with a "Ludicrous Speed" mode | none | open |
 | ADM.16 | Prevalence controls on the Generate page | none | done, PR #506 |
 | ADM.17 | The Generate page shows the galaxy's seed and version | none | open |
@@ -528,11 +528,11 @@ Parents marked "new parent" had no old number of their own.
 | GEN.64 | A packed position ID as the name of every interstellar object and bright-sweep system | none | done, PR #406 |
 | GEN.65 | A generation run fails from the web UI but not from the CLI (bug) | none | done, PR #476 |
 | GEN.66 | Physics on scipy, and astropy constants and units | none | open |
-| GEN.67 | Names from IDs for everything except stars and sectors | none | open |
+| GEN.67 | Names from IDs for objects that have no star-derived name | none | open |
 | GEN.68 | Research: the cheapest unique IDs for every object, unfilled sectors included | none | open |
 | GEN.69 | A unique ID for every object, star systems and unfilled sectors included | none | open |
 | GEN.70 | A naming key in the control database, made at galaxy creation and changeable by admin | none | open |
-| GEN.71 | Move every name except stars and sectors to the codec, and remove the word-salad code that named them | none | open |
+| GEN.71 | Name interstellar objects, phenomena and constellations from the codec | none | open |
 | GEN.72 | A backfilled bright star should get a name only when its sector is generated (bug) | none | open |
 | GEN.73 | Nebulae don't get unique names (bug) | none | open |
 | GEN.74 | One point-in-space object that keeps every coordinate system in step, used by every object | none | open |
@@ -689,7 +689,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.105 | The nebula view should show its whole shape with the dimmed galaxy around it (bug) | none | open |
 | MAP.106 | The breadcrumb trail falls out of sync with the map (bug) | none | open |
 | MAP.107 | Selecting an empty slab near the core says "There is no layer x here" (bug) | none | done, PR #537 |
-| MAP.108 | Empty slabs and wedges near the core can't be selected, and the side buttons block clicks (bug) | none | open |
+| MAP.108 | Empty slabs and wedges near the core can't be selected, and the side buttons block clicks (bug) | none | closed, not reproducible; covered by tests (#537, #541, #521) |
 | MAP.109 | Zooming in and out loads slowly (bug) | none | open |
 | MAP.110 | Slab button lines come out of numerical order (bug) | none | done, PR #520 |
 | MAP.111 | "Generated only" should be "Charted only" and dim the stars too (bug) | none | done, PR #531 |
@@ -909,7 +909,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.37 | A UX sweep: remove redundant and duplicate controls so the interface gets out of the way | none | open |
 | UX.38 | The nebula and remnant diagrams' "-" button does nothing at the 1 ly limit (bug) | none | open |
 | UX.39 | Markdown rendered by the markdown library | none | open |
-| UX.40 | Buttons, menus and dialogs from Shoelace web components | none | open |
+| UX.40 | Buttons, menus and dialogs from Shoelace web components | none | done, PR #544 |
 | UX.41 | Tables on TanStack Table and TanStack Virtual | none | open |
 | UX.42 | In-universe wording across the interface | none | open |
 | UX.43 | A visual design built like a pilot's starmap and navigation console | none | open |
@@ -918,6 +918,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.46 | Wiping the galaxy wipes the bookmarks | none | open |
 | UX.47 | A bookmark manager: list, rename, sort, group and delete | none | open |
 | UX.48 | Charted regions as bookmarks that frame and outline the region | none | open |
+| UX.49 | Form fields as Shoelace components (sl-input, sl-select, sl-checkbox) across the site | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
@@ -1103,14 +1104,14 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.91 | The System Map drill-and-measure browser test can't click the first moon (bug) | none | done, PR #493 |
 | TEST.92 | The web job runner's first-failure test reports the job as interrupted under full-suite load (bug) | none | done, PR #522 |
 | TEST.93 | Timing tests fail and MariaDB drops connections under full-suite load (bug) | none | done, PR #522 |
-| TEST.94 | test_old_jobs_are_pruned raises JobBusy again: the job lock outlives the finished job (bug) | none | open |
-| TEST.95 | test_stabilize_lunar_system_respaces_crowded_moons keeps only one moon in the full suite (bug) | none | open |
-| TEST.96 | test_galaxy_map_camera_presets_at_each_zoom_step fails in the full suite (bug) | none | open |
-| TEST.97 | test_class_change_regenerates_surface_conditions raises StopIteration in the full suite (bug) | none | open |
-| TEST.98 | test_scale_line_follows_the_zoom fails in the full suite (bug) | none | open |
-| TEST.99 | test_slab_buttons_have_lines_that_follow_the_view fails in the full suite (bug) | none | open |
-| TEST.100 | test_hover_while_picking_a_slab fails in the full suite (bug) | none | open |
-| TEST.101 | test_interrupting_a_parallel_galaxy_run[2-True] fails in the full suite (bug) | none | open |
+| TEST.94 | test_old_jobs_are_pruned raises JobBusy again: the job lock outlives the finished job (bug) | none | done, PR #549 |
+| TEST.95 | test_stabilize_lunar_system_respaces_crowded_moons keeps only one moon in the full suite (bug) | none | done, PR #549 |
+| TEST.96 | test_galaxy_map_camera_presets_at_each_zoom_step fails in the full suite (bug) | none | done, PR #549 |
+| TEST.97 | test_class_change_regenerates_surface_conditions raises StopIteration in the full suite (bug) | none | done, PR #549 |
+| TEST.98 | test_scale_line_follows_the_zoom fails in the full suite (bug) | none | done, PR #549 |
+| TEST.99 | test_slab_buttons_have_lines_that_follow_the_view fails in the full suite (bug) | none | done, PR #549 |
+| TEST.100 | test_hover_while_picking_a_slab fails in the full suite (bug) | none | done, PR #549 |
+| TEST.101 | test_interrupting_a_parallel_galaxy_run[2-True] fails in the full suite (bug) | none | done, PR #549 |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

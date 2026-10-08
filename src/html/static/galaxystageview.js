@@ -665,6 +665,15 @@ export function createStageView(host) {
     return box;
   };
 
+  // Whether the map has caught up with its stage: what is drawn is the
+  // stage the breadcrumb names and no flight is running. The stage changes
+  // at once, its drawing when the container's data has loaded. Read by
+  // the browser tests, which wait on it instead of a clock (TEST.96,
+  // TEST.98, TEST.99, TEST.100).
+  canvasEl.galaxyReady = function () {
+    return !!display && !!resolved && display.resolved === resolved && !animation && leaving.length === 0;
+  };
+
   // Which lines the stage draws (MAP.77): {blockEdges} (the blocks' own
   // edges on or off), {slabLines} (how many line pieces trace the
   // boundaries between slabs) and {chartedLines} (how many outline the

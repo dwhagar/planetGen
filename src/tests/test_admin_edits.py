@@ -5,6 +5,8 @@ planet, moon, asteroid belt, phenomenon or sector (ADM.8), the class
 (`planetgen/db/edits.py`) and the object edits
 (`planetgen/admin/edits.py`), against a real throwaway database.
 """
+import random
+
 import pytest
 from markupsafe import escape
 
@@ -472,10 +474,17 @@ def _unsaved_system_with_planet():
 def test_class_change_regenerates_surface_conditions_keeping_orbit_mass_and_name():
     """ADM.27: the body is re-generated as the new class -- composition,
     atmosphere, temperature, pressure, life -- at its orbit, mass and name."""
-    system = _unsaved_system_with_planet()
-    planet = next(p for p in system.planets if p.body_type == 't')
-    new_class = next(c for c in sorted(tuning.PLANET_CLASSES)
-                     if c != planet.planet_class and adminEdits.class_fits_mass(c, planet.mass))
+    # A fixed seed, and a rocky planet that has another class its mass
+    # fits: the test no longer depends on what ran before it (TEST.97).
+    random.seed(97)
+    for _ in range(50):
+        system = _unsaved_system_with_planet()
+        planet = next(p for p in system.planets if p.body_type == 't')
+        new_class = next((c for c in sorted(tuning.PLANET_CLASSES)
+                          if c != planet.planet_class and adminEdits.class_fits_mass(c, planet.mass)), None)
+        if new_class is not None:
+            break
+    assert new_class is not None, "no rocky planet with a second class its mass fits in 50 systems"
     name, mass, distance = planet.name, planet.mass, planet.distance
     adminEdits.change_class(system, planet, system.planets, new_class, force=True)
     data = tuning.PLANET_CLASSES[new_class]

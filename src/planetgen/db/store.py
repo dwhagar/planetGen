@@ -3839,7 +3839,7 @@ def innermost_container(point_pc, containers, own_radius_pc=0.0, own=None):
     return best
 
 
-def refresh_containment(conn, sector_ids):
+def refresh_containment(conn, sector_ids, on_progress=None):
     """
     Sets `inside_nebula_id`/`inside_remnant_id` (schema v39) on every star
     system and phenomenon filed under `sector_ids`: a 3D distance test
@@ -3852,10 +3852,13 @@ def refresh_containment(conn, sector_ids):
     Args:
         conn (Connection): Part of the caller's transaction.
         sector_ids (iterable): `sectors.id` values; unplaced ones are skipped.
+        on_progress (callable, optional): `on_progress("Sectors", done, total)`
+            after each batch of sectors.
     """
     sector_ids = sorted(set(sector_ids))
     for start in range(0, len(sector_ids), 500):
         _refresh_containment_batch(conn, sector_ids[start:start + 500])
+        _report(on_progress, "Sectors", min(start + 500, len(sector_ids)), len(sector_ids))
 
 
 def _refresh_containment_batch(conn, sector_ids):
@@ -4157,7 +4160,7 @@ def _edge_pc(conn):
     return (row["edge"] or 0) / 1000.0
 
 
-def refresh_nearest_systems(conn, sector_ids):
+def refresh_nearest_systems(conn, sector_ids, on_progress=None):
     """
     Recomputes the stored nearest star systems (`nearest_systems`, v41)
     and each phenomenon's `quadrant` for every placed system and
@@ -4169,6 +4172,8 @@ def refresh_nearest_systems(conn, sector_ids):
     Args:
         conn (Connection): Part of the caller's transaction.
         sector_ids (iterable): `sectors.id` values; unplaced ones are skipped.
+        on_progress (callable, optional): `on_progress("Sectors", done, total)`
+            after each batch of sectors.
 
     Returns:
         set: The `(table, id)` of every object whose list changed.
@@ -4178,6 +4183,7 @@ def refresh_nearest_systems(conn, sector_ids):
     all_changed = set()
     for start in range(0, len(sector_ids), 200):
         centers = _sector_centers(conn, sector_ids[start:start + 200])
+        _report(on_progress, "Sectors", start, len(sector_ids))
         if not centers:
             continue
         near = _sectors_near(conn, centers, 2 * half_diagonal + NEAREST_SYSTEMS_SEARCH_PC)
@@ -4195,6 +4201,7 @@ def refresh_nearest_systems(conn, sector_ids):
                 sectors[key] = sector_id
         _write_nearest(conn, changed, sectors)
         all_changed.update(changed)
+    _report(on_progress, "Sectors", len(sector_ids), len(sector_ids))
     return all_changed
 
 
@@ -4492,7 +4499,7 @@ class _SectorIndex:
         return self.by_address.get(sector_address_at(point, self.edge_pc), current)
 
 
-def advance_galactic_positions(conn, elapsed_years):
+def advance_galactic_positions(conn, elapsed_years, on_progress=None):
     """
     Moves every placed star system, standalone phenomenon and stand-alone
     facility along its galactic orbit by `elapsed_years`, the same turn
@@ -4506,6 +4513,13 @@ def advance_galactic_positions(conn, elapsed_years):
     `refresh_after_motion`). A pure move keeps `modified_at`; a change of
     sector bumps it.
 
+    Args:
+        conn (Connection): An open, read-write connection.
+        elapsed_years (float): Simulated time to move by.
+        on_progress (callable, optional): `on_progress(label, done, total)`
+            after the star systems, each phenomenon table and the
+            facilities are moved.
+
     Returns:
         dict: `moved` and `refiled` counts, and `sectors` -- the ids of
             every sector something moved in or out of.
@@ -4513,6 +4527,8 @@ def advance_galactic_positions(conn, elapsed_years):
     index = _SectorIndex(conn)
     moved = refiled = 0
     touched = set()
+    # The star systems, each phenomenon table (the quasars, which don't orbit, report nothing), the facilities.
+    steps = len(PLACED_PHENOMENON_TABLES) + 1
 
     systems = conn.execute(
         """
@@ -4552,8 +4568,9 @@ def advance_galactic_positions(conn, elapsed_years):
             "UPDATE star_systems SET sector_id = ?, position_x_mpc = ?, position_y_mpc = ?, position_z_mpc = ?,"
             " quadrant = ? WHERE id = ?", refile_updates)
         _refile_nearest_rows(conn, "star_systems", [(update[0], update[-1]) for update in refile_updates])
+    _report(on_progress, "star_systems", 1, steps)
 
-    for table in PLACED_PHENOMENON_TABLES:
+    for done, table in enumerate(PLACED_PHENOMENON_TABLES, start=2):
         if table == "quasars":
             continue  # the galaxy's nucleus sits at the center and doesn't orbit it
         updates, refile_updates = [], []
@@ -4583,6 +4600,7 @@ def advance_galactic_positions(conn, elapsed_years):
                 f"UPDATE {table} SET sector_id = ?, center_x_pc = ?, center_y_pc = ?, center_z_pc = ?,"
                 f" galactic_radius_pc = ? WHERE id = ?", refile_updates)
             _refile_nearest_rows(conn, table, [(update[0], update[-1]) for update in refile_updates])
+        _report(on_progress, table, done, steps)
 
     updates, refile_updates = [], []
     for row in conn.execute(
@@ -4608,6 +4626,7 @@ def advance_galactic_positions(conn, elapsed_years):
     if refile_updates:
         conn.executemany("UPDATE facilities SET sector_id = ?, center_x_pc = ?, center_y_pc = ?, center_z_pc = ?,"
                          " galactic_radius_pc = ? WHERE id = ?", refile_updates)
+    _report(on_progress, "facilities", steps, steps)
 
     touched.discard(None)
     for sector_id in touched:
@@ -4640,7 +4659,7 @@ def advance_facility_orbits(conn, elapsed_years):
     ).rowcount
 
 
-def refresh_after_motion(conn, refiled_sectors=()):
+def refresh_after_motion(conn, refiled_sectors=(), on_progress=None):
     """
     Brings everything that depends on where things are up to date after
     `advance_galactic_positions`: containment (`refresh_containment`),
@@ -4650,12 +4669,21 @@ def refresh_after_motion(conn, refiled_sectors=()):
     changed or that sits in a sector something moved in or out of, built
     from its sector's name and the stored nearest systems.
 
+    Args:
+        conn (Connection): An open, read-write connection.
+        refiled_sectors (iterable): The sectors something moved in or out of.
+        on_progress (callable, optional): `on_progress(label, done, total)`
+            as containment (`"Containment: sectors"`), nearest systems
+            (`"Nearest systems: sectors"`) and locations (`"Locations:
+            systems"`) are refreshed.
+
     Returns:
         int: How many location texts were rewritten.
     """
     placed = [row["id"] for row in conn.execute("SELECT id FROM sectors WHERE center_x_pc IS NOT NULL").fetchall()]
-    refresh_containment(conn, placed)
-    changed = refresh_nearest_systems(conn, placed)
+    refresh_containment(conn, placed, lambda _label, done, total: _report(on_progress, "Containment: sectors", done, total))
+    changed = refresh_nearest_systems(
+        conn, placed, lambda _label, done, total: _report(on_progress, "Nearest systems: sectors", done, total))
     system_ids = {object_id for table, object_id in changed if table == "star_systems"}
     refiled_sectors = sorted(set(refiled_sectors) - {None})
     for start in range(0, len(refiled_sectors), 500):
@@ -4683,6 +4711,7 @@ def refresh_after_motion(conn, refiled_sectors=()):
         if updates:
             conn.executemany("UPDATE star_systems SET location = ?, modified_at = modified_at WHERE id = ?", updates)
             rewritten += len(updates)
+        _report(on_progress, "Locations: systems", min(start + 500, len(system_ids)), len(system_ids))
     return rewritten
 
 
@@ -9364,7 +9393,19 @@ def get_orbit_update_elapsed_years(conn):
 # Quasars have no galactic orbit: the nucleus sits at the center. Galactic
 # positions follow the phases in `advance_galactic_positions`
 # (updateOrbits.main runs both).
-def advance_orbital_phases(conn, elapsed_years):
+ORBITAL_PHASE_UPDATES = 15
+"""int: How many table updates `advance_orbital_phases` runs (the `total` it
+reports progress against)."""
+
+
+def _report(on_progress, label, done, total):
+    """Calls `on_progress(label, done, total)` when the caller gave one --
+    the hook a command-line run draws its progress bar from."""
+    if on_progress is not None:
+        on_progress(label, done, total)
+
+
+def advance_orbital_phases(conn, elapsed_years, on_progress=None):
     """
     Advances every planet's and moon's `orbital_phase_deg` in place by the
     fraction of a full revolution `elapsed_years` represents, given each
@@ -9503,6 +9544,10 @@ def advance_orbital_phases(conn, elapsed_years):
                                computed from (typically
                                `get_last_orbit_update`'s return value).
                                Must be >= 0.
+        on_progress (callable, optional): `on_progress(label, done, total)`
+                               after each of the `total` table updates
+                               (see `_report`); `planetgen.cli.orbits`
+                               draws its progress bar from it.
 
     Returns:
         dict: `{table_name: rows_updated}` for every table this function
@@ -9546,6 +9591,7 @@ def advance_orbital_phases(conn, elapsed_years):
             (elapsed_years, elapsed_years),
         )
         counts[table] = cur.rowcount
+        _report(on_progress, table, len(counts), ORBITAL_PHASE_UPDATES)
 
     cur = conn.execute(
         """
@@ -9557,6 +9603,7 @@ def advance_orbital_phases(conn, elapsed_years):
         (elapsed_years, elapsed_years),
     )
     counts["stars"] = cur.rowcount
+    _report(on_progress, "stars", len(counts), ORBITAL_PHASE_UPDATES)
 
     # v20: each star's own reflex-offset "wobble" from the planets it
     # hosts (planets.star_id) -- a correlated subquery summing every
@@ -9587,6 +9634,7 @@ def advance_orbital_phases(conn, elapsed_years):
         """
     )
     counts["star_reflex_offsets"] = cur.rowcount
+    _report(on_progress, "star_reflex_offsets", len(counts), ORBITAL_PHASE_UPDATES)
 
     # v20: each planet's own reflex-offset "wobble" from the moons it
     # hosts -- identical shape/reasoning to the stars UPDATE above, one
@@ -9610,6 +9658,7 @@ def advance_orbital_phases(conn, elapsed_years):
         """
     )
     counts["planet_reflex_offsets"] = cur.rowcount
+    _report(on_progress, "planet_reflex_offsets", len(counts), ORBITAL_PHASE_UPDATES)
 
     # Mutual orbit: shared by both binary configurations (see this
     # function's own docstring on why this is now a separate UPDATE from
@@ -9653,6 +9702,7 @@ def advance_orbital_phases(conn, elapsed_years):
         (elapsed_years, elapsed_years),
     )
     counts["binary_mutual_orbits"] = cur.rowcount
+    _report(on_progress, "binary_mutual_orbits", len(counts), ORBITAL_PHASE_UPDATES)
 
     # v20: circumbinary (P-type) planets' combined pull on the whole pair
     # -- same correlated-subquery shape as the stars/planets reflex-offset
@@ -9681,6 +9731,7 @@ def advance_orbital_phases(conn, elapsed_years):
         """
     )
     counts["binary_planetary_wobbles"] = cur.rowcount
+    _report(on_progress, "binary_planetary_wobbles", len(counts), ORBITAL_PHASE_UPDATES)
 
     # Galactic phase: a 'close' pair only -- a 'wide' pair's two stars
     # already each advance their own galactic phase individually via the
@@ -9699,6 +9750,7 @@ def advance_orbital_phases(conn, elapsed_years):
         (elapsed_years, elapsed_years),
     )
     counts["binary_galactic_orbits"] = cur.rowcount
+    _report(on_progress, "binary_galactic_orbits", len(counts), ORBITAL_PHASE_UPDATES)
 
     # v17: standalone exotic phenomena -- black_holes/neutron_stars only
     # for their star_id IS NULL rows (an anchored remnant's motion already
@@ -9716,6 +9768,7 @@ def advance_orbital_phases(conn, elapsed_years):
             (elapsed_years, elapsed_years),
         )
         counts[table] = cur.rowcount
+        _report(on_progress, table, len(counts), ORBITAL_PHASE_UPDATES)
 
     for table in ("nebulae", "supernova_remnants", "rogue_planets", "interstellar_comets", "asteroid_fields"):
         cur = conn.execute(
@@ -9729,6 +9782,7 @@ def advance_orbital_phases(conn, elapsed_years):
             (elapsed_years, elapsed_years),
         )
         counts[table] = cur.rowcount
+        _report(on_progress, table, len(counts), ORBITAL_PHASE_UPDATES)
 
     conn.execute(
         "INSERT INTO orbit_simulation_state (id, last_updated_at) VALUES (1, NOW()) "

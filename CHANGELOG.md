@@ -1,5 +1,27 @@
 # Changelog
 
+## [7.255.635] - 2026-10-08
+
+### Added
+
+- Planned a follow-up to the Shoelace migration: form fields as Shoelace components (UX.49), and closed UX.40 and ADM.14 in the plan.
+
+## [7.254.635] - 2026-10-08
+
+### Added
+
+- **A progress bar on the database reset and the orbital update.** `python3 -m planetgen.cli.reset` shows the table being wiped and how many of them are done, and the New galaxy and Reset actions on the Generate page show the same bar in the job's status. `python3 -m planetgen.cli.orbits` shows its four steps (orbital phases, comets and facilities, galactic orbits, containment/nearest systems/locations) with the tables or sectors of the current step beneath, and writes the same progress for any job that runs it.
+
+### Fixed
+
+- **Resetting a big database is much faster.** The reset used to count every row of every table (`COUNT(*)`) before it wiped anything, which reads nearly the whole database from disk; it now takes the storage engine's own estimates, so its row counts read "about N rows" and the reset goes straight to the wipes.
+
+## [7.253.635] - 2026-10-08
+
+### Fixed
+
+- **The Generate pages' text boxes line up (ADM.14).** On the admin Generate page (every form: New galaxy, Generate sectors and its modes, Plan, the bright-star and layer forms) and on the one-off system page, each group of fields is a grid of equal columns whose fields share three rows (label, box, hint), so the boxes have one width, sit level with each other and share left edges however long or wrapped a heading is, at phone and desktop widths in both themes.
+
 ## [7.252.634] - 2026-10-08
 
 ### Fixed

@@ -171,7 +171,7 @@ From Boss's list of 2026-10-03: ADM.23, ADM.24, ADM.25, ADM.27, ADM.31, GEN.67, 
 
 From Boss's list of 2026-10-07: ADM.26, ADM.28, ADM.29, ADM.30, ADM.32, ADM.33, ADM.34, ADM.35, ADM.36, API.18, API.19, DB.13, GEN.68, GEN.74, GEN.80, GEN.81, GEN.82, GEN.101, GEN.102, GEN.103, GEN.104, GEN.108, GEN.113, GEN.114, MAP.118, MAP.122, MAP.123, MAP.124, MAP.125, MAP.126, NAV.48, NAV.49, PERF.28, PERF.29, PERF.30, SEC.31, UX.43, UX.44, UX.46, UX.47, UX.48.
 
-From PR #434's CI (2026-10-07): TEST.88. From PR #442's run (2026-10-07): TEST.89. From Boss's message of 2026-10-07 16:26Z (three Galaxy Map problems): MAP.115 folded into MAP.116, and MAP.127 (filed then) folded into MAP.121. From Boss's install error of 2026-10-07 16:57Z: OPS.26. From his decision answers of 2026-10-07 17:11Z: OPS.27. From PR #476 (2026-10-07): GEN.116, TEST.90. From Boss's bright-star sweep of 2026-10-07 18:43Z: GEN.117. From the bulge check and Boss's choice of 2026-10-07 19:04Z: GEN.118, GEN.119. From PR #481's browser-a11y run (2026-10-07): TEST.91. From PR #496's local run (2026-10-07): TEST.92. From Foundations' full run after PRs #501 and #504 (2026-10-07): TEST.93. From Boss's prevalence decision of 2026-10-08 00:12Z: ADM.37. From Bugfixes lane 1's full run (2026-10-08): TEST.94. From Bugfixes lane 1's full run for PR #522 (2026-10-08): TEST.95, TEST.96. From Bugfixes lane 1's full run for PR #525 (2026-10-08): TEST.97. From Boss's message of 2026-10-08 01:59Z (how sectors and blocks are colored): DB.14, MAP.128, MAP.129, MAP.130, MAP.131, MAP.132. From Bugfixes lane 1's full run for PR #531 (2026-10-08): TEST.98, TEST.99, TEST.100, TEST.101. From Boss's message of 2026-10-08 02:59Z (put the phoneme codec into the project): GEN.120.
+From PR #434's CI (2026-10-07): TEST.88. From PR #442's run (2026-10-07): TEST.89. From Boss's message of 2026-10-07 16:26Z (three Galaxy Map problems): MAP.115 folded into MAP.116, and MAP.127 (filed then) folded into MAP.121. From Boss's install error of 2026-10-07 16:57Z: OPS.26. From his decision answers of 2026-10-07 17:11Z: OPS.27. From PR #476 (2026-10-07): GEN.116, TEST.90. From Boss's bright-star sweep of 2026-10-07 18:43Z: GEN.117. From the bulge check and Boss's choice of 2026-10-07 19:04Z: GEN.118, GEN.119. From PR #481's browser-a11y run (2026-10-07): TEST.91. From PR #496's local run (2026-10-07): TEST.92. From Foundations' full run after PRs #501 and #504 (2026-10-07): TEST.93. From Boss's prevalence decision of 2026-10-08 00:12Z: ADM.37. From Bugfixes lane 1's full run (2026-10-08): TEST.94. From Bugfixes lane 1's full run for PR #522 (2026-10-08): TEST.95, TEST.96. From Bugfixes lane 1's full run for PR #525 (2026-10-08): TEST.97. From Boss's message of 2026-10-08 01:59Z (how sectors and blocks are colored): DB.14, MAP.128, MAP.129, MAP.130, MAP.131, MAP.132. From Bugfixes lane 1's full run for PR #531 (2026-10-08): TEST.98, TEST.99, TEST.100, TEST.101. From Boss's message of 2026-10-08 02:59Z (put the phoneme codec into the project): GEN.120. From the coordinator (2026-10-08, after UX.40 closed): UX.49.
 
 From Boss's message of 2026-10-07 12:25Z (the galaxy's own gravity, a gap in the orbital documents): GEN.115.
 
@@ -197,7 +197,7 @@ From PR #431's red CI (coordinator, 2026-10-03): PERF.27, DB.12, OPS.25, MAP.114
 | TEST.83 | SEC.30 | The rate limits move to Flask-Limiter on Redis. |
 | PERF.19 | PERF.24 | Boss chose Redis and RQ; the audit is its first step. |
 | OPS.19 | PERF.24 | The job store moves with the queue. |
-| UX.2, ADM.14, UX.26, UX.31, UX.27 | UX.40 | Menus, buttons and form fields become Shoelace components. |
+| UX.2, ADM.14, UX.26, UX.31, UX.27, UX.49 | UX.40 | Menus and buttons became Shoelace components (UX.40 done, PR #544); UX.26's sector Admin panel and UX.49's form fields remain. |
 | UX.33 | UX.41 | Faceted filters on the TanStack tables. |
 | UX.38 | MAP.105 | The 3D nebula view replaces the diagram. |
 | ADM.24, ADM.25, ADM.26 | ADM.22 | Logs and progress move to SSE and Xterm.js. |
@@ -254,7 +254,7 @@ Boss (2026-10-07 17:11Z, answering the open decisions). His words are quoted.
 - **Lane order**: "When one thread is idle waiting for CI we can start another thread on something else, the idea being to always have at least 1 thread going without even going tover the 2 dev 1 todo limit." So up to two build threads and the TODO thread; a thread waiting on CI may hand off to another.
 - **Redis on Windows (OPS.21)**: "Let's say Redis in WSL". OPS.27 dropped Memurai from the installer and docs (done, PR #475).
 - **Habitability score structure (GEN.84)**: approved (PHI-4's domains and tiers for display, the Xenobiology doc's three tiers as the scores behind them).
-- **Wide-binary names under the codec (GEN.71)**: "No, we should never have A I or such for planet names.  Adjust the algorithm to produce 2 words from the name.  A says word 1 I, word 1 II, etc...  B planets say word 2 I, word 2 II, etc..." In GEN.71. Since 2026-10-08 stars keep word-salad names, so this applies only if planets keep the "<star> I" pattern (GEN.67's open question).
+- **Wide-binary names under the codec (GEN.71)**: "No, we should never have A I or such for planet names.  Adjust the algorithm to produce 2 words from the name.  A says word 1 I, word 1 II, etc...  B planets say word 2 I, word 2 II, etc..." In GEN.71. Confirmed 2026-10-08 04:00Z: planets keep the "<star> I" pattern, so this rule stays in force.
 - **GEN.29 outside phase 0**: approved (stays in phase 2 with the class refactor).
 - **Front-end build (UX.40, UX.41, MAP.102)**: approved (vendored ES module builds served by Flask, no bundler).
 - **Hilbert fill order (GEN.101)**: approved (keep the Hilbert order, allow a logged jump where the ball cuts the curve).
@@ -266,7 +266,7 @@ Boss (2026-10-07 17:11Z, answering the open decisions). His words are quoted.
 - **Wiki uploads on the queue (PERF.24)**: Boss (2026-10-08 00:14Z) reversed the audit decision: wiki uploads go on the Redis queue too, because he may want batch uploads later.
 - **Prevalence fields show real shares (ADM.37)**: Boss (2026-10-08 00:12Z): the Generate page shows each feature's real default share (habitable worlds 24.2%, asteroid belts 59%) and the user types the share they want, not "0% change"; the page must always show meaningful information. Shares are the same in every sector today; a density-dependent share would be a new generation feature, filed only if Boss asks.
 
-GEN.67 (Boss 2026-10-08 03:57Z: stars and sectors keep word salad, everything else uses the codec): does a planet, moon or belt take its own codec word from its ID (the default) or keep the "<star name> I" pattern? Constellations default to codec names. Changing the naming key renames only the codec-named objects.
+No decisions are open. (GEN.67, Boss 2026-10-08: stars and sectors keep word salad, planets, moons and belts keep the "<star name> I" pattern, and the codec names only the objects with no star-derived name; defaults stand for constellations and the naming key.)
 
 ## Files that several items touch
 
@@ -279,10 +279,10 @@ GEN.67 (Boss 2026-10-08 03:57Z: stars and sectors keep word salad, everything el
 | generate.py: qualify, density and backfill | GEN.98, GEN.100, GEN.101, GEN.41 to GEN.43, PERF.18 | Phase 0 bugs first, then phase 1 galaxy gen. |
 | Galaxy Map (galaxymap3d.js, galaxystageview.js, galaxystages.js, galaxyblocks.js) | MAP.102, MAP.65 to MAP.68, MAP.110, MAP.111, MAP.95, MAP.103, MAP.122, MAP.123, MAP.124 | Bugfix lane items first; the engine group next; phase 1 map items after. |
 | sectormap.js | MAP.79, MAP.113, MAP.66, MAP.68 | MAP.68 deletes the file. |
-| Templates and components (base.html, style.css, edit_controls.html) | UX.40, UX.2, UX.26, UX.31, UX.27, ADM.14, ADM.34, UX.37, UX.21, UX.42, UX.43 | Components first, then the sweep, then wording and the visual design. |
+| Templates and components (base.html, style.css, edit_controls.html) | UX.2, UX.26, UX.31, UX.27, UX.49, ADM.34, UX.37, UX.21, UX.42, UX.43 | Components first, then the sweep, then wording and the visual design. |
 | Planet physics and classes (planetPhysics.py, planetData.py, planetLife.py) | GEN.85 to GEN.89, GEN.33, GEN.28, GEN.27, GEN.29, GEN.91, GEN.92 | Phase 0 bug, then the habitability inputs, then the refactor. |
 | Positions (updateOrbits.py, keplerMotion.py, the new position object) | GEN.74, GEN.66, GEN.104, GEN.106 to GEN.110, GEN.115, MAP.70, VIEW.5 | GEN.74 first. |
-| Generate page (generate.html, generate_page.py) | UX.40, ADM.28 and its subitems, GEN.96, GEN.24 | Components, then prevalence, then the rework. |
+| Generate page (generate.html, generate_page.py) | UX.49, ADM.28 and its subitems, GEN.96, GEN.24 | Components, then prevalence, then the rework. |
 | update.sh and update.ps1 (with install.* and deploy-common.*) | OPS.8, OPS.13, OPS.15, OPS.17 | OPS.7 (done, PR #457) went first; then Redis and pins. |
 
 ## Near-cycles and how they are broken

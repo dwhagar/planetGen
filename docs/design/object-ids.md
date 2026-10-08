@@ -81,16 +81,18 @@ haven't been filled. The plan:
    `planetgen.names` package) turns an
    ID into pronounceable words and back, keyed by a domain and the naming
    key, so a name is unique because its ID is, and changing the key
-   renames everything without rewriting rows. Since Boss's note of
-   2026-10-08 03:57Z the codec names everything except stars and
-   sectors, which keep the word-salad method. Whether planets keep the
-   "<system> I" pattern is an open question (GEN.67); if they do, a wide
-   binary gets a two-word name: star A's planets are "<word 1> I",
+   renames the codec's objects without rewriting rows. Boss's decisions
+   of 2026-10-08 (03:57Z and 04:00Z): stars and sectors keep the
+   word-salad method, and planets, moons and belts keep the "<system> I"
+   pattern, so the codec names only the objects with no star-derived name
+   (the GEN.64 kinds above, whose hex ID becomes words, and
+   constellations). A wide binary's planets are "<word 1> I",
    "<word 1> II", star B's "<word 2> I", "<word 2> II", never "A I"
-   (Boss, 2026-10-07 17:11Z; GEN.71).
-5. **Removal** of the word-salad code that named planets, moons, belts
-   and phenomena. The word lists, the nltk corpus and the name registries
-   stay for stars and sectors.
+   (Boss, 2026-10-07 17:11Z; GEN.71), where the two words are the wide
+   pair's word-salad name.
+5. **No removal** of the word-salad code, the word lists, the nltk
+   corpus or the name registries: stars, sectors, planets, moons and
+   belts still use them.
 
 A bright star placed by the backfill shows its ID until its sector is
 generated, and only then gets its name.
