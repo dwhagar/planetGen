@@ -379,7 +379,7 @@ of 2026-10-08 04:00Z, planets, moons and belts keep the "<star> I"
 pattern; the objects with no star-derived name (rogue planets, black
 holes, neutron stars, nebulae, remnants, quasars, interstellar comets,
 asteroid fields, constellations) get Boss's phoneme codec
-(`gatedPhonemeCodec.py`) applied to the ID under a naming key stored in
+(`planetgen.names.gated_phoneme_codec`) applied to the ID under a naming key stored in
 the control database, drawn when the galaxy is created and changeable by
 an admin. Details: `object-ids.md`.
 
