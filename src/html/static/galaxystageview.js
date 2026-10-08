@@ -1742,8 +1742,8 @@ export function createStageView(host) {
     if (!bookmarkButton) {
       bookmarkButton = document.createElement("button");
       bookmarkButton.type = "button";
-      bookmarkButton.className = "galaxy-bookmark";
-      refreshBookmark = B.toggleButton(bookmarkButton, bookmarkEntry, true);
+      bookmarkButton.className = "btn btn-small btn-secondary btn-bookmark galaxy-bookmark";
+      refreshBookmark = B.toggleButton(bookmarkButton, bookmarkEntry);
     }
     crumbLine.set(crumbSteps());
     refreshBookmark();

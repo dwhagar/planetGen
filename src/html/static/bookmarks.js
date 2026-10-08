@@ -193,18 +193,16 @@ export function kindLabel(kind) {
 // --- A ☆ button ----------------------------------------------------------------
 
 // Makes `button` save, or offer to remove, the entry `entryFn()` returns
-// (null: nothing to save here). `compact` shows just the star, with the
-// words in its aria-label and title. Returns refresh(), for when the
-// entry changes.
-export function toggleButton(button, entryFn, compact) {
+// (null: nothing to save here). It shows just the star, with the words in
+// its aria-label and title. Returns refresh(), for when the entry changes.
+export function toggleButton(button, entryFn) {
   function refresh() {
     const entry = entryFn();
     const saved = entry ? find(entry.kind, entry.value) : null;
     button.disabled = !entry || !storageKey();
     button.setAttribute("aria-pressed", saved ? "true" : "false");
-    const words = saved ? "Bookmarked" : "Bookmark";
     const label = entry ? (saved ? "Bookmarked: " + saved.name + " (press to remove)" : "Bookmark " + entry.name) : "Bookmark";
-    button.textContent = (saved ? "★" : "☆") + (compact ? "" : " " + words);
+    button.textContent = saved ? "★" : "☆";
     button.setAttribute("aria-label", label);
     button.title = label;
   }
@@ -230,7 +228,7 @@ function wireToggles() {
     const d = button.dataset;
     const entry = { name: d.bookmarkName || "", kind: d.bookmarkKind, value: d.bookmarkValue, url: d.bookmarkUrl || null };
     if (d.bookmarkSectorId) entry.sectorId = Number(d.bookmarkSectorId);
-    toggleButton(button, function () { return entry; }, false);
+    toggleButton(button, function () { return entry; });
     button.hidden = false;
   });
 }

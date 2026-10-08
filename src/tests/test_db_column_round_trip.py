@@ -71,6 +71,10 @@ with why: each is set only by something this small galaxy doesn't
 contain (the cases are exercised in their own tests)."""
 
 NEVER_READ = {
+    # GEN.69: a system's and a star's own ID is written when it is saved and
+    # looked up by it from GEN.72 on; nothing reads it back yet.
+    ("star_systems", "uid"): "looked up by ID from GEN.72",
+    ("stars", "uid"): "looked up by ID from GEN.72",
     # Row order in a child table: the loaders read them ORDER BY position.
     **{(table, "position"): "sort key" for table in (
         "asteroid_belt_composition", "asteroid_field_composition", "comet_composition",

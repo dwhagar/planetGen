@@ -20,7 +20,7 @@ release is stamped.
 | PERF | PERF.31 |
 | DB | DB.15 |
 | API | API.20 |
-| ADM | ADM.38 |
+| ADM | ADM.39 |
 | SEC | SEC.32 |
 | TEST | TEST.105 |
 | USR | USR.9 |
@@ -426,6 +426,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.35 | Full control from every screen: edit anything, regenerate with every input, backfill or erase what is in view | none | open |
 | ADM.36 | Change an object's trajectory vector | none | open |
 | ADM.37 | The Generate page's prevalence fields show "0% change" instead of each feature's real share (bug) | none | done, PR #514 |
+| ADM.38 | Worker exceptions fail on Python 3.9 because _picklable_error calls Exception.add_note, which needs 3.11 (bug) | none | open |
 | API.1 | Create a system inside an existing sector | 10 (2026-09-24 01:32Z to 02:18Z); 7 (2026-09-24 01:57Z to 02:02Z); 5 (2026-09-24 02:25Z to 05:38Z); 4 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 13 (2026-09-30 16:44Z); 14 (2026-09-30 16:49Z); 15 (2026-09-30 16:51Z to 18:09Z); 32 (2026-09-30 18:14Z); 37 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.2 | Edit a system's generated content | 11 (2026-09-24 01:32Z to 02:18Z); 8 (2026-09-24 01:57Z to 02:02Z); 6 (2026-09-24 02:25Z to 05:38Z); 5 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 14 (2026-09-30 16:44Z); 15 (2026-09-30 16:49Z); 16 (2026-09-30 16:51Z to 18:09Z); 33 (2026-09-30 18:14Z); 38 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.3 | Remote generate: generate on a local machine, upload through the API | none | open |
@@ -529,8 +530,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.65 | A generation run fails from the web UI but not from the CLI (bug) | none | done, PR #476 |
 | GEN.66 | Physics on scipy, and astropy constants and units | none | open |
 | GEN.67 | Names from IDs for objects that have no star-derived name | none | open |
-| GEN.68 | Research: the cheapest unique IDs for every object, unfilled sectors included | none | open |
-| GEN.69 | A unique ID for every object, star systems and unfilled sectors included | none | open |
+| GEN.68 | Research: the cheapest unique IDs for every object, unfilled sectors included | none | done, PR #623 |
+| GEN.69 | A unique ID for every object, star systems and unfilled sectors included | none | done, PR #623 |
 | GEN.70 | A naming key in the control database, made at galaxy creation and changeable by admin | none | open |
 | GEN.71 | Name interstellar objects, phenomena and constellations from the codec | none | open |
 | GEN.72 | A backfilled bright star should get a name only when its sector is generated (bug) | none | open |
@@ -933,10 +934,10 @@ Parents marked "new parent" had no old number of their own.
 | UX.60 | The Slabs rail has nothing in it at the top level | none | open |
 | UX.61 | System Map: Measure distance floats beside an empty gap | none | open |
 | UX.62 | Map pages jump 64 px left | none | open |
-| UX.63 | One action bar on every object page | none | open |
-| UX.64 | Action buttons are all solid primary, with no hierarchy | none | open |
+| UX.63 | One action bar on every object page | none | done, PR #618 |
+| UX.64 | Action buttons are all solid primary, with no hierarchy | none | done, PR #620 |
 | UX.65 | Facts and links mixed in the Sector header chips | none | open |
-| UX.66 | “Cube edge” on arc-shaped sectors | none | open |
+| UX.66 | “Cube edge” on arc-shaped sectors | none | done, PR #617 |
 | UX.67 | Wikitext and Markdown buttons | none | open |
 | UX.68 | System Admin menu lists every planet and moon | none | open |
 | UX.69 | Tables are cut off on phones with no cue | none | open |
@@ -944,7 +945,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.71 | NAV landing page | none | open |
 | UX.72 | Gear menu mixes unrelated things; the admin hub is not the hub | none | open |
 | UX.73 | Sector wiki link form on the Admin hub | none | open |
-| UX.74 | Generate page shows an empty Current job card | none | open |
+| UX.74 | Generate page shows an empty Current job card | none | done, PR #617 |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
@@ -1139,7 +1140,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.100 | test_hover_while_picking_a_slab fails in the full suite (bug) | none | done, PR #549 |
 | TEST.101 | test_interrupting_a_parallel_galaxy_run[2-True] fails in the full suite (bug) | none | done, PR #549 |
 | TEST.102 | test_a_pass_removes_species_stored_without_a_civilization fails now and then in the full suite (bug) | none | done, PR #610 |
-| TEST.103 | test_controls_do_not_overlap[web.sector-600] fails on clean main: controls overlap on the sector page at 600 px (bug) | none | open |
+| TEST.103 | test_controls_do_not_overlap fails on clean main: controls overlap on the sector page at 600 and 820 px (bug) | none | open |
 | TEST.104 | test_system_map_selection_drill_and_measure fails now and then under load (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |

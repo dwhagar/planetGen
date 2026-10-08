@@ -1050,7 +1050,7 @@ def test_sector_page_shows_it_on_the_galaxy_map(client, fake):
 
     html = client.get("/sector/5").get_data(as_text=True)
     designation = provisional_sector_designation(5, 1, 20)
-    assert f'<a href="/galaxy?sector={designation}">Show on Galaxy Map</a>' in html
+    assert f'href="/galaxy?sector={designation}">Show on Galaxy Map</a>' in html
     fake.sectors[5] = _sector_detail(placed=False)
     assert "Show on Galaxy Map" not in client.get("/sector/5").get_data(as_text=True)
 
@@ -1072,7 +1072,7 @@ def test_galaxy_map_redirects(client, fake):
 # --- Bookmarks (MAP.23) and the NAV page's Bookmarks select (MAP.22) ------------------
 
 def _bookmark_button(html):
-    match = re.search(r'<button type="button" class="btn btn-small btn-bookmark" data-bookmark-toggle[^>]*>[^<]*</button>',
+    match = re.search(r'<button type="button" class="btn btn-small btn-secondary btn-bookmark" data-bookmark-toggle[^>]*>[^<]*</button>',
                       html, re.S)
     return match.group(0) if match else ""
 
@@ -1089,7 +1089,7 @@ def test_sector_page_has_a_bookmark_button(client, fake):
                       'data-bookmark-url="/sector/5"', 'data-bookmark-sector-id="5"', 'aria-pressed="false"'):
         assert attribute in button
     # Shown and wired by the script; bookmarks live in the browser.
-    assert " hidden>" in button and "☆ Bookmark" in button
+    assert " hidden>" in button and "☆</button>" in button
     # No galaxy address: keyed by its page instead.
     fake.sectors[5] = _sector_detail(placed=False)
     assert 'data-bookmark-value="/sector/5"' in _bookmark_button(client.get("/sector/5").get_data(as_text=True))

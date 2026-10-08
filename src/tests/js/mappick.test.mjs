@@ -137,7 +137,7 @@ test("the info panel shows the rows it has a value for, then the actions", () =>
   assert.ok(panelEl.querySelector('a[href="/nav?from=system:1"]'));
   assert.ok(panelEl.querySelector('a[href="/nav?to=system:1"]'));
   assert.ok(panelEl.querySelector('a[href="/system/1"]'));
-  assert.equal(panelEl.querySelector(".map-info-bookmark").textContent, "☆ Bookmark");
+  assert.equal(panelEl.querySelector(".map-info-bookmark").textContent, "☆");
   assert.equal(panelEl.querySelector("p.hint").textContent, "Click another star.");
 });
 
