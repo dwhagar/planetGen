@@ -402,6 +402,7 @@ def nav():
             "nav.html", title="Nav", breadcrumbs=[crumb("Nav")],
             pickers=_origin_pickers(request.args.get("from_sector", ""), to_raw),
             map_picks=_map_picks("from", destination), map_picks_heading="Or pick a start on a map",
+            landing=not request.args.get("from_sector"),
             bookmark_pick=_bookmark_pick("from", to_raw), **page,
         )
 
@@ -440,6 +441,9 @@ def nav():
                            start_over=nav_url(_param_of(origin)), **page)
 
     destination = _resolve(to_kind, to_id)
+    # UX.70: the page is the whole course, not just where it starts.
+    title = f"Course: {origin['name']} \u2192 {destination['name']}"
+    crumbs = [crumb("Nav", "nav"), crumb(f"{origin['name']} \u2192 {destination['name']}")]
     route = result["route"]
     names = _route_names(route, {origin["key"]: origin["name"], destination["key"]: destination["name"]})
     direct = result["direct"]

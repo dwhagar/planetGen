@@ -234,6 +234,26 @@ h2 {
   font-size: 0.85rem;
 }
 
+/* UX.67: a quiet "View source" menu in the System card header. */
+.view-source {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.view-source summary {
+  cursor: pointer;
+  padding: 0.2rem 0.4rem;
+}
+
+.view-source ul {
+  list-style: none;
+  margin: 0;
+  padding: 0 0.4rem 0.2rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 1rem;
+}
+
 .view-toggle-current {
   color: var(--text-muted);
   font-weight: 600;
@@ -2569,6 +2589,10 @@ body.app {
   list-style: none;
   margin: 0;
   padding: 0;
+}
+
+.app .admin-hub a {
+  text-decoration: underline;
 }
 
 .app .admin-hub li {

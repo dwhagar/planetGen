@@ -142,6 +142,7 @@ class FakeData:
         self.calls.append(("get_nav", db, from_id, to_id, from_kind, to_kind, from_type, to_type))
         if self.nav_error:
             raise self.nav_error
+        hops = [] if getattr(self, "nav_direct_hop", False) else [1500]
         return {
             "scope": "galaxy" if self.nav_galaxy_scope else "sector",
             "direct": {"distance_ly": 3.25, "bearing_deg": 45.2, "mark_deg": 357.5,
@@ -150,7 +151,7 @@ class FakeData:
             "fold_times": [{"fold_factor": 4, "velocity_multiple_of_c": 256.0, "formatted": "4 days"}],
             "origin_position": (0.0, 0.0, 0.0), "destination_position": (3.0, 1.0, 0.0),
             "route": {"path": [from_id if from_kind == "system" else f"phenomenon:{from_type}:{from_id}",
-                               1500, to_id],
+                               *hops, to_id],
                       "distance_ly": 3.5, "positions": {"1500": (1.5, 0.5, 0.0)}},
         }
 
@@ -644,14 +645,15 @@ def test_nav_course_and_route(client, fake):
     assert "3.25 ly" in html and "045 mark 358" in html and "3 years" in html
     assert "Sector Local Frame" in html and "Fold 4" in html and "4 days" in html
     assert "Same sector" in html
-    assert 'To: <a href="/system/1002">Other</a>' in html
+    assert "<title>Course: Alpha \u2192 Other - " in html  # UX.70
+    assert 'To: <a' not in html and 'From: <a' not in html
     route = re.search(r'<ol class="nav-route">.*?</ol>', html, re.S).group(0)
     assert [name for name in re.findall(r">([^<]+)</a>", route)] == ["Alpha", "Waypoint", "Other"]
     assert "3 stops, 1.07 pc (3.5 ly) total." in html
     # The NAV map's points are plain links.
     assert '<a class="navmap-point navmap-hop" href="/system/1500">' in html
     assert "data-nav=" not in html
-    assert '<a href="/nav?from=system:1002&amp;to=system:1001">Reverse course</a>' in html
+    assert '<a class="btn btn-small" href="/nav?from=system:1002&amp;to=system:1001">Reverse course</a>' in html
 
 
 def test_nav_result_links_to_the_galaxy_map(client, fake):
@@ -692,7 +694,7 @@ def test_galaxy_course_is_the_waypoints_in_parsecs(client, fake):
 def test_nav_phenomenon_origin(client, fake):
     html = client.get("/nav?from=nebula:3&to=system:1002").get_data(as_text=True)
     assert ("get_nav", DB, 3, 1002, "phenomenon", "system", "nebula", None) in fake.calls
-    assert 'From: <a href="/phenomenon/nebula/3">Veil</a>' in html
+    assert "<title>Course: Veil \u2192 Other - " in html
     route = re.search(r'<ol class="nav-route">.*?</ol>', html, re.S).group(0)
     assert 'href="/phenomenon/nebula/3">Veil</a>' in route
 
@@ -857,7 +859,7 @@ def test_real_sector_page_and_nav(db_client, mysql_config, monkeypatch):
     html = resp.get_data(as_text=True)
     assert resp.status_code == 200
     assert "Direct Course" in html and "Same sector" in html and "NAV Map" in html
-    assert '<ol class="nav-route">' in html
+    assert '<ol class="nav-route">' not in html  # UX.70: a direct hop lists no route
 
 
 def test_real_sector_page_unknown_id_is_404(db_client, mysql_config):
@@ -1042,13 +1044,14 @@ def test_bright_stars_fail_open(client, fake, monkeypatch):
 # --- Map picks on the NAV page (MAP.22) and "Show on Galaxy Map" (MAP.25) ---------------
 
 def _map_picks(html):
-    match = re.search(r'<section class="panel" aria-labelledby="map-picks-heading">.*?</section>', html, re.S)
+    match = re.search(r'<section class="panel" aria-labelledby="(?:map-picks|plan)-heading">.*?</section>', html, re.S)
     return match.group(0) if match else ""
 
 
 def test_nav_origin_step_offers_map_picks(client, fake):
     picks = _map_picks(client.get("/nav").get_data(as_text=True))
-    assert "Or pick a start on a map" in picks
+    assert "Plan a course" in picks and "Start from" in picks  # UX.71: one card
+    assert "Choose a starting sector" not in client.get("/nav").get_data(as_text=True)
     assert 'href="/galaxy?pick=from">Pick on Galaxy Map</a>' in picks
     assert "Pick in this sector" not in picks  # no other endpoint yet
     picks = _map_picks(client.get("/nav?to=system:2001").get_data(as_text=True))
@@ -1173,3 +1176,22 @@ def test_sector_pick_mode_has_a_bookmarks_menu_that_keeps_the_pick(client, fake)
                       'data-keep-value="system:1001"', 'data-nav-url="/nav"', f'data-bookmark-db="{DB}"'):
         assert attribute in menu.group(0)
     assert "pick-bookmarks" not in client.get("/sector/5").get_data(as_text=True)
+
+
+def test_nav_result_orders_summary_map_route_then_travel_times(client, fake):
+    """UX.70: summary, map, route, then the travel times in one collapsed section."""
+    html = client.get("/nav?from=system:1001&to=system:1002").get_data(as_text=True)
+    order = [html.index(marker) for marker in ('id="course-heading"', "NAV Map", 'id="route-heading"', 'id="times-heading"')]
+    assert order == sorted(order)
+    times = re.search(r'<section class="panel" aria-labelledby="times-heading".*?</section>', html, re.S).group(0)
+    assert "<details>" in times and "<details open" not in times
+    assert 'data-travel-mode="warp"' in times and 'data-travel-mode="fold"' in times
+    assert re.search(r'<script type="module" src="/static/navtimes.js\?v=[^"]+"></script>', html)
+
+
+def test_nav_hides_the_route_when_it_is_the_direct_hop(client, fake):
+    """UX.70: Optimal Route would only list the two ends again."""
+    fake.nav_direct_hop = True
+    html = client.get("/nav?from=system:1001&to=system:1002").get_data(as_text=True)
+    assert 'id="route-heading"' not in html and 'class="nav-route"' not in html
+    assert 'id="course-heading"' in html

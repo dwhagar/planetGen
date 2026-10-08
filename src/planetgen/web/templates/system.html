@@ -178,11 +178,15 @@
 <section class="panel" id="system-panel" aria-labelledby="system-heading">
   <div class="panel-header">
     <h2 id="system-heading">System</h2>
-    <div class="view-toggle">
-      {%- for button in code_buttons %}
-      <a class="btn btn-small btn-secondary{% if button.active %} btn-active{% endif %}" href="{{ button.url }}"{% if button.active %} aria-current="true"{% endif %}>{{ button.label }}</a>
-      {%- endfor %}
-    </div>
+    {#- UX.67: the render-format switch is a quiet utility menu, not two solid buttons. #}
+    <details class="view-source"{% if code_buttons|selectattr('active')|list %} open{% endif %}>
+      <summary>View source</summary>
+      <ul>
+        {%- for button in code_buttons %}
+        <li><a href="{{ button.url }}"{% if button.active %} aria-current="true"{% endif %}>{{ button.label }}</a></li>
+        {%- endfor %}
+      </ul>
+    </details>
   </div>
   {%- if system.wikijs_url or system.mediawiki_url %}
   <p class="hint">Published on the wiki:
