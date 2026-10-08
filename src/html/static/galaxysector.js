@@ -274,5 +274,7 @@ export function createSectorStage(host) {
       if (changed && host.kindsChanged) host.kindsChanged();
     },
     entries: function () { return open ? open.sector.entries : []; },
+    // The entry picked in the open sector, if any.
+    selectedEntry: function () { return open ? open.selectedEntry : null; },
   };
 }
