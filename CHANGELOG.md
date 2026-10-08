@@ -1,5 +1,44 @@
 # Changelog
 
+## [7.244.629] - 2026-10-08
+
+### Added
+
+- **Shoelace components for buttons and menus (UX.40, first step).** The site now ships a subset of [Shoelace](https://shoelace.style) 2.20.1 as vendored ES modules under `static/vendor/shoelace/` (no CDN, no bundler, same-origin files under the existing Content-Security-Policy), registered on every page by `static/components.js` and coloured from the site's own light and dark tokens (`static/shoelace-theme.css`). `scripts/vendor_shoelace.py` rebuilds the vendored folder from the npm package.
+
+### Changed
+
+- **The header's Menu and settings gear are Shoelace dropdowns (UX.2).** They close on an outside click or Escape and give focus back to their button, replacing the `<details>` script in `theme.js`; each panel is as wide as its longest entry (at most 22 rem, never past the screen) instead of a fixed 14 rem minimum.
+
+## [7.243.629] - 2026-10-08
+
+### Added
+
+- TODO items DB.14 and MAP.128 to MAP.132: how sectors and blocks are colored (Boss, 2026-10-08).
+
+## [7.242.629] - 2026-10-08
+
+### Added
+
+- TODO item TEST.97: a load-only test flake seen in the full suite run for PR #525.
+
+## [7.241.629] - 2026-10-08
+
+### Fixed
+
+- The Generate page's jobs folder defaults to `/var/lib/planetGen/jobs`, in the checkout's own folder, instead of `/var/lib/planetgen/jobs`, which differed from it only by case and left two folders; `update.sh` moves jobs from the old folder into the new one (a running job stays put) and removes the old folder once empty. A `jobs.dir` set in `config.json` is left alone (OPS.19).
+
+## [7.240.629] - 2026-10-08
+
+### Fixed
+
+- Galaxy Map: the slab buttons beside the map, and their leader lines,
+  are always in slab-number order (MAP.110). The order runs the same way
+  as the slabs on screen (the highest slab first when the stack's top
+  shows above its bottom, the lowest first when the view has turned
+  under the plane), and each line ends on its slab's outline no higher
+  than the line above it, so the lines still don't cross.
+
 ## [7.239.622] - 2026-10-08
 
 ### Added

@@ -14,15 +14,15 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.49 |
-| MAP | MAP.128 |
+| MAP | MAP.133 |
 | NAV | NAV.50 |
 | GEN | GEN.120 |
 | PERF | PERF.31 |
-| DB | DB.14 |
+| DB | DB.15 |
 | API | API.20 |
 | ADM | ADM.38 |
 | SEC | SEC.32 |
-| TEST | TEST.97 |
+| TEST | TEST.98 |
 | USR | USR.9 |
 | OPS | OPS.28 |
 | DOC | DOC.4 |
@@ -318,7 +318,7 @@ Sorted by old number, then date.
 | 61 | 2026-10-01 01:15Z to 05:29Z | SEC.1 | Lock out an IP after failed logins | done, PR #220 |
 | 62 | 2026-09-30 19:02Z to 19:17Z | POP.4 | Younger and older civilizations | done in 7.49.0, PR #169 |
 | 62 | 2026-09-30 20:01Z to 20:27Z | MAP.4 | System Map names never overlap | done in 7.21.1, PR #135 (see note 3) |
-| 62 | 2026-10-01 01:44Z to 05:29Z | UX.2 | Menus sized to what they hold | open |
+| 62 | 2026-10-01 01:44Z to 05:29Z | UX.2 | Menus sized to what they hold | done, PR #528 |
 | 63 | 2026-09-30 20:01Z to 20:27Z | POP.1 | Government ownership of systems | done in 7.49.0, PR #169 (optional since 7.58.2, PR #180) |
 | 63 | 2026-10-01 01:44Z to 05:05Z | MAP.3 | A bigger Galaxy Map with controls underneath | done in 7.55.0, PR #178 |
 | 64 | 2026-09-30 20:01Z to 20:27Z | POP.2 | Names for dominant species on living worlds | done in 7.49.0, PR #169 |
@@ -458,6 +458,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.11 | The database layer and migrations on SQLAlchemy and Alembic | none | open |
 | DB.12 | MariaDB reads a stored -0.0 back as +0.0 (bug) | none | done, PR #442 |
 | DB.13 | Every stored value in its own column, not in JSON blocks, and indexed for search | none | open |
+| DB.14 | Sector stats keep the raw star statistics (mean age, summed luminosity, star count) and no baked color | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
@@ -644,7 +645,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.62 | A full 3D star system view with a free camera | none | open |
 | MAP.63 | Shared map helpers in one module | none | done, PR #351 |
 | MAP.64 | One camera and input controller | none | done, PR #351 |
-| MAP.65 | One picking, hover and info-panel layer | none | open |
+| MAP.65 | One picking, hover and info-panel layer | none | done, PR #521 |
 | MAP.66 | The sector as the drill-down's last stage, on the same page | none | open |
 | MAP.67 | One URL and history scheme for every level | none | open |
 | MAP.68 | Remove the old Sector Map code | none | open |
@@ -697,6 +698,11 @@ Parents marked "new parent" had no old number of their own.
 | MAP.115 | Comets, rogue planets and asteroid fields show above the sector level (bug) | none | merged into MAP.116 (2026-10-07) |
 | MAP.116 | Dense generated sectors crowd the Galaxy Map when zoomed out (bug) | none | open |
 | MAP.127 | See into and step to the neighbouring blocks and slabs on the Galaxy Map | none | merged into MAP.121 (2026-10-07) |
+| MAP.128 | The Galaxy Map and Sector Map tint a sector by star age, density and luminosity | none | open |
+| MAP.129 | Blocks colored from their sectors' statistics, weighted by star count | none | open |
+| MAP.130 | Retire the average-star-color rule in the docs and tests | none | open |
+| MAP.131 | A Color by switch on the maps, with a legend | none | open |
+| MAP.132 | Overlay markers for black holes, nebulae and habitable worlds | none | open |
 | MAP.117 | Surface pressure missing from the planet and moon side panel (bug) | none | done, PR #457 |
 | MAP.118 | The Galaxy Map shows an unfilled sector above the galaxy that can't be filled (bug) | none | done, PR #457 |
 | MAP.119 | Expected star density editable by admins on the Galaxy Map | none | open |
@@ -774,7 +780,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.16 | A daily maintenance script for Linux, macOS and Windows | none | open |
 | OPS.17 | Install and update set up the daily maintenance schedule | none | open |
 | OPS.18 | Settings JSON backups kept in 18 slots: 7 daily, 4 weekly, 6 monthly, 1 yearly | none | open |
-| OPS.19 | The Generate jobs folder is /var/lib/planetgen while the checkout is /var/lib/planetGen (bug) | none | open |
+| OPS.19 | The Generate jobs folder is /var/lib/planetgen while the checkout is /var/lib/planetGen (bug) | none | done, PR #525 |
 | OPS.20 | Move the code base from zero dependencies to third-party open-source libraries | none | open |
 | OPS.21 | Pinned third-party dependencies and a Redis server in install, update and CI | none | done, PR #437 |
 | OPS.22 | Reorganize the code into importable Python packages with shared utility libraries | none | done, PR #473 |
@@ -864,7 +870,7 @@ Parents marked "new parent" had no old number of their own.
 | USR.8 | Every signed-in user can generate a one-off system | none | open |
 | UX.0 | Bugs and small fixes (standing item) | none | open while it holds bugs |
 | UX.1 | Class reference pages | 56 (2026-10-01 01:19Z to 04:37Z) | done in 7.46.0, PR #167 |
-| UX.2 | Menus sized to what they hold (bug) | 62 (2026-10-01 01:44Z to 05:29Z) | open |
+| UX.2 | Menus sized to what they hold (bug) | 62 (2026-10-01 01:44Z to 05:29Z) | done, PR #528 |
 | UX.3 | Warn every visitor while a background job changes the galaxy | 87 (2026-10-01 03:26Z to 05:29Z) | open |
 | UX.4 | Phenomenon pages (new parent) | none | done (UX.17 and UX.18) |
 | UX.5 | Place facilities from the web interface | 31 (2026-09-30 18:14Z); 36 (2026-09-30 18:39Z to 2026-10-01 04:37Z) | done in 7.47.0, PR #167 |
@@ -1099,6 +1105,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.94 | test_old_jobs_are_pruned raises JobBusy again: the job lock outlives the finished job (bug) | none | open |
 | TEST.95 | test_stabilize_lunar_system_respaces_crowded_moons keeps only one moon in the full suite (bug) | none | open |
 | TEST.96 | test_galaxy_map_camera_presets_at_each_zoom_step fails in the full suite (bug) | none | open |
+| TEST.97 | test_class_change_regenerates_surface_conditions raises StopIteration in the full suite (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

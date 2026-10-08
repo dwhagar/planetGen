@@ -1,0 +1,76 @@
+/* html/static/shoelace-theme.css -- Shoelace in the site's own colours.
+ *
+ * base.html loads vendor/shoelace/themes/light.css first (it carries every
+ * non-colour token: spacing, type sizes, radii, shadows, focus ring), then
+ * style.css, then this file, which points Shoelace's colour tokens at the
+ * site's (--bg-elevated, --text, --accent). Light, dark and the OS setting
+ * all follow from the site's tokens, so there is no `sl-theme-dark` class
+ * to keep in step with static/theme.js.
+ *
+ * Shoelace's neutral scale runs from the panel colour (0) to the text
+ * colour (1000); each step here is the panel colour mixed with the text
+ * colour by that many tenths of a percent. The primary scale is the
+ * accent mixed toward the panel (lighter) or the text (darker).
+ */
+
+:root {
+  --sl-font-sans: var(--font-sans);
+  --sl-font-mono: var(--font-mono);
+
+  --sl-color-neutral-0: var(--bg-elevated);
+  --sl-color-neutral-50: color-mix(in srgb, var(--bg-elevated) 95%, var(--text));
+  --sl-color-neutral-100: color-mix(in srgb, var(--bg-elevated) 90%, var(--text));
+  --sl-color-neutral-200: color-mix(in srgb, var(--bg-elevated) 80%, var(--text));
+  --sl-color-neutral-300: color-mix(in srgb, var(--bg-elevated) 70%, var(--text));
+  --sl-color-neutral-400: color-mix(in srgb, var(--bg-elevated) 55%, var(--text));
+  --sl-color-neutral-500: color-mix(in srgb, var(--bg-elevated) 40%, var(--text));
+  --sl-color-neutral-600: color-mix(in srgb, var(--bg-elevated) 30%, var(--text));
+  --sl-color-neutral-700: color-mix(in srgb, var(--bg-elevated) 20%, var(--text));
+  --sl-color-neutral-800: color-mix(in srgb, var(--bg-elevated) 12%, var(--text));
+  --sl-color-neutral-900: color-mix(in srgb, var(--bg-elevated) 6%, var(--text));
+  --sl-color-neutral-950: color-mix(in srgb, var(--bg-elevated) 3%, var(--text));
+  --sl-color-neutral-1000: var(--text);
+
+  --sl-color-primary-50: color-mix(in srgb, var(--accent) 8%, var(--bg-elevated));
+  --sl-color-primary-100: color-mix(in srgb, var(--accent) 16%, var(--bg-elevated));
+  --sl-color-primary-200: color-mix(in srgb, var(--accent) 32%, var(--bg-elevated));
+  --sl-color-primary-300: color-mix(in srgb, var(--accent) 52%, var(--bg-elevated));
+  --sl-color-primary-400: color-mix(in srgb, var(--accent) 75%, var(--bg-elevated));
+  --sl-color-primary-500: color-mix(in srgb, var(--accent) 90%, var(--bg-elevated));
+  --sl-color-primary-600: var(--accent);
+  --sl-color-primary-700: color-mix(in srgb, var(--accent) 85%, var(--text));
+  --sl-color-primary-800: color-mix(in srgb, var(--accent) 70%, var(--text));
+  --sl-color-primary-900: color-mix(in srgb, var(--accent) 55%, var(--text));
+  --sl-color-primary-950: color-mix(in srgb, var(--accent) 40%, var(--text));
+
+  --sl-color-danger-600: var(--error);
+  --sl-overlay-background-color: color-mix(in srgb, var(--bg) 70%, transparent);
+  --sl-panel-background-color: var(--bg-elevated);
+  --sl-panel-border-color: var(--border);
+  --sl-shadow-large: var(--shadow);
+  --sl-focus-ring-color: var(--accent);
+}
+
+/* Hidden until components.js has defined the element, so a page does not
+   flash an unstyled button or an open panel. */
+sl-button:not(:defined),
+sl-icon-button:not(:defined),
+sl-dropdown:not(:defined),
+sl-menu:not(:defined),
+sl-menu-item:not(:defined) {
+  visibility: hidden;
+}
+
+/* A dropdown's panel is in the page until the element is defined, so keep
+   it out of the layout (it would otherwise run off the screen). */
+sl-dropdown:not(:defined) > :not([slot="trigger"]) {
+  display: none;
+}
+
+/* The panel of a dropdown, in the site's card look. */
+sl-dropdown::part(panel) {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}

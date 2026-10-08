@@ -107,7 +107,6 @@ function open(href, options) {
     showPlacedInfo: (entry) => calls.placed.push(entry),
     showCellInfo: (cell) => calls.cells.push(cell),
     showHint: (text) => calls.hints.push(text),
-    showPointAt: () => false,
     setWedgeClip: (clip) => calls.clips.push(clip),
     sectorUrl: (id) => "/sector/" + id,
     locate(name) {
