@@ -612,6 +612,14 @@ v53 replaced the table with per-sector levels in `sector_stats`.
 adds `galaxy_shape`'s version columns (NULL on an existing galaxy) and
 the empty `generation_runs` table (DB.6).
 
+**A nebula's shape (v56, GEN.75).** `nebulae.shape_*` hold the single
+values of its shape (`galaxy/nebula_shape.py`: the ellipsoid's stretch
+and turn, the noise warp, the isovalue and the scale that puts the
+surface's farthest point at the radius) and `nebula_shape_balls` its 4-8
+metaballs, one row each (`ON DELETE CASCADE`). `_migrate_v55_to_v56`
+leaves them NULL for a nebula already saved; `queryDb.nebula_shape` then
+draws the same shape from the nebula's own properties.
+
 **Per-sector stats (v53, GEN.44, PERF.11).** `sector_stats` holds one
 row per sector address a backfill reached or a fill generated (an
 unfilled sector has no `sectors` row, so the key is the address). Its

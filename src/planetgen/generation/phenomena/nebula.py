@@ -245,6 +245,22 @@ class Nebula:
         fields_from_dict(nebula, data, cls.SERIALIZABLE_FIELDS)
         return nebula
 
+    def get_shape(self):
+        """
+        This nebula's shape (GEN.75, `planetgen.galaxy.nebula_shape`):
+        drawn the first time it is asked for, from the nebula's own
+        properties, so it takes nothing from the shared random state and
+        the same properties always give the same shape.
+        """
+        from planetgen.galaxy.nebula_shape import shape_for_nebula
+
+        shape = getattr(self, "_shape", None)
+        if shape is None:
+            shape = self._shape = shape_for_nebula(
+                self.nebula_class, self.radius_ly, self.density_cm3, self.temperature_k,
+                self.extinction_av, self.dominant_species)
+        return shape
+
     @property
     def class_name(self):
         """The class's own name, e.g. "Classical H II region"."""

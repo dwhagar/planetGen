@@ -318,6 +318,12 @@ connectivity to that specific schema rather than the default one.
   actually anchored to a normal star system (`star_id` set) — that one's
   already shown on its own system's page, not a standalone phenomenon.
   The data the `/phenomena` page shows.
+- `GET /api/nebulae/<id>/shape[?lod=low|full]` — a nebula's shape as a
+  triangle mesh (GEN.75): `{id, radius_ly, center_pc, lod, vertices,
+  faces}`, the vertices `[x, y, z]` in units of the nebula's radius from
+  its center (multiply by `radius_ly`), the faces triples of vertex
+  indexes. `low` (the default) is coarse, for the Galaxy Map. 404 for an
+  unknown nebula or level.
 - `GET /api/phenomena/<type>/<id>` — one phenomenon's full detail (every
   column its own table has, e.g. a nebula's `composition`/
   `formation_cause`, a black hole's `mass_solar`/`spin`/

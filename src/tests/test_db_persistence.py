@@ -1165,7 +1165,7 @@ def test_migrate_v8_to_v9_adds_orbital_motion_columns(mysql_config):
         _drop_v20_trajectory_columns(conn)
         _drop_v21_phenomenon_columns(conn)
         _drop_v22_search_indexes(conn)
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (8)")
         conn.commit()
 
@@ -1247,7 +1247,7 @@ def test_migrate_v9_to_v10_adds_galactic_orbit_columns(mysql_config):
         _drop_v20_trajectory_columns(conn)
         _drop_v21_phenomenon_columns(conn)
         _drop_v22_search_indexes(conn)
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (9)")
         conn.commit()
 
@@ -1343,7 +1343,7 @@ def test_migrate_v10_to_v11_adds_and_backfills_position_columns(mysql_config):
         _drop_v20_trajectory_columns(conn)
         _drop_v21_phenomenon_columns(conn)
         _drop_v22_search_indexes(conn)
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (10)")
         conn.commit()
 
@@ -1428,7 +1428,7 @@ def test_migrate_v11_to_v12_adds_and_backfills_min_update_interval_years(mysql_c
         _drop_v20_trajectory_columns(conn)
         _drop_v21_phenomenon_columns(conn)
         _drop_v22_search_indexes(conn)
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (11)")
         conn.commit()
 
@@ -1522,7 +1522,7 @@ def test_migrate_v12_to_v13_adds_and_backfills_star_motion_columns(mysql_config)
         _drop_v20_trajectory_columns(conn)
         _drop_v21_phenomenon_columns(conn)
         _drop_v22_search_indexes(conn)
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (12)")
         conn.commit()
 
@@ -1629,7 +1629,7 @@ def test_migrate_v13_to_v14_adds_and_backfills_binary_mutual_position(mysql_conf
         _drop_v20_trajectory_columns(conn)
         _drop_v21_phenomenon_columns(conn)
         _drop_v22_search_indexes(conn)
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (13)")
         conn.commit()
 
@@ -1695,7 +1695,7 @@ def test_migrate_v19_to_v20_backfills_star_and_planet_reflex_offsets(mysql_confi
         _drop_v20_trajectory_columns(conn)
         _drop_v21_phenomenon_columns(conn)
         _drop_v22_search_indexes(conn)
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (19)")
         conn.commit()
 
@@ -1789,7 +1789,7 @@ def test_migrate_v19_to_v20_backfills_binary_trajectory_columns(mysql_config):
         _drop_v20_trajectory_columns(conn)
         _drop_v21_phenomenon_columns(conn)
         _drop_v22_search_indexes(conn)
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (19)")
         conn.commit()
 
@@ -1893,7 +1893,7 @@ def test_migrate_v20_to_v21_adds_sector_placement_columns(mysql_config):
 
         _drop_v21_phenomenon_columns(conn)
         _drop_v22_search_indexes(conn)
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (20)")
         conn.commit()
 
@@ -2000,7 +2000,7 @@ def test_migrate_v26_to_v27_adds_and_backfills_row_timestamps(mysql_config, monk
                 "UPDATE star_systems SET sector_id = ?, created_at = ? WHERE id = ?",
                 (sector_id, created, system_id),
             )
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (26)")
         conn.commit()
 
@@ -2106,7 +2106,7 @@ def test_migrate_v27_to_v28_adds_and_backfills_phenomenon_placement(mysql_config
 
         _drop_v28_placement_columns(conn)
         conn.execute("UPDATE black_holes SET sector_id = NULL WHERE id = ?", (bh_id,))
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (27)")
         conn.commit()
     finally:
@@ -2227,7 +2227,7 @@ def test_migrate_v29_to_v30_cleans_up_surface_conditions(mysql_config):
                 " scale_height_km = 8.0, surface_temperature_k = 0.4 WHERE id = ?",
                 (row["id"],),
             )
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (29)")
         conn.commit()
     finally:
@@ -2297,7 +2297,7 @@ def test_migrate_v31_to_v32_regenerates_the_galaxy_on_the_cylindrical_grid(mysql
         conn.execute("CREATE TABLE galaxy_shell_band (shell_index INT)")
         conn.execute("ALTER TABLE galaxy_shape CHANGE COLUMN outer_ring_index outer_shell_index INT NOT NULL")
         conn.execute("DELETE FROM galaxy_layer")
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (31)")
         conn.commit()
     finally:
@@ -2369,7 +2369,7 @@ def test_migrate_v32_to_v33_moves_to_the_sector_standard(mysql_config):
                      "layer_index_min INT NOT NULL, layer_index_max INT NOT NULL)")
         conn.execute("INSERT INTO galaxy_ring_band VALUES (0, -1, 1)")
         conn.execute("DELETE FROM galaxy_layer")
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (32)")
         conn.commit()
     finally:
@@ -2426,7 +2426,7 @@ def test_migrate_v33_to_v34_drops_the_planet_and_moon_name_registry(mysql_config
             "base_name VARCHAR(255) NOT NULL, occurrence_count INT NOT NULL, "
             "first_body_kind VARCHAR(8) NOT NULL, first_body_id BIGINT UNSIGNED NOT NULL, suffix_index INT)"
         )
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (33)")
         conn.commit()
     finally:
@@ -2477,7 +2477,7 @@ def test_migrate_v34_to_v35_deletes_sectors_in_changed_rings_and_keeps_the_skele
             store.insert_rogue_planet(conn, RoguePlanet(SystemConfig()), sector_id=changed_id)
             kept_rogue_id = store.insert_rogue_planet(conn, RoguePlanet(SystemConfig()), sector_id=unplaced_id)
         layers_before = store.get_galaxy_layers(conn)
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (34)")
         conn.commit()
     finally:
@@ -2509,7 +2509,7 @@ def test_migrate_v35_to_v36_adds_black_hole_mass_classes(mysql_config):
             conn.execute("UPDATE black_holes SET mass_solar = ? WHERE id = ?", (mass, row_id))
         conn.execute("ALTER TABLE black_holes DROP CONSTRAINT chk_black_holes_mass_class")
         conn.execute("ALTER TABLE black_holes DROP COLUMN mass_class")
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (35)")
         conn.commit()
     finally:
@@ -2542,7 +2542,7 @@ def test_migrate_v36_to_v37_adds_rogue_mass_bins_and_runaway_columns(mysql_confi
             conn.execute("UPDATE rogue_planets SET mass_kg = ? WHERE id = ?", (mass, row_id))
         conn.execute("ALTER TABLE rogue_planets DROP COLUMN mass_bin")
         conn.execute("ALTER TABLE star_systems DROP COLUMN runaway_class, DROP COLUMN runaway_speed_kms")
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (36)")
         conn.commit()
     finally:
@@ -2600,7 +2600,7 @@ def test_migrate_v37_to_v38_classes_existing_nebulae_remnants_and_fields(mysql_c
         conn.execute("ALTER TABLE supernova_remnants DROP COLUMN remnant_class, DROP COLUMN dominant_species, "
                      "DROP COLUMN density_cm3, DROP COLUMN temperature_k, DROP COLUMN extinction_av")
         conn.execute("ALTER TABLE asteroid_fields DROP COLUMN field_class, DROP COLUMN composition_family")
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (37)")
         conn.commit()
     finally:
@@ -2714,7 +2714,7 @@ def test_migrate_v38_to_v39_fills_containment(mysql_config):
             conn.execute(f"ALTER TABLE {table} DROP FOREIGN KEY fk_{table}_inside_nebula, "
                          f"DROP FOREIGN KEY fk_{table}_inside_remnant")
             conn.execute(f"ALTER TABLE {table} DROP COLUMN inside_nebula_id, DROP COLUMN inside_remnant_id")
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (38)")
         conn.commit()
     finally:
@@ -2861,7 +2861,7 @@ def test_migrate_v39_to_v40_registers_and_designates_existing_rows(mysql_config)
             conn.execute("DELETE FROM system_name_registry WHERE first_star_system_id IS NULL")
             conn.execute("ALTER TABLE system_name_registry DROP COLUMN first_object_table, DROP COLUMN first_object_id, "
                          "MODIFY first_star_system_id BIGINT UNSIGNED NOT NULL")
-            conn.execute("DELETE FROM schema_migrations WHERE version IN (40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55)")
+            conn.execute("DELETE FROM schema_migrations WHERE version IN (40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56)")
             conn.execute("INSERT INTO schema_migrations (version) VALUES (39)")
     finally:
         conn.close()
@@ -2980,7 +2980,7 @@ def test_migrate_v40_to_v41_fills_nearest_systems(mysql_config):
         for table in store.PLACED_PHENOMENON_TABLES:
             # MariaDB drops a column-level CHECK with its column.
             conn.execute(f"ALTER TABLE {table} DROP COLUMN quadrant")
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (40)")
         conn.commit()
     finally:
@@ -3098,7 +3098,7 @@ def test_migrate_v42_to_v43_adds_bright_star_storage(mysql_config):
     try:
         conn.execute("DROP TABLE bright_stars")
         conn.execute("ALTER TABLE galaxy_shape DROP COLUMN bright_star_min_luminosity_sol, DROP COLUMN bright_star_seed")
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (42)")
         conn.commit()
     finally:
@@ -3117,7 +3117,7 @@ def test_migrate_v48_to_v49_adds_bright_star_blocks_and_v53_replaces_them(mysql_
     try:
         conn.execute("DROP TABLE sector_stats")
         conn.execute("ALTER TABLE galaxy_shape DROP COLUMN density_ratio_avg, DROP COLUMN density_ratio_samples")
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (49, 50, 51, 52, 53, 54, 55)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (49, 50, 51, 52, 53, 54, 55, 56)")
         conn.commit()
     finally:
         conn.close()
@@ -3132,6 +3132,7 @@ def test_migrate_v48_to_v49_adds_bright_star_blocks_and_v53_replaces_them(mysql_
 
 
 def test_migrate_v52_to_v53_moves_block_levels_onto_their_sectors(mysql_config):
+    from planetgen.galaxy import nebula_shape
     from planetgen.galaxy.drill import DrillBlock, drill_block_sectors, drill_slabs
 
     block = DrillBlock(3, 2, 1, 0)
@@ -3151,7 +3152,9 @@ def test_migrate_v52_to_v53_moves_block_levels_onto_their_sectors(mysql_config):
                      filled)
         conn.execute("ALTER TABLE system_configs " + ", ".join(
             f"DROP COLUMN prevalence_{feature}" for feature in store.PREVALENCE_FEATURES))
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (53, 54, 55)")
+        conn.execute("DROP TABLE nebula_shape_balls")
+        conn.execute("ALTER TABLE nebulae " + ", ".join(f"DROP COLUMN {c}" for c in nebula_shape.SCALAR_COLUMNS))
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (53, 54, 55, 56)")
         conn.commit()
     finally:
         conn.close()
@@ -3172,6 +3175,8 @@ def test_migrate_v52_to_v53_moves_block_levels_onto_their_sectors(mysql_config):
 
 
 def test_migrate_v54_to_v55_swaps_the_baked_color_for_age_and_total_luminosity(mysql_config):
+    from planetgen.galaxy import nebula_shape
+
     """DB.14: the color columns go, and a filled sector gets the mean age and
     summed luminosity of its stars."""
     sector = _sector_with_one_system("Stats Migration Sector")
@@ -3184,7 +3189,9 @@ def test_migrate_v54_to_v55_swaps_the_baked_color_for_age_and_total_luminosity(m
         conn.execute("ALTER TABLE sector_stats DROP COLUMN mean_age_gy, DROP COLUMN total_luminosity_sol,"
                      " ADD COLUMN fill_share DOUBLE, ADD COLUMN color_r DOUBLE, ADD COLUMN color_g DOUBLE,"
                      " ADD COLUMN color_b DOUBLE")
-        conn.execute("DELETE FROM schema_migrations WHERE version = 55")
+        conn.execute("DROP TABLE nebula_shape_balls")
+        conn.execute("ALTER TABLE nebulae " + ", ".join(f"DROP COLUMN {c}" for c in nebula_shape.SCALAR_COLUMNS))
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (55, 56)")
         stars = conn.execute("SELECT age_gy, luminosity_w FROM stars st JOIN star_systems ss"
                              " ON ss.id = st.star_system_id WHERE ss.sector_id = ?", (sector_id,)).fetchall()
         conn.commit()
