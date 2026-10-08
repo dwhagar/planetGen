@@ -109,6 +109,8 @@ def test_system_map_selection_drill_and_measure(page, base_url, site_app):
     assert target, "no generated system has a planet with moons"
     # The map's own ready mark (its click handlers are on), not a fixed
     # wait: under load the script can still be loading after a second (TEST.104).
+    # The diagram, as a visitor who chose it sees it (3D is the default).
+    page.add_init_script("try { window.localStorage.setItem('planetgen.systemView', 'diagram'); } catch (e) {}")
     _open(page, f"{base_url}/system/{target}", '#sysmap-root[data-ready="true"]')
     assert _active_scene(page) == "system"
 
@@ -581,10 +583,9 @@ def _canvas_pixels(page):
 def test_system_page_3d_view_draws_switches_scale_and_keeps_the_diagram(page, base_url, site_app):
     system_id, scene = _system_with_planets(site_app.test_client())
     _open(page, f"{base_url}/system/{system_id}", '#sysmap-root[data-ready="true"]')
-    assert page.locator("#sysview3d").is_hidden()
+    # 3D is the default with no choice remembered.
     page.evaluate("window.localStorage.clear()")
-
-    page.click("#sysmap-view-3d")
+    page.goto(f"{base_url}/system/{system_id}", wait_until="load")
     page.wait_for_selector('#sysview3d[data-ready="true"]')
     assert page.locator("#sysmap-diagram").is_hidden() and page.locator("#sysview3d").is_visible()
     assert "view=3d" in page.url
@@ -627,3 +628,7 @@ def test_system_page_3d_view_draws_switches_scale_and_keeps_the_diagram(page, ba
     page.click("#sysmap-view-diagram")
     assert page.locator("#sysmap-diagram").is_visible() and page.locator("#sysview3d").is_hidden()
     assert "view=3d" not in page.url
+    # The diagram, once chosen, is what opens next.
+    page.goto(f"{base_url}/system/{system_id}", wait_until="load")
+    page.wait_for_selector('#sysmap-root[data-ready="true"]')
+    assert page.locator("#sysview3d").is_hidden() and page.locator("#sysmap-diagram").is_visible()
