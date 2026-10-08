@@ -267,6 +267,19 @@ h2 {
   overflow-x: auto;
 }
 
+/* UX.69: a table that scrolls sideways shows it. A shadow sits on each edge
+   with more to scroll to (the covers, attached to the content, hide it at
+   the end) and the scrollbar stays thin but visible. */
+.table-scroll,
+.datatable-scroll {
+  scrollbar-width: thin;
+  background:
+    linear-gradient(to right, var(--bg-elevated) 30%, transparent) left center / 2rem 100% no-repeat local,
+    linear-gradient(to left, var(--bg-elevated) 30%, transparent) right center / 2rem 100% no-repeat local,
+    radial-gradient(farthest-side at 0 50%, rgb(0 0 0 / 0.22), transparent) left center / 0.8rem 100% no-repeat scroll,
+    radial-gradient(farthest-side at 100% 50%, rgb(0 0 0 / 0.22), transparent) right center / 0.8rem 100% no-repeat scroll;
+}
+
 /* The site's one pager (planetgen/web/lib/pagination.py), under every paged
    table: a "Showing X-Y of Z" summary, then First/Prev, numbered pages
    and Next/Last. Each control is a link (or a plain span when
@@ -2875,6 +2888,13 @@ body.app {
   .app .table-scroll th,
   .app .table-scroll td {
     white-space: nowrap;
+  }
+
+  /* UX.69: a short table (Quadrants, a system's Stars) wraps its cells on a
+     phone so every column shows, instead of scrolling sideways. */
+  .app .table-scroll.table-wrap th,
+  .app .table-scroll.table-wrap td {
+    white-space: normal;
   }
 
   .app .pagination {
