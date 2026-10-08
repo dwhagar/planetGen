@@ -2009,8 +2009,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     moves, and whether an unfilled sector can have its ID before any row
     exists; Boss picks one.
     Progress (2026-10-08): Foundations lane 1 wrote the comparison at
-    `/mnt/project-files/notes/gen68-object-ids.md`; this item closes when
-    Boss picks a method, and GEN.69 waits on that pick.
+    `/mnt/project-files/notes/gen68-object-ids.md`. Boss approved the
+    unique-ID plan on the decision card at 13:33Z, so the pick is made and
+    GEN.69 is free to start; this item closes with GEN.69.
 
   - [ ] **GEN.69 A unique ID for every object, star systems and unfilled sectors included**
     Today only interstellar objects and bright-sweep systems carry
@@ -2019,7 +2020,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     system, star, planet, moon, belt, comet and phenomenon has an ID by
     GEN.68's method, stored and indexed, and stable across regeneration
     in place.
-    Prerequisite: GEN.68.
+    Plan (2026-10-08): GEN.68's pick is made (Boss, 13:33Z), so this has
+    no open prerequisite; GEN.72 and GEN.73 follow it.
     Design: [docs/design/object-ids.md](design/object-ids.md)
 
   - [ ] **GEN.70 A naming key in the control database, made at galaxy creation and changeable by admin**
