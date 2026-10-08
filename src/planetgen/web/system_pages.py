@@ -88,6 +88,26 @@ def nav_links(kind, entity_id):
     return {"from": nav_url(origin=point), "to": nav_url(destination=point)}
 
 
+def pick_nav(kind, entity_id, args):
+    """
+    `(nav_links, pick)` for a system or phenomenon page (NAV.15): the
+    Navigate links, or while a NAV start or destination is picked
+    (`?pick=from|to`, `sector_page._pick_mode`) `{"pick", "pickLabel"}`,
+    the one button that returns to the NAV page with this object, and the
+    pick mode for the banner and the bookmarks that keep it.
+    """
+    from .sector_page import _pick_mode  # a page module like this one; imported where used
+
+    links = nav_links(kind, entity_id)
+    pick = _pick_mode(args)
+    if pick is None:
+        return links, None
+    here = endpoint(kind, entity_id)
+    back = (nav_url(origin=here, destination=pick["other"]) if pick["pick"] == "from"
+            else nav_url(origin=pick["other"], destination=here))
+    return {"pick": back, "pickLabel": pick["label"]}, pick
+
+
 def _location_html(system):
     """The "Location:" line: the sector name and nearest neighbours, each
     linked, or `None` for a system with no stored location."""
@@ -244,7 +264,7 @@ def system(system_id):
                                            facilities=facilities)
     # NAV measures from a sector position, so a standalone system gets no
     # links; the NAV page itself works out whether cross-sector NAV applies.
-    links = nav_links("system", system_id) if detail["sector_id"] is not None else None
+    links, pick = pick_nav("system", system_id, request.args) if detail["sector_id"] is not None else (None, None)
 
     return render_page(
         "system.html",
@@ -256,6 +276,7 @@ def system(system_id):
         badges=_badges(detail),
         inside=_inside_link(inside["type"], inside["id"], inside["name"]) if inside else None,
         nav_links=links,
+        pick=pick,
         bookmark=bookmark("system", endpoint("system", system_id), detail["name"],
                           page_url("system", system_id=system_id)),
         location_html=_location_html(detail),
@@ -657,6 +678,7 @@ def phenomenon(phenomenon_type, phenomenon_id):
         )
     else:
         map_html = ""
+    phenomenon_nav = pick_nav(phenomenon_type, detail["id"], request.args)
     return render_page(
         "phenomenon.html",
         title=detail["name"],
@@ -670,7 +692,8 @@ def phenomenon(phenomenon_type, phenomenon_id):
         nearest_html=trusted_html(nearest_systems_html(detail["nearest"], _system_url))
         if detail.get("nearest") else None,
         inside=_phenomenon_inside(detail),
-        nav_links=nav_links(phenomenon_type, detail["id"]),
+        nav_links=phenomenon_nav[0],
+        pick=phenomenon_nav[1],
         bookmark=bookmark(phenomenon_type, endpoint(phenomenon_type, detail["id"]), detail["name"],
                           page_url("phenomenon", phenomenon_type=phenomenon_type, phenomenon_id=detail["id"])),
         view_kind=kind,
