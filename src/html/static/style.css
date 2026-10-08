@@ -2890,11 +2890,45 @@ body.app {
     white-space: nowrap;
   }
 
-  /* UX.69: a short table (Quadrants, a system's Stars) wraps its cells on a
-     phone so every column shows, instead of scrolling sideways. */
-  .app .table-scroll.table-wrap th,
-  .app .table-scroll.table-wrap td {
+  /* UX.69: a short server-rendered table (Quadrants, a system's Stars)
+     stacks on a phone: the name is the row's title and every other cell is
+     a "Label  value" line under it, so no column is cut off. */
+  .app .table-stack thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+
+  .app .table-stack,
+  .app .table-stack tbody,
+  .app .table-stack tr,
+  .app .table-stack td {
+    display: block;
+  }
+
+  .app .table-stack tr {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .app .table-stack td {
+    padding: 0.1rem 0;
+    border: 0;
     white-space: normal;
+  }
+
+  .app .table-stack td[data-label]::before {
+    content: attr(data-label);
+    display: inline-block;
+    min-width: 6rem;
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+
+  .app .table-stack td.stack-title {
+    font-weight: 700;
   }
 
   .app .pagination {
