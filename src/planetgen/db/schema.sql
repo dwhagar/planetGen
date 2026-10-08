@@ -940,6 +940,14 @@
 --   `mean_age_gy` and `total_luminosity_sol` come. `_migrate_v54_to_v55`
 --   works the two new ones out for each filled sector from its stars.
 --
+-- v56: a nebula's shape is stored with it (GEN.75, `galaxy/nebula_shape.py`):
+--   the single values as `nebulae.shape_*` columns (the ellipsoid's
+--   stretch and turn, the warp, the isovalue, the scale that puts the
+--   surface's farthest point at the radius) and its 4-8 metaballs as
+--   rows of the new `nebula_shape_balls`. All NULL / absent for a nebula
+--   saved before v56: `queryDb.nebula_shape` then draws the same shape
+--   from the nebula's own properties, as a fresh save would have stored.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -1939,6 +1947,21 @@ CREATE TABLE IF NOT EXISTS nebulae (
     -- v41: the sector octant the center sits in (star_systems.quadrant's labels).
     quadrant            VARCHAR(4) CHECK (quadrant IN ('I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII')),
 
+    -- v56: the shape (see the header's "v56" note); NULL for a nebula
+    -- saved before it.
+    shape_axis_x          DOUBLE,
+    shape_axis_y          DOUBLE,
+    shape_axis_z          DOUBLE,
+    shape_angle_x         DOUBLE,
+    shape_angle_y         DOUBLE,
+    shape_angle_z         DOUBLE,
+    shape_warp_amplitude  DOUBLE,
+    shape_warp_frequency  DOUBLE,
+    shape_warp_octaves    INT,
+    shape_noise_seed      BIGINT UNSIGNED,
+    shape_iso             DOUBLE,
+    shape_scale           DOUBLE,
+
     -- v27: row timestamps -- see the header comment's "v27" note.
     -- v39: the innermost nebula or supernova remnant this sits inside
     -- (at most one set; _db.refresh_containment).
@@ -1976,6 +1999,23 @@ CREATE TABLE IF NOT EXISTS nebulae (
         FOREIGN KEY (inside_nebula_id) REFERENCES nebulae(id) ON DELETE SET NULL,
     CONSTRAINT fk_nebulae_inside_remnant
         FOREIGN KEY (inside_remnant_id) REFERENCES supernova_remnants(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------
+-- v56: a nebula's metaballs (GEN.75): 4 to 8 per nebula, in nebula-shape
+-- units (`galaxy/nebula_shape.py`). `ball_index` is their order.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS nebula_shape_balls (
+    nebula_id   BIGINT UNSIGNED NOT NULL,
+    ball_index  INT NOT NULL,
+    center_x    DOUBLE NOT NULL,
+    center_y    DOUBLE NOT NULL,
+    center_z    DOUBLE NOT NULL,
+    radius      DOUBLE NOT NULL,
+
+    PRIMARY KEY (nebula_id, ball_index),
+    CONSTRAINT fk_nebula_shape_balls_nebula
+        FOREIGN KEY (nebula_id) REFERENCES nebulae(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------

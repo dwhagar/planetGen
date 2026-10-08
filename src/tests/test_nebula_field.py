@@ -144,13 +144,21 @@ def test_a_cloud_reaching_several_sectors_is_stored_once(mysql_config, monkeypat
             row = stored[center]
             assert row["nebula_class"] == nebula.nebula_class
             assert row["radius_ly"] == pytest.approx(nebula.radius_ly)
-        whole = [address for address in addresses
-                 if any(math.dist(center, sector_position_pc(*address, EDGE_PC)) + REACH_PC
-                        < ly_to_pc(nebula.radius_ly) for center, nebula in expected.items())]
-        for address in whole:
+        # GEN.75: a cloud holds a system only inside its shape, not its sphere.
+        from planetgen.db import query as queryDb
+
+        shapes = [(center, ly_to_pc(nebula.radius_ly), queryDb.nebula_shape(conn, stored[center]["id"])[1])
+                  for center, nebula in expected.items()]
+        for address in addresses:
             sector_id = _db.get_sector_id_at(conn, *address)
-            outside = conn.execute("SELECT COUNT(*) AS n FROM star_systems WHERE sector_id = ?"
-                                   " AND inside_nebula_id IS NULL", (sector_id,)).fetchone()["n"]
-            assert outside == 0
+            sector_center = sector_position_pc(*address, EDGE_PC)
+            for system in conn.execute(
+                    "SELECT position_x_mpc, position_y_mpc, position_z_mpc, inside_nebula_id FROM star_systems"
+                    " WHERE sector_id = ?", (sector_id,)).fetchall():
+                point = _db.local_to_galaxy_pc(sector_center, tuple(
+                    system[f"position_{axis}_mpc"] / 1000.0 for axis in "xyz"))
+                inside = any(shape.contains(tuple((point[i] - center[i]) / radius for i in range(3)))
+                             for center, radius, shape in shapes)
+                assert (system["inside_nebula_id"] is not None) == inside
     finally:
         conn.close()

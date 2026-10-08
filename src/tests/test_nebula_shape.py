@@ -94,3 +94,78 @@ def test_the_low_poly_mesh_is_coarser_than_the_full_one_and_not_a_sphere():
     verts, _ = shape.mesh("full")
     radii = np.linalg.norm(verts - verts.mean(axis=0), axis=1)
     assert radii.std() / radii.mean() > 0.1, "an irregular outline, not a sphere"
+
+
+# --- Storage and the API (schema v56) ----------------------------------------------------
+
+
+def test_shape_columns_round_trip():
+    shape = _shape(4)
+    scalars, balls = ns.to_columns(shape)
+    assert set(scalars) == set(ns.SCALAR_COLUMNS)
+    again = ns.from_columns(scalars, list(reversed(balls)))
+    assert again.to_dict() == shape.to_dict()
+
+
+def test_a_nebulas_shape_comes_from_its_properties_not_the_random_state():
+    args = ("M", 120.0, 300.0, 15.0, 2.0, "H2")
+    state = random.getstate()
+    first = ns.shape_for_nebula(*args)
+    assert random.getstate() == state, "drawing a shape must not move the shared random state"
+    assert first.to_dict() == ns.shape_for_nebula(*args).to_dict()
+    assert first.to_dict() != ns.shape_for_nebula("M", 121.0, 300.0, 15.0, 2.0, "H2").to_dict()
+
+
+def _nebula_in_db(mysql_config, **attrs):
+    from planetgen.db import store
+    from planetgen.generation.config import SystemConfig
+    from planetgen.generation.phenomena.nebula import Nebula
+
+    nebula = Nebula(SystemConfig(), name="Shapely")
+    for name, value in attrs.items():
+        setattr(nebula, name, value)
+    conn = store.get_connection(mysql_config)
+    try:
+        nebula_id = store.insert_nebula(conn, nebula, placement={
+            "center_x_pc": 5.0, "center_y_pc": 1.0, "center_z_pc": 2.0, "galactic_radius_pc": 5.5})
+        conn.commit()
+    finally:
+        conn.close()
+    return nebula_id, nebula
+
+
+def test_a_saved_nebula_stores_its_shape(mysql_config):
+    from planetgen.db import query, store
+
+    nebula_id, nebula = _nebula_in_db(mysql_config)
+    conn = store.get_connection(mysql_config)
+    try:
+        row = conn.execute("SELECT shape_scale, shape_warp_octaves FROM nebulae WHERE id = ?", (nebula_id,)).fetchone()
+        balls = conn.execute("SELECT COUNT(*) AS n FROM nebula_shape_balls WHERE nebula_id = ?", (nebula_id,)).fetchone()
+        _row, loaded = query.nebula_shape(conn, nebula_id)
+        # Deleting the nebula takes its balls with it.
+        conn.execute("DELETE FROM nebulae WHERE id = ?", (nebula_id,))
+        left = conn.execute("SELECT COUNT(*) AS n FROM nebula_shape_balls WHERE nebula_id = ?", (nebula_id,)).fetchone()
+        conn.commit()
+        with pytest.raises(ValueError):
+            query.nebula_shape(conn, nebula_id)
+    finally:
+        conn.close()
+    assert row["shape_scale"] == pytest.approx(nebula.get_shape().scale)
+    assert 4 <= balls["n"] <= 8 and left["n"] == 0
+    assert loaded.to_dict() == nebula.get_shape().to_dict()
+
+
+def test_a_nebula_saved_before_shapes_gets_the_shape_a_fresh_save_would(mysql_config):
+    from planetgen.db import query, store
+
+    nebula_id, nebula = _nebula_in_db(mysql_config)
+    conn = store.get_connection(mysql_config)
+    try:
+        conn.execute("DELETE FROM nebula_shape_balls WHERE nebula_id = ?", (nebula_id,))
+        conn.execute("UPDATE nebulae SET shape_scale = NULL WHERE id = ?", (nebula_id,))
+        conn.commit()
+        _row, loaded = query.nebula_shape(conn, nebula_id)
+    finally:
+        conn.close()
+    assert loaded.to_dict() == nebula.get_shape().to_dict()

@@ -31,6 +31,7 @@ shuffled by the shape's own seed (no platform random state).
 Needs numpy and scikit-image, both already dependencies.
 """
 
+import hashlib
 import math
 import random
 
@@ -263,4 +264,51 @@ def draw_shape(rng):
         warp_amplitude=rng.uniform(0.12, 0.3), warp_frequency=rng.uniform(1.0, 2.2),
         warp_octaves=rng.randint(2, 3), noise_seed=rng.getrandbits(32),
         iso=rng.uniform(0.25, 0.45),
+    )
+
+
+def shape_for_nebula(nebula_class, radius_ly, density_cm3, temperature_k, extinction_av, dominant_species):
+    """
+    The shape a nebula with these properties gets (GEN.75): drawn from a
+    seed made of the properties themselves, never from the shared random
+    state, so asking for it (at generation, or later for a row saved
+    before shapes were stored) consumes no random numbers and always
+    answers the same.
+    """
+    text = "|".join((str(nebula_class), repr(float(radius_ly)), repr(float(density_cm3)),
+                     repr(float(temperature_k)), repr(float(extinction_av)), str(dominant_species)))
+    seed = int.from_bytes(hashlib.sha256(text.encode("utf-8")).digest()[:8], "big")
+    return draw_shape(random.Random(seed))
+
+
+SCALAR_COLUMNS = (
+    "shape_axis_x", "shape_axis_y", "shape_axis_z", "shape_angle_x", "shape_angle_y", "shape_angle_z",
+    "shape_warp_amplitude", "shape_warp_frequency", "shape_warp_octaves", "shape_noise_seed",
+    "shape_iso", "shape_scale",
+)
+"""tuple: The `nebulae` columns holding a shape's single values; its metaballs
+are the rows of `nebula_shape_balls` (`to_columns`, `from_columns`)."""
+
+
+def to_columns(shape):
+    """`shape` as `(scalars, balls)`: a dict keyed by `SCALAR_COLUMNS`, and
+    `[(ball_index, x, y, z, radius), ...]` for `nebula_shape_balls`."""
+    scalars = dict(zip(SCALAR_COLUMNS, (
+        *shape.axes, *shape.angles, shape.warp_amplitude, shape.warp_frequency, shape.warp_octaves,
+        shape.noise_seed, shape.iso, shape.scale)))
+    balls = [(n, c[0], c[1], c[2], r) for n, (c, r) in enumerate(zip(shape.centres, shape.radii))]
+    return scalars, balls
+
+
+def from_columns(scalars, balls):
+    """The `NebulaShape` that `to_columns` wrote: `scalars` is any mapping
+    with the `SCALAR_COLUMNS` keys, `balls` the ball rows in index order."""
+    ordered = sorted(balls, key=lambda b: b[0])
+    return NebulaShape(
+        centres=[[b[1], b[2], b[3]] for b in ordered], radii=[b[4] for b in ordered],
+        axes=[scalars["shape_axis_x"], scalars["shape_axis_y"], scalars["shape_axis_z"]],
+        angles=[scalars["shape_angle_x"], scalars["shape_angle_y"], scalars["shape_angle_z"]],
+        warp_amplitude=scalars["shape_warp_amplitude"], warp_frequency=scalars["shape_warp_frequency"],
+        warp_octaves=scalars["shape_warp_octaves"], noise_seed=scalars["shape_noise_seed"],
+        iso=scalars["shape_iso"], scale=scalars["shape_scale"],
     )

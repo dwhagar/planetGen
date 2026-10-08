@@ -536,7 +536,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.72 | A backfilled bright star should get a name only when its sector is generated (bug) | none | open |
 | GEN.73 | Nebulae don't get unique names (bug) | none | open |
 | GEN.74 | One point-in-space object that keeps every coordinate system in step, used by every object | none | open |
-| GEN.75 | A nebula shape from metaballs and warped noise, as a mesh | none | open |
+| GEN.75 | A nebula shape from metaballs and warped noise, as a mesh | none | done, PR #580 |
 | GEN.76 | A sector with no qualifying stars never generates or is marked generated (bug) | none | done, PR #442 |
 | GEN.77 | Neighborhood generation fails when its first sector is below the star threshold (bug) | none | done, PR #461 |
 | GEN.78 | Some regions have a star probability of zero (bug) | none | done, PR #461 |

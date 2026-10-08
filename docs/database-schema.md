@@ -612,6 +612,14 @@ v53 replaced the table with per-sector levels in `sector_stats`.
 adds `galaxy_shape`'s version columns (NULL on an existing galaxy) and
 the empty `generation_runs` table (DB.6).
 
+**A nebula's shape (v56, GEN.75).** `nebulae.shape_*` hold the single
+values of its shape (`galaxy/nebula_shape.py`: the ellipsoid's stretch
+and turn, the noise warp, the isovalue and the scale that puts the
+surface's farthest point at the radius) and `nebula_shape_balls` its 4-8
+metaballs, one row each (`ON DELETE CASCADE`). `_migrate_v55_to_v56`
+leaves them NULL for a nebula already saved; `queryDb.nebula_shape` then
+draws the same shape from the nebula's own properties.
+
 **Per-sector stats (v53, GEN.44, PERF.11).** `sector_stats` holds one
 row per sector address a backfill reached or a fill generated (an
 unfilled sector has no `sectors` row, so the key is the address). Its
@@ -711,7 +719,9 @@ and `nebulae` get `inside_nebula_id` and `inside_remnant_id`, foreign keys
 (`ON DELETE SET NULL`) to the innermost nebula or supernova remnant whose
 sphere holds the object; at most one is set. `_db.refresh_containment`
 sets them by a 3D distance test when a sector is generated and, for
-every sector it reaches, when a nebula or remnant is placed.
+every sector it reaches, when a nebula or remnant is placed. Since GEN.75 a
+nebula holds a point only inside its stored shape (the sphere is the quick
+first test, then `NebulaShape.contains`); a remnant is still a sphere.
 `_migrate_v38_to_v39` adds the columns and fills them. A nebula only
 nests inside a larger cloud. `queryDb.containing_cloud` names the cloud,
 and `sector_detail` returns it per system as `inside`. `schema.sql` turns

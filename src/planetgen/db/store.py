@@ -103,7 +103,7 @@ from planetgen.names.wordsalad import generate_phoneme_salad_name, generate_sect
 from planetgen.physics.units import ly_to_milliparsecs, ly_to_pc, milliparsecs_to_ly, mpc_to_pc, pc_to_ly
 from planetgen.generation.wide_binary import WideBinaryPair
 
-SCHEMA_VERSION = 55
+SCHEMA_VERSION = 56
 """int: Matches `star_systems.schema_version` and the highest row in the
 `schema_migrations` table (see `planetgen/db/schema.sql`'s header
 comment). Also the target version `migrate_database` brings a database's
@@ -1369,6 +1369,7 @@ def _table_marker(table):
 
 
 _VERSION_MARKERS = (
+    (56, _column_marker("nebulae", "shape_scale")),
     (55, _column_marker("sector_stats", "mean_age_gy")),
     (54, _column_marker("system_configs", "prevalence_comets")),
     (53, _table_marker("sector_stats")),
@@ -2930,8 +2931,24 @@ def insert_nebula(conn, nebula: Nebula, sector_id=None, placement=None) -> int:
         ),
     )
     confirm_object_name(conn, name_base, "nebulae", cur.lastrowid, diminutive_index)
+    _store_nebula_shape(conn, cur.lastrowid, nebula)
     _refresh_containment_around(conn, placement, nebula.radius_ly)
     return cur.lastrowid
+
+
+def _store_nebula_shape(conn, nebula_id, nebula):
+    """Writes `nebula`'s shape (GEN.75) to its row's `shape_*` columns and to
+    `nebula_shape_balls`."""
+    from planetgen.galaxy import nebula_shape
+
+    scalars, balls = nebula_shape.to_columns(nebula.get_shape())
+    sets = ", ".join(f"{column} = ?" for column in scalars)
+    conn.execute(f"UPDATE nebulae SET {sets} WHERE id = ?", (*scalars.values(), nebula_id))
+    conn.execute("DELETE FROM nebula_shape_balls WHERE nebula_id = ?", (nebula_id,))
+    for ball in balls:
+        conn.execute(
+            "INSERT INTO nebula_shape_balls (nebula_id, ball_index, center_x, center_y, center_z, radius)"
+            " VALUES (?, ?, ?, ?, ?, ?)", (nebula_id, *ball))
 
 
 def _placement_values(placement):
@@ -3810,19 +3827,41 @@ def _placed_containers(conn, low, high, reach_pc=0.0):
             (low[0] - pad, high[0] + pad, low[1] - pad, high[1] + pad, low[2] - pad, high[2] + pad),
         ).fetchall()
         for row in rows:
-            containers.append({
+            container = {
                 "column": column, "id": row["id"],
                 "center": (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"]),
                 "radius_pc": ly_to_pc(row["radius_ly"]),
-            })
+            }
+            if table == "nebulae":
+                container["shape"] = _lazy_nebula_shape(conn, row["id"])
+            containers.append(container)
     return containers
+
+
+def _lazy_nebula_shape(conn, nebula_id):
+    """A function returning nebula `nebula_id`'s `NebulaShape` (GEN.75),
+    loaded on the first call: most containers never see a point inside
+    their sphere."""
+    loaded = []
+
+    def shape():
+        if not loaded:
+            from planetgen.db import query
+
+            loaded.append(query.nebula_shape(conn, nebula_id)[1])
+        return loaded[0]
+
+    return shape
 
 
 def innermost_container(point_pc, containers, own_radius_pc=0.0, own=None):
     """
     The smallest container in `containers` whose sphere holds `point_pc`
     -- for a nebula (`own_radius_pc` > 0), only a container larger than it,
-    and never itself (`own`, a `(column, id)` pair).
+    and never itself (`own`, a `(column, id)` pair). A nebula holds a point
+    only inside its shape (GEN.75, `planetgen.galaxy.nebula_shape`), which
+    its container's `shape` function supplies; its sphere is the quick
+    first test. A container without `shape` (a remnant) is a plain sphere.
 
     Returns:
         dict or None: The container, or `None` when the point is in open space.
@@ -3835,8 +3874,15 @@ def innermost_container(point_pc, containers, own_radius_pc=0.0, own=None):
             continue
         if math.dist(point_pc, container["center"]) > container["radius_pc"]:
             continue
-        if best is None or container["radius_pc"] < best["radius_pc"]:
-            best = container
+        if best is not None and container["radius_pc"] >= best["radius_pc"]:
+            continue
+        shape = container.get("shape")
+        if shape is not None:
+            radius = container["radius_pc"]
+            offset = tuple((point_pc[i] - container["center"][i]) / radius for i in range(3))
+            if not shape().contains(offset):
+                continue
+        best = container
     return best
 
 
@@ -9156,6 +9202,28 @@ def _migrate_v54_to_v55(conn):
     conn.execute("INSERT INTO schema_migrations (version) VALUES (55)")
 
 
+def _migrate_v55_to_v56(conn):
+    """
+    Adds a nebula's stored shape (GEN.75) -- see `schema.sql`'s "v56"
+    header note: the `nebulae.shape_*` columns and `nebula_shape_balls`.
+    Nebulae already saved keep NULL there; `queryDb.nebula_shape` draws
+    theirs from their own properties, the same shape a fresh save stores.
+
+    Args:
+        conn (Connection): An open connection, mid-migration.
+    """
+    if not _has_column(conn, "nebulae", "shape_scale"):
+        conn.execute(
+            "ALTER TABLE nebulae ADD COLUMN shape_axis_x DOUBLE, ADD COLUMN shape_axis_y DOUBLE,"
+            " ADD COLUMN shape_axis_z DOUBLE, ADD COLUMN shape_angle_x DOUBLE, ADD COLUMN shape_angle_y DOUBLE,"
+            " ADD COLUMN shape_angle_z DOUBLE, ADD COLUMN shape_warp_amplitude DOUBLE,"
+            " ADD COLUMN shape_warp_frequency DOUBLE, ADD COLUMN shape_warp_octaves INT,"
+            " ADD COLUMN shape_noise_seed BIGINT UNSIGNED, ADD COLUMN shape_iso DOUBLE,"
+            " ADD COLUMN shape_scale DOUBLE")
+    conn.execute(_schema_statement("nebula_shape_balls"))
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (56)")
+
+
 def _schema_statement(table):
     """`schema.sql`'s own `CREATE TABLE IF NOT EXISTS <table>` statement."""
     with open(SCHEMA_PATH, "r", encoding="utf-8") as handle:
@@ -9270,6 +9338,7 @@ def _migration_steps():
         (53, _migrate_v52_to_v53),
         (54, _migrate_v53_to_v54),
         (55, _migrate_v54_to_v55),
+        (56, _migrate_v55_to_v56),
     ]
 
 

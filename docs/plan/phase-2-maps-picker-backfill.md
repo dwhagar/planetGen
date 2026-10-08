@@ -40,7 +40,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.75 | The mini map as a second engine view |  | Locked second camera on MAP.64. |
 | MAP.59 | Make it plain that a zoomed-in slab is a slab, not a wedge | MAP.75 |  |
 | MAP.131 | A Color by switch on the maps, with a legend | MAP.128 | Later (Boss 2026-10-08 01:59Z colors). |
-| MAP.132 | Overlay markers for black holes, nebulae and habitable worlds | MAP.128, GEN.75, GEN.84 | Later (Boss 2026-10-08 01:59Z colors). |
+| MAP.132 | Overlay markers for black holes, nebulae and habitable worlds | MAP.128, GEN.84 | Later (Boss 2026-10-08 01:59Z colors). |
 
 ### Courses
 
@@ -140,7 +140,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.95 | Nebula conditions applied when planets and surfaces are generated | GEN.94, GEN.89, GEN.75 |  |
+| GEN.95 | Nebula conditions applied when planets and surfaces are generated | GEN.94, GEN.89 |  |
 | GEN.93 | Nebula conditions in planet generation | GEN.94, GEN.95 | Parent. |
 
 ### Asteroid fields
