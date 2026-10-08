@@ -2167,6 +2167,7 @@ function initGalaxyMap3d(canvasEl, data) {
     },
     els: {
       crumbs: document.getElementById("galaxymap3d-crumbs"),
+      pageCrumb: document.querySelector("nav.breadcrumbs"),
       slabs: document.getElementById("galaxymap3d-slabs"),
       tooltip: document.getElementById("galaxymap3d-tooltip"),
       notice: document.getElementById("galaxymap3d-notice"),
