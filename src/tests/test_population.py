@@ -273,9 +273,12 @@ def test_a_pass_removes_species_stored_without_a_civilization(mysql_config, gala
     conn = store.get_connection(mysql_config)
     try:
         population.run_pass(conn)
-        # Any stored planet will do (a random system may have none).
+        # Any stored planet will do, but a planet is one species' homeworld at
+        # most (`uq_species_homeworld`): the first one may be a civilized
+        # system's, so clear its species before the leftover takes its place.
         planet = conn.execute("SELECT id, star_system_id FROM planets ORDER BY id LIMIT 1").fetchone()
         with conn:
+            conn.execute("DELETE FROM species WHERE homeworld_planet_id = ?", (planet["id"],))
             conn.execute(
                 "INSERT INTO species (name, homeworld_planet_id, star_system_id, life_chemical, life_stage, build, "
                 "climate, size, civilization_age_years, era, spacefaring) "
