@@ -112,7 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 is done (PR #476); GEN.117, GEN.116 keeps watch for Boss's error text. | GEN.116, TEST.94, TEST.95, TEST.96, TEST.97, TEST.98, TEST.99, TEST.100, TEST.101, SEC.29, TEST.72, SEC.30, TEST.83, UX.39, OPS.20, DB.11, DB.13, ADM.21, GEN.66, GEN.74, GEN.68, GEN.69, GEN.70, GEN.71, GEN.72, GEN.73, GEN.67, ADM.22, ADM.24, ADM.25, ADM.26, UX.40, UX.26, UX.27, ADM.14, UX.41, UX.33, ADM.34, NAV.7, MAP.95, NAV.13, NAV.14, MAP.79, NAV.15, NAV.29, NAV.33, MAP.66, MAP.67, MAP.68, MAP.61, NAV.32, MAP.102, MAP.106, MAP.108, MAP.109, MAP.112, MAP.113, MAP.116, NAV.46, GEN.75, MAP.103, MAP.104, MAP.105, UX.38, UX.37, UX.21 |
+| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 is done (PR #476); GEN.117, GEN.116 keeps watch for Boss's error text. | GEN.116, TEST.94, TEST.95, TEST.96, TEST.97, TEST.98, TEST.99, TEST.100, TEST.101, SEC.29, TEST.72, SEC.30, TEST.83, UX.39, OPS.20, DB.11, DB.13, ADM.21, GEN.66, GEN.74, GEN.68, GEN.69, GEN.70, GEN.71, GEN.72, GEN.73, GEN.67, ADM.22, ADM.24, ADM.25, ADM.26, UX.40, UX.26, ADM.14, UX.41, UX.33, ADM.34, NAV.7, MAP.95, NAV.13, NAV.14, MAP.79, NAV.15, NAV.29, NAV.33, MAP.66, MAP.67, MAP.68, MAP.61, NAV.32, MAP.102, MAP.106, MAP.108, MAP.109, MAP.113, MAP.116, NAV.46, GEN.75, MAP.103, MAP.104, MAP.105, UX.38, UX.37, UX.21 |
 | 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, NAV.16, NAV.3, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.41, GEN.98, GEN.100, GEN.99, GEN.101, GEN.102, GEN.103, GEN.84, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, GEN.94, GEN.104, GEN.106, GEN.107, GEN.108, NAV.10, NAV.12, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, NAV.43, NAV.44, MAP.119, MAP.122, MAP.123, MAP.124, DB.14, MAP.128, MAP.129, MAP.130, GEN.120, MAP.89, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, OPS.8, OPS.13, OPS.14, ADM.18, GEN.59 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.58, MAP.75, MAP.59, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, API.16, MAP.69, MAP.70, ADM.17, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.131, MAP.132, API.18, VIEW.5 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, repair that reads the newest settings JSON, and the anomalies chosen in phase 2. | MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, MAP.126, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, DB.10, ADM.20, GEN.114, MAP.125, API.19 |
@@ -222,7 +222,7 @@ with `clamp()`.
   already remove some dead controls on the Galaxy Map.
   It also runs after UX.37 (Boss's sweep for redundant and duplicate
   controls), so this layout pass checks the controls that are kept.
-  Prerequisites: MAP.68, UX.26, UX.27, NAV.32, UX.37.
+  Prerequisites: MAP.68, UX.26, NAV.32, UX.37.
   Plan (2026-10-07): Moved into phase 0 (all bugs in phase 0), as the
   last item of the groundwork lane.
 
@@ -283,21 +283,6 @@ with `clamp()`.
   still inline forms; it stays in this item (ADM.34 then lists it as
   one of its screens). Done now means that panel sits behind the same
   menu button and opens its forms in a dialog.
-
-- [ ] **UX.27 System page: the system and navigation buttons on one row that doesn't overlap (bug)**
-  Boss (2026-10-01 23:53Z): "When viewing a star from sector view system
-  and nav buttons should be in a row and should not overlap. If room is
-  needed the nav buttons can collapse into a nav button that opens a
-  from here or to here menu." Today the system page's subhead
-  (`system.html`, `.page-subhead` and `.page-actions` in `style.css`)
-  wraps the badges, "Navigate from here", "Navigate to here", "Show on
-  Galaxy Map" and the bookmark button. Done: these buttons sit on one
-  row with no overlap at every size class; when there isn't room, the
-  two navigate buttons fold into one "Navigate" button whose menu holds
-  "From here" and "To here" (container query, not a device check).
-  Ties in with NAV.29 (the Start Here / End Here wording) and UX.21.
-  Prerequisite: UX.40.
-  Plan (2026-10-07): Folded into UX.40.
 
 - [ ] **UX.30 Planet information without the Markdown render**
   Boss (2026-10-01 23:53Z): "Rework planet information displays to pull
@@ -383,7 +368,7 @@ with `clamp()`.
   the pages and maps they live on to settle: UX.28's icons, the Galaxy
   Map breadcrumb and history buttons (MAP.93 and MAP.94 done in PR #399, MAP.95), the NAV
   page layout (NAV.41), the slab and segment pick (MAP.56), and the page
-  action menus (UX.26, UX.27, UX.31). Prerequisites: MAP.95, UX.26, UX.27, UX.40, ADM.34.
+  action menus (UX.26, UX.27, UX.31). Prerequisites: MAP.95, UX.26, UX.40, ADM.34.
   Plan (2026-10-07): Moved into phase 0 (groundwork lane, last) because
   UX.21 is a bug and needs it.
 
@@ -419,8 +404,10 @@ with `clamp()`.
   (vendored) and moved the header Menu and gear onto sl-dropdown (UX.2,
   done). PR #533 followed with the edit menus and dialog confirms on the
   system, sector and phenomenon pages (UX.31, done; UX.26's edit actions
-  done, its sector Admin panel left). Foundations lane 1 continues with
-  UX.27 and ADM.14 in this item's PRs.
+  done, its sector Admin panel left). PR #539 put the system page's
+  buttons on one row with a Navigate menu (UX.27, done). Foundations
+  lane 1 continues with ADM.14, then the Generate page and form
+  remainder, in this item's PRs.
   Design: [docs/design/library-migration.md](design/library-migration.md)
 
 - [ ] **UX.41 Tables on TanStack Table and TanStack Virtual**
@@ -853,11 +840,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   in and out across levels stays under a stated time on a full test
   galaxy.
   Prerequisite: MAP.102.
-
-- [ ] **MAP.112 Nothing can be selected while "Generated only" is on (bug)**
-  Boss (2026-10-03 05:38Z): "Cannot select things from the galacitc map
-  while the only generated filter is on." Done: picking works the same
-  with the filter on or off.
 
 - [ ] **MAP.113 A nebula covering the whole sector can't be unselected, and nebulae need a show/hide toggle (bug)**
   Boss (2026-10-03 05:38Z): "When I select a nebula either on purpose of
@@ -1854,8 +1836,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     different galaxy. Prerequisite: OPS.8.
     Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
     Plan (2026-10-07): The nltk corpus, offensive_words.txt and
-    name-list hashes are dropped once GEN.71 lands; the lock-file hashes
-    stay.
+    name-list hashes were to be dropped once GEN.71 landed; the lock-file
+    hashes stay.
+    Superseded (2026-10-08): the corpus, offensive_words.txt and
+    name-list hashes stay too, because stars and sectors keep their
+    word-salad names (GEN.67); the codec's version joins the recorded
+    parts.
 
   - [ ] **OPS.14 A warning when the running version key differs from the galaxy's**
     Done: one check compares the running key (DB.6) and the corpus and
@@ -2015,6 +2001,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     Plan (2026-10-07): The JSON stores the galaxy's naming key (GEN.70)
     instead of the word list; the word list and corpus hashes go with
     GEN.71.
+    Superseded (2026-10-08): it stores the naming key in addition to the
+    word list and corpus hashes, which stay for the stars' and sectors'
+    word-salad names (GEN.67).
 
   - [ ] **ADM.19 The Admin dashboard lists the 18 settings backups for download**
     Done: the Admin dashboard lists every kept JSON file (OPS.18's 18
@@ -2164,7 +2153,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   words are the contract: any later change to the algorithm changes
   every name, and whether the codec's version belongs in the galaxy
   version key or the schema is decided with GEN.70 before GEN.67 ships.
-  Not a bug.
+  Not a bug. Boss (2026-10-08 03:57Z): "A note about GEN.120 keep word
+  salad method for stars and sectors, everything else gets a name
+  derived from it's unique ID." So the codec names everything except
+  stars and sectors (GEN.67, GEN.70, GEN.71): this item still only moves
+  and tests the codec, and the word-salad generator stays in place
+  beside it for stars and sectors.
   Design: [docs/design/object-ids.md](design/object-ids.md)
 
 - [ ] **GEN.116 Error when generating a neighbourhood centred near the galaxy edge, awaiting Boss's error text (bug)**
@@ -2188,7 +2182,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   tolerances (tests), and the hand-rolled solvers are deleted.
   Design: [docs/design/library-migration.md](design/library-migration.md)
 
-- [ ] **GEN.67 Names from IDs: replace word-salad name generation**
+- [ ] **GEN.67 Names from IDs for everything except stars and sectors**
   Boss (2026-10-03 05:38Z): "Do away with name generation for any
   object, do away with our word-salad code entirely add a value in the
   control database that will be generated by random generation at the
@@ -2196,9 +2190,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   so when the galaxy is generated we'll generate a random numbe." Boss's
   `gatedPhonemeCodec.py` (repo root; GEN.120 moves it into the
   naming package) turns an ID and a key into
-  pronounceable words and back. Done: every name is the codec's output
-  for the object's ID under the galaxy's naming key, word-salad naming
-  is gone, and the subitems are done.
+  pronounceable words and back. Boss (2026-10-08 03:57Z): "A note about GEN.120 keep word salad method for stars and sectors, everything else gets a name derived from it's unique ID."
+  So the word-salad method stays for stars and sectors: their
+  generator, name pool and registries, and their reproducibility stay as
+  they are. Done: every other object (planets, moons, belts, comets,
+  rogue planets, phenomena, remnants and nebulae) has a name that is the
+  codec's output for its ID, in its own domain, under the galaxy's
+  naming key; stars and sectors still get their word-salad names; and
+  the subitems are done.
+  Open questions for Boss (defaults taken, change them if wrong): (1)
+  Does a planet, moon or belt take its own codec word from its ID (the
+  default, following "everything else gets a name derived from its
+  unique ID"), or keep the "<star name> I" pattern with the star's
+  word-salad name? With the default, planets no longer carry the star's
+  name, and GEN.71's wide-binary rule about "A I" planet names has
+  nothing left to govern. (2) Constellations (VIEW.4) are neither stars
+  nor sectors; the default gives them codec names. (3) Changing the
+  naming key renames only the codec-named objects; star and sector names
+  do not change with it.
   Prerequisites: GEN.68, GEN.69, GEN.70, GEN.71, GEN.72, GEN.73.
   Design: [docs/design/object-ids.md](design/object-ids.md)
 
@@ -2226,23 +2235,33 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   - [ ] **GEN.70 A naming key in the control database, made at galaxy creation and changeable by admin**
     Done: a new galaxy draws a random naming key (from the galaxy seed's
     stream) into the control database; the admin console can change it,
-    which renames everything at once with no rows rewritten (names are
-    computed from ID and key); ADM.18's settings JSON stores it instead
-    of the word list.
+    which renames every codec-named object at once with no rows
+    rewritten (names are computed from ID and key); stars and sectors
+    keep their word-salad names and do not change with the key
+    (Boss, 2026-10-08 03:57Z, GEN.67). ADM.18's settings JSON stores the
+    key in addition to the word list, which stays for those names. The
+    codec's own version is part of the galaxy's version key or schema
+    (GEN.120 decides which).
     Design: [docs/design/object-ids.md](design/object-ids.md)
 
-  - [ ] **GEN.71 Remove the word-salad name code, nltk and the name registries**
-    Done: names come from the codec everywhere (systems, stars, planets
-    as "<system> I", moons, belts, sectors, phenomena), and `names.py`,
-    `bodyNames.py`, `nameUniqueness.py`, `dedupeNames.py`, the nltk
-    corpus and the name registry tables go, with an Alembic migration.
+  - [ ] **GEN.71 Move every name except stars and sectors to the codec, and remove the word-salad code that named them**
+    Done: names come from the codec for every object except stars and
+    sectors (planets, moons, belts, comets, rogue planets, phenomena;
+    see GEN.67's open question on the "<system> I" pattern), and the
+    word-salad code that named those goes: `bodyNames.py` and whatever
+    in `names.py`, `nameUniqueness.py` and `dedupeNames.py` only served
+    them, with an Alembic migration for registry tables only they used.
+    The nltk corpus, `offensive_words.txt`, the star and sector name
+    pool and its registries stay (Boss, 2026-10-08 03:57Z).
     Wide binaries: Boss (2026-10-07 17:11Z): "No, we should never have
     A I or such for planet names.  Adjust the algorithm to produce 2
     words from the name.  A says word 1 I, word 1 II, etc...  B planets
     say word 2 I, word 2 II, etc..." So a wide pair's codec name has two
     words; star A's planets are "<word 1> I", "<word 1> II" and so on,
     and star B's are "<word 2> I", "<word 2> II". No planet name carries
-    "A" or "B", and a test checks it.
+    "A" or "B", and a test checks it. Since 2026-10-08 stars keep
+    their word-salad names, so this rule applies only if planets keep
+    the "<star name> I" pattern (GEN.67's open question 1).
     Prerequisites: GEN.69, GEN.70.
     Design: [docs/design/object-ids.md](design/object-ids.md)
 
@@ -2253,7 +2272,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     than only it's ID, we'll still keep the ID of course but we need to
     change the star's name when we generate the star system's content."
     Done: a bright-sweep star shows its position ID until its sector is
-    generated; at that point it gets its codec name and keeps the ID.
+    generated; at that point it gets its word-salad name (stars keep that method,
+    GEN.67) and keeps the ID.
     Prerequisite: GEN.69.
 
   - [ ] **GEN.73 Nebulae don't get unique names (bug)**
@@ -2905,6 +2925,9 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
     Prerequisite: API.5.
     Plan (2026-10-07): Downloads the naming key (GEN.70) instead of name
     registries.
+    Superseded (2026-10-08): the star and sector name registries are
+    still needed (those names stay word-salad, GEN.67); it downloads
+    them and the naming key.
 
   - [ ] **API.13 Generation without a database**
     Today `generate.py` writes through `_db` as it goes. Done: a mode
@@ -3590,7 +3613,9 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
     sky culture data such as Stellarium's), transliteration of non-Latin
     scripts, and whether names are unique per planet or galaxy-wide.
     Plan (2026-10-07): Constellation names come from the codec under the
-    naming key (GEN.67), not from sliced word lists.
+    naming key (GEN.67), not from sliced word lists. Constellations are
+    neither stars nor sectors, so they use the codec (GEN.67's open
+    question 2).
 
 - [ ] **VIEW.5 Light-travel positions: where an object appears to a distant observer**
   Boss (2026-10-03 05:38Z): "Begin laying groundwork to produce a

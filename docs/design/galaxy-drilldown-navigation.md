@@ -383,8 +383,8 @@ of a level-3 block.
   same arc (or the next layer up or down), Enter takes the highlighted
   one, Esc or Backspace goes one step back out, and Home returns to the
   galaxy.
-- A **"Charted only"** toggle (MAP.111) dims and disables choices and
-  blocks with nothing generated, dims the stars outside charted sectors
+- A **"Charted only"** toggle (MAP.111) dims blocks with nothing
+  generated (they stay pickable, MAP.112), dims the stars outside charted sectors
   to a fifth of their opacity, and outlines each charted block, so
   existing content is easy to follow.
 

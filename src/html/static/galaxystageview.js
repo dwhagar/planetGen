@@ -129,6 +129,10 @@ export function createStageView(host) {
   // {option (index into display.options), sticky}
   let hover = null;
   let chartedOnly = false;
+  // Choosing a NAV end (setNeedGenerated): only a choice holding
+  // something generated can be taken, since endpoints live in generated
+  // sectors. "Charted only" itself never blocks picking (MAP.112).
+  let needGenerated = false;
   let view = null;
   let goToken = 0;
   // The map's own history (Back and Forward buttons): this entry's index,
@@ -913,19 +917,19 @@ export function createStageView(host) {
     },
   });
 
-  // Whether choice `index` can be picked: not while it holds nothing
-  // generated with "Charted only" on.
+  // Whether choice `index` can be picked: not while choosing a NAV end
+  // and it holds nothing generated.
   function pickable(index) {
     if (!display || !display.options[index]) return false;
-    if (!chartedOnly) return true;
+    if (!needGenerated) return true;
     const data = display.data;
     return display.options[index].blocks.some(function (b) { return generatedOf(b, data) > 0; });
   }
 
   // The choice under a screen point (an index into display.options), or
   // -1; while the pick is a slab, the slab of the block under it. Every
-  // choice lights on hover, with "Charted only" on (always on while
-  // picking a NAV end) too: only taking one needs something generated
+  // choice lights on hover, picking a NAV end too: only taking one
+  // needs something generated
   // (pickable, NAV.31).
   function optionAt(clientX, clientY) {
     const found = picker.pick(clientX, clientY, function (layer) { return layer === choiceLayer; });
@@ -1752,7 +1756,7 @@ export function createStageView(host) {
     const rows = choices.slice().reverse().map(function (option) {
       const pick = option.pick;
       const sum = sumOf(option.blocks, data);
-      const takeable = !(chartedOnly && !(sum.generated > 0));
+      const takeable = !(needGenerated && !(sum.generated > 0));
       const item = document.createElement("li");
       const button = document.createElement("button");
       button.type = "button";
@@ -2277,6 +2281,11 @@ export function createStageView(host) {
   }
   window.addEventListener("popstate", onPopState);
 
+  function setNeedGenerated(on) {
+    needGenerated = on;
+    if (display && !animation) rebuildDisplay();
+  }
+
   function setChartedOnly(on) {
     chartedOnly = on;
     if (display && !animation) rebuildDisplay();
@@ -2299,6 +2308,7 @@ export function createStageView(host) {
     up: up,
     travel: travel,
     setChartedOnly: setChartedOnly,
+    setNeedGenerated: setNeedGenerated,
     stage: function () { return stage; },
     // Inside a block or an arc (not the whole galaxy), where phenomena
     // take the pointer before the blocks.

@@ -528,11 +528,11 @@ Parents marked "new parent" had no old number of their own.
 | GEN.64 | A packed position ID as the name of every interstellar object and bright-sweep system | none | done, PR #406 |
 | GEN.65 | A generation run fails from the web UI but not from the CLI (bug) | none | done, PR #476 |
 | GEN.66 | Physics on scipy, and astropy constants and units | none | open |
-| GEN.67 | Names from IDs: replace word-salad name generation | none | open |
+| GEN.67 | Names from IDs for everything except stars and sectors | none | open |
 | GEN.68 | Research: the cheapest unique IDs for every object, unfilled sectors included | none | open |
 | GEN.69 | A unique ID for every object, star systems and unfilled sectors included | none | open |
 | GEN.70 | A naming key in the control database, made at galaxy creation and changeable by admin | none | open |
-| GEN.71 | Remove the word-salad name code, nltk and the name registries | none | open |
+| GEN.71 | Move every name except stars and sectors to the codec, and remove the word-salad code that named them | none | open |
 | GEN.72 | A backfilled bright star should get a name only when its sector is generated (bug) | none | open |
 | GEN.73 | Nebulae don't get unique names (bug) | none | open |
 | GEN.74 | One point-in-space object that keeps every coordinate system in step, used by every object | none | open |
@@ -693,7 +693,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.109 | Zooming in and out loads slowly (bug) | none | open |
 | MAP.110 | Slab button lines come out of numerical order (bug) | none | done, PR #520 |
 | MAP.111 | "Generated only" should be "Charted only" and dim the stars too (bug) | none | done, PR #531 |
-| MAP.112 | Nothing can be selected while "Generated only" is on (bug) | none | open |
+| MAP.112 | Nothing can be selected while "Generated only" is on (bug) | none | done, PR #541 |
 | MAP.113 | A nebula covering the whole sector can't be unselected, and nebulae need a show/hide toggle (bug) | none | open |
 | MAP.114 | The Sector Map's Reset view leaves the picture unchanged (bug) | none | done, PR #442 |
 | MAP.115 | Comets, rogue planets and asteroid fields show above the sector level (bug) | none | merged into MAP.116 (2026-10-07) |
@@ -896,7 +896,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.24 | Sector contents: rogue planets after systems and phenomena, and expanded rows the full table width (bug) | none | done, PR #487 |
 | UX.25 | Rogue planets: octant and a small map symbol beside each name (bug) | none | done, PR #490 |
 | UX.26 | Edit and admin actions as a button that opens a menu (bug) | none | open |
-| UX.27 | System page: the system and navigation buttons on one row that doesn't overlap (bug) | none | open |
+| UX.27 | System page: the system and navigation buttons on one row that doesn't overlap (bug) | none | done, PR #539 |
 | UX.28 | Investigate icons instead of words on buttons | none | done, PR #490 |
 | UX.29 | Every comet in a system shows its type as a link (bug) | none | done, PR #487 |
 | UX.30 | Planet information without the Markdown render | none | open |

@@ -1,5 +1,16 @@
 # Changelog
 
+## [7.252.634] - 2026-10-08
+
+### Fixed
+- With "Charted only" on, the Galaxy Map's blocks, slabs and wedges holding nothing generated can be hovered and picked just as with it off; only choosing a NAV start or destination still needs something generated (MAP.112).
+
+## [7.251.634] - 2026-10-08
+
+### Fixed
+
+- **The system page's buttons sit on one row (UX.27).** Navigate from here, Navigate to here, Show on Galaxy Map and Bookmark no longer wrap or overlap: where the four don't fit, the two navigate buttons fold into one Navigate menu (From here, To here), and on a phone Show on Galaxy Map moves into that menu too. The layout follows the row's own width (container queries), not the device.
+
 ## [7.250.634] - 2026-10-08
 
 ### Fixed
