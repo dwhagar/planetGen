@@ -2369,8 +2369,10 @@ body.app {
   cursor: pointer;
 }
 
-/* The sections Menu and the gear: native <details>, so they open
-   without JS (theme.js closes an open one on an outside click or Esc). */
+/* The sections Menu and the gear: Shoelace dropdowns (components.js), which
+   close on an outside click or Escape and hand focus back to the button.
+   Each panel is as wide as its longest entry (UX.2), capped at the screen
+   and at 22rem, and only the search box in the gear stretches to it. */
 .app .site-menu,
 .app .site-gear {
   position: static;
@@ -2383,68 +2385,15 @@ body.app {
   margin-right: auto;
 }
 
-.app .site-menu > summary,
-.app .site-gear > summary {
-  list-style: none;
-  cursor: pointer;
-  padding: 0.4rem 0.8rem;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 0.92rem;
-  color: var(--text);
-  user-select: none;
-}
-
-.app .site-gear > summary {
-  display: flex;
-  align-items: center;
-  padding: 0.35rem 0.5rem;
-  color: var(--text-muted);
-}
-
-.app .site-gear > summary:hover,
-.app .site-gear[open] > summary {
-  color: var(--link);
-  background: var(--bg-subtle);
-}
-
-.app .site-menu > summary::-webkit-details-marker,
-.app .site-gear > summary::-webkit-details-marker {
-  display: none;
-}
-
-.app .site-menu > summary::after {
-  content: " \25BE";
-  color: var(--text-muted);
-}
-
-.app .site-menu[open] > summary::after {
-  content: " \25B4";
-}
-
 .app .site-menu-panel,
 .app .site-gear-panel {
-  position: absolute;
-  top: 100%;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border);
-  border-radius: 0 0 10px 10px;
-  box-shadow: var(--shadow);
   padding: 0.75rem 1rem 1rem;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
-  min-width: 14rem;
-  max-width: calc(100vw - 1rem);
-}
-
-.app .site-menu-panel {
-  left: 0.5rem;
-}
-
-.app .site-gear-panel {
-  right: 0.5rem;
+  width: max-content;
+  min-width: 10rem;
+  max-width: min(22rem, calc(100vw - 1rem));
 }
 
 .app .site-gear-panel .site-search {
@@ -2452,6 +2401,10 @@ body.app {
   flex: none;
   max-width: none;
   margin: 0;
+}
+
+.app .site-gear-panel .site-search input {
+  min-width: 10rem;
 }
 
 .app .site-menu-panel ul,

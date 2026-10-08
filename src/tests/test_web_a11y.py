@@ -505,12 +505,12 @@ def test_page_is_accessible_and_fits(browser, axe_source, base_url, page_targets
 
         # The skip link, focused above, sits over the header's left side.
         page.evaluate("document.activeElement && document.activeElement.blur()")
-        header_menus = ["details.site-gear"]
-        if page.locator("details.site-menu > summary").is_visible():
-            header_menus.insert(0, "details.site-menu")
+        header_menus = ["sl-dropdown.site-gear"]
+        if page.locator("sl-dropdown.site-menu > [slot=trigger]").is_visible():
+            header_menus.insert(0, "sl-dropdown.site-menu")
         if viewport == "phone":
             for menu in header_menus:
-                page.locator(f"{menu} > summary").click()
+                page.locator(f"{menu} > [slot=trigger]").click()
                 page.wait_for_timeout(50)
                 problems += [f"({menu} open) {p}" for p in _overflow(page)]
                 problems += [f"({menu} open) {p}" for p in _axe_blocking(page, axe_source, "header")]

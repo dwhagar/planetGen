@@ -11,10 +11,6 @@
 // windows, blocked site data), so every access is guarded; without it the
 // switch still works for the current page.
 //
-// It also closes the header's open Menu or gear (<details>) on a click
-// outside it or on Escape, and opening one closes the other; both still
-// open and close without script.
-//
 // The map canvases read their colours from the CSS tokens when they start,
 // so they pick up a change on the next page view.
 
@@ -98,43 +94,6 @@
       });
     }
     label();
-    wireHeaderMenus();
-  }
-
-  function wireHeaderMenus() {
-    var menus = document.querySelectorAll(".site-header details");
-    function closeAll(except) {
-      for (var i = 0; i < menus.length; i++) {
-        if (menus[i] !== except) {
-          menus[i].open = false;
-        }
-      }
-    }
-    for (var i = 0; i < menus.length; i++) {
-      menus[i].addEventListener("toggle", function (event) {
-        if (event.target.open) {
-          closeAll(event.target);
-        }
-      });
-    }
-    document.addEventListener("click", function (event) {
-      for (var i = 0; i < menus.length; i++) {
-        if (menus[i].open && !menus[i].contains(event.target)) {
-          menus[i].open = false;
-        }
-      }
-    });
-    document.addEventListener("keydown", function (event) {
-      if (event.key !== "Escape") {
-        return;
-      }
-      for (var i = 0; i < menus.length; i++) {
-        if (menus[i].open) {
-          menus[i].open = false;
-          menus[i].querySelector("summary").focus();
-        }
-      }
-    });
   }
 
   if (document.readyState === "loading") {
