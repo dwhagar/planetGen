@@ -322,6 +322,7 @@ def test_sector_map_show_on_map_shows_a_hidden_kind_again(page, map_site):
     toggle = page.locator('#galaxymap3d-kinds button[data-kind="roguePlanet"]')
     toggle.click()
     assert toggle.get_attribute("aria-pressed") == "false"
+    page.locator("#galaxymap3d-menu summary").click()  # closed, so its panel isn't over the table
     button = page.locator(f'[data-map-target="rogue_planet:{rogue["id"]}"]')
     button.click()
     assert _info_title(page) == rogue["name"]
@@ -363,8 +364,9 @@ def _crumbs(page):
     """Every step to here, galaxy first: the Steps menu's list, which
     holds them all however much of the breadcrumb line is folded into
     "…" (MAP.93, MAP.94)."""
-    return page.eval_on_selector_all("#galaxymap3d-steps [data-steps-panel] li",
-                                     "els => els.map(e => e.textContent.trim())")
+    steps = page.eval_on_selector_all("#galaxymap3d-steps [data-steps-panel] li",
+                                      "els => els.map(e => e.textContent.trim())")
+    return steps[1:] if steps[:1] == ["Home"] else steps  # UX.59: the trail starts at Home
 
 
 def _query(page):
@@ -1013,11 +1015,11 @@ def test_galaxy_breadcrumb_stays_on_one_line_folding_its_middle(page, map_site):
     folded = more.locator("li").all_inner_texts()
     line_items = page.locator("#galaxymap3d-crumbs > ol > li").all_inner_texts()
     kept = line_items[2:]
-    assert line_items[0] == "Galaxy" and folded, line_items
-    assert [line_items[0]] + folded + kept == full, (line_items, folded, full)
+    assert line_items[0] == "Home" and folded, line_items
+    assert [line_items[0]] + folded + kept == ["Home"] + full, (line_items, folded, full)
     more.locator("button").first.click()
     _settle(page)
-    assert _crumbs(page) == full[:2], "the first folded step goes there"
+    assert _crumbs(page) == full[:1], "the first folded step goes there"
     assert not page.evaluate(CRUMB_LINE)["more"] or page.evaluate(CRUMB_LINE)["overflow"] <= 1
     # Wider again: everything shown, no "…".
     page.set_viewport_size({"width": 1280, "height": 900})
@@ -1026,43 +1028,49 @@ def test_galaxy_breadcrumb_stays_on_one_line_folding_its_middle(page, map_site):
 
 
 def test_galaxy_phone_steps_button_between_back_and_forward(page, map_site):
-    """MAP.94: at phone width the breadcrumb line gives way to a round
-    Steps button between Back and Forward, listing every step with the
-    current one marked; Reset stays beside the arrows."""
+    """MAP.94, UX.59: at phone width the breadcrumb line shows only the
+    current level beside the star, and a labelled Steps button between Back
+    and Forward lists every step with the current one marked; Whole galaxy
+    stays beside the arrows."""
     page.set_viewport_size({"width": 390, "height": 844})
     full = _open_deep_galaxy(page, map_site)
     line = page.evaluate(CRUMB_LINE)
-    assert not line["visible"], "no breadcrumb line on a phone"
+    assert line["visible"] and line["count"] == 1 or page.locator(
+        "#galaxymap3d-crumbs > ol > li:visible").count() == 1, "only the current level on a phone"
+    assert page.locator("#galaxymap3d-crumbs > ol > li:visible").inner_text() == full[-1]
     order = page.locator("#galaxymap3d-controls > *").evaluate_all(
         "els => els.map(e => e.dataset.action || e.id || e.className)")
     assert order.index("back") + 1 == order.index("galaxymap3d-steps") == order.index("forward") - 1, order
     assert page.locator('#galaxymap3d-controls [data-action="reset"]').is_visible()
     steps = page.locator("#galaxymap3d-steps")
-    box = steps.locator("summary").bounding_box()
-    assert abs(box["width"] - box["height"]) < 2, "round"
+    assert steps.locator("summary").inner_text().strip().endswith("Steps"), "labelled"
     steps.locator("summary").click()
     items = steps.locator("li").all_inner_texts()
-    assert items == full, (items, full)
+    assert items == ["Home"] + full, (items, full)
     assert steps.locator("[aria-current]").inner_text() == full[-1]
     steps.locator("button", has_text="Galaxy").first.click()
     _settle(page)
     assert _crumbs(page) == ["Galaxy"]
     assert not steps.evaluate("d => d.open"), "taking a step closes the menu"
-    # MAP.95: Current, beside Forward, is on screen.
+    # MAP.95, UX.58: Jump to newest is the last item of the Steps menu.
     page.locator('#galaxymap3d-controls [data-action="reset"]').click()
     _settle(page)
-    current = page.locator('#galaxymap3d-controls [data-action="current"]')
-    assert current.is_visible()
+    current = steps.locator('[data-action="current"]')
+    steps.locator("summary").click()
+    assert current.is_visible() and current.is_disabled()
+    steps.locator("summary").click()
     page.locator('#galaxymap3d-controls [data-action="back"]').click()
     _settle(page)
+    steps.locator("summary").click()
     assert not current.is_disabled()
     assert current.bounding_box()["x"] + current.bounding_box()["width"] <= 390
     current.click()
     _settle(page)
     assert _crumbs(page) == ["Galaxy"] and current.is_disabled()
+    assert not steps.evaluate("d => d.open"), "taking a step closes the menu"
     page.set_viewport_size({"width": 1280, "height": 900})
     page.wait_for_timeout(200)
-    assert not steps.is_visible() and page.evaluate(CRUMB_LINE)["visible"]
+    assert steps.is_visible() and page.evaluate(CRUMB_LINE)["visible"], "Steps shows at every width"
 
 
 # --- NAV.31: hover lights every choice while picking a course -------------------------
@@ -1222,9 +1230,9 @@ def test_galaxy_map_slab_buttons_have_lines_that_follow_the_view(page, map_site)
     # Turning the view moves the lines' ends with their slabs.
     page.locator(GALAXY_CANVAS).scroll_into_view_if_needed()
     box = page.locator(GALAXY_CANVAS).bounding_box()
-    page.mouse.move(box["x"] + box["width"] * 0.5, box["y"] + 20)
+    page.mouse.move(box["x"] + box["width"] * 0.5, box["y"] + box["height"] * 0.5)
     page.mouse.down()
-    page.mouse.move(box["x"] + box["width"] * 0.7, box["y"] + 40, steps=8)
+    page.mouse.move(box["x"] + box["width"] * 0.7, box["y"] + box["height"] * 0.5 + 20, steps=8)
     page.mouse.up()
     page.wait_for_timeout(200)
     after = page.evaluate(LEADERS)
@@ -1795,3 +1803,60 @@ def test_galaxy_breadcrumb_always_matches_the_view_its_url_names(page, map_site)
             button.click()
             in_sync(action)
     assert len(checked) >= 4, checked
+
+
+# --- UX.50, UX.57, UX.58, UX.60, UX.62: the map pages' controls and layout ---------------
+
+def test_the_map_help_is_a_menu_item_that_opens_a_dialog(page, map_site):
+    """UX.50: the how-to text is behind Map help in the Menu, on the Galaxy
+    Map and on the Sector Map; nothing of it sits under the map."""
+    for opener, name in ((lambda: _open_galaxy(page, map_site), "Galaxy"),
+                         (lambda: _open_sector(page, map_site), "Sector")):
+        opener()
+        assert page.locator("#map > .panel-header .hint").count() == 0, name
+        dialog = page.locator("#galaxymap3d-help")
+        assert not dialog.evaluate("d => d.open"), name
+        _open_menu(page)
+        page.locator('#galaxymap3d-controls [data-action="map-help"]').click()
+        page.wait_for_function("() => document.querySelector('#galaxymap3d-help').open")
+        assert "Drag to turn" in dialog.inner_text() and "Re-center" in dialog.inner_text(), name
+        assert not page.locator("#galaxymap3d-menu").evaluate("m => m.open"), "the Menu closes behind it"
+        dialog.locator("[data-dialog-close]").click()
+        page.wait_for_function("() => !document.querySelector('#galaxymap3d-help').open")
+
+
+def test_the_galaxy_toolbar_says_whole_galaxy_and_the_menu_re_center(page, map_site):
+    """UX.57: no two controls called Reset."""
+    _open_galaxy(page, map_site)
+    assert page.locator('#galaxymap3d-controls [data-action="reset"]').inner_text() == "Whole galaxy"
+    assert page.locator('#galaxymap3d-controls [data-action="reset-view"]').text_content() == "Re-center"
+
+
+def test_the_slab_rail_shows_only_while_the_stage_has_slab_buttons(page, map_site):
+    """UX.60: nothing at the whole-galaxy level; the buttons once an arc is in."""
+    _open_galaxy(page, map_site)
+    assert not page.locator("#galaxymap3d-slabs").is_visible()
+    _open_galaxy(page, map_site, "?at=3.250.0.0")
+    assert not page.locator("#galaxymap3d-slabs h3").count() or page.locator("#galaxymap3d-slabs").is_visible()
+
+
+def test_the_map_card_goes_wide_but_the_title_keeps_the_page_edge(page, map_site):
+    """UX.62: the Galaxy page's title and crumb sit where every other page's do."""
+    _open_galaxy(page, map_site)
+    galaxy = page.evaluate("() => document.querySelector('h1').getBoundingClientRect().left")
+    card = page.evaluate("() => document.querySelector('#map').getBoundingClientRect().width")
+    page.goto(f"{map_site}/sector/{SECTOR_ID}", wait_until="load")
+    sector = page.evaluate("() => document.querySelector('h1').getBoundingClientRect().left")
+    assert abs(galaxy - sector) < 1, (galaxy, sector)
+    assert card > 1100, card
+
+
+def test_the_map_crumb_replaces_the_page_crumb_and_starts_at_home(page, map_site):
+    """UX.59: one trail on the Galaxy page: Home, Galaxy, the levels, the star."""
+    _open_galaxy(page, map_site)
+    assert not page.locator("nav.breadcrumbs").is_visible()
+    main = page.locator("main > #galaxymap3d-crumbs")
+    assert main.count() == 1 and main.is_visible()
+    first = page.locator("#galaxymap3d-crumbs > ol > li").first
+    assert first.inner_text() == "Home" and first.locator("a").get_attribute("href") == "/"
+    assert page.locator("#galaxymap3d-crumbs .galaxy-bookmark").is_visible()

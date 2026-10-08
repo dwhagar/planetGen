@@ -95,7 +95,15 @@ def test_panel_includes_the_canvas_and_controls():
         assert f'data-action="{action}"' in html
     for gone in ("zoom-in", "zoom-out", "free-look", "slice", "wedges"):
         assert f'data-action="{gone}"' not in html
-    assert ">Whole galaxy<" not in html
+    # UX.57: the toolbar's Reset is Whole galaxy, the Menu's Reset view is Re-center.
+    assert ">Whole galaxy</button>" in html and ">Re-center</button>" in html
+    assert ">Reset</button>" not in html and ">Reset view</button>" not in html
+    # UX.58: Current moved into the Steps menu (the script adds it there).
+    assert 'data-action="current"' not in html
+    # UX.50: no how-to paragraph under the map; the help is a Menu item and a dialog.
+    assert 'data-action="map-help"' in html and 'id="galaxymap3d-help"' in html
+    assert 'class="hint">The galaxy is shown in 3D' not in html and "drag to turn it" not in html.split(
+        'id="galaxymap3d-help"')[0]
     assert 'id="galaxymap3d-info"' in html
     # The drill-down's breadcrumb, slab strip, tooltip and toggles.
     for element in ("galaxymap3d-crumbs", "galaxymap3d-slabs", "galaxymap3d-tooltip", "galaxymap3d-notice"):
@@ -118,8 +126,8 @@ def test_a_sector_pages_panel_is_pinned_to_its_sector_with_no_steps_of_its_own()
     for gone in ("galaxymap3d-crumbs", "galaxymap3d-slabs", "galaxymap3d-address", "galaxymap3d-steps",
                  "data-bookmarks-menu", 'data-action="back"', 'data-action="up"', 'data-action="reset"'):
         assert gone not in html, gone
-    # What a sector map needs: zoom, Reset view, the rogue-planet toggle (off).
-    for action in ("zoom-in", "zoom-out", "reset-view"):
+    # What a sector map needs: zoom, Re-center, the rogue-planet toggle (off), Map help.
+    for action in ("zoom-in", "zoom-out", "reset-view", "map-help"):
         assert f'data-action="{action}"' in html
     button = re.search(r'<button[^>]*data-action="toggle-rogue-markers"[^>]*>', html).group(0)
     assert 'aria-pressed="false"' in button and "starmap-toggle" in button

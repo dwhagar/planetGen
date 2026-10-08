@@ -1718,15 +1718,18 @@ def render_system_map_panel(system, stars, planets, belts, facilities=None):
     # the same way `spheres_html` above is -- a system with no stars at
     # all (shouldn't happen -- see this function's own docstring) has
     # nothing to measure between regardless.
+    # UX.61, UX.50: under the map, as on the other maps, beside Map help.
     controls_html = (
         '<div class="starmap-controls" id="sysmap-controls">'
         '<button type="button" class="starmap-btn" id="sysmap-measure-btn" aria-pressed="false">'
-        "Measure distance</button></div>"
+        "Measure distance</button>"
+        '<button type="button" class="starmap-btn" data-dialog-open="sysmap-help" '
+        'title="How to read the map">Map help</button></div>'
         if stars else ""
     )
 
     facility_legend = (
-        '<span class="sysmap-legend-facility" aria-hidden="true"></span> facility &middot; ' if facilities else ""
+        '<span class="sysmap-legend-facility" aria-hidden="true"></span> marks a facility;' if facilities else ""
     )
 
     # A system inside a nebula sits in a faint wash of its color (MAP.103):
@@ -1738,24 +1741,36 @@ def render_system_map_panel(system, stars, planets, belts, facilities=None):
     if in_nebula:
         descriptor = inside.get("descriptor")
         wash_class = " sysmap-in-nebula sysmap-nebula-" + (descriptor if descriptor in _NEBULA_WASH_TYPES else "other")
-        wash_hint = f" &middot; the tint is the gas of {esc(inside.get('name') or 'a nebula')} around the system"
+        wash_hint = f". The tint is the gas of {esc(inside.get('name') or 'a nebula')} around the system"
 
     return f"""
 <section class="panel">
 <div class="panel-header">
   <h2>System Map</h2>
-  <span class="hint">True top-down positions (real angle, log-scaled distance) &middot; click a planet with moons to view its moon system &middot; circle size &asymp; body radius (log scale) &middot; color &asymp; planet class &middot; <span class="sysmap-legend-life-badge" aria-hidden="true"></span> supports life &middot; {facility_legend}"Measure distance" then click two bodies for the real distance between them{wash_hint}</span>
 </div>
 <div class="starmap-layout sysmap-layout" id="sysmap-root">
+<div class="sysmap-map-col">
 <div class="starmap-viewport sysmap-viewport{wash_class}">
 {spheres_html}
 {''.join(scenes)}
 </div>
-<div class="starmap-side">
 {controls_html}
+</div>
+<div class="starmap-side">
 <div class="sysmap-crumb" id="sysmap-crumb"></div>
 {info_panel}
 </div>
 </div>
+<sl-dialog id="sysmap-help" class="map-help-dialog" label="System Map help">
+  <ul>
+    <li>True top-down positions: the real angle, with distance on a log scale.</li>
+    <li>Click a planet with moons to view its moon system.</li>
+    <li>Circle size is the body's radius (log scale); color is the planet class;
+    <span class="sysmap-legend-life-badge" aria-hidden="true"></span> marks a world that supports life;
+    {facility_legend}</li>
+    <li>Measure distance, then click two bodies for the real distance between them{wash_hint}.</li>
+  </ul>
+  <sl-button slot="footer" data-dialog-close>Close</sl-button>
+</sl-dialog>
 </section>
 """

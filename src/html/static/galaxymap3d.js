@@ -115,6 +115,12 @@ export function mapControlHandlers(ctx) {
     "up": function () { ctx.stageView.up(); },
     "reset": function () { ctx.stageView.home(); },
     "reset-view": function () { ctx.stageView.resetView(); },
+    "map-help": function (button) {
+      var dialog = document.getElementById("galaxymap3d-help");
+      var menu = button && button.closest("details");
+      if (menu) menu.open = false;
+      if (dialog && typeof dialog.show === "function") dialog.show();
+    },
     "zoom-in": function () { ctx.stageView.zoomIn(); },
     "zoom-out": function () { ctx.stageView.zoomOut(); },
     "toggle-rogue-markers": function (button) {
@@ -2161,6 +2167,7 @@ function initGalaxyMap3d(canvasEl, data) {
     },
     els: {
       crumbs: document.getElementById("galaxymap3d-crumbs"),
+      pageCrumb: document.querySelector("nav.breadcrumbs"),
       slabs: document.getElementById("galaxymap3d-slabs"),
       tooltip: document.getElementById("galaxymap3d-tooltip"),
       notice: document.getElementById("galaxymap3d-notice"),

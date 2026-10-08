@@ -1,5 +1,78 @@
 # Changelog
 
+## [7.316.665] - 2026-10-08
+
+### Changed
+- The sector header's chips hold facts only (edge, systems, stars, phenomena). The Quadrant link is plain text in the header line, and the interstellar comet estimate moves to a Details line under the map.
+
+## [7.315.665] - 2026-10-08
+
+### Fixed
+- The System Map marks itself ready (`data-ready`) once its click handlers are on, and its browser test waits for that instead of a fixed time, so it no longer fails now and then under load (TEST.104).
+
+## [7.314.665] - 2026-10-08
+
+### Changed
+- The gear menu now lists only Theme, Account, Admin and Logout (UX.72). The Admin page is the hub: it links Generate, Queue, Stats and Account, and every admin page carries a small tab row (Overview, Generate, Queue, Stats). The "Signed in" card is gone from the Admin page, and Log out and Account are in the gear.
+- A sector's wiki link is set or cleared from "Set wiki link" in the Sector page's Admin menu, which starts from the current link and needs no sector ID (UX.73). The "Sector wiki link" form left the Admin page.
+
+## [7.313.665] - 2026-10-08
+
+### Fixed
+- Choosing a NAV start or destination on the Galaxy Map and the Sector Map, every control now works as when browsing: the "Charted only" button was the last one locked on while picking. Only a choice holding something generated can still be taken (NAV.32).
+
+## [7.312.665] - 2026-10-08
+
+### Changed
+- The Sector Map no longer tints the space around the sector: the amber and blue-grey block fills are gone and only the faint block outlines remain (MAP.61; Boss: sector space is not tinted).
+
+## [7.311.665] - 2026-10-08
+
+### Fixed
+- A failed task's worker traceback rides with its exception without `add_note`, so it also works on Python 3.9 and 3.10.
+
+## [7.310.665] - 2026-10-08
+
+### Fixed
+- The Galaxy Map's Menu panel no longer opens past the right edge of a narrow screen: below 700 px it hangs from the controls row instead of its button. The layout test also waits for the page to settle before it counts overlaps (TEST.103).
+
+## [7.309.665] - 2026-10-08
+
+### Added
+
+- TODO item ADM.38: worker exceptions fail on Python 3.9 because `_picklable_error` uses `Exception.add_note`.
+
+## [7.308.665] - 2026-10-08
+
+### Added
+
+- Every sector, star system, star, planet, moon, belt, comet and phenomenon
+  has a unique ID (GEN.69, schema v58): a `uid` column on each table, written
+  when a sector, system or phenomenon is saved. A sector's is its designation,
+  so a sector nobody has generated already has one; a system's or
+  phenomenon's is 96 bits and a star's, planet's, moon's, belt's or comet's 64
+  bits (unique under its system), hashed from the galaxy seed, the parent's ID
+  and the object's slot in it, so saving the same sector again gives the same
+  IDs. An interstellar object or bright-sweep system keeps its position ID.
+  Rows saved before this have none until their sector or system is saved
+  again. The design is in `docs/design/object-ids.md`.
+
+## [7.307.665] - 2026-10-08
+
+### Changed
+- Navigation buttons, links and the Wikitext/Markdown toggles are now outlined (secondary), so the primary action of a page or panel stands out. The bookmark is one icon-only ☆ / ★ toggle with the same look on the Galaxy Map breadcrumb, the map panels and the object pages.
+
+## [7.306.665] - 2026-10-08
+
+### Changed
+- A system, a phenomenon and a sector page now share one action bar (Navigate, Show on Galaxy Map, Bookmark, in that order). A phenomenon gains Show on Galaxy Map; the sector's Show on Galaxy Map moves from the facts row into the bar.
+
+## [7.305.665] - 2026-10-08
+
+### Changed
+- The Sector page's chip and the Search table's column now say "Edge" instead of "Cube edge" (the sector is an arc-shaped cell), and so does the sector's wiki text (UX.66).
+- The admin Generate page shows its Current job card only while a job runs; with nothing running a "No job running" chip sits in the header row (UX.74).
+
 ## [7.304.664] - 2026-10-08
 
 ### Changed
