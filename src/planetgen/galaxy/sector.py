@@ -186,6 +186,7 @@ import math
 import random
 
 from planetgen.physics import constants as physical_constants
+from planetgen.physics.position import SpatialPosition3D
 from planetgen import tuning as program_constants
 from planetgen.util import log
 from planetgen.generation.phenomena.asteroid_field import AsteroidField
@@ -532,7 +533,46 @@ def format_named_location(position):
     )
 
 
-class SectorSystemEntry:
+
+def _mass_kg(thing):
+    """The mass, kg, of a placed object: a system's stars together, or the
+    object's own `mass` / `mass_kg`; `None` when it has none."""
+    stars = getattr(thing, "stars", None)
+    if stars:
+        masses = [getattr(star, "mass", None) for star in stars]
+        return sum(masses) if all(isinstance(m, (int, float)) for m in masses) else None
+    for name in ("mass", "mass_kg"):
+        value = getattr(thing, name, None)
+        if isinstance(value, (int, float)) and not isinstance(value, bool) and value >= 0:
+            return float(value)
+    return None
+
+
+class _Placed:
+    """
+    What a `SectorSystemEntry` and a `SectorPhenomenonEntry` share: the
+    entry's place is one `SpatialPosition3D` (GEN.74), in light-years, with
+    the object's mass and mu beside it. `position` is its sector-frame
+    Cartesian, `(x, y, z)` light-years from the sector's center.
+    """
+
+    def _place(self, thing, position, sector_center_ly):
+        self.spatial = SpatialPosition3D(
+            tuple(c + p for c, p in zip(sector_center_ly, position)), sector_center_ly, is_star=True,
+            mass_kg=_mass_kg(thing), length_unit_m=physical_constants.LY_TO_M)
+        # Kept exactly as given (the sum above is only the galactic form).
+        self.spatial.set_sector_cartesian(*position)
+
+    @property
+    def position(self):
+        """tuple: `(x, y, z)` light-years from the sector's center."""
+        return self.spatial.get_coordinates("sector", "cartesian")
+
+    @position.setter
+    def position(self, value):
+        self.spatial.set_sector_cartesian(*value)
+
+class SectorSystemEntry(_Placed):
     """
     One star system's placement within a `SpaceSector`.
 
@@ -549,9 +589,9 @@ class SectorSystemEntry:
     """bool: Whether this system was built around a star pre-placed at plan
     time (`SpaceSector.add_preplaced_system`) rather than placed at fill."""
 
-    def __init__(self, star_system, position, system_config=None, preplaced=False):
+    def __init__(self, star_system, position, system_config=None, preplaced=False, sector_center_ly=(0.0, 0.0, 0.0)):
         self.star_system = star_system
-        self.position = tuple(position)
+        self._place(star_system, tuple(position), sector_center_ly)
         self.system_config = system_config if system_config is not None else star_system.system_config
         self.preplaced = preplaced
 
@@ -610,7 +650,7 @@ class SectorSystemEntry:
         return data
 
 
-class SectorPhenomenonEntry:
+class SectorPhenomenonEntry(_Placed):
     """
     One exotic phenomenon's placement within a `SpaceSector` -- the
     `phenomenonGen.py`-generated counterpart to `SectorSystemEntry`, for an
@@ -626,10 +666,10 @@ class SectorPhenomenonEntry:
                           to the sector's center.
     """
 
-    def __init__(self, phenomenon, phenomenon_type, position):
+    def __init__(self, phenomenon, phenomenon_type, position, sector_center_ly=(0.0, 0.0, 0.0)):
         self.phenomenon = phenomenon
         self.phenomenon_type = phenomenon_type
-        self.position = tuple(position)
+        self._place(phenomenon, tuple(position), sector_center_ly)
 
     def distance_to(self, other):
         """
@@ -700,6 +740,7 @@ class SpaceSector:
         self.cell = cell
         self.entries = []
         self.phenomena = []
+        self.center_galactic_ly = (0.0, 0.0, 0.0)
         # Galaxy-scale molecular clouds reaching this sector (GEN.47,
         # `nebulaField.clouds_reaching`): `(Nebula, center_pc)` pairs, each
         # stored once by whichever sector it reaches is saved first.
@@ -707,6 +748,17 @@ class SpaceSector:
 
     def __len__(self):
         return len(self.entries)
+
+    def place_in_galaxy(self, center_ly):
+        """
+        Sets where the sector's center is in the galaxy, `(x, y, z)`
+        light-years on the galactic axes (a standalone sector's is the
+        origin), and carries every entry with it: their sector coordinates
+        stay, their galactic ones follow.
+        """
+        self.center_galactic_ly = tuple(float(v) for v in center_ly)
+        for entry in list(self.entries) + list(self.phenomena):
+            entry.spatial.carry_sector_center(self.center_galactic_ly)
 
     @property
     def volume_ly3(self):
@@ -858,7 +910,8 @@ class SpaceSector:
         else:
             position = self._check_explicit_position(position)
 
-        entry = SectorSystemEntry(star_system, position, system_config=system_config)
+        entry = SectorSystemEntry(star_system, position, system_config=system_config,
+                                  sector_center_ly=self.center_galactic_ly)
         self.entries.append(entry)
         log.debug(f"Sector {self.name!r}: placed system {_system_name(star_system)!r} at "
                   f"{_fmt_position(position)} (system {len(self.entries)} in this sector)")
@@ -980,7 +1033,7 @@ class SpaceSector:
         else:
             position = self._check_explicit_position(position)
 
-        entry = SectorPhenomenonEntry(phenomenon, phenomenon_type, position)
+        entry = SectorPhenomenonEntry(phenomenon, phenomenon_type, position, sector_center_ly=self.center_galactic_ly)
         self.phenomena.append(entry)
         log.debug(f"Sector {self.name!r}: placed {phenomenon_type} {getattr(phenomenon, 'name', '?')!r} at "
                   f"{_fmt_position(position)} ({'massive: kept clear of Hill spheres' if is_massive else 'not massive: anywhere in the sector'})")
@@ -1266,7 +1319,7 @@ class SpaceSector:
                 star_system = StarSystem(system_config=config)
             sector.entries.append(SectorSystemEntry(
                 star_system, system_data["position"], system_config=config,
-                preplaced=bool(system_data.get("preplaced", False)),
+                preplaced=bool(system_data.get("preplaced", False)), sector_center_ly=sector.center_galactic_ly,
             ))
 
         for phenomenon_data in data.get("phenomena", []):
@@ -1274,7 +1327,7 @@ class SpaceSector:
             phenomenon_class = _PHENOMENON_CLASSES_BY_TYPE[phenomenon_type]
             phenomenon = phenomenon_class.from_dict(phenomenon_data["phenomenon"], SystemConfig())
             sector.phenomena.append(SectorPhenomenonEntry(
-                phenomenon, phenomenon_type, phenomenon_data["position"],
+                phenomenon, phenomenon_type, phenomenon_data["position"], sector_center_ly=sector.center_galactic_ly,
             ))
 
         return sector

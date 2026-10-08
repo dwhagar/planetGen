@@ -21,8 +21,10 @@ Forms
     spherical    (r, theta, phi): theta the same azimuth, phi the polar
                  angle from +z, in [0, pi].
 
-All lengths are metres, speeds metres a second and masses kilograms; the
-storage layer converts (km, mpc, ly) at its edge (`planetgen.physics.units`).
+Lengths are in `length_unit_m` metres (default 1: metres), so an object
+kept in light-years or AU holds its own numbers exactly, with no round trip
+through metres; speeds are always metres a second and masses kilograms. The
+storage layer converts (km, mpc) at its edge (`planetgen.physics.units`).
 
 Precision: the position that was last set is kept as given, in the frame it
 was given in, and the other frames are derived from it. A moon placed by its
@@ -129,10 +131,16 @@ class SpatialPosition3D:
             galactic metres; `None` for a body with no star reference.
         is_star (bool): A star has no system frame.
         mass_kg (float or None): The body's mass; its `mu` follows.
+        length_unit_m (float): Metres in one unit of every coordinate and
+            anchor (1 for metres, `LY_TO_M` for light-years, `AU_M` for AU).
     """
 
     def __init__(self, galactic_cartesian, sector_center_galactic, velocity_vector_cartesian=(0.0, 0.0, 0.0),
-                 star_center_galactic=None, is_star=False, mass_kg=None):
+                 star_center_galactic=None, is_star=False, mass_kg=None, length_unit_m=1.0):
+        _finite((length_unit_m,), "length unit")
+        if length_unit_m <= 0.0:
+            raise ValueError(f"the length unit must be positive, got {length_unit_m!r}")
+        self.length_unit_m = float(length_unit_m)
         _finite(galactic_cartesian, "galactic position")
         _finite(sector_center_galactic, "sector center")
         if star_center_galactic is not None:
@@ -288,6 +296,30 @@ class SpatialPosition3D:
         if speed == 0.0:
             return MAX_UPDATE_INTERVAL_S
         return min(THRESHOLDS_M[scale] / speed, MAX_UPDATE_INTERVAL_S)
+
+    # --- Carrying the anchors ---------------------------------------------------------
+
+    def carry_sector_center(self, sector_center_galactic):
+        """Moves the sector's center and the body with it: its sector
+        coordinates stay, its galactic ones follow. For placing a sector
+        whose bodies were made before its place in the galaxy was known."""
+        _finite(sector_center_galactic, "sector center")
+        keep = self._coords["sector"]["cartesian"]
+        self._sector_center = tuple(float(v) for v in sector_center_galactic)
+        self._truth = ("sector", keep)
+        self._sync()
+
+    def carry_star_center(self, star_center_galactic):
+        """Moves the nearest star's center and the body with it: its system
+        coordinates stay, its galactic and sector ones follow. Needs a
+        system frame."""
+        _finite(star_center_galactic, "star center")
+        if self._is_star:
+            raise ValueError("a star has no system frame to carry")
+        keep = self._coords["system"]["cartesian"] if self.has_system_frame else None
+        self._star_center = tuple(float(v) for v in star_center_galactic)
+        self._truth = ("system", keep if keep is not None else (0.0, 0.0, 0.0))
+        self._sync()
 
     # --- Mass and mu ------------------------------------------------------------------
 
