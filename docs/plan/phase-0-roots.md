@@ -86,10 +86,10 @@ Done: all eight items landed in PR #442 (2026-10-07).
 | GEN.68 | Research: the cheapest unique IDs for every object, unfilled sectors included |  | Asked on 2026-10-07; decides how GEN.69 builds IDs. |
 | GEN.69 | A unique ID for every object, star systems and unfilled sectors included | GEN.68 |  |
 | GEN.70 | A naming key in the control database, made at galaxy creation and changeable by admin |  |  |
-| GEN.71 | Remove the word-salad name code, nltk and the name registries | GEN.69, GEN.70 |  |
+| GEN.71 | Move every name except stars and sectors to the codec, and remove the word-salad code that named them | GEN.69, GEN.70 |  |
 | GEN.72 | A backfilled bright star should get a name only when its sector is generated (bug) | GEN.69 |  |
 | GEN.73 | Nebulae don't get unique names (bug) | GEN.69 |  |
-| GEN.67 | Names from IDs: replace word-salad name generation | GEN.68, GEN.69, GEN.70, GEN.71, GEN.72, GEN.73 | Parent; folds the two naming bugs and drops GEN.63. |
+| GEN.67 | Names from IDs for everything except stars and sectors | GEN.68, GEN.69, GEN.70, GEN.71, GEN.72, GEN.73 | Parent; folds the two naming bugs and drops GEN.63. Boss 2026-10-08 03:57Z: stars and sectors keep the word-salad method, everything else uses the codec; open questions listed in the item. |
 
 ### Groundwork: queue, logs and caches
 
@@ -171,4 +171,4 @@ MAP.101 is done (PR #431). OPS.23 is done (PR #435, the package layout plan). OP
 
 ## Open questions for Boss
 
-None.
+GEN.67 (Boss 2026-10-08 03:57Z: stars and sectors keep word salad, everything else uses the codec): does a planet, moon or belt take its own codec word from its ID (the default) or keep the "<star name> I" pattern? Constellations default to codec names. Changing the naming key renames only the codec-named objects.
