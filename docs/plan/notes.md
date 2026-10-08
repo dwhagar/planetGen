@@ -254,7 +254,7 @@ Boss (2026-10-07 17:11Z, answering the open decisions). His words are quoted.
 - **Lane order**: "When one thread is idle waiting for CI we can start another thread on something else, the idea being to always have at least 1 thread going without even going tover the 2 dev 1 todo limit." So up to two build threads and the TODO thread; a thread waiting on CI may hand off to another.
 - **Redis on Windows (OPS.21)**: "Let's say Redis in WSL". OPS.27 dropped Memurai from the installer and docs (done, PR #475).
 - **Habitability score structure (GEN.84)**: approved (PHI-4's domains and tiers for display, the Xenobiology doc's three tiers as the scores behind them).
-- **Wide-binary names under the codec (GEN.71)**: "No, we should never have A I or such for planet names.  Adjust the algorithm to produce 2 words from the name.  A says word 1 I, word 1 II, etc...  B planets say word 2 I, word 2 II, etc..." In GEN.71. Since 2026-10-08 stars keep word-salad names, so this applies only if planets keep the "<star> I" pattern (GEN.67's open question).
+- **Wide-binary names under the codec (GEN.71)**: "No, we should never have A I or such for planet names.  Adjust the algorithm to produce 2 words from the name.  A says word 1 I, word 1 II, etc...  B planets say word 2 I, word 2 II, etc..." In GEN.71. Confirmed 2026-10-08 04:00Z: planets keep the "<star> I" pattern, so this rule stays in force.
 - **GEN.29 outside phase 0**: approved (stays in phase 2 with the class refactor).
 - **Front-end build (UX.40, UX.41, MAP.102)**: approved (vendored ES module builds served by Flask, no bundler).
 - **Hilbert fill order (GEN.101)**: approved (keep the Hilbert order, allow a logged jump where the ball cuts the curve).
@@ -266,7 +266,7 @@ Boss (2026-10-07 17:11Z, answering the open decisions). His words are quoted.
 - **Wiki uploads on the queue (PERF.24)**: Boss (2026-10-08 00:14Z) reversed the audit decision: wiki uploads go on the Redis queue too, because he may want batch uploads later.
 - **Prevalence fields show real shares (ADM.37)**: Boss (2026-10-08 00:12Z): the Generate page shows each feature's real default share (habitable worlds 24.2%, asteroid belts 59%) and the user types the share they want, not "0% change"; the page must always show meaningful information. Shares are the same in every sector today; a density-dependent share would be a new generation feature, filed only if Boss asks.
 
-GEN.67 (Boss 2026-10-08 03:57Z: stars and sectors keep word salad, everything else uses the codec): does a planet, moon or belt take its own codec word from its ID (the default) or keep the "<star name> I" pattern? Constellations default to codec names. Changing the naming key renames only the codec-named objects.
+No decisions are open. (GEN.67, Boss 2026-10-08: stars and sectors keep word salad, planets, moons and belts keep the "<star name> I" pattern, and the codec names only the objects with no star-derived name; defaults stand for constellations and the naming key.)
 
 ## Files that several items touch
 
