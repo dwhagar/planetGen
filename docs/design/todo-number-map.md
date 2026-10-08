@@ -742,11 +742,11 @@ Parents marked "new parent" had no old number of their own.
 | NAV.26 | Bend the path around keep-out spheres | none | open |
 | NAV.27 | Moving bodies inside a system | none | open |
 | NAV.28 | Show and save the adjusted course | none | open |
-| NAV.29 | Replace "Nav from here" and "Nav to here" with "Start Here" and "End Here" while picking (bug) | none | open |
+| NAV.29 | Replace "Nav from here" and "Nav to here" with "Start Here" and "End Here" while picking (bug) | none | done, PR #615 |
 | NAV.30 | Hide "View phenomenon" and "View system" links while picking a course (bug) | none | done, PR #351 |
 | NAV.31 | Galaxy wedges don't highlight on the navigation screens (bug) | none | done, PR #399 |
 | NAV.32 | Every Galaxy and Sector Map control works on the navigation screens (bug) | none | open |
-| NAV.33 | After picking one end of a course, stay at that zoom level (bug) | none | open |
+| NAV.33 | After picking one end of a course, stay at that zoom level (bug) | none | done, PR #615 |
 | NAV.34 | Courses between separately generated areas find no route: the route graph splits into islands (bug) | none | done, PR #427 |
 | NAV.35 | Mark jumps through unknown space in the route | none | merged into NAV.12 (the per-hop flag), PR #346 |
 | NAV.36 | Unknown-space jumps drawn red and glowing | none | open |
