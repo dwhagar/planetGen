@@ -77,7 +77,8 @@ haven't been filled. The plan:
    belts, comets and phenomena.
 3. **A naming key** in the control database, drawn from the galaxy seed
    when the galaxy is created and changeable by an admin.
-4. **Names from the codec**: `gatedPhonemeCodec.py` (repo root) turns an
+4. **Names from the codec**: `gatedPhonemeCodec.py` (repo root today; GEN.120 moves it into the
+   `planetgen.names` package) turns an
    ID into pronounceable words and back, keyed by a domain and the naming
    key, so a name is unique because its ID is, and changing the key
    renames everything without rewriting rows. Planets keep the "<system>
