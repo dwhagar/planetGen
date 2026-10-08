@@ -31,10 +31,8 @@ subhead (badges or actions under the <h1>). -#}
     theme switch, and either the admin's pages or Login. -#}
 {%- macro gear_menu() -%}
 {%- set admin = current_admin() -%}
-<details class="site-gear">
-  <summary aria-label="Settings" title="Settings">
-    <svg class="gear-icon" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" focusable="false"><path fill="currentColor" d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6a.5.5 0 0 0 .1-.6l-2-3.5a.5.5 0 0 0-.6-.2l-2.5 1a7.3 7.3 0 0 0-1.7-1l-.4-2.6a.5.5 0 0 0-.5-.5h-4a.5.5 0 0 0-.5.4l-.4 2.7a7.3 7.3 0 0 0-1.7 1l-2.5-1a.5.5 0 0 0-.6.2l-2 3.5a.5.5 0 0 0 .1.6L4.6 11a7.6 7.6 0 0 0 0 2l-2.1 1.6a.5.5 0 0 0-.1.6l2 3.5c.1.2.4.3.6.2l2.5-1c.5.4 1.1.7 1.7 1l.4 2.6c0 .3.2.5.5.5h4c.3 0 .5-.2.5-.4l.4-2.7c.6-.3 1.2-.6 1.7-1l2.5 1c.2.1.5 0 .6-.2l2-3.5a.5.5 0 0 0-.1-.6L19.4 13zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg>
-  </summary>
+<sl-dropdown class="site-gear" placement="bottom-end" distance="6">
+  <sl-icon-button slot="trigger" name="gear" label="Settings" title="Settings"></sl-icon-button>
   <div class="site-gear-panel">
     {{ search_form("site-search-gear") }}
     <nav class="site-account" aria-label="Settings">
@@ -53,7 +51,7 @@ subhead (badges or actions under the <h1>). -#}
     </ul>
     </nav>
   </div>
-</details>
+</sl-dropdown>
 {%- endmacro -%}
 <!doctype html>
 <html lang="en">
@@ -70,7 +68,10 @@ subhead (badges or actions under the <h1>). -#}
 <link rel="icon" type="image/svg+xml" href="{{ static_url('favicon.svg') }}">
 <script src="{{ static_url('theme.js') }}"></script>
 <script src="{{ static_url('localtime.js') }}" defer></script>
+<link rel="stylesheet" href="{{ static_url('vendor/shoelace/themes/light.css') }}">
 <link rel="stylesheet" href="{{ static_url('style.css') }}">
+<link rel="stylesheet" href="{{ static_url('shoelace-theme.css') }}">
+<script type="module" src="{{ static_url('components.js') }}"></script>
 {%- block head %}{% endblock %}
 </head>
 <body class="app">
@@ -85,12 +86,12 @@ subhead (badges or actions under the <h1>). -#}
     <div class="site-wide">
       {{ section_links("Main") }}
     </div>
-    <details class="site-menu">
-      <summary>Menu</summary>
+    <sl-dropdown class="site-menu" placement="bottom-start" distance="6">
+      <sl-button slot="trigger" caret>Menu</sl-button>
       <div class="site-menu-panel">
         {{ section_links("Main menu") }}
       </div>
-    </details>
+    </sl-dropdown>
     {{ search_form("site-search-wide") }}
     {{ gear_menu() }}
   </div>

@@ -115,7 +115,8 @@ def test_home_renders_both_tables_and_shell(client, fake):
     assert re.search(r'<link rel="stylesheet" href="/static/style.css\?v=[^"]+">', html)
     assert "data-theme-toggle hidden" in html
     assert '<form class="site-search" role="search" method="get" action="/search">' in html
-    assert "<details class=\"site-menu\">" in html
+    assert '<sl-dropdown class="site-menu"' in html
+    assert re.search(r'<script type="module" src="/static/components.js\?v=[^"]+"></script>', html)
     assert "Sector 002" in html and "System 001" in html
     assert "3 sectors" in html and "2 standalone systems" in html
     # Sector and system rows link to their pages.

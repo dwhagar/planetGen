@@ -65,6 +65,26 @@ def test_js_modules_import_siblings_with_their_own_version():
                 assert spec.endswith("${VERSION_QUERY}"), (name, spec)
 
 
+def test_vendored_shoelace_files_import_only_files_that_exist():
+    """UX.40: scripts/vendor_shoelace.py copies a component with the chunks it
+    imports; a missing one would break every page's menus at load time."""
+    root = os.path.join(_HTML_DIR, "static", "vendor", "shoelace")
+    imports = re.compile(r'(?:from|import)\s*"(\.[^"]+)"|import\("(\.[^"]+)"\)')
+    checked = 0
+    for folder, _dirs, names in os.walk(root):
+        for name in names:
+            if name.endswith(".js"):
+                text = open(os.path.join(folder, name), encoding="utf-8").read()
+                for match in imports.finditer(text):
+                    target = os.path.normpath(os.path.join(folder, match.group(1) or match.group(2)))
+                    assert os.path.exists(target), (name, target)
+                    checked += 1
+    assert checked > 0
+    components = open(os.path.join(_HTML_DIR, "static", "components.js"), encoding="utf-8").read()
+    for name in re.findall(r'"([a-z-]+/[a-z-]+)",', components):
+        assert os.path.exists(os.path.join(root, "components", f"{name}.js")), name
+
+
 # --- security headers -----------------------------------------------------------
 
 def test_csp_has_the_hardening_directives():

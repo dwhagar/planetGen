@@ -47,7 +47,7 @@ SCHEMES = ("light", "dark")
 
 CONTROLS = ", ".join([
     "button", "a.btn", "input:not([type=hidden])", "select", "textarea", "summary",
-    "[role=button]", ".starmap-btn",
+    "sl-button", "sl-icon-button", "[role=button]", ".starmap-btn",
 ])
 
 # Collects every visible control's box and finds the problems, in the
@@ -201,14 +201,14 @@ def test_controls_do_not_overlap(browser, base_url, page_targets, admin_token, e
                 page.wait_for_timeout(50)
                 problems += [f"{scheme}, sections open: {p}" for p in _problems(page)]
             if width == 390:
-                menus = ["details.site-gear"]
-                if page.locator("details.site-menu > summary").is_visible():
-                    menus.insert(0, "details.site-menu")
+                menus = ["sl-dropdown.site-gear"]
+                if page.locator("sl-dropdown.site-menu > [slot=trigger]").is_visible():
+                    menus.insert(0, "sl-dropdown.site-menu")
                 for menu in menus:
-                    page.locator(f"{menu} > summary").click()
+                    page.locator(f"{menu} > [slot=trigger]").click()
                     page.wait_for_timeout(50)
                     problems += [f"{scheme}, {menu} open: {p}" for p in _problems(page)]
-                    page.locator(f"{menu} > summary").click()
+                    page.locator(f"{menu} > [slot=trigger]").click()
         finally:
             context.close()
 

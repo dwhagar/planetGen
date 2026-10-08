@@ -22,3 +22,26 @@ Rebuild from a fresh `three` npm release (bumping the version below) with:
 
 then copy the resulting three.module.min.js and package/LICENSE (as
 three-LICENSE.txt) here.
+
+
+Shoelace 2.20.1 (@shoelace-style/shoelace on npm, https://shoelace.style)
+MIT License -- full text in shoelace/LICENSE.md (copied unmodified from the
+npm package).
+
+shoelace/ holds only what the shared component set (components.js) uses:
+the cdn/ build's component modules and the chunks they import, the light
+theme's non-colour tokens (themes/light.css; shoelace-theme.css points its
+colours at the site's own), the "gear" Bootstrap icon, and the few icons
+Shoelace draws itself (assets/system/), saved as files because its own
+copies are data: URIs the Content-Security-Policy would refuse. The files
+are loaded with their own ?v= query like the rest of static/ (see
+components.js), so no import map and no CSP exception is needed.
+
+Rebuild from a fresh release (bumping the version above) with:
+
+  npm pack @shoelace-style/shoelace@<version>
+  tar xzf shoelace-style-shoelace-<version>.tgz
+  python scripts/vendor_shoelace.py package
+
+To use another component, add it to COMPONENTS in scripts/vendor_shoelace.py
+and to components.js, and run the script again (it needs node for the icons).
