@@ -689,7 +689,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.107 | Selecting an empty slab near the core says "There is no layer x here" (bug) | none | open |
 | MAP.108 | Empty slabs and wedges near the core can't be selected, and the side buttons block clicks (bug) | none | open |
 | MAP.109 | Zooming in and out loads slowly (bug) | none | open |
-| MAP.110 | Slab button lines come out of numerical order (bug) | none | open |
+| MAP.110 | Slab button lines come out of numerical order (bug) | none | done, PR #520 |
 | MAP.111 | "Generated only" should be "Charted only" and dim the stars too (bug) | none | open |
 | MAP.112 | Nothing can be selected while "Generated only" is on (bug) | none | open |
 | MAP.113 | A nebula covering the whole sector can't be unselected, and nebulae need a show/hide toggle (bug) | none | open |
