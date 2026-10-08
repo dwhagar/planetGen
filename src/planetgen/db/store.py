@@ -103,7 +103,7 @@ from planetgen.names.wordsalad import generate_phoneme_salad_name, generate_sect
 from planetgen.physics.units import ly_to_milliparsecs, ly_to_pc, milliparsecs_to_ly, mpc_to_pc, pc_to_ly
 from planetgen.generation.wide_binary import WideBinaryPair
 
-SCHEMA_VERSION = 54
+SCHEMA_VERSION = 55
 """int: Matches `star_systems.schema_version` and the highest row in the
 `schema_migrations` table (see `planetgen/db/schema.sql`'s header
 comment). Also the target version `migrate_database` brings a database's
@@ -1369,6 +1369,7 @@ def _table_marker(table):
 
 
 _VERSION_MARKERS = (
+    (55, _column_marker("sector_stats", "mean_age_gy")),
     (54, _column_marker("system_configs", "prevalence_comets")),
     (53, _table_marker("sector_stats")),
     (52, _table_marker("generation_runs")),
@@ -4896,8 +4897,8 @@ def record_sector_stats(conn, sector_id, address, center_pc):
     """
     Writes a sector's stats once it is generated (PERF.11, GEN.44): its
     expected density from the galaxy model, the systems and stars it got,
-    the mean temperature and luminosity of those stars, and its Galaxy
-    Map color worked out from them (MAP.86, `sectorLook`), and
+    the mean temperature, mean luminosity and age of those stars and
+    their summed luminosity (DB.14; the map colors from these), and
     level 0 (filled), keeping the level it had in
     `level_before_fill_sol`; then folds its actual-to-expected systems
     into `galaxy_shape`'s decaying average. Inside the sector's own save,
@@ -4910,7 +4911,6 @@ def record_sector_stats(conn, sector_id, address, center_pc):
         center_pc (tuple): Its galaxy-frame center, parsecs.
     """
     from planetgen.galaxy.density import relative_density
-    from planetgen.galaxy.sector_look import fill_share, max_sector_systems, sector_color
 
     skeleton = get_galaxy_shape(conn)
     density = expected = None
@@ -4919,23 +4919,25 @@ def record_sector_stats(conn, sector_id, address, center_pc):
         expected = density * skeleton.expected_system_count_at_density_1
     systems = conn.execute("SELECT COUNT(*) AS n FROM star_systems WHERE sector_id = ?", (sector_id,)).fetchone()["n"]
     stars = conn.execute(
-        "SELECT COUNT(*) AS n, AVG(st.temperature_k) AS temperature, AVG(st.luminosity_w) AS luminosity"
+        "SELECT COUNT(*) AS n, AVG(st.temperature_k) AS temperature, AVG(st.luminosity_w) AS luminosity,"
+        " AVG(st.age_gy) AS age, SUM(st.luminosity_w) AS total_luminosity"
         " FROM stars st JOIN star_systems ss ON ss.id = st.star_system_id WHERE ss.sector_id = ?", (sector_id,),
     ).fetchone()
     luminosity = None if stars["luminosity"] is None else float(stars["luminosity"]) / physical_constants.SOLAR_LUMINOSITY
     temperature = None if stars["temperature"] is None else float(stars["temperature"])
-    share = fill_share(systems, max_sector_systems(skeleton))
-    color = sector_color(temperature, luminosity, share) or (None, None, None)
+    age = None if stars["age"] is None else float(stars["age"])
+    total_luminosity = (None if stars["total_luminosity"] is None
+                        else float(stars["total_luminosity"]) / physical_constants.SOLAR_LUMINOSITY)
     conn.execute(
         "INSERT INTO sector_stats (ring_index, layer_index, ring_slot_index, bright_level_sol, level_before_fill_sol,"
         " relative_density, expected_systems, actual_systems, actual_stars, mean_temperature_k, mean_luminosity_sol,"
-        " fill_share, color_r, color_g, color_b, filled_at)"
-        " VALUES (?, ?, ?, 0, -1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP(3))"
+        " mean_age_gy, total_luminosity_sol, filled_at)"
+        " VALUES (?, ?, ?, 0, -1, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP(3))"
         " ON DUPLICATE KEY UPDATE level_before_fill_sol = IF(bright_level_sol = 0, level_before_fill_sol,"
         " bright_level_sol), bright_level_sol = 0, relative_density = ?, expected_systems = ?, actual_systems = ?,"
-        " actual_stars = ?, mean_temperature_k = ?, mean_luminosity_sol = ?, fill_share = ?, color_r = ?,"
-        " color_g = ?, color_b = ?, filled_at = CURRENT_TIMESTAMP(3)",
-        (*address, *(2 * (density, expected, systems, stars["n"], temperature, luminosity, share, *color))),
+        " actual_stars = ?, mean_temperature_k = ?, mean_luminosity_sol = ?, mean_age_gy = ?,"
+        " total_luminosity_sol = ?, filled_at = CURRENT_TIMESTAMP(3)",
+        (*address, *(2 * (density, expected, systems, stars["n"], temperature, luminosity, age, total_luminosity))),
     )
     if expected:
         ratio = systems / expected
@@ -4959,7 +4961,7 @@ def forget_sector_fill(conn, address):
     conn.execute(
         "UPDATE sector_stats SET bright_level_sol = COALESCE(level_before_fill_sol, -1), level_before_fill_sol = NULL,"
         " actual_systems = NULL, actual_stars = NULL, mean_temperature_k = NULL, mean_luminosity_sol = NULL,"
-        " fill_share = NULL, color_r = NULL, color_g = NULL, color_b = NULL,"
+        " mean_age_gy = NULL, total_luminosity_sol = NULL,"
         " filled_at = NULL WHERE ring_index = ? AND layer_index = ? AND ring_slot_index = ? AND bright_level_sol = 0",
         tuple(address),
     )
@@ -9125,6 +9127,35 @@ def _migrate_v53_to_v54(conn):
     conn.execute("INSERT INTO schema_migrations (version) VALUES (54)")
 
 
+def _migrate_v54_to_v55(conn):
+    """
+    Swaps `sector_stats`' baked Galaxy Map color for the raw statistics
+    the map colors from (DB.14) -- see `schema.sql`'s "v55" header note:
+    `fill_share`, `color_r`, `color_g` and `color_b` go; `mean_age_gy`
+    and `total_luminosity_sol` come, worked out for every filled sector
+    from its stars now.
+
+    Args:
+        conn (Connection): An open connection, mid-migration.
+    """
+    for column in ("fill_share", "color_r", "color_g", "color_b"):
+        if _has_column(conn, "sector_stats", column):
+            conn.execute(f"ALTER TABLE sector_stats DROP COLUMN {column}")
+    if not _has_column(conn, "sector_stats", "mean_age_gy"):
+        conn.execute("ALTER TABLE sector_stats ADD COLUMN mean_age_gy DOUBLE AFTER mean_luminosity_sol,"
+                     " ADD COLUMN total_luminosity_sol DOUBLE AFTER mean_age_gy")
+        conn.execute(
+            "UPDATE sector_stats st JOIN sectors s ON s.ring_index = st.ring_index AND s.layer_index = st.layer_index"
+            " AND s.ring_slot_index = st.ring_slot_index"
+            " JOIN (SELECT ss.sector_id, AVG(star.age_gy) AS age, SUM(star.luminosity_w) AS luminosity"
+            " FROM stars star JOIN star_systems ss ON ss.id = star.star_system_id GROUP BY ss.sector_id) agg"
+            " ON agg.sector_id = s.id"
+            " SET st.mean_age_gy = agg.age, st.total_luminosity_sol = agg.luminosity / ?",
+            (physical_constants.SOLAR_LUMINOSITY,),
+        )
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (55)")
+
+
 def _schema_statement(table):
     """`schema.sql`'s own `CREATE TABLE IF NOT EXISTS <table>` statement."""
     with open(SCHEMA_PATH, "r", encoding="utf-8") as handle:
@@ -9238,6 +9269,7 @@ def _migration_steps():
         (52, _migrate_v51_to_v52),
         (53, _migrate_v52_to_v53),
         (54, _migrate_v53_to_v54),
+        (55, _migrate_v54_to_v55),
     ]
 
 

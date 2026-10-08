@@ -50,17 +50,28 @@ export const BLOCK_OPACITY_DENSE = 0.3;
 // log of the filled count against the log of the block's total, so a
 // block turns solid only when every sector in it is filled.
 export const FILLED_MIN_STEP = 0.6;
-// MAP.86: a drill-down block colored by what its generated sectors hold
-// (each cell's `look`, from the stage API's sector_stats averages). A
-// filled sector is only a little more solid than unfilled space: this
-// much for one with no stars, up to FILLED_DENSE_STEP more for the
-// densest possible; a block averages its sectors, unfilled ones counted
-// as unfilled. Boss (2026-10-01 23:53Z).
+// MAP.128/129: a drill-down block colored by what its generated sectors
+// hold (each cell's `stats`, from the stage API's sector_stats sums).
+// Boss (2026-10-08 01:59Z): density sets the transparency (denser is more
+// solid, never fully opaque), the stars' mean age sets the hue, and the
+// summed luminosity sets the brightness. The color is the color of the
+// translucent fill.
+// A generated sector with stars is this opaque at the sparsest and
+// FILLED_OPACITY_DENSE at the densest; one with no stars lifts the
+// unfilled opacity by FILLED_EMPTY_STEP and is drawn in the unfilled
+// color a shade more saturated.
+export const FILLED_OPACITY_SPARSE = 0.35;
+export const FILLED_OPACITY_DENSE = 0.85;
 export const FILLED_EMPTY_STEP = 0.05;
-export const FILLED_DENSE_STEP = 0.2;
-// A filled sector with no stars: the unfilled color, a shade more
-// saturated.
 const FILLED_EMPTY_SATURATION = 0.15;
+// Stellar age (Gy) to hue, sRGB: blue young, slate at the disk's 4.5 Gy
+// average, amber old (OLD_AGE_GY and older).
+export const DISK_AGE_GY = 4.5;
+export const OLD_AGE_GY = 10;
+const AGE_COLORS = { young: [0.3, 0.52, 1.0], disk: [0.56, 0.6, 0.68], old: [1.0, 0.68, 0.22] };
+// Brightness runs from this share of the hue at the dimmest sector in
+// view up to all of it at the brightest, by the log of the luminosity.
+export const BRIGHTNESS_FLOOR = 0.3;
 // Block shading runs over a wide density range: the drawing floor
 // (galaxyprisms.js's PRISM_MIN_DENSITY) up to the core, on a log scale,
 // through a dim-to-accent-to-white ramp.
@@ -124,17 +135,56 @@ export function blockOpacity(cell) {
   return base + (1 - base) * blockFillStep(cell);
 }
 
-// MAP.86: a block's opacity from its sectors: unfilled space's own, plus
-// each filled sector's step (FILLED_EMPTY_STEP, and FILLED_DENSE_STEP
-// times its fill share), averaged over every sector in the block.
-export function lookOpacity(cell) {
+// MAP.128: how the cells in view compare: the log of the systems per
+// generated sector (the density) and of the summed luminosity, each as a
+// {min, max} over the cells that hold stars. `statsOpacity` and
+// `statsColor` rank a cell against these.
+export function statsRanges(cells) {
+  const ranges = { density: { min: Infinity, max: -Infinity }, luminosity: { min: Infinity, max: -Infinity } };
+  cells.forEach(function (cell) {
+    const stats = cell.stats;
+    if (!stats || !(stats.stars > 0) || !(cell.filled > 0)) {
+      return;
+    }
+    const density = Math.log1p(stats.systems / cell.filled);
+    const luminosity = Math.log10(Math.max(stats.luminosity_sol, 1e-9));
+    ranges.density.min = Math.min(ranges.density.min, density);
+    ranges.density.max = Math.max(ranges.density.max, density);
+    ranges.luminosity.min = Math.min(ranges.luminosity.min, luminosity);
+    ranges.luminosity.max = Math.max(ranges.luminosity.max, luminosity);
+  });
+  return ranges;
+}
+
+function rangeShare(value, range) {
+  if (!(range.max > range.min)) {
+    return 1;
+  }
+  return Math.max(0, Math.min(1, (value - range.min) / (range.max - range.min)));
+}
+
+// The density share, 0..1, of a cell holding stars.
+function densityShare(cell, ranges) {
+  return rangeShare(Math.log1p(cell.stats.systems / cell.filled), ranges.density);
+}
+
+// MAP.128/129: a block's opacity from its sectors. Unfilled space keeps
+// its own (blockOpacity); a filled block moves toward the opacity its
+// stars' density gives it (FILLED_OPACITY_SPARSE up to
+// FILLED_OPACITY_DENSE, never solid) by blockFillStep, so one filled
+// sector among many still shows. A filled block with no stars only
+// lifts the unfilled opacity by FILLED_EMPTY_STEP.
+export function statsOpacity(cell, ranges) {
   const base = BLOCK_OPACITY_SPARSE + (BLOCK_OPACITY_DENSE - BLOCK_OPACITY_SPARSE) * prismIntensity(cell.density || 0);
   if (!(cell.filled > 0)) {
     return base;
   }
-  const share = cell.look && cell.look.share > 0 ? Math.min(1, cell.look.share) : 0;
-  const filledShare = Math.min(1, cell.filled / Math.max(cell.total || 0, cell.filled));
-  return Math.min(1, base + filledShare * (FILLED_EMPTY_STEP + FILLED_DENSE_STEP * share));
+  const stats = cell.stats;
+  if (!stats || !(stats.stars > 0)) {
+    return Math.min(FILLED_OPACITY_DENSE, base + FILLED_EMPTY_STEP);
+  }
+  const own = FILLED_OPACITY_SPARSE + (FILLED_OPACITY_DENSE - FILLED_OPACITY_SPARSE) * densityShare(cell, ranges);
+  return base + (Math.max(own, base) - base) * blockFillStep(cell);
 }
 
 function srgbToLinear(v) {
@@ -148,23 +198,32 @@ function saturate(color, amount) {
   return color.map(function (v) { return Math.max(0, grey + (v - grey) * (1 + amount)); });
 }
 
-// MAP.86: a block's color (linear) from its sectors: each unfilled one in
-// `unfilled` (the density ramp's color), each filled one with stars in its
-// stored color, each filled one without in `unfilled` a shade more
-// saturated -- averaged over every sector in the block.
-export function lookColor(cell, unfilled) {
+// The sRGB hue for a mean stellar age in Gy: blue at 0, slate at
+// DISK_AGE_GY, amber from OLD_AGE_GY on.
+export function ageColor(ageGy) {
+  const age = Math.max(0, ageGy || 0);
+  if (age <= DISK_AGE_GY) {
+    return lerp3(AGE_COLORS.young, AGE_COLORS.disk, age / DISK_AGE_GY);
+  }
+  return lerp3(AGE_COLORS.disk, AGE_COLORS.old, Math.min(1, (age - DISK_AGE_GY) / (OLD_AGE_GY - DISK_AGE_GY)));
+}
+
+// MAP.128/129: a cell's color (linear): an unfilled block in `unfilled`
+// (the density ramp's color); a filled one with stars in the hue of its
+// stars' mean age, at the brightness of their summed luminosity against
+// the other cells in view; a filled one without stars in `unfilled` a
+// shade more saturated.
+export function statsColor(cell, unfilled, ranges) {
   if (!(cell.filled > 0)) {
     return unfilled;
   }
-  const total = Math.max(cell.total || 0, cell.filled);
-  const look = cell.look || null;
-  const colored = look && look.color ? Math.min(cell.filled, look.colored || cell.filled) : 0;
-  const empty = cell.filled - colored;
-  const emptyColor = saturate(unfilled, FILLED_EMPTY_SATURATION);
-  const own = colored ? look.color.map(srgbToLinear) : [0, 0, 0];
-  return [0, 1, 2].map(function (i) {
-    return ((total - cell.filled) * unfilled[i] + empty * emptyColor[i] + colored * own[i]) / total;
-  });
+  const stats = cell.stats;
+  if (!stats || !(stats.stars > 0)) {
+    return saturate(unfilled, FILLED_EMPTY_SATURATION);
+  }
+  const luminosity = rangeShare(Math.log10(Math.max(stats.luminosity_sol, 1e-9)), ranges.luminosity);
+  const brightness = BRIGHTNESS_FLOOR + (1 - BRIGHTNESS_FLOOR) * luminosity;
+  return ageColor(stats.mean_age_gy).map(function (v) { return srgbToLinear(v) * brightness; });
 }
 
 // The arm model's own amplitude, clamped to 0..1; 0 without arms.
@@ -315,6 +374,8 @@ export function createBlockScene(config) {
   // block (owners, for picking), and per-block records (CELL_STRIDE).
   // Normals only light the colors here, so they aren't kept. Opaque blocks
   // leave out the faces they share (galaxyprisms.buildPrismGeometry).
+  let ranges = statsRanges([]);
+
   function pack(cells, opaque) {
     const built = buildPrismGeometry(cells, { skipShared: opaque });
     const count = built.owners.length;
@@ -333,7 +394,7 @@ export function createBlockScene(config) {
       middles.push(cellCoordinates(cell).cartesian);
       const placed = cell.sectorPoint != null;
       const ramp = function () { return prismColor(shape ? prismShade(cell, armAmplitude) : 0.5); };
-      colorOf.push("look" in cell ? lookColor(cell, ramp()) : placed ? placedColor(cell.sectorRelative) : ramp());
+      colorOf.push("stats" in cell ? statsColor(cell, ramp(), ranges) : placed ? placedColor(cell.sectorRelative) : ramp());
       alphaOf.push(Math.round(cell.opacity * 255));
       fillOf.push(Math.round(blockFillStep(cell) * 255));
       const o = n * CELL_STRIDE;
@@ -400,24 +461,25 @@ export function createBlockScene(config) {
   // Packs an explicit list of blocks the same way (the drill-down's
   // stages, which pick their own blocks): each cell has ring, seg, slab
   // and bounds r0..z1, and optionally filled and total. A cell with a
-  // `look` key (the stage API's {share, color, colored}, or null) is
-  // colored and made translucent by its sectors' stats (MAP.86:
-  // lookColor, lookOpacity) instead of lifted toward solid by its filled
-  // share. Density comes
-  // from the shape. `dim` (optional) is a test: cells it accepts are drawn
+  // `stats` key (the stage API's {systems, expected_systems, stars,
+  // mean_age_gy, luminosity_sol}, or null) is colored and made
+  // translucent by its sectors' stats (MAP.128/129: statsColor,
+  // statsOpacity, ranked against the other cells) instead of lifted
+  // toward solid by its filled share. Density comes from the shape. `dim` (optional) is a test: cells it accepts are drawn
   // at a fifth of their opacity (the "Charted only" toggle). Returns
   // {solid, glass} as build does, plus `cells`: [solid cells, glass
   // cells], in the order each part's `owners` index them.
   function buildCells(cells, eye, dim) {
     const solid = [];
     const glass = [];
+    ranges = statsRanges(cells);
     cells.forEach(function (cell) {
       if (shape && cell.density === undefined) {
         const sampled = boundsDensity(cell, shape);
         cell.density = sampled.density;
         cell.meanDensity = sampled.mean;
       }
-      cell.opacity = "look" in cell ? lookOpacity(cell) : blockOpacity(cell);
+      cell.opacity = "stats" in cell ? statsOpacity(cell, ranges) : blockOpacity(cell);
       if (dim && dim(cell)) {
         cell.opacity *= 0.2;
       }
