@@ -215,8 +215,8 @@ def test_system_list_links_classes(app):
     with app.test_request_context("/system/1"):
         html = system_list_html(_system(), _SECTIONS, class_url)
         table = stars_html(_system()["stars"], class_url)
-    assert '<a href="/classes/star-spectral/G">Spectral class G</a>' in html
-    assert '<a href="/classes/star-luminosity/V">Luminosity class V</a>' in html
+    # UX.53: a single star is in the Stars table, not the list.
+    assert "Spectral class G" not in html
     assert '<a href="/classes/planet/M">Planet class M</a>' in html
     assert '<a href="/classes/comet/halley_type">Halley-type comet</a>' in html
     assert '<a href="/classes/star-spectral/G">G2V Yellow Main Sequence Star</a>' in table
@@ -312,3 +312,13 @@ def test_phenomenon_unknown_class_stays_text(client, fake):
     fake.phenomenon = {"id": 4, "name": "Thing", "sector_id": None, "nebula_class": "Z"}
     html = _html(client, "/phenomenon/nebula/4")
     assert "<td>Z</td>" in html and "/classes/" not in html.split("</header>", 1)[1]
+
+
+def test_stars_table_hides_role_for_a_single_star(app):
+    """UX.53: the Role column is for binaries and multiples."""
+    from planetgen.web.class_pages import class_url
+    single = _system()["stars"]
+    with app.test_request_context("/system/1"):
+        assert "<th>Role</th>" not in stars_html(single, class_url)
+        pair = [dict(single[0], role="primary"), dict(single[0], role="secondary", name="B")]
+        assert "<th>Role</th>" in stars_html(pair, class_url)

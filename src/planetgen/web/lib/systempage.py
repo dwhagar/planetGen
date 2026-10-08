@@ -52,10 +52,12 @@ def _star_class_urls(star_type, class_url):
 def stars_html(stars, class_url=None):
     """The Stars table. With `class_url` (see the module docstring), a
     star's type links to its spectral class page."""
+    # UX.53: "single" says nothing; the Role column is for binaries and multiples.
+    show_role = any(star["role"] != "single" for star in stars)
     rows = "".join(
         "<tr>"
-        f'<td>{esc(star["role"])}</td>'
-        f'<td>{esc(star["name"])}</td>'
+        + (f'<td>{esc(star["role"])}</td>' if show_role else "")
+        + f'<td>{esc(star["name"])}</td>'
         f'<td>{_link(_star_class_urls(star["star_type"], class_url)[0], esc(star["star_type"]))}</td>'
         # Not esc()'d: these are built entirely from floats and fixed unit
         # literals (never database TEXT), and legitimately contain a raw
@@ -69,11 +71,12 @@ def stars_html(stars, class_url=None):
     )
     if not rows:
         return ""
+    role_head = "<th>Role</th>" if show_role else ""
     return f"""
 <section class="panel">
 <h2>Stars</h2>
 <div class="table-scroll" tabindex="0"><table>
-  <thead><tr><th>Role</th><th>Name</th><th>Type</th><th>Mass</th><th>Radius</th><th>Temp</th><th>Luminosity</th></tr></thead>
+  <thead><tr>{role_head}<th>Name</th><th>Type</th><th>Mass</th><th>Radius</th><th>Temp</th><th>Luminosity</th></tr></thead>
   <tbody>{rows}</tbody>
 </table></div>
 </section>
@@ -404,7 +407,11 @@ def system_list_html(system, sections, class_url=None, facilities=(), species=No
             rows.append(_star_row_html(star, sections, children_html, class_url, by_host))
         rows_html = "".join(rows)
     else:
-        rows_html = "".join(_star_row_html(star, sections, class_url=class_url, by_host=by_host) for star in stars)
+        # UX.53: the Stars table already shows these stars, so the list
+        # starts at the first planet or belt (a star that hosts a facility
+        # keeps its row, which is where the facility is listed).
+        rows_html = "".join(_star_row_html(star, sections, class_url=class_url, by_host=by_host)
+                            for star in stars if (by_host or {}).get(("star", star["id"])))
         rows_html += _orbiting_rows_html(planets, belts, comets, sections, class_url, by_host, species, admin_rows)
 
     overview_html = markdown_to_html(sections["overview"]) if sections["overview"] else ""
