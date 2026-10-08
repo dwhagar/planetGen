@@ -71,7 +71,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.101 | Fill order: nearest sectors first along a pruned Hilbert octree curve |  |  |
 | GEN.102 | Investigate filling all near-zero-density void space at once |  |  |
 | GEN.103 | Research where each star type and phenomenon belongs in the galaxy's structure |  |  |
-| GEN.120 | Integrate gatedPhonemeCodec.py into the naming package and remove it from the repo root |  | Boss 2026-10-08 02:59Z; not a bug, the Bugfixes lane does it next. Moves the codec GEN.67 uses; names are seed-reproducible, so golden tests pin it. |
 
 ### Habitability
 
