@@ -2,8 +2,9 @@
     view is HTML from planetgen/web/maps/phenomenonrender.py or planetgen/web/maps/phenomenonmap.py
     (escaped there); an asteroid field has none. -#}
 {% extends "base.html" %}
-{% from "partials/edit_controls.html" import edit_menu with context %}
+{% from "partials/admin_menu.html" import admin_menu, add_edit_actions with context %}
 {% from "partials/bookmark.html" import bookmark_button %}
+{% from "partials/pick_banner.html" import pick_banner %}
 {% block head %}
 <script type="module" src="{{ static_url('bookmarks.js') }}"></script>
 {%- if view_kind == "render" %}
@@ -23,8 +24,12 @@
     {%- if inside %}<span class="badge">Inside: <a href="{{ inside.url }}">{{ inside.name }}</a></span>{% endif -%}
   </p>
   <p class="page-actions">
+    {%- if pick %}
+    <a class="btn btn-small starmap-pick" href="{{ nav_links.pick }}">{{ nav_links.pickLabel }}</a>
+    {%- else %}
     <a class="btn btn-small" href="{{ nav_links.from }}">Navigate from here</a>
     <a class="btn btn-small" href="{{ nav_links.to }}">Navigate to here</a>
+    {%- endif %}
     {{ bookmark_button(bookmark) }}
   </p>
   {%- if nearest_html %}
@@ -33,6 +38,15 @@
 </div>
 {% endblock %}
 {% block content %}
+{{ pick_banner(pick, bookmark, 'phenomenon') }}
+{%- if can_edit %}
+{%- set actions = [] %}
+{{ add_edit_actions(actions, title,
+     'Rolls it again as the same kind of object, keeping its name and place.',
+     'Deletes it.', facilities=False) }}
+{{ admin_menu([{'id': 'phenomenon', 'target': edit_target, 'actions': actions}], title,
+     page_url('phenomenon', phenomenon_type=edit_target.split(':')[0], phenomenon_id=edit_target.split(':')[1])) }}
+{%- endif %}
 {#- A 3D view sits beside the data panel when there's room (UX.15). -#}
 {%- if view_kind == "render" %}
 <div class="object-view"><div class="object-view-row">
@@ -50,13 +64,5 @@
 </section>
 {%- if view_kind == "render" %}
 </div></div>
-{%- endif %}
-{%- if can_edit %}
-<section class="panel" id="edit-phenomenon" aria-labelledby="edit-phenomenon-heading">
-  <h2 id="edit-phenomenon-heading">Edit</h2>
-  <div>{{ edit_menu(page_url('phenomenon', phenomenon_type=edit_target.split(':')[0], phenomenon_id=edit_target.split(':')[1]), edit_target, title,
-       'Rolls it again as the same kind of object, keeping its name and place.',
-       'Deletes it.', facilities=False) }}</div>
-</section>
 {%- endif %}
 {% endblock %}

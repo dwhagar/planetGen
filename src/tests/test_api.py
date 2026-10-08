@@ -1214,7 +1214,7 @@ def test_galaxy_stage_counts_generated_sectors_down_the_ladder(client, mysql_con
     assert top[(core.ring, core.wedge, core.slab)] == 1
 
     def counted(children):
-        return [{k: v for k, v in child.items() if k != "look"} for child in children]
+        return [{k: v for k, v in child.items() if k != "stats"} for child in children]
 
     stage = client.get(f"/api/galaxy/stage?at={format_drill_key(chain[0])}").get_json()
     assert stage["child_m"] == 27
@@ -1244,10 +1244,11 @@ def test_galaxy_stage_counts_generated_sectors_down_the_ladder(client, mysql_con
         format_drill_key(b) for b in drill_chain_of(0, 0, 0)[:3]}
 
 
-def test_galaxy_stage_looks_average_their_sectors_stats(client, mysql_config):
-    """MAP.86: each stage child, and each sector at a level-3 block, carries
-    a `look` from `sector_stats`: the mean fill share of its generated
-    sectors, the mean color of those with stars, and how many had one."""
+def test_galaxy_stage_stats_sum_their_sectors(client, mysql_config):
+    """DB.14: each stage child, and each sector at a level-3 block, carries
+    `stats` from `sector_stats`: the systems, expected systems and stars
+    its generated sectors hold, the mean star age (each sector's mean
+    weighted by its stars) and the summed luminosity."""
     from planetgen.galaxy.drill import drill_block_sectors, drill_chain_of, format_drill_key
     from planetgen.galaxy.geometry import sector_position_pc
 
@@ -1257,34 +1258,39 @@ def test_galaxy_stage_looks_average_their_sectors_stats(client, mysql_config):
     addresses = [home] + [(s.ring, s.slab, s.wedge) for s in others]
     for n, address in enumerate(addresses):
         _place_sector(mysql_config, f"Look {n}", sector_position_pc(*address, 4.0), address=address)
-    looks = [(0.2, (1.0, 0.5, 0.0)), (0.6, (0.0, 0.5, 1.0)), (0.4, None)]
+    # (systems, expected, stars, mean age Gy, summed luminosity); the last has no stars.
+    rows = [(4, 3.0, 6, 2.0, 10.0), (2, 5.0, 2, 8.0, 0.5), (0, 1.5, 0, None, None)]
     conn = _db.get_connection(mysql_config)
     try:
         with conn:
-            for address, (share, color) in zip(addresses, looks):
+            for address, row in zip(addresses, rows):
                 conn.execute(
-                    "INSERT INTO sector_stats (ring_index, layer_index, ring_slot_index, bright_level_sol, fill_share,"
-                    " color_r, color_g, color_b) VALUES (?, ?, ?, 0, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE"
-                    " fill_share = ?, color_r = ?, color_g = ?, color_b = ?",
-                    (*address, share, *(color or (None,) * 3), share, *(color or (None,) * 3)),
+                    "INSERT INTO sector_stats (ring_index, layer_index, ring_slot_index, bright_level_sol,"
+                    " actual_systems, expected_systems, actual_stars, mean_age_gy, total_luminosity_sol)"
+                    " VALUES (?, ?, ?, 0, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE actual_systems = ?,"
+                    " expected_systems = ?, actual_stars = ?, mean_age_gy = ?, total_luminosity_sol = ?",
+                    (*address, *row, *row),
                 )
     finally:
         conn.close()
 
+    total = {"systems": 6, "expected_systems": pytest.approx(9.5), "stars": 8,
+             "mean_age_gy": pytest.approx((6 * 2.0 + 2 * 8.0) / 8), "luminosity_sol": pytest.approx(10.5)}
     stage = client.get(f"/api/galaxy/stage?at={format_drill_key(chain[1])}").get_json()
     [child] = stage["children"]
     assert child["generated"] == 3
-    assert child["look"] == {"share": pytest.approx(0.4), "color": pytest.approx([0.5, 0.5, 0.5]), "colored": 2}
+    assert child["stats"] == total
     galaxy = client.get("/api/galaxy/stage").get_json()
     [top] = [c for c in galaxy["children"] if (c["ring"], c["wedge"], c["slab"]) == (chain[0].ring, chain[0].wedge,
                                                                                      chain[0].slab)]
-    assert top["look"] == child["look"]
+    assert top["stats"] == child["stats"]
 
     stage = client.get(f"/api/galaxy/stage?at={format_drill_key(chain[2])}").get_json()
-    by_address = {(s["ring"], s["layer"], s["slot"]): s["look"] for s in stage["sectors"]}
-    assert by_address[home] == {"share": pytest.approx(0.2), "color": pytest.approx([1.0, 0.5, 0.0]), "colored": 1}
-    assert by_address[addresses[2]] == {"share": pytest.approx(0.4), "color": None, "colored": 0}
-    assert {c["look"]["colored"] for c in stage["children"]} == {0, 1}
+    by_address = {(s["ring"], s["layer"], s["slot"]): s["stats"] for s in stage["sectors"]}
+    assert by_address[home] == {"systems": 4, "expected_systems": 3.0, "stars": 6, "mean_age_gy": 2.0,
+                                "luminosity_sol": 10.0}
+    assert by_address[addresses[2]] == {"systems": 0, "expected_systems": 1.5, "stars": 0, "mean_age_gy": None,
+                                        "luminosity_sol": 0.0}
 
 
 def test_galaxy_locate_finds_sectors_and_systems_by_name(client, mysql_config):

@@ -203,7 +203,7 @@ URLs" below).
 | `/species/<id>` | (new) | One species: homeworld, body plan, era, civilization age and polity. |
 | `/polities` | (new) | Every polity (`?polities_page=N`): species, government, capital, systems held, reach. A 404 until there are polities. |
 | `/polities/<id>` | (new) | One polity and the systems it holds, nearest its capital first (`?systems_page=N`). |
-| `/sector/<id>` | `sector.py` | One sector: badges, the 3D Sector Map, and its Contents table (systems, nearby phenomena and the facilities outside its systems, nearest the center first, `?contents_page=N`); admin forms (wiki upload, generate neighborhood). |
+| `/sector/<id>` | `sector.py` | One sector: badges, the 3D Sector Map, and its Contents table (systems, nearby phenomena and the facilities outside its systems, nearest the center first, `?contents_page=N`); for an admin, an Admin menu (wiki upload, generate neighborhood) and an Edit menu, each pick opening its form in a dialog. |
 | `/sector/<id>/galaxy`, `/system/<id>/galaxy` | (new) | Redirect to `/galaxy?sector=<designation>` (the map's stage 8 holding that sector, selected), or to the plain map for a sector with no galaxy address or a standalone system. Search results link here; the sector page links straight to the map. |
 | `/nav` | `nav.py` | The NAV route planner; see "The NAV page's URLs" below. |
 | `/search` | `search.py` | Faceted search (see below). |
@@ -231,15 +231,16 @@ API. A POST from a visitor who is not an admin gets a 403 page.
 
 **Delete and Regenerate buttons (ADM.8).** For an admin whose
 credentials are current, the sector, system and phenomenon pages each
-have an Edit panel (`web/edit_actions.py`,
-`templates/partials/edit_controls.html`). The system page lists the
-system itself, every planet with its moons under it, and every asteroid
-belt, each with a Regenerate and a Delete button; the sector and
-phenomenon pages have one pair for the page's own object (not for a
-system's own black hole or neutron star). Each button opens a
-`<details>` confirm step (no script) with a short note of what it does,
-an "also delete facilities" checkbox where facilities could be lost, and
-a "Yes, ..." submit button. The form POSTs `edit_action` (`regenerate`
+have one Admin menu (`web/edit_actions.py`,
+`templates/partials/admin_menu.html`; ADM.34) listing only that page's
+actions, hidden from visitors; no admin form sits inline on the page. The
+system page's menu holds the system's own actions, a submenu per planet,
+moon and asteroid belt (Regenerate, Delete, Change class), Place a
+facility and a Remove a facility submenu; the sector and phenomenon pages
+have one pair for the page's own object (not for a system's own black hole
+or neutron star). Each item opens a dialog (`static/dialogmenus.js`) with
+a short note of what it does, an "also delete facilities" checkbox where
+facilities could be lost, and a "Yes, ..." submit button. The form POSTs `edit_action` (`regenerate`
 or `delete`) and `edit_target` (`<kind>:<id>`, only targets the page
 shows are accepted) to the page itself, which calls the API (see
 `docs/api.md`, "Deleting and regenerating"), flashes the outcome, the
@@ -250,9 +251,9 @@ sector regenerate to the new sector. Every page shows those flashed
 lines under its heading (`base.html`), read only when the request
 carries a Flask session cookie.
 
-**Change class and Change star (ADM.6, ADM.7).** In the same panel on
-the system page, every planet and moon also has a Change class button:
-its menu lists the recommended classes first (from `GET
+**Change class and Change star (ADM.6, ADM.7).** In the same menu on
+the system page, every planet and moon also has a Change class item:
+its dialog lists the recommended classes first (from `GET
 /api/systems/<id>/class-options`, ones that fit without moving
 anything) and every other class under "Force"; the form posts
 `edit_action=class` with `planet_class` (`M`, or `force:M`). A

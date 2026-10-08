@@ -642,13 +642,13 @@ def test_a_filled_sector_records_its_stats_and_a_delete_puts_its_level_back(mysq
         assert stats["mean_luminosity_sol"] == pytest.approx(
             sum(row["luminosity_w"] for row in stars) / len(stars) / constants.SOLAR_LUMINOSITY)
         assert stats["filled_at"] is not None
-        # MAP.86: its map color, from those means and how full it is.
-        from planetgen.galaxy import sector_look
-        skeleton = store.get_galaxy_shape(conn)
-        assert stats["fill_share"] == pytest.approx(
-            sector_look.fill_share(systems, sector_look.max_sector_systems(skeleton)))
-        assert (stats["color_r"], stats["color_g"], stats["color_b"]) == pytest.approx(sector_look.sector_color(
-            stats["mean_temperature_k"], stats["mean_luminosity_sol"], stats["fill_share"]))
+        # DB.14: the raw facts the map colors from, not a baked color.
+        ages = conn.execute("SELECT st.age_gy FROM stars st JOIN star_systems ss ON ss.id = st.star_system_id"
+                            " WHERE ss.sector_id = ?", (sector_id,)).fetchall()
+        assert stats["mean_age_gy"] == pytest.approx(sum(row["age_gy"] for row in ages) / len(ages))
+        assert stats["total_luminosity_sol"] == pytest.approx(
+            sum(row["luminosity_w"] for row in stars) / constants.SOLAR_LUMINOSITY)
+        assert not {"fill_share", "color_r", "color_g", "color_b"} & set(stats)
         average, samples = store.galaxy_density_ratio(conn)
         assert samples == 1 and average == pytest.approx(systems / stats["expected_systems"])
 
@@ -656,7 +656,7 @@ def test_a_filled_sector_records_its_stats_and_a_delete_puts_its_level_back(mysq
         conn.commit()
         stats = store.get_sector_stats(conn, *address)
         assert stats["bright_level_sol"] == FLOOR and stats["actual_systems"] is None
-        assert stats["fill_share"] is None and stats["color_r"] is None
+        assert stats["mean_age_gy"] is None and stats["total_luminosity_sol"] is None
         assert store.galaxy_density_ratio(conn) == (pytest.approx(average), 1)
     finally:
         conn.close()
@@ -780,3 +780,63 @@ def test_the_requested_sector_of_a_many_sector_run_is_the_one_nearest_the_middle
     args = argparse.Namespace(block=None, column=False, shell=False, slot=3, ring=2, layer=0, center_sector=None)
     assert run_galaxy._requested_center(args, points, EDGE_PC, None) == sector_position_pc(2, 0, 3, EDGE_PC)
 
+
+
+@pytest.fixture
+def web_progress(tmp_path, monkeypatch):
+    """What a run the Generate page started writes to its progress file
+    (`planetgen.queue.progress_file`), in order."""
+    from planetgen.queue import progress_file
+
+    monkeypatch.setenv(progress_file.ENV_VAR, str(tmp_path / "progress.json"))
+    reports = []
+    real = progress_file.report
+
+    def record(completed, total=None, description=None, **kwargs):
+        reports.append((description, completed, total))
+        real(completed, total, description, **kwargs)
+
+    monkeypatch.setattr(progress_file, "report", record)
+    return reports
+
+
+def test_the_backfill_publishes_progress_to_the_web_from_the_start(mysql_config, web_progress):
+    """ADM.26: the Generate page's progress file shows the backfill's bar
+    (unmeasured while it finds its sectors, then counting them) and ends
+    at the full count."""
+    _seed_galaxy(mysql_config)
+    run_plan.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only"))
+    del web_progress[:]
+    with run_common._generation_progress() as progress:
+        summary = run_galaxy.backfill_bright_stars_around(
+            mysql_config, [sector_position_pc(4, 0, 5, EDGE_PC)], radius_ly=20.0, progress=progress)
+    assert summary["sectors"] > 0
+    backfill = [report for report in web_progress if report[0].startswith("Bright-star backfill")]
+    assert backfill[0] == ("Bright-star backfill (finding sectors)", 0, None)
+    measured = [report for report in backfill if report[2] is not None]
+    assert measured[0][1:] == (0, measured[0][2]) and measured[0][2] >= summary["sectors"]
+    assert measured[-1][1] == measured[-1][2]
+
+
+def test_a_backfill_with_nothing_to_draw_leaves_no_unmeasured_bar(mysql_config, web_progress):
+    _seed_galaxy(mysql_config)
+    with run_common._generation_progress() as progress:
+        run_galaxy.backfill_bright_stars_around(
+            mysql_config, [sector_position_pc(4, 0, 5, EDGE_PC)], radius_ly=20.0, progress=progress)
+        run_galaxy.backfill_bright_stars_around(
+            mysql_config, [sector_position_pc(4, 0, 5, EDGE_PC)], radius_ly=20.0, progress=progress)
+        assert not [task for task in progress.tasks if task.total is None]
+
+
+def test_topping_up_backfilled_sectors_shows_a_bar_on_the_web(mysql_config, web_progress):
+    """ADM.26: the band run's second phase (backfilled sectors getting what
+    they lack) reports its own progress."""
+    _seed_galaxy(mysql_config)
+    run_plan.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only"))
+    assert run_galaxy.backfill_bright_stars(mysql_config, sector_position_pc(4, 0, 5, EDGE_PC), radius_ly=20.0,
+                                          min_luminosity_sol=300.0)["sectors"]
+    del web_progress[:]
+    run_plan.add_bright_star_band(_plan_args(mysql_config, "--bright-stars-down-to", str(FLOOR)))
+    topping = [report for report in web_progress if report[0] == "Topping up backfilled sectors"]
+    assert topping and topping[0][1:] == (0, topping[0][2]) and topping[0][2] > 0
+    assert topping[-1][1] == topping[-1][2]

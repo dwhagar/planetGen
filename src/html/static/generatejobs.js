@@ -8,7 +8,8 @@
 // `done` ends it. The stream closes itself every so often (a request must
 // stay under Apache's request timeout); the browser reconnects with the
 // byte offset it reached, so no output is lost or repeated. When the job
-// finishes, the Generate page reloads itself (so the galaxy summary, the
+// finishes, the Generate page reloads itself (unless it failed: the log then
+// stays open until Continue is clicked) (so the galaxy summary, the
 // job list and the forms catch up); a job's own page just stops.
 // Without EventSource it polls /admin/generate/status instead, and
 // without JavaScript the page still works: reload it to see progress.
@@ -27,6 +28,7 @@ function setText(selector, text) {
 }
 
 function render(job) {
+  failed = job.status === "failed";
   setText("[data-job-title]", job.title || "Job");
   const status = panel.querySelector("[data-job-status]");
   if (status) {
@@ -68,10 +70,49 @@ function render(job) {
   }
 }
 
+// A job that succeeded or was cancelled reloads the page (it is pinned to
+// the job's own page, which just stops). One that failed stays as it is,
+// with its error and log in view, until Continue is clicked (ADM.24).
 function finish() {
-  if (!("jobPinned" in panel.dataset)) {
-    window.setTimeout(() => window.location.reload(), 1000);
+  if ("jobPinned" in panel.dataset) return;
+  if (failed) {
+    const box = panel.querySelector("[data-job-continue]");
+    const button = panel.querySelector("[data-job-continue-button]");
+    if (box && button) {
+      box.hidden = false;
+      button.addEventListener("click", () => window.location.reload());
+      button.focus();
+      return;
+    }
   }
+  window.setTimeout(() => window.location.reload(), 1000);
+}
+
+let failed = false;
+
+// Copy log (ADM.25): the job's whole output, fetched from the download
+// route, onto the clipboard, so an error trace can be pasted into a report.
+function wireCopy(url) {
+  const button = panel.querySelector("[data-job-copy]");
+  const note = panel.querySelector("[data-job-copy-note]");
+  if (!button || !navigator.clipboard) return;
+  button.hidden = false;
+  const say = (text) => {
+    if (note) {
+      note.textContent = text;
+      note.hidden = !text;
+    }
+  };
+  button.addEventListener("click", async () => {
+    try {
+      const response = await fetch(url, { credentials: "same-origin", cache: "no-store" });
+      if (!response.ok) throw new Error(`status ${response.status}`);
+      await navigator.clipboard.writeText(await response.text());
+      say("Copied.");
+    } catch (err) {
+      say("Could not copy the log.");
+    }
+  });
 }
 
 function connection(text) {
@@ -127,9 +168,13 @@ if (panel && panel.dataset.job && !("jobFinished" in panel.dataset)) {
   const pre = panel.querySelector("[data-job-log]");
   if (typeof EventSource !== "undefined" && panel.dataset.jobUrlTemplate) {
     const base = panel.dataset.jobUrlTemplate.replace("__JOB__", encodeURIComponent(panel.dataset.job));
+    wireCopy(`${base}/log`);
     stream(`${base}/stream`, await createJobLog(pre));
   } else {
     if (pre) pre.scrollTop = pre.scrollHeight;
+    if (panel.dataset.jobUrlTemplate) {
+      wireCopy(panel.dataset.jobUrlTemplate.replace("__JOB__", encodeURIComponent(panel.dataset.job)) + "/log");
+    }
     window.setTimeout(() => poll(pre), POLL_MS);
   }
 }

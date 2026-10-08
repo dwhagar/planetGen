@@ -1160,7 +1160,7 @@ def sector_detail(conn, sector_id):
 
 SECTOR_STATS_FIELDS = (
     "bright_level_sol", "relative_density", "expected_systems", "actual_systems", "actual_stars",
-    "mean_temperature_k", "mean_luminosity_sol", "fill_share", "color_r", "color_g", "color_b",
+    "mean_temperature_k", "mean_luminosity_sol", "mean_age_gy", "total_luminosity_sol",
 )
 """tuple: The `sector_stats` columns `sector_stats` reads (PERF.11)."""
 
@@ -3025,12 +3025,13 @@ def galaxy_stage(conn, at=None):
 
     Returns:
         dict: `at` (the canonical key, or `None`), `child_m`, `children`
-            (`[{ring, wedge, slab, generated, look}]`, at `child_m = 1` a
+            (`[{ring, wedge, slab, generated, stats}]`, at `child_m = 1` a
             sector's `wedge` is its slot and `slab` its layer), and
             `sectors` (`[{ring, layer, slot, id, name, system_count,
-            look}]` at `child_m = 1`, else `None`). `look` is what the
-            generated sectors hold, from `sector_stats` (MAP.86,
-            `_stage_look`): `{share, color, colored}`.
+            stats}]` at `child_m = 1`, else `None`). `stats` is what the
+            generated sectors hold, from `sector_stats` (DB.14,
+            `_stage_stats`): `{systems, expected_systems, stars,
+            mean_age_gy, luminosity_sol}`.
 
     Raises:
         ValueError: On a malformed or impossible `at`.
@@ -3086,14 +3087,13 @@ def galaxy_stage(conn, at=None):
         sectors = [{
             "ring": r["ring_index"], "layer": r["layer_index"], "slot": r["ring_slot_index"],
             "id": r["id"], "name": r["name"], "system_count": system_counts.get(r["id"], 0),
-            "look": _stage_look([1, r["fill_share"] or 0.0, r["color_r"] or 0.0, r["color_g"] or 0.0,
-                                 r["color_b"] or 0.0, 0 if r["color_r"] is None else 1]),
+            "stats": _stage_stats(_sector_sums(r)),
         } for r in rows]
         counts = {}
         for r, sector in zip(rows, sectors):
             _add_stage_sums(counts, DrillBlock(1, sector["ring"], sector["slot"], sector["layer"]), {
-                "n": 1, "share_sum": r["fill_share"], "red": r["color_r"], "green": r["color_g"], "blue": r["color_b"],
-                "colored": 0 if r["color_r"] is None else 1,
+                "n": 1, "systems": r["actual_systems"], "expected": r["expected_systems"], "stars": r["actual_stars"],
+                "age_sum": (r["mean_age_gy"] or 0.0) * (r["actual_stars"] or 0), "luminosity": r["total_luminosity_sol"],
             })
         return {"at": format_drill_key(block), "child_m": 1, "children": _stage_children(counts), "sectors": sectors}
 
@@ -3110,13 +3110,21 @@ def galaxy_stage(conn, at=None):
     return {"at": format_drill_key(block), "child_m": child_m, "children": _stage_children(counts), "sectors": None}
 
 
+def _sector_sums(row):
+    """One sector's sums, in `_add_stage_sums`' order, for its own `stats`."""
+    stars = row["actual_stars"] or 0
+    return [1, row["actual_systems"] or 0, row["expected_systems"] or 0.0, stars,
+            (row["mean_age_gy"] or 0.0) * stars, row["total_luminosity_sol"] or 0.0]
+
+
 def _stage_sectors_with_stats(where, extra=""):
     """The placed sectors matching `where` (on `sectors`' own columns),
-    each with its `sector_stats` look (MAP.86): `fill_share`, `color_r`,
-    `color_g`, `color_b` (NULL without a row or without stars)."""
+    each with the `sector_stats` the map colors from (DB.14):
+    `actual_systems`, `expected_systems`, `actual_stars`, `mean_age_gy`
+    and `total_luminosity_sol` (NULL without a row or a fill)."""
     return (
-        f"SELECT {extra}s.ring_index, s.layer_index, s.ring_slot_index, st.fill_share,"
-        " st.color_r, st.color_g, st.color_b"
+        f"SELECT {extra}s.ring_index, s.layer_index, s.ring_slot_index, st.actual_systems, st.expected_systems,"
+        " st.actual_stars, st.mean_age_gy, st.total_luminosity_sol"
         f" FROM (SELECT * FROM sectors WHERE {where}) s LEFT JOIN sector_stats st"
         " ON st.ring_index = s.ring_index AND st.layer_index = s.layer_index"
         " AND st.ring_slot_index = s.ring_slot_index"
@@ -3124,35 +3132,39 @@ def _stage_sectors_with_stats(where, extra=""):
 
 
 _STAGE_LOOK_SUMS = (
-    "COUNT(*) AS n, SUM(COALESCE(fill_share, 0)) AS share_sum, SUM(color_r) AS red, SUM(color_g) AS green,"
-    " SUM(color_b) AS blue, SUM(color_r IS NOT NULL) AS colored"
+    "COUNT(*) AS n, SUM(COALESCE(actual_systems, 0)) AS systems, SUM(COALESCE(expected_systems, 0)) AS expected,"
+    " SUM(COALESCE(actual_stars, 0)) AS stars, SUM(COALESCE(mean_age_gy, 0) * COALESCE(actual_stars, 0)) AS age_sum,"
+    " SUM(COALESCE(total_luminosity_sol, 0)) AS luminosity"
 )
-"""The per-group sums `galaxy_stage` folds into each child's look."""
+"""The per-group sums `galaxy_stage` folds into each child's stats."""
 
 
 def _add_stage_sums(counts, child, row):
     """Adds one group's sums (`_STAGE_LOOK_SUMS`) to `counts[child]`:
-    `[sectors, share sum, red sum, green sum, blue sum, sectors with a
-    color]`."""
-    sums = counts.setdefault(child, [0, 0.0, 0.0, 0.0, 0.0, 0])
+    `[sectors, systems, expected systems, stars, stars times mean age,
+    luminosity]`."""
+    sums = counts.setdefault(child, [0, 0.0, 0.0, 0.0, 0.0, 0.0])
     sums[0] += int(row["n"])
-    sums[1] += float(row["share_sum"] or 0.0)
-    sums[2] += float(row["red"] or 0.0)
-    sums[3] += float(row["green"] or 0.0)
-    sums[4] += float(row["blue"] or 0.0)
-    sums[5] += int(row["colored"] or 0)
+    sums[1] += float(row["systems"] or 0.0)
+    sums[2] += float(row["expected"] or 0.0)
+    sums[3] += float(row["stars"] or 0.0)
+    sums[4] += float(row["age_sum"] or 0.0)
+    sums[5] += float(row["luminosity"] or 0.0)
 
 
-def _stage_look(sums):
-    """A child's `look` from its sums (MAP.86): `share`, the mean fill
-    share of its generated sectors (0 for one without stats); `color`, the
-    mean sRGB color of those with stars, or `None`; `colored`, how many
-    had one."""
-    n, share, red, green, blue, colored = sums
+def _stage_stats(sums):
+    """A child's `stats` from its sums (DB.14): the `systems` and `stars`
+    its generated sectors hold, the `expected_systems` the density model
+    gave them, `mean_age_gy` (the stars' mean age, each sector's mean
+    weighted by its star count; `None` without stars) and
+    `luminosity_sol` (the sum of their luminosity)."""
+    _n, systems, expected, stars, age_sum, luminosity = sums
     return {
-        "share": round(share / n, 4) if n else 0.0,
-        "color": [round(red / colored, 4), round(green / colored, 4), round(blue / colored, 4)] if colored else None,
-        "colored": colored,
+        "systems": int(systems),
+        "expected_systems": round(expected, 3),
+        "stars": int(stars),
+        "mean_age_gy": round(age_sum / stars, 4) if stars else None,
+        "luminosity_sol": luminosity,
     }
 
 
@@ -3160,7 +3172,7 @@ def _stage_children(counts):
     """`galaxy_stage`'s `children` list from `{DrillBlock: sums}`
     (`_add_stage_sums`)."""
     return [
-        {"ring": b.ring, "wedge": b.wedge, "slab": b.slab, "generated": sums[0], "look": _stage_look(sums)}
+        {"ring": b.ring, "wedge": b.wedge, "slab": b.slab, "generated": sums[0], "stats": _stage_stats(sums)}
         for b, sums in sorted(counts.items(), key=lambda item: (item[0].slab, item[0].ring, item[0].wedge))
     ]
 

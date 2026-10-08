@@ -47,6 +47,7 @@ const S = await import(`./galaxystages.js${VERSION_QUERY}`);
 const MC = await import(`./mapcontrol.js${VERSION_QUERY}`);
 const { worldUnitsPerPixel } = await import(`./mapcore.js${VERSION_QUERY}`);
 const B = await import(`./bookmarks.js${VERSION_QUERY}`);
+const { createSelection } = await import(`./picker.js${VERSION_QUERY}`);
 const { createPicker, createTooltip } = await import(`./mappick.js${VERSION_QUERY}`);
 const { createSectorStage } = await import(`./galaxysector.js${VERSION_QUERY}`);
 
@@ -186,16 +187,16 @@ export function createStageView(host) {
       entry = { ready: false, value: null };
       entry.promise = host.fetchStage(at ? S.stageQuery({ at: at, picks: [] }) : "").then(function (payload) {
         const generated = new Map();
-        const looks = new Map();
+        const stats = new Map();
         (payload.children || []).forEach(function (child) {
           generated.set(child.ring + "/" + child.wedge + "/" + child.slab, child.generated);
-          looks.set(child.ring + "/" + child.wedge + "/" + child.slab, child.look || null);
+          stats.set(child.ring + "/" + child.wedge + "/" + child.slab, child.stats || null);
         });
         const sectors = new Map();
         (payload.sectors || []).forEach(function (sector) {
           sectors.set(sector.ring + "/" + sector.slot + "/" + sector.layer, sector);
         });
-        entry.value = { generated: generated, looks: looks, sectors: sectors, sectorGenerated: new Map() };
+        entry.value = { generated: generated, stats: stats, sectors: sectors, sectorGenerated: new Map() };
         payload.sectors && payload.sectors.forEach(function (sector) {
           entry.value.sectorGenerated.set(sector.ring + "/" + sector.slot + "/" + sector.layer, 1);
         });
@@ -220,7 +221,7 @@ export function createStageView(host) {
           return entry.value;
         });
       }).then(null, function () {
-        entry.value = { generated: new Map(), looks: new Map(), sectors: new Map(), sectorGenerated: new Map(), failed: true };
+        entry.value = { generated: new Map(), stats: new Map(), sectors: new Map(), sectorGenerated: new Map(), failed: true };
         entry.ready = true;
         dataCache.delete(key);
         return entry.value;
@@ -248,16 +249,17 @@ export function createStageView(host) {
     return data.generated.get(key) || 0;
   }
 
-  // MAP.86: what a block's generated sectors hold, for its color and
-  // opacity ({share, color, colored} from the stage API), or null.
-  function lookOf(block, data) {
+  // DB.14, MAP.128: what a block's generated sectors hold, for its color
+  // and opacity ({systems, expected_systems, stars, mean_age_gy,
+  // luminosity_sol} from the stage API), or null.
+  function statsOf(block, data) {
     if (!data) return null;
     const key = block.ring + "/" + block.wedge + "/" + block.slab;
     if (block.m === 1) {
       const sector = data.sectors.get(key);
-      return sector ? sector.look || null : null;
+      return sector ? sector.stats || null : null;
     }
-    return data.looks.get(key) || null;
+    return data.stats.get(key) || null;
   }
 
   function sumOf(blocks, data) {
@@ -351,7 +353,7 @@ export function createStageView(host) {
         return {
           ring: block.ring, seg: block.wedge, slab: block.slab,
           r0: b.r0, r1: b.r1, t0: b.t0, t1: b.t1, z0: b.z0, z1: b.z1,
-          filled: generatedOf(block, data), total: block.total, look: lookOf(block, data), block: block,
+          filled: generatedOf(block, data), total: block.total, stats: statsOf(block, data), block: block,
           option: index,
         };
       });
@@ -910,6 +912,34 @@ export function createStageView(host) {
     }
   }
 
+  // The map's selection (NAV.13, picker.js): the stage it shows, or the
+  // sector picked on it. Keys, the Up and Reset buttons and the breadcrumb
+  // move it, and the map follows (below); renderCrumbs records where the
+  // map is.
+  const selection = createSelection({
+    parentOf: function (ref) {
+      if (ref.kind === "sector") return { kind: "stage", stage: ref.stage };
+      const parent = S.parentStage(ref.stage, getOutline(), edgePc);
+      return parent ? { kind: "stage", stage: parent } : null;
+    },
+    same: function (a, b) {
+      if (a.kind !== b.kind) return false;
+      if (a.kind === "stage") return S.sameStage(a.stage, b.stage);
+      return a.ring === b.ring && a.layer === b.layer && a.slot === b.slot;
+    },
+  });
+  selection.onChange(function (change) {
+    if (change.ref.kind === "stage") go(change.ref.stage);
+  });
+
+  function syncSelection() {
+    if (selectedSector && !resolved.sector) {
+      selection.select({ kind: "sector", ring: selectedSector.ring, layer: selectedSector.layer, slot: selectedSector.slot, stage: stage }, { quiet: true });
+    } else {
+      selection.select({ kind: "stage", stage: stage }, { quiet: true });
+    }
+  }
+
   function up() {
     if (entered) {
       // Out of the sector, to the stage it sits in with it still selected.
@@ -926,17 +956,14 @@ export function createStageView(host) {
       renderTravel();
       return;
     }
-    if (selectedSector && !resolved.sector) {
-      selectedSector = null;
-      go(stage);
-      return;
-    }
-    const parent = S.parentStage(stage, getOutline(), edgePc);
-    if (parent) go(parent);
+    selection.up();
   }
 
   function home() {
-    go({ at: null, picks: [] });
+    const top = { at: null, picks: [] };
+    // Already there: go again, so the camera returns to the whole galaxy.
+    if (S.sameStage(stage, top) && !(selectedSector && !resolved.sector)) go(top);
+    else selection.select({ kind: "stage", stage: top });
   }
 
   // The map's Back and Forward: the browser's own history, kept to this
@@ -946,6 +973,12 @@ export function createStageView(host) {
     else if (direction > 0 && mapIndex < maxIndex) history.forward();
   }
 
+  // Forward to current (MAP.95): all the way to the newest view in this
+  // map's history, in one jump.
+  function travelToCurrent() {
+    if (mapIndex < maxIndex) history.go(maxIndex - mapIndex);
+  }
+
   function renderTravel() {
     if (!els.controls) return;
     const back = els.controls.querySelector('[data-action="back"]');
@@ -953,6 +986,8 @@ export function createStageView(host) {
     const upButton = els.controls.querySelector('[data-action="up"]');
     if (back) back.disabled = mapIndex <= 0;
     if (forward) forward.disabled = mapIndex >= maxIndex;
+    const current = els.controls.querySelector('[data-action="current"]');
+    if (current) current.disabled = mapIndex >= maxIndex;
     if (upButton) upButton.disabled = !stage.at && !stage.picks.length && !selectedSector;
     const resetButton = els.controls.querySelector('[data-action="reset-view"]');
     if (resetButton) resetButton.disabled = !isFree(resolved);
@@ -1638,7 +1673,7 @@ export function createStageView(host) {
     button.type = "button";
     button.className = className;
     button.textContent = crumb.label;
-    button.addEventListener("click", function () { go(crumb.stage); });
+    button.addEventListener("click", function () { selection.select({ kind: "stage", stage: crumb.stage }); });
     return button;
   }
 
@@ -1721,6 +1756,7 @@ export function createStageView(host) {
   }
 
   function renderCrumbs() {
+    syncSelection();
     const nav = els.crumbs;
     if (!nav) return;
     crumbItems = crumbSteps();
@@ -2434,6 +2470,7 @@ export function createStageView(host) {
     home: home,
     up: up,
     travel: travel,
+    travelToCurrent: travelToCurrent,
     setChartedOnly: setChartedOnly,
     setNeedGenerated: setNeedGenerated,
     stage: function () { return stage; },

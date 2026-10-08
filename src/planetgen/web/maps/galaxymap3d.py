@@ -578,6 +578,8 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
     <div class="galaxy-steps-panel" data-steps-panel></div>
   </details>
   <button type="button" class="starmap-btn" data-action="forward" data-icon="forward" disabled>Forward</button>
+  <button type="button" class="starmap-btn" data-action="current" data-icon="forward-current" disabled
+          title="Jump to the newest view in this history (MAP.95)">Current</button>
   <button type="button" class="starmap-btn" data-action="up" data-icon="up" disabled
           title="One step back out (Esc)">Up</button>
   <button type="button" class="starmap-btn" data-action="reset" data-icon="reset"

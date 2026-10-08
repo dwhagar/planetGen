@@ -1728,8 +1728,8 @@ row per sector address a backfill reached or a fill generated. See
 | `expected_systems` | DOUBLE | nullable | `relative_density` times `galaxy_shape.expected_system_count_at_density_1`. |
 | `actual_systems`, `actual_stars` | INT | nullable | What the fill gave it; NULL before. |
 | `mean_temperature_k`, `mean_luminosity_sol` | DOUBLE | nullable | The mean temperature and luminosity (L_sun) of its systems' stars. |
-| `fill_share` | DOUBLE | nullable | 0..1: its systems against the most a sector can hold (the density model's peak), on a log scale (`sectorLook.fill_share`); the Galaxy Map color's saturation (MAP.86). |
-| `color_r`, `color_g`, `color_b` | DOUBLE | nullable | Its Galaxy Map color, sRGB 0..1 (`sectorLook.sector_color`: hue from the stars' mean temperature, saturation from `fill_share`, lightness from their mean luminosity); NULL with no stars (MAP.86). |
+| `mean_age_gy` | DOUBLE | nullable | The mean age (Gy) of its stars; NULL with no stars (v55, DB.14). The Galaxy Map's hue comes from it. |
+| `total_luminosity_sol` | DOUBLE | nullable | The summed luminosity (L_sun) of its stars; NULL with no stars (v55, DB.14). The Galaxy Map's brightness comes from it. No color is stored: the page works it out (MAP.128). |
 | `filled_at` | TIMESTAMP(3) | nullable | When the fill saved it. |
 | `updated_at` | TIMESTAMP | NOT NULL | |
 

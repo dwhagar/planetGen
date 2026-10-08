@@ -15,7 +15,7 @@ release is stamped.
 |---|---|
 | UX | UX.50 |
 | MAP | MAP.133 |
-| NAV | NAV.50 |
+| NAV | NAV.51 |
 | GEN | GEN.121 |
 | PERF | PERF.31 |
 | DB | DB.15 |
@@ -412,9 +412,9 @@ Parents marked "new parent" had no old number of their own.
 | ADM.21 | Input validation on Pydantic models | none | open |
 | ADM.22 | Job logs streamed over SSE into Xterm.js, with native progress bars | none | done, PR #551 |
 | ADM.23 | Log output wraps with hard line breaks (bug) | none | done, PR #508 |
-| ADM.24 | A failed action's log closes before it can be read (bug) | none | open |
-| ADM.25 | Error tracebacks don't reach the console and the web log window (bug) | none | open |
-| ADM.26 | The bright-star backfill shows no progress bar on the web (bug) | none | open |
+| ADM.24 | A failed action's log closes before it can be read (bug) | none | done, PR #560 |
+| ADM.25 | Error tracebacks don't reach the console and the web log window (bug) | none | done, PR #560 |
+| ADM.26 | The bright-star backfill shows no progress bar on the web (bug) | none | done, PR #560 |
 | ADM.27 | Changing a planet's class doesn't regenerate its surface conditions (bug) | none | done, PR #448 |
 | ADM.28 | A simpler Generate page: layer specs, a Customize window and plain controls | none | open |
 | ADM.29 | Fill a span of layers, rings or columns | none | open |
@@ -422,7 +422,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.31 | Every generate action offers to show what it made on the Galaxy Map | none | open |
 | ADM.32 | Add a star system to a sector: at the emptiest spot, at given coordinates, or at random outside every Hill sphere | none | open |
 | ADM.33 | The owner can override "no room" warnings and generate anyway | none | done, PR #476 |
-| ADM.34 | One admin menu per screen, holding only that screen's actions | none | open |
+| ADM.34 | One admin menu per screen, holding only that screen's actions | none | done, PR #562 |
 | ADM.35 | Full control from every screen: edit anything, regenerate with every input, backfill or erase what is in view | none | open |
 | ADM.36 | Change an object's trajectory vector | none | open |
 | ADM.37 | The Generate page's prevalence fields show "0% change" instead of each feature's real share (bug) | none | done, PR #514 |
@@ -458,7 +458,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.11 | The database layer and migrations on SQLAlchemy and Alembic | none | open |
 | DB.12 | MariaDB reads a stored -0.0 back as +0.0 (bug) | none | done, PR #442 |
 | DB.13 | Every stored value in its own column, not in JSON blocks, and indexed for search | none | open |
-| DB.14 | Sector stats keep the raw star statistics (mean age, summed luminosity, star count) and no baked color | none | open |
+| DB.14 | Sector stats keep the raw star statistics (mean age, summed luminosity, star count) and no baked color | none | done, PR #556 |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
@@ -676,7 +676,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.92 | The System Map's side panel leaves out a planet's or moon's radius and mass (bug) | none | done, PR #405 |
 | MAP.93 | The Galaxy Map breadcrumb wraps onto several lines instead of collapsing its middle steps into a "…" menu (bug) | none | done, PR #399 |
 | MAP.94 | On a phone the breadcrumb should give way to a round menu button between Back and Forward (bug) | none | done, PR #399 |
-| MAP.95 | A "Forward to current" button next to the map's Back and Forward | none | open |
+| MAP.95 | A "Forward to current" button next to the map's Back and Forward | none | done, PR #562 |
 | MAP.96 | The Galaxy Map can't be turned freely: the tilt stops at straight down and at 80 degrees (bug) | none | done, PR #413 (open: keep the rotation in the URL and bookmarks? Not stored today) |
 | MAP.97 | The Galaxy Map camera should go top-down for the galaxy and a slab, isometric for a block, at every zoom step (bug) | none | done, PR #413 (defaults: a manual turn does not carry to the next step; Reset view returns to the step's preset) |
 | MAP.98 | Slab button lines should end at the nearest edge of their slab (bug) | none | done, PR #422 |
@@ -699,9 +699,9 @@ Parents marked "new parent" had no old number of their own.
 | MAP.115 | Comets, rogue planets and asteroid fields show above the sector level (bug) | none | merged into MAP.116 (2026-10-07) |
 | MAP.116 | Dense generated sectors crowd the Galaxy Map when zoomed out (bug) | none | open |
 | MAP.127 | See into and step to the neighbouring blocks and slabs on the Galaxy Map | none | merged into MAP.121 (2026-10-07) |
-| MAP.128 | The Galaxy Map and Sector Map tint a sector by star age, density and luminosity | none | open |
-| MAP.129 | Blocks colored from their sectors' statistics, weighted by star count | none | open |
-| MAP.130 | Retire the average-star-color rule in the docs and tests | none | open |
+| MAP.128 | Decide what the Sector Map tints by star age, density and luminosity, and test it | none | open |
+| MAP.129 | Blocks colored from their sectors' statistics, weighted by star count | none | done, PR #556 |
+| MAP.130 | Retire the average-star-color rule in the docs and tests | none | done, PR #556 |
 | MAP.131 | A Color by switch on the maps, with a legend | none | open |
 | MAP.132 | Overlay markers for black holes, nebulae and habitable worlds | none | open |
 | MAP.117 | Surface pressure missing from the planet and moon side panel (bug) | none | done, PR #457 |
@@ -726,9 +726,9 @@ Parents marked "new parent" had no old number of their own.
 | NAV.10 | Routing that scales past a few thousand systems | none | open |
 | NAV.11 | Travel times for the system-to-system route too | none | open |
 | NAV.12 | No maximum hop length: a route always reaches the nearest star it can, across any number of sectors | none | open |
-| NAV.13 | A picker module: select, step out, step in, step sideways | none | open |
+| NAV.13 | A picker module: select, step out, step in, step sideways | none | done, PR #564 |
 | NAV.14 | One breadcrumb for every level | none | open |
-| NAV.15 | Pick mode everywhere | none | open |
+| NAV.15 | Pick mode everywhere | none | done, PR #566 |
 | NAV.16 | NAV endpoints can be any object | none | open |
 | NAV.17 | A saved course record with both forms | none | open |
 | NAV.18 | Save, list, open, rename and delete, per browser | none | open |
@@ -759,10 +759,11 @@ Parents marked "new parent" had no old number of their own.
 | NAV.43 | Find everything within a distance of a place: the query and the API | none | open |
 | NAV.44 | A "What's nearby" page: pick a place, enter a distance in parsecs, list what is there | none | open |
 | NAV.45 | "What's within N pc" from the Galaxy Map and Sector Map | none | open |
-| NAV.46 | The NAV picker can't click galaxy wedges to zoom in (bug) | none | open |
+| NAV.46 | The NAV picker can't click galaxy wedges to zoom in (bug) | none | closed, already fixed; covered by a browser test (#568) |
 | NAV.47 | Unknown-space jumps stop at scattered stars, black holes, neutron stars and quasars | none | open |
 | NAV.48 | Offer to generate the uncharted sectors that block a course | none | open |
 | NAV.49 | Waypoints: pick objects in Star select mode and plot a course through them, kept on the map until cleared | none | open |
+| NAV.50 | Pick any object down to a moon as a NAV endpoint | none | open |
 | OPS.1 | Build the version number from the category counters (item 80's version-scheme questions) | none (split from 80 by the renumbering) | done in the version-from-todo-counters PR |
 | OPS.2 | Apache OOM-killed on the production server | 1 (2026-09-24 01:32Z to 02:02Z) | done in 5.47.0, PR #72 |
 | OPS.3 | PowerShell installers and macOS-safe bash scripts | 50 (2026-09-30 20:43Z to 2026-10-01 02:57Z) | done in 7.16.0, PR #125 (see note 4) |
@@ -895,7 +896,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.23 | A shared unit-ladder module | none | open |
 | UX.24 | Sector contents: rogue planets after systems and phenomena, and expanded rows the full table width (bug) | none | done, PR #487 |
 | UX.25 | Rogue planets: octant and a small map symbol beside each name (bug) | none | done, PR #490 |
-| UX.26 | Edit and admin actions as a button that opens a menu (bug) | none | open |
+| UX.26 | Edit and admin actions as a button that opens a menu (bug) | none | done, PR #558 |
 | UX.27 | System page: the system and navigation buttons on one row that doesn't overlap (bug) | none | done, PR #539 |
 | UX.28 | Investigate icons instead of words on buttons | none | done, PR #490 |
 | UX.29 | Every comet in a system shows its type as a link (bug) | none | done, PR #487 |

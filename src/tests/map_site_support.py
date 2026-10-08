@@ -166,14 +166,15 @@ def sector_detail(sector_id=SECTOR_ID):
     }
 
 
-SECTOR_LOOKS = {
-    SECTOR_ID: (0.9, (1.0, 0.82, 0.45)),
-    8: (0.5, (0.45, 0.6, 1.0)),
-    9: (0.0, None),
-    10: (0.7, (0.95, 0.35, 0.2)),
+SECTOR_STATS = {
+    SECTOR_ID: (900, 1200, 4.5, 3000.0),
+    8: (40, 60, 0.5, 900.0),
+    9: (0, 0, None, 0.0),
+    10: (6, 8, 11.0, 4.0),
 }
-"""Each fixture sector's stored fill share and color (MAP.86): a dense
-warm sector, a blue one, one with no stars and a red one."""
+"""Each fixture sector's stored systems, stars, mean star age (Gy) and summed
+luminosity (DB.14): a dense average one, a young bright one, one with no
+stars and a sparse old one."""
 
 
 def galaxy_stage(at=None):
@@ -194,21 +195,22 @@ def galaxy_stage(at=None):
     sectors = None
     if child_m == 1:
         sectors = [{"ring": s[1], "layer": s[2], "slot": s[3], "id": s[0], "name": s[4],
-                    "system_count": len(SYSTEMS) if s[0] == SECTOR_ID else 0, "look": _look([s[0]])}
+                    "system_count": len(SYSTEMS) if s[0] == SECTOR_ID else 0, "stats": _stats([s[0]])}
                    for s, _chain in inside]
     return {"at": format_drill_key(block), "child_m": child_m, "children": _children(counts), "sectors": sectors}
 
 
-def _look(ids):
-    """`queryDb._stage_look` over these fixture sectors."""
-    colored = [SECTOR_LOOKS[i][1] for i in ids if SECTOR_LOOKS[i][1]]
-    return {"share": sum(SECTOR_LOOKS[i][0] for i in ids) / len(ids),
-            "color": [sum(c[k] for c in colored) / len(colored) for k in range(3)] if colored else None,
-            "colored": len(colored)}
+def _stats(ids):
+    """`queryDb._stage_stats` over these fixture sectors."""
+    rows = [SECTOR_STATS[i] for i in ids]
+    stars = sum(r[1] for r in rows)
+    return {"systems": sum(r[0] for r in rows), "expected_systems": 0.0, "stars": stars,
+            "mean_age_gy": sum(r[2] * r[1] for r in rows if r[1]) / stars if stars else None,
+            "luminosity_sol": sum(r[3] for r in rows)}
 
 
 def _children(counts):
-    return [{"ring": b.ring, "wedge": b.wedge, "slab": b.slab, "generated": len(ids), "look": _look(ids)}
+    return [{"ring": b.ring, "wedge": b.wedge, "slab": b.slab, "generated": len(ids), "stats": _stats(ids)}
             for b, ids in sorted(counts.items(), key=lambda item: (item[0].slab, item[0].ring, item[0].wedge))]
 
 

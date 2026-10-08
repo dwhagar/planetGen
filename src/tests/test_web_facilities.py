@@ -186,7 +186,10 @@ def _csrf(app, client):
 
 
 def _panel(html):
-    return re.search(r'<section class="panel" id="facilities".*?</section>', html, re.S).group(0)
+    """The Facilities table and the Place-a-facility dialog (ADM.34 moved the form into the Admin menu)."""
+    section = re.search(r'<section class="panel" id="facilities".*?</section>', html, re.S)
+    dialog = re.search(r'<sl-dialog id="admin-facility-place".*?</sl-dialog>', html, re.S)
+    return (section.group(0) if section else "") + (dialog.group(0) if dialog else "")
 
 
 def _post(app, client, **form):
@@ -229,7 +232,8 @@ def test_system_page_without_facilities_shows_no_panel(client, fake):
 
 def test_admin_sees_the_form_with_every_host(client, fake):
     _as_admin(client, fake)
-    panel = _panel(client.get("/system/5").get_data(as_text=True))
+    page = client.get("/system/5").get_data(as_text=True)
+    panel = _panel(page)
     for value in ("star:1", "planet:10", "planet:11", "moon:30", "asteroid_belt:20"):
         assert f'<option value="{value}"' in panel
     # Name, then placement, then host (ADM.9); each host says which
@@ -245,7 +249,8 @@ def test_admin_sees_the_form_with_every_host(client, fake):
     assert re.search(r'<div class="search-field facility-orbit" data-facility-orbit>', panel)
     assert 'value="preview">Preview</button>' in panel
     assert 'value="save">Save</button>' in panel
-    assert panel.count('name="facility_action" value="remove"') == 5
+    # Each facility is removed from the Admin menu's "Remove a facility" submenu.
+    assert page.count('name="facility_action" value="remove"') == 5
     assert "<script" not in panel
 
 

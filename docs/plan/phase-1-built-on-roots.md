@@ -27,12 +27,13 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | NAV.8 | Pages and anchors for stars, planets, moons and belts | NAV.7 | System page anchors (system.html). |
 | NAV.9 | Search and locate return references for every kind | NAV.7 | queryDb search and galaxy_locate. |
 | NAV.16 | NAV endpoints can be any object | NAV.7 | Moved from phase 2: NAV.3 closes in phase 1 now. navigation.py legs, nav_page.py endpoints. |
+| NAV.50 | Pick any object down to a moon as a NAV endpoint | NAV.16 | Split from NAV.15: body endpoints need NAV.16. |
 
 ### Picker
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| NAV.3 | One shared picker for the Galaxy, Sector and System displays | NAV.13, NAV.14, NAV.15, NAV.16, NAV.32 | Moved from phase 3: its parts are in phases 0 and 1. Parent; closes with its subitems. |
+| NAV.3 | One shared picker for the Galaxy, Sector and System displays | NAV.14, NAV.16, NAV.32, NAV.50 | Moved from phase 3: its parts are in phases 0 and 1. Parent; closes with its subitems. |
 
 ### Database consistency check
 
@@ -135,10 +136,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.122 | A Select mode on every galaxy view: Galaxy (blocks and sectors) or Star |  | Merges the 2026-10-07 "button to select a star" ask; MAP.101 (PR #431) made stars unpickable by default. |
 | MAP.123 | Show or hide star types and phenomena, and set the luminosity floor, on the Galaxy and Sector Maps | MAP.79 | Extends MAP.79's per-kind buttons to star types and the Galaxy Map. |
 | MAP.124 | The Galaxy Map opens zoomed to fit all charted space | MAP.67 |  |
-| DB.14 | Sector stats keep the raw star statistics (mean age, summed luminosity, star count) and no baked color |  | Boss 2026-10-08 01:59Z; drops color_r/g/b and fill_share (MAP.86). |
-| MAP.128 | The Galaxy Map and Sector Map tint a sector by star age, density and luminosity | DB.14 | Boss 2026-10-08 01:59Z. |
-| MAP.129 | Blocks colored from their sectors' statistics, weighted by star count | DB.14, MAP.128 | Aggregated where MAP.102 builds the block tiles. |
-| MAP.130 | Retire the average-star-color rule in the docs and tests | MAP.128 | test_sector_look.py, test_bright_star_scatter.py, test_api.py, docs. |
+| MAP.128 | Decide what the Sector Map tints by star age, density and luminosity, and test it |  | Boss 2026-10-08 01:59Z. |
 
 ### System Map
 
@@ -160,7 +158,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | ADM.32 | Add a star system to a sector: at the emptiest spot, at given coordinates, or at random outside every Hill sphere | GEN.74 | Merges two asks (one system added by the computer; placement chosen by admin). |
 | MAP.120 | Bright-star backfill from the Galaxy Map's block, slab and wedge menus |  |  |
-| ADM.35 | Full control from every screen: edit anything, regenerate with every input, backfill or erase what is in view | ADM.34, MAP.120 | Parent; MAP item MAP.120 is the map part. |
+| ADM.35 | Full control from every screen: edit anything, regenerate with every input, backfill or erase what is in view | MAP.120 | Parent; MAP item MAP.120 is the map part. |
 
 ### Pages
 
