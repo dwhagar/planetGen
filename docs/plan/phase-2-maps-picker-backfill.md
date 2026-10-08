@@ -93,8 +93,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| MAP.69 | A system scene endpoint with 3D orbits | NAV.7 | Scene endpoint with references. |
-| MAP.70 | Positions at any time | MAP.69 | Positions through the point-in-space object (GEN.74, built). Python twin feeds NAV.27. |
+| MAP.70 | Positions at any time |  | Positions through the point-in-space object (GEN.74, built). Python twin feeds NAV.27. |
 
 ### Reproducible galaxies
 
