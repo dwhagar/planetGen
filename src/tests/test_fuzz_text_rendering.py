@@ -181,25 +181,25 @@ def test_esc_round_trips_and_leaves_no_markup_characters(value):
 @given(prefix=hostile_text,
        entries=st.lists(st.tuples(hostile_text, st.floats(0, 1e6)), max_size=4),
        link_some=st.booleans())
-def test_linkify_location_escapes_everything_and_links_only_known_names(prefix, entries, link_some):
+def test_linkify_nearest_escapes_everything_and_links_only_known_names(prefix, entries, link_some):
     assume(fmt._LOCATION_NEIGHBOR_MARKER not in prefix)
     neighbors = ", ".join(f"{name} ({dist:.1f} ly)" for name, dist in entries)
     location = f"{prefix} -- nearest: {neighbors}" if entries else prefix
     name_to_id = {name: i + 1 for i, (name, _d) in enumerate(entries)} if link_some else {}
-    out = fmt.linkify_location(location, name_to_id, lambda i: f"/system/{i}")
+    out = fmt.linkify_nearest(location, name_to_id, lambda i: f"/system/{i}")
     _assert_no_active_content(out, {"a"}, {"href"})
-    if not name_to_id or not entries:
-        assert out == fmt.esc(location)
-    assert html.unescape(re.sub(r"<[^>]*>", "", out)).replace("\r", "") .count("nearest") >= (1 if entries else 0)
+    if not entries:
+        assert out == ""
+    assert len([t for t, _a in _assert_no_active_content(out, {"a"}, {"href"}).tags if t == "a"]) <= fmt.NEAREST_SHOWN
 
 
 @given(location=st.one_of(st.none(), hostile_text),
        neighbors=st.lists(st.fixed_dictionaries({"id": st.integers(1, 10**9), "name": hostile_text,
                                                   "distance_ly": st.floats(0, 1e9)}), max_size=4))
-def test_nearest_neighbors_location_escapes_every_name(location, neighbors):
-    out = fmt.nearest_neighbors_location(location, neighbors, lambda i: f"/system/{i}")
+def test_nearest_systems_html_escapes_every_name(location, neighbors):
+    out = fmt.nearest_systems_html(neighbors, lambda i: f"/system/{i}")
     parsed = _assert_no_active_content(out, {"a"}, {"href"})
-    assert len([t for t, _a in parsed.tags if t == "a"]) == len(neighbors)
+    assert len([t for t, _a in parsed.tags if t == "a"]) == min(len(neighbors), fmt.NEAREST_SHOWN)
 
 
 @given(distance=st.one_of(st.none(), any_float))

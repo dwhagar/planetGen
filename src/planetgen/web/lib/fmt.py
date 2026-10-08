@@ -137,21 +137,25 @@ _LOCATION_NEIGHBOR_MARKER = " -- nearest: "
 _LOCATION_NEIGHBOR_RE = re.compile(r'^(.*) (\([\d.]+ ly\))$')
 
 
-def linkify_location(location, name_to_id, system_url):
+NEAREST_SHOWN = 3
+"""int: How many neighbours a "Nearest:" list shows."""
+
+
+def linkify_nearest(location, name_to_id, system_url):
     """
-    HTML-escapes a `star_systems.location` string and turns each nearest-
-    neighbor name it lists into a link to that system's page.
+    The neighbours listed in a `star_systems.location` string, as HTML with
+    each name linked to that system's page, or `""` when it lists none.
+    The sector's own name is left out (the breadcrumb carries it, UX.52).
 
     `location` is plain text baked in at generation time by
     `planetgen.db.store._format_location_string`, e.g.
-    `"Voranthis Kelmoor -- nearest: Alpha Vesta (4.2 ly), Beta (5.1 ly)"` --
-    the sector name, then up to 3 "Name (distance ly)" entries
-    comma-joined after a fixed `" -- nearest: "` marker (empty when the
-    sector has no other systems, in which case this is just the sector
-    name with nothing to link). This matches that exact format to pull the
-    names back out; anything that doesn't fit it (older data predating the
-    "-- nearest:" suffix, or a name not found in `name_to_id`) is left as
-    plain escaped text rather than guessed at.
+    `"Voranthis Kelmoor -- nearest: Alpha Vesta (4.2 ly), Beta (5.1 ly)"`:
+    the sector name, then up to 3 "Name (distance ly)" entries comma-joined
+    after a fixed `" -- nearest: "` marker. This matches that exact format
+    to pull the names back out; an entry that doesn't fit it, or a name not
+    found in `name_to_id`, is left as plain escaped text rather than
+    guessed at. Used where live neighbour data (`nearest_systems_html`) is
+    not at hand.
 
     Args:
         location (str): The raw `star_systems.location` value.
@@ -164,14 +168,11 @@ def linkify_location(location, name_to_id, system_url):
     Returns:
         str: HTML-safe markup, neighbor names linked where resolvable.
     """
-    if not location:
+    if not location or _LOCATION_NEIGHBOR_MARKER not in location:
         return ""
-    if _LOCATION_NEIGHBOR_MARKER not in location:
-        return esc(location)
-
-    prefix, neighbors_part = location.split(_LOCATION_NEIGHBOR_MARKER, 1)
+    neighbors_part = location.split(_LOCATION_NEIGHBOR_MARKER, 1)[1]
     linked_entries = []
-    for entry in neighbors_part.split(", "):
+    for entry in neighbors_part.split(", ")[:NEAREST_SHOWN]:
         match = _LOCATION_NEIGHBOR_RE.match(entry)
         name = match.group(1) if match else None
         system_id = name_to_id.get(name) if name is not None else None
@@ -179,42 +180,20 @@ def linkify_location(location, name_to_id, system_url):
             distance = match.group(2)
             link = f'<a href="{esc(system_url(system_id))}">{esc(name)}</a>'
             linked_entries.append(f'{link} {esc(distance)}')
-        else:
+        elif entry:
             linked_entries.append(esc(entry))
-
-    return f"{esc(prefix)}{_LOCATION_NEIGHBOR_MARKER}" + ", ".join(linked_entries)
-
-
-def nearest_neighbors_location(location, neighbors, system_url):
-    """
-    The "Location:" text for a system page, built from live
-    `queryDb.system_detail` `nearest_neighbors` data: the sector name
-    (the stored `location` string's own prefix) followed by each nearest
-    neighbor as a link to its own system page with its distance.
-    Every neighbor here has a real id, so every one is linked, unlike
-    `linkify_location`, which can only link names that still match a row.
-
-    Args:
-        location (str): The raw `star_systems.location` value (only its
-                        sector-name prefix is used).
-        neighbors (list[dict]): `{id, name, distance_ly}`, nearest first.
-        system_url (callable): As for `linkify_location`.
-
-    Returns:
-        str: HTML-safe markup.
-    """
-    prefix = (location or "").split(_LOCATION_NEIGHBOR_MARKER, 1)[0]
-    return f"{esc(prefix)}{_LOCATION_NEIGHBOR_MARKER}" + nearest_systems_html(neighbors, system_url)
+    return ", ".join(linked_entries)
 
 
 def nearest_systems_html(neighbors, system_url):
     """`{id, name, distance_ly}` neighbors (`queryDb.nearest_systems`) as
-    comma-separated links with their distances. HTML-safe markup."""
+    comma-separated links with their distances (the nearest `NEAREST_SHOWN`).
+    HTML-safe markup."""
     def _distance(neighbor):
         distance = _finite(neighbor.get("distance_ly"))
         return f" ({distance:.1f} ly)" if distance is not None else ""
     return ", ".join(f'<a href="{esc(system_url(n["id"]))}">{esc(n["name"])}</a>{_distance(n)}'
-                     for n in neighbors)
+                     for n in neighbors[:NEAREST_SHOWN])
 
 
 def utc_time_html(value):

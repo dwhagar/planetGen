@@ -266,7 +266,7 @@ def test_sector_page_renders_badges_map_and_contents(client, fake):
     assert '<a href="/phenomenon/nebula/3">Veil</a>' in contents
     assert "Emission, 2.5 ly radius" in contents
     # Location's neighbor names link too.
-    assert 'nearest: <a href="/system/1002">Other</a> (1.0 ly)' in contents
+    assert "Fake Sector --" not in contents and '<a href="/system/1002">Other</a> (1.0 ly)' in contents
     # Anonymous visitors get no forms at all.
     assert "<form method=\"post\"" not in html and "data-nav" not in html
 
@@ -342,7 +342,7 @@ def test_sector_contents_filtered_to_rogue_planets_lists_each(client, fake):
     contents = html[html.index('id="sector-contents"'):]
     assert ">Drifter</a>" in contents and ">Wanderer</a>" in contents and "rogue planets<" not in contents
     assert "+x+y+z" in contents and "-x-y-z" in contents
-    assert 'Nearest: <a href="/system/1002">Other</a>' in contents
+    assert '<a href="/system/1002">Other</a>' in contents
     # UX.25: "Show on map" is a small map icon beside each name, its
     # words in the aria-label and tooltip.
     assert re.search(r'>Drifter</a> <button type="button" class="icon-btn" data-map-target="rogue_planet:21" '
@@ -362,7 +362,7 @@ def test_sector_contents_table_route_sorts_and_filters(client, fake):
     assert all(row[3]["text"] == "+x+y+z" for row in only["rows"]) and only["total"] >= 1
     drifter = client.get("/table/sector-contents?sector=5&contents_type=Rogue+Planet").get_json()["rows"]
     assert drifter[0][0] == {"text": "Drifter", "href": "/phenomenon/rogue_planet/21", "map_target": "rogue_planet:21"}
-    assert drifter[0][4]["parts"][0] == "Nearest: "
+    assert drifter[0][4]["parts"][0] == {"text": "Other", "href": "/system/1002"}
 
 
 def test_sector_page_takes_database_from_config(client, fake):

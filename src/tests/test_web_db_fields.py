@@ -177,7 +177,7 @@ def test_contents_rows_show_a_phenomenons_octant_and_nearest_systems():
     with create_app(_Config).test_request_context("/sector/1"):
         rows, _map = sector_page._contents({"systems": [], "phenomena": [nebula]})
     assert rows[0]["octant"] == "+X-Y+Z"
-    assert str(rows[0]["location"]) == ('Nearest: <a href="/system/1">Sol</a> (4.2 ly), '
+    assert str(rows[0]["location"]) == ('<a href="/system/1">Sol</a> (4.2 ly), '
                                         '<a href="/system/2">Tau</a> (9.0 ly)')
 
 
