@@ -667,9 +667,10 @@ export function stageQuery(stage) {
   return parts.length ? "?" + parts.join("&") : "";
 }
 
-// The stage a URL's query asks for: {stage, sector, problem}. `sector`
+// The stage a URL's query asks for: {stage, sector, open, problem}. `sector`
 // ({ring, layer, slot}) is set by ?sector=<designation>, whose stage the
-// caller works out (sectorStage needs the outline). An older link's
+// caller works out (sectorStage needs the outline); `open` by &open=1 with
+// it, the sector opened in place (MAP.66) and not only selected. An older link's
 // ?slab=s reads as a pick of that one slab, before any others, and its
 // region picks (the 3 x 3 pick MAP.56 dropped) end its picks there: it
 // opens at the stage before the first one. Anything
@@ -682,7 +683,7 @@ export function parseStageQuery(search) {
   if (designation != null) {
     const sector = parseSectorDesignation(designation);
     if (!sector) return { stage: galaxy, sector: null, problem: "There is no sector " + designation + "." };
-    return { stage: galaxy, sector: sector, problem: null };
+    return { stage: galaxy, sector: sector, open: params.get("open") === "1", problem: null };
   }
   let at = null;
   if (params.has("at")) {
