@@ -1217,7 +1217,17 @@ export function createStageView(host) {
       return;
     }
     if (!option.pick) return;
-    go({ at: stage.at, picks: stage.picks.concat([option.pick]) });
+    takePick(option.pick);
+  }
+
+  // Takes `pick` of the choices on screen. A choice is made on the stage
+  // that is DRAWN, not the one `go` has already moved to while the next
+  // container's data loads: picking again in that gap added a pick from
+  // the old view to the new stage, which has no such choice, and said
+  // "There is no layer x here" (MAP.107).
+  function takePick(pick) {
+    const base = display && display.resolved ? display.resolved.stage : stage;
+    go({ at: base.at, picks: base.picks.concat([pick]) });
   }
 
   function sectorOption(sector) {
@@ -1401,7 +1411,7 @@ export function createStageView(host) {
     const current = hover && hover.option != null ? hover.option : -1;
     if (key === "Enter") {
       if (current >= 0) act(current);
-      else if (hover && hover.layer) go({ at: stage.at, picks: stage.picks.concat([hover.layer]) });
+      else if (hover && hover.layer) takePick(hover.layer);
       return;
     }
     let next = -1;
@@ -1776,7 +1786,7 @@ export function createStageView(host) {
       button.addEventListener("blur", function () { setTimeout(unlight, 0); });
       button.addEventListener("click", function () {
         if (!takeable || animation) return;
-        go({ at: stage.at, picks: stage.picks.concat([pick]) });
+        takePick(pick);
       });
       item.appendChild(button);
       list.appendChild(item);

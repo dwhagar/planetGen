@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.49 |
 | MAP | MAP.133 |
 | NAV | NAV.50 |
-| GEN | GEN.120 |
+| GEN | GEN.121 |
 | PERF | PERF.31 |
 | DB | DB.15 |
 | API | API.20 |
@@ -581,6 +581,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.117 | The Galaxy Map shows bright stars only in a thin band on the galactic plane (bug) | none | open |
 | GEN.118 | The galaxy bulge is about 40 times too light, so edge-on views show no bulge (bug) | none | done, PR #491 |
 | GEN.119 | The galaxy density model has no thick disk (bug) | none | done, PR #491 |
+| GEN.120 | Integrate gatedPhonemeCodec.py into the naming package and remove it from the repo root | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -687,7 +688,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.104 | Nebula shading is missing on unfilled sectors (bug) | none | open |
 | MAP.105 | The nebula view should show its whole shape with the dimmed galaxy around it (bug) | none | open |
 | MAP.106 | The breadcrumb trail falls out of sync with the map (bug) | none | open |
-| MAP.107 | Selecting an empty slab near the core says "There is no layer x here" (bug) | none | open |
+| MAP.107 | Selecting an empty slab near the core says "There is no layer x here" (bug) | none | done, PR #537 |
 | MAP.108 | Empty slabs and wedges near the core can't be selected, and the side buttons block clicks (bug) | none | open |
 | MAP.109 | Zooming in and out loads slowly (bug) | none | open |
 | MAP.110 | Slab button lines come out of numerical order (bug) | none | done, PR #520 |
@@ -899,7 +900,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.28 | Investigate icons instead of words on buttons | none | done, PR #490 |
 | UX.29 | Every comet in a system shows its type as a link (bug) | none | done, PR #487 |
 | UX.30 | Planet information without the Markdown render | none | open |
-| UX.31 | Editing a star system: an edit button with a quick menu, not a long panel (bug) | none | open |
+| UX.31 | Editing a star system: an edit button with a quick menu, not a long panel (bug) | none | done, PR #533 |
 | UX.32 | Planet rows show the class only, without the type and moon labels | none | open |
 | UX.33 | Filter phenomena by their classes and types (bug) | none | open |
 | UX.34 | The sector summary calls white dwarfs "B-type" and "A-type" systems (bug) | none | done, PR #448 |
