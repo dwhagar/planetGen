@@ -1,5 +1,10 @@
 # Changelog
 
+## [7.325.675] - 2026-10-08
+
+### Changed
+- The System card's Wikitext and Markdown buttons are now a quiet "View source" menu in the card header (UX.67).
+
 ## [7.324.675] - 2026-10-08
 
 ### Added
