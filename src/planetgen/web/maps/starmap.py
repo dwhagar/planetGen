@@ -519,6 +519,7 @@ def _neighbor_indicator_data(link_url, neighbor):
     if neighbor["exists"]:
         data["name"] = neighbor["sector_name"]
         data["href"] = link_url("sector", sector_id=neighbor["sector_id"])
+        data["sectorId"] = neighbor["sector_id"]
     bright = neighbor.get("bright_stars")
     if bright:
         data["brightStarCount"] = len(bright)
@@ -867,6 +868,9 @@ def _star_data(link_url, system, star, x_px, y_px, z_px, max_r=None):
         "location": system["location"],
         # `sectormap.js`'s info panel links here with a plain `<a href>`.
         "href": link_url("system", system_id=system["id"]),
+        # The system's NAV endpoint (`nav_page.endpoint`), what its ☆
+        # Bookmark saves (`static/mappick.js`).
+        "endpoint": f'system:{int(system["id"])}',
     }
 
 
@@ -1302,6 +1306,7 @@ def render_map_panel(
 <canvas id="starmap-canvas" class="starmap-canvas" tabindex="0" role="application"
      aria-label="Interactive 3D sector map. Drag or use arrow keys to rotate, scroll or the zoom buttons to zoom."></canvas>
 {scale_bar_html}
+<div class="map-tooltip" id="starmap-tooltip" hidden></div>
 {noscript_html}
 </div>
 <div class="starmap-side">
