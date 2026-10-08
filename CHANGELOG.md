@@ -1,5 +1,11 @@
 # Changelog
 
+## [7.263.635] - 2026-10-08
+
+### Changed
+- The Galaxy Map colors a generated sector and the blocks holding it by what its stars are, not by their average color (which came out red nearly everywhere). The fill is translucent: denser sectors are more solid (never fully opaque), the mean star age sets the hue (blue young, slate at the 4.5 Gy disk average, amber old), and the summed luminosity sets the brightness. A block takes the same three from its sectors, with ages weighted by star count.
+- The `sector_stats` table keeps the raw numbers instead of a baked color: `mean_age_gy` and `total_luminosity_sol` replace `fill_share` and `color_r`/`color_g`/`color_b` (schema v55; the migration works the new two out for sectors already generated). `GET /api/galaxy/stage` returns `stats` (systems, expected systems, stars, mean age, luminosity) in place of `look`.
+
 ## [7.262.635] - 2026-10-08
 
 ### Fixed
