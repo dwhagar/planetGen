@@ -61,3 +61,24 @@ them. Rebuild from fresh releases (bumping the versions above) with:
   tar xzf xterm-addon-fit-<version>.tgz --one-top-level=fit fit/package/lib/addon-fit.mjs
 
 then copy the files here, dropping the `//# sourceMappingURL` lines.
+
+
+TanStack Table core 8.21.3 (@tanstack/table-core on npm, https://tanstack.com/table)
+and TanStack Virtual core 3.13.12 (@tanstack/virtual-core, https://tanstack.com/virtual).
+MIT License -- full texts in tanstack/LICENSE-table-core.txt and
+tanstack/LICENSE-virtual.txt (each package's own LICENSE, copied unmodified).
+
+tanstack/ holds each package's ES module build bundled into one minified file
+(table-core.min.js, virtual-core.min.js), loaded with their own ?v= query by
+the data table (static/datatable.js, UX.41). Rebuild from fresh releases
+(bumping the versions above) with:
+
+  npm pack @tanstack/table-core @tanstack/virtual-core
+  tar xzf tanstack-table-core-<version>.tgz --one-top-level=tc
+  tar xzf tanstack-virtual-core-<version>.tgz --one-top-level=vc
+  npx esbuild --bundle --minify --format=esm tc/package/build/lib/index.mjs \
+      --outfile=table-core.min.js
+  npx esbuild --bundle --minify --format=esm vc/package/dist/esm/index.js \
+      --outfile=virtual-core.min.js
+
+then copy the two files and the packages' LICENSE files here.

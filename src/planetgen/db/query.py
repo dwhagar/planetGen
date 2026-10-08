@@ -1376,10 +1376,55 @@ def _widest_placed_phenomenon_radius_ly(conn):
     return widest
 
 
-def list_phenomena(conn, limit=None, offset=None):
+PHENOMENON_SORTS = {
+    "name": "name", "type": "type", "descriptor": "descriptor", "radius": "radius_ly",
+    "sector": "sector_name", "placed": "placed",
+}
+"""dict: The sort keys `list_phenomena` accepts (the Phenomena table's column
+keys) -> the column of the union they order by."""
+
+
+def _phenomena_union():
+    """The `SELECT` that stacks every `_PHENOMENON_TABLES` table into one
+    shape (`type`, `id`, `name`, `descriptor`, `radius_ly`, `sector_id`,
+    `sector_name`, `placed`). A `black_holes`/`neutron_stars` row with
+    `star_id` set is a normal system's own compact-remnant star, already on
+    that system's page, so it is left out; every other table is always
+    standalone."""
+    return " UNION ALL ".join(
+        f"""
+        SELECT '{type_label}' AS type, t.id AS id, t.name AS name,
+               {descriptor_expr} AS descriptor, {radius_expr} AS radius_ly,
+               t.sector_id AS sector_id, sec.name AS sector_name,
+               (t.center_x_pc IS NOT NULL) AS placed
+        FROM {table} t
+        LEFT JOIN sectors sec ON sec.id = t.sector_id
+        {"WHERE t.star_id IS NULL" if table in ("black_holes", "neutron_stars") else ""}
+        """
+        for table, type_label, descriptor_expr, radius_expr in _PHENOMENON_TABLES
+    )
+
+
+def _phenomena_where(types=(), descriptors=(), placed=None):
+    """`(where_sql, params)` for the Phenomena table's filters: any of the
+    `types`, any of the `descriptors` (an empty list filters nothing), and
+    `placed` (True/False, or None for both)."""
+    clauses, params = [], []
+    for column, values in (("type", types), ("descriptor", descriptors)):
+        if values:
+            clauses.append(f"{column} IN ({', '.join('?' for _ in values)})")
+            params.extend(values)
+    if placed is not None:
+        clauses.append("placed = ?")
+        params.append(1 if placed else 0)
+    return (" WHERE " + " AND ".join(clauses)) if clauses else "", params
+
+
+def list_phenomena(conn, limit=None, offset=None, sort="name", descending=False, types=(), descriptors=(),
+                   placed=None):
     """
     Returns every exotic phenomenon (nebula/asteroid field/black hole/
-    neutron star/supernova remnant/rogue planet/interstellar comet --
+    neutron star/supernova remnant/rogue planet/interstellar comet/quasar --
     every table in `_PHENOMENON_TABLES`), across every sector and
     regardless of galaxy placement -- `GET /api/phenomena`'s own flat
     listing (`html/phenomena.py`), unlike `galaxy_placed_phenomena` (which
@@ -1391,6 +1436,12 @@ def list_phenomena(conn, limit=None, offset=None):
         limit (int, optional): Caps the number of rows returned.
         offset (int, optional): Skips this many rows first. Ignored unless
             `limit` is also given.
+        sort (str): A key of `PHENOMENON_SORTS`; ties fall back to name,
+            type and id so pages never overlap.
+        descending (bool): Reverse the sort.
+        types (iterable[str]): Keep only these types (any of).
+        descriptors (iterable[str]): Keep only these descriptors (any of).
+        placed (bool, optional): Keep only placed or only unplaced ones.
 
     Excludes a `black_holes`/`neutron_stars` row with `star_id` set -- that
     shape is a normal star system's own compact-remnant star (already
@@ -1399,66 +1450,77 @@ def list_phenomena(conn, limit=None, offset=None):
     standalone, see their own table comments) and needs no such filter.
 
     Returns:
-        list[dict]: One row per phenomenon, ordered by name: `id`, `type`
+        list[dict]: One row per phenomenon, ordered by `sort`: `id`, `type`
             (`"nebula"`, `"asteroid_field"`, `"black_hole"`,
-            `"neutron_star"`, `"supernova_remnant"`, `"rogue_planet"`, or
-            `"interstellar_comet"`), `name`, `descriptor`, `radius_ly`,
-            `sector_id`/`sector_name` (both `None` if this phenomenon has
-            never been linked to a sector -- see `schema.sql`'s "v18"
-            header note), and `placed` (bool -- whether it has a galaxy
-            position at all, `center_x_pc IS NOT NULL`).
+            `"neutron_star"`, `"supernova_remnant"`, `"rogue_planet"`,
+            `"interstellar_comet"` or `"quasar"`), `name`, `descriptor`,
+            `radius_ly`, `sector_id`/`sector_name` (both `None` if this
+            phenomenon has never been linked to a sector -- see
+            `schema.sql`'s "v18" header note), and `placed` (bool --
+            whether it has a galaxy position at all).
     """
-    union_parts = [
-        f"""
-        SELECT '{type_label}' AS type, t.id AS id, t.name AS name,
-               {descriptor_expr} AS descriptor, {radius_expr} AS radius_ly,
-               t.sector_id AS sector_id, sec.name AS sector_name,
-               t.center_x_pc AS center_x_pc
-        FROM {table} t
-        LEFT JOIN sectors sec ON sec.id = t.sector_id
-        {"WHERE t.star_id IS NULL" if table in ("black_holes", "neutron_stars") else ""}
-        """
-        for table, type_label, descriptor_expr, radius_expr in _PHENOMENON_TABLES
-    ]
-    query = "SELECT * FROM (" + " UNION ALL ".join(union_parts) + ") AS phenomena ORDER BY name"
-    params = []
+    if sort not in PHENOMENON_SORTS:
+        raise ValueError(f"unknown phenomenon sort {sort!r}")
+    where, params = _phenomena_where(types, descriptors, placed)
+    column = PHENOMENON_SORTS[sort]
+    query = (f"SELECT * FROM ({_phenomena_union()}) AS phenomena{where} "
+             f"ORDER BY {column} IS NULL, {column} {'DESC' if descending else 'ASC'}, name, type, id")
     if limit is not None:
         query += " LIMIT ? OFFSET ?"
         params.extend([limit, offset or 0])
 
-    rows = conn.execute(query, params).fetchall()
     return [
         {
             "id": row["id"], "type": row["type"], "name": row["name"],
             "descriptor": row["descriptor"], "radius_ly": row["radius_ly"],
             "sector_id": row["sector_id"], "sector_name": row["sector_name"],
-            "placed": row["center_x_pc"] is not None,
+            "placed": bool(row["placed"]),
         }
-        for row in rows
+        for row in conn.execute(query, params).fetchall()
     ]
 
 
-def count_phenomena(conn):
+def count_phenomena(conn, types=(), descriptors=(), placed=None):
     """
-    Returns the total number of exotic phenomena across every type in
-    `_PHENOMENON_TABLES`, ignoring any
-    pagination -- the denominator `list_phenomena(conn, limit=...)`
-    callers (the API's `/api/phenomena`) need to report how many pages
-    exist.
+    Returns the number of exotic phenomena across every type in
+    `_PHENOMENON_TABLES` that pass the same filters as `list_phenomena`,
+    ignoring any pagination -- the denominator `list_phenomena(conn,
+    limit=...)` callers (the API's `/api/phenomena`) need to report how many
+    pages exist.
 
     Args:
         conn (planetgen.db.store.Connection): An open, read-only connection.
 
     Returns:
-        int: Total phenomenon count.
+        int: Phenomenon count.
     """
-    return sum(
-        conn.execute(
-            f"SELECT COUNT(*) AS n FROM {table}"
-            + (" WHERE star_id IS NULL" if table in ("black_holes", "neutron_stars") else "")
-        ).fetchone()["n"]
-        for table, _type_label, _descriptor_expr, _radius_expr in _PHENOMENON_TABLES
-    )
+    where, params = _phenomena_where(types, descriptors, placed)
+    return conn.execute(
+        f"SELECT COUNT(*) AS n FROM ({_phenomena_union()}) AS phenomena{where}", params
+    ).fetchone()["n"]
+
+
+def phenomena_facets(conn, types=(), descriptors=(), placed=None):
+    """
+    The option counts the Phenomena table's filter menus show: how many
+    phenomena each `type` has and each `descriptor` (a class, kind or state:
+    nebula class, remnant morphology, rogue planet size ...). Each count
+    applies every filter except its own menu's, so picking a type narrows the
+    descriptor options and the other way round.
+
+    Returns:
+        dict: `{"type": [{"value", "count"}], "descriptor": [{"value",
+            "count"}]}`, options ordered by value.
+    """
+    facets = {}
+    for column, own in (("type", "types"), ("descriptor", "descriptors")):
+        filters = {"types": types, "descriptors": descriptors, own: ()}
+        where, params = _phenomena_where(filters["types"], filters["descriptors"], placed)
+        rows = conn.execute(
+            f"SELECT {column} AS value, COUNT(*) AS n FROM ({_phenomena_union()}) AS phenomena{where} "
+            f"GROUP BY {column} ORDER BY {column}", params).fetchall()
+        facets[column] = [{"value": row["value"], "count": row["n"]} for row in rows]
+    return facets
 
 
 _PHENOMENON_TYPE_TO_TABLE = {

@@ -317,7 +317,16 @@ connectivity to that specific schema rather than the default one.
   `queryDb.list_phenomena`. Excludes a black hole/neutron star that's
   actually anchored to a normal star system (`star_id` set) — that one's
   already shown on its own system's page, not a standalone phenomenon.
-  The data the `/phenomena` page shows.
+  The data the `/phenomena` page shows. The Phenomena table (UX.41) also
+  takes `sort` (`name`, the default, `type`, `descriptor`, `radius`,
+  `sector` or `placed`) with `order=asc|desc` (ties fall back to name, so
+  pages never overlap), the filters `type` and `descriptor` (each repeatable,
+  any of) and `placed=yes|no`, and `facets=1` to add `facets`:
+  `{"type": [{"value", "count"}], "descriptor": [{"value", "count"}]}`, the
+  options for the two filter menus. Each menu's counts apply every filter
+  except its own, so picking a type narrows the descriptor options and the
+  other way round. `total` counts only the rows that pass the filters; an
+  unknown `sort`, `order` or `placed` is a 400.
 - `GET /api/nebulae/<id>/shape[?lod=low|full]` — a nebula's shape as a
   triangle mesh (GEN.75): `{id, radius_ly, center_pc, lod, vertices,
   faces}`, the vertices `[x, y, z]` in units of the nebula's radius from

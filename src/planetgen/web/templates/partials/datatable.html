@@ -1,0 +1,62 @@
+{#- A data table (UX.41; web/lib/datatable.py, static/datatable.js). Call
+    `datatable(table)` with the view model from `tables.render`. Works with
+    scripts off: the sort links and the filter form are plain GETs and the
+    pager pages through. With scripts on, datatable.js takes the same markup
+    over (it hides the pager and fetches rows as they scroll into view). -#}
+{% macro cell(c) -%}
+{%- if c.href %}<a href="{{ c.href }}">{{ c.text }}</a>{% elif c.muted %}<em>{{ c.text }}</em>{% else %}{{ c.text }}{% endif -%}
+{%- endmacro %}
+{% macro datatable(t) %}
+<div class="datatable" id="{{ t.id }}-table" data-datatable data-source="{{ t.source }}"
+     data-page-size="{{ t.page_size }}" data-total="{{ t.total }}" data-sort="{{ t.sort }}"
+     data-descending="{{ 'true' if t.descending else 'false' }}" data-noun-one="{{ t.noun_one }}" data-noun-many="{{ t.noun_many }}">
+  {%- if t.facets %}
+  <form class="datatable-filters" method="get" action="{{ t.path }}{% if t.anchor %}#{{ t.anchor }}{% endif %}" aria-label="Filter {{ t.label|lower }}">
+    {%- for name, value in t.sort_fields %}
+    <input type="hidden" name="{{ name }}" value="{{ value }}">
+    {%- endfor %}
+    {%- for facet in t.facets %}
+    <details class="datatable-facet" data-param="{{ facet.param }}"{% if facet.selected %} open{% endif %}>
+      <summary>{{ facet.label }}{% if facet.selected %} <span class="datatable-selected">({{ facet.selected }} chosen)</span>{% endif %}</summary>
+      <ul class="datatable-options">
+        {%- for option in facet.options %}
+        <li><label><input type="checkbox" name="{{ facet.param }}" value="{{ option.value }}"{% if option.checked %} checked{% endif %}>
+          <span class="datatable-option-label">{{ option.label }}</span> <span class="datatable-count">({{ option.count }})</span></label></li>
+        {%- endfor %}
+      </ul>
+    </details>
+    {%- endfor %}
+    <span class="datatable-filter-actions">
+      <button type="submit" class="btn btn-small datatable-apply">Apply filters</button>
+      <a class="datatable-clear" href="{{ t.clear_href }}"{% if not t.filtered %} hidden{% endif %}>Clear filters</a>
+    </span>
+  </form>
+  {%- endif %}
+  <p class="datatable-count-line" role="status" aria-live="polite">{{ num(t.total) }} {{ t.noun_many if t.total != 1 else t.noun_one }}{% if t.filtered %} match{% endif %}</p>
+  <div class="table-scroll datatable-scroll" role="region" aria-label="{{ t.label }} table" tabindex="0">
+    <table aria-rowcount="{{ t.total + 1 }}">
+      <thead>
+        <tr aria-rowindex="1">
+          {%- for column in t.columns %}
+          <th scope="col" data-col="{{ column.key }}"{% if column.sortable %} aria-sort="{{ column.aria_sort }}"{% endif %}>
+            {%- if column.sortable -%}
+            <a class="datatable-sort" href="{{ column.href }}">{{ column.label }} <span class="datatable-arrow" aria-hidden="true">{{ column.arrow }}</span></a>
+            {%- else %}{{ column.label }}{% endif -%}
+          </th>
+          {%- endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {%- for row in t.rows %}
+        <tr aria-rowindex="{{ loop.index + 1 }}">
+          {%- for c in row %}<td>{{ cell(c) }}</td>{% endfor %}
+        </tr>
+        {%- else %}
+        <tr><td colspan="{{ t.columns|length }}"><em>None</em></td></tr>
+        {%- endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="datatable-pager">{{ t.pager }}</div>
+</div>
+{% endmacro %}
