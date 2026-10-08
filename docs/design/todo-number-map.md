@@ -693,7 +693,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.109 | Zooming in and out loads slowly (bug) | none | open |
 | MAP.110 | Slab button lines come out of numerical order (bug) | none | done, PR #520 |
 | MAP.111 | "Generated only" should be "Charted only" and dim the stars too (bug) | none | done, PR #531 |
-| MAP.112 | Nothing can be selected while "Generated only" is on (bug) | none | open |
+| MAP.112 | Nothing can be selected while "Generated only" is on (bug) | none | done, PR #541 |
 | MAP.113 | A nebula covering the whole sector can't be unselected, and nebulae need a show/hide toggle (bug) | none | open |
 | MAP.114 | The Sector Map's Reset view leaves the picture unchanged (bug) | none | done, PR #442 |
 | MAP.115 | Comets, rogue planets and asteroid fields show above the sector level (bug) | none | merged into MAP.116 (2026-10-07) |
