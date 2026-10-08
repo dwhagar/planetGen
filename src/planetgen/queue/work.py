@@ -232,7 +232,10 @@ def _picklable_error(exc):
     along as a note, which the run's own report shows under the error.
     An exception that can't be pickled becomes a `RuntimeError` of its text.
     """
-    exc.add_note("Traceback in the worker:\n" + traceback.format_exc().rstrip())
+    # What `add_note` does (Python 3.11+), by hand: the CI matrix has 3.9.
+    notes = list(getattr(exc, "__notes__", ()))
+    notes.append("Traceback in the worker:\n" + traceback.format_exc().rstrip())
+    exc.__notes__ = notes
     try:
         pickle.dumps(exc)
     except Exception:  # noqa: BLE001
