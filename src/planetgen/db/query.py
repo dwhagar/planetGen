@@ -2866,24 +2866,33 @@ def bright_stars_in_sector(conn, ring_index, layer_index, ring_slot_index, unfil
 
 def galaxy_brightest_stars(conn, count=GALAXY_TILE_BRIGHTEST_SAMPLE):
     """
-    The galaxy's `count` most luminous bright stars, most luminous first
-    (ties by descending id) -- `galaxy_tiles`' sample for tiles too big to
-    query on their own. One walk down `idx_bright_stars_luminosity`.
+    The galaxy's most luminous bright stars, most luminous first (ties by
+    descending id) -- `galaxy_tiles`' sample for tiles too big to query on
+    their own. Two walks down `idx_bright_stars_off_plane`: the `count`
+    brightest on the plane and the `count // 2` brightest 250 pc or more
+    off it (GEN.117), so the old giants above and below the plane aren't
+    left out by the plane's luminous young stars.
 
     Returns:
         list[dict]: As `galaxy_bright_stars_in_box`.
     """
-    rows = conn.execute(
-        """
-        SELECT id, position_x_mpc, position_y_mpc, position_z_mpc, luminosity_w, temperature_k, radius_km,
-               star_type, yerkes_class, ring_index, layer_index, ring_slot_index, star_system_id
-        FROM bright_stars FORCE INDEX (idx_bright_stars_luminosity)
-        ORDER BY luminosity_w DESC, id DESC
-        LIMIT ?
-        """,
-        (int(count),),
-    ).fetchall()
-    return [_bright_star_entry(row) for row in rows]
+    picks = []
+    for off_plane, limit in ((0, int(count)), (1, int(count) // 2)):
+        picks += [
+            _bright_star_entry(row) for row in conn.execute(
+                """
+                SELECT id, position_x_mpc, position_y_mpc, position_z_mpc, luminosity_w, temperature_k, radius_km,
+                       star_type, yerkes_class, ring_index, layer_index, ring_slot_index, star_system_id
+                FROM bright_stars FORCE INDEX (idx_bright_stars_off_plane)
+                WHERE off_plane = ?
+                ORDER BY luminosity_w DESC, id DESC
+                LIMIT ?
+                """,
+                (off_plane, limit),
+            ).fetchall()
+        ]
+    picks.sort(key=lambda star: (-star["luminosity_sol"], -star["id"]))
+    return picks
 
 
 BRIGHT_STAR_PLANE_HALF_THICKNESS_PC = 250.0
