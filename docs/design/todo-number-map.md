@@ -651,7 +651,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.66 | The sector as the drill-down's last stage, on the same page | none | done, PR #548 |
 | MAP.67 | One URL and history scheme for every level | none | open |
 | MAP.68 | Remove the old Sector Map code | none | done, PR #573 |
-| MAP.69 | A system scene endpoint with 3D orbits | none | open |
+| MAP.69 | A system scene endpoint with 3D orbits | none | done, PR #668 |
 | MAP.70 | Positions at any time | none | open |
 | MAP.71 | Scale modes that keep everything visible | none | open |
 | MAP.72 | Rendering at system scale | none | open |
@@ -1145,7 +1145,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.104 | test_system_map_selection_drill_and_measure fails now and then under load (bug) | none | done, PR #634 |
 | TEST.105 | test_web_a11y.py fails on the Admin hub: its links have 2.49:1 contrast (bug) | none | done, PR #648 |
 | TEST.106 | test_controls_do_not_overlap fails on the Sector Map at 390, 600 and 1280 px: its buttons overlap the Contents filters (bug) | none | done, PR #650 |
-| TEST.107 | test_controls_do_not_overlap fails on main for /galaxy at 390 px and /sector: buttons overlap each other (bug) | none | open |
+| TEST.107 | test_controls_do_not_overlap fails on main for /galaxy at 390 px and /sector: buttons overlap each other (bug) | none | closed, not reproducible (passes on main) |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
