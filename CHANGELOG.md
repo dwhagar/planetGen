@@ -1,5 +1,10 @@
 # Changelog
 
+## [7.281.637] - 2026-10-08
+
+### Changed
+- A nebula holds a star system, phenomenon or smaller nebula only when the point lies inside its shape (GEN.75), not anywhere in its bounding sphere. Supernova remnants stay spheres. Containment is recomputed when a sector or nebula is generated; to refresh existing data, regenerate the affected sectors.
+
 ## [7.280.637] - 2026-10-08
 
 ### Added
