@@ -327,7 +327,7 @@ def _edit_post(system_id):
         allowed.add((kind, int(raw_id)))
     gone = (page_url("sector", sector_id=detail["sector_id"]) if detail["sector_id"] is not None
             else page_url("systems"))
-    return edit_actions.handle_post(allowed, page_url("system", system_id=system_id, _anchor="edit-system"),
+    return edit_actions.handle_post(allowed, page_url("system", system_id=system_id, _anchor="admin-menu"),
                                     after_delete={"system": gone})
 
 

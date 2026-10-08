@@ -322,10 +322,10 @@ def _edit(app, client, url, action, target, **extra):
 
 def test_edit_panel_shows_only_for_an_admin(web_app, mysql_config):
     _sector_id, system_id = _saved_system(mysql_config)
-    assert 'id="edit-system"' not in web_app.test_client().get(f"/system/{system_id}").get_data(as_text=True)
+    assert 'id="admin-menu"' not in web_app.test_client().get(f"/system/{system_id}").get_data(as_text=True)
     client = _web_admin(web_app, mysql_config)
     html = client.get(f"/system/{system_id}").get_data(as_text=True)
-    assert 'id="edit-system"' in html
+    assert 'id="admin-menu"' in html
     assert f'value="system:{system_id}"' in html
 
 
@@ -372,7 +372,7 @@ def test_deleting_the_system_goes_back_to_its_sector(web_app, mysql_config):
 def test_sector_page_deletes_the_sector(web_app, mysql_config):
     sector_id, _system_id = _saved_system(mysql_config)
     client = _web_admin(web_app, mysql_config)
-    assert 'id="edit-sector"' in client.get(f"/sector/{sector_id}").get_data(as_text=True)
+    assert 'id="admin-menu"' in client.get(f"/sector/{sector_id}").get_data(as_text=True)
     response = _edit(web_app, client, f"/sector/{sector_id}", "delete", f"sector:{sector_id}")
     assert response.status_code == 303
     assert response.headers["Location"].endswith("/sectors")
@@ -383,7 +383,7 @@ def test_phenomenon_page_regenerates_and_deletes(web_app, mysql_config):
     _sector_id, nebula_id = _saved_nebula(mysql_config)
     client = _web_admin(web_app, mysql_config)
     url = f"/phenomenon/nebula/{nebula_id}"
-    assert 'id="edit-phenomenon"' in client.get(url).get_data(as_text=True)
+    assert 'id="admin-menu"' in client.get(url).get_data(as_text=True)
     response = _edit(web_app, client, url, "regenerate", f"nebula:{nebula_id}")
     assert "Regenerated Test Veil." in client.get(response.headers["Location"]).get_data(as_text=True)
     response = _edit(web_app, client, url, "delete", f"nebula:{nebula_id}")

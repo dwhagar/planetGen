@@ -1,0 +1,92 @@
+{#- planetgen/web/templates/partials/admin_menu.html -- the one Admin menu of a
+    screen (ADM.34): every admin action that applies on the page, behind a
+    single "Admin" button that only an admin ever sees (the caller draws it
+    only for one). Replaces the earlier Edit menus and inline admin panels
+    (ADM.8's edit actions, UX.26, UX.31).
+
+    `admin_menu(groups, label)` draws an "Admin" Shoelace dropdown. `groups`
+    is a list of dicts: `actions` (a list), and optionally `label` (the
+    group becomes a submenu of that name, as one body of the system page
+    does) and `id` and `target` (the object the group's actions act on).
+    Each action is a dict: key, label, title, note, button, and optionally
+    `danger`, `fields` (extra form markup), `drop_label` (a checkbox that
+    also drops facilities), `url` (the form's action; the page's own by
+    default), `hidden` (a dict of hidden inputs replacing the default
+    edit_action/edit_target pair), `form` (markup that is the dialog's whole
+    body, with its own buttons), and `open` (show the dialog on load). Picking
+    an item opens its dialog on top of the page (static/dialogmenus.js);
+    the page's own POST handler does the rest. -#}
+
+{%- macro admin_menu(groups, label='this page', url='') -%}
+{%- set menu_id = 'admin-menu' -%}
+<div class="admin-bar">
+<sl-dropdown class="admin-menu" id="{{ menu_id }}" placement="bottom-end" distance="4">
+  <sl-button slot="trigger" size="small" caret>Admin</sl-button>
+  <sl-menu aria-label="Admin actions for {{ label }}">
+    {%- for group in groups %}
+    {%- if loop.index > 1 and not group.label %}<sl-divider></sl-divider>{% endif %}
+    {%- if group.label %}
+    <sl-menu-item>{{ group.label }}
+      <sl-menu slot="submenu" aria-label="{{ group.label }}">
+        {%- for action in group.actions %}
+        <sl-menu-item data-dialog="admin-{{ group.id }}-{{ action.key }}">{{ action.label }}</sl-menu-item>
+        {%- endfor %}
+      </sl-menu>
+    </sl-menu-item>
+    {%- else %}
+    {%- for action in group.actions %}
+    <sl-menu-item data-dialog="admin-{{ group.id }}-{{ action.key }}">{{ action.label }}</sl-menu-item>
+    {%- endfor %}
+    {%- endif %}
+    {%- endfor %}
+  </sl-menu>
+</sl-dropdown>
+</div>
+{%- for group in groups %}
+{%- for action in group.actions %}
+{%- set dialog_id = 'admin-' ~ group.id ~ '-' ~ action.key %}
+<sl-dialog id="{{ dialog_id }}" class="edit-dialog" label="{{ action.title }}"{% if action.open %} open{% endif %}>
+  {%- if action.form %}
+  {{ action.form }}
+  <sl-button slot="footer" data-dialog-close>Cancel</sl-button>
+  {%- else %}
+  <form method="post" action="{{ action.url or url }}" class="table-form" id="{{ dialog_id }}-form">
+    {{ csrf_field() }}
+    {%- if action.hidden is defined %}
+    {%- for name, value in action.hidden.items() %}
+    <input type="hidden" name="{{ name }}" value="{{ value }}">
+    {%- endfor %}
+    {%- else %}
+    <input type="hidden" name="edit_action" value="{{ action.key }}">
+    <input type="hidden" name="edit_target" value="{{ group.target }}">
+    {%- endif %}
+    <p class="hint">{{ action.note }}</p>
+    {%- if action.fields %}
+    {{ action.fields }}
+    {%- endif %}
+    {%- if action.drop_label %}
+    <label class="edit-drop"><input type="checkbox" name="drop_facilities" value="1"> {{ action.drop_label }}</label>
+    {%- endif %}
+  </form>
+  <sl-button slot="footer" data-dialog-close>Cancel</sl-button>
+  <sl-button slot="footer" variant="{{ 'danger' if action.danger else 'primary' }}" type="submit" form="{{ dialog_id }}-form">{{ action.button }}</sl-button>
+  {%- endif %}
+</sl-dialog>
+{%- endfor %}
+{%- endfor %}
+{%- endmacro -%}
+
+{#- The Regenerate and Delete actions every editable object has
+    (web/edit_actions.py): `add_edit_actions(out, label, regenerate_note,
+    delete_note, ...)` appends them to the list `out`, with an object's own
+    `extra` actions between the two. -#}
+{%- macro add_edit_actions(out, label, regenerate_note, delete_note, facilities=True, regenerate_facilities=False,
+                          extra=()) -%}
+{%- set _ = out.append({'key': 'regenerate', 'label': 'Regenerate', 'title': 'Regenerate ' ~ label,
+     'note': regenerate_note, 'button': 'Yes, regenerate ' ~ label,
+     'drop_label': 'Also delete facilities that would go with it' if regenerate_facilities else ''}) -%}
+{%- for action in extra %}{% set _ = out.append(action) %}{% endfor -%}
+{%- set _ = out.append({'key': 'delete', 'label': 'Delete', 'title': 'Delete ' ~ label, 'note': delete_note,
+     'button': 'Yes, delete ' ~ label, 'danger': True,
+     'drop_label': 'Also delete its facilities' if facilities else ''}) -%}
+{%- endmacro -%}

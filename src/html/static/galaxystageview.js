@@ -895,6 +895,12 @@ export function createStageView(host) {
     else if (direction > 0 && mapIndex < maxIndex) history.forward();
   }
 
+  // Forward to current (MAP.95): all the way to the newest view in this
+  // map's history, in one jump.
+  function travelToCurrent() {
+    if (mapIndex < maxIndex) history.go(maxIndex - mapIndex);
+  }
+
   function renderTravel() {
     if (!els.controls) return;
     const back = els.controls.querySelector('[data-action="back"]');
@@ -902,6 +908,8 @@ export function createStageView(host) {
     const upButton = els.controls.querySelector('[data-action="up"]');
     if (back) back.disabled = mapIndex <= 0;
     if (forward) forward.disabled = mapIndex >= maxIndex;
+    const current = els.controls.querySelector('[data-action="current"]');
+    if (current) current.disabled = mapIndex >= maxIndex;
     if (upButton) upButton.disabled = !stage.at && !stage.picks.length && !selectedSector;
     const resetButton = els.controls.querySelector('[data-action="reset-view"]');
     if (resetButton) resetButton.disabled = !isFree(resolved);
@@ -2317,6 +2325,7 @@ export function createStageView(host) {
     home: home,
     up: up,
     travel: travel,
+    travelToCurrent: travelToCurrent,
     setChartedOnly: setChartedOnly,
     setNeedGenerated: setNeedGenerated,
     stage: function () { return stage; },

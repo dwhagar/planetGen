@@ -865,6 +865,18 @@ def test_galaxy_phone_steps_button_between_back_and_forward(page, map_site):
     _settle(page)
     assert _crumbs(page) == ["Galaxy"]
     assert not steps.evaluate("d => d.open"), "taking a step closes the menu"
+    # MAP.95: Current, beside Forward, is on screen.
+    page.locator('#galaxymap3d-controls [data-action="reset"]').click()
+    _settle(page)
+    current = page.locator('#galaxymap3d-controls [data-action="current"]')
+    assert current.is_visible()
+    page.locator('#galaxymap3d-controls [data-action="back"]').click()
+    _settle(page)
+    assert not current.is_disabled()
+    assert current.bounding_box()["x"] + current.bounding_box()["width"] <= 390
+    current.click()
+    _settle(page)
+    assert _crumbs(page) == ["Galaxy"] and current.is_disabled()
     page.set_viewport_size({"width": 1280, "height": 900})
     page.wait_for_timeout(200)
     assert not steps.is_visible() and page.evaluate(CRUMB_LINE)["visible"]

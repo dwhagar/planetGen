@@ -98,6 +98,7 @@ export function mapControlHandlers(ctx) {
     },
     "back": function () { ctx.stageView.travel(-1); },
     "forward": function () { ctx.stageView.travel(1); },
+    "current": function () { ctx.stageView.travelToCurrent(); },
     "up": function () { ctx.stageView.up(); },
     "reset": function () { ctx.stageView.home(); },
     "reset-view": function () { ctx.stageView.resetView(); },
