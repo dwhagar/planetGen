@@ -643,7 +643,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.58 | Galaxy Map zoom limits: a short manual range on the galaxy wedge, locked below it | none | open |
 | MAP.59 | Make it plain that a zoomed-in slab is a slab, not a wedge | none | open |
 | MAP.60 | Galaxy Map scale readout: one scale line | none | done, PR #369 |
-| MAP.61 | One map engine and control set for the Galaxy Map and the Sector Map | none | open |
+| MAP.61 | One map engine and control set for the Galaxy Map and the Sector Map | none | done, PR #629 |
 | MAP.62 | A full 3D star system view with a free camera | none | open |
 | MAP.63 | Shared map helpers in one module | none | done, PR #351 |
 | MAP.64 | One camera and input controller | none | done, PR #351 |
