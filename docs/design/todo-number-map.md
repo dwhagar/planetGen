@@ -1138,7 +1138,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.99 | test_slab_buttons_have_lines_that_follow_the_view fails in the full suite (bug) | none | done, PR #549 |
 | TEST.100 | test_hover_while_picking_a_slab fails in the full suite (bug) | none | done, PR #549 |
 | TEST.101 | test_interrupting_a_parallel_galaxy_run[2-True] fails in the full suite (bug) | none | done, PR #549 |
-| TEST.102 | test_a_pass_removes_species_stored_without_a_civilization fails now and then in the full suite (bug) | none | open |
+| TEST.102 | test_a_pass_removes_species_stored_without_a_civilization fails now and then in the full suite (bug) | none | done, PR #610 |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
