@@ -73,3 +73,59 @@ test("the rogue-planet markers start off, then mark them: rings, a bigger point,
   assert.equal(markers()[0].visible, false);
   assert.equal(size(), rogue.light.sizePx);
 });
+
+test("the kinds in a sector are listed in order, and a hidden kind goes from the map (MAP.79)", () => {
+  const { data, sector } = build();
+  const kinds = sector.kinds();
+  assert.deepEqual(kinds.map((k) => k.kind), ["star", "nebula", "roguePlanet", "neighbor"].filter((k) => kinds.some((x) => x.kind === k)));
+  assert.equal(kinds.find((k) => k.kind === "star").count, data.stars.length);
+  assert.equal(SS.kindOf(data.stars[0]), "star");
+  assert.equal(SS.kindOf({ kind: "blackHoleQuiescent" }), "blackHole");
+
+  const all = [];
+  sector.group.traverse((o) => all.push(o));
+  const points = all.find((o) => o.isPoints);
+  const sizes = () => Array.from(points.geometry.getAttribute("pointSize").array);
+  const before = sizes();
+  const pointLayer = sector.layers.find((l) => l.name === "sector-points");
+  const bodies = sector.layers.find((l) => l.name === "sector-bodies");
+  const volumes = sector.layers.find((l) => l.name === "sector-volumes");
+  const pickable = () => pointLayer.points().length + bodies.meshes().length + volumes.meshes().length;
+  const total = pickable();
+
+  sector.setKindHidden("star", true);
+  assert.equal(sector.kindHidden("star"), true);
+  data.stars.forEach((_, i) => assert.equal(sizes()[i], 0, "a hidden star draws nothing"));
+  assert.ok(pointLayer.points().every((e) => SS.kindOf(e) !== "star"), "and can't be picked");
+  sector.setKindHidden("star", false);
+  assert.deepEqual(sizes(), before, "shown again, as it was");
+
+  for (const kind of ["nebula", "neighbor", "roguePlanet"]) {
+    if (!kinds.some((k) => k.kind === kind)) continue;
+    sector.setKindHidden(kind, true);
+    assert.ok(pickable() < total, kind + " is no longer pickable");
+    sector.entries.filter((e) => SS.kindOf(e) === kind).forEach((entry) => {
+      assert.equal(pointLayer.points().includes(entry), false);
+    });
+    sector.setKindHidden(kind, false);
+    assert.equal(pickable(), total, kind + " is back");
+  }
+});
+
+test("a hidden rogue planet loses its ring and a marked one comes back marked (MAP.79)", () => {
+  const { data, sector } = build();
+  const all = [];
+  sector.group.traverse((o) => all.push(o));
+  const ring = all.find((o) => o.isSprite && o.material.sizeAttenuation === false);
+  assert.ok(ring);
+  sector.setRoguesMarked(true);
+  sector.setKindHidden("roguePlanet", true);
+  assert.equal(ring.visible, false, "its ring goes with it");
+  const points = all.find((o) => o.isPoints);
+  const rogue = data.clouds.find((c) => c.kind === "roguePlanet");
+  const index = data.stars.length + data.clouds.filter((c) => c.light).indexOf(rogue);
+  assert.equal(points.geometry.getAttribute("pointSize").array[index], 0);
+  sector.setKindHidden("roguePlanet", false);
+  assert.equal(ring.visible, true);
+  assert.equal(points.geometry.getAttribute("pointSize").array[index], rogue.markedLight.sizePx, "still marked");
+});

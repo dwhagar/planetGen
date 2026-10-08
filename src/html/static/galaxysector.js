@@ -22,12 +22,14 @@
 // - viewport (optional): the map's viewport element, where the
 //   screen-reader list of the open sector's entries goes;
 // - opened() / closed() (optional): called when a sector's scene is added
-//   to or removed from the map.
+//   to or removed from the map;
+// - kindsChanged() (optional): called when a kind of object is shown or
+//   hidden other than by setKindHidden (a selection showing its kind).
 
 const VERSION_QUERY = new URL(import.meta.url).search;
 const { createRing } = await import(`./mappick.js${VERSION_QUERY}`);
 const {
-  buildSectorScene, entryLabel, infoSpec, POINT_CLOSE_GROWTH, tooltipText,
+  buildSectorScene, entryLabel, infoSpec, kindOf, KINDS, POINT_CLOSE_GROWTH, tooltipText,
 } = await import(`./sectorscene.js${VERSION_QUERY}`);
 
 // The corners of the sector's cell as a flat [x, y, z, ...] list, for
@@ -52,6 +54,8 @@ export function createSectorStage(host) {
   let token = 0;
   // "Mark rogue planets" (MAP.46): kept across sectors opened.
   let roguesMarked = false;
+  // The kinds of object left off the map (MAP.79), kept across sectors.
+  const hiddenKinds = new Set();
 
   // How much the points have grown with the view closing in (as the
   // Sector Map's own zoom does): their own size at the fit, POINT_CLOSE_GROWTH
@@ -74,12 +78,15 @@ export function createSectorStage(host) {
         if (!entry) {
           hoverRing.hide();
           state.hovered = null;
+          state.hoveredEntry = null;
           return;
         }
+        state.hoveredEntry = entry;
         state.hovered = ringAround(hoverRing, entry);
       },
       select: function (entry) {
         host.showInfo(infoSpec(entry, state.data));
+        state.selectedEntry = entry;
         state.selected = ringAround(selectionRing, entry);
       },
     });
@@ -98,8 +105,42 @@ export function createSectorStage(host) {
     if (host.closed) host.closed();
   }
 
+  // A selection of something hidden shows its kind again first.
   function selectEntry(entry) {
-    if (open && entry) open.layers[0].select(entry);
+    if (!open || !entry) return;
+    const kind = kindOf(entry);
+    if (hiddenKinds.has(kind)) {
+      setKindHidden(kind, false);
+      if (host.kindsChanged) host.kindsChanged();
+    }
+    open.layers[0].select(entry);
+  }
+
+  function setKindHidden(kind, hidden) {
+    if (hidden) hiddenKinds.add(kind);
+    else hiddenKinds.delete(kind);
+    if (!open) return;
+    open.sector.setKindHidden(kind, hidden);
+    if (!hidden) {
+      showListed();
+      return;
+    }
+    // What was selected or hovered goes with its kind.
+    if (open.selectedEntry && kindOf(open.selectedEntry) === kind) {
+      selectionRing.hide();
+      open.selected = open.selectedEntry = null;
+    }
+    if (open.hoveredEntry && kindOf(open.hoveredEntry) === kind) {
+      hoverRing.hide();
+      open.hovered = open.hoveredEntry = null;
+    }
+    showListed();
+  }
+
+  // The screen-reader list offers only what is on the map.
+  function showListed() {
+    if (!open || !open.listed) return;
+    open.listed.forEach(function (pair) { pair[1].hidden = hiddenKinds.has(kindOf(pair[0])); });
   }
 
   // A visually hidden button per entry, for the keyboard and screen
@@ -108,8 +149,10 @@ export function createSectorStage(host) {
     if (!host.viewport) return null;
     const list = document.createElement("ul");
     list.className = "starmap-sr-list sr-only";
+    list.listed = [];
     entries.forEach(function (entry) {
       const item = document.createElement("li");
+      list.listed.push([entry, item]);
       const button = document.createElement("button");
       button.type = "button";
       button.textContent = entryLabel(entry);
@@ -149,9 +192,12 @@ export function createSectorStage(host) {
       });
       host.scene.add(state.sector.group);
       state.sector.setRoguesMarked(roguesMarked);
+      hiddenKinds.forEach(function (kind) { state.sector.setKindHidden(kind, true); });
       state.layers = state.sector.layers.map(function (layer) { return host.picker.addLayer(layerFor(layer, state)); });
       state.list = entryList(state.sector.entries);
+      state.listed = state.list ? state.list.listed : null;
       open = state;
+      showListed();
       host.hideCell(bounds || null);
       if (host.opened) host.opened();
       return { center: state.center, halfEdge: state.halfEdge, fitPoints: cubeCorners(state.center, state.halfEdge) };
@@ -184,6 +230,22 @@ export function createSectorStage(host) {
       if (open) open.sector.setRoguesMarked(on);
     },
     roguesMarked: function () { return roguesMarked; },
+    // The kinds of object in the open sector, [{kind, label, count}] (MAP.79).
+    kinds: function () { return open ? open.sector.kinds() : []; },
+    setKindHidden: setKindHidden,
+    kindHidden: function (kind) { return hiddenKinds.has(kind); },
+    hiddenKinds: function () { return Array.from(hiddenKinds); },
+    // The kinds named by a URL's `hide` (unknown names ignored), before any sector opens.
+    setHiddenKinds: function (kinds) {
+      let changed = false;
+      KINDS.forEach(function (pair) {
+        const want = kinds.indexOf(pair[0]) >= 0;
+        if (want === hiddenKinds.has(pair[0])) return;
+        setKindHidden(pair[0], want);
+        changed = true;
+      });
+      if (changed && host.kindsChanged) host.kindsChanged();
+    },
     entries: function () { return open ? open.sector.entries : []; },
   };
 }

@@ -280,6 +280,56 @@ def test_sector_map_rogue_planet_markers_toggle(page, map_site):
     assert toggle.evaluate("b => getComputedStyle(b).backgroundColor") == background
 
 
+def _open_menu(page):
+    if not page.locator("#galaxymap3d-menu").evaluate("m => m.open"):
+        page.locator("#galaxymap3d-menu summary").click()
+
+
+def test_sector_map_kinds_can_be_hidden_one_by_one_and_the_choice_is_kept(page, map_site):
+    """MAP.79: a toggle per kind of object in the Menu; a hidden kind is gone
+    from the map, can't be hovered or picked, and its choice is in the URL."""
+    _open_sector(page, map_site)
+    _x, _y, name = _click_a_star(page)
+    page.locator("#galaxymap3d-info").evaluate("panel => panel.textContent = ''")
+    before = _shot(page, SECTOR_CANVAS)
+    _open_menu(page)
+    buttons = page.locator("#galaxymap3d-kinds button")
+    names = buttons.all_inner_texts()
+    assert "Stars" in names and "Rogue planets" in names, names
+    assert all(b.get_attribute("aria-pressed") == "true" for b in buttons.all()), "all on to begin with"
+    stars = page.locator('#galaxymap3d-kinds button[data-kind="star"]')
+    stars.click()
+    assert stars.get_attribute("aria-pressed") == "false"
+    assert "hide=star" in page.url
+    page.mouse.click(_x, _y)
+    assert _info_title(page) != name, "a hidden star can't be picked"
+    assert _shot(page, SECTOR_CANVAS) != before, "hiding the stars changes the map"
+    assert "Stars" not in [b.inner_text() for b in page.locator("#galaxymap3d-info button").all()]
+    # A reload keeps it.
+    page.reload()
+    page.wait_for_selector(".starmap-sr-list button", state="attached")
+    page.wait_for_selector('#galaxymap3d-kinds button[data-kind="star"]', state="attached")
+    _open_menu(page)
+    assert page.locator('#galaxymap3d-kinds button[data-kind="star"]').get_attribute("aria-pressed") == "false"
+    page.locator('#galaxymap3d-kinds button[data-kind="star"]').click()
+    assert "hide" not in page.url
+
+
+def test_sector_map_show_on_map_shows_a_hidden_kind_again(page, map_site):
+    _open_sector(page, map_site)
+    _open_menu(page)
+    rogue = next(p for p in PHENOMENA if p["type"] == "rogue_planet")
+    toggle = page.locator('#galaxymap3d-kinds button[data-kind="roguePlanet"]')
+    toggle.click()
+    assert toggle.get_attribute("aria-pressed") == "false"
+    button = page.locator(f'[data-map-target="rogue_planet:{rogue["id"]}"]')
+    button.evaluate("b => { const d = b.closest('details'); if (d) d.open = true; }")
+    button.click()
+    assert _info_title(page) == rogue["name"]
+    assert toggle.get_attribute("aria-pressed") == "true", "selecting it shows its kind again"
+    assert "hide=roguePlanet" not in page.url
+
+
 def test_sector_map_screen_reader_list_selects(page, map_site):
     _open_sector(page, map_site)
     names = page.locator(".starmap-sr-list button").all_inner_texts()

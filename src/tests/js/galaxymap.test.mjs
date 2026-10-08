@@ -846,3 +846,32 @@ test("a sector page's map opens its sector, keeps to it and sends another sector
   assert.deepEqual(m.calls.scenes, [42]);
   assert.equal(m.win.location.search, "");
 });
+
+test("kinds of object are hidden per sector, kept in the URL and read back from it (MAP.79)", async () => {
+  const pinned = { ring: 3, layer: 0, slot: 4 };
+  const server = () => ({ children: [], sectors: [Object.assign({ id: 42, name: "Pinned", system_count: 3 }, pinned)] });
+  const m = await start("http://localhost/sector/42?hide=nebula,nonsense", { server, pinned });
+  assert.equal(m.view.kindHidden("nebula"), true, "the URL's choice is on the opened sector");
+  assert.equal(m.view.kindHidden("nonsense"), false, "a kind that doesn't exist is ignored");
+  const kinds = m.view.kinds();
+  assert.ok(kinds.some((k) => k.kind === "star") && kinds.some((k) => k.kind === "nebula"), JSON.stringify(kinds));
+  m.view.setKindHidden("star", true);
+  assert.equal(m.win.location.search, "?hide=nebula,star");
+  m.view.setKindHidden("nebula", false);
+  assert.equal(m.win.location.search, "?hide=star");
+  m.view.setKindHidden("star", false);
+  assert.equal(m.win.location.search, "", "nothing hidden, nothing in the URL");
+  assert.equal(m.view.kindHidden("star"), false);
+});
+
+test("on the Galaxy Map a hidden kind rides every stage URL and stays hidden after Up (MAP.79)", async () => {
+  const sector = { ring: 3, layer: 0, slot: 4 };
+  const server = () => ({ children: [], sectors: [Object.assign({ id: 42, name: "Bead", system_count: 3 }, sector)] });
+  const m = await start("http://localhost/galaxy?sector=" + S.sectorDesignation(3, 0, 4) + "&open=1&hide=star", { server });
+  assert.deepEqual(m.calls.scenes, [42]);
+  assert.equal(m.view.kindHidden("star"), true);
+  m.view.up();
+  await arrive(m);
+  assert.match(m.win.location.search, /^\?sector=\w+&hide=star$/, m.win.location.search);
+  assert.equal(m.view.kindHidden("star"), true, "a kind stays hidden after Up");
+});

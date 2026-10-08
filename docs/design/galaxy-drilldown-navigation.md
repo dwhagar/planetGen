@@ -582,6 +582,12 @@ one: `{ring, layer, slot, id, name, system_count}`.
   picked, the sector among its neighbours, highlighted and shown in the
   info panel. The sector, system and search pages link this way
   (MAP.25), and the NAV course still fits both ends (section 9.4).
+- `hide=<kind>,<kind>` (MAP.79) lists the kinds of object left off an
+  opened sector's map (`star`, `nebula`, `supernovaRemnant`,
+  `asteroidField`, `blackHole`, `neutronStar`, `quasar`, `roguePlanet`,
+  `interstellarComet`, `neighbor`). It rides on every stage URL and on a
+  sector page's, and the Menu's "Show on the map" buttons change it in
+  place (no history entry). Unknown names are ignored.
 - One scheme (MAP.67): a map's position is always a query of `/galaxy`
   (`at`, `p`, `sector`, `open`) and every move is a history entry, so
   Back, Forward, a reload and a bookmark behave the same at every level

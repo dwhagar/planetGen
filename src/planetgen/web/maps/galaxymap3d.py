@@ -645,6 +645,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
 {zoom_buttons}{history_buttons}{bookmarks_block}  <details class="galaxy-menu" id="galaxymap3d-menu">
     <summary class="starmap-btn" data-icon="menu" title="More map controls">Menu</summary>
     <div class="galaxy-menu-panel" role="group" aria-label="More map controls">
+    <div class="galaxy-kinds" id="galaxymap3d-kinds" role="group" aria-label="Show on the map" hidden></div>
     <button type="button" class="starmap-btn" data-action="reset-view" data-icon="reset-view"
             title="Back to this step's own view after turning, moving or zooming it">Reset view</button>
     <button type="button" class="starmap-btn" data-action="charted-only" data-icon="charted-only" aria-pressed="false"
