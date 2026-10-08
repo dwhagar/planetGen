@@ -93,7 +93,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| MAP.70 | Positions at any time |  | Positions through the point-in-space object (GEN.74, built). Python twin feeds NAV.27. |
 
 ### Reproducible galaxies
 
@@ -170,7 +169,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| VIEW.5 | Light-travel positions: where an object appears to a distant observer | MAP.70 | Groundwork for VIEW.2. |
+| VIEW.5 | Light-travel positions: where an object appears to a distant observer |  | Groundwork for VIEW.2. |
 
 ## Open questions for Boss
 
