@@ -904,6 +904,23 @@ def test_galaxy_map_hover_lights_every_choice_while_picking_a_course(page, map_s
     assert (page.url, _crumbs(page)) == before
 
 
+def test_galaxy_map_charted_only_does_not_stop_picking(page, map_site):
+    """MAP.112: with "Charted only" on, a choice holding nothing generated
+    is lit and taken just as with it off (only choosing a NAV end needs
+    something generated)."""
+    _open_galaxy(page, map_site)
+    page.click("#galaxymap3d-menu summary")
+    page.click('[data-action="charted-only"]')
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyLines().chartedLines >= 0")
+    empty = _hover_choice(page, r"(^|[ ,])0 (of .+ )?sectors generated$|not generated$")
+    assert empty, "no choice without generated sectors to hover"
+    assert "nothing generated here to pick" not in empty[2], empty
+    before = (page.url, _crumbs(page))
+    page.mouse.click(empty[0], empty[1])
+    _settle(page)
+    assert (page.url, _crumbs(page)) != before, "the empty choice can be taken"
+
+
 LEADERS = """() => {
     const canvas = document.querySelector("#galaxymap3d-canvas").getBoundingClientRect();
     const svg = document.querySelector(".galaxy-slab-leaders");
