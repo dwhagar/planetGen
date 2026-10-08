@@ -112,7 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 is done (PR #476); GEN.117, GEN.116 keeps watch for Boss's error text. | GEN.116, TEST.94, TEST.95, TEST.96, TEST.97, TEST.98, TEST.99, TEST.100, TEST.101, SEC.29, TEST.72, SEC.30, TEST.83, UX.39, OPS.20, DB.11, DB.13, ADM.21, GEN.66, GEN.74, GEN.68, GEN.69, GEN.70, GEN.71, GEN.72, GEN.73, GEN.67, ADM.22, ADM.24, ADM.25, ADM.26, UX.26, UX.41, UX.33, ADM.34, NAV.7, MAP.95, NAV.13, NAV.14, MAP.79, NAV.15, NAV.29, NAV.33, MAP.66, MAP.67, MAP.68, MAP.61, NAV.32, MAP.102, MAP.106, MAP.108, MAP.109, MAP.113, MAP.116, NAV.46, GEN.75, MAP.103, MAP.104, MAP.105, UX.38, UX.37, UX.21 |
+| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 is done (PR #476); GEN.117, GEN.116 keeps watch for Boss's error text. | GEN.116, SEC.29, TEST.72, SEC.30, TEST.83, UX.39, OPS.20, DB.11, DB.13, ADM.21, GEN.66, GEN.74, GEN.68, GEN.69, GEN.70, GEN.71, GEN.72, GEN.73, GEN.67, ADM.22, ADM.24, ADM.25, ADM.26, UX.26, UX.41, UX.33, ADM.34, NAV.7, MAP.95, NAV.13, NAV.14, MAP.79, NAV.15, NAV.29, NAV.33, MAP.66, MAP.67, MAP.68, MAP.61, NAV.32, MAP.102, MAP.106, MAP.109, MAP.113, MAP.116, NAV.46, GEN.75, MAP.103, MAP.104, MAP.105, UX.38, UX.37, UX.21 |
 | 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, NAV.16, NAV.3, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.41, GEN.98, GEN.100, GEN.99, GEN.101, GEN.102, GEN.103, GEN.84, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, GEN.94, GEN.104, GEN.106, GEN.107, GEN.108, NAV.10, NAV.12, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, NAV.43, NAV.44, MAP.119, MAP.122, MAP.123, MAP.124, DB.14, MAP.128, MAP.129, MAP.130, GEN.120, MAP.89, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, OPS.8, OPS.13, OPS.14, ADM.18, GEN.59, UX.49 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.58, MAP.75, MAP.59, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, API.16, MAP.69, MAP.70, ADM.17, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.131, MAP.132, API.18, VIEW.5 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, repair that reads the newest settings JSON, and the anomalies chosen in phase 2. | MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, MAP.126, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, DB.10, ADM.20, GEN.114, MAP.125, API.19 |
@@ -807,23 +807,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   forward, URL load), and a browser test walks the levels and checks
   them.
   Prerequisites: NAV.14, MAP.67.
-
-- [ ] **MAP.108 Empty slabs and wedges near the core can't be selected, and the side buttons block clicks (bug)**
-  Boss (2026-10-03 05:38Z): "Galacit view, some slabs are unselectable
-  near the core when zooming in.  The buttons to the side block being
-  clicked on and the map interface does not respond to those clicks in
-  that region. The system seems unable to allow me to select any slab or
-  wedge in which nothing exists. I should be able to navigate to any
-  space freely because I might be selecting a sector or space to fill."
-  Done: every slab, wedge and block can be picked whether or not
-  anything is in it, and the slab buttons never cover the map's pick
-  area.
-  Findings (Bugfixes lane 1, 2026-10-08): part 1 (the side buttons
-  covering the map) could not be reproduced and gets a regression test;
-  part 2 (picking empty slabs and wedges) is a separate cause.
-  Progress (2026-10-08): PR #537 added the regression test for part 1,
-  which is done by test (not reproducible). Part 2 stays open: picking
-  an empty slab or wedge.
 
 - [ ] **MAP.109 Zooming in and out loads slowly (bug)**
   Boss (2026-10-03 05:38Z): "Loading between zooms in and out gets very,
@@ -3289,75 +3272,6 @@ clears each one.
   and #504 (13,587 passed) had rate-limit tests among 10 load-only
   failures; the timing and dropped-connection part was TEST.93 (done,
   PR #522).
-
-- [ ] **TEST.94 test_old_jobs_are_pruned raises JobBusy again: the job lock outlives the finished job (bug)**
-  `src/tests/test_web_generate.py::test_old_jobs_are_pruned` failed once
-  in Bugfixes lane 1's full run (2026-10-08) with JobBusy "job ... is
-  still running" at `start_job`: `_wait_finished` saw the previous job
-  finished before the runner released the job lock. It needs Redis
-  (`PLANETGEN_TEST_REDIS_URL`) and passes 3 of 3 alone. TEST.90 fixed
-  the same symptom before the move to RQ (done, PR #484); this is a new
-  cause in the web jobs code (Foundations' area, PERF.24). Done: a job
-  counts as finished only once its lock is released (or the test waits
-  for the lock), and the test passes repeatedly under `pytest -n auto`.
-
-- [ ] **TEST.95 test_stabilize_lunar_system_respaces_crowded_moons keeps only one moon in the full suite (bug)**
-  `src/tests/test_validation.py::test_stabilize_lunar_system_respaces_crowded_moons`
-  failed in Bugfixes lane 1's full run for PR #522 (2026-10-08) with
-  `assert 1 >= 2` (moons kept) and passes alone. It looks seed or
-  random-state dependent: another test leaves the shared random state
-  (or the `star` fixture) different. Done: the test sets up its own
-  seed and state so its result does not depend on test order, and it
-  passes repeatedly in the full suite under `pytest -n auto`.
-
-- [ ] **TEST.96 test_galaxy_map_camera_presets_at_each_zoom_step fails in the full suite (bug)**
-  `src/tests/test_web_browser_fixture_maps.py::test_galaxy_map_camera_presets_at_each_zoom_step`
-  failed in Bugfixes lane 1's full run for PR #522 (2026-10-08) and
-  passes alone; a load-only browser failure. Done: the cause is found
-  (loop it under load), the test waits on the map's state instead of
-  wall-clock timing, and it passes repeatedly in the full suite under
-  `pytest -n auto`.
-  Seen again in Bugfixes lane 1's full run for PR #531 (2026-10-08) and PR #537.
-
-- [ ] **TEST.97 test_class_change_regenerates_surface_conditions raises StopIteration in the full suite (bug)**
-  `src/tests/test_admin_edits.py::test_class_change_regenerates_surface_conditions...`
-  (the full name is cut off in the report) raised `StopIteration` in
-  Bugfixes lane 1's full run for PR #525 (2026-10-08, 13,931 passed)
-  and passes alone, so it depends on test order or random state (an
-  empty `next(...)` over the generated bodies). Done: the test builds
-  its own system with a fixed seed so its result does not depend on
-  test order, and it passes repeatedly in the full suite under
-  `pytest -n auto`.
-  Seen again in Bugfixes lane 1's full run for PR #531 (2026-10-08).
-
-- [ ] **TEST.98 test_scale_line_follows_the_zoom fails in the full suite (bug)**
-  `src/tests/test_web_browser_fixture_maps.py` (the scale-line test `scale_line_follows_the_zoom`, name as reported) failed in Bugfixes lane 1's full run for PR #531 (2026-10-08;
-  seen repeatedly) and passes alone; a load-only browser failure. Done: the cause is found (loop it
-  under load), the test waits on the page's or the run's state instead
-  of wall-clock timing, and it passes repeatedly in the full suite under
-  `pytest -n auto`.
-
-- [ ] **TEST.99 test_slab_buttons_have_lines_that_follow_the_view fails in the full suite (bug)**
-  `src/tests/test_web_browser_fixture_maps.py` (`slab_buttons_have_lines_that_follow_the_view`, name as reported) failed in Bugfixes lane 1's full run for PR #531 (2026-10-08;
-  seen once) and passes alone; a load-only browser failure. Done: the cause is found (loop it
-  under load), the test waits on the page's or the run's state instead
-  of wall-clock timing, and it passes repeatedly in the full suite under
-  `pytest -n auto`.
-
-- [ ] **TEST.100 test_hover_while_picking_a_slab fails in the full suite (bug)**
-  `src/tests/test_web_browser_fixture_maps.py` (`hover_while_picking_a_slab`, name as reported) failed in Bugfixes lane 1's full run for PR #531 (2026-10-08;
-  seen once) and passes alone; a load-only browser failure. Done: the cause is found (loop it
-  under load), the test waits on the page's or the run's state instead
-  of wall-clock timing, and it passes repeatedly in the full suite under
-  `pytest -n auto`.
-
-- [ ] **TEST.101 test_interrupting_a_parallel_galaxy_run[2-True] fails in the full suite (bug)**
-  `src/tests/test_work_queue_failures.py` (`interrupting_a_parallel_galaxy_run[2-True]`, name as reported) failed in Bugfixes lane 1's full run for PR #531 (2026-10-08;
-  seen once) and passes alone; a load-only failure of the parallel galaxy run's interrupt path. Done: the cause is found (loop it
-  under load), the test waits on the page's or the run's state instead
-  of wall-clock timing, and it passes repeatedly in the full suite under
-  `pytest -n auto`.
-  Seen again in Bugfixes lane 1's full run for PR #537 (2026-10-08).
 
 ## USR: User accounts
 
