@@ -2184,6 +2184,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Defaults (Boss did not object, 04:00Z): constellations use the codec;
   changing the naming key renames only the codec-named objects, never
   star, sector, planet, moon or belt names. No question is open.
+  Decoding (Bugfixes lane, 2026-10-08, while doing GEN.120): the
+  original codec's decoder was not exact. About one ID in five from
+  five hex digits up did not round-trip, and about half the names of
+  19-digit IDs can read as two different lengths. GEN.120 makes
+  decoding exact by taking the ID length as an argument; names are
+  unchanged from the original file. So everything built here always
+  passes 19 (the digit count of an object ID) when it decodes a name,
+  and never relies on the decoder guessing the length.
   Prerequisites: GEN.68, GEN.69, GEN.70, GEN.71, GEN.72, GEN.73.
   Design: [docs/design/object-ids.md](design/object-ids.md)
 
@@ -2217,7 +2225,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     the key (Boss, 2026-10-08, GEN.67). ADM.18's settings JSON stores the
     key in addition to the word list, which stays for those names. The
     codec's own version is part of the galaxy's version key or schema
-    (GEN.120 decides which).
+    (GEN.120 decides which). Decoding takes the ID length as an
+    argument (GEN.120 made the decoder exact; see GEN.67), so the key's
+    code always passes 19 for object IDs.
     Design: [docs/design/object-ids.md](design/object-ids.md)
 
   - [ ] **GEN.71 Name interstellar objects, phenomena and constellations from the codec**
