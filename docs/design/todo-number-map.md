@@ -534,7 +534,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.69 | A unique ID for every object, star systems and unfilled sectors included | none | done, PR #623 |
 | GEN.70 | A naming key in the control database, made at galaxy creation and changeable by admin | none | open |
 | GEN.71 | Name interstellar objects, phenomena and constellations from the codec | none | open |
-| GEN.72 | A backfilled bright star should get a name only when its sector is generated (bug) | none | open |
+| GEN.72 | A backfilled bright star should get a name only when its sector is generated (bug) | none | done, PR #657 |
 | GEN.73 | Nebulae don't get unique names (bug) | none | folded into GEN.71 |
 | GEN.74 | One point-in-space object that keeps every coordinate system in step, used by every object | none | open |
 | GEN.75 | A nebula shape from metaballs and warped noise, as a mesh | none | done, PR #580 |
@@ -923,8 +923,8 @@ Parents marked "new parent" had no old number of their own.
 | UX.49 | Form fields as Shoelace components (sl-input, sl-select, sl-checkbox) across the site | none | open |
 | UX.50 | One short hint per map, the rest behind a Help entry | none | done, PR #640 |
 | UX.51 | Cards that repeat the page title | none | open |
-| UX.52 | Sector name repeated on every Contents row | none | open |
-| UX.53 | The same star shown three times on a system page | none | open |
+| UX.52 | Sector name repeated on every Contents row | none | done, PR #654 |
+| UX.53 | The same star shown three times on a system page | none | done, PR #654 |
 | UX.54 | Search shows empty result groups and echoes the query | none | open |
 | UX.55 | Home and Systems repeat other pages’ tables | none | open |
 | UX.56 | Admin hub repeats the gear menu | none | done, PR #632 |
@@ -940,7 +940,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.66 | “Cube edge” on arc-shaped sectors | none | done, PR #617 |
 | UX.67 | Wikitext and Markdown buttons | none | done, PR #648 |
 | UX.68 | System Admin menu lists every planet and moon | none | done, PR #646 |
-| UX.69 | Tables are cut off on phones with no cue | none | open |
+| UX.69 | Tables are cut off on phones with no cue | none | done, PR #659 |
 | UX.70 | The result page repeats the route and puts the map last | none | done, PR #648 |
 | UX.71 | NAV landing page | none | done, PR #648 |
 | UX.72 | Gear menu mixes unrelated things; the admin hub is not the hub | none | done, PR #632 |
