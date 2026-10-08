@@ -688,7 +688,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.104 | Nebula shading is missing on unfilled sectors (bug) | none | open |
 | MAP.105 | The nebula view should show its whole shape with the dimmed galaxy around it (bug) | none | open |
 | MAP.106 | The breadcrumb trail falls out of sync with the map (bug) | none | open |
-| MAP.107 | Selecting an empty slab near the core says "There is no layer x here" (bug) | none | open |
+| MAP.107 | Selecting an empty slab near the core says "There is no layer x here" (bug) | none | done, PR #537 |
 | MAP.108 | Empty slabs and wedges near the core can't be selected, and the side buttons block clicks (bug) | none | open |
 | MAP.109 | Zooming in and out loads slowly (bug) | none | open |
 | MAP.110 | Slab button lines come out of numerical order (bug) | none | done, PR #520 |
@@ -896,7 +896,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.24 | Sector contents: rogue planets after systems and phenomena, and expanded rows the full table width (bug) | none | done, PR #487 |
 | UX.25 | Rogue planets: octant and a small map symbol beside each name (bug) | none | done, PR #490 |
 | UX.26 | Edit and admin actions as a button that opens a menu (bug) | none | open |
-| UX.27 | System page: the system and navigation buttons on one row that doesn't overlap (bug) | none | open |
+| UX.27 | System page: the system and navigation buttons on one row that doesn't overlap (bug) | none | done, PR #539 |
 | UX.28 | Investigate icons instead of words on buttons | none | done, PR #490 |
 | UX.29 | Every comet in a system shows its type as a link (bug) | none | done, PR #487 |
 | UX.30 | Planet information without the Markdown render | none | open |

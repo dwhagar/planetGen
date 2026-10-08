@@ -1,5 +1,29 @@
 # Changelog
 
+## [7.250.634] - 2026-10-08
+
+### Fixed
+- Picking on the Galaxy Map while the stage just picked was still loading its data no longer says "There is no layer x here" and leaves the breadcrumb ahead of the drawing: a choice is now taken on the stage that is drawn (MAP.107).
+- A test now checks that the slab buttons never cover any part of the Galaxy Map at any width (MAP.108, the buttons-block-clicks part).
+
+## [7.249.634] - 2026-10-08
+
+### Added
+
+- TODO item GEN.120: move the gated phoneme codec from the repo root into the naming package (Boss, 2026-10-08).
+
+## [7.248.634] - 2026-10-08
+
+### Changed
+
+- **Admin edit actions are one Edit button that opens a menu (UX.26, UX.31).** On the system, sector and phenomenon pages the inline Regenerate, Delete, Change star and Change class folds are replaced by an Edit menu per row; picking an action opens its confirm step in a dialog on top of the page (Escape or Cancel closes it, the primary button submits), with the menu and dialog working from the keyboard. The posted forms and the server's `edit_action` handling are unchanged.
+
+## [7.247.634] - 2026-10-08
+
+### Added
+
+- TODO items TEST.98 to TEST.101: four load-only test flakes seen in the full suite run for PR #531.
+
 ## [7.246.629] - 2026-10-08
 
 ### Fixed
