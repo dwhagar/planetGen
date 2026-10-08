@@ -425,6 +425,54 @@ def log_tail(job_id, max_bytes=64 * 1024, root=None):
     return "\n".join(lines)
 
 
+def log_size(job_id, root=None):
+    """The size in bytes of a job's `output.log` (0 before the first output); `None` for an unknown job."""
+    root = root or jobs_dir()
+    path = _job_dir(root, job_id)
+    if path is None or not os.path.isfile(os.path.join(path, "job.json")):
+        return None
+    try:
+        return os.path.getsize(os.path.join(path, "output.log"))
+    except OSError:
+        return 0
+
+
+def read_log(job_id, offset=0, max_bytes=64 * 1024, root=None):
+    """
+    The raw output a job has written from byte `offset` on (at most
+    `max_bytes`), for the live log stream (ADM.22): carriage returns and
+    colour codes are left in, since the browser's terminal draws them.
+
+    Returns:
+        tuple: `(text, next_offset)`. A multi-byte character cut by the read
+            is left for the next call, so `next_offset` always falls between
+            characters. An offset past the end of the file (the log was
+            replaced) starts again from 0. `("", offset)` when there is
+            nothing new; `None` for an unknown job.
+    """
+    root = root or jobs_dir()
+    path = _job_dir(root, job_id)
+    if path is None or not os.path.isfile(os.path.join(path, "job.json")):
+        return None
+    try:
+        with open(os.path.join(path, "output.log"), "rb") as f:
+            f.seek(0, os.SEEK_END)
+            size = f.tell()
+            if offset > size or offset < 0:
+                offset = 0
+            f.seek(offset)
+            data = f.read(max_bytes)
+    except OSError:
+        return "", max(offset, 0)
+    for cut in range(4):
+        try:
+            text = data[:len(data) - cut].decode("utf-8")
+        except UnicodeDecodeError:
+            continue
+        return text, offset + len(data) - cut
+    return data.decode("utf-8", errors="replace"), offset + len(data)
+
+
 # ---------------------------------------------------------------------
 # Starting and stopping jobs
 # ---------------------------------------------------------------------
