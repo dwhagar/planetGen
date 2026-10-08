@@ -740,7 +740,7 @@ export function createStageView(host) {
     if (!enteredSystem) return null;
     return {
       id: enteredSystem.id, name: enteredSystem.name, mode: systemStage.mode(), refs: systemStage.entries().map(function (e) { return e.ref; }),
-      flying: !!animation, following: followBody, distance: view ? view.dist : null, selected: systemStage.selected(),
+      flying: !!animation, following: followBody, trailOpacity: systemStage.trailOpacity, distance: view ? view.dist : null, selected: systemStage.selected(),
       // Where a body is on screen, in client pixels (null: behind the camera).
       screen: function (ref) {
         const entry = systemStage.entry(ref);

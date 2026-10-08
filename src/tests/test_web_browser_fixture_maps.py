@@ -1904,6 +1904,13 @@ def test_galaxy_map_opens_a_system_in_place_and_zooms_to_a_moon(page, map_site):
     # A planet picked from the list shows its panel; Fly to goes in close.
     page.locator(".starmap-sr-system button", has_text="(planet)").first.evaluate("b => b.click()")
     assert "Fly to" in [b.inner_text() for b in page.locator("#galaxymap3d-info button").all()]
+    # MAP.126: the picked body's path is drawn full and the others' fade back.
+    picked = _galaxy_system(page)["selected"]
+    opacity = page.evaluate("(refs) => { const s = document.querySelector('#galaxymap3d-canvas').galaxySystem(); "
+                            "return refs.map((r) => s.trailOpacity(r)); }", [picked, "planet:1", "planet:2"])
+    assert opacity[0] == 1
+    others = [o for ref, o in zip([picked, "planet:1", "planet:2"], opacity) if ref != picked and o is not None]
+    assert others and all(o < 0.5 for o in others), opacity
     page.locator("#galaxymap3d-info button", has_text="Fly to").click()
     _wait_system(page)
     near = _galaxy_system(page)["distance"]
