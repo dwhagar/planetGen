@@ -542,7 +542,7 @@ def test_nav_ends_picked_from_bookmarks_on_every_page(page, base_url, sample_par
     assert _course_ends(page) == (start, dest)
 
     # The sector page's menu while picking a destination.
-    _open(page, f"{base_url}/sector/{sample_params['sector_id']}?pick=to&from={start}", "#starmap-canvas")
+    _open(page, f"{base_url}/sector/{sample_params['sector_id']}?pick=to&from={start}", "#galaxymap3d-canvas")
     page.locator(".pick-bookmarks summary").click()
     with page.expect_navigation():
         page.locator(".pick-bookmarks a", has_text="Bookmarked destination").click()
