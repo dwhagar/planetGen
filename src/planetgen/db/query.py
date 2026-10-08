@@ -2653,12 +2653,66 @@ def galaxy_brightest_stars(conn, count=GALAXY_TILE_BRIGHTEST_SAMPLE):
     return [_bright_star_entry(row) for row in rows]
 
 
+BRIGHT_STAR_PLANE_HALF_THICKNESS_PC = 250.0
+"""float: A tile's bright stars are picked in three height bands (GEN.117):
+the plane, `|z|` below this, and the two sides above and below it. The
+Galaxy Map's old picks, the most luminous first, kept only the young blue
+stars on the plane and none of the old giants above it."""
+
+BRIGHT_STAR_OFF_PLANE_SHARE = 0.5
+"""float: The share of a tile's bright-star budget (`limit`) split between
+the bands off the plane, when the tile reaches them: each gets half of
+it, and the plane the rest. A band holding fewer stars than its share
+leaves the rest to the plane."""
+
+
+def _height_bands(lo, hi):
+    """The box `[lo, hi)` cut at the plane band's edges: `[(lo, hi, on_plane)]`,
+    only the bands the box reaches."""
+    edge = BRIGHT_STAR_PLANE_HALF_THICKNESS_PC
+    cuts = [-edge, edge]
+    bounds = [lo[2]] + [z for z in cuts if lo[2] < z < hi[2]] + [hi[2]]
+    bands = []
+    for bottom, top in zip(bounds, bounds[1:]):
+        bands.append(((lo[0], lo[1], bottom), (hi[0], hi[1], top), -edge <= bottom and top <= edge))
+    return bands
+
+
 def galaxy_bright_stars_in_box(conn, lo, hi, edge_pc, limit=GALAXY_TILE_MAX_BRIGHT_STARS, unfilled_only=False,
                                brightest=None):
     """
     The most luminous pre-placed bright stars (`bright_stars`) in the box
     `[lo, hi)`, at most `limit` -- the stars the Galaxy Map draws before
     (and after) their sectors are filled.
+
+    A box reaching beyond the galactic plane's band picks within each
+    height band (`BRIGHT_STAR_PLANE_HALF_THICKNESS_PC`) so the old giants
+    above and below the plane are not all crowded out by the young stars
+    on it (GEN.117): each band off the plane gets its share of `limit`
+    (`BRIGHT_STAR_OFF_PLANE_SHARE`), and what a band leaves unused goes
+    to the plane. See `_galaxy_bright_stars_in_band` for the rest.
+    """
+    bands = _height_bands(lo, hi)
+    if len(bands) == 1:
+        return _galaxy_bright_stars_in_band(conn, lo, hi, edge_pc, limit, unfilled_only, brightest)
+    off = [band for band in bands if not band[2]]
+    share = int(limit * BRIGHT_STAR_OFF_PLANE_SHARE) // max(1, len(off))
+    picks = []
+    for band_lo, band_hi, on_plane in bands:
+        if not on_plane:
+            picks += _galaxy_bright_stars_in_band(conn, band_lo, band_hi, edge_pc, share, unfilled_only, brightest)
+    plane = [band for band in bands if band[2]]
+    room = limit - len(picks)
+    for band_lo, band_hi, _on in plane:
+        picks += _galaxy_bright_stars_in_band(conn, band_lo, band_hi, edge_pc, room, unfilled_only, brightest)
+    picks.sort(key=lambda star: (-star["luminosity_sol"], -star["id"]))
+    return picks[:limit]
+
+
+def _galaxy_bright_stars_in_band(conn, lo, hi, edge_pc, limit, unfilled_only, brightest):
+    """
+    The most luminous pre-placed bright stars in the box `[lo, hi)`, at
+    most `limit`, with no height banding (`galaxy_bright_stars_in_box`).
 
     `bright_stars` is indexed by address and by luminosity, not by
     position, so the box is turned into address ranges: one per ring and

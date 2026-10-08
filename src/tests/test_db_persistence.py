@@ -3123,6 +3123,48 @@ def test_bright_star_web_queries(mysql_config):
         conn.close()
 
 
+def _bright_row_at(z_pc, luminosity_sol, slot=1):
+    """A bright star `z_pc` above the plane, addressed as the scatter would."""
+    from planetgen.db.query import layer_index_at, ring_index_at
+
+    return (ring_index_at(12.37, 4.0), layer_index_at(z_pc, 4.0), slot, 12000, 3000, int(z_pc * 1000), "young", "B2V", "V", 1.4e31, 3.0e6, 22000.0,
+            luminosity_sol * 3.828e26, 0.02, 0.03, 7.0, 0.03, 42)
+
+
+def test_bright_stars_in_a_tall_box_span_the_heights_it_reaches(mysql_config):
+    """GEN.117: a crowd of luminous stars on the plane no longer crowds out
+    the dimmer old giants above and below it."""
+    from planetgen.db import query as queryDb
+
+    conn = store.get_connection(mysql_config)
+    try:
+        with conn:
+            conn.execute("INSERT INTO galaxy_shape (id, disk_scale_length_pc, disk_scale_height_pc,"
+                         " bulge_scale_radius_pc, bulge_amplitude, arm_count, pitch_angle_rad, arm_amplitude,"
+                         " spiral_reference_radius_pc, spiral_reference_angle_rad, k_norm, edge_pc,"
+                         " expected_system_count_at_density_1, outer_ring_index)"
+                         " VALUES (1, 1, 1, 1, 1, 2, 0.2, 0.3, 1, 0, 1, 4, 10, 5)")
+            # One star per layer (4 pc apart), so every address is its own.
+            rows = [_bright_row_at(4.0 * n, 5000.0 + n) for n in range(60)]
+            rows += [_bright_row_at(400.0 + 4.0 * n, 1500.0) for n in range(10)]
+            rows += [_bright_row_at(-400.0 - 4.0 * n, 1400.0) for n in range(10)]
+            store.insert_bright_stars(conn, rows)
+        lo, hi = (0.0, 0.0, -1000.0), (100.0, 100.0, 1000.0)
+        picked = queryDb.galaxy_bright_stars_in_box(conn, lo, hi, 4.0, limit=20)
+        heights = sorted(star["z"] for star in picked)
+        assert len(picked) == 20
+        assert sum(z > 250 for z in heights) == 5 and sum(z < -250 for z in heights) == 5, heights
+        assert [s["luminosity_sol"] for s in picked] == sorted((s["luminosity_sol"] for s in picked), reverse=True)
+        # A box inside the plane's band picks the brightest as before.
+        flat = queryDb.galaxy_bright_stars_in_box(conn, (0.0, 0.0, -100.0), (100.0, 100.0, 100.0), 4.0, limit=20)
+        assert len(flat) == 20 and all(abs(s["z"]) < 100 for s in flat)
+        # Few stars off the plane leave their room to the plane.
+        tall = queryDb.galaxy_bright_stars_in_box(conn, (0.0, 0.0, 300.0), (100.0, 100.0, 1000.0), 4.0, limit=20)
+        assert len(tall) == 10 and all(s["z"] > 250 for s in tall)
+    finally:
+        conn.close()
+
+
 def test_migrate_v42_to_v43_adds_bright_star_storage(mysql_config):
     conn = store.get_connection(mysql_config)
     try:
