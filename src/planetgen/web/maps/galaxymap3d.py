@@ -618,6 +618,23 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         '            title="Ring each rogue planet, so it is easy to find among the stars">Mark rogue planets</button>\n'
         if pinned else ""
     )
+    # MAP.131: what the blocks' fill shows, and the legend of the choice.
+    color_block = legend_block = ""
+    if not pinned:
+        color_block = (
+            '    <label class="galaxy-color-by">Color by <select id="galaxymap3d-color-by" data-color-by\n'
+            '            title="What the blocks and sectors are colored by">\n'
+            '      <option value="default">Age, density and luminosity</option>\n'
+            '      <option value="density">Density</option>\n'
+            '      <option value="age">Mean age</option>\n'
+            '      <option value="luminosity">Luminosity</option>\n'
+            '      <option value="stars">Star count</option>\n'
+            '    </select></label>\n')
+        legend_block = (
+            '<div class="galaxy-legend" id="galaxymap3d-legend" role="img" hidden>'
+            '<span class="galaxy-legend-title"></span>'
+            '<span class="galaxy-legend-bar"></span>'
+            '<span class="galaxy-legend-low"></span><span class="galaxy-legend-high"></span></div>\n')
     territory_button = territory_box = ""
     if territory_path:
         territory_button = (
@@ -665,6 +682,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
      one; slabs are also picked with the buttons beside the map; Escape or Backspace goes one step back out
      and Home returns to the whole galaxy. Dragging, or Shift and the arrow keys, turns the view and the wheel zooms."></canvas>
 <div class="starmap-scale" id="galaxymap3d-scale" aria-live="polite"></div>
+{legend_block}
 <div class="map-tooltip" id="galaxymap3d-tooltip" hidden></div>
 </div>
 {slabs_block}</div>
@@ -682,7 +700,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
             title="Back to this step's own view after turning, moving or zooming it">Re-center</button>
     <button type="button" class="starmap-btn" data-action="charted-only" data-icon="charted-only" aria-pressed="false"
             title="Dim the stars and blocks outside charted sectors and outline the charted ones">Charted only</button>
-{rogue_button}{territory_button}    <button type="button" class="starmap-btn" data-action="map-help" data-icon="help"
+{color_block}{rogue_button}{territory_button}    <button type="button" class="starmap-btn" data-action="map-help" data-icon="help"
             title="How to move around the map and read it">Map help</button>
     </div>
   </details>

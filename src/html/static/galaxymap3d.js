@@ -56,7 +56,7 @@ const {
   sectorAddressAt,
 } = await import(`./galaxyprisms.js${VERSION_QUERY}`);
 const { createStageView } = await import(`./galaxystageview.js${VERSION_QUERY}`);
-const { createBlockScene } = await import(`./galaxyblocks.js${VERSION_QUERY}`);
+const { createBlockScene, COLOR_MODES } = await import(`./galaxyblocks.js${VERSION_QUERY}`);
 const { formatDistancePc, LIGHTYEAR_M, PARSEC_M } = await import(`./distance.js${VERSION_QUERY}`);
 const { formatNumber } = await import(`./numberformat.js${VERSION_QUERY}`);
 const { boostLight, starLightBoost } = await import(`./starlight.js${VERSION_QUERY}`);
@@ -2090,12 +2090,34 @@ function initGalaxyMap3d(canvasEl, data) {
   });
   document.addEventListener("datatable:rows", function () { showMapTargets(mapTargetsOn); });
 
+  // The legend of a single-statistic color mode (galaxyblocks' legendFor), or
+  // none for the default.
+  function showLegend(legend) {
+    var el = document.getElementById("galaxymap3d-legend");
+    if (!el) return;
+    el.hidden = !legend;
+    if (!legend) return;
+    el.querySelector(".galaxy-legend-title").textContent = legend.label + " (" + legend.unit + ")";
+    el.querySelector(".galaxy-legend-bar").style.background = "linear-gradient(to right, " + legend.stops.join(", ") + ")";
+    el.querySelector(".galaxy-legend-low").textContent = legend.lowText;
+    el.querySelector(".galaxy-legend-high").textContent = legend.highText;
+    el.setAttribute("aria-label", legend.label + ": " + legend.lowText + " (dark blue) to " + legend.highText + " (yellow), " + legend.unit);
+  }
+
   var stageView = createStageView({
     THREE: THREE, scene: scene, camera: camera, canvasEl: canvasEl,
     edgePc: edgePc, shape: galaxyShape, galaxyRadius: GALAXY_RADIUS, reducedMotion: reducedMotion,
     accentColor: accentColor, canGenerate: !!data.generate, courseSectors: courseSectors,
     blockScene: localBlockScene,
     makeBlockMesh: makeBlockMesh,
+    // MAP.131: the blocks' color modes, the legend of the chosen one and the
+    // select that follows the address.
+    colorModes: Object.keys(COLOR_MODES),
+    showLegend: showLegend,
+    colorChanged: function (mode) {
+      var select = document.getElementById("galaxymap3d-color-by");
+      if (select) select.value = mode;
+    },
     // While picking a NAV start or destination, the map's own URLs keep
     // the pick, so Back, a reload or a bookmark of the page keep it too.
     pickQuery: function () { return navPick.query(); },
@@ -2279,6 +2301,11 @@ function initGalaxyMap3d(canvasEl, data) {
   var menuEl = document.getElementById("galaxymap3d-menu");
   if (menuEl) {
     wireMapMenu(menuEl);
+  }
+  var colorSelect = document.getElementById("galaxymap3d-color-by");
+  if (colorSelect) {
+    colorSelect.addEventListener("change", function () { stageView.setColorBy(colorSelect.value); });
+    colorSelect.value = stageView.colorBy();
   }
 
   // --- Scale bar -----------------------------------------------------------

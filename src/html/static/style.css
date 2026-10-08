@@ -3995,3 +3995,40 @@ body.app {
 .entry-points strong {
   font-weight: 700;
 }
+
+/* MAP.131: the Galaxy Map's Color by choice and the legend of a single statistic. */
+.galaxy-color-by {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.85rem;
+}
+.galaxy-legend {
+  position: absolute;
+  left: 0.75rem;
+  top: 0.75rem;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.15rem 0.5rem;
+  max-width: min(16rem, 60%);
+  padding: 0.35rem 0.5rem;
+  border-radius: 6px;
+  background: var(--bg-subtle);
+  color: var(--text);
+  font-size: 0.75rem;
+  pointer-events: none;
+}
+.galaxy-legend[hidden] {
+  display: none;
+}
+.galaxy-legend-title,
+.galaxy-legend-bar {
+  grid-column: 1 / -1;
+}
+.galaxy-legend-bar {
+  height: 0.6rem;
+  border-radius: 3px;
+}
+.galaxy-legend-high {
+  text-align: right;
+}

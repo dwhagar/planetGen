@@ -1984,3 +1984,30 @@ def test_galaxy_map_wheel_carries_the_zoom_into_a_system_and_back(page, map_site
         page.wait_for_timeout(30)
     _wait_system(page, present=False)
     assert _query(page) == OPEN_PRIME[1:]
+
+
+def test_galaxy_map_color_by_switches_the_fill_with_a_legend_and_keeps_it_in_the_url(page, map_site):
+    """MAP.131: the Menu's Color by recolours the blocks by one statistic,
+    shows what the colours mean, keeps the choice in the address and goes
+    back to the default."""
+    _open_galaxy(page, map_site, "?sector=100000001")
+    legend = page.locator("#galaxymap3d-legend")
+    assert legend.is_hidden()
+    page.locator("#galaxymap3d-menu summary").click()
+    for mode in ("density", "age", "luminosity", "stars"):
+        page.select_option("#galaxymap3d-color-by", mode)
+        _settle(page)
+        assert f"color={mode}" in _query(page)
+        assert legend.is_visible(), mode
+        assert legend.locator(".galaxy-legend-low").inner_text() != ""
+        assert legend.locator(".galaxy-legend-title").inner_text() != ""
+    # Reload on the address: the select and the mode follow it.
+    page.reload()
+    page.wait_for_selector("#galaxymap3d-steps [data-steps-panel] li", state="attached")
+    assert page.input_value("#galaxymap3d-color-by") == "stars"
+    assert legend.is_visible()
+    page.locator("#galaxymap3d-menu summary").click()
+    page.select_option("#galaxymap3d-color-by", "default")
+    _settle(page)
+    assert "color=" not in _query(page)
+    assert legend.is_hidden()
