@@ -46,6 +46,7 @@ from planetgen.db.query import (
     SEARCH_RESULT_LIMIT,
     SEARCH_RESULT_PANELS,
     SEARCH_TAG_FACETS,
+    PHENOMENON_SORTS,
     count_phenomena,
     count_sectors,
     count_systems,
@@ -58,6 +59,7 @@ from planetgen.db.query import (
     galaxy_stage,
     galaxy_tiles,
     list_phenomena,
+    phenomena_facets,
     list_sectors,
     list_systems,
     nav_between,
@@ -217,6 +219,41 @@ def close_db(exception=None):
     db = g.pop("db", None)
     if db is not None:
         db.close()
+
+
+def _parse_sort(query_args, allowed):
+    """
+    Parses the `sort`/`order` query parameters a sortable listing takes.
+
+    Args:
+        query_args (werkzeug.datastructures.MultiDict): `request.args`.
+        allowed (Iterable[str]): The sort keys the listing offers; the first
+            is the default.
+
+    Returns:
+        tuple[str, bool]: `(sort key, descending)`.
+
+    Raises:
+        ApiError: If `sort` is not one of `allowed` or `order` is not
+            `asc`/`desc`.
+    """
+    allowed = list(allowed)
+    sort = query_args.get("sort") or allowed[0]
+    if sort not in allowed:
+        raise ApiError(f"sort must be one of: {', '.join(allowed)}")
+    order = (query_args.get("order") or "asc").lower()
+    if order not in ("asc", "desc"):
+        raise ApiError("order must be 'asc' or 'desc'")
+    return sort, order == "desc"
+
+
+def _parse_yes_no(raw, name):
+    """`True` for "yes", `False` for "no", `None` when absent; anything else is an `ApiError`."""
+    if raw is None or raw == "":
+        return None
+    if raw not in ("yes", "no"):
+        raise ApiError(f"{name} must be 'yes' or 'no'")
+    return raw == "yes"
 
 
 def _paginate(query_args):
@@ -816,15 +853,31 @@ def phenomena():
     counterpart to `/api/galaxy/phenomena` (which only returns the
     galaxy-placed subset, for the Galaxy Map). `html/phenomena.py`'s own
     listing page.
+
+    Query parameters: `sort` (`name` -- the default -- `type`,
+    `descriptor`, `radius`, `sector` or `placed`) with `order` (`asc` or
+    `desc`); the filters `type` and `descriptor` (each repeatable, any of),
+    and `placed` (`yes` or `no`); and `facets=1` to add the option counts
+    for the type and descriptor filter menus (`queryDb.phenomena_facets`).
+    `total` counts the rows that pass the filters.
     """
     limit, offset = _paginate(request.args)
+    sort, descending = _parse_sort(request.args, PHENOMENON_SORTS)
+    filters = {
+        "types": [v for v in request.args.getlist("type") if v],
+        "descriptors": [v for v in request.args.getlist("descriptor") if v],
+        "placed": _parse_yes_no(request.args.get("placed"), "placed"),
+    }
     db = get_db()
-    return jsonify({
-        "items": list_phenomena(db, limit=limit, offset=offset),
-        "total": count_phenomena(db),
+    body = {
+        "items": list_phenomena(db, limit=limit, offset=offset, sort=sort, descending=descending, **filters),
+        "total": count_phenomena(db, **filters),
         "limit": limit,
         "offset": offset,
-    })
+    }
+    if request.args.get("facets") == "1":
+        body["facets"] = phenomena_facets(db, **filters)
+    return jsonify(body)
 
 
 @bp.route("/phenomena/<phenomenon_type>/<int:phenomenon_id>")
