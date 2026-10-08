@@ -248,6 +248,43 @@ def _children(counts):
             for b, ids in sorted(counts.items(), key=lambda item: (item[0].slab, item[0].ring, item[0].wedge))]
 
 
+def system_scene_payload(system_id):
+    """The 3D system view's scene (`GET /api/systems/<id>/scene`) for a fixture
+    system: a close pair with two planets (one with a moon), a belt and two
+    comets, built from the hand-made scene of `test_body_positions.py`."""
+    from tests.test_body_positions import AU_KM, sample_scene
+
+    name = next((n for sid, n, *_rest in SYSTEMS if sid == int(system_id)), None)
+    if name is None:
+        raise apiclient.NotFoundError(f"No such system: {system_id}")
+    scene = sample_scene()
+    colors = ["#ffd9a0", "#9fb8ff", "#5f8a72", "#d9a441", "#8a7a66", "#c9d6e0", "#b9d6e8", "#b9d6e8"]
+    n = 0
+    for index, star in enumerate(scene["stars"], start=1):
+        star.update(id=index, kind="star", name=f"{name} {'AB'[index - 1]}", role="primary" if index == 1 else "secondary",
+                    star_type="G2V", radius_km=695700.0 * (1.0 if index == 1 else 0.6), mass_kg=2e30,
+                    temperature_k=5772.0, luminosity_w=3.8e26, color=colors[n])
+        n += 1
+    for index, planet in enumerate(scene["planets"], start=1):
+        planet.update(id=index, kind="planet", name=f"{name} {'I' * index}", planet_class="F" if index == 1 else "J",
+                      radius_km=6371.0 if index == 1 else 69911.0, mass_kg=6e24, color=colors[n],
+                      habitable=False, inhabited=False)
+        n += 1
+        for moon_index, moon in enumerate(planet["moons"], start=1):
+            moon.update(id=moon_index, kind="moon", name=f"{planet['name']} {'abc'[moon_index - 1]}", planet_class="D",
+                        radius_km=1737.0, mass_kg=7e22, color=colors[n], habitable=False, inhabited=False)
+            n += 1
+    for index, comet in enumerate(scene["comets"], start=1):
+        comet.update(id=index, kind="comet", name=f"{name} Comet {index}", radius_km=5.0, color="#b9d6e8", is_active=True)
+    scene["belts"] = [{"ref": "belt:1", "id": 1, "kind": "belt", "name": None, "body_type": "a", "around": "barycenter",
+                       "inner_km": 2.5 * AU_KM, "outer_km": 3.2 * AU_KM, "distance_km": 2.8 * AU_KM}]
+    scene["system"] = {"id": int(system_id), "ref": f"system:{int(system_id)}", "name": name, "is_binary": True,
+                       "binary_configuration": "close", "heliopause_au": 120.0}
+    scene["epoch"] = None
+    scene["epoch_unix"] = None
+    return scene
+
+
 class FixtureApi:
     """The `apiclient`/`tilecache` reads the map pages make."""
 
@@ -315,13 +352,16 @@ class FixtureApi:
     def get_sector_facilities(self, db, sector_id):
         return []
 
+    def get_system_scene(self, db, system_id):
+        return system_scene_payload(system_id)
+
     def get_bright_stars_in_cell(self, db, ring_index, layer_index, ring_slot_index):
         return []
 
 
 _APICLIENT = ("get_galaxy_sectors", "get_galaxy_shape", "get_polities", "auth_me", "get_galaxy_locate",
               "get_sector", "get_sector_facilities", "get_bright_stars_in_cell", "get_population_status",
-              "get_galaxy_changes", "get_nebula_shape")
+              "get_galaxy_changes", "get_nebula_shape", "get_system_scene")
 _TILECACHE = ("get_galaxy_changes", "get_galaxy_tiles", "get_galaxy_stage")
 
 

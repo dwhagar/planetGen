@@ -108,9 +108,13 @@ export function buildSystemScene(scene, layout, options) {
     group.add(mesh);
     objects[item.ref] = mesh;
     if (item.kind === "star") {
-      const glow = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 14), makeGlowMaterial(THREE, color, 2.2, 0.9, 2.2));
-      mesh.add(glow);
-      glow.scale.setScalar(2.2);
+      // The Galaxy Map draws on a logarithmic depth buffer, which the glow
+      // shader doesn't write, so a system drawn there has none (opts.glow false).
+      if (opts.glow !== false) {
+        const glow = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 14), makeGlowMaterial(THREE, color, 2.2, 0.9, 2.2));
+        mesh.add(glow);
+        glow.scale.setScalar(2.2);
+      }
       const light = new THREE.PointLight(color, 2.2, 0, 0);
       group.add(light);
       lights.push({ ref: item.ref, light: light });

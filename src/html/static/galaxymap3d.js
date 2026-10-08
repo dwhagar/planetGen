@@ -578,7 +578,8 @@ function initGalaxyMap3d(canvasEl, data) {
 
   var FOV_DEG = data.fovDeg || 50;
   var farPlane = Math.max(data.maxViewRadiusPc * 6, 1000);
-  var camera = new THREE.PerspectiveCamera(FOV_DEG, 1, Math.max(data.minViewRadiusPc / 50, 0.001), farPlane);
+  var BASE_NEAR = Math.max(data.minViewRadiusPc / 50, 0.001);
+  var camera = new THREE.PerspectiveCamera(FOV_DEG, 1, BASE_NEAR, farPlane);
   camera.up.set(0, 0, 1);
 
   var MIN_RADIUS = data.minViewRadiusPc;
@@ -2107,6 +2108,14 @@ function initGalaxyMap3d(canvasEl, data) {
       camera.quaternion.fromArray(v.quaternion);
       var back = new THREE.Vector3(0, 0, v.dist).applyQuaternion(camera.quaternion);
       camera.position.copy(target).add(back);
+      // A system opened in place is zoomed to a moon, far inside the usual
+      // near plane (the depth buffer is logarithmic, so a near plane close
+      // to the camera costs no precision).
+      var near = Math.min(BASE_NEAR, v.dist * 1e-3);
+      if (near !== camera.near) {
+        camera.near = near;
+        camera.updateProjectionMatrix();
+      }
       camera.updateMatrixWorld();
       updateScaleBar();
     },
@@ -2133,6 +2142,16 @@ function initGalaxyMap3d(canvasEl, data) {
     pinned: data.pinned || null,
     openSectorPage: function (id) { if (sceneData.sectorUrl) location.assign(sectorUrl(id)); },
     // The sector page's scene JSON (planetgen/web/sector_page.py).
+    // A system of the open sector opened in place (MAP.125): its page's /scene.
+    fetchSystemScene: sceneData.sectorUrl ? function (href) {
+      return fetch(href.split("?")[0] + "/scene", { headers: { Accept: "application/json" } })
+        .then(function (response) {
+          if (!response.ok) {
+            throw new Error("HTTP " + response.status);
+          }
+          return response.json();
+        });
+    } : null,
     fetchSectorScene: sceneData.sectorUrl ? function (id) {
       var path = sectorUrl(id).split("?")[0] + "/scene";
       return fetch(path, { headers: { Accept: "application/json" } })
