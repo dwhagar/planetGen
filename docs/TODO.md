@@ -112,7 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 is done (PR #476); GEN.117, GEN.116 keeps watch for Boss's error text. | GEN.116, TEST.94, TEST.95, TEST.96, TEST.97, TEST.98, TEST.99, TEST.100, TEST.101, SEC.29, TEST.72, SEC.30, TEST.83, UX.39, OPS.20, DB.11, DB.13, ADM.21, GEN.66, GEN.74, GEN.68, GEN.69, GEN.70, GEN.71, GEN.72, GEN.73, GEN.67, ADM.22, ADM.24, ADM.25, ADM.26, UX.40, UX.26, UX.27, ADM.14, UX.41, UX.33, ADM.34, NAV.7, MAP.95, NAV.13, NAV.14, MAP.79, NAV.15, NAV.29, NAV.33, MAP.66, MAP.67, MAP.68, MAP.61, NAV.32, MAP.102, MAP.106, MAP.108, MAP.109, MAP.112, MAP.113, MAP.116, NAV.46, GEN.75, MAP.103, MAP.104, MAP.105, UX.38, UX.37, UX.21 |
+| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 is done (PR #476); GEN.117, GEN.116 keeps watch for Boss's error text. | GEN.116, TEST.94, TEST.95, TEST.96, TEST.97, TEST.98, TEST.99, TEST.100, TEST.101, SEC.29, TEST.72, SEC.30, TEST.83, UX.39, OPS.20, DB.11, DB.13, ADM.21, GEN.66, GEN.74, GEN.68, GEN.69, GEN.70, GEN.71, GEN.72, GEN.73, GEN.67, ADM.22, ADM.24, ADM.25, ADM.26, UX.40, UX.26, ADM.14, UX.41, UX.33, ADM.34, NAV.7, MAP.95, NAV.13, NAV.14, MAP.79, NAV.15, NAV.29, NAV.33, MAP.66, MAP.67, MAP.68, MAP.61, NAV.32, MAP.102, MAP.106, MAP.108, MAP.109, MAP.112, MAP.113, MAP.116, NAV.46, GEN.75, MAP.103, MAP.104, MAP.105, UX.38, UX.37, UX.21 |
 | 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, NAV.16, NAV.3, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.41, GEN.98, GEN.100, GEN.99, GEN.101, GEN.102, GEN.103, GEN.84, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, GEN.94, GEN.104, GEN.106, GEN.107, GEN.108, NAV.10, NAV.12, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, NAV.43, NAV.44, MAP.119, MAP.122, MAP.123, MAP.124, DB.14, MAP.128, MAP.129, MAP.130, GEN.120, MAP.89, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, OPS.8, OPS.13, OPS.14, ADM.18, GEN.59 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.58, MAP.75, MAP.59, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, API.16, MAP.69, MAP.70, ADM.17, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.131, MAP.132, API.18, VIEW.5 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, repair that reads the newest settings JSON, and the anomalies chosen in phase 2. | MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, MAP.126, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, DB.10, ADM.20, GEN.114, MAP.125, API.19 |
@@ -222,7 +222,7 @@ with `clamp()`.
   already remove some dead controls on the Galaxy Map.
   It also runs after UX.37 (Boss's sweep for redundant and duplicate
   controls), so this layout pass checks the controls that are kept.
-  Prerequisites: MAP.68, UX.26, UX.27, NAV.32, UX.37.
+  Prerequisites: MAP.68, UX.26, NAV.32, UX.37.
   Plan (2026-10-07): Moved into phase 0 (all bugs in phase 0), as the
   last item of the groundwork lane.
 
@@ -283,21 +283,6 @@ with `clamp()`.
   still inline forms; it stays in this item (ADM.34 then lists it as
   one of its screens). Done now means that panel sits behind the same
   menu button and opens its forms in a dialog.
-
-- [ ] **UX.27 System page: the system and navigation buttons on one row that doesn't overlap (bug)**
-  Boss (2026-10-01 23:53Z): "When viewing a star from sector view system
-  and nav buttons should be in a row and should not overlap. If room is
-  needed the nav buttons can collapse into a nav button that opens a
-  from here or to here menu." Today the system page's subhead
-  (`system.html`, `.page-subhead` and `.page-actions` in `style.css`)
-  wraps the badges, "Navigate from here", "Navigate to here", "Show on
-  Galaxy Map" and the bookmark button. Done: these buttons sit on one
-  row with no overlap at every size class; when there isn't room, the
-  two navigate buttons fold into one "Navigate" button whose menu holds
-  "From here" and "To here" (container query, not a device check).
-  Ties in with NAV.29 (the Start Here / End Here wording) and UX.21.
-  Prerequisite: UX.40.
-  Plan (2026-10-07): Folded into UX.40.
 
 - [ ] **UX.30 Planet information without the Markdown render**
   Boss (2026-10-01 23:53Z): "Rework planet information displays to pull
@@ -383,7 +368,7 @@ with `clamp()`.
   the pages and maps they live on to settle: UX.28's icons, the Galaxy
   Map breadcrumb and history buttons (MAP.93 and MAP.94 done in PR #399, MAP.95), the NAV
   page layout (NAV.41), the slab and segment pick (MAP.56), and the page
-  action menus (UX.26, UX.27, UX.31). Prerequisites: MAP.95, UX.26, UX.27, UX.40, ADM.34.
+  action menus (UX.26, UX.27, UX.31). Prerequisites: MAP.95, UX.26, UX.40, ADM.34.
   Plan (2026-10-07): Moved into phase 0 (groundwork lane, last) because
   UX.21 is a bug and needs it.
 
@@ -419,8 +404,10 @@ with `clamp()`.
   (vendored) and moved the header Menu and gear onto sl-dropdown (UX.2,
   done). PR #533 followed with the edit menus and dialog confirms on the
   system, sector and phenomenon pages (UX.31, done; UX.26's edit actions
-  done, its sector Admin panel left). Foundations lane 1 continues with
-  UX.27 and ADM.14 in this item's PRs.
+  done, its sector Admin panel left). PR #539 put the system page's
+  buttons on one row with a Navigate menu (UX.27, done). Foundations
+  lane 1 continues with ADM.14, then the Generate page and form
+  remainder, in this item's PRs.
   Design: [docs/design/library-migration.md](design/library-migration.md)
 
 - [ ] **UX.41 Tables on TanStack Table and TanStack Virtual**
