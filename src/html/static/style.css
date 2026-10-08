@@ -600,6 +600,26 @@ tbody tr:last-child td {
   margin: 0 0 1rem;
 }
 
+.page-actions .admin-bar {
+  margin: 0;
+}
+
+/* UX.68: a planet's, moon's or belt's own Admin menu, at the right end of
+   its row in the System list. */
+.system-list li.has-admin {
+  position: relative;
+}
+
+.system-list li.has-admin > .row-admin {
+  position: absolute;
+  top: 0.3rem;
+  right: 0.5rem;
+}
+
+.system-list li.has-admin > details > summary {
+  padding-right: 6rem;
+}
+
 .edit-dialog .hint {
   max-width: 45ch;
   margin: 0 0 0.75rem;
