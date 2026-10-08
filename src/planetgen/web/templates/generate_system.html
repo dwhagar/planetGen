@@ -11,6 +11,7 @@
   {%- if hint %}<span class="field-hint">{{ hint }}</span>{% endif %}
 </label>
 {%- endmacro -%}
+{% block main_class %} aligned-fields{% endblock %}
 {% block head %}
 {%- if result and not result.failed %}
 <script type="module" src="{{ static_url('copycode.js') }}"></script>
