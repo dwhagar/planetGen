@@ -397,7 +397,8 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
                               sector_url=None, generate=None, phenomenon_url=None,
                               system_url=None, stage_path="/galaxy/stage",
                               locate_path="/galaxy/locate", course=None,
-                              territory_path="/galaxy/territories", pick=None, nav_url=None, pinned=None):
+                              territory_path="/galaxy/territories", pick=None, nav_url=None, pinned=None,
+                              nebula_shape_path="/galaxy/nebula/{id}/shape"):
     """
     Builds the "Galaxy Map (3D)" panel: a `<canvas>` `static/
     galaxymap3d.js` renders an interactive WebGL scene into (always
@@ -456,6 +457,10 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
             (`/galaxy/territories`), fetched when the Territories button
             is pressed. `None` (no polities generated yet) leaves the
             button and its legend out.
+        nebula_shape_path (str): The endpoint of a nebula's mesh (`/galaxy/
+            nebula/{id}/shape`, `{id}` where the nebula's id goes), which the
+            map draws a nebula from once it is big enough on screen
+            (`static/nebulamesh.js`, MAP.103).
         pick (dict or None): The NAV page's pick mode
             (`web/galaxy_views._pick_from_args`): `pick` ("from" or
             "to"), `banner` and `cancel` (the NAV page with the other
@@ -491,6 +496,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         "stagePath": stage_path,
         "locatePath": locate_path,
         "territoryPath": territory_path,
+        "nebulaShapePath": nebula_shape_path,
         "course": course,
         "pick": pick["pick"] if pick else None,
         "pickQuery": pick["query"] if pick else None,
