@@ -3980,3 +3980,18 @@ body.app {
   flex-wrap: wrap;
   gap: 0.35rem;
 }
+
+/* UX.55: the Home page's entry points -- the counts as links, and the tools. */
+.entry-points {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 2rem;
+  font-size: 1.1rem;
+}
+
+.entry-points strong {
+  font-weight: 700;
+}

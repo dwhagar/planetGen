@@ -79,6 +79,10 @@ class FakeData:
                               "octant": [{"value": "I", "count": 2}]}
         return body
 
+    def get_phenomena(self, db, limit=None, offset=None, **kwargs):
+        self.calls.append(("get_phenomena", db, limit, offset))
+        return {"items": [], "total": 4, "limit": limit, "offset": offset}
+
     def auth_me(self, cookie_header):
         self.calls.append(("auth_me", cookie_header))
         return self.admin
@@ -87,7 +91,7 @@ class FakeData:
 @pytest.fixture
 def fake(monkeypatch):
     data = FakeData()
-    for name in ("get_sectors", "get_systems", "auth_me"):
+    for name in ("get_sectors", "get_systems", "get_phenomena", "auth_me"):
         monkeypatch.setattr(apiclient, name, getattr(data, name))
     return data
 
@@ -112,7 +116,7 @@ def _section_link(html, label):
 
 # --- Rendering ------------------------------------------------------------------
 
-def test_home_renders_both_tables_and_shell(client, fake):
+def test_home_renders_the_front_door_and_shell(client, fake):
     resp = client.get("/")
     html = resp.get_data(as_text=True)
     assert resp.status_code == 200
@@ -129,11 +133,14 @@ def test_home_renders_both_tables_and_shell(client, fake):
     assert '<form class="site-search" role="search" method="get" action="/search">' in html
     assert '<sl-dropdown class="site-menu"' in html
     assert re.search(r'<script type="module" src="/static/components.js\?v=[^"]+"></script>', html)
-    assert "Sector 002" in html and "System 001" in html
-    assert "3 sectors" in html and "2 standalone systems" in html
-    # Sector and system rows link to their pages.
-    assert 'href="/sector/1"' in html
-    assert 'href="/system/1001"' in html
+    # UX.55: the counts are links to their lists, and the tools are entry points.
+    assert '<a href="/sectors"><strong>3</strong> sectors</a>' in html
+    assert '<a href="/systems"><strong>2</strong> systems</a>' in html
+    assert '<a href="/phenomena"><strong>4</strong> phenomena</a>' in html
+    assert re.search(r'<a href="/systems\?placement=standalone#all-systems"><strong>2</strong> standalone systems</a>', html)
+    for path in ("/galaxy", "/nav", "/search"):
+        assert f'<a href="{path}">' in html
+    assert "Sector 002" not in html
     # The home page is no section; nothing in the main nav is current.
     assert 'aria-current="page"' not in re.search(
         r'<nav class="site-sections".*?</nav>', html, re.S).group(0)
@@ -213,31 +220,34 @@ def test_database_defaults_to_mysql_config(fake):
 def test_names_are_escaped(client, fake):
     fake.sectors = [_sector(1, name='<script>alert("x")</script>')]
     fake.systems = [_system(1, name="Tom & <b>Jerry</b>")]
-    html = client.get("/").get_data(as_text=True)
+    html = client.get("/sectors").get_data(as_text=True)
     assert "<script>alert" not in html
     assert "&lt;script&gt;alert(&#34;x&#34;)&lt;/script&gt;" in html
-    assert "Tom &amp; &lt;b&gt;Jerry&lt;/b&gt;" in html
+    assert "Tom &amp; &lt;b&gt;Jerry&lt;/b&gt;" in client.get("/systems").get_data(as_text=True)
 
 
 def test_placed_sector_links_its_quadrant(client, fake):
     fake.sectors = [_sector(7, placed=True)]
-    html = client.get("/").get_data(as_text=True)
+    html = client.get("/sectors").get_data(as_text=True)
     assert 'href="/galaxy?quadrant=I">Quadrant I</a>' in html
     assert "378 pc (1,234 ly)" in html
 
 
-def test_pagination_uses_get_links_and_keeps_other_table_page(client, fake):
+def test_pagination_uses_get_links(client, fake):
     fake.sectors = [_sector(i) for i in range(120)]
-    fake.systems = [_system(i) for i in range(120)]
-    html = client.get("/?sectors_page=2&standalone_page=3").get_data(as_text=True)
+    html = client.get("/sectors?sectors_page=2").get_data(as_text=True)
     assert ("get_sectors", DB, 50, 50) in fake.calls
-    assert ("get_systems", DB, "none", 50, 100) in fake.calls
     assert "Sector 050" in html and "Sector 049" not in html
-    assert "System 100" in html
-    # The sectors pager keeps standalone_page=3 and vice versa; no forms.
-    assert 'href="/?standalone_page=3&amp;sectors_page=3#sectors"' in html
-    assert 'href="/?sectors_page=2&amp;standalone_page=2#standalone-systems"' in html
+    assert 'href="/sectors?sectors_page=3#sectors"' in html
     assert '<form method="post"' not in html
+
+
+def test_standalone_systems_are_a_filter_on_the_systems_list(client, fake):
+    """UX.55: no standalone card; the badge links to the filtered list."""
+    html = client.get("/systems").get_data(as_text=True)
+    assert 'id="standalone-systems"' not in html
+    assert '<a href="/systems?placement=standalone#all-systems">2 standalone</a>' in html
+    assert ("get_systems", DB, "none", 1, 0) in fake.calls
 
 
 def test_page_past_the_end_shows_last_page(client, fake):
@@ -479,10 +489,12 @@ def test_real_database_home_and_paging(db_client, mysql_config, monkeypatch):
     for i in range(55):
         store.save_sector(SpaceSector(f"Web <i>Sector</i> {i:03d}", edge_ly=10.0), config=mysql_config)
 
-    page1 = db_client.get("/")
+    home = db_client.get("/")
+    assert home.status_code == 200
+    assert "<strong>55</strong> sectors" in home.get_data(as_text=True)
+    page1 = db_client.get("/sectors")
     html = page1.get_data(as_text=True)
     assert page1.status_code == 200
-    assert "55 sectors" in html
     assert "Web &lt;i&gt;Sector&lt;/i&gt; 000" in html
     assert "Web &lt;i&gt;Sector&lt;/i&gt; 050" not in html
     assert f"db={mysql_config.database}" not in html  # every page is on Flask now
@@ -527,15 +539,12 @@ def test_systems_page_lists_every_system_with_sector_and_octant(client, fake):
     in_sector = dict(_system(1, name="Inner"), sector_id=7, sector_name="Home <Sector>", quadrant="III")
     fake.systems = [in_sector] + [_system(i) for i in range(2, 60)]
     html = client.get("/systems").get_data(as_text=True)
-    assert 'id="all-systems"' in html and 'id="standalone-systems"' in html
+    assert 'id="all-systems"' in html and 'id="standalone-systems"' not in html
     assert '<a href="/sector/7">Home &lt;Sector&gt;</a>' in html and "<td>III</td>" in html
     assert "Standalone" in html
-    # Both lists page on their own: the all-systems pager keeps the other page.
     assert ("get_systems", DB, None, 50, 0) in fake.calls
-    assert ("get_systems", DB, "none", 50, 0) in fake.calls
-    page2 = client.get("/systems?systems_page=2&standalone_page=2").get_data(as_text=True)
+    client.get("/systems?systems_page=2")
     assert ("get_systems", DB, None, 50, 50) in fake.calls
-    assert "standalone_page=2" in page2
 
 
 # --- The Sectors and Systems data tables (UX.41) ---------------------------------
@@ -557,13 +566,9 @@ def test_sectors_table_default_sort_is_distance(client, fake):
     assert '<th scope="col" data-col="distance" aria-sort="ascending">' in html
 
 
-def test_systems_tables_filter_independently(client, fake):
-    html = client.get("/systems?systems_sort=sector&binary=yes&placement=sector&octant=I"
-                      "&standalone_sort=binary&standalone_binary=no").get_data(as_text=True)
+def test_systems_table_takes_its_sort_and_filters(client, fake):
+    html = client.get("/systems?systems_sort=sector&binary=yes&placement=sector&octant=I").get_data(as_text=True)
     assert ("systems", "sector", False, True, "sector", ["I"]) in fake.asked
-    assert ("systems", "binary", False, False, None, []) in fake.asked
-    # Each table's links and form keep the other's choices.
-    assert 'name="standalone_sort" value="binary"' in html
     assert 'name="systems_sort" value="sector"' in html
 
 
@@ -573,7 +578,7 @@ def test_both_binary_choices_filter_nothing(client, fake):
 
 
 def test_unrelated_address_parameters_are_not_carried_into_links(client, fake):
-    html = client.get("/?sectors_sort=name&stray=1&db=someone_elses_db").get_data(as_text=True)
+    html = client.get("/sectors?sectors_sort=name&stray=1&db=someone_elses_db").get_data(as_text=True)
     assert "stray" not in html and "someone_elses_db" not in html
 
 
@@ -590,6 +595,4 @@ def test_table_route_serves_the_sectors_and_systems_tables(client, fake):
     body = client.get("/table/systems?facets=1&placement=standalone").get_json()
     assert [cell["text"] for cell in body["rows"][0]] == ["System 000", "Standalone", "–", "No", "G2V"]
     assert {o["value"]: o["label"] for o in body["facets"]["binary"]} == {"yes": "Binary", "no": "Single star"}
-    body = client.get("/table/standalone-systems").get_json()
-    assert [cell["text"] for cell in body["rows"][1]] == ["System 001", "Yes", "G2V"]
-    assert body["facets"] is None
+    assert client.get("/table/standalone-systems").status_code == 404

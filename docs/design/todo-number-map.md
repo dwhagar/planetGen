@@ -22,7 +22,7 @@ release is stamped.
 | API | API.20 |
 | ADM | ADM.39 |
 | SEC | SEC.32 |
-| TEST | TEST.108 |
+| TEST | TEST.109 |
 | USR | USR.9 |
 | OPS | OPS.28 |
 | DOC | DOC.4 |
@@ -908,7 +908,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.34 | The sector summary calls white dwarfs "B-type" and "A-type" systems (bug) | none | done, PR #448 |
 | UX.35 | The NAV page route shown horizontally, wrapping onto several lines on narrow screens | none | open |
 | UX.36 | Scientific notation starts too early for whole numbers (bug) | none | done, PR #457 |
-| UX.37 | A UX sweep: remove redundant and duplicate controls so the interface gets out of the way | none | open |
+| UX.37 | A UX sweep: remove redundant and duplicate controls so the interface gets out of the way | none | done, PR #671 |
 | UX.38 | The nebula and remnant diagrams' "-" button does nothing at the 1 ly limit (bug) | none | done, PR #590 |
 | UX.39 | Markdown rendered by the markdown library | none | open |
 | UX.40 | Buttons, menus and dialogs from Shoelace web components | none | done, PR #544 |
@@ -925,8 +925,8 @@ Parents marked "new parent" had no old number of their own.
 | UX.51 | Cards that repeat the page title | none | done, PR #663 |
 | UX.52 | Sector name repeated on every Contents row | none | done, PR #654 |
 | UX.53 | The same star shown three times on a system page | none | done, PR #654 |
-| UX.54 | Search shows empty result groups and echoes the query | none | open |
-| UX.55 | Home and Systems repeat other pages’ tables | none | open |
+| UX.54 | Search shows empty result groups and echoes the query | none | done, PR #671 |
+| UX.55 | Home and Systems repeat other pages’ tables | none | done, PR #671 |
 | UX.56 | Admin hub repeats the gear menu | none | done, PR #632 |
 | UX.57 | Two controls both called Reset | none | done, PR #637 |
 | UX.58 | Move Current into the Steps menu | none | done, PR #637 |
@@ -1146,6 +1146,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.105 | test_web_a11y.py fails on the Admin hub: its links have 2.49:1 contrast (bug) | none | done, PR #648 |
 | TEST.106 | test_controls_do_not_overlap fails on the Sector Map at 390, 600 and 1280 px: its buttons overlap the Contents filters (bug) | none | done, PR #650 |
 | TEST.107 | test_controls_do_not_overlap fails on main for /galaxy at 390 px and /sector: buttons overlap each other (bug) | none | closed, not reproducible (passes on main) |
+| TEST.108 | test_a_planet_holds_one_whose_system_frame_is_its_offset_from_the_star fails about one run in four (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

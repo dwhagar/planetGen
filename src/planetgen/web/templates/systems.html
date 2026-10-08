@@ -6,7 +6,7 @@
 {% block subhead %}
 <p class="badges">
   <span class="badge">{{ num(all_systems.total) }} system{{ "" if all_systems.total == 1 else "s" }}</span>
-  <span class="badge">{{ num(systems.total) }} standalone</span>
+  <span class="badge"><a href="{{ standalone_url }}">{{ num(standalone_total) }} standalone</a></span>
 </p>
 {% endblock %}
 {% block content %}
@@ -16,5 +16,4 @@
   </div>
   {{ datatable(all_systems) }}
 </section>
-{% include "partials/systems_panel.html" %}
 {% endblock %}
