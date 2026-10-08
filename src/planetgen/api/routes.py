@@ -1790,10 +1790,28 @@ def delete_facility(facility_id):
 # resulting URL is written back to.
 # ---------------------------------------------------------------------
 
-def _wiki_client_for(backend):
+def _require_wiki_configured(backend):
+    """Raises a 501 when `backend` has no `base_url`/credentials
+    configured at all -- rather than queuing an upload that can only
+    fail on an empty URL."""
+    if not current_app.config["WIKI_CONFIG"][backend]["configured"]:
+        raise ApiError(f"wiki publishing is not configured for {backend!r}", status_code=501)
+
+
+def wiki_settings(backend):
+    """`backend`'s wiki settings as the worker resolves them itself
+    (`config.py`'s `_wiki_config`: environment, then `config.json`), so
+    the wiki's token or password never travels through Redis."""
+    from planetgen.api.config import _wiki_config
+    settings = _wiki_config(load_config()["wiki"])[backend]
+    if not settings["configured"]:
+        raise ApiError(f"wiki publishing is not configured for {backend!r}", status_code=501)
+    return settings
+
+
+def _wiki_client(backend):
     """
-    Builds a `planetgen.wiki.WikiClient` for `backend`, from
-    `current_app.config["WIKI_CONFIG"]` (see `config.py`'s `_wiki_config`).
+    Builds a `planetgen.wiki.WikiClient` for `backend` from `wiki_settings`.
 
     Args:
         backend (str): `"wikijs"` or `"mediawiki"`.
@@ -1802,20 +1820,23 @@ def _wiki_client_for(backend):
         planetgen.wiki.WikiClient
 
     Raises:
-        ApiError: 501 if `backend` has no `base_url`/credentials
-            configured at all -- rather than trying, and failing, to
-            reach an empty URL.
+        ApiError: 501 if `backend` isn't configured.
     """
-    settings = current_app.config["WIKI_CONFIG"][backend]
-    if not settings["configured"]:
-        raise ApiError(f"wiki publishing is not configured for {backend!r}", status_code=501)
-
+    settings = wiki_settings(backend)
     if backend == "wikijs":
         return WikiClient(backend="wikijs", base_url=settings["base_url"], api_token=settings["api_token"])
     return WikiClient(
         backend="mediawiki", base_url=settings["base_url"],
         username=settings["username"], password=settings["password"],
     )
+
+
+def _open_read_for_job(config):
+    """A read-only connection for a queued job, as `get_db` opens one."""
+    try:
+        return open_readonly(config, statement_timeout_s=None)
+    except SystemExit as exc:
+        raise ApiError(f"{DATABASE_UNAVAILABLE} ({exc})", status_code=503)
 
 
 def _wiki_upload_request(body):
@@ -1898,27 +1919,41 @@ def upload_system_wiki(system_id):
     """
     body = require_json_body()
     backend, path = _wiki_upload_request(body)
-    client = _wiki_client_for(backend)
+    _require_wiki_configured(backend)
+    job_id, page = run_queued(upload_system_wiki_job, _resolve_requested_db_config(),
+                              _resolve_requested_write_db_config(), system_id, backend, path)
+    if page is None:
+        audit("system.wiki_upload", target=f"system:{system_id}", detail=f"backend={backend!r} queued job={job_id}")
+        return accepted(job_id)
+    audit("system.wiki_upload", target=f"system:{system_id}", detail=f"backend={backend!r} path={page['path']!r}")
+    return jsonify(page), 201
 
+
+def upload_system_wiki_job(read_config, write_config, system_id, backend, path):
+    """The queued body of `POST /api/systems/<id>/wiki`: renders the
+    page, creates it on the wiki, records its URL. Returns the page."""
+    client = _wiki_client(backend)
+    db = _open_read_for_job(read_config)
     try:
-        system = query_system_detail(get_db(), system_id)
-        content = render_system_text(get_db(), system_id, "markdown" if backend == "wikijs" else "wikitext")
-    except ValueError:
-        raise ApiError(f"no such system: {system_id}", status_code=404)
+        try:
+            system = query_system_detail(db, system_id)
+            content = render_system_text(db, system_id, "markdown" if backend == "wikijs" else "wikitext")
+        except ValueError:
+            raise ApiError(f"no such system: {system_id}", status_code=404)
+    finally:
+        db.close()
 
     page_path = path if backend == "wikijs" else system["name"]
     page = _create_wiki_page(client, page_path, system["name"], content)
 
     url_column = "wikijs_url" if backend == "wikijs" else "mediawiki_url"
-    conn = _write_conn()
+    conn = store.open_write(write_config)
     try:
         with conn:
             conn.execute(f"UPDATE star_systems SET {url_column} = ? WHERE id = ?", (page.url, system_id))
     finally:
         conn.close()
-
-    audit("system.wiki_upload", target=f"system:{system_id}", detail=f"backend={backend!r} path={page.path!r}")
-    return jsonify({"id": page.id, "path": page.path, "title": page.title, "url": page.url}), 201
+    return {"id": page.id, "path": page.path, "title": page.title, "url": page.url}
 
 
 def _sector_wiki_content(sector):
@@ -1998,24 +2033,37 @@ def upload_sector_wiki(sector_id):
     """
     body = require_json_body()
     backend, path = _wiki_upload_request(body)
-    client = _wiki_client_for(backend)
+    _require_wiki_configured(backend)
+    job_id, page = run_queued(upload_sector_wiki_job, _resolve_requested_db_config(),
+                              _resolve_requested_write_db_config(), sector_id, backend, path)
+    if page is None:
+        audit("sector.wiki_upload", target=f"sector:{sector_id}", detail=f"backend={backend!r} queued job={job_id}")
+        return accepted(job_id)
+    audit("sector.wiki_upload", target=f"sector:{sector_id}", detail=f"backend={backend!r} path={page['path']!r}")
+    return jsonify(page), 201
 
+
+def upload_sector_wiki_job(read_config, write_config, sector_id, backend, path):
+    """The queued body of `POST /api/sectors/<id>/wiki`. Returns the page."""
+    client = _wiki_client(backend)
+    db = _open_read_for_job(read_config)
     try:
-        sector = query_sector_detail(get_db(), sector_id)
-    except ValueError:
-        raise ApiError(f"no such sector: {sector_id}", status_code=404)
+        try:
+            sector = query_sector_detail(db, sector_id)
+        except ValueError:
+            raise ApiError(f"no such sector: {sector_id}", status_code=404)
+    finally:
+        db.close()
 
     markdown_content, wikitext_content = _sector_wiki_content(sector)
     content = markdown_content if backend == "wikijs" else wikitext_content
     page_path = path if backend == "wikijs" else sector["name"]
     page = _create_wiki_page(client, page_path, sector["name"], content)
 
-    conn = _write_conn()
+    conn = store.open_write(write_config)
     try:
         with conn:
             conn.execute("UPDATE sectors SET wiki_url = ? WHERE id = ?", (page.url, sector_id))
     finally:
         conn.close()
-
-    audit("sector.wiki_upload", target=f"sector:{sector_id}", detail=f"backend={backend!r} path={page.path!r}")
-    return jsonify({"id": page.id, "path": page.path, "title": page.title, "url": page.url}), 201
+    return {"id": page.id, "path": page.path, "title": page.title, "url": page.url}

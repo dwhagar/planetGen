@@ -921,7 +921,9 @@ def upload_system_to_wiki(cookie_header, db, system_id, backend, path=None):
             -- is its address).
 
     Returns:
-        dict: The new page's `{"id", "path", "title", "url"}`.
+        dict: The new page's `{"id", "path", "title", "url"}`, or, when the
+            upload was queued and is still running (PERF.24),
+            `{"status": "accepted", "job_id", "status_url"}`.
 
     Raises:
         ApiError: `status_code == 409` if a page already exists at the
