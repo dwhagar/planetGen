@@ -45,6 +45,10 @@ WIDTHS = (390, 600, 820, 1280)
 HEIGHT = 900
 SCHEMES = ("light", "dark")
 
+# The maps' menus (Menu, Bookmarks, the history panel) are popovers that
+# drop over what is below them, like the header's (TEST.106).
+POPOVER_MENUS = "details.galaxy-menu, details.bookmarks-menu, details.galaxy-steps"
+
 CONTROLS = ", ".join([
     "button", "a.btn", "input:not([type=hidden])", "select", "textarea", "summary",
     "sl-button", "sl-icon-button", "[role=button]", ".starmap-btn",
@@ -206,17 +210,18 @@ def test_controls_do_not_overlap(browser, base_url, page_targets, admin_token, e
             page.wait_for_timeout(400)
             problems += [f"{scheme}: {p}" for p in _problems(page)]
             # Then with every folded section open (the header's menus
-            # drop down over the page by design, so they open one at a
-            # time below).
-            opened = page.evaluate("""() => {
+            # and the maps' popover menus drop down over the page by
+            # design, so the header's open one at a time below and the
+            # maps' stay closed: TEST.106).
+            opened = page.evaluate("""(POPOVERS) => {
                 let n = 0;
                 for (const d of document.querySelectorAll("details:not([open])")) {
-                    if (d.closest("header")) continue;
+                    if (d.closest("header") || d.matches(POPOVERS)) continue;
                     d.open = true;
                     n++;
                 }
                 return n;
-            }""")
+            }""", POPOVER_MENUS)
             if opened:
                 page.wait_for_timeout(50)
                 problems += [f"{scheme}, sections open: {p}" for p in _problems(page)]
@@ -224,9 +229,11 @@ def test_controls_do_not_overlap(browser, base_url, page_targets, admin_token, e
                 menus = ["sl-dropdown.site-gear"]
                 if page.locator("sl-dropdown.site-menu > [slot=trigger]").is_visible():
                     menus.insert(0, "sl-dropdown.site-menu")
-                # A header menu drops down over the page's first row, the
-                # breadcrumb, by design (NAV.14: its "…" can sit under it).
-                page.evaluate("""() => document.querySelectorAll("nav.breadcrumbs").forEach((n) => { n.style.visibility = "hidden"; })""")
+                # A header menu drops down over the page's first rows (the
+                # breadcrumb, a page's action bar), by design (NAV.14: its
+                # "..." can sit under it), so the page's own controls are
+                # hidden while the menu's are checked (TEST.106).
+                page.evaluate("""() => document.querySelectorAll("main").forEach((n) => { n.style.visibility = "hidden"; })""")
                 for menu in menus:
                     page.locator(f"{menu} > [slot=trigger]").click()
                     page.wait_for_timeout(50)

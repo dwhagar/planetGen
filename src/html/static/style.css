@@ -238,6 +238,26 @@ h2 {
   font-size: 0.85rem;
 }
 
+/* UX.67: a quiet "View source" menu in the System card header. */
+.view-source {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.view-source summary {
+  cursor: pointer;
+  padding: 0.2rem 0.4rem;
+}
+
+.view-source ul {
+  list-style: none;
+  margin: 0;
+  padding: 0 0.4rem 0.2rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 1rem;
+}
+
 .view-toggle-current {
   color: var(--text-muted);
   font-weight: 600;
@@ -245,6 +265,19 @@ h2 {
 
 .table-scroll {
   overflow-x: auto;
+}
+
+/* UX.69: a table that scrolls sideways shows it. A shadow sits on each edge
+   with more to scroll to (the covers, attached to the content, hide it at
+   the end) and the scrollbar stays thin but visible. */
+.table-scroll,
+.datatable-scroll {
+  scrollbar-width: thin;
+  background:
+    linear-gradient(to right, var(--bg-elevated) 30%, transparent) left center / 2rem 100% no-repeat local,
+    linear-gradient(to left, var(--bg-elevated) 30%, transparent) right center / 2rem 100% no-repeat local,
+    radial-gradient(farthest-side at 0 50%, rgb(0 0 0 / 0.22), transparent) left center / 0.8rem 100% no-repeat scroll,
+    radial-gradient(farthest-side at 100% 50%, rgb(0 0 0 / 0.22), transparent) right center / 0.8rem 100% no-repeat scroll;
 }
 
 /* The site's one pager (planetgen/web/lib/pagination.py), under every paged
@@ -2598,6 +2631,10 @@ body.app {
   padding: 0;
 }
 
+.app .admin-hub a {
+  text-decoration: underline;
+}
+
 .app .admin-hub li {
   padding: 0.3rem 0;
 }
@@ -2851,6 +2888,13 @@ body.app {
   .app .table-scroll th,
   .app .table-scroll td {
     white-space: nowrap;
+  }
+
+  /* UX.69: a short table (Quadrants, a system's Stars) wraps its cells on a
+     phone so every column shows, instead of scrolling sideways. */
+  .app .table-scroll.table-wrap th,
+  .app .table-scroll.table-wrap td {
+    white-space: normal;
   }
 
   .app .pagination {
