@@ -356,9 +356,9 @@ def account_two_factor():
                 # unchanged); the form carried it back.
                 secret = request.form.get("secret", "")
                 if secret:
-                    from planetgen.admin import totp as totp_codes
-                    uri = totp_codes.provisioning_uri(secret, admin["username"])
-                    totp["setup"] = {"secret": secret, "uri": uri, "qr_svg": totp_codes.qr_svg(uri)}
+                    from planetgen.admin import auth as admin_auth
+                    uri, qr_svg = admin_auth.totp_enrolment(secret, admin["username"])
+                    totp["setup"] = {"secret": secret, "uri": uri, "qr_svg": qr_svg}
             return _account_page(admin, next_url, totp=totp, status=400)
         raise
     return _account_page(admin, next_url, totp={"error": "Unknown action."}, status=400)
