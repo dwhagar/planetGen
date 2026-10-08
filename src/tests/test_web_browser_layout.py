@@ -135,8 +135,28 @@ FIND_PROBLEMS = """
 """
 
 
+SETTLE_SAMPLES = 4
+SETTLE_STEP_MS = 60
+SETTLE_LIMIT = 40
+
+
 def _problems(page):
-    return page.evaluate(FIND_PROBLEMS, CONTROLS)
+    """The layout problems of the page once it has settled (TEST.103): a map
+    that is still placing its controls, or a menu mid-transition, shows a
+    layout that isn't the one a visitor sees, and how long that takes depends
+    on the machine. Sampled until the answer is empty or the same
+    `SETTLE_SAMPLES` times in a row, so only a lasting overlap is reported."""
+    steady, last = 0, None
+    for _ in range(SETTLE_LIMIT):
+        found = page.evaluate(FIND_PROBLEMS, CONTROLS)
+        if not found:
+            return found
+        steady = steady + 1 if found == last else 1
+        if steady >= SETTLE_SAMPLES:
+            return found
+        last = found
+        page.wait_for_timeout(SETTLE_STEP_MS)
+    return found
 
 
 def test_the_check_finds_overlaps_and_controls_off_screen(browser):
