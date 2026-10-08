@@ -1440,6 +1440,12 @@ def test_galaxy_map_frames_the_whole_stage_at_any_size_and_turn(page, map_site, 
     window shows it bigger; it refits when the window is resized, and
     stays whole while Shift and the arrow keys turn it about its middle."""
     _open_galaxy(page, map_site, query)
+    if not query:
+        # The galaxy opens zoomed in on the charted space (MAP.124); Re-center
+        # is its whole fit.
+        page.locator("#galaxymap3d-menu summary").click()
+        page.click('#galaxymap3d-controls [data-action="reset-view"]')
+        _settle(page)
     small = page.evaluate(FRAME)
     _framed(small)
     page.set_viewport_size({"width": 1700, "height": 1300})
@@ -2011,3 +2017,19 @@ def test_galaxy_map_color_by_switches_the_fill_with_a_legend_and_keeps_it_in_the
     _settle(page)
     assert "color=" not in _query(page)
     assert legend.is_hidden()
+
+
+def test_galaxy_map_opens_zoomed_in_on_the_charted_space(page, map_site):
+    """MAP.124: with no view in the address the galaxy opens as close as its
+    zoom range allows with every charted sector in view; Reset goes back to
+    the whole galaxy and the wheel still zooms out to it."""
+    _open_galaxy(page, map_site, "")
+    zoom = page.evaluate(CAMERA)["zoom"]
+    assert 0.5 <= zoom < 1, zoom
+    page.locator("#galaxymap3d-menu summary").click()
+    page.click('#galaxymap3d-controls [data-action="reset-view"]')
+    _settle(page)
+    assert page.evaluate(CAMERA)["zoom"] == pytest.approx(1)
+    # A view the address names is not moved.
+    _open_galaxy(page, map_site, "?at=3.250.0.0")
+    assert page.evaluate(CAMERA)["zoom"] == pytest.approx(1)
