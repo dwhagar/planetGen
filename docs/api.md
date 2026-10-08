@@ -189,6 +189,21 @@ connectivity to that specific schema rather than the default one.
   comet's holds its Kepler elements under `kepler`).
 - `GET /api/systems/<id>/near?radius=<ly>` — other systems in the same
   sector within `radius` light-years (`queryDb.systems_within_radius`).
+- `GET /api/objects/<ref>` — one object by its reference (NAV.7), the one
+  form every kind shares: `<kind>:<id>` with kind `sector`, `system`, `star`,
+  `planet`, `moon`, `belt`, `comet` or a phenomenon type (`nebula`,
+  `asteroid_field`, `black_hole`, `neutron_star`, `supernova_remnant`,
+  `rogue_planet`, `interstellar_comet`, `quasar`); a bare number is a system.
+  Returns `ref`, `kind`, `id`, `name`; `parents` (from `galaxy` down to the
+  direct parent, each `{ref, kind, name}`); `siblings` (references of the
+  other objects of the same kind under the same parent, at most 200, with
+  `siblings_truncated`); and `positions`: `galaxy_pc` (parsecs),
+  `sector_ly` (light-years from the sector's center) and `system_km`
+  (kilometers from the system's origin), each `[x, y, z]` or `null` where
+  the object has none (a body inside a system takes the system's galaxy and
+  sector positions; a belt is a ring with no `system_km`). A bad reference
+  or a missing row is a `404`. `queryDb.resolve_object`,
+  `planetgen.galaxy.objectref` and `static/objectref.js` hold the logic.
 - `GET /api/nav?from=<id>&to=<id>` — course, distance, and an optimal route
   between two systems (`queryDb.nav_between`) — see "NAV" below.
 - `GET /api/galaxy/sectors` — every galaxy-placed sector (non-`null`
