@@ -561,6 +561,26 @@ function makeTextSprite(text, color, worldHeight) {
   return sprite;
 }
 
+// --- The kinds of object, shown or hidden (MAP.79) -----------------------------
+
+// The kinds a map can show or hide, in the order its buttons come, with
+// their button names. A star has no `kind`; an accreting and a quiet black
+// hole are one kind here.
+export var KINDS = [
+  ["star", "Stars"], ["nebula", "Nebulae"], ["supernovaRemnant", "Supernova remnants"],
+  ["asteroidField", "Asteroid fields"], ["blackHole", "Black holes"], ["neutronStar", "Neutron stars"],
+  ["quasar", "Quasars"], ["roguePlanet", "Rogue planets"], ["interstellarComet", "Interstellar comets"],
+  ["neighbor", "Neighboring sectors"],
+];
+
+// The kind (one of KINDS' keys) of an entry.
+export function kindOf(entry) {
+  if (entry.isNeighbor) return "neighbor";
+  if (!entry.kind) return "star";
+  if (entry.kind === "blackHoleAccreting" || entry.kind === "blackHoleQuiescent") return "blackHole";
+  return entry.kind;
+}
+
 // --- Building a sector ------------------------------------------------------
 
 // How big a neighboring sector's or compass label is, in scene units.
@@ -576,8 +596,9 @@ var LABEL_HEIGHT = 22;
 //                        (default 1).
 // Returns {group, pointEntries, entries (every entry, list order), layers
 // (the picker layers, nearest first: points, bodies, volumes), ringSize(entry),
-// setRoguesMarked(on), roguesMarked(), entryByKey, update() (every frame),
-// dispose()}.
+// setRoguesMarked(on), roguesMarked(), entryByKey, kinds() (the kinds in
+// it, [{kind, label, count}]), setKindHidden(kind, hidden), kindHidden(kind),
+// update() (every frame), dispose()}.
 export function buildSectorScene(data, options) {
   var o = options || {};
   var origin = o.origin || [0, 0, 0];
@@ -653,6 +674,14 @@ export function buildSectorScene(data, options) {
   var bodyObjects = [];
   var volumeObjects = [];
   var entryByObject = new Map();
+  // Everything drawn for an entry that isn't a point of light, so a hidden
+  // kind (MAP.79) hides it all, its label and ring too.
+  var objectsOfEntry = new Map();
+  function drawnFor(entry, object) {
+    if (!objectsOfEntry.has(entry)) objectsOfEntry.set(entry, []);
+    objectsOfEntry.get(entry).push(object);
+  }
+  var hiddenKinds = new Set();
 
   // Every star and light-giving phenomenon, drawn as points of light
   // (MAP.15) and picked on screen, not by raycast.
@@ -676,31 +705,45 @@ export function buildSectorScene(data, options) {
   var rogueMarkerMaterial = null;
   var roguesMarked = false;
 
+  var POINT_ATTRIBUTES = ["pointColor", "pointSize", "pointCore", "pointGlow", "pointBright", "pointWhiten"];
+
+  // Writes point `i`'s look: its entry's current light, or nothing at all
+  // while its kind is hidden.
+  function refreshPoint(i) {
+    var geometry = pointsOfLight.geometry;
+    var entry = pointEntries[i];
+    var light = entry.light;
+    var shown = !hiddenKinds.has(kindOf(entry));
+    var dim = entry.neighbor ? NEIGHBOR_CLOUD_DIM : 1;
+    var color = new THREE.Color(light.color || "#ffffff");
+    geometry.getAttribute("pointColor").array.set([color.r, color.g, color.b], 3 * i);
+    geometry.getAttribute("pointSize").array[i] = shown ? light.sizePx : 0;
+    geometry.getAttribute("pointCore").array[i] = shown ? light.corePx : 0;
+    geometry.getAttribute("pointGlow").array[i] = shown ? light.glow * dim : 0;
+    geometry.getAttribute("pointBright").array[i] = shown ? light.bright * dim : 0;
+    geometry.getAttribute("pointWhiten").array[i] = light.whiten != null ? light.whiten : 1;
+  }
+
+  function pointsChanged() {
+    POINT_ATTRIBUTES.forEach(function (name) {
+      pointsOfLight.geometry.getAttribute(name).needsUpdate = true;
+    });
+  }
+
   function setRoguesMarked(marked) {
     roguesMarked = marked;
     rogueMarkers.visible = marked;
     if (!pointsOfLight) {
       return;
     }
-    var geometry = pointsOfLight.geometry;
     pointEntries.forEach(function (entry, i) {
       if (entry.kind !== "roguePlanet" || !entry.markedLight) {
         return;
       }
-      var light = marked ? entry.markedLight : entry.unmarkedLight;
-      var dim = entry.neighbor ? NEIGHBOR_CLOUD_DIM : 1;
-      entry.light = light;
-      var color = new THREE.Color(light.color || "#ffffff");
-      geometry.getAttribute("pointColor").array.set([color.r, color.g, color.b], 3 * i);
-      geometry.getAttribute("pointSize").array[i] = light.sizePx;
-      geometry.getAttribute("pointCore").array[i] = light.corePx;
-      geometry.getAttribute("pointGlow").array[i] = light.glow * dim;
-      geometry.getAttribute("pointBright").array[i] = light.bright * dim;
-      geometry.getAttribute("pointWhiten").array[i] = light.whiten != null ? light.whiten : 1;
+      entry.light = marked ? entry.markedLight : entry.unmarkedLight;
+      refreshPoint(i);
     });
-    ["pointColor", "pointSize", "pointCore", "pointGlow", "pointBright", "pointWhiten"].forEach(function (name) {
-      geometry.getAttribute(name).needsUpdate = true;
-    });
+    pointsChanged();
   }
 
   clouds.forEach(function (cloud) {
@@ -716,6 +759,7 @@ export function buildSectorScene(data, options) {
       ring.position.fromArray(cloud.local);
       ring.scale.set(ROGUE_MARKER_SCREEN_SIZE, ROGUE_MARKER_SCREEN_SIZE, 1);
       rogueMarkers.add(ring);
+      drawnFor(cloud, ring);
     }
     if (cloud.light) {
       return;
@@ -726,6 +770,7 @@ export function buildSectorScene(data, options) {
       group.add(mesh);
       entryByObject.set(mesh, cloud);
       volumeObjects.push(mesh);
+      drawnFor(cloud, mesh);
       return;
     }
     var glow = glowRecipeForCloud(cloud);
@@ -742,6 +787,8 @@ export function buildSectorScene(data, options) {
     group.add(bodies.glow);
     bodyObjects.push(bodies.core);
     entryByObject.set(bodies.core, cloud);
+    drawnFor(cloud, bodies.core);
+    drawnFor(cloud, bodies.glow);
   });
 
   // Neighboring-sector indicators: a small flat dot at the scene's own
@@ -778,6 +825,7 @@ export function buildSectorScene(data, options) {
     group.add(marker);
     bodyObjects.push(marker);
     entryByObject.set(marker, neighbor);
+    drawnFor(neighbor, marker);
 
     var labelText = neighbor.exists ? neighbor.name : neighbor.designation;
     if (labelText) {
@@ -785,6 +833,7 @@ export function buildSectorScene(data, options) {
         LABEL_HEIGHT * unit);
       label.position.fromArray(labelAt.get(neighbor));
       group.add(label);
+      drawnFor(neighbor, label);
     }
   });
 
@@ -795,18 +844,24 @@ export function buildSectorScene(data, options) {
   // distance, so it is picked on screen, within POINT_PICK_PX of its
   // center (or its own core, if bigger).
   var entryOf = function (hit) { return entryByObject.get(hit.object) || null; };
+  // What of `objects` is not hidden with its kind (a hidden mesh isn't picked).
+  function shown(objects) {
+    return hiddenKinds.size ? objects.filter(function (object) { return object.visible; }) : objects;
+  }
   var layers = [
     {
       name: "sector-points",
-      points: function () { return pointEntries; },
+      points: function () {
+        return hiddenKinds.size ? pointEntries.filter(function (entry) { return !hiddenKinds.has(kindOf(entry)); }) : pointEntries;
+      },
       reach: function (entry) {
         return entry.kind === "roguePlanet"
           ? ROGUE_PICK_PX[roguesMarked ? "marked" : "unmarked"]
           : Math.max(POINT_PICK_PX, (entry.light.corePx / 2) * sizeScale());
       },
     },
-    { name: "sector-bodies", occludes: true, meshes: function () { return bodyObjects; }, entryOf: entryOf },
-    { name: "sector-volumes", meshes: function () { return volumeObjects; }, entryOf: entryOf },
+    { name: "sector-bodies", occludes: true, meshes: function () { return shown(bodyObjects); }, entryOf: entryOf },
+    { name: "sector-volumes", meshes: function () { return shown(volumeObjects); }, entryOf: entryOf },
   ];
 
   // The selection or hover ring's size round an entry (mappick.js's
@@ -828,6 +883,37 @@ export function buildSectorScene(data, options) {
     }
   });
 
+  var allEntries = stars.concat(clouds).concat(neighbors);
+
+  // The kinds of object in this sector, in KINDS' order, with how many.
+  function kinds() {
+    var counts = new Map();
+    allEntries.forEach(function (entry) {
+      var kind = kindOf(entry);
+      counts.set(kind, (counts.get(kind) || 0) + 1);
+    });
+    return KINDS.filter(function (pair) { return counts.has(pair[0]); }).map(function (pair) {
+      return { kind: pair[0], label: pair[1], count: counts.get(pair[0]) };
+    });
+  }
+
+  // Hides or shows every object of a kind (MAP.79): its points, bodies,
+  // clouds, rings and labels, none of which can then be hovered or picked.
+  function setKindHidden(kind, hidden) {
+    if (hidden) hiddenKinds.add(kind);
+    else hiddenKinds.delete(kind);
+    allEntries.forEach(function (entry) {
+      if (kindOf(entry) !== kind) return;
+      (objectsOfEntry.get(entry) || []).forEach(function (object) { object.visible = !hidden; });
+    });
+    if (pointsOfLight) {
+      pointEntries.forEach(function (entry, i) {
+        if (kindOf(entry) === kind) refreshPoint(i);
+      });
+      pointsChanged();
+    }
+  }
+
   function update() {
     if (pointsOfLight) {
       pointsOfLight.material.uniforms.sizeScale.value = sizeScale();
@@ -848,12 +934,15 @@ export function buildSectorScene(data, options) {
   return {
     group: group,
     pointEntries: pointEntries,
-    entries: stars.concat(clouds).concat(neighbors),
+    entries: allEntries,
     layers: layers,
     ringSize: ringSize,
     setRoguesMarked: setRoguesMarked,
     roguesMarked: function () { return roguesMarked; },
     entryByKey: entryByKey,
+    kinds: kinds,
+    setKindHidden: setKindHidden,
+    kindHidden: function (kind) { return hiddenKinds.has(kind); },
     update: update,
     dispose: dispose,
   };

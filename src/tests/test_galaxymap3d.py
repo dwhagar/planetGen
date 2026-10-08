@@ -124,6 +124,8 @@ def test_a_sector_pages_panel_is_pinned_to_its_sector_with_no_steps_of_its_own()
     button = re.search(r'<button[^>]*data-action="toggle-rogue-markers"[^>]*>', html).group(0)
     assert 'aria-pressed="false"' in button and "starmap-toggle" in button
     assert "Click a star, cloud or body for details." in html
+    # The Menu's per-kind buttons (MAP.79) are filled in by the script once a sector is open.
+    assert 'id="galaxymap3d-kinds"' in html
     # The Galaxy Map itself has none of these.
     plain = render_galaxy_map3d_panel("mydb", None, EDGE_PC, _empty_view())
     assert _json_payload(plain)["pinned"] is None

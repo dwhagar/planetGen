@@ -2172,6 +2172,25 @@ code {
   border-color: var(--accent);
 }
 
+/* "Show on the map" in the Menu: a toggle per kind of object (MAP.79). */
+.galaxy-kinds {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.35rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.galaxy-kinds[hidden] {
+  display: none;
+}
+
+.galaxy-kinds-heading {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
 /* The maps' hover tooltip (static/mappick.js, MAP.65). */
 .map-tooltip {
   position: absolute;

@@ -1983,6 +1983,35 @@ function initGalaxyMap3d(canvasEl, data) {
       button.hidden = !(on && stageView.entryByKey(button.dataset.mapTarget));
     });
   }
+  // The Menu's "Show on the map" (MAP.79): one toggle per kind of object in
+  // the open sector (all on to begin with), highlighted while shown.
+  var kindsEl = document.getElementById("galaxymap3d-kinds");
+  function rebuildKinds() {
+    if (!kindsEl) return;
+    var kinds = stageView.kinds();
+    kindsEl.textContent = "";
+    kindsEl.hidden = !kinds.length;
+    if (!kinds.length) return;
+    var heading = document.createElement("span");
+    heading.className = "galaxy-kinds-heading";
+    heading.textContent = "Show on the map";
+    kindsEl.appendChild(heading);
+    kinds.forEach(function (kind) {
+      var button = document.createElement("button");
+      button.type = "button";
+      button.className = "starmap-btn starmap-toggle";
+      button.dataset.kind = kind.kind;
+      button.textContent = kind.label;
+      button.title = "Show or hide the " + kind.label.toLowerCase() + " (" + kind.count + ")";
+      button.setAttribute("aria-pressed", String(!stageView.kindHidden(kind.kind)));
+      button.addEventListener("click", function () {
+        stageView.setKindHidden(kind.kind, button.getAttribute("aria-pressed") === "true");
+        button.setAttribute("aria-pressed", String(!stageView.kindHidden(kind.kind)));
+      });
+      kindsEl.appendChild(button);
+    });
+  }
+
   document.querySelectorAll("[data-map-target]").forEach(function (button) {
     button.hidden = true;
     button.addEventListener("click", function () {
@@ -2054,8 +2083,9 @@ function initGalaxyMap3d(canvasEl, data) {
     viewport: viewport,
     // The sector page's "Show on map" buttons (MAP.46) are there once the
     // sector is.
-    opened: function () { showMapTargets(true); },
-    closed: function () { showMapTargets(false); },
+    opened: function () { showMapTargets(true); rebuildKinds(); },
+    closed: function () { showMapTargets(false); rebuildKinds(); },
+    kindsChanged: function () { rebuildKinds(); showMapTargets(true); },
     locate: function (name) {
       return fetch((data.locatePath || "/galaxy/locate") + "?q=" + encodeURIComponent(name), {
         headers: { Accept: "application/json" },

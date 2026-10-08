@@ -797,10 +797,45 @@ export function createStageView(host) {
     });
   }
 
-  // A stage's query with the NAV pick kept (host.pickQuery, "?pick=...").
-  function withPick(query) {
-    if (!host.pickQuery) return query;
-    return query ? query + "&" + host.pickQuery.slice(1) : host.pickQuery;
+  // A stage's query with what a URL keeps beyond the stage: the NAV pick
+  // (host.pickQuery, "?pick=...") and the kinds of object left off the map
+  // ("hide=nebula,roguePlanet", MAP.79).
+  function withKept(query) {
+    const extra = [];
+    if (host.pickQuery) extra.push(host.pickQuery.slice(1));
+    const hidden = sectorStage.hiddenKinds();
+    if (hidden.length) extra.push("hide=" + hidden.join(","));
+    if (!extra.length) return query;
+    return (query ? query + "&" : "?") + extra.join("&");
+  }
+
+  // The kinds a URL's `hide` names.
+  function hiddenFromLocation() {
+    const raw = new URLSearchParams(location.search).get("hide");
+    return raw ? raw.split(",").filter(Boolean) : [];
+  }
+
+  // Shows or hides a kind of object on the open sector, and keeps the choice
+  // in the URL (changed in place: it is no step of its own).
+  function setKindHidden(kind, hidden) {
+    sectorStage.setKindHidden(kind, hidden);
+    writeHiddenToUrl();
+  }
+
+  function writeHiddenToUrl() {
+    const params = new URLSearchParams(location.search);
+    const now = sectorStage.hiddenKinds();
+    if (now.length) params.set("hide", now.join(","));
+    else params.delete("hide");
+    const query = params.toString().replace(/%2C/gi, ",");
+    history.replaceState(history.state, "", location.pathname + (query ? "?" + query : "") + location.hash);
+  }
+
+  // A kind shown or hidden by the sector stage itself (a selection of
+  // something hidden shows its kind): the URL and the buttons follow.
+  function kindsChanged() {
+    writeHiddenToUrl();
+    if (host.kindsChanged) host.kindsChanged();
   }
 
   // A new entry in the browser history (the map's Back and Forward).
@@ -829,7 +864,7 @@ export function createStageView(host) {
       selectedSector = { ring: r.sector.ring, layer: r.sector.slab, slot: r.sector.wedge };
     }
     const token = ++goToken;
-    const query = withPick(options.query || S.stageQuery(r.stage));
+    const query = withKept(options.query || S.stageQuery(r.stage));
     if (options.push !== false && (!S.sameStage(stage, r.stage) || query !== location.search)) {
       pushEntry(query);
     }
@@ -953,7 +988,7 @@ export function createStageView(host) {
     if (entered) {
       // Out of the sector, to the stage it sits in with it still selected.
       closeSector();
-      pushEntry(withPick("?sector=" + S.sectorDesignation(selectedSector.ring, selectedSector.layer, selectedSector.slot)));
+      pushEntry(withKept("?sector=" + S.sectorDesignation(selectedSector.ring, selectedSector.layer, selectedSector.slot)));
       const back = cameraFor(resolved);
       flyCamera(viewNow(), back, null, function () {
         view = settledView(back);
@@ -1014,7 +1049,7 @@ export function createStageView(host) {
     pixelRatio: host.pixelRatio || function () { return 1; },
     fetchScene: host.fetchSectorScene, showInfo: host.showInfo || function () {},
     hideCell: host.hideCell || function () {},
-    viewport: host.viewport || null, opened: host.opened, closed: host.closed,
+    viewport: host.viewport || null, opened: host.opened, closed: host.closed, kindsChanged: kindsChanged,
     closeness: function () { return view && view.zoom > 0 ? 1 / view.zoom : 1; },
   });
   const tooltip = createTooltip(els.tooltip);
@@ -1403,7 +1438,7 @@ export function createStageView(host) {
         return;
       }
       entered = { sector: at, id: record.id, center: geo.center, halfEdge: geo.halfEdge, fitPoints: geo.fitPoints };
-      if (options.push) pushEntry(withPick("?sector=" + S.sectorDesignation(at.ring, at.layer, at.slot) + "&open=1"));
+      if (options.push) pushEntry(withKept("?sector=" + S.sectorDesignation(at.ring, at.layer, at.slot) + "&open=1"));
       showSectorInfo(block);
       applyHover();
       renderCrumbs();
@@ -2308,6 +2343,7 @@ export function createStageView(host) {
     mapIndex = state && state.mapIndex != null ? state.mapIndex : 0;
     maxIndex = Math.max(mapIndex, state && state.maxIndex != null ? state.maxIndex : mapIndex);
     if (!pinned) history.replaceState({ galaxyStage: true, mapIndex: mapIndex, maxIndex: maxIndex }, "");
+    sectorStage.setHiddenKinds(hiddenFromLocation());
     const asked = stageFromLocation(true);
     let r = resolve(asked.stage);
     let problem = asked.problem || r.problem;
@@ -2330,6 +2366,7 @@ export function createStageView(host) {
     // Remembered on this entry too, so a reload here still knows how far
     // Forward goes.
     if (state) history.replaceState({ galaxyStage: true, mapIndex: mapIndex, maxIndex: maxIndex }, "");
+    sectorStage.setHiddenKinds(hiddenFromLocation());
     const asked = stageFromLocation(false);
     if (asked.problem) {
       selectedSector = null;
@@ -2377,6 +2414,9 @@ export function createStageView(host) {
     // one by key, and "Mark rogue planets" rings the rogue planets.
     zoomIn: function () { zoomBy(1 / BUTTON_ZOOM); },
     zoomOut: function () { zoomBy(BUTTON_ZOOM); },
+    kinds: sectorStage.kinds,
+    kindHidden: sectorStage.kindHidden,
+    setKindHidden: setKindHidden,
     entryByKey: sectorStage.entryByKey,
     selectEntry: sectorStage.select,
     setRoguesMarked: sectorStage.setRoguesMarked,
