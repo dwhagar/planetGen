@@ -119,8 +119,8 @@ def test_q_searches_every_name(client, fake):
     # "Show on Galaxy Map" (MAP.25): a sector always, a standalone system never.
     assert 'href="/sector/5/galaxy" aria-label="Show Kepler &lt;Reach&gt; on the Galaxy Map">Show</a>' in _panel(html, "sectors")
     assert "/galaxy" not in _panel(html, "systems")
-    # Chip to remove the name search.
-    assert '<span class="filter-chip">Name: “Kepler”<a href="/search"' in html
+    # The name is not echoed as a chip, and the page has no second search box (UX.54).
+    assert "Name: “Kepler”" not in html and 'class="site-search"' not in html
 
 
 def test_object_field_overrides_q_and_type_tag_narrows_it(client, fake):
@@ -203,7 +203,7 @@ def test_a_panels_table_route_pages_one_panel_alone(client, fake):
 def test_no_results_message(client, fake):
     fake.results = {p: None for p in ("sectors", "systems", "stars", "planets", "moons", "belts", "phenomena")}
     html = client.get("/search?type=planet").get_data(as_text=True)
-    assert "No matching objects." in html
+    assert "No sectors, systems, stars, planets or moons match." in html
 
 
 def test_header_search_box_submits_to_search(client, fake):
@@ -324,3 +324,12 @@ def test_tags_in_one_group_combine_with_or(db_client, mysql_config):
 
     stars = _panel(db_client.get("/search?spectral=G&spectral=K&luminosity=V").get_data(as_text=True), "stars")
     assert "(1)" in stars and "G2V" in stars and "K1III" not in stars
+
+
+def test_groups_with_no_matches_are_left_out(client, fake):
+    """UX.54: only groups that have results get a card; with none, one line."""
+    empty = {"rows": [], "total": 0, "total_capped": False}
+    fake.results = {p: dict(empty) for p in ("sectors", "systems", "stars", "planets", "moons", "belts", "phenomena")}
+    html = client.get("/search?q=zzz").get_data(as_text=True)
+    assert 'id="search-sectors"' not in html and 'id="search-stars"' not in html
+    assert "No sectors, systems, stars, planets or moons match." in html

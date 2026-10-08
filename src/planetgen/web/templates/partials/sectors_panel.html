@@ -1,9 +1,9 @@
 {#- The Sectors table (a data table, UX.41). Expects `sectors`, the view
-    from tables.render, and `show_more_link` (bool): link the heading to /sectors. -#}
+    from tables.render. -#}
 {% from "partials/datatable.html" import datatable with context %}
 <section class="panel" id="sectors" aria-labelledby="sectors-heading">
   <div class="panel-header">
-    <h2 id="sectors-heading"{% if not show_more_link %} class="sr-only"{% endif %}>{% if show_more_link %}<a href="{{ url_for('web.sectors') }}">Sectors</a>{% else %}Sectors{% endif %}</h2>
+    <h2 id="sectors-heading" class="sr-only">Sectors</h2>
     <a href="{{ page_url('galaxy') }}">Galaxy Map &rarr;</a>
   </div>
   {{ datatable(sectors) }}

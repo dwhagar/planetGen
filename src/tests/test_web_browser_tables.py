@@ -396,34 +396,28 @@ def test_without_scripts_it_is_a_sortable_filterable_paged_table(browser, table_
         context.close()
 
 
-def test_two_tables_on_one_page_keep_their_own_state(page, table_site):
-    assert page.goto(f"{table_site}/", wait_until="load").status == 200
-    page.locator("#sectors-table[data-enhanced='true']").wait_for(state="attached", timeout=15000)
-    page.locator("#standalone-systems-table[data-enhanced='true']").wait_for(state="attached", timeout=15000)
-    assert page.locator("#sectors-table .datatable-count-line").inner_text() == "130 sectors"
-    assert page.locator("#standalone-systems-table .datatable-count-line").inner_text() == "130 standalone systems"
+def test_a_table_keeps_its_sort_and_filter_across_a_reload(page, table_site):
+    assert page.goto(f"{table_site}/systems", wait_until="load").status == 200
+    page.locator("#systems-table[data-enhanced='true']").wait_for(state="attached", timeout=15000)
+    assert page.locator("#systems-table .datatable-count-line").inner_text() == "130 systems"
 
-    page.locator("#sectors-table th[data-col='systems'] .datatable-sort").click()
-    page.locator("#sectors-table th[data-col='systems'][aria-sort='ascending']").wait_for(state="attached")
-    page.locator("#standalone-systems-table th[data-col='binary'] .datatable-sort").click()
-    page.locator("#standalone-systems-table th[data-col='binary'][aria-sort='ascending']").wait_for(state="attached")
-    assert page.locator("#sectors-table th[data-col='systems']").get_attribute("aria-sort") == "ascending"
-    assert parse_qs(urlparse(page.url).query) == {"sectors_sort": ["systems"], "standalone_sort": ["binary"]}
+    page.locator("#systems-table th[data-col='binary'] .datatable-sort").click()
+    page.locator("#systems-table th[data-col='binary'][aria-sort='ascending']").wait_for(state="attached")
+    assert parse_qs(urlparse(page.url).query) == {"systems_sort": ["binary"]}
 
-    facet = page.locator("#standalone-systems-table .datatable-facet")
+    facet = page.locator("#systems-table .datatable-facet", has_text="Stars")
     facet.locator("summary").click()
     facet.get_by_label("Binary").check()
-    page.locator("#standalone-systems-table .datatable-count-line", has_text="65 standalone systems match") \
+    page.locator("#systems-table .datatable-count-line", has_text="65 systems match") \
         .wait_for(state="attached", timeout=10000)
-    assert page.locator("#sectors-table .datatable-count-line").inner_text() == "130 sectors"
     query = parse_qs(urlparse(page.url).query)
-    assert query["sectors_sort"] == ["systems"] and query["standalone_binary"] == ["yes"]
+    assert query["systems_sort"] == ["binary"] and query["binary"] == ["yes"]
 
-    # A reload renders both tables the way they were left.
+    # A reload renders the table the way it was left.
     page.reload()
-    page.locator("#sectors-table[data-enhanced='true']").wait_for(state="attached", timeout=15000)
-    assert page.locator("#sectors-table th[data-col='systems']").get_attribute("aria-sort") == "ascending"
-    assert page.locator("#standalone-systems-table .datatable-count-line").inner_text() == "65 standalone systems match"
+    page.locator("#systems-table[data-enhanced='true']").wait_for(state="attached", timeout=15000)
+    assert page.locator("#systems-table th[data-col='binary']").get_attribute("aria-sort") == "ascending"
+    assert page.locator("#systems-table .datatable-count-line").inner_text() == "65 systems match"
 
 
 def test_a_politys_systems_scroll_and_sort_through_the_tables_own_route(page, table_site):

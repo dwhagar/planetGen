@@ -59,7 +59,7 @@
 {%- if panels is none %}
 <p class="hint">Enter a name above, or pick a tag below, to see matching results.</p>
 {%- elif not panels %}
-<p class="hint">No matching objects.</p>
+<p class="hint">No sectors, systems, stars, planets or moons match.</p>
 {%- else %}
 {%- for p in panels %}
 <section class="panel" id="search-{{ p.panel }}" aria-labelledby="search-{{ p.panel }}-heading">

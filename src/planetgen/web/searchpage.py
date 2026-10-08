@@ -268,9 +268,7 @@ def _km(value):
 def active_filters(state, facet_labels):
     """The removable filter chips: `[{"label", "url"}]`, each URL being
     this search without that one filter."""
-    chips = []
-    if state.q:
-        chips.append({"label": f"Name: “{state.q}”", "url": state.copy(q="").url()})
+    chips = []  # the main name is not echoed: the input above says it (UX.54)
     for key, label, _ac, _ph in NAME_FIELDS:
         if state.texts[key]:
             texts = dict(state.texts, **{key: ""})
@@ -423,8 +421,8 @@ def result_panels(state, results):
     panels = []
     for panel, heading in RESULT_PANELS:
         result = results.get(panel)
-        if result is None:
-            continue
+        if result is None or not result["total"]:
+            continue  # a group with no matches is left out (UX.54)
         keep = tuple(key for key in _ALL_PARAMS if key != f"{panel}_page")
         panels.append({
             "panel": panel,

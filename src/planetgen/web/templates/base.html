@@ -17,12 +17,15 @@ subhead (badges or actions under the <h1>). -#}
   </ul>
 </nav>
 {%- endmacro -%}
+{#- Not on the Search page itself, which has its own Name box (UX.54). -#}
 {%- macro search_form(id) -%}
+{%- if request.endpoint != 'web.search' -%}
 <form class="site-search" role="search" method="get" action="{{ url_for('web.search') }}">
   <label class="sr-only" for="{{ id }}">Search by name</label>
   <input id="{{ id }}" type="search" name="q" placeholder="Search names" autocomplete="off" enterkeyhint="search">
   <button type="submit">Search</button>
 </form>
+{%- endif -%}
 {%- endmacro -%}
 {#- The tab row on every admin page (UX.72): the hub and the pages under it. -#}
 {%- set admin_tabs = [('admin', 'admin', 'Overview'), ('generate', 'admin_generate', 'Generate'), ('admin_queue', 'admin_queue', 'Queue'), ('admin_stats', 'admin_stats', 'Stats')] -%}

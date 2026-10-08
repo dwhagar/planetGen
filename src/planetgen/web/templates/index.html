@@ -1,17 +1,21 @@
 {% extends "base.html" %}
-{% block head %}
-<script type="module" src="{{ static_url('datatable.js') }}"></script>
-{% endblock %}
 {% block heading %}<h1 class="page-title">{{ site_name }}</h1>{% endblock %}
-{% block subhead %}
-<p class="badges">
-  <span class="badge">{{ num(sectors.total) }} sector{{ "" if sectors.total == 1 else "s" }}</span>
-  <span class="badge">{{ num(systems.total) }} standalone system{{ "" if systems.total == 1 else "s" }}</span>
-</p>
-{% endblock %}
 {% block content %}
-{% with show_more_link = true %}
-{% include "partials/sectors_panel.html" %}
-{% include "partials/systems_panel.html" %}
-{% endwith %}
+{#- The front door (UX.55): what is here, each count a link to its list, and the tools. -#}
+<section class="panel" aria-labelledby="home-counts-heading">
+  <h2 id="home-counts-heading" class="sr-only">What is here</h2>
+  <ul class="entry-points">
+    {%- for count in counts %}
+    <li><a href="{{ count.url }}"><strong>{{ num(count.total) }}</strong> {{ count.noun }}</a></li>
+    {%- endfor %}
+  </ul>
+</section>
+<section class="panel" aria-labelledby="home-tools-heading">
+  <h2 id="home-tools-heading" class="sr-only">Where to start</h2>
+  <ul class="entry-points">
+    {%- for tool in tools %}
+    <li><a href="{{ tool.url }}"><strong>{{ tool.label }}</strong></a> <span class="hint">{{ tool.hint }}</span></li>
+    {%- endfor %}
+  </ul>
+</section>
 {% endblock %}
