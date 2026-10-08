@@ -903,7 +903,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.30 | Planet information without the Markdown render | none | open |
 | UX.31 | Editing a star system: an edit button with a quick menu, not a long panel (bug) | none | done, PR #533 |
 | UX.32 | Planet rows show the class only, without the type and moon labels | none | open |
-| UX.33 | Filter phenomena by their classes and types (bug) | none | open |
+| UX.33 | Filter phenomena by their classes and types (bug) | none | done, PR #606 |
 | UX.34 | The sector summary calls white dwarfs "B-type" and "A-type" systems (bug) | none | done, PR #448 |
 | UX.35 | The NAV page route shown horizontally, wrapping onto several lines on narrow screens | none | open |
 | UX.36 | Scientific notation starts too early for whole numbers (bug) | none | done, PR #457 |
@@ -911,7 +911,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.38 | The nebula and remnant diagrams' "-" button does nothing at the 1 ly limit (bug) | none | done, PR #590 |
 | UX.39 | Markdown rendered by the markdown library | none | open |
 | UX.40 | Buttons, menus and dialogs from Shoelace web components | none | done, PR #544 |
-| UX.41 | Tables on TanStack Table and TanStack Virtual | none | open |
+| UX.41 | Tables on TanStack Table and TanStack Virtual | none | done, PR #606 |
 | UX.42 | In-universe wording across the interface | none | open |
 | UX.43 | A visual design built like a pilot's starmap and navigation console | none | open |
 | UX.44 | Search: mutually exclusive tags should combine with OR, the rest with AND (bug) | none | done, PR #457 |
