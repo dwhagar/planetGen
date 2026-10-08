@@ -742,11 +742,11 @@ Parents marked "new parent" had no old number of their own.
 | NAV.26 | Bend the path around keep-out spheres | none | open |
 | NAV.27 | Moving bodies inside a system | none | open |
 | NAV.28 | Show and save the adjusted course | none | open |
-| NAV.29 | Replace "Nav from here" and "Nav to here" with "Start Here" and "End Here" while picking (bug) | none | open |
+| NAV.29 | Replace "Nav from here" and "Nav to here" with "Start Here" and "End Here" while picking (bug) | none | done, PR #615 |
 | NAV.30 | Hide "View phenomenon" and "View system" links while picking a course (bug) | none | done, PR #351 |
 | NAV.31 | Galaxy wedges don't highlight on the navigation screens (bug) | none | done, PR #399 |
 | NAV.32 | Every Galaxy and Sector Map control works on the navigation screens (bug) | none | open |
-| NAV.33 | After picking one end of a course, stay at that zoom level (bug) | none | open |
+| NAV.33 | After picking one end of a course, stay at that zoom level (bug) | none | done, PR #615 |
 | NAV.34 | Courses between separately generated areas find no route: the route graph splits into islands (bug) | none | done, PR #427 |
 | NAV.35 | Mark jumps through unknown space in the route | none | merged into NAV.12 (the per-hop flag), PR #346 |
 | NAV.36 | Unknown-space jumps drawn red and glowing | none | open |
@@ -933,7 +933,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.60 | The Slabs rail has nothing in it at the top level | none | open |
 | UX.61 | System Map: Measure distance floats beside an empty gap | none | open |
 | UX.62 | Map pages jump 64 px left | none | open |
-| UX.63 | One action bar on every object page | none | open |
+| UX.63 | One action bar on every object page | none | done, PR #618 |
 | UX.64 | Action buttons are all solid primary, with no hierarchy | none | open |
 | UX.65 | Facts and links mixed in the Sector header chips | none | open |
 | UX.66 | “Cube edge” on arc-shaped sectors | none | open |
@@ -1139,7 +1139,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.100 | test_hover_while_picking_a_slab fails in the full suite (bug) | none | done, PR #549 |
 | TEST.101 | test_interrupting_a_parallel_galaxy_run[2-True] fails in the full suite (bug) | none | done, PR #549 |
 | TEST.102 | test_a_pass_removes_species_stored_without_a_civilization fails now and then in the full suite (bug) | none | done, PR #610 |
-| TEST.103 | test_controls_do_not_overlap[web.sector-600] fails on clean main: controls overlap on the sector page at 600 px (bug) | none | open |
+| TEST.103 | test_controls_do_not_overlap fails on clean main: controls overlap on the sector page at 600 and 820 px (bug) | none | open |
 | TEST.104 | test_system_map_selection_drill_and_measure fails now and then under load (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |

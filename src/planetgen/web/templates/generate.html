@@ -53,7 +53,7 @@
   <input type="text" id="{{ id }}" name="confirm" placeholder="{{ database }}" required autocomplete="off" autocapitalize="off" spellcheck="false">
 </label>
 {%- endmacro -%}
-{#- ADM.4: every section folds. Current job starts open; the rest open
+{#- ADM.4: every section folds. Current job (only while a job runs) starts open; the rest open
     or close as this browser last left them (static/generatefolds.js),
     except the section of a form shown again, which stays open. -#}
 {%- macro fold(id, title) -%}
@@ -74,6 +74,10 @@
 {% block subhead %}
 <p class="badges">
   <span class="badge">Database {{ database }}</span>
+  {#- UX.74: the Current job card is only there while a job runs. -#}
+  {%- if not active %}
+  <span class="badge" id="job-idle">No job running</span>
+  {%- endif %}
   {%- if summary.error %}
   <span class="badge">Database unavailable</span>
   {%- else %}
@@ -123,20 +127,18 @@
 </section>
 {%- endif %}
 
+{%- if active %}
 <section class="panel panel-fold" id="current-job" aria-labelledby="current-job-heading"
   data-status-url="{{ url_for('web.generate_status') }}"
   data-job-url-template="{{ url_for('web.generate_job', job_id='__JOB__') }}"{% if active %} data-job="{{ active.id }}"{% endif %}>
   <details class="fold" data-fold="current-job" open>
     <summary><h2 id="current-job-heading">Current job</h2></summary>
     <div class="fold-body" data-job-body>
-    {%- if active %}
     {{ job_status(active, active_log) }}
-    {%- else %}
-    <p class="hint">Nothing is running.</p>
-    {%- endif %}
     </div>
   </details>
 </section>
+{%- endif %}
 
 {%- set busy = active is not none %}
 {%- if busy %}

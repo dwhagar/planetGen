@@ -717,10 +717,15 @@ def test_system_page_shows_it_on_the_galaxy_map(client, fake):
     assert "Show on Galaxy Map" not in client.get("/system/5").get_data(as_text=True)
 
 
+def test_phenomenon_page_shows_it_on_the_galaxy_map(client, fake):
+    html = client.get("/phenomenon/nebula/4").get_data(as_text=True)
+    assert "Show on Galaxy Map</a>" in html
+
+
 # --- Bookmarks (MAP.23) ------------------------------------------------------------------
 
 def _bookmark_button(html):
-    match = re.search(r'<button type="button" class="btn btn-small btn-bookmark" data-bookmark-toggle[^>]*>[^<]*</button>',
+    match = re.search(r'<button type="button" class="btn btn-small btn-secondary btn-bookmark" data-bookmark-toggle[^>]*>[^<]*</button>',
                       html, re.S)
     return match.group(0) if match else ""
 
@@ -734,7 +739,7 @@ def test_system_page_has_a_bookmark_button(client, fake):
                       'aria-pressed="false"'):
         assert attribute in button
     assert "data-bookmark-sector-id" not in button
-    assert " hidden>" in button and "☆ Bookmark" in button
+    assert " hidden>" in button and "☆</button>" in button
 
 
 def test_standalone_system_can_still_be_bookmarked(client, fake):
@@ -749,3 +754,12 @@ def test_phenomenon_page_has_a_bookmark_button(client, fake):
     for attribute in ('data-bookmark-kind="nebula"', 'data-bookmark-value="nebula:4"',
                       'data-bookmark-name="Crab &lt;Nebula&gt;"', 'data-bookmark-url="/phenomenon/nebula/4"'):
         assert attribute in button
+
+
+def test_object_page_navigation_is_secondary_and_the_bookmark_is_one_star(client, fake):
+    """UX.64: the action bar's links are outlined, and the bookmark is the
+    same icon-only toggle as on the maps."""
+    html = client.get("/system/5").get_data(as_text=True)
+    assert 'class="btn btn-small btn-secondary nav-wide"' in html
+    assert 'class="btn btn-small btn-secondary nav-galaxy"' in html
+    assert "btn-secondary btn-bookmark" in html and "☆ Bookmark" not in html

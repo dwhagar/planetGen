@@ -344,7 +344,7 @@ def _show_on_map(row):
 
 
 _PANEL_COLUMNS = {
-    "sectors": ["Name", "Cube Edge", "Galaxy Map"],
+    "sectors": ["Name", "Edge", "Galaxy Map"],
     "systems": ["Name", "Sector", "Binary", "Star type", "Galaxy Map"],
     "stars": ["Name", "Role", "Type", "Radius", "System", "Sector"],
     "planets": ["Name", "Class", "Body", "Radius", "Life Chemistry", "System", "Sector"],

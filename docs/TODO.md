@@ -112,7 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 is done (PR #476); GEN.117, and GEN.116 is closed (Boss 2026-10-08 17:46Z). | TEST.103, TEST.104, SEC.30, TEST.83, UX.39, OPS.20, DB.11, DB.13, ADM.21, GEN.66, GEN.74, GEN.68, GEN.69, GEN.70, GEN.71, GEN.72, GEN.73, GEN.67, NAV.7, NAV.29, NAV.33, MAP.67, MAP.61, NAV.32, UX.37, UX.50, UX.51, UX.52, UX.53, UX.54, UX.55, UX.56, UX.57, UX.58, UX.59, UX.60, UX.61, UX.62, UX.63, UX.64, UX.65, UX.66, UX.67, UX.68, UX.69, UX.70, UX.71, UX.72, UX.73, UX.74, UX.21 |
+| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 is done (PR #476); GEN.117, and GEN.116 is closed (Boss 2026-10-08 17:46Z). | TEST.103, TEST.104, SEC.30, TEST.83, UX.39, OPS.20, DB.11, DB.13, ADM.21, GEN.66, GEN.74, GEN.68, GEN.69, GEN.70, GEN.71, GEN.72, GEN.73, GEN.67, NAV.7, MAP.67, MAP.61, NAV.32, UX.37, UX.50, UX.51, UX.52, UX.53, UX.54, UX.55, UX.56, UX.57, UX.58, UX.59, UX.60, UX.61, UX.62, UX.64, UX.65, UX.66, UX.67, UX.68, UX.69, UX.70, UX.71, UX.72, UX.73, UX.74, UX.21 |
 | 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, NAV.16, NAV.3, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.41, GEN.98, GEN.100, GEN.99, GEN.101, GEN.102, GEN.103, GEN.84, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, GEN.94, GEN.104, GEN.106, GEN.107, GEN.108, NAV.10, NAV.12, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, NAV.43, NAV.44, MAP.119, MAP.122, MAP.123, MAP.124, MAP.89, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, OPS.8, OPS.13, OPS.14, ADM.18, GEN.59, UX.49, NAV.50 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.58, MAP.75, MAP.59, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, API.16, MAP.69, MAP.70, ADM.17, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.131, MAP.132, API.18, VIEW.5 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, repair that reads the newest settings JSON, and the anomalies chosen in phase 2. | MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, MAP.126, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, DB.10, ADM.20, GEN.114, MAP.125, API.19 |
@@ -533,23 +533,6 @@ with `clamp()`.
   Prerequisites: none.
   Audit: https://claude.ai/artifact/4URTUHSvfLKMzZobyGdiHF (finding M6).
 
-- [ ] **UX.63 One action bar on every object page**
-  UX audit finding P1 (UX.37; Boss approved the audit 2026-10-08
-  17:43Z: "All UX work on this is Phase 0"). Merge; audit priority 1;
-  pages: System, Sector, Phenomenon. Seen: System: Navigate from here,
-  Navigate to here, Show on Galaxy Map, Bookmark (folds into a
-  Navigate menu when narrow). Phenomenon: Navigate from, Navigate to,
-  Bookmark; no Show on Galaxy Map. Sector: Show on Galaxy Map is a
-  chip in the facts row, Bookmark is on a row of its own, no Navigate.
-  Done: Use the System page’s UX.27 pattern everywhere: Navigate ▾,
-  Show on Galaxy Map, Bookmark and, for admins, Admin ▾, in one row in
-  the same place. Sector gets Navigate when NAV.44/49 land; until then
-  it shows the other three. Approved default: Same row, same order,
-  same labels on all three pages. Related: NAV.29, UX.27, UX.45. Not a
-  bug.
-  Prerequisites: none.
-  Audit: https://claude.ai/artifact/4URTUHSvfLKMzZobyGdiHF (finding P1).
-
 - [ ] **UX.64 Action buttons are all solid primary, with no hierarchy**
   UX audit finding P2 (UX.37; Boss approved the audit 2026-10-08
   17:43Z: "All UX work on this is Phase 0"). Rename / restyle; audit
@@ -575,10 +558,9 @@ with `clamp()`.
   Map, Quadrant III) and a sentence (“About 1.50 × 10¹⁴ interstellar
   comets and planetesimals (estimated)”). Done: Chips for facts only:
   edge, systems, stars, phenomena. Show on Galaxy Map goes to the
-  action bar (UX.63). Quadrant III becomes a plain link in the facts
+  action bar (done, UX.63). Quadrant III becomes a plain link in the facts
   row. The comet estimate moves into a Details line under the map.
   Approved default: Facts only in chips. Related: UX.42. Not a bug.
-  Prerequisite: UX.63.
   Audit: https://claude.ai/artifact/4URTUHSvfLKMzZobyGdiHF (finding P3).
 
 - [ ] **UX.66 “Cube edge” on arc-shaped sectors**
@@ -612,11 +594,10 @@ with `clamp()`.
   and System cards, not with the other actions. Its menu has 20 top-
   level entries on a 4-planet, 12-moon, 1-comet system: Regenerate,
   Change star and Delete, then one submenu per planet, moon and comet.
-  Done: Put the Admin menu in the action bar (UX.63). Keep three
+  Done: Put the Admin menu in the action bar (done, UX.63). Keep three
   system actions in the menu; move planet and moon actions into a menu
   on each row of the System list. Approved default: Admin in the
   action bar; body actions on their rows. Related: ADM.34. Not a bug.
-  Prerequisite: UX.63.
   Audit: https://claude.ai/artifact/4URTUHSvfLKMzZobyGdiHF (finding P6).
 
 - [ ] **UX.69 Tables are cut off on phones with no cue**
@@ -1434,48 +1415,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     Prerequisite: UX.35.
     Design: [docs/design/navigation-frames.md](design/navigation-frames.md)
 
-- [ ] **NAV.29 Replace "Nav from here" and "Nav to here" with "Start Here" and "End Here" while picking (bug)**
-  Boss (2026-10-01 21:15Z): "when navigating the "nav from and have to" buttons take you
-  to different pages, so should be replaced by "Star Here" Or "End
-  Here" and then the user goes to the next stage navigating back out
-  from where their start or end is." Today a system or phenomenon's
-  info panel on the maps offers "Nav from here" and "Nav to here"
-  (`appendNavActions` in the old `sectormap.js`, now `navLinks` in `galaxymap3d.js` and the panel in `mappick.js`), which jump to the NAV page's
-  own pickers and leave the map. Done: while picking a course, the panel
-  offers "Start Here" (or "End Here" once the start is set); choosing
-  it keeps the user on the map, and they pick the other end by stepping
-  back out from where the first end is (NAV.13's step out and step in)
-  and in again, without a page change. Outside pick mode the panel
-  offers the same two buttons, which start the course from that object.
-  Ties in with NAV.3, NAV.13 and NAV.15.
-
 - [ ] **NAV.32 Every Galaxy and Sector Map control works on the navigation screens (bug)**
   Boss (2026-10-01 21:15Z): "All the same UX from the galaxy screen and sector screens
   should be functional in the nav screens." Done: picking a course
   uses the same maps with the same controls as browsing them: hover
   highlight, wedge, slab and segment picks, zoom, rotate, the slab
   buttons, toggles (MAP.79), breadcrumb and bookmarkable URLs; pick
-  mode only adds the Start Here and End Here buttons (NAV.29) and hides
+  mode only adds the Start Here and End Here buttons (done, NAV.29) and hides
   the links that leave the page (NAV.30). Best done by building pick
   mode on the one engine (MAP.61) and the shared picker (NAV.3, NAV.15)
   rather than as a separate copy; until then each map fix must be
   checked in pick mode too.
-  Prerequisites: NAV.29, NAV.33.
   Plan (2026-10-07): Moved into phase 0 with the engine (all bugs in
   phase 0).
-
-- [ ] **NAV.33 After picking one end of a course, stay at that zoom level (bug)**
-  Boss (2026-10-01 21:17Z): "when nevigating via the picker, when we
-  pick a start or destination first, it should keep us at that zoom
-  level and let the user zoom out to find their destination via the
-  picker." Today picking one end of a course moves the user to the NAV
-  page's own pickers, away from the map view where they picked it.
-  Done: after the first end is picked (with NAV.29's Start Here or End
-  Here, or the existing "Use as start" and "Use as destination"
-  buttons), the view stays where it was, at the same zoom level, with
-  that end marked; the user zooms or steps out from there (NAV.13) to
-  find the other end with the same picker, and the course is shown
-  once both ends are set. Ties in with NAV.3, NAV.29 and NAV.32.
 
 - [ ] **NAV.12 No maximum hop length: a route always reaches the nearest star it can, across any number of sectors**
   Boss (2026-10-02 01:53Z): "routs will always find the nearest star
@@ -3237,16 +3189,20 @@ clears each one.
 
 ### Infrastructure and CI
 
-- [ ] **TEST.103 test_controls_do_not_overlap[web.sector-600] fails on clean main: controls overlap on the sector page at 600 px (bug)**
+- [ ] **TEST.103 test_controls_do_not_overlap fails on clean main: controls overlap on the sector page at 600 and 820 px (bug)**
   `src/tests/test_web_browser_layout.py::test_controls_do_not_overlap[web.sector-600]`
   fails on a clean `main` (reported by Foundations lane 1 on PR #612,
   2026-10-08), so it looks like a real overlap of controls on the
-  sector page at 600 px width, not a flake. It is a possible input to
+  sector page at 600 px width, not a flake. The 820 px case
+  (`web.sector-820`) also fails on `main` (Foundations lane 1, PR #618,
+  2026-10-08): the "Mark rogue planets" map button overlaps the
+  Contents filters, probably from the UX.41 Contents table; it is the
+  same test at a second width, so it is folded in here. It is a possible input to
   UX.21 (the final overlap pass) and may be settled by the sector-page
   items of the UX audit (UX.65 for the header chips, UX.50 for the
   map help text), so check those first. Done: the overlapping controls
-  are found, moved or resized so none overlap at 600 px (and at 390
-  to 1280 px), and the test passes on every run. Prerequisites: none.
+  are found, moved or resized so none overlap at 600 and 820 px (and
+  at 390 to 1280 px), and the test passes on every run. Prerequisites: none.
 
 - [ ] **TEST.104 test_system_map_selection_drill_and_measure fails now and then under load (bug)**
   `src/tests/test_web_browser_maps.py::test_system_map_selection_drill_and_measure`
