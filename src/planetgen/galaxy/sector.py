@@ -186,6 +186,7 @@ import math
 import random
 
 from planetgen.physics import constants as physical_constants
+from planetgen.galaxy.system_position import place_system
 from planetgen.physics.position import SpatialPosition3D
 from planetgen import tuning as program_constants
 from planetgen.util import log
@@ -562,6 +563,14 @@ class _Placed:
             mass_kg=_mass_kg(thing), length_unit_m=physical_constants.LY_TO_M)
         # Kept exactly as given (the sum above is only the galactic form).
         self.spatial.set_sector_cartesian(*position)
+        self._place_bodies()
+
+    def _place_bodies(self):
+        """A system entry gives its stars, planets, moons and comets their
+        galactic places (`galaxy.system_position`)."""
+        system = getattr(self, "star_system", None)
+        if system is not None:
+            place_system(system, self.spatial.sector_center, self.spatial.get_coordinates("sector", "cartesian"))
 
     @property
     def position(self):
@@ -571,6 +580,7 @@ class _Placed:
     @position.setter
     def position(self, value):
         self.spatial.set_sector_cartesian(*value)
+        self._place_bodies()
 
 class SectorSystemEntry(_Placed):
     """
@@ -759,6 +769,7 @@ class SpaceSector:
         self.center_galactic_ly = tuple(float(v) for v in center_ly)
         for entry in list(self.entries) + list(self.phenomena):
             entry.spatial.carry_sector_center(self.center_galactic_ly)
+            entry._place_bodies()
 
     @property
     def volume_ly3(self):

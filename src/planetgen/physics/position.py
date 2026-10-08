@@ -167,6 +167,11 @@ class SpatialPosition3D:
         return self._star_center
 
     @property
+    def sector_center(self):
+        """tuple: The sector's center, galactic, in this position's unit."""
+        return self._sector_center
+
+    @property
     def has_system_frame(self):
         """Whether the system frame exists (not a star, and a star is known)."""
         return not self._is_star and self._star_center is not None
@@ -309,6 +314,20 @@ class SpatialPosition3D:
         self._truth = ("sector", keep)
         self._sync()
 
+    def carry_anchors(self, sector_center_galactic, star_center_galactic):
+        """Moves the sector's center and the nearest star's center together,
+        and the body with them: its system offset stays, its sector and
+        galactic coordinates follow. Needs a system frame."""
+        _finite(sector_center_galactic, "sector center")
+        _finite(star_center_galactic, "star center")
+        if not self.has_system_frame:
+            raise ValueError("a body with no system frame has no offset to carry")
+        keep = self._coords["system"]["cartesian"]
+        self._sector_center = tuple(float(v) for v in sector_center_galactic)
+        self._star_center = tuple(float(v) for v in star_center_galactic)
+        self._truth = ("system", keep)
+        self._sync()
+
     def carry_star_center(self, star_center_galactic):
         """Moves the nearest star's center and the body with it: its system
         coordinates stay, its galactic and sector ones follow. Needs a
@@ -366,3 +385,54 @@ class SpatialPosition3D:
 
     def is_star(self):
         return self._is_star
+
+
+def axis_property(index):
+    """
+    A property for one Cartesian axis (0 x, 1 y, 2 z), in AU, of a body that
+    holds a `SpatialPosition3D` as `spatial` and mixes in `HoldsOrbitPosition`.
+    Reading gives the body's offset from its primary (the "system" frame);
+    writing before the body has a position stages the value until all three
+    axes are given, so `fields_from_dict` and `None` defaults keep working.
+    """
+    def read(self):
+        if self.spatial is not None:
+            return self.spatial.get_coordinates("system", "cartesian")[index]
+        staged = self._staged_au
+        return None if staged is None else staged[index]
+
+    def write(self, value):
+        staged = list(self._staged_au or (None, None, None))
+        staged[index] = value
+        self._staged_au = tuple(staged)
+        if all(v is not None for v in staged):
+            self.set_position_au(*staged)
+
+    return property(read, write)
+
+
+class HoldsOrbitPosition:
+    """
+    Mixin for a planet, moon or comet: its position is a `SpatialPosition3D`
+    in AU (`spatial`), whose "system" frame is the offset from the body's
+    primary (the star, or the parent planet for a moon). The subclass
+    declares its three attributes with `axis_property`; `set_position_au`
+    is the one way to move it.
+    """
+
+    spatial = None
+    _staged_au = None
+
+    def set_position_au(self, x, y, z):
+        """Puts the body at `(x, y, z)` AU from its primary; creates its
+        position (anchors at the origin until it is placed in a sector)
+        on first use, with the mass and mu it has by then."""
+        if self.spatial is None:
+            self.spatial = SpatialPosition3D((x, y, z), (0.0, 0.0, 0.0), star_center_galactic=(0.0, 0.0, 0.0),
+                                             length_unit_m=physical_constants.AU_M)
+        else:
+            self.spatial.set_system_cartesian(x, y, z)
+        self._staged_au = None
+        mass = getattr(self, "mass", None)
+        if isinstance(mass, (int, float)) and not isinstance(mass, bool) and mass >= 0:
+            self.spatial.set_mass(mass)

@@ -229,3 +229,92 @@ def test_placing_a_sector_in_the_galaxy_carries_its_entries():
     assert entry.spatial.get_coordinates("galactic", "cartesian") == pytest.approx((101.0, 202.0, -47.0))
     later = sector.add_system(StarSystem(system_config=SystemConfig()), position=(-1.0, 0.0, 0.0))
     assert later.spatial.get_coordinates("galactic", "cartesian") == pytest.approx((99.0, 200.0, -50.0))
+
+
+# --- Bodies in a system hold one (GEN.74 part 2b) --------------------------------------
+
+def _system_with(predicate):
+    from planetgen.generation.config import SystemConfig
+    from planetgen.generation.system import StarSystem
+
+    for _ in range(200):
+        system = StarSystem(system_config=SystemConfig())
+        if predicate(system):
+            return system
+    pytest.fail("no system matching")
+
+
+def _placed_system(predicate=lambda system: bool(system.planets)):
+    from planetgen.galaxy.sector import SpaceSector
+
+    system = _system_with(predicate)
+    sector = SpaceSector("Bodies", edge_ly=11.5)
+    sector.place_in_galaxy((26000.0, -40.0, 12.0))
+    entry = sector.add_system(system, position=(1.5, -2.0, 0.25))
+    return sector, entry, system
+
+
+def test_a_planet_holds_one_whose_system_frame_is_its_offset_from_the_star():
+    _sector, _entry, system = _placed_system(lambda s: any(getattr(p, "spatial", None) for p in s.planets))
+    planet = next(p for p in system.planets if getattr(p, "spatial", None))
+    system_frame = planet.spatial.get_coordinates("system", "cartesian")
+    assert (planet.position_x, planet.position_y, planet.position_z) == pytest.approx(system_frame, rel=1e-9, abs=1e-9)
+    assert planet.spatial.length_unit_m == constants.AU_M
+    assert planet.spatial.mass_kg == planet.mass and planet.spatial.mu == pytest.approx(constants.G * planet.mass)
+    star_galactic = system.primary_star.spatial.get_coordinates("galactic", "cartesian")
+    galactic = planet.spatial.get_coordinates("galactic", "cartesian")
+    assert galactic == pytest.approx(tuple(s + o for s, o in zip(star_galactic, system_frame)), rel=1e-9)
+
+
+def test_placing_a_system_keeps_every_offset_and_follows_in_galactic_coordinates():
+    from planetgen.generation.config import SystemConfig
+    from planetgen.generation.system import StarSystem
+    from planetgen.galaxy.sector import SpaceSector
+
+    sector = SpaceSector("Move", edge_ly=11.5)
+    system = _system_with(lambda s: any(getattr(p, "spatial", None) for p in s.planets))
+    planet = next(p for p in system.planets if getattr(p, "spatial", None))
+    offset = (planet.position_x, planet.position_y, planet.position_z)
+    entry = sector.add_system(system, position=(1.0, 1.0, 1.0))
+    sector.place_in_galaxy((100.0, 0.0, 0.0))
+    assert (planet.position_x, planet.position_y, planet.position_z) == offset
+    ly = constants.LY_TO_AU
+    assert planet.spatial.get_coordinates("galactic", "cartesian")[0] == pytest.approx((101.0) * ly, abs=1e3)  # the planet sits an orbit (AU) off its system
+    assert entry.position == (1.0, 1.0, 1.0)
+
+
+def test_a_moon_is_anchored_on_its_planet():
+    _sector, _entry, system = _placed_system(lambda s: any(getattr(p, "moons", None) for p in s.planets))
+    planet = next(p for p in system.planets if getattr(p, "moons", None))
+    moon = planet.moons[0]
+    planet_galactic = planet.spatial.get_coordinates("galactic", "cartesian")
+    moon_galactic = moon.spatial.get_coordinates("galactic", "cartesian")
+    moon_offset = (moon.position_x, moon.position_y, moon.position_z)
+    assert moon_galactic == pytest.approx(tuple(p + o for p, o in zip(planet_galactic, moon_offset)), rel=1e-12)
+
+
+def test_every_star_holds_one_and_a_binary_pair_straddles_the_system_center():
+    _sector, entry, system = _placed_system(lambda s: len(s.stars) == 2)
+    for star in system.stars:
+        assert star.spatial.is_star() and star.spatial.mass_kg == star.mass
+    first, second = (s.spatial.get_coordinates("galactic", "cartesian") for s in system.stars)
+    assert first != second
+    assert system.primary_star.spatial.get_coordinates("sector", "cartesian") != (0.0, 0.0, 0.0)
+
+
+def test_a_comet_holds_one():
+    _sector, _entry, system = _placed_system(lambda s: bool(s.comets))
+    comet = system.comets[0]
+    assert (comet.position_x_au, comet.position_y_au, comet.position_z_au) == comet.spatial.get_coordinates(
+        "system", "cartesian")
+
+
+def test_a_planet_rebuilt_from_its_dict_has_its_position_back():
+    from planetgen.generation.planet import Planet
+
+    _sector, _entry, system = _placed_system(lambda s: any(getattr(p, "spatial", None) for p in s.planets))
+    planet = next(p for p in system.planets if getattr(p, "spatial", None))
+    again = Planet.from_dict(planet.to_dict(), system.star, system.system_config)
+    assert (again.position_x, again.position_y, again.position_z) == (
+        planet.position_x, planet.position_y, planet.position_z)
+    assert again.spatial.get_coordinates("system", "cartesian") == planet.spatial.get_coordinates("system", "cartesian")

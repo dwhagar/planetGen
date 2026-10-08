@@ -40,6 +40,7 @@ import random
 
 from planetgen.generation.config import SystemConfig
 from planetgen.physics import constants as physical_constants, kepler
+from planetgen.physics.position import HoldsOrbitPosition, axis_property
 from planetgen import tuning
 from planetgen.util import log
 from planetgen.names.wordlists import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
@@ -123,7 +124,7 @@ def _activity_chance(perihelion_distance_au):
     return max_chance - fraction * (max_chance - min_chance)
 
 
-class Comet:
+class Comet(HoldsOrbitPosition):
     """
     A comet gravitationally bound to a star, on either a periodic
     elliptical orbit or a single-apparition parabolic one (see this
@@ -187,6 +188,12 @@ class Comet:
     shared back-reference) and `composition` (handled separately in
     `to_dict`/`from_dict`, mirroring `InterstellarComet.SERIALIZABLE_FIELDS`'s
     identical exclusion)."""
+
+    position_x_au = axis_property(0)
+    position_y_au = axis_property(1)
+    position_z_au = axis_property(2)
+    """float: This comet's offset from its star, AU: the "system" frame of
+    `spatial`, its `SpatialPosition3D` (GEN.74), which `set_position_au` moves."""
 
     def __init__(self, system_config: SystemConfig, primary_mass_solar, name=None, orbit_type=None):
         """
@@ -292,9 +299,7 @@ class Comet:
             orbital_period_years=self.orbital_period_years,
         )
         self.distance_au = state["distance_au"]
-        self.position_x_au = state["position_x_au"]
-        self.position_y_au = state["position_y_au"]
-        self.position_z_au = state["position_z_au"]
+        self.set_position_au(state["position_x_au"], state["position_y_au"], state["position_z_au"])
         self.orbital_speed_kms = state["orbital_speed_kms"]
 
     def to_dict(self):

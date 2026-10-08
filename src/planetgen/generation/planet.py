@@ -27,6 +27,7 @@ import random
 from planetgen.generation import prevalence
 from planetgen.generation.config import SystemConfig
 from planetgen.physics import constants, planets as planetPhysics
+from planetgen.physics.position import HoldsOrbitPosition, axis_property
 from planetgen import tuning
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from planetgen.util.format import (
@@ -34,7 +35,7 @@ from planetgen.util.format import (
 )
 
 
-class Planet:
+class Planet(HoldsOrbitPosition):
     """
     A class representing a single planet or moon and all of its properties.
 
@@ -190,6 +191,15 @@ class Planet:
     `Planet` dicts, handled separately in `to_dict`/`from_dict`). Covers
     moons too -- a moon is just a `Planet` with `is_moon=True`, and nesting
     is exactly 2 levels (a moon's own `moons` is always empty).
+    """
+
+    position_x = axis_property(0)
+    position_y = axis_property(1)
+    position_z = axis_property(2)
+    """
+    float: This body's offset from its orbital anchor, AU (the star, or a
+    moon's parent planet): the "system" frame of `spatial`, its
+    `SpatialPosition3D` (GEN.74), which `set_position_au` moves.
     """
 
     reflex_offset_x = reflex_offset_y = reflex_offset_z = 0.0
