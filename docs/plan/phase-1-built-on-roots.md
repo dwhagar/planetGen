@@ -170,7 +170,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| ADM.15 | Change the worker count from the Queue page, with a "Ludicrous Speed" mode | PERF.24 | Worker count now means RQ workers. Changing the worker count live only makes sense once any count works. |
+| ADM.15 | Change the worker count from the Queue page, with a "Ludicrous Speed" mode |  | Worker count now means RQ workers. Changing the worker count live only makes sense once any count works. |
 
 ### API
 
