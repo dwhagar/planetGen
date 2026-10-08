@@ -179,6 +179,14 @@ connectivity to that specific schema rather than the default one.
   `moons`, `belts` and `comets`, each an object mapping a row `id` (as a
   string) to that body's own Markdown, without its heading (and, for a
   planet, without its moons' sections).
+- `GET /api/systems/<id>/scene` — the 3D system view's data (MAP.69):
+  `system`, `epoch`/`epoch_unix` (when the stored phases were last
+  advanced, `null` if never), `stars`, `planets` (each with `moons`),
+  `belts` and `comets`. Every object has a `ref` (`star:3`, `planet:12`,
+  `moon:40`, `belt:5`, `comet:8`), `radius_km`, `color`, `position_km`
+  relative to what it orbits, and an `orbit` (`around`, `distance_km`,
+  `period_years`, `inclination_deg`, `ascending_node_deg`, `phase_deg`; a
+  comet's holds its Kepler elements under `kepler`).
 - `GET /api/systems/<id>/near?radius=<ly>` — other systems in the same
   sector within `radius` light-years (`queryDb.systems_within_radius`).
 - `GET /api/nav?from=<id>&to=<id>` — course, distance, and an optimal route

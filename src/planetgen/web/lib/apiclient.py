@@ -426,6 +426,13 @@ def get_system_sections(db, system_id):
     return _request(f"/systems/{system_id}/sections", {"db": db})
 
 
+def get_system_scene(db, system_id):
+    """Returns `GET /api/systems/<id>/scene` -- the 3D system view's data,
+    see `planetgen.web.maps.systemscene`."""
+    _require_db(db)
+    return _request(f"/systems/{system_id}/scene", {"db": db})
+
+
 def get_systems_near(db, system_id, radius):
     """Returns `GET /api/systems/<id>/near`'s bare list of
     `{id, name, distance_ly}`."""
