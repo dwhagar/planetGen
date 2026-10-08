@@ -647,7 +647,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.63 | Shared map helpers in one module | none | done, PR #351 |
 | MAP.64 | One camera and input controller | none | done, PR #351 |
 | MAP.65 | One picking, hover and info-panel layer | none | done, PR #521 |
-| MAP.66 | The sector as the drill-down's last stage, on the same page | none | open |
+| MAP.66 | The sector as the drill-down's last stage, on the same page | none | done, PR #548 |
 | MAP.67 | One URL and history scheme for every level | none | open |
 | MAP.68 | Remove the old Sector Map code | none | open |
 | MAP.69 | A system scene endpoint with 3D orbits | none | open |
@@ -728,7 +728,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.12 | No maximum hop length: a route always reaches the nearest star it can, across any number of sectors | none | open |
 | NAV.13 | A picker module: select, step out, step in, step sideways | none | done, PR #564 |
 | NAV.14 | One breadcrumb for every level | none | open |
-| NAV.15 | Pick mode everywhere | none | open |
+| NAV.15 | Pick mode everywhere | none | done, PR #566 |
 | NAV.16 | NAV endpoints can be any object | none | open |
 | NAV.17 | A saved course record with both forms | none | open |
 | NAV.18 | Save, list, open, rename and delete, per browser | none | open |
@@ -759,7 +759,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.43 | Find everything within a distance of a place: the query and the API | none | open |
 | NAV.44 | A "What's nearby" page: pick a place, enter a distance in parsecs, list what is there | none | open |
 | NAV.45 | "What's within N pc" from the Galaxy Map and Sector Map | none | open |
-| NAV.46 | The NAV picker can't click galaxy wedges to zoom in (bug) | none | open |
+| NAV.46 | The NAV picker can't click galaxy wedges to zoom in (bug) | none | closed, already fixed; covered by a browser test (#568) |
 | NAV.47 | Unknown-space jumps stop at scattered stars, black holes, neutron stars and quasars | none | open |
 | NAV.48 | Offer to generate the uncharted sectors that block a course | none | open |
 | NAV.49 | Waypoints: pick objects in Star select mode and plot a course through them, kept on the map until cleared | none | open |

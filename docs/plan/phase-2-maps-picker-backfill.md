@@ -117,7 +117,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| NAV.45 | "What's within N pc" from the Galaxy Map and Sector Map | NAV.44, NAV.15 | Boss 04:39Z. Map action opening NAV.44; drawn sphere optional. |
+| NAV.45 | "What's within N pc" from the Galaxy Map and Sector Map | NAV.44 | Boss 04:39Z. Map action opening NAV.44; drawn sphere optional. |
 
 ### Bookmarks
 
@@ -159,7 +159,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| MAP.121 | Every map shows and steps to its neighbouring regions, on one map engine | MAP.66, MAP.102 | Folds MAP.127, the Galaxy Map's neighbouring blocks and slabs (Boss 2026-10-07 16:27Z: one map engine for all maps). |
+| MAP.121 | Every map shows and steps to its neighbouring regions, on one map engine | MAP.102 | Folds MAP.127, the Galaxy Map's neighbouring blocks and slabs (Boss 2026-10-07 16:27Z: one map engine for all maps). |
 
 ### Recipes
 

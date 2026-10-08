@@ -75,7 +75,7 @@ function open(href, options) {
   };
   document.body.append(h("div", { "data-bookmark-db": "planetgen" }), viewport, els.crumbs, els.slabs, els.notice,
     els.address, els.matches, els.controls);
-  const calls = { cameras: [], fetches: [], blockInfo: [], placed: [], cells: [], hints: [], sizes: [], clips: [], locates: [] };
+  const calls = { cameras: [], fetches: [], blockInfo: [], placed: [], cells: [], hints: [], sizes: [], clips: [], locates: [], scenes: [], infos: [], hidden: [] };
   const server = options.server || (() => ({ children: [], sectors: [] }));
   const host = {
     THREE, scene, camera, canvasEl, edgePc: F.edgePc, shape: F.shape, galaxyRadius: F.galaxyRadius,
@@ -109,6 +109,18 @@ function open(href, options) {
     showHint: (text) => calls.hints.push(text),
     setWedgeClip: (clip) => calls.clips.push(clip),
     sectorUrl: (id) => "/sector/" + id,
+    // The sector's scene JSON: the Sector Map fixture, placed.
+    fetchSectorScene(id) {
+      calls.scenes.push(id);
+      const data = structuredClone(F.sectorMap.data);
+      data.centerPc = data.centerPc || [1000, 2000, 30];
+      data.halfEdgePc = data.halfEdgePc || 5;
+      return Promise.resolve(options.sectorScene ? options.sectorScene(data) : data);
+    },
+    lightBackground: false,
+    pixelRatio: () => 1,
+    showInfo: (spec) => calls.infos.push(spec),
+    hideCell: (bounds) => calls.hidden.push(bounds),
     locate(name) {
       calls.locates.push(name);
       return options.locate ? options.locate(name) : Promise.resolve([]);
@@ -755,7 +767,7 @@ test("on touch, the first tap highlights and the second takes it", async () => {
   assert.equal(m.view.stage().picks.length, 1);
 });
 
-test("a generated sector opens its page; one not generated is selected in place", async () => {
+test("a generated sector opens in place; one not generated is selected", async () => {
   let known = null;
   const server = (query) => {
     if (!known) return { children: [], sectors: [] };
@@ -788,5 +800,17 @@ test("a generated sector opens its page; one not generated is selected in place"
   await arrive(m);
   key(m, "Enter");
   await arrive(m);
-  assert.deepEqual(m.win.location.assigned, ["/sector/42"]);
+  assert.deepEqual(m.win.location.assigned, [], "no page load: the sector opens in the map");
+  assert.deepEqual(m.calls.scenes, [42]);
+  assert.equal(S.parseStageQuery(m.win.location.search).open, true, "the URL says the sector is open: " + m.win.location.search);
+  assert.deepEqual(S.parseStageQuery(m.win.location.search).sector, sector);
+  assert.equal(m.calls.hidden.length, 1, "the galaxy's own stars leave the cell");
+  assert.ok(m.calls.hidden[0].r1 > 0);
+  assert.ok(m.view.stage(), "still on the stage that holds it");
+  // Up closes it, keeping the sector selected and the cell's stars back.
+  m.view.up();
+  await arrive(m);
+  assert.equal(m.calls.hidden[m.calls.hidden.length - 1], null);
+  assert.equal(S.parseStageQuery(m.win.location.search).open, false);
+  assert.deepEqual(S.parseStageQuery(m.win.location.search).sector, sector);
 });

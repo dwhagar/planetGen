@@ -35,6 +35,9 @@
 //   select(entry) are called; the drill-down adds its choices to it;
 // - clearSelection(): a block was picked, so a phenomenon's ring goes;
 // - canGenerate, courseSectors, sectorUrl(id), locate(name);
+// - fetchSectorScene(id): a Promise of GET /sector/<id>/scene's JSON, the
+//   sector opened in place (MAP.66; galaxysector.js); lightBackground,
+//   pixelRatio(), showInfo(spec), hideCell(bounds or null);
 // - els: {crumbs, slabs, tooltip, notice, address, matches, controls}
 //   (any may be missing).
 
@@ -47,11 +50,14 @@ const B = await import(`./bookmarks.js${VERSION_QUERY}`);
 const { createSelection } = await import(`./picker.js${VERSION_QUERY}`);
 const { createBreadcrumb } = await import(`./breadcrumb.js${VERSION_QUERY}`);
 const { createPicker, createTooltip } = await import(`./mappick.js${VERSION_QUERY}`);
+const { createSectorStage } = await import(`./galaxysector.js${VERSION_QUERY}`);
 
 // The other choices while one is hovered (MAP.18).
 const OTHER_FADE = 0.25;
 // A new stage's blocks fade in over the last part of a flight.
 const FADE_IN_MS = 200;
+// The block of the sector opened in place, round its own scene.
+const ENTERED_BLOCK_FADE = 0.06;
 const DRAG_CLICK_PX = 6;
 // Each zoom step flies the camera to a preset for what it shows (MAP.97,
 // Boss 2026-10-02: "when it zooms to a block it moves as isometric, wen
@@ -125,6 +131,13 @@ export function createStageView(host) {
   let stage = { at: null, picks: [] };
   let resolved = null;
   let selectedSector = null;
+  // The sector opened in place: {sector: {ring, layer, slot}, id, center,
+  // halfEdge, fitPoints}, while galaxysector.js has its scene up.
+  let entered = null;
+  let enterToken = 0;
+  // A sector to open once the stage it sits in has arrived (a reload or
+  // Back to an opened sector's URL).
+  let pendingOpen = null;
   let display = null;
   let leaving = [];
   let animation = null;
@@ -616,6 +629,14 @@ export function createStageView(host) {
     return { target: fit.target, dist: fit.dist, quat: quat };
   }
 
+  // The camera for the sector opened in place: its cell fitted at the
+  // isometric slant, the core's bearing up the screen like a block's.
+  function cameraForSector(open) {
+    const quat = presetQuat(Math.atan2(open.center[1], open.center[0]) + Math.PI, ISO_TILT);
+    const fit = centeredFit(open.fitPoints, open.center.slice(), quat);
+    return { target: fit.target, dist: fit.dist, quat: quat };
+  }
+
   // The view on arrival at camera `to`, keeping `to` as its fit. The
   // target is a copy: a pan moves view.target in place, and the pan's
   // reach is measured from the fit's. `zoom` is the user's zoom, the
@@ -719,7 +740,7 @@ export function createStageView(host) {
   // view's own turn.
   function reframe() {
     if (!view || !view.fit || !resolved || !resolved.view || !resolved.view.blocks.length) return;
-    view.dist = view.zoom * fitDistance(fitPointsOf(resolved), view.fit.target, view.quat);
+    view.dist = view.zoom * fitDistance(entered ? entered.fitPoints : fitPointsOf(resolved), view.fit.target, view.quat);
   }
 
   function applyView() {
@@ -777,6 +798,13 @@ export function createStageView(host) {
     return query ? query + "&" + host.pickQuery.slice(1) : host.pickQuery;
   }
 
+  // A new entry in the browser history (the map's Back and Forward).
+  function pushEntry(query) {
+    mapIndex += 1;
+    maxIndex = mapIndex;
+    history.pushState({ galaxyStage: true, mapIndex: mapIndex, maxIndex: maxIndex }, "", location.pathname + query + location.hash);
+  }
+
   // Goes to stage `next` (carried on through any choice of one). push:
   // record it in the browser history (default yes).
   function go(next, options) {
@@ -788,6 +816,7 @@ export function createStageView(host) {
       return;
     }
     notice("");
+    if (entered) closeSector();
     if (!options.keepSector) selectedSector = null;
     if (r.sector && !selectedSector) {
       selectedSector = { ring: r.sector.ring, layer: r.sector.slab, slot: r.sector.wedge };
@@ -795,9 +824,7 @@ export function createStageView(host) {
     const token = ++goToken;
     const query = withPick(options.query || S.stageQuery(r.stage));
     if (options.push !== false && (!S.sameStage(stage, r.stage) || query !== location.search)) {
-      mapIndex += 1;
-      maxIndex = mapIndex;
-      history.pushState({ galaxyStage: true, mapIndex: mapIndex, maxIndex: maxIndex }, "", location.pathname + query + location.hash);
+      pushEntry(query);
     }
     stage = r.stage;
     resolved = r;
@@ -855,6 +882,14 @@ export function createStageView(host) {
       applyHover();
       showStageInfo();
     }
+    if (pendingOpen) {
+      const asked = pendingOpen;
+      pendingOpen = null;
+      const at = sectorOption(asked);
+      const block = at >= 0 ? display.options[at].blocks[0] : null;
+      const record = block ? sectorRecord(block) : null;
+      if (record) enterSector(block, record, { push: false });
+    }
   }
 
   function finishAnimation() {
@@ -866,7 +901,9 @@ export function createStageView(host) {
 
   // Every frame: the running move, if any.
   function step(now) {
-    if (!active || !animation) return;
+    if (!active) return;
+    sectorStage.update();
+    if (!animation) return;
     const a = animation;
     const t = a.duration > 0 ? Math.min(1, (now - a.startedAt) / a.duration) : 1;
     a.frame(t);
@@ -905,6 +942,21 @@ export function createStageView(host) {
   }
 
   function up() {
+    if (entered) {
+      // Out of the sector, to the stage it sits in with it still selected.
+      closeSector();
+      pushEntry(withPick("?sector=" + S.sectorDesignation(selectedSector.ring, selectedSector.layer, selectedSector.slot)));
+      const back = cameraFor(resolved);
+      flyCamera(viewNow(), back, null, function () {
+        view = settledView(back);
+        applyView();
+      });
+      applyHover();
+      renderCrumbs();
+      renderStrip();
+      renderTravel();
+      return;
+    }
     selection.up();
   }
 
@@ -947,6 +999,14 @@ export function createStageView(host) {
   // The stage's choices are the picker's last layer (mappick.js): a
   // phenomenon the map puts in front takes the pointer first.
   const picker = host.picker || createPicker(camera, canvasEl);
+  const sectorStage = createSectorStage({
+    THREE: THREE, scene: host.scene, camera: camera, canvasEl: canvasEl, picker: picker,
+    accentColor: host.accentColor || "#4f5fe8", lightBackground: !!host.lightBackground,
+    pixelRatio: host.pixelRatio || function () { return 1; },
+    fetchScene: host.fetchSectorScene, showInfo: host.showInfo || function () {},
+    hideCell: host.hideCell || function () {},
+    closeness: function () { return view && view.zoom > 0 ? 1 / view.zoom : 1; },
+  });
   const tooltip = createTooltip(els.tooltip);
   const choiceLayer = picker.addLayer({
     name: "choices", priority: 10,
@@ -1094,6 +1154,9 @@ export function createStageView(host) {
       const slab = group.option.blocks[0].slab;
       const lit = layer ? slab >= layer.lo && slab <= layer.hi : index < 0 || n === index;
       group.fade = lit ? 1 : OTHER_FADE;
+      // The sector opened in place is drawn by its own scene: its block
+      // is only a faint cell round it.
+      if (entered && sectorOption(entered.sector) === n) group.fade = ENTERED_BLOCK_FADE;
     });
     if (!animation) setDisplayFade(display, 1);
     const option = index >= 0 ? display.options[index] : null;
@@ -1253,11 +1316,13 @@ export function createStageView(host) {
     const slabPick = option.pick && option.pick.kind === "layer";
     if (!slabPick && option.blocks.length === 1 && option.blocks[0].m === 1) {
       const block = option.blocks[0];
-      const sector = sectorRecord(block);
-      if (sector && host.sectorUrl(sector.id)) {
-        window.location.assign(host.sectorUrl(sector.id));
+      const record = sectorRecord(block);
+      if (record && host.fetchSectorScene) {
+        // Opened in place, unless it is the one open already (MAP.66).
+        if (!entered || entered.id !== record.id) enterSector(block, record, { push: true });
         return;
       }
+      if (entered) closeSector();
       selectedSector = { ring: block.ring, layer: block.slab, slot: block.wedge };
       setHover({ option: index, sticky: true });
       showSectorInfo(block);
@@ -1284,6 +1349,55 @@ export function createStageView(host) {
     return display.options.findIndex(function (option) {
       return option.blocks.length === 1 && option.blocks[0].m === 1 && option.blocks[0].ring === sector.ring
         && option.blocks[0].wedge === sector.slot && option.blocks[0].slab === sector.layer;
+    });
+  }
+
+  // --- The sector opened in place (MAP.66) ------------------------------------
+
+  // Closes the open sector's scene; the stage it sits in stays.
+  function closeSector() {
+    enterToken += 1;
+    sectorStage.close();
+    entered = null;
+  }
+
+  // Opens a generated sector in place: its scene joins the map, the
+  // camera flies to fit it, and (push) it takes its own history entry,
+  // ?sector=<designation>&open=1. A sector that can't be opened (not
+  // placed, or its scene didn't load) is only selected, as an ungenerated
+  // one is. `block` is its cell, `record` the stage's sector record.
+  function enterSector(block, record, options) {
+    const token = ++enterToken;
+    const at = { ring: block.ring, layer: block.slab, slot: block.wedge };
+    notice("Opening " + (record.name || "the sector") + "…");
+    sectorStage.open(record.id, block.bounds).then(function (geo) {
+      if (!active || token !== enterToken) return;
+      notice("");
+      selectedSector = at;
+      if (!geo) {
+        const index = sectorOption(at);
+        if (index >= 0) setHover({ option: index, sticky: true });
+        showSectorInfo(block);
+        renderCrumbs();
+        renderTravel();
+        return;
+      }
+      entered = { sector: at, id: record.id, center: geo.center, halfEdge: geo.halfEdge, fitPoints: geo.fitPoints };
+      if (options.push) pushEntry(withPick("?sector=" + S.sectorDesignation(at.ring, at.layer, at.slot) + "&open=1"));
+      showSectorInfo(block);
+      applyHover();
+      renderCrumbs();
+      renderStrip();
+      renderTravel();
+      if (animation) finishAnimation();
+      const to = cameraForSector(entered);
+      flyCamera(viewNow(), to, null, function () {
+        view = settledView(to);
+        applyView();
+      });
+    }, function () {
+      if (!active || token !== enterToken) return;
+      notice("The sector could not be loaded. Please try again shortly.");
     });
   }
 
@@ -1328,7 +1442,7 @@ export function createStageView(host) {
   function resetView() {
     if (!resolved || animation || !display) return;
     const from = viewNow();
-    const to = cameraFor(resolved);
+    const to = entered ? cameraForSector(entered) : cameraFor(resolved);
     flyCamera(from, to, null, function () {
       view = settledView(to);
       applyView();
@@ -2118,6 +2232,8 @@ export function createStageView(host) {
     if (!on) {
       clearMatches();
       if (animation) finishAnimation();
+      closeSector();
+      pendingOpen = null;
       disposeDisplay(display);
       display = null;
       view = null;
@@ -2152,7 +2268,7 @@ export function createStageView(host) {
           problem: "Sector " + S.blockLabel({ m: 1, ring: s.ring, wedge: s.slot, slab: s.layer }) + " is outside the galaxy.",
         };
       }
-      return { stage: next, sector: s, problem: null };
+      return { stage: next, sector: s, open: parsed.open, problem: null };
     }
     let next = parsed.stage;
     if (useCourse && !next.at && !next.picks.length && host.courseSectors && host.courseSectors.length) {
@@ -2172,6 +2288,7 @@ export function createStageView(host) {
     let problem = asked.problem || r.problem;
     if (r.problem) r = resolve({ at: null, picks: [] });
     selectedSector = asked.sector || (r.sector ? { ring: r.sector.ring, layer: r.sector.slab, slot: r.sector.wedge } : null);
+    pendingOpen = asked.open ? asked.sector : null;
     stage = r.stage;
     resolved = r;
     renderCrumbs();
@@ -2196,6 +2313,7 @@ export function createStageView(host) {
       return;
     }
     selectedSector = asked.sector;
+    pendingOpen = asked.open ? asked.sector : null;
     go(asked.stage, { push: false, keepSector: true });
   }
   window.addEventListener("popstate", onPopState);
