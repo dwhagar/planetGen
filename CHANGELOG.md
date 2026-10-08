@@ -1,5 +1,10 @@
 # Changelog
 
+## [7.338.675] - 2026-10-08
+
+### Added
+- A new test bug is on the list: a point-in-space test fails about one run in four (TEST.108).
+
 ## [7.337.675] - 2026-10-08
 
 ### Changed
