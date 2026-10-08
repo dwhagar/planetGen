@@ -206,6 +206,8 @@ export function createSectorStage(host) {
         origin: data.centerPc, unit: data.halfEdgePc / half, flipY: true,
         accentColor: host.accentColor, lightBackground: host.lightBackground, pixelRatio: host.pixelRatio(),
         sizeScale: pointSizeScale,
+        // How many nebulae are drawn from their shape now (read by the browser tests).
+        onShape: function (count) { host.canvasEl.dataset.sectorNebulaMeshes = String(count); },
       });
       host.scene.add(state.sector.group);
       state.sector.setRoguesMarked(roguesMarked);

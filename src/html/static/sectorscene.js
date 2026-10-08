@@ -32,6 +32,7 @@ const { makeGlowMaterial } = await import(`./bodyRendering.js${VERSION_QUERY}`);
 const { generateButtons } = await import(`./generatebuttons.js${VERSION_QUERY}`);
 const { cssVar, formatAddress, makeRingTexture } = await import(`./mapcore.js${VERSION_QUERY}`);
 const { endpointBookmark } = await import(`./mappick.js${VERSION_QUERY}`);
+const { buildNebulaMesh, createShapeLoader, disposeNebulaMesh } = await import(`./nebulamesh.js${VERSION_QUERY}`);
 
 // A cloud entry carries `kind` (its phenomenon-texture recipe, see
 // `CLOUD_KIND_RECIPES` below); a star entry never does; a neighboring-
@@ -598,7 +599,8 @@ var LABEL_HEIGHT = 22;
 // (the picker layers, nearest first: points, bodies, volumes), ringSize(entry),
 // setRoguesMarked(on), roguesMarked(), entryByKey, kinds() (the kinds in
 // it, [{kind, label, count}]), setKindHidden(kind, hidden), kindHidden(kind),
-// update() (every frame), dispose()}.
+// update() (every frame), nebulaMeshCount() (nebulae drawn from their shape
+// so far), dispose()}. `options.onShape(count)` is called as each arrives.
 export function buildSectorScene(data, options) {
   var o = options || {};
   var origin = o.origin || [0, 0, 0];
@@ -673,6 +675,34 @@ export function buildSectorScene(data, options) {
   // Every clickable marker but the points of light, for the raycast.
   var bodyObjects = [];
   var volumeObjects = [];
+  // A nebula is first the analytic sphere volume (above); once its shape
+  // arrives (MAP.103) the shape's mesh takes its place for drawing and picking.
+  var loadNebulaShape = data.nebulaShapePath ? createShapeLoader(data.nebulaShapePath) : null;
+  var nebulaMeshes = 0;
+  var disposed = false;
+
+  function drawFromShape(cloud, sphere) {
+    loadNebulaShape(cloud.nebulaId, "low").then(function (shape) {
+      if (disposed) return;
+      var core = (cloud.coreColor || "#c9a8e090").slice(0, 7);
+      var edge = parseInt((cloud.edgeColor || "#c9a8e030").slice(7, 9), 16);
+      var look = [core, 0, (isNaN(edge) ? 0x30 : edge) / 255 * (cloud.neighbor ? NEIGHBOR_CLOUD_DIM : 1)];
+      var mesh = buildNebulaMesh(THREE, shape, cloud.r, look, { yScale: -flip, depthTest: true });
+      mesh.position.fromArray(cloud.local);
+      mesh.visible = sphere.visible;
+      group.remove(sphere);
+      group.add(mesh);
+      volumeObjects[volumeObjects.indexOf(sphere)] = mesh;
+      entryByObject.delete(sphere);
+      entryByObject.set(mesh, cloud);
+      var drawn = objectsOfEntry.get(cloud);
+      drawn[drawn.indexOf(sphere)] = mesh;
+      sphere.geometry.dispose();
+      sphere.material.dispose();
+      nebulaMeshes++;
+      if (o.onShape) o.onShape(nebulaMeshes);
+    }, function () {});
+  }
   var entryByObject = new Map();
   // Everything drawn for an entry that isn't a point of light, so a hidden
   // kind (MAP.79) hides it all, its label and ring too.
@@ -771,6 +801,9 @@ export function buildSectorScene(data, options) {
       entryByObject.set(mesh, cloud);
       volumeObjects.push(mesh);
       drawnFor(cloud, mesh);
+      if (cloud.kind === "nebula" && cloud.nebulaId != null && loadNebulaShape) {
+        drawFromShape(cloud, mesh);
+      }
       return;
     }
     var glow = glowRecipeForCloud(cloud);
@@ -921,6 +954,7 @@ export function buildSectorScene(data, options) {
   }
 
   function dispose() {
+    disposed = true;
     group.traverse(function (object) {
       if (object.geometry) object.geometry.dispose();
       if (object.material) {
@@ -944,6 +978,7 @@ export function buildSectorScene(data, options) {
     setKindHidden: setKindHidden,
     kindHidden: function (kind) { return hiddenKinds.has(kind); },
     update: update,
+    nebulaMeshCount: function () { return nebulaMeshes; },
     dispose: dispose,
   };
 }

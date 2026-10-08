@@ -130,9 +130,10 @@ def nebula_shape_payload(nebula_id, lod):
 
     from planetgen.galaxy import nebula_shape
 
-    if int(nebula_id) != NEBULA_CLOUD["id"]:
+    known = {NEBULA_CLOUD["id"]} | {p["id"] for p in PHENOMENA if p["type"] == "nebula"}
+    if int(nebula_id) not in known:
         raise apiclient.NotFoundError(f"no such nebula: {nebula_id}")
-    vertices, faces = nebula_shape.draw_shape(random.Random(5)).mesh(lod)
+    vertices, faces = nebula_shape.draw_shape(random.Random(int(nebula_id))).mesh(lod)
     return {"id": NEBULA_CLOUD["id"], "radius_ly": pc_to_ly(NEBULA_CLOUD["radius_pc"]),
             "center_pc": [NEBULA_CLOUD["x"], NEBULA_CLOUD["y"], NEBULA_CLOUD["z"]], "lod": lod,
             "vertices": [[round(float(v), 5) for v in vertex] for vertex in vertices],
