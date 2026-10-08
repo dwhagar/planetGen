@@ -534,7 +534,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.69 | A unique ID for every object, star systems and unfilled sectors included | none | done, PR #623 |
 | GEN.70 | A naming key in the control database, made at galaxy creation and changeable by admin | none | open |
 | GEN.71 | Name interstellar objects, phenomena and constellations from the codec | none | open |
-| GEN.72 | A backfilled bright star should get a name only when its sector is generated (bug) | none | open |
+| GEN.72 | A backfilled bright star should get a name only when its sector is generated (bug) | none | done, PR #657 |
 | GEN.73 | Nebulae don't get unique names (bug) | none | folded into GEN.71 |
 | GEN.74 | One point-in-space object that keeps every coordinate system in step, used by every object | none | open |
 | GEN.75 | A nebula shape from metaballs and warped noise, as a mesh | none | done, PR #580 |
