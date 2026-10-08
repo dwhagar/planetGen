@@ -871,6 +871,10 @@ _MAX_CLOUD_RADIUS_PX = 6 * (2 * _SCENE_HALF_PX)
 # nebulae teal/cyan from doubly-ionized oxygen, and a dark nebula is by
 # definition an opaque silhouette, not a glow at all -- hence its own
 # near-black, higher-opacity fill instead of a lighter translucent one).
+NEBULA_SHAPE_PATH = "/galaxy/nebula/{id}/shape"
+"""str: The site's nebula mesh endpoint (`web/galaxy_views.galaxy_nebula_shape`),
+`{id}` where the nebula's id goes."""
+
 _NEBULA_TYPE_COLORS = {
     "diffuse": "#e3a6c8",
     "emission": "#ff6f91",
@@ -949,6 +953,8 @@ def _cloud_data(link_url, phenomenon, x_px, y_px, z_px, radius_px):
         color = _NEBULA_TYPE_COLORS.get(descriptor, _DEFAULT_NEBULA_COLOR)
         core_alpha, edge_alpha = _NEBULA_TYPE_ALPHA.get(descriptor, _DEFAULT_NEBULA_ALPHA)
         data["kind"] = "nebula"
+        # sectorscene.js swaps the sphere for the nebula's shape (MAP.103).
+        data["nebulaId"] = phenomenon["id"]
         data["coreColor"] = f"{color}{core_alpha:02x}"
         data["edgeColor"] = f"{color}{edge_alpha:02x}"
         data["typeLabel"] = f'{descriptor.capitalize()} Nebula'
@@ -1114,6 +1120,8 @@ def map_scene_data(
         "compass": compass,
         "stars": stars_data,
         "clouds": clouds_data,
+        # Where a nebula's mesh comes from (`{id}` is its id; MAP.103).
+        "nebulaShapePath": NEBULA_SHAPE_PATH,
         "neighbors": neighbors_data,
         "generate": generate,
         # The sector's own edge in light years, for the Generate buttons'

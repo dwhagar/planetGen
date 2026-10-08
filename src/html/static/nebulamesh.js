@@ -48,12 +48,15 @@ export function createShapeLoader(shapePath, fetchFn) {
 
 // The flat position array for a served shape, scaled from nebula-radius
 // units to `radius` (the map's own unit, e.g. parsecs).
-export function scaledPositions(shape, radius) {
+// `yScale` (default 1) is -1 on a map whose y axis runs the other way
+// from the galaxy frame's (the Sector Map's scene).
+export function scaledPositions(shape, radius, yScale) {
+  yScale = yScale == null ? 1 : yScale;
   var vertices = shape.vertices || [];
   var out = new Float32Array(vertices.length * 3);
   for (var i = 0; i < vertices.length; i++) {
     out[3 * i] = vertices[i][0] * radius;
-    out[3 * i + 1] = vertices[i][1] * radius;
+    out[3 * i + 1] = vertices[i][1] * radius * yScale;
     out[3 * i + 2] = vertices[i][2] * radius;
   }
   return out;
@@ -72,9 +75,13 @@ export function flatFaces(shape) {
 
 // One nebula's mesh, centred on the origin and `radius` big; the caller
 // positions it. `look` is a [hex color, core opacity, edge opacity] triple.
-export function buildNebulaMesh(THREE, shape, radius, look) {
+// `options`: `yScale` (see `scaledPositions`), `depthTest` (default false:
+// drawn over the scene, as the Galaxy Map's clouds are; the Sector Map
+// sets it so stars in front of the cloud stay in front).
+export function buildNebulaMesh(THREE, shape, radius, look, options) {
+  var o = options || {};
   var geometry = new THREE.BufferGeometry();
-  geometry.setAttribute("position", new THREE.BufferAttribute(scaledPositions(shape, radius), 3));
+  geometry.setAttribute("position", new THREE.BufferAttribute(scaledPositions(shape, radius, o.yScale), 3));
   geometry.setIndex(new THREE.BufferAttribute(flatFaces(shape), 1));
   var material = new THREE.MeshBasicMaterial({
     color: new THREE.Color(look[0]),
@@ -82,7 +89,7 @@ export function buildNebulaMesh(THREE, shape, radius, look) {
     opacity: look[2] * NEBULA_MESH_OPACITY_SHARE,
     side: THREE.DoubleSide,
     depthWrite: false,
-    depthTest: false,
+    depthTest: !!o.depthTest,
   });
   var mesh = new THREE.Mesh(geometry, material);
   mesh.userData.baseOpacity = material.opacity;
