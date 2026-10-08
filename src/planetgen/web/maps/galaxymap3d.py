@@ -526,7 +526,10 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         "initialCenter": list(pinned["center_pc"]) if pinned else [0.0, 0.0, 0.0],
         "initialRadiusPc": min(max_radius, max(min_radius, 6 * edge_pc)) if pinned else max_radius,
         "pinned": {k: pinned[k] for k in ("ring", "layer", "slot")} if pinned else None,
-        "initial": initial_view,
+        # The first frame's tiles, without the tile cache's own count of how
+        # many it had cached: the page is cached and compared as text, and
+        # that count differs between two loads of the same page.
+        "initial": {key: value for key, value in initial_view.items() if key != "cached"},
         # The real, sampled-in-the-solar-neighborhood average this
         # project's own generation already calibrates against (see
         # physical_constants.LOCAL_STELLAR_DENSITY_LY3's own citations) --
