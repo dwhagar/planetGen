@@ -24,11 +24,14 @@ subhead (badges or actions under the <h1>). -#}
   <button type="submit">Search</button>
 </form>
 {%- endmacro -%}
+{#- The tab row on every admin page (UX.72): the hub and the pages under it. -#}
+{%- set admin_tabs = [('admin', 'admin', 'Overview'), ('generate', 'admin_generate', 'Generate'), ('admin_queue', 'admin_queue', 'Queue'), ('admin_stats', 'admin_stats', 'Stats')] -%}
 {%- macro gear_link(name, text, current, href=None) -%}
 <li><a href="{{ href or page_url(name) }}"{% if section == current %} aria-current="page"{% endif %}>{{ text }}</a></li>
 {%- endmacro -%}
-{#- The settings gear: search (for when the bar has no room for it), the
-    theme switch, and either the admin's pages or Login. -#}
+{#- The settings gear (UX.72): search (for when the bar has no room for it),
+    the theme switch, and either Account, Admin and Logout or Login. The
+    admin's other pages are one level down, behind Admin and its tab row. -#}
 {%- macro gear_menu() -%}
 {%- set admin = current_admin() -%}
 <sl-dropdown class="site-gear" placement="bottom-end" distance="6">
@@ -41,9 +44,6 @@ subhead (badges or actions under the <h1>). -#}
       {%- if admin %}
       {{ gear_link('account', 'Account', 'account') }}
       {{ gear_link('admin', 'Admin', 'admin') }}
-      {{ gear_link('generate', 'Generate', 'admin_generate') }}
-      {{ gear_link('admin_queue', 'Queue', 'admin_queue') }}
-      {{ gear_link('admin_stats', 'Stats', 'admin_stats') }}
       {{ gear_link('logout', 'Logout', None) }}
       {%- else %}
       {{ gear_link('login', 'Login', 'login') }}
@@ -117,6 +117,15 @@ subhead (badges or actions under the <h1>). -#}
   {%- block heading %}
   <h1 class="page-title">{{ title }}</h1>
   {%- endblock %}
+  {%- if section in ['admin', 'admin_generate', 'admin_queue', 'admin_stats'] %}
+  <nav class="admin-tabs" aria-label="Admin pages">
+    <ul>
+      {%- for page, name, text in admin_tabs %}
+      <li><a href="{{ page_url(page) }}"{% if name == section %} aria-current="page"{% endif %}>{{ text }}</a></li>
+      {%- endfor %}
+    </ul>
+  </nav>
+  {%- endif %}
   {%- block subhead %}{% endblock %}
   {%- set math_failed = math_check_failures() %}{% if math_failed and current_admin() %}
   <p class="error math-check-warning" role="alert">The math check failed when the site started: {{ math_failed | join(", ") }}. Generated data may be wrong until it's fixed; run <code>python -m planetgen.physics.mathcheck -v</code> on the server for details.</p>

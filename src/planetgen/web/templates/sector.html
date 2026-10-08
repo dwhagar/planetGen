@@ -54,6 +54,9 @@
 {%- if errors.wiki %}
 <p class="error" role="alert">{{ errors.wiki }}</p>
 {%- endif %}
+{%- if errors.wiki_link %}
+<p class="error" role="alert">{{ errors.wiki_link }}</p>
+{%- endif %}
 {%- if errors.neighborhood %}
 <p class="error" role="alert">{{ errors.neighborhood }}</p>
 {%- endif %}
@@ -80,6 +83,18 @@ neighborhood around it requires a galaxy-placed sector (one generated with
 {%- endset %}
 {%- set _ = actions.append({'key': 'wiki', 'label': 'Upload to Wiki', 'title': 'Upload to Wiki', 'note': '',
     'fields': wiki_fields, 'hidden': {'action': 'upload_wiki'}, 'button': 'Upload'}) %}
+{%- endif %}
+{%- if admin %}
+{%- set wiki_link_fields %}
+    <div class="search-fields">
+      <label class="search-field">Wiki URL
+        <input type="text" inputmode="url" name="wiki_url" value="{{ sector.wiki_url or '' }}" placeholder="https://wiki.example.com/Sector_Name">
+      </label>
+    </div>
+{%- endset %}
+{%- set _ = actions.append({'key': 'wiki-link', 'label': 'Set wiki link', 'title': 'Set wiki link',
+    'note': 'The link to this sector\'s wiki page, for a hand-written page from outside this app or to fix a link an upload set. Leave the URL blank to clear it.',
+    'fields': wiki_link_fields, 'hidden': {'action': 'set_wiki_url'}, 'button': 'Save link'}) %}
 {%- endif %}
 {%- if show_generate %}
 {%- set _ = actions.append({'key': 'neighborhood', 'label': 'Generate neighborhood', 'title': 'Generate neighborhood',

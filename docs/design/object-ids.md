@@ -94,6 +94,34 @@ haven't been filled. The plan:
    corpus or the name registries: stars, sectors, planets, moons and
    belts still use them.
 
+### Unique IDs for every object (GEN.69, schema v58)
+
+Every object has a `uid` column (NULL for a row saved before v58), by
+GEN.68's plan (`/mnt/project-files/notes/gen68-object-ids.md`, approved by
+Boss 2026-10-08 13:33Z). The functions are `planetgen/galaxy/uid.py`; the
+columns are written by `store.assign_uids` after a sector, a system or a
+phenomenon is saved.
+
+| Object | `uid` | How |
+|--------|-------|-----|
+| Sector | `BIGINT UNSIGNED`, unique | Its designation as an integer (`geometry.provisional_sector_designation`). It needs no row: `uid.sector_uid(ring, layer, slot)` is the ID of a sector nobody has generated. |
+| Star system, phenomenon | `BINARY(12)` (96 bits), unique per table | The first 96 bits of SHA-256(galaxy seed \|\| `"uid-<kind>:"` parent `/` index), top bit set. An interstellar object or bright-sweep system keeps its 76-bit GEN.64 position ID (the top bit set keeps the two kinds apart). |
+| Star, planet, moon, belt, comet | `BIGINT UNSIGNED` (64 bits), unique with `star_system_id` | The same hash, 64 bits, parent = the system's ID in hex (a moon's: its planet's). |
+
+The `index` is the object's rank among its parent's rows of that kind in
+the order they were written (a system's among its sector's, a planet's
+among its system's), which is generation order, so saving the same sector
+again from the same galaxy seed gives every object the ID it had. Position
+is never an input. The hash is the one the per-unit random seeds use
+(`galaxy/seed.py`). With no planned galaxy the zero seed stands in (a
+one-off system saved on its own, whose index is its row id).
+
+A row that already has a `uid` keeps it, so a system whose content is
+regenerated in place (`replace_system_content`) keeps its own ID and its
+new bodies take the IDs the old ones had. Rows saved before v58 stay NULL
+until their sector or system is saved again (GEN.39 already calls for a
+fresh galaxy). GEN.72 and GEN.73 build on these columns.
+
 ### What the codec guarantees (GEN.120)
 
 Tests: `src/tests/test_gated_phoneme_codec.py`. Its golden words are

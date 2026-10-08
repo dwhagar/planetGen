@@ -955,6 +955,19 @@
 --   plane without reading every star (GEN.117). Computed from
 --   `position_z_mpc`; nothing writes it.
 --
+-- v58: every object has a unique ID (GEN.69, GEN.68's plan, `galaxy/uid.py`):
+--   a `uid` column, NULL for a row saved before v58. A sector's is its
+--   designation as an integer (BIGINT UNSIGNED, unique); a star system's
+--   and a phenomenon's is 96 bits (BINARY(12), unique in its table):
+--   SHA-256(galaxy seed || "uid-<kind>:" parent "/" index) with the top bit
+--   set, or, for an interstellar object or bright-sweep system that has one,
+--   its GEN.64 position ID (76 bits, so never equal to a derived one).
+--   A star's, planet's, moon's, belt's and comet's is 64 bits (BIGINT
+--   UNSIGNED), unique under its system (`UNIQUE (star_system_id, uid)`). The
+--   index is the object's slot in its parent as generated, so regenerating
+--   in place from the same galaxy seed gives the same IDs. `store.assign_uids`
+--   writes them after a sector or system is saved.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -1050,7 +1063,10 @@ CREATE TABLE IF NOT EXISTS sectors (
     -- v27: row timestamps -- see the header comment's "v27" note.
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_at         TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+    -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
+    uid                   BIGINT UNSIGNED,
 
+    UNIQUE KEY uq_sectors_uid (uid),
     CHECK (
         (center_x_pc IS NULL) = (center_y_pc IS NULL) AND
         (center_y_pc IS NULL) = (center_z_pc IS NULL) AND
@@ -1347,7 +1363,10 @@ CREATE TABLE IF NOT EXISTS star_systems (
 
     created_at           TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_at          TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+    -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
+    uid                   BINARY(12),
 
+    UNIQUE KEY uq_star_systems_uid (uid),
     CONSTRAINT fk_star_systems_sector
         FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE SET NULL,
     CONSTRAINT fk_star_systems_config
@@ -1403,7 +1422,10 @@ CREATE TABLE IF NOT EXISTS stars (
     reflex_offset_x_km       DOUBLE,
     reflex_offset_y_km       DOUBLE,
     reflex_offset_z_km       DOUBLE,
+    -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
+    uid                   BIGINT UNSIGNED,
 
+    UNIQUE KEY uq_stars_uid (star_system_id, uid),
     CONSTRAINT fk_stars_star_system
         FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE CASCADE,
     KEY idx_stars_star_system_id (star_system_id),
@@ -1487,7 +1509,10 @@ CREATE TABLE IF NOT EXISTS planets (
     reflex_offset_x_km       DOUBLE,
     reflex_offset_y_km       DOUBLE,
     reflex_offset_z_km       DOUBLE,
+    -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
+    uid                   BIGINT UNSIGNED,
 
+    UNIQUE KEY uq_planets_uid (star_system_id, uid),
     CONSTRAINT fk_planets_star_system
         FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE CASCADE,
     CONSTRAINT fk_planets_star
@@ -1591,7 +1616,10 @@ CREATE TABLE IF NOT EXISTS moons (
     orbital_speed_kms           DOUBLE NOT NULL,
     min_update_interval_years   DOUBLE NOT NULL,  -- v12, see header comment
     rotation_period_hours       DOUBLE NOT NULL,
+    -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
+    uid                   BIGINT UNSIGNED,
 
+    UNIQUE KEY uq_moons_uid (star_system_id, uid),
     CONSTRAINT fk_moons_planet
         FOREIGN KEY (planet_id) REFERENCES planets(id) ON DELETE CASCADE,
     CONSTRAINT fk_moons_star_system
@@ -1660,7 +1688,10 @@ CREATE TABLE IF NOT EXISTS asteroid_belts (
     -- structured per-component breakdown in asteroid_belt_composition
     -- below for queries that need one specific component.
     composition_summary  TEXT NOT NULL,
+    -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
+    uid                   BIGINT UNSIGNED,
 
+    UNIQUE KEY uq_asteroid_belts_uid (star_system_id, uid),
     CONSTRAINT fk_asteroid_belts_star_system
         FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE CASCADE,
     CONSTRAINT fk_asteroid_belts_star
@@ -1739,7 +1770,10 @@ CREATE TABLE IF NOT EXISTS comets (
     position_y_km               DOUBLE NOT NULL,
     position_z_km               DOUBLE NOT NULL,
     orbital_speed_kms           DOUBLE NOT NULL,
+    -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
+    uid                   BIGINT UNSIGNED,
 
+    UNIQUE KEY uq_comets_uid (star_system_id, uid),
     CONSTRAINT fk_comets_star_system
         FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE CASCADE,
     CONSTRAINT fk_comets_star
@@ -1820,7 +1854,10 @@ CREATE TABLE IF NOT EXISTS black_holes (
 
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_at         TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+    -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
+    uid                   BINARY(12),
 
+    UNIQUE KEY uq_black_holes_uid (uid),
     KEY idx_black_holes_name (name),  -- v40: name uniqueness lookups
     CONSTRAINT chk_black_holes_mass_class CHECK (mass_class IN ('stellar', 'intermediate', 'supermassive')),
     CONSTRAINT chk_black_holes_placement CHECK (
@@ -1885,7 +1922,10 @@ CREATE TABLE IF NOT EXISTS neutron_stars (
 
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_at         TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+    -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
+    uid                   BINARY(12),
 
+    UNIQUE KEY uq_neutron_stars_uid (uid),
     KEY idx_neutron_stars_name (name),  -- v40: name uniqueness lookups
     CONSTRAINT chk_neutron_stars_placement CHECK (
         (center_x_pc IS NULL) = (center_y_pc IS NULL) AND
@@ -1977,7 +2017,10 @@ CREATE TABLE IF NOT EXISTS nebulae (
 
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_at         TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+    -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
+    uid                   BINARY(12),
 
+    UNIQUE KEY uq_nebulae_uid (uid),
     KEY idx_nebulae_name (name),  -- v40: name uniqueness lookups
 
     -- Named explicitly (unlike sectors' own identical v4 CHECK above) so
@@ -2069,7 +2112,10 @@ CREATE TABLE IF NOT EXISTS supernova_remnants (
     -- v27: row timestamps -- see the header comment's "v27" note.
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_at         TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+    -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
+    uid                   BINARY(12),
 
+    UNIQUE KEY uq_supernova_remnants_uid (uid),
     KEY idx_supernova_remnants_name (name),  -- v40: name uniqueness lookups
 
     -- v28: named explicitly -- see `nebulae`'s identical "v18" CHECK comment.
@@ -2123,7 +2169,10 @@ CREATE TABLE IF NOT EXISTS quasars (
     -- v27-style row timestamps -- see the header comment's "v27" note.
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_at         TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+    -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
+    uid                   BINARY(12),
 
+    UNIQUE KEY uq_quasars_uid (uid),
     KEY idx_quasars_name (name),  -- v40: name uniqueness lookups
     CONSTRAINT chk_quasars_placement CHECK (
         (center_x_pc IS NULL) = (center_y_pc IS NULL) AND
@@ -2191,7 +2240,10 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
 
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_at         TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+    -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
+    uid                   BINARY(12),
 
+    UNIQUE KEY uq_rogue_planets_uid (uid),
     KEY idx_rogue_planets_name (name),  -- v40: name uniqueness lookups
     -- v28: named explicitly -- see `nebulae`'s identical "v18" CHECK comment.
     CONSTRAINT chk_rogue_planets_placement CHECK (
@@ -2255,8 +2307,11 @@ CREATE TABLE IF NOT EXISTS interstellar_comets (
 
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_at         TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+    -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
+    uid                   BINARY(12),
 
     -- v28: named explicitly -- see `nebulae`'s identical "v18" CHECK comment.
+    UNIQUE KEY uq_interstellar_comets_uid (uid),
     CONSTRAINT chk_interstellar_comets_placement CHECK (
         (center_x_pc IS NULL) = (center_y_pc IS NULL) AND
         (center_y_pc IS NULL) = (center_z_pc IS NULL) AND
@@ -2337,8 +2392,11 @@ CREATE TABLE IF NOT EXISTS asteroid_fields (
 
     created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_at         TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+    -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
+    uid                   BINARY(12),
 
     -- Named explicitly -- see `nebulae`'s identical "v18" CHECK comment above.
+    UNIQUE KEY uq_asteroid_fields_uid (uid),
     CONSTRAINT chk_asteroid_fields_placement CHECK (
         (center_x_pc IS NULL) = (center_y_pc IS NULL) AND
         (center_y_pc IS NULL) = (center_z_pc IS NULL) AND

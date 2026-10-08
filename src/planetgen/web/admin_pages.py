@@ -2,7 +2,7 @@
 
 """
 The admin pages: `/login`, `/logout`, `/account` (change username/
-password), `/admin` (API keys and a sector's manual wiki link) and
+password), `/admin` (the admin hub and API keys) and
 `/admin/stats` (server health and database statistics). They replace
 `login.py`, `logout.py`, `changecreds.py`, `admin.py` and
 `adminstats.py`.
@@ -458,37 +458,18 @@ def _admin_action(cookie_header):
                 return {"error": "Invalid key id."}, "api-keys"
             apiclient.auth_revoke_api_key(cookie_header, key_id)
             return {"message": "API key revoked."}, "api-keys"
-        if action == "set_sector_wiki_url":
-            return _set_wiki_url(cookie_header), "sector-wiki-link"
     except apiclient.NotFoundError as exc:
-        key = "wiki_error" if action == "set_sector_wiki_url" else "error"
-        return {key: str(exc) or "Not found."}, "sector-wiki-link" if key == "wiki_error" else "api-keys"
+        return {"error": str(exc) or "Not found."}, "api-keys"
     except apiclient.ApiError as exc:
         if exc.status_code is None or exc.status_code >= 500:
             raise
-        key = "wiki_error" if action == "set_sector_wiki_url" else "error"
-        return {key: _api_message(exc)}, "sector-wiki-link" if key == "wiki_error" else "api-keys"
+        return {"error": _api_message(exc)}, "api-keys"
     return {"error": "Unrecognized form action."}, None
-
-
-def _set_wiki_url(cookie_header):
-    sector_id_raw = request.form.get("sector_id", "").strip()
-    wiki_url = request.form.get("wiki_url", "").strip() or None
-    if not sector_id_raw:
-        return {"wiki_error": "Sector ID is required."}
-    try:
-        sector_id = int(sector_id_raw)
-    except ValueError:
-        return {"wiki_error": "Invalid sector id."}
-    apiclient.admin_set_sector_wiki_url(cookie_header, db_name(), sector_id, wiki_url)
-    done = "cleared" if wiki_url is None else f"set to {wiki_url}"
-    return {"wiki_message": f"Wiki link for sector {sector_id} {done}."}
 
 
 @bp.route("/admin", methods=["GET", "POST"])
 def admin():
-    """API keys (a data table; create, revoke) and a sector's
-    manual wiki link."""
+    """The admin hub (links to the admin pages) and the API keys (a data table; create, revoke)."""
     identity, bounce = _require_admin()
     if bounce is not None:
         return bounce
@@ -503,9 +484,7 @@ def admin():
     return _render(
         "admin.html", flashed=True, title="Admin", section="admin", breadcrumbs=[crumb("Admin")],
         admin=identity, keys_table=keys_table,
-        database=db_name(), new_key=flashed.get("new_key"), message=flashed.get("message"),
-        error=flashed.get("error"), wiki_message=flashed.get("wiki_message"),
-        wiki_error=flashed.get("wiki_error"),
+        new_key=flashed.get("new_key"), message=flashed.get("message"), error=flashed.get("error"),
     )
 
 

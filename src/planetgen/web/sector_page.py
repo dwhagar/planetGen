@@ -15,6 +15,9 @@ Admin actions are POST forms to the same URL, each carrying
 - `upload_wiki` (any logged-in admin, while the sector has no wiki page
   yet): `POST /api/sectors/<id>/wiki` with the chosen `backend` and
   optional `path`.
+- `set_wiki_url` (any logged-in admin): sets the sector's wiki link, or
+  clears it when the URL is blank (UX.73; for a hand-written page from
+  outside this app, or to fix a link an upload set).
 - `generate_neighborhood` (an admin whose credentials are current, on a
   galaxy-placed sector): the size and time first (`POST
   /api/sectors/<id>/generate-neighborhood` with `estimate_only`), then,
@@ -393,6 +396,19 @@ def _handle_post(sector_id, admin):
         else:
             flash(f"The wiki upload is queued (job {result['job_id']}); reload in a minute to see the link.",
                   _FLASH_CATEGORY)
+        return page_again
+
+    if action == "set_wiki_url":
+        wiki_url = request.form.get("wiki_url", "").strip() or None
+        try:
+            apiclient.admin_set_sector_wiki_url(cookie_header, db_name(), sector_id, wiki_url)
+        except apiclient.NotFoundError as exc:
+            return "wiki_link", str(exc) or "Not found."
+        except apiclient.ApiError as exc:
+            if exc.status_code is None or exc.status_code >= 500:
+                raise
+            return "wiki_link", _api_message(exc)
+        flash("Wiki link cleared." if wiki_url is None else f"Wiki link set to {wiki_url}.", _FLASH_CATEGORY)
         return page_again
 
     if action == "generate_neighborhood" and not admin["must_change_credentials"]:

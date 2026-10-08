@@ -2301,6 +2301,20 @@ code {
   border-radius: 8px;
 }
 
+/* TEST.103: on a narrow screen the Menu's button can sit near the right
+   edge, where a panel hung from its left corner ran off the screen. There
+   the panel hangs from the controls row instead, which never reaches
+   past the map's own edges. */
+@media (max-width: 699px) {
+  .galaxy-menu {
+    position: static;
+  }
+
+  #galaxymap3d-controls {
+    position: relative;
+  }
+}
+
 .galaxy-menu-panel .starmap-btn[aria-pressed="true"] {
   background: var(--accent);
   color: var(--accent-contrast);
@@ -2521,6 +2535,48 @@ body.app {
   color: var(--link);
   background: var(--bg-subtle);
   box-shadow: inset 0 -2px 0 var(--accent);
+}
+
+/* UX.72: the tab row on every admin page (Overview, Generate, Queue,
+   Stats), and the hub's list. */
+.app .admin-tabs ul {
+  list-style: none;
+  margin: 0 0 1rem;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.15rem;
+}
+
+.app .admin-tabs a {
+  display: block;
+  padding: 0.35rem 0.7rem;
+  border-radius: 8px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.app .admin-tabs a:hover {
+  background: var(--bg-subtle);
+  color: var(--link);
+  text-decoration: none;
+}
+
+.app .admin-tabs a[aria-current="page"] {
+  color: var(--link);
+  background: var(--bg-subtle);
+  box-shadow: inset 0 -2px 0 var(--accent);
+}
+
+.app .admin-hub {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.app .admin-hub li {
+  padding: 0.3rem 0;
 }
 
 .app .theme-toggle {

@@ -4,17 +4,17 @@
 <script type="module" src="{{ static_url('datatable.js') }}"></script>
 {% endblock %}
 {% block content %}
-<section class="panel">
-  <h2>Signed in</h2>
-  <p><strong>{{ admin.username }}</strong></p>
-  <ul>
-    <li><a href="{{ page_url('account') }}">Change username or password</a></li>
-    <li><a href="{{ page_url('admin_stats') }}">Server and database stats</a></li>
-    <li><a href="{{ page_url('logout') }}">Log out</a></li>
+{%- if message %}
+<p class="hint" role="status">{{ message }}</p>
+{%- endif %}
+<section class="panel" id="admin-hub" aria-labelledby="admin-hub-heading">
+  <h2 id="admin-hub-heading">Admin pages</h2>
+  <ul class="admin-hub">
+    <li><a href="{{ page_url('generate') }}">Generate</a> <span class="hint">Start and follow generation jobs.</span></li>
+    <li><a href="{{ page_url('admin_queue') }}">Queue</a> <span class="hint">Workers, load and the jobs waiting.</span></li>
+    <li><a href="{{ page_url('admin_stats') }}">Stats</a> <span class="hint">Server and database statistics.</span></li>
+    <li><a href="{{ page_url('account') }}">Account</a> <span class="hint">Change username or password.</span></li>
   </ul>
-  {%- if message %}
-  <p class="hint" role="status">{{ message }}</p>
-  {%- endif %}
 </section>
 {%- if new_key %}
 <section class="panel" id="new-key">
@@ -42,34 +42,6 @@
     </div>
     <div class="search-actions">
       <button type="submit" class="btn">Create key</button>
-    </div>
-  </form>
-</section>
-<section class="panel" id="sector-wiki-link" aria-labelledby="sector-wiki-link-heading">
-  <h2 id="sector-wiki-link-heading">Sector wiki link</h2>
-  <p class="hint">Set or clear a sector's wiki link in <code>{{ database }}</code>
-  (leave the URL blank to clear it): for a sector with a hand-written page
-  from outside this app, or to fix a link a sector's own "Upload to Wiki"
-  button set.</p>
-  {%- if wiki_message %}
-  <p class="hint" role="status">{{ wiki_message }}</p>
-  {%- endif %}
-  {%- if wiki_error %}
-  <p class="error" role="alert">{{ wiki_error }}</p>
-  {%- endif %}
-  <form method="post" action="{{ url_for('web.admin') }}" class="search-form">
-    {{ csrf_field() }}
-    <input type="hidden" name="action" value="set_sector_wiki_url">
-    <div class="search-fields">
-      <label class="search-field">Sector ID
-        <input type="number" name="sector_id" min="1" required inputmode="numeric">
-      </label>
-      <label class="search-field">Wiki URL
-        <input type="text" inputmode="url" name="wiki_url" placeholder="https://wiki.example.com/Sector_Name">
-      </label>
-    </div>
-    <div class="search-actions">
-      <button type="submit" class="btn">Save link</button>
     </div>
   </form>
 </section>
