@@ -22,7 +22,7 @@ from planetgen import tuning
 from planetgen.generation.comet import PERIOD_CLASS_LABELS  # noqa: E402
 from planetgen.generation.phenomena.nebula import NEBULA_CLASS_LETTERS, REMNANT_CLASS_LETTERS  # noqa: E402
 from planetgen.physics.stellar_evolution import YERKES_CLASS_NAMES  # noqa: E402
-from planetgen.web.lib.systempage import stars_html, system_list_html  # noqa: E402
+from planetgen.web.lib.systempage import star_notes_html, stars_html, system_list_html  # noqa: E402
 
 DB = "planetgen_web_test"
 
@@ -215,8 +215,11 @@ def test_system_list_links_classes(app):
     with app.test_request_context("/system/1"):
         html = system_list_html(_system(), _SECTIONS, class_url)
         table = stars_html(_system()["stars"], class_url)
-    # UX.53: a single star is in the Stars table, not the list.
+        notes = star_notes_html(_system(), _SECTIONS, class_url)
+    # UX.53: a single star is in the Stars table, not the list; its notes follow the table.
     assert "Spectral class G" not in html
+    assert '<a href="/classes/star-spectral/G">Spectral class G</a>' in notes
+    assert '<a href="/classes/star-luminosity/V">Luminosity class V</a>' in notes
     assert '<a href="/classes/planet/M">Planet class M</a>' in html
     assert '<a href="/classes/comet/halley_type">Halley-type comet</a>' in html
     assert '<a href="/classes/star-spectral/G">G2V Yellow Main Sequence Star</a>' in table

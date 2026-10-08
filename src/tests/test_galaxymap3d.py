@@ -122,7 +122,7 @@ def test_a_sector_pages_panel_is_pinned_to_its_sector_with_no_steps_of_its_own()
     assert data["pinned"] == {"ring": 5, "layer": 1, "slot": 20}
     assert data["initialCenter"] == [500.0, 200.0, 10.0]
     assert data["minViewRadiusPc"] <= data["initialRadiusPc"] <= data["maxViewRadiusPc"]
-    assert "<h2>Sector Map</h2>" in html
+    assert '<h2 class="sr-only">Sector Map</h2>' in html
     for gone in ("galaxymap3d-crumbs", "galaxymap3d-slabs", "galaxymap3d-address", "galaxymap3d-steps",
                  "data-bookmarks-menu", 'data-action="back"', 'data-action="up"', 'data-action="reset"'):
         assert gone not in html, gone

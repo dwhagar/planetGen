@@ -1746,7 +1746,7 @@ def render_system_map_panel(system, stars, planets, belts, facilities=None):
     return f"""
 <section class="panel">
 <div class="panel-header">
-  <h2>System Map</h2>
+  <h2 class="sr-only">System Map</h2>
 </div>
 <div class="starmap-layout sysmap-layout" id="sysmap-root">
 <div class="sysmap-map-col">
