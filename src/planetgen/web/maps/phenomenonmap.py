@@ -72,6 +72,10 @@ physical extent to size a sensible default view from -- a modest
 "local neighborhood" view, well within `_MIN_VIEW_SIZE_AU`/
 `_MAX_VIEW_SIZE_AU`, that the visitor can freely zoom in/out from."""
 
+_ROOM_TO_ZOOM_OUT = 2.0
+"""float: How many times wider than it opens the diagram may zoom out when
+the object is too big to open inside `_MAX_VIEW_SIZE_AU`."""
+
 _DEFAULT_VIEW_MARGIN = 2.4
 """float: How much wider than the phenomenon's own diameter the default
 starting view is, for a real-radius (non-point-like) phenomenon -- enough
@@ -124,7 +128,7 @@ def render_phenomenon_map_panel(phenomenon_type, name, radius_ly):
         )
         hint_extra = " -- shown as a fixed illustrative point; its own real size is negligible at this scale"
     else:
-        default_view_au = min(_MAX_VIEW_SIZE_AU, max(_MIN_VIEW_SIZE_AU, radius_au * _DEFAULT_VIEW_MARGIN))
+        default_view_au = max(_MIN_VIEW_SIZE_AU, radius_au * _DEFAULT_VIEW_MARGIN)
         stroke_width = default_view_au * 0.004
         marker = (
             f'<circle cx="0" cy="0" r="{radius_au:.6g}" '
@@ -132,12 +136,15 @@ def render_phenomenon_map_panel(phenomenon_type, name, radius_ly):
         )
         hint_extra = ""
 
+    # A big remnant opens wider than 1 ly (UX.38): the view may go out to
+    # twice what it opens at, so "-" always has somewhere to go.
+    max_view_au = max(_MAX_VIEW_SIZE_AU, default_view_au * _ROOM_TO_ZOOM_OUT)
     half = default_view_au / 2
     view_box = f"{-half:.6g} {-half:.6g} {default_view_au:.6g} {default_view_au:.6g}"
 
     svg = (
         f'<svg class="phenomenonmap-svg" id="phenomenonmap-svg" viewBox="{view_box}" role="img" '
-        f'data-min-view-size="{_MIN_VIEW_SIZE_AU:.6g}" data-max-view-size="{_MAX_VIEW_SIZE_AU:.6g}" '
+        f'data-min-view-size="{_MIN_VIEW_SIZE_AU:.6g}" data-max-view-size="{max_view_au:.6g}" '
         f'aria-label="{esc(name)} diagram, drawn to astronomical-unit scale. Scroll or use the '
         f'+/- buttons to zoom, drag to pan.">{marker}</svg>'
     )
@@ -159,7 +166,7 @@ def render_phenomenon_map_panel(phenomenon_type, name, radius_ly):
   <button type="button" class="starmap-btn" data-action="zoom-in" aria-label="Zoom in">+</button>
   <button type="button" class="starmap-btn" data-action="reset">Reset view</button>
 </div>
-<p class="hint">Scroll/drag/+/- to zoom, from about 1 AU up to 1 ly across.</p>
+<p class="hint">Scroll/drag/+/- to zoom, from about 1 AU up to 1 ly across (wider for an object bigger than that).</p>
 </div>
 </div>
 </section>

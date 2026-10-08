@@ -64,6 +64,7 @@ from planetgen.db.query import (
     open_readonly,
     phenomenon_detail as query_phenomenon_detail,
     nebula_shape as query_nebula_shape,
+    nebula_surroundings as query_nebula_surroundings,
     search as run_search,
     sector_detail as query_sector_detail,
     system_detail as query_system_detail,
@@ -867,6 +868,20 @@ def nebula_shape_route(nebula_id):
         "vertices": [[round(float(v), 5) for v in vertex] for vertex in vertices],
         "faces": [[int(i) for i in face] for face in faces],
     })
+
+
+@bp.route("/nebulae/<int:nebula_id>/surroundings")
+def nebula_surroundings_route(nebula_id):
+    """
+    The brightest stars round one nebula (MAP.105): `{"radius_pc",
+    "half_width_pc", "stars": [{"x", "y", "z" (parsecs from the nebula's
+    centre), "luminosity_sol", "temperature_k"}]}`, the most luminous first.
+    A 404 for an unknown nebula.
+    """
+    try:
+        return jsonify(query_nebula_surroundings(get_db(), nebula_id))
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 404
 
 
 @bp.route("/search")

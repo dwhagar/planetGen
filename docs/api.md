@@ -324,6 +324,12 @@ connectivity to that specific schema rather than the default one.
   its center (multiply by `radius_ly`), the faces triples of vertex
   indexes. `low` (the default) is coarse, for the Galaxy Map. 404 for an
   unknown nebula or level.
+- `GET /api/nebulae/<id>/surroundings` — the brightest stars round a
+  nebula, for its page's 3D view (MAP.105): `{radius_pc, half_width_pc,
+  stars: [{x, y, z, luminosity_sol, temperature_k}]}`, positions in
+  parsecs from the nebula's center, the most luminous first (at most 300,
+  from a box 2.5 radii each side, at least 30 pc). No stars for a nebula
+  never placed. 404 for an unknown nebula.
 - `GET /api/phenomena/<type>/<id>` — one phenomenon's full detail (every
   column its own table has, e.g. a nebula's `composition`/
   `formation_cause`, a black hole's `mass_solar`/`spin`/

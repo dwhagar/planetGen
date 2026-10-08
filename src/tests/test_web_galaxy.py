@@ -492,6 +492,24 @@ def test_nebula_shape_endpoint_reports_a_missing_nebula_and_an_api_failure(clien
     assert "error" in resp.get_json()
 
 
+def test_nebula_surroundings_endpoint_passes_the_stars_through(client, fake, monkeypatch):
+    calls = []
+
+    def fake_surroundings(db, nebula_id):
+        calls.append((db, nebula_id))
+        return {"radius_pc": 5.0, "half_width_pc": 30.0, "stars": []}
+
+    monkeypatch.setattr(apiclient, "get_nebula_surroundings", fake_surroundings)
+    assert client.get("/galaxy/nebula/6/surroundings").get_json()["half_width_pc"] == 30.0
+    assert calls == [(DB, 6)]
+
+    def missing(db, nebula_id):
+        raise apiclient.NotFoundError("no such nebula: 9")
+
+    monkeypatch.setattr(apiclient, "get_nebula_surroundings", missing)
+    assert client.get("/galaxy/nebula/9/surroundings").status_code == 404
+
+
 # --- Old CGI URLs ---------------------------------------------------------------------------
 
 def test_old_galaxy_url_redirects(client):
