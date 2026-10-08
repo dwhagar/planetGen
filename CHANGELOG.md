@@ -1,5 +1,111 @@
 # Changelog
 
+## [7.299.637] - 2026-10-08
+
+### Added
+
+- The admin API keys list, the duplicate-names list on the stats page, the
+  job queue's Jobs list and every Search result panel are data tables like
+  the others (UX.41): they scroll through every row and keep the 50-row pages
+  for scripts-off visitors. API keys sort by label, dates and status and
+  filter by status; Revoke keeps working from the scrolled table.
+- `GET /api/search` takes `panels` (comma-separated panel names) to run just
+  those result panels.
+- Rows come from `/table/api-keys`, `/table/duplicate-names`,
+  `/table/queue-jobs` (admins only) and `/table/search-<panel>`.
+
+### Changed
+
+- Times in the API keys, duplicate-names and Jobs tables read in UTC (they no
+  longer switch to the viewer's time zone).
+- Revoking an API key returns to the API keys list, not to a numbered page.
+
+## [7.298.637] - 2026-10-08
+
+### Added
+
+- A sector's Contents and a Galaxy Map Quadrant's sectors are data tables
+  like the others (UX.41): sort from the headers, filter Contents by Type and
+  Octant and a Quadrant by Zone, and scroll through every row. Many rogue
+  planets still read as one folded row; it links to the Contents filtered to
+  Rogue Planet, which lists them one by one.
+- The Contents "Show on map" buttons keep working as rows scroll in and out.
+- `GET /table/sector-contents?sector=<id>` and
+  `GET /table/galaxy-quadrant?quadrant=<I-IV>` serve their rows to the page.
+
+### Changed
+
+- The Contents table's folded rogue-planet group is no longer an expandable
+  `<details>` row; see above.
+
+## [7.297.637] - 2026-10-08
+
+### Changed
+- A Galaxy Map view now has a stated cap on the stars it can fetch (70,000, about 8 MB before compression), built from the per-tile caps, with a test that fails if a budget is raised past it; a full view of the test galaxy is also timed (MAP.109).
+
+## [7.296.637] - 2026-10-08
+
+### Changed
+- The Galaxy Map lists fewer generated stars per tile the farther out you zoom (a table of budgets per level), and each sector may give only a share of a tile's budget, its brightest, so a dense filled region stays readable two or three zoom levels out from a sector while a sparse one keeps all its stars. Black holes, neutron stars and quasars follow a budget too, so they show only where it reaches them. Comets, rogue planets and asteroid fields stay on the Sector Map only (MAP.116, MAP.115).
+
+## [7.295.637] - 2026-10-08
+
+### Changed
+- The galaxy-wide sample of bright stars the biggest Galaxy Map tiles draw from now holds the brightest stars off the plane as well as on it, found through a new index on `bright_stars` (schema v57, a virtual `off_plane` flag), so old giants above and below the plane show at the widest zooms (GEN.117).
+
+## [7.294.637] - 2026-10-08
+
+### Added
+
+- The Species list, the Polities list and a polity's Systems are data tables
+  like the others (UX.41): sort from the headers, filter species by
+  spacefaring and era and polities by government and era, and scroll through
+  every row. The old "All / Spacefaring / Not spacefaring" links are now the
+  Spacefaring menu (`?spacefaring=yes|no`).
+- `GET /api/species`, `GET /api/polities` and `GET /api/polities/<id>` take
+  `sort`, `order`, filters and `facets=1`.
+
+## [7.293.637] - 2026-10-08
+
+### Fixed
+- A tall Galaxy Map tile no longer fills its bright-star list with the plane's luminous stars alone: the list now reserves half its room for stars above and below the thin disk, so old giants in the thick disk and halo show up too (GEN.117).
+
+## [7.292.637] - 2026-10-08
+
+### Added
+
+- The Sectors table (home page and `/sectors`), the All Systems table
+  (`/systems`) and the Standalone Systems table are data tables like the
+  Phenomena list (UX.41): click a header to sort, filter from the menus
+  above (sectors by Quadrant; systems by where they are, single or binary,
+  and octant) and scroll through every row, 50 fetched at a time. Each table
+  on a page keeps its own sort, filters and place in the address bar
+  (`sectors_sort`, `systems_sort`, `standalone_sort`, ...). Sectors are
+  still nearest the core first until you sort them.
+- `GET /api/sectors` and `GET /api/systems` take `sort`, `order`, filters and
+  `facets=1`.
+
+### Changed
+
+- The Sectors table shows its density and distance in plain text with
+  Unicode superscripts instead of HTML ones.
+
+## [7.291.637] - 2026-10-08
+
+### Added
+
+- The Phenomena list is the site's first data table on TanStack Table and
+  TanStack Virtual (UX.41). Click a column header to sort by it (click again
+  to reverse), filter by type and by descriptor (the nebula class, remnant
+  shape, rogue planet kind and so on) from the menus above the table, and
+  scroll through every row: the next 50 arrive as they come into view, so
+  the page never holds more than a few dozen rows. The address bar follows
+  the sort and filters, so a reload or a shared link shows the same table.
+  Without scripts the table still sorts and filters with plain links and a
+  form, and pages with the usual pager.
+- `GET /api/phenomena` takes `sort`, `order`, `type`, `descriptor`, `placed`
+  and `facets=1` (the option counts for the filter menus).
+
 ## [7.290.637] - 2026-10-08
 
 ### Added

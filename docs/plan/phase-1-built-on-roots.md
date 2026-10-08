@@ -136,7 +136,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.122 | A Select mode on every galaxy view: Galaxy (blocks and sectors) or Star |  | Merges the 2026-10-07 "button to select a star" ask; MAP.101 (PR #431) made stars unpickable by default. |
 | MAP.123 | Show or hide star types and phenomena, and set the luminosity floor, on the Galaxy and Sector Maps |  | MAP.79's per-kind hide buttons (PR #577) cover the Sector Map's kinds; this adds star types, highlight, the luminosity slider and the Galaxy Map. |
 | MAP.124 | The Galaxy Map opens zoomed to fit all charted space |  |  |
-| MAP.128 | Decide what the Sector Map tints by star age, density and luminosity, and test it |  | Boss 2026-10-08 01:59Z. |
 
 ### System Map
 

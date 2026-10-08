@@ -1,6 +1,9 @@
 {#- planetgen/web/templates/admin_queue.html -- /admin/queue (ADM.10). -#}
 {% extends "base.html" %}
-{% from "partials/queue_node.html" import node_summary, node_facts, node_actions with context %}
+{% from "partials/datatable.html" import datatable with context %}
+{% block head %}
+<script type="module" src="{{ static_url('datatable.js') }}"></script>
+{% endblock %}
 {% block content %}
 {%- if message %}<p class="hint" role="status">{{ message }}</p>{% endif %}
 {%- if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
@@ -31,19 +34,8 @@
 <section class="panel" id="jobs" aria-labelledby="jobs-heading">
   <h2 id="jobs-heading">Jobs</h2>
   <p class="hint">Newest first. Open a job to see it as a tree, from the whole job down to single sectors, each with its own timing. Finished jobs are kept for a week.</p>
-  {%- if not rows %}
-  <p class="hint">No jobs recorded yet.</p>
-  {%- else %}
-  <ul class="queue-jobs">
-    {%- for row in rows %}
-    <li class="queue-job">
-      <p>{{ node_summary(row, link=True) }}</p>
-      {{ node_facts(row) }}
-      {{ node_actions(row) }}
-    </li>
-    {%- endfor %}
-  </ul>
-  {{ pager }}
+  {%- if jobs_table %}
+  {{ datatable(jobs_table) }}
   {%- endif %}
 </section>
 {%- endif %}

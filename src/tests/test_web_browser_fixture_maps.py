@@ -251,12 +251,12 @@ def test_sector_map_scale_line_follows_the_zoom(page, map_site):
 
 
 def test_sector_map_show_on_map_selects_a_rogue_planet(page, map_site):
-    _open_sector(page, map_site)
+    # The Contents table folds rogue planets into one row; filtered to them it lists each.
+    _open_sector(page, map_site, "?contents_type=Rogue+Planet")
     rogue = next(p for p in PHENOMENA if p["type"] == "rogue_planet")
     button = page.locator(f'[data-map-target="rogue_planet:{rogue["id"]}"]')
+    button.wait_for(state="attached")
     assert button.count() == 1
-    # The Contents row lists rogue planets in a folded group.
-    button.evaluate("b => { const d = b.closest('details'); if (d) d.open = true; }")
     button.click()
     assert _info_title(page) == rogue["name"]
     assert page.evaluate("document.activeElement.id") == "galaxymap3d-canvas"
@@ -316,14 +316,13 @@ def test_sector_map_kinds_can_be_hidden_one_by_one_and_the_choice_is_kept(page, 
 
 
 def test_sector_map_show_on_map_shows_a_hidden_kind_again(page, map_site):
-    _open_sector(page, map_site)
+    _open_sector(page, map_site, "?contents_type=Rogue+Planet")
     _open_menu(page)
     rogue = next(p for p in PHENOMENA if p["type"] == "rogue_planet")
     toggle = page.locator('#galaxymap3d-kinds button[data-kind="roguePlanet"]')
     toggle.click()
     assert toggle.get_attribute("aria-pressed") == "false"
     button = page.locator(f'[data-map-target="rogue_planet:{rogue["id"]}"]')
-    button.evaluate("b => { const d = b.closest('details'); if (d) d.open = true; }")
     button.click()
     assert _info_title(page) == rogue["name"]
     assert toggle.get_attribute("aria-pressed") == "true", "selecting it shows its kind again"

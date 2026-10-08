@@ -2030,7 +2030,9 @@ function initGalaxyMap3d(canvasEl, data) {
   // The sector page's Contents "Show on map" buttons (MAP.46) name a
   // cloud by its key; selecting it shows its details and its ring, and
   // brings the map into view. A button shows once its entry is on the map.
+  var mapTargetsOn = false;
   function showMapTargets(on) {
+    mapTargetsOn = on;
     document.querySelectorAll("[data-map-target]").forEach(function (button) {
       button.hidden = !(on && stageView.entryByKey(button.dataset.mapTarget));
     });
@@ -2064,16 +2066,18 @@ function initGalaxyMap3d(canvasEl, data) {
     });
   }
 
-  document.querySelectorAll("[data-map-target]").forEach(function (button) {
-    button.hidden = true;
-    button.addEventListener("click", function () {
-      var entry = stageView.entryByKey(button.dataset.mapTarget);
-      if (!entry) return;
-      stageView.selectEntry(entry);
-      if (viewport) viewport.scrollIntoView({ block: "center" });
-      canvasEl.focus({ preventScroll: true });
-    });
+  // The Contents table draws its rows as they scroll (datatable.js), so the
+  // buttons are found at the click, and shown again after each redraw.
+  document.addEventListener("click", function (event) {
+    var button = event.target.closest && event.target.closest("[data-map-target]");
+    if (!button) return;
+    var entry = stageView.entryByKey(button.dataset.mapTarget);
+    if (!entry) return;
+    stageView.selectEntry(entry);
+    if (viewport) viewport.scrollIntoView({ block: "center" });
+    canvasEl.focus({ preventScroll: true });
   });
+  document.addEventListener("datatable:rows", function () { showMapTargets(mapTargetsOn); });
 
   var stageView = createStageView({
     THREE: THREE, scene: scene, camera: camera, canvasEl: canvasEl,

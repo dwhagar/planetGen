@@ -112,8 +112,8 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 is done (PR #476); GEN.117, GEN.116 keeps watch for Boss's error text. | GEN.116, TEST.102, SEC.29, TEST.72, SEC.30, TEST.83, UX.39, OPS.20, DB.11, DB.13, ADM.21, GEN.66, GEN.74, GEN.68, GEN.69, GEN.70, GEN.71, GEN.72, GEN.73, GEN.67, UX.41, UX.33, NAV.7, NAV.29, NAV.33, MAP.67, MAP.61, NAV.32, MAP.102, MAP.109, MAP.116, UX.37, UX.21 |
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, NAV.16, NAV.3, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.41, GEN.98, GEN.100, GEN.99, GEN.101, GEN.102, GEN.103, GEN.84, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, GEN.94, GEN.104, GEN.106, GEN.107, GEN.108, NAV.10, NAV.12, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, NAV.43, NAV.44, MAP.119, MAP.122, MAP.123, MAP.124, MAP.128, MAP.89, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, OPS.8, OPS.13, OPS.14, ADM.18, GEN.59, UX.49, NAV.50 |
+| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 is done (PR #476); GEN.117, and GEN.116 is closed (Boss 2026-10-08 17:46Z). | TEST.103, TEST.104, SEC.30, TEST.83, UX.39, OPS.20, DB.11, DB.13, ADM.21, GEN.66, GEN.74, GEN.68, GEN.69, GEN.70, GEN.71, GEN.72, GEN.73, GEN.67, NAV.7, NAV.29, NAV.33, MAP.67, MAP.61, NAV.32, UX.37, UX.50, UX.51, UX.52, UX.53, UX.54, UX.55, UX.56, UX.57, UX.58, UX.59, UX.60, UX.61, UX.62, UX.63, UX.64, UX.65, UX.66, UX.67, UX.68, UX.69, UX.70, UX.71, UX.72, UX.73, UX.74, UX.21 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, NAV.16, NAV.3, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.41, GEN.98, GEN.100, GEN.99, GEN.101, GEN.102, GEN.103, GEN.84, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, GEN.94, GEN.104, GEN.106, GEN.107, GEN.108, NAV.10, NAV.12, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, NAV.43, NAV.44, MAP.119, MAP.122, MAP.123, MAP.124, MAP.89, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, OPS.8, OPS.13, OPS.14, ADM.18, GEN.59, UX.49, NAV.50 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.58, MAP.75, MAP.59, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, API.16, MAP.69, MAP.70, ADM.17, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.131, MAP.132, API.18, VIEW.5 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, repair that reads the newest settings JSON, and the anomalies chosen in phase 2. | MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, MAP.126, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, DB.10, ADM.20, GEN.114, MAP.125, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies, and the end state of reproducible galaxies (`generate.py reproduce`). | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, OPS.12, GEN.55 |
@@ -286,26 +286,6 @@ with `clamp()`.
   moon label; the moons stay reachable from a small count on the row.
   Open question: does "Habitable" stay as a chip?
 
-- [ ] **UX.33 Filter phenomena by their classes and types (bug)**
-  Boss (2026-10-01 23:53Z): "Searching for phenomena should have the
-  ability to filter rogue plants by type, comets by types, really and
-  class related to the phenomena should be searchable." Today the
-  `/phenomena` list (`system_pages.py`, `phenomena.html`) has no filters,
-  and the Search page's "Phenomenon Class" facet covers only nebulae,
-  supernova remnants and asteroid fields (`_SEARCH_PHENOMENON_CLASS_COLUMNS`
-  in `queryDb.py`), not rogue planets (`rogue_planets.planet_class`) or
-  interstellar comets. Done: phenomena can be filtered by kind and by
-  every class or type that kind has (rogue planet class and terrestrial
-  or gas giant, interstellar comet type, nebula class, remnant type,
-  black hole and neutron star kinds), on both the Search page and the
-  `/phenomena` list, through the API, with the counts per option.
-  The filter options are built from each kind's class list, so classes
-  GEN.28 adds later appear on their own; GEN.47 (nebulae that exist)
-  is done (PR #419), so nothing blocks it.
-  Prerequisite: UX.41.
-  Plan (2026-10-07): Folded into UX.41: the phenomena list gets faceted
-  filters there.
-
 - [ ] **UX.35 The NAV page route shown horizontally, wrapping onto several lines on narrow screens**
   Boss (2026-10-02 01:53Z): "display the path horizontally and find a
   way to split it between multiple lines for mobile or limited
@@ -346,6 +326,381 @@ with `clamp()`.
   action menus (UX.26, UX.27, UX.31).
   Plan (2026-10-07): Moved into phase 0 (groundwork lane, last) because
   UX.21 is a bug and needs it.
+  Progress (2026-10-08): step one is delivered and Boss approved all 25
+  findings at 17:43Z. Step two, the approved removals and merges, is
+  filed as UX.50 to UX.74; this item closes when they are all done.
+
+- [ ] **UX.50 One short hint per map, the rest behind a Help entry**
+  UX audit finding R1 (UX.37; Boss approved the audit 2026-10-08
+  17:43Z: "All UX work on this is Phase 0"). Remove / move; audit
+  priority 1; pages: Galaxy, Sector, System, NAV maps; phenomenon
+  view. Seen: The Galaxy Map carries two instruction blocks stacked
+  under the map: a grey box (“Click an arc of the galaxy…”) and a
+  10-line italic paragraph (about 25 lines on a phone) that restates
+  the same gestures, then adds the colour legend, bookmarks and key
+  shortcuts. On a 390 px phone the paragraph alone is over 600 px
+  tall. The Sector Map (a legend paragraph), System Map (caption above
+  the map), NAV map and the nebula view each have their own version.
+  Done: Keep one line of context in the info panel (it already exists:
+  “Click a star, cloud or body for details”). Move the gesture list,
+  key shortcuts and legend into a Map help item in the map’s Menu that
+  opens a Shoelace dialog. The colour legend belongs with the Color by
+  switch (MAP.131). Delete the paragraphs and the hint text that names
+  removed controls. Approved default: Help entry in the Menu on every
+  map, same wording and dialog on all of them. Related: MAP.61,
+  MAP.131, UX.21. Not a bug.
+  Prerequisite: MAP.61.
+  Audit: https://claude.ai/artifact/4URTUHSvfLKMzZobyGdiHF (finding R1).
+
+- [ ] **UX.51 Cards that repeat the page title**
+  UX audit finding R2 (UX.37; Boss approved the audit 2026-10-08
+  17:43Z: "All UX work on this is Phase 0"). Remove; audit priority 2;
+  pages: Galaxy, Sectors, Systems, Phenomena, Sector, System, NAV.
+  Seen: The page title and the card heading say the same thing: Galaxy
+  Map then Galaxy Map (3D) then a crumb reading Galaxy; Sectors then
+  Sectors and a “12 sectors” chip; Systems then All Systems; Phenomena
+  then All Phenomena; Sector Map, System Map, NAV Map under a title
+  that already names the place. Done: Drop the first card heading when
+  it repeats the title (keep it as a visually hidden heading for
+  screen readers). Drop “(3D)”. Where a card holds a different thing
+  (Stars, Contents, Warp Travel Time) the heading stays. Approved
+  default: Remove on list and map cards; keep for cards that name a
+  different thing. Related: UX.42. Not a bug.
+  Prerequisites: none.
+  Audit: https://claude.ai/artifact/4URTUHSvfLKMzZobyGdiHF (finding R2).
+
+- [ ] **UX.52 Sector name repeated on every Contents row**
+  UX audit finding R3 (UX.37; Boss approved the audit 2026-10-08
+  17:43Z: "All UX work on this is Phase 0"). Remove; audit priority 1;
+  pages: Sector page, System page. Seen: Every row of a sector’s
+  Contents table has a Location cell reading “Scargia Iltudea --
+  nearest: …” (14 times on a 14-system sector). The System page opens
+  with “Location: Scargia Iltudea -- nearest: …” directly under a
+  breadcrumb that already names the sector. The double hyphen is also
+  raw punctuation. Done: Rename the column Nearest and show only the
+  three neighbours. On the System page show “Nearest: A (3.6 ly), B,
+  C” and let the breadcrumb carry the sector. Approved default: Remove
+  the sector name from both; keep the neighbour list. Related: UX.22,
+  UX.41. Not a bug.
+  Prerequisites: none.
+  Audit: https://claude.ai/artifact/4URTUHSvfLKMzZobyGdiHF (finding R3).
+
+- [ ] **UX.53 The same star shown three times on a system page**
+  UX audit finding R4 (UX.37; Boss approved the audit 2026-10-08
+  17:43Z: "All UX work on this is Phase 0"). Remove; audit priority 2;
+  pages: System page. Seen: A one-star system shows its star on the
+  map, as a row in the Stars table (role “single”, name equal to the
+  page title), and again as the first row of the System list below it
+  with the same type. Done: Keep the Stars table (it has the numbers).
+  Start the System list at the first planet or belt. For a single
+  star, the table’s Role column (“single”) adds nothing; show it only
+  for binaries and multiples. Approved default: Remove the star row
+  from the list; hide the Role column for single stars. Related:
+  UX.30, UX.32. Not a bug.
+  Prerequisites: none.
+  Audit: https://claude.ai/artifact/4URTUHSvfLKMzZobyGdiHF (finding R4).
+
+- [ ] **UX.54 Search shows empty result groups and echoes the query**
+  UX audit finding R5 (UX.37; Boss approved the audit 2026-10-08
+  17:43Z: "All UX work on this is Phase 0"). Show only when relevant;
+  audit priority 1; pages: Search. Seen: Searching “a” prints six full
+  cards: Sectors (0), Systems (0), Stars (15), Planets (0), Moons (0),
+  each with its own header row and “None”. Directly under the input a
+  chip “Name: ‘a’ ×” plus “Clear all” repeats what the input says. The
+  page’s own Name box sits under the header’s Search box with the same
+  job. Done: Show only groups that have results, with one line when
+  none do (“No sectors, systems, planets or moons match.”). Keep chips
+  for the object and size filters only, not the name. Hide the header
+  search on the Search page. Approved default: Hide empty groups; no
+  chip for the name; hide the header box on /search. Related: UX.49,
+  UX.41. Not a bug.
+  Prerequisites: none.
+  Audit: https://claude.ai/artifact/4URTUHSvfLKMzZobyGdiHF (finding R5).
+
+- [ ] **UX.55 Home and Systems repeat other pages’ tables**
+  UX audit finding R6 (UX.37; Boss approved the audit 2026-10-08
+  17:43Z: "All UX work on this is Phase 0"). Remove / merge; audit
+  priority 2; pages: Home, Systems. Seen: Home is the Sectors table
+  (same columns, same rows) plus the Standalone Systems table. The
+  Systems page ends with the same Standalone Systems card, whose two
+  rows are also in the All Systems table above, where their Sector
+  cell says “Standalone”. Done: Home becomes the front door: the
+  counts as links (sectors, systems, phenomena, standalone), Galaxy
+  Map, NAV and Search. Remove the standalone card from Systems;
+  standalone becomes a filter on that list (UX.41’s faceted filters).
+  Approved default: Home as counts and entry points; standalone as a
+  filter. Related: UX.41, NAV.44. Not a bug.
+  Prerequisites: none.
+  Audit: https://claude.ai/artifact/4URTUHSvfLKMzZobyGdiHF (finding R6).
+
+- [ ] **UX.56 Admin hub repeats the gear menu**
+  UX audit finding R7 (UX.37; Boss approved the audit 2026-10-08
+  17:43Z: "All UX work on this is Phase 0"). Remove; audit priority 3;
+  pages: Admin. Seen: The Admin page opens with a Signed in card
+  listing “Change username or password”, “Server and database stats”
+  and “Log out”. All three are in the gear menu, and the page never
+  links Generate or Queue, which are only in the gear. Done: See
+  UX.72: make the hub list what is not in the gear (Generate, Queue,
+  Stats, Account) and drop the Signed in card. Approved default:
+  Handled by UX.72. Related: ADM.34. Not a bug.
+  Prerequisite: UX.72.
+  Audit: https://claude.ai/artifact/4URTUHSvfLKMzZobyGdiHF (finding R7).
+
+- [ ] **UX.57 Two controls both called Reset**
+  UX audit finding M1 (UX.37; Boss approved the audit 2026-10-08
+  17:43Z: "All UX work on this is Phase 0"). Rename; audit priority 1;
+  pages: Galaxy Map. Seen: The toolbar’s Reset goes back to the whole
+  galaxy (Home). The Menu’s Reset view puts the camera back to the
+  current step’s own view. The grey hint says “Reset view brings it
+  back” and the paragraph says “Reset (or Home) starts over from the
+  whole galaxy”, so the text contradicts itself. Done: Rename the
+  toolbar button Whole galaxy (or a Home icon with that label) and the
+  Menu item Re-center. Fix the text with UX.50. Approved default:
+  Whole galaxy / Re-center. Related: MAP.61, UX.42. Not a bug.
+  Prerequisite: MAP.61.
+  Audit: https://claude.ai/artifact/4URTUHSvfLKMzZobyGdiHF (finding M1).
+
+- [ ] **UX.58 Move Current into the Steps menu**
+  UX audit finding M2 (UX.37; Boss approved the audit 2026-10-08
+  17:43Z: "All UX work on this is Phase 0"). Move; audit priority 3;
+  pages: Galaxy Map. Seen: The toolbar holds seven buttons: Back,
+  Forward, Current, Up, Reset, Bookmarks, Menu (an eighth, the ● steps
+  button, appears under 600 px). Current (“jump to the newest view in
+  this history”) is the least used and its name does not say what it
+  does. Done: Put Jump to newest in the ● Steps menu, show that menu
+  at every width, and leave Back, Forward, Up, Whole galaxy,
+  Bookmarks, Menu. Approved default: Current moves into the Steps
+  menu. Related: MAP.94, MAP.95. Not a bug.
+  Prerequisite: MAP.61.
+  Audit: https://claude.ai/artifact/4URTUHSvfLKMzZobyGdiHF (finding M2).
+
+- [ ] **UX.59 One breadcrumb trail on map pages**
+  UX audit finding M3 (UX.37; Boss approved the audit 2026-10-08
+  17:43Z: "All UX work on this is Phase 0"). Merge; audit priority 1;
+  pages: Galaxy Map (and Sector Map on the shared engine). Seen: A map
+  page has two trails: the page crumb (Home › Galaxy) and the map’s
+  own crumb inside the card (Galaxy ☆, which grows as you drill down).
+  Under 600 px the in-map trail is hidden, which leaves a lone ☆ at
+  the right edge and an unlabelled ● beside the toolbar, so a phone
+  user cannot see where they are. Done: Let the map’s crumb extend the
+  page crumb on map pages (Home › Galaxy › Arc 3 › Slab 2), with ☆ at
+  its end. On phones show the current level’s name beside ☆ and keep ●
+  as a labelled “Steps” control. Approved default: One trail; on
+  phone, show the current level. Related: MAP.93, MAP.94, MAP.67. Not
+  a bug.
+  Prerequisite: MAP.61.
+  Audit: https://claude.ai/artifact/4URTUHSvfLKMzZobyGdiHF (finding M3).
+
+- [ ] **UX.60 The Slabs rail has nothing in it at the top level**
+  UX audit finding M4 (UX.37; Boss approved the audit 2026-10-08
+  17:43Z: "All UX work on this is Phase 0"). Show only when relevant;
+  audit priority 3; pages: Galaxy Map. Seen: At the whole-galaxy level
+  the right-hand rail holds the heading “Slabs” and the sentence
+  “Showing slabs -4 to 4.” and nothing else, and takes about 15% of
+  the map’s width. (On phones it falls below the map as a heading and
+  a sentence.) Done: Hide the rail until a stage has slab buttons. At
+  the top level the sentence is not needed. Approved default: Hide
+  until used. Related: MAP.58, MAP.59. Not a bug.
+  Prerequisite: MAP.61.
+  Audit: https://claude.ai/artifact/4URTUHSvfLKMzZobyGdiHF (finding M4).
+
+- [ ] **UX.61 System Map: Measure distance floats beside an empty gap**
+  UX audit finding M5 (UX.37; Boss approved the audit 2026-10-08
+  17:43Z: "All UX work on this is Phase 0"). Move; audit priority 2;
+  pages: System Map. Seen: The Measure distance button sits at the top
+  right of the map with a blank band between it and the info panel,
+  while the Galaxy and Sector Maps put their buttons under the map.
+  The info panel’s placeholder (“Click a star, planet, moon…”)
+  restates the caption above the map. Done: Put Measure distance in
+  the same button row under the map as the other maps, and drop the
+  caption (UX.50). MAP.65 already equalises the gaps between the info-
+  panel buttons; this only changes where the button lives. Approved
+  default: Under the map, like the other maps. Related: MAP.65,
+  MAP.61. Not a bug.
+  Prerequisite: MAP.61.
+  Audit: https://claude.ai/artifact/4URTUHSvfLKMzZobyGdiHF (finding M5).
+
+- [ ] **UX.62 Map pages jump 64 px left**
+  UX audit finding M6 (UX.37; Boss approved the audit 2026-10-08
+  17:43Z: "All UX work on this is Phase 0"). Align; audit priority 3;
+  pages: Galaxy Map. Seen: The Galaxy page is full width: the title
+  and crumb sit 24 px from the edge, but on every other page they sit
+  88 px in. Switching between Galaxy and Sectors moves the page title
+  sideways. Done: Keep the title and crumb on the same left edge as
+  the other pages and let only the map card go wide. Approved default:
+  Align title and crumb; the map card stays wide. Related: UX.43. Not
+  a bug.
+  Prerequisites: none.
+  Audit: https://claude.ai/artifact/4URTUHSvfLKMzZobyGdiHF (finding M6).
+
+- [ ] **UX.63 One action bar on every object page**
+  UX audit finding P1 (UX.37; Boss approved the audit 2026-10-08
+  17:43Z: "All UX work on this is Phase 0"). Merge; audit priority 1;
+  pages: System, Sector, Phenomenon. Seen: System: Navigate from here,
+  Navigate to here, Show on Galaxy Map, Bookmark (folds into a
+  Navigate menu when narrow). Phenomenon: Navigate from, Navigate to,
+  Bookmark; no Show on Galaxy Map. Sector: Show on Galaxy Map is a
+  chip in the facts row, Bookmark is on a row of its own, no Navigate.
+  Done: Use the System page’s UX.27 pattern everywhere: Navigate ▾,
+  Show on Galaxy Map, Bookmark and, for admins, Admin ▾, in one row in
+  the same place. Sector gets Navigate when NAV.44/49 land; until then
+  it shows the other three. Approved default: Same row, same order,
+  same labels on all three pages. Related: NAV.29, UX.27, UX.45. Not a
+  bug.
+  Prerequisites: none.
+  Audit: https://claude.ai/artifact/4URTUHSvfLKMzZobyGdiHF (finding P1).
+
+- [ ] **UX.64 Action buttons are all solid primary, with no hierarchy**
+  UX audit finding P2 (UX.37; Boss approved the audit 2026-10-08
+  17:43Z: "All UX work on this is Phase 0"). Rename / restyle; audit
+  priority 2; pages: System, Sector, Phenomenon. Seen: Navigate from
+  here, Navigate to here, Show on Galaxy Map and Bookmark are the same
+  solid blue, and so are Wikitext and Markdown on the same page.
+  Nothing says which action matters. The bookmark control also changes
+  form: an icon-only ☆ on the Galaxy Map, “☆ Bookmark” (a button) on
+  object pages. Done: Make navigation actions secondary (outline), and
+  make Bookmark one toggle control (☆ / ★ with the same look on the
+  maps and the pages). The look itself belongs to UX.43; this is the
+  rule about which control is primary. Approved default: Secondary
+  style for navigation; one bookmark toggle. Related: UX.43, UX.45.
+  Not a bug.
+  Prerequisites: none.
+  Audit: https://claude.ai/artifact/4URTUHSvfLKMzZobyGdiHF (finding P2).
+
+- [ ] **UX.65 Facts and links mixed in the Sector header chips**
+  UX audit finding P3 (UX.37; Boss approved the audit 2026-10-08
+  17:43Z: "All UX work on this is Phase 0"). Move; audit priority 2;
+  pages: Sector. Seen: The chip row mixes counts (14 systems, 21
+  stars, 137 phenomena) with links that look the same (Show on Galaxy
+  Map, Quadrant III) and a sentence (“About 1.50 × 10¹⁴ interstellar
+  comets and planetesimals (estimated)”). Done: Chips for facts only:
+  edge, systems, stars, phenomena. Show on Galaxy Map goes to the
+  action bar (UX.63). Quadrant III becomes a plain link in the facts
+  row. The comet estimate moves into a Details line under the map.
+  Approved default: Facts only in chips. Related: UX.42. Not a bug.
+  Prerequisite: UX.63.
+  Audit: https://claude.ai/artifact/4URTUHSvfLKMzZobyGdiHF (finding P3).
+
+- [ ] **UX.66 “Cube edge” on arc-shaped sectors**
+  UX audit finding P4 (UX.37; Boss approved the audit 2026-10-08
+  17:43Z: "All UX work on this is Phase 0"). Rename; audit priority 3;
+  pages: Sector, Search. Seen: The Sector page chip and the Search
+  table column both say “Cube edge 4 pc (13 ly)”, but the sector map
+  draws an arc-shaped cell (the arc-based grid, decided 2026-10-08).
+  Done: Say Edge 4 pc (13 ly) or the arc’s own dimensions. Wording
+  only; confirm the right figure before it is filed. Approved default:
+  Rename to Edge; confirm. Related: UX.42. Not a bug.
+  Prerequisites: none.
+  Audit: https://claude.ai/artifact/4URTUHSvfLKMzZobyGdiHF (finding P4).
+
+- [ ] **UX.67 Wikitext and Markdown buttons**
+  UX audit finding P5 (UX.37; Boss approved the audit 2026-10-08
+  17:43Z: "All UX work on this is Phase 0"). Move; audit priority 3;
+  pages: System. Seen: Two solid buttons in the System card’s header
+  switch the page between render formats (they reload the page). A
+  reader does not know what the choice means, and UX.30 keeps the
+  toggle. Done: Move them into a quiet View source ▾ menu in the card
+  header, shown to everyone but styled as a utility. Approved default:
+  Quiet menu. Related: UX.30. Not a bug.
+  Prerequisites: none.
+  Audit: https://claude.ai/artifact/4URTUHSvfLKMzZobyGdiHF (finding P5).
+
+- [ ] **UX.68 System Admin menu lists every planet and moon**
+  UX audit finding P6 (UX.37; Boss approved the audit 2026-10-08
+  17:43Z: "All UX work on this is Phase 0"). Move; audit priority 2;
+  pages: System (admin). Seen: The Admin button sits between the Stars
+  and System cards, not with the other actions. Its menu has 20 top-
+  level entries on a 4-planet, 12-moon, 1-comet system: Regenerate,
+  Change star and Delete, then one submenu per planet, moon and comet.
+  Done: Put the Admin menu in the action bar (UX.63). Keep three
+  system actions in the menu; move planet and moon actions into a menu
+  on each row of the System list. Approved default: Admin in the
+  action bar; body actions on their rows. Related: ADM.34. Not a bug.
+  Prerequisite: UX.63.
+  Audit: https://claude.ai/artifact/4URTUHSvfLKMzZobyGdiHF (finding P6).
+
+- [ ] **UX.69 Tables are cut off on phones with no cue**
+  UX audit finding L1 (UX.37; Boss approved the audit 2026-10-08
+  17:43Z: "All UX work on this is Phase 0"). Show when relevant; audit
+  priority 2; pages: Galaxy (Quadrants), Sector (Contents), System
+  (Stars). Seen: At 390 px the Quadrants table loses its Extent
+  column, Contents loses everything after Type, and the Stars table
+  cuts the star type. The tables scroll sideways inside the card, but
+  nothing shows that there is more. Done: Add an edge fade or a
+  visible scrollbar, and stack the less important columns under the
+  name on compact widths. The list pages are being rebuilt in UX.41;
+  this covers the tables that stay server-rendered. Approved default:
+  Edge fade plus stacked secondary columns. Related: UX.41, UX.21. Not
+  a bug.
+  Prerequisites: none.
+  Audit: https://claude.ai/artifact/4URTUHSvfLKMzZobyGdiHF (finding L1).
+
+- [ ] **UX.70 The result page repeats the route and puts the map last**
+  UX audit finding N1 (UX.37; Boss approved the audit 2026-10-08
+  17:43Z: "All UX work on this is Phase 0"). Remove / move; audit
+  priority 1; pages: NAV result. Seen: The page is titled “Nav:
+  Atzanuris” (only the start), its crumb is Nav › Atzanuris, and
+  From/To chips repeat both ends. For a direct hop, Optimal Route
+  lists the same two stops again. Two 8-row tables (Warp, Dimensional
+  Fold) come before the map, which starts about 1,100 px down.
+  “Reverse course · Another destination · Show on Galaxy Map” is an
+  italic text row, not buttons. Done: Title it Course: Atzanuris →
+  Elras, drop the chips, and hide Optimal Route when it equals the
+  direct course. Order: summary (distance, bearing), map, route, then
+  the travel times in one collapsed table with a Warp/Fold switch.
+  Make the three links a button row. Approved default: As described.
+  Related: UX.35, NAV.12, NAV.3. Not a bug.
+  Prerequisites: none.
+  Audit: https://claude.ai/artifact/4URTUHSvfLKMzZobyGdiHF (finding N1).
+
+- [ ] **UX.71 NAV landing page**
+  UX audit finding N2 (UX.37; Boss approved the audit 2026-10-08
+  17:43Z: "All UX work on this is Phase 0"). Merge; audit priority 3;
+  pages: NAV. Seen: Two cards offer ways to pick a start: “Or pick a
+  start on a map” (a button) and “Choose a starting sector” (a drop-
+  down and Continue). The heading starts with “Or” and comes first, so
+  the form appears to be the alternative. Done: One card, Plan a
+  course: Start from [Pick on map] or [sector ▾]. Folded into NAV.3’s
+  shared picker if that lands first. Approved default: One card; drop
+  if NAV.3 replaces the page. Related: NAV.3, NAV.44. Not a bug.
+  Prerequisites: none.
+  Audit: https://claude.ai/artifact/4URTUHSvfLKMzZobyGdiHF (finding N2).
+
+- [ ] **UX.72 Gear menu mixes unrelated things; the admin hub is not the hub**
+  UX audit finding A1 (UX.37; Boss approved the audit 2026-10-08
+  17:43Z: "All UX work on this is Phase 0"). Move; audit priority 2;
+  pages: Header, Admin. Seen: For an admin, the gear holds the theme
+  switch, Account, Admin, Generate, Queue, Stats and Logout, and a
+  Search form when the bar is narrow. The Admin page then links Stats
+  and Log out again, and not Generate or Queue. Done: Gear: Theme,
+  Account, Admin, Logout. The Admin page lists Generate, Queue and
+  Stats as the hub, and each admin page gets the same small tab row to
+  move between them. Drop the Signed in card. Approved default: As
+  described. Related: ADM.34, UX.21. Not a bug.
+  Prerequisites: none.
+  Audit: https://claude.ai/artifact/4URTUHSvfLKMzZobyGdiHF (finding A1).
+
+- [ ] **UX.73 Sector wiki link form on the Admin hub**
+  UX audit finding A2 (UX.37; Boss approved the audit 2026-10-08
+  17:43Z: "All UX work on this is Phase 0"). Move; audit priority 3;
+  pages: Admin. Seen: The hub has a Sector ID and Wiki URL form, which
+  its own text says is only for fixing a link the sector page’s Upload
+  to Wiki button set. Done: Move it into the Sector page’s Admin menu
+  (like other sector actions) so no ID needs typing. Approved default:
+  Sector Admin menu. Related: ADM.34. Not a bug.
+  Prerequisites: none.
+  Audit: https://claude.ai/artifact/4URTUHSvfLKMzZobyGdiHF (finding A2).
+
+- [ ] **UX.74 Generate page shows an empty Current job card**
+  UX audit finding A3 (UX.37; Boss approved the audit 2026-10-08
+  17:43Z: "All UX work on this is Phase 0"). Show only when relevant;
+  audit priority 3; pages: Admin Generate. Seen: With nothing running,
+  the first card is open and says “Nothing is running.” and takes a
+  card’s height before the first action. Done: Show Current job only
+  while a job runs; otherwise a status chip in the header row.
+  Approved default: Hide when idle. Related: UX.3. Not a bug.
+  Prerequisites: none.
+  Audit: https://claude.ai/artifact/4URTUHSvfLKMzZobyGdiHF (finding A3).
 
 - [ ] **UX.39 Markdown rendered by the markdown library**
   Today `mdconvert.py` converts the system and wiki Markdown by hand.
@@ -367,14 +722,6 @@ with `clamp()`.
   posted by name), both themes and phone widths look right, and a
   browser test fills and submits one form of each kind. Not a bug.
   Prerequisites: none.
-  Design: [docs/design/library-migration.md](design/library-migration.md)
-
-- [ ] **UX.41 Tables on TanStack Table and TanStack Virtual**
-  Today every list page is a server-rendered table paged 50 rows at a
-  time (`tabledisplay.py`). Done: list pages use TanStack Table with
-  virtual scrolling, sorting and faceted filters fed by the API, keeping
-  50-row pages for the server; the phenomena page filters by class and
-  type (UX.33) through it.
   Design: [docs/design/library-migration.md](design/library-migration.md)
 
 - [ ] **UX.42 In-universe wording across the interface**
@@ -689,56 +1036,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     for the canvas; a fallback to the diagram where WebGL is missing.
     Open question: should 3D be the default?
 
-- [ ] **MAP.102 Galaxy Map streaming with a BVH and 3D tiles, and camera-relative rendering**
-  From "Web UX Development Notes.md": the Galaxy Map streams its stars
-  as 3D tiles with level of detail, picks through a BVH (three-mesh-bvh)
-  instead of scanning points, and draws camera-relative so far-out
-  coordinates don't jitter (`galaxymap3d.js`, `galaxyprisms.js`). Done:
-  zooming loads only the tiles in view at the right detail, picking
-  stays fast in dense sectors, and the existing map tests pass.
-  Design: [docs/design/library-migration.md](design/library-migration.md)
-
-- [ ] **MAP.109 Zooming in and out loads slowly (bug)**
-  Boss (2026-10-03 05:38Z): "Loading between zooms in and out gets very,
-  very sluggish." Boss (2026-10-07 16:26Z), the first of three
-  problems: "the galaxy map doesn't update very fast because of all the
-  data it's receiving from the server.  We're dealing with sometimes
-  1000's or 10's of 1000's or 100's or 1000's of stars." Done: the
-  server sends only the tiles in view at the detail the zoom needs
-  (MAP.102), the payload per view has a stated cap, and a measured zoom
-  in and out across levels stays under a stated time on a full test
-  galaxy.
-  Prerequisite: MAP.102.
-
-- [ ] **MAP.116 Dense generated sectors crowd the Galaxy Map when zoomed out (bug)**
-  Boss (2026-10-03 05:38Z): "When sectors are filled in and we're in the
-  galaxy view, we have to be more intentional and strict with how many
-  stars to show from those sectors as we zoom out. Recent test run
-  indicates that for dense sectors it becomes unreadable at about 2-3
-  zoom levels outside of the sector zoom in the galactic view. Fix with
-  an algorithm that is more choosey about what to show even if we have
-  to allow a fudge factor for when it's a very dense sector vs. when
-  it's a very sparse sector.  Sparse sectors have more room to show more
-  and be usable." Boss (2026-10-07 16:26Z), the second of three
-  problems: "When viewing and zooming in, the fine tuning between what
-  star brightnesses should be displayed at a particular zoom level to be
-  useful.  Comets, neutron stars, etc, do get displayed on the galaxy
-  map if sufficiently zoomed in." Folds MAP.115 (Boss 2026-10-03
-  05:38Z: "Comets don't need to show up in a sector map until we get to
-  the full sector, don't show comets, rogue planets, or asteroid fields
-  from the galactic map."). Done: each zoom level has a rule for which
-  stars and objects it shows: a screen-density budget that takes the
-  brightest stars first, with a per-sector allowance that gives sparse
-  sectors more room; a brightness floor per level; remnants such as
-  neutron stars only where the budget reaches them; and comets, rogue
-  planets and asteroid fields never on the Galaxy Map, only on the
-  Sector Map. The rules are one table in the code, and a test checks
-  each level's counts on a dense and a sparse sector. It must also fix
-  GEN.117: brightest-first picking per tile keeps only the young blue
-  stars on the plane, so the budget must keep stars spread across
-  height (a share reserved by layer, or picks by luminosity band).
-  Prerequisite: MAP.102.
-
 - [ ] **MAP.119 Expected star density editable by admins on the Galaxy Map**
   Boss (2026-10-03 05:38Z): "In the galaxy view, the expected star
   density should be an editable field for admin and a static field for
@@ -774,7 +1071,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the same level without zooming out, updating the URL and breadcrumb;
   the code for this is one shared engine piece, not one per map; and
   a browser test steps sideways and up and back on each map.
-  Prerequisite: MAP.102.
 
 - [ ] **MAP.122 A Select mode on every galaxy view: Galaxy (blocks and sectors) or Star**
   Boss (2026-10-07 11:47Z): "Button in Galaxy display to allow selecting
@@ -809,20 +1105,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   possible." Done: with no view in the URL, the map opens at the closest
   zoom that shows every charted sector.
 
-- [ ] **MAP.128 Decide what the Sector Map tints by star age, density and luminosity, and test it**
+- [ ] **MAP.131 A Color by switch on the Galaxy Map, with a legend**
   Boss (2026-10-08 01:59Z): "Density determines transparency with more solid meaning more dense. Stellar age measures hue. Brightness measures luminosity of the sector or block. Blocks will never be fully opaque for coloring that is the color of the translucent fill."
-  Progress (2026-10-08): the Galaxy Map half is done (PR #556, with DB.14, MAP.129 and MAP.130): sectors and blocks are a translucent fill with hue from the mean star age (blue young, slate at the 4.5 Gy disk average, amber old; blocks weight by star count), opacity from star density (never fully opaque) and brightness from summed luminosity on a log scale; the galaxy schema is v55 and the stage API returns `stats` instead of `look`. The Sector Map has no sector fill to tint today, only neighbour markers. Done: this item decides what the Sector Map tints (the sector's own fill, the neighbour markers, or both), tints it the same way from the same `stats`, and a browser test checks a young, an old, a sparse and a dense sector. It goes with MAP.116's per-zoom budget and MAP.121's dimmed neighbours.
-
-- [ ] **MAP.131 A Color by switch on the maps, with a legend**
-  Boss (2026-10-08 01:59Z): "Density determines transparency with more solid meaning more dense. Stellar age measures hue. Brightness measures luminosity of the sector or block. Blocks will never be fully opaque for coloring that is the color of the translucent fill."
-  Later. A Color by control on the Galaxy Map and the Sector Map picks
+  Later. A Color by control on the Galaxy Map (Boss, 2026-10-08 13:35Z:
+  sector space is not tinted, so there is no Sector Map fill) picks
   what the fill shows: the default (age, density and luminosity as
   above), or a single statistic such as density, mean age, luminosity or
   star count, each with a legend that shows the scale. Done: the switch
-  and its legend work on both maps, the choice is kept in the URL, and a
+  and its legend work on the Galaxy Map, the choice is kept in the URL, and a
   browser test switches through every mode. It is built on the Shoelace
   controls (UX.40, done) and the shared map engine pieces (MAP.61, MAP.125).
-  Prerequisite: MAP.128.
 
 - [ ] **MAP.132 Overlay markers for black holes, nebulae and habitable worlds**
   Boss (2026-10-08 01:59Z): "Density determines transparency with more solid meaning more dense. Stellar age measures hue. Brightness measures luminosity of the sector or block. Blocks will never be fully opaque for coloring that is the color of the translucent fill."
@@ -832,7 +1124,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Done: markers show at the zooms where MAP.116's budget allows them,
   each kind can be turned off (MAP.123), and a browser test finds one of
   each on a seeded sector.
-  Prerequisites: MAP.128, GEN.84.
+  Prerequisite: GEN.84.
 
 - [ ] **MAP.125 Infinite zoom: one 3D interface from the galaxy down to a moon**
   Boss (2026-10-07 11:47Z): "Infinite Zoom!  Able to use the same
@@ -1918,40 +2210,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     ADM.18.
     Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
-- [ ] **GEN.117 The Galaxy Map shows bright stars only in a thin band on the galactic plane (bug)**
-  Boss (2026-10-07 18:43Z), after PR #461 (GEN.79) merged: "Here is the
-  latest run of the bright star sweep, screenshots taken.  As you can
-  see from these, when we look at a cross-section aligning with the
-  galactic plane, all the bright stars are strictly kept in this narrow
-  band." Screenshots: /mnt/project-files/bugs/gen-117/. Cause (Bugfixes
-  lane 1, 2026-10-07 18:47Z, read from the code and scatter numbers;
-  Boss's fresh run confirms): the generator does place bright stars
-  above and below the plane, but the Galaxy Map draws only the 400 most
-  luminous bright stars per tile (`GALAXY_TILE_MAX_BRIGHT_STARS`,
-  `planetgen/db/query.py` around line 2424). Young blue stars on the
-  plane outshine the old giants above it (about 1,000 to 2,500 Lsun),
-  so the giants never make the cut. The fix belongs with MAP.116's
-  per-zoom density and brightness rules: for example, reserve part of
-  each tile's budget for stars spread across height, or pick by
-  luminosity band instead of brightest first. Done: a tile's drawn
-  bright stars span the layers its stars occupy, a test checks that
-  spread on a tile with a crowded plane, and Boss's sweep shows stars
-  above and below the plane. A generator test of the z spread lands
-  separately with Bugfixes lane 1's flake PR.
-  Prerequisite: MAP.116.
-
-- [ ] **GEN.116 Error when generating a neighbourhood centred near the galaxy edge, awaiting Boss's error text (bug)**
-  Back burner. Boss (2026-10-07 17:11Z), on GEN.65: "I do not have the
-  error message, keep an eye out for it, but put it on the back burner
-  for something to watch out for ... I think this error occurred when I
-  was attempting to generate  a neighborhood when the center was close
-  to the edge of the galaxy." GEN.65's tests (PR #476: 18 neighbourhood
-  runs at the rim, just inside and outside it, the top and bottom
-  layers, the core, mid-disk and around a filled sector, through both
-  the Generate page job and the CLI) all pass, and nothing web-only was
-  reproduced. Done: the error is reproduced from Boss's error text and
-  fixed with a test, or Boss confirms it no longer happens.
-
 - [ ] **GEN.66 Physics on scipy, and astropy constants and units**
   Today `keplerMotion.py` solves Kepler and Barker by hand and
   `physical_constants.py` holds 450 lines of constants. Done: Kepler
@@ -2009,8 +2267,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     moves, and whether an unfilled sector can have its ID before any row
     exists; Boss picks one.
     Progress (2026-10-08): Foundations lane 1 wrote the comparison at
-    `/mnt/project-files/notes/gen68-object-ids.md`; this item closes when
-    Boss picks a method, and GEN.69 waits on that pick.
+    `/mnt/project-files/notes/gen68-object-ids.md`. Boss approved the
+    unique-ID plan on the decision card at 13:33Z, so the pick is made and
+    GEN.69 is free to start; this item closes with GEN.69.
 
   - [ ] **GEN.69 A unique ID for every object, star systems and unfilled sectors included**
     Today only interstellar objects and bright-sweep systems carry
@@ -2019,7 +2278,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     system, star, planet, moon, belt, comet and phenomenon has an ID by
     GEN.68's method, stored and indexed, and stable across regeneration
     in place.
-    Prerequisite: GEN.68.
+    Plan (2026-10-08): GEN.68's pick is made (Boss, 13:33Z), so this has
+    no open prerequisite; GEN.72 and GEN.73 follow it.
     Design: [docs/design/object-ids.md](design/object-ids.md)
 
   - [ ] **GEN.70 A naming key in the control database, made at galaxy creation and changeable by admin**
@@ -2957,15 +3217,6 @@ and #221.
 
 Design: [docs/design/login-brute-force-protection.md](design/login-brute-force-protection.md)
 
-- [ ] **SEC.29 Two-step sign-in on pyotp, QR codes on segno**
-  Today `totp.py` (100 lines) and `qrcodegen.py` (900 lines, a copy of
-  Nayuki's generator) do this by hand. Done: TOTP codes come from
-  `pyotp` with the same secrets, step and window, so enrolled users keep
-  working; QR codes come from `segno` as SVG; both old modules are
-  deleted; and the two-step tests pass every run, including near a step
-  boundary (TEST.72).
-  Design: [docs/design/library-migration.md](design/library-migration.md)
-
 - [ ] **SEC.30 Login and request rate limits on Flask-Limiter with Redis storage**
   Today `loginThrottle.py`, `api/limiter.py` and `api/loginguard.py`
   keep their own counters. Done: request limits use Flask-Limiter with
@@ -2986,24 +3237,24 @@ clears each one.
 
 ### Infrastructure and CI
 
-- [ ] **TEST.72 Intermittent failure in the two-step (2FA) sign-in test (bug)**
-  Found by the bug audit (2026-10-01, `bug-audit.md`): the two-step sign-in test failed once in a full run for PR #263
-  and passed 3 of 3 times alone. Done: the failing case is found (loop
-  it, including near a time-step boundary of the one-time code), the
-  cause is fixed in the test or in the code it found, and the test
-  passes on every run tried. [infra, SEC]
-  Prerequisite: SEC.29.
-  Plan (2026-10-07): Folded into SEC.29: the TOTP code moves to pyotp,
-  and the test is fixed there.
+- [ ] **TEST.103 test_controls_do_not_overlap[web.sector-600] fails on clean main: controls overlap on the sector page at 600 px (bug)**
+  `src/tests/test_web_browser_layout.py::test_controls_do_not_overlap[web.sector-600]`
+  fails on a clean `main` (reported by Foundations lane 1 on PR #612,
+  2026-10-08), so it looks like a real overlap of controls on the
+  sector page at 600 px width, not a flake. It is a possible input to
+  UX.21 (the final overlap pass) and may be settled by the sector-page
+  items of the UX audit (UX.65 for the header chips, UX.50 for the
+  map help text), so check those first. Done: the overlapping controls
+  are found, moved or resized so none overlap at 600 px (and at 390
+  to 1280 px), and the test passes on every run. Prerequisites: none.
 
-- [ ] **TEST.102 test_a_pass_removes_species_stored_without_a_civilization fails now and then in the full suite (bug)**
-  `src/tests/test_population.py::test_a_pass_removes_species_stored_without_a_civilization`
-  failed once in four full local runs (2026-10-08, reported by
-  Foundations lane 1 on PR #588) and is not caused by that PR's changes,
-  so it depends on test order, random state or timing. Done: the test
-  builds its own species and civilization-free state with a fixed seed so
-  its result does not depend on other tests, and it passes repeatedly in
-  the full suite under `pytest -n auto`.
+- [ ] **TEST.104 test_system_map_selection_drill_and_measure fails now and then under load (bug)**
+  `src/tests/test_web_browser_maps.py::test_system_map_selection_drill_and_measure`
+  failed under load and passed when rerun (reported by Foundations
+  lane 1 on PR #612, 2026-10-08), which points at a wait on a fixed
+  time instead of on the map's state. Done: the test waits on the
+  map's own ready state, and it passes repeatedly in the full suite
+  under `pytest -n auto`. Prerequisites: none.
 
 - [ ] **TEST.83 Rate-limit tests fail under parallel load (bug)**
   `test_web_admin.py::test_real_login_keeps_rate_limit` passes alone
@@ -3023,6 +3274,9 @@ clears each one.
   and #504 (13,587 passed) had rate-limit tests among 10 load-only
   failures; the timing and dropped-connection part was TEST.93 (done,
   PR #522).
+  Seen again (2026-10-08): Foundations lane 1 saw
+  `test_real_login_keeps_rate_limit` flake under load again (PR #612);
+  it is covered here, no new item.
 
 ## USR: User accounts
 
@@ -3186,8 +3440,8 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Each library swap is its own subitem and PR, after the package layout
   (OPS.23, done in PR #435, then OPS.24) so code moves once. Done when every subitem is done
   and the hand-rolled modules they replace are deleted.
-  Prerequisites: SEC.29, UX.39, SEC.30, DB.11,
-  ADM.21, GEN.66, UX.41, ADM.22, MAP.102.
+  Prerequisites: UX.39, SEC.30, DB.11,
+  ADM.21, GEN.66, ADM.22.
   Design: [docs/design/library-migration.md](design/library-migration.md)
 
 ## VIEW: The view from a planet

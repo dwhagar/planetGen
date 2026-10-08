@@ -13,7 +13,7 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.50 |
+| UX | UX.75 |
 | MAP | MAP.133 |
 | NAV | NAV.51 |
 | GEN | GEN.121 |
@@ -22,7 +22,7 @@ release is stamped.
 | API | API.20 |
 | ADM | ADM.38 |
 | SEC | SEC.32 |
-| TEST | TEST.103 |
+| TEST | TEST.105 |
 | USR | USR.9 |
 | OPS | OPS.28 |
 | DOC | DOC.4 |
@@ -577,8 +577,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.113 | Analyze the anomaly docs: which anomalies to add and how | none | open |
 | GEN.114 | Add the chosen anomalies to the starmap | none | open |
 | GEN.115 | The galaxy's own gravity: a smooth disk, bulge and halo potential | none | open |
-| GEN.116 | Error when generating a neighbourhood centred near the galaxy edge, awaiting Boss's error text (bug) | none | open |
-| GEN.117 | The Galaxy Map shows bright stars only in a thin band on the galactic plane (bug) | none | open |
+| GEN.116 | Error when generating a neighbourhood centred near the galaxy edge, awaiting Boss's error text (bug) | none | closed, not reproduced (Boss 2026-10-08) |
+| GEN.117 | The Galaxy Map shows bright stars only in a thin band on the galactic plane (bug) | none | done, PR #600 |
 | GEN.118 | The galaxy bulge is about 40 times too light, so edge-on views show no bulge (bug) | none | done, PR #491 |
 | GEN.119 | The galaxy density model has no thick disk (bug) | none | done, PR #491 |
 | GEN.120 | Integrate gatedPhonemeCodec.py into the naming package and remove it from the repo root | none | done, PR #554 |
@@ -683,26 +683,26 @@ Parents marked "new parent" had no old number of their own.
 | MAP.99 | Slab buttons that don't fit the window split across both sides of the map, shrink, or give way to map picking (bug) | none | done, PR #422 |
 | MAP.100 | Slab button labels on one line: "#N" and how much is charted (bug) | none | done, PR #422 |
 | MAP.101 | Stars on the Galaxy Map take the click, so a dense sector can't be picked (bug) | none | done, PR #431 |
-| MAP.102 | Galaxy Map streaming with a BVH and 3D tiles, and camera-relative rendering | none | open |
+| MAP.102 | Galaxy Map streaming with a BVH and 3D tiles, and camera-relative rendering | none | done, PR #574 |
 | MAP.103 | Nebulae don't show on the Galaxy Map or any other map (bug) | none | done, PR #592 |
 | MAP.104 | Nebula shading is missing on unfilled sectors (bug) | none | done, PR #592 |
 | MAP.105 | The nebula view should show its whole shape with the dimmed galaxy around it (bug) | none | done, PR #590 |
 | MAP.106 | The breadcrumb trail falls out of sync with the map (bug) | none | done, PR #586 |
 | MAP.107 | Selecting an empty slab near the core says "There is no layer x here" (bug) | none | done, PR #537 |
 | MAP.108 | Empty slabs and wedges near the core can't be selected, and the side buttons block clicks (bug) | none | closed, not reproducible; covered by tests (#537, #541, #521) |
-| MAP.109 | Zooming in and out loads slowly (bug) | none | open |
+| MAP.109 | Zooming in and out loads slowly (bug) | none | done, PR #603 |
 | MAP.110 | Slab button lines come out of numerical order (bug) | none | done, PR #520 |
 | MAP.111 | "Generated only" should be "Charted only" and dim the stars too (bug) | none | done, PR #531 |
 | MAP.112 | Nothing can be selected while "Generated only" is on (bug) | none | done, PR #541 |
 | MAP.113 | A nebula covering the whole sector can't be unselected, and nebulae need a show/hide toggle (bug) | none | done, PR #584 |
 | MAP.114 | The Sector Map's Reset view leaves the picture unchanged (bug) | none | done, PR #442 |
-| MAP.115 | Comets, rogue planets and asteroid fields show above the sector level (bug) | none | merged into MAP.116 (2026-10-07) |
-| MAP.116 | Dense generated sectors crowd the Galaxy Map when zoomed out (bug) | none | open |
+| MAP.115 | Comets, rogue planets and asteroid fields show above the sector level (bug) | none | merged into MAP.116; done, PR #601 |
+| MAP.116 | Dense generated sectors crowd the Galaxy Map when zoomed out (bug) | none | done, PR #601 |
 | MAP.127 | See into and step to the neighbouring blocks and slabs on the Galaxy Map | none | merged into MAP.121 (2026-10-07) |
-| MAP.128 | Decide what the Sector Map tints by star age, density and luminosity, and test it | none | open |
+| MAP.128 | Decide what the Sector Map tints by star age, density and luminosity, and test it | none | closed, decided: sector space is not tinted (Boss 2026-10-08 13:35Z); the Galaxy Map half was done in #556 |
 | MAP.129 | Blocks colored from their sectors' statistics, weighted by star count | none | done, PR #556 |
 | MAP.130 | Retire the average-star-color rule in the docs and tests | none | done, PR #556 |
-| MAP.131 | A Color by switch on the maps, with a legend | none | open |
+| MAP.131 | A Color by switch on the Galaxy Map, with a legend | none | open |
 | MAP.132 | Overlay markers for black holes, nebulae and habitable worlds | none | open |
 | MAP.117 | Surface pressure missing from the planet and moon side panel (bug) | none | done, PR #457 |
 | MAP.118 | The Galaxy Map shows an unfilled sector above the galaxy that can't be filled (bug) | none | done, PR #457 |
@@ -859,7 +859,7 @@ Parents marked "new parent" had no old number of their own.
 | SEC.26 | Two-factor sign-in (TOTP) for admins | none | done, PR #221 |
 | SEC.27 | A fail2ban filter and jail for login brute force (was: a fail2ban recipe in the deployment docs) | none | done, PR #221 |
 | SEC.28 | An always-on log in the standard log location | none | done, PR #217 |
-| SEC.29 | Two-step sign-in on pyotp, QR codes on segno | none | open |
+| SEC.29 | Two-step sign-in on pyotp, QR codes on segno | none | done, PR #612 |
 | SEC.30 | Login and request rate limits on Flask-Limiter with Redis storage | none | open |
 | SEC.31 | Signing in as admin works but shows a "form expired" error (bug) | none | done, PR #457 |
 | USR.1 | User accounts | none | open |
@@ -903,7 +903,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.30 | Planet information without the Markdown render | none | open |
 | UX.31 | Editing a star system: an edit button with a quick menu, not a long panel (bug) | none | done, PR #533 |
 | UX.32 | Planet rows show the class only, without the type and moon labels | none | open |
-| UX.33 | Filter phenomena by their classes and types (bug) | none | open |
+| UX.33 | Filter phenomena by their classes and types (bug) | none | done, PR #606 |
 | UX.34 | The sector summary calls white dwarfs "B-type" and "A-type" systems (bug) | none | done, PR #448 |
 | UX.35 | The NAV page route shown horizontally, wrapping onto several lines on narrow screens | none | open |
 | UX.36 | Scientific notation starts too early for whole numbers (bug) | none | done, PR #457 |
@@ -911,7 +911,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.38 | The nebula and remnant diagrams' "-" button does nothing at the 1 ly limit (bug) | none | done, PR #590 |
 | UX.39 | Markdown rendered by the markdown library | none | open |
 | UX.40 | Buttons, menus and dialogs from Shoelace web components | none | done, PR #544 |
-| UX.41 | Tables on TanStack Table and TanStack Virtual | none | open |
+| UX.41 | Tables on TanStack Table and TanStack Virtual | none | done, PR #606 |
 | UX.42 | In-universe wording across the interface | none | open |
 | UX.43 | A visual design built like a pilot's starmap and navigation console | none | open |
 | UX.44 | Search: mutually exclusive tags should combine with OR, the rest with AND (bug) | none | done, PR #457 |
@@ -920,6 +920,31 @@ Parents marked "new parent" had no old number of their own.
 | UX.47 | A bookmark manager: list, rename, sort, group and delete | none | open |
 | UX.48 | Charted regions as bookmarks that frame and outline the region | none | open |
 | UX.49 | Form fields as Shoelace components (sl-input, sl-select, sl-checkbox) across the site | none | open |
+| UX.50 | One short hint per map, the rest behind a Help entry | none | open |
+| UX.51 | Cards that repeat the page title | none | open |
+| UX.52 | Sector name repeated on every Contents row | none | open |
+| UX.53 | The same star shown three times on a system page | none | open |
+| UX.54 | Search shows empty result groups and echoes the query | none | open |
+| UX.55 | Home and Systems repeat other pages’ tables | none | open |
+| UX.56 | Admin hub repeats the gear menu | none | open |
+| UX.57 | Two controls both called Reset | none | open |
+| UX.58 | Move Current into the Steps menu | none | open |
+| UX.59 | One breadcrumb trail on map pages | none | open |
+| UX.60 | The Slabs rail has nothing in it at the top level | none | open |
+| UX.61 | System Map: Measure distance floats beside an empty gap | none | open |
+| UX.62 | Map pages jump 64 px left | none | open |
+| UX.63 | One action bar on every object page | none | open |
+| UX.64 | Action buttons are all solid primary, with no hierarchy | none | open |
+| UX.65 | Facts and links mixed in the Sector header chips | none | open |
+| UX.66 | “Cube edge” on arc-shaped sectors | none | open |
+| UX.67 | Wikitext and Markdown buttons | none | open |
+| UX.68 | System Admin menu lists every planet and moon | none | open |
+| UX.69 | Tables are cut off on phones with no cue | none | open |
+| UX.70 | The result page repeats the route and puts the map last | none | open |
+| UX.71 | NAV landing page | none | open |
+| UX.72 | Gear menu mixes unrelated things; the admin hub is not the hub | none | open |
+| UX.73 | Sector wiki link form on the Admin hub | none | open |
+| UX.74 | Generate page shows an empty Current job card | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
@@ -1083,7 +1108,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.69 | Intermittent failure in the colony test (bug) | none | done, PR #303 |
 | TEST.70 | Tests for the map JavaScript | none | done, PR #351 |
 | TEST.71 | Intermittent failure in the admin planet-regenerate test (bug) | none | done, PR #484 |
-| TEST.72 | Intermittent failure in the two-step (2FA) sign-in test (bug) | none | open |
+| TEST.72 | Intermittent failure in the two-step (2FA) sign-in test (bug) | none | done, PR #612 |
 | TEST.73 | Intermittent failure in the parallel galaxy-run interrupt test (bug) | none | done, PR #371 |
 | TEST.74 | Generation tests at more than one worker | none | done, PR #371 |
 | TEST.75 | Tests for forcing and prevalence | none | done, PR #502 |
@@ -1113,7 +1138,9 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.99 | test_slab_buttons_have_lines_that_follow_the_view fails in the full suite (bug) | none | done, PR #549 |
 | TEST.100 | test_hover_while_picking_a_slab fails in the full suite (bug) | none | done, PR #549 |
 | TEST.101 | test_interrupting_a_parallel_galaxy_run[2-True] fails in the full suite (bug) | none | done, PR #549 |
-| TEST.102 | test_a_pass_removes_species_stored_without_a_civilization fails now and then in the full suite (bug) | none | open |
+| TEST.102 | test_a_pass_removes_species_stored_without_a_civilization fails now and then in the full suite (bug) | none | done, PR #610 |
+| TEST.103 | test_controls_do_not_overlap[web.sector-600] fails on clean main: controls overlap on the sector page at 600 px (bug) | none | open |
+| TEST.104 | test_system_map_selection_drill_and_measure fails now and then under load (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

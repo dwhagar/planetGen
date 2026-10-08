@@ -495,7 +495,7 @@ def test_admin_lists_keys(client, fake):
     assert resp.status_code == 200
     assert resp.headers["Cache-Control"] == "no-store"
     assert "key 001" in html and "key 002" in html
-    assert 'revoked <time datetime="2026-02-01T00:00:00Z" data-local-time>2026-02-01 00:00 UTC</time>' in html
+    assert "revoked 2026-02-01 00:00 UTC" in html
     # One revoke form (the active key), carrying the CSRF token.
     assert html.count('value="revoke_key"') == 1
     revoke = re.search(r'<form method="post" action="/admin" class="table-form">.*?</form>', html, re.S).group(0)
@@ -504,13 +504,26 @@ def test_admin_lists_keys(client, fake):
     assert 'name="db"' not in html
 
 
-def test_admin_keys_are_paged_with_get_links(client, fake):
+def test_admin_keys_are_a_data_table_paged_with_get_links(client, fake):
     _logged_in(client, fake)
     fake.keys = [_key(i) for i in range(1, 61)]
     html = client.get("/admin?keys_page=2").get_data(as_text=True)
     assert "key 051" in html and "key 050" not in html
     assert 'href="/admin?keys_page=1#api-keys"' in html
-    assert '<input type="hidden" name="keys_page" value="2">' in html
+
+
+def test_admin_keys_table_route_is_for_admins_only_and_carries_the_csrf_token(client, fake):
+    assert client.get("/table/api-keys").status_code == 403
+    _logged_in(client, fake)
+    fake.keys = [_key(1), _key(2, revoked=True)]
+    data = client.get("/table/api-keys?sort=label&facets=1").get_json()
+    assert data["total"] == 2 and data["rows"][0][0]["text"] == "key 001"
+    form = data["rows"][0][4]["form"]
+    assert form["action"] == "/admin" and ["key_id", 1] in form["fields"]
+    assert [csrf.FIELD_NAME] == [name for name, _ in form["fields"] if name == csrf.FIELD_NAME]
+    assert "form" not in data["rows"][1][4]
+    only = client.get("/table/api-keys?keys_status=revoked").get_json()
+    assert [row[0]["text"] for row in only["rows"]] == ["key 002"]
 
 
 def test_admin_create_key_is_post_redirect_get_and_shown_once(client, fake, admin_token):
@@ -612,12 +625,11 @@ def test_admin_create_key_needs_label(client, fake, admin_token):
     assert "Label is required." in client.get("/admin").get_data(as_text=True)
 
 
-def test_admin_revoke_key_returns_to_same_page(client, fake, admin_token):
+def test_admin_revoke_key_returns_to_the_keys(client, fake, admin_token):
     _logged_in(client, fake)
-    resp = client.post("/admin", data={csrf.FIELD_NAME: admin_token, "action": "revoke_key", "key_id": "1",
-                                       "keys_page": "2"})
+    resp = client.post("/admin", data={csrf.FIELD_NAME: admin_token, "action": "revoke_key", "key_id": "1"})
     assert resp.status_code == 303
-    assert resp.headers["Location"] == "/admin?keys_page=2#api-keys"
+    assert resp.headers["Location"] == "/admin#api-keys"
     assert fake.called("auth_revoke_api_key")[0][2] == 1
 
 
@@ -762,6 +774,21 @@ def test_admin_stats_names_paged(client, fake):
     assert "Name 050" in html and "Name 049" not in html
     assert 'href="/admin/stats?names_page=1#duplicate-names"' in html
     assert "no rows left" in html
+
+
+def test_admin_names_table_route_pages_and_links_the_names(client, fake):
+    assert client.get("/table/duplicate-names").status_code == 403
+    _logged_in(client, fake)
+    fake.names = [{"base_name": f"Name {i:03d}", "levels": ["sector", "system"],
+                   "rows": [{"kind": "sector", "id": i, "name": f"Alpha Name {i:03d}"},
+                            {"kind": "system", "id": i, "name": f"Beta Name {i:03d}"}]} for i in range(60)]
+    data = client.get("/table/duplicate-names?offset=50&limit=50").get_json()
+    assert data["total"] == 60 and len(data["rows"]) == 10
+    base, levels, named = data["rows"][0]
+    assert base["text"] == "Name 050" and "parts" in named
+    links = [part for part in named["parts"] if isinstance(part, dict)]
+    assert [link["text"] for link in links] == ["Alpha Name 050", "Beta Name 050"]
+    assert links[0]["href"] == "/sector/50" and links[1]["href"] == "/system/50"
 
 
 def test_admin_stats_database_unreachable(client, fake, monkeypatch):

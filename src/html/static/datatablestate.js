@@ -8,16 +8,18 @@
 // Rows the server sends per page (lib/pagination.PAGE_SIZE).
 export var PAGE_SIZE = 50;
 
-// The query pairs for a state: `sort`/`order`, one pair per chosen filter
-// value. `defaultSort` leaves the sort out when it is the page's default
-// (so the address bar stays short).
-export function stateParams(state, defaultSort) {
+// The query pairs for a state: `sort`/`order` (after the table's `prefix`,
+// for a page with several tables), one pair per chosen filter value.
+// `defaultSort` leaves the sort out when it is the page's default (so the
+// address bar stays short).
+export function stateParams(state, defaultSort, prefix) {
   var pairs = [];
+  prefix = prefix || "";
   if (state.sort && (state.sort !== defaultSort || state.descending)) {
-    pairs.push(["sort", state.sort]);
+    pairs.push([prefix + "sort", state.sort]);
   }
   if (state.descending) {
-    pairs.push(["order", "desc"]);
+    pairs.push([prefix + "order", "desc"]);
   }
   Object.keys(state.filters || {}).forEach(function (param) {
     (state.filters[param] || []).forEach(function (value) {
@@ -44,10 +46,18 @@ export function dataQuery(state, offset, limit, withFacets) {
   return encode(pairs);
 }
 
-// The address the page shows for a state: the page's own path and the same
-// pairs a visitor would get from the no-script links.
-export function pageAddress(path, state, defaultSort) {
-  var query = encode(stateParams(state, defaultSort));
+// The address the page shows for a state: the page's own path, the query
+// parameters that aren't this table's (`owned` names the ones that are:
+// its sort, order, page and filters) and the same pairs a visitor would get
+// from the no-script links. `search` is the address's current query string.
+export function pageAddress(path, search, state, defaultSort, prefix, owned) {
+  var pairs = [];
+  new URLSearchParams(search).forEach(function (value, key) {
+    if (owned.indexOf(key) < 0) {
+      pairs.push([key, value]);
+    }
+  });
+  var query = encode(pairs.concat(stateParams(state, defaultSort, prefix)));
   return path + (query ? "?" + query : "");
 }
 

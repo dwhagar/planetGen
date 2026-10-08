@@ -19,14 +19,14 @@ import re
 from flask import abort, current_app, request, url_for
 
 from planetgen.web.lib import apiclient
-from planetgen.web.lib.pagination import fetch_page, parse_page
+from planetgen.web.lib.datatable import Column, Result, Table, time_text
 from planetgen.queue import work as workQueue
 from planetgen.admin import activity_log
 from planetgen.util import log
 
-from . import bp, jobs
+from . import bp, jobs, tables
 from .admin_pages import _api_message, _cookie_header, _flash, _render, _require_admin, _see_other, _take_flash
-from .helpers import crumb, db_name, pager
+from .helpers import crumb, db_name
 
 KIND_LABELS = {
     "web-job": "Generate page job",
@@ -225,35 +225,75 @@ def _load(cookie_header, node_id):
     return tree, _find(tree, node_id)
 
 
+def _job_cells(root):
+    """One job (a tree's root) as the Jobs table's cells."""
+    node = _node_view(root, root)
+    links = []
+    for action, label in node["actions"]:
+        links += [" "] if links else []
+        links.append({"text": label, "href": url_for("web.admin_queue_confirm", action=action, node=node["id"])})
+    if node["web_job_url"]:
+        links += [" "] if links else []
+        links.append({"text": "Log", "href": node["web_job_url"]})
+    started = time_text(node["started_at"]) or "not yet"
+    asked = f" ({node['asked']})" if node["asked"] else ""
+    return [
+        {"text": node["title"], "href": node["url"]},
+        {"text": node["kind"]},
+        {"text": node["status_label"] + asked},
+        {"text": started},
+        {"text": node["duration"] or ""},
+        {"text": f"{node['done']} of {node['tasks']}" if node["tasks"] else ""},
+        {"text": "", "parts": links} if links else {"text": ""},
+    ]
+
+
+def _jobs_load(state, limit, offset, want_facets):
+    """The job trees, newest first, `limit` from `offset`."""
+    _identity, bounce = _require_admin()
+    if bounce is not None:
+        abort(403)
+    body = apiclient.admin_work(_cookie_header(), limit=limit, offset=offset)
+    rows = []
+    for root in body["items"]:
+        root.setdefault("children", [])
+        root.setdefault("tasks", [])
+        rows.append(_job_cells(root))
+    return Result(rows, body["total"], None)
+
+
+JOBS_TABLE = tables.register(Table(
+    "queue-jobs", "Jobs",
+    [Column("job", "Job", sortable=False), Column("kind", "Kind", sortable=False),
+     Column("status", "Status", sortable=False), Column("started", "Started", sortable=False),
+     Column("duration", "Duration", sortable=False), Column("progress", "Progress", sortable=False),
+     Column("actions", "Actions", sortable=False)],
+    _jobs_load, prefix="jobs_", noun=("job", "jobs"),
+))
+
+
 @bp.route("/admin/queue")
 def admin_queue():
-    """The queue's state and the job trees, newest first
-    (`?page=N`)."""
+    """The queue's state and the job trees, newest first (a data table)."""
     admin, bounce = _require_admin()
     if bounce is not None:
         return bounce
     cookie_header = _cookie_header()
     error = None
+    jobs_table = None
     try:
-        body, page = fetch_page(
-            lambda limit, offset: apiclient.admin_work(cookie_header, limit=limit, offset=offset),
-            parse_page(request.args.get("page")),
-        )
+        body = apiclient.admin_work(cookie_header, limit=1, offset=0)
+        if body["available"]:
+            jobs_table = tables.render(JOBS_TABLE, request.path, anchor="jobs")
     except apiclient.ApiError as exc:
-        body, page, error = {"available": False, "status": {}, "items": [], "total": 0}, 1, _api_message(exc)
+        body, error = {"available": False, "status": {}, "items": [], "total": 0}, _api_message(exc)
     flashed = _take_flash()
-    rows = []
-    for root in body["items"]:
-        root.setdefault("children", [])
-        root.setdefault("tasks", [])
-        rows.append(_node_view(root, root))
     return _render(
         "admin_queue.html", flashed=True, title="Work Queue", section="admin_queue",
         breadcrumbs=[crumb("Admin", "admin"), crumb("Queue")],
         description="The generation jobs on this server, and the controls to pause, resume, cancel or retry them.",
-        admin=admin, available=body["available"], queue=_status_view(body["status"]), rows=rows,
-        pager=pager("page", page, body["total"], label="Job pages"), error=error or flashed.get("error"),
-        message=flashed.get("message"),
+        admin=admin, available=body["available"], queue=_status_view(body["status"]), jobs_table=jobs_table,
+        error=error or flashed.get("error"), message=flashed.get("message"),
     )
 
 

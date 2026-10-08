@@ -28,9 +28,21 @@ test("values are percent-encoded", () => {
   assert.equal(dataQuery(state, 0, 50, false), "sort=name&descriptor=a%20b%26c&offset=0&limit=50");
 });
 
+const OWNED = ["sort", "order", "page", "type", "descriptor"];
+
 test("the page address is the path with the same pairs the no-script links use", () => {
-  assert.equal(pageAddress("/phenomena", STATE, "name"), "/phenomena?sort=type&order=desc&type=nebula&type=rogue_planet");
-  assert.equal(pageAddress("/phenomena", { sort: "name", descending: false, filters: {} }, "name"), "/phenomena");
+  assert.equal(pageAddress("/phenomena", "", STATE, "name", "", OWNED), "/phenomena?sort=type&order=desc&type=nebula&type=rogue_planet");
+  assert.equal(pageAddress("/phenomena", "?page=3&sort=x", { sort: "name", descending: false, filters: {} }, "name", "", OWNED), "/phenomena");
+});
+
+test("a table's prefix names its sort and order, and the page's other parameters stay", () => {
+  const state = { sort: "systems", descending: true, filters: {} };
+  assert.deepEqual(stateParams(state, "distance", "sectors_"), [["sectors_sort", "systems"], ["sectors_order", "desc"]]);
+  const owned = ["sectors_sort", "sectors_order", "sectors_page"];
+  assert.equal(
+    pageAddress("/", "?standalone_sort=binary&sectors_page=4&sectors_sort=name", state, "distance", "sectors_", owned),
+    "/?standalone_sort=binary&sectors_sort=systems&sectors_order=desc",
+  );
 });
 
 test("rows map to the zero-based pages that hold them", () => {

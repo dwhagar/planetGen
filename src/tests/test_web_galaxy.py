@@ -226,9 +226,21 @@ def test_galaxy_quadrant_pages(client, fake):
     assert "Placed 055" in page2 and "Placed 050" not in page2
 
 
+def test_galaxy_quadrant_table_route_sorts_and_filters(client, fake):
+    fake.sectors = [_placed(1, radius=900.0, name="Far"), _placed(2, radius=10.0, name="Near"),
+                    _placed(3, x=-100.0, name="Elsewhere")]
+    data = client.get("/table/galaxy-quadrant?quadrant=I&sort=name&order=desc&facets=1").get_json()
+    assert [row[0]["text"] for row in data["rows"]] == ["Near", "Far"] and data["total"] == 2
+    assert data["rows"][0][0]["href"].startswith("/sector/")
+    assert data["facets"]["zone"] and all(o["label"].startswith("Zone ") for o in data["facets"]["zone"])
+    nearest = client.get("/table/galaxy-quadrant?quadrant=I").get_json()
+    assert [row[0]["text"] for row in nearest["rows"]] == ["Near", "Far"]
+    assert client.get("/table/galaxy-quadrant").get_json()["total"] == 0
+
+
 def test_galaxy_empty_quadrant(client, fake):
     html = client.get("/galaxy?quadrant=IV").get_data(as_text=True)
-    assert "No sectors placed in this Quadrant yet." in html
+    assert "0 sectors" in html and "<em>None</em>" in html
 
 
 def test_galaxy_unknown_quadrant_falls_back_to_summary(client, fake):

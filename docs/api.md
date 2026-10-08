@@ -78,7 +78,14 @@ connectivity to that specific schema rather than the default one.
   `layer_index`/`ring_slot_index` (the cylindrical grid address), all
   `null` together for an unplaced sector, plus a `placed` bool), nearest
   the galactic core first, then unplaced sectors by name
-  (`queryDb.list_sectors`/`count_sectors`).
+  (`queryDb.list_sectors`/`count_sectors`). The Sectors table (UX.41) also
+  takes `sort` (`name`, `systems`, `density`, `position`, `distance`) with
+  `order=asc|desc` (unplaced sectors sort last for `density`, `distance` and
+  `position`; ties keep the default order), the repeatable filter
+  `quadrant` (`I`-`IV`, or `unplaced`) and `facets=1`, which adds
+  `facets: {"quadrant": [{"value", "count"}]}` (the menu ignores its own
+  filter). `total` counts the sectors that pass the filter; a bad `sort` or
+  `order` is a 400.
 - `GET /api/sectors/<id>` — one sector's full display detail: the same
   fields as the listing above, plus `systems` (every system placed in
   it, nearest the sector's center first: `id`, `name`, `quadrant`, `location`, `is_binary`, `binary_type`,
@@ -124,7 +131,14 @@ connectivity to that specific schema rather than the default one.
   `binary_type`). `star_type` is a literal prefix (`%` and `_` match only
   themselves). `sector_id=none` matches only standalone systems
   (`sector_id IS NULL`, the `/systems` page's Standalone Systems table) — distinct
-  from omitting `sector_id` entirely (no sector filter at all).
+  from omitting `sector_id` entirely (no sector filter at all). The Systems
+  tables (UX.41) also take `sort` (`name`, `sector`, `octant`, `binary`) with
+  `order=asc|desc` (systems with no sector or octant sort last), the filters
+  `binary=yes|no`, `placement=sector|standalone` and `octant` (repeatable),
+  and `facets=1`, which adds `facets: {"placement", "binary", "octant"}`
+  (each `[{"value", "count"}]`; every menu's counts apply the other filters
+  but not its own). `total` counts the systems that pass the filters; a bad
+  `sort`, `order`, `binary` or `placement` is a 400.
 - `GET /api/systems/<id>` — one system's full display detail: `id`,
   `name`, `sector_id`, `quadrant`, `location`, `is_binary`, `binary_type`,
   `binary_configuration` (`"close"`/`"wide"`/`null`),
@@ -385,7 +399,8 @@ connectivity to that specific schema rather than the default one.
   `belts_offset` pick each panel's page; `total` is that panel's full
   match count and `truncated` is true when `rows` isn't all of them. An
   offset past the last match returns the last page (with its real
-  `offset`).
+  `offset`). `panels` (comma-separated panel names) runs just those
+  panels, the others answering `null`.
 - `GET /api/wiki-config` — `{"wikijs": bool, "mediawiki": bool}`, whether
   each wiki backend has a `base_url` plus credentials configured
   deployment-wide (`config.json`'s `wiki` section, or the matching
@@ -430,17 +445,27 @@ connectivity to that specific schema rather than the default one.
   `technological_civilization`), `build`/`climate`/`size`,
   `civilization_age_years` and `era` (`null` without a civilization),
   `spacefaring`, and its `polity_id`/`polity_name` (`null` unless
-  spacefaring). `400` for any other `spacefaring` value.
+  spacefaring). `400` for any other `spacefaring` value. The Species table
+  (UX.41) also takes `sort` (`name`, `homeworld`, `system`, `era`,
+  `spacefaring`, `polity`) with `order=asc|desc`, the repeatable filter
+  `era`, and `facets=1` for `facets: {"spacefaring": [{"value": "yes"|"no",
+  "count"}], "era": [...]}` (each menu ignores its own filter); `total`
+  counts what passes the filters.
 - `GET /api/species/<id>` — one species; `404` if unknown.
 - `GET /api/planets/<id>/species` — the species whose homeworld that
   planet is; `404` when it has none.
 - `GET /api/polities?limit=<n>&offset=<n>` — every polity (one per
   spacefaring species), by name: `name`, `government`, `color`
   (`#rrggbb`), `reach_ly`, its species, `era`, capital and
-  `system_count`.
+  `system_count`. The Polities table (UX.41) also takes `sort` (`name`,
+  `species`, `government`, `capital`, `systems`, `reach`) with
+  `order=asc|desc`, the repeatable filters `government` and `era` (the
+  species'), and `facets=1` for `facets: {"government": [...], "era":
+  [...]}`; `total` counts what passes the filters.
 - `GET /api/polities/<id>?limit=<n>&offset=<n>` — one polity plus a page
   of the systems it owns (`id`, `name`, `distance_ly` from the capital),
-  nearest first; `404` if unknown.
+  nearest first, or by `sort=name|distance` with `order=asc|desc`; `404`
+  if unknown.
 - `GET /api/systems/<id>/owner` — `{"owner": {polity_id, polity_name,
   color, distance_ly}}`, or `{"owner": null}` when no polity holds it;
   `404` for an unknown system.

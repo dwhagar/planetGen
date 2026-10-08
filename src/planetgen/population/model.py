@@ -594,19 +594,66 @@ def _species_dict(row):
     return item
 
 
-def list_species(conn, spacefaring=None, limit=50, offset=0):
-    """A page of species by name, optionally only (non-)spacefaring ones."""
-    where, params = ("", ()) if spacefaring is None else ("WHERE s.spacefaring = ? ", (int(spacefaring),))
+SPECIES_SORTS = {
+    "name": "s.name", "homeworld": "p.name", "system": "ss.name", "era": "s.era", "spacefaring": "s.spacefaring",
+    "polity": "pol.name",
+}
+"""dict: The sort keys `list_species` accepts (the Species table's column keys) -> the SQL they order by."""
+
+
+def _species_where(spacefaring=None, eras=()):
+    """`(where_sql, params)` for the Species table's filters (an empty `eras` filters nothing)."""
+    clauses, params = [], []
+    if spacefaring is not None:
+        clauses.append("s.spacefaring = ?")
+        params.append(int(spacefaring))
+    if eras:
+        clauses.append(f"s.era IN ({', '.join('?' for _ in eras)})")
+        params.extend(eras)
+    return ("WHERE " + " AND ".join(clauses) + " ") if clauses else "", params
+
+
+def list_species(conn, spacefaring=None, limit=50, offset=0, sort="name", descending=False, eras=()):
+    """A page of species, by `sort` (a key of `SPECIES_SORTS`; ties fall back
+    to name, then id), optionally only (non-)spacefaring ones or those in
+    one of the `eras`. A species with no polity sorts last by `"polity"`."""
+    if sort not in SPECIES_SORTS:
+        raise ValueError(f"unknown species sort {sort!r}")
+    where, params = _species_where(spacefaring, eras)
+    column = SPECIES_SORTS[sort]
+    nulls_last = f"{column} IS NULL, " if sort in ("polity", "era") else ""
     rows = conn.execute(
-        f"SELECT {_SPECIES_COLUMNS} {_SPECIES_FROM} {where}ORDER BY s.name, s.id LIMIT ? OFFSET ?",
-        params + (limit, offset),
+        f"SELECT {_SPECIES_COLUMNS} {_SPECIES_FROM} {where}"
+        f"ORDER BY {nulls_last}{column} {'DESC' if descending else 'ASC'}, s.name, s.id LIMIT ? OFFSET ?",
+        params + [limit, offset],
     ).fetchall()
     return [_species_dict(row) for row in rows]
 
 
-def count_species(conn, spacefaring=None):
-    where, params = ("", ()) if spacefaring is None else ("WHERE spacefaring = ?", (int(spacefaring),))
-    return conn.execute(f"SELECT COUNT(*) AS n FROM species {where}", params).fetchone()["n"]
+def count_species(conn, spacefaring=None, eras=()):
+    where, params = _species_where(spacefaring, eras)
+    return conn.execute(f"SELECT COUNT(*) AS n FROM species s {where}", params).fetchone()["n"]
+
+
+def species_facets(conn, spacefaring=None, eras=()):
+    """
+    The option counts for the Species table's menus: `spacefaring` (`"yes"`/
+    `"no"`) and `era`. Each menu ignores its own filter.
+
+    Returns:
+        dict: `{"spacefaring"|"era": [{"value", "count"}]}`, options with no species left out.
+    """
+    def counts(select, **filters):
+        where, params = _species_where(**{"spacefaring": spacefaring, "eras": eras, **filters})
+        return {row["value"]: row["n"] for row in conn.execute(
+            f"SELECT {select} AS value, COUNT(*) AS n FROM species s {where}GROUP BY value", params).fetchall()}
+
+    flags = counts("(CASE WHEN s.spacefaring THEN 'yes' ELSE 'no' END)", spacefaring=None)
+    eras_found = counts("s.era", eras=())
+    return {
+        "spacefaring": [{"value": v, "count": flags[v]} for v in ("yes", "no") if flags.get(v)],
+        "era": [{"value": v, "count": eras_found[v]} for v in sorted(x for x in eras_found if x is not None)],
+    }
 
 
 def species_detail(conn, species_id):
@@ -633,28 +680,85 @@ _POLITY_FROM = (
 )
 
 
-def list_polities(conn, limit=50, offset=0):
-    """A page of polities by name."""
+POLITY_SORTS = {
+    "name": "pol.name", "species": "s.name", "government": "pol.government", "capital": "ss.name",
+    "systems": "system_count", "reach": "pol.reach_ly",
+}
+"""dict: The sort keys `list_polities` accepts (the Polities table's column keys) -> the SQL they order by."""
+
+
+def _polity_where(governments=(), eras=()):
+    """`(where_sql, params)` for the Polities table's filters (the species' `eras`)."""
+    clauses, params = [], []
+    for column, values in (("pol.government", governments), ("s.era", eras)):
+        if values:
+            clauses.append(f"{column} IN ({', '.join('?' for _ in values)})")
+            params.extend(values)
+    return ("WHERE " + " AND ".join(clauses) + " ") if clauses else "", params
+
+
+def list_polities(conn, limit=50, offset=0, sort="name", descending=False, governments=(), eras=()):
+    """A page of polities, by `sort` (a key of `POLITY_SORTS`; ties fall back
+    to name, then id), optionally only those with one of the `governments`
+    or whose species is in one of the `eras`."""
+    if sort not in POLITY_SORTS:
+        raise ValueError(f"unknown polity sort {sort!r}")
+    where, params = _polity_where(governments, eras)
     rows = conn.execute(
-        f"SELECT {_POLITY_COLUMNS} {_POLITY_FROM} ORDER BY pol.name, pol.id LIMIT ? OFFSET ?", (limit, offset),
+        f"SELECT {_POLITY_COLUMNS} {_POLITY_FROM} {where}"
+        f"ORDER BY {POLITY_SORTS[sort]} {'DESC' if descending else 'ASC'}, pol.name, pol.id LIMIT ? OFFSET ?",
+        params + [limit, offset],
     ).fetchall()
     return [dict(row) for row in rows]
 
 
-def count_polities(conn):
-    return conn.execute("SELECT COUNT(*) AS n FROM polities").fetchone()["n"]
+def count_polities(conn, governments=(), eras=()):
+    where, params = _polity_where(governments, eras)
+    return conn.execute(
+        f"SELECT COUNT(*) AS n FROM polities pol JOIN species s ON s.id = pol.species_id {where}", params
+    ).fetchone()["n"]
 
 
-def polity_detail(conn, polity_id, limit=50, offset=0):
+def polity_facets(conn, governments=(), eras=()):
+    """
+    The option counts for the Polities table's menus, `government` and `era`
+    (the species'). Each menu ignores its own filter.
+
+    Returns:
+        dict: `{"government"|"era": [{"value", "count"}]}`, options with no polities left out.
+    """
+    def counts(select, **filters):
+        where, params = _polity_where(**{"governments": governments, "eras": eras, **filters})
+        return {row["value"]: row["n"] for row in conn.execute(
+            f"SELECT {select} AS value, COUNT(*) AS n FROM polities pol "
+            f"JOIN species s ON s.id = pol.species_id {where}GROUP BY value", params).fetchall()}
+
+    found_governments = counts("pol.government", governments=())
+    found_eras = counts("s.era", eras=())
+    return {
+        "government": [{"value": v, "count": found_governments[v]}
+                       for v in sorted(x for x in found_governments if x is not None)],
+        "era": [{"value": v, "count": found_eras[v]} for v in sorted(x for x in found_eras if x is not None)],
+    }
+
+
+POLITY_SYSTEM_SORTS = {"name": "ss.name", "distance": "o.distance_ly"}
+"""dict: The sort keys `polity_detail` accepts for its systems."""
+
+
+def polity_detail(conn, polity_id, limit=50, offset=0, sort="distance", descending=False):
     """One polity with a page of the systems it owns (nearest the capital
-    first), or `None`."""
+    first unless sorted by a key of `POLITY_SYSTEM_SORTS`), or `None`."""
+    if sort not in POLITY_SYSTEM_SORTS:
+        raise ValueError(f"unknown polity system sort {sort!r}")
     row = conn.execute(f"SELECT {_POLITY_COLUMNS} {_POLITY_FROM} WHERE pol.id = ?", (polity_id,)).fetchone()
     if row is None:
         return None
     systems = conn.execute(
         "SELECT o.star_system_id AS id, ss.name, o.distance_ly FROM system_owners o "
         "JOIN star_systems ss ON ss.id = o.star_system_id WHERE o.polity_id = ? "
-        "ORDER BY o.distance_ly, o.star_system_id LIMIT ? OFFSET ?",
+        f"ORDER BY {POLITY_SYSTEM_SORTS[sort]} {'DESC' if descending else 'ASC'}, o.distance_ly, "
+        "o.star_system_id LIMIT ? OFFSET ?",
         (polity_id, limit, offset),
     ).fetchall()
     return {**dict(row), "systems": [dict(system) for system in systems], "limit": limit, "offset": offset}

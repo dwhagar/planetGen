@@ -360,7 +360,6 @@ def totp_setup():
     an authenticator app: returns `{"secret", "uri", "qr_svg"}` (the QR
     code encodes `uri`). Nothing changes at sign-in until `confirm`.
     """
-    from planetgen.admin import totp
     body = require_json_body()
     refused = _check_current_password(body)
     if refused is not None:
@@ -369,8 +368,8 @@ def totp_setup():
         secret = adminAuth.begin_totp_setup(get_control_db(), g.admin_user["id"])
     except adminAuth.AuthError as exc:
         raise ApiError(str(exc), status_code=400)
-    uri = totp.provisioning_uri(secret, g.admin_user["username"])
-    return jsonify({"secret": secret, "uri": uri, "qr_svg": totp.qr_svg(uri)})
+    uri, qr_svg = adminAuth.totp_enrolment(secret, g.admin_user["username"])
+    return jsonify({"secret": secret, "uri": uri, "qr_svg": qr_svg})
 
 
 @bp.route("/totp/confirm", methods=["POST"])

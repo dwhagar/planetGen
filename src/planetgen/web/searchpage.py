@@ -27,11 +27,15 @@ The query logic itself lives in `queryDb.search`, behind `GET /api/search`
 import math
 from urllib.parse import urlencode
 
-from flask import request, url_for
+from flask import g, request, url_for
 
-from planetgen.web.lib.pagination import PAGE_SIZE, page_offset, parse_page, render_pagination
+from planetgen.web.lib import apiclient
+from planetgen.web.lib.datatable import Column, Result, Table
+from planetgen.web.lib.fmt import format_number
+from planetgen.web.lib.pagination import PAGE_SIZE, page_offset, parse_page
 
-from .helpers import page_url, trusted_html
+from . import tables
+from .helpers import db_name, page_url
 from .sector_page import PHENOMENON_TYPE_LABELS
 
 # Mirrors queryDb.SEARCH_TAG_FACETS (this layer talks to the database only
@@ -322,30 +326,112 @@ def _rows(panel, rows):
     return out
 
 
+def _link(text, href):
+    return {"text": text, "href": href}
+
+
+def _sector_link(row):
+    return _link("View", row["sector_url"]) if row["sector_url"] else {"text": "Standalone"}
+
+
+def _radius(row):
+    return {"text": row["radius"]} if row.get("radius") else {"text": "—"}
+
+
+def _show_on_map(row):
+    return (_link("Show", row["galaxy_url"]) | {"label": f"Show {row['name']} on the Galaxy Map"}
+            if row.get("galaxy_url") else {"text": "—"})
+
+
+_PANEL_COLUMNS = {
+    "sectors": ["Name", "Cube Edge", "Galaxy Map"],
+    "systems": ["Name", "Sector", "Binary", "Star type", "Galaxy Map"],
+    "stars": ["Name", "Role", "Type", "Radius", "System", "Sector"],
+    "planets": ["Name", "Class", "Body", "Radius", "Life Chemistry", "System", "Sector"],
+    "moons": ["Name", "Class", "Body", "Radius", "Life Chemistry", "Orbits", "System", "Sector"],
+    "belts": ["Density", "Composition", "System", "Sector"],
+    "phenomena": ["Name", "Type", "Class", "Sector"],
+}
+_PANEL_NOUNS = {
+    "sectors": ("sector", "sectors"), "systems": ("system", "systems"), "stars": ("star", "stars"),
+    "planets": ("planet", "planets"), "moons": ("moon", "moons"), "belts": ("asteroid belt", "asteroid belts"),
+    "phenomena": ("phenomenon", "phenomena"),
+}
+
+
+def _cells(panel, row):
+    """One search result row as the data table's cells (the columns of `_PANEL_COLUMNS`)."""
+    if panel == "sectors":
+        return [_link(row["name"], row["url"]), {"text": f"{format_number(row['edge_mpc'], ',.2f')} mpc"},
+                _show_on_map(row)]
+    if panel == "systems":
+        return [_link(row["name"], row["url"]), _sector_link(row), {"text": "Yes" if row["is_binary"] else "No"},
+                {"text": row["star_summary"]}, _show_on_map(row)]
+    if panel == "stars":
+        return [{"text": row["name"]}, {"text": row["role"]}, {"text": row["star_type"]}, _radius(row),
+                _link(row["system_name"], row["system_url"]), _sector_link(row)]
+    if panel in ("planets", "moons"):
+        cells = [{"text": row["name"]}, {"text": row["planet_class"] or "—"}, {"text": row["body"]}, _radius(row),
+                 {"text": row["life_chemical"] or "—"}]
+        if panel == "moons":
+            cells.append({"text": row["planet_name"]})
+        return cells + [_link(row["system_name"], row["system_url"]), _sector_link(row)]
+    if panel == "phenomena":
+        return [_link(row["name"], row["url"]), {"text": row["type_label"]},
+                {"text": row["phenomenon_class"] or "—"}, _sector_link(row)]
+    return [{"text": row["density"].capitalize()}, {"text": row["composition_summary"]},
+            _link(row["system_name"], row["system_url"]), _sector_link(row)]
+
+
+def _panel_loader(panel):
+    def load(_table_state, limit, offset, _want_facets):
+        cached = (getattr(g, "search_results", None) or {}).get(panel)
+        if cached is None or cached["offset"] != offset or cached["limit"] != limit:
+            state = SearchState.from_args(request.args)
+            data = apiclient.get_search(
+                db_name(), state.name_terms(), state.tags, sizes=state.sizes(), limit=limit,
+                offsets={panel: offset}, panels=[panel])
+            cached = data["results"][panel]
+        if cached is None:
+            return Result([], 0)
+        rows = _rows(panel, cached["rows"])
+        return Result([_cells(panel, row) for row in rows], cached["total"], None,
+                      cached.get("total_capped", False))
+    return load
+
+
+PANEL_TABLES = {
+    panel: tables.register(Table(
+        f"search-{panel}", heading,
+        [Column(label.lower().replace(" ", "_"), label, sortable=False) for label in _PANEL_COLUMNS[panel]],
+        _panel_loader(panel), prefix=f"{panel}_", noun=_PANEL_NOUNS[panel]))
+    for panel, heading in RESULT_PANELS
+}
+
+
 def result_panels(state, results):
     """The result panels that ran, each `{"panel", "heading", "total",
-    "total_capped", "rows", "pager"}` (`total_capped`: more matches than
-    `total`, shown as "300+"). Every pager keeps the search and every other
-    panel's page as the API actually returned it (a past-the-end page
-    comes back as the last one)."""
-    shown = [(panel, heading, results.get(panel)) for panel, heading in RESULT_PANELS
-             if results.get(panel) is not None]
-    pages = {panel: result["offset"] // result["limit"] + 1 for panel, _h, result in shown}
-    paged = state.copy(pages=dict(state.pages, **pages))
-    base = paged.params(with_pages=True)
-    action = url_for("web.search")
+    "total_capped", "table"}` (`total_capped`: more matches than `total`,
+    shown as "300+"), each a data table (UX.41) that keeps the search and
+    every other panel's page. The API's results are handed to the tables
+    so the page asks it once."""
+    g.search_results = results
+    path = url_for("web.search")
+    source = {}
+    for key, value in state.params():
+        source.setdefault(key, []).append(value)
     panels = []
-    for panel, heading, result in shown:
+    for panel, heading in RESULT_PANELS:
+        result = results.get(panel)
+        if result is None:
+            continue
+        keep = tuple(key for key in _ALL_PARAMS if key != f"{panel}_page")
         panels.append({
             "panel": panel,
             "heading": heading,
             "total": result["total"],
             "total_capped": result.get("total_capped", False),
-            "rows": _rows(panel, result["rows"]),
-            "pager": trusted_html(render_pagination(
-                action, base, f"{panel}_page", pages[panel], result["total"], page_size=result["limit"],
-                anchor=f"search-{panel}", label=f"{heading} result pages",
-            )),
+            "table": tables.render(PANEL_TABLES[panel], path, anchor=f"search-{panel}", keep=keep, **source),
         })
     return panels
 

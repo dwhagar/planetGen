@@ -1,4 +1,7 @@
 {% extends "base.html" %}
+{% block head %}
+<script type="module" src="{{ static_url('datatable.js') }}"></script>
+{% endblock %}
 {% block subhead %}
 <p class="badges"><span class="badge">{{ num(sectors.total) }} sector{{ "" if sectors.total == 1 else "s" }}</span></p>
 {% endblock %}

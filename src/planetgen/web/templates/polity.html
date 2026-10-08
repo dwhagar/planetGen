@@ -1,5 +1,9 @@
 {#- One polity and its systems (/polities/<id>, web/population_pages.py). -#}
 {% extends "base.html" %}
+{% from "partials/datatable.html" import datatable with context %}
+{% block head %}
+<script type="module" src="{{ static_url('datatable.js') }}"></script>
+{% endblock %}
 {% block subhead %}
 <p class="badges">
   {%- if polity.color %}<span class="badge"><svg class="polity-swatch" viewBox="0 0 10 10" aria-hidden="true" focusable="false"><rect width="10" height="10" fill="{{ polity.color }}"/></svg> Map color</span>{% endif %}
@@ -25,17 +29,7 @@
   <div class="panel-header">
     <h2 id="polity-systems-heading">Systems</h2>
   </div>
-  <p>Nearest the capital first.</p>
-  <div class="table-scroll" tabindex="0"><table>
-    <thead><tr><th scope="col">System</th><th scope="col">From the capital</th></tr></thead>
-    <tbody>
-      {%- for row in systems %}
-      <tr><td><a href="{{ row.url }}">{{ row.name }}</a></td><td>{{ row.distance }}</td></tr>
-      {%- else %}
-      <tr><td colspan="2"><em>None</em></td></tr>
-      {%- endfor %}
-    </tbody>
-  </table></div>
-  {{ pager }}
+  <p>Nearest the capital first, until you sort them.</p>
+  {{ datatable(table) }}
 </section>
 {% endblock %}

@@ -97,7 +97,35 @@ def open_readonly(config=None, statement_timeout_s=None):
         raise SystemExit(f"Error: could not open the database ({exc}).")
 
 
-def list_sectors(conn, limit=None, offset=None):
+SECTOR_SORTS = {
+    "name": "sec.name", "systems": "system_count", "density": "(COUNT(ss.id) / POW(sec.edge_mpc, 3))",
+    "position": "quadrant", "distance": "sec.galactic_radius_pc",
+}
+"""dict: The sort keys `list_sectors` accepts (the Sectors table's column
+keys) -> the SQL they order by. A sector with no value (unplaced) sorts last
+either way."""
+
+SECTOR_QUADRANTS = ("I", "II", "III", "IV")
+"""tuple[str]: The sector Quadrant labels `list_sectors` filters by, plus
+`"unplaced"` for a sector with no galaxy position."""
+
+_SECTOR_QUADRANT_SQL = (
+    "(CASE WHEN sec.center_x_pc IS NULL THEN 'unplaced' "
+    "WHEN sec.center_y_pc >= 0 THEN (CASE WHEN sec.center_x_pc >= 0 THEN 'I' ELSE 'II' END) "
+    "ELSE (CASE WHEN sec.center_x_pc < 0 THEN 'III' ELSE 'IV' END) END)"
+)
+"""str: SQL for a sector's Quadrant label, the same bands as
+`planetgen.galaxy.geometry.sector_quadrant`."""
+
+
+def _sector_quadrant_filter(quadrants):
+    """`(where_sql, params)` keeping sectors in any of `quadrants`."""
+    if not quadrants:
+        return "", []
+    return f" WHERE {_SECTOR_QUADRANT_SQL} IN ({', '.join('?' for _ in quadrants)})", list(quadrants)
+
+
+def list_sectors(conn, limit=None, offset=None, sort=None, descending=False, quadrants=()):
     """
     Returns every sector, with its edge length (converted to light-years)
     and how many systems it contains, nearest the galactic core first
@@ -111,6 +139,12 @@ def list_sectors(conn, limit=None, offset=None):
             still gets) returns every sector.
         offset (int, optional): Skips this many rows first. Ignored
             unless `limit` is also given; meaningless on its own.
+        sort (str, optional): A key of `SECTOR_SORTS`; `None` is the
+            default order below. Ties fall back to the default order, so
+            pages never overlap.
+        descending (bool): Reverse `sort`.
+        quadrants (iterable[str]): Keep only sectors in these Quadrants
+            (`SECTOR_QUADRANTS`, or `"unplaced"`).
 
     Returns:
         list[dict]: One row per sector, with `id`, `name`,
@@ -118,18 +152,26 @@ def list_sectors(conn, limit=None, offset=None):
                            `galactic_radius_pc`/`galactic_radius_ly`
                            (`None` if unplaced).
     """
-    query = """
+    if sort is not None and sort not in SECTOR_SORTS:
+        raise ValueError(f"unknown sector sort {sort!r}")
+    where, params = _sector_quadrant_filter(quadrants)
+    order = "sec.galactic_radius_pc IS NULL, sec.galactic_radius_pc, sec.name, sec.id"
+    if sort is not None:
+        column = SECTOR_SORTS[sort]
+        unplaced_last = "sec.center_x_pc IS NULL, " if sort in ("density", "distance", "position") else ""
+        order = f"{unplaced_last}{column} {'DESC' if descending else 'ASC'}, " + order
+    query = f"""
         SELECT sec.id, sec.name, sec.edge_mpc, sec.center_x_pc, sec.center_y_pc, sec.center_z_pc,
-               sec.galactic_radius_pc, sec.ring_index, sec.layer_index, sec.ring_slot_index, COUNT(ss.id) AS system_count
+               sec.galactic_radius_pc, sec.ring_index, sec.layer_index, sec.ring_slot_index,
+               COUNT(ss.id) AS system_count, {_SECTOR_QUADRANT_SQL} AS quadrant
         FROM sectors sec
-        LEFT JOIN star_systems ss ON ss.sector_id = sec.id
+        LEFT JOIN star_systems ss ON ss.sector_id = sec.id{where}
         -- Every selected column, not just the key: MariaDB's
         -- ONLY_FULL_GROUP_BY doesn't see columns that depend on sec.id.
         GROUP BY sec.id, sec.name, sec.edge_mpc, sec.center_x_pc, sec.center_y_pc, sec.center_z_pc,
                  sec.galactic_radius_pc, sec.ring_index, sec.layer_index, sec.ring_slot_index
-        ORDER BY sec.galactic_radius_pc IS NULL, sec.galactic_radius_pc, sec.name, sec.id
+        ORDER BY {order}
         """
-    params = []
     if limit is not None:
         query += " LIMIT ? OFFSET ?"
         params.extend([limit, offset or 0])
@@ -152,9 +194,10 @@ def list_sectors(conn, limit=None, offset=None):
     ]
 
 
-def count_sectors(conn):
+def count_sectors(conn, quadrants=()):
     """
-    Returns the total number of sectors, ignoring any pagination --
+    Returns the total number of sectors (that pass the same `quadrants`
+    filter as `list_sectors`), ignoring any pagination --
     the denominator `list_sectors(conn, limit=...)` callers (the API's
     `/api/sectors`) need to report how many pages exist.
 
@@ -164,7 +207,24 @@ def count_sectors(conn):
     Returns:
         int: Total sector count.
     """
-    return conn.execute("SELECT COUNT(*) AS n FROM sectors").fetchone()["n"]
+    where, params = _sector_quadrant_filter(quadrants)
+    return conn.execute(f"SELECT COUNT(*) AS n FROM sectors sec{where}", params).fetchone()["n"]
+
+
+def sectors_facets(conn, quadrants=()):
+    """
+    The option counts for the Sectors table's Quadrant menu: how many sectors
+    each Quadrant (and `"unplaced"`) holds. The menu ignores its own filter,
+    so choosing one Quadrant still shows the others' counts.
+
+    Returns:
+        dict: `{"quadrant": [{"value", "count"}]}` in Quadrant order, only
+            those with sectors.
+    """
+    counts = {row["quadrant"]: row["n"] for row in conn.execute(
+        f"SELECT {_SECTOR_QUADRANT_SQL} AS quadrant, COUNT(*) AS n FROM sectors sec GROUP BY quadrant").fetchall()}
+    return {"quadrant": [{"value": value, "count": counts[value]}
+                         for value in (*SECTOR_QUADRANTS, "unplaced") if counts.get(value)]}
 
 
 class _NoSector:
@@ -184,7 +244,12 @@ distinct from the default `None`, which means "don't filter by sector at
 all." The API's `/api/systems?sector_id=none` maps onto this."""
 
 
-def _systems_filter_clause(star_type_prefix, sector_id):
+SYSTEM_SORTS = {"name": "ss.name", "sector": "sec.name", "octant": "ss.quadrant", "binary": "ss.is_binary"}
+"""dict: The sort keys `list_systems` accepts (the Systems tables' column
+keys) -> the SQL they order by. Ties fall back to name, then id."""
+
+
+def _systems_filter_clause(star_type_prefix, sector_id, binary=None, octants=(), in_sector=None):
     """
     Builds the shared `JOIN`/`WHERE`/params fragment `list_systems` and
     `count_systems` both need -- factored out so the count query can't
@@ -210,11 +275,21 @@ def _systems_filter_clause(star_type_prefix, sector_id):
         conditions.append("ss.sector_id = ?")
         params.append(sector_id)
 
+    if binary is not None:
+        conditions.append("ss.is_binary = ?")
+        params.append(1 if binary else 0)
+    if octants:
+        conditions.append(f"ss.quadrant IN ({', '.join('?' for _ in octants)})")
+        params.extend(octants)
+    if in_sector is not None:
+        conditions.append("ss.sector_id IS NOT NULL" if in_sector else "ss.sector_id IS NULL")
+
     where_sql = (" WHERE " + " AND ".join(conditions)) if conditions else ""
     return join_sql, where_sql, params
 
 
-def list_systems(conn, star_type_prefix=None, sector_id=None, limit=None, offset=None):
+def list_systems(conn, star_type_prefix=None, sector_id=None, limit=None, offset=None, sort="name",
+                 descending=False, binary=None, octants=(), in_sector=None):
     """
     Returns systems, optionally filtered by star type and/or sector.
 
@@ -233,6 +308,13 @@ def list_systems(conn, star_type_prefix=None, sector_id=None, limit=None, offset
             still gets) returns every matching system.
         offset (int, optional): Skips this many rows first. Ignored
             unless `limit` is also given; meaningless on its own.
+        sort (str): A key of `SYSTEM_SORTS`; a system with no sector sorts
+            last by `"sector"` either way.
+        descending (bool): Reverse `sort`.
+        binary (bool, optional): Keep only binary (or only single-star) systems.
+        octants (iterable[str]): Keep only systems in these sector octants.
+        in_sector (bool, optional): Keep only systems in a sector (True) or
+            standalone ones (False).
 
     Returns:
         list[dict]: One row per matching system, with `id`, `name`,
@@ -243,11 +325,17 @@ def list_systems(conn, star_type_prefix=None, sector_id=None, limit=None, offset
                            `html/search.py` show as a system's "Star type"
                            column).
     """
-    join_sql, where_sql, params = _systems_filter_clause(star_type_prefix, sector_id)
+    if sort not in SYSTEM_SORTS:
+        raise ValueError(f"unknown system sort {sort!r}")
+    join_sql, where_sql, params = _systems_filter_clause(star_type_prefix, sector_id, binary, octants, in_sector)
+    column = SYSTEM_SORTS[sort]
+    direction = "DESC" if descending else "ASC"
+    nulls_last = f"{column} IS NULL, " if sort in ("sector", "octant") else ""
     query = f"""
         SELECT DISTINCT ss.id, ss.name, ss.sector_id, ss.quadrant, ss.is_binary, ss.binary_configuration,
-               ss.binary_type
-        FROM star_systems ss{join_sql}{where_sql} ORDER BY ss.name, ss.id
+               ss.binary_type, sec.name AS sector_sort
+        FROM star_systems ss LEFT JOIN sectors sec ON sec.id = ss.sector_id{join_sql}{where_sql}
+        ORDER BY {nulls_last}{column} {direction}, ss.name, ss.id
         """
 
     if limit is not None:
@@ -331,7 +419,7 @@ def _star_summary(row):
     return row["binary_type"]
 
 
-def count_systems(conn, star_type_prefix=None, sector_id=None):
+def count_systems(conn, star_type_prefix=None, sector_id=None, binary=None, octants=(), in_sector=None):
     """
     Returns the total number of systems matching the same filters
     `list_systems` accepts, ignoring any pagination -- the denominator
@@ -346,9 +434,37 @@ def count_systems(conn, star_type_prefix=None, sector_id=None):
     Returns:
         int: Total matching system count.
     """
-    join_sql, where_sql, params = _systems_filter_clause(star_type_prefix, sector_id)
+    join_sql, where_sql, params = _systems_filter_clause(star_type_prefix, sector_id, binary, octants, in_sector)
     query = f"SELECT COUNT(DISTINCT ss.id) AS n FROM star_systems ss{join_sql}{where_sql}"
     return conn.execute(query, params).fetchone()["n"]
+
+
+def systems_facets(conn, sector_id=None, binary=None, octants=(), in_sector=None):
+    """
+    The option counts for the Systems tables' filter menus: where a system is
+    (`placement`: `"sector"` or `"standalone"`), whether it is `binary`
+    (`"yes"`/`"no"`) and its sector `octant`. Each menu's counts apply every
+    filter except its own, so the menus narrow one another.
+
+    Returns:
+        dict: `{"placement"|"binary"|"octant": [{"value", "count"}]}`,
+            options with no systems left out.
+    """
+    def counts(select, **filters):
+        base = {"binary": binary, "octants": octants, "in_sector": in_sector, **filters}
+        _join, where, params = _systems_filter_clause(None, sector_id, **base)
+        return {row["value"]: row["n"] for row in conn.execute(
+            f"SELECT {select} AS value, COUNT(*) AS n FROM star_systems ss{where} GROUP BY value",
+            params).fetchall()}
+
+    placement = counts("(CASE WHEN ss.sector_id IS NULL THEN 'standalone' ELSE 'sector' END)", in_sector=None)
+    binaries = counts("(CASE WHEN ss.is_binary THEN 'yes' ELSE 'no' END)", binary=None)
+    found = counts("ss.quadrant", octants=())
+    return {
+        "placement": [{"value": v, "count": placement[v]} for v in ("sector", "standalone") if placement.get(v)],
+        "binary": [{"value": v, "count": binaries[v]} for v in ("yes", "no") if binaries.get(v)],
+        "octant": [{"value": v, "count": found[v]} for v in sorted(x for x in found if x is not None)],
+    }
 
 
 def _body_filter_clause(table_alias, planet_class, min_radius_km, max_radius_km, sector_id, system_id):
@@ -2750,24 +2866,58 @@ def bright_stars_in_sector(conn, ring_index, layer_index, ring_slot_index, unfil
 
 def galaxy_brightest_stars(conn, count=GALAXY_TILE_BRIGHTEST_SAMPLE):
     """
-    The galaxy's `count` most luminous bright stars, most luminous first
-    (ties by descending id) -- `galaxy_tiles`' sample for tiles too big to
-    query on their own. One walk down `idx_bright_stars_luminosity`.
+    The galaxy's most luminous bright stars, most luminous first (ties by
+    descending id) -- `galaxy_tiles`' sample for tiles too big to query on
+    their own. Two walks down `idx_bright_stars_off_plane`: the `count`
+    brightest on the plane and the `count // 2` brightest 250 pc or more
+    off it (GEN.117), so the old giants above and below the plane aren't
+    left out by the plane's luminous young stars.
 
     Returns:
         list[dict]: As `galaxy_bright_stars_in_box`.
     """
-    rows = conn.execute(
-        """
-        SELECT id, position_x_mpc, position_y_mpc, position_z_mpc, luminosity_w, temperature_k, radius_km,
-               star_type, yerkes_class, ring_index, layer_index, ring_slot_index, star_system_id
-        FROM bright_stars FORCE INDEX (idx_bright_stars_luminosity)
-        ORDER BY luminosity_w DESC, id DESC
-        LIMIT ?
-        """,
-        (int(count),),
-    ).fetchall()
-    return [_bright_star_entry(row) for row in rows]
+    picks = []
+    for off_plane, limit in ((0, int(count)), (1, int(count) // 2)):
+        picks += [
+            _bright_star_entry(row) for row in conn.execute(
+                """
+                SELECT id, position_x_mpc, position_y_mpc, position_z_mpc, luminosity_w, temperature_k, radius_km,
+                       star_type, yerkes_class, ring_index, layer_index, ring_slot_index, star_system_id
+                FROM bright_stars FORCE INDEX (idx_bright_stars_off_plane)
+                WHERE off_plane = ?
+                ORDER BY luminosity_w DESC, id DESC
+                LIMIT ?
+                """,
+                (off_plane, limit),
+            ).fetchall()
+        ]
+    picks.sort(key=lambda star: (-star["luminosity_sol"], -star["id"]))
+    return picks
+
+
+BRIGHT_STAR_PLANE_HALF_THICKNESS_PC = 250.0
+"""float: A tile's bright stars are picked in three height bands (GEN.117):
+the plane, `|z|` below this, and the two sides above and below it. The
+Galaxy Map's old picks, the most luminous first, kept only the young blue
+stars on the plane and none of the old giants above it."""
+
+BRIGHT_STAR_OFF_PLANE_SHARE = 0.5
+"""float: The share of a tile's bright-star budget (`limit`) split between
+the bands off the plane, when the tile reaches them: each gets half of
+it, and the plane the rest. A band holding fewer stars than its share
+leaves the rest to the plane."""
+
+
+def _height_bands(lo, hi):
+    """The box `[lo, hi)` cut at the plane band's edges: `[(lo, hi, on_plane)]`,
+    only the bands the box reaches."""
+    edge = BRIGHT_STAR_PLANE_HALF_THICKNESS_PC
+    cuts = [-edge, edge]
+    bounds = [lo[2]] + [z for z in cuts if lo[2] < z < hi[2]] + [hi[2]]
+    bands = []
+    for bottom, top in zip(bounds, bounds[1:]):
+        bands.append(((lo[0], lo[1], bottom), (hi[0], hi[1], top), -edge <= bottom and top <= edge))
+    return bands
 
 
 def galaxy_bright_stars_in_box(conn, lo, hi, edge_pc, limit=GALAXY_TILE_MAX_BRIGHT_STARS, unfilled_only=False,
@@ -2776,6 +2926,35 @@ def galaxy_bright_stars_in_box(conn, lo, hi, edge_pc, limit=GALAXY_TILE_MAX_BRIG
     The most luminous pre-placed bright stars (`bright_stars`) in the box
     `[lo, hi)`, at most `limit` -- the stars the Galaxy Map draws before
     (and after) their sectors are filled.
+
+    A box reaching beyond the galactic plane's band picks within each
+    height band (`BRIGHT_STAR_PLANE_HALF_THICKNESS_PC`) so the old giants
+    above and below the plane are not all crowded out by the young stars
+    on it (GEN.117): each band off the plane gets its share of `limit`
+    (`BRIGHT_STAR_OFF_PLANE_SHARE`), and what a band leaves unused goes
+    to the plane. See `_galaxy_bright_stars_in_band` for the rest.
+    """
+    bands = _height_bands(lo, hi)
+    if len(bands) == 1:
+        return _galaxy_bright_stars_in_band(conn, lo, hi, edge_pc, limit, unfilled_only, brightest)
+    off = [band for band in bands if not band[2]]
+    share = int(limit * BRIGHT_STAR_OFF_PLANE_SHARE) // max(1, len(off))
+    picks = []
+    for band_lo, band_hi, on_plane in bands:
+        if not on_plane:
+            picks += _galaxy_bright_stars_in_band(conn, band_lo, band_hi, edge_pc, share, unfilled_only, brightest)
+    plane = [band for band in bands if band[2]]
+    room = limit - len(picks)
+    for band_lo, band_hi, _on in plane:
+        picks += _galaxy_bright_stars_in_band(conn, band_lo, band_hi, edge_pc, room, unfilled_only, brightest)
+    picks.sort(key=lambda star: (-star["luminosity_sol"], -star["id"]))
+    return picks[:limit]
+
+
+def _galaxy_bright_stars_in_band(conn, lo, hi, edge_pc, limit, unfilled_only, brightest):
+    """
+    The most luminous pre-placed bright stars in the box `[lo, hi)`, at
+    most `limit`, with no height banding (`galaxy_bright_stars_in_box`).
 
     `bright_stars` is indexed by address and by luminosity, not by
     position, so the box is turned into address ranges: one per ring and
@@ -2926,8 +3105,77 @@ def generated_star_floor_sol(level):
     return None if floor > GENERATED_STAR_MAX_FLOOR_SOL else floor
 
 
+GALAXY_TILE_STAR_BUDGET = {3: 150, 4: 200, 5: 250, 6: 300, 7: 350, 8: 400, 9: 500, 10: 650, 11: 850}
+"""dict: MAP.116's one table of how many generated stars a Galaxy Map tile
+lists, by tile level (the levels in `generated_star_floor_sol`'s reach and
+coarser than `TILE_MAX_LEVEL`). The map shows a roughly constant number of
+tiles at any zoom, so a coarser tile gets fewer stars: a dense filled
+region stays readable two or three zoom levels out from a sector, where
+1000 per tile used to blur into a smear. The brightest stars win; the
+brightness floor (`generated_star_floor_sol`) is the other half of the rule.
+A finest tile lists up to `GALAXY_TILE_MAX_DETAIL_STARS` instead."""
+
+SECTOR_ALLOWANCE_FUDGE = 3
+"""int: A tile's budget is shared out by sector: each generated sector may
+put `SECTOR_ALLOWANCE_FUDGE * budget / sectors` stars (at least one) on
+the tile, its brightest, so one dense sector can't take the whole budget
+while a sparse sector, which has fewer stars than that, keeps all it has
+and the leftover room goes to the brighter stars of the dense ones."""
+
+GALAXY_TILE_POINT_BUDGET = {10: 40, 11: 100}
+"""dict: Most point phenomena (black holes, neutron stars, quasars) a tile
+of that level lists (MAP.116); a finest tile lists up to
+`GALAXY_TILE_MAX_POINTS`. The most luminous come first, so a remnant shows
+where the budget reaches it."""
+
+
+GALAXY_VIEW_MAX_TILES = 27
+"""int: Most tiles a view's own level needs: the view sphere is at most as
+wide as a tile (`viewport.tile_level_for_view_radius`), so it touches at
+most 3 tiles along each axis."""
+
+GALAXY_VIEW_MAX_DETAIL_TILES = 8
+"""int: Most finest tiles the map adds around the target once zoomed to a
+sector (`DETAIL_RADIUS_PC` is 8 pc, half a finest tile's edge, so the
+sphere touches at most 2 along each axis)."""
+
+GALAXY_VIEW_MAX_STARS = 70000
+"""int: MAP.109's stated cap on the stars (pre-placed and generated) one
+view's tiles can carry, about 8 MB of JSON before compression. It holds by
+construction -- every tile's lists are capped (`GALAXY_TILE_MAX_BRIGHT_STARS`,
+`GALAXY_TILE_STAR_BUDGET`, `GALAXY_TILE_MAX_DETAIL_STARS`) -- and
+`galaxy_view_star_cap` adds those caps up, so a test fails when a budget is
+raised past it. A real view carries far less: the caps are for a tile packed
+with stars, and most of the galaxy's tiles are not."""
+
+
+def galaxy_view_star_cap():
+    """
+    The most stars one view can fetch: `GALAXY_VIEW_MAX_TILES` tiles of its
+    own level (each with the bright-star cap and the biggest level budget)
+    plus `GALAXY_VIEW_MAX_DETAIL_TILES` finest tiles.
+    """
+    coarse = GALAXY_VIEW_MAX_TILES * (GALAXY_TILE_MAX_BRIGHT_STARS + max(GALAXY_TILE_STAR_BUDGET.values()))
+    detail = GALAXY_VIEW_MAX_DETAIL_TILES * (GALAXY_TILE_MAX_BRIGHT_STARS + GALAXY_TILE_MAX_DETAIL_STARS)
+    return coarse + detail
+
+
+def generated_star_budget(level, sector_count):
+    """
+    `(tile budget, per-sector allowance)` for the generated stars of a tile of
+    `level` holding `sector_count` generated sectors -- `GALAXY_TILE_STAR_BUDGET`
+    shared by `SECTOR_ALLOWANCE_FUDGE`. A finest tile lists up to
+    `GALAXY_TILE_MAX_DETAIL_STARS` with no per-sector allowance.
+    """
+    if level >= TILE_MAX_LEVEL:
+        return GALAXY_TILE_MAX_DETAIL_STARS, None
+    budget = GALAXY_TILE_STAR_BUDGET.get(level, GALAXY_TILE_MAX_GENERATED_STARS)
+    allowance = max(1, int(math.ceil(SECTOR_ALLOWANCE_FUDGE * budget / float(max(1, sector_count)))))
+    return budget, allowance
+
+
 def galaxy_generated_stars_in_box(conn, lo, hi, min_luminosity_sol, sector_count,
-                                  limit=GALAXY_TILE_MAX_GENERATED_STARS):
+                                  limit=GALAXY_TILE_MAX_GENERATED_STARS, per_sector=None):
     """
     The most luminous stars of generated systems whose sector's center
     lies in the box `[lo, hi)`, at least `min_luminosity_sol` each, at
@@ -2950,6 +3198,8 @@ def galaxy_generated_stars_in_box(conn, lo, hi, min_luminosity_sol, sector_count
         sector_count (int): How many generated (grid-placed) sectors the
             box holds, as its `galaxy_filled_in_box` summary counts them.
         limit (int): See `GALAXY_TILE_MAX_GENERATED_STARS`.
+        per_sector (int or None): Most stars one sector contributes, its
+            brightest (`generated_star_budget`); `None` is no limit.
 
     Returns:
         list[dict]: Most luminous first (ties by descending id): `id`
@@ -2961,12 +3211,14 @@ def galaxy_generated_stars_in_box(conn, lo, hi, min_luminosity_sol, sector_count
     if sector_count <= 0:
         return []
     stride = max(1, int(math.ceil(sector_count / float(GALAXY_TILE_GENERATED_STAR_SECTOR_BUDGET))))
-    rows = conn.execute(
-        """
+    select = """
         SELECT st.id, st.name, st.luminosity_w, st.temperature_k, st.radius_km, st.star_type,
                ss.id AS system_id, ss.position_x_mpc, ss.position_y_mpc, ss.position_z_mpc,
                sec.center_x_pc, sec.center_y_pc, sec.center_z_pc,
-               sec.ring_index, sec.layer_index, sec.ring_slot_index
+               sec.ring_index, sec.layer_index, sec.ring_slot_index"""
+    rank = (", ROW_NUMBER() OVER (PARTITION BY sec.id ORDER BY st.luminosity_w DESC, st.id DESC) AS sector_rank"
+            if per_sector is not None else "")
+    source = """
         FROM sectors sec FORCE INDEX (idx_sectors_center)
         JOIN star_systems ss ON ss.sector_id = sec.id
         JOIN stars st ON st.star_system_id = ss.id
@@ -2976,13 +3228,15 @@ def galaxy_generated_stars_in_box(conn, lo, hi, min_luminosity_sol, sector_count
           AND sec.center_z_pc >= ? AND sec.center_z_pc < ?
           AND sec.ring_index IS NOT NULL AND MOD(CRC32(sec.id), ?) = 0
           AND ss.position_x_mpc IS NOT NULL
-          AND st.luminosity_w >= ? AND b.id IS NULL
-        ORDER BY st.luminosity_w DESC, st.id DESC
-        LIMIT ?
-        """,
-        (lo[0], hi[0], lo[1], hi[1], lo[2], hi[2], stride,
-         float(min_luminosity_sol) * constants.SOLAR_LUMINOSITY, int(limit)),
-    ).fetchall()
+          AND st.luminosity_w >= ? AND b.id IS NULL"""
+    params = [lo[0], hi[0], lo[1], hi[1], lo[2], hi[2], stride, float(min_luminosity_sol) * constants.SOLAR_LUMINOSITY]
+    if per_sector is None:
+        sql = select + source + "\n        ORDER BY st.luminosity_w DESC, st.id DESC\n        LIMIT ?"
+    else:
+        sql = ("SELECT * FROM (" + select + rank + source + ") ranked WHERE sector_rank <= ?"
+               "\n        ORDER BY luminosity_w DESC, id DESC\n        LIMIT ?")
+        params.append(int(per_sector))
+    rows = conn.execute(sql, params + [int(limit)]).fetchall()
     return [{
         "id": row["id"], "name": row["name"],
         "x": round(row["center_x_pc"] + row["position_x_mpc"] / MPC_PER_PC, 3),
@@ -3130,9 +3384,12 @@ def galaxy_tiles(conn, tile_keys):
         generated = []
         if floor is not None:
             sector_count = len(filled["cells"]) if filled["g"] == 1 else sum(cell[3] for cell in filled["cells"])
-            limit = GALAXY_TILE_MAX_DETAIL_STARS if level >= TILE_MAX_LEVEL else GALAXY_TILE_MAX_GENERATED_STARS
-            generated = galaxy_generated_stars_in_box(conn, lo, hi, floor, sector_count, limit=limit)
-        points = galaxy_point_phenomena_in_box(conn, lo, hi) if level >= POINT_PHENOMENON_MIN_LEVEL else []
+            limit, per_sector = generated_star_budget(level, sector_count)
+            generated = galaxy_generated_stars_in_box(conn, lo, hi, floor, sector_count, limit=limit,
+                                                      per_sector=per_sector)
+        points = (galaxy_point_phenomena_in_box(
+            conn, lo, hi, limit=GALAXY_TILE_POINT_BUDGET.get(level, GALAXY_TILE_MAX_POINTS))
+            if level >= POINT_PHENOMENON_MIN_LEVEL else [])
         tiles[key] = {
             "placed": placed, "planned": planned, "filled": filled, "clouds": clouds, "stars": stars,
             "generated": generated, "points": points,
@@ -4199,7 +4456,7 @@ def _search_facets_cached(conn):
     return value
 
 
-def search(conn, texts, tags, sizes=None, limit=SEARCH_RESULT_LIMIT, offsets=None):
+def search(conn, texts, tags, sizes=None, limit=SEARCH_RESULT_LIMIT, offsets=None, only=None):
     """
     Runs the faceted search behind `GET /api/search`/`html/search.py`:
     the same click-to-filter attribute tags (object type; star spectral/
@@ -4228,6 +4485,8 @@ def search(conn, texts, tags, sizes=None, limit=SEARCH_RESULT_LIMIT, offsets=Non
         offsets (dict, optional): `{panel: offset}` for any of
             `SEARCH_RESULT_PANELS` -- each panel pages independently; an
             absent panel starts at 0.
+        only (iterable, optional): Run just these panels (a table scrolling
+            one panel asks for that panel alone); the others come back `None`.
 
     Returns:
         dict: `facets` (`{facet: [{"value","label","count","tooltip"}, ...]}`,
@@ -4280,28 +4539,29 @@ def search(conn, texts, tags, sizes=None, limit=SEARCH_RESULT_LIMIT, offsets=Non
         return limit, offsets.get(panel, 0)
 
     results = {panel: None for panel in SEARCH_RESULT_PANELS}
-    if texts.get("sector_q"):
+    wanted = set(SEARCH_RESULT_PANELS if only is None else only)
+    if texts.get("sector_q") and "sectors" in wanted:
         results["sectors"] = _search_result_sectors(conn, texts["sector_q"], *_page("sectors"))
-    if texts.get("system_q"):
+    if texts.get("system_q") and "systems" in wanted:
         results["systems"] = _search_result_systems(conn, texts["system_q"], *_page("systems"))
-    if stars_included:
+    if stars_included and "stars" in wanted:
         results["stars"] = _search_result_stars(
             conn, spectral_tags, luminosity_tags, texts.get("star_q", ""), *_page("stars"), size_range=star_size
         )
-    if planets_included:
+    if planets_included and "planets" in wanted:
         results["planets"] = _search_result_planets(
             conn, class_tags, body_tags, life_tags, texts.get("planet_q", ""), *_page("planets"),
             size_range=planet_size,
         )
-    if moons_included:
+    if moons_included and "moons" in wanted:
         results["moons"] = _search_result_moons(
             conn, moon_class_tags, moon_body_tags, moon_life_tags, texts.get("moon_q", ""), *_page("moons"),
             size_range=moon_size,
         )
-    if belts_included:
+    if belts_included and "belts" in wanted:
         results["belts"] = _search_result_belts(conn, density_tags, *_page("belts"))
     phenomenon_tags, phenomenon_class_tags = tags.get("phenomenon", set()), tags.get("phenomenon_class", set())
-    if phenomenon_tags or phenomenon_class_tags:
+    if (phenomenon_tags or phenomenon_class_tags) and "phenomena" in wanted:
         results["phenomena"] = _search_result_phenomena(
             conn, phenomenon_tags, phenomenon_class_tags, *_page("phenomena"))
 

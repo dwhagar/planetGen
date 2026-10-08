@@ -273,9 +273,12 @@ def test_a_pass_removes_species_stored_without_a_civilization(mysql_config, gala
     conn = store.get_connection(mysql_config)
     try:
         population.run_pass(conn)
-        # Any stored planet will do (a random system may have none).
+        # Any stored planet will do, but a planet is one species' homeworld at
+        # most (`uq_species_homeworld`): the first one may be a civilized
+        # system's, so clear its species before the leftover takes its place.
         planet = conn.execute("SELECT id, star_system_id FROM planets ORDER BY id LIMIT 1").fetchone()
         with conn:
+            conn.execute("DELETE FROM species WHERE homeworld_planet_id = ?", (planet["id"],))
             conn.execute(
                 "INSERT INTO species (name, homeworld_planet_id, star_system_id, life_chemical, life_stage, build, "
                 "climate, size, civilization_age_years, era, spacefaring) "
@@ -313,7 +316,7 @@ def test_migration_from_v43_adds_the_tables(mysql_config):
         with conn:
             for table in ("system_owners", "polities", "species", "population_state"):
                 conn.execute(f"DROP TABLE {table}")
-            conn.execute("DELETE FROM schema_migrations WHERE version IN (44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56)")
+            conn.execute("DELETE FROM schema_migrations WHERE version IN (44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57)")
     finally:
         conn.close()
     store.migrate_database(mysql_config)
@@ -417,3 +420,57 @@ def test_population_status_after_a_pass(mysql_config, galaxy, client):
         conn.close()
     assert client.get("/api/population").get_json() == {
         "generated": True, "species": True, "polities": True, "territories": True}
+
+
+# --- The Species and Polities tables (UX.41) ---------------------------------------------
+
+def test_species_and_polities_sort_filter_and_count(mysql_config, galaxy):
+    conn = store.get_connection(mysql_config)
+    try:
+        population.run_pass(conn)
+        with conn:
+            _set_age(conn, galaxy["a"], 1e6)
+        population.run_pass(conn)
+
+        names = [row["name"] for row in population.list_species(conn, sort="name")]
+        assert names == sorted(names)
+        assert [row["name"] for row in population.list_species(conn, sort="name", descending=True)] == names[::-1]
+        for key in population.SPECIES_SORTS:
+            assert len(population.list_species(conn, sort=key)) == len(names)
+
+        everything = population.list_species(conn)
+        eras = {row["era"] for row in everything}
+        one = next(iter(eras))
+        found = population.list_species(conn, eras=[one])
+        assert found and {row["era"] for row in found} == {one}
+        assert population.count_species(conn, eras=[one]) == len(found)
+        assert population.count_species(conn, spacefaring=True) + population.count_species(
+            conn, spacefaring=False) == len(everything)
+
+        facets = population.species_facets(conn)
+        assert sum(o["count"] for o in facets["spacefaring"]) == len(everything)
+        assert {o["value"]: o["count"] for o in facets["era"]}[one] == len(found)
+        # A menu ignores its own filter and the other narrows.
+        narrowed = population.species_facets(conn, eras=[one])
+        assert sum(o["count"] for o in narrowed["spacefaring"]) == len(found)
+        assert narrowed["era"] == facets["era"]
+
+        with pytest.raises(ValueError):
+            population.list_species(conn, sort="mass")
+
+        polities = population.list_polities(conn)
+        if polities:
+            polity_facets = population.polity_facets(conn)
+            assert sum(o["count"] for o in polity_facets["government"]) == len(polities)
+            government = polities[0]["government"]
+            narrowed = population.list_polities(conn, governments=[government])
+            assert narrowed and population.count_polities(conn, governments=[government]) == len(narrowed)
+            for key in population.POLITY_SORTS:
+                assert len(population.list_polities(conn, sort=key, descending=True)) == len(polities)
+            detail = population.polity_detail(conn, polities[0]["id"], sort="name", descending=True)
+            systems = [row["name"] for row in detail["systems"]]
+            assert systems == sorted(systems, reverse=True)
+        with pytest.raises(ValueError):
+            population.list_polities(conn, sort="mass")
+    finally:
+        conn.close()

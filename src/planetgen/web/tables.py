@@ -27,19 +27,24 @@ def register(table):
     return table
 
 
-def render(table, path, anchor=None):
+def render(table, path, anchor=None, keep=(), **source_args):
     """
     Load the page of `table` the current request asks for and return its
     view model (`lib/datatable.view`) for `partials/datatable.html`. A page
-    past the end shows the last real one.
+    past the end shows the last real one. `source_args` ride on the table's
+    JSON address (a table about one thing, such as a polity's systems, names
+    it there). `keep` names further page parameters to carry in every link.
     """
     state = parse_state(table, request.args)
+    # Carry along only the other tables' parameters, never whatever else is in the address.
+    others = set().union(*(other.owned_params() for other in TABLES.values())) - table.owned_params()
+    extra = [(key, value) for key, value in request.args.items(multi=True) if key in others or key in keep]
     result = table.load(state, PAGE_SIZE, page_offset(state.page), True)
     page = clamp_page(state.page, result.total)
     if page != state.page:
         state = state._replace(page=page)
         result = table.load(state, PAGE_SIZE, page_offset(page), True)
-    return view(table, state, result, path, url_for("web.table_data", name=table.name), anchor=anchor)
+    return view(table, state, result, path, url_for("web.table_data", name=table.name, **source_args), anchor=anchor, extra=extra)
 
 
 def _whole(raw, default, lowest):

@@ -43,28 +43,44 @@ class FakePopulation:
     def __init__(self, status):
         self.status = status
         self.calls = []
+        self.asked = []
 
     def get_population_status(self, db):
         self.calls.append("status")
         return dict(self.status)
 
-    def get_species_list(self, db, spacefaring=None, limit=None, offset=None):
+    def get_species_list(self, db, spacefaring=None, limit=None, offset=None, sort=None, descending=False,
+                         eras=(), facets=False):
         self.calls.append(("species", spacefaring))
-        items = [SPECIES] if spacefaring in (None, True) else []
-        return {"items": items, "total": len(items), "limit": limit, "offset": offset}
+        self.asked.append(("species", sort, descending, list(eras)))
+        items = [SPECIES] if spacefaring in (None, True) and (not eras or SPECIES["era"] in eras) else []
+        body = {"items": items, "total": len(items), "limit": limit, "offset": offset}
+        if facets:
+            body["facets"] = {"spacefaring": [{"value": "yes", "count": 1}, {"value": "no", "count": 4}],
+                              "era": [{"value": "ancient", "count": 1}, {"value": "young_age", "count": 4}]}
+        return body
 
     def get_species(self, db, species_id):
         if species_id != SPECIES["id"]:
             raise apiclient.NotFoundError("no such species")
         return SPECIES
 
-    def get_polities(self, db, limit=None, offset=None):
-        return {"items": [POLITY], "total": 1, "limit": limit, "offset": offset}
+    def get_polities(self, db, limit=None, offset=None, sort=None, descending=False, governments=(), eras=(),
+                     facets=False):
+        self.asked.append(("polities", sort, descending, list(governments), list(eras)))
+        body = {"items": [POLITY], "total": 1, "limit": limit, "offset": offset}
+        if facets:
+            body["facets"] = {"government": [{"value": "Concord", "count": 1}],
+                              "era": [{"value": "ancient", "count": 1}]}
+        return body
 
-    def get_polity(self, db, polity_id, limit=None, offset=None):
+    def get_polity(self, db, polity_id, limit=None, offset=None, sort=None, descending=False):
         if polity_id != POLITY["id"]:
             raise apiclient.NotFoundError("no such polity")
+        self.asked.append(("polity", sort, descending))
         systems = [{"id": 5, "name": "Kepler", "distance_ly": 0.0}, {"id": 6, "name": "Far<b>", "distance_ly": 7.25}]
+        if descending:
+            systems.reverse()
         return {**POLITY, "systems": systems[offset:offset + limit], "limit": limit, "offset": offset}
 
     def get_planet_species(self, db, planet_id):
@@ -139,14 +155,42 @@ def test_species_list_and_filter(monkeypatch, client, fake):
     page = client.get("/species").get_data(as_text=True)
     assert '<a href="/species/3">Vel&lt;ar&gt;</a>' in page
     assert '<a href="/system/5">Kepler</a>' in page and '<a href="/polities/2">Velar Concord</a>' in page
-    assert 'href="/species" aria-current="page">All</a>' in page
     assert 'href="/polities">Polities</a>' in page
-    filtered = client.get("/species?spacefaring=0").get_data(as_text=True)
+    assert '<span class="datatable-option-label">Not spacefaring</span> <span class="datatable-count">(4)</span>' in page
+    filtered = client.get("/species?spacefaring=no").get_data(as_text=True)
     assert ("species", False) in data.calls
-    assert 'href="/species?spacefaring=0" aria-current="page">Not spacefaring</a>' in filtered
+    assert 'name="spacefaring" value="no" checked' in filtered
     assert "<em>None</em>" in filtered
+    # Both choices, or a stray one, filter nothing.
+    client.get("/species?spacefaring=yes&spacefaring=no")
+    assert data.calls[-1] == ("species", None)
     client.get("/species?spacefaring=bogus")
     assert data.calls[-1] == ("species", None)
+
+
+def test_species_table_sorts_and_filters_by_era(monkeypatch, client, fake):
+    data = _install(monkeypatch, ALL)
+    page = client.get("/species?species_sort=polity&species_order=desc&era=young_age").get_data(as_text=True)
+    assert ("species", "polity", True, ["young_age"]) in data.asked
+    assert '<th scope="col" data-col="polity" aria-sort="descending">' in page
+    assert '<span class="datatable-option-label">Young age</span>' in page
+
+
+def test_population_tables_serve_json(monkeypatch, client, fake):
+    data = _install(monkeypatch, ALL)
+    body = client.get("/table/species?sort=era&facets=1").get_json()
+    assert body["rows"][0][0] == {"text": "Vel<ar>", "href": "/species/3"}
+    assert body["rows"][0][5] == {"text": "Velar Concord", "href": "/polities/2"}
+    assert {o["value"]: o["label"] for o in body["facets"]["spacefaring"]} == {
+        "yes": "Spacefaring", "no": "Not spacefaring"}
+    body = client.get("/table/polities?government=Concord&era=ancient&facets=1").get_json()
+    assert body["rows"][0][0] == {"text": "Velar Concord", "href": "/polities/2", "swatch": "#3366cc"}
+    assert body["rows"][0][4] == {"text": "2"} and body["rows"][0][5]["text"] == "80.0 ly"
+    assert ("polities", "name", False, ["Concord"], ["ancient"]) in data.asked
+    body = client.get("/table/polity-systems?polity=2&sort=distance&order=desc").get_json()
+    assert [row[0]["text"] for row in body["rows"]] == ["Far<b>", "Kepler"]
+    assert body["total"] == 2
+    assert client.get("/table/polity-systems?polity=9").status_code == 404
 
 
 def test_species_page(monkeypatch, client, fake):
@@ -166,6 +210,9 @@ def test_polity_pages(monkeypatch, client, fake):
     page = client.get("/polities/2").get_data(as_text=True)
     assert '<a href="/system/6">Far&lt;b&gt;</a>' in page and "7.2 ly" in page
     assert page.index("/system/5") < page.index("/system/6")
+    assert 'data-col="distance" aria-sort="ascending"' in page
+    reversed_page = client.get("/polities/2?systems_sort=distance&systems_order=desc").get_data(as_text=True)
+    assert reversed_page.index("/system/6") < reversed_page.rindex("/system/5")
     assert client.get("/polities/9").status_code == 404
 
 

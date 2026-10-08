@@ -1,6 +1,6 @@
 # planetGen
 
-**Version:** 7.290.637 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
+**Version:** 7.299.637 &middot; [Changelog](CHANGELOG.md) &middot; [Repository](https://github.com/dwhagar/planetGen) &middot; License: [CC0 1.0 Universal](LICENSE.md)
 
 planetGen generates a galaxy: stars, star systems, planets, moons,
 asteroid belts and exotic phenomena, placed in a physically modeled
@@ -222,6 +222,4 @@ merge. Run the tests with `pytest` ([`docs/testing.md`](docs/testing.md)).
 
 The bundled list of common passwords (`src/planetgen/admin/common_passwords.txt.gz`)
 is derived from [SecLists](https://github.com/danielmiessler/SecLists) under the
-MIT licence; see `src/planetgen/admin/common_passwords.LICENSE`. The QR code
-generator (`src/planetgen/admin/qrcode.py`) is Project Nayuki's, under
-the MIT licence in its header.
+MIT licence; see `src/planetgen/admin/common_passwords.LICENSE`.

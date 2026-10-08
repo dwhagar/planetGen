@@ -1,4 +1,8 @@
 {%- extends "base.html" %}
+{% from "partials/datatable.html" import datatable with context %}
+{% block head %}
+<script type="module" src="{{ static_url('datatable.js') }}"></script>
+{% endblock %}
 {%- macro tiles(pairs) -%}
 <div class="stat-tiles">
   {%- for label, value in pairs %}
@@ -117,28 +121,8 @@
   {{ tiles(name_tiles) }}
   {%- if names.error %}
   <p class="error">{{ names.error }}</p>
-  {%- elif not names["items"] %}
-  <p class="hint">No names have had to be made unique.</p>
   {%- else %}
-  <div class="table-scroll" tabindex="0"><table>
-    <thead><tr><th scope="col">Base name</th><th scope="col">Collided as</th><th scope="col">Now named</th></tr></thead>
-    <tbody>
-      {%- for item in names["items"] %}
-      <tr>
-        <td>{{ item.base_name }}</td>
-        <td>{{ item.levels }}</td>
-        <td class="inline-links">
-          {%- for row in item.rows %}
-          <a href="{{ row.url }}">{{ row.name }}</a> <span class="hint">{{ row.kind }}</span>
-          {%- if not loop.last %}<br>{% endif %}
-          {%- else %}<span class="hint">no rows left</span>
-          {%- endfor %}
-        </td>
-      </tr>
-      {%- endfor %}
-    </tbody>
-  </table></div>
-  {{ names.pager }}
+  {{ datatable(names.table) }}
   {%- endif %}
 </section>
 <section class="panel" aria-labelledby="activity-heading">
