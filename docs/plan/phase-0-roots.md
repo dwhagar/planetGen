@@ -33,6 +33,7 @@ Done: all eight items landed in PR #442 (2026-10-07).
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
+| ADM.38 | Worker exceptions fail on Python 3.9 because _picklable_error calls Exception.add_note, which needs 3.11 (bug) |  | A regression of ADM.25 (PR #560); fails five tests on the Python 3.9 CI leg. |
 
 ### Bugfixes: maps and pages
 
