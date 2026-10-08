@@ -44,6 +44,7 @@ const S = await import(`./galaxystages.js${VERSION_QUERY}`);
 const MC = await import(`./mapcontrol.js${VERSION_QUERY}`);
 const { worldUnitsPerPixel } = await import(`./mapcore.js${VERSION_QUERY}`);
 const B = await import(`./bookmarks.js${VERSION_QUERY}`);
+const { createSelection } = await import(`./picker.js${VERSION_QUERY}`);
 const { createPicker, createTooltip } = await import(`./mappick.js${VERSION_QUERY}`);
 
 // The other choices while one is hovered (MAP.18).
@@ -874,18 +875,43 @@ export function createStageView(host) {
     }
   }
 
-  function up() {
+  // The map's selection (NAV.13, picker.js): the stage it shows, or the
+  // sector picked on it. Keys, the Up and Reset buttons and the breadcrumb
+  // move it, and the map follows (below); renderCrumbs records where the
+  // map is.
+  const selection = createSelection({
+    parentOf: function (ref) {
+      if (ref.kind === "sector") return { kind: "stage", stage: ref.stage };
+      const parent = S.parentStage(ref.stage, getOutline(), edgePc);
+      return parent ? { kind: "stage", stage: parent } : null;
+    },
+    same: function (a, b) {
+      if (a.kind !== b.kind) return false;
+      if (a.kind === "stage") return S.sameStage(a.stage, b.stage);
+      return a.ring === b.ring && a.layer === b.layer && a.slot === b.slot;
+    },
+  });
+  selection.onChange(function (change) {
+    if (change.ref.kind === "stage") go(change.ref.stage);
+  });
+
+  function syncSelection() {
     if (selectedSector && !resolved.sector) {
-      selectedSector = null;
-      go(stage);
-      return;
+      selection.select({ kind: "sector", ring: selectedSector.ring, layer: selectedSector.layer, slot: selectedSector.slot, stage: stage }, { quiet: true });
+    } else {
+      selection.select({ kind: "stage", stage: stage }, { quiet: true });
     }
-    const parent = S.parentStage(stage, getOutline(), edgePc);
-    if (parent) go(parent);
+  }
+
+  function up() {
+    selection.up();
   }
 
   function home() {
-    go({ at: null, picks: [] });
+    const top = { at: null, picks: [] };
+    // Already there: go again, so the camera returns to the whole galaxy.
+    if (S.sameStage(stage, top) && !(selectedSector && !resolved.sector)) go(top);
+    else selection.select({ kind: "stage", stage: top });
   }
 
   // The map's Back and Forward: the browser's own history, kept to this
@@ -1533,7 +1559,7 @@ export function createStageView(host) {
     button.type = "button";
     button.className = className;
     button.textContent = crumb.label;
-    button.addEventListener("click", function () { go(crumb.stage); });
+    button.addEventListener("click", function () { selection.select({ kind: "stage", stage: crumb.stage }); });
     return button;
   }
 
@@ -1616,6 +1642,7 @@ export function createStageView(host) {
   }
 
   function renderCrumbs() {
+    syncSelection();
     const nav = els.crumbs;
     if (!nav) return;
     crumbItems = crumbSteps();
