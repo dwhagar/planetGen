@@ -22,7 +22,7 @@ release is stamped.
 | API | API.20 |
 | ADM | ADM.38 |
 | SEC | SEC.32 |
-| TEST | TEST.94 |
+| TEST | TEST.95 |
 | USR | USR.9 |
 | OPS | OPS.28 |
 | DOC | DOC.4 |
@@ -425,7 +425,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.34 | One admin menu per screen, holding only that screen's actions | none | open |
 | ADM.35 | Full control from every screen: edit anything, regenerate with every input, backfill or erase what is in view | none | open |
 | ADM.36 | Change an object's trajectory vector | none | open |
-| ADM.37 | The Generate page's prevalence fields show "0% change" instead of each feature's real share (bug) | none | open |
+| ADM.37 | The Generate page's prevalence fields show "0% change" instead of each feature's real share (bug) | none | done, PR #514 |
 | API.1 | Create a system inside an existing sector | 10 (2026-09-24 01:32Z to 02:18Z); 7 (2026-09-24 01:57Z to 02:02Z); 5 (2026-09-24 02:25Z to 05:38Z); 4 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 13 (2026-09-30 16:44Z); 14 (2026-09-30 16:49Z); 15 (2026-09-30 16:51Z to 18:09Z); 32 (2026-09-30 18:14Z); 37 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.2 | Edit a system's generated content | 11 (2026-09-24 01:32Z to 02:18Z); 8 (2026-09-24 01:57Z to 02:02Z); 6 (2026-09-24 02:25Z to 05:38Z); 5 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 14 (2026-09-30 16:44Z); 15 (2026-09-30 16:49Z); 16 (2026-09-30 16:51Z to 18:09Z); 33 (2026-09-30 18:14Z); 38 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.3 | Remote generate: generate on a local machine, upload through the API | none | open |
@@ -1096,6 +1096,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.91 | The System Map drill-and-measure browser test can't click the first moon (bug) | none | done, PR #493 |
 | TEST.92 | The web job runner's first-failure test reports the job as interrupted under full-suite load (bug) | none | open |
 | TEST.93 | Timing tests fail and MariaDB drops connections under full-suite load (bug) | none | open |
+| TEST.94 | test_old_jobs_are_pruned raises JobBusy again: the job lock outlives the finished job (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
