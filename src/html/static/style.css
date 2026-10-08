@@ -205,6 +205,10 @@ h2 {
   font-size: 0.9rem;
 }
 
+.page-subhead .location a {
+  text-decoration: underline;
+}
+
 .panel {
   background: var(--bg-elevated);
   border: 1px solid var(--border);

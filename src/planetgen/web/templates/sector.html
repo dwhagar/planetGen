@@ -19,13 +19,10 @@
   {%- if phenomenon_count %}
   <span class="badge">{{ phenomenon_count }} {{ "phenomenon" if phenomenon_count == 1 else "phenomena" }}</span>
   {%- endif %}
-  {%- if debris %}
-  <span class="badge">{{ debris }}</span>
-  {%- endif %}
-  {%- if quadrant %}
-  <span class="badge"><a href="{{ page_url('galaxy', quadrant=quadrant) }}">Quadrant {{ quadrant }}</a></span>
-  {%- endif %}
 </p>
+{%- if quadrant %}
+<p class="location">In <a href="{{ page_url('galaxy', quadrant=quadrant) }}">Quadrant {{ quadrant }}</a> of the galaxy</p>
+{%- endif %}
 {{ action_bar(bookmark, none, none, galaxy_url) }}
 </div>
 {% endblock %}
@@ -118,6 +115,9 @@ neighborhood around it requires a galaxy-placed sector (one generated with
 </sl-dialog>
 {%- endif %}
 {{ map_html }}
+{%- if debris %}
+<p class="hint sector-details"><strong>Details:</strong> {{ debris }}</p>
+{%- endif %}
 <section class="panel" id="sector-contents" aria-labelledby="contents-heading">
   <h2 id="contents-heading">Contents</h2>
   {{ datatable(contents) }}
