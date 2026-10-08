@@ -530,8 +530,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.65 | A generation run fails from the web UI but not from the CLI (bug) | none | done, PR #476 |
 | GEN.66 | Physics on scipy, and astropy constants and units | none | open |
 | GEN.67 | Names from IDs for objects that have no star-derived name | none | open |
-| GEN.68 | Research: the cheapest unique IDs for every object, unfilled sectors included | none | open |
-| GEN.69 | A unique ID for every object, star systems and unfilled sectors included | none | open |
+| GEN.68 | Research: the cheapest unique IDs for every object, unfilled sectors included | none | done, PR #623 |
+| GEN.69 | A unique ID for every object, star systems and unfilled sectors included | none | done, PR #623 |
 | GEN.70 | A naming key in the control database, made at galaxy creation and changeable by admin | none | open |
 | GEN.71 | Name interstellar objects, phenomena and constellations from the codec | none | open |
 | GEN.72 | A backfilled bright star should get a name only when its sector is generated (bug) | none | open |
