@@ -67,7 +67,7 @@ from planetgen.db.query import (
     systems_facets,
     list_sectors,
     list_systems,
-    nav_between,
+    nav_course,
     open_readonly,
     phenomenon_detail as query_phenomenon_detail,
     resolve_object,
@@ -621,84 +621,38 @@ def systems_near(system_id):
     return jsonify(matches)
 
 
-def _parse_system_id_param(query_args, name):
+def _nav_ref_param(query_args, name):
     """
-    Parses a required `<name>` query parameter as an id -- a
-    `star_systems.id` when its matching `<name>_kind` is `"system"`
-    (the default), or a phenomenon table's own row id when it's
-    `"phenomenon"` (see `_parse_nav_endpoint_params`).
-
-    Args:
-        query_args (werkzeug.datastructures.MultiDict): `request.args`.
-        name (str): The query parameter's name (`"from"` or `"to"`).
-
-    Returns:
-        int: The parsed id.
+    A required `from`/`to` query parameter: an object reference
+    (`planetgen.galaxy.objectref`; a bare number is a system).
 
     Raises:
-        ApiError: If the parameter is missing or not an integer.
+        ApiError: If the parameter is missing or not a reference.
     """
     raw_value = query_args.get(name)
     if raw_value is None:
         raise ApiError(f"{name} query parameter is required")
     try:
-        return int(raw_value)
+        return object_ref.format(*object_ref.parse(raw_value))
     except ValueError:
-        raise ApiError(f"{name} must be an integer, got {raw_value!r}")
-
-
-def _parse_nav_endpoint_params(query_args, name):
-    """
-    Parses one `/api/nav` endpoint's full reference: its id
-    (`_parse_system_id_param`) plus `<name>_kind` (`"system"`, the
-    default, or `"phenomenon"`) and, when it's a phenomenon,
-    `<name>_type` (one of `queryDb._PHENOMENON_TYPE_TO_TABLE`'s keys --
-    validated by `nav_between`/`_load_nav_phenomenon_endpoint` itself,
-    via the same `ValueError` -> 404 handling `phenomenon()` above
-    already uses for the same set of types, not re-validated here).
-
-    Args:
-        query_args (werkzeug.datastructures.MultiDict): `request.args`.
-        name (str): `"from"` or `"to"`.
-
-    Returns:
-        tuple: `(id, kind, phenomenon_type)` -- `phenomenon_type` is
-              `None` when `kind == "system"`.
-
-    Raises:
-        ApiError: If the id is missing/not an integer, `<name>_kind` is
-            neither `"system"` nor `"phenomenon"`, or `kind ==
-            "phenomenon"` with no `<name>_type` given.
-    """
-    endpoint_id = _parse_system_id_param(query_args, name)
-    kind = query_args.get(f"{name}_kind", "system")
-    if kind not in ("system", "phenomenon"):
-        raise ApiError(f"{name}_kind must be 'system' or 'phenomenon', got {kind!r}")
-    phenomenon_type = None
-    if kind == "phenomenon":
-        phenomenon_type = query_args.get(f"{name}_type")
-        if not phenomenon_type:
-            raise ApiError(f"{name}_type query parameter is required when {name}_kind is 'phenomenon'")
-    return endpoint_id, kind, phenomenon_type
+        raise ApiError(f"{name} must be an object reference such as system:12, got {raw_value!r}")
 
 
 @bp.route("/nav")
 def nav():
     """
-    Course, distance, and optimal route between two endpoints -- each
-    either a star system (the default) or a standalone phenomenon
-    (`?from_kind=phenomenon&from_type=nebula&from=<id>`, and likewise for
-    `to`) -- see `queryDb.nav_between` for the full availability rules
-    and docs/api.md for the response shape.
+    Course, distance, and optimal route between two objects -- each any
+    star system, body inside one, or standalone phenomenon, written as an
+    object reference (`?from=planet:7&to=nebula:2`; a bare number is a
+    system) -- see `queryDb.nav_course` for the legs and
+    `queryDb.nav_between` for the availability rules, and docs/api.md for
+    the response shape.
     """
-    from_id, from_kind, from_type = _parse_nav_endpoint_params(request.args, "from")
-    to_id, to_kind, to_type = _parse_nav_endpoint_params(request.args, "to")
+    from_ref = _nav_ref_param(request.args, "from")
+    to_ref = _nav_ref_param(request.args, "to")
 
     try:
-        result = nav_between(
-            get_db(), from_id, to_id,
-            from_kind=from_kind, to_kind=to_kind, from_type=from_type, to_type=to_type,
-        )
+        result = nav_course(get_db(), from_ref, to_ref)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 404
     except NavUnavailable as exc:
@@ -706,12 +660,20 @@ def nav():
 
     return jsonify({
         "scope": result["scope"],
+        "origin": result["origin"],
+        "destination": result["destination"],
         "direct": result["direct"]._asdict(),
         "warp_times": [leg._asdict() for leg in result["warp_times"]],
         "fold_times": [leg._asdict() for leg in result["fold_times"]],
         "origin_position": result["origin_position"],
         "destination_position": result["destination_position"],
         "route": _route_for_json(result["route"]),
+        "legs": [{
+            "kind": leg["kind"], "from": leg["from"], "to": leg["to"], "direct": leg["direct"]._asdict(),
+            "warp_times": [t._asdict() for t in leg["warp_times"]],
+            "fold_times": [t._asdict() for t in leg["fold_times"]],
+        } for leg in result["legs"]],
+        "note": result["note"],
     })
 
 

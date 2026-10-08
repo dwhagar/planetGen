@@ -440,19 +440,13 @@ def get_systems_near(db, system_id, radius):
     return _request(f"/systems/{system_id}/near", {"db": db, "radius": radius})
 
 
-def get_nav(db, from_id, to_id, from_kind="system", to_kind="system", from_type=None, to_type=None):
+def get_nav(db, from_ref, to_ref):
     """Returns `GET /api/nav`'s course/route dict -- see `docs/api.md`'s
-    "NAV" section for the full shape. `from_kind`/`to_kind` default to
-    `"system"`; pass `"phenomenon"` (plus the matching `from_type`/
-    `to_type`, one of `queryDb._PHENOMENON_TYPE_TO_TABLE`'s keys) to
-    route to/from a standalone nebula/asteroid field/black hole/neutron
-    star instead."""
+    "NAV" section for the full shape. `from_ref`/`to_ref` are object
+    references (`planetgen.galaxy.objectref`): a system, a body in one, or
+    a standalone phenomenon."""
     _require_db(db)
-    return _request("/nav", {
-        "db": db, "from": from_id, "to": to_id,
-        "from_kind": from_kind, "to_kind": to_kind,
-        "from_type": from_type, "to_type": to_type,
-    })
+    return _request("/nav", {"db": db, "from": from_ref, "to": to_ref})
 
 
 def get_galaxy_sectors(db):

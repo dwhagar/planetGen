@@ -153,9 +153,26 @@
   {%- endfor %}
 </section>
 {%- endif %}
+{%- if legs|length > 1 or in_system %}
+<section class="panel" aria-labelledby="legs-heading">
+  <h2 id="legs-heading">Legs</h2>
+  <div class="table-scroll"><table>
+    <thead><tr><th scope="col">Leg</th><th scope="col">From</th><th scope="col">To</th><th scope="col">Distance</th><th scope="col">Course</th></tr></thead>
+    <tbody>
+      {%- for leg in legs %}
+      <tr><td>{{ leg.label }}</td><td>{{ leg.from }}</td><td>{{ leg.to }}</td><td>{{ leg.distance }}</td><td>{{ leg.course }}</td></tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+  {%- if note %}
+  <p class="hint">{{ note }}</p>
+  {%- endif %}
+</section>
+{%- endif %}
 {{ map_html }}
 {#- UX.70: the route only when it has stops beyond the two ends; a direct hop is the course above. -#}
-{%- if not route %}
+{%- if in_system %}
+{%- elif not route %}
 <section class="panel" aria-labelledby="route-heading">
   <h2 id="route-heading">Optimal Route</h2>
   <p class="hint">No route via adjacent systems could be found between these two endpoints.</p>
