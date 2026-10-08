@@ -556,7 +556,7 @@ def test_galaxy_map_hover_while_picking_a_slab_lights_the_whole_slab(page, map_s
     _open_galaxy(page, map_site)
     slab_stages = []
     for _ in range(16):
-        if not _on_galaxy(page):
+        if not _on_galaxy(page) or "open=1" in _query(page):
             break
         if page.locator(".galaxy-slab-button").count():
             heading = page.locator("#galaxymap3d-slabs-heading").inner_text()
@@ -1239,7 +1239,7 @@ def test_galaxy_map_draws_slab_lines_then_block_lines(page, map_site):
     _open_galaxy(page, map_site)
     seen = []
     for _ in range(12):
-        if not _on_galaxy(page):
+        if not _on_galaxy(page) or "open=1" in _query(page):
             break
         lines = page.evaluate(LINES)
         seen.append(lines)
@@ -1288,8 +1288,8 @@ def test_galaxy_map_camera_presets_at_each_zoom_step(page, map_site):
     _open_galaxy(page, map_site)
     seen = []
     for _ in range(12):
-        if not _on_galaxy(page):
-            break
+        if "open=1" in _query(page):
+            break  # a sector opened in place (MAP.66): the walk is done
         kind = page.evaluate(LINES)["kind"]
         tilt = page.evaluate(CAMERA)["tilt"]
         seen.append((kind, round(tilt, 1)))
