@@ -1169,6 +1169,7 @@ def test_galaxy_tile_counts_follow_the_level_budget_for_dense_and_sparse_sectors
 
 def test_galaxy_tiles_carry_no_comets_rogue_planets_or_asteroid_fields(client, mysql_config):
     """MAP.115: those live on the Sector Map only."""
+    _generated_sectors(mysql_config, [1.0])
     key = tiles_intersecting_sphere(12, (2.0, 2.0, 0.0), 0.0)[0]
     tile = client.get(f"/api/galaxy/tiles?tiles={key}").get_json()["tiles"][key]
     assert set(tile) == {"placed", "planned", "filled", "clouds", "stars", "generated", "points"}
