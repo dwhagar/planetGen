@@ -140,7 +140,10 @@ export function blockOpacity(cell) {
 // {min, max} over the cells that hold stars. `statsOpacity` and
 // `statsColor` rank a cell against these.
 export function statsRanges(cells) {
-  const ranges = { density: { min: Infinity, max: -Infinity }, luminosity: { min: Infinity, max: -Infinity } };
+  const ranges = {
+    density: { min: Infinity, max: -Infinity }, luminosity: { min: Infinity, max: -Infinity },
+    age: { min: Infinity, max: -Infinity }, stars: { min: Infinity, max: -Infinity },
+  };
   cells.forEach(function (cell) {
     const stats = cell.stats;
     if (!stats || !(stats.stars > 0) || !(cell.filled > 0)) {
@@ -152,8 +155,79 @@ export function statsRanges(cells) {
     ranges.density.max = Math.max(ranges.density.max, density);
     ranges.luminosity.min = Math.min(ranges.luminosity.min, luminosity);
     ranges.luminosity.max = Math.max(ranges.luminosity.max, luminosity);
+    const age = stats.mean_age_gy || 0;
+    ranges.age.min = Math.min(ranges.age.min, age);
+    ranges.age.max = Math.max(ranges.age.max, age);
+    const stars = stats.stars / cell.filled;
+    ranges.stars.min = Math.min(ranges.stars.min, stars);
+    ranges.stars.max = Math.max(ranges.stars.max, stars);
   });
   return ranges;
+}
+
+// MAP.131: what the Galaxy Map's fill can show. "default" is the age hue,
+// density opacity and luminosity brightness above; the others color every
+// cell by one statistic on a single ramp. `value` is the statistic of a
+// cell holding stars, `range` names its entry in statsRanges, `text` writes
+// a value in the legend.
+export const COLOR_MODES = {
+  default: { label: "Age, density and luminosity" },
+  density: {
+    label: "Density", range: "density", unit: "systems per generated sector",
+    value: function (stats, filled) { return Math.log1p(stats.systems / filled); },
+    text: function (v) { return formatLegend(Math.expm1(v)); },
+  },
+  age: {
+    label: "Mean age", range: "age", unit: "Gy",
+    value: function (stats) { return stats.mean_age_gy || 0; },
+    text: function (v) { return formatLegend(v); },
+  },
+  luminosity: {
+    label: "Luminosity", range: "luminosity", unit: "L☉ in the cell",
+    value: function (stats) { return Math.log10(Math.max(stats.luminosity_sol, 1e-9)); },
+    text: function (v) { return formatLegend(Math.pow(10, v)); },
+  },
+  stars: {
+    label: "Star count", range: "stars", unit: "stars per generated sector",
+    value: function (stats, filled) { return stats.stars / filled; },
+    text: function (v) { return formatLegend(v); },
+  },
+};
+
+function formatLegend(value) {
+  if (!isFinite(value)) {
+    return "0";
+  }
+  if (value !== 0 && (Math.abs(value) >= 1e5 || Math.abs(value) < 0.01)) {
+    return value.toExponential(1);
+  }
+  return String(Number(value.toPrecision(3)));
+}
+
+// The ramp of a single statistic, low to high (sRGB).
+const STAT_RAMP = [[0.18, 0.10, 0.45], [0.10, 0.55, 0.60], [0.95, 0.85, 0.25]];
+
+export function statRampColor(share) {
+  const t = Math.max(0, Math.min(1, share));
+  return t < 0.5 ? lerp3(STAT_RAMP[0], STAT_RAMP[1], t * 2) : lerp3(STAT_RAMP[1], STAT_RAMP[2], (t - 0.5) * 2);
+}
+
+// The legend of a color mode over the cells' ranges, or null for the
+// default and when no cell holds stars: {mode, label, unit, lowText,
+// highText, stops (sRGB hex, low to high)}.
+export function legendFor(mode, ranges) {
+  const info = COLOR_MODES[mode];
+  if (!info || !info.range) {
+    return null;
+  }
+  const range = ranges[info.range];
+  if (!(range.max >= range.min)) {
+    return null;
+  }
+  const stops = [0, 0.25, 0.5, 0.75, 1].map(function (t) {
+    return "#" + statRampColor(t).map(function (v) { return ("0" + Math.round(v * 255).toString(16)).slice(-2); }).join("");
+  });
+  return { mode: mode, label: info.label, unit: info.unit, lowText: info.text(range.min), highText: info.text(range.max), stops: stops };
 }
 
 function rangeShare(value, range) {
@@ -213,13 +287,18 @@ export function ageColor(ageGy) {
 // stars' mean age, at the brightness of their summed luminosity against
 // the other cells in view; a filled one without stars in `unfilled` a
 // shade more saturated.
-export function statsColor(cell, unfilled, ranges) {
+export function statsColor(cell, unfilled, ranges, mode) {
   if (!(cell.filled > 0)) {
     return unfilled;
   }
   const stats = cell.stats;
   if (!stats || !(stats.stars > 0)) {
     return saturate(unfilled, FILLED_EMPTY_SATURATION);
+  }
+  const single = mode && COLOR_MODES[mode] && COLOR_MODES[mode].range ? COLOR_MODES[mode] : null;
+  if (single) {
+    const share = rangeShare(single.value(stats, cell.filled), ranges[single.range]);
+    return statRampColor(share).map(srgbToLinear);
   }
   const luminosity = rangeShare(Math.log10(Math.max(stats.luminosity_sol, 1e-9)), ranges.luminosity);
   const brightness = BRIGHTNESS_FLOOR + (1 - BRIGHTNESS_FLOOR) * luminosity;
@@ -249,7 +328,7 @@ export function prismShade(cell, armAmplitude) {
 // - minPx, budget (galaxyprisms.blocksForView's);
 // - palette: linear [r, g, b] for dim, accent and hot (the density ramp)
 //   and placedLow, placedHigh (a generated sector's own color).
-// Returns {setFilled(points), build(view), buildCells(cells, eye, dim)};
+// Returns {setFilled(points), build(view), buildCells(cells, eye, dim, colorMode, stageRanges), rangesOf(cells), legendOf(mode, ranges)};
 // see each below.
 export function createBlockScene(config) {
   const edgePc = config.edgePc || 1;
@@ -375,6 +454,7 @@ export function createBlockScene(config) {
   // Normals only light the colors here, so they aren't kept. Opaque blocks
   // leave out the faces they share (galaxyprisms.buildPrismGeometry).
   let ranges = statsRanges([]);
+  let colorBy = "default";
 
   function pack(cells, opaque) {
     const built = buildPrismGeometry(cells, { skipShared: opaque });
@@ -394,7 +474,7 @@ export function createBlockScene(config) {
       middles.push(cellCoordinates(cell).cartesian);
       const placed = cell.sectorPoint != null;
       const ramp = function () { return prismColor(shape ? prismShade(cell, armAmplitude) : 0.5); };
-      colorOf.push("stats" in cell ? statsColor(cell, ramp(), ranges) : placed ? placedColor(cell.sectorRelative) : ramp());
+      colorOf.push("stats" in cell ? statsColor(cell, ramp(), ranges, colorBy) : placed ? placedColor(cell.sectorRelative) : ramp());
       alphaOf.push(Math.round(cell.opacity * 255));
       fillOf.push(Math.round(blockFillStep(cell) * 255));
       const o = n * CELL_STRIDE;
@@ -460,7 +540,7 @@ export function createBlockScene(config) {
 
   // Packs an explicit list of blocks the same way (the drill-down's
   // stages, which pick their own blocks): each cell has ring, seg, slab
-  // and bounds r0..z1, and optionally filled and total. A cell with a
+  // and bounds r0..z1, and optionally filled and total. `stageRanges` (optional, from `rangesOf`) ranks the cells against a wider set than `cells`, so every choice of a stage is colored on one scale; `colorMode` (MAP.131, a key of COLOR_MODES) colors the filled cells by one statistic instead; the result's `legend` says what the colors mean. A cell with a
   // `stats` key (the stage API's {systems, expected_systems, stars,
   // mean_age_gy, luminosity_sol}, or null) is colored and made
   // translucent by its sectors' stats (MAP.128/129: statsColor,
@@ -469,10 +549,11 @@ export function createBlockScene(config) {
   // at a fifth of their opacity (the "Charted only" toggle). Returns
   // {solid, glass} as build does, plus `cells`: [solid cells, glass
   // cells], in the order each part's `owners` index them.
-  function buildCells(cells, eye, dim) {
+  function buildCells(cells, eye, dim, colorMode, stageRanges) {
     const solid = [];
     const glass = [];
-    ranges = statsRanges(cells);
+    ranges = stageRanges || statsRanges(cells);
+    colorBy = COLOR_MODES[colorMode] ? colorMode : "default";
     cells.forEach(function (cell) {
       if (shape && cell.density === undefined) {
         const sampled = boundsDensity(cell, shape);
@@ -491,10 +572,10 @@ export function createBlockScene(config) {
       cell.eyeDistance = Math.hypot(mid[0] - eye[0], mid[1] - eye[1], mid[2] - eye[2]);
     });
     glass.sort(function (p, q) { return q.eyeDistance - p.eyeDistance; });
-    return { solid: pack(solid, true), glass: pack(glass, false), cells: [solid, glass] };
+    return { solid: pack(solid, true), glass: pack(glass, false), cells: [solid, glass], legend: legendFor(colorBy, ranges) };
   }
 
-  return { setFilled: setFilled, build: build, buildCells: buildCells };
+  return { setFilled: setFilled, build: build, buildCells: buildCells, rangesOf: statsRanges, legendOf: legendFor };
 }
 
 // Every typed array in a built scene, to hand over without copying.
