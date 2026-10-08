@@ -14,15 +14,15 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.49 |
-| MAP | MAP.128 |
+| MAP | MAP.133 |
 | NAV | NAV.50 |
 | GEN | GEN.120 |
 | PERF | PERF.31 |
-| DB | DB.14 |
+| DB | DB.15 |
 | API | API.20 |
 | ADM | ADM.38 |
 | SEC | SEC.32 |
-| TEST | TEST.95 |
+| TEST | TEST.98 |
 | USR | USR.9 |
 | OPS | OPS.28 |
 | DOC | DOC.4 |
@@ -458,6 +458,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.11 | The database layer and migrations on SQLAlchemy and Alembic | none | open |
 | DB.12 | MariaDB reads a stored -0.0 back as +0.0 (bug) | none | done, PR #442 |
 | DB.13 | Every stored value in its own column, not in JSON blocks, and indexed for search | none | open |
+| DB.14 | Sector stats keep the raw star statistics (mean age, summed luminosity, star count) and no baked color | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
@@ -689,7 +690,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.107 | Selecting an empty slab near the core says "There is no layer x here" (bug) | none | open |
 | MAP.108 | Empty slabs and wedges near the core can't be selected, and the side buttons block clicks (bug) | none | open |
 | MAP.109 | Zooming in and out loads slowly (bug) | none | open |
-| MAP.110 | Slab button lines come out of numerical order (bug) | none | open |
+| MAP.110 | Slab button lines come out of numerical order (bug) | none | done, PR #520 |
 | MAP.111 | "Generated only" should be "Charted only" and dim the stars too (bug) | none | open |
 | MAP.112 | Nothing can be selected while "Generated only" is on (bug) | none | open |
 | MAP.113 | A nebula covering the whole sector can't be unselected, and nebulae need a show/hide toggle (bug) | none | open |
@@ -697,6 +698,11 @@ Parents marked "new parent" had no old number of their own.
 | MAP.115 | Comets, rogue planets and asteroid fields show above the sector level (bug) | none | merged into MAP.116 (2026-10-07) |
 | MAP.116 | Dense generated sectors crowd the Galaxy Map when zoomed out (bug) | none | open |
 | MAP.127 | See into and step to the neighbouring blocks and slabs on the Galaxy Map | none | merged into MAP.121 (2026-10-07) |
+| MAP.128 | The Galaxy Map and Sector Map tint a sector by star age, density and luminosity | none | open |
+| MAP.129 | Blocks colored from their sectors' statistics, weighted by star count | none | open |
+| MAP.130 | Retire the average-star-color rule in the docs and tests | none | open |
+| MAP.131 | A Color by switch on the maps, with a legend | none | open |
+| MAP.132 | Overlay markers for black holes, nebulae and habitable worlds | none | open |
 | MAP.117 | Surface pressure missing from the planet and moon side panel (bug) | none | done, PR #457 |
 | MAP.118 | The Galaxy Map shows an unfilled sector above the galaxy that can't be filled (bug) | none | done, PR #457 |
 | MAP.119 | Expected star density editable by admins on the Galaxy Map | none | open |
@@ -774,7 +780,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.16 | A daily maintenance script for Linux, macOS and Windows | none | open |
 | OPS.17 | Install and update set up the daily maintenance schedule | none | open |
 | OPS.18 | Settings JSON backups kept in 18 slots: 7 daily, 4 weekly, 6 monthly, 1 yearly | none | open |
-| OPS.19 | The Generate jobs folder is /var/lib/planetgen while the checkout is /var/lib/planetGen (bug) | none | open |
+| OPS.19 | The Generate jobs folder is /var/lib/planetgen while the checkout is /var/lib/planetGen (bug) | none | done, PR #525 |
 | OPS.20 | Move the code base from zero dependencies to third-party open-source libraries | none | open |
 | OPS.21 | Pinned third-party dependencies and a Redis server in install, update and CI | none | done, PR #437 |
 | OPS.22 | Reorganize the code into importable Python packages with shared utility libraries | none | done, PR #473 |
@@ -1094,9 +1100,12 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.89 | The Galaxy Map drill-down browser test fails intermittently (bug) | none | done, PR #484 |
 | TEST.90 | test_old_jobs_are_pruned raises JobBusy under parallel tests (bug) | none | done, PR #484 |
 | TEST.91 | The System Map drill-and-measure browser test can't click the first moon (bug) | none | done, PR #493 |
-| TEST.92 | The web job runner's first-failure test reports the job as interrupted under full-suite load (bug) | none | open |
-| TEST.93 | Timing tests fail and MariaDB drops connections under full-suite load (bug) | none | open |
+| TEST.92 | The web job runner's first-failure test reports the job as interrupted under full-suite load (bug) | none | done, PR #522 |
+| TEST.93 | Timing tests fail and MariaDB drops connections under full-suite load (bug) | none | done, PR #522 |
 | TEST.94 | test_old_jobs_are_pruned raises JobBusy again: the job lock outlives the finished job (bug) | none | open |
+| TEST.95 | test_stabilize_lunar_system_respaces_crowded_moons keeps only one moon in the full suite (bug) | none | open |
+| TEST.96 | test_galaxy_map_camera_presets_at_each_zoom_step fails in the full suite (bug) | none | open |
+| TEST.97 | test_class_change_regenerates_surface_conditions raises StopIteration in the full suite (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

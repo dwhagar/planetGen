@@ -76,9 +76,12 @@ fi
 
 # The admin Generate page's background jobs (src/planetgen/web/jobs.py):
 # PLANETGEN_JOBS_DIR, else config.json's jobs.dir, else
-# /var/lib/planetgen/jobs. Only when no tile cache directory was given as
-# the argument, since that argument names the tile cache alone.
+# /var/lib/planetGen/jobs. Only when no tile cache directory was given as
+# the argument, since that argument names the tile cache alone. Jobs left
+# in the old default, /var/lib/planetgen/jobs (OPS.19: it differs from the
+# checkout's folder only by case), move into the new one first.
 if [[ -z "${1:-}" ]]; then
+    (cd / && "$PYTHON" -I "$APACHE_DIR/deploy-paths.py" --move-old-jobs "$JOBS_DIR")
     mkdir -p "$JOBS_DIR"
     chown "$APACHE_USER:$APACHE_GROUP" "$JOBS_DIR"
     chmod 750 "$JOBS_DIR"

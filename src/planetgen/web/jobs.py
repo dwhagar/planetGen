@@ -64,7 +64,7 @@ GENERATE_COMMAND = ["-m", "planetgen.cli.generate"]
 RESET_COMMAND = ["-m", "planetgen.cli.reset"]
 """list: Runs `planetgen.cli.reset`."""
 
-DEFAULT_JOBS_DIR = "/var/lib/planetgen/jobs"
+DEFAULT_JOBS_DIR = "/var/lib/planetGen/jobs"
 """str: Used when neither `PLANETGEN_JOBS_DIR` nor `config.json`'s
 `jobs.dir` names a directory. Falls back to a `planetgen-jobs` folder in
 the system temp directory when Apache can't create this one."""
@@ -301,14 +301,17 @@ def get_job(job_id, root=None):
     status = state.get("status")
     now = time.time()
     if status is None:
-        # A runner still alive is starting until `RUNNER_START_LIMIT_SECONDS`
-        # (TEST.90: calling a slow start interrupted let a finished-looking
-        # job come back as running); one with no pid yet gets the grace.
+        # A job is starting for the grace period whatever its pid says
+        # (TEST.92: a runner just started may not have exec'd yet, so its
+        # command line doesn't name the job), then while its runner is
+        # still alive, until `RUNNER_START_LIMIT_SECONDS` (TEST.90: calling
+        # a slow start interrupted let a finished-looking job come back as
+        # running).
         pid = _runner_pid(path, state)
         age = now - job.get("created_at", 0)
-        if pid is not None and age < RUNNER_START_LIMIT_SECONDS and _runner_alive(pid, job_id, job.get("created_at")):
+        if age < STARTING_GRACE_SECONDS:
             status = "starting"
-        elif pid is None and age < STARTING_GRACE_SECONDS:
+        elif pid is not None and age < RUNNER_START_LIMIT_SECONDS and _runner_alive(pid, job_id, job.get("created_at")):
             status = "starting"
         else:
             status = "interrupted"

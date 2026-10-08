@@ -15,7 +15,7 @@ Paths match the Linux guides where they can:
 | Path | What |
 |---|---|
 | `/var/lib/planetGen` | The checkout (on macOS `/var` is `/private/var`) |
-| `/var/cache/planetgen/tiles`, `/var/lib/planetgen/jobs` | Tile cache and Generate jobs (the defaults) |
+| `/var/cache/planetgen/tiles`, `/var/lib/planetGen/jobs` | Tile cache and Generate jobs (the defaults) |
 | `/var/log/planetgen.log` | Debug log (the default) |
 | `/usr/local/planetgen/venv` | Python virtual environment |
 | `/usr/local/planetgen/log` | gunicorn, nginx and orbit-update logs |
@@ -107,7 +107,7 @@ installs the monthly orbit update (and update.sh, unless
        sudo find /var/lib/planetGen/src/html -type f -exec chmod 640 {} +
        sudo find /var/lib/planetGen/src/html -type f -name '*.py' -exec chmod 750 {} +
        sudo chown root:_www /var/lib/planetGen/config.json && sudo chmod 640 /var/lib/planetGen/config.json
-       sudo install -d -o _www -g _www -m 750 /var/cache/planetgen/tiles /var/lib/planetgen/jobs
+       sudo install -d -o _www -g _www -m 750 /var/cache/planetgen/tiles /var/lib/planetGen/jobs
        sudo touch /var/log/planetgen.log && sudo chown _www:_www /var/log/planetgen.log && sudo chmod 660 /var/log/planetgen.log
        sudo chown _www:_www /usr/local/planetgen/log
 

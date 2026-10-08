@@ -357,9 +357,12 @@ of a level-3 block.
   column below it on a phone), each with its slab's name and generated
   count, and a leader line from the button to its slab on the map,
   redrawn whenever the view turns, zooms, pans or resizes. The buttons
-  are ordered by their slabs' height on screen so the lines don't cross
-  (on a phone the lines run up lanes along the map's right edge, nested,
-  so that column runs from the lowest slab down); a slab off the map
+  are always in slab-number order (MAP.110), running the same way as the
+  slabs on screen (the highest first, or the lowest first once the view
+  turns under the plane), and each line ends no higher than the one
+  above it so the lines don't cross (on a phone the lines run up lanes
+  along the map's right edge, nested, so that column runs from the slab
+  lowest on screen down); a slab off the map
   gets a line ending in an arrow at the map's edge. Hovering or focusing
   a button lights its slab and line, clicking it takes the slab, and
   hovering a slab on the map lights its button and line. The lines are

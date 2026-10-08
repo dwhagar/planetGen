@@ -146,7 +146,7 @@ It runs eight steps and prints each one:
    `deflate` modules.
 6. Locks down the code tree and `config.json` for Apache's account.
 7. Creates the Galaxy Map tile cache (`/var/cache/planetgen/tiles`) and
-   the Generate jobs directory (`/var/lib/planetgen/jobs`).
+   the Generate jobs directory (`/var/lib/planetGen/jobs`).
 8. Creates the debug log and its logrotate config when `debug` is on.
 
 After step 3 it also offers to run the optional population pass

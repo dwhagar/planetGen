@@ -1591,8 +1591,9 @@ export function createStageView(host) {
   // (in one column below it on a phone), each with a line from it to its
   // slab on the map. The lines are drawn on an SVG over the map's row and
   // redrawn whenever the view moves (applyView) or the layout changes, so
-  // they always point at their slabs; the buttons are ordered by their
-  // slabs' height on screen, top first, so the lines don't cross. The
+  // they always point at their slabs; the buttons are always in slab
+  // number order, running the same way as the slabs on screen, so the
+  // lines don't cross (MAP.110). The
   // lines are faint, and the slab hovered on the map or with its button
   // (or the focused button) lights its own; clicking a button picks its
   // slab. Each line ends on its slab's outline at the point nearest the
@@ -1843,8 +1844,8 @@ export function createStageView(host) {
   // Where a slab's line ends, in client pixels, when its outline gives
   // none: the middle of its blocks, moved toward the camera to the side of
   // the slab facing it, at the slab's mid height. {x, y, off}: off when
-  // that point is not on the map (then x, y are on its edge). The buttons
-  // are also ordered by it.
+  // that point is not on the map (then x, y are on its edge). It also
+  // says which way the buttons' number order runs (MAP.110).
   function slabAnchor(blocks, rect) {
     const fp = S.footprint(blocks);
     let z0 = Infinity;
@@ -1920,50 +1921,29 @@ export function createStageView(host) {
   // Where a slab's line ends (MAP.98): on its outline as drawn on the map,
   // at the point nearest `from` (the line's last bend), or with `lane` (an
   // x), nearest that upright lane (a phone's lines come across from it).
+  // With `minY`, no higher than that where the outline allows (MAP.110).
   // Falls back to slabAnchor when none of the outline is on the map.
-  function slabEnd(r, from, lane, rect) {
-    const pieces = outlineOnScreen(r.outline, rect);
-    let best = null;
-    pieces.forEach(function (piece) {
-      const a = piece[0];
-      const b = piece[1];
-      let t;
-      if (lane != null) {
-        // The piece's end nearer the lane (a straight piece is nearest
-        // the lane at one end, or all along it).
-        t = Math.abs(a[0] - lane) <= Math.abs(b[0] - lane) ? 0 : 1;
-      } else {
-        const dx = b[0] - a[0];
-        const dy = b[1] - a[1];
-        const len = dx * dx + dy * dy;
-        t = len > 0 ? Math.max(0, Math.min(1, ((from[0] - a[0]) * dx + (from[1] - a[1]) * dy) / len)) : 0;
-      }
-      const p = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
-      const d = lane != null ? Math.abs(p[0] - lane) * 1e3 + Math.abs(p[1] - from[1])
-        : Math.hypot(p[0] - from[0], p[1] - from[1]);
-      if (!best || d < best.d) best = { x: p[0], y: p[1], d: d };
-    });
+  function slabEnd(r, from, lane, rect, minY) {
+    const best = S.nearestOnPieces(outlineOnScreen(r.outline, rect), from, lane, minY);
     if (!best) return slabAnchor(r.option.blocks, rect);
     return { x: best.x, y: best.y, off: false };
   }
 
-  // Orders the buttons by their slabs' height on screen, top first (on a
-  // phone, the lowest slab first, so the lanes nest), and with two
-  // columns deals them out in turn, right first, so each column runs the
-  // map's whole height. Leaves them be while one has focus, unless
-  // `force` (the columns changed).
-  function orderStrip(force, heights) {
+  // Orders the buttons by slab number (MAP.110): the highest first when
+  // the stack's top slab shows above its bottom one on screen, else the
+  // lowest first, so the lines run the same way as the slabs (on a phone
+  // the other way round, so the lanes nest). With two columns deals them
+  // out in turn, right first, so each column runs the map's whole height.
+  // Leaves them be while one has focus, unless `force` (the columns
+  // changed).
+  function orderStrip(force) {
     if (!strip || !view) return;
     const rect = canvasEl.getBoundingClientRect();
     if (!rect.width || !rect.height) return;
-    const rows = strip.rows;
-    const keys = heights || new Map();
-    if (!heights) rows.forEach(function (r) { keys.set(r, slabAnchor(r.option.blocks, rect).y); });
-    const below = strip.phone;
-    const order = rows.slice().sort(function (p, q) {
-      const d = keys.get(p) - keys.get(q) || q.option.pick.lo - p.option.pick.lo;
-      return below ? -d : d;
-    });
+    const byNumber = S.slabOrder(strip.rows, true, function (r) { return r.option.pick; });
+    const top = slabAnchor(byNumber[0].option.blocks, rect).y;
+    const bottom = slabAnchor(byNumber[byNumber.length - 1].option.blocks, rect).y;
+    const order = (top <= bottom) !== !!strip.phone ? byNumber : byNumber.reverse();
     const two = strip.side && !strip.side.hidden;
     const focused = strip.list.contains(document.activeElement) || (strip.other && strip.other.contains(document.activeElement));
     if (focused && !force) return;
@@ -1998,28 +1978,23 @@ export function createStageView(host) {
     const below = rows[0].button.getBoundingClientRect().top >= rect.bottom - 1;
     const items = Array.from(strip.list.children);
     // Beside the map each line ends where its slab's outline comes
-    // nearest its button, which needn't keep the order of the slabs'
-    // anchors once the view tilts; if the ends come out of order, the
-    // buttons take the ends' order, so no two lines cross.
-    function sideEnds() {
-      const ends = new Map();
-      rows.forEach(function (r) {
-        const b = r.button.getBoundingClientRect();
-        const from = [r.side === "left" ? b.right : b.left, b.top + b.height / 2];
-        ends.set(r, { from: from, end: slabEnd(r, from, null, rect) });
+    // nearest its button, but down each column no higher than the line
+    // above it ends, where the outline allows, so the lines keep the
+    // buttons' number order and don't cross (MAP.110).
+    const ends = below ? null : new Map();
+    if (ends) {
+      [strip.list, strip.other].forEach(function (list) {
+        if (!list) return;
+        let floor = -Infinity;
+        Array.from(list.children).forEach(function (item) {
+          const r = rows.find(function (row) { return row.item === item; });
+          const b = r.button.getBoundingClientRect();
+          const from = [r.side === "left" ? b.right : b.left, b.top + b.height / 2];
+          const end = slabEnd(r, from, null, rect, floor);
+          ends.set(r, { from: from, end: end });
+          floor = Math.max(floor, end.y);
+        });
       });
-      return ends;
-    }
-    let ends = below ? null : sideEnds();
-    if (ends && [strip.list, strip.other].some(function (list) {
-      const column = list ? rows.filter(function (r) { return list.contains(r.item); }) : [];
-      column.sort(function (p, q) { return ends.get(p).from[1] - ends.get(q).from[1]; });
-      return column.some(function (r, n) { return n > 0 && ends.get(r).end.y < ends.get(column[n - 1]).end.y; });
-    })) {
-      const heights = new Map();
-      rows.forEach(function (r) { heights.set(r, ends.get(r).end.y); });
-      orderStrip(false, heights);
-      ends = sideEnds();
     }
     rows.forEach(function (r) {
       if (!r.line) return;

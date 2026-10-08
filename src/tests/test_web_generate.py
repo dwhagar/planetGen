@@ -705,6 +705,35 @@ def test_one_job_at_a_time(site, client, no_spawn, jobs_root):
 
 
 @pytest.mark.skipif(not os.path.isdir("/proc/self"), reason="checks a runner's command line in /proc")
+def _wait_until_exec(pid, marker, timeout=10):
+    """Waits until process `pid`'s command line names `marker`: just after
+    `Popen` returns, a busy machine may not have exec'd the child yet, and
+    its command line is still empty (TEST.92)."""
+    if not os.path.isdir("/proc/self"):
+        return
+    deadline = time.time() + timeout
+    while time.time() < deadline:
+        try:
+            with open(f"/proc/{pid}/cmdline", "rb") as f:
+                if marker.encode() in f.read():
+                    return
+        except OSError:
+            pass
+        time.sleep(0.01)
+    raise AssertionError(f"process {pid} never showed {marker!r} in its command line")
+
+
+def test_a_just_started_job_with_no_live_runner_yet_is_starting(jobs_root):
+    """TEST.92: in its first moments a job's runner may not show the job
+    in its command line yet; within the grace period that is still a
+    start, not an interruption."""
+    job_id = jobs.start_job("plan", "Plan", [{"label": "x", "argv": ["true"]}], spawn=False)
+    with open(os.path.join(jobs_root, job_id, "runner.pid"), "w") as f:
+        f.write(str(os.getpid()))  # alive, but its command line doesn't name the job
+    job = jobs.get_job(job_id)
+    assert job["status"] == "starting" and not job["finished"]
+
+
 def test_a_slow_runner_still_alive_is_starting_not_interrupted(jobs_root):
     """TEST.90: a runner that hasn't written `state.json` after the grace
     period but is still alive was called interrupted (finished), and then
@@ -721,6 +750,7 @@ def test_a_slow_runner_still_alive_is_starting_not_interrupted(jobs_root):
     try:
         with open(os.path.join(path, "runner.pid"), "w") as f:
             f.write(str(runner.pid))
+        _wait_until_exec(runner.pid, path)
         assert jobs.get_job(job_id)["status"] == "starting"
         assert not jobs.get_job(job_id)["finished"]
         with pytest.raises(jobs.JobBusy):

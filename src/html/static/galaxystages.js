@@ -775,6 +775,61 @@ export function slabNumber(pick) {
   return "#" + (pick.lo === pick.hi ? pick.lo : pick.lo + "–" + pick.hi);
 }
 
+// The slab buttons in slab-number order (MAP.110): `rows` sorted by
+// their picks' numbers (`pickOf(row).lo`), the highest first when
+// `highFirst`, else the lowest first.
+export function slabOrder(rows, highFirst, pickOf) {
+  return rows.slice().sort(function (p, q) {
+    const d = pickOf(q).lo - pickOf(p).lo;
+    return highFirst ? d : -d;
+  });
+}
+
+// The point of line pieces [[x, y], [x, y]] (screen pixels, y down)
+// nearest `from` ([x, y]), or with `lane` (an x) nearest that upright
+// lane, as {x, y}; null when there are none. With `minY`, only the parts
+// of the pieces at or below that height count (MAP.110: a column's lines
+// end in its buttons' order, so none cross), falling back to all of them
+// when none reach below it.
+export function nearestOnPieces(pieces, from, lane, minY) {
+  let shown = pieces;
+  if (minY != null && isFinite(minY)) {
+    const cut = [];
+    pieces.forEach(function (piece) {
+      const a = piece[0];
+      const b = piece[1];
+      if (a[1] >= minY && b[1] >= minY) cut.push(piece);
+      else if (a[1] >= minY || b[1] >= minY) {
+        const t = (minY - a[1]) / (b[1] - a[1]);
+        const m = [a[0] + (b[0] - a[0]) * t, minY];
+        cut.push(a[1] >= minY ? [a, m] : [m, b]);
+      }
+    });
+    if (cut.length) shown = cut;
+  }
+  let best = null;
+  shown.forEach(function (piece) {
+    const a = piece[0];
+    const b = piece[1];
+    let t;
+    if (lane != null) {
+      // The piece's end nearer the lane (a straight piece is nearest
+      // the lane at one end, or all along it).
+      t = Math.abs(a[0] - lane) <= Math.abs(b[0] - lane) ? 0 : 1;
+    } else {
+      const dx = b[0] - a[0];
+      const dy = b[1] - a[1];
+      const len = dx * dx + dy * dy;
+      t = len > 0 ? Math.max(0, Math.min(1, ((from[0] - a[0]) * dx + (from[1] - a[1]) * dy) / len)) : 0;
+    }
+    const p = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
+    const d = lane != null ? Math.abs(p[0] - lane) * 1e3 + Math.abs(p[1] - from[1])
+      : Math.hypot(p[0] - from[0], p[1] - from[1]);
+    if (!best || d < best.d) best = { x: p[0], y: p[1], d: d };
+  });
+  return best && { x: best.x, y: best.y };
+}
+
 // A slab button's one-line label (MAP.100): its number and how much of it
 // is charted (its sectors generated) to two decimals: "#4 Unknown" with
 // none, "#2 < 0.01% charted" under that, "#6 ≈ 2.43% charted", "#1 100%
