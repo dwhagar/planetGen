@@ -157,7 +157,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | ADM.32 | Add a star system to a sector: at the emptiest spot, at given coordinates, or at random outside every Hill sphere | GEN.74 | Merges two asks (one system added by the computer; placement chosen by admin). |
 | MAP.120 | Bright-star backfill from the Galaxy Map's block, slab and wedge menus |  |  |
-| ADM.35 | Full control from every screen: edit anything, regenerate with every input, backfill or erase what is in view | ADM.34, MAP.120 | Parent; MAP item MAP.120 is the map part. |
+| ADM.35 | Full control from every screen: edit anything, regenerate with every input, backfill or erase what is in view | MAP.120 | Parent; MAP item MAP.120 is the map part. |
 
 ### Pages
 
