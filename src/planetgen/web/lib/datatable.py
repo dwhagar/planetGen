@@ -21,11 +21,12 @@ and `page`.
 
 A table's `load(state, limit, offset, want_facets)` returns a `Result` from
 the API; its rows are lists of cells, one per column, each a dict with
-`text`, and optionally `href` (a link) and `muted` (shown as a dash or "None"
+`text`, and optionally `href` (a link, with `label` as its accessible name) and `muted` (shown as a dash or "None"
 in italics). A cell may instead carry `parts`, a list of plain strings and
 `{"text", "href"}` links (a Location cell's nearest-neighbor links), and
 `map_target` (a key the Sector Map knows, which adds a "Show on map" button
-after the text). No cell ever holds markup: the browser fills it with text
+after the text), or `form`: `{"action", "button", "label", "fields": [[name, value], ...]}`, a
+POST button (an admin's Revoke) whose fields include the CSRF token. No cell ever holds markup: the browser fills it with text
 nodes and the page template escapes it.
 """
 
@@ -36,6 +37,7 @@ from urllib.parse import urlencode
 
 from markupsafe import Markup
 
+from planetgen.web.lib.fmt import utc_time_html
 from planetgen.web.lib.pagination import PAGE_SIZE, parse_page, render_pagination
 from planetgen.web.lib.tabledisplay import to_plain_text
 
@@ -51,10 +53,10 @@ Column = namedtuple("Column", "key label sortable", defaults=(True,))
 Facet = namedtuple("Facet", "param label")
 """A filter menu: the query parameter its checked values travel in, and its name."""
 
-Result = namedtuple("Result", "rows total facets", defaults=(None,))
+Result = namedtuple("Result", "rows total facets capped", defaults=(None, False))
 """One loaded page: `rows` (lists of cells), the `total` rows that pass the
 filters and `facets` (`{param: [{"value", "label", "count"}]}`, or None when
-not asked for)."""
+not asked for); `capped` says there are more rows than `total` (shown "300+")."""
 
 State = namedtuple("State", "sort descending filters page")
 """What a visitor chose: the sort key, its direction, `{param: [values]}` and the page."""
@@ -68,7 +70,7 @@ class Table:
         name (str): Its id in `/table/<name>` and in the page.
         label (str): What the rows are, for the accessible names ("Phenomena").
         columns (list[Column]): Left to right; the first sortable column is the
-            default sort.
+            default sort (a table whose API lists rows in one fixed order has none).
         load (callable): `load(state, limit, offset, want_facets)` -> `Result`.
         facets (list[Facet]): The filter menus.
         prefix (str): Put before `sort`, `order` and `page` in the page's URL.
@@ -85,7 +87,7 @@ class Table:
         self.facets = list(facets)
         self.prefix = prefix
         self.noun = noun
-        self.default_sort = default_sort or next(column.key for column in columns if column.sortable)
+        self.default_sort = default_sort or next((column.key for column in columns if column.sortable), None)
 
     def owned_params(self):
         """The page query parameters this table reads; every other one belongs to the page or
@@ -191,6 +193,7 @@ def view(table, state, result, path, source, anchor=None, extra=()):
         "columns": columns,
         "rows": result.rows,
         "total": result.total,
+        "capped": result.capped,
         "noun_one": table.noun[0],
         "noun_many": table.noun[1],
         "facets": facets,
@@ -287,3 +290,10 @@ def in_memory(items, state, limit, offset, want_facets, sorts, facet_values, to_
             facets[param] = [{"value": value, "label": value, "count": counts[value]}
                              for value in sorted(counts, key=str.casefold)]
     return Result([to_cells(item) for item in ordered[offset:offset + limit]], len(ordered), facets)
+
+
+def time_text(value):
+    """A time as the text a cell shows ("2026-02-01 00:00 UTC"), or "" for none."""
+    if not value:
+        return ""
+    return "".join(part if isinstance(part, str) else part["text"] for part in parts_of(utc_time_html(value)))

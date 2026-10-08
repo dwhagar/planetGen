@@ -399,7 +399,8 @@ connectivity to that specific schema rather than the default one.
   `belts_offset` pick each panel's page; `total` is that panel's full
   match count and `truncated` is true when `rows` isn't all of them. An
   offset past the last match returns the last page (with its real
-  `offset`).
+  `offset`). `panels` (comma-separated panel names) runs just those
+  panels, the others answering `null`.
 - `GET /api/wiki-config` — `{"wikijs": bool, "mediawiki": bool}`, whether
   each wiki backend has a `base_url` plus credentials configured
   deployment-wide (`config.json`'s `wiki` section, or the matching

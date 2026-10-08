@@ -5,13 +5,14 @@
     over (it hides the pager and fetches rows as they scroll into view). -#}
 {% macro cell(c) -%}
 {%- if c.swatch %}<svg class="polity-swatch" viewBox="0 0 10 10" aria-hidden="true" focusable="false"><rect width="10" height="10" fill="{{ c.swatch }}"/></svg> {% endif -%}
-{%- if c.parts %}{% for part in c.parts %}{% if part is string %}{{ part }}{% else %}<a href="{{ part.href }}">{{ part.text }}</a>{% endif %}{% endfor %}
-{%- elif c.href %}<a href="{{ c.href }}">{{ c.text }}</a>{% elif c.muted %}<em>{{ c.text }}</em>{% else %}{{ c.text }}{% endif -%}
+{%- if c.form %}<form method="post" action="{{ c.form.action }}" class="table-form">{% for name, value in c.form.fields %}<input type="hidden" name="{{ name }}" value="{{ value }}">{% endfor %}<button type="submit" class="btn" aria-label="{{ c.form.label }}">{{ c.form.button }}</button></form>
+{%- elif c.parts %}{% for part in c.parts %}{% if part is string %}{{ part }}{% else %}<a href="{{ part.href }}">{{ part.text }}</a>{% endif %}{% endfor %}
+{%- elif c.href %}<a href="{{ c.href }}"{% if c.label %} aria-label="{{ c.label }}"{% endif %}>{{ c.text }}</a>{% elif c.muted %}<em>{{ c.text }}</em>{% else %}{{ c.text }}{% endif -%}
 {%- if c.map_target %} <button type="button" class="icon-btn" data-map-target="{{ c.map_target }}" title="Show on map" aria-label="Show {{ c.text }} on the map" hidden>{{ icon("show-on-map") }}</button>{% endif -%}
 {%- endmacro %}
 {% macro datatable(t) %}
 <div class="datatable" id="{{ t.id }}-table" data-datatable data-source="{{ t.source }}"
-     data-icons="{{ static_url('icons.svg') }}" data-page-size="{{ t.page_size }}" data-total="{{ t.total }}" data-sort="{{ t.sort }}" data-default-sort="{{ t.default_sort }}" data-prefix="{{ t.prefix }}"
+     data-icons="{{ static_url('icons.svg') }}" data-page-size="{{ t.page_size }}" data-total="{{ t.total }}" data-capped="{{ 'true' if t.capped else 'false' }}" data-sort="{{ t.sort or '' }}" data-default-sort="{{ t.default_sort or '' }}" data-prefix="{{ t.prefix }}"
      data-descending="{{ 'true' if t.descending else 'false' }}" data-noun-one="{{ t.noun_one }}" data-noun-many="{{ t.noun_many }}">
   {%- if t.facets %}
   <form class="datatable-filters" method="get" action="{{ t.path }}{% if t.anchor %}#{{ t.anchor }}{% endif %}" aria-label="Filter {{ t.label|lower }}">
@@ -35,7 +36,7 @@
     </span>
   </form>
   {%- endif %}
-  <p class="datatable-count-line" role="status" aria-live="polite">{{ num(t.total) }} {{ t.noun_many if t.total != 1 else t.noun_one }}{% if t.filtered %} match{% endif %}</p>
+  <p class="datatable-count-line" role="status" aria-live="polite">{{ num(t.total) }}{% if t.capped %}+{% endif %} {{ t.noun_many if t.total != 1 or t.capped else t.noun_one }}{% if t.filtered %} match{% endif %}</p>
   <div class="table-scroll datatable-scroll" role="region" aria-label="{{ t.label }} table" tabindex="0">
     <table aria-rowcount="{{ t.total + 1 }}">
       <thead>

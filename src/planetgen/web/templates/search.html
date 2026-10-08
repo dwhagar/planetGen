@@ -1,12 +1,10 @@
 {#- The search page (views.search, data from web/searchpage.py). Every
     filter is a GET parameter; tags and chip "x"s are plain links. -#}
 {% extends "base.html" %}
-{%- macro sector_cell(url) -%}
-{% if url %}<a href="{{ url }}">View</a>{% else %}Standalone{% endif %}
-{%- endmacro -%}
-{%- macro radius_cell(row) -%}
-{% if row.radius %}{{ row.radius }}{% else %}&mdash;{% endif %}
-{%- endmacro -%}
+{% from "partials/datatable.html" import datatable with context %}
+{% block head %}
+<script type="module" src="{{ static_url('datatable.js') }}"></script>
+{% endblock %}
 {% block content %}
 <section class="panel" aria-labelledby="search-form-heading">
   <h2 id="search-form-heading" class="sr-only">Search form</h2>
@@ -66,52 +64,7 @@
 {%- for p in panels %}
 <section class="panel" id="search-{{ p.panel }}" aria-labelledby="search-{{ p.panel }}-heading">
   <h2 id="search-{{ p.panel }}-heading">{{ p.heading }} <span class="count">({{ num(p.total) }}{% if p.total_capped %}+{% endif %})</span></h2>
-  <div class="table-scroll"><table>
-    {%- if p.panel == "sectors" %}
-    <thead><tr><th scope="col">Name</th><th scope="col">Cube Edge</th><th scope="col">Galaxy Map</th></tr></thead>
-    <tbody>
-      {%- for row in p.rows %}
-      <tr><td><a href="{{ row.url }}">{{ row.name }}</a></td><td>{{ num(row.edge_mpc, ",.2f") }} mpc</td><td><a href="{{ row.galaxy_url }}" aria-label="Show {{ row.name }} on the Galaxy Map">Show</a></td></tr>
-      {%- else %}<tr><td colspan="3"><em>None</em></td></tr>{% endfor %}
-    </tbody>
-    {%- elif p.panel == "systems" %}
-    <thead><tr><th scope="col">Name</th><th scope="col">Sector</th><th scope="col">Binary</th><th scope="col">Star type</th><th scope="col">Galaxy Map</th></tr></thead>
-    <tbody>
-      {%- for row in p.rows %}
-      <tr><td><a href="{{ row.url }}">{{ row.name }}</a></td><td>{{ sector_cell(row.sector_url) }}</td><td>{{ "Yes" if row.is_binary else "No" }}</td><td>{{ row.star_summary }}</td><td>{% if row.galaxy_url %}<a href="{{ row.galaxy_url }}" aria-label="Show {{ row.name }} on the Galaxy Map">Show</a>{% else %}—{% endif %}</td></tr>
-      {%- else %}<tr><td colspan="5"><em>None</em></td></tr>{% endfor %}
-    </tbody>
-    {%- elif p.panel == "stars" %}
-    <thead><tr><th scope="col">Name</th><th scope="col">Role</th><th scope="col">Type</th><th scope="col">Radius</th><th scope="col">System</th><th scope="col">Sector</th></tr></thead>
-    <tbody>
-      {%- for row in p.rows %}
-      <tr><td>{{ row.name }}</td><td>{{ row.role }}</td><td>{{ row.star_type }}</td><td>{{ radius_cell(row) }}</td><td><a href="{{ row.system_url }}">{{ row.system_name }}</a></td><td>{{ sector_cell(row.sector_url) }}</td></tr>
-      {%- else %}<tr><td colspan="6"><em>None</em></td></tr>{% endfor %}
-    </tbody>
-    {%- elif p.panel in ("planets", "moons") %}
-    <thead><tr><th scope="col">Name</th><th scope="col">Class</th><th scope="col">Body</th><th scope="col">Radius</th><th scope="col">Life Chemistry</th>{% if p.panel == "moons" %}<th scope="col">Orbits</th>{% endif %}<th scope="col">System</th><th scope="col">Sector</th></tr></thead>
-    <tbody>
-      {%- for row in p.rows %}
-      <tr><td>{{ row.name }}</td><td>{{ row.planet_class or "—" }}</td><td>{{ row.body }}</td><td>{{ radius_cell(row) }}</td><td>{{ row.life_chemical or "—" }}</td>{% if p.panel == "moons" %}<td>{{ row.planet_name }}</td>{% endif %}<td><a href="{{ row.system_url }}">{{ row.system_name }}</a></td><td>{{ sector_cell(row.sector_url) }}</td></tr>
-      {%- else %}<tr><td colspan="{{ 8 if p.panel == 'moons' else 7 }}"><em>None</em></td></tr>{% endfor %}
-    </tbody>
-    {%- elif p.panel == "phenomena" %}
-    <thead><tr><th scope="col">Name</th><th scope="col">Type</th><th scope="col">Class</th><th scope="col">Sector</th></tr></thead>
-    <tbody>
-      {%- for row in p.rows %}
-      <tr><td><a href="{{ row.url }}">{{ row.name }}</a></td><td>{{ row.type_label }}</td><td>{{ row.phenomenon_class or "—" }}</td><td>{{ sector_cell(row.sector_url) }}</td></tr>
-      {%- else %}<tr><td colspan="4"><em>None</em></td></tr>{% endfor %}
-    </tbody>
-    {%- else %}
-    <thead><tr><th scope="col">Density</th><th scope="col">Composition</th><th scope="col">System</th><th scope="col">Sector</th></tr></thead>
-    <tbody>
-      {%- for row in p.rows %}
-      <tr><td>{{ row.density|capitalize }}</td><td>{{ row.composition_summary }}</td><td><a href="{{ row.system_url }}">{{ row.system_name }}</a></td><td>{{ sector_cell(row.sector_url) }}</td></tr>
-      {%- else %}<tr><td colspan="4"><em>None</em></td></tr>{% endfor %}
-    </tbody>
-    {%- endif %}
-  </table></div>
-  {{ p.pager }}
+  {{ datatable(p.table) }}
 </section>
 {%- endfor %}
 {%- endif %}

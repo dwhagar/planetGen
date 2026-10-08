@@ -135,6 +135,17 @@ def _fake_sector(db, sector_id):
     return SECTOR
 
 
+def _fake_search(db, texts, tags, sizes=None, limit=None, offsets=None, panels=None):
+    offset = (offsets or {}).get("sectors", 0)
+    rows = [{"id": i, "name": f"Found {i:03d}", "edge_mpc": 3.07} for i in range(120)]
+    panel = {"rows": rows[offset:offset + limit], "total": 120, "total_capped": False, "limit": limit,
+             "offset": offset, "truncated": False}
+    results = {name: None for name in ("sectors", "systems", "stars", "planets", "moons", "belts", "phenomena")}
+    results["sectors"] = panel
+    return {"facets": {}, "autocomplete": {"sectors": [], "systems": [], "stars": [], "planets": [], "moons": []},
+            "facet_labels": {}, "results": results}
+
+
 class _SiteConfig(Config):
     WEB_DATABASE = DB
     SESSION_COOKIE_SECURE = False
@@ -154,11 +165,52 @@ def table_site():
         patch.setattr(apiclient, "get_population_status",
                       lambda db: {"generated": True, "species": True, "polities": True, "territories": False})
         patch.setattr(apiclient, "get_polity", _fake_polity)
+        patch.setattr(apiclient, "get_search", _fake_search)
         patch.setattr(apiclient, "get_sector", _fake_sector)
         patch.setattr(apiclient, "get_sector_facilities", lambda db, sector_id: [])
         patch.setattr(apiclient, "get_galaxy_shape", lambda db: None)
         patch.setattr(sector_page, "fetch_tiles", lambda db, keys, known_stamp=None: {
             "stamp": "0" * 16, "tiles": {}, "density": {}, "edge_pc": 3.066, "has_shape": False})
+        app = create_app(_SiteConfig)
+        app.testing = True
+        server = make_server("127.0.0.1", 0, app, threaded=True)
+        thread = threading.Thread(target=server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            yield f"http://127.0.0.1:{server.server_port}"
+        finally:
+            server.shutdown()
+            thread.join(timeout=10)
+    finally:
+        patch.undo()
+
+
+ADMIN = {"username": "boss", "must_change_credentials": False}
+KEYS = [{"id": i, "label": f"key {i:03d}", "created_at": f"2026-01-{1 + i % 28:02d} 00:00:00", "last_used_at": None,
+         "revoked_at": "2026-02-01 00:00:00" if i % 5 == 0 else None} for i in range(1, 121)]
+JOBS = [{"id": f"20260101-000000-{i:08d}", "kind": "galaxy", "title": f"Job {i:03d}", "status": "done",
+         "state": "done", "control": None, "live": False, "started_at": None, "created_at": "2026-01-01 00:00:00",
+         "finished_at": None, "seconds": 5.0, "age_seconds": 5.0, "workers": None, "holder": None,
+         "web_job_id": None, "children": [], "tasks": [],
+         "totals": {"tasks": 4, "queued": 0, "running": 0, "done": 4, "failed": 0, "cancelled": 0,
+                    "work_seconds": 0, "eta_seconds": None}} for i in range(120)]
+
+
+def _fake_work(cookie_header, limit=None, offset=None):
+    return {"available": True, "status": {"load": {"text": "0 / 0 / 0"}}, "items": JOBS[offset:offset + limit],
+            "total": len(JOBS)}
+
+
+@pytest.fixture(scope="module")
+def admin_site():
+    """A local server whose visitor is a signed-in admin, over fixture API keys and jobs."""
+    patch = pytest.MonkeyPatch()
+    try:
+        patch.setattr(apiclient, "auth_me", lambda cookie_header: ADMIN)
+        patch.setattr(apiclient, "auth_list_api_keys", lambda cookie_header: KEYS)
+        patch.setattr(apiclient, "admin_work", _fake_work)
+        patch.setattr(apiclient, "get_population_status",
+                      lambda db: {"generated": True, "species": True, "polities": True, "territories": False})
         app = create_app(_SiteConfig)
         app.testing = True
         server = make_server("127.0.0.1", 0, app, threaded=True)
@@ -419,3 +471,42 @@ def test_a_sectors_contents_scroll_filter_and_keep_their_map_buttons(page, table
     assert buttons.count() == 2 and buttons.first.get_attribute("data-map-target") == "rogue_planet:21"
     assert parse_qs(urlparse(page.url).query) == {"contents_type": ["Rogue Planet"]}
 
+
+
+def _sign_in(page, base):
+    page.context.add_cookies([{"name": "pg_admin_session", "value": "signed-in", "url": base}])
+
+
+def test_the_api_keys_scroll_filter_and_keep_their_revoke_buttons(page, admin_site):
+    _sign_in(page, admin_site)
+    assert page.goto(f"{admin_site}/admin?keys_sort=label", wait_until="load").status == 200
+    page.locator("#api-keys [data-datatable][data-enhanced='true']").wait_for(state="attached", timeout=15000)
+    assert page.locator("#api-keys .datatable-count-line").inner_text() == "120 keys"
+    page.locator("#api-keys .datatable-scroll").evaluate("el => { el.scrollTop = el.scrollHeight; }")
+    page.locator("#api-keys tbody tr[data-index]", has_text="key 119").wait_for(state="attached", timeout=10000)
+    form = page.locator("#api-keys tbody tr[data-index]", has_text="key 119").locator("form")
+    assert form.get_attribute("method") == "post" and form.get_attribute("action") == "/admin"
+    names = form.locator("input[type=hidden]").evaluate_all("els => els.map(e => e.name)")
+    assert names == ["action", "key_id", "csrf_token"]
+    page.locator("#api-keys summary", has_text="Status").click()
+    page.locator("#api-keys input[value='revoked']").check()
+    page.locator("#api-keys .datatable-count-line", has_text="24 keys match").wait_for(state="attached", timeout=10000)
+
+
+def test_a_table_with_no_sortable_columns_still_scrolls(page, admin_site):
+    _sign_in(page, admin_site)
+    assert page.goto(f"{admin_site}/admin/queue", wait_until="load").status == 200
+    page.locator("#jobs [data-datatable][data-enhanced='true']").wait_for(state="attached", timeout=15000)
+    assert page.locator("#jobs .datatable-count-line").inner_text() == "120 jobs"
+    page.locator("#jobs .datatable-scroll").evaluate("el => { el.scrollTop = el.scrollHeight; }")
+    page.locator("#jobs tbody tr[data-index]", has_text="Job 119").wait_for(state="attached", timeout=10000)
+    assert page.locator("#jobs th a.datatable-sort").count() == 0
+
+
+def test_search_results_scroll_through_every_match(page, table_site):
+    assert page.goto(f"{table_site}/search?sector_q=Found", wait_until="load").status == 200
+    page.locator("#search-sectors [data-datatable][data-enhanced='true']").wait_for(state="attached", timeout=15000)
+    assert page.locator("#search-sectors .datatable-count-line").inner_text() == "120 sectors"
+    page.locator("#search-sectors .datatable-scroll").evaluate("el => { el.scrollTop = el.scrollHeight; }")
+    page.locator("#search-sectors tbody tr[data-index]", has_text="Found 119").wait_for(state="attached", timeout=10000)
+    assert page.url.endswith("sector_q=Found")

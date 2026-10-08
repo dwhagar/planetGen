@@ -63,7 +63,7 @@ function mapButton(cell, iconUrl) {
   return button;
 }
 
-// One table cell from a served cell: `{text, href?, muted?, swatch?, parts?, map_target?}`.
+// One table cell from a served cell: `{text, href?, muted?, swatch?, parts?, map_target?, form?}`.
 function cellNode(cell, iconUrl) {
   const td = el("td");
   if (!cell) {
@@ -85,7 +85,24 @@ function cellNode(cell, iconUrl) {
     svg.append(square);
     td.append(svg, " ");
   }
-  if (cell.parts) {
+  if (cell.form) {
+    // A POST button, as the admin's API keys Revoke; its fields carry the CSRF token.
+    const form = el("form", "table-form");
+    form.method = "post";
+    form.action = cell.form.action;
+    cell.form.fields.forEach(([name, value]) => {
+      const input = el("input");
+      input.type = "hidden";
+      input.name = name;
+      input.value = value;
+      form.append(input);
+    });
+    const button = el("button", "btn", cell.form.button);
+    button.type = "submit";
+    button.setAttribute("aria-label", cell.form.label);
+    form.append(button);
+    td.append(form);
+  } else if (cell.parts) {
     // Text and links, as a Location cell lists its nearest systems.
     cell.parts.forEach((part) => {
       if (typeof part === "string") {
@@ -100,6 +117,9 @@ function cellNode(cell, iconUrl) {
   } else if (cell.href) {
     const link = el("a", "", cell.text);
     link.href = cell.href;
+    if (cell.label) {
+      link.setAttribute("aria-label", cell.label);
+    }
     td.append(link);
   } else if (cell.muted) {
     td.append(el("em", "", cell.text));
@@ -303,7 +323,8 @@ function enhance(root) {
   function showCount() {
     const state = currentState();
     const filtered = Object.keys(state.filters).some((param) => state.filters[param].length > 0);
-    countLine.textContent = `${formatNumber(store.total)} ${noun(store.total)}${filtered ? " match" : ""}`;
+    const more = root.dataset.capped === "true" ? "+" : "";
+    countLine.textContent = `${formatNumber(store.total)}${more} ${noun(store.total + (more ? 1 : 0))}${filtered ? " match" : ""}`;
     if (clearLink) {
       clearLink.hidden = !filtered;
     }
