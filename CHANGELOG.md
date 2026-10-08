@@ -1,5 +1,10 @@
 # Changelog
 
+## [7.269.635] - 2026-10-08
+
+### Added
+- The Galaxy Map has a Current button beside Forward that jumps straight to the newest view in the map's history; it is disabled when you are already there, and works in the phone layout (MAP.95).
+
 ## [7.268.635] - 2026-10-08
 
 ### Changed
