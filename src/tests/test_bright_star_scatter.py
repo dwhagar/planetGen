@@ -780,3 +780,63 @@ def test_the_requested_sector_of_a_many_sector_run_is_the_one_nearest_the_middle
     args = argparse.Namespace(block=None, column=False, shell=False, slot=3, ring=2, layer=0, center_sector=None)
     assert run_galaxy._requested_center(args, points, EDGE_PC, None) == sector_position_pc(2, 0, 3, EDGE_PC)
 
+
+
+@pytest.fixture
+def web_progress(tmp_path, monkeypatch):
+    """What a run the Generate page started writes to its progress file
+    (`planetgen.queue.progress_file`), in order."""
+    from planetgen.queue import progress_file
+
+    monkeypatch.setenv(progress_file.ENV_VAR, str(tmp_path / "progress.json"))
+    reports = []
+    real = progress_file.report
+
+    def record(completed, total=None, description=None, **kwargs):
+        reports.append((description, completed, total))
+        real(completed, total, description, **kwargs)
+
+    monkeypatch.setattr(progress_file, "report", record)
+    return reports
+
+
+def test_the_backfill_publishes_progress_to_the_web_from_the_start(mysql_config, web_progress):
+    """ADM.26: the Generate page's progress file shows the backfill's bar
+    (unmeasured while it finds its sectors, then counting them) and ends
+    at the full count."""
+    _seed_galaxy(mysql_config)
+    run_plan.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only"))
+    del web_progress[:]
+    with run_common._generation_progress() as progress:
+        summary = run_galaxy.backfill_bright_stars_around(
+            mysql_config, [sector_position_pc(4, 0, 5, EDGE_PC)], radius_ly=20.0, progress=progress)
+    assert summary["sectors"] > 0
+    backfill = [report for report in web_progress if report[0].startswith("Bright-star backfill")]
+    assert backfill[0] == ("Bright-star backfill (finding sectors)", 0, None)
+    measured = [report for report in backfill if report[2] is not None]
+    assert measured[0][1:] == (0, measured[0][2]) and measured[0][2] >= summary["sectors"]
+    assert measured[-1][1] == measured[-1][2]
+
+
+def test_a_backfill_with_nothing_to_draw_leaves_no_unmeasured_bar(mysql_config, web_progress):
+    _seed_galaxy(mysql_config)
+    with run_common._generation_progress() as progress:
+        run_galaxy.backfill_bright_stars_around(
+            mysql_config, [sector_position_pc(4, 0, 5, EDGE_PC)], radius_ly=20.0, progress=progress)
+        run_galaxy.backfill_bright_stars_around(
+            mysql_config, [sector_position_pc(4, 0, 5, EDGE_PC)], radius_ly=20.0, progress=progress)
+        assert not [task for task in progress.tasks if task.total is None]
+
+
+def test_topping_up_backfilled_sectors_shows_a_bar_on_the_web(mysql_config, web_progress):
+    """ADM.26: the band run's second phase (backfilled sectors getting what
+    they lack) reports its own progress."""
+    _seed_galaxy(mysql_config)
+    run_plan.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only"))
+    assert run_galaxy.backfill_bright_stars(mysql_config, sector_position_pc(4, 0, 5, EDGE_PC), radius_ly=20.0,
+                                          min_luminosity_sol=300.0)["sectors"]
+    del web_progress[:]
+    run_plan.add_bright_star_band(_plan_args(mysql_config, "--bright-stars-down-to", str(FLOOR)))
+    topping = [report for report in web_progress if report[0] == "Topping up backfilled sectors"]
+    assert topping and topping[0][1:] == (0, topping[0][2]) and topping[0][2] > 0
+    assert topping[-1][1] == topping[-1][2]

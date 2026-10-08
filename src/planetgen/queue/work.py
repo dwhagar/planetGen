@@ -70,6 +70,7 @@ import signal
 import socket
 import threading
 import time
+import traceback
 
 from planetgen.queue import redisqueue
 from planetgen.util import log
@@ -224,6 +225,21 @@ def _run_task(fn, payload, seed):
     return result, time.monotonic() - started
 
 
+def _picklable_error(exc):
+    """
+    The exception being handled in a worker, ready to cross to the run
+    (ADM.25). Its traceback doesn't survive pickling, so its text rides
+    along as a note, which the run's own report shows under the error.
+    An exception that can't be pickled becomes a `RuntimeError` of its text.
+    """
+    exc.add_note("Traceback in the worker:\n" + traceback.format_exc().rstrip())
+    try:
+        pickle.dumps(exc)
+    except Exception:  # noqa: BLE001
+        exc = RuntimeError(f"{type(exc).__name__}: {exc}\n" + "\n".join(getattr(exc, "__notes__", [])))
+    return exc
+
+
 def _rq_task(fn, payload, seed, log_level, debug_file):
     """
     One task in an RQ worker (`redisqueue.RQExecutor`): logs as a worker,
@@ -243,11 +259,7 @@ def _rq_task(fn, payload, seed, log_level, debug_file):
         result, seconds = _run_task(fn, payload, seed)
         pickle.dumps(result)
     except Exception as exc:  # noqa: BLE001 -- handed back to the run
-        try:
-            pickle.dumps(exc)
-        except Exception:  # noqa: BLE001
-            exc = RuntimeError(f"{type(exc).__name__}: {exc}")
-        return ("error", exc, 0)
+        return ("error", _picklable_error(exc), 0)
     return ("ok", result, seconds)
 
 

@@ -92,6 +92,67 @@ def test_the_terminal_follows_a_job_across_reconnects(browser, base_url, admin_t
     assert not errors, errors
 
 
+def test_a_failed_job_keeps_its_log_open_until_continue_and_the_log_can_be_copied(
+        browser, base_url, admin_token, running_job):
+    # ADM.24 and ADM.25: the Generate page does not reload away from a failed
+    # job's error; Continue does. Copy log puts the whole output on the clipboard.
+    job_id, append, write_state = running_job
+    context = browser.new_context(viewport={"width": 1000, "height": 900}, reduced_motion="reduce")
+    context.grant_permissions(["clipboard-read", "clipboard-write"], origin=base_url)
+    context.add_cookies([{"name": SESSION_COOKIE_NAME, "value": admin_token, "url": base_url}])
+    page = context.new_page()
+    try:
+        page.goto(f"{base_url}/admin/generate", wait_until="load")
+        rows = page.locator("#current-job .job-terminal .xterm-rows")
+        rows.wait_for()
+        page.evaluate("window.__stayed = true")
+        append("Traceback (most recent call last):\nValueError: broke\n")
+        write_state(status="failed", finished_at=time.time(), exit_code=1, error="Step one exited with status 1.")
+        box = page.locator("[data-job-continue]")
+        _eventually(lambda: box.is_visible())
+        # Well past the 1 s the page used to wait before reloading.
+        time.sleep(2.5)
+        assert page.evaluate("window.__stayed === true")
+        assert "ValueError: broke" in rows.inner_text()
+        assert "Step one exited with status 1." in page.locator("[data-job-error]").inner_text()
+
+        page.locator("[data-job-copy]").click()
+        _eventually(lambda: page.locator("[data-job-copy-note]").inner_text() == "Copied.")
+        copied = page.evaluate("navigator.clipboard.readText()")
+        assert "line one" in copied and "ValueError: broke" in copied
+
+        with page.expect_navigation():
+            page.locator("[data-job-continue-button]").click()
+        assert page.evaluate("window.__stayed === true") is False
+    finally:
+        context.close()
+
+
+def test_a_successful_job_still_reloads_the_generate_page(browser, base_url, admin_token, running_job):
+    job_id, append, write_state = running_job
+    context = browser.new_context(viewport={"width": 1000, "height": 900}, reduced_motion="reduce")
+    context.add_cookies([{"name": SESSION_COOKIE_NAME, "value": admin_token, "url": base_url}])
+    page = context.new_page()
+    try:
+        page.goto(f"{base_url}/admin/generate", wait_until="load")
+        page.locator("#current-job .job-terminal .xterm-rows").wait_for()
+        page.evaluate("window.__stayed = true")
+        write_state(status="succeeded", finished_at=time.time(), exit_code=0)
+        _eventually(lambda: _reloaded(page), timeout=20)
+        assert page.locator("[data-job-continue]").count() == 0 or not page.locator("[data-job-continue]").is_visible()
+    finally:
+        context.close()
+
+
+def _reloaded(page):
+    """Whether the page has been reloaded since `window.__stayed` was set (a
+    reload in the middle of the check destroys the context it ran in)."""
+    try:
+        return page.evaluate("window.__stayed === true") is False
+    except Exception:  # noqa: BLE001 -- playwright's "execution context was destroyed"
+        return True
+
+
 def _eventually(check, timeout=15):
     deadline = time.time() + timeout
     while time.time() < deadline:
