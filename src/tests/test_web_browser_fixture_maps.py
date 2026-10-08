@@ -798,7 +798,7 @@ def _crumb_line_settled(page):
     does so a moment after the window changes, longer on a busy machine)."""
     line = page.evaluate(CRUMB_LINE)
     for _ in range(30):
-        if line["tops"] == 1 and line["overflow"] <= 1 and (not line["cut"] or line["more"]):
+        if line["tops"] == 1 and line["overflow"] <= 1 and not line["cut"]:
             break
         page.wait_for_timeout(100)
         line = page.evaluate(CRUMB_LINE)
