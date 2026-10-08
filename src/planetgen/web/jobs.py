@@ -64,7 +64,7 @@ GENERATE_COMMAND = ["-m", "planetgen.cli.generate"]
 RESET_COMMAND = ["-m", "planetgen.cli.reset"]
 """list: Runs `planetgen.cli.reset`."""
 
-DEFAULT_JOBS_DIR = "/var/lib/planetgen/jobs"
+DEFAULT_JOBS_DIR = "/var/lib/planetGen/jobs"
 """str: Used when neither `PLANETGEN_JOBS_DIR` nor `config.json`'s
 `jobs.dir` names a directory. Falls back to a `planetgen-jobs` folder in
 the system temp directory when Apache can't create this one."""

@@ -104,7 +104,7 @@ Layout used below (short names, no spaces):
 | `C:\srv\planetGen` | The git checkout (Linux: `/var/lib/planetGen`) |
 | `C:\srv\planetgen-venv` | Python virtual environment |
 | `C:\ProgramData\planetgen\tiles` | Galaxy Map tile cache (Linux: `/var/cache/planetgen/tiles`) |
-| `C:\ProgramData\planetgen\jobs` | Generate jobs (Linux: `/var/lib/planetgen/jobs`) |
+| `C:\ProgramData\planetgen\jobs` | Generate jobs (Linux: `/var/lib/planetGen/jobs`) |
 | `C:\ProgramData\planetgen\logs` | Debug log, service and web server logs |
 | `C:\srv\planetGen\logs` | The always-on activity log, `planetgen.log` (Linux: `/var/log/planetgen/`); `"log_dir"` moves it |
 | `C:\ProgramData\planetgen\nltk_data` | NLTK `words` corpus (Linux: `/usr/local/share/nltk_data`) |
