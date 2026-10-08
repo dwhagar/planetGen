@@ -424,6 +424,11 @@ with `clamp()`.
   this covers the tables that stay server-rendered. Approved default:
   Edge fade plus stacked secondary columns. Related: UX.41, UX.21. Not
   a bug.
+  Progress (PR #652, 2026-10-08): the edge-fade scroll cue and thin
+  scrollbar are on all sideways-scrolling tables, and the Quadrants and
+  system Stars tables wrap on a phone. Remaining: stack the secondary
+  columns under the name on a phone (Stars still scrolls about 170 px
+  at 390 px).
   Prerequisites: none.
   Audit: https://claude.ai/artifact/4URTUHSvfLKMzZobyGdiHF (finding L1).
 
