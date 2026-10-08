@@ -175,3 +175,52 @@ def regenerate_sector(sector_id, config):
     random.seed()
     result = run_galaxy.ensure_sector_generated(*address, config=config)
     return {"deleted": counts, "sector_id": result["sector_id"], "sector_name": result["sector_name"]}
+
+
+def run_command(argv, env, cwd, timeout, merge_stderr=False):
+    """
+    Runs a command to completion (the queued body of `command_and_wait`).
+
+    Returns:
+        dict: `returncode`, `stdout`, `stderr` (text; empty when merged
+            into `stdout`), `timed_out`, and `error` (why it couldn't be
+            started, else `None`).
+    """
+    import subprocess
+    out = {"returncode": None, "stdout": "", "stderr": "", "timed_out": False, "error": None}
+    try:
+        done = subprocess.run(argv, env=env, cwd=cwd, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
+                              stderr=subprocess.STDOUT if merge_stderr else subprocess.PIPE, timeout=timeout,
+                              check=False)
+    except subprocess.TimeoutExpired as exc:
+        out["timed_out"] = True
+        out["stdout"] = (exc.stdout or b"").decode("utf-8", errors="replace")
+    except OSError as exc:
+        out["error"] = str(exc)
+    else:
+        out["returncode"] = done.returncode
+        out["stdout"] = (done.stdout or b"").decode("utf-8", errors="replace")
+        out["stderr"] = (done.stderr or b"").decode("utf-8", errors="replace")
+    return out
+
+
+def command_and_wait(argv, env, cwd, timeout, merge_stderr=False):
+    """
+    Runs a command on the queue and waits for it (the one-off system page
+    and the Generate page's estimate, PERF.24). Without a Redis server
+    (Windows without WSL's Redis) the command runs here instead, as the
+    Generate page's jobs do.
+
+    Returns:
+        dict: `run_command`'s.
+    """
+    try:
+        job_id = submit(run_command, argv, env, cwd, timeout, merge_stderr)
+    except NoQueue:
+        return run_command(argv, env, cwd, timeout, merge_stderr)
+    job = wait(job_id, timeout + 15)
+    if job is None or job["state"] != "succeeded":
+        reason = job["error"] if job and job["state"] == "failed" else "the queue did not answer in time"
+        return {"returncode": None, "stdout": "", "stderr": "", "timed_out": False,
+                "error": f"the work queue could not run it: {reason}"}
+    return job["result"]

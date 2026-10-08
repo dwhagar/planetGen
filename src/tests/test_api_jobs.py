@@ -131,3 +131,27 @@ def test_an_edit_is_503_without_redis(admin_client, monkeypatch):
 
     monkeypatch.setattr(api_jobs, "submit", down)
     assert admin_client.post("/api/systems", json={}).status_code == 503
+
+
+def test_a_command_runs_on_the_queue(redis_server):
+    import sys
+    done = api_jobs.command_and_wait([sys.executable, "-c", "print('hi'); import sys; sys.stderr.write('err')"],
+                                     None, None, 30)
+    assert done["returncode"] == 0 and done["stdout"].strip() == "hi" and done["stderr"] == "err"
+
+
+def test_a_command_that_runs_too_long_is_stopped(redis_server):
+    import sys
+    done = api_jobs.command_and_wait([sys.executable, "-c", "import time; time.sleep(30)"], None, None, 1)
+    assert done["timed_out"] and done["returncode"] is None
+
+
+def test_a_command_runs_here_without_redis(monkeypatch):
+    import sys
+
+    def down(function, *args):
+        raise api_jobs.NoQueue("no Redis")
+
+    monkeypatch.setattr(api_jobs, "submit", down)
+    done = api_jobs.command_and_wait([sys.executable, "-c", "print(7)"], None, None, 30, merge_stderr=True)
+    assert done["stdout"].strip() == "7"

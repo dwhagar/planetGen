@@ -22,7 +22,6 @@ Admins only, like the rest of `/admin/generate` (`generate_page.py`).
 import json
 import os
 import re
-import subprocess
 import tempfile
 
 from flask import Response, request
@@ -31,6 +30,7 @@ from . import bp, jobs
 from .generate_page import FormError, _admin_or_403, _admin_or_redirect, _no_store, _number
 from .helpers import crumb, render_page, trusted_html
 
+from planetgen.queue import api_jobs
 from planetgen.web.lib.mdconvert import markdown_to_html
 from planetgen.generation.limits import MAX_NUM_ORBITS
 
@@ -188,17 +188,13 @@ def run_generator(spec):
                 json.dump(spec["system_file"], f)
             argv.append("--system-file=" + file_path)
         argv += spec["argv"]
-        try:
-            proc = subprocess.run(argv, cwd=jobs.REPO_DIR, stdin=subprocess.DEVNULL, stdout=subprocess.PIPE,
-                                  stderr=subprocess.STDOUT, timeout=TIMEOUT_S)
-            output = proc.stdout.decode("utf-8", errors="replace")
-            ok = proc.returncode == 0
-        except subprocess.TimeoutExpired as exc:
-            output = (exc.stdout or b"").decode("utf-8", errors="replace")
+        done = api_jobs.command_and_wait(argv, dict(os.environ), jobs.REPO_DIR, TIMEOUT_S, merge_stderr=True)
+        output = done["stdout"]
+        ok = done["returncode"] == 0
+        if done["timed_out"]:
             output += f"\nThe generator took longer than {TIMEOUT_S} seconds and was stopped."
-            ok = False
-        except OSError as exc:
-            output, ok = f"The generator could not be started: {exc}", False
+        elif done["error"]:
+            output, ok = f"The generator could not be started: {done['error']}", False
         text = _read(page_path)
     output = _tail(output.strip())
     return {"ok": ok and bool(text), "text": text, "output": output, "debug_log": output if spec["debug"] else ""}
