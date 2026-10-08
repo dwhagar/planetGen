@@ -41,15 +41,16 @@ import shutil
 import time
 from urllib.parse import urlsplit
 
-from flask import current_app, make_response, redirect, request, url_for
+from flask import abort, current_app, make_response, redirect, request, url_for
 from itsdangerous import BadSignature, URLSafeTimedSerializer
 
 from planetgen.web.lib import apiclient
 from planetgen.web.lib.fmt import format_duration_seconds, format_number, utc_time_html
 from planetgen.web.lib import tilecache
-from planetgen.web.lib.pagination import fetch_page, page_slice, parse_page
+from planetgen.web.lib.datatable import Column, Facet, Result, Table, in_memory, time_text
+from planetgen.web.lib.pagination import fetch_page, parse_page
 
-from . import bp
+from . import bp, csrf, tables
 from .helpers import crumb, current_admin, db_name, page_url, pager, render_page, trusted_html
 
 # ---------------------------------------------------------------------
@@ -400,14 +401,42 @@ def account():
 # /admin
 # ---------------------------------------------------------------------
 
-def _key_rows(keys):
-    return [{
-        "id": key["id"],
-        "label": key["label"],
-        "created_at": key.get("created_at") or "",
-        "last_used_at": key.get("last_used_at"),
-        "revoked_at": key.get("revoked_at"),
-    } for key in keys]
+def _admin_only():
+    """The admin tables' JSON routes answer an admin only (403 otherwise, not a login redirect)."""
+    _identity, bounce = _require_admin()
+    if bounce is not None:
+        abort(403)
+
+
+def _key_cells(key):
+    revoked = key.get("revoked_at")
+    action = {"text": ""}
+    if not revoked:
+        action = {"text": "", "form": {
+            "action": url_for("web.admin"), "button": "Revoke", "label": f"Revoke {key['label']}",
+            "fields": [["action", "revoke_key"], ["key_id", key["id"]], [csrf.FIELD_NAME, csrf.csrf_token()]]}}
+    return [{"text": key["label"]}, {"text": time_text(key.get("created_at"))},
+            {"text": time_text(key.get("last_used_at")) or "never"},
+            {"text": f"revoked {time_text(revoked)}" if revoked else "active"}, action]
+
+
+def _keys_load(state, limit, offset, want_facets):
+    _admin_only()
+    keys = apiclient.auth_list_api_keys(_cookie_header())
+    return in_memory(
+        keys, state, limit, offset, want_facets,
+        {"label": lambda k, desc: k["label"].casefold(), "created": lambda k, desc: k.get("created_at") or None,
+         "last_used": lambda k, desc: k.get("last_used_at") or None,
+         "status": lambda k, desc: bool(k.get("revoked_at"))},
+        {"keys_status": lambda k: "revoked" if k.get("revoked_at") else "active"}, _key_cells)
+
+
+KEYS_TABLE = tables.register(Table(
+    "api-keys", "API keys",
+    [Column("label", "Label"), Column("created", "Created"), Column("last_used", "Last used"),
+     Column("status", "Status"), Column("action", "Action", sortable=False)],
+    _keys_load, facets=[Facet("keys_status", "Status")], prefix="keys_", noun=("key", "keys"), default_sort="created",
+))
 
 
 def _admin_action(cookie_header):
@@ -458,27 +487,22 @@ def _set_wiki_url(cookie_header):
 
 @bp.route("/admin", methods=["GET", "POST"])
 def admin():
-    """API keys (list, create, revoke; `?keys_page=N`) and a sector's
+    """API keys (a data table; create, revoke) and a sector's
     manual wiki link."""
     identity, bounce = _require_admin()
     if bounce is not None:
         return bounce
     cookie_header = _cookie_header()
-    keys_page = parse_page(request.args.get("keys_page"))
 
     if request.method == "POST":
         flash, anchor = _admin_action(cookie_header)
-        keys_page = parse_page(request.form.get("keys_page"))
-        return _flash(_see_other(page_url("admin", keys_page=keys_page if keys_page > 1 else None,
-                                          _anchor=anchor)), **flash)
+        return _flash(_see_other(page_url("admin", _anchor=anchor)), **flash)
 
-    keys = apiclient.auth_list_api_keys(cookie_header)
-    page_keys, keys_page = page_slice(keys, keys_page)
+    keys_table = tables.render(KEYS_TABLE, request.path, anchor="api-keys")
     flashed = _take_flash()
     return _render(
         "admin.html", flashed=True, title="Admin", section="admin", breadcrumbs=[crumb("Admin")],
-        admin=identity, keys=_key_rows(page_keys), keys_total=len(keys), keys_page=keys_page,
-        keys_pager=pager("keys_page", keys_page, len(keys), anchor="api-keys", label="API key pages"),
+        admin=identity, keys_table=keys_table,
         database=db_name(), new_key=flashed.get("new_key"), message=flashed.get("message"),
         error=flashed.get("error"), wiki_message=flashed.get("wiki_message"),
         wiki_error=flashed.get("wiki_error"),
@@ -655,25 +679,39 @@ def _name_entry(row):
     return {"name": row["name"], "url": page_url("system", system_id=row["id"]), "kind": "system"}
 
 
-def _names_panel(cookie_header, db):
-    """One page of the duplicate-names list (`?names_page=N`)."""
+def _names_load(state, limit, offset, want_facets):
+    """The API's duplicate-names list, `limit` rows from `offset`."""
+    _admin_only()
+    names = apiclient.admin_duplicate_names(_cookie_header(), db_name(), limit=limit, offset=offset)
+    rows = []
+    for item in names["items"]:
+        parts = []
+        for row in item["rows"]:
+            entry = _name_entry(row)
+            parts += [", "] if parts else []
+            parts += [{"text": entry["name"], "href": entry["url"]}, f" ({entry['kind']})"]
+        rows.append([
+            {"text": item["base_name"]},
+            {"text": ", ".join(_LEVEL_LABELS.get(level, level) for level in item["levels"])},
+            {"text": "", "parts": parts} if parts else {"text": "no rows left", "muted": True},
+        ])
+    return Result(rows, names["total"], None)
+
+
+NAMES_TABLE = tables.register(Table(
+    "duplicate-names", "Names made unique",
+    [Column("base_name", "Base name", sortable=False), Column("levels", "Collided as", sortable=False),
+     Column("rows", "Now named", sortable=False)],
+    _names_load, prefix="names_", noun=("name", "names"),
+))
+
+
+def _names_panel():
+    """The duplicate-names table, or the API's error when it can't be loaded."""
     try:
-        names, names_page = fetch_page(
-            lambda limit, offset: apiclient.admin_duplicate_names(cookie_header, db, limit=limit, offset=offset),
-            parse_page(request.args.get("names_page")),
-        )
+        return {"error": None, "table": tables.render(NAMES_TABLE, request.path, anchor="duplicate-names")}
     except apiclient.ApiError as exc:
-        return {"error": _api_message(exc), "items": [], "pager": ""}
-    return {
-        "error": None,
-        "items": [{
-            "base_name": item["base_name"],
-            "levels": ", ".join(_LEVEL_LABELS.get(level, level) for level in item["levels"]),
-            "rows": [_name_entry(row) for row in item["rows"]],
-        } for item in names["items"]],
-        "pager": pager("names_page", names_page, names["total"], anchor="duplicate-names",
-                       label="Duplicate name pages"),
-    }
+        return {"error": _api_message(exc), "table": None}
 
 
 _FAILURE_LABELS = {
@@ -759,7 +797,7 @@ def lift_lockout():
 @bp.route("/admin/stats")
 def admin_stats():
     """Server health and statistics about the site's database, plus
-    every name the uniqueness rules had to decorate (`?names_page=N`)."""
+    every name the uniqueness rules had to decorate (a data table)."""
     _identity, bounce = _require_admin()
     if bounce is not None:
         return bounce
@@ -798,7 +836,7 @@ def admin_stats():
                 ("Sector collisions", format_count(collisions.get("sector"))),
                 ("System collisions", format_count(collisions.get("system"))),
             ],
-            names=_names_panel(cookie_header, db),
+            names=_names_panel(),
             tables=[{
                 "name": table["name"],
                 "rows": format_count(table["approx_rows"]),

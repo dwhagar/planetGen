@@ -4456,7 +4456,7 @@ def _search_facets_cached(conn):
     return value
 
 
-def search(conn, texts, tags, sizes=None, limit=SEARCH_RESULT_LIMIT, offsets=None):
+def search(conn, texts, tags, sizes=None, limit=SEARCH_RESULT_LIMIT, offsets=None, only=None):
     """
     Runs the faceted search behind `GET /api/search`/`html/search.py`:
     the same click-to-filter attribute tags (object type; star spectral/
@@ -4485,6 +4485,8 @@ def search(conn, texts, tags, sizes=None, limit=SEARCH_RESULT_LIMIT, offsets=Non
         offsets (dict, optional): `{panel: offset}` for any of
             `SEARCH_RESULT_PANELS` -- each panel pages independently; an
             absent panel starts at 0.
+        only (iterable, optional): Run just these panels (a table scrolling
+            one panel asks for that panel alone); the others come back `None`.
 
     Returns:
         dict: `facets` (`{facet: [{"value","label","count","tooltip"}, ...]}`,
@@ -4537,28 +4539,29 @@ def search(conn, texts, tags, sizes=None, limit=SEARCH_RESULT_LIMIT, offsets=Non
         return limit, offsets.get(panel, 0)
 
     results = {panel: None for panel in SEARCH_RESULT_PANELS}
-    if texts.get("sector_q"):
+    wanted = set(SEARCH_RESULT_PANELS if only is None else only)
+    if texts.get("sector_q") and "sectors" in wanted:
         results["sectors"] = _search_result_sectors(conn, texts["sector_q"], *_page("sectors"))
-    if texts.get("system_q"):
+    if texts.get("system_q") and "systems" in wanted:
         results["systems"] = _search_result_systems(conn, texts["system_q"], *_page("systems"))
-    if stars_included:
+    if stars_included and "stars" in wanted:
         results["stars"] = _search_result_stars(
             conn, spectral_tags, luminosity_tags, texts.get("star_q", ""), *_page("stars"), size_range=star_size
         )
-    if planets_included:
+    if planets_included and "planets" in wanted:
         results["planets"] = _search_result_planets(
             conn, class_tags, body_tags, life_tags, texts.get("planet_q", ""), *_page("planets"),
             size_range=planet_size,
         )
-    if moons_included:
+    if moons_included and "moons" in wanted:
         results["moons"] = _search_result_moons(
             conn, moon_class_tags, moon_body_tags, moon_life_tags, texts.get("moon_q", ""), *_page("moons"),
             size_range=moon_size,
         )
-    if belts_included:
+    if belts_included and "belts" in wanted:
         results["belts"] = _search_result_belts(conn, density_tags, *_page("belts"))
     phenomenon_tags, phenomenon_class_tags = tags.get("phenomenon", set()), tags.get("phenomenon_class", set())
-    if phenomenon_tags or phenomenon_class_tags:
+    if (phenomenon_tags or phenomenon_class_tags) and "phenomena" in wanted:
         results["phenomena"] = _search_result_phenomena(
             conn, phenomenon_tags, phenomenon_class_tags, *_page("phenomena"))
 

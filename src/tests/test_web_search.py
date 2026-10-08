@@ -44,9 +44,10 @@ class SearchFake(FakeData):
         self.search_calls = []
         self.results = None
 
-    def get_search(self, db, texts, tags, sizes=None, limit=None, offsets=None):
+    def get_search(self, db, texts, tags, sizes=None, limit=None, offsets=None, panels=None):
         self.search_calls.append({"db": db, "texts": dict(texts), "tags": {k: set(v) for k, v in tags.items()},
-                                  "sizes": dict(sizes or {}), "limit": limit, "offsets": dict(offsets or {})})
+                                  "sizes": dict(sizes or {}), "limit": limit, "offsets": dict(offsets or {}),
+                                  "panels": panels})
         results = self.results or {
             "sectors": _result([{"id": 5, "name": "Kepler <Reach>", "edge_mpc": 3.07}]) if texts.get("sector_q") else None,
             "systems": _result([{"id": 7, "name": "Kepler-42", "sector_id": None, "is_binary": 0,
@@ -56,6 +57,8 @@ class SearchFake(FakeData):
             if texts.get("star_q") or tags.get("spectral") else None,
             "planets": None, "moons": None, "belts": None,
         }
+        if panels:
+            results = {panel: result if panel in panels else None for panel, result in results.items()}
         return {
             "facets": _FACETS,
             "autocomplete": {"sectors": ["Kepler <Reach>"], "systems": ["Kepler-42"], "stars": [], "planets": [],
@@ -173,14 +176,28 @@ def test_each_panel_pages_on_its_own(client, fake):
         "planets": None, "moons": None, "belts": None,
     }
     html = client.get("/search?q=S&sectors_page=2&stars_page=9").get_data(as_text=True)
-    assert fake.search_calls[-1]["offsets"]["sectors"] == 50
-    assert fake.search_calls[-1]["offsets"]["stars"] == 400
+    assert fake.search_calls[0]["offsets"]["sectors"] == 50
+    assert fake.search_calls[0]["offsets"]["stars"] == 400
+    # The past-the-end page is asked for again on its own; the API answers with the last real page.
+    assert fake.search_calls[-1]["panels"] == ["stars"] and fake.search_calls[-1]["offsets"] == {"stars": 400}
     sectors = _panel(html, "sectors")
     assert "Sectors <span class=\"count\">(120)</span>" in sectors
-    # The pager keeps the search and the other panel's page (as returned).
-    assert 'href="/search?q=S&amp;stars_page=2&amp;sectors_page=3#search-sectors"' in sectors
-    assert 'aria-label="Sectors result pages"' in sectors
+    # The pager keeps the search and the other panel's page (as asked; it shows the last real one).
+    assert 'href="/search?q=S&amp;stars_page=9&amp;sectors_page=3#search-sectors"' in sectors
+    assert 'aria-label="Sectors pages"' in sectors
     assert 'href="/search?q=S&amp;sectors_page=2&amp;stars_page=1#search-stars"' in _panel(html, "stars")
+
+
+def test_a_panels_table_route_pages_one_panel_alone(client, fake):
+    fake.results = {
+        "sectors": _result([{"id": i, "name": f"S{i}", "edge_mpc": 1.0} for i in range(50)], total=120, offset=50),
+        "systems": None, "stars": None, "planets": None, "moons": None, "belts": None,
+    }
+    data = client.get("/table/search-sectors?q=S&offset=50&limit=50").get_json()
+    assert data["total"] == 120 and len(data["rows"]) == 50
+    assert data["rows"][0][0] == {"text": "S0", "href": "/sector/0"}
+    call = fake.search_calls[-1]
+    assert call["panels"] == ["sectors"] and call["offsets"] == {"sectors": 50} and call["texts"]["sector_q"] == "S"
 
 
 def test_no_results_message(client, fake):

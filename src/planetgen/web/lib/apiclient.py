@@ -658,7 +658,7 @@ def get_phenomenon(db, phenomenon_type, phenomenon_id):
     return _request(f"/phenomena/{phenomenon_type}/{phenomenon_id}", {"db": db})
 
 
-def get_search(db, texts, tags, sizes=None, limit=None, offsets=None):
+def get_search(db, texts, tags, sizes=None, limit=None, offsets=None, panels=None):
     """
     Runs `GET /api/search` and returns its response dict -- see
     `queryDb.search`'s docstring for the full shape.
@@ -679,6 +679,7 @@ def get_search(db, texts, tags, sizes=None, limit=None, offsets=None):
             default when `None`).
         offsets (dict, optional): `{panel: offset}` -- sent as
             `<panel>_offset`, one page per result panel.
+        panels (iterable, optional): Run just these result panels.
     """
     _require_db(db)
     pairs = [("db", db)]
@@ -697,6 +698,8 @@ def get_search(db, texts, tags, sizes=None, limit=None, offsets=None):
         pairs.append(("limit", limit))
     for panel, offset in (offsets or {}).items():
         pairs.append((f"{panel}_offset", offset))
+    if panels:
+        pairs.append(("panels", ",".join(panels)))
     return _request("/search", pairs)
 
 

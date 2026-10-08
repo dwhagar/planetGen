@@ -1,4 +1,8 @@
 {% extends "base.html" %}
+{% from "partials/datatable.html" import datatable with context %}
+{% block head %}
+<script type="module" src="{{ static_url('datatable.js') }}"></script>
+{% endblock %}
 {% block content %}
 <section class="panel">
   <h2>Signed in</h2>
@@ -27,35 +31,7 @@
   {%- if error %}
   <p class="error" role="alert">{{ error }}</p>
   {%- endif %}
-  {%- if keys %}
-  <div class="table-scroll"><table>
-    <thead><tr><th scope="col">Label</th><th scope="col">Created</th><th scope="col">Last used</th><th scope="col">Status</th><th scope="col" aria-label="Action"></th></tr></thead>
-    <tbody>
-      {%- for key in keys %}
-      <tr>
-        <td>{{ key.label }}</td>
-        <td>{{ utc_time(key.created_at) }}</td>
-        <td>{% if key.last_used_at %}{{ utc_time(key.last_used_at) }}{% else %}never{% endif %}</td>
-        <td>{% if key.revoked_at %}<span class="badge">revoked {{ utc_time(key.revoked_at) }}</span>{% else %}<span class="badge">active</span>{% endif %}</td>
-        <td>
-          {%- if not key.revoked_at %}
-          <form method="post" action="{{ url_for('web.admin') }}" class="table-form">
-            {{ csrf_field() }}
-            <input type="hidden" name="action" value="revoke_key">
-            <input type="hidden" name="key_id" value="{{ key.id }}">
-            <input type="hidden" name="keys_page" value="{{ keys_page }}">
-            <button type="submit" class="btn" aria-label="Revoke {{ key.label }}">Revoke</button>
-          </form>
-          {%- endif %}
-        </td>
-      </tr>
-      {%- endfor %}
-    </tbody>
-  </table></div>
-  {{ keys_pager }}
-  {%- else %}
-  <p class="hint">No API keys yet.</p>
-  {%- endif %}
+  {{ datatable(keys_table) }}
   <form method="post" action="{{ url_for('web.admin') }}" class="search-form">
     {{ csrf_field() }}
     <input type="hidden" name="action" value="create_key">

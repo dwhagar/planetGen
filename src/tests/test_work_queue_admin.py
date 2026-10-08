@@ -358,6 +358,18 @@ def test_the_queue_page_shows_workers_load_and_jobs(admin_client, control_config
     assert 'href="/admin/queue/confirm/pause?node=' in html
 
 
+def test_the_jobs_table_route_lists_jobs_with_their_controls(web_app, admin_client, control_config):
+    assert web_app.test_client().get("/table/queue-jobs").status_code == 403
+    with workQueue.job_node("galaxy", "Fill ring 1", control_config) as root:
+        with workQueue.WorkQueue("Sectors (ring 1)", workers=1, control_config=control_config):
+            data = admin_client.get("/table/queue-jobs").get_json()
+    assert data["total"] == 1
+    title, kind, status, started, _duration, _progress, actions = data["rows"][0]
+    assert title["text"] == "Fill ring 1" and title["href"].startswith(f"/admin/queue/{root.id}")
+    labels = {part["text"]: part["href"] for part in actions["parts"] if isinstance(part, dict)}
+    assert labels["Cancel"].startswith("/admin/queue/confirm/cancel?node=")
+
+
 def test_the_tree_page_expands_down_to_tasks(admin_client, control_config):
     with workQueue.job_node("galaxy", "Fill ring 1", control_config) as root:
         with workQueue.WorkQueue("Sectors (ring 1)", workers=1, control_config=control_config) as queue:

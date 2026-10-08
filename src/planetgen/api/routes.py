@@ -998,7 +998,8 @@ def search():
     panel (default `SEARCH_RESULT_LIMIT`, clamped to `MAX_PAGE_LIMIT`,
     validated like every other `limit`), and `sectors_offset`/
     `systems_offset`/`stars_offset`/`planets_offset`/`moons_offset`/
-    `belts_offset` pick each panel's page.
+    `belts_offset` pick each panel's page. `panels` (comma-separated panel
+    names) runs just those panels, the rest answering `null`.
     """
     args = request.args
     texts = {
@@ -1023,7 +1024,10 @@ def search():
         for panel in SEARCH_RESULT_PANELS
     }
 
-    return jsonify(run_search(get_db(), texts, tags, sizes=sizes, limit=limit, offsets=offsets))
+    only = None
+    if args.get("panels"):
+        only = {panel for panel in args["panels"].split(",") if panel in SEARCH_RESULT_PANELS}
+    return jsonify(run_search(get_db(), texts, tags, sizes=sizes, limit=limit, offsets=offsets, only=only))
 
 
 @bp.route("/wiki-config")
