@@ -347,3 +347,89 @@ def test_a_close_pairs_planets_are_offset_from_its_center_not_its_primary_star()
     offset = planet.spatial.get_coordinates("system", "cartesian")
     assert planet.spatial.get_coordinates("galactic", "cartesian") == pytest.approx(
         tuple(c + o for c, o in zip(center, offset)), rel=1e-9, abs=1e-3)
+
+
+# --- Velocity in two frames, and the epoch -----------------------------------------
+
+STAR_V = (2.0e5, 1.0e5, 0.0)
+
+
+def _planet_moving():
+    return SpatialPosition3D((STAR[0] + 1.5e11, STAR[1], STAR[2]), SECTOR, star_center_galactic=STAR,
+                             star_velocity_galactic=STAR_V, mass_kg=6.0e24)
+
+
+def test_a_system_velocity_is_the_stars_velocity_plus_the_relative_one():
+    p = _planet_moving()
+    p.set_velocity_cartesian(0.0, 3.0e4, 0.0, frame="system")
+    assert p.get_velocity_vector("system") == (0.0, 3.0e4, 0.0)
+    assert _close(p.get_velocity_vector("galactic"), (2.0e5, 1.3e5, 0.0))
+    assert p.get_velocity_vector("sector") == p.get_velocity_vector("galactic")
+    assert p.get_speed("system") == pytest.approx(3.0e4)
+    assert p.get_velocity_direction("system") == (0.0, 1.0, 0.0)
+
+
+def test_a_galactic_velocity_derives_the_system_one():
+    p = _planet_moving()
+    p.set_velocity_cartesian(2.0e5, 1.3e5, 4.0e3)
+    assert _close(p.get_velocity_vector("system"), (0.0, 3.0e4, 4.0e3))
+
+
+def test_the_stars_velocity_changing_keeps_the_galactic_velocity_or_the_relative_one():
+    p = _planet_moving()
+    p.set_velocity_cartesian(0.0, 3.0e4, 0.0, frame="system")
+    p.set_star_velocity((1.0e5, 0.0, 0.0))
+    assert _close(p.get_velocity_vector("galactic"), (2.0e5, 1.3e5, 0.0))
+    assert _close(p.get_velocity_vector("system"), (1.0e5, 1.3e5, 0.0))
+    p.set_velocity_cartesian(0.0, 3.0e4, 0.0, frame="system")
+    p.carry_star_velocity((1.0e5, 0.0, 0.0))
+    assert _close(p.get_velocity_vector("system"), (0.0, 3.0e4, 0.0))
+    assert _close(p.get_velocity_vector("galactic"), (1.0e5, 3.0e4, 0.0))
+
+
+def test_a_star_or_a_body_without_a_star_has_no_system_velocity():
+    star = SpatialPosition3D((0.0, 0.0, 0.0), SECTOR, is_star=True)
+    assert star.get_velocity_vector("system") is None and star.get_speed("system") is None
+    assert star.get_velocity_direction("system") is None
+    with pytest.raises(ValueError):
+        star.set_velocity_cartesian(1.0, 0.0, 0.0, frame="system")
+    with pytest.raises(ValueError):
+        star.carry_star_velocity((1.0, 0.0, 0.0))
+    with pytest.raises(KeyError):
+        star.get_velocity_vector("orbital")
+
+
+def test_dropping_the_star_keeps_the_galactic_velocity():
+    p = _planet_moving()
+    p.set_velocity_cartesian(0.0, 3.0e4, 0.0, frame="system")
+    p.set_nearest_star_center(None)
+    assert _close(p.get_velocity_vector("galactic"), (2.0e5, 1.3e5, 0.0))
+    assert p.get_velocity_vector("system") is None
+
+
+def test_the_speed_of_light_limit_covers_both_frames():
+    p = _planet_moving()
+    with pytest.raises(ValueError):
+        p.set_velocity_cartesian(pos.SPEED_OF_LIGHT_MS, 0.0, 0.0, frame="system")
+    with pytest.raises(ValueError):
+        p.set_velocity_cartesian(pos.SPEED_OF_LIGHT_MS - 1.0e5, 0.0, 0.0, frame="system")
+
+
+def test_the_time_to_observable_movement_uses_the_relative_speed_inside_a_system():
+    p = _planet_moving()
+    p.set_velocity_cartesian(1.0e4, 0.0, 0.0, frame="system")
+    assert p.get_time_to_observable_movement("system") == pytest.approx(0.01 * constants.AU_M / 1.0e4)
+    assert p.get_time_to_observable_movement("galactic") == pytest.approx(
+        pos.THRESHOLDS_M["galactic"] / p.get_speed("galactic"))
+
+
+def test_the_epoch_is_kept_and_checked():
+    p = _planet_moving()
+    assert p.epoch_unix is None
+    p.set_epoch_unix(946_728_000)
+    assert p.epoch_unix == 946_728_000.0
+    p.set_epoch_unix(None)
+    assert p.epoch_unix is None
+    with pytest.raises(ValueError):
+        p.set_epoch_unix(float("nan"))
+    assert SpatialPosition3D((0.0, 0.0, 0.0), SECTOR, epoch_unix=5).epoch_unix == 5.0
