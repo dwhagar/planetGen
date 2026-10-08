@@ -21,6 +21,7 @@ sync_api = pytest.importorskip("playwright.sync_api")
 
 from planetgen.api.config import Config  # noqa: E402
 from planetgen.api.limiter import PAGE_LIMITS_OFF  # noqa: E402
+from planetgen.web import sector_page  # noqa: E402
 from planetgen.web.app import create_app  # noqa: E402
 from planetgen.web.lib import apiclient  # noqa: E402
 
@@ -102,6 +103,38 @@ def _fake_polity(db, polity_id, limit=None, offset=None, sort=None, descending=F
     return {**POLITY, "systems": rows[offset:offset + limit], "limit": limit, "offset": offset}
 
 
+def _contents_system(i):
+    return {
+        "id": 3000 + i, "name": f"Star {i:03d}", "is_binary": 0, "binary_type": None,
+        "stars": [{"star_type": "G2V", "temperature_k": 5772.0, "radius_km": 696000.0, "luminosity_w": 3.8e26}],
+        "quadrant": "+x+y+z", "location": f"Fixture Sector -- nearest: Star {(i + 1) % 130:03d} (1.0 ly)",
+        "center_distance_ly": float(i), "position_x_mpc": 1.0, "position_y_mpc": 0.5, "position_z_mpc": -0.5,
+    }
+
+
+_ROGUE = {"type": "rogue_planet", "descriptor": "jupiter", "class": "J", "radius_ly": 0.0, "octant": "+x+y+z",
+          "offset_x_ly": 0.1, "offset_y_ly": 0.0, "offset_z_ly": 0.0,
+          "nearest": [{"id": 3001, "name": "Star 001", "distance_ly": 0.5}]}
+SECTOR = {
+    "id": 5, "name": "Fixture Sector", "edge_mpc": 3066.0, "edge_ly": 10.0, "ring_index": 5, "layer_index": 1,
+    "ring_slot_index": 20, "placed": True, "center_x_pc": 500.0, "center_y_pc": 200.0, "center_z_pc": 10.0,
+    "wiki_url": None, "systems": [_contents_system(i) for i in range(130)],
+    "phenomena": [
+        {**_ROGUE, "id": 21, "name": "Drifter", "distance_ly": 0.1},
+        {**_ROGUE, "id": 22, "name": "Wanderer", "distance_ly": 0.2},
+        {"id": 3, "type": "nebula", "name": "Veil", "descriptor": "emission", "radius_ly": 2.5, "distance_ly": 4.0,
+         "offset_x_ly": 1.0, "offset_y_ly": 0.0, "offset_z_ly": 0.0},
+    ],
+    "neighbors": [],
+}
+
+
+def _fake_sector(db, sector_id):
+    if int(sector_id) != SECTOR["id"]:
+        raise apiclient.NotFoundError("no such sector")
+    return SECTOR
+
+
 class _SiteConfig(Config):
     WEB_DATABASE = DB
     SESSION_COOKIE_SECURE = False
@@ -121,6 +154,11 @@ def table_site():
         patch.setattr(apiclient, "get_population_status",
                       lambda db: {"generated": True, "species": True, "polities": True, "territories": False})
         patch.setattr(apiclient, "get_polity", _fake_polity)
+        patch.setattr(apiclient, "get_sector", _fake_sector)
+        patch.setattr(apiclient, "get_sector_facilities", lambda db, sector_id: [])
+        patch.setattr(apiclient, "get_galaxy_shape", lambda db: None)
+        patch.setattr(sector_page, "fetch_tiles", lambda db, keys, known_stamp=None: {
+            "stamp": "0" * 16, "tiles": {}, "density": {}, "edge_pc": 3.066, "has_shape": False})
         app = create_app(_SiteConfig)
         app.testing = True
         server = make_server("127.0.0.1", 0, app, threaded=True)
@@ -349,3 +387,35 @@ def test_a_politys_systems_scroll_and_sort_through_the_tables_own_route(page, ta
     page.locator("th[data-col='distance'][aria-sort='descending']").wait_for(state="attached")
     page.locator("tbody tr[data-index='0']", has_text="Holding 119").wait_for(state="attached")
     assert parse_qs(urlparse(page.url).query) == {"systems_sort": ["distance"], "systems_order": ["desc"]}
+
+
+def test_the_sector_page_runs_its_map_and_its_table_together(page, table_site):
+    """The map script finds the Contents buttons through the table's "rows drawn" event; the
+    page fixture fails this on any script error from either."""
+    assert page.goto(f"{table_site}/sector/5", wait_until="load").status == 200
+    page.locator("#sector-contents [data-datatable][data-enhanced='true']").wait_for(state="attached", timeout=15000)
+    page.locator("#galaxymap3d-canvas, canvas").first.wait_for(state="attached", timeout=15000)
+
+
+def test_a_sectors_contents_scroll_filter_and_keep_their_map_buttons(page, table_site):
+    # The map is not under test here, and its software-rendered frames starve the page of time.
+    page.route("**/galaxymap3d.js*", lambda route: route.abort())
+    assert page.goto(f"{table_site}/sector/5", wait_until="load").status == 200
+    page.locator("#sector-contents [data-datatable][data-enhanced='true']").wait_for(state="attached", timeout=15000)
+    count = page.locator("#sector-contents .datatable-count-line")
+    assert count.inner_text() == "132 items"  # 130 systems, the nebula and the folded rogue planets
+    assert _first_names(page, 2) == ["Star 000", "Star 001"]
+    # A Location cell keeps its links.
+    assert page.locator("#sector-contents tbody tr[data-index='0'] td").nth(4).locator("a").count() == 1
+    page.locator("#sector-contents .datatable-scroll").evaluate("el => { el.scrollTop = el.scrollHeight; }")
+    page.locator("#sector-contents tbody tr[data-index]", has_text="2 rogue planets").wait_for(
+        state="attached", timeout=10000)
+    # The folded row's link lists the planets one by one, each with its (hidden) map button.
+    page.locator("#sector-contents tbody a", has_text="2 rogue planets").click()
+    page.locator("#sector-contents [data-datatable][data-enhanced='true']").wait_for(state="attached", timeout=15000)
+    assert count.inner_text() == "2 items match"
+    assert _first_names(page, 2) == ["Drifter", "Wanderer"]
+    buttons = page.locator("#sector-contents tbody [data-map-target]")
+    assert buttons.count() == 2 and buttons.first.get_attribute("data-map-target") == "rogue_planet:21"
+    assert parse_qs(urlparse(page.url).query) == {"contents_type": ["Rogue Planet"]}
+

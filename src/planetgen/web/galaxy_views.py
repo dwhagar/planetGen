@@ -25,7 +25,7 @@ from planetgen.web.lib import apiclient
 from planetgen.web.lib.fmt import format_distance_ly
 from planetgen.web.maps.galaxymap import QUADRANT_LABELS, sector_quadrant, sector_zone, zone_bounds_ly
 from planetgen.web.maps.galaxymap3d import initial_tile_request, render_galaxy_map3d_panel, view_radius_bounds
-from planetgen.web.lib.pagination import page_slice, parse_page
+from planetgen.web.lib.datatable import Column, Facet, Table, in_memory, plain
 from planetgen.util import log
 from planetgen.tuning import DEFAULT_SECTOR_EDGE_LY
 from planetgen.physics.units import ly_to_pc, pc_to_ly
@@ -33,8 +33,8 @@ from planetgen.web.lib.tilecache import TileRequestError, fetch_stage, fetch_til
 
 from planetgen.api.limiter import page_limit
 
-from . import bp
-from .helpers import crumb, current_admin, db_name, generate_target, page_url, pager, render_page, trusted_html
+from . import bp, tables
+from .helpers import crumb, current_admin, db_name, generate_target, page_url, render_page, trusted_html
 
 _ID_PLACEHOLDER = 987654321987
 """int: Stands in for a sector id while building the map's sector-link
@@ -95,21 +95,39 @@ def _quadrant_summary_rows(sectors):
     return rows
 
 
-def _quadrant_sector_rows(sectors, quadrant, page):
-    """One page of the Quadrant's placed sectors, nearest the core first.
-    Returns `(rows, page, total)`."""
+def _zone_label(sector):
+    return f"Zone {sector_zone(sector['ring_index'])}" if sector["ring_index"] is not None else None
+
+
+def _quadrant_cells(sector):
+    radius_ly = pc_to_ly(sector["galactic_radius_pc"])
+    return [
+        {"text": sector["name"], "href": page_url("sector", sector_id=sector["id"])},
+        {"text": _zone_label(sector) or "–"},
+        {"text": plain(format_distance_ly(radius_ly))},
+        {"text": str(sector["system_count"] or 0)},
+    ]
+
+
+def _quadrant_load(state, limit, offset, want_facets):
+    """The placed sectors of the Quadrant in `?quadrant=` (the table route's `quadrant`)."""
+    quadrant = _parse_quadrant(request.args.get("quadrant"))
+    sectors = apiclient.get_galaxy_sectors(db_name()) if quadrant else []
     members = [s for s in sectors if sector_quadrant(s["x"], s["y"]) == quadrant]
-    members.sort(key=lambda s: s["galactic_radius_pc"])
-    page_members, page = page_slice(members, page)
-    rows = [{
-        "name": sector["name"],
-        "url": page_url("sector", sector_id=sector["id"]),
-        "zone": sector_zone(sector["ring_index"]) if sector["ring_index"] is not None else None,
-        "distance_ly": pc_to_ly(sector["galactic_radius_pc"]),
-        "distance": format_distance_ly(pc_to_ly(sector["galactic_radius_pc"])),
-        "system_count": sector["system_count"] or 0,
-    } for sector in page_members]
-    return rows, page, len(members)
+    return in_memory(
+        members, state, limit, offset, want_facets,
+        {"name": lambda s, descending: s["name"].casefold(),
+         "zone": lambda s, descending: s["ring_index"],
+         "radius": lambda s, descending: s["galactic_radius_pc"],
+         "systems": lambda s, descending: s["system_count"] or 0},
+        {"zone": _zone_label}, _quadrant_cells)
+
+
+QUADRANT_TABLE = tables.register(Table(
+    "galaxy-quadrant", "Sectors",
+    [Column("name", "Name"), Column("zone", "Zone"), Column("radius", "From core"), Column("systems", "Systems")],
+    _quadrant_load, facets=[Facet("zone", "Zone")], noun=("sector", "sectors"), default_sort="radius",
+))
 
 
 def _pick_from_args():
@@ -166,12 +184,8 @@ def galaxy():
 
     context = {"quadrant": quadrant, "placed_count": len(sectors), "map_html": trusted_html(map_html)}
     if quadrant:
-        rows, page, total = _quadrant_sector_rows(sectors, quadrant, parse_page(request.args.get("page")))
-        context.update(
-            sector_rows=rows,
-            pager=pager("page", page, total, anchor="galaxy-table", label="Sector pages",
-                        keep={"quadrant": quadrant}),
-        )
+        context["sector_table"] = tables.render(QUADRANT_TABLE, request.path, anchor="galaxy-table",
+                                                keep=("quadrant",), quadrant=quadrant)
         title = f"Galaxy Map: Quadrant {quadrant}"
         breadcrumbs = [crumb("Galaxy", "galaxy"), crumb(f"Quadrant {quadrant}")]
     else:

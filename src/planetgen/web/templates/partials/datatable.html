@@ -5,11 +5,13 @@
     over (it hides the pager and fetches rows as they scroll into view). -#}
 {% macro cell(c) -%}
 {%- if c.swatch %}<svg class="polity-swatch" viewBox="0 0 10 10" aria-hidden="true" focusable="false"><rect width="10" height="10" fill="{{ c.swatch }}"/></svg> {% endif -%}
-{%- if c.href %}<a href="{{ c.href }}">{{ c.text }}</a>{% elif c.muted %}<em>{{ c.text }}</em>{% else %}{{ c.text }}{% endif -%}
+{%- if c.parts %}{% for part in c.parts %}{% if part is string %}{{ part }}{% else %}<a href="{{ part.href }}">{{ part.text }}</a>{% endif %}{% endfor %}
+{%- elif c.href %}<a href="{{ c.href }}">{{ c.text }}</a>{% elif c.muted %}<em>{{ c.text }}</em>{% else %}{{ c.text }}{% endif -%}
+{%- if c.map_target %} <button type="button" class="icon-btn" data-map-target="{{ c.map_target }}" title="Show on map" aria-label="Show {{ c.text }} on the map" hidden>{{ icon("show-on-map") }}</button>{% endif -%}
 {%- endmacro %}
 {% macro datatable(t) %}
 <div class="datatable" id="{{ t.id }}-table" data-datatable data-source="{{ t.source }}"
-     data-page-size="{{ t.page_size }}" data-total="{{ t.total }}" data-sort="{{ t.sort }}" data-default-sort="{{ t.default_sort }}" data-prefix="{{ t.prefix }}"
+     data-icons="{{ static_url('icons.svg') }}" data-page-size="{{ t.page_size }}" data-total="{{ t.total }}" data-sort="{{ t.sort }}" data-default-sort="{{ t.default_sort }}" data-prefix="{{ t.prefix }}"
      data-descending="{{ 'true' if t.descending else 'false' }}" data-noun-one="{{ t.noun_one }}" data-noun-many="{{ t.noun_many }}">
   {%- if t.facets %}
   <form class="datatable-filters" method="get" action="{{ t.path }}{% if t.anchor %}#{{ t.anchor }}{% endif %}" aria-label="Filter {{ t.label|lower }}">
@@ -50,7 +52,7 @@
       <tbody>
         {%- for row in t.rows %}
         <tr aria-rowindex="{{ loop.index + 1 }}">
-          {%- for c in row %}<td>{{ cell(c) }}</td>{% endfor %}
+          {%- for c in row %}<td{% if c.parts %} class="inline-links"{% endif %}>{{ cell(c) }}</td>{% endfor %}
         </tr>
         {%- else %}
         <tr><td colspan="{{ t.columns|length }}"><em>None</em></td></tr>

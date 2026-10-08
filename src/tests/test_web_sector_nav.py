@@ -300,10 +300,7 @@ def test_sector_contents_pager_uses_get_links(client, fake):
     assert len(_scene(client, "/sector/5?contents_page=2")["stars"]) == 55
 
 
-def test_sector_contents_list_systems_then_phenomena_then_rogues(client, fake):
-    """UX.24: systems first, then other phenomena, then rogue planets, each
-    nearest first; the rogue group is one full-width row whose members
-    show their octant and location."""
+def _with_rogues(fake):
     rogue = {"type": "rogue_planet", "descriptor": "jupiter", "class": "J", "radius_ly": 0.0,
              "offset_x_ly": 0.1, "offset_y_ly": 0.0, "offset_z_ly": 0.0,
              "octant": "+x+y+z", "nearest": [{"id": 1002, "name": "Other", "distance_ly": 0.5}]}
@@ -312,19 +309,48 @@ def test_sector_contents_list_systems_then_phenomena_then_rogues(client, fake):
         {**rogue, "id": 22, "name": "Wanderer", "distance_ly": 0.2, "octant": "-x-y-z"},
     ]
     fake.sectors[5]["phenomena"][0]["distance_ly"] = 9.0
+
+
+def test_sector_contents_list_systems_then_phenomena_then_rogues(client, fake):
+    """UX.24: systems first, then other phenomena, then rogue planets, each nearest first; the
+    rogue planets are one folded row that links to the table filtered to them."""
+    _with_rogues(fake)
     html = client.get("/sector/5").get_data(as_text=True)
     contents = html[html.index('id="sector-contents"'):]
-    assert contents.index(">Other<") < contents.index(">Alpha<") < contents.index(">Veil<") < contents.index(">Drifter<")
-    group = re.search(r'<tr class="contents-group-row">\s*<td colspan="6">(.*?)</details>', contents, re.S).group(1)
-    assert ">Drifter</a>" in group and ">Wanderer</a>" in group
-    assert "+x+y+z" in group and "-x-y-z" in group
-    assert 'Nearest: <a href="/system/1002">Other</a>' in group
+    assert contents.index(">Other<") < contents.index(">Alpha<") < contents.index(">Veil<") < contents.index("2 rogue planets")
+    assert 'href="/sector/5?contents_type=Rogue+Planet#sector-contents">2 rogue planets</a>' in contents
+    assert ">Drifter<" not in contents
+    # The Type menu counts the planets, not the one folded row.
+    assert "Rogue Planet</span> <span class=\"datatable-count\">(2)" in contents
+
+
+def test_sector_contents_filtered_to_rogue_planets_lists_each(client, fake):
+    _with_rogues(fake)
+    html = client.get("/sector/5?contents_type=Rogue+Planet").get_data(as_text=True)
+    contents = html[html.index('id="sector-contents"'):]
+    assert ">Drifter</a>" in contents and ">Wanderer</a>" in contents and "rogue planets<" not in contents
+    assert "+x+y+z" in contents and "-x-y-z" in contents
+    assert 'Nearest: <a href="/system/1002">Other</a>' in contents
     # UX.25: "Show on map" is a small map icon beside each name, its
     # words in the aria-label and tooltip.
     assert re.search(r'>Drifter</a> <button type="button" class="icon-btn" data-map-target="rogue_planet:21" '
                      r'title="Show on map" aria-label="Show Drifter on the map" hidden><svg class="icon" '
                      r'aria-hidden="true" focusable="false"><use href="/static/icons\.svg\?v=[^"]+#show-on-map">',
-                     group)
+                     contents)
+
+
+def test_sector_contents_table_route_sorts_and_filters(client, fake):
+    _with_rogues(fake)
+    data = client.get("/table/sector-contents?sector=5&sort=name&order=desc&facets=1").get_json()
+    names = [row[0]["text"] for row in data["rows"]]
+    assert names == sorted(names, key=str.casefold, reverse=True) and data["total"] == len(names)
+    types = {option["value"] for option in data["facets"]["contents_type"]}
+    assert {"Star System", "Rogue Planet"} <= types
+    only = client.get("/table/sector-contents?sector=5&contents_octant=%2Bx%2By%2Bz").get_json()
+    assert all(row[3]["text"] == "+x+y+z" for row in only["rows"]) and only["total"] >= 1
+    drifter = client.get("/table/sector-contents?sector=5&contents_type=Rogue+Planet").get_json()["rows"]
+    assert drifter[0][0] == {"text": "Drifter", "href": "/phenomenon/rogue_planet/21", "map_target": "rogue_planet:21"}
+    assert drifter[0][4]["parts"][0] == "Nearest: "
 
 
 def test_sector_page_takes_database_from_config(client, fake):

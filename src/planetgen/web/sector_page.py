@@ -4,8 +4,8 @@
 The sector page, `/sector/<id>` (was `sector.py`): the sector's size and
 badges, its interactive 3D Sector Map (`planetgen/web/maps/starmap.py` data, drawn by
 `static/sectorscene.js`), and one "Contents" table of its systems and the
-phenomena near it, nearest the sector's center first, paged with
-`?contents_page=N`. The Contents table also lists the sector's
+phenomena near it, nearest the sector's center first: the shared data
+table (UX.41, `lib/datatable.py`; `contents_*` query parameters). The table also lists the sector's
 facilities outside its systems (schema v42): stand-alone ones parked in
 open space and those on its asteroid fields.
 
@@ -34,7 +34,7 @@ import math
 import re
 from urllib.parse import urlencode
 
-from flask import current_app, flash, get_flashed_messages, jsonify, redirect, request, url_for
+from flask import abort, current_app, flash, g, get_flashed_messages, jsonify, redirect, request, url_for
 
 from planetgen.web.lib import apiclient
 from planetgen.web.lib.fmt import (
@@ -42,7 +42,7 @@ from planetgen.web.lib.fmt import (
     runaway_text,
 )
 from planetgen.web.maps.galaxymap import sector_quadrant
-from planetgen.web.lib.pagination import page_slice, parse_page
+from planetgen.web.lib.datatable import Column, Facet, Table, in_memory, parts_of, plain
 from planetgen.web.lib.tilecache import fetch_tiles
 from planetgen.web.maps.galaxymap3d import initial_tile_request, render_galaxy_map3d_panel, view_radius_bounds
 from planetgen.web.maps.starmap import map_scene_data
@@ -57,8 +57,8 @@ from planetgen.galaxy.geometry import provisional_sector_designation
 from planetgen.tuning import DEFAULT_SECTOR_EDGE_LY
 from planetgen.physics.units import ly_to_pc, pc_to_ly
 
-from . import bp, edit_actions, generate_page, jobs
-from .helpers import bookmark, crumb, current_admin, db_name, generate_target, page_url, pager, render_page, trusted_html
+from . import bp, edit_actions, generate_page, jobs, tables
+from .helpers import bookmark, crumb, current_admin, db_name, generate_target, page_url, render_page, trusted_html
 
 PHENOMENON_TYPE_LABELS = {
     "nebula": "Nebula", "asteroid_field": "Asteroid Field",
@@ -205,13 +205,14 @@ SYSTEM_GROUP, PHENOMENON_GROUP, ROGUE_GROUP = 0, 1, 2
 star systems, then other phenomena and facilities, then rogue planets."""
 
 
-def _contents(sector, facilities=()):
+def _contents(sector, facilities=(), fold=True):
     """
     Every system, phenomenon and facility outside a system as Contents
     rows: star systems first, then the other phenomena and facilities,
     then rogue planets (UX.24), each group nearest the sector's center
     first (anything without a position last), plus the placed systems for
-    the map.
+    the map. With `fold` false, every rogue planet is a row of its own, not
+    one folded row.
     """
     systems = sector["systems"]
     name_to_id = {row["name"]: row["id"] for row in systems}
@@ -242,7 +243,7 @@ def _contents(sector, facilities=()):
 
     phenomena = sector.get("phenomena") or []
     rogues = [row for row in phenomena if row["type"] == "rogue_planet"]
-    if len(rogues) > 1:
+    if fold and len(rogues) > 1:
         # Boss's choice: many rogue planets read as one folded row, not a
         # screenful of near-identical ones.
         phenomena = [row for row in phenomena if row["type"] != "rogue_planet"]
@@ -273,6 +274,92 @@ def _contents(sector, facilities=()):
     for entry in rows:
         entry["distance"] = trusted_html(format_distance_ly(entry["distance_ly"]))
     return rows, map_systems
+
+
+def _sector_data(sector_id):
+    """The sector and its facilities, fetched once per request."""
+    cache = g.setdefault("sector_data", {})
+    if sector_id not in cache:
+        cache[sector_id] = (apiclient.get_sector(db_name(), sector_id),
+                            apiclient.get_sector_facilities(db_name(), sector_id))
+    return cache[sector_id]
+
+
+_ROGUE_LABEL = PHENOMENON_TYPE_LABELS["rogue_planet"]
+_NO_VALUE = "–"
+
+
+def _contents_cells(row, sector_id):
+    """A Contents row as the data table's cells (UX.41). The folded rogue-planet row links to
+    the table filtered to Rogue Planet, which lists them one by one."""
+    href = row["url"]
+    if row.get("members"):
+        href = f"{page_url('sector', sector_id=sector_id)}?{urlencode({'contents_type': _ROGUE_LABEL})}#sector-contents"
+    name = {"text": row["name"]}
+    if href:
+        name["href"] = href
+    if row.get("map_target"):
+        name["map_target"] = row["map_target"]
+    location = {"text": _NO_VALUE}
+    if row["location"] is not None:
+        location = {"text": plain(row["location"]), "parts": parts_of(row["location"])}
+    return [name, {"text": row["type"]}, {"text": row["details"]}, {"text": row["octant"] or _NO_VALUE},
+            location, {"text": plain(row["distance"])}]
+
+
+def _text_key(field):
+    def key(row, descending):
+        value = row.get(field)
+        return str(value).casefold() if value else None
+    return key
+
+
+def _distance_key(row, descending):
+    """The listed order: star systems, other phenomena, rogue planets (UX.24), each by distance."""
+    distance = row["distance_ly"]
+    if distance is None:
+        return None
+    return (-row["group"] if descending else row["group"], distance)
+
+
+_CONTENTS_SORTS = {
+    "name": _text_key("name"), "type": _text_key("type"), "details": _text_key("details"),
+    "octant": _text_key("octant"),
+    "location": lambda row, descending: plain(row["location"]).casefold() if row["location"] is not None else None,
+    "distance": _distance_key,
+}
+
+
+def _contents_load(state, limit, offset, want_facets):
+    """The sector's Contents (its id is the page's, or the table route's `sector`), filtered,
+    sorted and sliced."""
+    sector_id = request.view_args.get("sector_id") or request.args.get("sector", type=int)
+    try:
+        detail, facilities = _sector_data(sector_id)
+    except apiclient.NotFoundError:
+        abort(404)
+    rogue_wanted = _ROGUE_LABEL in state.filters["contents_type"]
+    rows, _ = _contents(detail, facilities, fold=not rogue_wanted)
+    result = in_memory(
+        rows, state, limit, offset, want_facets, _CONTENTS_SORTS,
+        {"contents_type": lambda row: row["type"], "contents_octant": lambda row: row["octant"] or None},
+        lambda row: _contents_cells(row, sector_id))
+    if want_facets and not rogue_wanted:
+        rogues = sum(1 for row in detail.get("phenomena") or [] if row["type"] == "rogue_planet")
+        for option in result.facets["contents_type"]:
+            if option["value"] == _ROGUE_LABEL and rogues > 1:
+                option["count"] = rogues
+    return result
+
+
+CONTENTS_TABLE = tables.register(Table(
+    "sector-contents", "Contents",
+    [Column("name", "Name"), Column("type", "Type"), Column("details", "Details"), Column("octant", "Octant"),
+     Column("location", "Location"), Column("distance", "From center")],
+    _contents_load,
+    facets=[Facet("contents_type", "Type"), Facet("contents_octant", "Octant")],
+    prefix="contents_", noun=("item", "items"), default_sort="distance",
+))
 
 
 def _handle_post(sector_id, admin):
@@ -561,7 +648,7 @@ sector_scene.json_only = True  # not a page: tests/test_web_a11y.py skips it
 
 @bp.route("/sector/<int:sector_id>", methods=["GET", "POST"])
 def sector(sector_id):
-    """One sector: badges, Sector Map, Contents (`?contents_page=N`), and
+    """One sector: badges, Sector Map, Contents (`contents_*` parameters), and
     the admin forms for a logged-in admin."""
     admin = current_admin()
     errors = {}
@@ -576,14 +663,15 @@ def sector(sector_id):
         else:
             errors[form] = message
 
-    detail = apiclient.get_sector(db_name(), sector_id)
+    g.setdefault("sector_data", {}).pop(sector_id, None)  # a POST above may have changed it
+    detail, facilities = _sector_data(sector_id)
     pick = _pick_mode(request.args)
     if detail.get("wiki_url") and not is_http_url(detail["wiki_url"]):
         # Saved before the API checked it: never link to a javascript:/
         # data: URL.
         detail["wiki_url"] = None
-    rows, map_systems = _contents(detail, apiclient.get_sector_facilities(db_name(), sector_id))
-    page_rows, contents_page = page_slice(rows, parse_page(request.args.get("contents_page")))
+    _rows, map_systems = _contents(detail, facilities)
+    contents = tables.render(CONTENTS_TABLE, request.path, anchor="sector-contents", sector=sector_id)
 
     map_html = _sector_map_html(detail, pick, admin)
 
@@ -614,10 +702,7 @@ def sector(sector_id):
         galaxy_url=galaxy_map_url(detail),
         bookmark=sector_bookmark(detail, sector_id),
         map_html=trusted_html(map_html),
-        rows=page_rows,
-        total_rows=len(rows),
-        pager=pager("contents_page", contents_page, len(rows), anchor="sector-contents",
-                    label="Contents pages"),
+        contents=contents,
         admin=admin,
         can_generate=admin is not None and not admin["must_change_credentials"],
         can_edit=edit_actions.can_edit(admin),

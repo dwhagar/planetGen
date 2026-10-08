@@ -22,15 +22,22 @@ and `page`.
 A table's `load(state, limit, offset, want_facets)` returns a `Result` from
 the API; its rows are lists of cells, one per column, each a dict with
 `text`, and optionally `href` (a link) and `muted` (shown as a dash or "None"
-in italics).
+in italics). A cell may instead carry `parts`, a list of plain strings and
+`{"text", "href"}` links (a Location cell's nearest-neighbor links), and
+`map_target` (a key the Sector Map knows, which adds a "Show on map" button
+after the text). No cell ever holds markup: the browser fills it with text
+nodes and the page template escapes it.
 """
 
+import html
 from collections import namedtuple
+from html.parser import HTMLParser
 from urllib.parse import urlencode
 
 from markupsafe import Markup
 
 from planetgen.web.lib.pagination import PAGE_SIZE, parse_page, render_pagination
+from planetgen.web.lib.tabledisplay import to_plain_text
 
 MAX_FILTER_VALUES = 60
 """int: Most values one filter parameter may carry."""
@@ -199,3 +206,84 @@ def view(table, state, result, path, source, anchor=None, extra=()):
             path, state_params(table, state, extra=extra), f"{table.prefix}page", state.page, result.total,
             anchor=anchor, label=f"{table.label} pages")),
     }
+
+
+def plain(markup):
+    """A formatter's HTML (`<sup>`, `&sup3;`) as the plain text a table cell shows: the cell is
+    filled with `textContent` in the browser, so it can't hold markup."""
+    return html.unescape(to_plain_text(str(markup)))
+
+
+class _PartsParser(HTMLParser):
+    """Collects text and `<a href>` links; any other tag is dropped, its text kept."""
+
+    def __init__(self):
+        super().__init__(convert_charrefs=True)
+        self.parts = []
+        self._href = None
+
+    def handle_starttag(self, tag, attrs):
+        if tag == "a":
+            self._href = dict(attrs).get("href")
+
+    def handle_endtag(self, tag):
+        if tag == "a":
+            self._href = None
+
+    def handle_data(self, data):
+        if self._href:
+            self.parts.append({"text": data, "href": self._href})
+        else:
+            self.parts.append(data)
+
+
+def parts_of(markup):
+    """The `parts` of a cell from trusted link markup (`<a href>` and text, as the site's
+    location formatters write it)."""
+    parser = _PartsParser()
+    parser.feed(str(markup))
+    parser.close()
+    return parser.parts
+
+
+def in_memory(items, state, limit, offset, want_facets, sorts, facet_values, to_cells):
+    """
+    A `Result` for a table whose rows are a list the page already holds (the sector's
+    Contents, a Quadrant's sectors) rather than something the API pages: filter by
+    `state.filters`, order by `state.sort`, then slice.
+
+    Args:
+        items (list): The table's rows in any form.
+        state (State): What was asked for.
+        limit (int), offset (int): The slice.
+        want_facets (bool): Also count each filter menu's options.
+        sorts (dict): Sort key -> `fn(item, descending)`, a value to order by or `None` for
+            "no value", which always lists last.
+        facet_values (dict): Facet parameter -> `fn(item)`, the item's value there or `None`.
+        to_cells (callable): `to_cells(item)` -> the row's cells.
+    """
+    def passes(item, skip=None):
+        for param, fn in facet_values.items():
+            chosen = state.filters.get(param)
+            if param != skip and chosen and fn(item) not in chosen:
+                return False
+        return True
+
+    kept = [item for item in items if passes(item)]
+    key = sorts[state.sort]
+    keyed = [(key(item, state.descending), item) for item in kept]
+    present = sorted((pair for pair in keyed if pair[0] is not None), key=lambda pair: pair[0],
+                     reverse=state.descending)
+    ordered = [item for _, item in present] + [item for value, item in keyed if value is None]
+    facets = None
+    if want_facets:
+        facets = {}
+        for param, fn in facet_values.items():
+            counts = {}
+            for item in items:
+                value = fn(item)
+                if value is not None and passes(item, skip=param):
+                    counts[value] = counts.get(value, 0) + 1
+            facets[param] = [{"value": value, "label": value, "count": counts[value]}
+                             for value in sorted(counts, key=str.casefold)]
+    return Result([to_cells(item) for item in ordered[offset:offset + limit]], len(ordered), facets)

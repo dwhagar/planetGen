@@ -1,12 +1,14 @@
 {#- The Galaxy Map (web/galaxy_views.py's `galaxy`). Context: map_html
     (Markup from planetgen/web/maps/galaxymap3d.py), placed_count, quadrant, and either
-    summary_rows (no quadrant) or sector_rows + pager. -#}
+    summary_rows (no quadrant) or sector_table (the data table's view). -#}
 {% extends "base.html" %}
+{% from "partials/datatable.html" import datatable with context %}
 {#- The map uses most of a wide window, past the usual 72rem column. -#}
 {% block main_class %} app-main-wide{% endblock %}
 {% block head %}
 <script type="module" src="{{ static_url('galaxymap3d.js') }}"></script>
 <script type="module" src="{{ static_url('bookmarks.js') }}"></script>
+<script type="module" src="{{ static_url('datatable.js') }}"></script>
 {% endblock %}
 {% block subhead %}
 <p class="badges"><span class="badge">{{ num(placed_count) }} placed sector{{ "" if placed_count == 1 else "s" }}</span></p>
@@ -19,22 +21,7 @@
     <h2 id="galaxy-table-heading">Sectors in Quadrant {{ quadrant }}</h2>
     <a href="{{ page_url('galaxy', _anchor='galaxy-table') }}">All Quadrants</a>
   </div>
-  <div class="table-scroll"><table>
-    <thead><tr><th scope="col">Name</th><th scope="col">Zone</th><th scope="col">From core</th><th scope="col">Systems</th></tr></thead>
-    <tbody>
-      {%- for row in sector_rows %}
-      <tr>
-        <td><a href="{{ row.url }}">{{ row.name }}</a></td>
-        <td>{% if row.zone is not none %}Zone {{ row.zone }}{% else %}&ndash;{% endif %}</td>
-        <td>{{ row.distance }}</td>
-        <td>{{ row.system_count }}</td>
-      </tr>
-      {%- else %}
-      <tr><td colspan="4"><em>No sectors placed in this Quadrant yet.</em></td></tr>
-      {%- endfor %}
-    </tbody>
-  </table></div>
-  {{ pager }}
+  {{ datatable(sector_table) }}
   {%- else %}
   <h2 id="galaxy-table-heading">Quadrants</h2>
   <div class="table-scroll"><table>

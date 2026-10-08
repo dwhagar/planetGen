@@ -2,9 +2,11 @@
 {% extends "base.html" %}
 {% from "partials/admin_menu.html" import admin_menu, add_edit_actions with context %}
 {% from "partials/bookmark.html" import bookmark_button %}
+{% from "partials/datatable.html" import datatable with context %}
 {% block head %}
 <script type="module" src="{{ static_url('galaxymap3d.js') }}"></script>
 <script type="module" src="{{ static_url('bookmarks.js') }}"></script>
+<script type="module" src="{{ static_url('datatable.js') }}"></script>
 {% endblock %}
 {% block subhead %}
 <p class="badges">
@@ -119,49 +121,6 @@ neighborhood around it requires a galaxy-placed sector (one generated with
 {{ map_html }}
 <section class="panel" id="sector-contents" aria-labelledby="contents-heading">
   <h2 id="contents-heading">Contents</h2>
-  <div class="table-scroll"><table>
-    <thead><tr><th scope="col">Name</th><th scope="col">Type</th><th scope="col">Details</th><th scope="col">Octant</th><th scope="col">Location</th><th scope="col">From center</th></tr></thead>
-    <tbody>
-      {%- for row in rows %}
-      {%- if row.members %}
-      {#- UX.24: the folded group is one row the table's full width, so its
-          expanded list has every column to itself. #}
-      <tr class="contents-group-row">
-        <td colspan="6">
-          <details class="contents-group"><summary>{{ row.name }} <span class="hint">{{ row.type }}, {{ row.details }}, nearest {{ row.distance }}</span></summary>
-            <div class="table-scroll"><table class="contents-group-table">
-              <thead><tr><th scope="col">Name</th><th scope="col">Details</th><th scope="col">Octant</th><th scope="col">Location</th><th scope="col">From center</th></tr></thead>
-              <tbody>
-                {%- for member in row.members %}
-                <tr>
-                  <td><a href="{{ member.url }}">{{ member.name }}</a>{% if member.map_target %} <button type="button" class="icon-btn" data-map-target="{{ member.map_target }}" title="Show on map" aria-label="Show {{ member.name }} on the map" hidden>{{ icon("show-on-map") }}</button>{% endif %}</td>
-                  <td>{{ member.details }}</td>
-                  <td>{% if member.octant %}{{ member.octant }}{% else %}&ndash;{% endif %}</td>
-                  <td class="inline-links">{% if member.location is not none %}{{ member.location }}{% else %}&ndash;{% endif %}</td>
-                  <td>{{ member.distance }}</td>
-                </tr>
-                {%- endfor %}
-              </tbody>
-            </table></div>
-          </details>
-        </td>
-      </tr>
-      {%- else %}
-      <tr>
-        <td>{%- if row.url %}<a href="{{ row.url }}">{{ row.name }}</a>{% else %}{{ row.name }}{% endif %}
-          {%- if row.map_target %} <button type="button" class="icon-btn" data-map-target="{{ row.map_target }}" title="Show on map" aria-label="Show {{ row.name }} on the map" hidden>{{ icon("show-on-map") }}</button>{% endif %}</td>
-        <td>{{ row.type }}</td>
-        <td>{{ row.details }}</td>
-        <td>{% if row.octant %}{{ row.octant }}{% else %}&ndash;{% endif %}</td>
-        <td class="inline-links">{% if row.location is not none %}{{ row.location }}{% else %}&ndash;{% endif %}</td>
-        <td>{{ row.distance }}</td>
-      </tr>
-      {%- endif %}
-      {%- else %}
-      <tr><td colspan="6"><em>None</em></td></tr>
-      {%- endfor %}
-    </tbody>
-  </table></div>
-  {{ pager }}
+  {{ datatable(contents) }}
 </section>
 {% endblock %}
