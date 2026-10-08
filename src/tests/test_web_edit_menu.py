@@ -88,3 +88,42 @@ def test_the_delete_dialog_has_a_danger_button_and_the_forms_post_target(system_
     dialog.wait_for()
     assert dialog.locator("sl-button[variant=danger]").count() == 1
     assert dialog.locator("form input[name=edit_action]").input_value() == "delete"
+
+
+@pytest.fixture
+def sector_page(browser, base_url, page_targets, admin_token):
+    path, _needs_admin = page_targets["web.sector"]
+    context = browser.new_context(viewport={"width": 1280, "height": 900}, reduced_motion="reduce")
+    context.add_cookies([{"name": SESSION_COOKIE_NAME, "value": admin_token, "url": base_url}])
+    page = context.new_page()
+    errors = []
+    page.on("pageerror", lambda exc: errors.append(str(exc)))
+    page.goto(base_url + path, wait_until="load")
+    page.locator("sl-dropdown.admin-menu:defined").first.wait_for()
+    page.locator("sl-dialog.edit-dialog:defined").first.wait_for(state="attached")
+    try:
+        yield page, base_url + path
+    finally:
+        context.close()
+    assert not errors, errors
+
+
+def test_the_sector_pages_admin_actions_are_one_menu_that_opens_dialogs(sector_page):
+    """UX.26: no admin form is inline on the page; the Admin menu's items
+    open them in a dialog, and Cancel and Escape close it without posting."""
+    page, url = sector_page
+    inline = page.locator("section#admin-sector form:visible")
+    assert inline.count() == 0
+    page.locator("sl-dropdown.admin-menu >> [slot=trigger]").click()
+    page.get_by_role("menuitem", name="Generate neighborhood").click()
+    dialog = page.locator("sl-dialog#admin-neighborhood[open]")
+    dialog.wait_for()
+    assert dialog.locator("form input[name=action]").input_value() == "generate_neighborhood"
+    dialog.locator("sl-button[data-dialog-close]").click()
+    page.locator("sl-dialog#admin-neighborhood[open]").wait_for(state="detached")
+    page.locator("sl-dropdown.admin-menu >> [slot=trigger]").click()
+    page.get_by_role("menuitem", name="Generate neighborhood").click()
+    page.locator("sl-dialog#admin-neighborhood[open]").wait_for()
+    page.keyboard.press("Escape")
+    page.locator("sl-dialog#admin-neighborhood[open]").wait_for(state="detached")
+    assert page.url == url

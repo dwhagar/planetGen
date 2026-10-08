@@ -1,5 +1,26 @@
 # Changelog
 
+## [7.264.635] - 2026-10-08
+
+### Changed
+- The sector page's Admin panel (generate neighborhood, upload to the wiki) is one Admin menu button whose items open their forms in a dialog, like the Edit menu; the neighborhood's size-and-time check comes back as a dialog (UX.26).
+
+## [7.263.635] - 2026-10-08
+
+### Changed
+- The Galaxy Map colors a generated sector and the blocks holding it by what its stars are, not by their average color (which came out red nearly everywhere). The fill is translucent: denser sectors are more solid (never fully opaque), the mean star age sets the hue (blue young, slate at the 4.5 Gy disk average, amber old), and the summed luminosity sets the brightness. A block takes the same three from its sectors, with ages weighted by star count.
+- The `sector_stats` table keeps the raw numbers instead of a baked color: `mean_age_gy` and `total_luminosity_sol` replace `fill_share` and `color_r`/`color_g`/`color_b` (schema v55; the migration works the new two out for sectors already generated). `GET /api/galaxy/stage` returns `stats` (systems, expected systems, stars, mean age, luminosity) in place of `look`.
+
+## [7.262.635] - 2026-10-08
+
+### Fixed
+- The parallel-galaxy interrupt test starts its run with Ctrl+C at its default, since a pytest worker can leave it ignored and an ignored Ctrl+C is inherited, so the run finished with status 0 in the full suite (TEST.101).
+
+## [7.261.635] - 2026-10-08
+
+### Added
+- The ID-to-words codec (`gatedPhonemeCodec.py`, which sat in the repo root and was used by nothing) is now `planetgen.names.gated_phoneme_codec`, with tests that pin its words. It needs only the standard library, and its decoding is exact when the identifier's length is given (GEN.120).
+
 ## [7.260.635] - 2026-10-08
 
 ### Changed
