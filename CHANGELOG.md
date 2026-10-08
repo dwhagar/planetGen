@@ -1,5 +1,10 @@
 # Changelog
 
+## [7.307.665] - 2026-10-08
+
+### Changed
+- Navigation buttons, links and the Wikitext/Markdown toggles are now outlined (secondary), so the primary action of a page or panel stands out. The bookmark is one icon-only ☆ / ★ toggle with the same look on the Galaxy Map breadcrumb, the map panels and the object pages.
+
 ## [7.306.665] - 2026-10-08
 
 ### Changed
