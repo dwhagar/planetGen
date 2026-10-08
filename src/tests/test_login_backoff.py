@@ -6,7 +6,7 @@ per address (SEC.1: 3 failures, 5 minutes doubling to a day) and per
 username (SEC.21, formerly SEC.17's in-memory backoff: 10 free failures,
 1 s doubling to 15 minutes). First the rules with a fake clock, then the
 login route and page against a fake `adminAuth.authenticate` (no
-database: the in-memory fallback), then the real `login_throttle` table.
+database: the in-memory counts), then the real Redis counts (SEC.30).
 """
 
 import time
@@ -18,6 +18,20 @@ from planetgen.admin import auth as adminAuth, throttle
 from planetgen.admin.throttle import IP_POLICY, SCOPE_IP, SCOPE_USER, USER_POLICY
 
 FREE_FAILURES = USER_POLICY.free_failures
+
+
+@pytest.fixture
+def frozen_clock(monkeypatch):
+    """The lockouts' clock stands still, so a 1-second lock is still on at
+    the next request however slow a loaded machine is (TEST.83)."""
+    class Clock:
+        now = time.time()
+
+        def time(self):
+            return self.now
+    clock = Clock()
+    monkeypatch.setattr(throttle, "time", clock)
+    return clock
 
 
 @pytest.fixture
@@ -200,7 +214,7 @@ def _login(client, username, password, environ=None):
                        environ_base=environ or _fresh_address())
 
 
-def test_route_locks_a_username_from_any_address(app):
+def test_route_locks_a_username_from_any_address(app, frozen_clock):
     client = app.test_client()
     for _ in range(FREE_FAILURES):
         assert _login(client, "admin", "wrong").status_code == 401
@@ -217,7 +231,7 @@ def test_route_locks_a_username_from_any_address(app):
     assert _login(client, "someone", "wrong").status_code == 401
 
 
-def test_route_locks_unknown_usernames_the_same_way(app):
+def test_route_locks_unknown_usernames_the_same_way(app, frozen_clock):
     client = app.test_client()
     for _ in range(FREE_FAILURES + 1):
         assert _login(client, "no-such-admin", "wrong").status_code == 401
@@ -259,7 +273,7 @@ def test_allowlisted_addresses_are_never_locked(app):
     assert _login(client, "admin", "right", where).status_code == 200
 
 
-def test_login_page_names_the_wait(app):
+def test_login_page_names_the_wait(app, frozen_clock):
     from planetgen.web import csrf
     client = app.test_client()
     client.get("/login")
@@ -274,18 +288,15 @@ def test_login_page_names_the_wait(app):
     assert "Too many failed logins for this username. Try again in 1 second." in response.get_data(as_text=True)
 
 
-# --- The login_throttle table -------------------------------------------------
+# --- The counts in Redis (SEC.30) ---------------------------------------------
 
 @pytest.fixture
-def control(mysql_config):
-    adminAuth.bootstrap_control_schema(mysql_config)
-    conn = adminAuth.store.get_control_connection(mysql_config)
-    yield conn
-    conn.close()
+def redis_store(redis_server, key_prefix):
+    return throttle.RedisStore.from_url(redis_server, key_prefix)
 
 
-def test_db_store_applies_the_same_rules(control):
-    store = throttle.DbStore(control)
+def test_redis_store_applies_the_same_rules(redis_store):
+    store = redis_store
     now = time.time()
     assert _fail(store, SCOPE_IP, "203.0.113.5", now) == 0
     assert _fail(store, SCOPE_IP, "203.0.113.5", now) == 0
@@ -299,35 +310,56 @@ def test_db_store_applies_the_same_rules(control):
     assert store.get(SCOPE_USER, "admin") is None
     assert store.lift(SCOPE_IP, "203.0.113.5") == 1
     assert throttle.check(store, SCOPE_IP, "203.0.113.5", now) == 0
+    assert store.lift() == 0
 
 
-def test_control_schema_has_login_throttle(control):
-    row = control.execute("SELECT MAX(version) AS v FROM control_schema_migrations").fetchone()
-    assert row["v"] == adminAuth.store.CONTROL_SCHEMA_VERSION >= 2
+def test_redis_store_lifts_by_scope_and_keeps_subjects_with_wildcards(redis_store):
+    now = time.time()
+    for _ in range(FREE_FAILURES + 1):
+        _fail(redis_store, SCOPE_USER, "a*b", now)
+        _fail(redis_store, SCOPE_USER, "axb", now)
+    for _ in range(3):
+        _fail(redis_store, SCOPE_IP, "203.0.113.5", now)
+    assert redis_store.lift(SCOPE_USER, "a*b") == 1
+    assert redis_store.get(SCOPE_USER, "axb") is not None
+    assert redis_store.lift(SCOPE_USER) == 1
+    assert [r["subject"] for r in throttle.locked_subjects(redis_store, now=now)] == ["203.0.113.5"]
 
 
-def test_older_control_schema_gets_the_table(mysql_config):
+def test_redis_store_counts_parallel_failures_without_losing_any(redis_store):
+    import threading
+
+    now = time.time()
+    threads = [threading.Thread(target=_fail, args=(redis_store, SCOPE_USER, "admin", now)) for _ in range(20)]
+    for thread in threads:
+        thread.start()
+    for thread in threads:
+        thread.join()
+    assert redis_store.get(SCOPE_USER, "admin")["failures"] == 20
+
+
+def test_older_control_schema_drops_the_login_throttle_table(mysql_config):
     adminAuth.bootstrap_control_schema(mysql_config)
     conn = adminAuth.store.get_control_connection(mysql_config)
     try:
-        conn.execute("DROP TABLE login_throttle")
+        conn.execute("CREATE TABLE login_throttle (scope VARCHAR(8) NOT NULL)")
         conn.execute("DELETE FROM control_schema_migrations")
-        conn.execute("INSERT INTO control_schema_migrations (version) VALUES (1)")
+        conn.execute("INSERT INTO control_schema_migrations (version) VALUES (7)")
         conn.commit()
     finally:
         conn.close()
     adminAuth.bootstrap_control_schema(mysql_config)
     conn = adminAuth.store.get_control_connection(mysql_config)
     try:
-        assert throttle.DbStore(conn).get(SCOPE_IP, "203.0.113.5") is None
+        assert conn.execute("SHOW TABLES LIKE 'login_throttle'").fetchall() == []
         versions = [r["version"] for r in conn.execute("SELECT version FROM control_schema_migrations").fetchall()]
-        assert sorted(versions) == [1, adminAuth.store.CONTROL_SCHEMA_VERSION]
+        assert sorted(versions) == [7, adminAuth.store.CONTROL_SCHEMA_VERSION]
     finally:
         conn.close()
 
 
 @pytest.fixture
-def real_app(mysql_config):
+def real_app(mysql_config, redis_server, key_prefix):
     from planetgen.web.app import create_app
     from planetgen.api.config import Config
 
@@ -337,6 +369,8 @@ def real_app(mysql_config):
         CONTROL_MYSQL_CONFIG = mysql_config
         SESSION_COOKIE_SECURE = False
         SECRET_KEY = "test-secret"
+        RATELIMIT_STORAGE_URI = redis_server
+        RATELIMIT_KEY_PREFIX = key_prefix
 
     _username, password = adminAuth.bootstrap_control_schema(mysql_config)
     adminAuth.store.get_connection(mysql_config).close()
@@ -355,13 +389,13 @@ def _admin_client(real_app):
     return admin
 
 
-def test_lockouts_shared_through_the_database_and_lifted_by_an_admin(real_app):
+def test_lockouts_shared_through_redis_and_lifted_by_an_admin(real_app):
     client = real_app.test_client()
     attacker = {"REMOTE_ADDR": "93.184.216.34"}
     for _ in range(3):
         assert _login(client, "admin", "wrong", attacker).status_code == 401
     assert _login(client, "admin", real_app.first_password, attacker).status_code == 429
-    # The in-memory fallback wasn't used: the count is in the table.
+    # The in-memory fallback wasn't used: the count is in Redis.
     assert len(loginguard.memory_store) == 0
 
     admin = _admin_client(real_app)
@@ -386,23 +420,23 @@ def test_private_lockout_warns_about_a_proxy(real_app):
     assert admin.get("/api/admin/lockouts").get_json()["proxy_warning"] is False
 
 
-def test_command_line_lists_and_lifts(mysql_config, capsys, monkeypatch):
+def test_command_line_lists_and_lifts(redis_server, key_prefix, capsys, monkeypatch):
     from planetgen.cli import lockouts as loginLockouts
-    adminAuth.bootstrap_control_schema(mysql_config)
-    conn = adminAuth.store.get_control_connection(mysql_config)
-    try:
-        store = throttle.DbStore(conn)
-        for _ in range(3):
-            throttle.record_failure(store, SCOPE_IP, "2001:db8:1:2::/64")
-    finally:
-        conn.close()
-    args = ["--mysql-host", mysql_config.host, "--mysql-port", str(mysql_config.port),
-            "--mysql-user", mysql_config.user, "--mysql-password", mysql_config.password,
-            "--mysql-database", mysql_config.database]
-    monkeypatch.setattr(adminAuth.store, "configured_control_database", lambda: mysql_config.database)
-    assert loginLockouts.main(args) == 0
+    store = throttle.RedisStore.from_url(redis_server, key_prefix)
+    for _ in range(3):
+        throttle.record_failure(store, SCOPE_IP, "2001:db8:1:2::/64")
+    monkeypatch.setenv("PLANETGEN_RATELIMIT_STORAGE_URI", redis_server)
+    monkeypatch.setattr(loginLockouts, "RATELIMIT_KEY_PREFIX", key_prefix)
+    assert loginLockouts.main([]) == 0
     assert "2001:db8:1:2::/64" in capsys.readouterr().out
-    assert loginLockouts.main(["--ip", "2001:db8:1:2::99"] + args) == 0
+    assert loginLockouts.main(["--ip", "2001:db8:1:2::99"]) == 0
     assert "Lifted 1 lockout (ip:2001:db8:1:2::/64)" in capsys.readouterr().out
-    assert loginLockouts.main(args) == 0
+    assert loginLockouts.main([]) == 0
     assert "Nothing is locked." in capsys.readouterr().out
+
+
+def test_command_line_says_when_the_lockouts_are_in_memory(monkeypatch, capsys):
+    from planetgen.cli import lockouts as loginLockouts
+    monkeypatch.setenv("PLANETGEN_RATELIMIT_STORAGE_URI", "memory://")
+    assert loginLockouts.main([]) == 1
+    assert "nothing to list or lift" in capsys.readouterr().err

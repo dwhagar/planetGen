@@ -29,10 +29,10 @@ addresses that keep guessing admin passwords.
 
 - **One process, five threads.** Apache's `WSGIDaemonProcess
   processes=1 threads=5`, gunicorn `--workers 1 --threads 5`, waitress
-  `--threads=5`. The rate limiter keeps its counts in memory
-  (`ratelimit.storage_uri` `memory://`), which is only right with one
-  process. For more processes, set `storage_uri` to a shared store such
-  as Redis first ([`api.md`](../api.md#rate-limiting)).
+  `--threads=5`. The rate limits and login lockouts count on
+  Redis (`ratelimit.storage_uri` empty = the server in `redis.url`), so
+  more processes share them; `memory://` is only right with one process
+  ([`api.md`](../api.md#rate-limiting)).
 - **Threads, because of the live job log.** The admin Generate page streams
   a running job's output over Server-Sent Events (`/admin/generate/jobs/<id>/stream`,
   ADM.22). Each open stream holds one of the five threads, so the app

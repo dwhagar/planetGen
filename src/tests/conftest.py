@@ -56,6 +56,12 @@ os.environ.setdefault("PLANETGEN_WORKERS", "1")
 if os.environ.get("PLANETGEN_TEST_REDIS_URL"):
     os.environ.setdefault("PLANETGEN_REDIS_URL", os.environ["PLANETGEN_TEST_REDIS_URL"])
 
+# Request limits and login lockouts count on that Redis server in a real
+# install (SEC.30). Tests count in memory, per process, so parallel workers
+# and neighbouring tests can't see each other's counts; the tests of the
+# Redis counting take `redis_server` and set their own storage and prefix.
+os.environ.setdefault("PLANETGEN_RATELIMIT_STORAGE_URI", "memory://")
+
 # The admin Generate page's jobs run on Redis too (PERF.24 step 3), so a
 # test that starts one for real takes `redis_server`: it skips without one.
 
@@ -346,6 +352,28 @@ def _fast_password_hashing(request, monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def _reset_rate_limits():
+    """Flask-Limiter's one shared instance keeps its counts for the whole
+    process, so a test would otherwise start with whatever the tests
+    before it (and so the order xdist deals them in) left: its counts and
+    whether limits are on at all (TEST.83)."""
+    def reset():
+        try:
+            from planetgen.api.limiter import limiter
+            # `init_app` keeps the last app's RATELIMIT_ENABLED on the shared
+            # instance, so a test of an app with limits off (RATELIMIT_ENABLED =
+            # False) switched them off for every later test in its worker.
+            limiter.enabled = True
+            if getattr(limiter, "initialized", False):
+                limiter.reset()
+        except Exception:  # noqa: BLE001 -- no API dependencies, or a storage that can't reset
+            pass
+    reset()
+    yield
+    reset()
+
+
+@pytest.fixture(autouse=True)
 def _reset_login_backoff():
     """The login lockouts' in-memory fallback (`api/loginguard.py`) is one
     process-wide store, so one test's failed logins (against an app with
@@ -374,3 +402,17 @@ def redis_server():
     except Exception as exc:  # noqa: BLE001
         pytest.skip(f"no Redis server at {url}: {exc}")
     return url
+
+
+@pytest.fixture
+def key_prefix(redis_server):
+    """A key prefix of this test's own on the test server, emptied after."""
+    import uuid
+
+    import redis
+
+    prefix = f"planetgen-test:{uuid.uuid4().hex}"
+    yield prefix
+    client = redis.Redis.from_url(redis_server)
+    for key in client.scan_iter(match=f"{prefix}:*"):
+        client.delete(key)

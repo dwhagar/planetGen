@@ -99,7 +99,7 @@ In build order. Each step stands on its own.
    (`login.failed`, `login.locked`). The web `/login` form answers 401
    for a wrong password so the access log shows it too. This is what
    alerts, the admin page and fail2ban read.
-2. **Per-IP lockout in the control database** (Boss's numbers): 3
+2. **Per-IP lockout in Redis** (Boss's numbers; first in the control database's `login_throttle` table, moved to Redis by SEC.30): 3
    failures from one address lock it for 5 minutes, doubling with each
    further lockout up to 1 day; 429 and `Retry-After`, checked before the
    password, shared by every worker and kept across restarts. Safeguards
@@ -114,7 +114,7 @@ In build order. Each step stands on its own.
      with one right guess.
    - An admin command (`planetgen` or a small `planetgen-admin`
      script) and an admin page list and lift lockouts.
-3. **Move the per-username backoff into the same table**, so it is
+3. **Move the per-username backoff into the same store**, so it is
    shared across workers and restarts; the numbers stay as they are.
 4. **Trusted-device cookie.** A successful login sets a long-lived,
    signed, per-account device cookie (its hash stored in the control

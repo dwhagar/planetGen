@@ -684,9 +684,9 @@ limits (`ratelimit.default`) for the pages, and the API calls a page makes
 in-process are not counted against either. Over a limit, a page answers
 `429` with the site's HTML error page ("Too many requests"), while
 the `/galaxy/...` JSON routes (read by the map's script) and everything
-under `/api/` answer JSON; both carry `Retry-After`. With more than one WSGI process,
-`ratelimit.storage_uri` needs a shared backend for the counts to add up
-(see [`api.md`](api.md#rate-limiting)).
+under `/api/` answer JSON; both carry `Retry-After`. The counts are on
+Redis (`ratelimit.storage_uri` empty, the server in `redis.url`), so
+every WSGI process shares them (see [`api.md`](api.md#rate-limiting)).
 
 ## Locating the database (and the API)
 

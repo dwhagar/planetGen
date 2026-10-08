@@ -167,6 +167,23 @@ def _proxy_fix(section):
     return counts
 
 
+RATELIMIT_KEY_PREFIX = "planetgen:limiter"
+"""str: What Flask-Limiter's Redis keys and the login lockouts' (SEC.30)
+start with; a test sets its own to keep its counts apart."""
+
+
+def ratelimit_storage_uri(config=None):
+    """
+    Where Flask-Limiter and the login lockouts (`loginguard.py`) count:
+    `PLANETGEN_RATELIMIT_STORAGE_URI`, else `config.json`'s
+    `ratelimit.storage_uri`, and when that is empty the Redis server
+    (`PLANETGEN_REDIS_URL`, else `redis.url`), SEC.30.
+    """
+    config = _config_file if config is None else config
+    return (os.environ.get("PLANETGEN_RATELIMIT_STORAGE_URI") or config["ratelimit"]["storage_uri"]
+            or os.environ.get("PLANETGEN_REDIS_URL") or config["redis"]["url"])
+
+
 class Config:
     MYSQL_CONFIG = MySQLConfig()
 
@@ -180,7 +197,10 @@ class Config:
     CONTROL_MYSQL_CONFIG = control_mysql_config(WRITE_MYSQL_CONFIG)
 
     RATELIMIT_DEFAULT = os.environ.get("PLANETGEN_RATELIMIT_DEFAULT", _config_file["ratelimit"]["default"])
-    RATELIMIT_STORAGE_URI = os.environ.get("PLANETGEN_RATELIMIT_STORAGE_URI", _config_file["ratelimit"]["storage_uri"])
+    RATELIMIT_STORAGE_URI = ratelimit_storage_uri(_config_file)
+    # A Redis outage falls back to counting in memory instead of failing requests.
+    RATELIMIT_IN_MEMORY_FALLBACK_ENABLED = True
+    RATELIMIT_KEY_PREFIX = RATELIMIT_KEY_PREFIX
     RATELIMIT_HEADERS_ENABLED = True
     # Per-IP limits on the HTML pages and /api/health (`web/ratelimits.py`):
     # `search`, `galaxy`, `galaxy_tiles`, `health`, and `other` for every

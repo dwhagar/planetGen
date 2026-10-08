@@ -150,7 +150,7 @@ SCRIPTS = {
     "dedupeNames": (dedupe, [], []),
     "resetDb": (reset, ["--dry-run"], []),
     "updateOrbits": (orbits, [], []),
-    "loginLockouts": (loginLockouts, [], []),
+    "loginLockouts": (loginLockouts, ["--forget-devices", "admin"], []),
 }
 
 
@@ -356,7 +356,9 @@ def test_login_lockouts_rejects_a_malformed_ipv6_address(schema_db, address, mon
     assert "usage:" in err and "is not an address that can be locked" in err
 
 
-def test_login_lockouts_lifts_an_ipv6_address_by_its_64(schema_db, monkeypatch, capsys):
+def test_login_lockouts_lifts_an_ipv6_address_by_its_64(schema_db, redis_server, monkeypatch, capsys):
+    monkeypatch.setenv("PLANETGEN_RATELIMIT_STORAGE_URI", redis_server)
+    monkeypatch.setattr(loginLockouts, "RATELIMIT_KEY_PREFIX", "planetgen-test:ipv6-lift")
     argv = mysql_argv(schema_db) + ["--ip", "2001:DB8::1"]
     assert _run_main(loginLockouts, argv, monkeypatch) == 0
     assert capsys.readouterr().out.strip() == "Lifted 0 lockouts (ip:2001:db8::/64)."
@@ -408,6 +410,9 @@ def test_an_empty_password_flag_wins_over_the_environment(name, schema_db, monke
 
 @pytest.mark.parametrize("name", sorted(SCRIPTS))
 def test_a_missing_password_flag_falls_back_to_the_environment(name, schema_db, monkeypatch, capsys):
+    if name == "loginLockouts":
+        pytest.skip("its lockouts are in Redis; only the device options open the control database "
+                    "(and this schema has no admin to name)")
     monkeypatch.setenv("PLANETGEN_MYSQL_PASSWORD", schema_db.password)
     argv = _script_argv(name, _argv_without(schema_db, "--mysql-password"))
     assert _run_main(SCRIPTS[name][0], argv, monkeypatch) == 0, capsys.readouterr().err

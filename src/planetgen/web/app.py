@@ -198,22 +198,20 @@ def _register_security_headers(app):
 
 def _warn_if_unshared_ratelimit_storage(app):
     """
-    `config.py`'s own docstring already explains why `RATELIMIT_STORAGE_URI`
-    defaults to `memory://` and when that stops being accurate (more than
-    one worker process); this surfaces the same warning in the running
-    app's own logs, at the moment it's actually decided, so a deployment
-    that later grows past one worker doesn't have to go re-read that
-    docstring to notice the mismatch.
+    The rate limits and login lockouts count on Redis unless
+    `RATELIMIT_STORAGE_URI` says `memory://` (SEC.30). This surfaces in the
+    running app's own logs that such a choice is per worker process, so a
+    deployment that later grows past one worker notices.
     """
     if app.config.get("RATELIMIT_STORAGE_URI") == "memory://":
         app.logger.warning(
-            "Flask-Limiter is using in-memory storage: rate limits are "
-            "tracked per worker process, not shared across them. This is "
-            "correct for a single-process deployment (Flask's dev server, "
-            "or mod_wsgi/gunicorn with exactly one worker) but silently "
-            "under-enforces limits by roughly a factor of the worker count "
-            "otherwise -- set PLANETGEN_RATELIMIT_STORAGE_URI to a shared "
-            "backend (e.g. redis://...) before scaling past one worker."
+            "Flask-Limiter and the login lockouts are counting in memory: "
+            "rate limits are tracked per worker process, not shared across "
+            "them. This is correct for a single-process deployment (Flask's "
+            "dev server, or mod_wsgi/gunicorn with exactly one worker) but "
+            "silently under-enforces limits by roughly a factor of the "
+            "worker count otherwise -- leave ratelimit.storage_uri empty in "
+            "config.json to count on the Redis server (redis.url)."
         )
 
 
