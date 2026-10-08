@@ -1591,8 +1591,8 @@ export function createStageView(host) {
   // (in one column below it on a phone), each with a line from it to its
   // slab on the map. The lines are drawn on an SVG over the map's row and
   // redrawn whenever the view moves (applyView) or the layout changes, so
-  // they always point at their slabs; the buttons are ordered by their
-  // slabs' height on screen, top first, so the lines don't cross. The
+  // they always point at their slabs; the buttons are in slab-number
+  // order, highest first (MAP.110). The
   // lines are faint, and the slab hovered on the map or with its button
   // (or the focused button) lights its own; clicking a button picks its
   // slab. Each line ends on its slab's outline at the point nearest the
@@ -1843,8 +1843,7 @@ export function createStageView(host) {
   // Where a slab's line ends, in client pixels, when its outline gives
   // none: the middle of its blocks, moved toward the camera to the side of
   // the slab facing it, at the slab's mid height. {x, y, off}: off when
-  // that point is not on the map (then x, y are on its edge). The buttons
-  // are also ordered by it.
+  // that point is not on the map (then x, y are on its edge).
   function slabAnchor(blocks, rect) {
     const fp = S.footprint(blocks);
     let z0 = Infinity;
@@ -1947,23 +1946,16 @@ export function createStageView(host) {
     return { x: best.x, y: best.y, off: false };
   }
 
-  // Orders the buttons by their slabs' height on screen, top first (on a
-  // phone, the lowest slab first, so the lanes nest), and with two
-  // columns deals them out in turn, right first, so each column runs the
-  // map's whole height. Leaves them be while one has focus, unless
-  // `force` (the columns changed).
-  function orderStrip(force, heights) {
+  // Orders the buttons by slab number, the highest first (on a phone,
+  // the lowest first, so the lanes nest), whatever way the view is turned
+  // (MAP.110); with two columns deals them out in turn, right first, so
+  // each column runs the map's whole height. Leaves them be while one has
+  // focus, unless `force` (the columns changed).
+  function orderStrip(force) {
     if (!strip || !view) return;
     const rect = canvasEl.getBoundingClientRect();
     if (!rect.width || !rect.height) return;
-    const rows = strip.rows;
-    const keys = heights || new Map();
-    if (!heights) rows.forEach(function (r) { keys.set(r, slabAnchor(r.option.blocks, rect).y); });
-    const below = strip.phone;
-    const order = rows.slice().sort(function (p, q) {
-      const d = keys.get(p) - keys.get(q) || q.option.pick.lo - p.option.pick.lo;
-      return below ? -d : d;
-    });
+    const order = S.orderSlabPicks(strip.rows, strip.phone, function (r) { return r.option.pick; });
     const two = strip.side && !strip.side.hidden;
     const focused = strip.list.contains(document.activeElement) || (strip.other && strip.other.contains(document.activeElement));
     if (focused && !force) return;
@@ -1998,9 +1990,8 @@ export function createStageView(host) {
     const below = rows[0].button.getBoundingClientRect().top >= rect.bottom - 1;
     const items = Array.from(strip.list.children);
     // Beside the map each line ends where its slab's outline comes
-    // nearest its button, which needn't keep the order of the slabs'
-    // anchors once the view tilts; if the ends come out of order, the
-    // buttons take the ends' order, so no two lines cross.
+    // nearest its button. The buttons keep slab-number order (MAP.110), so
+    // once the view tilts a line may cross another.
     function sideEnds() {
       const ends = new Map();
       rows.forEach(function (r) {
@@ -2010,17 +2001,7 @@ export function createStageView(host) {
       });
       return ends;
     }
-    let ends = below ? null : sideEnds();
-    if (ends && [strip.list, strip.other].some(function (list) {
-      const column = list ? rows.filter(function (r) { return list.contains(r.item); }) : [];
-      column.sort(function (p, q) { return ends.get(p).from[1] - ends.get(q).from[1]; });
-      return column.some(function (r, n) { return n > 0 && ends.get(r).end.y < ends.get(column[n - 1]).end.y; });
-    })) {
-      const heights = new Map();
-      rows.forEach(function (r) { heights.set(r, ends.get(r).end.y); });
-      orderStrip(false, heights);
-      ends = sideEnds();
-    }
+    const ends = below ? null : sideEnds();
     rows.forEach(function (r) {
       if (!r.line) return;
       const b = r.button.getBoundingClientRect();

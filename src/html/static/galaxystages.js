@@ -775,6 +775,20 @@ export function slabNumber(pick) {
   return "#" + (pick.lo === pick.hi ? pick.lo : pick.lo + "–" + pick.hi);
 }
 
+// The slab buttons in column order (MAP.110): by slab number alone, the
+// highest slab first (the lowest first when `lowestFirst`, on a phone).
+// The view's turn never reorders them. `items` are picks ({lo, hi}), or
+// anything `key(item)` turns into one; returns a new array.
+export function orderSlabPicks(items, lowestFirst, key) {
+  const pickOf = key || function (item) { return item; };
+  return items.slice().sort(function (p, q) {
+    const a = pickOf(p);
+    const b = pickOf(q);
+    const d = b.lo - a.lo || b.hi - a.hi;
+    return lowestFirst ? -d : d;
+  });
+}
+
 // A slab button's one-line label (MAP.100): its number and how much of it
 // is charted (its sectors generated) to two decimals: "#4 Unknown" with
 // none, "#2 < 0.01% charted" under that, "#6 ≈ 2.43% charted", "#1 100%

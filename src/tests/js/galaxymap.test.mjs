@@ -726,3 +726,13 @@ test("a generated sector opens its page; one not generated is selected in place"
   await arrive(m);
   assert.deepEqual(m.win.location.assigned, ["/sector/42"]);
 });
+
+test("the slab buttons are in slab-number order, however the view is turned (MAP.110)", () => {
+  const picks = [3, 0, 5, 1, 4, 2].map((lo) => ({ kind: "layer", lo, hi: lo }));
+  const rows = picks.map((pick) => ({ option: { pick } }));
+  const numbers = (list, lowestFirst) => S.orderSlabPicks(list, lowestFirst, (r) => r.option.pick).map((r) => r.option.pick.lo);
+  assert.deepEqual(numbers(rows, false), [5, 4, 3, 2, 1, 0], "highest slab first beside the map");
+  assert.deepEqual(numbers(rows, true), [0, 1, 2, 3, 4, 5], "lowest slab first below it on a phone");
+  assert.deepEqual(S.orderSlabPicks(picks, false).map((p) => p.lo), [5, 4, 3, 2, 1, 0], "plain picks sort too");
+  assert.equal(picks[0].lo, 3, "the input is left as it was");
+});
