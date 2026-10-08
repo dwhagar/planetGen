@@ -4,9 +4,9 @@ Boss, 2026-10-02: every object in sector space that isn't a generated
 star system gets a unique ID built from where it sits, and that ID, in
 hex, is its name. This covers rogue planets, standalone black holes and
 neutron stars, nebulae, supernova remnants and their collapsed cores,
-quasars, interstellar comets, asteroid fields, and star systems built
-around a bright-sweep star. Ordinary star systems keep their generated
-names, and the stars, planets and moons inside any system are named from
+quasars, interstellar comets and asteroid fields. Star systems keep
+their generated names, including one built around a bright-sweep star,
+which keeps its position ID as its unique ID instead (GEN.72), and the stars, planets and moons inside any system are named from
 the system as before (`<ID> A`, `<ID> II`).
 
 ## Layout
@@ -49,10 +49,12 @@ distance first.
 
 ## Where it applies
 
-- `insert_sector` claims IDs for every phenomenon, remnant core and
-  bright-sweep system of a galaxy-placed sector in one pass, before the
-  name registry sees the rest, so these objects never touch
-  `system_name_registry`.
+- `insert_sector` claims IDs for every phenomenon and remnant core of a
+  galaxy-placed sector in one pass, before the name registry sees the
+  rest, so these objects never touch `system_name_registry`. A
+  bright-sweep system goes through the registry like any system and gets
+  its position ID as its `uid` (`_claim_bright_system_uids`, GEN.72),
+  bumped past a stored one.
 - A standalone save with a galaxy position (`planetgen phenomenon
   --sector-id`) claims its ID the same way.
 - A name given by hand (`--name`) is kept.

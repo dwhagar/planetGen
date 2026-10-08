@@ -685,11 +685,10 @@ sector) and `star_system_id` (set for a system) cascade deletes.
 its neighbors' lists; `refresh_nearest_systems` recomputes whole
 sectors. `_migrate_v40_to_v41` adds both and fills them.
 
-**Object IDs (GEN.64).** Every placed interstellar object (a rogue
+**Object IDs (GEN.64).** (A star system built around a bright-sweep star is named like any system once its sector is generated, and keeps its position ID as its unique ID: GEN.72.) Every placed interstellar object (a rogue
 planet, standalone black hole or neutron star, nebula, supernova remnant
 and its collapsed core, quasar, interstellar comet or asteroid field)
-and every star system built around a bright-sweep star is named by its
-76-bit position ID, 19 hex digits, instead of the rules below:
+is named by its 76-bit position ID, 19 hex digits, instead of the rules below:
 `planetgen/names/object_id.py` packs type, distance unit, distance,
 bearing, mark and a 4-bit collision number from the galactic center,
 and `_db._claim_object_ids` hands out collision numbers in generation

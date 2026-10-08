@@ -117,6 +117,29 @@ def test_an_interstellar_object_keeps_the_position_id_it_is_named_by(mysql_confi
     assert galaxy_uid.uid_from_bytes(rogue["uid"]) == int(rogue["name"], 16)
 
 
+def test_a_bright_sweep_system_is_named_by_the_registry_and_keeps_its_position_id(mysql_config):
+    """GEN.72: once its sector is generated the system gets a word-salad name
+    and keeps the position ID it was known by as its unique ID."""
+    uids = []
+    for slot in (5, 6):
+        sector = _sector(f"Uid Bright {slot}", 1, "Placeholder")
+        sector.entries[0].bright_star_id = 900 + slot
+        # Both sectors put their system at the same galactic point.
+        place = dict(PLACE, ring_slot_index=slot)
+        expected = object_id.pack("bright-star", store._placement_center(
+            store._galaxy_placement_from_sector_offset(place, sector.entries[0].position)))
+        store.save_sector(sector, config=mysql_config, galaxy_position=place)
+        uids.append((expected, sector.entries[0].star_system.name))
+    rows = _rows(mysql_config, "SELECT name, uid FROM star_systems ORDER BY id")
+    assert [row["name"] for row in rows] == [name for _expected, name in uids]
+    assert not any(object_id.is_object_id(row["name"]) for row in rows)
+    first = galaxy_uid.uid_from_bytes(rows[0]["uid"])
+    assert first == uids[0][0]
+    # The same point twice: the second is bumped past the stored ID.
+    second = galaxy_uid.uid_from_bytes(rows[1]["uid"])
+    assert uids[0][0] == uids[1][0] and second == object_id.bump(first)
+
+
 def test_saving_the_same_sector_again_gives_the_same_ids(mysql_config):
     from tests.db_schema_support import scratch_database
 
