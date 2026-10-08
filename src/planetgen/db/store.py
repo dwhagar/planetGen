@@ -1144,7 +1144,7 @@ def configured_control_database():
     return os.environ.get(CONTROL_DB_ENV_VAR) or load_config()["control_database"] or DEFAULT_CONTROL_DATABASE
 
 
-def list_databases(base_config=None, prefix=None):
+def list_databases(base_config=None, prefix=None, with_counts=False):
     """
     Lists every MySQL schema on `base_config`'s server whose name starts
     with `prefix` (default: `DB_PREFIX_ENV_VAR`, or `DEFAULT_DB_PREFIX`) --
@@ -1160,6 +1160,12 @@ def list_databases(base_config=None, prefix=None):
             `database` field is ignored (this opens a connection with no
             specific schema selected). Defaults to `DEFAULT_MYSQL_CONFIG`.
         prefix (str, optional): Overrides the env-var-derived default.
+        with_counts (bool): Also count each schema's sectors and star
+            systems (`sector_count`/`system_count`, `None` when it lacks
+            this project's tables), over the same one connection: a
+            connection per schema would leave a pool open for each
+            (TEST.93: in the test suite, one per other worker's database,
+            until the server ran out of connections).
 
     The control schema (`configured_control_database`: admin logins,
     sessions, API keys) is never listed, even when its name shares the
@@ -1205,14 +1211,30 @@ def list_databases(base_config=None, prefix=None):
                 (name,),
             ).fetchone()
             modified_at = stats["modified_at"]
-            entries.append({
+            entry = {
                 "name": name,
                 "size_bytes": int(stats["size_bytes"] or 0),
                 "modified_at": modified_at.strftime("%Y-%m-%d %H:%M") if modified_at else "unknown",
-            })
+            }
+            if with_counts:
+                entry.update(_schema_counts(conn, name))
+            entries.append(entry)
         return entries
     finally:
         conn.close()
+
+
+def _schema_counts(conn, name):
+    """`list_databases`'s `sector_count`/`system_count` for schema `name`,
+    both `None` when it can't be read (no such tables: mid-migration, or
+    an unrelated schema sharing the prefix; dropped since the listing)."""
+    schema = "`" + name.replace("`", "``") + "`"
+    try:
+        sectors = conn.execute(f"SELECT COUNT(*) AS n FROM {schema}.sectors").fetchone()["n"]
+        systems = conn.execute(f"SELECT COUNT(*) AS n FROM {schema}.star_systems").fetchone()["n"]
+    except pymysql.MySQLError:
+        return {"sector_count": None, "system_count": None}
+    return {"sector_count": sectors, "system_count": systems}
 
 
 def resolve_database(base_config, name, prefix=None):

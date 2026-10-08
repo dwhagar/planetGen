@@ -642,6 +642,44 @@ def test_databases_lists_the_seeded_schema(client, seeded_sector):
     assert entry["system_count"] == len(system_ids)
 
 
+def test_databases_opens_no_connection_pool_per_schema(client, seeded_sector, mysql_config):
+    """TEST.93: listing every schema's counts used to open (and keep) a
+    connection pool per schema -- in the suite, one for each other
+    worker's database -- until the server refused connections. A schema
+    without this project's tables still lists, with unknown counts."""
+    import uuid
+
+    def config(name):
+        return _db.MySQLConfig(host=mysql_config.host, port=mysql_config.port,
+                               user=mysql_config.user, password=mysql_config.password, database=name)
+
+    other, stray = (f"planetgen_test_{uuid.uuid4().hex[:16]}" for _ in range(2))
+    admin_conn = _db.get_connection(config(""), ensure_schema=False)
+    try:
+        for name in (other, stray):
+            admin_conn.execute(f"CREATE DATABASE `{name}`")
+        # `other` gets this project's tables over a plain connection, so
+        # no pool for it exists before the listing.
+        plain = _db.pymysql.connect(host=mysql_config.host, port=mysql_config.port, user=mysql_config.user,
+                                    password=mysql_config.password, database=other)
+        try:
+            with plain.cursor() as cur:
+                cur.execute("CREATE TABLE sectors (id INT)")
+                cur.execute("CREATE TABLE star_systems (id INT)")
+                cur.execute("INSERT INTO sectors VALUES (1), (2)")
+            plain.commit()
+        finally:
+            plain.close()
+        items = {item["name"]: item for item in client.get("/api/databases").get_json()["items"]}
+        assert not [key for key in _db._pools if config(other)._key() in (key, key[0])]
+        assert (items[other]["sector_count"], items[other]["system_count"]) == (2, 0)
+        assert (items[stray]["sector_count"], items[stray]["system_count"]) == (None, None)
+    finally:
+        for name in (other, stray):
+            admin_conn.execute(f"DROP DATABASE IF EXISTS `{name}`")
+        admin_conn.close()
+
+
 def test_db_query_param_selects_a_different_database(client, mysql_config):
     # `client`'s own Config is pinned to `mysql_config`'s database --
     # this creates a *second*, separate schema (sharing the "planetgen"
