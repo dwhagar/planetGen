@@ -26,14 +26,13 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | NAV.8 | Pages and anchors for stars, planets, moons and belts |  | System page anchors (system.html). |
 | NAV.9 | Search and locate return references for every kind |  | queryDb search and galaxy_locate. |
-| NAV.16 | NAV endpoints can be any object |  | Moved from phase 2: NAV.3 closes in phase 1 now. navigation.py legs, nav_page.py endpoints. |
-| NAV.50 | Pick any object down to a moon as a NAV endpoint | NAV.16 | Split from NAV.15: body endpoints need NAV.16. |
+| NAV.50 | Pick any object down to a moon as a NAV endpoint |  | Split from NAV.15: body endpoints needed NAV.16 (done). |
 
 ### Picker
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| NAV.3 | One shared picker for the Galaxy, Sector and System displays | NAV.16, NAV.50 | Moved from phase 3: its parts are in phases 0 and 1. Parent; closes with its subitems. |
+| NAV.3 | One shared picker for the Galaxy, Sector and System displays | NAV.50 | Moved from phase 3: its parts are in phases 0 and 1. Parent; closes with its subitems. |
 
 ### Database consistency check
 
@@ -105,6 +104,9 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.104 | A spin vector and a realistic axial tilt for every rotating object |  | Rules from "Observational Kinetics for Rotational Vectors.md". |
+| GEN.121 | A velocity on every object, filled at generation and stored with an epoch |  | Build thread (not a lane), started 2026-10-08. |
+| GEN.122 | Orbital elements for planets, moons and comets, kept in step with the state vector | GEN.121 | Build thread. |
+| GEN.123 | The projected path of a body through a sector, saved as a spline | GEN.121 | Build thread. MAP.126's orbit drawing should use it later. |
 | GEN.106 | Movement thresholds and a next-update-due column | DB.11 |  |
 | GEN.107 | The update reports how many objects moved, changed sector, or entered or left a nebula | GEN.106 |  |
 | GEN.108 | Orbital math limits: where each method breaks down and what happens there | GEN.106 | Boss (2026-10-07 11:47Z): "we need to ensure that reasonable limitations for when the math breaks down at the edge cases." |
@@ -135,7 +137,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.119 | Expected star density editable by admins on the Galaxy Map |  |  |
 | MAP.122 | A Select mode on every galaxy view: Galaxy (blocks and sectors) or Star |  | Merges the 2026-10-07 "button to select a star" ask; MAP.101 (PR #431) made stars unpickable by default. |
 | MAP.123 | Show or hide star types and phenomena, and set the luminosity floor, on the Galaxy and Sector Maps |  | MAP.79's per-kind hide buttons (PR #577) cover the Sector Map's kinds; this adds star types, highlight, the luminosity slider and the Galaxy Map. |
-| MAP.124 | The Galaxy Map opens zoomed to fit all charted space |  |  |
 
 ### System Map
 

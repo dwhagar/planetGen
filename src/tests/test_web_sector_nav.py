@@ -15,6 +15,8 @@ import json
 import re
 
 import pytest
+
+from planetgen.galaxy import objectref
 from markupsafe import escape
 
 from planetgen.web.app import create_app
@@ -131,6 +133,15 @@ class FakeData:
         except KeyError:
             raise apiclient.NotFoundError(f"No such system: {system_id}")
 
+    def get_object(self, db, ref):
+        self.calls.append(("get_object", db, ref))
+        if ref != "planet:3":
+            raise apiclient.NotFoundError(f"No such object: {ref}")
+        return {"ref": ref, "kind": "planet", "name": "Aster III", "parents": [
+            {"ref": "galaxy", "kind": "galaxy", "name": "Galaxy"},
+            {"ref": "sector:5", "kind": "sector", "name": "Sector"},
+            {"ref": "system:1001", "kind": "system", "name": "Aster"}]}
+
     def get_phenomenon(self, db, phenomenon_type, phenomenon_id):
         self.calls.append(("get_phenomenon", db, phenomenon_type, phenomenon_id))
         try:
@@ -138,21 +149,28 @@ class FakeData:
         except KeyError:
             raise apiclient.NotFoundError("No such phenomenon")
 
-    def get_nav(self, db, from_id, to_id, from_kind="system", to_kind="system", from_type=None, to_type=None):
-        self.calls.append(("get_nav", db, from_id, to_id, from_kind, to_kind, from_type, to_type))
+    def get_nav(self, db, from_ref, to_ref):
+        self.calls.append(("get_nav", db, from_ref, to_ref))
         if self.nav_error:
             raise self.nav_error
         hops = [] if getattr(self, "nav_direct_hop", False) else [1500]
+        direct = {"distance_ly": 3.25, "bearing_deg": 45.2, "mark_deg": 357.5,
+                  "elevation_deg": -2.5, "frame": "sector"}
+        kind, from_id = objectref.parse(from_ref)
+        to_id = objectref.parse(to_ref)[1]
         return {
             "scope": "galaxy" if self.nav_galaxy_scope else "sector",
-            "direct": {"distance_ly": 3.25, "bearing_deg": 45.2, "mark_deg": 357.5,
-                       "elevation_deg": -2.5, "frame": "sector"},
+            "direct": direct,
             "warp_times": [{"warp_factor": 1, "velocity_multiple_of_c": 1.0, "formatted": "3 years"}],
             "fold_times": [{"fold_factor": 4, "velocity_multiple_of_c": 256.0, "formatted": "4 days"}],
             "origin_position": (0.0, 0.0, 0.0), "destination_position": (3.0, 1.0, 0.0),
-            "route": {"path": [from_id if from_kind == "system" else f"phenomenon:{from_type}:{from_id}",
+            "route": {"path": [from_id if kind == "system" else f"phenomenon:{kind}:{from_id}",
                                *hops, to_id],
                       "distance_ly": 3.5, "positions": {"1500": (1.5, 0.5, 0.0)}},
+            "legs": ([{"kind": "out", "from": from_ref, "to": "system:1001", "direct": direct}]
+                     if kind in objectref.BODY_KINDS else []) + [
+                {"kind": "between", "from": from_ref, "to": to_ref, "direct": direct}],
+            "note": "Same warp and fold tables." if kind in objectref.BODY_KINDS else None,
         }
 
     def get_wiki_config(self):
@@ -186,7 +204,7 @@ class FakeData:
         return {"generated": 4, "already_existed": 2, "candidates": 6}
 
 
-_FAKED = ("get_sector", "get_galaxy_shape", "get_sector_facilities", "get_bright_stars_in_cell", "get_sectors", "get_system", "get_phenomenon", "get_nav", "get_wiki_config",
+_FAKED = ("get_sector", "get_galaxy_shape", "get_sector_facilities", "get_bright_stars_in_cell", "get_sectors", "get_system", "get_object", "get_phenomenon", "get_nav", "get_wiki_config",
           "auth_me", "upload_sector_to_wiki", "admin_set_sector_wiki_url", "generate_sector_neighborhood")
 
 
@@ -641,7 +659,7 @@ def test_nav_course_and_route(client, fake):
     resp = client.get("/nav?from=system:1001&to=system:1002")
     html = resp.get_data(as_text=True)
     assert resp.status_code == 200
-    assert ("get_nav", DB, 1001, 1002, "system", "system", None, None) in fake.calls
+    assert ("get_nav", DB, "system:1001", "system:1002") in fake.calls
     assert "3.25 ly" in html and "045 mark 358" in html and "3 years" in html
     assert "Sector Local Frame" in html and "Fold 4" in html and "4 days" in html
     assert "Same sector" in html
@@ -693,7 +711,7 @@ def test_galaxy_course_is_the_waypoints_in_parsecs(client, fake):
 
 def test_nav_phenomenon_origin(client, fake):
     html = client.get("/nav?from=nebula:3&to=system:1002").get_data(as_text=True)
-    assert ("get_nav", DB, 3, 1002, "phenomenon", "system", "nebula", None) in fake.calls
+    assert ("get_nav", DB, "nebula:3", "system:1002") in fake.calls
     assert "<title>Course: Veil \u2192 Other - " in html
     route = re.search(r'<ol class="nav-route">.*?</ol>', html, re.S).group(0)
     assert 'href="/phenomenon/nebula/3">Veil</a>' in route
@@ -736,7 +754,7 @@ def test_nav_bad_parameters_are_404(client, fake, query):
 
 def test_nav_bare_number_means_a_system(client, fake):
     html = client.get("/nav?from=1001&to=1002").get_data(as_text=True)
-    assert ("get_nav", DB, 1001, 1002, "system", "system", None, None) in fake.calls
+    assert ("get_nav", DB, "system:1001", "system:1002") in fake.calls
     assert "Reverse course" in html
 
 
@@ -999,7 +1017,19 @@ def test_pick_start_mode_without_the_other_end(app, client, fake):
     assert page["pick"] == "from" and page["pickOther"] is None
 
 
-@pytest.mark.parametrize("query", ["pick=sideways", "pick=to&from=planet:3", "pick=to&from=system:x"])
+def test_a_body_can_be_a_nav_endpoint(client, fake):
+    """NAV.16: a course may start or end at a body inside a system."""
+    resp = client.get("/nav?from=planet:3&to=system:1002")
+    html = resp.get_data(as_text=True)
+    assert resp.status_code == 200, html[:400]
+    assert ("get_nav", DB, "planet:3", "system:1002") in fake.calls
+    assert "Aster III" in html
+    assert "Out of the system" in html and "Between systems" in html and "Same warp and fold tables." in html
+    assert client.get("/nav?from=planet:99&to=system:1002").status_code == 404
+    assert client.get("/nav?from=sector:5&to=system:1002").status_code == 404
+
+
+@pytest.mark.parametrize("query", ["pick=sideways", "pick=to&from=ship:3", "pick=to&from=system:x"])
 def test_bad_pick_mode_is_ignored(client, fake, query):
     resp = client.get(f"/sector/5?{query}")
     assert resp.status_code == 200

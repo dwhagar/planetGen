@@ -594,7 +594,7 @@ def test_nav_returns_direct_course_for_system_to_phenomenon(client, mysql_config
         conn.close()
 
     response = client.get(
-        f"/api/nav?from={system_id}&to={nebula_id}&to_kind=phenomenon&to_type=nebula"
+        f"/api/nav?from=system:{system_id}&to=nebula:{nebula_id}"
     )
     assert response.status_code == 200
     body = response.get_json()

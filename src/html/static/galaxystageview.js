@@ -797,7 +797,10 @@ export function createStageView(host) {
   canvasEl.galaxyCamera = function () {
     if (!view) return null;
     const back = new THREE.Vector3(0, 0, 1).applyQuaternion(view.quat);
-    return { tilt: THREE.MathUtils.radToDeg(Math.acos(Math.max(-1, Math.min(1, back.z)))), flying: !!animation };
+    return {
+      tilt: THREE.MathUtils.radToDeg(Math.acos(Math.max(-1, Math.min(1, back.z)))), flying: !!animation,
+      zoom: view.zoom,
+    };
   };
 
   // Keeps the view fitted round the stage as it turns or the map changes
@@ -978,6 +981,23 @@ export function createStageView(host) {
     });
   }
 
+  // MAP.124: the whole galaxy opens as close as its zoom range allows
+  // while every charted sector shows, centered on them; zooming out still
+  // reaches the whole galaxy. Only on the first view, with no sector asked.
+  function closeOnCharted(r, v) {
+    if (!isWholeGalaxy(r) || pendingOpen || selectedSector) return;
+    const data = dataFor(r.stage.at);
+    const charted = r.view.blocks.filter(function (block) { return generatedOf(block, data) > 0; });
+    if (!charted.length) return;
+    const fit = centeredFit(boundsPoints(charted), v.target.slice(), v.quat);
+    const full = fitDistance(fitPointsOf(r), v.fit.target, v.quat);
+    const zoom = Math.max(GALAXY_MIN_ZOOM, Math.min(1, fit.dist / full));
+    if (zoom >= 1) return;
+    v.zoom = zoom;
+    v.target = fit.target.slice();
+    v.dist = zoom * full;
+  }
+
   function flyTo(r) {
     const from = display && view ? viewNow() : null;
     const to = cameraFor(r);
@@ -988,6 +1008,7 @@ export function createStageView(host) {
     display = incoming;
     if (!from) {
       view = settledView(to);
+      closeOnCharted(r, view);
       applyView();
       afterArrival();
       return;
