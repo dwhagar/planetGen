@@ -1,5 +1,10 @@
 # Changelog
 
+## [7.284.637] - 2026-10-08
+
+### Fixed
+- On a sector's map, Escape clears what is selected, and a click on the selected object clears it, so a nebula covering the whole sector can be unselected; the panel goes back to its opening text.
+
 ## [7.283.637] - 2026-10-08
 
 ### Added
