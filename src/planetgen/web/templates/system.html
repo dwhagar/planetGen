@@ -2,7 +2,7 @@
     the stars table and the map are HTML from planetgen/web/lib/systempage.py and
     planetgen/web/maps/systemmap.py (escaped there); everything else is escaped here. -#}
 {% extends "base.html" %}
-{% from "partials/edit_controls.html" import edit_menu with context %}
+{% from "partials/admin_menu.html" import admin_menu, add_edit_actions with context %}
 {% from "partials/bookmark.html" import bookmark_button %}
 {% block head %}
 <script type="module" src="{{ static_url('systemmap.js') }}"></script>
@@ -44,15 +44,17 @@
 {% block content %}
 {{ map_html }}
 {{ stars_html }}
-{%- if wiki_status or wiki_options %}
-<section class="panel" id="wiki-upload" aria-labelledby="wiki-upload-heading">
-  <h2 id="wiki-upload-heading">Upload to Wiki</h2>
-  {%- if wiki_status %}
-  <p class="{{ 'error' if wiki_status[0] else 'hint' }}" role="status">{{ wiki_status[1] }}</p>
-  {%- endif %}
-  {%- if wiki_options %}
-  <form method="post" action="{{ page_url('system', system_id=system.id) }}" class="search-form">
-    {{ csrf_field() }}
+{#- ADM.34: every admin action of this page sits behind the one Admin menu
+    (partials/admin_menu.html): the whole system's (regenerate, change the
+    star, delete, upload to a wiki), a submenu per body (regenerate, change
+    class, delete) and the facilities' (place one, remove one). #}
+{%- if wiki_status %}
+<p class="{{ 'error' if wiki_status[0] else 'hint' }}" role="status">{{ wiki_status[1] }}</p>
+{%- endif %}
+{%- set here = page_url('system', system_id=system.id) %}
+{%- set groups = [] %}
+{%- if admin and wiki_options %}
+{%- set wiki_fields %}
     <div class="search-fields">
       <fieldset class="search-field wiki-backends">
         <legend>Wiki</legend>
@@ -64,142 +66,58 @@
         <input type="text" name="path" placeholder="e.g. systems/{{ system.name }}">
       </label>
     </div>
-    <div class="search-actions">
-      <button type="submit" class="btn">Upload</button>
-    </div>
-  </form>
-  {%- endif %}
-</section>
+{%- endset %}
+{%- set _ = groups.append({'id': 'wiki', 'actions': [{'key': 'upload', 'label': 'Upload to Wiki', 'title': 'Upload to Wiki',
+    'note': '', 'fields': wiki_fields, 'hidden': {'action': 'upload_wiki'}, 'button': 'Upload'}]}) %}
 {%- endif %}
-<section class="panel" id="system-panel" aria-labelledby="system-heading">
-  <div class="panel-header">
-    <h2 id="system-heading">System</h2>
-    <div class="view-toggle">
-      {%- for button in code_buttons %}
-      <a class="btn btn-small{% if button.active %} btn-active{% endif %}" href="{{ button.url }}"{% if button.active %} aria-current="true"{% endif %}>{{ button.label }}</a>
-      {%- endfor %}
-    </div>
-  </div>
-  {%- if system.wikijs_url or system.mediawiki_url %}
-  <p class="hint">Published on the wiki:
-    {%- if system.wikijs_url %} <a href="{{ system.wikijs_url }}" target="_blank" rel="noopener noreferrer">View on Wiki.js</a>{% endif %}
-    {%- if system.wikijs_url and system.mediawiki_url %} &middot;{% endif %}
-    {%- if system.mediawiki_url %} <a href="{{ system.mediawiki_url }}" target="_blank" rel="noopener noreferrer">View on MediaWiki</a>{% endif %}
-  </p>
-  {%- endif %}
-  {%- if code_fmt %}
-  <div class="code-view">
-    <div class="code-view-header">
-      <span class="view-toggle-current">{{ code_label }}</span>
-      <button type="button" class="btn btn-small copy-btn" data-copy-target="system-code">Copy</button>
-    </div>
-    <textarea readonly rows="{{ code_rows }}" id="system-code" class="content-box" aria-label="{{ code_label }} source">{{ code_content }}</textarea>
-  </div>
-  {%- endif %}
-  {{ system_list_html }}
-</section>
 {%- if can_edit %}
-{%- set here = page_url('system', system_id=system.id) %}
-<section class="panel" id="edit-system" aria-labelledby="edit-system-heading">
-  <h2 id="edit-system-heading">Edit</h2>
-  <p class="hint">Regenerating rolls something again in the same place and keeps its name; the rest
-  of the system is then checked and re-spaced until it is stable. Changing a class re-rolls a planet
-  or moon as that class where it is: a recommended class fits without moving any other planet, a forced one
-  is kept even where it couldn't form.</p>
-  <div class="table-scroll" tabindex="0"><table>
-    <thead><tr><th scope="col">Body</th><th scope="col">What it is</th><th scope="col"><span class="sr-only">Actions</span></th></tr></thead>
-    <tbody>
-      <tr>
-        <td>{{ system.name }}</td>
-        <td>The whole system</td>
-        <td>
-          {%- set star_actions = [] %}
-          {%- if star_editable %}
-          {%- set star_fields %}
-              <label>Spectral type <input type="text" name="star_type" required maxlength="8" size="6"
-                pattern="[OBAFGKMobafgkm][0-9](0|[IiVv]+|[Ii][Aa][+]?|[Ii][Aa][Bb]|[Ii][Bb]|[Dd])"
-                placeholder="e.g. K2V" value="{{ star_type }}"></label>
-          {%- endset %}
-          {%- set star_actions = [{'key': 'star', 'label': 'Change star', 'title': 'Change the star',
-              'note': 'Replaces the ' ~ star_type ~ ' star with a new one. Planets, moons and belts keep their classes; their orbits scale with the new star\'s light, and any left past its farthest stable orbit are removed.',
-              'fields': star_fields, 'drop_label': 'Also delete facilities on removed bodies', 'button': 'Change the star'}] %}
-          {%- endif %}
-          {{ edit_menu(here, 'system:' ~ system.id, system.name,
-               'Rolls new stars, planets, moons, belts and comets; the system keeps its name and place.',
-               'Deletes the system and everything in it.', regenerate_facilities=True, extra_actions=star_actions) }}</td>
-      </tr>
-      {%- for row in edit_rows %}
-      <tr>
-        <td{% if row.indent %} class="edit-indent"{% endif %}>{{ row.label if row.kind != 'belt' else 'Asteroid belt' }}</td>
-        <td>{{ row.detail }}</td>
-        <td>
-          {%- set class_actions = [] %}
-          {%- if row.recommended is defined %}
-          {%- set class_fields %}
-              <label>New class <select name="planet_class" required>
-                {%- if row.recommended %}
-                <optgroup label="Recommended (fits where it is)">
-                  {%- for code in row.recommended %}<option value="{{ code }}">{{ code }}</option>{% endfor %}
-                </optgroup>
-                {%- endif %}
-                <optgroup label="Force (may leave it unstable)">
-                  {%- for code in row.forced %}<option value="force:{{ code }}">{{ code }}</option>{% endfor %}
-                </optgroup>
-              </select></label>
-          {%- endset %}
-          {%- set class_actions = [{'key': 'class', 'label': 'Change class', 'title': 'Change ' ~ row.label ~ "'s class",
-              'note': 'Rolls it again as the class you pick, where it is.', 'fields': class_fields,
-              'button': 'Change ' ~ row.label ~ "'s class"}] %}
-          {%- endif %}
-          {{ edit_menu(here, row.target, row.label,
-               'Rolls it again at the same orbit.' if row.kind != 'planet' else 'Rolls it again at the same orbit, with new moons.',
-               'Removes it from the system.' if row.kind != 'planet' else 'Removes it and its moons from the system.',
-               regenerate_facilities=(row.kind == 'planet'), extra_actions=class_actions) }}</td>
-      </tr>
-      {%- endfor %}
-    </tbody>
-  </table></div>
-</section>
+{%- set system_actions = [] %}
+{%- set star_actions = [] %}
+{%- if star_editable %}
+{%- set star_fields %}
+    <label>Spectral type <input type="text" name="star_type" required maxlength="8" size="6"
+      pattern="[OBAFGKMobafgkm][0-9](0|[IiVv]+|[Ii][Aa][+]?|[Ii][Aa][Bb]|[Ii][Bb]|[Dd])"
+      placeholder="e.g. K2V" value="{{ star_type }}"></label>
+{%- endset %}
+{%- set star_actions = [{'key': 'star', 'label': 'Change star', 'title': 'Change the star',
+    'note': 'Replaces the ' ~ star_type ~ ' star with a new one. Planets, moons and belts keep their classes; their orbits scale with the new star\'s light, and any left past its farthest stable orbit are removed.',
+    'fields': star_fields, 'drop_label': 'Also delete facilities on removed bodies', 'button': 'Change the star'}] %}
 {%- endif %}
-{%- if facilities or admin %}
+{{ add_edit_actions(system_actions, system.name,
+     'Rolls new stars, planets, moons, belts and comets; the system keeps its name and place. The rest of the system is then checked and re-spaced until it is stable.',
+     'Deletes the system and everything in it.', regenerate_facilities=True, extra=star_actions) }}
+{%- set _ = groups.append({'id': 'system', 'target': 'system:' ~ system.id, 'actions': system_actions}) %}
+{%- for row in edit_rows %}
+{%- set body_actions = [] %}
+{%- set class_actions = [] %}
+{%- if row.recommended is defined %}
+{%- set class_fields %}
+    <label>New class <select name="planet_class" required>
+      {%- if row.recommended %}
+      <optgroup label="Recommended (fits where it is)">
+        {%- for code in row.recommended %}<option value="{{ code }}">{{ code }}</option>{% endfor %}
+      </optgroup>
+      {%- endif %}
+      <optgroup label="Force (may leave it unstable)">
+        {%- for code in row.forced %}<option value="force:{{ code }}">{{ code }}</option>{% endfor %}
+      </optgroup>
+    </select></label>
+{%- endset %}
+{%- set class_actions = [{'key': 'class', 'label': 'Change class', 'title': 'Change ' ~ row.label ~ "'s class",
+    'note': 'Re-rolls it as the class you pick, where it is: a recommended class fits without moving any other planet, a forced one is kept even where it couldn\'t form.',
+    'fields': class_fields, 'button': 'Change ' ~ row.label ~ "'s class"}] %}
+{%- endif %}
+{{ add_edit_actions(body_actions, row.label,
+     'Rolls it again at the same orbit.' if row.kind != 'planet' else 'Rolls it again at the same orbit, with new moons.',
+     'Removes it from the system.' if row.kind != 'planet' else 'Removes it and its moons from the system.',
+     regenerate_facilities=(row.kind == 'planet'), extra=class_actions) }}
+{%- set _ = groups.append({'id': 'body-' ~ loop.index, 'label': (row.label if row.kind != 'belt' else 'Asteroid belt') ~ (' (' ~ row.detail ~ ')' if row.detail else ''),
+    'target': row.target, 'actions': body_actions}) %}
+{%- endfor %}
+{%- endif %}
+{%- if admin %}
 {%- set form = facility_form %}
-<section class="panel" id="facilities" aria-labelledby="facilities-heading">
-  <h2 id="facilities-heading">Facilities</h2>
-  {%- if facility_status %}
-  <p class="{{ 'error' if facility_status[0] else 'hint' }}" role="status">{{ facility_status[1] }}</p>
-  {%- endif %}
-  {%- if facilities %}
-  <div class="table-scroll" tabindex="0"><table>
-    <thead><tr><th scope="col">Name</th><th scope="col">Kind</th><th scope="col">Host</th><th scope="col">Placement</th><th scope="col">Orbital distance</th><th scope="col">Orbital period</th><th scope="col">Orbital speed</th>{% if admin %}<th scope="col"><span class="sr-only">Remove</span></th>{% endif %}</tr></thead>
-    <tbody>
-      {%- for row in facilities %}
-      <tr>
-        <td>{{ row.name }}</td>
-        <td>{{ row.kind }}</td>
-        <td>{{ row.host }}</td>
-        <td>{{ row.placement }}</td>
-        <td>{% if row.distance %}{{ row.distance }}{% else %}&ndash;{% endif %}</td>
-        <td>{% if row.period %}{{ row.period }}{% else %}&ndash;{% endif %}</td>
-        <td>{% if row.speed %}{{ row.speed }}{% else %}&ndash;{% endif %}</td>
-        {%- if admin %}
-        <td><details class="facility-remove"><summary class="btn btn-small">Remove</summary>
-          <form method="post" action="{{ page_url('system', system_id=system.id) }}" class="table-form">
-            {{ csrf_field() }}
-            <input type="hidden" name="facility_action" value="remove">
-            <input type="hidden" name="facility_id" value="{{ row.id }}">
-            <button type="submit" class="btn">Yes, remove {{ row.name }}</button>
-          </form>
-        </details></td>
-        {%- endif %}
-      </tr>
-      {%- endfor %}
-    </tbody>
-  </table></div>
-  {%- else %}
-  <p class="hint">No facilities in this system yet.</p>
-  {%- endif %}
-  {%- if admin %}
-  <h3 id="facility-form-heading">Place a facility</h3>
+{%- set place_form %}
   {%- for error in form.errors %}
   <p class="error" role="alert">{{ error }}</p>
   {%- endfor %}
@@ -212,7 +130,7 @@
   </div>
   {%- endif %}
   {%- set placement = form.fields.placement or facility_placements[0][0] %}
-  <form method="post" action="{{ page_url('system', system_id=system.id) }}#facilities" class="search-form facility-form" aria-labelledby="facility-form-heading">
+  <form method="post" action="{{ page_url('system', system_id=system.id) }}#facilities" class="search-form facility-form">
     {{ csrf_field() }}
     <div class="search-fields">
       <label class="search-field">Name
@@ -256,6 +174,75 @@
       <button type="submit" class="btn" name="facility_action" value="save">Save</button>
     </div>
   </form>
+{%- endset %}
+{%- set facility_actions = [{'key': 'place', 'label': 'Place a facility', 'title': 'Place a facility', 'form': place_form,
+    'open': facility_form.errors or facility_form.preview}] %}
+{%- set _ = groups.append({'id': 'facility', 'actions': facility_actions}) %}
+{%- if facilities %}
+{%- set remove_actions = [] %}
+{%- for row in facilities %}
+{%- set _ = remove_actions.append({'key': 'remove-' ~ row.id, 'label': row.name, 'title': 'Remove ' ~ row.name,
+    'note': 'Removes this facility from the system.', 'hidden': {'facility_action': 'remove', 'facility_id': row.id},
+    'button': 'Yes, remove ' ~ row.name, 'danger': True}) %}
+{%- endfor %}
+{%- set _ = groups.append({'id': 'facility-remove', 'label': 'Remove a facility', 'actions': remove_actions}) %}
+{%- endif %}
+{%- endif %}
+{%- if groups %}
+{{ admin_menu(groups, system.name, here) }}
+{%- endif %}
+<section class="panel" id="system-panel" aria-labelledby="system-heading">
+  <div class="panel-header">
+    <h2 id="system-heading">System</h2>
+    <div class="view-toggle">
+      {%- for button in code_buttons %}
+      <a class="btn btn-small{% if button.active %} btn-active{% endif %}" href="{{ button.url }}"{% if button.active %} aria-current="true"{% endif %}>{{ button.label }}</a>
+      {%- endfor %}
+    </div>
+  </div>
+  {%- if system.wikijs_url or system.mediawiki_url %}
+  <p class="hint">Published on the wiki:
+    {%- if system.wikijs_url %} <a href="{{ system.wikijs_url }}" target="_blank" rel="noopener noreferrer">View on Wiki.js</a>{% endif %}
+    {%- if system.wikijs_url and system.mediawiki_url %} &middot;{% endif %}
+    {%- if system.mediawiki_url %} <a href="{{ system.mediawiki_url }}" target="_blank" rel="noopener noreferrer">View on MediaWiki</a>{% endif %}
+  </p>
+  {%- endif %}
+  {%- if code_fmt %}
+  <div class="code-view">
+    <div class="code-view-header">
+      <span class="view-toggle-current">{{ code_label }}</span>
+      <button type="button" class="btn btn-small copy-btn" data-copy-target="system-code">Copy</button>
+    </div>
+    <textarea readonly rows="{{ code_rows }}" id="system-code" class="content-box" aria-label="{{ code_label }} source">{{ code_content }}</textarea>
+  </div>
+  {%- endif %}
+  {{ system_list_html }}
+</section>
+{%- if facilities or facility_status %}
+<section class="panel" id="facilities" aria-labelledby="facilities-heading">
+  <h2 id="facilities-heading">Facilities</h2>
+  {%- if facility_status %}
+  <p class="{{ 'error' if facility_status[0] else 'hint' }}" role="status">{{ facility_status[1] }}</p>
+  {%- endif %}
+  {%- if facilities %}
+  <div class="table-scroll" tabindex="0"><table>
+    <thead><tr><th scope="col">Name</th><th scope="col">Kind</th><th scope="col">Host</th><th scope="col">Placement</th><th scope="col">Orbital distance</th><th scope="col">Orbital period</th><th scope="col">Orbital speed</th></tr></thead>
+    <tbody>
+      {%- for row in facilities %}
+      <tr>
+        <td>{{ row.name }}</td>
+        <td>{{ row.kind }}</td>
+        <td>{{ row.host }}</td>
+        <td>{{ row.placement }}</td>
+        <td>{% if row.distance %}{{ row.distance }}{% else %}&ndash;{% endif %}</td>
+        <td>{% if row.period %}{{ row.period }}{% else %}&ndash;{% endif %}</td>
+        <td>{% if row.speed %}{{ row.speed }}{% else %}&ndash;{% endif %}</td>
+      </tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+  {%- else %}
+  <p class="hint">No facilities in this system yet.</p>
   {%- endif %}
 </section>
 {%- endif %}

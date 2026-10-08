@@ -3,8 +3,8 @@
 // What picking a menu item does (UX.26, UX.31, UX.27):
 //   <sl-menu-item data-dialog="ID">  opens the <sl-dialog id="ID">;
 //   <sl-menu-item data-href="URL">   goes to that page (a menu of links);
-// and any [data-dialog-close] button inside a dialog closes it. The Edit
-// menus of templates/partials/edit_controls.html and the system page's
+// and any [data-dialog-close] button inside a dialog closes it. The Admin
+// menu of templates/partials/admin_menu.html and the system page's
 // Navigate menu use them.
 
 document.addEventListener("sl-select", (event) => {

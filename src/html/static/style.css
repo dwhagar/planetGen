@@ -490,24 +490,13 @@ tbody tr:last-child td {
   font-weight: 600;
 }
 
-/* The system page's Facilities panel: the Remove confirm step and the
-   form's preview. */
-.facility-remove > summary {
-  list-style: none;
-  cursor: pointer;
+/* The admin actions (ADM.8, ADM.34): one Admin menu per screen, each pick
+   a dialog with its confirm form (templates/partials/admin_menu.html,
+   static/dialogmenus.js). */
+.admin-bar {
+  margin: 0 0 1rem;
 }
 
-.facility-remove > summary::-webkit-details-marker {
-  display: none;
-}
-
-.facility-remove[open] > summary {
-  margin-bottom: 0.4rem;
-}
-
-/* The admin edit actions (ADM.8, UX.26): one Edit button opening a menu,
-   each pick a dialog with its confirm form
-   (templates/partials/edit_controls.html, static/dialogmenus.js). */
 .edit-dialog .hint {
   max-width: 45ch;
   margin: 0 0 0.75rem;
@@ -515,10 +504,6 @@ tbody tr:last-child td {
 
 .edit-dialog .table-form {
   display: block;
-}
-
-.edit-indent {
-  padding-left: 1.5rem;
 }
 
 .edit-drop {

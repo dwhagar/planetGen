@@ -1,6 +1,6 @@
 {#- The sector page (web/sector_page.py). -#}
 {% extends "base.html" %}
-{% from "partials/edit_controls.html" import edit_menu with context %}
+{% from "partials/admin_menu.html" import admin_menu, add_edit_actions with context %}
 {% from "partials/bookmark.html" import bookmark_button %}
 {% block head %}
 <script type="module" src="{{ static_url('sectormap.js') }}"></script>
@@ -46,48 +46,28 @@
 {%- if sector.wiki_url %}
 <p class="wiki-link"><a href="{{ sector.wiki_url }}" target="_blank" rel="noopener noreferrer">View on Wiki</a></p>
 {%- endif %}
-{#- UX.26: the admin actions (upload to the wiki, generate the neighborhood)
-    sit behind one Admin menu button and open their forms in a dialog, like
-    the Edit menu (partials/edit_controls.html, static/dialogmenus.js). The
-    neighborhood's size-and-time check comes back as a dialog opened on
-    load. #}
+{#- ADM.34: every admin action of this page (upload to the wiki, generate the
+    neighborhood, regenerate and delete the sector) sits behind the one Admin
+    menu (partials/admin_menu.html, static/dialogmenus.js) and opens in a
+    dialog. The neighborhood's size-and-time check comes back as a dialog
+    opened on load. #}
 {%- set show_wiki = admin and wiki_backends and not sector.wiki_url -%}
 {%- set show_generate = can_generate and sector.placed -%}
-{%- if show_wiki or can_generate or errors.wiki %}
-<section class="panel" id="admin-sector" aria-labelledby="admin-heading">
-  <h2 id="admin-heading">Admin</h2>
-  {%- if errors.wiki %}
-  <p class="error" role="alert">{{ errors.wiki }}</p>
-  {%- endif %}
-  {%- if errors.neighborhood %}
-  <p class="error" role="alert">{{ errors.neighborhood }}</p>
-  {%- endif %}
-  {%- if show_wiki or show_generate %}
-  <div>
-    <sl-dropdown class="edit-menu admin-menu" placement="bottom-end" distance="4">
-      <sl-button slot="trigger" size="small" caret>Admin</sl-button>
-      <sl-menu aria-label="Admin actions for this sector">
-        {%- if show_wiki %}
-        <sl-menu-item data-dialog="admin-wiki">Upload to Wiki</sl-menu-item>
-        {%- endif %}
-        {%- if show_generate %}
-        <sl-menu-item data-dialog="admin-neighborhood">Generate neighborhood</sl-menu-item>
-        {%- endif %}
-      </sl-menu>
-    </sl-dropdown>
-  </div>
-  {%- endif %}
-  {%- if can_generate and not sector.placed %}
-  <p class="hint">This sector has never been placed in a galaxy. Generating a
-  neighborhood around it requires a galaxy-placed sector (one generated with
-  <code>planetgen galaxy</code>, not <code>planetgen sector</code>).</p>
-  {%- endif %}
-</section>
+{%- if errors.wiki %}
+<p class="error" role="alert">{{ errors.wiki }}</p>
+{%- endif %}
+{%- if errors.neighborhood %}
+<p class="error" role="alert">{{ errors.neighborhood }}</p>
+{%- endif %}
+{%- if can_generate and not sector.placed %}
+<p class="hint">This sector has never been placed in a galaxy. Generating a
+neighborhood around it requires a galaxy-placed sector (one generated with
+<code>planetgen galaxy</code>, not <code>planetgen sector</code>).</p>
+{%- endif %}
+{%- set here = url_for('web.sector', sector_id=sector_id) %}
+{%- set actions = [] %}
 {%- if show_wiki %}
-<sl-dialog id="admin-wiki" class="edit-dialog" label="Upload to Wiki">
-  <form method="post" action="{{ url_for('web.sector', sector_id=sector_id) }}" class="search-form" id="admin-wiki-form">
-    {{ csrf_field() }}
-    <input type="hidden" name="action" value="upload_wiki">
+{%- set wiki_fields %}
     <div class="search-fields">
       <fieldset class="search-field">
         <legend>Wiki</legend>
@@ -99,33 +79,32 @@
         <input type="text" name="path" placeholder="e.g. sectors/{{ sector.name }}">
       </label>
     </div>
-  </form>
-  <sl-button slot="footer" data-dialog-close>Cancel</sl-button>
-  <sl-button slot="footer" variant="primary" type="submit" form="admin-wiki-form">Upload</sl-button>
-</sl-dialog>
+{%- endset %}
+{%- set _ = actions.append({'key': 'wiki', 'label': 'Upload to Wiki', 'title': 'Upload to Wiki', 'note': '',
+    'fields': wiki_fields, 'hidden': {'action': 'upload_wiki'}, 'button': 'Upload'}) %}
 {%- endif %}
 {%- if show_generate %}
-<sl-dialog id="admin-neighborhood" class="edit-dialog" label="Generate neighborhood">
-  <form method="post" action="{{ url_for('web.sector', sector_id=sector_id) }}" class="table-form" id="admin-neighborhood-form">
-    {{ csrf_field() }}
-    <input type="hidden" name="action" value="generate_neighborhood">
-    <p class="hint">Fills in every not-yet-generated sector within 12 pc (about
-    39 ly) of this one (already-generated sectors are skipped), and gives the
-    100 ly around every new sector its bright stars. It runs as a job on the
-    Generate page, so it keeps going if you close this page. The size and time
-    are shown first, to confirm.</p>
-  </form>
-  <sl-button slot="footer" data-dialog-close>Cancel</sl-button>
-  <sl-button slot="footer" variant="primary" type="submit" form="admin-neighborhood-form">Generate more sectors around this one</sl-button>
-</sl-dialog>
-{%- if estimate %}
+{%- set _ = actions.append({'key': 'neighborhood', 'label': 'Generate neighborhood', 'title': 'Generate neighborhood',
+    'note': 'Fills in every not-yet-generated sector within 12 pc (about 39 ly) of this one (already-generated sectors are skipped), and gives the 100 ly around every new sector its bright stars. It runs as a job on the Generate page, so it keeps going if you close this page. The size and time are shown first, to confirm.',
+    'hidden': {'action': 'generate_neighborhood'}, 'button': 'Generate more sectors around this one'}) %}
+{%- endif %}
+{%- if can_edit %}
+{{ add_edit_actions(actions, 'this sector',
+     'Deletes the sector with its systems and phenomena, then generates its place in the galaxy again (a new name and contents). Only for a sector placed in the galaxy.',
+     'Deletes the sector with its systems, phenomena and facilities. Its place in the galaxy is left empty, so it can be generated again.',
+     facilities=False) }}
+{%- endif %}
+{%- if actions %}
+{{ admin_menu([{'id': 'sector', 'target': 'sector:' ~ sector_id, 'actions': actions}], 'this sector', here) }}
+{%- endif %}
+{%- if show_generate and estimate %}
 <sl-dialog id="admin-estimate" class="edit-dialog" label="Generate neighborhood" open>
   <p id="neighborhood-estimate">{{ estimate.summary }}</p>
   {%- if estimate.refused %}
   <p class="error" role="alert">{{ estimate.refusal }}</p>
   <p class="hint">You can still generate them. Generating anyway is recorded in the activity log.</p>
   {%- endif %}
-  <form method="post" action="{{ url_for('web.sector', sector_id=sector_id) }}" class="table-form" id="admin-estimate-form">
+  <form method="post" action="{{ here }}" class="table-form" id="admin-estimate-form">
     {{ csrf_field() }}
     <input type="hidden" name="action" value="generate_neighborhood">
     <input type="hidden" name="estimate_ok" value="1">
@@ -136,17 +115,6 @@
   <sl-button slot="footer" data-dialog-close>Cancel</sl-button>
   <sl-button slot="footer" variant="primary" type="submit" form="admin-estimate-form">Generate these {{ num(estimate.sectors) }} sectors{% if estimate.refused %} anyway{% endif %}</sl-button>
 </sl-dialog>
-{%- endif %}
-{%- endif %}
-{%- endif %}
-{%- if can_edit %}
-<section class="panel" id="edit-sector" aria-labelledby="edit-sector-heading">
-  <h2 id="edit-sector-heading">Edit</h2>
-  <div>{{ edit_menu(url_for('web.sector', sector_id=sector_id), 'sector:' ~ sector_id, 'this sector',
-       'Deletes the sector with its systems and phenomena, then generates its place in the galaxy again (a new name and contents). Only for a sector placed in the galaxy.',
-       'Deletes the sector with its systems, phenomena and facilities. Its place in the galaxy is left empty, so it can be generated again.',
-       facilities=False) }}</div>
-</section>
 {%- endif %}
 {{ map_html }}
 <section class="panel" id="sector-contents" aria-labelledby="contents-heading">

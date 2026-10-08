@@ -28,7 +28,7 @@ from tests.test_web_a11y import (  # noqa: E402,F401 -- fixtures
     site_db,
 )
 
-FIRST_MENU = "sl-dropdown.edit-menu >> nth=0"
+FIRST_MENU = "sl-dropdown.admin-menu >> nth=0"
 FIRST_TRIGGER = FIRST_MENU + " >> [slot=trigger]"
 
 
@@ -42,7 +42,7 @@ def system_page(browser, base_url, page_targets, admin_token):
     page.on("pageerror", lambda exc: errors.append(str(exc)))
     page.goto(base_url + path, wait_until="load")
     # Locators, not wait_for_function: the page's CSP forbids evaluating strings.
-    page.locator("sl-dropdown.edit-menu:defined").first.wait_for()
+    page.locator("sl-dropdown.admin-menu:defined").first.wait_for()
     page.locator("sl-dialog.edit-dialog:defined").first.wait_for(state="attached")
     try:
         yield page, base_url + path
@@ -68,9 +68,9 @@ def test_edit_menu_opens_a_dialog_with_the_mouse(system_page):
 
 def test_edit_menu_works_from_the_keyboard_and_escape_closes_the_dialog(system_page):
     page, url = system_page
-    page.evaluate("document.querySelector('sl-dropdown.edit-menu > sl-button').focus()")
+    page.evaluate("document.querySelector('sl-dropdown.admin-menu > sl-button').focus()")
     page.keyboard.press("Enter")
-    page.locator(FIRST_MENU + " >> sl-menu").wait_for()
+    page.locator(FIRST_MENU + " >> sl-menu >> nth=0").wait_for()
     page.keyboard.press("ArrowDown")
     assert page.evaluate("document.activeElement.tagName") == "SL-MENU-ITEM"
     page.keyboard.press("Enter")
@@ -112,18 +112,18 @@ def test_the_sector_pages_admin_actions_are_one_menu_that_opens_dialogs(sector_p
     """UX.26: no admin form is inline on the page; the Admin menu's items
     open them in a dialog, and Cancel and Escape close it without posting."""
     page, url = sector_page
-    inline = page.locator("section#admin-sector form:visible")
+    inline = page.locator("xpath=//main//form[not(ancestor::sl-dialog)]")
     assert inline.count() == 0
     page.locator("sl-dropdown.admin-menu >> [slot=trigger]").click()
     page.get_by_role("menuitem", name="Generate neighborhood").click()
-    dialog = page.locator("sl-dialog#admin-neighborhood[open]")
+    dialog = page.locator("sl-dialog#admin-sector-neighborhood[open]")
     dialog.wait_for()
     assert dialog.locator("form input[name=action]").input_value() == "generate_neighborhood"
     dialog.locator("sl-button[data-dialog-close]").click()
-    page.locator("sl-dialog#admin-neighborhood[open]").wait_for(state="detached")
+    page.locator("sl-dialog#admin-sector-neighborhood[open]").wait_for(state="detached")
     page.locator("sl-dropdown.admin-menu >> [slot=trigger]").click()
     page.get_by_role("menuitem", name="Generate neighborhood").click()
-    page.locator("sl-dialog#admin-neighborhood[open]").wait_for()
+    page.locator("sl-dialog#admin-sector-neighborhood[open]").wait_for()
     page.keyboard.press("Escape")
-    page.locator("sl-dialog#admin-neighborhood[open]").wait_for(state="detached")
+    page.locator("sl-dialog#admin-sector-neighborhood[open]").wait_for(state="detached")
     assert page.url == url
