@@ -584,7 +584,7 @@ def test_real_galaxy_page_and_tiles(db_client, mysql_config, tmp_path):
     placed = [entry for tile in scene["initial"]["tiles"].values() for entry in tile["placed"]]
     assert any(entry["id"] == sector_id for entry in placed)
 
-    quadrant = re.search(r'href="/galaxy\?quadrant=(I|II|III|IV)#galaxy-table">Quadrant \1</a></td>\s*<td>1<',
+    quadrant = re.search(r'href="/galaxy\?quadrant=(I|II|III|IV)#galaxy-table">Quadrant \1</a></td>\s*<td data-label="Sectors">1<',
                          html).group(1)
     listing = db_client.get(f"/galaxy?quadrant={quadrant}").get_data(as_text=True)
     assert "Real &lt;Placed&gt;" in listing

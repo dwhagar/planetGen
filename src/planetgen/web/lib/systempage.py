@@ -56,16 +56,16 @@ def stars_html(stars, class_url=None):
     show_role = any(star["role"] != "single" for star in stars)
     rows = "".join(
         "<tr>"
-        + (f'<td>{esc(star["role"])}</td>' if show_role else "")
-        + f'<td>{esc(star["name"])}</td>'
-        f'<td>{_link(_star_class_urls(star["star_type"], class_url)[0], esc(star["star_type"]))}</td>'
+        + (f'<td data-label="Role">{esc(star["role"])}</td>' if show_role else "")
+        + f'<td class="stack-title">{esc(star["name"])}</td>'
+        f'<td data-label="Type">{_link(_star_class_urls(star["star_type"], class_url)[0], esc(star["star_type"]))}</td>'
         # Not esc()'d: these are built entirely from floats and fixed unit
         # literals (never database TEXT), and legitimately contain a raw
         # `<sup>exponent</sup>` -- see `tabledisplay.py`.
-        f'<td>{format_star_mass(star["mass_kg"])}</td>'
-        f'<td>{format_star_radius(star["radius_km"])}</td>'
-        f'<td>{format_number(star["temperature_k"])} K</td>'
-        f'<td>{format_star_luminosity(star["luminosity_w"])}</td>'
+        f'<td data-label="Mass">{format_star_mass(star["mass_kg"])}</td>'
+        f'<td data-label="Radius">{format_star_radius(star["radius_km"])}</td>'
+        f'<td data-label="Temp">{format_number(star["temperature_k"])} K</td>'
+        f'<td data-label="Luminosity">{format_star_luminosity(star["luminosity_w"])}</td>'
         "</tr>"
         for star in stars
     )
@@ -75,7 +75,7 @@ def stars_html(stars, class_url=None):
     return f"""
 <section class="panel">
 <h2>Stars</h2>
-<div class="table-scroll table-wrap" tabindex="0"><table>
+<div class="table-scroll" tabindex="0"><table class="table-stack">
   <thead><tr>{role_head}<th>Name</th><th>Type</th><th>Mass</th><th>Radius</th><th>Temp</th><th>Luminosity</th></tr></thead>
   <tbody>{rows}</tbody>
 </table></div>
