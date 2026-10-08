@@ -171,7 +171,7 @@ From Boss's list of 2026-10-03: ADM.23, ADM.24, ADM.25, ADM.27, ADM.31, GEN.67, 
 
 From Boss's list of 2026-10-07: ADM.26, ADM.28, ADM.29, ADM.30, ADM.32, ADM.33, ADM.34, ADM.35, ADM.36, API.18, API.19, DB.13, GEN.68, GEN.74, GEN.80, GEN.81, GEN.82, GEN.101, GEN.102, GEN.103, GEN.104, GEN.108, GEN.113, GEN.114, MAP.118, MAP.122, MAP.123, MAP.124, MAP.125, MAP.126, NAV.48, NAV.49, PERF.28, PERF.29, PERF.30, SEC.31, UX.43, UX.44, UX.46, UX.47, UX.48.
 
-From PR #434's CI (2026-10-07): TEST.88. From PR #442's run (2026-10-07): TEST.89. From Boss's message of 2026-10-07 16:26Z (three Galaxy Map problems): MAP.115 folded into MAP.116, and MAP.127 (filed then) folded into MAP.121. From Boss's install error of 2026-10-07 16:57Z: OPS.26. From his decision answers of 2026-10-07 17:11Z: OPS.27. From PR #476 (2026-10-07): GEN.116, TEST.90. From Boss's bright-star sweep of 2026-10-07 18:43Z: GEN.117. From the bulge check and Boss's choice of 2026-10-07 19:04Z: GEN.118, GEN.119. From PR #481's browser-a11y run (2026-10-07): TEST.91. From PR #496's local run (2026-10-07): TEST.92. From Foundations' full run after PRs #501 and #504 (2026-10-07): TEST.93.
+From PR #434's CI (2026-10-07): TEST.88. From PR #442's run (2026-10-07): TEST.89. From Boss's message of 2026-10-07 16:26Z (three Galaxy Map problems): MAP.115 folded into MAP.116, and MAP.127 (filed then) folded into MAP.121. From Boss's install error of 2026-10-07 16:57Z: OPS.26. From his decision answers of 2026-10-07 17:11Z: OPS.27. From PR #476 (2026-10-07): GEN.116, TEST.90. From Boss's bright-star sweep of 2026-10-07 18:43Z: GEN.117. From the bulge check and Boss's choice of 2026-10-07 19:04Z: GEN.118, GEN.119. From PR #481's browser-a11y run (2026-10-07): TEST.91. From PR #496's local run (2026-10-07): TEST.92. From Foundations' full run after PRs #501 and #504 (2026-10-07): TEST.93. From Boss's prevalence decision of 2026-10-08 00:12Z: ADM.37.
 
 From Boss's message of 2026-10-07 12:25Z (the galaxy's own gravity, a gap in the orbital documents): GEN.115.
 
@@ -262,6 +262,9 @@ Boss (2026-10-07 17:11Z, answering the open decisions). His words are quoted.
 - **Scaling the galaxy's gravity (GEN.115)**: approved.
 - **Orbital epoch and step (GEN.105)**: "No 1 year per orbital update or turn, rather, once set up and configured we follow orbital paths in real time.  The update script should have an option to update for more time in 1 go if specified.  Default is 1 day = 1 day." In GEN.105 and GEN.106.
 - **GEN.65**: "I do not have the error message, keep an eye out for it, but put it on the back burner for something to watch out for, design a test that will test for it in a variety of situations, I think this error occurred when I was attempting to generate  a neighborhood when the center was close to the edge of the galaxy." In GEN.65.
+
+- **Wiki uploads on the queue (PERF.24)**: Boss (2026-10-08 00:14Z) reversed the audit decision: wiki uploads go on the Redis queue too, because he may want batch uploads later.
+- **Prevalence fields show real shares (ADM.37)**: Boss (2026-10-08 00:12Z): the Generate page shows each feature's real default share (habitable worlds 24.2%, asteroid belts 59%) and the user types the share they want, not "0% change"; the page must always show meaningful information. Shares are the same in every sector today; a density-dependent share would be a new generation feature, filed only if Boss asks.
 
 No decisions are open.
 
