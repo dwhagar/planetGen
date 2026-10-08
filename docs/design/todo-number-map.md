@@ -684,8 +684,8 @@ Parents marked "new parent" had no old number of their own.
 | MAP.100 | Slab button labels on one line: "#N" and how much is charted (bug) | none | done, PR #422 |
 | MAP.101 | Stars on the Galaxy Map take the click, so a dense sector can't be picked (bug) | none | done, PR #431 |
 | MAP.102 | Galaxy Map streaming with a BVH and 3D tiles, and camera-relative rendering | none | open |
-| MAP.103 | Nebulae don't show on the Galaxy Map or any other map (bug) | none | open |
-| MAP.104 | Nebula shading is missing on unfilled sectors (bug) | none | open |
+| MAP.103 | Nebulae don't show on the Galaxy Map or any other map (bug) | none | done, PR #592 |
+| MAP.104 | Nebula shading is missing on unfilled sectors (bug) | none | done, PR #592 |
 | MAP.105 | The nebula view should show its whole shape with the dimmed galaxy around it (bug) | none | done, PR #590 |
 | MAP.106 | The breadcrumb trail falls out of sync with the map (bug) | none | done, PR #586 |
 | MAP.107 | Selecting an empty slab near the core says "There is no layer x here" (bug) | none | done, PR #537 |
