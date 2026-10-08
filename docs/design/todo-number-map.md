@@ -923,8 +923,8 @@ Parents marked "new parent" had no old number of their own.
 | UX.49 | Form fields as Shoelace components (sl-input, sl-select, sl-checkbox) across the site | none | open |
 | UX.50 | One short hint per map, the rest behind a Help entry | none | done, PR #640 |
 | UX.51 | Cards that repeat the page title | none | open |
-| UX.52 | Sector name repeated on every Contents row | none | open |
-| UX.53 | The same star shown three times on a system page | none | open |
+| UX.52 | Sector name repeated on every Contents row | none | done, PR #654 |
+| UX.53 | The same star shown three times on a system page | none | done, PR #654 |
 | UX.54 | Search shows empty result groups and echoes the query | none | open |
 | UX.55 | Home and Systems repeat other pages’ tables | none | open |
 | UX.56 | Admin hub repeats the gear menu | none | done, PR #632 |
