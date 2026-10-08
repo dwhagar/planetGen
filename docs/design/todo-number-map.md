@@ -927,7 +927,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.53 | The same star shown three times on a system page | none | open |
 | UX.54 | Search shows empty result groups and echoes the query | none | open |
 | UX.55 | Home and Systems repeat other pages’ tables | none | open |
-| UX.56 | Admin hub repeats the gear menu | none | open |
+| UX.56 | Admin hub repeats the gear menu | none | done, PR #632 |
 | UX.57 | Two controls both called Reset | none | open |
 | UX.58 | Move Current into the Steps menu | none | open |
 | UX.59 | One breadcrumb trail on map pages | none | open |
@@ -943,8 +943,8 @@ Parents marked "new parent" had no old number of their own.
 | UX.69 | Tables are cut off on phones with no cue | none | open |
 | UX.70 | The result page repeats the route and puts the map last | none | open |
 | UX.71 | NAV landing page | none | open |
-| UX.72 | Gear menu mixes unrelated things; the admin hub is not the hub | none | open |
-| UX.73 | Sector wiki link form on the Admin hub | none | open |
+| UX.72 | Gear menu mixes unrelated things; the admin hub is not the hub | none | done, PR #632 |
+| UX.73 | Sector wiki link form on the Admin hub | none | done, PR #632 |
 | UX.74 | Generate page shows an empty Current job card | none | done, PR #617 |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
