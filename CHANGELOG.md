@@ -1,5 +1,10 @@
 # Changelog
 
+## [7.351.675] - 2026-10-08
+
+### Changed
+- The Galaxy Map opens as close as its zoom range allows with every charted sector in view, centered on them; Reset and zooming out still reach the whole galaxy (MAP.124).
+
 ## [7.350.675] - 2026-10-08
 
 ### Added
