@@ -1,0 +1,2 @@
+### Added
+- `planetgen.physics.position.SpatialPosition3D`: one body's position in the galactic, sector and system frames, each in Cartesian, cylindrical and spherical form, kept in step when any coordinate in any of them changes, with velocity, the next-due time from the design thresholds, and mass with its gravitational parameter (GEN.74 part 1; Boss's prototype `spacial-position.py` is removed).
