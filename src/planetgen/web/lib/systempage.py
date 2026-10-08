@@ -72,7 +72,7 @@ def stars_html(stars, class_url=None):
     return f"""
 <section class="panel">
 <h2>Stars</h2>
-<div class="table-scroll" tabindex="0"><table>
+<div class="table-scroll table-wrap" tabindex="0"><table>
   <thead><tr><th>Role</th><th>Name</th><th>Type</th><th>Mass</th><th>Radius</th><th>Temp</th><th>Luminosity</th></tr></thead>
   <tbody>{rows}</tbody>
 </table></div>

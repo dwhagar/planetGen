@@ -24,7 +24,7 @@
   {{ datatable(sector_table) }}
   {%- else %}
   <h2 id="galaxy-table-heading">Quadrants</h2>
-  <div class="table-scroll"><table>
+  <div class="table-scroll table-wrap"><table>
     <thead><tr><th scope="col">Quadrant</th><th scope="col">Sectors</th><th scope="col">Systems</th><th scope="col">Extent</th></tr></thead>
     <tbody>
       {%- for row in summary_rows %}
