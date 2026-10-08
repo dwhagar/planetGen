@@ -416,7 +416,7 @@ test("a breadcrumb button goes back to that stage", async () => {
   await drillOnce(m);
   await drillOnce(m);
   await drillOnce(m);
-  const crumbButtons = m.els.crumbs.querySelectorAll("button.galaxy-crumb");
+  const crumbButtons = m.els.crumbs.querySelectorAll("button.crumb");
   assert.equal(crumbButtons.length, 3);
   crumbButtons[0].click();
   await arrive(m);

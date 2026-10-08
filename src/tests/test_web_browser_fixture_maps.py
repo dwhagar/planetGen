@@ -779,7 +779,7 @@ CRUMB_LINE = """() => {
     const here = ol.querySelector("[aria-current]");
     return {cut: !!here && here.scrollWidth > here.clientWidth + 1,
             tops: Math.max(...mids) - Math.min(...mids) < 6 ? 1 : 2, overflow: ol.scrollWidth - ol.clientWidth, count: items.length,
-            more: !!ol.querySelector(".galaxy-crumb-menu"), visible: ol.offsetParent !== null,
+            more: !!ol.querySelector(".crumb-menu"), visible: ol.offsetParent !== null,
             starTop: Math.round(document.querySelector("#galaxymap3d-crumbs .galaxy-bookmark").getBoundingClientRect().top),
             olTop: Math.round(ol.getBoundingClientRect().top), olHeight: ol.getBoundingClientRect().height};
 }"""
@@ -825,7 +825,7 @@ def test_galaxy_breadcrumb_stays_on_one_line_folding_its_middle(page, map_site):
     # At 600 px the middle is folded; "…" lists exactly those steps.
     line = page.evaluate(CRUMB_LINE)
     assert line["more"], "a deep breadcrumb at 600 px folds its middle"
-    more = page.locator("#galaxymap3d-crumbs .galaxy-crumb-menu")
+    more = page.locator("#galaxymap3d-crumbs .crumb-menu")
     more.locator("summary").click()
     folded = more.locator("li").all_inner_texts()
     line_items = page.locator("#galaxymap3d-crumbs > ol > li").all_inner_texts()
