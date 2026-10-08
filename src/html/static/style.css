@@ -2279,6 +2279,20 @@ code {
   border-radius: 8px;
 }
 
+/* TEST.103: on a narrow screen the Menu's button can sit near the right
+   edge, where a panel hung from its left corner ran off the screen. There
+   the panel hangs from the controls row instead, which never reaches
+   past the map's own edges. */
+@media (max-width: 699px) {
+  .galaxy-menu {
+    position: static;
+  }
+
+  #galaxymap3d-controls {
+    position: relative;
+  }
+}
+
 .galaxy-menu-panel .starmap-btn[aria-pressed="true"] {
   background: var(--accent);
   color: var(--accent-contrast);
