@@ -935,6 +935,11 @@
 --   deviation from the feature's normal chance, 0 for none.
 --   `_migrate_v53_to_v54` adds them at 0.
 --
+-- v55: `sector_stats` keeps raw statistics instead of a baked Galaxy Map
+--   color (DB.14): `fill_share` and `color_r`/`color_g`/`color_b` go,
+--   `mean_age_gy` and `total_luminosity_sol` come. `_migrate_v54_to_v55`
+--   works the two new ones out for each filled sector from its stars.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -2530,11 +2535,11 @@ CREATE TABLE IF NOT EXISTS bright_stars (
 -- density at the sector's center and the systems expected there
 -- (PERF.11); `actual_systems`, `actual_stars` and the mean temperature
 -- (K) and luminosity (L_sun) of its stars are what a fill gave it, NULL
--- before. From them a fill also works out the sector's color on the
--- Galaxy Map (MAP.86, `sectorLook`): `fill_share` (0..1, its systems
--- against the most a sector can hold) and `color_r`/`color_g`/`color_b`
--- (sRGB, 0..1; NULL for a sector with no stars), so the map averages
--- stored colors into its blocks.
+-- before. A fill also keeps the facts the Galaxy Map colors from (v55,
+-- DB.14): `mean_age_gy`, the mean age of its stars, and
+-- `total_luminosity_sol`, their summed luminosity (both NULL for a
+-- sector with no stars). The map works the color out from these; none
+-- is baked into the row.
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS sector_stats (
     ring_index             INT NOT NULL,
@@ -2548,10 +2553,8 @@ CREATE TABLE IF NOT EXISTS sector_stats (
     actual_stars           INT,
     mean_temperature_k     DOUBLE,
     mean_luminosity_sol    DOUBLE,
-    fill_share             DOUBLE,
-    color_r                DOUBLE,
-    color_g                DOUBLE,
-    color_b                DOUBLE,
+    mean_age_gy            DOUBLE,
+    total_luminosity_sol   DOUBLE,
     filled_at              TIMESTAMP(3) NULL,
     updated_at             TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 

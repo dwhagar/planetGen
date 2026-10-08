@@ -617,46 +617,93 @@ def test_block_scene_without_a_shape_draws_only_filled_blocks():
     assert cells[0][3] is None  # no density without a shape (NaN, as JSON null)
 
 
-# --- MAP.86: blocks colored by their sectors' stats ---------------------------
+# --- MAP.128/129: blocks colored by their sectors' stats ----------------------
 
-def test_a_filled_sector_is_only_a_little_more_solid_than_unfilled_space():
-    out = _run("""
-const unfilled = {density: 1, filled: 0, total: 1};
-const empty = {density: 1, filled: 1, total: 1, look: {share: 0, color: null, colored: 0}};
-const dense = {density: 1, filled: 1, total: 1, look: {share: 1, color: [1, 0.5, 0], colored: 1}};
-const unknown = {density: 1, filled: 1, total: 1, look: null};
-const block = {density: 1, filled: 10, total: 100, look: {share: 1, color: [1, 0.5, 0], colored: 10}};
-console.log(JSON.stringify({unfilled: B.lookOpacity(unfilled), old: B.blockOpacity(unfilled),
-  empty: B.lookOpacity(empty), dense: B.lookOpacity(dense), unknown: B.lookOpacity(unknown),
-  block: B.lookOpacity(block), steps: [B.FILLED_EMPTY_STEP, B.FILLED_DENSE_STEP]}));
+STATS_SETUP = """
+const stats = (systems, stars, age, lum) => ({systems, expected_systems: systems, stars, mean_age_gy: age, luminosity_sol: lum});
+const cell = (filled, total, s) => ({density: 1, filled, total, stats: s});
+const young = cell(1, 1, stats(40, 60, 0.5, 5000));
+const old = cell(1, 1, stats(40, 60, 11, 5000));
+const sparse = cell(1, 1, stats(2, 3, 4.5, 3));
+const dense = cell(1, 1, stats(900, 1200, 4.5, 3000));
+const empty = cell(1, 1, stats(0, 0, null, 0));
+const unknown = cell(1, 1, null);
+const unfilled = {density: 1, filled: 0, total: 1, stats: null};
+const all = [young, old, sparse, dense, empty, unknown, unfilled];
+const ranges = B.statsRanges(all);
+"""
+
+
+def test_stellar_age_sets_the_hue_blue_young_slate_average_amber_old():
+    out = _run(STATS_SETUP + """
+console.log(JSON.stringify({young: B.ageColor(0), disk: B.ageColor(B.DISK_AGE_GY), old: B.ageColor(B.OLD_AGE_GY),
+  older: B.ageColor(13), mid: B.ageColor(B.DISK_AGE_GY / 2), none: B.ageColor(null)}));
 """)
-    empty_step, dense_step = out["steps"]
-    assert out["unfilled"] == pytest.approx(out["old"])
-    assert out["empty"] == pytest.approx(out["unfilled"] + empty_step)
-    assert out["dense"] == pytest.approx(out["unfilled"] + empty_step + dense_step)
+    assert out["young"][2] > out["young"][0]  # blue
+    assert out["old"][0] > out["old"][2]  # amber
+    assert out["disk"][0] == pytest.approx(out["disk"][1], abs=0.08)  # slate: nearly grey
+    assert out["older"] == out["old"]
+    assert out["none"] == out["young"]
+    assert out["mid"] == pytest.approx([(a + b) / 2 for a, b in zip(out["young"], out["disk"])])
+
+
+def test_density_sets_the_opacity_and_a_filled_cell_is_never_fully_opaque():
+    out = _run(STATS_SETUP + """
+console.log(JSON.stringify({sparse: B.statsOpacity(sparse, ranges), dense: B.statsOpacity(dense, ranges),
+  young: B.statsOpacity(young, ranges), empty: B.statsOpacity(empty, ranges), unknown: B.statsOpacity(unknown, ranges),
+  unfilled: B.statsOpacity(unfilled, ranges), base: B.blockOpacity(unfilled), range: [B.FILLED_OPACITY_SPARSE,
+  B.FILLED_OPACITY_DENSE], step: B.FILLED_EMPTY_STEP}));
+""")
+    low, high = out["range"]
+    assert out["unfilled"] == pytest.approx(out["base"])
+    assert out["sparse"] == pytest.approx(low) and out["dense"] == pytest.approx(high)
+    assert out["sparse"] < out["young"] < out["dense"] < 1
+    assert out["empty"] == pytest.approx(out["base"] + out["step"])
     assert out["unknown"] == pytest.approx(out["empty"])
-    assert out["dense"] < 0.6
-    # A tenth of a block filled, at the densest: a tenth of the step.
-    assert out["block"] == pytest.approx(out["unfilled"] + 0.1 * (empty_step + dense_step))
 
 
-def test_a_block_averages_its_sectors_colors():
-    out = _run("""
-const unfilled = [0.1, 0.2, 0.4];
-const lin = v => v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4);
-console.log(JSON.stringify({
-  none: B.lookColor({filled: 0, total: 9}, unfilled),
-  own: B.lookColor({filled: 1, total: 1, look: {share: 0.5, color: [1, 0.5, 0], colored: 1}}, unfilled),
-  half: B.lookColor({filled: 1, total: 2, look: {share: 0.5, color: [1, 0.5, 0], colored: 1}}, unfilled),
-  empty: B.lookColor({filled: 1, total: 1, look: {share: 0, color: null, colored: 0}}, unfilled),
-  linear: [1, 0.5, 0].map(lin),
-}));
+def test_a_partly_filled_block_is_between_unfilled_space_and_its_stars_opacity():
+    out = _run(STATS_SETUP + """
+const one = cell(1, 531441, stats(900, 1200, 4.5, 3000));
+const half = cell(5, 10, stats(4500, 6000, 4.5, 3000));
+const r = B.statsRanges(all.concat([one, half]));
+console.log(JSON.stringify({base: B.blockOpacity(unfilled), one: B.statsOpacity(one, r), half: B.statsOpacity(half, r),
+  dense: B.statsOpacity(dense, r), min: B.FILLED_MIN_STEP}));
+""")
+    assert out["base"] < out["one"] < out["half"] <= out["dense"] < 1
+    assert out["one"] - out["base"] >= out["min"] * (out["dense"] - out["base"]) - 1e-9
+
+
+def test_luminosity_sets_the_brightness_of_the_age_hue():
+    out = _run(STATS_SETUP + """
+const dim = cell(1, 1, stats(40, 60, 11, 1));
+const lit = cell(1, 1, stats(40, 60, 11, 100000));
+const r = B.statsRanges([dim, lit]);
+const unfilledColor = [0.1, 0.2, 0.4];
+console.log(JSON.stringify({dim: B.statsColor(dim, unfilledColor, r), lit: B.statsColor(lit, unfilledColor, r),
+  none: B.statsColor(unfilled, unfilledColor, r), empty: B.statsColor(empty, unfilledColor, ranges),
+  floor: B.BRIGHTNESS_FLOOR}));
 """)
     assert out["none"] == [0.1, 0.2, 0.4]
-    assert out["own"] == pytest.approx(out["linear"])
-    assert out["half"] == pytest.approx([(a + b) / 2 for a, b in zip(out["linear"], [0.1, 0.2, 0.4])])
-    # No stars: the unfilled color a shade more saturated (further from
-    # its own grey, same mean).
+    assert all(l > d for l, d in zip(out["lit"], out["dim"]))
+    assert out["dim"][0] / out["lit"][0] == pytest.approx(out["floor"])
+    # Same hue, only the brightness differs.
+    assert out["dim"][0] / out["dim"][2] == pytest.approx(out["lit"][0] / out["lit"][2])
+    # No stars: the unfilled color a shade more saturated (same mean).
     grey = sum([0.1, 0.2, 0.4]) / 3
     assert sum(out["empty"]) / 3 == pytest.approx(grey)
     assert out["empty"][2] - grey > 0.4 - grey and out["empty"][0] < 0.1
+
+
+def test_a_mixed_block_is_colored_by_its_star_weighted_mean_age():
+    # The stage API weights each sector's mean age by its stars (MAP.129);
+    # the page colors the block from that one mean, so it lands between a
+    # young and an old sector's hue, nearer the one with more stars.
+    out = _run(STATS_SETUP + """
+const mixed = cell(2, 2, stats(100, 100, (80 * 0.5 + 20 * 11) / 100, 800));
+const r = B.statsRanges([mixed]);
+console.log(JSON.stringify({mixed: B.statsColor(mixed, [0, 0, 0], r), young: B.statsColor(young, [0, 0, 0], B.statsRanges([young])),
+  old: B.statsColor(old, [0, 0, 0], B.statsRanges([old]))}));
+""")
+    assert out["young"][0] < out["mixed"][0] < out["old"][0]
+    assert out["mixed"][0] - out["young"][0] < out["old"][0] - out["mixed"][0]

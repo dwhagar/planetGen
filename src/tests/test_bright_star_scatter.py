@@ -642,13 +642,13 @@ def test_a_filled_sector_records_its_stats_and_a_delete_puts_its_level_back(mysq
         assert stats["mean_luminosity_sol"] == pytest.approx(
             sum(row["luminosity_w"] for row in stars) / len(stars) / constants.SOLAR_LUMINOSITY)
         assert stats["filled_at"] is not None
-        # MAP.86: its map color, from those means and how full it is.
-        from planetgen.galaxy import sector_look
-        skeleton = store.get_galaxy_shape(conn)
-        assert stats["fill_share"] == pytest.approx(
-            sector_look.fill_share(systems, sector_look.max_sector_systems(skeleton)))
-        assert (stats["color_r"], stats["color_g"], stats["color_b"]) == pytest.approx(sector_look.sector_color(
-            stats["mean_temperature_k"], stats["mean_luminosity_sol"], stats["fill_share"]))
+        # DB.14: the raw facts the map colors from, not a baked color.
+        ages = conn.execute("SELECT st.age_gy FROM stars st JOIN star_systems ss ON ss.id = st.star_system_id"
+                            " WHERE ss.sector_id = ?", (sector_id,)).fetchall()
+        assert stats["mean_age_gy"] == pytest.approx(sum(row["age_gy"] for row in ages) / len(ages))
+        assert stats["total_luminosity_sol"] == pytest.approx(
+            sum(row["luminosity_w"] for row in stars) / constants.SOLAR_LUMINOSITY)
+        assert not {"fill_share", "color_r", "color_g", "color_b"} & set(stats)
         average, samples = store.galaxy_density_ratio(conn)
         assert samples == 1 and average == pytest.approx(systems / stats["expected_systems"])
 
@@ -656,7 +656,7 @@ def test_a_filled_sector_records_its_stats_and_a_delete_puts_its_level_back(mysq
         conn.commit()
         stats = store.get_sector_stats(conn, *address)
         assert stats["bright_level_sol"] == FLOOR and stats["actual_systems"] is None
-        assert stats["fill_share"] is None and stats["color_r"] is None
+        assert stats["mean_age_gy"] is None and stats["total_luminosity_sol"] is None
         assert store.galaxy_density_ratio(conn) == (pytest.approx(average), 1)
     finally:
         conn.close()

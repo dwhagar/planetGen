@@ -173,16 +173,16 @@ export function createStageView(host) {
       entry = { ready: false, value: null };
       entry.promise = host.fetchStage(at ? S.stageQuery({ at: at, picks: [] }) : "").then(function (payload) {
         const generated = new Map();
-        const looks = new Map();
+        const stats = new Map();
         (payload.children || []).forEach(function (child) {
           generated.set(child.ring + "/" + child.wedge + "/" + child.slab, child.generated);
-          looks.set(child.ring + "/" + child.wedge + "/" + child.slab, child.look || null);
+          stats.set(child.ring + "/" + child.wedge + "/" + child.slab, child.stats || null);
         });
         const sectors = new Map();
         (payload.sectors || []).forEach(function (sector) {
           sectors.set(sector.ring + "/" + sector.slot + "/" + sector.layer, sector);
         });
-        entry.value = { generated: generated, looks: looks, sectors: sectors, sectorGenerated: new Map() };
+        entry.value = { generated: generated, stats: stats, sectors: sectors, sectorGenerated: new Map() };
         payload.sectors && payload.sectors.forEach(function (sector) {
           entry.value.sectorGenerated.set(sector.ring + "/" + sector.slot + "/" + sector.layer, 1);
         });
@@ -207,7 +207,7 @@ export function createStageView(host) {
           return entry.value;
         });
       }).then(null, function () {
-        entry.value = { generated: new Map(), looks: new Map(), sectors: new Map(), sectorGenerated: new Map(), failed: true };
+        entry.value = { generated: new Map(), stats: new Map(), sectors: new Map(), sectorGenerated: new Map(), failed: true };
         entry.ready = true;
         dataCache.delete(key);
         return entry.value;
@@ -235,16 +235,17 @@ export function createStageView(host) {
     return data.generated.get(key) || 0;
   }
 
-  // MAP.86: what a block's generated sectors hold, for its color and
-  // opacity ({share, color, colored} from the stage API), or null.
-  function lookOf(block, data) {
+  // DB.14, MAP.128: what a block's generated sectors hold, for its color
+  // and opacity ({systems, expected_systems, stars, mean_age_gy,
+  // luminosity_sol} from the stage API), or null.
+  function statsOf(block, data) {
     if (!data) return null;
     const key = block.ring + "/" + block.wedge + "/" + block.slab;
     if (block.m === 1) {
       const sector = data.sectors.get(key);
-      return sector ? sector.look || null : null;
+      return sector ? sector.stats || null : null;
     }
-    return data.looks.get(key) || null;
+    return data.stats.get(key) || null;
   }
 
   function sumOf(blocks, data) {
@@ -338,7 +339,7 @@ export function createStageView(host) {
         return {
           ring: block.ring, seg: block.wedge, slab: block.slab,
           r0: b.r0, r1: b.r1, t0: b.t0, t1: b.t1, z0: b.z0, z1: b.z1,
-          filled: generatedOf(block, data), total: block.total, look: lookOf(block, data), block: block,
+          filled: generatedOf(block, data), total: block.total, stats: statsOf(block, data), block: block,
           option: index,
         };
       });

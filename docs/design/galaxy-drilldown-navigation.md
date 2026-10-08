@@ -855,12 +855,18 @@ it). A segment's URL token is `s<ring>.<wedge>`.
 
 ### 15.4 Colour instead of lines
 
-With the lines gone, colour shows the structure: each sector's colour,
-saturation and opacity come from its stars (density, average colour by
-temperature, average luminosity), filled sectors stay translucent, and a
-block is the average of its sectors (MAP.86, phase 1, with its stored
-per-sector colour served with the tiles). Until MAP.86 lands, the map
-keeps today's block shading (built in PR #369 without lines). At sector zoom the map shows almost
+With the lines gone, colour shows the structure (Boss, 2026-10-08):
+a filled sector is a translucent fill. Its **opacity** follows the star
+density (denser is more solid, never fully opaque), its **hue** the mean
+stellar age (blue young, slate at the 4.5 Gy disk average, amber old) and
+its **brightness** the summed luminosity of its stars on a log scale. A
+block takes the same three from its sectors: ages averaged weighted by
+star count, luminosities summed, densities as systems per generated
+sector. The stage API serves those raw sums (`stats`, DB.14) and the page
+works the colour out (MAP.128, MAP.129), ranking each block against the
+others in view. Nothing is baked into the database, and the earlier rule
+(the average colour of a sector's stars, which came out red nearly
+everywhere) is retired (MAP.130). At sector zoom the map shows almost
 every star of the sector (MAP.80, phase 1).
 
 ### 15.5 Order

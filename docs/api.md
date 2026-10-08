@@ -109,8 +109,8 @@ connectivity to that specific schema rather than the default one.
   publishing" below), and `stats` (PERF.11, GEN.44: the sector's
   `sector_stats` row — `bright_level_sol`, `relative_density`,
   `expected_systems`, `actual_systems`, `actual_stars`,
-  `mean_temperature_k`, `mean_luminosity_sol`, `fill_share` and its Galaxy
-  Map color `color_r`/`color_g`/`color_b` (MAP.86) — or `null` for a sector off
+  `mean_temperature_k`, `mean_luminosity_sol`, `mean_age_gy` and
+  `total_luminosity_sol` (DB.14: what the Galaxy Map colors from) — or `null` for a sector off
   the grid) (`queryDb.sector_detail`). Distinct from
   `planetgen.db.store.load_sector(...).to_dict()`'s *generation* object
   graph (config/provenance, no database ids) — this is the flat,
@@ -269,17 +269,18 @@ connectivity to that specific schema rather than the default one.
   Galaxy Map's drill-down (`queryDb.galaxy_stage`, design in
   `design/galaxy-drilldown-navigation.md`): how many generated sectors
   each child block of block `at` holds, as `{"at", "child_m", "children":
-  [{"ring", "wedge", "slab", "generated", "look"}], "sectors"}`. `look`
-  is what the generated sectors hold, from `sector_stats` (MAP.86):
-  `{share, color, colored}`, their mean `fill_share` (0 for one without
-  stats), the mean sRGB `[r, g, b]` of those with stars (`null` if none)
-  and how many had one. Blocks are 243,
+  [{"ring", "wedge", "slab", "generated", "stats"}], "sectors"}`. `stats`
+  is what the generated sectors hold, from `sector_stats` (DB.14):
+  `{systems, expected_systems, stars, mean_age_gy, luminosity_sol}`, the
+  sums of their systems, expected systems, stars and luminosity, and the
+  stars' mean age (each sector's mean weighted by its star count; `null`
+  with no stars). A sector's own `stats` has the same keys. Blocks are 243,
   27 and 3 sectors a side (`planetgen.galaxy.drill`); with no `at`,
   the children are the galaxy's level-243 blocks. Children with nothing
   generated are left out (the page computes totals itself). At a level-3
   block the children are sectors (`wedge` is the slot, `slab` the layer)
   and `sectors` lists each one as `{ring, layer, slot, id, name,
-  system_count, look}`; otherwise `sectors` is `null`. A malformed or impossible
+  system_count, stats}`; otherwise `sectors` is `null`. A malformed or impossible
   key is a 400.
 - `GET /api/galaxy/locate?q=<part of a name>` — the Galaxy Map address
   bar's name lookup (`queryDb.galaxy_locate`): `{"matches": [{"kind"
