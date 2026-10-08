@@ -1054,7 +1054,7 @@ def test_sector_page_shows_it_on_the_galaxy_map(client, fake):
 
     html = client.get("/sector/5").get_data(as_text=True)
     designation = provisional_sector_designation(5, 1, 20)
-    assert f'<a href="/galaxy?sector={designation}">Show on Galaxy Map</a>' in html
+    assert f'href="/galaxy?sector={designation}">Show on Galaxy Map</a>' in html
     fake.sectors[5] = _sector_detail(placed=False)
     assert "Show on Galaxy Map" not in client.get("/sector/5").get_data(as_text=True)
 

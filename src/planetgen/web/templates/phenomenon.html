@@ -3,7 +3,7 @@
     (escaped there); an asteroid field has none. -#}
 {% extends "base.html" %}
 {% from "partials/admin_menu.html" import admin_menu, add_edit_actions with context %}
-{% from "partials/bookmark.html" import bookmark_button %}
+{% from "partials/action_bar.html" import action_bar %}
 {% from "partials/pick_banner.html" import pick_banner %}
 {% block head %}
 <script type="module" src="{{ static_url('bookmarks.js') }}"></script>
@@ -25,15 +25,7 @@
     {%- if octant %}<span class="badge">Octant {{ octant }}</span>{% endif -%}
     {%- if inside %}<span class="badge">Inside: <a href="{{ inside.url }}">{{ inside.name }}</a></span>{% endif -%}
   </p>
-  <p class="page-actions">
-    {%- if pick %}
-    <a class="btn btn-small starmap-pick" href="{{ nav_links.pick }}">{{ nav_links.pickLabel }}</a>
-    {%- else %}
-    <a class="btn btn-small" href="{{ nav_links.from }}">Navigate from here</a>
-    <a class="btn btn-small" href="{{ nav_links.to }}">Navigate to here</a>
-    {%- endif %}
-    {{ bookmark_button(bookmark) }}
-  </p>
+  {{ action_bar(bookmark, nav_links, pick, galaxy_url) }}
   {%- if nearest_html %}
   <p class="location inline-links">Nearest systems: {{ nearest_html }}</p>
   {%- endif %}

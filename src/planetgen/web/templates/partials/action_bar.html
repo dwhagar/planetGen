@@ -1,0 +1,38 @@
+{#- planetgen/web/templates/partials/action_bar.html -- the one action bar of an
+    object page (UX.63): Navigate, Show on Galaxy Map and Bookmark, in one row
+    in the same order on a system, a phenomenon and a sector. UX.27's layout:
+    where the buttons don't fit, the two navigate buttons fold into one
+    Navigate menu, and on a phone Show on Galaxy Map joins that menu (container
+    queries in style.css pick the layout).
+
+    `action_bar(bookmark, nav_links, pick, galaxy_url)`: `nav_links` is
+    web.system_pages.nav_links (None where the page has no Navigate yet, as a
+    sector does until NAV.44/49); `pick` is the NAV pick in progress, if any;
+    `galaxy_url` is where Show on Galaxy Map goes (None leaves it out). -#}
+{% from "partials/bookmark.html" import bookmark_button %}
+{%- macro action_bar(bookmark, nav_links=none, pick=none, galaxy_url=none) -%}
+<div class="page-actions nav-row">
+  {%- if pick %}
+  <a class="btn btn-small starmap-pick" href="{{ nav_links.pick }}">{{ nav_links.pickLabel }}</a>
+  {%- elif nav_links or galaxy_url %}
+  {%- if nav_links %}
+  <a class="btn btn-small nav-wide" href="{{ nav_links.from }}">Navigate from here</a>
+  <a class="btn btn-small nav-wide" href="{{ nav_links.to }}">Navigate to here</a>
+  <sl-dropdown class="nav-menu" placement="bottom-start" distance="4">
+    <sl-button slot="trigger" size="small" caret>Navigate</sl-button>
+    <sl-menu aria-label="Navigate">
+      <sl-menu-item data-href="{{ nav_links.from }}">From here</sl-menu-item>
+      <sl-menu-item data-href="{{ nav_links.to }}">To here</sl-menu-item>
+      {%- if galaxy_url %}
+      <sl-menu-item class="nav-menu-galaxy" data-href="{{ galaxy_url }}">Show on Galaxy Map</sl-menu-item>
+      {%- endif %}
+    </sl-menu>
+  </sl-dropdown>
+  {%- endif %}
+  {%- if galaxy_url %}
+  <a class="btn btn-small{% if nav_links %} nav-galaxy{% endif %}" href="{{ galaxy_url }}">Show on Galaxy Map</a>
+  {%- endif %}
+  {%- endif %}
+  {{ bookmark_button(bookmark) }}
+</div>
+{%- endmacro -%}

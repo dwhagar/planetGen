@@ -719,6 +719,8 @@ def phenomenon(phenomenon_type, phenomenon_id):
         inside=_phenomenon_inside(detail),
         nav_links=phenomenon_nav[0],
         pick=phenomenon_nav[1],
+        galaxy_url=page_url("sector_on_galaxy_map", sector_id=detail["sector_id"])
+        if detail.get("sector_id") is not None else None,
         bookmark=bookmark(phenomenon_type, endpoint(phenomenon_type, detail["id"]), detail["name"],
                           page_url("phenomenon", phenomenon_type=phenomenon_type, phenomenon_id=detail["id"])),
         view_kind=kind,
