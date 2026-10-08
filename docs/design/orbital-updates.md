@@ -380,3 +380,15 @@ The defaults below hold until Boss decides otherwise:
 `tests/test_spatial_position_db.py` saves a placed sector, loads it, and
 checks every entry, star, planet and moon sits at the same galactic place
 with the same mass and mu.
+
+### Positions at any time (MAP.70)
+
+`physics/body_positions.positions_at(scene, years)` and its browser twin
+`static/orbitpositions.js` `positionsAt` give every star, planet, moon and
+comet of a `/api/systems/<id>/scene` its place `years` after the scene's
+epoch: circular orbits advance their phase by 360 degrees a period, comets
+follow Kepler's or Barker's equation, a close pair balances on the
+barycenter by its mass fraction. `tests/test_js_unit.py` checks the two
+copies against each other. `static/orbitclock.js` is the view's time
+control (real time, faster, pause, back to now); the 3D view (MAP.74) wires
+it in.

@@ -87,6 +87,7 @@ def _stars(stars, row):
                 "inclination_deg": row["binary_mutual_orbital_inclination_deg"],
                 "ascending_node_deg": row["binary_mutual_orbital_ascending_node_deg"],
                 "phase_deg": row["binary_mutual_orbital_phase_deg"],
+                "secondary_mass_fraction": row["binary_secondary_mass_fraction"],
             }
         elif row["is_binary"] and row["binary_configuration"] == "close":
             item["position_km"] = primary_xyz
@@ -127,6 +128,7 @@ def _comet(comet, around):
                 "ascending_node_deg": comet["ascending_node_deg"],
                 "period_years": comet["orbital_period_years"], "mean_anomaly_deg": comet["mean_anomaly_deg"],
                 "parabolic_mean_anomaly": comet["parabolic_mean_anomaly"],
+                "primary_mass_solar": comet["primary_mass_solar"],
             },
         },
         "position_km": _xyz(comet),
