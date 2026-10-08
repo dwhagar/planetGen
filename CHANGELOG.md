@@ -1,5 +1,11 @@
 # Changelog
 
+## [7.255.635] - 2026-10-08
+
+### Added
+
+- Planned a follow-up to the Shoelace migration: form fields as Shoelace components (UX.49), and closed UX.40 and ADM.14 in the plan.
+
 ## [7.254.635] - 2026-10-08
 
 ### Added
