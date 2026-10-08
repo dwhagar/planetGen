@@ -15,10 +15,12 @@ URL scheme (all GET, so every step is bookmarkable):
     /nav?from=system:12&to=system:40       the course and route
     /nav?from=nebula:3&to=system:40        a phenomenon endpoint
 
-An endpoint is `<kind>:<id>`: `system:<id>` for a star system, or
-`<phenomenon type>:<id>` (`nebula`, `asteroid_field`, `black_hole`,
-`neutron_star`, `supernova_remnant`, `rogue_planet`,
-`interstellar_comet`, `quasar`) for a phenomenon. A bare number means a system.
+An endpoint is an object reference (`planetgen.galaxy.objectref`):
+`system:<id>`, a body in a system (`star`, `planet`, `moon`, `belt`,
+`comet`, NAV.16), or `<phenomenon type>:<id>` (`nebula`, `asteroid_field`,
+`black_hole`, `neutron_star`, `supernova_remnant`, `rogue_planet`,
+`interstellar_comet`, `quasar`). A bare number means a system. A course
+to or from a body adds legs inside its system (see `queryDb.nav_course`).
 `to` may be given without `from` ("navigate to here"): the origin picker
 then carries it along, so choosing an origin lands on the course.
 
@@ -29,7 +31,7 @@ older parameter style (`from_id`/`to_id`, or `from`/`to` with
 `nav.py` read and `page_url("nav", from_id=...)` produced) still works:
 it redirects to the canonical URL.
 
-A phenomenon is never offered in the pickers (there is no bounded,
+A phenomenon or body is never offered in the pickers (there is no bounded,
 dropdown-friendly list of every phenomenon); it becomes an endpoint only
 through a link from its own page.
 """
@@ -42,6 +44,7 @@ from flask import redirect, request, url_for
 from planetgen.web.lib import apiclient
 from planetgen.web.lib.fmt import format_distance_ly
 from planetgen.web.maps.navmap import render_nav_map_panel
+from planetgen.galaxy import objectref
 from planetgen.galaxy.navigation import format_course
 from planetgen.physics.units import ly_to_pc
 
@@ -59,8 +62,6 @@ FRAME_LABELS = {
     "system": "System Local Frame: 000 mark 000 points at the star",
 }
 """dict: Each `navigation.Course.frame` value's line on the course panel."""
-
-_ENDPOINT_RE = re.compile(r"^(?:([a-z_]+):)?(\d+)$")
 
 _LEGACY_PARAMS = ("from_id", "to_id", "from_kind", "to_kind", "from_type", "to_type")
 
@@ -85,16 +86,19 @@ def parse_endpoint(raw):
     Parses a `from`/`to` value.
 
     Returns:
-        tuple: `(kind, id)` -- kind `"system"` or a phenomenon type.
+        tuple: `(kind, id)` -- any `objectref` kind but a sector.
 
     Raises:
-        apiclient.NotFoundError: For a value that is not `<kind>:<id>`
-            (a bad id, the same 404 every page gives one).
+        apiclient.NotFoundError: For a value that is not an object
+            reference (a bad id, the same 404 every page gives one).
     """
-    match = _ENDPOINT_RE.match(raw.strip())
-    if not match or match.group(1) not in (None, "system", *PHENOMENON_TYPE_LABELS):
-        raise apiclient.NotFoundError(f"No such system or phenomenon: {raw!r}")
-    return (match.group(1) or "system"), int(match.group(2))
+    try:
+        kind, entity_id = objectref.parse(raw)
+    except ValueError:
+        kind = None
+    if kind in (None, "sector"):
+        raise apiclient.NotFoundError(f"No such system, body or phenomenon: {raw!r}")
+    return kind, entity_id
 
 
 def _legacy_redirect(args):
@@ -128,32 +132,49 @@ def _sector_id(raw):
 
 def _resolve(kind, entity_id):
     """
-    One endpoint's display info: `kind`, `type` (phenomenon type or
-    `None`), `id`, `name`, `url` (its page), `key` (the node id
-    `GET /api/nav` uses for it in `route.path`), `sector_id` (a system's;
-    `None` for a phenomenon) and `placed` (a phenomenon's galaxy
-    position; `None` for a system).
+    One endpoint's display info: `ref`, `kind` (`"system"`, a body kind or
+    `"phenomenon"`), `type` (phenomenon type or `None`), `id`, `name`,
+    `url` (its page), `key` (the node id `GET /api/nav` uses for its
+    system or phenomenon in `route.path`), `anchor_kind`/`anchor_id` (that
+    system or phenomenon, which the map draws), `system_id`, `sector_id`
+    (a system's or body's; `None` for a phenomenon) and `placed` (a
+    phenomenon's galaxy position; `None` otherwise).
     """
     if kind == "system":
         system = apiclient.get_system(db_name(), entity_id)
         return {
-            "kind": "system", "type": None, "id": system["id"], "name": system["name"],
+            "ref": endpoint("system", system["id"]), "kind": "system", "type": None,
+            "id": system["id"], "name": system["name"],
             "url": page_url("system", system_id=system["id"]), "key": system["id"],
+            "anchor_kind": "system", "anchor_id": system["id"], "system_id": system["id"],
             "sector_id": system["sector_id"], "placed": None,
+        }
+    if kind in objectref.BODY_KINDS:
+        body = apiclient.get_object(db_name(), endpoint(kind, entity_id))
+        parents = {parent["kind"]: parent["ref"] for parent in body["parents"]}
+        system_id = objectref.parse(parents["system"])[1]
+        sector_ref = parents.get("sector")
+        return {
+            "ref": body["ref"], "kind": kind, "type": None, "id": entity_id, "name": body["name"],
+            "url": page_url("system", system_id=system_id), "key": system_id,
+            "anchor_kind": "system", "anchor_id": system_id, "system_id": system_id,
+            "sector_id": objectref.parse(sector_ref)[1] if sector_ref else None, "placed": None,
         }
     detail = apiclient.get_phenomenon(db_name(), kind, entity_id)
     return {
-        "kind": "phenomenon", "type": kind, "id": detail["id"], "name": detail["name"],
+        "ref": endpoint(kind, detail["id"]), "kind": "phenomenon", "type": kind, "id": detail["id"],
+        "name": detail["name"],
         "url": page_url("phenomenon", phenomenon_type=kind, phenomenon_id=detail["id"]),
         # queryDb._phenomenon_nav_key's format.
         "key": f"phenomenon:{kind}:{detail['id']}",
+        "anchor_kind": "phenomenon", "anchor_id": detail["id"], "system_id": None,
         "sector_id": None, "placed": detail.get("galactic_radius_pc") is not None,
     }
 
 
 def _param_of(point):
     """The `from`/`to` value for a resolved endpoint."""
-    return endpoint(point["type"] or "system", point["id"])
+    return point["ref"]
 
 
 def _sector_options():
@@ -200,15 +221,15 @@ def _destination_pickers(origin, to_sector_raw):
     hidden = {"from": origin_param}
     pickers = []
     cross_sector = True
-    if origin["kind"] == "system":
+    if origin["kind"] != "phenomenon":
         sector = apiclient.get_sector(db_name(), origin["sector_id"])
         cross_sector = sector["placed"]
         pickers.append(_picker(
             "Same-sector destination", "to", "Destination (same sector)",
-            _system_options(sector["systems"], exclude=origin["id"]), hidden, button="Plot course",
+            _system_options(sector["systems"], exclude=origin["system_id"]), hidden, button="Plot course",
             empty="No other systems are placed in this sector yet.",
         ))
-    cross_heading = "Cross-sector destination" if origin["kind"] == "system" else "Destination"
+    cross_heading = "Cross-sector destination" if origin["kind"] != "phenomenon" else "Destination"
     if not cross_sector:
         pickers.append(_picker(cross_heading, None, None, [], {}, empty=(
             "This sector has no galaxy placement, so NAV is only available to other systems in this "
@@ -291,17 +312,50 @@ def _route_stops(route, names):
 def _waypoints(origin, destination, result, names):
     """The origin, the route's intermediate hops, then the destination,
     in `navmap.render_nav_map_panel`'s input shape."""
-    points = [{"id": origin["id"], "kind": origin["kind"], "type": origin["type"], "name": origin["name"],
+    points = [{"id": origin["anchor_id"], "kind": origin["anchor_kind"], "type": origin["type"], "name": origin["name"],
                "position": result["origin_position"], "role": "origin"}]
     route = result["route"]
     if route is not None:
         for node in route["path"][1:-1]:
             points.append({"id": node, "kind": "system", "type": None, "name": names.get(node, str(node)),
                            "position": route["positions"][str(node)], "role": "hop"})
-    points.append({"id": destination["id"], "kind": destination["kind"], "type": destination["type"],
+    points.append({"id": destination["anchor_id"], "kind": destination["anchor_kind"], "type": destination["type"],
                    "name": destination["name"], "position": result["destination_position"],
                    "role": "destination"})
     return points
+
+
+LEG_LABELS = {
+    "within": "Within the system",
+    "out": "Out of the system",
+    "between": "Between systems",
+    "into": "Into the system",
+}
+"""dict: Each `nav_course` leg kind's row label."""
+
+
+def _leg_rows(legs, origin, destination, names):
+    """The legs table's rows: label, the two ends' names, distance and course."""
+    def name(ref):
+        if ref == origin["ref"]:
+            return origin["name"]
+        if ref == destination["ref"]:
+            return destination["name"]
+        kind, entity_id = objectref.parse(ref)
+        if kind == "system":
+            return names.get(entity_id) or apiclient.get_system(db_name(), entity_id)["name"]
+        return ref
+
+    rows = []
+    for leg in legs:
+        direct = leg["direct"]
+        rows.append({
+            "label": LEG_LABELS[leg["kind"]], "from": name(leg["from"]), "to": name(leg["to"]),
+            "distance": format_distance_ly(direct["distance_ly"]),
+            "course": format_course(direct["bearing_deg"], direct["mark_deg"]),
+            "frame": FRAME_LABELS.get(direct["frame"], direct["frame"]),
+        })
+    return rows
 
 
 def galaxy_map_url(origin, destination):
@@ -337,16 +391,14 @@ def galaxy_course(from_raw, to_raw):
     if _unavailable_reason(origin) or _unavailable_reason(destination):
         return None
     try:
-        result = apiclient.get_nav(
-            db_name(), origin["id"], destination["id"],
-            from_kind=origin["kind"], to_kind=destination["kind"],
-            from_type=origin["type"], to_type=destination["type"],
-        )
+        result = apiclient.get_nav(db_name(), origin["ref"], destination["ref"])
     except apiclient.ApiError as exc:
         if isinstance(exc, apiclient.NotFoundError) or exc.status_code != 400:
             raise
         return None  # the two endpoints exist but can't be navigated together
     nav_url_here = nav_url(_param_of(origin), _param_of(destination))
+    if result["scope"] == "system":
+        return None  # inside one system: nothing to draw on the Galaxy Map
     if result["scope"] != "galaxy":
         # One sector holds the whole course: the map shows that sector.
         sector = apiclient.get_sector(db_name(), origin["sector_id"])
@@ -380,7 +432,7 @@ def _point_url(point):
 def _unavailable_reason(origin):
     if origin["kind"] == "phenomenon" and not origin["placed"]:
         return "NAV is not available: this phenomenon has not been placed in the galaxy."
-    if origin["kind"] == "system" and origin["sector_id"] is None:
+    if origin["kind"] != "phenomenon" and origin["sector_id"] is None:
         return "NAV is not available: this system isn't assigned to a sector."
     return None
 
@@ -422,12 +474,9 @@ def nav():
         )
 
     to_kind, to_id = parse_endpoint(to_raw)
+    destination = _resolve(to_kind, to_id)
     try:
-        result = apiclient.get_nav(
-            db_name(), origin["id"], to_id,
-            from_kind=origin["kind"], to_kind="system" if to_kind == "system" else "phenomenon",
-            from_type=origin["type"], to_type=None if to_kind == "system" else to_kind,
-        )
+        result = apiclient.get_nav(db_name(), origin["ref"], destination["ref"])
     except apiclient.NotFoundError:
         raise
     except apiclient.ApiError as exc:
@@ -440,22 +489,24 @@ def nav():
         return render_page("nav.html", title=title, breadcrumbs=crumbs, origin=origin, error=message,
                            start_over=nav_url(_param_of(origin)), **page)
 
-    destination = _resolve(to_kind, to_id)
     # UX.70: the page is the whole course, not just where it starts.
     title = f"Course: {origin['name']} \u2192 {destination['name']}"
     crumbs = [crumb("Nav", "nav"), crumb(f"{origin['name']} \u2192 {destination['name']}")]
     route = result["route"]
     names = _route_names(route, {origin["key"]: origin["name"], destination["key"]: destination["name"]})
     direct = result["direct"]
-    map_html = render_nav_map_panel(page_url, _waypoints(origin, destination, result, names),
-                                    has_route=route is not None)
+    in_system = result["scope"] == "system"
+    map_html = "" if in_system else render_nav_map_panel(
+        page_url, _waypoints(origin, destination, result, names), has_route=route is not None)
     return render_page(
         "nav.html", title=title, breadcrumbs=crumbs, origin=origin, destination=destination,
         direct=direct, distance_text=format_distance_ly(direct["distance_ly"]),
         route_distance_text=format_distance_ly(route["distance_ly"]) if route else None,
         course=format_course(direct["bearing_deg"], direct["mark_deg"]),
         frame_label=FRAME_LABELS.get(direct["frame"], direct["frame"]), warp_times=result["warp_times"], fold_times=result["fold_times"],
-        scope_label="Same sector" if result["scope"] == "sector" else "Cross-sector (galaxy)",
+        scope_label={"system": "Inside one system", "sector": "Same sector"}.get(
+            result["scope"], "Cross-sector (galaxy)"),
+        legs=_leg_rows(result["legs"], origin, destination, names), in_system=in_system, note=result["note"],
         route=route, stops=_route_stops(route, names) if route and route["path"] else [],
         map_html=trusted_html(map_html),
         reverse_url=nav_url(_param_of(destination), _param_of(origin)),
