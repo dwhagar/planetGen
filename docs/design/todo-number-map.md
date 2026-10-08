@@ -412,9 +412,9 @@ Parents marked "new parent" had no old number of their own.
 | ADM.21 | Input validation on Pydantic models | none | open |
 | ADM.22 | Job logs streamed over SSE into Xterm.js, with native progress bars | none | done, PR #551 |
 | ADM.23 | Log output wraps with hard line breaks (bug) | none | done, PR #508 |
-| ADM.24 | A failed action's log closes before it can be read (bug) | none | open |
-| ADM.25 | Error tracebacks don't reach the console and the web log window (bug) | none | open |
-| ADM.26 | The bright-star backfill shows no progress bar on the web (bug) | none | open |
+| ADM.24 | A failed action's log closes before it can be read (bug) | none | done, PR #560 |
+| ADM.25 | Error tracebacks don't reach the console and the web log window (bug) | none | done, PR #560 |
+| ADM.26 | The bright-star backfill shows no progress bar on the web (bug) | none | done, PR #560 |
 | ADM.27 | Changing a planet's class doesn't regenerate its surface conditions (bug) | none | done, PR #448 |
 | ADM.28 | A simpler Generate page: layer specs, a Customize window and plain controls | none | open |
 | ADM.29 | Fill a span of layers, rings or columns | none | open |
