@@ -1,5 +1,11 @@
 # Changelog
 
+## [7.233.620] - 2026-10-08
+
+### Added
+
+- TODO item ADM.37: the Generate page's prevalence fields should show each feature's real default share instead of "0% change" (phase 0, Bugfixes: prevalence).
+
 ## [7.232.618] - 2026-10-08
 
 ### Changed
