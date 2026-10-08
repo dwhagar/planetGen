@@ -107,7 +107,7 @@ Done: all eight items landed in PR #442 (2026-10-07).
 | UX.53 | The same star shown three times on a system page |  | From the UX.37 audit, finding R4 (priority 2); approved by Boss 2026-10-08 17:43Z. |
 | UX.54 | Search shows empty result groups and echoes the query |  | From the UX.37 audit, finding R5 (priority 1); approved by Boss 2026-10-08 17:43Z. |
 | UX.55 | Home and Systems repeat other pages’ tables |  | From the UX.37 audit, finding R6 (priority 2); approved by Boss 2026-10-08 17:43Z. |
-| UX.69 | Tables are cut off on phones with no cue |  | From the UX.37 audit, finding L1 (priority 2); approved by Boss 2026-10-08 17:43Z. |
+| UX.69 | Tables are cut off on phones with no cue |  | From the UX.37 audit, finding L1 (priority 2); approved by Boss 2026-10-08 17:43Z. Partly done (PR #652): scroll cue and phone wrapping; the stacked secondary columns remain. |
 | UX.75 | Admin menus on the sector and phenomenon pages sit in the page body, not the action bar |  | Found after UX.68 (PR #646); reported by the coordinator. |
 | UX.21 | Clean up the web interface: overlapping buttons and dead controls (bug) | UX.37 | Moved into phase 0 (all bugs in phase 0), last. Bug, but a final pass over the finished pages. Judgment: its one known dead control (nebula '-' at the 1 ly limit) could be split out into phase 0. The nebula "-" control is split out to phase 0 as UX.38. |
 
