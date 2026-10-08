@@ -164,3 +164,68 @@ def test_mass_and_mu_follow_each_other():
     p.set_mu(1.32712440018e20)
     assert p.mass_kg == pytest.approx(1.98841e30, rel=1e-4)
     assert pos.mass_of(pos.mu_of(7.0)) == pytest.approx(7.0)
+
+
+def test_coordinates_are_kept_in_the_unit_given_with_no_round_trip():
+    ly = constants.LY_TO_M
+    p = SpatialPosition3D((10.0, 20.0, 30.0), (9.0, 18.0, 27.0), length_unit_m=ly)
+    assert p.get_coordinates("sector", "cartesian") == (1.0, 2.0, 3.0)
+    p.set_sector_cartesian(0.1, 0.2, 0.3)
+    assert p.get_coordinates("sector", "cartesian") == (0.1, 0.2, 0.3)
+    assert p.get_coordinates("galactic", "cartesian") == pytest.approx((9.1, 18.2, 27.3))
+    with pytest.raises(ValueError):
+        SpatialPosition3D((0, 0, 0), (0, 0, 0), length_unit_m=0.0)
+
+
+def test_carrying_an_anchor_moves_the_body_with_it():
+    p = _planet()
+    system = p.get_coordinates("system", "cartesian")
+    sector = p.get_coordinates("sector", "cartesian")
+    p.carry_star_center((0.0, 0.0, 0.0))
+    assert p.get_coordinates("system", "cartesian") == system
+    assert _close(p.get_coordinates("galactic", "cartesian"), system, abs_=1.0)
+    p.carry_sector_center((5.0, 5.0, 5.0))
+    assert p.get_coordinates("sector", "cartesian") == pytest.approx(
+        tuple(g - 5.0 for g in p.get_coordinates("galactic", "cartesian")))
+    star = SpatialPosition3D(STAR, SECTOR, is_star=True)
+    keep = star.get_coordinates("sector", "cartesian")
+    star.carry_sector_center((0.0, 0.0, 0.0))
+    assert star.get_coordinates("sector", "cartesian") == keep
+    with pytest.raises(ValueError):
+        star.carry_star_center((0.0, 0.0, 0.0))
+
+
+# --- Sector entries hold one (GEN.74 part 2) ------------------------------------------
+
+def test_a_sector_entry_holds_one_with_its_mass_and_mu():
+    from planetgen.galaxy.sector import SpaceSector
+    from planetgen.generation.config import SystemConfig
+    from planetgen.generation.phenomena.compact_remnant import BlackHole
+    from planetgen.generation.system import StarSystem
+
+    sector = SpaceSector("Holders", edge_ly=11.5)
+    system = StarSystem(system_config=SystemConfig())
+    entry = sector.add_system(system, position=(1.0, -2.0, 0.5))
+    assert entry.position == (1.0, -2.0, 0.5)
+    assert entry.spatial.get_coordinates("sector", "cartesian") == (1.0, -2.0, 0.5)
+    assert entry.spatial.mass_kg == pytest.approx(sum(star.mass for star in system.stars))
+    assert entry.spatial.mu == pytest.approx(constants.G * entry.spatial.mass_kg)
+    assert entry.spatial.get_coordinates("system", "cartesian") is None
+    hole = sector.add_phenomenon(BlackHole(SystemConfig()), "black-hole", position=(-1.0, 1.0, 0.0))
+    assert hole.spatial.mass_kg == hole.phenomenon.mass
+    nebula_entry = sector.phenomena[0]
+    assert nebula_entry is hole
+
+
+def test_placing_a_sector_in_the_galaxy_carries_its_entries():
+    from planetgen.galaxy.sector import SpaceSector
+    from planetgen.generation.config import SystemConfig
+    from planetgen.generation.system import StarSystem
+
+    sector = SpaceSector("Placed", edge_ly=11.5)
+    entry = sector.add_system(StarSystem(system_config=SystemConfig()), position=(1.0, 2.0, 3.0))
+    sector.place_in_galaxy((100.0, 200.0, -50.0))
+    assert entry.position == (1.0, 2.0, 3.0)
+    assert entry.spatial.get_coordinates("galactic", "cartesian") == pytest.approx((101.0, 202.0, -47.0))
+    later = sector.add_system(StarSystem(system_config=SystemConfig()), position=(-1.0, 0.0, 0.0))
+    assert later.spatial.get_coordinates("galactic", "cartesian") == pytest.approx((99.0, 200.0, -50.0))

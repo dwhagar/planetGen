@@ -6980,6 +6980,8 @@ def load_sector(conn, sector_id) -> SpaceSector:
     # determined by its ring and edge (as planetgen builds it).
     cell = SectorCell.for_ring(row["ring_index"], edge_ly) if row["ring_index"] is not None else None
     sector = SpaceSector(row["name"], edge_ly=edge_ly, cell=cell)
+    if row["center_x_pc"] is not None:
+        sector.place_in_galaxy(tuple(pc_to_ly(row[f"center_{axis}_pc"]) for axis in "xyz"))
 
     system_rows = conn.execute(
         "SELECT id, position_x_mpc, position_y_mpc, position_z_mpc FROM star_systems "
