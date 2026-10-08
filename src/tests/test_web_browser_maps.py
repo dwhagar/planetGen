@@ -562,3 +562,68 @@ def test_nav_ends_picked_from_bookmarks_on_every_page(page, base_url, sample_par
     with page.expect_navigation():
         page.locator(".pick-bookmarks a", has_text="Bookmarked destination").click()
     assert _course_ends(page) == (start, dest)
+
+
+# --- MAP.72 to MAP.74: the 3D system view ------------------------------------------------
+
+def _system_with_planets(client):
+    for system in client.get("/api/systems?limit=100").get_json()["items"]:
+        scene = client.get(f"/api/systems/{system['id']}/scene").get_json()
+        if scene["planets"]:
+            return system["id"], scene
+    pytest.fail("no generated system has a planet")
+
+
+def _canvas_pixels(page):
+    return page.locator("#sysview3d-canvas").screenshot()
+
+
+def test_system_page_3d_view_draws_switches_scale_and_keeps_the_diagram(page, base_url, site_app):
+    system_id, scene = _system_with_planets(site_app.test_client())
+    _open(page, f"{base_url}/system/{system_id}", '#sysmap-root[data-ready="true"]')
+    assert page.locator("#sysview3d").is_hidden()
+    page.evaluate("window.localStorage.clear()")
+
+    page.click("#sysmap-view-3d")
+    page.wait_for_selector('#sysview3d[data-ready="true"]')
+    assert page.locator("#sysmap-diagram").is_hidden() and page.locator("#sysview3d").is_visible()
+    assert "view=3d" in page.url
+    page.wait_for_timeout(500)
+    compressed = _canvas_pixels(page)
+    assert len(set(compressed[100:3000])) > 20, "the canvas drew something"
+    assert "Compressed" in page.locator("#sysview3d-scale-note").inner_text()
+
+    # Every body is in the list for screen readers, and picking one shows it.
+    expected = 1 + len(scene["planets"]) + sum(len(p["moons"]) for p in scene["planets"]) + len(scene["comets"]) \
+        + (len(scene["stars"]) - 1)
+    page.click(".sysview-list summary")
+    assert page.locator("#sysview3d-list button").count() == expected
+    page.locator("#sysview3d-list button").nth(1 if expected > 1 else 0).click()
+    assert page.locator("#sysmap-info h3").count() == 1
+    assert "object=" in page.url
+
+    # The scale changes the picture and its note.
+    page.select_option("#sysview3d-scale", "true")
+    page.wait_for_timeout(500)
+    assert "True scale" in page.locator("#sysview3d-scale-note").inner_text()
+    assert _canvas_pixels(page) != compressed
+
+    # Time: pause freezes the label, play resumes.
+    page.click("#sysview3d-play")
+    assert page.locator("#sysview3d-rate").inner_text() == "Paused"
+    page.click("#sysview3d-faster")
+    assert page.locator("#sysview3d-rate").inner_text() != "Paused"
+    page.click("#sysview3d-now")
+    assert page.locator("#sysview3d-rate").inner_text() == "1×"
+
+    # Reload on the address: back in 3D with the body selected.
+    selected = page.locator("#sysmap-info h3").inner_text()
+    page.reload(wait_until="load")
+    page.wait_for_selector('#sysview3d[data-ready="true"]')
+    page.wait_for_timeout(300)
+    assert page.locator("#sysmap-info h3").inner_text() == selected
+
+    # The diagram is still there.
+    page.click("#sysmap-view-diagram")
+    assert page.locator("#sysmap-diagram").is_visible() and page.locator("#sysview3d").is_hidden()
+    assert "view=3d" not in page.url
