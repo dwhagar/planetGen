@@ -1,0 +1,15 @@
+{#- templates/partials/pick_banner.html -- while a NAV start or destination is
+    picked (NAV.15): the banner with Cancel, and the bookmarks that keep the
+    pick (NAV.40; static/bookmarks.js fills them). `pick_banner(pick, bookmark,
+    what)`: `what` names the page's object ("system" or "object"). -#}
+{%- macro pick_banner(pick, bookmark, what) -%}
+{%- if pick %}
+<p class="pick-banner" role="status"><strong>{{ pick.banner }}:</strong> press &ldquo;{{ pick.label }}&rdquo; to take this {{ what }}, or use a bookmark. <a href="{{ pick.cancel }}">Cancel</a></p>
+<details class="bookmarks-menu pick-bookmarks" data-bookmarks-menu data-bookmark-db="{{ bookmark.db }}"
+         data-pick="{{ pick.pick }}" data-keep-name="{{ pick.keep_name }}" data-keep-value="{{ pick.keep_value }}"
+         data-nav-url="{{ pick.nav_url }}">
+  <summary class="btn btn-small">Bookmarks</summary>
+  <div class="bookmarks-panel" data-bookmarks-panel></div>
+</details>
+{%- endif %}
+{%- endmacro -%}

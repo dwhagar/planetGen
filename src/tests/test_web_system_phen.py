@@ -227,6 +227,38 @@ def test_system_page_renders(app, client, fake):
     assert "Upload to Wiki" not in html
 
 
+def test_system_page_pick_mode_offers_only_the_pick_button(client, fake):
+    """NAV.15: while a NAV start or destination is picked, the system page
+    shows the banner, the bookmarks that keep the pick and one pick
+    button; a bad pick, or a standalone system, drops pick mode."""
+    html = client.get("/system/5?pick=to&from=system:9").get_data(as_text=True)
+    assert "Choosing a destination:" in html
+    assert re.search(r'href="/nav\?from=system(?:%3A|:)9&amp;to=system(?:%3A|:)5"[^>]*>Use as destination</a>', html)
+    assert ">Use as destination</a>" in html
+    assert "Navigate from here" not in html and "Navigate to here" not in html
+    menu = re.search(r'<details class="bookmarks-menu pick-bookmarks"[^>]*>', html, re.S).group(0)
+    for attribute in ('data-pick="to"', 'data-keep-name="from"', 'data-keep-value="system:9"'):
+        assert attribute in menu
+    start = client.get("/system/5?pick=from").get_data(as_text=True)
+    assert "Choosing a start:" in start and ">Use as start</a>" in start
+    plain = client.get("/system/5").get_data(as_text=True)
+    assert "pick-banner" not in plain and "Navigate from here" in plain
+    assert "pick-banner" not in client.get("/system/5?pick=sideways").get_data(as_text=True)
+    fake.system = _system_detail(sector_id=None)
+    assert "pick-banner" not in client.get("/system/5?pick=to").get_data(as_text=True)
+
+
+def test_phenomenon_page_pick_mode_offers_only_the_pick_button(client, fake):
+    """NAV.15: the phenomenon page picks a NAV end too."""
+    html = client.get("/phenomenon/nebula/4?pick=from&to=system:9").get_data(as_text=True)
+    assert "Choosing a start:" in html and ">Use as start</a>" in html
+    assert "Navigate from here" not in html and "Navigate to here" not in html
+    assert re.search(r'href="/nav\?from=nebula(?:%3A|:)4&amp;to=system(?:%3A|:)9"', html)
+    assert 'data-keep-name="to"' in html and 'data-keep-value="system:9"' in html
+    plain = client.get("/phenomenon/nebula/4").get_data(as_text=True)
+    assert "pick-banner" not in plain and "Navigate from here" in plain
+
+
 def test_standalone_system_breadcrumbs_and_no_nav(client, fake):
     fake.system = _system_detail(sector_id=None)
     html = client.get("/system/5").get_data(as_text=True)

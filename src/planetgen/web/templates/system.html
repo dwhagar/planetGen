@@ -4,6 +4,7 @@
 {% extends "base.html" %}
 {% from "partials/admin_menu.html" import admin_menu, add_edit_actions with context %}
 {% from "partials/bookmark.html" import bookmark_button %}
+{% from "partials/pick_banner.html" import pick_banner %}
 {% block head %}
 <script type="module" src="{{ static_url('systemmap.js') }}"></script>
 <script type="module" src="{{ static_url('bookmarks.js') }}"></script>
@@ -18,7 +19,9 @@
     {%- if territory %}<span class="badge"><svg class="polity-swatch" viewBox="0 0 10 10" aria-hidden="true" focusable="false"><rect width="10" height="10" fill="{{ territory.color }}"/></svg> Territory of <a href="{{ territory.url }}">{{ territory.name }}</a></span>{% endif -%}
   </p>
   <div class="page-actions nav-row">
-    {%- if nav_links %}
+    {%- if pick %}
+    <a class="btn btn-small starmap-pick" href="{{ nav_links.pick }}">{{ nav_links.pickLabel }}</a>
+    {%- elif nav_links %}
     {#- UX.27: one row. Where the three buttons don't fit, the two navigate
         buttons fold into one Navigate menu, and on a phone Show on Galaxy Map
         joins that menu (container queries in style.css pick the layout). #}
@@ -42,6 +45,7 @@
 </div>
 {% endblock %}
 {% block content %}
+{{ pick_banner(pick, bookmark, 'system') }}
 {{ map_html }}
 {{ stars_html }}
 {#- ADM.34: every admin action of this page sits behind the one Admin menu

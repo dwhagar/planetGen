@@ -4,6 +4,7 @@
 {% extends "base.html" %}
 {% from "partials/admin_menu.html" import admin_menu, add_edit_actions with context %}
 {% from "partials/bookmark.html" import bookmark_button %}
+{% from "partials/pick_banner.html" import pick_banner %}
 {% block head %}
 <script type="module" src="{{ static_url('bookmarks.js') }}"></script>
 {%- if view_kind == "render" %}
@@ -23,8 +24,12 @@
     {%- if inside %}<span class="badge">Inside: <a href="{{ inside.url }}">{{ inside.name }}</a></span>{% endif -%}
   </p>
   <p class="page-actions">
+    {%- if pick %}
+    <a class="btn btn-small starmap-pick" href="{{ nav_links.pick }}">{{ nav_links.pickLabel }}</a>
+    {%- else %}
     <a class="btn btn-small" href="{{ nav_links.from }}">Navigate from here</a>
     <a class="btn btn-small" href="{{ nav_links.to }}">Navigate to here</a>
+    {%- endif %}
     {{ bookmark_button(bookmark) }}
   </p>
   {%- if nearest_html %}
@@ -33,6 +38,7 @@
 </div>
 {% endblock %}
 {% block content %}
+{{ pick_banner(pick, bookmark, 'phenomenon') }}
 {%- if can_edit %}
 {%- set actions = [] %}
 {{ add_edit_actions(actions, title,
