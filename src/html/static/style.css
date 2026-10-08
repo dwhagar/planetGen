@@ -3885,6 +3885,102 @@ body.app {
   padding-left: 1.25rem;
 }
 
+/* The system page's 3D view and its Diagram/3D switch (MAP.72 to MAP.74;
+   static/systempage3d.js, static/systemview3d.js). The canvas fills a
+   viewport as wide as the diagram; labels are plain elements laid over it. */
+.sysview-switch {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.sysview-viewport {
+  width: 100%;
+  max-width: none;
+  aspect-ratio: 4 / 3;
+  background: #05070d;
+  color-scheme: dark;
+}
+
+@media (max-width: 599px) {
+  .sysview-viewport {
+    aspect-ratio: 1 / 1;
+  }
+}
+
+.sysview-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  touch-action: none;
+  cursor: grab;
+}
+
+.sysview-canvas:focus-visible {
+  outline: 2px solid var(--accent, #4f8cff);
+  outline-offset: -2px;
+}
+
+.sysview-labels {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.sysview-label {
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-size: 0.75rem;
+  line-height: 1;
+  color: #d8e0f0;
+  text-shadow: 0 0 3px #000, 0 0 3px #000;
+  white-space: nowrap;
+}
+
+.sysview-label-star {
+  font-weight: 700;
+  color: #ffe9b0;
+}
+
+.sysview-label-moon,
+.sysview-label-comet {
+  color: #aab6cf;
+}
+
+.sysview-label-selected {
+  color: #fff;
+  text-decoration: underline;
+}
+
+.sysview-controls {
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 0.5rem;
+}
+
+.sysview-rate {
+  min-width: 5.5rem;
+  font-size: 0.85rem;
+  color: var(--text-muted, inherit);
+}
+
+.sysview-scale select {
+  font: inherit;
+  margin-left: 0.25rem;
+}
+
+.sysview-list ul {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
 /* UX.55: the Home page's entry points -- the counts as links, and the tools. */
 .entry-points {
   list-style: none;
