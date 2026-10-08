@@ -1542,3 +1542,20 @@ def test_galaxy_map_pick_mode_clicks_down_through_every_stage(page, map_site):
         assert _crumbs(page) != seen[-1], (text, _crumbs(page))
         seen.append(_crumbs(page))
     assert len(seen) >= 3, seen
+
+
+def test_galaxy_map_stars_are_drawn_camera_relative(page, map_site):
+    """MAP.102: the stars' positions are offsets from where the camera
+    looks (the points object sits there), so zoomed in they stay small
+    and exact rather than hundreds or thousands of parsecs out."""
+    _open_galaxy(page, map_site)
+    for _ in range(4):
+        text = _click_choice(page, GENERATED_CHOICE)
+        if re.match(r"Sector .*, generated$", text):
+            break
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyStarFrame().count > 0")
+    drawn = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyStarFrame()")
+    assert drawn["at"] == drawn["frame"], drawn
+    assert all(float(v).is_integer() for v in drawn["frame"]), drawn
+    # Measured from the frame, no star is as far out as the galaxy's edge.
+    assert drawn["far"] < 20000, drawn

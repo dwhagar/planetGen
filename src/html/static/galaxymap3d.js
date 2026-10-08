@@ -1354,6 +1354,8 @@ function initGalaxyMap3d(canvasEl, data) {
   starPoints.frustumCulled = false;
   scene.add(starPoints);
   var starList = [];
+  // Where the stars' positions are measured from (setStars).
+  var starFrame = [0, 0, 0];
   // When each drawn star first showed (seconds, performance.now's clock),
   // by starKey, so a star already on screen never fades in again.
   var starBornAt = new Map();
@@ -1387,6 +1389,12 @@ function initGalaxyMap3d(canvasEl, data) {
       born[i] = at;
     });
     starBornAt = bornAt;
+    // Camera-relative (MAP.102): positions are stored as offsets from
+    // where the camera is looking, rounded to a whole parsec, and the
+    // points object sits there. A float32 holds a coordinate 15,000 pc
+    // out only to about 0.002 pc, a quarter of a pixel at sector zoom;
+    // an offset of a few hundred pc is exact to a thousandth of that.
+    var frame = starFrame = [Math.round(target.x), Math.round(target.y), Math.round(target.z)];
     var positions = new Float32Array(3 * n);
     var colors = new Float32Array(3 * n);
     var sizes = new Float32Array(n);
@@ -1400,7 +1408,7 @@ function initGalaxyMap3d(canvasEl, data) {
       var t = look ? look[1] : logShare(star.luminosity_sol, STAR_LOG_LUMINOSITY);
       // Without a stored radius, guess one from the luminosity.
       var r = look ? look[2] : logShare(star.radius_sol != null ? star.radius_sol : Math.pow(star.luminosity_sol, 0.35), STAR_LOG_RADIUS);
-      positions.set([star.x, star.y, star.z], 3 * i);
+      positions.set([star.x - frame[0], star.y - frame[1], star.z - frame[2]], 3 * i);
       colors.set(look ? new THREE.Color(look[0]).toArray() : starColor(star.temperature_k), 3 * i);
       cores[i] = THREE.MathUtils.lerp(STAR_CORE_PX[0], STAR_CORE_PX[1], r);
       // MAP.87: the faint end drawn brighter (static/starlight.js).
@@ -1424,8 +1432,23 @@ function initGalaxyMap3d(canvasEl, data) {
     geometry.setAttribute("starUncharted", new THREE.BufferAttribute(uncharted, 1));
     starPoints.geometry.dispose();
     starPoints.geometry = geometry;
+    starPoints.position.set(frame[0], frame[1], frame[2]);
+    starPoints.updateMatrixWorld();
     markClippedStars();
   }
+
+  // For tests: the frame the stars are drawn from and the farthest star
+  // from it, in the points' own (offset) coordinates.
+  canvasEl.galaxyStarFrame = function () {
+    var array = starPoints.geometry.getAttribute("position");
+    var far = 0;
+    if (array) {
+      for (var i = 0; i < array.array.length; i++) {
+        far = Math.max(far, Math.abs(array.array[i]));
+      }
+    }
+    return { frame: starFrame.slice(), far: far, count: starList.length, at: starPoints.position.toArray() };
+  };
 
   // Marks the stars outside the wedge shown, which the shader drops.
   function markClippedStars() {
