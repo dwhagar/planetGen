@@ -1,5 +1,11 @@
 # Changelog
 
+## [7.243.629] - 2026-10-08
+
+### Added
+
+- TODO items DB.14 and MAP.128 to MAP.132: how sectors and blocks are colored (Boss, 2026-10-08).
+
 ## [7.242.629] - 2026-10-08
 
 ### Added
