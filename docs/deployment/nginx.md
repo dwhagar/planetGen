@@ -132,9 +132,9 @@ address with `proxy_fix` on.
 - **Logs:** `journalctl -u planetgen-gunicorn` for gunicorn and Python
   errors, `/var/log/nginx/planetgen_*.log` for requests, and the debug
   log as before.
-- **More workers:** set `ratelimit.storage_uri` to a shared store first
-  (for example `redis://127.0.0.1:6379/0`). With `memory://` each worker
-  counts on its own ([`api.md`](../api.md#rate-limiting)).
+- **More workers:** the rate limits and login lockouts count on Redis by
+  default (`ratelimit.storage_uri` empty), so every worker shares them. With
+  `memory://` each worker counts on its own ([`api.md`](../api.md#rate-limiting)).
 
 ## Checks
 

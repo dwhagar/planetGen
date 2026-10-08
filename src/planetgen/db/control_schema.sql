@@ -123,25 +123,10 @@ CREATE TABLE IF NOT EXISTS admin_audit_log (
     KEY idx_admin_audit_log_created_at (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- v2 (SEC.1, SEC.21): failed-login counters and lockouts, one row per
--- client address (`scope` 'ip'; an IPv6 address by its /64) or username
--- (`scope` 'user', case-folded), shared by every worker process and kept
--- across restarts. See `planetgen/admin/throttle.py` for the rules.
--- Times are Unix seconds (DOUBLE), compared with the web server's own
--- clock; 0 means never. Idle rows are deleted after a week.
-CREATE TABLE IF NOT EXISTS login_throttle (
-    scope             VARCHAR(8) NOT NULL,
-    subject           VARCHAR(128) NOT NULL,
-    failures          INT UNSIGNED NOT NULL DEFAULT 0,
-    level             INT UNSIGNED NOT NULL DEFAULT 0,  -- lockouts so far (doubles the next one)
-    locked_until      DOUBLE NOT NULL DEFAULT 0,
-    last_failure_at   DOUBLE NOT NULL DEFAULT 0,
-    last_lockout_at   DOUBLE NOT NULL DEFAULT 0,
-
-    PRIMARY KEY (scope, subject),
-    KEY idx_login_throttle_locked_until (locked_until),
-    KEY idx_login_throttle_last_failure_at (last_failure_at)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+-- v2 (SEC.1, SEC.21) kept failed-login counters here; v8 (SEC.30) moved
+-- them to Redis (`planetgen/admin/throttle.py`'s RedisStore). The old
+-- table is dropped, so a deployment loses the counts once.
+DROP TABLE IF EXISTS login_throttle;
 
 -- v3 (SEC.22): trusted devices. A successful login gives the browser a
 -- long-lived device cookie (only its SHA-256 hash stored here); a login

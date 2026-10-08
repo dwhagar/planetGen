@@ -112,7 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 is done (PR #476); GEN.117, and GEN.116 is closed (Boss 2026-10-08 17:46Z). | TEST.104, SEC.30, TEST.83, UX.39, OPS.20, DB.11, DB.13, ADM.21, GEN.66, GEN.74, GEN.70, GEN.71, GEN.72, GEN.73, GEN.67, NAV.7, MAP.67, NAV.32, UX.37, UX.51, UX.52, UX.53, UX.54, UX.55, UX.67, UX.68, UX.69, UX.70, UX.71, UX.21 |
+| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 is done (PR #476); GEN.117, and GEN.116 is closed (Boss 2026-10-08 17:46Z). | TEST.105, UX.39, OPS.20, DB.11, DB.13, ADM.21, GEN.66, GEN.74, GEN.70, GEN.71, GEN.72, GEN.67, NAV.7, MAP.67, UX.37, UX.51, UX.52, UX.53, UX.54, UX.55, UX.67, UX.68, UX.69, UX.70, UX.71, UX.21 |
 | 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, NAV.16, NAV.3, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.41, GEN.98, GEN.100, GEN.99, GEN.101, GEN.102, GEN.103, GEN.84, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, GEN.94, GEN.104, GEN.106, GEN.107, GEN.108, NAV.10, NAV.12, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, NAV.43, NAV.44, MAP.119, MAP.122, MAP.123, MAP.124, MAP.89, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, OPS.8, OPS.13, OPS.14, ADM.18, GEN.59, UX.49, NAV.50 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.58, MAP.75, MAP.59, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, API.16, MAP.69, MAP.70, ADM.17, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.131, MAP.132, API.18, VIEW.5 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, repair that reads the newest settings JSON, and the anomalies chosen in phase 2. | MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, MAP.126, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, DB.10, ADM.20, GEN.114, MAP.125, API.19 |
@@ -221,7 +221,7 @@ with `clamp()`.
   already remove some dead controls on the Galaxy Map.
   It also runs after UX.37 (Boss's sweep for redundant and duplicate
   controls), so this layout pass checks the controls that are kept.
-  Prerequisites: NAV.32, UX.37.
+  Prerequisite: UX.37.
   Plan (2026-10-07): Moved into phase 0 (all bugs in phase 0), as the
   last item of the groundwork lane.
 
@@ -932,7 +932,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   NAV.6.
   Needs NAV.7. Built on MAP.61's engine; the parts that don't need the
   engine (the picker module, the breadcrumb, pick mode) can start first.
-  Prerequisites: NAV.16, NAV.32, NAV.50.
+  Prerequisites: NAV.16, NAV.50.
   Plan (2026-10-07): Moved from phase 3 to phase 1: its subitems are now
   in phases 0 and 1.
 
@@ -1196,20 +1196,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     A test checks the bearing, mark and distance of a known hop.
     Prerequisite: UX.35.
     Design: [docs/design/navigation-frames.md](design/navigation-frames.md)
-
-- [ ] **NAV.32 Every Galaxy and Sector Map control works on the navigation screens (bug)**
-  Boss (2026-10-01 21:15Z): "All the same UX from the galaxy screen and sector screens
-  should be functional in the nav screens." Done: picking a course
-  uses the same maps with the same controls as browsing them: hover
-  highlight, wedge, slab and segment picks, zoom, rotate, the slab
-  buttons, toggles (MAP.79), breadcrumb and bookmarkable URLs; pick
-  mode only adds the Start Here and End Here buttons (done, NAV.29) and hides
-  the links that leave the page (NAV.30). Best done by building pick
-  mode on the one engine (MAP.61) and the shared picker (NAV.3, NAV.15)
-  rather than as a separate copy; until then each map fix must be
-  checked in pick mode too.
-  Plan (2026-10-07): Moved into phase 0 with the engine (all bugs in
-  phase 0).
 
 - [ ] **NAV.12 No maximum hop length: a route always reaches the nearest star it can, across any number of sectors**
   Boss (2026-10-02 01:53Z): "routs will always find the nearest star
@@ -1987,7 +1973,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   guessing the length. Two IDs of the same length never share a name,
   so names are unique for fixed-length IDs (details in
   `docs/design/object-ids.md`).
-  Prerequisites: GEN.70, GEN.71, GEN.72, GEN.73.
+  Prerequisites: GEN.70, GEN.71, GEN.72.
   Design: [docs/design/object-ids.md](design/object-ids.md)
 
   - [ ] **GEN.70 A naming key in the control database, made at galaxy creation and changeable by admin**
@@ -2024,6 +2010,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     04:00Z that planets keep the "<star name> I" pattern, so this rule
     stays in force; a wide pair's two-word star name is the existing
     word-salad rule (GEN.62, done), not codec output.
+    Folds in GEN.73 (bug, "Nebulae don't get unique names"; Boss
+    2026-10-03 05:38Z: "Nebulae should get unique names."): nebulae and
+    supernova remnants are on this list, so their unique codec names
+    from the ID and the naming key, shown on the maps, lists and the
+    nebula's page, are this item's job. Nebulae already get unique
+    position-ID names today; the codec name replaces them, so GEN.73
+    needs GEN.70 and has no separate work (the Bugfixes lane checked,
+    2026-10-08).
     Prerequisite: GEN.70.
     Design: [docs/design/object-ids.md](design/object-ids.md)
 
@@ -2036,11 +2030,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     Done: a bright-sweep star shows its position ID until its sector is
     generated; at that point it gets its word-salad name (stars keep that method,
     GEN.67) and keeps the ID.
-
-  - [ ] **GEN.73 Nebulae don't get unique names (bug)**
-    Boss (2026-10-03 05:38Z): "Nebulae should get unique names." Done:
-    every nebula and remnant has a unique codec name from its ID, shown
-    on the maps, lists and its page.
+    Implementation note (Bugfixes lane, 2026-10-08): bright stars sit in
+    `bright_stars` until their sector is built. `_sector_object_ids` in
+    `db/store.py` runs "bright-star" through `_claim_object_ids`, which
+    names the system with its 19-digit position ID. The fix names it by
+    the normal registry (word-salad) and keeps the position ID as its
+    uid. `assign_uids` currently derives the uid from the name
+    (`_gen64_uid(name)`), so the position ID must be stored explicitly
+    at insert; check uniqueness against `star_systems.uid`, not names.
 
 - [ ] **GEN.74 One point-in-space object that keeps every coordinate system in step, used by every object**
   Boss (2026-10-07 11:47Z): "Introduce a centralized point-in-space
@@ -2923,15 +2920,6 @@ and #221.
 
 Design: [docs/design/login-brute-force-protection.md](design/login-brute-force-protection.md)
 
-- [ ] **SEC.30 Login and request rate limits on Flask-Limiter with Redis storage**
-  Today `loginThrottle.py`, `api/limiter.py` and `api/loginguard.py`
-  keep their own counters. Done: request limits use Flask-Limiter with
-  Redis storage; the per-address and per-username lockouts keep their
-  rules (docs/design/login-brute-force-protection.md) on the same
-  storage; the activity log and fail2ban lines are unchanged; and the
-  rate-limit tests pass alone and under `-n auto` (TEST.83).
-  Design: [docs/design/library-migration.md](design/library-migration.md)
-
 ## TEST: The test suite
 
 From the test suite plan of 2026-10-01 (Boss: "build me a list of TEST
@@ -2943,35 +2931,15 @@ clears each one.
 
 ### Infrastructure and CI
 
-- [ ] **TEST.104 test_system_map_selection_drill_and_measure fails now and then under load (bug)**
-  `src/tests/test_web_browser_maps.py::test_system_map_selection_drill_and_measure`
-  failed under load and passed when rerun (reported by Foundations
-  lane 1 on PR #612, 2026-10-08), which points at a wait on a fixed
-  time instead of on the map's state. Done: the test waits on the
-  map's own ready state, and it passes repeatedly in the full suite
-  under `pytest -n auto`. Prerequisites: none.
+- [ ] **TEST.105 test_web_a11y.py fails on the Admin hub: its links have 2.49:1 contrast (bug)**
+  `src/tests/test_web_a11y.py` cases `web.admin-desktop-light` and
+  `web.admin-desktop-dark` fail because the links on the Admin hub have a
+  contrast ratio of 2.49:1 (the minimum for text is 4.5:1). A regression
+  from PR #632 (UX.72, the new Admin hub), reported by the coordinator
+  (2026-10-08). Done: the hub's links use a color with at least 4.5:1
+  contrast against their background in both themes, and both cases pass.
+  Prerequisites: none.
 
-- [ ] **TEST.83 Rate-limit tests fail under parallel load (bug)**
-  `test_web_admin.py::test_real_login_keeps_rate_limit` passes alone
-  but fails under `pytest -n auto` load, which points at timing (seen
-  by the Galaxy map picker and arc thread, PR #369, 2026-10-02). The
-  Routing groundwork thread (PR #427, 2026-10-02) saw 6 more rate-limit
-  tests in `test_web_pages.py`, `test_web_request_limits.py` and
-  `test_web_security_limits.py` fail under `-n auto` on MariaDB 10.11
-  and all pass when rerun alone. Done: the failing cases are found
-  (loop them under load), the tests or the rate limits stop depending
-  on wall-clock speed, and they pass on every run tried, alone and
-  under `-n auto`. [infra, SEC]
-  Prerequisite: SEC.30.
-  Plan (2026-10-07): Folded into SEC.30: the limits move to
-  Flask-Limiter on Redis, and the tests are fixed there.
-  Seen again (2026-10-07): Foundations' full local run after PRs #501
-  and #504 (13,587 passed) had rate-limit tests among 10 load-only
-  failures; the timing and dropped-connection part was TEST.93 (done,
-  PR #522).
-  Seen again (2026-10-08): Foundations lane 1 saw
-  `test_real_login_keeps_rate_limit` flake under load again (PR #612);
-  it is covered here, no new item.
 
 ## USR: User accounts
 
@@ -3135,7 +3103,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Each library swap is its own subitem and PR, after the package layout
   (OPS.23, done in PR #435, then OPS.24) so code moves once. Done when every subitem is done
   and the hand-rolled modules they replace are deleted.
-  Prerequisites: UX.39, SEC.30, DB.11,
+  Prerequisites: UX.39, DB.11,
   ADM.21, GEN.66, ADM.22.
   Design: [docs/design/library-migration.md](design/library-migration.md)
 

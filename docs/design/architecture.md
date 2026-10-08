@@ -274,7 +274,7 @@ the browser loads.
 | [`population.py`](../../src/planetgen/api/population.py) | Its own blueprint for the population read routes: `/api/population` (status), `/api/species`, `/api/polities`, `/api/systems/<id>/owner`, `/api/planets/<id>/species`, `/api/territories`. Backed by `planetgen/population/model.py`; shares `routes.py`'s connection and pagination. |
 | `auth.py` | `/api/auth/*`: login, logout, me, change-credentials, API keys. Sets the session cookie. |
 | `authz.py` | Resolves the calling admin from the session cookie or a Bearer API key; the `require_admin` decorator; audit helper. |
-| `loginguard.py` | The checks around every password check: the per-address lockout and per-username backoff (`planetgen/admin/throttle.py`, kept in the control database's `login_throttle`, in memory only while that table is missing), and the log line and audit row for each refused sign-in. |
+| `loginguard.py` | The checks around every password check: the per-address lockout and per-username backoff (`planetgen/admin/throttle.py`, kept in Redis next to Flask-Limiter's counts, in memory only for a `memory://` storage or while Redis is down), and the log line and audit row for each refused sign-in. |
 | `admin.py` | `/api/admin/stats` and `/api/admin/duplicate-names` (backed by `planetgen.db.stats`), `/api/admin/login-failures`, and `/api/admin/lockouts` (list and lift). |
 | `limiter.py` | The shared Flask-Limiter instance and per-page limits; in-process calls from the pages skip the default limits. |
 | `config.py` | API configuration: the MySQL config, cookie and rate-limit settings, from `config.json` and the environment. |
@@ -663,7 +663,7 @@ flowchart TD
     LP["POST /login<br/>web/admin_pages.py"] --> ACL["apiclient.auth_login"]
     ACL --> AL["POST /api/auth/login<br/>api/auth.py"]
     AL --> RL["per-IP limit<br/>10 per minute (limiter.py)"]
-    RL --> BO{"loginguard:<br/>address or username locked?<br/>(login_throttle)"}
+    RL --> BO{"loginguard:<br/>address or username locked?<br/>(Redis)"}
     BO -->|"yes"| E429["429 + Retry-After"]
     BO -->|"no"| Auth["adminAuth.authenticate<br/>(control schema)"]
     Auth -->|"fail"| Rec["count against address and username,<br/>log + audit row, 401"]
@@ -682,7 +682,7 @@ to `POST /api/auth/login`. That route is limited per IP (10 a minute), then
 checks the lockouts (`api/loginguard.py`, `planetgen/admin/throttle.py`):
 3 failures from one address lock it for 5 minutes, doubling up to a day,
 and 10 for one username lock it for 1 second, doubling up to 15 minutes,
-both kept in the control database's `login_throttle` table. The
+both kept in Redis (SEC.30). The
 password is checked against the control schema (`adminAuth.authenticate`).
 On success `adminAuth.create_session` stores only a hash of a new token,
 and the raw token goes back as the session cookie. `admin_pages.py`
