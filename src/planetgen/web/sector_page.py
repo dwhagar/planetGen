@@ -518,6 +518,8 @@ def sector_scene(sector_id):
     return response
 
 
+sector_scene.json_only = True  # not a page: tests/test_web_a11y.py skips it
+
 
 @bp.route("/sector/<int:sector_id>", methods=["GET", "POST"])
 def sector(sector_id):
