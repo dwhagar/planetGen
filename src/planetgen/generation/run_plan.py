@@ -547,8 +547,17 @@ def add_bright_star_band(args):
                                  f"Bright stars {target:g}-{current:g} L_sun", max_luminosity_sol=current)
         topped = sorted(address for address, level in own.items() if address not in filled and level > target)
         if topped:
-            _sectors, stars = _draw_sector_bands(conn, skeleton, topped, target, current, first_seed,
-                                                 ceiling_cap=current, counts=counts)
+            # Its own bar and ETA, like the backfill's (ADM.26): the web
+            # page shows the progress file, and this phase can take minutes.
+            with run_common._generation_progress() as progress:
+                log.set_console(progress.console)
+                try:
+                    task = progress.add_task("Topping up backfilled sectors", total=len(topped))
+                    _sectors, stars = _draw_sector_bands(conn, skeleton, topped, target, current, first_seed,
+                                                         ceiling_cap=current, counts=counts,
+                                                         on_sector=lambda: progress.advance(task))
+                finally:
+                    log.reset_console()
             log.normal(f"Topped up {len(topped):,} backfilled sectors with {stars:,} bright stars.")
         # The first scatter's seed stays: it names the galaxy's scatter.
         store.record_bright_star_scatter(conn, target, first_seed)

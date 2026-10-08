@@ -1185,11 +1185,11 @@ def main():
         _COMMAND_HANDLERS[args.command](args)
         status = "ok"
     except pymysql.err.MySQLError as exc:
-        _fatal(f"database error: {exc}")
+        _fatal(f"database error: {exc}", traceback=True)
     except OSError as exc:
         # e.g. an unwritable --output path.
         where = f" ({exc.filename})" if getattr(exc, "filename", None) else ""
-        _fatal(f"{exc.strerror or exc}{where}")
+        _fatal(f"{exc.strerror or exc}{where}", traceback=True)
     except KeyboardInterrupt:
         status = "interrupted"
         raise
@@ -1199,6 +1199,9 @@ def main():
             status = "interrupted"
         elif exc.code in (None, 0):
             status = "ok"
+        raise
+    except Exception:  # noqa: BLE001 -- Python prints the traceback; at a terminal, hold it on screen first
+        _wait_for_enter()
         raise
     finally:
         if root is not None:
@@ -1318,15 +1321,40 @@ def _run_user():
         return None
 
 
-def _fatal(message, logger_ready=True):
-    """A one-line error and exit status 1, instead of a traceback. Goes
-    through `log.error` (shown even under --quiet/--silent) once the
-    logger is configured, else straight to stderr."""
+def _fatal(message, logger_ready=True, traceback=False):
+    """A one-line error and exit status 1, instead of a traceback unless
+    `traceback` is set (ADM.25: the error being handled is shown in full,
+    on the console, in a job's web log and in the debug log, so it can be
+    copied into a report). Goes through `log.error` (shown even under
+    --quiet/--silent) once the logger is configured, else straight to
+    stderr. A run at a terminal then waits for Enter (ADM.24), so a
+    console window that closes with the run doesn't take the error with
+    it."""
     if logger_ready:
-        log.error(f"Error: {message}")
+        if traceback:
+            log.exception(f"Error: {message}")
+        else:
+            log.error(f"Error: {message}")
     else:
         print(f"planetgen: error: {message}", file=sys.stderr)
+        if traceback:
+            import traceback as traceback_module
+
+            traceback_module.print_exc()
+    _wait_for_enter()
     raise SystemExit(1)
+
+
+def _wait_for_enter():
+    """After a failed run at an interactive terminal, holds the output on
+    screen until Enter is pressed (ADM.24); a run with its input or output
+    redirected (a web job, a script, a test) exits at once."""
+    if not (sys.stdin.isatty() and sys.stdout.isatty()):
+        return
+    try:
+        input("The run failed. Press Enter to continue...")
+    except (EOFError, KeyboardInterrupt):
+        pass
 
 
 if __name__ == "__main__":

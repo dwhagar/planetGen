@@ -225,6 +225,19 @@ _TREE_STATES = {"succeeded": "done", "failed": "failed", "cancelled": "cancelled
 """dict: `state.json` status -> job tree node state."""
 
 
+def _log_traceback(job_dir):
+    """Appends the traceback of the exception being handled to the job's
+    output log, so the page's log shows the runner's own failure in full
+    (ADM.25). Never raises."""
+    try:
+        import traceback
+
+        with open(os.path.join(job_dir, "output.log"), "ab", buffering=0) as log:
+            log.write(("\n" + traceback.format_exc()).encode("utf-8"))
+    except Exception:  # noqa: BLE001 -- the error is in state.json regardless
+        pass
+
+
 def run(job_dir):
     """
     Runs the job in `job_dir` to completion.
@@ -322,6 +335,7 @@ def run(job_dir):
     except Exception as exc:  # noqa: BLE001 -- recorded for the page, never lost
         state["status"] = "failed"
         state["error"] = f"The job runner failed: {exc}"
+        _log_traceback(job_dir)
     finally:
         state["finished_at"] = time.time()
         _write_json(state_path, state)
