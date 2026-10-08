@@ -40,8 +40,7 @@ NOT_NUMBER_FORMATTERS = {
     (fmt, "esc"),  # escapes any value's str(): "nan" is the value's own text
     (fmt, "static_url"),
     (fmt, "quote"),  # urllib's, imported
-    (fmt, "linkify_location"),
-    (fmt, "nearest_neighbors_location"),
+    (fmt, "linkify_nearest"),
     (fmt, "nearest_systems_html"),
     (fmt, "utc_time_html"),
     (fmt, "inside_text"),
@@ -224,8 +223,7 @@ def test_to_plain_text_of_dashes_and_empty():
 def test_empty_tables_render():
     url = lambda i: f"/system/{i}"  # noqa: E731
     assert fmt.nearest_systems_html([], url) == ""
-    assert fmt.nearest_neighbors_location(None, [], url) == " -- nearest: "
-    assert fmt.linkify_location("", {}, url) == "" and fmt.linkify_location(None, {}, url) == ""
+    assert fmt.linkify_nearest("", {}, url) == "" and fmt.linkify_nearest(None, {}, url) == ""
     assert pagination.render_pagination("/sectors", {}, "sectors_page", 1, 0) == ""
     assert pagination.page_slice([], 7) == ([], 1)
     assert pagination.page_count(0) == 1

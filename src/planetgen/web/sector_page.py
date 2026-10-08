@@ -41,7 +41,7 @@ from flask import abort, current_app, flash, g, get_flashed_messages, jsonify, r
 
 from planetgen.web.lib import apiclient
 from planetgen.web.lib.fmt import (
-    esc, format_number, format_distance_ly, inside_text, linkify_location, nearest_neighbors_location, nearest_systems_html,
+    esc, format_number, format_distance_ly, inside_text, linkify_nearest, nearest_systems_html,
     runaway_text,
 )
 from planetgen.web.maps.galaxymap import sector_quadrant
@@ -157,10 +157,19 @@ def _rogue_group_row(rogues, system_url):
     }
 
 
+def _system_nearest_html(row, name_to_id, system_url):
+    """A system's Nearest cell: its three nearest neighbours linked (UX.52), or
+    `None` when it has none."""
+    if row.get("nearest"):
+        return trusted_html(nearest_systems_html(row["nearest"], system_url))
+    text = linkify_nearest(row["location"], name_to_id, system_url)
+    return trusted_html(text) if text else None
+
+
 def _nearest_html(nearest, system_url):
-    """A phenomenon's "Nearest: ..." Location cell, or `None` when it has
-    no stored neighbors."""
-    return trusted_html("Nearest: " + nearest_systems_html(nearest, system_url)) if nearest else None
+    """A phenomenon's Nearest cell, or `None` when it has no stored
+    neighbors."""
+    return trusted_html(nearest_systems_html(nearest, system_url)) if nearest else None
 
 
 def _facility_rows(sector, facilities):
@@ -236,10 +245,7 @@ def _contents(sector, facilities=(), fold=True):
                 bit for bit in (_system_star_type(row), runaway_text(row), inside_text(row)) if bit
             ),
             "octant": row["quadrant"],
-            "location": trusted_html(
-                nearest_neighbors_location(row["location"], row["nearest"], system_url) if row.get("nearest")
-                else linkify_location(row["location"], name_to_id, system_url)
-            ),
+            "location": _system_nearest_html(row, name_to_id, system_url),
         })
         if row["position_x_mpc"] is not None and row["stars"]:
             map_systems.append(_map_system(row))
@@ -358,7 +364,7 @@ def _contents_load(state, limit, offset, want_facets):
 CONTENTS_TABLE = tables.register(Table(
     "sector-contents", "Contents",
     [Column("name", "Name"), Column("type", "Type"), Column("details", "Details"), Column("octant", "Octant"),
-     Column("location", "Location"), Column("distance", "From center")],
+     Column("location", "Nearest"), Column("distance", "From center")],
     _contents_load,
     facets=[Facet("contents_type", "Type"), Facet("contents_octant", "Octant")],
     prefix="contents_", noun=("item", "items"), default_sort="distance",

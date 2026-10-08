@@ -1,5 +1,5 @@
 """
-planetgen/web/lib/fmt.py "Location:" rendering tests: `nearest_neighbors_location`
+planetgen/web/lib/fmt.py "Nearest:" rendering tests: `nearest_systems_html`
 (links built from live `system_detail` neighbor rows) and
 `linkify_location` (its fallback, parsing names out of the stored string).
 No database needed.
@@ -7,7 +7,7 @@ No database needed.
 Run with: pytest src/tests/test_fmt_location.py
 """
 
-from planetgen.web.lib.fmt import linkify_location, nearest_neighbors_location  # noqa: E402
+from planetgen.web.lib.fmt import linkify_nearest, nearest_systems_html  # noqa: E402
 
 
 def _url(system_id):
@@ -23,13 +23,13 @@ def test_every_live_neighbor_is_linked_even_when_the_stored_name_is_stale():
         {"id": 7, "name": "Alpha Vesta II", "distance_ly": 4.21},
         {"id": 9, "name": "Beta", "distance_ly": 5.08},
     ]
-    html = nearest_neighbors_location(location, neighbors, _url)
-    assert html.startswith("Voranthis Kelmoor -- nearest: ")
+    html = nearest_systems_html(neighbors, _url)
+    assert "Voranthis" not in html
     assert '<a href="/system/7">Alpha Vesta II</a> (4.2 ly)' in html
     assert '<a href="/system/9">Beta</a> (5.1 ly)' in html
 
 
 def test_stale_stored_name_is_left_unlinked_by_the_string_fallback():
     location = "Voranthis Kelmoor -- nearest: Alpha Vesta (4.2 ly)"
-    html = linkify_location(location, {"Alpha Vesta II": 7}, _url)
+    html = linkify_nearest(location, {"Alpha Vesta II": 7}, _url)
     assert "<a " not in html

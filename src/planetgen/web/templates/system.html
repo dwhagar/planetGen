@@ -159,8 +159,8 @@
     {%- if territory %}<span class="badge"><svg class="polity-swatch" viewBox="0 0 10 10" aria-hidden="true" focusable="false"><rect width="10" height="10" fill="{{ territory.color }}"/></svg> Territory of <a href="{{ territory.url }}">{{ territory.name }}</a></span>{% endif -%}
   </p>
   {{ action_bar(bookmark, nav_links, pick, page_url('system_on_galaxy_map', system_id=system.id) if nav_links else none, admin_button) }}
-  {%- if location_html %}
-  <p class="location inline-links">Location: {{ location_html }}</p>
+  {%- if nearest_html %}
+  <p class="location inline-links">Nearest: {{ nearest_html }}</p>
   {%- endif %}
 </div>
 {% endblock %}
