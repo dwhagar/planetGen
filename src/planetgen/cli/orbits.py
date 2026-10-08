@@ -118,6 +118,7 @@ Usage:
 import argparse
 import sys
 
+from planetgen.cli.stage_progress import StageProgress
 from planetgen.db.store import (
     add_mysql_connection_args,
     advance_comet_orbits,
@@ -158,6 +159,19 @@ call rather than sharing `advance_orbital_phases`' set-based `UPDATE`s) ->
 human-readable label for this script's own summary line."""
 
 
+STAGES = (
+    "Advancing orbital phases",
+    "Advancing comets and facilities",
+    "Moving along galactic orbits",
+    "Refreshing containment, nearest systems and locations",
+)
+"""tuple: The steps of a run, in order, as the progress bar names them."""
+
+
+def _stage_label(index):
+    return f"Step {index + 1} of {len(STAGES)}: {STAGES[index]}"
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Advance every planet's, moon's, star's, binary system's, and standalone exotic "
@@ -190,23 +204,31 @@ def main():
         else:
             print(f"{elapsed_years:.6f} years elapsed since the last update -- advancing orbits.")
 
-        counts = advance_orbital_phases(conn, elapsed_years)
-        # Separate call/return shape (a plain int, not a per-table dict) --
-        # see this module's docstring and advance_comet_orbits' own
-        # docstring for why a comet's position can't be advanced by the
-        # same set-based SQL advance_orbital_phases uses for everything else.
-        counts["comets"] = advance_comet_orbits(conn, elapsed_years)
-        counts["facilities"] = advance_facility_orbits(conn, elapsed_years)
+        # A bar over the four steps, with the tables (or sectors) of the
+        # step under way beneath it; the Generate page's job status draws
+        # the same two bars.
+        with StageProgress(len(STAGES)) as bar:
+            bar.stage(_stage_label(0))
+            counts = advance_orbital_phases(conn, elapsed_years, on_progress=bar.detail)
+            # Separate call/return shape (a plain int, not a per-table dict) --
+            # see this module's docstring and advance_comet_orbits' own
+            # docstring for why a comet's position can't be advanced by the
+            # same set-based SQL advance_orbital_phases uses for everything else.
+            bar.stage(_stage_label(1))
+            counts["comets"] = advance_comet_orbits(conn, elapsed_years)
+            counts["facilities"] = advance_facility_orbits(conn, elapsed_years)
+
+            # Galactic motion: move everything along its galactic orbit,
+            # refile what drifted into another sector, then recompute what
+            # depends on position (containment, octants, nearest systems,
+            # location text).
+            bar.stage(_stage_label(2))
+            motion = advance_galactic_positions(conn, elapsed_years, on_progress=bar.detail)
+            bar.stage(_stage_label(3))
+            locations = refresh_after_motion(conn, motion["sectors"], on_progress=bar.detail)
+            conn.commit()
         summary = ", ".join(f"{counts[table]} {label}" for table, label in TABLE_LABELS.items())
         print(f"Updated: {summary}.")
-
-        # Galactic motion: move everything along its galactic orbit,
-        # refile what drifted into another sector, then recompute what
-        # depends on position (containment, octants, nearest systems,
-        # location text).
-        motion = advance_galactic_positions(conn, elapsed_years)
-        locations = refresh_after_motion(conn, motion["sectors"])
-        conn.commit()
         print(f"Moved {motion['moved']} object(s) along their galactic orbits; {motion['refiled']} changed "
               f"sector. Refreshed nearest systems and containment; rewrote {locations} location(s).")
     except Exception as exc:

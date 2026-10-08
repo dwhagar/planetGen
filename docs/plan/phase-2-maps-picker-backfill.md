@@ -39,7 +39,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.58 | Galaxy Map zoom limits: a short manual range on the galaxy wedge, locked below it |  | A zoom policy of MAP.64. |
 | MAP.75 | The mini map as a second engine view |  | Locked second camera on MAP.64. |
 | MAP.59 | Make it plain that a zoomed-in slab is a slab, not a wedge | MAP.75 |  |
-| MAP.131 | A Color by switch on the maps, with a legend | MAP.128, UX.40 | Later (Boss 2026-10-08 01:59Z colors). |
+| MAP.131 | A Color by switch on the maps, with a legend | MAP.128 | Later (Boss 2026-10-08 01:59Z colors). |
 | MAP.132 | Overlay markers for black holes, nebulae and habitable worlds | MAP.128, GEN.75, GEN.84 | Later (Boss 2026-10-08 01:59Z colors). |
 
 ### Courses

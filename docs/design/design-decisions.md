@@ -371,11 +371,17 @@ Redis); Huey and Celery (section 3 of `library-migration.md`).
 ## 12. Names from IDs (planned)
 
 **Chosen:** Boss (2026-10-03): "Do away with name generation for any
-object, do away with our word-salad code entirely". Every object gets a
-unique ID, and its name is Boss's phoneme codec (`gatedPhonemeCodec.py`)
-applied to the ID under a naming key stored in the control database,
-drawn when the galaxy is created and changeable by an admin. Details:
-`object-ids.md`.
+object, do away with our word-salad code entirely", narrowed on
+2026-10-08: "keep word salad method for stars and sectors, everything else
+gets a name derived from it's unique ID." Every object gets a unique ID.
+Stars and sectors keep their word-salad names and, by Boss's decision
+of 2026-10-08 04:00Z, planets, moons and belts keep the "<star> I"
+pattern; the objects with no star-derived name (rogue planets, black
+holes, neutron stars, nebulae, remnants, quasars, interstellar comets,
+asteroid fields, constellations) get Boss's phoneme codec
+(`gatedPhonemeCodec.py`) applied to the ID under a naming key stored in
+the control database, drawn when the galaxy is created and changeable by
+an admin. Details: `object-ids.md`.
 
 **Why:** names become unique by construction (no collision rules, no
 registries, no word lists to keep reproducible), and changing the key
