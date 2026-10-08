@@ -1,70 +1,13 @@
 {#- The sector page (web/sector_page.py). -#}
 {% extends "base.html" %}
-{% from "partials/admin_menu.html" import admin_menu, add_edit_actions with context %}
+{% from "partials/admin_menu.html" import admin_menu_button, admin_dialogs, add_edit_actions with context %}
 {% from "partials/action_bar.html" import action_bar %}
 {% from "partials/datatable.html" import datatable with context %}
-{% block head %}
-<script type="module" src="{{ static_url('galaxymap3d.js') }}"></script>
-<script type="module" src="{{ static_url('bookmarks.js') }}"></script>
-<script type="module" src="{{ static_url('datatable.js') }}"></script>
-{% endblock %}
-{% block subhead %}
-<div class="page-subhead">
-<p class="badges">
-  <span class="badge">Edge {{ edge_text }}</span>
-  <span class="badge">{{ system_count }} system{{ "" if system_count == 1 else "s" }}</span>
-  {%- if star_count %}
-  <span class="badge">{{ star_count }} star{{ "" if star_count == 1 else "s" }}</span>
-  {%- endif %}
-  {%- if phenomenon_count %}
-  <span class="badge">{{ phenomenon_count }} {{ "phenomenon" if phenomenon_count == 1 else "phenomena" }}</span>
-  {%- endif %}
-</p>
-{%- if quadrant %}
-<p class="location">In <a href="{{ page_url('galaxy', quadrant=quadrant) }}">Quadrant {{ quadrant }}</a> of the galaxy</p>
-{%- endif %}
-{{ action_bar(bookmark, none, none, galaxy_url) }}
-</div>
-{% endblock %}
-{% block content %}
-{%- if pick %}
-<p class="pick-banner" role="status"><strong>{{ pick.banner }}:</strong> pick a system or phenomenon on the
-  Sector Map, then &ldquo;{{ pick.label }}&rdquo;, or use a bookmark. <a href="{{ pick.cancel }}">Cancel</a></p>
-{#- Bookmarks that keep the pick (NAV.40): static/bookmarks.js fills it. -#}
-<details class="bookmarks-menu pick-bookmarks" data-bookmarks-menu data-bookmark-db="{{ bookmark.db }}"
-         data-pick="{{ pick.pick }}" data-keep-name="{{ pick.keep_name }}" data-keep-value="{{ pick.keep_value }}"
-         data-nav-url="{{ pick.nav_url }}">
-  <summary class="btn btn-small">Bookmarks</summary>
-  <div class="bookmarks-panel" data-bookmarks-panel></div>
-</details>
-{%- endif %}
-{%- for message in messages %}
-<p class="hint" role="status">{{ message }}</p>
-{%- endfor %}
-{%- if sector.wiki_url %}
-<p class="wiki-link"><a href="{{ sector.wiki_url }}" target="_blank" rel="noopener noreferrer">View on Wiki</a></p>
-{%- endif %}
-{#- ADM.34: every admin action of this page (upload to the wiki, generate the
-    neighborhood, regenerate and delete the sector) sits behind the one Admin
-    menu (partials/admin_menu.html, static/dialogmenus.js) and opens in a
-    dialog. The neighborhood's size-and-time check comes back as a dialog
-    opened on load. #}
+{%- set groups = [] %}
+{#- ADM.34, UX.75: the sector's admin actions are built here, outside the blocks, so the
+    action bar (subhead) and the dialogs (content) share them. -#}
 {%- set show_wiki = admin and wiki_backends and not sector.wiki_url -%}
 {%- set show_generate = can_generate and sector.placed -%}
-{%- if errors.wiki %}
-<p class="error" role="alert">{{ errors.wiki }}</p>
-{%- endif %}
-{%- if errors.wiki_link %}
-<p class="error" role="alert">{{ errors.wiki_link }}</p>
-{%- endif %}
-{%- if errors.neighborhood %}
-<p class="error" role="alert">{{ errors.neighborhood }}</p>
-{%- endif %}
-{%- if can_generate and not sector.placed %}
-<p class="hint">This sector has never been placed in a galaxy. Generating a
-neighborhood around it requires a galaxy-placed sector (one generated with
-<code>planetgen galaxy</code>, not <code>planetgen sector</code>).</p>
-{%- endif %}
 {%- set here = url_for('web.sector', sector_id=sector_id) %}
 {%- set actions = [] %}
 {%- if show_wiki %}
@@ -102,14 +45,74 @@ neighborhood around it requires a galaxy-placed sector (one generated with
     'hidden': {'action': 'generate_neighborhood'}, 'button': 'Generate more sectors around this one'}) %}
 {%- endif %}
 {%- if can_edit %}
-{{ add_edit_actions(actions, 'this sector',
+{%- set _ = add_edit_actions(actions, 'this sector',
      'Deletes the sector with its systems and phenomena, then generates its place in the galaxy again (a new name and contents). Only for a sector placed in the galaxy.',
      'Deletes the sector with its systems, phenomena and facilities. Its place in the galaxy is left empty, so it can be generated again.',
-     facilities=False) }}
+     facilities=False) %}
 {%- endif %}
-{%- if actions %}
-{{ admin_menu([{'id': 'sector', 'target': 'sector:' ~ sector_id, 'actions': actions}], 'this sector', here) }}
+{%- if actions %}{%- set _ = groups.append({'id': 'sector', 'target': 'sector:' ~ sector_id, 'actions': actions}) %}{%- endif %}
+{%- set admin_button %}{% if groups %}{{ admin_menu_button(groups, 'this sector') }}{% endif %}{% endset %}
+{% block head %}
+<script type="module" src="{{ static_url('galaxymap3d.js') }}"></script>
+<script type="module" src="{{ static_url('bookmarks.js') }}"></script>
+<script type="module" src="{{ static_url('datatable.js') }}"></script>
+{% endblock %}
+{% block subhead %}
+<div class="page-subhead">
+<p class="badges">
+  <span class="badge">Edge {{ edge_text }}</span>
+  <span class="badge">{{ system_count }} system{{ "" if system_count == 1 else "s" }}</span>
+  {%- if star_count %}
+  <span class="badge">{{ star_count }} star{{ "" if star_count == 1 else "s" }}</span>
+  {%- endif %}
+  {%- if phenomenon_count %}
+  <span class="badge">{{ phenomenon_count }} {{ "phenomenon" if phenomenon_count == 1 else "phenomena" }}</span>
+  {%- endif %}
+</p>
+{%- if quadrant %}
+<p class="location">In <a href="{{ page_url('galaxy', quadrant=quadrant) }}">Quadrant {{ quadrant }}</a> of the galaxy</p>
 {%- endif %}
+{{ action_bar(bookmark, none, none, galaxy_url, admin_button) }}
+</div>
+{% endblock %}
+{% block content %}
+{%- if pick %}
+<p class="pick-banner" role="status"><strong>{{ pick.banner }}:</strong> pick a system or phenomenon on the
+  Sector Map, then &ldquo;{{ pick.label }}&rdquo;, or use a bookmark. <a href="{{ pick.cancel }}">Cancel</a></p>
+{#- Bookmarks that keep the pick (NAV.40): static/bookmarks.js fills it. -#}
+<details class="bookmarks-menu pick-bookmarks" data-bookmarks-menu data-bookmark-db="{{ bookmark.db }}"
+         data-pick="{{ pick.pick }}" data-keep-name="{{ pick.keep_name }}" data-keep-value="{{ pick.keep_value }}"
+         data-nav-url="{{ pick.nav_url }}">
+  <summary class="btn btn-small">Bookmarks</summary>
+  <div class="bookmarks-panel" data-bookmarks-panel></div>
+</details>
+{%- endif %}
+{%- for message in messages %}
+<p class="hint" role="status">{{ message }}</p>
+{%- endfor %}
+{%- if sector.wiki_url %}
+<p class="wiki-link"><a href="{{ sector.wiki_url }}" target="_blank" rel="noopener noreferrer">View on Wiki</a></p>
+{%- endif %}
+{#- ADM.34: every admin action of this page (upload to the wiki, generate the
+    neighborhood, regenerate and delete the sector) sits behind the one Admin
+    menu (partials/admin_menu.html, static/dialogmenus.js) and opens in a
+    dialog. The neighborhood's size-and-time check comes back as a dialog
+    opened on load. #}
+{%- if errors.wiki %}
+<p class="error" role="alert">{{ errors.wiki }}</p>
+{%- endif %}
+{%- if errors.wiki_link %}
+<p class="error" role="alert">{{ errors.wiki_link }}</p>
+{%- endif %}
+{%- if errors.neighborhood %}
+<p class="error" role="alert">{{ errors.neighborhood }}</p>
+{%- endif %}
+{%- if can_generate and not sector.placed %}
+<p class="hint">This sector has never been placed in a galaxy. Generating a
+neighborhood around it requires a galaxy-placed sector (one generated with
+<code>planetgen galaxy</code>, not <code>planetgen sector</code>).</p>
+{%- endif %}
+{{ admin_dialogs(groups, here) }}
 {%- if show_generate and estimate %}
 <sl-dialog id="admin-estimate" class="edit-dialog" label="Generate neighborhood" open>
   <p id="neighborhood-estimate">{{ estimate.summary }}</p>
