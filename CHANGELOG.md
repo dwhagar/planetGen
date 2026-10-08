@@ -1,5 +1,10 @@
 # Changelog
 
+## [7.301.664] - 2026-10-08
+
+### Fixed
+- The population test that plants a species without a civilization no longer fails now and then: it cleared nothing from the first planet, which could already be a real species' homeworld (TEST.102).
+
 ## [7.300.664] - 2026-10-08
 
 ### Added
