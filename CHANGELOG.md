@@ -1,5 +1,10 @@
 # Changelog
 
+## [7.296.637] - 2026-10-08
+
+### Changed
+- The Galaxy Map lists fewer generated stars per tile the farther out you zoom (a table of budgets per level), and each sector may give only a share of a tile's budget, its brightest, so a dense filled region stays readable two or three zoom levels out from a sector while a sparse one keeps all its stars. Black holes, neutron stars and quasars follow a budget too, so they show only where it reaches them. Comets, rogue planets and asteroid fields stay on the Sector Map only (MAP.116, MAP.115).
+
 ## [7.295.637] - 2026-10-08
 
 ### Changed
