@@ -1100,7 +1100,18 @@ A route that would hold a web worker for minutes queues its work on Redis
 Each job has its own queue and a burst worker started for it, detached
 from the web server, so a proxy timeout or a reload doesn't stop it.
 
-- `GET /api/jobs/<id>` (admin) — `{"id", "state", "result", "error"}`.
+Quick generating edits queue the same way but wait up to eight seconds
+for the job first, so they normally still answer in the same response
+(`201` or `200` as before); only a slow one answers `202`. These are
+`POST /api/systems`, `PATCH /api/systems/<id>` with `regenerate`,
+`POST /api/{planets,moons,belts}/<id>/regenerate`, `POST
+/api/phenomena/<type>/<id>/regenerate`, `POST /api/{planets,moons}/<id>/class`
+and `POST /api/systems/<id>/star`. Deletes and plain renames stay in the
+request. A refusal comes back with its own status (404, 409, 400); `503`
+means no Redis server answered.
+
+- `GET /api/jobs/<id>` (admin) — `{"id", "state", "result", "error",
+  "error_status"}`; `error_status` is the HTTP status of a refusal.
   `state` is `queued`, `running`, `succeeded` or `failed`; `result` is
   what the work returned once it succeeded; `error` is the last line of
   its error text once it failed. `404` for an unknown or expired id

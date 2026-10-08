@@ -17,6 +17,7 @@ import os
 import re
 import secrets
 import sys
+import time
 
 from planetgen.queue import redisqueue
 
@@ -48,11 +49,28 @@ def new_job_id():
     return secrets.token_hex(8)
 
 
-def submit(function, *args, **kwargs):
+SHORT_WAIT_SECONDS = 8.0
+"""float: How long a route that queues quick work waits for the answer
+before it gives up and answers `202` with the job's id."""
+
+
+def execute(function, args):
     """
-    Queues `function(*args, **kwargs)` (a module-level function, given
-    as its dotted name or the function itself; its arguments and return
-    value must pickle) and starts a burst worker for it.
+    What a worker runs for a queued job: `function(*args)`, with a refusal
+    the work raises on purpose (an `ApiError`: 404, 409 ...) returned as
+    data, so `status` can report the HTTP status it carries.
+    """
+    from planetgen.api.common import ApiError
+    try:
+        return {"result": function(*args)}
+    except ApiError as exc:
+        return {"refused": str(exc), "status": exc.status_code}
+
+
+def submit(function, *args):
+    """
+    Queues `function(*args)` (a module-level function; its arguments and
+    return value must pickle) and starts a burst worker for it.
 
     Returns:
         str: The job's id, for `status`.
@@ -70,11 +88,24 @@ def submit(function, *args, **kwargs):
     job_id = new_job_id()
     name = QUEUE_PREFIX + job_id
     redisqueue.queue(name, connection).enqueue(
-        function, args=args, kwargs=kwargs, job_id=name, job_timeout=-1,
+        execute, args=(function, args), job_id=name, job_timeout=-1,
         result_ttl=RESULT_TTL_SECONDS, failure_ttl=RESULT_TTL_SECONDS,
     )
     redisqueue.start_detached(redisqueue.worker_argv([name], url, name=name, python=sys.executable), REPO_DIR)
     return job_id
+
+
+def wait(job_id, seconds=SHORT_WAIT_SECONDS):
+    """
+    `status(job_id)` once the job has finished, or as it stands after
+    `seconds`.
+    """
+    deadline = time.monotonic() + seconds
+    while True:
+        job = status(job_id)
+        if job is None or job["state"] in ("succeeded", "failed") or time.monotonic() >= deadline:
+            return job
+        time.sleep(0.05)
 
 
 def status(job_id):
@@ -84,8 +115,9 @@ def status(job_id):
     Returns:
         dict | None: `id`, `state` (`queued`, `running`, `succeeded` or
             `failed`), `result` (what the function returned, once it
-            succeeded) and `error` (its last line of error text, once it
-            failed). `None` for an unknown or expired id, or a bad one.
+            succeeded), `error` (the refusal, or the last line of the
+            error text, once it failed) and `error_status` (the HTTP
+            status of a refusal, else `None`). `None` for an unknown or expired id, or a bad one.
 
     Raises:
         NoQueue: No Redis server answers.
@@ -100,9 +132,13 @@ def status(job_id):
     if job is None:
         return None
     state = _STATES.get(job.get_status(refresh=True), "failed")
-    body = {"id": job_id, "state": state, "result": None, "error": None}
+    body = {"id": job_id, "state": state, "result": None, "error": None, "error_status": None}
     if state == "succeeded":
-        body["result"] = job.return_value()
+        outcome = job.return_value()
+        if "refused" in outcome:
+            body.update(state="failed", error=outcome["refused"], error_status=outcome["status"])
+        else:
+            body["result"] = outcome["result"]
     elif state == "failed":
         latest = job.latest_result()
         text = (latest.exc_string if latest is not None else None) or "the job ended without finishing"
