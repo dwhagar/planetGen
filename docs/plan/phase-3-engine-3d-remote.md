@@ -24,23 +24,18 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| MAP.71 | Scale modes that keep everything visible | MAP.89 | Its compressed scale should reuse MAP.89's fitted knots. |
-| MAP.72 | Rendering at system scale |  |  |
-| MAP.73 | Free camera on the shared engine | MAP.72 |  |
-| MAP.74 | The 3D view on the system page, the flat diagram kept | MAP.73, MAP.71 | system.html, after the page's button and edit rework. |
-| MAP.62 | A full 3D star system view with a free camera | MAP.70, MAP.71, MAP.72, MAP.73, MAP.74 | Parent; closes with its subitems. |
-| MAP.126 | Show the orbital trajectories of selected objects in their frame of reference | MAP.70, MAP.73 |  |
+| MAP.126 | Show the orbital trajectories of selected objects in their frame of reference |  |  |
 
 ### Courses
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| NAV.22 | Courses inside a sector and a system | NAV.20, NAV.16, MAP.73 |  |
+| NAV.22 | Courses inside a sector and a system | NAV.20, NAV.16 |  |
 | NAV.23 | Open a saved course on the map | NAV.4, NAV.20, NAV.21 |  |
 | NAV.5 | Show a course on the Galaxy Map | NAV.20, NAV.21, NAV.22, NAV.23 | Courses stay drawn until cleared (NAV.49). Parent; most of it exists (MAP.27). |
 | NAV.25 | Find the obstacles along a path | NAV.10, NAV.24 | Corridor query from NAV.10; sectors along the line from NAV.38. |
 | NAV.26 | Bend the path around keep-out spheres | NAV.25 |  |
-| NAV.27 | Moving bodies inside a system | NAV.26, MAP.70, NAV.16 |  |
+| NAV.27 | Moving bodies inside a system | NAV.26, NAV.16 |  |
 | NAV.28 | Show and save the adjusted course | NAV.26, NAV.4, NAV.20 |  |
 | NAV.6 | Courses that steer clear of gravity wells | NAV.24, NAV.25, NAV.26, NAV.27, NAV.28 | Parent; closes with its subitems. |
 
@@ -77,7 +72,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| MAP.125 | Infinite zoom: one 3D interface from the galaxy down to a moon | MAP.62 | The end state of the one-engine and 3D-system work. |
+| MAP.125 | Infinite zoom: one 3D interface from the galaxy down to a moon |  | The end state of the one-engine and 3D-system work. |
 
 ### Recipes
 
@@ -87,7 +82,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 ## Open questions for Boss
 
-- MAP.74: The 3D view on the system page, the flat diagram kept, see its entry in TODO.md.
 - NAV.6: Courses that steer clear of gravity wells, see its entry in TODO.md.
 - API.8: Verify uploaded data before it is finalized, see its entry in TODO.md.
 - ADM.13: Incomplete uploads page, see its entry in TODO.md.
