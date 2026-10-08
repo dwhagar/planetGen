@@ -946,7 +946,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.72 | Gear menu mixes unrelated things; the admin hub is not the hub | none | done, PR #632 |
 | UX.73 | Sector wiki link form on the Admin hub | none | done, PR #632 |
 | UX.74 | Generate page shows an empty Current job card | none | done, PR #617 |
-| UX.75 | Admin menus on the sector and phenomenon pages sit in the page body, not the action bar | none | open |
+| UX.75 | Admin menus on the sector and phenomenon pages sit in the page body, not the action bar | none | done, PR #679 |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
