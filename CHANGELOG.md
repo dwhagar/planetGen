@@ -1,5 +1,10 @@
 # Changelog
 
+## [7.350.675] - 2026-10-08
+
+### Added
+- **A Galaxy Map bug in the TODO.** MAP.133: after the bright-star scatter the map shows no bright stars in the bulge, because its sample ranks by luminosity alone.
+
 ## [7.349.675] - 2026-10-08
 
 ### Added
