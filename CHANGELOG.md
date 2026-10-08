@@ -1,5 +1,10 @@
 # Changelog
 
+## [7.324.675] - 2026-10-08
+
+### Added
+- A new item is on the list: the sector and phenomenon pages' Admin menus move into the shared action bar (UX.75).
+
 ## [7.323.675] - 2026-10-08
 
 ### Changed
