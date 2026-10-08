@@ -57,6 +57,38 @@ def _fake_phenomena(db, limit=None, offset=None, sort=None, descending=False, ty
     return body
 
 
+SECTORS = [
+    {"id": i, "name": f"Sector {i:03d}", "system_count": i % 7, "edge_ly": 10.0, "placed": bool(i % 3),
+     "center_x_pc": 100.0 if i % 2 else -100.0, "center_y_pc": 50.0, "galactic_radius_ly": 100.0 + i}
+    for i in range(130)
+]
+STANDALONE = [{"id": 1000 + i, "name": f"Drifting {i:03d}", "is_binary": i % 2, "star_summary": "G2V",
+               "sector_id": None, "sector_name": None, "quadrant": None} for i in range(130)]
+
+
+def _fake_sectors(db, limit=None, offset=None, sort=None, descending=False, quadrants=(), facets=False):
+    rows = [row for row in SECTORS if not quadrants or ("I" if row["center_x_pc"] > 0 else "II") in quadrants
+            or ("unplaced" in quadrants and not row["placed"])]
+    key = {"name": "name", "systems": "system_count", "distance": "galactic_radius_ly"}.get(sort or "distance", "name")
+    rows = sorted(rows, key=lambda row: (row[key], row["name"]), reverse=bool(descending))
+    body = {"items": rows[offset:offset + limit], "total": len(rows), "limit": limit, "offset": offset}
+    if facets:
+        body["facets"] = {"quadrant": [{"value": "I", "count": 65}, {"value": "II", "count": 65}]}
+    return body
+
+
+def _fake_systems(db, star_type=None, sector_id=None, limit=None, offset=None, sort=None, descending=False,
+                  binary=None, placement=None, octants=(), facets=False):
+    rows = [row for row in STANDALONE if binary is None or bool(row["is_binary"]) == binary]
+    key = {"binary": "is_binary"}.get(sort or "name", "name")
+    rows = sorted(rows, key=lambda row: (row[key], row["name"]), reverse=bool(descending))
+    body = {"items": rows[offset:offset + limit], "total": len(rows), "limit": limit, "offset": offset}
+    if facets:
+        body["facets"] = {"placement": [{"value": "standalone", "count": len(STANDALONE)}],
+                          "binary": [{"value": "yes", "count": 65}, {"value": "no", "count": 65}], "octant": []}
+    return body
+
+
 class _SiteConfig(Config):
     WEB_DATABASE = DB
     SESSION_COOKIE_SECURE = False
@@ -70,6 +102,8 @@ def table_site():
     patch = pytest.MonkeyPatch()
     try:
         patch.setattr(apiclient, "get_phenomena", _fake_phenomena)
+        patch.setattr(apiclient, "get_sectors", _fake_sectors)
+        patch.setattr(apiclient, "get_systems", _fake_systems)
         patch.setattr(apiclient, "auth_me", lambda cookie_header: None)
         patch.setattr(apiclient, "get_population_status", lambda db: dict(apiclient.POPULATION_NONE))
         app = create_app(_SiteConfig)
@@ -255,3 +289,33 @@ def test_without_scripts_it_is_a_sortable_filterable_paged_table(browser, table_
         assert parse_qs(urlparse(page.url).query)["type"] == ["black_hole"]
     finally:
         context.close()
+
+
+def test_two_tables_on_one_page_keep_their_own_state(page, table_site):
+    assert page.goto(f"{table_site}/", wait_until="load").status == 200
+    page.locator("#sectors-table[data-enhanced='true']").wait_for(state="attached", timeout=15000)
+    page.locator("#standalone-systems-table[data-enhanced='true']").wait_for(state="attached", timeout=15000)
+    assert page.locator("#sectors-table .datatable-count-line").inner_text() == "130 sectors"
+    assert page.locator("#standalone-systems-table .datatable-count-line").inner_text() == "130 standalone systems"
+
+    page.locator("#sectors-table th[data-col='systems'] .datatable-sort").click()
+    page.locator("#sectors-table th[data-col='systems'][aria-sort='ascending']").wait_for(state="attached")
+    page.locator("#standalone-systems-table th[data-col='binary'] .datatable-sort").click()
+    page.locator("#standalone-systems-table th[data-col='binary'][aria-sort='ascending']").wait_for(state="attached")
+    assert page.locator("#sectors-table th[data-col='systems']").get_attribute("aria-sort") == "ascending"
+    assert parse_qs(urlparse(page.url).query) == {"sectors_sort": ["systems"], "standalone_sort": ["binary"]}
+
+    facet = page.locator("#standalone-systems-table .datatable-facet")
+    facet.locator("summary").click()
+    facet.get_by_label("Binary").check()
+    page.locator("#standalone-systems-table .datatable-count-line", has_text="65 standalone systems match") \
+        .wait_for(state="attached", timeout=10000)
+    assert page.locator("#sectors-table .datatable-count-line").inner_text() == "130 sectors"
+    query = parse_qs(urlparse(page.url).query)
+    assert query["sectors_sort"] == ["systems"] and query["standalone_binary"] == ["yes"]
+
+    # A reload renders both tables the way they were left.
+    page.reload()
+    page.locator("#sectors-table[data-enhanced='true']").wait_for(state="attached", timeout=15000)
+    assert page.locator("#sectors-table th[data-col='systems']").get_attribute("aria-sort") == "ascending"
+    assert page.locator("#standalone-systems-table .datatable-count-line").inner_text() == "65 standalone systems match"

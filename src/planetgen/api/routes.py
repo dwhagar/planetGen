@@ -47,6 +47,8 @@ from planetgen.db.query import (
     SEARCH_RESULT_PANELS,
     SEARCH_TAG_FACETS,
     PHENOMENON_SORTS,
+    SECTOR_SORTS,
+    SYSTEM_SORTS,
     count_phenomena,
     count_sectors,
     count_systems,
@@ -60,6 +62,8 @@ from planetgen.db.query import (
     galaxy_tiles,
     list_phenomena,
     phenomena_facets,
+    sectors_facets,
+    systems_facets,
     list_sectors,
     list_systems,
     nav_between,
@@ -439,14 +443,30 @@ def databases():
 
 @bp.route("/sectors")
 def sectors():
+    """
+    The sectors, nearest the galactic core first, paginated. The Sectors
+    table (UX.41) also takes `sort` (`name`, `systems`, `density`,
+    `position` or `distance`) with `order=asc|desc`, the repeatable filter
+    `quadrant` (`I`-`IV`, `unplaced`) and `facets=1` for the Quadrant menu's
+    option counts (`facets`). `total` counts the sectors that pass the filter.
+    """
     limit, offset = _paginate(request.args)
+    sort = None
+    descending = False
+    if request.args.get("sort") or request.args.get("order"):
+        sort, descending = _parse_sort(request.args, SECTOR_SORTS)
+    quadrants = [v for v in request.args.getlist("quadrant") if v]
     db = get_db()
-    return jsonify({
-        "items": list_sectors(db, limit=limit, offset=offset),
-        "total": count_sectors(db),
+    body = {
+        "items": list_sectors(db, limit=limit, offset=offset, sort=sort, descending=descending,
+                              quadrants=quadrants),
+        "total": count_sectors(db, quadrants=quadrants),
         "limit": limit,
         "offset": offset,
-    })
+    }
+    if request.args.get("facets") == "1":
+        body["facets"] = sectors_facets(db, quadrants=quadrants)
+    return jsonify(body)
 
 
 @bp.route("/sectors/<int:sector_id>")
@@ -480,18 +500,39 @@ def _parse_sector_id_filter(raw_sector_id):
 
 @bp.route("/systems")
 def systems():
+    """
+    The systems, by name, paginated; `star_type` and `sector_id` filter them.
+    The Systems tables (UX.41) also take `sort` (`name`, `sector`, `octant`
+    or `binary`) with `order=asc|desc`, the filters `binary=yes|no`,
+    `placement=sector|standalone` and `octant` (repeatable), and `facets=1`
+    for the filter menus' option counts (`facets`: `placement`, `binary`,
+    `octant`). `total` counts the systems that pass the filters.
+    """
     star_type = request.args.get("star_type")
     sector_id = _parse_sector_id_filter(request.args.get("sector_id"))
+    sort, descending = _parse_sort(request.args, SYSTEM_SORTS)
+    placement = request.args.get("placement")
+    if placement not in (None, "", "sector", "standalone"):
+        raise ApiError("placement must be 'sector' or 'standalone'")
+    filters = {
+        "binary": _parse_yes_no(request.args.get("binary"), "binary"),
+        "octants": [v for v in request.args.getlist("octant") if v],
+        "in_sector": None if not placement else placement == "sector",
+    }
 
     limit, offset = _paginate(request.args)
     db = get_db()
-    rows = list_systems(db, star_type_prefix=star_type, sector_id=sector_id, limit=limit, offset=offset)
-    return jsonify({
+    rows = list_systems(db, star_type_prefix=star_type, sector_id=sector_id, limit=limit, offset=offset,
+                        sort=sort, descending=descending, **filters)
+    body = {
         "items": rows,
-        "total": count_systems(db, star_type_prefix=star_type, sector_id=sector_id),
+        "total": count_systems(db, star_type_prefix=star_type, sector_id=sector_id, **filters),
         "limit": limit,
         "offset": offset,
-    })
+    }
+    if request.args.get("facets") == "1":
+        body["facets"] = systems_facets(db, sector_id=sector_id, **filters)
+    return jsonify(body)
 
 
 @bp.route("/systems/<int:system_id>")

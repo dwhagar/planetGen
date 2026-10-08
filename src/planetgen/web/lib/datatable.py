@@ -65,10 +65,12 @@ class Table:
         load (callable): `load(state, limit, offset, want_facets)` -> `Result`.
         facets (list[Facet]): The filter menus.
         prefix (str): Put before `sort`, `order` and `page` in the page's URL.
+        default_sort (str, optional): The sort key when none is asked for
+            (the first sortable column if omitted).
         noun (tuple[str, str]): Singular and plural for the count line.
     """
 
-    def __init__(self, name, label, columns, load, facets=(), prefix="", noun=("row", "rows")):
+    def __init__(self, name, label, columns, load, facets=(), prefix="", noun=("row", "rows"), default_sort=None):
         self.name = name
         self.label = label
         self.columns = list(columns)
@@ -76,10 +78,13 @@ class Table:
         self.facets = list(facets)
         self.prefix = prefix
         self.noun = noun
+        self.default_sort = default_sort or next(column.key for column in columns if column.sortable)
 
-    @property
-    def default_sort(self):
-        return next(column.key for column in self.columns if column.sortable)
+    def owned_params(self):
+        """The page query parameters this table reads; every other one belongs to the page or
+        another table and is carried along unchanged."""
+        return {f"{self.prefix}sort", f"{self.prefix}order", f"{self.prefix}page",
+                *(facet.param for facet in self.facets)}
 
     def sort_keys(self):
         return [column.key for column in self.columns if column.sortable]
@@ -111,10 +116,11 @@ def parse_state(table, args, prefix=None):
     return State(sort, args.get(f"{prefix}order") == "desc", filters, parse_page(args.get(f"{prefix}page")))
 
 
-def state_params(table, state, page=None, sort=None, descending=None):
+def state_params(table, state, page=None, sort=None, descending=None, extra=()):
     """
     The query pairs that put `state` (with optional overrides) back in a URL.
-    A default sort order is left out; `page` is added only above 1.
+    A default sort order is left out; `page` is added only above 1; `extra`
+    (the page's other parameters) is added last.
     """
     sort = state.sort if sort is None else sort
     descending = state.descending if descending is None else descending
@@ -127,7 +133,7 @@ def state_params(table, state, page=None, sort=None, descending=None):
         pairs.extend((facet.param, value) for value in state.filters.get(facet.param, ()))
     if page is not None and page > 1:
         pairs.append((f"{table.prefix}page", page))
-    return pairs
+    return pairs + list(extra)
 
 
 def _href(path, pairs, anchor):
@@ -135,7 +141,7 @@ def _href(path, pairs, anchor):
     return path + (f"?{query}" if query else "") + (f"#{anchor}" if anchor else "")
 
 
-def view(table, state, result, path, source, anchor=None):
+def view(table, state, result, path, source, anchor=None, extra=()):
     """
     Everything `partials/datatable.html` needs to draw the table.
 
@@ -146,6 +152,7 @@ def view(table, state, result, path, source, anchor=None):
         path (str): The page's own path (links and the filter form go there).
         source (str): The table's JSON route.
         anchor (str, optional): Element id the links land on.
+        extra (list[tuple]): The page's other query pairs, kept in every link.
     """
     columns = []
     for column in table.columns:
@@ -155,8 +162,8 @@ def view(table, state, result, path, source, anchor=None):
             header["aria_sort"] = ("descending" if state.descending else "ascending") if current else "none"
             header["arrow"] = ("▼" if state.descending else "▲") if current else ""
             header["href"] = _href(path, state_params(table, state, sort=column.key,
-                                                      descending=(not state.descending) if current else False),
-                                   anchor)
+                                                      descending=(not state.descending) if current else False,
+                                                      extra=extra), anchor)
         columns.append(header)
     facets = []
     for facet in table.facets:
@@ -183,10 +190,12 @@ def view(table, state, result, path, source, anchor=None):
         "filtered": any(state.filters.get(facet.param) for facet in table.facets),
         "sort": state.sort,
         "descending": state.descending,
-        "sort_fields": state_params(table, state._replace(filters={})),
-        "clear_href": _href(path, state_params(table, state._replace(filters={})), anchor),
+        "default_sort": table.default_sort,
+        "prefix": table.prefix,
+        "sort_fields": state_params(table, state._replace(filters={}), extra=extra),
+        "clear_href": _href(path, state_params(table, state._replace(filters={}), extra=extra), anchor),
         "page_size": PAGE_SIZE,
         "pager": Markup(render_pagination(
-            path, state_params(table, state), f"{table.prefix}page", state.page, result.total,
+            path, state_params(table, state, extra=extra), f"{table.prefix}page", state.page, result.total,
             anchor=anchor, label=f"{table.label} pages")),
     }

@@ -34,12 +34,15 @@ def render(table, path, anchor=None):
     past the end shows the last real one.
     """
     state = parse_state(table, request.args)
+    # Carry along only the other tables' parameters, never whatever else is in the address.
+    others = set().union(*(other.owned_params() for other in TABLES.values())) - table.owned_params()
+    extra = [(key, value) for key, value in request.args.items(multi=True) if key in others]
     result = table.load(state, PAGE_SIZE, page_offset(state.page), True)
     page = clamp_page(state.page, result.total)
     if page != state.page:
         state = state._replace(page=page)
         result = table.load(state, PAGE_SIZE, page_offset(page), True)
-    return view(table, state, result, path, url_for("web.table_data", name=table.name), anchor=anchor)
+    return view(table, state, result, path, url_for("web.table_data", name=table.name), anchor=anchor, extra=extra)
 
 
 def _whole(raw, default, lowest):

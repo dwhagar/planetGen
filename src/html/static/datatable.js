@@ -72,7 +72,10 @@ function enhance(root) {
   const noun = (count) => (count === 1 ? root.dataset.nounOne : root.dataset.nounMany);
   const clearLink = root.querySelector(".datatable-clear");
   const source = root.dataset.source;
-  const defaultSort = (headers.find((th) => th.querySelector(".datatable-sort")) || headers[0]).dataset.col;
+  const defaultSort = root.dataset.defaultSort;
+  const prefix = root.dataset.prefix || "";
+  const owned = [`${prefix}sort`, `${prefix}order`, `${prefix}page`]
+    .concat(facetNodes.map((node) => node.dataset.param));
   let rowHeight = ROW_HEIGHT_ESTIMATE;
 
   const columns = headers.map((th, index) => ({
@@ -279,8 +282,8 @@ function enhance(root) {
 
   function showAddress() {
     try {
-      history.replaceState(history.state, "", pageAddress(location.pathname, currentState(), defaultSort)
-        + location.hash);
+      history.replaceState(history.state, "", pageAddress(location.pathname, location.search, currentState(),
+        defaultSort, prefix, owned) + location.hash);
     } catch (error) {
       // The address bar is only a convenience.
     }

@@ -97,7 +97,35 @@ def open_readonly(config=None, statement_timeout_s=None):
         raise SystemExit(f"Error: could not open the database ({exc}).")
 
 
-def list_sectors(conn, limit=None, offset=None):
+SECTOR_SORTS = {
+    "name": "sec.name", "systems": "system_count", "density": "(COUNT(ss.id) / POW(sec.edge_mpc, 3))",
+    "position": "quadrant", "distance": "sec.galactic_radius_pc",
+}
+"""dict: The sort keys `list_sectors` accepts (the Sectors table's column
+keys) -> the SQL they order by. A sector with no value (unplaced) sorts last
+either way."""
+
+SECTOR_QUADRANTS = ("I", "II", "III", "IV")
+"""tuple[str]: The sector Quadrant labels `list_sectors` filters by, plus
+`"unplaced"` for a sector with no galaxy position."""
+
+_SECTOR_QUADRANT_SQL = (
+    "(CASE WHEN sec.center_x_pc IS NULL THEN 'unplaced' "
+    "WHEN sec.center_y_pc >= 0 THEN (CASE WHEN sec.center_x_pc >= 0 THEN 'I' ELSE 'II' END) "
+    "ELSE (CASE WHEN sec.center_x_pc < 0 THEN 'III' ELSE 'IV' END) END)"
+)
+"""str: SQL for a sector's Quadrant label, the same bands as
+`planetgen.galaxy.geometry.sector_quadrant`."""
+
+
+def _sector_quadrant_filter(quadrants):
+    """`(where_sql, params)` keeping sectors in any of `quadrants`."""
+    if not quadrants:
+        return "", []
+    return f" WHERE {_SECTOR_QUADRANT_SQL} IN ({', '.join('?' for _ in quadrants)})", list(quadrants)
+
+
+def list_sectors(conn, limit=None, offset=None, sort=None, descending=False, quadrants=()):
     """
     Returns every sector, with its edge length (converted to light-years)
     and how many systems it contains, nearest the galactic core first
@@ -111,6 +139,12 @@ def list_sectors(conn, limit=None, offset=None):
             still gets) returns every sector.
         offset (int, optional): Skips this many rows first. Ignored
             unless `limit` is also given; meaningless on its own.
+        sort (str, optional): A key of `SECTOR_SORTS`; `None` is the
+            default order below. Ties fall back to the default order, so
+            pages never overlap.
+        descending (bool): Reverse `sort`.
+        quadrants (iterable[str]): Keep only sectors in these Quadrants
+            (`SECTOR_QUADRANTS`, or `"unplaced"`).
 
     Returns:
         list[dict]: One row per sector, with `id`, `name`,
@@ -118,18 +152,26 @@ def list_sectors(conn, limit=None, offset=None):
                            `galactic_radius_pc`/`galactic_radius_ly`
                            (`None` if unplaced).
     """
-    query = """
+    if sort is not None and sort not in SECTOR_SORTS:
+        raise ValueError(f"unknown sector sort {sort!r}")
+    where, params = _sector_quadrant_filter(quadrants)
+    order = "sec.galactic_radius_pc IS NULL, sec.galactic_radius_pc, sec.name, sec.id"
+    if sort is not None:
+        column = SECTOR_SORTS[sort]
+        unplaced_last = "sec.center_x_pc IS NULL, " if sort in ("density", "distance", "position") else ""
+        order = f"{unplaced_last}{column} {'DESC' if descending else 'ASC'}, " + order
+    query = f"""
         SELECT sec.id, sec.name, sec.edge_mpc, sec.center_x_pc, sec.center_y_pc, sec.center_z_pc,
-               sec.galactic_radius_pc, sec.ring_index, sec.layer_index, sec.ring_slot_index, COUNT(ss.id) AS system_count
+               sec.galactic_radius_pc, sec.ring_index, sec.layer_index, sec.ring_slot_index,
+               COUNT(ss.id) AS system_count, {_SECTOR_QUADRANT_SQL} AS quadrant
         FROM sectors sec
-        LEFT JOIN star_systems ss ON ss.sector_id = sec.id
+        LEFT JOIN star_systems ss ON ss.sector_id = sec.id{where}
         -- Every selected column, not just the key: MariaDB's
         -- ONLY_FULL_GROUP_BY doesn't see columns that depend on sec.id.
         GROUP BY sec.id, sec.name, sec.edge_mpc, sec.center_x_pc, sec.center_y_pc, sec.center_z_pc,
                  sec.galactic_radius_pc, sec.ring_index, sec.layer_index, sec.ring_slot_index
-        ORDER BY sec.galactic_radius_pc IS NULL, sec.galactic_radius_pc, sec.name, sec.id
+        ORDER BY {order}
         """
-    params = []
     if limit is not None:
         query += " LIMIT ? OFFSET ?"
         params.extend([limit, offset or 0])
@@ -152,9 +194,10 @@ def list_sectors(conn, limit=None, offset=None):
     ]
 
 
-def count_sectors(conn):
+def count_sectors(conn, quadrants=()):
     """
-    Returns the total number of sectors, ignoring any pagination --
+    Returns the total number of sectors (that pass the same `quadrants`
+    filter as `list_sectors`), ignoring any pagination --
     the denominator `list_sectors(conn, limit=...)` callers (the API's
     `/api/sectors`) need to report how many pages exist.
 
@@ -164,7 +207,24 @@ def count_sectors(conn):
     Returns:
         int: Total sector count.
     """
-    return conn.execute("SELECT COUNT(*) AS n FROM sectors").fetchone()["n"]
+    where, params = _sector_quadrant_filter(quadrants)
+    return conn.execute(f"SELECT COUNT(*) AS n FROM sectors sec{where}", params).fetchone()["n"]
+
+
+def sectors_facets(conn, quadrants=()):
+    """
+    The option counts for the Sectors table's Quadrant menu: how many sectors
+    each Quadrant (and `"unplaced"`) holds. The menu ignores its own filter,
+    so choosing one Quadrant still shows the others' counts.
+
+    Returns:
+        dict: `{"quadrant": [{"value", "count"}]}` in Quadrant order, only
+            those with sectors.
+    """
+    counts = {row["quadrant"]: row["n"] for row in conn.execute(
+        f"SELECT {_SECTOR_QUADRANT_SQL} AS quadrant, COUNT(*) AS n FROM sectors sec GROUP BY quadrant").fetchall()}
+    return {"quadrant": [{"value": value, "count": counts[value]}
+                         for value in (*SECTOR_QUADRANTS, "unplaced") if counts.get(value)]}
 
 
 class _NoSector:
@@ -184,7 +244,12 @@ distinct from the default `None`, which means "don't filter by sector at
 all." The API's `/api/systems?sector_id=none` maps onto this."""
 
 
-def _systems_filter_clause(star_type_prefix, sector_id):
+SYSTEM_SORTS = {"name": "ss.name", "sector": "sec.name", "octant": "ss.quadrant", "binary": "ss.is_binary"}
+"""dict: The sort keys `list_systems` accepts (the Systems tables' column
+keys) -> the SQL they order by. Ties fall back to name, then id."""
+
+
+def _systems_filter_clause(star_type_prefix, sector_id, binary=None, octants=(), in_sector=None):
     """
     Builds the shared `JOIN`/`WHERE`/params fragment `list_systems` and
     `count_systems` both need -- factored out so the count query can't
@@ -210,11 +275,21 @@ def _systems_filter_clause(star_type_prefix, sector_id):
         conditions.append("ss.sector_id = ?")
         params.append(sector_id)
 
+    if binary is not None:
+        conditions.append("ss.is_binary = ?")
+        params.append(1 if binary else 0)
+    if octants:
+        conditions.append(f"ss.quadrant IN ({', '.join('?' for _ in octants)})")
+        params.extend(octants)
+    if in_sector is not None:
+        conditions.append("ss.sector_id IS NOT NULL" if in_sector else "ss.sector_id IS NULL")
+
     where_sql = (" WHERE " + " AND ".join(conditions)) if conditions else ""
     return join_sql, where_sql, params
 
 
-def list_systems(conn, star_type_prefix=None, sector_id=None, limit=None, offset=None):
+def list_systems(conn, star_type_prefix=None, sector_id=None, limit=None, offset=None, sort="name",
+                 descending=False, binary=None, octants=(), in_sector=None):
     """
     Returns systems, optionally filtered by star type and/or sector.
 
@@ -233,6 +308,13 @@ def list_systems(conn, star_type_prefix=None, sector_id=None, limit=None, offset
             still gets) returns every matching system.
         offset (int, optional): Skips this many rows first. Ignored
             unless `limit` is also given; meaningless on its own.
+        sort (str): A key of `SYSTEM_SORTS`; a system with no sector sorts
+            last by `"sector"` either way.
+        descending (bool): Reverse `sort`.
+        binary (bool, optional): Keep only binary (or only single-star) systems.
+        octants (iterable[str]): Keep only systems in these sector octants.
+        in_sector (bool, optional): Keep only systems in a sector (True) or
+            standalone ones (False).
 
     Returns:
         list[dict]: One row per matching system, with `id`, `name`,
@@ -243,11 +325,17 @@ def list_systems(conn, star_type_prefix=None, sector_id=None, limit=None, offset
                            `html/search.py` show as a system's "Star type"
                            column).
     """
-    join_sql, where_sql, params = _systems_filter_clause(star_type_prefix, sector_id)
+    if sort not in SYSTEM_SORTS:
+        raise ValueError(f"unknown system sort {sort!r}")
+    join_sql, where_sql, params = _systems_filter_clause(star_type_prefix, sector_id, binary, octants, in_sector)
+    column = SYSTEM_SORTS[sort]
+    direction = "DESC" if descending else "ASC"
+    nulls_last = f"{column} IS NULL, " if sort in ("sector", "octant") else ""
     query = f"""
         SELECT DISTINCT ss.id, ss.name, ss.sector_id, ss.quadrant, ss.is_binary, ss.binary_configuration,
-               ss.binary_type
-        FROM star_systems ss{join_sql}{where_sql} ORDER BY ss.name, ss.id
+               ss.binary_type, sec.name AS sector_sort
+        FROM star_systems ss LEFT JOIN sectors sec ON sec.id = ss.sector_id{join_sql}{where_sql}
+        ORDER BY {nulls_last}{column} {direction}, ss.name, ss.id
         """
 
     if limit is not None:
@@ -331,7 +419,7 @@ def _star_summary(row):
     return row["binary_type"]
 
 
-def count_systems(conn, star_type_prefix=None, sector_id=None):
+def count_systems(conn, star_type_prefix=None, sector_id=None, binary=None, octants=(), in_sector=None):
     """
     Returns the total number of systems matching the same filters
     `list_systems` accepts, ignoring any pagination -- the denominator
@@ -346,9 +434,37 @@ def count_systems(conn, star_type_prefix=None, sector_id=None):
     Returns:
         int: Total matching system count.
     """
-    join_sql, where_sql, params = _systems_filter_clause(star_type_prefix, sector_id)
+    join_sql, where_sql, params = _systems_filter_clause(star_type_prefix, sector_id, binary, octants, in_sector)
     query = f"SELECT COUNT(DISTINCT ss.id) AS n FROM star_systems ss{join_sql}{where_sql}"
     return conn.execute(query, params).fetchone()["n"]
+
+
+def systems_facets(conn, sector_id=None, binary=None, octants=(), in_sector=None):
+    """
+    The option counts for the Systems tables' filter menus: where a system is
+    (`placement`: `"sector"` or `"standalone"`), whether it is `binary`
+    (`"yes"`/`"no"`) and its sector `octant`. Each menu's counts apply every
+    filter except its own, so the menus narrow one another.
+
+    Returns:
+        dict: `{"placement"|"binary"|"octant": [{"value", "count"}]}`,
+            options with no systems left out.
+    """
+    def counts(select, **filters):
+        base = {"binary": binary, "octants": octants, "in_sector": in_sector, **filters}
+        _join, where, params = _systems_filter_clause(None, sector_id, **base)
+        return {row["value"]: row["n"] for row in conn.execute(
+            f"SELECT {select} AS value, COUNT(*) AS n FROM star_systems ss{where} GROUP BY value",
+            params).fetchall()}
+
+    placement = counts("(CASE WHEN ss.sector_id IS NULL THEN 'standalone' ELSE 'sector' END)", in_sector=None)
+    binaries = counts("(CASE WHEN ss.is_binary THEN 'yes' ELSE 'no' END)", binary=None)
+    found = counts("ss.quadrant", octants=())
+    return {
+        "placement": [{"value": v, "count": placement[v]} for v in ("sector", "standalone") if placement.get(v)],
+        "binary": [{"value": v, "count": binaries[v]} for v in ("yes", "no") if binaries.get(v)],
+        "octant": [{"value": v, "count": found[v]} for v in sorted(x for x in found if x is not None)],
+    }
 
 
 def _body_filter_clause(table_alias, planet_class, min_radius_km, max_radius_km, sector_id, system_id):

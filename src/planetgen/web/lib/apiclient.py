@@ -366,11 +366,15 @@ def list_databases():
     return _request("/databases")["items"]
 
 
-def get_sectors(db, limit=None, offset=None):
+def get_sectors(db, limit=None, offset=None, sort=None, descending=False, quadrants=(), facets=False):
     """Returns `GET /api/sectors`'s full paginated envelope
-    (`items`/`total`/`limit`/`offset`)."""
+    (`items`/`total`/`limit`/`offset`, plus `facets` when asked). `sort`,
+    `quadrants` and `facets` are the Sectors table's sort and filter (UX.41)."""
     _require_db(db)
-    return _request("/sectors", {"db": db, "limit": limit, "offset": offset})
+    params = [("db", db), ("limit", limit), ("offset", offset), ("sort", sort),
+              ("order", "desc" if descending else None)]
+    params += [("quadrant", value) for value in quadrants] + [("facets", "1" if facets else None)]
+    return _request("/sectors", [(key, value) for key, value in params if value is not None])
 
 
 def get_sector(db, sector_id):
@@ -380,7 +384,8 @@ def get_sector(db, sector_id):
     return _request(f"/sectors/{sector_id}", {"db": db})
 
 
-def get_systems(db, star_type=None, sector_id=None, limit=None, offset=None):
+def get_systems(db, star_type=None, sector_id=None, limit=None, offset=None, sort=None, descending=False,
+                binary=None, placement=None, octants=(), facets=False):
     """
     Returns `GET /api/systems`'s full paginated envelope.
 
@@ -388,11 +393,16 @@ def get_systems(db, star_type=None, sector_id=None, limit=None, offset=None):
         sector_id: An int, the literal string `"none"` (standalone
             systems), or `None` (no sector filter) -- passed straight
             through as the `sector_id` query parameter.
+        sort, descending, binary (True/False), placement (`"sector"` or
+            `"standalone"`), octants, facets: the Systems tables' sort and
+            filters (UX.41).
     """
     _require_db(db)
-    return _request("/systems", {
-        "db": db, "star_type": star_type, "sector_id": sector_id, "limit": limit, "offset": offset,
-    })
+    params = [("db", db), ("star_type", star_type), ("sector_id", sector_id), ("limit", limit),
+              ("offset", offset), ("sort", sort), ("order", "desc" if descending else None),
+              ("binary", None if binary is None else ("yes" if binary else "no")), ("placement", placement)]
+    params += [("octant", value) for value in octants] + [("facets", "1" if facets else None)]
+    return _request("/systems", [(key, value) for key, value in params if value is not None])
 
 
 def get_system(db, system_id):
