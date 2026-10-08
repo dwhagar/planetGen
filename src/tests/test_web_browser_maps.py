@@ -483,12 +483,12 @@ def test_galaxy_map_buttons(page, base_url):
     assert "wedges" not in actions, "no Wedges button (MAP.85)"
     page.click("#galaxymap3d-menu summary")
 
-    if "generated-only" in actions:
-        only = controls.locator('[data-action="generated-only"]')
+    if "charted-only" in actions:
+        only = controls.locator('[data-action="charted-only"]')
         before = _shot(page, canvas)
         only.click()
         assert only.get_attribute("aria-pressed") == "true"
-        assert _shot(page, canvas) != before, "Generated only didn't change the map"
+        assert _shot(page, canvas) != before, "Charted only didn't change the map"
         only.click()
         assert only.get_attribute("aria-pressed") == "false"
 

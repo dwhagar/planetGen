@@ -223,7 +223,7 @@ test("every control button the panel draws has a handler", () => {
 test("the panel has no Wedges or Whole galaxy button (MAP.55, MAP.85)", () => {
   const actions = F.galaxyControls.public.concat(F.galaxyControls.admin);
   assert.equal(actions.includes("wedges"), false);
-  for (const action of ["back", "forward", "up", "reset", "reset-view", "generated-only"]) {
+  for (const action of ["back", "forward", "up", "reset", "reset-view", "charted-only"]) {
     assert.ok(actions.includes(action), action);
   }
 });
@@ -259,12 +259,12 @@ test("the toggle buttons flip aria-pressed and what they control", () => {
   const calls = [];
   let wanted = false;
   const controls = h("div", {}, [
-    h("button", { "data-action": "generated-only", "aria-pressed": "false" }),
+    h("button", { "data-action": "charted-only", "aria-pressed": "false" }),
     h("button", { "data-action": "territories", "aria-pressed": "false" }),
     h("button", { "data-action": "no-such-action" }),
   ]);
   G3.wireMapControls(controls, G3.mapControlHandlers({
-    stageView: { setGeneratedOnly: (on) => calls.push(["generated-only", on]) },
+    setChartedOnly: (on) => calls.push(["charted-only", on]),
     setTerritories: (on, btn) => { calls.push(["territories", on, btn.dataset.action]); wanted = on; },
     territoriesWanted: () => wanted,
   }));
@@ -275,7 +275,7 @@ test("the toggle buttons flip aria-pressed and what they control", () => {
   territories.click();
   assert.equal(territories.getAttribute("aria-pressed"), "true");
   unknown.click();
-  assert.deepEqual(calls, [["generated-only", true], ["generated-only", false], ["territories", true, "territories"]]);
+  assert.deepEqual(calls, [["charted-only", true], ["charted-only", false], ["territories", true, "territories"]]);
 });
 
 // --- The drill-down ------------------------------------------------------------

@@ -1177,7 +1177,7 @@ def test_galaxy_map_draws_slab_lines_then_block_lines(page, map_site):
         lines = page.evaluate(LINES)
         seen.append(lines)
         if lines["kind"] == "arc":
-            assert lines == {"blockEdges": 0, "slabLines": 0, "kind": "arc"}
+            assert lines == {"blockEdges": 0, "slabLines": 0, "chartedLines": 0, "kind": "arc"}
         elif lines["kind"] == "layer":
             assert lines["blockEdges"] == 0 and lines["slabLines"] > 0, lines
         elif lines["kind"] == "segment":
@@ -1185,6 +1185,19 @@ def test_galaxy_map_draws_slab_lines_then_block_lines(page, map_site):
         _click_choice(page, GENERATED_CHOICE)
     kinds = [s["kind"] for s in seen]
     assert kinds.count("layer") >= 2 and kinds.count("segment") >= 2, kinds
+
+
+def test_galaxy_map_charted_only_outlines_the_charted_blocks(page, map_site):
+    """MAP.111: "Charted only" outlines the blocks holding generated
+    sectors on the picked arc, and takes the outlines away when it is off."""
+    _open_galaxy(page, map_site)
+    _click_choice(page, GENERATED_CHOICE)
+    assert page.evaluate(LINES)["chartedLines"] == 0
+    page.click("#galaxymap3d-menu summary")
+    page.click('[data-action="charted-only"]')
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyLines().chartedLines > 0")
+    page.click('[data-action="charted-only"]')
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyLines().chartedLines === 0")
 
 
 CAMERA = "() => document.querySelector('#galaxymap3d-canvas').galaxyCamera()"
