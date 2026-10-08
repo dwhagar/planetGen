@@ -5432,7 +5432,7 @@ def sector_for_placement(conn, sector_id):
             name=system["name"], system_config=None,
             star=SimpleNamespace(system_perimeter=perimeter_km / physical_constants.AU_TO_KM))
         position = tuple(milliparsecs_to_ly(system[f"position_{axis}_mpc"]) for axis in "xyz")
-        sector.entries.append(SectorSystemEntry(stand_in, position))
+        sector.entries.append(SectorSystemEntry(stand_in, position, sector_center_ly=sector.center_galactic_ly))
     return sector
 
 
@@ -6996,7 +6996,8 @@ def load_sector(conn, sector_id) -> SpaceSector:
             milliparsecs_to_ly(r["position_y_mpc"]),
             milliparsecs_to_ly(r["position_z_mpc"]),
         )
-        sector.entries.append(SectorSystemEntry(star_system, position, system_config=star_system.system_config))
+        sector.entries.append(SectorSystemEntry(star_system, position, system_config=star_system.system_config,
+                                                sector_center_ly=sector.center_galactic_ly))
 
     return sector
 

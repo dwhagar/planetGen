@@ -415,9 +415,7 @@ def _rescale_comet(comet, factor, mass_ratio, new_mass_solar):
     sqrt(M / a))."""
     comet.perihelion_distance_au *= factor
     comet.distance_au *= factor
-    comet.position_x_au *= factor
-    comet.position_y_au *= factor
-    comet.position_z_au *= factor
+    comet.set_position_au(comet.position_x_au * factor, comet.position_y_au * factor, comet.position_z_au * factor)
     if comet.orbital_speed_kms is not None:
         comet.orbital_speed_kms *= (mass_ratio / factor) ** 0.5
     if comet.orbital_period_years is not None:

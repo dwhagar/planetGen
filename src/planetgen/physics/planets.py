@@ -880,10 +880,10 @@ def update_orbital_position(planet):
                          `orbital_ascending_node_deg`, and
                          `orbital_phase_deg` set.
     """
-    planet.position_x, planet.position_y, planet.position_z = orbital_position_au(
+    planet.set_position_au(*orbital_position_au(
         planet.distance, planet.orbital_inclination_deg,
         planet.orbital_ascending_node_deg, planet.orbital_phase_deg,
-    )
+    ))
     planet.orbital_speed_kms = circular_orbital_speed_kms(planet.distance, planet.period)
     planet.min_update_interval_years = minimum_update_interval_years(planet.period)
 

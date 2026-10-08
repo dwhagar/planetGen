@@ -360,3 +360,9 @@ The defaults below hold until Boss decides otherwise:
   sector-frame Cartesian. `SpaceSector.place_in_galaxy(center_ly)` sets the
   sector's center (generation does it from the cell's position, loading
   from the stored center) and carries every entry with it.
+- Planets, moons and comets (`HoldsOrbitPosition`) and stars hold one in
+  AU, anchored by `galaxy/system_position.place_system`; the "system" frame is
+  the offset from the body's primary (star, barycenter, wide-binary
+  secondary, or parent planet for a moon). `planet.position_x/y/z` and
+  `comet.position_x/y/z_au` read and write through it, so the stored km and
+  mpc columns map to the object. Asteroid belts have no point and hold none.

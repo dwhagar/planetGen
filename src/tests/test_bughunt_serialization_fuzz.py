@@ -118,10 +118,12 @@ _STAR_TYPES = ["M5V", "K2V", "G2V", "F5V", "A1V", "B3V", "O5V"]
 # Attributes a generated body may hold that `SERIALIZABLE_FIELDS` leaves
 # out on purpose: back-references and the config (rebuilt by `from_dict`),
 # children `to_dict` writes itself (moons, a belt's composition), and the
-# galactic distance the star's serialized perimeter and orbit come from.
+# galactic distance the star's serialized perimeter and orbit come from, and
+# the `SpatialPosition3D` a body holds (GEN.74), which the stored position
+# columns rebuild on load.
 _RUNTIME_ONLY = {
-    Star: {"system_config", "galactic_center_dist_ly"},
-    Planet: {"system_config", "star", "moons"},
+    Star: {"system_config", "galactic_center_dist_ly", "spatial"},
+    Planet: {"system_config", "star", "moons", "spatial", "_staged_au"},
     AsteroidBelt: {"system_config", "composition"},
 }
 

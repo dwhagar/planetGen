@@ -166,7 +166,7 @@ def test_generate_orbital_motion_properties_locks_a_close_moon_around_an_old_sys
     star = types.SimpleNamespace(age=5.0)
     moon = types.SimpleNamespace(
         is_moon=True, body_type="t", distance=0.0005, mass=5e20, radius=800,
-        period=0.001, star=star,
+        period=0.001, star=star, set_position_au=lambda *xyz: None,
     )
     generate_orbital_motion_properties(moon, primary_mass_kg=6e24)
     expected_locked_hours = moon.period * pc.SECONDS_PER_YEAR / 3600
@@ -183,7 +183,7 @@ def test_generate_orbital_motion_properties_does_not_lock_a_far_moon_around_a_yo
     star = types.SimpleNamespace(age=1.0)
     moon = types.SimpleNamespace(
         is_moon=True, body_type="t", distance=0.05, mass=5e22, radius=2000,
-        period=5.0, star=star,
+        period=5.0, star=star, set_position_au=lambda *xyz: None,
     )
     generate_orbital_motion_properties(moon, primary_mass_kg=6e23)
     min_h, max_h = pc.ROTATION_PERIOD_RANGE_HOURS["t"]
@@ -199,7 +199,7 @@ def test_generate_orbital_motion_properties_never_evaluates_locking_for_a_planet
     star = types.SimpleNamespace(age=100.0)
     planet = types.SimpleNamespace(
         is_moon=False, body_type="t", distance=0.0005, mass=5e20, radius=800,
-        period=0.001, star=star,
+        period=0.001, star=star, set_position_au=lambda *xyz: None,
     )
     generate_orbital_motion_properties(planet, primary_mass_kg=6e30)
     min_h, max_h = pc.ROTATION_PERIOD_RANGE_HOURS["t"]
