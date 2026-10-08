@@ -1,5 +1,10 @@
 # Changelog
 
+## [7.262.635] - 2026-10-08
+
+### Fixed
+- The parallel-galaxy interrupt test starts its run with Ctrl+C at its default, since a pytest worker can leave it ignored and an ignored Ctrl+C is inherited, so the run finished with status 0 in the full suite (TEST.101).
+
 ## [7.261.635] - 2026-10-08
 
 ### Added
