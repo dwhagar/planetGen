@@ -551,7 +551,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
 </form>
 <div class="galaxy-address-matches" id="galaxymap3d-matches" hidden></div>
 <p class="hint galaxy-stage-notice" id="galaxymap3d-notice" role="status" hidden></p>
-<nav class="galaxy-crumbs" id="galaxymap3d-crumbs" aria-label="Map position" hidden></nav>
+<nav class="crumbs galaxy-crumbs" id="galaxymap3d-crumbs" aria-label="Map position" hidden></nav>
 <div class="starmap-layout">
 <div class="galaxy-map-row">
 <div class="galaxy-map-main">
