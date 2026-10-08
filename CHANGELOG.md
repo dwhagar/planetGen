@@ -1,5 +1,10 @@
 # Changelog
 
+## [7.343.675] - 2026-10-08
+
+### Changed
+- The system page opens in the 3D view by default; a visitor who last chose the diagram gets the diagram (MAP.74 follow-up).
+
 ## [7.342.675] - 2026-10-08
 
 ### Changed
