@@ -1133,6 +1133,25 @@ def test_galaxy_map_charted_only_does_not_stop_picking(page, map_site):
     assert (page.url, _crumbs(page)) != before, "the empty choice can be taken"
 
 
+def test_galaxy_map_charted_only_works_while_picking_a_course(page, map_site):
+    """NAV.32: choosing a NAV end, "Charted only" is a working toggle as in
+    browsing, and a choice holding nothing generated still can't be taken."""
+    _open_galaxy(page, map_site, "?pick=to&from=system:701")
+    only = page.locator('#galaxymap3d-controls [data-action="charted-only"]')
+    assert only.is_enabled() and only.get_attribute("aria-pressed") == "false"
+    page.click("#galaxymap3d-menu summary")
+    only.click()
+    assert only.get_attribute("aria-pressed") == "true"
+    only.click()
+    assert only.get_attribute("aria-pressed") == "false"
+    found = _hover_choice(page, r"nothing generated here to pick\)$")
+    assert found, "no empty arc to hover"
+    before = (page.url, _crumbs(page))
+    page.mouse.click(found[0], found[1])
+    _settle(page)
+    assert (page.url, _crumbs(page)) == before
+
+
 LEADERS = """() => {
     const canvas = document.querySelector("#galaxymap3d-canvas").getBoundingClientRect();
     const svg = document.querySelector(".galaxy-slab-leaders");
