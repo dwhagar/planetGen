@@ -1,5 +1,46 @@
 # Changelog
 
+## [7.293.637] - 2026-10-08
+
+### Fixed
+- A tall Galaxy Map tile no longer fills its bright-star list with the plane's luminous stars alone: the list now reserves half its room for stars above and below the thin disk, so old giants in the thick disk and halo show up too (GEN.117).
+
+## [7.292.637] - 2026-10-08
+
+### Added
+
+- The Sectors table (home page and `/sectors`), the All Systems table
+  (`/systems`) and the Standalone Systems table are data tables like the
+  Phenomena list (UX.41): click a header to sort, filter from the menus
+  above (sectors by Quadrant; systems by where they are, single or binary,
+  and octant) and scroll through every row, 50 fetched at a time. Each table
+  on a page keeps its own sort, filters and place in the address bar
+  (`sectors_sort`, `systems_sort`, `standalone_sort`, ...). Sectors are
+  still nearest the core first until you sort them.
+- `GET /api/sectors` and `GET /api/systems` take `sort`, `order`, filters and
+  `facets=1`.
+
+### Changed
+
+- The Sectors table shows its density and distance in plain text with
+  Unicode superscripts instead of HTML ones.
+
+## [7.291.637] - 2026-10-08
+
+### Added
+
+- The Phenomena list is the site's first data table on TanStack Table and
+  TanStack Virtual (UX.41). Click a column header to sort by it (click again
+  to reverse), filter by type and by descriptor (the nebula class, remnant
+  shape, rogue planet kind and so on) from the menus above the table, and
+  scroll through every row: the next 50 arrive as they come into view, so
+  the page never holds more than a few dozen rows. The address bar follows
+  the sort and filters, so a reload or a shared link shows the same table.
+  Without scripts the table still sorts and filters with plain links and a
+  form, and pages with the usual pager.
+- `GET /api/phenomena` takes `sort`, `order`, `type`, `descriptor`, `placed`
+  and `facets=1` (the option counts for the filter menus).
+
 ## [7.290.637] - 2026-10-08
 
 ### Added

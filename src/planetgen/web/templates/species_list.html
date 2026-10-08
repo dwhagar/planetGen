@@ -1,5 +1,9 @@
 {#- Every species (/species, web/population_pages.py). -#}
 {% extends "base.html" %}
+{% from "partials/datatable.html" import datatable with context %}
+{% block head %}
+<script type="module" src="{{ static_url('datatable.js') }}"></script>
+{% endblock %}
 {% block subhead %}
 <p class="badges">
   <span class="badge">{{ num(total) }} species</span>
@@ -11,30 +15,6 @@
   <div class="panel-header">
     <h2 id="species-heading">Species</h2>
   </div>
-  <nav class="filter-links" aria-label="Filter species">
-    <ul>
-      {%- for item in filters %}
-      <li><a href="{{ item.url }}"{% if item.current %} aria-current="page"{% endif %}>{{ item.label }}</a></li>
-      {%- endfor %}
-    </ul>
-  </nav>
-  <div class="table-scroll" tabindex="0"><table>
-    <thead><tr><th scope="col">Name</th><th scope="col">Homeworld</th><th scope="col">System</th><th scope="col">Era</th><th scope="col">Spacefaring</th><th scope="col">Polity</th></tr></thead>
-    <tbody>
-      {%- for row in rows %}
-      <tr>
-        <td><a href="{{ row.url }}">{{ row.name }}</a></td>
-        <td>{{ row.homeworld }}</td>
-        <td>{% if row.system_url %}<a href="{{ row.system_url }}">{{ row.system }}</a>{% else %}{{ row.system }}{% endif %}</td>
-        <td>{{ row.era or "–" }}</td>
-        <td>{{ "Yes" if row.spacefaring else "No" }}</td>
-        <td>{% if row.polity_url %}<a href="{{ row.polity_url }}">{{ row.polity }}</a>{% else %}–{% endif %}</td>
-      </tr>
-      {%- else %}
-      <tr><td colspan="6"><em>None</em></td></tr>
-      {%- endfor %}
-    </tbody>
-  </table></div>
-  {{ pager }}
+  {{ datatable(table) }}
 </section>
 {% endblock %}

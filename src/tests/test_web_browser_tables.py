@@ -89,6 +89,19 @@ def _fake_systems(db, star_type=None, sector_id=None, limit=None, offset=None, s
     return body
 
 
+POLITY = {"id": 2, "name": "Velar Concord", "government": "Concord", "color": "#3366cc", "reach_ly": 80.0,
+          "species_id": 3, "species_name": "Velar", "era": "ancient", "civilization_age_years": 3.4e6,
+          "capital_system_id": 5, "capital_name": "Kepler", "system_count": 120}
+OWNED = [{"id": 2000 + i, "name": f"Holding {i:03d}", "distance_ly": float(i)} for i in range(120)]
+
+
+def _fake_polity(db, polity_id, limit=None, offset=None, sort=None, descending=False):
+    if polity_id != POLITY["id"]:
+        raise apiclient.NotFoundError("no such polity")
+    rows = sorted(OWNED, key=lambda row: row["name" if sort == "name" else "distance_ly"], reverse=bool(descending))
+    return {**POLITY, "systems": rows[offset:offset + limit], "limit": limit, "offset": offset}
+
+
 class _SiteConfig(Config):
     WEB_DATABASE = DB
     SESSION_COOKIE_SECURE = False
@@ -105,7 +118,9 @@ def table_site():
         patch.setattr(apiclient, "get_sectors", _fake_sectors)
         patch.setattr(apiclient, "get_systems", _fake_systems)
         patch.setattr(apiclient, "auth_me", lambda cookie_header: None)
-        patch.setattr(apiclient, "get_population_status", lambda db: dict(apiclient.POPULATION_NONE))
+        patch.setattr(apiclient, "get_population_status",
+                      lambda db: {"generated": True, "species": True, "polities": True, "territories": False})
+        patch.setattr(apiclient, "get_polity", _fake_polity)
         app = create_app(_SiteConfig)
         app.testing = True
         server = make_server("127.0.0.1", 0, app, threaded=True)
@@ -319,3 +334,18 @@ def test_two_tables_on_one_page_keep_their_own_state(page, table_site):
     page.locator("#sectors-table[data-enhanced='true']").wait_for(state="attached", timeout=15000)
     assert page.locator("#sectors-table th[data-col='systems']").get_attribute("aria-sort") == "ascending"
     assert page.locator("#standalone-systems-table .datatable-count-line").inner_text() == "65 standalone systems match"
+
+
+def test_a_politys_systems_scroll_and_sort_through_the_tables_own_route(page, table_site):
+    assert page.goto(f"{table_site}/polities/2", wait_until="load").status == 200
+    page.locator("[data-datatable][data-enhanced='true']").wait_for(state="attached", timeout=15000)
+    assert page.locator(".datatable-count-line").inner_text() == "120 systems"
+    assert _first_names(page, 2) == ["Holding 000", "Holding 001"]
+    assert page.locator("th[data-col='distance']").get_attribute("aria-sort") == "ascending"
+    page.locator(".datatable-scroll").evaluate("el => { el.scrollTop = el.scrollHeight; }")
+    page.locator("tbody tr[data-index]", has_text="Holding 119").wait_for(state="attached", timeout=10000)
+
+    page.locator("th[data-col='distance'] .datatable-sort").click()
+    page.locator("th[data-col='distance'][aria-sort='descending']").wait_for(state="attached")
+    page.locator("tbody tr[data-index='0']", has_text="Holding 119").wait_for(state="attached")
+    assert parse_qs(urlparse(page.url).query) == {"systems_sort": ["distance"], "systems_order": ["desc"]}

@@ -1,5 +1,9 @@
 {#- Every polity (/polities, web/population_pages.py). -#}
 {% extends "base.html" %}
+{% from "partials/datatable.html" import datatable with context %}
+{% block head %}
+<script type="module" src="{{ static_url('datatable.js') }}"></script>
+{% endblock %}
 {% block subhead %}
 <p class="badges">
   <span class="badge">{{ num(total) }} {{ "polity" if total == 1 else "polities" }}</span>
@@ -12,23 +16,6 @@
     <h2 id="polities-heading">Polities</h2>
   </div>
   <p>Each spacefaring species founds one polity, which holds the systems within its reach.</p>
-  <div class="table-scroll" tabindex="0"><table>
-    <thead><tr><th scope="col">Name</th><th scope="col">Species</th><th scope="col">Government</th><th scope="col">Capital</th><th scope="col">Systems</th><th scope="col">Reach</th></tr></thead>
-    <tbody>
-      {%- for row in rows %}
-      <tr>
-        <td>{% if row.color %}<svg class="polity-swatch" viewBox="0 0 10 10" aria-hidden="true" focusable="false"><rect width="10" height="10" fill="{{ row.color }}"/></svg> {% endif %}<a href="{{ row.url }}">{{ row.name }}</a></td>
-        <td>{% if row.species_url %}<a href="{{ row.species_url }}">{{ row.species }}</a>{% else %}{{ row.species }}{% endif %}</td>
-        <td>{{ row.government }}</td>
-        <td>{% if row.capital_url %}<a href="{{ row.capital_url }}">{{ row.capital }}</a>{% else %}{{ row.capital }}{% endif %}</td>
-        <td>{{ num(row.systems) }}</td>
-        <td>{{ row.reach }}</td>
-      </tr>
-      {%- else %}
-      <tr><td colspan="6"><em>None</em></td></tr>
-      {%- endfor %}
-    </tbody>
-  </table></div>
-  {{ pager }}
+  {{ datatable(table) }}
 </section>
 {% endblock %}
