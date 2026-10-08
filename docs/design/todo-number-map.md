@@ -759,7 +759,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.43 | Find everything within a distance of a place: the query and the API | none | open |
 | NAV.44 | A "What's nearby" page: pick a place, enter a distance in parsecs, list what is there | none | open |
 | NAV.45 | "What's within N pc" from the Galaxy Map and Sector Map | none | open |
-| NAV.46 | The NAV picker can't click galaxy wedges to zoom in (bug) | none | open |
+| NAV.46 | The NAV picker can't click galaxy wedges to zoom in (bug) | none | closed, already fixed; covered by a browser test (#568) |
 | NAV.47 | Unknown-space jumps stop at scattered stars, black holes, neutron stars and quasars | none | open |
 | NAV.48 | Offer to generate the uncharted sectors that block a course | none | open |
 | NAV.49 | Waypoints: pick objects in Star select mode and plot a course through them, kept on the map until cleared | none | open |
