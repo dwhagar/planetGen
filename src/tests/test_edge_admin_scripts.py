@@ -258,6 +258,39 @@ def test_reset_wipes_content_keeps_migrations_and_id_counters(seeded, monkeypatc
         conn.close()
 
 
+def test_reset_reports_its_tables_to_the_progress_file(seeded, monkeypatch, tmp_path):
+    path = tmp_path / "progress.json"
+    monkeypatch.setenv("PLANETGEN_PROGRESS_FILE", str(path))
+    assert _run_main(reset, mysql_argv(seeded) + ["--yes"], monkeypatch) == 0
+    body = json.loads(path.read_text())
+    conn = store.get_connection(seeded)
+    try:
+        tables = len(reset._content_tables(conn, seeded.database))
+    finally:
+        conn.close()
+    assert body["completed"] == body["total"] == tables
+    assert body["description"].startswith("Wiping ") and f"table {tables} of {tables}" in body["description"]
+
+
+def test_reset_counts_rows_without_reading_the_tables(seeded):
+    """The slow part of a reset was an exact COUNT(*) of every table; the
+    counts now come from the storage engine's statistics."""
+    seen = []
+    conn = store.get_connection(seeded)
+    try:
+        real_execute = conn.execute
+
+        def spy(sql, *args, **kwargs):
+            seen.append(sql)
+            return real_execute(sql, *args, **kwargs)
+        conn.execute = spy
+        counts = reset._table_estimates(conn, seeded.database)
+    finally:
+        conn.close()
+    assert "star_systems" in counts and "schema_migrations" not in counts
+    assert seen and not any("COUNT(" in sql.upper() for sql in seen)
+
+
 def test_resetting_an_already_empty_database_is_harmless(seeded, monkeypatch):
     assert _run_main(reset, mysql_argv(seeded) + ["--yes"], monkeypatch) == 0
     assert _run_main(reset, mysql_argv(seeded) + ["--yes"], monkeypatch) == 0
@@ -335,6 +368,39 @@ def test_update_orbits_first_run_sets_a_starting_point_then_advances(seeded, mon
     lines = second.strip().splitlines()
     assert lines[-2].startswith("Updated:")
     assert lines[-1].startswith("Moved ")  # galactic motion, after the phases
+
+
+def test_update_orbits_reports_its_four_steps_to_the_progress_file(seeded, monkeypatch, tmp_path):
+    path = tmp_path / "progress.json"
+    monkeypatch.setenv("PLANETGEN_PROGRESS_FILE", str(path))
+    assert _run_main(orbits, mysql_argv(seeded), monkeypatch) == 0
+    body = json.loads(path.read_text())
+    assert body["completed"] == body["total"] == len(orbits.STAGES) == 4
+    assert body["description"].startswith("Step 4 of 4: ")
+
+
+def test_the_orbit_steps_report_how_far_they_are(seeded):
+    reports = []
+    conn = store.get_connection(seeded)
+    try:
+        store.advance_orbital_phases(conn, 1.0, on_progress=lambda *args: reports.append(args))
+        assert [done for _label, done, _total in reports] == list(range(1, store.ORBITAL_PHASE_UPDATES + 1))
+        assert {total for _label, _done, total in reports} == {store.ORBITAL_PHASE_UPDATES}
+
+        reports.clear()
+        motion = store.advance_galactic_positions(conn, 1.0, on_progress=lambda *args: reports.append(args))
+        assert reports[0][0] == "star_systems" and reports[-1][1] == reports[-1][2]
+        assert [done for _label, done, _total in reports] == sorted({done for _label, done, _total in reports})
+
+        reports.clear()
+        store.refresh_after_motion(conn, motion["sectors"], on_progress=lambda *args: reports.append(args))
+        labels = {label for label, _done, _total in reports}
+        assert "Nearest systems: sectors" in labels  # containment reports only once a sector is placed
+        for label in labels:
+            last = [(done, total) for name, done, total in reports if name == label][-1]
+            assert last[0] == last[1], label
+    finally:
+        conn.close()
 
 
 def test_update_orbits_on_an_empty_database(mysql_config, monkeypatch, capsys):
