@@ -1,5 +1,11 @@
 # Changelog
 
+## [7.320.675] - 2026-10-08
+
+### Changed
+- The request rate limits (Flask-Limiter) and the login lockouts now count on the Redis server (`redis.url`) by default, so every worker process shares them and a restart keeps them. `ratelimit.storage_uri` is empty by default (the Redis server); `memory://` still counts per process, and a Redis outage falls back to counting in memory (SEC.30).
+- The failed-login counts moved out of the control database: its `login_throttle` table is dropped (control schema v8), so the counts start over once on the first `update.sh` after this change. `python -m planetgen.cli.lockouts` lists and lifts lockouts in Redis (SEC.30).
+
 ## [7.319.675] - 2026-10-08
 
 ### Added
