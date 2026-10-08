@@ -220,7 +220,31 @@ class _FakeWikiClient:
 
 
 @pytest.fixture
-def fake_wiki_client(monkeypatch):
+def inline_wiki_queue(monkeypatch):
+    """Runs queued wiki uploads in this process, where the fake wiki client
+    is installed (a worker process would reach for the real wiki), with the
+    fake wiki settings."""
+    from planetgen.queue import api_jobs
+    jobs = {}
+
+    def submit(function, *args):
+        job_id = "%016x" % len(jobs)
+        jobs[job_id] = api_jobs.execute(function, args)
+        return job_id
+
+    def wait(job_id, seconds=0):
+        outcome = jobs[job_id]
+        if "refused" in outcome:
+            return {"id": job_id, "state": "failed", "error": outcome["refused"], "error_status": outcome["status"]}
+        return {"id": job_id, "state": "succeeded", "result": outcome["result"]}
+
+    monkeypatch.setattr(api_jobs, "submit", submit)
+    monkeypatch.setattr(api_jobs, "wait", wait)
+    monkeypatch.setattr("planetgen.api.routes.wiki_settings", lambda backend: FAKE_WIKI_CONFIG[backend])
+
+
+@pytest.fixture
+def fake_wiki_client(monkeypatch, inline_wiki_queue):
     """Installs `_FakeWikiClient` in place of `api.routes.WikiClient` for
     one test, resetting its recorded calls first."""
     _FakeWikiClient.calls = []
@@ -2054,7 +2078,8 @@ def test_upload_system_wiki_mediawiki_uses_the_system_name_as_the_page_path(
     assert call["content"] == wikitext["content"]
 
 
-def test_upload_system_wiki_page_exists_maps_to_409(admin_client_with_wiki, seeded_sector, monkeypatch):
+def test_upload_system_wiki_page_exists_maps_to_409(admin_client_with_wiki, seeded_sector, monkeypatch,
+                                                    inline_wiki_queue):
     class RaisingClient:
         def __init__(self, backend, **kwargs):
             pass

@@ -1105,8 +1105,11 @@ for the job first, so they normally still answer in the same response
 (`201` or `200` as before); only a slow one answers `202`. These are
 `POST /api/systems`, `PATCH /api/systems/<id>` with `regenerate`,
 `POST /api/{planets,moons,belts}/<id>/regenerate`, `POST
-/api/phenomena/<type>/<id>/regenerate`, `POST /api/{planets,moons}/<id>/class`
-and `POST /api/systems/<id>/star`. Deletes and plain renames stay in the
+/api/phenomena/<type>/<id>/regenerate`, `POST /api/{planets,moons}/<id>/class`,
+`POST /api/systems/<id>/star`, `POST /api/systems/<id>/wiki` and `POST
+/api/sectors/<id>/wiki` (the worker reads the wiki's login details from the
+environment and `config.json` itself, so they never pass through Redis;
+`201` when it finishes in time). Deletes and plain renames stay in the
 request. A refusal comes back with its own status (404, 409, 400); `503`
 means no Redis server answered.
 
