@@ -203,7 +203,7 @@ From PR #431's red CI (coordinator, 2026-10-03): PERF.27, DB.12, OPS.25, MAP.114
 | ADM.24, ADM.25, ADM.26 | ADM.22 | Logs and progress moved to SSE and Xterm.js (ADM.22 done, PR #551); these three are now done (PR #560). |
 | MAP.109, MAP.116 | MAP.102 | Tile streaming with level of detail. |
 | MAP.108, MAP.107, MAP.112, NAV.46 | MAP.65, NAV.15 | The shared picking layer and pick mode. |
-| MAP.106 | NAV.14, MAP.67 | One breadcrumb drawn from one URL and history state. |
+| MAP.106 | NAV.14 | One breadcrumb drawn from one URL and history state. |
 | MAP.113 | MAP.79 | Its per-kind toggles include nebulae. |
 | GEN.72, GEN.73 | GEN.67 | Names come from IDs. |
 | GEN.33, GEN.28, GEN.27, GEN.29 | GEN.90 | The class refactor around the habitability index. |
@@ -278,7 +278,6 @@ No decisions are open. (GEN.67, Boss 2026-10-08: stars and sectors keep word sal
 | Names (names.py, bodyNames.py, nameUniqueness.py, objectId.py) | GEN.68 to GEN.73, VIEW.4, API.12 | One stream, in TODO order. |
 | generate.py: qualify, density and backfill | GEN.98, GEN.100, GEN.101, GEN.41 to GEN.43, PERF.18 | Phase 0 bugs first, then phase 1 galaxy gen. |
 | Galaxy Map (galaxymap3d.js, galaxystageview.js, galaxystages.js, galaxyblocks.js) | MAP.102, MAP.65 to MAP.68, MAP.110, MAP.111, MAP.95, MAP.103, MAP.122, MAP.123, MAP.124 | Bugfix lane items first; the engine group next; phase 1 map items after. |
-| sectormap.js | MAP.79, MAP.113, MAP.66, MAP.68 | MAP.68 deletes the file. |
 | Templates and components (base.html, style.css, edit_controls.html) | UX.2, UX.26, UX.31, UX.27, UX.49, ADM.34, UX.37, UX.21, UX.42, UX.43 | Components first, then the sweep, then wording and the visual design. |
 | Planet physics and classes (planetPhysics.py, planetData.py, planetLife.py) | GEN.85 to GEN.89, GEN.33, GEN.28, GEN.27, GEN.29, GEN.91, GEN.92 | Phase 0 bug, then the habitability inputs, then the refactor. |
 | Positions (updateOrbits.py, keplerMotion.py, the new position object) | GEN.74, GEN.66, GEN.104, GEN.106 to GEN.110, GEN.115, MAP.70, VIEW.5 | GEN.74 first. |
