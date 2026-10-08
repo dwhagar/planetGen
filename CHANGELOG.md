@@ -1,5 +1,11 @@
 # Changelog
 
+## [7.236.620] - 2026-10-08
+
+### Added
+
+- TODO item TEST.94: test_old_jobs_are_pruned raises JobBusy again because the job lock outlives the finished job (phase 0, Bugfixes: ops and flakes).
+
 ## [7.235.620] - 2026-10-08
 
 ### Fixed
