@@ -1,5 +1,10 @@
 # Changelog
 
+## [7.327.675] - 2026-10-08
+
+### Added
+- A new test bug is on the list: the Sector Map's buttons overlap the Contents filters (TEST.106).
+
 ## [7.326.675] - 2026-10-08
 
 ### Changed
