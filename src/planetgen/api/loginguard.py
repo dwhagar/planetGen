@@ -13,11 +13,12 @@ request's client address, then:
     ... check the password ...
     guard.failed("login.failed")    # or guard.succeeded()
 
-The counters live in the control database's `login_throttle` table. If
-that can't be used (an install where `update.sh` hasn't created it yet,
-or the database is down), the guard falls back to this process's memory
-(`memory_store`) and says so once on stderr, rather than failing every
-login or dropping the protection.
+The counters live in Redis (`throttle.RedisStore`), on the server
+Flask-Limiter counts requests on (`RATELIMIT_STORAGE_URI`, SEC.30). With a
+`memory://` storage, or if Redis can't be reached, the guard counts in
+this process's memory (`memory_store`) and, for an unreachable Redis,
+says so once on stderr, rather than failing every login or dropping the
+protection.
 
 `LOGIN_BACKOFF_ENABLED = False` in the app config turns both counters off
 (a test harness that fails many logins on purpose); the activity log
@@ -34,9 +35,13 @@ from planetgen.util import log
 from .common import get_control_db
 
 memory_store = throttle.MemoryStore()
-"""MemoryStore: The fallback while `login_throttle` can't be used (and
-what tests clear between runs)."""
+"""MemoryStore: The counters for a `memory://` storage and the fallback
+while Redis can't be reached (and what tests clear between runs)."""
 
+REDIS_SCHEMES = ("redis://", "rediss://")
+"""tuple: The storage URIs that name a Redis server the counters can use."""
+
+_redis_stores = {}
 _warned = set()
 
 
@@ -57,14 +62,29 @@ def allowlist():
     return networks
 
 
+def redis_store():
+    """The `RedisStore` on the app's rate-limit storage, or `None` when
+    that storage isn't a Redis server."""
+    uri = current_app.config.get("RATELIMIT_STORAGE_URI") or ""
+    if not uri.startswith(REDIS_SCHEMES):
+        return None
+    prefix = current_app.config["RATELIMIT_KEY_PREFIX"]
+    if (uri, prefix) not in _redis_stores:
+        _redis_stores[uri, prefix] = throttle.RedisStore.from_url(uri, prefix)
+    return _redis_stores[uri, prefix]
+
+
 def with_store(operation):
-    """Runs `operation(store)` against the database, or against
-    `memory_store` when the database can't be used."""
+    """Runs `operation(store)` against Redis, or against `memory_store`
+    when the rate-limit storage is in memory or Redis can't be used."""
+    store = redis_store()
+    if store is None:
+        return operation(memory_store)
     try:
-        return operation(throttle.DbStore(get_control_db()))
+        return operation(store)
     except Exception as exc:  # noqa: BLE001 -- never fail a login because of the counters
-        _warn_once("store", f"planetgen: the login_throttle table can't be used ({exc}); counting failed "
-                            f"logins in memory per process until it can. Run update.sh to create it.")
+        _warn_once("store", f"planetgen: Redis can't be used for the login lockouts ({exc}); counting failed "
+                            f"logins in memory per process until it can.")
         return operation(memory_store)
 
 

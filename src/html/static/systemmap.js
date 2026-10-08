@@ -1210,6 +1210,9 @@ function initSystemMap(root) {
   });
 
   showScene("system");
+  // The handlers are on: a page that tests the map waits for this rather
+  // than for a fixed time (TEST.104).
+  root.setAttribute("data-ready", "true");
 }
 
 var rootEl = document.getElementById("sysmap-root");

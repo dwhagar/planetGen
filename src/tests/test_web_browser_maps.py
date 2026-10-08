@@ -107,7 +107,9 @@ def test_system_map_selection_drill_and_measure(page, base_url, site_app):
             target = system["id"]
             break
     assert target, "no generated system has a planet with moons"
-    _open(page, f"{base_url}/system/{target}", "#sysmap-root")
+    # The map's own ready mark (its click handlers are on), not a fixed
+    # wait: under load the script can still be loading after a second (TEST.104).
+    _open(page, f"{base_url}/system/{target}", '#sysmap-root[data-ready="true"]')
     assert _active_scene(page) == "system"
 
     # A body shows its details.
@@ -226,8 +228,9 @@ def _crumbs(page):
     """Every step to here, galaxy first: the Steps menu's list, which
     holds them all however much of the breadcrumb line is folded into
     "…" (MAP.93, MAP.94)."""
-    return page.eval_on_selector_all("#galaxymap3d-steps [data-steps-panel] li",
-                                     "els => els.map(e => e.textContent.trim())")
+    steps = page.eval_on_selector_all("#galaxymap3d-steps [data-steps-panel] li",
+                                      "els => els.map(e => e.textContent.trim())")
+    return steps[1:] if steps[:1] == ["Home"] else steps  # UX.59: the trail starts at Home
 
 
 def _query(page):
@@ -436,7 +439,7 @@ def test_galaxy_map_buttons(page, base_url):
     actions = controls.locator("[data-action]").evaluate_all("els => els.map(e => e.dataset.action)")
     canvas = "#galaxymap3d-canvas"
     for action in ("back", "forward", "current", "up"):
-        assert controls.locator(f'[data-action="{action}"]').is_disabled(), f"{action} at the galaxy"
+        assert page.locator(f'#galaxymap3d-controls [data-action="{action}"]').is_disabled(), f"{action} at the galaxy"
     assert "wedges" not in actions, "no Wedges button (MAP.85)"
     page.click("#galaxymap3d-menu summary")
 
@@ -473,7 +476,8 @@ def test_galaxy_map_forward_to_current_jumps_to_the_newest_view(page, base_url):
     back at the deepest view; it is disabled once there."""
     _open_galaxy(page, base_url)
     controls = page.locator("#galaxymap3d-controls")
-    current = controls.locator('[data-action="current"]')
+    steps = page.locator("#galaxymap3d-steps")
+    current = steps.locator('[data-action="current"]')
     for _ in range(3):
         _click_choice(page)
     deepest = (_query(page), _crumbs(page))
@@ -482,6 +486,7 @@ def test_galaxy_map_forward_to_current_jumps_to_the_newest_view(page, base_url):
         controls.locator('[data-action="back"]').click()
         _wait_settled(page)
     assert (_query(page), _crumbs(page)) != deepest
+    steps.locator("summary").click()
     assert not current.is_disabled()
     before = _state(page)
     current.click()
