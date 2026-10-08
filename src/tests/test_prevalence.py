@@ -54,6 +54,20 @@ def test_measured_base_shares_still_hold():
     shares = _shares({}, seed=11)
     for feature, base in tuning.PREVALENCE_BASE_SHARES.items():
         assert shares[feature] == pytest.approx(base, abs=_tolerance(base)), feature
+    # ADM.16: the Generate page shows these too.
+    for feature in ("comets", "binary_system"):
+        base = tuning.PREVALENCE_DRAW_SHARES[feature]
+        assert shares[feature] == pytest.approx(base, abs=_tolerance(base)), feature
+
+
+def test_every_feature_has_a_usual_share():
+    assert set(prevalence.USUAL_SHARES) == set(prevalence.FEATURES)
+    assert all(0 < share < 1 for share in prevalence.USUAL_SHARES.values())
+
+
+@pytest.mark.parametrize("share, percent", [(0.242, 0), (0.0, -100), (0.484, 100), (0.121, -50)])
+def test_percent_for_share(share, percent):
+    assert prevalence.percent_for_share("habitable_world", share) == pytest.approx(percent)
 
 
 @pytest.mark.parametrize("feature, percent", [

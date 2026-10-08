@@ -2372,6 +2372,19 @@ PREVALENCE_BASE_SHARES = {
     "planets": 0.959,           # at least one planet or belt
 }
 
+# The usual share of each feature one draw decides (ADM.16: the Generate
+# page starts each prevalence field at its usual share), measured over
+# 10,000 systems with default options (four seeds of 2,500; 2026-10-08).
+# Each is a share of the things in its comment, not always of systems.
+# Remeasure with PREVALENCE_BASE_SHARES.
+PREVALENCE_DRAW_SHARES = {
+    "comets": 0.334,            # systems with comets (each star of a wide pair draws)
+    "binary_system": 0.303,     # systems with two stars
+    "wide_binary": 0.499,       # binaries that are wide pairs
+    "moons": 0.429,             # planets with at least one moon
+    "max_planets": 0.037,       # stars that get the most orbits they can hold
+}
+
 # How many comets a star that DOES get any (per SYSTEM_COMET_CHANCE, or
 # `SystemConfig.COMETS = True` forcing at least this many) actually
 # generates -- a small handful, not a full population (this generator

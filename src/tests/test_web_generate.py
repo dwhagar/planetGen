@@ -640,41 +640,49 @@ def test_page_offers_the_backfill_checkbox(site, client):
 # --- Prevalence (ADM.16) ------------------------------------------------------------
 
 @pytest.mark.parametrize("action", ["galaxy", "new_galaxy"])
-def test_prevalence_fields_reach_the_galaxy_run(site, client, no_spawn, action):
-    assert _post(client, action=action, confirm=DB, estimate_ok="1", prevalence_comets="50",
-                 prevalence_habitable_world="-100", prevalence_moons="0").status_code == 303
+def test_a_changed_share_reaches_the_galaxy_run_as_a_percentage(site, client, no_spawn, action):
+    usual = generate_page.prevalence.USUAL_SHARES
+    assert _post(client, action=action, confirm=DB, estimate_ok="1",
+                 prevalence_habitable_world="0", prevalence_comets=f"{usual['comets'] * 150:g}",
+                 prevalence_moons=f"{usual['moons'] * 100:g}").status_code == 303
     (job,) = no_spawn
     argv = _argv(_work_steps(job)[-1])
-    given = [argv[i + 1] for i, arg in enumerate(argv) if arg == "--prevalence"]
-    assert given == ["habitable_world=-100", "comets=50"]  # 0 is the usual chance: left out
+    given = dict(argv[i + 1].split("=") for i, arg in enumerate(argv) if arg == "--prevalence")
+    assert set(given) == {"habitable_world", "comets"}  # moons left at its usual share
+    assert float(given["habitable_world"]) == -100
+    assert float(given["comets"]) == pytest.approx(50)
 
 
-def test_blank_prevalence_adds_nothing(site, client, no_spawn):
-    assert _post(client, action="galaxy", estimate_ok="1").status_code == 303
+@pytest.mark.parametrize("form", [{}, {f"prevalence_{f}": "" for f in generate_page.prevalence.FEATURES}])
+def test_usual_or_blank_shares_add_nothing(site, client, no_spawn, form):
+    if not form:  # every field as the page fills it in
+        form = {name: usual for name, _label, usual in generate_page.PREVALENCE_FIELDS}
+    assert _post(client, action="galaxy", estimate_ok="1", **form).status_code == 303
     (job,) = no_spawn
     assert "--prevalence" not in _argv(_work_steps(job)[-1])
 
 
-@pytest.mark.parametrize("value", ["-101", "lots", "nan"])
-def test_prevalence_must_be_a_number_of_at_least_minus_100(site, client, no_spawn, value):
+@pytest.mark.parametrize("value", ["-1", "101", "lots", "nan"])
+def test_a_share_must_be_a_number_from_0_to_100(site, client, no_spawn, value):
     resp = _post(client, action="galaxy", estimate_ok="1", prevalence_comets=value)
     assert resp.status_code == 400
     assert no_spawn == []
-    assert "Comets prevalence (%)" in resp.get_data(as_text=True)
+    assert "Comets (% of systems)" in resp.get_data(as_text=True)
 
 
-def test_page_offers_every_prevalence_field_on_both_forms(site, client):
-    from planetgen.generation import prevalence
+def test_page_starts_every_prevalence_field_at_its_usual_share(site, client):
     html = client.get("/admin/generate").get_data(as_text=True)
-    for feature in prevalence.FEATURES:
-        assert html.count(f'name="prevalence_{feature}"') == 2  # New galaxy and Generate sectors
+    for name, _label, usual in generate_page.PREVALENCE_FIELDS:
+        assert html.count(f'name="{name}" value="{usual}"') == 2  # New galaxy and Generate sectors
+    assert 'name="prevalence_habitable_world" value="24.2"' in html
 
 
 def test_the_generator_accepts_the_prevalence_argv():
     from planetgen.cli import generate as generate_cli
-    argv = generate_page.prevalence_argv({f"prevalence_{f}": "25" for f in generate_page.prevalence.FEATURES})
+    features = generate_page.prevalence.FEATURES
+    argv = generate_page.prevalence_argv({f"prevalence_{f}": "1" for f in features})
     args = generate_cli.build_parser()[0].parse_args(["galaxy", *argv])
-    assert dict(args.prevalence) == {feature: 25.0 for feature in generate_page.prevalence.FEATURES}
+    assert set(dict(args.prevalence)) == set(features)
 
 
 @pytest.mark.parametrize("value", ["0.5", "abc", "inf"])
