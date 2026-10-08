@@ -204,7 +204,7 @@ From PR #431's red CI (coordinator, 2026-10-03): PERF.27, DB.12, OPS.25, MAP.114
 | MAP.109, MAP.116 | MAP.102 | Tile streaming with level of detail. |
 | MAP.108, MAP.107, MAP.112, NAV.46 | MAP.65, NAV.15 | The shared picking layer and pick mode. |
 | MAP.106 | NAV.14 | One breadcrumb drawn from one URL and history state. |
-| MAP.113 | MAP.79 | Its per-kind toggles include nebulae. |
+| MAP.113 | — | Its nebula toggle is done (MAP.79); the unselect half is left. |
 | GEN.72, GEN.73 | GEN.67 | Names come from IDs. |
 | GEN.33, GEN.28, GEN.27, GEN.29 | GEN.90 | The class refactor around the habitability index. |
 
