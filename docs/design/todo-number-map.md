@@ -22,7 +22,7 @@ release is stamped.
 | API | API.20 |
 | ADM | ADM.39 |
 | SEC | SEC.32 |
-| TEST | TEST.107 |
+| TEST | TEST.108 |
 | USR | USR.9 |
 | OPS | OPS.28 |
 | DOC | DOC.4 |
@@ -536,7 +536,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.71 | Name interstellar objects, phenomena and constellations from the codec | none | open |
 | GEN.72 | A backfilled bright star should get a name only when its sector is generated (bug) | none | done, PR #657 |
 | GEN.73 | Nebulae don't get unique names (bug) | none | folded into GEN.71 |
-| GEN.74 | One point-in-space object that keeps every coordinate system in step, used by every object | none | open |
+| GEN.74 | One point-in-space object that keeps every coordinate system in step, used by every object | none | done, PR #665 |
 | GEN.75 | A nebula shape from metaballs and warped noise, as a mesh | none | done, PR #580 |
 | GEN.76 | A sector with no qualifying stars never generates or is marked generated (bug) | none | done, PR #442 |
 | GEN.77 | Neighborhood generation fails when its first sector is below the star threshold (bug) | none | done, PR #461 |
@@ -1145,6 +1145,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.104 | test_system_map_selection_drill_and_measure fails now and then under load (bug) | none | done, PR #634 |
 | TEST.105 | test_web_a11y.py fails on the Admin hub: its links have 2.49:1 contrast (bug) | none | done, PR #648 |
 | TEST.106 | test_controls_do_not_overlap fails on the Sector Map at 390, 600 and 1280 px: its buttons overlap the Contents filters (bug) | none | done, PR #650 |
+| TEST.107 | test_controls_do_not_overlap fails on main for /galaxy at 390 px and /sector: buttons overlap each other (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
