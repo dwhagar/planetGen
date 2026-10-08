@@ -112,9 +112,9 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 is done (PR #476); GEN.117, and GEN.116 is closed (Boss 2026-10-08 17:46Z). | UX.39, OPS.20, DB.11, DB.13, ADM.21, GEN.66, GEN.70, GEN.71, GEN.67, UX.21 |
+| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 is done (PR #476); GEN.117, and GEN.116 is closed (Boss 2026-10-08 17:46Z). | MAP.133, UX.39, OPS.20, DB.11, DB.13, ADM.21, GEN.66, GEN.70, GEN.71, GEN.67, UX.21 |
 | 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, NAV.16, NAV.3, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.41, GEN.98, GEN.100, GEN.99, GEN.101, GEN.102, GEN.103, GEN.84, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, GEN.94, GEN.104, GEN.106, GEN.107, GEN.108, NAV.10, NAV.12, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, NAV.43, NAV.44, MAP.119, MAP.122, MAP.123, MAP.124, MAP.89, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, OPS.8, OPS.13, OPS.14, ADM.18, GEN.59, UX.49, NAV.50 |
-| 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.58, MAP.75, MAP.59, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, API.16, ADM.17, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.131, MAP.132, API.18, VIEW.5 |
+| 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.58, MAP.75, MAP.59, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, API.16, ADM.17, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18, VIEW.5 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, repair that reads the newest settings JSON, and the anomalies chosen in phase 2. | NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, DB.10, ADM.20, GEN.114, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies, and the end state of reproducible galaxies (`generate.py reproduce`). | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, OPS.12, GEN.55 |
 
@@ -545,6 +545,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   density; admins can edit it for the slab or block in view, stored as
   an override that later fills use and logged.
 
+- [ ] **MAP.133 The Galaxy Map shows no bright stars in the bulge, and only layers -121 to 121 (bug)**
+  Boss found (2026-10-08, after the bright-star scatter): the Galaxy Map
+  shows bright stars only for layers -121 to 121 and none in the bulge.
+  Cause: the map's galaxy-wide bright-star sample and its per-tile cap
+  rank stars by luminosity alone, so old bulge giants (capped near 2,500
+  Lsun) never make the cut against the young, brighter disk stars. Fix:
+  sample per population (young, intermediate, old and bulge) so each
+  keeps its share of the budget, with a `bright_stars` index and a
+  migration for it. Done: the bulge and the outer layers show their
+  bright stars on the Galaxy Map after the scatter, with a test that
+  fails if one population crowds out the others.
+  Owner: Bugfixes lane.
+
 - [ ] **MAP.120 Bright-star backfill from the Galaxy Map's block, slab and wedge menus**
   Boss (2026-10-03 05:38Z): "Add bright star backfill to block menus in
   galactic view." Done: the admin menu on a block, slab or wedge runs
@@ -605,17 +618,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   to the nearest zoom possible to see as much of the charted space as
   possible." Done: with no view in the URL, the map opens at the closest
   zoom that shows every charted sector.
-
-- [ ] **MAP.131 A Color by switch on the Galaxy Map, with a legend**
-  Boss (2026-10-08 01:59Z): "Density determines transparency with more solid meaning more dense. Stellar age measures hue. Brightness measures luminosity of the sector or block. Blocks will never be fully opaque for coloring that is the color of the translucent fill."
-  Later. A Color by control on the Galaxy Map (Boss, 2026-10-08 13:35Z:
-  sector space is not tinted, so there is no Sector Map fill) picks
-  what the fill shows: the default (age, density and luminosity as
-  above), or a single statistic such as density, mean age, luminosity or
-  star count, each with a legend that shows the scale. Done: the switch
-  and its legend work on the Galaxy Map, the choice is kept in the URL, and a
-  browser test switches through every mode. It is built on the Shoelace
-  controls (UX.40, done) and the shared map engine pieces (MAP.61, MAP.125).
 
 - [ ] **MAP.132 Overlay markers for black holes, nebulae and habitable worlds**
   Boss (2026-10-08 01:59Z): "Density determines transparency with more solid meaning more dense. Stellar age measures hue. Brightness measures luminosity of the sector or block. Blocks will never be fully opaque for coloring that is the color of the translucent fill."
@@ -1959,6 +1961,63 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   cascade (tidal locking, gyrochronology for cool stars, log-normal
   speeds under the breakup limit for hot ones, the 2.2-hour spin barrier
   for small bodies, black hole spin distributions).
+  Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
+
+- [ ] **GEN.121 A velocity on every object, filled at generation and stored with an epoch**
+  Boss (2026-10-08 23:11Z, 23:19Z): "so I want to add vector
+  information so we know not only where it's going but how fast"; "let's
+  go ahead and store the orbital information ... as part of the
+  coordinates, velocity, immediate vector of movement relative to the
+  center of the star system". Done: `SpatialPosition3D` carries a
+  velocity that generation fills in. A bound body (planet, moon, comet,
+  second star of a pair) stores its velocity relative to its primary; a
+  star or rogue body stores a galactic velocity (the rotation curve plus
+  any runaway or hypervelocity flag). The velocity carries an epoch (the
+  moment it is valid for, the same epoch the orbit simulation state
+  keeps), and both are stored in the database. A bound body's galactic
+  velocity is its primary's plus its relative one, so a planet's 30 km/s
+  is not lost in a star's 220 km/s. Each orbital update refreshes the
+  vector, so perturbation wobble shows up in it.
+  Build thread (not a lane): started 2026-10-08 after Boss's "Alright,
+  do it".
+  Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
+
+- [ ] **GEN.122 Orbital elements for planets, moons and comets, kept in step with the state vector**
+  Boss (2026-10-08 23:11Z): "Each orbital update we'll update the vector
+  (which will contain the wobble as part of it's changes etc) and update
+  the orbital ellipse." Done: planets, moons and comets (closed
+  ellipses) store orbital elements (size, eccentricity, inclination,
+  node, periapsis angle, phase) beside the vector, and each orbital
+  update converts between the two in both directions in `kepler.py`, so
+  the ellipse is always derived from the current vector and never a
+  second copy of the truth. The projected course is the closed ellipse
+  around the primary; wobble is ignored. Planets and moons are circular
+  today (`positions_at` uses distance and phase only); eccentric
+  planetary orbits are a generation decision that this item does not
+  make.
+  Build thread (not a lane). Prerequisite: GEN.121.
+
+- [ ] **GEN.123 The projected path of a body through a sector, saved as a spline**
+  Boss (2026-10-08 23:11Z, 23:16Z): "for objects that are not that easy,
+  that do not have a closed elipse, how about the path the object takes
+  through the sector, again, not in perfect terms"; "a planetary body
+  passes near a black hole but not close enough to be captured, that's
+  not a streight line, so I want a way to make sure the orbital path is
+  a spline that curves through the sector roughly the way the object
+  would. Some sectors are really dense". Done: for a body with no closed
+  ellipse (stars, rogue planets, hyperbolic and parabolic comets,
+  interstellar objects), a test particle is integrated across the
+  sector from its entry point and velocity against the sector's point
+  masses (stars, black holes, remnants; the masses are fixed during the
+  crossing and the particle does not pull back). The path is saved as
+  cubic Hermite spline knots (position and velocity), few where the path
+  is nearly straight and more near a heavy mass, with a hard cap, so a
+  sparse sector gets two knots. A single dominant flyby may use the
+  hyperbolic deflection formula instead. Each sector's exit point and
+  velocity are the next sector's entry, so the path chains across
+  sectors. Masses too weak or far to matter are skipped. MAP.126's orbit
+  drawing should use these paths later.
+  Build thread (not a lane). Prerequisite: GEN.121.
   Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
 
 - [ ] **GEN.105 Orbital updates**
