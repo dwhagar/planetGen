@@ -204,6 +204,9 @@ def test_controls_do_not_overlap(browser, base_url, page_targets, admin_token, e
                 menus = ["sl-dropdown.site-gear"]
                 if page.locator("sl-dropdown.site-menu > [slot=trigger]").is_visible():
                     menus.insert(0, "sl-dropdown.site-menu")
+                # A header menu drops down over the page's first row, the
+                # breadcrumb, by design (NAV.14: its "…" can sit under it).
+                page.evaluate("""() => document.querySelectorAll("nav.breadcrumbs").forEach((n) => { n.style.visibility = "hidden"; })""")
                 for menu in menus:
                     page.locator(f"{menu} > [slot=trigger]").click()
                     page.wait_for_timeout(50)

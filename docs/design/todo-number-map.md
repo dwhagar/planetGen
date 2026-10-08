@@ -647,7 +647,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.63 | Shared map helpers in one module | none | done, PR #351 |
 | MAP.64 | One camera and input controller | none | done, PR #351 |
 | MAP.65 | One picking, hover and info-panel layer | none | done, PR #521 |
-| MAP.66 | The sector as the drill-down's last stage, on the same page | none | open |
+| MAP.66 | The sector as the drill-down's last stage, on the same page | none | done, PR #548 |
 | MAP.67 | One URL and history scheme for every level | none | open |
 | MAP.68 | Remove the old Sector Map code | none | open |
 | MAP.69 | A system scene endpoint with 3D orbits | none | open |
@@ -727,7 +727,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.11 | Travel times for the system-to-system route too | none | open |
 | NAV.12 | No maximum hop length: a route always reaches the nearest star it can, across any number of sectors | none | open |
 | NAV.13 | A picker module: select, step out, step in, step sideways | none | done, PR #564 |
-| NAV.14 | One breadcrumb for every level | none | open |
+| NAV.14 | One breadcrumb for every level | none | done, PR #571 |
 | NAV.15 | Pick mode everywhere | none | done, PR #566 |
 | NAV.16 | NAV endpoints can be any object | none | open |
 | NAV.17 | A saved course record with both forms | none | open |

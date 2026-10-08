@@ -1,5 +1,45 @@
 # Changelog
 
+## [7.274.636] - 2026-10-08
+
+### Changed
+
+- On the Galaxy Map, clicking a generated sector no longer loads its
+  page: the sector opens in place as the drill-down's last stage (MAP.66).
+  Its stars, black holes, nebulae and other bodies are drawn where the
+  sector is in the galaxy, the camera flies to fit it, and hovering or
+  clicking one gives the same tooltip, ring, info panel, ☆ and NAV links
+  as on the sector page. The breadcrumb, Back, Forward, Up and Reset view
+  work as on any other stage, and the stage has its own URL,
+  `/galaxy?sector=<designation>&open=1`. Clicking a neighboring sector
+  steps sideways into it. A sector's panel keeps its "View sector →"
+  link to the page.
+- The Sector Map's scene is built by a new module (`static/sectorscene.js`)
+  that both the sector page and the Galaxy Map use, and `starmap.py` hands
+  the sector's place and size in the galaxy to the script. The scene is
+  also available as JSON at `/sector/<id>/scene`.
+
+## [7.273.636] - 2026-10-08
+
+### Added
+- A browser test that, choosing a NAV end on the Galaxy Map, clicks through the arcs, slabs and blocks down to a sector. The pick-mode wedge clicking NAV.46 reported already works since the shared picking layer (MAP.65, NAV.13, NAV.15); this keeps it that way.
+
+## [7.272.636] - 2026-10-08
+
+### Added
+- Choosing a NAV start or destination now works on the system and phenomenon pages too: the same "Choosing a destination" banner with Cancel and bookmarks, and one "Use as start/destination" button in place of the Navigate buttons (NAV.15).
+
+## [7.271.636] - 2026-10-08
+
+### Added
+
+- Planned NAV.50 (pick a planet, moon or belt as a NAV endpoint), split from NAV.15 because the NAV page only takes system and phenomenon endpoints until NAV.16.
+
+## [7.270.636] - 2026-10-08
+
+### Added
+- `static/picker.js`, one shared selection (select, step out, step in, step sideways, one change event, and the trail for a breadcrumb). The Galaxy Map's Up and Reset buttons, Escape and Backspace and its breadcrumb now move it, and the map follows (NAV.13).
+
 ## [7.269.635] - 2026-10-08
 
 ### Added
