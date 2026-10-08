@@ -8,12 +8,14 @@ login, the web pages, and the command-line reset.
 
 import base64
 import re
+import time
 
+import pyotp
 import pytest
 
 from planetgen.api import loginguard
 from planetgen.db import store
-from planetgen.admin import auth as adminAuth, totp
+from planetgen.admin import auth as adminAuth
 
 # --- Codes (RFC 6238) -----------------------------------------------------------
 
@@ -23,29 +25,48 @@ RFC_SECRET = base64.b32encode(b"12345678901234567890").decode()
 @pytest.mark.parametrize("when, code", [(59, "287082"), (1111111109, "081804"), (1234567890, "005924"),
                                         (2000000000, "279037")])
 def test_rfc_6238_vectors(when, code):
-    assert totp.code_at(RFC_SECRET, when // 30) == code
+    assert pyotp.TOTP(RFC_SECRET).at(when) == code
+
+
+def _code(step):
+    return pyotp.TOTP(RFC_SECRET).at(step * 30)
 
 
 def test_verify_allows_one_step_of_drift_and_no_replay():
+    verify = adminAuth.verify_totp
     now = 1_000_000_000
     step = now // 30
-    assert totp.verify(RFC_SECRET, totp.code_at(RFC_SECRET, step), 0, now) == step
-    assert totp.verify(RFC_SECRET, totp.code_at(RFC_SECRET, step - 1), 0, now) == step - 1
-    assert totp.verify(RFC_SECRET, totp.code_at(RFC_SECRET, step + 1), 0, now) == step + 1
-    assert totp.verify(RFC_SECRET, totp.code_at(RFC_SECRET, step - 2), 0, now) is None
+    assert verify(RFC_SECRET, _code(step), 0, now) == step
+    assert verify(RFC_SECRET, _code(step - 1), 0, now) == step - 1
+    assert verify(RFC_SECRET, _code(step + 1), 0, now) == step + 1
+    assert verify(RFC_SECRET, _code(step - 2), 0, now) is None
     # A step already used (or older) never works again.
-    assert totp.verify(RFC_SECRET, totp.code_at(RFC_SECRET, step), step, now) is None
-    assert totp.verify(RFC_SECRET, "abcdef", 0, now) is None
-    assert totp.verify(RFC_SECRET, None, 0, now) is None
+    assert verify(RFC_SECRET, _code(step), step, now) is None
+    assert verify(RFC_SECRET, "abcdef", 0, now) is None
+    assert verify(RFC_SECRET, None, 0, now) is None
+    # Spaces and dashes in what was typed are ignored.
+    code = _code(step)
+    assert verify(RFC_SECRET, f"{code[:3]} {code[3:]}", 0, now) == step
+    assert verify(RFC_SECRET, f"{code[:3]}-{code[3:]}", 0, now) == step
 
 
-def test_new_secret_and_uri():
-    secret = totp.new_secret()
+@pytest.mark.parametrize("offset", range(-3, 4))
+def test_verify_is_exact_around_a_step_boundary(offset):
+    """TEST.72: the window is the same just before, on and just after a step boundary."""
+    boundary = 1_000_000_020  # a multiple of 30
+    for now in (boundary - 1, boundary, boundary + 1):
+        step = now // 30
+        expected = step + offset if abs(offset) <= 1 else None
+        assert adminAuth.verify_totp(RFC_SECRET, _code(step + offset), 0, now) == expected
+
+
+def test_new_secret_and_enrolment():
+    secret = adminAuth.new_totp_secret()
     assert re.fullmatch(r"[A-Z2-7]{32}", secret)
-    uri = totp.provisioning_uri(secret, "boss admin")
-    assert uri.startswith("otpauth://totp/planetGen%3Aboss%20admin?secret=" + secret)
-    svg = totp.qr_svg(uri)
-    assert svg.startswith("<svg") and "<path" in svg and "<script" not in svg
+    uri, svg = adminAuth.totp_enrolment(secret, "boss admin")
+    assert uri.startswith("otpauth://totp/planetGen:boss%20admin?secret=" + secret)
+    assert "issuer=planetGen" in uri
+    assert svg.startswith("<svg") and "<path" in svg and "<script" not in svg and "style=" not in svg
 
 
 # --- The control database ----------------------------------------------------------
@@ -70,7 +91,7 @@ def admin_id(control_conn):
 
 
 def _now_code(secret, offset=0):
-    return totp.code_at(secret, totp.current_step() + offset)
+    return pyotp.TOTP(secret).at((int(time.time() // 30) + offset) * 30)
 
 
 def test_setup_confirm_and_check(control_conn, admin_id):

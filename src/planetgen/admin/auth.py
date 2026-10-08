@@ -27,9 +27,11 @@ lifetime/pooling.
 
 import gzip
 import hashlib
+import hmac
 import os
 import re
 import secrets
+import time
 
 from planetgen.db import store
 
@@ -617,16 +619,58 @@ def totp_enabled(conn, admin_user_id):
     return bool(row and row["enabled_at"])
 
 
+TOTP_STEP_SECONDS = 30
+TOTP_DRIFT_STEPS = 1
+TOTP_ISSUER = "planetGen"
+
+
+def new_totp_secret():
+    """A random 160-bit secret, base32 (32 characters)."""
+    import pyotp
+    return pyotp.random_base32()
+
+
+def verify_totp(secret, code, last_step=0, now=None):
+    """
+    The 30-second time step `code` matches, or `None` (SEC.26, SEC.29). A code is
+    accepted for the current step and one step either side (clock drift),
+    and never twice: any step at or before `last_step` is refused, so a
+    code seen over someone's shoulder can't be replayed.
+    """
+    import pyotp
+    if not isinstance(code, str):
+        return None
+    code = code.replace(" ", "").replace("-", "")
+    if len(code) != 6 or not code.isdigit() or not secret:
+        return None
+    totp = pyotp.TOTP(secret)
+    now_step = int((time.time() if now is None else now) // TOTP_STEP_SECONDS)
+    for step in range(now_step - TOTP_DRIFT_STEPS, now_step + TOTP_DRIFT_STEPS + 1):
+        if step > (last_step or 0) and hmac.compare_digest(totp.at(step * TOTP_STEP_SECONDS), code):
+            return step
+    return None
+
+
+def totp_enrolment(secret, username):
+    """The `otpauth://` URI an authenticator app reads, and that URI as a QR code in SVG
+    (inline markup, safe to put in a page)."""
+    import pyotp
+    import segno
+    uri = pyotp.TOTP(secret).provisioning_uri(name=username, issuer_name=TOTP_ISSUER)
+    svg = segno.make(uri, error="m").svg_inline(scale=5, border=4, dark="#000", light="#fff",
+                                                 title="QR code for an authenticator app")
+    return uri, svg
+
+
 def begin_totp_setup(conn, admin_user_id):
     """
     Starts (or restarts) setting up an authenticator app: stores a new
     secret, not yet enabled, and returns it. Refused while two-factor
     sign-in is already on (turn it off first).
     """
-    from planetgen.admin import totp
     if totp_enabled(conn, admin_user_id):
         raise AuthError("two-factor sign-in is already on")
-    secret = totp.new_secret()
+    secret = new_totp_secret()
     conn.execute("DELETE FROM admin_totp WHERE admin_user_id = ?", (admin_user_id,))
     conn.execute("INSERT INTO admin_totp (admin_user_id, secret) VALUES (?, ?)", (admin_user_id, secret))
     conn.commit()
@@ -650,11 +694,10 @@ def confirm_totp_setup(conn, admin_user_id, code):
     Raises:
         AuthError: No setup started, or the code doesn't match.
     """
-    from planetgen.admin import totp
     secret = pending_totp_secret(conn, admin_user_id)
     if secret is None:
         raise AuthError("start setting up two-factor sign-in first")
-    step = totp.verify(secret, code)
+    step = verify_totp(secret, code)
     if step is None:
         raise AuthError("that code doesn't match; check the app's clock and try the newest code")
     conn.execute("UPDATE admin_totp SET enabled_at = CURRENT_TIMESTAMP, last_step = ? WHERE admin_user_id = ?",
@@ -681,13 +724,12 @@ def check_second_factor(conn, admin_user_id, code):
     Returns:
         str or None: `"totp"` or `"recovery"`, or `None` for a wrong code.
     """
-    from planetgen.admin import totp
     row = conn.execute("SELECT secret, last_step FROM admin_totp WHERE admin_user_id = ? AND enabled_at IS NOT NULL "
                        "FOR UPDATE", (admin_user_id,)).fetchone()
     if row is None:
         conn.rollback()
         return None
-    step = totp.verify(row["secret"], code, last_step=row["last_step"])
+    step = verify_totp(row["secret"], code, last_step=row["last_step"])
     if step is not None:
         conn.execute("UPDATE admin_totp SET last_step = ? WHERE admin_user_id = ?", (step, admin_user_id))
         conn.commit()
