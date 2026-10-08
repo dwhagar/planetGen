@@ -455,6 +455,14 @@ Once the view is one layer of sectors:
   (tables, text, edit tools), embeds the same engine locked to that sector
   (MAP.68): the Sector Map there is this map, with no steps or history of
   its own, and a click on a neighboring sector opens that sector's page.
+- A star of an open sector can be opened in place too (MAP.125): its info
+  panel's "Open system here" loads the system's scene
+  (`/api/systems/<id>/scene`, `galaxysystem.js`), draws its stars, planets,
+  moons, belts and comets at the star's place in the sector (compressed
+  scale, or true scale from the info panel), and flies the camera to fit
+  it. Its bodies are picked like any other object and "Fly to" takes the
+  camera down to one and follows it. URL `&system=<id>` after `open=1`;
+  Up closes the system (back to the sector), Back and Forward step through.
 - A sector that isn't generated shows today's cell panel (address,
   designation, coordinates, 8 corners). Admins also get the Generate
   tools (section 6).
@@ -561,7 +569,8 @@ one: `{ring, layer, slot, id, name, system_count}`.
 | A sector, selected | `/galaxy?sector=<designation>` |
 | A sector, opened in place | `/galaxy?sector=<designation>&open=1` (MAP.66) |
 | A sector's page | `/sector/<id>`: the same engine locked to the sector, no query of its own (MAP.68) |
-| A system or a body (with MAP.62) | `?object=<ref>`, to be added there |
+| A system, opened in place | `/galaxy?sector=<designation>&open=1&system=<id>` (MAP.125) |
+| A body (with MAP.125) | `?object=<ref>`, to be added there |
 
 - A pick reads `a<band>.<bearing>` (the arc of band 0, 1 or 2, inner
   first, starting at that bearing in degrees), `q<n>` (quarter n, from
