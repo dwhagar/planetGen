@@ -45,7 +45,7 @@ being trusted. This condenses Boss's documents in this folder:
 
 ## 2. The position object
 
-`spacial-position.py`'s `SpatialPosition3D` keeps one body's position in
+`planetgen/physics/position.py`'s `SpatialPosition3D` (Boss's prototype `spacial-position.py`, now removed) keeps one body's position in
 three frames (galactic, sector, system) and three forms (Cartesian,
 cylindrical, spherical). Setting any coordinate in any frame and form
 updates all of them, with the velocity, and it works out how long until
@@ -53,8 +53,15 @@ the body moves enough to be observed. It moves into the physics package
 with tests, and every positioned object holds one, with its mass and
 gravitational parameter (mu = G M) beside it.
 
-Note: the prototype's minimum-observable constants (1e-4, 1e-5, 1e-6)
-are placeholders; the thresholds below replace them.
+Built (GEN.74, part 1): all lengths are metres, speeds m/s, masses kg
+(the storage layer converts at its edge). The position last set is kept
+as given in its own frame and the others are derived from it, so a moon
+set by its system offset keeps its metres exactly. The prototype's
+placeholder minimum-observable constants are replaced by the thresholds
+below (`THRESHOLDS_M`: galactic, system, planetary), with the next-due time
+capped at a billion years. Values the maths cannot hold (non-finite
+numbers, a negative radius, a polar angle outside [0, pi], a speed at or
+above the speed of light, a negative mass) raise `ValueError`.
 
 ## 3. Thresholds and the next-due time
 
