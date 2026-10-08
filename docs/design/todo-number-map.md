@@ -721,7 +721,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.4 | Save a course | none | open |
 | NAV.5 | Show a course on the Galaxy Map | none | open |
 | NAV.6 | Courses that steer clear of gravity wells | none | open |
-| NAV.7 | One reference for every object, with its parents | none | open |
+| NAV.7 | One reference for every object, with its parents | none | done, PR #688 |
 | NAV.8 | Pages and anchors for stars, planets, moons and belts | none | open |
 | NAV.9 | Search and locate return references for every kind | none | open |
 | NAV.10 | Routing that scales past a few thousand systems | none | open |
