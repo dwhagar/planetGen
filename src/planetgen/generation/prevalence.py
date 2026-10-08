@@ -34,6 +34,21 @@ usual share; the rest scale their own draw (`scaled_chance`)."""
 MIN_PERCENT = -100.0
 """float: -100% is never; anything lower would be a negative chance."""
 
+USUAL_SHARES = {**tuning.PREVALENCE_BASE_SHARES, **tuning.PREVALENCE_DRAW_SHARES,
+                "intelligent_life": tuning.CIVILIZATION_CHANCE}
+"""dict: Each feature's usual share (0-1) with default options, of systems
+or of what `tuning.PREVALENCE_DRAW_SHARES` says (intelligent life: of
+worlds whose timeline reaches a technological age)."""
+
+
+def percent_for_share(feature, share):
+    """
+    The prevalence (percent from the usual chance) that moves `feature`
+    from its usual share (`USUAL_SHARES`) to `share` (0-1): its usual
+    share gives 0, none -100, twice it +100.
+    """
+    return (share / USUAL_SHARES[feature] - 1.0) * 100.0
+
 
 def percent(config, feature):
     """`config`'s prevalence for `feature`, in percent (0 when unset)."""

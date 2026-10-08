@@ -1,5 +1,29 @@
 # Changelog
 
+## [7.236.620] - 2026-10-08
+
+### Added
+
+- TODO item TEST.94: test_old_jobs_are_pruned raises JobBusy again because the job lock outlives the finished job (phase 0, Bugfixes: ops and flakes).
+
+## [7.235.620] - 2026-10-08
+
+### Fixed
+
+- The Generate page's prevalence fields start at each feature's usual share (habitable worlds 24.2% of systems, asteroid belts 59%, and so on, each naming what it is a share of) instead of a 0% change, and take the share wanted; the run gets the percentage that moves the usual share there (ADM.37).
+
+## [7.234.620] - 2026-10-08
+
+### Changed
+
+- The Generate page's size and time estimate and the one-off system page's generator now run on the Redis queue and the page waits for them (PERF.24, step 4d). Without a Redis server (Windows without WSL's Redis) they run in the web process as before.
+
+## [7.233.620] - 2026-10-08
+
+### Added
+
+- TODO item ADM.37: the Generate page's prevalence fields should show each feature's real default share instead of "0% change" (phase 0, Bugfixes: prevalence).
+
 ## [7.232.618] - 2026-10-08
 
 ### Changed

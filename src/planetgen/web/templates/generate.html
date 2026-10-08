@@ -20,16 +20,16 @@
   {%- endfor %}
 </div>
 {%- endmacro -%}
-{#- ADM.16: how much more or less often the run's systems get each
-    feature (GEN.52 `--prevalence`); blank or 0 is the usual chance. -#}
+{#- ADM.16: the share of each feature a sector or galaxy run should
+    give, starting at its usual share (GEN.52 `--prevalence`). -#}
 {%- macro prevalence_inputs() -%}
 <details class="search-more">
   <summary>Prevalence</summary>
-  <p class="hint">How much more or less often this run's systems get each feature, in percent of its usual chance:
-  50 is one and a half times as often, -100 never, blank or 0 as usual.</p>
+  <p class="hint">How common each feature is in this run's systems. Every field starts at the share generation
+  gives with no changes; type a higher or lower share to change it, 0 for none.</p>
   <div class="search-fields">
-    {%- for name, label in prevalence_fields %}
-    {{ field(name, label ~ " (%)", placeholder="0", min=-100) }}
+    {%- for name, label, usual in prevalence_fields %}
+    {{ field(name, label, value=usual, min=0, max=100, hint="Usual: " ~ usual ~ "%") }}
     {%- endfor %}
   </div>
 </details>
