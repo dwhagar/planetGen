@@ -8,7 +8,7 @@
 {%- endmacro %}
 {% macro datatable(t) %}
 <div class="datatable" id="{{ t.id }}-table" data-datatable data-source="{{ t.source }}"
-     data-page-size="{{ t.page_size }}" data-total="{{ t.total }}" data-sort="{{ t.sort }}"
+     data-page-size="{{ t.page_size }}" data-total="{{ t.total }}" data-sort="{{ t.sort }}" data-default-sort="{{ t.default_sort }}" data-prefix="{{ t.prefix }}"
      data-descending="{{ 'true' if t.descending else 'false' }}" data-noun-one="{{ t.noun_one }}" data-noun-many="{{ t.noun_many }}">
   {%- if t.facets %}
   <form class="datatable-filters" method="get" action="{{ t.path }}{% if t.anchor %}#{{ t.anchor }}{% endif %}" aria-label="Filter {{ t.label|lower }}">

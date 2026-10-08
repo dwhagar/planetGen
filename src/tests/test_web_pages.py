@@ -55,17 +55,29 @@ class FakeData:
         self.sectors = [_sector(i) for i in range(sectors)]
         self.systems = [_system(i) for i in range(systems)]
         self.calls = []
+        self.asked = []
         self.admin = None
 
-    def get_sectors(self, db, limit=None, offset=None):
+    def get_sectors(self, db, limit=None, offset=None, sort=None, descending=False, quadrants=(), facets=False):
         self.calls.append(("get_sectors", db, limit, offset))
-        return {"items": self.sectors[offset:offset + limit], "total": len(self.sectors),
+        self.asked.append(("sectors", sort, descending, list(quadrants)))
+        body = {"items": self.sectors[offset:offset + limit], "total": len(self.sectors),
                 "limit": limit, "offset": offset}
+        if facets:
+            body["facets"] = {"quadrant": [{"value": "I", "count": len(self.sectors)}]}
+        return body
 
-    def get_systems(self, db, star_type=None, sector_id=None, limit=None, offset=None):
+    def get_systems(self, db, star_type=None, sector_id=None, limit=None, offset=None, sort=None,
+                    descending=False, binary=None, placement=None, octants=(), facets=False):
         self.calls.append(("get_systems", db, sector_id, limit, offset))
-        return {"items": self.systems[offset:offset + limit], "total": len(self.systems),
+        self.asked.append(("systems", sort, descending, binary, placement, list(octants)))
+        body = {"items": self.systems[offset:offset + limit], "total": len(self.systems),
                 "limit": limit, "offset": offset}
+        if facets:
+            body["facets"] = {"placement": [{"value": "sector", "count": 1}],
+                              "binary": [{"value": "yes", "count": 1}, {"value": "no", "count": 1}],
+                              "octant": [{"value": "I", "count": 2}]}
+        return body
 
     def auth_me(self, cookie_header):
         self.calls.append(("auth_me", cookie_header))
@@ -523,3 +535,60 @@ def test_systems_page_lists_every_system_with_sector_and_octant(client, fake):
     page2 = client.get("/systems?systems_page=2&standalone_page=2").get_data(as_text=True)
     assert ("get_systems", DB, None, 50, 50) in fake.calls
     assert "standalone_page=2" in page2
+
+
+# --- The Sectors and Systems data tables (UX.41) ---------------------------------
+
+def test_sectors_table_asks_for_the_sort_and_quadrant_filter(client, fake):
+    html = client.get("/sectors?sectors_sort=systems&sectors_order=desc&quadrant=I&quadrant=unplaced").get_data(as_text=True)
+    assert ("sectors", "systems", True, ["I", "unplaced"]) in fake.asked
+    assert '<th scope="col" data-col="systems" aria-sort="descending">' in html
+    # The default sort is by distance from the core.
+    assert '<th scope="col" data-col="distance" aria-sort="none">' in html
+    assert 'href="/sectors?quadrant=I&amp;quadrant=unplaced#sectors"' in html
+    assert 'name="quadrant" value="I" checked' in html
+    assert '<span class="datatable-option-label">Quadrant I</span>' in html
+
+
+def test_sectors_table_default_sort_is_distance(client, fake):
+    html = client.get("/sectors").get_data(as_text=True)
+    assert ("sectors", "distance", False, []) in fake.asked
+    assert '<th scope="col" data-col="distance" aria-sort="ascending">' in html
+
+
+def test_systems_tables_filter_independently(client, fake):
+    html = client.get("/systems?systems_sort=sector&binary=yes&placement=sector&octant=I"
+                      "&standalone_sort=binary&standalone_binary=no").get_data(as_text=True)
+    assert ("systems", "sector", False, True, "sector", ["I"]) in fake.asked
+    assert ("systems", "binary", False, False, None, []) in fake.asked
+    # Each table's links and form keep the other's choices.
+    assert 'name="standalone_sort" value="binary"' in html
+    assert 'name="systems_sort" value="sector"' in html
+
+
+def test_both_binary_choices_filter_nothing(client, fake):
+    client.get("/systems?binary=yes&binary=no")
+    assert ("systems", "name", False, None, None, []) in fake.asked
+
+
+def test_unrelated_address_parameters_are_not_carried_into_links(client, fake):
+    html = client.get("/?sectors_sort=name&stray=1&db=someone_elses_db").get_data(as_text=True)
+    assert "stray" not in html and "someone_elses_db" not in html
+
+
+def test_table_route_serves_the_sectors_and_systems_tables(client, fake):
+    fake.sectors = [_sector(1, placed=True), _sector(2, placed=False)]
+    body = client.get("/table/sectors?sort=systems&order=desc&facets=1").get_json()
+    assert body["total"] == 2
+    assert body["rows"][0][0] == {"text": "Sector 001", "href": "/sector/1"}
+    assert body["rows"][0][3] == {"text": "Quadrant I", "href": "/galaxy?quadrant=I"}
+    assert body["rows"][1][3] == {"text": "Unplaced", "muted": True}
+    assert body["facets"]["quadrant"] == [{"value": "I", "label": "Quadrant I", "count": 2}]
+    assert ("sectors", "systems", True, []) in fake.asked
+
+    body = client.get("/table/systems?facets=1&placement=standalone").get_json()
+    assert [cell["text"] for cell in body["rows"][0]] == ["System 000", "Standalone", "–", "No", "G2V"]
+    assert {o["value"]: o["label"] for o in body["facets"]["binary"]} == {"yes": "Binary", "no": "Single star"}
+    body = client.get("/table/standalone-systems").get_json()
+    assert [cell["text"] for cell in body["rows"][1]] == ["System 001", "Yes", "G2V"]
+    assert body["facets"] is None

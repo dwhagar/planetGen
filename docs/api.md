@@ -78,7 +78,14 @@ connectivity to that specific schema rather than the default one.
   `layer_index`/`ring_slot_index` (the cylindrical grid address), all
   `null` together for an unplaced sector, plus a `placed` bool), nearest
   the galactic core first, then unplaced sectors by name
-  (`queryDb.list_sectors`/`count_sectors`).
+  (`queryDb.list_sectors`/`count_sectors`). The Sectors table (UX.41) also
+  takes `sort` (`name`, `systems`, `density`, `position`, `distance`) with
+  `order=asc|desc` (unplaced sectors sort last for `density`, `distance` and
+  `position`; ties keep the default order), the repeatable filter
+  `quadrant` (`I`-`IV`, or `unplaced`) and `facets=1`, which adds
+  `facets: {"quadrant": [{"value", "count"}]}` (the menu ignores its own
+  filter). `total` counts the sectors that pass the filter; a bad `sort` or
+  `order` is a 400.
 - `GET /api/sectors/<id>` — one sector's full display detail: the same
   fields as the listing above, plus `systems` (every system placed in
   it, nearest the sector's center first: `id`, `name`, `quadrant`, `location`, `is_binary`, `binary_type`,
@@ -124,7 +131,14 @@ connectivity to that specific schema rather than the default one.
   `binary_type`). `star_type` is a literal prefix (`%` and `_` match only
   themselves). `sector_id=none` matches only standalone systems
   (`sector_id IS NULL`, the `/systems` page's Standalone Systems table) — distinct
-  from omitting `sector_id` entirely (no sector filter at all).
+  from omitting `sector_id` entirely (no sector filter at all). The Systems
+  tables (UX.41) also take `sort` (`name`, `sector`, `octant`, `binary`) with
+  `order=asc|desc` (systems with no sector or octant sort last), the filters
+  `binary=yes|no`, `placement=sector|standalone` and `octant` (repeatable),
+  and `facets=1`, which adds `facets: {"placement", "binary", "octant"}`
+  (each `[{"value", "count"}]`; every menu's counts apply the other filters
+  but not its own). `total` counts the systems that pass the filters; a bad
+  `sort`, `order`, `binary` or `placement` is a 400.
 - `GET /api/systems/<id>` — one system's full display detail: `id`,
   `name`, `sector_id`, `quadrant`, `location`, `is_binary`, `binary_type`,
   `binary_configuration` (`"close"`/`"wide"`/`null`),
