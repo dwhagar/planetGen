@@ -923,7 +923,14 @@ def _check_leaders(leaders):
         # ... and ends on the map.
         cx0, cy0, cx1, cy1 = line["canvas"]
         assert cx0 <= line["end"][0] <= cx1 and cy0 <= line["end"][1] <= cy1, line
-    # Ordered by their slabs' height on screen, so no two lines cross.
+    # Each column in slab-number order (MAP.110) ...
+    columns = {}
+    for line in leaders:
+        columns.setdefault(round(line["button"][0]), []).append(line)
+    for column in columns.values():
+        numbers = [int(line["slab"]) for line in sorted(column, key=lambda line: line["button"][1])]
+        assert numbers in (sorted(numbers), sorted(numbers, reverse=True)), numbers
+    # ... running the way the slabs do on screen, so no two lines cross.
     for n, a in enumerate(leaders):
         for b in leaders[n + 1:]:
             for p, q in zip(a["points"], a["points"][1:]):
