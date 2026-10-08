@@ -1,5 +1,58 @@
 # Changelog
 
+## [7.252.634] - 2026-10-08
+
+### Fixed
+- With "Charted only" on, the Galaxy Map's blocks, slabs and wedges holding nothing generated can be hovered and picked just as with it off; only choosing a NAV start or destination still needs something generated (MAP.112).
+
+## [7.251.634] - 2026-10-08
+
+### Fixed
+
+- **The system page's buttons sit on one row (UX.27).** Navigate from here, Navigate to here, Show on Galaxy Map and Bookmark no longer wrap or overlap: where the four don't fit, the two navigate buttons fold into one Navigate menu (From here, To here), and on a phone Show on Galaxy Map moves into that menu too. The layout follows the row's own width (container queries), not the device.
+
+## [7.250.634] - 2026-10-08
+
+### Fixed
+- Picking on the Galaxy Map while the stage just picked was still loading its data no longer says "There is no layer x here" and leaves the breadcrumb ahead of the drawing: a choice is now taken on the stage that is drawn (MAP.107).
+- A test now checks that the slab buttons never cover any part of the Galaxy Map at any width (MAP.108, the buttons-block-clicks part).
+
+## [7.249.634] - 2026-10-08
+
+### Added
+
+- TODO item GEN.120: move the gated phoneme codec from the repo root into the naming package (Boss, 2026-10-08).
+
+## [7.248.634] - 2026-10-08
+
+### Changed
+
+- **Admin edit actions are one Edit button that opens a menu (UX.26, UX.31).** On the system, sector and phenomenon pages the inline Regenerate, Delete, Change star and Change class folds are replaced by an Edit menu per row; picking an action opens its confirm step in a dialog on top of the page (Escape or Cancel closes it, the primary button submits), with the menu and dialog working from the keyboard. The posted forms and the server's `edit_action` handling are unchanged.
+
+## [7.247.634] - 2026-10-08
+
+### Added
+
+- TODO items TEST.98 to TEST.101: four load-only test flakes seen in the full suite run for PR #531.
+
+## [7.246.629] - 2026-10-08
+
+### Fixed
+- The Galaxy Map's "Generated only" toggle is now "Charted only": besides dimming blocks with nothing generated it dims the stars outside charted sectors and outlines each charted block, so the charted space stands out in every wedge (MAP.111).
+
+## [7.245.629] - 2026-10-08
+
+### Changed
+
+- The Galaxy Map and the Sector Map now pick, hover and fill their info
+  panels through one shared module (`static/mappick.js`, MAP.65). The
+  Sector Map gains a hover tooltip and ring, and a ☆ Bookmark button in
+  its info panel for a system, a phenomenon or a generated neighboring
+  sector. On the Galaxy Map, black holes, neutron stars, quasars and
+  nebulae gain a hover tooltip and ring, "Nav from here" and "Nav to
+  here" links (or the pick button while a NAV end is being picked), and a
+  ☆; a generated sector's panel gains a ☆ too.
+
 ## [7.244.629] - 2026-10-08
 
 ### Added

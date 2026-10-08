@@ -77,15 +77,22 @@ haven't been filled. The plan:
    belts, comets and phenomena.
 3. **A naming key** in the control database, drawn from the galaxy seed
    when the galaxy is created and changeable by an admin.
-4. **Names from the codec**: `gatedPhonemeCodec.py` (repo root) turns an
+4. **Names from the codec**: `gatedPhonemeCodec.py` (repo root today; GEN.120 moves it into the
+   `planetgen.names` package) turns an
    ID into pronounceable words and back, keyed by a domain and the naming
    key, so a name is unique because its ID is, and changing the key
-   renames everything without rewriting rows. Planets keep the "<system>
-   I" pattern. A wide binary gets a two-word name: star A's planets are
-   "<word 1> I", "<word 1> II", star B's "<word 2> I", "<word 2> II",
-   never "A I" (Boss, 2026-10-07 17:11Z; GEN.71).
-5. **Removal** of the word lists, the nltk corpus, the name registries
-   and the collision rules.
+   renames the codec's objects without rewriting rows. Boss's decisions
+   of 2026-10-08 (03:57Z and 04:00Z): stars and sectors keep the
+   word-salad method, and planets, moons and belts keep the "<system> I"
+   pattern, so the codec names only the objects with no star-derived name
+   (the GEN.64 kinds above, whose hex ID becomes words, and
+   constellations). A wide binary's planets are "<word 1> I",
+   "<word 1> II", star B's "<word 2> I", "<word 2> II", never "A I"
+   (Boss, 2026-10-07 17:11Z; GEN.71), where the two words are the wide
+   pair's word-salad name.
+5. **No removal** of the word-salad code, the word lists, the nltk
+   corpus or the name registries: stars, sectors, planets, moons and
+   belts still use them.
 
 A bright star placed by the backfill shows its ID until its sector is
 generated, and only then gets its name.

@@ -2,7 +2,7 @@
     the stars table and the map are HTML from planetgen/web/lib/systempage.py and
     planetgen/web/maps/systemmap.py (escaped there); everything else is escaped here. -#}
 {% extends "base.html" %}
-{% from "partials/edit_controls.html" import edit_buttons with context %}
+{% from "partials/edit_controls.html" import edit_menu with context %}
 {% from "partials/bookmark.html" import bookmark_button %}
 {% block head %}
 <script type="module" src="{{ static_url('systemmap.js') }}"></script>
@@ -17,14 +17,25 @@
     {%- if inside %}<span class="badge">Inside: <a href="{{ inside.url }}">{{ inside.name }}</a></span>{% endif -%}
     {%- if territory %}<span class="badge"><svg class="polity-swatch" viewBox="0 0 10 10" aria-hidden="true" focusable="false"><rect width="10" height="10" fill="{{ territory.color }}"/></svg> Territory of <a href="{{ territory.url }}">{{ territory.name }}</a></span>{% endif -%}
   </p>
-  <p class="page-actions">
+  <div class="page-actions nav-row">
     {%- if nav_links %}
-    <a class="btn btn-small" href="{{ nav_links.from }}">Navigate from here</a>
-    <a class="btn btn-small" href="{{ nav_links.to }}">Navigate to here</a>
-    <a class="btn btn-small" href="{{ page_url('system_on_galaxy_map', system_id=system.id) }}">Show on Galaxy Map</a>
+    {#- UX.27: one row. Where the three buttons don't fit, the two navigate
+        buttons fold into one Navigate menu, and on a phone Show on Galaxy Map
+        joins that menu (container queries in style.css pick the layout). #}
+    <a class="btn btn-small nav-wide" href="{{ nav_links.from }}">Navigate from here</a>
+    <a class="btn btn-small nav-wide" href="{{ nav_links.to }}">Navigate to here</a>
+    <sl-dropdown class="nav-menu" placement="bottom-start" distance="4">
+      <sl-button slot="trigger" size="small" caret>Navigate</sl-button>
+      <sl-menu aria-label="Navigate">
+        <sl-menu-item data-href="{{ nav_links.from }}">From here</sl-menu-item>
+        <sl-menu-item data-href="{{ nav_links.to }}">To here</sl-menu-item>
+        <sl-menu-item class="nav-menu-galaxy" data-href="{{ page_url('system_on_galaxy_map', system_id=system.id) }}">Show on Galaxy Map</sl-menu-item>
+      </sl-menu>
+    </sl-dropdown>
+    <a class="btn btn-small nav-galaxy" href="{{ page_url('system_on_galaxy_map', system_id=system.id) }}">Show on Galaxy Map</a>
     {%- endif %}
     {{ bookmark_button(bookmark) }}
-  </p>
+  </div>
   {%- if location_html %}
   <p class="location inline-links">Location: {{ location_html }}</p>
   {%- endif %}
@@ -101,41 +112,30 @@
       <tr>
         <td>{{ system.name }}</td>
         <td>The whole system</td>
-        <td>{{ edit_buttons(here, 'system:' ~ system.id, system.name,
-               'Rolls new stars, planets, moons, belts and comets; the system keeps its name and place.',
-               'Deletes the system and everything in it.', regenerate_facilities=True) }}
+        <td>
+          {%- set star_actions = [] %}
           {%- if star_editable %}
-          <details class="edit-confirm"><summary class="btn btn-small">Change star</summary>
-            <form method="post" action="{{ here }}" class="table-form">
-              {{ csrf_field() }}
-              <input type="hidden" name="edit_action" value="star">
-              <input type="hidden" name="edit_target" value="system:{{ system.id }}">
-              <p class="hint">Replaces the {{ star_type }} star with a new one. Planets, moons and belts keep their
-              classes; their orbits scale with the new star's light, and any left past its farthest stable orbit
-              are removed.</p>
+          {%- set star_fields %}
               <label>Spectral type <input type="text" name="star_type" required maxlength="8" size="6"
                 pattern="[OBAFGKMobafgkm][0-9](0|[IiVv]+|[Ii][Aa][+]?|[Ii][Aa][Bb]|[Ii][Bb]|[Dd])"
                 placeholder="e.g. K2V" value="{{ star_type }}"></label>
-              <label class="edit-drop"><input type="checkbox" name="drop_facilities" value="1"> Also delete facilities on removed bodies</label>
-              <button type="submit" class="btn">Change the star</button>
-            </form>
-          </details>
-          {%- endif %}</td>
+          {%- endset %}
+          {%- set star_actions = [{'key': 'star', 'label': 'Change star', 'title': 'Change the star',
+              'note': 'Replaces the ' ~ star_type ~ ' star with a new one. Planets, moons and belts keep their classes; their orbits scale with the new star\'s light, and any left past its farthest stable orbit are removed.',
+              'fields': star_fields, 'drop_label': 'Also delete facilities on removed bodies', 'button': 'Change the star'}] %}
+          {%- endif %}
+          {{ edit_menu(here, 'system:' ~ system.id, system.name,
+               'Rolls new stars, planets, moons, belts and comets; the system keeps its name and place.',
+               'Deletes the system and everything in it.', regenerate_facilities=True, extra_actions=star_actions) }}</td>
       </tr>
       {%- for row in edit_rows %}
       <tr>
         <td{% if row.indent %} class="edit-indent"{% endif %}>{{ row.label if row.kind != 'belt' else 'Asteroid belt' }}</td>
         <td>{{ row.detail }}</td>
-        <td>{{ edit_buttons(here, row.target, row.label,
-               'Rolls it again at the same orbit.' if row.kind != 'planet' else 'Rolls it again at the same orbit, with new moons.',
-               'Removes it from the system.' if row.kind != 'planet' else 'Removes it and its moons from the system.',
-               regenerate_facilities=(row.kind == 'planet')) }}
+        <td>
+          {%- set class_actions = [] %}
           {%- if row.recommended is defined %}
-          <details class="edit-confirm"><summary class="btn btn-small">Change class</summary>
-            <form method="post" action="{{ here }}" class="table-form">
-              {{ csrf_field() }}
-              <input type="hidden" name="edit_action" value="class">
-              <input type="hidden" name="edit_target" value="{{ row.target }}">
+          {%- set class_fields %}
               <label>New class <select name="planet_class" required>
                 {%- if row.recommended %}
                 <optgroup label="Recommended (fits where it is)">
@@ -146,10 +146,15 @@
                   {%- for code in row.forced %}<option value="force:{{ code }}">{{ code }}</option>{% endfor %}
                 </optgroup>
               </select></label>
-              <button type="submit" class="btn">Change {{ row.label }}'s class</button>
-            </form>
-          </details>
-          {%- endif %}</td>
+          {%- endset %}
+          {%- set class_actions = [{'key': 'class', 'label': 'Change class', 'title': 'Change ' ~ row.label ~ "'s class",
+              'note': 'Rolls it again as the class you pick, where it is.', 'fields': class_fields,
+              'button': 'Change ' ~ row.label ~ "'s class"}] %}
+          {%- endif %}
+          {{ edit_menu(here, row.target, row.label,
+               'Rolls it again at the same orbit.' if row.kind != 'planet' else 'Rolls it again at the same orbit, with new moons.',
+               'Removes it from the system.' if row.kind != 'planet' else 'Removes it and its moons from the system.',
+               regenerate_facilities=(row.kind == 'planet'), extra_actions=class_actions) }}</td>
       </tr>
       {%- endfor %}
     </tbody>

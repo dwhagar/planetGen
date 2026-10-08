@@ -16,13 +16,13 @@ release is stamped.
 | UX | UX.49 |
 | MAP | MAP.133 |
 | NAV | NAV.50 |
-| GEN | GEN.120 |
+| GEN | GEN.121 |
 | PERF | PERF.31 |
 | DB | DB.15 |
 | API | API.20 |
 | ADM | ADM.38 |
 | SEC | SEC.32 |
-| TEST | TEST.98 |
+| TEST | TEST.102 |
 | USR | USR.9 |
 | OPS | OPS.28 |
 | DOC | DOC.4 |
@@ -528,11 +528,11 @@ Parents marked "new parent" had no old number of their own.
 | GEN.64 | A packed position ID as the name of every interstellar object and bright-sweep system | none | done, PR #406 |
 | GEN.65 | A generation run fails from the web UI but not from the CLI (bug) | none | done, PR #476 |
 | GEN.66 | Physics on scipy, and astropy constants and units | none | open |
-| GEN.67 | Names from IDs: replace word-salad name generation | none | open |
+| GEN.67 | Names from IDs for objects that have no star-derived name | none | open |
 | GEN.68 | Research: the cheapest unique IDs for every object, unfilled sectors included | none | open |
 | GEN.69 | A unique ID for every object, star systems and unfilled sectors included | none | open |
 | GEN.70 | A naming key in the control database, made at galaxy creation and changeable by admin | none | open |
-| GEN.71 | Remove the word-salad name code, nltk and the name registries | none | open |
+| GEN.71 | Name interstellar objects, phenomena and constellations from the codec | none | open |
 | GEN.72 | A backfilled bright star should get a name only when its sector is generated (bug) | none | open |
 | GEN.73 | Nebulae don't get unique names (bug) | none | open |
 | GEN.74 | One point-in-space object that keeps every coordinate system in step, used by every object | none | open |
@@ -581,6 +581,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.117 | The Galaxy Map shows bright stars only in a thin band on the galactic plane (bug) | none | open |
 | GEN.118 | The galaxy bulge is about 40 times too light, so edge-on views show no bulge (bug) | none | done, PR #491 |
 | GEN.119 | The galaxy density model has no thick disk (bug) | none | done, PR #491 |
+| GEN.120 | Integrate gatedPhonemeCodec.py into the naming package and remove it from the repo root | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -645,7 +646,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.62 | A full 3D star system view with a free camera | none | open |
 | MAP.63 | Shared map helpers in one module | none | done, PR #351 |
 | MAP.64 | One camera and input controller | none | done, PR #351 |
-| MAP.65 | One picking, hover and info-panel layer | none | open |
+| MAP.65 | One picking, hover and info-panel layer | none | done, PR #521 |
 | MAP.66 | The sector as the drill-down's last stage, on the same page | none | open |
 | MAP.67 | One URL and history scheme for every level | none | open |
 | MAP.68 | Remove the old Sector Map code | none | open |
@@ -687,12 +688,12 @@ Parents marked "new parent" had no old number of their own.
 | MAP.104 | Nebula shading is missing on unfilled sectors (bug) | none | open |
 | MAP.105 | The nebula view should show its whole shape with the dimmed galaxy around it (bug) | none | open |
 | MAP.106 | The breadcrumb trail falls out of sync with the map (bug) | none | open |
-| MAP.107 | Selecting an empty slab near the core says "There is no layer x here" (bug) | none | open |
+| MAP.107 | Selecting an empty slab near the core says "There is no layer x here" (bug) | none | done, PR #537 |
 | MAP.108 | Empty slabs and wedges near the core can't be selected, and the side buttons block clicks (bug) | none | open |
 | MAP.109 | Zooming in and out loads slowly (bug) | none | open |
 | MAP.110 | Slab button lines come out of numerical order (bug) | none | done, PR #520 |
-| MAP.111 | "Generated only" should be "Charted only" and dim the stars too (bug) | none | open |
-| MAP.112 | Nothing can be selected while "Generated only" is on (bug) | none | open |
+| MAP.111 | "Generated only" should be "Charted only" and dim the stars too (bug) | none | done, PR #531 |
+| MAP.112 | Nothing can be selected while "Generated only" is on (bug) | none | done, PR #541 |
 | MAP.113 | A nebula covering the whole sector can't be unselected, and nebulae need a show/hide toggle (bug) | none | open |
 | MAP.114 | The Sector Map's Reset view leaves the picture unchanged (bug) | none | done, PR #442 |
 | MAP.115 | Comets, rogue planets and asteroid fields show above the sector level (bug) | none | merged into MAP.116 (2026-10-07) |
@@ -895,11 +896,11 @@ Parents marked "new parent" had no old number of their own.
 | UX.24 | Sector contents: rogue planets after systems and phenomena, and expanded rows the full table width (bug) | none | done, PR #487 |
 | UX.25 | Rogue planets: octant and a small map symbol beside each name (bug) | none | done, PR #490 |
 | UX.26 | Edit and admin actions as a button that opens a menu (bug) | none | open |
-| UX.27 | System page: the system and navigation buttons on one row that doesn't overlap (bug) | none | open |
+| UX.27 | System page: the system and navigation buttons on one row that doesn't overlap (bug) | none | done, PR #539 |
 | UX.28 | Investigate icons instead of words on buttons | none | done, PR #490 |
 | UX.29 | Every comet in a system shows its type as a link (bug) | none | done, PR #487 |
 | UX.30 | Planet information without the Markdown render | none | open |
-| UX.31 | Editing a star system: an edit button with a quick menu, not a long panel (bug) | none | open |
+| UX.31 | Editing a star system: an edit button with a quick menu, not a long panel (bug) | none | done, PR #533 |
 | UX.32 | Planet rows show the class only, without the type and moon labels | none | open |
 | UX.33 | Filter phenomena by their classes and types (bug) | none | open |
 | UX.34 | The sector summary calls white dwarfs "B-type" and "A-type" systems (bug) | none | done, PR #448 |
@@ -1106,6 +1107,10 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.95 | test_stabilize_lunar_system_respaces_crowded_moons keeps only one moon in the full suite (bug) | none | open |
 | TEST.96 | test_galaxy_map_camera_presets_at_each_zoom_step fails in the full suite (bug) | none | open |
 | TEST.97 | test_class_change_regenerates_surface_conditions raises StopIteration in the full suite (bug) | none | open |
+| TEST.98 | test_scale_line_follows_the_zoom fails in the full suite (bug) | none | open |
+| TEST.99 | test_slab_buttons_have_lines_that_follow_the_view fails in the full suite (bug) | none | open |
+| TEST.100 | test_hover_while_picking_a_slab fails in the full suite (bug) | none | open |
+| TEST.101 | test_interrupting_a_parallel_galaxy_run[2-True] fails in the full suite (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

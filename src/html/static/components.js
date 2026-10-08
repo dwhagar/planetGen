@@ -21,4 +21,7 @@ await Promise.all([
   "menu/menu",
   "menu-item/menu-item",
   "divider/divider",
+  "dialog/dialog",
 ].map((name) => import(`./vendor/shoelace/components/${name}.js${VERSION_QUERY}`)));
+
+await import(`./dialogmenus.js${VERSION_QUERY}`);

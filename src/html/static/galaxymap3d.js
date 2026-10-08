@@ -83,17 +83,18 @@ export { formatAddress };
 
 // The map's control buttons (planetgen/web/maps/galaxymap3d.py's panel), by their
 // data-action: what each does, given the map's own parts in `ctx`
-// ({stageView, setTerritories(on, button), territoriesWanted()}). A button whose action isn't here does nothing.
+// ({stageView, setTerritories(on, button), territoriesWanted(),
+// setChartedOnly(on)}). A button whose action isn't here does nothing.
 export function mapControlHandlers(ctx) {
   return {
     "territories": function (button) {
       ctx.setTerritories(button.getAttribute("aria-pressed") !== "true", button);
       button.setAttribute("aria-pressed", String(ctx.territoriesWanted()));
     },
-    "generated-only": function (button) {
+    "charted-only": function (button) {
       var on = button.getAttribute("aria-pressed") !== "true";
       button.setAttribute("aria-pressed", String(on));
-      ctx.stageView.setGeneratedOnly(on);
+      ctx.setChartedOnly(on);
     },
     "back": function () { ctx.stageView.travel(-1); },
     "forward": function () { ctx.stageView.travel(1); },
@@ -1272,10 +1273,18 @@ function initGalaxyMap3d(canvasEl, data) {
   };
   var DEFAULT_POINT_LOOK = ["#ffffff", 0.5, 0.5];
 
+  // MAP.111: with "Charted only" on, a star outside charted (generated)
+  // sectors is drawn at this share of its opacity, as the blocks are
+  // (galaxyblocks.buildCells). A generated star is charted, a bright
+  // star once its sector is filled (`system_id`); black holes, neutron
+  // stars and quasars are landmarks and stay lit.
+  var UNCHARTED_STAR_DIM = 0.2;
+
   var starMaterial = new THREE.ShaderMaterial({
     uniforms: {
       pixelRatio: { value: renderer.getPixelRatio() }, now: { value: 0 },
       fadeIn: { value: Math.max(STAR_FADE_IN_MS, 1) / 1000 },
+      chartedOnly: { value: 0 }, unchartedDim: { value: UNCHARTED_STAR_DIM },
     },
     vertexShader: [
       "#include <common>",
@@ -1291,6 +1300,9 @@ function initGalaxyMap3d(canvasEl, data) {
       "attribute vec3 starColor;",
       "uniform float pixelRatio;",
       "attribute float starClipped;",
+      "attribute float starUncharted;",
+      "uniform float chartedOnly;",
+      "uniform float unchartedDim;",
       "varying vec3 vColor;",
       "varying float vCore;",
       "varying float vGlow;",
@@ -1301,6 +1313,8 @@ function initGalaxyMap3d(canvasEl, data) {
       "  vCore = starCore / starSize;",
       "  vGlow = starGlow;",
       "  vShown = clamp((now - starBorn) / fadeIn, 0.0, 1.0);",
+      // "Charted only" (MAP.111): a star outside charted space dimmed.
+      "  vShown *= mix(1.0, unchartedDim, chartedOnly * starUncharted);",
       "  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);",
       "  gl_PointSize = starSize * pixelRatio;",
       // Outside the wedge shown (setWedgeClip): dropped.
@@ -1378,7 +1392,9 @@ function initGalaxyMap3d(canvasEl, data) {
     var cores = new Float32Array(n);
     var glows = new Float32Array(n);
     var brights = new Float32Array(n);
+    var uncharted = new Float32Array(n);
     stars.forEach(function (star, i) {
+      uncharted[i] = star.generated || star.phenomenon || star.system_id != null ? 0 : 1;
       var look = star.phenomenon ? POINT_LOOKS[star.type] || DEFAULT_POINT_LOOK : null;
       var t = look ? look[1] : logShare(star.luminosity_sol, STAR_LOG_LUMINOSITY);
       // Without a stored radius, guess one from the luminosity.
@@ -1404,6 +1420,7 @@ function initGalaxyMap3d(canvasEl, data) {
     geometry.setAttribute("starBright", new THREE.BufferAttribute(brights, 1));
     geometry.setAttribute("starBorn", new THREE.BufferAttribute(born, 1));
     geometry.setAttribute("starClipped", new THREE.BufferAttribute(new Float32Array(n), 1));
+    geometry.setAttribute("starUncharted", new THREE.BufferAttribute(uncharted, 1));
     starPoints.geometry.dispose();
     starPoints.geometry = geometry;
     markClippedStars();
@@ -1419,6 +1436,13 @@ function initGalaxyMap3d(canvasEl, data) {
       attribute.array[i] = inWedgeClip(star.x, star.y, star.z) ? 0 : 1;
     });
     attribute.needsUpdate = true;
+  }
+
+  // "Charted only" (MAP.111): dims the stars outside charted sectors and
+  // the blocks holding none, and outlines the charted blocks.
+  function setChartedOnly(on) {
+    starMaterial.uniforms.chartedOnly.value = on ? 1 : 0;
+    stageView.setChartedOnly(on);
   }
 
   // --- Drawing from tiles --------------------------------------------------
@@ -2071,6 +2095,7 @@ function initGalaxyMap3d(canvasEl, data) {
       stageView: stageView,
       setTerritories: setTerritories,
       territoriesWanted: function () { return territoryWanted; },
+      setChartedOnly: setChartedOnly,
     }));
   }
   var menuEl = document.getElementById("galaxymap3d-menu");
@@ -2132,10 +2157,11 @@ function initGalaxyMap3d(canvasEl, data) {
   });
 
   // NAV's "Pick on Galaxy Map": endpoints live only in generated
-  // sectors, so "Generated only" stays on (design doc section 9).
+  // sectors, so "Charted only" stays on (design doc section 9).
   if (data.pick) {
-    stageView.setGeneratedOnly(true);
-    var onlyButton = document.querySelector('#galaxymap3d-controls [data-action="generated-only"]');
+    setChartedOnly(true);
+    stageView.setNeedGenerated(true);
+    var onlyButton = document.querySelector('#galaxymap3d-controls [data-action="charted-only"]');
     if (onlyButton) {
       onlyButton.setAttribute("aria-pressed", "true");
       onlyButton.disabled = true;

@@ -505,31 +505,16 @@ tbody tr:last-child td {
   margin-bottom: 0.4rem;
 }
 
-/* The admin Delete and Regenerate buttons (ADM.8): a <details> confirm
-   step each (templates/partials/edit_controls.html). */
-.edit-buttons {
-  display: inline-flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  align-items: flex-start;
-}
-
-.edit-confirm > summary {
-  list-style: none;
-  cursor: pointer;
-}
-
-.edit-confirm > summary::-webkit-details-marker {
-  display: none;
-}
-
-.edit-confirm[open] > summary {
-  margin-bottom: 0.4rem;
-}
-
-.edit-confirm .hint {
+/* The admin edit actions (ADM.8, UX.26): one Edit button opening a menu,
+   each pick a dialog with its confirm form
+   (templates/partials/edit_controls.html, static/dialogmenus.js). */
+.edit-dialog .hint {
   max-width: 45ch;
-  margin: 0 0 0.4rem;
+  margin: 0 0 0.75rem;
+}
+
+.edit-dialog .table-form {
+  display: block;
 }
 
 .edit-indent {
@@ -1298,6 +1283,46 @@ a:focus-visible .navmap-point circle {
   padding: 0.45rem 0.65rem;
 }
 
+/* ADM.14: on the Generate pages (main has `aligned-fields`) the text boxes
+   of a form line up, not their headings. Each group of fields is a grid of
+   equal columns, and each field is a subgrid of three rows (label text,
+   box, hint) shared with its neighbours on the same line, so the boxes
+   share one width and sit level however long or wrapped a label is, and a
+   hint under one box never pushes another's. A checkbox field, or one
+   holding a text area, takes a line of its own. */
+.aligned-fields .search-fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(12rem, 1fr));
+  gap: 0 1.25rem;
+}
+
+.aligned-fields .search-field {
+  display: grid;
+  grid-template-rows: subgrid;
+  grid-row: span 3;
+  row-gap: 0.3rem;
+  align-content: start;
+  margin-bottom: 0.75rem;
+  min-width: 0;
+}
+
+.aligned-fields .search-field.generate-check,
+.aligned-fields .search-field:has(textarea) {
+  display: flex;
+  flex-direction: column;
+  grid-column: 1 / -1;
+  grid-row: auto;
+}
+
+.aligned-fields .search-field input[type="text"],
+.aligned-fields .search-field input[type="number"],
+.aligned-fields .search-field input[type="password"],
+.aligned-fields .search-field input[type="search"],
+.aligned-fields .search-field select {
+  width: 100%;
+  min-width: 0;
+}
+
 .search-fields-size {
   margin-top: -0.25rem;
 }
@@ -1564,6 +1589,49 @@ a.btn.btn-active:visited {
 
 .page-subhead .location {
   margin: 0;
+}
+
+/* UX.27: the system page's buttons (Navigate from here, Navigate to here,
+   Show on Galaxy Map, Bookmark) stay on one row. The row is a size
+   container; when it is narrower than the four buttons need, the two
+   navigate buttons give way to one Navigate menu (From here / To here),
+   and below the width of three buttons Show on Galaxy Map moves into that
+   menu too, leaving Navigate and Bookmark. */
+.page-subhead .page-actions.nav-row {
+  flex-wrap: nowrap;
+  align-items: center;
+  container-type: inline-size;
+  container-name: nav-row;
+  flex: 1 1 100%;
+}
+
+.page-actions.nav-row > * {
+  white-space: nowrap;
+}
+
+.page-actions.nav-row .nav-menu,
+.page-actions.nav-row .nav-menu-galaxy {
+  display: none;
+}
+
+@container nav-row (max-width: 38rem) {
+  .page-actions.nav-row .nav-wide {
+    display: none;
+  }
+
+  .page-actions.nav-row .nav-menu {
+    display: inline-block;
+  }
+}
+
+@container nav-row (max-width: 26rem) {
+  .page-actions.nav-row .nav-galaxy {
+    display: none;
+  }
+
+  .page-actions.nav-row .nav-menu-galaxy {
+    display: block;
+  }
 }
 
 .wiki-backends {

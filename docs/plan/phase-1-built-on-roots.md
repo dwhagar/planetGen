@@ -71,6 +71,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.101 | Fill order: nearest sectors first along a pruned Hilbert octree curve |  |  |
 | GEN.102 | Investigate filling all near-zero-density void space at once |  |  |
 | GEN.103 | Research where each star type and phenomenon belongs in the galaxy's structure |  |  |
+| GEN.120 | Integrate gatedPhonemeCodec.py into the naming package and remove it from the repo root |  | Boss 2026-10-08 02:59Z; not a bug, the Bugfixes lane does it next. Moves the codec GEN.67 uses; names are seed-reproducible, so golden tests pin it. |
 
 ### Habitability
 
@@ -131,9 +132,9 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| MAP.119 | Expected star density editable by admins on the Galaxy Map | MAP.65 |  |
-| MAP.122 | A Select mode on every galaxy view: Galaxy (blocks and sectors) or Star | MAP.65 | Merges the 2026-10-07 "button to select a star" ask; MAP.101 (PR #431) made stars unpickable by default. |
-| MAP.123 | Show or hide star types and phenomena, and set the luminosity floor, on the Galaxy and Sector Maps | MAP.65, MAP.79 | Extends MAP.79's per-kind buttons to star types and the Galaxy Map. |
+| MAP.119 | Expected star density editable by admins on the Galaxy Map |  |  |
+| MAP.122 | A Select mode on every galaxy view: Galaxy (blocks and sectors) or Star |  | Merges the 2026-10-07 "button to select a star" ask; MAP.101 (PR #431) made stars unpickable by default. |
+| MAP.123 | Show or hide star types and phenomena, and set the luminosity floor, on the Galaxy and Sector Maps | MAP.79 | Extends MAP.79's per-kind buttons to star types and the Galaxy Map. |
 | MAP.124 | The Galaxy Map opens zoomed to fit all charted space | MAP.67 |  |
 | DB.14 | Sector stats keep the raw star statistics (mean age, summed luminosity, star count) and no baked color |  | Boss 2026-10-08 01:59Z; drops color_r/g/b and fill_share (MAP.86). |
 | MAP.128 | The Galaxy Map and Sector Map tint a sector by star age, density and luminosity | DB.14 | Boss 2026-10-08 01:59Z. |
@@ -158,7 +159,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | ADM.32 | Add a star system to a sector: at the emptiest spot, at given coordinates, or at random outside every Hill sphere | GEN.74 | Merges two asks (one system added by the computer; placement chosen by admin). |
-| MAP.120 | Bright-star backfill from the Galaxy Map's block, slab and wedge menus | MAP.65 |  |
+| MAP.120 | Bright-star backfill from the Galaxy Map's block, slab and wedge menus |  |  |
 | ADM.35 | Full control from every screen: edit anything, regenerate with every input, backfill or erase what is in view | ADM.34, MAP.120 | Parent; MAP item MAP.120 is the map part. |
 
 ### Pages

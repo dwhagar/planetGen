@@ -25,7 +25,7 @@ import subprocess
 import sys
 import urllib.parse
 
-COMPONENTS = ("button", "icon-button", "icon", "dropdown", "menu", "menu-item", "divider")
+COMPONENTS = ("button", "icon-button", "icon", "dropdown", "menu", "menu-item", "divider", "dialog")
 """tuple: Shoelace components the shared set (static/components.js) registers."""
 
 UTILITIES = ("icon-library",)
@@ -34,7 +34,7 @@ UTILITIES = ("icon-library",)
 ICONS = ("gear",)
 """tuple: Bootstrap icons (Shoelace's icon set, MIT) copied to assets/icons/."""
 
-SYSTEM_ICONS = ("caret", "check", "chevron-left", "chevron-right")
+SYSTEM_ICONS = ("caret", "check", "chevron-left", "chevron-right", "x-lg")
 """tuple: Icons Shoelace's components draw themselves (the caret on a button,
 the check in a menu item), written to assets/system/. Shoelace holds them as
 `data:` URIs, which the site's Content-Security-Policy refuses to fetch, so

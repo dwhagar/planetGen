@@ -952,6 +952,23 @@ def test_galaxy_map_hover_lights_every_choice_while_picking_a_course(page, map_s
     assert (page.url, _crumbs(page)) == before
 
 
+def test_galaxy_map_charted_only_does_not_stop_picking(page, map_site):
+    """MAP.112: with "Charted only" on, a choice holding nothing generated
+    is lit and taken just as with it off (only choosing a NAV end needs
+    something generated)."""
+    _open_galaxy(page, map_site)
+    page.click("#galaxymap3d-menu summary")
+    page.click('[data-action="charted-only"]')
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyLines().chartedLines >= 0")
+    empty = _hover_choice(page, r"(^|[ ,])0 (of .+ )?sectors generated$|not generated$")
+    assert empty, "no choice without generated sectors to hover"
+    assert "nothing generated here to pick" not in empty[2], empty
+    before = (page.url, _crumbs(page))
+    page.mouse.click(empty[0], empty[1])
+    _settle(page)
+    assert (page.url, _crumbs(page)) != before, "the empty choice can be taken"
+
+
 LEADERS = """() => {
     const canvas = document.querySelector("#galaxymap3d-canvas").getBoundingClientRect();
     const svg = document.querySelector(".galaxy-slab-leaders");
@@ -1244,7 +1261,7 @@ def test_galaxy_map_draws_slab_lines_then_block_lines(page, map_site):
         lines = page.evaluate(LINES)
         seen.append(lines)
         if lines["kind"] == "arc":
-            assert lines == {"blockEdges": 0, "slabLines": 0, "kind": "arc"}
+            assert lines == {"blockEdges": 0, "slabLines": 0, "chartedLines": 0, "kind": "arc"}
         elif lines["kind"] == "layer":
             assert lines["blockEdges"] == 0 and lines["slabLines"] > 0, lines
         elif lines["kind"] == "segment":
@@ -1252,6 +1269,80 @@ def test_galaxy_map_draws_slab_lines_then_block_lines(page, map_site):
         _click_choice(page, GENERATED_CHOICE)
     kinds = [s["kind"] for s in seen]
     assert kinds.count("layer") >= 2 and kinds.count("segment") >= 2, kinds
+
+
+def test_galaxy_map_charted_only_outlines_the_charted_blocks(page, map_site):
+    """MAP.111: "Charted only" outlines the blocks holding generated
+    sectors on the picked arc, and takes the outlines away when it is off."""
+    _open_galaxy(page, map_site)
+    _click_choice(page, GENERATED_CHOICE)
+    assert page.evaluate(LINES)["chartedLines"] == 0
+    page.click("#galaxymap3d-menu summary")
+    page.click('[data-action="charted-only"]')
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyLines().chartedLines > 0")
+    page.click('[data-action="charted-only"]')
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyLines().chartedLines === 0")
+
+
+def test_galaxy_map_a_second_click_while_the_next_stage_loads_is_not_an_error(page, map_site):
+    """MAP.107: a click on the map while the stage just picked is still
+    loading its data (the breadcrumb has moved, the drawing has not) picks
+    from what is drawn; it used to add that pick to the new stage, which
+    has no such choice ("There is no layer x here")."""
+    def slow(route):
+        page.wait_for_timeout(1200)
+        route.continue_()
+
+    _open_galaxy(page, map_site)
+    page.route(re.compile(r"/galaxy/stage\?.*at="), slow)
+    for _ in range(6):
+        found = _hover_choice(page, GENERATED_CHOICE)
+        if not found:
+            break
+        page.mouse.click(found[0], found[1])
+        page.mouse.click(found[0], found[1])
+        page.wait_for_timeout(2500)
+        _settle(page)
+        if not _on_galaxy(page):
+            break
+        notice = page.locator("#galaxymap3d-notice").inner_text()
+        assert "There is no" not in notice, (notice, _crumbs(page))
+
+
+COVERED_POINTS = """() => {
+    const canvas = document.querySelector("#galaxymap3d-canvas");
+    const box = canvas.getBoundingClientRect();
+    const covered = [];
+    let tried = 0;
+    for (let j = 1; j < 12; j++) {
+        for (let i = 1; i < 12; i++) {
+            const x = box.left + (i / 12) * box.width, y = box.top + (j / 12) * box.height;
+            if (y < 0 || y > window.innerHeight || x < 0 || x > window.innerWidth) continue;
+            tried += 1;
+            const top = document.elementFromPoint(x, y);
+            if (top !== canvas) covered.push([Math.round(x), Math.round(y), top ? (top.id || top.className || top.tagName) : null]);
+        }
+    }
+    return {tried: tried, covered: covered};
+}"""
+
+
+def test_galaxy_map_slab_buttons_never_cover_the_map(page, map_site):
+    """MAP.108: with the slab buttons showing, nothing but the map is under
+    the pointer anywhere on it, at any width and in any button layout."""
+    _open_galaxy(page, map_site)
+    for _ in range(6):
+        if page.locator(".galaxy-slab-button").count():
+            break
+        _click_choice(page, GENERATED_CHOICE)
+    assert page.locator(".galaxy-slab-button").count(), "a stage with slab buttons"
+    for width in (1280, 1000, 760, 600, 390):
+        page.set_viewport_size({"width": width, "height": 900})
+        page.wait_for_timeout(300)
+        page.evaluate("document.querySelector('#galaxymap3d-canvas').scrollIntoView({block: 'center'})")
+        found = page.evaluate(COVERED_POINTS)
+        assert found["tried"] > 20, (width, found)
+        assert not found["covered"], (width, found["covered"][:5])
 
 
 CAMERA = "() => document.querySelector('#galaxymap3d-canvas').galaxyCamera()"

@@ -102,12 +102,12 @@ def test_panel_includes_the_canvas_and_controls():
         assert f'id="{element}"' in html
     assert 'data-action="territories"' in html
     assert 'id="galaxymap3d-territories"' in html
-    assert 'data-action="generated-only"' in html
+    assert 'data-action="charted-only"' in html
 
 
 def test_panel_keeps_five_controls_in_view_and_the_rest_in_the_menu():
     """MAP.55: Back, Forward, Up, Reset and Bookmarks stay in view; Reset
-    view, Generated only and Territories are in the Menu; every control
+    view, Charted only and Territories are in the Menu; every control
     names its icon for later (UX.28); the info panel sits in the map's
     row, beside the slab slider."""
     html = render_galaxy_map3d_panel("mydb", None, EDGE_PC, _empty_view())
@@ -116,10 +116,10 @@ def test_panel_keeps_five_controls_in_view_and_the_rest_in_the_menu():
     for action in ("back", "forward", "up", "reset"):
         assert f'data-action="{action}"' in row
     assert "data-bookmarks-menu" in row
-    for action in ("reset-view", "generated-only", "territories"):
+    for action in ("reset-view", "charted-only", "territories"):
         assert f'data-action="{action}"' not in row
         assert f'data-action="{action}"' in menu
-    for icon in ("back", "forward", "up", "reset", "bookmarks", "menu", "reset-view", "generated-only"):
+    for icon in ("back", "forward", "up", "reset", "bookmarks", "menu", "reset-view", "charted-only"):
         assert f'data-icon="{icon}"' in controls
     map_row = html[html.index('class="galaxy-map-row"'):html.index('class="starmap-side"')]
     assert 'id="galaxymap3d-slabs"' in map_row and 'id="galaxymap3d-info"' in map_row

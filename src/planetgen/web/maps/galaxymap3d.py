@@ -407,7 +407,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
             endpoint kept), `query` (the `?pick=...` the map keeps on
             its own URLs) and `keep_name`, `keep_value` and `nav_url`
             (for the Bookmarks menu, which keeps the pick, NAV.40). It
-            shows a banner, and the page keeps "Generated only" on; the
+            shows a banner, and the page keeps "Charted only" on; the
             caller adds the pick to `sector_url` so a sector click
             continues the pick there.
         nav_url (str, optional): The NAV page's URL (`/nav`), for a
@@ -592,8 +592,8 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
     <div class="galaxy-menu-panel" role="group" aria-label="More map controls">
     <button type="button" class="starmap-btn" data-action="reset-view" data-icon="reset-view"
             title="Back to this step's own view after turning, moving or zooming it">Reset view</button>
-    <button type="button" class="starmap-btn" data-action="generated-only" data-icon="generated-only" aria-pressed="false"
-            title="Dim every block with no generated sectors">Generated only</button>
+    <button type="button" class="starmap-btn" data-action="charted-only" data-icon="charted-only" aria-pressed="false"
+            title="Dim the stars and blocks outside charted sectors and outline the charted ones">Charted only</button>
 {territory_button}    </div>
   </details>
 </div>
