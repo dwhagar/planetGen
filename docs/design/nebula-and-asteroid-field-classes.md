@@ -284,3 +284,15 @@ components come from the cometary ices list.
 - **Asteroid fields and belts as object systems**: still one object for
   positions and orbital speed, but rendered as many bodies seeded from
   the field's ID (a plan first).
+
+## A nebula's shape (GEN.75)
+
+`planetgen.galaxy.nebula_shape` draws each nebula a shape of its own: 4 to
+8 metaball centres in an anisotropic, turned ellipsoid, a domain warp from
+three channels of gradient noise, and an isovalue; a point is inside where
+the warped field reaches it. `NebulaShape.contains` is the containment test,
+`mesh("low" | "full")` a marching-cubes triangle mesh. Lengths are in units
+of the nebula's radius, scaled so the surface's farthest point is at 1.0, so
+`radius_ly` stays a bounding sphere. A shape is plain JSON (`to_dict`), drawn
+from a seeded `random.Random`, so equal seeds agree on every worker. Storage,
+the mesh API and the containment switch are the next two parts of GEN.75.
