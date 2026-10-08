@@ -27,7 +27,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.71 | Scale modes that keep everything visible | MAP.69, MAP.89 | Its compressed scale should reuse MAP.89's fitted knots. |
 | MAP.72 | Rendering at system scale | MAP.69 |  |
 | MAP.73 | Free camera on the shared engine | MAP.72, NAV.13 |  |
-| MAP.74 | The 3D view on the system page, the flat diagram kept | MAP.73, MAP.71, UX.27, UX.31 | system.html, after the page's button and edit rework. |
+| MAP.74 | The 3D view on the system page, the flat diagram kept | MAP.73, MAP.71, UX.27 | system.html, after the page's button and edit rework. |
 | MAP.62 | A full 3D star system view with a free camera | MAP.69, MAP.70, MAP.71, MAP.72, MAP.73, MAP.74 | Parent; closes with its subitems. |
 | MAP.126 | Show the orbital trajectories of selected objects in their frame of reference | MAP.70, MAP.73 |  |
 

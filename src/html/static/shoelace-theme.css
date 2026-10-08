@@ -61,6 +61,11 @@ sl-menu-item:not(:defined) {
   visibility: hidden;
 }
 
+/* A dialog's form is in the page until the element is defined. */
+sl-dialog:not(:defined) {
+  display: none;
+}
+
 /* A dropdown's panel is in the page until the element is defined, so keep
    it out of the layout (it would otherwise run off the screen). */
 sl-dropdown:not(:defined) > :not([slot="trigger"]) {

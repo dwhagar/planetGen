@@ -1,6 +1,6 @@
 {#- The sector page (web/sector_page.py). -#}
 {% extends "base.html" %}
-{% from "partials/edit_controls.html" import edit_buttons with context %}
+{% from "partials/edit_controls.html" import edit_menu with context %}
 {% from "partials/bookmark.html" import bookmark_button %}
 {% block head %}
 <script type="module" src="{{ static_url('sectormap.js') }}"></script>
@@ -120,10 +120,10 @@
 {%- if can_edit %}
 <section class="panel" id="edit-sector" aria-labelledby="edit-sector-heading">
   <h2 id="edit-sector-heading">Edit</h2>
-  <p>{{ edit_buttons(url_for('web.sector', sector_id=sector_id), 'sector:' ~ sector_id, 'this sector',
+  <div>{{ edit_menu(url_for('web.sector', sector_id=sector_id), 'sector:' ~ sector_id, 'this sector',
        'Deletes the sector with its systems and phenomena, then generates its place in the galaxy again (a new name and contents). Only for a sector placed in the galaxy.',
        'Deletes the sector with its systems, phenomena and facilities. Its place in the galaxy is left empty, so it can be generated again.',
-       facilities=False) }}</p>
+       facilities=False) }}</div>
 </section>
 {%- endif %}
 {{ map_html }}
