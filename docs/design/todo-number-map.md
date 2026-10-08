@@ -528,11 +528,11 @@ Parents marked "new parent" had no old number of their own.
 | GEN.64 | A packed position ID as the name of every interstellar object and bright-sweep system | none | done, PR #406 |
 | GEN.65 | A generation run fails from the web UI but not from the CLI (bug) | none | done, PR #476 |
 | GEN.66 | Physics on scipy, and astropy constants and units | none | open |
-| GEN.67 | Names from IDs: replace word-salad name generation | none | open |
+| GEN.67 | Names from IDs for everything except stars and sectors | none | open |
 | GEN.68 | Research: the cheapest unique IDs for every object, unfilled sectors included | none | open |
 | GEN.69 | A unique ID for every object, star systems and unfilled sectors included | none | open |
 | GEN.70 | A naming key in the control database, made at galaxy creation and changeable by admin | none | open |
-| GEN.71 | Remove the word-salad name code, nltk and the name registries | none | open |
+| GEN.71 | Move every name except stars and sectors to the codec, and remove the word-salad code that named them | none | open |
 | GEN.72 | A backfilled bright star should get a name only when its sector is generated (bug) | none | open |
 | GEN.73 | Nebulae don't get unique names (bug) | none | open |
 | GEN.74 | One point-in-space object that keeps every coordinate system in step, used by every object | none | open |
