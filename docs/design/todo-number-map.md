@@ -14,7 +14,7 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.76 |
-| MAP | MAP.133 |
+| MAP | MAP.134 |
 | NAV | NAV.51 |
 | GEN | GEN.124 |
 | PERF | PERF.31 |
@@ -708,6 +708,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.130 | Retire the average-star-color rule in the docs and tests | none | done, PR #556 |
 | MAP.131 | A Color by switch on the Galaxy Map, with a legend | none | done, PR #692 |
 | MAP.132 | Overlay markers for black holes, nebulae and habitable worlds | none | open |
+| MAP.133 | The Galaxy Map shows no bright stars in the bulge, and only layers -121 to 121 (bug) | none | open |
 | MAP.117 | Surface pressure missing from the planet and moon side panel (bug) | none | done, PR #457 |
 | MAP.118 | The Galaxy Map shows an unfilled sector above the galaxy that can't be filled (bug) | none | done, PR #457 |
 | MAP.119 | Expected star density editable by admins on the Galaxy Map | none | open |
