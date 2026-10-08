@@ -687,7 +687,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.103 | Nebulae don't show on the Galaxy Map or any other map (bug) | none | open |
 | MAP.104 | Nebula shading is missing on unfilled sectors (bug) | none | open |
 | MAP.105 | The nebula view should show its whole shape with the dimmed galaxy around it (bug) | none | open |
-| MAP.106 | The breadcrumb trail falls out of sync with the map (bug) | none | open |
+| MAP.106 | The breadcrumb trail falls out of sync with the map (bug) | none | done, PR #586 |
 | MAP.107 | Selecting an empty slab near the core says "There is no layer x here" (bug) | none | done, PR #537 |
 | MAP.108 | Empty slabs and wedges near the core can't be selected, and the side buttons block clicks (bug) | none | closed, not reproducible; covered by tests (#537, #541, #521) |
 | MAP.109 | Zooming in and out loads slowly (bug) | none | open |

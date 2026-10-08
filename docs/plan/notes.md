@@ -203,7 +203,6 @@ From PR #431's red CI (coordinator, 2026-10-03): PERF.27, DB.12, OPS.25, MAP.114
 | ADM.24, ADM.25, ADM.26 | ADM.22 | Logs and progress moved to SSE and Xterm.js (ADM.22 done, PR #551); these three are now done (PR #560). |
 | MAP.109, MAP.116 | MAP.102 | Tile streaming with level of detail. |
 | MAP.108, MAP.107, MAP.112, NAV.46 | MAP.65, NAV.15 | The shared picking layer and pick mode. |
-| MAP.106 | NAV.14 | One breadcrumb drawn from one URL and history state. |
 | GEN.72, GEN.73 | GEN.67 | Names come from IDs. |
 | GEN.33, GEN.28, GEN.27, GEN.29 | GEN.90 | The class refactor around the habitability index. |
 
