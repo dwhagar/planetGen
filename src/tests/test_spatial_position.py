@@ -254,16 +254,27 @@ def _placed_system(predicate=lambda system: bool(system.planets)):
     return sector, entry, system
 
 
+def _system_origin_au(entry, system):
+    """Where the system frame's origin is, in AU in the galactic frame: the
+    single or primary star, but for a close pair its barycenter (the system's
+    center), which the primary star sits a fraction of an AU off. For a wide
+    pair the primary star is thousands of AU from the system's center."""
+    if getattr(system, "binary_type", None) == "close":
+        return tuple(c * constants.LY_TO_AU for c in entry.spatial.get_coordinates("galactic", "cartesian"))
+    return system.primary_star.spatial.get_coordinates("galactic", "cartesian")
+
+
 def test_a_planet_holds_one_whose_system_frame_is_its_offset_from_the_star():
-    _sector, _entry, system = _placed_system(lambda s: any(getattr(p, "spatial", None) for p in s.planets))
+    _sector, entry, system = _placed_system(lambda s: any(getattr(p, "spatial", None) for p in s.planets))
     planet = next(p for p in system.planets if getattr(p, "spatial", None))
     system_frame = planet.spatial.get_coordinates("system", "cartesian")
     assert (planet.position_x, planet.position_y, planet.position_z) == pytest.approx(system_frame, rel=1e-9, abs=1e-9)
     assert planet.spatial.length_unit_m == constants.AU_M
     assert planet.spatial.mass_kg == planet.mass and planet.spatial.mu == pytest.approx(constants.G * planet.mass)
-    star_galactic = system.primary_star.spatial.get_coordinates("galactic", "cartesian")
+    # TEST.108: a random close binary used to fail this on the primary star.
+    center_galactic = _system_origin_au(entry, system)
     galactic = planet.spatial.get_coordinates("galactic", "cartesian")
-    assert galactic == pytest.approx(tuple(s + o for s, o in zip(star_galactic, system_frame)), rel=1e-9)
+    assert galactic == pytest.approx(tuple(c + o for c, o in zip(center_galactic, system_frame)), rel=1e-9, abs=1e-3)
 
 
 def test_placing_a_system_keeps_every_offset_and_follows_in_galactic_coordinates():
@@ -278,8 +289,11 @@ def test_placing_a_system_keeps_every_offset_and_follows_in_galactic_coordinates
     entry = sector.add_system(system, position=(1.0, 1.0, 1.0))
     sector.place_in_galaxy((100.0, 0.0, 0.0))
     assert (planet.position_x, planet.position_y, planet.position_z) == offset
-    ly = constants.LY_TO_AU
-    assert planet.spatial.get_coordinates("galactic", "cartesian")[0] == pytest.approx((101.0) * ly, abs=1e3)  # the planet sits an orbit (AU) off its system
+    # The planet sits an orbit (AU) off its system's origin: a wide pair's is its
+    # primary star, thousands of AU from the system's center (TEST.108).
+    origin = _system_origin_au(entry, system)
+    assert planet.spatial.get_coordinates("galactic", "cartesian")[0] == pytest.approx(origin[0] + offset[0], abs=1e-3)
+    assert entry.spatial.get_coordinates("galactic", "cartesian")[0] == pytest.approx(101.0)
     assert entry.position == (1.0, 1.0, 1.0)
 
 
@@ -318,3 +332,18 @@ def test_a_planet_rebuilt_from_its_dict_has_its_position_back():
     assert (again.position_x, again.position_y, again.position_z) == (
         planet.position_x, planet.position_y, planet.position_z)
     assert again.spatial.get_coordinates("system", "cartesian") == planet.spatial.get_coordinates("system", "cartesian")
+
+
+def test_a_close_pairs_planets_are_offset_from_its_center_not_its_primary_star():
+    """TEST.108: the system frame's origin is the barycenter, which a close
+    binary's primary star sits off by a fraction of an AU (a wide pair's is
+    its primary star, thousands of AU from the system center)."""
+    _sector, entry, system = _placed_system(
+        lambda s: getattr(s, "binary_type", None) == "close" and any(getattr(p, "spatial", None) for p in s.planets))
+    planet = next(p for p in system.planets if getattr(p, "spatial", None))
+    center = _system_origin_au(entry, system)
+    star = system.primary_star.spatial.get_coordinates("galactic", "cartesian")
+    assert max(abs(c - s) for c, s in zip(center, star)) > 1e-3
+    offset = planet.spatial.get_coordinates("system", "cartesian")
+    assert planet.spatial.get_coordinates("galactic", "cartesian") == pytest.approx(
+        tuple(c + o for c, o in zip(center, offset)), rel=1e-9, abs=1e-3)
