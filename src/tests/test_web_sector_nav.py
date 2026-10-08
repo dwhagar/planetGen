@@ -245,7 +245,7 @@ def test_sector_page_renders_badges_map_and_contents(client, fake):
     assert re.search(r'<a href="/sectors" aria-current="page">Sectors</a>', html)
     crumbs = re.search(r'<nav class="breadcrumbs".*?</nav>', html, re.S).group(0)
     assert '<a href="/sectors">Sectors</a>' in crumbs and '<span aria-current="page">Fake Sector</span>' in crumbs
-    assert "Cube edge 3.07 pc (10 ly)" in html and "2 systems" in html and "1 phenomenon" in html
+    assert "Edge 3.07 pc (10 ly)" in html and "2 systems" in html and "1 phenomenon" in html
     assert 'href="/galaxy?quadrant=' in html
     assert re.search(r'<script type="module" src="/static/galaxymap3d.js\?v=[^"]+"></script>', html)
     # The map is the Galaxy Map locked to this sector (MAP.68).

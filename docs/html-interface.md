@@ -317,7 +317,7 @@ in `config.json`'s `tile_cache` (or the app server's own environment) instead.
 ### The sector page
 
 `/sector/<id>` (`web/sector_page.py`, `templates/sector.html`) shows the
-sector's badges (cube edge, counts, a link to its Galaxy Map quadrant),
+sector's badges (edge, counts, a link to its Galaxy Map quadrant),
 the interactive Sector Map and one Contents table of its systems, the
 phenomena near it and its facilities outside any system (stand-alone ones
 parked in open space and those on its asteroid fields, `GET

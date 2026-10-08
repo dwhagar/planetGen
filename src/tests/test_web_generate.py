@@ -185,7 +185,9 @@ def test_page_renders_summary_and_forms(site, client):
     assert "7 sectors" in html
     for action in ("new_galaxy", "galaxy", "plan", "bright_stars", "reset"):
         assert f'name="action" value="{action}"' in html
-    assert "Nothing is running." in html
+    # UX.74: with nothing running, a chip in the header row replaces the Current job card.
+    assert 'id="job-idle"' in html and "No job running" in html
+    assert 'id="current-job"' not in html and "Nothing is running." not in html
     assert re.search(r'<script type="module" src="/static/generatejobs.js\?v=[^"]+"></script>', html)
     # The header links here for a logged-in admin, marked current.
     assert '<a href="/admin/generate" aria-current="page">Generate</a>' in html
@@ -446,10 +448,11 @@ def _fold(html, section):
 
 
 def test_sections_fold_with_only_current_job_open(site, client):
-    """ADM.4: every section is a <details>; the server opens Current job
-    and leaves the browser's memory (generatefolds.js) to the rest."""
+    """ADM.4: every section is a <details>; the server leaves the browser's
+    memory (generatefolds.js) to them. Current job (UX.74) is only there
+    while a job runs, and then starts open."""
     html = client.get("/admin/generate").get_data(as_text=True)
-    assert "open" in _fold(html, "current-job")
+    assert 'id="current-job"' not in html
     for section in ("one-off-system", "new-galaxy", "generate-sectors", "plan", "bright-stars", "bright-band",
                     "reset", "recent-jobs"):
         attrs = _fold(html, section)
