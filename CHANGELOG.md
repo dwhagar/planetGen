@@ -1,5 +1,10 @@
 # Changelog
 
+## [7.340.675] - 2026-10-08
+
+### Added
+- A new test bug is on the list: the Sector Map nebula click test fails on main (TEST.109).
+
 ## [7.339.675] - 2026-10-08
 
 ### Added
