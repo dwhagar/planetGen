@@ -2,9 +2,21 @@
     view is HTML from planetgen/web/maps/phenomenonrender.py or planetgen/web/maps/phenomenonmap.py
     (escaped there); an asteroid field has none. -#}
 {% extends "base.html" %}
-{% from "partials/admin_menu.html" import admin_menu, add_edit_actions with context %}
+{% from "partials/admin_menu.html" import admin_menu_button, admin_dialogs, add_edit_actions with context %}
 {% from "partials/action_bar.html" import action_bar %}
 {% from "partials/pick_banner.html" import pick_banner %}
+{#- UX.75: the Admin menu is the last button of the action bar; its dialogs follow in the content. -#}
+{%- set groups = [] %}
+{%- set here = '' %}
+{%- if can_edit %}
+{%- set actions = [] %}
+{%- set _ = add_edit_actions(actions, title,
+     'Rolls it again as the same kind of object, keeping its name and place.',
+     'Deletes it.', facilities=False) %}
+{%- set _ = groups.append({'id': 'phenomenon', 'target': edit_target, 'actions': actions}) %}
+{%- set here = page_url('phenomenon', phenomenon_type=edit_target.split(':')[0], phenomenon_id=edit_target.split(':')[1]) %}
+{%- endif %}
+{%- set admin_button %}{% if groups %}{{ admin_menu_button(groups, title) }}{% endif %}{% endset %}
 {% block head %}
 <script type="module" src="{{ static_url('bookmarks.js') }}"></script>
 {%- if view_kind == "render" %}
@@ -25,7 +37,7 @@
     {%- if octant %}<span class="badge">Octant {{ octant }}</span>{% endif -%}
     {%- if inside %}<span class="badge">Inside: <a href="{{ inside.url }}">{{ inside.name }}</a></span>{% endif -%}
   </p>
-  {{ action_bar(bookmark, nav_links, pick, galaxy_url) }}
+  {{ action_bar(bookmark, nav_links, pick, galaxy_url, admin_button) }}
   {%- if nearest_html %}
   <p class="location inline-links">Nearest systems: {{ nearest_html }}</p>
   {%- endif %}
@@ -33,14 +45,7 @@
 {% endblock %}
 {% block content %}
 {{ pick_banner(pick, bookmark, 'phenomenon') }}
-{%- if can_edit %}
-{%- set actions = [] %}
-{{ add_edit_actions(actions, title,
-     'Rolls it again as the same kind of object, keeping its name and place.',
-     'Deletes it.', facilities=False) }}
-{{ admin_menu([{'id': 'phenomenon', 'target': edit_target, 'actions': actions}], title,
-     page_url('phenomenon', phenomenon_type=edit_target.split(':')[0], phenomenon_id=edit_target.split(':')[1])) }}
-{%- endif %}
+{{ admin_dialogs(groups, here) }}
 {#- A 3D view sits beside the data panel when there's room (UX.15). -#}
 {%- if view_kind in ("render", "nebula") %}
 <div class="object-view"><div class="object-view-row">

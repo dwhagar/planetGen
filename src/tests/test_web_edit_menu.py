@@ -112,6 +112,8 @@ def test_the_sector_pages_admin_actions_are_one_menu_that_opens_dialogs(sector_p
     """UX.26: no admin form is inline on the page; the Admin menu's items
     open them in a dialog, and Cancel and Escape close it without posting."""
     page, url = sector_page
+    # UX.75: the Admin menu is in the action bar with the other buttons.
+    assert page.locator(".page-actions sl-dropdown.admin-menu").count() == 1
     inline = page.locator("xpath=//main//form[not(ancestor::sl-dialog) and not(contains(@class, 'datatable-filters'))]")
     assert inline.count() == 0
     page.locator("sl-dropdown.admin-menu >> [slot=trigger]").click()
