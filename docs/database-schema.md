@@ -765,9 +765,9 @@ several galaxy databases sharing one MySQL server, and admin identities
 describe the deployment, not any one galaxy, so they aren't duplicated
 into each content schema's `schema.sql`).
 
-Thirteen tables, versioned independently via `control_schema_migrations`
-(currently version 7, mirroring `schema_migrations`'s own shape; v2 added
-`login_throttle`, v3 `admin_devices`, v4 `admin_totp` and
+Twelve tables, versioned independently via `control_schema_migrations`
+(currently version 8, mirroring `schema_migrations`'s own shape; v2 added
+`login_throttle`, which v8 dropped (SEC.30: the login lockouts live in Redis), v3 `admin_devices`, v4 `admin_totp` and
 `admin_recovery_codes`, v5 the work queue's three tables, v6
 `generation_stats` and `generation_size`, and v7 the work queue's job
 tree and pause columns; v2 to v6 are new tables, which `CREATE TABLE IF
@@ -791,13 +791,6 @@ v7 adds columns, see below):
   plus one per refused sign-in (`login.failed`, `login.locked`,
   `password.failed`, with `target` `ip:<address>`; those are deleted
   after 90 days).
-- **`login_throttle`** (v2, SEC.1/SEC.21) — failed-login counts and
-  lockouts: `scope` (`ip`, or `user`) and `subject` (the address, an IPv6
-  one by its /64, or the case-folded username) as the key, then
-  `failures`, `level` (lockouts so far, which double the next), and
-  `locked_until`/`last_failure_at`/`last_lockout_at` in Unix seconds.
-  Read and written by `planetgen/admin/throttle.py`; idle rows are
-  deleted after a week.
 - **`admin_devices`** (v3, SEC.22) — trusted browsers: `admin_user_id`,
   `token_hash` (SHA-256 of the `pg_admin_device` cookie, never the raw
   value), `expires_at` (90 days after the login that made it),

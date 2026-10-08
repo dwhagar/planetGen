@@ -21,17 +21,17 @@ Two counters guard every password check:
   which usernames exist.
 
 While either is locked a login is refused with 429 before the password
-is checked. Both live in the control database's `login_throttle` table
-(`DbStore`), so every worker process shares them and a restart keeps
-them. `MemoryStore` holds the same state in memory: the fallback while
-that table can't be used (before `update.sh` has created it), and for
-tests.
+is checked. Both live in Redis (`RedisStore`), the same server as
+Flask-Limiter's request counts, so every worker process shares them and a
+restart keeps them. `MemoryStore` holds the same state in memory: the
+fallback while Redis can't be reached, and for tests.
 
 The rules are pure functions on a small state dict (`fail`, `succeed`,
 `retry_after`), so both stores apply exactly the same ones.
 """
 
 import ipaddress
+import json
 import math
 import threading
 import time
@@ -60,11 +60,12 @@ USER_POLICY = Policy(free_failures=10, base_lock_seconds=1.0, max_lock_seconds=9
 POLICIES = {SCOPE_IP: IP_POLICY, SCOPE_USER: USER_POLICY}
 
 PRUNE_AFTER_SECONDS = 7 * 86400.0
-"""float: Rows idle (unlocked, no failure) this long are deleted; by then
-an address's doubling level has halved seven times."""
+"""float: A subject idle (unlocked, no failure) this long is forgotten (its
+Redis key expires); by then an address's doubling level has halved seven
+times."""
 
 MAX_SUBJECT_LENGTH = 128
-"""int: `login_throttle.subject` is VARCHAR(128)."""
+"""int: The longest subject (address or username) counted."""
 
 MAX_MEMORY_ENTRIES = 10000
 """int: `MemoryStore` keeps at most this many entries; past it the idle
@@ -272,89 +273,69 @@ class MemoryStore:
                 del self._entries[key]
 
 
-class DbStore:
-    """The counters in the control database's `login_throttle` table,
-    through an open control-schema `Connection`."""
+class RedisStore:
+    """The counters in Redis (SEC.30), next to Flask-Limiter's own request
+    counts, so every worker process shares them and a restart keeps them.
+    One JSON value per subject, written under WATCH so two workers
+    counting the same subject can't lose a failure; an idle subject's key
+    expires by itself after `PRUNE_AFTER_SECONDS`."""
 
-    _last_prune = 0.0
+    def __init__(self, client, prefix):
+        self.client = client
+        self.key_prefix = f"{prefix}:login:"
 
-    def __init__(self, conn):
-        self.conn = conn
+    @classmethod
+    def from_url(cls, url, prefix):
+        """A store on the Redis server at `url`, its keys under `prefix`
+        (the app's `RATELIMIT_KEY_PREFIX`, so one setting keeps a test's
+        or an install's counts apart)."""
+        import redis
+        return cls(redis.Redis.from_url(url, decode_responses=True), prefix)
+
+    def _key(self, scope, subject):
+        return f"{self.key_prefix}{scope}:{subject}"
 
     def get(self, scope, subject):
-        row = self.conn.execute(
-            "SELECT failures, level, locked_until, last_failure_at, last_lockout_at FROM login_throttle "
-            "WHERE scope = ? AND subject = ?", (scope, subject),
-        ).fetchone()
-        return _state_from_row(row) if row is not None else None
+        raw = self.client.get(self._key(scope, subject))
+        return json.loads(raw) if raw else None
 
     def update(self, scope, subject, change):
-        """As `MemoryStore.update`, in one transaction holding the row's
-        lock, so two workers counting the same subject can't lose a
-        failure."""
-        conn = self.conn
-        try:
-            conn.execute("INSERT IGNORE INTO login_throttle (scope, subject) VALUES (?, ?)", (scope, subject))
-            row = conn.execute(
-                "SELECT failures, level, locked_until, last_failure_at, last_lockout_at FROM login_throttle "
-                "WHERE scope = ? AND subject = ? FOR UPDATE", (scope, subject),
-            ).fetchone()
-            new, result = change(_state_from_row(row) if row is not None else new_state())
+        """As `MemoryStore.update`, as one optimistic transaction."""
+        key = self._key(scope, subject)
+
+        def run(pipe):
+            raw = pipe.get(key)
+            new, result = change(json.loads(raw) if raw else new_state())
+            pipe.multi()
             if new is None:
-                conn.execute("DELETE FROM login_throttle WHERE scope = ? AND subject = ?", (scope, subject))
+                pipe.delete(key)
             else:
-                conn.execute(
-                    "UPDATE login_throttle SET failures = ?, level = ?, locked_until = ?, last_failure_at = ?, "
-                    "last_lockout_at = ? WHERE scope = ? AND subject = ?",
-                    tuple(new[c] for c in _COLUMNS) + (scope, subject),
-                )
-            conn.commit()
-        except Exception:
-            conn.rollback()
-            raise
-        self._maybe_prune()
-        return result
+                pipe.set(key, json.dumps(new), ex=int(PRUNE_AFTER_SECONDS))
+            return result
+        return self.client.transaction(run, key, value_from_callable=True)
+
+    def _keys(self, scope=None, subject=None):
+        if scope is not None and subject is not None:
+            return [self._key(scope, subject)]
+        pattern = f"{self.key_prefix}{scope}:*" if scope is not None else f"{self.key_prefix}*"
+        return list(self.client.scan_iter(match=pattern, count=500))
 
     def locked(self, now):
-        rows = self.conn.execute(
-            "SELECT scope, subject, failures, level, locked_until, last_failure_at, last_lockout_at "
-            "FROM login_throttle WHERE locked_until > ? ORDER BY locked_until DESC", (now,),
-        ).fetchall()
-        return [{"scope": row["scope"], "subject": row["subject"], **_state_from_row(row)} for row in rows]
+        keys = self._keys()
+        rows = []
+        for key, raw in zip(keys, self.client.mget(keys) if keys else ()):
+            state = json.loads(raw) if raw else None
+            if state and state["locked_until"] > now:
+                scope, _, subject = key[len(self.key_prefix):].partition(":")
+                rows.append({"scope": scope, "subject": subject, **state})
+        return sorted(rows, key=lambda row: -row["locked_until"])
 
     def lift(self, scope=None, subject=None):
-        where, params = [], []
-        if scope is not None:
-            where.append("scope = ?")
-            params.append(scope)
-        if subject is not None:
-            where.append("subject = ?")
-            params.append(subject)
-        sql = "DELETE FROM login_throttle" + (" WHERE " + " AND ".join(where) if where else "")
-        cur = self.conn.execute(sql, tuple(params))
-        self.conn.commit()
-        return cur.rowcount
+        keys = self._keys(scope, subject)
+        return self.client.delete(*keys) if keys else 0
 
-    def _maybe_prune(self):
-        """Deletes idle rows, at most once an hour per process."""
-        now = time.time()
-        if now - DbStore._last_prune < 3600:
-            return
-        DbStore._last_prune = now
-        cutoff = now - PRUNE_AFTER_SECONDS
-        self.conn.execute(
-            "DELETE FROM login_throttle WHERE locked_until <= ? AND last_failure_at < ? AND last_lockout_at < ?",
-            (now, cutoff, cutoff),
-        )
-        self.conn.commit()
-
-
-def _state_from_row(row):
-    return {
-        "failures": int(row["failures"]), "level": int(row["level"]),
-        "locked_until": float(row["locked_until"]), "last_failure_at": float(row["last_failure_at"]),
-        "last_lockout_at": float(row["last_lockout_at"]),
-    }
+    def clear(self):
+        self.lift()
 
 
 # ---------------------------------------------------------------------
