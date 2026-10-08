@@ -1,5 +1,11 @@
 # Changelog
 
+## [7.242.629] - 2026-10-08
+
+### Added
+
+- TODO item TEST.97: a load-only test flake seen in the full suite run for PR #525.
+
 ## [7.241.629] - 2026-10-08
 
 ### Fixed
