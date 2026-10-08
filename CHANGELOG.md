@@ -1,5 +1,11 @@
 # Changelog
 
+## [7.239.622] - 2026-10-08
+
+### Added
+
+- TODO items TEST.95 and TEST.96: two load-only test flakes seen in the full suite run for PR #522.
+
 ## [7.238.622] - 2026-10-08
 
 ### Fixed
