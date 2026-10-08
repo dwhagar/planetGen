@@ -12,7 +12,7 @@ from flask import Blueprint, jsonify, request
 from planetgen.population import model
 
 from .common import ApiError
-from .routes import _paginate, get_db
+from .routes import _paginate, _parse_sort, get_db
 
 bp = Blueprint("population", __name__, url_prefix="/api")
 
@@ -42,17 +42,29 @@ def population_status():
 
 @bp.route("/species")
 def species_list():
-    """`GET /api/species` -- a page of species by name; `?spacefaring=`
-    filters to (non-)spacefaring ones."""
+    """
+    `GET /api/species` -- a page of species; `?spacefaring=` filters to
+    (non-)spacefaring ones. The Species table (UX.41) also takes `sort`
+    (`name` -- the default --, `homeworld`, `system`, `era`, `spacefaring`,
+    `polity`) with `order=asc|desc`, the repeatable filter `era`, and
+    `facets=1` for the option counts of its two menus (`facets`:
+    `spacefaring` `yes`/`no`, `era`). `total` counts what passes the filters.
+    """
     spacefaring = _spacefaring_filter(request.args.get("spacefaring"))
+    sort, descending = _parse_sort(request.args, model.SPECIES_SORTS)
+    eras = [v for v in request.args.getlist("era") if v]
     limit, offset = _paginate(request.args)
     db = get_db()
-    return jsonify({
-        "items": model.list_species(db, spacefaring=spacefaring, limit=limit, offset=offset),
-        "total": model.count_species(db, spacefaring=spacefaring),
+    body = {
+        "items": model.list_species(db, spacefaring=spacefaring, limit=limit, offset=offset, sort=sort,
+                                    descending=descending, eras=eras),
+        "total": model.count_species(db, spacefaring=spacefaring, eras=eras),
         "limit": limit,
         "offset": offset,
-    })
+    }
+    if request.args.get("facets") == "1":
+        body["facets"] = model.species_facets(db, spacefaring=spacefaring, eras=eras)
+    return jsonify(body)
 
 
 @bp.route("/species/<int:species_id>")
@@ -76,23 +88,39 @@ def planet_species(planet_id):
 
 @bp.route("/polities")
 def polity_list():
-    """`GET /api/polities` -- a page of polities by name."""
+    """
+    `GET /api/polities` -- a page of polities. The Polities table (UX.41)
+    takes `sort` (`name` -- the default --, `species`, `government`,
+    `capital`, `systems`, `reach`) with `order=asc|desc`, the repeatable
+    filters `government` and `era` (the species'), and `facets=1` for the
+    option counts of those two menus (`facets`: `government`, `era`).
+    `total` counts what passes the filters.
+    """
+    sort, descending = _parse_sort(request.args, model.POLITY_SORTS)
+    filters = {"governments": [v for v in request.args.getlist("government") if v],
+               "eras": [v for v in request.args.getlist("era") if v]}
     limit, offset = _paginate(request.args)
     db = get_db()
-    return jsonify({
-        "items": model.list_polities(db, limit=limit, offset=offset),
-        "total": model.count_polities(db),
+    body = {
+        "items": model.list_polities(db, limit=limit, offset=offset, sort=sort, descending=descending, **filters),
+        "total": model.count_polities(db, **filters),
         "limit": limit,
         "offset": offset,
-    })
+    }
+    if request.args.get("facets") == "1":
+        body["facets"] = model.polity_facets(db, **filters)
+    return jsonify(body)
 
 
 @bp.route("/polities/<int:polity_id>")
 def polity_detail(polity_id):
     """`GET /api/polities/<id>` -- one polity and a page of its systems,
-    nearest the capital first (`limit`/`offset` page the systems)."""
+    nearest the capital first (`limit`/`offset` page the systems; `sort`
+    `name` or `distance` with `order=asc|desc` orders them)."""
     limit, offset = _paginate(request.args)
-    found = model.polity_detail(get_db(), polity_id, limit=limit, offset=offset)
+    sort, descending = _parse_sort(request.args, model.POLITY_SYSTEM_SORTS) if request.args.get("sort") \
+        or request.args.get("order") else ("distance", False)
+    found = model.polity_detail(get_db(), polity_id, limit=limit, offset=offset, sort=sort, descending=descending)
     if found is None:
         raise ApiError(f"no such polity: {polity_id}", status_code=404)
     return jsonify(found)

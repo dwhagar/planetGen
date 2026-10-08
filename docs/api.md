@@ -444,17 +444,27 @@ connectivity to that specific schema rather than the default one.
   `technological_civilization`), `build`/`climate`/`size`,
   `civilization_age_years` and `era` (`null` without a civilization),
   `spacefaring`, and its `polity_id`/`polity_name` (`null` unless
-  spacefaring). `400` for any other `spacefaring` value.
+  spacefaring). `400` for any other `spacefaring` value. The Species table
+  (UX.41) also takes `sort` (`name`, `homeworld`, `system`, `era`,
+  `spacefaring`, `polity`) with `order=asc|desc`, the repeatable filter
+  `era`, and `facets=1` for `facets: {"spacefaring": [{"value": "yes"|"no",
+  "count"}], "era": [...]}` (each menu ignores its own filter); `total`
+  counts what passes the filters.
 - `GET /api/species/<id>` — one species; `404` if unknown.
 - `GET /api/planets/<id>/species` — the species whose homeworld that
   planet is; `404` when it has none.
 - `GET /api/polities?limit=<n>&offset=<n>` — every polity (one per
   spacefaring species), by name: `name`, `government`, `color`
   (`#rrggbb`), `reach_ly`, its species, `era`, capital and
-  `system_count`.
+  `system_count`. The Polities table (UX.41) also takes `sort` (`name`,
+  `species`, `government`, `capital`, `systems`, `reach`) with
+  `order=asc|desc`, the repeatable filters `government` and `era` (the
+  species'), and `facets=1` for `facets: {"government": [...], "era":
+  [...]}`; `total` counts what passes the filters.
 - `GET /api/polities/<id>?limit=<n>&offset=<n>` — one polity plus a page
   of the systems it owns (`id`, `name`, `distance_ly` from the capital),
-  nearest first; `404` if unknown.
+  nearest first, or by `sort=name|distance` with `order=asc|desc`; `404`
+  if unknown.
 - `GET /api/systems/<id>/owner` — `{"owner": {polity_id, polity_name,
   color, distance_ly}}`, or `{"owner": null}` when no polity holds it;
   `404` for an unknown system.

@@ -27,11 +27,13 @@ def register(table):
     return table
 
 
-def render(table, path, anchor=None):
+def render(table, path, anchor=None, **source_args):
     """
     Load the page of `table` the current request asks for and return its
     view model (`lib/datatable.view`) for `partials/datatable.html`. A page
-    past the end shows the last real one.
+    past the end shows the last real one. `source_args` ride on the table's
+    JSON address (a table about one thing, such as a polity's systems, names
+    it there).
     """
     state = parse_state(table, request.args)
     # Carry along only the other tables' parameters, never whatever else is in the address.
@@ -42,7 +44,7 @@ def render(table, path, anchor=None):
     if page != state.page:
         state = state._replace(page=page)
         result = table.load(state, PAGE_SIZE, page_offset(page), True)
-    return view(table, state, result, path, url_for("web.table_data", name=table.name), anchor=anchor, extra=extra)
+    return view(table, state, result, path, url_for("web.table_data", name=table.name, **source_args), anchor=anchor, extra=extra)
 
 
 def _whole(raw, default, lowest):
