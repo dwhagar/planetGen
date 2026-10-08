@@ -2319,16 +2319,6 @@ code {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
 }
 
-/* The sector Contents table's folded group row (rogue planets). */
-.contents-group summary {
-  cursor: pointer;
-}
-
-.contents-group-table {
-  width: 100%;
-  margin: 0.4rem 0 0;
-}
-
 /* The Sector Map's Generate buttons for an unfilled neighbor (admins
    only; static/sectorscene.js). */
 .starmap-generate {

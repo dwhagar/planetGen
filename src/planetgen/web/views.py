@@ -6,14 +6,11 @@ home page (was `index.py`/`browse.py`), `/sectors` and `/systems` (the
 two halves of `browse.py`), and `/search` (was `search.py`).
 """
 
-import html
-
 from flask import redirect, request
 
 from planetgen.web.lib import apiclient
-from planetgen.web.lib.datatable import Column, Facet, Result, Table
+from planetgen.web.lib.datatable import Column, Facet, Result, Table, plain
 from planetgen.web.lib.fmt import format_density, format_distance_ly
-from planetgen.web.lib.tabledisplay import to_plain_text
 from planetgen.web.maps.galaxymap import sector_quadrant
 
 from planetgen.api.limiter import page_limit
@@ -21,12 +18,6 @@ from planetgen.api.limiter import page_limit
 from . import bp, tables
 from . import searchpage
 from .helpers import crumb, db_name, page_url, render_page
-
-
-def _plain(markup):
-    """A formatter's HTML (`<sup>`, `&sup3;`) as the plain text a table cell shows: the cell is
-    filled with `textContent` in the browser, so it can't hold markup."""
-    return html.unescape(to_plain_text(str(markup)))
 
 
 def _binary_filter(values):
@@ -41,10 +32,10 @@ def _sector_row(sector):
     return [
         {"text": sector["name"], "href": page_url("sector", sector_id=sector["id"])},
         {"text": str(sector["system_count"])},
-        {"text": _plain(format_density(sector["edge_ly"], sector["system_count"]))},
+        {"text": plain(format_density(sector["edge_ly"], sector["system_count"]))},
         {"text": f"Quadrant {quadrant}", "href": page_url("galaxy", quadrant=quadrant)} if quadrant
         else {"text": "Unplaced", "muted": True},
-        {"text": _plain(format_distance_ly(sector.get("galactic_radius_ly")))},
+        {"text": plain(format_distance_ly(sector.get("galactic_radius_ly")))},
     ]
 
 

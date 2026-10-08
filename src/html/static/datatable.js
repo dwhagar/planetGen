@@ -42,8 +42,29 @@ function el(tag, className, text) {
   return node;
 }
 
-// One table cell from a served cell: `{text, href?, muted?}`.
-function cellNode(cell) {
+// The "Show on map" button of a cell with a `map_target` (the sector page's
+// Contents). Hidden until the Sector Map, which listens for the
+// "datatable:rows" event, knows the target.
+function mapButton(cell, iconUrl) {
+  const button = el("button", "icon-btn");
+  button.type = "button";
+  button.hidden = true;
+  button.title = "Show on map";
+  button.setAttribute("aria-label", `Show ${cell.text} on the map`);
+  button.dataset.mapTarget = cell.map_target;
+  const svg = document.createElementNS(SVG_NS, "svg");
+  svg.setAttribute("class", "icon");
+  svg.setAttribute("aria-hidden", "true");
+  svg.setAttribute("focusable", "false");
+  const use = document.createElementNS(SVG_NS, "use");
+  use.setAttribute("href", `${iconUrl}#show-on-map`);
+  svg.append(use);
+  button.append(svg);
+  return button;
+}
+
+// One table cell from a served cell: `{text, href?, muted?, swatch?, parts?, map_target?}`.
+function cellNode(cell, iconUrl) {
   const td = el("td");
   if (!cell) {
     td.className = "datatable-pending";
@@ -64,14 +85,29 @@ function cellNode(cell) {
     svg.append(square);
     td.append(svg, " ");
   }
-  if (cell.href) {
+  if (cell.parts) {
+    // Text and links, as a Location cell lists its nearest systems.
+    cell.parts.forEach((part) => {
+      if (typeof part === "string") {
+        td.append(part);
+      } else {
+        const link = el("a", "", part.text);
+        link.href = part.href;
+        td.append(link);
+      }
+    });
+    td.classList.add("inline-links");
+  } else if (cell.href) {
     const link = el("a", "", cell.text);
     link.href = cell.href;
     td.append(link);
   } else if (cell.muted) {
     td.append(el("em", "", cell.text));
   } else {
-    td.textContent = cell.text;
+    td.append(cell.text);
+  }
+  if (cell.map_target) {
+    td.append(" ", mapButton(cell, iconUrl));
   }
   return td;
 }
@@ -89,6 +125,7 @@ function enhance(root) {
   const source = root.dataset.source;
   const defaultSort = root.dataset.defaultSort;
   const prefix = root.dataset.prefix || "";
+  const iconUrl = root.dataset.icons || "";
   const owned = [`${prefix}sort`, `${prefix}order`, `${prefix}page`]
     .concat(facetNodes.map((node) => node.dataset.param));
   let rowHeight = ROW_HEIGHT_ESTIMATE;
@@ -168,12 +205,34 @@ function enhance(root) {
     scrollToFn: elementScroll,
     observeElementRect,
     observeElementOffset,
-    onChange: () => render(),
+    onChange: () => scheduleRender(),
   });
   virtualizer._didMount();
 
+  // The virtualizer reports a change for every row it measures, and rows of uneven
+  // height (a Location cell that wraps) make those changes feed back into the render;
+  // one render per frame lets them settle.
+  let frame = 0;
+  function scheduleRender() {
+    if (!frame) {
+      frame = requestAnimationFrame(() => {
+        frame = 0;
+        render();
+      });
+    }
+  }
+
+  let drawn = "";
   function render() {
     const items = virtualizer.getVirtualItems();
+    // Drawing replaces the rows, and the new rows are measured again, which reports another
+    // change; skipping a draw that would look the same ends that loop.
+    const signature = `${virtualizer.getTotalSize()}|${table.options.state.sorting.map((s) => s.id + s.desc)}|` +
+      items.map((item) => `${item.index}:${item.start}:${store.row(item.index) ? 1 : 0}`).join(",");
+    if (signature === drawn) {
+      return;
+    }
+    drawn = signature;
     const rows = items.map((item) => ({ index: item.index, cells: store.row(item.index) }));
     table.setOptions((options) => ({ ...options, data: rows }));
     if (items.length) {
@@ -204,7 +263,7 @@ function enhance(root) {
         tr.className = "datatable-pending";
         tr.setAttribute("aria-busy", "true");
       }
-      row.getVisibleCells().forEach((cell) => tr.append(cellNode(cell.getValue())));
+      row.getVisibleCells().forEach((cell) => tr.append(cellNode(cell.getValue(), iconUrl)));
       return tr;
     });
     nodes.push(...built);
@@ -224,6 +283,7 @@ function enhance(root) {
     }
     tbody.replaceChildren(...nodes);
     built.forEach((tr) => virtualizer.measureElement(tr));
+    document.dispatchEvent(new CustomEvent("datatable:rows"));
   }
 
   // --- Keeping the page around the table in step -------------------------
@@ -310,6 +370,7 @@ function enhance(root) {
     loadToken += 1;
     const mine = loadToken;
     store.reset();
+    drawn = "";
     wantFacets = true;
     root.setAttribute("aria-busy", "true");
     return store.ensure(0).then((loaded) => {

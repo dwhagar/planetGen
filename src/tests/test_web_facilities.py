@@ -577,7 +577,7 @@ def test_real_sector_page_lists_stand_alone_facilities(db_app, mysql_config):
     finally:
         conn.close()
     html = db_app.test_client().get(f"/sector/{sector_id}").get_data(as_text=True)
-    row = re.search(r"<tr>\s*<td>Waypoint</td>.*?</tr>", html, re.S).group(0)
+    row = re.search(r"<tr[^>]*>\s*<td>Waypoint</td>.*?</tr>", html, re.S).group(0)
     assert "Facility (Station)" in row
     assert "Stand-alone station, parked in open space" in row
     assert "3.00 ly" in row or "3 ly" in row, row
