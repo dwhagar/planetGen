@@ -660,7 +660,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.76 | Leader-line layout | none | done, PR #410 |
 | MAP.77 | Galaxy Map draws block divisions inside a picked slab before zooming to it (bug) | none | done, PR #410 |
 | MAP.78 | Zooming into a wedge must show the whole wedge at every drill-down level (bug) | none | done, PR #410 |
-| MAP.79 | Rogue planets clog the Sector Map: dim them, and a show/hide button per kind of object (bug) | none | open |
+| MAP.79 | Rogue planets clog the Sector Map: dim them, and a show/hide button per kind of object (bug) | none | done, PR #577 |
 | MAP.80 | Sector-level zoom on the Galaxy Map should show almost every star in the sector (bug) | none | done, PR #429 |
 | MAP.81 | Ctrl+1 to Ctrl+9 bookmark keys clash with the browser's tab switching (bug) | none | done, PR #351 |
 | MAP.82 | Unmarked rogue planets barely visible (bug) | none | done, PR #351 |
