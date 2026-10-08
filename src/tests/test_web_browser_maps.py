@@ -1,6 +1,7 @@
 """
-The maps in a real browser: every map button does something (TEST.55),
-the System Map's selection and measuring (TEST.58's browser half: it is
+The maps in a real browser: every map button does something (TEST.55; the
+sector page's map, now the Galaxy Map's engine, is in
+`test_web_browser_fixture_maps.py`), the System Map's selection and measuring (TEST.58's browser half: it is
 SVG laid out by the browser, which a fake DOM can't stand in for) and
 the Galaxy Map's drill-down by clicks (TEST.59).
 
@@ -78,60 +79,6 @@ def _open(page, url, ready):
 def _shot(page, selector):
     page.wait_for_timeout(150)
     return page.locator(selector).screenshot()
-
-
-# --- TEST.55: the Sector Map ---------------------------------------------------------
-
-def _scale(page, selector):
-    return page.locator(selector).inner_text()
-
-
-def test_sector_map_buttons_change_the_view(page, base_url, sample_params):
-    _open(page, f"{base_url}/sector/{sample_params['sector_id']}", "#starmap-canvas")
-    canvas = "#starmap-canvas"
-    first = _shot(page, canvas)
-    scale = _scale(page, "#starmap-scale-label")
-    actions = page.eval_on_selector_all("#starmap-controls [data-action]", "els => els.map(e => e.dataset.action)")
-    assert {"zoom-in", "zoom-out", "reset"} <= set(actions)
-
-    page.click('#starmap-controls [data-action="zoom-in"]')
-    zoomed = _shot(page, canvas)
-    assert zoomed != first, "+ didn't change the Sector Map"
-
-    page.click('#starmap-controls [data-action="zoom-out"]')
-    page.click('#starmap-controls [data-action="zoom-out"]')
-    out = _shot(page, canvas)
-    assert out != zoomed, "- didn't change the Sector Map"
-
-    page.click('#starmap-controls [data-action="reset"]')
-    assert _shot(page, canvas) != out, "Reset view didn't change the Sector Map"
-    assert _scale(page, "#starmap-scale-label") == scale, "Reset view is back at the opening scale"
-
-    if "toggle-rogue-markers" in actions:
-        toggle = page.locator('#starmap-controls [data-action="toggle-rogue-markers"]')
-        before = _shot(page, canvas)
-        assert toggle.get_attribute("aria-pressed") == "false", "off by default (MAP.83)"
-        toggle.click()
-        assert toggle.get_attribute("aria-pressed") == "true"
-        assert _shot(page, canvas) != before
-
-
-def test_sector_map_drag_and_click(page, base_url, sample_params):
-    _open(page, f"{base_url}/sector/{sample_params['sector_id']}", "#starmap-canvas")
-    canvas = page.locator("#starmap-canvas")
-    box = canvas.bounding_box()
-    first = _shot(page, "#starmap-canvas")
-    page.mouse.move(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
-    page.mouse.down()
-    page.mouse.move(box["x"] + box["width"] / 2 + 80, box["y"] + box["height"] / 2 + 20, steps=5)
-    page.mouse.up()
-    assert _shot(page, "#starmap-canvas") != first, "dragging didn't turn the Sector Map"
-    # The screen-reader list selects too (a click on the canvas is the
-    # node tests' job, tests/js/sectormap.test.mjs).
-    first_entry = page.locator(".starmap-sr-list button").first
-    name = first_entry.inner_text()
-    first_entry.evaluate("b => b.click()")
-    assert page.locator("#starmap-info h3").inner_text() == name
 
 
 # --- TEST.55, TEST.58: the System Map ------------------------------------------------

@@ -8,7 +8,7 @@
 // that one caller directly, so a future flat SVG map can reuse it the
 // same way instead of hand-rolling the same wheel-zoom/drag-pan/
 // click-vs-drag logic again.
-// Unlike sectormap.js's/galaxymap3d.js's three.js scenes (a real 3D
+// Unlike sectorscene.js's/galaxymap3d.js's three.js scenes (a real 3D
 // camera), there is no camera here at all -- "zooming" is just shrinking/
 // growing the SVG's own `viewBox` rect, which the browser already
 // re-renders at full vector fidelity (every marker/label was drawn in
@@ -16,7 +16,7 @@
 // too, for free -- no separate level-of-detail logic needed). This is
 // also exactly why a flat SVG map's own markers grow steadily *larger*
 // relative to the view as you zoom in with no camera to shrink them the
-// opposite way -- the effect a real 3D camera (sectormap.js/
+// opposite way -- the effect a real 3D camera (sectorscene.js/
 // galaxymap3d.js) doesn't have, since a sprite's *world* size stays
 // fixed while its on-screen size naturally falls off with distance.
 //

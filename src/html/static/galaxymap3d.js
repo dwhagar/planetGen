@@ -3,9 +3,9 @@
 //
 // Renders the interactive 3D Galaxy Map (planetgen/web/maps/galaxymap3d.py) as a real
 // WebGL scene (three.js, vendored at ./vendor/three.module.min.js -- see
-// sectormap.js's own docstring for why it's vendored rather than loaded
-// from a CDN). Unlike sectormap.js's scene (every star/cloud baked into
-// one JSON block at page load, camera always orbiting a fixed origin),
+// vendor/THIRD_PARTY_NOTICES.txt for why it's vendored rather than loaded
+// from a CDN). Unlike a sector's scene (every star/cloud in one JSON the
+// sector's own route answers, camera always orbiting a fixed origin),
 // this camera's own orbit TARGET moves freely through the galaxy -- most
 // of what's drawn is fetched live from /galaxy/tiles (the JSON's
 // fetchPath) as the camera moves, one fixed cube of space ("tile") at a time,
@@ -102,6 +102,12 @@ export function mapControlHandlers(ctx) {
     "up": function () { ctx.stageView.up(); },
     "reset": function () { ctx.stageView.home(); },
     "reset-view": function () { ctx.stageView.resetView(); },
+    "zoom-in": function () { ctx.stageView.zoomIn(); },
+    "zoom-out": function () { ctx.stageView.zoomOut(); },
+    "toggle-rogue-markers": function (button) {
+      ctx.stageView.setRoguesMarked(!ctx.stageView.roguesMarked());
+      button.setAttribute("aria-pressed", String(ctx.stageView.roguesMarked()));
+    },
   };
 }
 
@@ -1968,6 +1974,26 @@ function initGalaxyMap3d(canvasEl, data) {
   // level-27 children, and so on down to a sector. Pointer and key input
   // goes to the stage view; tiles (stars, clouds) follow the camera.
   var picker = createPicker(camera, canvasEl);
+
+  // The sector page's Contents "Show on map" buttons (MAP.46) name a
+  // cloud by its key; selecting it shows its details and its ring, and
+  // brings the map into view. A button shows once its entry is on the map.
+  function showMapTargets(on) {
+    document.querySelectorAll("[data-map-target]").forEach(function (button) {
+      button.hidden = !(on && stageView.entryByKey(button.dataset.mapTarget));
+    });
+  }
+  document.querySelectorAll("[data-map-target]").forEach(function (button) {
+    button.hidden = true;
+    button.addEventListener("click", function () {
+      var entry = stageView.entryByKey(button.dataset.mapTarget);
+      if (!entry) return;
+      stageView.selectEntry(entry);
+      if (viewport) viewport.scrollIntoView({ block: "center" });
+      canvasEl.focus({ preventScroll: true });
+    });
+  });
+
   var stageView = createStageView({
     THREE: THREE, scene: scene, camera: camera, canvasEl: canvasEl,
     edgePc: edgePc, shape: galaxyShape, galaxyRadius: GALAXY_RADIUS, reducedMotion: reducedMotion,
@@ -2005,6 +2031,10 @@ function initGalaxyMap3d(canvasEl, data) {
     clearSelection: function () { selectionRing.hide(); },
     setWedgeClip: function (clip) { setWedgeClip(clip); },
     sectorUrl: function (id) { return sceneData.sectorUrl ? sectorUrl(id) : null; },
+    // A sector page's map is locked to its sector (MAP.68): {ring, layer,
+    // slot}; another sector's click goes to that sector's page.
+    pinned: data.pinned || null,
+    openSectorPage: function (id) { if (sceneData.sectorUrl) location.assign(sectorUrl(id)); },
     // The sector page's scene JSON (planetgen/web/sector_page.py), keeping
     // a NAV pick in the entries' links.
     fetchSectorScene: sceneData.sectorUrl ? function (id) {
@@ -2021,6 +2051,11 @@ function initGalaxyMap3d(canvasEl, data) {
     pixelRatio: function () { return renderer.getPixelRatio(); },
     showInfo: showInfo,
     hideCell: hideCell,
+    viewport: viewport,
+    // The sector page's "Show on map" buttons (MAP.46) are there once the
+    // sector is.
+    opened: function () { showMapTargets(true); },
+    closed: function () { showMapTargets(false); },
     locate: function (name) {
       return fetch((data.locatePath || "/galaxy/locate") + "?q=" + encodeURIComponent(name), {
         headers: { Accept: "application/json" },

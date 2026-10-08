@@ -3,7 +3,7 @@
 """
 The sector page, `/sector/<id>` (was `sector.py`): the sector's size and
 badges, its interactive 3D Sector Map (`planetgen/web/maps/starmap.py` data, drawn by
-`static/sectormap.js`), and one "Contents" table of its systems and the
+`static/sectorscene.js`), and one "Contents" table of its systems and the
 phenomena near it, nearest the sector's center first, paged with
 `?contents_page=N`. The Contents table also lists the sector's
 facilities outside its systems (schema v42): stand-alone ones parked in
@@ -43,7 +43,9 @@ from planetgen.web.lib.fmt import (
 )
 from planetgen.web.maps.galaxymap import sector_quadrant
 from planetgen.web.lib.pagination import page_slice, parse_page
-from planetgen.web.maps.starmap import map_scene_data, render_map_panel
+from planetgen.web.lib.tilecache import fetch_tiles
+from planetgen.web.maps.galaxymap3d import initial_tile_request, render_galaxy_map3d_panel, view_radius_bounds
+from planetgen.web.maps.starmap import map_scene_data
 from planetgen.web.lib.systempage import facility_kind_label
 
 from planetgen.api.common import is_http_url
@@ -52,7 +54,8 @@ from planetgen.admin import activity_log
 from planetgen import tuning
 from planetgen.util import log
 from planetgen.galaxy.geometry import provisional_sector_designation
-from planetgen.physics.units import pc_to_ly
+from planetgen.tuning import DEFAULT_SECTOR_EDGE_LY
+from planetgen.physics.units import ly_to_pc, pc_to_ly
 
 from . import bp, edit_actions, generate_page, jobs
 from .helpers import bookmark, crumb, current_admin, db_name, generate_target, page_url, pager, render_page, trusted_html
@@ -421,6 +424,41 @@ def _pick_mode(args):
             "nav_url": nav_url()}
 
 
+def _sector_map_html(detail, pick, admin):
+    """
+    The sector page's map (MAP.68): the Galaxy Map's own engine
+    (`render_galaxy_map3d_panel`) locked to this sector, which it opens in
+    place (`static/galaxysector.js`). A sector with no place in the galaxy
+    has no map; the page says so.
+    """
+    from .galaxy_views import phenomenon_url_template, sector_url_template, system_url_template  # galaxy_views imports this module
+
+    address = (detail.get("ring_index"), detail.get("layer_index"), detail.get("ring_slot_index"))
+    if not detail["placed"] or None in address:
+        return ('<section class="panel" id="map"><h2>Sector Map</h2>'
+                '<p class="hint">This sector has no place in the galaxy, so it has no map.</p></section>')
+    db = db_name()
+    galaxy_shape = apiclient.get_galaxy_shape(db)
+    edge_pc = galaxy_shape["edge_pc"] if galaxy_shape else ly_to_pc(DEFAULT_SECTOR_EDGE_LY)
+    min_radius, max_radius = view_radius_bounds(edge_pc, galaxy_shape)
+    center = (detail["center_x_pc"], detail["center_y_pc"], detail["center_z_pc"])
+    initial_view = fetch_tiles(db, initial_tile_request(min(max_radius, max(min_radius, 6 * edge_pc)), center))
+    return render_galaxy_map3d_panel(
+        db, galaxy_shape, edge_pc, initial_view,
+        fetch_path=url_for("web.galaxy_tiles"),
+        stage_path=url_for("web.galaxy_stage"),
+        locate_path=url_for("web.galaxy_locate"),
+        territory_path=None,
+        sector_url=sector_url_template() + (pick["query"] if pick else ""),
+        generate=generate_target(admin),
+        pick=pick,
+        phenomenon_url=phenomenon_url_template(),
+        system_url=system_url_template(),
+        nav_url=page_url("nav"),
+        pinned={"ring": address[0], "layer": address[1], "slot": address[2], "center_pc": center},
+    )
+
+
 def _nav_for(pick):
     """The Sector Map's `nav(kind, id)` hook (`starmap.render_map_panel`)."""
     from .nav_page import endpoint, nav_url  # nav_page imports this module
@@ -547,17 +585,7 @@ def sector(sector_id):
     rows, map_systems = _contents(detail, apiclient.get_sector_facilities(db_name(), sector_id))
     page_rows, contents_page = page_slice(rows, parse_page(request.args.get("contents_page")))
 
-    center_pc = (
-        (detail["center_x_pc"], detail["center_y_pc"], detail["center_z_pc"]) if detail["placed"] else None
-    )
-    neighbors = _with_bright_stars(detail.get("neighbors"))
-    map_html = render_map_panel(
-        page_url, detail["edge_mpc"],
-        (detail.get("ring_index"), detail.get("layer_index"), detail.get("ring_slot_index")),
-        center_pc, map_systems, phenomena=detail.get("phenomena"), neighbors=neighbors,
-        generate=generate_target(admin),
-        nav=_nav_for(pick),
-    )
+    map_html = _sector_map_html(detail, pick, admin)
 
     quadrant = sector_quadrant(detail["center_x_pc"], detail["center_y_pc"]) if detail["placed"] else None
     system_count = len(detail["systems"])

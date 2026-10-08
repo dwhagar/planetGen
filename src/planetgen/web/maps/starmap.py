@@ -1,64 +1,46 @@
 # planetgen/web/maps/starmap.py
 
 """
-Interactive 3D sector starmap: every placed star system in a sector (two,
-overlapping, for a binary), plus every nearby standalone phenomenon
+The Sector Map's scene data: every placed star system in a sector (two,
+overlapping, for a binary), every nearby standalone phenomenon
 (nebula/asteroid field/supernova remnant/black hole/neutron star/rogue
-planet/interstellar comet/quasar), plus a small clickable indicator toward each
-immediately surrounding sector (`_neighbor_indicator_data`, see
-`queryDb.sector_neighbors`) -- linking straight to it if already
-generated, or showing its address (ready to feed into `planetgen galaxy
---ring I --layer J --slot K`) if not -- rendered as a real WebGL scene (`static/sectormap.js`,
-via three.js -- vendored at `static/vendor/three.module.min.js`, see that
-directory's `THIRD_PARTY_NOTICES.txt`) instead of the CSS
-`transform-style: preserve-3d` scene this module used to build directly as
-HTML `<div>`s. This module's job is now just the data: every position,
-size, and color is still computed here exactly as before (this file owns
-all of it -- the client only ever positions/colors/labels what it's handed,
-it makes no astrophysical or layout decisions of its own), serialized as
-JSON into one `<script type="application/json">` block `sectormap.js`
-reads on page load, alongside a `<canvas>` for it to render into and a
-`<noscript>` fallback list (plain links, no map) for a browser that can't
-run it.
+planet/interstellar comet/quasar), and a small clickable indicator toward
+each immediately surrounding sector (`_neighbor_indicator_data`, see
+`queryDb.sector_neighbors`), as the JSON `map_scene_data` returns. The
+sector page answers it at `/sector/<id>/scene`, and the Galaxy Map draws it
+(`static/galaxysector.js`, `static/sectorscene.js`, via three.js, vendored
+at `static/vendor/three.module.min.js`, see that directory's
+`THIRD_PARTY_NOTICES.txt`) in place, the sector page's map being the Galaxy
+Map locked to the sector (MAP.68). This module owns every astrophysical and
+layout decision: the client only positions, colors and labels what it is
+handed.
 
 Every star's (x, y, z) -- rotated once, server-side, from its own
 sector-local axes into the galaxy frame when the sector has a galaxy
 placement (`_rotate_to_galaxy_frame`, so it agrees with the cell outline/
 compass arrow below, both already galaxy-frame quantities) -- is expressed
-in the same fixed pixel-scale world units as before (`_SCENE_HALF_PX` per
-half the sector's own edge), so a change here needs no matching change to
-how the client interprets a position: it's still "this many units from the
-scene's own center," just handed to a real perspective camera instead of a
-flat CSS transform now.
+in fixed pixel-scale world units (`_SCENE_HALF_PX` per half the sector's
+own edge); the client scales them by `halfEdgePc` to put the sector where
+it sits in the galaxy.
 
-`_outline_data` still computes the scene's own bounding shape -- one of
-two, depending on whether the sector has a galaxy placement: a sector with
-a grid address gets its real cylindrical cell (see
+`_outline_data` computes the scene's own bounding shape -- one of two,
+depending on whether the sector has a galaxy placement: a sector with a
+grid address gets its real cylindrical cell (see
 `galaxyGeometry.sector_cell_vertices_pc` -- one ring wide, one layer tall,
 one slot's angle across, its curved edges sampled as arcs); one without a
 placement falls back to a plain axis-aligned cube of edge `edge_mpc`.
-`sectormap.js` draws it as a faint wireframe, and its extent drives
-`_default_zoom`'s fallback framing for a sector with nothing else plotted
-in it (see that function's own docstring).
 
-Clicking a star/cloud (or activating one of the accessible fallback
-list's own buttons) doesn't navigate straight to the system/phenomenon
-page -- it populates the info side panel first, so a click shows details
-before the panel's own link (a plain `<a href>`, from each entry's `href`)
-is what navigates away.
-
-Links: `render_map_panel` takes a `link_url(name, **params)` callable
-(the Flask pages pass `web.helpers.page_url`) and calls it as
+Links: `map_scene_data` takes a `link_url(name, **params)` callable (the
+Flask pages pass `web.helpers.page_url`) and calls it as
 `link_url("system", system_id=...)`, `link_url("phenomenon",
 phenomenon_type=..., phenomenon_id=...)` and `link_url("sector",
 sector_id=...)`; every scene entry carries the result as `href`.
 """
 
 import colorsys
-import json
 import math
 
-from planetgen.web.lib.fmt import esc, format_distance_ly, format_number
+from planetgen.web.lib.fmt import format_distance_ly, format_number
 
 try:
     from planetgen.physics.constants import SPECTRAL_CLASS_COLORS, TEMP_RANGES, SOLAR_LUMINOSITY, SOLAR_RADIUS_M
@@ -106,7 +88,7 @@ except ImportError:
 
 # The 3D scene's world-unit scale -- every position/radius below is in
 # these units (a sector's own half-edge maps to this many of them), handed
-# to `sectormap.js` as-is; a real perspective camera doesn't otherwise care
+# to `sectorscene.js` as-is; a real perspective camera doesn't otherwise care
 # what unit "1" means, unlike the old CSS version where this was also a
 # literal pixel count.
 _SCENE_HALF_PX = 160.0
@@ -119,7 +101,7 @@ _CUBE_CORNER_RADIUS_PX = _SCENE_HALF_PX * math.sqrt(3)
 
 # Never start a sector further zoomed out than this, however large its
 # cell/cube/plotted content gets (an extreme far-out placement could
-# otherwise compute an unusably tiny initial view) -- `sectormap.js`'s own
+# otherwise compute an unusably tiny initial view) -- `sectorscene.js`'s own
 # zoom-out control/scroll remains available past this floor regardless.
 _MIN_DEFAULT_ZOOM = 0.2
 
@@ -136,7 +118,7 @@ def _default_zoom(extent_radii_px):
     corners don't coincide with a cube's),
     and even the plain-cube fallback's own corners sit `_SCENE_HALF_PX *
     sqrt(3)` out -- both already past a "fits at zoom 1" frame.
-    `sectormap.js`'s camera distance at zoom 1 is calibrated so a sphere of
+    `sectorscene.js`'s camera distance at zoom 1 is calibrated so a sphere of
     radius `_SCENE_HALF_PX` exactly fills the frame (see its own
     `_referenceDistance`), so this fraction is what that client-side
     calibration is relative to.
@@ -298,7 +280,7 @@ def _cell_edges_px(address, edge_mpc, half_edge):
     """
     The sector's real cylindrical cell (`sector_cell_vertices_pc`) as 8
     `(x, y, z)` scene-space points, in the same convention
-    `render_map_panel` uses for star dots (sector-center-relative parsecs
+    `map_scene_data` uses for star dots (sector-center-relative parsecs
     -> milliparsecs -> normalized by `half_edge` -> scene units, y flipped
     since +y is "up" on screen) -- so the outline and the stars share one
     frame. Not clamped: a core-ring cell is a pie wedge noticeably bigger
@@ -390,7 +372,7 @@ def _outline_data(address, edge_mpc, half_edge):
     line. A sector with a grid address gets its real cylindrical cell
     (`_cell_arc_edges_px`), whose inner and outer faces' edges are sampled
     arcs; anything else gets the plain axis-aligned fallback cube's
-    straight edges (`_cube_corners_px`). `sectormap.js` draws it as a
+    straight edges (`_cube_corners_px`). `sectorscene.js` draws it as a
     faint wireframe.
 
     Returns:
@@ -475,7 +457,7 @@ similar visual weight."""
 def _neighbor_indicator_data(link_url, neighbor):
     """
     Builds one neighboring-sector indicator's plain-dict scene entry --
-    `sectormap.js` draws it as a small clickable marker just outside this
+    `sectorscene.js` draws it as a small clickable marker just outside this
     sector's own cell/cube, in the real direction (already galaxy-frame,
     same as the cell outline and compass arrow -- see this module's own
     docstring) of that neighbor's actual center, but placed at a fixed
@@ -540,7 +522,7 @@ def _ly_per_px_at_zoom_1(half_edge):
     straight from `half_edge` (half of `edge_mpc`, the sector's real,
     stored size) mapping to `_SCENE_HALF_PX` units, the same normalizing
     divisor every star dot and cell vertex on this map is already placed
-    by. `sectormap.js`'s scale-bar legend divides this by the live zoom
+    by. `sectorscene.js`'s scale-bar legend divides this by the live zoom
     factor and picks a round bar length from it, so the bar always
     reflects the sector's actual physical scale rather than an arbitrary
     fixed guess.
@@ -704,7 +686,7 @@ def _star_dot_radius(radius_km):
 # MAP.15: every star, and every phenomenon that gives off light, is drawn
 # as a point of light the way the Galaxy Map draws its bright stars
 # (`static/galaxymap3d.js`, "Bright stars"): a tiny bright core in a soft
-# halo, both a fixed number of screen pixels across (`sectormap.js` grows
+# halo, both a fixed number of screen pixels across (`sectorscene.js` grows
 # them a little, up to `POINT_CLOSE_GROWTH`, as the camera closes in),
 # never a ball sized in scene units. `_star_light` works out each star's
 # from its radius, luminosity and temperature with the Galaxy Map's own
@@ -781,7 +763,7 @@ def _lerp(value_range, share):
 
 def _star_light(luminosity_w, radius_km, temperature_k):
     """
-    A star's point of light (MAP.15), as `sectormap.js` draws it: a core
+    A star's point of light (MAP.15), as `sectorscene.js` draws it: a core
     sized by the star's radius, a halo whose width and strength grow with
     its luminosity, the core a little dimmer for a faint star, the faint
     end drawn brighter (`star_light_boost`, MAP.87), all in the star's
@@ -837,7 +819,7 @@ _PHENOMENON_LIGHTS = {
 # detail is for them to be dim barely noticeable". The "Mark rogue
 # planets" button (off by default, MAP.83) swaps in `_ROGUE_MARKED_LIGHT`:
 # bigger, fully lit and glowing, ringed, and easy to pick (MAP.84; the
-# pick reach is sectormap.js's ROGUE_PICK_PX).
+# pick reach is sectorscene.js's ROGUE_PICK_PX).
 _ROGUE_LIGHT = {"color": "#a993f0", "corePx": 1.5, "sizePx": 3.5, "glow": 0.0, "bright": 0.2, "whiten": 0.0}
 _ROGUE_MARKED_LIGHT = {
     "color": "#b59cff", "corePx": 5.0, "sizePx": 18.0, "glow": 0.6, "bright": 1.0, "whiten": 0.3,
@@ -846,7 +828,7 @@ _ROGUE_MARKED_LIGHT = {
 
 def _star_data(link_url, system, star, x_px, y_px, z_px, max_r=None):
     """
-    Builds one star's plain-dict scene entry -- `sectormap.js` draws it as
+    Builds one star's plain-dict scene entry -- `sectorscene.js` draws it as
     a point of light (`light`, see `_star_light`); `r` is its core radius
     in scene units, still what spaces a binary's pair apart and sizes its
     highlight ring's fallback. Labeled with the star's own name (a
@@ -866,7 +848,7 @@ def _star_data(link_url, system, star, x_px, y_px, z_px, max_r=None):
         "temp": star["temp_display"],
         "quadrant": system["quadrant"],
         "location": system["location"],
-        # `sectormap.js`'s info panel links here with a plain `<a href>`.
+        # `sectorscene.js`'s info panel links here with a plain `<a href>`.
         "href": link_url("system", system_id=system["id"]),
         # The system's NAV endpoint (`nav_page.endpoint`), what its ☆
         # Bookmark saves (`static/mappick.js`).
@@ -908,7 +890,7 @@ _DEFAULT_NEBULA_ALPHA = (0x90, 0x38)
 
 # Every other phenomenon kind's own look is a fixed recipe (never a
 # function of per-instance data beyond which kind/descriptor it is), so
-# unlike a nebula's per-instance core/edge color, `sectormap.js` owns those
+# unlike a nebula's per-instance core/edge color, `sectorscene.js` owns those
 # recipes directly (see its own `CLOUD_KIND_RECIPES`) -- this module only
 # ever needs to say *which* fixed kind a given phenomenon is.
 
@@ -926,12 +908,12 @@ def _cloud_data(link_url, phenomenon, x_px, y_px, z_px, radius_px):
     Builds one phenomenon's plain-dict scene entry. A nebula gets its own
     per-instance `coreColor`/`edgeColor` (two gradient stops, `#rrggbbaa`)
     computed from `_NEBULA_TYPE_COLORS`/`_NEBULA_TYPE_ALPHA`; every other
-    kind carries no color data at all -- `sectormap.js`'s own fixed
+    kind carries no color data at all -- `sectorscene.js`'s own fixed
     recipes (mirroring this module's old `_ASTEROID_FIELD_BACKGROUND`/
     `_BLACK_HOLE_*_BACKGROUND`/`_NEUTRON_STAR_BACKGROUND` constants, now
     retired from here) draw those from `kind` alone. Carries `href`, the
     phenomenon's own detail page, the same as `_star_data` does for a star
-    system -- `sectormap.js`'s info panel links there.
+    system -- `sectorscene.js`'s info panel links there.
 
     Args:
         link_url (callable): Builds `href` (see the module docstring).
@@ -959,7 +941,7 @@ def _cloud_data(link_url, phenomenon, x_px, y_px, z_px, radius_px):
     }
     if not phenomenon.get("home", True):
         # A neighboring sector's cloud reaching into this one (MAP.45):
-        # sectormap.js draws it fainter, and the info panel says so.
+        # sectorscene.js draws it fainter, and the info panel says so.
         data["neighbor"] = True
         data["distanceText"] += " (from a neighboring sector)"
 
@@ -1014,67 +996,14 @@ def _cloud_data(link_url, phenomenon, x_px, y_px, z_px, radius_px):
     return data
 
 
-def _json_script(data):
-    """
-    Serializes `data` for safe embedding inside a `<script
-    type="application/json">` block: escapes `<`, `>`, and `&` as Unicode
-    escapes (the standard "JSON in an HTML script tag" mitigation, e.g.
-    Django's `json_script`) so a database value containing `</script>` (a
-    system/phenomenon/sector name is arbitrary user-supplied text -- see
-    `--name`) can't break out of the tag, despite this module no longer
-    running every such value through `fmt.esc` the way its HTML-attribute-
-    building predecessor did.
-    """
-    return (
-        json.dumps(data)
-        .replace("<", "\\u003c")
-        .replace(">", "\\u003e")
-        .replace("&", "\\u0026")
-    )
-
-
-def _noscript_list_html(link_url, systems, phenomena, neighbors=None):
-    """
-    A plain, always-present (no JS required) list of links -- the
-    `<noscript>` fallback for a browser that can't run the WebGL scene
-    `sectormap.js` builds, so the sector's own systems/phenomena/already-
-    generated neighbors are still reachable rather than the panel being
-    entirely blank without JavaScript. Not a substitute for the map itself
-    (no position/size/color -- just names and plain `<a href>` links),
-    same spirit as any other progressive-enhancement fallback list.
-
-    A not-yet-generated neighbor is omitted here -- it has nowhere to
-    link to (its own "copy the CLI command" affordance is JS-only, same
-    as the map itself), unlike an existing one.
-    """
-    def item(url, name):
-        return f'<li><a href="{esc(url)}">{esc(name)}</a></li>'
-
-    items = []
-    for system in systems:
-        items.append(item(link_url("system", system_id=system["id"]), system["name"]))
-    for phenomenon in (phenomena or []):
-        items.append(item(
-            link_url("phenomenon", phenomenon_type=phenomenon["type"], phenomenon_id=phenomenon["id"]),
-            phenomenon["name"],
-        ))
-    for neighbor in (neighbors or []):
-        if not neighbor["exists"]:
-            continue
-        items.append(item(link_url("sector", sector_id=neighbor["sector_id"]), neighbor["sector_name"]))
-    if not items:
-        return ""
-    return f'<noscript><ul class="starmap-noscript-list">{"".join(items)}</ul></noscript>'
-
-
 def map_scene_data(
     link_url, edge_mpc, address, center_pc, systems, phenomena=None, neighbors=None, generate=None,
     nav=None,
 ):
     """
-    The Sector Map's scene JSON (the `#starmap-data` block `render_map_panel`
+    The Sector Map's scene JSON (the `#starmap-data` block `map_scene_data`
     embeds, and what `/sector/<id>/scene` answers for the Galaxy Map's
-    sector stage, MAP.66). The arguments are `render_map_panel`'s; see it.
+    sector stage, MAP.66). The arguments are `map_scene_data`'s; see it.
 
     Returns:
         dict: `sceneHalfPx`, `defaultZoom`, `lyPerPxAtZoom1`, `outline`,
@@ -1197,154 +1126,3 @@ def map_scene_data(
         "halfEdgePc": (edge_mpc / 2) / 1000 if edge_mpc else None,
     }
     return scene_data
-
-
-
-def render_map_panel(
-    link_url, edge_mpc, address, center_pc, systems, phenomena=None, neighbors=None, generate=None,
-    nav=None,
-):
-    """
-    Builds the "Sector Map" panel: a `<canvas>` `sectormap.js` renders an
-    interactive WebGL scene into (drag to rotate, scroll/button to zoom,
-    click for info), plus a `<script type="application/json">` block
-    carrying every position/size/color/label that scene needs -- one entry
-    per placed star system (two, overlapping, for a binary -- the primary
-    at the system's actual position, the secondary offset down-and-right
-    from it) and one per nearby nebula/asteroid field/black hole/neutron
-    star -- and an info side panel the same script fills in when something
-    is clicked.
-
-    The scene's own bounding shape -- the sector's cylindrical grid cell
-    (see `_outline_data`/`sector_cell_vertices_pc`) when this sector has a
-    grid address and
-    the geometry helpers are importable, or the plain axis-aligned cube
-    otherwise -- is drawn as a faint wireframe, and its extent drives
-    `_default_zoom`'s fallback framing for a sector with nothing else
-    plotted in it.
-
-    Args:
-        link_url (callable): `link_url(name, **params)` -> URL, used to
-                       build each entry's `href` (see the module
-                       docstring); the Flask sector page passes
-                       `web.helpers.page_url`.
-        edge_mpc (float): The sector's cube edge (`sectors.edge_mpc`) --
-                          every system's `position_*_mpc` is relative to
-                          the sector's cubic center (see schema.sql's
-                          `star_systems` comment), so half of this is the
-                          normalizing divisor for each axis.
-        address (tuple or None): The sector's `(ring_index, layer_index,
-            ring_slot_index)`; `None` (or any `None` inside) for none.
-        center_pc (tuple or None): `(center_x_pc, center_y_pc,
-                                   center_z_pc)` -- drives the "Galactic
-                                   Center" compass arrow (`_compass_data`)
-                                   and rotates each system's local
-                                   position into the galaxy frame
-                                   (`_rotate_to_galaxy_frame`) before it's
-                                   plotted, so star dots agree with the
-                                   arrow and the cell outline on one
-                                   frame; `None` for a sector with no
-                                   galaxy placement, which omits the
-                                   arrow and leaves positions unrotated.
-        systems (list[dict]): One entry per placed system (position not
-                              NULL), each with `id`, `name`, `quadrant`,
-                              `location`, `x`/`y`/`z` (the raw
-                              `position_*_mpc` columns), and `stars`: a
-                              list of 1 dict (single star) or 2 (primary,
-                              then secondary), each with `star_type`,
-                              `temperature_k`, `radius_km`,
-                              `luminosity_w`, `temp_display`.
-        phenomena (list[dict] or None): `queryDb.phenomena_near_sector`'s
-                              return shape -- every standalone phenomenon
-                              generated in this sector, plus every
-                              neighbor's cloud whose sphere could
-                              plausibly reach into this sector's cell. Its
-                              `offset_x/y/z_ly` are already galaxy-frame
-                              (computed directly from two galaxy-frame
-                              centers -- see `schema.sql`'s "v18" note), so
-                              -- unlike `systems`' sector-local `x`/`y`/`z`
-                              -- these are placed directly with no
-                              `_rotate_to_galaxy_frame` step. `None`/empty
-                              draws no clouds at all.
-        neighbors (list[dict] or None): `queryDb.sector_neighbors`'s
-                              return shape -- this sector's immediately
-                              surrounding addresses, each rendered as a
-                              small clickable indicator just past the
-                              scene's own edge (`_neighbor_indicator_data`).
-                              `None`/empty draws no indicators.
-        generate (dict or None): For a logged-in admin only:
-                              `{"url", "csrfField", "csrfToken"}`, the
-                              Generate page's form target and a CSRF
-                              token, so an unfilled neighbor's panel can
-                              offer Generate buttons. `None` (every
-                              visitor) shows the address alone.
-        nav (callable or None): `nav(kind, id)` -> `{"from", "to",
-                              "pick", "pickLabel"}`: the NAV links the
-                              info panel offers for a system (kind
-                              `"system"`) or phenomenon (its type), and,
-                              in pick mode, the "Use as destination" (or
-                              start) link and its label (`None` outside
-                              pick mode). Stored on each entry as `nav`.
-
-    Returns:
-        str: A complete `<section class="panel">` block.
-    """
-    scene_data = map_scene_data(link_url, edge_mpc, address, center_pc, systems, phenomena=phenomena,
-                                neighbors=neighbors, generate=generate, nav=nav)
-    clouds_data = scene_data["clouds"]
-    ly_per_px = scene_data["lyPerPxAtZoom1"]
-
-    if systems or clouds_data:
-        click_hint = "Click a star system or cloud for details." if clouds_data else "Click a star system for details."
-        info_panel = (
-            '<aside class="starmap-info" id="starmap-info">'
-            f'<p class="hint">{click_hint}</p></aside>'
-        )
-    else:
-        info_panel = '<aside class="starmap-info" id="starmap-info"><p class="hint">No systems placed in this sector.</p></aside>'
-
-    scale_bar_html = (
-        '<div class="starmap-scale" id="starmap-scale">'
-        '<span class="starmap-scale-bar" id="starmap-scale-bar"></span>'
-        '<span class="starmap-scale-label" id="starmap-scale-label"></span>'
-        "</div>"
-        if ly_per_px else ""
-    )
-
-    noscript_html = _noscript_list_html(link_url, systems, phenomena, neighbors)
-
-    # MAP.46, MAP.82 to MAP.84: rogue planets are faint points; this
-    # button (off by default, highlighted while on) marks them: bigger,
-    # brighter, ringed and easy to pick.
-    rogue_toggle_html = (
-        '\n  <button type="button" class="starmap-btn starmap-toggle" data-action="toggle-rogue-markers"'
-        ' aria-pressed="false">Mark rogue planets</button>'
-        if any(cloud["kind"] == "roguePlanet" for cloud in clouds_data) else ""
-    )
-
-    return f"""
-<section class="panel">
-<div class="panel-header">
-  <h2>Sector Map</h2>
-  <span class="hint">Drag to rotate &middot; scroll to zoom &middot; point of light &asymp; star &middot; halo size &asymp; brightness &middot; color &asymp; temperature &middot; bright points &asymp; quasars/neutron stars/accreting black holes &middot; translucent clouds &asymp; nebulae/asteroid fields/supernova remnants &middot; small spheres &asymp; quiet black holes/interstellar comets &middot; faint points &asymp; rogue planets (Mark rogue planets shows them) &middot; faint clouds &asymp; reaching in from a neighboring sector &middot; small markers at the edge &asymp; neighboring sectors</span>
-</div>
-<div class="starmap-layout">
-<div class="starmap-viewport">
-<canvas id="starmap-canvas" class="starmap-canvas" tabindex="0" role="application"
-     aria-label="Interactive 3D sector map. Drag or use arrow keys to rotate, scroll or the zoom buttons to zoom."></canvas>
-{scale_bar_html}
-<div class="map-tooltip" id="starmap-tooltip" hidden></div>
-{noscript_html}
-</div>
-<div class="starmap-side">
-<div class="starmap-controls" id="starmap-controls">
-  <button type="button" class="starmap-btn" data-action="zoom-out" aria-label="Zoom out">&minus;</button>
-  <button type="button" class="starmap-btn" data-action="zoom-in" aria-label="Zoom in">+</button>
-  <button type="button" class="starmap-btn" data-action="reset">Reset view</button>{rogue_toggle_html}
-</div>
-{info_panel}
-</div>
-</div>
-<script type="application/json" id="starmap-data">{_json_script(scene_data)}</script>
-</section>
-"""

@@ -95,23 +95,21 @@ def star_light():
 
 
 def sector_map():
-    """The Sector Map panel for two systems, a nebula, a rogue planet and a
-    neighbour (test_starmap.py's own fixtures): its scene JSON and its
-    control buttons."""
-    from planetgen.web.maps.starmap import render_map_panel
+    """The Sector Map's scene for two systems, a nebula, a rogue planet and a
+    neighbour (test_starmap.py's own fixtures): the JSON
+    `/sector/<id>/scene` answers."""
+    from planetgen.web.maps.starmap import map_scene_data
     from tests.test_starmap import _link, _make_system, _neighbor, _phenomenon
 
     near = _make_system(100.0, 50.0, -30.0)
     far = dict(_make_system(-200.0, -120.0, 80.0), id=2, name="Far System")
-    html = render_map_panel(
+    data = map_scene_data(
         _link, 1000.0, (5, 0, 17), (500.0, 200.0, -100.0), [near, far],
         phenomena=[_phenomenon(), dict(_phenomenon(type_="rogue_planet", descriptor=None, radius_ly=0.0,
                                                    offset=(-3.0, 1.0, 2.0)), id=2, name="Lonely")],
         neighbors=[_neighbor(exists=True, sector_id=42, sector_name="Next Door")],
     )
-    data = json.loads(re.search(r'<script type="application/json" id="starmap-data">(.*?)</script>', html, re.S).group(1))
-    controls = re.search(r'<div class="starmap-controls" id="starmap-controls">(.*?)</div>', html, re.S).group(1)
-    return {"data": data, "actions": re.findall(r'data-action="([^"]+)"', controls)}
+    return {"data": data}
 
 
 @pytest.fixture(scope="module")

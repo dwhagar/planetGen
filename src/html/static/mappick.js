@@ -2,7 +2,7 @@
 //
 // The picking, hover and info-panel layer every 3D map shares (MAP.65):
 // the Galaxy Map (galaxymap3d.js and its drill-down, galaxystageview.js)
-// and the Sector Map (sectormap.js) hand it their objects and get back
+// and the Sector Map's scene (sectorscene.js) hand it their objects and get back
 // what is under the pointer, a tooltip that follows it, a ring around
 // what is hovered or selected, and an info panel built the same way on
 // every map (fields, the NAV links or the pick button, a page link,

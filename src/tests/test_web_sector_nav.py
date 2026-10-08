@@ -107,6 +107,10 @@ class FakeData:
         except (KeyError, ValueError):
             raise apiclient.NotFoundError(f"No such sector: {sector_id}")
 
+    def get_galaxy_shape(self, db):
+        self.calls.append(("get_galaxy_shape", db))
+        return None
+
     def get_bright_stars_in_cell(self, db, ring_index, layer_index, ring_slot_index):
         self.calls.append(("get_bright_stars_in_cell", ring_index, layer_index, ring_slot_index))
         return self.bright_stars.get((ring_index, layer_index, ring_slot_index), [])
@@ -175,7 +179,7 @@ class FakeData:
         return {"generated": 4, "already_existed": 2, "candidates": 6}
 
 
-_FAKED = ("get_sector", "get_sector_facilities", "get_bright_stars_in_cell", "get_sectors", "get_system", "get_phenomenon", "get_nav", "get_wiki_config",
+_FAKED = ("get_sector", "get_galaxy_shape", "get_sector_facilities", "get_bright_stars_in_cell", "get_sectors", "get_system", "get_phenomenon", "get_nav", "get_wiki_config",
           "auth_me", "upload_sector_to_wiki", "generate_sector_neighborhood")
 
 
@@ -184,6 +188,9 @@ def fake(monkeypatch):
     data = FakeData()
     for name in _FAKED:
         monkeypatch.setattr(apiclient, name, getattr(data, name))
+    # The map's first frame of galaxy tiles (the sector page embeds the Galaxy Map's engine).
+    monkeypatch.setattr(sector_page, "fetch_tiles", lambda db, keys, known_stamp=None: {
+        "stamp": "0" * 16, "tiles": {}, "density": {}, "edge_pc": 3.066, "has_shape": False})
     return data
 
 
@@ -212,9 +219,13 @@ def _csrf(app, client):
         return csrf._sign(nonce, session.value if session else "")  # bound to the login session
 
 
-def _scene(html):
-    match = re.search(r'<script type="application/json" id="starmap-data">(.*?)</script>', html, re.S)
-    return json.loads(match.group(1))
+def _scene(client, path):
+    """The sector's scene JSON (`/sector/<id>/scene`, what the map draws) for a
+    sector page's `path`, query and all."""
+    base, _, query = path.partition("?")
+    response = client.get(f"{base}/scene" + (f"?{query}" if query else ""))
+    assert response.status_code == 200
+    return response.get_json()
 
 
 # --- Sector page ------------------------------------------------------------------------
@@ -230,7 +241,11 @@ def test_sector_page_renders_badges_map_and_contents(client, fake):
     assert '<a href="/sectors">Sectors</a>' in crumbs and '<span aria-current="page">Fake Sector</span>' in crumbs
     assert "Cube edge 3.07 pc (10 ly)" in html and "2 systems" in html and "1 phenomenon" in html
     assert 'href="/galaxy?quadrant=' in html
-    assert re.search(r'<script type="module" src="/static/sectormap.js\?v=[^"]+"></script>', html)
+    assert re.search(r'<script type="module" src="/static/galaxymap3d.js\?v=[^"]+"></script>', html)
+    # The map is the Galaxy Map locked to this sector (MAP.68).
+    assert 'id="galaxymap3d-canvas"' in html and "galaxymap3d-crumbs" not in html
+    assert json.loads(re.search(r'id="galaxymap3d-data">(.*?)</script>', html, re.S).group(1))["pinned"] == {
+        "ring": 5, "layer": 1, "slot": 20}
     # Contents: nearest first, systems and phenomena, plain links.
     contents = html[html.index('id="sector-contents"'):]
     assert contents.index("Other") < contents.index("Alpha") < contents.index("Veil")
@@ -244,26 +259,22 @@ def test_sector_page_renders_badges_map_and_contents(client, fake):
 
 
 def test_sector_map_entries_are_plain_links(client, fake):
-    html = client.get("/sector/5").get_data(as_text=True)
-    scene = _scene(html)
+    scene = _scene(client, "/sector/5")
     assert {star["href"] for star in scene["stars"]} == {
         "/system/1001", "/system/1002"}
     assert scene["clouds"][0]["href"] == "/phenomenon/nebula/3"
     assert scene["neighbors"][0]["href"] == "/sector/6"
     assert not any("navTarget" in entry for entry in scene["stars"] + scene["clouds"] + scene["neighbors"])
-    assert '<li><a href="/sector/6">Next Door</a></li>' in html  # <noscript> list
 
 
 def test_sector_scene_json_is_the_pages_own_scene_for_the_galaxy_map(client, fake):
-    """MAP.66: /sector/<id>/scene is the scene block the page embeds, plus
-    where the sector sits (centerPc) and its half edge (halfEdgePc, in
-    parsecs), for the Galaxy Map to open the sector in place."""
-    page = _scene(client.get("/sector/5").get_data(as_text=True))
+    """MAP.66: /sector/<id>/scene is the scene the map draws, with where the
+    sector sits (centerPc) and its half edge (halfEdgePc, in parsecs), for
+    the Galaxy Map to open the sector in place."""
     resp = client.get("/sector/5/scene")
     assert resp.status_code == 200 and resp.mimetype == "application/json"
     assert resp.headers["Cache-Control"] == "no-store"
     scene = resp.get_json()
-    assert scene == page
     assert len(scene["centerPc"]) == 3
     assert scene["halfEdgePc"] == pytest.approx(fake.sectors[5]["edge_mpc"] / 2000)
     assert {star["href"] for star in scene["stars"]} == {"/system/1001", "/system/1002"}
@@ -286,7 +297,7 @@ def test_sector_contents_pager_uses_get_links(client, fake):
     contents = page2[page2.index('id="sector-contents"'):]
     assert ">S054</a>" in contents and ">S000</a>" not in contents
     # The map still plots every system.
-    assert len(_scene(page2)["stars"]) == 55
+    assert len(_scene(client, "/sector/5?contents_page=2")["stars"]) == 55
 
 
 def test_sector_contents_list_systems_then_phenomena_then_rogues(client, fake):
@@ -774,7 +785,7 @@ def test_real_sector_page_and_nav(db_client, mysql_config, monkeypatch):
     assert resp.status_code == 200
     for row in systems:
         assert escape(row["name"]) in html
-    assert len(_scene(html)["stars"]) == 2
+    assert len(_scene(db_client, f"/sector/{sector_id}")["stars"]) == 2
 
     html = db_client.get("/nav").get_data(as_text=True)
     assert f'<option value="{sector_id}">Test Sector</option>' in html
@@ -815,7 +826,7 @@ def test_real_sector_page_with_galaxy_placement_renders_neighbor_indicators(db_c
 
     resp = db_client.get(f"/sector/{sector_id}")
     assert resp.status_code == 200
-    scene = _scene(resp.get_data(as_text=True))
+    scene = _scene(db_client, f"/sector/{sector_id}")
     assert len(scene["neighbors"]) > 0
     for entry in scene["neighbors"]:
         assert entry["exists"] is False  # nothing else was ever placed
@@ -856,7 +867,7 @@ def test_real_sector_page_lists_and_maps_every_phenomenon_type(db_client, mysql_
         assert escape(name) in contents
     for label in ("Supernova Remnant", "Rogue Planet", "Interstellar Comet", "Star System"):
         assert label in contents
-    kinds = {cloud["kind"] for cloud in _scene(html)["clouds"]}
+    kinds = {cloud["kind"] for cloud in _scene(db_client, f"/sector/{sector_id}")["clouds"]}
     assert {"supernovaRemnant", "roguePlanet", "interstellarComet"} <= kinds
 
 
@@ -898,7 +909,7 @@ def test_real_admin_action_error_shows_on_the_page(db_client, mysql_config):
 # --- NAV links and pick mode (MAP.21, design doc sections 9.1-9.2) ----------------
 
 def test_sector_map_entries_carry_nav_links(app, client, fake):
-    scene = _scene(client.get("/sector/5").get_data(as_text=True))
+    scene = _scene(client, "/sector/5")
     with app.test_request_context():
         alpha_from = nav_url(origin=endpoint("system", 1001))
         veil_to = nav_url(destination=endpoint("nebula", 3))
@@ -919,7 +930,7 @@ def test_pick_destination_mode(app, client, fake):
     banner = re.search(r'<p class="pick-banner".*?</p>', html, re.S).group(0)
     assert "Choosing a destination" in banner and "Use as destination" in banner
     assert f'href="{escape(nav_url_for(app, "system:12", None))}">Cancel</a>' in banner
-    scene = _scene(html)
+    scene = _scene(client, "/sector/5?pick=to&from=system:12")
     alpha = next(star for star in scene["stars"] if star["href"] == "/system/1001")
     assert alpha["nav"]["pick"] == nav_url_for(app, "system:12", "system:1001")
     assert alpha["nav"]["pickLabel"] == "Use as destination"
@@ -930,7 +941,7 @@ def test_pick_start_mode_without_the_other_end(app, client, fake):
     html = client.get("/sector/5?pick=from").get_data(as_text=True)
     assert "Choosing a start" in html
     assert f'href="{escape(nav_url_for(app, None, None))}">Cancel</a>' in html
-    alpha = next(star for star in _scene(html)["stars"] if star["href"] == "/system/1001")
+    alpha = next(star for star in _scene(client, "/sector/5?pick=from")["stars"] if star["href"] == "/system/1001")
     assert alpha["nav"]["pick"] == nav_url_for(app, "system:1001", None)
     assert alpha["nav"]["pickLabel"] == "Use as start"
 
@@ -941,7 +952,7 @@ def test_bad_pick_mode_is_ignored(client, fake, query):
     assert resp.status_code == 200
     html = resp.get_data(as_text=True)
     assert "pick-banner" not in html
-    assert all(star["nav"]["pick"] is None for star in _scene(html)["stars"])
+    assert all(star["nav"]["pick"] is None for star in _scene(client, f"/sector/5?{query}")["stars"])
 
 
 # --- Bright stars waiting in an unfilled neighbor -----------------------------------
@@ -954,7 +965,7 @@ def test_unfilled_neighbor_lists_its_waiting_bright_stars(client, fake):
     fake.bright_stars[(5, 1, 22)] = [
         {"star_type": f"B{i}V", "luminosity_sol": 9000.0 - i} for i in range(7)
     ]
-    scene = _scene(client.get("/sector/5").get_data(as_text=True))
+    scene = _scene(client, "/sector/5")
     existing, unfilled = scene["neighbors"]
     assert "brightStars" not in existing
     assert unfilled["brightStarCount"] == 7
@@ -974,9 +985,7 @@ def test_bright_stars_fail_open(client, fake, monkeypatch):
     def broken(*args):
         raise apiclient.ApiError("down")
     monkeypatch.setattr(apiclient, "get_bright_stars_in_cell", broken)
-    resp = client.get("/sector/5")
-    assert resp.status_code == 200
-    assert "brightStars" not in _scene(resp.get_data(as_text=True))["neighbors"][1]
+    assert "brightStars" not in _scene(client, "/sector/5")["neighbors"][1]
 
 
 # --- Map picks on the NAV page (MAP.22) and "Show on Galaxy Map" (MAP.25) ---------------

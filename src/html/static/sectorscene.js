@@ -1,4 +1,4 @@
-// html/static/sectormap.js's scene, as a part of any map (MAP.66): one
+// The Sector Map's scene, as a part of any map (MAP.66, MAP.68): one
 // sector's stars, phenomena, neighboring-sector markers, cell outline and
 // compass, built from planetgen/web/maps/starmap.py's JSON into a
 // THREE.Group, with the picker layers (mappick.js), info-panel contents

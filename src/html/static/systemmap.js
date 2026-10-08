@@ -1,7 +1,7 @@
 // html/static/systemmap.js
 //
 // Click-for-info and drill-into-moons behavior for the "System Map" panel
-// built by `planetgen/web/maps/systemmap.py`. Unlike `sectormap.js` (which has to resolve
+// built by `planetgen/web/maps/systemmap.py`. Unlike `sectorscene.js` (which has to resolve
 // clicks by geometry through a rotated 3D `preserve-3d` stack -- see that
 // file's own comment for why), this map is flat, static, fixed-size SVG
 // with no rotation/scroll/zoom, so a plain event-target lookup is all
@@ -13,12 +13,12 @@
 // marked with `data-scene="planet-<id>"` -- swaps which `<svg data-scene>`
 // is visible so that planet takes the star's place with its own moons
 // arranged around it. Built with plain DOM calls (never innerHTML with
-// unescaped content), same as `sectormap.js`, since every data-* value is
+// unescaped content), same as `sectorscene.js`, since every data-* value is
 // still database content.
 //
 // Every star/planet/moon marker in the currently visible scene also gets
 // its own live-rendered 3D sphere on `#sysmap-spheres-canvas` (three.js,
-// the same vendored build `sectormap.js` uses -- see
+// the same vendored build `sectorscene.js` uses -- see
 // `static/vendor/THIRD_PARTY_NOTICES.txt`), sized and positioned to
 // exactly replace that marker's own flat SVG circle -- an appearance
 // layer only (color/gas-giant banding+ring/atmosphere glow, all from that
@@ -50,7 +50,7 @@ function classField(el) {
 //
 // The glow shader (GLOW_VERTEX_SHADER/GLOW_FRAGMENT_SHADER) and the star
 // granulation texture now live in ./bodyRendering.js, shared with
-// sectormap.js's own star/nebula/asteroid-field/black-hole/neutron-star
+// sectorscene.js's own star/nebula/asteroid-field/black-hole/neutron-star
 // spheres -- imported above (makeGlowMaterial/makeStarSurfaceTexture)
 // rather than duplicated here.
 

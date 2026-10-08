@@ -139,7 +139,7 @@ Named locations (octants)
 Roman-numeral "octant" -- 8 sign-combination regions in 3D -- plus the
 position's three positive magnitudes. Displayed as "Octant" everywhere
 (this function's own output string, `html/sector.py`, `html/system.py`,
-`html/static/sectormap.js`) specifically to keep it distinct from the
+`html/static/sectorscene.js`) specifically to keep it distinct from the
 unrelated, galaxy-scale "Quadrant" concept `planetgen/web/maps/galaxymap.py`
 introduced later (4 azimuthal regions spanning many sectors, not 8
 sign-combination regions within one sector's own cube) -- the two used to

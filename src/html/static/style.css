@@ -577,8 +577,8 @@ tbody tr:last-child td {
   font-weight: 600;
 }
 
-/* Sector map: interactive 3D WebGL scene (planetgen/web/maps/starmap.py builds the
-   scene data, html/static/sectormap.js renders it with three.js) */
+/* The map panels: interactive 3D WebGL scenes (the Galaxy Map's, and the sector
+   page's, which is the same engine locked to its sector) */
 .starmap-layout {
   display: flex;
   flex-wrap: wrap;
@@ -587,8 +587,8 @@ tbody tr:last-child td {
 }
 
 /* Clipped, responsive "window" the interactive map lives in -- the canvas
-   inside (`.starmap-canvas`) fills it exactly (see sectormap.js's own
-   resize handling, which keeps the renderer's drawing buffer and the
+   inside (`.starmap-canvas`) fills it exactly (see mapcore.js's
+   watchResize, which keeps the renderer's drawing buffer and the
    camera's aspect ratio in sync with this box's actual size). */
 .starmap-viewport {
   position: relative;
@@ -605,7 +605,7 @@ tbody tr:last-child td {
   width: 100%;
   height: 100%;
   cursor: grab;
-  /* sectormap.js owns drag-to-rotate itself via pointer events --
+  /* The map owns drag-to-rotate itself via pointer events --
      without this, touch browsers intercept a vertical drag as page
      scroll before its own handlers see it. */
   touch-action: none;
@@ -621,7 +621,7 @@ tbody tr:last-child td {
 }
 
 /* Visually hidden but still focusable/readable -- the keyboard/screen-
-   reader fallback list sectormap.js builds (one button per star/cloud, a
+   reader fallback list sectorscene.js builds (one button per star/cloud, a
    canvas having no focusable children of its own the way individual
    `<div role="button">` dots once were). Standard "clip, don't display:
    none" recipe so it stays in the accessibility tree and tab order. */
@@ -638,7 +638,7 @@ tbody tr:last-child td {
 }
 
 /* `<noscript>` fallback (planetgen/web/maps/starmap.py's `_noscript_list_html`) -- a
-   browser that can't run sectormap.js still gets a plain link list
+   browser that can't run sectorscene.js still gets a plain link list
    instead of a blank panel; shown in normal flow (not `.sr-only`) since
    there's no WebGL scene to prefer over it in that case. */
 .starmap-noscript-list {
@@ -650,7 +650,7 @@ tbody tr:last-child td {
 }
 
 /* Scale-bar legend -- a plain flat 2D overlay showing the sector's real
-   physical scale at the *current* zoom level. sectormap.js recomputes
+   physical scale at the *current* zoom level. sectorscene.js recomputes
    `.starmap-scale-bar`'s width and `.starmap-scale-label`'s text on every
    camera move from the exact ly-per-world-unit ratio embedded in
    `#starmap-data` (see `_ly_per_px_at_zoom_1` in planetgen/web/maps/starmap.py) and the
@@ -2000,7 +2000,7 @@ code {
    flat SVG map uses a native <title>), and the
    planned-sector info panel's copyable CLI snippet/fallback field --
    the latter two also reused as-is by the Sector Map's own not-yet-
-   generated neighboring-sector indicators (html/static/sectormap.js),
+   generated neighboring-sector indicators (html/static/sectorscene.js),
    the identical "copy a planetgen CLI command" concept one level in. */
 /* The Galaxy Map is the page's whole point (MAP.3): the map takes the
    full width of a wider main column (.app-main-wide, galaxy.html) and as
@@ -2198,7 +2198,7 @@ code {
 }
 
 /* The Sector Map's Generate buttons for an unfilled neighbor (admins
-   only; static/sectormap.js). */
+   only; static/sectorscene.js). */
 .starmap-generate {
   display: flex;
   flex-direction: column;

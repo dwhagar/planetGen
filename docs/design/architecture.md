@@ -338,7 +338,7 @@ Names without a folder are in `src/planetgen/web/lib/`; `maps/` names are in `sr
 | `galaxystageview.js` | The drill-down drawn and driven: the eight stages from galaxy to sector, camera flights, breadcrumb with sibling menus, slab slider, tooltip, keys, touch, and the address bar. Created by `galaxymap3d.js`, which opens on it. |
 | `galaxyprisms.js` | Sector-grid prisms, block level of detail, density shading and the `drill*` ladder rules (mirrors `galaxyGeometry.py` and `galaxyDrill.py`). No three.js import, so tests run it under node. |
 | `galaxyblocks.js` | Builds the block scene's typed arrays, in a Web Worker when it can. |
-| `sectormap.js` | The 3D Sector Map (three.js). |
+| `sectorscene.js`, `galaxysector.js` | One sector's scene (stars, phenomena, bodies; three.js) and the stage that opens it in the Galaxy Map; the sector page's Sector Map is the Galaxy Map locked to its sector (MAP.66, MAP.68). |
 | `systemmap.js` | System Map clicks, moon drill-in and the 3D body spheres. |
 | `bodyRendering.js` | Shared three.js sphere, glow and granulation helpers for the two maps above and the phenomenon view. |
 | `generatebuttons.js` | Admin "Generate" forms on an ungenerated sector (Sector Map and Galaxy Map); Generate neighborhood asks for a radius in light years (13 to 652) and estimates the sector count. |
@@ -564,10 +564,10 @@ flowchart TD
     Q --> DB[("content schema")]
     R --> JSON["JSON"]
     JSON --> View
-    View --> Lib["planetgen/web/maps/starmap.py, pagination.py, fmt.py"]
+    View --> Lib["planetgen/web/maps/starmap.py (scene data), galaxymap3d.py (the map panel), pagination.py, fmt.py"]
     Lib --> Tpl["templates/sector.html"]
     Tpl --> B
-    B -. "loads" .-> JS["static/sectormap.js + three.js"]
+    B -. "loads" .-> JS["static/galaxymap3d.js + three.js"]
 ```
 
 **A page.** `wsgi.py` builds the app with `api/app.py`'s `create_app`,

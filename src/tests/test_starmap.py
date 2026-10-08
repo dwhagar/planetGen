@@ -10,7 +10,7 @@ convention (local +X radially outward from the galactic axis, +Y along the
 ring, +Z galactic north), applied at render time from the sector's own
 stored `center_x/y/z_pc` rather than needing any new stored orientation.
 
-Also covers `render_map_panel`'s scene-data contract -- since the Sector
+Also covers `map_scene_data`'s scene-data contract -- since the Sector
 Map moved from server-rendered CSS `<div>`s to a `<script
 type="application/json">` block a WebGL client reads (see starmap.py's own
 module docstring), these tests parse that JSON instead of regex-matching
@@ -19,7 +19,7 @@ HTML, but check the same underlying behavior the old assertions did
 text).
 
 no database
-needed, since `render_map_panel`/`_rotate_to_galaxy_frame` take plain
+needed, since `map_scene_data`/`_rotate_to_galaxy_frame` take plain
 dicts/tuples.
 
 Run with: pytest src/tests/test_starmap.py
@@ -31,7 +31,7 @@ import re
 
 import pytest  # noqa: E402
 
-from planetgen.web.maps.starmap import _rotate_to_galaxy_frame, render_map_panel  # noqa: E402
+from planetgen.web.maps.starmap import _rotate_to_galaxy_frame, map_scene_data  # noqa: E402
 
 
 def _link(name, **params):
@@ -85,24 +85,12 @@ def test_on_axis_degeneracy_does_not_crash():
     assert _vec_norm(rotated) == pytest.approx(_vec_norm(local_vec))
 
 
-def _scene_data(html):
-    """Extracts and parses `render_map_panel`'s embedded `#starmap-data`
-    JSON payload -- the client-side scene-data contract these tests check
-    against instead of the old version's server-rendered HTML `<div>`s."""
-    match = re.search(
-        r'<script type="application/json" id="starmap-data">(.*?)</script>',
-        html, re.DOTALL,
-    )
-    assert match, f"no #starmap-data script found in:\n{html}"
-    return json.loads(match.group(1))
-
-
 def _star_position(scene, index=0):
     star = scene["stars"][index]
     return (star["x"], star["y"], star["z"])
 
 
-def test_render_map_panel_rotates_star_dots_only_when_placed():
+def test_map_scene_data_rotates_star_dots_only_when_placed():
     """
     End-to-end: the same system's dot must land in a different scene
     position depending on whether the sector has an (off-axis) galaxy
@@ -113,15 +101,15 @@ def test_render_map_panel_rotates_star_dots_only_when_placed():
     """
     system = _make_system()
 
-    scene_unplaced = _scene_data(render_map_panel(_link, 1000.0, None, None, [system]))
+    scene_unplaced = map_scene_data(_link, 1000.0, None, None, [system])
     unplaced_pos = _star_position(scene_unplaced)
 
-    scene_placed = _scene_data(render_map_panel(_link, 1000.0, (3, 0, 7), (500.0, 200.0, -100.0), [system]))
+    scene_placed = map_scene_data(_link, 1000.0, (3, 0, 7), (500.0, 200.0, -100.0), [system])
     placed_pos = _star_position(scene_placed)
 
     assert placed_pos != unplaced_pos
 
-    scene_unplaced_again = _scene_data(render_map_panel(_link, 1000.0, None, None, [system]))
+    scene_unplaced_again = map_scene_data(_link, 1000.0, None, None, [system])
     assert _star_position(scene_unplaced_again) == unplaced_pos
 
 
@@ -137,7 +125,7 @@ def test_scene_stars_carry_a_point_of_light_sized_by_luminosity():
         "star_type": "M2IA", "temperature_k": 3600, "radius_km": 696000 * 800,
         "luminosity_w": 3.828e26 * 2e5, "temp_display": "3600 K",
     }]
-    scene = _scene_data(render_map_panel(_link, 1000.0, None, None, [dwarf, giant]))
+    scene = map_scene_data(_link, 1000.0, None, None, [dwarf, giant])
     small, big = scene["stars"]
     for star in (small, big):
         assert set(star["light"]) == {"color", "corePx", "sizePx", "glow", "bright"}
@@ -175,14 +163,14 @@ def test_only_light_giving_phenomena_are_points_of_light(type_, descriptor, lit)
     quiescent black hole and an interstellar comet keep their spheres,
     and clouds stay clouds."""
     phenomenon = _phenomenon(type_=type_, descriptor=descriptor)
-    scene = _scene_data(render_map_panel(_link, 1000.0, None, None, [_make_system()], phenomena=[phenomenon]))
+    scene = map_scene_data(_link, 1000.0, None, None, [_make_system()], phenomena=[phenomenon])
     cloud = scene["clouds"][0]
     assert ("light" in cloud) is lit
     if lit:
         assert set(cloud["light"]) >= {"color", "corePx", "sizePx", "glow", "bright"}
 
 
-def test_render_map_panel_placed_on_axis_matches_unplaced():
+def test_map_scene_data_placed_on_axis_matches_unplaced():
     """
     A galaxy placement exactly on the galactic axis is where
     `sector_orientation` falls back to the galaxy's own axes, so rotating
@@ -191,17 +179,17 @@ def test_render_map_panel_placed_on_axis_matches_unplaced():
     coincidentally matching for an unrelated reason.
     """
     system = _make_system()
-    scene_unplaced = _scene_data(render_map_panel(_link, 1000.0, None, None, [system]))
-    scene_placed_on_axis = _scene_data(render_map_panel(_link, 1000.0, (3, 0, 7), (0.0, 0.0, 999.0), [system]))
+    scene_unplaced = map_scene_data(_link, 1000.0, None, None, [system])
+    scene_placed_on_axis = map_scene_data(_link, 1000.0, (3, 0, 7), (0.0, 0.0, 999.0), [system])
     # Only the star's own position should match; the placed scene also
     # carries a cell outline/compass arrow the unplaced one doesn't.
     assert _star_position(scene_placed_on_axis) == _star_position(scene_unplaced)
 
 
-def test_render_map_panel_outline_is_a_cell_when_placed_and_a_cube_otherwise():
+def test_map_scene_data_outline_is_a_cell_when_placed_and_a_cube_otherwise():
     system = _make_system()
-    scene_unplaced = _scene_data(render_map_panel(_link, 1000.0, None, None, [system]))
-    scene_placed = _scene_data(render_map_panel(_link, 1000.0, (3, 0, 7), (500.0, 200.0, -100.0), [system]))
+    scene_unplaced = map_scene_data(_link, 1000.0, None, None, [system])
+    scene_placed = map_scene_data(_link, 1000.0, (3, 0, 7), (500.0, 200.0, -100.0), [system])
     assert scene_unplaced["outline"]["kind"] == "cube"
     assert scene_placed["outline"]["kind"] == "cell"
     # 12 edges, each a line of 3D points, for either shape: the cube's are
@@ -238,23 +226,23 @@ def test_cell_outline_arcs_follow_the_ring_radius():
             assert min(abs(math.hypot(gx, gy) - r) for r in radii) < 1e-6
 
 
-def test_render_map_panel_compass_present_only_when_placed():
+def test_map_scene_data_compass_present_only_when_placed():
     system = _make_system()
-    scene_unplaced = _scene_data(render_map_panel(_link, 1000.0, None, None, [system]))
-    scene_placed = _scene_data(render_map_panel(_link, 1000.0, (3, 0, 7), (500.0, 200.0, -100.0), [system]))
+    scene_unplaced = map_scene_data(_link, 1000.0, None, None, [system])
+    scene_placed = map_scene_data(_link, 1000.0, (3, 0, 7), (500.0, 200.0, -100.0), [system])
     assert scene_unplaced["compass"] is None
     assert scene_placed["compass"] is not None
     assert scene_placed["compass"]["label"] == "N"
 
 
-def test_render_map_panel_binary_system_gets_two_star_entries():
+def test_map_scene_data_binary_system_gets_two_star_entries():
     system = _make_system()
     system["stars"][0]["name"] = "Test System Kelmoor"
     system["stars"].append({
         "name": "Test System Ostra", "star_type": "M4V", "temperature_k": 3200, "radius_km": 200000,
         "luminosity_w": 1.0e24, "temp_display": "3200 K",
     })
-    scene = _scene_data(render_map_panel(_link, 1000.0, None, None, [system]))
+    scene = map_scene_data(_link, 1000.0, None, None, [system])
     assert len(scene["stars"]) == 2
     # Each star shows its own name, with no A/B letters (bodyNames.py).
     assert scene["stars"][0]["name"] == "Test System Kelmoor"
@@ -286,46 +274,44 @@ def test_phenomenon_cloud_radius_is_capped_for_a_nebula_far_larger_than_the_sect
     assert huge <= _MAX_CLOUD_RADIUS_PX
 
 
-def test_render_map_panel_draws_a_nebula_cloud_with_its_own_kind_and_colors():
+def test_map_scene_data_draws_a_nebula_cloud_with_its_own_kind_and_colors():
     system = _make_system()
     phenomenon = _phenomenon(type_="nebula", descriptor="reflection")
-    html = render_map_panel(_link, 1000.0, None, None, [system], phenomena=[phenomenon])
-    scene = _scene_data(html)
+    scene = map_scene_data(_link, 1000.0, None, None, [system], phenomena=[phenomenon])
     assert len(scene["clouds"]) == 1
     cloud = scene["clouds"][0]
     assert cloud["kind"] == "nebula"
     assert cloud["typeLabel"] == "Reflection Nebula"
     assert cloud["coreColor"].startswith("#6fa8ff")
-    assert "Click a star system or cloud for details." in html
 
 
-def test_render_map_panel_draws_an_asteroid_field_cloud():
+def test_map_scene_data_draws_an_asteroid_field_cloud():
     system = _make_system()
     phenomenon = _phenomenon(type_="asteroid_field", descriptor="dense")
-    scene = _scene_data(render_map_panel(_link, 1000.0, None, None, [system], phenomena=[phenomenon]))
+    scene = map_scene_data(_link, 1000.0, None, None, [system], phenomena=[phenomenon])
     cloud = scene["clouds"][0]
     assert cloud["kind"] == "asteroidField"
     assert cloud["typeLabel"] == "Asteroid Field (Dense)"
     assert "coreColor" not in cloud
 
 
-def test_render_map_panel_without_phenomena_matches_omitting_the_argument():
+def test_map_scene_data_without_phenomena_matches_omitting_the_argument():
     system = _make_system()
-    html_default = render_map_panel(_link, 1000.0, None, None, [system])
-    html_explicit_empty = render_map_panel(_link, 1000.0, None, None, [system], phenomena=[])
-    html_none = render_map_panel(_link, 1000.0, None, None, [system], phenomena=None)
-    assert _scene_data(html_default)["clouds"] == []
-    assert html_default == html_explicit_empty == html_none
+    default = map_scene_data(_link, 1000.0, None, None, [system])
+    explicit_empty = map_scene_data(_link, 1000.0, None, None, [system], phenomena=[])
+    none = map_scene_data(_link, 1000.0, None, None, [system], phenomena=None)
+    assert default["clouds"] == []
+    assert default == explicit_empty == none
 
 
-def test_render_map_panel_places_a_phenomenon_directly_in_the_galaxy_frame_unrotated():
+def test_map_scene_data_places_a_phenomenon_directly_in_the_galaxy_frame_unrotated():
     # A phenomenon's offset_*_ly is already galaxy-frame (see
     # queryDb.phenomena_near_sector) -- unlike a star system's sector-local
     # x/y/z, it must NOT be re-rotated by `_rotate_to_galaxy_frame` even
     # when the sector itself has a galaxy placement.
     phenomenon = _phenomenon(offset=(3.0, 0.0, 0.0))
-    scene_unplaced = _scene_data(render_map_panel(_link, 1000.0, None, None, [], phenomena=[phenomenon]))
-    scene_placed = _scene_data(render_map_panel(_link, 1000.0, (3, 0, 7), (500.0, 200.0, -100.0), [], phenomena=[phenomenon]))
+    scene_unplaced = map_scene_data(_link, 1000.0, None, None, [], phenomena=[phenomenon])
+    scene_placed = map_scene_data(_link, 1000.0, (3, 0, 7), (500.0, 200.0, -100.0), [], phenomena=[phenomenon])
 
     def _cloud_position(scene):
         cloud = scene["clouds"][0]
@@ -343,47 +329,47 @@ def test_phenomenon_cloud_radius_floors_at_minimum_for_a_point_like_object():
     assert 0 < radius <= _MAX_CLOUD_RADIUS_PX
 
 
-def test_render_map_panel_draws_an_accreting_black_hole_point():
+def test_map_scene_data_draws_an_accreting_black_hole_point():
     system = _make_system()
     phenomenon = _phenomenon(type_="black_hole", descriptor="accreting", radius_ly=0)
-    scene = _scene_data(render_map_panel(_link, 1000.0, None, None, [system], phenomena=[phenomenon]))
+    scene = map_scene_data(_link, 1000.0, None, None, [system], phenomena=[phenomenon])
     cloud = scene["clouds"][0]
     assert cloud["kind"] == "blackHoleAccreting"
     assert cloud["typeLabel"] == "Black Hole (Accreting)"
     assert cloud["radiusText"] is None  # a point has no radius row
 
 
-def test_render_map_panel_draws_a_quasar_point():
+def test_map_scene_data_draws_a_quasar_point():
     system = _make_system()
     phenomenon = _phenomenon(type_="quasar", descriptor="radio-loud", radius_ly=0)
-    scene = _scene_data(render_map_panel(_link, 1000.0, None, None, [system], phenomena=[phenomenon]))
+    scene = map_scene_data(_link, 1000.0, None, None, [system], phenomena=[phenomenon])
     cloud = scene["clouds"][0]
     assert cloud["kind"] == "quasar"
     assert cloud["typeLabel"] == "Quasar (Radio-loud)"
 
 
-def test_render_map_panel_draws_a_quiescent_black_hole_point():
+def test_map_scene_data_draws_a_quiescent_black_hole_point():
     system = _make_system()
     phenomenon = _phenomenon(type_="black_hole", descriptor="quiescent", radius_ly=0)
-    scene = _scene_data(render_map_panel(_link, 1000.0, None, None, [system], phenomena=[phenomenon]))
+    scene = map_scene_data(_link, 1000.0, None, None, [system], phenomena=[phenomenon])
     cloud = scene["clouds"][0]
     assert cloud["kind"] == "blackHoleQuiescent"
     assert cloud["typeLabel"] == "Black Hole (Quiescent)"
 
 
-def test_render_map_panel_draws_a_neutron_star_point():
+def test_map_scene_data_draws_a_neutron_star_point():
     system = _make_system()
     phenomenon = _phenomenon(type_="neutron_star", descriptor="millisecond", radius_ly=0)
-    scene = _scene_data(render_map_panel(_link, 1000.0, None, None, [system], phenomena=[phenomenon]))
+    scene = map_scene_data(_link, 1000.0, None, None, [system], phenomena=[phenomenon])
     cloud = scene["clouds"][0]
     assert cloud["kind"] == "neutronStar"
     assert cloud["typeLabel"] == "Neutron Star (Millisecond)"
 
 
-def test_render_map_panel_neutron_star_with_no_descriptor_falls_back_to_plain_label():
+def test_map_scene_data_neutron_star_with_no_descriptor_falls_back_to_plain_label():
     system = _make_system()
     phenomenon = _phenomenon(type_="neutron_star", descriptor=None, radius_ly=0)
-    scene = _scene_data(render_map_panel(_link, 1000.0, None, None, [system], phenomena=[phenomenon]))
+    scene = map_scene_data(_link, 1000.0, None, None, [system], phenomena=[phenomenon])
     assert scene["clouds"][0]["typeLabel"] == "Neutron Star"
 
 
@@ -396,18 +382,18 @@ def _neighbor(address=(6, -2, 9), direction_pc=(1.0, 0.0, 0.0), exists=False, se
     }
 
 
-def test_render_map_panel_neighbors_empty_by_default():
+def test_map_scene_data_neighbors_empty_by_default():
     system = _make_system()
-    scene = _scene_data(render_map_panel(_link, 1000.0, (5, 0, 17), (500.0, 200.0, -100.0), [system]))
+    scene = map_scene_data(_link, 1000.0, (5, 0, 17), (500.0, 200.0, -100.0), [system])
     assert scene["neighbors"] == []
 
 
-def test_render_map_panel_existing_neighbor_carries_its_href():
+def test_map_scene_data_existing_neighbor_carries_its_href():
     system = _make_system()
     neighbor = _neighbor(exists=True, sector_id=42, sector_name="Neighboring Sector")
-    scene = _scene_data(render_map_panel(
+    scene = map_scene_data(
         _link, 1000.0, (5, 0, 17), (500.0, 200.0, -100.0), [system], neighbors=[neighbor],
-    ))
+    )
     entry = scene["neighbors"][0]
     assert entry["exists"] is True
     assert entry["name"] == "Neighboring Sector"
@@ -416,59 +402,42 @@ def test_render_map_panel_existing_neighbor_carries_its_href():
     assert (entry["ringIndex"], entry["layerIndex"], entry["ringSlotIndex"]) == (6, -2, 9)
 
 
-def test_render_map_panel_missing_neighbor_carries_no_href():
+def test_map_scene_data_missing_neighbor_carries_no_href():
     system = _make_system()
     neighbor = _neighbor(exists=False, designation="ABCDEF")
-    scene = _scene_data(render_map_panel(
+    scene = map_scene_data(
         _link, 1000.0, (5, 0, 17), (500.0, 200.0, -100.0), [system], neighbors=[neighbor],
-    ))
+    )
     entry = scene["neighbors"][0]
     assert entry["exists"] is False
     assert "href" not in entry
     assert entry["designation"] == "ABCDEF"
 
 
-def test_render_map_panel_neighbor_indicator_sits_along_its_own_direction():
+def test_map_scene_data_neighbor_indicator_sits_along_its_own_direction():
     # Placed at a fixed reach past the scene's own edge, in the given
     # direction -- along +x here, so y/z should stay at (approximately)
     # zero and x should be positive and clearly past the scene's own
     # half-edge (see planetgen/web/maps/starmap.py's own `_NEIGHBOR_INDICATOR_REACH`).
     system = _make_system()
     neighbor = _neighbor(direction_pc=(1.0, 0.0, 0.0))
-    scene = _scene_data(render_map_panel(
+    scene = map_scene_data(
         _link, 1000.0, (5, 0, 17), (500.0, 200.0, -100.0), [system], neighbors=[neighbor],
-    ))
+    )
     entry = scene["neighbors"][0]
     assert entry["x"] > scene["sceneHalfPx"]
     assert entry["y"] == pytest.approx(0.0, abs=1e-9)
     assert entry["z"] == pytest.approx(0.0, abs=1e-9)
 
 
-def test_json_script_escapes_script_close_tag_in_a_name():
-    # A system name is arbitrary user-supplied text (see `--name`) -- one
-    # containing "</script>" must not be able to break out of the
-    # embedded JSON block (see starmap.py's own `_json_script`).
-    system = _make_system()
-    system["name"] = "Evil</script><script>alert(1)</script>"
-    html = render_map_panel(_link, 1000.0, None, None, [system])
-    assert "</script><script>alert" not in html
-    scene = _scene_data(html)
-    assert scene["stars"][0]["name"].startswith("Evil</script>")
-
-
-def test_render_map_panel_links_are_plain_hrefs():
+def test_map_scene_data_links_are_plain_hrefs():
     system = _make_system()
     phenomenon = {"id": 7, "type": "nebula", "name": "Veil & <Co>", "descriptor": "emission",
                   "radius_ly": 2.0, "distance_ly": 1.0,
                   "offset_x_ly": 0.0, "offset_y_ly": 0.0, "offset_z_ly": 0.0}
-    html = render_map_panel(_link, 1000.0, None, None, [system], phenomena=[phenomenon])
-    scene = _scene_data(html)
+    scene = map_scene_data(_link, 1000.0, None, None, [system], phenomena=[phenomenon])
     assert scene["stars"][0]["href"] == "/system?system_id=1"
     assert scene["clouds"][0]["href"] == "/phenomenon?phenomenon_id=7&phenomenon_type=nebula"
-    # The no-JavaScript fallback list: escaped <a href> links, no forms.
-    assert '<li><a href="/system?system_id=1">Test System</a></li>' in html
-    assert '<a href="/phenomenon?phenomenon_id=7&amp;phenomenon_type=nebula">Veil &amp; &lt;Co&gt;</a>' in html
-    assert "<form" not in html and "data-nav" not in html
 
 
 # --- MAP.87: the faint end drawn brighter ---------------------------------------------
@@ -560,33 +529,25 @@ def test_a_sun_is_boosted_part_way():
 
 def _rogue_scene():
     phenomenon = _phenomenon(type_="rogue_planet", descriptor="terrestrial")
-    html = render_map_panel(_link, 1000.0, None, None, [_make_system()], phenomena=[phenomenon])
-    return html, _scene_data(html)["clouds"][0]
+    return map_scene_data(_link, 1000.0, None, None, [_make_system()], phenomena=[phenomenon])["clouds"][0]
 
 
 def test_an_unmarked_rogue_planet_is_a_faint_speck_with_no_glow():
-    _html, rogue = _rogue_scene()
+    rogue = _rogue_scene()
     light = rogue["light"]
     assert light["glow"] == 0
     assert light["bright"] <= 0.25
     assert light["corePx"] <= 2 and light["sizePx"] <= 4
-    star = _scene_data(render_map_panel(_link, 1000.0, None, None, [_make_system()]))["stars"][0]["light"]
+    star = map_scene_data(_link, 1000.0, None, None, [_make_system()])["stars"][0]["light"]
     assert light["sizePx"] < star["corePx"] * 2, "smaller than a star"
 
 
 def test_a_marked_rogue_planet_is_bigger_brighter_and_glows():
-    _html, rogue = _rogue_scene()
+    rogue = _rogue_scene()
     unmarked, marked = rogue["light"], rogue["markedLight"]
     assert marked["corePx"] >= 3 * unmarked["corePx"]
     assert marked["bright"] == 1.0 and marked["glow"] > 0.3
     assert marked["sizePx"] > 4 * unmarked["sizePx"]
-
-
-def test_the_mark_rogue_planets_button_starts_off_and_can_show_it():
-    html, _rogue = _rogue_scene()
-    button = re.search(r'<button[^>]*data-action="toggle-rogue-markers"[^>]*>', html).group(0)
-    assert 'aria-pressed="false"' in button
-    assert "starmap-toggle" in button
 
 
 def test_the_toggle_highlight_follows_aria_pressed_in_the_stylesheet():

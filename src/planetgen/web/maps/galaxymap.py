@@ -18,7 +18,7 @@ Terminology note: `star_systems.quadrant` (Roman numerals I-VIII,
 classification of a *system's* position within its own *sector*. That
 column/attribute name is left alone for schema stability, but every place
 `html/` displays it now says "Octant" (`sector.py`, `system.py`,
-`static/sectormap.js`) specifically so it doesn't collide with *this*
+`static/sectorscene.js`) specifically so it doesn't collide with *this*
 module's Quadrant, which is the real, galaxy-scale, 4-region azimuthal
 concept the word ordinarily means (and which is a genuine 2D mathematical
 standard, unlike the 8-region octant workaround -- see `spaceSector.py`'s
