@@ -3129,6 +3129,37 @@ of that level lists (MAP.116); a finest tile lists up to
 where the budget reaches it."""
 
 
+GALAXY_VIEW_MAX_TILES = 27
+"""int: Most tiles a view's own level needs: the view sphere is at most as
+wide as a tile (`viewport.tile_level_for_view_radius`), so it touches at
+most 3 tiles along each axis."""
+
+GALAXY_VIEW_MAX_DETAIL_TILES = 8
+"""int: Most finest tiles the map adds around the target once zoomed to a
+sector (`DETAIL_RADIUS_PC` is 8 pc, half a finest tile's edge, so the
+sphere touches at most 2 along each axis)."""
+
+GALAXY_VIEW_MAX_STARS = 70000
+"""int: MAP.109's stated cap on the stars (pre-placed and generated) one
+view's tiles can carry, about 8 MB of JSON before compression. It holds by
+construction -- every tile's lists are capped (`GALAXY_TILE_MAX_BRIGHT_STARS`,
+`GALAXY_TILE_STAR_BUDGET`, `GALAXY_TILE_MAX_DETAIL_STARS`) -- and
+`galaxy_view_star_cap` adds those caps up, so a test fails when a budget is
+raised past it. A real view carries far less: the caps are for a tile packed
+with stars, and most of the galaxy's tiles are not."""
+
+
+def galaxy_view_star_cap():
+    """
+    The most stars one view can fetch: `GALAXY_VIEW_MAX_TILES` tiles of its
+    own level (each with the bright-star cap and the biggest level budget)
+    plus `GALAXY_VIEW_MAX_DETAIL_TILES` finest tiles.
+    """
+    coarse = GALAXY_VIEW_MAX_TILES * (GALAXY_TILE_MAX_BRIGHT_STARS + max(GALAXY_TILE_STAR_BUDGET.values()))
+    detail = GALAXY_VIEW_MAX_DETAIL_TILES * (GALAXY_TILE_MAX_BRIGHT_STARS + GALAXY_TILE_MAX_DETAIL_STARS)
+    return coarse + detail
+
+
 def generated_star_budget(level, sector_count):
     """
     `(tile budget, per-sector allowance)` for the generated stars of a tile of
