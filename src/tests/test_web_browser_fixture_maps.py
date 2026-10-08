@@ -303,6 +303,12 @@ def _settle(page):
     """Waits out a stage's flight: until the scale bar (its width follows
     the camera) holds still, a few seconds at most on a busy machine."""
     page.wait_for_timeout(250)
+    # The map has drawn the stage it names (its data loads after the
+    # breadcrumb moves), then the scale bar holds still.
+    page.wait_for_function("""() => {
+        const canvas = document.querySelector("#galaxymap3d-canvas");
+        return !canvas || !canvas.galaxyReady || canvas.galaxyReady();
+    }""", timeout=20000)
     last = None
     for _ in range(40):
         now = page.evaluate("() => (document.querySelector('#galaxymap3d-scale') || {}).innerHTML || ''")
@@ -835,6 +841,18 @@ def _open_deep_galaxy(page, map_site):
     return _crumbs(page)
 
 
+def _crumb_line_settled(page):
+    """CRUMB_LINE once the breadcrumb has refolded after a resize (it
+    does so a moment after the window changes, longer on a busy machine)."""
+    line = page.evaluate(CRUMB_LINE)
+    for _ in range(30):
+        if line["tops"] == 1 and line["overflow"] <= 1 and not line["cut"]:
+            break
+        page.wait_for_timeout(100)
+        line = page.evaluate(CRUMB_LINE)
+    return line
+
+
 def test_galaxy_breadcrumb_stays_on_one_line_folding_its_middle(page, map_site):
     """MAP.93: at any width the breadcrumb is one line: the first step,
     "…" for the steps that don't fit, the last ones and the current one;
@@ -844,8 +862,7 @@ def test_galaxy_breadcrumb_stays_on_one_line_folding_its_middle(page, map_site):
     assert len(full) >= 8, full
     for width in (1280, 900, 700, 600):
         page.set_viewport_size({"width": width, "height": 900})
-        page.wait_for_timeout(200)
-        line = page.evaluate(CRUMB_LINE)
+        line = _crumb_line_settled(page)
         assert line["tops"] == 1 and line["overflow"] <= 1, (width, line)
         assert line["olHeight"] < 40, (width, line)
         assert not line["cut"], f"the current step is cut short at {width} px while steps could fold: {line}"

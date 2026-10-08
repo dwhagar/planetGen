@@ -112,8 +112,8 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 is done (PR #476); GEN.117, GEN.116 keeps watch for Boss's error text. | GEN.116, TEST.94, TEST.95, TEST.96, TEST.97, TEST.98, TEST.99, TEST.100, TEST.101, SEC.29, TEST.72, SEC.30, TEST.83, UX.39, OPS.20, DB.11, DB.13, ADM.21, GEN.66, GEN.74, GEN.68, GEN.69, GEN.70, GEN.71, GEN.72, GEN.73, GEN.67, ADM.22, ADM.24, ADM.25, ADM.26, UX.40, UX.26, ADM.14, UX.41, UX.33, ADM.34, NAV.7, MAP.95, NAV.13, NAV.14, MAP.79, NAV.15, NAV.29, NAV.33, MAP.66, MAP.67, MAP.68, MAP.61, NAV.32, MAP.102, MAP.106, MAP.108, MAP.109, MAP.113, MAP.116, NAV.46, GEN.75, MAP.103, MAP.104, MAP.105, UX.38, UX.37, UX.21 |
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, NAV.16, NAV.3, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.41, GEN.98, GEN.100, GEN.99, GEN.101, GEN.102, GEN.103, GEN.84, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, GEN.94, GEN.104, GEN.106, GEN.107, GEN.108, NAV.10, NAV.12, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, NAV.43, NAV.44, MAP.119, MAP.122, MAP.123, MAP.124, DB.14, MAP.128, MAP.129, MAP.130, GEN.120, MAP.89, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, OPS.8, OPS.13, OPS.14, ADM.18, GEN.59 |
+| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 is done (PR #476); GEN.117, GEN.116 keeps watch for Boss's error text. | GEN.116, SEC.29, TEST.72, SEC.30, TEST.83, UX.39, OPS.20, DB.11, DB.13, ADM.21, GEN.66, GEN.74, GEN.68, GEN.69, GEN.70, GEN.71, GEN.72, GEN.73, GEN.67, ADM.24, ADM.25, ADM.26, UX.26, UX.41, UX.33, ADM.34, NAV.7, MAP.95, NAV.13, NAV.14, MAP.79, NAV.15, NAV.29, NAV.33, MAP.66, MAP.67, MAP.68, MAP.61, NAV.32, MAP.102, MAP.106, MAP.109, MAP.113, MAP.116, NAV.46, GEN.75, MAP.103, MAP.104, MAP.105, UX.38, UX.37, UX.21 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, NAV.16, NAV.3, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.41, GEN.98, GEN.100, GEN.99, GEN.101, GEN.102, GEN.103, GEN.84, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, GEN.94, GEN.104, GEN.106, GEN.107, GEN.108, NAV.10, NAV.12, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, NAV.43, NAV.44, MAP.119, MAP.122, MAP.123, MAP.124, DB.14, MAP.128, MAP.129, MAP.130, MAP.89, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, OPS.8, OPS.13, OPS.14, ADM.18, GEN.59, UX.49 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.58, MAP.75, MAP.59, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, API.16, MAP.69, MAP.70, ADM.17, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.131, MAP.132, API.18, VIEW.5 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, repair that reads the newest settings JSON, and the anomalies chosen in phase 2. | MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, MAP.126, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, DB.10, ADM.20, GEN.114, MAP.125, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies, and the end state of reproducible galaxies (`generate.py reproduce`). | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, OPS.12, GEN.55 |
@@ -188,7 +188,6 @@ with `clamp()`.
   from the command line, which don't take the web jobs lock today
   (they would need to write the same lock and progress file)? What does
   it say when there's no ETA yet?
-  Prerequisite: ADM.22.
   Plan (2026-10-07): The banner reads the RQ job's published progress
   (ADM.22), not progress.json.
 
@@ -272,8 +271,7 @@ with `clamp()`.
   or a click outside, doesn't shift the page); picking an action opens
   its confirm step or form on top (a popover or dialog), not inline
   below the page. UX.31 is the system page's case.
-  Prerequisite: UX.40.
-  Plan (2026-10-07): Folded into UX.40, and the first screen of ADM.34
+  Plan (2026-10-07): Folded into UX.40 (done), and the first screen of ADM.34
   (one admin menu per screen).
   Progress (2026-10-08): PR #533 (UX.40's second piece) did the edit
   actions: Regenerate, Delete and the Change forms sit behind one
@@ -368,7 +366,7 @@ with `clamp()`.
   the pages and maps they live on to settle: UX.28's icons, the Galaxy
   Map breadcrumb and history buttons (MAP.93 and MAP.94 done in PR #399, MAP.95), the NAV
   page layout (NAV.41), the slab and segment pick (MAP.56), and the page
-  action menus (UX.26, UX.27, UX.31). Prerequisites: MAP.95, UX.26, UX.40, ADM.34.
+  action menus (UX.26, UX.27, UX.31). Prerequisites: MAP.95, UX.26, ADM.34.
   Plan (2026-10-07): Moved into phase 0 (groundwork lane, last) because
   UX.21 is a bug and needs it.
 
@@ -392,22 +390,19 @@ with `clamp()`.
   is deleted.
   Design: [docs/design/library-migration.md](design/library-migration.md)
 
-- [ ] **UX.40 Buttons, menus and dialogs from Shoelace web components**
-  From "Web UX Development Notes.md": buttons, menus, dropdowns, dialogs
-  and form fields use Shoelace components, vendored as ES modules (no
-  CDN at runtime). Done: a shared component set in the base template;
-  the menus size to their contents (UX.2), admin and edit actions open
-  from a button menu (UX.26, UX.31), the system page buttons sit on one
-  row (UX.27), and the Generate page text boxes line up (ADM.14), each
-  closed in this item's PRs; both themes and keyboard use work.
-  Progress (2026-10-08): PR #528 added the Shoelace component set
-  (vendored) and moved the header Menu and gear onto sl-dropdown (UX.2,
-  done). PR #533 followed with the edit menus and dialog confirms on the
-  system, sector and phenomenon pages (UX.31, done; UX.26's edit actions
-  done, its sector Admin panel left). PR #539 put the system page's
-  buttons on one row with a Navigate menu (UX.27, done). Foundations
-  lane 1 continues with ADM.14, then the Generate page and form
-  remainder, in this item's PRs.
+- [ ] **UX.49 Form fields as Shoelace components (sl-input, sl-select, sl-checkbox) across the site**
+  UX.40 (done, PRs #528, #533, #539, #544) moved the buttons, menus and
+  dialogs onto Shoelace and lined up the Generate page's text boxes with
+  plain CSS; the form fields themselves are still native `<input>`,
+  `<select>` and checkbox elements. Done: every text box, number box,
+  drop-down and checkbox in the templates (Generate and one-off system
+  pages, the edit dialogs, the search and filter fields, sign-in and
+  account forms, admin pages) is an `sl-input`, `sl-select` or
+  `sl-checkbox` from the vendored set, submitting and validating
+  exactly as before (labels, required fields, keyboard use, values
+  posted by name), both themes and phone widths look right, and a
+  browser test fills and submits one form of each kind. Not a bug.
+  Prerequisites: none.
   Design: [docs/design/library-migration.md](design/library-migration.md)
 
 - [ ] **UX.41 Tables on TanStack Table and TanStack Virtual**
@@ -812,23 +807,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   them.
   Prerequisites: NAV.14, MAP.67.
 
-- [ ] **MAP.108 Empty slabs and wedges near the core can't be selected, and the side buttons block clicks (bug)**
-  Boss (2026-10-03 05:38Z): "Galacit view, some slabs are unselectable
-  near the core when zooming in.  The buttons to the side block being
-  clicked on and the map interface does not respond to those clicks in
-  that region. The system seems unable to allow me to select any slab or
-  wedge in which nothing exists. I should be able to navigate to any
-  space freely because I might be selecting a sector or space to fill."
-  Done: every slab, wedge and block can be picked whether or not
-  anything is in it, and the slab buttons never cover the map's pick
-  area.
-  Findings (Bugfixes lane 1, 2026-10-08): part 1 (the side buttons
-  covering the map) could not be reproduced and gets a regression test;
-  part 2 (picking empty slabs and wedges) is a separate cause.
-  Progress (2026-10-08): PR #537 added the regression test for part 1,
-  which is done by test (not reproducible). Part 2 stays open: picking
-  an empty slab or wedge.
-
 - [ ] **MAP.109 Zooming in and out loads slowly (bug)**
   Boss (2026-10-03 05:38Z): "Loading between zooms in and out gets very,
   very sluggish." Boss (2026-10-07 16:26Z), the first of three
@@ -987,8 +965,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   star count, each with a legend that shows the scale. Done: the switch
   and its legend work on both maps, the choice is kept in the URL, and a
   browser test switches through every mode. It is built on the Shoelace
-  controls (UX.40) and the shared map engine pieces (MAP.61, MAP.125).
-  Prerequisites: MAP.128, UX.40.
+  controls (UX.40, done) and the shared map engine pieces (MAP.61, MAP.125).
+  Prerequisite: MAP.128.
 
 - [ ] **MAP.132 Overlay markers for black holes, nebulae and habitable worlds**
   Boss (2026-10-08 01:59Z): "Density determines transparency with more solid meaning more dense. Stellar age measures hue. Brightness measures luminosity of the sector or block. Blocks will never be fully opaque for coloring that is the color of the translucent fill."
@@ -2132,36 +2110,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   separately with Bugfixes lane 1's flake PR.
   Prerequisite: MAP.116.
 
-- [ ] **GEN.120 Integrate gatedPhonemeCodec.py into the naming package and remove it from the repo root**
-  Boss (2026-10-08 02:59Z): "Oh integrate the "gatedPhonemeCodec.py"
-  into the project for naming, don't just leave it in root, pass that to
-  the bug thread to do next since it's quick." Boss approved the
-  Bugfixes lane doing it next, an exception to bugs only. Today the file
-  sits in the repo root (GEN.67 and `docs/design/object-ids.md` name it
-  there) and nothing imports it. It is the codec GEN.67 builds names
-  from; this item only moves it into the package and covers it with
-  tests, and GEN.67 and GEN.70 do the renaming and the key. Done: the
-  file lives in `src/planetgen/names/` (module `gated_phoneme_codec`,
-  following that package's snake_case), imports cleanly with the repo's
-  import-linter and type checks, and the repo root no longer holds it;
-  `pytest` has a test file for it: encode then decode returns the same
-  hex for many random IDs and lengths, two domains give different words
-  for the same ID, and fixed (ID, domain) pairs give pinned golden
-  words; `docs/design/object-ids.md`, GEN.67's text and the architecture
-  map name the new path. Names are seed-reproducible (a galaxy's names
-  must come out the same from the same seed, key and ID), so the golden
-  words are the contract: any later change to the algorithm changes
-  every name, and whether the codec's version belongs in the galaxy
-  version key or the schema is decided with GEN.70 before GEN.67 ships.
-  Not a bug. Boss (2026-10-08 03:57Z): "A note about GEN.120 keep word
-  salad method for stars and sectors, everything else gets a name
-  derived from it's unique ID." Boss then (04:00Z) kept planets, moons
-  and belts on the "<star name> I" pattern, so the codec names only
-  the objects with no star-derived name (GEN.67, GEN.70, GEN.71): this
-  item still only moves and tests the codec, and the word-salad
-  generator stays in place beside it.
-  Design: [docs/design/object-ids.md](design/object-ids.md)
-
 - [ ] **GEN.116 Error when generating a neighbourhood centred near the galaxy edge, awaiting Boss's error text (bug)**
   Back burner. Boss (2026-10-07 17:11Z), on GEN.65: "I do not have the
   error message, keep an eye out for it, but put it on the back burner
@@ -2189,8 +2137,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   control database that will be generated by random generation at the
   galaxy generation time (add the ability to change it via admin consol)
   so when the galaxy is generated we'll generate a random numbe." Boss's
-  `gatedPhonemeCodec.py` (repo root; GEN.120 moves it into the
-  naming package) turns an ID and a key into
+  codec (`src/planetgen/names/gated_phoneme_codec.py`, moved there from
+  the repo root by GEN.120, PR #554) turns an ID and a key into
   pronounceable words and back. Boss (2026-10-08 03:57Z): "A note about GEN.120 keep word salad method for stars and sectors, everything else gets a name derived from it's unique ID."
   So the word-salad method stays for stars and sectors: their
   generator, name pool and registries, and their reproducibility stay as
@@ -2206,6 +2154,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Defaults (Boss did not object, 04:00Z): constellations use the codec;
   changing the naming key renames only the codec-named objects, never
   star, sector, planet, moon or belt names. No question is open.
+  Decoding (Bugfixes lane, 2026-10-08, GEN.120 done): the original
+  codec's decoder was not exact. About one ID in five from five hex
+  digits up did not round-trip, and about half the names of 19-digit
+  IDs can read as two different lengths. GEN.120 made decoding exact:
+  `decode(phrase, domain, length=19)` had 0 failures in 100,000 random
+  19-digit IDs, and without `length` it answers only when one length
+  fits. Names are unchanged from the original file. So GEN.67 must
+  always pass 19 for the GEN.64 IDs and never rely on the decoder
+  guessing the length. Two IDs of the same length never share a name,
+  so names are unique for fixed-length IDs (details in
+  `docs/design/object-ids.md`).
   Prerequisites: GEN.68, GEN.69, GEN.70, GEN.71, GEN.72, GEN.73.
   Design: [docs/design/object-ids.md](design/object-ids.md)
 
@@ -2239,7 +2198,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     the key (Boss, 2026-10-08, GEN.67). ADM.18's settings JSON stores the
     key in addition to the word list, which stays for those names. The
     codec's own version is part of the galaxy's version key or schema
-    (GEN.120 decides which).
+    (decided here, GEN.120 left it open). Decoding takes the ID length
+    (`decode(phrase, domain, length=19)` is exact; GEN.120 done), so the
+    key's code always passes 19 for object IDs, and since same-length
+    IDs never share a name, uniqueness holds for fixed-length IDs (see
+    GEN.67 and `docs/design/object-ids.md`).
     Design: [docs/design/object-ids.md](design/object-ids.md)
 
   - [ ] **GEN.71 Name interstellar objects, phenomena and constellations from the codec**
@@ -3076,24 +3039,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   an upload with no contact for a long time be flagged as stale on the
   page?
 
-- [ ] **ADM.14 Line up the Generate page's text boxes, not their headings (bug)**
-  Boss (2026-10-01 20:20Z): "on the generate screen, line up the text
-  boxes not the headings. Text boxes should all be even with each
-  other". Today each field on the admin Generate page
-  (`web/templates/generate.html`, the `field` macro inside
-  `search-fields`) puts its label above its input, and the fields flow
-  side by side, so inputs start at different heights and widths
-  wherever a label wraps or is longer. Done: down every form on the page
-  (New galaxy, Generate sectors and its modes, Plan, Rebuild the bright
-  stars, Add a dimmer layer, One-off system), the text boxes share one
-  left edge and width and sit level with each other, however long their
-  labels are, at desktop and phone widths, in both themes. This includes
-  ADM.4's sections (PR #279) and GEN.30's "Bright stars from" field (PR
-  #295).
-  Prerequisite: UX.40.
-  Plan (2026-10-07): Folded into UX.40: the Generate page fields become
-  Shoelace inputs.
-
 - [ ] **ADM.15 Change the worker count from the Queue page, with a "Ludicrous Speed" mode**
   Boss (2026-10-01 22:11Z): "have admin in the queue menu able to
   change the worker count including a "Ludicrous Speed" that will
@@ -3123,50 +3068,37 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   once, and the old checks are deleted.
   Design: [docs/design/library-migration.md](design/library-migration.md)
 
-- [ ] **ADM.22 Job logs streamed over SSE into Xterm.js, with native progress bars**
-  From "Web UX and Job Management Guide.md": the Generate page and Queue
-  page show a running job's log in an Xterm.js terminal fed by
-  Server-Sent Events from the RQ job, and its progress in native
-  `<progress>` bars (`generatejobs.js`, `generatefolds.js`, `jobs.py`,
-  `progressRate.py`). SSE needs threaded or gevent workers under Apache
-  (mod_wsgi settings documented). Done: logs and progress stream live,
-  reconnect after a drop, and keep the full log for download.
-  Design: [docs/design/library-migration.md](design/library-migration.md)
+- [ ] **ADM.24 A failed action's log closes before it can be read (bug)**
+  Boss (2026-10-03 05:38Z): "If action fails that has a log screen,
+  pause on the log output waiting for user input to continue so they
+  can read the log." Done: when a job with a log fails, its log stays
+  open with the error in view until the user clicks Continue (web) or
+  presses Enter (interactive console; non-interactive runs exit as
+  now).
 
-  - [ ] **ADM.24 A failed action's log closes before it can be read (bug)**
-    Boss (2026-10-03 05:38Z): "If action fails that has a log screen,
-    pause on the log output waiting for user input to continue so they
-    can read the log." Done: when a job with a log fails, its log stays
-    open with the error in view until the user clicks Continue (web) or
-    presses Enter (interactive console; non-interactive runs exit as
-    now).
-    Prerequisite: ADM.22.
+- [ ] **ADM.25 Error tracebacks don't reach the console and the web log window (bug)**
+  Boss (2026-10-03 05:38Z): "Error traces should be output to the
+  console and to the web-log-window when an action is running so they
+  can be readily copy-pasted into documents for tracing." Done: an
+  exception in a running action prints its full traceback to the
+  console and to the job's web log, with a Copy button, as well as to
+  the debug log.
 
-  - [ ] **ADM.25 Error tracebacks don't reach the console and the web log window (bug)**
-    Boss (2026-10-03 05:38Z): "Error traces should be output to the
-    console and to the web-log-window when an action is running so they
-    can be readily copy-pasted into documents for tracing." Done: an
-    exception in a running action prints its full traceback to the
-    console and to the job's web log, with a Copy button, as well as to
-    the debug log.
-    Prerequisite: ADM.22.
-
-  - [ ] **ADM.26 The bright-star backfill shows no progress bar on the web (bug)**
-    Boss (2026-10-07 11:47Z): "During star backfill progress bars do not
-    appear on the web at all." Done: the backfill publishes progress
-    like the sector run does, and the Generate page shows its bar and
-    ETA.
-    Prerequisite: ADM.22.
+- [ ] **ADM.26 The bright-star backfill shows no progress bar on the web (bug)**
+  Boss (2026-10-07 11:47Z): "During star backfill progress bars do not
+  appear on the web at all." Done: the backfill publishes progress
+  like the sector run does, and the Generate page shows its bar and
+  ETA.
 
 - [ ] **ADM.28 A simpler Generate page: layer specs, a Customize window and plain controls**
-  Boss (2026-10-07 11:47Z): "Actual specs on layers on the generation
+Boss (2026-10-07 11:47Z): "Actual specs on layers on the generation
   screen.  Let's also have a customize button that brings up a special
   window with all the settings, the generate screen is getting a bit
   complex, we need to do a full rework to make it easier to use." Done:
   the page shows the galaxy's layer specs (count, height, extent, how
   many charted), the common actions stay on the page and every other
   setting moves into a Customize dialog, and its subitems are done.
-  Prerequisites: UX.40, ADM.29, ADM.30, ADM.31, GEN.97.
+  Prerequisites: ADM.29, ADM.30, ADM.31, GEN.97.
 
   - [ ] **ADM.29 Fill a span of layers, rings or columns**
     Boss (2026-10-07 11:47Z): "Ability to specify a span of layers to
@@ -3221,7 +3153,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Done: every page and map view has one Admin menu button (hidden for
   visitors) listing only the actions that apply there; inline admin
   panels are gone.
-  Prerequisites: UX.40, UX.26.
+  Prerequisite: UX.26.
 
 - [ ] **ADM.35 Full control from every screen: edit anything, regenerate with every input, backfill or erase what is in view**
   Boss (2026-10-07 11:47Z): "Everything can be edited, regeneration asks
@@ -3311,75 +3243,6 @@ clears each one.
   and #504 (13,587 passed) had rate-limit tests among 10 load-only
   failures; the timing and dropped-connection part was TEST.93 (done,
   PR #522).
-
-- [ ] **TEST.94 test_old_jobs_are_pruned raises JobBusy again: the job lock outlives the finished job (bug)**
-  `src/tests/test_web_generate.py::test_old_jobs_are_pruned` failed once
-  in Bugfixes lane 1's full run (2026-10-08) with JobBusy "job ... is
-  still running" at `start_job`: `_wait_finished` saw the previous job
-  finished before the runner released the job lock. It needs Redis
-  (`PLANETGEN_TEST_REDIS_URL`) and passes 3 of 3 alone. TEST.90 fixed
-  the same symptom before the move to RQ (done, PR #484); this is a new
-  cause in the web jobs code (Foundations' area, PERF.24). Done: a job
-  counts as finished only once its lock is released (or the test waits
-  for the lock), and the test passes repeatedly under `pytest -n auto`.
-
-- [ ] **TEST.95 test_stabilize_lunar_system_respaces_crowded_moons keeps only one moon in the full suite (bug)**
-  `src/tests/test_validation.py::test_stabilize_lunar_system_respaces_crowded_moons`
-  failed in Bugfixes lane 1's full run for PR #522 (2026-10-08) with
-  `assert 1 >= 2` (moons kept) and passes alone. It looks seed or
-  random-state dependent: another test leaves the shared random state
-  (or the `star` fixture) different. Done: the test sets up its own
-  seed and state so its result does not depend on test order, and it
-  passes repeatedly in the full suite under `pytest -n auto`.
-
-- [ ] **TEST.96 test_galaxy_map_camera_presets_at_each_zoom_step fails in the full suite (bug)**
-  `src/tests/test_web_browser_fixture_maps.py::test_galaxy_map_camera_presets_at_each_zoom_step`
-  failed in Bugfixes lane 1's full run for PR #522 (2026-10-08) and
-  passes alone; a load-only browser failure. Done: the cause is found
-  (loop it under load), the test waits on the map's state instead of
-  wall-clock timing, and it passes repeatedly in the full suite under
-  `pytest -n auto`.
-  Seen again in Bugfixes lane 1's full run for PR #531 (2026-10-08) and PR #537.
-
-- [ ] **TEST.97 test_class_change_regenerates_surface_conditions raises StopIteration in the full suite (bug)**
-  `src/tests/test_admin_edits.py::test_class_change_regenerates_surface_conditions...`
-  (the full name is cut off in the report) raised `StopIteration` in
-  Bugfixes lane 1's full run for PR #525 (2026-10-08, 13,931 passed)
-  and passes alone, so it depends on test order or random state (an
-  empty `next(...)` over the generated bodies). Done: the test builds
-  its own system with a fixed seed so its result does not depend on
-  test order, and it passes repeatedly in the full suite under
-  `pytest -n auto`.
-  Seen again in Bugfixes lane 1's full run for PR #531 (2026-10-08).
-
-- [ ] **TEST.98 test_scale_line_follows_the_zoom fails in the full suite (bug)**
-  `src/tests/test_web_browser_fixture_maps.py` (the scale-line test `scale_line_follows_the_zoom`, name as reported) failed in Bugfixes lane 1's full run for PR #531 (2026-10-08;
-  seen repeatedly) and passes alone; a load-only browser failure. Done: the cause is found (loop it
-  under load), the test waits on the page's or the run's state instead
-  of wall-clock timing, and it passes repeatedly in the full suite under
-  `pytest -n auto`.
-
-- [ ] **TEST.99 test_slab_buttons_have_lines_that_follow_the_view fails in the full suite (bug)**
-  `src/tests/test_web_browser_fixture_maps.py` (`slab_buttons_have_lines_that_follow_the_view`, name as reported) failed in Bugfixes lane 1's full run for PR #531 (2026-10-08;
-  seen once) and passes alone; a load-only browser failure. Done: the cause is found (loop it
-  under load), the test waits on the page's or the run's state instead
-  of wall-clock timing, and it passes repeatedly in the full suite under
-  `pytest -n auto`.
-
-- [ ] **TEST.100 test_hover_while_picking_a_slab fails in the full suite (bug)**
-  `src/tests/test_web_browser_fixture_maps.py` (`hover_while_picking_a_slab`, name as reported) failed in Bugfixes lane 1's full run for PR #531 (2026-10-08;
-  seen once) and passes alone; a load-only browser failure. Done: the cause is found (loop it
-  under load), the test waits on the page's or the run's state instead
-  of wall-clock timing, and it passes repeatedly in the full suite under
-  `pytest -n auto`.
-
-- [ ] **TEST.101 test_interrupting_a_parallel_galaxy_run[2-True] fails in the full suite (bug)**
-  `src/tests/test_work_queue_failures.py` (`interrupting_a_parallel_galaxy_run[2-True]`, name as reported) failed in Bugfixes lane 1's full run for PR #531 (2026-10-08;
-  seen once) and passes alone; a load-only failure of the parallel galaxy run's interrupt path. Done: the cause is found (loop it
-  under load), the test waits on the page's or the run's state instead
-  of wall-clock timing, and it passes repeatedly in the full suite under
-  `pytest -n auto`.
-  Seen again in Bugfixes lane 1's full run for PR #537 (2026-10-08).
 
 ## USR: User accounts
 
@@ -3544,7 +3407,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   (OPS.23, done in PR #435, then OPS.24) so code moves once. Done when every subitem is done
   and the hand-rolled modules they replace are deleted.
   Prerequisites: SEC.29, UX.39, SEC.30, DB.11,
-  ADM.21, GEN.66, UX.40, UX.41, ADM.22, MAP.102.
+  ADM.21, GEN.66, UX.41, ADM.22, MAP.102.
   Design: [docs/design/library-migration.md](design/library-migration.md)
 
 ## VIEW: The view from a planet

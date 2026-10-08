@@ -124,7 +124,8 @@
 {%- endif %}
 
 <section class="panel panel-fold" id="current-job" aria-labelledby="current-job-heading"
-  data-status-url="{{ url_for('web.generate_status') }}"{% if active %} data-job="{{ active.id }}"{% endif %}>
+  data-status-url="{{ url_for('web.generate_status') }}"
+  data-job-url-template="{{ url_for('web.generate_job', job_id='__JOB__') }}"{% if active %} data-job="{{ active.id }}"{% endif %}>
   <details class="fold" data-fold="current-job" open>
     <summary><h2 id="current-job-heading">Current job</h2></summary>
     <div class="fold-body" data-job-body>

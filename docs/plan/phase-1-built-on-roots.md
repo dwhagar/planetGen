@@ -57,13 +57,13 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ADM.31 | Every generate action offers to show what it made on the Galaxy Map |  | Merges two asks: the 2026-10-03 button and the 2026-10-07 "see that space". |
 | GEN.96 | Generation directives for a sector (an override button) |  | A subset of what API recipes (API.18) later take. |
 | GEN.97 | Generate N random neighborhoods |  |  |
-| ADM.28 | A simpler Generate page: layer specs, a Customize window and plain controls | UX.40, ADM.29, ADM.30, ADM.31, GEN.97 | Parent of the Generate page items; after the web components land. |
+| ADM.28 | A simpler Generate page: layer specs, a Customize window and plain controls | ADM.29, ADM.30, ADM.31, GEN.97 | Parent of the Generate page items; after the web components land. |
 
 ### Galaxy gen
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.24 | Generate the galactic core on layer 0 | ADM.14 | Bulk core fill runs on the parallel path; new mode on generate.html. |
+| GEN.24 | Generate the galactic core on layer 0 |  | Bulk core fill runs on the parallel path; new mode on generate.html. |
 | GEN.41 | Investigate: how much backfill work a density pre-pass would save |  | Investigation; go/no-go for GEN.42. |
 | GEN.98 | Bright-star backfill from the farthest generated boundary outward |  |  |
 | GEN.100 | Phenomena placed galaxy-wide first and kept when sectors fill |  | Merges the 2026-10-03 scatter-order item and the 2026-10-07 "generated through the entire galaxy first". |
@@ -71,7 +71,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.101 | Fill order: nearest sectors first along a pruned Hilbert octree curve |  |  |
 | GEN.102 | Investigate filling all near-zero-density void space at once |  |  |
 | GEN.103 | Research where each star type and phenomenon belongs in the galaxy's structure |  |  |
-| GEN.120 | Integrate gatedPhonemeCodec.py into the naming package and remove it from the repo root |  | Boss 2026-10-08 02:59Z; not a bug, the Bugfixes lane does it next. Moves the codec GEN.67 uses; names are seed-reproducible, so golden tests pin it. |
 
 ### Habitability
 
@@ -153,6 +152,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | UX.46 | Wiping the galaxy wipes the bookmarks |  |  |
 | UX.47 | A bookmark manager: list, rename, sort, group and delete | UX.46 |  |
+| UX.49 | Form fields as Shoelace components (sl-input, sl-select, sl-checkbox) across the site |  | Follows UX.40 (done): the fields themselves become Shoelace components. |
 
 ### Admin control
 
@@ -168,7 +168,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | UX.23 | A shared unit-ladder module | GEN.66 | The ladder uses astropy.units. 22 (a feature); UX.36 keeps today's formatter and needs no ladder. Shared unit ladder; UX.22 then UX.30 build on it. |
 | UX.22 | Meaningful units for every measurement | UX.23 | One quantity family per PR. |
-| UX.3 | Warn every visitor while a background job changes the galaxy | ADM.22 | ETA from the RQ job's published progress. ETA from progress.json, which PERF.23 caps. |
+| UX.3 | Warn every visitor while a background job changes the galaxy |  | ETA from the RQ job's published progress. ETA from progress.json, which PERF.23 caps. |
 | UX.42 | In-universe wording across the interface | UX.37 | After the UX sweep removes controls, so only kept wording is changed. |
 
 ### Queue

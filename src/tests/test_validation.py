@@ -3,6 +3,8 @@ Tests for the central validate module, `planetgen/generation/validation.py`
 (TODO ADM.5): its checks find nothing wrong with generated systems and
 find each kind of fault, and the stabilize pass fixes what an edit broke.
 """
+import random
+
 import pytest
 
 from planetgen.generation import validation
@@ -97,7 +99,14 @@ def test_trim_to_orbit_ceiling_returns_what_it_removed(star):
 
 
 def test_stabilize_lunar_system_respaces_crowded_moons(star):
-    planet = planet_at(star, 5.0, "J", moon_count=3)
+    # A fixed seed, and a planet that did get two moons (the count asked
+    # for is a maximum): the test's result no longer depends on what ran
+    # before it (TEST.95).
+    random.seed(95)
+    for _ in range(50):
+        planet = planet_at(star, 5.0, "J", moon_count=3)
+        if len(planet.moons) >= 2:
+            break
     assert len(planet.moons) >= 2
     planet.moons[1].distance = planet.moons[0].distance  # stack two moons
     assert any("too close" in p.message for p in validation.check_lunar_system(planet))

@@ -1143,7 +1143,8 @@ def test_api_writes_reject_non_json_bodies(admin_client, fuzz_db):
 # Admin routes refuse anonymous visitors
 # ---------------------------------------------------------------------
 
-ADMIN_JSON_ENDPOINTS = frozenset({"web.generate_status", "web.generate_sectors"})
+ADMIN_JSON_ENDPOINTS = frozenset({"web.generate_status", "web.generate_sectors", "web.generate_job_stream",
+                                  "web.generate_job_log"})
 """The admin pages' own JSON routes: a 403 instead of a redirect."""
 
 @pytest.mark.parametrize("rule", ADMIN_PAGE_RULES, ids=_rule_ids(ADMIN_PAGE_RULES))
@@ -1242,6 +1243,10 @@ def test_admin_job_pages_with_hostile_job_ids(admin_client, job_id):
     status = admin_client.get("/admin/generate/status", query_string={"job": job_id})
     check_response(status, "/admin/generate/status")
     assert status.status_code == 200 and status.get_json()["job"] is None
+    for suffix in ("/stream", "/log"):
+        extra = admin_client.get(path + suffix)
+        check_response(extra, path + suffix, sent=[str(job_id)])
+        assert extra.status_code in (308, 404)
 
 
 # ---------------------------------------------------------------------

@@ -62,6 +62,12 @@ from .helpers import current_admin, page_url, visible_sections  # noqa: E402
 CONTENT_SECURITY_POLICY = ("default-src 'self'; base-uri 'self'; form-action 'self'; "
                            "frame-ancestors 'none'; object-src 'none'")
 
+JOB_LOG_CONTENT_SECURITY_POLICY = CONTENT_SECURITY_POLICY + "; style-src 'self' 'unsafe-inline'"
+"""str: The policy of the admin pages that show a job's output (`/admin/generate` and
+`/admin/generate/jobs/<id>`): the same, plus inline styles, which Xterm.js
+needs (it writes `<style>` elements for its colours and cell sizes). Scripts
+stay `'self'` only, and every other page keeps `CONTENT_SECURITY_POLICY`."""
+
 SECURITY_HEADERS = (
     ("X-Content-Type-Options", "nosniff"),
     ("X-Frame-Options", "DENY"),

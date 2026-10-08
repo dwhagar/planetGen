@@ -141,7 +141,9 @@
     # than any page waits for them, so a runaway request can't hold
     # threads and memory until the kernel's OOM killer takes Apache down
     # with it -- what happened on 2026-09-24 with the Galaxy Map's old
-    # unbounded view query.
+    # unbounded view query. The admin Generate page's live job log (a
+    # Server-Sent Events stream, one thread each) ends every response
+    # after about 40 s to stay under this limit; the browser reconnects.
     WSGIDaemonProcess planetgen-api processes=1 threads=5 request-timeout=60
     #
     # Mounted at / (not /api): the same app serves the JSON API under /api
