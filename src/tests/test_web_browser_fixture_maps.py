@@ -1645,3 +1645,40 @@ def test_galaxy_map_stars_are_drawn_camera_relative(page, map_site):
     assert all(float(v).is_integer() for v in drawn["frame"]), drawn
     # Measured from the frame, no star is as far out as the galaxy's edge.
     assert drawn["far"] < 20000, drawn
+
+
+def _select_the_nebula(page):
+    nebula = next(p for p in PHENOMENA if p["type"] == "nebula")
+    # The screen-reader list holds a button for every object.
+    page.locator("#galaxymap3d-canvas ~ .starmap-sr-list button, .starmap-sr-list button",
+                 has_text=nebula["name"]).first.dispatch_event("click")
+    assert _info_title(page) == nebula["name"]
+    return nebula
+
+
+def test_sector_map_escape_clears_the_selection(page, map_site):
+    """MAP.113: Escape clears what is selected, ahead of anything else."""
+    _open_sector(page, map_site)
+    resting = _info_title(page)
+    nebula = _select_the_nebula(page)
+    assert resting != nebula["name"]
+    page.locator(SECTOR_CANVAS).focus()
+    page.keyboard.press("Escape")
+    assert _info_title(page) == resting
+    assert page.url.split("?")[0].endswith(f"/sector/{SECTOR_ID}"), page.url
+
+
+def test_sector_map_click_on_the_selected_nebula_clears_it(page, map_site):
+    """MAP.113: a nebula can be unselected by clicking it again, which is all
+    there is to click when it covers the sector."""
+    _open_sector(page, map_site)
+    resting = _info_title(page)
+    nebula = next(p for p in PHENOMENA if p["type"] == "nebula")
+    found = _hover_choice(page, re.escape(nebula["name"]), steps=48)
+    assert found, "no spot on the Sector Map names the nebula"
+    page.mouse.click(found[0], found[1])
+    assert _info_title(page) == nebula["name"]
+    page.mouse.click(found[0], found[1])
+    assert _info_title(page) == resting
+    page.mouse.click(found[0], found[1])
+    assert _info_title(page) == nebula["name"], "and a click selects it again"
