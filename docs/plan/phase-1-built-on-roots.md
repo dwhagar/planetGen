@@ -24,9 +24,9 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| NAV.8 | Pages and anchors for stars, planets, moons and belts | NAV.7 | System page anchors (system.html). |
-| NAV.9 | Search and locate return references for every kind | NAV.7 | queryDb search and galaxy_locate. |
-| NAV.16 | NAV endpoints can be any object | NAV.7 | Moved from phase 2: NAV.3 closes in phase 1 now. navigation.py legs, nav_page.py endpoints. |
+| NAV.8 | Pages and anchors for stars, planets, moons and belts |  | System page anchors (system.html). |
+| NAV.9 | Search and locate return references for every kind |  | queryDb search and galaxy_locate. |
+| NAV.16 | NAV endpoints can be any object |  | Moved from phase 2: NAV.3 closes in phase 1 now. navigation.py legs, nav_page.py endpoints. |
 | NAV.50 | Pick any object down to a moon as a NAV endpoint | NAV.16 | Split from NAV.15: body endpoints need NAV.16. |
 
 ### Picker
@@ -125,7 +125,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| NAV.43 | Find everything within a distance of a place: the query and the API | NAV.7 | Boss 04:39Z. Replaces systems_within_radius (one sector, systems only); enumerate_sectors_within_radius then per-sector reads; open questions: max distance, ungenerated sectors, generated only. |
+| NAV.43 | Find everything within a distance of a place: the query and the API |  | Boss 04:39Z. Replaces systems_within_radius (one sector, systems only); enumerate_sectors_within_radius then per-sector reads; open questions: max distance, ungenerated sectors, generated only. |
 | NAV.44 | A "What's nearby" page: pick a place, enter a distance in parsecs, list what is there | NAV.43 | Boss 04:39Z. Page with place picker, distance in pc, kind filters, 50-row pages. |
 
 ### Maps
