@@ -4,7 +4,7 @@
 // and the 3D view (systemview3d.js) (MAP.74). The page always loads the
 // diagram; the 3D view's script and the system's scene are fetched the first
 // time 3D is chosen, so a visitor who never switches pays nothing for it. The
-// last view used is remembered in the browser; `?view=3d` and
+// last view used is remembered in the browser (3D when none is: it opens by default); `?view=3d` and
 // `?object=<ref>` (a star, planet, moon or comet, e.g. `planet:12`) open the
 // 3D view and select a body, and the address follows the view (MAP.67) so
 // Back, reload and bookmarks return to it. Without WebGL the switch says so
@@ -119,20 +119,20 @@ if (root && diagram && diagramButton && button3d) {
     return loading;
   }
 
-  function show(which) {
+  function show(which, keep) {
     current = which;
     const is3d = which === "3d";
     diagram.hidden = is3d;
     root.hidden = !is3d;
     diagramButton.setAttribute("aria-pressed", is3d ? "false" : "true");
     button3d.setAttribute("aria-pressed", is3d ? "true" : "false");
-    remember(which);
+    if (!keep) remember(which);
     setUrl(which, is3d && view && view.selected() ? view.selected().ref : null);
   }
 
   // Without WebGL the switch says so and the diagram stays.
   function noWebGl() {
-    show("diagram");
+    show("diagram", true);
     button3d.disabled = true;
     button3d.title = "3D needs WebGL, which this browser does not have.";
     if (!document.getElementById("sysview3d-nogl")) {
@@ -153,7 +153,7 @@ if (root && diagram && diagramButton && button3d) {
     try {
       await start();
     } catch (err) {
-      show("diagram");
+      show("diagram", true);
       button3d.disabled = true;
       button3d.title = "The 3D view could not be loaded.";
       return;
@@ -178,7 +178,8 @@ if (root && diagram && diagramButton && button3d) {
   });
 
   const params = new URLSearchParams(window.location.search);
-  if (params.get("view") === "3d" || params.get("object") || remembered() === "3d") {
+  // 3D is the default; a visitor who last chose the diagram gets the diagram.
+  if (params.get("view") === "3d" || params.get("object") || remembered() !== "diagram") {
     choose3d(params.get("object"));
   }
 }

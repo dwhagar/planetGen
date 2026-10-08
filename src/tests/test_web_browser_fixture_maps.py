@@ -1904,6 +1904,13 @@ def test_galaxy_map_opens_a_system_in_place_and_zooms_to_a_moon(page, map_site):
     # A planet picked from the list shows its panel; Fly to goes in close.
     page.locator(".starmap-sr-system button", has_text="(planet)").first.evaluate("b => b.click()")
     assert "Fly to" in [b.inner_text() for b in page.locator("#galaxymap3d-info button").all()]
+    # MAP.126: the picked body's path is drawn full and the others' fade back.
+    picked = _galaxy_system(page)["selected"]
+    opacity = page.evaluate("(refs) => { const s = document.querySelector('#galaxymap3d-canvas').galaxySystem(); "
+                            "return refs.map((r) => s.trailOpacity(r)); }", [picked, "planet:1", "planet:2"])
+    assert opacity[0] == 1
+    others = [o for ref, o in zip([picked, "planet:1", "planet:2"], opacity) if ref != picked and o is not None]
+    assert others and all(o < 0.5 for o in others), opacity
     page.locator("#galaxymap3d-info button", has_text="Fly to").click()
     _wait_system(page)
     near = _galaxy_system(page)["distance"]
@@ -1913,6 +1920,7 @@ def test_galaxy_map_opens_a_system_in_place_and_zooms_to_a_moon(page, map_site):
     _wait_system(page)
     assert _galaxy_system(page)["distance"] < near
     assert _galaxy_system(page)["following"] == "moon:1"
+    assert _query(page).endswith("&object=moon:1"), _query(page)
 
     # The scale can be true; the same bodies are still there.
     page.locator("#galaxymap3d-info button", has_text="True scale").click()
@@ -1930,4 +1938,30 @@ def test_galaxy_map_opens_a_system_in_place_and_zooms_to_a_moon(page, map_site):
     page.wait_for_selector(".starmap-sr-list button", state="attached")
     _wait_system(page)
     assert _galaxy_system(page)["id"] == system_id
-    assert _query(page).endswith(f"&system={system_id}")
+    assert f"&system={system_id}" in _query(page)
+    # The body the address names is picked and flown to again.
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxySystem().following === 'moon:1'", timeout=20000)
+    assert _galaxy_system(page)["selected"] == "moon:1"
+
+
+def test_galaxy_map_wheel_carries_the_zoom_into_a_system_and_back(page, map_site):
+    """MAP.125: zooming right in on an opened sector opens the star picked
+    (else the one nearest the middle of the view); zooming right out of the system comes back to
+    the sector."""
+    _open_galaxy(page, map_site, OPEN_PRIME)
+    page.wait_for_selector(".starmap-sr-list button", state="attached")
+    page.locator(".starmap-sr-list button", has_text="Middling Sun").first.evaluate("b => b.click()")
+    box = page.locator("#galaxymap3d-canvas").bounding_box()
+    page.mouse.move(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
+    for _ in range(40):
+        page.mouse.wheel(0, -400)
+        page.wait_for_timeout(30)
+    _wait_system(page)
+    state = _galaxy_system(page)
+    assert state["id"] and f"&system={state['id']}" in _query(page)
+    page.wait_for_timeout(1000)
+    for _ in range(80):
+        page.mouse.wheel(0, 400)
+        page.wait_for_timeout(30)
+    _wait_system(page, present=False)
+    assert _query(page) == OPEN_PRIME[1:]

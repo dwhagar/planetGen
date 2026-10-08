@@ -882,4 +882,6 @@ test("a stage URL names the system opened in place (MAP.125)", () => {
   assert.equal(asked.open, true);
   assert.equal(S.parseStageQuery("?sector=100000001&open=1&system=x").system, null);
   assert.equal(S.parseStageQuery("?sector=100000001&open=1").system, null);
+  assert.equal(S.parseStageQuery("?sector=100000001&open=1&system=702&object=planet:12").object, "planet:12");
+  assert.equal(S.parseStageQuery("?sector=100000001&open=1&system=702&object=nope").object, null);
 });

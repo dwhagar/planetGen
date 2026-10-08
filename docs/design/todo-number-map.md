@@ -713,8 +713,8 @@ Parents marked "new parent" had no old number of their own.
 | MAP.122 | A Select mode on every galaxy view: Galaxy (blocks and sectors) or Star | none | open |
 | MAP.123 | Show or hide star types and phenomena, and set the luminosity floor, on the Galaxy and Sector Maps | none | open |
 | MAP.124 | The Galaxy Map opens zoomed to fit all charted space | none | open |
-| MAP.125 | Infinite zoom: one 3D interface from the galaxy down to a moon | none | open |
-| MAP.126 | Show the orbital trajectories of selected objects in their frame of reference | none | open |
+| MAP.125 | Infinite zoom: one 3D interface from the galaxy down to a moon | none | done, PR #683 |
+| MAP.126 | Show the orbital trajectories of selected objects in their frame of reference | none | done, PR #686 |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | open |

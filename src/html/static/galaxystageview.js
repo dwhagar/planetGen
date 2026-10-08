@@ -95,6 +95,11 @@ export const GALAXY_MIN_ZOOM = 0.5;
 // An opened system zooms from its fit down to a moon, nine orders closer.
 export const SYSTEM_MIN_ZOOM = 1e-9;
 const WHEEL_ZOOM_PER_PX = 0.0025;
+// A wheel move from a stage to the next (MAP.125) takes one gesture: this
+// long before another can, and a star counts as the one zoomed on when it is
+// within this share of the view's distance from its middle.
+const ACROSS_COOLDOWN_MS = 900;
+const NEAREST_STAR_REACH = 0.35;
 // The zoom policies (mapcontrol.js): a short range around the fit, and
 // on the whole galaxy only closer than its fit.
 const FREE_VIEW_ZOOM = MC.zoomPolicy(MC.ZOOM_RANGE, MIN_ZOOM, MAX_ZOOM);
@@ -153,6 +158,8 @@ export function createStageView(host) {
   let enterSystemToken = 0;
   // A system to open once its sector has (a reload or Back to its URL).
   let pendingSystem = null;
+  // The body of that system the URL named (?object=planet:12).
+  let pendingObject = null;
   // The body of the open system the camera rides along with (a moving target).
   let followBody = null;
   // A sector to open once the stage it sits in has arrived (a reload or
@@ -733,7 +740,7 @@ export function createStageView(host) {
     if (!enteredSystem) return null;
     return {
       id: enteredSystem.id, name: enteredSystem.name, mode: systemStage.mode(), refs: systemStage.entries().map(function (e) { return e.ref; }),
-      flying: !!animation, following: followBody, distance: view ? view.dist : null, selected: systemStage.selected(),
+      flying: !!animation, following: followBody, trailOpacity: systemStage.trailOpacity, distance: view ? view.dist : null, selected: systemStage.selected(),
       // Where a body is on screen, in client pixels (null: behind the camera).
       screen: function (ref) {
         const entry = systemStage.entry(ref);
@@ -874,6 +881,16 @@ export function createStageView(host) {
     if (now.length) params.set("hide", now.join(","));
     else params.delete("hide");
     const query = params.toString().replace(/%2C/gi, ",");
+    history.replaceState(history.state, "", location.pathname + (query ? "?" + query : "") + location.hash);
+  }
+
+  // The body picked in the open system is the URL's ?object=, in place.
+  function writeObjectToUrl(ref) {
+    if (!enteredSystem) return;
+    const params = new URLSearchParams(location.search);
+    if (ref) params.set("object", ref);
+    else params.delete("object");
+    const query = params.toString().replace(/%2C/gi, ",").replace(/%3A/gi, ":");
     history.replaceState(history.state, "", location.pathname + (query ? "?" + query : "") + location.hash);
   }
 
@@ -1137,6 +1154,7 @@ export function createStageView(host) {
     flyTo: function (entry) { flyToBody(entry); },
     setMode: function (mode) { setSystemMode(mode); },
     deselected: function () { host.showHint(hintFor(resolved)); },
+    picked: function (ref) { writeObjectToUrl(ref); },
   });
   const tooltip = createTooltip(els.tooltip);
   const choiceLayer = picker.addLayer({
@@ -1578,9 +1596,16 @@ export function createStageView(host) {
       renderTravel();
       if (animation) finishAnimation();
       const to = cameraForSystem(enteredSystem);
+      const object = pendingObject;
+      pendingObject = null;
       flyCamera(viewNow(), to, null, function () {
         view = settledView(to);
         applyView();
+        const entry = object ? systemStage.entry(object) : null;
+        if (entry) {
+          systemStage.select(object);
+          flyToBody(entry);
+        }
       });
     }, function () {
       if (!active || token !== enterSystemToken) return;
@@ -1660,8 +1685,52 @@ export function createStageView(host) {
   function onWheel(event) {
     if (!MC.canZoom(zoomPolicyFor(resolved)) || !view) return false;
     const deltaPx = MC.wheelPixels(event, canvasEl.clientHeight, 200);
-    if (deltaPx) zoomBy(Math.exp(deltaPx * WHEEL_ZOOM_PER_PX));
+    if (deltaPx && !zoomAcross(deltaPx)) zoomBy(Math.exp(deltaPx * WHEEL_ZOOM_PER_PX));
     return true;
+  }
+
+  // MAP.125: the wheel carries the zoom from one stage to the next. Zoomed
+  // right in on a sector, in goes the star picked, else the one nearest the
+  // middle of the view (its system opens); zoomed right out of a system, out comes the sector.
+  // A move across takes one gesture: further wheel ticks within
+  // ACROSS_COOLDOWN_MS (a trackpad's glide) only zoom. True when this tick
+  // moved across.
+  let acrossAt = -Infinity;
+
+  function zoomAcross(deltaPx) {
+    const now = performance.now();
+    if (animation || pinned || now - acrossAt < ACROSS_COOLDOWN_MS) return false;
+    if (enteredSystem && deltaPx > 0 && view.zoom >= MAX_ZOOM * 0.999) {
+      acrossAt = now;
+      up();
+      return true;
+    }
+    if (entered && !enteredSystem && deltaPx < 0 && view.zoom <= MIN_ZOOM * 1.001 && host.fetchSystemScene) {
+      const picked = sectorStage.selectedEntry();
+      const star = picked && picked.endpoint && picked.endpoint.indexOf("system:") === 0 && picked.href
+        ? picked : nearestStar(view.target, view.dist * NEAREST_STAR_REACH);
+      if (star) {
+        acrossAt = now;
+        enterSystem(star, { push: true });
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // The star of the open sector nearest `point` (parsecs) within `reach`.
+  function nearestStar(point, reach) {
+    let best = null;
+    let bestDistance = reach;
+    sectorStage.entries().forEach(function (e) {
+      if (!e.href || !e.endpoint || e.endpoint.indexOf("system:") !== 0) return;
+      const d = Math.hypot(e.x - point[0], e.y - point[1], e.z - point[2]);
+      if (d < bestDistance) {
+        best = e;
+        bestDistance = d;
+      }
+    });
+    return best;
   }
 
   // Back to the stage's own view, after turning or moving it.
@@ -2534,7 +2603,7 @@ export function createStageView(host) {
           problem: "Sector " + S.blockLabel({ m: 1, ring: s.ring, wedge: s.slot, slab: s.layer }) + " is outside the galaxy.",
         };
       }
-      return { stage: next, sector: s, open: parsed.open, system: parsed.system, problem: null };
+      return { stage: next, sector: s, open: parsed.open, system: parsed.system, object: parsed.object, problem: null };
     }
     let next = parsed.stage;
     if (useCourse && !next.at && !next.picks.length && host.courseSectors && host.courseSectors.length) {
@@ -2557,6 +2626,7 @@ export function createStageView(host) {
     selectedSector = asked.sector || (r.sector ? { ring: r.sector.ring, layer: r.sector.slab, slot: r.sector.wedge } : null);
     pendingOpen = asked.open ? asked.sector : null;
     pendingSystem = asked.open && asked.system ? asked.system : null;
+    pendingObject = pendingSystem ? asked.object : null;
     stage = r.stage;
     resolved = r;
     renderCrumbs();
@@ -2584,6 +2654,7 @@ export function createStageView(host) {
     selectedSector = asked.sector;
     pendingOpen = asked.open ? asked.sector : null;
     pendingSystem = asked.open && asked.system ? asked.system : null;
+    pendingObject = pendingSystem ? asked.object : null;
     go(asked.stage, { push: false, keepSector: true });
   }
   window.addEventListener("popstate", onPopState);

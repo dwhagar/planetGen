@@ -21,6 +21,7 @@
 // - flyTo(entry): the map's camera flies to a body of the open system;
 // - viewport (optional): the map's viewport element, where the
 //   screen-reader list of the open system's bodies goes;
+// - picked(ref) (optional): a body was picked, or (null) the pick cleared;
 // - opened() / closed() (optional).
 
 const VERSION_QUERY = new URL(import.meta.url).search;
@@ -160,6 +161,8 @@ export function createSystemStage(host) {
         }
         host.showInfo(infoSpecFor(entry, state));
         state.selected = ringAround(selectionRing, entry);
+        state.built.highlight(entry.ref);
+        if (host.picked) host.picked(entry.ref);
       },
     });
   }
@@ -187,7 +190,9 @@ export function createSystemStage(host) {
     if (!open || !open.selected) return false;
     selectionRing.hide();
     open.selected = null;
+    open.built.highlight(null);
     if (host.deselected) host.deselected();
+    if (host.picked) host.picked(null);
     return true;
   }
 
@@ -247,7 +252,10 @@ export function createSystemStage(host) {
     open.list = bodyList(open);
     if (keep) {
       const again = open.world.find(function (w) { return w.ref === keep; });
-      if (again) open.selected = ringAround(selectionRing, again);
+      if (again) {
+        open.selected = ringAround(selectionRing, again);
+        open.built.highlight(again.ref);
+      }
     }
     return { center: open.center, radiusPc: open.radiusPc, fitPoints: cubeAround(open.center, open.radiusPc) };
   }
@@ -283,6 +291,8 @@ export function createSystemStage(host) {
       if (entry) open.layer.select(entry);
     },
     selected: function () { return open && open.selected ? open.selected.ref : null; },
+    // The opacity of a body's orbit line, for tests (MAP.126).
+    trailOpacity: function (ref) { return open ? open.built.trailOpacity(ref) : null; },
     // Where a body is in the map's world now: {center, radius}, for flying to it.
     where: function (ref) {
       const entry = open && open.world.find(function (w) { return w.ref === ref; });

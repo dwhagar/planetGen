@@ -24,7 +24,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| MAP.126 | Show the orbital trajectories of selected objects in their frame of reference |  |  |
 
 ### Courses
 
@@ -72,7 +71,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| MAP.125 | Infinite zoom: one 3D interface from the galaxy down to a moon |  | The end state of the one-engine and 3D-system work. |
 
 ### Recipes
 
