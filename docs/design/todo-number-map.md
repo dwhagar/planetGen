@@ -13,7 +13,7 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.49 |
+| UX | UX.50 |
 | MAP | MAP.133 |
 | NAV | NAV.50 |
 | GEN | GEN.121 |
@@ -402,7 +402,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.11 | Jobs keep running after the browser closes | none | done, PR #302 |
 | ADM.12 | Jobs as a tree, with timing for every node | none | done, PR #285 |
 | ADM.13 | Incomplete uploads page | none | open |
-| ADM.14 | Line up the Generate page's text boxes, not their headings (bug) | none | open |
+| ADM.14 | Line up the Generate page's text boxes, not their headings (bug) | none | done, PR #544 |
 | ADM.15 | Change the worker count from the Queue page, with a "Ludicrous Speed" mode | none | open |
 | ADM.16 | Prevalence controls on the Generate page | none | done, PR #506 |
 | ADM.17 | The Generate page shows the galaxy's seed and version | none | open |
@@ -909,7 +909,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.37 | A UX sweep: remove redundant and duplicate controls so the interface gets out of the way | none | open |
 | UX.38 | The nebula and remnant diagrams' "-" button does nothing at the 1 ly limit (bug) | none | open |
 | UX.39 | Markdown rendered by the markdown library | none | open |
-| UX.40 | Buttons, menus and dialogs from Shoelace web components | none | open |
+| UX.40 | Buttons, menus and dialogs from Shoelace web components | none | done, PR #544 |
 | UX.41 | Tables on TanStack Table and TanStack Virtual | none | open |
 | UX.42 | In-universe wording across the interface | none | open |
 | UX.43 | A visual design built like a pilot's starmap and navigation console | none | open |
@@ -918,6 +918,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.46 | Wiping the galaxy wipes the bookmarks | none | open |
 | UX.47 | A bookmark manager: list, rename, sort, group and delete | none | open |
 | UX.48 | Charted regions as bookmarks that frame and outline the region | none | open |
+| UX.49 | Form fields as Shoelace components (sl-input, sl-select, sl-checkbox) across the site | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |

@@ -112,8 +112,8 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 is done (PR #476); GEN.117, GEN.116 keeps watch for Boss's error text. | GEN.116, TEST.94, TEST.95, TEST.96, TEST.97, TEST.98, TEST.99, TEST.100, TEST.101, SEC.29, TEST.72, SEC.30, TEST.83, UX.39, OPS.20, DB.11, DB.13, ADM.21, GEN.66, GEN.74, GEN.68, GEN.69, GEN.70, GEN.71, GEN.72, GEN.73, GEN.67, ADM.22, ADM.24, ADM.25, ADM.26, UX.40, UX.26, ADM.14, UX.41, UX.33, ADM.34, NAV.7, MAP.95, NAV.13, NAV.14, MAP.79, NAV.15, NAV.29, NAV.33, MAP.66, MAP.67, MAP.68, MAP.61, NAV.32, MAP.102, MAP.106, MAP.108, MAP.109, MAP.113, MAP.116, NAV.46, GEN.75, MAP.103, MAP.104, MAP.105, UX.38, UX.37, UX.21 |
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, NAV.16, NAV.3, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.41, GEN.98, GEN.100, GEN.99, GEN.101, GEN.102, GEN.103, GEN.84, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, GEN.94, GEN.104, GEN.106, GEN.107, GEN.108, NAV.10, NAV.12, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, NAV.43, NAV.44, MAP.119, MAP.122, MAP.123, MAP.124, DB.14, MAP.128, MAP.129, MAP.130, GEN.120, MAP.89, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, OPS.8, OPS.13, OPS.14, ADM.18, GEN.59 |
+| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 is done (PR #476); GEN.117, GEN.116 keeps watch for Boss's error text. | GEN.116, TEST.94, TEST.95, TEST.96, TEST.97, TEST.98, TEST.99, TEST.100, TEST.101, SEC.29, TEST.72, SEC.30, TEST.83, UX.39, OPS.20, DB.11, DB.13, ADM.21, GEN.66, GEN.74, GEN.68, GEN.69, GEN.70, GEN.71, GEN.72, GEN.73, GEN.67, ADM.22, ADM.24, ADM.25, ADM.26, UX.26, UX.41, UX.33, ADM.34, NAV.7, MAP.95, NAV.13, NAV.14, MAP.79, NAV.15, NAV.29, NAV.33, MAP.66, MAP.67, MAP.68, MAP.61, NAV.32, MAP.102, MAP.106, MAP.108, MAP.109, MAP.113, MAP.116, NAV.46, GEN.75, MAP.103, MAP.104, MAP.105, UX.38, UX.37, UX.21 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, NAV.16, NAV.3, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.41, GEN.98, GEN.100, GEN.99, GEN.101, GEN.102, GEN.103, GEN.84, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, GEN.94, GEN.104, GEN.106, GEN.107, GEN.108, NAV.10, NAV.12, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, NAV.43, NAV.44, MAP.119, MAP.122, MAP.123, MAP.124, DB.14, MAP.128, MAP.129, MAP.130, GEN.120, MAP.89, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, OPS.8, OPS.13, OPS.14, ADM.18, GEN.59, UX.49 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.58, MAP.75, MAP.59, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, API.16, MAP.69, MAP.70, ADM.17, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.131, MAP.132, API.18, VIEW.5 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, repair that reads the newest settings JSON, and the anomalies chosen in phase 2. | MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, MAP.126, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, DB.10, ADM.20, GEN.114, MAP.125, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies, and the end state of reproducible galaxies (`generate.py reproduce`). | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, OPS.12, GEN.55 |
@@ -272,8 +272,7 @@ with `clamp()`.
   or a click outside, doesn't shift the page); picking an action opens
   its confirm step or form on top (a popover or dialog), not inline
   below the page. UX.31 is the system page's case.
-  Prerequisite: UX.40.
-  Plan (2026-10-07): Folded into UX.40, and the first screen of ADM.34
+  Plan (2026-10-07): Folded into UX.40 (done), and the first screen of ADM.34
   (one admin menu per screen).
   Progress (2026-10-08): PR #533 (UX.40's second piece) did the edit
   actions: Regenerate, Delete and the Change forms sit behind one
@@ -368,7 +367,7 @@ with `clamp()`.
   the pages and maps they live on to settle: UX.28's icons, the Galaxy
   Map breadcrumb and history buttons (MAP.93 and MAP.94 done in PR #399, MAP.95), the NAV
   page layout (NAV.41), the slab and segment pick (MAP.56), and the page
-  action menus (UX.26, UX.27, UX.31). Prerequisites: MAP.95, UX.26, UX.40, ADM.34.
+  action menus (UX.26, UX.27, UX.31). Prerequisites: MAP.95, UX.26, ADM.34.
   Plan (2026-10-07): Moved into phase 0 (groundwork lane, last) because
   UX.21 is a bug and needs it.
 
@@ -392,22 +391,19 @@ with `clamp()`.
   is deleted.
   Design: [docs/design/library-migration.md](design/library-migration.md)
 
-- [ ] **UX.40 Buttons, menus and dialogs from Shoelace web components**
-  From "Web UX Development Notes.md": buttons, menus, dropdowns, dialogs
-  and form fields use Shoelace components, vendored as ES modules (no
-  CDN at runtime). Done: a shared component set in the base template;
-  the menus size to their contents (UX.2), admin and edit actions open
-  from a button menu (UX.26, UX.31), the system page buttons sit on one
-  row (UX.27), and the Generate page text boxes line up (ADM.14), each
-  closed in this item's PRs; both themes and keyboard use work.
-  Progress (2026-10-08): PR #528 added the Shoelace component set
-  (vendored) and moved the header Menu and gear onto sl-dropdown (UX.2,
-  done). PR #533 followed with the edit menus and dialog confirms on the
-  system, sector and phenomenon pages (UX.31, done; UX.26's edit actions
-  done, its sector Admin panel left). PR #539 put the system page's
-  buttons on one row with a Navigate menu (UX.27, done). Foundations
-  lane 1 continues with ADM.14, then the Generate page and form
-  remainder, in this item's PRs.
+- [ ] **UX.49 Form fields as Shoelace components (sl-input, sl-select, sl-checkbox) across the site**
+  UX.40 (done, PRs #528, #533, #539, #544) moved the buttons, menus and
+  dialogs onto Shoelace and lined up the Generate page's text boxes with
+  plain CSS; the form fields themselves are still native `<input>`,
+  `<select>` and checkbox elements. Done: every text box, number box,
+  drop-down and checkbox in the templates (Generate and one-off system
+  pages, the edit dialogs, the search and filter fields, sign-in and
+  account forms, admin pages) is an `sl-input`, `sl-select` or
+  `sl-checkbox` from the vendored set, submitting and validating
+  exactly as before (labels, required fields, keyboard use, values
+  posted by name), both themes and phone widths look right, and a
+  browser test fills and submits one form of each kind. Not a bug.
+  Prerequisites: none.
   Design: [docs/design/library-migration.md](design/library-migration.md)
 
 - [ ] **UX.41 Tables on TanStack Table and TanStack Virtual**
@@ -987,8 +983,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   star count, each with a legend that shows the scale. Done: the switch
   and its legend work on both maps, the choice is kept in the URL, and a
   browser test switches through every mode. It is built on the Shoelace
-  controls (UX.40) and the shared map engine pieces (MAP.61, MAP.125).
-  Prerequisites: MAP.128, UX.40.
+  controls (UX.40, done) and the shared map engine pieces (MAP.61, MAP.125).
+  Prerequisite: MAP.128.
 
 - [ ] **MAP.132 Overlay markers for black holes, nebulae and habitable worlds**
   Boss (2026-10-08 01:59Z): "Density determines transparency with more solid meaning more dense. Stellar age measures hue. Brightness measures luminosity of the sector or block. Blocks will never be fully opaque for coloring that is the color of the translucent fill."
@@ -3076,24 +3072,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   an upload with no contact for a long time be flagged as stale on the
   page?
 
-- [ ] **ADM.14 Line up the Generate page's text boxes, not their headings (bug)**
-  Boss (2026-10-01 20:20Z): "on the generate screen, line up the text
-  boxes not the headings. Text boxes should all be even with each
-  other". Today each field on the admin Generate page
-  (`web/templates/generate.html`, the `field` macro inside
-  `search-fields`) puts its label above its input, and the fields flow
-  side by side, so inputs start at different heights and widths
-  wherever a label wraps or is longer. Done: down every form on the page
-  (New galaxy, Generate sectors and its modes, Plan, Rebuild the bright
-  stars, Add a dimmer layer, One-off system), the text boxes share one
-  left edge and width and sit level with each other, however long their
-  labels are, at desktop and phone widths, in both themes. This includes
-  ADM.4's sections (PR #279) and GEN.30's "Bright stars from" field (PR
-  #295).
-  Prerequisite: UX.40.
-  Plan (2026-10-07): Folded into UX.40: the Generate page fields become
-  Shoelace inputs.
-
 - [ ] **ADM.15 Change the worker count from the Queue page, with a "Ludicrous Speed" mode**
   Boss (2026-10-01 22:11Z): "have admin in the queue menu able to
   change the worker count including a "Ludicrous Speed" that will
@@ -3166,7 +3144,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   the page shows the galaxy's layer specs (count, height, extent, how
   many charted), the common actions stay on the page and every other
   setting moves into a Customize dialog, and its subitems are done.
-  Prerequisites: UX.40, ADM.29, ADM.30, ADM.31, GEN.97.
+  Prerequisites: ADM.29, ADM.30, ADM.31, GEN.97.
 
   - [ ] **ADM.29 Fill a span of layers, rings or columns**
     Boss (2026-10-07 11:47Z): "Ability to specify a span of layers to
@@ -3221,7 +3199,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Done: every page and map view has one Admin menu button (hidden for
   visitors) listing only the actions that apply there; inline admin
   panels are gone.
-  Prerequisites: UX.40, UX.26.
+  Prerequisite: UX.26.
 
 - [ ] **ADM.35 Full control from every screen: edit anything, regenerate with every input, backfill or erase what is in view**
   Boss (2026-10-07 11:47Z): "Everything can be edited, regeneration asks
@@ -3544,7 +3522,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   (OPS.23, done in PR #435, then OPS.24) so code moves once. Done when every subitem is done
   and the hand-rolled modules they replace are deleted.
   Prerequisites: SEC.29, UX.39, SEC.30, DB.11,
-  ADM.21, GEN.66, UX.40, UX.41, ADM.22, MAP.102.
+  ADM.21, GEN.66, UX.41, ADM.22, MAP.102.
   Design: [docs/design/library-migration.md](design/library-migration.md)
 
 ## VIEW: The view from a planet
