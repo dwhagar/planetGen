@@ -150,6 +150,10 @@ function infoPanel() {
   return infoPanelOf(document.getElementById("galaxymap3d-info"));
 }
 
+// What the panel says before anything is picked (a sector page's, which
+// the panel returns to when a pick is cleared; MAP.113).
+var restingHint = (infoPanel() && infoPanel().element && infoPanel().element.textContent.trim()) || "";
+
 function showInfo(spec) {
   var panel = infoPanel();
   if (panel) {
@@ -2058,6 +2062,7 @@ function initGalaxyMap3d(canvasEl, data) {
     showHint: function (text) { showHint(text, false); },
     picker: picker,
     clearSelection: function () { selectionRing.hide(); },
+    restingHint: restingHint,
     setWedgeClip: function (clip) { setWedgeClip(clip); },
     sectorUrl: function (id) { return sceneData.sectorUrl ? sectorUrl(id) : null; },
     // A sector page's map is locked to its sector (MAP.68): {ring, layer,
