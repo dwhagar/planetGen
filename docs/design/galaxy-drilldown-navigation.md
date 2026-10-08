@@ -652,10 +652,11 @@ the following (all built: MAP.22, with sections 9.1 to 9.4):
    (or `pick=to&from=...`), carrying the other endpoint along.
    - The map shows a banner, "Choosing a destination · Cancel" (Cancel
      returns to `/nav` with the endpoint already chosen).
-   - In pick mode "Charted only" is forced on, since NAV endpoints are
-     systems and phenomena, which exist only in generated sectors. Hover
-     still lights every arc and choice as outside pick mode (NAV.31);
-     one holding nothing generated says so and can't be taken.
+   - Every control works as outside pick mode, "Charted only" included
+     (NAV.32). NAV endpoints are systems and phenomena, which exist only
+     in generated sectors, so hover still lights every arc and choice as
+     outside pick mode (NAV.31); one holding nothing generated says so
+     and can't be taken.
    - At the sector level, clicking a sector goes to
      `/sector/<id>?pick=to&from=system:12`.
 2. **Pick in this sector** appears once the other endpoint is known. It

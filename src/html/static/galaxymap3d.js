@@ -2308,25 +2308,17 @@ function initGalaxyMap3d(canvasEl, data) {
     updateScaleBar();
   });
 
-  // While a NAV course is picked "Charted only" stays on (its button is
-  // locked); after the pick it stays as it was and the button is free again.
-  function lockChartedOnly(on) {
-    if (on) {
-      setChartedOnly(true);
-      stageView.setNeedGenerated(true);
-    }
-    var onlyButton = document.querySelector('#galaxymap3d-controls [data-action="charted-only"]');
-    if (onlyButton) {
-      if (on) onlyButton.setAttribute("aria-pressed", "true");
-      onlyButton.disabled = on;
-      onlyButton.title = on ? "Always on while choosing a NAV start or destination" : "";
-    }
+  // While a NAV course is picked only a choice holding something generated
+  // can be taken (an end lives in a generated sector); every control,
+  // "Charted only" included, works as when browsing (NAV.32).
+  function takeOnlyGenerated(on) {
+    stageView.setNeedGenerated(on);
   }
 
   // The pick moved on or ended (navpick.js): the banner, the Bookmarks menu,
   // the URL and the panel follow, and the view stays where it is.
   function pickChanged() {
-    lockChartedOnly(navPick.active());
+    takeOnlyGenerated(navPick.active());
     renderPickBanner();
     keepPickInBookmarks();
     stageView.pickChanged();
@@ -2391,10 +2383,9 @@ function initGalaxyMap3d(canvasEl, data) {
     });
   }
 
-  // NAV's "Pick on Galaxy Map": endpoints live only in generated
-  // sectors, so "Charted only" stays on (design doc section 9).
+  // NAV's "Pick on Galaxy Map": endpoints live only in generated sectors.
   if (navPick.active()) {
-    lockChartedOnly(true);
+    takeOnlyGenerated(true);
   }
 
   // The drill-down, at the stage the URL names.
