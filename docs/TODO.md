@@ -112,10 +112,10 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 is done (PR #476); GEN.117, and GEN.116 is closed (Boss 2026-10-08 17:46Z). | TEST.109, TEST.108, UX.39, OPS.20, DB.11, DB.13, ADM.21, GEN.66, GEN.70, GEN.71, GEN.67, NAV.7, UX.21 |
+| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 is done (PR #476); GEN.117, and GEN.116 is closed (Boss 2026-10-08 17:46Z). | TEST.109, TEST.108, UX.39, OPS.20, DB.11, DB.13, ADM.21, GEN.66, GEN.70, GEN.71, GEN.67, UX.21 |
 | 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, NAV.16, NAV.3, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.41, GEN.98, GEN.100, GEN.99, GEN.101, GEN.102, GEN.103, GEN.84, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, GEN.94, GEN.104, GEN.106, GEN.107, GEN.108, NAV.10, NAV.12, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, NAV.43, NAV.44, MAP.119, MAP.122, MAP.123, MAP.124, MAP.89, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, OPS.8, OPS.13, OPS.14, ADM.18, GEN.59, UX.49, NAV.50 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.58, MAP.75, MAP.59, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, API.16, ADM.17, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.131, MAP.132, API.18, VIEW.5 |
-| 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, repair that reads the newest settings JSON, and the anomalies chosen in phase 2. | MAP.126, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, DB.10, ADM.20, GEN.114, API.19 |
+| 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, repair that reads the newest settings JSON, and the anomalies chosen in phase 2. | NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, DB.10, ADM.20, GEN.114, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies, and the end state of reproducible galaxies (`generate.py reproduce`). | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, OPS.12, GEN.55 |
 
 Phases overlap: a phase's later threads can start while the next
@@ -627,13 +627,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   each on a seeded sector.
   Prerequisite: GEN.84.
 
-- [ ] **MAP.126 Show the orbital trajectories of selected objects in their frame of reference**
-  Boss (2026-10-07 11:47Z): "Show orbital trajectories for selected
-  objects in their frame of reference." Done: selecting a body draws its
-  path (orbit, or galactic trajectory) in the frame of what it moves
-  around.
-  Prerequisites: none.
-
 ## NAV: Navigation and courses
 
 - [ ] **NAV.3 One shared picker for the Galaxy, Sector and System displays**
@@ -659,7 +652,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   The NAV page uses it for both endpoints, so a course's ends are
   picked on the maps. Ties in with MAP.61 and MAP.62, and NAV.4 to
   NAV.6.
-  Needs NAV.7. Built on MAP.61's engine; the parts that don't need the
+  Built on MAP.61's engine; the parts that don't need the
   engine (the picker module, the breadcrumb, pick mode) can start first.
   Prerequisites: NAV.16, NAV.50.
   Plan (2026-10-07): Moved from phase 3 to phase 1: its subitems are now
@@ -675,7 +668,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     today); a course inside one system is one in-system leg. Open
     question: does an in-system leg use the same warp and fold speeds,
     or sublight speeds (impulse)? Default: the same tables, with a note.
-    Prerequisite: NAV.7.
     Plan (2026-10-07): Moved from phase 2 to phase 1 so the picker
     parent (NAV.3) closes there.
 
@@ -840,38 +832,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     straight line on the NAV page and on the map (NAV.5); saved courses
     (NAV.4) keep it as a third form.
 
-- [ ] **NAV.7 One reference for every object, with its parents**
-  Today only systems and phenomena can be named in a URL or a NAV
-  endpoint (`nav_page.endpoint`, `<kind>:<id>`); stars, planets, moons,
-  belts and comets have no page, no URL and no reference of their own
-  (search links them to their system page), and nothing returns an
-  object's chain of parents. Done: one reference form for every object
-  kind (`sector:<id>`, `system:<id>`, `star:<id>`, `planet:<id>`,
-  `moon:<id>`, `belt:<id>`, `comet:<id>` and the phenomenon types, the
-  same strings NAV uses today, so old links keep working); one resolver
-  (`queryDb` plus `GET /api/objects/<ref>`) that returns the object's
-  kind, name, parent chain up to the galaxy (moon, planet, system,
-  sector, galaxy), its siblings' references, and its position in each
-  frame that applies (galaxy pc, sector-local ly, system-local km); and
-  Python and JavaScript helpers that parse and print references. The
-  picker (NAV.3), saved courses (NAV.4), the course on the map (NAV.5),
-  gravity-aware courses (NAV.6) and the 3D system view (MAP.62) all use
-  it.
-  Plan (2026-10-07): Moved into phase 0 (groundwork lane): the map
-  engine items that fix the 2026-10-03 map bugs need it.
+- [ ] **NAV.8 Pages and anchors for stars, planets, moons and belts**
+  A star, planet, moon, belt or comet reference opens something:
+  by default the system page scrolled to and highlighting that body
+  (`/system/<id>#planet-<id>`), with its own System Map scene
+  selected, rather than a new page per body. Search results, the
+  locate box and bookmarks link this way. Open question: should
+  planets and moons get pages of their own later?
 
-  - [ ] **NAV.8 Pages and anchors for stars, planets, moons and belts**
-    A star, planet, moon, belt or comet reference opens something:
-    by default the system page scrolled to and highlighting that body
-    (`/system/<id>#planet-<id>`), with its own System Map scene
-    selected, rather than a new page per body. Search results, the
-    locate box and bookmarks link this way. Open question: should
-    planets and moons get pages of their own later?
-
-  - [ ] **NAV.9 Search and locate return references for every kind**
-    `/api/search` and `/galaxy/locate` (`queryDb.galaxy_locate`) return
-    each hit's reference and parent chain, so any picker can jump to a
-    star, planet or moon by name.
+- [ ] **NAV.9 Search and locate return references for every kind**
+  `/api/search` and `/galaxy/locate` (`queryDb.galaxy_locate`) return
+  each hit's reference and parent chain, so any picker can jump to a
+  star, planet or moon by name.
 
 - [ ] **NAV.10 Routing that scales past a few thousand systems**
   Today `queryDb.nav_between` rebuilds the whole k-nearest-neighbour
@@ -1040,6 +1012,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   by far preference is system-to-system, only if a jump crosses unknown
   space should it start looking for other things." Done as he says; such
   stops are marked as their kind in the route.
+  GEN.100 now also scatters hypervelocity stars and supernova remnants;
+  the list of stops should include hypervelocity stars.
   Prerequisites: NAV.12, GEN.100.
   Design: [docs/design/course-routing.md](design/course-routing.md)
 
@@ -1924,6 +1898,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   during creation, just before the bright-star scatter, in the
   bright-star table with a type column; a sector fill keeps everything
   already placed in it and only adds.
+  Boss (2026-10-08 22:53Z to 23:00Z, relayed by a peer thread): widened
+  to every phenomenon except rogue planets, interstellar comets and
+  asteroid belts; leave off brown dwarfs; "Let's include hypervelocity
+  stars and nebulas and stellar remnants in the GEN.100 scatter".
+  Scattered galaxy-wide: black holes (all mass classes), neutron stars,
+  quasars, nebulae (planetary nebulae and molecular clouds included),
+  supernova remnants (Boss's 2026-09-30 ruling: "stellar remnants"
+  means supernova remnants only; black holes and neutron stars stay
+  separate) and hypervelocity stars. Hypervelocity stars are placed as
+  real stars with their speed (500 to 1000 km/s), starting at the
+  central black hole and moving outward, about 1e3 to 1e4 galaxy-wide;
+  today they are only a flag set on a normal system at fill time.
+  Not scattered: rogue planets, interstellar comets, asteroid fields and
+  brown dwarfs. Runaway stars (about 1.5% of stars) stay a flag set at
+  fill time, since scattering them would mean about 1.3 billion rows.
 
 - [ ] **GEN.101 Fill order: nearest sectors first along a pruned Hilbert octree curve**
   Boss (2026-10-07 11:47Z): "Change fill algorithm to fill sectors

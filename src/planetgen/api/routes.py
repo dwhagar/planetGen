@@ -70,6 +70,7 @@ from planetgen.db.query import (
     nav_between,
     open_readonly,
     phenomenon_detail as query_phenomenon_detail,
+    resolve_object,
     nebula_shape as query_nebula_shape,
     nebula_surroundings as query_nebula_surroundings,
     search as run_search,
@@ -80,6 +81,7 @@ from planetgen.db.query import (
 from planetgen.db import store
 from planetgen.generation import bright_stars as brightStars, limits as generationLimits
 from planetgen import tuning
+from planetgen.galaxy import objectref as object_ref
 from planetgen.population import facilities as facility_rules
 from planetgen.db.store import get_galaxy_bounds, get_galaxy_shape, get_sector_id_at, list_databases, resolve_database
 from planetgen.util.appconfig import load_config
@@ -950,6 +952,20 @@ def phenomenon(phenomenon_type, phenomenon_id):
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 404
     return jsonify(detail)
+
+
+@bp.route("/objects/<ref>")
+def object_ref_route(ref):
+    """
+    Resolves one object reference (`<kind>:<id>`, NAV.7): name, parent
+    chain, sibling references and positions in each frame -- see
+    `queryDb.resolve_object` and docs/api.md.
+    """
+    try:
+        kind, object_id = object_ref.parse(ref)
+        return jsonify(resolve_object(get_db(), kind, object_id))
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 404
 
 
 @bp.route("/nebulae/<int:nebula_id>/shape")

@@ -86,6 +86,7 @@ export function buildSystemScene(scene, layout, options) {
   const objects = {};
   const hangers = {}; // parent ref -> orbit lines and belts that follow it
   const lights = [];
+  const trails = {}; // ref -> its orbit line
 
   function hang(parent, object) {
     group.add(object);
@@ -131,6 +132,8 @@ export function buildSystemScene(scene, layout, options) {
       const around = body.orbit.around;
       const line = lineFrom(layout, around, path, color, item.kind === "moon" ? 0.45 : 0.6);
       line.userData.ref = item.ref;
+      line.userData.base = { color: line.material.color.clone(), opacity: line.material.opacity };
+      trails[item.ref] = line;
       hang(around, line);
     }
   });
@@ -208,6 +211,26 @@ export function buildSystemScene(scene, layout, options) {
     return placed;
   }
 
+  // MAP.126: the selected body's path is drawn bright and full, in the frame
+  // of what it goes round (the lines hang from their parent), and the others
+  // fade back; null puts them all as they were.
+  function highlight(ref) {
+    Object.keys(trails).forEach((key) => {
+      const line = trails[key];
+      const base = line.userData.base;
+      if (!ref) {
+        line.material.color.copy(base.color);
+        line.material.opacity = base.opacity;
+      } else if (key === ref) {
+        line.material.color.copy(base.color).lerp(new THREE.Color("#ffffff"), 0.55);
+        line.material.opacity = 1;
+      } else {
+        line.material.color.copy(base.color);
+        line.material.opacity = base.opacity * 0.3;
+      }
+    });
+  }
+
   function dispose() {
     group.traverse((object) => {
       if (object.geometry) object.geometry.dispose();
@@ -216,7 +239,9 @@ export function buildSystemScene(scene, layout, options) {
   }
 
   update(opts.years || 0);
-  return { group: group, entries: entries, byRef: byRef, objects: objects, update: update, dispose: dispose };
+  return { group: group, entries: entries, byRef: byRef, objects: objects, update: update, highlight: highlight,
+    // A body's orbit line opacity (null: it has none), for tests.
+    trailOpacity: (ref) => (trails[ref] ? trails[ref].material.opacity : null), dispose: dispose };
 }
 
 // --- The view -------------------------------------------------------------------------
@@ -286,6 +311,10 @@ export function createSystemView(options) {
       options.labelsEl.appendChild(el);
       labels.set(entry.ref, el);
     });
+    if (selected) {
+      selected = built.byRef[selected.ref] || null;
+      built.highlight(selected ? selected.ref : null);
+    }
   }
 
   function fit() {
@@ -348,6 +377,7 @@ export function createSystemView(options) {
 
   function select(entry) {
     selected = entry;
+    if (built) built.highlight(entry ? entry.ref : null);
     if (entry) info.show(infoSpec(entry));
     if (options.onSelect) options.onSelect(entry);
   }

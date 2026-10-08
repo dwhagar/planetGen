@@ -665,6 +665,13 @@ def get_phenomenon(db, phenomenon_type, phenomenon_id):
     return _request(f"/phenomena/{phenomenon_type}/{phenomenon_id}", {"db": db})
 
 
+def get_object(db, ref):
+    """Returns `GET /api/objects/<ref>`'s dict (kind, name, parent chain,
+    sibling references, positions) -- see `queryDb.resolve_object`."""
+    _require_db(db)
+    return _request(f"/objects/{ref}", {"db": db})
+
+
 def get_search(db, texts, tags, sizes=None, limit=None, offsets=None, panels=None):
     """
     Runs `GET /api/search` and returns its response dict -- see
