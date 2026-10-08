@@ -625,8 +625,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Plan (2026-10-08): MAP.61 is done (PR #629). MAP.62 is six subitems
   (MAP.69 to MAP.74), and MAP.70 depends on the point-in-space object
   (GEN.74), which is now built (PRs #642, #645, #662 and #665), so that
-  prerequisite is met. The map engine lane holds MAP.62 and MAP.125
-  until Boss decides how to proceed.
+  prerequisite is met. Boss has given the go: the map engine lane
+  builds MAP.62 (MAP.69 to MAP.74) first, then MAP.125.
 
   - [ ] **MAP.67 One URL and history scheme for every level**
     Galaxy stages, a sector, and (with MAP.62) a system and a body in
@@ -784,8 +784,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   planet and its moons, with the frames switched by the position object
   (GEN.74).
   Prerequisite: MAP.62.
-  Plan (2026-10-08): Held with MAP.62 until Boss decides (see MAP.62;
-  GEN.74, which MAP.70 needs, is built).
+  Plan (2026-10-08): Built after MAP.62, by the map engine lane (Boss
+  has given the go; see MAP.62).
 
 - [ ] **MAP.126 Show the orbital trajectories of selected objects in their frame of reference**
   Boss (2026-10-07 11:47Z): "Show orbital trajectories for selected
