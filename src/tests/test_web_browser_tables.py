@@ -11,6 +11,7 @@ side in `test_web_system_phen.py` and `test_api_phenomena_table.py`.
 """
 
 import threading
+import time
 from urllib.parse import parse_qs, urlparse
 
 import pytest
@@ -156,8 +157,14 @@ def test_scrolling_brings_in_the_rest_of_the_rows(page, table_site):
     assert page.locator("tbody tr[data-index]").count() < 60
     # Scrolled halfway: rows from the middle pages, fetched on demand.
     scroller.evaluate("el => { el.scrollTop = el.scrollHeight / 2; }")
-    page.locator("tbody tr[data-index]:not(.datatable-pending)").first.wait_for(state="attached")
-    middle = int(page.locator("tbody tr[data-index]:not(.datatable-pending)").first.get_attribute("data-index"))
+    shown = "[...document.querySelectorAll('tbody tr[data-index]:not(.datatable-pending)')].map(tr => +tr.dataset.index)"
+    deadline = time.monotonic() + 10
+    while time.monotonic() < deadline:
+        indexes = page.evaluate(shown)
+        if indexes and 40 < min(indexes) and max(indexes) < TOTAL - 40:
+            break
+        page.wait_for_timeout(100)
+    middle = min(indexes)
     assert 40 < middle < TOTAL - 40
 
 
