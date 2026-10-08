@@ -230,28 +230,27 @@ def test_galaxy_map_and_tiles_show_sectors_the_cli_placed(site, mysql_config):
     assert _placed_ids(site.get(api_tiles_url).get_json()["tiles"][WHOLE_GALAXY_TILE]) == all_ids
 
 
-def test_sector_page_shows_neighbors_the_cli_generated(site, mysql_config):
+def test_sector_map_shows_neighbors_the_cli_generated(site, mysql_config):
+    """The sector page's map draws its neighbors from `/sector/<id>/scene`
+    (MAP.68), cached like a page, so a sector the CLI generated shows
+    once the stamp is checked again."""
     _plan_galaxy(mysql_config)
     _generate(mysql_config, "galaxy", "--ring", "0", "--limit", "1", "--num-systems", "1")
     [first] = _sectors(mysql_config)
-    page_url = f"/sector/{first['id']}"
-    before = site.html(page_url)
-    assert escape(first["name"]) in before
-    site.html(f"/galaxy/tiles?tiles={WHOLE_GALAXY_TILE}")  # so the tile cache's stamp file exists
+    scene_url = f"/sector/{first['id']}/scene"
+    assert escape(first["name"]) in site.html(f"/sector/{first['id']}")
+
+    def linked():
+        return {entry["sectorId"] for entry in site.get(scene_url).get_json()["neighbors"] if entry.get("sectorId")}
+
+    assert linked() == set()
 
     _generate(mysql_config, "galaxy", "--ring", "0", "--num-systems", "1")
     others = [row for row in _sectors(mysql_config) if row["id"] != first["id"]]
     assert len(others) == 2
-
-    def linked(html):
-        return {row["id"] for row in others if re.search(rf"/sector/{row['id']}\b", html)}
-
-    assert linked(before) == set()
-    assert site.html(page_url) == before  # still the cached answer
+    assert linked() == set(), "still the cached answer"
     site.let_stamp_checks_fall_due()
-    after = site.html(page_url)
-    assert after != before
-    assert linked(after) == {row["id"] for row in others}
+    assert linked() == {row["id"] for row in others}
 
 
 def test_sector_and_system_lists_show_cli_sectors_and_systems(site, mysql_config):
