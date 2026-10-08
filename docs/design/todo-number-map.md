@@ -15,7 +15,7 @@ release is stamped.
 |---|---|
 | UX | UX.50 |
 | MAP | MAP.133 |
-| NAV | NAV.50 |
+| NAV | NAV.51 |
 | GEN | GEN.121 |
 | PERF | PERF.31 |
 | DB | DB.15 |
@@ -726,7 +726,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.10 | Routing that scales past a few thousand systems | none | open |
 | NAV.11 | Travel times for the system-to-system route too | none | open |
 | NAV.12 | No maximum hop length: a route always reaches the nearest star it can, across any number of sectors | none | open |
-| NAV.13 | A picker module: select, step out, step in, step sideways | none | open |
+| NAV.13 | A picker module: select, step out, step in, step sideways | none | done, PR #564 |
 | NAV.14 | One breadcrumb for every level | none | open |
 | NAV.15 | Pick mode everywhere | none | open |
 | NAV.16 | NAV endpoints can be any object | none | open |
@@ -763,6 +763,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.47 | Unknown-space jumps stop at scattered stars, black holes, neutron stars and quasars | none | open |
 | NAV.48 | Offer to generate the uncharted sectors that block a course | none | open |
 | NAV.49 | Waypoints: pick objects in Star select mode and plot a course through them, kept on the map until cleared | none | open |
+| NAV.50 | Pick any object down to a moon as a NAV endpoint | none | open |
 | OPS.1 | Build the version number from the category counters (item 80's version-scheme questions) | none (split from 80 by the renumbering) | done in the version-from-todo-counters PR |
 | OPS.2 | Apache OOM-killed on the production server | 1 (2026-09-24 01:32Z to 02:02Z) | done in 5.47.0, PR #72 |
 | OPS.3 | PowerShell installers and macOS-safe bash scripts | 50 (2026-09-30 20:43Z to 2026-10-01 02:57Z) | done in 7.16.0, PR #125 (see note 4) |
