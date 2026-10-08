@@ -1,5 +1,10 @@
 # Changelog
 
+## [7.321.675] - 2026-10-08
+
+### Added
+- A new test bug is on the list: the Admin hub's links fail the contrast check (TEST.105).
+
 ## [7.320.675] - 2026-10-08
 
 ### Changed
