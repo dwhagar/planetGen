@@ -1100,6 +1100,26 @@ def _add_stars_to_sector(mysql_config, sector_id, luminosities):
         conn.close()
 
 
+def test_a_views_star_payload_has_a_stated_cap(client, mysql_config):
+    """MAP.109: the caps on every tile add up to under the stated figure,
+    and a full view (up to 27 tiles) of the fixture galaxy comes back well inside a
+    stated time."""
+    import time
+
+    assert query.galaxy_view_star_cap() <= query.GALAXY_VIEW_MAX_STARS
+    assert query.galaxy_view_star_cap() > query.GALAXY_VIEW_MAX_STARS * 0.9, "tighten the stated figure"
+    _generated_sectors(mysql_config, [0.5, 5.0, 40.0])
+    keys = tiles_intersecting_sphere(9, (60.0, 60.0, 60.0), 130.0)
+    assert 8 <= len(keys) <= query.GALAXY_VIEW_MAX_TILES
+    started = time.monotonic()
+    body = client.get("/api/galaxy/tiles?tiles=" + ",".join(keys)).get_json()
+    elapsed = time.monotonic() - started
+    assert set(body["tiles"]) == set(keys)
+    stars = sum(len(t["stars"]) + len(t["generated"]) for t in body["tiles"].values())
+    assert 0 < stars <= query.GALAXY_VIEW_MAX_STARS
+    assert elapsed < 10.0, f"a 27-tile view took {elapsed:.1f} s"
+
+
 def test_generated_star_budget_shrinks_with_every_coarser_level():
     """MAP.116: one table, each coarser level lists no more than the finer
     one, and the per-sector allowance is the dense/sparse fudge."""
