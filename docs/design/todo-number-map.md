@@ -686,7 +686,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.102 | Galaxy Map streaming with a BVH and 3D tiles, and camera-relative rendering | none | open |
 | MAP.103 | Nebulae don't show on the Galaxy Map or any other map (bug) | none | open |
 | MAP.104 | Nebula shading is missing on unfilled sectors (bug) | none | open |
-| MAP.105 | The nebula view should show its whole shape with the dimmed galaxy around it (bug) | none | open |
+| MAP.105 | The nebula view should show its whole shape with the dimmed galaxy around it (bug) | none | done, PR #590 |
 | MAP.106 | The breadcrumb trail falls out of sync with the map (bug) | none | done, PR #586 |
 | MAP.107 | Selecting an empty slab near the core says "There is no layer x here" (bug) | none | done, PR #537 |
 | MAP.108 | Empty slabs and wedges near the core can't be selected, and the side buttons block clicks (bug) | none | closed, not reproducible; covered by tests (#537, #541, #521) |
@@ -908,7 +908,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.35 | The NAV page route shown horizontally, wrapping onto several lines on narrow screens | none | open |
 | UX.36 | Scientific notation starts too early for whole numbers (bug) | none | done, PR #457 |
 | UX.37 | A UX sweep: remove redundant and duplicate controls so the interface gets out of the way | none | open |
-| UX.38 | The nebula and remnant diagrams' "-" button does nothing at the 1 ly limit (bug) | none | open |
+| UX.38 | The nebula and remnant diagrams' "-" button does nothing at the 1 ly limit (bug) | none | done, PR #590 |
 | UX.39 | Markdown rendered by the markdown library | none | open |
 | UX.40 | Buttons, menus and dialogs from Shoelace web components | none | done, PR #544 |
 | UX.41 | Tables on TanStack Table and TanStack Virtual | none | open |
