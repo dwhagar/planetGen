@@ -799,11 +799,12 @@ export function createStageView(host) {
   }
 
   // A stage's query with what a URL keeps beyond the stage: the NAV pick
-  // (host.pickQuery, "?pick=...") and the kinds of object left off the map
+  // (host.pickQuery(), "?pick=...") and the kinds of object left off the map
   // ("hide=nebula,roguePlanet", MAP.79).
   function withKept(query) {
     const extra = [];
-    if (host.pickQuery) extra.push(host.pickQuery.slice(1));
+    const pickQuery = host.pickQuery ? host.pickQuery() : "";
+    if (pickQuery) extra.push(pickQuery.slice(1));
     const hidden = sectorStage.hiddenKinds();
     if (hidden.length) extra.push("hide=" + hidden.join(","));
     if (!extra.length) return query;
@@ -829,6 +830,17 @@ export function createStageView(host) {
     if (now.length) params.set("hide", now.join(","));
     else params.delete("hide");
     const query = params.toString().replace(/%2C/gi, ",");
+    history.replaceState(history.state, "", location.pathname + (query ? "?" + query : "") + location.hash);
+  }
+
+  // The NAV pick moved on (navpick.js, NAV.29): the URL carries the new one,
+  // in place, so the view stays where it is and a reload keeps the pick.
+  function pickChanged() {
+    const params = new URLSearchParams(location.search);
+    ["pick", "from", "to"].forEach(function (name) { params.delete(name); });
+    const pickQuery = host.pickQuery ? host.pickQuery() : "";
+    new URLSearchParams(pickQuery).forEach(function (value, name) { params.set(name, value); });
+    const query = params.toString().replace(/%2C/gi, ",").replace(/%3A/gi, ":");
     history.replaceState(history.state, "", location.pathname + (query ? "?" + query : "") + location.hash);
   }
 
@@ -1048,7 +1060,7 @@ export function createStageView(host) {
     THREE: THREE, scene: host.scene, camera: camera, canvasEl: canvasEl, picker: picker,
     accentColor: host.accentColor || "#4f5fe8", lightBackground: !!host.lightBackground,
     pixelRatio: host.pixelRatio || function () { return 1; },
-    fetchScene: host.fetchSectorScene, showInfo: host.showInfo || function () {},
+    fetchScene: host.fetchSectorScene, showInfo: host.showInfo || function () {}, navPick: host.navPick || null,
     hideCell: host.hideCell || function () {},
     viewport: host.viewport || null, opened: host.opened, closed: host.closed, kindsChanged: kindsChanged,
     deselected: function () { host.showHint(pinned && host.restingHint ? host.restingHint : hintFor(resolved)); },
@@ -2421,6 +2433,7 @@ export function createStageView(host) {
     kinds: sectorStage.kinds,
     kindHidden: sectorStage.kindHidden,
     setKindHidden: setKindHidden,
+    pickChanged: pickChanged,
     entryByKey: sectorStage.entryByKey,
     selectEntry: sectorStage.select,
     setRoguesMarked: sectorStage.setRoguesMarked,

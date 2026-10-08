@@ -2104,7 +2104,7 @@ def _sector_wiki_content(sector):
     ) or "| *(none)* | | | | |"
     markdown_content = (
         f'# {sector["name"]}\n\n'
-        f'**Cube edge:** {format_distance_ly(sector["edge_ly"])}  \n'
+        f'**Edge:** {format_distance_ly(sector["edge_ly"])}  \n'
         f'**Systems:** {sector["system_count"]}\n\n'
         "## Systems\n\n"
         "| Name | Octant | Binary | Star type | Location |\n"
@@ -2119,7 +2119,7 @@ def _sector_wiki_content(sector):
     ) or "| ''(none)'' ||  ||  ||  || "
     wikitext_content = (
         f'= {sector["name"]} =\n\n'
-        f"'''Cube edge:''' {format_distance_ly(sector['edge_ly'])}\n\n"
+        f"'''Edge:''' {format_distance_ly(sector['edge_ly'])}\n\n"
         f"'''Systems:''' {sector['system_count']}\n\n"
         "== Systems ==\n\n"
         '{| class="wikitable"\n'

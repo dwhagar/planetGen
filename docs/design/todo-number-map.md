@@ -22,7 +22,7 @@ release is stamped.
 | API | API.20 |
 | ADM | ADM.38 |
 | SEC | SEC.32 |
-| TEST | TEST.103 |
+| TEST | TEST.105 |
 | USR | USR.9 |
 | OPS | OPS.28 |
 | DOC | DOC.4 |
@@ -742,11 +742,11 @@ Parents marked "new parent" had no old number of their own.
 | NAV.26 | Bend the path around keep-out spheres | none | open |
 | NAV.27 | Moving bodies inside a system | none | open |
 | NAV.28 | Show and save the adjusted course | none | open |
-| NAV.29 | Replace "Nav from here" and "Nav to here" with "Start Here" and "End Here" while picking (bug) | none | open |
+| NAV.29 | Replace "Nav from here" and "Nav to here" with "Start Here" and "End Here" while picking (bug) | none | done, PR #615 |
 | NAV.30 | Hide "View phenomenon" and "View system" links while picking a course (bug) | none | done, PR #351 |
 | NAV.31 | Galaxy wedges don't highlight on the navigation screens (bug) | none | done, PR #399 |
 | NAV.32 | Every Galaxy and Sector Map control works on the navigation screens (bug) | none | open |
-| NAV.33 | After picking one end of a course, stay at that zoom level (bug) | none | open |
+| NAV.33 | After picking one end of a course, stay at that zoom level (bug) | none | done, PR #615 |
 | NAV.34 | Courses between separately generated areas find no route: the route graph splits into islands (bug) | none | done, PR #427 |
 | NAV.35 | Mark jumps through unknown space in the route | none | merged into NAV.12 (the per-hop flag), PR #346 |
 | NAV.36 | Unknown-space jumps drawn red and glowing | none | open |
@@ -859,7 +859,7 @@ Parents marked "new parent" had no old number of their own.
 | SEC.26 | Two-factor sign-in (TOTP) for admins | none | done, PR #221 |
 | SEC.27 | A fail2ban filter and jail for login brute force (was: a fail2ban recipe in the deployment docs) | none | done, PR #221 |
 | SEC.28 | An always-on log in the standard log location | none | done, PR #217 |
-| SEC.29 | Two-step sign-in on pyotp, QR codes on segno | none | open |
+| SEC.29 | Two-step sign-in on pyotp, QR codes on segno | none | done, PR #612 |
 | SEC.30 | Login and request rate limits on Flask-Limiter with Redis storage | none | open |
 | SEC.31 | Signing in as admin works but shows a "form expired" error (bug) | none | done, PR #457 |
 | USR.1 | User accounts | none | open |
@@ -1108,7 +1108,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.69 | Intermittent failure in the colony test (bug) | none | done, PR #303 |
 | TEST.70 | Tests for the map JavaScript | none | done, PR #351 |
 | TEST.71 | Intermittent failure in the admin planet-regenerate test (bug) | none | done, PR #484 |
-| TEST.72 | Intermittent failure in the two-step (2FA) sign-in test (bug) | none | open |
+| TEST.72 | Intermittent failure in the two-step (2FA) sign-in test (bug) | none | done, PR #612 |
 | TEST.73 | Intermittent failure in the parallel galaxy-run interrupt test (bug) | none | done, PR #371 |
 | TEST.74 | Generation tests at more than one worker | none | done, PR #371 |
 | TEST.75 | Tests for forcing and prevalence | none | done, PR #502 |
@@ -1139,6 +1139,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.100 | test_hover_while_picking_a_slab fails in the full suite (bug) | none | done, PR #549 |
 | TEST.101 | test_interrupting_a_parallel_galaxy_run[2-True] fails in the full suite (bug) | none | done, PR #549 |
 | TEST.102 | test_a_pass_removes_species_stored_without_a_civilization fails now and then in the full suite (bug) | none | done, PR #610 |
+| TEST.103 | test_controls_do_not_overlap[web.sector-600] fails on clean main: controls overlap on the sector page at 600 px (bug) | none | open |
+| TEST.104 | test_system_map_selection_drill_and_measure fails now and then under load (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

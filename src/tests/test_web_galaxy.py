@@ -356,10 +356,11 @@ def test_galaxy_pick_mode_banner_and_sector_links(client, fake):
     assert 'href="/nav?from=system:12"' in banner
     scene = _scene(html)
     assert scene["pick"] == "to"
-    assert scene["sectorUrl"] == "/sector/{id}?pick=to&from=system:12"
-    # The map keeps the pick on its own URLs, and its Bookmarks menu
-    # keeps it too (NAV.40).
-    assert scene["pickQuery"] == "?pick=to&from=system:12"
+    # The page's script (navpick.js) adds the pick to sector links and the
+    # map's own URLs; the page hands it the other end and where Cancel goes.
+    assert scene["sectorUrl"] == "/sector/{id}"
+    assert scene["pickOther"] == "system:12" and scene["pickCancel"] == "/nav?from=system:12"
+    # The Bookmarks menu keeps the pick too (NAV.40).
     menu = re.search(r'<details class="bookmarks-menu" data-bookmarks-menu[^>]*>', html).group(0)
     for attribute in ('data-pick="to"', 'data-keep-name="from"', 'data-keep-value="system:12"', 'data-nav-url="/nav"'):
         assert attribute in menu
@@ -369,8 +370,8 @@ def test_galaxy_pick_mode_for_a_start_without_a_destination(client, fake):
     html = client.get("/galaxy?pick=from").get_data(as_text=True)
     assert "Choosing a start" in html
     scene = _scene(html)
-    assert scene["pick"] == "from"
-    assert scene["sectorUrl"] == "/sector/{id}?pick=from"
+    assert scene["pick"] == "from" and scene["pickOther"] is None
+    assert scene["sectorUrl"] == "/sector/{id}"
 
 
 @pytest.mark.parametrize("query", ["", "?pick=sideways", "?pick=to&from=bogus"])
@@ -378,7 +379,7 @@ def test_galaxy_without_a_valid_pick_has_no_banner(client, fake, query):
     html = client.get("/galaxy" + query).get_data(as_text=True)
     assert "pick-banner" not in html
     scene = _scene(html)
-    assert scene["pick"] is None and scene["pickQuery"] is None
+    assert scene["pick"] is None and scene["pickOther"] is None and scene["pickCancel"] is None
     assert scene["sectorUrl"] == "/sector/{id}"
     assert "data-pick=" not in html
 

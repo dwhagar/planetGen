@@ -664,7 +664,7 @@ the following (all built: MAP.22, with sections 9.1 to 9.4):
 3. **Bookmarks:** a select listing the system and phenomenon bookmarks
    (`nav_page._bookmark_pick`, filled by `static/bookmarks.js`), beside
    the map picks at each step, hidden while there are none it can use.
-   "Use as start" (or destination) goes to `/nav` with that endpoint set
+   "Start Here" (or "End Here") goes to `/nav` with that endpoint set
    and the other one kept; a sector bookmark goes to its system picker
    (`from_sector` / `to_sector`).
 
@@ -672,17 +672,24 @@ the following (all built: MAP.22, with sections 9.1 to 9.4):
 
 Built in 7.58.0 (`web/sector_page.py`, `_pick_mode`).
 `/sector/<id>?pick=to&from=...` shows the same banner. Clicking a
-system or phenomenon adds a **Use as destination** (or start) button to
-its info panel. That button links to
+system or phenomenon adds an **End Here** (or **Start Here**) button to
+its info panel. With the other end already chosen the button links to
 `/nav?from=system:12&to=system:40`, which lands on the plotted course.
-The endpoint strings are `nav_page.endpoint(kind, id)`.
+With none chosen (a pick begun by the NAV page with one end empty, or by
+**Start Here** / **End Here** on a map with no pick on) the button keeps
+the user on the map at the same view and zoom: `static/navpick.js` holds
+the pick, the URL becomes `?pick=to&from=system:12` in place, the banner
+names the end already chosen, and the user zooms out, in and across to
+find the other end with the same picker (NAV.29, NAV.33). Cancel on such
+a pick clears it in place. The endpoint strings are
+`nav_page.endpoint(kind, id)`.
 
 ### 9.2 Nav links from everywhere
 
 System and phenomenon pages, and the Sector Map's info panel, get **Nav
-from here** and **Nav to here**. The NAV page already accepts `to`
-without `from`. Built: the system and phenomenon pages had "Navigate
-from/to here" already, and the Sector Map's panel gained them in 7.58.0.
+from here** and **Nav to here** (the pages), and the maps' panels
+**Start Here** and **End Here** (NAV.29, 9.1). The NAV page already
+accepts `to` without `from`.
 
 ### 9.3 Address bar
 

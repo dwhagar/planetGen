@@ -91,7 +91,7 @@ export function createSectorStage(host) {
           deselect();
           return;
         }
-        host.showInfo(infoSpec(entry, state.data));
+        host.showInfo(infoSpec(entry, state.data, host.navPick));
         state.selectedEntry = entry;
         state.selected = ringAround(selectionRing, entry);
       },
