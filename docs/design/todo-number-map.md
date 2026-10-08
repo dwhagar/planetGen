@@ -1140,7 +1140,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.100 | test_hover_while_picking_a_slab fails in the full suite (bug) | none | done, PR #549 |
 | TEST.101 | test_interrupting_a_parallel_galaxy_run[2-True] fails in the full suite (bug) | none | done, PR #549 |
 | TEST.102 | test_a_pass_removes_species_stored_without_a_civilization fails now and then in the full suite (bug) | none | done, PR #610 |
-| TEST.103 | test_controls_do_not_overlap fails on clean main: controls overlap on the sector page at 600 and 820 px (bug) | none | open |
+| TEST.103 | test_controls_do_not_overlap fails on clean main: controls overlap on the sector page at 600 and 820 px (bug) | none | done, PR #625 |
 | TEST.104 | test_system_map_selection_drill_and_measure fails now and then under load (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
