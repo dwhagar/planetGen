@@ -159,7 +159,7 @@ def test_sector_map_hover_names_what_is_under_the_pointer(page, map_site):
     assert tip.is_visible()
     assert tip.inner_text().startswith(name), tip.inner_text()
     star = page.locator("#galaxymap3d-info .map-info-bookmark")
-    assert star.inner_text() == "☆ Bookmark" and star.is_enabled()
+    assert star.inner_text() == "☆" and star.is_enabled()
     page.mouse.move(box["x"] - 20, box["y"] - 20)
     assert not tip.is_visible(), "leaving the map hides it"
 
@@ -1659,7 +1659,7 @@ def test_galaxy_map_point_phenomena_hover_and_offer_nav_links(page, map_site):
         assert info.locator("h3").inner_text() == name
         endpoint = f'{point["type"]}:{point["id"]}'
         assert [b.inner_text() for b in info.locator(".map-info-actions button:not(.map-info-bookmark)").all()] == ["Start Here", "End Here"]
-        assert info.locator(".map-info-bookmark").inner_text() == "☆ Bookmark"
+        assert info.locator(".map-info-bookmark").inner_text() == "☆"
         info.locator("button", has_text="Start Here").click()
         assert parse_qs(urlparse(page.url).query)["from"] == [endpoint], page.url
         return

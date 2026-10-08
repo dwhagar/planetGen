@@ -16,8 +16,8 @@
   <a class="btn btn-small starmap-pick" href="{{ nav_links.pick }}">{{ nav_links.pickLabel }}</a>
   {%- elif nav_links or galaxy_url %}
   {%- if nav_links %}
-  <a class="btn btn-small nav-wide" href="{{ nav_links.from }}">Navigate from here</a>
-  <a class="btn btn-small nav-wide" href="{{ nav_links.to }}">Navigate to here</a>
+  <a class="btn btn-small btn-secondary nav-wide" href="{{ nav_links.from }}">Navigate from here</a>
+  <a class="btn btn-small btn-secondary nav-wide" href="{{ nav_links.to }}">Navigate to here</a>
   <sl-dropdown class="nav-menu" placement="bottom-start" distance="4">
     <sl-button slot="trigger" size="small" caret>Navigate</sl-button>
     <sl-menu aria-label="Navigate">
@@ -30,7 +30,7 @@
   </sl-dropdown>
   {%- endif %}
   {%- if galaxy_url %}
-  <a class="btn btn-small{% if nav_links %} nav-galaxy{% endif %}" href="{{ galaxy_url }}">Show on Galaxy Map</a>
+  <a class="btn btn-small btn-secondary{% if nav_links %} nav-galaxy{% endif %}" href="{{ galaxy_url }}">Show on Galaxy Map</a>
   {%- endif %}
   {%- endif %}
   {{ bookmark_button(bookmark) }}

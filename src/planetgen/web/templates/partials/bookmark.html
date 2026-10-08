@@ -1,12 +1,12 @@
-{#- planetgen/web/templates/partials/bookmark.html -- the ☆ Bookmark button on
+{#- planetgen/web/templates/partials/bookmark.html -- the ☆ bookmark toggle (icon only, as on the maps) on
 the system, phenomenon and sector pages (MAP.23). `entry` is
 web.helpers.bookmark(...). static/bookmarks.js wires it (shows it, saves
 or removes the entry, and turns it into ★ Bookmarked while saved); with
 no script it stays hidden, since bookmarks live in the browser. -#}
 {%- macro bookmark_button(entry) -%}
-<button type="button" class="btn btn-small btn-bookmark" data-bookmark-toggle data-bookmark-db="{{ entry.db }}"
+<button type="button" class="btn btn-small btn-secondary btn-bookmark" data-bookmark-toggle data-bookmark-db="{{ entry.db }}"
         data-bookmark-kind="{{ entry.kind }}" data-bookmark-value="{{ entry.value }}"
         data-bookmark-name="{{ entry.name }}" data-bookmark-url="{{ entry.url }}"
         {%- if entry.sector_id is not none %} data-bookmark-sector-id="{{ entry.sector_id }}"{% endif %}
-        aria-pressed="false" hidden>☆ Bookmark</button>
+        aria-pressed="false" hidden>☆</button>
 {%- endmacro -%}
