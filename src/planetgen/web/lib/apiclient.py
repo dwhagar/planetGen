@@ -520,27 +520,40 @@ def get_territories(db):
     return _request("/territories", {"db": db})
 
 
-def get_polities(db, limit=None, offset=None):
+def get_polities(db, limit=None, offset=None, sort=None, descending=False, governments=(), eras=(),
+                 facets=False):
     """Returns `GET /api/polities`' paginated envelope (`items`/`total`/
-    `limit`/`offset`), polities by name."""
+    `limit`/`offset`, plus `facets` when asked), polities by name unless
+    `sort`ed; `governments` and `eras` filter (the Polities table, UX.41)."""
     _require_db(db)
-    return _request("/polities", {"db": db, "limit": limit, "offset": offset})
+    params = [("db", db), ("limit", limit), ("offset", offset), ("sort", sort),
+              ("order", "desc" if descending else None)]
+    params += [("government", value) for value in governments] + [("era", value) for value in eras]
+    params.append(("facets", "1" if facets else None))
+    return _request("/polities", [(key, value) for key, value in params if value is not None])
 
 
-def get_polity(db, polity_id, limit=None, offset=None):
+def get_polity(db, polity_id, limit=None, offset=None, sort=None, descending=False):
     """Returns `GET /api/polities/<id>`: one polity plus a page of its
-    `systems` (nearest the capital first). Raises `NotFoundError` for an
-    unknown polity."""
+    `systems` (nearest the capital first, or `sort`ed by `name`/`distance`).
+    Raises `NotFoundError` for an unknown polity."""
     _require_db(db)
-    return _request(f"/polities/{int(polity_id)}", {"db": db, "limit": limit, "offset": offset})
+    params = [("db", db), ("limit", limit), ("offset", offset), ("sort", sort),
+              ("order", "desc" if descending else None)]
+    return _request(f"/polities/{int(polity_id)}", [(key, value) for key, value in params if value is not None])
 
 
-def get_species_list(db, spacefaring=None, limit=None, offset=None):
-    """Returns `GET /api/species`' paginated envelope, species by name;
-    `spacefaring` (`True`/`False`) filters, `None` lists every one."""
+def get_species_list(db, spacefaring=None, limit=None, offset=None, sort=None, descending=False, eras=(),
+                     facets=False):
+    """Returns `GET /api/species`' paginated envelope, species by name unless
+    `sort`ed; `spacefaring` (`True`/`False`) and `eras` filter, `None` lists
+    every one (the Species table, UX.41)."""
     _require_db(db)
     flag = None if spacefaring is None else ("1" if spacefaring else "0")
-    return _request("/species", {"db": db, "spacefaring": flag, "limit": limit, "offset": offset})
+    params = [("db", db), ("spacefaring", flag), ("limit", limit), ("offset", offset), ("sort", sort),
+              ("order", "desc" if descending else None)]
+    params += [("era", value) for value in eras] + [("facets", "1" if facets else None)]
+    return _request("/species", [(key, value) for key, value in params if value is not None])
 
 
 def get_species(db, species_id):

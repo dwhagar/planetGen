@@ -4,6 +4,7 @@
     pager pages through. With scripts on, datatable.js takes the same markup
     over (it hides the pager and fetches rows as they scroll into view). -#}
 {% macro cell(c) -%}
+{%- if c.swatch %}<svg class="polity-swatch" viewBox="0 0 10 10" aria-hidden="true" focusable="false"><rect width="10" height="10" fill="{{ c.swatch }}"/></svg> {% endif -%}
 {%- if c.href %}<a href="{{ c.href }}">{{ c.text }}</a>{% elif c.muted %}<em>{{ c.text }}</em>{% else %}{{ c.text }}{% endif -%}
 {%- endmacro %}
 {% macro datatable(t) %}

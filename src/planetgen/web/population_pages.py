@@ -4,11 +4,13 @@
 The population pages (POP.1 to POP.4), read from the population API
 (`api/population.py`, schema v44):
 
-- `/species`: every species, 50 a page, `?spacefaring=1|0` to filter.
+- `/species`: every species, a data table (UX.41) that sorts and filters
+  by spacefaring and era.
 - `/species/<id>`: one species: its homeworld, body plan, era and polity.
-- `/polities`: every polity, 50 a page.
-- `/polities/<id>`: one polity and the systems it owns, nearest its
-  capital first.
+- `/polities`: every polity, a data table that sorts and filters by
+  government and era.
+- `/polities/<id>`: one polity and the systems it owns (a data table,
+  nearest its capital first).
 
 None of them exists until a population pass has made species (or, for
 the polity pages, polities): before that each is a 404 and the header
@@ -19,18 +21,10 @@ from flask import abort, request
 
 from planetgen.web.lib import apiclient
 from planetgen.web.lib.fmt import format_number
-from planetgen.web.lib.pagination import fetch_page, parse_page
+from planetgen.web.lib.datatable import Column, Facet, Result, Table
 
-from . import bp
-from .helpers import crumb, db_name, page_url, pager, population_status, render_page
-
-SPACEFARING_FILTERS = (
-    # (value of ?spacefaring=, label, API filter)
-    (None, "All", None),
-    ("1", "Spacefaring", True),
-    ("0", "Not spacefaring", False),
-)
-"""tuple: The Species list's filter links."""
+from . import bp, tables
+from .helpers import crumb, db_name, page_url, population_status, render_page
 
 
 def _label(value):
@@ -80,40 +74,70 @@ def _species_row(item):
     }
 
 
-def _parse_spacefaring(raw):
-    for value, _label_text, flag in SPACEFARING_FILTERS:
-        if raw == value:
-            return value, flag
-    return None, None
+def _link_cell(text, href):
+    return {"text": text, "href": href} if href else {"text": text}
+
+
+def _species_cells(item):
+    row = _species_row(item)
+    return [
+        _link_cell(row["name"], row["url"]),
+        {"text": row["homeworld"] or ""},
+        _link_cell(row["system"] or "", row["system_url"]),
+        {"text": row["era"] or "\u2013"},
+        {"text": "Yes" if row["spacefaring"] else "No"},
+        _link_cell(row["polity"], row["polity_url"]) if row["polity"] else {"text": "\u2013"},
+    ]
+
+
+_SPACEFARING_LABELS = {"yes": "Spacefaring", "no": "Not spacefaring"}
+
+
+def _one_flag(values):
+    """The API's `spacefaring` flag for `yes`/`no` menu choices: one choice filters, none or both don't."""
+    chosen = {value for value in values if value in _SPACEFARING_LABELS}
+    return None if len(chosen) != 1 else chosen == {"yes"}
+
+
+def _options(options, labels=None):
+    return [{"value": option["value"], "label": (labels or {}).get(option["value"]) or _label(option["value"]),
+             "count": option["count"]} for option in options]
+
+
+def _species_load(state, limit, offset, want_facets):
+    envelope = apiclient.get_species_list(
+        db_name(), spacefaring=_one_flag(state.filters["spacefaring"]), limit=limit, offset=offset,
+        sort=state.sort, descending=state.descending, eras=state.filters["era"], facets=want_facets)
+    facets = None
+    if want_facets:
+        facets = {"spacefaring": _options(envelope["facets"]["spacefaring"], _SPACEFARING_LABELS),
+                  "era": _options(envelope["facets"]["era"])}
+    return Result([_species_cells(item) for item in envelope["items"]], envelope["total"], facets)
+
+
+SPECIES_TABLE = tables.register(Table(
+    "species", "Species",
+    [Column("name", "Name"), Column("homeworld", "Homeworld"), Column("system", "System"), Column("era", "Era"),
+     Column("spacefaring", "Spacefaring"), Column("polity", "Polity")],
+    _species_load, facets=[Facet("spacefaring", "Spacefaring"), Facet("era", "Era")], prefix="species_",
+    noun=("species", "species"),
+))
 
 
 @bp.route("/species")
 def species():
-    """Every species, by name."""
+    """Every species, as a data table."""
     _require("species")
-    db = db_name()
-    spacefaring, flag = _parse_spacefaring(request.args.get("spacefaring"))
-    envelope, page = fetch_page(
-        lambda limit, offset: apiclient.get_species_list(db, spacefaring=flag, limit=limit, offset=offset),
-        parse_page(request.args.get("species_page")),
-    )
-    filters = [{
-        "label": label,
-        "url": page_url("species", spacefaring=value),
-        "current": value == spacefaring,
-    } for value, label, _flag in SPACEFARING_FILTERS]
     status = population_status()
+    view = tables.render(SPECIES_TABLE, request.path, anchor="species")
     return render_page(
         "species_list.html",
         title="Species",
         section="species",
         breadcrumbs=[crumb("Species")],
         description="Every species this generated galaxy has, from life worlds to spacefaring civilizations.",
-        rows=[_species_row(item) for item in envelope["items"]],
-        total=envelope["total"],
-        filters=filters,
-        pager=pager("species_page", page, envelope["total"], anchor="species", label="Species pages",
-                    keep={"spacefaring": spacefaring}),
+        table=view,
+        total=view["total"],
         polities_url=page_url("polities") if status.get("polities") else None,
     )
 
@@ -166,46 +190,85 @@ def _polity_row(item):
     }
 
 
+def _polity_cells(item):
+    row = _polity_row(item)
+    return [
+        {**_link_cell(row["name"], row["url"]), **({"swatch": row["color"]} if row["color"] else {})},
+        _link_cell(row["species"] or "", row["species_url"]),
+        {"text": row["government"] or ""},
+        _link_cell(row["capital"] or "", row["capital_url"]),
+        {"text": format_number(row["systems"])},
+        {"text": row["reach"]},
+    ]
+
+
+def _polities_load(state, limit, offset, want_facets):
+    envelope = apiclient.get_polities(
+        db_name(), limit=limit, offset=offset, sort=state.sort, descending=state.descending,
+        governments=state.filters["government"], eras=state.filters["era"], facets=want_facets)
+    facets = None
+    if want_facets:
+        facets = {"government": _options(envelope["facets"]["government"]),
+                  "era": _options(envelope["facets"]["era"])}
+    return Result([_polity_cells(item) for item in envelope["items"]], envelope["total"], facets)
+
+
+POLITIES_TABLE = tables.register(Table(
+    "polities", "Polities",
+    [Column("name", "Name"), Column("species", "Species"), Column("government", "Government"),
+     Column("capital", "Capital"), Column("systems", "Systems"), Column("reach", "Reach")],
+    _polities_load, facets=[Facet("government", "Government"), Facet("era", "Era")], prefix="polities_",
+    noun=("polity", "polities"),
+))
+
+
 @bp.route("/polities")
 def polities():
-    """Every polity, by name."""
+    """Every polity, as a data table."""
     _require("polities")
-    db = db_name()
-    envelope, page = fetch_page(
-        lambda limit, offset: apiclient.get_polities(db, limit=limit, offset=offset),
-        parse_page(request.args.get("polities_page")),
-    )
+    view = tables.render(POLITIES_TABLE, request.path, anchor="polities")
     return render_page(
         "polities.html",
         title="Polities",
         section="species",
         breadcrumbs=[crumb("Species", "species"), crumb("Polities")],
         description="Every interstellar polity in this generated galaxy.",
-        rows=[_polity_row(item) for item in envelope["items"]],
-        total=envelope["total"],
-        pager=pager("polities_page", page, envelope["total"], anchor="polities", label="Polity pages"),
+        table=view,
+        total=view["total"],
         territories=population_status().get("territories"),
     )
 
 
-@bp.route("/polities/<int:polity_id>")
-def polity_page(polity_id):
-    """One polity and the systems it owns, nearest its capital first."""
-    _require("polities")
-    db = db_name()
-    page = parse_page(request.args.get("systems_page"))
+def _polity_systems_load(state, limit, offset, want_facets):
+    """The systems a polity owns (its id is the page's, or the table route's `polity`)."""
+    polity_id = request.view_args.get("polity_id") or request.args.get("polity", type=int)
     try:
-        envelope, page = fetch_page(
-            lambda limit, offset: _polity_envelope(db, polity_id, limit, offset), page,
-        )
+        item = apiclient.get_polity(db_name(), polity_id, limit=limit, offset=offset, sort=state.sort,
+                                    descending=state.descending)
     except apiclient.NotFoundError:
         abort(404)
-    item = envelope["polity"]
-    systems = [{
-        "name": system["name"],
-        "url": _system_url(system["id"]),
-        "distance": format_ly(system.get("distance_ly")),
-    } for system in envelope["items"]]
+    rows = [[_link_cell(system["name"], _system_url(system["id"])),
+             {"text": format_ly(system.get("distance_ly"))}] for system in item["systems"]]
+    return Result(rows, item.get("system_count") or 0, None)
+
+
+POLITY_SYSTEMS_TABLE = tables.register(Table(
+    "polity-systems", "Systems",
+    [Column("name", "System"), Column("distance", "From the capital")],
+    _polity_systems_load, prefix="systems_", default_sort="distance", noun=("system", "systems"),
+))
+
+
+@bp.route("/polities/<int:polity_id>")
+def polity_page(polity_id):
+    """One polity and the systems it owns, as a data table, nearest its capital first."""
+    _require("polities")
+    db = db_name()
+    try:
+        item = apiclient.get_polity(db, polity_id, limit=1, offset=0)
+    except apiclient.NotFoundError:
+        abort(404)
+    view = tables.render(POLITY_SYSTEMS_TABLE, request.path, anchor="polity-systems", polity=polity_id)
     return render_page(
         "polity.html",
         title=item["name"],
@@ -213,15 +276,6 @@ def polity_page(polity_id):
         breadcrumbs=[crumb("Species", "species"), crumb("Polities", "polities"), crumb(item["name"])],
         description=f"{item['name']}, a polity of this generated galaxy, and the systems it holds.",
         polity=_polity_row(item),
-        systems=systems,
-        total=envelope["total"],
-        pager=pager("systems_page", page, envelope["total"], anchor="polity-systems", label="System pages"),
+        table=view,
         territories=population_status().get("territories"),
     )
-
-
-def _polity_envelope(db, polity_id, limit, offset):
-    """`GET /api/polities/<id>` as the pager's envelope: its systems are
-    the `items`, its owned-system count the `total`."""
-    item = apiclient.get_polity(db, polity_id, limit=limit, offset=offset)
-    return {"items": item["systems"], "total": item.get("system_count") or 0, "polity": item}

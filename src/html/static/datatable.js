@@ -29,6 +29,7 @@ const { formatNumber } = await import(`./numberformat.js${VERSION_QUERY}`);
 
 const ROW_HEIGHT_ESTIMATE = 37;
 const OVERSCAN = 8;
+const SVG_NS = "http://www.w3.org/2000/svg";
 
 function el(tag, className, text) {
   const node = document.createElement(tag);
@@ -48,6 +49,20 @@ function cellNode(cell) {
     td.className = "datatable-pending";
     td.textContent = "…";
     return td;
+  }
+  if (cell.swatch) {
+    // A polity's map color: a small square, as the page draws it with no scripts.
+    const svg = document.createElementNS(SVG_NS, "svg");
+    svg.setAttribute("class", "polity-swatch");
+    svg.setAttribute("viewBox", "0 0 10 10");
+    svg.setAttribute("aria-hidden", "true");
+    svg.setAttribute("focusable", "false");
+    const square = document.createElementNS(SVG_NS, "rect");
+    square.setAttribute("width", "10");
+    square.setAttribute("height", "10");
+    square.setAttribute("fill", cell.swatch);
+    svg.append(square);
+    td.append(svg, " ");
   }
   if (cell.href) {
     const link = el("a", "", cell.text);
@@ -135,7 +150,7 @@ function enhance(root) {
   let wantFacets = true;
   const store = createPageStore(PAGE_SIZE, (page) => {
     const withFacets = page === 0 && wantFacets;
-    return fetch(`${source}?${dataQuery(currentState(), page * PAGE_SIZE, PAGE_SIZE, withFacets)}`,
+    return fetch(`${source}${source.includes("?") ? "&" : "?"}${dataQuery(currentState(), page * PAGE_SIZE, PAGE_SIZE, withFacets)}`,
       { headers: { Accept: "application/json" } }).then((response) => {
       if (!response.ok) {
         throw new Error(`table ${response.status}`);
