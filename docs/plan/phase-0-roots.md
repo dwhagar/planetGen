@@ -38,6 +38,7 @@ Done: all eight items landed in PR #442 (2026-10-07).
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
+| MAP.133 | The Galaxy Map shows no bright stars in the bulge, and only layers -121 to 121 (bug) |  | Bugfixes lane. Per-population sampling plus a bright_stars index and migration. |
 
 ### Bugfixes: prevalence
 
