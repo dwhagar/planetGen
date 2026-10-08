@@ -22,7 +22,7 @@ release is stamped.
 | API | API.20 |
 | ADM | ADM.38 |
 | SEC | SEC.32 |
-| TEST | TEST.98 |
+| TEST | TEST.102 |
 | USR | USR.9 |
 | OPS | OPS.28 |
 | DOC | DOC.4 |
@@ -691,7 +691,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.108 | Empty slabs and wedges near the core can't be selected, and the side buttons block clicks (bug) | none | open |
 | MAP.109 | Zooming in and out loads slowly (bug) | none | open |
 | MAP.110 | Slab button lines come out of numerical order (bug) | none | done, PR #520 |
-| MAP.111 | "Generated only" should be "Charted only" and dim the stars too (bug) | none | open |
+| MAP.111 | "Generated only" should be "Charted only" and dim the stars too (bug) | none | done, PR #531 |
 | MAP.112 | Nothing can be selected while "Generated only" is on (bug) | none | open |
 | MAP.113 | A nebula covering the whole sector can't be unselected, and nebulae need a show/hide toggle (bug) | none | open |
 | MAP.114 | The Sector Map's Reset view leaves the picture unchanged (bug) | none | done, PR #442 |
@@ -1106,6 +1106,10 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.95 | test_stabilize_lunar_system_respaces_crowded_moons keeps only one moon in the full suite (bug) | none | open |
 | TEST.96 | test_galaxy_map_camera_presets_at_each_zoom_step fails in the full suite (bug) | none | open |
 | TEST.97 | test_class_change_regenerates_surface_conditions raises StopIteration in the full suite (bug) | none | open |
+| TEST.98 | test_scale_line_follows_the_zoom fails in the full suite (bug) | none | open |
+| TEST.99 | test_slab_buttons_have_lines_that_follow_the_view fails in the full suite (bug) | none | open |
+| TEST.100 | test_hover_while_picking_a_slab fails in the full suite (bug) | none | open |
+| TEST.101 | test_interrupting_a_parallel_galaxy_run[2-True] fails in the full suite (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
