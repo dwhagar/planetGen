@@ -61,24 +61,16 @@ const { formatDistancePc, LIGHTYEAR_M, PARSEC_M } = await import(`./distance.js$
 const { formatNumber } = await import(`./numberformat.js${VERSION_QUERY}`);
 const { boostLight, starLightBoost } = await import(`./starlight.js${VERSION_QUERY}`);
 const {
-  addField, cssVar, fitRendererToCanvas, formatAddress, isLightBackground, makeRingTexture, nearestOnScreen,
+  cssVar, fitRendererToCanvas, formatAddress, isLightBackground, makeRingTexture,
   niceScaleValue, readSceneData, watchResize, worldUnitsPerPixel,
 } = await import(`./mapcore.js${VERSION_QUERY}`);
 const { blockGenerateButtons, generateButtons } = await import(`./generatebuttons.js${VERSION_QUERY}`);
+const { createPicker, createRing, endpointBookmark, infoPanelOf } = await import(`./mappick.js${VERSION_QUERY}`);
 
 var canvas = document.getElementById("galaxymap3d-canvas");
 var dataEl = document.getElementById("galaxymap3d-data");
 
 var sceneData = readSceneData(dataEl);
-
-// A plain <a href> link (GET, bookmarkable, opens in a new tab).
-function pageLink(href, label) {
-  var link = document.createElement("a");
-  link.href = href;
-  link.className = "btn";
-  link.textContent = label;
-  return link;
-}
 
 // The sector page's URL: the server's template (sceneData.sectorUrl,
 // built with page_url so it follows the sector page wherever it lives)
@@ -91,17 +83,18 @@ export { formatAddress };
 
 // The map's control buttons (planetgen/web/maps/galaxymap3d.py's panel), by their
 // data-action: what each does, given the map's own parts in `ctx`
-// ({stageView, setTerritories(on, button), territoriesWanted()}). A button whose action isn't here does nothing.
+// ({stageView, setTerritories(on, button), territoriesWanted(),
+// setChartedOnly(on)}). A button whose action isn't here does nothing.
 export function mapControlHandlers(ctx) {
   return {
     "territories": function (button) {
       ctx.setTerritories(button.getAttribute("aria-pressed") !== "true", button);
       button.setAttribute("aria-pressed", String(ctx.territoriesWanted()));
     },
-    "generated-only": function (button) {
+    "charted-only": function (button) {
       var on = button.getAttribute("aria-pressed") !== "true";
       button.setAttribute("aria-pressed", String(on));
-      ctx.stageView.setGeneratedOnly(on);
+      ctx.setChartedOnly(on);
     },
     "back": function () { ctx.stageView.travel(-1); },
     "forward": function () { ctx.stageView.travel(1); },
@@ -142,30 +135,47 @@ export function wireMapControls(controlsEl, handlers) {
 }
 
 // --- Info panel ----------------------------------------------------------
+//
+// The panel is mappick.js's, shared with the Sector Map (MAP.65); these
+// say what goes in it.
+
+function infoPanel() {
+  return infoPanelOf(document.getElementById("galaxymap3d-info"));
+}
+
+function showInfo(spec) {
+  var panel = infoPanel();
+  if (panel) {
+    panel.show(spec);
+  }
+}
+
+// A generated sector's ☆ entry: its designation, opening its page.
+function sectorBookmark(entry) {
+  if (!entry.designation) {
+    return null;
+  }
+  return {
+    kind: "sector", value: entry.designation, name: entry.name || "Sector " + entry.designation,
+    url: entry.id != null && sceneData.sectorUrl ? sectorUrl(entry.id).split("?")[0] : null,
+    sectorId: entry.id != null ? entry.id : null,
+  };
+}
 
 function showPlacedInfo(entry) {
-  var panel = document.getElementById("galaxymap3d-info");
-  if (!panel) {
-    return;
-  }
-  panel.textContent = "";
-
-  var heading = document.createElement("h3");
-  heading.textContent = entry.name || "Unnamed sector";
-  panel.appendChild(heading);
-
   var relativeDensity = placedRelativeDensity(entry, sceneData.referenceDensityPerLy3);
-
-  var dl = document.createElement("dl");
-  addField(dl, "Systems", entry.system_count != null ? entry.system_count : 0);
-  addField(dl, "Density", relativeDensity != null ? relativeDensity.toFixed(2) + "× local average" : null);
-  addField(dl, "Distance from core", entry.galactic_radius_pc != null ? Math.round(entry.galactic_radius_pc) + " pc" : null);
-  addField(dl, "Address", entry.ring_index != null ? formatAddress(entry.ring_index, entry.layer_index, entry.ring_slot_index) : null);
-  addField(dl, "Designation", entry.designation);
-  panel.appendChild(dl);
-  if (sceneData.sectorUrl && entry.id != null) {
-    panel.appendChild(pageLink(sectorUrl(entry.id), "View sector →"));
-  }
+  showInfo({
+    title: entry.name || "Unnamed sector",
+    fields: [
+      ["Systems", entry.system_count != null ? entry.system_count : 0],
+      ["Density", relativeDensity != null ? relativeDensity.toFixed(2) + "× local average" : null],
+      ["Distance from core", entry.galactic_radius_pc != null ? Math.round(entry.galactic_radius_pc) + " pc" : null],
+      ["Address", entry.ring_index != null ? formatAddress(entry.ring_index, entry.layer_index, entry.ring_slot_index) : null],
+      ["Designation", entry.designation],
+    ],
+    bookmark: sectorBookmark(entry),
+    links: sceneData.sectorUrl && entry.id != null ? [{ href: sectorUrl(entry.id), label: "View sector →" }] : [],
+  });
 }
 
 // A share as a percentage, never rounding a nonzero one down to 0%.
@@ -193,54 +203,43 @@ export function sectorDesignation(ring, layer, slot) {
 // sectors in it) when it came from the drawn blocks. A generated sector's
 // own panel is showPlacedInfo.
 function showCellInfo(cell) {
-  var panel = document.getElementById("galaxymap3d-info");
-  if (!panel) {
-    return;
-  }
-  panel.textContent = "";
   var b = cell.bounds;
   var single = cell.m === 1;
-
-  var heading = document.createElement("h3");
-  heading.textContent = single ? "Sector cell" : "Sector block (" + cell.m + " sectors a side)";
-  panel.appendChild(heading);
-
-  var dl = document.createElement("dl");
+  var fields = [];
   if (single) {
     var a = cell.address;
-    addField(dl, "Address", formatAddress(a.ring, a.layer, a.slot));
-    addField(dl, "Designation", sectorDesignation(a.ring, a.layer, a.slot));
+    fields.push(["Address", formatAddress(a.ring, a.layer, a.slot)]);
+    fields.push(["Designation", sectorDesignation(a.ring, a.layer, a.slot)]);
     if (cell.filled != null) {
-      addField(dl, "Generated", cell.filled > 0 ? "Yes" : "Not yet");
+      fields.push(["Generated", cell.filled > 0 ? "Yes" : "Not yet"]);
     }
   } else {
     var ranges = blockSectorRanges(cell.ring, cell.slab, cell.m);
-    addField(dl, "Rings", ranges.ringFirst + "–" + ranges.ringLast);
-    addField(dl, "Layers", ranges.layerFirst + "–" + ranges.layerLast);
+    fields.push(["Rings", ranges.ringFirst + "–" + ranges.ringLast]);
+    fields.push(["Layers", ranges.layerFirst + "–" + ranges.layerLast]);
     // Slot numbers restart in every ring, so give the innermost and
     // outermost member rings' ranges.
     [ranges.ringFirst, ranges.ringLast].forEach(function (ring) {
       var slots = blockSlotRange(cell.ring, cell.seg, cell.m, ring);
-      addField(dl, "Slots in ring " + ring, slots.first + "–" + slots.last);
+      fields.push(["Slots in ring " + ring, slots.first + "–" + slots.last]);
     });
     var total = blockSectorCount(cell.ring, cell.seg, cell.slab, cell.m, cell.edgePc, cell.shape);
-    addField(dl, "Sectors", formatNumber(total));
+    fields.push(["Sectors", formatNumber(total)]);
     if (cell.filled != null) {
-      addField(dl, "Generated", formatNumber(cell.filled) + (cell.filled > 0 && total > 0 ? " (" + formatShare(cell.filled / total) + ")" : ""));
+      fields.push(["Generated", formatNumber(cell.filled) + (cell.filled > 0 && total > 0 ? " (" + formatShare(cell.filled / total) + ")" : "")]);
     }
   }
   if (cell.density != null) {
-    addField(dl, "Predicted density", cell.density.toFixed(2) + "× local average");
+    fields.push(["Predicted density", cell.density.toFixed(2) + "× local average"]);
   }
   var coords = cellCoordinates(b);
   var c = coords.cartesian;
-  addField(dl, "Center x, y, z", c.map(function (v) { return v.toFixed(1); }).join(", ") + " pc");
-  addField(dl, "Cylindrical R, θ, z", coords.cylindrical[0].toFixed(1) + " pc, " + formatDeg(coords.cylindrical[1]) + ", " + coords.cylindrical[2].toFixed(1) + " pc");
-  addField(dl, "Spherical r, θ, φ", coords.spherical[0].toFixed(1) + " pc, " + formatDeg(coords.spherical[1]) + ", " + formatDeg(coords.spherical[2]));
-  addField(dl, "Radial width", formatDistancePc(b.r1 - b.r0));
-  addField(dl, "Height", formatDistancePc(b.z1 - b.z0));
-  addField(dl, "Mean arc length", formatDistancePc(((b.r0 + b.r1) / 2) * (b.t1 - b.t0)));
-  panel.appendChild(dl);
+  fields.push(["Center x, y, z", c.map(function (v) { return v.toFixed(1); }).join(", ") + " pc"]);
+  fields.push(["Cylindrical R, θ, z", coords.cylindrical[0].toFixed(1) + " pc, " + formatDeg(coords.cylindrical[1]) + ", " + coords.cylindrical[2].toFixed(1) + " pc"]);
+  fields.push(["Spherical r, θ, φ", coords.spherical[0].toFixed(1) + " pc, " + formatDeg(coords.spherical[1]) + ", " + formatDeg(coords.spherical[2])]);
+  fields.push(["Radial width", formatDistancePc(b.r1 - b.r0)]);
+  fields.push(["Height", formatDistancePc(b.z1 - b.z0)]);
+  fields.push(["Mean arc length", formatDistancePc(((b.r0 + b.r1) / 2) * (b.t1 - b.t0))]);
 
   var corners = document.createElement("details");
   var summary = document.createElement("summary");
@@ -254,15 +253,17 @@ function showCellInfo(cell) {
     list.appendChild(item);
   });
   corners.appendChild(list);
-  panel.appendChild(corners);
 
   // A sector that isn't generated yet: for a logged-in admin
   // (sceneData.generate, set by planetgen/web/maps/galaxymap3d.py only then), the same
   // Generate buttons the Sector Map gives a neighbor.
-  if (single && !(cell.filled > 0) && sceneData.generate) {
-    panel.appendChild(generateButtons(sceneData.generate, cell.address.ring, cell.address.layer, cell.address.slot,
-      sceneData.edgeLy));
-  }
+  var generate = single && !(cell.filled > 0) && sceneData.generate
+    ? generateButtons(sceneData.generate, cell.address.ring, cell.address.layer, cell.address.slot, sceneData.edgeLy)
+    : null;
+  showInfo({
+    title: single ? "Sector cell" : "Sector block (" + cell.m + " sectors a side)",
+    fields: fields, after: [corners], generate: generate,
+  });
 }
 
 // A drill-down block's info (galaxystageview.js): its rings, layers and
@@ -271,68 +272,43 @@ function showCellInfo(cell) {
 // (stages 7-8, admins only) adds the block's Generate buttons.
 // `info.hint` goes under it.
 function showBlockInfo(info, edgePc) {
-  var panel = document.getElementById("galaxymap3d-info");
-  if (!panel) {
-    return;
-  }
-  panel.textContent = "";
   var block = info.block;
   var b = drillBlockBounds(block, edgePc);
-  var heading = document.createElement("h3");
-  heading.textContent = "Block " + block.ring + "·" + block.wedge + " (" + block.m + " sectors a side)";
-  panel.appendChild(heading);
   var half = (block.m - 1) / 2;
   var ringFirst = block.ring * block.m;
   var ringLast = ringFirst + block.m - 1;
-  var dl = document.createElement("dl");
-  addField(dl, "Rings", ringFirst + "–" + ringLast);
-  addField(dl, "Layers", (block.slab * block.m - half) + "–" + (block.slab * block.m + half));
+  var fields = [["Rings", ringFirst + "–" + ringLast], ["Layers", (block.slab * block.m - half) + "–" + (block.slab * block.m + half)]];
   [ringFirst, ringLast].forEach(function (ring) {
     var slots = drillSlotRange(block, ring);
-    addField(dl, "Slots in ring " + ring, slots.first + "–" + slots.last);
+    fields.push(["Slots in ring " + ring, slots.first + "–" + slots.last]);
   });
   if (info.total != null) {
-    addField(dl, "Sectors", formatNumber(info.total));
+    fields.push(["Sectors", formatNumber(info.total)]);
   }
   if (info.generated != null) {
-    addField(dl, "Generated", formatNumber(info.generated)
-      + (info.generated > 0 && info.total > 0 ? " (" + formatShare(info.generated / info.total) + ")" : ""));
+    fields.push(["Generated", formatNumber(info.generated)
+      + (info.generated > 0 && info.total > 0 ? " (" + formatShare(info.generated / info.total) + ")" : "")]);
   }
   var coords = cellCoordinates(b);
-  addField(dl, "Center x, y, z", coords.cartesian.map(function (v) { return v.toFixed(1); }).join(", ") + " pc");
-  addField(dl, "Distance from core", formatDistancePc((b.r0 + b.r1) / 2));
-  panel.appendChild(dl);
-  if (info.enter) {
-    var enter = document.createElement("button");
-    enter.type = "button";
-    enter.className = "btn";
-    enter.textContent = "Fly into this block →";
-    enter.addEventListener("click", info.enter);
-    panel.appendChild(enter);
-  }
-  // Stages 7-8 for an admin: generate the block, or the layer shown.
-  if (info.generate && sceneData.generate) {
-    panel.appendChild(blockGenerateButtons(sceneData.generate, info.generate));
-  }
-  if (info.hint) {
-    showHint(info.hint, true);
-  }
+  fields.push(["Center x, y, z", coords.cartesian.map(function (v) { return v.toFixed(1); }).join(", ") + " pc"]);
+  fields.push(["Distance from core", formatDistancePc((b.r0 + b.r1) / 2)]);
+  showInfo({
+    title: "Block " + block.ring + "·" + block.wedge + " (" + block.m + " sectors a side)",
+    fields: fields,
+    buttons: info.enter ? [{ label: "Fly into this block →", onClick: info.enter }] : [],
+    // Stages 7-8 for an admin: generate the block, or the layer shown.
+    generate: info.generate && sceneData.generate ? blockGenerateButtons(sceneData.generate, info.generate) : null,
+    hint: info.hint,
+  });
 }
 
 // A hint paragraph in the info panel: replacing what's there, or (keep)
 // under it.
 function showHint(text, keep) {
-  var panel = document.getElementById("galaxymap3d-info");
-  if (!panel) {
-    return;
+  var panel = infoPanel();
+  if (panel) {
+    panel.hint(text, keep);
   }
-  if (!keep) {
-    panel.textContent = "";
-  }
-  var hint = document.createElement("p");
-  hint.className = "hint";
-  hint.textContent = text;
-  panel.appendChild(hint);
 }
 
 // --- Clouds: nebulae and supernova remnants --------------------------------
@@ -370,26 +346,51 @@ function phenomenonUrl(cloud) {
     .replace("{id}", encodeURIComponent(cloud.id));
 }
 
-function showCloudInfo(cloud) {
-  var panel = document.getElementById("galaxymap3d-info");
-  if (!panel) {
-    return;
-  }
-  panel.textContent = "";
-  var heading = document.createElement("h3");
-  heading.textContent = cloud.name || cloudTypeLabel(cloud);
-  panel.appendChild(heading);
-  var dl = document.createElement("dl");
-  addField(dl, "Type", cloudTypeLabel(cloud));
-  addField(dl, "Class", cloud.class);
-  addField(dl, "Radius", formatDistancePc(cloud.radius_pc));
-  addField(dl, "Center x, y, z", [cloud.x, cloud.y, cloud.z].map(function (v) { return v.toFixed(1); }).join(", ") + " pc");
-  addField(dl, "Distance from core", formatDistancePc(Math.hypot(cloud.x, cloud.y, cloud.z)));
-  panel.appendChild(dl);
+// A phenomenon's ☆ entry (its NAV endpoint) and links: its page, and
+// NAV from or to it, or the pick button while a NAV end is picked.
+function phenomenonActions(item) {
+  var endpoint = item.type + ":" + item.id;
+  var spec = { bookmark: endpointBookmark(endpoint, item.name, sceneData.phenomenonUrl ? phenomenonUrl(item) : null) };
   // Not while choosing a NAV endpoint (NAV.30): it would leave the course.
   if (sceneData.phenomenonUrl && !sceneData.pick) {
-    panel.appendChild(pageLink(phenomenonUrl(cloud), "View phenomenon →"));
+    spec.links = [{ href: phenomenonUrl(item), label: "View phenomenon →" }];
   }
+  if (sceneData.navUrl) {
+    spec.nav = navLinks(endpoint);
+  }
+  return spec;
+}
+
+// The NAV links for an endpoint: "Nav from here" and "Nav to here", or,
+// while a NAV start or destination is picked, the pick button that ends
+// the pick with it.
+function navLinks(endpoint) {
+  var base = String(sceneData.navUrl);
+  var join = base.indexOf("?") < 0 ? "?" : "&";
+  if (sceneData.pick) {
+    var keep = sceneData.pickKeep ? "&" + sceneData.pickKeep : "";
+    return {
+      pick: base + join + sceneData.pick + "=" + encodeURIComponent(endpoint) + keep,
+      pickLabel: sceneData.pickLabel,
+    };
+  }
+  return {
+    from: base + join + "from=" + encodeURIComponent(endpoint),
+    to: base + join + "to=" + encodeURIComponent(endpoint),
+  };
+}
+
+function showCloudInfo(cloud) {
+  showInfo(Object.assign({
+    title: cloud.name || cloudTypeLabel(cloud),
+    fields: [
+      ["Type", cloudTypeLabel(cloud)],
+      ["Class", cloud.class],
+      ["Radius", formatDistancePc(cloud.radius_pc)],
+      ["Center x, y, z", [cloud.x, cloud.y, cloud.z].map(function (v) { return v.toFixed(1); }).join(", ") + " pc"],
+      ["Distance from core", formatDistancePc(Math.hypot(cloud.x, cloud.y, cloud.z))],
+    ],
+  }, phenomenonActions(cloud)));
 }
 
 // A star's color from its surface temperature: Tanner Helland's fit to
@@ -428,23 +429,15 @@ function pointTypeLabel(point) {
 // A black hole, neutron star or quasar on the map (MAP.80,
 // queryDb.galaxy_point_phenomena_in_box): what it is, and its page.
 function showPointInfo(point) {
-  var panel = document.getElementById("galaxymap3d-info");
-  if (!panel) {
-    return;
-  }
-  panel.textContent = "";
-  var heading = document.createElement("h3");
-  heading.textContent = point.name || POINT_TYPE_LABELS[point.type] || "Phenomenon";
-  panel.appendChild(heading);
-  var dl = document.createElement("dl");
-  addField(dl, "Type", pointTypeLabel(point));
-  addField(dl, "Luminosity", formatLuminosity(point.luminosity_sol));
-  addField(dl, "Position x, y, z", [point.x, point.y, point.z].map(function (v) { return v.toFixed(1); }).join(", ") + " pc");
-  addField(dl, "Distance from core", formatDistancePc(Math.hypot(point.x, point.y, point.z)));
-  panel.appendChild(dl);
-  if (sceneData.phenomenonUrl && !sceneData.pick) {
-    panel.appendChild(pageLink(phenomenonUrl(point), "View phenomenon →"));
-  }
+  showInfo(Object.assign({
+    title: point.name || POINT_TYPE_LABELS[point.type] || "Phenomenon",
+    fields: [
+      ["Type", pointTypeLabel(point)],
+      ["Luminosity", formatLuminosity(point.luminosity_sol)],
+      ["Position x, y, z", [point.x, point.y, point.z].map(function (v) { return v.toFixed(1); }).join(", ") + " pc"],
+      ["Distance from core", formatDistancePc(Math.hypot(point.x, point.y, point.z))],
+    ],
+  }, phenomenonActions(point)));
 }
 
 function rgba(hex, alpha) {
@@ -725,29 +718,14 @@ function initGalaxyMap3d(canvasEl, data) {
     });
   }
 
-  var highlightSprite = new THREE.Sprite(
-    new THREE.SpriteMaterial({ map: highlightTexture, transparent: true, depthWrite: false, depthTest: false })
-  );
-  highlightSprite.visible = false;
-  highlightSprite.renderOrder = 5;
-  scene.add(highlightSprite);
+  // The selection ring and, fainter, the hover ring (mappick.js), each
+  // HIGHLIGHT_PX across on screen whatever its distance, drawn over the
+  // blocks.
+  var selectionRing = createRing(scene, camera, canvasEl, accentColor, { depthTest: false, renderOrder: 5 });
+  var hoverRing = createRing(scene, camera, canvasEl, accentColor, { depthTest: false, renderOrder: 5, opacity: 0.45 });
 
   function highlightPosition(x, y, z) {
-    highlightSprite.position.set(x, y, z);
-    highlightSprite.visible = true;
-  }
-
-  // Keeps the selection ring HIGHLIGHT_PX across on screen whatever its
-  // distance: a sprite spans its scale in world units, so the scale is the
-  // world size of that many pixels at the sprite's own distance.
-  function updateHighlightScale() {
-    if (!highlightSprite.visible) {
-      return;
-    }
-    var heightPx = canvasEl.clientHeight || 1;
-    var worldPerPixel = (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2) * camera.position.distanceTo(highlightSprite.position)) / heightPx;
-    var size = HIGHLIGHT_PX * 2 * worldPerPixel;
-    highlightSprite.scale.set(size, size, 1);
+    selectionRing.at(x, y, z, { px: HIGHLIGHT_PX * 2 });
   }
 
   // Density shading's dim-to-accent-to-white ramp (galaxyblocks.js).
@@ -1208,15 +1186,10 @@ function initGalaxyMap3d(canvasEl, data) {
   // inner CLOUD_CORE of its radius), or null.
   var CLOUD_CORE = 0.5;
 
-  function cloudAtClientPoint(clientX, clientY) {
-    var ndc = ndcFromClientPoint(clientX, clientY);
-    if (!ndc) {
-      return null;
-    }
-    raycaster.setFromCamera(ndc, camera);
-    var ray = raycaster.ray;
+  function cloudAtRay(ray) {
     var best = null;
     var bestOffset = 0;
+    var bestDistance = 0;
     cloudSprites.forEach(function (sprite) {
       var cloud = sprite.userData.cloud;
       if (!sprite.visible || (best && best.radius_pc <= cloud.radius_pc)) {
@@ -1230,9 +1203,10 @@ function initGalaxyMap3d(canvasEl, data) {
       if (offset <= cloud.radius_pc && ray.direction.dot(new THREE.Vector3().subVectors(sprite.position, ray.origin)) > 0) {
         best = cloud;
         bestOffset = offset;
+        bestDistance = distance;
       }
     });
-    return best ? { cloud: best, core: bestOffset <= CLOUD_CORE * best.radius_pc } : null;
+    return best ? { cloud: best, core: bestOffset <= CLOUD_CORE * best.radius_pc, distance: bestDistance } : null;
   }
 
   // --- Stars ---------------------------------------------------------------
@@ -1282,10 +1256,18 @@ function initGalaxyMap3d(canvasEl, data) {
   };
   var DEFAULT_POINT_LOOK = ["#ffffff", 0.5, 0.5];
 
+  // MAP.111: with "Charted only" on, a star outside charted (generated)
+  // sectors is drawn at this share of its opacity, as the blocks are
+  // (galaxyblocks.buildCells). A generated star is charted, a bright
+  // star once its sector is filled (`system_id`); black holes, neutron
+  // stars and quasars are landmarks and stay lit.
+  var UNCHARTED_STAR_DIM = 0.2;
+
   var starMaterial = new THREE.ShaderMaterial({
     uniforms: {
       pixelRatio: { value: renderer.getPixelRatio() }, now: { value: 0 },
       fadeIn: { value: Math.max(STAR_FADE_IN_MS, 1) / 1000 },
+      chartedOnly: { value: 0 }, unchartedDim: { value: UNCHARTED_STAR_DIM },
     },
     vertexShader: [
       "#include <common>",
@@ -1301,6 +1283,9 @@ function initGalaxyMap3d(canvasEl, data) {
       "attribute vec3 starColor;",
       "uniform float pixelRatio;",
       "attribute float starClipped;",
+      "attribute float starUncharted;",
+      "uniform float chartedOnly;",
+      "uniform float unchartedDim;",
       "varying vec3 vColor;",
       "varying float vCore;",
       "varying float vGlow;",
@@ -1311,6 +1296,8 @@ function initGalaxyMap3d(canvasEl, data) {
       "  vCore = starCore / starSize;",
       "  vGlow = starGlow;",
       "  vShown = clamp((now - starBorn) / fadeIn, 0.0, 1.0);",
+      // "Charted only" (MAP.111): a star outside charted space dimmed.
+      "  vShown *= mix(1.0, unchartedDim, chartedOnly * starUncharted);",
       "  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);",
       "  gl_PointSize = starSize * pixelRatio;",
       // Outside the wedge shown (setWedgeClip): dropped.
@@ -1388,7 +1375,9 @@ function initGalaxyMap3d(canvasEl, data) {
     var cores = new Float32Array(n);
     var glows = new Float32Array(n);
     var brights = new Float32Array(n);
+    var uncharted = new Float32Array(n);
     stars.forEach(function (star, i) {
+      uncharted[i] = star.generated || star.phenomenon || star.system_id != null ? 0 : 1;
       var look = star.phenomenon ? POINT_LOOKS[star.type] || DEFAULT_POINT_LOOK : null;
       var t = look ? look[1] : logShare(star.luminosity_sol, STAR_LOG_LUMINOSITY);
       // Without a stored radius, guess one from the luminosity.
@@ -1414,6 +1403,7 @@ function initGalaxyMap3d(canvasEl, data) {
     geometry.setAttribute("starBright", new THREE.BufferAttribute(brights, 1));
     geometry.setAttribute("starBorn", new THREE.BufferAttribute(born, 1));
     geometry.setAttribute("starClipped", new THREE.BufferAttribute(new Float32Array(n), 1));
+    geometry.setAttribute("starUncharted", new THREE.BufferAttribute(uncharted, 1));
     starPoints.geometry.dispose();
     starPoints.geometry = geometry;
     markClippedStars();
@@ -1431,16 +1421,11 @@ function initGalaxyMap3d(canvasEl, data) {
     attribute.needsUpdate = true;
   }
 
-  // The black hole, neutron star or quasar (drawn as a star, MAP.80) whose
-  // center is nearest a screen point, within POINT_PICK_PX, or null.
-  // Plain stars are skipped: they never take the click (MAP.101).
-  function pointAtClientPoint(clientX, clientY) {
-    var found = nearestOnScreen(starList, camera, canvasEl.getBoundingClientRect(), clientX, clientY, {
-      reach: function () { return POINT_PICK_PX; },
-      accept: function (star) { return star.phenomenon && inWedgeClip(star.x, star.y, star.z); },
-      lastWins: true,
-    });
-    return found ? found.entry : null;
+  // "Charted only" (MAP.111): dims the stars outside charted sectors and
+  // the blocks holding none, and outlines the charted blocks.
+  function setChartedOnly(on) {
+    starMaterial.uniforms.chartedOnly.value = on ? 1 : 0;
+    stageView.setChartedOnly(on);
   }
 
   // --- Drawing from tiles --------------------------------------------------
@@ -1941,6 +1926,7 @@ function initGalaxyMap3d(canvasEl, data) {
   // galaxy in 3D, an arc of it (MAP.85), a slab of the arc, a block's
   // level-27 children, and so on down to a sector. Pointer and key input
   // goes to the stage view; tiles (stars, clouds) follow the camera.
+  var picker = createPicker(camera, canvasEl);
   var stageView = createStageView({
     THREE: THREE, scene: scene, camera: camera, canvasEl: canvasEl,
     edgePc: edgePc, shape: galaxyShape, galaxyRadius: GALAXY_RADIUS, reducedMotion: reducedMotion,
@@ -1974,7 +1960,8 @@ function initGalaxyMap3d(canvasEl, data) {
     showPlacedInfo: showPlacedInfo,
     showCellInfo: showCellInfo,
     showHint: function (text) { showHint(text, false); },
-    showPointAt: function (x, y) { return showPointAt(x, y); },
+    picker: picker,
+    clearSelection: function () { selectionRing.hide(); },
     setWedgeClip: function (clip) { setWedgeClip(clip); },
     sectorUrl: function (id) { return sceneData.sectorUrl ? sectorUrl(id) : null; },
     locate: function (name) {
@@ -2021,38 +2008,47 @@ function initGalaxyMap3d(canvasEl, data) {
     }
   }, { passive: false });
 
-  var raycaster = new THREE.Raycaster();
-
-  function ndcFromClientPoint(clientX, clientY) {
-    var rect = canvasEl.getBoundingClientRect();
-    if (rect.width === 0 || rect.height === 0) {
-      return null;
-    }
-    return new THREE.Vector2(((clientX - rect.left) / rect.width) * 2 - 1, -((clientY - rect.top) / rect.height) * 2 + 1);
-  }
-
-  // The phenomenon (a black hole, neutron star or quasar, or a cloud) a
-  // click at a screen point means, shown in the panel and ringed: true
-  // when there was one. Stars are never picked here (MAP.101):
+  // --- Picking (mappick.js) --------------------------------------------------
+  //
+  // Inside a container a black hole, neutron star or quasar, or a cloud
+  // small enough to aim at, takes a click before the block under it
+  // (the drill-down's own layer, added last); stars never do (MAP.101):
   // in a dense sector they would cover it, so a click on one picks the
   // block, slab or sector under it, and a star's details are on its
   // sector's page.
-  function showPointAt(clientX, clientY) {
-    var point = pointAtClientPoint(clientX, clientY);
-    if (point) {
+  function phenomenonHover(entry) {
+    if (entry) hoverRing.at(entry.x, entry.y, entry.z, { px: HIGHLIGHT_PX * 2 });
+    else hoverRing.hide();
+  }
+
+  picker.addLayer({
+    name: "phenomena",
+    enabled: function () { return stageView.inContainer(); },
+    points: function () { return starList; },
+    reach: function () { return POINT_PICK_PX; },
+    accept: function (star) { return star.phenomenon && inWedgeClip(star.x, star.y, star.z); },
+    lastWins: true,
+    tooltip: function (point) { return (point.name ? point.name + ", " : "") + pointTypeLabel(point); },
+    hover: phenomenonHover,
+    select: function (point) {
       highlightPosition(point.x, point.y, point.z);
       showPointInfo(point);
-      return true;
-    }
-    var found = cloudAtClientPoint(clientX, clientY);
-    if (found && found.core) {
-      highlightPosition(found.cloud.x, found.cloud.y, found.cloud.z);
-      showCloudInfo(found.cloud);
-      return true;
-    }
-    highlightSprite.visible = false;
-    return false;
-  }
+    },
+  });
+  picker.addLayer({
+    name: "clouds",
+    enabled: function () { return stageView.inContainer(); },
+    pick: function (ctx) {
+      var found = cloudAtRay(ctx.ray);
+      return found && found.core ? { entry: found.cloud, distance: found.distance } : null;
+    },
+    tooltip: function (cloud) { return (cloud.name ? cloud.name + ", " : "") + cloudTypeLabel(cloud); },
+    hover: phenomenonHover,
+    select: function (cloud) {
+      highlightPosition(cloud.x, cloud.y, cloud.z);
+      showCloudInfo(cloud);
+    },
+  });
 
   // No right-click action any more (see this file's own module
   // docstring) -- the browser's own default context menu is left alone,
@@ -2066,6 +2062,7 @@ function initGalaxyMap3d(canvasEl, data) {
       stageView: stageView,
       setTerritories: setTerritories,
       territoriesWanted: function () { return territoryWanted; },
+      setChartedOnly: setChartedOnly,
     }));
   }
   var menuEl = document.getElementById("galaxymap3d-menu");
@@ -2127,10 +2124,10 @@ function initGalaxyMap3d(canvasEl, data) {
   });
 
   // NAV's "Pick on Galaxy Map": endpoints live only in generated
-  // sectors, so "Generated only" stays on (design doc section 9).
+  // sectors, so "Charted only" stays on (design doc section 9).
   if (data.pick) {
-    stageView.setGeneratedOnly(true);
-    var onlyButton = document.querySelector('#galaxymap3d-controls [data-action="generated-only"]');
+    setChartedOnly(true);
+    var onlyButton = document.querySelector('#galaxymap3d-controls [data-action="charted-only"]');
     if (onlyButton) {
       onlyButton.setAttribute("aria-pressed", "true");
       onlyButton.disabled = true;
@@ -2160,7 +2157,8 @@ function initGalaxyMap3d(canvasEl, data) {
     }
     starMaterial.uniforms.now.value = starClock();
     updateClouds();
-    updateHighlightScale();
+    selectionRing.update();
+    hoverRing.update();
     updateCourseMarkers();
     renderer.render(scene, camera);
   })();

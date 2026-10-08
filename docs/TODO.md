@@ -112,7 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 is done (PR #476); GEN.117, GEN.116 keeps watch for Boss's error text. | GEN.116, TEST.94, TEST.95, TEST.96, TEST.97, SEC.29, TEST.72, SEC.30, TEST.83, UX.39, OPS.20, DB.11, DB.13, ADM.21, GEN.66, GEN.74, GEN.68, GEN.69, GEN.70, GEN.71, GEN.72, GEN.73, GEN.67, ADM.22, ADM.24, ADM.25, ADM.26, UX.40, UX.26, UX.31, UX.27, UX.2, ADM.14, UX.41, UX.33, ADM.34, NAV.7, MAP.95, NAV.13, NAV.14, MAP.65, MAP.79, NAV.15, NAV.29, NAV.33, MAP.66, MAP.67, MAP.68, MAP.61, NAV.32, MAP.102, MAP.107, MAP.106, MAP.108, MAP.109, MAP.111, MAP.112, MAP.113, MAP.116, NAV.46, GEN.75, MAP.103, MAP.104, MAP.105, UX.38, UX.37, UX.21 |
+| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 is done (PR #476); GEN.117, GEN.116 keeps watch for Boss's error text. | GEN.116, TEST.94, TEST.95, TEST.96, TEST.97, TEST.98, TEST.99, TEST.100, TEST.101, SEC.29, TEST.72, SEC.30, TEST.83, UX.39, OPS.20, DB.11, DB.13, ADM.21, GEN.66, GEN.74, GEN.68, GEN.69, GEN.70, GEN.71, GEN.72, GEN.73, GEN.67, ADM.22, ADM.24, ADM.25, ADM.26, UX.40, UX.26, UX.31, UX.27, ADM.14, UX.41, UX.33, ADM.34, NAV.7, MAP.95, NAV.13, NAV.14, MAP.79, NAV.15, NAV.29, NAV.33, MAP.66, MAP.67, MAP.68, MAP.61, NAV.32, MAP.102, MAP.107, MAP.106, MAP.108, MAP.109, MAP.112, MAP.113, MAP.116, NAV.46, GEN.75, MAP.103, MAP.104, MAP.105, UX.38, UX.37, UX.21 |
 | 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, NAV.16, NAV.3, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.41, GEN.98, GEN.100, GEN.99, GEN.101, GEN.102, GEN.103, GEN.84, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, GEN.94, GEN.104, GEN.106, GEN.107, GEN.108, NAV.10, NAV.12, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, NAV.43, NAV.44, MAP.119, MAP.122, MAP.123, MAP.124, DB.14, MAP.128, MAP.129, MAP.130, MAP.89, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, OPS.8, OPS.13, OPS.14, ADM.18, GEN.59 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.58, MAP.75, MAP.59, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, API.16, MAP.69, MAP.70, ADM.17, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.131, MAP.132, API.18, VIEW.5 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, repair that reads the newest settings JSON, and the anomalies chosen in phase 2. | MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, MAP.126, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, DB.10, ADM.20, GEN.114, MAP.125, API.19 |
@@ -168,24 +168,6 @@ phone's; text columns capped at 45-75 characters, but a map or canvas may
 use the full width; touch targets at least 44-48 px on coarse pointers
 (`pointer: coarse`), smaller is fine for a mouse; spacing and type sized
 with `clamp()`.
-
-- [ ] **UX.2 Menus sized to what they hold (bug)**
-  Boss (2026-10-01): "I want the
-  menus to be proportional to the size needed, I noticed on tablet
-  screens that menu acts like a phone screen spanning absurdly across
-  the screen." The Menu and gear drop-downs (`.site-menu-panel`,
-  `.site-gear-panel` in `static/style.css`) have `min-width: 14rem` and
-  `max-width: calc(100vw - 1rem)`, and the header folds the section
-  buttons into the Menu below 43rem, so on a tablet the panel can grow
-  to nearly the full screen. Done: each panel is as wide as its longest
-  entry plus padding (capped, for example `width: max-content` with a
-  sensible `max-width`), full width only on compact (phone) screens;
-  checked at 390, 600, 768, 820, 1024 and 1280 px in both themes and
-  both orientations, with touch targets still at least 44 px on touch
-  screens.
-  Prerequisite: UX.40.
-  Plan (2026-10-07): Folded into UX.40: the menus become Shoelace
-  dropdowns.
 
 - [ ] **UX.3 Warn every visitor while a background job changes the galaxy**
   Boss (2026-10-01): "a warning to all users on the UI when a
@@ -441,6 +423,10 @@ with `clamp()`.
   from a button menu (UX.26, UX.31), the system page buttons sit on one
   row (UX.27), and the Generate page text boxes line up (ADM.14), each
   closed in this item's PRs; both themes and keyboard use work.
+  Progress (2026-10-08): PR #528 added the Shoelace component set
+  (vendored) and moved the header Menu and gear onto sl-dropdown (UX.2,
+  done). Foundations lane 1 is continuing with UX.26, UX.31, UX.27 and
+  ADM.14 in this item's PRs.
   Design: [docs/design/library-migration.md](design/library-migration.md)
 
 - [ ] **UX.41 Tables on TanStack Table and TanStack Virtual**
@@ -496,7 +482,7 @@ with `clamp()`.
     sectors gets a system bookmark (kept up to date as sectors are
     charted) that opens the Galaxy Map fitted to the group with its
     outline highlighted.
-    Prerequisites: UX.47, MAP.65.
+    Prerequisite: UX.47.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -700,18 +686,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   before (or as the first PR of) the MAP.52 to MAP.60 work, because
   those items rewrite the same files (`galaxymap3d.js`,
   `galaxystageview.js`); the rest follow MAP.52 to MAP.60.
-  Prerequisites: MAP.65, MAP.66, MAP.67, MAP.68.
+  Prerequisites: MAP.66, MAP.67, MAP.68.
   Plan (2026-10-07): Moved into phase 0 with its subitems. MAP.125
   (infinite zoom) is its end state in phase 3.
-
-  - [ ] **MAP.65 One picking, hover and info-panel layer**
-    Done: one module for raycast and screen-space picking, the hover
-    highlight and tooltip (the Sector Map has none today) and the info
-    panel (fields, Nav from/to, Use as destination, Generate buttons,
-    bookmark ☆), fed by each view's objects. The Sector Map's info
-    panel gains the ☆ the drill-down design left for later.
-    Plan (2026-10-07): Moved into phase 0: the shared picking layer is
-    what fixes MAP.108, MAP.107, MAP.112 and NAV.46.
 
   - [ ] **MAP.66 The sector as the drill-down's last stage, on the same page**
     Today clicking a generated sector leaves `/galaxy` for
@@ -811,7 +788,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   dim", so rogue planets are also drawn dim by default (a faint point,
   no bright glow or ring) while they are on, and stars, comets and
   other objects show through them.
-  Prerequisite: MAP.65.
   Plan (2026-10-07): Moved into phase 0 with the engine. Its per-kind
   toggles include nebulae, which closes half of MAP.113; MAP.123 extends
   them to star types and the Galaxy Map.
@@ -862,7 +838,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     of sync, you select the slap, or try to, and nothing happens except
     it moves the breadcrumb trail along." Done: picking any slab, empty
     or not, moves the map and breadcrumb together with no error.
-    Prerequisite: MAP.65.
+    Cause found (Bugfixes lane 1, 2026-10-08): a click while the
+    just-picked stage is still loading lands on the new stage from the
+    old view; the fix is in `galaxystageview.js` `takePick`, with a
+    regression test.
 
 - [ ] **MAP.108 Empty slabs and wedges near the core can't be selected, and the side buttons block clicks (bug)**
   Boss (2026-10-03 05:38Z): "Galacit view, some slabs are unselectable
@@ -874,7 +853,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Done: every slab, wedge and block can be picked whether or not
   anything is in it, and the slab buttons never cover the map's pick
   area.
-  Prerequisite: MAP.65.
+  Findings (Bugfixes lane 1, 2026-10-08): part 1 (the side buttons
+  covering the map) could not be reproduced and gets a regression test;
+  part 2 (picking empty slabs and wedges) is a separate cause.
 
 - [ ] **MAP.109 Zooming in and out loads slowly (bug)**
   Boss (2026-10-03 05:38Z): "Loading between zooms in and out gets very,
@@ -888,20 +869,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   galaxy.
   Prerequisite: MAP.102.
 
-- [ ] **MAP.111 "Generated only" should be "Charted only" and dim the stars too (bug)**
-  Boss (2026-10-03 05:38Z): "In the full galaxy view when I select
-  "generated only" (change the name to charted only), it should dim the
-  stars as well and make it blatantly obvious where all the generated
-  sectors are within each wedge." Today the toggle (`galaxymap3d.py`
-  line 581, `galaxyblocks.js`) dims blocks only. Done: renamed "Charted
-  only", it dims stars outside charted sectors as well and outlines the
-  charted sectors in each wedge.
-
 - [ ] **MAP.112 Nothing can be selected while "Generated only" is on (bug)**
   Boss (2026-10-03 05:38Z): "Cannot select things from the galacitc map
   while the only generated filter is on." Done: picking works the same
   with the filter on or off.
-  Prerequisites: MAP.65, MAP.111.
 
 - [ ] **MAP.113 A nebula covering the whole sector can't be unselected, and nebulae need a show/hide toggle (bug)**
   Boss (2026-10-03 05:38Z): "When I select a nebula either on purpose of
@@ -948,13 +919,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   entire slab or entire block)." Done: the info panel shows expected
   density; admins can edit it for the slab or block in view, stored as
   an override that later fills use and logged.
-  Prerequisite: MAP.65.
 
 - [ ] **MAP.120 Bright-star backfill from the Galaxy Map's block, slab and wedge menus**
   Boss (2026-10-03 05:38Z): "Add bright star backfill to block menus in
   galactic view." Done: the admin menu on a block, slab or wedge runs
   the bright-star backfill for it as a job.
-  Prerequisite: MAP.65.
 
 - [ ] **MAP.121 Every map shows and steps to its neighbouring regions, on one map engine**
   Boss (2026-10-03 05:38Z): "In the sector level map, we should show
@@ -991,7 +960,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   control on every galaxy view (default Galaxy); in Star mode stars and
   other objects pick, hover and open their info panel with Bookmark and
   Waypoint actions.
-  Prerequisite: MAP.65.
 
 - [ ] **MAP.123 Show or hide star types and phenomena, and set the luminosity floor, on the Galaxy and Sector Maps**
   Boss (2026-10-07 11:47Z): "Sector display can hide systems by star
@@ -1001,7 +969,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Done: both maps have a filter panel for star classes and phenomenon
   kinds (show, hide, highlight) and a luminosity slider, kept in the
   URL.
-  Prerequisites: MAP.65, MAP.79.
+  Prerequisite: MAP.79.
 
 - [ ] **MAP.124 The Galaxy Map opens zoomed to fit all charted space**
   Boss (2026-10-07 11:47Z): "Galactic map should automatically zoom in
@@ -1540,7 +1508,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   opens NAV.44 with that place filled in. Optional (default left out
   unless Boss asks): the map draws the search sphere and highlights the
   objects inside it. It uses MAP.65's shared control panel and NAV.15's picking of
-  any object on the maps. Prerequisites: NAV.44, MAP.65, NAV.15.
+  any object on the maps. Prerequisites: NAV.44, NAV.15.
 
 - [ ] **NAV.46 The NAV picker can't click galaxy wedges to zoom in (bug)**
   Boss (2026-10-03 05:38Z): "When trying to select a destination from
@@ -3340,6 +3308,7 @@ clears each one.
   (loop it under load), the test waits on the map's state instead of
   wall-clock timing, and it passes repeatedly in the full suite under
   `pytest -n auto`.
+  Seen again in Bugfixes lane 1's full run for PR #531 (2026-10-08).
 
 - [ ] **TEST.97 test_class_change_regenerates_surface_conditions raises StopIteration in the full suite (bug)**
   `src/tests/test_admin_edits.py::test_class_change_regenerates_surface_conditions...`
@@ -3349,6 +3318,35 @@ clears each one.
   empty `next(...)` over the generated bodies). Done: the test builds
   its own system with a fixed seed so its result does not depend on
   test order, and it passes repeatedly in the full suite under
+  `pytest -n auto`.
+  Seen again in Bugfixes lane 1's full run for PR #531 (2026-10-08).
+
+- [ ] **TEST.98 test_scale_line_follows_the_zoom fails in the full suite (bug)**
+  `src/tests/test_web_browser_fixture_maps.py` (the scale-line test `scale_line_follows_the_zoom`, name as reported) failed in Bugfixes lane 1's full run for PR #531 (2026-10-08;
+  seen repeatedly) and passes alone; a load-only browser failure. Done: the cause is found (loop it
+  under load), the test waits on the page's or the run's state instead
+  of wall-clock timing, and it passes repeatedly in the full suite under
+  `pytest -n auto`.
+
+- [ ] **TEST.99 test_slab_buttons_have_lines_that_follow_the_view fails in the full suite (bug)**
+  `src/tests/test_web_browser_fixture_maps.py` (`slab_buttons_have_lines_that_follow_the_view`, name as reported) failed in Bugfixes lane 1's full run for PR #531 (2026-10-08;
+  seen once) and passes alone; a load-only browser failure. Done: the cause is found (loop it
+  under load), the test waits on the page's or the run's state instead
+  of wall-clock timing, and it passes repeatedly in the full suite under
+  `pytest -n auto`.
+
+- [ ] **TEST.100 test_hover_while_picking_a_slab fails in the full suite (bug)**
+  `src/tests/test_web_browser_fixture_maps.py` (`hover_while_picking_a_slab`, name as reported) failed in Bugfixes lane 1's full run for PR #531 (2026-10-08;
+  seen once) and passes alone; a load-only browser failure. Done: the cause is found (loop it
+  under load), the test waits on the page's or the run's state instead
+  of wall-clock timing, and it passes repeatedly in the full suite under
+  `pytest -n auto`.
+
+- [ ] **TEST.101 test_interrupting_a_parallel_galaxy_run[2-True] fails in the full suite (bug)**
+  `src/tests/test_work_queue_failures.py` (`interrupting_a_parallel_galaxy_run[2-True]`, name as reported) failed in Bugfixes lane 1's full run for PR #531 (2026-10-08;
+  seen once) and passes alone; a load-only failure of the parallel galaxy run's interrupt path. Done: the cause is found (loop it
+  under load), the test waits on the page's or the run's state instead
+  of wall-clock timing, and it passes repeatedly in the full suite under
   `pytest -n auto`.
 
 ## USR: User accounts

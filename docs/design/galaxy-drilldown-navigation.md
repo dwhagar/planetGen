@@ -10,7 +10,7 @@ segment, MAP.56 onward) are still planned.
 |---|---|---|---|
 | Block ladder (`planetgen/galaxy/drill.py`, `drill*` in `static/galaxyprisms.js`) | 3 | MAP.28 | 7.41.2, PR #160 |
 | Stage contents API (`GET /api/galaxy/stage`, the site's cached `/galaxy/stage`) | 7 | MAP.29 | 7.41.3, PR #160 |
-| The stages (`static/galaxystages.js`, `static/galaxystageview.js`), stage URLs, breadcrumb, keys, touch, "Generated only" | 4, 5, 8.1 | MAP.16 | 7.44.0, PR #171 |
+| The stages (`static/galaxystages.js`, `static/galaxystageview.js`), stage URLs, breadcrumb, keys, touch, "Charted only" | 4, 5, 8.1 | MAP.16 | 7.44.0, PR #171 |
 | Top-down only, quarter, layer and arc picks, dimmed hover, wedge lines kept to the view, opening at a sector's layer, the map's Back and Forward | 4, 5, 8.1, 10, 11 | MAP.17, MAP.18, MAP.19, MAP.44, MAP.26 | 7.73.177 |
 | Address bar (`/galaxy/locate`) | 9.3 | MAP.24 | 7.50.0, PR #172 |
 | Course on the map (`/galaxy?course=<from>,<to>`) | 9.4 | MAP.27 | 7.52.0, PR #176 |
@@ -383,8 +383,10 @@ of a level-3 block.
   same arc (or the next layer up or down), Enter takes the highlighted
   one, Esc or Backspace goes one step back out, and Home returns to the
   galaxy.
-- A **"Generated only"** toggle dims and disables choices and blocks
-  with nothing generated, so existing content is easy to follow.
+- A **"Charted only"** toggle (MAP.111) dims and disables choices and
+  blocks with nothing generated, dims the stars outside charted sectors
+  to a fifth of their opacity, and outlines each charted block, so
+  existing content is easy to follow.
 
 ### 5.3 The flight into a block
 
@@ -436,7 +438,7 @@ the end. The same path is used for the address bar's jumps
   is ahead.
 - **Up** goes one step back out (the same as Esc), and **Reset** starts
   over at the whole galaxy (Home). Back, Forward, Up, Reset and
-  Bookmarks are the only buttons in view; Reset view, Generated only
+  Bookmarks are the only buttons in view; Reset view, Charted only
   and Territories are in the Menu beside them (MAP.55).
 
 ### 5.5 The sector at the end
@@ -625,7 +627,7 @@ the following (all built: MAP.22, with sections 9.1 to 9.4):
    (or `pick=to&from=...`), carrying the other endpoint along.
    - The map shows a banner, "Choosing a destination · Cancel" (Cancel
      returns to `/nav` with the endpoint already chosen).
-   - In pick mode "Generated only" is forced on, since NAV endpoints are
+   - In pick mode "Charted only" is forced on, since NAV endpoints are
      systems and phenomena, which exist only in generated sectors. Hover
      still lights every arc and choice as outside pick mode (NAV.31);
      one holding nothing generated says so and can't be taken.
@@ -691,7 +693,7 @@ link, this one included, to open at the sector level.
   look are gone (MAP.17); the stages are the only way between places.
   Drag-rotate, panning and wheel zoom are back everywhere (section 5.1;
   the whole galaxy since MAP.85). The buttons beside the map are Back,
-  Forward, Up, Reset and Bookmarks, with Reset view, Generated only and
+  Forward, Up, Reset and Bookmarks, with Reset view, Charted only and
   (with polities) Territories in the Menu (MAP.55).
 - Density shading, the filled-share look and the info panel stay. The
   wedge lines and the Wedges button are gone (MAP.85), and the scale
@@ -803,7 +805,7 @@ below it (MAP.19, section 4) until MAP.56 replaces that.
   planned (MAP.58).
 - The scale readout is one line: the bar and its length (MAP.60).
 - Back, Forward, Up, Reset and Bookmarks stay beside the map; Reset
-  view, Generated only and Territories are in a Menu (MAP.55). The
+  view, Charted only and Territories are in a Menu (MAP.55). The
   buttons are text labels and carry a `data-icon` hook, so UX.28's icons
   can replace the words later.
 
@@ -932,7 +934,7 @@ bend the distances and bearings NAV reports).
 
 ## 16. Planned changes (2026-10-03 and 2026-10-07)
 
-- **Charted only**: the "Generated only" toggle is renamed "Charted only";
+- **Charted only** (MAP.111, done): the "Generated only" toggle was renamed;
   it dims stars outside charted sectors as well as blocks, outlines the
   charted sectors in each wedge, and never blocks picking.
 - **Free navigation**: every slab, wedge and block can be picked whether

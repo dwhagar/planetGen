@@ -29,9 +29,11 @@
 // - showBlockInfo(info), showPlacedInfo(entry), showCellInfo(cell),
 //   showHint(text): the info panel (showBlockInfo's info: {block, total,
 //   generated, hint, enter, generate});
-// - showPointAt(clientX, clientY): shows a phenomenon (a black hole,
-//   neutron star, quasar or cloud) under a click (never a star, MAP.101),
-//   true when there was one;
+// - picker: the map's picker (mappick.js; a new one when missing), whose
+//   other layers (phenomena, clouds) take a click or hover inside a
+//   container before the blocks: their tooltip(entry), hover(entry) and
+//   select(entry) are called; the drill-down adds its choices to it;
+// - clearSelection(): a block was picked, so a phenomenon's ring goes;
 // - canGenerate, courseSectors, sectorUrl(id), locate(name);
 // - els: {crumbs, slabs, tooltip, notice, address, matches, controls}
 //   (any may be missing).
@@ -42,6 +44,7 @@ const S = await import(`./galaxystages.js${VERSION_QUERY}`);
 const MC = await import(`./mapcontrol.js${VERSION_QUERY}`);
 const { worldUnitsPerPixel } = await import(`./mapcore.js${VERSION_QUERY}`);
 const B = await import(`./bookmarks.js${VERSION_QUERY}`);
+const { createPicker, createTooltip } = await import(`./mappick.js${VERSION_QUERY}`);
 
 // The other choices while one is hovered (MAP.18).
 const OTHER_FADE = 0.25;
@@ -85,6 +88,8 @@ const GALAXY_ZOOM = MC.zoomPolicy(MC.ZOOM_RANGE, GALAXY_MIN_ZOOM, 1);
 const NEIGHBOR_OUTLINE_OPACITY = 0.35;
 // The lines between slabs while one is picked (MAP.77).
 const SLAB_LINE_OPACITY = 0.45;
+// The outlines of charted blocks with "Charted only" on (MAP.111).
+const CHARTED_LINE_OPACITY = 0.9;
 const TWO_PI = 2 * Math.PI;
 
 // The free view's limits: the camera's distance from MIN_ZOOM to MAX_ZOOM times the stage's
@@ -123,7 +128,7 @@ export function createStageView(host) {
   let animation = null;
   // {option (index into display.options), sticky}
   let hover = null;
-  let generatedOnly = false;
+  let chartedOnly = false;
   let view = null;
   let goToken = 0;
   // The map's own history (Back and Forward buttons): this entry's index,
@@ -333,7 +338,7 @@ export function createStageView(host) {
           option: index,
         };
       });
-      const dim = generatedOnly ? function (cell) { return !(cell.filled > 0); } : null;
+      const dim = chartedOnly ? function (cell) { return !(cell.filled > 0); } : null;
       const built = host.blockScene.buildCells(cells, eye, dim);
       const group = new THREE.Group();
       const meshes = [];
@@ -356,9 +361,34 @@ export function createStageView(host) {
     });
     const lines = r.kind === "layer" ? slabLines(options) : null;
     if (lines) root.add(lines);
+    const charted = chartedOnly ? chartedLines(options, data) : null;
+    if (charted) root.add(charted);
     host.scene.add(root);
     root.updateMatrixWorld(true);
-    return { resolved: r, root: root, options: options, groups: groups, fade: 1, data: data, lines: lines };
+    return { resolved: r, root: root, options: options, groups: groups, fade: 1, data: data, lines: lines, charted: charted };
+  }
+
+  // MAP.111: with "Charted only" on, every block holding generated
+  // sectors (one sector, once the view is down to sectors) outlined, so
+  // where the charted space lies in the wedge is plain to see.
+  function chartedLines(options, data) {
+    const points = [];
+    options.forEach(function (option) {
+      option.blocks.forEach(function (block) {
+        if (!(generatedOf(block, data) > 0)) return;
+        const b = block.bounds;
+        const mid = (b.t0 + b.t1) / 2;
+        Array.prototype.push.apply(points, edgePoints(S.outlineEdges([block], mid), b.z1, { z0: b.z0, z1: b.z1 }));
+      });
+    });
+    if (!points.length) return null;
+    const line = new THREE.LineSegments(
+      new THREE.BufferGeometry().setFromPoints(points),
+      new THREE.LineBasicMaterial({ color: accent, transparent: true, opacity: CHARTED_LINE_OPACITY, depthTest: false, depthWrite: false }),
+    );
+    line.renderOrder = 4;
+    line.frustumCulled = false;
+    return line;
   }
 
   // The boundaries between slabs (MAP.77): each slab's outline along its
@@ -388,6 +418,10 @@ export function createStageView(host) {
       d.lines.geometry.dispose();
       d.lines.material.dispose();
     }
+    if (d.charted) {
+      d.charted.geometry.dispose();
+      d.charted.material.dispose();
+    }
     d.groups.forEach(function (group) {
       group.meshes.forEach(function (mesh) {
         mesh.geometry.dispose();
@@ -399,6 +433,7 @@ export function createStageView(host) {
   function setDisplayFade(d, fade) {
     d.fade = fade;
     if (d.lines) d.lines.material.opacity = SLAB_LINE_OPACITY * fade;
+    if (d.charted) d.charted.material.opacity = CHARTED_LINE_OPACITY * fade;
     d.groups.forEach(function (group) {
       group.meshes.forEach(function (mesh) {
         const value = fade * group.fade;
@@ -627,8 +662,9 @@ export function createStageView(host) {
   };
 
   // Which lines the stage draws (MAP.77): {blockEdges} (the blocks' own
-  // edges on or off) and {slabLines} (how many line pieces trace the
-  // boundaries between slabs). Read by the browser tests.
+  // edges on or off), {slabLines} (how many line pieces trace the
+  // boundaries between slabs) and {chartedLines} (how many outline the
+  // charted blocks, MAP.111). Read by the browser tests.
   canvasEl.galaxyLines = function () {
     if (!display) return null;
     let blockEdges = 0;
@@ -638,7 +674,8 @@ export function createStageView(host) {
       });
     });
     const slabLines = display.lines ? display.lines.geometry.getAttribute("position").count / 2 : 0;
-    return { blockEdges: blockEdges, slabLines: slabLines, kind: display.resolved.kind };
+    const chartedLines = display.charted ? display.charted.geometry.getAttribute("position").count / 2 : 0;
+    return { blockEdges: blockEdges, slabLines: slabLines, chartedLines: chartedLines, kind: display.resolved.kind };
   };
 
   // Each slab button's slab outline on the map, as line pieces in client
@@ -858,40 +895,41 @@ export function createStageView(host) {
 
   // --- Picking and hover -----------------------------------------------------
 
-  const raycaster = new THREE.Raycaster();
+  // The stage's choices are the picker's last layer (mappick.js): a
+  // phenomenon the map puts in front takes the pointer first.
+  const picker = host.picker || createPicker(camera, canvasEl);
+  const tooltip = createTooltip(els.tooltip);
+  const choiceLayer = picker.addLayer({
+    name: "choices", priority: 10,
+    enabled: function () { return !!display && !!resolved; },
+    meshes: function () {
+      const meshes = [];
+      display.groups.forEach(function (group) { Array.prototype.push.apply(meshes, group.meshes); });
+      return meshes;
+    },
+    entryOf: function (hit) {
+      const cell = hit.object.userData.cells[hit.object.userData.part.owners[hit.face.a]];
+      return cell ? cell.option : null;
+    },
+  });
 
   // Whether choice `index` can be picked: not while it holds nothing
-  // generated with "Generated only" on.
+  // generated with "Charted only" on.
   function pickable(index) {
     if (!display || !display.options[index]) return false;
-    if (!generatedOnly) return true;
+    if (!chartedOnly) return true;
     const data = display.data;
     return display.options[index].blocks.some(function (b) { return generatedOf(b, data) > 0; });
   }
 
   // The choice under a screen point (an index into display.options), or
   // -1; while the pick is a slab, the slab of the block under it. Every
-  // choice lights on hover, with "Generated only" on (always on while
+  // choice lights on hover, with "Charted only" on (always on while
   // picking a NAV end) too: only taking one needs something generated
   // (pickable, NAV.31).
   function optionAt(clientX, clientY) {
-    // Below the whole galaxy the view is slanted, so the block under the
-    // pointer picks its layer too.
-    if (!display || !resolved) return -1;
-    const rect = canvasEl.getBoundingClientRect();
-    if (!rect.width || !rect.height) return -1;
-    const ndc = new THREE.Vector2(((clientX - rect.left) / rect.width) * 2 - 1, -((clientY - rect.top) / rect.height) * 2 + 1);
-    raycaster.setFromCamera(ndc, camera);
-    const meshes = [];
-    display.groups.forEach(function (group) { Array.prototype.push.apply(meshes, group.meshes); });
-    const hits = raycaster.intersectObjects(meshes, false);
-    for (let n = 0; n < hits.length; n++) {
-      const hit = hits[n];
-      const cell = hit.object.userData.cells[hit.object.userData.part.owners[hit.face.a]];
-      if (!cell) continue;
-      return cell.option;
-    }
-    return -1;
+    const found = picker.pick(clientX, clientY, function (layer) { return layer === choiceLayer; });
+    return found ? found.entry : -1;
   }
 
   let outlineGroup = null;
@@ -1021,19 +1059,7 @@ export function createStageView(host) {
   }
 
   function showTooltip(text, clientX, clientY) {
-    const tip = els.tooltip;
-    if (!tip) return;
-    if (!text) {
-      tip.hidden = true;
-      return;
-    }
-    const rect = tip.parentElement.getBoundingClientRect();
-    tip.textContent = text;
-    tip.hidden = false;
-    const x = Math.min(clientX - rect.left + 12, rect.width - tip.offsetWidth - 4);
-    const y = Math.min(clientY - rect.top + 12, rect.height - tip.offsetHeight - 4);
-    tip.style.left = Math.max(4, x) + "px";
-    tip.style.top = Math.max(4, y) + "px";
+    tooltip.show(text, clientX, clientY);
   }
 
   // The tooltip beside a choice picked by keyboard: at its middle on
@@ -1041,9 +1067,7 @@ export function createStageView(host) {
   function tooltipAtOption(index) {
     const option = display.options[index];
     const fp = S.footprint(option.blocks);
-    const point = new THREE.Vector3(fp.center[0], fp.center[1], option.blocks[0].bounds.z1).project(camera);
-    const rect = canvasEl.getBoundingClientRect();
-    showTooltip(optionText(index), rect.left + ((point.x + 1) / 2) * rect.width, rect.top + ((1 - point.y) / 2) * rect.height);
+    tooltip.showAt(optionText(index), camera, canvasEl, fp.center[0], fp.center[1], option.blocks[0].bounds.z1);
   }
 
   function blockText(block, data) {
@@ -1252,9 +1276,26 @@ export function createStageView(host) {
     });
   }
 
+  // The other layer (a phenomenon) under the pointer, while there is one.
+  let hoveredOther = null;
+
+  function hoverOther(found) {
+    const layer = found && found.layer !== choiceLayer ? found.layer : null;
+    if (hoveredOther && hoveredOther !== layer && hoveredOther.hover) hoveredOther.hover(null);
+    hoveredOther = layer;
+    if (layer && layer.hover) layer.hover(found.entry);
+  }
+
   function hoverAt(event) {
     if (animation || event.pointerType === "touch") return;
-    const index = optionAt(event.clientX, event.clientY);
+    const found = picker.pick(event.clientX, event.clientY);
+    hoverOther(found);
+    if (found && found.layer !== choiceLayer) {
+      if (hover && !hover.sticky) setHover(null);
+      showTooltip(found.layer.tooltip ? found.layer.tooltip(found.entry) : "", event.clientX, event.clientY);
+      return;
+    }
+    const index = found ? found.entry : -1;
     if (index < 0) {
       if (hover && !hover.sticky) setHover(null);
       showTooltip("", 0, 0);
@@ -1269,11 +1310,14 @@ export function createStageView(host) {
     // Inside a container, a phenomenon under the click is shown rather
     // than the block picked. Stars never take the click (MAP.101): in a
     // dense sector they would hide it.
-    if (stage.at && host.showPointAt && host.showPointAt(event.clientX, event.clientY)) {
+    const found = picker.pick(event.clientX, event.clientY);
+    if (found && found.layer !== choiceLayer) {
       showTooltip("", 0, 0);
+      if (found.layer.select) found.layer.select(found.entry);
       return;
     }
-    const index = optionAt(event.clientX, event.clientY);
+    if (host.clearSelection) host.clearSelection();
+    const index = found ? found.entry : -1;
     if (index < 0) return;
     if (type === "touch" && touchPending !== index) {
       // First tap highlights, a second on the same thing acts.
@@ -1319,6 +1363,7 @@ export function createStageView(host) {
 
   function onPointerLeave() {
     showTooltip("", 0, 0);
+    hoverOther(null);
     if (hover && !hover.sticky) setHover(null);
   }
 
@@ -1697,7 +1742,7 @@ export function createStageView(host) {
     const rows = choices.slice().reverse().map(function (option) {
       const pick = option.pick;
       const sum = sumOf(option.blocks, data);
-      const takeable = !(generatedOnly && !(sum.generated > 0));
+      const takeable = !(chartedOnly && !(sum.generated > 0));
       const item = document.createElement("li");
       const button = document.createElement("button");
       button.type = "button";
@@ -2222,8 +2267,8 @@ export function createStageView(host) {
   }
   window.addEventListener("popstate", onPopState);
 
-  function setGeneratedOnly(on) {
-    generatedOnly = on;
+  function setChartedOnly(on) {
+    chartedOnly = on;
     if (display && !animation) rebuildDisplay();
   }
 
@@ -2243,8 +2288,11 @@ export function createStageView(host) {
     home: home,
     up: up,
     travel: travel,
-    setGeneratedOnly: setGeneratedOnly,
+    setChartedOnly: setChartedOnly,
     stage: function () { return stage; },
+    // Inside a block or an arc (not the whole galaxy), where phenomena
+    // take the pointer before the blocks.
+    inContainer: function () { return !!stage.at; },
     go: go,
     locate: locate,
   };
