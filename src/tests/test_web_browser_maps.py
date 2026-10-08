@@ -359,12 +359,12 @@ def test_galaxy_map_drill_down_by_clicks(page, base_url):
     assert _crumbs(page) == deep_crumbs
 
     # A breadcrumb button goes back up; Reset goes home.
-    more = page.locator("#galaxymap3d-crumbs .galaxy-crumb-menu")
+    more = page.locator("#galaxymap3d-crumbs .crumb-menu")
     if more.count():  # the second step is folded into "…" (MAP.93)
         more.locator("summary").click()
         more.locator("button").first.click()
     else:
-        page.locator("#galaxymap3d-crumbs button.galaxy-crumb").nth(1).click()
+        page.locator("#galaxymap3d-crumbs button.crumb").nth(1).click()
     _wait_settled(page)
     assert _crumbs(page) == steps[1][1]
     before = _state(page)

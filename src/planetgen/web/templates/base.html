@@ -72,6 +72,9 @@ subhead (badges or actions under the <h1>). -#}
 <link rel="stylesheet" href="{{ static_url('style.css') }}">
 <link rel="stylesheet" href="{{ static_url('shoelace-theme.css') }}">
 <script type="module" src="{{ static_url('components.js') }}"></script>
+{%- if breadcrumbs %}
+<script type="module" src="{{ static_url('pagecrumbs.js') }}"></script>
+{%- endif %}
 {%- block head %}{% endblock %}
 </head>
 <body class="app">

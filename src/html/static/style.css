@@ -2556,7 +2556,7 @@ body.app {
   margin: 0 0 0.75rem;
 }
 
-.app .breadcrumbs ol {
+.app .breadcrumbs:not(.crumbs-ready) ol {
   list-style: none;
   margin: 0 0 0.35rem;
   padding: 0;
@@ -2567,7 +2567,7 @@ body.app {
   color: var(--text-muted);
 }
 
-.app .breadcrumbs li + li::before {
+.app .breadcrumbs:not(.crumbs-ready) li + li::before {
   content: "\203A";
   margin-right: 0.35rem;
   color: var(--text-muted);
@@ -2823,10 +2823,10 @@ body.app {
   display: none !important;
 }
 
-/* The breadcrumb: always one line (MAP.93). galaxystageview.js folds the
+/* The breadcrumb: always one line (MAP.93, NAV.14). breadcrumb.js folds the
    middle steps into "…" when they don't fit, and the current step is cut
    short with an ellipsis if even that is too long. */
-.galaxy-crumbs {
+.crumbs {
   display: flex;
   flex-wrap: nowrap;
   align-items: center;
@@ -2834,7 +2834,7 @@ body.app {
   margin: 0 0 0.5rem;
 }
 
-.galaxy-crumbs ol {
+.crumbs ol {
   display: flex;
   flex-wrap: nowrap;
   align-items: center;
@@ -2848,7 +2848,7 @@ body.app {
   white-space: nowrap;
 }
 
-.galaxy-crumbs .galaxy-bookmark {
+.crumbs .galaxy-bookmark {
   flex: 0 0 auto;
 }
 
@@ -2883,7 +2883,7 @@ body.app {
   }
 }
 
-.galaxy-crumbs > ol > li {
+.crumbs > ol > li {
   display: flex;
   align-items: center;
   gap: 0.1rem;
@@ -2891,32 +2891,32 @@ body.app {
   flex: 0 0 auto;
 }
 
-.galaxy-crumbs > ol > li:last-child {
+.crumbs > ol > li:last-child {
   flex: 0 1 auto;
   min-width: 0;
 }
 
-.galaxy-crumbs > ol > li:last-child > span {
+.crumbs > ol > li:last-child > span {
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-.galaxy-crumbs > ol.galaxy-crumbs-measuring > li:last-child {
+.crumbs > ol.crumbs-measuring > li:last-child {
   flex-shrink: 0;
 }
 
-.galaxy-crumbs > ol > li + li::before {
+.crumbs > ol > li + li::before {
   content: "›";
   color: var(--text-muted);
   margin-right: 0.25rem;
 }
 
-.galaxy-crumbs [aria-current] {
+.crumbs [aria-current] {
   font-weight: 600;
 }
 
-.galaxy-crumb,
-.galaxy-crumb-menu button {
+.crumb,
+.crumb-menu button {
   font: inherit;
   background: none;
   border: none;
@@ -2926,18 +2926,18 @@ body.app {
   text-decoration: underline;
 }
 
-.galaxy-crumb-menu summary {
+.crumb-menu summary {
   cursor: pointer;
   list-style: none;
   padding: 0 0.2rem;
   color: var(--text-muted);
 }
 
-.galaxy-crumb-menu summary::-webkit-details-marker {
+.crumb-menu summary::-webkit-details-marker {
   display: none;
 }
 
-.galaxy-crumb-menu ul {
+.crumb-menu ul {
   position: absolute;
   z-index: 4;
   top: 100%;
@@ -2953,12 +2953,12 @@ body.app {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
 }
 
-.galaxy-crumb-menu button {
+.crumb-menu button {
   white-space: nowrap;
   text-decoration: none;
 }
 
-.galaxy-crumb-menu button[aria-current] {
+.crumb-menu button[aria-current] {
   font-weight: 600;
   color: var(--text);
 }

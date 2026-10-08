@@ -48,6 +48,7 @@ const MC = await import(`./mapcontrol.js${VERSION_QUERY}`);
 const { worldUnitsPerPixel } = await import(`./mapcore.js${VERSION_QUERY}`);
 const B = await import(`./bookmarks.js${VERSION_QUERY}`);
 const { createSelection } = await import(`./picker.js${VERSION_QUERY}`);
+const { createBreadcrumb } = await import(`./breadcrumb.js${VERSION_QUERY}`);
 const { createPicker, createTooltip } = await import(`./mappick.js${VERSION_QUERY}`);
 const { createSectorStage } = await import(`./galaxysector.js${VERSION_QUERY}`);
 
@@ -1667,11 +1668,6 @@ export function createStageView(host) {
   // measured again whenever the line's width changes. At phone width the
   // line gives way to the round Steps button between Back and Forward
   // (MAP.94, els.steps), a menu of every step.
-  let crumbItems = [];
-  let crumbWidth = -1;
-  // The line's "…" menu, while it has one.
-  let moreMenu = null;
-
   function crumbSteps() {
     const items = S.crumbs(stage, getOutline(), edgePc);
     if (selectedSector && !(resolved && resolved.sector)) {
@@ -1681,148 +1677,26 @@ export function createStageView(host) {
     return items;
   }
 
-  // One step: the current one as text, the others as buttons going there.
-  function crumbNode(crumb, className) {
-    if (crumb.last) {
-      const here = document.createElement("span");
-      here.textContent = crumb.label;
-      here.setAttribute("aria-current", "location");
-      return here;
-    }
-    const button = document.createElement("button");
-    button.type = "button";
-    button.className = className;
-    button.textContent = crumb.label;
-    button.addEventListener("click", function () { selection.select({ kind: "stage", stage: crumb.stage }); });
-    return button;
-  }
-
-  // A <details> menu of `steps` (a summary showing `text`, labelled
-  // `label`); a step taken closes it.
-  function stepsMenu(steps, text, label, className) {
-    const menu = document.createElement("details");
-    menu.className = className;
-    const summary = document.createElement("summary");
-    summary.textContent = text;
-    summary.setAttribute("aria-label", label);
-    summary.title = label;
-    menu.appendChild(summary);
-    const list = document.createElement("ul");
-    steps.forEach(function (crumb) {
-      const item = document.createElement("li");
-      const node = crumbNode(crumb, "");
-      if (!crumb.last) node.addEventListener("click", function () { menu.open = false; });
-      item.appendChild(node);
-      list.appendChild(item);
-    });
-    menu.appendChild(list);
-    return menu;
-  }
-
-  // The line's steps, those between the first and the last `keep` folded
-  // into "…" (none folded while keep covers them all).
-  function fillCrumbs(list, keep) {
-    list.textContent = "";
-    const items = crumbItems;
-    const folded = keep >= items.length - 1 ? [] : items.slice(1, items.length - keep);
-    const shown = folded.length ? [items[0], null].concat(items.slice(items.length - keep)) : items;
-    moreMenu = null;
-    shown.forEach(function (crumb) {
-      const item = document.createElement("li");
-      if (crumb) {
-        item.appendChild(crumbNode(crumb, "galaxy-crumb"));
-      } else {
-        item.className = "galaxy-crumb-more";
-        moreMenu = stepsMenu(folded, "…", folded.length === 1 ? "1 more step" : folded.length + " more steps", "galaxy-crumb-menu");
-        item.appendChild(moreMenu);
-      }
-      list.appendChild(item);
-    });
-  }
-
-  function layoutCrumbs() {
-    const nav = els.crumbs;
-    const list = nav && nav.querySelector("ol");
-    if (!list) return;
-    crumbWidth = nav.clientWidth || 0;
-    fillCrumbs(list, crumbItems.length);
-    // Hidden, or no layout (a phone, where the line gives way): nothing
-    // to measure.
-    if (!list.clientWidth) return;
-    // Measured at full length: the current step is cut short only when
-    // even the shortest line doesn't fit.
-    list.classList.add("galaxy-crumbs-measuring");
-    for (let keep = crumbItems.length - 2; keep >= 1 && list.scrollWidth > list.clientWidth + 1; keep--) {
-      fillCrumbs(list, keep);
-    }
-    list.classList.remove("galaxy-crumbs-measuring");
-  }
-
-  function renderSteps() {
-    const box = els.steps;
-    if (!box) return;
-    const panel = box.querySelector("[data-steps-panel]");
-    if (!panel) return;
-    panel.textContent = "";
-    const list = document.createElement("ol");
-    crumbItems.forEach(function (crumb) {
-      const item = document.createElement("li");
-      const node = crumbNode(crumb, "");
-      if (!crumb.last) node.addEventListener("click", function () { box.open = false; });
-      item.appendChild(node);
-      list.appendChild(item);
-    });
-    panel.appendChild(list);
-  }
+  // The line itself is the shared breadcrumb (breadcrumb.js, NAV.14); its
+  // steps are the stage's, taken through the selection.
+  const crumbLine = els.crumbs ? createBreadcrumb(els.crumbs, {
+    steps: els.steps,
+    trailing: function () { return bookmarkButton; },
+    onSelect: function (step) { selection.select({ kind: "stage", stage: step.stage }); },
+  }) : null;
 
   function renderCrumbs() {
     syncSelection();
-    const nav = els.crumbs;
-    if (!nav) return;
-    crumbItems = crumbSteps();
-    let list = nav.querySelector("ol");
-    if (!list) {
-      nav.textContent = "";
-      list = document.createElement("ol");
-      nav.appendChild(list);
-    }
+    if (!crumbLine) return;
     if (!bookmarkButton) {
       bookmarkButton = document.createElement("button");
       bookmarkButton.type = "button";
       bookmarkButton.className = "galaxy-bookmark";
       refreshBookmark = B.toggleButton(bookmarkButton, bookmarkEntry, true);
     }
-    nav.appendChild(bookmarkButton);
-    layoutCrumbs();
-    renderSteps();
+    crumbLine.set(crumbSteps());
     refreshBookmark();
   }
-
-  // The line is measured again when its width changes (a resize, the
-  // panel shown).
-  if (els.crumbs && typeof ResizeObserver === "function") {
-    new ResizeObserver(function () {
-      if (els.crumbs.clientWidth !== crumbWidth) layoutCrumbs();
-    }).observe(els.crumbs);
-  }
-  // A "…" or Steps menu closes on a click elsewhere or Escape.
-  function openStepMenus() {
-    return [moreMenu, els.steps].filter(function (menu) { return menu && menu.open; });
-  }
-  document.addEventListener("click", function (event) {
-    const path = event.composedPath ? event.composedPath() : [];
-    openStepMenus().forEach(function (menu) {
-      if (path.indexOf(menu) < 0) menu.open = false;
-    });
-  });
-  document.addEventListener("keydown", function (event) {
-    if (event.key !== "Escape") return;
-    openStepMenus().forEach(function (menu) {
-      menu.open = false;
-      const summary = menu.querySelector("summary");
-      if (summary && menu.contains(event.target)) summary.focus();
-    });
-  });
 
   // The slab buttons and their leader lines (MAP.54, layout MAP.76):
   // while the next pick is a slab, one button per slab beside the map

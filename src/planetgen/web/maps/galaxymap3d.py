@@ -364,7 +364,7 @@ ADDRESS_BLOCK = """<form class="galaxy-address" id="galaxymap3d-address" role="s
 """
 """The Go-to form (the stage view's address bar)."""
 
-CRUMBS_BLOCK = """<nav class="galaxy-crumbs" id="galaxymap3d-crumbs" aria-label="Map position" hidden></nav>
+CRUMBS_BLOCK = """<nav class="crumbs galaxy-crumbs" id="galaxymap3d-crumbs" aria-label="Map position" hidden></nav>
 """
 """The breadcrumb the stage view fills."""
 
