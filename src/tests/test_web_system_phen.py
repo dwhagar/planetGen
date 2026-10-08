@@ -293,6 +293,8 @@ def test_system_page_code_views(client, fake):
     html = client.get("/system/5?code=bogus").get_data(as_text=True)
     assert 'id="system-code"' not in html
     assert 'href="/system/5?code=wikitext#system-panel">Wikitext</a>' in html
+    # UX.67: the switch is a quiet "View source" menu, not two buttons.
+    assert '<summary>View source</summary>' in html and "btn-secondary" not in html.split('id="system-heading"')[1][:600]
 
 
 def test_system_page_wiki_links(client, fake):

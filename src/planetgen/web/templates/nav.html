@@ -21,14 +21,14 @@
 {%- if bookmark_pick or bookmark_changes %}
 <script type="module" src="{{ static_url('bookmarks.js') }}"></script>
 {%- endif %}
+{%- if direct %}
+<script type="module" src="{{ static_url('navtimes.js') }}"></script>
+{%- endif %}
 {% endblock %}
 {% block subhead %}
-{%- if origin %}
+{%- if origin and not destination %}
 <p class="badges">
   <span class="badge">From: <a href="{{ origin.url }}">{{ origin.name }}</a></span>
-  {%- if destination %}
-  <span class="badge">To: <a href="{{ destination.url }}">{{ destination.name }}</a></span>
-  {%- endif %}
 </p>
 {%- endif %}
 {% endblock %}
@@ -42,7 +42,45 @@
 </section>
 {%- endif %}
 
-{%- if map_picks %}
+{#- UX.71: the first page is one card, Plan a course: start from a map or a sector. -#}
+{%- if landing %}
+<section class="panel" aria-labelledby="plan-heading">
+  <h2 id="plan-heading">Plan a course</h2>
+  {%- set picker = pickers[0] %}
+  <p class="page-actions">Start from
+    {%- for link in map_picks %}
+    <a class="btn btn-small" href="{{ link.url }}">{{ link.label }}</a>
+    {%- endfor %}
+    {%- if picker.options %} or a sector:{% endif %}
+  </p>
+  {%- if picker.options %}
+  <form method="get" action="{{ url_for('web.nav') }}" class="search-form">
+    {%- for name, value in picker.hidden %}
+    <input type="hidden" name="{{ name }}" value="{{ value }}">
+    {%- endfor %}
+    <div class="search-fields">
+      <label class="search-field">{{ picker.label }}
+        <select name="{{ picker.field }}">
+          {%- for option in picker.options %}
+          <option value="{{ option.value }}">{{ option.label }}</option>
+          {%- endfor %}
+        </select>
+      </label>
+    </div>
+    <div class="search-actions">
+      <button type="submit" class="btn">{{ picker.button }}</button>
+    </div>
+  </form>
+  {%- else %}
+  <p class="hint">{{ picker.empty }}</p>
+  {%- endif %}
+  {%- if bookmark_pick %}
+  {{ bookmark_select(bookmark_pick) }}
+  {%- endif %}
+</section>
+{%- endif %}
+
+{%- if map_picks and not landing %}
 <section class="panel" aria-labelledby="map-picks-heading">
   <h2 id="map-picks-heading">{{ map_picks_heading }}</h2>
   <p class="page-actions">
@@ -56,7 +94,7 @@
 </section>
 {%- endif %}
 
-{%- for picker in pickers or [] %}
+{%- for picker in (pickers or []) if not landing %}
 <section class="panel" aria-labelledby="picker-{{ loop.index }}">
   <h2 id="picker-{{ loop.index }}">{{ picker.heading }}</h2>
   {%- if picker.start_over %}
@@ -88,10 +126,7 @@
 
 {%- if direct %}
 <section class="panel" aria-labelledby="course-heading">
-  <div class="panel-header">
-    <h2 id="course-heading">Direct Course</h2>
-    <span class="hint"><a href="{{ reverse_url }}">Reverse course</a> &middot; <a href="{{ start_over }}">Another destination</a>{% if galaxy_map_url %} &middot; <a href="{{ galaxy_map_url }}">Show on Galaxy Map</a>{% endif %}</span>
-  </div>
+  <h2 id="course-heading">Direct Course</h2>
   <p class="badges"><span class="badge">{{ scope_label }}</span></p>
   <div class="table-scroll"><table>
     <tbody>
@@ -100,24 +135,13 @@
       <tr><td>Frame</td><td>{{ frame_label }}</td></tr>
     </tbody>
   </table></div>
-  <h3>Warp Travel Time</h3>
-  <div class="table-scroll"><table>
-    <thead><tr><th scope="col">Warp Factor</th><th scope="col">Speed</th><th scope="col">Travel Time</th></tr></thead>
-    <tbody>
-      {%- for leg in warp_times %}
-      <tr><td>Warp {{ leg.warp_factor }}</td><td>{{ num(leg.velocity_multiple_of_c, ",.1f") }}&times; c</td><td>{{ leg.formatted }}</td></tr>
-      {%- endfor %}
-    </tbody>
-  </table></div>
-  <h3>Dimensional Fold Travel Time</h3>
-  <div class="table-scroll"><table>
-    <thead><tr><th scope="col">Fold Factor</th><th scope="col">Speed</th><th scope="col">Travel Time</th></tr></thead>
-    <tbody>
-      {%- for leg in fold_times %}
-      <tr><td>Fold {{ leg.fold_factor }}</td><td>{{ num(leg.velocity_multiple_of_c, ",.1f") }}&times; c</td><td>{{ leg.formatted }}</td></tr>
-      {%- endfor %}
-    </tbody>
-  </table></div>
+  <p class="page-actions">
+    <a class="btn btn-small" href="{{ reverse_url }}">Reverse course</a>
+    <a class="btn btn-small" href="{{ start_over }}">Another destination</a>
+    {%- if galaxy_map_url %}
+    <a class="btn btn-small" href="{{ galaxy_map_url }}">Show on Galaxy Map</a>
+    {%- endif %}
+  </p>
 </section>
 {%- if bookmark_changes %}
 {#- Either end swapped for a bookmark (NAV.40); hidden while no bookmark
@@ -130,18 +154,49 @@
 </section>
 {%- endif %}
 {{ map_html }}
+{#- UX.70: the route only when it has stops beyond the two ends; a direct hop is the course above. -#}
+{%- if not route %}
 <section class="panel" aria-labelledby="route-heading">
   <h2 id="route-heading">Optimal Route</h2>
-  {%- if route %}
+  <p class="hint">No route via adjacent systems could be found between these two endpoints.</p>
+</section>
+{%- elif stops|length > 2 %}
+<section class="panel" aria-labelledby="route-heading">
+  <h2 id="route-heading">Optimal Route</h2>
   <p>{{ stops|length }} stop{{ "" if stops|length == 1 else "s" }}, {{ route_distance_text }} total.</p>
   <ol class="nav-route">
     {%- for stop in stops %}
     <li><a href="{{ stop.url }}">{{ stop.name }}</a></li>
     {%- endfor %}
   </ol>
-  {%- else %}
-  <p class="hint">No route via adjacent systems could be found between these two endpoints.</p>
-  {%- endif %}
+</section>
+{%- endif %}
+<section class="panel" aria-labelledby="times-heading" data-travel-times>
+  <details>
+    <summary id="times-heading">Travel times</summary>
+    <p class="page-actions" data-travel-switch hidden>
+      <button type="button" class="btn btn-small" data-travel-mode="warp" aria-pressed="true">Warp</button>
+      <button type="button" class="btn btn-small" data-travel-mode="fold" aria-pressed="false">Dimensional Fold</button>
+    </p>
+    <div data-travel-table="warp" class="table-scroll"><table>
+      <caption>Warp travel time</caption>
+      <thead><tr><th scope="col">Warp Factor</th><th scope="col">Speed</th><th scope="col">Travel Time</th></tr></thead>
+      <tbody>
+        {%- for leg in warp_times %}
+        <tr><td>Warp {{ leg.warp_factor }}</td><td>{{ num(leg.velocity_multiple_of_c, ",.1f") }}&times; c</td><td>{{ leg.formatted }}</td></tr>
+        {%- endfor %}
+      </tbody>
+    </table></div>
+    <div data-travel-table="fold" class="table-scroll"><table>
+      <caption>Dimensional Fold travel time</caption>
+      <thead><tr><th scope="col">Fold Factor</th><th scope="col">Speed</th><th scope="col">Travel Time</th></tr></thead>
+      <tbody>
+        {%- for leg in fold_times %}
+        <tr><td>Fold {{ leg.fold_factor }}</td><td>{{ num(leg.velocity_multiple_of_c, ",.1f") }}&times; c</td><td>{{ leg.formatted }}</td></tr>
+        {%- endfor %}
+      </tbody>
+    </table></div>
+  </details>
 </section>
 {%- endif %}
 {% endblock %}
