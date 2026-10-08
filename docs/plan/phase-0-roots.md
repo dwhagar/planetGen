@@ -29,6 +29,7 @@ Done: all eight items landed in PR #442 (2026-10-07).
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.116 | Error when generating a neighbourhood centred near the galaxy edge, awaiting Boss's error text (bug) |  | Back burner (Boss 17:11Z): GEN.65's 18 edge tests pass (PR #476); waits for his error text. |
+| TEST.102 | test_a_pass_removes_species_stored_without_a_civilization fails now and then in the full suite (bug) |  | Reported by Foundations lane 1 on PR #588; 1 failure in 4 full runs. |
 
 ### Bugfixes: console and progress
 
