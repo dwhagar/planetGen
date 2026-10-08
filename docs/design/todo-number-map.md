@@ -940,7 +940,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.66 | “Cube edge” on arc-shaped sectors | none | done, PR #617 |
 | UX.67 | Wikitext and Markdown buttons | none | done, PR #648 |
 | UX.68 | System Admin menu lists every planet and moon | none | done, PR #646 |
-| UX.69 | Tables are cut off on phones with no cue | none | open |
+| UX.69 | Tables are cut off on phones with no cue | none | done, PR #659 |
 | UX.70 | The result page repeats the route and puts the map last | none | done, PR #648 |
 | UX.71 | NAV landing page | none | done, PR #648 |
 | UX.72 | Gear menu mixes unrelated things; the admin hub is not the hub | none | done, PR #632 |
