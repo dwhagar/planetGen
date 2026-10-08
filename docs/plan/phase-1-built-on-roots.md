@@ -104,8 +104,8 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.104 | A spin vector and a realistic axial tilt for every rotating object | GEN.74 | Rules from "Observational Kinetics for Rotational Vectors.md". |
-| GEN.106 | Movement thresholds and a next-update-due column | GEN.74, DB.11 |  |
+| GEN.104 | A spin vector and a realistic axial tilt for every rotating object |  | Rules from "Observational Kinetics for Rotational Vectors.md". |
+| GEN.106 | Movement thresholds and a next-update-due column | DB.11 |  |
 | GEN.107 | The update reports how many objects moved, changed sector, or entered or left a nebula | GEN.106 |  |
 | GEN.108 | Orbital math limits: where each method breaks down and what happens there | GEN.106 | Boss (2026-10-07 11:47Z): "we need to ensure that reasonable limitations for when the math breaks down at the edge cases." |
 
@@ -155,7 +155,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| ADM.32 | Add a star system to a sector: at the emptiest spot, at given coordinates, or at random outside every Hill sphere | GEN.74 | Merges two asks (one system added by the computer; placement chosen by admin). |
+| ADM.32 | Add a star system to a sector: at the emptiest spot, at given coordinates, or at random outside every Hill sphere |  | Merges two asks (one system added by the computer; placement chosen by admin). |
 | MAP.120 | Bright-star backfill from the Galaxy Map's block, slab and wedge menus |  |  |
 | ADM.35 | Full control from every screen: edit anything, regenerate with every input, backfill or erase what is in view | MAP.120 | Parent; MAP item MAP.120 is the map part. |
 
