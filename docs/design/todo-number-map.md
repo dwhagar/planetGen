@@ -22,7 +22,7 @@ release is stamped.
 | API | API.20 |
 | ADM | ADM.39 |
 | SEC | SEC.32 |
-| TEST | TEST.107 |
+| TEST | TEST.108 |
 | USR | USR.9 |
 | OPS | OPS.28 |
 | DOC | DOC.4 |
@@ -536,7 +536,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.71 | Name interstellar objects, phenomena and constellations from the codec | none | open |
 | GEN.72 | A backfilled bright star should get a name only when its sector is generated (bug) | none | done, PR #657 |
 | GEN.73 | Nebulae don't get unique names (bug) | none | folded into GEN.71 |
-| GEN.74 | One point-in-space object that keeps every coordinate system in step, used by every object | none | open |
+| GEN.74 | One point-in-space object that keeps every coordinate system in step, used by every object | none | done, PR #665 |
 | GEN.75 | A nebula shape from metaballs and warped noise, as a mesh | none | done, PR #580 |
 | GEN.76 | A sector with no qualifying stars never generates or is marked generated (bug) | none | done, PR #442 |
 | GEN.77 | Neighborhood generation fails when its first sector is below the star threshold (bug) | none | done, PR #461 |
@@ -651,7 +651,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.66 | The sector as the drill-down's last stage, on the same page | none | done, PR #548 |
 | MAP.67 | One URL and history scheme for every level | none | open |
 | MAP.68 | Remove the old Sector Map code | none | done, PR #573 |
-| MAP.69 | A system scene endpoint with 3D orbits | none | open |
+| MAP.69 | A system scene endpoint with 3D orbits | none | done, PR #668 |
 | MAP.70 | Positions at any time | none | open |
 | MAP.71 | Scale modes that keep everything visible | none | open |
 | MAP.72 | Rendering at system scale | none | open |
@@ -922,7 +922,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.48 | Charted regions as bookmarks that frame and outline the region | none | open |
 | UX.49 | Form fields as Shoelace components (sl-input, sl-select, sl-checkbox) across the site | none | open |
 | UX.50 | One short hint per map, the rest behind a Help entry | none | done, PR #640 |
-| UX.51 | Cards that repeat the page title | none | open |
+| UX.51 | Cards that repeat the page title | none | done, PR #663 |
 | UX.52 | Sector name repeated on every Contents row | none | done, PR #654 |
 | UX.53 | The same star shown three times on a system page | none | done, PR #654 |
 | UX.54 | Search shows empty result groups and echoes the query | none | open |
@@ -1145,6 +1145,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.104 | test_system_map_selection_drill_and_measure fails now and then under load (bug) | none | done, PR #634 |
 | TEST.105 | test_web_a11y.py fails on the Admin hub: its links have 2.49:1 contrast (bug) | none | done, PR #648 |
 | TEST.106 | test_controls_do_not_overlap fails on the Sector Map at 390, 600 and 1280 px: its buttons overlap the Contents filters (bug) | none | done, PR #650 |
+| TEST.107 | test_controls_do_not_overlap fails on main for /galaxy at 390 px and /sector: buttons overlap each other (bug) | none | closed, not reproducible (passes on main) |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

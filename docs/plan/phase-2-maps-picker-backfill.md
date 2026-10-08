@@ -93,8 +93,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| MAP.69 | A system scene endpoint with 3D orbits | NAV.7 | Scene endpoint with references. |
-| MAP.70 | Positions at any time | MAP.69 | Positions through the point-in-space object (GEN.74). Python twin feeds NAV.27. |
+| MAP.70 | Positions at any time |  | Positions through the point-in-space object (GEN.74, built). Python twin feeds NAV.27. |
 
 ### Reproducible galaxies
 
@@ -132,7 +131,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | GEN.115 | The galaxy's own gravity: a smooth disk, bulge and halo potential | GEN.106, GEN.108 | Model from Boss's "Computational Astrodynamics.md" (2026-10-07): bulge, disk and halo potential. |
 | GEN.109 | N-body influence from the nearest 10 bodies of equal or larger mass, with a Hill-radius warning | GEN.106, GEN.108, GEN.115 |  |
-| ADM.36 | Change an object's trajectory vector | GEN.74, GEN.109 |  |
+| ADM.36 | Change an object's trajectory vector | GEN.109 |  |
 | GEN.110 | Rogue planet collisions: asteroid fields, merged giants and new stars | GEN.109 |  |
 | GEN.105 | Orbital updates | GEN.106, GEN.107, GEN.108, GEN.115, GEN.109, GEN.110 | Parent of the orbital update work. |
 
@@ -171,7 +170,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| VIEW.5 | Light-travel positions: where an object appears to a distant observer | GEN.74, MAP.70 | Groundwork for VIEW.2. |
+| VIEW.5 | Light-travel positions: where an object appears to a distant observer | MAP.70 | Groundwork for VIEW.2. |
 
 ## Open questions for Boss
 

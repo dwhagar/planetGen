@@ -54,9 +54,9 @@ like `starmap.py`/`sectorscene.js`'s own click-for-info pattern.
 Every star/planet/moon marker's flat SVG circle is also live-rendered as a
 small rotating shaded sphere (three.js, same vendored build
 `sectorscene.js` uses -- `static/systemmap.js`'s `#sysmap-spheres-canvas`),
-colored by the body's own class (`_class_color`, handed over pre-resolved
+colored by the body's own class (`class_color`, handed over pre-resolved
 as `data-color` so this module stays the one place that mapping lives --
-a star instead gets its own real spectral-type color from `_star_color`,
+a star instead gets its own real spectral-type color from `star_color`,
 same as `starmap.py`), banded with a tilted ring for a gas giant
 (`data-bodytype`), and wrapped in a soft fresnel-glow atmosphere shell,
 tinted by `data-surfacetemp`, when `data-hasatmosphere` is set. One shared
@@ -78,7 +78,7 @@ import math
 import statistics
 
 from planetgen.web.lib.fmt import esc, format_distance_km, format_pressure_pa, format_speed_kms, format_temperature_k
-from planetgen.web.maps.starmap import _star_color, _SUN_RADIUS_KM
+from planetgen.web.maps.starmap import star_color, _SUN_RADIUS_KM
 from planetgen.web.lib.tabledisplay import (
     format_body_distance, format_body_mass, format_body_radius, format_period, format_star_luminosity, format_star_mass, format_star_radius,
     to_plain_text,
@@ -190,7 +190,7 @@ _CLASS_COLORS = {
 _DEFAULT_CLASS_COLOR = "#8a8f9c"
 
 
-def _class_color(planet_class):
+def class_color(planet_class):
     return _CLASS_COLORS.get((planet_class or "").upper(), _DEFAULT_CLASS_COLOR)
 
 
@@ -684,7 +684,7 @@ def _body_marker_svg(cx, cy, r_px, planet_class, body_type, label_text, extra_cl
     `static/systemmap.js` as the default info-panel content when that
     scene opens, via its `data-self="true"` marker.
     """
-    fill = _class_color(planet_class)
+    fill = class_color(planet_class)
     stroke = _darken_hex(fill, 0.22)
     text_color = _text_color_for(fill)
 
@@ -743,12 +743,12 @@ def _body_marker_svg(cx, cy, r_px, planet_class, body_type, label_text, extra_cl
 
 
 def _star_marker_svg(cx, cy, r_px, star, attrs, bounds=_DEFAULT_BOUNDS):
-    fill, stroke = _star_color(star["star_type"], star["temperature_k"], star["luminosity_w"])
+    fill, stroke = star_color(star["star_type"], star["temperature_k"], star["luminosity_w"])
     name = attrs.get("name", "star")
     # Handed to the client as `data-color` too (like a planet/moon's own
     # "color" attr -- see `_planet_attrs`) so `static/systemmap.js`'s 3D
     # sphere renderer can color a star's own live-rendered sphere without
-    # duplicating `_star_color`'s spectral-type logic in JS.
+    # duplicating `star_color`'s spectral-type logic in JS.
     star_attrs = dict(attrs)
     star_attrs["color"] = fill
     half_w = _label_half_width_px(name)
@@ -791,12 +791,12 @@ def _planet_attrs(planet, kind="planet", parent_name=None, scene_target=None):
         "class": (planet["planet_class"] or "").upper(),
         "classdesc": _class_description(planet["planet_class"]),
         # The same class->color lookup the marker's own fill uses
-        # (`_class_color`) -- handed to the client as a resolved hex string
+        # (`class_color`) -- handed to the client as a resolved hex string
         # (like `starmap.py`'s star colors) rather than duplicating
         # `_CLASS_COLORS` in JS, so this module stays the one place a
         # planet class's color is decided. Drives this marker's own live 3D
         # sphere in `static/systemmap.js` (`#sysmap-spheres-canvas`).
-        "color": _class_color(planet["planet_class"]),
+        "color": class_color(planet["planet_class"]),
         "bodytype": "Gas Giant" if planet["body_type"] == "g" else "Terrestrial",
         # MAP.92: the side panel's radius and mass, formatted here like
         # every other field.

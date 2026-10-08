@@ -543,7 +543,7 @@ def _kelvin_to_hex(temp_k):
     """
     Approximates a blackbody color for `temp_k` as a `#rrggbb` string --
     the standard Tanner Helland fit (clamped to its 1000-40000 K valid
-    range). Used only as a fallback for `_star_color` when `star_type`
+    range). Used only as a fallback for `star_color` when `star_type`
     doesn't start with a recognized spectral letter (malformed/unexpected
     data) -- every normal star gets its color from the named spectral
     color instead, not this.
@@ -582,7 +582,7 @@ def _rgb_hex(rgb_float):
     )
 
 
-def _star_color(star_type, temperature_k, luminosity_w):
+def star_color(star_type, temperature_k, luminosity_w):
     """
     Picks a dot's fill and stroke color for one star, factoring in all
     four of color/temperature/brightness/size this map is meant to
@@ -838,7 +838,7 @@ def _star_data(link_url, system, star, x_px, y_px, z_px, max_r=None):
     dot_r = _star_dot_radius(star["radius_km"])
     if max_r is not None:
         dot_r = min(dot_r, max_r)
-    fill, stroke = _star_color(star["star_type"], star["temperature_k"], star["luminosity_w"])
+    fill, stroke = star_color(star["star_type"], star["temperature_k"], star["luminosity_w"])
     return {
         "x": x_px, "y": y_px, "z": z_px, "r": dot_r,
         "light": _star_light(star["luminosity_w"], star["radius_km"], star["temperature_k"]),
@@ -864,7 +864,7 @@ def _star_data(link_url, system, star, x_px, y_px, z_px, max_r=None):
 _MAX_CLOUD_RADIUS_PX = 6 * (2 * _SCENE_HALF_PX)
 
 # Fill color (and base opacity, baked into the alpha channel below) per
-# `nebulae.nebula_type` -- not spectral-accurate the way `_star_color` is
+# `nebulae.nebula_type` -- not spectral-accurate the way `star_color` is
 # (a nebula's visible color really does vary this much by type: emission
 # nebulae genuinely glow reddish-pink from ionized hydrogen's H-alpha
 # line, reflection nebulae blue from scattered starlight, planetary

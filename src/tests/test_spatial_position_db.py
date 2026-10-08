@@ -59,6 +59,14 @@ def test_a_saved_sector_loads_back_with_every_entry_and_body_in_place(mysql_conf
         for loaded_moon, moon in zip(loaded_planet.moons, planet.moons):
             assert loaded_moon.spatial.get_coordinates("galactic", "cartesian") == pytest.approx(
                 moon.spatial.get_coordinates("galactic", "cartesian"), rel=1e-9)
+    # Mass and mu travel with the object, stars included.
+    for loaded_planet, planet in zip(planets, original):
+        assert loaded_planet.spatial.mass_kg == pytest.approx(planet.spatial.mass_kg, rel=1e-9)
+        assert loaded_planet.spatial.mu == pytest.approx(planet.spatial.mu, rel=1e-9)
+    for loaded_star, star in zip(after.star_system.stars, before.star_system.stars):
+        assert loaded_star.spatial.get_coordinates("galactic", "cartesian") == pytest.approx(
+            star.spatial.get_coordinates("galactic", "cartesian"), rel=1e-9)
+        assert loaded_star.spatial.mass_kg == pytest.approx(star.spatial.mass_kg, rel=1e-9)
     # The columns are the objects' own numbers, in km.
     first = original[0]
     assert row["position_x_km"] == pytest.approx(first.spatial.get_coordinates("system", "cartesian")[0]
