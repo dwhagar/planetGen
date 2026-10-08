@@ -1494,7 +1494,7 @@ def nebula_shape(conn, nebula_id):
     if row is None:
         raise ValueError(f"no such nebula: {nebula_id!r}")
     row = dict(row)
-    if row["shape_scale"] is None:
+    if row.get("shape_scale") is None:
         return row, shapes.shape_for_nebula(row["nebula_class"], row["radius_ly"], row["density_cm3"],
                                             row["temperature_k"], row["extinction_av"], row["dominant_species"])
     balls = conn.execute(

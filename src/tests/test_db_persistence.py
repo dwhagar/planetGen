@@ -2656,14 +2656,44 @@ def test_innermost_container_picks_the_smallest_cloud_holding_the_point():
                                    own=("inside_nebula_id", 1)) is None
 
 
-def _placed_nebula(conn, sector_id, center_pc, radius_ly, nebula_class="D"):
+def test_a_nebula_holds_only_the_points_inside_its_shape():
+    """GEN.75: a point in the nebula's sphere but outside its shape is not inside it."""
+    class Slab:
+        def contains(self, point):
+            return abs(point[2]) < 0.1
+
+    nebula = {"column": "inside_nebula_id", "id": 1, "center": (0.0, 0.0, 0.0), "radius_pc": 10.0,
+              "shape": lambda: Slab()}
+    assert store.innermost_container((5.0, 0.0, 0.5), [nebula]) is nebula
+    assert store.innermost_container((5.0, 0.0, 5.0), [nebula]) is None
+    assert store.innermost_container((11.0, 0.0, 0.0), [nebula]) is None
+
+
+def _placed_nebula(conn, sector_id, around_pc, radius_ly, nebula_class="D"):
+    """A nebula placed so `around_pc` lies inside its shape (GEN.75): a
+    nebula holds only the points within its shape, not its whole sphere."""
     from planetgen.generation.phenomena.nebula import Nebula
     nebula = Nebula(SystemConfig(), nebula_class=nebula_class)
     nebula.radius_ly = radius_ly
-    x, y, z = center_pc
+    shape = nebula.get_shape()
+    from planetgen.physics.units import ly_to_pc
+
+    inside = next(point for point in ([v / shape.scale for v in c] for c in shape.centres) if shape.contains(point))
+    x, y, z = (around_pc[i] - inside[i] * ly_to_pc(radius_ly) for i in range(3))
     return store.insert_nebula(conn, nebula, sector_id=sector_id, placement={
         "center_x_pc": x, "center_y_pc": y, "center_z_pc": z, "galactic_radius_pc": math.hypot(x, y, z),
     })
+
+
+def _system_point_pc(conn, sector_id):
+    """The first system of `sector_id` in galaxy-frame parsecs."""
+    sector = conn.execute("SELECT center_x_pc, center_y_pc, center_z_pc FROM sectors WHERE id = ?",
+                          (sector_id,)).fetchone()
+    system = conn.execute("SELECT position_x_mpc, position_y_mpc, position_z_mpc FROM star_systems"
+                          " WHERE sector_id = ?", (sector_id,)).fetchone()
+    return store.local_to_galaxy_pc(
+        (sector["center_x_pc"], sector["center_y_pc"], sector["center_z_pc"]),
+        (system["position_x_mpc"] / 1000.0, system["position_y_mpc"] / 1000.0, system["position_z_mpc"] / 1000.0))
 
 
 def test_systems_inside_a_nebula_point_at_it_and_the_innermost_wins(mysql_config):
@@ -2676,7 +2706,7 @@ def test_systems_inside_a_nebula_point_at_it_and_the_innermost_wins(mysql_config
     conn = store.get_connection(mysql_config)
     try:
         with conn:
-            big = _placed_nebula(conn, sector_id, (110.0, 0.0, 0.0), radius_ly=100.0, nebula_class="E")
+            big = _placed_nebula(conn, sector_id, _system_point_pc(conn, sector_id), radius_ly=100.0, nebula_class="E")
         row = conn.execute("SELECT inside_nebula_id, inside_remnant_id FROM star_systems WHERE sector_id = ?",
                            (sector_id,)).fetchone()
         assert (row["inside_nebula_id"], row["inside_remnant_id"]) == (big, None)
@@ -2684,7 +2714,7 @@ def test_systems_inside_a_nebula_point_at_it_and_the_innermost_wins(mysql_config
         assert far["inside_nebula_id"] is None
 
         with conn:
-            small = _placed_nebula(conn, sector_id, (100.5, 0.0, 0.0), radius_ly=3.0, nebula_class="C")
+            small = _placed_nebula(conn, sector_id, _system_point_pc(conn, sector_id), radius_ly=3.0, nebula_class="C")
         row = conn.execute("SELECT inside_nebula_id FROM star_systems WHERE sector_id = ?", (sector_id,)).fetchone()
         assert row["inside_nebula_id"] == small
         nested = conn.execute("SELECT inside_nebula_id FROM nebulae WHERE id = ?", (small,)).fetchone()

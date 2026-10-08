@@ -719,7 +719,9 @@ and `nebulae` get `inside_nebula_id` and `inside_remnant_id`, foreign keys
 (`ON DELETE SET NULL`) to the innermost nebula or supernova remnant whose
 sphere holds the object; at most one is set. `_db.refresh_containment`
 sets them by a 3D distance test when a sector is generated and, for
-every sector it reaches, when a nebula or remnant is placed.
+every sector it reaches, when a nebula or remnant is placed. Since GEN.75 a
+nebula holds a point only inside its stored shape (the sphere is the quick
+first test, then `NebulaShape.contains`); a remnant is still a sphere.
 `_migrate_v38_to_v39` adds the columns and fills them. A nebula only
 nests inside a larger cloud. `queryDb.containing_cloud` names the cloud,
 and `sector_detail` returns it per system as `inside`. `schema.sql` turns
