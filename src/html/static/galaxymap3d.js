@@ -2127,6 +2127,7 @@ function initGalaxyMap3d(canvasEl, data) {
   // sectors, so "Charted only" stays on (design doc section 9).
   if (data.pick) {
     setChartedOnly(true);
+    stageView.setNeedGenerated(true);
     var onlyButton = document.querySelector('#galaxymap3d-controls [data-action="charted-only"]');
     if (onlyButton) {
       onlyButton.setAttribute("aria-pressed", "true");
