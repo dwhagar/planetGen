@@ -39,15 +39,19 @@ const { buildNebulaMesh, createShapeLoader, disposeNebulaMesh } = await import(`
 // sector indicator carries `isNeighbor` -- that alone is enough to tell
 // all three apart. The panel itself is mappick.js's, shared with the
 // Galaxy Map (MAP.65); this says what goes in it.
-export function infoSpec(entry, data) {
+// `navPick` (navpick.js) gives the NAV buttons and says whether a course is
+// being picked; without one the panel has neither.
+export function infoSpec(entry, data, navPick) {
   if (entry.isNeighbor) {
     return neighborSpec(entry, data);
   }
-  var spec = { title: entry.name || "Unknown", nav: entry.nav || null, links: [] };
+  var picking = !!(navPick && navPick.active());
+  var spec = { title: entry.name || "Unknown", nav: [], links: [] };
   if (entry.kind) {
     spec.fields = [["Type", entry.typeLabel], ["Radius", entry.radiusText], ["Distance", entry.distanceText]];
     spec.bookmark = endpointBookmark(entry.key, entry.name, entry.href);
-    if (!picking(entry)) {
+    if (navPick) spec.nav = navPick.actionsFor(entry.key, entry.name);
+    if (!picking) {
       spec.links.push({ href: entry.href, label: "View phenomenon →" });
     }
     return spec;
@@ -55,17 +59,11 @@ export function infoSpec(entry, data) {
   spec.fields = [["Star type", entry.starType], ["Temperature", entry.temp], ["Octant", entry.quadrant],
     ["Location", entry.location]];
   spec.bookmark = endpointBookmark(entry.endpoint, entry.name, entry.href);
-  if (!picking(entry)) {
+  if (navPick) spec.nav = navPick.actionsFor(entry.endpoint, entry.name);
+  if (!picking) {
     spec.links.push({ href: entry.href, label: "View system →" });
   }
   return spec;
-}
-
-// Whether the page is choosing a NAV start or destination (NAV's "Pick
-// on map", `entry.nav.pick`): the panel then offers only the pick button,
-// no link that would leave the course being built (NAV.30).
-function picking(entry) {
-  return !!(entry.nav && entry.nav.pick);
 }
 
 function neighborSpec(entry, data) {

@@ -620,9 +620,10 @@ button. Three features ride on top:
   `galaxy_views._course_from_args` asks `nav_page.galaxy_course` for the
   waypoints, and the map opens the smallest stage that holds both ends
   and draws the line (a course inside one sector opens that sector).
-  The Sector Map has the reverse: "Nav from here" and "Nav to here", and
-  a pick mode (`/sector/<id>?pick=to&from=...`) that goes straight to the
-  plotted course.
+  The maps have the reverse: "Start Here" and "End Here" in an object's
+  panel keep the user on the map for the first end and open the plotted
+  course with the second (`static/navpick.js`, NAV.29), and a pick mode
+  (`?pick=to&from=...`) that the NAV page can begin.
 - **Territories.** `/galaxy/territories` merges `/api/territories` (owned
   systems and capitals) with `/api/polities` (names, colors, counts), and
   the map draws each polity's reach as a soft ball and its systems as
