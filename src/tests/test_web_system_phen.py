@@ -75,6 +75,7 @@ class FakeData:
         self.sections = {"overview": "An *overview*.", "stars": {"1": "A yellow star."},
                          "planets": {}, "moons": {}, "belts": {}, "comets": {}}
         self.phenomena = [_phenomenon_row(i, sector_id=3 if i % 3 == 0 else None) for i in range(3)]
+        self.phenomena_asked = []
         self.phenomenon = {
             "id": 4, "name": "Crab <Nebula>", "nebula_type": "supernova_remnant", "radius_ly": 5.5,
             "composition": "Hydrogen & helium", "formation_cause": "stellar death",
@@ -114,10 +115,23 @@ class FakeData:
             raise self.upload_error
         return {"id": 1, "path": path, "title": "x", "url": "https://wiki.example/x"}
 
-    def get_phenomena(self, db, limit=None, offset=None):
+    def get_phenomena(self, db, limit=None, offset=None, sort=None, descending=False, types=(), descriptors=(),
+                      placed=None, facets=False):
         self.calls.append(("get_phenomena", db, limit, offset))
-        return {"items": self.phenomena[offset:offset + limit], "total": len(self.phenomena),
-                "limit": limit, "offset": offset}
+        self.phenomena_asked.append({"sort": sort, "descending": descending, "types": list(types),
+                                     "descriptors": list(descriptors), "placed": placed, "facets": facets})
+        rows = [row for row in self.phenomena
+                if (not types or row["type"] in types) and (not descriptors or row["descriptor"] in descriptors)]
+        key = {"radius": "radius_ly", "sector": "sector_name"}.get(sort or "name", sort or "name")
+        rows = sorted(rows, key=lambda row: (row[key] is None, row[key] or ""), reverse=bool(descending))
+        body = {"items": rows[offset:offset + limit], "total": len(rows), "limit": limit, "offset": offset}
+        if facets:
+            body["facets"] = {
+                column: [{"value": value, "count": sum(1 for row in self.phenomena if row[column] == value)}
+                         for value in sorted({row[column] for row in self.phenomena})]
+                for column in ("type", "descriptor")
+            }
+        return body
 
     def get_phenomenon(self, db, phenomenon_type, phenomenon_id):
         self.calls.append(("get_phenomenon", db, phenomenon_type, phenomenon_id))
@@ -381,6 +395,78 @@ def test_phenomena_pages_with_get_links(client, fake):
     assert "Showing 51&ndash;100 of 120" in html
 
 
+def _mixed_phenomena(fake):
+    fake.phenomena = [
+        _phenomenon_row(1, "nebula"),
+        {**_phenomenon_row(2, "rogue_planet"), "descriptor": "terrestrial", "name": "Wanderer"},
+        {**_phenomenon_row(3, "rogue_planet"), "descriptor": "gas_giant", "name": "Drifter"},
+    ]
+
+
+def test_phenomena_table_sorts_with_plain_links(client, fake):
+    _mixed_phenomena(fake)
+    html = client.get("/phenomena?sort=name&order=desc").get_data(as_text=True)
+    assert fake.phenomena_asked[-1]["sort"] == "name" and fake.phenomena_asked[-1]["descending"] is True
+    assert html.index("Wanderer") < html.index("Phenomenon 001") < html.index("Drifter")
+    # The sorted column offers the opposite direction, the others start ascending.
+    assert '<th scope="col" data-col="name" aria-sort="descending">' in html
+    assert 'href="/phenomena#phenomena-list"' in html
+    assert 'href="/phenomena?sort=type#phenomena-list"' in html
+    assert '<th scope="col" data-col="type" aria-sort="none">' in html
+
+
+def test_phenomena_table_filters_by_type_and_descriptor(client, fake):
+    _mixed_phenomena(fake)
+    html = client.get("/phenomena?type=rogue_planet&descriptor=gas_giant").get_data(as_text=True)
+    assert fake.phenomena_asked[-1]["types"] == ["rogue_planet"]
+    assert fake.phenomena_asked[-1]["descriptors"] == ["gas_giant"]
+    assert "Drifter" in html and "Wanderer" not in html
+    assert "1 phenomenon match" in html
+    assert 'name="type" value="rogue_planet" checked' in html
+    assert 'name="descriptor" value="gas_giant" checked' in html
+    assert '<span class="datatable-option-label">Rogue Planet</span>' in html
+    assert '<span class="datatable-option-label">Gas giant</span>' in html
+    assert 'class="datatable-clear" href="/phenomena#phenomena-list"' in html
+
+
+def test_phenomena_table_pager_keeps_the_sort_and_filters(client, fake):
+    fake.phenomena = [_phenomenon_row(i) for i in range(120)]
+    html = client.get("/phenomena?sort=name&order=desc&type=nebula&page=2").get_data(as_text=True)
+    assert "sort=name" in html and "order=desc" in html and "type=nebula" in html
+    assert "page=3#phenomena-list" in html
+
+
+def test_table_route_serves_rows_as_cells(client, fake):
+    _mixed_phenomena(fake)
+    resp = client.get("/table/phenomena?sort=name&offset=1&limit=1&facets=1&type=rogue_planet")
+    body = resp.get_json()
+    assert resp.status_code == 200
+    assert body["total"] == 2
+    assert [row[0]["text"] for row in body["rows"]] == ["Wanderer"]
+    assert body["rows"][0][0]["href"] == "/phenomenon/rogue_planet/2"
+    assert body["rows"][0][4] == {"text": "None", "muted": True}
+    assert {o["value"]: o["label"] for o in body["facets"]["type"]} == {"nebula": "Nebula", "rogue_planet": "Rogue Planet"}
+    assert fake.calls[-1] == ("get_phenomena", DB, 1, 1)
+    assert resp.headers["Cache-Control"] == "no-store"
+
+
+def test_table_route_skips_facets_unless_asked_and_caps_the_page(client, fake):
+    fake.phenomena = [_phenomenon_row(i) for i in range(120)]
+    body = client.get("/table/phenomena?limit=500").get_json()
+    assert body["facets"] is None and len(body["rows"]) == 50
+    assert client.get("/table/phenomena?offset=-4&limit=x").get_json()["rows"][0][0]["text"] == "Phenomenon 000"
+
+
+def test_table_route_unknown_table_and_api_failure(client, fake, monkeypatch):
+    assert client.get("/table/nope").status_code == 404
+
+    def broken(*args, **kwargs):
+        raise apiclient.ApiError("down")
+    monkeypatch.setattr(apiclient, "get_phenomena", broken)
+    resp = client.get("/table/phenomena")
+    assert resp.status_code == 502 and "could not be loaded" in resp.get_json()["error"]
+
+
 def test_phenomenon_detail(app, client, fake):
     resp = client.get("/phenomenon/nebula/4")
     html = resp.get_data(as_text=True)
@@ -398,11 +484,20 @@ def test_phenomenon_detail(app, client, fake):
     assert "4" in links["from"] and "nebula" in links["from"]
     assert '<th scope="row">Composition</th><td>Hydrogen &amp; helium</td>' in html
     assert "<td>Supernova remnant</td>" in html
-    assert 'id="phenomenonmap-svg"' in html
+    # MAP.105: a nebula's view is its 3D shape; the script comes from the
+    # template with an absolute URL, and the panel names its two endpoints.
+    assert 'id="nebulaview"' in html and 'id="phenomenonmap-svg"' not in html
+    assert re.search(r'<script type="module" src="/static/nebulaview.js\?v=[^"]+"></script>', html)
+    assert "/galaxy/nebula/4/shape" in html and "/galaxy/nebula/4/surroundings" in html
+    assert 'src="static/' not in html
+
+
+def test_remnant_page_keeps_the_au_diagram(client, fake):
+    html = client.get("/phenomenon/supernova_remnant/4").get_data(as_text=True)
+    assert 'id="phenomenonmap-svg"' in html and 'id="nebulaview"' not in html
     # The diagram's scripts come from the template with absolute URLs.
     assert re.search(r'<script src="/static/mapzoom.js\?v=[^"]+" defer></script>', html)
     assert re.search(r'<script type="module" src="/static/phenomenonmap.js\?v=[^"]+"></script>', html)
-    assert 'src="static/' not in html
 
 
 def test_quasar_detail(client, fake):

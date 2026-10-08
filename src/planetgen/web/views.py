@@ -6,110 +6,141 @@ home page (was `index.py`/`browse.py`), `/sectors` and `/systems` (the
 two halves of `browse.py`), and `/search` (was `search.py`).
 """
 
+import html
+
 from flask import redirect, request
 
 from planetgen.web.lib import apiclient
+from planetgen.web.lib.datatable import Column, Facet, Result, Table
 from planetgen.web.lib.fmt import format_density, format_distance_ly
+from planetgen.web.lib.tabledisplay import to_plain_text
 from planetgen.web.maps.galaxymap import sector_quadrant
-from planetgen.web.lib.pagination import fetch_page, parse_page
 
 from planetgen.api.limiter import page_limit
 
-from . import bp
+from . import bp, tables
 from . import searchpage
-from .helpers import crumb, db_name, page_url, pager, render_page, trusted_html
+from .helpers import crumb, db_name, page_url, render_page
 
 
-def _sector_rows(sectors):
-    """Template-ready rows for the Sectors table."""
-    rows = []
-    for sector in sectors:
-        quadrant = None
-        if sector["placed"]:
-            quadrant = sector_quadrant(sector["center_x_pc"], sector["center_y_pc"])
-        rows.append({
-            "name": sector["name"],
-            "url": page_url("sector", sector_id=sector["id"]),
-            "system_count": sector["system_count"],
-            "density": trusted_html(format_density(sector["edge_ly"], sector["system_count"])),
-            "quadrant": quadrant,
-            "quadrant_url": page_url("galaxy", quadrant=quadrant) if quadrant else None,
-            "distance": trusted_html(format_distance_ly(sector.get("galactic_radius_ly"))),
-        })
-    return rows
+def _plain(markup):
+    """A formatter's HTML (`<sup>`, `&sup3;`) as the plain text a table cell shows: the cell is
+    filled with `textContent` in the browser, so it can't hold markup."""
+    return html.unescape(to_plain_text(str(markup)))
 
 
-def _system_rows(systems):
-    """Template-ready rows for a systems table."""
-    return [{
-        "name": system["name"],
-        "url": page_url("system", system_id=system["id"]),
-        "is_binary": bool(system["is_binary"]),
-        "star_summary": system["star_summary"],
-        "sector_name": system.get("sector_name"),
-        "sector_url": page_url("sector", sector_id=system["sector_id"]) if system.get("sector_id") else None,
-        "octant": system.get("quadrant"),
-    } for system in systems]
+def _binary_filter(values):
+    """The `binary` argument for `yes`/`no` menu choices: one choice filters, none or both don't."""
+    chosen = {value for value in values if value in ("yes", "no")}
+    return None if len(chosen) != 1 else chosen == {"yes"}
 
 
-def _all_systems_panel(keep=None):
-    """One page of every system, in or out of a sector, plus its pager
-    (`?systems_page=N`)."""
-    db = db_name()
-    envelope, page = fetch_page(
-        lambda limit, offset: apiclient.get_systems(db, limit=limit, offset=offset),
-        parse_page(request.args.get("systems_page")),
-    )
-    return {
-        "rows": _system_rows(envelope["items"]),
-        "total": envelope["total"],
-        "page": page,
-        "pager": pager("systems_page", page, envelope["total"], anchor="all-systems",
-                       label="System pages", keep=keep),
-    }
+def _sector_row(sector):
+    """One Sectors table row: a list of cells (`lib/datatable.py`)."""
+    quadrant = sector_quadrant(sector["center_x_pc"], sector["center_y_pc"]) if sector["placed"] else None
+    return [
+        {"text": sector["name"], "href": page_url("sector", sector_id=sector["id"])},
+        {"text": str(sector["system_count"])},
+        {"text": _plain(format_density(sector["edge_ly"], sector["system_count"]))},
+        {"text": f"Quadrant {quadrant}", "href": page_url("galaxy", quadrant=quadrant)} if quadrant
+        else {"text": "Unplaced", "muted": True},
+        {"text": _plain(format_distance_ly(sector.get("galactic_radius_ly")))},
+    ]
 
 
-def _sectors_panel(keep=None):
-    """One page of sectors plus its pager (`?sectors_page=N`)."""
-    db = db_name()
-    envelope, page = fetch_page(
-        lambda limit, offset: apiclient.get_sectors(db, limit=limit, offset=offset),
-        parse_page(request.args.get("sectors_page")),
-    )
-    return {
-        "rows": _sector_rows(envelope["items"]),
-        "total": envelope["total"],
-        "page": page,
-        "pager": pager("sectors_page", page, envelope["total"], anchor="sectors",
-                       label="Sector pages", keep=keep),
-    }
+def _sectors_load(state, limit, offset, want_facets):
+    envelope = apiclient.get_sectors(
+        db_name(), limit=limit, offset=offset, sort=state.sort, descending=state.descending,
+        quadrants=state.filters["quadrant"], facets=want_facets)
+    facets = None
+    if want_facets:
+        facets = {"quadrant": [
+            {"value": option["value"],
+             "label": "Unplaced" if option["value"] == "unplaced" else f"Quadrant {option['value']}",
+             "count": option["count"]} for option in envelope["facets"]["quadrant"]]}
+    return Result([_sector_row(sector) for sector in envelope["items"]], envelope["total"], facets)
 
 
-def _systems_panel(keep=None):
-    """One page of standalone systems plus its pager
-    (`?standalone_page=N`)."""
-    db = db_name()
-    envelope, page = fetch_page(
-        lambda limit, offset: apiclient.get_systems(db, sector_id="none", limit=limit, offset=offset),
-        parse_page(request.args.get("standalone_page")),
-    )
-    return {
-        "rows": _system_rows(envelope["items"]),
-        "total": envelope["total"],
-        "page": page,
-        "pager": pager("standalone_page", page, envelope["total"], anchor="standalone-systems",
-                       label="Standalone system pages", keep=keep),
-    }
+SECTORS_TABLE = tables.register(Table(
+    "sectors", "Sectors",
+    [Column("name", "Name"), Column("systems", "Systems"), Column("density", "Density"),
+     Column("position", "Galaxy Position"), Column("distance", "Distance from core")],
+    _sectors_load, facets=[Facet("quadrant", "Quadrant")], prefix="sectors_", default_sort="distance",
+    noun=("sector", "sectors"),
+))
+
+_BINARY_LABELS = {"yes": "Binary", "no": "Single star"}
+_PLACEMENT_LABELS = {"sector": "In a sector", "standalone": "Standalone"}
+
+
+def _system_row(system, with_sector):
+    """One Systems table row (`with_sector`: the All Systems columns, else the Standalone ones)."""
+    row = [{"text": system["name"], "href": page_url("system", system_id=system["id"])}]
+    if with_sector:
+        row.append({"text": system["sector_name"], "href": page_url("sector", sector_id=system["sector_id"])}
+                   if system.get("sector_id") else {"text": "Standalone"})
+        row.append({"text": system.get("quadrant") or "\u2013"})
+    row.append({"text": "Yes" if system["is_binary"] else "No"})
+    row.append({"text": system["star_summary"] or "\u2013"})
+    return row
+
+
+def _facet_options(options, labels=None):
+    return [{"value": option["value"], "label": (labels or {}).get(option["value"], option["value"]),
+             "count": option["count"]} for option in options]
+
+
+def _all_systems_load(state, limit, offset, want_facets):
+    placement = state.filters["placement"]
+    envelope = apiclient.get_systems(
+        db_name(), limit=limit, offset=offset, sort=state.sort, descending=state.descending,
+        binary=_binary_filter(state.filters["binary"]),
+        placement=placement[0] if len(placement) == 1 and placement[0] in _PLACEMENT_LABELS else None,
+        octants=state.filters["octant"], facets=want_facets)
+    facets = None
+    if want_facets:
+        facets = {
+            "placement": _facet_options(envelope["facets"]["placement"], _PLACEMENT_LABELS),
+            "binary": _facet_options(envelope["facets"]["binary"], _BINARY_LABELS),
+            "octant": _facet_options(envelope["facets"]["octant"]),
+        }
+    return Result([_system_row(system, True) for system in envelope["items"]], envelope["total"], facets)
+
+
+ALL_SYSTEMS_TABLE = tables.register(Table(
+    "systems", "All systems",
+    [Column("name", "Name"), Column("sector", "Sector"), Column("octant", "Octant"), Column("binary", "Binary"),
+     Column("star_type", "Star type", sortable=False)],
+    _all_systems_load,
+    facets=[Facet("placement", "Where"), Facet("binary", "Stars"), Facet("octant", "Octant")],
+    prefix="systems_", noun=("system", "systems"),
+))
+
+
+def _standalone_load(state, limit, offset, want_facets):
+    envelope = apiclient.get_systems(
+        db_name(), sector_id="none", limit=limit, offset=offset, sort=state.sort, descending=state.descending,
+        binary=_binary_filter(state.filters["standalone_binary"]), facets=want_facets)
+    facets = None
+    if want_facets:
+        facets = {"standalone_binary": _facet_options(envelope["facets"]["binary"], _BINARY_LABELS)}
+    return Result([_system_row(system, False) for system in envelope["items"]], envelope["total"], facets)
+
+
+STANDALONE_TABLE = tables.register(Table(
+    "standalone-systems", "Standalone systems",
+    [Column("name", "Name"), Column("binary", "Binary"), Column("star_type", "Star type", sortable=False)],
+    _standalone_load, facets=[Facet("standalone_binary", "Stars")], prefix="standalone_",
+    noun=("standalone system", "standalone systems"),
+))
 
 
 @bp.route("/")
 def index():
-    """Home: every sector and every standalone system, each paged on its
-    own (`?sectors_page=N&standalone_page=M`)."""
-    sectors_page = parse_page(request.args.get("sectors_page"))
-    standalone_page = parse_page(request.args.get("standalone_page"))
-    sectors = _sectors_panel(keep={"standalone_page": standalone_page})
-    systems = _systems_panel(keep={"sectors_page": sectors_page})
+    """Home: every sector and every standalone system, each a table of its own
+    (`sectors_*` and `standalone_*` query parameters)."""
+    sectors = tables.render(SECTORS_TABLE, request.path, anchor="sectors")
+    systems = tables.render(STANDALONE_TABLE, request.path, anchor="standalone-systems")
     return render_page(
         "index.html",
         title="Home",
@@ -128,26 +159,22 @@ def sectors():
         section="sectors",
         breadcrumbs=[crumb("Sectors")],
         description="Every sector in this generated galaxy.",
-        sectors=_sectors_panel(),
+        sectors=tables.render(SECTORS_TABLE, request.path, anchor="sectors"),
     )
 
 
 @bp.route("/systems")
 def systems():
-    """Every system, 50 a page with its sector and octant, and the
-    standalone ones (generated outside any sector) in their own panel;
-    each list pages on its own."""
-    systems_page = parse_page(request.args.get("systems_page"))
-    standalone_page = parse_page(request.args.get("standalone_page"))
-    all_systems = _all_systems_panel(keep={"standalone_page": standalone_page})
+    """Every system with its sector and octant, and the standalone ones
+    (generated outside any sector) in their own table."""
     return render_page(
         "systems.html",
         title="Systems",
         section="systems",
         breadcrumbs=[crumb("Systems")],
         description="Every star system in this generated galaxy.",
-        all_systems=all_systems,
-        systems=_systems_panel(keep={"systems_page": systems_page}),
+        all_systems=tables.render(ALL_SYSTEMS_TABLE, request.path, anchor="all-systems"),
+        systems=tables.render(STANDALONE_TABLE, request.path, anchor="standalone-systems"),
     )
 
 

@@ -112,8 +112,8 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 is done (PR #476); GEN.117, GEN.116 keeps watch for Boss's error text. | GEN.116, SEC.29, TEST.72, SEC.30, TEST.83, UX.39, OPS.20, DB.11, DB.13, ADM.21, GEN.66, GEN.74, GEN.68, GEN.69, GEN.70, GEN.71, GEN.72, GEN.73, GEN.67, UX.41, UX.33, NAV.7, NAV.29, NAV.33, MAP.67, MAP.61, NAV.32, MAP.102, MAP.109, MAP.116, MAP.103, MAP.104, MAP.105, UX.38, UX.37, UX.21 |
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, NAV.16, NAV.3, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.41, GEN.98, GEN.100, GEN.99, GEN.101, GEN.102, GEN.103, GEN.84, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, GEN.94, GEN.104, GEN.106, GEN.107, GEN.108, NAV.10, NAV.12, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, NAV.43, NAV.44, MAP.119, MAP.122, MAP.123, MAP.124, MAP.128, MAP.89, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, OPS.8, OPS.13, OPS.14, ADM.18, GEN.59, UX.49, NAV.50 |
+| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 is done (PR #476); GEN.117, GEN.116 keeps watch for Boss's error text. | GEN.116, TEST.102, SEC.29, TEST.72, SEC.30, TEST.83, UX.39, OPS.20, DB.11, DB.13, ADM.21, GEN.66, GEN.74, GEN.68, GEN.69, GEN.70, GEN.71, GEN.72, GEN.73, GEN.67, UX.41, UX.33, NAV.7, NAV.29, NAV.33, MAP.67, MAP.61, NAV.32, MAP.102, MAP.109, MAP.116, UX.37, UX.21 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, NAV.16, NAV.3, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.41, GEN.98, GEN.100, GEN.99, GEN.101, GEN.102, GEN.103, GEN.84, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, GEN.94, GEN.104, GEN.106, GEN.107, GEN.108, NAV.10, NAV.12, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, NAV.43, NAV.44, MAP.119, MAP.122, MAP.123, MAP.124, MAP.89, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, OPS.8, OPS.13, OPS.14, ADM.18, GEN.59, UX.49, NAV.50 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.58, MAP.75, MAP.59, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, API.16, MAP.69, MAP.70, ADM.17, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.131, MAP.132, API.18, VIEW.5 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, repair that reads the newest settings JSON, and the anomalies chosen in phase 2. | MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, MAP.126, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, DB.10, ADM.20, GEN.114, MAP.125, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies, and the end state of reproducible galaxies (`generate.py reproduce`). | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, OPS.12, GEN.55 |
@@ -216,7 +216,7 @@ with `clamp()`.
   strict xfail in `test_web_browser_maps.py` (fix it and drop the
   xfail), and the overlap check found no overlapping controls on the
   pages as they were then.
-  The nebula "-" no-op is split out as UX.38 (phase 0).
+  The nebula "-" no-op was split out as UX.38 (done, PR #590).
   Order (pre-planning thread): run it after MAP.55 and MAP.60, which
   already remove some dead controls on the Galaxy Map.
   It also runs after UX.37 (Boss's sweep for redundant and duplicate
@@ -346,19 +346,6 @@ with `clamp()`.
   action menus (UX.26, UX.27, UX.31).
   Plan (2026-10-07): Moved into phase 0 (groundwork lane, last) because
   UX.21 is a bug and needs it.
-
-- [ ] **UX.38 The nebula and remnant diagrams' "-" button does nothing at the 1 ly limit (bug)**
-  Split out of UX.21 (replan, 2026-10-02), its one known dead control:
-  on the nebula and supernova remnant diagrams, anything about half a
-  light-year across or larger opens already at the 1 ly zoom-out limit
-  (`lib/phenomenonmap.py` lines 53 and 127, the clamp in
-  `static/mapzoom.js`), so "-" has nowhere to go. TEST.55 pins it with a
-  strict xfail in `test_web_browser_maps.py`. Done: the diagram opens
-  with room to zoom out (or the "-" button is disabled at the limit,
-  with its hint text), the xfail is dropped and the test passes.
-  Prerequisite: MAP.105.
-  Plan (2026-10-07): Folded into MAP.105: the nebula view becomes the 3D
-  shape, which replaces this diagram.
 
 - [ ] **UX.39 Markdown rendered by the markdown library**
   Today `mdconvert.py` converts the system and wiki Markdown by hand.
@@ -711,26 +698,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stays fast in dense sectors, and the existing map tests pass.
   Design: [docs/design/library-migration.md](design/library-migration.md)
 
-- [ ] **MAP.103 Nebulae don't show on the Galaxy Map or any other map (bug)**
-  Boss (2026-10-03 05:38Z): "I cannot see nebula on the galaxy map or on
-  any other map." GEN.47 (PR #419) made nebulae exist. Done: nebulae are
-  drawn on the Galaxy Map, the Sector Map and the System Map from their
-  shape mesh, and a browser test finds one.
-
-- [ ] **MAP.104 Nebula shading is missing on unfilled sectors (bug)**
-  Boss (2026-10-03 05:38Z): "Nebula shading should show up on unknown /
-  unfilled sectors as in the galactic map as well as for filled
-  sectors." Done: a nebula placed galaxy-wide shades the Galaxy Map over
-  unfilled sectors as well as filled ones.
-  Prerequisite: MAP.103.
-
-- [ ] **MAP.105 The nebula view should show its whole shape with the dimmed galaxy around it (bug)**
-  Boss (2026-10-03 05:38Z): "Nebula phenomena view should show the total
-  shape of the nebula's area as a oblong region with the larger galaxy
-  map around it but dimmed (just there for reference with the brightest
-  stars showing)." Done: the nebula page shows its mesh in the 3D view
-  with the surrounding galaxy dimmed and only the brightest stars drawn.
-
 - [ ] **MAP.109 Zooming in and out loads slowly (bug)**
   Boss (2026-10-03 05:38Z): "Loading between zooms in and out gets very,
   very sluggish." Boss (2026-10-07 16:26Z), the first of three
@@ -842,20 +809,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   possible." Done: with no view in the URL, the map opens at the closest
   zoom that shows every charted sector.
 
-- [ ] **MAP.128 Decide what the Sector Map tints by star age, density and luminosity, and test it**
+- [ ] **MAP.131 A Color by switch on the Galaxy Map, with a legend**
   Boss (2026-10-08 01:59Z): "Density determines transparency with more solid meaning more dense. Stellar age measures hue. Brightness measures luminosity of the sector or block. Blocks will never be fully opaque for coloring that is the color of the translucent fill."
-  Progress (2026-10-08): the Galaxy Map half is done (PR #556, with DB.14, MAP.129 and MAP.130): sectors and blocks are a translucent fill with hue from the mean star age (blue young, slate at the 4.5 Gy disk average, amber old; blocks weight by star count), opacity from star density (never fully opaque) and brightness from summed luminosity on a log scale; the galaxy schema is v55 and the stage API returns `stats` instead of `look`. The Sector Map has no sector fill to tint today, only neighbour markers. Done: this item decides what the Sector Map tints (the sector's own fill, the neighbour markers, or both), tints it the same way from the same `stats`, and a browser test checks a young, an old, a sparse and a dense sector. It goes with MAP.116's per-zoom budget and MAP.121's dimmed neighbours.
-
-- [ ] **MAP.131 A Color by switch on the maps, with a legend**
-  Boss (2026-10-08 01:59Z): "Density determines transparency with more solid meaning more dense. Stellar age measures hue. Brightness measures luminosity of the sector or block. Blocks will never be fully opaque for coloring that is the color of the translucent fill."
-  Later. A Color by control on the Galaxy Map and the Sector Map picks
+  Later. A Color by control on the Galaxy Map (Boss, 2026-10-08 13:35Z:
+  sector space is not tinted, so there is no Sector Map fill) picks
   what the fill shows: the default (age, density and luminosity as
   above), or a single statistic such as density, mean age, luminosity or
   star count, each with a legend that shows the scale. Done: the switch
-  and its legend work on both maps, the choice is kept in the URL, and a
+  and its legend work on the Galaxy Map, the choice is kept in the URL, and a
   browser test switches through every mode. It is built on the Shoelace
   controls (UX.40, done) and the shared map engine pieces (MAP.61, MAP.125).
-  Prerequisite: MAP.128.
 
 - [ ] **MAP.132 Overlay markers for black holes, nebulae and habitable worlds**
   Boss (2026-10-08 01:59Z): "Density determines transparency with more solid meaning more dense. Stellar age measures hue. Brightness measures luminosity of the sector or block. Blocks will never be fully opaque for coloring that is the color of the translucent fill."
@@ -865,7 +828,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Done: markers show at the zooms where MAP.116's budget allows them,
   each kind can be turned off (MAP.123), and a browser test finds one of
   each on a seeded sector.
-  Prerequisites: MAP.128, GEN.84.
+  Prerequisite: GEN.84.
 
 - [ ] **MAP.125 Infinite zoom: one 3D interface from the galaxy down to a moon**
   Boss (2026-10-07 11:47Z): "Infinite Zoom!  Able to use the same
@@ -2042,8 +2005,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     moves, and whether an unfilled sector can have its ID before any row
     exists; Boss picks one.
     Progress (2026-10-08): Foundations lane 1 wrote the comparison at
-    `/mnt/project-files/notes/gen68-object-ids.md`; this item closes when
-    Boss picks a method, and GEN.69 waits on that pick.
+    `/mnt/project-files/notes/gen68-object-ids.md`. Boss approved the
+    unique-ID plan on the decision card at 13:33Z, so the pick is made and
+    GEN.69 is free to start; this item closes with GEN.69.
 
   - [ ] **GEN.69 A unique ID for every object, star systems and unfilled sectors included**
     Today only interstellar objects and bright-sweep systems carry
@@ -2052,7 +2016,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     system, star, planet, moon, belt, comet and phenomenon has an ID by
     GEN.68's method, stored and indexed, and stable across regeneration
     in place.
-    Prerequisite: GEN.68.
+    Plan (2026-10-08): GEN.68's pick is made (Boss, 13:33Z), so this has
+    no open prerequisite; GEN.72 and GEN.73 follow it.
     Design: [docs/design/object-ids.md](design/object-ids.md)
 
   - [ ] **GEN.70 A naming key in the control database, made at galaxy creation and changeable by admin**
@@ -3028,6 +2993,15 @@ clears each one.
   Prerequisite: SEC.29.
   Plan (2026-10-07): Folded into SEC.29: the TOTP code moves to pyotp,
   and the test is fixed there.
+
+- [ ] **TEST.102 test_a_pass_removes_species_stored_without_a_civilization fails now and then in the full suite (bug)**
+  `src/tests/test_population.py::test_a_pass_removes_species_stored_without_a_civilization`
+  failed once in four full local runs (2026-10-08, reported by
+  Foundations lane 1 on PR #588) and is not caused by that PR's changes,
+  so it depends on test order, random state or timing. Done: the test
+  builds its own species and civilization-free state with a fixed seed so
+  its result does not depend on other tests, and it passes repeatedly in
+  the full suite under `pytest -n auto`.
 
 - [ ] **TEST.83 Rate-limit tests fail under parallel load (bug)**
   `test_web_admin.py::test_real_login_keeps_rate_limit` passes alone

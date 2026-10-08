@@ -97,7 +97,35 @@ def open_readonly(config=None, statement_timeout_s=None):
         raise SystemExit(f"Error: could not open the database ({exc}).")
 
 
-def list_sectors(conn, limit=None, offset=None):
+SECTOR_SORTS = {
+    "name": "sec.name", "systems": "system_count", "density": "(COUNT(ss.id) / POW(sec.edge_mpc, 3))",
+    "position": "quadrant", "distance": "sec.galactic_radius_pc",
+}
+"""dict: The sort keys `list_sectors` accepts (the Sectors table's column
+keys) -> the SQL they order by. A sector with no value (unplaced) sorts last
+either way."""
+
+SECTOR_QUADRANTS = ("I", "II", "III", "IV")
+"""tuple[str]: The sector Quadrant labels `list_sectors` filters by, plus
+`"unplaced"` for a sector with no galaxy position."""
+
+_SECTOR_QUADRANT_SQL = (
+    "(CASE WHEN sec.center_x_pc IS NULL THEN 'unplaced' "
+    "WHEN sec.center_y_pc >= 0 THEN (CASE WHEN sec.center_x_pc >= 0 THEN 'I' ELSE 'II' END) "
+    "ELSE (CASE WHEN sec.center_x_pc < 0 THEN 'III' ELSE 'IV' END) END)"
+)
+"""str: SQL for a sector's Quadrant label, the same bands as
+`planetgen.galaxy.geometry.sector_quadrant`."""
+
+
+def _sector_quadrant_filter(quadrants):
+    """`(where_sql, params)` keeping sectors in any of `quadrants`."""
+    if not quadrants:
+        return "", []
+    return f" WHERE {_SECTOR_QUADRANT_SQL} IN ({', '.join('?' for _ in quadrants)})", list(quadrants)
+
+
+def list_sectors(conn, limit=None, offset=None, sort=None, descending=False, quadrants=()):
     """
     Returns every sector, with its edge length (converted to light-years)
     and how many systems it contains, nearest the galactic core first
@@ -111,6 +139,12 @@ def list_sectors(conn, limit=None, offset=None):
             still gets) returns every sector.
         offset (int, optional): Skips this many rows first. Ignored
             unless `limit` is also given; meaningless on its own.
+        sort (str, optional): A key of `SECTOR_SORTS`; `None` is the
+            default order below. Ties fall back to the default order, so
+            pages never overlap.
+        descending (bool): Reverse `sort`.
+        quadrants (iterable[str]): Keep only sectors in these Quadrants
+            (`SECTOR_QUADRANTS`, or `"unplaced"`).
 
     Returns:
         list[dict]: One row per sector, with `id`, `name`,
@@ -118,18 +152,26 @@ def list_sectors(conn, limit=None, offset=None):
                            `galactic_radius_pc`/`galactic_radius_ly`
                            (`None` if unplaced).
     """
-    query = """
+    if sort is not None and sort not in SECTOR_SORTS:
+        raise ValueError(f"unknown sector sort {sort!r}")
+    where, params = _sector_quadrant_filter(quadrants)
+    order = "sec.galactic_radius_pc IS NULL, sec.galactic_radius_pc, sec.name, sec.id"
+    if sort is not None:
+        column = SECTOR_SORTS[sort]
+        unplaced_last = "sec.center_x_pc IS NULL, " if sort in ("density", "distance", "position") else ""
+        order = f"{unplaced_last}{column} {'DESC' if descending else 'ASC'}, " + order
+    query = f"""
         SELECT sec.id, sec.name, sec.edge_mpc, sec.center_x_pc, sec.center_y_pc, sec.center_z_pc,
-               sec.galactic_radius_pc, sec.ring_index, sec.layer_index, sec.ring_slot_index, COUNT(ss.id) AS system_count
+               sec.galactic_radius_pc, sec.ring_index, sec.layer_index, sec.ring_slot_index,
+               COUNT(ss.id) AS system_count, {_SECTOR_QUADRANT_SQL} AS quadrant
         FROM sectors sec
-        LEFT JOIN star_systems ss ON ss.sector_id = sec.id
+        LEFT JOIN star_systems ss ON ss.sector_id = sec.id{where}
         -- Every selected column, not just the key: MariaDB's
         -- ONLY_FULL_GROUP_BY doesn't see columns that depend on sec.id.
         GROUP BY sec.id, sec.name, sec.edge_mpc, sec.center_x_pc, sec.center_y_pc, sec.center_z_pc,
                  sec.galactic_radius_pc, sec.ring_index, sec.layer_index, sec.ring_slot_index
-        ORDER BY sec.galactic_radius_pc IS NULL, sec.galactic_radius_pc, sec.name, sec.id
+        ORDER BY {order}
         """
-    params = []
     if limit is not None:
         query += " LIMIT ? OFFSET ?"
         params.extend([limit, offset or 0])
@@ -152,9 +194,10 @@ def list_sectors(conn, limit=None, offset=None):
     ]
 
 
-def count_sectors(conn):
+def count_sectors(conn, quadrants=()):
     """
-    Returns the total number of sectors, ignoring any pagination --
+    Returns the total number of sectors (that pass the same `quadrants`
+    filter as `list_sectors`), ignoring any pagination --
     the denominator `list_sectors(conn, limit=...)` callers (the API's
     `/api/sectors`) need to report how many pages exist.
 
@@ -164,7 +207,24 @@ def count_sectors(conn):
     Returns:
         int: Total sector count.
     """
-    return conn.execute("SELECT COUNT(*) AS n FROM sectors").fetchone()["n"]
+    where, params = _sector_quadrant_filter(quadrants)
+    return conn.execute(f"SELECT COUNT(*) AS n FROM sectors sec{where}", params).fetchone()["n"]
+
+
+def sectors_facets(conn, quadrants=()):
+    """
+    The option counts for the Sectors table's Quadrant menu: how many sectors
+    each Quadrant (and `"unplaced"`) holds. The menu ignores its own filter,
+    so choosing one Quadrant still shows the others' counts.
+
+    Returns:
+        dict: `{"quadrant": [{"value", "count"}]}` in Quadrant order, only
+            those with sectors.
+    """
+    counts = {row["quadrant"]: row["n"] for row in conn.execute(
+        f"SELECT {_SECTOR_QUADRANT_SQL} AS quadrant, COUNT(*) AS n FROM sectors sec GROUP BY quadrant").fetchall()}
+    return {"quadrant": [{"value": value, "count": counts[value]}
+                         for value in (*SECTOR_QUADRANTS, "unplaced") if counts.get(value)]}
 
 
 class _NoSector:
@@ -184,7 +244,12 @@ distinct from the default `None`, which means "don't filter by sector at
 all." The API's `/api/systems?sector_id=none` maps onto this."""
 
 
-def _systems_filter_clause(star_type_prefix, sector_id):
+SYSTEM_SORTS = {"name": "ss.name", "sector": "sec.name", "octant": "ss.quadrant", "binary": "ss.is_binary"}
+"""dict: The sort keys `list_systems` accepts (the Systems tables' column
+keys) -> the SQL they order by. Ties fall back to name, then id."""
+
+
+def _systems_filter_clause(star_type_prefix, sector_id, binary=None, octants=(), in_sector=None):
     """
     Builds the shared `JOIN`/`WHERE`/params fragment `list_systems` and
     `count_systems` both need -- factored out so the count query can't
@@ -210,11 +275,21 @@ def _systems_filter_clause(star_type_prefix, sector_id):
         conditions.append("ss.sector_id = ?")
         params.append(sector_id)
 
+    if binary is not None:
+        conditions.append("ss.is_binary = ?")
+        params.append(1 if binary else 0)
+    if octants:
+        conditions.append(f"ss.quadrant IN ({', '.join('?' for _ in octants)})")
+        params.extend(octants)
+    if in_sector is not None:
+        conditions.append("ss.sector_id IS NOT NULL" if in_sector else "ss.sector_id IS NULL")
+
     where_sql = (" WHERE " + " AND ".join(conditions)) if conditions else ""
     return join_sql, where_sql, params
 
 
-def list_systems(conn, star_type_prefix=None, sector_id=None, limit=None, offset=None):
+def list_systems(conn, star_type_prefix=None, sector_id=None, limit=None, offset=None, sort="name",
+                 descending=False, binary=None, octants=(), in_sector=None):
     """
     Returns systems, optionally filtered by star type and/or sector.
 
@@ -233,6 +308,13 @@ def list_systems(conn, star_type_prefix=None, sector_id=None, limit=None, offset
             still gets) returns every matching system.
         offset (int, optional): Skips this many rows first. Ignored
             unless `limit` is also given; meaningless on its own.
+        sort (str): A key of `SYSTEM_SORTS`; a system with no sector sorts
+            last by `"sector"` either way.
+        descending (bool): Reverse `sort`.
+        binary (bool, optional): Keep only binary (or only single-star) systems.
+        octants (iterable[str]): Keep only systems in these sector octants.
+        in_sector (bool, optional): Keep only systems in a sector (True) or
+            standalone ones (False).
 
     Returns:
         list[dict]: One row per matching system, with `id`, `name`,
@@ -243,11 +325,17 @@ def list_systems(conn, star_type_prefix=None, sector_id=None, limit=None, offset
                            `html/search.py` show as a system's "Star type"
                            column).
     """
-    join_sql, where_sql, params = _systems_filter_clause(star_type_prefix, sector_id)
+    if sort not in SYSTEM_SORTS:
+        raise ValueError(f"unknown system sort {sort!r}")
+    join_sql, where_sql, params = _systems_filter_clause(star_type_prefix, sector_id, binary, octants, in_sector)
+    column = SYSTEM_SORTS[sort]
+    direction = "DESC" if descending else "ASC"
+    nulls_last = f"{column} IS NULL, " if sort in ("sector", "octant") else ""
     query = f"""
         SELECT DISTINCT ss.id, ss.name, ss.sector_id, ss.quadrant, ss.is_binary, ss.binary_configuration,
-               ss.binary_type
-        FROM star_systems ss{join_sql}{where_sql} ORDER BY ss.name, ss.id
+               ss.binary_type, sec.name AS sector_sort
+        FROM star_systems ss LEFT JOIN sectors sec ON sec.id = ss.sector_id{join_sql}{where_sql}
+        ORDER BY {nulls_last}{column} {direction}, ss.name, ss.id
         """
 
     if limit is not None:
@@ -331,7 +419,7 @@ def _star_summary(row):
     return row["binary_type"]
 
 
-def count_systems(conn, star_type_prefix=None, sector_id=None):
+def count_systems(conn, star_type_prefix=None, sector_id=None, binary=None, octants=(), in_sector=None):
     """
     Returns the total number of systems matching the same filters
     `list_systems` accepts, ignoring any pagination -- the denominator
@@ -346,9 +434,37 @@ def count_systems(conn, star_type_prefix=None, sector_id=None):
     Returns:
         int: Total matching system count.
     """
-    join_sql, where_sql, params = _systems_filter_clause(star_type_prefix, sector_id)
+    join_sql, where_sql, params = _systems_filter_clause(star_type_prefix, sector_id, binary, octants, in_sector)
     query = f"SELECT COUNT(DISTINCT ss.id) AS n FROM star_systems ss{join_sql}{where_sql}"
     return conn.execute(query, params).fetchone()["n"]
+
+
+def systems_facets(conn, sector_id=None, binary=None, octants=(), in_sector=None):
+    """
+    The option counts for the Systems tables' filter menus: where a system is
+    (`placement`: `"sector"` or `"standalone"`), whether it is `binary`
+    (`"yes"`/`"no"`) and its sector `octant`. Each menu's counts apply every
+    filter except its own, so the menus narrow one another.
+
+    Returns:
+        dict: `{"placement"|"binary"|"octant": [{"value", "count"}]}`,
+            options with no systems left out.
+    """
+    def counts(select, **filters):
+        base = {"binary": binary, "octants": octants, "in_sector": in_sector, **filters}
+        _join, where, params = _systems_filter_clause(None, sector_id, **base)
+        return {row["value"]: row["n"] for row in conn.execute(
+            f"SELECT {select} AS value, COUNT(*) AS n FROM star_systems ss{where} GROUP BY value",
+            params).fetchall()}
+
+    placement = counts("(CASE WHEN ss.sector_id IS NULL THEN 'standalone' ELSE 'sector' END)", in_sector=None)
+    binaries = counts("(CASE WHEN ss.is_binary THEN 'yes' ELSE 'no' END)", binary=None)
+    found = counts("ss.quadrant", octants=())
+    return {
+        "placement": [{"value": v, "count": placement[v]} for v in ("sector", "standalone") if placement.get(v)],
+        "binary": [{"value": v, "count": binaries[v]} for v in ("yes", "no") if binaries.get(v)],
+        "octant": [{"value": v, "count": found[v]} for v in sorted(x for x in found if x is not None)],
+    }
 
 
 def _body_filter_clause(table_alias, planet_class, min_radius_km, max_radius_km, sector_id, system_id):
@@ -1050,8 +1166,8 @@ def containing_cloud(conn, row):
 
     Returns:
         dict or None: `{"type": "nebula" | "supernova_remnant", "id",
-            "name", "class", "density_cm3", "temperature_k"}`, or `None`
-            in open space.
+            "name", "class", "descriptor", "density_cm3", "temperature_k"}`,
+            or `None` in open space.
     """
     return surrounding_cloud(conn, row)
 
@@ -1376,10 +1492,55 @@ def _widest_placed_phenomenon_radius_ly(conn):
     return widest
 
 
-def list_phenomena(conn, limit=None, offset=None):
+PHENOMENON_SORTS = {
+    "name": "name", "type": "type", "descriptor": "descriptor", "radius": "radius_ly",
+    "sector": "sector_name", "placed": "placed",
+}
+"""dict: The sort keys `list_phenomena` accepts (the Phenomena table's column
+keys) -> the column of the union they order by."""
+
+
+def _phenomena_union():
+    """The `SELECT` that stacks every `_PHENOMENON_TABLES` table into one
+    shape (`type`, `id`, `name`, `descriptor`, `radius_ly`, `sector_id`,
+    `sector_name`, `placed`). A `black_holes`/`neutron_stars` row with
+    `star_id` set is a normal system's own compact-remnant star, already on
+    that system's page, so it is left out; every other table is always
+    standalone."""
+    return " UNION ALL ".join(
+        f"""
+        SELECT '{type_label}' AS type, t.id AS id, t.name AS name,
+               {descriptor_expr} AS descriptor, {radius_expr} AS radius_ly,
+               t.sector_id AS sector_id, sec.name AS sector_name,
+               (t.center_x_pc IS NOT NULL) AS placed
+        FROM {table} t
+        LEFT JOIN sectors sec ON sec.id = t.sector_id
+        {"WHERE t.star_id IS NULL" if table in ("black_holes", "neutron_stars") else ""}
+        """
+        for table, type_label, descriptor_expr, radius_expr in _PHENOMENON_TABLES
+    )
+
+
+def _phenomena_where(types=(), descriptors=(), placed=None):
+    """`(where_sql, params)` for the Phenomena table's filters: any of the
+    `types`, any of the `descriptors` (an empty list filters nothing), and
+    `placed` (True/False, or None for both)."""
+    clauses, params = [], []
+    for column, values in (("type", types), ("descriptor", descriptors)):
+        if values:
+            clauses.append(f"{column} IN ({', '.join('?' for _ in values)})")
+            params.extend(values)
+    if placed is not None:
+        clauses.append("placed = ?")
+        params.append(1 if placed else 0)
+    return (" WHERE " + " AND ".join(clauses)) if clauses else "", params
+
+
+def list_phenomena(conn, limit=None, offset=None, sort="name", descending=False, types=(), descriptors=(),
+                   placed=None):
     """
     Returns every exotic phenomenon (nebula/asteroid field/black hole/
-    neutron star/supernova remnant/rogue planet/interstellar comet --
+    neutron star/supernova remnant/rogue planet/interstellar comet/quasar --
     every table in `_PHENOMENON_TABLES`), across every sector and
     regardless of galaxy placement -- `GET /api/phenomena`'s own flat
     listing (`html/phenomena.py`), unlike `galaxy_placed_phenomena` (which
@@ -1391,6 +1552,12 @@ def list_phenomena(conn, limit=None, offset=None):
         limit (int, optional): Caps the number of rows returned.
         offset (int, optional): Skips this many rows first. Ignored unless
             `limit` is also given.
+        sort (str): A key of `PHENOMENON_SORTS`; ties fall back to name,
+            type and id so pages never overlap.
+        descending (bool): Reverse the sort.
+        types (iterable[str]): Keep only these types (any of).
+        descriptors (iterable[str]): Keep only these descriptors (any of).
+        placed (bool, optional): Keep only placed or only unplaced ones.
 
     Excludes a `black_holes`/`neutron_stars` row with `star_id` set -- that
     shape is a normal star system's own compact-remnant star (already
@@ -1399,66 +1566,77 @@ def list_phenomena(conn, limit=None, offset=None):
     standalone, see their own table comments) and needs no such filter.
 
     Returns:
-        list[dict]: One row per phenomenon, ordered by name: `id`, `type`
+        list[dict]: One row per phenomenon, ordered by `sort`: `id`, `type`
             (`"nebula"`, `"asteroid_field"`, `"black_hole"`,
-            `"neutron_star"`, `"supernova_remnant"`, `"rogue_planet"`, or
-            `"interstellar_comet"`), `name`, `descriptor`, `radius_ly`,
-            `sector_id`/`sector_name` (both `None` if this phenomenon has
-            never been linked to a sector -- see `schema.sql`'s "v18"
-            header note), and `placed` (bool -- whether it has a galaxy
-            position at all, `center_x_pc IS NOT NULL`).
+            `"neutron_star"`, `"supernova_remnant"`, `"rogue_planet"`,
+            `"interstellar_comet"` or `"quasar"`), `name`, `descriptor`,
+            `radius_ly`, `sector_id`/`sector_name` (both `None` if this
+            phenomenon has never been linked to a sector -- see
+            `schema.sql`'s "v18" header note), and `placed` (bool --
+            whether it has a galaxy position at all).
     """
-    union_parts = [
-        f"""
-        SELECT '{type_label}' AS type, t.id AS id, t.name AS name,
-               {descriptor_expr} AS descriptor, {radius_expr} AS radius_ly,
-               t.sector_id AS sector_id, sec.name AS sector_name,
-               t.center_x_pc AS center_x_pc
-        FROM {table} t
-        LEFT JOIN sectors sec ON sec.id = t.sector_id
-        {"WHERE t.star_id IS NULL" if table in ("black_holes", "neutron_stars") else ""}
-        """
-        for table, type_label, descriptor_expr, radius_expr in _PHENOMENON_TABLES
-    ]
-    query = "SELECT * FROM (" + " UNION ALL ".join(union_parts) + ") AS phenomena ORDER BY name"
-    params = []
+    if sort not in PHENOMENON_SORTS:
+        raise ValueError(f"unknown phenomenon sort {sort!r}")
+    where, params = _phenomena_where(types, descriptors, placed)
+    column = PHENOMENON_SORTS[sort]
+    query = (f"SELECT * FROM ({_phenomena_union()}) AS phenomena{where} "
+             f"ORDER BY {column} IS NULL, {column} {'DESC' if descending else 'ASC'}, name, type, id")
     if limit is not None:
         query += " LIMIT ? OFFSET ?"
         params.extend([limit, offset or 0])
 
-    rows = conn.execute(query, params).fetchall()
     return [
         {
             "id": row["id"], "type": row["type"], "name": row["name"],
             "descriptor": row["descriptor"], "radius_ly": row["radius_ly"],
             "sector_id": row["sector_id"], "sector_name": row["sector_name"],
-            "placed": row["center_x_pc"] is not None,
+            "placed": bool(row["placed"]),
         }
-        for row in rows
+        for row in conn.execute(query, params).fetchall()
     ]
 
 
-def count_phenomena(conn):
+def count_phenomena(conn, types=(), descriptors=(), placed=None):
     """
-    Returns the total number of exotic phenomena across every type in
-    `_PHENOMENON_TABLES`, ignoring any
-    pagination -- the denominator `list_phenomena(conn, limit=...)`
-    callers (the API's `/api/phenomena`) need to report how many pages
-    exist.
+    Returns the number of exotic phenomena across every type in
+    `_PHENOMENON_TABLES` that pass the same filters as `list_phenomena`,
+    ignoring any pagination -- the denominator `list_phenomena(conn,
+    limit=...)` callers (the API's `/api/phenomena`) need to report how many
+    pages exist.
 
     Args:
         conn (planetgen.db.store.Connection): An open, read-only connection.
 
     Returns:
-        int: Total phenomenon count.
+        int: Phenomenon count.
     """
-    return sum(
-        conn.execute(
-            f"SELECT COUNT(*) AS n FROM {table}"
-            + (" WHERE star_id IS NULL" if table in ("black_holes", "neutron_stars") else "")
-        ).fetchone()["n"]
-        for table, _type_label, _descriptor_expr, _radius_expr in _PHENOMENON_TABLES
-    )
+    where, params = _phenomena_where(types, descriptors, placed)
+    return conn.execute(
+        f"SELECT COUNT(*) AS n FROM ({_phenomena_union()}) AS phenomena{where}", params
+    ).fetchone()["n"]
+
+
+def phenomena_facets(conn, types=(), descriptors=(), placed=None):
+    """
+    The option counts the Phenomena table's filter menus show: how many
+    phenomena each `type` has and each `descriptor` (a class, kind or state:
+    nebula class, remnant morphology, rogue planet size ...). Each count
+    applies every filter except its own menu's, so picking a type narrows the
+    descriptor options and the other way round.
+
+    Returns:
+        dict: `{"type": [{"value", "count"}], "descriptor": [{"value",
+            "count"}]}`, options ordered by value.
+    """
+    facets = {}
+    for column, own in (("type", "types"), ("descriptor", "descriptors")):
+        filters = {"types": types, "descriptors": descriptors, own: ()}
+        where, params = _phenomena_where(filters["types"], filters["descriptors"], placed)
+        rows = conn.execute(
+            f"SELECT {column} AS value, COUNT(*) AS n FROM ({_phenomena_union()}) AS phenomena{where} "
+            f"GROUP BY {column} ORDER BY {column}", params).fetchall()
+        facets[column] = [{"value": row["value"], "count": row["n"]} for row in rows]
+    return facets
 
 
 _PHENOMENON_TYPE_TO_TABLE = {
@@ -1502,6 +1680,61 @@ def nebula_shape(conn, nebula_id):
         " WHERE nebula_id = ? ORDER BY ball_index", (nebula_id,)).fetchall()
     return row, shapes.from_columns(row, [tuple(b[k] for k in ("ball_index", "center_x", "center_y", "center_z", "radius"))
                                           for b in balls])
+
+
+NEBULA_SURROUNDINGS_STARS = 300
+"""int: Most bright stars `nebula_surroundings` lists around a nebula."""
+
+NEBULA_SURROUNDINGS_REACH = 2.5
+"""float: How far round a nebula `nebula_surroundings` looks for stars, in
+nebula radii (the half-width of its box)."""
+
+NEBULA_SURROUNDINGS_MIN_PC = 30.0
+"""float: The least half-width of that box, parsecs, so a small nebula still
+shows some stars round it."""
+
+
+def nebula_surroundings(conn, nebula_id):
+    """
+    The brightest stars round one nebula, for its page's 3D view (MAP.105):
+    the pre-placed bright stars (`galaxy_bright_stars_in_box`) in a box
+    `NEBULA_SURROUNDINGS_REACH` radii each side of its centre, at most
+    `NEBULA_SURROUNDINGS_STARS`.
+
+    Args:
+        conn (planetgen.db.store.Connection): An open, read-only connection.
+        nebula_id (int): `nebulae.id`.
+
+    Returns:
+        dict: `radius_pc`, `half_width_pc` (of the box) and `stars`: the
+            most luminous first, each `x`/`y`/`z` (parsecs from the
+            nebula's centre), `luminosity_sol` and `temperature_k`. No
+            stars for a nebula never placed in the galaxy.
+
+    Raises:
+        ValueError: If no such nebula exists.
+    """
+    row = conn.execute(
+        "SELECT center_x_pc, center_y_pc, center_z_pc, radius_ly FROM nebulae WHERE id = ?", (nebula_id,)).fetchone()
+    if row is None:
+        raise ValueError(f"no such nebula: {nebula_id!r}")
+    radius_pc = ly_to_pc(row["radius_ly"])
+    half = max(NEBULA_SURROUNDINGS_MIN_PC, NEBULA_SURROUNDINGS_REACH * radius_pc)
+    result = {"radius_pc": radius_pc, "half_width_pc": half, "stars": []}
+    if row["center_x_pc"] is None:
+        return result
+    center = (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"])
+    skeleton = get_galaxy_shape(conn)
+    edge_pc = skeleton.edge_pc if skeleton is not None else ly_to_pc(DEFAULT_SECTOR_EDGE_LY)
+    stars = galaxy_bright_stars_in_box(
+        conn, tuple(c - half for c in center), tuple(c + half for c in center), edge_pc,
+        limit=NEBULA_SURROUNDINGS_STARS)
+    result["stars"] = [
+        {"x": round(star["x"] - center[0], 3), "y": round(star["y"] - center[1], 3),
+         "z": round(star["z"] - center[2], 3), "luminosity_sol": star["luminosity_sol"],
+         "temperature_k": star["temperature_k"]}
+        for star in stars]
+    return result
 
 
 def phenomenon_detail(conn, phenomenon_type, phenomenon_id):

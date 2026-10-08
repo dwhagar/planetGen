@@ -1,4 +1,7 @@
 {% extends "base.html" %}
+{% block head %}
+<script type="module" src="{{ static_url('datatable.js') }}"></script>
+{% endblock %}
 {% block heading %}<h1 class="page-title">{{ site_name }}</h1>{% endblock %}
 {% block subhead %}
 <p class="badges">

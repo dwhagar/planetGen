@@ -1,32 +1,17 @@
-{#- The phenomena list (/phenomena, web/system_pages.py). -#}
+{#- The phenomena list (/phenomena, web/system_pages.py): a data table (UX.41). -#}
 {% extends "base.html" %}
+{% from "partials/datatable.html" import datatable with context %}
 {% block subhead %}
 <p class="badges"><span class="badge">{{ num(total) }} phenomen{{ "on" if total == 1 else "a" }}</span></p>
+{% endblock %}
+{% block head %}
+<script type="module" src="{{ static_url('datatable.js') }}"></script>
 {% endblock %}
 {% block content %}
 <section class="panel" id="phenomena-list" aria-labelledby="phenomena-heading">
   <div class="panel-header">
     <h2 id="phenomena-heading">All Phenomena</h2>
   </div>
-  <div class="table-scroll"><table>
-    <thead>
-      <tr><th scope="col">Name</th><th scope="col">Type</th><th scope="col">Descriptor</th><th scope="col">Radius</th><th scope="col">Sector</th><th scope="col">On Galaxy Map</th></tr>
-    </thead>
-    <tbody>
-      {%- for row in rows %}
-      <tr>
-        <td><a href="{{ row.url }}">{{ row.name }}</a></td>
-        <td>{{ row.type }}</td>
-        <td>{{ row.descriptor }}</td>
-        <td>{% if row.radius %}{{ row.radius }}{% else %}&ndash;{% endif %}</td>
-        <td>{% if row.sector_url %}<a href="{{ row.sector_url }}">{{ row.sector_name }}</a>{% else %}<em>None</em>{% endif %}</td>
-        <td>{{ "Yes" if row.placed else "No" }}</td>
-      </tr>
-      {%- else %}
-      <tr><td colspan="6"><em>None</em></td></tr>
-      {%- endfor %}
-    </tbody>
-  </table></div>
-  {{ pager }}
+  {{ datatable(table) }}
 </section>
 {% endblock %}

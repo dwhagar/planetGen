@@ -366,11 +366,15 @@ def list_databases():
     return _request("/databases")["items"]
 
 
-def get_sectors(db, limit=None, offset=None):
+def get_sectors(db, limit=None, offset=None, sort=None, descending=False, quadrants=(), facets=False):
     """Returns `GET /api/sectors`'s full paginated envelope
-    (`items`/`total`/`limit`/`offset`)."""
+    (`items`/`total`/`limit`/`offset`, plus `facets` when asked). `sort`,
+    `quadrants` and `facets` are the Sectors table's sort and filter (UX.41)."""
     _require_db(db)
-    return _request("/sectors", {"db": db, "limit": limit, "offset": offset})
+    params = [("db", db), ("limit", limit), ("offset", offset), ("sort", sort),
+              ("order", "desc" if descending else None)]
+    params += [("quadrant", value) for value in quadrants] + [("facets", "1" if facets else None)]
+    return _request("/sectors", [(key, value) for key, value in params if value is not None])
 
 
 def get_sector(db, sector_id):
@@ -380,7 +384,8 @@ def get_sector(db, sector_id):
     return _request(f"/sectors/{sector_id}", {"db": db})
 
 
-def get_systems(db, star_type=None, sector_id=None, limit=None, offset=None):
+def get_systems(db, star_type=None, sector_id=None, limit=None, offset=None, sort=None, descending=False,
+                binary=None, placement=None, octants=(), facets=False):
     """
     Returns `GET /api/systems`'s full paginated envelope.
 
@@ -388,11 +393,16 @@ def get_systems(db, star_type=None, sector_id=None, limit=None, offset=None):
         sector_id: An int, the literal string `"none"` (standalone
             systems), or `None` (no sector filter) -- passed straight
             through as the `sector_id` query parameter.
+        sort, descending, binary (True/False), placement (`"sector"` or
+            `"standalone"`), octants, facets: the Systems tables' sort and
+            filters (UX.41).
     """
     _require_db(db)
-    return _request("/systems", {
-        "db": db, "star_type": star_type, "sector_id": sector_id, "limit": limit, "offset": offset,
-    })
+    params = [("db", db), ("star_type", star_type), ("sector_id", sector_id), ("limit", limit),
+              ("offset", offset), ("sort", sort), ("order", "desc" if descending else None),
+              ("binary", None if binary is None else ("yes" if binary else "no")), ("placement", placement)]
+    params += [("octant", value) for value in octants] + [("facets", "1" if facets else None)]
+    return _request("/systems", [(key, value) for key, value in params if value is not None])
 
 
 def get_system(db, system_id):
@@ -597,6 +607,13 @@ def get_nebula_shape(db, nebula_id, lod="low"):
     return _request(f"/nebulae/{int(nebula_id)}/shape", {"db": db, "lod": lod})
 
 
+def get_nebula_surroundings(db, nebula_id):
+    """Returns `GET /api/nebulae/<id>/surroundings`' payload: the brightest
+    stars round one nebula, for its page's 3D view (MAP.105)."""
+    _require_db(db)
+    return _request(f"/nebulae/{int(nebula_id)}/surroundings", {"db": db})
+
+
 def get_galaxy_changes(db, since=None):
     """Returns `GET /api/galaxy/changes`' payload (`stamp`/`state`/`full`/
     `tiles`/`stages`) -- which cube tiles and drill-down stages changed since `since`, an earlier call's
@@ -605,12 +622,20 @@ def get_galaxy_changes(db, since=None):
     _require_db(db)
     return _request("/galaxy/changes", {"db": db, "since": since})
 
-def get_phenomena(db, limit=None, offset=None):
+def get_phenomena(db, limit=None, offset=None, sort=None, descending=False, types=(), descriptors=(),
+                  placed=None, facets=False):
     """Returns `GET /api/phenomena`'s full paginated envelope
-    (`items`/`total`/`limit`/`offset`) -- see `queryDb.list_phenomena`'s
-    docstring for the shape."""
+    (`items`/`total`/`limit`/`offset`, plus `facets` when asked) -- see
+    `queryDb.list_phenomena`'s docstring for the shape. `sort`, `types`,
+    `descriptors` and `placed` (True/False) are the table's sort and
+    filters (UX.41)."""
     _require_db(db)
-    return _request("/phenomena", {"db": db, "limit": limit, "offset": offset})
+    params = [("db", db), ("limit", limit), ("offset", offset), ("sort", sort),
+              ("order", "desc" if descending else None)]
+    params += [("type", value) for value in types] + [("descriptor", value) for value in descriptors]
+    params += [("placed", None if placed is None else ("yes" if placed else "no")),
+               ("facets", "1" if facets else None)]
+    return _request("/phenomena", [(key, value) for key, value in params if value is not None])
 
 
 def get_phenomenon(db, phenomenon_type, phenomenon_id):

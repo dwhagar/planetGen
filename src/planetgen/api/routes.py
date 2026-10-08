@@ -46,6 +46,9 @@ from planetgen.db.query import (
     SEARCH_RESULT_LIMIT,
     SEARCH_RESULT_PANELS,
     SEARCH_TAG_FACETS,
+    PHENOMENON_SORTS,
+    SECTOR_SORTS,
+    SYSTEM_SORTS,
     count_phenomena,
     count_sectors,
     count_systems,
@@ -58,12 +61,16 @@ from planetgen.db.query import (
     galaxy_stage,
     galaxy_tiles,
     list_phenomena,
+    phenomena_facets,
+    sectors_facets,
+    systems_facets,
     list_sectors,
     list_systems,
     nav_between,
     open_readonly,
     phenomenon_detail as query_phenomenon_detail,
     nebula_shape as query_nebula_shape,
+    nebula_surroundings as query_nebula_surroundings,
     search as run_search,
     sector_detail as query_sector_detail,
     system_detail as query_system_detail,
@@ -216,6 +223,41 @@ def close_db(exception=None):
     db = g.pop("db", None)
     if db is not None:
         db.close()
+
+
+def _parse_sort(query_args, allowed):
+    """
+    Parses the `sort`/`order` query parameters a sortable listing takes.
+
+    Args:
+        query_args (werkzeug.datastructures.MultiDict): `request.args`.
+        allowed (Iterable[str]): The sort keys the listing offers; the first
+            is the default.
+
+    Returns:
+        tuple[str, bool]: `(sort key, descending)`.
+
+    Raises:
+        ApiError: If `sort` is not one of `allowed` or `order` is not
+            `asc`/`desc`.
+    """
+    allowed = list(allowed)
+    sort = query_args.get("sort") or allowed[0]
+    if sort not in allowed:
+        raise ApiError(f"sort must be one of: {', '.join(allowed)}")
+    order = (query_args.get("order") or "asc").lower()
+    if order not in ("asc", "desc"):
+        raise ApiError("order must be 'asc' or 'desc'")
+    return sort, order == "desc"
+
+
+def _parse_yes_no(raw, name):
+    """`True` for "yes", `False` for "no", `None` when absent; anything else is an `ApiError`."""
+    if raw is None or raw == "":
+        return None
+    if raw not in ("yes", "no"):
+        raise ApiError(f"{name} must be 'yes' or 'no'")
+    return raw == "yes"
 
 
 def _paginate(query_args):
@@ -401,14 +443,30 @@ def databases():
 
 @bp.route("/sectors")
 def sectors():
+    """
+    The sectors, nearest the galactic core first, paginated. The Sectors
+    table (UX.41) also takes `sort` (`name`, `systems`, `density`,
+    `position` or `distance`) with `order=asc|desc`, the repeatable filter
+    `quadrant` (`I`-`IV`, `unplaced`) and `facets=1` for the Quadrant menu's
+    option counts (`facets`). `total` counts the sectors that pass the filter.
+    """
     limit, offset = _paginate(request.args)
+    sort = None
+    descending = False
+    if request.args.get("sort") or request.args.get("order"):
+        sort, descending = _parse_sort(request.args, SECTOR_SORTS)
+    quadrants = [v for v in request.args.getlist("quadrant") if v]
     db = get_db()
-    return jsonify({
-        "items": list_sectors(db, limit=limit, offset=offset),
-        "total": count_sectors(db),
+    body = {
+        "items": list_sectors(db, limit=limit, offset=offset, sort=sort, descending=descending,
+                              quadrants=quadrants),
+        "total": count_sectors(db, quadrants=quadrants),
         "limit": limit,
         "offset": offset,
-    })
+    }
+    if request.args.get("facets") == "1":
+        body["facets"] = sectors_facets(db, quadrants=quadrants)
+    return jsonify(body)
 
 
 @bp.route("/sectors/<int:sector_id>")
@@ -442,18 +500,39 @@ def _parse_sector_id_filter(raw_sector_id):
 
 @bp.route("/systems")
 def systems():
+    """
+    The systems, by name, paginated; `star_type` and `sector_id` filter them.
+    The Systems tables (UX.41) also take `sort` (`name`, `sector`, `octant`
+    or `binary`) with `order=asc|desc`, the filters `binary=yes|no`,
+    `placement=sector|standalone` and `octant` (repeatable), and `facets=1`
+    for the filter menus' option counts (`facets`: `placement`, `binary`,
+    `octant`). `total` counts the systems that pass the filters.
+    """
     star_type = request.args.get("star_type")
     sector_id = _parse_sector_id_filter(request.args.get("sector_id"))
+    sort, descending = _parse_sort(request.args, SYSTEM_SORTS)
+    placement = request.args.get("placement")
+    if placement not in (None, "", "sector", "standalone"):
+        raise ApiError("placement must be 'sector' or 'standalone'")
+    filters = {
+        "binary": _parse_yes_no(request.args.get("binary"), "binary"),
+        "octants": [v for v in request.args.getlist("octant") if v],
+        "in_sector": None if not placement else placement == "sector",
+    }
 
     limit, offset = _paginate(request.args)
     db = get_db()
-    rows = list_systems(db, star_type_prefix=star_type, sector_id=sector_id, limit=limit, offset=offset)
-    return jsonify({
+    rows = list_systems(db, star_type_prefix=star_type, sector_id=sector_id, limit=limit, offset=offset,
+                        sort=sort, descending=descending, **filters)
+    body = {
         "items": rows,
-        "total": count_systems(db, star_type_prefix=star_type, sector_id=sector_id),
+        "total": count_systems(db, star_type_prefix=star_type, sector_id=sector_id, **filters),
         "limit": limit,
         "offset": offset,
-    })
+    }
+    if request.args.get("facets") == "1":
+        body["facets"] = systems_facets(db, sector_id=sector_id, **filters)
+    return jsonify(body)
 
 
 @bp.route("/systems/<int:system_id>")
@@ -815,15 +894,31 @@ def phenomena():
     counterpart to `/api/galaxy/phenomena` (which only returns the
     galaxy-placed subset, for the Galaxy Map). `html/phenomena.py`'s own
     listing page.
+
+    Query parameters: `sort` (`name` -- the default -- `type`,
+    `descriptor`, `radius`, `sector` or `placed`) with `order` (`asc` or
+    `desc`); the filters `type` and `descriptor` (each repeatable, any of),
+    and `placed` (`yes` or `no`); and `facets=1` to add the option counts
+    for the type and descriptor filter menus (`queryDb.phenomena_facets`).
+    `total` counts the rows that pass the filters.
     """
     limit, offset = _paginate(request.args)
+    sort, descending = _parse_sort(request.args, PHENOMENON_SORTS)
+    filters = {
+        "types": [v for v in request.args.getlist("type") if v],
+        "descriptors": [v for v in request.args.getlist("descriptor") if v],
+        "placed": _parse_yes_no(request.args.get("placed"), "placed"),
+    }
     db = get_db()
-    return jsonify({
-        "items": list_phenomena(db, limit=limit, offset=offset),
-        "total": count_phenomena(db),
+    body = {
+        "items": list_phenomena(db, limit=limit, offset=offset, sort=sort, descending=descending, **filters),
+        "total": count_phenomena(db, **filters),
         "limit": limit,
         "offset": offset,
-    })
+    }
+    if request.args.get("facets") == "1":
+        body["facets"] = phenomena_facets(db, **filters)
+    return jsonify(body)
 
 
 @bp.route("/phenomena/<phenomenon_type>/<int:phenomenon_id>")
@@ -867,6 +962,20 @@ def nebula_shape_route(nebula_id):
         "vertices": [[round(float(v), 5) for v in vertex] for vertex in vertices],
         "faces": [[int(i) for i in face] for face in faces],
     })
+
+
+@bp.route("/nebulae/<int:nebula_id>/surroundings")
+def nebula_surroundings_route(nebula_id):
+    """
+    The brightest stars round one nebula (MAP.105): `{"radius_pc",
+    "half_width_pc", "stars": [{"x", "y", "z" (parsecs from the nebula's
+    centre), "luminosity_sol", "temperature_k"}]}`, the most luminous first.
+    A 404 for an unknown nebula.
+    """
+    try:
+        return jsonify(query_nebula_surroundings(get_db(), nebula_id))
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 404
 
 
 @bp.route("/search")

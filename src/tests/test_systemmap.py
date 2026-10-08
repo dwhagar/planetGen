@@ -316,6 +316,20 @@ def test_single_star_system_renders_star_and_planet_markers():
     assert "sysmap-hidden" not in html.split("</svg>")[0]  # the system scene itself is never hidden
 
 
+def test_a_system_inside_a_nebula_sits_in_a_wash_of_its_color():
+    """MAP.103: the map is tinted by the nebula around the system, and says so."""
+    def panel(inside):
+        system = {"name": "Test System", "binary_configuration": None, "inside": inside}
+        return sm.render_system_map_panel(system, [_star(10)], [_planet(1, 10, AU_KM, 0.0)], [])
+
+    html = panel({"type": "nebula", "id": 4, "name": "Veil <One>", "class": "E", "descriptor": "emission"})
+    assert 'class="starmap-viewport sysmap-viewport sysmap-in-nebula sysmap-nebula-emission"' in html
+    assert "gas of Veil &lt;One&gt; around the system" in html
+    assert "sysmap-nebula-other" in panel({"type": "nebula", "id": 5, "name": "N", "descriptor": "odd"})
+    for none in (None, {"type": "supernova_remnant", "id": 6, "name": "R", "descriptor": "shell"}):
+        assert "sysmap-in-nebula" not in panel(none)
+
+
 def test_planet_with_moons_gets_its_own_hidden_drilldown_scene():
     moon = _moon(101, 3.8e5, 0.0)
     planet = _planet(1, 10, AU_KM, 0.0, moons=[moon])

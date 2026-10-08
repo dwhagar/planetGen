@@ -18,8 +18,10 @@ itself, chosen per type (UX.17), instead of the flat AU-scale diagram
   internal heat.
 - Interstellar comet: a nucleus, with a coma and tail when it is active.
 - Asteroid field: no view at all (`view_kind` returns `None`).
-- Nebula and supernova remnant: the AU diagram until a render is designed
-  for them.
+- Nebula (MAP.105): its own shape in 3D, with the brightest stars of the
+  galaxy round it dimmed for reference (`render_nebula_view_panel`,
+  `static/nebulaview.js`).
+- Supernova remnant: the AU diagram until a render is designed for it.
 
 The panel holds a static SVG still that reads without JavaScript; the
 script (`static/phenomenonrender.js`) swaps in a three.js canvas and
@@ -30,6 +32,7 @@ import json
 import math
 
 from planetgen.web.lib.fmt import esc, format_duration_seconds, format_number
+from planetgen.web.maps.starmap import NEBULA_SHAPE_PATH, NEBULA_SURROUNDINGS_PATH, nebula_look
 
 _RENDERED = {"neutron_star", "black_hole", "quasar", "rogue_planet", "interstellar_comet"}
 _NO_VIEW = {"asteroid_field"}
@@ -43,9 +46,12 @@ _SHOWN_PERIOD_LOG_DIVISOR = 4.0
 
 
 def view_kind(phenomenon_type):
-    """`"render"`, `"map"` (the AU diagram) or `None` (no view at all)."""
+    """`"render"`, `"nebula"` (the 3D shape view), `"map"` (the AU diagram)
+    or `None` (no view at all)."""
     if phenomenon_type in _NO_VIEW:
         return None
+    if phenomenon_type == "nebula":
+        return "nebula"
     return "render" if phenomenon_type in _RENDERED else "map"
 
 
@@ -160,5 +166,48 @@ def render_phenomenon_view_panel(phenomenon_type, detail):
   role="img" aria-label="{esc(name)}, rendered in 3D. Drag to turn it."></canvas>
 </div>
 <p class="hint phenomrender-caption">{esc(caption)}</p>
+</section>
+"""
+
+
+def render_nebula_view_panel(detail):
+    """
+    A nebula page's "View" panel (MAP.105): the nebula's own shape in 3D
+    with the brightest stars of the galaxy round it, dimmed. The script
+    (`static/nebulaview.js`) draws it from the shape and surroundings
+    endpoints; the still drawing reads without it.
+
+    Args:
+        detail (dict): The nebula's API detail (`id`, `name`,
+            `nebula_type`, `radius_ly`).
+
+    Returns:
+        str: A complete `<section class="panel">`; the page loads
+            `static/nebulaview.js` itself.
+    """
+    color, core, edge = nebula_look(detail.get("nebula_type"))
+    name = detail.get("name") or "Nebula"
+    data = json.dumps({
+        "shapePath": NEBULA_SHAPE_PATH.replace("{id}", str(int(detail["id"]))),
+        "surroundingsPath": NEBULA_SURROUNDINGS_PATH.replace("{id}", str(int(detail["id"]))),
+        "color": color, "coreOpacity": core, "edgeOpacity": edge,
+    })
+    still = (f'<svg class="phenomrender-still" viewBox="-100 -100 200 200" role="img" '
+             f'aria-label="{esc(name)}, a still drawing"><rect x="-100" y="-100" width="200" height="200" '
+             f'fill="#05070c"/><ellipse cx="0" cy="0" rx="62" ry="40" fill="{color}" fill-opacity="{edge:.2f}" '
+             f'stroke="{color}" stroke-opacity="0.6" transform="rotate(-18)"/></svg>')
+    return f"""
+<section class="panel" aria-labelledby="nebulaview-heading">
+<div class="panel-header">
+  <h2 id="nebulaview-heading">View</h2>
+  <span class="hint">Its shape, with the galaxy's brightest stars round it; drag to turn, scroll to zoom.</span>
+</div>
+<div class="phenomrender-viewport" id="nebulaview" data-view="{esc(data)}">
+{still}
+<canvas class="phenomrender-canvas" id="nebulaview-canvas" hidden
+  role="img" aria-label="{esc(name)}, its shape in 3D with the brightest stars round it. Drag to turn it."></canvas>
+</div>
+<p class="hint phenomrender-caption">An irregular cloud drawn from its properties. The dimmed points are the
+brightest stars of the galaxy near it, there for reference.</p>
 </section>
 """

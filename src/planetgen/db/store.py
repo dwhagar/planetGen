@@ -3784,23 +3784,25 @@ def surrounding_cloud(conn, row):
 
     Returns:
         dict or None: `{"type": "nebula" | "supernova_remnant", "id",
-            "name", "class", "density_cm3", "temperature_k"}`, or `None` in
+            "name", "class", "descriptor" (a nebula's type, a remnant's
+            morphology), "density_cm3", "temperature_k"}`, or `None` in
             open space.
     """
     if row["inside_nebula_id"] is not None:
-        found = conn.execute("SELECT id, name, nebula_class AS class, density_cm3, temperature_k"
-                             " FROM nebulae WHERE id = ?", (row["inside_nebula_id"],)).fetchone()
+        found = conn.execute("SELECT id, name, nebula_class AS class, nebula_type AS descriptor, density_cm3,"
+                             " temperature_k FROM nebulae WHERE id = ?", (row["inside_nebula_id"],)).fetchone()
         kind = "nebula"
     elif row["inside_remnant_id"] is not None:
-        found = conn.execute("SELECT id, name, remnant_class AS class, density_cm3, temperature_k"
-                             " FROM supernova_remnants WHERE id = ?", (row["inside_remnant_id"],)).fetchone()
+        found = conn.execute("SELECT id, name, remnant_class AS class, morphology AS descriptor, density_cm3,"
+                             " temperature_k FROM supernova_remnants WHERE id = ?",
+                             (row["inside_remnant_id"],)).fetchone()
         kind = "supernova_remnant"
     else:
         return None
     if found is None:
         return None
     return {"type": kind, "id": found["id"], "name": found["name"], "class": found["class"],
-            "density_cm3": found["density_cm3"], "temperature_k": found["temperature_k"]}
+            "descriptor": found["descriptor"], "density_cm3": found["density_cm3"], "temperature_k": found["temperature_k"]}
 
 
 def _sector_half_diagonal_pc(edge_mpc):

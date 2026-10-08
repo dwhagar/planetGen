@@ -825,6 +825,16 @@ def test_galaxy_map_stars_never_take_the_click(page, map_site):
     assert page.locator("#galaxymap3d-info", has_text="Address").count() == 1
 
 
+def test_sector_map_draws_its_nebula_from_the_shape_mesh(page, map_site):
+    """MAP.103: the Sector Map's nebula (the fixture's "Fixture Veil") is
+    drawn from its shape mesh once that arrives, in place of the sphere."""
+    shape_requests = []
+    page.on("request", lambda request: shape_requests.append(request.url) if "/shape" in request.url else None)
+    _open_sector(page, map_site)
+    page.locator("#galaxymap3d-canvas[data-sector-nebula-meshes='1']").wait_for(state="attached", timeout=15000)
+    assert any("/galaxy/nebula/31/shape?lod=low" in url for url in shape_requests), shape_requests
+
+
 def test_galaxy_map_draws_a_nebula_from_its_shape_mesh(page, map_site):
     """MAP.103: a nebula big enough on screen is drawn from its shape mesh
     (fetched from the site), not only as a sprite; far out it stays a sprite."""
@@ -832,8 +842,16 @@ def test_galaxy_map_draws_a_nebula_from_its_shape_mesh(page, map_site):
     page.on("request", lambda request: shape_requests.append(request.url) if "/shape" in request.url else None)
     _open_galaxy(page, map_site, "?at=27.27.0.0")
     # A locator, not wait_for_function: the page's CSP forbids evaluating strings.
-    page.locator("#galaxymap3d-canvas[data-nebula-meshes='1']").wait_for(state="attached", timeout=15000)
+    page.locator("#galaxymap3d-canvas:not([data-nebula-meshes='0'])").wait_for(state="attached", timeout=15000)
     assert any("/galaxy/nebula/801/shape?lod=low" in url for url in shape_requests), shape_requests
+
+
+def test_galaxy_map_shades_a_nebula_over_unfilled_sectors(page, map_site):
+    """MAP.104: a nebula is drawn over space where no sector is generated
+    (the fixture's generated sectors are all in the core, thousands of
+    parsecs away), in a close view of the block as well as a far one."""
+    _open_galaxy(page, map_site, "?at=3.250.0.0")
+    page.locator("#galaxymap3d-canvas[data-nebula-meshes='1']").wait_for(state="attached", timeout=15000)
 
 
 # --- NAV.40: bookmarks keep a course pick ---------------------------------------------

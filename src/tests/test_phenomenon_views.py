@@ -27,7 +27,7 @@ def _view_data(panel):
 @pytest.mark.parametrize("kind, expected", [
     ("neutron_star", "render"), ("black_hole", "render"), ("quasar", "render"),
     ("rogue_planet", "render"), ("interstellar_comet", "render"),
-    ("nebula", "map"), ("supernova_remnant", "map"), ("asteroid_field", None),
+    ("nebula", "nebula"), ("supernova_remnant", "map"), ("asteroid_field", None),
 ])
 def test_view_kind(kind, expected):
     assert view_kind(kind) == expected

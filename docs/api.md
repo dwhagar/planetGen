@@ -78,7 +78,14 @@ connectivity to that specific schema rather than the default one.
   `layer_index`/`ring_slot_index` (the cylindrical grid address), all
   `null` together for an unplaced sector, plus a `placed` bool), nearest
   the galactic core first, then unplaced sectors by name
-  (`queryDb.list_sectors`/`count_sectors`).
+  (`queryDb.list_sectors`/`count_sectors`). The Sectors table (UX.41) also
+  takes `sort` (`name`, `systems`, `density`, `position`, `distance`) with
+  `order=asc|desc` (unplaced sectors sort last for `density`, `distance` and
+  `position`; ties keep the default order), the repeatable filter
+  `quadrant` (`I`-`IV`, or `unplaced`) and `facets=1`, which adds
+  `facets: {"quadrant": [{"value", "count"}]}` (the menu ignores its own
+  filter). `total` counts the sectors that pass the filter; a bad `sort` or
+  `order` is a 400.
 - `GET /api/sectors/<id>` — one sector's full display detail: the same
   fields as the listing above, plus `systems` (every system placed in
   it, nearest the sector's center first: `id`, `name`, `quadrant`, `location`, `is_binary`, `binary_type`,
@@ -124,7 +131,14 @@ connectivity to that specific schema rather than the default one.
   `binary_type`). `star_type` is a literal prefix (`%` and `_` match only
   themselves). `sector_id=none` matches only standalone systems
   (`sector_id IS NULL`, the `/systems` page's Standalone Systems table) — distinct
-  from omitting `sector_id` entirely (no sector filter at all).
+  from omitting `sector_id` entirely (no sector filter at all). The Systems
+  tables (UX.41) also take `sort` (`name`, `sector`, `octant`, `binary`) with
+  `order=asc|desc` (systems with no sector or octant sort last), the filters
+  `binary=yes|no`, `placement=sector|standalone` and `octant` (repeatable),
+  and `facets=1`, which adds `facets: {"placement", "binary", "octant"}`
+  (each `[{"value", "count"}]`; every menu's counts apply the other filters
+  but not its own). `total` counts the systems that pass the filters; a bad
+  `sort`, `order`, `binary` or `placement` is a 400.
 - `GET /api/systems/<id>` — one system's full display detail: `id`,
   `name`, `sector_id`, `quadrant`, `location`, `is_binary`, `binary_type`,
   `binary_configuration` (`"close"`/`"wide"`/`null`),
@@ -317,13 +331,28 @@ connectivity to that specific schema rather than the default one.
   `queryDb.list_phenomena`. Excludes a black hole/neutron star that's
   actually anchored to a normal star system (`star_id` set) — that one's
   already shown on its own system's page, not a standalone phenomenon.
-  The data the `/phenomena` page shows.
+  The data the `/phenomena` page shows. The Phenomena table (UX.41) also
+  takes `sort` (`name`, the default, `type`, `descriptor`, `radius`,
+  `sector` or `placed`) with `order=asc|desc` (ties fall back to name, so
+  pages never overlap), the filters `type` and `descriptor` (each repeatable,
+  any of) and `placed=yes|no`, and `facets=1` to add `facets`:
+  `{"type": [{"value", "count"}], "descriptor": [{"value", "count"}]}`, the
+  options for the two filter menus. Each menu's counts apply every filter
+  except its own, so picking a type narrows the descriptor options and the
+  other way round. `total` counts only the rows that pass the filters; an
+  unknown `sort`, `order` or `placed` is a 400.
 - `GET /api/nebulae/<id>/shape[?lod=low|full]` — a nebula's shape as a
   triangle mesh (GEN.75): `{id, radius_ly, center_pc, lod, vertices,
   faces}`, the vertices `[x, y, z]` in units of the nebula's radius from
   its center (multiply by `radius_ly`), the faces triples of vertex
   indexes. `low` (the default) is coarse, for the Galaxy Map. 404 for an
   unknown nebula or level.
+- `GET /api/nebulae/<id>/surroundings` — the brightest stars round a
+  nebula, for its page's 3D view (MAP.105): `{radius_pc, half_width_pc,
+  stars: [{x, y, z, luminosity_sol, temperature_k}]}`, positions in
+  parsecs from the nebula's center, the most luminous first (at most 300,
+  from a box 2.5 radii each side, at least 30 pc). No stars for a nebula
+  never placed. 404 for an unknown nebula.
 - `GET /api/phenomena/<type>/<id>` — one phenomenon's full detail (every
   column its own table has, e.g. a nebula's `composition`/
   `formation_cause`, a black hole's `mass_solar`/`spin`/

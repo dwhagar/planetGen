@@ -194,20 +194,30 @@ def test_phenomenon_diagram_zoom_in_and_reset(page, base_url, site_app):
     assert seen >= 1, "no phenomenon with an AU diagram in the database"
 
 
-@pytest.mark.xfail(strict=True, reason=(
-    "UX.21: a nebula or remnant about half a light-year across or more opens at the 1 ly "
-    "zoom-out limit (planetgen/web/maps/phenomenonmap.py), so - does nothing"))
 def test_phenomenon_diagram_minus_zooms_out_from_the_start(page, base_url, site_app):
-    """A large nebula's "-" (a smaller object's, whose view opens inside
-    the limit, works: tests/js/mapzoom.test.mjs and the "- after +" step
-    above)."""
+    """UX.38: "-" works from the first view, even on a remnant too big to
+    open inside the 1 ly zoom-out limit (a smaller object's view always did)."""
+    seen = 0
+    for phenomenon in [p for p in _phenomena(site_app) if p["type"] == "supernova_remnant"]:
+        if not _diagram(page, base_url, phenomenon):
+            continue
+        seen += 1
+        start = _view_box(page)
+        page.click('#phenomenonmap-controls [data-action="zoom-out"]')
+        assert _view_box(page)[2] > start[2], "- does nothing on the remnant diagram"
+    assert seen >= 1, "no supernova remnant with an AU diagram in the database"
+
+
+def test_nebula_page_draws_its_shape_in_3d(page, base_url, site_app):
+    """MAP.105: a nebula's page swaps its still drawing for the 3D view of
+    its shape, with the endpoints answering."""
     nebula = next(p for p in _phenomena(site_app) if p["type"] == "nebula")
-    assert _diagram(page, base_url, nebula)
-    start = _view_box(page)
-    assert start[2] >= float(page.get_attribute("#phenomenonmap-svg", "data-max-view-size")) * (1 - 1e-6), \
-        "the generated nebula is too small to show the bug"
-    page.click('#phenomenonmap-controls [data-action="zoom-out"]')
-    assert _view_box(page)[2] > start[2], "- does nothing on the nebula diagram"
+    _open(page, f"{base_url}/phenomenon/nebula/{nebula['id']}", "main")
+    assert page.locator("#phenomenonmap-svg").count() == 0
+    page.locator("#nebulaview-canvas[data-nebula-view='ready']").wait_for(state="attached", timeout=15000)
+    client = site_app.test_client()
+    assert client.get(f"/galaxy/nebula/{nebula['id']}/shape?lod=full").status_code == 200
+    assert client.get(f"/galaxy/nebula/{nebula['id']}/surroundings").status_code == 200
 
 
 # --- TEST.55, TEST.59: the Galaxy Map ------------------------------------------------

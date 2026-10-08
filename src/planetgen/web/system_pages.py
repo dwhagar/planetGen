@@ -25,9 +25,9 @@ from planetgen.web.lib.fmt import (
     format_distance_km, format_distance_ly, format_distance_pc, linkify_location, nearest_neighbors_location,
     nearest_systems_html,
 )
-from planetgen.web.lib.pagination import fetch_page, parse_page
+from planetgen.web.lib.datatable import Column, Facet, Result, Table
 from planetgen.web.maps.phenomenonmap import render_phenomenon_map_panel
-from planetgen.web.maps.phenomenonrender import render_phenomenon_view_panel, view_kind
+from planetgen.web.maps.phenomenonrender import render_nebula_view_panel, render_phenomenon_view_panel, view_kind
 from planetgen.web.maps.systemmap import render_system_map_panel
 from planetgen.web.lib.systempage import stars_html, system_list_html
 from planetgen.web.lib.tabledisplay import format_star_radius, to_plain_text
@@ -40,11 +40,11 @@ from planetgen.generation.phenomena.rogue import format_comet_composition_summar
 from planetgen.tuning import NEBULA_CLASSES
 from planetgen.physics.rogue_surface import SURFACE_REGIME_LABELS
 
-from . import bp
+from . import bp, tables
 from . import edit_actions, system_facilities
 from .class_pages import class_url
 from .helpers import (
-    bookmark, crumb, current_admin, db_name, page_url, pager, population_status, render_page, trusted_html,
+    bookmark, crumb, current_admin, db_name, page_url, population_status, render_page, trusted_html,
 )
 from .nav_page import endpoint, nav_url
 
@@ -396,33 +396,56 @@ def _title_case(value):
     return (value or "").replace("_", " ").replace("-", " ").capitalize()
 
 
+def _phenomena_load(state, limit, offset, want_facets):
+    """The Phenomena table's page of rows (`lib/datatable.Result`)."""
+    filters = {"types": state.filters["type"], "descriptors": state.filters["descriptor"]}
+    envelope = apiclient.get_phenomena(
+        db_name(), limit=limit, offset=offset, sort=state.sort, descending=state.descending,
+        facets=want_facets, **filters)
+    rows = [[
+        {"text": row["name"], "href": page_url("phenomenon", phenomenon_type=row["type"], phenomenon_id=row["id"])},
+        {"text": TYPE_LABELS.get(row["type"], row["type"])},
+        {"text": _title_case(row["descriptor"])},
+        {"text": format_distance_ly(row["radius_ly"])} if row["radius_ly"] else {"text": "\u2013"},
+        {"text": row["sector_name"], "href": page_url("sector", sector_id=row["sector_id"])}
+        if row["sector_id"] is not None else {"text": "None", "muted": True},
+        {"text": "Yes" if row["placed"] else "No"},
+    ] for row in envelope["items"]]
+    facets = None
+    if want_facets:
+        facets = {
+            "type": [{"value": option["value"], "label": TYPE_LABELS.get(option["value"], option["value"]),
+                      "count": option["count"]} for option in envelope["facets"]["type"]],
+            "descriptor": [{"value": option["value"], "label": _title_case(option["value"]),
+                            "count": option["count"]} for option in envelope["facets"]["descriptor"]],
+        }
+    return Result(rows, envelope["total"], facets)
+
+
+PHENOMENA_TABLE = tables.register(Table(
+    "phenomena", "Phenomena",
+    [Column("name", "Name"), Column("type", "Type"), Column("descriptor", "Descriptor"),
+     Column("radius", "Radius"), Column("sector", "Sector"), Column("placed", "On Galaxy Map")],
+    _phenomena_load,
+    facets=[Facet("type", "Type"), Facet("descriptor", "Descriptor")],
+    noun=("phenomenon", "phenomena"),
+))
+
+
 @bp.route("/phenomena")
 def phenomena():
-    """Every exotic phenomenon, placed on the galaxy map or not, paged
-    with `?page=N`."""
-    envelope, page = fetch_page(
-        lambda limit, offset: apiclient.get_phenomena(db_name(), limit=limit, offset=offset),
-        parse_page(request.args.get("page")),
-    )
-    rows = [{
-        "name": row["name"],
-        "url": page_url("phenomenon", phenomenon_type=row["type"], phenomenon_id=row["id"]),
-        "type": TYPE_LABELS.get(row["type"], row["type"]),
-        "descriptor": _title_case(row["descriptor"]),
-        "radius": format_distance_ly(row["radius_ly"]) if row["radius_ly"] else None,
-        "sector_name": row["sector_name"],
-        "sector_url": page_url("sector", sector_id=row["sector_id"]) if row["sector_id"] is not None else None,
-        "placed": bool(row["placed"]),
-    } for row in envelope["items"]]
+    """Every exotic phenomenon, placed on the galaxy map or not, as a data
+    table (UX.41): sort by any column, filter by type and descriptor, and
+    scroll through the pages."""
+    table = tables.render(PHENOMENA_TABLE, request.path, anchor="phenomena-list")
     return render_page(
         "phenomena.html",
         title="Phenomena",
         section="phenomena",
         breadcrumbs=[crumb("Phenomena")],
         description="Every nebula, black hole, neutron star and other exotic phenomenon in this generated galaxy.",
-        rows=rows,
-        total=envelope["total"],
-        pager=pager("page", page, envelope["total"], anchor="phenomena-list", label="Phenomena pages"),
+        table=table,
+        total=table["total"],
     )
 
 
@@ -672,6 +695,8 @@ def phenomenon(phenomenon_type, phenomenon_id):
     kind = view_kind(phenomenon_type)
     if kind == "render":
         map_html = render_phenomenon_view_panel(phenomenon_type, detail)
+    elif kind == "nebula":
+        map_html = render_nebula_view_panel(detail)
     elif kind == "map":
         map_html = render_phenomenon_map_panel(
             phenomenon_type, detail["name"], detail.get("radius_ly") or 0,
