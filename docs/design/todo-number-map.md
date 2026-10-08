@@ -728,7 +728,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.12 | No maximum hop length: a route always reaches the nearest star it can, across any number of sectors | none | open |
 | NAV.13 | A picker module: select, step out, step in, step sideways | none | done, PR #564 |
 | NAV.14 | One breadcrumb for every level | none | open |
-| NAV.15 | Pick mode everywhere | none | open |
+| NAV.15 | Pick mode everywhere | none | done, PR #566 |
 | NAV.16 | NAV endpoints can be any object | none | open |
 | NAV.17 | A saved course record with both forms | none | open |
 | NAV.18 | Save, list, open, rename and delete, per browser | none | open |
