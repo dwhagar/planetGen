@@ -32,6 +32,7 @@ import math
 import pymysql
 from flask import Blueprint, current_app, g, jsonify, request
 
+from planetgen.web.maps.systemscene import build_scene
 from planetgen.generation import run_galaxy
 from planetgen.queue import api_jobs
 
@@ -542,6 +543,20 @@ def system_detail(system_id):
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 404
     return jsonify(detail)
+
+
+@bp.route("/systems/<int:system_id>/scene")
+def system_scene(system_id):
+    """
+    `GET /api/systems/<id>/scene` -- the 3D system view's data (MAP.69):
+    every star, planet, moon, belt and comet with its `ref`, radius, colour,
+    orbit elements and position at `epoch` (see `web/maps/systemscene.py`).
+    """
+    try:
+        scene = build_scene(get_db(), system_id)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 404
+    return jsonify(scene)
 
 
 @bp.route("/systems/<int:system_id>/text")

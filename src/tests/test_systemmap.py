@@ -585,7 +585,7 @@ def test_many_clustered_planets_do_not_crash_and_still_place_every_body():
 def test_planet_attrs_carries_a_resolved_class_color():
     planet = _planet(1, 10, AU_KM, 0.0, planet_class="J")
     attrs = sm._planet_attrs(planet)
-    assert attrs["color"] == sm._class_color("J")
+    assert attrs["color"] == sm.class_color("J")
     assert attrs["color"].startswith("#")
 
 
@@ -657,7 +657,7 @@ def test_render_system_map_panel_planet_marker_carries_preview_data_attrs():
                       surface_temperature_k=165.0, composition="hydrogen and helium")
     system = {"name": "Preview Data Test", "binary_configuration": None}
     html = sm.render_system_map_panel(system, [_star(10)], [planet], [])
-    assert f'data-color="{sm._class_color("J")}"' in html
+    assert f'data-color="{sm.class_color("J")}"' in html
     assert 'data-hasatmosphere="true"' in html
     assert 'data-atmosphere="Hydrogen-Helium"' in html
     assert 'data-surfacetemp="165 K (-108 °C, -163 °F)"' in html
