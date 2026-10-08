@@ -33,7 +33,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| NAV.3 | One shared picker for the Galaxy, Sector and System displays | NAV.14, NAV.16, NAV.32, NAV.50 | Moved from phase 3: its parts are in phases 0 and 1. Parent; closes with its subitems. |
+| NAV.3 | One shared picker for the Galaxy, Sector and System displays | NAV.16, NAV.32, NAV.50 | Moved from phase 3: its parts are in phases 0 and 1. Parent; closes with its subitems. |
 
 ### Database consistency check
 
