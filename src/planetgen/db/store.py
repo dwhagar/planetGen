@@ -65,7 +65,7 @@ from dbutils.pooled_db import PooledDB
 
 from planetgen.admin import activity_log
 from planetgen.names import object_id as objectId
-from planetgen.galaxy import seed as galaxySeed, version_key as versionKey
+from planetgen.galaxy import seed as galaxySeed, uid as galaxyUid, version_key as versionKey
 from planetgen.physics import constants as physical_constants, kepler
 from planetgen import tuning
 from planetgen.util import log
@@ -103,7 +103,7 @@ from planetgen.names.wordsalad import generate_phoneme_salad_name, generate_sect
 from planetgen.physics.units import ly_to_milliparsecs, ly_to_pc, milliparsecs_to_ly, mpc_to_pc, pc_to_ly
 from planetgen.generation.wide_binary import WideBinaryPair
 
-SCHEMA_VERSION = 57
+SCHEMA_VERSION = 58
 """int: Matches `star_systems.schema_version` and the highest row in the
 `schema_migrations` table (see `planetgen/db/schema.sql`'s header
 comment). Also the target version `migrate_database` brings a database's
@@ -1369,6 +1369,7 @@ def _table_marker(table):
 
 
 _VERSION_MARKERS = (
+    (58, _column_marker("sectors", "uid")),
     (57, _column_marker("bright_stars", "off_plane")),
     (56, _column_marker("nebulae", "shape_scale")),
     (55, _column_marker("sector_stats", "mean_age_gy")),
@@ -3357,7 +3358,9 @@ def save_phenomenon(phenomenon, system_config: SystemConfig, phenomenon_type: st
                 # An anchored compact remnant: insert_star_system's own
                 # single-star branch already inserts the satellite
                 # black_holes/neutron_stars row -- see that function.
-                return insert_star_system(conn, phenomenon, system_config)
+                system_id = insert_star_system(conn, phenomenon, system_config)
+                assign_uids(conn, system_ids=[system_id])
+                return system_id
             inserter = _PHENOMENON_INSERTERS.get(phenomenon_type)
             if inserter is None:
                 raise ValueError(f"Unknown phenomenon type: {phenomenon_type!r}")
@@ -3365,6 +3368,8 @@ def save_phenomenon(phenomenon, system_config: SystemConfig, phenomenon_type: st
                 _check_quasar_sector(conn, sector_id)
             placement = compute_phenomenon_placement(conn, sector_id) if sector_id is not None else None
             row_id = inserter(conn, phenomenon, sector_id=sector_id, placement=placement)
+            assign_uids(conn, sector_id=sector_id,
+                        phenomenon=None if sector_id is not None else (OBJECT_ID_TABLES[phenomenon_type], row_id))
             if sector_id is not None:
                 refresh_containment(conn, [sector_id])
                 refresh_nearest_systems(conn, [sector_id])
@@ -5201,6 +5206,7 @@ def insert_sector(conn, sector: SpaceSector, galaxy_position=None) -> int:
     """
     with conn.batched():
         sector_id = _insert_sector_rows(conn, sector, galaxy_position)
+    assign_uids(conn, sector_id=sector_id)
     address = None if galaxy_position is None else tuple(
         galaxy_position.get(key) for key in ("ring_index", "layer_index", "ring_slot_index"))
     if address is not None and None not in address:
@@ -5456,6 +5462,7 @@ def add_system_to_sector(conn, sector_id, star_system, system_config, position=N
     entry = sector.add_system(star_system, position=position, system_config=system_config)
     system_id = insert_star_system(conn, star_system, system_config, sector_id=sector_id,
                                    position=entry.position, location=_location_for_entry(sector, entry))
+    assign_uids(conn, sector_id=sector_id)
     if get_sector_galaxy_position(conn, sector_id) is not None:
         refresh_containment(conn, [sector_id])
         _add_sector_to_nearest(conn, sector_id)
@@ -5544,6 +5551,7 @@ def replace_star_system_content(conn, star_system_id, star_system, system_config
     )
     conn.execute("DELETE FROM star_systems WHERE id = ?", (temp_id,))
     _rename_bodies_with_prefix(conn, star_system_id, temp_name, row["name"])
+    assign_uids(conn, system_ids=[star_system_id])  # the new bodies take the IDs the old ones had
     return True
 
 
@@ -6024,6 +6032,159 @@ def get_galaxy_layers(conn):
     return [(row["layer_index"], row["outer_ring_index"]) for row in rows]
 
 
+PHENOMENON_UID_TABLES = ("black_holes", "neutron_stars", "nebulae", "supernova_remnants", "quasars", "rogue_planets",
+                         "interstellar_comets", "asteroid_fields")
+"""tuple: The phenomenon tables a sector holds, each with a `uid` (v58)."""
+
+_UID_SYSTEM_BATCH = 200
+
+
+def assign_uids(conn, sector_id=None, system_ids=(), phenomenon=None):
+    """
+    Writes the unique ID (`galaxy/uid.py`, GEN.69) of every row below that
+    has none yet: a row that has one keeps it, so saving again never
+    changes an ID.
+
+    Args:
+        conn (Connection): Part of the caller's transaction, with the
+            rows already written (not mid-`batched`).
+        sector_id (int, optional): A sector: its own ID (its designation),
+            then its systems and their contents, then its phenomena.
+        system_ids (iterable of int): Systems saved on their own (with no
+            sector), and everything in them.
+        phenomenon (tuple, optional): `(table, id)` of a phenomenon saved
+            on its own, outside any sector.
+
+    A system's ID is its rank among its sector's systems (by row id, the
+    order `insert_sector` wrote them in) hashed with the sector's; an
+    interstellar object or bright-sweep system that has a GEN.64 position
+    ID (its name) keeps that instead. The galaxy seed is the planned
+    galaxy's, or `uid.NO_SEED` when nothing is planned.
+    """
+    seed = get_galaxy_seed(conn)
+    if sector_id is not None:
+        _assign_sector_uids(conn, seed, sector_id)
+    system_ids = list(system_ids)
+    if system_ids:
+        _assign_system_uids(conn, seed, system_ids, "none")
+    if phenomenon is not None:
+        table, row_id = phenomenon
+        _assign_phenomenon_uids(conn, seed, table, "none", f"id{row_id}", row_ids=[row_id])
+
+
+def _gen64_uid(name):
+    """The GEN.64 position ID a row's name spells, as an integer, or `None`."""
+    if name is not None and objectId.is_object_id(name):
+        return int(name, 16)
+    return None
+
+
+def _assign_sector_uids(conn, seed, sector_id):
+    row = conn.execute("SELECT ring_index, layer_index, ring_slot_index, uid FROM sectors WHERE id = ?",
+                       (sector_id,)).fetchone()
+    if row is None:
+        return
+    address = (row["ring_index"], row["layer_index"], row["ring_slot_index"])
+    sector_uid = row["uid"]
+    if sector_uid is None and None not in address:
+        sector_uid = galaxyUid.sector_uid(*address)
+        conn.execute("UPDATE sectors SET uid = ?, modified_at = modified_at WHERE id = ?", (sector_uid, sector_id))
+    parent = galaxyUid.format_sector_uid(sector_uid) if sector_uid is not None else f"row{sector_id}"
+
+    systems = conn.execute("SELECT id, name, uid FROM star_systems WHERE sector_id = ? ORDER BY id",
+                           (sector_id,)).fetchall()
+    new = []
+    for rank, system in enumerate(systems):
+        if system["uid"] is None:
+            uid = _gen64_uid(system["name"])
+            if uid is None:
+                uid = galaxyUid.derived_uid(seed, "system", parent, rank)
+            new.append((system["id"], galaxyUid.uid_bytes(uid)))
+    _update_by_id(conn, "star_systems", ("uid",), new)
+    for first in range(0, len(systems), _UID_SYSTEM_BATCH):
+        _assign_system_uids(conn, seed, [s["id"] for s in systems[first:first + _UID_SYSTEM_BATCH]], parent)
+    for table in PHENOMENON_UID_TABLES:
+        _assign_phenomenon_uids(conn, seed, table, parent, None, sector_id=sector_id)
+
+
+def _assign_phenomenon_uids(conn, seed, table, parent, solo, sector_id=None, row_ids=None):
+    """Fills the NULL `uid`s of one phenomenon table's rows: a sector's
+    (ranked by row id within the sector) or the listed ones."""
+    if row_ids is not None:
+        marks = ", ".join("?" * len(row_ids))
+        rows = conn.execute(f"SELECT id, name, uid FROM {table} WHERE id IN ({marks}) ORDER BY id",
+                            tuple(row_ids)).fetchall()
+    else:
+        rows = conn.execute(f"SELECT id, name, uid FROM {table} WHERE sector_id = ? ORDER BY id",
+                            (sector_id,)).fetchall()
+    new = []
+    for rank, row in enumerate(rows):
+        if row["uid"] is not None:
+            continue
+        uid = _gen64_uid(row["name"])
+        if uid is None:
+            uid = galaxyUid.derived_uid(seed, table, parent, solo if solo is not None else rank)
+        new.append((row["id"], galaxyUid.uid_bytes(uid)))
+    _update_by_id(conn, table, ("uid",), new)
+
+
+def _assign_system_uids(conn, seed, system_ids, sector_parent):
+    """Fills the NULL `uid`s of these systems' stars, planets, moons, belts
+    and comets (and of a system saved with no sector, its own)."""
+    ids = tuple(system_ids)
+    marks = ", ".join("?" * len(ids))
+    texts = {}
+    standalone = []
+    for system in conn.execute(f"SELECT id, name, uid FROM star_systems WHERE id IN ({marks})", ids).fetchall():
+        if system["uid"] is None:
+            uid = _gen64_uid(system["name"]) or galaxyUid.derived_uid(seed, "system", sector_parent, system["id"])
+            standalone.append((system["id"], galaxyUid.uid_bytes(uid)))
+        else:
+            uid = galaxyUid.uid_from_bytes(system["uid"])
+        texts[system["id"]] = galaxyUid.format_uid(uid)
+    _update_by_id(conn, "star_systems", ("uid",), standalone)
+
+    def ranked(rows, scope="star_system_id"):
+        """`(row, index)`: the row's rank among the rows of its `scope`
+        (its system, or for a moon its planet), in id order: the order it
+        was generated in, which is what stays the same on a regeneration."""
+        counts = {}
+        for row in rows:
+            index = counts.get(row[scope], 0)
+            counts[row[scope]] = index + 1
+            yield row, index
+
+    def fill(table, rows_with_index, parent_of, kind):
+        new = []
+        for row, index in rows_with_index:
+            if row["uid"] is None:
+                new.append((row["id"], galaxyUid.derived_uid(seed, kind, parent_of(row), index, galaxyUid.LOCAL_BITS)))
+        _update_by_id(conn, table, ("uid",), new, touch=True)  # these tables have no `modified_at`
+
+    def select(table, extra=""):
+        return conn.execute(f"SELECT id, star_system_id, uid{extra} FROM {table} WHERE star_system_id IN ({marks})"
+                            " ORDER BY id", ids).fetchall()
+
+    def of_system(row):
+        return texts[row["star_system_id"]]
+
+    fill("stars", ranked(select("stars")), of_system, "star")
+    planets = select("planets")
+    planet_uid = {}
+    for planet, index in ranked(planets):
+        uid = planet["uid"]
+        if uid is None:
+            uid = galaxyUid.derived_uid(seed, "planet", of_system(planet), index, galaxyUid.LOCAL_BITS)
+        planet_uid[planet["id"]] = uid
+    _update_by_id(conn, "planets", ("uid",), [(p["id"], planet_uid[p["id"]]) for p in planets if p["uid"] is None],
+                  touch=True)
+    planet_text = {planet_id: galaxyUid.format_uid(uid, galaxyUid.LOCAL_BITS) for planet_id, uid in planet_uid.items()}
+    moons = select("moons", ", planet_id")
+    fill("moons", ranked(moons, "planet_id"), lambda row: planet_text[row["planet_id"]], "moon")
+    fill("asteroid_belts", ranked(select("asteroid_belts")), of_system, "belt")
+    fill("comets", ranked(select("comets")), of_system, "comet")
+
+
 def save_system(star_system: StarSystem, system_config: SystemConfig, config=None) -> int:
     """
     Opens the database and persists a single, standalone `StarSystem` (no
@@ -6043,7 +6204,12 @@ def save_system(star_system: StarSystem, system_config: SystemConfig, config=Non
         int: The new `star_systems.id`.
     """
     names = [(star_system, star_system.name)]
-    return _save_with_retries(config, names, lambda conn: insert_star_system(conn, star_system, system_config))
+    def insert(conn):
+        system_id = insert_star_system(conn, star_system, system_config)
+        assign_uids(conn, system_ids=[system_id])
+        return system_id
+
+    return _save_with_retries(config, names, insert)
 
 
 RETRYABLE_ERRORS = (1213, 1205)
@@ -9242,6 +9408,45 @@ def _migrate_v56_to_v57(conn):
     conn.execute("INSERT INTO schema_migrations (version) VALUES (57)")
 
 
+UID_TABLES = {
+    "sectors": ("BIGINT UNSIGNED", None),
+    "star_systems": ("BINARY(12)", None),
+    "black_holes": ("BINARY(12)", None),
+    "neutron_stars": ("BINARY(12)", None),
+    "nebulae": ("BINARY(12)", None),
+    "supernova_remnants": ("BINARY(12)", None),
+    "quasars": ("BINARY(12)", None),
+    "rogue_planets": ("BINARY(12)", None),
+    "interstellar_comets": ("BINARY(12)", None),
+    "asteroid_fields": ("BINARY(12)", None),
+    "stars": ("BIGINT UNSIGNED", "star_system_id"),
+    "planets": ("BIGINT UNSIGNED", "star_system_id"),
+    "moons": ("BIGINT UNSIGNED", "star_system_id"),
+    "asteroid_belts": ("BIGINT UNSIGNED", "star_system_id"),
+    "comets": ("BIGINT UNSIGNED", "star_system_id"),
+}
+"""dict: Every table that has a `uid` column (v58, GEN.69): its type and,
+for an object whose ID is unique only under its system, the column that
+scopes the unique key."""
+
+
+def _migrate_v57_to_v58(conn):
+    """
+    Adds the `uid` column and its unique key to every table in `UID_TABLES`
+    (GEN.69) -- see `schema.sql`'s "v58" header note. Rows saved earlier
+    keep NULL there: `assign_uids` fills them in when a sector or system is
+    saved again, and a fresh galaxy (GEN.39) has them from the start.
+
+    Args:
+        conn (Connection): An open connection, mid-migration.
+    """
+    for table, (column_type, scope) in UID_TABLES.items():
+        if not _has_column(conn, table, "uid"):
+            conn.execute(f"ALTER TABLE {table} ADD COLUMN uid {column_type},"
+                         f" ADD UNIQUE KEY uq_{table}_uid ({scope + ', ' if scope else ''}uid)")
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (58)")
+
+
 def _schema_statement(table):
     """`schema.sql`'s own `CREATE TABLE IF NOT EXISTS <table>` statement."""
     with open(SCHEMA_PATH, "r", encoding="utf-8") as handle:
@@ -9358,6 +9563,7 @@ def _migration_steps():
         (55, _migrate_v54_to_v55),
         (56, _migrate_v55_to_v56),
         (57, _migrate_v56_to_v57),
+        (58, _migrate_v57_to_v58),
     ]
 
 

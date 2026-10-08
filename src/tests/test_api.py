@@ -1086,14 +1086,14 @@ def _add_stars_to_sector(mysql_config, sector_id, luminosities):
     try:
         system_id = conn.execute("SELECT id FROM star_systems WHERE sector_id = ?", (sector_id,)).fetchone()["id"]
         columns = [row["Field"] for row in conn.execute("SHOW COLUMNS FROM stars").fetchall()
-                   if row["Field"] not in ("id", "name", "luminosity_w", "role")
+                   if row["Field"] not in ("id", "uid", "name", "luminosity_w", "role")
                    and "AUTO_INCREMENT" not in row["Extra"].upper() and "GENERATED" not in row["Extra"].upper()]
         names = ", ".join(f"`{c}`" for c in columns)
         for n, lum in enumerate(luminosities):
             conn.execute(
-                f"INSERT INTO stars (name, luminosity_w, role, {names}) SELECT ?, ?, 'secondary', {names} "
+                f"INSERT INTO stars (name, luminosity_w, role, uid, {names}) SELECT ?, ?, 'secondary', ?, {names} "
                 "FROM stars WHERE star_system_id = ? ORDER BY id LIMIT 1",
-                (f"Extra {sector_id}-{n}", lum * constants.SOLAR_LUMINOSITY, system_id),
+                (f"Extra {sector_id}-{n}", lum * constants.SOLAR_LUMINOSITY, 1 << (40 + n), system_id),
             )
         conn.commit()
     finally:
