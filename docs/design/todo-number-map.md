@@ -422,7 +422,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.31 | Every generate action offers to show what it made on the Galaxy Map | none | open |
 | ADM.32 | Add a star system to a sector: at the emptiest spot, at given coordinates, or at random outside every Hill sphere | none | open |
 | ADM.33 | The owner can override "no room" warnings and generate anyway | none | done, PR #476 |
-| ADM.34 | One admin menu per screen, holding only that screen's actions | none | open |
+| ADM.34 | One admin menu per screen, holding only that screen's actions | none | done, PR #562 |
 | ADM.35 | Full control from every screen: edit anything, regenerate with every input, backfill or erase what is in view | none | open |
 | ADM.36 | Change an object's trajectory vector | none | open |
 | ADM.37 | The Generate page's prevalence fields show "0% change" instead of each feature's real share (bug) | none | done, PR #514 |
@@ -676,7 +676,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.92 | The System Map's side panel leaves out a planet's or moon's radius and mass (bug) | none | done, PR #405 |
 | MAP.93 | The Galaxy Map breadcrumb wraps onto several lines instead of collapsing its middle steps into a "…" menu (bug) | none | done, PR #399 |
 | MAP.94 | On a phone the breadcrumb should give way to a round menu button between Back and Forward (bug) | none | done, PR #399 |
-| MAP.95 | A "Forward to current" button next to the map's Back and Forward | none | open |
+| MAP.95 | A "Forward to current" button next to the map's Back and Forward | none | done, PR #562 |
 | MAP.96 | The Galaxy Map can't be turned freely: the tilt stops at straight down and at 80 degrees (bug) | none | done, PR #413 (open: keep the rotation in the URL and bookmarks? Not stored today) |
 | MAP.97 | The Galaxy Map camera should go top-down for the galaxy and a slab, isometric for a block, at every zoom step (bug) | none | done, PR #413 (defaults: a manual turn does not carry to the next step; Reset view returns to the step's preset) |
 | MAP.98 | Slab button lines should end at the nearest edge of their slab (bug) | none | done, PR #422 |
