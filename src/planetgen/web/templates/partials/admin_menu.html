@@ -17,13 +17,13 @@
     an item opens its dialog on top of the page (static/dialogmenus.js);
     the page's own POST handler does the rest. -#}
 
-{%- macro admin_menu(groups, label='this page', url='') -%}
+{%- macro admin_menu_button(groups, label='this page') -%}
 {%- set menu_id = 'admin-menu' -%}
 <div class="admin-bar">
 <sl-dropdown class="admin-menu" id="{{ menu_id }}" placement="bottom-end" distance="4">
   <sl-button slot="trigger" size="small" caret>Admin</sl-button>
   <sl-menu aria-label="Admin actions for {{ label }}">
-    {%- for group in groups %}
+    {%- for group in groups if not group.dialog_only %}
     {%- if loop.index > 1 and not group.label %}<sl-divider></sl-divider>{% endif %}
     {%- if group.label %}
     <sl-menu-item>{{ group.label }}
@@ -42,6 +42,11 @@
   </sl-menu>
 </sl-dropdown>
 </div>
+{%- endmacro -%}
+
+{#- The dialogs the menu items open: `admin_dialogs(groups, url)`. A group with `dialog_only` has
+    no item in the Admin menu (its dialogs are opened from elsewhere, as a row's own menu does). -#}
+{%- macro admin_dialogs(groups, url='') -%}
 {%- for group in groups %}
 {%- for action in group.actions %}
 {%- set dialog_id = 'admin-' ~ group.id ~ '-' ~ action.key %}
@@ -74,6 +79,11 @@
 </sl-dialog>
 {%- endfor %}
 {%- endfor %}
+{%- endmacro -%}
+
+{%- macro admin_menu(groups, label='this page', url='') -%}
+{{ admin_menu_button(groups, label) }}
+{{ admin_dialogs(groups, url) }}
 {%- endmacro -%}
 
 {#- The Regenerate and Delete actions every editable object has

@@ -127,3 +127,22 @@ def test_the_sector_pages_admin_actions_are_one_menu_that_opens_dialogs(sector_p
     page.keyboard.press("Escape")
     page.locator("sl-dialog#admin-sector-neighborhood[open]").wait_for(state="detached")
     assert page.url == url
+
+
+def test_the_system_admin_menu_is_in_the_action_bar_and_bodies_have_their_own(system_page):
+    """UX.68: the page's Admin menu sits in the action bar and lists the
+    system's own actions only; each planet, moon and belt row has an Admin
+    menu that opens that body's dialog."""
+    page, _url = system_page
+    assert page.locator(".page-actions sl-dropdown.admin-menu").count() == 1
+    page.locator(FIRST_TRIGGER).click()
+    labels = page.locator(FIRST_MENU + " >> sl-menu-item").all_inner_texts()
+    assert not any("Class " in text or "planet" in text.lower() for text in labels), labels
+    page.keyboard.press("Escape")
+    row_menu = page.locator("li.has-admin > sl-dropdown.row-admin").first
+    row_menu.locator("[slot=trigger]").click()
+    row_menu.get_by_role("menuitem", name="Regenerate").click()
+    dialog = page.locator("sl-dialog.edit-dialog[open]")
+    dialog.wait_for()
+    target = dialog.locator("input[name=edit_target]").input_value()
+    assert target.split(":")[0] in {"planet", "moon", "belt"}
