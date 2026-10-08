@@ -1219,6 +1219,67 @@ def test_galaxy_map_charted_only_outlines_the_charted_blocks(page, map_site):
     page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyLines().chartedLines === 0")
 
 
+def test_galaxy_map_a_second_click_while_the_next_stage_loads_is_not_an_error(page, map_site):
+    """MAP.107: a click on the map while the stage just picked is still
+    loading its data (the breadcrumb has moved, the drawing has not) picks
+    from what is drawn; it used to add that pick to the new stage, which
+    has no such choice ("There is no layer x here")."""
+    def slow(route):
+        page.wait_for_timeout(1200)
+        route.continue_()
+
+    _open_galaxy(page, map_site)
+    page.route(re.compile(r"/galaxy/stage\?.*at="), slow)
+    for _ in range(6):
+        found = _hover_choice(page, GENERATED_CHOICE)
+        if not found:
+            break
+        page.mouse.click(found[0], found[1])
+        page.mouse.click(found[0], found[1])
+        page.wait_for_timeout(2500)
+        _settle(page)
+        if not _on_galaxy(page):
+            break
+        notice = page.locator("#galaxymap3d-notice").inner_text()
+        assert "There is no" not in notice, (notice, _crumbs(page))
+
+
+COVERED_POINTS = """() => {
+    const canvas = document.querySelector("#galaxymap3d-canvas");
+    const box = canvas.getBoundingClientRect();
+    const covered = [];
+    let tried = 0;
+    for (let j = 1; j < 12; j++) {
+        for (let i = 1; i < 12; i++) {
+            const x = box.left + (i / 12) * box.width, y = box.top + (j / 12) * box.height;
+            if (y < 0 || y > window.innerHeight || x < 0 || x > window.innerWidth) continue;
+            tried += 1;
+            const top = document.elementFromPoint(x, y);
+            if (top !== canvas) covered.push([Math.round(x), Math.round(y), top ? (top.id || top.className || top.tagName) : null]);
+        }
+    }
+    return {tried: tried, covered: covered};
+}"""
+
+
+def test_galaxy_map_slab_buttons_never_cover_the_map(page, map_site):
+    """MAP.108: with the slab buttons showing, nothing but the map is under
+    the pointer anywhere on it, at any width and in any button layout."""
+    _open_galaxy(page, map_site)
+    for _ in range(6):
+        if page.locator(".galaxy-slab-button").count():
+            break
+        _click_choice(page, GENERATED_CHOICE)
+    assert page.locator(".galaxy-slab-button").count(), "a stage with slab buttons"
+    for width in (1280, 1000, 760, 600, 390):
+        page.set_viewport_size({"width": width, "height": 900})
+        page.wait_for_timeout(300)
+        page.evaluate("document.querySelector('#galaxymap3d-canvas').scrollIntoView({block: 'center'})")
+        found = page.evaluate(COVERED_POINTS)
+        assert found["tried"] > 20, (width, found)
+        assert not found["covered"], (width, found["covered"][:5])
+
+
 CAMERA = "() => document.querySelector('#galaxymap3d-canvas').galaxyCamera()"
 
 
