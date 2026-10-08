@@ -18,7 +18,7 @@ Nothing here reads a database name from the request (`db_name()`), and
 every link is a plain GET link (`page_url`).
 """
 
-from flask import abort, redirect, request
+from flask import abort, jsonify, redirect, request
 from planetgen.web.lib import apiclient
 from planetgen.web.lib.fmt import (
     format_duration_seconds, format_number, format_period_years, format_speed_kms, runaway_text,
@@ -226,6 +226,18 @@ def _territory(db, system_id):
             "url": page_url("polity_page", polity_id=owner["polity_id"])}
 
 
+@bp.route("/system/<int:system_id>/scene")
+def system_scene(system_id):
+    """The 3D system view's scene JSON (`GET /api/systems/<id>/scene`,
+    MAP.69), for `static/systempage3d.js`."""
+    response = jsonify(apiclient.get_system_scene(db_name(), system_id))
+    response.headers["Cache-Control"] = "no-store"
+    return response
+
+
+system_scene.json_only = True  # not a page: tests/test_web_a11y.py skips it
+
+
 @bp.route("/system/<int:system_id>", methods=["GET", "POST"])
 def system(system_id):
     """One star system. A POST with a `facility_action` is the admin
@@ -262,7 +274,8 @@ def system(system_id):
     map_html = ""
     if detail["stars"]:
         map_html = render_system_map_panel(detail, detail["stars"], detail["planets"], detail["belts"],
-                                           facilities=facilities)
+                                           facilities=facilities,
+                                           scene_url=page_url("system_scene", system_id=system_id))
     # NAV measures from a sector position, so a standalone system gets no
     # links; the NAV page itself works out whether cross-sector NAV applies.
     links, pick = pick_nav("system", system_id, request.args) if detail["sector_id"] is not None else (None, None)

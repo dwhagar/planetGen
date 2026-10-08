@@ -23,6 +23,8 @@
 //   screen-reader list of the open sector's entries goes;
 // - opened() / closed() (optional): called when a sector's scene is added
 //   to or removed from the map;
+// - openSystem(entry) (optional): opens a star's system in place (MAP.125);
+//   the star's panel offers it when given;
 // - kindsChanged() (optional): called when a kind of object is shown or
 //   hidden other than by setKindHidden (a selection showing its kind).
 
@@ -91,7 +93,12 @@ export function createSectorStage(host) {
           deselect();
           return;
         }
-        host.showInfo(infoSpec(entry, state.data, host.navPick));
+        const spec = infoSpec(entry, state.data, host.navPick);
+        // A system opens in the map itself (MAP.125), unless a NAV end is being picked.
+        if (host.openSystem && entry.endpoint && entry.href && !(host.navPick && host.navPick.active())) {
+          spec.buttons = (spec.buttons || []).concat([{ label: "Open system here", onClick: function () { host.openSystem(entry); } }]);
+        }
+        host.showInfo(spec);
         state.selectedEntry = entry;
         state.selected = ringAround(selectionRing, entry);
       },
@@ -267,5 +274,7 @@ export function createSectorStage(host) {
       if (changed && host.kindsChanged) host.kindsChanged();
     },
     entries: function () { return open ? open.sector.entries : []; },
+    // The entry picked in the open sector, if any.
+    selectedEntry: function () { return open ? open.selectedEntry : null; },
   };
 }

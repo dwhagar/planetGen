@@ -875,3 +875,13 @@ test("on the Galaxy Map a hidden kind rides every stage URL and stays hidden aft
   assert.match(m.win.location.search, /^\?sector=\w+&hide=star$/, m.win.location.search);
   assert.equal(m.view.kindHidden("star"), true, "a kind stays hidden after Up");
 });
+
+test("a stage URL names the system opened in place (MAP.125)", () => {
+  const asked = S.parseStageQuery("?sector=100000001&open=1&system=702");
+  assert.equal(asked.system, 702);
+  assert.equal(asked.open, true);
+  assert.equal(S.parseStageQuery("?sector=100000001&open=1&system=x").system, null);
+  assert.equal(S.parseStageQuery("?sector=100000001&open=1").system, null);
+  assert.equal(S.parseStageQuery("?sector=100000001&open=1&system=702&object=planet:12").object, "planet:12");
+  assert.equal(S.parseStageQuery("?sector=100000001&open=1&system=702&object=nope").object, null);
+});

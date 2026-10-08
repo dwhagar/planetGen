@@ -22,7 +22,7 @@ release is stamped.
 | API | API.20 |
 | ADM | ADM.39 |
 | SEC | SEC.32 |
-| TEST | TEST.108 |
+| TEST | TEST.110 |
 | USR | USR.9 |
 | OPS | OPS.28 |
 | DOC | DOC.4 |
@@ -644,19 +644,19 @@ Parents marked "new parent" had no old number of their own.
 | MAP.59 | Make it plain that a zoomed-in slab is a slab, not a wedge | none | open |
 | MAP.60 | Galaxy Map scale readout: one scale line | none | done, PR #369 |
 | MAP.61 | One map engine and control set for the Galaxy Map and the Sector Map | none | done, PR #629 |
-| MAP.62 | A full 3D star system view with a free camera | none | open |
+| MAP.62 | A full 3D star system view with a free camera | none | done, PR #673 |
 | MAP.63 | Shared map helpers in one module | none | done, PR #351 |
 | MAP.64 | One camera and input controller | none | done, PR #351 |
 | MAP.65 | One picking, hover and info-panel layer | none | done, PR #521 |
 | MAP.66 | The sector as the drill-down's last stage, on the same page | none | done, PR #548 |
-| MAP.67 | One URL and history scheme for every level | none | open |
+| MAP.67 | One URL and history scheme for every level | none | done, PR #673 |
 | MAP.68 | Remove the old Sector Map code | none | done, PR #573 |
 | MAP.69 | A system scene endpoint with 3D orbits | none | done, PR #668 |
-| MAP.70 | Positions at any time | none | open |
-| MAP.71 | Scale modes that keep everything visible | none | open |
-| MAP.72 | Rendering at system scale | none | open |
-| MAP.73 | Free camera on the shared engine | none | open |
-| MAP.74 | The 3D view on the system page, the flat diagram kept | none | open |
+| MAP.70 | Positions at any time | none | done, PR #670 |
+| MAP.71 | Scale modes that keep everything visible | none | done, PR #673 |
+| MAP.72 | Rendering at system scale | none | done, PR #673 |
+| MAP.73 | Free camera on the shared engine | none | done, PR #673 |
+| MAP.74 | The 3D view on the system page, the flat diagram kept | none | done, PR #673 |
 | MAP.75 | The mini map as a second engine view | none | open |
 | MAP.76 | Leader-line layout | none | done, PR #410 |
 | MAP.77 | Galaxy Map draws block divisions inside a picked slab before zooming to it (bug) | none | done, PR #410 |
@@ -713,7 +713,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.122 | A Select mode on every galaxy view: Galaxy (blocks and sectors) or Star | none | open |
 | MAP.123 | Show or hide star types and phenomena, and set the luminosity floor, on the Galaxy and Sector Maps | none | open |
 | MAP.124 | The Galaxy Map opens zoomed to fit all charted space | none | open |
-| MAP.125 | Infinite zoom: one 3D interface from the galaxy down to a moon | none | open |
+| MAP.125 | Infinite zoom: one 3D interface from the galaxy down to a moon | none | done, PR #683 |
 | MAP.126 | Show the orbital trajectories of selected objects in their frame of reference | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
@@ -908,7 +908,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.34 | The sector summary calls white dwarfs "B-type" and "A-type" systems (bug) | none | done, PR #448 |
 | UX.35 | The NAV page route shown horizontally, wrapping onto several lines on narrow screens | none | open |
 | UX.36 | Scientific notation starts too early for whole numbers (bug) | none | done, PR #457 |
-| UX.37 | A UX sweep: remove redundant and duplicate controls so the interface gets out of the way | none | open |
+| UX.37 | A UX sweep: remove redundant and duplicate controls so the interface gets out of the way | none | done, PR #671 |
 | UX.38 | The nebula and remnant diagrams' "-" button does nothing at the 1 ly limit (bug) | none | done, PR #590 |
 | UX.39 | Markdown rendered by the markdown library | none | open |
 | UX.40 | Buttons, menus and dialogs from Shoelace web components | none | done, PR #544 |
@@ -925,8 +925,8 @@ Parents marked "new parent" had no old number of their own.
 | UX.51 | Cards that repeat the page title | none | done, PR #663 |
 | UX.52 | Sector name repeated on every Contents row | none | done, PR #654 |
 | UX.53 | The same star shown three times on a system page | none | done, PR #654 |
-| UX.54 | Search shows empty result groups and echoes the query | none | open |
-| UX.55 | Home and Systems repeat other pages’ tables | none | open |
+| UX.54 | Search shows empty result groups and echoes the query | none | done, PR #671 |
+| UX.55 | Home and Systems repeat other pages’ tables | none | done, PR #671 |
 | UX.56 | Admin hub repeats the gear menu | none | done, PR #632 |
 | UX.57 | Two controls both called Reset | none | done, PR #637 |
 | UX.58 | Move Current into the Steps menu | none | done, PR #637 |
@@ -946,7 +946,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.72 | Gear menu mixes unrelated things; the admin hub is not the hub | none | done, PR #632 |
 | UX.73 | Sector wiki link form on the Admin hub | none | done, PR #632 |
 | UX.74 | Generate page shows an empty Current job card | none | done, PR #617 |
-| UX.75 | Admin menus on the sector and phenomenon pages sit in the page body, not the action bar | none | open |
+| UX.75 | Admin menus on the sector and phenomenon pages sit in the page body, not the action bar | none | done, PR #679 |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
@@ -1146,6 +1146,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.105 | test_web_a11y.py fails on the Admin hub: its links have 2.49:1 contrast (bug) | none | done, PR #648 |
 | TEST.106 | test_controls_do_not_overlap fails on the Sector Map at 390, 600 and 1280 px: its buttons overlap the Contents filters (bug) | none | done, PR #650 |
 | TEST.107 | test_controls_do_not_overlap fails on main for /galaxy at 390 px and /sector: buttons overlap each other (bug) | none | closed, not reproducible (passes on main) |
+| TEST.108 | test_a_planet_holds_one_whose_system_frame_is_its_offset_from_the_star fails about one run in four (bug) | none | open |
+| TEST.109 | test_sector_map_click_on_the_selected_nebula_clears_it fails on main since PR #605 (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

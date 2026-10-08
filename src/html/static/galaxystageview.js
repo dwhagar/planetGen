@@ -37,7 +37,9 @@
 // - restingHint: what a pinned sector's panel says before a pick, back when it is cleared;
 // - canGenerate, courseSectors, sectorUrl(id), locate(name);
 // - fetchSectorScene(id): a Promise of GET /sector/<id>/scene's JSON, the
-//   sector opened in place (MAP.66; galaxysector.js); lightBackground,
+//   sector opened in place (MAP.66; galaxysector.js);
+// - fetchSystemScene(href): a Promise of GET /system/<id>/scene's JSON, a
+//   system of the open sector opened in place (MAP.125; galaxysystem.js); lightBackground,
 //   pixelRatio(), showInfo(spec), hideCell(bounds or null);
 // - els: {crumbs, slabs, tooltip, notice, address, matches, controls}
 //   (any may be missing).
@@ -52,6 +54,7 @@ const { createSelection } = await import(`./picker.js${VERSION_QUERY}`);
 const { createBreadcrumb } = await import(`./breadcrumb.js${VERSION_QUERY}`);
 const { createPicker, createTooltip } = await import(`./mappick.js${VERSION_QUERY}`);
 const { createSectorStage } = await import(`./galaxysector.js${VERSION_QUERY}`);
+const { createSystemStage } = await import(`./galaxysystem.js${VERSION_QUERY}`);
 
 // The other choices while one is hovered (MAP.18).
 const OTHER_FADE = 0.25;
@@ -89,11 +92,19 @@ export const MIN_ZOOM = 1 / 8;
 export const MAX_ZOOM = 2.5;
 export const PAN_REACH = 1.5;
 export const GALAXY_MIN_ZOOM = 0.5;
+// An opened system zooms from its fit down to a moon, nine orders closer.
+export const SYSTEM_MIN_ZOOM = 1e-9;
 const WHEEL_ZOOM_PER_PX = 0.0025;
+// A wheel move from a stage to the next (MAP.125) takes one gesture: this
+// long before another can, and a star counts as the one zoomed on when it is
+// within this share of the view's distance from its middle.
+const ACROSS_COOLDOWN_MS = 900;
+const NEAREST_STAR_REACH = 0.35;
 // The zoom policies (mapcontrol.js): a short range around the fit, and
 // on the whole galaxy only closer than its fit.
 const FREE_VIEW_ZOOM = MC.zoomPolicy(MC.ZOOM_RANGE, MIN_ZOOM, MAX_ZOOM);
 const GALAXY_ZOOM = MC.zoomPolicy(MC.ZOOM_RANGE, GALAXY_MIN_ZOOM, 1);
+const SYSTEM_ZOOM = MC.zoomPolicy(MC.ZOOM_RANGE, SYSTEM_MIN_ZOOM, MAX_ZOOM);
 // The arc under the pointer is outlined in full; its neighbors' outlines
 // are this faint (MAP.85).
 const NEIGHBOR_OUTLINE_OPACITY = 0.35;
@@ -141,6 +152,16 @@ export function createStageView(host) {
   const pinned = host.pinned || null;
   let entered = null;
   let enterToken = 0;
+  // The system opened in place inside the open sector (MAP.125): {id, href,
+  // name, center, radiusPc, fitPoints}.
+  let enteredSystem = null;
+  let enterSystemToken = 0;
+  // A system to open once its sector has (a reload or Back to its URL).
+  let pendingSystem = null;
+  // The body of that system the URL named (?object=planet:12).
+  let pendingObject = null;
+  // The body of the open system the camera rides along with (a moving target).
+  let followBody = null;
   // A sector to open once the stage it sits in has arrived (a reload or
   // Back to an opened sector's URL).
   let pendingOpen = null;
@@ -317,6 +338,7 @@ export function createStageView(host) {
   // The view's zoom policy: a short range round the fit; the whole galaxy
   // only zooms in from its own.
   function zoomPolicyFor(r) {
+    if (enteredSystem) return SYSTEM_ZOOM;
     return r && r.view && isWholeGalaxy(r) ? GALAXY_ZOOM : FREE_VIEW_ZOOM;
   }
 
@@ -643,6 +665,14 @@ export function createStageView(host) {
     return { target: fit.target, dist: fit.dist, quat: quat };
   }
 
+  // The camera for the system opened in place: its extent fitted at the
+  // isometric slant, like the sector it sits in.
+  function cameraForSystem(open) {
+    const quat = presetQuat(Math.atan2(open.center[1], open.center[0]) + Math.PI, ISO_TILT);
+    const fit = centeredFit(open.fitPoints, open.center.slice(), quat);
+    return { target: fit.target, dist: fit.dist, quat: quat };
+  }
+
   // The view on arrival at camera `to`, keeping `to` as its fit. The
   // target is a copy: a pan moves view.target in place, and the pan's
   // reach is measured from the fit's. `zoom` is the user's zoom, the
@@ -704,6 +734,26 @@ export function createStageView(host) {
     return !!display && !!resolved && display.resolved === resolved && !animation && leaving.length === 0;
   };
 
+  // The system opened in place, if any: {id, name, mode, refs (its bodies),
+  // flying, following}. Read by the browser tests.
+  canvasEl.galaxySystem = function () {
+    if (!enteredSystem) return null;
+    return {
+      id: enteredSystem.id, name: enteredSystem.name, mode: systemStage.mode(), refs: systemStage.entries().map(function (e) { return e.ref; }),
+      flying: !!animation, following: followBody, distance: view ? view.dist : null, selected: systemStage.selected(),
+      // Where a body is on screen, in client pixels (null: behind the camera).
+      screen: function (ref) {
+        const entry = systemStage.entry(ref);
+        if (!entry) return null;
+        camera.updateMatrixWorld();
+        const v = new THREE.Vector3(entry.x, entry.y, entry.z).project(camera);
+        if (v.z > 1) return null;
+        const rect = canvasEl.getBoundingClientRect();
+        return { x: rect.left + ((v.x + 1) / 2) * rect.width, y: rect.top + ((1 - v.y) / 2) * rect.height };
+      },
+    };
+  };
+
   // Which lines the stage draws (MAP.77): {blockEdges} (the blocks' own
   // edges on or off), {slabLines} (how many line pieces trace the
   // boundaries between slabs) and {chartedLines} (how many outline the
@@ -746,7 +796,8 @@ export function createStageView(host) {
   // view's own turn.
   function reframe() {
     if (!view || !view.fit || !resolved || !resolved.view || !resolved.view.blocks.length) return;
-    view.dist = view.zoom * fitDistance(entered ? entered.fitPoints : fitPointsOf(resolved), view.fit.target, view.quat);
+    const around = enteredSystem ? enteredSystem.fitPoints : entered ? entered.fitPoints : fitPointsOf(resolved);
+    view.dist = view.zoom * fitDistance(around, view.fit.target, view.quat);
   }
 
   function applyView() {
@@ -830,6 +881,16 @@ export function createStageView(host) {
     if (now.length) params.set("hide", now.join(","));
     else params.delete("hide");
     const query = params.toString().replace(/%2C/gi, ",");
+    history.replaceState(history.state, "", location.pathname + (query ? "?" + query : "") + location.hash);
+  }
+
+  // The body picked in the open system is the URL's ?object=, in place.
+  function writeObjectToUrl(ref) {
+    if (!enteredSystem) return;
+    const params = new URLSearchParams(location.search);
+    if (ref) params.set("object", ref);
+    else params.delete("object");
+    const query = params.toString().replace(/%2C/gi, ",").replace(/%3A/gi, ":");
     history.replaceState(history.state, "", location.pathname + (query ? "?" + query : "") + location.hash);
   }
 
@@ -958,6 +1019,14 @@ export function createStageView(host) {
   function step(now) {
     if (!active) return;
     sectorStage.update();
+    systemStage.update(Date.now());
+    if (followBody && !animation && view) {
+      const at = systemStage.where(followBody);
+      if (at) {
+        view.target = at.center;
+        applyView();
+      }
+    }
     if (!animation) return;
     const a = animation;
     const t = a.duration > 0 ? Math.min(1, (now - a.startedAt) / a.duration) : 1;
@@ -998,6 +1067,18 @@ export function createStageView(host) {
 
   function up() {
     if (pinned) return;
+    if (enteredSystem) {
+      // Out of the system, to the sector it sits in.
+      closeSystem();
+      pushEntry(withKept(sectorOpenQuery()));
+      const back = cameraForSector(entered);
+      flyCamera(viewNow(), back, null, function () {
+        view = settledView(back);
+        applyView();
+      });
+      renderCrumbs();
+      return;
+    }
     if (entered) {
       // Out of the sector, to the stage it sits in with it still selected.
       closeSector();
@@ -1064,6 +1145,16 @@ export function createStageView(host) {
     viewport: host.viewport || null, opened: host.opened, closed: host.closed, kindsChanged: kindsChanged,
     deselected: function () { host.showHint(pinned && host.restingHint ? host.restingHint : hintFor(resolved)); },
     closeness: function () { return view && view.zoom > 0 ? 1 / view.zoom : 1; },
+    openSystem: !pinned && host.fetchSystemScene ? function (entry) { enterSystem(entry, { push: true }); } : null,
+  });
+  const systemStage = createSystemStage({
+    THREE: THREE, scene: host.scene, camera: camera, canvasEl: canvasEl, picker: picker,
+    accentColor: host.accentColor || "#4f5fe8",
+    fetchScene: host.fetchSystemScene, showInfo: host.showInfo || function () {}, viewport: host.viewport || null,
+    flyTo: function (entry) { flyToBody(entry); },
+    setMode: function (mode) { setSystemMode(mode); },
+    deselected: function () { host.showHint(hintFor(resolved)); },
+    picked: function (ref) { writeObjectToUrl(ref); },
   });
   const tooltip = createTooltip(els.tooltip);
   const choiceLayer = picker.addLayer({
@@ -1425,6 +1516,7 @@ export function createStageView(host) {
   // Closes the open sector's scene; the stage it sits in stays.
   function closeSector() {
     enterToken += 1;
+    closeSystem();
     sectorStage.close();
     entered = null;
   }
@@ -1462,10 +1554,100 @@ export function createStageView(host) {
       flyCamera(viewNow(), to, null, function () {
         view = settledView(to);
         applyView();
+        openPendingSystem();
       });
     }, function () {
       if (!active || token !== enterToken) return;
       notice("The sector could not be loaded. Please try again shortly.");
+    });
+  }
+
+  // --- The system opened in place (MAP.125) ----------------------------------
+
+  // The URL of the open sector, ?sector=<designation>&open=1.
+  function sectorOpenQuery() {
+    return "?sector=" + S.sectorDesignation(selectedSector.ring, selectedSector.layer, selectedSector.slot) + "&open=1";
+  }
+
+  function closeSystem() {
+    enterSystemToken += 1;
+    followBody = null;
+    systemStage.close();
+    enteredSystem = null;
+  }
+
+  // Opens `entry`'s system (a star of the open sector) in place: its scene
+  // joins the map at the star, the camera flies to fit it, and (push) it takes
+  // its own history entry, ?sector=...&open=1&system=<id>.
+  function enterSystem(entry, options) {
+    if (!entered || pinned || !host.fetchSystemScene || !entry || !entry.href) return;
+    const token = ++enterSystemToken;
+    notice("Opening " + (entry.name || "the system") + "…");
+    systemStage.open(entry.href, entry.name, [entry.x, entry.y, entry.z], options.mode).then(function (geo) {
+      if (!active || token !== enterSystemToken) return;
+      notice("");
+      if (!geo) return;
+      enteredSystem = {
+        id: systemStage.systemId(), href: entry.href, name: entry.name, center: geo.center,
+        radiusPc: geo.radiusPc, fitPoints: geo.fitPoints,
+      };
+      if (options.push) pushEntry(withKept(sectorOpenQuery() + "&system=" + enteredSystem.id));
+      renderCrumbs();
+      renderTravel();
+      if (animation) finishAnimation();
+      const to = cameraForSystem(enteredSystem);
+      const object = pendingObject;
+      pendingObject = null;
+      flyCamera(viewNow(), to, null, function () {
+        view = settledView(to);
+        applyView();
+        const entry = object ? systemStage.entry(object) : null;
+        if (entry) {
+          systemStage.select(object);
+          flyToBody(entry);
+        }
+      });
+    }, function () {
+      if (!active || token !== enterSystemToken) return;
+      notice("The system could not be loaded. Please try again shortly.");
+    });
+  }
+
+  // The system a URL named, once its sector is open.
+  function openPendingSystem() {
+    if (!pendingSystem || !entered) return;
+    const wanted = pendingSystem;
+    pendingSystem = null;
+    const entry = sectorStage.entries().find(function (e) { return e.endpoint === "system:" + wanted; });
+    if (entry) enterSystem(entry, { push: false });
+  }
+
+  // The map's scale of the open system, true or compressed.
+  function setSystemMode(mode) {
+    const geo = systemStage.setMode(mode);
+    if (!geo || !enteredSystem) return;
+    enteredSystem.radiusPc = geo.radiusPc;
+    enteredSystem.fitPoints = geo.fitPoints;
+    const to = cameraForSystem(enteredSystem);
+    flyCamera(viewNow(), to, null, function () {
+      view = settledView(to);
+      applyView();
+    });
+  }
+
+  // Flies the camera to a body of the open system, close enough to see it
+  // with its moons about it.
+  function flyToBody(entry) {
+    const at = systemStage.where(entry.ref);
+    if (!at || !view) return;
+    const from = viewNow();
+    const fit = view.fit;
+    const to = { target: at.center.slice(), dist: Math.max(at.radius * 6, 1e-12), quat: view.quat.clone() };
+    flyCamera(from, to, null, function () {
+      const fitDist = fitDistance(enteredSystem.fitPoints, fit.target, to.quat);
+      view = Object.assign({}, to, { target: to.target.slice(), quat: to.quat.clone(), fit: fit, zoom: to.dist / fitDist });
+      followBody = entry.ref;
+      applyView();
     });
   }
 
@@ -1481,6 +1663,7 @@ export function createStageView(host) {
       turnView(dx * ROTATE_PER_PX, dy * ROTATE_PER_PX);
       reframe();
     } else {
+      followBody = null;
       const perPx = worldUnitsPerPixel(camera, view.dist, canvasEl.clientHeight);
       const fit = view.fit;
       const reach = PAN_REACH * fit.dist * Math.tan(fovHalf());
@@ -1502,15 +1685,59 @@ export function createStageView(host) {
   function onWheel(event) {
     if (!MC.canZoom(zoomPolicyFor(resolved)) || !view) return false;
     const deltaPx = MC.wheelPixels(event, canvasEl.clientHeight, 200);
-    if (deltaPx) zoomBy(Math.exp(deltaPx * WHEEL_ZOOM_PER_PX));
+    if (deltaPx && !zoomAcross(deltaPx)) zoomBy(Math.exp(deltaPx * WHEEL_ZOOM_PER_PX));
     return true;
+  }
+
+  // MAP.125: the wheel carries the zoom from one stage to the next. Zoomed
+  // right in on a sector, in goes the star picked, else the one nearest the
+  // middle of the view (its system opens); zoomed right out of a system, out comes the sector.
+  // A move across takes one gesture: further wheel ticks within
+  // ACROSS_COOLDOWN_MS (a trackpad's glide) only zoom. True when this tick
+  // moved across.
+  let acrossAt = -Infinity;
+
+  function zoomAcross(deltaPx) {
+    const now = performance.now();
+    if (animation || pinned || now - acrossAt < ACROSS_COOLDOWN_MS) return false;
+    if (enteredSystem && deltaPx > 0 && view.zoom >= MAX_ZOOM * 0.999) {
+      acrossAt = now;
+      up();
+      return true;
+    }
+    if (entered && !enteredSystem && deltaPx < 0 && view.zoom <= MIN_ZOOM * 1.001 && host.fetchSystemScene) {
+      const picked = sectorStage.selectedEntry();
+      const star = picked && picked.endpoint && picked.endpoint.indexOf("system:") === 0 && picked.href
+        ? picked : nearestStar(view.target, view.dist * NEAREST_STAR_REACH);
+      if (star) {
+        acrossAt = now;
+        enterSystem(star, { push: true });
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // The star of the open sector nearest `point` (parsecs) within `reach`.
+  function nearestStar(point, reach) {
+    let best = null;
+    let bestDistance = reach;
+    sectorStage.entries().forEach(function (e) {
+      if (!e.href || !e.endpoint || e.endpoint.indexOf("system:") !== 0) return;
+      const d = Math.hypot(e.x - point[0], e.y - point[1], e.z - point[2]);
+      if (d < bestDistance) {
+        best = e;
+        bestDistance = d;
+      }
+    });
+    return best;
   }
 
   // Back to the stage's own view, after turning or moving it.
   function resetView() {
     if (!resolved || animation || !display) return;
     const from = viewNow();
-    const to = entered ? cameraForSector(entered) : cameraFor(resolved);
+    const to = enteredSystem ? cameraForSystem(enteredSystem) : entered ? cameraForSector(entered) : cameraFor(resolved);
     flyCamera(from, to, null, function () {
       view = settledView(to);
       applyView();
@@ -1734,6 +1961,12 @@ export function createStageView(host) {
       items.push({ label: "Sector " + S.blockLabel({ m: 1, ring: selectedSector.ring, wedge: selectedSector.slot, slab: selectedSector.layer }), last: true, sector: true });
       items[items.length - 2].last = false;
     }
+    if (enteredSystem) {
+      // Up from the system is to the sector it sits in.
+      items[items.length - 1].last = false;
+      items[items.length - 1].systemUp = true;
+      items.push({ label: enteredSystem.name, last: true, system: true });
+    }
     return items;
   }
 
@@ -1755,7 +1988,10 @@ export function createStageView(host) {
     steps: els.steps,
     stepsExtra: newestButton,
     trailing: function () { return bookmarkButton; },
-    onSelect: function (step) { selection.select({ kind: "stage", stage: step.stage }); },
+    onSelect: function (step) {
+      if (step.systemUp) up();
+      else selection.select({ kind: "stage", stage: step.stage });
+    },
   }) : null;
 
   function renderCrumbs() {
@@ -2327,6 +2563,7 @@ export function createStageView(host) {
       if (animation) finishAnimation();
       closeSector();
       pendingOpen = null;
+      pendingSystem = null;
       disposeDisplay(display);
       display = null;
       view = null;
@@ -2366,7 +2603,7 @@ export function createStageView(host) {
           problem: "Sector " + S.blockLabel({ m: 1, ring: s.ring, wedge: s.slot, slab: s.layer }) + " is outside the galaxy.",
         };
       }
-      return { stage: next, sector: s, open: parsed.open, problem: null };
+      return { stage: next, sector: s, open: parsed.open, system: parsed.system, object: parsed.object, problem: null };
     }
     let next = parsed.stage;
     if (useCourse && !next.at && !next.picks.length && host.courseSectors && host.courseSectors.length) {
@@ -2388,6 +2625,8 @@ export function createStageView(host) {
     if (r.problem) r = resolve({ at: null, picks: [] });
     selectedSector = asked.sector || (r.sector ? { ring: r.sector.ring, layer: r.sector.slab, slot: r.sector.wedge } : null);
     pendingOpen = asked.open ? asked.sector : null;
+    pendingSystem = asked.open && asked.system ? asked.system : null;
+    pendingObject = pendingSystem ? asked.object : null;
     stage = r.stage;
     resolved = r;
     renderCrumbs();
@@ -2414,6 +2653,8 @@ export function createStageView(host) {
     }
     selectedSector = asked.sector;
     pendingOpen = asked.open ? asked.sector : null;
+    pendingSystem = asked.open && asked.system ? asked.system : null;
+    pendingObject = pendingSystem ? asked.object : null;
     go(asked.stage, { push: false, keepSector: true });
   }
   window.addEventListener("popstate", onPopState);

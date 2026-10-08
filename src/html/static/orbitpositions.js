@@ -94,35 +94,80 @@ function cometRelativeKm(orbit, years) {
 
 const add = (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
 
-// {ref: [x, y, z]} km, `years` after the scene's epoch (negative: before).
-// Belts have no single point and are left out.
-export function positionsAt(scene, years) {
+// Where every body is, `years` after the scene's epoch, as a position
+// relative to what it goes round: {ref: {around, rel: [x, y, z] km}}.
+// `around` is "barycenter" or another body's ref; a close pair's stars sit
+// either side of the barycenter. Belts have no single point and are left out.
+export function relativeAt(scene, years) {
   const out = {};
   for (const star of scene.stars) {
-    if (!star.orbit) out[star.ref] = [0, 0, 0];
+    if (!star.orbit) out[star.ref] = { around: "barycenter", rel: [0, 0, 0] };
   }
   for (const star of scene.stars) {
     if (!star.orbit) continue;
     const relative = relativeCircularKm(star.orbit, years);
     if (star.orbit.around === "barycenter") {
       const f = star.orbit.secondary_mass_fraction;
-      out[star.ref] = relative.map((c) => c * (1 - f));
+      out[star.ref] = { around: "barycenter", rel: relative.map((c) => c * (1 - f)) };
       for (const other of scene.stars) {
-        if (!other.orbit) out[other.ref] = relative.map((c) => -c * f);
+        if (!other.orbit) out[other.ref] = { around: "barycenter", rel: relative.map((c) => -c * f) };
       }
     } else {
-      out[star.ref] = add(out[star.orbit.around], relative);
+      out[star.ref] = { around: star.orbit.around, rel: relative };
     }
   }
-  const origin = (around) => (around === "barycenter" ? [0, 0, 0] : out[around]);
   for (const planet of scene.planets) {
-    out[planet.ref] = add(origin(planet.orbit.around), relativeCircularKm(planet.orbit, years));
+    out[planet.ref] = { around: planet.orbit.around, rel: relativeCircularKm(planet.orbit, years) };
     for (const moon of planet.moons) {
-      out[moon.ref] = add(out[planet.ref], relativeCircularKm(moon.orbit, years));
+      out[moon.ref] = { around: planet.ref, rel: relativeCircularKm(moon.orbit, years) };
     }
   }
   for (const comet of scene.comets) {
-    out[comet.ref] = add(origin(comet.orbit.around), cometRelativeKm(comet.orbit, years));
+    out[comet.ref] = { around: comet.orbit.around, rel: cometRelativeKm(comet.orbit, years) };
+  }
+  return out;
+}
+
+// {ref: [x, y, z]} km, `years` after the scene's epoch (negative: before),
+// in the scene's frame.
+export function positionsAt(scene, years) {
+  const relative = relativeAt(scene, years);
+  const out = {};
+  const resolve = (ref) => {
+    if (out[ref]) return out[ref];
+    const { around, rel } = relative[ref];
+    out[ref] = around === "barycenter" ? rel : add(resolve(around), rel);
+    return out[ref];
+  };
+  for (const ref of Object.keys(relative)) resolve(ref);
+  return out;
+}
+
+// The points of one orbit's path, relative to what it goes round, in km: a
+// circular orbit's circle, a comet's ellipse or the near part of its
+// parabola (out to `maxAu`). `samples` points, the first repeated at the
+// end of a closed path.
+export function orbitPath(orbit, samples = 128, maxAu = 2000) {
+  const out = [];
+  if (!orbit.kepler) {
+    const r = orbit.distance_km / AU_KM;
+    for (let n = 0; n <= samples; n += 1) {
+      const p = orbitalPosition(r, orbit.inclination_deg, orbit.ascending_node_deg, (360 * n) / samples);
+      out.push([p[0] * AU_KM, p[1] * AU_KM, p[2] * AU_KM]);
+    }
+    return out;
+  }
+  const k = orbit.kepler;
+  const q = k.perihelion_distance_km / AU_KM;
+  const e = orbit.type === "elliptical" ? k.eccentricity : 1;
+  const semiLatus = q * (1 + e);
+  let limit = Math.PI;
+  if (e >= 1) limit = Math.acos(Math.max(-1, Math.min(1, semiLatus / maxAu - 1))) || 0.1;
+  for (let n = 0; n <= samples; n += 1) {
+    const nu = -limit + (2 * limit * n) / samples;
+    const r = semiLatus / (1 + e * Math.cos(nu));
+    const p = orbitalPosition(r, k.inclination_deg, k.ascending_node_deg, deg(rad(k.arg_periapsis_deg) + nu));
+    out.push([p[0] * AU_KM, p[1] * AU_KM, p[2] * AU_KM]);
   }
   return out;
 }

@@ -62,7 +62,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | UX.32 | Planet rows show the class only, without the type and moon labels |  | Same rows as UX.30; one thread. |
 | UX.30 | Planet information without the Markdown render | UX.22, UX.32 | Uses the unit ladders; shows the composition rows DB.2 now reads (PR #347). |
-| UX.43 | A visual design built like a pilot's starmap and navigation console | UX.42, UX.37 |  |
+| UX.43 | A visual design built like a pilot's starmap and navigation console | UX.42 |  |
 
 ### Backfill
 
@@ -93,7 +93,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| MAP.70 | Positions at any time |  | Positions through the point-in-space object (GEN.74, built). Python twin feeds NAV.27. |
 
 ### Reproducible galaxies
 
@@ -170,7 +169,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| VIEW.5 | Light-travel positions: where an object appears to a distant observer | MAP.70 | Groundwork for VIEW.2. |
+| VIEW.5 | Light-travel positions: where an object appears to a distant observer |  | Groundwork for VIEW.2. |
 
 ## Open questions for Boss
 

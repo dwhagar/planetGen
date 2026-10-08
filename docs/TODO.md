@@ -112,10 +112,10 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 is done (PR #476); GEN.117, and GEN.116 is closed (Boss 2026-10-08 17:46Z). | UX.39, OPS.20, DB.11, DB.13, ADM.21, GEN.66, GEN.70, GEN.71, GEN.67, NAV.7, MAP.67, UX.37, UX.54, UX.55, UX.75, UX.21 |
+| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 is done (PR #476); GEN.117, and GEN.116 is closed (Boss 2026-10-08 17:46Z). | TEST.109, TEST.108, UX.39, OPS.20, DB.11, DB.13, ADM.21, GEN.66, GEN.70, GEN.71, GEN.67, NAV.7, UX.21 |
 | 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, NAV.16, NAV.3, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.41, GEN.98, GEN.100, GEN.99, GEN.101, GEN.102, GEN.103, GEN.84, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, GEN.94, GEN.104, GEN.106, GEN.107, GEN.108, NAV.10, NAV.12, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, NAV.43, NAV.44, MAP.119, MAP.122, MAP.123, MAP.124, MAP.89, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, OPS.8, OPS.13, OPS.14, ADM.18, GEN.59, UX.49, NAV.50 |
-| 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.58, MAP.75, MAP.59, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, API.16, MAP.70, ADM.17, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.131, MAP.132, API.18, VIEW.5 |
-| 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, repair that reads the newest settings JSON, and the anomalies chosen in phase 2. | MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, MAP.126, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, DB.10, ADM.20, GEN.114, MAP.125, API.19 |
+| 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.58, MAP.75, MAP.59, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, API.16, ADM.17, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.131, MAP.132, API.18, VIEW.5 |
+| 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, repair that reads the newest settings JSON, and the anomalies chosen in phase 2. | MAP.126, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, DB.10, ADM.20, GEN.114, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies, and the end state of reproducible galaxies (`generate.py reproduce`). | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, OPS.12, GEN.55 |
 
 Phases overlap: a phase's later threads can start while the next
@@ -219,9 +219,10 @@ with `clamp()`.
   The nebula "-" no-op was split out as UX.38 (done, PR #590).
   Order (pre-planning thread): run it after MAP.55 and MAP.60, which
   already remove some dead controls on the Galaxy Map.
-  It also runs after UX.37 (Boss's sweep for redundant and duplicate
-  controls), so this layout pass checks the controls that are kept.
-  Prerequisite: UX.37.
+  It ran after UX.37 (Boss's sweep for redundant and duplicate
+  controls; done, PR #671), so this layout pass checks the controls
+  that are kept. UX.75 (Admin menus into the action bar) is done
+  (PR #679).
   Plan (2026-10-07): Moved into phase 0 (all bugs in phase 0), as the
   last item of the groundwork lane.
 
@@ -297,81 +298,6 @@ with `clamp()`.
   list. Runs alongside NAV.12; NAV.36 styles its unknown-space hops.
   Design: [docs/design/course-routing.md](design/course-routing.md)
 
-- [ ] **UX.37 A UX sweep: remove redundant and duplicate controls so the interface gets out of the way**
-  Boss (2026-10-02 04:42Z): "Add a UX sweep TODO item, we want to sweep
-  the user interface and get rid of redundancies and duplicate buttons
-  and the like, the main goal is for the Interface to get out of the way
-  but be there when we need it." The principle: the interface gets out
-  of the way but is there when it is needed. Done, in two steps. First,
-  an audit of every public and admin page and every map (Galaxy, Sector,
-  System, phenomenon, NAV) at phone and desktop widths, listing each
-  duplicate button or control (the same action offered twice on one
-  screen, such as a map button that repeats a Menu or breadcrumb entry),
-  each redundant link or panel (the same information or route shown
-  twice), and each control that could move into a menu or appear only
-  when it applies (selection, pick mode, admin). The audit is a list
-  with a proposal per entry (remove, merge, move into a menu, show only
-  when relevant), filed in the project's shared files; Boss reviews it
-  and nothing is removed until he has. Second, the removals and merges
-  he approves, with the hint text and docs that name them, and a browser
-  test per page that the kept controls still work. Related items, linked
-  rather than repeated: UX.21 (overlapping buttons and dead controls) is
-  the final layout pass and runs after this sweep; UX.28 (icons) and
-  UX.2 (menu sizes) set how the kept controls look; MAP.55 (done, PR
-  #369) already folded the Galaxy Map's buttons into one Menu. Why phase
-  2: the sweep audits controls that are still changing, so it waits for
-  the pages and maps they live on to settle: UX.28's icons, the Galaxy
-  Map breadcrumb and history buttons (MAP.93 and MAP.94 done in PR #399, MAP.95), the NAV
-  page layout (NAV.41), the slab and segment pick (MAP.56), and the page
-  action menus (UX.26, UX.27, UX.31).
-  Plan (2026-10-07): Moved into phase 0 (groundwork lane, last) because
-  UX.21 is a bug and needs it.
-  Progress (2026-10-08): step one is delivered and Boss approved all 25
-  findings at 17:43Z. Step two, the approved removals and merges, is
-  filed as UX.50 to UX.74; this item closes when they are all done.
-
-- [ ] **UX.54 Search shows empty result groups and echoes the query**
-  UX audit finding R5 (UX.37; Boss approved the audit 2026-10-08
-  17:43Z: "All UX work on this is Phase 0"). Show only when relevant;
-  audit priority 1; pages: Search. Seen: Searching “a” prints six full
-  cards: Sectors (0), Systems (0), Stars (15), Planets (0), Moons (0),
-  each with its own header row and “None”. Directly under the input a
-  chip “Name: ‘a’ ×” plus “Clear all” repeats what the input says. The
-  page’s own Name box sits under the header’s Search box with the same
-  job. Done: Show only groups that have results, with one line when
-  none do (“No sectors, systems, planets or moons match.”). Keep chips
-  for the object and size filters only, not the name. Hide the header
-  search on the Search page. Approved default: Hide empty groups; no
-  chip for the name; hide the header box on /search. Related: UX.49,
-  UX.41. Not a bug.
-  Prerequisites: none.
-  Audit: https://claude.ai/artifact/4URTUHSvfLKMzZobyGdiHF (finding R5).
-
-- [ ] **UX.55 Home and Systems repeat other pages’ tables**
-  UX audit finding R6 (UX.37; Boss approved the audit 2026-10-08
-  17:43Z: "All UX work on this is Phase 0"). Remove / merge; audit
-  priority 2; pages: Home, Systems. Seen: Home is the Sectors table
-  (same columns, same rows) plus the Standalone Systems table. The
-  Systems page ends with the same Standalone Systems card, whose two
-  rows are also in the All Systems table above, where their Sector
-  cell says “Standalone”. Done: Home becomes the front door: the
-  counts as links (sectors, systems, phenomena, standalone), Galaxy
-  Map, NAV and Search. Remove the standalone card from Systems;
-  standalone becomes a filter on that list (UX.41’s faceted filters).
-  Approved default: Home as counts and entry points; standalone as a
-  filter. Related: UX.41, NAV.44. Not a bug.
-  Prerequisites: none.
-  Audit: https://claude.ai/artifact/4URTUHSvfLKMzZobyGdiHF (finding R6).
-
-- [ ] **UX.75 Admin menus on the sector and phenomenon pages sit in the page body, not the action bar**
-  Found after UX.68 (PR #646) put the system page's Admin menu in the shared
-  action bar (reported by the coordinator, 2026-10-08). The sector page and
-  the phenomenon (nebula, remnant) pages still show their Admin menus in the
-  page body. Done: both pages' Admin menus move into the shared action bar,
-  as on the system page, with the same entries and permissions. Related:
-  UX.68, UX.72. Not a bug.
-  Prerequisites: none.
-
 - [ ] **UX.39 Markdown rendered by the markdown library**
   Today `mdconvert.py` converts the system and wiki Markdown by hand.
   Done: the `markdown` package renders it with the same output for the
@@ -402,7 +328,6 @@ with `clamp()`.
   "Charted only" in MAP item MAP.111) agreed with Boss, then pages,
   buttons and messages changed page by page; admin-only tools may keep
   plain wording.
-  Prerequisite: UX.37.
 
 - [ ] **UX.43 A visual design built like a pilot's starmap and navigation console**
   Boss (2026-10-07 11:47Z): "All design elements should be built from
@@ -411,7 +336,7 @@ with `clamp()`.
   brief (colours, type, panel shapes, iconography) approved by Boss,
   then the base template and shared components restyled to it in both
   themes, with contrast and reduced motion kept.
-  Prerequisites: UX.42, UX.37.
+  Prerequisite: UX.42.
 
 - [ ] **UX.45 Bookmark management**
   Boss (2026-10-07 11:47Z): "Bookmark management system." Today
@@ -612,67 +537,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     own renderer (one WebGL context, scissored like the System Map's
     sphere overlay).
 
-- [ ] **MAP.62 A full 3D star system view with a free camera**
-  Boss (2026-10-01 20:55Z): "rendering a star system as a full 3D
-  movable free-camera motion view." Today the System Map
-  (`systemmap.js`, `lib/systemmap.py`) is a flat SVG diagram. Done: a
-  star system is drawn in 3D (its stars, planets, moons, belts and
-  comets on their orbits, sizes and distances shown legibly, with a
-  scale option), and the camera can be moved freely (orbit, pan, zoom,
-  fly to a body), using the shared engine of MAP.61 and the shared
-  picker of NAV.3. Clicking a body opens or selects it. The flat
-  diagram stays available.
-  Plan (2026-10-08): MAP.61 is done (PR #629). MAP.62 is six subitems
-  (MAP.69 to MAP.74), and MAP.70 depends on the point-in-space object
-  (GEN.74), which is now built (PRs #642, #645, #662 and #665), so that
-  prerequisite is met. Boss has given the go: the map engine lane
-  builds MAP.62 (MAP.69 to MAP.74) first, then MAP.125.
-
-  - [ ] **MAP.67 One URL and history scheme for every level**
-    Galaxy stages, a sector, and (with MAP.62) a system and a body in
-    one URL form (for example `?at=` for stages, `?sector=`, `?object=<ref>`),
-    so Back, Forward, reload and bookmarks work the same at every level.
-    Progress (2026-10-08): the stage and sector levels are done (PR #573:
-    the sector page's map is the Galaxy Map engine locked to its sector,
-    with the one URL scheme). Done now means the system and body URL
-    forms, which ride with MAP.62.
-
-  - [ ] **MAP.70 Positions at any time**
-    Planets and moons move on circular orbits (phase plus 360 times
-    elapsed time over period), comets on Kepler orbits
-    (`keplerMotion.py`), binaries on their mutual orbit. Done: one
-    JavaScript module (with a Python twin used by NAV.6) that gives any
-    body's position at a time, so the view can animate and NAV.6 can
-    plan around where bodies will be. A time control (now, play,
-    faster, pause) in the view.
-    Plan (2026-10-07): Positions go through the point-in-space object
-    (GEN.74).
-
-  - [ ] **MAP.71 Scale modes that keep everything visible**
-    True scale makes planets invisible dots. Done: true scale, plus a
-    compressed distance scale (the System Map's log scale) and enlarged
-    bodies, switchable, with a note saying which is shown; moons stay
-    outside their planet's drawn size.
-
-  - [ ] **MAP.72 Rendering at system scale**
-    Distances run from kilometres to light-days, beyond float
-    precision near the camera. Done: a camera-relative (floating
-    origin) scene; orbit lines as 3D ellipses; stars with the glow of
-    `bodyRendering.js`; belts as particle rings; labels that declutter;
-    the heliopause shown as a faint sphere.
-
-  - [ ] **MAP.73 Free camera on the shared engine**
-    Done: orbit, pan, zoom and a fly mode (keys and touch) on MAP.61's
-    controller, plus "fly to" a body (the drill-down's smooth flight),
-    following a moving body, and a reset. Clicking a body selects it
-    (NAV.3's picker); double-click flies to it.
-
-  - [ ] **MAP.74 The 3D view on the system page, the flat diagram kept**
-    Done: the system page offers 3D and Diagram (the current SVG,
-    default the last one used); a screen-reader list of bodies stands in
-    for the canvas; a fallback to the diagram where WebGL is missing.
-    Open question: should 3D be the default?
-
 - [ ] **MAP.119 Expected star density editable by admins on the Galaxy Map**
   Boss (2026-10-03 05:38Z): "In the galaxy view, the expected star
   density should be an editable field for admin and a static field for
@@ -763,23 +627,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   each on a seeded sector.
   Prerequisite: GEN.84.
 
-- [ ] **MAP.125 Infinite zoom: one 3D interface from the galaxy down to a moon**
-  Boss (2026-10-07 11:47Z): "Infinite Zoom!  Able to use the same
-  interface to go from galaxy all the way down to a moon by zooming in
-  and out.  Make everything the same 3D interface." Done: one view zooms
-  continuously from the galaxy through block, sector and system to a
-  planet and its moons, with the frames switched by the position object
-  (GEN.74).
-  Prerequisite: MAP.62.
-  Plan (2026-10-08): Built after MAP.62, by the map engine lane (Boss
-  has given the go; see MAP.62).
-
 - [ ] **MAP.126 Show the orbital trajectories of selected objects in their frame of reference**
   Boss (2026-10-07 11:47Z): "Show orbital trajectories for selected
   objects in their frame of reference." Done: selecting a body draws its
   path (orbit, or galactic trajectory) in the frame of what it moves
   around.
-  Prerequisites: MAP.70, MAP.73.
+  Prerequisites: none.
 
 ## NAV: Navigation and courses
 
@@ -2772,6 +2625,29 @@ clears each one.
 
 ### Infrastructure and CI
 
+- [ ] **TEST.109 test_sector_map_click_on_the_selected_nebula_clears_it fails on main since PR #605 (bug)**
+  `src/tests/test_web_browser_fixture_maps.py::test_sector_map_click_on_the_selected_nebula_clears_it`
+  fails on main: it passes at 6ca0767 and fails at 7ce489a, the commit of
+  PR #605 (UX.41 part 4a). Probably the new Contents table shifts the
+  page, so the point the test scans for the click moves (reported by the
+  coordinator, 2026-10-08). Done: the test finds the nebula's click point
+  after the layout change (or the layout keeps it where the test expects),
+  and the test passes.
+  Prerequisites: none.
+
+
+- [ ] **TEST.108 test_a_planet_holds_one_whose_system_frame_is_its_offset_from_the_star fails about one run in four (bug)**
+  `src/tests/test_spatial_position.py::test_a_planet_holds_one_whose_system_frame_is_its_offset_from_the_star`
+  (from GEN.74, the point-in-space object) fails about one run in four on
+  main with no code change, so a random draw is hit: reported by the
+  coordinator, 2026-10-08. Done: find the draw that breaks the check (the
+  seeded planet, an orbit too small or a tolerance too tight), fix the
+  code or the test so the planet's system-frame position always equals
+  its offset from the star, and the test passes in repeated runs with
+  different seeds.
+  Prerequisites: none.
+
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -3016,7 +2892,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   giving an object's apparent position from an observer point (position
   at now minus distance over c, solved iteratively for moving bodies),
   tested against a hand case.
-  Prerequisite: MAP.70.
 
 ## POP: Population and politics
 
