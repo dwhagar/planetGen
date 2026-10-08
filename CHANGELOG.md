@@ -1,5 +1,10 @@
 # Changelog
 
+## [7.306.665] - 2026-10-08
+
+### Changed
+- A system, a phenomenon and a sector page now share one action bar (Navigate, Show on Galaxy Map, Bookmark, in that order). A phenomenon gains Show on Galaxy Map; the sector's Show on Galaxy Map moves from the facts row into the bar.
+
 ## [7.305.665] - 2026-10-08
 
 ### Changed
