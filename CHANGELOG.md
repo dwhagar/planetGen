@@ -1,5 +1,31 @@
 # Changelog
 
+## [7.260.635] - 2026-10-08
+
+### Changed
+
+- **The Generate page's job log streams live in a terminal (ADM.22).** A running job's output and state now arrive over Server-Sent Events (`/admin/generate/jobs/<id>/stream`) instead of a poll every two seconds, and the output shows in an Xterm.js terminal (vendored under `static/vendor/xterm/`), so progress redraws and colours look as in a console. The stream ends every 40 seconds and the browser reconnects, resuming from the byte offset it reached, so a dropped connection loses and repeats nothing; the progress bar and step update from the same stream. Every job also has a **Download log** link (`/admin/generate/jobs/<id>/log`) with the full output. Without EventSource the page polls as before. The two pages that show the terminal (`/admin/generate`, `/admin/generate/jobs/<id>`) allow inline styles, which Xterm.js writes; their scripts and every other page keep the strict Content-Security-Policy. The deployment notes say why the app server must be threaded.
+
+## [7.259.635] - 2026-10-08
+
+### Fixed
+- The lunar-spacing and class-change tests set their own random seed and retry until the generated body suits them, so their result no longer depends on which tests ran before (TEST.95, TEST.97).
+
+## [7.258.635] - 2026-10-08
+
+### Fixed
+- The job tests treat a job as finished only once its runner has written a final status and released the job lock, so starting the next job right after one no longer meets a busy lock under load (TEST.94).
+
+## [7.257.635] - 2026-10-08
+
+### Fixed
+- The parallel-galaxy interrupt test generates bigger sectors so a loaded machine can no longer finish the run before the test's signal arrives (TEST.101).
+
+## [7.256.635] - 2026-10-08
+
+### Fixed
+- The Galaxy Map's browser tests wait until the map has drawn the stage its breadcrumb names (new `galaxyReady` on the canvas) instead of a clock, so the camera, scale line, slab button and hover tests no longer fail under load (TEST.96, TEST.98, TEST.99, TEST.100).
+
 ## [7.255.635] - 2026-10-08
 
 ### Added

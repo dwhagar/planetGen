@@ -77,8 +77,8 @@ haven't been filled. The plan:
    belts, comets and phenomena.
 3. **A naming key** in the control database, drawn from the galaxy seed
    when the galaxy is created and changeable by an admin.
-4. **Names from the codec**: `gatedPhonemeCodec.py` (repo root today; GEN.120 moves it into the
-   `planetgen.names` package) turns an
+4. **Names from the codec**: `planetgen.names.gated_phoneme_codec`
+   (`src/planetgen/names/gated_phoneme_codec.py`, moved there from the repo root by GEN.120) turns an
    ID into pronounceable words and back, keyed by a domain and the naming
    key, so a name is unique because its ID is, and changing the key
    renames the codec's objects without rewriting rows. Boss's decisions
@@ -93,6 +93,29 @@ haven't been filled. The plan:
 5. **No removal** of the word-salad code, the word lists, the nltk
    corpus or the name registries: stars, sectors, planets, moons and
    belts still use them.
+
+### What the codec guarantees (GEN.120)
+
+Tests: `src/tests/test_gated_phoneme_codec.py`. Its golden words are
+pinned: moving one renames objects, so it needs a naming key or version
+key change first.
+
+- **Encoding** is deterministic and uses no database or hash round: the
+  ID's digits are shifted by a domain-keyed permutation, split into words
+  and spelled with gated phonemes.
+- **Two IDs of the same length never share a name** (checked exhaustively
+  for words of up to five digits, and over 100,000 random 19-digit IDs).
+- **Decoding needs the ID's length.** A word can read as more than one
+  length ("bar" is the digits `08` or `00B`), so about half of the names
+  of 19-digit IDs have two readings of different lengths. `decode(phrase,
+  domain, length=19)` is exact; without `length` it answers only when one
+  length fits and otherwise says to pass it. The original file decoded by
+  taking the longest phoneme at each step, which gave the wrong digits for
+  about one ID in five from five digits up; decoding now accepts only
+  the reading the encoder would have written. The encoder is untouched, so
+  names are the same as with the original file.
+- The module needs no packages beyond the standard library (the original
+  used `pygtrie` and `more_itertools`, which this project does not install).
 
 A bright star placed by the backfill shows its ID until its sector is
 generated, and only then gets its name.

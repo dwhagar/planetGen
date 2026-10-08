@@ -71,7 +71,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.101 | Fill order: nearest sectors first along a pruned Hilbert octree curve |  |  |
 | GEN.102 | Investigate filling all near-zero-density void space at once |  |  |
 | GEN.103 | Research where each star type and phenomenon belongs in the galaxy's structure |  |  |
-| GEN.120 | Integrate gatedPhonemeCodec.py into the naming package and remove it from the repo root |  | Boss 2026-10-08 02:59Z; not a bug, the Bugfixes lane does it next. Moves the codec GEN.67 uses; names are seed-reproducible, so golden tests pin it. |
 
 ### Habitability
 
@@ -169,7 +168,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | UX.23 | A shared unit-ladder module | GEN.66 | The ladder uses astropy.units. 22 (a feature); UX.36 keeps today's formatter and needs no ladder. Shared unit ladder; UX.22 then UX.30 build on it. |
 | UX.22 | Meaningful units for every measurement | UX.23 | One quantity family per PR. |
-| UX.3 | Warn every visitor while a background job changes the galaxy | ADM.22 | ETA from the RQ job's published progress. ETA from progress.json, which PERF.23 caps. |
+| UX.3 | Warn every visitor while a background job changes the galaxy |  | ETA from the RQ job's published progress. ETA from progress.json, which PERF.23 caps. |
 | UX.42 | In-universe wording across the interface | UX.37 | After the UX sweep removes controls, so only kept wording is changed. |
 
 ### Queue
