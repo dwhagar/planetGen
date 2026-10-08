@@ -433,7 +433,7 @@ the end. The same path is used for the address bar's jumps
   the stages visited on this map. They use the browser's own history:
   every stage change does `history.pushState`, with the map's own index
   in the entry, so the buttons and the browser's Back agree, a reload
-  keeps the stage, and a visit to a sector page and back returns to it.
+  keeps the stage, and a visit to a sector's page and back returns to it.
   Back is off at the first stage of the visit and Forward once nothing
   is ahead.
 - **Up** goes one step back out (the same as Esc), and **Reset** starts
@@ -445,7 +445,16 @@ the end. The same path is used for the address bar's jumps
 
 Once the view is one layer of sectors:
 
-- A generated sector opens its sector page (the Sector Map).
+- A generated sector opens in place (MAP.66): its stars, phenomena and
+  bodies are drawn where the sector sits, the camera flies to fit it, and
+  hover, tooltip, ring, info panel, ☆ and NAV links work as on the sector
+  page. This is the last stage; it has its own URL,
+  `/galaxy?sector=<designation>&open=1`, and Up closes it (back to
+  `?sector=<designation>`, the sector still selected). A click on a
+  neighboring sector steps sideways. The sector's own page, `/sector/<id>`
+  (tables, text, edit tools), embeds the same engine locked to that sector
+  (MAP.68): the Sector Map there is this map, with no steps or history of
+  its own, and a click on a neighboring sector opens that sector's page.
 - A sector that isn't generated shows today's cell panel (address,
   designation, coordinates, 8 corners). Admins also get the Generate
   tools (section 6).
@@ -549,7 +558,10 @@ one: `{ring, layer, slot, id, name, system_count}`.
 | The galaxy | `/galaxy` |
 | Picks at the galaxy | `/galaxy?p=a1.90,L0,r4` |
 | A block, and picks inside it | `/galaxy?at=243.7.14.0&p=L-4~-2,r4` (`m.ring.wedge.slab`) |
-| A sector | `/galaxy?sector=<designation>` |
+| A sector, selected | `/galaxy?sector=<designation>` |
+| A sector, opened in place | `/galaxy?sector=<designation>&open=1` (MAP.66) |
+| A sector's page | `/sector/<id>`: the same engine locked to the sector, no query of its own (MAP.68) |
+| A system or a body (with MAP.62) | `?object=<ref>`, to be added there |
 
 - A pick reads `a<band>.<bearing>` (the arc of band 0, 1 or 2, inner
   first, starting at that bearing in degrees), `q<n>` (quarter n, from
@@ -570,6 +582,13 @@ one: `{ring, layer, slot, id, name, system_count}`.
   picked, the sector among its neighbours, highlighted and shown in the
   info panel. The sector, system and search pages link this way
   (MAP.25), and the NAV course still fits both ends (section 9.4).
+- One scheme (MAP.67): a map's position is always a query of `/galaxy`
+  (`at`, `p`, `sector`, `open`) and every move is a history entry, so
+  Back, Forward, a reload and a bookmark behave the same at every level
+  down to the open sector. The sector page is the one place the map has no
+  query of its own, because the page's URL already names the sector and the
+  map is locked to it; a pick kept for NAV (`pick`, `from`, `to`) rides on
+  every URL either way.
 
 ### 8.2 Bookmarks
 

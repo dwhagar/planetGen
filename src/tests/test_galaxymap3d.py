@@ -105,6 +105,31 @@ def test_panel_includes_the_canvas_and_controls():
     assert 'data-action="charted-only"' in html
 
 
+def test_a_sector_pages_panel_is_pinned_to_its_sector_with_no_steps_of_its_own():
+    """MAP.68: the sector page's map is this engine locked to one sector."""
+    pinned = {"ring": 5, "layer": 1, "slot": 20, "center_pc": (500.0, 200.0, 10.0)}
+    html = render_galaxy_map3d_panel("mydb", None, EDGE_PC, _empty_view(), sector_url="/sector/{id}",
+                                     territory_path=None, pinned=pinned)
+    data = _json_payload(html)
+    assert data["pinned"] == {"ring": 5, "layer": 1, "slot": 20}
+    assert data["initialCenter"] == [500.0, 200.0, 10.0]
+    assert data["minViewRadiusPc"] <= data["initialRadiusPc"] <= data["maxViewRadiusPc"]
+    assert "<h2>Sector Map</h2>" in html
+    for gone in ("galaxymap3d-crumbs", "galaxymap3d-slabs", "galaxymap3d-address", "galaxymap3d-steps",
+                 "data-bookmarks-menu", 'data-action="back"', 'data-action="up"', 'data-action="reset"'):
+        assert gone not in html, gone
+    # What a sector map needs: zoom, Reset view, the rogue-planet toggle (off).
+    for action in ("zoom-in", "zoom-out", "reset-view"):
+        assert f'data-action="{action}"' in html
+    button = re.search(r'<button[^>]*data-action="toggle-rogue-markers"[^>]*>', html).group(0)
+    assert 'aria-pressed="false"' in button and "starmap-toggle" in button
+    assert "Click a star, cloud or body for details." in html
+    # The Galaxy Map itself has none of these.
+    plain = render_galaxy_map3d_panel("mydb", None, EDGE_PC, _empty_view())
+    assert _json_payload(plain)["pinned"] is None
+    assert "toggle-rogue-markers" not in plain and 'data-action="zoom-in"' not in plain
+
+
 def test_panel_keeps_five_controls_in_view_and_the_rest_in_the_menu():
     """MAP.55: Back, Forward, Up, Reset and Bookmarks stay in view; Reset
     view, Charted only and Territories are in the Menu; every control

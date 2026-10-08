@@ -1,7 +1,7 @@
 // html/static/generatebuttons.js
 //
 // The admin Generate buttons for a sector that isn't generated yet, shared
-// by the Sector Map (sectormap.js, a neighbor) and the Galaxy Map
+// by the Sector Map (sectorscene.js, a neighbor) and the Galaxy Map
 // (galaxymap3d.js, a sector cell). `target` is the server's
 // {url, csrfField, csrfToken} (web/helpers.generate_target), given to the
 // page only for a logged-in admin who can use the Generate page.

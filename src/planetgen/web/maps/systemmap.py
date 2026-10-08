@@ -49,11 +49,11 @@ planet with moons swaps the view so that planet sits at the scene's own
 origin with its own moons arranged around it (mirroring a real "zoom into
 this planet's moon system" diagram); clicking any other object or a belt
 instead fills the info side panel from its `data-*` attributes, exactly
-like `starmap.py`/`sectormap.js`'s own click-for-info pattern.
+like `starmap.py`/`sectorscene.js`'s own click-for-info pattern.
 
 Every star/planet/moon marker's flat SVG circle is also live-rendered as a
 small rotating shaded sphere (three.js, same vendored build
-`sectormap.js` uses -- `static/systemmap.js`'s `#sysmap-spheres-canvas`),
+`sectorscene.js` uses -- `static/systemmap.js`'s `#sysmap-spheres-canvas`),
 colored by the body's own class (`_class_color`, handed over pre-resolved
 as `data-color` so this module stays the one place that mapping lives --
 a star instead gets its own real spectral-type color from `_star_color`,

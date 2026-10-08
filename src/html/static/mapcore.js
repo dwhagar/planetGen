@@ -1,7 +1,7 @@
 // html/static/mapcore.js
 //
 // The helpers the Galaxy Map (galaxymap3d.js), the Sector Map
-// (sectormap.js) and the System Map (systemmap.js) share (MAP.63), so
+// (sectorscene.js) and the System Map (systemmap.js) share (MAP.63), so
 // each is written once: reading the page's scene JSON, theme colors, the
 // info panel's fields, a sector's address, the highlight ring's texture,
 // the scale bar's nice numbers and screen span, fitting the renderer to

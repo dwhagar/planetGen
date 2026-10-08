@@ -1553,7 +1553,7 @@ def test_sector_map_draws_no_point_object_outside_its_own_sector(mysql_config, m
     side, so each sector has generated neighbors whose rogue planets would
     show up if the search still took them.
     """
-    from planetgen.web.maps.starmap import render_map_panel
+    from planetgen.web.maps.starmap import map_scene_data
 
     _plan_wide_galaxy(mysql_config)
     _run_cli(["--ring", "0", "--num-systems", "10"] + _mysql_argv(mysql_config), planets=False)
@@ -1584,20 +1584,13 @@ def test_sector_map_draws_no_point_object_outside_its_own_sector(mysql_config, m
             if violation:
                 violations.append(violation)
 
-        html = render_map_panel(lambda name, **params: "#", edges[sector_id], ctx["address"], ctx["center_pc"],
-                                [], phenomena=phenomena)
-        for entry, phenomenon in zip(_starmap_scene(html)["clouds"], phenomena):
+        scene = map_scene_data(lambda name, **params: "#", edges[sector_id], ctx["address"], ctx["center_pc"],
+                               [], phenomena=phenomena)
+        for entry, phenomenon in zip(scene["clouds"], phenomena):
             assert entry.get("neighbor", False) == (not phenomenon["home"])
 
     assert rogue_planets, "expected the sectors to generate some rogue planets"
     assert not violations, "\n".join(violations[:50])
-
-
-def _starmap_scene(html):
-    """The Sector Map's scene data from `render_map_panel`'s HTML."""
-    import json
-    import re
-    return json.loads(re.search(r'<script type="application/json" id="starmap-data">(.*?)</script>', html, re.S).group(1))
 
 
 def test_sector_cell_used_for_generation_matches_the_grid():

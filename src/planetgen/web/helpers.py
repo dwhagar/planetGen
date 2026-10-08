@@ -15,7 +15,7 @@ these:
             section="sectors",
             breadcrumbs=[crumb("Sectors", "sectors"), crumb(detail["name"])],
             detail=detail,
-            map_html=trusted_html(starmap.render_map_panel(...)),
+            map_html=trusted_html(starmap.map_scene_data(...)),
         )
 
 - `db_name()`: the one database this site shows, from config. Never read

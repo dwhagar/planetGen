@@ -338,11 +338,66 @@ def _json_script(data):
     )
 
 
+GALAXY_MAP_HINT = (
+    "The galaxy is shown in 3D: drag to turn it, right-drag (or Shift-drag) to move it, scroll or\n  pinch to zoom &middot; hover over the disk to see its arcs (each about 40&deg; of bearing by a third of the\n  radius, top to bottom of the disk) and click one to zoom into it, then pick a slab (a layer of the arc) on the map or\n  with the buttons beside the map (each with a line to its slab), then a block of that slab, and so on down to single sectors &middot; Back and\n  Forward retrace your steps, Up (or Esc) goes one step out, Reset (or Home) starts over from the whole galaxy, and\n  Menu holds the rest &middot; arrow keys and Enter pick too &middot; &#9734; on the breadcrumb bookmarks the view\n  or the selected sector, and Bookmarks (or the keys 1 to 9 while the map has focus) opens one &middot; blocks are\n  colored by predicted density (brighter = denser): unfilled space is see-through, and a block with generated\n  sectors is amber, more solid the more of them are generated &middot; glowing points are stars, sized by the\n  star, colored by its temperature and brighter the more luminous: the brightest (1,000 L&#9737; and up on a new\n  galaxy) everywhere, placed before their sectors are generated, and generated systems' stars fainter and fainter\n  as you zoom in; click one (inside a block) to see it"
+)
+"""The Galaxy Map panel's own how-to line."""
+
+SECTOR_MAP_HINT = (
+    "Drag to turn the view, right-drag (or Shift-drag) to move it, scroll or pinch to zoom, Reset view (in Menu) to "
+    "come back &middot; point of light &asymp; star &middot; halo size &asymp; brightness &middot; color &asymp; "
+    "temperature &middot; bright points &asymp; quasars/neutron stars/accreting black holes &middot; translucent "
+    "clouds &asymp; nebulae/asteroid fields/supernova remnants &middot; small spheres &asymp; quiet black "
+    "holes/interstellar comets &middot; faint points &asymp; rogue planets (Mark rogue planets rings them) "
+    "&middot; faint clouds &asymp; reaching in from a neighboring sector &middot; a click on a neighboring "
+    "sector opens that sector's page"
+)
+"""The sector page's map (MAP.68): the Galaxy Map's engine locked to one sector."""
+
+ADDRESS_BLOCK = """<form class="galaxy-address" id="galaxymap3d-address" role="search" hidden>
+  <label for="galaxymap3d-address-input">Go to</label>
+  <input type="text" id="galaxymap3d-address-input" name="address" autocomplete="off" spellcheck="false"
+         placeholder="Designation, ring/layer/slot, x, y, z pc, or a name">
+  <button type="submit" class="starmap-btn">Go</button>
+</form>
+<div class="galaxy-address-matches" id="galaxymap3d-matches" hidden></div>
+"""
+"""The Go-to form (the stage view's address bar)."""
+
+CRUMBS_BLOCK = """<nav class="galaxy-crumbs" id="galaxymap3d-crumbs" aria-label="Map position" hidden></nav>
+"""
+"""The breadcrumb the stage view fills."""
+
+SLABS_BLOCK = """<div class="galaxy-slabs" id="galaxymap3d-slabs" role="group" aria-labelledby="galaxymap3d-slabs-heading"></div>
+"""
+"""The slab buttons beside the map."""
+
+ZOOM_BUTTONS = """  <button type="button" class="starmap-btn" data-action="zoom-out" aria-label="Zoom out">&minus;</button>
+  <button type="button" class="starmap-btn" data-action="zoom-in" aria-label="Zoom in">+</button>
+"""
+"""A sector page's map: the zoom buttons."""
+
+HISTORY_BUTTONS = """  <button type="button" class="starmap-btn" data-action="back" data-icon="back" disabled>Back</button>
+  <details class="galaxy-steps" id="galaxymap3d-steps">
+    <summary class="starmap-btn galaxy-steps-button" data-icon="steps" aria-label="Steps to here"
+             title="Steps to here: go back to any of them"><span aria-hidden="true">&#9679;</span></summary>
+    <div class="galaxy-steps-panel" data-steps-panel></div>
+  </details>
+  <button type="button" class="starmap-btn" data-action="forward" data-icon="forward" disabled>Forward</button>
+  <button type="button" class="starmap-btn" data-action="current" data-icon="forward-current" disabled
+          title="Jump to the newest view in this history (MAP.95)">Current</button>
+  <button type="button" class="starmap-btn" data-action="up" data-icon="up" disabled
+          title="One step back out (Esc)">Up</button>
+  <button type="button" class="starmap-btn" data-action="reset" data-icon="reset"
+          title="Back to the whole galaxy (Home)">Reset</button>
+"""
+"""Back, the steps menu, Forward, Current, Up and Reset."""
+
 def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetch_path="/galaxy/tiles",
                               sector_url=None, generate=None, phenomenon_url=None,
                               system_url=None, stage_path="/galaxy/stage",
                               locate_path="/galaxy/locate", course=None,
-                              territory_path="/galaxy/territories", pick=None, nav_url=None):
+                              territory_path="/galaxy/territories", pick=None, nav_url=None, pinned=None):
     """
     Builds the "Galaxy Map (3D)" panel: a `<canvas>` `static/
     galaxymap3d.js` renders an interactive WebGL scene into (always
@@ -413,6 +468,13 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         nav_url (str, optional): The NAV page's URL (`/nav`), for a
             phenomenon's "Nav from here" and "Nav to here" links (in pick
             mode, its pick button); without it the panel shows none.
+        pinned (dict or None): A sector page's map (MAP.68): the one
+            sector it is locked to, `{"ring", "layer", "slot", "center_pc"}`
+            (`center_pc`: its centre in the galaxy frame). The panel then
+            opens that sector in place, with no steps, breadcrumb, address
+            or history of its own (the page has its own title, bookmark
+            and banners), and a click on another sector opens that
+            sector's page.
         course (dict or None): A NAV course to draw over the map
             (`web/nav_page.galaxy_course`): `scope`, `points` (galaxy-
             frame parsecs), `sector` and `navUrl`. `None` draws none.
@@ -461,8 +523,9 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         "maxViewRadiusPc": max_radius,
         "clickZoomFactorMin": CLICK_ZOOM_FACTOR_MIN,
         "clickZoomFactorMax": CLICK_ZOOM_FACTOR_MAX,
-        "initialCenter": [0.0, 0.0, 0.0],
-        "initialRadiusPc": max_radius,
+        "initialCenter": list(pinned["center_pc"]) if pinned else [0.0, 0.0, 0.0],
+        "initialRadiusPc": min(max_radius, max(min_radius, 6 * edge_pc)) if pinned else max_radius,
+        "pinned": {k: pinned[k] for k in ("ring", "layer", "slot")} if pinned else None,
         "initial": initial_view,
         # The real, sampled-in-the-solar-neighborhood average this
         # project's own generation already calibrates against (see
@@ -516,6 +579,12 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         )
     )
 
+    rogue_button = (
+        '    <button type="button" class="starmap-btn starmap-toggle" data-action="toggle-rogue-markers" data-icon="rogue-markers"'
+        ' aria-pressed="false"\n'
+        '            title="Ring each rogue planet, so it is easy to find among the stars">Mark rogue planets</button>\n'
+        if pinned else ""
+    )
     territory_button = territory_box = ""
     if territory_path:
         territory_button = (
@@ -525,34 +594,37 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
             'Territories</button>\n')
         territory_box = '<div class="galaxy-territories" id="galaxymap3d-territories" hidden></div>\n'
 
+    title = "Sector Map" if pinned else "Galaxy Map (3D)"
+    info_hint = (
+        "Click a star, cloud or body for details." if pinned
+        else "Click an arc of the galaxy (a piece of the disk, top to bottom) to look at it more closely."
+    )
+    hint = SECTOR_MAP_HINT if pinned else GALAXY_MAP_HINT
+    if pinned:
+        # A sector page's map has no steps, breadcrumb, address or slab
+        # buttons; the page carries the pick banner and the bookmark.
+        pick_banner = bookmark_pick = ""
+        zoom_buttons = ZOOM_BUTTONS
+        address_block = crumbs_block = slabs_block = history_buttons = bookmarks_block = ""
+    else:
+        zoom_buttons = ""
+        address_block, crumbs_block, slabs_block, history_buttons = ADDRESS_BLOCK, CRUMBS_BLOCK, SLABS_BLOCK, HISTORY_BUTTONS
+        bookmarks_block = f"""  <details class="bookmarks-menu" data-bookmarks-menu data-bookmarks-keys="map" data-bookmark-db="{_escape(db_name)}"{bookmark_pick}>
+    <summary class="starmap-btn" data-icon="bookmarks"
+             title="Places saved with the breadcrumb's &#9734; (1 to 9 open the first nine while the map has focus)">Bookmarks</summary>
+    <div class="bookmarks-panel" data-bookmarks-panel></div>
+  </details>
+"""
+
     return f"""
 <section class="panel galaxymap3d-panel" id="map">
 <div class="panel-header">
-  <h2>Galaxy Map (3D)</h2>
-  <span class="hint">The galaxy is shown in 3D: drag to turn it, right-drag (or Shift-drag) to move it, scroll or
-  pinch to zoom &middot; hover over the disk to see its arcs (each about 40&deg; of bearing by a third of the
-  radius, top to bottom of the disk) and click one to zoom into it, then pick a slab (a layer of the arc) on the map or
-  with the buttons beside the map (each with a line to its slab), then a block of that slab, and so on down to single sectors &middot; Back and
-  Forward retrace your steps, Up (or Esc) goes one step out, Reset (or Home) starts over from the whole galaxy, and
-  Menu holds the rest &middot; arrow keys and Enter pick too &middot; &#9734; on the breadcrumb bookmarks the view
-  or the selected sector, and Bookmarks (or the keys 1 to 9 while the map has focus) opens one &middot; blocks are
-  colored by predicted density (brighter = denser): unfilled space is see-through, and a block with generated
-  sectors is amber, more solid the more of them are generated &middot; glowing points are stars, sized by the
-  star, colored by its temperature and brighter the more luminous: the brightest (1,000 L&#9737; and up on a new
-  galaxy) everywhere, placed before their sectors are generated, and generated systems' stars fainter and fainter
-  as you zoom in; click one (inside a block) to see it</span>
+  <h2>{title}</h2>
+  <span class="hint">{hint}</span>
 </div>
 {pick_banner}{shape_hint}{course_hint}
-<form class="galaxy-address" id="galaxymap3d-address" role="search" hidden>
-  <label for="galaxymap3d-address-input">Go to</label>
-  <input type="text" id="galaxymap3d-address-input" name="address" autocomplete="off" spellcheck="false"
-         placeholder="Designation, ring/layer/slot, x, y, z pc, or a name">
-  <button type="submit" class="starmap-btn">Go</button>
-</form>
-<div class="galaxy-address-matches" id="galaxymap3d-matches" hidden></div>
-<p class="hint galaxy-stage-notice" id="galaxymap3d-notice" role="status" hidden></p>
-<nav class="galaxy-crumbs" id="galaxymap3d-crumbs" aria-label="Map position" hidden></nav>
-<div class="starmap-layout">
+{address_block}<p class="hint galaxy-stage-notice" id="galaxymap3d-notice" role="status" hidden></p>
+{crumbs_block}<div class="starmap-layout">
 <div class="galaxy-map-row">
 <div class="galaxy-map-main">
 <div class="starmap-viewport">
@@ -563,40 +635,21 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
 <div class="starmap-scale" id="galaxymap3d-scale" aria-live="polite"></div>
 <div class="map-tooltip" id="galaxymap3d-tooltip" hidden></div>
 </div>
-<div class="galaxy-slabs" id="galaxymap3d-slabs" role="group" aria-labelledby="galaxymap3d-slabs-heading"></div>
-</div>
+{slabs_block}</div>
 <aside class="starmap-info" id="galaxymap3d-info">
-<p class="hint">Click an arc of the galaxy (a piece of the disk, top to bottom) to look at it more closely.</p>
+<p class="hint">{info_hint}</p>
 </aside>
 </div>
 <div class="starmap-side">
 <div class="starmap-controls" id="galaxymap3d-controls">
-  <button type="button" class="starmap-btn" data-action="back" data-icon="back" disabled>Back</button>
-  <details class="galaxy-steps" id="galaxymap3d-steps">
-    <summary class="starmap-btn galaxy-steps-button" data-icon="steps" aria-label="Steps to here"
-             title="Steps to here: go back to any of them"><span aria-hidden="true">&#9679;</span></summary>
-    <div class="galaxy-steps-panel" data-steps-panel></div>
-  </details>
-  <button type="button" class="starmap-btn" data-action="forward" data-icon="forward" disabled>Forward</button>
-  <button type="button" class="starmap-btn" data-action="current" data-icon="forward-current" disabled
-          title="Jump to the newest view in this history (MAP.95)">Current</button>
-  <button type="button" class="starmap-btn" data-action="up" data-icon="up" disabled
-          title="One step back out (Esc)">Up</button>
-  <button type="button" class="starmap-btn" data-action="reset" data-icon="reset"
-          title="Back to the whole galaxy (Home)">Reset</button>
-  <details class="bookmarks-menu" data-bookmarks-menu data-bookmarks-keys="map" data-bookmark-db="{_escape(db_name)}"{bookmark_pick}>
-    <summary class="starmap-btn" data-icon="bookmarks"
-             title="Places saved with the breadcrumb's &#9734; (1 to 9 open the first nine while the map has focus)">Bookmarks</summary>
-    <div class="bookmarks-panel" data-bookmarks-panel></div>
-  </details>
-  <details class="galaxy-menu" id="galaxymap3d-menu">
+{zoom_buttons}{history_buttons}{bookmarks_block}  <details class="galaxy-menu" id="galaxymap3d-menu">
     <summary class="starmap-btn" data-icon="menu" title="More map controls">Menu</summary>
     <div class="galaxy-menu-panel" role="group" aria-label="More map controls">
     <button type="button" class="starmap-btn" data-action="reset-view" data-icon="reset-view"
             title="Back to this step's own view after turning, moving or zooming it">Reset view</button>
     <button type="button" class="starmap-btn" data-action="charted-only" data-icon="charted-only" aria-pressed="false"
             title="Dim the stars and blocks outside charted sectors and outline the charted ones">Charted only</button>
-{territory_button}    </div>
+{rogue_button}{territory_button}    </div>
   </details>
 </div>
 {territory_box}</div>

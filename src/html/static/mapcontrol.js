@@ -1,7 +1,7 @@
 // html/static/mapcontrol.js
 //
 // The camera and input controller the Galaxy Map's drill-down
-// (galaxystageview.js) and the Sector Map (sectormap.js) share (MAP.64):
+// (galaxystageview.js) and the Sector Map's scene (sectorscene.js) share (MAP.64):
 // turning an orbit camera, moving its target in the screen's plane,
 // zooming within the view's zoom policy, a two-finger pinch, the arrow
 // keys, and telling a drag from a click. Each map keeps its own numbers

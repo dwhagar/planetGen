@@ -100,7 +100,7 @@ def static_url(name):
     (`Cache-Control: immutable`, see examples/apache/planetgen.conf.example)
     while an update still reaches everyone on their next page view.
 
-    ES modules that import siblings (`sectormap.js` -> `bodyRendering.js`,
+    ES modules that import siblings (`sectorscene.js` -> `bodyRendering.js`,
     `vendor/three.module.min.js`) copy their own `?v=` onto those imports
     (`import.meta.url`), so each module has exactly one URL per page.
 

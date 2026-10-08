@@ -3,9 +3,9 @@
 // Shared three.js building blocks for rendering a celestial body as a real
 // textured, glowing sphere -- used by both static/systemmap.js (planets/
 // moons/stars, one marker at a time via a scissored shared canvas) and
-// static/sectormap.js (every star/nebula/asteroid field/black hole/
+// static/sectorscene.js (every star/nebula/asteroid field/black hole/
 // neutron star in a sector, all live in the same free-flying 3D scene).
-// Factored out here rather than duplicated in both files once sectormap.js
+// Factored out here rather than duplicated in both files once sectorscene.js
 // needed the exact same star-granulation texture and fresnel glow shader
 // systemmap.js had already built for its own star spheres.
 //

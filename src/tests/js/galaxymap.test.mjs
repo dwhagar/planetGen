@@ -75,7 +75,7 @@ function open(href, options) {
   };
   document.body.append(h("div", { "data-bookmark-db": "planetgen" }), viewport, els.crumbs, els.slabs, els.notice,
     els.address, els.matches, els.controls);
-  const calls = { cameras: [], fetches: [], blockInfo: [], placed: [], cells: [], hints: [], sizes: [], clips: [], locates: [], scenes: [], infos: [], hidden: [] };
+  const calls = { cameras: [], fetches: [], blockInfo: [], placed: [], cells: [], hints: [], sizes: [], clips: [], locates: [], scenes: [], infos: [], hidden: [], pages: [] };
   const server = options.server || (() => ({ children: [], sectors: [] }));
   const host = {
     THREE, scene, camera, canvasEl, edgePc: F.edgePc, shape: F.shape, galaxyRadius: F.galaxyRadius,
@@ -109,6 +109,8 @@ function open(href, options) {
     showHint: (text) => calls.hints.push(text),
     setWedgeClip: (clip) => calls.clips.push(clip),
     sectorUrl: (id) => "/sector/" + id,
+    pinned: options.pinned || null,
+    openSectorPage: (id) => calls.pages.push(id),
     // The sector's scene JSON: the Sector Map fixture, placed.
     fetchSectorScene(id) {
       calls.scenes.push(id);
@@ -813,4 +815,34 @@ test("a generated sector opens in place; one not generated is selected", async (
   assert.equal(m.calls.hidden[m.calls.hidden.length - 1], null);
   assert.equal(S.parseStageQuery(m.win.location.search).open, false);
   assert.deepEqual(S.parseStageQuery(m.win.location.search).sector, sector);
+});
+
+test("a sector page's map opens its sector, keeps to it and sends another sector to its page (MAP.68)", async () => {
+  const pinned = { ring: 3, layer: 0, slot: 4 };
+  const server = () => ({ children: [], sectors: [
+    Object.assign({ id: 42, name: "Pinned", system_count: 3 }, pinned),
+    Object.assign({ id: 43, name: "Beside", system_count: 2 }, { ring: 4, layer: 0, slot: 4 }),
+  ] });
+  const m = await start("http://localhost/sector/42", { server, pinned });
+  assert.deepEqual(m.calls.scenes, [42], "its sector is opened with nothing asked of the URL");
+  assert.equal(m.win.location.search, "", "no history entry or query of its own");
+  const stage = JSON.stringify(m.view.stage());
+  // Up, Reset, Escape and Home leave nothing to go back to.
+  m.view.up();
+  m.view.home();
+  key(m, "Escape");
+  key(m, "Home");
+  await arrive(m);
+  assert.equal(JSON.stringify(m.view.stage()), stage);
+  assert.equal(m.calls.hidden.filter((cell) => cell === null).length, 0, "the sector stays open");
+  assert.equal(m.win.location.search, "");
+  // Another generated sector is that sector's page; the open one is not.
+  for (let n = 0; n < 40 && !m.calls.pages.length; n++) {
+    key(m, "ArrowRight");
+    key(m, "Enter");
+  }
+  await arrive(m);
+  assert.deepEqual(m.calls.pages, [43]);
+  assert.deepEqual(m.calls.scenes, [42]);
+  assert.equal(m.win.location.search, "");
 });

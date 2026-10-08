@@ -18,12 +18,16 @@
 //   2.5 at the closest), which grows the points a little (default 1);
 // - hideCell(bounds or null): the galaxy's own tile stars and clouds are
 //   left out of this cell (the sector's scene draws them), null to show
-//   them again.
+//   them again;
+// - viewport (optional): the map's viewport element, where the
+//   screen-reader list of the open sector's entries goes;
+// - opened() / closed() (optional): called when a sector's scene is added
+//   to or removed from the map.
 
 const VERSION_QUERY = new URL(import.meta.url).search;
 const { createRing } = await import(`./mappick.js${VERSION_QUERY}`);
 const {
-  buildSectorScene, infoSpec, POINT_CLOSE_GROWTH, tooltipText,
+  buildSectorScene, entryLabel, infoSpec, POINT_CLOSE_GROWTH, tooltipText,
 } = await import(`./sectorscene.js${VERSION_QUERY}`);
 
 // The corners of the sector's cell as a flat [x, y, z, ...] list, for
@@ -46,6 +50,8 @@ export function createSectorStage(host) {
   // {id, data, sector (the scene), layers, selected, hovered, center, halfEdge}
   let open = null;
   let token = 0;
+  // "Mark rogue planets" (MAP.46): kept across sectors opened.
+  let roguesMarked = false;
 
   // How much the points have grown with the view closing in (as the
   // Sector Map's own zoom does): their own size at the fit, POINT_CLOSE_GROWTH
@@ -83,11 +89,36 @@ export function createSectorStage(host) {
     token += 1;
     if (!open) return;
     open.layers.forEach(host.picker.removeLayer);
+    if (open.list && open.list.parentNode) open.list.parentNode.removeChild(open.list);
     open.sector.dispose();
     selectionRing.hide();
     hoverRing.hide();
     host.hideCell(null);
     open = null;
+    if (host.closed) host.closed();
+  }
+
+  function selectEntry(entry) {
+    if (open && entry) open.layers[0].select(entry);
+  }
+
+  // A visually hidden button per entry, for the keyboard and screen
+  // readers (a canvas has no focusable parts), in the scene's order.
+  function entryList(entries) {
+    if (!host.viewport) return null;
+    const list = document.createElement("ul");
+    list.className = "starmap-sr-list sr-only";
+    entries.forEach(function (entry) {
+      const item = document.createElement("li");
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = entryLabel(entry);
+      button.addEventListener("click", function () { selectEntry(entry); });
+      item.appendChild(button);
+      list.appendChild(item);
+    });
+    host.viewport.appendChild(list);
+    return list;
   }
 
   // Loads sector `id` (its cell in the galaxy's polar frame, `bounds`, as
@@ -117,9 +148,12 @@ export function createSectorStage(host) {
         sizeScale: pointSizeScale,
       });
       host.scene.add(state.sector.group);
+      state.sector.setRoguesMarked(roguesMarked);
       state.layers = state.sector.layers.map(function (layer) { return host.picker.addLayer(layerFor(layer, state)); });
+      state.list = entryList(state.sector.entries);
       open = state;
       host.hideCell(bounds || null);
+      if (host.opened) host.opened();
       return { center: state.center, halfEdge: state.halfEdge, fitPoints: cubeCorners(state.center, state.halfEdge) };
     });
   }
@@ -142,7 +176,14 @@ export function createSectorStage(host) {
     update: update,
     isOpen: function () { return !!open; },
     sectorId: function () { return open ? open.id : null; },
-    select: function (entry) { if (open) open.layers[0].select(entry); },
+    select: selectEntry,
+    // The open sector's entry with this key ("rogue_planet:12"), or null.
+    entryByKey: function (key) { return open ? open.sector.entryByKey.get(key) || null : null; },
+    setRoguesMarked: function (on) {
+      roguesMarked = on;
+      if (open) open.sector.setRoguesMarked(on);
+    },
+    roguesMarked: function () { return roguesMarked; },
     entries: function () { return open ? open.sector.entries : []; },
   };
 }

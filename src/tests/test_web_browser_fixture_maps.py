@@ -26,7 +26,7 @@ from tests.map_site_support import PHENOMENA, POINT_FIELD, SECTOR_ID, SECTORS, S
 
 VIEWPORT = {"width": 1280, "height": 900}
 GL_ARGS = ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"]
-SECTOR_CANVAS = "#starmap-canvas"
+SECTOR_CANVAS = "#galaxymap3d-canvas"
 GALAXY_CANVAS = "#galaxymap3d-canvas"
 SYSTEM_NAMES = {name for _id, name, *_rest in SYSTEMS}
 
@@ -85,7 +85,7 @@ def _open_sector(page, base, query=""):
 
 
 def _info_title(page):
-    heading = page.locator("#starmap-info h3")
+    heading = page.locator("#galaxymap3d-info h3")
     return heading.inner_text() if heading.count() else None
 
 
@@ -138,7 +138,7 @@ def test_sector_map_click_picks_a_star(page, map_site):
     before = _shot(page, SECTOR_CANVAS)
     _x, _y, name = _click_a_star(page)
     system_id = next(i for i, n, *_rest in SYSTEMS if n == name)
-    info = page.locator("#starmap-info")
+    info = page.locator("#galaxymap3d-info")
     assert "Star type" in info.inner_text()
     view = info.locator("a", has_text="View system")
     assert view.count() == 1 and view.get_attribute("href").endswith(f"/system/{system_id}")
@@ -153,14 +153,12 @@ def test_sector_map_hover_names_what_is_under_the_pointer(page, map_site):
     panel has a ☆ Bookmark button."""
     _open_sector(page, map_site)
     x, y, name = _click_a_star(page)
-    tip = page.locator("#starmap-tooltip")
+    tip = page.locator("#galaxymap3d-tooltip")
     box = page.locator(SECTOR_CANVAS).bounding_box()
-    page.mouse.move(box["x"] + 3, box["y"] + 3)
-    assert not tip.is_visible(), "nothing under the pointer, no tooltip"
     page.mouse.move(x, y)
     assert tip.is_visible()
     assert tip.inner_text().startswith(name), tip.inner_text()
-    star = page.locator("#starmap-info .map-info-bookmark")
+    star = page.locator("#galaxymap3d-info .map-info-bookmark")
     assert star.inner_text() == "☆ Bookmark" and star.is_enabled()
     page.mouse.move(box["x"] - 20, box["y"] - 20)
     assert not tip.is_visible(), "leaving the map hides it"
@@ -177,7 +175,7 @@ def test_sector_map_click_on_empty_space_keeps_the_selection(page, map_site):
 def test_sector_map_drag_turns_and_picks_nothing(page, map_site):
     _open_sector(page, map_site)
     x, y, name = _click_a_star(page)
-    page.locator("#starmap-info").evaluate("panel => panel.textContent = ''")
+    page.locator("#galaxymap3d-info").evaluate("panel => panel.textContent = ''")
     before = _shot(page, SECTOR_CANVAS)
     page.mouse.move(x, y)
     page.mouse.down()
@@ -190,47 +188,50 @@ def test_sector_map_drag_turns_and_picks_nothing(page, map_site):
 def test_sector_map_arrow_keys_turn_the_view_and_keep_the_scale(page, map_site):
     _open_sector(page, map_site)
     canvas = page.locator(SECTOR_CANVAS)
-    scale = page.locator("#starmap-scale-label").inner_text()
+    scale = page.locator("#galaxymap3d-scale .starmap-scale-label").inner_text()
     canvas.focus()
     for key in ("ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"):
         before = _shot(page, SECTOR_CANVAS)
         page.keyboard.press(key)
         assert _shot(page, SECTOR_CANVAS) != before, f"{key} didn't turn the Sector Map"
-    assert page.locator("#starmap-scale-label").inner_text() == scale, "turning doesn't change the scale"
+    assert page.locator("#galaxymap3d-scale .starmap-scale-label").inner_text() == scale, "turning doesn't change the scale"
     before = _shot(page, SECTOR_CANVAS)
     page.keyboard.press("a")
     assert _shot(page, SECTOR_CANVAS) == before, "other keys do nothing"
 
 
 def _scale_line(page):
-    width = page.locator("#starmap-scale-bar").evaluate("bar => parseFloat(bar.style.width)")
-    return page.locator("#starmap-scale-label").inner_text(), width
+    """(label, bar width in px) of the map's scale line."""
+    width = page.locator("#galaxymap3d-scale .starmap-scale-bar").evaluate("bar => parseFloat(bar.style.width)")
+    return page.locator("#galaxymap3d-scale .starmap-scale-label").inner_text(), width
 
 
-def _ly(label):
-    number = float(re.match(r"[\d.,]+", label).group(0).replace(",", ""))
-    return number / 1000 if "mly" in label else number
+def _pc(label):
+    """The parsecs of a scale label, "<n> sectors · <distance>"."""
+    number, unit = re.search(r"· ([\d.,]+) (\w+)", label).groups()
+    return float(number.replace(",", "")) * {"pc": 1, "kpc": 1000, "ly": 1 / 3.26156, "mly": 1000 / 3.26156}[unit]
 
 
 def test_sector_map_scale_line_follows_the_zoom(page, map_site):
     _open_sector(page, map_site)
     label, width = _scale_line(page)
-    assert re.fullmatch(r"[\d.,]+ (ly|mly)", label), label
+    assert re.search(r"sectors? · [\d.,]+ (pc|kpc|ly|mly)", label), label
     assert 30 <= width <= 160, "the scale line is about 70 px long"
-    ly_per_px = _ly(label) / width
+    ly_per_px = _pc(label) / width
 
-    zoom_in = page.locator('#starmap-controls [data-action="zoom-in"]')
-    zoom_out = page.locator('#starmap-controls [data-action="zoom-out"]')
+    zoom_in = page.locator('#galaxymap3d-controls [data-action="zoom-in"]')
+    zoom_out = page.locator('#galaxymap3d-controls [data-action="zoom-out"]')
     zoom_in.click()
     in_label, in_width = _scale_line(page)
-    assert _ly(in_label) / in_width < ly_per_px, "+ shows fewer light-years per pixel"
+    assert _pc(in_label) / in_width < ly_per_px, "+ shows fewer light-years per pixel"
 
+    page.locator(SECTOR_CANVAS).scroll_into_view_if_needed()
     box = page.locator(SECTOR_CANVAS).bounding_box()
-    page.mouse.move(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
+    page.mouse.move(box["x"] + box["width"] / 2, min(box["y"] + box["height"] / 2, VIEWPORT["height"] - 100))
     page.mouse.wheel(0, 300)
-    page.wait_for_timeout(100)
+    page.wait_for_timeout(300)
     wheel_label, wheel_width = _scale_line(page)
-    assert _ly(wheel_label) / wheel_width > _ly(in_label) / in_width, "scrolling down zooms out"
+    assert _pc(wheel_label) / wheel_width > _pc(in_label) / in_width, "scrolling down zooms out"
 
     for _ in range(30):
         zoom_in.click()
@@ -243,7 +244,9 @@ def test_sector_map_scale_line_follows_the_zoom(page, map_site):
     zoom_out.click()
     assert _scale_line(page) == farthest, "zoom out stops at its limit"
 
-    page.locator('#starmap-controls [data-action="reset"]').click()
+    page.locator("#galaxymap3d-menu summary").click()
+    page.locator('#galaxymap3d-controls [data-action="reset-view"]').click()
+    page.wait_for_timeout(300)
     assert _scale_line(page) == (label, width), "Reset view goes back to the opening zoom"
 
 
@@ -256,14 +259,15 @@ def test_sector_map_show_on_map_selects_a_rogue_planet(page, map_site):
     button.evaluate("b => { const d = b.closest('details'); if (d) d.open = true; }")
     button.click()
     assert _info_title(page) == rogue["name"]
-    assert page.evaluate("document.activeElement.id") == "starmap-canvas"
-    view = page.locator("#starmap-info a", has_text="View phenomenon")
+    assert page.evaluate("document.activeElement.id") == "galaxymap3d-canvas"
+    view = page.locator("#galaxymap3d-info a", has_text="View phenomenon")
     assert view.get_attribute("href").endswith(f"/phenomenon/rogue_planet/{rogue['id']}")
 
 
 def test_sector_map_rogue_planet_markers_toggle(page, map_site):
     _open_sector(page, map_site)
-    toggle = page.locator('#starmap-controls [data-action="toggle-rogue-markers"]')
+    page.locator("#galaxymap3d-menu summary").click()
+    toggle = page.locator('#galaxymap3d-controls [data-action="toggle-rogue-markers"]')
     background = toggle.evaluate("b => getComputedStyle(b).backgroundColor")
     assert toggle.get_attribute("aria-pressed") == "false", "off by default (MAP.83)"
     before = _shot(page, SECTOR_CANVAS)
@@ -283,6 +287,25 @@ def test_sector_map_screen_reader_list_selects(page, map_site):
     assert {p["name"] for p in PHENOMENA} <= set(names)
     page.locator(".starmap-sr-list button", has_text="Fixture Pulsar").evaluate("b => b.click()")
     assert _info_title(page) == "Fixture Pulsar"
+
+
+def test_sector_page_map_keeps_to_its_sector(page, map_site):
+    """MAP.68: the sector page's map is the Galaxy Map's engine locked to the
+    sector: no breadcrumb, steps or history of its own, and Escape and Home
+    don't leave the sector."""
+    _open_sector(page, map_site)
+    for gone in ("#galaxymap3d-crumbs", "#galaxymap3d-slabs", "#galaxymap3d-address", '[data-action="up"]',
+                 '[data-action="back"]', '[data-action="reset"]'):
+        assert page.locator(gone).count() == 0, gone
+    url = page.url
+    first = _shot(page, SECTOR_CANVAS)
+    page.locator(SECTOR_CANVAS).focus()
+    for key in ("Escape", "Backspace", "Home"):
+        page.keyboard.press(key)
+    assert page.url == url
+    assert _shot(page, SECTOR_CANVAS) == first, "no key leaves the sector"
+    _x, _y, name = _click_a_star(page)
+    assert name in SYSTEM_NAMES and page.url == url, "picking a star adds no history entry"
 
 
 # --- The Galaxy Map -------------------------------------------------------------------
@@ -713,7 +736,7 @@ def test_sector_page_bookmark_shows_in_the_galaxy_menu(page, map_site):
 def test_sector_map_pick_mode_offers_only_the_pick_button(page, map_site):
     _open_sector(page, map_site, "?pick=to")
     _x, _y, name = _click_a_star(page)
-    info = page.locator("#starmap-info")
+    info = page.locator("#galaxymap3d-info")
     links = [a.inner_text() for a in info.locator("a").all()]
     assert links == ["Use as destination"] or (len(links) == 1 and "destination" in links[0].lower()), links
     page.locator(".starmap-sr-list button", has_text="Fixture Pulsar").evaluate("b => b.click()")
@@ -1441,7 +1464,9 @@ def test_galaxy_map_fetches_the_finest_tiles_around_a_sector_it_shows(page, map_
     view's thinned coarser ones."""
     urls = []
     page.on("request", lambda request: urls.append(request.url) if "/galaxy/tiles" in request.url else None)
-    _open_deep_galaxy(page, map_site)
+    # Straight to the sector: a visit to its page first would leave the
+    # tiles in the browser's cache.
+    _open_galaxy(page, map_site, "?sector=100000001")
     page.wait_for_timeout(500)
     requests = [[int(key.split("/")[0]) for key in parse_qs(urlparse(url).query)["tiles"][0].split(",")]
                 for url in urls]

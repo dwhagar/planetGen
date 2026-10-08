@@ -58,6 +58,8 @@ const FADE_IN_MS = 200;
 // The block of the sector opened in place, round its own scene.
 const ENTERED_BLOCK_FADE = 0.06;
 const DRAG_CLICK_PX = 6;
+// What the + and - buttons of a sector page's map zoom by (MAP.68).
+const BUTTON_ZOOM = 1.25;
 // Each zoom step flies the camera to a preset for what it shows (MAP.97,
 // Boss 2026-10-02: "when it zooms to a block it moves as isometric, wen
 // it zooms to a slab it moves to top-down and the other direction as
@@ -132,6 +134,9 @@ export function createStageView(host) {
   let selectedSector = null;
   // The sector opened in place: {sector: {ring, layer, slot}, id, center,
   // halfEdge, fitPoints}, while galaxysector.js has its scene up.
+  // A sector page's map (MAP.68): the one sector, ring/layer/slot, it is
+  // locked to; it has no steps, history or URL of its own.
+  const pinned = host.pinned || null;
   let entered = null;
   let enterToken = 0;
   // A sector to open once the stage it sits in has arrived (a reload or
@@ -799,6 +804,7 @@ export function createStageView(host) {
 
   // A new entry in the browser history (the map's Back and Forward).
   function pushEntry(query) {
+    if (pinned) return;
     mapIndex += 1;
     maxIndex = mapIndex;
     history.pushState({ galaxyStage: true, mapIndex: mapIndex, maxIndex: maxIndex }, "", location.pathname + query + location.hash);
@@ -808,6 +814,7 @@ export function createStageView(host) {
   // record it in the browser history (default yes).
   function go(next, options) {
     options = options || {};
+    if (pinned) return;
     if (animation) finishAnimation();
     const r = resolve(next);
     if (r.problem) {
@@ -941,6 +948,7 @@ export function createStageView(host) {
   }
 
   function up() {
+    if (pinned) return;
     if (entered) {
       // Out of the sector, to the stage it sits in with it still selected.
       closeSector();
@@ -960,6 +968,7 @@ export function createStageView(host) {
   }
 
   function home() {
+    if (pinned) return;
     const top = { at: null, picks: [] };
     // Already there: go again, so the camera returns to the whole galaxy.
     if (S.sameStage(stage, top) && !(selectedSector && !resolved.sector)) go(top);
@@ -1004,6 +1013,7 @@ export function createStageView(host) {
     pixelRatio: host.pixelRatio || function () { return 1; },
     fetchScene: host.fetchSectorScene, showInfo: host.showInfo || function () {},
     hideCell: host.hideCell || function () {},
+    viewport: host.viewport || null, opened: host.opened, closed: host.closed,
     closeness: function () { return view && view.zoom > 0 ? 1 / view.zoom : 1; },
   });
   const tooltip = createTooltip(els.tooltip);
@@ -1277,6 +1287,8 @@ export function createStageView(host) {
   }
 
   function showSectorInfo(block) {
+    // A sector page names its sector itself.
+    if (pinned) return;
     const sector = sectorRecord(block);
     if (sector) host.showPlacedInfo(sectorEntry(block, sector));
     else host.showCellInfo({ m: 1, bounds: block.bounds, address: { ring: block.ring, layer: block.slab, slot: block.wedge }, filled: 0 });
@@ -1311,6 +1323,13 @@ export function createStageView(host) {
   function act(index) {
     if (!pickable(index)) return;
     const option = display.options[index];
+    if (pinned) {
+      // A sector page keeps to its sector: another sector's page opens
+      // instead, and nothing else is a step to take.
+      const other = option.blocks.length === 1 && option.blocks[0].m === 1 ? sectorRecord(option.blocks[0]) : null;
+      if (other && host.openSectorPage && (!entered || entered.id !== other.id)) host.openSectorPage(other.id);
+      return;
+    }
     // One sector is opened, unless it is all of a slab to pick (MAP.91).
     const slabPick = option.pick && option.pick.kind === "layer";
     if (!slabPick && option.blocks.length === 1 && option.blocks[0].m === 1) {
@@ -1339,6 +1358,7 @@ export function createStageView(host) {
   // the old view to the new stage, which has no such choice, and said
   // "There is no layer x here" (MAP.107).
   function takePick(pick) {
+    if (pinned) return;
     const base = display && display.resolved ? display.resolved.stage : stage;
     go({ at: base.at, picks: base.picks.concat([pick]) });
   }
@@ -2383,6 +2403,11 @@ export function createStageView(host) {
   // opens the stage showing that sector; with a NAV course and no stage
   // asked for, the smallest stage showing the whole course (section 9.4).
   function stageFromLocation(useCourse) {
+    if (pinned) {
+      const next = S.sectorStage(pinned.ring, pinned.layer, pinned.slot, getOutline(), edgePc);
+      if (!next) return { stage: { at: null, picks: [] }, sector: null, problem: "This sector is outside the galaxy." };
+      return { stage: next, sector: pinned, open: true, problem: null };
+    }
     const parsed = S.parseStageQuery(location.search);
     if (parsed.problem) return { stage: { at: null, picks: [] }, sector: null, problem: parsed.problem };
     if (parsed.sector) {
@@ -2408,7 +2433,7 @@ export function createStageView(host) {
     const state = history.state && history.state.galaxyStage ? history.state : null;
     mapIndex = state && state.mapIndex != null ? state.mapIndex : 0;
     maxIndex = Math.max(mapIndex, state && state.maxIndex != null ? state.maxIndex : mapIndex);
-    history.replaceState({ galaxyStage: true, mapIndex: mapIndex, maxIndex: maxIndex }, "");
+    if (!pinned) history.replaceState({ galaxyStage: true, mapIndex: mapIndex, maxIndex: maxIndex }, "");
     const asked = stageFromLocation(true);
     let r = resolve(asked.stage);
     let problem = asked.problem || r.problem;
@@ -2424,7 +2449,7 @@ export function createStageView(host) {
   }
 
   function onPopState(event) {
-    if (!active) return;
+    if (!active || pinned) return;
     const state = event.state && event.state.galaxyStage ? event.state : null;
     mapIndex = state && state.mapIndex != null ? state.mapIndex : 0;
     maxIndex = Math.max(maxIndex, mapIndex);
@@ -2474,6 +2499,14 @@ export function createStageView(host) {
     setChartedOnly: setChartedOnly,
     setNeedGenerated: setNeedGenerated,
     stage: function () { return stage; },
+    // The opened sector's entries (MAP.68): "Show on map" buttons select
+    // one by key, and "Mark rogue planets" rings the rogue planets.
+    zoomIn: function () { zoomBy(1 / BUTTON_ZOOM); },
+    zoomOut: function () { zoomBy(BUTTON_ZOOM); },
+    entryByKey: sectorStage.entryByKey,
+    selectEntry: sectorStage.select,
+    setRoguesMarked: sectorStage.setRoguesMarked,
+    roguesMarked: sectorStage.roguesMarked,
     // Inside a block or an arc (not the whole galaxy), where phenomena
     // take the pointer before the blocks.
     inContainer: function () { return !!stage.at; },
