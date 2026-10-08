@@ -22,7 +22,7 @@ release is stamped.
 | API | API.20 |
 | ADM | ADM.39 |
 | SEC | SEC.32 |
-| TEST | TEST.106 |
+| TEST | TEST.107 |
 | USR | USR.9 |
 | OPS | OPS.28 |
 | DOC | DOC.4 |
@@ -938,11 +938,11 @@ Parents marked "new parent" had no old number of their own.
 | UX.64 | Action buttons are all solid primary, with no hierarchy | none | done, PR #620 |
 | UX.65 | Facts and links mixed in the Sector header chips | none | done, PR #635 |
 | UX.66 | “Cube edge” on arc-shaped sectors | none | done, PR #617 |
-| UX.67 | Wikitext and Markdown buttons | none | open |
+| UX.67 | Wikitext and Markdown buttons | none | done, PR #648 |
 | UX.68 | System Admin menu lists every planet and moon | none | done, PR #646 |
 | UX.69 | Tables are cut off on phones with no cue | none | open |
-| UX.70 | The result page repeats the route and puts the map last | none | open |
-| UX.71 | NAV landing page | none | open |
+| UX.70 | The result page repeats the route and puts the map last | none | done, PR #648 |
+| UX.71 | NAV landing page | none | done, PR #648 |
 | UX.72 | Gear menu mixes unrelated things; the admin hub is not the hub | none | done, PR #632 |
 | UX.73 | Sector wiki link form on the Admin hub | none | done, PR #632 |
 | UX.74 | Generate page shows an empty Current job card | none | done, PR #617 |
@@ -1143,7 +1143,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.102 | test_a_pass_removes_species_stored_without_a_civilization fails now and then in the full suite (bug) | none | done, PR #610 |
 | TEST.103 | test_controls_do_not_overlap fails on clean main: controls overlap on the sector page at 600 and 820 px (bug) | none | done, PR #625 |
 | TEST.104 | test_system_map_selection_drill_and_measure fails now and then under load (bug) | none | done, PR #634 |
-| TEST.105 | test_web_a11y.py fails on the Admin hub: its links have 2.49:1 contrast (bug) | none | open |
+| TEST.105 | test_web_a11y.py fails on the Admin hub: its links have 2.49:1 contrast (bug) | none | done, PR #648 |
+| TEST.106 | test_controls_do_not_overlap fails on the Sector Map at 390, 600 and 1280 px: its buttons overlap the Contents filters (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
