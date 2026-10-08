@@ -72,7 +72,7 @@ from planetgen.db import store
 from planetgen.generation import bright_stars as brightStars, limits as generationLimits
 from planetgen import tuning
 from planetgen.population import facilities as facility_rules
-from planetgen.db.store import MySQLConfig, get_galaxy_bounds, get_galaxy_shape, get_sector_id_at, list_databases, resolve_database
+from planetgen.db.store import get_galaxy_bounds, get_galaxy_shape, get_sector_id_at, list_databases, resolve_database
 from planetgen.util.appconfig import load_config
 from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.geometry import describe_sector_cell, sector_address_at
@@ -395,33 +395,7 @@ def databases():
     count. Every other endpoint's own
     `?db=` selects among these same names (see `get_db`).
     """
-    base_config = current_app.config["MYSQL_CONFIG"]
-    entries = list_databases(base_config)
-    items = []
-    for entry in entries:
-        conn = None
-        try:
-            # Opened inside the try: a listed schema can still fail to open
-            # (dropped since the listing, no grant), and `open_readonly`
-            # signals that with SystemExit, which would otherwise escape
-            # Flask altogether.
-            conn = open_readonly(MySQLConfig(
-                host=base_config.host, port=base_config.port,
-                user=base_config.user, password=base_config.password, database=entry["name"],
-            ))
-            sector_count = conn.execute("SELECT COUNT(*) AS n FROM sectors").fetchone()["n"]
-            system_count = conn.execute("SELECT COUNT(*) AS n FROM star_systems").fetchone()["n"]
-        except (Exception, SystemExit):
-            # A schema matching the configured prefix but missing this
-            # project's own tables (e.g. mid-migration, or a stray
-            # unrelated database sharing the prefix) shouldn't take down
-            # the whole listing -- report it with unknown counts instead.
-            sector_count = system_count = None
-        finally:
-            if conn is not None:
-                conn.close()
-        items.append({**entry, "sector_count": sector_count, "system_count": system_count})
-    return jsonify({"items": items})
+    return jsonify({"items": list_databases(current_app.config["MYSQL_CONFIG"], with_counts=True)})
 
 
 @bp.route("/sectors")
