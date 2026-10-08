@@ -307,7 +307,10 @@ def test_a_cancelled_parallel_run_ends_cancelled_and_frees_the_lease(control_con
 
 
 GALAXY_RING = 3
-NUM_SYSTEMS = 6
+# Enough systems per sector that a loaded machine cannot finish the whole
+# run between the first sector being saved and the test's signal landing
+# (TEST.101: with 6 the run sometimes ended on its own, exit status 0).
+NUM_SYSTEMS = 40
 
 
 def test_a_stop_signal_swallowed_by_a_database_call_still_stops_the_run(control_config, monkeypatch):
