@@ -72,11 +72,23 @@ def fixtures():
         "galaxyRadius": GALAXY_RADIUS_PC,
         "shape": shape,
         "designations": designations,
+        "orbitPositions": orbit_positions(),
         "galaxyControls": {
             "public": actions(render_galaxy_map3d_panel("db", None, EDGE_PC, view)),
             "admin": actions(render_galaxy_map3d_panel("db", None, EDGE_PC, view, generate={"url": "/x"})),
         },
     }
+
+
+def orbit_positions():
+    """MAP.70's `positions_at` over a hand-built scene at several times, for
+    static/orbitpositions.js to match."""
+    from planetgen.physics.body_positions import positions_at
+    from tests.test_body_positions import sample_scene
+
+    scene = sample_scene()
+    return {"scene": scene, "cases": [{"years": y, "positions": positions_at(scene, y)}
+                                      for y in (0.0, 0.05, 1.8, 37.5, -2.2, 400.0)]}
 
 
 def star_light():
