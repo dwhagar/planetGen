@@ -161,6 +161,7 @@ def galaxy():
         pick=pick,
         phenomenon_url=phenomenon_url_template(),
         system_url=system_url_template(),
+        nav_url=page_url("nav"),
     )
 
     context = {"quadrant": quadrant, "placed_count": len(sectors), "map_html": trusted_html(map_html)}

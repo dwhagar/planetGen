@@ -342,7 +342,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
                               sector_url=None, generate=None, phenomenon_url=None,
                               system_url=None, stage_path="/galaxy/stage",
                               locate_path="/galaxy/locate", course=None,
-                              territory_path="/galaxy/territories", pick=None):
+                              territory_path="/galaxy/territories", pick=None, nav_url=None):
     """
     Builds the "Galaxy Map (3D)" panel: a `<canvas>` `static/
     galaxymap3d.js` renders an interactive WebGL scene into (always
@@ -410,6 +410,9 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
             shows a banner, and the page keeps "Generated only" on; the
             caller adds the pick to `sector_url` so a sector click
             continues the pick there.
+        nav_url (str, optional): The NAV page's URL (`/nav`), for a
+            phenomenon's "Nav from here" and "Nav to here" links (in pick
+            mode, its pick button); without it the panel shows none.
         course (dict or None): A NAV course to draw over the map
             (`web/nav_page.galaxy_course`): `scope`, `points` (galaxy-
             frame parsecs), `sector` and `navUrl`. `None` draws none.
@@ -429,6 +432,11 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         "course": course,
         "pick": pick["pick"] if pick else None,
         "pickQuery": pick["query"] if pick else None,
+        # The info panel's NAV links and pick button (static/mappick.js):
+        # the pick's button label and the other endpoint it keeps.
+        "navUrl": nav_url,
+        "pickLabel": pick["label"] if pick else None,
+        "pickKeep": f'{pick["keep_name"]}={pick["keep_value"]}' if pick and pick["keep_value"] else None,
         "sectorUrl": sector_url,
         "generate": generate,
         "phenomenonUrl": phenomenon_url,
@@ -553,7 +561,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
      one; slabs are also picked with the buttons beside the map; Escape or Backspace goes one step back out
      and Home returns to the whole galaxy. Dragging, or Shift and the arrow keys, turns the view and the wheel zooms."></canvas>
 <div class="starmap-scale" id="galaxymap3d-scale" aria-live="polite"></div>
-<div class="galaxymap3d-tooltip galaxy-stage-tooltip" id="galaxymap3d-tooltip" hidden></div>
+<div class="map-tooltip" id="galaxymap3d-tooltip" hidden></div>
 </div>
 <div class="galaxy-slabs" id="galaxymap3d-slabs" role="group" aria-labelledby="galaxymap3d-slabs-heading"></div>
 </div>

@@ -36,9 +36,12 @@ function setUp(data) {
   canvasEl.rect = { left: 0, top: 0, width: SIZE, height: SIZE };
   canvasEl.clientWidth = SIZE;
   canvasEl.clientHeight = SIZE;
+  const tooltip = h("div", { id: "starmap-tooltip", hidden: true });
   const viewport = h("div", { class: "starmap-viewport" }, [canvasEl, h("div", { id: "starmap-scale" }, [
     h("span", { id: "starmap-scale-bar" }), h("span", { id: "starmap-scale-label" }),
-  ])]);
+  ]), tooltip]);
+  // The page's bookmark list (bookmarks.js reads its database's name).
+  const bookmarkDb = h("span", { "data-bookmark-db": "test" });
   const controls = h("div", { id: "starmap-controls" },
     F.sectorMap.actions.map((action) => h("button", { type: "button", "data-action": action, "aria-pressed": action === "toggle-rogue-markers" ? "false" : null }, action)));
   const info = h("div", { id: "starmap-info" });
@@ -46,7 +49,7 @@ function setUp(data) {
     h("button", { "data-map-target": "nebula:1", hidden: true }, "Show on map"),
     h("button", { "data-map-target": "nebula:999", hidden: true }, "Show on map"),
   ]);
-  document.body.append(viewport, controls, info, showButtons);
+  document.body.append(viewport, controls, info, showButtons, bookmarkDb);
   const renderer = {
     calls: 0, camera: null, scene: null, pixelRatio: 1,
     setPixelRatio(r) { this.pixelRatio = r; },
@@ -59,7 +62,7 @@ function setUp(data) {
   const camera = renderer.camera;
   const referenceDistance = data.sceneHalfPx / Math.tan(THREE.MathUtils.degToRad(FOV / 2));
   return {
-    win, data, canvasEl, controls, info, showButtons, renderer, camera,
+    win, data, canvasEl, controls, info, showButtons, renderer, camera, tooltip,
     zoom: () => referenceDistance / camera.position.length(),
     polar: () => Math.acos(camera.position.y / camera.position.length()),
     azimuth: () => Math.atan2(camera.position.x, camera.position.z),
@@ -186,6 +189,38 @@ test("clicking a star shows it; clicking empty space changes nothing", () => {
   assert.ok(m.info.querySelector(`a[href="${star.href}"]`), "with a link to the system page");
   m.canvasEl.dispatchEvent(new FakeEvent("click", { clientX: 1, clientY: 1 }));
   assert.equal(m.info.querySelector("h3").textContent, star.name, "still showing the star");
+});
+
+test("hovering a star shows its name beside the pointer; leaving the map hides it (MAP.65)", () => {
+  const m = setUp();
+  const star = m.data.stars[0];
+  const at = screenOf(m, star.x, star.y, star.z);
+  m.canvasEl.dispatchEvent(new FakeEvent("pointermove", { clientX: at.x, clientY: at.y, pointerId: 1, pointerType: "mouse" }));
+  assert.equal(m.tooltip.hidden, false);
+  assert.ok(m.tooltip.textContent.startsWith(star.name), m.tooltip.textContent);
+  assert.ok(m.tooltip.textContent.includes(star.starType), "and its star type");
+  m.canvasEl.dispatchEvent(new FakeEvent("pointermove", { clientX: 1, clientY: 1, pointerId: 1, pointerType: "mouse" }));
+  assert.equal(m.tooltip.hidden, true, "nothing under the pointer hides it");
+  m.canvasEl.dispatchEvent(new FakeEvent("pointermove", { clientX: at.x, clientY: at.y, pointerId: 1, pointerType: "mouse" }));
+  m.canvasEl.dispatchEvent(new FakeEvent("pointerleave", {}));
+  assert.equal(m.tooltip.hidden, true, "leaving the map hides it");
+});
+
+test("a star's panel has a ☆ that bookmarks its system (MAP.65)", () => {
+  const m = setUp();
+  const star = m.data.stars[0];
+  const at = screenOf(m, star.x, star.y, star.z);
+  m.canvasEl.dispatchEvent(new FakeEvent("click", { clientX: at.x, clientY: at.y }));
+  const button = m.info.querySelector(".map-info-bookmark");
+  assert.ok(button, "the panel has a bookmark button");
+  assert.equal(button.textContent, "☆ Bookmark");
+  button.click();
+  const saved = JSON.parse(m.win.localStorage.getItem("planetgen.bookmarks.test"));
+  assert.equal(saved.length, 1);
+  assert.equal(saved[0].kind, "system");
+  assert.equal(saved[0].value, star.endpoint);
+  assert.equal(saved[0].url, star.href);
+  assert.equal(button.textContent, "★ Bookmarked");
 });
 
 test("each star stays clickable as the view zooms", () => {

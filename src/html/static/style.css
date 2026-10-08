@@ -977,7 +977,17 @@ a:focus-visible .galaxymap-star-core {
 
 .starmap-pick {
   display: inline-block;
-  margin-bottom: 0.5rem;
+}
+
+/* The maps' info panel (static/mappick.js): its buttons wrap in one row
+   with --btn-gap across and down, and the blocks under it (Generate
+   buttons, a hint) keep the same space above them. */
+.starmap-info > .map-info-actions {
+  margin: 0;
+}
+
+.starmap-info > .map-info-actions + * {
+  margin-top: var(--btn-gap);
 }
 
 /* Phenomenon view: a rendered picture of the object
@@ -1932,9 +1942,9 @@ code {
 
 /* Galaxy Map (3D) (planetgen/web/maps/galaxymap3d.py, html/static/galaxymap3d.js) --
    reuses every generic .starmap-* rule above (layout/viewport/controls/
-   info panel/scale bar) unchanged; these three are its own additions:
-   a hover tooltip with no .starmap-* equivalent (the flat SVG map uses a
-   native <title>, the sector map has no per-object hover at all), and the
+   info panel/scale bar) unchanged; its own additions are the hover
+   tooltip (.map-tooltip, shared with the Sector Map since MAP.65; the
+   flat SVG map uses a native <title>), and the
    planned-sector info panel's copyable CLI snippet/fallback field --
    the latter two also reused as-is by the Sector Map's own not-yet-
    generated neighboring-sector indicators (html/static/sectormap.js),
@@ -2109,7 +2119,8 @@ code {
   border-color: var(--accent);
 }
 
-.galaxymap3d-tooltip {
+/* The maps' hover tooltip (static/mappick.js, MAP.65). */
+.map-tooltip {
   position: absolute;
   z-index: 3;
   background: var(--bg-subtle);
@@ -2117,7 +2128,8 @@ code {
   border-radius: 6px;
   padding: 0.25rem 0.5rem;
   font-size: 0.8rem;
-  white-space: nowrap;
+  white-space: normal;
+  max-width: 18rem;
   pointer-events: none;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
 }
@@ -3062,11 +3074,6 @@ body.app {
   .is-slab-small .galaxy-slabs .galaxy-slab-buttons {
     width: 3.5rem;
   }
-}
-
-.galaxy-stage-tooltip {
-  white-space: normal;
-  max-width: 18rem;
 }
 
 /* The Galaxy Map's address bar (drill-down section 9.3). */

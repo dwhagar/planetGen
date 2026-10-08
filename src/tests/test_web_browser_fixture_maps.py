@@ -147,6 +147,25 @@ def test_sector_map_click_picks_a_star(page, map_site):
     assert _shot(page, SECTOR_CANVAS) != before, "the picked star gets a highlight ring"
 
 
+def test_sector_map_hover_names_what_is_under_the_pointer(page, map_site):
+    """MAP.65: the Sector Map shows a tooltip for what is under the pointer
+    (it had none before the shared picking layer), and a picked system's
+    panel has a ☆ Bookmark button."""
+    _open_sector(page, map_site)
+    x, y, name = _click_a_star(page)
+    tip = page.locator("#starmap-tooltip")
+    box = page.locator(SECTOR_CANVAS).bounding_box()
+    page.mouse.move(box["x"] + 3, box["y"] + 3)
+    assert not tip.is_visible(), "nothing under the pointer, no tooltip"
+    page.mouse.move(x, y)
+    assert tip.is_visible()
+    assert tip.inner_text().startswith(name), tip.inner_text()
+    star = page.locator("#starmap-info .map-info-bookmark")
+    assert star.inner_text() == "☆ Bookmark" and star.is_enabled()
+    page.mouse.move(box["x"] - 20, box["y"] - 20)
+    assert not tip.is_visible(), "leaving the map hides it"
+
+
 def test_sector_map_click_on_empty_space_keeps_the_selection(page, map_site):
     _open_sector(page, map_site)
     _x, _y, name = _click_a_star(page)
@@ -1313,3 +1332,30 @@ def test_galaxy_map_draws_point_phenomena_that_link_to_their_pages(page, map_sit
         point = next(p for p in POINT_FIELD if p["type"] == kind)
         assert href and str(point["id"]) in href, (kind, href)
     assert "Millisecond pulsar" in found["neutron_star"][1]
+
+
+def test_galaxy_map_point_phenomena_hover_and_offer_nav_links(page, map_site):
+    """MAP.65: a black hole, neutron star or quasar shows a tooltip with its
+    name under the pointer, and its panel offers Nav from here, Nav to
+    here and a ☆, as the Sector Map's does."""
+    _open_galaxy(page, map_site, "?at=27.27.0.0")
+    page.wait_for_timeout(1000)
+    names = {point["name"]: point for point in POINT_FIELD}
+    tip = page.locator("#galaxymap3d-tooltip")
+    for x, y in _point_colored_spots(page, GALAXY_CANVAS):
+        page.mouse.move(x, y)
+        text = tip.inner_text() if tip.is_visible() else ""
+        name = next((n for n in names if text.startswith(n)), None)
+        if not name:
+            continue
+        point = names[name]
+        page.mouse.click(x, y)
+        info = page.locator("#galaxymap3d-info")
+        assert info.locator("h3").inner_text() == name
+        endpoint = f'{point["type"]}:{point["id"]}'
+        for label, field in (("Nav from here", "from"), ("Nav to here", "to")):
+            href = info.locator("a", has_text=label).get_attribute("href")
+            assert parse_qs(urlparse(href).query)[field] == [endpoint], href
+        assert info.locator(".map-info-bookmark").inner_text() == "☆ Bookmark"
+        return
+    pytest.fail("no point phenomenon showed a tooltip under the pointer")

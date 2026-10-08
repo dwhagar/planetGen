@@ -43,9 +43,12 @@ const { formatDistanceLy } = await import(`./distance.js${VERSION_QUERY}`);
 const { generateButtons } = await import(`./generatebuttons.js${VERSION_QUERY}`);
 const MC = await import(`./mapcontrol.js${VERSION_QUERY}`);
 const {
-  addField, cssVar, fitRendererToCanvas, formatAddress, isLightBackground, makeRingTexture, nearestOnScreen,
-  niceScaleValue, readSceneData, watchResize, worldUnitsPerPixel,
+  cssVar, fitRendererToCanvas, formatAddress, isLightBackground, makeRingTexture, niceScaleValue, readSceneData,
+  watchResize, worldUnitsPerPixel,
 } = await import(`./mapcore.js${VERSION_QUERY}`);
+const {
+  createPicker, createRing, createTooltip, endpointBookmark, infoPanelOf,
+} = await import(`./mappick.js${VERSION_QUERY}`);
 
 var canvas = document.getElementById("starmap-canvas");
 var dataEl = document.getElementById("starmap-data");
@@ -55,45 +58,28 @@ var sceneData = readSceneData(dataEl);
 // A cloud entry carries `kind` (its phenomenon-texture recipe, see
 // `CLOUD_KIND_RECIPES` below); a star entry never does; a neighboring-
 // sector indicator carries `isNeighbor` -- that alone is enough to tell
-// all three apart, unlike the old version's explicit
-// `data-kind="phenomenon"` marker.
-function showObjectInfo(entry) {
-  var panel = document.getElementById("starmap-info");
-  if (!panel || !entry) {
-    return;
-  }
-  panel.textContent = "";
-
+// all three apart. The panel itself is mappick.js's, shared with the
+// Galaxy Map (MAP.65); this says what goes in it.
+export function infoSpec(entry, data) {
   if (entry.isNeighbor) {
-    showNeighborInfo(panel, entry);
-    return;
+    return neighborSpec(entry, data);
   }
-
-  var heading = document.createElement("h3");
-  heading.textContent = entry.name || "Unknown";
-  panel.appendChild(heading);
-
-  var dl = document.createElement("dl");
+  var spec = { title: entry.name || "Unknown", nav: entry.nav || null, links: [] };
   if (entry.kind) {
-    addField(dl, "Type", entry.typeLabel);
-    addField(dl, "Radius", entry.radiusText);
-    addField(dl, "Distance", entry.distanceText);
-    panel.appendChild(dl);
-    appendNavActions(panel, entry);
+    spec.fields = [["Type", entry.typeLabel], ["Radius", entry.radiusText], ["Distance", entry.distanceText]];
+    spec.bookmark = endpointBookmark(entry.key, entry.name, entry.href);
     if (!picking(entry)) {
-      panel.appendChild(navLink(entry, "View phenomenon →"));
+      spec.links.push({ href: entry.href, label: "View phenomenon →" });
     }
-    return;
+    return spec;
   }
-  addField(dl, "Star type", entry.starType);
-  addField(dl, "Temperature", entry.temp);
-  addField(dl, "Octant", entry.quadrant);
-  addField(dl, "Location", entry.location);
-  panel.appendChild(dl);
-  appendNavActions(panel, entry);
+  spec.fields = [["Star type", entry.starType], ["Temperature", entry.temp], ["Octant", entry.quadrant],
+    ["Location", entry.location]];
+  spec.bookmark = endpointBookmark(entry.endpoint, entry.name, entry.href);
   if (!picking(entry)) {
-    panel.appendChild(navLink(entry, "View system →"));
+    spec.links.push({ href: entry.href, label: "View system →" });
   }
+  return spec;
 }
 
 // Whether the page is choosing a NAV start or destination (NAV's "Pick
@@ -103,70 +89,37 @@ function picking(entry) {
   return !!(entry.nav && entry.nav.pick);
 }
 
-// NAV links for a system or phenomenon (`entry.nav`, built by the sector
-// page): in pick mode only a "Use as destination" (or start) button that
-// lands on the plotted course, otherwise "Nav from here" and "Nav to
-// here".
-function appendNavActions(panel, entry) {
-  var nav = entry.nav;
-  if (!nav) {
-    return;
-  }
-  if (nav.pick) {
-    var pick = document.createElement("a");
-    pick.href = nav.pick;
-    pick.className = "btn starmap-pick";
-    pick.textContent = nav.pickLabel;
-    panel.appendChild(pick);
-    return;
-  }
-  var links = document.createElement("p");
-  links.className = "page-actions";
-  [["from", "Nav from here"], ["to", "Nav to here"]].forEach(function (pair) {
-    var link = document.createElement("a");
-    link.href = nav[pair[0]];
-    link.className = "btn btn-small";
-    link.textContent = pair[1];
-    links.appendChild(link);
-  });
-  panel.appendChild(links);
-}
-
-function showNeighborInfo(panel, entry) {
-  var heading = document.createElement("h3");
-  heading.textContent = entry.exists ? entry.name || "Unnamed sector" : "Not yet generated";
-  panel.appendChild(heading);
-
-  var dl = document.createElement("dl");
-  addField(dl, "Address", formatAddress(entry.ringIndex, entry.layerIndex, entry.ringSlotIndex));
-  addField(dl, "Designation", entry.designation);
+function neighborSpec(entry, data) {
+  var fields = [["Address", formatAddress(entry.ringIndex, entry.layerIndex, entry.ringSlotIndex)],
+    ["Designation", entry.designation]];
   if (entry.brightStarCount) {
     // Bright stars the plan pre-placed here, waiting for the fill.
     var more = entry.brightStarCount - entry.brightStars.length;
-    addField(dl, "Bright stars waiting",
-      entry.brightStars.join("; ") + (more > 0 ? "; and " + more + " more" : ""));
+    fields.push(["Bright stars waiting", entry.brightStars.join("; ") + (more > 0 ? "; and " + more + " more" : "")]);
   }
-  panel.appendChild(dl);
-
+  var spec = { title: entry.exists ? entry.name || "Unnamed sector" : "Not yet generated", fields: fields };
   if (entry.exists) {
-    panel.appendChild(navLink(entry, "View sector →"));
-    return;
+    spec.bookmark = {
+      kind: "sector", value: entry.designation, name: entry.name || entry.designation, url: entry.href || null,
+      sectorId: entry.sectorId != null ? entry.sectorId : null,
+    };
+    spec.links = [{ href: entry.href, label: "View sector →" }];
+  } else if (data && data.generate) {
+    spec.generate = generateButtons(data.generate, entry.ringIndex, entry.layerIndex, entry.ringSlotIndex, data.edgeLy);
   }
-
-  if (sceneData && sceneData.generate) {
-    panel.appendChild(generateButtons(sceneData.generate, entry.ringIndex, entry.layerIndex, entry.ringSlotIndex,
-      sceneData.edgeLy));
-  }
+  return spec;
 }
 
-// A plain `<a href>` to the entry's own page (`href`, built server-side by
-// planetgen/web/maps/starmap.py), so Back, open-in-new-tab and copy-link all work.
-function navLink(entry, label) {
-  var link = document.createElement("a");
-  link.href = entry.href || "#";
-  link.className = "btn";
-  link.textContent = label;
-  return link;
+// The hover tooltip's text: what it is and its name.
+export function tooltipText(entry) {
+  if (entry.isNeighbor) {
+    return (entry.exists ? entry.name || "Unnamed sector" : "Sector " + entry.designation + ", not yet generated")
+      + " (neighboring sector)";
+  }
+  if (entry.kind) {
+    return (entry.name || "Unknown") + (entry.typeLabel ? ", " + entry.typeLabel : "");
+  }
+  return (entry.name || "Unknown") + (entry.starType ? ", " + entry.starType : "");
 }
 
 // --- Body textures -------------------------------------------------------
@@ -809,9 +762,7 @@ export function initStarmap(canvasEl, data, options) {
     ["pointColor", "pointSize", "pointCore", "pointGlow", "pointBright", "pointWhiten"].forEach(function (name) {
       geometry.getAttribute(name).needsUpdate = true;
     });
-    if (highlightedPoint) {
-      updatePointHighlight();
-    }
+    updatePointHighlight();
   }
 
   (data.clouds || []).forEach(function (cloud) {
@@ -898,59 +849,58 @@ export function initStarmap(canvasEl, data, options) {
     }
   });
 
-  var ringTexture = makeRingTexture(accentColor);
-  var highlightSprite = new THREE.Sprite(
-    new THREE.SpriteMaterial({ map: ringTexture, transparent: true, depthWrite: false })
-  );
-  highlightSprite.visible = false;
-  scene.add(highlightSprite);
-  // A point of light keeps its size on screen, so its ring does too
-  // (sized each frame, updatePointHighlight).
-  var pointHighlightSprite = new THREE.Sprite(
-    new THREE.SpriteMaterial({ map: ringTexture, transparent: true, depthWrite: false, sizeAttenuation: false })
-  );
-  pointHighlightSprite.visible = false;
-  pointHighlightSprite.renderOrder = 6;
-  scene.add(pointHighlightSprite);
+  // The selection ring and, fainter, the hover ring (mappick.js): a
+  // point of light keeps its ring a size on screen, a body or cloud gets
+  // one round it in the scene.
+  var selectionRing = createRing(scene, camera, canvasEl, accentColor);
+  var hoverRing = createRing(scene, camera, canvasEl, accentColor, { opacity: 0.45 });
   var highlightedPoint = null;
+  var hoveredPoint = null;
+  var infoPanel = infoPanelOf(document.getElementById("starmap-info"));
+  var tooltip = createTooltip(document.getElementById("starmap-tooltip"));
 
-  function highlightEntry(entry) {
-    if (entry.light) {
-      highlightSprite.visible = false;
-      highlightedPoint = entry;
-      pointHighlightSprite.position.set(entry.x, entry.y, entry.z);
-      pointHighlightSprite.visible = true;
-      updatePointHighlight();
-      return;
-    }
-    highlightedPoint = null;
-    pointHighlightSprite.visible = false;
-    highlightSprite.position.set(entry.x, entry.y, entry.z);
-    var r = Math.max(entry.r || 8, 4);
-    highlightSprite.scale.set(r * 2.6, r * 2.6, 1);
-    highlightSprite.visible = true;
+  function pointRingPx(entry) {
+    return Math.max(POINT_RING_MIN_PX, entry.light.corePx * 2 + 14) * pointSizeScale();
   }
 
-  // A sprite without size attenuation is scaled in units of the view's
-  // height at distance 1, so a ring `px` pixels across needs
-  // px / heightPx * 2 * tan(fov / 2).
-  function updatePointHighlight() {
-    if (!highlightedPoint) {
-      return;
+  function ringAround(ring, entry) {
+    if (entry.light) {
+      ring.at(entry.x, entry.y, entry.z, { px: pointRingPx(entry) });
+    } else {
+      ring.at(entry.x, entry.y, entry.z, { radius: Math.max(entry.r || 8, 4) * 1.3 });
     }
-    var light = highlightedPoint.light;
-    var px = Math.max(POINT_RING_MIN_PX, light.corePx * 2 + 14) * pointSizeScale();
-    var heightPx = canvasEl.clientHeight || 1;
-    var scale = (px / heightPx) * 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2);
-    pointHighlightSprite.scale.set(scale, scale, 1);
+    return entry.light ? entry : null;
+  }
+
+  function highlightEntry(entry) {
+    highlightedPoint = ringAround(selectionRing, entry);
+  }
+
+  // A point's ring grows with it as the view closes in.
+  function updatePointHighlight() {
+    if (highlightedPoint) selectionRing.setPx(pointRingPx(highlightedPoint));
+    if (hoveredPoint) hoverRing.setPx(pointRingPx(hoveredPoint));
   }
 
   function selectEntry(entry) {
     if (!entry) {
       return;
     }
-    showObjectInfo(entry);
+    if (infoPanel) infoPanel.show(infoSpec(entry, data));
     highlightEntry(entry);
+  }
+
+  function hoverEntry(entry, event) {
+    if (!entry) {
+      hoverRing.hide();
+      hoveredPoint = null;
+      tooltip.hide();
+      canvasEl.style.cursor = "";
+      return;
+    }
+    hoveredPoint = ringAround(hoverRing, entry);
+    tooltip.show(tooltipText(entry), event.clientX, event.clientY);
+    canvasEl.style.cursor = "pointer";
   }
 
   // --- Accessible fallback list -----------------------------------------
@@ -1005,48 +955,37 @@ export function initStarmap(canvasEl, data, options) {
     updateScaleBar();
   });
 
-  var raycaster = new THREE.Raycaster();
+  // Picking (mappick.js): a point of light wins unless a solid body or a
+  // neighbor's marker sits in front of it; a cloud volume, only ever hit
+  // at its far wall (see makeCloudVolume), is picked when nothing else
+  // is. A point is a fixed number of pixels across whatever its
+  // distance, so it is picked on screen, within POINT_PICK_PX of its
+  // center (or its own core, if bigger).
+  var picker = createPicker(camera, canvasEl);
+  picker.addLayer({
+    name: "points",
+    points: function () { return pointEntries; },
+    reach: function (entry) {
+      return entry.kind === "roguePlanet"
+        ? ROGUE_PICK_PX[roguesMarked ? "marked" : "unmarked"]
+        : Math.max(POINT_PICK_PX, (entry.light.corePx / 2) * pointSizeScale());
+    },
+  });
+  var solidObjects = interactiveGroup.children.filter(function (object) { return !volumeMeshes.has(object); });
+  picker.addLayer({
+    name: "bodies", occludes: true,
+    meshes: function () { return solidObjects; },
+    entryOf: function (hit) { return entryByObject.get(hit.object) || null; },
+  });
+  picker.addLayer({
+    name: "volumes",
+    meshes: function () { return Array.from(volumeMeshes); },
+    entryOf: function (hit) { return entryByObject.get(hit.object) || null; },
+  });
 
   function entryAtClientPoint(clientX, clientY) {
-    var rect = canvasEl.getBoundingClientRect();
-    if (rect.width === 0 || rect.height === 0) {
-      return null;
-    }
-    var ndc = new THREE.Vector2(
-      ((clientX - rect.left) / rect.width) * 2 - 1,
-      -((clientY - rect.top) / rect.height) * 2 + 1
-    );
-    raycaster.setFromCamera(ndc, camera);
-    var hits = raycaster.intersectObjects(interactiveGroup.children, false);
-    var point = pointAtClientPoint(clientX, clientY, rect);
-    var hit = hits.length ? hits[0] : null;
-    // A point of light wins unless a solid body sits in front of it (a
-    // cloud volume is only ever hit at its far wall, see makeCloudVolume).
-    if (point && (!hit || volumeMeshes.has(hit.object) || point.distance <= hit.distance)) {
-      return point.entry;
-    }
-    return hit ? entryByObject.get(hit.object) || null : null;
-  }
-
-  // The point of light whose center is nearest a screen point, within
-  // POINT_PICK_PX (or its own core, if bigger), as `{entry, distance}`
-  // (distance from the camera, in world units), or null -- picked on
-  // screen like static/galaxymap3d.js's stars, since a point is a fixed
-  // number of pixels across whatever its distance.
-  function pointAtClientPoint(clientX, clientY, rect) {
-    var growth = pointSizeScale();
-    var found = nearestOnScreen(pointEntries, camera, rect, clientX, clientY, {
-      reach: function (entry) {
-        return entry.kind === "roguePlanet"
-          ? ROGUE_PICK_PX[roguesMarked ? "marked" : "unmarked"]
-          : Math.max(POINT_PICK_PX, (entry.light.corePx / 2) * growth);
-      },
-    });
-    if (!found) {
-      return null;
-    }
-    var best = found.entry;
-    return { entry: best, distance: camera.position.distanceTo(new THREE.Vector3(best.x, best.y, best.z)) };
+    var found = picker.pick(clientX, clientY);
+    return found ? found.entry : null;
   }
 
   // Any button's drag turns the view from its first move; a click that
@@ -1056,6 +995,9 @@ export function initStarmap(canvasEl, data, options) {
     dragClickPx: DRAG_CLICK_THRESHOLD_PX,
     measure: "path",
     turnAtOnce: true,
+    onDragStart: function () {
+      hoverEntry(null);
+    },
     onDrag: function (dx, dy) {
       MC.orbitByDrag(spherical, dx, dy, ROTATE_SENSITIVITY, clampPolar);
       applyCamera();
@@ -1064,6 +1006,13 @@ export function initStarmap(canvasEl, data, options) {
     clickOn: "click",
     onClick: function (event) {
       selectEntry(entryAtClientPoint(event.clientX, event.clientY));
+    },
+    onHover: function (event) {
+      if (event.pointerType === "touch") return;
+      hoverEntry(entryAtClientPoint(event.clientX, event.clientY), event);
+    },
+    onLeave: function () {
+      hoverEntry(null);
     },
   });
 
@@ -1155,6 +1104,8 @@ export function initStarmap(canvasEl, data, options) {
       pointsOfLight.material.uniforms.sizeScale.value = pointSizeScale();
     }
     updatePointHighlight();
+    selectionRing.update();
+    hoverRing.update();
     renderer.render(scene, camera);
   })();
 }
