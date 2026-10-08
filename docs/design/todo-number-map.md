@@ -13,7 +13,7 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.50 |
+| UX | UX.75 |
 | MAP | MAP.133 |
 | NAV | NAV.51 |
 | GEN | GEN.121 |
@@ -577,7 +577,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.113 | Analyze the anomaly docs: which anomalies to add and how | none | open |
 | GEN.114 | Add the chosen anomalies to the starmap | none | open |
 | GEN.115 | The galaxy's own gravity: a smooth disk, bulge and halo potential | none | open |
-| GEN.116 | Error when generating a neighbourhood centred near the galaxy edge, awaiting Boss's error text (bug) | none | open |
+| GEN.116 | Error when generating a neighbourhood centred near the galaxy edge, awaiting Boss's error text (bug) | none | closed, not reproduced (Boss 2026-10-08) |
 | GEN.117 | The Galaxy Map shows bright stars only in a thin band on the galactic plane (bug) | none | done, PR #600 |
 | GEN.118 | The galaxy bulge is about 40 times too light, so edge-on views show no bulge (bug) | none | done, PR #491 |
 | GEN.119 | The galaxy density model has no thick disk (bug) | none | done, PR #491 |
@@ -920,6 +920,31 @@ Parents marked "new parent" had no old number of their own.
 | UX.47 | A bookmark manager: list, rename, sort, group and delete | none | open |
 | UX.48 | Charted regions as bookmarks that frame and outline the region | none | open |
 | UX.49 | Form fields as Shoelace components (sl-input, sl-select, sl-checkbox) across the site | none | open |
+| UX.50 | One short hint per map, the rest behind a Help entry | none | open |
+| UX.51 | Cards that repeat the page title | none | open |
+| UX.52 | Sector name repeated on every Contents row | none | open |
+| UX.53 | The same star shown three times on a system page | none | open |
+| UX.54 | Search shows empty result groups and echoes the query | none | open |
+| UX.55 | Home and Systems repeat other pages’ tables | none | open |
+| UX.56 | Admin hub repeats the gear menu | none | open |
+| UX.57 | Two controls both called Reset | none | open |
+| UX.58 | Move Current into the Steps menu | none | open |
+| UX.59 | One breadcrumb trail on map pages | none | open |
+| UX.60 | The Slabs rail has nothing in it at the top level | none | open |
+| UX.61 | System Map: Measure distance floats beside an empty gap | none | open |
+| UX.62 | Map pages jump 64 px left | none | open |
+| UX.63 | One action bar on every object page | none | open |
+| UX.64 | Action buttons are all solid primary, with no hierarchy | none | open |
+| UX.65 | Facts and links mixed in the Sector header chips | none | open |
+| UX.66 | “Cube edge” on arc-shaped sectors | none | open |
+| UX.67 | Wikitext and Markdown buttons | none | open |
+| UX.68 | System Admin menu lists every planet and moon | none | open |
+| UX.69 | Tables are cut off on phones with no cue | none | open |
+| UX.70 | The result page repeats the route and puts the map last | none | open |
+| UX.71 | NAV landing page | none | open |
+| UX.72 | Gear menu mixes unrelated things; the admin hub is not the hub | none | open |
+| UX.73 | Sector wiki link form on the Admin hub | none | open |
+| UX.74 | Generate page shows an empty Current job card | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
