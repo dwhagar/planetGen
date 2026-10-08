@@ -1044,8 +1044,7 @@ export function createStageView(host) {
     const upButton = els.controls.querySelector('[data-action="up"]');
     if (back) back.disabled = mapIndex <= 0;
     if (forward) forward.disabled = mapIndex >= maxIndex;
-    const current = els.controls.querySelector('[data-action="current"]');
-    if (current) current.disabled = mapIndex >= maxIndex;
+    newestButton.disabled = mapIndex >= maxIndex;
     if (upButton) upButton.disabled = !stage.at && !stage.picks.length && !selectedSector;
     const resetButton = els.controls.querySelector('[data-action="reset-view"]');
     if (resetButton) resetButton.disabled = !isFree(resolved);
@@ -1730,8 +1729,21 @@ export function createStageView(host) {
 
   // The line itself is the shared breadcrumb (breadcrumb.js, NAV.14); its
   // steps are the stage's, taken through the selection.
+  // UX.58: "Jump to newest" (MAP.95) is the last item of the Steps menu.
+  const newestButton = document.createElement("button");
+  newestButton.type = "button";
+  newestButton.className = "galaxy-steps-newest";
+  newestButton.dataset.action = "current";
+  newestButton.textContent = "Jump to newest";
+  newestButton.title = "Jump to the newest view in this history";
+  newestButton.disabled = true;
+  newestButton.addEventListener("click", function () {
+    if (els.steps) els.steps.open = false;
+    travelToCurrent();
+  });
   const crumbLine = els.crumbs ? createBreadcrumb(els.crumbs, {
     steps: els.steps,
+    stepsExtra: newestButton,
     trailing: function () { return bookmarkButton; },
     onSelect: function (step) { selection.select({ kind: "stage", stage: step.stage }); },
   }) : null;
@@ -1818,6 +1830,8 @@ export function createStageView(host) {
     clearSideBox();
     if (!box || !resolved || !resolved.view) return;
     box.textContent = "";
+    // UX.60: the rail is there only while the stage has slab buttons.
+    box.hidden = true;
     const heading = document.createElement("h3");
     heading.id = "galaxymap3d-slabs-heading";
     // A thin block's view is sectors, so its "slabs" are sector layers.
@@ -1827,18 +1841,10 @@ export function createStageView(host) {
     const choices = slabChoices();
     box.classList.toggle("is-picking", !!(choices && choices.length));
     if (!choices || !choices.length) {
-      const slabs = slabsIn(resolved.view.blocks);
-      const note = document.createElement("p");
-      note.className = "galaxy-slab-note";
-      if (slabs.length) {
-        const lo = slabs[0];
-        const hi = slabs[slabs.length - 1];
-        note.textContent = "Showing " + (lo === hi ? noun.toLowerCase() + " " + lo : noun.toLowerCase() + "s " + lo + " to " + hi)
-          + (resolved.kind === "segment" ? "; pick " + (isSectorView(resolved) ? "a sector" : "a block") + " of it on the map." : ".");
-      }
-      box.appendChild(note);
+      box.textContent = "";
       return;
     }
+    box.hidden = false;
     const data = display.data;
     const svg = leaderLayer();
     const list = document.createElement("ol");
@@ -2299,7 +2305,9 @@ export function createStageView(host) {
   function setActive(on) {
     if (on === active) return;
     active = on;
-    [els.crumbs, els.slabs, els.address].forEach(function (el) { if (el) el.hidden = !on; });
+    // The slab rail shows itself when a stage has buttons (renderStrip).
+    [els.crumbs, els.address].forEach(function (el) { if (el) el.hidden = !on; });
+    if (els.slabs && !on) els.slabs.hidden = true;
     if (!on) {
       clearMatches();
       if (animation) finishAnimation();
