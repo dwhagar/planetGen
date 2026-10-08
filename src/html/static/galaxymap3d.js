@@ -678,6 +678,8 @@ function initGalaxyMap3d(canvasEl, data) {
   // `gridEdges` (0 or 1) turns the outlines off, as on the whole galaxy,
   // which shows no sector or block lines (MAP.85).
   // The logdepthbuf chunks match the renderer's logarithmic depth buffer.
+  // `faceAlpha` 0 (a sector page's map, MAP.61) draws only the outlines:
+  // sector space is not tinted at all.
   // Filled blocks' edges are a saturated amber (MAP.37: "a much higher
   // contrast"), a deeper shade on the light theme's pale background.
   // Their faces take the color of what their sectors hold
@@ -693,6 +695,7 @@ function initGalaxyMap3d(canvasEl, data) {
     return new THREE.ShaderMaterial({
       uniforms: {
         filledTint: { value: FILLED_TINT }, fade: { value: 1 }, gridEdges: { value: 1 },
+        faceAlpha: { value: data.pinned ? 0 : 1 },
       },
       transparent: translucent,
       depthWrite: !translucent,
@@ -724,6 +727,7 @@ function initGalaxyMap3d(canvasEl, data) {
         "uniform vec3 filledTint;",
         "uniform float fade;",
         "uniform float gridEdges;",
+        "uniform float faceAlpha;",
         "varying float vAlpha;",
         "varying float vFill;",
         "varying vec2 vUv;",
@@ -733,7 +737,7 @@ function initGalaxyMap3d(canvasEl, data) {
         "  float edge = gridEdges * (1.0 - smoothstep(0.5, 1.5, min(toEdge.x, toEdge.y)));",
         "  vec3 face = mix(vColor, filledTint, step(0.001, vFill) * " + FILLED_FACE_MIX.toFixed(3) + ");",
         "  vec3 edgeColor = mix(vec3(1.0), filledTint, step(0.001, vFill));",
-        "  gl_FragColor = vec4(mix(face, edgeColor, (" + GRID_EDGE_MIX.toFixed(3) + " + 0.7 * vFill) * edge), vAlpha * fade);",
+        "  gl_FragColor = vec4(mix(face, edgeColor, (" + GRID_EDGE_MIX.toFixed(3) + " + 0.7 * vFill) * edge), vAlpha * fade * mix(edge, 1.0, faceAlpha));",
         "  #include <colorspace_fragment>",
         "}",
       ].join("\n"),
