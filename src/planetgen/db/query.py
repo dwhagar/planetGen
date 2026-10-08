@@ -3105,8 +3105,46 @@ def generated_star_floor_sol(level):
     return None if floor > GENERATED_STAR_MAX_FLOOR_SOL else floor
 
 
+GALAXY_TILE_STAR_BUDGET = {3: 150, 4: 200, 5: 250, 6: 300, 7: 350, 8: 400, 9: 500, 10: 650, 11: 850}
+"""dict: MAP.116's one table of how many generated stars a Galaxy Map tile
+lists, by tile level (the levels in `generated_star_floor_sol`'s reach and
+coarser than `TILE_MAX_LEVEL`). The map shows a roughly constant number of
+tiles at any zoom, so a coarser tile gets fewer stars: a dense filled
+region stays readable two or three zoom levels out from a sector, where
+1000 per tile used to blur into a smear. The brightest stars win; the
+brightness floor (`generated_star_floor_sol`) is the other half of the rule.
+A finest tile lists up to `GALAXY_TILE_MAX_DETAIL_STARS` instead."""
+
+SECTOR_ALLOWANCE_FUDGE = 3
+"""int: A tile's budget is shared out by sector: each generated sector may
+put `SECTOR_ALLOWANCE_FUDGE * budget / sectors` stars (at least one) on
+the tile, its brightest, so one dense sector can't take the whole budget
+while a sparse sector, which has fewer stars than that, keeps all it has
+and the leftover room goes to the brighter stars of the dense ones."""
+
+GALAXY_TILE_POINT_BUDGET = {10: 40, 11: 100}
+"""dict: Most point phenomena (black holes, neutron stars, quasars) a tile
+of that level lists (MAP.116); a finest tile lists up to
+`GALAXY_TILE_MAX_POINTS`. The most luminous come first, so a remnant shows
+where the budget reaches it."""
+
+
+def generated_star_budget(level, sector_count):
+    """
+    `(tile budget, per-sector allowance)` for the generated stars of a tile of
+    `level` holding `sector_count` generated sectors -- `GALAXY_TILE_STAR_BUDGET`
+    shared by `SECTOR_ALLOWANCE_FUDGE`. A finest tile lists up to
+    `GALAXY_TILE_MAX_DETAIL_STARS` with no per-sector allowance.
+    """
+    if level >= TILE_MAX_LEVEL:
+        return GALAXY_TILE_MAX_DETAIL_STARS, None
+    budget = GALAXY_TILE_STAR_BUDGET.get(level, GALAXY_TILE_MAX_GENERATED_STARS)
+    allowance = max(1, int(math.ceil(SECTOR_ALLOWANCE_FUDGE * budget / float(max(1, sector_count)))))
+    return budget, allowance
+
+
 def galaxy_generated_stars_in_box(conn, lo, hi, min_luminosity_sol, sector_count,
-                                  limit=GALAXY_TILE_MAX_GENERATED_STARS):
+                                  limit=GALAXY_TILE_MAX_GENERATED_STARS, per_sector=None):
     """
     The most luminous stars of generated systems whose sector's center
     lies in the box `[lo, hi)`, at least `min_luminosity_sol` each, at
@@ -3129,6 +3167,8 @@ def galaxy_generated_stars_in_box(conn, lo, hi, min_luminosity_sol, sector_count
         sector_count (int): How many generated (grid-placed) sectors the
             box holds, as its `galaxy_filled_in_box` summary counts them.
         limit (int): See `GALAXY_TILE_MAX_GENERATED_STARS`.
+        per_sector (int or None): Most stars one sector contributes, its
+            brightest (`generated_star_budget`); `None` is no limit.
 
     Returns:
         list[dict]: Most luminous first (ties by descending id): `id`
@@ -3140,12 +3180,14 @@ def galaxy_generated_stars_in_box(conn, lo, hi, min_luminosity_sol, sector_count
     if sector_count <= 0:
         return []
     stride = max(1, int(math.ceil(sector_count / float(GALAXY_TILE_GENERATED_STAR_SECTOR_BUDGET))))
-    rows = conn.execute(
-        """
+    select = """
         SELECT st.id, st.name, st.luminosity_w, st.temperature_k, st.radius_km, st.star_type,
                ss.id AS system_id, ss.position_x_mpc, ss.position_y_mpc, ss.position_z_mpc,
                sec.center_x_pc, sec.center_y_pc, sec.center_z_pc,
-               sec.ring_index, sec.layer_index, sec.ring_slot_index
+               sec.ring_index, sec.layer_index, sec.ring_slot_index"""
+    rank = (", ROW_NUMBER() OVER (PARTITION BY sec.id ORDER BY st.luminosity_w DESC, st.id DESC) AS sector_rank"
+            if per_sector is not None else "")
+    source = """
         FROM sectors sec FORCE INDEX (idx_sectors_center)
         JOIN star_systems ss ON ss.sector_id = sec.id
         JOIN stars st ON st.star_system_id = ss.id
@@ -3155,13 +3197,15 @@ def galaxy_generated_stars_in_box(conn, lo, hi, min_luminosity_sol, sector_count
           AND sec.center_z_pc >= ? AND sec.center_z_pc < ?
           AND sec.ring_index IS NOT NULL AND MOD(CRC32(sec.id), ?) = 0
           AND ss.position_x_mpc IS NOT NULL
-          AND st.luminosity_w >= ? AND b.id IS NULL
-        ORDER BY st.luminosity_w DESC, st.id DESC
-        LIMIT ?
-        """,
-        (lo[0], hi[0], lo[1], hi[1], lo[2], hi[2], stride,
-         float(min_luminosity_sol) * constants.SOLAR_LUMINOSITY, int(limit)),
-    ).fetchall()
+          AND st.luminosity_w >= ? AND b.id IS NULL"""
+    params = [lo[0], hi[0], lo[1], hi[1], lo[2], hi[2], stride, float(min_luminosity_sol) * constants.SOLAR_LUMINOSITY]
+    if per_sector is None:
+        sql = select + source + "\n        ORDER BY st.luminosity_w DESC, st.id DESC\n        LIMIT ?"
+    else:
+        sql = ("SELECT * FROM (" + select + rank + source + ") ranked WHERE sector_rank <= ?"
+               "\n        ORDER BY luminosity_w DESC, id DESC\n        LIMIT ?")
+        params.append(int(per_sector))
+    rows = conn.execute(sql, params + [int(limit)]).fetchall()
     return [{
         "id": row["id"], "name": row["name"],
         "x": round(row["center_x_pc"] + row["position_x_mpc"] / MPC_PER_PC, 3),
@@ -3309,9 +3353,12 @@ def galaxy_tiles(conn, tile_keys):
         generated = []
         if floor is not None:
             sector_count = len(filled["cells"]) if filled["g"] == 1 else sum(cell[3] for cell in filled["cells"])
-            limit = GALAXY_TILE_MAX_DETAIL_STARS if level >= TILE_MAX_LEVEL else GALAXY_TILE_MAX_GENERATED_STARS
-            generated = galaxy_generated_stars_in_box(conn, lo, hi, floor, sector_count, limit=limit)
-        points = galaxy_point_phenomena_in_box(conn, lo, hi) if level >= POINT_PHENOMENON_MIN_LEVEL else []
+            limit, per_sector = generated_star_budget(level, sector_count)
+            generated = galaxy_generated_stars_in_box(conn, lo, hi, floor, sector_count, limit=limit,
+                                                      per_sector=per_sector)
+        points = (galaxy_point_phenomena_in_box(
+            conn, lo, hi, limit=GALAXY_TILE_POINT_BUDGET.get(level, GALAXY_TILE_MAX_POINTS))
+            if level >= POINT_PHENOMENON_MIN_LEVEL else [])
         tiles[key] = {
             "placed": placed, "planned": planned, "filled": filled, "clouds": clouds, "stars": stars,
             "generated": generated, "points": points,
