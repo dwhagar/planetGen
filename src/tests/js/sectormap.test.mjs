@@ -277,8 +277,11 @@ test("Show on map buttons appear only for clouds on the map, and select them", (
 test("the rogue-planet toggle starts off, then marks them: rings, a bigger point, an easier pick", () => {
   const m = setUp();
   const toggle = m.button("toggle-rogue-markers");
-  const markers = () => m.renderer.scene.children.filter((o) => o.isGroup && o.children.some((c) => c.isSprite && c.material.sizeAttenuation === false));
-  const points = m.renderer.scene.children.find((o) => o.isPoints);
+  // The sector's group (sectorscene.js) holds the markers and the points.
+  const all = [];
+  m.renderer.scene.traverse((o) => all.push(o));
+  const markers = () => all.filter((o) => o.isGroup && o.children.some((c) => c.isSprite && c.material.sizeAttenuation === false));
+  const points = all.find((o) => o.isPoints);
   const rogue = m.data.clouds.find((c) => c.kind === "roguePlanet");
   const index = m.data.stars.length + m.data.clouds.filter((c) => c.light).indexOf(rogue);
   const size = () => points.geometry.getAttribute("pointSize").array[index];

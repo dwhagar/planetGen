@@ -364,9 +364,10 @@ def _click_choice(page, wanted=None):
     x, y, text = found
     before = (page.url, _crumbs(page))
     if re.match(r"Sector .*, generated$", text):
-        # A generated sector opens its own page.
-        with page.expect_navigation():
-            page.mouse.click(x, y)
+        # A generated sector opens in the map itself (MAP.66).
+        page.mouse.click(x, y)
+        page.wait_for_function("() => location.search.includes('open=1')", timeout=15000)
+        _settle(page)
         return text
     page.mouse.click(x, y)
     _settle(page)
@@ -391,13 +392,13 @@ sectors, all near the core)."""
 
 def _walk_down(page, stages=16):
     """Clicks generated choices down from the galaxy, up to `stages`
-    clicks or until one opens a generated sector's own page (the last
-    entry then); returns the stages seen, [(query, crumbs)]."""
+    clicks or until one opens a generated sector in place (the last
+    entry then, its crumbs); returns the stages seen, [(query, crumbs)]."""
     steps = [(_query(page), _crumbs(page))]
     for _ in range(stages):
         text = _click_choice(page, GENERATED_CHOICE)
-        if not _on_galaxy(page):
-            steps.append((page.url, None))
+        if "open=1" in _query(page):
+            steps.append((_query(page), _crumbs(page)))
             return steps
         steps.append((_query(page), _crumbs(page)))
         assert _crumbs(page)[-1] == _label_of(text), f"clicked {text!r}, breadcrumb now {_crumbs(page)}"
@@ -419,9 +420,9 @@ def test_galaxy_map_clicks_walk_down_to_a_generated_sector(page, map_site):
     _open_galaxy(page, map_site)
     assert _crumbs(page) == ["Galaxy"] and _query(page) == ""
     steps = _walk_down(page)
-    url, crumbs = steps[-1]
-    assert crumbs is None and re.search(r"/sector/\d+$", url), f"never opened a sector: {steps[-2:]}"
-    assert int(url.rsplit("/", 1)[1]) in {sector[0] for sector in SECTORS}
+    query, crumbs = steps[-1]
+    assert re.fullmatch(r"sector=[0-9A-F]+&open=1", query), f"never opened a sector: {steps[-2:]}"
+    assert _on_galaxy(page) and crumbs[-1].startswith("Sector "), crumbs
     for query, _crumbs_seen in steps[1:-1]:
         assert re.fullmatch(r"(at=\d+\.\d+\.\d+\.-?\d+)?(&?p=[asL0-9.~,-]+)?", query), query
     # MAP.56: arc, slab, segment (entering each block), slab, ... down to
@@ -430,6 +431,53 @@ def test_galaxy_map_clicks_walk_down_to_a_generated_sector(page, map_site):
     for marker in ("p=a", "L", "at=243.", "at=27.", "at=3."):
         assert marker in kinds, f"no {marker} stage on the way down: {[q for q, _ in steps]}"
     assert not re.search(r"[=,]r\d", kinds), kinds
+
+
+OPEN_PRIME = "?sector=100000001&open=1"
+"""The fixture's Fixture Prime (ring 0, layer 0, slot 1) opened in place."""
+
+
+def test_galaxy_map_opens_a_sector_in_place(page, map_site):
+    """MAP.66: a generated sector opens in the Galaxy Map itself, drawn by
+    the Sector Map's scene: a star can be hovered and picked there (its
+    panel, tooltip and NAV links as on the sector page), Up leaves the
+    sector with it still selected, and Back and a reload come back to it."""
+    _open_galaxy(page, map_site, OPEN_PRIME)
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-info h3')")
+    assert page.locator("#galaxymap3d-info h3").inner_text() == "Fixture Prime"
+    page.wait_for_timeout(500)
+    tip = page.locator("#galaxymap3d-tooltip")
+    info = page.locator("#galaxymap3d-info")
+    picked = None
+    for x, y in _bright_spots(page, GALAXY_CANVAS):
+        page.mouse.move(x, y)
+        page.wait_for_timeout(120)
+        hovered = tip.inner_text() if tip.is_visible() else ""
+        page.mouse.click(x, y)
+        heading = info.locator("h3").inner_text() if info.locator("h3").count() else None
+        if heading in SYSTEM_NAMES:
+            picked = (heading, hovered)
+            break
+    assert picked, "no click on the opened sector picked a star"
+    name, hovered = picked
+    assert name in hovered, f"the tooltip for {name}: {hovered!r}"
+    system_id = next(i for i, n, *_rest in SYSTEMS if n == name)
+    assert info.locator("a", has_text="View system").get_attribute("href").endswith(f"/system/{system_id}")
+    nav = [a.inner_text() for a in info.locator("a").all()]
+    assert "Nav from here" in nav and "Nav to here" in nav
+
+    assert _on_galaxy(page) and _query(page) == OPEN_PRIME[1:]
+    page.click('#galaxymap3d-controls [data-action="up"]')
+    _settle(page)
+    assert _query(page) == "sector=100000001", _query(page)
+    page.go_back()
+    _settle(page)
+    assert _query(page) == OPEN_PRIME[1:]
+    page.reload()
+    page.wait_for_selector("#galaxymap3d-steps [data-steps-panel] li", state="attached")
+    _settle(page)
+    assert _query(page) == OPEN_PRIME[1:]
+    assert any(_bright_spots(page, GALAXY_CANVAS)), "the reloaded sector draws its stars"
 
 
 def test_galaxy_map_back_forward_and_url_state(page, map_site):

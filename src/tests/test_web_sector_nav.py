@@ -254,6 +254,28 @@ def test_sector_map_entries_are_plain_links(client, fake):
     assert '<li><a href="/sector/6">Next Door</a></li>' in html  # <noscript> list
 
 
+def test_sector_scene_json_is_the_pages_own_scene_for_the_galaxy_map(client, fake):
+    """MAP.66: /sector/<id>/scene is the scene block the page embeds, plus
+    where the sector sits (centerPc) and its half edge (halfEdgePc, in
+    parsecs), for the Galaxy Map to open the sector in place."""
+    page = _scene(client.get("/sector/5").get_data(as_text=True))
+    resp = client.get("/sector/5/scene")
+    assert resp.status_code == 200 and resp.mimetype == "application/json"
+    assert resp.headers["Cache-Control"] == "no-store"
+    scene = resp.get_json()
+    assert scene == page
+    assert len(scene["centerPc"]) == 3
+    assert scene["halfEdgePc"] == pytest.approx(fake.sectors[5]["edge_mpc"] / 2000)
+    assert {star["href"] for star in scene["stars"]} == {"/system/1001", "/system/1002"}
+
+
+def test_sector_scene_keeps_a_nav_pick(client, fake):
+    plain = client.get("/sector/5/scene").get_json()
+    picking = client.get("/sector/5/scene?pick=from").get_json()
+    assert all(star["nav"]["pick"] is None for star in plain["stars"])
+    assert all(star["nav"]["pick"] and star["nav"]["pickLabel"] for star in picking["stars"])
+
+
 def test_sector_contents_pager_uses_get_links(client, fake):
     fake.sectors[5]["systems"] = [_sector_system(4000 + i, f"S{i:03d}", float(i)) for i in range(55)]
     html = client.get("/sector/5").get_data(as_text=True)

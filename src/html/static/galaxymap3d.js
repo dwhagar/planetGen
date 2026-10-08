@@ -616,6 +616,17 @@ function initGalaxyMap3d(canvasEl, data) {
     updateClouds();
   }
 
+  // A sector opened in place (galaxysector.js) draws its own stars and
+  // phenomena, so the galaxy's are left out of its cell (bounds as a
+  // block has them); null brings them back.
+  var hiddenCell = null;
+
+  function hideCell(bounds) {
+    hiddenCell = bounds;
+    markClippedStars();
+    updateClouds();
+  }
+
   // How far round from bearing a0 bearing `angle` is, 0 to a full turn.
   function bearingFrom(angle, a0) {
     return (((angle - a0) % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
@@ -625,7 +636,7 @@ function initGalaxyMap3d(canvasEl, data) {
   // galaxy): inside one of its blocks, or its bounds when it lists none.
   function inWedgeClip(x, y, z) {
     var c = wedgeClip;
-    if (!c) {
+    if (!c && !hiddenCell) {
       return true;
     }
     var r = Math.hypot(x, y);
@@ -634,6 +645,12 @@ function initGalaxyMap3d(canvasEl, data) {
       return r >= b.r0 && r <= b.r1 && bearingFrom(angle, t0) <= t1 - t0
         && (b.z0 == null || z >= b.z0) && (b.z1 == null || z <= b.z1);
     };
+    if (hiddenCell && inside(hiddenCell, hiddenCell.t0, hiddenCell.t1)) {
+      return false;
+    }
+    if (!c) {
+      return true;
+    }
     if (c.cells) {
       return c.cells.some(function (b) { return inside(b, b.t0, b.t1); });
     }
@@ -1940,6 +1957,22 @@ function initGalaxyMap3d(canvasEl, data) {
     clearSelection: function () { selectionRing.hide(); },
     setWedgeClip: function (clip) { setWedgeClip(clip); },
     sectorUrl: function (id) { return sceneData.sectorUrl ? sectorUrl(id) : null; },
+    // The sector page's scene JSON (planetgen/web/sector_page.py), keeping
+    // a NAV pick in the entries' links.
+    fetchSectorScene: sceneData.sectorUrl ? function (id) {
+      var path = sectorUrl(id).split("?")[0] + "/scene" + (data.pickQuery || "");
+      return fetch(path, { headers: { Accept: "application/json" } })
+        .then(function (response) {
+          if (!response.ok) {
+            throw new Error("HTTP " + response.status);
+          }
+          return response.json();
+        });
+    } : null,
+    lightBackground: isLightBackground(),
+    pixelRatio: function () { return renderer.getPixelRatio(); },
+    showInfo: showInfo,
+    hideCell: hideCell,
     locate: function (name) {
       return fetch((data.locatePath || "/galaxy/locate") + "?q=" + encodeURIComponent(name), {
         headers: { Accept: "application/json" },

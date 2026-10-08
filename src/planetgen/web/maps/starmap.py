@@ -1067,94 +1067,19 @@ def _noscript_list_html(link_url, systems, phenomena, neighbors=None):
     return f'<noscript><ul class="starmap-noscript-list">{"".join(items)}</ul></noscript>'
 
 
-def render_map_panel(
+def map_scene_data(
     link_url, edge_mpc, address, center_pc, systems, phenomena=None, neighbors=None, generate=None,
     nav=None,
 ):
     """
-    Builds the "Sector Map" panel: a `<canvas>` `sectormap.js` renders an
-    interactive WebGL scene into (drag to rotate, scroll/button to zoom,
-    click for info), plus a `<script type="application/json">` block
-    carrying every position/size/color/label that scene needs -- one entry
-    per placed star system (two, overlapping, for a binary -- the primary
-    at the system's actual position, the secondary offset down-and-right
-    from it) and one per nearby nebula/asteroid field/black hole/neutron
-    star -- and an info side panel the same script fills in when something
-    is clicked.
-
-    The scene's own bounding shape -- the sector's cylindrical grid cell
-    (see `_outline_data`/`sector_cell_vertices_pc`) when this sector has a
-    grid address and
-    the geometry helpers are importable, or the plain axis-aligned cube
-    otherwise -- is drawn as a faint wireframe, and its extent drives
-    `_default_zoom`'s fallback framing for a sector with nothing else
-    plotted in it.
-
-    Args:
-        link_url (callable): `link_url(name, **params)` -> URL, used to
-                       build each entry's `href` (see the module
-                       docstring); the Flask sector page passes
-                       `web.helpers.page_url`.
-        edge_mpc (float): The sector's cube edge (`sectors.edge_mpc`) --
-                          every system's `position_*_mpc` is relative to
-                          the sector's cubic center (see schema.sql's
-                          `star_systems` comment), so half of this is the
-                          normalizing divisor for each axis.
-        address (tuple or None): The sector's `(ring_index, layer_index,
-            ring_slot_index)`; `None` (or any `None` inside) for none.
-        center_pc (tuple or None): `(center_x_pc, center_y_pc,
-                                   center_z_pc)` -- drives the "Galactic
-                                   Center" compass arrow (`_compass_data`)
-                                   and rotates each system's local
-                                   position into the galaxy frame
-                                   (`_rotate_to_galaxy_frame`) before it's
-                                   plotted, so star dots agree with the
-                                   arrow and the cell outline on one
-                                   frame; `None` for a sector with no
-                                   galaxy placement, which omits the
-                                   arrow and leaves positions unrotated.
-        systems (list[dict]): One entry per placed system (position not
-                              NULL), each with `id`, `name`, `quadrant`,
-                              `location`, `x`/`y`/`z` (the raw
-                              `position_*_mpc` columns), and `stars`: a
-                              list of 1 dict (single star) or 2 (primary,
-                              then secondary), each with `star_type`,
-                              `temperature_k`, `radius_km`,
-                              `luminosity_w`, `temp_display`.
-        phenomena (list[dict] or None): `queryDb.phenomena_near_sector`'s
-                              return shape -- every standalone phenomenon
-                              generated in this sector, plus every
-                              neighbor's cloud whose sphere could
-                              plausibly reach into this sector's cell. Its
-                              `offset_x/y/z_ly` are already galaxy-frame
-                              (computed directly from two galaxy-frame
-                              centers -- see `schema.sql`'s "v18" note), so
-                              -- unlike `systems`' sector-local `x`/`y`/`z`
-                              -- these are placed directly with no
-                              `_rotate_to_galaxy_frame` step. `None`/empty
-                              draws no clouds at all.
-        neighbors (list[dict] or None): `queryDb.sector_neighbors`'s
-                              return shape -- this sector's immediately
-                              surrounding addresses, each rendered as a
-                              small clickable indicator just past the
-                              scene's own edge (`_neighbor_indicator_data`).
-                              `None`/empty draws no indicators.
-        generate (dict or None): For a logged-in admin only:
-                              `{"url", "csrfField", "csrfToken"}`, the
-                              Generate page's form target and a CSRF
-                              token, so an unfilled neighbor's panel can
-                              offer Generate buttons. `None` (every
-                              visitor) shows the address alone.
-        nav (callable or None): `nav(kind, id)` -> `{"from", "to",
-                              "pick", "pickLabel"}`: the NAV links the
-                              info panel offers for a system (kind
-                              `"system"`) or phenomenon (its type), and,
-                              in pick mode, the "Use as destination" (or
-                              start) link and its label (`None` outside
-                              pick mode). Stored on each entry as `nav`.
+    The Sector Map's scene JSON (the `#starmap-data` block `render_map_panel`
+    embeds, and what `/sector/<id>/scene` answers for the Galaxy Map's
+    sector stage, MAP.66). The arguments are `render_map_panel`'s; see it.
 
     Returns:
-        str: A complete `<section class="panel">` block.
+        dict: `sceneHalfPx`, `defaultZoom`, `lyPerPxAtZoom1`, `outline`,
+            `compass`, `stars`, `clouds`, `neighbors`, `generate`,
+            `edgeLy`, `centerPc` and `halfEdgePc`.
     """
     half_edge = (edge_mpc / 2) if edge_mpc else 1.0
 
@@ -1265,7 +1190,109 @@ def render_map_panel(
         # The sector's own edge in light years, for the Generate buttons'
         # "up to about N sectors" estimate (static/generatebuttons.js).
         "edgeLy": milliparsecs_to_ly(edge_mpc) if edge_mpc and milliparsecs_to_ly else None,
+        # Where the sector is, for drawing its scene inside the Galaxy Map's
+        # (`static/sectorscene.js`): its center in galaxy-frame parsecs
+        # and half its edge in parsecs, which `sceneHalfPx` scene units span.
+        "centerPc": list(center_pc) if center_pc else None,
+        "halfEdgePc": (edge_mpc / 2) / 1000 if edge_mpc else None,
     }
+    return scene_data
+
+
+
+def render_map_panel(
+    link_url, edge_mpc, address, center_pc, systems, phenomena=None, neighbors=None, generate=None,
+    nav=None,
+):
+    """
+    Builds the "Sector Map" panel: a `<canvas>` `sectormap.js` renders an
+    interactive WebGL scene into (drag to rotate, scroll/button to zoom,
+    click for info), plus a `<script type="application/json">` block
+    carrying every position/size/color/label that scene needs -- one entry
+    per placed star system (two, overlapping, for a binary -- the primary
+    at the system's actual position, the secondary offset down-and-right
+    from it) and one per nearby nebula/asteroid field/black hole/neutron
+    star -- and an info side panel the same script fills in when something
+    is clicked.
+
+    The scene's own bounding shape -- the sector's cylindrical grid cell
+    (see `_outline_data`/`sector_cell_vertices_pc`) when this sector has a
+    grid address and
+    the geometry helpers are importable, or the plain axis-aligned cube
+    otherwise -- is drawn as a faint wireframe, and its extent drives
+    `_default_zoom`'s fallback framing for a sector with nothing else
+    plotted in it.
+
+    Args:
+        link_url (callable): `link_url(name, **params)` -> URL, used to
+                       build each entry's `href` (see the module
+                       docstring); the Flask sector page passes
+                       `web.helpers.page_url`.
+        edge_mpc (float): The sector's cube edge (`sectors.edge_mpc`) --
+                          every system's `position_*_mpc` is relative to
+                          the sector's cubic center (see schema.sql's
+                          `star_systems` comment), so half of this is the
+                          normalizing divisor for each axis.
+        address (tuple or None): The sector's `(ring_index, layer_index,
+            ring_slot_index)`; `None` (or any `None` inside) for none.
+        center_pc (tuple or None): `(center_x_pc, center_y_pc,
+                                   center_z_pc)` -- drives the "Galactic
+                                   Center" compass arrow (`_compass_data`)
+                                   and rotates each system's local
+                                   position into the galaxy frame
+                                   (`_rotate_to_galaxy_frame`) before it's
+                                   plotted, so star dots agree with the
+                                   arrow and the cell outline on one
+                                   frame; `None` for a sector with no
+                                   galaxy placement, which omits the
+                                   arrow and leaves positions unrotated.
+        systems (list[dict]): One entry per placed system (position not
+                              NULL), each with `id`, `name`, `quadrant`,
+                              `location`, `x`/`y`/`z` (the raw
+                              `position_*_mpc` columns), and `stars`: a
+                              list of 1 dict (single star) or 2 (primary,
+                              then secondary), each with `star_type`,
+                              `temperature_k`, `radius_km`,
+                              `luminosity_w`, `temp_display`.
+        phenomena (list[dict] or None): `queryDb.phenomena_near_sector`'s
+                              return shape -- every standalone phenomenon
+                              generated in this sector, plus every
+                              neighbor's cloud whose sphere could
+                              plausibly reach into this sector's cell. Its
+                              `offset_x/y/z_ly` are already galaxy-frame
+                              (computed directly from two galaxy-frame
+                              centers -- see `schema.sql`'s "v18" note), so
+                              -- unlike `systems`' sector-local `x`/`y`/`z`
+                              -- these are placed directly with no
+                              `_rotate_to_galaxy_frame` step. `None`/empty
+                              draws no clouds at all.
+        neighbors (list[dict] or None): `queryDb.sector_neighbors`'s
+                              return shape -- this sector's immediately
+                              surrounding addresses, each rendered as a
+                              small clickable indicator just past the
+                              scene's own edge (`_neighbor_indicator_data`).
+                              `None`/empty draws no indicators.
+        generate (dict or None): For a logged-in admin only:
+                              `{"url", "csrfField", "csrfToken"}`, the
+                              Generate page's form target and a CSRF
+                              token, so an unfilled neighbor's panel can
+                              offer Generate buttons. `None` (every
+                              visitor) shows the address alone.
+        nav (callable or None): `nav(kind, id)` -> `{"from", "to",
+                              "pick", "pickLabel"}`: the NAV links the
+                              info panel offers for a system (kind
+                              `"system"`) or phenomenon (its type), and,
+                              in pick mode, the "Use as destination" (or
+                              start) link and its label (`None` outside
+                              pick mode). Stored on each entry as `nav`.
+
+    Returns:
+        str: A complete `<section class="panel">` block.
+    """
+    scene_data = map_scene_data(link_url, edge_mpc, address, center_pc, systems, phenomena=phenomena,
+                                neighbors=neighbors, generate=generate, nav=nav)
+    clouds_data = scene_data["clouds"]
+    ly_per_px = scene_data["lyPerPxAtZoom1"]
 
     if systems or clouds_data:
         click_hint = "Click a star system or cloud for details." if clouds_data else "Click a star system for details."

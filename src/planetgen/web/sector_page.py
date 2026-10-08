@@ -34,7 +34,7 @@ import math
 import re
 from urllib.parse import urlencode
 
-from flask import current_app, flash, get_flashed_messages, redirect, request, url_for
+from flask import current_app, flash, get_flashed_messages, jsonify, redirect, request, url_for
 
 from planetgen.web.lib import apiclient
 from planetgen.web.lib.fmt import (
@@ -43,10 +43,11 @@ from planetgen.web.lib.fmt import (
 )
 from planetgen.web.maps.galaxymap import sector_quadrant
 from planetgen.web.lib.pagination import page_slice, parse_page
-from planetgen.web.maps.starmap import render_map_panel
+from planetgen.web.maps.starmap import map_scene_data, render_map_panel
 from planetgen.web.lib.systempage import facility_kind_label
 
 from planetgen.api.common import is_http_url
+from planetgen.api.limiter import page_limit
 from planetgen.admin import activity_log
 from planetgen import tuning
 from planetgen.util import log
@@ -488,6 +489,34 @@ def system_on_galaxy_map(system_id):
     if system["sector_id"] is None:
         return redirect(page_url("galaxy"), code=302)
     return sector_on_galaxy_map(system["sector_id"])
+
+
+@bp.route("/sector/<int:sector_id>/scene")
+@page_limit("galaxy_tiles")
+def sector_scene(sector_id):
+    """
+    The Sector Map's scene JSON for one sector (`starmap.map_scene_data`,
+    the same block the sector page embeds), for the Galaxy Map, which
+    opens the sector as the drill-down's last stage on its own page
+    (MAP.66). `?pick=...` keeps NAV's pick mode in the entries' links, as
+    on the sector page.
+    """
+    detail = apiclient.get_sector(db_name(), sector_id)
+    _rows, map_systems = _contents(detail, apiclient.get_sector_facilities(db_name(), sector_id))
+    center_pc = (
+        (detail["center_x_pc"], detail["center_y_pc"], detail["center_z_pc"]) if detail["placed"] else None
+    )
+    scene = map_scene_data(
+        page_url, detail["edge_mpc"],
+        (detail.get("ring_index"), detail.get("layer_index"), detail.get("ring_slot_index")),
+        center_pc, map_systems, phenomena=detail.get("phenomena"),
+        neighbors=_with_bright_stars(detail.get("neighbors")),
+        generate=generate_target(current_admin()), nav=_nav_for(_pick_mode(request.args)),
+    )
+    response = jsonify(scene)
+    response.headers["Cache-Control"] = "no-store"
+    return response
+
 
 
 @bp.route("/sector/<int:sector_id>", methods=["GET", "POST"])
