@@ -112,7 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 is done (PR #476); GEN.117, and GEN.116 is closed (Boss 2026-10-08 17:46Z). | UX.39, OPS.20, DB.11, DB.13, ADM.21, GEN.66, GEN.74, GEN.70, GEN.71, GEN.67, NAV.7, MAP.67, UX.37, UX.54, UX.55, UX.75, UX.21 |
+| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 is done (PR #476); GEN.117, and GEN.116 is closed (Boss 2026-10-08 17:46Z). | TEST.107, UX.39, OPS.20, DB.11, DB.13, ADM.21, GEN.66, GEN.70, GEN.71, GEN.67, NAV.7, MAP.67, UX.37, UX.54, UX.55, UX.75, UX.21 |
 | 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, NAV.16, NAV.3, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.41, GEN.98, GEN.100, GEN.99, GEN.101, GEN.102, GEN.103, GEN.84, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, GEN.94, GEN.104, GEN.106, GEN.107, GEN.108, NAV.10, NAV.12, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, NAV.43, NAV.44, MAP.119, MAP.122, MAP.123, MAP.124, MAP.89, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, OPS.8, OPS.13, OPS.14, ADM.18, GEN.59, UX.49, NAV.50 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.58, MAP.75, MAP.59, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, API.16, MAP.69, MAP.70, ADM.17, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.131, MAP.132, API.18, VIEW.5 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, repair that reads the newest settings JSON, and the anomalies chosen in phase 2. | MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, MAP.126, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, DB.10, ADM.20, GEN.114, MAP.125, API.19 |
@@ -624,9 +624,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   diagram stays available.
   Plan (2026-10-08): MAP.61 is done (PR #629). MAP.62 is six subitems
   (MAP.69 to MAP.74), and MAP.70 depends on the point-in-space object
-  (GEN.74), which is not built, so MAP.62 has a large prerequisite from
-  another stream. The map engine lane holds MAP.62 and MAP.125 until
-  Boss decides how to proceed.
+  (GEN.74), which is now built (PRs #642, #645, #662 and #665), so that
+  prerequisite is met. Boss has given the go: the map engine lane
+  builds MAP.62 (MAP.69 to MAP.74) first, then MAP.125.
 
   - [ ] **MAP.67 One URL and history scheme for every level**
     Galaxy stages, a sector, and (with MAP.62) a system and a body in
@@ -784,8 +784,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   planet and its moons, with the frames switched by the position object
   (GEN.74).
   Prerequisite: MAP.62.
-  Plan (2026-10-08): Held with MAP.62 until Boss decides (see MAP.62:
-  MAP.70 waits on GEN.74).
+  Plan (2026-10-08): Built after MAP.62, by the map engine lane (Boss
+  has given the go; see MAP.62).
 
 - [ ] **MAP.126 Show the orbital trajectories of selected objects in their frame of reference**
   Boss (2026-10-07 11:47Z): "Show orbital trajectories for selected
@@ -1910,21 +1910,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     Prerequisite: GEN.70.
     Design: [docs/design/object-ids.md](design/object-ids.md)
 
-- [ ] **GEN.74 One point-in-space object that keeps every coordinate system in step, used by every object**
-  Boss (2026-10-07 11:47Z): "Introduce a centralized point-in-space
-  object.  When any of it's coordinates are changed in any coordinate
-  system (cartesian, spherical, cylindrical, etc...) it automatically
-  updates itself to the new position, and integrate that into all of our
-  objects, and we'll store with that the point-mass information with
-  that moving forward." Boss's prototype is `spacial-position.py` (repo
-  root, `SpatialPosition3D`: galactic, sector and system frames,
-  Cartesian, cylindrical and spherical forms, velocity,
-  observable-movement thresholds). Done: the class moves into the
-  physics package with tests, every positioned object (sector, system,
-  star, planet, moon, belt, comet, phenomenon) holds one, with its mass
-  and `mu` beside it, and the stored columns map to it.
-  Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
-
 - [ ] **GEN.83 A planetary habitability index (PHI)**
   Boss (2026-10-03 05:38Z): "Create a habitability index based on the
   pressure, temperature, composition, etc...  This will use several
@@ -2145,7 +2130,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   cascade (tidal locking, gyrochronology for cool stars, log-normal
   speeds under the breakup limit for hot ones, the 2.2-hour spin barrier
   for small bodies, black hole spin distributions).
-  Prerequisite: GEN.74.
   Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
 
 - [ ] **GEN.105 Orbital updates**
@@ -2181,7 +2165,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     the table with when the next update should be due for that object."
     Done as he says: an indexed `next_update_due` per object, set from
     its speed and its threshold whenever it moves.
-    Prerequisites: GEN.74, DB.11.
+    Prerequisite: DB.11.
     Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
 
   - [ ] **GEN.107 The update reports how many objects moved, changed sector, or entered or left a nebula**
@@ -2758,7 +2742,6 @@ Boss (2026-10-07 11:47Z): "Actual specs on layers on the generation
   another object's Hill sphere, nothing existing moves without the admin
   confirming, and a placement that can't be made fails with a message
   and changes nothing.
-  Prerequisite: GEN.74.
 
 - [ ] **ADM.35 Full control from every screen: edit anything, regenerate with every input, backfill or erase what is in view**
   Boss (2026-10-07 11:47Z): "Everything can be edited, regeneration asks
@@ -2779,7 +2762,7 @@ Boss (2026-10-07 11:47Z): "Actual specs on layers on the generation
   vector (in any frame the position object supports) from its detail
   screen; the change is validated (escape, collisions), logged, and used
   by the next orbital update.
-  Prerequisites: GEN.74, GEN.109.
+  Prerequisite: GEN.109.
 
 ## SEC: Security
 
@@ -2801,6 +2784,18 @@ means read from the code, not reproduced yet; the bug hunt confirms or
 clears each one.
 
 ### Infrastructure and CI
+
+- [ ] **TEST.107 test_controls_do_not_overlap fails on main for /galaxy at 390 px and /sector: buttons overlap each other (bug)**
+  `src/tests/test_web_layout.py::test_controls_do_not_overlap` fails on
+  main since PRs #637 and #640 (reported by the coordinator, 2026-10-08):
+  on `/galaxy` at 390 px "Jump to newest" overlaps Bookmarks, and the
+  site-gear search overlaps the bookmark star; on `/sector` the comets
+  toggle overlaps the octant input. Foundations lane 1 saw the `/sector`
+  case pass on its own main, so the map lane confirms it on the latest
+  main first. Done: no two controls overlap on `/galaxy` at 390 px or on
+  `/sector`, and the cases pass.
+  Prerequisites: none.
+
 
 ## USR: User accounts
 
@@ -3046,7 +3041,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   giving an object's apparent position from an observer point (position
   at now minus distance over c, solved iteratively for moving bodies),
   tested against a hand case.
-  Prerequisites: GEN.74, MAP.70.
+  Prerequisite: MAP.70.
 
 ## POP: Population and politics
 
