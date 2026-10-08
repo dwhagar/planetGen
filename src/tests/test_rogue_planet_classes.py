@@ -120,7 +120,7 @@ def test_class_is_stored_and_backfilled_by_the_v47_migration(mysql_config):
         row = conn.execute("SELECT planet_class FROM rogue_planets WHERE id = ?", (planet_id,)).fetchone()
         assert row["planet_class"] == "J"
         conn.execute("ALTER TABLE rogue_planets DROP COLUMN planet_class")
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57)")
+        conn.execute("DELETE FROM schema_migrations WHERE version IN (47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58)")
         conn.execute("INSERT INTO schema_migrations (version) VALUES (46)")
         conn.commit()
     finally:

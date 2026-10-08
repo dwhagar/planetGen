@@ -1504,6 +1504,7 @@ def create_system_job(config, body, sector_id, position):
         with conn:
             if sector_id is None:
                 system_id = store.insert_star_system(conn, _generate_system(system_config), system_config)
+                store.assign_uids(conn, system_ids=[system_id])
                 placed = None
             else:
                 dist_ly = _sector_generation_context(conn, sector_id, system_config)

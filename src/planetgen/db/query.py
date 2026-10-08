@@ -48,6 +48,7 @@ from planetgen.galaxy.geometry import (
     galaxy_to_local_pc, layer_index_at, neighbor_addresses, provisional_sector_designation, ring_index_at,
     ring_sector_count, sector_cell_vertices_pc, sector_position_pc,
 )
+from planetgen.galaxy import uid as galaxy_uid
 from planetgen.galaxy.sector import classify_octant
 from planetgen.galaxy.viewport import (
     TILE_MAX_LEVEL,
@@ -1671,7 +1672,7 @@ def nebula_shape(conn, nebula_id):
     row = conn.execute("SELECT * FROM nebulae WHERE id = ?", (nebula_id,)).fetchone()
     if row is None:
         raise ValueError(f"no such nebula: {nebula_id!r}")
-    row = dict(row)
+    row = _with_printed_uid(row)
     if row.get("shape_scale") is None:
         return row, shapes.shape_for_nebula(row["nebula_class"], row["radius_ly"], row["density_cm3"],
                                             row["temperature_k"], row["extinction_av"], row["dominant_species"])
@@ -1737,6 +1738,15 @@ def nebula_surroundings(conn, nebula_id):
     return result
 
 
+def _with_printed_uid(row):
+    """A copy of a table row as a dict with its `uid` (a BINARY column, GEN.69) as
+    the hex text the site prints, so the row can be written as JSON."""
+    out = dict(row)
+    if isinstance(out.get("uid"), (bytes, bytearray)):
+        out["uid"] = galaxy_uid.format_uid(galaxy_uid.uid_from_bytes(out["uid"]))
+    return out
+
+
 def phenomenon_detail(conn, phenomenon_type, phenomenon_id):
     """
     Returns one phenomenon's full row -- every column its own table has,
@@ -1788,7 +1798,7 @@ def phenomenon_detail(conn, phenomenon_type, phenomenon_id):
     if row is None:
         raise ValueError(f"no {table} row with id {phenomenon_id}")
 
-    detail = dict(row)
+    detail = _with_printed_uid(row)
     detail["type"] = phenomenon_type
     detail["nearest"] = nearest_systems(conn, table, [phenomenon_id]).get(phenomenon_id, [])
     # DB.2: the composition rows saved beside an asteroid field or an

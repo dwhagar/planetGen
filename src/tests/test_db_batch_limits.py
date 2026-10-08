@@ -64,7 +64,7 @@ def _seeded(config):
 def _insert(conn, template, table, **changes):
     """A plain INSERT of a copy of `template` with `changes` -- held back
     by `batched`, its id from `id_blocks`."""
-    values = {column: value for column, value in template[table].items() if column != "id"}
+    values = {column: value for column, value in template[table].items() if column not in ("id", "uid")}
     values.update(changes)
     columns = list(values)
     return conn.execute(
