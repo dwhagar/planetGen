@@ -842,8 +842,16 @@ def test_galaxy_map_draws_a_nebula_from_its_shape_mesh(page, map_site):
     page.on("request", lambda request: shape_requests.append(request.url) if "/shape" in request.url else None)
     _open_galaxy(page, map_site, "?at=27.27.0.0")
     # A locator, not wait_for_function: the page's CSP forbids evaluating strings.
-    page.locator("#galaxymap3d-canvas[data-nebula-meshes='1']").wait_for(state="attached", timeout=15000)
+    page.locator("#galaxymap3d-canvas:not([data-nebula-meshes='0'])").wait_for(state="attached", timeout=15000)
     assert any("/galaxy/nebula/801/shape?lod=low" in url for url in shape_requests), shape_requests
+
+
+def test_galaxy_map_shades_a_nebula_over_unfilled_sectors(page, map_site):
+    """MAP.104: a nebula is drawn over space where no sector is generated
+    (the fixture's generated sectors are all in the core, thousands of
+    parsecs away), in a close view of the block as well as a far one."""
+    _open_galaxy(page, map_site, "?at=3.250.0.0")
+    page.locator("#galaxymap3d-canvas[data-nebula-meshes='1']").wait_for(state="attached", timeout=15000)
 
 
 # --- NAV.40: bookmarks keep a course pick ---------------------------------------------

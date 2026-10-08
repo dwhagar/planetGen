@@ -2728,6 +2728,7 @@ def test_systems_inside_a_nebula_point_at_it_and_the_innermost_wins(mysql_config
         from planetgen.db import query as queryDb
         inside = queryDb.sector_detail(conn, sector_id)["systems"][0]["inside"]
         assert (inside["type"], inside["id"], inside["class"]) == ("nebula", big, "E")
+        assert inside["descriptor"] in ("diffuse", "emission", "reflection", "planetary", "dark")
     finally:
         conn.close()
 
