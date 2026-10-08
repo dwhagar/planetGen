@@ -24,7 +24,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| MAP.126 | Show the orbital trajectories of selected objects in their frame of reference |  |  |
 
 ### Courses
 
