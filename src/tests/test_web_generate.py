@@ -62,8 +62,9 @@ class FakeSite:
     def get_galaxy_shape(self, db):
         return self.shape
 
-    def get_sectors(self, db, limit=None, offset=None):
-        return {"items": [], "total": self.sector_total, "limit": limit, "offset": offset}
+    def get_sectors(self, db, limit=None, offset=None, **table):
+        return {"items": [], "total": self.sector_total, "limit": limit, "offset": offset,
+                "facets": {"quadrant": []}}
 
 
 @pytest.fixture
