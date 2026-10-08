@@ -1479,3 +1479,18 @@ def test_galaxy_map_point_phenomena_hover_and_offer_nav_links(page, map_site):
         assert info.locator(".map-info-bookmark").inner_text() == "☆ Bookmark"
         return
     pytest.fail("no point phenomenon showed a tooltip under the pointer")
+
+
+def test_galaxy_map_pick_mode_clicks_down_through_every_stage(page, map_site):
+    """NAV.46: choosing a NAV end, the arcs, slabs and blocks are clicked to
+    zoom in, stage after stage as outside pick mode, down to a sector."""
+    _open_galaxy(page, map_site, "?pick=to&from=system:701")
+    seen = [_crumbs(page)]
+    for _ in range(8):
+        before = (page.url, _crumbs(page))
+        text = _click_choice(page, GENERATED_CHOICE)
+        if re.match(r"Sector .*, generated$", text):
+            break
+        assert _crumbs(page) != seen[-1], (text, _crumbs(page))
+        seen.append(_crumbs(page))
+    assert len(seen) >= 3, seen
