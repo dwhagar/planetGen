@@ -1,5 +1,10 @@
 # Changelog
 
+## [7.257.635] - 2026-10-08
+
+### Fixed
+- The parallel-galaxy interrupt test generates bigger sectors so a loaded machine can no longer finish the run before the test's signal arrives (TEST.101).
+
 ## [7.256.635] - 2026-10-08
 
 ### Fixed
