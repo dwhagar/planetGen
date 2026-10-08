@@ -27,7 +27,7 @@ from planetgen.web.lib.fmt import (
 )
 from planetgen.web.lib.pagination import fetch_page, parse_page
 from planetgen.web.maps.phenomenonmap import render_phenomenon_map_panel
-from planetgen.web.maps.phenomenonrender import render_phenomenon_view_panel, view_kind
+from planetgen.web.maps.phenomenonrender import render_nebula_view_panel, render_phenomenon_view_panel, view_kind
 from planetgen.web.maps.systemmap import render_system_map_panel
 from planetgen.web.lib.systempage import stars_html, system_list_html
 from planetgen.web.lib.tabledisplay import format_star_radius, to_plain_text
@@ -672,6 +672,8 @@ def phenomenon(phenomenon_type, phenomenon_id):
     kind = view_kind(phenomenon_type)
     if kind == "render":
         map_html = render_phenomenon_view_panel(phenomenon_type, detail)
+    elif kind == "nebula":
+        map_html = render_nebula_view_panel(detail)
     elif kind == "map":
         map_html = render_phenomenon_map_panel(
             phenomenon_type, detail["name"], detail.get("radius_ly") or 0,

@@ -323,6 +323,29 @@ def galaxy_nebula_shape(nebula_id):
 galaxy_nebula_shape.json_only = True  # not a page: tests/test_web_a11y.py skips it
 
 
+@bp.route("/galaxy/nebula/<int:nebula_id>/surroundings")
+@page_limit("galaxy_tiles")
+def galaxy_nebula_surroundings(nebula_id):
+    """
+    JSON for a nebula page's 3D view (MAP.105): the brightest stars round
+    it. An unknown nebula is a 404 and an API failure a 502, both as
+    `{"error": ...}` JSON.
+    """
+    try:
+        payload = apiclient.get_nebula_surroundings(db_name(), nebula_id)
+    except apiclient.NotFoundError as exc:
+        return _json_error(str(exc) or "Not found.", 404)
+    except apiclient.ApiError as exc:
+        log.exception(f"API error while fetching a nebula's surroundings: {exc}")
+        return _json_error("The nebula's surroundings could not be loaded. Please try again shortly.", 502)
+    response = jsonify(payload)
+    response.headers["Cache-Control"] = "no-store"
+    return response
+
+
+galaxy_nebula_surroundings.json_only = True  # not a page: tests/test_web_a11y.py skips it
+
+
 TERRITORY_POLITY_LIMIT = 200
 """int: Most polities the territory overlay names. A galaxy has one
 polity per spacefaring species, so this is far past any real count; the

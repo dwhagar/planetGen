@@ -9,6 +9,8 @@
 <script type="module" src="{{ static_url('bookmarks.js') }}"></script>
 {%- if view_kind == "render" %}
 <script type="module" src="{{ static_url('phenomenonrender.js') }}"></script>
+{%- elif view_kind == "nebula" %}
+<script type="module" src="{{ static_url('nebulaview.js') }}"></script>
 {%- elif view_kind == "map" %}
 <script src="{{ static_url('mapzoom.js') }}" defer></script>
 <script type="module" src="{{ static_url('phenomenonmap.js') }}"></script>
@@ -48,7 +50,7 @@
      page_url('phenomenon', phenomenon_type=edit_target.split(':')[0], phenomenon_id=edit_target.split(':')[1])) }}
 {%- endif %}
 {#- A 3D view sits beside the data panel when there's room (UX.15). -#}
-{%- if view_kind == "render" %}
+{%- if view_kind in ("render", "nebula") %}
 <div class="object-view"><div class="object-view-row">
 {%- endif %}
 {%- if map_html %}{{ map_html }}{% endif %}
@@ -62,7 +64,7 @@
     </tbody>
   </table></div>
 </section>
-{%- if view_kind == "render" %}
+{%- if view_kind in ("render", "nebula") %}
 </div></div>
 {%- endif %}
 {% endblock %}

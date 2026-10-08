@@ -1504,6 +1504,61 @@ def nebula_shape(conn, nebula_id):
                                           for b in balls])
 
 
+NEBULA_SURROUNDINGS_STARS = 300
+"""int: Most bright stars `nebula_surroundings` lists around a nebula."""
+
+NEBULA_SURROUNDINGS_REACH = 2.5
+"""float: How far round a nebula `nebula_surroundings` looks for stars, in
+nebula radii (the half-width of its box)."""
+
+NEBULA_SURROUNDINGS_MIN_PC = 30.0
+"""float: The least half-width of that box, parsecs, so a small nebula still
+shows some stars round it."""
+
+
+def nebula_surroundings(conn, nebula_id):
+    """
+    The brightest stars round one nebula, for its page's 3D view (MAP.105):
+    the pre-placed bright stars (`galaxy_bright_stars_in_box`) in a box
+    `NEBULA_SURROUNDINGS_REACH` radii each side of its centre, at most
+    `NEBULA_SURROUNDINGS_STARS`.
+
+    Args:
+        conn (planetgen.db.store.Connection): An open, read-only connection.
+        nebula_id (int): `nebulae.id`.
+
+    Returns:
+        dict: `radius_pc`, `half_width_pc` (of the box) and `stars`: the
+            most luminous first, each `x`/`y`/`z` (parsecs from the
+            nebula's centre), `luminosity_sol` and `temperature_k`. No
+            stars for a nebula never placed in the galaxy.
+
+    Raises:
+        ValueError: If no such nebula exists.
+    """
+    row = conn.execute(
+        "SELECT center_x_pc, center_y_pc, center_z_pc, radius_ly FROM nebulae WHERE id = ?", (nebula_id,)).fetchone()
+    if row is None:
+        raise ValueError(f"no such nebula: {nebula_id!r}")
+    radius_pc = ly_to_pc(row["radius_ly"])
+    half = max(NEBULA_SURROUNDINGS_MIN_PC, NEBULA_SURROUNDINGS_REACH * radius_pc)
+    result = {"radius_pc": radius_pc, "half_width_pc": half, "stars": []}
+    if row["center_x_pc"] is None:
+        return result
+    center = (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"])
+    skeleton = get_galaxy_shape(conn)
+    edge_pc = skeleton.edge_pc if skeleton is not None else ly_to_pc(DEFAULT_SECTOR_EDGE_LY)
+    stars = galaxy_bright_stars_in_box(
+        conn, tuple(c - half for c in center), tuple(c + half for c in center), edge_pc,
+        limit=NEBULA_SURROUNDINGS_STARS)
+    result["stars"] = [
+        {"x": round(star["x"] - center[0], 3), "y": round(star["y"] - center[1], 3),
+         "z": round(star["z"] - center[2], 3), "luminosity_sol": star["luminosity_sol"],
+         "temperature_k": star["temperature_k"]}
+        for star in stars]
+    return result
+
+
 def phenomenon_detail(conn, phenomenon_type, phenomenon_id):
     """
     Returns one phenomenon's full row -- every column its own table has,

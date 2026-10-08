@@ -597,6 +597,13 @@ def get_nebula_shape(db, nebula_id, lod="low"):
     return _request(f"/nebulae/{int(nebula_id)}/shape", {"db": db, "lod": lod})
 
 
+def get_nebula_surroundings(db, nebula_id):
+    """Returns `GET /api/nebulae/<id>/surroundings`' payload: the brightest
+    stars round one nebula, for its page's 3D view (MAP.105)."""
+    _require_db(db)
+    return _request(f"/nebulae/{int(nebula_id)}/surroundings", {"db": db})
+
+
 def get_galaxy_changes(db, since=None):
     """Returns `GET /api/galaxy/changes`' payload (`stamp`/`state`/`full`/
     `tiles`/`stages`) -- which cube tiles and drill-down stages changed since `since`, an earlier call's

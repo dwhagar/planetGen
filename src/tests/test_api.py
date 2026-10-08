@@ -2290,3 +2290,30 @@ def test_nebula_shape_endpoint_serves_a_mesh(client, mysql_config):
     assert max(sum(v * v for v in vertex) ** 0.5 for vertex in full["vertices"]) <= 1.0
     assert client.get(f"/api/nebulae/{nebula_id}/shape?lod=ultra").status_code == 404
     assert client.get("/api/nebulae/999999/shape").status_code == 404
+
+
+def test_nebula_surroundings_endpoint_lists_the_bright_stars_round_it(client, mysql_config):
+    """MAP.105: `/api/nebulae/<id>/surroundings` lists the brightest stars
+    near the nebula, positions relative to its centre; a nebula never
+    placed has none; an unknown one is a 404."""
+    from planetgen.generation.phenomena.nebula import Nebula
+
+    edge = 3.5
+    conn = _db.get_connection(mysql_config)
+    try:
+        center = (100.0, 20.0, 0.0)
+        nebula_id = _db.insert_nebula(conn, Nebula(SystemConfig(), name="Starry"), placement={
+            "center_x_pc": center[0], "center_y_pc": center[1], "center_z_pc": center[2], "galactic_radius_pc": 102.0})
+        unplaced_id = _db.insert_nebula(conn, Nebula(SystemConfig(), name="Nowhere"))
+        near = (104.0, 22.0, 1.0)
+        far = (400.0, 20.0, 0.0)
+        _db.insert_bright_stars(conn, [_bright_row(near, 900.0, edge), _bright_row(far, 5e5, edge)])
+        conn.commit()
+    finally:
+        conn.close()
+    body = client.get(f"/api/nebulae/{nebula_id}/surroundings").get_json()
+    assert body["radius_pc"] > 0 and body["half_width_pc"] >= 30.0
+    assert [(star["x"], star["y"], star["z"]) for star in body["stars"]] == [(4.0, 2.0, 1.0)]
+    assert body["stars"][0]["luminosity_sol"] == pytest.approx(900.0, rel=1e-3)
+    assert client.get(f"/api/nebulae/{unplaced_id}/surroundings").get_json()["stars"] == []
+    assert client.get("/api/nebulae/999999/surroundings").status_code == 404

@@ -398,11 +398,20 @@ def test_phenomenon_detail(app, client, fake):
     assert "4" in links["from"] and "nebula" in links["from"]
     assert '<th scope="row">Composition</th><td>Hydrogen &amp; helium</td>' in html
     assert "<td>Supernova remnant</td>" in html
-    assert 'id="phenomenonmap-svg"' in html
+    # MAP.105: a nebula's view is its 3D shape; the script comes from the
+    # template with an absolute URL, and the panel names its two endpoints.
+    assert 'id="nebulaview"' in html and 'id="phenomenonmap-svg"' not in html
+    assert re.search(r'<script type="module" src="/static/nebulaview.js\?v=[^"]+"></script>', html)
+    assert "/galaxy/nebula/4/shape" in html and "/galaxy/nebula/4/surroundings" in html
+    assert 'src="static/' not in html
+
+
+def test_remnant_page_keeps_the_au_diagram(client, fake):
+    html = client.get("/phenomenon/supernova_remnant/4").get_data(as_text=True)
+    assert 'id="phenomenonmap-svg"' in html and 'id="nebulaview"' not in html
     # The diagram's scripts come from the template with absolute URLs.
     assert re.search(r'<script src="/static/mapzoom.js\?v=[^"]+" defer></script>', html)
     assert re.search(r'<script type="module" src="/static/phenomenonmap.js\?v=[^"]+"></script>', html)
-    assert 'src="static/' not in html
 
 
 def test_quasar_detail(client, fake):
