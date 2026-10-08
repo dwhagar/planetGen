@@ -438,6 +438,27 @@ def _hover_choice(page, wanted=None, steps=32):
     return found
 
 
+def _click_steady(page, wanted, steps=48):
+    """Clicks where the tooltip names `wanted`, once that has held for a moment
+    with the real pointer there (TEST.109): a scan with synthetic pointer events
+    can land on a spot the map is still redrawing under (its contents table and
+    shapes settle after load), where a real click picks something else. Scans
+    again until the pointer, moved to the spot, still reads `wanted`."""
+    for _ in range(20):
+        found = _hover_choice(page, wanted, steps=steps)
+        assert found, f"no spot on the map names {wanted}"
+        page.mouse.move(found[0], found[1])
+        page.wait_for_timeout(200)
+        page.mouse.move(found[0] + 1, found[1])
+        page.mouse.move(found[0], found[1])
+        tooltip = page.evaluate("() => { const tip = document.querySelector('#galaxymap3d-tooltip'); return tip.hidden ? '' : tip.textContent; }")
+        if re.search(wanted, tooltip):
+            page.mouse.click(found[0], found[1])
+            return found
+        page.wait_for_timeout(250)
+    pytest.fail(f"the pointer never steadily read {wanted}")
+
+
 def _click_choice(page, wanted=None):
     found = _hover_choice(page, wanted)
     assert found, f"nothing to click on the Galaxy Map ({wanted}); at {_crumbs(page)}"
@@ -1752,9 +1773,7 @@ def test_sector_map_click_on_the_selected_nebula_clears_it(page, map_site):
     _open_sector(page, map_site)
     resting = _info_title(page)
     nebula = next(p for p in PHENOMENA if p["type"] == "nebula")
-    found = _hover_choice(page, re.escape(nebula["name"]), steps=48)
-    assert found, "no spot on the Sector Map names the nebula"
-    page.mouse.click(found[0], found[1])
+    found = _click_steady(page, re.escape(nebula["name"]))
     assert _info_title(page) == nebula["name"]
     page.mouse.click(found[0], found[1])
     assert _info_title(page) == resting
@@ -1965,3 +1984,30 @@ def test_galaxy_map_wheel_carries_the_zoom_into_a_system_and_back(page, map_site
         page.wait_for_timeout(30)
     _wait_system(page, present=False)
     assert _query(page) == OPEN_PRIME[1:]
+
+
+def test_galaxy_map_color_by_switches_the_fill_with_a_legend_and_keeps_it_in_the_url(page, map_site):
+    """MAP.131: the Menu's Color by recolours the blocks by one statistic,
+    shows what the colours mean, keeps the choice in the address and goes
+    back to the default."""
+    _open_galaxy(page, map_site, "?sector=100000001")
+    legend = page.locator("#galaxymap3d-legend")
+    assert legend.is_hidden()
+    page.locator("#galaxymap3d-menu summary").click()
+    for mode in ("density", "age", "luminosity", "stars"):
+        page.select_option("#galaxymap3d-color-by", mode)
+        _settle(page)
+        assert f"color={mode}" in _query(page)
+        assert legend.is_visible(), mode
+        assert legend.locator(".galaxy-legend-low").inner_text() != ""
+        assert legend.locator(".galaxy-legend-title").inner_text() != ""
+    # Reload on the address: the select and the mode follow it.
+    page.reload()
+    page.wait_for_selector("#galaxymap3d-steps [data-steps-panel] li", state="attached")
+    assert page.input_value("#galaxymap3d-color-by") == "stars"
+    assert legend.is_visible()
+    page.locator("#galaxymap3d-menu summary").click()
+    page.select_option("#galaxymap3d-color-by", "default")
+    _settle(page)
+    assert "color=" not in _query(page)
+    assert legend.is_hidden()

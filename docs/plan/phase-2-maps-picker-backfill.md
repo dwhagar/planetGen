@@ -39,7 +39,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.58 | Galaxy Map zoom limits: a short manual range on the galaxy wedge, locked below it |  | A zoom policy of MAP.64. |
 | MAP.75 | The mini map as a second engine view |  | Locked second camera on MAP.64. |
 | MAP.59 | Make it plain that a zoomed-in slab is a slab, not a wedge | MAP.75 |  |
-| MAP.131 | A Color by switch on the Galaxy Map, with a legend |  | Later (Boss 2026-10-08 01:59Z colors). |
 | MAP.132 | Overlay markers for black holes, nebulae and habitable worlds | GEN.84 | Later (Boss 2026-10-08 01:59Z colors). |
 
 ### Courses
@@ -48,7 +47,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | NAV.20 | Draw the direct line and the route apart |  |  |
 | NAV.21 | Fit the view to the whole course | MAP.58 | Same fit as MAP.53, exempt from MAP.58's lock. |
-| NAV.17 | A saved course record with both forms | NAV.7 |  |
+| NAV.17 | A saved course record with both forms |  |  |
 | NAV.18 | Save, list, open, rename and delete, per browser | NAV.17 | Sibling of bookmarks.js. |
 | NAV.4 | Save a course | NAV.17, NAV.18 | Per browser now; NAV.19 moves it into accounts in phase 3+. |
 | NAV.24 | A keep-out radius for every kind of object |  | Unblocked: nebulae exist since GEN.47 (PR #419), so the nebula keep-out question can be settled. |
