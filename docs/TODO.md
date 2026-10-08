@@ -112,7 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 is done (PR #476); GEN.117, GEN.116 keeps watch for Boss's error text. | GEN.116, SEC.29, TEST.72, SEC.30, TEST.83, UX.39, OPS.20, DB.11, DB.13, ADM.21, GEN.66, GEN.74, GEN.68, GEN.69, GEN.70, GEN.71, GEN.72, GEN.73, GEN.67, UX.41, UX.33, NAV.7, MAP.79, NAV.29, NAV.33, MAP.67, MAP.68, MAP.61, NAV.32, MAP.102, MAP.106, MAP.109, MAP.113, MAP.116, GEN.75, MAP.103, MAP.104, MAP.105, UX.38, UX.37, UX.21 |
+| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 is done (PR #476); GEN.117, GEN.116 keeps watch for Boss's error text. | GEN.116, SEC.29, TEST.72, SEC.30, TEST.83, UX.39, OPS.20, DB.11, DB.13, ADM.21, GEN.66, GEN.74, GEN.68, GEN.69, GEN.70, GEN.71, GEN.72, GEN.73, GEN.67, UX.41, UX.33, NAV.7, MAP.79, NAV.29, NAV.33, MAP.67, MAP.61, NAV.32, MAP.102, MAP.106, MAP.109, MAP.113, MAP.116, GEN.75, MAP.103, MAP.104, MAP.105, UX.38, UX.37, UX.21 |
 | 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, NAV.16, NAV.3, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.41, GEN.98, GEN.100, GEN.99, GEN.101, GEN.102, GEN.103, GEN.84, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, GEN.94, GEN.104, GEN.106, GEN.107, GEN.108, NAV.10, NAV.12, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, NAV.43, NAV.44, MAP.119, MAP.122, MAP.123, MAP.124, MAP.128, MAP.89, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, OPS.8, OPS.13, OPS.14, ADM.18, GEN.59, UX.49, NAV.50 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.58, MAP.75, MAP.59, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, API.16, MAP.69, MAP.70, ADM.17, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.131, MAP.132, API.18, VIEW.5 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, repair that reads the newest settings JSON, and the anomalies chosen in phase 2. | MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, MAP.126, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, DB.10, ADM.20, GEN.114, MAP.125, API.19 |
@@ -221,7 +221,7 @@ with `clamp()`.
   already remove some dead controls on the Galaxy Map.
   It also runs after UX.37 (Boss's sweep for redundant and duplicate
   controls), so this layout pass checks the controls that are kept.
-  Prerequisites: MAP.68, NAV.32, UX.37.
+  Prerequisites: NAV.32, UX.37.
   Plan (2026-10-07): Moved into phase 0 (all bugs in phase 0), as the
   last item of the groundwork lane.
 
@@ -613,8 +613,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   view so it's all the same code and control set, because right now
   they're different." Today the Galaxy Map (`galaxymap3d.js`,
   `galaxystageview.js`, `galaxystages.js`) and the Sector Map
-  (`sectormap.js`) are separate three.js pages, with their own camera,
-  controls, picking, tooltips and scale readouts. Done: one shared
+  (`sectormap.js`) were separate three.js pages, with their own camera,
+  controls, picking, tooltips and scale readouts. Progress (2026-10-08):
+  the sector page now draws the Galaxy Map engine locked to its sector
+  (MAP.68, PR #573) and `sectormap.js` is gone; the system view
+  (MAP.62) is the part still apart. Done: one shared
   engine (scene, camera, controls, picking, hover, info panel, scale
   line, bookmarks, keys and touch) draws both. The sector is the
   deepest stage of the galaxy drill-down, with the same buttons and
@@ -626,7 +629,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   before (or as the first PR of) the MAP.52 to MAP.60 work, because
   those items rewrite the same files (`galaxymap3d.js`,
   `galaxystageview.js`); the rest follow MAP.52 to MAP.60.
-  Prerequisites: MAP.67, MAP.68.
+  Prerequisite: MAP.67.
   Plan (2026-10-07): Moved into phase 0 with its subitems. MAP.125
   (infinite zoom) is its end state in phase 3.
 
@@ -634,13 +637,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     Galaxy stages, a sector, and (with MAP.62) a system and a body in
     one URL form (for example `?at=` for stages, `?sector=`, `?object=<ref>`),
     so Back, Forward, reload and bookmarks work the same at every level.
-
-  - [ ] **MAP.68 Remove the old Sector Map code**
-    Once the sector stage matches it (tests from TEST.70), `sectormap.js` is deleted, the sector
-    page `/sector/<id>` (tables, text, edit tools) embeds the one engine instead (carried over
-    from MAP.66, whose Galaxy Map half is done in PR #548), and the docs
-    (`docs/html-interface.md`, the drill-down design) describe the one
-    engine.
+    Progress (2026-10-08): the stage and sector levels are done (PR #573:
+    the sector page's map is the Galaxy Map engine locked to its sector,
+    with the one URL scheme). Done now means the system and body URL
+    forms, which ride with MAP.62.
 
 - [ ] **MAP.62 A full 3D star system view with a free camera**
   Boss (2026-10-01 20:55Z): "rendering a star system as a full 3D
@@ -708,7 +708,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   objects should shine through. Or let's say provide a button that
   turns each phenomena on and off in the sector map." Today every rogue
   planet gets a bright glow and a fixed-size ring on the Sector Map
-  (`sectormap.js`, MAP.46), so in a busy sector they cover the stars.
+  (MAP.46), so in a busy sector they cover the stars. Progress
+  (2026-10-08): `sectormap.js` is gone (MAP.68, PR #573); the sector page
+  now draws the Galaxy Map engine, which has only the "Mark rogue planets"
+  button, so the toggles and the dimming go into the engine for both maps.
   Done (default taken, Boss's second wording): the Sector Map has one
   toggle button per kind of object it draws (stars, rogue planets,
   interstellar comets, black holes, neutron stars, nebulae and so on),
@@ -760,7 +763,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   from the map's current state on every change (zoom, pick, back and
   forward, URL load), and a browser test walks the levels and checks
   them.
-  Prerequisite: MAP.67.
 
 - [ ] **MAP.109 Zooming in and out loads slowly (bug)**
   Boss (2026-10-03 05:38Z): "Loading between zooms in and out gets very,
@@ -876,7 +878,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   to the nearest zoom possible to see as much of the charted space as
   possible." Done: with no view in the URL, the map opens at the closest
   zoom that shows every charted sector.
-  Prerequisite: MAP.67.
 
 - [ ] **MAP.128 Decide what the Sector Map tints by star age, density and luminosity, and test it**
   Boss (2026-10-08 01:59Z): "Density determines transparency with more solid meaning more dense. Stellar age measures hue. Brightness measures luminosity of the sector or block. Blocks will never be fully opaque for coloring that is the color of the translucent fill."
@@ -1217,7 +1218,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Here" and then the user goes to the next stage navigating back out
   from where their start or end is." Today a system or phenomenon's
   info panel on the maps offers "Nav from here" and "Nav to here"
-  (`appendNavActions` in `sectormap.js`), which jump to the NAV page's
+  (`appendNavActions` in the old `sectormap.js`, now `navLinks` in `galaxymap3d.js` and the panel in `mappick.js`), which jump to the NAV page's
   own pickers and leave the map. Done: while picking a course, the panel
   offers "Start Here" (or "End Here" once the start is set); choosing
   it keeps the user on the map, and they pick the other end by stepping
@@ -1237,7 +1238,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   mode on the one engine (MAP.61) and the shared picker (NAV.3, NAV.15)
   rather than as a separate copy; until then each map fix must be
   checked in pick mode too.
-  Prerequisites: MAP.68, NAV.29, NAV.33, MAP.79.
+  Prerequisites: NAV.29, NAV.33, MAP.79.
   Plan (2026-10-07): Moved into phase 0 with the engine (all bugs in
   phase 0).
 
