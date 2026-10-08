@@ -85,7 +85,7 @@ export function createSectorStage(host) {
         state.hovered = ringAround(hoverRing, entry);
       },
       select: function (entry) {
-        host.showInfo(infoSpec(entry, state.data));
+        host.showInfo(infoSpec(entry, state.data, host.navPick));
         state.selectedEntry = entry;
         state.selected = ringAround(selectionRing, entry);
       },

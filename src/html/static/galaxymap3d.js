@@ -66,17 +66,27 @@ const {
 } = await import(`./mapcore.js${VERSION_QUERY}`);
 const { blockGenerateButtons, generateButtons } = await import(`./generatebuttons.js${VERSION_QUERY}`);
 const { createPicker, createRing, endpointBookmark, infoPanelOf } = await import(`./mappick.js${VERSION_QUERY}`);
+const { createNavPick } = await import(`./navpick.js${VERSION_QUERY}`);
 
 var canvas = document.getElementById("galaxymap3d-canvas");
 var dataEl = document.getElementById("galaxymap3d-data");
 
 var sceneData = readSceneData(dataEl);
 
+// The NAV course being picked (navpick.js, NAV.29): the page opened with the
+// NAV page's pick, or none; "Start Here" and "End Here" move it on in place.
+var pickStart = sceneData || {};
+var navPick = createNavPick({
+  navUrl: pickStart.navUrl, pick: pickStart.pick, other: pickStart.pickOther, cancelUrl: pickStart.pickCancel,
+  onChange: function () { if (onPickChanged) onPickChanged(); },
+});
+var onPickChanged = null; // set once the map is built
+
 // The sector page's URL: the server's template (sceneData.sectorUrl,
 // built with page_url so it follows the sector page wherever it lives)
-// with the id filled in.
+// with the id filled in and the NAV pick carried on.
 function sectorUrl(id) {
-  return String(sceneData.sectorUrl || "").replace("{id}", encodeURIComponent(id));
+  return String(sceneData.sectorUrl || "").replace("{id}", encodeURIComponent(id)) + navPick.query();
 }
 
 export { formatAddress };
@@ -354,37 +364,18 @@ function phenomenonUrl(cloud) {
 }
 
 // A phenomenon's ☆ entry (its NAV endpoint) and links: its page, and
-// NAV from or to it, or the pick button while a NAV end is picked.
+// "Start Here" and "End Here", or the one button for the end being picked.
 function phenomenonActions(item) {
   var endpoint = item.type + ":" + item.id;
   var spec = { bookmark: endpointBookmark(endpoint, item.name, sceneData.phenomenonUrl ? phenomenonUrl(item) : null) };
   // Not while choosing a NAV endpoint (NAV.30): it would leave the course.
-  if (sceneData.phenomenonUrl && !sceneData.pick) {
+  if (sceneData.phenomenonUrl && !navPick.active()) {
     spec.links = [{ href: phenomenonUrl(item), label: "View phenomenon →" }];
   }
   if (sceneData.navUrl) {
-    spec.nav = navLinks(endpoint);
+    spec.nav = navPick.actionsFor(endpoint, item.name);
   }
   return spec;
-}
-
-// The NAV links for an endpoint: "Nav from here" and "Nav to here", or,
-// while a NAV start or destination is picked, the pick button that ends
-// the pick with it.
-function navLinks(endpoint) {
-  var base = String(sceneData.navUrl);
-  var join = base.indexOf("?") < 0 ? "?" : "&";
-  if (sceneData.pick) {
-    var keep = sceneData.pickKeep ? "&" + sceneData.pickKeep : "";
-    return {
-      pick: base + join + sceneData.pick + "=" + encodeURIComponent(endpoint) + keep,
-      pickLabel: sceneData.pickLabel,
-    };
-  }
-  return {
-    from: base + join + "from=" + encodeURIComponent(endpoint),
-    to: base + join + "to=" + encodeURIComponent(endpoint),
-  };
 }
 
 function showCloudInfo(cloud) {
@@ -2031,7 +2022,8 @@ function initGalaxyMap3d(canvasEl, data) {
     makeBlockMesh: makeBlockMesh,
     // While picking a NAV start or destination, the map's own URLs keep
     // the pick, so Back, a reload or a bookmark of the page keep it too.
-    pickQuery: data.pickQuery || "",
+    pickQuery: function () { return navPick.query(); },
+    navPick: navPick,
     // The stage view turns the camera freely (MAP.96): `quaternion` is
     // its turn, the camera sitting `dist` back along it from `target`.
     setCamera: function (v) {
@@ -2064,10 +2056,9 @@ function initGalaxyMap3d(canvasEl, data) {
     // slot}; another sector's click goes to that sector's page.
     pinned: data.pinned || null,
     openSectorPage: function (id) { if (sceneData.sectorUrl) location.assign(sectorUrl(id)); },
-    // The sector page's scene JSON (planetgen/web/sector_page.py), keeping
-    // a NAV pick in the entries' links.
+    // The sector page's scene JSON (planetgen/web/sector_page.py).
     fetchSectorScene: sceneData.sectorUrl ? function (id) {
-      var path = sectorUrl(id).split("?")[0] + "/scene" + (data.pickQuery || "");
+      var path = sectorUrl(id).split("?")[0] + "/scene";
       return fetch(path, { headers: { Accept: "application/json" } })
         .then(function (response) {
           if (!response.ok) {
@@ -2245,17 +2236,93 @@ function initGalaxyMap3d(canvasEl, data) {
     updateScaleBar();
   });
 
-  // NAV's "Pick on Galaxy Map": endpoints live only in generated
-  // sectors, so "Charted only" stays on (design doc section 9).
-  if (data.pick) {
-    setChartedOnly(true);
-    stageView.setNeedGenerated(true);
+  // While a NAV course is picked "Charted only" stays on (its button is
+  // locked); after the pick it stays as it was and the button is free again.
+  function lockChartedOnly(on) {
+    if (on) {
+      setChartedOnly(true);
+      stageView.setNeedGenerated(true);
+    }
     var onlyButton = document.querySelector('#galaxymap3d-controls [data-action="charted-only"]');
     if (onlyButton) {
-      onlyButton.setAttribute("aria-pressed", "true");
-      onlyButton.disabled = true;
-      onlyButton.title = "Always on while choosing a NAV start or destination";
+      if (on) onlyButton.setAttribute("aria-pressed", "true");
+      onlyButton.disabled = on;
+      onlyButton.title = on ? "Always on while choosing a NAV start or destination" : "";
     }
+  }
+
+  // The pick moved on or ended (navpick.js): the banner, the Bookmarks menu,
+  // the URL and the panel follow, and the view stays where it is.
+  function pickChanged() {
+    lockChartedOnly(navPick.active());
+    renderPickBanner();
+    keepPickInBookmarks();
+    stageView.pickChanged();
+    var panel = infoPanel();
+    if (panel) {
+      panel.hint(navPick.active()
+        ? navPick.bannerParts("object")[0] + ": zoom out or in to find it, then click it."
+        : "NAV pick cancelled.", false);
+    }
+  }
+
+  onPickChanged = pickChanged;
+
+  // The banner under the map's title: the page's own when the NAV page began
+  // the pick, else made here.
+  function renderPickBanner() {
+    var banner = document.querySelector(".pick-banner");
+    var parts = navPick.bannerParts("object");
+    if (!parts) {
+      if (banner) banner.remove();
+      return;
+    }
+    if (!banner) {
+      banner = document.createElement("p");
+      banner.className = "pick-banner";
+      banner.setAttribute("role", "status");
+      var layout = document.querySelector(".galaxymap3d-panel .starmap-layout");
+      if (!layout || !layout.parentNode) return;
+      layout.parentNode.insertBefore(banner, layout);
+    }
+    banner.textContent = "";
+    var lead = document.createElement("strong");
+    lead.textContent = parts[0] + ":";
+    banner.appendChild(lead);
+    banner.appendChild(document.createTextNode(parts[1]));
+    var cancelUrl = navPick.cancelUrl();
+    var cancel = document.createElement(cancelUrl ? "a" : "button");
+    cancel.textContent = "Cancel";
+    if (cancelUrl) {
+      cancel.href = cancelUrl;
+    } else {
+      cancel.type = "button";
+      cancel.className = "btn btn-small";
+      cancel.addEventListener("click", function () { navPick.clear(); });
+    }
+    banner.appendChild(cancel);
+  }
+
+  // The Bookmarks menus carry the pick (NAV.40, bookmarks.js reads these).
+  function keepPickInBookmarks() {
+    Array.prototype.forEach.call(document.querySelectorAll("[data-bookmarks-menu]"), function (menu) {
+      if (navPick.active()) {
+        menu.setAttribute("data-pick", navPick.pick());
+        menu.setAttribute("data-keep-name", navPick.keepName());
+        menu.setAttribute("data-keep-value", navPick.other() || "");
+        menu.setAttribute("data-nav-url", String(sceneData.navUrl || "/nav"));
+      } else {
+        ["data-pick", "data-keep-name", "data-keep-value", "data-nav-url"].forEach(function (name) {
+          menu.removeAttribute(name);
+        });
+      }
+    });
+  }
+
+  // NAV's "Pick on Galaxy Map": endpoints live only in generated
+  // sectors, so "Charted only" stays on (design doc section 9).
+  if (navPick.active()) {
+    lockChartedOnly(true);
   }
 
   // The drill-down, at the stage the URL names.

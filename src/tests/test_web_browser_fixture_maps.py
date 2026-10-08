@@ -142,8 +142,8 @@ def test_sector_map_click_picks_a_star(page, map_site):
     assert "Star type" in info.inner_text()
     view = info.locator("a", has_text="View system")
     assert view.count() == 1 and view.get_attribute("href").endswith(f"/system/{system_id}")
-    nav = [a.inner_text() for a in info.locator("a").all()]
-    assert "Nav from here" in nav and "Nav to here" in nav
+    nav = [b.inner_text() for b in info.locator("button").all()]
+    assert "Start Here" in nav and "End Here" in nav
     assert _shot(page, SECTOR_CANVAS) != before, "the picked star gets a highlight ring"
 
 
@@ -542,8 +542,8 @@ def test_galaxy_map_opens_a_sector_in_place(page, map_site):
     assert name in hovered, f"the tooltip for {name}: {hovered!r}"
     system_id = next(i for i, n, *_rest in SYSTEMS if n == name)
     assert info.locator("a", has_text="View system").get_attribute("href").endswith(f"/system/{system_id}")
-    nav = [a.inner_text() for a in info.locator("a").all()]
-    assert "Nav from here" in nav and "Nav to here" in nav
+    nav = [b.inner_text() for b in info.locator("button").all()]
+    assert "Start Here" in nav and "End Here" in nav
 
     assert _on_galaxy(page) and _query(page) == OPEN_PRIME[1:]
     page.click('#galaxymap3d-controls [data-action="up"]')
@@ -787,11 +787,45 @@ def test_sector_map_pick_mode_offers_only_the_pick_button(page, map_site):
     _open_sector(page, map_site, "?pick=to")
     _x, _y, name = _click_a_star(page)
     info = page.locator("#galaxymap3d-info")
-    links = [a.inner_text() for a in info.locator("a").all()]
-    assert links == ["Use as destination"] or (len(links) == 1 and "destination" in links[0].lower()), links
+    buttons = [b.inner_text() for b in info.locator(".map-info-actions button:not(.map-info-bookmark)").all()]
+    assert info.locator("a", has_text="View").count() == 0
+    assert buttons == ["End Here"], buttons
     page.locator(".starmap-sr-list button", has_text="Fixture Pulsar").evaluate("b => b.click()")
-    links = [a.inner_text() for a in info.locator("a").all()]
-    assert len(links) == 1 and "View" not in links[0], links
+    assert info.locator("a", has_text="View").count() == 0
+    assert [b.inner_text() for b in info.locator(".map-info-actions button:not(.map-info-bookmark)").all()] == ["End Here"]
+
+
+def test_start_here_keeps_the_view_and_end_here_opens_the_course(page, map_site):
+    """NAV.29 and NAV.33: "Start Here" on a star keeps the user on the map at
+    the same view, with the start in the URL and a banner asking for the
+    destination; "End Here" on another object then opens the NAV page with
+    both ends."""
+    _open_sector(page, map_site)
+    _x, _y, first = _click_a_star(page)
+    start_id = next(i for i, n, *_rest in SYSTEMS if n == first)
+    url_before = page.url
+    page.locator("#galaxymap3d-info button", has_text="Start Here").click()
+    assert page.url.split("?")[0] == url_before.split("?")[0], "no page change"
+    assert parse_qs(urlparse(page.url).query) == {"pick": ["to"], "from": [f"system:{start_id}"]}, page.url
+    banner = page.locator(".pick-banner")
+    assert "Choosing a destination" in banner.inner_text() and first in banner.inner_text()
+    other = next(n for n in SYSTEM_NAMES if n != first)
+    page.locator(".starmap-sr-list button", has_text=other).first.evaluate("b => b.click()")
+    assert _info_title(page) == other
+    end_id = next(i for i, n, *_rest in SYSTEMS if n == other)
+    link = page.locator("#galaxymap3d-info a", has_text="End Here")
+    assert link.count() == 1 and page.locator("#galaxymap3d-info a", has_text="View").count() == 0
+    query = parse_qs(urlparse(link.get_attribute("href")).query)
+    assert query == {"from": [f"system:{start_id}"], "to": [f"system:{end_id}"]}, query
+
+
+def test_cancel_ends_a_pick_begun_on_the_map(page, map_site):
+    _open_sector(page, map_site)
+    _click_a_star(page)
+    page.locator("#galaxymap3d-info button", has_text="Start Here").click()
+    page.locator(".pick-banner button", has_text="Cancel").click()
+    assert page.locator(".pick-banner").count() == 0
+    assert "pick" not in parse_qs(urlparse(page.url).query)
 
 
 def _click_galaxy_stars(page, count=5):
@@ -1579,8 +1613,8 @@ def test_galaxy_map_draws_point_phenomena_that_link_to_their_pages(page, map_sit
 
 def test_galaxy_map_point_phenomena_hover_and_offer_nav_links(page, map_site):
     """MAP.65: a black hole, neutron star or quasar shows a tooltip with its
-    name under the pointer, and its panel offers Nav from here, Nav to
-    here and a ☆, as the Sector Map's does."""
+    name under the pointer, and its panel offers Start Here, End Here
+    and a ☆, as the Sector Map's does."""
     _open_galaxy(page, map_site, "?at=27.27.0.0")
     page.wait_for_timeout(1000)
     names = {point["name"]: point for point in POINT_FIELD}
@@ -1596,10 +1630,10 @@ def test_galaxy_map_point_phenomena_hover_and_offer_nav_links(page, map_site):
         info = page.locator("#galaxymap3d-info")
         assert info.locator("h3").inner_text() == name
         endpoint = f'{point["type"]}:{point["id"]}'
-        for label, field in (("Nav from here", "from"), ("Nav to here", "to")):
-            href = info.locator("a", has_text=label).get_attribute("href")
-            assert parse_qs(urlparse(href).query)[field] == [endpoint], href
+        assert [b.inner_text() for b in info.locator(".map-info-actions button:not(.map-info-bookmark)").all()] == ["Start Here", "End Here"]
         assert info.locator(".map-info-bookmark").inner_text() == "☆ Bookmark"
+        info.locator("button", has_text="Start Here").click()
+        assert parse_qs(urlparse(page.url).query)["from"] == [endpoint], page.url
         return
     pytest.fail("no point phenomenon showed a tooltip under the pointer")
 

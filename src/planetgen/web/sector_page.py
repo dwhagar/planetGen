@@ -380,8 +380,8 @@ def _with_bright_stars(neighbors):
     return result
 
 
-_PICK_LABELS = {"from": ("Choosing a start", "Use as start"),
-                "to": ("Choosing a destination", "Use as destination")}
+_PICK_LABELS = {"from": ("Choosing a start", "Start Here"),
+                "to": ("Choosing a destination", "End Here")}
 
 
 def _pick_mode(args):
@@ -449,7 +449,7 @@ def _sector_map_html(detail, pick, admin):
         stage_path=url_for("web.galaxy_stage"),
         locate_path=url_for("web.galaxy_locate"),
         territory_path=None,
-        sector_url=sector_url_template() + (pick["query"] if pick else ""),
+        sector_url=sector_url_template(),
         generate=generate_target(admin),
         pick=pick,
         phenomenon_url=phenomenon_url_template(),
@@ -457,23 +457,6 @@ def _sector_map_html(detail, pick, admin):
         nav_url=page_url("nav"),
         pinned={"ring": address[0], "layer": address[1], "slot": address[2], "center_pc": center},
     )
-
-
-def _nav_for(pick):
-    """The Sector Map's `nav(kind, id)` hook (`starmap.render_map_panel`)."""
-    from .nav_page import endpoint, nav_url  # nav_page imports this module
-
-    def nav(kind, entity_id):
-        here = endpoint(kind, entity_id)
-        links = {"from": nav_url(origin=here), "to": nav_url(destination=here), "pick": None, "pickLabel": None}
-        if pick is not None:
-            if pick["pick"] == "from":
-                links["pick"] = nav_url(origin=here, destination=pick["other"])
-            else:
-                links["pick"] = nav_url(origin=pick["other"], destination=here)
-            links["pickLabel"] = pick["label"]
-        return links
-    return nav
 
 
 def sector_designation(sector):
@@ -549,7 +532,7 @@ def sector_scene(sector_id):
         (detail.get("ring_index"), detail.get("layer_index"), detail.get("ring_slot_index")),
         center_pc, map_systems, phenomena=detail.get("phenomena"),
         neighbors=_with_bright_stars(detail.get("neighbors")),
-        generate=generate_target(current_admin()), nav=_nav_for(_pick_mode(request.args)),
+        generate=generate_target(current_admin()),
     )
     response = jsonify(scene)
     response.headers["Cache-Control"] = "no-store"

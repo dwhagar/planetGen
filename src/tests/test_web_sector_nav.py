@@ -219,6 +219,12 @@ def _csrf(app, client):
         return csrf._sign(nonce, session.value if session else "")  # bound to the login session
 
 
+def _page_scene(html):
+    """The map's scene data a sector page embeds (`#galaxymap3d-data`)."""
+    match = re.search(r'<script type="application/json" id="galaxymap3d-data">(.*?)</script>', html, re.S)
+    return json.loads(match.group(1))
+
+
 def _scene(client, path):
     """The sector's scene JSON (`/sector/<id>/scene`, what the map draws) for a
     sector page's `path`, query and all."""
@@ -280,11 +286,10 @@ def test_sector_scene_json_is_the_pages_own_scene_for_the_galaxy_map(client, fak
     assert {star["href"] for star in scene["stars"]} == {"/system/1001", "/system/1002"}
 
 
-def test_sector_scene_keeps_a_nav_pick(client, fake):
-    plain = client.get("/sector/5/scene").get_json()
-    picking = client.get("/sector/5/scene?pick=from").get_json()
-    assert all(star["nav"]["pick"] is None for star in plain["stars"])
-    assert all(star["nav"]["pick"] and star["nav"]["pickLabel"] for star in picking["stars"])
+def test_sector_scene_names_each_endpoint_and_leaves_the_nav_buttons_to_the_page(client, fake):
+    scene = client.get("/sector/5/scene").get_json()
+    assert {star["endpoint"] for star in scene["stars"]} == {"system:1001", "system:1002"}
+    assert not any("nav" in entry for entry in scene["stars"] + scene["clouds"])
 
 
 def test_sector_contents_pager_uses_get_links(client, fake):
@@ -908,15 +913,9 @@ def test_real_admin_action_error_shows_on_the_page(db_client, mysql_config):
 
 # --- NAV links and pick mode (MAP.21, design doc sections 9.1-9.2) ----------------
 
-def test_sector_map_entries_carry_nav_links(app, client, fake):
-    scene = _scene(client, "/sector/5")
-    with app.test_request_context():
-        alpha_from = nav_url(origin=endpoint("system", 1001))
-        veil_to = nav_url(destination=endpoint("nebula", 3))
-    alpha = next(star for star in scene["stars"] if star["href"] == "/system/1001")
-    assert alpha["nav"] == {"from": alpha_from, "to": nav_url_for(app, None, "system:1001"),
-                            "pick": None, "pickLabel": None}
-    assert scene["clouds"][0]["nav"]["to"] == veil_to
+def test_sector_map_page_offers_start_here_and_end_here_without_a_pick(client, fake):
+    page = _page_scene(client.get("/sector/5").get_data(as_text=True))
+    assert page["pick"] is None and page["navUrl"] == "/nav"
     assert "pick-banner" not in client.get("/sector/5").get_data(as_text=True)
 
 
@@ -928,22 +927,19 @@ def nav_url_for(app, origin, destination):
 def test_pick_destination_mode(app, client, fake):
     html = client.get("/sector/5?pick=to&from=system:12").get_data(as_text=True)
     banner = re.search(r'<p class="pick-banner".*?</p>', html, re.S).group(0)
-    assert "Choosing a destination" in banner and "Use as destination" in banner
+    assert "Choosing a destination" in banner and "End Here" in banner
     assert f'href="{escape(nav_url_for(app, "system:12", None))}">Cancel</a>' in banner
-    scene = _scene(client, "/sector/5?pick=to&from=system:12")
-    alpha = next(star for star in scene["stars"] if star["href"] == "/system/1001")
-    assert alpha["nav"]["pick"] == nav_url_for(app, "system:12", "system:1001")
-    assert alpha["nav"]["pickLabel"] == "Use as destination"
-    assert scene["clouds"][0]["nav"]["pick"] == nav_url_for(app, "system:12", "nebula:3")
+    page = _page_scene(html)
+    assert page["pick"] == "to" and page["pickOther"] == "system:12"
+    assert page["navUrl"] == "/nav"
 
 
 def test_pick_start_mode_without_the_other_end(app, client, fake):
     html = client.get("/sector/5?pick=from").get_data(as_text=True)
     assert "Choosing a start" in html
     assert f'href="{escape(nav_url_for(app, None, None))}">Cancel</a>' in html
-    alpha = next(star for star in _scene(client, "/sector/5?pick=from")["stars"] if star["href"] == "/system/1001")
-    assert alpha["nav"]["pick"] == nav_url_for(app, "system:1001", None)
-    assert alpha["nav"]["pickLabel"] == "Use as start"
+    page = _page_scene(html)
+    assert page["pick"] == "from" and page["pickOther"] is None
 
 
 @pytest.mark.parametrize("query", ["pick=sideways", "pick=to&from=planet:3", "pick=to&from=system:x"])
@@ -952,7 +948,7 @@ def test_bad_pick_mode_is_ignored(client, fake, query):
     assert resp.status_code == 200
     html = resp.get_data(as_text=True)
     assert "pick-banner" not in html
-    assert all(star["nav"]["pick"] is None for star in _scene(client, f"/sector/5?{query}")["stars"])
+    assert _page_scene(html)["pick"] is None
 
 
 # --- Bright stars waiting in an unfilled neighbor -----------------------------------

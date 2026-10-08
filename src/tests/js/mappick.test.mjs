@@ -127,7 +127,7 @@ test("the info panel shows the rows it has a value for, then the actions", () =>
   panel.show({
     title: "Sol",
     fields: [["Star type", "G2V"], ["Octant", null], ["Systems", 0]],
-    nav: { from: "/nav?from=system:1", to: "/nav?to=system:1" },
+    nav: [{ label: "Start Here", href: "/nav?from=system:1" }, { label: "End Here", href: "/nav?to=system:1" }],
     bookmark: MP.endpointBookmark("system:1", "Sol", "/system/1"),
     links: [{ href: "/system/1", label: "View system →" }],
     hint: "Click another star.",
@@ -147,12 +147,30 @@ test("while a NAV end is picked the panel offers only the pick button", () => {
   document.body.append(panelEl);
   MP.infoPanelOf(panelEl).show({
     title: "Sol",
-    nav: { pick: "/nav?from=system:1&to=system:2", pickLabel: "Use as start" },
+    nav: [{ label: "Start Here", href: "/nav?from=system:1&to=system:2", primary: true }],
   });
   const links = panelEl.querySelectorAll("a");
   assert.equal(links.length, 1);
-  assert.equal(links[0].textContent, "Use as start");
+  assert.equal(links[0].textContent, "Start Here");
   assert.equal(links[0].getAttribute("href"), "/nav?from=system:1&to=system:2");
+});
+
+test("NAV buttons without a link are buttons that act in place", () => {
+  installDom("http://localhost/");
+  const panelEl = h("aside", {});
+  document.body.append(panelEl);
+  const clicks = [];
+  MP.infoPanelOf(panelEl).show({
+    title: "Sol",
+    nav: [
+      { label: "Start Here", onClick: () => clicks.push("start") },
+      { label: "End Here", onClick: () => clicks.push("end") },
+    ],
+  });
+  const buttons = panelEl.querySelectorAll("button");
+  assert.deepEqual([...buttons].map((b) => b.textContent), ["Start Here", "End Here"]);
+  buttons[1].click();
+  assert.deepEqual(clicks, ["end"]);
 });
 
 test("a NAV endpoint's bookmark entry takes its kind from the endpoint", () => {

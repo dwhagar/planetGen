@@ -235,9 +235,10 @@ export function pageLink(href, label, className) {
 // - title: the heading;
 // - fields: [label, value] rows (an empty value leaves its row out);
 // - after: more nodes under the rows (a <details> list, a note);
-// - nav: {from, to} -> "Nav from here" and "Nav to here" links, or, while
-//   a NAV start or destination is picked, {pick, pickLabel} -> one pick
-//   button and no link that would leave the course (NAV.30);
+// - nav: [{label, href | onClick, primary}] -> the NAV buttons
+//   (navpick.js): "Start Here" and "End Here", or, while a NAV start or
+//   destination is picked, the one button for the end being chosen and no
+//   link that would leave the course (NAV.30);
 // - bookmark: the entry ☆ saves (bookmarks.js: {kind, value, name, url,
 //   sectorId?}), beside the NAV links;
 // - links: [{href, label}], buttons: [{label, onClick}];
@@ -266,14 +267,16 @@ export function createInfoPanel(panelEl) {
   // links, the ☆, page links and buttons.
   function actions(spec) {
     const row = el("p", "page-actions map-info-actions");
-    const nav = spec.nav;
-    if (nav && nav.pick) {
-      row.appendChild(pageLink(nav.pick, nav.pickLabel, "btn starmap-pick"));
-    } else if (nav) {
-      [["from", "Nav from here"], ["to", "Nav to here"]].forEach(function (pair) {
-        if (nav[pair[0]]) row.appendChild(pageLink(nav[pair[0]], pair[1], "btn btn-small"));
-      });
-    }
+    (spec.nav || []).forEach(function (action) {
+      if (action.href) {
+        row.appendChild(pageLink(action.href, action.label, action.primary ? "btn starmap-pick" : "btn btn-small"));
+        return;
+      }
+      const node = el("button", action.primary ? "btn starmap-pick" : "btn btn-small", action.label);
+      node.type = "button";
+      node.addEventListener("click", action.onClick);
+      row.appendChild(node);
+    });
     if (spec.bookmark) row.appendChild(bookmarkToggle(spec.bookmark));
     (spec.links || []).forEach(function (link) { row.appendChild(pageLink(link.href, link.label, "btn btn-small")); });
     (spec.buttons || []).forEach(function (button) {

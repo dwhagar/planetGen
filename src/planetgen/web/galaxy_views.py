@@ -156,7 +156,7 @@ def galaxy():
         locate_path=url_for("web.galaxy_locate"),
         territory_path=url_for("web.galaxy_territories") if _has_territories(db) else None,
         course=course,
-        sector_url=sector_url_template() + (pick["query"] if pick else ""),
+        sector_url=sector_url_template(),
         generate=generate_target(current_admin()),
         pick=pick,
         phenomenon_url=phenomenon_url_template(),
