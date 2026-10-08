@@ -948,6 +948,13 @@
 --   saved before v56: `queryDb.nebula_shape` then draws the same shape
 --   from the nebula's own properties, as a fresh save would have stored.
 --
+-- v57: `bright_stars.off_plane`, a virtual flag (1 when the star lies 250 pc
+--   or more above or below the plane, `query.BRIGHT_STAR_PLANE_HALF_THICKNESS_PC`)
+--   with `idx_bright_stars_off_plane (off_plane, luminosity_w)`, so
+--   `queryDb.galaxy_brightest_stars` can list the most luminous stars off the
+--   plane without reading every star (GEN.117). Computed from
+--   `position_z_mpc`; nothing writes it.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -2548,9 +2555,11 @@ CREATE TABLE IF NOT EXISTS bright_stars (
     seed                 BIGINT UNSIGNED NOT NULL,
     star_system_id       BIGINT UNSIGNED,
     created_at           TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    off_plane            TINYINT AS (ABS(position_z_mpc) >= 250000) VIRTUAL,
 
     KEY idx_bright_stars_address (ring_index, layer_index, ring_slot_index),
     KEY idx_bright_stars_luminosity (luminosity_w),
+    KEY idx_bright_stars_off_plane (off_plane, luminosity_w),
     CONSTRAINT chk_bright_stars_population CHECK (population IN ('young', 'intermediate', 'old', 'bulge')),
     CONSTRAINT fk_bright_stars_system
         FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE SET NULL

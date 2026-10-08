@@ -578,7 +578,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.114 | Add the chosen anomalies to the starmap | none | open |
 | GEN.115 | The galaxy's own gravity: a smooth disk, bulge and halo potential | none | open |
 | GEN.116 | Error when generating a neighbourhood centred near the galaxy edge, awaiting Boss's error text (bug) | none | open |
-| GEN.117 | The Galaxy Map shows bright stars only in a thin band on the galactic plane (bug) | none | open |
+| GEN.117 | The Galaxy Map shows bright stars only in a thin band on the galactic plane (bug) | none | done, PR #600 |
 | GEN.118 | The galaxy bulge is about 40 times too light, so edge-on views show no bulge (bug) | none | done, PR #491 |
 | GEN.119 | The galaxy density model has no thick disk (bug) | none | done, PR #491 |
 | GEN.120 | Integrate gatedPhonemeCodec.py into the naming package and remove it from the repo root | none | done, PR #554 |
@@ -683,21 +683,21 @@ Parents marked "new parent" had no old number of their own.
 | MAP.99 | Slab buttons that don't fit the window split across both sides of the map, shrink, or give way to map picking (bug) | none | done, PR #422 |
 | MAP.100 | Slab button labels on one line: "#N" and how much is charted (bug) | none | done, PR #422 |
 | MAP.101 | Stars on the Galaxy Map take the click, so a dense sector can't be picked (bug) | none | done, PR #431 |
-| MAP.102 | Galaxy Map streaming with a BVH and 3D tiles, and camera-relative rendering | none | open |
+| MAP.102 | Galaxy Map streaming with a BVH and 3D tiles, and camera-relative rendering | none | done, PR #574 |
 | MAP.103 | Nebulae don't show on the Galaxy Map or any other map (bug) | none | done, PR #592 |
 | MAP.104 | Nebula shading is missing on unfilled sectors (bug) | none | done, PR #592 |
 | MAP.105 | The nebula view should show its whole shape with the dimmed galaxy around it (bug) | none | done, PR #590 |
 | MAP.106 | The breadcrumb trail falls out of sync with the map (bug) | none | done, PR #586 |
 | MAP.107 | Selecting an empty slab near the core says "There is no layer x here" (bug) | none | done, PR #537 |
 | MAP.108 | Empty slabs and wedges near the core can't be selected, and the side buttons block clicks (bug) | none | closed, not reproducible; covered by tests (#537, #541, #521) |
-| MAP.109 | Zooming in and out loads slowly (bug) | none | open |
+| MAP.109 | Zooming in and out loads slowly (bug) | none | done, PR #603 |
 | MAP.110 | Slab button lines come out of numerical order (bug) | none | done, PR #520 |
 | MAP.111 | "Generated only" should be "Charted only" and dim the stars too (bug) | none | done, PR #531 |
 | MAP.112 | Nothing can be selected while "Generated only" is on (bug) | none | done, PR #541 |
 | MAP.113 | A nebula covering the whole sector can't be unselected, and nebulae need a show/hide toggle (bug) | none | done, PR #584 |
 | MAP.114 | The Sector Map's Reset view leaves the picture unchanged (bug) | none | done, PR #442 |
-| MAP.115 | Comets, rogue planets and asteroid fields show above the sector level (bug) | none | merged into MAP.116 (2026-10-07) |
-| MAP.116 | Dense generated sectors crowd the Galaxy Map when zoomed out (bug) | none | open |
+| MAP.115 | Comets, rogue planets and asteroid fields show above the sector level (bug) | none | merged into MAP.116; done, PR #601 |
+| MAP.116 | Dense generated sectors crowd the Galaxy Map when zoomed out (bug) | none | done, PR #601 |
 | MAP.127 | See into and step to the neighbouring blocks and slabs on the Galaxy Map | none | merged into MAP.121 (2026-10-07) |
 | MAP.128 | Decide what the Sector Map tints by star age, density and luminosity, and test it | none | closed, decided: sector space is not tinted (Boss 2026-10-08 13:35Z); the Galaxy Map half was done in #556 |
 | MAP.129 | Blocks colored from their sectors' statistics, weighted by star count | none | done, PR #556 |
