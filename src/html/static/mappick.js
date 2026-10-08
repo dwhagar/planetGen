@@ -253,9 +253,9 @@ export function createInfoPanel(panelEl) {
   function bookmarkToggle(entry) {
     bookmarkEntry = entry;
     if (!bookmarkButton) {
-      bookmarkButton = el("button", "btn btn-small btn-bookmark map-info-bookmark");
+      bookmarkButton = el("button", "btn btn-small btn-secondary btn-bookmark map-info-bookmark");
       bookmarkButton.type = "button";
-      refreshBookmark = B.toggleButton(bookmarkButton, function () { return bookmarkEntry; }, false);
+      refreshBookmark = B.toggleButton(bookmarkButton, function () { return bookmarkEntry; });
     } else {
       refreshBookmark();
     }
@@ -269,18 +269,18 @@ export function createInfoPanel(panelEl) {
     const row = el("p", "page-actions map-info-actions");
     (spec.nav || []).forEach(function (action) {
       if (action.href) {
-        row.appendChild(pageLink(action.href, action.label, action.primary ? "btn starmap-pick" : "btn btn-small"));
+        row.appendChild(pageLink(action.href, action.label, action.primary ? "btn starmap-pick" : "btn btn-small btn-secondary"));
         return;
       }
-      const node = el("button", action.primary ? "btn starmap-pick" : "btn btn-small", action.label);
+      const node = el("button", action.primary ? "btn starmap-pick" : "btn btn-small btn-secondary", action.label);
       node.type = "button";
       node.addEventListener("click", action.onClick);
       row.appendChild(node);
     });
     if (spec.bookmark) row.appendChild(bookmarkToggle(spec.bookmark));
-    (spec.links || []).forEach(function (link) { row.appendChild(pageLink(link.href, link.label, "btn btn-small")); });
+    (spec.links || []).forEach(function (link) { row.appendChild(pageLink(link.href, link.label, "btn btn-small btn-secondary")); });
     (spec.buttons || []).forEach(function (button) {
-      const node = el("button", "btn btn-small", button.label);
+      const node = el("button", "btn btn-small btn-secondary", button.label);
       node.type = "button";
       node.addEventListener("click", button.onClick);
       row.appendChild(node);

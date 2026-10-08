@@ -1604,6 +1604,24 @@ a.btn.btn-active:visited {
   font-size: 0.85rem;
 }
 
+/* UX.64: the one primary action of a page or panel is solid; navigation,
+   links and the bookmark star are secondary (outlined). */
+.btn.btn-secondary {
+  background: transparent;
+  color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+}
+
+.btn.btn-secondary:hover {
+  background: var(--bg-subtle);
+  filter: none;
+}
+
+.btn.btn-secondary.btn-active {
+  background: var(--bg-subtle);
+  color: var(--text);
+}
+
 /* UX.28: an icon from static/icons.svg (`icon(name)`), sized to the text
    around it and drawn in its color. */
 .icon {
@@ -2974,37 +2992,6 @@ body.app {
   flex: 0 0 auto;
 }
 
-/* The breadcrumb's ☆ (MAP.23): filled ★ while the view or sector is
-   bookmarked. */
-.galaxy-bookmark {
-  font: inherit;
-  font-size: 1.1rem;
-  line-height: 1;
-  min-width: 2rem;
-  min-height: 2rem;
-  background: none;
-  border: 1px solid transparent;
-  border-radius: 6px;
-  color: var(--accent);
-  cursor: pointer;
-}
-
-.galaxy-bookmark:hover {
-  border-color: var(--border);
-}
-
-.galaxy-bookmark:disabled {
-  color: var(--text-muted);
-  cursor: default;
-}
-
-@media (pointer: coarse) {
-  .galaxy-bookmark {
-    min-width: 2.75rem;
-    min-height: 2.75rem;
-  }
-}
-
 .crumbs > ol > li {
   display: flex;
   align-items: center;
@@ -3496,11 +3483,14 @@ body.app {
   }
 }
 
-/* A page's ☆ Bookmark button: ★ Bookmarked while saved. */
-.btn-bookmark[aria-pressed="true"] {
+/* The one ☆ / ★ bookmark toggle, the same on the maps and the pages. */
+.btn.btn-bookmark {
+  min-width: 2.2rem;
+}
+
+.btn.btn-bookmark[aria-pressed="true"] {
   background: var(--bg-subtle);
   color: var(--text);
-  box-shadow: inset 0 0 0 1px var(--accent);
 }
 
 /* The NAV page's Bookmarks select sits under the map picks. */

@@ -180,7 +180,7 @@
     <h2 id="system-heading">System</h2>
     <div class="view-toggle">
       {%- for button in code_buttons %}
-      <a class="btn btn-small{% if button.active %} btn-active{% endif %}" href="{{ button.url }}"{% if button.active %} aria-current="true"{% endif %}>{{ button.label }}</a>
+      <a class="btn btn-small btn-secondary{% if button.active %} btn-active{% endif %}" href="{{ button.url }}"{% if button.active %} aria-current="true"{% endif %}>{{ button.label }}</a>
       {%- endfor %}
     </div>
   </div>
