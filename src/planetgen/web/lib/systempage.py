@@ -49,9 +49,10 @@ def _star_class_urls(star_type, class_url):
     return class_url("star-spectral", classes[0]), class_url("star-luminosity", classes[1])
 
 
-def stars_html(stars, class_url=None):
+def stars_html(stars, class_url=None, notes_html=""):
     """The Stars table. With `class_url` (see the module docstring), a
-    star's type links to its spectral class page."""
+    star's type links to its spectral class page. `notes_html`
+    (`star_notes_html`) goes under the table."""
     # UX.53: "single" says nothing; the Role column is for binaries and multiples.
     show_role = any(star["role"] != "single" for star in stars)
     rows = "".join(
@@ -79,8 +80,41 @@ def stars_html(stars, class_url=None):
   <thead><tr>{role_head}<th>Name</th><th>Type</th><th>Mass</th><th>Radius</th><th>Temp</th><th>Luminosity</th></tr></thead>
   <tbody>{rows}</tbody>
 </table></div>
-</section>
+{notes_html}</section>
 """
+
+
+def _star_has_list_row(system, star, by_host):
+    """Whether `star` still has its own row in the System list: a wide pair's
+    stars do (their bodies nest under them), and so does a star that hosts a
+    facility. Any other star is only in the Stars table (UX.53)."""
+    return system.get("binary_configuration") == "wide" or bool((by_host or {}).get(("star", star["id"])))
+
+
+def star_notes_html(system, sections, class_url=None, facilities=()):
+    """What the System list's star rows used to say, for the stars that have
+    no row any more (UX.53): each one's description and its spectral and
+    luminosity class links, under the Stars table."""
+    by_host = _facilities_by_host(facilities)
+    notes = []
+    for star in system["stars"]:
+        if _star_has_list_row(system, star, by_host):
+            continue
+        text = sections["stars"].get(str(star["id"]))
+        links = []
+        classes = star_type_classes(star["star_type"]) if class_url else None
+        if classes:
+            spectral_url, luminosity_url = _star_class_urls(star["star_type"], class_url)
+            links = [_link(spectral_url, f"Spectral class {esc(classes[0])}") if spectral_url else "",
+                     _link(luminosity_url, f"Luminosity class {esc(classes[1])}") if luminosity_url else ""]
+        links = [link for link in links if link]
+        if not text and not links:
+            continue
+        heading = f"<h3>{esc(star['name'])}</h3>" if len(system["stars"]) > 1 else ""
+        link_line = f'<p class="class-links">{" &middot; ".join(links)}</p>' if links else ""
+        body = markdown_to_html(text) if text else ""
+        notes.append(f'<div class="star-note prose">{heading}{body}{link_line}</div>')
+    return "".join(notes)
 
 
 _BODY_TYPE_LABELS = {"t": "Terrestrial", "g": "Gas Giant"}
@@ -411,7 +445,7 @@ def system_list_html(system, sections, class_url=None, facilities=(), species=No
         # starts at the first planet or belt (a star that hosts a facility
         # keeps its row, which is where the facility is listed).
         rows_html = "".join(_star_row_html(star, sections, class_url=class_url, by_host=by_host)
-                            for star in stars if (by_host or {}).get(("star", star["id"])))
+                            for star in stars if _star_has_list_row(system, star, by_host))
         rows_html += _orbiting_rows_html(planets, belts, comets, sections, class_url, by_host, species, admin_rows)
 
     overview_html = markdown_to_html(sections["overview"]) if sections["overview"] else ""

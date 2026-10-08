@@ -29,7 +29,7 @@ from planetgen.web.lib.datatable import Column, Facet, Result, Table
 from planetgen.web.maps.phenomenonmap import render_phenomenon_map_panel
 from planetgen.web.maps.phenomenonrender import render_nebula_view_panel, render_phenomenon_view_panel, view_kind
 from planetgen.web.maps.systemmap import render_system_map_panel
-from planetgen.web.lib.systempage import stars_html, system_list_html
+from planetgen.web.lib.systempage import star_notes_html, stars_html, system_list_html
 from planetgen.web.lib.tabledisplay import format_star_radius, to_plain_text
 
 from planetgen.web.lib.classref import ROGUE_MASS_CLASS_NAMES
@@ -291,7 +291,8 @@ def system(system_id):
                                                        species=_species_by_planet(db, detail),
                                                        admin_rows={row["target"]: row for row in edit_rows})),
         territory=_territory(db, system_id),
-        stars_html=trusted_html(stars_html(detail["stars"], class_url)),
+        stars_html=trusted_html(stars_html(detail["stars"], class_url,
+                                           star_notes_html(detail, sections, class_url, facilities))),
         wiki_options=wiki_options,
         wiki_status=wiki_status,
         admin=admin,

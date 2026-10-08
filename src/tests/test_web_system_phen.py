@@ -227,7 +227,7 @@ def test_system_page_renders(app, client, fake):
     # The map, the body list, the stars table, and the page's scripts.
     assert 'id="sysmap-' in html
     assert 'class="system-list system-list-root"' in html
-    assert "<p>An *overview*.</p>" in html
+    assert "<p>An *overview*.</p>" in html and "A yellow star." in html
     assert "<h2>Stars</h2>" in html
     assert re.search(r'<script type="module" src="/static/systemmap.js\?v=[^"]+"></script>', html)
     assert re.search(r'<script type="module" src="/static/copycode.js\?v=[^"]+"></script>', html)

@@ -627,7 +627,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
             'Territories</button>\n')
         territory_box = '<div class="galaxy-territories" id="galaxymap3d-territories" hidden></div>\n'
 
-    title = "Sector Map" if pinned else "Galaxy Map (3D)"
+    title = "Sector Map" if pinned else "Galaxy Map"
     info_hint = (
         "Click a star, cloud or body for details." if pinned
         else "Click an arc of the galaxy (a piece of the disk, top to bottom) to look at it more closely."
@@ -652,7 +652,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
     return f"""
 <section class="panel galaxymap3d-panel" id="map">
 <div class="panel-header">
-  <h2>{title}</h2>
+  <h2 class="sr-only">{title}</h2>
 </div>
 {pick_banner}{shape_hint}{course_hint}
 {address_block}<p class="hint galaxy-stage-notice" id="galaxymap3d-notice" role="status" hidden></p>

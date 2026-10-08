@@ -370,7 +370,7 @@ def render_nav_map_panel(link_url, waypoints, has_route, frame_center=(0.0, 0.0,
     return f"""
 <section class="panel">
 <div class="panel-header">
-  <h2>NAV Map</h2>
+  <h2 class="sr-only">NAV Map</h2>
 </div>
 <div class="navmap-viewport">
 {svg}<div class="navmap-labels">{''.join(labels_html)}</div>

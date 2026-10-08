@@ -3,7 +3,7 @@
 {% from "partials/datatable.html" import datatable with context %}
 <section class="panel" id="sectors" aria-labelledby="sectors-heading">
   <div class="panel-header">
-    <h2 id="sectors-heading">{% if show_more_link %}<a href="{{ url_for('web.sectors') }}">Sectors</a>{% else %}Sectors{% endif %}</h2>
+    <h2 id="sectors-heading"{% if not show_more_link %} class="sr-only"{% endif %}>{% if show_more_link %}<a href="{{ url_for('web.sectors') }}">Sectors</a>{% else %}Sectors{% endif %}</h2>
     <a href="{{ page_url('galaxy') }}">Galaxy Map &rarr;</a>
   </div>
   {{ datatable(sectors) }}
