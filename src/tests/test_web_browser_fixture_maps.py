@@ -438,6 +438,27 @@ def _hover_choice(page, wanted=None, steps=32):
     return found
 
 
+def _click_steady(page, wanted, steps=48):
+    """Clicks where the tooltip names `wanted`, once that has held for a moment
+    with the real pointer there (TEST.109): a scan with synthetic pointer events
+    can land on a spot the map is still redrawing under (its contents table and
+    shapes settle after load), where a real click picks something else. Scans
+    again until the pointer, moved to the spot, still reads `wanted`."""
+    for _ in range(20):
+        found = _hover_choice(page, wanted, steps=steps)
+        assert found, f"no spot on the map names {wanted}"
+        page.mouse.move(found[0], found[1])
+        page.wait_for_timeout(200)
+        page.mouse.move(found[0] + 1, found[1])
+        page.mouse.move(found[0], found[1])
+        tooltip = page.evaluate("() => { const tip = document.querySelector('#galaxymap3d-tooltip'); return tip.hidden ? '' : tip.textContent; }")
+        if re.search(wanted, tooltip):
+            page.mouse.click(found[0], found[1])
+            return found
+        page.wait_for_timeout(250)
+    pytest.fail(f"the pointer never steadily read {wanted}")
+
+
 def _click_choice(page, wanted=None):
     found = _hover_choice(page, wanted)
     assert found, f"nothing to click on the Galaxy Map ({wanted}); at {_crumbs(page)}"
@@ -1752,9 +1773,7 @@ def test_sector_map_click_on_the_selected_nebula_clears_it(page, map_site):
     _open_sector(page, map_site)
     resting = _info_title(page)
     nebula = next(p for p in PHENOMENA if p["type"] == "nebula")
-    found = _hover_choice(page, re.escape(nebula["name"]), steps=48)
-    assert found, "no spot on the Sector Map names the nebula"
-    page.mouse.click(found[0], found[1])
+    found = _click_steady(page, re.escape(nebula["name"]))
     assert _info_title(page) == nebula["name"]
     page.mouse.click(found[0], found[1])
     assert _info_title(page) == resting
@@ -1860,3 +1879,4 @@ def test_the_map_crumb_replaces_the_page_crumb_and_starts_at_home(page, map_site
     first = page.locator("#galaxymap3d-crumbs > ol > li").first
     assert first.inner_text() == "Home" and first.locator("a").get_attribute("href") == "/"
     assert page.locator("#galaxymap3d-crumbs .galaxy-bookmark").is_visible()
+
