@@ -22,7 +22,7 @@ release is stamped.
 | API | API.20 |
 | ADM | ADM.39 |
 | SEC | SEC.32 |
-| TEST | TEST.105 |
+| TEST | TEST.106 |
 | USR | USR.9 |
 | OPS | OPS.28 |
 | DOC | DOC.4 |
@@ -535,7 +535,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.70 | A naming key in the control database, made at galaxy creation and changeable by admin | none | open |
 | GEN.71 | Name interstellar objects, phenomena and constellations from the codec | none | open |
 | GEN.72 | A backfilled bright star should get a name only when its sector is generated (bug) | none | open |
-| GEN.73 | Nebulae don't get unique names (bug) | none | open |
+| GEN.73 | Nebulae don't get unique names (bug) | none | folded into GEN.71 |
 | GEN.74 | One point-in-space object that keeps every coordinate system in step, used by every object | none | open |
 | GEN.75 | A nebula shape from metaballs and warped noise, as a mesh | none | done, PR #580 |
 | GEN.76 | A sector with no qualifying stars never generates or is marked generated (bug) | none | done, PR #442 |
@@ -746,7 +746,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.29 | Replace "Nav from here" and "Nav to here" with "Start Here" and "End Here" while picking (bug) | none | done, PR #615 |
 | NAV.30 | Hide "View phenomenon" and "View system" links while picking a course (bug) | none | done, PR #351 |
 | NAV.31 | Galaxy wedges don't highlight on the navigation screens (bug) | none | done, PR #399 |
-| NAV.32 | Every Galaxy and Sector Map control works on the navigation screens (bug) | none | open |
+| NAV.32 | Every Galaxy and Sector Map control works on the navigation screens (bug) | none | done, PR #631 |
 | NAV.33 | After picking one end of a course, stay at that zoom level (bug) | none | done, PR #615 |
 | NAV.34 | Courses between separately generated areas find no route: the route graph splits into islands (bug) | none | done, PR #427 |
 | NAV.35 | Mark jumps through unknown space in the route | none | merged into NAV.12 (the per-hop flag), PR #346 |
@@ -861,7 +861,7 @@ Parents marked "new parent" had no old number of their own.
 | SEC.27 | A fail2ban filter and jail for login brute force (was: a fail2ban recipe in the deployment docs) | none | done, PR #221 |
 | SEC.28 | An always-on log in the standard log location | none | done, PR #217 |
 | SEC.29 | Two-step sign-in on pyotp, QR codes on segno | none | done, PR #612 |
-| SEC.30 | Login and request rate limits on Flask-Limiter with Redis storage | none | open |
+| SEC.30 | Login and request rate limits on Flask-Limiter with Redis storage | none | done, PR #643 |
 | SEC.31 | Signing in as admin works but shows a "form expired" error (bug) | none | done, PR #457 |
 | USR.1 | User accounts | none | open |
 | USR.2 | Accounts with roles: user, admin and Owner | 64 (2026-10-01 02:13Z to 05:29Z) | open |
@@ -921,22 +921,22 @@ Parents marked "new parent" had no old number of their own.
 | UX.47 | A bookmark manager: list, rename, sort, group and delete | none | open |
 | UX.48 | Charted regions as bookmarks that frame and outline the region | none | open |
 | UX.49 | Form fields as Shoelace components (sl-input, sl-select, sl-checkbox) across the site | none | open |
-| UX.50 | One short hint per map, the rest behind a Help entry | none | open |
+| UX.50 | One short hint per map, the rest behind a Help entry | none | done, PR #640 |
 | UX.51 | Cards that repeat the page title | none | open |
 | UX.52 | Sector name repeated on every Contents row | none | open |
 | UX.53 | The same star shown three times on a system page | none | open |
 | UX.54 | Search shows empty result groups and echoes the query | none | open |
 | UX.55 | Home and Systems repeat other pages’ tables | none | open |
 | UX.56 | Admin hub repeats the gear menu | none | done, PR #632 |
-| UX.57 | Two controls both called Reset | none | open |
-| UX.58 | Move Current into the Steps menu | none | open |
-| UX.59 | One breadcrumb trail on map pages | none | open |
-| UX.60 | The Slabs rail has nothing in it at the top level | none | open |
-| UX.61 | System Map: Measure distance floats beside an empty gap | none | open |
-| UX.62 | Map pages jump 64 px left | none | open |
+| UX.57 | Two controls both called Reset | none | done, PR #637 |
+| UX.58 | Move Current into the Steps menu | none | done, PR #637 |
+| UX.59 | One breadcrumb trail on map pages | none | done, PR #640 |
+| UX.60 | The Slabs rail has nothing in it at the top level | none | done, PR #637 |
+| UX.61 | System Map: Measure distance floats beside an empty gap | none | done, PR #640 |
+| UX.62 | Map pages jump 64 px left | none | done, PR #637 |
 | UX.63 | One action bar on every object page | none | done, PR #618 |
 | UX.64 | Action buttons are all solid primary, with no hierarchy | none | done, PR #620 |
-| UX.65 | Facts and links mixed in the Sector header chips | none | open |
+| UX.65 | Facts and links mixed in the Sector header chips | none | done, PR #635 |
 | UX.66 | “Cube edge” on arc-shaped sectors | none | done, PR #617 |
 | UX.67 | Wikitext and Markdown buttons | none | open |
 | UX.68 | System Admin menu lists every planet and moon | none | open |
@@ -1120,7 +1120,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.80 | Intermittent failure in the admin change-star test (bug) | none | done, PR #442 |
 | TEST.81 | Two processes reserving id blocks of one table can deadlock (bug) | none | done, PR #442 |
 | TEST.82 | Intermittent failure in the orbit-ceiling trim test (bug) | none | done, PR #484 |
-| TEST.83 | Rate-limit tests fail under parallel load (bug) | none | open |
+| TEST.83 | Rate-limit tests fail under parallel load (bug) | none | done, PR #643 |
 | TEST.84 | The every-column round-trip test depends on whether a quasar got placed (bug) | none | done, PR #484 |
 | TEST.85 | Name collisions can count -1 existing names and fail generation (bug) | none | done, PR #403 |
 | TEST.86 | Intermittent failure in the concurrent-insert recovery test (bug) | none | done, PR #484 |
@@ -1141,7 +1141,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.101 | test_interrupting_a_parallel_galaxy_run[2-True] fails in the full suite (bug) | none | done, PR #549 |
 | TEST.102 | test_a_pass_removes_species_stored_without_a_civilization fails now and then in the full suite (bug) | none | done, PR #610 |
 | TEST.103 | test_controls_do_not_overlap fails on clean main: controls overlap on the sector page at 600 and 820 px (bug) | none | done, PR #625 |
-| TEST.104 | test_system_map_selection_drill_and_measure fails now and then under load (bug) | none | open |
+| TEST.104 | test_system_map_selection_drill_and_measure fails now and then under load (bug) | none | done, PR #634 |
+| TEST.105 | test_web_a11y.py fails on the Admin hub: its links have 2.49:1 contrast (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

@@ -624,8 +624,8 @@ forced credential change. They back the admin stats page
   whether a username exists; an unknown username costs the same password
   hash check as a wrong password, so timing doesn't reveal it either).
   Rate-limited to 10/minute/IP. Failed logins are also counted per
-  address and per username, in the control database's `login_throttle`
-  (shared by every worker, kept across restarts; SEC.1, SEC.21). Three
+  address and per username, in Redis (shared by every worker, kept
+  across restarts; SEC.1, SEC.21, SEC.30). Three
   failures from one address lock it for 5 minutes, and each further
   lockout of it doubles that, up to 1 day; a successful login clears its
   count, but its doubling level only halves per day without a lockout.
@@ -637,8 +637,9 @@ forced credential change. They back the admin stats page
   an hour without failures clears the count. A login while either is
   locked is a `429` with `{"error", "retry_after", "scope"}` (`scope`
   `ip` or `user`) and a `Retry-After` header, before the password is
-  checked. Until `update.sh` has created `login_throttle`, the counts are
-  kept in memory per worker process (with one warning in the error log).
+  checked. With `ratelimit.storage_uri` set to `memory://`, or while Redis
+  can't be reached, the counts are kept in memory per worker process (with
+  one warning in the error log).
 - Two-factor sign-in (SEC.26, optional per admin): for an admin who
   has turned it on, a right password at `POST /api/auth/login` answers
   `{"totp_required": true, "pending"}` and sets no session yet. Then
@@ -1179,14 +1180,15 @@ every write endpoint applies its own stricter limit
   low-traffic public API with no other usage data to tune against yet.
   Override with `PLANETGEN_RATELIMIT_DEFAULT` (semicolon-separated, e.g.
   `"1000 per day;200 per hour"`).
-- Storage backend: in-memory by default (`PLANETGEN_RATELIMIT_STORAGE_URI`,
-  default `memory://`) — correct for a single-process deployment (Flask's
-  dev server, or `mod_wsgi`/`gunicorn`/waitress with exactly one process). **A
-  multi-worker deployment needs a shared backend** (e.g. Redis:
-  `PLANETGEN_RATELIMIT_STORAGE_URI=redis://host:6379/0`), since each
-  worker otherwise tracks its own separate counters and the real,
-  aggregate request rate can exceed the configured limit by roughly the
-  worker count.
+- Storage backend: the Redis server in `redis.url` by default
+  (`ratelimit.storage_uri` empty; `PLANETGEN_RATELIMIT_STORAGE_URI`
+  overrides it), shared by every worker process, and by the login
+  lockouts. `memory://` is right only for a single-process deployment
+  (Flask's dev server, or `mod_wsgi`/`gunicorn`/waitress with exactly one
+  process): each worker would otherwise track its own separate counters
+  and the real, aggregate request rate could exceed the configured limit
+  by roughly the worker count. A Redis outage falls back to counting in
+  memory until it returns.
 - `/api/health` has its own limit instead of the default:
   `ratelimit.pages.health` in `config.json`, default **60/minute** (so a
   monitor can poll it freely but nobody can use it to hammer the database).
@@ -1298,8 +1300,8 @@ startup, and `SetEnv` values only ever show up in a request's `environ`
 dict, which doesn't exist yet at that point. Under gunicorn or waitress,
 the service's own environment (systemd `EnvironmentFile`, launchd
 `EnvironmentVariables`, WinSW `<env>`) works the normal way. If running
-more than one process, also set `PLANETGEN_RATELIMIT_STORAGE_URI` to a
-shared backend (see "Rate limiting").
+more than one process, leave `ratelimit.storage_uri` empty so the counts
+are on Redis (see "Rate limiting").
 
 **The admin session cookie requires HTTPS.** It's set `Secure` by default
 (`config.SESSION_COOKIE_SECURE`) -- the browser never sends it over plain

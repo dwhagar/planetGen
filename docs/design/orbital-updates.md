@@ -45,7 +45,7 @@ being trusted. This condenses Boss's documents in this folder:
 
 ## 2. The position object
 
-`spacial-position.py`'s `SpatialPosition3D` keeps one body's position in
+`planetgen/physics/position.py`'s `SpatialPosition3D` (Boss's prototype `spacial-position.py`, now removed) keeps one body's position in
 three frames (galactic, sector, system) and three forms (Cartesian,
 cylindrical, spherical). Setting any coordinate in any frame and form
 updates all of them, with the velocity, and it works out how long until
@@ -53,8 +53,15 @@ the body moves enough to be observed. It moves into the physics package
 with tests, and every positioned object holds one, with its mass and
 gravitational parameter (mu = G M) beside it.
 
-Note: the prototype's minimum-observable constants (1e-4, 1e-5, 1e-6)
-are placeholders; the thresholds below replace them.
+Built (GEN.74, part 1): all lengths are metres, speeds m/s, masses kg
+(the storage layer converts at its edge). The position last set is kept
+as given in its own frame and the others are derived from it, so a moon
+set by its system offset keeps its metres exactly. The prototype's
+placeholder minimum-observable constants are replaced by the thresholds
+below (`THRESHOLDS_M`: galactic, system, planetary), with the next-due time
+capped at a billion years. Lengths are in a unit the object chooses (`length_unit_m`: light-years for sector entries, AU inside a system), so no round trip through metres touches stored values. Values the maths cannot hold (non-finite
+numbers, a negative radius, a polar angle outside [0, pi], a speed at or
+above the speed of light, a negative mass) raise `ValueError`.
 
 ## 3. Thresholds and the next-due time
 
@@ -344,3 +351,12 @@ The defaults below hold until Boss decides otherwise:
 - **The galaxy's own gravity.** Boss (2026-10-07 12:25Z): "We'll have to
   add a galactic gravitational gradient but we need to make sure that
   it's consistent with actual science." Settled by section 10.1.
+
+### Where positions are held (GEN.74 part 2)
+
+- A sector's system and phenomenon entries (`SectorSystemEntry`,
+  `SectorPhenomenonEntry`) each hold one `SpatialPosition3D` in light-years
+  (`entry.spatial`) with the object's mass and mu; `entry.position` is its
+  sector-frame Cartesian. `SpaceSector.place_in_galaxy(center_ly)` sets the
+  sector's center (generation does it from the cell's position, loading
+  from the stored center) and carries every entry with it.

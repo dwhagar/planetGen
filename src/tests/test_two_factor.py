@@ -131,7 +131,7 @@ def test_setup_confirm_and_check(control_conn, admin_id):
 
 
 @pytest.fixture
-def real_app(mysql_config):
+def real_app(mysql_config, redis_server, key_prefix):
     from planetgen.web.app import create_app
     from planetgen.api.config import Config
 
@@ -141,6 +141,8 @@ def real_app(mysql_config):
         CONTROL_MYSQL_CONFIG = mysql_config
         SESSION_COOKIE_SECURE = False
         SECRET_KEY = "test-secret"
+        RATELIMIT_STORAGE_URI = redis_server  # the lockouts count in Redis (SEC.30)
+        RATELIMIT_KEY_PREFIX = key_prefix
 
     _username, password = adminAuth.bootstrap_control_schema(mysql_config)
     application = create_app(RealConfig)

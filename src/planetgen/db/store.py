@@ -156,15 +156,16 @@ collision renames an existing system, which the holder's nearest-neighbor
 rows then reference) neither would move until InnoDB's own 50 s timeout.
 Giving up early breaks that wait at once."""
 
-CONTROL_SCHEMA_VERSION = 7
+CONTROL_SCHEMA_VERSION = 8
 """int: Version counter for `control_schema.sql`, independent of
 `SCHEMA_VERSION` above -- see that file's header comment for why the
 control plane (admin identities/sessions/API keys/audit log) is a
 separate schema with its own versioning. v2 added `login_throttle`
-(SEC.1, SEC.21), v5 the work queue's `work_jobs`/`work_tasks`/
+(SEC.1, SEC.21; dropped in v8, SEC.30: the counters live in Redis), v5 the work queue's `work_jobs`/`work_tasks`/
 `work_lease` (PERF.8), v6 `generation_stats`/`generation_size` (PERF.3,
 PERF.10), v7 the job tree's columns on `work_jobs` and the queue pause
-on `work_lease` (ADM.12, ADM.10). New tables need nothing more than
+on `work_lease` (ADM.12, ADM.10), v8 the drop of `login_throttle`
+(SEC.30). New tables need nothing more than
 `CREATE TABLE IF NOT EXISTS`; new columns on an existing table are
 added by `_add_control_columns`."""
 
@@ -6979,6 +6980,8 @@ def load_sector(conn, sector_id) -> SpaceSector:
     # determined by its ring and edge (as planetgen builds it).
     cell = SectorCell.for_ring(row["ring_index"], edge_ly) if row["ring_index"] is not None else None
     sector = SpaceSector(row["name"], edge_ly=edge_ly, cell=cell)
+    if row["center_x_pc"] is not None:
+        sector.place_in_galaxy(tuple(pc_to_ly(row[f"center_{axis}_pc"]) for axis in "xyz"))
 
     system_rows = conn.execute(
         "SELECT id, position_x_mpc, position_y_mpc, position_z_mpc FROM star_systems "

@@ -403,6 +403,7 @@ def generate_and_save_sector_at(args, address, position_pc, edge_pc):
                                                fill=fill, cloud_field=cloud_field)
         if address == run_sector.NUCLEUS_ADDRESS:
             run_sector.add_galactic_nucleus(sector, args, pc_to_ly(radius_pc))
+        sector.place_in_galaxy(tuple(pc_to_ly(c) for c in position_pc))
         sector_id = store.save_sector(sector, config=store.mysql_config_from_args(args),
                                     galaxy_position=galaxy_position)
     run_common._count_sector(sector)

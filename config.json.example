@@ -21,7 +21,7 @@
   },
   "ratelimit": {
     "default": "200 per day;50 per hour",
-    "storage_uri": "memory://",
+    "storage_uri": "",
     "pages": {
       "search": "30 per minute",
       "galaxy": "60 per minute",
