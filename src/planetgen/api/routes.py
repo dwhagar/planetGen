@@ -1202,6 +1202,31 @@ def accepted(job_id):
     return response
 
 
+def run_queued(function, *args):
+    """
+    Runs `function(*args)` on the queue (PERF.24) and waits a few seconds
+    for it, so a quick edit still answers in the same response.
+
+    Returns:
+        tuple: `(job_id, result)`; `result` is `None` while the job is
+            still running, and the route then answers `accepted(job_id)`.
+
+    Raises:
+        ApiError: The work refused (its own status: 404, 409 ...), failed
+            (500), or no Redis server answers (503).
+    """
+    try:
+        job_id = api_jobs.submit(function, *args)
+        job = api_jobs.wait(job_id)
+    except api_jobs.NoQueue as exc:
+        raise ApiError(str(exc), status_code=503)
+    if job is not None and job["state"] == "failed":
+        raise ApiError(job["error"], status_code=job["error_status"] or 500)
+    if job is not None and job["state"] == "succeeded":
+        return job_id, job["result"]
+    return job_id, None
+
+
 @bp.route("/jobs/<job_id>", methods=["GET"])
 @require_admin()
 def job_status_route(job_id):
@@ -1343,9 +1368,23 @@ def create_system():
     body = require_json_body()
     sector_id, position = _placement_fields(body)
     _validate_system_config_body(body)
-    system_config = SystemConfig.from_dict(body)
 
-    conn = _write_conn()
+    job_id, made = run_queued(create_system_job, _resolve_requested_write_db_config(), body, sector_id, position)
+    if made is None:
+        audit("system.create", target=f"job:{job_id}", detail=f"queued star_type={body.get('star_type')!r}")
+        return accepted(job_id)
+    system_id = made["id"]
+    audit("system.create", target=f"system:{system_id}",
+          detail=f"star_type={body.get('star_type')!r} sector_id={sector_id!r}")
+    return jsonify(made), 201
+
+
+def create_system_job(config, body, sector_id, position):
+    """The queued body of `POST /api/systems`: generates the system and
+    stores it. Returns `{"id", ...}`, with `sector_id` and `position` when
+    placed in a sector."""
+    system_config = SystemConfig.from_dict(body)
+    conn = store.open_write(config)
     try:
         with conn:
             if sector_id is None:
@@ -1361,13 +1400,10 @@ def create_system():
                     raise ApiError(str(exc), status_code=409 if position is None else 400)
     finally:
         conn.close()
-
-    audit("system.create", target=f"system:{system_id}",
-          detail=f"star_type={body.get('star_type')!r} sector_id={sector_id!r}")
     result = {"id": system_id}
     if placed is not None:
         result.update(sector_id=sector_id, position=list(placed))
-    return jsonify(result), 201
+    return result
 
 
 NAME_MAX_LENGTH = MAX_NAME_LENGTH
@@ -1469,7 +1505,28 @@ def update_system(system_id):
         if "name" in recipe:
             raise ApiError("'regenerate' keeps the system's name; rename with 'name' instead")
 
-    conn = _write_conn()
+    # A rename alone is one quick row write and stays in the request. A
+    # regeneration generates a system, so it runs on the queue (PERF.24),
+    # with any rename sent along, in the same transaction.
+    config = _resolve_requested_write_db_config()
+    if recipe is None:
+        job_id, final_name = None, update_system_job(config, system_id, name, None, drop_facilities)
+    else:
+        job_id, final_name = run_queued(update_system_job, config, system_id, name, recipe, drop_facilities)
+    detail = {key: body[key] for key in ("name", "drop_facilities") if key in body}
+    if recipe is not None:
+        detail["regenerate"] = recipe
+    if final_name is None:
+        audit("system.update", target=f"system:{system_id}", detail=f"queued job={job_id}: {detail}")
+        return accepted(job_id)
+    audit("system.update", target=f"system:{system_id}", detail=str(detail))
+    return jsonify({"status": "ok", "id": system_id, "name": final_name, "regenerated": recipe is not None})
+
+
+def update_system_job(config, system_id, name, recipe, drop_facilities):
+    """The queued body of `PATCH /api/systems/<id>`: the rename, then the
+    regeneration, in one transaction. Returns the system's final name."""
+    conn = store.open_write(config)
     try:
         with conn:
             row = conn.execute("SELECT id, sector_id FROM star_systems WHERE id = ?", (system_id,)).fetchone()
@@ -1491,15 +1548,9 @@ def update_system(system_id):
                            if row["sector_id"] is not None else None)
                 store.replace_star_system_content(conn, system_id, _generate_system(system_config, dist_ly),
                                                 system_config)
-            final_name = conn.execute("SELECT name FROM star_systems WHERE id = ?", (system_id,)).fetchone()["name"]
+            return conn.execute("SELECT name FROM star_systems WHERE id = ?", (system_id,)).fetchone()["name"]
     finally:
         conn.close()
-
-    detail = {key: body[key] for key in ("name", "drop_facilities") if key in body}
-    if recipe is not None:
-        detail["regenerate"] = recipe
-    audit("system.update", target=f"system:{system_id}", detail=str(detail))
-    return jsonify({"status": "ok", "id": system_id, "name": final_name, "regenerated": recipe is not None})
 
 
 @bp.route("/stars/<int:star_id>", methods=["PATCH"])

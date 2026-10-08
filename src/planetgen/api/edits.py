@@ -31,7 +31,7 @@ from planetgen.generation.config import SystemConfig
 from .authz import audit, require_admin
 from .common import ApiError
 from .limiter import limiter
-from .routes import WRITE_RATE_LIMIT, accepted, _resolve_requested_write_db_config, _write_conn
+from .routes import WRITE_RATE_LIMIT, accepted, run_queued, _resolve_requested_write_db_config, _write_conn
 
 bp = Blueprint("edits", __name__, url_prefix="/api")
 
@@ -76,16 +76,42 @@ def _facilities_lost(conn, kind, body, regenerate):
                for column, value in ids)
 
 
-def _result_json(result, **extra):
-    return jsonify({"status": "ok", "summary": result.summary, "moved": result.moved,
-                    "reclassified": result.reclassified, "removed": result.removed,
-                    "warnings": result.warnings, **extra})
+def _result_dict(result, **extra):
+    return {"status": "ok", "summary": result.summary, "moved": result.moved,
+            "reclassified": result.reclassified, "removed": result.removed,
+            "warnings": result.warnings, **extra}
+
+
+def _queued_edit(action, target, function, *args, detail_prefix=""):
+    """Runs an edit that generates something on the queue (PERF.24) and
+    answers with its result, or `202` with the job's id when it's still
+    running after a few seconds."""
+    job_id, result = run_queued(function, *args)
+    if result is None:
+        audit(action, target=target, detail=f"queued job={job_id}")
+        return accepted(job_id)
+    audit(action, target=target, detail=detail_prefix + result["summary"])
+    return jsonify(result)
 
 
 def _edit_body(kind, body_id, regenerate):
-    """Shared body of the planet/moon/belt delete and regenerate routes."""
+    """Shared body of the planet/moon/belt delete and regenerate routes.
+    A regenerate runs on the queue; a delete is a few row deletes and
+    stays in the request."""
     drop_facilities = _options()
-    conn = _write_conn()
+    config = _resolve_requested_write_db_config()
+    if regenerate:
+        return _queued_edit(f"{kind}.regenerate", f"{kind}:{body_id}", edit_body_job,
+                            config, kind, body_id, True, drop_facilities)
+    result = edit_body_job(config, kind, body_id, False, drop_facilities)
+    audit(f"{kind}.delete", target=f"{kind}:{body_id}", detail=result["summary"])
+    return jsonify(result)
+
+
+def edit_body_job(config, kind, body_id, regenerate, drop_facilities):
+    """Deletes (or rolls again) one planet, moon or belt, and returns the
+    edit's result for the response."""
+    conn = store.open_write(config)
     try:
         with conn:
             row = conn.execute(f"SELECT star_system_id FROM {_BODY_TABLES[kind]} WHERE id = ?",
@@ -109,9 +135,7 @@ def _edit_body(kind, body_id, regenerate):
             editStore.save_system_edits(conn, system_id, system)
     finally:
         conn.close()
-    audit(f"{kind}.{'regenerate' if regenerate else 'delete'}", target=f"{kind}:{body_id}",
-          detail=result.summary)
-    return _result_json(result, star_system_id=system_id)
+    return _result_dict(result, star_system_id=system_id)
 
 
 def _body_routes(kind, plural):
@@ -179,7 +203,14 @@ def _change_class(kind, body_id):
         raise ApiError(f"'class' must be one of {', '.join(sorted(tuning.PLANET_CLASSES))}")
     if not isinstance(force, bool):
         raise ApiError("'force' must be a boolean")
-    conn = _write_conn()
+    return _queued_edit(f"{kind}.class", f"{kind}:{body_id}", change_class_job,
+                        _resolve_requested_write_db_config(), kind, body_id, planet_class, force,
+                        detail_prefix=f"{planet_class} force={force}: ")
+
+
+def change_class_job(config, kind, body_id, planet_class, force):
+    """Changes one planet's or moon's class; returns the edit's result."""
+    conn = store.open_write(config)
     try:
         with conn:
             system_id, system = _load_system_of(conn, kind, body_id)
@@ -191,8 +222,7 @@ def _change_class(kind, body_id):
             editStore.save_system_edits(conn, system_id, system)
     finally:
         conn.close()
-    audit(f"{kind}.class", target=f"{kind}:{body_id}", detail=f"{planet_class} force={force}: {result.summary}")
-    return _result_json(result, star_system_id=system_id)
+    return _result_dict(result, star_system_id=system_id)
 
 
 @bp.route("/planets/<int:body_id>/class", methods=["POST"])
@@ -260,7 +290,14 @@ def change_system_star(system_id):
         raise ApiError("'star_type' must be a spectral type such as \"K2V\"")
     if not isinstance(drop_facilities, bool):
         raise ApiError("'drop_facilities' must be a boolean")
-    conn = _write_conn()
+    return _queued_edit("system.star", f"system:{system_id}", change_star_job,
+                        _resolve_requested_write_db_config(), system_id, star_type, drop_facilities,
+                        detail_prefix=f"{star_type}: ")
+
+
+def change_star_job(config, system_id, star_type, drop_facilities):
+    """Replaces a single-star system's star; returns the edit's result."""
+    conn = store.open_write(config)
     try:
         with conn:
             try:
@@ -285,8 +322,7 @@ def change_system_star(system_id):
             editStore.save_system_edits(conn, system_id, system, stars=[new_star])
     finally:
         conn.close()
-    audit("system.star", target=f"system:{system_id}", detail=f"{star_type}: {result.summary}")
-    return _result_json(result, star_system_id=system_id, star_type=new_star.type.split()[0])
+    return _result_dict(result, star_system_id=system_id, star_type=new_star.type.split()[0])
 
 
 # ---------------------------------------------------------------------
@@ -326,7 +362,14 @@ def regenerate_phenomenon(phenomenon_type, phenomenon_id):
     _options()
     if phenomenon_type not in editStore.PHENOMENON_TABLES:
         raise ApiError(f"unknown phenomenon type: {phenomenon_type}", status_code=404)
-    conn = _write_conn()
+    return _queued_edit("phenomenon.regenerate", f"{phenomenon_type}:{phenomenon_id}",
+                        regenerate_phenomenon_job, _resolve_requested_write_db_config(),
+                        phenomenon_type, phenomenon_id)
+
+
+def regenerate_phenomenon_job(config, phenomenon_type, phenomenon_id):
+    """Rolls one standalone phenomenon again; returns the response."""
+    conn = store.open_write(config)
     try:
         with conn:
             row = editStore.phenomenon_row(conn, phenomenon_type, phenomenon_id)
@@ -340,8 +383,7 @@ def regenerate_phenomenon(phenomenon_type, phenomenon_id):
                 raise ApiError(str(exc), status_code=409)
     finally:
         conn.close()
-    audit("phenomenon.regenerate", target=f"{phenomenon_type}:{phenomenon_id}")
-    return jsonify({"status": "ok", "summary": f"Regenerated {row['name']}."})
+    return {"status": "ok", "summary": f"Regenerated {row['name']}."}
 
 
 # ---------------------------------------------------------------------

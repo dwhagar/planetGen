@@ -56,7 +56,7 @@ def test_the_status_route_reports_a_job(admin_client, redis_server):
     job_id = api_jobs.submit(math.pow, 3, 2)
     _wait(job_id)
     body = admin_client.get(f"/api/jobs/{job_id}").get_json()
-    assert body == {"id": job_id, "state": "succeeded", "result": 9.0, "error": None}
+    assert body == {"id": job_id, "state": "succeeded", "result": 9.0, "error": None, "error_status": None}
 
 
 def test_the_status_route_is_503_without_redis(admin_client, monkeypatch):
@@ -99,3 +99,35 @@ def test_the_neighborhood_route_is_503_without_redis(admin_client, monkeypatch):
 
     monkeypatch.setattr(api_jobs, "submit", down)
     assert admin_client.post("/api/sectors/1/generate-neighborhood", json={}).status_code == 503
+
+
+def _refuse(status):
+    from planetgen.api.common import ApiError
+    raise ApiError("not this", status_code=status)
+
+
+def test_a_refusal_keeps_its_status(redis_server):
+    job = _wait(api_jobs.submit(_refuse, 409))
+    assert job["state"] == "failed" and job["error"] == "not this" and job["error_status"] == 409
+
+
+def test_a_slow_edit_answers_202_with_the_job_id(admin_client, redis_server, monkeypatch):
+    """When the wait runs out the route answers 202; the job carries on."""
+    monkeypatch.setattr(api_jobs, "wait", lambda job_id, seconds=0: {"id": job_id, "state": "running"})
+    response = admin_client.post("/api/systems", json={})
+    assert response.status_code == 202
+    job_id = response.get_json()["job_id"]
+    assert _wait(job_id)["state"] == "succeeded"
+
+
+def test_a_quick_edit_answers_in_the_same_response(admin_client, redis_server):
+    response = admin_client.post("/api/systems", json={})
+    assert response.status_code == 201 and response.get_json()["id"] > 0
+
+
+def test_an_edit_is_503_without_redis(admin_client, monkeypatch):
+    def down(function, *args):
+        raise api_jobs.NoQueue("no Redis server answers")
+
+    monkeypatch.setattr(api_jobs, "submit", down)
+    assert admin_client.post("/api/systems", json={}).status_code == 503
