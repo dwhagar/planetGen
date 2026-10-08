@@ -401,6 +401,15 @@ masses (23:16Z), as a spline.
   is when the position and velocity hold. `get_time_to_observable_movement`
   measures a "galactic" move by the galactic velocity and the others by the
   system velocity.
+- With the sector edge known, the position also knows its **sector
+  address**, `(ring, layer, slot)`, the cell of the galaxy's sector grid
+  (`galaxy/geometry.py`) it is in. It is worked out again from the galactic
+  position whenever anything moves it, so it is never stale; sector entries
+  and every body of their systems get the edge when the sector is placed in
+  the galaxy (`place_in_galaxy`). `set_sector_address` carries the body to
+  another cell's center, keeping its offset from the sector's center (in
+  galactic axes). A system near a cell face can have a body in the next
+  cell: the address is where the body is.
 - `physics/state_vectors.py` converts between a state vector (position and
   velocity relative to the primary) and orbital elements for every conic,
   ellipse, parabola or hyperbola: `state_from_elements`,

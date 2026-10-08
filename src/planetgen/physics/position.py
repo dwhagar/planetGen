@@ -31,6 +31,14 @@ was given in, and the other frames are derived from it. A moon placed by its
 system offset therefore keeps its metres exactly even though the same point
 in galactic coordinates (about 1e20 m from the center) cannot.
 
+Sector address: with the sector edge known (`sector_edge_pc`), the position
+also knows which cell of the galaxy's sector grid it is in (`sector_address`:
+ring, layer, slot; `planetgen.galaxy.geometry`). It is worked out from the
+galactic position whenever the position changes, by any setter or anchor
+move, so it is never stale. `set_sector_address` moves the body to another
+cell the way `carry_sector_center` does, keeping its offset from the
+sector's center.
+
 Velocity: one vector in two frames. The galactic velocity (the sector frame
 has the same axes and does not move) is the velocity in the galaxy's axes;
 the system velocity is relative to the nearest star, so a planet keeps its
@@ -54,6 +62,7 @@ axis the angles are not defined and read as 0.
 
 import math
 
+from planetgen.galaxy import geometry
 from planetgen.physics import constants as physical_constants
 
 FRAMES = ("galactic", "sector", "system")
@@ -151,11 +160,14 @@ class SpatialPosition3D:
         star_velocity_galactic (tuple): The nearest star's velocity, galactic
             axes, m/s: what the system frame's velocity is measured from.
         epoch_unix (float or None): When the position and velocity hold.
+        sector_edge_pc (float or None): The sector grid's edge length, parsecs.
+            Given, the position keeps its `sector_address`; `None` leaves
+            the address unknown.
     """
 
     def __init__(self, galactic_cartesian, sector_center_galactic, velocity_vector_cartesian=(0.0, 0.0, 0.0),
                  star_center_galactic=None, is_star=False, mass_kg=None, length_unit_m=1.0,
-                 star_velocity_galactic=(0.0, 0.0, 0.0), epoch_unix=None):
+                 star_velocity_galactic=(0.0, 0.0, 0.0), epoch_unix=None, sector_edge_pc=None):
         _finite((length_unit_m,), "length unit")
         if length_unit_m <= 0.0:
             raise ValueError(f"the length unit must be positive, got {length_unit_m!r}")
@@ -171,6 +183,13 @@ class SpatialPosition3D:
         self._star_velocity = tuple(float(v) for v in star_velocity_galactic)
         self._epoch_unix = None
         self.set_epoch_unix(epoch_unix)
+        if sector_edge_pc is not None:
+            _finite((sector_edge_pc,), "sector edge")
+            if sector_edge_pc <= 0.0:
+                raise ValueError(f"the sector edge must be positive, got {sector_edge_pc!r}")
+            sector_edge_pc = float(sector_edge_pc)
+        self._sector_edge_pc = sector_edge_pc
+        self._sector_address = None
         self._truth = ("galactic", tuple(float(v) for v in galactic_cartesian))
         self._mass_kg = None
         self._mu = None
@@ -199,6 +218,40 @@ class SpatialPosition3D:
         """Whether the system frame exists (not a star, and a star is known)."""
         return not self._is_star and self._star_center is not None
 
+    @property
+    def sector_edge_pc(self):
+        """float or None: The sector grid's edge length, parsecs."""
+        return self._sector_edge_pc
+
+    @property
+    def sector_address(self):
+        """tuple or None: The `(ring, layer, slot)` of the sector cell the
+        position is in; `None` when the sector edge is not known."""
+        return self._sector_address
+
+    def set_sector_edge_pc(self, sector_edge_pc):
+        """Sets (or, with `None`, forgets) the sector grid's edge length,
+        parsecs; the address is worked out again."""
+        if sector_edge_pc is not None:
+            _finite((sector_edge_pc,), "sector edge")
+            if sector_edge_pc <= 0.0:
+                raise ValueError(f"the sector edge must be positive, got {sector_edge_pc!r}")
+            sector_edge_pc = float(sector_edge_pc)
+        self._sector_edge_pc = sector_edge_pc
+        self._sector_address = None
+        self._sync()
+
+    def set_sector_address(self, ring_index, layer_index, slot_index):
+        """Moves the body to the sector cell `(ring, layer, slot)`, keeping
+        its offset from the sector's center (`carry_sector_center` to that
+        cell's center). Raises `ValueError` without a sector edge or for a
+        slot the ring does not have."""
+        if self._sector_edge_pc is None:
+            raise ValueError("the sector edge is not known, so there is no sector address to set")
+        center_pc = geometry.sector_position_pc(ring_index, layer_index, slot_index, self._sector_edge_pc)
+        from_pc = physical_constants.PARSEC_M / self.length_unit_m
+        self.carry_sector_center(tuple(c * from_pc for c in center_pc))
+
     def _galactic_cartesian(self):
         frame, xyz = self._truth
         anchor = self._anchor(frame)
@@ -220,6 +273,9 @@ class SpatialPosition3D:
                 "cylindrical": cartesian_to_cylindrical(*xyz),
                 "spherical": cartesian_to_spherical(*xyz),
             }
+        if self._sector_edge_pc is not None:
+            to_pc = self.length_unit_m / physical_constants.PARSEC_M
+            self._sector_address = geometry.sector_address_at(tuple(c * to_pc for c in gal), self._sector_edge_pc)
 
     def _set(self, frame, xyz):
         _finite(xyz, "coordinates")
