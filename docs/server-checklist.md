@@ -83,7 +83,7 @@ rate-limit budget.
 The Galaxy Map caches tiles on disk, in `/var/cache/planetgen/tiles` by
 default (see `tile_cache` in [`config.md`](config.md)).
 
-    ls -ld /var/cache/planetgen/tiles /var/lib/planetgen/jobs
+    ls -ld /var/cache/planetgen/tiles /var/lib/planetGen/jobs
 
 Pass: both folders exist and are owned by the **web user**. The tile
 cache fills up after you open the Galaxy Map.

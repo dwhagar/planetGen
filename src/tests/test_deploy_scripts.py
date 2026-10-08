@@ -77,7 +77,7 @@ def _deploy_paths(repo_dir, env=None, script=DEPLOY_PATHS, cwd=None):
 
 
 def test_deploy_paths_defaults_without_a_config(tmp_path):
-    assert _deploy_paths(tmp_path) == ["/var/cache/planetgen/tiles", "/var/lib/planetgen/jobs"]
+    assert _deploy_paths(tmp_path) == ["/var/cache/planetgen/tiles", "/var/lib/planetGen/jobs"]
 
 
 def test_deploy_paths_reads_config_json(tmp_path):
@@ -91,7 +91,7 @@ def test_deploy_paths_env_wins_and_max_mb_0_turns_the_cache_off(tmp_path):
     (tmp_path / "config.json").write_text(json.dumps({"tile_cache": {"dir": "/srv/tiles", "max_mb": 0}}))
     assert _deploy_paths(tmp_path, {"PLANETGEN_JOBS_DIR": "/env/jobs"}) == ["", "/env/jobs"]
     assert _deploy_paths(tmp_path, {"PLANETGEN_TILE_CACHE_MAX_MB": "5", "PLANETGEN_TILE_CACHE_DIR": "/env/t"}) == [
-        "/env/t", "/var/lib/planetgen/jobs"]
+        "/env/t", "/var/lib/planetGen/jobs"]
 
 
 def test_deploy_paths_matches_the_web_apps_own_answer(tmp_path, monkeypatch):
@@ -119,8 +119,75 @@ def test_deploy_paths_imports_nothing_planted_beside_it(tmp_path):
     marker = tmp_path / "imported"
     (planted / "json.py").write_text(f"open({str(marker)!r}, 'w').close()\nraise SystemExit(9)\n")
     assert _deploy_paths(tmp_path, script=str(script), cwd=str(planted)) == [
-        "/var/cache/planetgen/tiles", "/var/lib/planetgen/jobs"]
+        "/var/cache/planetgen/tiles", "/var/lib/planetGen/jobs"]
     assert not marker.exists()
+
+
+def _deploy_paths_module():
+    import importlib.util
+    spec = importlib.util.spec_from_file_location("deploy_paths", DEPLOY_PATHS)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def _job(root, job_id, status=None):
+    path = root / job_id
+    path.mkdir(parents=True)
+    (path / "output.log").write_text("log of " + job_id)
+    if status:
+        (path / "state.json").write_text(json.dumps({"status": status}))
+    return path
+
+
+def test_the_jobs_default_is_inside_the_checkouts_folder():
+    """OPS.19: the old default, /var/lib/planetgen/jobs, differed from the
+    checkout's /var/lib/planetGen only by case: two folders."""
+    from planetgen.web import jobs
+    assert jobs.DEFAULT_JOBS_DIR == _deploy_paths_module().DEFAULT_JOBS_DIR == "/var/lib/planetGen/jobs"
+
+
+def test_old_jobs_move_to_the_new_default_and_the_old_folders_go(tmp_path, monkeypatch):
+    module = _deploy_paths_module()
+    old = tmp_path / "planetgen" / "jobs"
+    new = tmp_path / "planetGen" / "jobs"
+    monkeypatch.setattr(module, "DEFAULT_JOBS_DIR", str(new))
+    _job(old, "20261001-010101-aaaa", "succeeded")
+    _job(old, "20261002-010101-bbbb", "failed")
+    (old / "active").write_text("20261002-010101-bbbb")  # stale: that job finished
+    lines = module.move_old_jobs(str(new), str(old))
+    assert sorted(os.listdir(new)) == ["20261001-010101-aaaa", "20261002-010101-bbbb"]
+    assert (new / "20261001-010101-aaaa" / "output.log").read_text() == "log of 20261001-010101-aaaa"
+    assert not old.exists() and not old.parent.exists()
+    assert lines[0] == f"Moved 2 Generate job(s) from {old} to {new}."
+
+
+def test_a_running_old_job_stays_put(tmp_path, monkeypatch):
+    module = _deploy_paths_module()
+    old = tmp_path / "planetgen" / "jobs"
+    new = tmp_path / "planetGen" / "jobs"
+    monkeypatch.setattr(module, "DEFAULT_JOBS_DIR", str(new))
+    _job(old, "20261001-010101-aaaa", "succeeded")
+    _job(old, "20261002-010101-bbbb")  # still running
+    (old / "active").write_text("20261002-010101-bbbb")
+    lines = module.move_old_jobs(str(new), str(old))
+    assert os.listdir(new) == ["20261001-010101-aaaa"]
+    assert sorted(os.listdir(old)) == ["20261002-010101-bbbb", "active"]
+    assert "20261002-010101-bbbb" in lines[-1]
+
+
+def test_a_configured_jobs_dir_is_left_alone(tmp_path):
+    module = _deploy_paths_module()
+    old = tmp_path / "planetgen" / "jobs"
+    _job(old, "20261001-010101-aaaa", "succeeded")
+    assert module.move_old_jobs(str(tmp_path / "elsewhere"), str(old)) == []
+    assert os.listdir(old) == ["20261001-010101-aaaa"]
+
+
+def test_create_cache_dir_moves_old_jobs_before_making_the_folder():
+    code = _code_lines("create-cache-dir.sh")
+    move = code.index('"$PYTHON" -I "$APACHE_DIR/deploy-paths.py" --move-old-jobs "$JOBS_DIR"')
+    assert move < code.index('mkdir -p "$JOBS_DIR"')
 
 
 def test_root_helpers_run_python_isolated():

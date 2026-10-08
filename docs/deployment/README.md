@@ -55,8 +55,10 @@ addresses that keep guessing admin passwords.
 - **Runtime directories** owned by the account the app runs as, mode
   750: the Galaxy Map tile cache (`tile_cache.dir`, default
   `/var/cache/planetgen/tiles`) and the Generate jobs (`jobs.dir`,
-  default `/var/lib/planetgen/jobs`). On Linux, `install.sh` and
-  `update.sh` create both (`examples/apache/create-cache-dir.sh`).
+  default `/var/lib/planetGen/jobs`). On Linux, `install.sh` and
+  `update.sh` create both (`examples/apache/create-cache-dir.sh`), and
+  move jobs left in the old default, `/var/lib/planetgen/jobs`, into the
+  new one (a running job stays until it finishes).
 - **A read-only code tree.** `src/html` belongs to root with the web
   group (directories 750, files 640, `*.py` 750), so the app can read
   its code but never change it. `config.json` is root with the web
