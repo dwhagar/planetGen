@@ -1,6 +1,7 @@
 {#- planetgen/web/templates/partials/job_status.html -- one job's live status,
 used by generate.html and generate_job.html. static/generatejobs.js
-redraws the same parts from /admin/generate/status. -#}
+redraws the same parts from the job's event stream (ADM.22) and swaps the
+`<pre>` (what shows without script) for a terminal (static/joblog.js). -#}
 {%- macro job_status(job, output, cancel=True, link=True) -%}
 <p><strong data-job-title>{{ job.title }}</strong>
   <span class="badge job-{{ job.status }}" data-job-status>{{ job.status }}</span>
@@ -19,6 +20,7 @@ redraws the same parts from /admin/generate/status. -#}
 <p class="hint" data-job-progress-detail{% if not job.progress_detail_text %} hidden{% endif %}>{{ job.progress_detail_text }}</p>
 <p class="error" role="alert" data-job-error{% if not job.error %} hidden{% endif %}>{{ job.error or "" }}</p>
 <pre class="job-log" data-job-log tabindex="0" aria-label="Job output">{{ output or "" }}</pre>
+<p class="hint" data-job-connection role="status" hidden></p>
 {%- if cancel and not job.finished %}
 <form method="post" action="{{ url_for('web.generate') }}" class="table-form" data-job-cancel>
   {{ csrf_field() }}
@@ -27,7 +29,8 @@ redraws the same parts from /admin/generate/status. -#}
   <button type="submit" class="btn btn-danger">Cancel job</button>
 </form>
 {%- endif %}
-{%- if link %}
-<p><a href="{{ job.url }}">Full output</a></p>
-{%- endif %}
+<p class="job-links">
+  {%- if link %}<a href="{{ job.url }}">Full output</a> {% endif -%}
+  <a href="{{ url_for('web.generate_job_log', job_id=job.id) }}" download>Download log</a>
+</p>
 {%- endmacro -%}

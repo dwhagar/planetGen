@@ -32,9 +32,11 @@ ask for the database name to be typed back, the same confirmation
 `planetgen.cli.reset` asks for in a terminal.
 
 The page shows the running job (step, progress bar, elapsed time and the
-tail of its output), refreshed every few seconds by
-`static/generatejobs.js` from `/admin/generate/status`, plus the last few
-jobs, each with its full output at `/admin/generate/jobs/<id>`.
+output in a terminal), kept live by `static/generatejobs.js` over a
+Server-Sent Events stream (`/admin/generate/jobs/<id>/stream`, ADM.22;
+`/admin/generate/status` is the polling fallback), plus the last few
+jobs, each with its page at `/admin/generate/jobs/<id>` and its full
+output to download at `/admin/generate/jobs/<id>/log`.
 
 Every section folds (ADM.4; `static/generatefolds.js` remembers which
 are open per browser).
@@ -48,7 +50,8 @@ import json
 import os
 import time
 
-from flask import abort, current_app, jsonify, make_response, redirect, request, url_for
+from flask import (Response, abort, current_app, jsonify, make_response, redirect, request, send_file,
+                   stream_with_context, url_for)
 
 from planetgen.queue import api_jobs
 from planetgen.web.lib import apiclient
@@ -556,6 +559,17 @@ def _build_job_steps(action, form, edge_pc=None):
 # Views
 # ---------------------------------------------------------------------
 
+@bp.after_request
+def _allow_inline_styles_for_the_terminal(response):
+    """The two pages with the job terminal get `JOB_LOG_CONTENT_SECURITY_POLICY`
+    (see there); the page's other responses (redirects, errors, JSON, downloads) are untouched."""
+    if (request.endpoint in ("web.generate", "web.generate_job") and response.status_code == 200
+            and response.mimetype == "text/html"):
+        from planetgen.web import JOB_LOG_CONTENT_SECURITY_POLICY
+        response.headers["Content-Security-Policy"] = JOB_LOG_CONTENT_SECURITY_POLICY
+    return response
+
+
 def _no_store(response):
     response = make_response(response)
     response.headers["Cache-Control"] = "no-store"
@@ -842,6 +856,125 @@ def generate_status():
 
 
 generate_status.json_only = True  # not a page: tests/test_web_a11y.py skips it
+
+
+STREAM_SECONDS = 40
+"""int: How long one `.../stream` response stays open. Under Apache a
+request that outlives `WSGIDaemonProcess request-timeout` (60 s in
+`examples/apache/planetgen.conf.example`) restarts the whole daemon, so
+the stream ends well before and the browser's `EventSource` reconnects,
+resuming from the `Last-Event-ID` (the byte offset reached)."""
+
+STREAM_POLL_SECONDS = 0.5
+STREAM_KEEPALIVE_SECONDS = 15
+STREAM_REPLAY_BYTES = 256 * 1024
+"""int: A first connection (no offset) replays at most this much of the log's end."""
+
+
+def _sse(event, data, event_id=None):
+    lines = [f"event: {event}"]
+    if event_id is not None:
+        lines.append(f"id: {event_id}")
+    lines.append(f"data: {data}")
+    return "\n".join(lines) + "\n\n"
+
+
+def _stream_start_offset(job_id, root):
+    """Where a stream starts reading: the `Last-Event-ID` header (a reconnect) or
+    `?offset=`, else the last STREAM_REPLAY_BYTES, from the start of a line."""
+    raw = request.headers.get("Last-Event-ID") or request.args.get("offset")
+    try:
+        return max(0, int(raw))
+    except (TypeError, ValueError):
+        pass
+    size = jobs.log_size(job_id, root) or 0
+    if size <= STREAM_REPLAY_BYTES:
+        return 0
+    start = size - STREAM_REPLAY_BYTES
+    chunk = jobs.read_log(job_id, start, 4096, root)
+    if chunk and "\n" in chunk[0]:
+        return start + len(chunk[0].split("\n", 1)[0].encode("utf-8")) + 1
+    return start
+
+
+@bp.route("/admin/generate/jobs/<job_id>/stream")
+def generate_job_stream(job_id):
+    """
+    Server-Sent Events for one job (`static/generatejobs.js`): `log` events
+    carrying new output (`{"text": ...}`, with the byte offset reached as
+    the event id, so a reconnect resumes), `state` events carrying the job
+    as `_job_view` shows it whenever it changes, and `done` once the job
+    has finished and its output is all sent. The response ends after
+    STREAM_SECONDS; the browser reconnects by itself unless it saw `done`.
+    """
+    _admin_or_403()
+    root = jobs.jobs_dir()
+    if jobs.get_job(job_id, root) is None:
+        abort(404, description="No such job.")
+    offset = _stream_start_offset(job_id, root)
+
+    @stream_with_context
+    def events():
+        nonlocal offset
+        yield "retry: 2000\n\n"
+        deadline = time.monotonic() + STREAM_SECONDS
+        last_state = None
+        last_sent = time.monotonic()
+        while True:
+            job = jobs.get_job(job_id, root)
+            if job is None:
+                return
+            # Finished is read before the log, so output written just before it is still sent.
+            finished = bool(job.get("finished"))
+            sent = False
+            while True:
+                chunk = jobs.read_log(job_id, offset, root=root)
+                if not chunk or not chunk[0]:
+                    break
+                text, offset = chunk
+                yield _sse("log", json.dumps({"text": text}), offset)
+                sent = True
+            state = current_app.json.dumps(_job_view(job))
+            if state != last_state:
+                last_state = state
+                yield _sse("state", state, offset)  # with an id, so a reconnect never replays the tail
+                sent = True
+            if finished:
+                yield _sse("done", "{}")
+                return
+            now = time.monotonic()
+            if sent:
+                last_sent = now
+            elif now - last_sent >= STREAM_KEEPALIVE_SECONDS:
+                yield ": keep-alive\n\n"
+                last_sent = now
+            if now >= deadline:
+                return
+            time.sleep(STREAM_POLL_SECONDS)
+
+    response = Response(events(), mimetype="text/event-stream")
+    response.headers["Cache-Control"] = "no-store"
+    response.headers["X-Accel-Buffering"] = "no"  # nginx: pass events through
+    return response
+
+
+generate_job_stream.json_only = True  # not a page: tests/test_web_a11y.py skips it
+
+
+@bp.route("/admin/generate/jobs/<job_id>/log")
+def generate_job_log(job_id):
+    """A job's full output as a plain-text download."""
+    _admin_or_403()
+    root = jobs.jobs_dir()
+    if jobs.get_job(job_id, root) is None:
+        abort(404, description="No such job.")
+    path = os.path.join(jobs._job_dir(root, job_id), "output.log")
+    if not os.path.isfile(path):
+        abort(404, description="This job has no output yet.")
+    return _no_store(send_file(path, mimetype="text/plain", as_attachment=True, download_name=f"job-{job_id}.log"))
+
+
+generate_job_log.json_only = True  # not a page: tests/test_web_a11y.py skips it
 
 
 @bp.route("/admin/generate/sectors")

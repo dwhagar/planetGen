@@ -45,3 +45,19 @@ Rebuild from a fresh release (bumping the version above) with:
 
 To use another component, add it to COMPONENTS in scripts/vendor_shoelace.py
 and to components.js, and run the script again (it needs node for the icons).
+
+
+Xterm.js 6.0.0 (@xterm/xterm on npm, https://xtermjs.org) and its fit addon
+0.11.0 (@xterm/addon-fit). MIT License -- full text in xterm/LICENSE.txt
+(the xterm package's own LICENSE, copied unmodified).
+
+xterm/ holds lib/xterm.mjs and lib/addon-fit.mjs (only the trailing
+sourceMappingURL comment removed, since the map is not shipped) and
+css/xterm.css. The admin job log (static/joblog.js) shows a job's output in
+them. Rebuild from fresh releases (bumping the versions above) with:
+
+  npm pack @xterm/xterm @xterm/addon-fit
+  tar xzf xterm-xterm-<version>.tgz package/lib/xterm.mjs package/css/xterm.css package/LICENSE
+  tar xzf xterm-addon-fit-<version>.tgz --one-top-level=fit fit/package/lib/addon-fit.mjs
+
+then copy the files here, dropping the `//# sourceMappingURL` lines.
