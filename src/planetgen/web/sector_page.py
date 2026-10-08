@@ -297,7 +297,11 @@ def _handle_post(sector_id, admin):
             if exc.status_code == 409:
                 return "wiki", "A page already exists at that location."
             return "wiki", _api_message(exc)
-        flash(f"Uploaded to the wiki: {result['url']}", _FLASH_CATEGORY)
+        if result.get("url"):
+            flash(f"Uploaded to the wiki: {result['url']}", _FLASH_CATEGORY)
+        else:
+            flash(f"The wiki upload is queued (job {result['job_id']}); reload in a minute to see the link.",
+                  _FLASH_CATEGORY)
         return page_again
 
     if action == "generate_neighborhood" and not admin["must_change_credentials"]:
