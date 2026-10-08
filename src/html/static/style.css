@@ -2144,9 +2144,8 @@ code {
    and the block info beside them. On a phone it stays about square, so
    the page can still be scrolled past it. galaxymap3d.js follows the
    canvas's size with a ResizeObserver. */
-/* The long how-to hint in the panel header moves under the map and its
-   controls (the header's box is dropped so its two children become the
-   panel's own flex items), so the map itself starts near the top. */
+/* The panel header's box is dropped so its heading becomes the panel's own
+   flex item (the how-to text moved into the Map help dialog, UX.50). */
 .galaxymap3d-panel {
   display: flex;
   flex-direction: column;
@@ -2158,11 +2157,6 @@ code {
 }
 
 .galaxymap3d-panel > .panel-header > h2 {
-  margin: 0;
-}
-
-.galaxymap3d-panel > .panel-header > .hint {
-  order: 1;
   margin: 0;
 }
 
@@ -2740,9 +2734,14 @@ body.app {
   padding: 1.5rem 1.5rem 3rem;
 }
 
-/* A page whose map should use most of a wide window (the Galaxy Map). */
-.app .app-main-wide {
-  max-width: 120rem;
+/* A page whose map card should use most of a wide window (the Galaxy
+   Map): only the card goes wide (UX.62); the title, crumb and the other
+   cards keep the page's usual left edge. Percent margins are of the
+   column's width, so the card is centered and as wide as the window
+   allows, up to 117rem. */
+.app .app-main-wide .galaxymap3d-panel {
+  max-width: none;
+  margin-inline: calc(50% - min(58.5rem, 50vw - 1.5rem));
 }
 
 .app .app-main:focus {
@@ -3627,10 +3626,10 @@ body.app {
   margin: 0 0 1rem;
 }
 
-/* The round Steps button between Back and Forward (MAP.94): at phone
-   width it takes the breadcrumb's place, a menu of every step to here. */
+/* The round Steps button between Back and Forward (MAP.94, UX.58): at
+   every width, a menu of every step to here and "Jump to newest". */
 .galaxy-steps {
-  display: none;
+  display: inline-block;
   position: relative;
 }
 
@@ -3701,11 +3700,18 @@ body.app {
   cursor: default;
 }
 
-@media (max-width: 599px) {
-  .galaxy-steps {
-    display: inline-block;
-  }
+.galaxy-steps-panel .galaxy-steps-newest {
+  margin-top: 0.3rem;
+  border-top: 1px solid var(--border);
+  border-radius: 0 0 6px 6px;
+}
 
+.galaxy-steps-panel .galaxy-steps-newest:disabled {
+  color: var(--text-muted);
+  cursor: default;
+}
+
+@media (max-width: 599px) {
   .galaxy-crumbs ol {
     display: none;
   }
@@ -3730,4 +3736,19 @@ body.app {
   display: flex;
   flex-wrap: wrap;
   gap: 0.25rem 1rem;
+}
+
+/* The Map help dialog (UX.50): short lists under small headings. */
+.map-help-dialog h3 {
+  font-size: 1rem;
+  margin: 1rem 0 0.35rem;
+}
+
+.map-help-dialog h3:first-child {
+  margin-top: 0;
+}
+
+.map-help-dialog ul {
+  margin: 0;
+  padding-left: 1.25rem;
 }

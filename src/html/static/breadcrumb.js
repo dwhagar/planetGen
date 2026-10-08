@@ -7,7 +7,7 @@
 // the line's width changes; the current step is cut short with an ellipsis
 // only if even that is too long. A page can also give a Steps box (a
 // <details> with a [data-steps-panel]) that lists every step, which the
-// Galaxy Map shows at phone width in the line's place.
+// Galaxy Map shows beside Back and Forward.
 //
 // The steps are `{label, last, href?}` (the picker's trail, picker.js):
 // a step with an `href` is a link, any other a button that calls
@@ -16,7 +16,8 @@
 // Plain DOM calls only: labels are database content.
 
 // Draws the breadcrumb into `nav` (a <nav> holding or getting an <ol>).
-// options: onSelect(step); steps (the Steps <details>, optional);
+// options: onSelect(step); steps (the Steps <details>, optional) and
+// stepsExtra (an element, or a function giving one, kept under its list);
 // trailing (an element, or a function giving one, kept after the list,
 // e.g. the ☆ button).
 export function createBreadcrumb(nav, options) {
@@ -133,6 +134,8 @@ export function createBreadcrumb(nav, options) {
       list.appendChild(item);
     });
     panel.appendChild(list);
+    const extra = typeof options.stepsExtra === "function" ? options.stepsExtra() : options.stepsExtra;
+    if (extra) panel.appendChild(extra);
   }
 
   // Shows `steps`.

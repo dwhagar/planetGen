@@ -438,7 +438,7 @@ def test_galaxy_map_buttons(page, base_url):
     actions = controls.locator("[data-action]").evaluate_all("els => els.map(e => e.dataset.action)")
     canvas = "#galaxymap3d-canvas"
     for action in ("back", "forward", "current", "up"):
-        assert controls.locator(f'[data-action="{action}"]').is_disabled(), f"{action} at the galaxy"
+        assert page.locator(f'#galaxymap3d-controls [data-action="{action}"]').is_disabled(), f"{action} at the galaxy"
     assert "wedges" not in actions, "no Wedges button (MAP.85)"
     page.click("#galaxymap3d-menu summary")
 
@@ -475,7 +475,8 @@ def test_galaxy_map_forward_to_current_jumps_to_the_newest_view(page, base_url):
     back at the deepest view; it is disabled once there."""
     _open_galaxy(page, base_url)
     controls = page.locator("#galaxymap3d-controls")
-    current = controls.locator('[data-action="current"]')
+    steps = page.locator("#galaxymap3d-steps")
+    current = steps.locator('[data-action="current"]')
     for _ in range(3):
         _click_choice(page)
     deepest = (_query(page), _crumbs(page))
@@ -484,6 +485,7 @@ def test_galaxy_map_forward_to_current_jumps_to_the_newest_view(page, base_url):
         controls.locator('[data-action="back"]').click()
         _wait_settled(page)
     assert (_query(page), _crumbs(page)) != deepest
+    steps.locator("summary").click()
     assert not current.is_disabled()
     before = _state(page)
     current.click()

@@ -338,21 +338,47 @@ def _json_script(data):
     )
 
 
-GALAXY_MAP_HINT = (
-    "The galaxy is shown in 3D: drag to turn it, right-drag (or Shift-drag) to move it, scroll or\n  pinch to zoom &middot; hover over the disk to see its arcs (each about 40&deg; of bearing by a third of the\n  radius, top to bottom of the disk) and click one to zoom into it, then pick a slab (a layer of the arc) on the map or\n  with the buttons beside the map (each with a line to its slab), then a block of that slab, and so on down to single sectors &middot; Back and\n  Forward retrace your steps, Up (or Esc) goes one step out, Reset (or Home) starts over from the whole galaxy, and\n  Menu holds the rest &middot; arrow keys and Enter pick too &middot; &#9734; on the breadcrumb bookmarks the view\n  or the selected sector, and Bookmarks (or the keys 1 to 9 while the map has focus) opens one &middot; blocks are\n  colored by predicted density (brighter = denser): unfilled space is see-through, and a block with generated\n  sectors is amber, more solid the more of them are generated &middot; glowing points are stars, sized by the\n  star, colored by its temperature and brighter the more luminous: the brightest (1,000 L&#9737; and up on a new\n  galaxy) everywhere, placed before their sectors are generated, and generated systems' stars fainter and fainter\n  as you zoom in; click one (inside a block) to see it"
-)
-"""The Galaxy Map panel's own how-to line."""
+GALAXY_MAP_HELP = """<h3>Moving</h3>
+  <ul>
+    <li>Drag to turn the view, right-drag (or Shift-drag) to move it, scroll or pinch to zoom.</li>
+    <li>Hover over the disk to see its arcs (each about 40&deg; of bearing by a third of the radius, top to
+    bottom of the disk) and click one to zoom into it. Then pick a slab (a layer of the arc) on the map or with
+    the buttons beside it, then a block of that slab, and so on down to single sectors.</li>
+    <li>Back and Forward retrace your steps; the round Steps button lists them all, with Jump to newest. Up (or
+    Esc) goes one step out, Whole galaxy (or Home) starts over, and Re-center puts the camera back to the
+    current step's own view.</li>
+    <li>Arrow keys and Enter pick too. The keys 1 to 9 open a bookmark while the map has focus.</li>
+  </ul>
+  <h3>Reading the map</h3>
+  <ul>
+    <li>Blocks are colored by predicted density (brighter is denser). Unfilled space is see-through; a block
+    with generated sectors is more solid the more of them are generated.</li>
+    <li>Glowing points are stars, sized by the star, colored by its temperature and brighter the more luminous:
+    the brightest (1,000 L&#9737; and up on a new galaxy) everywhere, placed before their sectors are generated,
+    and generated systems' stars fainter and fainter as you zoom in. Click one (inside a block) to see it.</li>
+  </ul>
+  <h3>Bookmarks</h3>
+  <ul>
+    <li>&#9734; on the breadcrumb bookmarks the view or the selected sector; Bookmarks opens one.</li>
+  </ul>"""
+"""The Galaxy Map's help dialog (UX.50): the gestures, keys and legend that used to sit under the map."""
 
-SECTOR_MAP_HINT = (
-    "Drag to turn the view, right-drag (or Shift-drag) to move it, scroll or pinch to zoom, Reset view (in Menu) to "
-    "come back &middot; point of light &asymp; star &middot; halo size &asymp; brightness &middot; color &asymp; "
-    "temperature &middot; bright points &asymp; quasars/neutron stars/accreting black holes &middot; translucent "
-    "clouds &asymp; nebulae/asteroid fields/supernova remnants &middot; small spheres &asymp; quiet black "
-    "holes/interstellar comets &middot; faint points &asymp; rogue planets (Mark rogue planets rings them) "
-    "&middot; faint clouds &asymp; reaching in from a neighboring sector &middot; a click on a neighboring "
-    "sector opens that sector's page"
-)
-"""The sector page's map (MAP.68): the Galaxy Map's engine locked to one sector."""
+SECTOR_MAP_HELP = """<h3>Moving</h3>
+  <ul>
+    <li>Drag to turn the view, right-drag (or Shift-drag) to move it, scroll or pinch to zoom, and Re-center (in
+    Menu) to come back.</li>
+    <li>Click a neighboring sector to open that sector's page.</li>
+  </ul>
+  <h3>Reading the map</h3>
+  <ul>
+    <li>A point of light is a star: its halo size shows brightness and its color temperature.</li>
+    <li>Bright points are quasars, neutron stars and accreting black holes; small spheres are quiet black holes
+    and interstellar comets.</li>
+    <li>Translucent clouds are nebulae, asteroid fields and supernova remnants; faint clouds reach in from a
+    neighboring sector.</li>
+    <li>Faint points are rogue planets; Mark rogue planets rings them.</li>
+  </ul>"""
+"""The sector page's map (MAP.68): the help dialog (UX.50)."""
 
 ADDRESS_BLOCK = """<form class="galaxy-address" id="galaxymap3d-address" role="search" hidden>
   <label for="galaxymap3d-address-input">Go to</label>
@@ -384,14 +410,12 @@ HISTORY_BUTTONS = """  <button type="button" class="starmap-btn" data-action="ba
     <div class="galaxy-steps-panel" data-steps-panel></div>
   </details>
   <button type="button" class="starmap-btn" data-action="forward" data-icon="forward" disabled>Forward</button>
-  <button type="button" class="starmap-btn" data-action="current" data-icon="forward-current" disabled
-          title="Jump to the newest view in this history (MAP.95)">Current</button>
   <button type="button" class="starmap-btn" data-action="up" data-icon="up" disabled
           title="One step back out (Esc)">Up</button>
   <button type="button" class="starmap-btn" data-action="reset" data-icon="reset"
-          title="Back to the whole galaxy (Home)">Reset</button>
+          title="Back to the whole galaxy (Home)">Whole galaxy</button>
 """
-"""Back, the steps menu, Forward, Current, Up and Reset."""
+"""Back, the steps menu (with Jump to newest), Forward, Up and Whole galaxy."""
 
 def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetch_path="/galaxy/tiles",
                               sector_url=None, generate=None, phenomenon_url=None,
@@ -608,7 +632,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         "Click a star, cloud or body for details." if pinned
         else "Click an arc of the galaxy (a piece of the disk, top to bottom) to look at it more closely."
     )
-    hint = SECTOR_MAP_HINT if pinned else GALAXY_MAP_HINT
+    help_html = SECTOR_MAP_HELP if pinned else GALAXY_MAP_HELP
     if pinned:
         # A sector page's map has no steps, breadcrumb, address or slab
         # buttons; the page carries the pick banner and the bookmark.
@@ -629,7 +653,6 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
 <section class="panel galaxymap3d-panel" id="map">
 <div class="panel-header">
   <h2>{title}</h2>
-  <span class="hint">{hint}</span>
 </div>
 {pick_banner}{shape_hint}{course_hint}
 {address_block}<p class="hint galaxy-stage-notice" id="galaxymap3d-notice" role="status" hidden></p>
@@ -656,14 +679,20 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
     <div class="galaxy-menu-panel" role="group" aria-label="More map controls">
     <div class="galaxy-kinds" id="galaxymap3d-kinds" role="group" aria-label="Show on the map" hidden></div>
     <button type="button" class="starmap-btn" data-action="reset-view" data-icon="reset-view"
-            title="Back to this step's own view after turning, moving or zooming it">Reset view</button>
+            title="Back to this step's own view after turning, moving or zooming it">Re-center</button>
     <button type="button" class="starmap-btn" data-action="charted-only" data-icon="charted-only" aria-pressed="false"
             title="Dim the stars and blocks outside charted sectors and outline the charted ones">Charted only</button>
-{rogue_button}{territory_button}    </div>
+{rogue_button}{territory_button}    <button type="button" class="starmap-btn" data-action="map-help" data-icon="help"
+            title="How to move around the map and read it">Map help</button>
+    </div>
   </details>
 </div>
 {territory_box}</div>
 </div>
+<sl-dialog id="galaxymap3d-help" class="map-help-dialog" label="{title} help">
+  {help_html}
+  <sl-button slot="footer" data-dialog-close>Close</sl-button>
+</sl-dialog>
 <script type="application/json" id="galaxymap3d-data">{_json_script(scene_data)}</script>
 </section>
 """
