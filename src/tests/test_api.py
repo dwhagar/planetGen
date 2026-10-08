@@ -2265,3 +2265,28 @@ def test_facility_routes(admin_client, mysql_config):
 
     assert admin_client.delete(f"/api/facilities/{facility_id}").status_code == 200
     assert admin_client.get(f"/api/facilities/{facility_id}").status_code == 404
+
+
+def test_nebula_shape_endpoint_serves_a_mesh(client, mysql_config):
+    """GEN.75: `/api/nebulae/<id>/shape` answers a triangle mesh in units of
+    the nebula's radius, a coarse one by default and a finer one for
+    `lod=full`; unknown nebulae and levels are 404s."""
+    from planetgen.generation.phenomena.nebula import Nebula
+
+    conn = _db.get_connection(mysql_config)
+    try:
+        nebula_id = _db.insert_nebula(conn, Nebula(SystemConfig(), name="Meshy"), placement={
+            "center_x_pc": 5.0, "center_y_pc": 1.0, "center_z_pc": 2.0, "galactic_radius_pc": 5.5})
+        conn.commit()
+    finally:
+        conn.close()
+    low = client.get(f"/api/nebulae/{nebula_id}/shape").get_json()
+    full = client.get(f"/api/nebulae/{nebula_id}/shape?lod=full").get_json()
+    assert low["id"] == nebula_id and low["lod"] == "low" and full["lod"] == "full"
+    assert low["center_pc"] == [5.0, 1.0, 2.0] and low["radius_ly"] > 0
+    assert 0 < len(low["faces"]) < len(full["faces"])
+    count = len(full["vertices"])
+    assert all(0 <= i < count for face in full["faces"] for i in face)
+    assert max(sum(v * v for v in vertex) ** 0.5 for vertex in full["vertices"]) <= 1.0
+    assert client.get(f"/api/nebulae/{nebula_id}/shape?lod=ultra").status_code == 404
+    assert client.get("/api/nebulae/999999/shape").status_code == 404

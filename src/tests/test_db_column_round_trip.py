@@ -86,7 +86,7 @@ NEVER_READ = {
         ("asteroid_field_composition", "field_id"), ("planet_evolutionary_paragraphs", "planet_id"),
         ("planet_reflection_spectrum", "planet_id"), ("moon_evolutionary_paragraphs", "moon_id"),
         ("moon_reflection_spectrum", "moon_id"), ("system_config_slots", "config_id"),
-        ("system_owners", "star_system_id"))},
+        ("system_owners", "star_system_id"), ("nebula_shape_balls", "nebula_id"))},
     ("star_systems", "schema_version"): "the version that wrote the row, for diagnosis",
     ("galaxy_shape", "id"): "singleton key", ("galaxy_shape", "bright_star_seed"): "only to repeat a scatter",
     ("facilities", "galactic_radius_pc"): "an index column; pages place a facility by its center",
@@ -164,6 +164,7 @@ def test_every_column_is_read_back(rich_galaxy, monkeypatch):
                       for part in ("", "/sections", "/owner", "/facilities")]
             pages += [f"/api/phenomena/{label}/{i}" for table, label, *_ in query._PHENOMENON_TABLES
                       for i in ids(table)]
+            pages += [f"/api/nebulae/{i}/shape" for i in ids("nebulae")]
             pages += [f"/api/facilities/{i}" for i in ids("facilities")]
             pages += [f"/api/species/{i}" for i in ids("species")]
             pages += [f"/api/polities/{i}" for i in ids("polities")]
