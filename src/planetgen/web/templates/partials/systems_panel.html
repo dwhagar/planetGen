@@ -1,9 +1,0 @@
-{#- The Standalone Systems table (a data table, UX.41). Expects `systems`, the
-    view from tables.render, and `show_more_link` (bool). -#}
-{% from "partials/datatable.html" import datatable with context %}
-<section class="panel" id="standalone-systems" aria-labelledby="standalone-heading">
-  <div class="panel-header">
-    <h2 id="standalone-heading">{% if show_more_link %}<a href="{{ url_for('web.systems') }}">Standalone Systems</a>{% else %}Standalone Systems{% endif %}</h2>
-  </div>
-  {{ datatable(systems) }}
-</section>

@@ -108,36 +108,38 @@ ALL_SYSTEMS_TABLE = tables.register(Table(
 ))
 
 
-def _standalone_load(state, limit, offset, want_facets):
-    envelope = apiclient.get_systems(
-        db_name(), sector_id="none", limit=limit, offset=offset, sort=state.sort, descending=state.descending,
-        binary=_binary_filter(state.filters["standalone_binary"]), facets=want_facets)
-    facets = None
-    if want_facets:
-        facets = {"standalone_binary": _facet_options(envelope["facets"]["binary"], _BINARY_LABELS)}
-    return Result([_system_row(system, False) for system in envelope["items"]], envelope["total"], facets)
+def _standalone_url():
+    """The Systems list filtered to the standalone systems (UX.55)."""
+    placement = ALL_SYSTEMS_TABLE.facets[0].param
+    return page_url("systems", _anchor="all-systems", **{placement: "standalone"})
 
 
-STANDALONE_TABLE = tables.register(Table(
-    "standalone-systems", "Standalone systems",
-    [Column("name", "Name"), Column("binary", "Binary"), Column("star_type", "Star type", sortable=False)],
-    _standalone_load, facets=[Facet("standalone_binary", "Stars")], prefix="standalone_",
-    noun=("standalone system", "standalone systems"),
-))
+def _systems_total(**filters):
+    return apiclient.get_systems(db_name(), limit=1, offset=0, **filters)["total"]
 
 
 @bp.route("/")
 def index():
-    """Home: every sector and every standalone system, each a table of its own
-    (`sectors_*` and `standalone_*` query parameters)."""
-    sectors = tables.render(SECTORS_TABLE, request.path, anchor="sectors")
-    systems = tables.render(STANDALONE_TABLE, request.path, anchor="standalone-systems")
+    """Home, the front door (UX.55): the counts of what is here, each a link
+    to its list, and the Galaxy Map, NAV and Search."""
+    db = db_name()
+    counts = [
+        (apiclient.get_sectors(db, limit=1, offset=0)["total"], ("sector", "sectors"), page_url("sectors")),
+        (_systems_total(), ("system", "systems"), page_url("systems")),
+        (apiclient.get_phenomena(db, limit=1, offset=0)["total"], ("phenomenon", "phenomena"),
+         page_url("phenomena")),
+        (_systems_total(sector_id="none"), ("standalone system", "standalone systems"), _standalone_url()),
+    ]
     return render_page(
         "index.html",
         title="Home",
-        description="Every sector and standalone star system in this generated galaxy.",
-        sectors=sectors,
-        systems=systems,
+        description="Every sector, star system and phenomenon in this generated galaxy.",
+        counts=[{"total": total, "noun": nouns[0] if total == 1 else nouns[1], "url": url}
+                for total, nouns, url in counts],
+        tools=[{"label": "Galaxy Map", "hint": "Fly through the whole galaxy.", "url": page_url("galaxy")},
+               {"label": "Navigate", "hint": "Plan a route between two places.", "url": page_url("nav")},
+               {"label": "Search", "hint": "Find a sector, system, star, planet or moon by name.",
+                "url": page_url("search")}],
     )
 
 
@@ -156,8 +158,8 @@ def sectors():
 
 @bp.route("/systems")
 def systems():
-    """Every system with its sector and octant, and the standalone ones
-    (generated outside any sector) in their own table."""
+    """Every system with its sector and octant; the standalone ones (generated
+    outside any sector) are a filter on the list (UX.55)."""
     return render_page(
         "systems.html",
         title="Systems",
@@ -165,7 +167,8 @@ def systems():
         breadcrumbs=[crumb("Systems")],
         description="Every star system in this generated galaxy.",
         all_systems=tables.render(ALL_SYSTEMS_TABLE, request.path, anchor="all-systems"),
-        systems=tables.render(STANDALONE_TABLE, request.path, anchor="standalone-systems"),
+        standalone_url=_standalone_url(),
+        standalone_total=_systems_total(sector_id="none"),
     )
 
 
