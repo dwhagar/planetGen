@@ -1629,7 +1629,7 @@ _NEBULA_WASH_TYPES = ("diffuse", "emission", "reflection", "planetary", "dark")
 (`.sysmap-nebula-<type>`); any other gets `.sysmap-nebula-other`."""
 
 
-def render_system_map_panel(system, stars, planets, belts, facilities=None):
+def render_system_map_panel(system, stars, planets, belts, facilities=None, scene_url=None):
     """
     Builds the "System Map" panel embedded in `system.py`: TWO sibling
     `<svg>`s per scene (an orbits-only layer plus a body-marker layer --
@@ -1663,6 +1663,10 @@ def render_system_map_panel(system, stars, planets, belts, facilities=None):
         belts (list[dict]): `asteroid_belts` rows, including `star_id`.
         facilities (list[dict], optional): `GET /api/systems/<id>/
             facilities` items, drawn at their hosts (`_facilities_svg`).
+        scene_url (str, optional): Where the 3D view fetches the system's
+            scene JSON (`GET /api/systems/<id>/scene`, relayed by the
+            site). Without it the panel is the diagram only, with no 3D
+            switch (MAP.74).
 
     Returns:
         str: A complete `<section class="panel">` block.
@@ -1728,6 +1732,48 @@ def render_system_map_panel(system, stars, planets, belts, facilities=None):
         if stars else ""
     )
 
+    view_switch = ""
+    view3d_html = ""
+    if scene_url and stars:
+        view_switch = (
+            '<div class="sysview-switch" role="group" aria-label="Map view">'
+            '<button type="button" class="starmap-btn" id="sysmap-view-diagram" aria-pressed="true">Diagram</button>'
+            '<button type="button" class="starmap-btn" id="sysmap-view-3d" aria-pressed="false">3D</button></div>'
+        )
+        view3d_html = (
+            f'<div class="sysview3d" id="sysview3d" data-scene-url="{esc(scene_url)}" hidden>'
+            '<div class="starmap-viewport sysview-viewport">'
+            '<canvas id="sysview3d-canvas" class="sysview-canvas" aria-label="3D system view" role="img"></canvas>'
+            '<div class="sysview-labels" id="sysview3d-labels" aria-hidden="true"></div>'
+            '<div class="map-tooltip" id="sysview3d-tip" hidden></div>'
+            '</div>'
+            '<div class="starmap-controls sysview-controls" id="sysview3d-controls">'
+            '<button type="button" class="starmap-btn" id="sysview3d-play" aria-pressed="true">Pause</button>'
+            '<button type="button" class="starmap-btn" id="sysview3d-slower">Slower</button>'
+            '<button type="button" class="starmap-btn" id="sysview3d-faster">Faster</button>'
+            '<button type="button" class="starmap-btn" id="sysview3d-now">Now</button>'
+            '<output class="sysview-rate" id="sysview3d-rate" aria-live="polite"></output>'
+            '<label class="sysview-scale">Scale <select id="sysview3d-scale">'
+            '<option value="compressed">Compressed</option><option value="true">True scale</option></select></label>'
+            '<button type="button" class="starmap-btn" id="sysview3d-reset">Reset view</button>'
+            '<button type="button" class="starmap-btn" data-dialog-open="sysview3d-help" '
+            'title="How to use the 3D view">Map help</button></div>'
+            '<p class="hint sysview-scale-note" id="sysview3d-scale-note"></p>'
+            '<details class="sysview-list"><summary>Bodies in this view</summary>'
+            '<ul id="sysview3d-list"></ul></details></div>'
+        )
+        view3d_help = (
+            '<sl-dialog id="sysview3d-help" class="map-help-dialog" label="3D system view help"><ul>'
+            "<li>Drag to turn, shift-drag or right-drag to pan, the wheel or a pinch to zoom.</li>"
+            "<li>W, A, S, D and the arrow keys fly; Home or Reset view goes back.</li>"
+            "<li>Click a body for details; double-click flies to it. Follow rides along with it.</li>"
+            "<li>Pause, Slower and Faster move time; Now returns to the present.</li>"
+            "<li>Compressed scale shows everything; True scale shows real sizes and distances.</li></ul>"
+            '<sl-button slot="footer" data-dialog-close>Close</sl-button></sl-dialog>'
+        )
+    else:
+        view3d_help = ""
+
     facility_legend = (
         '<span class="sysmap-legend-facility" aria-hidden="true"></span> marks a facility;' if facilities else ""
     )
@@ -1750,11 +1796,15 @@ def render_system_map_panel(system, stars, planets, belts, facilities=None):
 </div>
 <div class="starmap-layout sysmap-layout" id="sysmap-root">
 <div class="sysmap-map-col">
+{view_switch}
+<div class="sysmap-diagram" id="sysmap-diagram">
 <div class="starmap-viewport sysmap-viewport{wash_class}">
 {spheres_html}
 {''.join(scenes)}
 </div>
 {controls_html}
+</div>
+{view3d_html}
 </div>
 <div class="starmap-side">
 <div class="sysmap-crumb" id="sysmap-crumb"></div>
@@ -1772,5 +1822,6 @@ def render_system_map_panel(system, stars, planets, belts, facilities=None):
   </ul>
   <sl-button slot="footer" data-dialog-close>Close</sl-button>
 </sl-dialog>
+{view3d_help}
 </section>
 """
