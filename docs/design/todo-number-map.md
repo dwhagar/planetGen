@@ -458,7 +458,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.11 | The database layer and migrations on SQLAlchemy and Alembic | none | open |
 | DB.12 | MariaDB reads a stored -0.0 back as +0.0 (bug) | none | done, PR #442 |
 | DB.13 | Every stored value in its own column, not in JSON blocks, and indexed for search | none | open |
-| DB.14 | Sector stats keep the raw star statistics (mean age, summed luminosity, star count) and no baked color | none | open |
+| DB.14 | Sector stats keep the raw star statistics (mean age, summed luminosity, star count) and no baked color | none | done, PR #556 |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
@@ -699,9 +699,9 @@ Parents marked "new parent" had no old number of their own.
 | MAP.115 | Comets, rogue planets and asteroid fields show above the sector level (bug) | none | merged into MAP.116 (2026-10-07) |
 | MAP.116 | Dense generated sectors crowd the Galaxy Map when zoomed out (bug) | none | open |
 | MAP.127 | See into and step to the neighbouring blocks and slabs on the Galaxy Map | none | merged into MAP.121 (2026-10-07) |
-| MAP.128 | The Galaxy Map and Sector Map tint a sector by star age, density and luminosity | none | open |
-| MAP.129 | Blocks colored from their sectors' statistics, weighted by star count | none | open |
-| MAP.130 | Retire the average-star-color rule in the docs and tests | none | open |
+| MAP.128 | Decide what the Sector Map tints by star age, density and luminosity, and test it | none | open |
+| MAP.129 | Blocks colored from their sectors' statistics, weighted by star count | none | done, PR #556 |
+| MAP.130 | Retire the average-star-color rule in the docs and tests | none | done, PR #556 |
 | MAP.131 | A Color by switch on the maps, with a legend | none | open |
 | MAP.132 | Overlay markers for black holes, nebulae and habitable worlds | none | open |
 | MAP.117 | Surface pressure missing from the planet and moon side panel (bug) | none | done, PR #457 |
