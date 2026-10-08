@@ -977,7 +977,17 @@ a:focus-visible .galaxymap-star-core {
 
 .starmap-pick {
   display: inline-block;
-  margin-bottom: 0.5rem;
+}
+
+/* The maps' info panel (static/mappick.js): its buttons wrap in one row
+   with --btn-gap across and down, and the blocks under it (Generate
+   buttons, a hint) keep the same space above them. */
+.starmap-info > .map-info-actions {
+  margin: 0;
+}
+
+.starmap-info > .map-info-actions + * {
+  margin-top: var(--btn-gap);
 }
 
 /* Phenomenon view: a rendered picture of the object

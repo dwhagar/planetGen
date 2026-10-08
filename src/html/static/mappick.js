@@ -261,19 +261,27 @@ export function createInfoPanel(panelEl) {
     return bookmarkButton;
   }
 
+  // Every action in one wrapping row, so the space between two buttons
+  // is the same across and down (--btn-gap): the pick button or the NAV
+  // links, the ☆, page links and buttons.
   function actions(spec) {
+    const row = el("p", "page-actions map-info-actions");
     const nav = spec.nav;
     if (nav && nav.pick) {
-      const pick = pageLink(nav.pick, nav.pickLabel, "btn starmap-pick");
-      panelEl.appendChild(pick);
-    }
-    const row = el("p", "page-actions");
-    if (nav && !nav.pick) {
+      row.appendChild(pageLink(nav.pick, nav.pickLabel, "btn starmap-pick"));
+    } else if (nav) {
       [["from", "Nav from here"], ["to", "Nav to here"]].forEach(function (pair) {
         if (nav[pair[0]]) row.appendChild(pageLink(nav[pair[0]], pair[1], "btn btn-small"));
       });
     }
     if (spec.bookmark) row.appendChild(bookmarkToggle(spec.bookmark));
+    (spec.links || []).forEach(function (link) { row.appendChild(pageLink(link.href, link.label, "btn btn-small")); });
+    (spec.buttons || []).forEach(function (button) {
+      const node = el("button", "btn btn-small", button.label);
+      node.type = "button";
+      node.addEventListener("click", button.onClick);
+      row.appendChild(node);
+    });
     if (row.childNodes.length) panelEl.appendChild(row);
   }
 
@@ -289,13 +297,6 @@ export function createInfoPanel(panelEl) {
     }
     (spec.after || []).forEach(function (node) { panelEl.appendChild(node); });
     actions(spec);
-    (spec.links || []).forEach(function (link) { panelEl.appendChild(pageLink(link.href, link.label)); });
-    (spec.buttons || []).forEach(function (button) {
-      const node = el("button", "btn", button.label);
-      node.type = "button";
-      node.addEventListener("click", button.onClick);
-      panelEl.appendChild(node);
-    });
     if (spec.generate) panelEl.appendChild(spec.generate);
     if (spec.hint) hint(spec.hint, true);
   }
