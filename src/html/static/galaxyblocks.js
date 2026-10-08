@@ -405,7 +405,7 @@ export function createBlockScene(config) {
   // lookColor, lookOpacity) instead of lifted toward solid by its filled
   // share. Density comes
   // from the shape. `dim` (optional) is a test: cells it accepts are drawn
-  // at a fifth of their opacity (the "Generated only" toggle). Returns
+  // at a fifth of their opacity (the "Charted only" toggle). Returns
   // {solid, glass} as build does, plus `cells`: [solid cells, glass
   // cells], in the order each part's `owners` index them.
   function buildCells(cells, eye, dim) {
