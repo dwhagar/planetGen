@@ -77,7 +77,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| MAP.125 | Infinite zoom: one 3D interface from the galaxy down to a moon | MAP.61, MAP.62 | The end state of the one-engine and 3D-system work. |
+| MAP.125 | Infinite zoom: one 3D interface from the galaxy down to a moon | MAP.62 | The end state of the one-engine and 3D-system work. |
 
 ### Recipes
 

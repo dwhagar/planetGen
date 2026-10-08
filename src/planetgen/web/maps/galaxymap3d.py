@@ -466,8 +466,8 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
             "to"), `banner` and `cancel` (the NAV page with the other
             endpoint kept), `other` (that endpoint) and `keep_name`,
             `keep_value` and `nav_url` (for the Bookmarks menu, which
-            keeps the pick, NAV.40). It shows a banner, and the page
-            keeps "Charted only" on. The page's script carries the pick
+            keeps the pick, NAV.40). It shows a banner, and only a choice
+            holding something generated can be taken. The page's script carries the pick
             on (`static/navpick.js`): it adds the pick to the map's own
             URLs and to a sector click, and moves it on when "Start
             Here" or "End Here" is pressed.
