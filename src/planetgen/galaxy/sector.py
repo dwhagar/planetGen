@@ -557,10 +557,10 @@ class _Placed:
     Cartesian, `(x, y, z)` light-years from the sector's center.
     """
 
-    def _place(self, thing, position, sector_center_ly):
+    def _place(self, thing, position, sector_center_ly, sector_edge_pc=None):
         self.spatial = SpatialPosition3D(
             tuple(c + p for c, p in zip(sector_center_ly, position)), sector_center_ly, is_star=True,
-            mass_kg=_mass_kg(thing), length_unit_m=physical_constants.LY_TO_M)
+            mass_kg=_mass_kg(thing), length_unit_m=physical_constants.LY_TO_M, sector_edge_pc=sector_edge_pc)
         # Kept exactly as given (the sum above is only the galactic form).
         self.spatial.set_sector_cartesian(*position)
         self._place_bodies()
@@ -570,7 +570,8 @@ class _Placed:
         galactic places (`galaxy.system_position`)."""
         system = getattr(self, "star_system", None)
         if system is not None:
-            place_system(system, self.spatial.sector_center, self.spatial.get_coordinates("sector", "cartesian"))
+            place_system(system, self.spatial.sector_center, self.spatial.get_coordinates("sector", "cartesian"),
+                         sector_edge_pc=self.spatial.sector_edge_pc)
 
     @property
     def position(self):
@@ -599,9 +600,10 @@ class SectorSystemEntry(_Placed):
     """bool: Whether this system was built around a star pre-placed at plan
     time (`SpaceSector.add_preplaced_system`) rather than placed at fill."""
 
-    def __init__(self, star_system, position, system_config=None, preplaced=False, sector_center_ly=(0.0, 0.0, 0.0)):
+    def __init__(self, star_system, position, system_config=None, preplaced=False, sector_center_ly=(0.0, 0.0, 0.0),
+                 sector_edge_pc=None):
         self.star_system = star_system
-        self._place(star_system, tuple(position), sector_center_ly)
+        self._place(star_system, tuple(position), sector_center_ly, sector_edge_pc)
         self.system_config = system_config if system_config is not None else star_system.system_config
         self.preplaced = preplaced
 
@@ -676,10 +678,10 @@ class SectorPhenomenonEntry(_Placed):
                           to the sector's center.
     """
 
-    def __init__(self, phenomenon, phenomenon_type, position, sector_center_ly=(0.0, 0.0, 0.0)):
+    def __init__(self, phenomenon, phenomenon_type, position, sector_center_ly=(0.0, 0.0, 0.0), sector_edge_pc=None):
         self.phenomenon = phenomenon
         self.phenomenon_type = phenomenon_type
-        self._place(phenomenon, tuple(position), sector_center_ly)
+        self._place(phenomenon, tuple(position), sector_center_ly, sector_edge_pc)
 
     def distance_to(self, other):
         """
@@ -751,6 +753,10 @@ class SpaceSector:
         self.entries = []
         self.phenomena = []
         self.center_galactic_ly = (0.0, 0.0, 0.0)
+        self.sector_edge_pc = None
+        """float or None: The galaxy's sector edge, parsecs, once the sector
+        is placed in the galaxy (`place_in_galaxy`): its entries then know
+        their ring, layer and slot."""
         # Galaxy-scale molecular clouds reaching this sector (GEN.47,
         # `nebulaField.clouds_reaching`): `(Nebula, center_pc)` pairs, each
         # stored once by whichever sector it reaches is saved first.
@@ -767,7 +773,9 @@ class SpaceSector:
         stay, their galactic ones follow.
         """
         self.center_galactic_ly = tuple(float(v) for v in center_ly)
+        self.sector_edge_pc = self.edge_ly * physical_constants.LIGHTYEAR_M / physical_constants.PARSEC_M
         for entry in list(self.entries) + list(self.phenomena):
+            entry.spatial.set_sector_edge_pc(self.sector_edge_pc)
             entry.spatial.carry_sector_center(self.center_galactic_ly)
             entry._place_bodies()
 
@@ -922,7 +930,7 @@ class SpaceSector:
             position = self._check_explicit_position(position)
 
         entry = SectorSystemEntry(star_system, position, system_config=system_config,
-                                  sector_center_ly=self.center_galactic_ly)
+                                  sector_center_ly=self.center_galactic_ly, sector_edge_pc=self.sector_edge_pc)
         self.entries.append(entry)
         log.debug(f"Sector {self.name!r}: placed system {_system_name(star_system)!r} at "
                   f"{_fmt_position(position)} (system {len(self.entries)} in this sector)")
@@ -1044,7 +1052,8 @@ class SpaceSector:
         else:
             position = self._check_explicit_position(position)
 
-        entry = SectorPhenomenonEntry(phenomenon, phenomenon_type, position, sector_center_ly=self.center_galactic_ly)
+        entry = SectorPhenomenonEntry(phenomenon, phenomenon_type, position, sector_center_ly=self.center_galactic_ly,
+                                      sector_edge_pc=self.sector_edge_pc)
         self.phenomena.append(entry)
         log.debug(f"Sector {self.name!r}: placed {phenomenon_type} {getattr(phenomenon, 'name', '?')!r} at "
                   f"{_fmt_position(position)} ({'massive: kept clear of Hill spheres' if is_massive else 'not massive: anywhere in the sector'})")
