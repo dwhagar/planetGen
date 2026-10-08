@@ -1624,6 +1624,11 @@ def _finite_body(row):
     return body
 
 
+_NEBULA_WASH_TYPES = ("diffuse", "emission", "reflection", "planetary", "dark")
+"""tuple: The nebula types `style.css` gives a wash color
+(`.sysmap-nebula-<type>`); any other gets `.sysmap-nebula-other`."""
+
+
 def render_system_map_panel(system, stars, planets, belts, facilities=None):
     """
     Builds the "System Map" panel embedded in `system.py`: TWO sibling
@@ -1635,7 +1640,10 @@ def render_system_map_panel(system, stars, planets, belts, facilities=None):
     click and swaps between scenes.
 
     Args:
-        system (dict): The `star_systems` row, including
+        system (dict): The `star_systems` row (and, when it sits inside a
+                      nebula, `inside`: `{"type": "nebula", "name",
+                      "descriptor"}` -- the map is tinted its color),
+                      including
                       `binary_configuration` (`'close'`, `'wide'`, or
                       `None` -- see `schema.sql`'s "v15" note) and
                       `binary_mutual_position_x/y/z_km` (the secondary's
@@ -1721,14 +1729,25 @@ def render_system_map_panel(system, stars, planets, belts, facilities=None):
         '<span class="sysmap-legend-facility" aria-hidden="true"></span> facility &middot; ' if facilities else ""
     )
 
+    # A system inside a nebula sits in a faint wash of its color (MAP.103):
+    # at this scale (AU) the cloud, light-years across, is only the sky.
+    inside = system.get("inside")
+    in_nebula = bool(inside) and inside.get("type") == "nebula"
+    wash_class = ""
+    wash_hint = ""
+    if in_nebula:
+        descriptor = inside.get("descriptor")
+        wash_class = " sysmap-in-nebula sysmap-nebula-" + (descriptor if descriptor in _NEBULA_WASH_TYPES else "other")
+        wash_hint = f" &middot; the tint is the gas of {esc(inside.get('name') or 'a nebula')} around the system"
+
     return f"""
 <section class="panel">
 <div class="panel-header">
   <h2>System Map</h2>
-  <span class="hint">True top-down positions (real angle, log-scaled distance) &middot; click a planet with moons to view its moon system &middot; circle size &asymp; body radius (log scale) &middot; color &asymp; planet class &middot; <span class="sysmap-legend-life-badge" aria-hidden="true"></span> supports life &middot; {facility_legend}"Measure distance" then click two bodies for the real distance between them</span>
+  <span class="hint">True top-down positions (real angle, log-scaled distance) &middot; click a planet with moons to view its moon system &middot; circle size &asymp; body radius (log scale) &middot; color &asymp; planet class &middot; <span class="sysmap-legend-life-badge" aria-hidden="true"></span> supports life &middot; {facility_legend}"Measure distance" then click two bodies for the real distance between them{wash_hint}</span>
 </div>
 <div class="starmap-layout sysmap-layout" id="sysmap-root">
-<div class="starmap-viewport sysmap-viewport">
+<div class="starmap-viewport sysmap-viewport{wash_class}">
 {spheres_html}
 {''.join(scenes)}
 </div>

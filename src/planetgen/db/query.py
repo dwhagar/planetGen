@@ -1050,8 +1050,8 @@ def containing_cloud(conn, row):
 
     Returns:
         dict or None: `{"type": "nebula" | "supernova_remnant", "id",
-            "name", "class", "density_cm3", "temperature_k"}`, or `None`
-            in open space.
+            "name", "class", "descriptor", "density_cm3", "temperature_k"}`,
+            or `None` in open space.
     """
     return surrounding_cloud(conn, row)
 

@@ -1704,6 +1704,20 @@ code {
   isolation: isolate;
 }
 
+/* MAP.103: a system inside a nebula sits in a faint wash of the cloud's
+   color (the Galaxy Map's colors, planetgen/web/maps/starmap.py), which
+   paints over the viewport's own fill and under every layer drawn in it. */
+.sysmap-in-nebula {
+  background-image: linear-gradient(var(--nebula-wash), var(--nebula-wash));
+}
+
+.sysmap-nebula-diffuse { --nebula-wash: rgba(227, 166, 200, 0.14); }
+.sysmap-nebula-emission { --nebula-wash: rgba(255, 111, 145, 0.16); }
+.sysmap-nebula-reflection { --nebula-wash: rgba(111, 168, 255, 0.16); }
+.sysmap-nebula-planetary { --nebula-wash: rgba(91, 232, 201, 0.16); }
+.sysmap-nebula-dark { --nebula-wash: rgba(0, 0, 0, 0.3); }
+.sysmap-nebula-other { --nebula-wash: rgba(201, 168, 224, 0.14); }
+
 /* UX.15: the info panel sits beside the map when the panel has room for
    both a usable map (about 26rem) and a readable text column (18-26rem,
    roughly 45-65 characters); otherwise it stays below. A container query
