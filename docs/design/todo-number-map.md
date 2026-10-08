@@ -645,7 +645,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.62 | A full 3D star system view with a free camera | none | open |
 | MAP.63 | Shared map helpers in one module | none | done, PR #351 |
 | MAP.64 | One camera and input controller | none | done, PR #351 |
-| MAP.65 | One picking, hover and info-panel layer | none | open |
+| MAP.65 | One picking, hover and info-panel layer | none | done, PR #521 |
 | MAP.66 | The sector as the drill-down's last stage, on the same page | none | open |
 | MAP.67 | One URL and history scheme for every level | none | open |
 | MAP.68 | Remove the old Sector Map code | none | open |
