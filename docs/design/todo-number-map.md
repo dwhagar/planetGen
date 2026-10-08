@@ -410,7 +410,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.19 | The Admin dashboard lists the 18 settings backups for download | none | open |
 | ADM.20 | A "merge now" button on the Admin dashboard (low priority) | none | open |
 | ADM.21 | Input validation on Pydantic models | none | open |
-| ADM.22 | Job logs streamed over SSE into Xterm.js, with native progress bars | none | open |
+| ADM.22 | Job logs streamed over SSE into Xterm.js, with native progress bars | none | done, PR #551 |
 | ADM.23 | Log output wraps with hard line breaks (bug) | none | done, PR #508 |
 | ADM.24 | A failed action's log closes before it can be read (bug) | none | open |
 | ADM.25 | Error tracebacks don't reach the console and the web log window (bug) | none | open |

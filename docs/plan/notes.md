@@ -200,7 +200,7 @@ From PR #431's red CI (coordinator, 2026-10-03): PERF.27, DB.12, OPS.25, MAP.114
 | UX.2, ADM.14, UX.26, UX.31, UX.27, UX.49 | UX.40 | Menus and buttons became Shoelace components (UX.40 done, PR #544); UX.26's sector Admin panel and UX.49's form fields remain. |
 | UX.33 | UX.41 | Faceted filters on the TanStack tables. |
 | UX.38 | MAP.105 | The 3D nebula view replaces the diagram. |
-| ADM.24, ADM.25, ADM.26 | ADM.22 | Logs and progress move to SSE and Xterm.js. |
+| ADM.24, ADM.25, ADM.26 | ADM.22 | Logs and progress moved to SSE and Xterm.js (ADM.22 done, PR #551); these three are now free. |
 | MAP.109, MAP.116 | MAP.102 | Tile streaming with level of detail. |
 | MAP.108, MAP.107, MAP.112, NAV.46 | MAP.65, NAV.15 | The shared picking layer and pick mode. |
 | MAP.106 | NAV.14, MAP.67 | One breadcrumb drawn from one URL and history state. |
