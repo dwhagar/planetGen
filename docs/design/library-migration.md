@@ -35,7 +35,7 @@ by the new libraries rather than patched in the old code.
 
 | Area | Today | Library | Notes |
 |---|---|---|---|
-| Two-step sign-in | `totp.py` (100 lines), `qrcodegen.py` (900 lines) | pyotp, segno | Same secrets, step and window, so enrolled users keep working. segno renders SVG with no further dependencies. |
+| Two-step sign-in | `totp.py` and `qrcodegen.py`, deleted (SEC.29, PR #612) | pyotp, segno | Same secrets, step and window, so enrolled users keep working. segno renders SVG with no further dependencies. |
 | Markdown | `mdconvert.py` | markdown | Same output for pages and the wiki export. |
 | Rate limits | `loginThrottle.py`, `api/limiter.py`, `api/loginguard.py` | Flask-Limiter (Redis storage) | The lockout rules in login-brute-force-protection.md are kept. |
 | Work queue and web jobs | `workQueue.py` (1,600 lines), `planetgen.cli.job`, the `work_lease` table | RQ on Redis | See section 3. |
@@ -152,7 +152,7 @@ import cycle can form between them.
 | `planetgen.generation.phenomena` | `asteroid_field`, `compact_remnant`, `nebula`, `quasar`, `rogue` (rogue planets and interstellar comets), `supernova_remnant` (the six phenomenon `*Data.py` modules) |
 | `planetgen.population` | `model` (population), `facilities` (facilities) |
 | `planetgen.db` | `store` (_db, with schema.sql and control_schema.sql beside it), `edits` (editStore), `render` (systemRender), `query` (queryDb's queries), `stats` (adminStats) |
-| `planetgen.admin` | `auth` (adminAuth, with the common-password list), `throttle` (loginThrottle), `totp` (totp), `qrcode` (qrcodegen), `activity_log` (activitylog), `edits` (adminEdits) |
+| `planetgen.admin` | `auth` (adminAuth, with the common-password list), `throttle` (loginThrottle), `activity_log` (activitylog), `edits` (adminEdits) |
 | `planetgen.queue` | `work` (workQueue), `progress_file` (progressFile), `progress_rate` (progressRate), `load` (systemLoad) |
 | `planetgen.api` | everything in `src/html/api/` under the same module names |
 | `planetgen.web` | everything in `src/html/web/` under the same names, with `templates/`; `app` (the Flask app factory, from api/app); `planetgen.web.lib` for html/lib's shared modules (apiclient, fmt's HTML helpers, pagination, pagecache, tilecache, classref, tabledisplay, mdconvert, privatedir, systempage); `planetgen.web.maps` for the map renderers (starmap, systemmap, navmap, galaxymap, galaxymap3d, phenomenonmap, phenomenonrender) |

@@ -1,5 +1,49 @@
 # Changelog
 
+## [7.304.664] - 2026-10-08
+
+### Changed
+
+- Choosing a NAV course on the Galaxy Map and the Sector Map stays on the map
+  (NAV.29, NAV.33). An object's panel offers "Start Here" and "End Here"
+  instead of "Nav from here" and "Nav to here". The first one pressed keeps
+  the view and zoom where they are, puts the chosen end in a banner and in the
+  URL (`?pick=to&from=system:12`), and asks for the other end; the user zooms
+  out, in and across to find it with the same picker, and its button opens the
+  NAV page with both ends. Cancel on the banner clears a pick begun on the map.
+  The same buttons end a pick the NAV page began, and the system and
+  phenomenon pages' pick buttons carry the same words. The sector scene JSON
+  no longer carries NAV links: the page's script builds them (`navpick.js`).
+
+## [7.303.664] - 2026-10-08
+
+### Added
+
+- TODO items TEST.103 (sector-page control overlap at 600 px) and TEST.104 (a flaky System Map browser test).
+
+## [7.302.664] - 2026-10-08
+
+### Changed
+
+- Two-step sign-in codes are checked with `pyotp` and the setup QR code is
+  drawn by `segno` (SEC.29). Secrets, the 30-second step, the one-step
+  clock window and the no-reuse rule are unchanged, so enrolled admins keep
+  working. The two hand-written modules (`totp.py`, `qrcode.py`, with a
+  copy of Nayuki's QR generator) are deleted.
+- The setup page's `otpauth://` link now reads `planetGen:<name>` where it
+  read `planetGen%3A<name>` (the same label, written the usual way).
+
+## [7.301.664] - 2026-10-08
+
+### Fixed
+- The population test that plants a species without a civilization no longer fails now and then: it cleared nothing from the first planet, which could already be a real species' homeworld (TEST.102).
+
+## [7.300.664] - 2026-10-08
+
+### Added
+
+- TODO items UX.50 to UX.74: the 25 approved findings of the UX audit (UX.37), each a removal, merge or move that lets the interface get out of the way.
+
 ## [7.299.637] - 2026-10-08
 
 ### Added

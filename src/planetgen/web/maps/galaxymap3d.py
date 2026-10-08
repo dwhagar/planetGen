@@ -464,15 +464,16 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         pick (dict or None): The NAV page's pick mode
             (`web/galaxy_views._pick_from_args`): `pick` ("from" or
             "to"), `banner` and `cancel` (the NAV page with the other
-            endpoint kept), `query` (the `?pick=...` the map keeps on
-            its own URLs) and `keep_name`, `keep_value` and `nav_url`
-            (for the Bookmarks menu, which keeps the pick, NAV.40). It
-            shows a banner, and the page keeps "Charted only" on; the
-            caller adds the pick to `sector_url` so a sector click
-            continues the pick there.
+            endpoint kept), `other` (that endpoint) and `keep_name`,
+            `keep_value` and `nav_url` (for the Bookmarks menu, which
+            keeps the pick, NAV.40). It shows a banner, and the page
+            keeps "Charted only" on. The page's script carries the pick
+            on (`static/navpick.js`): it adds the pick to the map's own
+            URLs and to a sector click, and moves it on when "Start
+            Here" or "End Here" is pressed.
         nav_url (str, optional): The NAV page's URL (`/nav`), for a
-            phenomenon's "Nav from here" and "Nav to here" links (in pick
-            mode, its pick button); without it the panel shows none.
+            the "Start Here" and "End Here" buttons (NAV.29), which with
+            one end chosen open it; without it the panel shows none.
         pinned (dict or None): A sector page's map (MAP.68): the one
             sector it is locked to, `{"ring", "layer", "slot", "center_pc"}`
             (`center_pc`: its centre in the galaxy frame). The panel then
@@ -499,12 +500,11 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         "nebulaShapePath": nebula_shape_path,
         "course": course,
         "pick": pick["pick"] if pick else None,
-        "pickQuery": pick["query"] if pick else None,
-        # The info panel's NAV links and pick button (static/mappick.js):
-        # the pick's button label and the other endpoint it keeps.
+        # The NAV pick the page opened with (static/navpick.js carries on
+        # from it): the other end already chosen and where Cancel goes.
+        "pickOther": pick["other"] if pick else None,
+        "pickCancel": pick["cancel"] if pick else None,
         "navUrl": nav_url,
-        "pickLabel": pick["label"] if pick else None,
-        "pickKeep": f'{pick["keep_name"]}={pick["keep_value"]}' if pick and pick["keep_value"] else None,
         "sectorUrl": sector_url,
         "generate": generate,
         "phenomenonUrl": phenomenon_url,
