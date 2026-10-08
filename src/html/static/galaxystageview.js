@@ -34,6 +34,7 @@
 //   container before the blocks: their tooltip(entry), hover(entry) and
 //   select(entry) are called; the drill-down adds its choices to it;
 // - clearSelection(): a block was picked, so a phenomenon's ring goes;
+// - restingHint: what a pinned sector's panel says before a pick, back when it is cleared;
 // - canGenerate, courseSectors, sectorUrl(id), locate(name);
 // - fetchSectorScene(id): a Promise of GET /sector/<id>/scene's JSON, the
 //   sector opened in place (MAP.66; galaxysector.js); lightBackground,
@@ -1062,6 +1063,7 @@ export function createStageView(host) {
     fetchScene: host.fetchSectorScene, showInfo: host.showInfo || function () {}, navPick: host.navPick || null,
     hideCell: host.hideCell || function () {},
     viewport: host.viewport || null, opened: host.opened, closed: host.closed, kindsChanged: kindsChanged,
+    deselected: function () { host.showHint(pinned && host.restingHint ? host.restingHint : hintFor(resolved)); },
     closeness: function () { return view && view.zoom > 0 ? 1 / view.zoom : 1; },
   });
   const tooltip = createTooltip(els.tooltip);
@@ -1615,6 +1617,8 @@ export function createStageView(host) {
     const key = event.key;
     if (key === "Escape" || key === "Backspace") {
       event.preventDefault();
+      // A selected object in the sector goes first, then a step out.
+      if (sectorStage.deselect()) return;
       up();
       return;
     }

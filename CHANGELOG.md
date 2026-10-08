@@ -1,5 +1,115 @@
 # Changelog
 
+## [7.290.637] - 2026-10-08
+
+### Added
+- A system inside a nebula gets a faint wash of the nebula's color over its System Map, with a line in the map's hint saying so (MAP.103, System Map part: the Galaxy Map, Sector Map and System Map now all show nebulae). A system's `inside` cloud also carries its `descriptor` (a nebula's type, a remnant's morphology).
+
+## [7.289.637] - 2026-10-08
+
+### Fixed
+- Nebulae are drawn over space where no sector has been generated yet, as well as over filled sectors, in close views and far ones (MAP.104; the Galaxy Map draws every placed nebula from its shape since MAP.103, and a browser test now checks it over unfilled space).
+
+## [7.288.637] - 2026-10-08
+
+### Changed
+- A nebula's page now shows the nebula itself: its irregular shape in 3D, with the galaxy's brightest stars dimmed around it for reference (drag to turn, scroll to zoom), instead of the flat AU diagram (MAP.105). New `GET /api/nebulae/<id>/surroundings` supplies the stars.
+
+### Fixed
+- The "-" button on a supernova remnant's AU diagram works from the first view: a remnant too big to open inside the 1 ly limit may zoom out to twice its opening view (UX.38).
+
+## [7.287.637] - 2026-10-08
+
+### Added
+
+- A TODO item for an intermittent failure in `test_a_pass_removes_species_stored_without_a_civilization` (TEST.102).
+
+## [7.286.637] - 2026-10-08
+
+### Added
+- The Sector Map (and a sector opened in place on the Galaxy Map) draws each nebula from its shape mesh once it arrives, in place of the plain sphere, so a nebula looks like the irregular cloud it is (MAP.103, Sector Map part).
+
+## [7.285.637] - 2026-10-08
+
+### Added
+- A browser test that walks the Galaxy Map down to a sector, out with Escape, Home, Back and Forward and checks the breadcrumb steps match what a fresh load of the same URL shows. The out-of-sync breadcrumb MAP.106 reported no longer happens since the shared breadcrumb and URL work (NAV.14, MAP.67, MAP.66); this keeps it that way.
+
+## [7.284.637] - 2026-10-08
+
+### Fixed
+- On a sector's map, Escape clears what is selected, and a click on the selected object clears it, so a nebula covering the whole sector can be unselected; the panel goes back to its opening text.
+
+## [7.283.637] - 2026-10-08
+
+### Added
+- The Galaxy Map draws a nebula from its shape (the mesh served by `GET /galaxy/nebula/<id>/shape`) once it is big enough on screen, instead of only a flat sprite that faded out as you came close, so you can fly into one (MAP.103, Galaxy Map part).
+
+## [7.282.637] - 2026-10-08
+
+### Fixed
+
+- A sector page (and the Galaxy page) no longer embeds the tile cache's
+  count of cached tiles in its first-frame data, so the page's text stays the
+  same between two loads until something changes. It started to differ when
+  the sector page took the Galaxy Map's tiles (MAP.68), which failed
+  `test_sector_page_and_tiles_show_a_phenomenon_the_cli_added`.
+
+## [7.281.637] - 2026-10-08
+
+### Changed
+- A nebula holds a star system, phenomenon or smaller nebula only when the point lies inside its shape (GEN.75), not anywhere in its bounding sphere. Supernova remnants stay spheres. Containment is recomputed when a sector or nebula is generated; to refresh existing data, regenerate the affected sectors.
+
+## [7.280.637] - 2026-10-08
+
+### Added
+- Each nebula now keeps a seeded irregular shape (schema v56: `nebulae.shape_*` columns and a `nebula_shape_balls` table), and `GET /api/nebulae/<id>/shape` serves it as a triangle mesh at a low-poly or full level of detail. Nebulae already saved get the same shape drawn from their own properties (GEN.75, part 2 of 3). **Run `sudo ./update.sh` to migrate.**
+
+## [7.279.637] - 2026-10-08
+
+### Added
+
+- The Sector Map, on the sector page and in the Galaxy Map's opened sector,
+  has a button per kind of object it draws (stars, nebulae, supernova
+  remnants, asteroid fields, black holes, neutron stars, quasars, rogue
+  planets, interstellar comets, neighboring sectors) in the Menu under "Show
+  on the map" (MAP.79). All are on to begin with; turning one off removes
+  those points, rings and labels, and a hidden kind can't be hovered or
+  picked. The choice is kept in the URL (`hide=`), so a reload or a shared
+  link keeps it, and showing something with "Show on map" or the screen-reader
+  list brings its kind back. Rogue planets were already drawn faint by default.
+
+## [7.278.637] - 2026-10-08
+
+### Added
+- `planetgen.galaxy.nebula_shape`: a nebula's shape from seeded metaballs in an anisotropic ellipsoid, warped by gradient noise and read at an isovalue, with a containment test and a marching-cubes mesh at a low-poly and a full level of detail. Nothing uses it yet; storage, the API and containment follow (GEN.75, part 1 of 3).
+
+## [7.277.637] - 2026-10-08
+
+### Changed
+
+- The sector page's Sector Map is now the Galaxy Map's own engine locked to
+  that sector (MAP.68, with MAP.67's one URL scheme): the same stars,
+  clouds and bodies, hover, tooltip, ring, info panel and NAV links, with
+  zoom buttons, Reset view, "Mark rogue planets" and the Contents table's
+  "Show on map" buttons as before. It has no steps or history of its own, and a
+  click on a neighboring sector opens that sector's page. Because it is
+  the Galaxy Map, its scale line now reads in sectors and parsecs, the
+  neighbors are the galaxy's own, and the browser's tile cache is shared
+  with the Galaxy Map.
+- The old Sector Map code (`sectormap.js`, `render_map_panel` and its
+  no-script link list) is gone; `starmap.py` now only builds the scene data,
+  `GET /sector/<id>/scene`. A sector with no place in the galaxy has no map.
+
+## [7.276.637] - 2026-10-08
+
+### Changed
+- The Galaxy Map draws its stars measured from where the camera is looking instead of from the galaxy's center, so zoomed in they keep their exact positions rather than snapping by a fraction of a pixel far from the center (MAP.102, first part).
+
+## [7.275.637] - 2026-10-08
+
+### Changed
+- Every page's breadcrumb is now the Galaxy Map's one-line breadcrumb (`static/breadcrumb.js`): when the steps don't fit, the middle ones fold into a "…" menu, at any width. The Galaxy Map uses the same component for its stages (NAV.14).
+
 ## [7.274.636] - 2026-10-08
 
 ### Changed

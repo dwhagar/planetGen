@@ -317,13 +317,28 @@ connectivity to that specific schema rather than the default one.
   `queryDb.list_phenomena`. Excludes a black hole/neutron star that's
   actually anchored to a normal star system (`star_id` set) — that one's
   already shown on its own system's page, not a standalone phenomenon.
-  The data the `/phenomena` page shows.
+  The data the `/phenomena` page shows. The Phenomena table (UX.41) also
+  takes `sort` (`name`, the default, `type`, `descriptor`, `radius`,
+  `sector` or `placed`) with `order=asc|desc` (ties fall back to name, so
+  pages never overlap), the filters `type` and `descriptor` (each repeatable,
+  any of) and `placed=yes|no`, and `facets=1` to add `facets`:
+  `{"type": [{"value", "count"}], "descriptor": [{"value", "count"}]}`, the
+  options for the two filter menus. Each menu's counts apply every filter
+  except its own, so picking a type narrows the descriptor options and the
+  other way round. `total` counts only the rows that pass the filters; an
+  unknown `sort`, `order` or `placed` is a 400.
 - `GET /api/nebulae/<id>/shape[?lod=low|full]` — a nebula's shape as a
   triangle mesh (GEN.75): `{id, radius_ly, center_pc, lod, vertices,
   faces}`, the vertices `[x, y, z]` in units of the nebula's radius from
   its center (multiply by `radius_ly`), the faces triples of vertex
   indexes. `low` (the default) is coarse, for the Galaxy Map. 404 for an
   unknown nebula or level.
+- `GET /api/nebulae/<id>/surroundings` — the brightest stars round a
+  nebula, for its page's 3D view (MAP.105): `{radius_pc, half_width_pc,
+  stars: [{x, y, z, luminosity_sol, temperature_k}]}`, positions in
+  parsecs from the nebula's center, the most luminous first (at most 300,
+  from a box 2.5 radii each side, at least 30 pc). No stars for a nebula
+  never placed. 404 for an unknown nebula.
 - `GET /api/phenomena/<type>/<id>` — one phenomenon's full detail (every
   column its own table has, e.g. a nebula's `composition`/
   `formation_cause`, a black hole's `mass_solar`/`spin`/

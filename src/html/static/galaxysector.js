@@ -85,11 +85,26 @@ export function createSectorStage(host) {
         state.hovered = ringAround(hoverRing, entry);
       },
       select: function (entry) {
+        // The selected one again clears it: a nebula can cover the whole
+        // sector, so there is nowhere else to click (MAP.113).
+        if (state.selectedEntry === entry) {
+          deselect();
+          return;
+        }
         host.showInfo(infoSpec(entry, state.data, host.navPick));
         state.selectedEntry = entry;
         state.selected = ringAround(selectionRing, entry);
       },
     });
+  }
+
+  // Clears the selection; true when there was one.
+  function deselect() {
+    if (!open || !open.selectedEntry) return false;
+    selectionRing.hide();
+    open.selected = open.selectedEntry = null;
+    if (host.deselected) host.deselected();
+    return true;
   }
 
   function close() {
@@ -108,6 +123,8 @@ export function createSectorStage(host) {
   // A selection of something hidden shows its kind again first.
   function selectEntry(entry) {
     if (!open || !entry) return;
+    // Already selected: it stays so (a click on it clears it).
+    if (open.selectedEntry === entry) return;
     const kind = kindOf(entry);
     if (hiddenKinds.has(kind)) {
       setKindHidden(kind, false);
@@ -189,6 +206,8 @@ export function createSectorStage(host) {
         origin: data.centerPc, unit: data.halfEdgePc / half, flipY: true,
         accentColor: host.accentColor, lightBackground: host.lightBackground, pixelRatio: host.pixelRatio(),
         sizeScale: pointSizeScale,
+        // How many nebulae are drawn from their shape now (read by the browser tests).
+        onShape: function (count) { host.canvasEl.dataset.sectorNebulaMeshes = String(count); },
       });
       host.scene.add(state.sector.group);
       state.sector.setRoguesMarked(roguesMarked);
@@ -223,6 +242,7 @@ export function createSectorStage(host) {
     isOpen: function () { return !!open; },
     sectorId: function () { return open ? open.id : null; },
     select: selectEntry,
+    deselect: deselect,
     // The open sector's entry with this key ("rogue_planet:12"), or null.
     entryByKey: function (key) { return open ? open.sector.entryByKey.get(key) || null : null; },
     setRoguesMarked: function (on) {

@@ -116,6 +116,40 @@ def _star_field():
 
 STAR_FIELD = _star_field()
 
+NEBULA_CLOUD = {
+    "type": "nebula", "id": 801, "name": "Fixture Cloud", "descriptor": "dark", "class": "D",
+    "radius_pc": 30.0, "x": STAR_FIELD_CENTER_PC[0] - 45.0, "y": STAR_FIELD_CENTER_PC[1], "z": STAR_FIELD_CENTER_PC[2],
+}
+"""The Galaxy Map's fixture nebula: beside the star field, big enough to draw
+from its shape mesh once the view is on that block (MAP.103)."""
+
+
+NEBULA_OVER_THE_FIELD = {
+    "type": "nebula", "id": 802, "name": "Fixture Pall", "descriptor": "dark", "class": "D",
+    "radius_pc": 14.0, "x": STAR_FIELD_CENTER_PC[0], "y": STAR_FIELD_CENTER_PC[1], "z": STAR_FIELD_CENTER_PC[2],
+}
+"""A second fixture nebula, right over the star field, so a close view of that
+block (all unfilled space: the generated sectors are in the core) is inside it."""
+NEBULAE = (NEBULA_CLOUD, NEBULA_OVER_THE_FIELD)
+
+
+def nebula_shape_payload(nebula_id, lod):
+    """What `GET /api/nebulae/<id>/shape` answers for the fixture nebula."""
+    import random
+
+    from planetgen.galaxy import nebula_shape
+
+    known = {cloud["id"] for cloud in NEBULAE} | {p["id"] for p in PHENOMENA if p["type"] == "nebula"}
+    if int(nebula_id) not in known:
+        raise apiclient.NotFoundError(f"no such nebula: {nebula_id}")
+    vertices, faces = nebula_shape.draw_shape(random.Random(int(nebula_id))).mesh(lod)
+    cloud = next((c for c in NEBULAE if c["id"] == int(nebula_id)), NEBULA_CLOUD)
+    return {"id": int(nebula_id), "radius_ly": pc_to_ly(cloud["radius_pc"]),
+            "center_pc": [cloud["x"], cloud["y"], cloud["z"]], "lod": lod,
+            "vertices": [[round(float(v), 5) for v in vertex] for vertex in vertices],
+            "faces": [[int(i) for i in face] for face in faces]}
+
+
 POINT_FIELD = [
     {"type": "black_hole", "id": 61, "name": "Fixture Maw", "descriptor": "accreting", "luminosity_sol": 0.02,
      "x": STAR_FIELD_CENTER_PC[0] - 12.0, "y": 9.0, "z": 0.0},
@@ -251,7 +285,13 @@ class FixtureApi:
                      if all(lo[i] <= star[axis] < hi[i] for i, axis in enumerate("xyz"))]
             points = [point for point in POINT_FIELD
                       if all(lo[i] <= point[axis] < hi[i] for i, axis in enumerate("xyz"))]
-            tiles[key] = {"placed": [], "planned": [], "filled": None, "clouds": [], "stars": stars,
+            # Like the real tile: every cloud whose sphere reaches into the box.
+            clouds = []
+            for cloud in NEBULAE:
+                nearest = [min(max(cloud[axis], lo[i]), hi[i]) for i, axis in enumerate("xyz")]
+                if math.dist(nearest, [cloud[axis] for axis in "xyz"]) <= cloud["radius_pc"]:
+                    clouds.append(cloud)
+            tiles[key] = {"placed": [], "planned": [], "filled": None, "clouds": clouds, "stars": stars,
                           "generated": None, "points": points}
         return {"tiles": tiles, "edge_pc": EDGE_PC, "has_shape": True}
 
@@ -263,6 +303,9 @@ class FixtureApi:
 
     def get_galaxy_locate(self, db, q):
         return []
+
+    def get_nebula_shape(self, db, nebula_id, lod="low"):
+        return nebula_shape_payload(nebula_id, lod)
 
     def get_sector(self, db, sector_id):
         if int(sector_id) not in [s[0] for s in SECTORS]:
@@ -278,7 +321,7 @@ class FixtureApi:
 
 _APICLIENT = ("get_galaxy_sectors", "get_galaxy_shape", "get_polities", "auth_me", "get_galaxy_locate",
               "get_sector", "get_sector_facilities", "get_bright_stars_in_cell", "get_population_status",
-              "get_galaxy_changes")
+              "get_galaxy_changes", "get_nebula_shape")
 _TILECACHE = ("get_galaxy_changes", "get_galaxy_tiles", "get_galaxy_stage")
 
 

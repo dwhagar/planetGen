@@ -65,6 +65,9 @@ const {
   niceScaleValue, readSceneData, watchResize, worldUnitsPerPixel,
 } = await import(`./mapcore.js${VERSION_QUERY}`);
 const { blockGenerateButtons, generateButtons } = await import(`./generatebuttons.js${VERSION_QUERY}`);
+const {
+  NEBULA_MESH_MIN_PX, buildNebulaMesh, createShapeLoader, disposeNebulaMesh,
+} = await import(`./nebulamesh.js${VERSION_QUERY}`);
 const { createPicker, createRing, endpointBookmark, infoPanelOf } = await import(`./mappick.js${VERSION_QUERY}`);
 const { createNavPick } = await import(`./navpick.js${VERSION_QUERY}`);
 
@@ -159,6 +162,10 @@ export function wireMapControls(controlsEl, handlers) {
 function infoPanel() {
   return infoPanelOf(document.getElementById("galaxymap3d-info"));
 }
+
+// What the panel says before anything is picked (a sector page's, which
+// the panel returns to when a pick is cleared; MAP.113).
+var restingHint = (infoPanel() && infoPanel().element && infoPanel().element.textContent.trim()) || "";
 
 function showInfo(spec) {
   var panel = infoPanel();
@@ -1145,6 +1152,35 @@ function initGalaxyMap3d(canvasEl, data) {
   scene.add(cloudGroup);
   var cloudSprites = new Map();
   var cloudSignature = "";
+  // A nebula's shape mesh (MAP.103): fetched the first time the nebula is
+  // big enough on screen, then drawn in place of its sprite.
+  var cloudMeshes = new Map();
+  var meshRequested = new Set();
+  var loadNebulaShape = sceneData.nebulaShapePath ? createShapeLoader(sceneData.nebulaShapePath) : null;
+
+  function requestNebulaMesh(sprite) {
+    var cloud = sprite.userData.cloud;
+    var key = cloudKey(cloud);
+    if (!loadNebulaShape || cloud.type !== "nebula" || meshRequested.has(key)) {
+      return;
+    }
+    meshRequested.add(key);
+    loadNebulaShape(cloud.id, "low").then(function (shape) {
+      if (cloudSprites.get(key) !== sprite) {
+        return;
+      }
+      var look = NEBULA_LOOKS[cloud.descriptor] || DEFAULT_NEBULA_LOOK;
+      var mesh = buildNebulaMesh(THREE, shape, cloud.radius_pc, look);
+      mesh.position.copy(sprite.position);
+      mesh.renderOrder = 4;
+      mesh.visible = false;
+      cloudGroup.add(mesh);
+      cloudMeshes.set(key, mesh);
+      updateClouds();
+    }, function () {
+      meshRequested.delete(key);
+    });
+  }
 
   function cloudKey(cloud) {
     return cloud.type + ":" + cloud.id;
@@ -1161,6 +1197,12 @@ function initGalaxyMap3d(canvasEl, data) {
         cloudGroup.remove(sprite);
         sprite.material.dispose();
         cloudSprites.delete(key);
+        var gone = cloudMeshes.get(key);
+        if (gone) {
+          cloudGroup.remove(gone);
+          disposeNebulaMesh(gone);
+        }
+        cloudMeshes.delete(key);
       }
     });
     wanted.forEach(function (cloud, key) {
@@ -1186,14 +1228,33 @@ function initGalaxyMap3d(canvasEl, data) {
   }
 
   function updateClouds() {
-    cloudSprites.forEach(function (sprite) {
+    var drawn = 0;
+    cloudSprites.forEach(function (sprite, key) {
       var cloud = sprite.userData.cloud;
       var distance = camera.position.distanceTo(sprite.position);
+      var clipped = !inWedgeClip(sprite.position.x, sprite.position.y, sprite.position.z);
+      var pixels = cloudPixels(cloud, distance);
+      var mesh = cloudMeshes.get(key);
+      if (cloud.type === "nebula" && !clipped && pixels >= NEBULA_MESH_MIN_PX) {
+        requestNebulaMesh(sprite);
+      }
+      if (mesh && !clipped && pixels >= NEBULA_MESH_MIN_PX) {
+        // The mesh takes over from the sprite, which stays (unseen) for aiming.
+        mesh.visible = true;
+        sprite.visible = true;
+        sprite.material.opacity = 0;
+        drawn++;
+        return;
+      }
+      if (mesh) {
+        mesh.visible = false;
+      }
       var near = THREE.MathUtils.smoothstep(distance / cloud.radius_pc, CLOUD_NEAR_FADE[0], CLOUD_NEAR_FADE[1]);
-      sprite.visible = near > 0 && cloudPixels(cloud, distance) >= CLOUD_MIN_PX
-        && inWedgeClip(sprite.position.x, sprite.position.y, sprite.position.z);
+      sprite.visible = near > 0 && pixels >= CLOUD_MIN_PX && !clipped;
       sprite.material.opacity = CLOUD_OPACITY * near;
     });
+    // How many nebulae are drawn from their shape now (read by the browser tests).
+    canvasEl.dataset.nebulaMeshes = String(drawn);
   }
 
   // The smallest visible cloud under a screen point that is still small
@@ -2050,6 +2111,7 @@ function initGalaxyMap3d(canvasEl, data) {
     showHint: function (text) { showHint(text, false); },
     picker: picker,
     clearSelection: function () { selectionRing.hide(); },
+    restingHint: restingHint,
     setWedgeClip: function (clip) { setWedgeClip(clip); },
     sectorUrl: function (id) { return sceneData.sectorUrl ? sectorUrl(id) : null; },
     // A sector page's map is locked to its sector (MAP.68): {ring, layer,
@@ -2124,7 +2186,8 @@ function initGalaxyMap3d(canvasEl, data) {
   // --- Picking (mappick.js) --------------------------------------------------
   //
   // Inside a container a black hole, neutron star or quasar, or a cloud
-  // small enough to aim at, takes a click before the block under it
+  // small enough to aim at, takes a click before the block under it (a
+  // point inside a cloud, before the cloud)
   // (the drill-down's own layer, added last); stars never do (MAP.101):
   // in a dense sector they would cover it, so a click on one picks the
   // block, slab or sector under it, and a star's details are on its
@@ -2133,6 +2196,21 @@ function initGalaxyMap3d(canvasEl, data) {
     if (entry) hoverRing.at(entry.x, entry.y, entry.z, { px: HIGHLIGHT_PX * 2 });
     else hoverRing.hide();
   }
+
+  picker.addLayer({
+    name: "clouds",
+    enabled: function () { return stageView.inContainer(); },
+    pick: function (ctx) {
+      var found = cloudAtRay(ctx.ray);
+      return found && found.core ? { entry: found.cloud, distance: found.distance } : null;
+    },
+    tooltip: function (cloud) { return (cloud.name ? cloud.name + ", " : "") + cloudTypeLabel(cloud); },
+    hover: phenomenonHover,
+    select: function (cloud) {
+      highlightPosition(cloud.x, cloud.y, cloud.z);
+      showCloudInfo(cloud);
+    },
+  });
 
   picker.addLayer({
     name: "phenomena",
@@ -2146,20 +2224,6 @@ function initGalaxyMap3d(canvasEl, data) {
     select: function (point) {
       highlightPosition(point.x, point.y, point.z);
       showPointInfo(point);
-    },
-  });
-  picker.addLayer({
-    name: "clouds",
-    enabled: function () { return stageView.inContainer(); },
-    pick: function (ctx) {
-      var found = cloudAtRay(ctx.ray);
-      return found && found.core ? { entry: found.cloud, distance: found.distance } : null;
-    },
-    tooltip: function (cloud) { return (cloud.name ? cloud.name + ", " : "") + cloudTypeLabel(cloud); },
-    hover: phenomenonHover,
-    select: function (cloud) {
-      highlightPosition(cloud.x, cloud.y, cloud.z);
-      showCloudInfo(cloud);
     },
   });
 

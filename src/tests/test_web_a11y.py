@@ -220,7 +220,7 @@ def site_db(_mysql_server_available):
             with forced_system_config(PLANETS=True):
                 run_cli("galaxy", ["--ring", "0", "--layer", "0", "--num-systems", "4", "--yes", "--quiet"] + target)
             run_cli("system", ["--quiet"] + target)
-            for kind in ("nebula", "black-hole", "rogue-planet", "asteroid-field"):
+            for kind in ("nebula", "supernova-remnant", "black-hole", "rogue-planet", "asteroid-field"):
                 run_cli("phenomenon", ["--type", kind, "--quiet"] + target)
             _add_population(config)
         finally:
