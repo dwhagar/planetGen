@@ -17,14 +17,25 @@
     {%- if inside %}<span class="badge">Inside: <a href="{{ inside.url }}">{{ inside.name }}</a></span>{% endif -%}
     {%- if territory %}<span class="badge"><svg class="polity-swatch" viewBox="0 0 10 10" aria-hidden="true" focusable="false"><rect width="10" height="10" fill="{{ territory.color }}"/></svg> Territory of <a href="{{ territory.url }}">{{ territory.name }}</a></span>{% endif -%}
   </p>
-  <p class="page-actions">
+  <div class="page-actions nav-row">
     {%- if nav_links %}
-    <a class="btn btn-small" href="{{ nav_links.from }}">Navigate from here</a>
-    <a class="btn btn-small" href="{{ nav_links.to }}">Navigate to here</a>
-    <a class="btn btn-small" href="{{ page_url('system_on_galaxy_map', system_id=system.id) }}">Show on Galaxy Map</a>
+    {#- UX.27: one row. Where the three buttons don't fit, the two navigate
+        buttons fold into one Navigate menu, and on a phone Show on Galaxy Map
+        joins that menu (container queries in style.css pick the layout). #}
+    <a class="btn btn-small nav-wide" href="{{ nav_links.from }}">Navigate from here</a>
+    <a class="btn btn-small nav-wide" href="{{ nav_links.to }}">Navigate to here</a>
+    <sl-dropdown class="nav-menu" placement="bottom-start" distance="4">
+      <sl-button slot="trigger" size="small" caret>Navigate</sl-button>
+      <sl-menu aria-label="Navigate">
+        <sl-menu-item data-href="{{ nav_links.from }}">From here</sl-menu-item>
+        <sl-menu-item data-href="{{ nav_links.to }}">To here</sl-menu-item>
+        <sl-menu-item class="nav-menu-galaxy" data-href="{{ page_url('system_on_galaxy_map', system_id=system.id) }}">Show on Galaxy Map</sl-menu-item>
+      </sl-menu>
+    </sl-dropdown>
+    <a class="btn btn-small nav-galaxy" href="{{ page_url('system_on_galaxy_map', system_id=system.id) }}">Show on Galaxy Map</a>
     {%- endif %}
     {{ bookmark_button(bookmark) }}
-  </p>
+  </div>
   {%- if location_html %}
   <p class="location inline-links">Location: {{ location_html }}</p>
   {%- endif %}
