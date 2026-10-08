@@ -895,7 +895,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.23 | A shared unit-ladder module | none | open |
 | UX.24 | Sector contents: rogue planets after systems and phenomena, and expanded rows the full table width (bug) | none | done, PR #487 |
 | UX.25 | Rogue planets: octant and a small map symbol beside each name (bug) | none | done, PR #490 |
-| UX.26 | Edit and admin actions as a button that opens a menu (bug) | none | open |
+| UX.26 | Edit and admin actions as a button that opens a menu (bug) | none | done, PR #558 |
 | UX.27 | System page: the system and navigation buttons on one row that doesn't overlap (bug) | none | done, PR #539 |
 | UX.28 | Investigate icons instead of words on buttons | none | done, PR #490 |
 | UX.29 | Every comet in a system shows its type as a link (bug) | none | done, PR #487 |
