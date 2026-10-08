@@ -1655,3 +1655,83 @@ def test_galaxy_map_stars_are_drawn_camera_relative(page, map_site):
     assert all(float(v).is_integer() for v in drawn["frame"]), drawn
     # Measured from the frame, no star is as far out as the galaxy's edge.
     assert drawn["far"] < 20000, drawn
+
+
+def _select_the_nebula(page):
+    nebula = next(p for p in PHENOMENA if p["type"] == "nebula")
+    # The screen-reader list holds a button for every object.
+    page.locator("#galaxymap3d-canvas ~ .starmap-sr-list button, .starmap-sr-list button",
+                 has_text=nebula["name"]).first.dispatch_event("click")
+    assert _info_title(page) == nebula["name"]
+    return nebula
+
+
+def test_sector_map_escape_clears_the_selection(page, map_site):
+    """MAP.113: Escape clears what is selected, ahead of anything else."""
+    _open_sector(page, map_site)
+    resting = _info_title(page)
+    nebula = _select_the_nebula(page)
+    assert resting != nebula["name"]
+    page.locator(SECTOR_CANVAS).focus()
+    page.keyboard.press("Escape")
+    assert _info_title(page) == resting
+    assert page.url.split("?")[0].endswith(f"/sector/{SECTOR_ID}"), page.url
+
+
+def test_sector_map_click_on_the_selected_nebula_clears_it(page, map_site):
+    """MAP.113: a nebula can be unselected by clicking it again, which is all
+    there is to click when it covers the sector."""
+    _open_sector(page, map_site)
+    resting = _info_title(page)
+    nebula = next(p for p in PHENOMENA if p["type"] == "nebula")
+    found = _hover_choice(page, re.escape(nebula["name"]), steps=48)
+    assert found, "no spot on the Sector Map names the nebula"
+    page.mouse.click(found[0], found[1])
+    assert _info_title(page) == nebula["name"]
+    page.mouse.click(found[0], found[1])
+    assert _info_title(page) == resting
+    page.mouse.click(found[0], found[1])
+    assert _info_title(page) == nebula["name"], "and a click selects it again"
+
+
+def _crumbs_on_a_fresh_load(page):
+    """The steps a new page shows for this page's URL."""
+    other = page.context.new_page()
+    try:
+        other.goto(page.url)
+        other.wait_for_selector("#galaxymap3d-steps [data-steps-panel] li", state="attached")
+        _settle(other)
+        return _crumbs(other)
+    finally:
+        other.close()
+
+
+def test_galaxy_breadcrumb_always_matches_the_view_its_url_names(page, map_site):
+    """MAP.106: walking down to a sector, out again, Home, Back and Forward,
+    the steps shown are the ones a fresh load of the same URL shows."""
+    _open_galaxy(page, map_site)
+    checked = []
+
+    def in_sync(label):
+        _settle(page)
+        live = _crumbs(page)
+        assert live == _crumbs_on_a_fresh_load(page), (label, page.url, live)
+        checked.append(label)
+
+    for _ in range(12):
+        text = _click_choice(page, GENERATED_CHOICE) if not checked else None
+        if text and text.startswith("Sector"):
+            break
+    in_sync("in the sector")
+    assert _crumbs(page)[-1].startswith("Sector"), _crumbs(page)
+    canvas = page.locator("#galaxymap3d-canvas")
+    for key in ("Escape", "Home"):
+        canvas.focus()
+        page.keyboard.press(key)
+        in_sync(key)
+    for action in ("back", "forward"):
+        button = page.locator(f'#galaxymap3d-controls [data-action="{action}"]')
+        if button.is_enabled():
+            button.click()
+            in_sync(action)
+    assert len(checked) >= 4, checked
