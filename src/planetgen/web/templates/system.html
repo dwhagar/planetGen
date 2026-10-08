@@ -2,39 +2,11 @@
     the stars table and the map are HTML from planetgen/web/lib/systempage.py and
     planetgen/web/maps/systemmap.py (escaped there); everything else is escaped here. -#}
 {% extends "base.html" %}
-{% from "partials/admin_menu.html" import admin_menu, add_edit_actions with context %}
+{% from "partials/admin_menu.html" import admin_menu_button, admin_dialogs, add_edit_actions with context %}
 {% from "partials/action_bar.html" import action_bar %}
 {% from "partials/pick_banner.html" import pick_banner %}
-{% block head %}
-<script type="module" src="{{ static_url('systemmap.js') }}"></script>
-<script type="module" src="{{ static_url('bookmarks.js') }}"></script>
-<script type="module" src="{{ static_url('copycode.js') }}"></script>
-<script type="module" src="{{ static_url('facilityform.js') }}"></script>
-{% endblock %}
-{% block subhead %}
-<div class="page-subhead">
-  <p class="badges">
-    {%- for badge in badges %}<span class="badge">{{ badge }}</span>{% endfor -%}
-    {%- if inside %}<span class="badge">Inside: <a href="{{ inside.url }}">{{ inside.name }}</a></span>{% endif -%}
-    {%- if territory %}<span class="badge"><svg class="polity-swatch" viewBox="0 0 10 10" aria-hidden="true" focusable="false"><rect width="10" height="10" fill="{{ territory.color }}"/></svg> Territory of <a href="{{ territory.url }}">{{ territory.name }}</a></span>{% endif -%}
-  </p>
-  {{ action_bar(bookmark, nav_links, pick, page_url('system_on_galaxy_map', system_id=system.id) if nav_links else none) }}
-  {%- if location_html %}
-  <p class="location inline-links">Location: {{ location_html }}</p>
-  {%- endif %}
-</div>
-{% endblock %}
-{% block content %}
-{{ pick_banner(pick, bookmark, 'system') }}
-{{ map_html }}
-{{ stars_html }}
-{#- ADM.34: every admin action of this page sits behind the one Admin menu
-    (partials/admin_menu.html): the whole system's (regenerate, change the
-    star, delete, upload to a wiki), a submenu per body (regenerate, change
-    class, delete) and the facilities' (place one, remove one). #}
-{%- if wiki_status %}
-<p class="{{ 'error' if wiki_status[0] else 'hint' }}" role="status">{{ wiki_status[1] }}</p>
-{%- endif %}
+{#- ADM.34, UX.68: the groups of admin actions are built here, outside the blocks, so the
+    action bar (subhead) and the dialogs (content) share them. -#}
 {%- set here = page_url('system', system_id=system.id) %}
 {%- set groups = [] %}
 {%- if admin and wiki_options %}
@@ -67,9 +39,9 @@
     'note': 'Replaces the ' ~ star_type ~ ' star with a new one. Planets, moons and belts keep their classes; their orbits scale with the new star\'s light, and any left past its farthest stable orbit are removed.',
     'fields': star_fields, 'drop_label': 'Also delete facilities on removed bodies', 'button': 'Change the star'}] %}
 {%- endif %}
-{{ add_edit_actions(system_actions, system.name,
+{%- set _ = add_edit_actions(system_actions, system.name,
      'Rolls new stars, planets, moons, belts and comets; the system keeps its name and place. The rest of the system is then checked and re-spaced until it is stable.',
-     'Deletes the system and everything in it.', regenerate_facilities=True, extra=star_actions) }}
+     'Deletes the system and everything in it.', regenerate_facilities=True, extra=star_actions) %}
 {%- set _ = groups.append({'id': 'system', 'target': 'system:' ~ system.id, 'actions': system_actions}) %}
 {%- for row in edit_rows %}
 {%- set body_actions = [] %}
@@ -91,12 +63,12 @@
     'note': 'Re-rolls it as the class you pick, where it is: a recommended class fits without moving any other planet, a forced one is kept even where it couldn\'t form.',
     'fields': class_fields, 'button': 'Change ' ~ row.label ~ "'s class"}] %}
 {%- endif %}
-{{ add_edit_actions(body_actions, row.label,
+{%- set _ = add_edit_actions(body_actions, row.label,
      'Rolls it again at the same orbit.' if row.kind != 'planet' else 'Rolls it again at the same orbit, with new moons.',
      'Removes it from the system.' if row.kind != 'planet' else 'Removes it and its moons from the system.',
-     regenerate_facilities=(row.kind == 'planet'), extra=class_actions) }}
+     regenerate_facilities=(row.kind == 'planet'), extra=class_actions) %}
 {%- set _ = groups.append({'id': 'body-' ~ loop.index, 'label': (row.label if row.kind != 'belt' else 'Asteroid belt') ~ (' (' ~ row.detail ~ ')' if row.detail else ''),
-    'target': row.target, 'actions': body_actions}) %}
+    'target': row.target, 'actions': body_actions, 'dialog_only': True}) %}
 {%- endfor %}
 {%- endif %}
 {%- if admin %}
@@ -172,17 +144,50 @@
 {%- set _ = groups.append({'id': 'facility-remove', 'label': 'Remove a facility', 'actions': remove_actions}) %}
 {%- endif %}
 {%- endif %}
-{%- if groups %}
-{{ admin_menu(groups, system.name, here) }}
+{%- set admin_button %}{% if groups %}{{ admin_menu_button(groups, system.name) }}{% endif %}{% endset %}
+{% block head %}
+<script type="module" src="{{ static_url('systemmap.js') }}"></script>
+<script type="module" src="{{ static_url('bookmarks.js') }}"></script>
+<script type="module" src="{{ static_url('copycode.js') }}"></script>
+<script type="module" src="{{ static_url('facilityform.js') }}"></script>
+{% endblock %}
+{% block subhead %}
+<div class="page-subhead">
+  <p class="badges">
+    {%- for badge in badges %}<span class="badge">{{ badge }}</span>{% endfor -%}
+    {%- if inside %}<span class="badge">Inside: <a href="{{ inside.url }}">{{ inside.name }}</a></span>{% endif -%}
+    {%- if territory %}<span class="badge"><svg class="polity-swatch" viewBox="0 0 10 10" aria-hidden="true" focusable="false"><rect width="10" height="10" fill="{{ territory.color }}"/></svg> Territory of <a href="{{ territory.url }}">{{ territory.name }}</a></span>{% endif -%}
+  </p>
+  {{ action_bar(bookmark, nav_links, pick, page_url('system_on_galaxy_map', system_id=system.id) if nav_links else none, admin_button) }}
+  {%- if nearest_html %}
+  <p class="location inline-links">Nearest: {{ nearest_html }}</p>
+  {%- endif %}
+</div>
+{% endblock %}
+{% block content %}
+{{ pick_banner(pick, bookmark, 'system') }}
+{{ map_html }}
+{{ stars_html }}
+{#- ADM.34: every admin action of this page sits behind the one Admin menu
+    (partials/admin_menu.html): the whole system's (regenerate, change the
+    star, delete, upload to a wiki), a submenu per body (regenerate, change
+    class, delete) and the facilities' (place one, remove one). #}
+{%- if wiki_status %}
+<p class="{{ 'error' if wiki_status[0] else 'hint' }}" role="status">{{ wiki_status[1] }}</p>
 {%- endif %}
+{{ admin_dialogs(groups, here) }}
 <section class="panel" id="system-panel" aria-labelledby="system-heading">
   <div class="panel-header">
     <h2 id="system-heading">System</h2>
-    <div class="view-toggle">
-      {%- for button in code_buttons %}
-      <a class="btn btn-small btn-secondary{% if button.active %} btn-active{% endif %}" href="{{ button.url }}"{% if button.active %} aria-current="true"{% endif %}>{{ button.label }}</a>
-      {%- endfor %}
-    </div>
+    {#- UX.67: the render-format switch is a quiet utility menu, not two solid buttons. #}
+    <details class="view-source"{% if code_buttons|selectattr('active')|list %} open{% endif %}>
+      <summary>View source</summary>
+      <ul>
+        {%- for button in code_buttons %}
+        <li><a href="{{ button.url }}"{% if button.active %} aria-current="true"{% endif %}>{{ button.label }}</a></li>
+        {%- endfor %}
+      </ul>
+    </details>
   </div>
   {%- if system.wikijs_url or system.mediawiki_url %}
   <p class="hint">Published on the wiki:

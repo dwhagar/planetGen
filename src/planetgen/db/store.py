@@ -2328,7 +2328,6 @@ OBJECT_ID_TABLES = {
     "quasar": "quasars",
     "comet": "interstellar_comets",
     "asteroid-field": "asteroid_fields",
-    "bright-star": "star_systems",
     "black-hole-core": "black_holes",
     "neutron-star-core": "neutron_stars",
 }
@@ -3718,6 +3717,9 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
     )
     star_system_id = cur.lastrowid
     confirm_system_name(conn, name_base, star_system_id, diminutive_index)
+    position_uid = getattr(star_system, "position_uid", None)
+    if position_uid is not None:  # a bright-sweep system keeps its position ID (GEN.72)
+        _update_by_id(conn, "star_systems", ("uid",), [(star_system_id, galaxyUid.uid_bytes(position_uid))])
 
     if proxy_like:
         insert_star(conn, star_system.primary_star, star_system_id, "primary")
@@ -5257,11 +5259,14 @@ def _insert_sector_rows(conn, sector, galaxy_position):
     conn.prereserved_names = {}
     conn.deferred_name_confirmations = []
     try:
-        # Every placed phenomenon and every bright-sweep system is named
-        # by its object ID (GEN.64), claimed here for the whole sector in
-        # generation order; only the rest go through the name registry.
+        # Every placed phenomenon is named by its object ID (GEN.64),
+        # claimed here for the whole sector in generation order; only the
+        # rest go through the name registry. A bright-sweep system is named
+        # by the registry like any system and keeps its position ID as its
+        # unique ID (GEN.72).
         by_id = _sector_object_ids(sector, galaxy_position)
         _claim_object_ids(conn, by_id)
+        _claim_bright_system_uids(conn, sector, galaxy_position)
         claimed = {id(obj) for obj, _kind, _center in by_id}
         named = [entry.star_system for entry in sector.entries if id(entry.star_system) not in claimed]
         named += [entry.phenomenon for entry in sector.phenomena
@@ -5366,11 +5371,46 @@ def _sector_object_ids(sector, galaxy_position):
         core_item = _remnant_core_item(entry.phenomenon, center)
         if core_item is not None:
             items.append(core_item)
-    for entry in sector.entries:
-        if getattr(entry, "bright_star_id", None) is not None:
-            center = _placement_center(_galaxy_placement_from_sector_offset(galaxy_position, entry.position))
-            items.append((entry.star_system, "bright-star", center))
     return items
+
+
+def _claim_bright_system_uids(conn, sector, galaxy_position):
+    """
+    Gives each bright-sweep system of a galaxy-placed sector (`bright_star_id`)
+    its position ID (GEN.64, `objectId`) as the unique ID it keeps (GEN.72):
+    `star_system.position_uid`, written with the row by `insert_star_system`.
+    The system is named through the normal registry once its sector is
+    generated; the position ID it was known by until then is its uid, bumped
+    (`objectId.bump`) past one a stored system or an earlier one here holds.
+    """
+    if galaxy_position is None:
+        return
+    entries = [entry for entry in sector.entries if getattr(entry, "bright_star_id", None) is not None]
+    if not entries:
+        return
+    wanted = [objectId.pack("bright-star", _placement_center(
+        _galaxy_placement_from_sector_offset(galaxy_position, entry.position))) for entry in entries]
+    stored = _stored_uids(conn, wanted)
+    taken = set()
+    for entry, object_id in zip(entries, wanted):
+        while True:
+            if object_id not in stored and object_id not in taken:
+                break
+            object_id = objectId.bump(object_id)
+            stored |= _stored_uids(conn, [object_id])
+        taken.add(object_id)
+        entry.star_system.position_uid = object_id
+
+
+def _stored_uids(conn, uids):
+    """The `uids` (integers) a `star_systems` row already holds."""
+    found = set()
+    for first in range(0, len(uids), _NAME_BATCH):
+        chunk = [galaxyUid.uid_bytes(uid) for uid in uids[first:first + _NAME_BATCH]]
+        found.update(galaxyUid.uid_from_bytes(row["uid"]) for row in conn.execute(
+            f"SELECT uid FROM star_systems WHERE uid IN ({', '.join('?' * len(chunk))})", tuple(chunk),
+        ).fetchall())
+    return found
 
 
 def _remnant_core_item(remnant, remnant_center_pc):
@@ -6097,9 +6137,7 @@ def _assign_sector_uids(conn, seed, sector_id):
     new = []
     for rank, system in enumerate(systems):
         if system["uid"] is None:
-            uid = _gen64_uid(system["name"])
-            if uid is None:
-                uid = galaxyUid.derived_uid(seed, "system", parent, rank)
+            uid = galaxyUid.derived_uid(seed, "system", parent, rank)
             new.append((system["id"], galaxyUid.uid_bytes(uid)))
     _update_by_id(conn, "star_systems", ("uid",), new)
     for first in range(0, len(systems), _UID_SYSTEM_BATCH):
@@ -6138,7 +6176,7 @@ def _assign_system_uids(conn, seed, system_ids, sector_parent):
     standalone = []
     for system in conn.execute(f"SELECT id, name, uid FROM star_systems WHERE id IN ({marks})", ids).fetchall():
         if system["uid"] is None:
-            uid = _gen64_uid(system["name"]) or galaxyUid.derived_uid(seed, "system", sector_parent, system["id"])
+            uid = galaxyUid.derived_uid(seed, "system", sector_parent, system["id"])
             standalone.append((system["id"], galaxyUid.uid_bytes(uid)))
         else:
             uid = galaxyUid.uid_from_bytes(system["uid"])

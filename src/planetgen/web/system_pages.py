@@ -22,7 +22,7 @@ from flask import abort, redirect, request
 from planetgen.web.lib import apiclient
 from planetgen.web.lib.fmt import (
     format_duration_seconds, format_number, format_period_years, format_speed_kms, runaway_text,
-    format_distance_km, format_distance_ly, format_distance_pc, linkify_location, nearest_neighbors_location,
+    format_distance_km, format_distance_ly, format_distance_pc, linkify_nearest,
     nearest_systems_html,
 )
 from planetgen.web.lib.datatable import Column, Facet, Result, Table
@@ -108,16 +108,16 @@ def pick_nav(kind, entity_id, args):
     return {"pick": back, "pickLabel": pick["label"]}, pick
 
 
-def _location_html(system):
-    """The "Location:" line: the sector name and nearest neighbours, each
-    linked, or `None` for a system with no stored location."""
-    if not system["location"]:
-        return None
+def _nearest_html(system):
+    """The "Nearest:" line: the three nearest neighbours, each linked with its
+    distance (the breadcrumb carries the sector, UX.52), or `None` for a
+    system with none."""
     neighbors = system.get("nearest_neighbors")
     if neighbors:
-        return trusted_html(nearest_neighbors_location(system["location"], neighbors, _system_url))
+        return trusted_html(nearest_systems_html(neighbors, _system_url))
     name_to_id = {row["name"]: row["id"] for row in system.get("sector_siblings") or []}
-    return trusted_html(linkify_location(system["location"], name_to_id, _system_url))
+    text = linkify_nearest(system["location"], name_to_id, _system_url)
+    return trusted_html(text) if text else None
 
 
 def _system_crumbs(system):
@@ -255,6 +255,7 @@ def system(system_id):
     admin = current_admin()
     wiki_options = _wiki_upload_options(detail, apiclient.get_wiki_config()) if admin else []
     wiki_status = WIKI_MESSAGES.get(request.args.get("wiki")) if admin else None
+    edit_rows = _edit_rows(detail, edit_actions.class_options(system_id)) if edit_actions.can_edit(admin) else []
 
     section, breadcrumbs = _system_crumbs(detail)
     inside = detail.get("inside")
@@ -279,7 +280,7 @@ def system(system_id):
         pick=pick,
         bookmark=bookmark("system", endpoint("system", system_id), detail["name"],
                           page_url("system", system_id=system_id)),
-        location_html=_location_html(detail),
+        nearest_html=_nearest_html(detail),
         map_html=trusted_html(map_html),
         code_fmt=code_fmt,
         code_label=CODE_FORMATS.get(code_fmt),
@@ -287,7 +288,8 @@ def system(system_id):
         code_rows=min(code_content.count("\n") + 3, 30) if code_content else 0,
         code_buttons=_code_buttons(system_id, code_fmt),
         system_list_html=trusted_html(system_list_html(detail, sections, class_url, facilities,
-                                                       species=_species_by_planet(db, detail))),
+                                                       species=_species_by_planet(db, detail),
+                                                       admin_rows={row["target"]: row for row in edit_rows})),
         territory=_territory(db, system_id),
         stars_html=trusted_html(stars_html(detail["stars"], class_url)),
         wiki_options=wiki_options,
@@ -302,7 +304,7 @@ def system(system_id):
         facility_orbit_steps=system_facilities.FACILITY_ORBIT_STEPS,
         facility_orbit_default=system_facilities.ORBIT_STEP_DEFAULT,
         can_edit=edit_actions.can_edit(admin),
-        edit_rows=_edit_rows(detail, edit_actions.class_options(system_id)) if edit_actions.can_edit(admin) else [],
+        edit_rows=edit_rows,
         star_editable=not detail.get("is_binary") and len(detail["stars"]) == 1,
         star_type=detail["stars"][0]["star_type"] if detail["stars"] else "",
     )
@@ -335,6 +337,12 @@ def _edit_rows(system, class_options=None):
                 recommended = class_options.get("recommended", {}).get(row["target"], [])
                 row["recommended"] = recommended
                 row["forced"] = [c for c in every if c not in recommended]
+    # The Admin menu of each row (UX.68): "body-N" names the dialogs
+    # system.html draws for the N-th row, one per item.
+    for number, row in enumerate(rows, 1):
+        row["id"] = f"body-{number}"
+        row["items"] = ([("regenerate", "Regenerate")] + ([("class", "Change class")] if "recommended" in row else [])
+                        + [("delete", "Delete")])
     return rows
 
 

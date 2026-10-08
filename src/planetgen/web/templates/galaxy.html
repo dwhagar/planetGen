@@ -24,15 +24,15 @@
   {{ datatable(sector_table) }}
   {%- else %}
   <h2 id="galaxy-table-heading">Quadrants</h2>
-  <div class="table-scroll"><table>
+  <div class="table-scroll"><table class="table-stack">
     <thead><tr><th scope="col">Quadrant</th><th scope="col">Sectors</th><th scope="col">Systems</th><th scope="col">Extent</th></tr></thead>
     <tbody>
       {%- for row in summary_rows %}
       <tr>
-        <td><a href="{{ row.url }}">Quadrant {{ row.label }}</a></td>
-        <td>{{ row.sector_count }}</td>
-        <td>{{ row.system_count }}</td>
-        <td>{{ row.extent if row.extent else "–" }}</td>
+        <td class="stack-title"><a href="{{ row.url }}">Quadrant {{ row.label }}</a></td>
+        <td data-label="Sectors">{{ row.sector_count }}</td>
+        <td data-label="Systems">{{ row.system_count }}</td>
+        <td data-label="Extent">{{ row.extent if row.extent else "–" }}</td>
       </tr>
       {%- endfor %}
     </tbody>

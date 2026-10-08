@@ -238,6 +238,26 @@ h2 {
   font-size: 0.85rem;
 }
 
+/* UX.67: a quiet "View source" menu in the System card header. */
+.view-source {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.view-source summary {
+  cursor: pointer;
+  padding: 0.2rem 0.4rem;
+}
+
+.view-source ul {
+  list-style: none;
+  margin: 0;
+  padding: 0 0.4rem 0.2rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 1rem;
+}
+
 .view-toggle-current {
   color: var(--text-muted);
   font-weight: 600;
@@ -245,6 +265,19 @@ h2 {
 
 .table-scroll {
   overflow-x: auto;
+}
+
+/* UX.69: a table that scrolls sideways shows it. A shadow sits on each edge
+   with more to scroll to (the covers, attached to the content, hide it at
+   the end) and the scrollbar stays thin but visible. */
+.table-scroll,
+.datatable-scroll {
+  scrollbar-width: thin;
+  background:
+    linear-gradient(to right, var(--bg-elevated) 30%, transparent) left center / 2rem 100% no-repeat local,
+    linear-gradient(to left, var(--bg-elevated) 30%, transparent) right center / 2rem 100% no-repeat local,
+    radial-gradient(farthest-side at 0 50%, rgb(0 0 0 / 0.22), transparent) left center / 0.8rem 100% no-repeat scroll,
+    radial-gradient(farthest-side at 100% 50%, rgb(0 0 0 / 0.22), transparent) right center / 0.8rem 100% no-repeat scroll;
 }
 
 /* The site's one pager (planetgen/web/lib/pagination.py), under every paged
@@ -598,6 +631,26 @@ tbody tr:last-child td {
    static/dialogmenus.js). */
 .admin-bar {
   margin: 0 0 1rem;
+}
+
+.page-actions .admin-bar {
+  margin: 0;
+}
+
+/* UX.68: a planet's, moon's or belt's own Admin menu, at the right end of
+   its row in the System list. */
+.system-list li.has-admin {
+  position: relative;
+}
+
+.system-list li.has-admin > .row-admin {
+  position: absolute;
+  top: 0.3rem;
+  right: 0.5rem;
+}
+
+.system-list li.has-admin > details > summary {
+  padding-right: 6rem;
 }
 
 .edit-dialog .hint {
@@ -2578,6 +2631,10 @@ body.app {
   padding: 0;
 }
 
+.app .admin-hub a {
+  text-decoration: underline;
+}
+
 .app .admin-hub li {
   padding: 0.3rem 0;
 }
@@ -2831,6 +2888,47 @@ body.app {
   .app .table-scroll th,
   .app .table-scroll td {
     white-space: nowrap;
+  }
+
+  /* UX.69: a short server-rendered table (Quadrants, a system's Stars)
+     stacks on a phone: the name is the row's title and every other cell is
+     a "Label  value" line under it, so no column is cut off. */
+  .app .table-stack thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+
+  .app .table-stack,
+  .app .table-stack tbody,
+  .app .table-stack tr,
+  .app .table-stack td {
+    display: block;
+  }
+
+  .app .table-stack tr {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .app .table-stack td {
+    padding: 0.1rem 0;
+    border: 0;
+    white-space: normal;
+  }
+
+  .app .table-stack td[data-label]::before {
+    content: attr(data-label);
+    display: inline-block;
+    min-width: 6rem;
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+
+  .app .table-stack td.stack-title {
+    font-weight: 700;
   }
 
   .app .pagination {

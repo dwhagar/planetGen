@@ -52,28 +52,31 @@ def _star_class_urls(star_type, class_url):
 def stars_html(stars, class_url=None):
     """The Stars table. With `class_url` (see the module docstring), a
     star's type links to its spectral class page."""
+    # UX.53: "single" says nothing; the Role column is for binaries and multiples.
+    show_role = any(star["role"] != "single" for star in stars)
     rows = "".join(
         "<tr>"
-        f'<td>{esc(star["role"])}</td>'
-        f'<td>{esc(star["name"])}</td>'
-        f'<td>{_link(_star_class_urls(star["star_type"], class_url)[0], esc(star["star_type"]))}</td>'
+        + (f'<td data-label="Role">{esc(star["role"])}</td>' if show_role else "")
+        + f'<td class="stack-title">{esc(star["name"])}</td>'
+        f'<td data-label="Type">{_link(_star_class_urls(star["star_type"], class_url)[0], esc(star["star_type"]))}</td>'
         # Not esc()'d: these are built entirely from floats and fixed unit
         # literals (never database TEXT), and legitimately contain a raw
         # `<sup>exponent</sup>` -- see `tabledisplay.py`.
-        f'<td>{format_star_mass(star["mass_kg"])}</td>'
-        f'<td>{format_star_radius(star["radius_km"])}</td>'
-        f'<td>{format_number(star["temperature_k"])} K</td>'
-        f'<td>{format_star_luminosity(star["luminosity_w"])}</td>'
+        f'<td data-label="Mass">{format_star_mass(star["mass_kg"])}</td>'
+        f'<td data-label="Radius">{format_star_radius(star["radius_km"])}</td>'
+        f'<td data-label="Temp">{format_number(star["temperature_k"])} K</td>'
+        f'<td data-label="Luminosity">{format_star_luminosity(star["luminosity_w"])}</td>'
         "</tr>"
         for star in stars
     )
     if not rows:
         return ""
+    role_head = "<th>Role</th>" if show_role else ""
     return f"""
 <section class="panel">
 <h2>Stars</h2>
-<div class="table-scroll" tabindex="0"><table>
-  <thead><tr><th>Role</th><th>Name</th><th>Type</th><th>Mass</th><th>Radius</th><th>Temp</th><th>Luminosity</th></tr></thead>
+<div class="table-scroll" tabindex="0"><table class="table-stack">
+  <thead><tr>{role_head}<th>Name</th><th>Type</th><th>Mass</th><th>Radius</th><th>Temp</th><th>Luminosity</th></tr></thead>
   <tbody>{rows}</tbody>
 </table></div>
 </section>
@@ -150,7 +153,25 @@ def _facilities_by_host(facilities):
     return by_host
 
 
-def _row_html(title, stats, markdown, children_html="", children_visible=False, links=(), facilities=()):
+def _row_admin_html(admin_rows, kind, body_id):
+    """The Admin menu at the end of a planet's, moon's or belt's row (UX.68):
+    one item per action of that body (`admin_rows`, `{"planet:5": {"id":
+    "body-2", "items": [(key, label), ...]}}`), each opening the dialog the
+    system page's template (`partials/admin_menu.html`) draws for it. `""`
+    where the body has none (not an admin, or a comet)."""
+    row = (admin_rows or {}).get(f"{kind}:{body_id}")
+    if not row:
+        return ""
+    items = "".join(
+        f'<sl-menu-item data-dialog="admin-{esc(row["id"])}-{esc(key)}">{esc(label)}</sl-menu-item>'
+        for key, label in row["items"]
+    )
+    return (f'<sl-dropdown class="row-admin" placement="bottom-end" distance="4">'
+            f'<sl-button slot="trigger" size="small" caret>Admin</sl-button>'
+            f'<sl-menu aria-label="Admin actions for {esc(row["label"])}">{items}</sl-menu></sl-dropdown>')
+
+
+def _row_html(title, stats, markdown, children_html="", children_visible=False, links=(), facilities=(), admin=""):
     """
     One clickable row of the system list: a native `<details>` whose
     summary line is the body's name plus its compact stats, opening onto
@@ -163,7 +184,8 @@ def _row_html(title, stats, markdown, children_html="", children_visible=False, 
 
     `links` (the body's class links, HTML) open the detail, above the
     description; the body's `facilities` are counted in the summary and
-    listed under the links.
+    listed under the links; `admin` (an Admin menu, `_row_admin_html`) sits
+    at the row's right end.
     """
     stats_html = "".join(stats) + _facility_stat(facilities)
     description = _facilities_html(facilities) + (markdown_to_html(markdown) if markdown else "")
@@ -172,11 +194,11 @@ def _row_html(title, stats, markdown, children_html="", children_visible=False, 
         description = f'<p class="class-links">{" &middot; ".join(links)}</p>{description}'
     inside, after = ("", children_html) if children_visible else (children_html, "")
     return f"""
-<li><details class="body-row">
+<li{' class="has-admin"' if admin else ""}><details class="body-row">
 <summary><span class="body-name">{title}</span><span class="body-stats">{stats_html}</span></summary>
 <div class="body-detail prose">{description}</div>
 {inside}
-</details>{after}</li>"""
+</details>{admin}{after}</li>"""
 
 
 def _star_row_html(star, sections, children_html="", class_url=None, by_host=None):
@@ -211,7 +233,7 @@ def _gravity_text(gravity_g):
     return f"{round(gravity_g, 3)} g" if gravity_g is not None else ""
 
 
-def _planet_row_html(body, sections, is_moon=False, class_url=None, by_host=None, species=None):
+def _planet_row_html(body, sections, is_moon=False, class_url=None, by_host=None, species=None, admin_rows=None):
     """
     A planet's (or moon's) row: its class, one type chip, a "Habitable
     moon" chip when one of its moons is habitable, "Inhabited" when it is,
@@ -238,7 +260,8 @@ def _planet_row_html(body, sections, is_moon=False, class_url=None, by_host=None
     after_html = ""
     if moons:
         label = f'{len(moons)} moon{"s" if len(moons) != 1 else ""}'
-        moon_rows = "".join(_planet_row_html(moon, sections, is_moon=True, class_url=class_url, by_host=by_host)
+        moon_rows = "".join(_planet_row_html(moon, sections, is_moon=True, class_url=class_url, by_host=by_host,
+                                              admin_rows=admin_rows)
                             for moon in moons)
         after_html = (
             f'<details class="moon-group"><summary>{label} of {esc(body["name"])}</summary>'
@@ -254,7 +277,8 @@ def _planet_row_html(body, sections, is_moon=False, class_url=None, by_host=None
         stats.insert(2, f'<span class="stat">Species: {esc(dominant["name"])}</span>')
         species_link = f'Dominant species: {_link(dominant["url"], esc(dominant["name"]))}'
     return _row_html(esc(body["name"]), stats, section.get(str(body["id"])), after_html, children_visible=True,
-                     links=[class_link, species_link], facilities=(by_host or {}).get(("moon" if is_moon else "planet", body["id"])))
+                     links=[class_link, species_link], facilities=(by_host or {}).get(("moon" if is_moon else "planet", body["id"])),
+                     admin=_row_admin_html(admin_rows, "moon" if is_moon else "planet", body["id"]))
 
 
 BELT_TOP_MINERALS = 3
@@ -267,7 +291,7 @@ def _belt_minerals_text(composition):
     return esc(", ".join(names).capitalize()) if names else ""
 
 
-def _belt_row_html(belt, sections, by_host=None):
+def _belt_row_html(belt, sections, by_host=None, admin_rows=None):
     """
     A belt's row: its density, its range (the nominal distance only when
     the range is missing) and its top minerals.
@@ -282,7 +306,8 @@ def _belt_row_html(belt, sections, by_host=None):
         _stat(_belt_minerals_text(belt.get("composition"))),
     ]
     return _row_html("Asteroid Belt", stats, sections["belts"].get(str(belt["id"])),
-                     facilities=(by_host or {}).get(("asteroid_belt", belt["id"])))
+                     facilities=(by_host or {}).get(("asteroid_belt", belt["id"])),
+                     admin=_row_admin_html(admin_rows, "belt", belt["id"]))
 
 
 def comet_orbit_key_km(comet):
@@ -319,7 +344,7 @@ def _comet_row_html(comet, sections, class_url=None):
     return _row_html(esc(comet["name"]), stats, sections["comets"].get(str(comet["id"])), links=links)
 
 
-def _orbiting_rows_html(planets, belts, comets, sections, class_url=None, by_host=None, species=None):
+def _orbiting_rows_html(planets, belts, comets, sections, class_url=None, by_host=None, species=None, admin_rows=None):
     """
     A star's (or a close pair's) own bodies in their order out from the
     star: planets and belts by their shared `orbital_index`, and each comet
@@ -336,14 +361,15 @@ def _orbiting_rows_html(planets, belts, comets, sections, class_url=None, by_hos
         while pending and comet_orbit_key_km(pending[0]) < (0, body["distance_km"] or 0.0):
             rows.append(_comet_row_html(pending.pop(0), sections, class_url))
         if kind == "planet":
-            rows.append(_planet_row_html(body, sections, class_url=class_url, by_host=by_host, species=species))
+            rows.append(_planet_row_html(body, sections, class_url=class_url, by_host=by_host, species=species,
+                                         admin_rows=admin_rows))
         else:
-            rows.append(_belt_row_html(body, sections, by_host))
+            rows.append(_belt_row_html(body, sections, by_host, admin_rows))
     rows.extend(_comet_row_html(comet, sections, class_url) for comet in pending)
     return "".join(rows)
 
 
-def system_list_html(system, sections, class_url=None, facilities=(), species=None):
+def system_list_html(system, sections, class_url=None, facilities=(), species=None, admin_rows=None):
     """
     The system rendered natively: the page's overview (a binary pair's
     own data, the system summary, any flavor text) above an expandable
@@ -359,7 +385,8 @@ def system_list_html(system, sections, class_url=None, facilities=(), species=No
 
     `facilities` (`GET /api/systems/<id>/facilities`'s items) are listed
     in their host's own row, and `species` (`{planet_id: {"name", "url"}}`)
-    names each life world's dominant species in its row.
+    names each life world's dominant species in its row. `admin_rows`
+    (`_row_admin_html`) gives each planet, moon and belt row its Admin menu.
     """
     stars, planets, belts, comets = system["stars"], system["planets"], system["belts"], system["comets"]
     by_host = _facilities_by_host(facilities)
@@ -374,13 +401,18 @@ def system_list_html(system, sections, class_url=None, facilities=(), species=No
                 class_url,
                 by_host,
                 species,
+                admin_rows,
             )
             children_html = f'<ul class="system-list">{children}</ul>' if children else ""
             rows.append(_star_row_html(star, sections, children_html, class_url, by_host))
         rows_html = "".join(rows)
     else:
-        rows_html = "".join(_star_row_html(star, sections, class_url=class_url, by_host=by_host) for star in stars)
-        rows_html += _orbiting_rows_html(planets, belts, comets, sections, class_url, by_host, species)
+        # UX.53: the Stars table already shows these stars, so the list
+        # starts at the first planet or belt (a star that hosts a facility
+        # keeps its row, which is where the facility is listed).
+        rows_html = "".join(_star_row_html(star, sections, class_url=class_url, by_host=by_host)
+                            for star in stars if (by_host or {}).get(("star", star["id"])))
+        rows_html += _orbiting_rows_html(planets, belts, comets, sections, class_url, by_host, species, admin_rows)
 
     overview_html = markdown_to_html(sections["overview"]) if sections["overview"] else ""
     return f"""

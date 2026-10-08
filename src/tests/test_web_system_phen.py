@@ -20,7 +20,7 @@ from planetgen.api.authz import SESSION_COOKIE_NAME
 from planetgen.api.config import Config
 
 from planetgen.web.lib import apiclient  # noqa: E402
-from planetgen.web.lib.fmt import linkify_location, nearest_neighbors_location  # noqa: E402
+from planetgen.web.lib.fmt import linkify_nearest, nearest_systems_html  # noqa: E402
 from planetgen.db import store  # noqa: E402
 from planetgen.admin import auth as adminAuth
 from planetgen.generation.config import SystemConfig  # noqa: E402
@@ -227,7 +227,7 @@ def test_system_page_renders(app, client, fake):
     # The map, the body list, the stars table, and the page's scripts.
     assert 'id="sysmap-' in html
     assert 'class="system-list system-list-root"' in html
-    assert "<p>An *overview*.</p>" in html and "A yellow star." in html
+    assert "<p>An *overview*.</p>" in html
     assert "<h2>Stars</h2>" in html
     assert re.search(r'<script type="module" src="/static/systemmap.js\?v=[^"]+"></script>', html)
     assert re.search(r'<script type="module" src="/static/copycode.js\?v=[^"]+"></script>', html)
@@ -293,6 +293,8 @@ def test_system_page_code_views(client, fake):
     html = client.get("/system/5?code=bogus").get_data(as_text=True)
     assert 'id="system-code"' not in html
     assert 'href="/system/5?code=wikitext#system-panel">Wikitext</a>' in html
+    # UX.67: the switch is a quiet "View source" menu, not two buttons.
+    assert '<summary>View source</summary>' in html and "btn-secondary" not in html.split('id="system-heading"')[1][:600]
 
 
 def test_system_page_wiki_links(client, fake):
@@ -539,10 +541,10 @@ def test_header_phenomena_section_links_here(client, fake):
 
 def test_location_link_hook():
     url = lambda system_id: f"/system/{system_id}"  # noqa: E731
-    html = nearest_neighbors_location("S -- nearest: x", [{"id": 3, "name": "A&B", "distance_ly": 1.0}], url)
-    assert html == 'S -- nearest: <a href="/system/3">A&amp;B</a> (1.0 ly)'
-    html = linkify_location("S -- nearest: A (1.0 ly), Z (2.0 ly)", {"A": 3}, url)
-    assert html == 'S -- nearest: <a href="/system/3">A</a> (1.0 ly), Z (2.0 ly)'
+    html = nearest_systems_html([{"id": 3, "name": "A&B", "distance_ly": 1.0}], url)
+    assert html == '<a href="/system/3">A&amp;B</a> (1.0 ly)'
+    html = linkify_nearest("S -- nearest: A (1.0 ly), Z (2.0 ly)", {"A": 3}, url)
+    assert html == '<a href="/system/3">A</a> (1.0 ly), Z (2.0 ly)'
 
 
 # --- Old CGI URLs ---------------------------------------------------------------------

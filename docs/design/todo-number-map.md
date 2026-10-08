@@ -13,7 +13,7 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.75 |
+| UX | UX.76 |
 | MAP | MAP.133 |
 | NAV | NAV.51 |
 | GEN | GEN.121 |
@@ -22,7 +22,7 @@ release is stamped.
 | API | API.20 |
 | ADM | ADM.39 |
 | SEC | SEC.32 |
-| TEST | TEST.106 |
+| TEST | TEST.107 |
 | USR | USR.9 |
 | OPS | OPS.28 |
 | DOC | DOC.4 |
@@ -534,7 +534,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.69 | A unique ID for every object, star systems and unfilled sectors included | none | done, PR #623 |
 | GEN.70 | A naming key in the control database, made at galaxy creation and changeable by admin | none | open |
 | GEN.71 | Name interstellar objects, phenomena and constellations from the codec | none | open |
-| GEN.72 | A backfilled bright star should get a name only when its sector is generated (bug) | none | open |
+| GEN.72 | A backfilled bright star should get a name only when its sector is generated (bug) | none | done, PR #657 |
 | GEN.73 | Nebulae don't get unique names (bug) | none | folded into GEN.71 |
 | GEN.74 | One point-in-space object that keeps every coordinate system in step, used by every object | none | open |
 | GEN.75 | A nebula shape from metaballs and warped noise, as a mesh | none | done, PR #580 |
@@ -923,8 +923,8 @@ Parents marked "new parent" had no old number of their own.
 | UX.49 | Form fields as Shoelace components (sl-input, sl-select, sl-checkbox) across the site | none | open |
 | UX.50 | One short hint per map, the rest behind a Help entry | none | done, PR #640 |
 | UX.51 | Cards that repeat the page title | none | open |
-| UX.52 | Sector name repeated on every Contents row | none | open |
-| UX.53 | The same star shown three times on a system page | none | open |
+| UX.52 | Sector name repeated on every Contents row | none | done, PR #654 |
+| UX.53 | The same star shown three times on a system page | none | done, PR #654 |
 | UX.54 | Search shows empty result groups and echoes the query | none | open |
 | UX.55 | Home and Systems repeat other pages’ tables | none | open |
 | UX.56 | Admin hub repeats the gear menu | none | done, PR #632 |
@@ -938,14 +938,15 @@ Parents marked "new parent" had no old number of their own.
 | UX.64 | Action buttons are all solid primary, with no hierarchy | none | done, PR #620 |
 | UX.65 | Facts and links mixed in the Sector header chips | none | done, PR #635 |
 | UX.66 | “Cube edge” on arc-shaped sectors | none | done, PR #617 |
-| UX.67 | Wikitext and Markdown buttons | none | open |
-| UX.68 | System Admin menu lists every planet and moon | none | open |
-| UX.69 | Tables are cut off on phones with no cue | none | open |
-| UX.70 | The result page repeats the route and puts the map last | none | open |
-| UX.71 | NAV landing page | none | open |
+| UX.67 | Wikitext and Markdown buttons | none | done, PR #648 |
+| UX.68 | System Admin menu lists every planet and moon | none | done, PR #646 |
+| UX.69 | Tables are cut off on phones with no cue | none | done, PR #659 |
+| UX.70 | The result page repeats the route and puts the map last | none | done, PR #648 |
+| UX.71 | NAV landing page | none | done, PR #648 |
 | UX.72 | Gear menu mixes unrelated things; the admin hub is not the hub | none | done, PR #632 |
 | UX.73 | Sector wiki link form on the Admin hub | none | done, PR #632 |
 | UX.74 | Generate page shows an empty Current job card | none | done, PR #617 |
+| UX.75 | Admin menus on the sector and phenomenon pages sit in the page body, not the action bar | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
@@ -1142,7 +1143,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.102 | test_a_pass_removes_species_stored_without_a_civilization fails now and then in the full suite (bug) | none | done, PR #610 |
 | TEST.103 | test_controls_do_not_overlap fails on clean main: controls overlap on the sector page at 600 and 820 px (bug) | none | done, PR #625 |
 | TEST.104 | test_system_map_selection_drill_and_measure fails now and then under load (bug) | none | done, PR #634 |
-| TEST.105 | test_web_a11y.py fails on the Admin hub: its links have 2.49:1 contrast (bug) | none | open |
+| TEST.105 | test_web_a11y.py fails on the Admin hub: its links have 2.49:1 contrast (bug) | none | done, PR #648 |
+| TEST.106 | test_controls_do_not_overlap fails on the Sector Map at 390, 600 and 1280 px: its buttons overlap the Contents filters (bug) | none | done, PR #650 |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
