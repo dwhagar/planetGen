@@ -107,7 +107,9 @@ def test_system_map_selection_drill_and_measure(page, base_url, site_app):
             target = system["id"]
             break
     assert target, "no generated system has a planet with moons"
-    _open(page, f"{base_url}/system/{target}", "#sysmap-root")
+    # The map's own ready mark (its click handlers are on), not a fixed
+    # wait: under load the script can still be loading after a second (TEST.104).
+    _open(page, f"{base_url}/system/{target}", '#sysmap-root[data-ready="true"]')
     assert _active_scene(page) == "system"
 
     # A body shows its details.
