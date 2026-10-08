@@ -921,7 +921,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.47 | A bookmark manager: list, rename, sort, group and delete | none | open |
 | UX.48 | Charted regions as bookmarks that frame and outline the region | none | open |
 | UX.49 | Form fields as Shoelace components (sl-input, sl-select, sl-checkbox) across the site | none | open |
-| UX.50 | One short hint per map, the rest behind a Help entry | none | open |
+| UX.50 | One short hint per map, the rest behind a Help entry | none | done, PR #640 |
 | UX.51 | Cards that repeat the page title | none | open |
 | UX.52 | Sector name repeated on every Contents row | none | open |
 | UX.53 | The same star shown three times on a system page | none | open |
@@ -930,9 +930,9 @@ Parents marked "new parent" had no old number of their own.
 | UX.56 | Admin hub repeats the gear menu | none | done, PR #632 |
 | UX.57 | Two controls both called Reset | none | done, PR #637 |
 | UX.58 | Move Current into the Steps menu | none | done, PR #637 |
-| UX.59 | One breadcrumb trail on map pages | none | open |
+| UX.59 | One breadcrumb trail on map pages | none | done, PR #640 |
 | UX.60 | The Slabs rail has nothing in it at the top level | none | done, PR #637 |
-| UX.61 | System Map: Measure distance floats beside an empty gap | none | open |
+| UX.61 | System Map: Measure distance floats beside an empty gap | none | done, PR #640 |
 | UX.62 | Map pages jump 64 px left | none | done, PR #637 |
 | UX.63 | One action bar on every object page | none | done, PR #618 |
 | UX.64 | Action buttons are all solid primary, with no hierarchy | none | done, PR #620 |
