@@ -478,7 +478,7 @@ def test_galaxy_map_buttons(page, base_url):
     controls = page.locator("#galaxymap3d-controls")
     actions = controls.locator("[data-action]").evaluate_all("els => els.map(e => e.dataset.action)")
     canvas = "#galaxymap3d-canvas"
-    for action in ("back", "forward", "up"):
+    for action in ("back", "forward", "current", "up"):
         assert controls.locator(f'[data-action="{action}"]').is_disabled(), f"{action} at the galaxy"
     assert "wedges" not in actions, "no Wedges button (MAP.85)"
     page.click("#galaxymap3d-menu summary")
@@ -509,6 +509,28 @@ def test_galaxy_map_buttons(page, base_url):
     _wait_settled(page)
     assert _crumbs(page) == ["Galaxy"]
     assert not controls.locator('[data-action="forward"]').is_disabled()
+
+
+def test_galaxy_map_forward_to_current_jumps_to_the_newest_view(page, base_url):
+    """MAP.95: three levels in, back two, then one press of Current is
+    back at the deepest view; it is disabled once there."""
+    _open_galaxy(page, base_url)
+    controls = page.locator("#galaxymap3d-controls")
+    current = controls.locator('[data-action="current"]')
+    for _ in range(3):
+        _click_choice(page)
+    deepest = (_query(page), _crumbs(page))
+    assert current.is_disabled(), "already at the newest view"
+    for _ in range(2):
+        controls.locator('[data-action="back"]').click()
+        _wait_settled(page)
+    assert (_query(page), _crumbs(page)) != deepest
+    assert not current.is_disabled()
+    before = _state(page)
+    current.click()
+    _wait_settled(page, before)
+    assert (_query(page), _crumbs(page)) == deepest
+    assert current.is_disabled()
 
 
 # --- NAV.40: picking a course end from a bookmark ---------------------------------
