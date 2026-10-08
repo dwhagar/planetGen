@@ -1,5 +1,10 @@
 # Changelog
 
+## [7.312.665] - 2026-10-08
+
+### Changed
+- The Sector Map no longer tints the space around the sector: the amber and blue-grey block fills are gone and only the faint block outlines remain (MAP.61; Boss: sector space is not tinted).
+
 ## [7.311.665] - 2026-10-08
 
 ### Fixed
