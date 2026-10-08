@@ -433,37 +433,53 @@ def backfill_argv(form):
 
 
 PREVALENCE_LABELS = {
-    "habitable_world": "Habitable worlds",
-    "asteroid_belt": "Asteroid belts",
-    "comets": "Comets",
-    "large_star": "Large stars",
-    "moons": "Moons",
-    "max_planets": "Most planets a star can hold",
-    "intelligent_life": "Intelligent life",
-    "binary_system": "Binary systems",
-    "wide_binary": "Wide binaries",
-    "planets": "Any planets",
+    "habitable_world": "Habitable worlds (% of systems)",
+    "asteroid_belt": "Asteroid belts (% of systems)",
+    "comets": "Comets (% of systems)",
+    "large_star": "Large stars (% of systems)",
+    "moons": "Moons (% of planets with any)",
+    "max_planets": "Most planets a star can hold (% of stars)",
+    "intelligent_life": "Intelligent life (% of worlds that reach a technological age)",
+    "binary_system": "Binary systems (% of systems)",
+    "wide_binary": "Wide pairs (% of binaries)",
+    "planets": "Any planets (% of systems)",
 }
-"""dict: The Generate page's label for each prevalence feature (ADM.16)."""
+"""dict: The Generate page's label for each prevalence feature (ADM.16),
+naming what its share is of."""
 
-PREVALENCE_FIELDS = tuple((f"prevalence_{feature}", PREVALENCE_LABELS[feature]) for feature in prevalence.FEATURES)
-"""tuple: `(field name, label)` for each prevalence field, in
-`prevalence.FEATURES` order."""
+
+def _usual_percent(feature):
+    """`feature`'s usual share as the page shows it: a percentage, to
+    three significant figures."""
+    return f"{prevalence.USUAL_SHARES[feature] * 100:.3g}"
+
+
+PREVALENCE_FIELDS = tuple((f"prevalence_{feature}", PREVALENCE_LABELS[feature], _usual_percent(feature))
+                          for feature in prevalence.FEATURES)
+"""tuple: `(field name, label, usual share in percent)` for each
+prevalence field, in `prevalence.FEATURES` order. Each field starts at
+its feature's usual share (Boss, 2026-10-08: "the page needs to have
+meaningful information at all times")."""
 
 
 def prevalence_argv(form):
     """
-    `--prevalence FEATURE=PERCENT` for each nonzero prevalence field
-    (ADM.16, GEN.52); blank or 0 leaves the feature at its usual chance.
+    `--prevalence FEATURE=PERCENT` for each prevalence field changed from
+    its usual share (ADM.16, GEN.52): the field is the share wanted, and
+    the run gets the percentage that moves the usual share there
+    (`prevalence.percent_for_share`). Blank or the usual share leaves the
+    feature alone.
 
     Raises:
-        FormError: A value that isn't a number of at least -100.
+        FormError: A share that isn't a number from 0 to 100.
     """
     argv = []
-    for (name, label), feature in zip(PREVALENCE_FIELDS, prevalence.FEATURES):
-        value = _number(form, name, f"{label} prevalence (%)", float, minimum=prevalence.MIN_PERCENT)
-        if value:
-            argv += ["--prevalence", f"{feature}={value:g}"]
+    for (name, label, usual), feature in zip(PREVALENCE_FIELDS, prevalence.FEATURES):
+        share = _number(form, name, label, float, minimum=0, maximum=100)
+        if share is None or share == float(usual):
+            continue
+        percent = prevalence.percent_for_share(feature, share / 100.0)
+        argv += ["--prevalence", f"{feature}={percent:.6g}"]
     return argv
 
 
