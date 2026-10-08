@@ -171,6 +171,8 @@ export function createStageView(host) {
   // {option (index into display.options), sticky}
   let hover = null;
   let chartedOnly = false;
+  // What the blocks' fill shows (MAP.131): a key of galaxyblocks' COLOR_MODES.
+  let colorBy = "default";
   // Choosing a NAV end (setNeedGenerated): only a choice holding
   // something generated can be taken, since endpoints live in generated
   // sectors. "Charted only" itself never blocks picking (MAP.112).
@@ -376,8 +378,10 @@ export function createStageView(host) {
     const root = new THREE.Group();
     const groups = [];
     const eye = camera.position.toArray();
-    options.forEach(function (option, index) {
-      const cells = option.blocks.map(function (block) {
+    // Every choice's cells, ranked against each other (MAP.131) so one
+    // color means the same thing across the stage, and the legend can say it.
+    const cellsOf = options.map(function (option, index) {
+      return option.blocks.map(function (block) {
         const b = block.bounds;
         return {
           ring: block.ring, seg: block.wedge, slab: block.slab,
@@ -386,8 +390,13 @@ export function createStageView(host) {
           option: index,
         };
       });
+    });
+    const stageRanges = host.blockScene.rangesOf([].concat.apply([], cellsOf));
+    if (host.showLegend) host.showLegend(host.blockScene.legendOf(colorBy, stageRanges));
+    options.forEach(function (option, index) {
+      const cells = cellsOf[index];
       const dim = chartedOnly ? function (cell) { return !(cell.filled > 0); } : null;
-      const built = host.blockScene.buildCells(cells, eye, dim);
+      const built = host.blockScene.buildCells(cells, eye, dim, colorBy, stageRanges);
       const group = new THREE.Group();
       const meshes = [];
       // The whole galaxy shows no sector or block lines (MAP.85); while a
@@ -858,8 +867,21 @@ export function createStageView(host) {
     if (pickQuery) extra.push(pickQuery.slice(1));
     const hidden = sectorStage.hiddenKinds();
     if (hidden.length) extra.push("hide=" + hidden.join(","));
+    if (colorBy !== "default") extra.push("color=" + colorBy);
     if (!extra.length) return query;
     return (query ? query + "&" : "?") + extra.join("&");
+  }
+
+  // The color mode a URL's `color` names ("default" for none or an unknown one).
+  function colorFromLocation() {
+    const raw = new URLSearchParams(location.search).get("color");
+    return raw && host.colorModes && host.colorModes.indexOf(raw) >= 0 ? raw : "default";
+  }
+
+  // Takes the URL's color mode up (the map's select follows, host.colorChanged).
+  function setColorFromLocation() {
+    colorBy = colorFromLocation();
+    if (host.colorChanged) host.colorChanged(colorBy);
   }
 
   // The kinds a URL's `hide` names.
@@ -2619,6 +2641,7 @@ export function createStageView(host) {
     maxIndex = Math.max(mapIndex, state && state.maxIndex != null ? state.maxIndex : mapIndex);
     if (!pinned) history.replaceState({ galaxyStage: true, mapIndex: mapIndex, maxIndex: maxIndex }, "");
     sectorStage.setHiddenKinds(hiddenFromLocation());
+    setColorFromLocation();
     const asked = stageFromLocation(true);
     let r = resolve(asked.stage);
     let problem = asked.problem || r.problem;
@@ -2644,6 +2667,7 @@ export function createStageView(host) {
     // Forward goes.
     if (state) history.replaceState({ galaxyStage: true, mapIndex: mapIndex, maxIndex: maxIndex }, "");
     sectorStage.setHiddenKinds(hiddenFromLocation());
+    setColorFromLocation();
     const asked = stageFromLocation(false);
     if (asked.problem) {
       selectedSector = null;
@@ -2669,6 +2693,19 @@ export function createStageView(host) {
     if (display && !animation) rebuildDisplay();
   }
 
+  // MAP.131: what the blocks' fill shows; the choice rides in the URL in
+  // place (it is no step of its own).
+  function setColorBy(mode) {
+    if (mode === colorBy) return;
+    colorBy = mode;
+    const params = new URLSearchParams(location.search);
+    if (mode === "default") params.delete("color");
+    else params.set("color", mode);
+    const query = params.toString().replace(/%2C/gi, ",").replace(/%3A/gi, ":");
+    if (!pinned) history.replaceState(history.state, "", location.pathname + (query ? "?" + query : "") + location.hash);
+    if (display && !animation) rebuildDisplay();
+  }
+
   return {
     setActive: setActive,
     isActive: function () { return active; },
@@ -2687,6 +2724,8 @@ export function createStageView(host) {
     travel: travel,
     travelToCurrent: travelToCurrent,
     setChartedOnly: setChartedOnly,
+    setColorBy: setColorBy,
+    colorBy: function () { return colorBy; },
     setNeedGenerated: setNeedGenerated,
     stage: function () { return stage; },
     // The opened sector's entries (MAP.68): "Show on map" buttons select
