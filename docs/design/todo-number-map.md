@@ -936,7 +936,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.62 | Map pages jump 64 px left | none | open |
 | UX.63 | One action bar on every object page | none | done, PR #618 |
 | UX.64 | Action buttons are all solid primary, with no hierarchy | none | done, PR #620 |
-| UX.65 | Facts and links mixed in the Sector header chips | none | open |
+| UX.65 | Facts and links mixed in the Sector header chips | none | done, PR #635 |
 | UX.66 | “Cube edge” on arc-shaped sectors | none | done, PR #617 |
 | UX.67 | Wikitext and Markdown buttons | none | open |
 | UX.68 | System Admin menu lists every planet and moon | none | open |
