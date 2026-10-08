@@ -1,5 +1,10 @@
 # Changelog
 
+## [7.272.636] - 2026-10-08
+
+### Added
+- Choosing a NAV start or destination now works on the system and phenomenon pages too: the same "Choosing a destination" banner with Cancel and bookmarks, and one "Use as start/destination" button in place of the Navigate buttons (NAV.15).
+
 ## [7.271.636] - 2026-10-08
 
 ### Added
