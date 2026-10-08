@@ -1146,8 +1146,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.105 | test_web_a11y.py fails on the Admin hub: its links have 2.49:1 contrast (bug) | none | done, PR #648 |
 | TEST.106 | test_controls_do_not_overlap fails on the Sector Map at 390, 600 and 1280 px: its buttons overlap the Contents filters (bug) | none | done, PR #650 |
 | TEST.107 | test_controls_do_not_overlap fails on main for /galaxy at 390 px and /sector: buttons overlap each other (bug) | none | closed, not reproducible (passes on main) |
-| TEST.108 | test_a_planet_holds_one_whose_system_frame_is_its_offset_from_the_star fails about one run in four (bug) | none | open |
-| TEST.109 | test_sector_map_click_on_the_selected_nebula_clears_it fails on main since PR #605 (bug) | none | open |
+| TEST.108 | test_a_planet_holds_one_whose_system_frame_is_its_offset_from_the_star fails about one run in four (bug) | none | done, PR #690 |
+| TEST.109 | test_sector_map_click_on_the_selected_nebula_clears_it fails on main since PR #605 (bug) | none | done, PR #690 |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
