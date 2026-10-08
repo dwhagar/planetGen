@@ -362,19 +362,29 @@ def render_nav_map_panel(link_url, waypoints, has_route, frame_center=(0.0, 0.0,
     )
 
     route_hint = (
-        "solid line &asymp; optimal route via adjacent systems"
+        "the solid line is the optimal route via adjacent systems"
         if has_route
-        else "no route via adjacent systems was found -- only the direct line is shown"
+        else "no route via adjacent systems was found, so only the direct line is shown"
     )
 
     return f"""
 <section class="panel">
 <div class="panel-header">
   <h2>NAV Map</h2>
-  <span class="hint">Top-down (galactic X-Y plane, height not shown -- see the course's mark above) &middot; dashed line &asymp; direct course &middot; {route_hint}</span>
 </div>
 <div class="navmap-viewport">
 {svg}<div class="navmap-labels">{''.join(labels_html)}</div>
 </div>
+<div class="starmap-controls">
+  <button type="button" class="starmap-btn" data-dialog-open="navmap-help" title="How to read the map">Map help</button>
+</div>
+<sl-dialog id="navmap-help" class="map-help-dialog" label="NAV Map help">
+  <ul>
+    <li>Top-down view (the galactic X-Y plane; height is not shown, see the course's mark above).</li>
+    <li>The dashed line is the direct course; {route_hint}.</li>
+    <li>Click a point for its system.</li>
+  </ul>
+  <sl-button slot="footer" data-dialog-close>Close</sl-button>
+</sl-dialog>
 </section>
 """

@@ -364,8 +364,9 @@ def _crumbs(page):
     """Every step to here, galaxy first: the Steps menu's list, which
     holds them all however much of the breadcrumb line is folded into
     "…" (MAP.93, MAP.94)."""
-    return page.eval_on_selector_all("#galaxymap3d-steps [data-steps-panel] li",
-                                     "els => els.map(e => e.textContent.trim())")
+    steps = page.eval_on_selector_all("#galaxymap3d-steps [data-steps-panel] li",
+                                      "els => els.map(e => e.textContent.trim())")
+    return steps[1:] if steps[:1] == ["Home"] else steps  # UX.59: the trail starts at Home
 
 
 def _query(page):
@@ -1014,11 +1015,11 @@ def test_galaxy_breadcrumb_stays_on_one_line_folding_its_middle(page, map_site):
     folded = more.locator("li").all_inner_texts()
     line_items = page.locator("#galaxymap3d-crumbs > ol > li").all_inner_texts()
     kept = line_items[2:]
-    assert line_items[0] == "Galaxy" and folded, line_items
-    assert [line_items[0]] + folded + kept == full, (line_items, folded, full)
+    assert line_items[0] == "Home" and folded, line_items
+    assert [line_items[0]] + folded + kept == ["Home"] + full, (line_items, folded, full)
     more.locator("button").first.click()
     _settle(page)
-    assert _crumbs(page) == full[:2], "the first folded step goes there"
+    assert _crumbs(page) == full[:1], "the first folded step goes there"
     assert not page.evaluate(CRUMB_LINE)["more"] or page.evaluate(CRUMB_LINE)["overflow"] <= 1
     # Wider again: everything shown, no "…".
     page.set_viewport_size({"width": 1280, "height": 900})
@@ -1027,23 +1028,25 @@ def test_galaxy_breadcrumb_stays_on_one_line_folding_its_middle(page, map_site):
 
 
 def test_galaxy_phone_steps_button_between_back_and_forward(page, map_site):
-    """MAP.94: at phone width the breadcrumb line gives way to a round
-    Steps button between Back and Forward, listing every step with the
-    current one marked; Reset stays beside the arrows."""
+    """MAP.94, UX.59: at phone width the breadcrumb line shows only the
+    current level beside the star, and a labelled Steps button between Back
+    and Forward lists every step with the current one marked; Whole galaxy
+    stays beside the arrows."""
     page.set_viewport_size({"width": 390, "height": 844})
     full = _open_deep_galaxy(page, map_site)
     line = page.evaluate(CRUMB_LINE)
-    assert not line["visible"], "no breadcrumb line on a phone"
+    assert line["visible"] and line["count"] == 1 or page.locator(
+        "#galaxymap3d-crumbs > ol > li:visible").count() == 1, "only the current level on a phone"
+    assert page.locator("#galaxymap3d-crumbs > ol > li:visible").inner_text() == full[-1]
     order = page.locator("#galaxymap3d-controls > *").evaluate_all(
         "els => els.map(e => e.dataset.action || e.id || e.className)")
     assert order.index("back") + 1 == order.index("galaxymap3d-steps") == order.index("forward") - 1, order
     assert page.locator('#galaxymap3d-controls [data-action="reset"]').is_visible()
     steps = page.locator("#galaxymap3d-steps")
-    box = steps.locator("summary").bounding_box()
-    assert abs(box["width"] - box["height"]) < 2, "round"
+    assert steps.locator("summary").inner_text().strip().endswith("Steps"), "labelled"
     steps.locator("summary").click()
     items = steps.locator("li").all_inner_texts()
-    assert items == full, (items, full)
+    assert items == ["Home"] + full, (items, full)
     assert steps.locator("[aria-current]").inner_text() == full[-1]
     steps.locator("button", has_text="Galaxy").first.click()
     _settle(page)
@@ -1846,3 +1849,14 @@ def test_the_map_card_goes_wide_but_the_title_keeps_the_page_edge(page, map_site
     sector = page.evaluate("() => document.querySelector('h1').getBoundingClientRect().left")
     assert abs(galaxy - sector) < 1, (galaxy, sector)
     assert card > 1100, card
+
+
+def test_the_map_crumb_replaces_the_page_crumb_and_starts_at_home(page, map_site):
+    """UX.59: one trail on the Galaxy page: Home, Galaxy, the levels, the star."""
+    _open_galaxy(page, map_site)
+    assert not page.locator("nav.breadcrumbs").is_visible()
+    main = page.locator("main > #galaxymap3d-crumbs")
+    assert main.count() == 1 and main.is_visible()
+    first = page.locator("#galaxymap3d-crumbs > ol > li").first
+    assert first.inner_text() == "Home" and first.locator("a").get_attribute("href") == "/"
+    assert page.locator("#galaxymap3d-crumbs .galaxy-bookmark").is_visible()

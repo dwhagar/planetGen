@@ -789,3 +789,16 @@ def test_unknown_radius_and_mass_show_a_dash():
     html = sm.render_system_map_panel({"name": "Sol", "binary_configuration": None}, [_star(10)], [planet], [])
     attrs = _marker_attrs(html, "planet", 1)
     assert attrs["data-radius"] == attrs["data-mass"] == "–"
+
+
+def test_the_buttons_sit_under_the_map_with_map_help_and_no_caption_over_it():
+    """UX.61, UX.50: Measure distance is in a button row under the map, with Map help;
+    the long caption moved into the help dialog."""
+    html = sm.render_system_map_panel({"name": "Rows", "binary_configuration": None}, [_star(10)],
+                                      [_planet(1, 10, AU_KM, 0.0)], [])
+    header = html[html.index('<div class="panel-header">'):html.index('id="sysmap-root"')]
+    assert 'class="hint"' not in header
+    column = html[html.index('class="sysmap-map-col"'):html.index('class="starmap-side"')]
+    assert column.index('class="starmap-viewport') < column.index('id="sysmap-controls"')
+    assert 'id="sysmap-measure-btn"' in column and 'data-dialog-open="sysmap-help"' in column
+    assert 'id="sysmap-help"' in html and "Measure distance, then click two bodies" in html

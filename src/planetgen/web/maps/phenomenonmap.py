@@ -126,7 +126,7 @@ def render_phenomenon_map_panel(phenomenon_type, name, radius_ly):
             f'<circle cx="0" cy="0" r="{_POINT_OBJECT_RADIUS_AU:.4g}" '
             f'fill="{color}" stroke="#ffffff" stroke-width="{stroke_width:.4g}"/>'
         )
-        hint_extra = " -- shown as a fixed illustrative point; its own real size is negligible at this scale"
+        hint_extra = ": shown as a fixed illustrative point, since its own real size is negligible at this scale"
     else:
         default_view_au = max(_MIN_VIEW_SIZE_AU, radius_au * _DEFAULT_VIEW_MARGIN)
         stroke_width = default_view_au * 0.004
@@ -153,7 +153,6 @@ def render_phenomenon_map_panel(phenomenon_type, name, radius_ly):
 <section class="panel">
 <div class="panel-header">
   <h2>Diagram</h2>
-  <span class="hint">Drawn to real astronomical-unit (AU) scale{hint_extra}</span>
 </div>
 <div class="phenomenonmap-layout">
 <div class="phenomenonmap-viewport">
@@ -164,10 +163,18 @@ def render_phenomenon_map_panel(phenomenon_type, name, radius_ly):
 <div class="starmap-controls" id="phenomenonmap-controls">
   <button type="button" class="starmap-btn" data-action="zoom-out" aria-label="Zoom out">&minus;</button>
   <button type="button" class="starmap-btn" data-action="zoom-in" aria-label="Zoom in">+</button>
-  <button type="button" class="starmap-btn" data-action="reset">Reset view</button>
+  <button type="button" class="starmap-btn" data-action="reset">Re-center</button>
+  <button type="button" class="starmap-btn" data-dialog-open="phenomenonmap-help" title="How to read the diagram">Map help</button>
 </div>
-<p class="hint">Scroll/drag/+/- to zoom, from about 1 AU up to 1 ly across (wider for an object bigger than that).</p>
 </div>
 </div>
+<sl-dialog id="phenomenonmap-help" class="map-help-dialog" label="Diagram help">
+  <ul>
+    <li>Drawn to real astronomical-unit (AU) scale{hint_extra}.</li>
+    <li>Scroll, drag, or use the + and - buttons to zoom, from about 1 AU up to 1 ly across (wider for an
+    object bigger than that). Re-center goes back to the opening view.</li>
+  </ul>
+  <sl-button slot="footer" data-dialog-close>Close</sl-button>
+</sl-dialog>
 </section>
 """

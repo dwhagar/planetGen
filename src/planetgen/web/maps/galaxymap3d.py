@@ -406,7 +406,7 @@ ZOOM_BUTTONS = """  <button type="button" class="starmap-btn" data-action="zoom-
 HISTORY_BUTTONS = """  <button type="button" class="starmap-btn" data-action="back" data-icon="back" disabled>Back</button>
   <details class="galaxy-steps" id="galaxymap3d-steps">
     <summary class="starmap-btn galaxy-steps-button" data-icon="steps" aria-label="Steps to here"
-             title="Steps to here: go back to any of them"><span aria-hidden="true">&#9679;</span></summary>
+             title="Steps to here: go back to any of them"><span aria-hidden="true">&#9679;</span><span class="galaxy-steps-label">Steps</span></summary>
     <div class="galaxy-steps-panel" data-steps-panel></div>
   </details>
   <button type="button" class="starmap-btn" data-action="forward" data-icon="forward" disabled>Forward</button>

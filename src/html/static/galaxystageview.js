@@ -1718,8 +1718,18 @@ export function createStageView(host) {
   // measured again whenever the line's width changes. At phone width the
   // line gives way to the round Steps button between Back and Forward
   // (MAP.94, els.steps), a menu of every step.
+  // UX.59: on a page whose own crumb is just Home > Galaxy, the map's crumb
+  // takes its place and starts at Home, so there is one trail.
+  const homeStep = (function () {
+    const nav = els.pageCrumb;
+    const rows = nav && els.crumbs ? nav.querySelectorAll("ol > li") : [];
+    const link = rows.length === 2 ? rows[0].querySelector("a") : null;
+    return link ? { label: link.textContent.trim(), href: link.getAttribute("href") } : null;
+  })();
+
   function crumbSteps() {
     const items = S.crumbs(stage, getOutline(), edgePc);
+    if (homeStep) items.unshift({ label: homeStep.label, href: homeStep.href, last: false });
     if (selectedSector && !(resolved && resolved.sector)) {
       items.push({ label: "Sector " + S.blockLabel({ m: 1, ring: selectedSector.ring, wedge: selectedSector.slot, slab: selectedSector.layer }), last: true, sector: true });
       items[items.length - 2].last = false;
@@ -2307,6 +2317,10 @@ export function createStageView(host) {
     active = on;
     // The slab rail shows itself when a stage has buttons (renderStrip).
     [els.crumbs, els.address].forEach(function (el) { if (el) el.hidden = !on; });
+    if (homeStep) {
+      els.pageCrumb.hidden = on;
+      if (on) els.pageCrumb.parentNode.insertBefore(els.crumbs, els.pageCrumb);
+    }
     if (els.slabs && !on) els.slabs.hidden = true;
     if (!on) {
       clearMatches();

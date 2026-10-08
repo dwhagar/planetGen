@@ -228,8 +228,9 @@ def _crumbs(page):
     """Every step to here, galaxy first: the Steps menu's list, which
     holds them all however much of the breadcrumb line is folded into
     "…" (MAP.93, MAP.94)."""
-    return page.eval_on_selector_all("#galaxymap3d-steps [data-steps-panel] li",
-                                     "els => els.map(e => e.textContent.trim())")
+    steps = page.eval_on_selector_all("#galaxymap3d-steps [data-steps-panel] li",
+                                      "els => els.map(e => e.textContent.trim())")
+    return steps[1:] if steps[:1] == ["Home"] else steps  # UX.59: the trail starts at Home
 
 
 def _query(page):
