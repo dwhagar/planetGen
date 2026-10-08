@@ -1040,6 +1040,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   by far preference is system-to-system, only if a jump crosses unknown
   space should it start looking for other things." Done as he says; such
   stops are marked as their kind in the route.
+  GEN.100 now also scatters hypervelocity stars and supernova remnants;
+  the list of stops should include hypervelocity stars.
   Prerequisites: NAV.12, GEN.100.
   Design: [docs/design/course-routing.md](design/course-routing.md)
 
@@ -1924,6 +1926,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   during creation, just before the bright-star scatter, in the
   bright-star table with a type column; a sector fill keeps everything
   already placed in it and only adds.
+  Boss (2026-10-08 22:53Z to 23:00Z, relayed by a peer thread): widened
+  to every phenomenon except rogue planets, interstellar comets and
+  asteroid belts; leave off brown dwarfs; "Let's include hypervelocity
+  stars and nebulas and stellar remnants in the GEN.100 scatter".
+  Scattered galaxy-wide: black holes (all mass classes), neutron stars,
+  quasars, nebulae (planetary nebulae and molecular clouds included),
+  supernova remnants (Boss's 2026-09-30 ruling: "stellar remnants"
+  means supernova remnants only; black holes and neutron stars stay
+  separate) and hypervelocity stars. Hypervelocity stars are placed as
+  real stars with their speed (500 to 1000 km/s), starting at the
+  central black hole and moving outward, about 1e3 to 1e4 galaxy-wide;
+  today they are only a flag set on a normal system at fill time.
+  Not scattered: rogue planets, interstellar comets, asteroid fields and
+  brown dwarfs. Runaway stars (about 1.5% of stars) stay a flag set at
+  fill time, since scattering them would mean about 1.3 billion rows.
 
 - [ ] **GEN.101 Fill order: nearest sectors first along a pruned Hilbert octree curve**
   Boss (2026-10-07 11:47Z): "Change fill algorithm to fill sectors
