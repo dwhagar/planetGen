@@ -1,7 +1,7 @@
 {#- The sector page (web/sector_page.py). -#}
 {% extends "base.html" %}
 {% from "partials/admin_menu.html" import admin_menu, add_edit_actions with context %}
-{% from "partials/bookmark.html" import bookmark_button %}
+{% from "partials/action_bar.html" import action_bar %}
 {% from "partials/datatable.html" import datatable with context %}
 {% block head %}
 <script type="module" src="{{ static_url('galaxymap3d.js') }}"></script>
@@ -9,6 +9,7 @@
 <script type="module" src="{{ static_url('datatable.js') }}"></script>
 {% endblock %}
 {% block subhead %}
+<div class="page-subhead">
 <p class="badges">
   <span class="badge">Edge {{ edge_text }}</span>
   <span class="badge">{{ system_count }} system{{ "" if system_count == 1 else "s" }}</span>
@@ -21,14 +22,12 @@
   {%- if debris %}
   <span class="badge">{{ debris }}</span>
   {%- endif %}
-  {%- if galaxy_url %}
-  <span class="badge"><a href="{{ galaxy_url }}">Show on Galaxy Map</a></span>
-  {%- endif %}
   {%- if quadrant %}
   <span class="badge"><a href="{{ page_url('galaxy', quadrant=quadrant) }}">Quadrant {{ quadrant }}</a></span>
   {%- endif %}
 </p>
-<p class="page-actions">{{ bookmark_button(bookmark) }}</p>
+{{ action_bar(bookmark, none, none, galaxy_url) }}
+</div>
 {% endblock %}
 {% block content %}
 {%- if pick %}

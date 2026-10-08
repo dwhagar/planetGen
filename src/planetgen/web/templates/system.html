@@ -3,7 +3,7 @@
     planetgen/web/maps/systemmap.py (escaped there); everything else is escaped here. -#}
 {% extends "base.html" %}
 {% from "partials/admin_menu.html" import admin_menu, add_edit_actions with context %}
-{% from "partials/bookmark.html" import bookmark_button %}
+{% from "partials/action_bar.html" import action_bar %}
 {% from "partials/pick_banner.html" import pick_banner %}
 {% block head %}
 <script type="module" src="{{ static_url('systemmap.js') }}"></script>
@@ -18,27 +18,7 @@
     {%- if inside %}<span class="badge">Inside: <a href="{{ inside.url }}">{{ inside.name }}</a></span>{% endif -%}
     {%- if territory %}<span class="badge"><svg class="polity-swatch" viewBox="0 0 10 10" aria-hidden="true" focusable="false"><rect width="10" height="10" fill="{{ territory.color }}"/></svg> Territory of <a href="{{ territory.url }}">{{ territory.name }}</a></span>{% endif -%}
   </p>
-  <div class="page-actions nav-row">
-    {%- if pick %}
-    <a class="btn btn-small starmap-pick" href="{{ nav_links.pick }}">{{ nav_links.pickLabel }}</a>
-    {%- elif nav_links %}
-    {#- UX.27: one row. Where the three buttons don't fit, the two navigate
-        buttons fold into one Navigate menu, and on a phone Show on Galaxy Map
-        joins that menu (container queries in style.css pick the layout). #}
-    <a class="btn btn-small nav-wide" href="{{ nav_links.from }}">Navigate from here</a>
-    <a class="btn btn-small nav-wide" href="{{ nav_links.to }}">Navigate to here</a>
-    <sl-dropdown class="nav-menu" placement="bottom-start" distance="4">
-      <sl-button slot="trigger" size="small" caret>Navigate</sl-button>
-      <sl-menu aria-label="Navigate">
-        <sl-menu-item data-href="{{ nav_links.from }}">From here</sl-menu-item>
-        <sl-menu-item data-href="{{ nav_links.to }}">To here</sl-menu-item>
-        <sl-menu-item class="nav-menu-galaxy" data-href="{{ page_url('system_on_galaxy_map', system_id=system.id) }}">Show on Galaxy Map</sl-menu-item>
-      </sl-menu>
-    </sl-dropdown>
-    <a class="btn btn-small nav-galaxy" href="{{ page_url('system_on_galaxy_map', system_id=system.id) }}">Show on Galaxy Map</a>
-    {%- endif %}
-    {{ bookmark_button(bookmark) }}
-  </div>
+  {{ action_bar(bookmark, nav_links, pick, page_url('system_on_galaxy_map', system_id=system.id) if nav_links else none) }}
   {%- if location_html %}
   <p class="location inline-links">Location: {{ location_html }}</p>
   {%- endif %}

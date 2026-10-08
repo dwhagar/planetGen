@@ -971,7 +971,7 @@ CRUMB_LINE = """() => {
 def _open_deep_galaxy(page, map_site):
     """The Galaxy Map at the sector level of a fixture sector (many steps)."""
     _open_sector(page, map_site)
-    href = page.locator(".badges a", has_text="Show on Galaxy Map").get_attribute("href")
+    href = page.locator(".page-actions a", has_text="Show on Galaxy Map").get_attribute("href")
     _open_galaxy(page, map_site, href[len("/galaxy"):])
     return _crumbs(page)
 

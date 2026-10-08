@@ -717,6 +717,11 @@ def test_system_page_shows_it_on_the_galaxy_map(client, fake):
     assert "Show on Galaxy Map" not in client.get("/system/5").get_data(as_text=True)
 
 
+def test_phenomenon_page_shows_it_on_the_galaxy_map(client, fake):
+    html = client.get("/phenomenon/nebula/4").get_data(as_text=True)
+    assert "Show on Galaxy Map</a>" in html
+
+
 # --- Bookmarks (MAP.23) ------------------------------------------------------------------
 
 def _bookmark_button(html):
