@@ -112,7 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 is done (PR #476); GEN.117, and GEN.116 is closed (Boss 2026-10-08 17:46Z). | TEST.104, SEC.30, TEST.83, UX.39, OPS.20, DB.11, DB.13, ADM.21, GEN.66, GEN.74, GEN.70, GEN.71, GEN.72, GEN.73, GEN.67, NAV.7, MAP.67, NAV.32, UX.37, UX.50, UX.51, UX.52, UX.53, UX.54, UX.55, UX.57, UX.58, UX.59, UX.60, UX.61, UX.62, UX.67, UX.68, UX.69, UX.70, UX.71, UX.21 |
+| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 is done (PR #476); GEN.117, and GEN.116 is closed (Boss 2026-10-08 17:46Z). | TEST.104, SEC.30, TEST.83, UX.39, OPS.20, DB.11, DB.13, ADM.21, GEN.66, GEN.74, GEN.70, GEN.71, GEN.72, GEN.73, GEN.67, NAV.7, MAP.67, NAV.32, UX.37, UX.50, UX.51, UX.52, UX.53, UX.54, UX.55, UX.59, UX.61, UX.67, UX.68, UX.69, UX.70, UX.71, UX.21 |
 | 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, NAV.16, NAV.3, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.41, GEN.98, GEN.100, GEN.99, GEN.101, GEN.102, GEN.103, GEN.84, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, GEN.94, GEN.104, GEN.106, GEN.107, GEN.108, NAV.10, NAV.12, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, NAV.43, NAV.44, MAP.119, MAP.122, MAP.123, MAP.124, MAP.89, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, OPS.8, OPS.13, OPS.14, ADM.18, GEN.59, UX.49, NAV.50 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.58, MAP.75, MAP.59, NAV.20, NAV.21, NAV.17, NAV.18, NAV.4, NAV.24, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, API.16, MAP.69, MAP.70, ADM.17, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.131, MAP.132, API.18, VIEW.5 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, repair that reads the newest settings JSON, and the anomalies chosen in phase 2. | MAP.71, MAP.72, MAP.73, MAP.74, MAP.62, MAP.126, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, DB.10, ADM.20, GEN.114, MAP.125, API.19 |
@@ -349,6 +349,9 @@ with `clamp()`.
   removed controls. Approved default: Help entry in the Menu on every
   map, same wording and dialog on all of them. Related: MAP.61,
   MAP.131, UX.21. Not a bug.
+  Progress (2026-10-08): the Map help dialog is done on the Galaxy and
+  Sector maps (PR #637); the System Map, the NAV map and the nebula and
+  remnant diagrams are still to do.
   Audit: https://claude.ai/artifact/4URTUHSvfLKMzZobyGdiHF (finding R1).
 
 - [ ] **UX.51 Cards that repeat the page title**
@@ -432,32 +435,6 @@ with `clamp()`.
   Prerequisites: none.
   Audit: https://claude.ai/artifact/4URTUHSvfLKMzZobyGdiHF (finding R6).
 
-- [ ] **UX.57 Two controls both called Reset**
-  UX audit finding M1 (UX.37; Boss approved the audit 2026-10-08
-  17:43Z: "All UX work on this is Phase 0"). Rename; audit priority 1;
-  pages: Galaxy Map. Seen: The toolbar’s Reset goes back to the whole
-  galaxy (Home). The Menu’s Reset view puts the camera back to the
-  current step’s own view. The grey hint says “Reset view brings it
-  back” and the paragraph says “Reset (or Home) starts over from the
-  whole galaxy”, so the text contradicts itself. Done: Rename the
-  toolbar button Whole galaxy (or a Home icon with that label) and the
-  Menu item Re-center. Fix the text with UX.50. Approved default:
-  Whole galaxy / Re-center. Related: MAP.61, UX.42. Not a bug.
-  Audit: https://claude.ai/artifact/4URTUHSvfLKMzZobyGdiHF (finding M1).
-
-- [ ] **UX.58 Move Current into the Steps menu**
-  UX audit finding M2 (UX.37; Boss approved the audit 2026-10-08
-  17:43Z: "All UX work on this is Phase 0"). Move; audit priority 3;
-  pages: Galaxy Map. Seen: The toolbar holds seven buttons: Back,
-  Forward, Current, Up, Reset, Bookmarks, Menu (an eighth, the ● steps
-  button, appears under 600 px). Current (“jump to the newest view in
-  this history”) is the least used and its name does not say what it
-  does. Done: Put Jump to newest in the ● Steps menu, show that menu
-  at every width, and leave Back, Forward, Up, Whole galaxy,
-  Bookmarks, Menu. Approved default: Current moves into the Steps
-  menu. Related: MAP.94, MAP.95. Not a bug.
-  Audit: https://claude.ai/artifact/4URTUHSvfLKMzZobyGdiHF (finding M2).
-
 - [ ] **UX.59 One breadcrumb trail on map pages**
   UX audit finding M3 (UX.37; Boss approved the audit 2026-10-08
   17:43Z: "All UX work on this is Phase 0"). Merge; audit priority 1;
@@ -474,18 +451,6 @@ with `clamp()`.
   a bug.
   Audit: https://claude.ai/artifact/4URTUHSvfLKMzZobyGdiHF (finding M3).
 
-- [ ] **UX.60 The Slabs rail has nothing in it at the top level**
-  UX audit finding M4 (UX.37; Boss approved the audit 2026-10-08
-  17:43Z: "All UX work on this is Phase 0"). Show only when relevant;
-  audit priority 3; pages: Galaxy Map. Seen: At the whole-galaxy level
-  the right-hand rail holds the heading “Slabs” and the sentence
-  “Showing slabs -4 to 4.” and nothing else, and takes about 15% of
-  the map’s width. (On phones it falls below the map as a heading and
-  a sentence.) Done: Hide the rail until a stage has slab buttons. At
-  the top level the sentence is not needed. Approved default: Hide
-  until used. Related: MAP.58, MAP.59. Not a bug.
-  Audit: https://claude.ai/artifact/4URTUHSvfLKMzZobyGdiHF (finding M4).
-
 - [ ] **UX.61 System Map: Measure distance floats beside an empty gap**
   UX audit finding M5 (UX.37; Boss approved the audit 2026-10-08
   17:43Z: "All UX work on this is Phase 0"). Move; audit priority 2;
@@ -500,19 +465,6 @@ with `clamp()`.
   default: Under the map, like the other maps. Related: MAP.65,
   MAP.61. Not a bug.
   Audit: https://claude.ai/artifact/4URTUHSvfLKMzZobyGdiHF (finding M5).
-
-- [ ] **UX.62 Map pages jump 64 px left**
-  UX audit finding M6 (UX.37; Boss approved the audit 2026-10-08
-  17:43Z: "All UX work on this is Phase 0"). Align; audit priority 3;
-  pages: Galaxy Map. Seen: The Galaxy page is full width: the title
-  and crumb sit 24 px from the edge, but on every other page they sit
-  88 px in. Switching between Galaxy and Sectors moves the page title
-  sideways. Done: Keep the title and crumb on the same left edge as
-  the other pages and let only the map card go wide. Approved default:
-  Align title and crumb; the map card stays wide. Related: UX.43. Not
-  a bug.
-  Prerequisites: none.
-  Audit: https://claude.ai/artifact/4URTUHSvfLKMzZobyGdiHF (finding M6).
 
 - [ ] **UX.67 Wikitext and Markdown buttons**
   UX audit finding P5 (UX.37; Boss approved the audit 2026-10-08
