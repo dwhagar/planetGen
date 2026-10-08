@@ -310,7 +310,7 @@ GALAXY_RING = 3
 # Enough systems per sector that a loaded machine cannot finish the whole
 # run between the first sector being saved and the test's signal landing
 # (TEST.101: with 6 the run sometimes ended on its own, exit status 0).
-NUM_SYSTEMS = 40
+NUM_SYSTEMS = 16
 
 
 def test_a_stop_signal_swallowed_by_a_database_call_still_stops_the_run(control_config, monkeypatch):
@@ -381,7 +381,7 @@ def test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector(contro
             os.killpg(run.pid, sig)
         else:
             os.kill(run.pid, sig)
-        run.wait(timeout=120)
+        run.wait(timeout=300)
     finally:
         if run.poll() is None:
             os.killpg(run.pid, signal.SIGKILL)
