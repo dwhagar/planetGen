@@ -1,2 +1,0 @@
-### Added
-- The system page has a 3D view beside the Diagram: stars with a glow, lit planets, moons and comets on 3D orbit lines, belts as particle rings, a free camera (turn, pan, zoom, fly keys, fly to and follow a body), true and compressed scale, and a time control. The address keeps the view and the selected body (`?view=3d&object=planet:12`), a list of bodies stands in for the canvas, and without WebGL the Diagram stays (MAP.71 to MAP.74, MAP.67's system and body forms).
