@@ -117,7 +117,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| NAV.45 | "What's within N pc" from the Galaxy Map and Sector Map | NAV.44, NAV.15 | Boss 04:39Z. Map action opening NAV.44; drawn sphere optional. |
+| NAV.45 | "What's within N pc" from the Galaxy Map and Sector Map | NAV.44 | Boss 04:39Z. Map action opening NAV.44; drawn sphere optional. |
 
 ### Bookmarks
 
