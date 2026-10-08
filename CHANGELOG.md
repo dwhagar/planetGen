@@ -1,5 +1,10 @@
 # Changelog
 
+## [7.315.665] - 2026-10-08
+
+### Fixed
+- The System Map marks itself ready (`data-ready`) once its click handlers are on, and its browser test waits for that instead of a fixed time, so it no longer fails now and then under load (TEST.104).
+
 ## [7.314.665] - 2026-10-08
 
 ### Changed
