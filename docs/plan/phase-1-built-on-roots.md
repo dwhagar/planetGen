@@ -26,14 +26,13 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | NAV.8 | Pages and anchors for stars, planets, moons and belts |  | System page anchors (system.html). |
 | NAV.9 | Search and locate return references for every kind |  | queryDb search and galaxy_locate. |
-| NAV.16 | NAV endpoints can be any object |  | Moved from phase 2: NAV.3 closes in phase 1 now. navigation.py legs, nav_page.py endpoints. |
-| NAV.50 | Pick any object down to a moon as a NAV endpoint | NAV.16 | Split from NAV.15: body endpoints need NAV.16. |
+| NAV.50 | Pick any object down to a moon as a NAV endpoint |  | Split from NAV.15: body endpoints needed NAV.16 (done). |
 
 ### Picker
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| NAV.3 | One shared picker for the Galaxy, Sector and System displays | NAV.16, NAV.50 | Moved from phase 3: its parts are in phases 0 and 1. Parent; closes with its subitems. |
+| NAV.3 | One shared picker for the Galaxy, Sector and System displays | NAV.50 | Moved from phase 3: its parts are in phases 0 and 1. Parent; closes with its subitems. |
 
 ### Database consistency check
 

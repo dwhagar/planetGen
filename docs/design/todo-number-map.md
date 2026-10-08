@@ -734,7 +734,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.13 | A picker module: select, step out, step in, step sideways | none | done, PR #564 |
 | NAV.14 | One breadcrumb for every level | none | done, PR #571 |
 | NAV.15 | Pick mode everywhere | none | done, PR #566 |
-| NAV.16 | NAV endpoints can be any object | none | open |
+| NAV.16 | NAV endpoints can be any object | none | done, PR #697 |
 | NAV.17 | A saved course record with both forms | none | open |
 | NAV.18 | Save, list, open, rename and delete, per browser | none | open |
 | NAV.19 | Saved courses in the account (after USR.7) | none | open |
