@@ -33,6 +33,15 @@ addresses that keep guessing admin passwords.
   (`ratelimit.storage_uri` `memory://`), which is only right with one
   process. For more processes, set `storage_uri` to a shared store such
   as Redis first ([`api.md`](../api.md#rate-limiting)).
+- **Threads, because of the live job log.** The admin Generate page streams
+  a running job's output over Server-Sent Events (`/admin/generate/jobs/<id>/stream`,
+  ADM.22). Each open stream holds one of the five threads, so the app
+  server must be threaded (the settings above are; a single-threaded
+  worker would be held by one viewer). A response ends after about 40
+  seconds, under mod_wsgi's `request-timeout=60`, and the browser
+  reconnects by itself, resuming where it stopped. A proxy in front must
+  not buffer the stream (the response sends `X-Accel-Buffering: no` for
+  nginx).
 - **The same entry point.** Every app server loads `src/html/wsgi.py`
   and its `application` object. gunicorn: `--pythonpath
   <checkout>/src/html wsgi:application`. waitress: `wsgi:application`

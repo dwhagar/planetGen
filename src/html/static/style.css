@@ -3557,3 +3557,20 @@ body.app {
     justify-content: flex-end;
   }
 }
+
+/* The job output terminal (ADM.22, static/joblog.js): Xterm.js in a box as
+   tall as the plain log's. The terminal fits itself to the box. */
+.job-terminal {
+  height: 24rem;
+  padding: 0.4rem 0.5rem;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.job-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1rem;
+}
