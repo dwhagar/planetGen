@@ -1173,3 +1173,14 @@ def test_sector_pick_mode_has_a_bookmarks_menu_that_keeps_the_pick(client, fake)
                       'data-keep-value="system:1001"', 'data-nav-url="/nav"', f'data-bookmark-db="{DB}"'):
         assert attribute in menu.group(0)
     assert "pick-bookmarks" not in client.get("/sector/5").get_data(as_text=True)
+
+
+def test_sector_header_chips_are_facts_only(client, fake):
+    """UX.65: the chips hold only counts; the quadrant is a plain link in the
+    header, and the comet estimate is a Details line under the map."""
+    fake.sectors[5]["interstellar_debris_count"] = 1.5e14
+    html = client.get("/sector/5").get_data(as_text=True)
+    chips = re.search(r'<p class="badges">(.*?)</p>', html, re.S).group(1)
+    assert "<a " not in chips and "interstellar" not in chips and "Quadrant" not in chips
+    assert re.search(r'<p class="location">In <a href="/galaxy\?quadrant=[^"]+">Quadrant \w+</a>', html)
+    assert re.search(r'<p class="hint sector-details"><strong>Details:</strong> About', html)
