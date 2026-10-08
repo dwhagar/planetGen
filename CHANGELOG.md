@@ -1,5 +1,11 @@
 # Changelog
 
+## [7.271.636] - 2026-10-08
+
+### Added
+
+- Planned NAV.50 (pick a planet, moon or belt as a NAV endpoint), split from NAV.15 because the NAV page only takes system and phenomenon endpoints until NAV.16.
+
 ## [7.270.636] - 2026-10-08
 
 ### Added
