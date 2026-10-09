@@ -433,43 +433,6 @@ with `clamp()`.
   Prerequisites: none.
   Design: [docs/design/map-ui-and-frontend-libraries.md](design/map-ui-and-frontend-libraries.md)
 
-- [ ] **UX.83 Generation steps that run long show no progress bar of their own: linking new sectors to their neighbours, the phenomenon scatter and others (bug)**
-  Boss (2026-10-09 23:13Z): "linking new sectors to their neighbors
-  should have a progress bar of it's own, as should the phenomena
-  scatter, all generation items should have progress bars, if a sub-step
-  is probably going to take longer than 15 seconds give it a progress
-  bar as well." Today the neighbour linking and the phenomenon scatter
-  run with no bar of their own, so a run looks stuck. Done: every
-  generation step has a progress bar (in the terminal and on the
-  Generate and Queue pages), including the neighbour linking of new
-  sectors and the phenomenon scatter, and any sub-step expected to take
-  more than 15 seconds gets its own bar under the main one. A bar is a
-  count of units done against units expected, with the estimate PERF.33
-  describes once that lands (until then the plain count). Handed to
-  Bugfixes lane 1.
-  Survey (2026-10-09): read of the code on main (not run): steps that
-  already draw a bar are the sector batches, the bright-star backfill,
-  "Neighbours" (one bar over batches of sectors in
-  `store.link_sector_neighbors`), "Sector paths" (`settle_after_run`),
-  "Topping up backfilled sectors", the plan's layer tracker, the
-  phenomenon scatter (one bar over layers, `scatter_phenomena`), and the
-  two-bar `StageProgress` of `planetgen.cli.reset` and
-  `planetgen.cli.orbits`. Lacking a bar of their own, to check and fix:
-  (1) inside each neighbour batch, the three passes of
-  `link_sector_neighbors` (containment, nearest systems, merge into the
-  neighbours), which are one silent step per batch and can run long on a
-  big batch; (2) the phenomenon scatter: `clear_phenomenon_scatter`, one
-  whole layer (a single queue task with no bar inside it) and the
-  closing `special_rows`, insert and stamp; (3) the Generate page job
-  view, which shows only what the progress file carries, so every step
-  above must write to it; (4) not yet checked: the name registry passes,
-  the containment and nearest passes of `refresh_containment` and
-  `refresh_nearest_systems` when run outside a galaxy run, the
-  end-of-update map warm-up (`warm_map`) and the migration (DB.15). Each
-  step found without one is a sub-bullet of this bug; the 15 second rule
-  applies to any pass the measured rate (PERF.32) says will pass it.
-  Prerequisites: none. Related: PERF.33, PERF.34, DB.15, UX.3.
-
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -3368,6 +3331,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   them from the parent's sum); the web shows a range or "estimating",
   never `-:--:--`; one pure function serves the terminal bar, the Queue
   page, the banner and DB.15.
+  Left over (2026-10-09): left over from UX.83 (PR #895, Bugfixes lane
+  1): the phenomenon scatter, the neighbour-linking steps and the
+  population pass now draw their own bars; a bar inside one sector's
+  save (the slowest sub-step in a dense sector) still needs a
+  worker-to-parent progress channel.
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
   Replace the one-`sector_stats`-row-per-visited-cell ledger of

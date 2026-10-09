@@ -216,7 +216,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| UX.83 | Generation steps that run long show no progress bar of their own: linking new sectors to their neighbours, the phenomenon scatter and others (bug) |  | Boss 2026-10-09 23:13Z; Bugfixes lane 1. |
 
 ### Foundations for the issue features
 
