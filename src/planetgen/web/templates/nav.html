@@ -182,11 +182,28 @@
   <h2 id="route-heading">Optimal Route</h2>
   <p>{{ stops|length }} stop{{ "" if stops|length == 1 else "s" }}, {{ route_distance_text }} total. Longest hop {{ longest_hop_text }}.
   {%- if unknown_jumps %} {{ unknown_jumps }} jump{{ "" if unknown_jumps == 1 else "s" }} cross{{ "es" if unknown_jumps == 1 else "" }} unknown space (sectors not yet generated).{% endif %}</p>
-  <ol class="nav-route">
-    {%- for stop in stops %}
-    <li><a href="{{ stop.url }}">{{ stop.name }}</a></li>
+  {%- macro route_list(items, label) %}
+  <ol class="nav-route" role="list" aria-label="{{ label }}">
+    {%- for stop in items %}
+    <li{% if stop.gap_before %} class="nav-gap"{% endif %}>
+      {%- if stop.gap_before %}<span class="nav-skip" aria-hidden="true">&hellip;</span>{% endif %}
+      <a href="{{ stop.url }}">{{ stop.name }}</a>
+      {%- if stop.hop_text and not loop.last and not loop.nextitem.gap_before %}
+      <span class="nav-hop{% if stop.hop_unknown %} nav-hop-unknown{% endif %}"><span aria-hidden="true">&rarr;</span><span class="sr-only"> then </span> {{ stop.hop_text }}{% if stop.hop_unknown %} <span class="nav-unknown">unknown space</span>{% endif %}</span>
+      {%- endif %}
+    </li>
     {%- endfor %}
   </ol>
+  {%- endmacro %}
+  {%- if short_stops %}
+  {{ route_list(short_stops, "Main stops of the route") }}
+  <details class="nav-all-stops">
+    <summary>All {{ stops|length }} stops</summary>
+    {{ route_list(stops, "All stops of the route") }}
+  </details>
+  {%- else %}
+  {{ route_list(stops, "Route stops") }}
+  {%- endif %}
 </section>
 {%- endif %}
 <section class="panel" aria-labelledby="times-heading" data-travel-times>

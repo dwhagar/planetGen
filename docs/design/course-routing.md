@@ -115,6 +115,14 @@ over 2 sector edges" flag.
   shortcut (the check reads the cells a line crosses with one query per ring
   and layer).
 
+- **Built (UX.35).** The route is an ordered list (`role="list"`) laid out left to right with
+  flex wrapping, each stop a link followed by the hop to the next (distance, and "unknown space"
+  in italics for a hop through ungenerated sectors); a stop and its hop stay on one line and the
+  list wraps as the panel narrows, with no device check. A route of more than nine stops shows a
+  short list instead (the first stop, the last three, both ends of the longest hop and of every
+  unknown-space hop, with an ellipsis where stops are left out) and keeps the whole route in an
+  "All N stops" `<details>`. Checked at 320 px and 900 px.
+
 ## 3. Routing that scales (NAV.10, built)
 
 - **Corridor search.** `query.nav_between` at galaxy scope no longer loads

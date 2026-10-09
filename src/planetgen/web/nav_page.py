@@ -306,7 +306,40 @@ def _route_stops(route, names):
         else:
             url = page_url("system", system_id=node)
         stops.append({"name": names.get(node, str(node)), "url": url})
+    for stop, hop in zip(stops, route.get("hops", [])):
+        # UX.35: the hop to the next stop, shown between the two.
+        stop["hop_text"] = format_distance_ly(hop["distance_ly"])
+        stop["hop_unknown"] = bool(hop.get("unknown_space"))
     return stops
+
+
+ROUTE_COLLAPSE_AT = 9
+"""int: A route with more stops than this shows a short list and keeps the whole one in a `<details>` (UX.35)."""
+
+
+def _route_short_list(stops, route):
+    """
+    UX.35: the stops of a long route worth showing at once -- the first, the
+    last three, both ends of the longest hop and of every hop through
+    unknown space -- each with `gap_before` set when stops were left out
+    ahead of it. A route of `ROUTE_COLLAPSE_AT` stops or fewer gives `None`
+    (the whole list is shown).
+    """
+    if len(stops) <= ROUTE_COLLAPSE_AT:
+        return None
+    keep = {0, *range(len(stops) - 3, len(stops))}
+    hops = route.get("hops", [])
+    for index, hop in enumerate(hops):
+        if hop.get("unknown_space"):
+            keep.update((index, index + 1))
+    if hops:
+        longest = max(range(len(hops)), key=lambda index: hops[index]["distance_ly"])
+        keep.update((longest, longest + 1))
+    short, previous = [], -1
+    for index in sorted(keep):
+        short.append({**stops[index], "gap_before": index != previous + 1})
+        previous = index
+    return short
 
 
 def _waypoints(origin, destination, result, names):
@@ -538,6 +571,7 @@ def nav():
             result["scope"], "Cross-sector (galaxy)"),
         legs=_leg_rows(result["legs"], origin, destination, names), in_system=in_system, note=result["note"],
         route=route, stops=_route_stops(route, names) if route and route["path"] else [],
+        short_stops=_route_short_list(_route_stops(route, names), route) if route and route["path"] else None,
         longest_hop_text=format_distance_ly(route["longest_hop_ly"]) if route and "longest_hop_ly" in route else None,
         unknown_jumps=sum(1 for hop in route.get("hops", []) if hop.get("unknown_space")) if route else 0,
         map_html=trusted_html(map_html),

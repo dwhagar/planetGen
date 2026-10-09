@@ -1558,12 +1558,46 @@ a:focus-visible .navmap-point circle {
   font-weight: 500;
 }
 
+/* UX.35: the route runs left to right and wraps onto more lines as the
+   panel narrows (plain flex wrapping, no device check); a stop and the hop
+   after it stay together. */
 .nav-route {
-  padding-left: 1.5rem;
+  list-style: none;
+  margin: 0.5rem 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.5rem;
 }
 
 .nav-route li {
-  margin: 0.2rem 0;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.35rem;
+  max-width: 100%;
+}
+
+.nav-route li a {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nav-hop {
+  color: var(--text-muted);
+  font-size: 0.9em;
+}
+
+.nav-hop-unknown {
+  font-style: italic;
+}
+
+.nav-skip {
+  margin-right: 0.25rem;
+}
+
+.nav-all-stops {
+  margin-top: 0.5rem;
 }
 
 .search-actions {
