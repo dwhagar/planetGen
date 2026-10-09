@@ -3163,6 +3163,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   `reserve_system_names` as 30 of a dense core sector's 84 s (see
   PERF.31); that cost is system names, not the word-salad object names
   this item covers.
+  Scope (2026-10-09): the system-name reservation cost is its own item,
+  PERF.49; this item stays on the lazy word-salad names of phenomena
+  named by object ID.
   Prerequisites: none.
   Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
 
@@ -3230,6 +3233,44 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   /mnt/project-files/research/handoff/generation-performance.md; from
   Boss's requests of 19:08Z and 19:21Z, generation being his slowest
   point): 13.8 down to 10.1 microseconds a row. Low priority.
+  Prerequisites: none.
+  Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
+
+- [ ] **PERF.49 Batch system-name reservation: remove the quadratic scan and the long-held registry locks (30 s of an 84 s dense sector)**
+  Bugfixes lane 1 (2026-10-09, PR #846 work) timed one dense core sector
+  at 84 s: 43 s in `store.insert_sector`, of which 30 s is
+  `reserve_system_names` (the system name-uniqueness reservation in
+  `db/store.py`), and 15 s generation. Naming-cost analysis of
+  2026-10-02 (artifact Naming Cost in Generation; release 7.144.463)
+  found three costs; checked against main on 2026-10-09: (1) the
+  quadratic scan is still there: for every distinct base name the loop
+  `uses = [i for i in todo if key_of[i] in row_keys]` walks every name
+  in the sector, so a core sector with thousands of systems costs n
+  squared steps (the keys are now computed once per pass, which fixed
+  the TEST.85 crash and the repeated normalising, not the scan); group
+  the candidate indexes by key once and look them up. (2) the registry
+  row locks are still held until the sector's whole save commits (the
+  `INSERT ... ON DUPLICATE KEY UPDATE` runs inside the caller's
+  transaction), which made parallel workers wait about 1.3 s per dense
+  sector at 2 workers; claim the names in their own short transaction
+  ahead of the sector's main save, keeping the sorted claim order that
+  avoids deadlocks. (3) the offensive-word filter in
+  `names/wordsalad.py` `is_name_valid` scans the whole word list per
+  name (about 32 microseconds a call, two calls per accepted name, 3 to
+  5% of a dense sector); one combined pattern makes it close to free.
+  Requirement: a seeded run must produce identical names, registry rows
+  and final tables before and after (check with a golden-seed run before
+  touching anything). Scope against PERF.43 (Foundations lane 2):
+  PERF.43 makes the word-salad names of phenomena named by object ID
+  lazy and does not touch the registry; this item covers star system
+  names and any phenomenon still reserving through the registry
+  (`reserve_system_names`, `_take_name`, `confirm_system_names`) and the
+  shared offensive-word filter. Since GEN.64, placed phenomena such as
+  rogue planets are named by object ID and no longer reach the registry,
+  so the 2026-10-02 figure of 88% of names being rogue planets no longer
+  holds; re-measure on a dense core sector first. Decision from the
+  coordinator (Boss's project chat, 2026-10-09 20:17Z): file as its own
+  item, Phase 1, Foundations lane 1, after PERF.45.
   Prerequisites: none.
   Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
 
