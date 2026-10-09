@@ -33,11 +33,11 @@ merged or wrapped.
 """
 
 import math
-import random
 
 from planetgen import tuning
 from planetgen.physics import constants
 from planetgen.physics.planets import calculate_orbital_period_years
+from planetgen.util import draw
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from planetgen.util.random import log_uniform
 from planetgen.generation.star import Star
@@ -159,9 +159,9 @@ class WideBinaryPair:
         # align with anything -- same full-sphere convention already used
         # for the close/P-type pair's own mutual orbit
         # (doubleStar.BinaryStarProxy.__init__).
-        self.inclination_deg = random.uniform(0, 180)
-        self.ascending_node_deg = random.uniform(0, 360)
-        self.phase_deg = random.uniform(0, 360)
+        self.inclination_deg = draw.uniform(0, 180)
+        self.ascending_node_deg = draw.uniform(0, 360)
+        self.phase_deg = draw.uniform(0, 360)
         self.position_x_au, self.position_y_au, self.position_z_au = orbital_position_au(
             self.separation_au, self.inclination_deg, self.ascending_node_deg, self.phase_deg
         )
@@ -338,4 +338,4 @@ def sample_wide_binary_eccentricity():
     Returns:
         float: An eccentricity, in [0, `WIDE_BINARY_ECCENTRICITY_MAX`).
     """
-    return tuning.WIDE_BINARY_ECCENTRICITY_MAX * math.sqrt(random.random())
+    return tuning.WIDE_BINARY_ECCENTRICITY_MAX * math.sqrt(draw.random())

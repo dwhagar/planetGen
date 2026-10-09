@@ -23,10 +23,10 @@ section.
 """
 
 import math
-import random
 
 from planetgen.physics import constants
 from planetgen import tuning
+from planetgen.util import draw
 
 
 YERKES_CLASS_NAMES = {
@@ -43,7 +43,7 @@ def main_sequence_lifetime_gy(mass_sol):
     return tuning.SOLAR_MS_LIFESPAN_GY * mass_sol ** tuning.MS_LIFESPAN_MASS_EXPONENT
 
 
-def sample_imf_mass_sol(min_mass_sol=None, max_mass_sol=None, rng=random):
+def sample_imf_mass_sol(min_mass_sol=None, max_mass_sol=None, rng=draw):
     """
     Draws an initial mass (Msun) from the Kroupa broken power law
     (`IMF_BREAKS_SOL`/`IMF_SLOPES`), optionally truncated to
@@ -123,7 +123,7 @@ def population_age_range_gy(population=None):
                          f"{sorted(tuning.STELLAR_POPULATION_AGE_RANGES_GY)} or None") from None
 
 
-def sample_star_age_gy(age_bias=None, rng=random, population=None):
+def sample_star_age_gy(age_bias=None, rng=draw, population=None):
     """A star's age, uniform over its population's age range
     (`population_age_range_gy`), biased by `age_bias`."""
     low, high = age_window_gy(*population_age_range_gy(population), age_bias)
@@ -206,7 +206,7 @@ def giant_bright_chance(mass_sol, min_luminosity_sol):
                for low, high, share in giant_luminosity_bands(mass_sol))
 
 
-def sample_giant_luminosity_sol(mass_sol, rng=random, min_luminosity_sol=None):
+def sample_giant_luminosity_sol(mass_sol, rng=draw, min_luminosity_sol=None):
     """
     A giant's luminosity from `giant_luminosity_bands`, or from their part
     at or above `min_luminosity_sol` (clamped to the top when none is).
@@ -240,7 +240,7 @@ def _supergiant_yerkes_class(luminosity_sol):
     return yerkes
 
 
-def evolve_star(mass_sol, age_gy, rng=random, min_luminosity_sol=None):
+def evolve_star(mass_sol, age_gy, rng=draw, min_luminosity_sol=None):
     """
     The present state of a star of initial mass `mass_sol` at `age_gy`.
 
@@ -312,7 +312,7 @@ def evolve_star(mass_sol, age_gy, rng=random, min_luminosity_sol=None):
     return state
 
 
-def sample_living_star(age_bias=None, large_star=None, rng=random, habitable_host=False,
+def sample_living_star(age_bias=None, large_star=None, rng=draw, habitable_host=False,
                        population=None, max_luminosity_sol=None):
     """
     Draws `(initial_mass_sol, age_gy, state)` for a random star that hasn't

@@ -136,14 +136,14 @@ def test_density_range_override_skips_the_blend(monkeypatch, host_star):
     core_density_gcm3 = 42.0  # within the injected density_range above
 
     queued = [core_density_gcm3]
-    real_uniform = planets.random.uniform
+    real_uniform = planets.draw.uniform
 
     def fake_uniform(a, b):
         if queued:
             return queued.pop(0)
         return real_uniform(a, b)
 
-    monkeypatch.setattr(planets.random, "uniform", fake_uniform)
+    monkeypatch.setattr(planets.draw, "uniform", fake_uniform)
 
     cfg = SystemConfig()
     distance = plausibility.distance_for_zone(host_star, zone)

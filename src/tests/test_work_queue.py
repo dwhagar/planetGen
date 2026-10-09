@@ -19,6 +19,7 @@ import time
 
 import pytest
 
+from planetgen.util import draw
 from planetgen.cli import generate as generate_cli
 from planetgen.galaxy.geometry import ring_sector_count
 from planetgen.generation import run_common
@@ -33,7 +34,7 @@ def _square(payload):
 
 
 def _draw(payload):
-    return random.random()
+    return draw.random()
 
 
 def _fail_on_three(payload):

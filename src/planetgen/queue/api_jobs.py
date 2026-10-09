@@ -20,6 +20,7 @@ import sys
 import time
 
 from planetgen.queue import redisqueue
+from planetgen.util import draw
 
 QUEUE_PREFIX = "planetgen-api-"
 """str: A job's RQ queue and its worker are this plus its id."""
@@ -173,7 +174,6 @@ def regenerate_sector(sector_id, config):
         dict: `deleted` (the row counts), `sector_id` and `sector_name` of
             the new sector (`None` when the slot is outside the outline).
     """
-    import random
     from planetgen.db import edits as editStore, sector_paths, store
     from planetgen.generation import run_galaxy
     conn = store.get_connection(config or store.DEFAULT_MYSQL_CONFIG)
@@ -184,8 +184,8 @@ def regenerate_sector(sector_id, config):
             counts = editStore.delete_sector_with_contents(conn, sector_id)
     finally:
         conn.close()
-    random.seed()
-    result = run_galaxy.ensure_sector_generated(*address, config=config, settle=False)
+    with draw.bound(secrets.randbits(128)):
+        result = run_galaxy.ensure_sector_generated(*address, config=config, settle=False)
     # GEN.126: the new sector's masses and the old neighbours' paths, now the neighbour set is final.
     conn = store.get_connection(config or store.DEFAULT_MYSQL_CONFIG)
     try:

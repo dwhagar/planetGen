@@ -9,6 +9,7 @@ bulge-plus-spiral-arm density model from
 import math
 
 import pytest
+from planetgen.util import draw
 from planetgen import tuning
 
 from planetgen.galaxy.density import (
@@ -63,10 +64,9 @@ def test_relative_density_arm_crest_exceeds_inter_arm_at_same_radius():
 
 
 def test_relative_density_is_never_negative():
-    import random
-    random.seed(0)
+    draw.set_run_seed(0)
     for _ in range(200):
-        position = (random.uniform(-200, 200), random.uniform(-200, 200), random.uniform(-100, 100))
+        position = (draw.uniform(-200, 200), draw.uniform(-200, 200), draw.uniform(-100, 100))
         assert relative_density(position, SHAPE) >= 0.0
 
 

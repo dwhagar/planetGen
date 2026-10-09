@@ -12,7 +12,6 @@ also what the galaxy command runs per sector.
 """
 
 import copy
-import random
 import re
 import sys
 from collections import Counter
@@ -23,6 +22,7 @@ from planetgen.galaxy import nebula_field
 from planetgen.galaxy.system_position import random_unit_vector
 from planetgen.physics import constants
 from planetgen import tuning as program_constants
+from planetgen.util import draw
 from planetgen.util import log
 from planetgen.generation.phenomena.asteroid_field import AsteroidField
 from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
@@ -123,7 +123,7 @@ def iter_sector_configs(args):
     first = run_system.build_system_config(args)
     forced = set()
     if args.min_habitable > 0:
-        forced = set(random.sample(range(count), k=args.min_habitable))
+        forced = set(draw.sample(range(count), k=args.min_habitable))
 
     for i in range(count):
         config = first if i == 0 else run_system.build_system_config(args)
@@ -230,7 +230,7 @@ def _add_planetary_nebula(sector, args, nebula, galactic_center_dist_ly=None):
     """
     config = SystemConfig()
     config.MARKDOWN = args.markdown
-    config.STAR_TYPE = random.choice(program_constants.PLANETARY_NEBULA_CENTRAL_STAR_TYPES)
+    config.STAR_TYPE = draw.choice(program_constants.PLANETARY_NEBULA_CENTRAL_STAR_TYPES)
     config.BINARY_SYSTEM = False
     system = StarSystem(system_config=config, galactic_center_dist_ly=galactic_center_dist_ly)
     try:
@@ -265,7 +265,7 @@ def add_star_hosted_nebulae(sector, args):
         for rule_letter, low, high, classes, chance in program_constants.NEBULA_HOST_RULES:
             if letter != rule_letter or not (low <= subclass <= high):
                 continue
-            if random.random() < chance:
+            if draw.random() < chance:
                 config = SystemConfig()
                 config.MARKDOWN = args.markdown
                 nebula_class = choose_weighted_class(classes, "Star-hosted nebula class")
@@ -306,11 +306,11 @@ def flag_fast_stars(sector, galactic_center_dist_ly=None):
     flagged = 0
     for entry in sector.entries:
         system = entry.star_system
-        if random.random() < hvs_chance:
+        if draw.random() < hvs_chance:
             system.runaway_class = "hypervelocity"
             system.runaway_speed_kms = log_uniform(*program_constants.HYPERVELOCITY_STAR_SPEED_RANGE_KMS)
             system.runaway_direction = random_unit_vector()
-        elif random.random() < runaway_chance:
+        elif draw.random() < runaway_chance:
             system.runaway_class = "runaway"
             system.runaway_speed_kms = log_uniform(*program_constants.RUNAWAY_STAR_SPEED_RANGE_KMS)
             system.runaway_direction = random_unit_vector()
@@ -358,7 +358,7 @@ def add_galactic_nucleus(sector, args, galactic_center_dist_ly):
     nucleus_config = SystemConfig()
     nucleus_config.MARKDOWN = args.markdown
     position = (-galactic_center_dist_ly, 0.0, 0.0)
-    if random.random() < program_constants.QUASAR_ACTIVE_NUCLEUS_CHANCE:
+    if draw.random() < program_constants.QUASAR_ACTIVE_NUCLEUS_CHANCE:
         return sector.add_phenomenon(Quasar(nucleus_config), "quasar", position=position)
     log.debug(f"Sector {sector.name!r}: galactic nucleus is quiescent (supermassive black hole, no quasar)")
     black_hole = BlackHole(nucleus_config, mass_class="supermassive")
@@ -369,17 +369,13 @@ def _add_preplaced_systems(sector, args, fill, galactic_center_dist_ly):
     """Builds a full system around each of the sector's pre-placed bright
     stars (`fill.bright_rows`) and places it first, at its stored point.
     Each one's companion, planets and moons come from its own stored
-    `seed`, without disturbing the run's random state."""
+    `seed`, without disturbing the sector's draw stream."""
     for row in fill.bright_rows:
         cfg = run_system.build_system_config(args)
         cfg.POPULATION = row["population"]
-        state = random.getstate()
-        random.seed(row["seed"])
-        try:
+        with draw.bound(row["seed"]):
             system = StarSystem(system_config=cfg, galactic_center_dist_ly=galactic_center_dist_ly,
                                 primary_star_params=brightStars.star_params(row))
-        finally:
-            random.setstate(state)
         entry = sector.add_preplaced_system(system, brightStars.local_position_ly(row, fill.center_pc),
                                             system_config=cfg)
         entry.bright_star_id = row["id"]

@@ -32,7 +32,7 @@ Since generation draws from the module-level `random` (every
 `planetgen.generation` module uses `import random`, not its own
 `random.Random` instance -- confirmed by grep), reproducibility here means
 seeding that global RNG before each fuzz iteration, exactly like the
-existing ad hoc `random.seed(...)` calls in `test_space_sector.py`/
+existing ad hoc `draw.set_run_seed(...)` calls in `test_space_sector.py`/
 `test_galaxy_density.py` -- this module just gives that pattern a shared,
 documented home and a consistent failure-reporting format.
 """
@@ -40,12 +40,12 @@ documented home and a consistent failure-reporting format.
 from __future__ import annotations
 
 import contextlib
-import random
 import sys
 from dataclasses import dataclass, field
 from typing import Callable, Sequence
 
 import pytest
+from planetgen.util import draw
 
 # A fixed, reproducible seed list every fuzz test iterates over -- small
 # enough to stay fast (a few hundred iterations, matching the existing
@@ -83,7 +83,7 @@ def run_seeded(fn: Callable[[int], None], seeds: Sequence[int] = FUZZ_SEEDS) -> 
     `random` RNG first so `fn` (and anything it calls) draws a
     reproducible-but-varied sequence. On the first failure, re-raises with
     the failing seed attached so a human can reproduce it with
-    `random.seed(<seed>); fn(<seed>)` alone -- matching the
+    `draw.set_run_seed(<seed>); fn(<seed>)` alone -- matching the
     `physical_plausibility_cli.py`/`phenomena_plausibility_cli.py`
     convention of reporting exactly what to re-run, not just that
     something failed.
@@ -94,7 +94,7 @@ def run_seeded(fn: Callable[[int], None], seeds: Sequence[int] = FUZZ_SEEDS) -> 
         seeds: The seed list to iterate. Defaults to `FUZZ_SEEDS`.
     """
     for seed in seeds:
-        random.seed(seed)
+        draw.set_run_seed(seed)
         try:
             fn(seed)
         except Exception as exc:  # noqa: BLE001 - re-raising with context is the point

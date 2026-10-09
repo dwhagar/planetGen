@@ -87,6 +87,25 @@ passing a `random.Random` down, which is GEN.56's change. `secrets` and
 deadlock replays the same draws. The `phenomenon` and `system` subcommands and the run's own
 choices (a random start's address) still draw from the run's stream.
 
+As built (GEN.56): every generation draw goes through
+`planetgen/util/draw.py`. A `draw.Stream` keeps a `random.Random` for its
+`random()` alone and builds `uniform`, `randint`, `randrange`, `choice`,
+`choices`, `shuffle`, `sample`, `gauss` and `getrandbits` on it, so the
+numbers don't change with Python's own recipes. `seeded` binds the unit's
+stream for the length of the unit with a `ContextVar` (Boss chose this
+over an `rng` argument on every function, 2026-10-09 07:02Z): generators
+call `draw.uniform(...)` and get the running unit's numbers, each thread
+its own, with no shared stream and no lock. Draws outside a unit come
+from the run stream (`draw.set_run_seed`, from `planetgen`'s run seed or a
+work queue task's seed). A pre-placed bright star's system binds its
+stored seed; a regenerated sector binds a fresh one. The debug log's
+per-draw tracing wraps `draw`'s functions. `test_reproducible_draws.py`
+scans the generation packages (`galaxy`, `generation`, `names`,
+`physics`, `population`, `util`) for the stdlib `random`, `secrets`,
+`uuid`, `os.urandom`, `SystemRandom`, `numpy.random` and clock seeds, pins
+the helpers' recipes, and generates one sector under two hash seeds and
+two locales. Population streams still key on row ids (GEN.57).
+
 As built (DB.6): `planetgen/galaxy/version_key.py` computes the key
 (`version_key`) and the versions stored beside it (`current`). The galaxy
 records them in `galaxy_shape` whenever its seed is written (schema

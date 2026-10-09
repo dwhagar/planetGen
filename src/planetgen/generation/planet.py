@@ -22,13 +22,13 @@ defined separately in `asteroidData`.
 """
 
 import math
-import random
 
 from planetgen.generation import prevalence
 from planetgen.generation.config import SystemConfig
 from planetgen.physics import constants, planets as planetPhysics
 from planetgen.physics.position import HoldsOrbitPosition, axis_property, velocity_axis_property
 from planetgen import tuning
+from planetgen.util import draw
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from planetgen.util.format import (
     format_body_radius_km, format_distance_au, format_distance_km, format_number, properties_to_string, to_paragraph, format_period_years, format_pressure_pa, format_speed_kms, format_temperature_k,
@@ -349,8 +349,8 @@ class Planet(HoldsOrbitPosition):
         """Whether a planet left to chance gets moons: an even chance, moved
         by the run's moons prevalence (GEN.52)."""
         if prevalence.percent(self.system_config, "moons"):
-            return random.random() < prevalence.scaled_chance(self.system_config, "moons", 0.5)
-        return random.randrange(2) == 1
+            return draw.random() < prevalence.scaled_chance(self.system_config, "moons", 0.5)
+        return draw.randrange(2) == 1
 
     def to_dict(self):
         """

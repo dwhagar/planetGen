@@ -11,10 +11,10 @@ Takes the `mysql_config` fixture (see `conftest.py`): skipped, not failed,
 without a MySQL test server, like every other database-backed test.
 """
 
-import random
 
 import pytest
 
+from planetgen.util import draw
 from planetgen.db import query
 from planetgen.db import store
 from planetgen.generation.config import SystemConfig
@@ -35,12 +35,12 @@ def _config(kind):
 
 @pytest.mark.parametrize("kind", [None, "close", "wide"])
 def test_generated_systems_fit_the_system_map(mysql_config, kind):
-    rng_state = random.getstate()
-    random.seed(8800 + (0 if kind is None else 1 if kind == "close" else 2))
+    rng_state = draw.getstate()
+    draw.set_run_seed(8800 + (0 if kind is None else 1 if kind == "close" else 2))
     try:
         systems = [StarSystem(system_config=_config(kind)) for _ in range(8)]
     finally:
-        random.setstate(rng_state)
+        draw.setstate(rng_state)
     conn = store.get_connection(mysql_config)
     try:
         for system in systems:

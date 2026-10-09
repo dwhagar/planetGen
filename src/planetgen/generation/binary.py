@@ -15,12 +15,12 @@ the complexity of a multi-star system.
 """
 
 import math
-import random
 
 from planetgen.names.bodies import close_pair_label
 from planetgen.generation.config import SystemConfig
 from planetgen.physics import constants
 from planetgen.physics.planets import calculate_orbital_period_years
+from planetgen.util import draw
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from planetgen.generation.star import Star, adjust_pair_age_for_planets
 from planetgen.galaxy.galactic_orbit import format_galactic_orbit
@@ -141,7 +141,7 @@ class BinaryStarProxy(Star):
         # Generate binary separation (0.05 to 0.25 AU for P-type systems)
         # Add the radii of both stars to the separation to ensure they don't overlap
         # and to account for their physical size in the orbital distance.
-        base_separation = random.uniform(0.05, 0.25)
+        base_separation = draw.uniform(0.05, 0.25)
         # Convert star radii from kilometers to AU before adding to separation
         self._binary_separation_au = base_separation + \
                                      (self._primary.radius / constants.AU_TO_KM) + \
@@ -169,7 +169,7 @@ class BinaryStarProxy(Star):
         self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy = \
             self.calculate_galactic_orbit(galactic_center_dist_ly)
         self.galactic_orbital_phase_deg = (
-            galactic_orbital_phase_deg if galactic_orbital_phase_deg is not None else random.uniform(0, 360)
+            galactic_orbital_phase_deg if galactic_orbital_phase_deg is not None else draw.uniform(0, 360)
         )
         self.galactic_min_update_interval_years = \
             minimum_update_interval_years(self.galactic_orbital_period_gy * 1e9)
@@ -194,9 +194,9 @@ class BinaryStarProxy(Star):
         self.binary_mutual_orbital_speed_kms = circular_orbital_speed_kms(
             self._binary_separation_au, self.binary_mutual_orbital_period_years
         )
-        self.binary_mutual_orbital_inclination_deg = random.uniform(0, 180)
-        self.binary_mutual_orbital_ascending_node_deg = random.uniform(0, 360)
-        self.binary_mutual_orbital_phase_deg = random.uniform(0, 360)
+        self.binary_mutual_orbital_inclination_deg = draw.uniform(0, 180)
+        self.binary_mutual_orbital_ascending_node_deg = draw.uniform(0, 360)
+        self.binary_mutual_orbital_phase_deg = draw.uniform(0, 360)
         self.binary_mutual_min_update_interval_years = \
             minimum_update_interval_years(self.binary_mutual_orbital_period_years)
         # The secondary's position relative to the primary (AU) -- the same

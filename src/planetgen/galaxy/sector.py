@@ -68,8 +68,8 @@ other words, real stars are spaced, on average, almost exactly as close as
 their mutual gravity allows without one's Oort cloud bleeding into the
 other's -- and this module's default placement reproduces that.
 
-Position sampling draws through `_rng`, which reads the module-level
-`random` stream. A galaxy sector runs on its own seed, derived from the
+Position sampling draws through `planetgen.util.draw`, the stream bound
+to the running unit. A galaxy sector runs on its own seed, derived from the
 galaxy's 128-bit seed and the sector's address (GEN.39,
 `galaxySeed.seeded`), so the same seed places the same stars whatever
 order sectors run in and however many workers run them.
@@ -183,12 +183,12 @@ saved sector.
 
 import json
 import math
-import random
 
 from planetgen.physics import constants as physical_constants
 from planetgen.galaxy.system_position import galactic_velocity_ms, place_system, set_system_epoch
 from planetgen.physics.position import SpatialPosition3D
 from planetgen import tuning as program_constants
+from planetgen.util import draw
 from planetgen.util import log
 from planetgen.generation.phenomena.asteroid_field import AsteroidField
 from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
@@ -199,34 +199,6 @@ from planetgen.generation.phenomena.rogue import InterstellarComet, RoguePlanet
 from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant
 from planetgen.generation.system import StarSystem
 
-class _GlobalStream(random.Random):
-    """
-    A `random.Random` whose every draw comes from the module-level `random`
-    stream (only `random()` and `getrandbits()`; every other method is
-    built on those two, as for `SystemRandom`), so a sector's positions
-    follow the sector's own seed (GEN.39). A separate object still, so a
-    test can pin sector placement alone by patching its `random`/
-    `getrandbits`.
-    """
-
-    def seed(self, *args, **kwargs):
-        """Does nothing: the stream is the module's, seeded per unit."""
-
-    def random(self):
-        return random.random()
-
-    def getrandbits(self, k):
-        return random.getrandbits(k)
-
-    def getstate(self):
-        raise NotImplementedError("_GlobalStream has no state of its own; see random.getstate()")
-
-    setstate = getstate
-
-
-# Used for every position placed in a sector -- see "Position sampling" in
-# the module docstring.
-_rng = _GlobalStream()
 
 _PHENOMENON_CLASSES_BY_TYPE = {
     "black-hole": BlackHole,
@@ -352,14 +324,14 @@ _POISSON_NORMAL_APPROX_MEAN = 500.0
 """Above this mean `_sample_poisson_count` uses the normal approximation."""
 
 
-def _sample_poisson_count(mean, rng=_rng):
+def _sample_poisson_count(mean, rng=draw):
     """
     Draws a Poisson-distributed non-negative integer with the given mean,
     using only uniform draws from `rng` -- Knuth's simple multiplicative
     algorithm: repeatedly multiply `rng.random()` draws together until the
     running product drops below `exp(-mean)`, counting how many draws that
     took. This is exact (not an approximation), and it draws from
-    this module's `_rng` rather than pulling in `numpy.random.poisson`, which would add a
+    `draw` rather than pulling in `numpy.random.poisson`, which would add a
     new dependency this project doesn't otherwise have.
 
     This runs in O(mean) draws, so it's only efficient for small means. The
@@ -372,7 +344,7 @@ def _sample_poisson_count(mean, rng=_rng):
     Args:
         mean (float): The Poisson distribution's mean (lambda). Values <= 0
                       always return 0.
-        rng (random.Random): The generator to draw from.
+        rng (draw.Stream or the draw module): The generator to draw from.
 
     Returns:
         int: A Poisson-distributed sample.
@@ -398,7 +370,7 @@ def _sample_poisson_count(mean, rng=_rng):
         count += 1
 
 
-def _random_unit_direction(rng=_rng):
+def _random_unit_direction(rng=draw):
     """
     Samples a uniformly random direction on the unit sphere.
 
@@ -408,7 +380,7 @@ def _random_unit_direction(rng=_rng):
     area than the same step near the equator.
 
     Args:
-        rng (random.Random): The generator to draw from.
+        rng (draw.Stream or the draw module): The generator to draw from.
 
     Returns:
         tuple: A unit-length `(dx, dy, dz)` direction vector.
@@ -419,7 +391,7 @@ def _random_unit_direction(rng=_rng):
     return (sin_phi * math.cos(theta), sin_phi * math.sin(theta), math.cos(phi))
 
 
-def _random_point_in_annulus(center, inner_radius, outer_radius, rng=_rng):
+def _random_point_in_annulus(center, inner_radius, outer_radius, rng=draw):
     """
     Samples a point uniformly *by volume* (not by radius) within the
     spherical annulus between `inner_radius` and `outer_radius` around
@@ -435,7 +407,7 @@ def _random_point_in_annulus(center, inner_radius, outer_radius, rng=_rng):
         center (tuple): The `(x, y, z)` point the annulus is centered on.
         inner_radius (float): The annulus's inner radius.
         outer_radius (float): The annulus's outer radius.
-        rng (random.Random): The generator to draw from.
+        rng (draw.Stream or the draw module): The generator to draw from.
 
     Returns:
         tuple: The sampled `(x, y, z)` position.
@@ -446,7 +418,7 @@ def _random_point_in_annulus(center, inner_radius, outer_radius, rng=_rng):
     return (center[0] + distance * dx, center[1] + distance * dy, center[2] + distance * dz)
 
 
-def _nudge_away(anchor_position, position, target_distance, rng=_rng):
+def _nudge_away(anchor_position, position, target_distance, rng=draw):
     """
     Moves `position` directly away from `anchor_position`, out to exactly
     `target_distance` -- part of `SpaceSector.grow_from_seed`'s fine-tuning
@@ -463,7 +435,7 @@ def _nudge_away(anchor_position, position, target_distance, rng=_rng):
         position (tuple): The current `(x, y, z)` position to nudge.
         target_distance (float): The desired distance from
                                  `anchor_position` after nudging.
-        rng (random.Random): The generator to draw a fallback direction
+        rng (draw.Stream or the draw module): The generator to draw a fallback direction
                              from.
 
     Returns:
@@ -808,9 +780,9 @@ class SpaceSector:
         """A uniformly random sector-local point inside the sector's cell,
         or its cube when it has none."""
         if self.cell is not None:
-            return self.cell.sample(_rng)
+            return self.cell.sample(draw)
         half_edge = self.edge_ly / 2
-        return tuple(_rng.uniform(-half_edge, half_edge) for _ in range(3))
+        return tuple(draw.uniform(-half_edge, half_edge) for _ in range(3))
 
     def contains(self, position):
         """Whether a sector-local `(x, y, z)` (light-years) lies inside the
@@ -1014,7 +986,7 @@ class SpaceSector:
         """
         half_edge = self.edge_ly / 2
         jitter_ly = min(jitter_ly, half_edge)
-        position = tuple(_rng.uniform(-jitter_ly, jitter_ly) for _ in range(3))
+        position = tuple(draw.uniform(-jitter_ly, jitter_ly) for _ in range(3))
         if not self.contains(position):
             position = (0.0, 0.0, 0.0)
         return self.add_system(star_system, position=position, system_config=system_config)
@@ -1188,7 +1160,7 @@ class SpaceSector:
         new_entries = []
 
         while active_list and len(self.entries) < target_count:
-            parent = _rng.choice(active_list)
+            parent = draw.choice(active_list)
             placed = False
 
             for _ in range(k):

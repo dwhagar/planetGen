@@ -19,9 +19,9 @@ have or lack it often enough to move that share by the percentage
 (`resolve`), through the same tri-state flags the forcing options set.
 """
 
-import random
 
 from planetgen import tuning
+from planetgen.util import draw
 
 FEATURES = ("habitable_world", "asteroid_belt", "comets", "large_star", "moons", "max_planets",
             "intelligent_life", "binary_system", "wide_binary", "planets")
@@ -66,7 +66,7 @@ def scaled_chance(config, feature, chance):
     return min(1.0, max(0.0, chance * (1.0 + percent(config, feature) / 100.0)))
 
 
-def resolve(config, rng=random):
+def resolve(config, rng=draw):
     """
     Decides, for one system, the measured features its prevalences move:
     each one still left to chance (`None`) is forced off in `-p`% of

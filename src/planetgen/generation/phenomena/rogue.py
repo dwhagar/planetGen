@@ -19,13 +19,13 @@ much smaller icy planetesimal passing through on a hyperbolic trajectory
 """
 
 import math
-import random
 
 from planetgen.generation.config import SystemConfig
 from planetgen.physics.rogue_surface import ROGUE_SURFACE_FIELDS, SURFACE_REGIME_LABELS, rogue_surface_conditions
 from planetgen.names.wordlists import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from planetgen.physics import constants, planets as planetPhysics
 from planetgen import tuning
+from planetgen.util import draw
 from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from planetgen.galaxy.galactic_orbit import format_galactic_orbit, generate_galactic_orbit_fields
@@ -207,7 +207,7 @@ class RoguePlanet:
 
         if mass_bin is None:
             bins = tuning.ROGUE_PLANET_MASS_BINS
-            mass_bin = random.choices(list(bins), weights=[rate for _lo, _hi, rate in bins.values()])[0]
+            mass_bin = draw.choices(list(bins), weights=[rate for _lo, _hi, rate in bins.values()])[0]
             log.choice("Rogue planet mass bin", mass_bin, "drawn by ROGUE_PLANET_MASS_BINS' per-star rates")
         elif mass_bin not in tuning.ROGUE_PLANET_MASS_BIN_CHOICES:
             raise ValueError(f"mass_bin must be one of {tuning.ROGUE_PLANET_MASS_BIN_CHOICES}, got {mass_bin!r}")
@@ -216,7 +216,7 @@ class RoguePlanet:
         if mass_bin == "brown-dwarf":
             low, high = (m * constants.JUPITER_MASS_TO_KG
                          for m in tuning.ROGUE_BROWN_DWARF_MASS_RANGE_JUPITER)
-            self.mass_kg = math.exp(random.uniform(math.log(low), math.log(high)))
+            self.mass_kg = math.exp(draw.uniform(math.log(low), math.log(high)))
         else:
             # The same mass function the bins' rates come from (GEN.45).
             low, high, _rate = tuning.ROGUE_PLANET_MASS_BINS[mass_bin]
@@ -229,7 +229,7 @@ class RoguePlanet:
             self.planet_type = 'g'
             # Brown dwarfs share Jupiter's near-flat mass-radius relation
             # (Chabrier & Baraffe 2000), slightly smaller when old.
-            self.radius_km = constants.JUPITER_RADIUS_KM * random.uniform(0.75, 1.1)
+            self.radius_km = constants.JUPITER_RADIUS_KM * draw.uniform(0.75, 1.1)
             self.composition = (
                 "hydrogen and helium, a failed star that briefly fused deuterium and now glows faintly "
                 "in the infrared as it cools"
@@ -250,7 +250,7 @@ class RoguePlanet:
                        f"({tuning.ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER})")
             self.planet_type = 't'
             density_range_gcm3 = constants.PLANET_DENSITY["t"]
-            density_kg_m3 = random.uniform(*density_range_gcm3) * 1000
+            density_kg_m3 = draw.uniform(*density_range_gcm3) * 1000
             radius_m = (self.mass_kg / ((4 / 3) * math.pi * density_kg_m3)) ** (1 / 3)
             self.radius_km = radius_m / 1000
             if mass_bin == "sub-neptune":
@@ -263,7 +263,7 @@ class RoguePlanet:
 
         self.planet_class = choose_rogue_planet_class(self.planet_type, self.radius_km, self.mass_kg, mass_bin)
 
-        self.has_moons = random.random() < tuning.ROGUE_PLANET_MOON_CHANCE
+        self.has_moons = draw.random() < tuning.ROGUE_PLANET_MOON_CHANCE
         self._apply_surface_conditions(rogue_surface_conditions(
             self.mass_kg, self.radius_km, self.planet_type, self.mass_bin, self.has_moons))
 
@@ -316,7 +316,7 @@ class RoguePlanet:
             # always gives the same conditions.
             planet._apply_surface_conditions(rogue_surface_conditions(
                 planet.mass_kg, planet.radius_km, planet.planet_type, planet.mass_bin, planet.has_moons,
-                random.Random(planet.name)))
+                draw.Stream(planet.name)))
         return planet
 
     @property
@@ -468,15 +468,15 @@ class InterstellarComet:
         self.name = name if name else generate_phoneme_salad_name(STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES)
         self.name_given = bool(name)  # a given name is kept over an object ID (GEN.64)
 
-        self.nucleus_diameter_km = random.uniform(*tuning.INTERSTELLAR_COMET_NUCLEUS_DIAMETER_RANGE_KM)
-        self.velocity_kms = random.uniform(*tuning.INTERSTELLAR_OBJECT_SPEED_KMS_RANGE)
-        self.is_active = random.random() < tuning.INTERSTELLAR_COMET_ACTIVE_CHANCE
+        self.nucleus_diameter_km = draw.uniform(*tuning.INTERSTELLAR_COMET_NUCLEUS_DIAMETER_RANGE_KM)
+        self.velocity_kms = draw.uniform(*tuning.INTERSTELLAR_OBJECT_SPEED_KMS_RANGE)
+        self.is_active = draw.random() < tuning.INTERSTELLAR_COMET_ACTIVE_CHANCE
         log.choice("Interstellar comet activity", self.is_active,
                    f"roll against INTERSTELLAR_COMET_ACTIVE_CHANCE "
                    f"({tuning.INTERSTELLAR_COMET_ACTIVE_CHANCE})")
 
         num_components = min(3, len(tuning.COMET_COMPOSITION))
-        self.composition = random.sample(tuning.COMET_COMPOSITION, k=num_components)
+        self.composition = draw.sample(tuning.COMET_COMPOSITION, k=num_components)
 
         (self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy,
          self.galactic_orbital_phase_deg, self.galactic_min_update_interval_years) = \

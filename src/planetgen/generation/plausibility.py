@@ -66,7 +66,6 @@ physical properties across every spectral/Yerkes combination.
 
 import itertools
 import math
-import random
 import statistics
 from collections import defaultdict
 
@@ -76,6 +75,7 @@ from planetgen import tuning as prog_c
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.planet import Planet
 from planetgen.generation.star import Star
+from planetgen.util import draw
 
 ZONE_CHARS = "hec"
 
@@ -228,7 +228,7 @@ def generate_sample(cls, zone, n, include_moons=True):
     """
     records = []
     for _ in range(n):
-        star_type = random.choice(HOST_STAR_TYPES)
+        star_type = draw.choice(HOST_STAR_TYPES)
         cfg = SystemConfig()
         cfg.STAR_TYPE = star_type
         star = Star(cfg)

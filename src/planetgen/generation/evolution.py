@@ -14,9 +14,9 @@ The timelines are purely speculative and are intended for creative world-buildin
 purposes. They are not based on any established scientific models of astrobiology.
 """
 
-import random
 
 from planetgen import tuning
+from planetgen.util import draw
 from planetgen.util import log
 from planetgen.generation.star import get_star_evolutionary_profile
 from planetgen.util.format import format_age_string, to_paragraph
@@ -116,7 +116,7 @@ def get_evolutionary_timeline(star, planet_class=None):
             if tuning.EVOLUTIONARY_TIMELINES[s]['technological_civilization'] <= star.age
         ]
         if reachable_scales:
-            evolutionary_scale = random.choice(reachable_scales)
+            evolutionary_scale = draw.choice(reachable_scales)
             log.choice("Evolutionary scale", evolutionary_scale,
                        f"forced intelligent life: uniform draw among reachable scales {reachable_scales} "
                        f"(fit within star age {star.age:.4g})")
@@ -127,7 +127,7 @@ def get_evolutionary_timeline(star, planet_class=None):
                        f"age {star.age:.4g}, falling back to the fastest supported one")
     else:
         # If there are multiple supported scales, pick one randomly
-        evolutionary_scale = random.choice(supported_scales)
+        evolutionary_scale = draw.choice(supported_scales)
         log.choice("Evolutionary scale", evolutionary_scale,
                    f"uniform draw among supported scales {supported_scales}")
 

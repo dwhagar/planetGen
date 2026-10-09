@@ -5,19 +5,19 @@ Random
 ======
 
 Seeded sampling helpers: power-law and bounded-bell draws, and the one
-log-uniform draw. Each uses the `random` module's global generator (or the
-`rng` it is given), so a seeded galaxy draws the same values.
+log-uniform draw. Each draws from the unit's stream (`planetgen.util.draw`,
+or the `rng` it is given), so a seeded galaxy draws the same values.
 """
 
 import math
-import random
 
+from planetgen.util import draw
 from planetgen.util.checks import finite_domain
 
 
-def log_uniform(low, high, rng=random):
+def log_uniform(low, high, rng=draw):
     """A value drawn uniformly in log space between `low` and `high`: one
-    `rng.uniform` draw (the `random` module's global generator unless an
+    `rng.uniform` draw (the unit's draw stream unless an
     `rng` is given)."""
     return math.exp(rng.uniform(math.log(low), math.log(high)))
 
@@ -30,9 +30,9 @@ def power_law_share(low, high, slope):
 
 def sample_power_law(low, high, slope):
     """A value in [low, high] drawn from dN/dlogM ~ M^-slope (`slope` > 0)
-    by inverting its cumulative distribution: one `random.random()`."""
+    by inverting its cumulative distribution: one `draw.random()`."""
     low_term, high_term = low ** -slope, high ** -slope
-    return (low_term + random.random() * (high_term - low_term)) ** (-1 / slope)
+    return (low_term + draw.random() * (high_term - low_term)) ** (-1 / slope)
 
 
 @finite_domain(clamped=("mode_fraction",))
@@ -89,7 +89,7 @@ def sample_bounded_bell(min_val, max_val, mode_fraction, spread_divisor=3.0, max
     nearer_bound_distance = max(min(mean - min_val, max_val - mean), span * 0.02)
     stdev = nearer_bound_distance / spread_divisor
     for _ in range(max_attempts):
-        value = random.gauss(mean, stdev)
+        value = draw.gauss(mean, stdev)
         if min_val <= value <= max_val:
             return value
     return min(max(mean, min_val), max_val)
