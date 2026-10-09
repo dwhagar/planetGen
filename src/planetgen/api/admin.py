@@ -30,6 +30,7 @@ from planetgen._version import __version__
 from .authz import audit, require_admin
 from .common import ApiError, get_control_db, require_json_body
 from .loginguard import with_store
+from .schemas import LockoutLift, NamingKeyChange, parse_body
 from .routes import _paginate, _resolve_requested_db_config, get_db
 
 bp = Blueprint("admin", __name__, url_prefix="/api/admin")
@@ -234,15 +235,9 @@ def naming_key_set():
     rewritten. 409 before the galaxy is planned. Written to the audit log as
     `naming-key.change`.
     """
-    body = require_json_body()
+    body = parse_body(NamingKeyChange, require_json_body())
     database = _resolve_requested_db_config().database
-    if body.get("draw") is True:
-        key = secrets.token_hex(naming_key.KEY_DIGITS // 2).upper()
-    else:
-        try:
-            key = naming_key.parse_key(body.get("key", ""))
-        except ValueError as exc:
-            raise ApiError(str(exc)) from exc
+    key = secrets.token_hex(naming_key.KEY_DIGITS // 2).upper() if body.draw else body.key
     conn = get_control_db()
     try:
         naming_key.change(conn, database, key, g.admin_user["username"])
@@ -287,18 +282,12 @@ def lift_lockout():
     too); `{"all": true}` lifts every one. Returns `{"lifted": n}`.
     Written to the audit and activity logs as `lockout.lift`.
     """
-    body = require_json_body()
-    if body.get("all") is True:
+    body = parse_body(LockoutLift, require_json_body())
+    if body.all is True:
         lifted = with_store(lambda store: store.lift())
         audit("lockout.lift", target="all", detail=f"lifted={lifted}")
         return jsonify({"lifted": lifted})
-    scope = body.get("scope")
-    subject = body.get("subject")
-    if scope not in throttle.SCOPES:
-        raise ApiError("'scope' must be 'ip' or 'user'")
-    if not isinstance(subject, str) or not subject.strip() or len(subject) > throttle.MAX_SUBJECT_LENGTH:
-        raise ApiError("'subject' is required")
-    subject = subject.strip()
+    scope, subject = body.scope, body.subject.strip()
     if scope == throttle.SCOPE_USER:
         subject = throttle.normalize_username(subject)
     lifted = with_store(lambda store: store.lift(scope, subject))

@@ -26,7 +26,18 @@ from planetgen.web.app import create_app
 from planetgen.api.common import is_http_url
 from planetgen.api.config import Config, _proxy_fix
 from planetgen.api.limiter import DEFAULT_PAGE_LIMITS
-from planetgen.api.routes import DATABASE_UNAVAILABLE, SECTOR_UPDATE_FIELDS
+from planetgen.api.common import ApiError
+from planetgen.api.routes import DATABASE_UNAVAILABLE
+from planetgen.api.schemas import SectorUpdate, parse_body
+
+
+def _wiki_url_accepted(url):
+    """Whether `PATCH /api/sectors/<id>` takes `url` as a `wiki_url`."""
+    try:
+        parse_body(SectorUpdate, {"wiki_url": url})
+    except ApiError:
+        return False
+    return True
 from planetgen.db.store import MySQLConfig
 from planetgen.util.appconfig import DEFAULT_CONFIG
 
@@ -243,20 +254,17 @@ _BAD_URLS = ["javascript:alert(1)", "JavaScript:alert(1)", "data:text/html,<scri
 @pytest.mark.parametrize("url", _GOOD_URLS)
 def test_http_urls_with_a_host_are_accepted(url):
     assert is_http_url(url)
-    _types, is_valid = SECTOR_UPDATE_FIELDS["wiki_url"]
-    assert is_valid(url)
+    assert _wiki_url_accepted(url)
 
 
 @pytest.mark.parametrize("url", _BAD_URLS)
 def test_other_wiki_urls_are_refused(url):
     assert not is_http_url(url)
-    _types, is_valid = SECTOR_UPDATE_FIELDS["wiki_url"]
-    assert not is_valid(url)
+    assert not _wiki_url_accepted(url)
 
 
 def test_clearing_the_wiki_url_is_still_allowed():
-    _types, is_valid = SECTOR_UPDATE_FIELDS["wiki_url"]
-    assert is_valid(None)
+    assert _wiki_url_accepted(None)
 
 
 def test_an_unreachable_server_with_db_param_is_a_generic_503():

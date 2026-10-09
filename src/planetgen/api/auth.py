@@ -29,12 +29,12 @@ from planetgen.util import log
 from .authz import SESSION_COOKIE_NAME, audit, require_admin
 from .common import ApiError, get_control_db, require_json_body
 from .limiter import limiter
+from .schemas import (
+    ApiKeyCreate, ChangeCredentials, Login, LoginCode, PasswordCheck, TotpConfirm, TotpDisable, parse_body,
+)
 from .loginguard import LoginGuard
 
 bp = Blueprint("auth", __name__, url_prefix="/api/auth")
-
-MAX_API_KEY_LABEL_LENGTH = 128
-"""int: `admin_api_keys.label` is VARCHAR(128)."""
 
 LOGIN_RATE_LIMIT = "10 per minute"
 """str: Applied to `POST /api/auth/login` on top of the app-wide default
@@ -142,12 +142,8 @@ def login():
     failures (`loginguard.py`) gets a 429 with `retry_after`, `scope`
     (`ip` or `user`) and `Retry-After`, known username or not.
     """
-    body = require_json_body()
-    username = body.get("username")
-    password = body.get("password")
-    if not isinstance(username, str) or not isinstance(password, str) or not username.strip() or not password:
-        raise ApiError("username and password are required")
-    username = username.strip()
+    credentials = parse_body(Login, require_json_body(), message="username and password are required")
+    username, password = credentials.username, credentials.password
 
     # Checked before the password, so a guess made during a lock never
     # learns anything, right or wrong.
@@ -223,11 +219,8 @@ def login_totp():
     (`totp.failed`) for the address and username; a stale or forged
     `pending` is a 401 asking to sign in again.
     """
-    body = require_json_body()
-    pending = body.get("pending")
-    code = body.get("code")
-    if not isinstance(pending, str) or not isinstance(code, str) or not code.strip():
-        raise ApiError("pending and code are required")
+    submitted = parse_body(LoginCode, require_json_body(), message="pending and code are required")
+    pending, code = submitted.pending, submitted.code
     try:
         data = _pending_serializer().loads(pending, max_age=PENDING_LOGIN_SECONDS)
     except SignatureExpired:
@@ -293,15 +286,15 @@ def change_credentials():
     address or the admin's username is locked, and a wrong one counts as
     a failed login (`password.failed`) for both.
     """
-    body = require_json_body()
+    body = parse_body(ChangeCredentials, require_json_body())
     guard = LoginGuard(g.admin_user["username"], admin_user_id=g.admin_user["id"],
                        trusted_device=trusted_device_for(g.admin_user["username"]))
     refused = guard.refusal()
     if refused is not None:
         return refused
-    current_password = body.get("current_password") or ""
-    new_username = body.get("new_username")
-    new_password = body.get("new_password") or ""
+    current_password = body.current_password or ""
+    new_username = body.new_username
+    new_password = body.new_password or ""
 
     conn = get_control_db()
     try:
@@ -333,7 +326,7 @@ def _check_current_password(body):
     refused = guard.refusal()
     if refused is not None:
         return refused
-    password = body.get("current_password")
+    password = body.current_password
     row = get_control_db().execute("SELECT password_hash FROM admin_users WHERE id = ?",
                                    (g.admin_user["id"],)).fetchone()
     if not isinstance(password, str) or row is None or not adminAuth.verify_password(password, row["password_hash"]):
@@ -360,7 +353,7 @@ def totp_setup():
     an authenticator app: returns `{"secret", "uri", "qr_svg"}` (the QR
     code encodes `uri`). Nothing changes at sign-in until `confirm`.
     """
-    body = require_json_body()
+    body = parse_body(PasswordCheck, require_json_body())
     refused = _check_current_password(body)
     if refused is not None:
         return refused
@@ -381,9 +374,9 @@ def totp_confirm():
     once a code from the app matches; returns `{"recovery_codes": [...]}`,
     shown this once.
     """
-    body = require_json_body()
+    body = parse_body(TotpConfirm, require_json_body())
     try:
-        codes = adminAuth.confirm_totp_setup(get_control_db(), g.admin_user["id"], body.get("code"))
+        codes = adminAuth.confirm_totp_setup(get_control_db(), g.admin_user["id"], body.code)
     except adminAuth.AuthError as exc:
         raise ApiError(str(exc), status_code=400)
     activity_log.event("AUTH", "totp.enabled", user=g.admin_user["username"])
@@ -402,13 +395,13 @@ def totp_disable():
     Forgets every trusted device of this admin and gives the caller a
     new one.
     """
-    body = require_json_body()
+    body = parse_body(TotpDisable, require_json_body())
     refused = _check_current_password(body)
     if refused is not None:
         return refused
     conn = get_control_db()
     if adminAuth.totp_enabled(conn, g.admin_user["id"]):
-        if adminAuth.check_second_factor(conn, g.admin_user["id"], body.get("code")) is None:
+        if adminAuth.check_second_factor(conn, g.admin_user["id"], body.code) is None:
             guard = LoginGuard(g.admin_user["username"], admin_user_id=g.admin_user["id"],
                                trusted_device=trusted_device_for(g.admin_user["username"]))
             guard.failed("totp.failed")
@@ -454,13 +447,7 @@ def create_api_key():
     is ever persisted (see `adminAuth.create_api_key`), so a caller that
     loses it has no way to recover it and must revoke and create another.
     """
-    body = require_json_body()
-    label = body.get("label")
-    if not isinstance(label, str) or not label.strip():
-        raise ApiError("'label' is required")
-    label = label.strip()
-    if len(label) > MAX_API_KEY_LABEL_LENGTH:
-        raise ApiError(f"'label' must be at most {MAX_API_KEY_LABEL_LENGTH} characters")
+    label = parse_body(ApiKeyCreate, require_json_body()).label
 
     key_id, raw_key = adminAuth.create_api_key(get_control_db(), g.admin_user["id"], label)
     activity_log.event("AUTH", "apikey.create", user=g.admin_user["username"], key_id=key_id, label=label)

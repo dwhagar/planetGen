@@ -82,7 +82,6 @@ from planetgen.db import store
 from planetgen.generation import bright_stars as brightStars, limits as generationLimits
 from planetgen import tuning
 from planetgen.galaxy import objectref as object_ref
-from planetgen.population import facilities as facility_rules
 from planetgen.db.store import get_galaxy_bounds, get_galaxy_shape, get_sector_id_at, list_databases, resolve_database
 from planetgen.util.appconfig import load_config
 from planetgen.generation.config import SystemConfig
@@ -95,7 +94,11 @@ from planetgen.util.format import format_distance_ly
 from planetgen.wiki import WikiClient, WikiClientAuthError, WikiClientPageExistsError, WikiClientRequestError
 
 from .authz import audit, require_admin
-from .common import ApiError, is_http_url, require_json_body
+from .common import ApiError, require_json_body
+from .schemas import (
+    BodyRename, FacilityCreate, NeighborhoodRequest, SectorCreate, SectorUpdate, SystemCreate, SystemPatch,
+    SystemRename, WikiUpload, given, parse_body,
+)
 from .limiter import limiter, page_limit
 
 bp = Blueprint("api", __name__, url_prefix="/api")
@@ -105,13 +108,6 @@ MAX_PAGE_LIMIT = 500
 MAX_PAGE_OFFSET = 2 ** 63 - 1
 """int: The largest `offset` MySQL's LIMIT/OFFSET takes as a plain
 integer; past it the query itself fails, so it's a 400 instead."""
-MAX_NAME_LENGTH = 255
-"""int: `sectors.name`/`star_systems.name` are VARCHAR(255)."""
-MAX_WIKI_URL_LENGTH = 2048
-"""int: `sectors.wiki_url` is VARCHAR(2048)."""
-MAX_SECTOR_EDGE_LY = 1e9
-"""float: An upper bound on a sector's `edge_ly` -- far beyond any real
-sector, well short of overflowing the unit conversion."""
 MAX_NEIGHBORHOOD_RADIUS_LY = generationLimits.MAX_GENERATE_RADIUS_LY
 """float: An upper bound on generate-neighborhood's `radius_ly` (about
 652 ly, the same 200 pc cap the Generate page and `planetgen` use), so
@@ -1048,66 +1044,6 @@ def wiki_config():
 # request/response shapes.
 # ---------------------------------------------------------------------
 
-SECTOR_FIELDS = {
-    # field name -> (expected Python type(s), validator)
-    "name": (str, lambda v: bool(v.strip()) and len(v) <= MAX_NAME_LENGTH),
-    # `0 < v <= MAX`, not `v > 0`: NaN, infinity and absurd sizes (which
-    # overflow the unit conversion) are all refused.
-    "edge_ly": ((int, float), lambda v: 0 < v <= MAX_SECTOR_EDGE_LY),
-}
-"""dict: The `sectors` JSON object shape both `create_sector` and
-`update_sector` validate against -- see docs/api.md's "Sectors" write
-schema. Shared so the two can never validate the same field two
-different ways."""
-
-SECTOR_UPDATE_FIELDS = {
-    **SECTOR_FIELDS,
-    # `None` clears a manually-set/uploaded link back to "no page yet" --
-    # see schema.sql's "v22" header note. `create_sector` deliberately
-    # doesn't accept this (a brand-new, just-generated sector has never
-    # been uploaded anywhere), so it's added only to `update_sector`'s own
-    # allowed-fields set, not to SECTOR_FIELDS itself.
-    # Only an absolute http/https URL with a host: the sector page links
-    # to it, so `javascript:`/`data:` URLs are refused (`is_http_url`).
-    "wiki_url": ((str, type(None)), lambda v: v is None or (len(v) <= MAX_WIKI_URL_LENGTH and is_http_url(v))),
-}
-"""dict: `SECTOR_FIELDS` plus `update_sector`-only fields -- see
-`_validate_sector_fields`'s `allowed` parameter."""
-
-
-def _validate_sector_fields(body, required, allowed=SECTOR_FIELDS):
-    """
-    Checks `body` against `allowed`: every key in `required` must be
-    present, and every key actually present (required or not) must match
-    its expected type and pass its validator.
-
-    Args:
-        body (dict): The parsed request body.
-        required (set[str]): Field names that must be present.
-        allowed (dict): The field shape to validate against -- `SECTOR_FIELDS`
-            for `create_sector`, `SECTOR_UPDATE_FIELDS` for `update_sector`
-            (see that dict's own docstring for why they differ).
-
-    Raises:
-        ApiError: On a missing required field, an unrecognized field, a
-            wrong-typed field, or one that fails its validator.
-    """
-    unknown = set(body) - set(allowed)
-    if unknown:
-        raise ApiError(f"unrecognized field(s): {', '.join(sorted(unknown))}")
-
-    missing = required - set(body)
-    if missing:
-        raise ApiError(f"missing required field(s): {', '.join(sorted(missing))}")
-
-    for field, (expected_type, is_valid) in allowed.items():
-        if field not in body:
-            continue
-        value = body[field]
-        if not isinstance(value, expected_type) or isinstance(value, bool) or not is_valid(value):
-            raise ApiError(f"'{field}' is invalid: {value!r}")
-
-
 def _resolve_requested_write_db_config():
     """
     Same as `_resolve_requested_db_config` above, but resolved against
@@ -1137,8 +1073,7 @@ def create_sector():
     required) -- inserts a new, empty `sectors` row (no systems -- use
     `sectorGen.py`/`galaxyGen.py` to generate a populated one) and
     returns its id."""
-    body = require_json_body()
-    _validate_sector_fields(body, required={"name", "edge_ly"})
+    body = given(parse_body(SectorCreate, require_json_body()))
 
     conn = _write_conn()
     try:
@@ -1165,10 +1100,7 @@ def update_sector(sector_id):
     `null` clears it back to "no page yet" (see `schema.sql`'s "v22"
     header note); the same column is also written automatically by
     `POST /api/sectors/<id>/wiki` on a successful upload."""
-    body = require_json_body()
-    if not body:
-        raise ApiError("body must include at least one field to update")
-    _validate_sector_fields(body, required=set(), allowed=SECTOR_UPDATE_FIELDS)
+    body = given(parse_body(SectorUpdate, require_json_body()))
 
     set_clauses, params = [], []
     if "name" in body:
@@ -1256,15 +1188,8 @@ def generate_sector_neighborhood_route(sector_id):
         body = {}
     if not isinstance(body, dict):
         raise ApiError("request body must be a JSON object")
-    radius_ly = body.get("radius_ly")
-    if radius_ly is not None and (
-        not isinstance(radius_ly, (int, float)) or isinstance(radius_ly, bool)
-        or not 0 < radius_ly <= MAX_NEIGHBORHOOD_RADIUS_LY
-    ):
-        raise ApiError(f"'radius_ly' is invalid: {radius_ly!r}")
-    estimate_only = body.get("estimate_only", False)
-    if not isinstance(estimate_only, bool):
-        raise ApiError(f"'estimate_only' is invalid: {estimate_only!r}")
+    request_body = parse_body(NeighborhoodRequest, body)
+    radius_ly, estimate_only = request_body.radius_ly, request_body.estimate_only
 
     config = _resolve_requested_write_db_config()
     if not estimate_only:
@@ -1351,79 +1276,6 @@ def job_status_route(job_id):
     return jsonify(job)
 
 
-SYSTEM_CONFIG_TRISTATE_FIELDS = {
-    "habitable_world", "asteroid_belt", "large_star", "moons",
-    "max_planets", "planets", "intelligent_life", "binary_system",
-    "wide_binary",
-}
-"""set[str]: `SystemConfig` fields that are `bool` or `None` (`None` = let
-the generator decide) -- see `config.py`'s own field docstrings."""
-
-SYSTEM_CONFIG_ALLOWED_FIELDS = SYSTEM_CONFIG_TRISTATE_FIELDS | {"markdown", "star_type", "name", "age", "num_orbits"}
-"""set[str]: Every recipe field `POST /api/systems` currently accepts --
-`SystemConfig.SERIALIZABLE_FIELDS` minus `SLOTS` (a nested per-orbit
-structure not validated in this pass; a request naming it is rejected as
-an unrecognized field rather than silently accepted-but-ignored)."""
-
-
-def _validate_system_config_body(body):
-    """
-    Validates a `POST /api/systems` recipe body against
-    `SYSTEM_CONFIG_ALLOWED_FIELDS` -- deliberately stricter than
-    `SystemConfig.from_dict`/`fields_from_dict` itself (which silently
-    ignores an unrecognized key rather than rejecting it), since a typo
-    in a request body should be a `400`, not a silently-ignored no-op.
-
-    Raises:
-        ApiError: On an unrecognized field or one with an invalid type/
-            value.
-    """
-    unknown = set(body) - SYSTEM_CONFIG_ALLOWED_FIELDS
-    if unknown:
-        raise ApiError(f"unrecognized field(s): {', '.join(sorted(unknown))}")
-
-    if "markdown" in body and not isinstance(body["markdown"], bool):
-        raise ApiError("'markdown' must be a boolean")
-    for field in SYSTEM_CONFIG_TRISTATE_FIELDS:
-        if field in body and body[field] is not None and not isinstance(body[field], bool):
-            raise ApiError(f"'{field}' must be a boolean or null")
-    for field in ("star_type", "name"):
-        if field in body and body[field] is not None and not isinstance(body[field], str):
-            raise ApiError(f"'{field}' must be a string or null")
-    if isinstance(body.get("name"), str) and len(body["name"]) > store.SYSTEM_NAME_MAX_LENGTH:
-        raise ApiError(f"'name' must be at most {store.SYSTEM_NAME_MAX_LENGTH} characters")
-    if "age" in body and body["age"] not in (None, "young", "old"):
-        raise ApiError("'age' must be 'young', 'old', or null")
-    if "num_orbits" in body:
-        value = body["num_orbits"]
-        if value is not None and (
-            not isinstance(value, int) or isinstance(value, bool)
-            or not 0 < value <= generationLimits.MAX_NUM_ORBITS
-        ):
-            raise ApiError(
-                f"'num_orbits' must be a positive integer up to {generationLimits.MAX_NUM_ORBITS}, or null"
-            )
-
-
-def _placement_fields(body):
-    """Pops and checks `POST /api/systems`' placement fields: `sector_id`
-    (a positive integer) and `position` (three finite light-year numbers,
-    sector-local, only with `sector_id`). Returns `(sector_id, position)`."""
-    sector_id = body.pop("sector_id", None)
-    position = body.pop("position", None)
-    if sector_id is not None and (not isinstance(sector_id, int) or isinstance(sector_id, bool) or sector_id < 1):
-        raise ApiError("'sector_id' must be a positive integer or null")
-    if position is not None:
-        if sector_id is None:
-            raise ApiError("'position' needs 'sector_id'")
-        if (not isinstance(position, list) or len(position) != 3
-                or not all(isinstance(c, (int, float)) and not isinstance(c, bool) and math.isfinite(c)
-                           for c in position)):
-            raise ApiError("'position' must be three finite numbers (light-years from the sector's center)")
-        position = tuple(float(c) for c in position)
-    return sector_id, position
-
-
 def _sector_generation_context(conn, sector_id, system_config):
     """For a galaxy-placed sector: the system's distance from the galactic
     center in light-years, after giving `system_config` the sector's
@@ -1473,9 +1325,10 @@ def create_system():
     when it is in the galaxy. Returns the new `star_systems.id` (and
     `position` when placed in a sector).
     """
-    body = require_json_body()
-    sector_id, position = _placement_fields(body)
-    _validate_system_config_body(body)
+    body = given(parse_body(SystemCreate, require_json_body()))
+    sector_id, position = body.pop("sector_id", None), body.pop("position", None)
+    if position is not None:
+        position = tuple(position)
 
     job_id, made = run_queued(create_system_job, _resolve_requested_write_db_config(), body, sector_id, position)
     if made is None:
@@ -1515,40 +1368,9 @@ def create_system_job(config, body, sector_id, position):
     return result
 
 
-NAME_MAX_LENGTH = MAX_NAME_LENGTH
-"""int: Every `name` column is `VARCHAR(255)` (see `schema.sql`)."""
-
 _NAME_CLASH_LABELS = {
     "sectors": "a sector", "star_systems": "a star system", "stars": "a star",
 }
-
-
-def _rename_body(max_length=NAME_MAX_LENGTH):
-    """
-    Validates a rename request's body -- exactly `{"name": str}`, not
-    blank once trimmed, at most `max_length` characters -- and
-    returns the trimmed name.
-
-    Raises:
-        ApiError: 400 on any other shape.
-    """
-    body = require_json_body()
-    unknown = set(body) - {"name"}
-    if unknown:
-        raise ApiError(f"unrecognized field(s): {', '.join(sorted(unknown))}")
-    return _check_name(body.get("name"), max_length)
-
-
-def _check_name(name, max_length=NAME_MAX_LENGTH):
-    """A new name, trimmed and checked as `_rename_body` describes. A
-    system or star passes `store.SYSTEM_NAME_MAX_LENGTH`: its planets and
-    moons are named after it, so it needs room to grow."""
-    if not isinstance(name, str) or not name.strip():
-        raise ApiError("'name' must be a non-empty string")
-    name = " ".join(name.split())
-    if len(name) > max_length:
-        raise ApiError(f"'name' must be at most {max_length} characters")
-    return name
 
 
 def _require_unique_name(conn, name, exclude):
@@ -1573,9 +1395,6 @@ def _system_rename_exclusions(conn, system_id):
     return exclude
 
 
-_SYSTEM_PATCH_FIELDS = {"name", "regenerate", "drop_facilities"}
-
-
 @bp.route("/systems/<int:system_id>", methods=["PATCH"])
 @limiter.limit(WRITE_RATE_LIMIT)
 @require_admin(fresh=True)
@@ -1596,23 +1415,13 @@ def update_system(system_id):
     true` (they would be deleted with the bodies). Both may be sent
     together; the rename happens first.
     """
-    body = require_json_body()
-    unknown = set(body) - _SYSTEM_PATCH_FIELDS
-    if unknown:
-        raise ApiError(f"unrecognized field(s): {', '.join(sorted(unknown))}")
-    if "name" not in body and "regenerate" not in body:
-        raise ApiError("send 'name', 'regenerate', or both")
-    name = _check_name(body["name"], store.SYSTEM_NAME_MAX_LENGTH) if "name" in body else None
-    recipe = body.get("regenerate")
-    drop_facilities = body.get("drop_facilities", False)
-    if not isinstance(drop_facilities, bool):
-        raise ApiError("'drop_facilities' must be a boolean")
-    if "regenerate" in body:
-        if not isinstance(recipe, dict):
-            raise ApiError("'regenerate' must be an object (a recipe, or {} for defaults)")
-        _validate_system_config_body(recipe)
-        if "name" in recipe:
-            raise ApiError("'regenerate' keeps the system's name; rename with 'name' instead")
+    parsed = parse_body(SystemPatch, require_json_body())
+    body = given(parsed)
+    name = parsed.name
+    recipe = given(parsed.regenerate) if parsed.regenerate is not None else None
+    drop_facilities = parsed.drop_facilities
+    if recipe is not None:
+        body["regenerate"] = recipe
 
     # A rename alone is one quick row write and stays in the request. A
     # regeneration generates a system, so it runs on the queue (PERF.24),
@@ -1671,7 +1480,7 @@ def rename_star(star_id):
     binary's star is renamed on its own, with the planets and moons named
     after it (`store.rename_star`). 409 if a sector, system or star already has the
     name."""
-    name = _rename_body(store.SYSTEM_NAME_MAX_LENGTH)
+    name = parse_body(SystemRename, require_json_body()).name
 
     conn = _write_conn()
     try:
@@ -1694,7 +1503,7 @@ def rename_star(star_id):
 
 def _rename_planet_or_moon(table, kind, body_id):
     """Shared body of `rename_planet`/`rename_moon`."""
-    name = _rename_body()
+    name = parse_body(BodyRename, require_json_body()).name
 
     conn = _write_conn()
     try:
@@ -1758,21 +1567,6 @@ def delete_system(system_id):
 # Facilities (schema v42): starbases, colonies and
 # outposts. See planetgen/population/facilities.py for the placement rules.
 # ---------------------------------------------------------------------
-
-FACILITY_FIELDS = {
-    "name": (str, lambda v: bool(v.strip()) and len(v) <= MAX_NAME_LENGTH),
-    "kind": (str, lambda v: v in tuning.FACILITY_KINDS),
-    "placement": (str, lambda v: v in facility_rules.PLACEMENTS),
-    "host_type": (str, lambda v: v in facility_rules.HOST_TYPES),
-    "host_id": (int, lambda v: v > 0),
-    "distance_km": ((int, float), lambda v: math.isfinite(v) and v > 0),
-    "phase_deg": ((int, float), math.isfinite),
-    "offset_ly": (list, lambda v: len(v) == 3 and all(
-        isinstance(c, (int, float)) and not isinstance(c, bool) and math.isfinite(c) for c in v)),
-    "description": (str, lambda v: len(v) <= 4000),
-}
-"""dict: The `POST /api/facilities` body shape."""
-
 
 @bp.route("/facilities/<int:facility_id>")
 def facility(facility_id):
@@ -1852,9 +1646,7 @@ def create_facility():
     (orbital), `offset_ly` (stand-alone, `[x, y, z]` from the sector's
     center) and `description` -- adds a facility (`store.add_facility`).
     400 when the placement rules refuse it, 404 when the host is missing."""
-    body = require_json_body()
-    _validate_sector_fields(body, required={"name", "kind", "placement", "host_type", "host_id"},
-                            allowed=FACILITY_FIELDS)
+    body = given(parse_body(FacilityCreate, require_json_body()))
     conn = _write_conn()
     try:
         with conn:
@@ -1949,43 +1741,19 @@ def _open_read_for_job(config):
 
 
 def _wiki_upload_request(body):
-    """
-    Validates a `POST .../wiki` request body.
-
-    Args:
-        body (dict): The parsed request body -- `{"backend": "wikijs" |
-            "mediawiki", "path": str}`. `path` is the target page's
-            path/slug for `"wikijs"` (which addresses a page separately
-            from its title -- see `planetgen/wiki/wikijs.py`) and required
-            for it; `"mediawiki"` has no such separate concept (its
-            title *is* its address, see `planetgen/wiki/mediawiki.py`), so
-            `path` is accepted but ignored for it.
+    """A `POST .../wiki` body checked as `schemas.WikiUpload`: `{"backend":
+    "wikijs" | "mediawiki", "path": str}`. `path` is the target page's
+    path/slug for `"wikijs"` (which addresses a page separately from its
+    title -- see `planetgen/wiki/wikijs.py`) and required for it;
+    `"mediawiki"` has no such separate concept (its title *is* its address,
+    see `planetgen/wiki/mediawiki.py`), so `path` is accepted but ignored.
 
     Returns:
         tuple[str, str or None]: `(backend, path)` -- `path` stripped, or
             `None` if not given/blank.
-
-    Raises:
-        ApiError: On an unrecognized field, a missing/invalid `backend`,
-            or a missing/blank `path` when `backend == "wikijs"`.
     """
-    unknown = set(body) - {"backend", "path"}
-    if unknown:
-        raise ApiError(f"unrecognized field(s): {', '.join(sorted(unknown))}")
-
-    backend = body.get("backend")
-    if backend not in ("wikijs", "mediawiki"):
-        raise ApiError("'backend' must be 'wikijs' or 'mediawiki'")
-
-    path = body.get("path")
-    if path is not None and not isinstance(path, str):
-        raise ApiError("'path' must be a string")
-    path = path.strip() if path else None
-
-    if backend == "wikijs" and not path:
-        raise ApiError("'path' is required for the 'wikijs' backend")
-
-    return backend, path
+    upload = parse_body(WikiUpload, body)
+    return upload.backend, upload.path
 
 
 def _create_wiki_page(client, path, title, content):

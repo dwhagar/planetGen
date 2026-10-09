@@ -19,6 +19,7 @@ from planetgen.queue import load as systemLoad, work as workQueue
 from .authz import audit, require_admin
 from .common import ApiError, get_control_db, require_json_body
 from .routes import _paginate
+from .schemas import QueueAction, WorkAction, parse_body
 
 bp = Blueprint("workqueue", __name__, url_prefix="/api/admin/work")
 
@@ -95,9 +96,7 @@ def control(node_id):
     or cancel. Returns `{"ok": bool}`: false when the node has finished
     or already does that.
     """
-    action = require_json_body().get("action")
-    if action not in workQueue.ACTIONS:
-        raise ApiError("'action' must be pause, resume or cancel")
+    action = parse_body(WorkAction, require_json_body()).action
     conn = get_control_db()
     node = workQueue.get_node(conn, _node_id(node_id))
     if node is None:
@@ -130,14 +129,12 @@ def queue():
     running tasks finish) or resumes it. `{"ok": bool}`: false when it
     already was.
     """
-    action = require_json_body().get("action")
+    action = parse_body(QueueAction, require_json_body()).action
     conn = get_control_db()
     if action == "pause":
         ok = workQueue.pause_queue(conn, g.admin_user["username"])
-    elif action == "resume":
-        ok = workQueue.resume_queue(conn)
     else:
-        raise ApiError("'action' must be pause or resume")
+        ok = workQueue.resume_queue(conn)
     if ok:
         audit(f"work.queue.{action}", target="queue")
     return jsonify({"ok": ok})
