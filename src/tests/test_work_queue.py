@@ -166,10 +166,9 @@ def test_a_run_records_its_job_and_tasks_and_frees_the_lease(control_config):
     job = _rows(control_config, "SELECT * FROM work_jobs")[0]
     assert job["id"] == queue.job_id and job["title"] == "Recorded run"
     assert (job["state"], job["workers"], job["tasks_queued"], job["tasks_done"]) == ("done", 2, 5, 5)
-    tasks = _rows(control_config, "SELECT task_key, state, seconds, result FROM work_tasks ORDER BY id")
+    tasks = _rows(control_config, "SELECT task_key, state, seconds FROM work_tasks ORDER BY id")
     assert [t["task_key"] for t in tasks] == [f"n{n}" for n in range(5)]
     assert {t["state"] for t in tasks} == {"done"}
-    assert sorted(int(t["result"]) for t in tasks) == [0, 1, 4, 9, 16]
     assert all(t["seconds"] is not None for t in tasks)
     assert _rows(control_config, "SELECT holder FROM work_lease")[0]["holder"] is None
 

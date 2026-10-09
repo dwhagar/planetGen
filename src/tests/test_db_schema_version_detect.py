@@ -31,10 +31,11 @@ def _detected(config):
 
 
 def _make_older_than_the_baseline(config):
-    """A current database with the baseline's marker column gone."""
+    """A current database with the baseline's marker column, and every later marker, gone."""
     store.get_connection(config).close()
     conn = store.get_connection(config, ensure_schema=False)
     try:
+        conn.execute("DROP TABLE generation_run_arguments")
         conn.execute("ALTER TABLE star_systems DROP COLUMN velocity_x_kms")
         conn.commit()
     finally:

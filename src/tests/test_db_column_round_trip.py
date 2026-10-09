@@ -19,7 +19,7 @@ from tests.rich_galaxy_support import rich_galaxy  # noqa: F401  (fixture)
 pytestmark = pytest.mark.db
 
 BOOKKEEPING_TABLES = {
-    "schema_migrations", "alembic_version", "id_blocks", "system_name_registry", "sector_name_registry", "population_state",
+    "schema_migrations", "alembic_version", "generation_run_arguments", "id_blocks", "system_name_registry", "sector_name_registry", "population_state",
     "orbit_simulation_state", "galaxy_column", "galaxy_layer", "sector_stats", "bright_stars",
     "nearest_systems",
 }
@@ -107,7 +107,7 @@ NEVER_READ = {
     ("galaxy_shape", "density_ratio_avg"): "density stats (PERF.11)",
     ("galaxy_shape", "density_ratio_samples"): "density stats (PERF.11)",
     **{("generation_runs", column): "run history (DB.6)" for column in
-       ("id", "command", "arguments", "run_seed", "galaxy_seed", "version_key", "planetgen_version",
+       ("id", "command", "run_seed", "galaxy_seed", "version_key", "planetgen_version",
         "python_version", "platform", "started_at", "finished_at", "outcome")},
 }
 """`(table, column)` the loaders and detail endpoints don't read, with why."""

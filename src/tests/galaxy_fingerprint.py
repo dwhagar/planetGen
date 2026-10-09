@@ -27,7 +27,7 @@ with open(_CONTROL_SCHEMA, encoding="utf-8") as _file:
 
 SKIPPED_TABLES = frozenset({
     "schema_migrations", "nearest_systems", "name_registry", "galaxy_shape", "galaxy_layer", "galaxy_column",
-    "generation_runs",
+    "generation_runs", "generation_run_arguments",
 }) | _CONTROL_TABLES
 """Tables left out: bookkeeping (the run history among it), the control database's tables (the tests
 keep them in the same database), links rebuilt from positions, and the

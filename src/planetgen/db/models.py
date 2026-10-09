@@ -340,12 +340,22 @@ galaxy_shape = sa.Table(
 )
 
 
+generation_run_arguments = sa.Table(
+    'generation_run_arguments',
+    metadata,
+    sa.Column('run_id', mysql.BIGINT(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('position', mysql.INTEGER(), primary_key=True, nullable=False),
+    sa.Column('value', sa.String(1024), nullable=False),
+    sa.ForeignKeyConstraint(['run_id'], ['generation_runs.id'], name='fk_generation_run_arguments_run', ondelete='CASCADE'),
+    mysql_engine="InnoDB",
+)
+
+
 generation_runs = sa.Table(
     'generation_runs',
     metadata,
     sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
     sa.Column('command', sa.String(32), nullable=False),
-    sa.Column('arguments', sa.Text(), nullable=False),
     sa.Column('run_seed', mysql.BINARY(16), nullable=True),
     sa.Column('galaxy_seed', mysql.BINARY(16), nullable=True),
     sa.Column('version_key', mysql.CHAR(22), nullable=False),
@@ -502,6 +512,7 @@ moons = sa.Table(
     sa.Index('idx_moons_name', 'name'),
     sa.Index('idx_moons_planet_class', 'planet_class'),
     sa.Index('idx_moons_planet_id', 'planet_id'),
+    sa.Index('idx_moons_radius_km', 'radius_km'),
     sa.Index('idx_moons_star_id', 'star_id'),
     sa.Index('idx_moons_star_system_id', 'star_system_id'),
     sa.Index('uq_moons_uid', 'star_system_id', 'uid', unique=True),
@@ -744,6 +755,7 @@ planets = sa.Table(
     sa.Index('idx_planets_life_chemical', 'life_chemical'),
     sa.Index('idx_planets_name', 'name'),
     sa.Index('idx_planets_planet_class', 'planet_class'),
+    sa.Index('idx_planets_radius_km', 'radius_km'),
     sa.Index('idx_planets_star_id', 'star_id'),
     sa.Index('idx_planets_star_system_id', 'star_system_id'),
     sa.Index('uq_planets_uid', 'star_system_id', 'uid', unique=True),
@@ -1044,6 +1056,7 @@ star_systems = sa.Table(
     sa.Index('ft_star_systems_name', 'name', mysql_prefix='FULLTEXT'),
     sa.Index('idx_star_systems_modified_at', 'modified_at'),
     sa.Index('idx_star_systems_name', 'name'),
+    sa.Index('idx_star_systems_quadrant', 'quadrant'),
     sa.Index('idx_star_systems_sector_id', 'sector_id'),
     sa.Index('idx_star_systems_system_config_id', 'system_config_id'),
     sa.Index('uq_star_systems_uid', 'uid', unique=True),
@@ -1085,7 +1098,9 @@ stars = sa.Table(
     sa.Column('uid', mysql.BIGINT(unsigned=True), nullable=True),
     sa.Index('ft_stars_name', 'name', mysql_prefix='FULLTEXT'),
     sa.Index('idx_stars_name', 'name'),
+    sa.Index('idx_stars_radius_km', 'radius_km'),
     sa.Index('idx_stars_star_system_id', 'star_system_id'),
+    sa.Index('idx_stars_star_type', 'star_type'),
     sa.Index('idx_stars_yerkes_class', 'yerkes_class'),
     sa.Index('uq_stars_uid', 'star_system_id', 'uid', unique=True),
     sa.ForeignKeyConstraint(['star_system_id'], ['star_systems.id'], name='fk_stars_star_system', ondelete='CASCADE'),
