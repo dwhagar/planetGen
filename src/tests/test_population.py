@@ -458,3 +458,17 @@ def test_species_and_polities_sort_filter_and_count(mysql_config, galaxy):
             population.list_polities(conn, sort="mass")
     finally:
         conn.close()
+
+
+def test_the_pass_announces_each_step_for_its_bar(mysql_config, galaxy):
+    """UX.83: the pass names its steps (a bar of its own), four, or one for territories only."""
+    conn = store.get_connection(mysql_config)
+    try:
+        stages = []
+        population.run_pass(conn, on_stage=stages.append)
+        assert len(stages) == population.pass_stage_count() == 4
+        only = []
+        population.run_pass(conn, territories_only=True, on_stage=only.append)
+        assert len(only) == population.pass_stage_count(True) == 1
+    finally:
+        conn.close()

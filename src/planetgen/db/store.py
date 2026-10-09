@@ -4555,6 +4555,9 @@ def _merge_into_neighbors(conn, sector_ids, skip=()):
 LINK_BATCH_SECTORS = 200
 """int: Sectors `link_sector_neighbors` links in one transaction."""
 
+LINK_PHASES = 3
+"""int: Steps `link_sector_neighbors` takes per sector (its progress units)."""
+
 
 def link_sector_neighbors(config, sector_ids, on_progress=None):
     """
@@ -4570,27 +4573,37 @@ def link_sector_neighbors(config, sector_ids, on_progress=None):
     Args:
         config (MySQLConfig): Connection parameters.
         sector_ids (iterable): The `sectors.id` values to link.
-        on_progress (callable, optional): `on_progress(done, total)`.
+        on_progress (callable, optional): `on_progress(done, total, step)`
+            in steps (`LINK_PHASES` per sector: containment, nearest
+            systems, the neighbours' lists), `step` naming the one being
+            done (UX.83).
 
     Returns:
         int: How many sectors were linked.
     """
     sector_ids = sorted(set(sector_ids))
     skip = set(sector_ids)
+    total = len(sector_ids) * LINK_PHASES
 
-    def link(batch):
+    def report(base, phase, label, size):
+        if on_progress is not None:
+            on_progress(base * LINK_PHASES + phase * size, total, label)
+
+    def link(batch, base):
         def work(conn):
             conn.lock_until_commit(_neighbor_lock_name(conn))
+            report(base, 0, "containment", len(batch))
             refresh_containment(conn, batch)
+            report(base, 1, "nearest systems", len(batch))
             refresh_nearest_systems(conn, batch)
+            report(base, 2, "neighbours' lists", len(batch))
             _merge_into_neighbors(conn, batch, skip=skip)
         return work
 
     for start in range(0, len(sector_ids), LINK_BATCH_SECTORS):
         batch = sector_ids[start:start + LINK_BATCH_SECTORS]
-        _save_with_retries(config, [], link(batch))
-        if on_progress is not None:
-            on_progress(min(start + LINK_BATCH_SECTORS, len(sector_ids)), len(sector_ids))
+        _save_with_retries(config, [], link(batch, start))
+        report(start + len(batch), 0, "", 0)
     return len(sector_ids)
 
 

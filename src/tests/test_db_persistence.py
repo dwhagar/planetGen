@@ -1485,7 +1485,12 @@ def test_sectors_linked_later_get_the_links_they_would_have_had_at_save(mysql_co
                             tuple(saved)).fetchone()["n"] == 0
     finally:
         conn.close()
-    assert store.link_sector_neighbors(mysql_config, saved) == 2
+    steps = []
+    assert store.link_sector_neighbors(mysql_config, saved, lambda *step: steps.append(step)) == 2
+    # UX.83: three steps a sector (containment, nearest systems, the neighbours' lists), ending full.
+    assert [label for _done, _total, label in steps[:3]] == ["containment", "nearest systems", "neighbours' lists"]
+    assert steps[-1][:2] == (6, 6) and all(total == 6 for _done, total, _label in steps)
+    assert [done for done, _total, _label in steps] == sorted(done for done, _total, _label in steps)
 
     conn = store.get_connection(mysql_config)
     try:
