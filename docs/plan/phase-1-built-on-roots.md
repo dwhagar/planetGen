@@ -139,6 +139,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.147 | The Galaxy Map wire format: the investigation (done) and the record of what was built from it | MAP.157, MAP.158, MAP.159 | Research Lane 3 report in docs/design/galaxy-map-wire-format.md; record until the build items are done. |
 | MAP.157 | Trim the Galaxy Map tile JSON and serve it from prebuilt, precompressed bytes |  | MAP.147 recommendation step 1; no client change. |
 | MAP.158 | A gentler tile prefetch and an IndexedDB tile cache instead of localStorage |  | MAP.147 recommendation step 1; client only. |
+| MAP.161 | Load the Galaxy Map faster on a first visit: bundle or preload its scripts |  | Boss 2026-10-09 23:29Z: moved to Phase 1. Wire format report, finding 7; client side, no prerequisite. |
 | MAP.148 | The star visibility law: apparent-magnitude opacity, flux-based brightness and an on-screen limit from a histogram | MAP.153 | Fly-through report item 1; builds after MAP.153 (its first stage). |
 | MAP.149 | The near field: depth fade, a see-through focus tube, drawing from inside a container, and picking that matches what is drawn |  | Fly-through report item 2; can start now. Folds MAP.121 blocker fade and MAP.141 context. |
 | MAP.150 | The free camera: wheel zoom to the cursor, double-click flight, and the observer inside, with the container named from position | MAP.149 | Fly-through report item 3; needs the near field. |
