@@ -3652,6 +3652,23 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Prerequisites: none.
   Design: [docs/design/api-design-standards.md](design/api-design-standards.md)
 
+- [ ] **API.22 An API version number: one sequential integer, shown in admin and in the status response**
+  Boss (2026-10-09 20:59Z): "I want ... API version number (same) by the
+  end of phase 1", a plain sequential integer like the DB schema number.
+  Done: `API_VERSION = 1` in one module, bumped by a PR that makes a
+  breaking change to an endpoint (a removed or renamed route or field, a
+  changed meaning or type, a new required parameter); additive changes
+  do not bump it. It is returned by the API status response and every
+  `/api` response header, shown on the admin status page in place of the
+  release string now labelled "API version", and recorded in
+  docs/api.md's change list. A test fails when the route table or
+  response shapes change without the integer moving (a stored schema
+  snapshot). API.4's compatibility data and the remote-run handshake
+  (API.17) compare this integer.
+  Open question for Boss (default: bump on any breaking change to an
+  endpoint, additive changes do not bump): or bump on every API change?
+  Prerequisites: none. Related: API.4, API.17.
+
 ## ADM: Admin tools
 
 - [ ] **ADM.13 Incomplete uploads page**
@@ -4205,6 +4222,23 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   drive measured is shown; tests use a fake data directory on another
   mount point. Owner: Bugfixes lane 1, after its current batch.
   Prerequisites: none.
+
+- [ ] **OPS.37 A Generator version number: one sequential integer, shown in admin and the API**
+  Boss (2026-10-09 20:59Z): "I want a Generator version number (like DB
+  number just sequential integers) ... by the end of phase 1." Done: one
+  plain integer, 1, 2, 3 ..., named the generator version, that says
+  which rules made a galaxy. It is OPS.28's `generator_epoch` under the
+  name Boss asked for, so there is one counter, not two: bumped by the
+  same PR rule (a change that alters generated output for the same seed
+  bumps it), stored with each galaxy's history row (OPS.13), per sector
+  (DB.16) and in the settings file (ADM.18), shown on the admin status
+  page beside the DB schema number, and returned by the API status
+  response. The release version (MAJOR.REVISION.BUILD) stays as it is.
+  Open question for Boss (default: the generator version and OPS.28's
+  `generator_epoch` are the same number, bumped only when output changes
+  for the same seed): or keep two numbers, one for any generator code
+  change and one for output changes?
+  Prerequisites: OPS.28.
 
 ## DOC: Documentation
 
