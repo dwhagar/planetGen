@@ -34,7 +34,7 @@ import time
 import pymysql
 
 from planetgen.queue import work as workQueue
-from planetgen.db import fingerprint, store
+from planetgen.db import check as db_check, fingerprint, store
 from planetgen.admin import activity_log
 from planetgen.generation import limits, prevalence
 from planetgen.galaxy import seed as galaxySeed, version_check, version_key
@@ -972,6 +972,26 @@ def add_fingerprint_arguments(parser):
     add_logging_arguments(parser)
 
 
+def add_check_db_arguments(parser):
+    """
+    Adds the `check-db` subcommand's options: the sectors to scope the
+    value, count and version-key checks to (`--ring`, `--sector`), `--deep`,
+    `--no-check-table`, and the MySQL connection and logging args.
+
+    Args:
+        parser (argparse.ArgumentParser): The parser to add options to.
+    """
+    parser.add_argument('--ring', type=int, action='append', metavar='RING',
+                        help="Check only this ring's sectors for values, counts and version keys (repeatable).")
+    parser.add_argument('--sector', type=int, nargs=3, action='append', metavar=('RING', 'LAYER', 'SLOT'),
+                        help="Check only the sector at this address for values, counts and version keys "
+                             "(repeatable).")
+    parser.add_argument('--deep', action='store_true', help="Run CHECK TABLE ... EXTENDED (slow).")
+    parser.add_argument('--no-check-table', action='store_true', help="Skip CHECK TABLE.")
+    store.add_mysql_connection_args(parser)
+    add_logging_arguments(parser)
+
+
 def add_population_arguments(parser):
     """
     Adds the `population` subcommand's options: `--rescan`,
@@ -1074,6 +1094,14 @@ def build_parser():
         help="Print a digest of the generated content, to compare two builds.")
     add_fingerprint_arguments(fingerprint_parser)
 
+    check_db_parser = subparsers.add_parser(
+        'check-db',
+        description="Checks the database for damage and changes nothing (DB.8): schema revision, table health, "
+                    "rows without parents, ids, impossible values, sector counts and version keys. Ends with one "
+                    "pass or fail line per check; exits 1 when it found damage and 2 when a check could not run.",
+        help="Check the database for damage (writes nothing).")
+    add_check_db_arguments(check_db_parser)
+
     population_parser = subparsers.add_parser(
         'population',
         description="Population and Politics Pass",
@@ -1090,6 +1118,7 @@ def build_parser():
         'check-math': check_math_parser,
         'versions': versions_parser,
         'fingerprint': fingerprint_parser,
+        'check-db': check_db_parser,
     }
 
 
@@ -1169,6 +1198,24 @@ def run_fingerprint(args):
         print(line)
 
 
+def run_check_db(args):
+    """`planetgen check-db`: prints the database check's report; exits 1 on
+    damage, 2 when a check could not run (DB.8)."""
+    config = store.mysql_config_from_args(args)
+    conn = store.get_connection(config, ensure_schema=False)
+    try:
+        report = db_check.run_checks(
+            conn, config, scope=db_check.Scope(tuple(args.ring or ()), tuple(tuple(a) for a in args.sector or ())),
+            deep=args.deep, check_table=not args.no_check_table,
+            on_progress=lambda name: log.normal(f"Checking {name} ..."))
+    finally:
+        conn.close()
+    for line in report.lines():
+        log.normal(line)
+    if report.exit_code():
+        raise SystemExit(report.exit_code())
+
+
 def run_check_math(args):
     """`planetgen check-math`: prints the math check's report and exits
     1 if any check failed (TEST.68)."""
@@ -1186,7 +1233,7 @@ def run_versions(args):
     log.normal(version_history.format_history(store.mysql_config_from_args(args)))
 
 
-READ_ONLY_COMMANDS = ("check-math", "fingerprint", "versions")
+READ_ONLY_COMMANDS = ("check-db", "check-math", "fingerprint", "versions")
 """tuple: Subcommands that write nothing, so they aren't logged as runs
 (no activity log lines, job tree node or run history)."""
 
@@ -1207,6 +1254,7 @@ def is_bulk_run(args):
 _COMMAND_HANDLERS = {
     'check-math': run_check_math,
     'versions': run_versions,
+    'check-db': run_check_db,
     'fingerprint': run_fingerprint,
     'system': run_system.run_system,
     'sector': run_sector.run_sector,

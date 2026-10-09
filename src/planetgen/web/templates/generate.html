@@ -328,6 +328,19 @@
   </form>
 {% endcall %}
 
+{% call fold("check-db", "Check the database") %}
+  <p>Looks for damage in <code>{{ database }}</code>: the schema version, table health, rows whose parent is gone,
+  ids that would clash, impossible values, sector counts and version keys. It changes nothing, and the job ends
+  with one pass or fail line per check.</p>
+  <form method="post" action="{{ url_for('web.generate') }}" class="search-form">
+    {{ csrf_field() }}
+    <input type="hidden" name="action" value="check_db">
+    <div class="search-actions">
+      <button type="submit" class="btn"{% if busy %} disabled{% endif %}>Check the database</button>
+    </div>
+  </form>
+{% endcall %}
+
 {% call fold("reset", "Reset") %}
   <p>Deletes every sector, system, phenomenon and the plan from <code>{{ database }}</code>. This can't be undone.
   Admin logins and API keys are kept.</p>
