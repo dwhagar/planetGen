@@ -22,7 +22,7 @@ import time
 
 import pymysql
 
-from planetgen.db import sector_paths, store
+from planetgen.db import store
 from planetgen.generation import bright_stars as brightStars
 from planetgen.galaxy import seed as galaxySeed
 from planetgen.physics import mathcheck
@@ -406,19 +406,8 @@ def generate_and_save_sector_at(args, address, position_pc, edge_pc):
         sector.place_in_galaxy(tuple(pc_to_ly(c) for c in position_pc))
         sector_id = store.save_sector(sector, config=store.mysql_config_from_args(args),
                                     galaxy_position=galaxy_position)
-    _save_sector_paths(args, sector_id)
     run_common._count_sector(sector)
     return sector_id, sector.name, sector
-
-
-def _save_sector_paths(args, sector_id):
-    """GEN.123: the path of every body in the freshly saved sector through it (nothing random)."""
-    conn = store.get_connection(store.mysql_config_from_args(args))
-    try:
-        sector_paths.compute_sector_paths(conn, sector_id)
-        conn.commit()
-    finally:
-        conn.close()
 
 
 def _galaxy_seed(args):

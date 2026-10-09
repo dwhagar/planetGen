@@ -14,7 +14,9 @@ back as `SectorPath`s.
 A path starts at the body's stored position and velocity, so it is as old
 as the last time paths were computed for its sector: the orbit update
 (`planetgen.cli.orbits`) recomputes them for the sectors something moved
-into or out of, and sector generation computes a new sector's.
+into or out of. Generation does not compute them: a path depends on the
+neighbouring sectors that exist at the time, which varies with the order
+workers fill sectors in, and generated data must not.
 
 Point masses are the stars of each star system (summed per system), black
 holes and neutron stars. The stored velocity of a star system is its
@@ -126,7 +128,7 @@ def compute_sector_paths(conn, sector_id):
         ValueError: If there is no such sector.
     """
     sector = _sector(conn, sector_id)
-    conn.execute("DELETE FROM sector_paths WHERE sector_id = ?", (sector_id,))
+    _delete_paths(conn, "SELECT id FROM sector_paths WHERE sector_id = ?", (sector_id,))
     if sector["center_x_pc"] is None or sector["ring_index"] is None or not sector["edge_mpc"]:
         return 0
     edge_pc = sector["edge_mpc"] / 1000.0
@@ -144,8 +146,17 @@ def compute_sector_paths(conn, sector_id):
     return saved
 
 
+def _delete_paths(conn, select_sql, params):
+    """Deletes the paths `select_sql` finds, by primary key: a DELETE with a
+    non-key WHERE on a missing row takes gap locks, and workers filling
+    neighbouring sectors at once deadlock on them."""
+    ids = [row["id"] for row in conn.execute(select_sql, params).fetchall()]
+    for path_id in ids:
+        conn.execute("DELETE FROM sector_paths WHERE id = ?", (path_id,))
+
+
 def _save_path(conn, sector_id, table, object_id, path):
-    conn.execute("DELETE FROM sector_paths WHERE object_table = ? AND object_id = ?", (table, object_id))
+    _delete_paths(conn, "SELECT id FROM sector_paths WHERE object_table = ? AND object_id = ?", (table, object_id))
     path_id = conn.execute(
         "INSERT INTO sector_paths (sector_id, object_table, object_id, exited, duration_years)"
         " VALUES (?, ?, ?, ?, ?)",
