@@ -112,7 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, NAV.12, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.57, TEST.77, OPS.14, GEN.59, UX.49, PERF.31, PERF.32, GEN.128, ADM.42 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.57, TEST.77, OPS.14, GEN.59, UX.49, PERF.31, PERF.32, GEN.128, ADM.42 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, API.16, ADM.17, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18, PERF.33, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, DB.15, ADM.43, ADM.44 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, repair that reads the newest settings JSON, and the anomalies chosen in phase 2. | NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, DB.10, ADM.20, GEN.114, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies, and the end state of reproducible galaxies (`generate.py reproduce`). | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, OPS.12, GEN.55 |
@@ -924,49 +924,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Research (2026-10-09, course-routing.md): build `ref` and the parent
   chain from each panel's own JOIN, not `resolve_object` per row.
 
-- [ ] **NAV.12 No maximum hop length: a route always reaches the nearest star it can, across any number of sectors**
-  Boss (2026-10-02 01:53Z): "routs will always find the nearest star
-  they can even if it crosses sector boundaries even across multiple
-  sectors. This is for a game mechanic I need in place and I also want
-  a jump through unknown space is marked in red and glows to draw
-  attention to it. Also UX change here to display the path
-  horizontally and find a way to split it between multiple lines for
-  mobile or limited displays." This replaces the hop-length study's
-  "optional ship range" (the study has reported; report in the
-  project's shared files under `nav-hop-length/`). Today two things
-  stop it: a same-sector route uses only that sector's own systems
-  (`queryDb.nav_between`, sector scope), and the k = 6
-  nearest-neighbour graph split into pieces (fixed by NAV.34, PR #427:
-  `navGraph.join_islands` joins them, so a route always exists). Done:
-  same-sector routes may leave the sector; the longest hop is shown; each
-  hop is flagged as a jump through unknown space when its line crosses
-  one or more unfilled (ungenerated) sectors (the default reading of
-  "unknown space"; NAV.38's `galaxyGeometry.sectors_along_segment`,
-  done in PR #357, finds the sectors), and `/api/nav` returns the flag
-  per hop. Built with NAV.10, which already rebuilds the routing.
-  Three strict-xfail tests in `src/tests/test_route_edge_cases.py` pin
-  it (TEST.79, PR #427): `test_nav_between_reports_the_longest_hop`
-  (`route["longest_hop_ly"]`), `test_nav_between_flags_a_hop_through_unfilled_sectors`
-  (`route["hops"][i]["unknown_space"]`) and
-  `test_nav_between_same_sector_route_uses_nearer_stars_next_door` (a
-  same-sector route that leaves the sector); NAV.12 turns them green and
-  removes the xfail marks (it may rename the keys).
-  Phase 1 is its anchor: NAV.34 and TEST.79 are done (PR #427), UX.35 runs alongside it (phase 1), and NAV.36
-  and NAV.39 need it first (phase 2).
-  Research (2026-10-09, course-routing.md): add the packed-int64
-  filled-set cache keyed by `galaxy_content_state`, the
-  outside-the-galaxy case (flagged but never chartable) and the
-  cheap-test-first rule; note that the third xfail test depends on graph
-  shape, not cost; keep cost as plain length. Corridor widening is for
-  quality, not existence (the island join runs on the corridor's graph);
-  the half-width is `max(50 pc, 5% of L)` with one doubling past 1.3
-  times the straight line, or a point budget of about 50,000 from
-  `sector_stats`. NAV.10 loads by cells along the segment
-  (`sectors_along_segment`); the measured 1e7-system, 1.56M-sector
-  result was corridor load 15 to 60 ms for 1,000 to 52,000 rows and
-  route 2 to 34 ms.
-  Design: [docs/design/course-routing.md](design/course-routing.md)
-
 - [ ] **NAV.11 Travel times for the system-to-system route too**
   Today warp and fold times are shown only for the direct distance;
   the route shows only its length. Boss (2026-10-02 04:19Z, with
@@ -1004,6 +961,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   sector-local position to the route data; a stone stop in an unfilled
   sector uses the Galactic frame. For an adjusted course (NAV.28) the
   readout bearing and mark are the first leg's, not the direct line's.
+  Built (2026-10-09, course-routing.md): NAV.12 (PR #838) built the
+  unbounded route but left three things out, all already in the design
+  text of course-routing.md section 2: per-stop sector_id and local
+  position (this item needs them), the packed filled-set cache, and the
+  adjacent-cell shortcut.
   Prerequisite: UX.35.
   Design: [docs/design/navigation-frames.md](design/navigation-frames.md)
 
@@ -1015,15 +977,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Galaxy Map course (with NAV.20), with a legend entry; with
   `prefers-reduced-motion` it stays red without the pulse; it reads in
   both themes, and the route list also labels it in text so it isn't
-  shown by color alone. Prerequisites: NAV.12, UX.35.
+  shown by color alone. Prerequisite: UX.35.
   Design: [docs/design/course-routing.md](design/course-routing.md)
 
 - [ ] **NAV.39 Saved courses remember their unknown-space jumps and check them again**
   Done: a saved course (NAV.17) keeps which hops were unknown-space
   jumps when it was saved, and opening it checks again, since sectors
   may have been filled in the meantime; a hop that is now known shows
-  as ordinary, and the course says what changed. Prerequisites: NAV.12,
-  NAV.17.
+  as ordinary, and the course says what changed. Prerequisite: NAV.17.
   Design: [docs/design/course-routing.md](design/course-routing.md)
 
 - [ ] **NAV.45 "What's within N pc" from the Galaxy Map and Sector Map**
@@ -1062,7 +1023,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   over a `kind` index on about 5e8 rows). Open question for Boss
   (default: no): do planetary nebulae and supernova remnants count as
   stops? Needs the galactic-motion bug below fixed first.
-  Prerequisites: NAV.12, GEN.137.
+  Prerequisite: GEN.137.
   Design: [docs/design/course-routing.md](design/course-routing.md)
 
 - [ ] **NAV.48 Offer to generate the uncharted sectors that block a course**
@@ -1083,7 +1044,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   unknown hops only, then re-plot): or every cell on the straight line?
   And how long may a charting job be before the page refuses (default:
   the 5,000-sector confirmation plus the PERF.3 disk refusal)?
-  Prerequisite: NAV.12.
   Design: [docs/design/course-routing.md](design/course-routing.md)
 
 - [ ] **NAV.49 Waypoints: pick objects in Star select mode and plot a course through them, kept on the map until cleared**
@@ -2945,7 +2905,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   - c) / 15, intermediate-mass black holes ln(1e5 / c) / ln(1e3). At 20
   solar masses the table falls from 1.17e9 rows (161 GB) to about 2.7e5
   rows (37 MB).
-  Prerequisites: GEN.166.
+  Prerequisite: GEN.166.
   Design: [docs/design/phenomenon-scatter-mass-cut.md](design/phenomenon-scatter-mass-cut.md)
 
 - [ ] **GEN.168 The sector fill draws the phenomena below the scatter cut**
@@ -2958,7 +2918,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   scatter's expected-star count, a level per sector, and a band top-up
   when the cut is lowered (the `run_plan._draw_sector_bands` pattern
   used for the bright stars).
-  Prerequisites: GEN.167.
+  Prerequisite: GEN.167.
   Design: [docs/design/phenomenon-scatter-mass-cut.md](design/phenomenon-scatter-mass-cut.md)
 
 - [ ] **GEN.169 Decide the phenomenon scatter rates: regional factors and the 0.1% intermediate-mass black holes**
@@ -3226,21 +3186,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisite: PERF.31.
   Design: [docs/design/performance-eta-queue-and-caching.md](design/performance-eta-queue-and-caching.md)
 
-- [ ] **PERF.42 Warm the RQ worker before the fork: pre-import generation modules and build the bright-star table once**
-  Research (2026-10-09, generation-performance-study.md, PR #835;
-  handoff in
-  /mnt/project-files/research/handoff/generation-performance.md; from
-  Boss's requests of 19:08Z and 19:21Z, generation being his slowest
-  point): pre-import the generation modules and warm
-  `star_population._bright_table` in `cli/worker.py` before the RQ fork,
-  and restart workers on update (or compare the version in the horse).
-  Measured on the scatter: 322 s down to 39.5 s (8.2 times) with
-  identical output (420,840 stars), because 95% of the scatter's CPU was
-  per-job import and band-table rebuild. It also removes about 2 to 3 s
-  per queue job (PERF.39 gets the same fix).
-  Prerequisites: none.
-  Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
-
 - [ ] **PERF.43 Lazy word-salad names for phenomena named by object ID**
   Research (2026-10-09, generation-performance-study.md, PR #835;
   handoff in
@@ -3309,7 +3254,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   point): record `innodb_buffer_pool_size`, the table sizes and the
   worker start-up cost with every benchmark run, so a result can be
   compared with the next.
-  Prerequisites: PERF.31.
+  Prerequisite: PERF.31.
   Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
 
 - [ ] **PERF.48 Low priority: a numeric-only INSERT formatter or C driver for bright_stars and phenomenon_scatter**
@@ -3506,7 +3451,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Deriving neutron stars and black holes on demand, or compacting the row,
   is needed only if the cut is lowered to 10 solar masses or less. The
   notes' earlier 1.6e8 rows was an unverified estimate, not a result.
-  Prerequisites: GEN.167.
+  Prerequisite: GEN.167.
   Design: [docs/design/phenomenon-scatter-mass-cut.md](design/phenomenon-scatter-mass-cut.md)
   Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
 
