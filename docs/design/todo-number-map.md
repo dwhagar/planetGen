@@ -15,7 +15,7 @@ release is stamped.
 |---|---|
 | UX | UX.76 |
 | MAP | MAP.134 |
-| NAV | NAV.51 |
+| NAV | NAV.52 |
 | GEN | GEN.125 |
 | PERF | PERF.31 |
 | DB | DB.15 |
@@ -709,7 +709,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.130 | Retire the average-star-color rule in the docs and tests | none | done, PR #556 |
 | MAP.131 | A Color by switch on the Galaxy Map, with a legend | none | done, PR #692 |
 | MAP.132 | Overlay markers for black holes, nebulae and habitable worlds | none | open |
-| MAP.133 | The Galaxy Map shows no bright stars in the bulge, and only layers -121 to 121 (bug) | none | open |
+| MAP.133 | The Galaxy Map shows no bright stars in the bulge, and only layers -121 to 121 (bug) | none | done, PR #722 |
 | MAP.117 | Surface pressure missing from the planet and moon side panel (bug) | none | done, PR #457 |
 | MAP.118 | The Galaxy Map shows an unfilled sector above the galaxy that can't be filled (bug) | none | done, PR #457 |
 | MAP.119 | Expected star density editable by admins on the Galaxy Map | none | open |
@@ -722,7 +722,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.126 | Show the orbital trajectories of selected objects in their frame of reference | none | done, PR #686 |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
-| NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | open |
+| NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
 | NAV.4 | Save a course | none | open |
 | NAV.5 | Show a course on the Galaxy Map | none | open |
 | NAV.6 | Courses that steer clear of gravity wells | none | open |
@@ -769,7 +769,8 @@ Parents marked "new parent" had no old number of their own.
 | NAV.47 | Unknown-space jumps stop at scattered stars, black holes, neutron stars and quasars | none | open |
 | NAV.48 | Offer to generate the uncharted sectors that block a course | none | open |
 | NAV.49 | Waypoints: pick objects in Star select mode and plot a course through them, kept on the map until cleared | none | open |
-| NAV.50 | Pick any object down to a moon as a NAV endpoint | none | open |
+| NAV.50 | Pick any object down to a moon as a NAV endpoint | none | done, PR #724 |
+| NAV.51 | Courses route around asteroid fields | none | open |
 | OPS.1 | Build the version number from the category counters (item 80's version-scheme questions) | none (split from 80 by the renumbering) | done in the version-from-todo-counters PR |
 | OPS.2 | Apache OOM-killed on the production server | 1 (2026-09-24 01:32Z to 02:02Z) | done in 5.47.0, PR #72 |
 | OPS.3 | PowerShell installers and macOS-safe bash scripts | 50 (2026-09-30 20:43Z to 2026-10-01 02:57Z) | done in 7.16.0, PR #125 (see note 4) |

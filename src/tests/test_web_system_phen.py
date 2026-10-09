@@ -11,7 +11,11 @@ real throwaway database through the in-process transport and are skipped
 without a MySQL test server.
 """
 
+import json
+import os
 import re
+import shutil
+import subprocess
 
 import pytest
 
@@ -765,3 +769,66 @@ def test_object_page_navigation_is_secondary_and_the_bookmark_is_one_star(client
     assert 'class="btn btn-small btn-secondary nav-wide"' in html
     assert 'class="btn btn-small btn-secondary nav-galaxy"' in html
     assert "btn-secondary btn-bookmark" in html and "☆ Bookmark" not in html
+
+
+# --- NAV.50: NAV buttons on a body's info panel ----------------------------------
+
+def _save_sector_system(mysql_config):
+    cfg = SystemConfig()
+    cfg.STAR_TYPE = "G2V"
+    cfg.PLANETS = True
+    cfg.BINARY_SYSTEM = False
+    sector = SpaceSector("Nav Sector", edge_ly=10.0)
+    sector.add_system(StarSystem(system_config=cfg), position=(1.0, 1.0, 1.0), system_config=cfg)
+    other = SystemConfig()
+    other.STAR_TYPE = "M5V"
+    other.PLANETS = False
+    other.BINARY_SYSTEM = False
+    sector.add_system(StarSystem(system_config=other), position=(-2.0, 0.5, 3.0), system_config=other)
+    sector_id = store.save_sector(sector, config=mysql_config)
+    conn = store.get_connection(mysql_config)
+    try:
+        return [r["id"] for r in conn.execute(
+            "SELECT id FROM star_systems WHERE sector_id = ? ORDER BY id", (sector_id,)).fetchall()]
+    finally:
+        conn.close()
+
+
+def test_system_map_gives_body_panels_nav_buttons(db_app, mysql_config):
+    first, second = _save_sector_system(mysql_config)
+    client = db_app.test_client()
+    html = client.get(f"/system/{first}").get_data(as_text=True)
+    assert 'data-nav-start="/nav?from={ref}"' in html and 'data-nav-end="/nav?to={ref}"' in html
+    assert "data-nav-take" not in html
+    # Every star marker carries the id the object reference needs.
+    assert re.search(r'data-kind="star" data-id="\d+"', html) or re.search(r'data-id="\d+"[^>]*data-kind="star"', html)
+
+    picking = client.get(f"/system/{first}?pick=to&from=system:{second}").get_data(as_text=True)
+    assert f'data-nav-take="/nav?from=system:{second}&amp;to={{ref}}"' in picking
+    assert 'data-nav-label="End Here"' in picking and "data-nav-start" not in picking
+    choosing_start = client.get(f"/system/{first}?pick=from&to=system:{second}").get_data(as_text=True)
+    assert f'data-nav-take="/nav?from={{ref}}&amp;to=system:{second}"' in choosing_start
+
+
+def test_a_system_with_no_sector_has_no_body_nav(db_app, mysql_config):
+    system_id = _save_system(mysql_config)
+    assert "data-nav-" not in db_app.test_client().get(f"/system/{system_id}").get_data(as_text=True)
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="Node isn't installed")
+def test_browser_nav_buttons_follow_the_server_templates():
+    script = (
+        "const m = await import(process.argv[1]);"
+        "const take = {dataset: {navTake: '/nav?from=system:5&to={ref}', navLabel: 'End Here'}};"
+        "const both = {dataset: {navStart: '/nav?from={ref}', navEnd: '/nav?to={ref}'}};"
+        "console.log(JSON.stringify([m.navActions(take, 'moon:7'), m.navActions(both, 'planet:3'),"
+        " m.navActions(both, 'barycenter'), m.navActions(both, 'sector:1'), m.navActions(null, 'moon:7')]));"
+    )
+    module_url = "file://" + os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "html", "static", "systemnav.js"))
+    out = json.loads(subprocess.run(["node", "--input-type=module", "-e", script, module_url],
+                                    check=True, capture_output=True, text=True).stdout)
+    assert out == [
+        [{"label": "End Here", "href": "/nav?from=system:5&to=moon:7", "primary": True}],
+        [{"label": "Start Here", "href": "/nav?from=planet:3"}, {"label": "End Here", "href": "/nav?to=planet:3"}],
+        [], [], [],
+    ]
