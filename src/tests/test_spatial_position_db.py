@@ -71,3 +71,71 @@ def test_a_saved_sector_loads_back_with_every_entry_and_body_in_place(mysql_conf
     first = original[0]
     assert row["position_x_km"] == pytest.approx(first.spatial.get_coordinates("system", "cartesian")[0]
                                                  * constants.AU_TO_KM, rel=1e-9)
+
+
+def test_a_loaded_sector_knows_every_objects_cell_and_velocity(mysql_config):
+    """GEN.121, GEN.124: the entries and the bodies of their systems come back with their sector address and
+    the velocity they had when saved."""
+    from planetgen.galaxy import geometry
+
+    address = (1500, 2, 700)
+    edge_pc = 11.5 * constants.LIGHTYEAR_M / constants.PARSEC_M
+    center_pc = geometry.sector_position_pc(*address, edge_pc)
+    sector = SpaceSector("Addressed Round Trip", edge_ly=11.5)
+    for _ in range(300):
+        cfg = SystemConfig()
+        cfg.PLANETS = True
+        system = StarSystem(system_config=cfg)
+        if system.planets:
+            break
+    sector.add_system(system, position=(1.0, -0.5, 0.5), system_config=cfg)
+    sector.place_in_galaxy(tuple(c * constants.PARSEC_M / constants.LIGHTYEAR_M for c in center_pc))
+    sector_id = store.save_sector(sector, config=mysql_config, galaxy_position={
+        "center_x_pc": center_pc[0], "center_y_pc": center_pc[1], "center_z_pc": center_pc[2],
+        "galactic_radius_pc": float((center_pc[0] ** 2 + center_pc[1] ** 2 + center_pc[2] ** 2) ** 0.5),
+        "ring_index": address[0], "layer_index": address[1], "ring_slot_index": address[2],
+    })
+    conn = store.get_connection(mysql_config)
+    try:
+        loaded = store.load_sector(conn, sector_id)
+    finally:
+        conn.close()
+    before, after = sector.entries[0], loaded.entries[0]
+    assert before.spatial.sector_address == after.spatial.sector_address == address
+    assert after.spatial.get_velocity_vector("galactic") == pytest.approx(
+        before.spatial.get_velocity_vector("galactic"), rel=1e-6)
+    assert max(abs(v) for v in after.spatial.get_velocity_vector("galactic")) > 1.0e4  # a star moving ~220 km/s
+    for star, original in zip(after.star_system.stars, before.star_system.stars):
+        assert star.spatial.sector_address == address
+        assert star.spatial.get_velocity_vector("galactic") == pytest.approx(
+            original.spatial.get_velocity_vector("galactic"), rel=1e-6)
+    planets = [p for p in after.star_system.planets if getattr(p, "spatial", None)]
+    originals = [p for p in before.star_system.planets if getattr(p, "spatial", None)]
+    assert planets
+    for planet, original in zip(planets, originals):
+        assert planet.spatial.sector_address == address
+        assert planet.spatial.get_velocity_vector("galactic") == pytest.approx(
+            original.spatial.get_velocity_vector("galactic"), rel=1e-6, abs=1e-3)
+
+
+def test_a_loaded_sector_carries_the_time_its_orbits_were_last_advanced(mysql_config):
+    """GEN.121: the epoch of every stored position and velocity is when `advance_orbital_phases` last ran."""
+    sector = _sector_with_moons()
+    sector_id = store.save_sector(sector, config=mysql_config)
+    conn = store.get_connection(mysql_config)
+    try:
+        assert store.get_orbit_epoch_unix(conn) is None
+        assert store.load_sector(conn, sector_id).entries[0].spatial.epoch_unix is None
+        store.advance_orbital_phases(conn, elapsed_years=0.001)
+        epoch = store.get_orbit_epoch_unix(conn)
+        assert epoch is not None and epoch > 1.7e9
+        loaded = store.load_sector(conn, sector_id)
+    finally:
+        conn.close()
+    entry = loaded.entries[0]
+    assert entry.spatial.epoch_unix == epoch
+    system = entry.star_system
+    assert all(star.spatial.epoch_unix == epoch for star in system.stars)
+    bodies = [p for p in system.planets if getattr(p, "spatial", None)]
+    assert bodies and all(p.spatial.epoch_unix == epoch for p in bodies)
+    assert all(m.spatial.epoch_unix == epoch for p in bodies for m in p.moons)

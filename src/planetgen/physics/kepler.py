@@ -46,6 +46,7 @@ import math
 
 from planetgen.physics import constants
 from planetgen.physics.orbits import orbital_position_au
+from planetgen.physics.state_vectors import state_from_elements
 from planetgen.util.checks import finite_domain
 
 TWO_PI = 2 * math.pi
@@ -371,7 +372,10 @@ def comet_orbital_state(orbit_type, perihelion_distance_au, eccentricity, inclin
 
     Returns:
         dict: `position_x_au`, `position_y_au`, `position_z_au`,
-             `distance_au`, `orbital_speed_kms`.
+             `distance_au`, `orbital_speed_kms`, and the velocity relative
+             to the primary, `velocity_x_au_per_year`,
+             `velocity_y_au_per_year`, `velocity_z_au_per_year`
+             (`state_vectors.state_from_elements` for the same orbit).
 
     Raises:
         ValueError: If `orbit_type` isn't `"elliptical"` or `"parabolic"`,
@@ -399,6 +403,11 @@ def comet_orbital_state(orbit_type, perihelion_distance_au, eccentricity, inclin
         distance_au, inclination_deg, ascending_node_deg, argument_of_latitude_deg
     )
     orbital_speed_kms = vis_viva_speed_kms(distance_au, semi_major_axis_au, primary_mass_solar)
+    eccentricity_used = 1.0 if orbit_type == "parabolic" else eccentricity
+    _position, velocity = state_from_elements(
+        gravitational_parameter_au3_yr2(primary_mass_solar), perihelion_distance_au, eccentricity_used,
+        math.radians(inclination_deg), math.radians(ascending_node_deg), math.radians(arg_periapsis_deg),
+        true_anomaly_rad)
 
     return {
         "position_x_au": position_x_au,
@@ -406,4 +415,7 @@ def comet_orbital_state(orbit_type, perihelion_distance_au, eccentricity, inclin
         "position_z_au": position_z_au,
         "distance_au": distance_au,
         "orbital_speed_kms": orbital_speed_kms,
+        "velocity_x_au_per_year": velocity[0],
+        "velocity_y_au_per_year": velocity[1],
+        "velocity_z_au_per_year": velocity[2],
     }

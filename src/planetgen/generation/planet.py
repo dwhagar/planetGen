@@ -27,7 +27,7 @@ import random
 from planetgen.generation import prevalence
 from planetgen.generation.config import SystemConfig
 from planetgen.physics import constants, planets as planetPhysics
-from planetgen.physics.position import HoldsOrbitPosition, axis_property
+from planetgen.physics.position import HoldsOrbitPosition, axis_property, velocity_axis_property
 from planetgen import tuning
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from planetgen.util.format import (
@@ -134,6 +134,14 @@ class Planet(HoldsOrbitPosition):
                                    Mutated in place by `planetgen.cli.orbits` as
                                    time passes -- everything else here is
                                    fixed at generation time.
+        velocity_x_kms, velocity_y_kms, velocity_z_kms (float): This body's
+                                   velocity, km/s, relative to its orbital
+                                   anchor (the same one `position_x/y/z`
+                                   is measured from): the tangent of its
+                                   circular orbit at its current phase,
+                                   `orbital_speed_kms` long. Set with the
+                                   position (`planetPhysics.
+                                   update_orbital_position`).
         position_x, position_y, position_z (float): This body's current
                                    Cartesian position, in AU, relative to
                                    its orbital anchor -- the star (or, for
@@ -179,6 +187,7 @@ class Planet(HoldsOrbitPosition):
         "flavor_text_count", "habitable_zone", "volume", "period",
         "orbital_inclination_deg", "orbital_ascending_node_deg", "orbital_phase_deg",
         "position_x", "position_y", "position_z", "orbital_speed_kms",
+        "velocity_x_kms", "velocity_y_kms", "velocity_z_kms",
         "min_update_interval_years",
         "rotation_period_hours",
         "reflex_offset_x", "reflex_offset_y", "reflex_offset_z",
@@ -196,6 +205,9 @@ class Planet(HoldsOrbitPosition):
     position_x = axis_property(0)
     position_y = axis_property(1)
     position_z = axis_property(2)
+    velocity_x_kms = velocity_axis_property(0)
+    velocity_y_kms = velocity_axis_property(1)
+    velocity_z_kms = velocity_axis_property(2)
     """
     float: This body's offset from its orbital anchor, AU (the star, or a
     moon's parent planet): the "system" frame of `spatial`, its
@@ -297,6 +309,9 @@ class Planet(HoldsOrbitPosition):
         self.position_x = None
         self.position_y = None
         self.position_z = None
+        self.velocity_x_kms = None
+        self.velocity_y_kms = None
+        self.velocity_z_kms = None
         self.orbital_speed_kms = None
         self.min_update_interval_years = None
         self.rotation_period_hours = None
