@@ -168,6 +168,20 @@ timer runs differ by a few points.
   the horse must compare `planetgen.__version__` with the one the parent loaded and exit when
   they differ. Tables for a non-default luminosity threshold stay cold (cache them on disk
   keyed by version and threshold if that matters).
+  **Built (PERF.42).** `cli/worker.py` `warm()` imports the task modules
+  (`WARM_MODULES`) and, when the worker serves the generation queue, builds
+  `_bright_table` for the four populations at every floor a scatter or
+  backfill uses (the galaxy-wide floor and the four backfill tier floors).
+  The per-job API workers (one queue each) only import. A worker that has
+  pre-imported would keep serving an old release after an update, so before
+  it waits for the next job it compares the release in `_version.py` on disk
+  with the one it loaded and, when they differ, deregisters and re-executes
+  itself (POSIX; a spawned horse on Windows is a fresh interpreter anyway).
+  Measured on this build box, a forked horse's start-up (importing
+  `run_plan` and building those tables) went from 2.6 s to under 1 ms; the
+  one-off warm-up costs 2.7 s per worker. The tables are the same as a cold
+  build's (a test compares them), so a seeded run gives the same rows. A
+  floor outside that list stays cold.
 - **B. Do not generate names that will be discarded.** `RoguePlanet`, `Comet`, `Nebula`,
   `AsteroidField`, `SupernovaRemnant`, `Quasar` and the compact remnants call
   `generate_phoneme_salad_name` in their constructors, but a phenomenon placed in a
