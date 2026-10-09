@@ -73,13 +73,12 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.84 | Habitability design: one score structure and reconciled thresholds |  | Decision for Boss inside it: which score structure. |
-| GEN.85 | Atmosphere species, partial pressures and mantle redox for every planet | GEN.84 |  |
-| GEN.86 | Stellar activity (XUV, flares) and planetary magnetic fields | GEN.84 |  |
+| GEN.85 | Atmosphere species, partial pressures and mantle redox for every planet |  |  |
+| GEN.86 | Stellar activity (XUV, flares) and planetary magnetic fields |  |  |
 | GEN.87 | Surface radiation dose | GEN.85, GEN.86 |  |
 | GEN.88 | Hydrosphere and ocean chemistry | GEN.85 | Reuses rogueSurface's ice-shell and ocean functions. |
 | GEN.89 | The habitability score for every planet and moon | GEN.85, GEN.86, GEN.87, GEN.88 |  |
-| GEN.83 | A planetary habitability index (PHI) | GEN.84, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89 | Parent; the class refactor (GEN item GEN.90) follows it. |
+| GEN.83 | A planetary habitability index (PHI) | GEN.85, GEN.86, GEN.87, GEN.88, GEN.89 | Parent; the class refactor (GEN item GEN.90) follows it. |
 
 ### Tech levels and facilities
 
@@ -101,9 +100,8 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.104 | A spin vector and a realistic axial tilt for every rotating object |  | Rules from "Observational Kinetics for Rotational Vectors.md". |
-| GEN.106 | Movement thresholds and a next-update-due column |  |  |
-| GEN.107 | The update reports how many objects moved, changed sector, or entered or left a nebula | GEN.106 |  |
-| GEN.108 | Orbital math limits: where each method breaks down and what happens there | GEN.106 | Boss (2026-10-07 11:47Z): "we need to ensure that reasonable limitations for when the math breaks down at the edge cases." |
+| GEN.107 | The update reports how many objects moved, changed sector, or entered or left a nebula |  |  |
+| GEN.108 | Orbital math limits: where each method breaks down and what happens there |  | Boss (2026-10-07 11:47Z): "we need to ensure that reasonable limitations for when the math breaks down at the edge cases." |
 
 ### Routing
 
@@ -121,8 +119,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| NAV.43 | Find everything within a distance of a place: the query and the API |  | Boss 04:39Z. Replaces systems_within_radius (one sector, systems only); enumerate_sectors_within_radius then per-sector reads; open questions: max distance, ungenerated sectors, generated only. |
-| NAV.44 | A "What's nearby" page: pick a place, enter a distance in parsecs, list what is there | NAV.43 | Boss 04:39Z. Page with place picker, distance in pc, kind filters, 50-row pages. |
 
 ### Maps
 
@@ -202,6 +198,8 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.131 | Bright-star scatter logs how many stars it added to each layer, by type |  | Boss 2026-10-09 08:03Z; the last item of Bugfixes lane 1. |
+| GEN.132 | Per-sector regional rates for neutron stars and black holes, extended system-wide where the research supports it |  | Boss 2026-10-09 09:20Z; first on Foundations lane 1, ahead of OPS.8. |
+| GEN.133 | Analysis of every star type's rate against its distance from the galactic core |  | Boss 2026-10-09 09:20Z; Foundations lane 1, with GEN.132. |
 | PERF.31 | Investigate: where generation spends its time, from the plan to a finished galaxy |  | GitHub issues [#761](https://github.com/dwhagar/planetGen/issues/761) and [#750](https://github.com/dwhagar/planetGen/issues/750) (benchmark half). |
 | PERF.32 | Generation performance stats: rates recorded per run, deleted on every new version |  | GitHub issues [#661](https://github.com/dwhagar/planetGen/issues/661) (store half) and #750. |
 | GEN.128 | Design: multi-star hierarchies and compact-object primaries |  | GitHub issues [#777](https://github.com/dwhagar/planetGen/issues/777) and [#778](https://github.com/dwhagar/planetGen/issues/778): the research both builds wait on. |

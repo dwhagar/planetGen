@@ -38,7 +38,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | MAP.75 | The mini map as a second engine view |  | Locked second camera on MAP.64. |
 | MAP.59 | Make it plain that a zoomed-in slab is a slab, not a wedge | MAP.75 |  |
-| MAP.132 | Overlay markers for black holes, nebulae and habitable worlds | GEN.84 | Later (Boss 2026-10-08 01:59Z colors). |
+| MAP.132 | Overlay markers for black holes, nebulae and habitable worlds |  | Later (Boss 2026-10-08 01:59Z colors). |
 
 ### Courses
 
@@ -111,7 +111,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| NAV.45 | "What's within N pc" from the Galaxy Map and Sector Map | NAV.44 | Boss 04:39Z. Map action opening NAV.44; drawn sphere optional. |
+| NAV.45 | "What's within N pc" from the Galaxy Map and Sector Map |  | Boss 04:39Z. Map action opening NAV.44; drawn sphere optional. |
 
 ### Bookmarks
 
@@ -124,11 +124,11 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.115 | The galaxy's own gravity: a smooth disk, bulge and halo potential | GEN.106, GEN.108 | Model from Boss's "Computational Astrodynamics.md" (2026-10-07): bulge, disk and halo potential. |
-| GEN.109 | N-body influence from the nearest 10 bodies of equal or larger mass, with a Hill-radius warning | GEN.106, GEN.108, GEN.115 |  |
+| GEN.115 | The galaxy's own gravity: a smooth disk, bulge and halo potential | GEN.108 | Model from Boss's "Computational Astrodynamics.md" (2026-10-07): bulge, disk and halo potential. |
+| GEN.109 | N-body influence from every object inside the largest nearby Hill sphere plus the galactic gradient, with a Hill-radius warning | GEN.108, GEN.115 |  |
 | ADM.36 | Change an object's trajectory vector | GEN.109 |  |
 | GEN.110 | Rogue planet collisions: asteroid fields, merged giants and new stars | GEN.109 |  |
-| GEN.105 | Orbital updates | GEN.106, GEN.107, GEN.108, GEN.115, GEN.109, GEN.110 | Parent of the orbital update work. |
+| GEN.105 | Orbital updates | GEN.107, GEN.108, GEN.115, GEN.109, GEN.110 | Parent of the orbital update work. |
 
 ### Nebula planets
 

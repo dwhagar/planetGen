@@ -820,3 +820,58 @@ def test_topping_up_backfilled_sectors_shows_a_bar_on_the_web(mysql_config, web_
     topping = [report for report in web_progress if report[0] == "Topping up backfilled sectors"]
     assert topping and topping[0][1:] == (0, topping[0][2]) and topping[0][2] > 0
     assert topping[-1][1] == topping[-1][2]
+
+
+def test_a_sector_built_around_a_bright_star_gives_it_planets_and_moons(mysql_config):
+    # GEN.127 (GitHub #513): generating a sector that holds a backfilled bright star builds that star's whole
+    # system (planets, belts, moons), as GEN.72 made it, not just the star.
+    _seed_galaxy(mysql_config)
+    run_plan.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only"))
+    conn = store.get_connection(mysql_config)
+    try:
+        rows = conn.execute(
+            "SELECT ring_index, layer_index, ring_slot_index, COUNT(*) AS n FROM bright_stars"
+            " GROUP BY ring_index, layer_index, ring_slot_index ORDER BY n DESC LIMIT 1").fetchall()
+    finally:
+        conn.close()
+    address = (rows[0]["ring_index"], rows[0]["layer_index"], rows[0]["ring_slot_index"])
+    args = run_galaxy._default_generation_args(config=mysql_config)
+    args.num_systems = 0
+    position = sector_position_pc(*address, EDGE_PC)
+    sector_id, _name, sector = run_galaxy.generate_and_save_sector_at(args, address, position, EDGE_PC)
+    assert [entry for entry in sector.entries if entry.preplaced]
+    conn = store.get_connection(mysql_config)
+    try:
+        systems = conn.execute(
+            "SELECT ss.id AS id, COUNT(p.id) AS planets FROM star_systems ss JOIN bright_stars b"
+            " ON b.star_system_id = ss.id LEFT JOIN planets p ON p.star_system_id = ss.id"
+            " WHERE ss.sector_id = ? GROUP BY ss.id", (sector_id,)).fetchall()
+    finally:
+        conn.close()
+    assert systems
+    # Not every star keeps planets (a close binary, a giant), but a sector's worth of bright systems has some.
+    assert sum(row["planets"] for row in systems) > 0, [dict(row) for row in systems]
+
+
+def test_the_scatter_and_the_backfill_log_the_stars_added_to_each_layer_by_type(mysql_config, monkeypatch):
+    # GEN.131: like the sector fill's summary, each layer says how many stars it was given and of what kind.
+    _seed_galaxy(mysql_config)
+    messages = []
+    monkeypatch.setattr(log, "normal", lambda message, *args, **kwargs: messages.append(message))
+    summary = run_plan.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only", "--workers", "1"))
+    lines = [message for message in messages if message.startswith("Bright stars, layer ")]
+    assert lines and all(": added " in line and "-type" in line or "white dwarf" in line for line in lines)
+    added = sum(int(line.split(": added ")[1].split(" stars")[0].replace(",", "")) for line in lines)
+    assert added == summary["total"]
+    # Each line's kinds add up to its own total.
+    for line in lines:
+        total, kinds = line.split(": added ")[1].split(" stars: ")
+        parts = kinds.rstrip(".").split(", ")
+        assert sum(int(part.split(" ", 1)[0]) for part in parts) == int(total.replace(",", ""))
+
+    messages.clear()
+    center = sector_position_pc(4, 0, 5, EDGE_PC)
+    result = run_galaxy.backfill_bright_stars(mysql_config, center, radius_ly=20.0)
+    lines = [message for message in messages if message.startswith("Bright-star backfill, layer ")]
+    assert result["stars"] > 0 and lines
+    assert sum(int(line.split(": added ")[1].split(" stars")[0].replace(",", "")) for line in lines) == result["stars"]

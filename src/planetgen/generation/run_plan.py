@@ -11,6 +11,7 @@ whether an address is worth generating, and the galaxy-wide bright-star
 scatter and its per-sector bands.
 """
 
+import collections
 import math
 import queue as queue_module
 import threading
@@ -20,6 +21,7 @@ from planetgen.queue import progress_rate, redisqueue, work as workQueue
 from planetgen.db import store
 from planetgen.generation import bright_stars as brightStars
 from planetgen.generation import phenomenon_scatter
+from planetgen.generation.star_labels import describe_types, star_label
 from planetgen.galaxy import seed as galaxySeed
 from planetgen.names import naming_key
 from planetgen.physics import constants
@@ -67,7 +69,7 @@ def _needs_band(level, galaxy_level, floor):
 
 
 def _draw_sector_bands(conn, skeleton, addresses, floors, galaxy_level, seed, ceiling_cap=None, counts=None,
-                       on_sector=None):
+                       on_sector=None, layers=None):
     """
     Draws each of `addresses` down to its floor (`floors`, a dict or one
     number) from the level it holds, `BACKFILL_CHUNK_SECTORS` at a time:
@@ -78,7 +80,9 @@ def _draw_sector_bands(conn, skeleton, addresses, floors, galaxy_level, seed, ce
     the ceiling (a band run never draws above the galaxy's old level).
     `counts`, when given, adds up the stars written per population.
     `on_sector`, when given, is called once per address visited (a
-    progress bar's tick, PERF.28).
+    progress bar's tick, PERF.28). `layers`, when given, adds up the stars
+    written per sector layer and kind: `layers[layer_index]` is a `Counter`
+    of `star_label` pairs (GEN.131).
 
     Returns:
         tuple: `(sectors drawn, stars written)`.
@@ -122,6 +126,9 @@ def _draw_sector_bands(conn, skeleton, addresses, floors, galaxy_level, seed, ce
         if counts is not None:
             for row in rows:
                 counts[row[6]] += 1
+        if layers is not None:
+            for row in rows:
+                layers.setdefault(row[1], collections.Counter())[star_label(row[7], row[8])] += 1
         sectors += len(new_levels)
         stars += len(rows)
     return sectors, stars
@@ -427,6 +434,20 @@ def _layer_slots(outer_ring):
     return sum(ring_sector_count(ring_index) for ring_index in range(outer_ring + 1))
 
 
+def log_layers(label, layers):
+    """`_log_layer` for each layer of a sector-by-sector draw (`_draw_sector_bands`'s `layers`), top layer first."""
+    for layer_index in sorted(layers):
+        _log_layer(label, layer_index, layers[layer_index])
+
+
+def _log_layer(label, layer_index, types):
+    """One line saying how many stars a layer was given, by kind (GEN.131);
+    nothing for a layer that drew none (GEN.79's note says how many did)."""
+    total = sum(types.values())
+    if total:
+        log.normal(f"{label}, layer {layer_index}: added {total:,} stars: {describe_types(types)}.")
+
+
 def _scatter_layers(args, mysql_config, skeleton, extents, filled, min_luminosity_sol, seed, label,
                     max_luminosity_sol=None):
     """
@@ -465,7 +486,10 @@ def _scatter_layers(args, mysql_config, skeleton, extents, filled, min_luminosit
             outer_rings = dict(layers)
 
             def on_done_for(layer_index):
-                def layer_done(layer_counts, seconds, _weight):
+                def layer_done(result, seconds, _weight):
+                    layer_counts = result["counts"]
+                    _log_layer(label, layer_index, collections.Counter(
+                        {(name, plural): count for name, plural, count in result["types"]}))
                     for population, count in layer_counts.items():
                         counts[population] += count
                     tracker.layer_done(layer_index)
@@ -578,11 +602,13 @@ def add_bright_star_band(args):
                 log.set_console(progress.console)
                 try:
                     task = progress.add_task("Topping up backfilled sectors", total=len(topped))
+                    topped_layers = {}
                     _sectors, stars = _draw_sector_bands(conn, skeleton, topped, target, current, first_seed,
-                                                         ceiling_cap=current, counts=counts,
+                                                         ceiling_cap=current, counts=counts, layers=topped_layers,
                                                          on_sector=lambda: progress.advance(task))
                 finally:
                     log.reset_console()
+            log_layers("Topping up backfilled sectors", topped_layers)
             log.normal(f"Topped up {len(topped):,} backfilled sectors with {stars:,} bright stars.")
         # The first scatter's seed stays: it names the galaxy's scatter.
         store.record_bright_star_scatter(conn, target, first_seed)
@@ -608,9 +634,11 @@ def _scatter_layer_task(payload):
     and writes its stars, committing every 10,000.
 
     Returns:
-        dict: Stars written per population.
+        dict: `counts` (stars written per population) and `types` (stars
+            per kind, `[label, plural, count]` triples, GEN.131).
     """
     counts = {population: 0 for population in brightStars.POPULATIONS}
+    types = collections.Counter()
     channel = payload.get("channel")
     layer_index = payload["layer_index"]
     last = [0.0]
@@ -634,6 +662,7 @@ def _scatter_layer_task(payload):
             max_luminosity_sol=payload.get("max_luminosity_sol"), on_progress=report,
         ):
             counts[row[6]] += 1
+            types[star_label(row[7], row[8])] += 1
             batch.append(row)
             if len(batch) >= 10000:
                 store.insert_bright_stars(conn, batch)
@@ -644,7 +673,7 @@ def _scatter_layer_task(payload):
         conn.commit()
     finally:
         conn.close()
-    return counts
+    return {"counts": counts, "types": [[label, plural, count] for (label, plural), count in types.items()]}
 
 
 def _phenomenon_scatter_seed(skeleton):
