@@ -26,9 +26,12 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | GEN.33 | One class per PR, each with its tests | GEN.89 | Moved to phase 2 under GEN.90, after the habitability score. One class per PR (R and S first). Built on fixed physics so new classes aren't tuned to wrong masses, moons or zones. |
 | GEN.28 | Seven new planet classes in the letter gaps (R, S, U, W, X, Y, Z) | GEN.33 | Under GEN.90; class Z is Boss's Earth-size world that never had life (2026-10-03). Class S landed with GEN.38 (PR #415); the other six classes here. Closes with GEN.33's PRs; PLANET_CLASSES in program_constants.py. |
+| GEN.145 | Class S atmosphere rule: S keeps air unless the shoreline ratio is over 30 | GEN.91 | Research follow-up to class S (built). |
 | GEN.27 | Class P (glaciated world) only in the habitable zone, and fitting there | GEN.33 | Under GEN.90. Same reconcile/zone code as phase 0's physics fixes. |
 | GEN.91 | Classes like S and V in the hot and cold zones | GEN.33, GEN.85 |  |
+| GEN.146 | Teff-dependent habitable zone from the Kopparapu table | GEN.91 | Research: in GEN.91's dependency chain. |
 | GEN.92 | Life and its highest stage follow the habitability score | GEN.89, GEN.28 |  |
+| GEN.147 | Classes N and Q carry a life chemical and an uncapped life timeline though they are lifeless (bug) |  | Bug from the research. |
 | GEN.29 | Sweep every planet class for sense once the new ones are in (bug) | GEN.28, GEN.27, GEN.91, GEN.92 | Under GEN.90: the refactor is the sweep. Bug, but by definition a sweep after the new classes; it can't go earlier. Includes rocky rogues of 10-16 Earth masses (up to 17,600 km) that get S as nearest fit (PR #415). |
 | GEN.90 | Refactor the planet classes around the habitability index | GEN.33, GEN.28, GEN.27, GEN.29, GEN.91, GEN.92 | Parent; takes GEN.33, GEN.28, GEN.27 and GEN.29 as its subitems. |
 
@@ -39,6 +42,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.75 | The mini map as a second engine view |  | Locked second camera on MAP.64. |
 | MAP.59 | Make it plain that a zoomed-in slab is a slab, not a wedge | MAP.75 |  |
 | MAP.132 | Overlay markers for black holes, nebulae and habitable worlds |  | Later (Boss 2026-10-08 01:59Z colors). |
+| MAP.144 | Replace `THREE.Clock` with `THREE.Timer` in `phenomenonrender.js` (bug) |  | Bug from the research. |
 
 ### Courses
 
@@ -57,17 +61,20 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | UX.32 | Planet rows show the class only, without the type and moon labels |  | Same rows as UX.30; one thread. |
-| UX.30 | Planet information without the Markdown render | UX.22, UX.32 | Uses the unit ladders; shows the composition rows DB.2 now reads (PR #347). |
+| UX.30 | Planet information without the Markdown render | UX.22, UX.32, UX.23 | Uses the unit ladders; shows the composition rows DB.2 now reads (PR #347). |
+| DOC.4 | Correct the stale statements the research found in docs, docstrings and comments |  | Docs and comments only; no behaviour change. |
 | UX.43 | A visual design built like a pilot's starmap and navigation console | UX.42 |  |
+| UX.82 | Theme checks after PR #800: SVG currentColor, two Shoelace contrast failures, alpha in --bg-subtle |  | Research follow-up to UX.76 (built). |
 
 ### Backfill
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.42 | A pass that drops sectors from a region by probability | GEN.41 | Same function as PERF.18 (backfill_bright_stars_around); one thread. |
-| GEN.43 | Don't over-filter: keep bright stars in odd places | GEN.42 |  |
+| GEN.42 | A pass that drops sectors from a region by probability |  | Same function as PERF.18 (backfill_bright_stars_around); one thread. |
+| PERF.35 | An interval or chunk ledger for untouched sectors once block-first backfill lands | GEN.42 | Research: ledger size at full galaxy. |
 | PERF.18 | Run the GEN.30 bright-star backfill in parallel on the work queue |  | Backfill blocks become RQ jobs. Same stars as the one-process backfill for one seed needs GEN.39. |
-| GEN.40 | Weed out sectors by star density before the bright-star backfill | GEN.41, GEN.42, GEN.43 | Parent; closes with its subitems. |
+| PERF.36 | Memory and request guard: never list more than about 50,000 candidate cells, and refuse huge enumerations in a web request |  | Research: protects the Generate page estimates. |
+| GEN.40 | Weed out sectors by star density before the bright-star backfill | GEN.42 | Parent; closes with its subitems. |
 
 ### Queue
 
@@ -104,7 +111,11 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.61 | The daily merge folds pending admin changes into a new JSON file | GEN.59 | Boss 02:28Z: JSON changes only with the day's deltas. |
 | OPS.18 | Settings JSON backups kept in 18 slots: 7 daily, 4 weekly, 6 monthly, 1 yearly | GEN.61 | Grandfather-father-son rotation; unit test with simulated dates. |
 | OPS.16 | A daily maintenance script for Linux, macOS and Windows | GEN.61, OPS.18 | scripts/maintenance.sh and .ps1: positional update, delta merge, rotation; lock; optional OPS.15 check. |
+| OPS.30 | A lock helper for the maintenance run and the admin merge |  | Research: shared by OPS.16 and ADM.20. |
 | OPS.17 | Install and update set up the daily maintenance schedule | OPS.16 | Same scripts as OPS.7/OPS.8/OPS.13 (install/update, deploy-common), after them. |
+| OPS.34 | Windows Redis in WSL: fix the keep-alive advice and add a Start-RedisInWsl remedy |  | Research: corrects OPS.21 and OPS.27 (built). |
+| OPS.32 | `examples/macos/org.planetgen.update.plist` is not well-formed XML, so the update daemon silently fails to install (bug) |  | Bug from the research. |
+| OPS.31 | Lint every example plist, XML and service file in CI |  | Research: found with the macOS plist bug. |
 | ADM.19 | The Admin dashboard lists the 18 settings backups for download | OPS.18 |  |
 
 ### Picker
@@ -125,17 +136,27 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.115 | The galaxy's own gravity: a smooth disk, bulge and halo potential |  | Model from Boss's "Computational Astrodynamics.md" (2026-10-07): bulge, disk and halo potential. |
+| GEN.144 | One distance for the Sun from the galactic centre across the constants, the density model and the design docs |  | Research: three Sun distances today. |
 | GEN.109 | N-body influence from every object inside the largest nearby Hill sphere plus the galactic gradient, with a Hill-radius warning | GEN.115 |  |
+| GEN.140 | Orbital math guards the edge-case table adds (GEN.108 built) |  | Research follow-up to GEN.108 (built). |
+| GEN.139 | Orbit-update thresholds: per-object epoch, path-length rule and what the 0.01 mpc applies to (GEN.106 built) |  | Research follow-up to GEN.106 (built). |
+| GEN.138 | Moon `hill_radius_km` uses the star's mass, so moon spacing and the orbit slider are wrong (bug) |  | Bug from the research; changes generated moons, needs an epoch bump. |
 | ADM.36 | Change an object's trajectory vector | GEN.109 |  |
-| GEN.110 | Rogue planet collisions: asteroid fields, merged giants and new stars | GEN.109 |  |
+| GEN.110 | Rogue planet collisions: asteroid fields, merged giants and new stars | GEN.109, GEN.142 |  |
+| GEN.143 | A collision_events table, an admin report and a test that runs the whole collision path | GEN.110 | Research: makes the collision code testable. |
+| GEN.142 | Peculiar velocity for rogue planets and asteroid fields |  | Research: prerequisite of GEN.110. |
 | GEN.105 | Orbital updates | GEN.115, GEN.109, GEN.110 | Parent of the orbital update work. |
+| GEN.141 | Faster Kepler solver (Mikkola or Markley) with brentq as fallback |  | Research: optional speed-up. |
 
 ### Nebula planets
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.95 | Nebula conditions applied when planets and surfaces are generated | GEN.94, GEN.89 |  |
+| GEN.152 | Nebula cloud field is 10 to 40 times too full; lower it to the observed filling (GEN.47 rate check) |  | Research: reopens GEN.47 as a rate check. |
+| GEN.151 | Supernova remnant sizes from the density-dependent Sedov-Taylor law (GEN.10 follow-up) |  | Research follow-up to GEN.10 (built). |
 | GEN.93 | Nebula conditions in planet generation | GEN.94, GEN.95 | Parent. |
+| GEN.149 | Planetary-nebula central stars: 0.5 to 0.7 Msun, 1e2 to 1e4 Lsun, up to 2e5 K |  | Research: sub-item of GEN.93. |
 
 ### Asteroid fields
 
@@ -148,6 +169,8 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.113 | Analyze the anomaly docs: which anomalies to add and how |  | Boss: "probably Phase 2 and 3 just to analyze those". |
+| GEN.154 | Show the Einstein radius on compact-object pages |  | Research: Tier 1 of GEN.113. |
+| GEN.153 | Magnetar subtype of neutron star, and an age-dependent pulsar fraction |  | Research: Tier 1 of GEN.113. |
 
 ### Maps
 
@@ -159,7 +182,9 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| API.18 | Generate by recipe: JSON for sectors, systems, planets, moons and phenomena | GEN.96, API.9 | Validation through the Pydantic models; 400 for nonsense, 422 for validation failures. |
+| API.18 | Generate by recipe: JSON for sectors, systems, planets, moons and phenomena | GEN.96, API.9, API.20 | Validation through the Pydantic models; 400 for nonsense, 422 for validation failures. |
+| API.21 | Flask-Limiter puts `Retry-After` on successful responses (bug) |  | Bug from the research. |
+| API.20 | `require_json_body` returns 500 for a deeply nested JSON body (bug) |  | Bug from the research; prerequisite of API.18. |
 
 ### View
 
@@ -171,6 +196,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | PERF.33 | Progress bars and ETAs from measured performance | PERF.32 | GitHub issue [#661](https://github.com/dwhagar/planetGen/issues/661) (the use half). |
+| PERF.37 | `DecayingRate` starts from the first single completion, so the ETA is up to twice too long early in a run (bug) |  | Bug from the research; first step of PERF.33. |
 | MAP.139 | The Galaxy View uses its spare space: an info box with a Details link, and menu items |  | GitHub issues [#758](https://github.com/dwhagar/planetGen/issues/758) and [#715](https://github.com/dwhagar/planetGen/issues/715), one layout change. |
 | MAP.140 | Double-click on a selected object goes there and opens its information |  | GitHub issue [#714](https://github.com/dwhagar/planetGen/issues/714). |
 | MAP.141 | Context around the selection: faint neighbours, and the sectors above and below |  | GitHub issues [#718](https://github.com/dwhagar/planetGen/issues/718) and [#716](https://github.com/dwhagar/planetGen/issues/716), one context view. The #716 bug label was overruled. |
@@ -179,6 +205,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.129 | Multi-star systems of up to seven stars | GEN.128 | GitHub issue [#777](https://github.com/dwhagar/planetGen/issues/777). Build after the GEN.128 design. |
 | GEN.130 | Exotic star systems: a black hole, neutron star or similar at the center | GEN.128 | GitHub issue [#778](https://github.com/dwhagar/planetGen/issues/778). Build after the GEN.128 design. |
 | DB.15 | A migration progress bar with the time remaining | PERF.32 | GitHub issue [#727](https://github.com/dwhagar/planetGen/issues/727). |
+| DB.18 | Migration helpers for slow DDL: online indexes, instant columns and batched updates | DB.15 | Research: slow DDL for the big tables. |
 | ADM.43 | A full configuration page under Admin | ADM.42 | GitHub issue [#515](https://github.com/dwhagar/planetGen/issues/515). |
 | ADM.44 | Web, Open Graph and SEO settings | ADM.42, ADM.43 | GitHub issue [#743](https://github.com/dwhagar/planetGen/issues/743). |
 | GEN.134 | Tune the star populations to the observed star-formation profile by galactic radius |  | From GEN.133's four unbuilt proposals (star-types-by-galactic-radius.md); Boss to confirm which he wants. |

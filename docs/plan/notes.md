@@ -281,15 +281,16 @@ No decisions are open. (GEN.67, Boss 2026-10-08: stars and sectors keep word sal
 |---|---|---|
 | Every module (the package move) | none (OPS.24 done, PR #473) | The move is finished; the library swaps build on the new layout. |
 | stellarObjects/workQueue.py, jobRunner.py, web/jobs.py | PERF.19, PERF.24, OPS.19, ADM.22, ADM.15, PERF.18, PERF.20 | PERF.19's audit, then PERF.24 with OPS.19, then ADM.22. |
-| _db.py and migrateDb.py | DB.11, DB.13, GEN.71, DB.7, NAV.10, API.11 | CI red fixes first; then DB.11; every later schema change is an Alembic migration, one writer at a time. |
+| _db.py and migrateDb.py | DB.11, DB.13, GEN.71, DB.16, DB.17, API.11 (DB.7 and NAV.10 merged, PRs #813 and #814) | CI red fixes first; then DB.11; every later schema change is an Alembic migration, one writer at a time. |
 | Names (names.py, bodyNames.py, nameUniqueness.py, objectId.py) | GEN.68 to GEN.73, VIEW.4, API.12 | One stream, in TODO order. |
-| generate.py: qualify, density and backfill | GEN.98, GEN.100, GEN.101, GEN.41 to GEN.43, PERF.18 | Phase 0 bugs first, then phase 1 galaxy gen. |
+| generate.py: qualify, density and backfill | GEN.98, GEN.100, GEN.101, GEN.42, PERF.18 (GEN.41 and GEN.43 retired in PR #812) | Phase 0 bugs first, then phase 1 galaxy gen. |
 | Galaxy Map (galaxymap3d.js, galaxystageview.js, galaxystages.js, galaxyblocks.js) | MAP.102, MAP.65 to MAP.68, MAP.110, MAP.111, MAP.95, MAP.103, MAP.122, MAP.123, MAP.124 | Bugfix lane items first; the engine group next; phase 1 map items after. |
 | Templates and components (base.html, style.css, edit_controls.html) | UX.2, UX.26, UX.31, UX.27, UX.49, ADM.34, UX.37, UX.21, UX.42, UX.43 | Components first, then the sweep, then wording and the visual design. |
 | Planet physics and classes (planetPhysics.py, planetData.py, planetLife.py) | GEN.85 to GEN.89, GEN.33, GEN.28, GEN.27, GEN.29, GEN.91, GEN.92 | Phase 0 bug, then the habitability inputs, then the refactor. |
 | Positions (updateOrbits.py, keplerMotion.py, the new position object) | GEN.74, GEN.66, GEN.104, GEN.106 to GEN.110, GEN.115, MAP.70, VIEW.5 | GEN.74 first. |
 | Generate page (generate.html, generate_page.py) | UX.49, ADM.28 and its subitems, GEN.96, GEN.24 | Components, then prevalence, then the rework. |
 | update.sh and update.ps1 (with install.* and deploy-common.*) | OPS.8, OPS.13, OPS.15, OPS.17 | OPS.7 (done, PR #457) went first; then Redis and pins. |
+| Routing and settings files (scripts/bench_nav.py, db/corridor.py, galaxy/settings_file.py) | NAV.10 and ADM.18 (merged), NAV.12, NAV.52, NAV.53, ADM.42 | The merged items set the shape; NAV.12 and NAV.52 build on corridor.py, ADM.42 on settings_file.py. |
 
 ## Near-cycles and how they are broken
 
@@ -323,7 +324,6 @@ items. New notes are listed here when the PR that adds them merges.
 | [orbital-updates.md](../design/orbital-updates.md) | The orbital update design (GEN.105 and its chain). |
 | [library-migration.md](../design/library-migration.md) | The move to third-party libraries. |
 | [reproducible-galaxies.md](../design/reproducible-galaxies.md) | Seeds, version keys and the same-seed rule. |
-| [star-types-by-galactic-radius.md](../design/star-types-by-galactic-radius.md) | How star-type shares change with distance from the core, against observation (GEN.133). |
 | [generation-determinism.md](../design/generation-determinism.md) | Floating-point rules, rounding, fingerprints and CI for the same-seed guarantee (GEN.55, GEN.57 to GEN.61, TEST.77, OPS.12 to OPS.15, DB.7). |
 | [db-check-and-parity-repair.md](../design/db-check-and-parity-repair.md) | Damage check, parity file and repair, Alembic progress and locks (DB.8 to DB.15). |
 | [ops-scheduling-and-rotation.md](../design/ops-scheduling-and-rotation.md) | The daily maintenance run, schedules on three systems and the 18-slot backup rotation (OPS.8, OPS.13, OPS.14, OPS.16 to OPS.18, ADM.19, ADM.20, OPS.21, OPS.27). |
