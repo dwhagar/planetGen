@@ -2707,6 +2707,12 @@ RUNAWAY_STAR_SPEED_RANGE_KMS = (30.0, 200.0)
 HYPERVELOCITY_STAR_SPEED_RANGE_KMS = (500.0, 1000.0)
 """tuple: A hypervelocity star's speed, km/s (Brown 2015)."""
 
+HYPERVELOCITY_STARS_PER_GALAXY = (1e3, 1e4)
+"""tuple: How many hypervelocity stars a galaxy's scatter places, drawn
+log-uniformly between the two ends (Boss 2026-10-08: "about 1e3 to 1e4
+galaxy-wide"; Brown 2015). Each starts at the central black hole and moves
+outward at `HYPERVELOCITY_STAR_SPEED_RANGE_KMS`."""
+
 
 def phenomenon_rate_per_star(kind):
     """Expected count of `kind` (a PHENOMENON_DENSITY_PC3 key) per star:

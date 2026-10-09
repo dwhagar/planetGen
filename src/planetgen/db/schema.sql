@@ -995,6 +995,10 @@
 -- v62: `sector_paths` and `sector_path_knots` (GEN.123): the path of each star
 --   system, rogue planet and interstellar comet through its sector as
 --   cubic Hermite spline knots -- see the tables' own comment.
+-- v63: `generation_run_arguments` replaces the JSON `generation_runs.arguments` (DB.13).
+-- v64: `phenomenon_scatter` (GEN.100): the black holes, neutron stars,
+--   planetary nebulae, supernova remnants, hypervelocity stars and nucleus
+--   `planetgen plan` places galaxy-wide, and `galaxy_shape.phenomenon_scatter_seed`.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -1181,6 +1185,11 @@ CREATE TABLE IF NOT EXISTS galaxy_shape (
     -- this, not `program_constants.BRIGHT_STAR_MIN_LUMINOSITY_SOL`.
     bright_star_min_luminosity_sol  DOUBLE,
     bright_star_seed                BIGINT UNSIGNED,
+
+    -- v64 (GEN.100): the seed the phenomenon scatter (`phenomenon_scatter`)
+    -- used; NULL when none has run (a sector's fill then rolls its own
+    -- black holes, neutron stars, planetary nebulae and supernova remnants).
+    phenomenon_scatter_seed         BIGINT UNSIGNED,
 
     -- v51: the galaxy's 128-bit seed (GEN.39), set by `planetgen plan`
     -- (`--seed`, or drawn at random) and kept by every later plan.
@@ -2812,6 +2821,41 @@ CREATE TABLE IF NOT EXISTS generation_run_arguments (
     value        VARCHAR(1024) NOT NULL,
     PRIMARY KEY (run_id, position),
     CONSTRAINT fk_generation_run_arguments_run FOREIGN KEY (run_id) REFERENCES generation_runs(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- ---------------------------------------------------------------------
+-- phenomenon_scatter (v64, GEN.100): every black hole, neutron star,
+-- planetary nebula and supernova remnant of the galaxy, its hypervelocity
+-- stars and its nucleus, placed galaxy-wide by `planetgen plan` just
+-- before the bright-star scatter and before any sector is filled. A row is
+-- a point (milliparsecs, galaxy frame) in its sector's cell and the 63-bit
+-- seed the object is built from; filling the sector builds the object at
+-- that point and sets `built_at`, so what was placed stays where it was
+-- put. `subtype` is `supermassive` for the nucleus black hole and NULL for
+-- the rest (the object draws its own class from `seed`); the velocity
+-- columns hold a hypervelocity star's galactic velocity (km/s) and are
+-- NULL otherwise. A plan re-run or reset empties the table.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS phenomenon_scatter (
+    id                   BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    ring_index           INT NOT NULL,
+    layer_index          SMALLINT NOT NULL,
+    ring_slot_index      INT NOT NULL,
+    kind                 VARCHAR(24) NOT NULL,
+    subtype              VARCHAR(16),
+    position_x_mpc       BIGINT NOT NULL,
+    position_y_mpc       BIGINT NOT NULL,
+    position_z_mpc       BIGINT NOT NULL,
+    velocity_x_kms       DOUBLE,
+    velocity_y_kms       DOUBLE,
+    velocity_z_kms       DOUBLE,
+    seed                 BIGINT UNSIGNED NOT NULL,
+    built_at             TIMESTAMP NULL,
+
+    KEY idx_phenomenon_scatter_address (ring_index, layer_index, ring_slot_index),
+    CONSTRAINT chk_phenomenon_scatter_kind CHECK (kind IN (
+        'black-hole', 'neutron-star', 'planetary-nebula', 'supernova-remnant', 'hypervelocity-star', 'quasar'))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 

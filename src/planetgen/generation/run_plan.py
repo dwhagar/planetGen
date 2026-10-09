@@ -20,6 +20,7 @@ import time
 from planetgen.queue import progress_rate, redisqueue, work as workQueue
 from planetgen.db import store
 from planetgen.generation import bright_stars as brightStars
+from planetgen.generation import phenomenon_scatter
 from planetgen.galaxy import seed as galaxySeed
 from planetgen.names import naming_key
 from planetgen.physics import constants
@@ -646,6 +647,111 @@ def _scatter_layer_task(payload):
     return counts
 
 
+def _phenomenon_scatter_seed(skeleton):
+    """
+    The 63-bit seed of the phenomenon scatter (GEN.100): the top 63 bits of
+    the unit seed `phenomenon-scatter:scatter` (GEN.39), since
+    `galaxy_shape.phenomenon_scatter_seed` is a `BIGINT UNSIGNED`. A galaxy
+    with no seed draws one from the run's `random` stream.
+    """
+    if skeleton.galaxy_seed is None:
+        return random.getrandbits(63)
+    return galaxySeed.short_seed(skeleton.galaxy_seed, "phenomenon-scatter", "scatter")
+
+
+def scatter_phenomena(args):
+    """
+    Pre-places the galaxy's black holes, neutron stars, planetary nebulae
+    and supernova remnants (`phenomenon_scatter.scatter_layer`), its
+    hypervelocity stars and its nucleus into `phenomenon_scatter`, replacing
+    any earlier scatter, one layer per task. Sectors already filled are left
+    out, as the bright-star scatter does (GEN.30), and the nucleus and the
+    hypervelocity stars are left out of a cell already filled.
+
+    Returns:
+        dict: `counts` (per kind), `total` and `elapsed_s`.
+    """
+    mysql_config = store.mysql_config_from_args(args)
+    conn = store.get_connection(mysql_config)
+    try:
+        skeleton = store.get_galaxy_shape(conn)
+        if skeleton is None:
+            raise RuntimeError("The galaxy's skeleton has never been built -- run 'planetgen plan' first.")
+        extents = store.get_galaxy_layers(conn)
+        filled = store.filled_sector_addresses(conn)
+        seed = _phenomenon_scatter_seed(skeleton)
+        store.clear_phenomenon_scatter(conn)
+
+        t0 = time.perf_counter()
+        counts = {}
+        e_value = skeleton.expected_system_count_at_density_1
+        layers = sorted(extents, key=lambda extent: (abs(extent[0]), extent[0]))
+        weights = {layer_index: phenomenon_scatter.layer_expected(skeleton.shape, layer_index, outer_ring,
+                                                                  skeleton.edge_pc, e_value)
+                   + brightStars.RING_WEIGHT_STARS * (outer_ring + 1)
+                   for layer_index, outer_ring in layers}
+        log.normal(f"Phenomena: about {round(sum(weights.values())):,} to place in {len(layers):,} layers.")
+
+        def layer_done(layer_counts, _seconds, _weight):
+            for kind, count in layer_counts.items():
+                counts[kind] = counts.get(kind, 0) + count
+
+        with run_common._work_queue(args, "Phenomena") as queue:
+            queue.expect(len(layers))
+            for layer_index, outer_ring in layers:
+                payload = {
+                    "mysql_config": mysql_config, "shape": skeleton.shape, "layer_index": layer_index,
+                    "outer_ring": outer_ring, "edge_pc": skeleton.edge_pc, "expected": e_value, "seed": seed,
+                    "skip": {address for address in filled if address[1] == layer_index},
+                }
+                queue.submit("phenomena", f"layer {layer_index}", _phenomenon_layer_task, payload,
+                             weight=weights[layer_index], on_done=layer_done)
+        special = list(phenomenon_scatter.special_rows(extents, skeleton.edge_pc, seed, filled))
+        store.insert_phenomenon_scatter(conn, special)
+        for row in special:
+            counts[row[3]] = counts.get(row[3], 0) + 1
+        store.record_phenomenon_scatter(conn, seed)
+        conn.commit()
+    finally:
+        conn.close()
+    elapsed = time.perf_counter() - t0
+    total = sum(counts.values())
+    log.normal(f"Placed {total:,} phenomena in {elapsed:.1f}s: "
+               + ", ".join(f"{count:,} {kind}" for kind, count in sorted(counts.items())) + ".")
+    return {"counts": counts, "total": total, "elapsed_s": elapsed}
+
+
+def _phenomenon_layer_task(payload):
+    """
+    One layer of the phenomenon scatter -- a work queue task: draws the
+    layer (`phenomenon_scatter.scatter_layer`) and writes its rows,
+    committing every 10,000.
+
+    Returns:
+        dict: Rows written per kind.
+    """
+    counts = {}
+    conn = store.get_connection(payload["mysql_config"])
+    try:
+        batch = []
+        for row in phenomenon_scatter.scatter_layer(
+            payload["shape"], payload["layer_index"], payload["outer_ring"], payload["edge_pc"],
+            payload["expected"], payload["seed"], skip_addresses=payload["skip"],
+        ):
+            counts[row[3]] = counts.get(row[3], 0) + 1
+            batch.append(row)
+            if len(batch) >= 10000:
+                store.insert_phenomenon_scatter(conn, batch)
+                conn.commit()
+                batch = []
+        if batch:
+            store.insert_phenomenon_scatter(conn, batch)
+        conn.commit()
+    finally:
+        conn.close()
+    return counts
+
+
 def run_plan(args):
     """
     Builds and persists the galaxy's density skeleton, then scatters its
@@ -682,5 +788,7 @@ def run_plan(args):
             f"parameters really do produce a galaxy this large."
         )
     if summary["layer_count"] and not getattr(args, "no_bright_stars", False):
+        with workQueue.job_node("phenomena", "Phenomena"):
+            scatter_phenomena(args)
         with workQueue.job_node("bright-stars", "Bright stars"):
             scatter_bright_stars(args)

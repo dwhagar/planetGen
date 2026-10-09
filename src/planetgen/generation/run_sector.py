@@ -12,6 +12,7 @@ also what the galaxy command runs per sector.
 """
 
 import copy
+import math
 import random
 import re
 import sys
@@ -34,8 +35,9 @@ from planetgen.galaxy.sector import SpaceSector, _sample_poisson_count
 from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant
 from planetgen.generation.system import StarSystem
 from planetgen.names.wordsalad import generate_sector_name
-from planetgen.physics.units import ly_to_pc
+from planetgen.physics.units import ly_to_pc, pc_to_ly
 from planetgen.util.random import log_uniform
+from planetgen.generation import phenomenon_scatter
 from planetgen.generation import run_common
 from planetgen.generation import run_phenomenon
 from planetgen.generation import run_population
@@ -138,7 +140,7 @@ def sector_star_count(sector):
     return sum(len(getattr(entry.star_system, "stars", None) or [None]) for entry in sector.entries)
 
 
-def generate_sector_phenomena(sector, args, galactic_center_dist_ly=None, cloud_field=None):
+def generate_sector_phenomena(sector, args, galactic_center_dist_ly=None, cloud_field=None, scattered=False):
     """
     Populates an already-built `sector` with its exotic phenomena, each
     kind in `SECTOR_PHENOMENON_KINDS` sampled independently by a Poisson
@@ -175,6 +177,10 @@ def generate_sector_phenomena(sector, args, galactic_center_dist_ly=None, cloud_
             center_pc, reach_pc)`: its molecular clouds then come from the
             galaxy's cloud field (GEN.47, into `sector.field_nebulae`)
             instead of this sector's own `"molecular-cloud"` roll.
+        scattered (bool): The galaxy's phenomenon scatter ran (GEN.100):
+            the kinds in `phenomenon_scatter.SCATTERED_KINDS` were built
+            from their scatter rows (`add_scattered_phenomena`), so none
+            is rolled here.
 
     Returns:
         list: The newly created `SectorPhenomenonEntry` instances. May hold
@@ -191,6 +197,8 @@ def generate_sector_phenomena(sector, args, galactic_center_dist_ly=None, cloud_
     for kind, phenomenon_type, factory in SECTOR_PHENOMENON_KINDS:
         if kind == "molecular-cloud" and cloud_field is not None:
             sector.field_nebulae = nebula_field.clouds_reaching(*cloud_field)
+            continue
+        if scattered and kind in phenomenon_scatter.SCATTERED_KINDS:
             continue
         count = _sample_poisson_count(program_constants.phenomenon_rate_per_star(kind) * star_count)
         for _ in range(count):
@@ -221,12 +229,13 @@ def _spectral_code(star):
     return (getattr(star, "type", "") or "").split(" ", 1)[0]
 
 
-def _add_planetary_nebula(sector, args, nebula, galactic_center_dist_ly=None):
+def _add_planetary_nebula(sector, args, nebula, galactic_center_dist_ly=None, position=None):
     """
     Adds `nebula` (a planetary nebula) around a new system whose star is
     its hot central white dwarf (`PLANETARY_NEBULA_CENTRAL_STAR_TYPES`),
-    placed like any other system. Returns the nebula's entry, or `None`
-    when the sector has no room left for the system.
+    placed like any other system, or at `position` (a scattered
+    nebula's stored point, kept where it was put). Returns the nebula's
+    entry, or `None` when the sector has no room left for the system.
     """
     config = SystemConfig()
     config.MARKDOWN = args.markdown
@@ -234,7 +243,10 @@ def _add_planetary_nebula(sector, args, nebula, galactic_center_dist_ly=None):
     config.BINARY_SYSTEM = False
     system = StarSystem(system_config=config, galactic_center_dist_ly=galactic_center_dist_ly)
     try:
-        system_entry = sector.add_system(system, system_config=config)
+        if position is None:
+            system_entry = sector.add_system(system, system_config=config)
+        else:
+            system_entry = sector.add_preplaced_system(system, position, system_config=config)
     except ValueError:
         return None
     log.debug(f"Sector {sector.name!r}: planetary nebula {nebula.name!r} around new central star "
@@ -277,7 +289,7 @@ def add_star_hosted_nebulae(sector, args):
     return entries
 
 
-def flag_fast_stars(sector, galactic_center_dist_ly=None):
+def flag_fast_stars(sector, galactic_center_dist_ly=None, scattered=False):
     """
     Marks some of `sector`'s systems as runaway or hypervelocity stars
     (`StarSystem.runaway_class`, `runaway_speed_kms` and a random
@@ -293,6 +305,9 @@ def flag_fast_stars(sector, galactic_center_dist_ly=None):
         galactic_center_dist_ly (float, optional): The sector's distance
             from the galactic center; `None` uses
             `constants.GALACTIC_CENTER_DISTANCE_LY`.
+        scattered (bool): The galaxy's phenomenon scatter ran (GEN.100):
+            its hypervelocity stars are real rows already, so none is
+            flagged here. Runaway stars still are.
 
     Returns:
         int: How many systems were flagged.
@@ -300,12 +315,15 @@ def flag_fast_stars(sector, galactic_center_dist_ly=None):
     if galactic_center_dist_ly is None:
         galactic_center_dist_ly = constants.GALACTIC_CENTER_DISTANCE_LY
     radius_pc = max(ly_to_pc(galactic_center_dist_ly), 1.0)
-    hvs_chance = min(1.0, program_constants.phenomenon_rate_per_star("hypervelocity-star")
-                     * (program_constants.HVS_REFERENCE_RADIUS_PC / radius_pc) ** 2)
+    hvs_chance = 0.0 if scattered else min(
+        1.0, program_constants.phenomenon_rate_per_star("hypervelocity-star")
+        * (program_constants.HVS_REFERENCE_RADIUS_PC / radius_pc) ** 2)
     runaway_chance = program_constants.phenomenon_rate_per_star("runaway-star")
     flagged = 0
     for entry in sector.entries:
         system = entry.star_system
+        if getattr(system, "runaway_class", None) is not None:
+            continue  # a scattered hypervelocity star is flagged already
         if random.random() < hvs_chance:
             system.runaway_class = "hypervelocity"
             system.runaway_speed_kms = log_uniform(*program_constants.HYPERVELOCITY_STAR_SPEED_RANGE_KMS)
@@ -320,9 +338,10 @@ def flag_fast_stars(sector, galactic_center_dist_ly=None):
     return flagged
 
 
-NUCLEUS_ADDRESS = (0, 0, 0)
+NUCLEUS_ADDRESS = phenomenon_scatter.NUCLEUS_ADDRESS
 """tuple: The `(ring, layer, slot)` of the one sector per galaxy that rolls
-for an active nucleus (see `add_galactic_nucleus`)."""
+for an active nucleus (see `add_galactic_nucleus`); in a galaxy whose
+phenomenon scatter ran, the nucleus is a scatter row instead."""
 
 
 def add_galactic_nucleus(sector, args, galactic_center_dist_ly):
@@ -363,6 +382,88 @@ def add_galactic_nucleus(sector, args, galactic_center_dist_ly):
     log.debug(f"Sector {sector.name!r}: galactic nucleus is quiescent (supermassive black hole, no quasar)")
     black_hole = BlackHole(nucleus_config, mass_class="supermassive")
     return sector.add_phenomenon(black_hole, "black-hole", position=position)
+
+
+def _seeded_build(seed, build):
+    """`build()` on the module-level `random` seeded from `seed`, the
+    stream put back afterward: an object built from its scatter row's seed
+    is the same whenever and wherever its sector is filled."""
+    state = random.getstate()
+    random.seed(seed)
+    try:
+        return build()
+    finally:
+        random.setstate(state)
+
+
+def add_scattered_phenomena(sector, args, fill):
+    """
+    Builds a galaxy-placed sector's scattered phenomena (GEN.100): every
+    unbuilt `phenomenon_scatter` row in the sector's cell becomes the
+    object it stands for, from the row's own seed, at the row's stored
+    point -- a black hole, neutron star, supernova remnant, planetary
+    nebula (around its own new central star), hypervelocity star (a real
+    system moving outward at its stored velocity), or the galaxy's nucleus.
+    A sector places these before its own systems, so each of those keeps
+    clear of a black hole's or neutron star's Hill sphere like any other.
+
+    Returns:
+        list: The new `SectorPhenomenonEntry` instances (a hypervelocity
+            star adds a system entry instead).
+    """
+    new_entries = []
+    for row in fill.phenomenon_rows:
+        position = brightStars.local_position_ly(row, fill.center_pc)
+        radius_pc = math.sqrt(sum((row[axis] / brightStars.MPC_PER_PC) ** 2
+                                  for axis in ("position_x_mpc", "position_y_mpc", "position_z_mpc")))
+        dist_ly = pc_to_ly(radius_pc)
+        entry = _seeded_build(row["seed"], lambda: _build_scattered(sector, args, row, position, dist_ly))
+        if entry is None:
+            continue
+        entry.scatter_id = row["id"]
+        if hasattr(entry, "phenomenon_type"):
+            new_entries.append(entry)
+    return new_entries
+
+
+def _build_scattered(sector, args, row, position, dist_ly):
+    """One scatter row built into `sector` at `position` (sector-local
+    light-years): its entry, or `None` when a planetary nebula's central
+    system found no room."""
+    kind = row["kind"]
+    config = SystemConfig()
+    config.MARKDOWN = args.markdown
+    if kind == "hypervelocity-star":
+        return _add_hypervelocity_star(sector, args, row, position, dist_ly)
+    if kind == "planetary-nebula":
+        nebula = Nebula(config, nebula_type="planetary")
+        return _add_planetary_nebula(sector, args, nebula, dist_ly, position=position)
+    if kind == "quasar":
+        return sector.add_phenomenon(Quasar(config), "quasar", position=position)
+    if kind == "black-hole":
+        black_hole = BlackHole(config, galactic_center_dist_ly=dist_ly, mass_class=row["subtype"])
+        return sector.add_phenomenon(black_hole, "black-hole", position=position)
+    if kind == "neutron-star":
+        return sector.add_phenomenon(NeutronStar(config, galactic_center_dist_ly=dist_ly), "neutron-star",
+                                     position=position)
+    if kind == "supernova-remnant":
+        return sector.add_phenomenon(SupernovaRemnant(config), "supernova-remnant", position=position)
+    raise ValueError(f"Unknown scattered phenomenon kind: {kind!r}")
+
+
+def _add_hypervelocity_star(sector, args, row, position, dist_ly):
+    """A scattered hypervelocity star built as an ordinary young system at
+    its stored point, flagged with its speed and direction (the stored
+    galactic velocity). Returns its system entry."""
+    config = run_system.build_system_config(args)
+    config.POPULATION = "young"
+    system = StarSystem(system_config=config, galactic_center_dist_ly=dist_ly)
+    velocity = (row["velocity_x_kms"], row["velocity_y_kms"], row["velocity_z_kms"])
+    speed = math.sqrt(sum(component * component for component in velocity))
+    system.runaway_class = "hypervelocity"
+    system.runaway_speed_kms = speed
+    system.runaway_direction = tuple(component / speed for component in velocity) if speed > 0.0 else (1.0, 0.0, 0.0)
+    return sector.add_preplaced_system(system, position, system_config=config)
 
 
 def _add_preplaced_systems(sector, args, fill, galactic_center_dist_ly):
@@ -455,8 +556,11 @@ def generate_sector(args, galactic_center_dist_ly=None, cell=None, fill=None, cl
     """
     sector_name = args.sector_name or generate_sector_name()
     sector = SpaceSector(name=sector_name, cell=cell)
+    scattered = fill is not None and fill.phenomena_scattered
     if fill is not None:
         _add_preplaced_systems(sector, args, fill, galactic_center_dist_ly)
+    if scattered:
+        add_scattered_phenomena(sector, args, fill)
 
     # `--density` resolves to a concrete system count per sector (this
     # sector's own volume, sampled fresh each call) rather than once at
@@ -502,8 +606,8 @@ def generate_sector(args, galactic_center_dist_ly=None, cell=None, fill=None, cl
 
     with log.timed_phase("generate_sector_phenomena"):
         generate_sector_phenomena(sector, args, galactic_center_dist_ly=galactic_center_dist_ly,
-                                  cloud_field=cloud_field)
-        flag_fast_stars(sector, galactic_center_dist_ly=galactic_center_dist_ly)
+                                  cloud_field=cloud_field, scattered=scattered)
+        flag_fast_stars(sector, galactic_center_dist_ly=galactic_center_dist_ly, scattered=scattered)
 
     if density_driven and not sector.entries and not sector.phenomena:
         # Guaranteed non-empty: a sector's own Poisson draws

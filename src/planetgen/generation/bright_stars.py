@@ -468,14 +468,22 @@ class FillContext:
             `None` when no scatter ran (no star is capped then).
         shape (GalaxyShape): The galaxy's shape (the molecular cloud
             field reads its gas from it, GEN.47).
+        phenomena_scattered (bool): Whether the galaxy's phenomenon scatter
+            ran (GEN.100): the sector then builds its black holes, neutron
+            stars, planetary nebulae, supernova remnants and hypervelocity
+            stars (and the nucleus) from `phenomenon_rows` and rolls none.
+        phenomenon_rows (list): The sector's unbuilt `phenomenon_scatter`
+            rows.
     """
 
-    def __init__(self, center_pc, shape, bright_rows=(), min_luminosity_sol=None):
+    def __init__(self, center_pc, shape, bright_rows=(), min_luminosity_sol=None, phenomenon_rows=None):
         self.center_pc = center_pc
         self.shape = shape
         self.densities = _densities(center_pc, shape)
         self.bright_rows = list(bright_rows)
         self.min_luminosity_sol = min_luminosity_sol
+        self.phenomena_scattered = phenomenon_rows is not None
+        self.phenomenon_rows = list(phenomenon_rows or ())
 
     def bright_share(self):
         """The share of this position's stars at or above the threshold

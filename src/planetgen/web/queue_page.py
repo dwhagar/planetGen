@@ -34,6 +34,7 @@ KIND_LABELS = {
     "queue": "Work queue",
     "skeleton": "Skeleton",
     "bright-stars": "Bright stars",
+    "phenomena": "Phenomena",
     "population": "Population",
     "plan": "Plan",
     "galaxy": "Galaxy",
