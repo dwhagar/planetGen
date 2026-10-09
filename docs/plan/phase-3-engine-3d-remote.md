@@ -36,7 +36,8 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | NAV.26 | Bend the path around keep-out spheres | NAV.25 |  |
 | NAV.27 | Moving bodies inside a system | NAV.26 |  |
 | NAV.28 | Show and save the adjusted course | NAV.26, NAV.4 |  |
-| NAV.6 | Courses that steer clear of gravity wells | NAV.25, NAV.26, NAV.27, NAV.28 | Parent; closes with its subitems. |
+| NAV.51 | Courses route around asteroid fields | NAV.25, NAV.26 | Boss 2026-10-09 01:02Z. Foundations lane 1 is building it. |
+| NAV.6 | Courses that steer clear of gravity wells | NAV.25, NAV.26, NAV.27, NAV.28, NAV.51 | Parent; closes with its subitems. |
 
 ### API
 

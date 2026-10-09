@@ -748,6 +748,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     again against the other spheres; the end bodies' own spheres are
     exempt (a ship has to enter them to arrive). Unit tests with
     hand-placed spheres.
+    Asteroid fields count as keep-out areas too (Boss, 2026-10-09
+    01:02Z: "Courses should avoid asteroid fields."), which NAV.51
+    adds; nebulae and remnants stay pass-through with a note until Boss
+    decides.
 
   - [ ] **NAV.27 Moving bodies inside a system**
     Inside a system the planets move. Done: the in-system planner uses
@@ -760,6 +764,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     Done: the adjusted path, its extra length and its times beside the
     straight line on the NAV page and on the map (NAV.5); saved courses
     (NAV.4) keep it as a third form.
+
+  - [ ] **NAV.51 Courses route around asteroid fields**
+    Boss (2026-10-09 01:02Z): "Courses should avoid asteroid fields."
+    Follows NAV.24's open question (it ruled on asteroid fields only).
+    Done: course planning treats an asteroid field as a keep-out area
+    from its stored `radius_ly`, finds it with NAV.25's obstacle query and
+    goes around it with NAV.26's planner, at every scale. Nebulae and
+    supernova remnants stay undecided: the course passes through them
+    with a note. Foundations lane 1 is building it (2026-10-09).
+    Prerequisites: NAV.25, NAV.26.
 
 - [ ] **NAV.8 Pages and anchors for stars, planets, moons and belts**
   A star, planet, moon, belt or comet reference opens something:

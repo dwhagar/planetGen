@@ -15,7 +15,7 @@ release is stamped.
 |---|---|
 | UX | UX.76 |
 | MAP | MAP.134 |
-| NAV | NAV.51 |
+| NAV | NAV.52 |
 | GEN | GEN.125 |
 | PERF | PERF.31 |
 | DB | DB.15 |
@@ -770,6 +770,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.48 | Offer to generate the uncharted sectors that block a course | none | open |
 | NAV.49 | Waypoints: pick objects in Star select mode and plot a course through them, kept on the map until cleared | none | open |
 | NAV.50 | Pick any object down to a moon as a NAV endpoint | none | open |
+| NAV.51 | Courses route around asteroid fields | none | open |
 | OPS.1 | Build the version number from the category counters (item 80's version-scheme questions) | none (split from 80 by the renumbering) | done in the version-from-todo-counters PR |
 | OPS.2 | Apache OOM-killed on the production server | 1 (2026-09-24 01:32Z to 02:02Z) | done in 5.47.0, PR #72 |
 | OPS.3 | PowerShell installers and macOS-safe bash scripts | 50 (2026-09-30 20:43Z to 2026-10-01 02:57Z) | done in 7.16.0, PR #125 (see note 4) |
