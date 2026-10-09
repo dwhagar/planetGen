@@ -11,8 +11,8 @@ Every unit of work gets its own seed from it:
 
     unit seed = SHA-256(galaxy seed || "kind:" address)
 
-for example `sector:12/3/0`. The whole 256-bit digest seeds the run's
-`random` stream for that unit (`seeded`), so a sector's numbers depend
+for example `sector:12/3/0`. The whole 256-bit digest seeds the unit's
+own draw stream (`seeded`, see `planetgen.util.draw`), so a sector's numbers depend
 only on the galaxy seed and its address, never on the order sectors run
 in or how many workers run them. The version isn't mixed in: a release
 that changes one formula changes only what that formula touches.
@@ -20,10 +20,11 @@ that changes one formula changes only what that formula touches.
 
 import contextlib
 import hashlib
-import random
 import re
 import secrets
-import threading
+
+from planetgen.util import draw
+
 
 SEED_BYTES = 16
 """int: A galaxy seed's length: 128 bits (Boss, 2026-10-02)."""
@@ -32,11 +33,6 @@ SEED_HEX_DIGITS = 2 * SEED_BYTES
 """int: A galaxy seed as text: 32 hex digits."""
 
 _HEX = re.compile(r"[0-9A-Fa-f]{%d}" % SEED_HEX_DIGITS)
-
-_SEEDED_LOCK = threading.RLock()
-"""One unit at a time per process: a unit borrows the module-level
-`random` stream, which the web site's threads share."""
-
 
 def new_seed():
     """A fresh galaxy seed: 16 bytes from the operating system's random
@@ -102,18 +98,13 @@ def short_seed(galaxy_seed, kind, address, bits=63):
 @contextlib.contextmanager
 def seeded(galaxy_seed, kind, address):
     """
-    Runs one unit on its own seed: seeds the module-level `random` from
-    `unit_seed`, and puts back the stream it found when the unit ends, so
+    Runs one unit on its own seed: binds a `draw.Stream` seeded from
+    `unit_seed` for the length of the block (in this thread only), so
     what ran before and after carries on as if the unit hadn't run here.
     With no galaxy seed (`None`: nothing planned) it changes nothing.
     """
     if galaxy_seed is None:
         yield
         return
-    with _SEEDED_LOCK:
-        state = random.getstate()
-        random.seed(unit_seed(galaxy_seed, kind, address))
-        try:
-            yield
-        finally:
-            random.setstate(state)
+    with draw.bound(unit_seed(galaxy_seed, kind, address)):
+        yield

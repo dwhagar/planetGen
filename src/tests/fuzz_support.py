@@ -34,6 +34,7 @@ from unittest import mock
 
 from hypothesis import HealthCheck, settings
 from hypothesis import strategies as st
+from planetgen.util import draw
 
 _SUPPRESSED = [HealthCheck.too_slow, HealthCheck.data_too_large, HealthCheck.filter_too_much]
 
@@ -65,7 +66,7 @@ def deterministic_entropy(seed):
     rng = random.Random(seed)
     with mock.patch.object(secrets, "randbits", rng.getrandbits), \
             mock.patch.object(secrets, "token_bytes", lambda n: rng.getrandbits(8 * n).to_bytes(n, "big")):
-        random.seed(seed)
+        draw.set_run_seed(seed)
         yield rng
 
 

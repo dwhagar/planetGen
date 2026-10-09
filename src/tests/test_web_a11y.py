@@ -51,6 +51,7 @@ sync_api = pytest.importorskip("playwright.sync_api")
 
 from werkzeug.serving import make_server  # noqa: E402
 
+from planetgen.util import draw
 from planetgen.web.app import create_app  # noqa: E402
 from planetgen.api.authz import SESSION_COOKIE_NAME  # noqa: E402
 from planetgen.api.config import Config  # noqa: E402
@@ -208,8 +209,8 @@ def site_db(_mysql_server_available):
         admin_conn.close()
     config = MySQLConfig(database=name, **kwargs)
     try:
-        state = random.getstate()
-        random.seed(20260924)
+        state = draw.getstate()
+        draw.set_run_seed(20260924)
         try:
             target = mysql_argv(config)
             # The real scatter places tens of millions of stars over the
@@ -224,7 +225,7 @@ def site_db(_mysql_server_available):
                 run_cli("phenomenon", ["--type", kind, "--quiet"] + target)
             _add_population(config)
         finally:
-            random.setstate(state)
+            draw.setstate(state)
         yield config
     finally:
         store.close_pool(config)

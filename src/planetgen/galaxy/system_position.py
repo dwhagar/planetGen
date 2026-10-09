@@ -13,10 +13,10 @@ while its sector and galactic coordinates follow.
 """
 
 import math
-import random
 
 from planetgen.physics import constants as physical_constants
 from planetgen.physics.position import SpatialPosition3D
+from planetgen.util import draw
 
 _AXES = "xyz"
 
@@ -58,10 +58,10 @@ def galactic_velocity_ms(position, speed_kms):
     return (-position[1] * scale, position[0] * scale, 0.0)
 
 
-def random_unit_vector(rng=random):
+def random_unit_vector(rng=draw):
     """A direction uniform on the sphere, from `rng.random()` alone (the
     seeded generators replace that one function -- GEN.56); `rng` is the
-    `random` module unless a `random.Random` is passed."""
+    unit's draw stream unless a `draw.Stream` is passed."""
     z = 2.0 * rng.random() - 1.0
     phi = 2.0 * math.pi * rng.random()
     ring = math.sqrt(max(0.0, 1.0 - z * z))

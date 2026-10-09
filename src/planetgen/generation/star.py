@@ -18,13 +18,13 @@ the system (Hill sphere), and the size of the star's stellar wind bubble
 """
 
 import math
-import random
 import re
 
 from planetgen.generation.config import SystemConfig
 from planetgen.names.wordlists import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from planetgen.physics import constants
 from planetgen import tuning
+from planetgen.util import draw
 from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from planetgen.physics.stellar_evolution import (YERKES_CLASS_NAMES, evolve_star, sample_living_star, sample_star_age_gy,
@@ -98,7 +98,7 @@ def _sample_evolved_star_mass_sol(min_mass_sol, max_mass_sol):
                    attempts.
     """
     for _ in range(tuning.EVOLVED_STAR_MASS_MAX_RESAMPLE_ATTEMPTS):
-        mass_sol = random.uniform(min_mass_sol, max_mass_sol)
+        mass_sol = draw.uniform(min_mass_sol, max_mass_sol)
         ms_lifespan = (tuning.SOLAR_MS_LIFESPAN_GY
                        * mass_sol ** tuning.MS_LIFESPAN_MASS_EXPONENT)
         if ms_lifespan <= tuning.UNIVERSE_AGE_GY:
@@ -350,7 +350,7 @@ class Star:
                 min_age = min_age + (max_age - min_age) * tuning.OLD_STAR_AGE_LIFESPAN_RATIO
             elif self.system_config.AGE == "young":
                 max_age = max_age - (max_age - min_age) * (1 - tuning.YOUNG_STAR_AGE_LIFESPAN_RATIO)
-            age = random.uniform(min_age, max_age)
+            age = draw.uniform(min_age, max_age)
             return age, lifespan
 
         if self.yerkes_class == "VI":
@@ -384,8 +384,8 @@ class Star:
                 min_age = min_age + (max_age - min_age) * tuning.OLD_STAR_AGE_LIFESPAN_RATIO
             elif self.system_config.AGE == "young":
                 max_age = max_age - (max_age - min_age) * (1 - tuning.YOUNG_STAR_AGE_LIFESPAN_RATIO)
-            age = random.uniform(min_age, max_age)
-            lifespan = age + random.uniform(
+            age = draw.uniform(min_age, max_age)
+            lifespan = age + draw.uniform(
                 tuning.SUBDWARF_REMAINING_PHASE_MIN_GY,
                 tuning.SUBDWARF_REMAINING_PHASE_MAX_GY,
             )
@@ -436,7 +436,7 @@ class Star:
             # defensive fallback rather than an assumption that `self.mass`
             # is always already valid.
             max_age = max(min(max_age, tuning.UNIVERSE_AGE_GY), min_age)
-            age = random.uniform(min_age, max_age)
+            age = draw.uniform(min_age, max_age)
 
             return age, lifespan
 
@@ -444,7 +444,7 @@ class Star:
         star_info = tuning.STAR_EVOLUTION.get(spectral_class_char, {})
 
         min_lifespan, max_lifespan = star_info["lifespan_gy"]
-        lifespan = random.uniform(min_lifespan, max_lifespan)
+        lifespan = draw.uniform(min_lifespan, max_lifespan)
 
         # MIN_INITIAL_STAR_AGE_GY is a sensible floor for long-lived stars (F/G/K/M),
         # but a fixed 100-million-year floor is nonsensical for a star whose entire
@@ -474,7 +474,7 @@ class Star:
         max_age = min(max_age, tuning.UNIVERSE_AGE_GY)
         min_age = min(min_age, max_age)
 
-        age = random.uniform(min_age, max_age) # Ensure age is less than lifespan
+        age = draw.uniform(min_age, max_age) # Ensure age is less than lifespan
 
         return age, lifespan
 
@@ -596,7 +596,7 @@ class Star:
                 # can itself be far larger than max_reachable_age once that's
                 # capped at UNIVERSE_AGE_GY, which would otherwise widen this
                 # into a near-full-lifespan random range instead of "near the end."
-                self.age = random.uniform(
+                self.age = draw.uniform(
                     min(self.lifespan * tuning.UNREACHABLE_PLANET_AGE_MIN_LIFESPAN_RATIO, max_reachable_age),
                     max_reachable_age,
                 )
@@ -614,7 +614,7 @@ class Star:
                     low = low + (high - low) * tuning.OLD_STAR_AGE_LIFESPAN_RATIO
                 elif self.system_config.AGE == "young":
                     high = high - (high - low) * (1 - tuning.YOUNG_STAR_AGE_LIFESPAN_RATIO)
-                self.age = random.uniform(low, high)
+                self.age = draw.uniform(low, high)
 
         # Ensure age doesn't exceed lifespan (unless lifespan is infinite)
         if self.lifespan != float('inf') and self.age >= self.lifespan:
@@ -1223,7 +1223,7 @@ class Star:
 
             # Log-uniform: a range spanning decades drawn linearly lands near
             # its top almost every time.
-            luminosity = math.exp(random.uniform(math.log(valid_min_lum), math.log(valid_max_lum)))
+            luminosity = math.exp(draw.uniform(math.log(valid_min_lum), math.log(valid_max_lum)))
 
         else:
             # --- GENERATE STAR RANDOMLY ---
@@ -1235,14 +1235,14 @@ class Star:
             else:
                 spectral_probabilities = tuning.SPECTRAL_PROBABILITIES_NORMAL
                 table_name = "SPECTRAL_PROBABILITIES_NORMAL"
-            spectral_class = random.choices(list(spectral_probabilities.keys()), weights=spectral_probabilities.values(), k=1)[0]
+            spectral_class = draw.choices(list(spectral_probabilities.keys()), weights=spectral_probabilities.values(), k=1)[0]
             log.choice("Spectral class", spectral_class,
                        f"weighted draw from {table_name} (system_config.LARGE_STAR="
                        f"{self.system_config.LARGE_STAR})")
 
             # 2. Generate Luminosity from the spectral class's typical range.
             min_luminosity, max_luminosity = constants.SPECTRAL_LUMINOSITY_RANGES[spectral_class]
-            luminosity = random.uniform(min_luminosity, max_luminosity)
+            luminosity = draw.uniform(min_luminosity, max_luminosity)
 
             # 3. Determine Yerkes Class from the resulting luminosity.
             if luminosity > constants.YERKES_LUMINOSITY_RANGES["0"][0]:
@@ -1269,7 +1269,7 @@ class Star:
 
             # 4. Calculate Temperature and Subclass.
             min_temp, max_temp = constants.TEMP_RANGES[spectral_class]
-            temperature = int(round(random.uniform(min_temp, max_temp), tuning.ROUND_TEMPERATURE_NEAREST_HUNDRED))
+            temperature = int(round(draw.uniform(min_temp, max_temp), tuning.ROUND_TEMPERATURE_NEAREST_HUNDRED))
             temp_range_size = max_temp - min_temp
             subclass = constants.SUBCLASS_MAX_VALUE - round((temperature - min_temp) / temp_range_size * constants.SUBCLASS_MAX_VALUE)
 
@@ -1288,9 +1288,9 @@ class Star:
             # For white dwarfs, mass is tightly constrained. Hotter (younger) ones
             # are typically more massive, closer to the Chandrasekhar limit.
             if spectral_class in ["O", "B"]:
-                mass_sol = random.uniform(constants.HOT_WHITE_DWARF_MIN_MASS_SOL, constants.CHANDRASEKHAR_LIMIT_SOL)
+                mass_sol = draw.uniform(constants.HOT_WHITE_DWARF_MIN_MASS_SOL, constants.CHANDRASEKHAR_LIMIT_SOL)
             else:
-                mass_sol = random.uniform(min_mass, constants.COOL_WHITE_DWARF_MAX_MASS_SOL)
+                mass_sol = draw.uniform(min_mass, constants.COOL_WHITE_DWARF_MAX_MASS_SOL)
             if mass_override: # If mass is overridden for a WD, ensure it's within limits
                 mass_sol = max(min(mass_override / constants.SOLAR_MASS_TO_KG, constants.CHANDRASEKHAR_LIMIT_SOL), min_mass)
         else:
@@ -1309,7 +1309,7 @@ class Star:
             if mass_override:
                 mass_sol = mass_override / constants.SOLAR_MASS_TO_KG
             elif self.yerkes_class == "VI":
-                mass_sol = random.uniform(min_mass, max_mass)
+                mass_sol = draw.uniform(min_mass, max_mass)
             else:
                 mass_sol = _sample_evolved_star_mass_sol(min_mass, max_mass)
 

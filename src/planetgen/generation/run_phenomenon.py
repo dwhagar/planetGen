@@ -11,10 +11,10 @@ or asteroid field), on demand. The sector command reuses
 them.
 """
 
-import random
 
 from planetgen.db import sector_paths, store
 from planetgen import tuning as program_constants
+from planetgen.util import draw
 from planetgen.util import log
 from planetgen.generation.phenomena.asteroid_field import AsteroidField
 from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
@@ -95,7 +95,7 @@ def run_phenomenon(args):
         args (argparse.Namespace): Validated arguments (`command ==
             "phenomenon"`).
     """
-    phenomenon_type = args.type or random.choice(program_constants.RANDOM_PHENOMENON_TYPE_CHOICES)
+    phenomenon_type = args.type or draw.choice(program_constants.RANDOM_PHENOMENON_TYPE_CHOICES)
 
     if args.sector_id is not None:
         # Checked before generating anything, as a clean one-line error.

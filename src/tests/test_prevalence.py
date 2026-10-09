@@ -11,6 +11,7 @@ import random
 
 import pytest
 
+from planetgen.util import draw
 from planetgen import tuning
 from planetgen.cli import generate as generate_cli
 from planetgen.generation import prevalence, run_system
@@ -34,7 +35,7 @@ def _features(system):
 
 
 def _shares(settings, seed, count=SYSTEMS):
-    random.seed(seed)
+    draw.set_run_seed(seed)
     totals = {}
     for _ in range(count):
         config = SystemConfig()
@@ -84,7 +85,11 @@ def test_a_measured_feature_moves_by_the_percentage(feature, percent):
     ("comets", tuning.SYSTEM_COMET_CHANCE, 100), ("comets", tuning.SYSTEM_COMET_CHANCE, -100),
 ])
 def test_a_drawn_feature_moves_by_the_percentage(feature, base, percent):
-    expected = min(1.0, base * (1 + percent / 100))
+    # Each star of a wide pair draws its own comets, so those systems have
+    # two chances.
+    chance = min(1.0, base * (1 + percent / 100))
+    wide = tuning.PREVALENCE_DRAW_SHARES["binary_system"] * tuning.PREVALENCE_DRAW_SHARES["wide_binary"]
+    expected = (1 - wide) * chance + wide * (1 - (1 - chance) ** 2)
     share = _shares({feature: percent}, seed=7)[feature]
     assert share == pytest.approx(expected, abs=_tolerance(expected))
 
@@ -95,7 +100,7 @@ def test_no_binaries_at_minus_100_and_more_at_plus_50():
 
 
 def test_moons_and_max_planets_scale_their_draws():
-    random.seed(5)
+    draw.set_run_seed(5)
     for percent, check in ((-100, lambda planets: all(not p.moons for p in planets)),):
         for _ in range(200):
             config = SystemConfig()
@@ -114,7 +119,7 @@ def test_scaled_chance_is_capped_and_floored():
 
 
 def test_resolve_keeps_forced_flags_and_the_forcing_rules():
-    random.seed(1)
+    draw.set_run_seed(1)
     for _ in range(300):
         config = SystemConfig()
         config.COMETS = True
@@ -141,7 +146,7 @@ def test_civilizations_scale_with_intelligent_life_prevalence():
 
 
 def test_large_star_minus_forbids_one():
-    random.seed(9)
+    draw.set_run_seed(9)
     for _ in range(300):
         config = SystemConfig()
         config.LARGE_STAR = False

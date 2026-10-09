@@ -8,10 +8,10 @@ tests that the gate itself can tell a broken function from a working one.
 """
 
 import math
-import random
 
 import pytest
 
+from planetgen.util import draw
 from planetgen.physics import mathcheck as mathCheck
 
 pytestmark = pytest.mark.mathcheck
@@ -45,11 +45,11 @@ def test_whole_run_is_fast():
 
 
 def test_run_leaves_global_random_alone():
-    random.seed(12345)
-    expected = random.random()
-    random.seed(12345)
+    draw.set_run_seed(12345)
+    expected = draw.random()
+    draw.set_run_seed(12345)
     mathCheck.run_all()
-    assert random.random() == expected
+    assert draw.random() == expected
 
 
 def test_chi_square_p_value_matches_known_values():
@@ -72,7 +72,7 @@ def test_a_broken_sampler_fails(monkeypatch):
     (ages piling up young) is caught by the distribution check."""
     from planetgen.physics import stellar_evolution
 
-    def skewed(age_bias=None, rng=random, population=None):
+    def skewed(age_bias=None, rng=draw, population=None):
         return 10.0 * rng.random() ** 2
 
     monkeypatch.setattr(stellar_evolution, "sample_star_age_gy", skewed)

@@ -4,10 +4,10 @@ companion is a star whose type and luminosity follow from its own mass
 (GEN.53, GEN.54).
 """
 
-import random
 
 import pytest
 
+from planetgen.util import draw
 from planetgen.physics import constants
 from planetgen.generation.config import SystemConfig
 from planetgen.physics.stellar_evolution import main_sequence_luminosity_sol
@@ -18,7 +18,7 @@ SEEDS = range(12)
 
 
 def _binary(star_type, seed, **overrides):
-    random.seed(seed)
+    draw.set_run_seed(seed)
     cfg = SystemConfig()
     cfg.STAR_TYPE = star_type
     cfg.BINARY_SYSTEM = True

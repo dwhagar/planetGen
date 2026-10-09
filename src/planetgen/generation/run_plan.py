@@ -13,7 +13,6 @@ scatter and its per-sector bands.
 
 import math
 import queue as queue_module
-import random
 import threading
 import time
 
@@ -25,6 +24,7 @@ from planetgen.galaxy import seed as galaxySeed
 from planetgen.names import naming_key
 from planetgen.physics import constants
 from planetgen import tuning as program_constants
+from planetgen.util import draw
 from planetgen.util import log
 from planetgen.galaxy.density import build_galaxy_shape, relative_density
 from planetgen.galaxy.geometry import ring_sector_count, sector_position_pc
@@ -293,7 +293,7 @@ def _bright_star_seed(skeleton, address):
     `random` stream.
     """
     if skeleton.galaxy_seed is None:
-        return random.getrandbits(63)
+        return draw.getrandbits(63)
     return galaxySeed.short_seed(skeleton.galaxy_seed, "bright-stars", address)
 
 
@@ -655,7 +655,7 @@ def _phenomenon_scatter_seed(skeleton):
     with no seed draws one from the run's `random` stream.
     """
     if skeleton.galaxy_seed is None:
-        return random.getrandbits(63)
+        return draw.getrandbits(63)
     return galaxySeed.short_seed(skeleton.galaxy_seed, "phenomenon-scatter", "scatter")
 
 

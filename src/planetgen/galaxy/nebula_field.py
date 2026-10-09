@@ -25,7 +25,6 @@ already stored.
 
 import functools
 import math
-import random
 
 from planetgen.galaxy import density as galaxyDensity, seed as galaxySeed
 from planetgen import tuning
@@ -33,6 +32,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.nebula import Nebula, NEBULA_CLASS_LETTERS
 from planetgen.galaxy.sector import _sample_poisson_count
 from planetgen.physics.units import ly_to_pc
+from planetgen.util import draw
 
 FIELD_FAMILY = "dark"
 """str: The nebula family the field places (classes M-Q). Emission and
@@ -124,7 +124,7 @@ def cell_clouds(galaxy_seed, shape, index):
     with galaxySeed.seeded(galaxy_seed or FALLBACK_SEED, "nebula-cell", index):
         count = _sample_poisson_count(mean)
         for _ in range(count):
-            center = tuple(corner + random.uniform(0.0, edge) for corner in low)
+            center = tuple(corner + draw.uniform(0.0, edge) for corner in low)
             nebula = Nebula(SystemConfig(), nebula_type=FIELD_FAMILY)
             clouds.append((nebula, center))
     return clouds

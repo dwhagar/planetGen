@@ -9,11 +9,11 @@ period and phase, and the text every "Galactic Orbit" row shows.
 """
 
 import math
-import random
 
 from planetgen.physics import constants as physical_constants
 from planetgen.physics.orbits import minimum_update_interval_years
 from planetgen.physics.units import ly_to_pc
+from planetgen.util import draw
 from planetgen.util.checks import finite_domain
 from planetgen.util.format import format_period_years, format_speed_kms
 
@@ -99,7 +99,7 @@ def generate_galactic_orbit_fields(galactic_center_dist_ly=None, galactic_orbita
     if galactic_center_dist_ly is None:
         galactic_center_dist_ly = physical_constants.GALACTIC_CENTER_DISTANCE_LY
     speed_kms, period_gy = calculate_galactic_orbit(galactic_center_dist_ly)
-    phase_deg = galactic_orbital_phase_deg if galactic_orbital_phase_deg is not None else random.uniform(0, 360)
+    phase_deg = galactic_orbital_phase_deg if galactic_orbital_phase_deg is not None else draw.uniform(0, 360)
     min_update_interval_years = minimum_update_interval_years(period_gy * 1e9)
     return speed_kms, period_gy, phase_deg, min_update_interval_years
 

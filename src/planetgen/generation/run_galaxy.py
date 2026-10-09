@@ -17,7 +17,6 @@ against the skeleton `run_plan` builds.
 import argparse
 import copy
 import math
-import random
 import time
 
 import pymysql
@@ -41,6 +40,7 @@ from planetgen.generation import run_common
 from planetgen.generation import run_plan
 from planetgen.generation import run_population
 from planetgen.generation import run_sector
+from planetgen.util import draw
 
 
 LARGE_RING_WARNING_THRESHOLD = 2000
@@ -1065,7 +1065,7 @@ def run_random_start(args, edge_pc, progress):
     try:
         sector_args = None
         for _ in range(program_constants.RANDOM_START_MAX_PLACEMENT_ATTEMPTS):
-            address = batch_density.bounds.random_address(random, max_ring=args.max_ring)
+            address = batch_density.bounds.random_address(draw, max_ring=args.max_ring)
             if store.get_sector_id_at(conn, *address) is not None:
                 continue
             position_pc = sector_position_pc(*address, edge_pc)

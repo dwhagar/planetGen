@@ -4,11 +4,11 @@
 """
 
 import json
-import random
 
 import pytest
 
 pass
+from planetgen.util import draw
 from planetgen import tuning
 from planetgen.generation.system import StarSystem
 from planetgen.generation import run_system
@@ -67,7 +67,7 @@ def test_a_hot_star_with_a_forced_habitable_world_has_one_or_fails(tmp_path, mon
 
     monkeypatch.setattr(run_system, "StarSystem", build)
     for seed in range(8):
-        random.seed(seed)
+        draw.set_run_seed(seed)
         kept.clear()
         out = tmp_path / f"system-{seed}.md"
         try:

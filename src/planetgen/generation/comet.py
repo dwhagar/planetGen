@@ -36,12 +36,12 @@ why that's out of scope for this pass).
 """
 
 import math
-import random
 
 from planetgen.generation.config import SystemConfig
 from planetgen.physics import constants as physical_constants, kepler
 from planetgen.physics.position import HoldsOrbitPosition, axis_property, velocity_axis_property
 from planetgen import tuning
+from planetgen.util import draw
 from planetgen.util import log
 from planetgen.names.wordlists import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from planetgen.physics.planets import calculate_orbital_period_years
@@ -227,41 +227,41 @@ class Comet(HoldsOrbitPosition):
             log.debug(f"Comet orbit type: {orbit_type!r} (forced)")
         else:
             self.orbit_type = (
-                "parabolic" if random.random() < tuning.COMET_PARABOLIC_CHANCE else "elliptical"
+                "parabolic" if draw.random() < tuning.COMET_PARABOLIC_CHANCE else "elliptical"
             )
             log.choice("Comet orbit type", self.orbit_type,
                        f"roll against COMET_PARABOLIC_CHANCE ({tuning.COMET_PARABOLIC_CHANCE})")
 
-        self.nucleus_diameter_km = random.uniform(*tuning.BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM)
+        self.nucleus_diameter_km = draw.uniform(*tuning.BOUND_COMET_NUCLEUS_DIAMETER_RANGE_KM)
         num_components = min(3, len(tuning.COMET_COMPOSITION))
-        self.composition = random.sample(tuning.COMET_COMPOSITION, k=num_components)
+        self.composition = draw.sample(tuning.COMET_COMPOSITION, k=num_components)
 
-        self.perihelion_distance_au = random.uniform(*tuning.COMET_PERIHELION_DISTANCE_RANGE_AU)
-        self.arg_periapsis_deg = random.uniform(0, 360)
-        self.ascending_node_deg = random.uniform(0, 360)
+        self.perihelion_distance_au = draw.uniform(*tuning.COMET_PERIHELION_DISTANCE_RANGE_AU)
+        self.arg_periapsis_deg = draw.uniform(0, 360)
+        self.ascending_node_deg = draw.uniform(0, 360)
 
         if self.orbit_type == "elliptical":
             class_names = list(tuning.COMET_PERIOD_CLASSES.keys())
             weights = [tuning.COMET_PERIOD_CLASSES[c]["weight"] for c in class_names]
-            self.period_class = random.choices(class_names, weights=weights, k=1)[0]
+            self.period_class = draw.choices(class_names, weights=weights, k=1)[0]
             log.choice("Comet period class", self.period_class,
                        f"weighted draw among {class_names} (weights {weights})")
             class_data = tuning.COMET_PERIOD_CLASSES[self.period_class]
 
-            self.eccentricity = random.uniform(*class_data["eccentricity_range"])
-            self.inclination_deg = random.uniform(0, class_data["inclination_max_deg"])
+            self.eccentricity = draw.uniform(*class_data["eccentricity_range"])
+            self.inclination_deg = draw.uniform(0, class_data["inclination_max_deg"])
 
             semi_major_axis_au = self.perihelion_distance_au / (1 - self.eccentricity)
             primary_mass_kg = primary_mass_solar * physical_constants.SOLAR_MASS_TO_KG
             self.orbital_period_years = calculate_orbital_period_years(semi_major_axis_au, primary_mass_kg)
 
-            self.mean_anomaly_deg = random.uniform(0, 360)
+            self.mean_anomaly_deg = draw.uniform(0, 360)
             self.parabolic_mean_anomaly = None
             self.min_update_interval_years = minimum_update_interval_years(self.orbital_period_years)
         else:
             self.period_class = None
-            self.eccentricity = random.uniform(*tuning.PARABOLIC_COMET_ECCENTRICITY_RANGE)
-            self.inclination_deg = random.uniform(0, tuning.PARABOLIC_COMET_INCLINATION_MAX_DEG)
+            self.eccentricity = draw.uniform(*tuning.PARABOLIC_COMET_ECCENTRICITY_RANGE)
+            self.inclination_deg = draw.uniform(0, tuning.PARABOLIC_COMET_INCLINATION_MAX_DEG)
 
             self.orbital_period_years = None
             self.mean_anomaly_deg = None
@@ -271,12 +271,12 @@ class Comet(HoldsOrbitPosition):
             # positive: receding) so generated instances vary realistically
             # in current distance/activity rather than all starting frozen
             # at perihelion itself.
-            self.parabolic_mean_anomaly = random.uniform(-3.0, 3.0)
+            self.parabolic_mean_anomaly = draw.uniform(-3.0, 3.0)
             self.min_update_interval_years = None
 
         self.update_orbital_state()
         activity_chance = _activity_chance(self.perihelion_distance_au)
-        self.is_active = random.random() < activity_chance
+        self.is_active = draw.random() < activity_chance
         log.choice("Comet activity", self.is_active,
                    f"roll against activity chance {activity_chance:.4g} at perihelion "
                    f"{self.perihelion_distance_au:.4g} AU")

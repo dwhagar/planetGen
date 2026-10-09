@@ -24,11 +24,11 @@ a new `RoguePlanet` and back-fills stored rows (`_db._migrate_v47_to_v48`).
 """
 
 import math
-import random
 
 from planetgen.physics import constants
 from planetgen import tuning
 from planetgen.util.random import log_uniform
+from planetgen.util import draw
 
 SURFACE_REGIMES = (
     "bare-rock", "frozen-atmosphere", "ice-shell-ocean", "ice-world",
@@ -203,11 +203,11 @@ def water_layer_depth_km(mass_kg, radius_km, water_mass_fraction):
     return water_mass_fraction * mass_kg / (LIQUID_WATER_DENSITY_KG_M3 * area_m2) / 1000.0
 
 
-def rogue_surface_conditions(mass_kg, radius_km, planet_type, mass_bin, has_moons, rng=random):
+def rogue_surface_conditions(mass_kg, radius_km, planet_type, mass_bin, has_moons, rng=draw):
     """
     A rogue planet's surface conditions (the module docstring's four
     steps). `rng` supplies every draw (age, abundance, tides, envelope,
-    water), so a seeded `random.Random` gives the same answer each time.
+    water), so a seeded `draw.Stream` gives the same answer each time.
 
     Args:
         mass_kg (float), radius_km (float): The body.

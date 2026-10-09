@@ -8,11 +8,11 @@ The syllable and phoneme-salad name generator, its validity checks, and
 sector names. GEN.71 replaces it with the phoneme codec.
 """
 
-import random
 
 from planetgen.names.wordlists import (
     BAD_CONSONANTS, COMPANION_SUFFIXES, DICTIONARY_WORDS, DIMINUTIVE_PREFIXES, GREEK_LETTERS, NSFW_WORDS, ROMAN_NUMERALS_BY_VALUE, SECTOR_NAMES, SECTOR_PREFIXES, SECTOR_SUFFIXES, UNIVERSAL_PHONEMES, VOWELS, WORD_SIZE_MEAN,
 )
+from planetgen.util import draw
 
 
 def split_into_syllables(name):
@@ -249,22 +249,22 @@ def generate_phoneme_salad_name(name_list, prefix_list, suffix_list, allow_split
             rather than hang with no explanation.
     """
     for _attempt in range(MAX_NAME_GENERATION_ATTEMPTS):
-        name = random.choice(name_list)
+        name = draw.choice(name_list)
 
         syllables = split_into_syllables(name)
         if len(syllables) > 1:
-            random.shuffle(syllables)
+            draw.shuffle(syllables)
 
         if syllable_fraction < 1.0 and len(syllables) > 1:
             keep = max(1, round(len(syllables) * syllable_fraction))
             syllables = syllables[:keep]
 
-        if random.random() < UNIVERSAL_PHONEME_CHANCE:
-            syllables.insert(random.randint(0, len(syllables)), random.choice(UNIVERSAL_PHONEMES))
+        if draw.random() < UNIVERSAL_PHONEME_CHANCE:
+            syllables.insert(draw.randint(0, len(syllables)), draw.choice(UNIVERSAL_PHONEMES))
 
         name = "".join(syllables)
 
-        prefix = random.choice(prefix_list)
+        prefix = draw.choice(prefix_list)
         if prefix[-1] in VOWELS and name[0].lower() in VOWELS:
             name = prefix + name[1:]
         elif prefix[-1] not in VOWELS and name[0].lower() not in VOWELS:
@@ -275,7 +275,7 @@ def generate_phoneme_salad_name(name_list, prefix_list, suffix_list, allow_split
         else:
             name = prefix + name
 
-        suffix = random.choice(suffix_list)
+        suffix = draw.choice(suffix_list)
         if name[-1] in VOWELS and suffix[0].lower() in VOWELS:
             name = name + suffix[1:]
         elif name[-1] not in VOWELS and suffix[0].lower() not in VOWELS:

@@ -31,10 +31,10 @@ the process (`planetgen[1234]`, `web/system.py[88]`, `api[77]`) and the
 source line that logged it. On top of the narrated decisions below, the
 debug log also gets:
 
-  - every draw from the global `random` module made by planetGen's own
+  - every draw from `planetgen.util.draw` made by planetGen's own
     code (`_trace_random`): the call, its arguments (weights included),
     the result, and the source line that asked for it -- so a roll like
-    `if random.random() < FLAVOR_CHANCE_PLANET:` shows both the number
+    `if draw.random() < FLAVOR_CHANCE_PLANET:` shows both the number
     drawn and the probability it was compared against;
   - every SQL statement `_db.Connection` runs, with its timing;
   - uncaught exceptions (`sys.excepthook`/`threading.excepthook`),
@@ -57,14 +57,13 @@ import linecache
 import logging
 import logging.handlers
 import os
-import random
 import re
 import sys
 import threading
 import time
 from contextlib import contextmanager
 
-from planetgen.util import appconfig
+from planetgen.util import appconfig, draw
 
 SILENT = "silent"
 NORMAL = "normal"
@@ -405,9 +404,7 @@ def _install_excepthooks():
 
 _RANDOM_FUNCTIONS = (
     "random", "uniform", "randint", "randrange", "choice", "choices", "sample", "shuffle",
-    "gauss", "normalvariate", "lognormvariate", "triangular", "expovariate", "betavariate",
-    "gammavariate", "paretovariate", "weibullvariate", "vonmisesvariate", "binomialvariate",
-    "getrandbits",
+    "gauss", "normal", "getrandbits",
 )
 _original_random_functions = {}
 
@@ -452,7 +449,7 @@ def _referenced_values(frame, source):
     """
     The plain values (numbers, short strings, small tuples) of the names
     a roll's source line refers to, e.g. `FLAVOR_CHANCE_PLANET=0.15` for
-    `if random.random() < FLAVOR_CHANCE_PLANET:` -- the probability or
+    `if draw.random() < FLAVOR_CHANCE_PLANET:` -- the probability or
     threshold the drawn number is about to be compared against. Names
     being assigned on that line are skipped (they still hold the old
     value).
@@ -464,7 +461,7 @@ def _referenced_values(frame, source):
     found = []
     seen = set()
     for dotted in _IDENTIFIER.findall(source):
-        if dotted in seen or dotted in assigned or dotted.startswith("random.") or keyword.iskeyword(dotted):
+        if dotted in seen or dotted in assigned or dotted.startswith(("random.", "draw.")) or keyword.iskeyword(dotted):
             continue
         seen.add(dotted)
         head, *rest = dotted.split(".")
@@ -494,7 +491,7 @@ def _make_tracer(name, original):
             shown = args[0] if name == "shuffle" and args else result
             source = linecache.getline(frame.f_code.co_filename, frame.f_lineno).strip()
             values = _referenced_values(frame, source)
-            _trace_logger.debug("roll random.%s(%s) -> %s  <- %s%s", name, arg_text, _short_repr(shown), source,
+            _trace_logger.debug("roll draw.%s(%s) -> %s  <- %s%s", name, arg_text, _short_repr(shown), source,
                           f"  [{', '.join(values)}]" if values else "", stacklevel=2)
         return result
 
@@ -504,23 +501,23 @@ def _make_tracer(name, original):
 
 def _trace_random(enable):
     """
-    Wraps (or unwraps) the global `random` module's functions so each call
+    Wraps (or unwraps) `planetgen.util.draw`'s functions so each call
     from planetGen's own code is logged at DEBUG severity. Only the
     module-level functions are wrapped: they're what every generator
-    module calls (`random.uniform(...)`), while the methods they use
-    internally belong to the hidden `random.Random` instance and stay
-    untouched -- so nothing is logged twice and no extra numbers are drawn.
+    module calls (`draw.uniform(...)`), while the `Stream` methods they
+    use stay untouched -- so nothing is logged twice and no extra numbers
+    are drawn. A `draw.Stream` a generator holds itself isn't traced.
     """
     if enable:
         for name in _RANDOM_FUNCTIONS:
-            original = getattr(random, name, None)
+            original = getattr(draw, name, None)
             if original is None or getattr(original, "_planetgen_traced", False):
                 continue
             _original_random_functions[name] = original
-            setattr(random, name, _make_tracer(name, original))
+            setattr(draw, name, _make_tracer(name, original))
     else:
         for name, original in _original_random_functions.items():
-            setattr(random, name, original)
+            setattr(draw, name, original)
         _original_random_functions.clear()
 
 

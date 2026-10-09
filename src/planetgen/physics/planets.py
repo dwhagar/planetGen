@@ -17,11 +17,11 @@ and moon in a system after all of them have been generated.
 """
 
 import math
-import random
 import re
 
 from planetgen.physics import constants
 from planetgen import tuning
+from planetgen.util import draw
 from planetgen.util import log
 from planetgen.physics.orbits import (
     calculate_hill_sphere, calculate_reflex_offset, circular_orbital_speed_kms, circular_orbital_velocity_au_per_year,
@@ -106,7 +106,7 @@ def sample_giant_radius_km(mass_kg):
     (`_sample_giant_radius_km`) and rogue gas giants (GEN.60) both draw
     their radius here."""
     sigma = constants.GIANT_RADIUS_SCATTER[giant_regime(mass_kg)]
-    factor = 1 + max(-3.0, min(3.0, random.gauss(0.0, 1.0))) * sigma
+    factor = 1 + max(-3.0, min(3.0, draw.gauss(0.0, 1.0))) * sigma
     return giant_radius_km(mass_kg) * factor
 
 
@@ -201,7 +201,7 @@ def _choose_weighted_planet_class(valid_classes):
     valid_classes = set(valid_classes)
     eligible = [c for c in tuning.PLANET_CLASS_PROBABILITIES if c in valid_classes]
     weights = [tuning.PLANET_CLASS_PROBABILITIES[c] for c in eligible]
-    chosen = random.choices(eligible, weights=weights, k=1)[0]
+    chosen = draw.choices(eligible, weights=weights, k=1)[0]
     log.choice("Planet class", chosen,
                f"weighted draw among {len(eligible)} eligible classes {eligible} "
                f"(weights {weights}) out of {len(tuning.PLANET_CLASS_PROBABILITIES)} total")
@@ -391,7 +391,7 @@ def generate_planet_properties(planet, zone_override=None):
             possible_classes = [c for c in possible_classes if c not in tuning.HABITABLE_PLANET_CLASSES]
         if not possible_classes:
             raise ValueError("No valid planet class for the given radius in this zone")
-        planet.planet_class = random.choice(possible_classes)
+        planet.planet_class = draw.choice(possible_classes)
         _validate_radius(planet)
 
     elif planet.planet_class is None and planet.radius is None and planet.mass is not None:
@@ -402,7 +402,7 @@ def generate_planet_properties(planet, zone_override=None):
             possible_classes = [c for c in possible_classes if c not in tuning.HABITABLE_PLANET_CLASSES]
         if not possible_classes:
             raise ValueError("No valid planet class for the given mass in this zone")
-        planet.planet_class = random.choice(possible_classes)
+        planet.planet_class = draw.choice(possible_classes)
         _validate_mass(planet)
         # Everything downstream needs a radius, so draw one for the class,
         # the same as the class+mass branch below.
@@ -435,7 +435,7 @@ def generate_planet_properties(planet, zone_override=None):
             possible_classes = [c for c in possible_classes if c not in tuning.HABITABLE_PLANET_CLASSES]
         if not possible_classes:
             raise ValueError("No valid planet class for the given radius/mass in this zone")
-        planet.planet_class = random.choice(possible_classes)
+        planet.planet_class = draw.choice(possible_classes)
         _validate_radius(planet)
         _validate_mass(planet)
 
@@ -481,7 +481,7 @@ def generate_planet_properties(planet, zone_override=None):
         # every other class of this body type.
         default_density = constants.PLANET_DENSITY[planet.body_type]
         min_density, max_density = class_data.get("density_range", default_density)
-        planet.density = random.uniform(min_density, max_density)
+        planet.density = draw.uniform(min_density, max_density)
 
     if class_data["atmosphere"] is None:
         planet.atmosphere = "None"
@@ -504,10 +504,10 @@ def generate_planet_properties(planet, zone_override=None):
         # docs/analysis/habitability-atmosphere-sanity-review.md).
         default_a_density = constants.ATMOSPHERE_DENSITY[planet.body_type]
         min_a_density, max_a_density = class_data.get("atm_density_range", default_a_density)
-        planet.atm_density = random.uniform(min_a_density, max_a_density)
+        planet.atm_density = draw.uniform(min_a_density, max_a_density)
         default_am_density = constants.ATMOSPHERIC_MOLAR_DENSITY[planet.body_type]
         min_am_density, max_am_density = class_data.get("atm_molar_density_range", default_am_density)
-        planet.atm_molar_density = random.uniform(min_am_density, max_am_density)
+        planet.atm_molar_density = draw.uniform(min_am_density, max_am_density)
 
     planet.volume, planet.mass = calculate_object_mass(planet.planet_class, planet.radius, tuning.PLANET_CLASSES, constants.PLANET_DENSITY,
                                               planet.density)
@@ -636,7 +636,7 @@ def calculate_atmospheric_conditions(planet, distance_override=None):
     # surface reflects more than the default rocky/Earth-like range), else
     # the default range used for every other class.
     albedo_range = class_data.get("albedo_range", (0.12, 0.35))
-    albedo = random.uniform(*albedo_range)
+    albedo = draw.uniform(*albedo_range)
     # Floored at the cosmic microwave background: starlight alone can put a
     # body around a very dim star (or far out) below ~2.7 K, but nothing in
     # space is colder than the background it sits in.
@@ -690,7 +690,7 @@ def calculate_atmospheric_conditions(planet, distance_override=None):
         # ~101, so it only guards against a badly-configured future class.
         base_ratio = planet.atm_molar_density / constants.CO2_BASE_MOLAR_DENSITY
         greenhouse_multiplier_range = class_data.get("greenhouse_multiplier_range", (1.0, 1.0))
-        greenhouse_multiplier = random.uniform(*greenhouse_multiplier_range)
+        greenhouse_multiplier = draw.uniform(*greenhouse_multiplier_range)
         greenhouse_factor = min(tuning.CO2_MAX_GREENHOUSE_FACTOR, base_ratio * greenhouse_multiplier)
         surface_temperature_atmosphere = ((1 - albedo) * solar_output_at_orbit * (1 + greenhouse_factor) / (4 * constants.STEFAN_BOLTZMANN_CONSTANT)) ** (1 / 4)
         planet.surface_temperature = max(constants.COSMIC_BACKGROUND_TEMPERATURE_K, surface_temperature_atmosphere)
@@ -708,16 +708,16 @@ def calculate_atmospheric_conditions(planet, distance_override=None):
         # restoring.
         # if planet.planet_class == "M":
         #     if planet.atmospheric_pressure < 90000 or planet.atmospheric_pressure > 112000:
-        #         planet.atmospheric_pressure = random.uniform(90000, 112000)
+        #         planet.atmospheric_pressure = draw.uniform(90000, 112000)
         #     if planet.surface_temperature < 283 or planet.surface_temperature > 290:
-        #         planet.surface_temperature = random.uniform(283, 290)
+        #         planet.surface_temperature = draw.uniform(283, 290)
         # elif planet.planet_class == "P" and planet.surface_temperature >= 283:
         #     # If surface_temperature_no_atmosphere is already above 283, we need a different approach
         #     # to ensure the P class planet remains cold.
         #     if surface_temperature_no_atmosphere < 283:
-        #         planet.surface_temperature = random.uniform(surface_temperature_no_atmosphere, 283)
+        #         planet.surface_temperature = draw.uniform(surface_temperature_no_atmosphere, 283)
         #     else:
-        #         planet.surface_temperature = random.uniform(200, 283) # A reasonable cold range for P class
+        #         planet.surface_temperature = draw.uniform(200, 283) # A reasonable cold range for P class
 
 
 def _tidal_locking_timescale_seconds(moon, primary_mass_kg, initial_rotation_period_hours):
@@ -820,12 +820,12 @@ def generate_orbital_motion_properties(planet, primary_mass_kg):
         constants.MOON_ORBITAL_INCLINATION_MAX_DEG if planet.is_moon
         else constants.PLANET_ORBITAL_INCLINATION_MAX_DEG
     )
-    planet.orbital_inclination_deg = random.uniform(0, inclination_max)
-    planet.orbital_ascending_node_deg = random.uniform(0, 360)
-    planet.orbital_phase_deg = random.uniform(0, 360)
+    planet.orbital_inclination_deg = draw.uniform(0, inclination_max)
+    planet.orbital_ascending_node_deg = draw.uniform(0, 360)
+    planet.orbital_phase_deg = draw.uniform(0, 360)
 
     min_hours, max_hours = constants.ROTATION_PERIOD_RANGE_HOURS[planet.body_type]
-    candidate_rotation_period_hours = random.uniform(min_hours, max_hours)
+    candidate_rotation_period_hours = draw.uniform(min_hours, max_hours)
 
     is_locked = False
     if planet.is_moon:
@@ -1142,7 +1142,7 @@ def generate_moons(planet, moon_count=None):
         # (_tidal_locking_timescale_seconds) -- stops real tidal-locking
         # physics from calling almost every moon unlocked purely because the
         # old distribution pushed it implausibly far from its primary.
-        moon_distance_km = math.exp(random.uniform(math.log(total_orbit_distance), math.log(high_orbit)))
+        moon_distance_km = math.exp(draw.uniform(math.log(total_orbit_distance), math.log(high_orbit)))
         moon_distance = moon_distance_km / constants.AU_TO_KM
         new_moon = Planet(planet.system_config, planet.star, planet.habitable_zone, moon_distance,
                           radius=moon_radius, planet_class=moon_class, zone_override=planet.zone,
@@ -1182,7 +1182,7 @@ def calculate_object_mass(object_class, object_radius, planet_classes, planet_de
     """
     if object_density is None:
         min_density, max_density = planet_density[planet_classes[object_class]['type']]
-        p_density = random.uniform(min_density, max_density)
+        p_density = draw.uniform(min_density, max_density)
     else:
         p_density = object_density
 

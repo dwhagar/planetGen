@@ -24,13 +24,14 @@ galaxy-wide, `nebula_field`).
 """
 
 import math
-import random
+
 
 from planetgen import tuning
 from planetgen.galaxy.geometry import sector_address_at
 from planetgen.galaxy.sector import _sample_poisson_count
 from planetgen.generation import bright_stars
 from planetgen.generation.bright_stars import MPC_PER_PC, _place_one
+from planetgen.util import draw
 from planetgen.util.random import log_uniform
 
 SCATTERED_KINDS = ("black-hole", "neutron-star", "planetary-nebula", "supernova-remnant")
@@ -87,7 +88,7 @@ def scatter_layer(shape, layer_index, outer_ring, edge_pc, expected_at_density_1
     Yields:
         tuple: One row per object, in `PHENOMENON_SCATTER_COLUMNS` order.
     """
-    rng = random.Random(f"{seed}:phenomena:{layer_index}")
+    rng = draw.Stream(f"{seed}:phenomena:{layer_index}")
     skip_addresses = skip_addresses or set()
     for ring_index in range(outer_ring + 1):
         slots, bins = bright_stars._ring_bins(ring_index, layer_index, shape, expected_at_density_1, edge_pc)
@@ -122,7 +123,7 @@ def nucleus_row(seed):
     black hole every galaxy has, at the galactic origin in `NUCLEUS_ADDRESS`'s
     cell. Drawn once per scatter, from its own stream.
     """
-    rng = random.Random(f"{seed}:phenomena:{NUCLEUS_STREAM}")
+    rng = draw.Stream(f"{seed}:phenomena:{NUCLEUS_STREAM}")
     if rng.random() < tuning.QUASAR_ACTIVE_NUCLEUS_CHANCE:
         return _row(*NUCLEUS_ADDRESS, "quasar", (0, 0, 0), rng)
     return _row(*NUCLEUS_ADDRESS, "black-hole", (0, 0, 0), rng, subtype=NUCLEUS_SUBTYPE)
@@ -147,7 +148,7 @@ def hypervelocity_rows(extents, edge_pc, seed):
     outer_rings = dict(extents)
     if not outer_rings:
         return
-    rng = random.Random(f"{seed}:phenomena:{HYPERVELOCITY_STREAM}")
+    rng = draw.Stream(f"{seed}:phenomena:{HYPERVELOCITY_STREAM}")
     low, high = tuning.HYPERVELOCITY_STARS_PER_GALAXY
     wanted = int(round(log_uniform(low, high, rng=rng)))
     reach_pc = max(outer_ring + 1 for outer_ring in outer_rings.values()) * edge_pc
