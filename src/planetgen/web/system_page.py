@@ -31,7 +31,7 @@ from .generate_page import FormError, _admin_or_403, _admin_or_redirect, _no_sto
 from .helpers import crumb, render_page, trusted_html
 
 from planetgen.queue import api_jobs
-from planetgen.web.lib.mdconvert import markdown_to_html
+from planetgen.web.lib.mdrender import markdown_to_html
 from planetgen.generation.limits import MAX_NUM_ORBITS
 
 TRISTATE_FIELDS = (

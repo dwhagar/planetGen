@@ -554,7 +554,7 @@ def test_binary_system_markdown_renders_each_stars_table():
     """
     Regression guard for a fixed bug: each binary star's own `###` header
     was joined to its property table by a single '\\n', not a blank line,
-    so planetgen/web/lib/mdconvert.py's blank-line block splitter lumped the header
+    so planetgen/web/lib/mdrender.py's blank-line block splitter lumped the header
     and table into one block -- which is neither a valid single-line
     heading nor a valid table -- and rendered as one escaped, literal
     paragraph of '#'/'|' text instead of a real <h3> + <table>. Checks both
@@ -564,13 +564,13 @@ def test_binary_system_markdown_renders_each_stars_table():
     """
     import html as html_module
 
-    from planetgen.web.lib.mdconvert import markdown_to_html
+    from planetgen.web.lib.mdrender import markdown_to_html
 
     for wide_binary in (False, True):
         system = StarSystem(system_config=make_config("G2V", BINARY_SYSTEM=True, WIDE_BINARY=wide_binary))
         # store.py's persist_star_system renders the web-facing copy with
         # MARKDOWN=True (ATX headers) -- match that exactly, since MARKDOWN
-        # defaults to False (wikitext '===' headers) which mdconvert.py
+        # defaults to False (wikitext '===' headers) which mdrender.py
         # doesn't parse as headings at all.
         system.system_config.MARKDOWN = True
         html = markdown_to_html(str(system))
@@ -584,7 +584,7 @@ def test_binary_system_markdown_renders_each_stars_table():
             f"into one unrendered paragraph again"
         )
         for name in star_names:
-            # mdconvert.py HTML-escapes every heading's text (see its module
+            # mdrender.py HTML-escapes every heading's text (see its module
             # docstring) -- a name containing '/&/</> (e.g. from an
             # apostrophe-bearing generated name) is expected to come out
             # escaped, not literal.

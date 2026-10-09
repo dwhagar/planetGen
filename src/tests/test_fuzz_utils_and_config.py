@@ -210,8 +210,8 @@ def test_properties_to_string_shapes(props, template, header, key_map):
     if header:
         assert md.startswith(header)
     # The rendered page must stay inert whatever the values hold.
-    from planetgen.web.lib import mdconvert
-    assert "<script" not in mdconvert.markdown_to_html(md).lower()
+    from planetgen.web.lib import mdrender
+    assert "<script" not in mdrender.markdown_to_html(md).lower()
 
 
 # ---------------------------------------------------------------------------

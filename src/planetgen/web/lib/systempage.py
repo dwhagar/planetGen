@@ -13,7 +13,7 @@ formats one for the page's Facilities panel.
 Moved here unchanged from the old CGI `system.py`. Every value taken from
 the database is escaped with `fmt.esc`; the only raw markup comes from
 `tabledisplay.py`'s unit formatters (built from floats and fixed unit
-literals, e.g. `<sup>`) and from `mdconvert.markdown_to_html`, which
+literals, e.g. `<sup>`) and from `mdrender.markdown_to_html`, which
 escapes its own input. So the page wraps what these return in
 `trusted_html`.
 
@@ -28,7 +28,7 @@ row's detail instead.
 
 from planetgen.web.lib.classref import PARABOLIC_COMET_CLASS, class_entry, star_type_classes
 from planetgen.web.lib.fmt import esc, format_distance_km, format_number, format_speed_kms
-from planetgen.web.lib.mdconvert import markdown_to_html
+from planetgen.web.lib.mdrender import markdown_to_html
 from planetgen.web.lib.tabledisplay import (
     format_body_distance, format_period, format_star_luminosity, format_star_mass, format_star_radius,
 )
