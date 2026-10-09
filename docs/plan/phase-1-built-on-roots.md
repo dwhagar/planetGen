@@ -200,7 +200,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | PERF.31 | Investigate: where generation spends its time, from the plan to a finished galaxy |  | GitHub issues [#761](https://github.com/dwhagar/planetGen/issues/761) and [#750](https://github.com/dwhagar/planetGen/issues/750) (benchmark half). |
 | PERF.47 | The PERF.31 benchmark records the buffer pool, table sizes and worker start-up cost | PERF.31 | Generation performance study. |
 | PERF.46 | Planets and moons: set the position once per body |  | Generation performance study. |
-| PERF.49 | Batch system-name reservation: remove the quadratic scan and the long-held registry locks (re-measure first) |  | Name reservation timing; overlaps PERF.43. |
 | DB.19 | Compact or derive phenomenon rows (needed only if the mass cut is lowered to 10 solar masses or less) |  | Decided: Boss accepted the 20 solar mass cut. |
 | GEN.169 | Decide the phenomenon scatter rates: regional factors and the 0.1% intermediate-mass black holes |  | Needs Boss to decide. |
 | PERF.41 | Stamp the tile and page caches with a TILE_FORMAT constant instead of the version (optional) | PERF.31 | Research follow-up to PERF.25 (built). |

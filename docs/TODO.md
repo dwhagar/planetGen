@@ -2753,10 +2753,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   phase took the 10 hours (the log will say).
   Measurement (2026-10-09, corrected): Bugfixes lane 1 first reported
   that one dense core sector took 84 s with 30 s in
-  `reserve_system_names`; it retracted that, because the profile ran
-  while another run was saving into the same database, so it measured
-  lock waiting. Alone, name reservation was 1.7 s of a 17.8 s sector
-  (about 870 names). See PERF.49, which starts by re-measuring.
+  `reserve_system_names`; that first profile ran while another run was
+  saving into the same database. Foundations lane 1 re-measured (PR #870,
+  PERF.49) with nothing else writing: reservation itself is 0.12 s a
+  sector, but at 4 workers the name registry's row locks, held until the
+  sector commit, made a save wait 6 to 25 s. Names are now claimed in a
+  short transaction of their own; 8 core sectors on 4 workers take 54 s
+  against about 90 s.
 
 - [ ] **PERF.32 Generation performance stats: rates recorded per run, deleted on every new version**
   Boss (GitHub issues [#661](https://github.com/dwhagar/planetGen/issues/661) and [#750](https://github.com/dwhagar/planetGen/issues/750)): "The system should store and use
@@ -2920,48 +2923,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   /mnt/project-files/research/handoff/generation-performance.md; from
   Boss's requests of 19:08Z and 19:21Z, generation being his slowest
   point): 13.8 down to 10.1 microseconds a row. Low priority.
-  Prerequisites: none.
-  Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
-
-- [ ] **PERF.49 Batch system-name reservation: remove the quadratic scan and the long-held registry locks (re-measure first)**
-  Correction (2026-10-09, Bugfixes lane 1): its first figure for this item, 30 s of an
-  84 s dense core sector, was a contaminated measurement (it profiled while another run
-  was saving into the same database, so it measured lock waiting). Alone, name
-  reservation was 1.7 s of a 17.8 s sector, about 870 names. First step: re-measure
-  alone on a dense core sector, and drop this item if reservation is a small share.
-  Naming-cost analysis of
-  2026-10-02 (artifact Naming Cost in Generation; release 7.144.463)
-  found three costs; checked against main on 2026-10-09: (1) the
-  quadratic scan is still there: for every distinct base name the loop
-  `uses = [i for i in todo if key_of[i] in row_keys]` walks every name
-  in the sector, so a core sector with thousands of systems costs n
-  squared steps (the keys are now computed once per pass, which fixed
-  the TEST.85 crash and the repeated normalising, not the scan); group
-  the candidate indexes by key once and look them up. (2) the registry
-  row locks are still held until the sector's whole save commits (the
-  `INSERT ... ON DUPLICATE KEY UPDATE` runs inside the caller's
-  transaction), which made parallel workers wait about 1.3 s per dense
-  sector at 2 workers; claim the names in their own short transaction
-  ahead of the sector's main save, keeping the sorted claim order that
-  avoids deadlocks. (3) the offensive-word filter in
-  `names/wordsalad.py` `is_name_valid` scans the whole word list per
-  name (about 32 microseconds a call, two calls per accepted name, 3 to
-  5% of a dense sector); one combined pattern makes it close to free.
-  Requirement: a seeded run must produce identical names, registry rows
-  and final tables before and after (check with a golden-seed run before
-  touching anything). Scope against PERF.43 (Foundations lane 2):
-  PERF.43 makes the word-salad names of phenomena named by object ID
-  lazy and does not touch the registry; this item covers star system
-  names and any phenomenon still reserving through the registry
-  (`reserve_system_names`, `_take_name`, `confirm_system_names`) and the
-  shared offensive-word filter. Since GEN.64, placed phenomena such as
-  rogue planets are named by object ID and no longer reach the registry,
-  so the 2026-10-02 figure of 88% of names being rogue planets no longer
-  holds; re-measure on a dense core sector first. Filed as its own item
-  (Phase 1, Foundations lane 1, after PERF.45) on the coordinator's
-  instruction of 2026-10-09 20:17Z.
-  Approved by Boss (2026-10-09 20:24Z); in the execution plan it follows PERF.44
-  and PERF.45 and comes ahead of PERF.47, DB.19 and OPS.14.
   Prerequisites: none.
   Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
 
