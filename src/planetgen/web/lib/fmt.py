@@ -10,10 +10,12 @@ JSON, never a database row or connection.
 """
 
 import datetime as _dt
+import hashlib
 import html
 import math
 import os
 import re
+import time
 from urllib.parse import quote
 
 from planetgen.physics.constants import LOCAL_STELLAR_DENSITY_LY3
@@ -90,11 +92,45 @@ def _read_package_version():
 
 STATIC_VERSION = _read_package_version()
 
+_STATIC_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "..", "html", "static")
+_STATIC_DIR = os.path.normpath(_STATIC_DIR)
+STATIC_FINGERPRINT_TTL_SECONDS = 5.0
+_fingerprint_cache = {"at": -1e9, "value": ""}
+
+
+def _static_fingerprint():
+    """
+    A short fingerprint of what is in `html/static/` right now: a hash of
+    every file's path, size and modification time, looked at again at most
+    every `STATIC_FINGERPRINT_TTL_SECONDS`. The release version only
+    changes when the post-merge stamp lands, so a deployment taken just
+    before it (or an Apache that wasn't restarted) serves new scripts under
+    an old `?v=` that browsers hold for a year: modules from two versions
+    meet, an import fails, and the Galaxy and Sector Maps stay blank. With
+    the fingerprint in the URL, changed files always get new URLs.
+    """
+    now = time.monotonic()
+    if now - _fingerprint_cache["at"] < STATIC_FINGERPRINT_TTL_SECONDS:
+        return _fingerprint_cache["value"]
+    digest = hashlib.sha1()
+    try:
+        for folder, names, files in os.walk(_STATIC_DIR):
+            names.sort()
+            for name in sorted(files):
+                path = os.path.join(folder, name)
+                info = os.stat(path)
+                digest.update(f"{os.path.relpath(path, _STATIC_DIR)}:{info.st_size}:{info.st_mtime_ns}\n".encode())
+        value = digest.hexdigest()[:8]
+    except OSError:
+        value = ""
+    _fingerprint_cache.update(at=now, value=value)
+    return value
+
 
 def static_url(name):
     """
-    The URL of a file under `html/static/`, with `?v=<package version>`
-    appended -- the one place every `<link>`/`<script src>` in the shell
+    The URL of a file under `html/static/`, with `?v=<package version>-<static
+    fingerprint>` appended (`_static_fingerprint`) -- the one place every `<link>`/`<script src>` in the shell
     and the pages gets its static URL from. The version changes with every
     release, so Apache can tell browsers to cache `static/` for a year
     (`Cache-Control: immutable`, see examples/apache/planetgen.conf.example)
@@ -112,7 +148,9 @@ def static_url(name):
         str: e.g. `"static/style.css?v=5.52.0"` (relative, like every
              other link in `html/`).
     """
-    return f"static/{name}?v={quote(STATIC_VERSION, safe='')}"
+    fingerprint = _static_fingerprint()
+    token = f"{STATIC_VERSION}-{fingerprint}" if fingerprint else STATIC_VERSION
+    return f"static/{name}?v={quote(token, safe='')}"
 
 
 def esc(value):
