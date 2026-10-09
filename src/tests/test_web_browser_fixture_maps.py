@@ -617,6 +617,40 @@ def test_a_binary_picks_as_one_system_in_an_opened_sector(page, map_site):
     assert headings - {"Fixture Prime"} <= SYSTEM_NAMES, headings
 
 
+def _camera(page):
+    page.wait_for_function("() => { const c = document.querySelector('#galaxymap3d-canvas').galaxyCamera(); return c && !c.flying; }")
+    return page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyCamera()")
+
+
+def test_c_recenters_the_view_on_the_selection_and_the_mouse_turns_about_it(page, map_site):
+    """MAP.138: C (or Menu's Center on selection) moves the center the view
+    turns and zooms about to the selected star, keeping the angle and zoom;
+    a mouse drag then turns about it and leaves it where it is."""
+    _open_galaxy(page, map_site, OPEN_PRIME)
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-info h3')")
+    page.wait_for_timeout(500)
+    _x, _y, _name = _click_a_star(page)
+    before = _camera(page)
+    page.locator(GALAXY_CANVAS).focus()
+    page.keyboard.press("c")
+    after = _camera(page)
+    assert after["target"] != before["target"], "the center moved to the star"
+    assert abs(after["tilt"] - before["tilt"]) < 1e-6 and abs(after["zoom"] - before["zoom"]) < 1e-9
+    box = page.locator(GALAXY_CANVAS).bounding_box()
+    cx, cy = box["x"] + box["width"] / 2, box["y"] + box["height"] / 2
+    page.mouse.move(cx, cy)
+    page.mouse.down()
+    page.mouse.move(cx + 80, cy + 40, steps=5)
+    page.mouse.up()
+    turned = _camera(page)
+    assert turned["tilt"] != after["tilt"] and turned["target"] == after["target"], (after, turned)
+    # With nothing selected, C goes back to the middle of the view.
+    page.keyboard.press("Escape")
+    page.keyboard.press("c")
+    again = _camera(page)
+    assert again["target"] != after["target"]
+
+
 def test_galaxy_map_back_forward_and_url_state(page, map_site):
     _open_galaxy(page, map_site)
     steps = _walk_down(page, stages=3)

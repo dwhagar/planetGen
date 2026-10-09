@@ -799,7 +799,7 @@ export function createStageView(host) {
     const back = new THREE.Vector3(0, 0, 1).applyQuaternion(view.quat);
     return {
       tilt: THREE.MathUtils.radToDeg(Math.acos(Math.max(-1, Math.min(1, back.z)))), flying: !!animation,
-      zoom: view.zoom,
+      zoom: view.zoom, target: view.target.slice(),
     };
   };
 
@@ -1868,6 +1868,29 @@ export function createStageView(host) {
     });
   }
 
+  // Moves the orbit center to the selection (a star, cloud or body), or to
+  // the middle of what the stage shows when nothing is selected, keeping the
+  // angle and the zoom, so the mouse and the keys then turn and zoom about it
+  // (MAP.138).
+  function recenter() {
+    if (!view || animation || !resolved || !view.fit) return;
+    let goal = null;
+    const selected = systemStage.selected();
+    const where = selected ? systemStage.where(selected) : null;
+    const entry = sectorStage.selectedEntry();
+    if (where) goal = where.center.slice();
+    else if (entry) goal = [entry.x, entry.y, entry.z];
+    else goal = view.fit.target.slice();
+    const from = viewNow();
+    const to = { target: goal, dist: view.dist, quat: view.quat.clone() };
+    followBody = null;
+    const kept = view;
+    flyCamera(from, to, null, function () {
+      view = Object.assign({}, kept, { target: goal.slice(), dist: kept.dist, quat: kept.quat.clone() });
+      applyView();
+    });
+  }
+
   // The other layer (a phenomenon) under the pointer, while there is one.
   let hoveredOther = null;
 
@@ -1975,6 +1998,11 @@ export function createStageView(host) {
     if (key === "Home") {
       event.preventDefault();
       home();
+      return;
+    }
+    if ((key === "c" || key === "C") && !event.ctrlKey && !event.metaKey && !event.altKey) {
+      event.preventDefault();
+      recenter();
       return;
     }
     if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Enter"].indexOf(key) < 0) return;
@@ -2823,6 +2851,7 @@ export function createStageView(host) {
     onKey: onKey,
     onWheel: onWheel,
     resetView: resetView,
+    recenter: recenter,
     home: home,
     up: up,
     travel: travel,

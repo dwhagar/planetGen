@@ -356,6 +356,21 @@ export function createSystemView(options) {
     placeCamera();
   }
 
+  // Moves the center the view turns and zooms about to the selected body, or
+  // the middle of the system when nothing is selected, keeping the angle and
+  // distance (MAP.138).
+  function recenter() {
+    follow.ref = null;
+    flight = null;
+    if (selected && built.byRef[selected.ref]) {
+      const entry = built.byRef[selected.ref];
+      target.set(entry.x, entry.y, entry.z);
+    } else {
+      target.set(0, 0, 0);
+    }
+    placeCamera();
+  }
+
   function flyTo(ref) {
     const entry = built.byRef[ref];
     if (!entry) return;
@@ -479,6 +494,9 @@ export function createSystemView(options) {
     } else if (event.key === "Home" || event.key === "0") {
       reset();
       event.preventDefault();
+    } else if ((event.key === "c" || event.key === "C") && !event.ctrlKey && !event.metaKey && !event.altKey) {
+      recenter();
+      event.preventDefault();
     }
   });
 
@@ -541,6 +559,7 @@ export function createSystemView(options) {
     mode: () => state.mode,
     note: () => layout.note,
     reset: reset,
+    recenter: recenter,
     flyTo: flyTo,
     follow: function (ref) { follow.ref = ref; if (ref) flyTo(ref); },
     select: function (ref) { select(built.byRef[ref] || null); },
