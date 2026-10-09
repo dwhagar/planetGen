@@ -2444,12 +2444,33 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   eccentricity 0, inclination 0 gives R_p / a_in = 2.80; (2) S-type, m1
   = 1, m2 close to 0, m3 = 1, outer eccentricity 0.5, inclination 0
   gives R_p / a_in = 2.8 x 2^0.4 x (1.5 / sqrt(0.5))^0.4 = 4.99 and
-  a_out / a_in = 9.98. The Vynatheya et al. 2022 (MNRAS 516, 4146)
-  empirical criterion is NOT built until Boss supplies its exact
-  equation (the e_in term and f(i)); the Tory-Grishin-Mandel boundary as
-  pasted contradicts the test-particle limit; the missing pieces are
-  listed in exotic-environments-planets-and-compact-binaries.md section
-  2.3.
+  a_out / a_in = 9.98.
+  Update (2026-10-09, after Boss supplied the paper): the implementable
+  Vynatheya et al. 2022 form (MNRAS 516, 4146; arXiv 2207.03151v2) is
+  its Equation 4: q_out = m3 / (m1 + m2); e_in,max = sqrt(1 - 5/3 cos^2
+  i); e_in,avg = 0.5 e_in,max^2; the effective inner eccentricity is
+  max(e_in, e_in,avg), and equals e_in where cos^2 i > 3/5 (our choice;
+  the paper is silent); Y = a_out (1 - e_out) / [a_in (1 + e_in_eff)];
+  Y_crit = 2.4 [(1 + q_out) / ((1 + e_in_eff) (1 - e_out)^(1/2))]^(2/5)
+  x [((1 - 0.2 e_in_eff + e_out) / 8) (cos i - 1) + 1]; stable if Y >
+  Y_crit. It was fitted for 0.01 <= q_in <= 1, 0.01 <= q_out <= 100 and
+  1e-4 < alpha < 1. Accuracy against N-body runs (paper Table 4): EK95
+  0.86, MA01 0.90, Equation 4 0.93, the paper's neural net 0.95 (its
+  weights were not reachable, so it is not implementable). Decided by
+  Boss (2026-10-09 18:56Z): one function with a switch; Mardling-Aarseth
+  for planets (q about 1e-3 is outside Equation 4's fitted range),
+  Equation 4 for star-only triples inside the fitted range, EK95 as a
+  cross-check; unit tests for both formulas. Extra tests, a_out / a_in needed (MA01
+  / Equation 4): P-type coplanar circular m1 = m2 = 1, m3 close to 0:
+  2.80 / 2.40; S-type m1 = 1, m2 close to 0, m3 = 1, e_out = 0.5, i = 0:
+  9.98 / 7.28; q_out = 0.5, all e = 0, i = 0: 3.29 / 2.82; i = 90
+  degrees: 2.80 / 3.19; i = 180 degrees: 2.31 / 2.12; q_out = 0.5, e_in
+  = 0.6, i = 0: 3.29 / 3.74. Do not repeat the earlier engine
+  descriptions (a constant 2.8 replaced by f(e_in), a piecewise f(i),
+  97% accuracy): they were wrong. The Tory-Grishin-Mandel boundary as
+  pasted contradicts the test-particle limit. Full text and transcribed
+  code: exotic-environments-planets-and-compact-binaries.md section 2.3
+  and /mnt/project-files/research/scripts/exotic/vynatheya2022.py.
 
 - [ ] **GEN.130 Exotic star systems: a black hole, neutron star or similar at the center**
   Boss (GitHub issue [#778](https://github.com/dwhagar/planetGen/issues/778)): "We need to add exotic star systems that
