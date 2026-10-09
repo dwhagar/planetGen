@@ -1,5 +1,10 @@
 # Changelog
 
+## [7.370.678] - 2026-10-09
+
+### Added
+- A star system's galactic velocity is stored (`star_systems.velocity_x_kms`, `velocity_y_kms`, `velocity_z_kms`, schema v61, worked out for systems saved before): the galaxy's rotation at its place plus, for a runaway or hypervelocity star, its speed along a random direction. The galactic orbit update turns it with the position, and a loaded sector gives it to the system's entry, its stars and its bodies. Run `sudo ./update.sh` to migrate.
+
 ## [7.369.678] - 2026-10-09
 
 ### Changed
