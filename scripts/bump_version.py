@@ -34,7 +34,10 @@ for each category added up"):
 
 - MAJOR goes up for a `major` note, and REVISION resets to 0.
 - REVISION goes up by one for every other release (`minor` or `patch`
-  note), so each release still gets its own number.
+  note), so each release still gets its own number. Exception: while
+  `REVISION_HOLD` is on (Boss: no 8.1 until Phase 1 is complete) it stays
+  put, and a release with the same version as the top changelog entry
+  joins that entry.
 - BUILD is the sum of every TODO category's counter, read from the "Next
   free IDs" table in `docs/design/todo-number-map.md` (a counter is the
   next free number minus one: the highest ID issued in that category,
@@ -67,6 +70,14 @@ TODO_FILE = os.path.join("docs", "TODO.md")
 TODO_MAP_FILE = os.path.join("docs", "design", "todo-number-map.md")
 
 BUMP_LEVELS = ("patch", "minor", "major")
+
+# Boss, 2026-10-09 18:12Z: "let's also not stamp to 8.1 until phase 1 is
+# complete". While this is True a `patch` or `minor` note leaves REVISION
+# alone (it still takes the current BUILD), and a release whose version is
+# already the top CHANGELOG entry joins that entry instead of opening a
+# second one. Set it to False when Boss calls Phase 1 complete; the next
+# note then goes to MAJOR.(REVISION+1).BUILD as usual.
+REVISION_HOLD = True
 
 # The section headings CHANGELOG.md already uses (Keep a Changelog's set).
 SECTIONS = ("Added", "Changed", "Deprecated", "Removed", "Fixed", "Security")
@@ -135,13 +146,15 @@ def next_version(version, level, build=None):
 
     With `build` (the TODO counter sum, see `todo_build_number`) it is
     MAJOR.REVISION.BUILD: a `major` note bumps MAJOR and resets REVISION,
-    anything else bumps REVISION, and BUILD is `build`. Without it, plain
-    semver.
+    anything else bumps REVISION (unless `REVISION_HOLD`), and BUILD is
+    `build`. Without it, plain semver.
     """
     major, minor, patch = parse_version(version)
     if build is not None:
         if level == "major":
             return f"{major + 1}.0.{build}"
+        if REVISION_HOLD:
+            return f"{major}.{minor}.{build}"
         return f"{major}.{minor + 1}.{build}"
     if level == "major":
         return f"{major + 1}.0.0"
@@ -284,6 +297,33 @@ def order_fragments(root, fragments):
 
 # -- stamping ----------------------------------------------------------------
 
+def merge_bodies(new, old):
+    """
+    Joins two release bodies section by section (`### Added` and so on),
+    the new bullets above the old ones in each section.
+    """
+    def sections(body):
+        order, found, name = [], {}, None
+        for line in body.strip().splitlines():
+            if line.startswith("### "):
+                name = line[4:].strip()
+                if name not in found:
+                    order.append(name)
+                    found[name] = []
+            elif name is not None:
+                found[name].append(line)
+        return order, found
+
+    new_order, new_found = sections(new)
+    old_order, old_found = sections(old)
+    parts = []
+    for name in new_order + [n for n in old_order if n not in new_order]:
+        lines = [l for l in new_found.get(name, []) + old_found.get(name, []) if l.strip()]
+        if lines:
+            parts.append(f"### {name}\n" + "\n".join(lines))
+    return "\n\n".join(parts)
+
+
 def apply_release(root, version, date, body):
     """Writes one release into all three places at once."""
     text = _read(root, VERSION_FILE)
@@ -294,11 +334,19 @@ def apply_release(root, version, date, body):
 
     text = _read(root, CHANGELOG_FILE)
     top = CHANGELOG_TOP_RE.search(text)
-    entry = f"## [{version}] - {date}\n\n{body.strip()}\n\n"
-    if top:
-        text = text[:top.start()] + entry + text[top.start():]
+    if top and top.group("version") == version:
+        # Same version as the newest entry (REVISION_HOLD): join it.
+        nxt = CHANGELOG_TOP_RE.search(text, top.end())
+        end = nxt.start() if nxt else len(text)
+        old_body = text[text.index("\n", top.start()):end]
+        entry = f"## [{version}] - {date}\n\n{merge_bodies(body, old_body)}\n\n"
+        text = text[:top.start()] + entry + text[end:]
     else:
-        text = text.rstrip("\n") + "\n\n" + entry
+        entry = f"## [{version}] - {date}\n\n{body.strip()}\n\n"
+        if top:
+            text = text[:top.start()] + entry + text[top.start():]
+        else:
+            text = text.rstrip("\n") + "\n\n" + entry
     _write(root, CHANGELOG_FILE, text)
 
 

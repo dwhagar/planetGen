@@ -22,6 +22,12 @@ _spec = importlib.util.spec_from_file_location(
 bump_version = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(bump_version)
 
+@pytest.fixture(autouse=True)
+def _no_revision_hold(monkeypatch):
+    """The tests below describe the normal scheme; the hold has its own."""
+    monkeypatch.setattr(bump_version, "REVISION_HOLD", False)
+
+
 FIXED_NOTE = "### Fixed\n- Fixed a thing.\n"
 ADDED_NOTE = "### Added\n- Added a thing.\n"
 
@@ -276,3 +282,30 @@ def test_a_missing_category_row_is_rejected(tmp_path):
 def test_real_todo_counters_are_consistent():
     """The real 'Next free IDs' table covers every category and is ahead of docs/TODO.md."""
     assert bump_version.todo_build_number(REPO_ROOT) > 0
+
+
+def test_revision_hold_keeps_the_revision_and_joins_the_top_entry(tmp_path, monkeypatch):
+    monkeypatch.setattr(bump_version, "REVISION_HOLD", True)
+    assert bump_version.next_version("8.0.711", "patch", build=760) == "8.0.760"
+    assert bump_version.next_version("8.0.711", "minor", build=760) == "8.0.760"
+    assert bump_version.next_version("8.0.711", "major", build=760) == "9.0.760"
+
+    root = _make_repo(str(tmp_path), version="8.0.711")
+    _todo_map(root, _all_next_free(UX=5, API=9, DB=13))
+    _note(root, "a-feature.minor.md", ADDED_NOTE)
+    _note(root, "b-fix.patch.md", FIXED_NOTE)
+    assert bump_version.stamp(root, date="2026-02-02") == ["8.0.24", "8.0.24"]
+    changelog = _read(root, "CHANGELOG.md")
+    assert changelog.count("## [8.0.24]") == 1
+    assert "## [8.0.711]" in changelog
+    entry = changelog.split("## [8.0.24]")[1].split("## [8.0.711]")[0]
+    assert "- Added a thing." in entry and "- Fixed a thing." in entry
+    assert '__version__ = "8.0.24"' in _read(root, bump_version.VERSION_FILE)
+
+
+def test_merge_bodies_puts_new_bullets_first_in_each_section():
+    merged = bump_version.merge_bodies(
+        "### Added\n- New.\n### Fixed\n- New fix.\n",
+        "\n\n### Fixed\n- Old fix.\n### Changed\n- Old change.\n")
+    assert merged == ("### Added\n- New.\n\n### Fixed\n- New fix.\n- Old fix.\n\n"
+                      "### Changed\n- Old change.")
