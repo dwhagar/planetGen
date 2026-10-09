@@ -467,3 +467,46 @@ def test_an_unknown_apache_identity_is_an_error_not_a_silent_exit(name):
     code = _code_lines(name)
     assert "couldn't work out Apache's user and group" in code
     assert 'read -r APACHE_USER APACHE_GROUP < <(detect_apache_group) || [[ -z "${APACHE_GROUP:-}" ]]' in code
+
+
+# --- reload_apache_if_running (OPS.8) ----------------------------------------
+
+def _run_reload(tmp_path, active, restart, fail=False):
+    """Runs the helper with a fake `systemctl` that logs its calls."""
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    log = tmp_path / "calls"
+    fake = bin_dir / "systemctl"
+    fake.write_text(
+        "#!/bin/bash\n"
+        f'echo "$@" >> {log}\n'
+        'if [[ "$1" == is-active ]]; then exit %d; fi\n'
+        'exit %d\n' % (0 if active else 3, 1 if fail else 0))
+    fake.chmod(0o755)
+    script = f'source "{REPO_DIR}/scripts/deploy-common.sh"; APACHE_NEEDS_RESTART={restart}; reload_apache_if_running'
+    env = dict(os.environ, PATH=f"{bin_dir}:{os.environ['PATH']}")
+    proc = subprocess.run(["bash", "-c", script], env=env, capture_output=True, text=True)
+    calls = log.read_text().splitlines() if log.exists() else []
+    return proc, calls
+
+
+def test_the_update_reloads_a_running_apache(tmp_path):
+    proc, calls = _run_reload(tmp_path, active=True, restart=0)
+    assert proc.returncode == 0 and "reloaded Apache" in proc.stdout
+    assert calls == ["is-active --quiet apache2", "reload apache2"]
+
+
+def test_the_update_restarts_apache_after_enabling_a_module(tmp_path):
+    proc, calls = _run_reload(tmp_path, active=True, restart=1)
+    assert proc.returncode == 0 and "restarted Apache" in proc.stdout
+    assert calls[-1] == "restart apache2"
+
+
+def test_the_update_leaves_a_stopped_apache_alone(tmp_path):
+    proc, calls = _run_reload(tmp_path, active=False, restart=0)
+    assert proc.returncode == 1 and calls == ["is-active --quiet apache2"]
+
+
+def test_a_failed_reload_falls_back_to_printing_the_command(tmp_path):
+    proc, _calls = _run_reload(tmp_path, active=True, restart=0, fail=True)
+    assert proc.returncode == 1 and "failed" in proc.stderr
