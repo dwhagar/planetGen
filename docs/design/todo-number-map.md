@@ -805,7 +805,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.9 | Search and locate return references for every kind | none | open |
 | NAV.10 | Routing that scales past a few thousand systems | none | done, PR #814 |
 | NAV.11 | Travel times for the system-to-system route too | none | open |
-| NAV.12 | No maximum hop length: a route always reaches the nearest star it can, across any number of sectors | none | open |
+| NAV.12 | No maximum hop length: a route always reaches the nearest star it can, across any number of sectors | none | done, PR #841 |
 | NAV.13 | A picker module: select, step out, step in, step sideways | none | done, PR #564 |
 | NAV.14 | One breadcrumb for every level | none | done, PR #571 |
 | NAV.15 | Pick mode everywhere | none | done, PR #566 |
@@ -927,7 +927,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.39 | Every API job costs 2.4 s and 195 MB: import lazily and cap the burst workers | none | open |
 | PERF.40 | Two shared queues, a reserved interactive worker and a real "cancel now" | none | open |
 | PERF.41 | Stamp the tile and page caches with a TILE_FORMAT constant instead of the version (optional) | none | open |
-| PERF.42 | Warm the RQ worker before the fork: pre-import generation modules and build the bright-star table once | none | open |
+| PERF.42 | Warm the RQ worker before the fork: pre-import generation modules and build the bright-star table once | none | done, PR #841 |
 | PERF.43 | Lazy word-salad names for phenomena named by object ID | none | open |
 | PERF.44 | Compute object uids in Python and write them with the row | none | open |
 | PERF.45 | Nearest-system links and containment as one later pass | none | open |

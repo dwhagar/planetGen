@@ -52,8 +52,8 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | NAV.17 | A saved course record with both forms |  |  |
 | NAV.18 | Save, list, open, rename and delete, per browser | NAV.17 | Sibling of bookmarks.js. |
 | NAV.4 | Save a course | NAV.17, NAV.18 | Per browser now; NAV.19 moves it into accounts in phase 3+. |
-| NAV.36 | Unknown-space jumps drawn red and glowing | NAV.12, UX.35 | Route strip, navmap.py and the Galaxy Map course; legend; reduced motion; both themes. |
-| NAV.39 | Saved courses remember their unknown-space jumps and check them again | NAV.12, NAV.17 | With NAV.17. |
+| NAV.36 | Unknown-space jumps drawn red and glowing | UX.35 | Route strip, navmap.py and the Galaxy Map course; legend; reduced motion; both themes. |
+| NAV.39 | Saved courses remember their unknown-space jumps and check them again | NAV.17 | With NAV.17. |
 | NAV.49 | Waypoints: pick objects in Star select mode and plot a course through them, kept on the map until cleared | MAP.122, NAV.17 | Merges "Plotted courses should appear on the galactic map and stay until cleared". |
 
 ### Pages

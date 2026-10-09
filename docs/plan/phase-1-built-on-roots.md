@@ -108,15 +108,14 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| NAV.12 | No maximum hop length: a route always reaches the nearest star it can, across any number of sectors |  | Anchor (Boss 01:53Z game mechanic). Built with NAV.10. Per-hop unknown-space flag in /api/nav. |
 | NAV.53 | A `cells_touching_sphere` helper, and pad `store.sectors_reached_by` by one edge (bug) |  | Bug from the research. |
 | NAV.52 | Port `join_islands` and the k-d tree to cKDTree |  | Research: performance cliff in the built router. |
 | UX.35 | The NAV page route shown horizontally, wrapping onto several lines on narrow screens |  | In parallel with NAV.12; replaces ol.nav-route in nav.html. |
-| NAV.11 | Travel times for the system-to-system route too | NAV.12 | Times per hop, including unknown-space jumps; total assumes a stop at every system (Boss 04:19Z); open question on a stay per stop. |
+| NAV.11 | Travel times for the system-to-system route too |  | Times per hop, including unknown-space jumps; total assumes a stop at every system (Boss 04:19Z); open question on a stay per stop. |
 | NAV.42 | Each route stop shows the course and distance to the next stop | UX.35 | Boss 04:19Z. format_course per hop, frame per pair. |
-| NAV.47 | Unknown-space jumps stop at scattered stars, black holes, neutron stars and quasars | NAV.12, GEN.137 |  |
+| NAV.47 | Unknown-space jumps stop at scattered stars, black holes, neutron stars and quasars | GEN.137 |  |
 | GEN.137 | Placed objects move along a galactic orbit but never by velocity times time, and phenomenon_scatter has no plan time (bug) |  | Bug from the research; NAV.47 needs the rule. |
-| NAV.48 | Offer to generate the uncharted sectors that block a course | NAV.12 |  |
+| NAV.48 | Offer to generate the uncharted sectors that block a course |  |  |
 
 ### Nearby search
 
@@ -215,7 +214,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.166 | A mass_range argument on NeutronStar and BlackHole, and intermediate-mass black holes as their own kind |  | Phenomenon mass cut. |
 | PERF.44 | Compute object uids in Python and write them with the row |  | Generation performance study. |
 | PERF.43 | Lazy word-salad names for phenomena named by object ID |  | Generation performance study. |
-| PERF.42 | Warm the RQ worker before the fork: pre-import generation modules and build the bright-star table once |  | Generation performance study. |
 | PERF.41 | Stamp the tile and page caches with a TILE_FORMAT constant instead of the version (optional) | PERF.31 | Research follow-up to PERF.25 (built). |
 | PERF.40 | Two shared queues, a reserved interactive worker and a real "cancel now" | PERF.39 | Research follow-up to PERF.24 (built). |
 | PERF.39 | Every API job costs 2.4 s and 195 MB: import lazily and cap the burst workers |  | Research follow-up to PERF.24 (built); before batch wiki uploads. |
