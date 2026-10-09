@@ -466,7 +466,7 @@ def test_sections_fold_with_only_current_job_open(site, client):
     html = client.get("/admin/generate").get_data(as_text=True)
     assert 'id="current-job"' not in html
     for section in ("one-off-system", "new-galaxy", "generate-sectors", "plan", "bright-stars", "bright-band",
-                    "reset", "recent-jobs"):
+                    "check-db", "reset", "recent-jobs"):
         attrs = _fold(html, section)
         assert "open" not in attrs and "data-fold-keep" not in attrs, section
         assert f'<summary><h2 id="{section}-heading">' in html
@@ -583,6 +583,13 @@ def test_add_a_dimmer_bright_star_layer_job(site, client, no_spawn):
     (step,) = _work_steps(job)
     assert step["label"] == generate_page.BAND_LABEL
     assert _argv(step) == ["plan", "--bright-stars-down-to", "100"]
+
+
+def test_check_the_database_job_runs_check_db_alone(site, client, no_spawn):
+    assert _post(client, action="check_db").status_code == 303
+    (job,) = no_spawn
+    assert job["kind"] == "check_db"
+    assert [_argv(step) for step in job["steps"]] == [["check-db"]]
 
 
 def test_dimmer_layer_needs_a_level(site, client, no_spawn):

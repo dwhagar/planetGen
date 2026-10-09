@@ -542,7 +542,7 @@ def build_job(action, form, database, edge_pc=None):
     """
     The job a form asks for (`edge_pc`: see `galaxy_argv`). Every job
     that generates starts with the math check (`MATH_CHECK_LABEL`); a
-    plain reset doesn't.
+    plain reset and a database check don't.
 
     Returns:
         tuple: `(kind, title, steps)` for `jobs.start_job`.
@@ -554,7 +554,7 @@ def build_job(action, form, database, edge_pc=None):
         raise FormError(f"Type the database name ({database}) to confirm. Nothing was changed.")
     with collecting_problems():
         kind, title, steps = _build_job_steps(action, form, edge_pc)
-    if kind != "reset":
+    if kind not in ("reset", "check_db"):
         python = jobs.python_executable()
         steps = [{"label": MATH_CHECK_LABEL, "argv": [python, *jobs.GENERATE_COMMAND, "check-math"]}, *steps]
     return kind, title, steps
@@ -592,6 +592,8 @@ def _build_job_steps(action, form, edge_pc=None):
         return "galaxy", label, [{"label": label, "argv": generate + ["galaxy"] + argv + prevalence_argv(form)}]
     if action == "reset":
         return "reset", "Reset the galaxy", [reset_step]
+    if action == "check_db":
+        return "check_db", "Check the database", [{"label": "Check the database", "argv": generate + ["check-db"]}]
     raise FormError("Unknown action.")
 
 

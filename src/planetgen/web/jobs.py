@@ -644,7 +644,7 @@ def start_job(kind, title, steps, env=None, admin=None, database=None, root=None
     Starts a job in the background and returns its id straight away.
 
     Args:
-        kind (str): `new_galaxy`, `plan`, `galaxy` or `reset`.
+        kind (str): `new_galaxy`, `plan`, `galaxy`, `check_db` or `reset`.
         title (str): What the page calls it ("Generate sectors").
         steps (list[dict]): `{"label", "argv"}` per step, run in order.
         env (dict, optional): Extra environment for every step (the

@@ -253,6 +253,16 @@ Scaled linearly to the 1.17 x 10^9 rows (about 161 GB) GEN.100 would write befor
 - Bound the work per statement: scope by sector range (the indexed `ring_index, layer_index, ring_slot_index` on `sectors`) and chunk anti-joins by id range, so each statement takes seconds, not minutes.
 - A passive run uses a dedicated account with SELECT only, `SET SESSION TRANSACTION READ ONLY`, and the default snapshot for the SELECTs. The one remaining side effect is `CHECK TABLE` flagging an index that was already bad; `--no-check-table` skips it.
 
+### 6.4 Built (DB.8)
+
+`planetgen check-db` (`planetgen/db/check.py`) and the Generate page's "Check the database" section, which runs it as a job. It writes nothing, ends with one pass, FAIL or warn line per check, and exits 0 (clean, warnings allowed), 1 (damage) or 2 (a check could not run and none found damage). As built:
+
+- `--ring` and `--sector` scope only the value, count and version-key checks; revision, table health, orphans and ids always look at the whole database.
+- An empty `alembic_version` is not damage: a database built whole from `schema.sql` is never stamped, only an upgrade stamps it. A different or doubled revision is.
+- The value rules (`VALUE_RULES`) are deliberately loose, only numbers no generator can write; a generated 8-sector galaxy passes with none flagged.
+- `validation.check_star_system` is not run: it takes a loaded `StarSystem`, and loading every system is far costlier than the SQL rules. It can join later as `--deep`.
+- A stale `sector_stats.actual_systems` is a warning, as an orbit refile moves a system without updating the stats.
+
 ## 7. Long migrations and progress (DB.15, DB.7, NAV.10)
 
 ### 7.1 Helpers for revisions
