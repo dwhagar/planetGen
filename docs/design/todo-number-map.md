@@ -789,8 +789,8 @@ Parents marked "new parent" had no old number of their own.
 | NAV.40 | Bookmarks can't be used to find the start or destination once a course pick has begun (bug) | none | done, PR #399 |
 | NAV.41 | The NAV page's course map is too small to read (bug) | none | done, PR #457 |
 | NAV.42 | Each route stop shows the course and distance to the next stop | none | open |
-| NAV.43 | Find everything within a distance of a place: the query and the API | none | open |
-| NAV.44 | A "What's nearby" page: pick a place, enter a distance in parsecs, list what is there | none | open |
+| NAV.43 | Find everything within a distance of a place: the query and the API | none | done, PR #804 |
+| NAV.44 | A "What's nearby" page: pick a place, enter a distance in parsecs, list what is there | none | done, PR #804 |
 | NAV.45 | "What's within N pc" from the Galaxy Map and Sector Map | none | open |
 | NAV.46 | The NAV picker can't click galaxy wedges to zoom in (bug) | none | closed, already fixed; covered by a browser test (#568) |
 | NAV.47 | Unknown-space jumps stop at scattered stars, black holes, neutron stars and quasars | none | open |

@@ -112,7 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.41, GEN.99, GEN.101, GEN.102, GEN.103, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, GEN.94, GEN.104, GEN.107, GEN.108, NAV.10, NAV.12, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, NAV.43, NAV.44, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.57, DB.7, GEN.58, TEST.77, OPS.8, OPS.13, OPS.14, ADM.18, GEN.59, UX.49, PERF.34, GEN.127, PERF.31, PERF.32, GEN.128, ADM.42 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.41, GEN.99, GEN.101, GEN.102, GEN.103, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, GEN.94, GEN.104, GEN.107, GEN.108, NAV.10, NAV.12, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.57, DB.7, GEN.58, TEST.77, OPS.8, OPS.13, OPS.14, ADM.18, GEN.59, UX.49, PERF.34, GEN.127, PERF.31, PERF.32, GEN.128, ADM.42 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, API.16, ADM.17, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18, PERF.33, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, DB.15, ADM.43, ADM.44 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, repair that reads the newest settings JSON, and the anomalies chosen in phase 2. | NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, DB.10, ADM.20, GEN.114, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies, and the end state of reproducible galaxies (`generate.py reproduce`). | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, OPS.12, GEN.55 |
@@ -778,63 +778,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   NAV.17.
   Design: [docs/design/course-routing.md](design/course-routing.md)
 
-- [ ] **NAV.43 Find everything within a distance of a place: the query and the API**
-  Boss (2026-10-02 04:39Z): "Add TODO items for I want the ability to
-  select a location and ask the sytem what stuff (of any kind) is within
-  some distance in parsecs." Checked on main: the only proximity search
-  is `queryDb.systems_within_radius` (the `queryDb.py` CLI and `GET
-  /api/systems/<id>/near?radius=`), which takes a system, a radius in
-  light-years, and looks only at systems in that system's own sector.
-  Done: one query, `queryDb.objects_within` with a matching `GET
-  /api/near` (and a `queryDb.py near` command), takes a place (an object
-  reference from NAV.7, such as `system:<id>`, `planet:<id>` or a
-  phenomenon, or a bare galaxy-frame point in parsecs) and a distance in
-  parsecs, and returns everything of any kind within that distance:
-  systems with their stars, planets, moons, belts and comets (placed at
-  their system's position), facilities, phenomena of every type, quasars
-  and rogue objects, each with its NAV.7 reference, kind, name, parent
-  and distance, nearest first, paged at 50 rows, with an optional kind
-  filter. Approach: `galaxyGeometry.enumerate_sectors_within_radius`
-  (the cube geometry used by the neighborhood generator) names the
-  sectors the sphere can reach, the query reads only those sectors' rows
-  by their indexed `sector_id` (systems, rogue objects) or bounding box
-  (placed phenomena, as `_placed_phenomenon_rows` does, which already
-  accounts for an extended phenomenon's own radius), then measures exact
-  distances in the galaxy frame; no new index is needed, and NAV.10's
-  position indexes speed it up later if they land first. The old
-  `systems/<id>/near` endpoint keeps working, answered by the new query.
-  Tests: a known neighborhood returns exactly the objects inside the
-  sphere, sorted, across a sector boundary. Boss decided the largest
-  distance allowed is 50 pc (about 8,000 sectors at 4 pc a side). Open questions
-  for Boss, with the defaults taken: whether ungenerated sectors inside the
-  sphere are reported (default: listed once as a count of sectors "not
-  generated yet", never generated by the search); and whether only
-  generated objects count (default yes). Prerequisite: NAV.7.
-
-- [ ] **NAV.44 A "What's nearby" page: pick a place, enter a distance in parsecs, list what is there**
-  Boss (2026-10-02 04:39Z, with NAV.43): "Add TODO items for I want the
-  ability to select a location and ask the sytem what stuff (of any
-  kind) is within some distance in parsecs." Done: a "What's nearby"
-  page (linked from the menu and from every system, phenomenon and
-  sector page) where the place is chosen with the same start and
-  destination controls as the NAV page, or arrives from a link, and the
-  distance is typed in parsecs; the result table lists every object
-  NAV.43 returns with its kind, name (a link to its page), parent and
-  distance on the site's distance ladder, filters by kind, pages at 50
-  rows like every list, and says how many sectors in range are not
-  generated yet. Prerequisite: NAV.43.
-
 - [ ] **NAV.45 "What's within N pc" from the Galaxy Map and Sector Map**
   Boss (2026-10-02 04:39Z, with NAV.43): "Add TODO items for I want the
   ability to select a location and ask the sytem what stuff (of any
   kind) is within some distance in parsecs." Done: on the Galaxy Map and
   the Sector Map, a selected sector, system, phenomenon or picked point
   gets a "What's within N pc" action on the shared control panel that
-  opens NAV.44 with that place filled in. Optional (default left out
+  opens the "What's nearby" page (NAV.44, done) with that place filled in. Optional (default left out
   unless Boss asks): the map draws the search sphere and highlights the
   objects inside it. It uses MAP.65's shared control panel and NAV.15's picking of
   any object on the maps. GitHub issue [#677](https://github.com/dwhagar/planetGen/issues/677) (Boss, 2026-10-08 22:24Z): "Add search options so that when I select a star from anywhere I can take it directly to the search tab to search for items / objects within x distance of that point. Should work for stars, phenomena, even planets and moons." So the action is offered for any pickable object, down to planets and moons (NAV.15), and the result lists every kind.
-  Prerequisite: NAV.44.
 
 - [ ] **NAV.47 Unknown-space jumps stop at scattered stars, black holes, neutron stars and quasars**
   Boss (2026-10-03 05:38Z): "navigational jump path (system to system)

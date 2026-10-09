@@ -119,8 +119,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| NAV.43 | Find everything within a distance of a place: the query and the API |  | Boss 04:39Z. Replaces systems_within_radius (one sector, systems only); enumerate_sectors_within_radius then per-sector reads; open questions: max distance, ungenerated sectors, generated only. |
-| NAV.44 | A "What's nearby" page: pick a place, enter a distance in parsecs, list what is there | NAV.43 | Boss 04:39Z. Page with place picker, distance in pc, kind filters, 50-row pages. |
 
 ### Maps
 

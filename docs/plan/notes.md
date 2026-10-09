@@ -308,3 +308,17 @@ No decisions are open. (GEN.67, Boss 2026-10-08: stars and sectors keep word sal
 - Execution plan (Boss's priority order of 2026-10-09 07:13Z: Orbital updates, Maps, Nearby search, Routing; Repeatable galaxy last, blockers first): `docs/plan/execution-plan.html`, with lanes by wave and the Alembic and file conflicts between groups.
 - Boss (2026-10-09 07:54Z): "I haven't held anything, so integrate ALL phase 1 items into the immediate TODO breakdown, focusing on unblocking things as a first priority." The execution plan's lane lists now hold all 77 non-bug Phase 1 items, ordered with the items that unblock the most work first (`docs/plan/execution-plan.html`).
 - GEN.100's galaxy-wide scatter writes about 1.6e8 rows at the default galaxy size (phenomenon_scatter table). Boss may lower the scatter rate; the coordinator is asking him (2026-10-09 08:15Z).
+
+## Design notes in docs/design
+
+Written by the build and research threads; each is the reference for its
+items. New notes are listed here when the PR that adds them merges.
+
+| Note | Covers |
+|---|---|
+| [interstellar-object-rates.md](../design/interstellar-object-rates.md) | Real-world rates for interstellar objects (retuned in PR #804). |
+| [compact-remnant-regions.md](../design/compact-remnant-regions.md) | Research on where neutron stars and black holes are in the galaxy, behind the regional rates (GEN.132); added in PR #804. |
+| [habitability-index.md](../design/habitability-index.md) | The habitability score structure, equipment profiles and tiers (GEN.84, PR #803). |
+| [orbital-updates.md](../design/orbital-updates.md) | The orbital update design (GEN.105 and its chain). |
+| [library-migration.md](../design/library-migration.md) | The move to third-party libraries. |
+| [reproducible-galaxies.md](../design/reproducible-galaxies.md) | Seeds, version keys and the same-seed rule. |
