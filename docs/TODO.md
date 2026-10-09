@@ -1928,6 +1928,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   environment that follow; GEN.100's galaxy-wide scatter supplies the
   compact objects.
 
+- [ ] **GEN.131 Bright-star scatter logs how many stars it added to each layer, by type**
+  Boss (2026-10-09 08:03Z): "bright star scattering should output to the log how many stars were added to each layer of each type that were added similar to what the sector fill does." Done: when a bright-star scatter or backfill finishes a layer, it logs one summary per layer with the number of stars added of each type (the same star-type labels the sector generation summary uses, UX.34), and a final total for the run; the lines go to the same log as the sector fill's summary and show on the Queue and Generate pages. A test runs a small scatter and checks the per-layer counts add up to the stars written.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.18 Run the GEN.30 bright-star backfill in parallel on the work queue**
