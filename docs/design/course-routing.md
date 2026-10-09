@@ -80,19 +80,40 @@ limit of any kind.
   dense core, endpoints that are phenomena) are written as tests first
   (TEST.79, built in PR #427).
 
-## 3. Routing that scales (NAV.10, phase 1)
+## 3. Routing that scales (NAV.10, built)
 
-Built with NAV.12, which changes the same code.
-
-- The search loads only the systems in a corridor around the direct
-  line (a box query on indexed sector centers, widened when no route is
-  found), or reads the stored `nearest_systems` table instead of
-  rebuilding the graph.
-- A* with the straight-line distance as its heuristic.
-- A query for every system, star and phenomenon within a distance of a
-  line segment (used later by NAV.6 to steer around gravity wells).
-- A galaxy schema migration adds the position indexes.
-- Timed on a 100,000-sector database.
+- **Corridor search.** `query.nav_between` at galaxy scope no longer loads
+  every placed system. `corridor.positions_near_segment` reads the sectors
+  near the straight line between the ends from `sectors`' center index, cut
+  into pieces so the read grows with the line's length, then the systems of
+  those sectors by their indexed sector id, and keeps those within a
+  half-width of the line. The half-width starts at a quarter of the direct
+  distance, between 25 and 100 ly, and doubles (to at most 6,400 ly) while
+  the route found has a hop longer than half of it: a hop that long may be
+  hugging the corridor's edge with stepping stones just outside it. A
+  corridor of more than 300,000 systems is not widened. The joined graph
+  (NAV.34) still guarantees a route among whatever the corridor holds.
+  Because the graph is built from the corridor's systems, a route can differ
+  from the one a whole-galaxy graph would give where a nearest neighbour lies
+  outside the corridor; the benchmark below shows the length stays within a
+  few percent.
+- **A\*.** `nav_graph.shortest_path` takes the node positions and uses the
+  straight-line distance to the goal as its heuristic. The length is the
+  same as Dijkstra's (a test checks it); fewer nodes are visited.
+- **Objects near a line.** `corridor.objects_near_segment` returns every
+  generated system, star and phenomenon within a distance of a segment, in
+  order along it (NAV.6's steering will use it).
+- **No new indexes.** The existing center indexes (`idx_sectors_center` and
+  each phenomenon table's own) and `idx_star_systems_sector_id` serve the
+  boxes, so NAV.10 needs no schema change.
+- **Measured.** `scripts/bench_nav.py` builds a synthetic galaxy of any size
+  with bulk SQL and times a corner-to-corner route. On 100,000 sectors and
+  400,000 systems (a flat grid, 4 pc apart, four systems each), a 4,519 ly
+  route took 3.3 s through the corridor and found a 5,162 ly path of 561
+  stops; loading every system and rebuilding the graph, as before, took 88 s
+  (2.9 s to load, 84.6 s to build). On 10,000 sectors and 40,000 systems: 0.9
+  s against 4.9 s, a 2,098 ly path against 2,101 ly with the whole graph.
+  Measured on the build server with a test suite running beside it.
 
 Travel times for the route itself, per hop (unknown-space jumps
 included) and in total, with the same warp and fold tables as the
@@ -143,7 +164,7 @@ every system on the route (Boss, 2026-10-02 04:19Z).
 | TEST.79 | Route edge cases, written first | 0 | **Built, PR #427** |
 | NAV.34 | Join the route graph's islands (bug) | 0 | **Built, PR #427** |
 | NAV.38 | Every sector a straight line passes through | 0 | **Built, PR #357** |
-| NAV.10 | Corridor search, A*, position indexes | 1 | queues behind PERF.11's schema migration |
+| NAV.10 | Corridor search, A*, the segment query | 1 | **Built** |
 | NAV.12 | No hop limit, longest hop shown, unknown-space flag | 1 | NAV.34, NAV.38, TEST.79, NAV.10 |
 | UX.35 | Horizontal, wrapping route strip | 1 | alongside NAV.12 |
 | NAV.11 | Travel times per hop and for the route | 1 | NAV.10, NAV.12 |

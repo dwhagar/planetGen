@@ -2906,6 +2906,23 @@ left 208). Rounds repeat until one island is left, so any value of 1 or
 more always joins the graph; a bigger value gives shorter detours.
 """
 
+NAV_CORRIDOR_FRACTION = 0.25
+"""float: A route is first searched among the systems within this fraction
+of the direct distance of the straight line between its ends (NAV.10),
+clamped to `NAV_CORRIDOR_MIN_LY` to `NAV_CORRIDOR_START_MAX_LY`."""
+
+NAV_CORRIDOR_MIN_LY = 25.0
+NAV_CORRIDOR_START_MAX_LY = 100.0
+NAV_CORRIDOR_MAX_LY = 6400.0
+"""float: The corridor's half-width starts between the first two and
+doubles up to the last while the route found still has a hop longer than
+half the half-width (a hop that long may be hugging the corridor's edge,
+with stepping stones just outside it)."""
+
+NAV_CORRIDOR_MAX_SYSTEMS = 300000
+"""int: A corridor holding more systems than this is not widened further."""
+
+
 # --- Facilities (schema v42) ---
 
 FACILITY_KINDS = {
