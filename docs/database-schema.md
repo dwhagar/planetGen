@@ -617,10 +617,19 @@ the empty `generation_runs` table (DB.6).
 km/s, relative to its orbital anchor and on the same axes as its
 `position_x/y/z_km`. `advance_orbital_phases` (planets and moons, from the
 new phase) and `advance_comet_orbits` (Kepler or Barker) move it with the
-position. `_migrate_v59_to_v60` works it out for rows saved before. A star's
-or system's galactic velocity is not a column: it is its
-`galactic_orbital_speed_kms` along the rotation curve's tangent at its place,
-put on the objects when a sector is loaded (`system_position.place_system`).
+position. `_migrate_v59_to_v60` works it out for rows saved before.
+
+**A system's galactic velocity (v61, GEN.121).** `star_systems` gains
+`velocity_x_kms`, `velocity_y_kms` and `velocity_z_kms`, km/s on the galactic
+axes: the rotation curve's tangent at the system's place
+(`galactic_orbital_speed_kms`) plus, for a runaway or hypervelocity system,
+`runaway_speed_kms` along a random direction (`StarSystem.runaway_direction`,
+drawn by `flag_fast_stars`). `advance_galactic_positions` turns it with the
+position and a loaded sector puts it on the entry, its stars and its bodies
+(`system_position.place_system`). `_migrate_v60_to_v61` works it out for rows
+saved before, drawing a runaway's direction from its id. A placed phenomenon
+stores none: it only follows the rotation curve, which its
+`galactic_orbital_speed_kms` gives.
 
 **A nebula's shape (v56, GEN.75).** `nebulae.shape_*` hold the single
 values of its shape (`galaxy/nebula_shape.py`: the ellipsoid's stretch
@@ -1196,6 +1205,7 @@ One row per generated system (single-star or binary).
 | `system_flavor_text` | TEXT | nullable | Decided once at generation time (Phase 0 fix). |
 | `runaway_class` | VARCHAR(16) | nullable, `runaway` or `hypervelocity` | Added in v37. NULL for an ordinary star; set by `generate.flag_fast_stars`. |
 | `runaway_speed_kms` | DOUBLE | nullable | Added in v37. The star's speed relative to its neighbors when `runaway_class` is set. |
+| `velocity_x_kms`, `velocity_y_kms`, `velocity_z_kms` | DOUBLE | NOT NULL, default 0 | Added in v61 (GEN.121). The system's velocity, km/s on the galactic axes: the rotation curve's tangent at its place plus its runaway motion. `advance_galactic_positions` turns it with the position. 0 while the system has no place in the galaxy. |
 | `schema_version` | INTEGER | NOT NULL, default 1 | See "Versioning" above. |
 | `mediawiki_url` | TEXT | nullable | Where this system's page lives (or should live) on MediaWiki. |
 | `wikijs_url` | TEXT | nullable | Where this system's page lives (or should live) on Wiki.js. |

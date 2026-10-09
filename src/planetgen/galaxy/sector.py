@@ -557,23 +557,25 @@ class _Placed:
     Cartesian, `(x, y, z)` light-years from the sector's center.
     """
 
-    def _place(self, thing, position, sector_center_ly, sector_edge_pc=None, epoch_unix=None):
+    def _place(self, thing, position, sector_center_ly, sector_edge_pc=None, epoch_unix=None, velocity_ms=None):
         self.spatial = SpatialPosition3D(
             tuple(c + p for c, p in zip(sector_center_ly, position)), sector_center_ly, is_star=True,
             mass_kg=_mass_kg(thing), length_unit_m=physical_constants.LY_TO_M, sector_edge_pc=sector_edge_pc,
             epoch_unix=epoch_unix)
         # Kept exactly as given (the sum above is only the galactic form).
         self.spatial.set_sector_cartesian(*position)
-        self._place_bodies()
+        self._place_bodies(velocity_ms)
 
-    def _place_bodies(self):
+    def _place_bodies(self, velocity_ms=None):
         """A system entry gives its stars, planets, moons and comets their
-        galactic places (`galaxy.system_position`)."""
+        galactic places (`galaxy.system_position`); `velocity_ms`, galactic
+        axes, is the system's own velocity when it is known (as stored),
+        otherwise the rotation curve's plus its runaway motion."""
         system = getattr(self, "star_system", None)
         if system is not None:
             velocity = place_system(system, self.spatial.sector_center,
                                     self.spatial.get_coordinates("sector", "cartesian"),
-                                    sector_edge_pc=self.spatial.sector_edge_pc)
+                                    sector_edge_pc=self.spatial.sector_edge_pc, velocity_ms=velocity_ms)
             if velocity is not None:
                 self.spatial.set_velocity_cartesian(*velocity)
             set_system_epoch(system, self.spatial.epoch_unix)
@@ -611,9 +613,9 @@ class SectorSystemEntry(_Placed):
     time (`SpaceSector.add_preplaced_system`) rather than placed at fill."""
 
     def __init__(self, star_system, position, system_config=None, preplaced=False, sector_center_ly=(0.0, 0.0, 0.0),
-                 sector_edge_pc=None, epoch_unix=None):
+                 sector_edge_pc=None, epoch_unix=None, velocity_ms=None):
         self.star_system = star_system
-        self._place(star_system, tuple(position), sector_center_ly, sector_edge_pc, epoch_unix)
+        self._place(star_system, tuple(position), sector_center_ly, sector_edge_pc, epoch_unix, velocity_ms)
         self.system_config = system_config if system_config is not None else star_system.system_config
         self.preplaced = preplaced
 

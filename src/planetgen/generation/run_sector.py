@@ -20,6 +20,7 @@ from collections import Counter
 from planetgen.db import store
 from planetgen.generation import bright_stars as brightStars
 from planetgen.galaxy import nebula_field
+from planetgen.galaxy.system_position import random_unit_vector
 from planetgen.physics import constants
 from planetgen import tuning as program_constants
 from planetgen.util import log
@@ -279,7 +280,8 @@ def add_star_hosted_nebulae(sector, args):
 def flag_fast_stars(sector, galactic_center_dist_ly=None):
     """
     Marks some of `sector`'s systems as runaway or hypervelocity stars
-    (`StarSystem.runaway_class` and `runaway_speed_kms`, schema v37): an
+    (`StarSystem.runaway_class`, `runaway_speed_kms` and a random
+    `runaway_direction`, schema v37 and v61): an
     ordinary generated system moving unusually fast, not a separate
     phenomenon. Each system rolls a hypervelocity chance first -- the
     "hypervelocity-star" rate per star scaled by
@@ -307,9 +309,11 @@ def flag_fast_stars(sector, galactic_center_dist_ly=None):
         if random.random() < hvs_chance:
             system.runaway_class = "hypervelocity"
             system.runaway_speed_kms = log_uniform(*program_constants.HYPERVELOCITY_STAR_SPEED_RANGE_KMS)
+            system.runaway_direction = random_unit_vector()
         elif random.random() < runaway_chance:
             system.runaway_class = "runaway"
             system.runaway_speed_kms = log_uniform(*program_constants.RUNAWAY_STAR_SPEED_RANGE_KMS)
+            system.runaway_direction = random_unit_vector()
         else:
             continue
         flagged += 1

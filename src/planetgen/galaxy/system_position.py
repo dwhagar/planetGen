@@ -13,6 +13,7 @@ while its sector and galactic coordinates follow.
 """
 
 import math
+import random
 
 from planetgen.physics import constants as physical_constants
 from planetgen.physics.position import SpatialPosition3D
@@ -57,6 +58,37 @@ def galactic_velocity_ms(position, speed_kms):
     return (-position[1] * scale, position[0] * scale, 0.0)
 
 
+def random_unit_vector(rng=random):
+    """A direction uniform on the sphere, from `rng.random()` alone (the
+    seeded generators replace that one function -- GEN.56); `rng` is the
+    `random` module unless a `random.Random` is passed."""
+    z = 2.0 * rng.random() - 1.0
+    phi = 2.0 * math.pi * rng.random()
+    ring = math.sqrt(max(0.0, 1.0 - z * z))
+    return (ring * math.cos(phi), ring * math.sin(phi), z)
+
+
+def peculiar_velocity_ms(system):
+    """
+    The velocity, m/s, a runaway or hypervelocity system has beyond the
+    galaxy's rotation: its `runaway_speed_kms` along its `runaway_direction`
+    (galactic axes). At rest for an ordinary system.
+    """
+    speed = getattr(system, "runaway_speed_kms", None)
+    direction = getattr(system, "runaway_direction", None)
+    if (not isinstance(speed, (int, float)) or isinstance(speed, bool) or not speed > 0.0
+            or not isinstance(direction, (tuple, list)) or len(direction) != 3):
+        return (0.0, 0.0, 0.0)
+    return tuple(speed * 1000.0 * float(c) for c in direction)
+
+
+def system_velocity_ms(system, position):
+    """The velocity, galactic axes, m/s, of `system` at `position` (any
+    galactic unit): the rotation curve's tangent plus its runaway motion."""
+    speed = getattr(getattr(system, "star", None), "galactic_orbital_speed_kms", None)
+    return _add(galactic_velocity_ms(position, speed), peculiar_velocity_ms(system))
+
+
 def set_system_epoch(system, epoch_unix):
     """Stamps every star, planet, moon and comet of `system` that holds a
     position with the time it holds at."""
@@ -85,13 +117,14 @@ def _carry(body, sector_au, primary_au, sector_edge_pc, primary_velocity_ms):
     return body.spatial.get_coordinates("galactic", "cartesian"), body.spatial.get_velocity_vector("galactic")
 
 
-def place_system(system, sector_center_ly, position_ly, sector_edge_pc=None):
+def place_system(system, sector_center_ly, position_ly, sector_edge_pc=None, velocity_ms=None):
     """
     Puts every body of `system` where it is in the galaxy.
 
     Every star moves on the galaxy's rotation curve
     (`galactic_velocity_ms`: its `galactic_orbital_speed_kms` along the
-    tangent at its place), and every body carries its primary's velocity
+    tangent at its place) plus the system's runaway motion
+    (`peculiar_velocity_ms`), and every body carries its primary's velocity
     with the velocity it has relative to it.
 
     Args:
@@ -103,6 +136,9 @@ def place_system(system, sector_center_ly, position_ly, sector_edge_pc=None):
         sector_edge_pc (float or None): The sector grid's edge, parsecs, so
             every body knows its sector address; `None` when the sector is
             not a cell of the galaxy's grid.
+        velocity_ms (tuple or None): The system center's velocity, galactic
+            axes, m/s, when it is known (as stored); `None` works it out
+            from the rotation curve and the system's runaway motion.
 
     Returns:
         tuple: The system center's velocity, galactic axes, m/s.
@@ -114,13 +150,17 @@ def place_system(system, sector_center_ly, position_ly, sector_edge_pc=None):
     center_au = tuple((c + p) * to_au for c, p in zip(sector_center_ly, position_ly))
 
     system_speed = getattr(getattr(system, "star", None), "galactic_orbital_speed_kms", None)
-    system_velocity = galactic_velocity_ms(center_au, system_speed)
+    circular_velocity = galactic_velocity_ms(center_au, system_speed)
+    system_velocity = tuple(velocity_ms) if velocity_ms is not None else _add(circular_velocity,
+                                                                              peculiar_velocity_ms(system))
+    # What the system has beyond the rotation curve, every star shares.
+    extra = tuple(v - c for v, c in zip(system_velocity, circular_velocity))
     star_centers, star_velocities = {}, {}
     for star, offset in _star_offsets_au(system):
         at = _add(center_au, offset)
         star_centers[id(star)] = at
         speed = getattr(star, "galactic_orbital_speed_kms", None)
-        star_velocities[id(star)] = galactic_velocity_ms(at, speed if speed is not None else system_speed)
+        star_velocities[id(star)] = _add(galactic_velocity_ms(at, speed if speed is not None else system_speed), extra)
         mass = getattr(star, "mass", None)
         star.spatial = SpatialPosition3D(
             at, sector_au, is_star=True, length_unit_m=physical_constants.AU_M, sector_edge_pc=sector_edge_pc,
