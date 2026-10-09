@@ -569,7 +569,7 @@ def add_galaxy_arguments(parser):
                              "neither --ring nor --center-sector (random-start mode): overrides the "
                              "default 12 pc neighborhood radius around the randomly chosen starting "
                              "sector. Once every sector is generated, the bright stars within 100 ly "
-                             "of the requested sector are backfilled (see --backfill-from).")
+                             "of the run's edge are backfilled (see --backfill-from).")
     parser.add_argument('--max-ring', type=int,
                         help="With neither --ring nor --center-sector (random-start mode): the highest "
                              "ring the randomly chosen starting sector may land in. Default: anywhere "
@@ -588,15 +588,14 @@ def add_galaxy_arguments(parser):
                              "rogue planet and comet takes through its sector (for the sectors the run "
                              "created and the ones around them). 'planetgen orbits' saves them later.")
     backfill_group = parser.add_argument_group("bright stars after the run (GEN.30)")
-    backfill_group.add_argument('--backfill-from', choices=run_galaxy.BACKFILL_FROM_CHOICES, default="requested",
+    backfill_group.add_argument('--backfill-from', choices=run_galaxy.BACKFILL_FROM_CHOICES, default="edge",
                                 help="Once every sector of the run is generated, backfill the bright stars "
-                                     "around the requested sector only ('requested', the default: the "
-                                     "random start, --center-sector or --slot address, else the generated "
-                                     "sector nearest the middle of the run), around every sector the run "
-                                     "generated ('all', reaching 100 ly past the farthest one), or not at "
-                                     "all ('none'). The backfill goes down to 100 L_sun under 10 ly, 250 "
-                                     "under 25 ly, 500 under 50 ly and 750 out to 100 ly, and never adds "
-                                     "stars to a sector already generated.")
+                                     "out from the run's edge ('edge', the default): 100 ly past the "
+                                     "farthest generated sector in every direction, not a radius around "
+                                     "the starting sector -- or not at all ('none'). The backfill goes "
+                                     "down to 100 L_sun under 10 ly, 250 under 25 ly, 500 under 50 ly "
+                                     "and 750 out to 100 ly, and never adds stars to a sector already "
+                                     "generated.")
     backfill_group.add_argument('--then-scatter', action='store_true',
                                 help="After the sectors and before the backfill, scatter the bright stars "
                                      "galaxy-wide (as 'planetgen plan --bright-stars-only'), leaving out "

@@ -734,7 +734,7 @@ def test_each_sector_takes_its_own_tier_and_a_nearer_sector_tops_it_up(mysql_con
     assert all(after[address] <= levels.get(address, math.inf) for address in after)
 
 
-def test_backfill_from_requested_or_from_every_generated_sector(mysql_config):
+def test_backfill_from_the_edge_of_every_generated_sector_or_none(mysql_config):
     _seed_galaxy(mysql_config)
     args = run_galaxy._default_generation_args(config=mysql_config)
     args.num_systems = 0
@@ -742,7 +742,6 @@ def test_backfill_from_requested_or_from_every_generated_sector(mysql_config):
     started = _database_now(mysql_config)
     for address in (near, far):
         run_galaxy.generate_and_save_sector_at(args, address, sector_position_pc(*address, EDGE_PC), EDGE_PC)
-    args.ring, args.layer, args.slot = near
 
     def around(levels, address):
         return {other: level for other, level in levels.items() if _distance_ly(address, other) < 25.0}
@@ -750,17 +749,7 @@ def test_backfill_from_requested_or_from_every_generated_sector(mysql_config):
     args.backfill_from = "none"
     assert run_galaxy.backfill_after_run(args, EDGE_PC, started) == {"sectors": 0, "stars": 0}
 
-    args.backfill_from = "requested"
-    run_galaxy.backfill_after_run(args, EDGE_PC, started)
-    conn = store.get_connection(mysql_config)
-    try:
-        requested = _level_rows(conn)
-    finally:
-        conn.close()
-    assert min(around(requested, near).values()) == 250.0
-    assert not around(requested, far)
-
-    args.backfill_from = "all"
+    args.backfill_from = "edge"
     run_galaxy.backfill_after_run(args, EDGE_PC, started)
     conn = store.get_connection(mysql_config)
     try:
@@ -769,17 +758,8 @@ def test_backfill_from_requested_or_from_every_generated_sector(mysql_config):
         assert store.bright_stars_for_sector(conn, *near) == []
     finally:
         conn.close()
+    assert min(around(every, near).values()) == 250.0
     assert min(around(every, far).values()) == 250.0
-    assert set(requested) <= set(every)
-
-
-def test_the_requested_sector_of_a_many_sector_run_is_the_one_nearest_the_middle():
-    args = argparse.Namespace(block=None, column=False, shell=False, slot=None, ring=4, center_sector=None)
-    points = [(0.0, 0.0, 0.0), (10.0, 0.0, 0.0), (20.0, 0.0, 0.0)]
-    assert run_galaxy._requested_center(args, points, EDGE_PC, None) == (10.0, 0.0, 0.0)
-    args = argparse.Namespace(block=None, column=False, shell=False, slot=3, ring=2, layer=0, center_sector=None)
-    assert run_galaxy._requested_center(args, points, EDGE_PC, None) == sector_position_pc(2, 0, 3, EDGE_PC)
-
 
 
 @pytest.fixture

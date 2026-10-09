@@ -591,9 +591,9 @@ def test_scatter_flags_exist_in_generate_py():
     assert plan.parse_args(["--bright-stars-down-to", "100"]).bright_stars_down_to == 100.0
     assert plan.parse_args(["--bright-star-min-luminosity", "2500"]).bright_star_min_luminosity == 2500.0
     galaxy = parsers["galaxy"].parse_args(["--then-scatter", "--bright-star-min-luminosity", "2000",
-                                           "--backfill-from", "all"])
+                                           "--backfill-from", "none"])
     assert galaxy.then_scatter is True and galaxy.bright_star_min_luminosity == 2000.0
-    assert galaxy.backfill_from == "all"
+    assert galaxy.backfill_from == "none"
 
 
 def test_page_offers_the_scatter_checkbox(site, client):
@@ -633,25 +633,12 @@ def test_new_galaxy_scatters_after_its_sectors_at_the_threshold(site, client, no
     assert _argv(galaxy) == ["galaxy", "--then-scatter", "--bright-star-min-luminosity", "2000"]
 
 
-@pytest.mark.parametrize("action", ["galaxy", "new_galaxy"])
-def test_backfill_from_every_generated_sector_is_a_checkbox(site, client, no_spawn, action):
-    assert _post(client, action=action, confirm=DB, estimate_ok="1", backfill_all="1").status_code == 303
-    (job,) = no_spawn
-    galaxy = _work_steps(job)[-1]
-    argv = _argv(galaxy)
-    assert argv[argv.index("--backfill-from") + 1] == "all"
-
-
-def test_backfill_defaults_to_the_requested_sector(site, client, no_spawn):
+def test_the_page_has_no_backfill_checkbox_and_the_run_backfills_from_the_edge(site, client, no_spawn):
+    html = client.get("/admin/generate").get_data(as_text=True)
+    assert 'name="backfill_all"' not in html
     assert _post(client, action="galaxy", estimate_ok="1").status_code == 303
     (job,) = no_spawn
     assert "--backfill-from" not in _argv(_work_steps(job)[-1])
-
-
-def test_page_offers_the_backfill_checkbox(site, client):
-    html = client.get("/admin/generate").get_data(as_text=True)
-    assert html.count('name="backfill_all"') == 2  # New galaxy and Generate sectors
-    assert "Backfill from every generated sector (farthest out)" in html
 
 
 # --- Prevalence (ADM.16) ------------------------------------------------------------

@@ -43,11 +43,6 @@
 {{ field("bright_min_luminosity", bright_threshold_label, placeholder=num(bright_min_luminosity, ",.0f"), min=1,
          hint="Every star this bright or brighter is placed galaxy-wide. Blank means " ~ num(bright_min_luminosity, ",.0f") ~ ". Around each generated sector, dimmer ones are added later, " ~ backfill_text ~ ".") }}
 {%- endmacro -%}
-{%- macro backfill_choice(id) -%}
-<label class="search-field generate-check"><span><input type="checkbox" id="{{ id }}" name="backfill_all" value="1"
-  {%- if form and form.get("backfill_all") %} checked{% endif %}> Backfill from every generated sector (farthest out)</span>
-  <span class="field-hint">Once the sectors are generated, the bright stars are backfilled around the requested sector only, {{ backfill_text }}. Tick this to backfill around every sector the run generated, reaching 100 ly past the farthest one. Generated sectors never get backfilled stars.</span></label>
-{%- endmacro -%}
 {%- macro confirm_field(id) -%}
 <label class="search-field">Type the database name to confirm
   <input type="text" id="{{ id }}" name="confirm" placeholder="{{ database }}" required autocomplete="off" autocapitalize="off" spellcheck="false">
@@ -168,7 +163,6 @@
                hint="1.0 is as dense as the Sun's neighborhood.") }}
       {{ scatter_threshold() }}
       {{ skip_scatter("new-galaxy-skip-bright") }}
-      {{ backfill_choice("new-galaxy-backfill-all") }}
       {{ confirm_field("new-galaxy-confirm") }}
     </div>
     <div class="search-actions">
@@ -268,7 +262,6 @@
     {%- endfor %}
     {{ prevalence_inputs() }}
     <div class="search-fields">
-      {{ backfill_choice("galaxy-backfill-all") }}
     </div>
     <div class="search-actions">
       <button type="submit" class="btn"{% if busy %} disabled{% endif %}>Generate</button>
