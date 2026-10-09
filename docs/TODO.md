@@ -3005,35 +3005,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisite: PERF.31.
   Design: [docs/design/performance-eta-queue-and-caching.md](design/performance-eta-queue-and-caching.md)
 
-- [ ] **PERF.44 Compute object uids in Python and write them with the row**
-  Research (2026-10-09, generation-performance-study.md, PR #835;
-  handoff in
-  /mnt/project-files/research/handoff/generation-performance.md; from
-  Boss's requests of 19:08Z and 19:21Z, generation being his slowest
-  point): `store.assign_uids` selects every moon, planet and rogue row
-  back and updates it with its uid. Compute the uid in Python and write
-  it with the INSERT. 6 to 9% of a fill.
-  Prerequisites: none.
-  Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
-
-- [ ] **PERF.45 Nearest-system links and containment as one later pass**
-  Research (2026-10-09, generation-performance-study.md, PR #835;
-  handoff in
-  /mnt/project-files/research/handoff/generation-performance.md; from
-  Boss's requests of 19:08Z and 19:21Z, generation being his slowest
-  point): do the nearest-system links and the containment as one later
-  pass (the GEN.126 settle) instead of per sector at save. That takes
-  the neighbour locks off the critical path; today a fill is only 1.87
-  times faster at 2 to 4 workers.
-  Boss (2026-10-09, generation-performance-study.md): Decided by Boss
-  (2026-10-09 20:02Z): the lossless savings are approved, and the
-  nearest-system and containment work (`store.refresh_nearest_systems`,
-  `store.refresh_containment`) moves out of the per-sector save into its
-  own phase after placement, or into the same phase as placement,
-  whichever is more efficient. Decide by measurement.
-  Prerequisites: none.
-  Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
-
 - [ ] **PERF.46 Planets and moons: set the position once per body**
   Research (2026-10-09, generation-performance-study.md, PR #835;
   handoff in
@@ -3049,6 +3020,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stays open: it costs 2 to 4% of a fill (0.85 microseconds a call,
   about 535 calls a system) and Research Lane 1 recommended keeping it;
   Boss's answer is pending, so do not skip the check yet.
+  Built (PR #863, 2026-10-09): the position half; bodies work out their
+  coordinates when first read. Only the `finite_domain` question is
+  open, on Foundations lane 2.
   Prerequisites: none.
   Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
 
@@ -3860,18 +3834,6 @@ Boss (2026-10-07 11:47Z): "Actual specs on layers on the generation
   CLI's `--prevalence` accepts the same shares and rejects a set that is
   not 100%. A share that depends on the local star density is not part
   of this item; the shares stay the same in every sector.
-
-- [ ] **ADM.48 Two test_api_auth_sweep tests fail: /admin/stats/galaxy-settings/<name> answers 302, not 403, to an unauthorised caller (bug)**
-  Reported by Foundations lane 2 (2026-10-09 21:04Z) while merging
-  PERF.43 (PR #861): two `test_api_auth_sweep` tests fail on main as
-  well. The web route `/admin/stats/galaxy-settings/<name>` (ADM.18,
-  `web/admin_pages.py` `download_galaxy_settings`) redirects an
-  unauthorised caller (302) where the sweep expects 403. Find which is
-  right: either the route should answer 403 like the other admin
-  download routes, or the sweep needs the route in its redirect list.
-  Done: both tests pass and the route's behaviour matches the other
-  admin routes. Owner: Bugfixes lane 1, behind its current list.
-  Prerequisites: none.
 
 ## SEC: Security
 
