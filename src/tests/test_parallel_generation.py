@@ -16,13 +16,13 @@ Tests that take the `mysql_config` fixture (see `conftest.py`) are
 skipped, not failed, when no MySQL test server is configured/reachable.
 """
 
-import random
 import sys
 import uuid
 
 import pymysql
 import pytest
 
+from planetgen.util import draw
 from planetgen.cli import generate as generate_cli
 from planetgen.galaxy.drill import parse_drill_key
 from planetgen.galaxy.geometry import ring_sector_count
@@ -39,7 +39,7 @@ from tests.test_galaxy_gen import _mysql_argv, _plan_wide_galaxy
 
 
 def _draws(payload):
-    return [random.random() for _ in range(payload)]
+    return [draw.random() for _ in range(payload)]
 
 
 def _run_queue(workers, run_seed=99, keys=8):
@@ -64,8 +64,8 @@ def test_one_worker_draws_what_two_and_four_workers_draw():
 def test_one_worker_seeds_each_task_from_the_run_seed_and_its_key():
     one = _run_queue(1, run_seed=5)
     for n, values in one.items():
-        random.seed(work.task_seed(5, f"sector-{n}"))
-        assert values == [random.random() for _ in range(3)]
+        draw.set_run_seed(work.task_seed(5, f"sector-{n}"))
+        assert values == [draw.random() for _ in range(3)]
     assert _run_queue(1, run_seed=6) != one
 
 
@@ -74,26 +74,26 @@ def test_one_worker_leaves_the_runs_own_random_stream_alone():
     when they run in a pool, so whatever the run draws after a batch is
     the same at any worker count."""
     def after(workers):
-        random.seed(2024)
-        queue_seed = random.getrandbits(32)
+        draw.set_run_seed(2024)
+        queue_seed = draw.getrandbits(32)
         _run_queue(workers, run_seed=queue_seed)
-        return random.random()
+        return draw.random()
 
     assert after(1) == after(2)
 
 
 def test_a_failing_task_on_one_worker_still_restores_the_stream():
-    random.seed(7)
-    expected = random.random()
-    random.seed(7)
+    draw.set_run_seed(7)
+    expected = draw.random()
+    draw.set_run_seed(7)
     with pytest.raises(ZeroDivisionError):
         with work.WorkQueue("fails", workers=1, run_seed=1) as queue:
             queue.submit("boom", "k", _divide_by_zero, None)
-    assert random.random() == expected
+    assert draw.random() == expected
 
 
 def _divide_by_zero(_payload):
-    random.random()
+    draw.random()
     return 1 / 0
 
 

@@ -14,10 +14,10 @@ import inspect
 import json
 import math
 import os
-import random
 
 import pytest
 
+from planetgen.util import draw
 from planetgen.physics import constants
 from planetgen import tuning as program_constants
 from planetgen.galaxy import sector as spaceSector_module
@@ -192,12 +192,12 @@ def test_placement_follows_the_seeded_random_stream():
     which a galaxy sector seeds from its own seed, so the same seed places
     the same system at the same point.
     """
-    random.seed(42)
+    draw.set_run_seed(42)
     sector_a = SpaceSector("Repeat Sector", edge_ly=1000.0)
     system_a, _ = make_system()
     entry_a = sector_a.add_system(system_a)
 
-    random.seed(42)
+    draw.set_run_seed(42)
     sector_b = SpaceSector("Repeat Sector", edge_ly=1000.0)
     system_b, _ = make_system()
     entry_b = sector_b.add_system(system_b)

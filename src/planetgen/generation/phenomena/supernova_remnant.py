@@ -17,13 +17,13 @@ explosion, embedded via `compactRemnant.BlackHole`/`NeutronStar`.
 """
 
 import math
-import random
 
 from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
 from planetgen.generation.config import SystemConfig
 from planetgen.names.wordlists import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from planetgen.generation.phenomena.nebula import REMNANT_CLASS_LETTERS, choose_weighted_class, draw_class_contents, typical_class_contents
 from planetgen import tuning
+from planetgen.util import draw
 from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from planetgen.galaxy.galactic_orbit import format_galactic_orbit, generate_galactic_orbit_fields
@@ -120,7 +120,7 @@ class SupernovaRemnant:
         self.name = name if name else generate_phoneme_salad_name(STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES)
         self.name_given = bool(name)  # a given name is kept over an object ID (GEN.64)
 
-        is_type_ia = random.random() < tuning.SUPERNOVA_PROGENITOR_TYPE_IA_CHANCE
+        is_type_ia = draw.random() < tuning.SUPERNOVA_PROGENITOR_TYPE_IA_CHANCE
         self.progenitor_type = "Type Ia" if is_type_ia else "core-collapse"
         log.choice("Supernova progenitor type", self.progenitor_type,
                    f"roll against SUPERNOVA_PROGENITOR_TYPE_IA_CHANCE "
@@ -134,8 +134,8 @@ class SupernovaRemnant:
         # offset from the center by its birth kick (compact_offset_ly
         # below); thermonuclear (Type Ia, class W) remnants have none.
         self.compact_remnant = None
-        if not is_type_ia and random.random() < tuning.SUPERNOVA_CORE_COLLAPSE_REMNANT_VISIBLE_CHANCE:
-            if random.random() < tuning.SUPERNOVA_CORE_COLLAPSE_BLACK_HOLE_CHANCE:
+        if not is_type_ia and draw.random() < tuning.SUPERNOVA_CORE_COLLAPSE_REMNANT_VISIBLE_CHANCE:
+            if draw.random() < tuning.SUPERNOVA_CORE_COLLAPSE_BLACK_HOLE_CHANCE:
                 self.compact_remnant = BlackHole(system_config, name=f"{self.name} Core")
                 log.choice("Core-collapse compact remnant", "black hole",
                            f"roll passed SUPERNOVA_CORE_COLLAPSE_BLACK_HOLE_CHANCE "
@@ -158,7 +158,7 @@ class SupernovaRemnant:
             remnant_classes_for(self.progenitor_type, kind), "Supernova remnant class")
         class_data = tuning.NEBULA_CLASSES[self.remnant_class]
         self.morphology = class_data["morphology"]
-        self.age_years = random.uniform(*class_data["age_range_years"])
+        self.age_years = draw.uniform(*class_data["age_range_years"])
         self.radius_ly = (
             tuning.SEDOV_TAYLOR_RADIUS_COEFFICIENT_LY
             * (self.age_years ** tuning.SEDOV_TAYLOR_TIME_EXPONENT)
@@ -177,10 +177,10 @@ class SupernovaRemnant:
         if kind is None:
             return None
         low, high = tuning.SUPERNOVA_KICK_SPEED_RANGE_KMS[kind]
-        speed_kms = math.exp(random.uniform(math.log(low), math.log(high)))
+        speed_kms = math.exp(draw.uniform(math.log(low), math.log(high)))
         distance_ly = speed_kms / 299792.458 * self.age_years
-        z = random.uniform(-1.0, 1.0)
-        phi = random.uniform(0.0, 2 * math.pi)
+        z = draw.uniform(-1.0, 1.0)
+        phi = draw.uniform(0.0, 2 * math.pi)
         r = math.sqrt(1 - z * z)
         return [distance_ly * r * math.cos(phi), distance_ly * r * math.sin(phi), distance_ly * z]
 

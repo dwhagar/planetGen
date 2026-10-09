@@ -24,13 +24,13 @@ import colorsys
 import contextlib
 import hashlib
 import math
-import random
 import re
 from dataclasses import dataclass
 
 import pymysql
 
 from planetgen import tuning
+from planetgen.util import draw
 from planetgen.util import log
 from planetgen.generation.evolution import life_stage_from_paragraphs
 from planetgen.names.wordlists import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
@@ -107,7 +107,7 @@ def species_traits(gravity_g, surface_temperature_k, rng):
     Args:
         gravity_g (float or None): Surface gravity in g.
         surface_temperature_k (float or None): Surface temperature in K.
-        rng (random.Random): The draw for size.
+        rng (draw.Stream): The draw for size.
 
     Returns:
         dict: `build`, `climate` and `size`.
@@ -185,7 +185,7 @@ def reach_ly(age_years, cap_ly=None):
 def government_for(species_id):
     """The polity's form of government, stable for a species."""
     forms = tuning.GOVERNMENT_FORMS
-    return forms[random.Random(species_id * 7919).randrange(len(forms))]
+    return forms[draw.Stream(species_id * 7919).randrange(len(forms))]
 
 
 def polity_name(species_name, government):
@@ -397,7 +397,7 @@ def scan_life_worlds(conn):
             timeline = parse_timeline(paragraphs)
             if timeline is None:
                 continue
-            rng = random.Random(planet_id)
+            rng = draw.Stream(planet_id)
             traits = species_traits(row["gravity_g"], row["surface_temperature_k"], rng)
             if not has_civilization(timeline, row["intelligent_life"], rng, row["prevalence_intelligent_life"]):
                 # Only a technological civilization gets a species (GEN.80).

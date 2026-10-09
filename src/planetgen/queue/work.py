@@ -62,7 +62,6 @@ import ipaddress
 import math
 import os
 import pickle
-import random
 import re
 import secrets
 import signal
@@ -73,6 +72,7 @@ import traceback
 
 from planetgen.queue import redisqueue
 from planetgen.util import log
+from planetgen.util import draw
 
 CPU_SHARE = 0.8
 """float: The share of the machine's cores the pool may use."""
@@ -220,9 +220,9 @@ def _run_worker_hooks():
 
 
 def _run_task(fn, payload, seed):
-    random.seed(seed)
     started = time.monotonic()
-    result = fn(payload)
+    with draw.bound(seed):
+        result = fn(payload)
     return result, time.monotonic() - started
 
 
@@ -1201,7 +1201,7 @@ class WorkQueue:
         self.title = title
         self.workers = max(1, int(workers))
         self.control_config = control_config
-        self.run_seed = random.getrandbits(128) if run_seed is None else run_seed
+        self.run_seed = draw.getrandbits(128) if run_seed is None else run_seed
         self.log_level = log_level
         self.debug_file = debug_file
         self.on_wait = on_wait
@@ -1478,21 +1478,18 @@ class WorkQueue:
             self._book("add_tasks", self.job_id, [task])
             self._book("start_tasks", [task])
         # Seeded exactly as a worker would be, so one worker generates
-        # what many would (TEST.19); this process's own `random` stream
+        # what many would (TEST.19); this process's own run stream
         # carries on afterwards as if the task had run elsewhere, as it
         # does with a pool.
-        outer = random.getstate()
-        random.seed(task_seed(self.run_seed, task.key))
         started = time.monotonic()
         try:
-            result = task.fn(task.payload)
+            with draw.bound(task_seed(self.run_seed, task.key)):
+                result = task.fn(task.payload)
         except BaseException as exc:
             if recorded:
                 state = "failed" if isinstance(exc, Exception) else "cancelled"
                 self._book("finish_task", self.job_id, task, state, error=f"{type(exc).__name__}: {exc}")
             raise
-        finally:
-            random.setstate(outer)
         seconds = time.monotonic() - started
         self.finished += 1
         if recorded:

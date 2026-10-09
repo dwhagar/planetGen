@@ -20,7 +20,7 @@
 
 `test_fuzz_sector_placement.py` already fuzzes random placement, growth
 and the cube's boundary; this file pins the exact edges. Placement draws
-from `spaceSector._rng` (the module-level `random` stream), and every
+from the bound draw stream (`planetgen.util.draw`), and every
 test that samples replaces it with a seeded `random.Random` or a scripted
 sampler.
 """
@@ -29,10 +29,10 @@ import contextlib
 import math
 import random
 import re
-from unittest import mock
 
 import pytest
 
+from planetgen.util import draw
 from planetgen.physics import constants as pc
 from planetgen import tuning as prog
 from planetgen.galaxy import sector as ss
@@ -45,10 +45,8 @@ ATTEMPTS = prog.SECTOR_MAX_PLACEMENT_ATTEMPTS
 
 @contextlib.contextmanager
 def _seeded_sector_rng(seed):
-    rng = random.Random(seed)
-    with mock.patch.object(ss._rng, "random", rng.random), \
-            mock.patch.object(ss._rng, "getrandbits", rng.getrandbits):
-        yield rng
+    with draw.bound(seed) as stream:
+        yield stream
 
 
 class _StubStar:

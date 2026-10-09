@@ -42,7 +42,6 @@ stars that overshoot it).
 """
 
 import math
-import random
 
 from planetgen.physics import constants
 from planetgen import tuning
@@ -60,6 +59,7 @@ from planetgen.galaxy.geometry import (
 from planetgen.galaxy.sector import _sample_poisson_count
 from planetgen.generation.star_population import bright_band_fraction, bright_star_fraction, pick_population, sample_bright_stars
 from planetgen.physics.units import pc_to_ly
+from planetgen.util import draw
 
 POPULATIONS = ("young", "intermediate", "old", "bulge")
 """tuple: The stellar populations `galaxyDensity.population_densities`
@@ -336,7 +336,7 @@ def scatter_layer(shape, layer_index, outer_ring, edge_pc, expected_at_density_1
     Yields:
         tuple: One row per star, in `_db.BRIGHT_STAR_COLUMNS` order.
     """
-    rng = random.Random(f"{seed}:{layer_index}")
+    rng = draw.Stream(f"{seed}:{layer_index}")
     skip_addresses = skip_addresses or set()
     fractions = band_fractions(min_luminosity_sol, max_luminosity_sol)
     placed = {population: [] for population in POPULATIONS}
@@ -418,7 +418,7 @@ def backfill_cells(shape, addresses, edge_pc, expected_at_density_1, min_luminos
                      for population in POPULATIONS}
             if not any(mean > 0.0 for mean in means.values()):
                 continue
-            rng = random.Random(f"{seed}:{ring_index}:{layer_index}:{slot}:{k}")
+            rng = draw.Stream(f"{seed}:{ring_index}:{layer_index}:{slot}:{k}")
             for population in POPULATIONS:
                 if means[population] <= 0.0:
                     continue
@@ -489,7 +489,7 @@ class FillContext:
         return sum(density * bright_star_fraction(self.min_luminosity_sol, population)
                    for population, density in self.densities.items()) / total
 
-    def apply(self, system_config, rng=random):
+    def apply(self, system_config, rng=draw):
         """Gives one of the sector's own (dim) systems its population and,
         after a scatter, the luminosity cap."""
         system_config.POPULATION = pick_population(self.densities, rng)

@@ -24,7 +24,7 @@ nebula's centre, so `radius_ly` is a bounding sphere and a cheap first
 test. Multiply by the radius (and add the centre) to place it.
 
 A shape is plain data (`NebulaShape.to_dict`, JSON-able), drawn from a
-seeded `random.Random` (`draw_shape`), so the same seed always gives the
+seeded `draw.Stream` (`draw_shape`), so the same seed always gives the
 same shape on every worker. The noise is built from a permutation table
 shuffled by the shape's own seed (no platform random state).
 
@@ -33,7 +33,6 @@ Needs numpy and scikit-image, both already dependencies.
 
 import hashlib
 import math
-import random
 
 import numpy as np
 
@@ -46,6 +45,8 @@ MESH_LODS = {"low": 10, "full": 28}
 _GRID_HALF_WIDTH = 1.8
 """float: The sampling grid reaches this far (natural units) either way
 from the centre -- far enough for the largest drawn shape and its warp."""
+
+from planetgen.util import draw
 
 _FIT_GRID = 24
 """int: Grid cells per axis for finding the surface's farthest point."""
@@ -66,7 +67,7 @@ class GradientNoise:
 
     def __init__(self, seed):
         table = list(range(256))
-        random.Random(seed).shuffle(table)
+        draw.Stream(seed).shuffle(table)
         self._perm = np.array(table + table, dtype=np.int64)
 
     def __call__(self, points):
@@ -242,7 +243,7 @@ class NebulaShape:
 
 def draw_shape(rng):
     """
-    Draws a shape from `rng` (a `random.Random`): 4-8 metaball centres in
+    Draws a shape from `rng` (a `draw.Stream`): 4-8 metaball centres in
     an anisotropic ellipsoid, a warp of the Boss-suggested kind, and the
     isovalue, so equal seeds give equal shapes.
     """
@@ -278,7 +279,7 @@ def shape_for_nebula(nebula_class, radius_ly, density_cm3, temperature_k, extinc
     text = "|".join((str(nebula_class), repr(float(radius_ly)), repr(float(density_cm3)),
                      repr(float(temperature_k)), repr(float(extinction_av)), str(dominant_species)))
     seed = int.from_bytes(hashlib.sha256(text.encode("utf-8")).digest()[:8], "big")
-    return draw_shape(random.Random(seed))
+    return draw_shape(draw.Stream(seed))
 
 
 SCALAR_COLUMNS = (

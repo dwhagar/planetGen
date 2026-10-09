@@ -19,7 +19,6 @@ the system.
 """
 
 import math
-import random
 
 from planetgen.generation.belt import AsteroidBelt
 from planetgen.names.bodies import CLOSE_PAIR_LETTERS, generate_star_word, name_bodies, wide_pair_first_word
@@ -29,6 +28,7 @@ from planetgen.generation.binary import BinaryStarProxy
 from planetgen.generation import life as planetLife, prevalence, validation
 from planetgen.physics import constants
 from planetgen import tuning
+from planetgen.util import draw
 from planetgen.util import log
 from planetgen.generation.planet import Planet
 from planetgen.generation.star import Star, adjust_pair_age_for_planets, compressed_heliosphere_radius
@@ -230,7 +230,7 @@ class StarSystem:
         # proxy standing in for the pair) move around the galaxy together,
         # sharing one phase, not three independent ones. See
         # `Star.__init__`'s `galactic_orbital_phase_deg` docstring.
-        galactic_orbital_phase_deg = random.uniform(0, 360)
+        galactic_orbital_phase_deg = draw.uniform(0, 360)
         if compact_remnant is not None:
             self.star = compact_remnant
         elif primary_star_params is not None:
@@ -279,7 +279,7 @@ class StarSystem:
             # model -- so its class, luminosity and temperature follow from
             # its own mass (GEN.54). A specified-type primary has no model
             # initial mass; its present mass stands in for it.
-            mass_ratio = random.uniform(*tuning.BINARY_MASS_RATIO_RANGE)
+            mass_ratio = draw.uniform(*tuning.BINARY_MASS_RATIO_RANGE)
             primary_initial_mass_sol = self.primary_star.initial_mass_sol
             if primary_initial_mass_sol is None:
                 primary_initial_mass_sol = self.primary_star.mass / constants.SOLAR_MASS_TO_KG
@@ -313,7 +313,7 @@ class StarSystem:
             is_wide = self.system_config.WIDE_BINARY
             if is_wide is None:
                 chance = prevalence.scaled_chance(self.system_config, "wide_binary", tuning.WIDE_BINARY_DEFAULT_CHANCE)
-                is_wide = random.random() < chance
+                is_wide = draw.random() < chance
                 reason = f"random roll against WIDE_BINARY_DEFAULT_CHANCE ({tuning.WIDE_BINARY_DEFAULT_CHANCE}, {chance:g} with prevalence)"
             else:
                 reason = "forced by +wide_binary/-wide_binary"
@@ -454,8 +454,8 @@ class StarSystem:
         # more than once) reads this rather than re-rolling and double-counting
         # system_flavor_count on every render.
         self.system_flavor_text = None
-        if random.random() < tuning.FLAVOR_CHANCE_SYSTEM and self.system_config.system_flavor_count < tuning.MAX_FLAVOR_TOTAL:
-            self.system_flavor_text = random.choice(tuning.SYSTEM_FLAVOR)
+        if draw.random() < tuning.FLAVOR_CHANCE_SYSTEM and self.system_config.system_flavor_count < tuning.MAX_FLAVOR_TOTAL:
+            self.system_flavor_text = draw.choice(tuning.SYSTEM_FLAVOR)
             self.system_config.system_flavor_count += 1
             log.choice("System flavor text", self.system_flavor_text,
                        f"roll passed FLAVOR_CHANCE_SYSTEM ({tuning.FLAVOR_CHANCE_SYSTEM}) and "
@@ -593,12 +593,12 @@ class StarSystem:
         if self.system_config.COMETS is False:
             return []
 
-        has_comets = self.system_config.COMETS is True or random.random() < prevalence.scaled_chance(
+        has_comets = self.system_config.COMETS is True or draw.random() < prevalence.scaled_chance(
             self.system_config, "comets", tuning.SYSTEM_COMET_CHANCE)
         if not has_comets:
             return []
 
-        count = random.randint(*tuning.SYSTEM_COMET_COUNT_RANGE)
+        count = draw.randint(*tuning.SYSTEM_COMET_COUNT_RANGE)
         primary_mass_solar = star.mass / constants.SOLAR_MASS_TO_KG
         return [Comet(self.system_config, primary_mass_solar) for _ in range(count)]
 
@@ -650,7 +650,7 @@ class StarSystem:
 
         letter = self.primary_star.type[0] if self.primary_star.type else 'G'
         probability = tuning.BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS.get(letter, 0.44)
-        return random.random() < prevalence.scaled_chance(self.system_config, "binary_system", probability)
+        return draw.random() < prevalence.scaled_chance(self.system_config, "binary_system", probability)
 
     @staticmethod
     def _first_slot_distance_au(habitable_zone):
@@ -664,7 +664,7 @@ class StarSystem:
         beyond its whole habitable zone, so nearly every planet came out
         cold.
         """
-        return habitable_zone[0] * random.uniform(*tuning.FIRST_PLANET_HZ_FRACTION_RANGE)
+        return habitable_zone[0] * draw.uniform(*tuning.FIRST_PLANET_HZ_FRACTION_RANGE)
 
     def _disk_outer_edge_au(self, star):
         """
@@ -784,7 +784,7 @@ class StarSystem:
         disk_edge_au = self._disk_outer_edge_au(star)
 
         if system_objects > 0:
-            belt_index = random.randint(0, system_objects - 1) if self.system_config.ASTEROID_BELT is True else -1
+            belt_index = draw.randint(0, system_objects - 1) if self.system_config.ASTEROID_BELT is True else -1
             if belt_index != -1:
                 log.choice("Guaranteed asteroid belt slot", belt_index,
                            f"random slot in [0, {system_objects - 1}] (ASTEROID_BELT is forced True)")
@@ -804,7 +804,7 @@ class StarSystem:
                     # constant *ratio* apart, not a constant number of AU, so a
                     # dim star's planets stay as close-packed as its habitable
                     # zone is small instead of marching out into the cold.
-                    spacing_ratio = random.uniform(*tuning.PLANET_SPACING_RATIO_RANGE)
+                    spacing_ratio = draw.uniform(*tuning.PLANET_SPACING_RATIO_RANGE)
                     if last_planet.body_type == 'a':
                         estimated_distance = last_planet.upper_limit * spacing_ratio
                         last_asteroid = True
@@ -922,7 +922,7 @@ class StarSystem:
                 force_belt = apply_guarantees and self.system_config.ASTEROID_BELT is True and not found_belt and i >= belt_fallback_index
 
                 if self.system_config.ASTEROID_BELT is not False and (
-                    force_belt or (not last_asteroid and not hz and (random.random() < tuning.ASTEROID_BELT_PROBABILITY or i == belt_index))
+                    force_belt or (not last_asteroid and not hz and (draw.random() < tuning.ASTEROID_BELT_PROBABILITY or i == belt_index))
                 ):
                     if force_belt:
                         belt_reason = "forced (last-resort fallback: ASTEROID_BELT required but not yet placed)"
@@ -932,7 +932,7 @@ class StarSystem:
                         belt_reason = f"random roll passed ASTEROID_BELT_PROBABILITY ({tuning.ASTEROID_BELT_PROBABILITY})"
                     log.choice("Orbital slot object", "asteroid belt", f"slot {i}: {belt_reason}")
                     min_distance = estimated_distance
-                    max_distance = estimated_distance * random.uniform(tuning.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN, tuning.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MAX)
+                    max_distance = estimated_distance * draw.uniform(tuning.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN, tuning.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MAX)
                     planets.append(AsteroidBelt(self.system_config, estimated_distance, min_distance, max_distance)) # Pass system_config
                     found_belt = True
                 else:
@@ -1346,7 +1346,7 @@ class StarSystem:
 
         if slot_type == "asteroid_belt":
             min_distance = estimated_distance
-            max_distance = estimated_distance * random.uniform(tuning.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN, tuning.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MAX)
+            max_distance = estimated_distance * draw.uniform(tuning.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MIN, tuning.ASTEROID_BELT_MAX_DISTANCE_FACTOR_MAX)
             return AsteroidBelt(self.system_config, estimated_distance, min_distance, max_distance)
 
         if slot_type == "planet":
@@ -1405,11 +1405,11 @@ class StarSystem:
         if class_data.get('h'):
             if planets:
                 return self._distance_avoiding_belts(inner * 0.05, inner * 0.95, planets)
-            return random.uniform(inner * 0.05, inner * 0.95)
+            return draw.uniform(inner * 0.05, inner * 0.95)
         if class_data.get('c'):
             if planets:
                 return self._distance_avoiding_belts(outer * 1.05, outer * 3.0, planets)
-            return outer * random.uniform(1.05, 3.0)
+            return outer * draw.uniform(1.05, 3.0)
 
         # No zone supports this class; leave the distance as-is and let
         # planetPhysics raise its usual, clearer validation error.
@@ -1459,7 +1459,7 @@ class StarSystem:
         lo, hi = inner + margin, outer - margin
         if planets:
             return self._distance_avoiding_belts(lo, hi, planets)
-        return random.uniform(lo, hi)
+        return draw.uniform(lo, hi)
 
     def _distance_avoiding_belts(self, lo, hi, planets):
         """
@@ -1508,15 +1508,15 @@ class StarSystem:
             free_spans.append((cursor, hi))
 
         if not free_spans:
-            return random.uniform(lo, hi)
+            return draw.uniform(lo, hi)
 
         weights = [span_hi - span_lo for span_lo, span_hi in free_spans]
-        pick = random.uniform(0, sum(weights))
+        pick = draw.uniform(0, sum(weights))
         for (span_lo, span_hi), weight in zip(free_spans, weights):
             if pick <= weight:
-                return random.uniform(span_lo, span_hi)
+                return draw.uniform(span_lo, span_hi)
             pick -= weight
-        return random.uniform(*free_spans[-1])
+        return draw.uniform(*free_spans[-1])
 
     def _forced_habitable_distance(self, planets=None):
         """
@@ -1680,11 +1680,11 @@ class StarSystem:
         # Every count is equally likely; a max_planets prevalence (GEN.52)
         # scales the chance of the most.
         if max_objects > min_objects and prevalence.percent(self.system_config, "max_planets"):
-            if random.random() < prevalence.scaled_chance(self.system_config, "max_planets",
+            if draw.random() < prevalence.scaled_chance(self.system_config, "max_planets",
                                                           1.0 / (max_objects - min_objects + 1)):
                 return max_objects
-            return random.randint(min_objects, max_objects - 1)
-        return random.randint(min_objects, max_objects)
+            return draw.randint(min_objects, max_objects - 1)
+        return draw.randint(min_objects, max_objects)
 
     def _estimate_max_objects_from_disk_physics(self, star):
         """

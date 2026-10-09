@@ -40,11 +40,11 @@ first version.
 """
 
 import math
-import random
 
 from planetgen.generation.config import SystemConfig
 from planetgen.physics import constants
 from planetgen import tuning
+from planetgen.util import draw
 from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from planetgen.generation.star import Star
@@ -128,7 +128,7 @@ class CompactRemnant(Star):
         Returns:
             tuple: `(age_gy, lifespan_gy)`.
         """
-        age = random.uniform(*tuning.COMPACT_REMNANT_AGE_RANGE_GY)
+        age = draw.uniform(*tuning.COMPACT_REMNANT_AGE_RANGE_GY)
         return age, float('inf')
 
     def _finish_init(self, galactic_orbital_phase_deg=None):
@@ -243,7 +243,7 @@ class BlackHole(CompactRemnant):
         if mass_class == "supermassive":
             self.mass_class = "supermassive"
             self.mass_solar = log_uniform(*tuning.BLACK_HOLE_SUPERMASSIVE_MASS_RANGE_SOLAR)
-        elif random.random() < tuning.BLACK_HOLE_INTERMEDIATE_MASS_CHANCE:
+        elif draw.random() < tuning.BLACK_HOLE_INTERMEDIATE_MASS_CHANCE:
             self.mass_class = "intermediate"
             self.mass_solar = log_uniform(*tuning.BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR)
             log.choice("Black hole mass regime", "intermediate-mass",
@@ -251,7 +251,7 @@ class BlackHole(CompactRemnant):
                        f"({tuning.BLACK_HOLE_INTERMEDIATE_MASS_CHANCE})")
         else:
             self.mass_class = "stellar"
-            self.mass_solar = random.uniform(*tuning.BLACK_HOLE_MASS_RANGE_SOLAR)
+            self.mass_solar = draw.uniform(*tuning.BLACK_HOLE_MASS_RANGE_SOLAR)
             log.choice("Black hole mass regime", "stellar-mass",
                        f"roll failed BLACK_HOLE_INTERMEDIATE_MASS_CHANCE "
                        f"({tuning.BLACK_HOLE_INTERMEDIATE_MASS_CHANCE})")
@@ -267,7 +267,7 @@ class BlackHole(CompactRemnant):
         self.event_horizon_radius_km = schwarzschild_radius_m / 1000
         self.radius = self.event_horizon_radius_km
 
-        self.spin = random.uniform(*tuning.BLACK_HOLE_SPIN_RANGE)
+        self.spin = draw.uniform(*tuning.BLACK_HOLE_SPIN_RANGE)
         if self.mass_class == "supermassive":
             # Always some accretion flow, far below Eddington (Sgr A*).
             self.has_accretion_disk = True
@@ -275,9 +275,9 @@ class BlackHole(CompactRemnant):
             self.luminosity = (
                 eddington_ratio * tuning.EDDINGTON_LUMINOSITY_W_PER_SOLAR_MASS * self.mass_solar
             )
-            self.temperature = random.uniform(1e5, 1e7)
+            self.temperature = draw.uniform(1e5, 1e7)
         else:
-            self.has_accretion_disk = random.random() < tuning.BLACK_HOLE_ACCRETION_DISK_CHANCE
+            self.has_accretion_disk = draw.random() < tuning.BLACK_HOLE_ACCRETION_DISK_CHANCE
             log.choice("Accretion disk", self.has_accretion_disk,
                        f"roll against BLACK_HOLE_ACCRETION_DISK_CHANCE "
                        f"({tuning.BLACK_HOLE_ACCRETION_DISK_CHANCE})")
@@ -291,8 +291,8 @@ class BlackHole(CompactRemnant):
                 # order-of-magnitude flavor rather than a full accretion-disk
                 # model (e.g. Shakura & Sunyaev 1973).
                 eddington_luminosity_w = 1.26e31 * self.mass_solar
-                self.luminosity = random.uniform(0.0001, 0.05) * eddington_luminosity_w
-                self.temperature = random.uniform(1e5, 1e7)
+                self.luminosity = draw.uniform(0.0001, 0.05) * eddington_luminosity_w
+                self.temperature = draw.uniform(1e5, 1e7)
             else:
                 # No disk: all it gives off is Hawking radiation, real but
                 # tiny (it once stored a flat 0, GEN.82).
@@ -437,25 +437,25 @@ class NeutronStar(CompactRemnant):
         super().__init__(system_config, name=name, galactic_center_dist_ly=galactic_center_dist_ly)
         self.name_given = bool(name)  # a given name is kept over an object ID (GEN.64)
 
-        self.mass_solar = random.uniform(*tuning.NEUTRON_STAR_MASS_RANGE_SOLAR)
+        self.mass_solar = draw.uniform(*tuning.NEUTRON_STAR_MASS_RANGE_SOLAR)
         self.mass = self.mass_solar * constants.SOLAR_MASS_TO_KG
-        self.radius = random.uniform(*tuning.NEUTRON_STAR_RADIUS_RANGE_KM)
-        self.surface_temperature_k = random.uniform(*tuning.NEUTRON_STAR_SURFACE_TEMPERATURE_RANGE_K)
+        self.radius = draw.uniform(*tuning.NEUTRON_STAR_RADIUS_RANGE_KM)
+        self.surface_temperature_k = draw.uniform(*tuning.NEUTRON_STAR_SURFACE_TEMPERATURE_RANGE_K)
         self.temperature = self.surface_temperature_k
 
-        is_pulsar = random.random() < tuning.NEUTRON_STAR_PULSAR_CHANCE
-        if is_pulsar and random.random() < tuning.PULSAR_MILLISECOND_CHANCE:
+        is_pulsar = draw.random() < tuning.NEUTRON_STAR_PULSAR_CHANCE
+        if is_pulsar and draw.random() < tuning.PULSAR_MILLISECOND_CHANCE:
             self.pulsar_type = "millisecond"
-            self.spin_period_ms = random.uniform(*tuning.PULSAR_SPIN_PERIOD_MS_RANGE_MILLISECOND)
-            self.magnetic_field_gauss = random.uniform(*tuning.PULSAR_MAGNETIC_FIELD_GAUSS_RANGE_MILLISECOND)
+            self.spin_period_ms = draw.uniform(*tuning.PULSAR_SPIN_PERIOD_MS_RANGE_MILLISECOND)
+            self.magnetic_field_gauss = draw.uniform(*tuning.PULSAR_MAGNETIC_FIELD_GAUSS_RANGE_MILLISECOND)
         elif is_pulsar:
             self.pulsar_type = "young"
-            self.spin_period_ms = random.uniform(*tuning.PULSAR_SPIN_PERIOD_MS_RANGE_YOUNG)
-            self.magnetic_field_gauss = random.uniform(*tuning.PULSAR_MAGNETIC_FIELD_GAUSS_RANGE_YOUNG)
+            self.spin_period_ms = draw.uniform(*tuning.PULSAR_SPIN_PERIOD_MS_RANGE_YOUNG)
+            self.magnetic_field_gauss = draw.uniform(*tuning.PULSAR_MAGNETIC_FIELD_GAUSS_RANGE_YOUNG)
         else:
             self.pulsar_type = "non-pulsing"
-            self.spin_period_ms = random.uniform(*tuning.PULSAR_SPIN_PERIOD_MS_RANGE_YOUNG)
-            self.magnetic_field_gauss = random.uniform(*tuning.PULSAR_MAGNETIC_FIELD_GAUSS_RANGE_YOUNG)
+            self.spin_period_ms = draw.uniform(*tuning.PULSAR_SPIN_PERIOD_MS_RANGE_YOUNG)
+            self.magnetic_field_gauss = draw.uniform(*tuning.PULSAR_MAGNETIC_FIELD_GAUSS_RANGE_YOUNG)
         log.choice("Pulsar type", self.pulsar_type,
                    f"is_pulsar={is_pulsar} (NEUTRON_STAR_PULSAR_CHANCE="
                    f"{tuning.NEUTRON_STAR_PULSAR_CHANCE}, PULSAR_MILLISECOND_CHANCE="

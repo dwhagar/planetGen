@@ -10,6 +10,7 @@ import math
 
 import pytest
 
+from planetgen.util import draw
 from planetgen.generation import run_galaxy
 from planetgen.db import store as _db
 from planetgen.galaxy import nebula_field
@@ -64,12 +65,11 @@ def test_only_dark_family_clouds_and_the_same_ones_every_time():
 
 
 def test_the_field_leaves_the_sector_stream_alone():
-    import random
-    random.seed(7)
-    expected = [random.random() for _ in range(3)]
-    random.seed(7)
+    draw.set_run_seed(7)
+    expected = [draw.random() for _ in range(3)]
+    draw.set_run_seed(7)
     nebula_field.clouds_reaching(SEED, SHAPE, _on_ring(ARM_ANGLE), REACH_PC)
-    assert [random.random() for _ in range(3)] == expected
+    assert [draw.random() for _ in range(3)] == expected
 
 
 def test_neighboring_sectors_see_the_same_cloud():

@@ -25,7 +25,6 @@ command's work is in `planetgen.generation.run_<command>`.
 import argparse
 import getpass
 import math
-import random
 import secrets
 import sys
 import time
@@ -53,6 +52,7 @@ from planetgen.generation import run_plan
 from planetgen.generation import run_population
 from planetgen.generation import run_sector
 from planetgen.generation import run_system
+from planetgen.util import draw
 
 
 class TristateAction(argparse.Action):
@@ -1165,7 +1165,7 @@ def main():
               {key: ("<withheld>" if "password" in key else value) for key, value in sorted(vars(args).items())})
 
     seed = secrets.randbits(128)
-    random.seed(seed)
+    draw.set_run_seed(seed)
     log.debug(f"Seeded the run's random number generator with {seed}; galaxy sectors and bright stars draw "
               f"from the galaxy's own seed instead (GEN.39).")
 

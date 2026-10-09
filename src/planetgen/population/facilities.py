@@ -14,12 +14,12 @@ one.
 """
 
 import math
-import random
 
 from planetgen.physics import constants
 from planetgen import tuning
 from planetgen.physics.planets import calculate_orbital_period_years
 from planetgen.physics.orbits import circular_orbital_speed_kms
+from planetgen.util import draw
 
 PLACEMENTS = ("terrestrial", "orbital", "asteroid", "standalone")
 """tuple: Every `facilities.placement`."""
@@ -140,7 +140,7 @@ def step_for_distance(distance_km, lowest_km, highest_km):
     return round(steps * math.log(distance_km / lowest_km) / math.log(highest_km / lowest_km))
 
 
-def belt_position(lower_km, upper_km, rng=random):
+def belt_position(lower_km, upper_km, rng=draw):
     """A spot inside an asteroid belt: `(radius_km, phase_deg)`, a random
     radius between its edges and a random angle."""
     return rng.uniform(lower_km, upper_km), rng.uniform(0.0, 360.0)

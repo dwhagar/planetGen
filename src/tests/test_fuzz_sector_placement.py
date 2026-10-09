@@ -21,12 +21,9 @@ tiny stand-ins (`_StubSystem`/`_StubRemnant`) whose radius hypothesis
 picks directly -- thousands of placements per second. The round-trip
 tests use real `StarSystem`s and real phenomena.
 
-Reproducibility: `spaceSector._rng` reads the module-level `random`
-stream (GEN.39). `_seeded_sector_rng` shadows its `random`/
-`getrandbits` methods on the instance with a seeded `random.Random`'s, so
-`uniform`/`choice`/`random` -- and every helper that captured `_rng` as a
-default argument at import time -- become a pure function of the
-hypothesis-drawn seed.
+Reproducibility: sector placement draws from the bound draw stream
+(GEN.56), and `_seeded_sector_rng` binds one seeded from the
+hypothesis-drawn seed, so every placement is a pure function of it.
 
 Invariants: every placed entry lies inside the sector (`contains`) at a
 finite position; every pair of massive objects is at least its required
@@ -40,12 +37,12 @@ import math
 import random
 import signal
 import time
-from unittest import mock
 
 import pytest
 from hypothesis import HealthCheck, assume, example, given, note, settings
 from hypothesis import strategies as st
 
+from planetgen.util import draw
 from planetgen.physics import constants as pc
 from planetgen import tuning as prog
 from planetgen.galaxy import sector as ss
@@ -67,10 +64,8 @@ TOL = prog.SECTOR_GROWTH_FLOATING_POINT_TOLERANCE_LY
 
 @contextlib.contextmanager
 def _seeded_sector_rng(seed):
-    rng = random.Random(seed)
-    with mock.patch.object(ss._rng, "random", rng.random), \
-            mock.patch.object(ss._rng, "getrandbits", rng.getrandbits):
-        yield rng
+    with draw.bound(seed) as stream:
+        yield stream
 
 
 class _Timeout(Exception):

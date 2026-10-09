@@ -20,12 +20,12 @@ normal per-slot rolls.
 """
 
 import math
-import random
 
 from planetgen.generation.belt import format_composition_summary, generate_asteroid_composition
 from planetgen.generation.config import SystemConfig
 from planetgen.names.wordlists import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from planetgen import tuning
+from planetgen.util import draw
 from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from planetgen.galaxy.galactic_orbit import format_galactic_orbit, generate_galactic_orbit_fields
@@ -73,7 +73,7 @@ def _family_composition(composition_family):
     if components is None:
         return generate_asteroid_composition()
     concentrations = ["high", "moderate", "small", "trace"]
-    chosen = random.sample(components, k=min(len(concentrations), len(components)))
+    chosen = draw.sample(components, k=min(len(concentrations), len(components)))
     return list(zip(chosen, concentrations))
 
 
@@ -146,10 +146,10 @@ class AsteroidField:
         self.name = name if name else generate_phoneme_salad_name(STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES)
         self.name_given = bool(name)  # a given name is kept over an object ID (GEN.64)
 
-        self.density = random.choice(["dense", "sparse", "typical"])
+        self.density = draw.choice(["dense", "sparse", "typical"])
         log.choice("Asteroid field density", self.density, "uniform draw among dense/sparse/typical")
         families = list(tuning.ASTEROID_FIELD_COMPOSITIONS)
-        self.composition_family = random.choices(
+        self.composition_family = draw.choices(
             families,
             weights=[tuning.ASTEROID_FIELD_COMPOSITIONS[f]["frequency"] for f in families],
             k=1,
@@ -157,7 +157,7 @@ class AsteroidField:
         log.choice("Asteroid field composition", self.composition_family,
                    "weighted draw by ASTEROID_FIELD_COMPOSITIONS frequency")
         self.composition = _family_composition(self.composition_family)
-        self.radius_ly = random.uniform(*tuning.ASTEROID_FIELD_RADIUS_RANGE_LY)
+        self.radius_ly = draw.uniform(*tuning.ASTEROID_FIELD_RADIUS_RANGE_LY)
         self.field_class = asteroid_field_class(self.composition_family, self.density, self.radius_ly)
 
         (self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy,

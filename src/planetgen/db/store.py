@@ -104,6 +104,7 @@ from planetgen.galaxy.system_position import galactic_velocity_ms, system_veloci
 from planetgen.names.wordsalad import generate_phoneme_salad_name, generate_sector_name
 from planetgen.physics.units import ly_to_milliparsecs, ly_to_pc, milliparsecs_to_ly, mpc_to_pc, pc_to_ly
 from planetgen.generation.wide_binary import WideBinaryPair
+from planetgen.util import draw
 
 SCHEMA_VERSION = alembic_runner.head_version()
 """int: Matches `star_systems.schema_version` and the highest row in the
@@ -4508,7 +4509,7 @@ def add_facility(conn, name, kind, placement, host_type, host_id, distance_km=No
         except ValueError as exc:
             raise FacilityError(str(exc)) from exc
         if phase_deg is None:
-            phase_deg = random.uniform(0.0, 360.0)
+            phase_deg = draw.uniform(0.0, 360.0)
         orbit["phase_deg"] = phase_deg % 360.0
     elif distance_km is not None or phase_deg is not None:
         raise FacilityError("only an orbital facility takes an orbit distance or phase")
@@ -5799,7 +5800,7 @@ def compute_phenomenon_placement(conn, sector_id):
         offset_pc = SectorCell.for_ring(position["ring_index"], edge_pc).sample(random)
         center_x, center_y, center_z = local_to_galaxy_pc(center_pc, offset_pc)
     else:
-        center_x, center_y, center_z = (c + random.uniform(-edge_pc / 2, edge_pc / 2) for c in center_pc)
+        center_x, center_y, center_z = (c + draw.uniform(-edge_pc / 2, edge_pc / 2) for c in center_pc)
     return {
         "center_x_pc": center_x, "center_y_pc": center_y, "center_z_pc": center_z,
         "galactic_radius_pc": math.sqrt(center_x ** 2 + center_y ** 2 + center_z ** 2),
@@ -6388,8 +6389,8 @@ def save_sector(sector: SpaceSector, config=None, galaxy_position=None) -> int:
 
 
 _RETRY_JITTER = random.Random()
-"""The retry pause's own stream, so waiting never moves the generation's
-`random` stream (GEN.39)."""
+"""The retry pause's own stream (not a generation draw), so waiting never
+moves the unit's draw stream (GEN.39, GEN.56)."""
 
 
 def _save_with_retries(config, names, insert):
@@ -6409,12 +6410,12 @@ def _save_with_retries(config, names, insert):
     """
     # A retry draws what the first try drew (GEN.39): the sector's numbers
     # can't depend on whether another worker's save got in its way.
-    state = random.getstate()
+    state = draw.getstate()
     for attempt in range(1, SECTOR_SAVE_ATTEMPTS + 1):
         conn = get_connection(config)
         try:
             conn.execute("SET TRANSACTION ISOLATION LEVEL READ COMMITTED")
-            random.setstate(state)
+            draw.setstate(state)
             with conn:
                 return insert(conn)
         except Exception as exc:

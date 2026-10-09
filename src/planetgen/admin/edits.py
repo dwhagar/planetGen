@@ -16,7 +16,6 @@ returned `EditResult` says what moved and what is still wrong.
 """
 
 import math
-import random
 from collections import namedtuple
 
 from planetgen.generation import validation
@@ -25,6 +24,7 @@ from planetgen import tuning
 from planetgen.generation.belt import AsteroidBelt
 from planetgen.names.bodies import moon_letters
 from planetgen.generation.planet import Planet
+from planetgen.util import draw
 
 EditResult = namedtuple("EditResult", ["summary", "moved", "reclassified", "removed", "warnings"])
 """What an edit did: a one-line `summary`, the names of the bodies the
@@ -130,7 +130,7 @@ def regenerate_moon(system, moon, planet):
     classes = moon_classes(planet)
     if not classes:
         raise ValueError(f"no moon class fits {planet.name}")
-    fresh = make_moon(planet, moon.distance, random.choice(classes))
+    fresh = make_moon(planet, moon.distance, draw.choice(classes))
     fresh.name = moon.name
     fresh.db_id = moon.db_id
     validation.reapply_life(fresh)

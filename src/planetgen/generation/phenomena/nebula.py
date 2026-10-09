@@ -14,11 +14,11 @@ phenomenon mode (see that module's docstring), not by
 """
 
 import math
-import random
 
 from planetgen.generation.config import SystemConfig
 from planetgen.names.wordlists import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from planetgen import tuning
+from planetgen.util import draw
 from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from planetgen.galaxy.galactic_orbit import format_galactic_orbit, generate_galactic_orbit_fields
@@ -44,7 +44,7 @@ def _draw_in_range(low, high):
     """Log-uniform between `low` and `high`, or uniform when `low` is 0
     (a log scale can't start at nothing)."""
     if low <= 0:
-        return random.uniform(low, high)
+        return draw.uniform(low, high)
     return log_uniform(low, high)
 
 
@@ -92,7 +92,7 @@ def choose_weighted_class(letters, label):
     """Picks one of `letters` by its `NEBULA_CLASSES` frequency, logging
     the choice under `label`."""
     weights = [tuning.NEBULA_CLASSES[letter]["frequency"] for letter in letters]
-    letter = random.choices(letters, weights=weights, k=1)[0]
+    letter = draw.choices(letters, weights=weights, k=1)[0]
     log.choice(label, letter, f"weighted draw among {list(letters)} by NEBULA_CLASSES frequency")
     return letter
 
@@ -199,7 +199,7 @@ class Nebula:
         class_data = tuning.NEBULA_CLASSES[self.nebula_class]
         self.nebula_type = class_data["family"]
         family_data = tuning.NEBULA_FAMILIES[self.nebula_type]
-        self.radius_ly = random.uniform(*class_data["radius_range_ly"])
+        self.radius_ly = draw.uniform(*class_data["radius_range_ly"])
         self.composition = family_data["composition"]
         self.formation_cause = family_data["formation_cause"]
         (self.dominant_species, self.density_cm3, self.temperature_k,

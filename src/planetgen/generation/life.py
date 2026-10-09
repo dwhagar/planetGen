@@ -18,10 +18,10 @@ finalized the star's age, so evolutionary timelines are computed against
 the star's final age rather than a provisional pre-adjustment one.
 """
 
-import random
 
 from planetgen.generation.evolution import get_evolutionary_timeline
 from planetgen import tuning
+from planetgen.util import draw
 from planetgen.util import log
 from planetgen.generation.star import get_star_evolutionary_profile, get_star_spectral_class
 
@@ -139,12 +139,12 @@ def get_evolutionary_speed(planet, spectral_class=None):
             valid_speeds = [speed for speed in star_speeds if speed in chem_speeds]
 
             if valid_speeds:
-                return random.choice(valid_speeds)
+                return draw.choice(valid_speeds)
 
     # 3. Fallback: If no chemical is set (or if there's somehow no overlap),
     # just pick a random speed supported by the star.
     if star_speeds:
-        return random.choice(star_speeds)
+        return draw.choice(star_speeds)
 
     return None
 
@@ -173,7 +173,7 @@ def apply_life_data(planet):
 
     if viable_chems:
         # random.choices returns a list, so we grab the first [0] element
-        planet.life_chemical = random.choices(
+        planet.life_chemical = draw.choices(
             population=list(viable_chems.keys()),
             weights=list(viable_chems.values()),
             k=1
@@ -220,7 +220,7 @@ def decide_flavor_text(planet):
                          `recent_flavor_texts` are updated when a flavor is
                          selected.
     """
-    if not (random.random() < tuning.FLAVOR_CHANCE_PLANET
+    if not (draw.random() < tuning.FLAVOR_CHANCE_PLANET
             and planet.system_config.system_flavor_count < tuning.MAX_FLAVOR_TOTAL):
         log.debug("Planet flavor text: none (roll failed FLAVOR_CHANCE_PLANET or MAX_FLAVOR_TOTAL reached)")
         return
@@ -251,13 +251,13 @@ def decide_flavor_text(planet):
                 break
 
     if is_habitable and has_multicellular_life:
-        selected_flavor = random.choice(available_habitable_flavor)
+        selected_flavor = draw.choice(available_habitable_flavor)
         flavor_category = "habitable (multicellular/technological life present)"
     elif planet.body_type == "t" and planet.planet_class != "A":
-        selected_flavor = random.choice(available_planet_flavor)
+        selected_flavor = draw.choice(available_planet_flavor)
         flavor_category = "planet (terrestrial body, not class A)"
     elif planet.body_type == "g" or planet.planet_class == "A":
-        selected_flavor = random.choice(available_orbital_flavor)
+        selected_flavor = draw.choice(available_orbital_flavor)
         flavor_category = "orbital (gas giant or class A body)"
     else:
         flavor_category = None

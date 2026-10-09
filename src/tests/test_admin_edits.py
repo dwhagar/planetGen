@@ -5,11 +5,11 @@ planet, moon, asteroid belt, phenomenon or sector (ADM.8), the class
 (`planetgen/db/edits.py`) and the object edits
 (`planetgen/admin/edits.py`), against a real throwaway database.
 """
-import random
 
 import pytest
 from markupsafe import escape
 
+from planetgen.util import draw
 from planetgen.web.app import create_app
 from planetgen.api.config import Config
 from planetgen.db import edits as editStore, store
@@ -476,7 +476,7 @@ def test_class_change_regenerates_surface_conditions_keeping_orbit_mass_and_name
     atmosphere, temperature, pressure, life -- at its orbit, mass and name."""
     # A fixed seed, and a rocky planet that has another class its mass
     # fits: the test no longer depends on what ran before it (TEST.97).
-    random.seed(97)
+    draw.set_run_seed(97)
     for _ in range(50):
         system = _unsaved_system_with_planet()
         planet = next(p for p in system.planets if p.body_type == 't')

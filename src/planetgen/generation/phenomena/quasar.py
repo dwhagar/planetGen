@@ -25,12 +25,12 @@ its Eddington ratio:
     constants for sources).
 """
 
-import random
 
 from planetgen.generation.config import SystemConfig
 from planetgen.names.wordlists import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from planetgen.physics import constants as physical_constants
 from planetgen import tuning
+from planetgen.util import draw
 from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from planetgen.names.wordsalad import generate_phoneme_salad_name
@@ -111,7 +111,7 @@ class Quasar:
             * (l5100_erg_s / 1e44) ** tuning.QUASAR_BLR_RADIUS_LUMINOSITY_SLOPE
         )
 
-        self.is_radio_loud = random.random() < tuning.QUASAR_RADIO_LOUD_CHANCE
+        self.is_radio_loud = draw.random() < tuning.QUASAR_RADIO_LOUD_CHANCE
         log.choice("Quasar radio loudness", "radio-loud" if self.is_radio_loud else "radio-quiet",
                    f"roll against QUASAR_RADIO_LOUD_CHANCE ({tuning.QUASAR_RADIO_LOUD_CHANCE})")
         self.jet_length_ly = (

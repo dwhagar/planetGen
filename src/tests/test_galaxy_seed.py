@@ -9,11 +9,11 @@ in `test_parallel_generation.py`.
 """
 
 import hashlib
-import random
 import sys
 
 import pytest
 
+from planetgen.util import draw
 from planetgen.cli import generate as generate_cli
 from planetgen.generation import run_plan
 from planetgen.db import store
@@ -62,23 +62,34 @@ def test_every_bit_of_the_seed_reaches_a_unit_seed():
 
 
 def test_a_seeded_unit_draws_from_its_own_seed_and_puts_the_stream_back():
-    random.seed(5)
-    expected_after = random.random()
-    random.seed(5)
+    draw.set_run_seed(5)
+    expected_after = draw.random()
+    draw.set_run_seed(5)
     with galaxySeed.seeded(SEED, "sector", (1, 0, 0)):
-        drawn = [random.random() for _ in range(3)]
-    assert random.random() == expected_after
-    random.seed(galaxySeed.unit_seed(SEED, "sector", (1, 0, 0)))
-    assert drawn == [random.random() for _ in range(3)]
+        drawn = [draw.random() for _ in range(3)]
+    assert draw.random() == expected_after
+    unit = draw.Stream(galaxySeed.unit_seed(SEED, "sector", (1, 0, 0)))
+    assert drawn == [unit.random() for _ in range(3)]
 
 
 def test_with_no_galaxy_seed_a_unit_leaves_the_stream_alone():
-    random.seed(9)
-    expected = [random.random() for _ in range(2)]
-    random.seed(9)
+    draw.set_run_seed(9)
+    expected = [draw.random() for _ in range(2)]
+    draw.set_run_seed(9)
     with galaxySeed.seeded(None, "sector", (1, 0, 0)):
-        first = random.random()
-    assert [first, random.random()] == expected
+        first = draw.random()
+    assert [first, draw.random()] == expected
+
+
+def test_a_unit_stream_is_bound_per_thread():
+    import threading
+    seen = []
+    with galaxySeed.seeded(SEED, "sector", (1, 0, 0)):
+        inside = draw.current()
+        thread = threading.Thread(target=lambda: seen.append(draw.current()))
+        thread.start()
+        thread.join()
+    assert seen[0] is not inside
 
 
 def test_the_bright_star_seeds_come_from_the_galaxy_seed():

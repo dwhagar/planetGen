@@ -12,6 +12,7 @@ import random
 import numpy as np
 import pytest
 
+from planetgen.util import draw
 from planetgen.galaxy import nebula_shape as ns
 
 SEEDS = range(8)
@@ -109,9 +110,9 @@ def test_shape_columns_round_trip():
 
 def test_a_nebulas_shape_comes_from_its_properties_not_the_random_state():
     args = ("M", 120.0, 300.0, 15.0, 2.0, "H2")
-    state = random.getstate()
+    state = draw.getstate()
     first = ns.shape_for_nebula(*args)
-    assert random.getstate() == state, "drawing a shape must not move the shared random state"
+    assert draw.getstate() == state, "drawing a shape must not move the shared random state"
     assert first.to_dict() == ns.shape_for_nebula(*args).to_dict()
     assert first.to_dict() != ns.shape_for_nebula("M", 121.0, 300.0, 15.0, 2.0, "H2").to_dict()
 

@@ -46,7 +46,6 @@ sector's dim draw keeps every white dwarf whatever the cap.
 import bisect
 import functools
 import math
-import random
 
 from planetgen.physics import constants
 from planetgen import tuning
@@ -54,6 +53,7 @@ from planetgen.physics.stellar_evolution import (
     _power_law_integral, _sample_power_law, evolve_star, giant_bright_chance, main_sequence_lifetime_gy,
     main_sequence_luminosity_sol, population_age_range_gy, sample_living_star, star_params,
 )
+from planetgen.util import draw
 
 POPULATIONS = tuple(tuning.STELLAR_POPULATION_AGE_RANGES_GY)
 """The named stellar populations, in `population_densities` order."""
@@ -286,7 +286,7 @@ def _sample_one_in_band(table, min_luminosity_sol, max_luminosity_sol, rng):
                      f"in {BAND_REDRAWS} tries")
 
 
-def sample_bright_stars(n, min_luminosity_sol, population=None, rng=random, max_luminosity_sol=None):
+def sample_bright_stars(n, min_luminosity_sol, population=None, rng=draw, max_luminosity_sol=None):
     """
     Draws `n` stars from the population model conditional on luminosity
     `>= min_luminosity_sol` (see the module docstring for how), and below
@@ -297,7 +297,7 @@ def sample_bright_stars(n, min_luminosity_sol, population=None, rng=random, max_
         min_luminosity_sol (float): The threshold (Lsun), above the
             brightest white dwarf.
         population (str or None): As in `bright_star_fraction`.
-        rng (random.Random): The random source (the module-level one by
+        rng (draw.Stream): The random source (the module-level one by
             default); a seeded one gives the same stars every time.
         max_luminosity_sol (float, optional): The band's upper limit
             (Lsun, exclusive); `None` for no limit.
@@ -327,7 +327,7 @@ def bright_band_fraction(min_luminosity_sol, max_luminosity_sol=None, population
     return max(fraction, 0.0)
 
 
-def sample_dim_star(max_luminosity_sol, population=None, rng=random):
+def sample_dim_star(max_luminosity_sol, population=None, rng=draw):
     """
     Draws one star from the population model conditional on luminosity
     `< max_luminosity_sol` (a sector's own stars once its bright ones were
@@ -341,7 +341,7 @@ def sample_dim_star(max_luminosity_sol, population=None, rng=random):
     return star_params(mass, age, state)
 
 
-def pick_population(densities, rng=random):
+def pick_population(densities, rng=draw):
     """
     Picks a population for one star at a position, in proportion to
     `galaxyDensity.population_densities` there.

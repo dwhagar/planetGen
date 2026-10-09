@@ -17,10 +17,10 @@ so that field-specific class delegates to these rather than duplicating
 this module's logic.
 """
 
-import random
 
 from planetgen.generation.config import SystemConfig
 from planetgen import tuning
+from planetgen.util import draw
 from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from planetgen.util.format import format_distance_au
@@ -43,10 +43,10 @@ def generate_asteroid_composition():
     num_components_to_select = min(len(all_concentrations), len(tuning.ASTEROID_COMPONENTS))
 
     # Select unique components
-    selected_components = random.sample(tuning.ASTEROID_COMPONENTS, k=num_components_to_select)
+    selected_components = draw.sample(tuning.ASTEROID_COMPONENTS, k=num_components_to_select)
 
     # Shuffle selected components to randomize which concentration they get
-    random.shuffle(selected_components)
+    draw.shuffle(selected_components)
 
     # Take only the necessary number of concentrations
     concentrations_for_use = all_concentrations[:num_components_to_select]
@@ -135,7 +135,7 @@ class AsteroidBelt:
         self.lower_limit = lower_limit
         self.upper_limit = upper_limit
         self.body_type = 'a'
-        self.density = random.choice(["dense", "sparse", "typical"])
+        self.density = draw.choice(["dense", "sparse", "typical"])
         log.choice("Asteroid belt density", self.density, "uniform draw among dense/sparse/typical")
         self.composition = generate_asteroid_composition()
 

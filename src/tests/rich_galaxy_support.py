@@ -10,11 +10,11 @@ allows it), a polity holding a system, facilities, and two orbit updates.
 """
 
 import os
-import random
 import sys
 
 import pytest
 
+from planetgen.util import draw
 from planetgen.cli import orbits
 from planetgen.db import store
 from tests.bughunt_support import forced_system_config, mysql_argv, run_cli
@@ -50,12 +50,12 @@ def build_rich_galaxy(config, seed=20261001):
     """Builds the galaxy in `config`'s empty database (the same draws
     every time, `deterministic_entropy`) and returns the generated
     sector's id."""
-    state = random.getstate()
+    state = draw.getstate()
     try:
         with deterministic_entropy(seed):
             return _build(config)
     finally:
-        random.setstate(state)
+        draw.setstate(state)
 
 
 def _build(config):

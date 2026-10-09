@@ -21,10 +21,10 @@ belt-and-suspenders check.
 
 Run with: pytest tests/test_name_generation.py
 """
-import random
 
 import pytest
 
+from planetgen.util import draw
 from planetgen.names.wordlists import (
     PLANET_NAMES, PLANET_PREFIXES, PLANET_SUFFIXES,
     SECTOR_NAMES, SECTOR_PREFIXES, SECTOR_SUFFIXES,
@@ -99,10 +99,10 @@ def test_adjacent_apostrophes_from_base_name_and_phoneme_do_not_crash(monkeypatc
         # landing the two apostrophes adjacent once joined.
         return 2
 
-    monkeypatch.setattr("planetgen.names.wordsalad.random.choice", fake_choice)
-    monkeypatch.setattr("planetgen.names.wordsalad.random.random", fake_random_random)
-    monkeypatch.setattr("planetgen.names.wordsalad.random.shuffle", fake_shuffle)
-    monkeypatch.setattr("planetgen.names.wordsalad.random.randint", fake_randint)
+    monkeypatch.setattr("planetgen.names.wordsalad.draw.choice", fake_choice)
+    monkeypatch.setattr("planetgen.names.wordsalad.draw.random", fake_random_random)
+    monkeypatch.setattr("planetgen.names.wordsalad.draw.shuffle", fake_shuffle)
+    monkeypatch.setattr("planetgen.names.wordsalad.draw.randint", fake_randint)
 
     # Should not raise IndexError.
     name = generate_phoneme_salad_name(PLANET_NAMES, PLANET_PREFIXES, PLANET_SUFFIXES)

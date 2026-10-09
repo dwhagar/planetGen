@@ -39,7 +39,6 @@ report and exits 1 if anything failed.
 
 import logging
 import math
-import random
 import sys
 import time
 from contextlib import contextmanager
@@ -50,6 +49,7 @@ from planetgen.galaxy import galactic_orbit
 from planetgen.physics import formation
 from planetgen.physics import orbits
 from planetgen.physics import units
+from planetgen.util import draw
 from planetgen.util import random as sampling
 from planetgen.galaxy import density as galaxyDensity, geometry, sector as spaceSector
 from planetgen.physics import constants as pc, kepler, stellar_evolution
@@ -252,26 +252,24 @@ def _bin_counts(values, edges):
 @contextmanager
 def _seeded_global_random(seed):
     """
-    Seeds the global `random` module for samplers that draw from it
-    (`sampling.sample_bounded_bell`, `planets._choose_weighted_planet_class`),
-    then puts its state back. The debug log's per-draw tracing and DEBUG
+    Binds a draw stream seeded with `seed` for samplers that draw from the
+    unit's stream (`sampling.sample_bounded_bell`,
+    `planets._choose_weighted_planet_class`). The debug log's per-draw tracing and DEBUG
     lines are switched off meanwhile, so a check run never floods the log
     with thousands of rolls.
     """
-    state = random.getstate()
     tracing = bool(log._original_random_functions)
     if tracing:
         log._trace_random(False)
     previous_disable = logging.root.manager.disable
     logging.disable(logging.DEBUG)
     try:
-        random.seed(seed)
-        yield
+        with draw.bound(seed):
+            yield
     finally:
         logging.disable(previous_disable)
         if tracing:
             log._trace_random(True)
-        random.setstate(state)
 
 
 # ---------------------------------------------------------------------------
@@ -694,7 +692,7 @@ def _kroupa_cdf(m):
 
 
 def _imf_p_value():
-    rng = random.Random(SEED + 1)
+    rng = draw.Stream(SEED + 1)
     draws = [stellar_evolution.sample_imf_mass_sol(rng=rng) for _ in range(4000)]
     edges = [0.08, 0.15, 0.3, 0.5, 0.8, 1.5, 3.0, 8.0, 150.0]
     shares = [_kroupa_cdf(b) - _kroupa_cdf(a) for a, b in zip(edges, edges[1:])]
@@ -703,7 +701,7 @@ def _imf_p_value():
 
 def _star_age_p_value():
     """Disk ages are uniform over 0-10 Gy (constant star formation)."""
-    rng = random.Random(SEED + 2)
+    rng = draw.Stream(SEED + 2)
     draws = [stellar_evolution.sample_star_age_gy(rng=rng) for _ in range(3000)]
     edges = [float(i) for i in range(11)]
     return chi_square_p_value(_bin_counts(draws, edges), [1.0] * 10)
@@ -711,7 +709,7 @@ def _star_age_p_value():
 
 def _bulge_age_p_value():
     """Bulge ages are uniform over 8-12 Gy."""
-    rng = random.Random(SEED + 3)
+    rng = draw.Stream(SEED + 3)
     draws = [stellar_evolution.sample_star_age_gy(rng=rng, population="bulge") for _ in range(2000)]
     edges = [8.0, 8.5, 9.0, 9.5, 10.0, 10.5, 11.0, 11.5, 12.0]
     return chi_square_p_value(_bin_counts(draws, edges), [1.0] * 8)
@@ -719,7 +717,7 @@ def _bulge_age_p_value():
 
 def _poisson_p_value():
     """Knuth's sampler at a typical sector mean against the Poisson pmf."""
-    rng = random.Random(SEED + 4)
+    rng = draw.Stream(SEED + 4)
     mean = 6.5
     draws = [spaceSector._sample_poisson_count(mean, rng=rng) for _ in range(4000)]
     top = 20
@@ -734,7 +732,7 @@ def _poisson_p_value():
 def _poisson_large_mean_z():
     """Above `_POISSON_NORMAL_APPROX_MEAN` the sampler switches to a normal
     approximation: its sample mean must sit within a few standard errors."""
-    rng = random.Random(SEED + 5)
+    rng = draw.Stream(SEED + 5)
     mean, n = 800.0, 2000
     draws = [spaceSector._sample_poisson_count(mean, rng=rng) for _ in range(n)]
     return abs(sum(draws) / n - mean) / math.sqrt(mean / n)
