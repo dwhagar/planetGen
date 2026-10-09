@@ -1059,6 +1059,18 @@ CREATE TABLE IF NOT EXISTS schema_migrations (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
+-- alembic_version -- Alembic's own record of the revision a database is
+-- at (DB.11), declared here as Alembic would create it so that a new
+-- database and a migrated one have the same shape. Its single row is the
+-- schema version as four digits ("0061"); `alembic_runner.upgrade` keeps
+-- it in step with `schema_migrations`.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS alembic_version (
+    version_num  VARCHAR(32) NOT NULL,
+    CONSTRAINT alembic_version_pkc PRIMARY KEY (version_num)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------------------------
 -- sectors
 -- ---------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS sectors (
