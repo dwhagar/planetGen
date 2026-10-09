@@ -1,5 +1,11 @@
 # Changelog
 
+## [7.366.678] - 2026-10-09
+
+### Added
+- Every planet, moon and comet has a velocity relative to what it orbits (km/s, `velocity_x_kms`, `velocity_y_kms`, `velocity_z_kms`): set when its orbit is, kept in the database (schema v60, worked out for bodies saved before) and moved with its position by each orbital update. A comet's comes from its Kepler or Barker state (`comet_orbital_state` returns it).
+- Stars, systems and exotic objects move at their galactic orbital speed along the galaxy's rotation, and the bodies in a system carry their star's velocity with their own. A sector loaded from the database knows its objects' velocities, sector address (ring, layer, slot) and the time the orbits were last advanced (`store.get_orbit_epoch_unix`).
+
 ## [7.365.678] - 2026-10-09
 
 ### Fixed
