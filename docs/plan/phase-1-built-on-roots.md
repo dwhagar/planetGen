@@ -209,7 +209,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.167 | A lowest-mass option for the phenomenon scatter: --phenomenon-min-mass, default 20 solar masses | GEN.166 | Phenomenon mass cut (decided). |
 | GEN.166 | A mass_range argument on NeutronStar and BlackHole, and intermediate-mass black holes as their own kind |  | Phenomenon mass cut (decided). |
 | PERF.44 | Compute object uids in Python and write them with the row |  | Generation performance study. |
-| PERF.43 | Lazy word-salad names for phenomena named by object ID |  | Generation performance study. |
 | PERF.41 | Stamp the tile and page caches with a TILE_FORMAT constant instead of the version (optional) | PERF.31 | Research follow-up to PERF.25 (built). |
 | PERF.40 | Two shared queues, a reserved interactive worker and a real "cancel now" | PERF.39 | Research follow-up to PERF.24 (built). |
 | PERF.39 | Every API job costs 2.4 s and 195 MB: import lazily and cap the burst workers |  | Research follow-up to PERF.24 (built); before batch wiki uploads. |
