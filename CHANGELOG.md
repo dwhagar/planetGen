@@ -2,12 +2,8 @@
 
 ## [8.0.783] - 2026-10-09
 
-### Added
-- Seven to-do items for modelling globular clusters (metallicity, cluster table, density, bright-first fill, planet cull, pulsar planets, synthetic clusters).
-- Every rotating object stores a spin axis and an axial tilt (GEN.104, schema v68): stars, planets, moons, comets, rogue planets, interstellar comets, and standalone black holes and neutron stars. Stars, comets, rogue planets and interstellar comets also store a rotation period. Cool stars spin by gyrochronology, hot stars by a log-normal speed held under breakup, small bodies never faster than the 2.2-hour spin barrier, and black hole spin follows Beta(1.4, 3.6).
-- 64 to-do items from the research handoff (12 of them bugs), about 100 research notes on open items, and a Documentation section in the to-do list.
-
 ### Changed
+- The globular-cluster items record Boss's answers on the catalogue file and the planet cut.
 - The multi-star systems item (GEN.129) carries the exact triple-stability equation from Vynatheya et al. 2022 and its tests.
 - The to-do items for nebula planets, multi-star systems and exotic star systems cite the verified orbit-expansion law and triple-stability criteria, with unit tests.
 - The spin vector and axial tilt item (GEN.104) is finished.
@@ -15,6 +11,11 @@
 - The nebula planet-formation study (GEN.94) is finished and its rule table stands.
 - The to-do items for nebula planets, multi-star systems and exotic star systems carry the exotic-environments research.
 - The version stays on 8.0 until Phase 1 is complete: patch and minor changes keep the revision and join the 8.0 entry.
+
+### Added
+- Seven to-do items for modelling globular clusters (metallicity, cluster table, density, bright-first fill, planet cull, pulsar planets, synthetic clusters).
+- Every rotating object stores a spin axis and an axial tilt (GEN.104, schema v68): stars, planets, moons, comets, rogue planets, interstellar comets, and standalone black holes and neutron stars. Stars, comets, rogue planets and interstellar comets also store a rotation period. Cool stars spin by gyrochronology, hot stars by a log-normal speed held under breakup, small bodies never faster than the 2.2-hour spin barrier, and black hole spin follows Beta(1.4, 3.6).
+- 64 to-do items from the research handoff (12 of them bugs), about 100 research notes on open items, and a Documentation section in the to-do list.
 
 ## [8.0.711] - 2026-10-09
 
