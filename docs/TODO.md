@@ -2817,6 +2817,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lifetime law gives a 0.93 Msun turn-off at 12 Gyr (the note's 0.85
   needs metallicity, which the code lacks).
   Prerequisites: none.
+  Design: [docs/design/globular-clusters.md](design/globular-clusters.md)
 
 - [ ] **GEN.159 Globular clusters: cluster table, King tables and the Milky Way catalogue**
   Research (2026-10-09, globular-clusters.md, PR #824; handoff in
@@ -2829,10 +2830,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   1.53, 2.12 and 2.74 for W0 = 3, 5, 7, 9 and 12; the total expected
   count is M / 0.4. Decided by Boss (2026-10-09 19:02Z, default taken): wait and build the synthetic generator first; the options were to supply the Harris catalogue (about 157
   rows: position, distance, [Fe/H], c, r_c, r_h, M_V, sigma_v,
-  core-collapse flag) or approve a one-time download script. Open
-  question for Boss (default: derived): a cluster star's sector address
+  core-collapse flag) or approve a one-time download script. Decided by Boss (2026-10-09 19:02Z, default taken): derived: a cluster star's sector address
   is derived from the cluster centre's sector path, not stored per star.
   Prerequisites: GEN.158.
+  Design: [docs/design/globular-clusters.md](design/globular-clusters.md)
 
 - [ ] **GEN.160 Cluster density in the sector gate, with a "cluster" population**
   Research (2026-10-09, globular-clusters.md, PR #824; handoff in
@@ -2847,6 +2848,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   is skipped; counts match the note's table (a typical cluster 5.0e5
   systems in 965 sectors, a 47 Tuc-like one 2.0e6 in 5,848).
   Prerequisites: GEN.159.
+  Design: [docs/design/globular-clusters.md](design/globular-clusters.md)
 
 - [ ] **GEN.161 Bright-first fill for cluster sectors**
   Research (2026-10-09, globular-clusters.md, PR #824; handoff in
@@ -2856,6 +2858,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   system of a 157-cluster Milky Way is 1.8e8 systems, 10 to 34 days of
   single-worker time at 5 to 16.6 ms each.
   Prerequisites: GEN.160.
+  Design: [docs/design/globular-clusters.md](design/globular-clusters.md)
 
 - [ ] **GEN.162 Planet cull and blue stragglers in clusters**
   Research (2026-10-09, globular-clusters.md, PR #824; handoff in
@@ -2868,6 +2871,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   scale as M_core^0.4 while millisecond pulsars and X-ray binaries scale
   with the encounter rate (his text says linearly with Gamma for both).
   Prerequisites: GEN.158, GEN.160.
+  Design: [docs/design/globular-clusters.md](design/globular-clusters.md)
 
 - [ ] **GEN.163 Type-B pulsar planets in globular clusters (GEN.130 follow-on)**
   Research (2026-10-09, globular-clusters.md, PR #824; handoff in
@@ -2880,6 +2884,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   encounter rate Gamma ~ rho_c^2 r_c^3 / sigma; default 10 times the
   field rate per star, by Gamma rank.
   Prerequisites: GEN.130, GEN.158, GEN.159.
+  Design: [docs/design/globular-clusters.md](design/globular-clusters.md)
 
 - [ ] **GEN.164 Synthetic globular-cluster systems for generated galaxies**
   Research (2026-10-09, globular-clusters.md, PR #824; handoff in
@@ -2895,6 +2900,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Boss (default: 0.5 dex and the S_N ranges above): the mass-function
   width and S_N ranges.
   Prerequisites: GEN.9, GEN.158, GEN.159.
+  Design: [docs/design/globular-clusters.md](design/globular-clusters.md)
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
