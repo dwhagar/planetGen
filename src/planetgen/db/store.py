@@ -1426,6 +1426,7 @@ def _table_marker(table):
 
 
 _VERSION_MARKERS = (
+    (71, _column_marker("galaxy_shape", "phenomenon_min_mass_solar")),
     (70, _column_marker("planets", "mantle_redox")),
     (69, _column_marker("phenomenon_scatter", "epoch_unix")),
     (68, _column_marker("stars", "axial_tilt_deg")),
@@ -5116,15 +5117,28 @@ def clear_phenomenon_scatter(conn):
     plan re-run or a new galaxy starts over. `TRUNCATE` (an implicit
     commit), since a real scatter leaves over a hundred million rows."""
     conn.execute("TRUNCATE TABLE phenomenon_scatter")
-    conn.execute("UPDATE galaxy_shape SET phenomenon_scatter_seed = NULL")
+    conn.execute("UPDATE galaxy_shape SET phenomenon_scatter_seed = NULL, phenomenon_min_mass_solar = NULL")
     conn.commit()
 
 
-def record_phenomenon_scatter(conn, seed):
-    """Stores the seed a finished phenomenon scatter used: its presence
-    tells a sector fill to build its objects from `phenomenon_scatter`
-    instead of rolling its own."""
-    conn.execute("UPDATE galaxy_shape SET phenomenon_scatter_seed = ? WHERE id = 1", (seed,))
+def record_phenomenon_scatter(conn, seed, min_mass_solar):
+    """Stores the seed and the mass cut (GEN.167) a finished phenomenon
+    scatter used: their presence tells a sector fill to build its objects
+    from `phenomenon_scatter` instead of rolling its own, and to draw the
+    neutron stars and black holes below the cut itself (GEN.168)."""
+    conn.execute("UPDATE galaxy_shape SET phenomenon_scatter_seed = ?, phenomenon_min_mass_solar = ? WHERE id = 1",
+                 (seed, min_mass_solar))
+
+
+def phenomenon_scatter_settings(conn):
+    """`(seed, min_mass_solar)` of the galaxy's phenomenon scatter, or
+    `None` when none has run."""
+    row = conn.execute(
+        "SELECT phenomenon_scatter_seed, phenomenon_min_mass_solar FROM galaxy_shape WHERE id = 1").fetchone()
+    if row is None or row["phenomenon_scatter_seed"] is None:
+        return None
+    cut = row["phenomenon_min_mass_solar"]
+    return int(row["phenomenon_scatter_seed"]), (None if cut is None else float(cut))
 
 
 def phenomenon_scatter_seed(conn):

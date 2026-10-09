@@ -41,6 +41,7 @@ about four times the draws (a narrow band is drawn by redrawing the
 stars that overshoot it).
 """
 
+import collections
 import math
 
 from planetgen.physics import constants
@@ -454,6 +455,15 @@ def local_position_ly(row, center_pc):
     return tuple(pc_to_ly(value) for value in galaxy_to_local_pc(center_pc, point))
 
 
+class BelowCut(collections.namedtuple("BelowCut", "address min_mass_solar seed expected_stars")):
+    """A galaxy sector's share of the phenomenon scatter's mass cut
+    (GEN.168): its `(ring, layer, slot)` address, the cut in solar masses,
+    the scatter's seed, and the stars the plan expects there (relative
+    density times the calibration constant)."""
+
+    __slots__ = ()
+
+
 class FillContext:
     """
     What a galaxy-placed sector's fill needs beyond its arguments: the
@@ -474,9 +484,13 @@ class FillContext:
             stars (and the nucleus) from `phenomenon_rows` and rolls none.
         phenomenon_rows (list): The sector's unbuilt `phenomenon_scatter`
             rows.
+        below_cut (BelowCut or None): The scatter's mass cut, when it had
+            one (GEN.167): the sector draws the neutron stars and black
+            holes below it (GEN.168), and builds its scattered ones above it.
     """
 
-    def __init__(self, center_pc, shape, bright_rows=(), min_luminosity_sol=None, phenomenon_rows=None):
+    def __init__(self, center_pc, shape, bright_rows=(), min_luminosity_sol=None, phenomenon_rows=None,
+                 below_cut=None):
         self.center_pc = center_pc
         self.shape = shape
         self.densities = _densities(center_pc, shape)
@@ -484,6 +498,7 @@ class FillContext:
         self.min_luminosity_sol = min_luminosity_sol
         self.phenomena_scattered = phenomenon_rows is not None
         self.phenomenon_rows = list(phenomenon_rows or ())
+        self.below_cut = below_cut
 
     def bright_share(self):
         """The share of this position's stars at or above the threshold

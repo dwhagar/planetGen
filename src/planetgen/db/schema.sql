@@ -1048,6 +1048,11 @@
 --   The `atmosphere` text is written from them; a gas outside the ten (helium,
 --   ammonia, sodium) is named there but not stored. NULL on a row generated
 --   before v70. Draws: `planetgen/physics/atmosphere.py`.
+-- v71: `galaxy_shape.phenomenon_min_mass_solar` (GEN.167): the lowest mass
+--   of the neutron stars and black holes the phenomenon scatter placed
+--   (`planetgen plan --phenomenon-min-mass`, default 20 solar masses). A
+--   sector fill draws those below it itself, from its own stream (GEN.168).
+--   NULL on a scatter drawn before v71, which placed every mass.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -1247,6 +1252,8 @@ CREATE TABLE IF NOT EXISTS galaxy_shape (
     -- used; NULL when none has run (a sector's fill then rolls its own
     -- black holes, neutron stars, planetary nebulae and supernova remnants).
     phenomenon_scatter_seed         BIGINT UNSIGNED,
+    -- v71 (GEN.167): the scatter's mass cut, see header comment.
+    phenomenon_min_mass_solar       DOUBLE,
 
     -- v51: the galaxy's 128-bit seed (GEN.39), set by `planetgen plan`
     -- (`--seed`, or drawn at random) and kept by every later plan.

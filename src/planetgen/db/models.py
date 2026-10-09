@@ -354,6 +354,7 @@ galaxy_shape = sa.Table(
     sa.Column('bright_star_min_luminosity_sol', mysql.DOUBLE(), nullable=True),
     sa.Column('bright_star_seed', mysql.BIGINT(unsigned=True), nullable=True),
     sa.Column('phenomenon_scatter_seed', mysql.BIGINT(unsigned=True), nullable=True),
+    sa.Column('phenomenon_min_mass_solar', mysql.DOUBLE(), nullable=True),
     sa.Column('galaxy_seed', mysql.BINARY(16), nullable=True),
     sa.Column('version_key', mysql.CHAR(22), nullable=True),
     sa.Column('planetgen_version', sa.String(32), nullable=True),

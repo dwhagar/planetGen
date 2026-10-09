@@ -180,8 +180,9 @@ def generate_sector_phenomena(sector, args, galactic_center_dist_ly=None, cloud_
             instead of this sector's own `"molecular-cloud"` roll.
         scattered (bool): The galaxy's phenomenon scatter ran (GEN.100):
             the kinds in `phenomenon_scatter.SCATTERED_KINDS` were built
-            from their scatter rows (`add_scattered_phenomena`), so none
-            is rolled here.
+            from their scatter rows (`add_scattered_phenomena`), and those
+            below its mass cut are drawn by `add_below_cut_remnants`
+            (GEN.168), so none is rolled here.
 
     Returns:
         list: The newly created `SectorPhenomenonEntry` instances. May hold
@@ -414,7 +415,8 @@ def add_scattered_phenomena(sector, args, fill):
         radius_pc = math.sqrt(sum((row[axis] / brightStars.MPC_PER_PC) ** 2
                                   for axis in ("position_x_mpc", "position_y_mpc", "position_z_mpc")))
         dist_ly = pc_to_ly(radius_pc)
-        entry = _seeded_build(row["seed"], lambda: _build_scattered(sector, args, row, position, dist_ly))
+        cut = fill.below_cut.min_mass_solar if fill.below_cut is not None else None
+        entry = _seeded_build(row["seed"], lambda: _build_scattered(sector, args, row, position, dist_ly, cut))
         if entry is None:
             continue
         entry.scatter_id = row["id"]
@@ -423,10 +425,12 @@ def add_scattered_phenomena(sector, args, fill):
     return new_entries
 
 
-def _build_scattered(sector, args, row, position, dist_ly):
+def _build_scattered(sector, args, row, position, dist_ly, min_mass_solar=None):
     """One scatter row built into `sector` at `position` (sector-local
     light-years): its entry, or `None` when a planetary nebula's central
-    system found no room."""
+    system found no room. A neutron star's or black hole's mass is drawn
+    at or above the scatter's cut `min_mass_solar` (GEN.166; `None`: the
+    whole range)."""
     kind = row["kind"]
     config = SystemConfig()
     config.MARKDOWN = args.markdown
@@ -438,14 +442,51 @@ def _build_scattered(sector, args, row, position, dist_ly):
     if kind == "quasar":
         return sector.add_phenomenon(Quasar(config), "quasar", position=position)
     if kind == "black-hole":
-        black_hole = BlackHole(config, galactic_center_dist_ly=dist_ly, mass_class=row["subtype"])
+        black_hole = BlackHole(config, galactic_center_dist_ly=dist_ly, mass_class=row["subtype"],
+                               mass_range=phenomenon_scatter.mass_range(kind, row["subtype"], min_mass_solar, True))
         return sector.add_phenomenon(black_hole, "black-hole", position=position)
     if kind == "neutron-star":
-        return sector.add_phenomenon(NeutronStar(config, galactic_center_dist_ly=dist_ly), "neutron-star",
-                                     position=position)
+        neutron_star = NeutronStar(config, galactic_center_dist_ly=dist_ly,
+                                   mass_range=phenomenon_scatter.mass_range(kind, None, min_mass_solar, True))
+        return sector.add_phenomenon(neutron_star, "neutron-star", position=position)
     if kind == "supernova-remnant":
         return sector.add_phenomenon(SupernovaRemnant(config), "supernova-remnant", position=position)
     raise ValueError(f"Unknown scattered phenomenon kind: {kind!r}")
+
+
+def add_below_cut_remnants(sector, args, fill, galactic_center_dist_ly=None):
+    """
+    The neutron stars and black holes the phenomenon scatter left below its
+    mass cut (GEN.168): `phenomenon_scatter.below_cut_draws` counts them on
+    the sector's own stream, and each is built with its mass below the cut
+    and placed like a rolled one (anywhere in the cube clear of the Hill
+    spheres already there), on that same stream.
+
+    Returns:
+        list: The new `SectorPhenomenonEntry` instances (one that found no
+            room is skipped, as `generate_sector_phenomena` does).
+    """
+    below_cut = fill.below_cut
+    draws, rng = phenomenon_scatter.below_cut_draws(below_cut.address, fill.center_pc, fill.shape,
+                                                    below_cut.expected_stars, below_cut.min_mass_solar,
+                                                    below_cut.seed)
+    entries = []
+    with draw.bound(rng):
+        for kind, subtype, mass_range, count in draws:
+            for _ in range(count):
+                config = SystemConfig()
+                config.MARKDOWN = args.markdown
+                if kind == "black-hole":
+                    remnant = BlackHole(config, galactic_center_dist_ly=galactic_center_dist_ly,
+                                        mass_class=subtype, mass_range=mass_range)
+                else:
+                    remnant = NeutronStar(config, galactic_center_dist_ly=galactic_center_dist_ly,
+                                          mass_range=mass_range)
+                try:
+                    entries.append(sector.add_phenomenon(remnant, kind))
+                except ValueError:
+                    continue  # no room clear of the Hill spheres already placed
+    return entries
 
 
 def _add_hypervelocity_star(sector, args, row, position, dist_ly):
@@ -602,6 +643,8 @@ def generate_sector(args, galactic_center_dist_ly=None, cell=None, fill=None, cl
     with log.timed_phase("generate_sector_phenomena"):
         generate_sector_phenomena(sector, args, galactic_center_dist_ly=galactic_center_dist_ly,
                                   cloud_field=cloud_field, scattered=scattered)
+        if scattered and fill.below_cut is not None:
+            add_below_cut_remnants(sector, args, fill, galactic_center_dist_ly)
         flag_fast_stars(sector, galactic_center_dist_ly=galactic_center_dist_ly, scattered=scattered)
 
     if density_driven and not sector.entries and not sector.phenomena:

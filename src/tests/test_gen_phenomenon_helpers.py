@@ -184,9 +184,9 @@ def test_black_hole_mass_class_boundaries():
     assert infer_black_hole_mass_class(0.0) == "stellar"
 
 
-@pytest.mark.parametrize("mass_class", ["stellar", "intermediate", "Supermassive", ""])
+@pytest.mark.parametrize("mass_class", ["giant", "Stellar", "Supermassive", ""])
 def test_black_hole_rejects_an_unsupported_mass_class(mass_class):
-    with pytest.raises(ValueError, match=rf"mass_class must be None or 'supermassive', got {mass_class!r}"):
+    with pytest.raises(ValueError, match=rf"mass_class must be None, .*, got {mass_class!r}"):
         BlackHole(cfg(), mass_class=mass_class)
 
 
