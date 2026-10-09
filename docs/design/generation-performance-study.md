@@ -197,6 +197,10 @@ timer runs differ by a few points.
   get a name; keep `name_given` as is. I could not reproduce the hang Boss saw on rogue
   planets: warm, a name is 96 us; the likely causes are the cold NLTK load (0.87 s) in every
   forked job and the retry loop, both before the current checks.
+  Built in PERF.43: `names.wordsalad.LazySaladName` keeps one draw at construction
+  (the name's own seed) and draws the salad on first read, so an object's other draws
+  don't depend on whether its name is read. 3,000 rogue planets build in 0.15 s
+  instead of 0.60 s. The one draw in place of many changes a seed's galaxy once.
 - **C. Write each row's unique ID with the row.** `assign_uids` selects every new row back
   and updates it. The uid is `derived_uid(seed, kind, parent uid, rank)` where rank is the
   row's order among its siblings by id, and ids come from `id_blocks` before the INSERT

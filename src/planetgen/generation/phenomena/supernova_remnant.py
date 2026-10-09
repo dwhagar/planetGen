@@ -20,14 +20,13 @@ import math
 
 from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
 from planetgen.generation.config import SystemConfig
-from planetgen.names.wordlists import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from planetgen.generation.phenomena.nebula import REMNANT_CLASS_LETTERS, choose_weighted_class, draw_class_contents, typical_class_contents
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from planetgen.galaxy.galactic_orbit import format_galactic_orbit, generate_galactic_orbit_fields
-from planetgen.names.wordsalad import generate_phoneme_salad_name
+from planetgen.names.wordsalad import LazySaladName
 from planetgen.util.format import format_distance_ly, format_number
 
 
@@ -63,7 +62,7 @@ def infer_remnant_class(morphology, progenitor_type, age_years):
     return "S"
 
 
-class SupernovaRemnant:
+class SupernovaRemnant(LazySaladName):
     """
     A basic class to store information for a supernova remnant.
 
@@ -117,7 +116,7 @@ class SupernovaRemnant:
         self.system_config = system_config
         # A draft name: `_db.insert_supernova_remnant` reserves it through
         # the system-name registry (v40), and the core follows.
-        self.name = name if name else generate_phoneme_salad_name(STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES)
+        self._init_salad_name(name)  # drawn on first read (PERF.43)
         self.name_given = bool(name)  # a given name is kept over an object ID (GEN.64)
 
         is_type_ia = draw.random() < tuning.SUPERNOVA_PROGENITOR_TYPE_IA_CHANCE

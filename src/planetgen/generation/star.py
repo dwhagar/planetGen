@@ -21,7 +21,6 @@ import math
 import re
 
 from planetgen.generation.config import SystemConfig
-from planetgen.names.wordlists import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from planetgen.physics import constants
 from planetgen.physics import spin
 from planetgen import tuning
@@ -33,7 +32,7 @@ from planetgen.physics.stellar_evolution import (YERKES_CLASS_NAMES, evolve_star
 from planetgen.galaxy.galactic_orbit import (
     calculate_galactic_orbit, format_galactic_orbit, generate_galactic_orbit_fields,
 )
-from planetgen.names.wordsalad import generate_phoneme_salad_name
+from planetgen.names.wordsalad import LazySaladName, generate_phoneme_salad_name
 from planetgen.physics.orbits import calculate_habitable_zone, calculate_hill_sphere
 from planetgen.util.checks import finite_domain
 from planetgen.util.format import (
@@ -154,7 +153,7 @@ def compressed_heliosphere_radius(radius_au, density_cm3, temperature_k):
     return radius_au * math.sqrt(constants.ISM_PRESSURE / pressure)
 
 
-class Star:
+class Star(LazySaladName):
     """
     Represents a single star, encapsulating its physical and orbital properties.
 
@@ -874,7 +873,7 @@ class Star:
                 threading this through.
         """
         self.system_config = system_config # Storing the SystemConfig instance
-        self.name = name if name else generate_phoneme_salad_name(STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES)
+        self._init_salad_name(name)  # drawn on first read (PERF.43)
         self.galactic_center_dist_ly = kwargs.get('galactic_center_dist_ly')
 
         if not _skip_property_init:

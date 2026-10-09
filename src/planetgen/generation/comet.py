@@ -43,11 +43,10 @@ from planetgen.physics.position import HoldsOrbitPosition, axis_property, veloci
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
-from planetgen.names.wordlists import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from planetgen.physics.planets import calculate_orbital_period_years
 from planetgen.generation.phenomena.rogue import format_comet_composition_summary
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
-from planetgen.names.wordsalad import generate_phoneme_salad_name
+from planetgen.names.wordsalad import LazySaladName
 from planetgen.physics.orbits import minimum_update_interval_years
 from planetgen.util.format import format_distance_au, format_period_years, format_speed_kms
 
@@ -124,7 +123,7 @@ def _activity_chance(perihelion_distance_au):
     return max_chance - fraction * (max_chance - min_chance)
 
 
-class Comet(HoldsOrbitPosition):
+class Comet(LazySaladName, HoldsOrbitPosition):
     """
     A comet gravitationally bound to a star, on either a periodic
     elliptical orbit or a single-apparition parabolic one (see this
@@ -219,7 +218,7 @@ class Comet(HoldsOrbitPosition):
         self.system_config = system_config
         # A placeholder: `_db.insert_star_system` replaces it with the
         # comet's designation (`comet_designation`, v40).
-        self.name = name if name else generate_phoneme_salad_name(STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES)
+        self._init_salad_name(name)  # drawn on first read (PERF.43)
         self.name_given = bool(name)  # a given name is kept over an object ID (GEN.64)
         self.primary_mass_solar = primary_mass_solar
 

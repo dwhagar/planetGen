@@ -22,14 +22,13 @@ import math
 
 from planetgen.generation.config import SystemConfig
 from planetgen.physics.rogue_surface import ROGUE_SURFACE_FIELDS, SURFACE_REGIME_LABELS, rogue_surface_conditions
-from planetgen.names.wordlists import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from planetgen.physics import constants, planets as planetPhysics, spin
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from planetgen.galaxy.galactic_orbit import format_galactic_orbit, generate_galactic_orbit_fields
-from planetgen.names.wordsalad import generate_phoneme_salad_name
+from planetgen.names.wordsalad import LazySaladName
 from planetgen.util.format import format_body_radius_km, format_number, format_speed_kms
 from planetgen.util.random import sample_power_law
 
@@ -149,7 +148,7 @@ def default_rogue_planet_class(planet_type, radius_km, mass_kg, mass_bin=None):
     return max(candidates, key=lambda code: tuning.PLANET_CLASS_PROBABILITIES.get(code, 0.0))
 
 
-class RoguePlanet:
+class RoguePlanet(LazySaladName):
     """
     A basic class to store information for a free-floating ("rogue"/nomad)
     planet with no host star.
@@ -203,7 +202,7 @@ class RoguePlanet:
                 `PHENOMENON_DENSITY_PC3["brown-dwarf"]`).
         """
         self.system_config = system_config
-        self.name = name if name else generate_phoneme_salad_name(STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES)
+        self._init_salad_name(name)  # drawn on first read (PERF.43)
         self.name_given = bool(name)  # a given name is kept over an object ID (GEN.64)
 
         if mass_bin is None:
@@ -425,7 +424,7 @@ def interstellar_comet_designation(sector_code, index):
     return f"I/{sector_code}-{index}" if sector_code else f"I/{index}"
 
 
-class InterstellarComet:
+class InterstellarComet(LazySaladName):
     """
     A basic class to store information for a small icy body passing
     through on an unbound, hyperbolic interstellar trajectory (real
@@ -470,7 +469,7 @@ class InterstellarComet:
             name (str, optional): An explicit name. Random if omitted.
         """
         self.system_config = system_config
-        self.name = name if name else generate_phoneme_salad_name(STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES)
+        self._init_salad_name(name)  # drawn on first read (PERF.43)
         self.name_given = bool(name)  # a given name is kept over an object ID (GEN.64)
 
         self.nucleus_diameter_km = draw.uniform(*tuning.INTERSTELLAR_COMET_NUCLEUS_DIAMETER_RANGE_KM)

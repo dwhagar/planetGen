@@ -386,9 +386,15 @@ def test_a_habitable_world_with_no_viable_chemistry_gets_no_timeline(monkeypatch
     cfg.STAR_TYPE = "G2V"
     cfg.HABITABLE_WORLD = True
     cfg.BINARY_SYSTEM = False
-    system = StarSystem(system_config=cfg)
-    planet = next(p for p in system.planets if getattr(p, "zone", None) == "e" and not p.is_moon)
-    assert planet.evolutionary_data
+    # Not every habitable-zone world draws a life chemistry; take the first that did.
+    planet = None
+    for _ in range(50):
+        system = StarSystem(system_config=cfg)
+        planet = next((p for p in system.planets if getattr(p, "zone", None) == "e" and not p.is_moon
+                       and p.evolutionary_data), None)
+        if planet is not None:
+            break
+    assert planet is not None
 
     monkeypatch.setattr(planetLife, "get_viable_life_chemicals", lambda *args, **kwargs: {})
     planet.evolutionary_data = []
