@@ -737,9 +737,9 @@ Parents marked "new parent" had no old number of their own.
 | MAP.125 | Infinite zoom: one 3D interface from the galaxy down to a moon | none | done, PR #683 |
 | MAP.126 | Show the orbital trajectories of selected objects in their frame of reference | none | done, PR #686 |
 | MAP.135 | Selecting the first slab or wedge shows its bounds (bug) | none | done, PR #788 |
-| MAP.136 | Binary stars pick as one system and their 3D orbits are drawn clearly (bug) | none | open |
-| MAP.137 | Rogue planets are easy to see, with the right default filters (bug) | none | open |
-| MAP.138 | Recenter the camera in every 3D view (bug) | none | open |
+| MAP.136 | Binary stars pick as one system and their 3D orbits are drawn clearly (bug) | none | done, PR #797 |
+| MAP.137 | Rogue planets are easy to see, with the right default filters (bug) | none | done, PR #797 |
+| MAP.138 | Recenter the camera in every 3D view (bug) | none | done, PR #797 |
 | MAP.139 | The Galaxy View uses its spare space: an info box with a Details link, and menu items | none | open |
 | MAP.140 | Double-click on a selected object goes there and opens its information | none | open |
 | MAP.141 | Context around the selection: faint neighbours, and the sectors above and below | none | open |
@@ -983,7 +983,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.74 | Generate page shows an empty Current job card | none | done, PR #617 |
 | UX.75 | Admin menus on the sector and phenomenon pages sit in the page body, not the action bar | none | done, PR #679 |
 | UX.76 | Icons and highlights follow the light and dark theme (bug) | none | open |
-| UX.77 | The class list is alphabetized (bug) | none | open |
+| UX.77 | The class list is alphabetized (bug) | none | done, PR #797 |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
