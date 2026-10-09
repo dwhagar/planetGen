@@ -35,7 +35,8 @@ _CLOCKS = (
 def _has_column(connection, table, column):
     return connection.execute(sa.text(
         "SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE()"
-        " AND TABLE_NAME = :table AND COLUMN_NAME = :column"), {"table": table, "column": column}).scalar()
+        " AND TABLE_NAME = :table_name AND COLUMN_NAME = :column_name"),
+        {"table_name": table, "column_name": column}).scalar()
 
 
 def upgrade():

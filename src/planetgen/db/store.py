@@ -7520,8 +7520,8 @@ def finish_orbit_update(conn, clock):
     the next update. `planetgen.cli.orbits` calls it after the last step."""
     conn.execute(
         "INSERT INTO orbit_simulation_state (id, last_updated_at) VALUES (1, FROM_UNIXTIME(?)) "
-        "ON DUPLICATE KEY UPDATE last_updated_at = VALUES(last_updated_at)",
-        (clock.end_unix,),
+        "ON DUPLICATE KEY UPDATE last_updated_at = FROM_UNIXTIME(?)",
+        (clock.end_unix, clock.end_unix),
     )
     conn.commit()
 
