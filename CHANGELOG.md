@@ -1,5 +1,10 @@
 # Changelog
 
+## [7.371.678] - 2026-10-09
+
+### Added
+- A to-do item (GEN.125) for stand-alone facilities to store a velocity like stars and systems do.
+
 ## [7.370.678] - 2026-10-09
 
 ### Added
