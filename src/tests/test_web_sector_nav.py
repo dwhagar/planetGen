@@ -99,6 +99,7 @@ class FakeData:
         self.calls = []
         self.nav_error = None
         self.nav_galaxy_scope = False
+        self.nav_unknown_space = False
         self.action_error = None
         self.bright_stars = {}
 
@@ -166,7 +167,10 @@ class FakeData:
             "origin_position": (0.0, 0.0, 0.0), "destination_position": (3.0, 1.0, 0.0),
             "route": {"path": [from_id if kind == "system" else f"phenomenon:{kind}:{from_id}",
                                *hops, to_id],
-                      "distance_ly": 3.5, "positions": {"1500": (1.5, 0.5, 0.0)}},
+                      "distance_ly": 3.5, "positions": {"1500": (1.5, 0.5, 0.0)},
+                      "longest_hop_ly": 2.25,
+                      "hops": [{"from": 0, "to": 1, "distance_ly": 1.25, "unknown_space": False},
+                               {"from": 1, "to": 2, "distance_ly": 2.25, "unknown_space": self.nav_unknown_space}]},
             "legs": ([{"kind": "out", "from": from_ref, "to": "system:1001", "direct": direct}]
                      if kind in objectref.BODY_KINDS else []) + [
                 {"kind": "between", "from": from_ref, "to": to_ref, "direct": direct}],
@@ -1222,6 +1226,15 @@ def test_nav_result_orders_summary_map_route_then_travel_times(client, fake):
     assert "<details>" in times and "<details open" not in times
     assert 'data-travel-mode="warp"' in times and 'data-travel-mode="fold"' in times
     assert re.search(r'<script type="module" src="/static/navtimes.js\?v=[^"]+"></script>', html)
+
+
+def test_nav_route_shows_the_longest_hop_and_unknown_space_jumps(client, fake):
+    """NAV.12: the longest hop is shown, and so is any jump through unfilled sectors."""
+    html = client.get("/nav?from=system:1001&to=system:1002").get_data(as_text=True)
+    assert "Longest hop 2.25 ly" in html and "unknown space" not in html
+    fake.nav_unknown_space = True
+    html = client.get("/nav?from=system:1001&to=system:1002").get_data(as_text=True)
+    assert "1 jump crosses unknown space" in html
 
 
 def test_nav_hides_the_route_when_it_is_the_direct_hop(client, fake):

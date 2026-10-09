@@ -810,6 +810,15 @@ reference or nonexistent id is a `404`. A phenomenon endpoint's own
 plain int id for a system) -- only `route.path[0]`/`route.path[-1]` can ever
 be a phenomenon; every intermediate hop is always a system.
 
+**Hops and unknown space (NAV.12).** There is no hop limit: a route always
+finds the nearest star it can, across sector boundaries, and a pair in one
+sector may route through the sectors next door when the sector is galaxy-placed
+(the positions stay in the sector's frame). `route.hops` lists one
+`{from, to, distance_ly, unknown_space}` per hop, and `route.longest_hop_ly`
+is the longest. `unknown_space` is true when the hop's straight line crosses a
+sector that has not been generated (`galaxyGeometry.sectors_along_segment`,
+NAV.38). A route in a sector with no galaxy placement has the flag false.
+
 **Bodies and legs (NAV.16).** `origin` and `destination` echo
 `{ref, kind, name}`. `legs` lists the course's legs, each `{kind, from, to,
 direct, warp_times, fold_times}`: `between` (the system-to-system or

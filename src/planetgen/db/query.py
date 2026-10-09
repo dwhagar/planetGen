@@ -64,7 +64,7 @@ from planetgen.galaxy.viewport import (
 from planetgen.galaxy.drill import (
     DRILL_TOP, DrillBlock, drill_chain_of, drill_wedge_count, format_drill_key, parse_drill_key,
 )
-from planetgen.db.corridor import positions_near_segment
+from planetgen.db.corridor import positions_near_segment, unknown_space_flags
 from planetgen.galaxy.nav_graph import build_route_graph, shortest_path
 from planetgen.galaxy.navigation import (
     FRAME_GALACTIC, FRAME_SECTOR, FRAME_SYSTEM, course_between, fold_travel_times, warp_travel_times,
@@ -865,7 +865,8 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
             `"galaxy"`), and `route`: `None` if the two endpoints resolve
             to the same node (the joined graph always has a path
             otherwise), else `{"path": [...node ids...], "distance_ly": float,
-            "positions": {node_id: (x, y, z), ...}}` (one entry per id in
+            "positions": {node_id: (x, y, z), ...}, "hops": [{"from", "to",
+            "distance_ly", "unknown_space"}], "longest_hop_ly": float}` (one entry per id in
             `path`, same frame as `origin_position`/`destination_position`
             -- for rendering the route, e.g. `planetgen/web/maps/navmap.py`, without
             a second position lookup). A node id is a plain `star_systems.
@@ -904,10 +905,17 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
         and destination["galaxy_position_ly"] is not None
     )
 
+    sector_offset = None
     if sector_scope_ok:
         scope = "sector"
-        positions = _sector_local_positions(conn, origin["sector_id"])
         origin_position, destination_position = origin["position_ly"], destination["position_ly"]
+        if galaxy_scope_ok:
+            # NAV.12: the route may leave the sector, so it is searched in the
+            # galaxy frame and shifted back into this sector's local frame.
+            sector_offset = tuple(g - l for g, l in zip(origin["galaxy_position_ly"], origin["position_ly"]))
+            positions = None
+        else:
+            positions = _sector_local_positions(conn, origin["sector_id"])
     elif galaxy_scope_ok:
         scope = "galaxy"
         origin_position, destination_position = origin["galaxy_position_ly"], destination["galaxy_position_ly"]
@@ -930,15 +938,30 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
         if positions is not None:
             graph = build_route_graph(positions, adjacency_k, NAV_ISLAND_LINKS)
             found = shortest_path(graph, from_key, to_key, positions)
+            galaxy_frame = None
         else:
-            positions, found = _galaxy_route(conn, origin_position, destination_position, from_key, to_key,
-                                             adjacency_k)
+            search_from, search_to = ((origin["galaxy_position_ly"], destination["galaxy_position_ly"])
+                                      if sector_offset is not None else (origin_position, destination_position))
+            positions, found = _galaxy_route(conn, search_from, search_to, from_key, to_key, adjacency_k)
+            galaxy_frame = positions
         if found is not None:
             path, distance_ly = found
+            route_positions = {node_id: positions[node_id] for node_id in path}
+            hops = [{"from": a, "to": b, "distance_ly": math.dist(positions[a], positions[b]),
+                     "unknown_space": False} for a, b in zip(path, path[1:])]
+            if galaxy_frame is not None:
+                flags = unknown_space_flags(conn, [galaxy_frame[node_id] for node_id in path])
+                for hop, flag in zip(hops, flags):
+                    hop["unknown_space"] = flag
+                if sector_offset is not None:
+                    route_positions = {node_id: tuple(c - o for c, o in zip(position, sector_offset))
+                                       for node_id, position in route_positions.items()}
             route = {
                 "path": path,
                 "distance_ly": distance_ly,
-                "positions": {node_id: positions[node_id] for node_id in path},
+                "positions": route_positions,
+                "hops": hops,
+                "longest_hop_ly": max((hop["distance_ly"] for hop in hops), default=0.0),
             }
 
     return {

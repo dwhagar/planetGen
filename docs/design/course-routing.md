@@ -103,6 +103,17 @@ over 2 sector edges" flag.
   only for hops longer than about one edge.
 - **Cost stays plain length** (section 3.3). Route edge cases are tests
   first (TEST.79, PR #427).
+- **Built (NAV.12).** `route.hops` carries `{from, to, distance_ly,
+  unknown_space}` per hop and `route.longest_hop_ly` the longest
+  (`query.nav_between`, `corridor.unknown_space_flags`: a hop is flagged when
+  a cell on its line, other than the two holding its ends, has no `sectors`
+  row). A same-sector pair with a galaxy placement is routed in the galaxy
+  corridor and shifted back into the sector's frame. The NAV page states the
+  longest hop and the number of unknown-space jumps; the red glow is NAV.36
+  and the horizontal strip UX.35. Not yet built: the per-stop `sector_id` and
+  local position, the packed filled-set cache and the cheap adjacent-cell
+  shortcut (the check reads the cells a line crosses with one query per ring
+  and layer).
 
 ## 3. Routing that scales (NAV.10, built)
 

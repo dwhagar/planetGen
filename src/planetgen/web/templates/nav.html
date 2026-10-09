@@ -180,7 +180,8 @@
 {%- elif stops|length > 2 %}
 <section class="panel" aria-labelledby="route-heading">
   <h2 id="route-heading">Optimal Route</h2>
-  <p>{{ stops|length }} stop{{ "" if stops|length == 1 else "s" }}, {{ route_distance_text }} total.</p>
+  <p>{{ stops|length }} stop{{ "" if stops|length == 1 else "s" }}, {{ route_distance_text }} total. Longest hop {{ longest_hop_text }}.
+  {%- if unknown_jumps %} {{ unknown_jumps }} jump{{ "" if unknown_jumps == 1 else "s" }} cross{{ "es" if unknown_jumps == 1 else "" }} unknown space (sectors not yet generated).{% endif %}</p>
   <ol class="nav-route">
     {%- for stop in stops %}
     <li><a href="{{ stop.url }}">{{ stop.name }}</a></li>
