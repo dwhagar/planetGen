@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.76 |
 | MAP | MAP.134 |
 | NAV | NAV.51 |
-| GEN | GEN.124 |
+| GEN | GEN.125 |
 | PERF | PERF.31 |
 | DB | DB.15 |
 | API | API.20 |
@@ -586,6 +586,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.121 | A velocity on every object, filled at generation and stored with an epoch | none | open |
 | GEN.122 | Orbital elements for planets, moons and comets, kept in step with the state vector | none | open |
 | GEN.123 | The projected path of a body through a sector, saved as a spline | none | open |
+| GEN.124 | Every object knows its sector address (ring, layer, slot), recalculated whenever its position changes | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -716,7 +717,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.121 | Every map shows and steps to its neighbouring regions, on one map engine | none | open |
 | MAP.122 | A Select mode on every galaxy view: Galaxy (blocks and sectors) or Star | none | open |
 | MAP.123 | Show or hide star types and phenomena, and set the luminosity floor, on the Galaxy and Sector Maps | none | open |
-| MAP.124 | The Galaxy Map opens zoomed to fit all charted space | none | open |
+| MAP.124 | The Galaxy Map opens zoomed to fit all charted space | none | done, PR #696 |
 | MAP.125 | Infinite zoom: one 3D interface from the galaxy down to a moon | none | done, PR #683 |
 | MAP.126 | Show the orbital trajectories of selected objects in their frame of reference | none | done, PR #686 |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
@@ -734,7 +735,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.13 | A picker module: select, step out, step in, step sideways | none | done, PR #564 |
 | NAV.14 | One breadcrumb for every level | none | done, PR #571 |
 | NAV.15 | Pick mode everywhere | none | done, PR #566 |
-| NAV.16 | NAV endpoints can be any object | none | open |
+| NAV.16 | NAV endpoints can be any object | none | done, PR #697 |
 | NAV.17 | A saved course record with both forms | none | open |
 | NAV.18 | Save, list, open, rename and delete, per browser | none | open |
 | NAV.19 | Saved courses in the account (after USR.7) | none | open |

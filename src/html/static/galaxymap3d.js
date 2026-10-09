@@ -2127,6 +2127,58 @@ function initGalaxyMap3d(canvasEl, data) {
       });
       kindsEl.appendChild(button);
     });
+    rebuildStarFilters();
+  }
+
+  // MAP.123: the star classes shown (a toggle each, all on to begin with) and
+  // the dimmest star shown (a slider on a log scale: 0 is every star).
+  var LUM_STEPS = 110;
+  function lumFromStep(step) { return step <= 0 ? 0 : Math.pow(10, -5 + step / 10); }
+  function stepFromLum(lum) { return lum > 0 ? Math.max(1, Math.round((Math.log10(lum) + 5) * 10)) : 0; }
+  function formatLum(lum) {
+    if (!(lum > 0)) return "every star";
+    return (lum >= 100 || lum < 0.01 ? lum.toExponential(0) : String(Number(lum.toPrecision(2)))) + " L\u2609 and up";
+  }
+  function rebuildStarFilters() {
+    var classes = stageView.starClasses();
+    if (!classes.length) return;
+    var heading = document.createElement("span");
+    heading.className = "galaxy-kinds-heading";
+    heading.textContent = "Star classes";
+    kindsEl.appendChild(heading);
+    classes.forEach(function (item) {
+      var button = document.createElement("button");
+      button.type = "button";
+      button.className = "starmap-btn starmap-toggle";
+      button.dataset.starClass = item.starClass;
+      button.textContent = item.starClass === "other" ? "Other" : item.starClass;
+      button.title = "Show or hide the class " + button.textContent + " stars (" + item.count + ")";
+      button.setAttribute("aria-pressed", String(!stageView.starClassHidden(item.starClass)));
+      button.addEventListener("click", function () {
+        stageView.setStarClassHidden(item.starClass, button.getAttribute("aria-pressed") === "true");
+        button.setAttribute("aria-pressed", String(!stageView.starClassHidden(item.starClass)));
+      });
+      kindsEl.appendChild(button);
+    });
+    var label = document.createElement("label");
+    label.className = "galaxy-lum";
+    var text = document.createElement("span");
+    var slider = document.createElement("input");
+    slider.type = "range";
+    slider.min = "0";
+    slider.max = String(LUM_STEPS);
+    slider.step = "1";
+    slider.id = "galaxymap3d-lum";
+    slider.value = String(stepFromLum(stageView.minLuminosity()));
+    var show = function () { text.textContent = "Dimmest star shown: " + formatLum(lumFromStep(Number(slider.value))); };
+    slider.addEventListener("input", function () {
+      show();
+      stageView.setMinLuminosity(lumFromStep(Number(slider.value)));
+    });
+    show();
+    label.appendChild(text);
+    label.appendChild(slider);
+    kindsEl.appendChild(label);
   }
 
   // The Contents table draws its rows as they scroll (datatable.js), so the

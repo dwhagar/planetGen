@@ -1,2 +1,0 @@
-### Added
-- One reference form for every object, `<kind>:<id>` (`sector:3`, `system:12`, `star:7`, `planet:40`, `moon:41`, `belt:5`, `comet:8`, `nebula:2`, ...; a bare number is a system). `GET /api/objects/<ref>` resolves one to its name, parent chain up to the galaxy, sibling references and its position in each frame (galaxy parsecs, sector-local light-years, system-local kilometers). `planetgen.galaxy.objectref` and `static/objectref.js` parse and print the form (NAV.7).

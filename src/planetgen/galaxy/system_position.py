@@ -38,15 +38,16 @@ def _add(a, b):
     return tuple(x + y for x, y in zip(a, b))
 
 
-def _carry(body, sector_au, primary_au):
+def _carry(body, sector_au, primary_au, sector_edge_pc):
     """Gives a planet, moon or comet its anchors, keeping its own offset."""
     if getattr(body, "spatial", None) is None:  # an asteroid belt is a ring, with no point
         return None
+    body.spatial.set_sector_edge_pc(sector_edge_pc)
     body.spatial.carry_anchors(sector_au, primary_au)
     return body.spatial.get_coordinates("galactic", "cartesian")
 
 
-def place_system(system, sector_center_ly, position_ly):
+def place_system(system, sector_center_ly, position_ly, sector_edge_pc=None):
     """
     Puts every body of `system` where it is in the galaxy.
 
@@ -56,6 +57,9 @@ def place_system(system, sector_center_ly, position_ly):
         sector_center_ly (tuple): The sector's center, galactic light-years.
         position_ly (tuple): The system's center, light-years from the
             sector's center.
+        sector_edge_pc (float or None): The sector grid's edge, parsecs, so
+            every body knows its sector address; `None` when the sector is
+            not a cell of the galaxy's grid.
     """
     if not hasattr(system, "primary_star"):
         return
@@ -69,7 +73,7 @@ def place_system(system, sector_center_ly, position_ly):
         star_centers[id(star)] = at
         mass = getattr(star, "mass", None)
         star.spatial = SpatialPosition3D(
-            at, sector_au, is_star=True, length_unit_m=physical_constants.AU_M,
+            at, sector_au, is_star=True, length_unit_m=physical_constants.AU_M, sector_edge_pc=sector_edge_pc,
             mass_kg=mass if isinstance(mass, (int, float)) and mass >= 0 else None)
 
     wide = getattr(system, "binary_type", None) == "wide"
@@ -82,8 +86,8 @@ def place_system(system, sector_center_ly, position_ly):
     ]
     for planets, comets, anchor in groups:
         for planet in planets:
-            planet_at = _carry(planet, sector_au, anchor)
+            planet_at = _carry(planet, sector_au, anchor, sector_edge_pc)
             for moon in getattr(planet, "moons", []) or []:
-                _carry(moon, sector_au, planet_at if planet_at is not None else anchor)
+                _carry(moon, sector_au, planet_at if planet_at is not None else anchor, sector_edge_pc)
         for comet in comets:
-            _carry(comet, sector_au, anchor)
+            _carry(comet, sector_au, anchor, sector_edge_pc)

@@ -63,7 +63,8 @@ def test_edit_menu_opens_a_dialog_with_the_mouse(system_page):
     # Cancel closes it; the page was not submitted.
     dialog.locator("sl-button[data-dialog-close]").click()
     page.locator("sl-dialog.edit-dialog[open]").wait_for(state="detached")
-    assert page.url == url
+    # Not submitted: still the same page (the system page's 3D view adds ?view=3d).
+    assert page.url.split("?")[0] == url.split("?")[0]
 
 
 def test_edit_menu_works_from_the_keyboard_and_escape_closes_the_dialog(system_page):
@@ -77,7 +78,8 @@ def test_edit_menu_works_from_the_keyboard_and_escape_closes_the_dialog(system_p
     page.locator("sl-dialog.edit-dialog[open]").wait_for()
     page.keyboard.press("Escape")
     page.locator("sl-dialog.edit-dialog[open]").wait_for(state="detached")
-    assert page.url == url
+    # Not submitted: still the same page (the system page's 3D view adds ?view=3d).
+    assert page.url.split("?")[0] == url.split("?")[0]
 
 
 def test_the_delete_dialog_has_a_danger_button_and_the_forms_post_target(system_page):
@@ -128,7 +130,8 @@ def test_the_sector_pages_admin_actions_are_one_menu_that_opens_dialogs(sector_p
     page.locator("sl-dialog#admin-sector-neighborhood[open]").wait_for()
     page.keyboard.press("Escape")
     page.locator("sl-dialog#admin-sector-neighborhood[open]").wait_for(state="detached")
-    assert page.url == url
+    # Not submitted: still the same page (the system page's 3D view adds ?view=3d).
+    assert page.url.split("?")[0] == url.split("?")[0]
 
 
 def test_the_system_admin_menu_is_in_the_action_bar_and_bodies_have_their_own(system_page):

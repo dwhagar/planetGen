@@ -1,5 +1,211 @@
 # Changelog
 
+## [7.353.675] - 2026-10-08
+
+### Fixed
+- The edit menu's browser tests no longer fail on the `?view=3d` the system page adds when it opens in 3D.
+
+## [7.352.675] - 2026-10-08
+
+### Added
+- NAV takes any object: `/nav` and `GET /api/nav` accept a star, planet, moon, asteroid belt or comet as either end, written as an object reference (`planet:40`). A course to or from a body gets legs: out of its system to the heliopause, between the systems, into the destination body (all in the System Local Frame inside a system). Two objects in one system are one in-system leg, using the same warp and fold tables with a note (NAV.16).
+
+### Changed
+- `GET /api/nav` takes `from`/`to` as object references; the `from_kind`/`to_kind`/`from_type`/`to_type` parameters are gone (`from=nebula:2` replaces `from=2&from_kind=phenomenon&from_type=nebula`).
+
+## [7.351.675] - 2026-10-08
+
+### Changed
+- The Galaxy Map opens as close as its zoom range allows with every charted sector in view, centered on them; Reset and zooming out still reach the whole galaxy (MAP.124).
+
+## [7.350.675] - 2026-10-08
+
+### Added
+- **A Galaxy Map bug in the TODO.** MAP.133: after the bright-star scatter the map shows no bright stars in the bulge, because its sample ranks by luminosity alone.
+
+## [7.349.675] - 2026-10-08
+
+### Added
+- **Three physics items in the TODO.** GEN.121 (a velocity and epoch on every object), GEN.122 (orbital elements kept in step with the state vector) and GEN.123 (the projected path through a sector as a spline), approved by Boss on 2026-10-08.
+
+## [7.348.675] - 2026-10-08
+
+### Added
+- The Galaxy Map's Menu has a Color by choice: the default (age hue, density opacity, luminosity brightness) or one statistic (density, mean age, luminosity, star count) on a single ramp, with a legend that says what the colors mean. The choice rides in the address (`color=`) and every choice of a stage is ranked on one scale (MAP.131).
+
+## [7.347.675] - 2026-10-08
+
+### Fixed
+- The planet-offset tests no longer assume the primary star is the system frame's origin: a close pair's origin is its barycenter and a wide pair's is its primary star, so a random system used to fail them about one run in four (TEST.108).
+- The Sector Map nebula click test waits until the pointer, with the real mouse on the spot, still reads the nebula before it clicks, so a pick that settles after load no longer fails it (TEST.109).
+
+## [7.346.675] - 2026-10-08
+
+### Added
+- One reference form for every object, `<kind>:<id>` (`sector:3`, `system:12`, `star:7`, `planet:40`, `moon:41`, `belt:5`, `comet:8`, `nebula:2`, ...; a bare number is a system). `GET /api/objects/<ref>` resolves one to its name, parent chain up to the galaxy, sibling references and its position in each frame (galaxy parsecs, sector-local light-years, system-local kilometers). `planetgen.galaxy.objectref` and `static/objectref.js` parse and print the form (NAV.7).
+
+## [7.345.675] - 2026-10-08
+
+### Added
+- Picking a body in a 3D system view (the system page, or a system opened on the Galaxy Map) draws its orbit bright and full in the frame of what it goes round, a moon's around its planet, and fades the other orbits back (MAP.126).
+
+## [7.344.675] - 2026-10-08
+
+### Added
+- On the Galaxy Map the wheel carries the zoom from a sector into a star's system (the star picked, else the one nearest the middle of the view) and back out again, and the address names the body picked (`&object=planet:12`) so a reload flies back to it (MAP.125, part 2).
+
+## [7.343.675] - 2026-10-08
+
+### Changed
+- The system page opens in the 3D view by default; a visitor who last chose the diagram gets the diagram (MAP.74 follow-up).
+
+## [7.342.675] - 2026-10-08
+
+### Changed
+- The Admin menu of a sector page and of a phenomenon page is now the last button of the action bar, as on a system page, instead of a separate button above the page content.
+
+## [7.341.675] - 2026-10-08
+
+### Added
+- A star of an opened sector on the Galaxy Map can be opened in place: its system's stars, planets, moons, belts and comets are drawn where it sits, can be picked and flown to (down to a moon, followed as it orbits), and shown at true scale. The address keeps it (`&system=<id>`) and Up, Back and Forward step through it (MAP.125, first part).
+
+## [7.340.675] - 2026-10-08
+
+### Added
+- A new test bug is on the list: the Sector Map nebula click test fails on main (TEST.109).
+
+## [7.339.675] - 2026-10-08
+
+### Added
+- The system page has a 3D view beside the Diagram: stars with a glow, lit planets, moons and comets on 3D orbit lines, belts as particle rings, a free camera (turn, pan, zoom, fly keys, fly to and follow a body), true and compressed scale, and a time control. The address keeps the view and the selected body (`?view=3d&object=planet:12`), a list of bodies stands in for the canvas, and without WebGL the Diagram stays (MAP.71 to MAP.74, MAP.67's system and body forms).
+
+## [7.338.675] - 2026-10-08
+
+### Added
+- A new test bug is on the list: a point-in-space test fails about one run in four (TEST.108).
+
+## [7.337.675] - 2026-10-08
+
+### Changed
+- Search shows a card only for the groups that have results, and one line ("No sectors, systems, stars, planets or moons match.") when none do. The name you searched for is no longer echoed as a chip, and the header search box is hidden on the Search page.
+- Home is the front door: the counts of sectors, systems, phenomena and standalone systems as links to their lists, plus the Galaxy Map, Navigate and Search. The Systems page no longer has a second Standalone Systems card; standalone is a filter on its list (the "standalone" badge opens it).
+
+## [7.336.675] - 2026-10-08
+
+### Added
+- Positions of a system's bodies at any time, in Python (`physics/body_positions`) and its JavaScript twin, with the time clock the 3D system view will use (MAP.70). The scene endpoint now carries a pair's mass fraction and a comet's primary mass.
+
+## [7.335.675] - 2026-10-08
+
+### Added
+- `GET /api/systems/<id>/scene` returns a system's stars, planets, moons, belts and comets with real orbit elements, colours and positions at the epoch the stored phases were last advanced, for the 3D system view (MAP.69).
+
+## [7.334.675] - 2026-10-08
+
+### Changed
+- Documented how the stored position, mass and mu columns map to each object's `SpatialPosition3D`, with a save and load test covering stars, planets and moons (GEN.74 part 3).
+
+## [7.333.675] - 2026-10-08
+
+### Changed
+- List and map cards no longer repeat the page title as a visible heading (Galaxy Map, Sector Map, System Map, NAV Map, All Systems, All Phenomena, Sectors): the heading stays for screen readers. "(3D)" is gone from the Galaxy Map's name.
+- A single star's description and its spectral and luminosity class links, which the System list no longer repeats, now sit under the Stars table.
+
+## [7.332.675] - 2026-10-08
+
+### Changed
+- Planets, moons, comets and stars now hold a `SpatialPosition3D` (in AU) with their mass and mu, anchored under their system, and the system moves them with it; stored position columns map to it (GEN.74 part 2b).
+
+## [7.331.675] - 2026-10-08
+
+### Changed
+- A backfilled bright star gets a normal word-salad name when its sector is generated, and keeps the position ID it was known by as its unique ID (GEN.72). Before, the generated system was named by that 19-digit ID.
+
+## [7.330.675] - 2026-10-08
+
+### Changed
+- The sector's Contents table column "Location" is now "Nearest" and lists only the three nearest neighbours; the sector name is no longer repeated on every row. The system page's header line reads "Nearest: ..." the same way (the breadcrumb already names the sector).
+- The system page lists a single star only in the Stars table (not again as the first row of the System list), and the Stars table hides its Role column when there is only one star.
+
+## [7.329.675] - 2026-10-08
+
+### Changed
+- A table that scrolls sideways shows a shadow on each edge with more to scroll to and keeps a thin visible scrollbar. On a phone the Quadrants and a system's Stars tables stack: the name is the row's title and every other column is a labelled line under it, so no column is cut off (UX.69).
+
+### Fixed
+- The layout test hides the page's own controls while it checks a header menu, since the menu drops over the page's action bar by design (TEST.106).
+
+## [7.328.675] - 2026-10-08
+
+### Fixed
+- The layout test no longer opens the maps' popover menus (Menu, Bookmarks, history) when it opens every folded section; they drop over the page by design, like the header's menus, which it already checks one at a time (TEST.106).
+
+## [7.327.675] - 2026-10-08
+
+### Added
+- A new test bug is on the list: the Sector Map's buttons overlap the Contents filters (TEST.106).
+
+## [7.326.675] - 2026-10-08
+
+### Changed
+- The NAV result page is titled "Course: A → B" with no From/To chips, shows Optimal Route only when it has stops beyond the two ends, and is ordered summary, map, route, then the travel times in one collapsed section with a Warp/Dimensional Fold switch. Reverse course, Another destination and Show on Galaxy Map are a button row (UX.70).
+- The NAV landing page is one "Plan a course" card: start from a map pick or a sector (UX.71).
+
+### Fixed
+- The links in the Admin hub list are underlined, so they no longer fail the link-in-text-block contrast check in either theme (TEST.105).
+
+## [7.325.675] - 2026-10-08
+
+### Changed
+- The System card's Wikitext and Markdown buttons are now a quiet "View source" menu in the card header (UX.67).
+
+## [7.324.675] - 2026-10-08
+
+### Added
+- A new item is on the list: the sector and phenomenon pages' Admin menus move into the shared action bar (UX.75).
+
+## [7.323.675] - 2026-10-08
+
+### Changed
+- The system page's Admin menu moves into the action bar and lists only the system's own actions (upload to wiki, regenerate, change star, delete, place or remove a facility). Planet, moon and asteroid belt actions are in an Admin menu on each of their rows in the System list.
+
+## [7.322.675] - 2026-10-08
+
+### Changed
+- Every system and phenomenon placed in a sector now holds one `SpatialPosition3D` (in light-years) with its mass and mu; `SpaceSector.place_in_galaxy` carries a sector's entries to their galactic place. `SpatialPosition3D` now takes a length unit and can carry its sector or star anchor (GEN.74 part 2a).
+
+## [7.321.675] - 2026-10-08
+
+### Added
+- A new test bug is on the list: the Admin hub's links fail the contrast check (TEST.105).
+
+## [7.320.675] - 2026-10-08
+
+### Changed
+- The request rate limits (Flask-Limiter) and the login lockouts now count on the Redis server (`redis.url`) by default, so every worker process shares them and a restart keeps them. `ratelimit.storage_uri` is empty by default (the Redis server); `memory://` still counts per process, and a Redis outage falls back to counting in memory (SEC.30).
+- The failed-login counts moved out of the control database: its `login_throttle` table is dropped (control schema v8), so the counts start over once on the first `update.sh` after this change. `python -m planetgen.cli.lockouts` lists and lifts lockouts in Redis (SEC.30).
+
+## [7.319.675] - 2026-10-08
+
+### Added
+- `planetgen.physics.position.SpatialPosition3D`: one body's position in the galactic, sector and system frames, each in Cartesian, cylindrical and spherical form, kept in step when any coordinate in any of them changes, with velocity, the next-due time from the design thresholds, and mass with its gravitational parameter (GEN.74 part 1; Boss's prototype `spacial-position.py` is removed).
+
+## [7.318.675] - 2026-10-08
+
+### Changed
+- System Map, NAV Map and the phenomenon diagram: the caption paragraph is gone; the same text is behind a Map help button (UX.50). The diagram's Reset view is now Re-center.
+- System Map: Measure distance sits in a button row under the map, with Map help (UX.61).
+- Galaxy page: the map's breadcrumb replaces the page's own, so one trail reads Home, Galaxy, the levels, with the star at its end; on a phone it shows the current level and a labelled Steps button (UX.59).
+
+## [7.317.675] - 2026-10-08
+
+### Changed
+- Galaxy Map and Sector Map: the how-to text under the map is gone; the gestures, keys and legend are behind a new Map help item in the Menu (UX.50, Galaxy and Sector maps).
+- The toolbar's Reset is now Whole galaxy and the Menu's Reset view is Re-center (UX.57).
+- Current moved into the round Steps menu as Jump to newest, and the Steps menu shows at every width (UX.58).
+- The Slabs rail only appears while the stage has slab buttons (UX.60).
+- On the Galaxy page only the map card goes wide; the title and crumb keep the page's usual left edge (UX.62).
+
 ## [7.316.665] - 2026-10-08
 
 ### Changed

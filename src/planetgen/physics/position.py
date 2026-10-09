@@ -31,6 +31,24 @@ was given in, and the other frames are derived from it. A moon placed by its
 system offset therefore keeps its metres exactly even though the same point
 in galactic coordinates (about 1e20 m from the center) cannot.
 
+Sector address: with the sector edge known (`sector_edge_pc`), the position
+also knows which cell of the galaxy's sector grid it is in (`sector_address`:
+ring, layer, slot; `planetgen.galaxy.geometry`). It is worked out from the
+galactic position whenever the position changes, by any setter or anchor
+move, so it is never stale. `set_sector_address` moves the body to another
+cell the way `carry_sector_center` does, keeping its offset from the
+sector's center.
+
+Velocity: one vector in two frames. The galactic velocity (the sector frame
+has the same axes and does not move) is the velocity in the galaxy's axes;
+the system velocity is relative to the nearest star, so a planet keeps its
+30 km/s round its star separate from the star's own 220 km/s round the
+galaxy. The velocity that was last set is kept as given, in its frame, and the
+other is derived: galactic = the star's velocity (`star_velocity`) + system.
+`epoch_unix` is when the position and velocity hold (Unix seconds; `None`
+when unknown), so a stored position and velocity can be advanced to another
+time.
+
 Observable movement: how long a body at its speed takes to move the distance
 that has to be re-stored (`THRESHOLDS_M`, from docs/design/orbital-updates.md
 section 3), capped at `MAX_UPDATE_INTERVAL_S`. A body at rest never comes
@@ -44,6 +62,7 @@ axis the angles are not defined and read as 0.
 
 import math
 
+from planetgen.galaxy import geometry
 from planetgen.physics import constants as physical_constants
 
 FRAMES = ("galactic", "sector", "system")
@@ -51,6 +70,9 @@ FRAMES = ("galactic", "sector", "system")
 
 FORMS = ("cartesian", "cylindrical", "spherical")
 """tuple: The coordinate forms each frame is kept in."""
+
+VELOCITY_FRAMES = ("galactic", "system")
+"""tuple: The frames a velocity is kept in; "sector" reads as "galactic"."""
 
 THRESHOLDS_M = {
     "galactic": 0.01 * physical_constants.AU_PER_MILLIPARSEC * physical_constants.AU_M,
@@ -127,16 +149,25 @@ class SpatialPosition3D:
         galactic_cartesian (tuple): Galactic (x, y, z), metres.
         sector_center_galactic (tuple): The sector center, galactic metres.
         velocity_vector_cartesian (tuple): Velocity, galactic axes, m/s.
+            (Set a velocity relative to the star with
+            `set_velocity_cartesian(..., frame="system")`.)
         star_center_galactic (tuple or None): The nearest star's center,
             galactic metres; `None` for a body with no star reference.
         is_star (bool): A star has no system frame.
         mass_kg (float or None): The body's mass; its `mu` follows.
         length_unit_m (float): Metres in one unit of every coordinate and
             anchor (1 for metres, `LY_TO_M` for light-years, `AU_M` for AU).
+        star_velocity_galactic (tuple): The nearest star's velocity, galactic
+            axes, m/s: what the system frame's velocity is measured from.
+        epoch_unix (float or None): When the position and velocity hold.
+        sector_edge_pc (float or None): The sector grid's edge length, parsecs.
+            Given, the position keeps its `sector_address`; `None` leaves
+            the address unknown.
     """
 
     def __init__(self, galactic_cartesian, sector_center_galactic, velocity_vector_cartesian=(0.0, 0.0, 0.0),
-                 star_center_galactic=None, is_star=False, mass_kg=None, length_unit_m=1.0):
+                 star_center_galactic=None, is_star=False, mass_kg=None, length_unit_m=1.0,
+                 star_velocity_galactic=(0.0, 0.0, 0.0), epoch_unix=None, sector_edge_pc=None):
         _finite((length_unit_m,), "length unit")
         if length_unit_m <= 0.0:
             raise ValueError(f"the length unit must be positive, got {length_unit_m!r}")
@@ -148,12 +179,23 @@ class SpatialPosition3D:
         self._sector_center = tuple(float(v) for v in sector_center_galactic)
         self._star_center = None if star_center_galactic is None else tuple(float(v) for v in star_center_galactic)
         self._is_star = bool(is_star)
+        _finite(star_velocity_galactic, "star velocity")
+        self._star_velocity = tuple(float(v) for v in star_velocity_galactic)
+        self._epoch_unix = None
+        self.set_epoch_unix(epoch_unix)
+        if sector_edge_pc is not None:
+            _finite((sector_edge_pc,), "sector edge")
+            if sector_edge_pc <= 0.0:
+                raise ValueError(f"the sector edge must be positive, got {sector_edge_pc!r}")
+            sector_edge_pc = float(sector_edge_pc)
+        self._sector_edge_pc = sector_edge_pc
+        self._sector_address = None
         self._truth = ("galactic", tuple(float(v) for v in galactic_cartesian))
         self._mass_kg = None
         self._mu = None
         if mass_kg is not None:
             self.set_mass(mass_kg)
-        self._velocity = (0.0, 0.0, 0.0)
+        self._velocity_truth = ("galactic", (0.0, 0.0, 0.0))
         self.set_velocity_cartesian(*velocity_vector_cartesian)
         self._sync()
 
@@ -176,6 +218,40 @@ class SpatialPosition3D:
         """Whether the system frame exists (not a star, and a star is known)."""
         return not self._is_star and self._star_center is not None
 
+    @property
+    def sector_edge_pc(self):
+        """float or None: The sector grid's edge length, parsecs."""
+        return self._sector_edge_pc
+
+    @property
+    def sector_address(self):
+        """tuple or None: The `(ring, layer, slot)` of the sector cell the
+        position is in; `None` when the sector edge is not known."""
+        return self._sector_address
+
+    def set_sector_edge_pc(self, sector_edge_pc):
+        """Sets (or, with `None`, forgets) the sector grid's edge length,
+        parsecs; the address is worked out again."""
+        if sector_edge_pc is not None:
+            _finite((sector_edge_pc,), "sector edge")
+            if sector_edge_pc <= 0.0:
+                raise ValueError(f"the sector edge must be positive, got {sector_edge_pc!r}")
+            sector_edge_pc = float(sector_edge_pc)
+        self._sector_edge_pc = sector_edge_pc
+        self._sector_address = None
+        self._sync()
+
+    def set_sector_address(self, ring_index, layer_index, slot_index):
+        """Moves the body to the sector cell `(ring, layer, slot)`, keeping
+        its offset from the sector's center (`carry_sector_center` to that
+        cell's center). Raises `ValueError` without a sector edge or for a
+        slot the ring does not have."""
+        if self._sector_edge_pc is None:
+            raise ValueError("the sector edge is not known, so there is no sector address to set")
+        center_pc = geometry.sector_position_pc(ring_index, layer_index, slot_index, self._sector_edge_pc)
+        from_pc = physical_constants.PARSEC_M / self.length_unit_m
+        self.carry_sector_center(tuple(c * from_pc for c in center_pc))
+
     def _galactic_cartesian(self):
         frame, xyz = self._truth
         anchor = self._anchor(frame)
@@ -197,6 +273,9 @@ class SpatialPosition3D:
                 "cylindrical": cartesian_to_cylindrical(*xyz),
                 "spherical": cartesian_to_spherical(*xyz),
             }
+        if self._sector_edge_pc is not None:
+            to_pc = self.length_unit_m / physical_constants.PARSEC_M
+            self._sector_address = geometry.sector_address_at(tuple(c * to_pc for c in gal), self._sector_edge_pc)
 
     def _set(self, frame, xyz):
         _finite(xyz, "coordinates")
@@ -256,7 +335,10 @@ class SpatialPosition3D:
         if star_center_galactic is not None:
             _finite(star_center_galactic, "star center")
         gal = self._galactic_cartesian()
+        galactic_velocity = self._velocity_galactic()
         self._star_center = None if star_center_galactic is None else tuple(float(v) for v in star_center_galactic)
+        if not self.has_system_frame:
+            self._velocity_truth = ("galactic", galactic_velocity)
         self._rebase(gal)
 
     def _rebase(self, gal):
@@ -268,36 +350,112 @@ class SpatialPosition3D:
             self._truth = ("galactic", gal)
         self._sync()
 
-    # --- Velocity and the next-due time -----------------------------------------------
+    # --- Velocity, epoch and the next-due time ----------------------------------------
 
-    def set_velocity_cartesian(self, vx, vy, vz):
-        """Sets the velocity (galactic axes, m/s). Raises `ValueError` for
-        a speed at or above the speed of light."""
+    def _velocity_frame(self, frame):
+        key = str(frame).lower()
+        if key == "sector":
+            key = "galactic"
+        if key not in VELOCITY_FRAMES:
+            raise KeyError(f"Invalid velocity frame {frame!r}. Valid frames: {', '.join(VELOCITY_FRAMES)}, sector.")
+        if key == "system" and not self.has_system_frame:
+            raise ValueError("a star, or a body with no star reference, has no system velocity")
+        return key
+
+    def _velocity_galactic(self):
+        frame, vector = self._velocity_truth
+        if frame == "galactic":
+            return vector
+        return tuple(a + b for a, b in zip(self._star_velocity, vector))
+
+    def set_velocity_cartesian(self, vx, vy, vz, frame="galactic"):
+        """Sets the velocity, m/s, in `frame` ("galactic" or "system"; the
+        system velocity is relative to the nearest star). Raises
+        `ValueError` for a velocity (or, in the system frame, the galactic
+        velocity it makes) at or above the speed of light."""
+        key = self._velocity_frame(frame)
         _finite((vx, vy, vz), "velocity")
-        if math.sqrt(vx * vx + vy * vy + vz * vz) >= SPEED_OF_LIGHT_MS:
-            raise ValueError("a body cannot move at or above the speed of light")
-        self._velocity = (float(vx), float(vy), float(vz))
+        vector = (float(vx), float(vy), float(vz))
+        galactic = vector if key == "galactic" else tuple(a + b for a, b in zip(self._star_velocity, vector))
+        for candidate in (vector, galactic):
+            if math.sqrt(sum(v * v for v in candidate)) >= SPEED_OF_LIGHT_MS:
+                raise ValueError("a body cannot move at or above the speed of light")
+        self._velocity_truth = (key, vector)
 
-    def get_velocity_vector(self):
-        return self._velocity
+    def get_velocity_vector(self, frame="galactic"):
+        """The velocity, m/s, in `frame` ("galactic", "sector" or "system");
+        the system frame is `None` for a star or a body with no star
+        reference."""
+        key = str(frame).lower()
+        if key == "system" and not self.has_system_frame:
+            return None
+        key = self._velocity_frame(frame)
+        if key == "galactic":
+            return self._velocity_galactic()
+        return self._velocity_truth[1] if self._velocity_truth[0] == "system" else tuple(
+            g - s for g, s in zip(self._velocity_galactic(), self._star_velocity))
 
-    def get_speed(self):
-        return math.sqrt(sum(v * v for v in self._velocity))
+    def get_speed(self, frame="galactic"):
+        velocity = self.get_velocity_vector(frame)
+        return None if velocity is None else math.sqrt(sum(v * v for v in velocity))
 
-    def get_velocity_direction(self):
-        """The unit vector the body moves along; (0, 0, 0) at rest."""
-        speed = self.get_speed()
+    def get_velocity_direction(self, frame="galactic"):
+        """The unit vector the body moves along in `frame`; (0, 0, 0) at rest."""
+        velocity = self.get_velocity_vector(frame)
+        if velocity is None:
+            return None
+        speed = math.sqrt(sum(v * v for v in velocity))
         if speed == 0.0:
             return (0.0, 0.0, 0.0)
-        return tuple(v / speed for v in self._velocity)
+        return tuple(v / speed for v in velocity)
+
+    @property
+    def star_velocity(self):
+        """tuple: The nearest star's velocity, galactic axes, m/s."""
+        return self._star_velocity
+
+    def set_star_velocity(self, star_velocity_galactic):
+        """Sets the nearest star's velocity; the body keeps its galactic
+        velocity (its system velocity changes)."""
+        _finite(star_velocity_galactic, "star velocity")
+        galactic = self._velocity_galactic()
+        self._star_velocity = tuple(float(v) for v in star_velocity_galactic)
+        self._velocity_truth = ("galactic", galactic)
+
+    def carry_star_velocity(self, star_velocity_galactic):
+        """Sets the nearest star's velocity and the body's with it: its
+        system velocity stays, its galactic velocity follows. Needs a system
+        frame."""
+        _finite(star_velocity_galactic, "star velocity")
+        if not self.has_system_frame:
+            raise ValueError("a body with no system frame has no relative velocity to carry")
+        keep = self.get_velocity_vector("system")
+        self._star_velocity = tuple(float(v) for v in star_velocity_galactic)
+        self._velocity_truth = ("system", keep)
+
+    @property
+    def epoch_unix(self):
+        """float or None: When the position and velocity hold, Unix seconds."""
+        return self._epoch_unix
+
+    def set_epoch_unix(self, epoch_unix):
+        """Sets (or, with `None`, clears) the time the position and velocity hold at."""
+        if epoch_unix is not None:
+            _finite((epoch_unix,), "epoch")
+            epoch_unix = float(epoch_unix)
+        self._epoch_unix = epoch_unix
 
     def get_time_to_observable_movement(self, scale="system"):
         """Seconds until the body has moved the `THRESHOLDS_M[scale]`
         distance ("galactic", "system" or "planetary"), capped at
-        `MAX_UPDATE_INTERVAL_S`; the cap for a body at rest."""
+        `MAX_UPDATE_INTERVAL_S`; the cap for a body at rest. A "galactic"
+        move is measured by the galactic velocity, the others by the
+        velocity relative to the star (the galactic one for a body that has
+        no system frame)."""
         if scale not in THRESHOLDS_M:
             raise KeyError(f"unknown scale {scale!r}; use one of {sorted(THRESHOLDS_M)}")
-        speed = self.get_speed()
+        frame = "galactic" if scale == "galactic" or not self.has_system_frame else "system"
+        speed = self.get_speed(frame)
         if speed == 0.0:
             return MAX_UPDATE_INTERVAL_S
         return min(THRESHOLDS_M[scale] / speed, MAX_UPDATE_INTERVAL_S)
