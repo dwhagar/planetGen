@@ -739,11 +739,11 @@ Parents marked "new parent" had no old number of their own.
 | NAV.17 | A saved course record with both forms | none | open |
 | NAV.18 | Save, list, open, rename and delete, per browser | none | open |
 | NAV.19 | Saved courses in the account (after USR.7) | none | open |
-| NAV.20 | Draw the direct line and the route apart | none | open |
+| NAV.20 | Draw the direct line and the route apart | none | done, PR #711 |
 | NAV.21 | Fit the view to the whole course | none | open |
 | NAV.22 | Courses inside a sector and a system | none | open |
 | NAV.23 | Open a saved course on the map | none | open |
-| NAV.24 | A keep-out radius for every kind of object | none | open |
+| NAV.24 | A keep-out radius for every kind of object | none | done, PR #719 |
 | NAV.25 | Find the obstacles along a path | none | open |
 | NAV.26 | Bend the path around keep-out spheres | none | open |
 | NAV.27 | Moving bodies inside a system | none | open |
@@ -897,7 +897,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.18 | Show phenomena's octant and nearest systems | 26 (2026-09-30 18:14Z to 2026-10-01 04:37Z) | done: storage in 7.33.0 (PR #149), pages in 7.48.0 (PR #167) |
 | UX.19 | Asteroid belt rows: density, range, top minerals; no Zone column (bug) | none | done, PR #213 |
 | UX.20 | Scientific notation past 4 digits before the decimal point (bug) | none | done, PR #216 |
-| UX.21 | Clean up the web interface: overlapping buttons and dead controls (bug) | none | open |
+| UX.21 | Clean up the web interface: overlapping buttons and dead controls (bug) | none | done, PR #707 |
 | UX.22 | Meaningful units for every measurement | none | open |
 | UX.23 | A shared unit-ladder module | none | open |
 | UX.24 | Sector contents: rogue planets after systems and phenomena, and expanded rows the full table width (bug) | none | done, PR #487 |
@@ -956,7 +956,7 @@ Parents marked "new parent" had no old number of their own.
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.4 | Constellation names in the name generator | 85 (2026-10-01 02:55Z to 05:29Z) | open |
-| VIEW.5 | Light-travel positions: where an object appears to a distant observer | none | open |
+| VIEW.5 | Light-travel positions: where an object appears to a distant observer | none | done, PR #719 |
 
 ## Tree IDs to flat IDs
 

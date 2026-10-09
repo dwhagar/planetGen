@@ -1,0 +1,2 @@
+### Added
+- One keep-out radius for every kind of object, returned as `keep_out` by `GET /api/objects/<ref>`: a Hill radius for planets and moons, the stored system perimeter for stars and systems, the galactic Hill radius (never below the object's own size) for black holes, neutron stars, quasars and rogue planets. Nebulae, remnants and asteroid fields have none: a course passes through them, with a note (NAV.24).
