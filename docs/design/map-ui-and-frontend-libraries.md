@@ -603,6 +603,8 @@ about 20 to 24 bytes (1.5 MB), an optional saving for phones and tile swaps. Abo
 about 1e6 points use level of detail by tile (MAP.102, MAP.116), not a faster
 picker. Overdraw is the real cost: cap the glow quad for faint stars.
 
+Filed as MAP.147 (Boss, 2026-10-09 22:41Z): it starts with a measurement of the current payload and a comparison of options by Research Lane 3.
+
 ### 5.7 Habitable-worlds colouring (MAP.143)
 
 Use a single-hue sequential ramp that survives greyscale (cividis or viridis style

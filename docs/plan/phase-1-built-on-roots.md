@@ -38,6 +38,16 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | DB.8 | Check a galaxy database and say whether it is damaged |  | Schema check reads Alembic's revision; the name-registry check goes with GEN.71. 9 after it. Boss 02:13Z: phase 0, its own thread. Read-only. Stats and version checks switch on once GEN.44/PERF.11 and DB.6/DB.7 land; no hard dependency. |
 | DB.16 | Store the generator epoch and run id on each sector instead of four version text columns | OPS.28 | Research follow-up to DB.7 (built). |
+| DOC.5 | Rewrite the object ID docs: object-ids.md, database-schema.md and api.md | GEN.170 | Object-ID research. |
+| TEST.110 | Object ID tests: identical IDs on 1 and 4 workers, none reused, none missing | GEN.171, GEN.172, GEN.176 | Object-ID research. |
+| GEN.176 | A nebula or remnant is born in the sector holding the centre of the space it occupies | DB.20 | Object-ID research. |
+| GEN.175 | Regenerating a phenomenon sets its uid to NULL (bug) |  | Object-ID research. The one-line keep can go first. |
+| GEN.174 | Bodies an admin adds are saved with a NULL uid (bug) | GEN.172 | Object-ID research. Closed by the run-time birth item. |
+| GEN.173 | Deleting a body and then adding one fails with IntegrityError 1062 on uq_planets_uid (bug) | GEN.171, GEN.172 | Object-ID research. Closed by the fill and run-time birth items. |
+| GEN.172 | Run-time births get object IDs from the counters | DB.20 | Object-ID research. |
+| GEN.171 | The sector fill gives object IDs by generation rank | DB.20 | Object-ID research. |
+| DB.20 | Object IDs in the schema: uid becomes BINARY(10), unique on its own, plus an id_counters table | GEN.170 | Object-ID research. |
+| GEN.170 | Object ID layout: an 80-bit ID of birth sector, serial and body number, with pack, unpack, format and parse functions |  | Object-ID research. First of the object-ID items; 80 bits decided (Boss, 2026-10-09 22:44Z); nothing built until Boss asks. |
 | DB.9 | Repair a damaged galaxy database from a parity file | DB.8, GEN.57, OPS.14 | Boss 02:13Z: phase 1. Reed-Solomon parity over groups of sector exports; seed regeneration as fallback. |
 | DB.17 | Repair by regenerating a damaged sector from its seed when parity cannot rebuild it | DB.9, GEN.57, OPS.14 | Research split of DB.9: the regenerate-from-seed fallback. |
 
@@ -171,6 +181,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | API.15 | Log every API call with its user, how it came in, and its HTTP response code |  | Needs no user accounts (Boss 01:31Z). |
 | API.4 | API compatibility data in the docs |  | Docs and version number. |
 | API.22 | An API version number: one sequential integer, shown in admin and in the status response |  | Boss 2026-10-09 20:59Z: done by the end of phase 1; do it early so later API changes bump it. |
+| API.23 | The object ID as the public reference: pages, URLs, the API, wiki links and objectref use it in place of row ids | API.22, GEN.171, GEN.172 | Object-ID research. Breaking: bumps the API version (API.22). |
 | API.7 | Investigate and plan upload limits |  | Plan only. |
 | API.9 | Key scopes |  | Control schema migration (v8). Decided: user keys belong to accounts, so API.6 waits for USR.2 (phase 3+); API.9's scopes don't. |
 
@@ -200,7 +211,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | PERF.31 | Investigate: where generation spends its time, from the plan to a finished galaxy |  | GitHub issues [#761](https://github.com/dwhagar/planetGen/issues/761) and [#750](https://github.com/dwhagar/planetGen/issues/750) (benchmark half). |
 | PERF.47 | The PERF.31 benchmark records the buffer pool, table sizes and worker start-up cost | PERF.31 | Generation performance study. |
 | PERF.46 | Planets and moons: set the position once per body |  | Generation performance study. |
-| PERF.49 | Batch system-name reservation: remove the quadratic scan and the long-held registry locks (re-measure first) |  | Name reservation timing; overlaps PERF.43. |
 | DB.19 | Compact or derive phenomenon rows (needed only if the mass cut is lowered to 10 solar masses or less) |  | Decided: Boss accepted the 20 solar mass cut. |
 | GEN.169 | Decide the phenomenon scatter rates: regional factors and the 0.1% intermediate-mass black holes |  | Needs Boss to decide. |
 | PERF.41 | Stamp the tile and page caches with a TILE_FORMAT constant instead of the version (optional) | PERF.31 | Research follow-up to PERF.25 (built). |

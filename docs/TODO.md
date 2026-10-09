@@ -677,6 +677,96 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisite: GEN.157.
   Design: [docs/design/multiple-galaxies.md](design/multiple-galaxies.md)
 
+- [ ] **MAP.146 Zoom drill-down centred on the clicked point, not on fixed wedges, blocks and slabs**
+  Boss (2026-10-09 22:24Z): "inject into Phase 2, new item, I want the
+  zoom drill down to be less specific, instead of set wedges, blocks,
+  and slabs pre-determined, have them based on the center of where the
+  cursor is clicked. So that we always are drilling down exactly where
+  the user wants. We'll have to convert block/slab measures to ranges of
+  layers/shells/slots for filling on demand." Done: a click on the
+  Galaxy Map drills into a region centred on the sector under the
+  cursor, at the next zoom step, instead of into the fixed block of the
+  243/27/3/1 ladder that happens to hold it. Every region is described
+  as a range: layers (centre +/- half the span), rings (shells, centre
+  +/- half the span) and, for each ring, the slot range covering the
+  same arc, so the same description drives drawing, statistics, the
+  admin generate and backfill actions (MAP.120) and fill on demand
+  (ADM.29's span fill, GEN.101's fill order). Today's ladder
+  (`galaxy/drill.py` and `static/galaxyprisms.js`, nested blocks 243,
+  27, 3 and 1 sectors a side, with the nested-wedge rule in
+  galaxy-drilldown-navigation.md) is replaced, not kept beside the new
+  one.
+  What this touches: (1) the cached cube tiles and their cache stamp:
+  tiles are keyed by fixed block today, so centred regions need keys by
+  centre sector and size, a cap on cached tiles, and a bump of the
+  planetGen-version stamp (clear /var/cache/planetgen/tiles on update);
+  (2) per-sector stats and the density, age and luminosity colouring of
+  the Galaxy Map (MAP.131), which assume fixed blocks: a region's
+  figures become sums over its sector range, computed on demand from the
+  sector stats and cached by the region key; (3) the Galaxy Map opening
+  view built at the end of update.sh and by `python -m
+  planetgen.cli.warm_map` (MAP.134): the top level stays one fixed view,
+  so it is unaffected unless Boss wants the first click centred too; (4)
+  the settle step (GEN.126), which saves sector paths for created
+  sectors and their neighbours and should be handed a region's sector
+  range, not a block; (5) the breadcrumb and picker trail (NAV.13,
+  NAV.14), the neighbouring-region steps (MAP.121), the
+  slab-versus-wedge wording (MAP.59) and the Select mode (MAP.122), all
+  of which name blocks, slabs and wedges; (6) tests:
+  `tests/test_galaxydrill.py` checks the Python and JavaScript ladders
+  agree and becomes a test of the range maths on both sides.
+  Open question for Boss (default: step sizes stay 243, 27, 3 and 1
+  sectors a side, but the region is centred on the clicked sector and is
+  an odd number of sectors wide so it centres exactly; regions at
+  different zoom steps no longer nest, so a click inside a region may
+  open one that reaches slightly outside it): or keep strict nesting by
+  snapping the centre?
+  Open question for Boss (default: the first click from the whole-galaxy
+  view is centred like the rest, with the opening view unchanged): or
+  keep the first split fixed?
+  Open question for Boss (default: the slot range of a region is the
+  same arc, as an angle, at every ring it covers, rounded outward to
+  whole sectors): or the same number of slots at each ring?
+  Prerequisites: ADM.29, MAP.122. Related: MAP.120, MAP.121, MAP.59,
+  GEN.101, ADM.30, MAP.134, GEN.126, MAP.131.
+  Design: [docs/design/galaxy-drilldown-navigation.md](design/galaxy-drilldown-navigation.md)
+
+- [ ] **MAP.147 The Galaxy Map wire format: measure what the browser downloads and compare smaller options**
+  Boss (2026-10-09 22:41Z): "File section 5.6 as an item please, and
+  start an investigation thread to measure current payload and compare
+  options please, use research lane 3 after it's current research is
+  done." From section 5.6 of map-ui-and-frontend-libraries.md: the
+  Galaxy Map's star points carry 13 floats each, 52 bytes, so a full
+  view at the 70,000-star cap (MAP.109) is about 3.6 MB; quantising
+  colour, scalars and flags would cut that to about 20 to 24 bytes a
+  star (about 1.5 MB), an optional saving for phones and tile swaps.
+  Above about 1e6 points the section recommends level of detail by tile
+  (MAP.102, MAP.116) over a faster picker.
+  This item starts with an investigation, run by Research Lane 3 (the
+  thread that did the unique-ID investigation) once its current research
+  is done: (1) measure what the browser actually downloads today for the
+  opening view and for a drill-down step: bytes on the wire and after
+  gzip, request count, time to first star and time to a full view, on a
+  phone-class connection and on a desktop one; (2) compare the options,
+  at least JSON as it is, packed binary typed arrays, quantised
+  attributes, gzip or brotli on top, delta or tile reuse between zoom
+  steps, and request batching, against what each costs in server time,
+  cache size and code; (3) recommend one. The recommendation decides the
+  design, and the build is then split out of this item, or this item is
+  rewritten, from it.
+  Related: MAP.102 and MAP.109 (done: tiles, camera-relative rendering,
+  the 70,000-star cap), PERF.38 (open: single-flight tile builds and
+  page-cache rules) and PERF.41 (open, optional: what stamps the tile
+  cache). MAP.146 changes the tile keys when drill-down regions centre
+  on the click, so the format choice and the new keys should be decided
+  together, and any format change bumps the cache stamp.
+  Open question for Boss (default: the investigation measures first and
+  recommends; nothing is built until you approve the recommendation): or
+  build the quantised format straight from section 5.6?
+  Prerequisites: none. Related: MAP.102, MAP.109, MAP.146, PERF.38,
+  PERF.41.
+  Design: [docs/design/map-ui-and-frontend-libraries.md](design/map-ui-and-frontend-libraries.md)
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
@@ -2634,6 +2724,131 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none.
   Design: [docs/design/phenomenon-scatter-mass-cut.md](design/phenomenon-scatter-mass-cut.md)
 
+- [ ] **GEN.170 Object ID layout: an 80-bit ID of birth sector, serial and body number, with pack, unpack, format and parse functions**
+  Source: docs/design/object-id-options.md section 0 (Boss decided
+  2026-10-09 22:39Z: birth location plus serial, galaxy-wide; the same
+  length for every object; always identifies that one object; up to 128
+  bits but shorter preferred; fix the deficits; no backward
+  compatibility). Filed from the object-ID research thread. Nothing is
+  built until Boss asks.
+  Done: pure functions that pack, unpack, format and parse the 80-bit ID
+  (20 hex digits, stored as BINARY(10)): a 40-bit birth sector address
+  (ring 12 bits, biased layer 12 bits, slot 16 bits), a 28-bit serial in
+  that sector (top two bits 00 generated rank, 01 added at run time, 10
+  field-drawn) and a 12-bit body number (0 is the top-level object; 1
+  and up number the stars, planets, moons, belts and comets of that
+  system on one counter). The kind is not in the ID. Field widths are
+  chosen at plan time and stored in galaxy_shape; they grow to 96 or 128
+  bits only when a galaxy's bounds do not fit. Replaces the hash in
+  galaxy/uid.py. Tests for fixed length and round trip. As a generator
+  change it bumps the generator version (OPS.37) when it ships.
+  Decided (Boss, 2026-10-09 22:44Z): 80 bits, 20 hex digits, with system
+  and body fields, not a 64-bit flat per-sector counter.
+  Prerequisites: none.
+  Design: [docs/design/object-id-options.md](design/object-id-options.md)
+
+- [ ] **GEN.171 The sector fill gives object IDs by generation rank**
+  Source: docs/design/object-id-options.md section 0 (Boss decided
+  2026-10-09 22:39Z: birth location plus serial, galaxy-wide; the same
+  length for every object; always identifies that one object; up to 128
+  bits but shorter preferred; fix the deficits; no backward
+  compatibility). Filed from the object-ID research thread. Nothing is
+  built until Boss asks.
+  Done: the fill assigns generated serials by generation rank inside the
+  sector (replaces `_UidIssuer` hashing and the `assign_uids` rank
+  recount); one worker owns a sector, so no coordination and no database
+  read. Re-measure the insert rate on the real fill order and on MySQL
+  8.4 and MariaDB 11.4 (research model: 63,000 to 67,000 rows a second
+  against 46,000 for the hash, one run on MariaDB 10.11).
+  Prerequisites: DB.20.
+  Design: [docs/design/object-id-options.md](design/object-id-options.md)
+
+- [ ] **GEN.172 Run-time births get object IDs from the counters**
+  Source: docs/design/object-id-options.md section 0 (Boss decided
+  2026-10-09 22:39Z: birth location plus serial, galaxy-wide; the same
+  length for every object; always identifies that one object; up to 128
+  bits but shorter preferred; fix the deficits; no backward
+  compatibility). Filed from the object-ID research thread. Nothing is
+  built until Boss asks.
+  Done: an admin-added body or system, an ejected object, a merger
+  remnant, split fragments and a stand-alone facility take their IDs
+  from the `id_counters` allocator. An ejected planet keeps its ID and
+  becomes a rogue-planet row; a merge keeps the heavier body's ID and
+  retires the other; a split gives each fragment a new run-time serial;
+  a deleted ID is never reused.
+  Open question for Boss (default yes): an ejected planet keeps its ID?
+  Prerequisites: DB.20.
+  Design: [docs/design/object-id-options.md](design/object-id-options.md)
+
+- [ ] **GEN.173 Deleting a body and then adding one fails with IntegrityError 1062 on uq_planets_uid (bug)**
+  Source: docs/design/object-id-options.md section 0 (Boss decided
+  2026-10-09 22:39Z: birth location plus serial, galaxy-wide; the same
+  length for every object; always identifies that one object; up to 128
+  bits but shorter preferred; fix the deficits; no backward
+  compatibility). Filed from the object-ID research thread. Nothing is
+  built until Boss asks.
+  Reproduced on MariaDB with `save_system_edits` plus `assign_uids`: the
+  new row is ranked by position among the current rows and takes a uid
+  already used. `add_system_to_sector` runs the sector-wide pass (by
+  code reading). Fixed by the layout, fill and run-time birth items;
+  keep a regression test.
+  Prerequisites: GEN.171, GEN.172.
+  Design: [docs/design/object-id-options.md](design/object-id-options.md)
+
+- [ ] **GEN.174 Bodies an admin adds are saved with a NULL uid (bug)**
+  Source: docs/design/object-id-options.md section 0 (Boss decided
+  2026-10-09 22:39Z: birth location plus serial, galaxy-wide; the same
+  length for every object; always identifies that one object; up to 128
+  bits but shorter preferred; fix the deficits; no backward
+  compatibility). Filed from the object-ID research thread. Nothing is
+  built until Boss asks.
+  `db/edits.py` `save_system_edits` goes through `store.insert_planet`,
+  `insert_moon` and `insert_belt`, and nothing assigns a uid. Fixed by
+  the run-time birth item.
+  Prerequisites: GEN.172.
+  Design: [docs/design/object-id-options.md](design/object-id-options.md)
+
+- [ ] **GEN.175 Regenerating a phenomenon sets its uid to NULL (bug)**
+  Source: docs/design/object-id-options.md section 0 (Boss decided
+  2026-10-09 22:39Z: birth location plus serial, galaxy-wide; the same
+  length for every object; always identifies that one object; up to 128
+  bits but shorter preferred; fix the deficits; no backward
+  compatibility). Filed from the object-ID research thread. Nothing is
+  built until Boss asks.
+  `replace_phenomenon_content` in `db/edits.py` copies every column
+  except `_KEPT_PHENOMENON_COLUMNS`, which omits `uid` (reproduced: a
+  rogue planet's uid 0000004986A0FFFE64000000 became NULL). A one-line
+  keep of `uid` in `_KEPT_PHENOMENON_COLUMNS` can go first, in the
+  Bugfixes queue, if Boss prefers. Also make a system content swap keep
+  the system's ID and give new bodies fresh body numbers from the
+  counter, never reusing a deleted body's number.
+  Prerequisites: none.
+  Design: [docs/design/object-id-options.md](design/object-id-options.md)
+
+- [ ] **GEN.176 A nebula or remnant is born in the sector holding the centre of the space it occupies**
+  Source: docs/design/object-id-options.md section 0 (Boss decided
+  2026-10-09 22:39Z: birth location plus serial, galaxy-wide; the same
+  length for every object; always identifies that one object; up to 128
+  bits but shorter preferred; fix the deficits; no backward
+  compatibility). Filed from the object-ID research thread. Nothing is
+  built until Boss asks.
+  Done: the birth sector of a nebula or supernova remnant is the sector
+  holding the geometric centre of the space it occupies: the centroid of
+  the interior of its metaball field on the fixed 24-cell grid, in
+  integer arithmetic, rounded to 1 mpc before the sector is taken (for a
+  remnant, the centre of the shell), not the shape origin. Replaces
+  "first sector saved that the cloud reaches" in
+  `_insert_field_nebulae`, so the home sector no longer depends on save
+  order. The field-drawn serial is the cloud's rank among the clouds of
+  its field cell (`nebula_field.cell_clouds`) whose centroid is in that
+  sector, so no shared counter is needed and the centre sector need not
+  exist yet. Test the sector-face tie case. The same rule holds for any
+  object stored by a sector other than its own.
+  Open question for Boss (default 1 mpc): the rounding used before the
+  birth sector is taken from the centroid?
+  Prerequisites: DB.20.
+  Design: [docs/design/object-id-options.md](design/object-id-options.md)
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.18 Run the GEN.30 bright-star backfill in parallel on the work queue**
@@ -2753,10 +2968,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   phase took the 10 hours (the log will say).
   Measurement (2026-10-09, corrected): Bugfixes lane 1 first reported
   that one dense core sector took 84 s with 30 s in
-  `reserve_system_names`; it retracted that, because the profile ran
-  while another run was saving into the same database, so it measured
-  lock waiting. Alone, name reservation was 1.7 s of a 17.8 s sector
-  (about 870 names). See PERF.49, which starts by re-measuring.
+  `reserve_system_names`; that first profile ran while another run was
+  saving into the same database. Foundations lane 1 re-measured (PR #870,
+  PERF.49) with nothing else writing: reservation itself is 0.12 s a
+  sector, but at 4 workers the name registry's row locks, held until the
+  sector commit, made a save wait 6 to 25 s. Names are now claimed in a
+  short transaction of their own; 8 core sectors on 4 workers take 54 s
+  against about 90 s.
 
 - [ ] **PERF.32 Generation performance stats: rates recorded per run, deleted on every new version**
   Boss (GitHub issues [#661](https://github.com/dwhagar/planetGen/issues/661) and [#750](https://github.com/dwhagar/planetGen/issues/750)): "The system should store and use
@@ -2920,48 +3138,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   /mnt/project-files/research/handoff/generation-performance.md; from
   Boss's requests of 19:08Z and 19:21Z, generation being his slowest
   point): 13.8 down to 10.1 microseconds a row. Low priority.
-  Prerequisites: none.
-  Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
-
-- [ ] **PERF.49 Batch system-name reservation: remove the quadratic scan and the long-held registry locks (re-measure first)**
-  Correction (2026-10-09, Bugfixes lane 1): its first figure for this item, 30 s of an
-  84 s dense core sector, was a contaminated measurement (it profiled while another run
-  was saving into the same database, so it measured lock waiting). Alone, name
-  reservation was 1.7 s of a 17.8 s sector, about 870 names. First step: re-measure
-  alone on a dense core sector, and drop this item if reservation is a small share.
-  Naming-cost analysis of
-  2026-10-02 (artifact Naming Cost in Generation; release 7.144.463)
-  found three costs; checked against main on 2026-10-09: (1) the
-  quadratic scan is still there: for every distinct base name the loop
-  `uses = [i for i in todo if key_of[i] in row_keys]` walks every name
-  in the sector, so a core sector with thousands of systems costs n
-  squared steps (the keys are now computed once per pass, which fixed
-  the TEST.85 crash and the repeated normalising, not the scan); group
-  the candidate indexes by key once and look them up. (2) the registry
-  row locks are still held until the sector's whole save commits (the
-  `INSERT ... ON DUPLICATE KEY UPDATE` runs inside the caller's
-  transaction), which made parallel workers wait about 1.3 s per dense
-  sector at 2 workers; claim the names in their own short transaction
-  ahead of the sector's main save, keeping the sorted claim order that
-  avoids deadlocks. (3) the offensive-word filter in
-  `names/wordsalad.py` `is_name_valid` scans the whole word list per
-  name (about 32 microseconds a call, two calls per accepted name, 3 to
-  5% of a dense sector); one combined pattern makes it close to free.
-  Requirement: a seeded run must produce identical names, registry rows
-  and final tables before and after (check with a golden-seed run before
-  touching anything). Scope against PERF.43 (Foundations lane 2):
-  PERF.43 makes the word-salad names of phenomena named by object ID
-  lazy and does not touch the registry; this item covers star system
-  names and any phenomenon still reserving through the registry
-  (`reserve_system_names`, `_take_name`, `confirm_system_names`) and the
-  shared offensive-word filter. Since GEN.64, placed phenomena such as
-  rogue planets are named by object ID and no longer reach the registry,
-  so the 2026-10-02 figure of 88% of names being rogue planets no longer
-  holds; re-measure on a dense core sector first. Filed as its own item
-  (Phase 1, Foundations lane 1, after PERF.45) on the coordinator's
-  instruction of 2026-10-09 20:17Z.
-  Approved by Boss (2026-10-09 20:24Z); in the execution plan it follows PERF.44
-  and PERF.45 and comes ahead of PERF.47, DB.19 and OPS.14.
   Prerequisites: none.
   Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
 
@@ -3150,6 +3326,29 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   notes' earlier 1.6e8 rows was an unverified estimate, not a result.
   Design: [docs/design/phenomenon-scatter-mass-cut.md](design/phenomenon-scatter-mass-cut.md)
   Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
+
+- [ ] **DB.20 Object IDs in the schema: uid becomes BINARY(10), unique on its own, plus an id_counters table**
+  Source: docs/design/object-id-options.md section 0 (Boss decided
+  2026-10-09 22:39Z: birth location plus serial, galaxy-wide; the same
+  length for every object; always identifies that one object; up to 128
+  bits but shorter preferred; fix the deficits; no backward
+  compatibility). Filed from the object-ID research thread. Nothing is
+  built until Boss asks.
+  Done: one Alembic revision. `uid` becomes BINARY(10) on the object
+  tables that belong to a sector (star_systems, stars, planets, moons,
+  asteroid_belts, comets, every phenomenon table, facilities) and is
+  UNIQUE on `uid` alone (drops UNIQUE (star_system_id, uid)). A new
+  `id_counters` table (per sector for run-time serials, per system for
+  body numbers) whose counters only grow and survive the deletion of the
+  object or the sector, with an upsert-and-LAST_INSERT_ID allocator like
+  `_reserve_id_block`. The row `id` stays as the foreign key. Existing
+  rows are migrated (rank = row id order within each sector or system,
+  which is how the old ranks were counted) unless the combined reseed
+  has not run yet, in which case the change rides it; nebulae need their
+  centroid recomputed (see the nebula item). Boss resets by hand anyway,
+  so a fresh galaxy is acceptable. Takes the next free Alembic revision.
+  Prerequisites: GEN.170.
+  Design: [docs/design/object-id-options.md](design/object-id-options.md)
 
 ## API: The JSON API
 
@@ -3477,6 +3676,23 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   endpoint; additive changes do not bump.
   Prerequisites: none. Related: API.4, API.17.
 
+- [ ] **API.23 The object ID as the public reference: pages, URLs, the API, wiki links and objectref use it in place of row ids**
+  Source: docs/design/object-id-options.md section 0 (Boss decided
+  2026-10-09 22:39Z: birth location plus serial, galaxy-wide; the same
+  length for every object; always identifies that one object; up to 128
+  bits but shorter preferred; fix the deficits; no backward
+  compatibility). Filed from the object-ID research thread. Nothing is
+  built until Boss asks.
+  Done: pages, URLs, API routes and payloads, wiki links and `objectref`
+  use the object ID in place of row ids (lookup probes the object tables
+  by `uid`; a kind prefix such as planet:ID is only a hint). Row ids
+  stay internal. No compatibility shim. This is a breaking API change,
+  so it bumps API.22's API version number.
+  Open question for Boss (default yes): the ID replaces row ids as the
+  public reference? Ask before it is built.
+  Prerequisites: API.22, GEN.171, GEN.172.
+  Design: [docs/design/object-id-options.md](design/object-id-options.md)
+
 ## ADM: Admin tools
 
 - [ ] **ADM.13 Incomplete uploads page**
@@ -3735,6 +3951,20 @@ means read from the code, not reproduced yet; the bug hunt confirms or
 clears each one.
 
 ### Infrastructure and CI
+
+- [ ] **TEST.110 Object ID tests: identical IDs on 1 and 4 workers, none reused, none missing**
+  Source: docs/design/object-id-options.md section 0 (Boss decided
+  2026-10-09 22:39Z: birth location plus serial, galaxy-wide; the same
+  length for every object; always identifies that one object; up to 128
+  bits but shorter preferred; fix the deficits; no backward
+  compatibility). Filed from the object-ID research thread. Nothing is
+  built until Boss asks.
+  Done: tests that 1 worker and 4 workers give identical IDs; no ID is
+  reused after a delete; an ejected planet keeps its ID; every object in
+  a saved sector has a 20-digit ID; the golden fill digests (TEST.77)
+  use the new IDs.
+  Prerequisites: GEN.171, GEN.172, GEN.176.
+  Design: [docs/design/object-id-options.md](design/object-id-options.md)
 
 ## USR: User accounts
 
@@ -4081,6 +4311,22 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   the three map-ui design docs. Open the Boss-facing decisions these
   touch as they are made.
   Prerequisites: none.
+
+- [ ] **DOC.5 Rewrite the object ID docs: object-ids.md, database-schema.md and api.md**
+  Source: docs/design/object-id-options.md section 0 (Boss decided
+  2026-10-09 22:39Z: birth location plus serial, galaxy-wide; the same
+  length for every object; always identifies that one object; up to 128
+  bits but shorter preferred; fix the deficits; no backward
+  compatibility). Filed from the object-ID research thread. Nothing is
+  built until Boss asks.
+  Done: docs/design/object-ids.md (the GEN.68 and GEN.69 section) is
+  rewritten for the 80-bit ID; GEN.69's hash scheme is marked
+  superseded; database-schema.md and api.md describe the new column and
+  the ID as the public reference; GEN.72 and GEN.73 and the position-ID
+  naming (GEN.64 stays as the name of interstellar objects) are updated
+  to match.
+  Prerequisites: GEN.170.
+  Design: [docs/design/object-id-options.md](design/object-id-options.md)
 
 ## VIEW: The view from a planet
 

@@ -62,11 +62,7 @@ and unconfirmed; [B] Boss's words.
 1.17e9 rows and 161 GB. [phenomenon-scatter-mass-cut.md](phenomenon-scatter-mass-cut.md) has the corrected
 counts, traces the notes' 1.6e8 and recommends a mass cut that takes the table to about 2.7e5 rows.
 
-**A figure not to rely on.** Bugfixes lane 1's "30 s of 84 s in `reserve_system_names`" was a contaminated
-measurement: it profiled while another run was saving into the same database, so it measured lock waiting.
-Alone, name reservation was 1.7 s of a 17.8 s dense core sector (about 870 names), about 10% (reported by the
-TODO thread; PERF.49 starts by re-measuring). The profiles in this note were taken with nothing else writing
-to the database.
+**Update from PERF.49 (PR #870).** Bugfixes lane 1's "30 s of 84 s in `reserve_system_names`" came from a profile taken while another run was saving into the same database. Foundations lane 1 re-measured with nothing else writing: the reservation code alone is 0.12 s a sector, but at 4 workers the name registry's row locks, held until the sector commit, made a save wait 6 to 25 s. Names are now claimed in a short transaction of their own: 8 core sectors on 4 workers take 54 s against about 90 s. The profiles in this note were taken with nothing else writing to the database, so they do not show this wait.
 
 **PERF.49 re-measured, and built.** Name reservation in a dense core sector (ring 40, about 890 names a sector,
 8 sectors, nothing else writing) takes 0.12 s alone, so the scan and the call itself are not the cost. At 4
