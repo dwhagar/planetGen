@@ -12,12 +12,17 @@ Boss's chosen reference. The ones that don't add up are flagged under
 from 7.46.0 (`/classes/rogue-planet`), and rogue planets, interstellar
 comets, black holes and neutron stars get rendered views from 7.57.0.
 
-Nebulae (GEN.10) followed in 7.30.0: molecular clouds are drawn per star at
-the `molecular-cloud` rate below and generated as dark-family classes M-Q;
+Nebulae (GEN.10) followed in 7.30.0: molecular clouds were drawn per star at
+the `molecular-cloud` rate below and generated as dark-family classes M-Q
+(correction, GEN.47: in a galaxy they now come from the seeded
+`nebula_field` instead, see the design note);
 H II regions and reflection nebulae grow around O, B and A stars
 (`NEBULA_HOST_RULES`); every planetary nebula gets its own hot white dwarf
 system. Diffuse gas (classes A-B) is the background and is not generated.
-See `nebula-and-asteroid-field-classes.md`.
+See `nebula-and-asteroid-field-classes.md`; its "Corrected facts" section
+lists what the 2026-10-09 research found wrong in the host rules and the
+H II sizes. Anomalies beyond these kinds (magnetars, Wolf-Rayet stars and
+the rest) are in `anomalies.md`.
 
 ## How the code uses these numbers
 
@@ -29,9 +34,16 @@ See `nebula-and-asteroid-field-classes.md`.
   distribution with mean `rate * stars`. This is the "per star" form the
   model below asks for.
 - Every kind is scaled by star count only. The gas-density scaling for
-  molecular clouds (`rho_gas^1.4`) and supernova remnants (`n_* * rho_gas`)
-  is not applied: `GMC_GAS_DENSITY_EXPONENT` and `GMC_ARM_FILLING_FACTOR`
-  are defined but nothing reads them.
+  supernova remnants (`n_* * rho_gas`) is not applied. Correction (GEN.47,
+  checked against the code 2026-10-09): molecular clouds in a galaxy are
+  now scaled by gas density, `GMC_GAS_DENSITY_EXPONENT` is read by
+  `galaxy/nebula_field.py`; `GMC_ARM_FILLING_FACTOR` is still defined and
+  read by nothing.
+- Correction (GEN.100): in a galaxy, black holes, neutron stars, planetary
+  nebulae, supernova remnants and hypervelocity stars are not rolled per
+  sector. They are drawn galaxy-wide at the same per-star rates and placed
+  by `generation/phenomenon_scatter.py` right after the plan; a sector's
+  fill only builds what was placed there.
 - Runaway and hypervelocity stars are flags on ordinary systems
   (`star_systems.runaway_class`), not phenomenon rows. The hypervelocity
   chance scales as `(8000 pc / r_GC)^2`.
@@ -81,7 +93,7 @@ Three types don't scale with `n_*` alone:
 | Runaway stars (> 30 km/s) | 2.1e-3 | 0.015 (1-2%) | n_* | ~0.13 |
 | Isolated neutron stars | 7e-4 (research 1e-3) | 5e-3 | n_* | ~0.045 |
 | Isolated stellar black holes | 1.4e-4 (research 1e-4) | 1e-3 | n_* | ~8e-3 |
-| Giant molecular clouds | 1e-6 to 1e-5 (5e-6) | n/a | ρ_gas^1.4 | ~3e-4 |
+| Giant molecular clouds | 1e-6 to 1e-5 (5e-6) | n/a | ρ_gas^1.4 | ~3e-4 (see the cloud-density check below) |
 | Planetary nebulae | 3e-8 | ~2e-7 | n_* | ~2e-6 |
 | Supernova remnants | 1e-8 to 1e-7 | n/a | n_* · ρ_gas | ~6e-7 |
 | Hypervelocity stars (> 500 km/s) | 5e-9 at 8 kpc (see Checks) | n/a | r_GC⁻² | ~3e-7 |
@@ -143,6 +155,22 @@ above 0.1 M⊕, a hundred times the terrestrial estimate.
   7e11 pc³ is about 1.5e-9 pc⁻³; the table's 1e-8 implies about 7,000.
   The generator before 7.18.0 used 2,000 galaxy-wide. The code now uses
   1e-8, which counts faint, undetectable remnants too.
+- **Molecular cloud density (recommendation, 2026-10-09).** 5e-6 pc⁻³ is
+  the top of the table's range and, with the GEN.47 field, puts 3% to 46%
+  of the volume inside a cloud (13% of arm sectors at the solar circle)
+  against about 0.5% to 1% observed; the catalogues (about 8,100 to 9,700
+  clouds, 1,064 massive ones) give 1.2e-8 to 1.4e-8 pc⁻³. About 1e-7 pc⁻³
+  for class M, with the small dark classes as their own rows, would match.
+  Boss chose the 5e-6 research value, so this is a recommendation only
+  (derivation in `nebula-and-asteroid-field-classes.md`, "The molecular
+  cloud field").
+- **Neutron star pulsar fraction (recommendation, 2026-10-09).** The
+  catalogue above gives about 5e8 isolated neutron stars.
+  `NEUTRON_STAR_PULSAR_CHANCE = 0.7` makes 3.5e8 of them pulsars, against roughly 1e5
+  beamed radio pulsars (an active fraction of about 1e-4 to 1e-3), because
+  radio emission ends after about 1e7 years and an isolated star has no
+  companion to recycle it. The constant is a gameplay choice in the code
+  today; the physical value and an age rule are in `anomalies.md`.
 - Terrestrial (0.78 pc⁻³ = 5.6 per star), Jupiter-mass (0.004 = 0.028
   per star, under the 0.035 limit), brown dwarfs (0.03 = 1 per 4.7 stars), runaways (1.5%), neutron
   stars and black holes (0.5-0.7% and 0.05-0.07% of stars, matching the
@@ -212,7 +240,8 @@ Balogh 2010, intracluster supernovae.
 ### Alternatives not taken
 
 - Scaling clouds and remnants by gas density. The constants are in place
-  for it, but the reason it was not wired up is not recorded.
+  for it, but the reason it was not wired up is not recorded. (Clouds were
+  wired up later by GEN.47; remnants still are not.)
 - Supernova remnants at the detectable-only density (1.5e-9). The code
   chose 1e-8; the comment says it "counts faint remnants too". No further
   reason is recorded.

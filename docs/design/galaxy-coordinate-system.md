@@ -63,10 +63,17 @@ ring `i` the same way: cell `(i, j, k)` sits directly above `(i, j-1, k)`.
 every lookup is closed form: `sector_address_at` maps a point to its cell,
 `neighbor_addresses` lists the face neighbors (two slots along the ring, the
 cells above and below, and the one or two overlapping slots in each
-neighboring ring), and `enumerate_sectors_within_radius` walks only the
-cells near a point. A cell's center, corners and volume are computed, so
-only the address and center are stored (`uq_sectors_address` makes the
-address unique).
+neighboring ring, three for ring 0 into ring 1), and
+`enumerate_sectors_within_radius` walks only the cells near a point. A
+cell's center, corners and volume are computed, so only the address and
+center are stored (`uq_sectors_address` makes the address unique).
+
+A cell therefore has 6 to 8 face neighbors (4 to 6 in its own layer), and the
+arc limit above is about the slot, not the spacing: centers of face neighbors
+are 0.87 to 1.38 edges apart (0.87 in ring 0, up to 1.38 across rings). The
+cells do not map one-to-one onto a cubic lattice, so an order that walks
+"voxels" cannot address them. How to fill a region in order, and what fills
+the core, is in [fill-order-curves-and-core.md](fill-order-curves-and-core.md).
 
 **Local frame.** A sector's local axes (`sector_orientation`) are `+X`
 radially outward from the galactic axis, `+Y` toward increasing angle and
@@ -135,13 +142,18 @@ it. A random start draws a uniformly random sector from inside the outline
 `planetgen plan`.
 
 **Bright stars (schema v43, 7.38.0).** `planetgen plan` also places every
-star at or above `BRIGHT_STAR_MIN_LUMINOSITY_SOL` (500 by default) at a
-fixed point in its sector, in `bright_stars`, before any sector is filled.
-Filling the sector later builds a full system around each of them. Since
-7.40.1, `planetgen plan --bright-star-min-luminosity` accepts down to
-100 (about 220 million stars and 35 GB in a Milky Way, against about 60
-million and 10 GB at 500); white dwarfs are never pre-placed. The Galaxy
-Map draws them from 7.42.0, so the arms show before any sector is filled.
+star at or above `BRIGHT_STAR_MIN_LUMINOSITY_SOL` at a fixed point in its
+sector, in `bright_stars`, before any sector is filled. The default is
+1,000 L_sun (raised from 500 by GEN.30 on 2026-10-01, with the dimmer stars
+filled in near generated sectors by `BRIGHT_STAR_BACKFILL_TIERS`; the default
+shape drew 26.9 million of them in the 2026-10-08 timing run). Filling the
+sector later builds a full system around each of them. Since 7.40.1,
+`planetgen plan --bright-star-min-luminosity` accepts down to 100 (about 220
+million stars and 35 GB in a Milky Way, against about 60 million and 10 GB
+at the old 500); white dwarfs are never pre-placed. The Galaxy Map draws
+them from 7.42.0, so the arms show before any sector is filled. How much of
+a planet's naked-eye sky these stars and the 100 ly backfill cover is in
+[sky-view.md](sky-view.md) section 3.
 
 **Adding a system to a stored sector (7.43.0).** `POST /api/systems` with
 a `sector_id` places a new system in an existing sector
@@ -232,4 +244,7 @@ never placed in the galaxy were kept each time.
 ## Open questions still standing
 
 - **One galaxy per database.** There is no `galaxy_id`. Several galaxies in
-  one database would need one on every galaxy table.
+  one database would need one on every galaxy table. The plan for other
+  galaxies (GEN.9) recommends keeping it that way: a second galaxy is a
+  second database, and the neighbours are rows of one new table. See
+  [multiple-galaxies.md](multiple-galaxies.md).
