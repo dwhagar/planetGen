@@ -1406,6 +1406,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     Plan (2026-10-07): Name collisions disappear with GEN.67 (names come
     from IDs), so the name part of this item is dropped, and GEN.63 with
     it.
+    Note (2026-10-09): order: it must land before TEST.77 (open order
+    dependencies: name collisions by save order, the ID-cell counter,
+    population seeds keyed on database ids, nearest links). Research
+    Lane 1 also notes the admin regenerate paths for planets, moons and
+    belts (`admin/edits.py`) draw from the ambient process stream, so an
+    admin-edited sector is not rebuildable from the seed alone; DB.17's
+    repair therefore replays the edit log rather than the seed.
 
   - [ ] **OPS.14 A warning when the running version key differs from the galaxy's**
     Done: one check compares the running key (DB.6) and the corpus and
@@ -1447,9 +1454,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     Scope cut by Boss (2026-10-09 20:42Z): the delta merge and the
     18-slot JSON backups (GEN.61, OPS.18) are dropped with the user-facing
     galaxy rebuild, so this script runs the positional update only (and
-    any later daily step). Open question for Boss (default: keep the
-    daily positional update): is the daily run still wanted at all, now
-    that GEN.106 stores a next-update-due column?
+    any later daily step). Decided (Boss, 2026-10-09 20:52Z): keep the
+    daily positional update.
     Done: `scripts/maintenance.sh` (Linux and macOS) and
     `scripts/maintenance.ps1` (Windows) run once a day: the
     positional update (`updateOrbits.py`). A lock keeps two runs
@@ -1531,10 +1537,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     server would for those sectors, checked by fingerprint (GEN.58); and
     API.8 can verify an upload by re-running a sample of its sectors on
     the server and comparing. Prerequisites: API.12, API.13, GEN.57.
-    Open question for Boss (default: keep): this is remote generation
-    matching the server, not a user rebuild of a galaxy from a seed and
-    version; drop the fingerprint check and keep only the upload sample
-    check if you would rather not support it.
+    Decided (Boss, 2026-10-09 20:52Z): keep the fingerprint check. This
+    is remote generation matching the server, not a user rebuild of a
+    galaxy from a seed and version.
     Research (2026-10-09, reproducible-galaxies.md): the remote path
     calls the same pure generation function; compare fingerprints at 9
     digits; per api-design-standards.md the handshake compares epoch and
@@ -2689,6 +2694,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generates, and that one-time seed change lands with these two
   together, not in separate steps. Whichever lands first must not claim
   the reseed alone; the second says so in its changes note.
+  Requirement (2026-10-09, phenomenon-scatter-mass-cut.md): seeding
+  requirement (Research Lane 1): a plan with no stored cut means no cut
+  (NULL is 0), so old plans keep working; the cut is stored in
+  `galaxy_shape` beside `phenomenon_scatter_seed`.
   Prerequisite: GEN.166.
   Design: [docs/design/phenomenon-scatter-mass-cut.md](design/phenomenon-scatter-mass-cut.md)
 
@@ -2708,6 +2717,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generates, and that one-time seed change lands with these two
   together, not in separate steps. Whichever lands first must not claim
   the reseed alone; the second says so in its changes note.
+  Requirement (2026-10-09, phenomenon-scatter-mass-cut.md): seeding
+  requirements (Research Lane 1): the below-cut draw uses its own
+  per-sector sub-stream, not the sector's sequential stream; every
+  sector filled before the reseed counts as complete (level 0), so a
+  band top-up never redraws below-cut objects there; an old stored
+  `black-hole` row rebuilt by the new intermediate-mass-split
+  constructor (GEN.166) may no longer come out intermediate-mass, so
+  either keep the legacy path for rows from a NULL-cut plan or say so in
+  the changes note. Keeping already filled sectors across the reseed
+  needs this and GEN.167's NULL rule; the alternative recommended to
+  Boss is to land the combined reseed, then reset and re-plan.
+  Test (2026-10-09): a test fills a sector before the cut exists and
+  checks that the later top-up draws nothing below the cut there, and a
+  second test checks the below-cut stream is independent of read order.
   Prerequisite: GEN.167.
   Design: [docs/design/phenomenon-scatter-mass-cut.md](design/phenomenon-scatter-mass-cut.md)
 
@@ -2982,33 +3005,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisite: PERF.31.
   Design: [docs/design/performance-eta-queue-and-caching.md](design/performance-eta-queue-and-caching.md)
 
-- [ ] **PERF.43 Lazy word-salad names for phenomena named by object ID**
-  Research (2026-10-09, generation-performance-study.md, PR #835;
-  handoff in
-  /mnt/project-files/research/handoff/generation-performance.md; from
-  Boss's requests of 19:08Z and 19:21Z, generation being his slowest
-  point): phenomena named from their object ID (GEN.64): RoguePlanet
-  (rogue.py lines 206 and 473), Comet, Nebula, AsteroidField,
-  SupernovaRemnant, Quasar and the compact remnants build their
-  word-salad name at generation. Build it when it is first shown. About
-  3.5% of a sector fill.
-  Measurement (2026-10-09, corrected): the 30 s once quoted for
-  `reserve_system_names` was a contaminated measurement (another run was
-  saving into the same database); alone it was 1.7 s of a 17.8 s dense
-  sector. That cost is system names, not the word-salad object names
-  this item covers.
-  Scope (2026-10-09): the system-name reservation cost is its own item,
-  PERF.49; this item stays on the lazy word-salad names of phenomena
-  named by object ID.
-  Boss (2026-10-09): Decided by Boss (2026-10-09 20:28Z, via the
-  coordinator): ONE combined reseed. Lazy names (PERF.43) and the 20
-  solar mass cut (GEN.166 to GEN.168) change what a given seed
-  generates, and that one-time seed change lands with these two
-  together, not in separate steps. Whichever lands first must not claim
-  the reseed alone; the second says so in its changes note.
-  Prerequisites: none.
-  Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
-
 - [ ] **PERF.44 Compute object uids in Python and write them with the row**
   Research (2026-10-09, generation-performance-study.md, PR #835;
   handoff in
@@ -3260,8 +3256,14 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   the settings file (ADM.18), then replay its edits from the edit log.
   (Boss, 2026-10-09 20:42Z, dropped the pending-delta JSON and daily
   merge this item used to read; the seed is still used internally for
-  repair.) Compare the result with the stored leaf digest. Open question for Boss (default
+  repair. Boss, 2026-10-09 20:52Z: keep the repair from the seed, replaying
+  the edit log.) Compare the result with the stored leaf digest. Open question for Boss (default
   yes): ship the parity half first, without GEN.57, GEN.58 and OPS.14.
+  Note (2026-10-09): admin regenerate of a planet, moon or belt
+  (`admin/edits.py`) draws from the process stream, so an edited sector
+  cannot be rebuilt from its seed alone, which is why this repair
+  replays the edit log; the web handlers were not checked (Research Lane
+  1).
   Prerequisites: DB.9, GEN.57, OPS.14.
   Design: [docs/design/db-check-and-parity-repair.md](design/db-check-and-parity-repair.md)
 
@@ -3618,6 +3620,23 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Prerequisites: none.
   Design: [docs/design/api-design-standards.md](design/api-design-standards.md)
 
+- [ ] **API.22 An API version number: one sequential integer, shown in admin and in the status response**
+  Boss (2026-10-09 20:59Z): "I want ... API version number (same) by the
+  end of phase 1", a plain sequential integer like the DB schema number.
+  Done: `API_VERSION = 1` in one module, bumped by a PR that makes a
+  breaking change to an endpoint (a removed or renamed route or field, a
+  changed meaning or type, a new required parameter); additive changes
+  do not bump it. It is returned by the API status response and every
+  `/api` response header, shown on the admin status page in place of the
+  release string now labelled "API version", and recorded in
+  docs/api.md's change list. A test fails when the route table or
+  response shapes change without the integer moving (a stored schema
+  snapshot). API.4's compatibility data and the remote-run handshake
+  (API.17) compare this integer.
+  Decided (Boss, 2026-10-09 21:02Z): bump on any breaking change to an
+  endpoint; additive changes do not bump.
+  Prerequisites: none. Related: API.4, API.17.
+
 ## ADM: Admin tools
 
 - [ ] **ADM.13 Incomplete uploads page**
@@ -3841,6 +3860,18 @@ Boss (2026-10-07 11:47Z): "Actual specs on layers on the generation
   CLI's `--prevalence` accepts the same shares and rejects a set that is
   not 100%. A share that depends on the local star density is not part
   of this item; the shares stay the same in every sector.
+
+- [ ] **ADM.48 Two test_api_auth_sweep tests fail: /admin/stats/galaxy-settings/<name> answers 302, not 403, to an unauthorised caller (bug)**
+  Reported by Foundations lane 2 (2026-10-09 21:04Z) while merging
+  PERF.43 (PR #861): two `test_api_auth_sweep` tests fail on main as
+  well. The web route `/admin/stats/galaxy-settings/<name>` (ADM.18,
+  `web/admin_pages.py` `download_galaxy_settings`) redirects an
+  unauthorised caller (302) where the sweep expects 403. Find which is
+  right: either the route should answer 403 like the other admin
+  download routes, or the sweep needs the route in its redirect list.
+  Done: both tests pass and the route's behaviour matches the other
+  admin routes. Owner: Bugfixes lane 1, behind its current list.
+  Prerequisites: none.
 
 ## SEC: Security
 
@@ -4171,6 +4202,22 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   drive measured is shown; tests use a fake data directory on another
   mount point. Owner: Bugfixes lane 1, after its current batch.
   Prerequisites: none.
+
+- [ ] **OPS.37 A Generator version number: one sequential integer, shown in admin and the API**
+  Boss (2026-10-09 20:59Z): "I want a Generator version number (like DB
+  number just sequential integers) ... by the end of phase 1." Done: one
+  plain integer, 1, 2, 3 ..., named the generator version, that says
+  which rules made a galaxy. It is OPS.28's `generator_epoch` under the
+  name Boss asked for, so there is one counter, not two: bumped by the
+  same PR rule (a change that alters generated output for the same seed
+  bumps it), stored with each galaxy's history row (OPS.13), per sector
+  (DB.16) and in the settings file (ADM.18), shown on the admin status
+  page beside the DB schema number, and returned by the API status
+  response. The release version (MAJOR.REVISION.BUILD) stays as it is.
+  Decided (Boss, 2026-10-09 21:02Z): the generator version and OPS.28's
+  `generator_epoch` are the same number, bumped only when output changes
+  for the same seed.
+  Prerequisite: OPS.28.
 
 ## DOC: Documentation
 

@@ -10,7 +10,7 @@ sector names. GEN.71 replaces it with the phoneme codec.
 
 
 from planetgen.names.wordlists import (
-    BAD_CONSONANTS, COMPANION_SUFFIXES, DICTIONARY_WORDS, DIMINUTIVE_PREFIXES, GREEK_LETTERS, NSFW_WORDS, ROMAN_NUMERALS_BY_VALUE, SECTOR_NAMES, SECTOR_PREFIXES, SECTOR_SUFFIXES, UNIVERSAL_PHONEMES, VOWELS, WORD_SIZE_MEAN,
+    BAD_CONSONANTS, COMPANION_SUFFIXES, DICTIONARY_WORDS, DIMINUTIVE_PREFIXES, GREEK_LETTERS, NSFW_WORDS, ROMAN_NUMERALS_BY_VALUE, SECTOR_NAMES, SECTOR_PREFIXES, SECTOR_SUFFIXES, STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES, UNIVERSAL_PHONEMES, VOWELS, WORD_SIZE_MEAN,
 )
 from planetgen.util import draw
 
@@ -361,3 +361,34 @@ def generate_sector_name():
     first_word = generate_phoneme_salad_name(SECTOR_NAMES, SECTOR_PREFIXES, SECTOR_SUFFIXES, allow_split=False, syllable_fraction=0.5, max_length=7)
     second_word = generate_phoneme_salad_name(SECTOR_NAMES, SECTOR_PREFIXES, SECTOR_SUFFIXES, allow_split=False, syllable_fraction=0.5, max_length=7)
     return f"{first_word} {second_word}"
+
+
+class LazySaladName:
+    """
+    A mix-in whose `name`, when none is given, is a star-list word salad
+    drawn on first read (PERF.43). Most placed phenomena are named by their
+    object ID (GEN.64) and never read the salad, which was 4 percent of a
+    sector fill. Construction takes one draw (the name's own seed), so the
+    object's other draws don't depend on whether its name is ever read, and
+    the name a seed gives is the same whenever it is drawn.
+    """
+
+    def _init_salad_name(self, name):
+        """Keeps `name`, or seeds a salad name to draw on first read."""
+        self._name = name if name else None
+        self._name_seed = None if name else draw.getrandbits(64)
+
+    @property
+    def name(self):
+        name = self.__dict__.get("_name")
+        if name is None:
+            seed = self.__dict__.get("_name_seed")
+            stream = draw.current() if seed is None else draw.Stream(seed)
+            with draw.bound(stream):
+                name = generate_phoneme_salad_name(STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES)
+            self._name = name
+        return name
+
+    @name.setter
+    def name(self, value):
+        self._name = value

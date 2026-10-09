@@ -582,10 +582,8 @@ release mismatch, and rebuilds per address, which GEN.57's order
 independence allows, rather than replaying commands where it can.
 
 Seed and version also reach the web and API: the Generate page shows
-the seed (with a copy button), the version and the run history, and its
-new-galaxy form takes an optional seed (ADM.17, phase 2); an API route
-returns the same (API.16, phase 2), both adding the epoch and the battery
-status; a remote run with the same seed and
+the seed (with a copy button), the version and the run history; its
+new-galaxy form takes no seed (Boss, 2026-10-09 20:52Z); a remote run with the same seed and
 release produces exactly what the server would, checked by fingerprint
 (API.17, phase 3). Anything that draws new randomness later (GEN.47,
 GEN.42, PERF.18, API.12, API.13) uses the derived seeds and keeps
