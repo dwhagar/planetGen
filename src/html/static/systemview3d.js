@@ -128,14 +128,27 @@ export function buildSystemScene(scene, layout, options) {
     byRef[item.ref] = entry;
 
     if (item.kind === "planet" || item.kind === "moon" || item.kind === "comet"
-        || (item.kind === "star" && body.orbit && body.orbit.around !== "barycenter")) {
-      const path = orbitPath(body.orbit);
+        || (item.kind === "star" && body.orbit)) {
+      // A close pair circles its barycenter, each star at the other's share
+      // of the separation: the second star on (1 - f) of it, the first on
+      // f of it, on the opposite side (MAP.136). Drawing the whole
+      // separation for the second star put its line through the first.
       const around = body.orbit.around;
-      const line = lineFrom(layout, around, path, color, item.kind === "moon" ? 0.45 : 0.6);
-      line.userData.ref = item.ref;
-      line.userData.base = { color: line.material.color.clone(), opacity: line.material.opacity };
-      trails[item.ref] = line;
-      hang(around, line);
+      const share = item.kind === "star" && around === "barycenter" ? 1 - body.orbit.secondary_mass_fraction : 1;
+      const addTrail = (ref, scale, trailColor) => {
+        const path = orbitPath(body.orbit).map((point) => point.map((c) => c * scale));
+        const line = lineFrom(layout, around, path, trailColor, item.kind === "moon" ? 0.45 : 0.6);
+        line.userData.ref = ref;
+        line.userData.base = { color: line.material.color.clone(), opacity: line.material.opacity };
+        trails[ref] = line;
+        hang(around, line);
+      };
+      addTrail(item.ref, share, color);
+      if (item.kind === "star" && around === "barycenter") {
+        scene.stars.filter((other) => !other.orbit).forEach((other) => {
+          addTrail(other.ref, -body.orbit.secondary_mass_fraction, colorOf(other));
+        });
+      }
     }
   });
 
@@ -242,7 +255,18 @@ export function buildSystemScene(scene, layout, options) {
   update(opts.years || 0);
   return { group: group, entries: entries, byRef: byRef, objects: objects, update: update, highlight: highlight,
     // A body's orbit line opacity (null: it has none), for tests.
-    trailOpacity: (ref) => (trails[ref] ? trails[ref].material.opacity : null), dispose: dispose };
+    trailOpacity: (ref) => (trails[ref] ? trails[ref].material.opacity : null),
+    // How far an orbit line reaches from what it goes round, in scene units (null: it has none), for tests.
+    trailRadius: (ref) => {
+      if (!trails[ref]) return null;
+      const attribute = trails[ref].geometry.attributes.position;
+      let farthest = 0;
+      for (let n = 0; n < attribute.count; n += 1) {
+        farthest = Math.max(farthest, Math.hypot(attribute.getX(n), attribute.getY(n), attribute.getZ(n)));
+      }
+      return farthest;
+    },
+    dispose: dispose };
 }
 
 // --- The view -------------------------------------------------------------------------

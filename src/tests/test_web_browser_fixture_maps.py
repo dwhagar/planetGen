@@ -599,6 +599,22 @@ def test_galaxy_map_opens_a_sector_in_place(page, map_site):
     assert any(_bright_spots(page, GALAXY_CANVAS)), "the reloaded sector draws its stars"
 
 
+def test_a_binary_picks_as_one_system_in_an_opened_sector(page, map_site):
+    """MAP.136: every dot of an opened sector, a binary's companion too,
+    picks a system by its own name; a star is never picked on its own."""
+    _open_galaxy(page, map_site, OPEN_PRIME)
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-info h3')")
+    page.wait_for_timeout(500)
+    info = page.locator("#galaxymap3d-info")
+    headings = set()
+    for x, y in _bright_spots(page, GALAXY_CANVAS):
+        page.mouse.click(x, y)
+        if info.locator("h3").count():
+            headings.add(info.locator("h3").inner_text())
+    assert "Twin Lamps" in headings, headings
+    assert headings - {"Fixture Prime"} <= SYSTEM_NAMES, headings
+
+
 def test_galaxy_map_back_forward_and_url_state(page, map_site):
     _open_galaxy(page, map_site)
     steps = _walk_down(page, stages=3)
@@ -1927,6 +1943,17 @@ def _open_system_in_place(page, map_site, name="Middling Sun"):
     page.locator(".starmap-sr-list button", has_text=name).first.evaluate("b => b.click()")
     page.locator("#galaxymap3d-info button", has_text="Open system here").click()
     _wait_system(page)
+
+
+def test_a_close_pairs_two_orbits_are_drawn_each_at_its_share(page, map_site):
+    """MAP.136: both stars of a close pair circle the barycenter on their own
+    line, the lighter one on the wider (the fixture pair's mass fraction is
+    0.25, so its second star keeps three times the first's distance)."""
+    _open_system_in_place(page, map_site)
+    radii = page.evaluate("() => { const s = document.querySelector('#galaxymap3d-canvas').galaxySystem(); "
+                          "return ['star:1', 'star:2'].map((r) => s.trailRadius(r)); }")
+    assert all(r and r > 0 for r in radii), radii
+    assert 1.5 < radii[1] / radii[0] < 6, radii
 
 
 def test_galaxy_map_opens_a_system_in_place_and_zooms_to_a_moon(page, map_site):
