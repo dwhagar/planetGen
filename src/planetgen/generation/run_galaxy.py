@@ -251,6 +251,7 @@ def backfill_bright_stars_around(config, centers_pc, radius_ly=None, min_luminos
     tiers = backfill_tiers(radius_ly, min_luminosity_sol, tiers)
     radius_pc = ly_to_pc(tiers[-1][0])
     summary = {"sectors": 0, "stars": 0}
+    layers = {}
     # Finding the sectors to draw can take a while on a large radius; the
     # bar is there from the start (ADM.26), unmeasured until the count is known.
     task = progress.add_task("Bright-star backfill (finding sectors)", total=None) if progress is not None else None
@@ -286,7 +287,8 @@ def backfill_bright_stars_around(config, centers_pc, radius_ly=None, min_luminos
 
             def on_sector():
                 progress.advance(task)
-        drawn = run_plan._draw_sector_bands(conn, skeleton, todo, floors, galaxy_level, seed, on_sector=on_sector)
+        drawn = run_plan._draw_sector_bands(conn, skeleton, todo, floors, galaxy_level, seed, on_sector=on_sector,
+                                            layers=layers)
         summary["sectors"], summary["stars"] = drawn
     except BaseException:
         conn.rollback()
@@ -295,6 +297,7 @@ def backfill_bright_stars_around(config, centers_pc, radius_ly=None, min_luminos
         conn.close()
         if counting:
             progress.remove_task(task)  # nothing to draw: no bar left unmeasured
+    run_plan.log_layers("Bright-star backfill", layers)
     if summary["sectors"]:
         log.debug(f"bright-star backfill: {summary['stars']} stars in {summary['sectors']} sector(s), tiers "
                   f"{format_backfill_tiers(tiers)}")
