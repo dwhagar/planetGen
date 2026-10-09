@@ -597,11 +597,11 @@ Parents marked "new parent" had no old number of their own.
 | GEN.124 | Every object knows its sector address (ring, layer, slot), recalculated whenever its position changes | none | done, PR #729 |
 | GEN.125 | Stand-alone facilities store a velocity | none | done, PR #782 |
 | GEN.126 | Run an orbital update as the last step of a generation run | none | done, PR #771 |
-| GEN.127 | A sector generated around a backfilled bright star gives that star a planetary system (bug) | none | open |
+| GEN.127 | A sector generated around a backfilled bright star gives that star a planetary system (bug) | none | done, PR #805 |
 | GEN.128 | Design: multi-star hierarchies and compact-object primaries | none | open |
 | GEN.129 | Multi-star systems of up to seven stars | none | open |
 | GEN.130 | Exotic star systems: a black hole, neutron star or similar at the center | none | open |
-| GEN.131 | Bright-star scatter logs how many stars it added to each layer, by type | none | open |
+| GEN.131 | Bright-star scatter logs how many stars it added to each layer, by type | none | done, PR #805 |
 | GEN.132 | Per-sector regional rates for neutron stars and black holes, extended system-wide where the research supports it | none | open |
 | GEN.133 | Analysis of every star type's rate against its distance from the galactic core | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |

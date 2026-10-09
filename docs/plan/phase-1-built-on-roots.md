@@ -191,13 +191,11 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | PERF.34 | The site stays responsive during heavy generation jobs (bug) | PERF.31 | GitHub issues [#638](https://github.com/dwhagar/planetGen/issues/638) and [#614](https://github.com/dwhagar/planetGen/issues/614) (second half). |
-| GEN.127 | A sector generated around a backfilled bright star gives that star a planetary system (bug) |  | GitHub issue [#513](https://github.com/dwhagar/planetGen/issues/513). |
 
 ### Foundations for the issue features
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.131 | Bright-star scatter logs how many stars it added to each layer, by type |  | Boss 2026-10-09 08:03Z; the last item of Bugfixes lane 1. |
 | GEN.132 | Per-sector regional rates for neutron stars and black holes, extended system-wide where the research supports it |  | Boss 2026-10-09 09:20Z; first on Foundations lane 1, ahead of OPS.8. |
 | GEN.133 | Analysis of every star type's rate against its distance from the galactic core |  | Boss 2026-10-09 09:20Z; Foundations lane 1, with GEN.132. |
 | PERF.31 | Investigate: where generation spends its time, from the plan to a finished galaxy |  | GitHub issues [#761](https://github.com/dwhagar/planetGen/issues/761) and [#750](https://github.com/dwhagar/planetGen/issues/750) (benchmark half). |
