@@ -76,6 +76,23 @@ speed and its threshold (time = threshold / speed, capped). An indexed
 `next_update_due` column lets the run select only what is due. Objects
 that didn't pass their threshold are not moved or counted.
 
+Built (GEN.106, schema v66): each moving row has `epoch_unix` (when its
+stored position holds; NULL means at the last run) and an indexed
+`next_update_due`, both Unix seconds by the database server's clock, on
+planets, moons, comets, star systems (galactic orbit, plus
+`binary_epoch_unix`/`binary_next_update_due` for a pair's mutual orbit),
+facilities and the six orbiting phenomenon tables. A run
+(`store.orbit_clock`) first works out a due time for rows that have none
+(new, or an orbit edited since), then moves each due row from its own epoch
+to now and sets its epoch to now and its next due time from its speed
+(`position.update_interval_s`). A row that isn't due keeps its epoch, so it
+catches up the whole time when it next comes due. A star system's stars
+and a close pair's galactic phase move with the system on its clock; a
+phenomenon's galactic phase moves with its center. Planets use the system
+scale, moons the planetary one, facilities by what they orbit (planetary
+round a planet or moon, system scale round a star or in a belt, galactic
+in open space).
+
 ## 4. The update run
 
 From "Orbital Update Full Algorithm.md", adapted to planetGen:

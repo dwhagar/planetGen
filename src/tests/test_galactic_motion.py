@@ -62,7 +62,7 @@ def test_a_system_that_drifts_across_a_boundary_is_refiled(mysql_config):
         radius_pc = math.hypot(*sector_position_pc(RING, 0, 0, EDGE_PC))
         elapsed = 1e9 * (1.0 / 3.2616) / (2 * math.pi * radius_pc)
         with conn:
-            motion = store.advance_galactic_positions(conn, elapsed)
+            motion = store.advance_galactic_positions(conn, store.orbit_clock(conn, elapsed))
             rewritten = store.refresh_after_motion(conn, motion["sectors"])
         assert motion["refiled"] >= 1 and {first, second} <= motion["sectors"]
         row = conn.execute("SELECT * FROM star_systems WHERE id = ?", (mover,)).fetchone()
@@ -97,7 +97,7 @@ def test_phenomena_and_facilities_move_and_the_quasar_stays(mysql_config):
                 "center_x_pc": center[0], "center_y_pc": center[1], "center_z_pc": center[2],
                 "galactic_radius_pc": math.hypot(*center)})
             facility_id = store.add_facility(conn, "Drifter", "station", "standalone", "space", sector_id)
-            motion = store.advance_galactic_positions(conn, 1e6)
+            motion = store.advance_galactic_positions(conn, store.orbit_clock(conn, 1e6))
         assert motion["moved"] >= 3
         row = conn.execute("SELECT center_x_pc, center_y_pc FROM nebulae WHERE id = ?", (nebula_id,)).fetchone()
         angle = math.atan2(row["center_y_pc"], row["center_x_pc"]) - math.atan2(center[1], center[0])
@@ -128,7 +128,7 @@ def test_a_standalone_facility_stores_the_rotation_curves_velocity_and_turns_it_
             == pytest.approx(0.0, abs=1e-6 * speed * radius)
         assert before["center_x_pc"] * before["velocity_y_kms"] - before["center_y_pc"] * before["velocity_x_kms"] > 0
         with conn:
-            store.advance_galactic_positions(conn, 1e7)
+            store.advance_galactic_positions(conn, store.orbit_clock(conn, 1e7))
         after = conn.execute("SELECT center_x_pc, center_y_pc, velocity_x_kms, velocity_y_kms, velocity_z_kms"
                              " FROM facilities WHERE id = ?", (facility_id,)).fetchone()
         position_turn = math.atan2(after["center_y_pc"], after["center_x_pc"]) - math.atan2(before["center_y_pc"],
@@ -167,7 +167,7 @@ def test_orbital_facilities_advance_their_phase(mysql_config):
         period = conn.execute("SELECT orbit_period_years FROM facilities WHERE id = ?", (facility_id,)).fetchone()[
             "orbit_period_years"]
         with conn:
-            assert store.advance_facility_orbits(conn, period / 4) == 1
+            assert store.advance_facility_orbits(conn, store.orbit_clock(conn, period / 4)) == 1
         phase = conn.execute("SELECT orbit_phase_deg FROM facilities WHERE id = ?", (facility_id,)).fetchone()
         assert phase["orbit_phase_deg"] == pytest.approx(90.0)
     finally:
@@ -195,7 +195,9 @@ def test_update_orbits_runs_end_to_end(mysql_config, monkeypatch, capsys):
     conn = store.get_connection(mysql_config)
     try:
         with conn:
+            # Back-date the last run and the system's own clock: due now.
             conn.execute("UPDATE orbit_simulation_state SET last_updated_at = NOW() - INTERVAL 400 DAY")
+            conn.execute("UPDATE star_systems SET epoch_unix = NULL, next_update_due = NULL")
     finally:
         conn.close()
     updateOrbits.main()

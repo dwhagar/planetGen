@@ -75,8 +75,9 @@ def _update_body(conn, table, body, assignments, key_values):
     if table == "planets":
         columns += list(store._PLANET_ONLY_COLUMNS)
     values = list(key_values) + store.body_row_values(body)
+    # An edited orbit is worked out again by the next orbit update (GEN.106).
     conn.execute(
-        f"UPDATE {table} SET {', '.join(f'{c} = ?' for c in columns)}"
+        f"UPDATE {table} SET {', '.join(f'{c} = ?' for c in columns)}, next_update_due = NULL"
         " WHERE id = ?",
         (*values, body.db_id),
     )
@@ -158,12 +159,16 @@ def _star_values(star):
 
 
 def save_star(conn, star):
-    """UPDATEs a loaded star's row (`star.db_id`) from the object."""
+    """UPDATEs a loaded star's row (`star.db_id`) from the object; its
+    system's galactic speed may have changed, so the next orbit update works
+    out the system's due time again (GEN.106)."""
     conn.execute(
         f"UPDATE stars SET {', '.join(f'{c} = ?' for c in _STAR_COLUMNS)}"
         " WHERE id = ?",
         (*_star_values(star), star.db_id),
     )
+    conn.execute("UPDATE star_systems ss JOIN stars s ON s.star_system_id = ss.id SET ss.next_update_due = NULL,"
+                 " ss.modified_at = ss.modified_at WHERE s.id = ?", (star.db_id,))
 
 
 def save_system_edits(conn, system_id, system, stars=()):
@@ -216,7 +221,7 @@ def _save_comet_orbit(conn, comet):
         "UPDATE comets SET perihelion_distance_km = ?, orbital_period_years = ?, primary_mass_solar = ?,"
         " distance_km = ?, position_x_km = ?, position_y_km = ?, position_z_km = ?, orbital_speed_kms = ?,"
         " velocity_x_kms = ?, velocity_y_kms = ?, velocity_z_kms = ?,"
-        " min_update_interval_years = ? WHERE id = ?",
+        " min_update_interval_years = ?, next_update_due = NULL WHERE id = ?",
         (comet.perihelion_distance_au * au, comet.orbital_period_years, comet.primary_mass_solar,
          comet.distance_au * au, comet.position_x_au * au, comet.position_y_au * au, comet.position_z_au * au,
          comet.orbital_speed_kms, comet.velocity_x_kms, comet.velocity_y_kms, comet.velocity_z_kms,

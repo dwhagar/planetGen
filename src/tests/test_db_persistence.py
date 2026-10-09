@@ -639,10 +639,11 @@ def test_advance_orbital_phases_applies_the_correct_delta_and_leaves_other_field
             "position_x_km, position_y_km, position_z_km, orbital_speed_kms FROM planets"
         ).fetchall()
 
-        counts = store.advance_orbital_phases(conn, elapsed_years=0.5)
+        clock = store.orbit_clock(conn, 0.5)
+        counts = store.advance_orbital_phases(conn, clock)
         assert counts["planets"] > 0
         assert counts["moons"] > 0
-        assert counts["stars"] > 0
+        store.finish_orbit_update(conn, clock)
 
         after = conn.execute(
             "SELECT id, orbital_phase_deg, orbital_inclination_deg, orbital_ascending_node_deg, "
@@ -674,15 +675,14 @@ def test_advance_orbital_phases_applies_the_correct_delta_and_leaves_other_field
         assert updated["position_y_km"] == pytest.approx(expected_y_au * pc.AU_TO_KM, abs=1e-3)
         assert updated["position_z_km"] == pytest.approx(expected_z_au * pc.AU_TO_KM, abs=1e-3)
 
-    # get_orbit_update_elapsed_years should now report ~0 elapsed time
-    # (the call above just set last_updated_at to NOW()), not None.
+    # The clock now stands at the end of the step (half a year from now,
+    # since no update had run), not None.
     conn = store.get_connection(mysql_config)
     try:
-        elapsed = store.get_orbit_update_elapsed_years(conn)
+        epoch = store.get_orbit_epoch_unix(conn)
     finally:
         conn.close()
-    assert elapsed is not None
-    assert 0 <= elapsed < 0.01
+    assert epoch == pytest.approx(clock.end_unix, abs=1.0)
 
 
 def test_advance_orbital_phases_advances_binary_mutual_orbit_position_in_lockstep(mysql_config):
@@ -716,7 +716,7 @@ def test_advance_orbital_phases_advances_binary_mutual_orbit_position_in_lockste
         # Big enough elapsed time to clearly move the (fast) mutual orbit,
         # regardless of its randomly generated period.
         elapsed_years = before["binary_mutual_orbital_period_years"] * 137.25
-        store.advance_orbital_phases(conn, elapsed_years=elapsed_years)
+        store.advance_orbital_phases(conn, store.orbit_clock(conn, elapsed_years))
 
         after = conn.execute(
             "SELECT binary_mutual_orbital_phase_deg, binary_mutual_position_x_km, "
@@ -770,7 +770,7 @@ def test_advance_orbital_phases_advances_both_binary_members_barycenter_offsets(
         ).fetchone()
 
         elapsed_years = before["binary_mutual_orbital_period_years"] * 137.25
-        counts = store.advance_orbital_phases(conn, elapsed_years=elapsed_years)
+        counts = store.advance_orbital_phases(conn, store.orbit_clock(conn, elapsed_years))
         assert counts["binary_mutual_orbits"] > 0
 
         after = conn.execute(
@@ -842,7 +842,7 @@ def test_advance_orbital_phases_recomputes_star_and_planet_reflex_offsets(mysql_
         max_period = conn.execute(
             "SELECT MAX(period_years) AS p FROM planets WHERE star_id = ?", (star_id,)
         ).fetchone()["p"]
-        counts = store.advance_orbital_phases(conn, elapsed_years=max_period * 137.25)
+        counts = store.advance_orbital_phases(conn, store.orbit_clock(conn, max_period * 137.25))
         assert counts["star_reflex_offsets"] > 0
         assert counts["planet_reflex_offsets"] > 0
 
@@ -871,7 +871,7 @@ def test_advance_orbital_phases_rejects_negative_elapsed_years(mysql_config):
     conn = store.get_connection(mysql_config)
     try:
         with pytest.raises(ValueError):
-            store.advance_orbital_phases(conn, elapsed_years=-1.0)
+            store.advance_orbital_phases(conn, store.orbit_clock(conn, -1.0))
     finally:
         conn.close()
 
@@ -901,7 +901,7 @@ def test_advance_comet_orbits_advances_elliptical_mean_anomaly_and_recomputes_po
         before = conn.execute("SELECT * FROM comets WHERE star_system_id = ?", (system_id,)).fetchone()
         step_years = before["orbital_period_years"] * 0.05  # 18 degrees of mean anomaly
 
-        updated = store.advance_comet_orbits(conn, step_years)
+        updated = store.advance_comet_orbits(conn, store.orbit_clock(conn, step_years))
         assert updated == 1
 
         after = conn.execute("SELECT * FROM comets WHERE star_system_id = ?", (system_id,)).fetchone()
@@ -942,7 +942,7 @@ def test_advance_comet_orbits_advances_parabolic_mean_anomaly_without_wrapping(m
         # A large elapsed time -- since a parabolic anomaly doesn't wrap
         # (unlike mean_anomaly_deg's MOD 360), this should NOT be clamped
         # or wrapped, just added linearly.
-        updated = store.advance_comet_orbits(conn, elapsed_years=50.0)
+        updated = store.advance_comet_orbits(conn, store.orbit_clock(conn, 50.0))
         assert updated == 1
 
         after = conn.execute("SELECT * FROM comets WHERE star_system_id = ?", (system_id,)).fetchone()
@@ -970,7 +970,7 @@ def test_advance_comet_orbits_skips_elliptical_rows_below_min_update_interval(my
         before = conn.execute("SELECT * FROM comets WHERE star_system_id = ?", (system_id,)).fetchone()
         # Comfortably below this comet's own min_update_interval_years floor.
         tiny_elapsed = before["min_update_interval_years"] / 2
-        updated = store.advance_comet_orbits(conn, tiny_elapsed)
+        updated = store.advance_comet_orbits(conn, store.orbit_clock(conn, tiny_elapsed))
         assert updated == 0
 
         after = conn.execute("SELECT * FROM comets WHERE star_system_id = ?", (system_id,)).fetchone()
@@ -985,7 +985,7 @@ def test_advance_comet_orbits_rejects_negative_elapsed_years(mysql_config):
     conn = store.get_connection(mysql_config)
     try:
         with pytest.raises(ValueError):
-            store.advance_comet_orbits(conn, elapsed_years=-1.0)
+            store.advance_comet_orbits(conn, store.orbit_clock(conn, -1.0))
     finally:
         conn.close()
 
@@ -1041,7 +1041,7 @@ def test_modified_at_tracks_edits_but_not_orbit_ticks(mysql_config):
     """
     v27: `modified_at` moves when a row is edited (MySQL's `ON UPDATE`)
     or one of a system's child rows changes (`touch_star_system`), but
-    NOT when `advance_orbital_phases` ticks the simulation clock forward
+    NOT when the orbit update ticks the simulation clock forward
     -- see `schema.sql`'s "v27" header note.
     """
     binary_cfg = SystemConfig()
@@ -1064,9 +1064,12 @@ def test_modified_at_tracks_edits_but_not_orbit_ticks(mysql_config):
         bh_before = modified("black_holes", bh_id)
         time.sleep(0.05)
 
-        counts = store.advance_orbital_phases(conn, elapsed_years=1e5)
+        clock = store.orbit_clock(conn, 1e5)
+        counts = store.advance_orbital_phases(conn, clock)
         assert counts["binary_mutual_orbits"] > 0
-        assert counts["black_holes"] > 0
+        motion = store.advance_galactic_positions(conn, clock)
+        assert motion["counts"]["star_systems"] > 0
+        assert motion["counts"]["black_holes"] > 0
         assert modified("star_systems", system_id) == system_before
         assert modified("black_holes", bh_id) == bh_before
 
