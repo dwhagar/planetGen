@@ -196,26 +196,26 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| UX.76 | Icons and highlights follow the light and dark theme (bug) |  | GitHub issue #706. |
-| UX.77 | The class list is alphabetized (bug) |  | GitHub issue #681. |
-| MAP.135 | Selecting the first slab or wedge shows its bounds (bug) |  | GitHub issue #770. |
-| MAP.136 | Binary stars pick as one system and their 3D orbits are drawn clearly (bug) |  | GitHub issues #709, #708. One item: both are how binary pairs show on the maps. |
-| MAP.137 | Rogue planets are easy to see, with the right default filters (bug) |  | GitHub issue #705. |
-| MAP.138 | Recenter the camera in every 3D view (bug) |  | GitHub issue #699 (labelled bug and enhancement) and its comment. |
-| ADM.39 | Running queue jobs show an ETA (bug) |  | GitHub issue #676. |
-| ADM.40 | The Generate page stops reporting a lost connection (bug) |  | GitHub issue #656. |
-| ADM.41 | Every job is easy to find and cancel in the web queue, and past jobs are paginated and clean (bug) |  | GitHub issues #614 (first half) and #535. |
-| PERF.34 | The site stays responsive during heavy generation jobs (bug) | PERF.31 | GitHub issues #638 and #614 (second half). |
-| GEN.127 | A sector generated around a backfilled bright star gives that star a planetary system (bug) |  | GitHub issue #513. |
+| UX.76 | Icons and highlights follow the light and dark theme (bug) |  | GitHub issue [#706](https://github.com/dwhagar/planetGen/issues/706). |
+| UX.77 | The class list is alphabetized (bug) |  | GitHub issue [#681](https://github.com/dwhagar/planetGen/issues/681). |
+| MAP.135 | Selecting the first slab or wedge shows its bounds (bug) |  | GitHub issue [#770](https://github.com/dwhagar/planetGen/issues/770). |
+| MAP.136 | Binary stars pick as one system and their 3D orbits are drawn clearly (bug) |  | GitHub issues [#709](https://github.com/dwhagar/planetGen/issues/709), [#708](https://github.com/dwhagar/planetGen/issues/708). One item: both are how binary pairs show on the maps. |
+| MAP.137 | Rogue planets are easy to see, with the right default filters (bug) |  | GitHub issue [#705](https://github.com/dwhagar/planetGen/issues/705). |
+| MAP.138 | Recenter the camera in every 3D view (bug) |  | GitHub issue [#699](https://github.com/dwhagar/planetGen/issues/699) (labelled bug and enhancement) and its comment. |
+| ADM.39 | Running queue jobs show an ETA (bug) |  | GitHub issue [#676](https://github.com/dwhagar/planetGen/issues/676). |
+| ADM.40 | The Generate page stops reporting a lost connection (bug) |  | GitHub issue [#656](https://github.com/dwhagar/planetGen/issues/656). |
+| ADM.41 | Every job is easy to find and cancel in the web queue, and past jobs are paginated and clean (bug) |  | GitHub issues [#614](https://github.com/dwhagar/planetGen/issues/614) (first half) and #535. |
+| PERF.34 | The site stays responsive during heavy generation jobs (bug) | PERF.31 | GitHub issues [#638](https://github.com/dwhagar/planetGen/issues/638) and [#614](https://github.com/dwhagar/planetGen/issues/614) (second half). |
+| GEN.127 | A sector generated around a backfilled bright star gives that star a planetary system (bug) |  | GitHub issue [#513](https://github.com/dwhagar/planetGen/issues/513). |
 
 ### Foundations for the issue features
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| PERF.31 | Investigate: where generation spends its time, from the plan to a finished galaxy |  | GitHub issues #761 and #750 (benchmark half). |
-| PERF.32 | Generation performance stats: rates recorded per run, deleted on every new version |  | GitHub issues #661 (store half) and #750. |
-| GEN.128 | Design: multi-star hierarchies and compact-object primaries |  | GitHub issues #777 and #778: the research both builds wait on. |
-| ADM.42 | One settings model describes every config.json option |  | Foundation for GitHub issues #515 and #743. |
+| PERF.31 | Investigate: where generation spends its time, from the plan to a finished galaxy |  | GitHub issues [#761](https://github.com/dwhagar/planetGen/issues/761) and [#750](https://github.com/dwhagar/planetGen/issues/750) (benchmark half). |
+| PERF.32 | Generation performance stats: rates recorded per run, deleted on every new version |  | GitHub issues [#661](https://github.com/dwhagar/planetGen/issues/661) (store half) and #750. |
+| GEN.128 | Design: multi-star hierarchies and compact-object primaries |  | GitHub issues [#777](https://github.com/dwhagar/planetGen/issues/777) and [#778](https://github.com/dwhagar/planetGen/issues/778): the research both builds wait on. |
+| ADM.42 | One settings model describes every config.json option |  | Foundation for GitHub issues [#515](https://github.com/dwhagar/planetGen/issues/515) and [#743](https://github.com/dwhagar/planetGen/issues/743). |
 
 ## Open questions for Boss
 
