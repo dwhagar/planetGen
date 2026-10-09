@@ -166,6 +166,22 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 
+### Features from the GitHub issues
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| PERF.33 | Progress bars and ETAs from measured performance | PERF.32, ADM.39 | GitHub issue [#661](https://github.com/dwhagar/planetGen/issues/661) (the use half). |
+| MAP.139 | The Galaxy View uses its spare space: an info box with a Details link, and menu items |  | GitHub issues [#758](https://github.com/dwhagar/planetGen/issues/758) and [#715](https://github.com/dwhagar/planetGen/issues/715), one layout change. |
+| MAP.140 | Double-click on a selected object goes there and opens its information |  | GitHub issue [#714](https://github.com/dwhagar/planetGen/issues/714). |
+| MAP.141 | Context around the selection: faint neighbours, and the sectors above and below |  | GitHub issues [#718](https://github.com/dwhagar/planetGen/issues/718) and [#716](https://github.com/dwhagar/planetGen/issues/716), one context view. The #716 bug label was overruled. |
+| MAP.142 | Nebulae have fuzzy, fading boundaries |  | GitHub issue [#713](https://github.com/dwhagar/planetGen/issues/713). |
+| MAP.143 | Color sectors by their number of habitable locations | GEN.89 | GitHub issue [#717](https://github.com/dwhagar/planetGen/issues/717). |
+| GEN.129 | Multi-star systems of up to seven stars | GEN.128 | GitHub issue [#777](https://github.com/dwhagar/planetGen/issues/777). Build after the GEN.128 design. |
+| GEN.130 | Exotic star systems: a black hole, neutron star or similar at the center | GEN.128, GEN.100 | GitHub issue [#778](https://github.com/dwhagar/planetGen/issues/778). Build after the GEN.128 design. |
+| DB.15 | A migration progress bar with the time remaining | PERF.32 | GitHub issue [#727](https://github.com/dwhagar/planetGen/issues/727). |
+| ADM.43 | A full configuration page under Admin | ADM.42 | GitHub issue [#515](https://github.com/dwhagar/planetGen/issues/515). |
+| ADM.44 | Web, Open Graph and SEO settings | ADM.42, ADM.43 | GitHub issue [#743](https://github.com/dwhagar/planetGen/issues/743). |
+
 ## Open questions for Boss
 
 - NAV.24: A keep-out radius for every kind of object, see its entry in TODO.md.

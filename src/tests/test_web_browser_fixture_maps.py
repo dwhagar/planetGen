@@ -534,6 +534,24 @@ def test_galaxy_map_clicks_walk_down_to_a_generated_sector(page, map_site):
     assert not re.search(r"[=,]r\d", kinds), kinds
 
 
+def test_galaxy_map_arc_and_first_slab_show_their_bounds(page, map_site):
+    """MAP.135: picking an arc of the galaxy, then its first slab, fills the
+    info panel with where each lies and how many sectors it holds, as a
+    picked block does."""
+    _open_galaxy(page, map_site)
+    info = page.locator("#galaxymap3d-info")
+    assert "Distance from core" not in info.inner_text(), "the whole galaxy has no bounds panel"
+    seen = []
+    for _ in range(2):
+        _click_choice(page, GENERATED_CHOICE)
+        _settle(page)
+        text = info.inner_text()
+        seen.append(text)
+        for label in ("Distance from core", "Bearing", "Height", "Sectors", "Generated"):
+            assert label in text, f"{_crumbs(page)[-1]!r} shows no {label!r}: {text!r}"
+    assert seen[0].startswith("Arc ") and seen[1].startswith("Slab "), seen
+
+
 OPEN_PRIME = "?sector=100000001&open=1"
 """The fixture's Fixture Prime (ring 0, layer 0, slot 1) opened in place."""
 

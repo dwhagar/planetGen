@@ -1723,6 +1723,7 @@ a CHECK on a cascading column). See "Facilities (v42)" above and the API's
 | `star_id`, `planet_id`, `moon_id`, `asteroid_belt_id`, `asteroid_field_id` | BIGINT UNSIGNED | FK, `ON DELETE CASCADE`, nullable | The host row. `star_id` is NULL for a close pair's shared orbit. |
 | `sector_id` | BIGINT UNSIGNED | FK -> `sectors.id`, `ON DELETE CASCADE`, nullable | For a stand-alone facility in open space. |
 | `center_x_pc`, `center_y_pc`, `center_z_pc`, `galactic_radius_pc` | DOUBLE | nullable | A stand-alone facility's galaxy-frame position. |
+| `velocity_x_kms`, `velocity_y_kms`, `velocity_z_kms` | DOUBLE | NOT NULL, default 0 | Added in v64 (GEN.125). A stand-alone facility's velocity, km/s on the galactic axes: the rotation curve's tangent at its place, set when it is added and turned with its position by `advance_galactic_positions`. 0 for a facility on a body, in orbit or in a belt, whose motion is the `orbit_*` columns below, relative to its host. |
 | `orbit_distance_km`, `orbit_period_years`, `orbital_speed_kms`, `orbit_phase_deg` | DOUBLE | nullable | An orbital facility's circular orbit, from its host's mass; an asteroid facility in a belt gets one too, around its star from a random spot in the belt (no schema change). `planetgen.cli.orbits` advances both. |
 | `description` | TEXT | nullable | |
 | `created_at`, `modified_at` | TIMESTAMP / TIMESTAMP(3) | NOT NULL | |

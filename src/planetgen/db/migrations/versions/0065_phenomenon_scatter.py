@@ -13,8 +13,8 @@ phenomena until `planetgen plan` places them.
 import sqlalchemy as sa
 from alembic import op
 
-revision = "0064"
-down_revision = "0063"
+revision = "0065"
+down_revision = "0064"
 branch_labels = None
 depends_on = None
 

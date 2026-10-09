@@ -55,6 +55,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ADM.31 | Every generate action offers to show what it made on the Galaxy Map |  | Merges two asks: the 2026-10-03 button and the 2026-10-07 "see that space". |
 | GEN.96 | Generation directives for a sector (an override button) |  | A subset of what API recipes (API.18) later take. |
 | GEN.97 | Generate N random neighborhoods |  |  |
+| ADM.45 | Prevalence fields take the override share directly and must total 100% |  | Boss 2026-10-09 07:48Z; follows ADM.37. |
 | ADM.28 | A simpler Generate page: layer specs, a Customize window and plain controls | ADM.29, ADM.30, ADM.31, GEN.97 | Parent of the Generate page items; after the web components land. |
 
 ### Galaxy gen
@@ -102,7 +103,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.104 | A spin vector and a realistic axial tilt for every rotating object |  | Rules from "Observational Kinetics for Rotational Vectors.md". |
-| GEN.125 | Stand-alone facilities store a velocity |  | Build thread. |
 | GEN.106 | Movement thresholds and a next-update-due column |  |  |
 | GEN.107 | The update reports how many objects moved, changed sector, or entered or left a nebula | GEN.106 |  |
 | GEN.108 | Orbital math limits: where each method breaks down and what happens there | GEN.106 | Boss (2026-10-07 11:47Z): "we need to ensure that reasonable limitations for when the math breaks down at the edge cases." |
@@ -137,7 +137,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| MAP.89 | System Map: space orbits with a fitted scale and a minimum ring gap instead of plain log |  | Same file as MAP.88 (done, PR #405); also changes systemmap.js kmToPx (MAP.63 touched it too). |
 
 ### Bookmarks
 
@@ -194,13 +193,35 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ADM.18 | The galaxy's creation settings saved as a JSON file, downloadable from the Admin dashboard | DB.7, OPS.13 | Stores the naming key instead of the word list. Boss 02:13Z: phase 1. Includes the key history; dated backup on every change. |
 | GEN.59 | Admin changes stored as a net difference from the generated galaxy | GEN.56, GEN.58, ADM.18 | Boss 02:20Z: net diff by stable address path, regenerate seeds, in ADM.18's JSON. |
 
+### Bugs from the GitHub issues
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| UX.76 | Icons and highlights follow the light and dark theme (bug) |  | GitHub issue [#706](https://github.com/dwhagar/planetGen/issues/706). |
+| UX.77 | The class list is alphabetized (bug) |  | GitHub issue [#681](https://github.com/dwhagar/planetGen/issues/681). |
+| MAP.136 | Binary stars pick as one system and their 3D orbits are drawn clearly (bug) |  | GitHub issues [#709](https://github.com/dwhagar/planetGen/issues/709), [#708](https://github.com/dwhagar/planetGen/issues/708). One item: both are how binary pairs show on the maps. |
+| MAP.137 | Rogue planets are easy to see, with the right default filters (bug) |  | GitHub issue [#705](https://github.com/dwhagar/planetGen/issues/705). |
+| MAP.138 | Recenter the camera in every 3D view (bug) |  | GitHub issue [#699](https://github.com/dwhagar/planetGen/issues/699) (labelled bug and enhancement) and its comment. |
+| ADM.39 | Running queue jobs show an ETA (bug) |  | GitHub issue [#676](https://github.com/dwhagar/planetGen/issues/676). |
+| ADM.40 | The Generate page stops reporting a lost connection (bug) |  | GitHub issue [#656](https://github.com/dwhagar/planetGen/issues/656). |
+| ADM.41 | Every job is easy to find and cancel in the web queue, and past jobs are paginated and clean (bug) |  | GitHub issues [#614](https://github.com/dwhagar/planetGen/issues/614) (first half) and #535. |
+| PERF.34 | The site stays responsive during heavy generation jobs (bug) | PERF.31 | GitHub issues [#638](https://github.com/dwhagar/planetGen/issues/638) and [#614](https://github.com/dwhagar/planetGen/issues/614) (second half). |
+| GEN.127 | A sector generated around a backfilled bright star gives that star a planetary system (bug) |  | GitHub issue [#513](https://github.com/dwhagar/planetGen/issues/513). |
+
+### Foundations for the issue features
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| PERF.31 | Investigate: where generation spends its time, from the plan to a finished galaxy |  | GitHub issues [#761](https://github.com/dwhagar/planetGen/issues/761) and [#750](https://github.com/dwhagar/planetGen/issues/750) (benchmark half). |
+| PERF.32 | Generation performance stats: rates recorded per run, deleted on every new version |  | GitHub issues [#661](https://github.com/dwhagar/planetGen/issues/661) (store half) and #750. |
+| GEN.128 | Design: multi-star hierarchies and compact-object primaries |  | GitHub issues [#777](https://github.com/dwhagar/planetGen/issues/777) and [#778](https://github.com/dwhagar/planetGen/issues/778): the research both builds wait on. |
+| ADM.42 | One settings model describes every config.json option |  | Foundation for GitHub issues [#515](https://github.com/dwhagar/planetGen/issues/515) and [#743](https://github.com/dwhagar/planetGen/issues/743). |
+
 ## Open questions for Boss
 
 - NAV.8: Pages and anchors for stars, planets, moons and belts, see its entry in TODO.md.
 - NAV.11: Travel times for the system-to-system route too, see its entry in TODO.md.
-- NAV.43: Find everything within a distance of a place: the query and the API, see its entry in TODO.md.
 - UX.22: Meaningful units for every measurement, see its entry in TODO.md.
 - UX.3: Warn every visitor while a background job changes the galaxy, see its entry in TODO.md.
 - API.4: API compatibility data in the docs, see its entry in TODO.md.
-- GEN.57: A sector's contents depend only on the seed, the version and its address, see its entry in TODO.md.
 - OPS.13: Every update records the version key, keeping the last 10, see its entry in TODO.md.

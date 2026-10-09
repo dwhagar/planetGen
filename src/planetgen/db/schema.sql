@@ -996,7 +996,13 @@
 --   system, rogue planet and interstellar comet through its sector as
 --   cubic Hermite spline knots -- see the tables' own comment.
 -- v63: `generation_run_arguments` replaces the JSON `generation_runs.arguments` (DB.13).
--- v64: `phenomenon_scatter` (GEN.100): the black holes, neutron stars,
+-- v64: `facilities` gains `velocity_x_kms`/`_y_kms`/`_z_kms` (GEN.125): a
+--   stand-alone facility's velocity in km/s on the galactic axes, the rotation
+--   curve's tangent at its place (the same as a star system's before any
+--   runaway speed). `advance_galactic_positions` turns it with the position.
+--   Facilities on a body, in orbit or in a belt keep 0: their motion is the
+--   `orbit_*` columns, relative to their host.
+-- v65: `phenomenon_scatter` (GEN.100): the black holes, neutron stars,
 --   planetary nebulae, supernova remnants, hypervelocity stars and nucleus
 --   `planetgen plan` places galaxy-wide, and `galaxy_shape.phenomenon_scatter_seed`.
 --
@@ -2621,6 +2627,9 @@ CREATE TABLE IF NOT EXISTS facilities (
     center_y_pc          DOUBLE,
     center_z_pc          DOUBLE,
     galactic_radius_pc   DOUBLE,
+    velocity_x_kms       DOUBLE NOT NULL DEFAULT 0,
+    velocity_y_kms       DOUBLE NOT NULL DEFAULT 0,
+    velocity_z_kms       DOUBLE NOT NULL DEFAULT 0,
     orbit_distance_km    DOUBLE,
     orbit_period_years   DOUBLE,
     orbital_speed_kms    DOUBLE,

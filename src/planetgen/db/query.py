@@ -1232,7 +1232,7 @@ def _facility_dict(row):
         "id", "name", "kind", "placement", "host_type", "star_system_id", "star_id", "planet_id", "moon_id",
         "asteroid_belt_id", "asteroid_field_id", "sector_id", "center_x_pc", "center_y_pc", "center_z_pc",
         "orbit_distance_km", "orbit_period_years", "orbital_speed_kms", "orbit_phase_deg", "description",
-        "host_name",
+        "velocity_x_kms", "velocity_y_kms", "velocity_z_kms", "host_name",
     )}
     host_columns = {"star": "star_id", "planet": "planet_id", "moon": "moon_id", "asteroid_belt": "asteroid_belt_id",
                     "asteroid_field": "asteroid_field_id", "space": "sector_id"}

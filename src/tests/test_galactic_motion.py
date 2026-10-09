@@ -13,6 +13,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.geometry import (
     galaxy_to_local_pc, local_to_galaxy_pc, sector_position_pc, slot_angle_bounds,
 )
+from planetgen.galaxy.galactic_orbit import calculate_galactic_orbit
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.system import StarSystem
 from planetgen.physics.units import pc_to_ly
@@ -103,6 +104,54 @@ def test_phenomena_and_facilities_move_and_the_quasar_stays(mysql_config):
         assert angle == pytest.approx(2 * math.pi * 1e6 / 1e9)
         moved = conn.execute("SELECT center_x_pc FROM facilities WHERE id = ?", (facility_id,)).fetchone()
         assert moved["center_x_pc"] != pytest.approx(center[0], abs=1e-12)
+    finally:
+        conn.close()
+
+
+def test_a_standalone_facility_stores_the_rotation_curves_velocity_and_turns_it_with_its_position(mysql_config):
+    """GEN.125: a stand-alone facility has a galactic velocity, the rotation curve's tangent at its
+    place, which `advance_galactic_positions` turns by the same angle as its position."""
+    sector, position = _place(3, [(0.0, 0.0, 0.0)], "Drift")
+    sector_id = store.save_sector(sector, config=mysql_config, galaxy_position=position)
+    conn = store.get_connection(mysql_config)
+    try:
+        with conn:
+            facility_id = store.add_facility(conn, "Drifter", "station", "standalone", "space", sector_id)
+        before = conn.execute("SELECT center_x_pc, center_y_pc, velocity_x_kms, velocity_y_kms, velocity_z_kms"
+                              " FROM facilities WHERE id = ?", (facility_id,)).fetchone()
+        speed = math.hypot(before["velocity_x_kms"], before["velocity_y_kms"])
+        radius = math.hypot(before["center_x_pc"], before["center_y_pc"])
+        expected, _period = calculate_galactic_orbit(pc_to_ly(radius))
+        assert speed == pytest.approx(expected) and speed > 0.0 and before["velocity_z_kms"] == 0.0
+        # Counterclockwise from galactic north: perpendicular to the radius, a positive turn.
+        assert before["center_x_pc"] * before["velocity_x_kms"] + before["center_y_pc"] * before["velocity_y_kms"] \
+            == pytest.approx(0.0, abs=1e-6 * speed * radius)
+        assert before["center_x_pc"] * before["velocity_y_kms"] - before["center_y_pc"] * before["velocity_x_kms"] > 0
+        with conn:
+            store.advance_galactic_positions(conn, 1e7)
+        after = conn.execute("SELECT center_x_pc, center_y_pc, velocity_x_kms, velocity_y_kms, velocity_z_kms"
+                             " FROM facilities WHERE id = ?", (facility_id,)).fetchone()
+        position_turn = math.atan2(after["center_y_pc"], after["center_x_pc"]) - math.atan2(before["center_y_pc"],
+                                                                                           before["center_x_pc"])
+        velocity_turn = math.atan2(after["velocity_y_kms"], after["velocity_x_kms"]) - math.atan2(
+            before["velocity_y_kms"], before["velocity_x_kms"])
+        assert position_turn != 0.0 and velocity_turn == pytest.approx(position_turn)
+        assert math.hypot(after["velocity_x_kms"], after["velocity_y_kms"]) == pytest.approx(speed)
+    finally:
+        conn.close()
+
+
+def test_facilities_on_a_body_keep_a_zero_galactic_velocity(mysql_config):
+    from tests.test_facilities import _ids, _system_with_worlds
+    system_id = _system_with_worlds(mysql_config)
+    conn = store.get_connection(mysql_config)
+    try:
+        ids = _ids(conn, system_id)
+        with conn:
+            facility_id = store.add_facility(conn, "Ring", "station", "orbital", "planet", ids["giant"], phase_deg=0.0)
+        row = conn.execute("SELECT velocity_x_kms, velocity_y_kms, velocity_z_kms FROM facilities WHERE id = ?",
+                           (facility_id,)).fetchone()
+        assert (row["velocity_x_kms"], row["velocity_y_kms"], row["velocity_z_kms"]) == (0.0, 0.0, 0.0)
     finally:
         conn.close()
 

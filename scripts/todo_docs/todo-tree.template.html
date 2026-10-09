@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>planetGen TODO Tree</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a toolbar, then one tree per phase of the roots; every item sits under the prerequisite that finishes last, so a branch reads as a chain of what unblocks what. */
+:root{
+  --bg:#F3F5F8; --surface:#FFFFFF; --sunk:#E9EDF3; --ink:#152030; --muted:#566275; --line:#D8DEE7;
+  --accent:#B05E0C; --accent-soft:#F6E7D6; --ground:#0E7682; --ground-soft:#D8EEF0;
+  --bug:#B3261E; --bug-soft:#F8DEDB; --new:#3F5BB0; --new-soft:#E1E7F8;
+  --f-display:"Bricolage Grotesque","Avenir Next","Segoe UI",system-ui,sans-serif;
+  --f-body:"Source Sans 3","Segoe UI",system-ui,-apple-system,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0C1118; --surface:#141B25; --sunk:#1A2330; --ink:#E5EAF1; --muted:#97A3B5; --line:#273244;
+  --accent:#E7A05A; --accent-soft:#3A2814; --ground:#55C3CC; --ground-soft:#12313A;
+  --bug:#F2786E; --bug-soft:#3D1A18; --new:#93A9F0; --new-soft:#1D2747; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0C1118; --surface:#141B25; --sunk:#1A2330; --ink:#E5EAF1; --muted:#97A3B5; --line:#273244;
+  --accent:#E7A05A; --accent-soft:#3A2814; --ground:#55C3CC; --ground-soft:#12313A;
+  --bug:#F2786E; --bug-soft:#3D1A18; --new:#93A9F0; --new-soft:#1D2747; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:16px/1.5 var(--f-body);margin:0}
+.wrap{max-width:1100px;margin:0 auto;padding-inline:16px;padding-block:28px 80px}
+h1,h2{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.15}
+h1{font-size:clamp(1.9rem,4.5vw,2.8rem);font-weight:700;letter-spacing:-.01em}
+h2{font-size:1.4rem;font-weight:700}
+code,.mono{font-family:var(--f-mono);font-size:.84em}
+.eyebrow{font:600 .74rem/1 var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.lede{max-width:68ch;color:var(--muted);margin:.6rem 0 0}
+.meta{display:flex;flex-wrap:wrap;gap:.3rem 1.2rem;color:var(--muted);font-size:.92rem;margin-top:.8rem}
+.meta a{color:var(--accent)}
+.meta b{color:var(--ink);font-variant-numeric:tabular-nums}
+
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line);margin-top:22px;padding-block:10px;display:flex;flex-wrap:wrap;gap:8px 10px;align-items:center}
+.bar input[type=search]{flex:1 1 220px;min-width:0;font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink)}
+.chip,.btn{font:600 .8rem/1 var(--f-mono);padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.chip[aria-pressed=true]{background:var(--ground-soft);border-color:var(--ground);color:var(--ink)}
+.chip.bugchip[aria-pressed=true]{background:var(--bug-soft);border-color:var(--bug)}
+.btn:hover,.chip:hover{border-color:var(--muted)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.count{color:var(--muted);font-size:.86rem;margin-left:auto;font-variant-numeric:tabular-nums}
+
+section.phase{margin-top:34px}
+section.phase>header{display:flex;flex-direction:column;gap:4px;margin-bottom:10px}
+section.phase>header p{margin:0;color:var(--muted);max-width:74ch;font-size:.94rem}
+.tree,.tree ul{list-style:none;margin:0;padding:0}
+.tree ul{margin-left:14px;padding-left:14px;border-left:1px solid var(--line)}
+.node{margin:0}
+.node>details>summary,.node>.leaf{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 8px;padding:6px 8px;border-radius:8px;cursor:pointer;list-style:none;min-width:0}
+.node>.leaf{cursor:default}
+.node>details>summary::-webkit-details-marker{display:none}
+.node>details>summary:hover{background:var(--sunk)}
+.twist{flex:none;width:1.1em;color:var(--muted);font-family:var(--f-mono);transition:transform .12s}
+details[open]>summary .twist{transform:rotate(90deg)}
+.leaf .twist{opacity:.35}
+.id{font:600 .8rem/1 var(--f-mono);color:var(--ground);white-space:nowrap}
+.title{flex:1 1 20ch;min-width:0;overflow-wrap:anywhere}
+.tag{font:600 .66rem/1 var(--f-mono);letter-spacing:.06em;text-transform:uppercase;padding:3px 6px;border-radius:5px;white-space:nowrap}
+.tag.bug{background:var(--bug-soft);color:var(--bug)}
+.tag.p0,.tag.p1{background:var(--ground-soft);color:var(--ground)}
+.tag.p2{background:var(--new-soft);color:var(--new)}
+.tag.p3,.tag.p3p{background:var(--accent-soft);color:var(--accent)}
+.tag.n{background:var(--sunk);color:var(--muted)}
+.also{flex-basis:100%;margin-left:1.6em;font-size:.82rem;color:var(--muted)}
+.also a{color:var(--accent);font-family:var(--f-mono);font-size:.9em;text-decoration:none;border-bottom:1px dotted var(--accent)}
+.note{flex-basis:100%;margin-left:1.6em;font-size:.86rem;color:var(--muted);max-width:90ch}
+.note a{color:var(--accent)}
+.node.hit>details>summary,.node.hit>.leaf{background:var(--accent-soft)}
+.node.flash>details>summary,.node.flash>.leaf{outline:2px solid var(--accent)}
+.empty{color:var(--muted);padding:12px 0}
+@media (max-width:520px){.tree ul{margin-left:6px;padding-left:8px}}
+@media (prefers-reduced-motion:reduce){.twist{transition:none}}
+</style>
+<body>
+<div class="wrap">
+<header>
+  <div class="eyebrow">planetGen · open work</div>
+  <h1>TODO Tree</h1>
+  <p class="lede">Every open item sits under the prerequisite that finishes last, so a branch reads from "can start now" down through what each step unblocks. Items with several prerequisites list the others under their title; click one to jump to it.</p>
+  <div class="meta" id="meta"></div>
+  <div class="meta"><a href="https://claude.ai/artifact/UFM7fnjRrv9TRhJNhvnbF2">Tier plan</a><a href="https://claude.ai/artifact/RndQ2NzUi9ptWe9B3ECF1a">Every ID explained</a></div>
+</header>
+<div class="bar">
+  <input type="search" id="q" placeholder="Search IDs, titles and notes" aria-label="Search">
+  <span id="phasechips" role="group" aria-label="Phase" style="display:flex;flex-wrap:wrap;gap:6px"></span>
+  <button class="chip bugchip" id="bugs" aria-pressed="false">Bugs only</button>
+  <button class="btn" id="expand">Expand all</button>
+  <button class="btn" id="collapse">Collapse all</button>
+  <span class="count" id="count"></span>
+</div>
+<main id="out"></main>
+</div>
+<script type="application/json" id="data">__DATA__</script>
+<script>
+const D=JSON.parse(document.getElementById('data').textContent);
+const items=D.items, ids=Object.keys(items);
+const phaseOf=i=>String(items[i].phase||'');
+const idKey=s=>{const [c,n]=s.split('.');return [c,+n]};
+const cmp=(a,b)=>{const x=idKey(a),y=idKey(b);return x[0]<y[0]?-1:x[0]>y[0]?1:x[1]-y[1]};
+const phaseOrder=['0','1','2','3','3+'];
+const pr=i=>{const k=phaseOrder.indexOf(phaseOf(i));return k<0?9:k};
+
+// depth = longest chain of open prerequisites below an item
+const depth={};
+function dep(i,seen=new Set()){
+  if(i in depth) return depth[i];
+  if(seen.has(i)) return 0;
+  seen.add(i);
+  const ds=(items[i].deps||[]).filter(d=>d in items);
+  return depth[i]=ds.length?1+Math.max(...ds.map(d=>dep(d,seen))):0;
+}
+ids.forEach(i=>dep(i));
+// tree parent = the prerequisite with the greatest depth (ties: highest phase, then lowest ID)
+const parent={}, kids={};
+ids.forEach(i=>{
+  const ds=(items[i].deps||[]).filter(d=>d in items);
+  if(!ds.length) return;
+  ds.sort((a,b)=>depth[b]-depth[a]||pr(b)-pr(a)||cmp(a,b));
+  parent[i]=ds[0];
+  (kids[ds[0]]=kids[ds[0]]||[]).push(i);
+});
+Object.values(kids).forEach(a=>a.sort((a,b)=>pr(a)-pr(b)||cmp(a,b)));
+const roots=ids.filter(i=>!(i in parent)).sort((a,b)=>cmp(a,b));
+const descendants={};
+function desc(i){
+  if(i in descendants) return descendants[i];
+  return descendants[i]=(kids[i]||[]).reduce((n,k)=>n+1+desc(k),0);
+}
+ids.forEach(desc);
+
+const state={q:'',bugs:false,phases:new Set(phaseOrder)};
+const el=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
+const tagFor=p=>{const e=el('span','tag '+(p==='3+'?'p3p':'p'+p),p?'P'+p:'?');e.title='Phase '+p;return e};
+const matches=i=>{
+  const it=items[i];
+  if(state.bugs&&!it.bug) return false;
+  if(!state.phases.has(phaseOf(i))) return false;
+  if(state.q){
+    const q=state.q.toLowerCase();
+    if(!(i.toLowerCase().includes(q)||it.title.toLowerCase().includes(q)||(it.note||'').toLowerCase().includes(q))) return false;
+  }
+  return true;
+};
+const filtering=()=>state.q||state.bugs||state.phases.size<phaseOrder.length;
+let shown=0;
+function visible(i){ // item matches, or something under it does
+  return matches(i)||(kids[i]||[]).some(visible);
+}
+function nodeFor(i,forceOpen){
+  const it=items[i], li=el('li','node'); li.id='n-'+i;
+  const k=(kids[i]||[]).filter(visible);
+  const head=k.length?el('summary'):el('div','leaf');
+  head.append(el('span','twist',k.length?'▸':'·'),el('span','id',i),el('span','title',it.title));
+  if(it.bug) head.append(el('span','tag bug','bug'));
+  head.append(tagFor(phaseOf(i)));
+  if(descendants[i]) head.append(el('span','tag n','unblocks '+descendants[i]));
+  const others=(it.deps||[]).filter(d=>d!==parent[i]&&d in items);
+  if(others.length){
+    const a=el('span','also','also needs ');
+    others.forEach((d,n)=>{const l=el('a',null,d);l.href='#n-'+d;l.title=items[d].title;l.addEventListener('click',e=>{e.preventDefault();jump(d)});a.append(l);if(n<others.length-1)a.append(', ')});
+    head.append(a);
+  }
+  if(it.note){
+    const n=el('span','note');
+    const re=/\[([^\]]+)\]\((https:\/\/[^)\s]+)\)/g;
+    let last=0,m;
+    while((m=re.exec(it.note))){
+      n.append(it.note.slice(last,m.index));
+      const l=el('a',null,m[1]);l.href=m[2];l.target='_blank';l.rel='noopener';n.append(l);
+      last=m.index+m[0].length;
+    }
+    n.append(it.note.slice(last));
+    head.append(n);
+  }
+  if(matches(i)&&filtering()) li.classList.add('hit');
+  if(matches(i)) shown++;
+  if(!k.length){li.append(head);return li}
+  const d=el('details'); if(forceOpen||filtering()) d.open=true;
+  d.append(head);
+  const ul=el('ul'); k.forEach(c=>ul.append(nodeFor(c,forceOpen))); d.append(ul);
+  li.append(d); return li;
+}
+function render(){
+  shown=0;
+  const out=document.getElementById('out'); out.replaceChildren();
+  const byPhase={};
+  roots.filter(visible).forEach(r=>(byPhase[phaseOf(r)]=byPhase[phaseOf(r)]||[]).push(r));
+  D.phases.forEach(p=>{
+    const rs=byPhase[p.key]; if(!rs) return;
+    const sec=el('section','phase'), h=el('header');
+    h.append(el('div','eyebrow','Starts in phase '+p.key),el('h2',null,p.title.replace(/^Phase [^:]*:\s*/,'')));
+    sec.append(h);
+    const ul=el('ul','tree'); rs.forEach(r=>ul.append(nodeFor(r))); sec.append(ul); out.append(sec);
+  });
+  if(!out.children.length) out.append(el('p','empty','Nothing matches.'));
+  document.getElementById('count').textContent=shown+' of '+ids.length+' items';
+}
+function jump(i){
+  state.q='';state.bugs=false;state.phases=new Set(phaseOrder);syncControls();render();
+  let n=document.getElementById('n-'+i); if(!n) return;
+  for(let p=n.parentElement;p;p=p.parentElement) if(p.tagName==='DETAILS') p.open=true;
+  n.scrollIntoView({block:'center'});
+  n.classList.add('flash'); setTimeout(()=>n.classList.remove('flash'),1600);
+}
+function syncControls(){
+  document.getElementById('q').value=state.q;
+  document.getElementById('bugs').setAttribute('aria-pressed',state.bugs);
+  document.querySelectorAll('#phasechips .chip').forEach(c=>c.setAttribute('aria-pressed',state.phases.has(c.dataset.p)));
+}
+const chips=document.getElementById('phasechips');
+phaseOrder.filter(p=>D.phases.some(x=>x.key===p)&&ids.some(i=>phaseOf(i)===p)).forEach(p=>{
+  const b=el('button','chip','P'+p); b.dataset.p=p; b.setAttribute('aria-pressed','true');
+  b.addEventListener('click',()=>{state.phases.has(p)?state.phases.delete(p):state.phases.add(p);syncControls();render()});
+  chips.append(b);
+});
+document.getElementById('q').addEventListener('input',e=>{state.q=e.target.value.trim();render()});
+document.getElementById('bugs').addEventListener('click',()=>{state.bugs=!state.bugs;syncControls();render()});
+document.getElementById('expand').addEventListener('click',()=>document.querySelectorAll('#out details').forEach(d=>d.open=true));
+document.getElementById('collapse').addEventListener('click',()=>document.querySelectorAll('#out details').forEach(d=>d.open=false));
+const nb=ids.filter(i=>items[i].bug).length, ready=roots.length;
+document.getElementById('meta').innerHTML=
+  '<span><b>'+ids.length+'</b> open items</span><span><b>'+nb+'</b> bugs</span><span><b>'+ready+'</b> with nothing to wait for</span><span>'+D.generated+'</span>';
+render();
+</script>
+</html>

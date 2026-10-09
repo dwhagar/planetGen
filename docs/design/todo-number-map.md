@@ -13,14 +13,14 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.76 |
-| MAP | MAP.135 |
+| UX | UX.78 |
+| MAP | MAP.144 |
 | NAV | NAV.52 |
-| GEN | GEN.127 |
-| PERF | PERF.31 |
-| DB | DB.15 |
+| GEN | GEN.131 |
+| PERF | PERF.35 |
+| DB | DB.16 |
 | API | API.20 |
-| ADM | ADM.39 |
+| ADM | ADM.46 |
 | SEC | SEC.32 |
 | TEST | TEST.110 |
 | USR | USR.9 |
@@ -427,6 +427,13 @@ Parents marked "new parent" had no old number of their own.
 | ADM.36 | Change an object's trajectory vector | none | open |
 | ADM.37 | The Generate page's prevalence fields show "0% change" instead of each feature's real share (bug) | none | done, PR #514 |
 | ADM.38 | Worker exceptions fail on Python 3.9 because _picklable_error calls Exception.add_note, which needs 3.11 (bug) | none | done, PR #627 |
+| ADM.39 | Running queue jobs show an ETA (bug) | none | open |
+| ADM.40 | The Generate page stops reporting a lost connection (bug) | none | open |
+| ADM.41 | Every job is easy to find and cancel in the web queue, and past jobs are paginated and clean (bug) | none | open |
+| ADM.42 | One settings model describes every config.json option | none | open |
+| ADM.43 | A full configuration page under Admin | none | open |
+| ADM.44 | Web, Open Graph and SEO settings | none | open |
+| ADM.45 | Prevalence fields take the override share directly and must total 100% | none | open |
 | API.1 | Create a system inside an existing sector | 10 (2026-09-24 01:32Z to 02:18Z); 7 (2026-09-24 01:57Z to 02:02Z); 5 (2026-09-24 02:25Z to 05:38Z); 4 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 13 (2026-09-30 16:44Z); 14 (2026-09-30 16:49Z); 15 (2026-09-30 16:51Z to 18:09Z); 32 (2026-09-30 18:14Z); 37 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.2 | Edit a system's generated content | 11 (2026-09-24 01:32Z to 02:18Z); 8 (2026-09-24 01:57Z to 02:02Z); 6 (2026-09-24 02:25Z to 05:38Z); 5 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 14 (2026-09-30 16:44Z); 15 (2026-09-30 16:49Z); 16 (2026-09-30 16:51Z to 18:09Z); 33 (2026-09-30 18:14Z); 38 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.3 | Remote generate: generate on a local machine, upload through the API | none | open |
@@ -460,6 +467,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.12 | MariaDB reads a stored -0.0 back as +0.0 (bug) | none | done, PR #442 |
 | DB.13 | Every stored value in its own column, not in JSON blocks, and indexed for search | none | done, PR #766 |
 | DB.14 | Sector stats keep the raw star statistics (mean age, summed luminosity, star count) and no baked color | none | done, PR #556 |
+| DB.15 | A migration progress bar with the time remaining | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
@@ -587,8 +595,12 @@ Parents marked "new parent" had no old number of their own.
 | GEN.122 | Orbital elements for planets, moons and comets, kept in step with the state vector | none | done, PR #741 |
 | GEN.123 | The projected path of a body through a sector, saved as a spline | none | done, PR #762 |
 | GEN.124 | Every object knows its sector address (ring, layer, slot), recalculated whenever its position changes | none | done, PR #729 |
-| GEN.125 | Stand-alone facilities store a velocity | none | open |
+| GEN.125 | Stand-alone facilities store a velocity | none | done, PR #782 |
 | GEN.126 | Run an orbital update as the last step of a generation run | none | done, PR #771 |
+| GEN.127 | A sector generated around a backfilled bright star gives that star a planetary system (bug) | none | open |
+| GEN.128 | Design: multi-star hierarchies and compact-object primaries | none | open |
+| GEN.129 | Multi-star systems of up to seven stars | none | open |
+| GEN.130 | Exotic star systems: a black hole, neutron star or similar at the center | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -677,7 +689,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.86 | Sector and block colors from what is in them: filled sectors translucent (bug) | none | done, PR #432 |
 | MAP.87 | Stars on the Sector Map and Galaxy Map need to be brighter, most of all the dim ones (bug) | none | done, PR #351 |
 | MAP.88 | Parts of a star system run off the edge of the System Map (bug) | none | done, PR #405 |
-| MAP.89 | System Map: space orbits with a fitted scale and a minimum ring gap instead of plain log | none | open |
+| MAP.89 | System Map: space orbits with a fitted scale and a minimum ring gap instead of plain log | none | closed as done (Boss, 2026-10-09) |
 | MAP.90 | The tile-level helper crashes on a subnormal view radius (bug) | none | done, PR #365 |
 | MAP.91 | Hovering the map while picking a slab highlights the whole slab, not one cube | none | done, PR #395 |
 | MAP.92 | The System Map's side panel leaves out a planet's or moon's radius and mass (bug) | none | done, PR #405 |
@@ -723,6 +735,15 @@ Parents marked "new parent" had no old number of their own.
 | MAP.124 | The Galaxy Map opens zoomed to fit all charted space | none | done, PR #696 |
 | MAP.125 | Infinite zoom: one 3D interface from the galaxy down to a moon | none | done, PR #683 |
 | MAP.126 | Show the orbital trajectories of selected objects in their frame of reference | none | done, PR #686 |
+| MAP.135 | Selecting the first slab or wedge shows its bounds (bug) | none | done, PR #788 |
+| MAP.136 | Binary stars pick as one system and their 3D orbits are drawn clearly (bug) | none | open |
+| MAP.137 | Rogue planets are easy to see, with the right default filters (bug) | none | open |
+| MAP.138 | Recenter the camera in every 3D view (bug) | none | open |
+| MAP.139 | The Galaxy View uses its spare space: an info box with a Details link, and menu items | none | open |
+| MAP.140 | Double-click on a selected object goes there and opens its information | none | open |
+| MAP.141 | Context around the selection: faint neighbours, and the sectors above and below | none | open |
+| MAP.142 | Nebulae have fuzzy, fading boundaries | none | open |
+| MAP.143 | Color sectors by their number of habitable locations | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
@@ -831,6 +852,10 @@ Parents marked "new parent" had no old number of their own.
 | PERF.28 | The console's second progress bar (the bright-star backfill after a sector run) never updates its ETA (bug) | none | done, PR #454 |
 | PERF.29 | Record which runs a partly filled sector still needs | none | open |
 | PERF.30 | Finish an interrupted block or sector run on the next start | none | open |
+| PERF.34 | The site stays responsive during heavy generation jobs (bug) | none | open |
+| PERF.31 | Investigate: where generation spends its time, from the plan to a finished galaxy | none | open |
+| PERF.32 | Generation performance stats: rates recorded per run, deleted on every new version | none | open |
+| PERF.33 | Progress bars and ETAs from measured performance | none | open |
 | POP.1 | Government ownership of systems | 12 (2026-09-24 01:32Z to 02:18Z); 9 (2026-09-24 01:57Z to 02:02Z); 7 (2026-09-24 02:25Z to 05:38Z); 6 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 15 (2026-09-30 16:44Z); 16 (2026-09-30 16:49Z); 17 (2026-09-30 16:51Z to 18:09Z); 34 (2026-09-30 18:14Z); 39 (2026-09-30 18:39Z to 18:41Z); 59 (2026-09-30 19:02Z to 19:17Z); 63 (2026-09-30 20:01Z to 20:27Z); 46 (2026-09-30 20:07Z); 50 (2026-09-30 20:08Z to 20:48Z); 51 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 (optional since 7.58.2, PR #180) |
 | POP.2 | Names for dominant species on living worlds | 13 (2026-09-24 01:32Z to 02:18Z); 10 (2026-09-24 01:57Z to 02:02Z); 8 (2026-09-24 02:25Z to 05:38Z); 7 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 16 (2026-09-30 16:44Z); 17 (2026-09-30 16:49Z); 18 (2026-09-30 16:51Z to 18:09Z); 35 (2026-09-30 18:14Z); 40 (2026-09-30 18:39Z to 18:41Z); 60 (2026-09-30 19:02Z to 19:17Z); 64 (2026-09-30 20:01Z to 20:27Z); 47 (2026-09-30 20:07Z); 51 (2026-09-30 20:08Z to 20:48Z); 52 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
 | POP.3 | Database of spacefaring species | 14 (2026-09-24 01:32Z to 02:18Z); 11 (2026-09-24 01:57Z to 02:02Z); 9 (2026-09-24 02:25Z to 05:38Z); 8 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 17 (2026-09-30 16:44Z); 18 (2026-09-30 16:49Z); 19 (2026-09-30 16:51Z to 18:09Z); 36 (2026-09-30 18:14Z); 41 (2026-09-30 18:39Z to 18:41Z); 61 (2026-09-30 19:02Z to 19:17Z); 65 (2026-09-30 20:01Z to 20:27Z); 48 (2026-09-30 20:07Z); 52 (2026-09-30 20:08Z to 20:48Z); 53 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
@@ -956,6 +981,8 @@ Parents marked "new parent" had no old number of their own.
 | UX.73 | Sector wiki link form on the Admin hub | none | done, PR #632 |
 | UX.74 | Generate page shows an empty Current job card | none | done, PR #617 |
 | UX.75 | Admin menus on the sector and phenomenon pages sit in the page body, not the action bar | none | done, PR #679 |
+| UX.76 | Icons and highlights follow the light and dark theme (bug) | none | open |
+| UX.77 | The class list is alphabetized (bug) | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |

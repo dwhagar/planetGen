@@ -113,8 +113,8 @@ that files it.
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
 | 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 is done (PR #476); GEN.117, and GEN.116 is closed (Boss 2026-10-08 17:46Z). |  |
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.41, GEN.98, GEN.100, GEN.99, GEN.101, GEN.102, GEN.103, GEN.84, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, GEN.94, GEN.104, GEN.106, GEN.107, GEN.108, NAV.10, NAV.12, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, NAV.43, NAV.44, MAP.119, MAP.122, MAP.89, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, OPS.8, OPS.13, OPS.14, ADM.18, GEN.59, UX.49 |
-| 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, API.16, ADM.17, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.41, GEN.98, GEN.100, GEN.99, GEN.101, GEN.102, GEN.103, GEN.84, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, GEN.94, GEN.104, GEN.106, GEN.107, GEN.108, NAV.10, NAV.12, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, NAV.43, NAV.44, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, OPS.8, OPS.13, OPS.14, ADM.18, GEN.59, UX.49, UX.76, UX.77, MAP.136, MAP.137, MAP.138, ADM.39, ADM.40, ADM.41, PERF.34, GEN.127, PERF.31, PERF.32, GEN.128, ADM.42 |
+| 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, API.16, ADM.17, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18, PERF.33, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, DB.15, ADM.43, ADM.44 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, repair that reads the newest settings JSON, and the anomalies chosen in phase 2. | NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, DB.10, ADM.20, GEN.114, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies, and the end state of reproducible galaxies (`generate.py reproduce`). | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, OPS.12, GEN.55 |
 
@@ -323,62 +323,26 @@ with `clamp()`.
     outline highlighted.
     Prerequisite: UX.47.
 
+- [ ] **UX.76 Icons and highlights follow the light and dark theme (bug)**
+  Boss (GitHub issue [#706](https://github.com/dwhagar/planetGen/issues/706), 2026-10-09 00:13Z): "Make sure to adapt your
+  icons for dark or light mode, same with highlights and such. Some of
+  the buttons highlight dark with dark text and the new icons are dark
+  in dark mode." Done: every icon, and every button state (hover, focus,
+  pressed, selected), reads against its background in both themes; icons
+  take their colour from the theme (currentColor) instead of a fixed
+  fill; a browser test opens the main pages in both themes and checks
+  text at 4.5:1 and icons at 3:1 against their backgrounds.
+
+- [ ] **UX.77 The class list is alphabetized (bug)**
+  Boss (GitHub issue [#681](https://github.com/dwhagar/planetGen/issues/681), 2026-10-08 22:33Z): "The list of class
+  categories should be alphabetized." Done: everywhere the site lists
+  planet class categories (filters, search facets, legends, the class
+  pages), they are in alphabetical order, with a test on the shared
+  helper that builds them.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
-
-- [ ] **MAP.89 System Map: space orbits with a fitted scale and a minimum ring gap instead of plain log**
-  Boss (2026-10-02 00:45Z): "investigate different ways to space orbits
-  visually, right now we use logarithmic spacing because of the vast
-  distances involved, but investigate other methods of spacing to make
-  better use of the visual space and make more visual sense to someone
-  looking at it. Then pick the best option and add the plan to the
-  TODO.md file." Today `lib/systemmap.py` places every orbit on one log
-  scale per scene (`_radial_scale_bounds`, `_radial_px`: `55 + frac *
-  280` px in a 700 px square), used for planets, belt edges
-  (`_belt_band`), close-binary stars, facilities and moon scenes, and
-  `static/systemmap.js` `kmToPx()` repeats the formula for the Measure
-  distance route. In a study of 240 generated systems, 13 methods were
-  scored (the "Orbit spacing options" thread; plan and comparison
-  renders in the project's shared files under `orbit-spacing/`). Plain
-  log leaves the tightest ring gap at a median 2.4 px, with 27% of gaps
-  under 6 px. Square root, cube root and linear knot the inner planets
-  together. Even (rank) spacing throws distance away. Frost-line zones
-  leave half the map empty. Chosen: a fitted scale with a gap floor,
-  which gives a median tightest gap of 11.3 px with 15% under 6 px, and
-  keeps big real gaps looking big better than log does.
-  1. Fit the scale per scene: power curves from linear (p = 1) down to
-     log (p = 0) between today's `lo`/`hi` bounds; pick the most linear
-     one that needs the gap floor on no more than a quarter of its ring
-     gaps (compact systems go linear, huge-span systems stay log).
-  2. Gap floor: any gap between neighboring rings (orbits, belt edges,
-     close-binary star rings) under 12 px widens to 12 px, and the other
-     gaps shrink in proportion so everything fits; with too many orbits
-     for 12 px each, the floor drops to 60% of an even share.
-  3. One mapping for everything: a list of knots (km, px), interpolated
-     in log km between knots, written onto the scene (for example
-     `data-knots`) so `kmToPx()` reads it instead of its own log formula.
-  Order, real angles and "farther out is drawn farther out" don't
-  change. Done:
-  - `_radial_scale_bounds`/`_radial_px` are replaced by the fitted scale
-    with the gap floor, in the system scene, both wide-binary scenes and
-    moon scenes.
-  - Belts, facilities and close-binary star placement use the same
-    mapping; no orbit is drawn inside a belt ring (MAP.49's test still
-    passes).
-  - `systemmap.js` `kmToPx()` reads the scene's knots; the measure route
-    still meets marker centers and bends around bodies as today.
-  - The panel hint stops saying "log-scaled distance" (for example
-    "distance scaled to fit, order and angle true").
-  - Tests: the scale only increases with distance; no neighboring-ring
-    gap under 12 px when the orbits allow it; a compact system gets
-    p = 1; a huge-span system falls back to log; JavaScript and Python
-    give the same pixel radius for the same knots.
-  - Before and after screenshots of the six system types in the study.
-  Builds on MAP.88 (fit the whole drawn system inside the frame; done,
-  PR #405) in the same `lib/systemmap.py`, and keeps that fit working. Decided (Boss, 2026-10-02 01:01Z: "I agree, we'll go
-  with fitted for the orbital spacing in MAP.89"): fitted scale with the
-  12 px minimum ring gap, and no "fitted / even" spacing toggle.
 
 - [ ] **MAP.59 Make it plain that a zoomed-in slab is a slab, not a wedge**
   Boss (2026-10-01 20:45Z): "We need to make it clearer, when we've
@@ -519,6 +483,95 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   each kind can be turned off (MAP.123), and a browser test finds one of
   each on a seeded sector.
   Prerequisite: GEN.84.
+
+- [ ] **MAP.136 Binary stars pick as one system and their 3D orbits are drawn clearly (bug)**
+  Boss (GitHub issues [#709](https://github.com/dwhagar/planetGen/issues/709) and [#708](https://github.com/dwhagar/planetGen/issues/708), 2026-10-09 00:16Z): "In binary star
+  selection from the galaxy or sector view, you should only be able to
+  select the binary star system rather than individual stars" and "In 3D
+  view some binary star orbital paths make it look like they are going
+  to crash into each other. Particularly with a large star and a small
+  companion. Make sure it is rendered correctly and clearly." Done: on
+  the Galaxy and Sector Maps a binary or multiple system is one pickable
+  object (its stars are picked only inside the system view); in the 3D
+  system view the two orbits are drawn around the barycentre at their
+  true ratio of radii, with the sizes of the stars kept apart from the
+  orbit lines, so a large star with a small companion no longer looks
+  like a collision course; a test checks that the drawn orbits of a
+  close pair never intersect.
+
+- [ ] **MAP.137 Rogue planets are easy to see, with the right default filters (bug)**
+  Boss (GitHub issue [#705](https://github.com/dwhagar/planetGen/issues/705), 2026-10-09 00:04Z): "Rogue planet filter
+  should start off and stars should start 'on'. Secondly, when rogue
+  plants are shown we need to artificially make them more visible by
+  making them bright enough to see or maybe given them an aura or
+  outline, something that shows the user where they are." Done: in every
+  view that can show rogue planets (MAP.116 keeps them off the Galaxy
+  Map, so this means the Sector and System views) the rogue planet
+  filter starts off and the star filter starts on; when rogue planets
+  are turned on each is drawn with a visible marker (a brightness floor,
+  an outline or an aura) so it can be found at any zoom; a browser test
+  covers the defaults and the marker.
+
+- [ ] **MAP.138 Recenter the camera in every 3D view (bug)**
+  Boss (GitHub issue [#699](https://github.com/dwhagar/planetGen/issues/699), 2026-10-08 23:44Z): "We need the ability to
+  manually recenter a camera in all 3D views, so that we can zoom in and
+  out of what we want without playing with weird angles from the
+  center." and his comment: "Center for keyboard controls should move
+  the center for mouse movement." Done: every 3D view (Galaxy, Sector,
+  System, nebula) has a Recenter control and a key that puts the
+  camera's orbit center on the selection or the view's middle; moving
+  the center with the keyboard moves the center the mouse orbits and
+  zooms around, so there is one center for both; a browser test pans
+  with the keyboard and then orbits with the mouse around the new
+  center.
+
+- [ ] **MAP.139 The Galaxy View uses its spare space: an info box with a Details link, and menu items**
+  Boss (GitHub issues [#758](https://github.com/dwhagar/planetGen/issues/758) and [#715](https://github.com/dwhagar/planetGen/issues/715)): "there's a lot of wasted space
+  that I want to fill up with something useful, maybe menu items? Maybe
+  information about what is selected?" and "A simple information box
+  should appear overlaid on the map when there is room that displays the
+  basics. Then a details link will jump you to the part of the page the
+  details are listed on." Done: on a wide Galaxy View the space beside
+  the map holds the selection's basics and the map's Menu items; where
+  there is room on the map itself a small info box shows the basics with
+  a Details link that scrolls to the full details; it builds on MAP.65's
+  shared panel.
+
+- [ ] **MAP.140 Double-click on a selected object goes there and opens its information**
+  Boss (GitHub issue [#714](https://github.com/dwhagar/planetGen/issues/714), 2026-10-09 00:26Z): "Double clicking on a
+  selected object goes there and pulls up its information." Done: on
+  every map a double-click on the selected object moves the view to it
+  (the next stage down, or the object's page) and opens its information;
+  the single click keeps selecting; a browser test covers it on the
+  Galaxy, Sector and System views.
+
+- [ ] **MAP.141 Context around the selection: faint neighbours, and the sectors above and below**
+  Boss (GitHub issues [#718](https://github.com/dwhagar/planetGen/issues/718) and [#716](https://github.com/dwhagar/planetGen/issues/716)): "When selecting a slab we should
+  still be able to see what is behind it and around it faintly just like
+  in the other views" and "When viewing a sector you should also be able
+  to see what is above and below it in the same style as what is around
+  it, and the ability to select the sector below it. Also remember not
+  to put sector clicking on the absolute boundaries of the galaxy."
+  Done: while a slab, block or sector has focus, the objects around it
+  are drawn faintly in every direction, including the sectors above and
+  below, which can be selected; no click lands on the galaxy's absolute
+  boundary. Issue #716 was labelled bug but is a new view, so it sits
+  here.
+
+- [ ] **MAP.142 Nebulae have fuzzy, fading boundaries**
+  Boss (GitHub issue [#713](https://github.com/dwhagar/planetGen/issues/713), 2026-10-09 00:25Z): "Can we make the nebula
+  boundaries fuzzy and kind of fade a bit so it looks more gaseous?"
+  Done: nebulae drawn from their shape (GEN.75) fade out toward the edge
+  with a soft falloff instead of a hard outline, in the Galaxy, Sector
+  and nebula views, and the falloff keeps the nebula's extent readable.
+
+- [ ] **MAP.143 Color sectors by their number of habitable locations**
+  Boss (GitHub issue [#717](https://github.com/dwhagar/planetGen/issues/717), 2026-10-09 00:44Z): "Coloring option
+  available for sectors based on the number of habitable locations."
+  Done: the Galaxy Map's Color by switch (MAP.131) gains a Habitable
+  worlds choice that colours each sector and block by how many planets
+  and moons score as habitable, with a legend; it needs the habitability
+  score of GEN.89 and the sector stats to hold the count.
 
 ## NAV: Navigation and courses
 
@@ -811,9 +864,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   position indexes speed it up later if they land first. The old
   `systems/<id>/near` endpoint keeps working, answered by the new query.
   Tests: a known neighborhood returns exactly the objects inside the
-  sphere, sorted, across a sector boundary. Open questions for Boss,
-  with the defaults taken: the largest distance allowed (default 50 pc, about
-  8,000 sectors at 4 pc a side); whether ungenerated sectors inside the
+  sphere, sorted, across a sector boundary. Boss decided the largest
+  distance allowed is 50 pc (about 8,000 sectors at 4 pc a side). Open questions
+  for Boss, with the defaults taken: whether ungenerated sectors inside the
   sphere are reported (default: listed once as a count of sectors "not
   generated yet", never generated by the search); and whether only
   generated objects count (default yes). Prerequisite: NAV.7.
@@ -840,7 +893,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   opens NAV.44 with that place filled in. Optional (default left out
   unless Boss asks): the map draws the search sphere and highlights the
   objects inside it. It uses MAP.65's shared control panel and NAV.15's picking of
-  any object on the maps. Prerequisite: NAV.44.
+  any object on the maps. GitHub issue [#677](https://github.com/dwhagar/planetGen/issues/677) (Boss, 2026-10-08 22:24Z): "Add search options so that when I select a star from anywhere I can take it directly to the search tab to search for items / objects within x distance of that point. Should work for stars, phenomena, even planets and moons." So the action is offered for any pickable object, down to planets and moons (NAV.15), and the result lists every kind.
+  Prerequisite: NAV.44.
 
 - [ ] **NAV.47 Unknown-space jumps stop at scattered stars, black holes, neutron stars and quasars**
   Boss (2026-10-03 05:38Z): "navigational jump path (system to system)
@@ -1152,9 +1206,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     The galaxy-wide layer scatter is not split by band, because that was
     5x slower (8.8 s against 1.7 s a layer), so a galaxy-wide
     `--bright-stars-down-to` band is statistically equal to one deep
-    scatter but not star for star. Open question for Boss: is that good
-    enough, or must the layer scatter be star-identical too (at that
-    cost)? Default: statistically equal.
+    scatter but not star for star. Boss decided that statistically
+    equal is good enough; the layer scatter need not be star-identical.
     Prerequisite: GEN.56.
     Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
     Plan (2026-10-07): Name collisions disappear with GEN.67 (names come
@@ -1663,6 +1716,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   fill time, since scattering them would mean about 1.3 billion rows.
 
 - [ ] **GEN.101 Fill order: nearest sectors first along a pruned Hilbert octree curve**
+  Boss (2026-10-07 17:11Z) approved keeping the Hilbert order, with a
+  logged jump where the ball cuts the curve.
   Boss (2026-10-07 11:47Z): "Change fill algorithm to fill sectors
   nearest to the original sector first, circling outward using a
   geometric 3D space-filling curve via a pruned Hilbert octree over the
@@ -1707,16 +1762,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   cascade (tidal locking, gyrochronology for cool stars, log-normal
   speeds under the breakup limit for hot ones, the 2.2-hour spin barrier
   for small bodies, black hole spin distributions).
-  Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
-
-- [ ] **GEN.125 Stand-alone facilities store a velocity**
-  Asked by the physics build thread after PR #735 (GEN.121 left them
-  out): a stand-alone facility (one not attached to a star's system)
-  follows the galaxy's rotation curve in `advance_galactic_positions`
-  but stores no velocity. Give it the same stored galactic velocity and
-  epoch that stars and systems have, filled at generation and refreshed
-  when positions advance, so every object carries a vector.
-  Build thread (not a lane).
   Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
 
 - [ ] **GEN.105 Orbital updates**
@@ -1780,6 +1825,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
 
   - [ ] **GEN.115 The galaxy's own gravity: a smooth disk, bulge and halo potential**
+    Boss (2026-10-07 17:11Z) approved scaling the potential with the
+    galaxy's shape.
     Boss (2026-10-07 12:25Z): "We'll have to add a galactic gravitational
     gradient but we need to make sure that it's consistent with actual
     science." His research ("Computational Astrodynamics.md") gives the
@@ -1872,6 +1919,47 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   maps and searchable, one kind per PR.
   Prerequisite: GEN.113.
 
+- [ ] **GEN.127 A sector generated around a backfilled bright star gives that star a planetary system (bug)**
+  Boss (GitHub issue [#513](https://github.com/dwhagar/planetGen/issues/513), 2026-10-08 00:34Z): "When a star is filled in
+  for brightness and a sector is generated around it it should get a
+  whole system. Right now when the sector generates it does not generate
+  a planetary system around stars already present." Done: generating a
+  sector that already holds a bright star from the backfill gives that
+  star its planets, belts and moons like any other, and a test fills a
+  bright star, generates its sector and checks for a full system. Check
+  first whether GEN.72 (PR #657) already changed this.
+
+- [ ] **GEN.128 Design: multi-star hierarchies and compact-object primaries**
+  Boss (GitHub issues [#777](https://github.com/dwhagar/planetGen/issues/777) and [#778](https://github.com/dwhagar/planetGen/issues/778), 2026-10-09 06:43Z): "scientifically
+  accurate star systems with up to 7 stars, this is going to be complex
+  but that is the highest number of stars we've seen in orbit around
+  each other" and "exotic star systems that have black holes, neutron
+  stars, or similar as the central star for systems, binary systems."
+  Done: a design note in docs/design covers how a hierarchy of up to
+  seven stars is stored (a tree of pairs, each pair's orbit around its
+  barycentre), the stability limits it must satisfy, how it fits
+  GEN.62's naming and the binary code, how often each shape occurs, what
+  a black hole, neutron star or similar primary changes for the planets
+  around it, where such systems sit in the galaxy (GEN.103), and a go or
+  no-go list for GEN.129 and GEN.130.
+
+- [ ] **GEN.129 Multi-star systems of up to seven stars**
+  Boss (GitHub issue [#777](https://github.com/dwhagar/planetGen/issues/777)): "We need to add scientifically accurate star
+  systems with up to 7 stars, this is going to be complex but that is
+  the highest number of stars we've seen in orbit around each other."
+  Done as GEN.128's design says: generation draws hierarchies of three
+  to seven stars that satisfy the stability limits, stores them, names
+  them (GEN.62), and the maps and the orbital update handle them.
+
+- [ ] **GEN.130 Exotic star systems: a black hole, neutron star or similar at the center**
+  Boss (GitHub issue [#778](https://github.com/dwhagar/planetGen/issues/778)): "We need to add exotic star systems that
+  have black holes, neutron stars, or similar as the central star for
+  systems, binary systems." Done as GEN.128's design says: generation
+  can make a system or binary whose primary is a black hole, neutron
+  star or similar compact object, with the planets, belts and radiation
+  environment that follow; GEN.100's galaxy-wide scatter supplies the
+  compact objects.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.18 Run the GEN.30 bright-star backfill in parallel on the work queue**
@@ -1924,6 +2012,54 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   with a `--resume` flag (CLI) and finish from the step they reached,
   with the same result as an uninterrupted run.
   Prerequisite: PERF.29.
+
+- [ ] **PERF.34 The site stays responsive during heavy generation jobs (bug)**
+  Boss (GitHub issues [#638](https://github.com/dwhagar/planetGen/issues/638) and [#614](https://github.com/dwhagar/planetGen/issues/614)): during a bright-star fill "the
+  galaxy map doesn't respond, it gives a timeout error" and "the web
+  site is having trouble loading while it's doing the bright star fill.
+  The DB is being hit hard." Done: the cause is measured with PERF.31's
+  benchmark (connection pool exhaustion, write locks, cold tile cache or
+  a slow query) and fixed so that pages and the Galaxy Map answer within
+  their normal time while a fill runs, for example by limiting the
+  writers' connections, batching their commits or serving the map from
+  the tile cache; a test runs a fill and requests pages and tiles at the
+  same time.
+
+- [ ] **PERF.31 Investigate: where generation spends its time, from the plan to a finished galaxy**
+  Boss (GitHub issue [#761](https://github.com/dwhagar/planetGen/issues/761), 2026-10-09 04:43Z): "We need to do a timed
+  analysis in full debug from the planning of the galaxy to the galaxy
+  being ready and generation finished. We need to know where the system
+  spends the most time in each phase." and (issue [#750](https://github.com/dwhagar/planetGen/issues/750)) "there should be
+  a method to benchmark." Done: a repeatable benchmark command runs a
+  small galaxy from the plan to the finished fill in full debug and
+  prints the time spent in each phase and sub-phase; a report names the
+  largest costs and what to do about each, and files an item per fix.
+  PERF.34 and PERF.32 build on it.
+
+- [ ] **PERF.32 Generation performance stats: rates recorded per run, deleted on every new version**
+  Boss (GitHub issues [#661](https://github.com/dwhagar/planetGen/issues/661) and [#750](https://github.com/dwhagar/planetGen/issues/750)): "The system should store and use
+  performance data so that it has a better idea how long things will
+  take. It should record things like bright stars created / second,
+  sectors / second, phenomena / second of every generation should be
+  kept along with # of workers", "These stats should be available on the
+  stats page", "Should have the option to do a stat reset from admin"
+  and "Stats should be deleted on every new version." Done: every
+  generation run records its rates per kind of work with the worker
+  count in a control-database table (an Alembic revision); the Stats
+  page shows them; they are deleted when the version changes; Admin has
+  a Reset stats button; PERF.31's benchmark writes into the same table.
+  PERF.33 uses them.
+
+- [ ] **PERF.33 Progress bars and ETAs from measured performance**
+  Boss (GitHub issue [#661](https://github.com/dwhagar/planetGen/issues/661)): "time remaining on all progress bars should
+  be calculated from this performance metric averaged with the actual
+  performance at the time" and "if it is expected to take longer than 15
+  seconds to complete, it gets a progress bar for that sub-task from the
+  main task. This includes generating stars inside a layer, star systems
+  in a sector, etc." Done: every job's expected time is its recorded
+  rate (PERF.32) averaged with the live rate; a sub-task expected to
+  take over 15 seconds gets its own bar under the main one; the Queue
+  page ETA (ADM.39) and the banner of UX.3 use the same estimate.
 
 ## DB: Database and schema
 
@@ -1991,6 +2127,14 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   repairs a sector with both merged and pending changes. Prerequisites:
   DB.9, GEN.61, OPS.18.
   Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
+
+- [ ] **DB.15 A migration progress bar with the time remaining**
+  Boss (GitHub issue [#727](https://github.com/dwhagar/planetGen/issues/727), 2026-10-09 01:18Z): "I'd like the progress
+  bar to estimate time remaining and progress through a single DB
+  migration." Done: a long migration step reports its progress in
+  batches, and the update script shows a bar with the time remaining for
+  that step (from the rows done so far and, once PERF.32 has data, the
+  recorded rates).
 
 ## API: The JSON API
 
@@ -2251,6 +2395,7 @@ Boss (2026-10-07 11:47Z): "Actual specs on layers on the generation
   the page shows the galaxy's layer specs (count, height, extent, how
   many charted), the common actions stay on the page and every other
   setting moves into a Customize dialog, and its subitems are done.
+  GitHub issue [#736](https://github.com/dwhagar/planetGen/issues/736) (Boss, 2026-10-09 02:26Z): "Each set of settings should be a tab for the generate screen so the user only sees the ones relevant to what they are looking at." So the Customize dialog groups its settings into tabs, one per kind of generation.
   Prerequisites: ADM.29, ADM.30, ADM.31, GEN.97.
 
   - [ ] **ADM.29 Fill a span of layers, rings or columns**
@@ -2319,6 +2464,76 @@ Boss (2026-10-07 11:47Z): "Actual specs on layers on the generation
   screen; the change is validated (escape, collisions), logged, and used
   by the next orbital update.
   Prerequisite: GEN.109.
+
+- [ ] **ADM.39 Running queue jobs show an ETA (bug)**
+  Boss (GitHub issue [#676](https://github.com/dwhagar/planetGen/issues/676), 2026-10-08 22:17Z): "Jobs on the work queue
+  should have an ETA If they are running, if it can be calculated."
+  Done: each running job on the Queue page shows an estimated finish
+  time computed from the progress the RQ job already publishes (ADM.22),
+  and says nothing when it cannot be computed; it also feeds the banner
+  of UX.3. PERF.33 later improves the estimate with measured rates.
+
+- [ ] **ADM.40 The Generate page stops reporting a lost connection (bug)**
+  Boss (GitHub issue [#656](https://github.com/dwhagar/planetGen/issues/656), 2026-10-08 21:16Z): "Every so often the
+  generation page says it has 'lost connection' and then reconnects."
+  Done: the cause is found (the job log stream of ADM.22 over SSE, a
+  proxy or Redis timeout, or the worker being busy) and fixed or made to
+  resume silently without losing lines; a test drops the stream mid-job
+  and checks that the page resumes at the right line without a message.
+  May share a cause with PERF.34.
+
+- [ ] **ADM.41 Every job is easy to find and cancel in the web queue, and past jobs are paginated and clean (bug)**
+  Boss (GitHub issues [#614](https://github.com/dwhagar/planetGen/issues/614), with his correction in a comment, and #535):
+  a plan job started from the CLI over SSH showed up in the queue "but
+  were difficult to access" when the connection dropped, and "Past jobs
+  list needs to be paginated, also should be cleanable and minimalist."
+  Done: a job started from the command line or the web appears in the
+  Queue page the same way with its state, progress and a Cancel button
+  that works for either; past jobs are paged at 50 rows like every list,
+  a Clear action removes finished ones, and the list is minimal (name,
+  state, start, duration); a test starts a job outside the web process
+  and cancels it from the page.
+
+- [ ] **ADM.42 One settings model describes every config.json option**
+  Foundation for the full config page (GitHub issue [#515](https://github.com/dwhagar/planetGen/issues/515)) and the SEO
+  settings ([#743](https://github.com/dwhagar/planetGen/issues/743)). Done: config.json is described by one Pydantic model
+  (ADM.21 already uses Pydantic for request bodies) holding every option
+  with its type, default, help text, whether it is secret and whether
+  changing it needs a restart; the loader and the docs read the model,
+  and a test fails if an option is read in code without being in the
+  model. Database connection settings are marked as not editable from
+  the web.
+
+- [ ] **ADM.43 A full configuration page under Admin**
+  Boss (GitHub issue [#515](https://github.com/dwhagar/planetGen/issues/515), 2026-10-08 00:39Z): "A page under admin is
+  needed to configure everything EXCEPT for the database information.
+  All other settings should be accessed and changeable from there."
+  Done: an Admin page generated from ADM.42's model lists every option
+  with its help text, edits and validates it, saves config.json, and
+  says which changes need a restart.
+
+- [ ] **ADM.44 Web, Open Graph and SEO settings**
+  Boss (GitHub issue [#743](https://github.com/dwhagar/planetGen/issues/743), 2026-10-09 02:55Z): "Add config options to
+  set up icons, open graph fields for discord and other link previews,
+  SEO fields for description and keywords, and web documents for things
+  like robots.txt and such." Done: the settings page gains site icons,
+  Open Graph and link-preview fields, a description and keywords, and
+  editable robots.txt and similar documents, all served by the site.
+
+- [ ] **ADM.45 Prevalence fields take the override share directly and must total 100%**
+  Boss (2026-10-09 07:48Z): "Prevalence fields instead of being +/- % they will be just type in the override % number, the form should force the user to make sure the whole thing =100% and should make it clear what to do so it isn't confusing. I don't think we need a density dependent share."
+  Follows ADM.37 (PR #514), which made the Generate page show each
+  feature's real default share. Done: every prevalence field on the
+  Generate page is a plain number box holding the share, in percent,
+  that the feature should have, starting at its real default; the user
+  types the override instead of a plus or minus change. The page shows a
+  running total of the shares that belong together, says in words what
+  to do when it is not 100% (which fields to raise or lower and by how
+  much), and will not start the run until the set adds up to exactly
+  100%. A test submits sets that add up and sets that do not, and the
+  CLI's `--prevalence` accepts the same shares and rejects a set that is
+  not 100%. A share that depends on the local star density is not part
+  of this item; the shares stay the same in every sector.
 
 ## SEC: Security
 
