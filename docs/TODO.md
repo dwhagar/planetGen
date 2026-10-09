@@ -4697,6 +4697,148 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Prerequisite: GEN.170.
   Design: [docs/design/object-id-options.md](design/object-id-options.md)
 
+- [ ] **DOC.6 A static help section in the web interface: page template, index, per-page help links and a coverage test**
+  Boss (2026-10-09 23:53Z): "Add to-do items to build static
+  documentation pages for all features accessible through the web
+  interface." Done: the web interface serves a Help section of static
+  pages (no database, no JavaScript needed to read them), with one
+  shared template that matches the site shell, an index page that groups
+  the pages below by feature, a "?" link in the header of every
+  interface page that opens the matching help page, a search box over
+  the help text, and a plain page of the current version. The pages are
+  written as Markdown files in the repository (docs/help/) and built
+  into HTML by the update script, so they can be edited without touching
+  code. A test lists every user-facing route and fails when a route has
+  no help page or a help page has no route, and a second test checks
+  that every link inside the help section resolves. Open question for
+  Boss (default: Phase 2, after the features they describe have settled;
+  Markdown source in docs/help/, built at update time, served at /help):
+  other?
+  Prerequisites: none. Related: DOC.7, DOC.8, DOC.9, DOC.10, DOC.11,
+  DOC.12, DOC.13, DOC.14, DOC.15, DOC.16.
+
+- [ ] **DOC.7 The Galaxy Map help page: layers, zoom, fly-through, Color by, select modes, bookmarks and the locate box**
+  Boss (2026-10-09 23:53Z): "Add to-do items to build static
+  documentation pages for all features accessible through the web
+  interface." Done: every control and gesture on /galaxy: the opening
+  view, the layer and ring menus, zooming and the fly-through camera
+  (MAP.146 when built), Color by, Select mode, the block, slab and wedge
+  menus, nebula and territory overlays, bookmarks, and how big a tile is
+  and why a sector may be empty. Screenshots are captured by script so
+  they can be regenerated. The page is a Markdown file in docs/help/
+  built into the Help section, linked from each page it describes, and
+  updated by any later change to those features (a feature item is not
+  done until its help text is).
+  Prerequisites: DOC.6. Related: DOC.6.
+
+- [ ] **DOC.8 The sector help pages: the sector list, a sector page, the sector map and the sector scene**
+  Boss (2026-10-09 23:53Z): "Add to-do items to build static
+  documentation pages for all features accessible through the web
+  interface." Done: the sectors list (/sectors), the sector page
+  (/sector/<id>) with its star-system table, the sector map and 3D
+  scene, sector paths and neighbours, what the sector address means, and
+  the admin edit panel that appears for admins. The page is a Markdown
+  file in docs/help/ built into the Help section, linked from each page
+  it describes, and updated by any later change to those features (a
+  feature item is not done until its help text is).
+  Prerequisites: DOC.6. Related: DOC.6.
+
+- [ ] **DOC.9 The star system help pages: the system list, a system page, the system map and the planets, moons and belts shown**
+  Boss (2026-10-09 23:53Z): "Add to-do items to build static
+  documentation pages for all features accessible through the web
+  interface." Done: the systems list (/systems), the system page
+  (/system/<id>), the system map and scene (orbits, scale, time), the
+  tables of stars, planets, moons and belts, the habitability index
+  (GEN.83/GEN.89) and what each column means with its units. The page is
+  a Markdown file in docs/help/ built into the Help section, linked from
+  each page it describes, and updated by any later change to those
+  features (a feature item is not done until its help text is).
+  Prerequisites: DOC.6. Related: DOC.6.
+
+- [ ] **DOC.10 The search and navigation help pages: search, nearby, the nav page and routes**
+  Boss (2026-10-09 23:53Z): "Add to-do items to build static
+  documentation pages for all features accessible through the web
+  interface." Done: search (/search), nearby search (/nearby), the nav
+  page (/nav), routes between systems and across sectors,
+  within-N-parsec search, travel times (NAV.11 when built), and how
+  unknown space and asteroid fields affect a course. The page is a
+  Markdown file in docs/help/ built into the Help section, linked from
+  each page it describes, and updated by any later change to those
+  features (a feature item is not done until its help text is).
+  Prerequisites: DOC.6. Related: DOC.6.
+
+- [ ] **DOC.11 The reference browser help pages: species, polities, object classes and phenomena**
+  Boss (2026-10-09 23:53Z): "Add to-do items to build static
+  documentation pages for all features accessible through the web
+  interface." Done: /species, /polities, /classes and /phenomena with
+  their detail pages: what each field means, how classes and codes are
+  named, and how a phenomenon differs from a star system. The page is a
+  Markdown file in docs/help/ built into the Help section, linked from
+  each page it describes, and updated by any later change to those
+  features (a feature item is not done until its help text is).
+  Prerequisites: DOC.6. Related: DOC.6.
+
+- [ ] **DOC.12 The account help pages: signing in, two-factor, the account page, API keys and bookmarks**
+  Boss (2026-10-09 23:53Z): "Add to-do items to build static
+  documentation pages for all features accessible through the web
+  interface." Done: /login, the one-time code step, /account, two-factor
+  setup, API keys and their scopes (API.9 when built), bookmarks (UX.47
+  when built) and what is stored about a signed-in user. The page is a
+  Markdown file in docs/help/ built into the Help section, linked from
+  each page it describes, and updated by any later change to those
+  features (a feature item is not done until its help text is).
+  Prerequisites: DOC.6. Related: DOC.6.
+
+- [ ] **DOC.13 The Generate page help pages: layer specs, spans, radial fills, directives, one-off systems and jobs**
+  Boss (2026-10-09 23:53Z): "Add to-do items to build static
+  documentation pages for all features accessible through the web
+  interface." Done: /admin/generate and its job pages: the layer specs,
+  Customize window, spans and radial fills (ADM.28, ADM.29, ADM.30),
+  directives (GEN.96), random neighbourhoods (GEN.97), the one-off
+  system generator (/admin/generate/system) and its download, reading a
+  job log and the progress bars, and what a regeneration changes. The
+  page is a Markdown file in docs/help/ built into the Help section,
+  linked from each page it describes, and updated by any later change to
+  those features (a feature item is not done until its help text is).
+  Prerequisites: DOC.6. Related: DOC.6.
+
+- [ ] **DOC.14 The admin help pages: the queue, the stats page, settings, lockouts and the naming key**
+  Boss (2026-10-09 23:53Z): "Add to-do items to build static
+  documentation pages for all features accessible through the web
+  interface." Done: /admin, /admin/queue and its tree, confirm and
+  action pages, /admin/stats (galaxy settings, naming key, lockouts),
+  the worker count and the performance statistics (PERF.32), and which
+  actions cannot be undone. The page is a Markdown file in docs/help/
+  built into the Help section, linked from each page it describes, and
+  updated by any later change to those features (a feature item is not
+  done until its help text is).
+  Prerequisites: DOC.6. Related: DOC.6.
+
+- [ ] **DOC.15 A glossary and units help page: coordinates, scales, sector paths, object IDs, time and the in-universe wording**
+  Boss (2026-10-09 23:53Z): "Add to-do items to build static
+  documentation pages for all features accessible through the web
+  interface." Done: the coordinate frames (galactic, sector, system),
+  the unit ladder and when a unit switches (UX.22, UX.23, UX.78, UX.81),
+  sector addresses and paths, the object ID (GEN.170), the epoch and
+  time scales, and the in-universe terms (UX.42), each with a worked
+  example. The page is a Markdown file in docs/help/ built into the Help
+  section, linked from each page it describes, and updated by any later
+  change to those features (a feature item is not done until its help
+  text is).
+  Prerequisites: DOC.6. Related: DOC.6.
+
+- [ ] **DOC.16 The API help page for visitors: what the API is, how to get a key, and where the reference lives**
+  Boss (2026-10-09 23:53Z): "Add to-do items to build static
+  documentation pages for all features accessible through the web
+  interface." Done: a short non-developer page on the API (/api): what
+  it can do, getting a key, rate and upload limits, versioning (API.22),
+  and a link to the full reference in docs/api.md; kept in step with
+  that file. The page is a Markdown file in docs/help/ built into the
+  Help section, linked from each page it describes, and updated by any
+  later change to those features (a feature item is not done until its
+  help text is).
+  Prerequisites: DOC.6. Related: DOC.6.
+
 ## VIEW: The view from a planet
 
 - [ ] **VIEW.1 View from a planet**
