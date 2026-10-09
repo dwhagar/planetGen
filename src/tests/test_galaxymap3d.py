@@ -126,11 +126,11 @@ def test_a_sector_pages_panel_is_pinned_to_its_sector_with_no_steps_of_its_own()
     for gone in ("galaxymap3d-crumbs", "galaxymap3d-slabs", "galaxymap3d-address", "galaxymap3d-steps",
                  "data-bookmarks-menu", 'data-action="back"', 'data-action="up"', 'data-action="reset"'):
         assert gone not in html, gone
-    # What a sector map needs: zoom, Re-center, the rogue-planet toggle (off), Map help.
-    for action in ("zoom-in", "zoom-out", "reset-view", "map-help"):
+    # What a sector map needs: zoom, Re-center, the rogue-planet toggle (on, MAP.137), Center on selection, Map help.
+    for action in ("zoom-in", "zoom-out", "reset-view", "center-on", "map-help"):
         assert f'data-action="{action}"' in html
     button = re.search(r'<button[^>]*data-action="toggle-rogue-markers"[^>]*>', html).group(0)
-    assert 'aria-pressed="false"' in button and "starmap-toggle" in button
+    assert 'aria-pressed="true"' in button and "starmap-toggle" in button
     assert "Click a star, cloud or body for details." in html
     # The Menu's per-kind buttons (MAP.79) are filled in by the script once a sector is open.
     assert 'id="galaxymap3d-kinds"' in html
