@@ -192,6 +192,24 @@ ensure_apache_modules() {
     check_mod_wsgi_python
 }
 
+# Reloads Apache itself when it is running (OPS.8), or restarts it when a
+# module was just enabled (APACHE_NEEDS_RESTART=1). Prints "reloaded" or
+# "restarted" on success; returns 1 when it didn't act (no systemctl, Apache
+# not running, or the command failed), so the caller prints the command for
+# the admin to run. The caller must be root; update.sh always is.
+reload_apache_if_running() {
+    local verb=reload
+    (( APACHE_NEEDS_RESTART )) && verb=restart
+    command -v systemctl >/dev/null 2>&1 || return 1
+    systemctl is-active --quiet apache2 2>/dev/null || return 1
+    if systemctl "$verb" apache2 >/dev/null 2>&1; then
+        echo "${verb}ed Apache."
+        return 0
+    fi
+    echo "warning: systemctl $verb apache2 failed." >&2
+    return 1
+}
+
 # mod_wsgi embeds the Python it was built against, not whatever `python3`
 # is. The libraries (which live in that Python's own
 # site-packages) are set up for $PYTHON, so the two must be the same
