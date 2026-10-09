@@ -528,7 +528,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.55 | A version number and a seed reproduce the same galaxy (end goal) | none | open |
 | GEN.56 | Every random draw in generation comes from the derived seeds | none | done, PR #791 |
 | GEN.57 | A sector's contents depend only on the seed, the version and its address | none | open |
-| GEN.58 | A fingerprint of a galaxy's generated content | none | open |
+| GEN.58 | A fingerprint of a galaxy's generated content | none | done, PR #809 |
 | GEN.59 | Admin changes stored as a net difference from the generated galaxy | none | open |
 | GEN.60 | Rogue gas giants get a Jupiter-sized radius at every mass (bug) | none | done, PR #415 |
 | GEN.61 | The daily merge folds pending admin changes into a new JSON file | none | open |
