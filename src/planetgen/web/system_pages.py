@@ -108,6 +108,25 @@ def pick_nav(kind, entity_id, args):
     return {"pick": back, "pickLabel": pick["label"]}, pick
 
 
+def body_nav(args):
+    """
+    The NAV buttons a body's info panel on the System Map gets (NAV.50), as
+    URL templates with `{ref}` where the body's object reference goes
+    (`static/systemnav.js`): `take` and `label` while a NAV start or
+    destination is being picked (`?pick=from|to`), else `start` and `end`.
+    """
+    from .sector_page import _pick_mode
+
+    token = "__REF__"
+    pick = _pick_mode(args)
+    if pick is None:
+        return {"start": nav_url(origin=token).replace(token, "{ref}"),
+                "end": nav_url(destination=token).replace(token, "{ref}")}
+    url = (nav_url(origin=token, destination=pick["other"]) if pick["pick"] == "from"
+           else nav_url(origin=pick["other"], destination=token))
+    return {"take": url.replace(token, "{ref}"), "label": pick["label"]}
+
+
 def _nearest_html(system):
     """The "Nearest:" line: the three nearest neighbours, each linked with its
     distance (the breadcrumb carries the sector, UX.52), or `None` for a
@@ -275,7 +294,8 @@ def system(system_id):
     if detail["stars"]:
         map_html = render_system_map_panel(detail, detail["stars"], detail["planets"], detail["belts"],
                                            facilities=facilities,
-                                           scene_url=page_url("system_scene", system_id=system_id))
+                                           scene_url=page_url("system_scene", system_id=system_id),
+                                           nav=body_nav(request.args) if detail["sector_id"] is not None else None)
     # NAV measures from a sector position, so a standalone system gets no
     # links; the NAV page itself works out whether cross-sector NAV applies.
     links, pick = pick_nav("system", system_id, request.args) if detail["sector_id"] is not None else (None, None)

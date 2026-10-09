@@ -37,6 +37,7 @@ const THREE = await import(`./vendor/three.module.min.js${VERSION_QUERY}`);
 const { glowInnerRatio, makeGlowMaterial, makeStarSurfaceTexture } = await import(`./bodyRendering.js${VERSION_QUERY}`);
 const { formatDistanceKm: formatLadderKm } = await import(`./distance.js${VERSION_QUERY}`);
 const { addField } = await import(`./mapcore.js${VERSION_QUERY}`);
+const { appendNavActions } = await import(`./systemnav.js${VERSION_QUERY}`);
 
 function classField(el) {
   var cls = el.dataset.class;
@@ -511,6 +512,7 @@ function showInfo(el) {
     addField(dl, "Note", el.dataset.note);
   }
   panel.appendChild(dl);
+  appendNavActions(panel, document.getElementById("sysmap-root"), kind + ":" + el.dataset.id);
 
   if (el.dataset.scene) {
     var hint = document.createElement("p");

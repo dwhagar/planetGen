@@ -131,6 +131,10 @@ def test_system_map_selection_drill_and_measure(page, base_url, site_app):
     _click_body(page.locator(f'#sysmap-root .sysmap-svg[data-scene="{moons}"] [data-kind="moon"]').first)
     info = page.locator("#sysmap-info").inner_text()
     assert "Orbits" in info and "Radius" in info and "Mass" in info, info
+    # NAV.50: a moon can start or end a course.
+    links = {link.inner_text(): link.get_attribute("href") for link in page.locator("#sysmap-info .map-info-actions a").all()}
+    assert re.fullmatch(r"/nav\?from=moon:\d+", links.get("Start Here", "")), links
+    assert re.fullmatch(r"/nav\?to=moon:\d+", links.get("End Here", "")), links
     page.click("#sysmap-crumb .sysmap-back-btn")
     assert _active_scene(page) == "system"
     assert page.locator("#sysmap-crumb button").count() == 0
@@ -602,6 +606,9 @@ def test_system_page_3d_view_draws_switches_scale_and_keeps_the_diagram(page, ba
     page.locator("#sysview3d-list button").nth(1 if expected > 1 else 0).click()
     assert page.locator("#sysmap-info h3").count() == 1
     assert "object=" in page.url
+    # NAV.50: the picked body can start or end a course.
+    hrefs = [link.get_attribute("href") for link in page.locator("#sysmap-info .map-info-actions a").all()]
+    assert any(re.fullmatch(r"/nav\?to=[a-z]+:\d+", href or "") for href in hrefs), hrefs
 
     # The scale changes the picture and its note.
     page.select_option("#sysview3d-scale", "true")

@@ -1241,7 +1241,7 @@ def _wide_binary_star_attrs(system, star, is_primary, scene_target=None):
     """Shared `star_attrs` dict for `_star_scene_svg`'s own star marker, in
     either of a wide (S-type) pair's two scenes."""
     attrs = {
-        "kind": "star", "name": _star_label(system, star),
+        "kind": "star", "id": star["id"], "name": _star_label(system, star),
         "role": "Primary" if is_primary else "Secondary",
         "type": star["star_type"], "temp": _star_temp_text(star),
         "mass": to_plain_text(format_star_mass(star["mass_kg"])),
@@ -1466,6 +1466,7 @@ def _render_system_scene(system, stars, planets, belts, facilities=None):
         sx, sy = star_pos_km[star["id"]]
         star_svgs.append(_star_marker_svg(marker["cx"], marker["cy"], marker["r"], star, {
             "kind": "star",
+            "id": star["id"],
             "name": _star_label(system, star),
             "role": ("Primary" if is_primary else "Secondary") if is_binary else "Single",
             "type": star["star_type"], "temp": _star_temp_text(star),
@@ -1629,7 +1630,7 @@ _NEBULA_WASH_TYPES = ("diffuse", "emission", "reflection", "planetary", "dark")
 (`.sysmap-nebula-<type>`); any other gets `.sysmap-nebula-other`."""
 
 
-def render_system_map_panel(system, stars, planets, belts, facilities=None, scene_url=None):
+def render_system_map_panel(system, stars, planets, belts, facilities=None, scene_url=None, nav=None):
     """
     Builds the "System Map" panel embedded in `system.py`: TWO sibling
     `<svg>`s per scene (an orbits-only layer plus a body-marker layer --
@@ -1663,6 +1664,11 @@ def render_system_map_panel(system, stars, planets, belts, facilities=None, scen
         belts (list[dict]): `asteroid_belts` rows, including `star_id`.
         facilities (list[dict], optional): `GET /api/systems/<id>/
             facilities` items, drawn at their hosts (`_facilities_svg`).
+        nav (dict, optional): The NAV buttons of a body's info panel
+            (NAV.50, `system_pages.body_nav`): `take` and `label` while a
+            NAV start or destination is being picked, else `start` and
+            `end`; each a URL with `{ref}` where the body's object
+            reference goes. Handed to `static/systemnav.js` as `data-nav-*`.
         scene_url (str, optional): Where the 3D view fetches the system's
             scene JSON (`GET /api/systems/<id>/scene`, relayed by the
             site). Without it the panel is the diagram only, with no 3D
@@ -1789,12 +1795,15 @@ def render_system_map_panel(system, stars, planets, belts, facilities=None, scen
         wash_class = " sysmap-in-nebula sysmap-nebula-" + (descriptor if descriptor in _NEBULA_WASH_TYPES else "other")
         wash_hint = f". The tint is the gas of {esc(inside.get('name') or 'a nebula')} around the system"
 
+    nav_attrs = "".join(
+        f' data-nav-{key}="{esc(value)}"' for key, value in (nav or {}).items() if value)
+
     return f"""
 <section class="panel">
 <div class="panel-header">
   <h2 class="sr-only">System Map</h2>
 </div>
-<div class="starmap-layout sysmap-layout" id="sysmap-root">
+<div class="starmap-layout sysmap-layout" id="sysmap-root"{nav_attrs}>
 <div class="sysmap-map-col">
 {view_switch}
 <div class="sysmap-diagram" id="sysmap-diagram">
