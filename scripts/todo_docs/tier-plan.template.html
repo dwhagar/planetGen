@@ -63,6 +63,7 @@ header.top{display:flex;flex-direction:column;gap:.5rem}
 
 /* decisions */
 .decisions{margin-top:30px;background:var(--accent-soft);border-radius:12px;padding:18px 20px}
+.decisions>summary{cursor:pointer}
 .decisions ul{margin:.6rem 0 0;padding-left:1.1rem;display:grid;gap:.45rem}
 .decisions li{max-width:95ch}
 
@@ -134,11 +135,10 @@ footer{margin-top:60px;color:var(--muted);font-size:.85rem;border-top:1px solid 
 
   <nav class="ladder" id="ladder" aria-label="Phases"></nav>
 
-  <section class="decisions" aria-labelledby="dec-h">
-    <span class="eyebrow">Waiting on Boss</span>
-    <h2 id="dec-h" style="font-size:1.25rem;margin-top:6px">Open decisions (work goes ahead on each default)</h2>
+  <details class="decisions" id="decisions-box" hidden>
+    <summary><span class="eyebrow">Waiting on Boss</span> <span id="dec-h" style="font-size:1.1rem;font-weight:600">Open decisions (work goes ahead on each default)</span></summary>
     <ul id="decisions"></ul>
-  </section>
+  </details>
 
   <div class="controls" role="search">
     <input type="search" id="q" placeholder="Search IDs, titles and full text" aria-label="Search items">
@@ -204,6 +204,7 @@ D.phases.forEach((p,ix)=>{
   lad.appendChild(a);
 });
 document.getElementById('decisions').innerHTML=D.decisions.map(d=>'<li>'+inline(d)+'</li>').join('');
+document.getElementById('decisions-box').hidden=!D.decisions.length;
 // selects
 const cs=document.getElementById('cat');
 Object.entries(CAT).forEach(([k,v])=>{const n=all.filter(i=>cat(i.id)===k).length;if(n){const o=document.createElement('option');o.value=k;o.textContent=v+' ('+k+', '+n+')';cs.appendChild(o)}});

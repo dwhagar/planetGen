@@ -55,6 +55,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ADM.31 | Every generate action offers to show what it made on the Galaxy Map |  | Merges two asks: the 2026-10-03 button and the 2026-10-07 "see that space". |
 | GEN.96 | Generation directives for a sector (an override button) |  | A subset of what API recipes (API.18) later take. |
 | GEN.97 | Generate N random neighborhoods |  |  |
+| ADM.45 | Prevalence fields take the override share directly and must total 100% |  | Boss 2026-10-09 07:48Z; follows ADM.37. |
 | ADM.28 | A simpler Generate page: layer specs, a Customize window and plain controls | ADM.29, ADM.30, ADM.31, GEN.97 | Parent of the Generate page items; after the web components land. |
 
 ### Galaxy gen
@@ -198,7 +199,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | UX.76 | Icons and highlights follow the light and dark theme (bug) |  | GitHub issue [#706](https://github.com/dwhagar/planetGen/issues/706). |
 | UX.77 | The class list is alphabetized (bug) |  | GitHub issue [#681](https://github.com/dwhagar/planetGen/issues/681). |
-| MAP.135 | Selecting the first slab or wedge shows its bounds (bug) |  | GitHub issue [#770](https://github.com/dwhagar/planetGen/issues/770). |
 | MAP.136 | Binary stars pick as one system and their 3D orbits are drawn clearly (bug) |  | GitHub issues [#709](https://github.com/dwhagar/planetGen/issues/709), [#708](https://github.com/dwhagar/planetGen/issues/708). One item: both are how binary pairs show on the maps. |
 | MAP.137 | Rogue planets are easy to see, with the right default filters (bug) |  | GitHub issue [#705](https://github.com/dwhagar/planetGen/issues/705). |
 | MAP.138 | Recenter the camera in every 3D view (bug) |  | GitHub issue [#699](https://github.com/dwhagar/planetGen/issues/699) (labelled bug and enhancement) and its comment. |
