@@ -6,8 +6,9 @@ Orbits
 
 Orbital mechanics for generated systems: the habitable zone, Hill spheres
 and mutual Hill radii, the Holman-Wiegert stability limits for binaries,
-circular orbital speed, orbital position, the parent's reflex offset and
-the shortest orbit update worth storing.
+circular orbital speed, orbital position, the parent's reflex offset,
+the shortest orbit update worth storing, and the Roche limit and what a
+close approach is (GEN.108).
 """
 
 import math
@@ -58,6 +59,62 @@ def calculate_hill_sphere(distance_m, body_mass_kg, central_mass_kg):
         float: The radius of the Hill sphere in meters.
     """
     return distance_m * (body_mass_kg / (3 * central_mass_kg)) ** (1 / 3)
+
+
+ROCHE_FLUID_COEFFICIENT = 2.44
+"""float: The fluid-body Roche limit, d = 2.44 R (rho_M / rho_m)^(1/3)
+(Chandrasekhar 1969): a self-gravitating satellite with no strength comes
+apart inside it. A rigid body survives closer (1.26), so the fluid limit
+is the cautious one."""
+
+
+@finite_domain()
+def roche_limit_m(primary_radius_m, primary_density_kg_m3, satellite_density_kg_m3):
+    """The fluid Roche limit of a satellite of `satellite_density_kg_m3`
+    round a primary of `primary_radius_m` and `primary_density_kg_m3`, in
+    metres."""
+    return ROCHE_FLUID_COEFFICIENT * primary_radius_m * (primary_density_kg_m3 / satellite_density_kg_m3) ** (1 / 3)
+
+
+ENCOUNTERS = ("collision", "disruption", "captured", "flyby")
+"""tuple: What `classify_encounter` can call a close approach."""
+
+
+def classify_encounter(closest_m, radius_sum_m, roche_m, hill_m):
+    """
+    What a close approach between two bodies is (GEN.108, the guard for
+    very close passes): two bodies are never moved through each other or
+    given a slingshot from inside each other.
+
+    Args:
+        closest_m (float): The closest approach, centre to centre, metres.
+        radius_sum_m (float): The two bodies' radii added.
+        roche_m (float): The smaller body's Roche limit round the larger
+            (`roche_limit_m`), or 0 when it doesn't apply (two stars).
+        hill_m (float): The larger body's Hill radius (or the pair's
+            mutual one).
+
+    Returns:
+        str: "collision" inside the radii (merge or shatter, GEN.110);
+            "disruption" inside the Roche limit (the smaller body breaks
+            up); "captured" inside the Hill sphere (the pair is handed to
+            the host's own system pass, not the galactic one); "flyby"
+            otherwise (an analytic deflection).
+
+    Raises:
+        ValueError: For a negative or non-finite distance.
+    """
+    for name, value in (("closest_m", closest_m), ("radius_sum_m", radius_sum_m), ("roche_m", roche_m),
+                        ("hill_m", hill_m)):
+        if not math.isfinite(value) or value < 0:
+            raise ValueError(f"classify_encounter: {name} must be a finite non-negative distance, got {value!r}")
+    if closest_m <= radius_sum_m:
+        return "collision"
+    if closest_m <= roche_m:
+        return "disruption"
+    if closest_m <= hill_m:
+        return "captured"
+    return "flyby"
 
 
 @finite_domain(clamped=("companion_mass_fraction", "eccentricity"))

@@ -158,25 +158,20 @@ precession angle.
 ## 7. Where the math breaks down
 
 Each method has a range where it is trusted; outside it the code applies a
-guard, logs it, and tests cover it:
+guard. Built in GEN.108; `src/tests/test_orbital_limits.py` hits each one.
 
-- **Near-parabolic orbits** (e close to 1): Kepler's equation converges
-  slowly; switch to the universal-variable (or Barker) form.
-- **Steps longer than an orbit**: propagate analytically, never by
-  integration.
-- **Very close passes**: an encounter inside the bodies' radii is a
-  collision, not a slingshot; inside the Roche limit, a disruption.
-- **Inside a Hill sphere**: hand the body to the host's system pass
-  instead of the galactic one.
-- **The galactic centre**: the central mass's potential is softened, so
-  nothing gets an infinite kick.
-- **Precision at galactic distances**: positions are stored relative to
-  the sector (and system) frame, not as absolute metres, so small moves
-  aren't lost in rounding; the position object handles the frames.
-- **Unbound results**: a body flung beyond the galaxy's bounds is kept
-  and flagged, not deleted.
+| Edge case | What goes wrong | Guard | Where |
+|---|---|---|---|
+| Near-parabolic ellipses (e close to 1) | Near perihelion `M = E - e sin E` and `1 - e cos E` subtract nearly equal numbers: at e = 1 - 1e-9 the anomaly is off by percent and the radius by 1e-4 | Past `KEPLER_MAX_ECCENTRICITY` (0.999, the most eccentric generated comet) the body moves from perihelion by the universal variable over M / n; below it the radius is written `q + 2 a e sin^2(E/2)`, which keeps its digits | `kepler.comet_orbital_state`, `kepler.true_anomaly_and_distance_elliptical` |
+| Any conic from a state vector (ellipse, parabola, hyperbola, and everything near the boundary) | Separate formulas for each conic fail at e = 1 | `kepler.universal_step`: the universal Kepler equation (corrected, section 10.6) with Stumpff series near z = 0, Halley's method kept inside a bracket that always holds the root, bisection when a step leaves it, and an iteration cap that raises rather than returns a guess | `kepler.universal_step`; GEN.109's propagator |
+| Circular and equatorial orbits | The argument of periapsis (e = 0) and ascending node (i = 0) are undefined | Modified equinoctial elements, smooth through e = 0 and i = 0 (singular only for an exactly retrograde equatorial orbit, which raises); classical elements keep their documented conventions | `state_vectors.equinoctial_from_state`, `state_from_equinoctial` |
+| Steps longer than an orbit | `elapsed / period` many orbits long leaves few digits for the fraction that matters | Whole orbits are dropped first (`MOD(elapsed, period)`), in every SQL phase update and the Python galactic and comet steps; the universal step drops whole periods too | `store._phase_turn_sql`, `store._galactic_turn`, `advance_comet_orbits` |
+| Very close passes | A body moved through another, or given a slingshot from inside it | `orbits.classify_encounter`: inside the radii a collision (GEN.110), inside the fluid Roche limit (`roche_limit_m`, 2.44 R (rho_M / rho_m)^(1/3)) a disruption, inside the Hill sphere a capture handed to the host's system pass, otherwise a flyby | `physics/orbits.py`; GEN.109 and GEN.110 call it |
+| The galactic centre | A point mass gives an infinite kick and a zero period | The rotation curve is softened by its 3 kpc core (`v = V r / sqrt(r^2 + r_c^2)`), so the period tends to 2 pi r_c / V; an object exactly at the centre (the nucleus) has period 0 and never turns. GEN.115's potential adds 1 pc Plummer softening | `galactic_orbit.calculate_galactic_orbit`, `store._galactic_turn` |
+| Precision at galactic distances | A 100,000 km moon move lost when added to a 30 kpc position | Positions are stored in integer milliparsecs relative to the sector and in kilometres relative to the system or planet (section 9); the position object does the frames | `physics/position.py` |
+| Unbound results | A body flung out of the galaxy | Kept and flagged, never deleted (GEN.109) | to come |
 
-## 8. Light-travel positions
+## 8. Light-travel positions## 8. Light-travel positions
 
 What an observer sees is where an object was, not where it is: its
 apparent position is its position at (now - distance / c), solved by

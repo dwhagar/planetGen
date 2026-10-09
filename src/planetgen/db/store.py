@@ -4591,10 +4591,13 @@ def _rotate_about_axis(point, angle_rad):
 
 
 def _galactic_turn(elapsed_years, period_gy):
-    """The angle (radians) an orbit of `period_gy` sweeps in `elapsed_years`."""
+    """The angle (radians) an orbit of `period_gy` sweeps in `elapsed_years`,
+    whole orbits dropped first (GEN.108: a step longer than an orbit wraps
+    exactly instead of losing the fraction to rounding)."""
     if not period_gy or period_gy <= 0 or elapsed_years <= 0:
         return 0.0
-    return 2 * math.pi * elapsed_years / (period_gy * 1e9)
+    period_years = period_gy * 1e9
+    return 2 * math.pi * math.fmod(elapsed_years, period_years) / period_years
 
 
 class _SectorIndex:
@@ -4716,12 +4719,14 @@ def advance_galactic_positions(conn, clock, on_progress=None):
         conn.executemany(
             "UPDATE star_systems SET binary_galactic_orbital_phase_deg = CASE"
             " WHEN binary_configuration = 'close' AND binary_galactic_orbital_period_gy > 0"
-            " THEN MOD(binary_galactic_orbital_phase_deg + 360 * ? / (binary_galactic_orbital_period_gy * 1e9), 360)"
+            " THEN MOD(binary_galactic_orbital_phase_deg + 360 * MOD(?, binary_galactic_orbital_period_gy * 1e9)"
+            " / (binary_galactic_orbital_period_gy * 1e9), 360)"
             " ELSE binary_galactic_orbital_phase_deg END,"
             " epoch_unix = ?, next_update_due = ?, modified_at = modified_at WHERE id = ?", clocks)
         conn.executemany(
             "UPDATE stars SET galactic_orbital_phase_deg ="
-            " MOD(galactic_orbital_phase_deg + 360 * ? / (galactic_orbital_period_gy * 1e9), 360)"
+            " MOD(galactic_orbital_phase_deg + 360 * MOD(?, galactic_orbital_period_gy * 1e9)"
+            " / (galactic_orbital_period_gy * 1e9), 360)"
             " WHERE star_system_id = ? AND galactic_orbital_period_gy > 0", phases)
     if updates:
         conn.executemany(
@@ -4774,7 +4779,8 @@ def advance_galactic_positions(conn, clock, on_progress=None):
         if clocks:
             conn.executemany(
                 f"UPDATE {table} SET galactic_orbital_phase_deg = CASE WHEN galactic_orbital_period_gy > 0"
-                f" THEN MOD(galactic_orbital_phase_deg + 360 * ? / (galactic_orbital_period_gy * 1e9), 360)"
+                f" THEN MOD(galactic_orbital_phase_deg + 360 * MOD(?, galactic_orbital_period_gy * 1e9)"
+                f" / (galactic_orbital_period_gy * 1e9), 360)"
                 f" ELSE galactic_orbital_phase_deg END, epoch_unix = ?, next_update_due = ?,"
                 f" modified_at = modified_at WHERE id = ?", clocks)
         if updates:
@@ -4857,8 +4863,8 @@ def advance_facility_orbits(conn, clock):
     where = "placement IN ('orbital', 'asteroid') AND orbit_period_years > 0"
     _schedule_updates(conn, clock, "facilities", _FACILITY_INTERVAL_SQL, where, keep_modified=True)
     return conn.execute(
-        f"UPDATE facilities SET orbit_phase_deg = MOD(orbit_phase_deg + 360.0 * {_elapsed_years_sql()}"
-        f" / orbit_period_years, 360.0), epoch_unix = ?, next_update_due = ? + {_FACILITY_INTERVAL_SQL},"
+        f"UPDATE facilities SET orbit_phase_deg = MOD(orbit_phase_deg + {_phase_turn_sql('orbit_period_years')},"
+        f" 360.0), epoch_unix = ?, next_update_due = ? + {_FACILITY_INTERVAL_SQL},"
         f" modified_at = modified_at WHERE {where} AND next_update_due <= ?",
         (clock.end_unix, clock.end_unix, clock.end_unix, clock.end_unix),
     ).rowcount
@@ -7586,6 +7592,14 @@ def _elapsed_years_sql(prefix=""):
     return f"((? - {prefix}epoch_unix) / {physical_constants.SECONDS_PER_YEAR!r})"
 
 
+def _phase_turn_sql(period_column, prefix=""):
+    """SQL for the degrees an orbit of `period_column` (years) turns from a
+    row's epoch to the update's end (the `?`), whole orbits dropped first
+    (GEN.108): a step many orbits long wraps exactly, where elapsed / period
+    would leave few digits for the fraction."""
+    return f"(MOD({_elapsed_years_sql(prefix)}, {period_column}) / {period_column} * 360)"
+
+
 def _due_interval_s(row, clock, speed_kms, scale, prefix=""):
     """For the rows the Python steps move: `(epoch, interval, due)` -- the
     row's epoch (the last update's when it has none), the seconds it takes
@@ -7678,7 +7692,7 @@ def advance_orbital_phases(conn, clock, on_progress=None):
         cur = conn.execute(
             f"""
             UPDATE {table}
-            SET orbital_phase_deg = MOD(orbital_phase_deg + ({_elapsed_years_sql()} / period_years) * 360, 360),
+            SET orbital_phase_deg = MOD(orbital_phase_deg + {_phase_turn_sql("period_years")}, 360),
                 position_x_km = distance_km * (
                     COS(RADIANS(orbital_ascending_node_deg)) * COS(RADIANS(orbital_phase_deg))
                     - SIN(RADIANS(orbital_ascending_node_deg)) * SIN(RADIANS(orbital_phase_deg))
@@ -7782,7 +7796,7 @@ def advance_orbital_phases(conn, clock, on_progress=None):
         f"""
         UPDATE star_systems
         SET binary_mutual_orbital_phase_deg = MOD(binary_mutual_orbital_phase_deg
-                + ({_elapsed_years_sql("binary_")} / binary_mutual_orbital_period_years) * 360, 360),
+                + {_phase_turn_sql("binary_mutual_orbital_period_years", "binary_")}, 360),
             binary_mutual_position_x_km = binary_separation_km * (
                 COS(RADIANS(binary_mutual_orbital_ascending_node_deg)) * COS(RADIANS(binary_mutual_orbital_phase_deg))
                 - SIN(RADIANS(binary_mutual_orbital_ascending_node_deg)) * SIN(RADIANS(binary_mutual_orbital_phase_deg))
@@ -7904,7 +7918,9 @@ def advance_comet_orbits(conn, clock):
     # Kepler's equation for every elliptical comet that moves, in one vectorised solve.
     moving = [row for row in rows if row["orbit_type"] == "elliptical"]
     new_mean_anomalies_deg = {
-        row["id"]: (row["mean_anomaly_deg"] + (elapsed_by_id[row["id"]] / row["orbital_period_years"]) * 360) % 360
+        row["id"]: (row["mean_anomaly_deg"]
+                    + math.fmod(elapsed_by_id[row["id"]], row["orbital_period_years"]) / row["orbital_period_years"] * 360)
+        % 360
         for row in moving}
     eccentric_anomalies = dict(zip(
         (row["id"] for row in moving),
