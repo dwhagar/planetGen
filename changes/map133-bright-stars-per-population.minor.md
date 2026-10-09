@@ -1,0 +1,3 @@
+### Fixed
+- The Galaxy Map showed no bright stars in the bulge, and none beyond the first 120 or so layers off the plane (MAP.133). Its galaxy-wide sample and each tile's picks ranked stars by luminosity alone, so the old giants of the bulge and the thick disk (no brighter than about 2,500 Lsun) never made the cut against young blue stars a hundred times brighter. Both now take an equal share from each population (young, intermediate, old, bulge), a population with fewer than its share leaving the rest to the others.
+- Schema v59 replaces the `idx_bright_stars_off_plane` index with `idx_bright_stars_population`; run `sudo ./update.sh` to build it (reads every bright star once). The scattered stars themselves are unchanged.

@@ -103,7 +103,7 @@ from planetgen.names.wordsalad import generate_phoneme_salad_name, generate_sect
 from planetgen.physics.units import ly_to_milliparsecs, ly_to_pc, milliparsecs_to_ly, mpc_to_pc, pc_to_ly
 from planetgen.generation.wide_binary import WideBinaryPair
 
-SCHEMA_VERSION = 58
+SCHEMA_VERSION = 59
 """int: Matches `star_systems.schema_version` and the highest row in the
 `schema_migrations` table (see `planetgen/db/schema.sql`'s header
 comment). Also the target version `migrate_database` brings a database's
@@ -1370,6 +1370,7 @@ def _table_marker(table):
 
 
 _VERSION_MARKERS = (
+    (59, _index_marker("bright_stars", "idx_bright_stars_population")),
     (58, _column_marker("sectors", "uid")),
     (57, _column_marker("bright_stars", "off_plane")),
     (56, _column_marker("nebulae", "shape_scale")),
@@ -9489,6 +9490,22 @@ def _migrate_v57_to_v58(conn):
     conn.execute("INSERT INTO schema_migrations (version) VALUES (58)")
 
 
+def _migrate_v58_to_v59(conn):
+    """
+    Replaces `idx_bright_stars_off_plane` with `idx_bright_stars_population`
+    (population, off_plane, luminosity) -- see `schema.sql`'s "v59" header
+    note. Building it reads every bright star once.
+
+    Args:
+        conn (Connection): An open connection, mid-migration.
+    """
+    if not _has_index(conn, "bright_stars", "idx_bright_stars_population"):
+        conn.execute("ALTER TABLE bright_stars ADD KEY idx_bright_stars_population (population, off_plane, luminosity_w)")
+    if _has_index(conn, "bright_stars", "idx_bright_stars_off_plane"):
+        conn.execute("ALTER TABLE bright_stars DROP KEY idx_bright_stars_off_plane")
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (59)")
+
+
 def _schema_statement(table):
     """`schema.sql`'s own `CREATE TABLE IF NOT EXISTS <table>` statement."""
     with open(SCHEMA_PATH, "r", encoding="utf-8") as handle:
@@ -9606,6 +9623,7 @@ def _migration_steps():
         (56, _migrate_v55_to_v56),
         (57, _migrate_v56_to_v57),
         (58, _migrate_v57_to_v58),
+        (59, _migrate_v58_to_v59),
     ]
 
 
