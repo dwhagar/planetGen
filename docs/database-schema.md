@@ -1298,6 +1298,8 @@ anything.
 | `galactic_min_update_interval_years` | DOUBLE | NOT NULL | Added in v13. Floating-point update guard for `galactic_orbital_phase_deg`, same formula as `planets.min_update_interval_years` (`orbits.minimum_update_interval_years`), applied to `galactic_orbital_period_gy * 1e9` years. |
 | `wide_binary_a_crit_km` | DOUBLE | nullable | Added in v15. This star's own Holman & Wiegert (1999) critical semi-major axis (`orbits.holman_wiegert_critical_semimajor_axis`) — the maximum orbit distance that stays long-term stable given its companion's perturbation. NULL for a single star or either constituent of a `'close'` pair; populated for both stars of a `'wide'` pair. |
 | `reflex_offset_x_km`, `_y_km`, `_z_km` | DOUBLE | nullable | Added in v20. This star's own displacement from its nominal fixed point, from the combined pull of every planet orbiting it directly (`planets.star_id`) — see `orbits.calculate_reflex_offset`. NULL/0 with no planets. Class-blind: applies identically to an anchored `black_holes`/`neutron_stars` row. |
+| `rotation_period_hours` | DOUBLE | nullable | Added in v68 (GEN.104). Rotation period: gyrochronology for cool dwarfs, a log-normal speed under breakup for hot stars, slow for giants, about a day for white dwarfs; a black hole's horizon period, a neutron star's spin period. The spin vector is the axis times 2 pi over this period. |
+| `spin_axis_x`, `_y`, `_z`, `axial_tilt_deg` | DOUBLE | nullable | Added in v68 (GEN.104). The spin axis as a unit vector and its angle, degrees, from the galactic pole; see `planetgen/physics/spin.py` and docs/design/orbital-updates.md section 6. NULL on a row generated before v68. |
 
 ### `planets`
 
@@ -1340,6 +1342,7 @@ both terrestrial and gas-giant bodies (`body_type`).
 | `min_update_interval_years` | DOUBLE | NOT NULL | Added in v12; not read by the update since v66 (`next_update_due` decides). Not a narrative stat -- a floating-point update guard: the shortest `elapsed_years` worth calling it for, below which the phase delta added is smaller than `orbital_phase_deg`'s own double-precision resolution and so is guaranteed to be a no-op write (`orbits.minimum_update_interval_years`, `period_years * math.ulp(360.0) / 360`). Like `orbital_speed_kms`, only changes if `distance_km`/`period_years` do. |
 | `rotation_period_hours` | DOUBLE | NOT NULL | Added in v9. Axial rotation ("day length") — a static descriptive stat; no rotational phase is tracked. |
 | `reflex_offset_x_km`, `_y_km`, `_z_km` | DOUBLE | nullable | Added in v20. This planet's own displacement from its nominal fixed point, from the combined pull of its own moons (`moons.planet_id`) — see `orbits.calculate_reflex_offset`. NULL/0 with no moons. **Not present on `moons`** — a moon never hosts its own moons. |
+| `spin_axis_x`, `_y`, `_z`, `axial_tilt_deg` | DOUBLE | nullable | Added in v68 (GEN.104). The spin axis as a unit vector and its angle, degrees, from the orbit normal (the orbit frame: inclination and ascending node); see `planetgen/physics/spin.py` and docs/design/orbital-updates.md section 6. NULL on a row generated before v68. A tidally locked body (now planets as well as moons) has tilt 0 and `rotation_period_hours` equal to its orbit. |
 
 ### `planet_evolutionary_paragraphs`
 
@@ -1385,7 +1388,7 @@ e.g. `"Voranthis IIa"` (v34), and can be renamed (`PATCH /api/moons/<id>`).
 | `star_system_id` | INTEGER | FK -> `star_systems.id`, `ON DELETE CASCADE`, NOT NULL | Redundant with the owning planet's own `star_system_id` — kept here too so a moon can be queried/joined to its system without an extra hop through `planets`. |
 | `star_id` | INTEGER | FK -> `stars.id`, `ON DELETE SET NULL`, nullable | Same value as the owning planet's `star_id` (see that column's note above — NULL for a binary system). |
 | `orbital_index` | INTEGER | NOT NULL | Position in the parent planet's `moons` list. |
-| `body_type`, `name`, `planet_class`, `distance_km` (from the parent planet), `radius_km`, `mass_kg`, `volume_km3`, `period_years`, `zone`, `description`, `gravity_g`, `surface_temperature_k`, `density_g_cm3`, `atmosphere`, `atm_density`, `atm_molar_density`, `atmospheric_pressure_pa`, `composition`, `scale_height_km`, `hill_radius_km`, `min_orbit_distance_km`, `habitable_zone_inner_km`, `_outer_km`, `life_chemical`, `evolutionary_speed`, `flavor_text`, `flavor_text_count`, `orbital_inclination_deg`, `orbital_ascending_node_deg`, `orbital_phase_deg`, `position_x_km`, `_y_km`, `_z_km`, `orbital_speed_kms`, `velocity_x_kms`, `_y_kms`, `_z_kms`, `epoch_unix`, `next_update_due`, `min_update_interval_years`, `rotation_period_hours` | — | — | Identical meaning/type/nullability to the same-named column on `planets` above, except `position_x/y/z_km` are relative to *this moon's* orbital anchor — its parent planet, not the star. |
+| `body_type`, `name`, `planet_class`, `distance_km` (from the parent planet), `radius_km`, `mass_kg`, `volume_km3`, `period_years`, `zone`, `description`, `gravity_g`, `surface_temperature_k`, `density_g_cm3`, `atmosphere`, `atm_density`, `atm_molar_density`, `atmospheric_pressure_pa`, `composition`, `scale_height_km`, `hill_radius_km`, `min_orbit_distance_km`, `habitable_zone_inner_km`, `_outer_km`, `life_chemical`, `evolutionary_speed`, `flavor_text`, `flavor_text_count`, `orbital_inclination_deg`, `orbital_ascending_node_deg`, `orbital_phase_deg`, `position_x_km`, `_y_km`, `_z_km`, `orbital_speed_kms`, `velocity_x_kms`, `_y_kms`, `_z_kms`, `epoch_unix`, `next_update_due`, `min_update_interval_years`, `rotation_period_hours`, `spin_axis_x`, `_y`, `_z`, `axial_tilt_deg` | — | — | Identical meaning/type/nullability to the same-named column on `planets` above, except `position_x/y/z_km` are relative to *this moon's* orbital anchor — its parent planet, not the star. |
 
 ### `moon_evolutionary_paragraphs`
 
@@ -1455,6 +1458,8 @@ fixed slot in the `planets`/`asteroid_belts` orbital-spacing sequence.
 | `is_active` | BOOLEAN | NOT NULL | Coma/tail activity. |
 | `distance_km`, `position_x_km`, `position_y_km`, `position_z_km`, `orbital_speed_kms` | DOUBLE | NOT NULL | Current derived orbital state — recomputed by `_db.advance_comet_orbits` as `mean_anomaly_deg`/`parabolic_mean_anomaly` advance over time. |
 | `velocity_x_kms`, `_y_kms`, `_z_kms` | DOUBLE | NOT NULL, default 0 | Added in v60 (GEN.121). The velocity, km/s, relative to the star on the position's axes (`kepler.comet_orbital_state`), recomputed with the position by `advance_comet_orbits`. |
+| `rotation_period_hours` | DOUBLE | nullable | Added in v68 (GEN.104). A log-normal small-body period, never under the 2.2-hour spin barrier. The spin vector is the axis times 2 pi over this period. |
+| `spin_axis_x`, `_y`, `_z`, `axial_tilt_deg` | DOUBLE | nullable | Added in v68 (GEN.104). The spin axis as a unit vector and its angle, degrees, from the orbit normal (YORP: near 10 or 170 degrees); see `planetgen/physics/spin.py` and docs/design/orbital-updates.md section 6. NULL on a row generated before v68. |
 
 ### `comet_composition`
 
@@ -1520,6 +1525,7 @@ standalone (no owning `StarSystem` at all).
 | `quadrant` | VARCHAR(4) | nullable, CHECK IN ('I'..'VIII') | Added in v41. The sector octant its center sits in, as `star_systems.quadrant`. NULL when unplaced. |
 | `inside_nebula_id`, `inside_remnant_id` | BIGINT UNSIGNED | nullable, `ON DELETE SET NULL` | Added in v39. The innermost cloud holding it, as on `star_systems`. |
 | `created_at`, `modified_at` | TIMESTAMP / TIMESTAMP(3) | NOT NULL | Added in v27. Row timestamps, `modified_at` indexed. |
+| `spin_axis_x`, `_y`, `_z`, `axial_tilt_deg` | DOUBLE | nullable | Added in v68 (GEN.104). The spin axis as a unit vector and its angle, degrees, from the galactic pole; see `planetgen/physics/spin.py` and docs/design/orbital-updates.md section 6. NULL on a row generated before v68. NULL for an anchored remnant: its spin is on its `stars` row. |
 
 ### `nebulae`
 
@@ -1597,6 +1603,8 @@ from any star.
 | `quadrant` | VARCHAR(4) | nullable, CHECK IN ('I'..'VIII') | Added in v41. The sector octant its center sits in, as `star_systems.quadrant`. NULL when unplaced. |
 | `inside_nebula_id`, `inside_remnant_id` | BIGINT UNSIGNED | nullable, `ON DELETE SET NULL` | Added in v39. The innermost cloud holding it, as on `star_systems`. |
 | `created_at`, `modified_at` | TIMESTAMP / TIMESTAMP(3) | NOT NULL | Added in v27. Row timestamps, `modified_at` indexed. |
+| `rotation_period_hours` | DOUBLE | nullable | Added in v68 (GEN.104). A planet's day for its type. The spin vector is the axis times 2 pi over this period. |
+| `spin_axis_x`, `_y`, `_z`, `axial_tilt_deg` | DOUBLE | nullable | Added in v68 (GEN.104). The spin axis as a unit vector and its angle, degrees, from the galactic pole; see `planetgen/physics/spin.py` and docs/design/orbital-updates.md section 6. NULL on a row generated before v68. |
 
 ### `quasars`
 
@@ -1640,6 +1648,8 @@ unbound from any star.
 | `quadrant` | VARCHAR(4) | nullable, CHECK IN ('I'..'VIII') | Added in v41. The sector octant its center sits in, as `star_systems.quadrant`. NULL when unplaced. |
 | `inside_nebula_id`, `inside_remnant_id` | BIGINT UNSIGNED | nullable, `ON DELETE SET NULL` | Added in v39. The innermost cloud holding it, as on `star_systems`. |
 | `created_at`, `modified_at` | TIMESTAMP / TIMESTAMP(3) | NOT NULL | Added in v27. Row timestamps, `modified_at` indexed. |
+| `rotation_period_hours` | DOUBLE | nullable | Added in v68 (GEN.104). A log-normal small-body period, never under the 2.2-hour spin barrier. The spin vector is the axis times 2 pi over this period. |
+| `spin_axis_x`, `_y`, `_z`, `axial_tilt_deg` | DOUBLE | nullable | Added in v68 (GEN.104). The spin axis as a unit vector and its angle, degrees, from the galactic pole (YORP: near 10 or 170 degrees); see `planetgen/physics/spin.py` and docs/design/orbital-updates.md section 6. NULL on a row generated before v68. |
 
 ### `interstellar_comet_composition`
 

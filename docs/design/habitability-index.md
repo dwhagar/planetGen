@@ -18,23 +18,44 @@ pressure, temperature, composition, etc..." and "Refactor all planetary
 classes to better align with our habitability index system and the
 research for the different kinds of life, etc."
 
+The research of 2026-10-09 behind the inputs is in two further notes:
+
+- [atmospheres-retention-and-classes.md](atmospheres-retention-and-classes.md):
+  when a planet keeps an atmosphere, the hot- and cold-zone classes (GEN.91),
+  the class windows and life stage against time habitable (GEN.92).
+- [activity-magnetism-radiation-hydrosphere.md](activity-magnetism-radiation-hydrosphere.md):
+  stellar XUV and flares, planetary magnetic fields, surface dose, water,
+  oceans and ocean chemistry (GEN.86, GEN.87, GEN.88).
+
+Status: the scores (section 2) are settled and built (GEN.84); the rest is
+research, 2026-10-09, and decisions marked "Boss" are his, everything else is a
+recommendation. Informs: GEN.83 to GEN.92.
+
 ## 1. What the code has today
 
 - **Per planet**: class and zone, radius, mass, density, gravity, orbit,
   rotation period, surface temperature (grey body times a per-class
   greenhouse factor), surface pressure, atmosphere density and scale
-  height. `atmosphere` and `composition` are free text.
+  height. `atmosphere` and `composition` are free text. Pressure scales
+  with gravity linearly (`_atmosphere_retention_factor`, "a starting point,
+  not derived"); there is no escape, temperature or age term.
 - **Missing**: partial pressures of any gas, ocean or land fraction, pH,
   salinity, magnetic field, radiation dose, mantle redox, ozone, humidity.
 - **Per star**: type and class, mass, radius, temperature, luminosity,
-  age, habitable zone, heliosphere radius. No XUV or flare activity.
+  age, habitable zone, heliosphere radius. No XUV or flare activity. The
+  habitable zone is a fixed pair of fluxes (1.1 and 0.53) for every star, and
+  a main-sequence star's luminosity is constant for its life.
+- **Spin**: only moons are tidally locked; a planet's rotation is a uniform
+  10 to 1,400 h draw. GEN.104 adds the spin vector.
 - **Rogue planets** already have internal heat flux, a surface regime,
-  ice-shell thickness and ocean depth (`rogueSurface.py`); nothing in a
+  ice-shell thickness and ocean depth (`rogue_surface.py`); nothing in a
   star system has these.
 - **Nebulae**: a system's `surrounding_cloud` is set only when it is
   loaded from the database, so generation can't see it.
 - **Life** is decided by class (`HABITABLE_PLANET_CLASSES`), and the life
-  chemical by the star's spectral letter.
+  chemical by the star's spectral letter. Classes N and Q carry a life
+  chemical and a stored timeline but are not in the habitable list, so the
+  page hides the timeline.
 
 ## 2. The scores (settled, GEN.84)
 
@@ -165,12 +186,13 @@ unless given.
 
 | # | Piece | Needs |
 |---|---|---|
+| 0 | Planet spin and tidal locking (GEN.104); atmosphere retention module ([atmospheres-retention-and-classes.md](atmospheres-retention-and-classes.md) 3) | mass, radius, insolation, star age |
 | 1 | Mantle redox (reduced, intermediate, oxidized) from mass and differentiation | mass, radius |
 | 2 | Atmosphere species: partial pressures of O2, CO2, CO, N2, Ar, H2, H2O, CH4, H2S, SO2, with the free text generated from them | 1, pressure, class |
-| 3 | Stellar activity: saturation phase, L_XUV/L_bol, flare and particle-event rates by mass and age | star mass, age, type |
+| 3 | Stellar activity: saturation phase, L_XUV/L_bol, flare and particle-event rates by mass and age ([activity-magnetism-radiation-hydrosphere.md](activity-magnetism-radiation-hydrosphere.md) 2) | star mass, age, type |
 | 4 | Magnetic field from mass, rotation and tidal locking | mass, rotation (the spin vector) |
 | 5 | Surface dose from column mass (P0/g), field, cosmic rays (higher inside a compressed heliosphere) and flares, with an ozone-loss flag | 2, 3, 4, nebula containment |
-| 6 | Hydrosphere: water fraction, ocean and land fraction, depth or ice shell | zone, temperature, class; reuse `rogueSurface` |
+| 6 | Hydrosphere: water fraction, ocean and land fraction, depth or ice shell | zone, temperature, class; reuse `rogue_surface` in a shared module (same document, 5) |
 | 7 | Ocean chemistry: acid sulfate, neutral, soda, chloride brine or ice-sealed, with pH, water activity and phosphorus | 1, 2, 6 |
 | 8 | The scores, tier and equipment profile | all of the above |
 
@@ -212,3 +234,105 @@ heliosphere. A separate feasibility study covers disk photoevaporation
 near O and B stars, 26Al and 60Fe heating from supernova enrichment,
 extinction of starlight and cosmic rays near remnants, and turns the
 results into generation rules (nebula-and-asteroid-field-classes.md).
+
+## 7. Research record (2026-10-09)
+
+Material from the research pass that the settled maths in section 2 does not
+use. It is kept as an alternative with measurements, to be weighed when
+GEN.89 is calibrated; nothing here is built.
+
+### 7.1 A Liebig blend for PHI_bio, measured against the Master doc's table
+
+Section 3 item 1 settles on the product of the four likelihoods. Re-evaluating
+the Master doc's own worked table (it gives four `L` values and `PHI_bio` per
+archetype) [C] shows another rule fits the stated values better:
+`PHI = L_min^0.65 * (L_solv L_chem L_ener L_rad)^(0.35/4)`.
+
+| World | Stated `PHI_bio` | Geometric mean | Min | Blend, weight 0.65 |
+|---|---|---|---|---|
+| Earth | 0.98 | 0.985 | 0.980 | 0.98 |
+| Dense CO2, 3 bar | 0.82 | 0.934 | 0.880 | 0.90 |
+| Hycean 20 bar H2 | 0.74 | 0.855 | 0.720 | 0.76 |
+| Stalled CO | 0.79 | 0.914 | 0.860 | 0.88 |
+| Ice-sealed ocean | 0.12 | 0.378 | 0.050 | 0.10 |
+| Cryo-brine (Mars) | 0.18 | 0.353 | 0.150 | 0.20 |
+| Desiccated dune | 0.05 | 0.337 | 0.020 | 0.05 |
+| Europan ocean | 0.68 | 0.774 | 0.580 | 0.64 |
+
+
+RMS error against the stated values: geometric mean 0.169, product 0.157, min
+0.057, blend (weight 0.65) 0.046 (weights 0.55 to 0.75 all give 0.046 to
+0.050).
+
+The Master text calls the mean "non-compensatory"; the geometric mean is only
+weakly so. The blend lands within 0.1 of every row, so the table was plausibly
+made with a Liebig-like rule. The product built in section 2 is stricter (it
+scores the Master doc's Europan ocean 0.27 against a stated 0.68). The two are
+not a like-for-like test, because this table uses the Master doc's own `L`
+values and section 2 fixed different constants; the blend is the option if the
+product proves too harsh for ocean worlds.
+
+### 7.2 Alveolar oxygen behind the mask band
+
+Alveolar PAO2 = x_O2 (P - 6.3) - 5.3/0.8 kPa at 37 C (respiratory quotient
+0.8) [C]:
+
+| Total P (kPa) | PAO2, pure O2 | PAO2, air | Altitude equivalent |
+|---|---|---|---|
+| 101.3 | 88.4 | 13.3 | sea level |
+| 50 | 37.1 | 2.5 | about 5,700 m |
+| 33.7 | 20.8 | -0.9 | Everest summit |
+| 21 | 8.1 | -3.6 | |
+| 18.8 | 5.9 | -4.0 | 40,000 ft |
+| 15 | 2.1 | -4.8 | |
+| 11.6 | -1.3 | -5.5 | 50,000 ft |
+| 6.3 | -6.6 | -6.6 | Armstrong line |
+
+Pure oxygen needs at least 18.9 kPa total for PAO2 = 6 kPa, 20.9 kPa for 8
+kPa, and 26 kPa to match sea-level air (13.3 kPa) [C]. Aviation practice
+agrees: 100 percent oxygen holds an "equivalent 10,000 ft" up to about
+40,000 ft, positive-pressure breathing above that, a pressure suit above about
+50,000 ft, ebullism at 62,000 to 63,000 ft [S: litfl, Wikipedia "Pressure
+suit"]. The mask-only band therefore starts near 20 kPa, not 6.3.
+
+Section 2 starts the mask band at 14.3 kPa (6.3 plus the 8 kPa of inspired
+O2 consciousness needs). The alveolar equation, which also subtracts the CO2
+the lungs add, puts a pure-oxygen mask's useful floor nearer 19 to 21 kPa. The
+settled 14.3 kPa stands until GEN.89's tests show a case where the difference
+matters.
+
+### 7.3 Five equipment tiers
+
+An alternative to the equipment list in section 2: one numbered tier taken from
+the worst condition, a pure function of dry ambient values [C].
+
+| Tier | Name | Conditions (all must hold) |
+|---|---|---|
+| 0 | Shirtsleeve | 50 <= P_tot <= 250 kPa; 16 <= pO2 <= 50; pCO2 < 0.5; pCO < 0.005; pH2S < 0.001; pSO2 < 0.0005; T_dry -20 to 45 C and wet-bulb < 31 C (ordinary weather clothing); dose <= 50 mSv/yr |
+| 1 | Mask | Any of: 20 <= P_tot < 50 (O2-enriched mask; pO2 of air too low); 8 <= pO2 < 16; pO2 50 to 160 (diluent mask); pCO2 0.5 to 1; 250 < P_tot <= 400; T 45 to 90 C, or -20 to -50 C with insulation; wet-bulb 31 to 35 C; dose 50 to 100 mSv/yr |
+| 2 | Mask and scrubber | Any of: pCO2 >= 1; pCO >= 0.005 (Hopcalite); H2S or SO2 above the chronic limit; 400 < P_tot <= 1,000 kPa (heliox or trimix rebreather); pO2 < 8 with P_tot >= 20 and a hostile base gas |
+| 3 | Pressure suit | P_tot < 20 kPa (6.3 to 20: gas-pressurised or mechanical-counterpressure suit plus helmet; below 6.3: full suit); P_tot > 1 MPa (atmospheric diving suit); pO2 > 160; T 90 to 120 C (liquid-cooled garment) or -50 to -120 C (heated suit); wet-bulb > 35 C; dose 0.1 to 1 Sv/yr (shielded habitat, limited surface time) |
+| 4 | Full life support | P_tot > 7 MPa (beyond the tested human record, Hydra X at 7.11 MPa); T < -120 or > 120 C; corrosive acids (H2SO4, HF, Cl); dose > 1 Sv/yr (radiation hardening); no usable atmosphere and no suit-compatible thermal range |
+
+The tier is the highest any condition demands. The cold range of -50 to
+-120 C, which PHI-4 leaves unassigned, is tier 3 here. Differences from
+section 2: the dose rows here are stricter than a rule that passes tier 0
+below 1 Sv/yr (which would put Mars at 0.24 Sv/yr and the Moon at 0.52
+at shirtsleeve), and the pressure-suit band here is under 20 kPa where
+section 2 uses 14.3.
+
+Sources behind the thresholds: aviation practice (100 percent oxygen holds an
+equivalent 10,000 ft to about 40,000 ft, a pressure suit above about 50,000
+ft, ebullism at 62,000 to 63,000 ft) [S: litfl, Wikipedia "Pressure suit"];
+NASA's spacecraft CO2 limit of 3 mmHg (0.4 kPa) over one hour [S: NASA OCHMO
+technical brief]; atmospheric diving suits at 1 atm inside to about 300 m
+[R]; the human hyperbaric record, Hydra X at 7.11 MPa.
+
+### 7.4 Evidence notes
+
+The numbers above rest on [S] and [C] values except the following [R], to
+check when paper access is allowed (the research environment could only read
+search-result text): NIOSH and OSHA CO2 and CO values; La Rinconada's pO2; the
+atmospheric-diving-suit depth rating; the 160 kPa CNS limit; the diving lower
+O2 limit (secondary source); Ball and Hallsworth's 73.8 kJ/kg. Source lists for
+the numbers in the two further notes are in those notes.

@@ -171,6 +171,11 @@ class Planet(HoldsOrbitPosition):
                                    `period`.
         rotation_period_hours (float): This body's axial rotation period
                                        ("day length"), in hours.
+        spin_axis_x/y/z (float): Unit spin axis in the orbit's frame (GEN.104,
+                                 `physics.spin`); the spin vector is this
+                                 times 2 pi / the rotation period.
+        axial_tilt_deg (float): The angle, degrees, between that axis and the
+                                orbit normal.
         evolutionary_data (list): A list of strings describing the evolutionary timeline
                                   (set by `planetLife.apply_life_data`, empty until then).
         flavor_text (str): A randomly selected flavor text for the planet.
@@ -189,7 +194,7 @@ class Planet(HoldsOrbitPosition):
         "position_x", "position_y", "position_z", "orbital_speed_kms",
         "velocity_x_kms", "velocity_y_kms", "velocity_z_kms",
         "min_update_interval_years",
-        "rotation_period_hours",
+        "rotation_period_hours", "spin_axis_x", "spin_axis_y", "spin_axis_z", "axial_tilt_deg",
         "reflex_offset_x", "reflex_offset_y", "reflex_offset_z",
     ]
     """
@@ -315,6 +320,10 @@ class Planet(HoldsOrbitPosition):
         self.orbital_speed_kms = None
         self.min_update_interval_years = None
         self.rotation_period_hours = None
+        self.spin_axis_x = None
+        self.spin_axis_y = None
+        self.spin_axis_z = None
+        self.axial_tilt_deg = None
 
         # From the star, should not be changed.
         self.habitable_zone = habitable_zone

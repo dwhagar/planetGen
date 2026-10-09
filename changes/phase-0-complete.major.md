@@ -1,2 +1,0 @@
-### Changed
-- **Phase 0 is complete: the groundwork the new architecture builds on is in.** The package layout, SQLAlchemy models with Alembic migrations, values in columns instead of JSON blocks, Pydantic request models, one point-in-space object with stored velocity, orbital elements and saved sector paths, codec names from IDs, the RQ job queue with streamed logs, Shoelace and TanStack web components, one 3D map engine from the galaxy down to a moon, scipy and astropy for the physics, and a UX sweep. Version 8.0 starts the work built on top of it.

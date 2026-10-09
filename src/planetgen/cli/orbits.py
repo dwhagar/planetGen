@@ -91,7 +91,8 @@ axis by the angle its galactic phase advances (the galaxy's nucleus,
 the quasar, stays put). Sectors are fixed cells, so an object that drifts
 into another generated sector is refiled there: `sector_id`, its
 sector-relative position and octant. `refresh_after_motion` then
-recomputes containment (`refresh_containment`), octants and the stored
+recomputes containment (`refresh_containment`, counting what entered or
+left a nebula or supernova remnant, GEN.107), octants and the stored
 nearest systems (`refresh_nearest_systems`) for every placed sector, and
 rewrites the `location` text of every system whose sector or nearest
 systems changed. Last, the saved sector paths (GEN.123,
@@ -225,7 +226,7 @@ def main():
             counts.update(motion["counts"])
             finish_orbit_update(conn, clock)
             bar.stage(_stage_label(3))
-            locations = refresh_after_motion(conn, motion["sectors"], on_progress=bar.detail)
+            after = refresh_after_motion(conn, motion["sectors"], on_progress=bar.detail)
             conn.commit()
             # Paths of every sector holding a star system, rogue planet or comet (they all begin
             # where their body is now, which just moved), and of the ones that emptied.
@@ -241,7 +242,9 @@ def main():
         summary = ", ".join(f"{counts[table]} {label}" for table, label in TABLE_LABELS.items())
         print(f"Updated: {summary} (only what was due).")
         print(f"Moved {motion['moved']} object(s) along their galactic orbits; {motion['refiled']} changed "
-              f"sector. Refreshed nearest systems and containment; rewrote {locations} location(s).")
+              f"sector. Refreshed nearest systems and containment; rewrote {after['locations']} location(s).")
+        print(f"{after['entered_nebula']} object(s) entered a nebula and {after['left_nebula']} left one; "
+              f"{after['entered_remnant']} entered a supernova remnant and {after['left_remnant']} left one.")
     except Exception as exc:
         print(f"error: {exc}", file=sys.stderr)
         sys.exit(1)

@@ -32,11 +32,14 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | NAV.22 | Courses inside a sector and a system |  |  |
 | NAV.23 | Open a saved course on the map | NAV.4, NAV.21 |  |
 | NAV.5 | Show a course on the Galaxy Map | NAV.21, NAV.22, NAV.23 | Courses stay drawn until cleared (NAV.49). Parent; most of it exists (MAP.27). |
-| NAV.25 | Find the obstacles along a path | NAV.10 | Corridor query from NAV.10; sectors along the line from NAV.38. |
+| NAV.25 | Find the obstacles along a path |  | Corridor query from NAV.10; sectors along the line from NAV.38. |
 | NAV.26 | Bend the path around keep-out spheres | NAV.25 |  |
+| NAV.56 | Census of overlapping keep-out spheres in a generated galaxy | NAV.51 | Research: decides the overlap policy. |
+| NAV.55 | A tuning block for the keep-out knobs |  | Research: keep-out knobs. |
 | NAV.27 | Moving bodies inside a system | NAV.26 |  |
 | NAV.28 | Show and save the adjusted course | NAV.26, NAV.4 |  |
 | NAV.51 | Courses route around asteroid fields | NAV.25, NAV.26 | Boss 2026-10-09 01:02Z. Parked with the NAV chain (2026-10-09). |
+| NAV.54 | Keep-out radii for asteroid fields, supermassive holes, moons and nebulae (NAV.24 built) | NAV.51 | Research: NAV.24 (built) follow-ups. |
 | NAV.6 | Courses that steer clear of gravity wells | NAV.25, NAV.26, NAV.27, NAV.28, NAV.51 | Parent; closes with its subitems. |
 
 ### API
@@ -67,6 +70,12 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.114 | Add the chosen anomalies to the starmap | GEN.113 | Placeholder until the analysis picks them. |
+| GEN.163 | Type-B pulsar planets in globular clusters (GEN.130 follow-on) | GEN.130, GEN.158, GEN.159 | Globular-cluster chain. |
+| GEN.162 | Planet cull and blue stragglers in clusters | GEN.158, GEN.160 | Globular-cluster chain. |
+| GEN.161 | Bright-first fill for cluster sectors | GEN.160 | Globular-cluster chain. |
+| GEN.160 | Cluster density in the sector gate, with a "cluster" population | GEN.159 | Globular-cluster chain. |
+| GEN.159 | Globular clusters: cluster table, King tables and the Milky Way catalogue | GEN.158 | Globular-cluster chain. |
+| GEN.158 | Add a metallicity value to stars |  | Globular-cluster chain. |
 
 ### Infinite zoom
 

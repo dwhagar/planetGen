@@ -113,6 +113,12 @@ always sum to `relative_density`. Each system in a galaxy sector draws its
 star's population from this mix, so O and B stars and supergiants gather in
 the arms near the plane (CHANGELOG 7.38.0).
 
+The bright-star scatter and backfill draw from these populations. How to
+draw them without visiting every cell (an exact block-first draw from the
+ring-and-layer density bound), why dropping sectors and boosting the rest is
+rejected, and what the backfill and a fill of the sparse outer rim cost, are in
+[sampling-backfill-and-resume.md](sampling-backfill-and-resume.md).
+
 ## 5. Why it works this way
 
 - **Exponential disk, bulge and log spiral.** The brief was "assume a
@@ -161,7 +167,10 @@ the arms near the plane (CHANGELOG 7.38.0).
   the other candidate for GEN.118): the observed bulge is a bar, boxy
   edge on, so the COBE fit was used. Not modelled: the long thin bar
   beyond the bulge, the nuclear stellar disk inside 200 pc and the
-  stellar halo beyond the floor.
+  stellar halo beyond the floor. With no central cusp the density is
+  nearly flat through the core (a core sector holds about 880 to 1,060
+  systems, far fewer than the real nuclear disk); see
+  [fill-order-curves-and-core.md](fill-order-curves-and-core.md), section 4.
 
 ## Corrections made to the previous version
 

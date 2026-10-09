@@ -100,4 +100,4 @@ fractions of B, A and white dwarfs change, and M, K and G stay flat (M 74-75%, K
    small young region).
 2. Lower the young population's B share, or cut its weight, to bring local B stars to about 0.04%.
 3. Give the bulge a small young tail (about 10% under 5 Gyr, between the HST and microlensing figures).
-4. Add a metallicity gradient only if planet occurrence is later tied to it.
+4. Add a metallicity gradient only if planet occurrence is later tied to it. Globular clusters are a second reason to add a metallicity value: their giant-planet cull is `10^(2 [Fe/H])` ([globular-clusters.md](globular-clusters.md) section 7).

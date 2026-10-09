@@ -219,10 +219,10 @@ stores. The groups below are by role, not by folder (the package is flat).
 
 | Path | What it holds |
 |---|---|
-| `physical_constants.py` | Real physical and astronomical constants and unit conversions. |
+| `physics/constants.py` | Real physical and astronomical constants and unit conversions, read from `astropy.constants` (GEN.66). |
 | `program_constants.py` | Design and tuning constants and the big data tables (planet classes, life chemistry, flavor text, facility rules, sector edge). |
 | `generationLimits.py` | Upper bounds on admin inputs, shared by the CLI, the API and the Generate pages. |
-| `utils.py` | Math, formatting (distance ladder, scientific notation), name generation and `properties_to_string`. |
+| `util/format.py` | Number and unit formatting (the distance, speed, duration and pressure ladders, scientific notation) and `properties_to_string`; see [units-and-number-formatting.md](units-and-number-formatting.md). |
 | `appconfig.py` | Loads `config.json`; the `PLANETGEN_*` environment variables override it. |
 | `log.py` | The one logging channel (`--debug`/`--quiet`/`--silent`, the debug log file). |
 | `progressFile.py` | Writes `progress.json` for a web-started run when `PLANETGEN_PROGRESS_FILE` is set. |
@@ -379,7 +379,7 @@ Names without a folder are in `src/planetgen/web/lib/`; `maps/` names are in `sr
 | `generatejobs.js` | Live progress of the current Generate job (polls `/admin/generate/status`). |
 | `mapzoom.js`, `phenomenonmap.js` | Shared SVG viewBox zoom/pan, and its use on the phenomenon diagram. |
 | `distance.js` | The browser copy of the distance ladder (`format.format_distance_m`). |
-| `numberformat.js` | The browser copy of `format.format_number` (scientific notation past 4 whole digits). |
+| `numberformat.js` | The browser copy of `format.format_number` (scientific notation from the 7th whole digit, or the 5th when decimals are shown; UX.36). The planned shared unit ladders are in [units-and-number-formatting.md](units-and-number-formatting.md). |
 | `localtime.js` | Rewrites UTC times into the viewer's time zone. |
 | `theme.js` | Light/dark/system theme switch and header menu closing. |
 | `copycode.js` | The system page's Copy button. |

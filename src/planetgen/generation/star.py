@@ -23,6 +23,7 @@ import re
 from planetgen.generation.config import SystemConfig
 from planetgen.names.wordlists import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from planetgen.physics import constants
+from planetgen.physics import spin
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -182,6 +183,7 @@ class Star:
         "heliosphere_radius", "galactic_orbital_speed_kms", "galactic_orbital_period_gy",
         "galactic_orbital_phase_deg", "galactic_min_update_interval_years",
         "a_crit_au", "reflex_offset_x", "reflex_offset_y", "reflex_offset_z",
+        "rotation_period_hours", "spin_axis_x", "spin_axis_y", "spin_axis_z", "axial_tilt_deg",
     ]
     """
     Every attribute set by `__init__`/`generate_star`, excluding
@@ -910,6 +912,10 @@ class Star:
         (self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy,
          self.galactic_orbital_phase_deg, self.galactic_min_update_interval_years) = \
             generate_galactic_orbit_fields(self.galactic_center_dist_ly, kwargs.get('galactic_orbital_phase_deg'))
+        # GEN.104: the spin, last so nothing above draws differently.
+        self.rotation_period_hours = spin.star_rotation_period_hours(
+            self.mass, self.radius, self.temperature, self.age, self.yerkes_class)
+        spin.set_spin(self, spin.GALACTIC_POLE, spin.rayleigh_tilt_deg())
 
     def get_table_properties(self):
         """

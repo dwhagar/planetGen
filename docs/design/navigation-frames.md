@@ -12,8 +12,14 @@ drawn on the Galaxy Map (7.52.0); see `galaxy-drilldown-navigation.md`,
 section 9. UX.13's unit ladder for speeds (`format_speed_kms`,
 `static/speed.js`, built) changed how warp and fold speeds are written,
 not their values. How a route between two
-systems is found, and the planned change to no hop limit with
-unknown-space jumps flagged, is in [course-routing.md](course-routing.md).
+systems is found, the planned change to no hop limit with unknown-space jumps
+flagged, the measured routing and spatial-index research, and the "what is
+within N pc" search are in [course-routing.md](course-routing.md); how a hop is
+bent around gravity wells and asteroid fields is in
+[course-avoidance.md](course-avoidance.md). A stop in an unfilled sector (a
+scattered star, black hole, neutron star or quasar used as a stop on an
+unknown-space jump, NAV.47) has no sector row, so a course to or from it is
+worked out in the Galactic Standard Frame.
 
 Decisions Boss approved on 2026-09-30:
 

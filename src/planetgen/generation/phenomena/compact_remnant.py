@@ -42,7 +42,7 @@ first version.
 import math
 
 from planetgen.generation.config import SystemConfig
-from planetgen.physics import constants
+from planetgen.physics import constants, spin
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -155,6 +155,13 @@ class CompactRemnant(Star):
         (self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy,
          self.galactic_orbital_phase_deg, self.galactic_min_update_interval_years) = \
             generate_galactic_orbit_fields(self.galactic_center_dist_ly, galactic_orbital_phase_deg)
+        # GEN.104: the spin axis, a Rayleigh tilt from the galactic pole.
+        self.rotation_period_hours = self._rotation_period_hours()
+        spin.set_spin(self, spin.GALACTIC_POLE, spin.rayleigh_tilt_deg())
+
+    def _rotation_period_hours(self):
+        """This remnant's rotation period, hours (GEN.104)."""
+        raise NotImplementedError
 
     def to_dict(self):
         """
@@ -268,7 +275,7 @@ class BlackHole(CompactRemnant):
         self.event_horizon_radius_km = schwarzschild_radius_m / 1000
         self.radius = self.event_horizon_radius_km
 
-        self.spin = draw.uniform(*tuning.BLACK_HOLE_SPIN_RANGE)
+        self.spin = spin.black_hole_spin()
         if self.mass_class == "supermassive":
             # Always some accretion flow, far below Eddington (Sgr A*).
             self.has_accretion_disk = True
@@ -410,6 +417,13 @@ class BlackHole(CompactRemnant):
         return paragraphs
 
 
+    def _rotation_period_hours(self):
+        """The horizon's rotation period, hours; `None` for a* = 0 (no
+        rotation)."""
+        period_s = spin.black_hole_horizon_period_s(self.mass, self.spin)
+        return period_s / 3600.0 if math.isfinite(period_s) else None
+
+
 class NeutronStar(CompactRemnant):
     """
     A neutron star: the collapsed, degenerate-neutron core left behind by a
@@ -487,6 +501,10 @@ class NeutronStar(CompactRemnant):
 
         self.age, self.lifespan = self._generate_remnant_age_and_lifespan()
         self._finish_init(galactic_orbital_phase_deg)
+
+    def _rotation_period_hours(self):
+        """`spin_period_ms` in hours."""
+        return self.spin_period_ms / 3.6e6
 
     def get_table_properties(self):
         """

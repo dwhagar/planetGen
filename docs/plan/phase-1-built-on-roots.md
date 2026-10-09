@@ -37,7 +37,9 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | DB.8 | Check a galaxy database and say whether it is damaged |  | Schema check reads Alembic's revision; the name-registry check goes with GEN.71. 9 after it. Boss 02:13Z: phase 0, its own thread. Read-only. Stats and version checks switch on once GEN.44/PERF.11 and DB.6/DB.7 land; no hard dependency. |
+| DB.16 | Store the generator epoch and run id on each sector instead of four version text columns | OPS.28 | Research follow-up to DB.7 (built). |
 | DB.9 | Repair a damaged galaxy database from a parity file | DB.8, GEN.57, OPS.14 | Boss 02:13Z: phase 1. Reed-Solomon parity over groups of sector exports; seed regeneration as fallback. |
+| DB.17 | Repair by regenerating a damaged sector from its seed when parity cannot rebuild it | DB.9, GEN.57, OPS.14 | Research split of DB.9: the regenerate-from-seed fallback. |
 
 ### Generation
 
@@ -63,8 +65,9 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.24 | Generate the galactic core on layer 0 |  | Bulk core fill runs on the parallel path; new mode on generate.html. |
-| GEN.41 | Investigate: how much backfill work a density pre-pass would save |  | Investigation; go/no-go for GEN.42. |
+| GEN.155 | A nuclear-cluster object for the Sgr A* sector (optional) |  | Research: optional. |
 | GEN.99 | Nebula volume backfill with the star types the nebula needs |  |  |
+| GEN.150 | H II region radius and density from the ionizing photon rate, and IMF-based nebula hosts |  | Research: sub-item of GEN.99. |
 | GEN.101 | Fill order: nearest sectors first along a pruned Hilbert octree curve |  |  |
 | GEN.102 | Investigate filling all near-zero-density void space at once |  |  |
 | GEN.103 | Research where each star type and phenomenon belongs in the galaxy's structure |  |  |
@@ -74,6 +77,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.85 | Atmosphere species, partial pressures and mantle redox for every planet |  |  |
+| GEN.148 | Habitability index follow-ups from the research (GEN.84 built) | GEN.85 | Research follow-up to GEN.84 (built). |
 | GEN.86 | Stellar activity (XUV, flares) and planetary magnetic fields |  |  |
 | GEN.87 | Surface radiation dose | GEN.85, GEN.86 |  |
 | GEN.88 | Hydrosphere and ocean chemistry | GEN.85 | Reuses rogueSurface's ice-shell and ocean functions. |
@@ -93,26 +97,24 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.94 | Feasibility study: can planets form in each nebula class, and what changes |  | None of the habitability docs cover nebulae; this is new research. |
 
 ### Orbital updates
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.104 | A spin vector and a realistic axial tilt for every rotating object |  | Rules from "Observational Kinetics for Rotational Vectors.md". |
-| GEN.107 | The update reports how many objects moved, changed sector, or entered or left a nebula |  |  |
-| GEN.108 | Orbital math limits: where each method breaks down and what happens there |  | Boss (2026-10-07 11:47Z): "we need to ensure that reasonable limitations for when the math breaks down at the edge cases." |
 
 ### Routing
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| NAV.10 | Routing that scales past a few thousand systems |  | Its position indexes are an Alembic migration. Galaxy schema migration for position indexes (v53 taken by PR #425). Built with NAV.12 (no hop limit, a route always exists). |
-| NAV.12 | No maximum hop length: a route always reaches the nearest star it can, across any number of sectors | NAV.10 | Anchor (Boss 01:53Z game mechanic). Built with NAV.10. Per-hop unknown-space flag in /api/nav. |
+| NAV.12 | No maximum hop length: a route always reaches the nearest star it can, across any number of sectors |  | Anchor (Boss 01:53Z game mechanic). Built with NAV.10. Per-hop unknown-space flag in /api/nav. |
+| NAV.53 | A `cells_touching_sphere` helper, and pad `store.sectors_reached_by` by one edge (bug) |  | Bug from the research. |
+| NAV.52 | Port `join_islands` and the k-d tree to cKDTree |  | Research: performance cliff in the built router. |
 | UX.35 | The NAV page route shown horizontally, wrapping onto several lines on narrow screens |  | In parallel with NAV.12; replaces ol.nav-route in nav.html. |
-| NAV.11 | Travel times for the system-to-system route too | NAV.10, NAV.12 | Times per hop, including unknown-space jumps; total assumes a stop at every system (Boss 04:19Z); open question on a stay per stop. |
+| NAV.11 | Travel times for the system-to-system route too | NAV.12 | Times per hop, including unknown-space jumps; total assumes a stop at every system (Boss 04:19Z); open question on a stay per stop. |
 | NAV.42 | Each route stop shows the course and distance to the next stop | UX.35 | Boss 04:19Z. format_course per hop, frame per pair. |
-| NAV.47 | Unknown-space jumps stop at scattered stars, black holes, neutron stars and quasars | NAV.12 |  |
+| NAV.47 | Unknown-space jumps stop at scattered stars, black holes, neutron stars and quasars | NAV.12, GEN.137 |  |
+| GEN.137 | Placed objects move along a galactic orbit but never by velocity times time, and phenomenon_scatter has no plan time (bug) |  | Bug from the research; NAV.47 needs the rule. |
 | NAV.48 | Offer to generate the uncharted sectors that block a course | NAV.12 |  |
 
 ### Nearby search
@@ -139,6 +141,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | UX.46 | Wiping the galaxy wipes the bookmarks |  |  |
 | UX.47 | A bookmark manager: list, rename, sort, group and delete | UX.46 |  |
 | UX.49 | Form fields as Shoelace components (sl-input, sl-select, sl-checkbox) across the site |  | Follows UX.40 (done): the fields themselves become Shoelace components. |
+| OPS.35 | A vendored-version lock file for the static libraries |  | Research: supply-chain record. |
 
 ### Admin control
 
@@ -153,6 +156,10 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | UX.23 | A shared unit-ladder module |  | The ladder uses astropy.units. 22 (a feature); UX.36 keeps today's formatter and needs no ladder. Shared unit ladder; UX.22 then UX.30 build on it. |
+| UX.81 | Time symbols Gyr, Myr, kyr in place of Gy, My, ky; AU from 1,000,000 km; scientific text below mantissa 1e-3 |  | Research: wording and ladder fixes. |
+| UX.80 | Negative values that round to zero print "-0" (bug) |  | Bug from the research. |
+| UX.79 | Python and JS round half-way values differently (bug) |  | Bug from the research. |
+| UX.78 | Unit preference: Automatic, Metric only or Customary | UX.23 | Research: under UX.23. |
 | UX.22 | Meaningful units for every measurement | UX.23 | One quantity family per PR. |
 | UX.3 | Warn every visitor while a background job changes the galaxy |  | ETA from the RQ job's published progress. ETA from progress.json, which PERF.23 caps. |
 | UX.42 | In-universe wording across the interface |  | After the UX sweep removes controls, so only kept wording is changed. |
@@ -177,11 +184,15 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.57 | A sector's contents depend only on the seed, the version and its address |  | Name collisions go away with GEN.67; GEN.63 dropped. Also keys GEN.64's ID collision counter on address (it checks stored rows, PR #406). |
-| DB.7 | The version that generated each sector, and a warning for mixed-version galaxies |  | An Alembic migration. |
-| TEST.77 | A golden-seed regression test | GEN.57 |  |
-| OPS.14 | A warning when the running version key differs from the galaxy's | DB.7 | Feeds GEN.58's output and OPS.12. |
-| ADM.18 | The galaxy's creation settings saved as a JSON file, downloadable from the Admin dashboard | DB.7 | Stores the naming key instead of the word list. Boss 02:13Z: phase 1. Includes the key history; dated backup on every change. |
-| GEN.59 | Admin changes stored as a net difference from the generated galaxy | ADM.18 | Boss 02:20Z: net diff by stable address path, regenerate seeds, in ADM.18's JSON. |
+| TEST.77 | A golden-seed regression test | GEN.57, GEN.135, OPS.28 |  |
+| GEN.156 | Pin astropy to CODATA 2018 and IAU 2015 constants before its first import (GEN.66 follow-up) |  | Research follow-up to GEN.66 (built). |
+| GEN.136 | Fingerprint encoding: floats to 9 significant digits, a stored leaf digest per sector and a ring-and-layer tree | GEN.135 | Research follow-up to GEN.58 (built). |
+| GEN.135 | Deterministic math helpers for every stored float, with a lint and frozen constants |  | Research: Python 3.9 and 3.10 to 3.13 draw different sectors without it. Blocks TEST.77. |
+| OPS.14 | A warning when the running version key differs from the galaxy's |  | Feeds GEN.58's output and OPS.12. |
+| OPS.33 | `.gitattributes` has no LF pins for the lock files and word list, so hashes differ between a Windows and a Linux checkout (bug) |  | Bug from the research. |
+| OPS.29 | Update reload: cover the gunicorn units and non-Apache hosts, and say what a reload aborts |  | Research follow-up to OPS.8 (built). |
+| OPS.28 | Generator epoch and battery digest: say whether two checkouts generate the same galaxy | GEN.135 | Research: OPS.13 is built; this is the epoch it records. OPS.14, OPS.15, OPS.12 and TEST.77 read it. |
+| GEN.59 | Admin changes stored as a net difference from the generated galaxy |  | Boss 02:20Z: net diff by stable address path, regenerate seeds, in ADM.18's JSON. |
 
 ### Bugs from the GitHub issues
 
@@ -193,6 +204,10 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | PERF.31 | Investigate: where generation spends its time, from the plan to a finished galaxy |  | GitHub issues [#761](https://github.com/dwhagar/planetGen/issues/761) and [#750](https://github.com/dwhagar/planetGen/issues/750) (benchmark half). |
+| PERF.41 | Stamp the tile and page caches with a TILE_FORMAT constant instead of the version (optional) | PERF.31 | Research follow-up to PERF.25 (built). |
+| PERF.40 | Two shared queues, a reserved interactive worker and a real "cancel now" | PERF.39 | Research follow-up to PERF.24 (built). |
+| PERF.39 | Every API job costs 2.4 s and 195 MB: import lazily and cap the burst workers |  | Research follow-up to PERF.24 (built); before batch wiki uploads. |
+| PERF.38 | Cache fixes for the Galaxy Map under a fill: single-flight tile builds, a busy rule for the page cache, a deletion epoch in place of COUNT(*) |  | Research follow-up to PERF.34 (built). |
 | PERF.32 | Generation performance stats: rates recorded per run, deleted on every new version |  | GitHub issues [#661](https://github.com/dwhagar/planetGen/issues/661) (store half) and #750. |
 | GEN.128 | Design: multi-star hierarchies and compact-object primaries |  | GitHub issues [#777](https://github.com/dwhagar/planetGen/issues/777) and [#778](https://github.com/dwhagar/planetGen/issues/778): the research both builds wait on. |
 | ADM.42 | One settings model describes every config.json option |  | Foundation for GitHub issues [#515](https://github.com/dwhagar/planetGen/issues/515) and [#743](https://github.com/dwhagar/planetGen/issues/743). |

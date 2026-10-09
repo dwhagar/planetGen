@@ -27,7 +27,7 @@ import math
 from planetgen import tuning
 from planetgen.db.store import get_galaxy_shape
 from planetgen.galaxy import objectref as object_ref
-from planetgen.galaxy.geometry import sectors_along_segment
+from planetgen.galaxy.geometry import sector_address_at, sectors_along_segment
 from planetgen.physics.units import ly_to_pc, mpc_to_pc, pc_to_ly
 
 _CHUNK = 500
@@ -98,16 +98,18 @@ def unknown_space_flags(conn, points_ly):
     light-year positions in order), whether its straight line crosses a sector
     that has not been generated -- "a jump through unknown space". The cells a
     line crosses come from `sectors_along_segment` (NAV.38); a cell is known
-    when `sectors` holds a row at its address.
+    when `sectors` holds a row at its address. The two cells holding a hop's
+    ends do not count (a star is in them).
 
     Returns:
         list[bool]: One flag per hop (`len(points_ly) - 1`).
     """
     edge = _sector_edge_pc(conn)
-    per_hop = [
-        sectors_along_segment(tuple(ly_to_pc(c) for c in a), tuple(ly_to_pc(c) for c in b), edge)
-        for a, b in zip(points_ly, points_ly[1:])
-    ]
+    per_hop = []
+    for a, b in zip(points_ly, points_ly[1:]):
+        start, end = tuple(ly_to_pc(c) for c in a), tuple(ly_to_pc(c) for c in b)
+        ends = {sector_address_at(start, edge), sector_address_at(end, edge)}
+        per_hop.append([cell for cell in sectors_along_segment(start, end, edge) if cell not in ends])
     known = generated_cells(conn, {cell for cells in per_hop for cell in cells})
     return [any(cell not in known for cell in cells) for cells in per_hop]
 
