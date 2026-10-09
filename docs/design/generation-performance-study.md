@@ -41,8 +41,8 @@ and unconfirmed; [B] Boss's words.
    the fork, the same 420,840 stars take **39.5 s instead of 322 s** (8.2 times), identical rows [C].
    At this scale 95% of the CPU was start-up.
 2. **The phenomenon scatter writes 43 times as many rows as the bright-star scatter** (18.2M
-   against 0.42M here; about 1.06e9 against 26.9M at the default scale [C]) and each row is
-   138 bytes, so about 146 GB at the default scale. Its per-row cost is small (32 to 37 CPU-us);
+   against 0.42M here; about 1.17e9 against 26.9M at the default scale [C]) and each row is
+   138 bytes, so about 161 GB at the default scale. Its per-row cost is small (32 to 37 CPU-us);
    its volume is the problem.
 3. **The sector fill costs 20 to 27 ms per system** (3.4 to 7 s per sector) in one process.
    Python generation is about half of that, the database save about 41%, and SQL
@@ -143,7 +143,7 @@ Ranked by the share of the phase they take, at the scale measured.
 | # | Where | Share | Fix | Saving |
 |---|---|---|---|---|
 | 1 | Scatter jobs: import and table build per forked job | 88% of scatter wall | Pre-import and warm in the worker | up to 8 times faster [C] |
-| 2 | Phenomenon rows: 1.06e9 at the default scale, 146 GB | whole of GEN.100 | Compact the rows or derive them on demand | 3 times smaller; or no rows [C][R] |
+| 2 | Phenomenon rows: 1.17e9 at the default scale, 161 GB | whole of GEN.100 | Compact the rows or derive them on demand | 3 times smaller; or no rows [C][R] |
 | 3 | Sector save: row INSERTs, 70 to 90 us each, about 19 per system | 16 to 25% of fill | Fewer columns written per row; the escape cost; see below | 5 to 10% |
 | 4 | Sector save: unique-ID pass updates every row just written | 6 to 9% of fill | Compute the uid in Python while the row is built | 6 to 9% |
 | 5 | Sector generation: planets and moons, orbital position updates | 22% of fill | Fewer coordinate resyncs; make the `finite_domain` checks optional in bulk fills | 5 to 8% |
@@ -212,7 +212,7 @@ timer runs differ by a few points.
   store the numerous kinds (neutron stars and black holes are 99.9% of the rows) at all:
   derive them per cell from the existing per-unit seeds (GEN.39, `util/draw.py`) when the
   sector is filled or queried, and keep rows only for the rare kinds. This removes the
-  scatter's writes, the 146 GB and the index, at the price of a cell-level count the map and
+  scatter's writes, the 161 GB and the index, at the price of a cell-level count the map and
   the settle step must get from the generator instead of the table. Needs Boss's decision;
   I recommend (2) with (1) as the fallback.
 - **F. Move the nearest-system and containment work out of the per-sector save.** A single
@@ -249,7 +249,7 @@ where the numerous rows come from, not what they are.
 ## What this does not predict
 
 - **Index and buffer-pool behaviour at 1e9 rows.** Quarter-scale tables fit in memory; the
-  per-row insert cost rises once the index no longer fits the InnoDB buffer pool, and 146 GB
+  per-row insert cost rises once the index no longer fits the InnoDB buffer pool, and 161 GB
   is far outside a 4-core box's pool. Expect the phenomenon scatter to run several times
   slower per row than 32 us. Measure on the real server with `innodb_buffer_pool_size`
   recorded.
@@ -269,14 +269,14 @@ Counts at the default scale, from the quarter-scale run times 64 [C]:
 | Phase | Rows or stars | Warm CPU | At 4 workers |
 |---|---|---|---|
 | Bright-star scatter | 26.9M | 39 CPU-min | about 10 min |
-| Phenomenon scatter | 1.06e9 | 9.4 CPU-h | about 2.4 h |
+| Phenomenon scatter | 1.17e9 | about 10.4 CPU-h | about 2.6 h |
 | Bright-star fill (46.6 ms per star) | 26.9M | 14.5 days single worker | about 7.7 days at 1.87 times |
 
 The report's figure of 24 minutes for the scatter does not reach ten hours. The phenomenon
-scatter could: 9.4 CPU-hours before the per-job tax, the cost of a growing 146 GB index and
+scatter could: 9.4 CPU-hours before the per-job tax, the cost of a growing 161 GB index and
 the database sharing the cores. If 10 hours was `planetgen plan` with the phenomenon scatter, A and E are the
 fix. The notes record 1.6e8 neutron-star and black-hole rows; my count at the default
-scale is 1.06e9 rows in total, so the two disagree by 6.6 times and one of them comes
+scale is 1.17e9 rows in total, so the two disagree by 7.3 times and one of them comes
 from a different configuration. If 10 hours was the bright-star **fill**, only a smaller
 galaxy fits and the per-star fill cost (46.6 ms, of which 2.6 ms is generation) is the target
 (C, F). The run's log (or `planetgen plan` output with the phase times) would settle it.
