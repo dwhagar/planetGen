@@ -55,7 +55,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ADM.29 | Fill a span of layers, rings or columns |  |  |
 | ADM.30 | Radial generation: a cylinder of N sectors around a point |  |  |
 | ADM.31 | Every generate action offers to show what it made on the Galaxy Map |  | Merges two asks: the 2026-10-03 button and the 2026-10-07 "see that space". |
-| ADM.47 | Generating a neighbourhood from the Generate page shows no per-sector stats and looks slow or silent (bug) |  | Bugfixes lane 1, in progress. |
 | GEN.96 | Generation directives for a sector (an override button) |  | A subset of what API recipes (API.18) later take. |
 | GEN.97 | Generate N random neighborhoods |  |  |
 | ADM.45 | Prevalence fields take the override share directly and must total 100% |  | Boss 2026-10-09 07:48Z; follows ADM.37. |
