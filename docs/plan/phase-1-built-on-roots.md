@@ -208,7 +208,11 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | PERF.47 | The PERF.31 benchmark records the buffer pool, table sizes and worker start-up cost | PERF.31 | Generation performance study. |
 | PERF.46 | Planets and moons: set the position once per body |  | Generation performance study. |
 | PERF.45 | Nearest-system links and containment as one later pass |  | Generation performance study. |
-| DB.19 | Phenomenon rows: about 1.06 billion rows and 146 GB at the default scale |  | Needs Boss to decide. |
+| DB.19 | Phenomenon rows: implement the mass cut (1.17 billion rows and 161 GB become about 2.7e5 rows) | GEN.167 | Cut decided by Boss; recommended 20 solar masses. |
+| GEN.169 | Decide the phenomenon scatter rates: regional factors and the 0.1% intermediate-mass black holes |  | Needs Boss to decide. |
+| GEN.168 | The sector fill draws the phenomena below the scatter cut | GEN.167 | Phenomenon mass cut. |
+| GEN.167 | A lowest-mass option for the phenomenon scatter: --phenomenon-min-mass, default 20 solar masses | GEN.166 | Phenomenon mass cut. |
+| GEN.166 | A mass_range argument on NeutronStar and BlackHole, and intermediate-mass black holes as their own kind |  | Phenomenon mass cut. |
 | PERF.44 | Compute object uids in Python and write them with the row |  | Generation performance study. |
 | PERF.43 | Lazy word-salad names for phenomena named by object ID |  | Generation performance study. |
 | PERF.42 | Warm the RQ worker before the fork: pre-import generation modules and build the bright-star table once |  | Generation performance study. |

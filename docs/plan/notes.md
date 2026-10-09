@@ -308,7 +308,7 @@ No decisions are open. (GEN.67, Boss 2026-10-08: stars and sectors keep word sal
 - **DB.13 in phase 0**: Boss called it "a Phaser 0 priority".
 - Execution plan (Boss's priority order of 2026-10-09 07:13Z: Orbital updates, Maps, Nearby search, Routing; Repeatable galaxy last, blockers first): `docs/plan/execution-plan.html`, with lanes by wave and the Alembic and file conflicts between groups.
 - Boss (2026-10-09 07:54Z): "I haven't held anything, so integrate ALL phase 1 items into the immediate TODO breakdown, focusing on unblocking things as a first priority." The execution plan's lane lists now hold all 77 non-bug Phase 1 items, ordered with the items that unblock the most work first (`docs/plan/execution-plan.html`).
-- GEN.100's galaxy-wide scatter writes about 1.6e8 rows at the default galaxy size (phenomenon_scatter table). Boss may lower the scatter rate; the coordinator is asking him (2026-10-09 08:15Z).
+- GEN.100's galaxy-wide scatter would write about 1.17e9 rows (161 GB) at the default galaxy size before a mass cut (phenomenon_scatter table); the 1.6e8 first noted here (2026-10-09 08:15Z) was an unverified estimate. Boss decided (2026-10-09 19:54Z) on a lowest-mass cut with the sector fill drawing the rest; at the recommended 20 solar masses the table is about 2.7e5 rows (DB.19, GEN.166 to GEN.168; [phenomenon-scatter-mass-cut.md](../design/phenomenon-scatter-mass-cut.md)).
 
 ## Design notes in docs/design
 
