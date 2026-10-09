@@ -200,6 +200,8 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.131 | Bright-star scatter logs how many stars it added to each layer, by type |  | Boss 2026-10-09 08:03Z; the last item of Bugfixes lane 1. |
+| GEN.132 | Per-sector regional rates for neutron stars and black holes, extended system-wide where the research supports it |  | Boss 2026-10-09 09:20Z; first on Foundations lane 1, ahead of OPS.8. |
+| GEN.133 | Analysis of every star type's rate against its distance from the galactic core |  | Boss 2026-10-09 09:20Z; Foundations lane 1, with GEN.132. |
 | PERF.31 | Investigate: where generation spends its time, from the plan to a finished galaxy |  | GitHub issues [#761](https://github.com/dwhagar/planetGen/issues/761) and [#750](https://github.com/dwhagar/planetGen/issues/750) (benchmark half). |
 | PERF.32 | Generation performance stats: rates recorded per run, deleted on every new version |  | GitHub issues [#661](https://github.com/dwhagar/planetGen/issues/661) (store half) and #750. |
 | GEN.128 | Design: multi-star hierarchies and compact-object primaries |  | GitHub issues [#777](https://github.com/dwhagar/planetGen/issues/777) and [#778](https://github.com/dwhagar/planetGen/issues/778): the research both builds wait on. |

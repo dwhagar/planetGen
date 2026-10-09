@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.78 |
 | MAP | MAP.144 |
 | NAV | NAV.52 |
-| GEN | GEN.132 |
+| GEN | GEN.134 |
 | PERF | PERF.35 |
 | DB | DB.16 |
 | API | API.20 |
@@ -602,6 +602,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.129 | Multi-star systems of up to seven stars | none | open |
 | GEN.130 | Exotic star systems: a black hole, neutron star or similar at the center | none | open |
 | GEN.131 | Bright-star scatter logs how many stars it added to each layer, by type | none | open |
+| GEN.132 | Per-sector regional rates for neutron stars and black holes, extended system-wide where the research supports it | none | open |
+| GEN.133 | Analysis of every star type's rate against its distance from the galactic core | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
