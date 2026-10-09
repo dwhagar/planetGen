@@ -37,7 +37,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | DB.8 | Check a galaxy database and say whether it is damaged |  | Schema check reads Alembic's revision; the name-registry check goes with GEN.71. 9 after it. Boss 02:13Z: phase 0, its own thread. Read-only. Stats and version checks switch on once GEN.44/PERF.11 and DB.6/DB.7 land; no hard dependency. |
-| DB.9 | Repair a damaged galaxy database from a parity file | DB.8, GEN.57, GEN.58, OPS.14 | Boss 02:13Z: phase 1. Reed-Solomon parity over groups of sector exports; seed regeneration as fallback. |
+| DB.9 | Repair a damaged galaxy database from a parity file | DB.8, GEN.57, OPS.14 | Boss 02:13Z: phase 1. Reed-Solomon parity over groups of sector exports; seed regeneration as fallback. |
 
 ### Generation
 
@@ -178,28 +178,20 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | GEN.57 | A sector's contents depend only on the seed, the version and its address |  | Name collisions go away with GEN.67; GEN.63 dropped. Also keys GEN.64's ID collision counter on address (it checks stored rows, PR #406). |
 | DB.7 | The version that generated each sector, and a warning for mixed-version galaxies |  | An Alembic migration. |
-| GEN.58 | A fingerprint of a galaxy's generated content |  | Judgment: phase 1 so the golden test guards later changes. |
-| TEST.77 | A golden-seed regression test | GEN.57, GEN.58 |  |
-| OPS.8 | Update reloads Apache itself when run as root |  | 13 in the same update scripts. Not a bug, but the same files as OPS.7, so it rides along. |
-| OPS.13 | Every update records the version key, keeping the last 10 | OPS.8 | No corpus or name-list hashes once GEN.71 lands; the lock hashes stay. update.sh / update.ps1 after OPS.7 and OPS.8; control-database history table. Open question on "recalculate the seed value". |
-| OPS.14 | A warning when the running version key differs from the galaxy's | DB.7, OPS.13 | Feeds GEN.58's output and OPS.12. |
-| ADM.18 | The galaxy's creation settings saved as a JSON file, downloadable from the Admin dashboard | DB.7, OPS.13 | Stores the naming key instead of the word list. Boss 02:13Z: phase 1. Includes the key history; dated backup on every change. |
-| GEN.59 | Admin changes stored as a net difference from the generated galaxy | GEN.58, ADM.18 | Boss 02:20Z: net diff by stable address path, regenerate seeds, in ADM.18's JSON. |
+| TEST.77 | A golden-seed regression test | GEN.57 |  |
+| OPS.14 | A warning when the running version key differs from the galaxy's | DB.7 | Feeds GEN.58's output and OPS.12. |
+| ADM.18 | The galaxy's creation settings saved as a JSON file, downloadable from the Admin dashboard | DB.7 | Stores the naming key instead of the word list. Boss 02:13Z: phase 1. Includes the key history; dated backup on every change. |
+| GEN.59 | Admin changes stored as a net difference from the generated galaxy | ADM.18 | Boss 02:20Z: net diff by stable address path, regenerate seeds, in ADM.18's JSON. |
 
 ### Bugs from the GitHub issues
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| PERF.34 | The site stays responsive during heavy generation jobs (bug) | PERF.31 | GitHub issues [#638](https://github.com/dwhagar/planetGen/issues/638) and [#614](https://github.com/dwhagar/planetGen/issues/614) (second half). |
-| GEN.127 | A sector generated around a backfilled bright star gives that star a planetary system (bug) |  | GitHub issue [#513](https://github.com/dwhagar/planetGen/issues/513). |
 
 ### Foundations for the issue features
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.131 | Bright-star scatter logs how many stars it added to each layer, by type |  | Boss 2026-10-09 08:03Z; the last item of Bugfixes lane 1. |
-| GEN.132 | Per-sector regional rates for neutron stars and black holes, extended system-wide where the research supports it |  | Boss 2026-10-09 09:20Z; first on Foundations lane 1, ahead of OPS.8. |
-| GEN.133 | Analysis of every star type's rate against its distance from the galactic core |  | Boss 2026-10-09 09:20Z; Foundations lane 1, with GEN.132. |
 | PERF.31 | Investigate: where generation spends its time, from the plan to a finished galaxy |  | GitHub issues [#761](https://github.com/dwhagar/planetGen/issues/761) and [#750](https://github.com/dwhagar/planetGen/issues/750) (benchmark half). |
 | PERF.32 | Generation performance stats: rates recorded per run, deleted on every new version |  | GitHub issues [#661](https://github.com/dwhagar/planetGen/issues/661) (store half) and #750. |
 | GEN.128 | Design: multi-star hierarchies and compact-object primaries |  | GitHub issues [#777](https://github.com/dwhagar/planetGen/issues/777) and [#778](https://github.com/dwhagar/planetGen/issues/778): the research both builds wait on. |
