@@ -327,6 +327,13 @@ migrate_or_reset_db() {
     run_cli migrate
 }
 
+# Records the version key this update runs under, one row per galaxy in the
+# control database's history (OPS.13; the last 10 are kept), after the
+# schemas are current. A failure only warns: the update carries on.
+record_version_key() {
+    run_cli version_history || echo "warning: could not record the version key (see above); the update carries on." >&2
+}
+
 # The math check (`planetgen check-math`, TEST.68): known answers from
 # real astronomy, identities and sampler distributions. A failure only
 # warns -- the update carries on and the site keeps serving -- but sets

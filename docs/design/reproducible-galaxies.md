@@ -195,12 +195,14 @@ used, so the OS, architecture and Python parts cover the maths library.
 
 ## 6. Updates and the version history (phase 1, then 2)
 
-- **History (OPS.13, phase 1).** After updating the code, `update.sh`
-  and `update.ps1` compute the running key and add one row per galaxy
-  to a control-database table: the galaxy seed (unchanged by an update),
-  the key, the corpus and lock hashes, and the date. Only the last 10
-  rows per galaxy are kept; `planetgen` can list them. Lands after
-  OPS.7 and OPS.8, which change the same scripts.
+- **History (OPS.13, built).** After the databases are migrated,
+  `update.sh` and `update.ps1` run `planetgen.cli.version_history`, which
+  adds one row per planned galaxy to the control database's
+  `version_key_history` (control schema v11): the galaxy seed (unchanged by
+  an update), the key, the release, the SHA-256 of `requirements.lock` and
+  the date. The corpus and name-list hashes are not recorded (the name
+  codec replaced them). Only the last 10 rows per galaxy are kept;
+  `planetgen versions` lists them. A failure to record only warns.
 - **Mismatch warning (OPS.14, phase 1).** One check compares the running
   key and hashes with the galaxy's (and each sector's) and names every
   field that differs ("Python 3.12.3 now, 3.11.9 when generated").

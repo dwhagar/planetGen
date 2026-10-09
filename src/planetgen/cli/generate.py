@@ -15,6 +15,7 @@ or as the installed `planetgen` command):
     planetgen phenomenon [options]  -- one exotic stellar phenomenon
     planetgen population [options]  -- species, civilizations and territories
     planetgen check-math            -- the math check bulk runs start with
+    planetgen versions              -- the version keys each update recorded
 
 Run `planetgen <command> --help` for that command's own full option
 list. This module is the command line: every command's options and
@@ -1026,6 +1027,13 @@ def build_parser():
                                    help="List every check, not only the failures.")
     add_logging_arguments(check_math_parser)
 
+    versions_parser = subparsers.add_parser(
+        'versions',
+        description="Lists the version key each galaxy database was updated under (OPS.13), newest first.",
+        help="List the version keys recorded by updates.")
+    store.add_mysql_connection_args(versions_parser)
+    add_logging_arguments(versions_parser)
+
     population_parser = subparsers.add_parser(
         'population',
         description="Population and Politics Pass",
@@ -1040,6 +1048,7 @@ def build_parser():
         'phenomenon': phenomenon_parser,
         'population': population_parser,
         'check-math': check_math_parser,
+        'versions': versions_parser,
     }
 
 
@@ -1114,6 +1123,12 @@ def run_check_math(args):
     log.normal(report)
 
 
+def run_versions(args):
+    """`planetgen versions`: prints the version-key history (OPS.13)."""
+    from planetgen.cli import version_history
+    log.normal(version_history.format_history(store.mysql_config_from_args(args)))
+
+
 BULK_COMMANDS = ("galaxy", "plan", "population")
 """tuple: Subcommands that always generate in bulk, so the math check runs
 first (TEST.68); `sector` joins them when it makes more than one sector
@@ -1129,6 +1144,7 @@ def is_bulk_run(args):
 
 _COMMAND_HANDLERS = {
     'check-math': run_check_math,
+    'versions': run_versions,
     'system': run_system.run_system,
     'sector': run_sector.run_sector,
     'galaxy': run_galaxy.run_galaxy,
@@ -1158,7 +1174,7 @@ def main():
         log.configure(level, debug_file=(args.debug or None))
     except OSError as exc:
         _fatal(f"cannot open --debug file {args.debug!r}: {exc.strerror or exc}", logger_ready=False)
-    logged = not getattr(args, "output", None) and args.command != "check-math"
+    logged = not getattr(args, "output", None) and args.command not in ("check-math", "versions")
     log.normal(version_key.run_line(_run_line_seed(args) if logged else None, " ".join(_run_argv(sys.argv[1:]))))
     log.debug("Command: %s, options: %s", args.command,
               {key: ("<withheld>" if "password" in key else value) for key, value in sorted(vars(args).items())})
