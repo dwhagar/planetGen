@@ -120,3 +120,101 @@ def test_planning_draws_a_key_for_a_new_seed_and_keeps_an_admins_over_the_same_s
         assert naming_key.key_of(conn, config.database) == naming_key.draw_key(other)
     finally:
         conn.close()
+
+
+def _rogue_planet_with_id(mysql_config):
+    from planetgen.db import store
+    from planetgen.generation.config import SystemConfig
+    from planetgen.generation.phenomena.rogue import RoguePlanet
+
+    planet = RoguePlanet(SystemConfig())
+    conn = store.get_connection(mysql_config)
+    try:
+        with conn:
+            store.insert_rogue_planet(conn, planet, placement={
+                "center_x_pc": 10.0, "center_y_pc": 0.0, "center_z_pc": 0.0, "galactic_radius_pc": 10.0})
+        row_id = conn.execute("SELECT id FROM rogue_planets WHERE name = ?", (planet.name,)).fetchone()["id"]
+    finally:
+        conn.close()
+    return planet.name, row_id
+
+
+def test_the_api_shows_the_codec_name_and_a_key_change_renames_it(real_app, mysql_config):  # noqa: F811
+    from planetgen.api import naming
+    from planetgen.db import store
+
+    stored, row_id = _rogue_planet_with_id(mysql_config)
+    assert len(stored) == 19
+    admin = _admin_client(real_app)
+    detail = f"/api/phenomena/rogue_planet/{row_id}"
+    # No key drawn yet: the ID is the name.
+    assert admin.get(detail).get_json()["name"] == stored
+
+    conn = store.get_control_connection(real_app.config["CONTROL_MYSQL_CONFIG"])
+    try:
+        naming_key.draw(conn, real_app.config["MYSQL_CONFIG"].database, bytes(16))
+    finally:
+        conn.close()
+    naming.forget()
+    key = naming_key.draw_key(bytes(16))
+    first = admin.get(detail).get_json()["name"]
+    assert first == naming_key.codec_name(stored, "rogue-planet", key) != stored
+    listed = [item["name"] for item in admin.get("/api/phenomena").get_json()["items"]]
+    assert first in listed and stored not in listed
+
+    admin.post("/api/admin/naming-key", json={"key": "FFFFFFFF"})
+    second = admin.get(detail).get_json()["name"]
+    assert second == naming_key.codec_name(stored, "rogue-planet", "FFFFFFFF") and second != first
+    assert naming_key.object_id_of(second, "rogue-planet", "FFFFFFFF") == stored
+
+
+def test_a_key_change_changes_the_tile_stamp(real_app, mysql_config):  # noqa: F811
+    from planetgen.api import naming
+    from planetgen.db import store
+
+    admin = _admin_client(real_app)
+    conn = store.get_control_connection(real_app.config["CONTROL_MYSQL_CONFIG"])
+    try:
+        naming_key.draw(conn, real_app.config["MYSQL_CONFIG"].database, bytes(16))
+    finally:
+        conn.close()
+    naming.forget()
+    before = admin.get("/api/galaxy/stamp").get_json()["stamp"]
+    admin.post("/api/admin/naming-key", json={"key": "FFFFFFFF"})
+    assert admin.get("/api/galaxy/stamp").get_json()["stamp"] != before
+
+
+def test_only_object_id_names_are_renamed_and_the_key_is_asked_once():
+    from planetgen.names import object_id
+
+    nebula = object_id.format_id(object_id.pack("nebula", (100.0, 200.0, 3.0)))
+    core = object_id.format_id(object_id.pack("black-hole-core", (100.0, 200.0, 3.0)))
+    bright = object_id.format_id(object_id.pack("bright-star", (100.0, 200.0, 3.0)))
+    asked = []
+
+    def key():
+        asked.append(1)
+        return "00AB12CD"
+
+    payload = {"items": [{"name": nebula}, {"name": core}, {"name": bright}, {"name": "Sol"},
+                         {"nested": {"name": nebula, "other": nebula}}], "total": 5}
+    out = naming_key.rename_names(payload, key)
+    assert out["items"][0]["name"] == naming_key.codec_name(nebula, "nebula", "00AB12CD")
+    assert out["items"][1]["name"] == naming_key.codec_name(core, "black-hole-core", "00AB12CD")
+    assert out["items"][2]["name"] == bright and out["items"][3]["name"] == "Sol"
+    assert out["items"][4]["nested"] == {"name": out["items"][0]["name"], "other": nebula}
+    assert payload["items"][0]["name"] == nebula  # the input is not changed
+    assert len(asked) == 1
+    plain = {"items": [{"name": "Sol"}]}
+    assert naming_key.rename_names(plain, lambda: 1 / 0) is plain  # no ID, no key lookup
+
+
+def test_a_typed_codec_name_finds_its_id():
+    from planetgen.names import object_id
+
+    stored = object_id.format_id(object_id.pack("quasar", (5000.0, 10.0, 1.0)))
+    name = naming_key.display_name(stored, "00AB12CD")
+    assert name != stored
+    assert naming_key.stored_name_for(name.upper(), "00AB12CD") == stored
+    assert naming_key.stored_name_for("Sol", "00AB12CD") is None
+    assert naming_key.display_name(stored, None) in (stored,) or naming_key.active_key() is not None

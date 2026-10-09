@@ -22,6 +22,7 @@ from planetgen.api.auth import bp as auth_bp
 from planetgen.api.common import ApiError, close_control_db
 from planetgen.api.config import Config
 from planetgen.api.edits import bp as edits_bp
+from planetgen.api import naming
 from planetgen.api.limiter import limiter
 from planetgen.api.population import bp as population_bp
 from planetgen.api.routes import bp, close_db
@@ -48,6 +49,7 @@ def create_app(config_object=Config):
     app = Flask("planetgen_app", root_path=os.path.dirname(os.path.abspath(__file__)),
                 static_folder=web.STATIC_DIR)
     app.config.from_object(config_object)
+    naming.install(app)
     app.before_request(_reject_undecodable_query_string)
     app.before_request(_reject_oversized_body)
     limiter.init_app(app)

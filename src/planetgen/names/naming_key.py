@@ -28,6 +28,7 @@ import datetime
 import hashlib
 import re
 
+from planetgen.names import object_id
 from planetgen.names.gated_phoneme_codec import GatedPhonemeCodec
 
 CODEC_VERSION = 1
@@ -93,6 +94,116 @@ def codec_name(object_id, kind, key):
 def object_id_of(name, kind, key):
     """The 19-digit hex ID a `codec_name` stands for (its inverse)."""
     return _CODEC.decode(name.lower(), codec_domain(key, kind), length=OBJECT_ID_DIGITS)
+
+
+# ---------------------------------------------------------------------
+# Names shown for stored object IDs (GEN.71)
+# ---------------------------------------------------------------------
+
+_resolver = None
+
+
+def set_resolver(function):
+    """Installs the callable that answers "what is the naming key in force
+    for this request?" (the API sets one that reads the control database;
+    without one, or when it answers `None`, an ID is shown as the ID)."""
+    global _resolver
+    _resolver = function
+
+
+def active_key():
+    """The naming key in force, or `None` (no resolver, or none drawn)."""
+    return _resolver() if _resolver is not None else None
+
+
+def codec_kind_of(stored_name):
+    """
+    The kind (`KINDS`) the 19-hex-digit object ID `stored_name` belongs to,
+    or `None` when it isn't an object ID or is one of a kind the codec
+    doesn't name (a bright-sweep system keeps its ID as its uid).
+    """
+    if not isinstance(stored_name, str) or len(stored_name) != OBJECT_ID_DIGITS:
+        return None
+    try:
+        kind = object_id.parse_id(stored_name)["kind"]
+    except ValueError:
+        return None
+    return kind if kind in KINDS else None
+
+
+def display_name(stored_name, key=None):
+    """
+    What to show for `stored_name`: the codec name of an object ID under
+    `key` (default: `active_key()`), anything else unchanged. The ID stays
+    stored; the kind comes from the ID's own type bits.
+    """
+    kind = codec_kind_of(stored_name)
+    if kind is None:
+        return stored_name
+    key = key if key is not None else active_key()
+    if key is None:
+        return stored_name
+    return codec_name(stored_name.upper(), kind, key)
+
+
+def rename_names(value, get_key):
+    """
+    `value` (JSON-able dicts and lists) with every `"name"` that is an
+    object ID replaced by its codec name. `get_key` is called at most once,
+    and only when such a name turns up, so payloads without one cost no
+    key lookup. Returns `value` itself when nothing was renamed.
+    """
+    state = {}
+
+    def key():
+        if "key" not in state:
+            state["key"] = get_key()
+        return state["key"]
+
+    def walk(item):
+        if isinstance(item, dict):
+            changed = None
+            for field, child in item.items():
+                if field == "name" and codec_kind_of(child) is not None:
+                    renamed = display_name(child, key())
+                else:
+                    renamed = walk(child) if isinstance(child, (dict, list)) else child
+                if renamed is not child:
+                    if changed is None:
+                        changed = dict(item)
+                    changed[field] = renamed
+            return item if changed is None else changed
+        if isinstance(item, list):
+            out = None
+            for index, child in enumerate(item):
+                renamed = walk(child) if isinstance(child, (dict, list)) else child
+                if renamed is not child:
+                    if out is None:
+                        out = list(item)
+                    out[index] = renamed
+            return item if out is None else out
+        return item
+
+    return walk(value)
+
+
+def stored_name_for(typed, key=None):
+    """
+    The object ID a typed codec name stands for under `key` (default:
+    `active_key()`), or `None`: the name is tried in each codec kind's
+    domain and kept when the decoded ID is of that kind.
+    """
+    key = key if key is not None else active_key()
+    if key is None or not isinstance(typed, str) or not typed.strip():
+        return None
+    for kind in KINDS:
+        try:
+            decoded = object_id_of(" ".join(typed.lower().split()), kind, key)
+        except Exception:  # noqa: BLE001 -- the codec rejects what it can't read
+            continue
+        if codec_kind_of(decoded) == kind:
+            return decoded
+    return None
 
 
 # ---------------------------------------------------------------------

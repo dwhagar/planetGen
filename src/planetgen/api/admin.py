@@ -23,6 +23,7 @@ from planetgen.db import stats as adminStats
 from planetgen.db import store as _db
 from planetgen.admin import auth, throttle
 from planetgen.generation import stats as generationStats
+from planetgen.api import naming
 from planetgen.names import naming_key
 from planetgen._version import __version__
 
@@ -247,6 +248,8 @@ def naming_key_set():
         naming_key.change(conn, database, key, g.admin_user["username"])
     except LookupError as exc:
         raise ApiError(str(exc), status_code=409) from exc
+    naming.forget(database)
+    g.naming_key = key
     audit("naming-key.change", target=database, detail=f"key={key}")
     return jsonify(_naming_view(database, naming_key.get(conn, database)))
 

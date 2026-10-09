@@ -51,6 +51,7 @@ from planetgen.galaxy.geometry import (
 from planetgen.galaxy import keepout
 from planetgen.galaxy import objectref as object_ref
 from planetgen.galaxy import uid as galaxy_uid
+from planetgen.names import naming_key
 from planetgen.galaxy.sector import classify_octant
 from planetgen.galaxy.viewport import (
     TILE_MAX_LEVEL,
@@ -4168,7 +4169,9 @@ def galaxy_content_state(conn):
     ).fetchone()
     base = hashlib.sha256(json.dumps(
         {"shape": galaxy_density_shape(conn), "version": __version__,
-         "bright_stars": [bright["max_id"], bright["seed"]]}, sort_keys=True, default=str,
+         "bright_stars": [bright["max_id"], bright["seed"]],
+         # GEN.70: the naming key renames the codec-named objects in every tile and page.
+         "naming_key": naming_key.active_key()}, sort_keys=True, default=str,
     ).encode("utf-8")).hexdigest()[:16]
     return {
         "base": base,
