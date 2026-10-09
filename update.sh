@@ -49,6 +49,10 @@
 #   9. Imports the web app as Apache's user, so anything still unusable
 #      fails here instead of as a 500.
 #
+# At the end, on Linux, it reloads Apache itself when Apache is running
+# (restarts it when step 6 just enabled a module) and says so; if Apache
+# isn't running it prints the command instead (OPS.8).
+#
 # After the steps it starts building the Galaxy Map's opening view into the
 # tile cache in the background (`planetgen.cli.warm_map`, MAP.134), so the
 # first visit after the update is fast; the update does not wait for it.
@@ -204,11 +208,19 @@ if is_macos; then
         echo "Done. Nothing new was pulled."
     fi
 elif (( APACHE_NEEDS_RESTART )); then
-    echo "Done. An Apache module was just enabled: restart Apache to load it:"
-    echo "  sudo systemctl restart apache2"
+    if reload_apache_if_running; then
+        echo "Done. An Apache module was just enabled, so Apache was restarted to load it."
+    else
+        echo "Done. An Apache module was just enabled: restart Apache to load it:"
+        echo "  sudo systemctl restart apache2"
+    fi
 elif [[ "$before" != "$after" ]]; then
-    echo "Done. Reload Apache so the site runs the new code:"
-    echo "  sudo systemctl reload apache2"
+    if reload_apache_if_running; then
+        echo "Done. The site is running the new code."
+    else
+        echo "Done. Reload Apache so the site runs the new code:"
+        echo "  sudo systemctl reload apache2"
+    fi
 else
     echo "Done. Nothing new was pulled."
 fi
