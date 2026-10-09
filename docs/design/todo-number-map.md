@@ -588,7 +588,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.123 | The projected path of a body through a sector, saved as a spline | none | done, PR #762 |
 | GEN.124 | Every object knows its sector address (ring, layer, slot), recalculated whenever its position changes | none | done, PR #729 |
 | GEN.125 | Stand-alone facilities store a velocity | none | open |
-| GEN.126 | Run an orbital update as the last step of a generation run | none | open |
+| GEN.126 | Run an orbital update as the last step of a generation run | none | done, PR #771 |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
