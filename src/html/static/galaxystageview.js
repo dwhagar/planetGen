@@ -868,13 +868,29 @@ export function createStageView(host) {
     const extra = [];
     const pickQuery = host.pickQuery ? host.pickQuery() : "";
     if (pickQuery) extra.push(pickQuery.slice(1));
+    return joinQuery(query, extra.concat(displayParts()));
+  }
+
+  // What the map shows beyond the stage (kinds, star classes and floor, and
+  // the fill's color), as query parts; a bookmark of a view keeps them too.
+  function displayParts() {
+    const extra = [];
     const hidden = sectorStage.hiddenKinds();
     if (hidden.length) extra.push("hide=" + hidden.join(","));
+    if (sectorStage.markedKinds().length) extra.push("mark=" + sectorStage.markedKinds().join(","));
     if (sectorStage.hiddenClasses().length) extra.push("stars=" + sectorStage.hiddenClasses().join(","));
     if (sectorStage.minLuminosity() > 0) extra.push("lum=" + sectorStage.minLuminosity());
     if (colorBy !== "default") extra.push("color=" + colorBy);
+    return extra;
+  }
+
+  function joinQuery(query, extra) {
     if (!extra.length) return query;
     return (query ? query + "&" : "?") + extra.join("&");
+  }
+
+  function displayQuery(query) {
+    return joinQuery(query, displayParts());
   }
 
   // The color mode a URL's `color` names ("default" for none or an unknown one).
@@ -907,8 +923,14 @@ export function createStageView(host) {
     const params = new URLSearchParams(location.search);
     const classes = (params.get("stars") || "").split(",").filter(Boolean);
     sectorStage.setHiddenClasses(classes);
+    sectorStage.setMarkedKinds((params.get("mark") || "").split(",").filter(Boolean));
     const lum = Number(params.get("lum"));
     sectorStage.setMinLuminosity(lum > 0 && isFinite(lum) ? lum : 0);
+  }
+
+  function setKindMarked(kind, marked) {
+    sectorStage.setKindMarked(kind, marked);
+    writeHiddenToUrl();
   }
 
   function setStarClassHidden(starClass, hidden) {
@@ -926,6 +948,9 @@ export function createStageView(host) {
     const now = sectorStage.hiddenKinds();
     if (now.length) params.set("hide", now.join(","));
     else params.delete("hide");
+    const marked = sectorStage.markedKinds();
+    if (marked.length) params.set("mark", marked.join(","));
+    else params.delete("mark");
     const classes = sectorStage.hiddenClasses();
     if (classes.length) params.set("stars", classes.join(","));
     else params.delete("stars");
@@ -2005,7 +2030,7 @@ export function createStageView(host) {
       };
     }
     const labels = S.crumbs(stage, getOutline(), edgePc).map(function (crumb) { return crumb.label; });
-    return { kind: "stage", value: location.pathname + S.stageQuery(stage), name: labels.join(" › ") };
+    return { kind: "stage", value: location.pathname + displayQuery(S.stageQuery(stage)), name: labels.join(" › ") };
   }
 
   // The breadcrumb (MAP.93): one line at any width. When the steps don't
@@ -2784,6 +2809,8 @@ export function createStageView(host) {
     kinds: sectorStage.kinds,
     kindHidden: sectorStage.kindHidden,
     setKindHidden: setKindHidden,
+    kindMarked: sectorStage.kindMarked,
+    setKindMarked: setKindMarked,
     // MAP.123: star classes and the luminosity floor.
     starClasses: sectorStage.starClasses,
     starClassHidden: sectorStage.starClassHidden,

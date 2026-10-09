@@ -293,7 +293,7 @@ def test_sector_map_kinds_can_be_hidden_one_by_one_and_the_choice_is_kept(page, 
     page.locator("#galaxymap3d-info").evaluate("panel => panel.textContent = ''")
     before = _shot(page, SECTOR_CANVAS)
     _open_menu(page)
-    buttons = page.locator("#galaxymap3d-kinds button")
+    buttons = page.locator("#galaxymap3d-kinds button[data-kind]")
     names = buttons.all_inner_texts()
     assert "Stars" in names and "Rogue planets" in names, names
     assert all(b.get_attribute("aria-pressed") == "true" for b in buttons.all()), "all on to begin with"
@@ -2070,3 +2070,38 @@ def test_galaxy_map_star_classes_and_the_luminosity_floor_hide_stars_and_ride_in
     page.wait_for_selector(".starmap-sr-list button", state="attached")
     assert "lum=" in _query(page)
     assert listed() < before
+
+
+def test_galaxy_map_bookmark_keeps_the_view_filters(page, map_site):
+    """MAP.123: a bookmark of a stage view keeps what the map shows (hidden
+    kinds, color), so opening it restores them."""
+    _open_galaxy(page, map_site)
+    page.locator("#galaxymap3d-menu summary").click()
+    page.select_option("#galaxymap3d-color-by", "age")
+    _settle(page)
+    page.locator("#galaxymap3d-crumbs .galaxy-bookmark").click()
+    saved = _bookmarks(page)
+    assert len(saved) == 1 and saved[0]["kind"] == "stage" and "color=age" in saved[0]["value"]
+
+
+def test_sector_map_highlight_draws_a_phenomenon_kind_larger_and_keeps_it_in_the_url(page, map_site):
+    """MAP.123: the Menu's Highlight draws a kind of phenomenon larger and
+    brighter, keeps the choice in the address, and a reload restores it."""
+    _open_sector(page, map_site)
+    _open_menu(page)
+    page.wait_for_selector('#galaxymap3d-kinds [data-highlight-kind]', state="attached")
+    assert page.locator('#galaxymap3d-kinds [data-highlight-kind="star"]').count() == 0
+    toggle = page.locator('#galaxymap3d-kinds [data-highlight-kind="roguePlanet"]')
+    assert toggle.get_attribute("aria-pressed") == "false"
+    page.locator("#galaxymap3d-info").evaluate("panel => panel.textContent = ''")
+    before = _shot(page, SECTOR_CANVAS)
+    toggle.click()
+    assert toggle.get_attribute("aria-pressed") == "true"
+    assert "mark=roguePlanet" in page.url
+    assert _shot(page, SECTOR_CANVAS) != before, "a highlight changes the map"
+    page.reload()
+    page.wait_for_selector('#galaxymap3d-kinds [data-highlight-kind="roguePlanet"]', state="attached")
+    _open_menu(page)
+    assert page.locator('#galaxymap3d-kinds [data-highlight-kind="roguePlanet"]').get_attribute("aria-pressed") == "true"
+    page.locator('#galaxymap3d-kinds [data-highlight-kind="roguePlanet"]').click()
+    assert "mark" not in page.url
