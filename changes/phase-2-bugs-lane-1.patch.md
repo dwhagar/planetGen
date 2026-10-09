@@ -4,4 +4,3 @@
 - The progress ETA is a ratio of decayed sums, so the early estimate of a run on several workers is no longer up to twice too long (PERF.37).
 - The phenomenon render uses `THREE.Timer` in place of the deprecated `THREE.Clock` (MAP.144).
 - The macOS update daemon's plist is well-formed XML again (OPS.32).
-- The settings-file download answers a plain 403 to non-admins like the other script endpoints.
