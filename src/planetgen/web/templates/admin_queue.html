@@ -34,6 +34,7 @@
 <section class="panel" id="jobs" aria-labelledby="jobs-heading">
   <h2 id="jobs-heading">Jobs</h2>
   <p class="hint">Newest first. Open a job to see it as a tree, from the whole job down to single sectors, each with its own timing. Finished jobs are kept for a week.</p>
+  <p><a class="btn btn-secondary btn-small" href="{{ url_for('web.admin_queue_confirm', action='clear-finished') }}">Clear finished jobs</a></p>
   {%- if jobs_table %}
   {{ datatable(jobs_table) }}
   {%- endif %}

@@ -364,10 +364,50 @@ def test_the_jobs_table_route_lists_jobs_with_their_controls(web_app, admin_clie
         with workQueue.WorkQueue("Sectors (ring 1)", workers=1, control_config=control_config):
             data = admin_client.get("/table/queue-jobs").get_json()
     assert data["total"] == 1
-    title, kind, status, started, _duration, _progress, actions = data["rows"][0]
+    title, status, started, _duration, left, _progress, actions = data["rows"][0]
     assert title["text"] == "Fill ring 1" and title["href"].startswith(f"/admin/queue/{root.id}")
     labels = {part["text"]: part["href"] for part in actions["parts"] if isinstance(part, dict)}
     assert labels["Cancel"].startswith("/admin/queue/confirm/cancel?node=")
+
+
+def test_clear_finished_deletes_every_finished_job_and_keeps_the_live_one(web_app, admin_client, control_config):
+    # ADM.41: one action on the Queue page clears the past-jobs list; a running job is never touched.
+    with workQueue.job_node("galaxy", "Old run 1", control_config):
+        pass
+    with workQueue.job_node("galaxy", "Old run 2", control_config):
+        pass
+    with workQueue.job_node("galaxy", "Still going", control_config):
+        page = admin_client.get("/admin/queue/confirm/clear-finished")
+        assert page.status_code == 200 and "Clear finished jobs" in page.get_data(as_text=True)
+        response = _post(web_app, admin_client, action="clear-finished", node="")
+        assert response.status_code == 303
+        assert admin_client.get("/api/admin/work").get_json()["total"] == 1
+        assert admin_client.get("/api/admin/work").get_json()["items"][0]["title"] == "Still going"
+        assert admin_client.post("/api/admin/work/clear-finished").get_json() == {"cleared": 0}
+    assert "work.clear" in _audit(control_config)
+
+
+def _root(live=True, eta=None, kind="galaxy", web_job_id=None):
+    return {"live": live, "kind": kind, "web_job_id": web_job_id, "totals": {"eta_seconds": eta}}
+
+
+def test_a_running_job_shows_its_time_left_when_it_can_be_told(monkeypatch):
+    # ADM.39: the tree's own estimate first; nothing for a finished job or one with no pace yet.
+    assert queue_page._remaining_seconds(_root(eta=125.0)) == 125.0
+    assert queue_page._remaining_seconds(_root(live=False, eta=125.0)) is None
+    assert queue_page._remaining_seconds(_root()) is None
+    # A Generate page job falls back on the estimate its runner published, counted down from when it was written.
+    now = 1_000_000.0
+    monkeypatch.setattr(queue_page.time, "time", lambda: now)
+    job = {"finished_at": None, "progress": {"eta_s": 100.0, "updated_at": now - 30.0}}
+    monkeypatch.setattr(queue_page.jobs, "get_job", lambda job_id: job)
+    web = _root(kind="web-job", web_job_id="20260101-000000-abcd")
+    assert queue_page._remaining_seconds(web) == 70.0
+    job["finished_at"] = now - 1
+    assert queue_page._remaining_seconds(web) is None
+    job.update(finished_at=None, progress={"eta_s": None})
+    assert queue_page._remaining_seconds(web) is None
+    assert queue_page._remaining_seconds(_root(kind="web-job", web_job_id="../x")) is None
 
 
 def test_the_tree_page_expands_down_to_tasks(admin_client, control_config):

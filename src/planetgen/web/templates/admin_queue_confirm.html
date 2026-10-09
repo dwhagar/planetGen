@@ -10,7 +10,7 @@ control before it runs (ADM.10). -#}
     <input type="hidden" name="action" value="{{ action }}">
     <input type="hidden" name="node" value="{{ node_id }}">
     {%- if task_id %}<input type="hidden" name="task" value="{{ task_id }}">{% endif %}
-    <button type="submit" class="btn{% if action in ('cancel', 'delete', 'queue-pause', 'clear-lease') %} btn-danger{% endif %}">{{ button }}</button>
+    <button type="submit" class="btn{% if action in ('cancel', 'delete', 'queue-pause', 'clear-lease', 'clear-finished') %} btn-danger{% endif %}">{{ button }}</button>
     <a href="{{ back }}">Go back</a>
   </form>
 </section>
