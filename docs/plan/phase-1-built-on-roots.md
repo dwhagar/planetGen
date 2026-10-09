@@ -195,10 +195,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | UX.76 | Icons and highlights follow the light and dark theme (bug) |  | GitHub issue [#706](https://github.com/dwhagar/planetGen/issues/706). |
-| UX.77 | The class list is alphabetized (bug) |  | GitHub issue [#681](https://github.com/dwhagar/planetGen/issues/681). |
-| MAP.136 | Binary stars pick as one system and their 3D orbits are drawn clearly (bug) |  | GitHub issues [#709](https://github.com/dwhagar/planetGen/issues/709), [#708](https://github.com/dwhagar/planetGen/issues/708). One item: both are how binary pairs show on the maps. |
-| MAP.137 | Rogue planets are easy to see, with the right default filters (bug) |  | GitHub issue [#705](https://github.com/dwhagar/planetGen/issues/705). |
-| MAP.138 | Recenter the camera in every 3D view (bug) |  | GitHub issue [#699](https://github.com/dwhagar/planetGen/issues/699) (labelled bug and enhancement) and its comment. |
 | ADM.39 | Running queue jobs show an ETA (bug) |  | GitHub issue [#676](https://github.com/dwhagar/planetGen/issues/676). |
 | ADM.40 | The Generate page stops reporting a lost connection (bug) |  | GitHub issue [#656](https://github.com/dwhagar/planetGen/issues/656). |
 | ADM.41 | Every job is easy to find and cancel in the web queue, and past jobs are paginated and clean (bug) |  | GitHub issues [#614](https://github.com/dwhagar/planetGen/issues/614) (first half) and #535. |
