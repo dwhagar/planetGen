@@ -24,6 +24,7 @@ from planetgen.db import store as _db
 from planetgen.admin import auth, throttle
 from planetgen.generation import stats as generationStats
 from planetgen.api import naming
+from planetgen.galaxy import settings_file
 from planetgen.names import naming_key
 from planetgen._version import __version__
 
@@ -247,6 +248,38 @@ def naming_key_set():
     g.naming_key = key
     audit("naming-key.change", target=database, detail=f"key={key}")
     return jsonify(_naming_view(database, naming_key.get(conn, database)))
+
+
+@bp.route("/galaxy-settings", methods=["GET"])
+@require_admin(fresh=True)
+def galaxy_settings():
+    """
+    `GET /api/admin/galaxy-settings` -- the galaxy's creation-settings files
+    (ADM.18, `galaxy/settings_file.py`), newest first: `{"items": [{"name",
+    "seed", "version_key", "created_at", "size", "current"}]}`. `current` is
+    true for the newest file of each seed; the others are dated backups.
+    """
+    items, seen = [], set()
+    for entry in settings_file.list_files():
+        items.append({
+            "name": entry["name"], "seed": entry["seed"], "version_key": entry["key"],
+            "created_at": entry["when"].isoformat() + "Z", "size": entry["size"],
+            "current": entry["seed"] not in seen,
+        })
+        seen.add(entry["seed"])
+    return jsonify({"items": items})
+
+
+@bp.route("/galaxy-settings/<name>", methods=["GET"])
+@require_admin(fresh=True)
+def galaxy_settings_file(name):
+    """`GET /api/admin/galaxy-settings/<name>` -- one settings file's JSON
+    (404 for a name that is not a settings file in the folder)."""
+    for entry in settings_file.list_files():
+        if entry["name"] == name:
+            with open(entry["path"], "r", encoding="utf-8") as handle:
+                return current_app.response_class(handle.read(), mimetype="application/json")
+    raise ApiError("No such settings file.", status_code=404)
 
 
 @bp.route("/lockouts")

@@ -254,6 +254,21 @@ It lives in the site's data directory (path in `config.json`). The Admin
 dashboard offers the current file as a download at any time, with the
 last 10 history rows beside it.
 
+**As built (ADM.18).** `galaxy/settings_file.py` writes the file at the end of
+`planetgen plan` (`run_plan.build_skeleton`), into `galaxy-settings` inside
+the Generate page's jobs directory (`PLANETGEN_SETTINGS_DIR` overrides it).
+It holds the `plan` options (`PLAN_SETTINGS`) plus the resolved edge, outer
+ring and normalisation, the seed, the version key with its parts, the naming
+key, the `requirements.lock` hash and both word lists (the dictionary and the
+offensive list) as gzip + base64 with their SHA-256. The prevalence options
+(ADM.45) are options of the generate runs, not the plan, so they are not in
+the file yet; they join it when that item lands. A plan that changes nothing
+writes nothing; a plan with other settings writes a new file and the old one
+stays as a dated backup (the newest file for the seed is current). The Admin
+dashboard's "Galaxy settings" panel lists the files and offers each as a
+download (`GET /api/admin/galaxy-settings[/<name>]`). The admin-change
+difference and the epoch below are GEN.59 and later.
+
 **Admin changes as a net difference (GEN.59, phase 1).** The file keeps
 what seed + key would not produce, not a history:
 
