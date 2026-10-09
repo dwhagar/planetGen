@@ -3274,6 +3274,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   pass (the GEN.126 settle) instead of per sector at save. That takes
   the neighbour locks off the critical path; today a fill is only 1.87
   times faster at 2 to 4 workers.
+  Boss (2026-10-09, generation-performance-study.md): Decided by Boss
+  (2026-10-09 20:02Z): the lossless savings are approved, and the
+  nearest-system and containment work (`store.refresh_nearest_systems`,
+  `store.refresh_containment`) moves out of the per-sector save into its
+  own phase after placement, or into the same phase as placement,
+  whichever is more efficient. Decide by measurement.
   Prerequisites: none.
   Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
 
@@ -3287,6 +3293,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   skip `util/checks.finite_domain` in bulk fills (3 to 4%, but it loses
   a safety net). Open question for Boss (default: keep the check):
   accept skipping it in bulk fills?
+  Boss (2026-10-09, generation-performance-study.md): Boss (2026-10-09
+  20:02Z) approved the position-once saving. The `finite_domain` half
+  stays open: it costs 2 to 4% of a fill (0.85 microseconds a call,
+  about 535 calls a system) and Research Lane 1 recommended keeping it;
+  Boss's answer is pending, so do not skip the check yet.
   Prerequisites: none.
   Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
 
