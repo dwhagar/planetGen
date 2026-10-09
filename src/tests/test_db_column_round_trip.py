@@ -21,12 +21,13 @@ pytestmark = pytest.mark.db
 BOOKKEEPING_TABLES = {
     "schema_migrations", "alembic_version", "id_blocks", "system_name_registry", "sector_name_registry", "population_state",
     "orbit_simulation_state", "galaxy_column", "galaxy_layer", "sector_stats", "bright_stars",
-    "nearest_systems",
+    "nearest_systems", "sector_paths", "sector_path_knots",
 }
 """Tables no object loader reads row by row: migration and id bookkeeping,
 the name registries, generation progress, and the galaxy skeleton and
 bright-star scatter (read in bulk by the Galaxy Map's tile queries,
-covered by test_galaxymap3d.py/test_bright_star_scatter.py)."""
+covered by test_galaxymap3d.py/test_bright_star_scatter.py), and the saved
+sector paths (read by `db/sector_paths.py`, covered by test_sector_paths_db.py)."""
 
 CHANCE = "chance"
 """Reason for a column whose value in this galaxy depends on the draw."""

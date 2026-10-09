@@ -435,7 +435,12 @@ masses (23:16Z), as a spline.
   knots, so a straight crossing is two knots. The exit knot is the next
   sector's entry (`SectorPath.restart`). Tests check the bend against the
   hyperbolic deflection `2 asin(1/e)`, `e = sqrt(1 + (b v^2 / mu)^2)`, to 2%.
-  Saving the knots with the sector and the job that fills them follow.
+  The knots are saved (`sector_paths`, `sector_path_knots`, schema v62;
+  `db/sector_paths.py`): the paths of every sector holding a star system, rogue planet
+  or comet, at each orbit update (not at generation, where they would depend on which
+  neighbours the workers had filled so far).
+  A path starts at the body's stored position and velocity, so it is as old
+  as its sector's last pass.
 - **The orbit is derived from the vector, never stored.** A planet's, moon's
   or comet's `orbit_from_vector()` works the osculating orbit out of its
   position and velocity relative to its primary
