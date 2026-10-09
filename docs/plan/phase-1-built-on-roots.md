@@ -50,7 +50,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | DB.20 | Object IDs in the schema: uid becomes BINARY(10), unique on its own, plus an id_counters table | GEN.170 | Object-ID research. |
 | GEN.170 | Object ID layout: an 80-bit ID of birth sector, serial and body number, with pack, unpack, format and parse functions |  | Object-ID research. First of the object-ID items; 80 bits decided (Boss, 2026-10-09 22:44Z); nothing built until Boss asks. |
 | DB.9 | Repair a damaged galaxy database from a parity file | GEN.57 | Boss 02:13Z: phase 1. Reed-Solomon parity over groups of sector exports; seed regeneration as fallback. |
-| DB.21 | A deep pass for the database check: validate every star system, with the estimated time shown first |  | Boss 23:32Z; Foundations lane 1, small, near the end of its list. |
+| DB.21 | A deep pass for the database check: validate every star system, with the estimated time shown first | PERF.33 | Boss 23:32Z; Foundations lane 1, small, near the end of its list. |
 | DB.17 | Repair by regenerating a damaged sector from its seed when parity cannot rebuild it | DB.9, GEN.57 | Research split of DB.9: the regenerate-from-seed fallback. |
 
 ### Generation

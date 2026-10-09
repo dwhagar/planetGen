@@ -447,8 +447,7 @@ with `clamp()`.
   generation and maintenance operation, through the one mechanism of
   PERF.51 (a bar starts at the start of a step when its predicted
   duration exceeds 15 seconds, in the terminal and on the Generate and
-  Queue pages), and every sub-step below is registered with a cost model
-  and a work count. The list to register (from the read of the code on
+  Queue pages), and every sub-step below is registered with a stats kind and a work count; the prediction reads the recorded generation statistics (`generation_stats`, PERF.32), with a conservative fallback only for a kind that has no history yet. The list to register (from the read of the code on
   2026-10-09, with the steps the first pass added and the ones not yet
   checked): the three passes inside each neighbour batch of
   `link_sector_neighbors` (containment, nearest systems, merge into the
@@ -462,7 +461,7 @@ with `clamp()`.
   orbit update's stages (`StageProgress`); the check-db and deep check
   passes (DB.21); and one sector's save in a dense sector (PERF.50). A
   test registers each step and fails when a step that is predicted to
-  pass 15 seconds draws no bar. Build order: PERF.33 (the estimator),
+  pass 15 seconds draws no bar. The sub-steps with no timing recorded today (only the work queue's task kinds have timings, and `queue.work.timing_by_kind` has no caller) all need a stats kind added by this work: every item in the list above except the sector, bright-star and phenomenon task kinds. Build order: PERF.33 (the estimator),
   then PERF.51 (the mechanism), then PERF.50 (the first application),
   then this item, which registers the rest. Open question for Boss
   (default the mechanism first, registrations after, as written): other?
@@ -3344,6 +3343,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   development server (26 to 123 releases a day) forever, with no
   recorded rate; the alternative keeps the previous row as a flagged
   prior until five new samples exist.
+  Boss (2026-10-09): Boss (2026-10-09 23:35Z): "That's why we are
+  tracking the stats for generation." The automatic progress bar rule
+  (PERF.51, UX.84) and the DB.21 deep check estimate read this table:
+  every timed step records its rate under its own kind, so `kind` must
+  cover every sub-step PERF.51's helper runs, not only the work queue's
+  task kinds.
 
 - [ ] **PERF.33 Progress bars and ETAs from measured performance**
   Boss (GitHub issue [#661](https://github.com/dwhagar/planetGen/issues/661)): "time remaining on all progress bars should
@@ -3509,22 +3514,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   sub-item if it's predicted to take longer than 15 seconds to
   complete." This is the mechanism UX.84 applies. Done: every generation
   and maintenance step reports its progress through one shared helper (a
-  step with a name, a work count and a cost model, in the terminal bar,
+  step with a name, a stats kind and a work count, in the terminal bar,
   the progress file the Generate and Queue pages read, and the work
   queue), and the helper starts a visible bar by itself at the start of
-  a step when the predicted duration exceeds 15 seconds, from the step's
-  cost model and work count with the PERF.33 estimator as the source of
-  the rate; when no estimate exists yet it uses a conservative per-unit
-  default (a step with an unknown cost is treated as long) so a first
-  run still shows its bar. A step predicted under 15 seconds draws
+  a step when the predicted duration exceeds 15 seconds, from the step's kind and work count and the recorded generation timing statistics (Boss, 23:35Z: "That's why we are tracking the stats for generation"): the `generation_stats` table of PERF.32, the rate per `(kind, workers)`, read through the PERF.33 estimator, not a hard-coded cost model. Only a step with no recorded history yet (the first run after a version change, or a kind never timed) uses a conservative fallback, and the fallback treats an unknown cost as long, so a first run still shows its bar. Every step the helper runs records its measured rate back into `generation_stats` under its kind, so the next prediction has history; the kinds that are not timed today (everything outside the work queue's kinds: see UX.84's list) are added as part of this item. A step predicted under 15 seconds draws
   nothing, and a step that runs past its prediction gets its bar the
   moment it passes 15 seconds. A step can run inside a worker: the
   helper carries a worker-to-parent progress channel (see PERF.50), so a
   bar can show progress from inside one task. Replaces the hand-built
   `add_task` calls in `run_galaxy`, `run_plan`, `StageProgress` and
   `store` with the one helper (no compatibility wrappers). Open question
-  for Boss (default 15 seconds, fixed in `tuning.py`, and a conservative
-  per-unit default kept beside each step until PERF.32 has a measured rate): other?
+  for Boss (default 15 seconds, fixed in `tuning.py`, and the fallback used only while a kind has no recorded history): other?
   Prerequisites: PERF.33. Related: UX.84, PERF.50, PERF.33, PERF.32,
   PERF.34, UX.3.
 
@@ -3683,15 +3683,14 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   `CHECK TABLE ... EXTENDED` and `CHECKSUM TABLE`, where the lane judges
   them worth it), and the "Check the database" section of the Generate
   page offers a "Deep check" option. Before it runs, both show the
-  estimated time, from the sector count and a measured cost per system
-  (PERF.32 rates once they exist), and the Generate page asks for
+  estimated time, from the sector count and the recorded generation statistics (`generation_stats`, PERF.32): a stats kind for the per-system validation is recorded by the check itself, so the second deep check on a version predicts from the first; a conservative fallback is used only when no history exists yet, and then the estimate says so, and the Generate page asks for
   confirmation; the CLI prints the estimate and waits for a yes unless
   `--yes` is given. The deep pass draws its own progress bar (UX.83's
   rule: any sub-step over 15 seconds) and its report lists each failing
   system with its rows, like the plain check. Open question for Boss
   (default `--deep` flag and a "Deep check" option with the estimate and
   a confirmation, as written): other?
-  Prerequisites: none. Related: DB.9, PERF.33, PERF.32, PERF.50.
+  Prerequisites: PERF.33. Related: DB.9, PERF.33, PERF.32, PERF.50.
 
 ## API: The JSON API
 
