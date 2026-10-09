@@ -1267,3 +1267,13 @@ def test_a_job_runs_on_its_own_queue_and_leaves_none_behind(jobs_root, redis_ser
     assert job["status"] == "succeeded"
     queue = redisqueue.queue(jobs.QUEUE_PREFIX + job_id, redisqueue.connect(redis_server))
     assert queue.count == 0 and queue.key.encode() not in redisqueue.connect(redis_server).smembers("rq:queues")
+
+
+def test_the_generate_form_reports_every_bad_field_at_once():
+    form = {"confirm": "db", "radius_pc": "abc", "max_ring": "-3", "min_start_density": "0"}
+    with pytest.raises(generate_page.FormError) as caught:
+        generate_page.build_job("new_galaxy", form, "db")
+    message = str(caught.value)
+    assert "Radius (pc) must be a number." in message
+    assert "Highest ring must be at least 0." in message
+    assert "Minimum start density must be at least 0.001." in message

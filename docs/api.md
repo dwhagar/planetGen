@@ -754,6 +754,11 @@ violation gets a `400`.
 
 ### Errors
 
+A request body that fails validation (ADM.21: every body is a Pydantic
+model in `planetgen/api/schemas.py`) is a `400` whose `{"error": "..."}`
+message joins every problem and which also carries `"errors"`, the list of
+those messages, so a client can show all of them at once.
+
 Every error response is JSON, `{"error": "..."}`, regardless of what raised
 it: a missing sector/system id is a `404`, a missing/invalid query parameter
 or request body (including an out-of-range `limit`/`offset`, a

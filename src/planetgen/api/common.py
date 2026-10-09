@@ -29,10 +29,13 @@ class ApiError(Exception):
     same way.
     """
 
-    def __init__(self, message, status_code=400):
+    def __init__(self, message, status_code=400, errors=None):
         super().__init__(message)
         self.message = message
         self.status_code = status_code
+        self.errors = errors
+        """list of dict, optional: One `{"field", "message"}` per problem
+        when a request body failed several checks at once (ADM.21)."""
 
 
 def require_json_body():

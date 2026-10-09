@@ -233,7 +233,10 @@ def _register_error_handlers(app):
     @app.errorhandler(ApiError)
     def _handle_api_error(exc):
         log.debug(f"API error {exc.status_code} on {request.method} {request.path}: {exc.message}")
-        return jsonify({"error": exc.message}), exc.status_code
+        body = {"error": exc.message}
+        if exc.errors:
+            body["errors"] = exc.errors
+        return jsonify(body), exc.status_code
 
     from planetgen.web.errors import TIMEOUT_MESSAGE, render_error, unexpected_error_message
 
