@@ -47,7 +47,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.172 | Run-time births get object IDs from the counters | DB.20 | Object-ID research. |
 | GEN.171 | The sector fill gives object IDs by generation rank | DB.20 | Object-ID research. |
 | DB.20 | Object IDs in the schema: uid becomes BINARY(10), unique on its own, plus an id_counters table | GEN.170 | Object-ID research. |
-| GEN.170 | Object ID layout: an 80-bit ID of birth sector, serial and body number, with pack, unpack, format and parse functions |  | Object-ID research. First of the object-ID items; nothing built until Boss asks. |
+| GEN.170 | Object ID layout: an 80-bit ID of birth sector, serial and body number, with pack, unpack, format and parse functions |  | Object-ID research. First of the object-ID items; 80 bits decided (Boss, 2026-10-09 22:44Z); nothing built until Boss asks. |
 | DB.9 | Repair a damaged galaxy database from a parity file | DB.8, GEN.57, OPS.14 | Boss 02:13Z: phase 1. Reed-Solomon parity over groups of sector exports; seed regeneration as fallback. |
 | DB.17 | Repair by regenerating a damaged sector from its seed when parity cannot rebuild it | DB.9, GEN.57, OPS.14 | Research split of DB.9: the regenerate-from-seed fallback. |
 

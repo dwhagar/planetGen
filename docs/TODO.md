@@ -2742,10 +2742,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   bits only when a galaxy's bounds do not fit. Replaces the hash in
   galaxy/uid.py. Tests for fixed length and round trip. As a generator
   change it bumps the generator version (OPS.37) when it ships.
-  Open question for Boss (default 80 bits, 20 hex digits): 80 bits with
-  system and body fields, or a 64-bit flat per-sector counter (BIGINT,
-  67 million objects per sector, no system and body split, no room for a
-  bigger galaxy)?
+  Decided (Boss, 2026-10-09 22:44Z): 80 bits, 20 hex digits, with system
+  and body fields, not a 64-bit flat per-sector counter.
   Prerequisites: none.
   Design: [docs/design/object-id-options.md](design/object-id-options.md)
 
