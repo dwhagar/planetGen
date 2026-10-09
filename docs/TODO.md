@@ -1777,24 +1777,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   for small bodies, black hole spin distributions).
   Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
 
-- [ ] **GEN.122 Orbital elements for planets, moons and comets, kept in step with the state vector**
-  Boss (2026-10-08 23:11Z): "Each orbital update we'll update the vector
-  (which will contain the wobble as part of it's changes etc) and update
-  the orbital ellipse." Done: planets, moons and comets (closed
-  ellipses) store orbital elements (size, eccentricity, inclination,
-  node, periapsis angle, phase) beside the vector, and each orbital
-  update converts between the two in both directions in `kepler.py`, so
-  the ellipse is always derived from the current vector and never a
-  second copy of the truth. The projected course is the closed ellipse
-  around the primary; wobble is ignored. Planets and moons are circular
-  today (`positions_at` uses distance and phase only); eccentric
-  planetary orbits are a generation decision that this item does not
-  make.
-  Build thread (not a lane).
-  Progress (PR #729): the state-vector and orbit-element maths is in
-  `kepler.py`. Still to do: the body orbit elements derived from the
-  stored vector on each orbital update.
-
 - [ ] **GEN.123 The projected path of a body through a sector, saved as a spline**
   Boss (2026-10-08 23:11Z, 23:16Z): "for objects that are not that easy,
   that do not have a closed elipse, how about the path the object takes

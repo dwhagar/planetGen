@@ -584,7 +584,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.119 | The galaxy density model has no thick disk (bug) | none | done, PR #491 |
 | GEN.120 | Integrate gatedPhonemeCodec.py into the naming package and remove it from the repo root | none | done, PR #554 |
 | GEN.121 | A velocity on every object, filled at generation and stored with an epoch | none | done, PR #735 |
-| GEN.122 | Orbital elements for planets, moons and comets, kept in step with the state vector | none | open |
+| GEN.122 | Orbital elements for planets, moons and comets, kept in step with the state vector | none | done, PR #741 |
 | GEN.123 | The projected path of a body through a sector, saved as a spline | none | open |
 | GEN.124 | Every object knows its sector address (ring, layer, slot), recalculated whenever its position changes | none | done, PR #729 |
 | GEN.125 | Stand-alone facilities store a velocity | none | open |
