@@ -39,6 +39,7 @@ than leaving some systems reachable only one way.
 """
 
 import heapq
+import itertools
 import math
 
 
@@ -160,7 +161,7 @@ def build_knn_adjacency(positions, k):
     distance, for every point" approach this replaced -- indistinguishable
     for a single sector's own handful of systems, but this same function
     also backs a *galaxy*-scope NAV route (`queryDb.nav_between`,
-    `_galaxy_frame_positions`), over every system in every galaxy-placed
+    `positions_near_segment`), over every system in every galaxy-placed
     sector generated so far. That set only ever grows as more of the
     galaxy gets visited/generated, and the O(n^2) version's own runtime
     grows with it on every single NAV request -- confirmed as the actual
@@ -376,17 +377,21 @@ def build_route_graph(positions, k, island_links):
     return join_islands(build_knn_adjacency(positions, k), positions, island_links)
 
 
-def shortest_path(graph, start_id, end_id):
+def shortest_path(graph, start_id, end_id, positions=None):
     """
-    Finds the shortest path from `start_id` to `end_id` through `graph`
-    (Dijkstra's algorithm), where each hop's cost is the edge distance
-    `build_knn_adjacency` stored.
+    Finds the shortest path from `start_id` to `end_id` through `graph`:
+    Dijkstra's algorithm, or A* when `positions` is given, with the
+    straight-line distance to `end_id` as the heuristic (never more than the
+    true remaining distance, since each hop costs its straight-line length,
+    so the path is as short as Dijkstra's but fewer nodes are visited).
 
     Args:
         graph (dict): An adjacency graph as returned by
                       `build_knn_adjacency`: `{id: {neighbor_id: distance}}`.
         start_id: The id to route from. Must be a key in `graph`.
         end_id: The id to route to. Must be a key in `graph`.
+        positions (dict, optional): `{id: (x, y, z)}` for every id in
+                      `graph`, the units the edge distances are in.
 
     Returns:
         tuple or None: `(path, total_distance)` where `path` is the list
@@ -399,13 +404,19 @@ def shortest_path(graph, start_id, end_id):
     if start_id == end_id:
         return [start_id], 0.0
 
+    goal = positions[end_id] if positions is not None else None
+
+    def remaining(node_id):
+        return _distance(positions[node_id], goal) if goal is not None else 0.0
+
     best_distance = {start_id: 0.0}
     previous = {}
     visited = set()
-    frontier = [(0.0, start_id)]
+    order = itertools.count()  # ties never compare ids (a system id and a phenomenon key differ in type)
+    frontier = [(remaining(start_id), 0.0, next(order), start_id)]
 
     while frontier:
-        distance, current_id = heapq.heappop(frontier)
+        _estimate, distance, _tie, current_id = heapq.heappop(frontier)
         if current_id in visited:
             continue
         visited.add(current_id)
@@ -424,6 +435,7 @@ def shortest_path(graph, start_id, end_id):
             if candidate_distance < best_distance.get(neighbor_id, math.inf):
                 best_distance[neighbor_id] = candidate_distance
                 previous[neighbor_id] = current_id
-                heapq.heappush(frontier, (candidate_distance, neighbor_id))
+                heapq.heappush(frontier, (candidate_distance + remaining(neighbor_id), candidate_distance,
+                                          next(order), neighbor_id))
 
     return None
