@@ -36,7 +36,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| DB.8 | Check a galaxy database and say whether it is damaged | DB.11 | Schema check reads Alembic's revision; the name-registry check goes with GEN.71. 9 after it. Boss 02:13Z: phase 0, its own thread. Read-only. Stats and version checks switch on once GEN.44/PERF.11 and DB.6/DB.7 land; no hard dependency. |
+| DB.8 | Check a galaxy database and say whether it is damaged |  | Schema check reads Alembic's revision; the name-registry check goes with GEN.71. 9 after it. Boss 02:13Z: phase 0, its own thread. Read-only. Stats and version checks switch on once GEN.44/PERF.11 and DB.6/DB.7 land; no hard dependency. |
 | DB.9 | Repair a damaged galaxy database from a parity file | DB.8, GEN.57, GEN.58, OPS.14 | Boss 02:13Z: phase 1. Reed-Solomon parity over groups of sector exports; seed regeneration as fallback. |
 
 ### Generation
@@ -104,7 +104,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.104 | A spin vector and a realistic axial tilt for every rotating object |  | Rules from "Observational Kinetics for Rotational Vectors.md". |
 | GEN.123 | The projected path of a body through a sector, saved as a spline |  | Build thread. MAP.126's orbit drawing should use it later. |
 | GEN.125 | Stand-alone facilities store a velocity |  | Build thread. |
-| GEN.106 | Movement thresholds and a next-update-due column | DB.11 |  |
+| GEN.106 | Movement thresholds and a next-update-due column |  |  |
 | GEN.107 | The update reports how many objects moved, changed sector, or entered or left a nebula | GEN.106 |  |
 | GEN.108 | Orbital math limits: where each method breaks down and what happens there | GEN.106 | Boss (2026-10-07 11:47Z): "we need to ensure that reasonable limitations for when the math breaks down at the edge cases." |
 
@@ -112,7 +112,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| NAV.10 | Routing that scales past a few thousand systems | DB.11 | Its position indexes are an Alembic migration. Galaxy schema migration for position indexes (v53 taken by PR #425). Built with NAV.12 (no hop limit, a route always exists). |
+| NAV.10 | Routing that scales past a few thousand systems |  | Its position indexes are an Alembic migration. Galaxy schema migration for position indexes (v53 taken by PR #425). Built with NAV.12 (no hop limit, a route always exists). |
 | NAV.12 | No maximum hop length: a route always reaches the nearest star it can, across any number of sectors | NAV.10 | Anchor (Boss 01:53Z game mechanic). Built with NAV.10. Per-hop unknown-space flag in /api/nav. |
 | UX.35 | The NAV page route shown horizontally, wrapping onto several lines on narrow screens |  | In parallel with NAV.12; replaces ol.nav-route in nav.html. |
 | NAV.11 | Travel times for the system-to-system route too | NAV.10, NAV.12 | Times per hop, including unknown-space jumps; total assumes a stop at every system (Boss 04:19Z); open question on a stay per stop. |
@@ -187,7 +187,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | GEN.56 | Every random draw in generation comes from the derived seeds |  | Touches every generator module. |
 | GEN.57 | A sector's contents depend only on the seed, the version and its address | GEN.56 | Name collisions go away with GEN.67; GEN.63 dropped. Also keys GEN.64's ID collision counter on address (it checks stored rows, PR #406). |
-| DB.7 | The version that generated each sector, and a warning for mixed-version galaxies | DB.11 | An Alembic migration. |
+| DB.7 | The version that generated each sector, and a warning for mixed-version galaxies |  | An Alembic migration. |
 | GEN.58 | A fingerprint of a galaxy's generated content |  | Judgment: phase 1 so the golden test guards later changes. |
 | TEST.77 | A golden-seed regression test | GEN.57, GEN.58 |  |
 | OPS.8 | Update reloads Apache itself when run as root |  | 13 in the same update scripts. Not a bug, but the same files as OPS.7, so it rides along. |

@@ -112,7 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 is done (PR #476); GEN.117, and GEN.116 is closed (Boss 2026-10-08 17:46Z). | UX.39, OPS.20, DB.11, DB.13, GEN.66 |
+| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 is done (PR #476); GEN.117, and GEN.116 is closed (Boss 2026-10-08 17:46Z). | UX.39, OPS.20, DB.13, GEN.66 |
 | 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.41, GEN.98, GEN.100, GEN.99, GEN.101, GEN.102, GEN.103, GEN.84, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, GEN.94, GEN.104, GEN.106, GEN.107, GEN.108, NAV.10, NAV.12, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, NAV.43, NAV.44, MAP.119, MAP.122, MAP.123, MAP.89, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, OPS.8, OPS.13, OPS.14, ADM.18, GEN.59, UX.49 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.58, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, API.16, ADM.17, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, repair that reads the newest settings JSON, and the anomalies chosen in phase 2. | NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, DB.10, ADM.20, GEN.114, API.19 |
@@ -757,7 +757,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   systems. NAV.34 (joining the graph's islands) is done (PR #427), and NAV.12
   (a route always exists, no hop limit) is built with it.
   Design: [docs/design/course-routing.md](design/course-routing.md)
-  Prerequisite: DB.11.
   Plan (2026-10-07): The position indexes are an Alembic migration
   (DB.11).
 
@@ -1230,7 +1229,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     because a mixed-version galaxy reproduces only sector by sector, each
     on its own version. Prerequisite: none (DB.6 done, PR #387).
     Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
-    Prerequisite: DB.11.
     Plan (2026-10-07): Written as an Alembic migration (DB.11).
 
   - [ ] **OPS.13 Every update records the version key, keeping the last 10**
@@ -1846,7 +1844,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     the table with when the next update should be due for that object."
     Done as he says: an indexed `next_update_due` per object, set from
     its speed and its threshold whenever it moves.
-    Prerequisite: DB.11.
     Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
 
   - [ ] **GEN.107 The update reports how many objects moved, changed sector, or entered or left a nebula**
@@ -2051,7 +2048,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   damages a copy of a small galaxy in each of these ways and checks the
   matching problem is reported, and an undamaged one passes.
   Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
-  Prerequisite: DB.11.
   Plan (2026-10-07): The schema check reads Alembic's revision (DB.11);
   the name-registry check is dropped, since GEN.71 removes the
   registries.
@@ -2088,16 +2084,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   DB.9, GEN.61, OPS.18.
   Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
-- [ ] **DB.11 The database layer and migrations on SQLAlchemy and Alembic**
-  Today `_db.py` (9,800 lines) builds SQL strings over PyMySQL with its
-  own pooling, and `migrateDb.py` replays `schema_vNN.sql.gz` fixtures.
-  Done: tables are declared as SQLAlchemy models (MySQL 8.4 and MariaDB
-  11.4 both supported), connections and transactions use SQLAlchemy's
-  pool, Alembic carries migrations from the current schema (v53) forward
-  with a baseline that recognises existing databases, and the id-block
-  and batching behaviour is kept (TEST.81 and TEST.87 stay fixed).
-  Design: [docs/design/library-migration.md](design/library-migration.md)
-
 - [ ] **DB.13 Every stored value in its own column, not in JSON blocks, and indexed for search**
   Boss (2026-10-07 11:47Z): "Ensure to have all database information to
   be stored directly in the database and not in JSON blocks.  Optimize
@@ -2108,7 +2094,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   columns or child tables (as Alembic migrations), the searches in
   `queryDb.py` and the API use indexed columns, and a test checks no
   galaxy table keeps a JSON blob.
-  Prerequisite: DB.11.
 
 ## API: The JSON API
 
@@ -2621,7 +2606,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Each library swap is its own subitem and PR, after the package layout
   (OPS.23, done in PR #435, then OPS.24) so code moves once. Done when every subitem is done
   and the hand-rolled modules they replace are deleted.
-  Prerequisites: UX.39, DB.11, GEN.66.
+  Prerequisites: UX.39, GEN.66.
   Design: [docs/design/library-migration.md](design/library-migration.md)
 
 ## VIEW: The view from a planet
