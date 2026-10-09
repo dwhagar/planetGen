@@ -82,8 +82,7 @@ from planetgen.db import store
 from planetgen.generation import bright_stars as brightStars, limits as generationLimits
 from planetgen import tuning
 from planetgen.galaxy import objectref as object_ref, version_check
-from planetgen.db.store import (get_galaxy_bounds, get_galaxy_shape, get_sector_id_at, list_databases, resolve_database,
-                                sector_versions)
+from planetgen.db.store import (get_galaxy_bounds, get_galaxy_shape, get_sector_id_at, list_databases, resolve_database)
 from planetgen.util.appconfig import load_config
 from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.geometry import describe_sector_cell, sector_address_at
@@ -753,7 +752,7 @@ def galaxy_shape():
     """
     conn = get_db()
     return jsonify({"shape": galaxy_density_shape(conn), "bright_stars": bright_star_scatter_status(conn),
-                    "version_warning": version_check.mixed_version_warning(sector_versions(conn))})
+                    "version_warning": version_check.galaxy_warning(conn)})
 
 
 @bp.route("/galaxy/cell")

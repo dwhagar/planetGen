@@ -1422,7 +1422,7 @@ def run_galaxy(args):
     conn = store.get_connection(store.mysql_config_from_args(args))
     try:
         bounds = store.get_galaxy_bounds(conn)
-        warning = version_check.mixed_version_warning(store.sector_versions(conn))
+        warning = version_check.galaxy_warning(conn)
     finally:
         conn.close()
     if warning:

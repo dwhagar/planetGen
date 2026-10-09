@@ -37,7 +37,7 @@ from planetgen.queue import work as workQueue
 from planetgen.db import fingerprint, store
 from planetgen.admin import activity_log
 from planetgen.generation import limits, prevalence
-from planetgen.galaxy import seed as galaxySeed, version_key
+from planetgen.galaxy import seed as galaxySeed, version_check, version_key
 from planetgen.physics import mathcheck
 from planetgen import tuning as program_constants
 from planetgen.util import log
@@ -1160,8 +1160,11 @@ def run_fingerprint(args):
     conn = store.get_connection(store.mysql_config_from_args(args))
     try:
         result = fingerprint.region_fingerprint(conn, rings=args.ring, addresses=args.sector)
+        warning = version_check.galaxy_warning(conn)
     finally:
         conn.close()
+    if warning:
+        log.normal(f"Warning: {warning}")
     for line in result.lines():
         print(line)
 

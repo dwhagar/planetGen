@@ -343,7 +343,14 @@ full key text living on the `generation_runs` row. Detail:
   what depends on the code (key, epoch, dependency versions and hashes,
   battery digest) beside the unchanged seed
   ([generation-determinism.md](generation-determinism.md) section 5.3).
-- **Mismatch warning (OPS.14, phase 1).** One check compares the running
+- **Mismatch warning (OPS.14, built).** `version_check.galaxy_warning` is the
+  one check: it names the sectors made by another version (DB.7) and how the
+  running release, Python, platform, version key and `requirements.lock` hash
+  differ from those in the galaxy's settings file (ADM.18). `planetgen
+  galaxy`, `planetgen fingerprint` and the Generate page (`/api/galaxy/shape`'s
+  `version_warning`) show it; a galaxy planned before the settings file has
+  only the sector part. The reproduce report (GEN.61) will print it too. As
+  designed: One check compares the running
   key and hashes with the galaxy's (and each sector's) and names every
   field that differs ("Python 3.12.3 now, 3.11.9 when generated").
   `planetgen`, the Generate page, the fingerprint output and the
