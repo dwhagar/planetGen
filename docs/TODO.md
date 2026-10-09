@@ -1406,6 +1406,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     Plan (2026-10-07): Name collisions disappear with GEN.67 (names come
     from IDs), so the name part of this item is dropped, and GEN.63 with
     it.
+    Note (2026-10-09): order: it must land before TEST.77 (open order
+    dependencies: name collisions by save order, the ID-cell counter,
+    population seeds keyed on database ids, nearest links). Research
+    Lane 1 also notes the admin regenerate paths for planets, moons and
+    belts (`admin/edits.py`) draw from the ambient process stream, so an
+    admin-edited sector is not rebuildable from the seed alone; DB.17's
+    repair therefore replays the edit log rather than the seed.
 
   - [ ] **OPS.14 A warning when the running version key differs from the galaxy's**
     Done: one check compares the running key (DB.6) and the corpus and
@@ -2689,6 +2696,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generates, and that one-time seed change lands with these two
   together, not in separate steps. Whichever lands first must not claim
   the reseed alone; the second says so in its changes note.
+  Requirement (2026-10-09, phenomenon-scatter-mass-cut.md): seeding
+  requirement (Research Lane 1): a plan with no stored cut means no cut
+  (NULL is 0), so old plans keep working; the cut is stored in
+  `galaxy_shape` beside `phenomenon_scatter_seed`.
   Prerequisite: GEN.166.
   Design: [docs/design/phenomenon-scatter-mass-cut.md](design/phenomenon-scatter-mass-cut.md)
 
@@ -2708,6 +2719,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generates, and that one-time seed change lands with these two
   together, not in separate steps. Whichever lands first must not claim
   the reseed alone; the second says so in its changes note.
+  Requirement (2026-10-09, phenomenon-scatter-mass-cut.md): seeding
+  requirements (Research Lane 1): the below-cut draw uses its own
+  per-sector sub-stream, not the sector's sequential stream; every
+  sector filled before the reseed counts as complete (level 0), so a
+  band top-up never redraws below-cut objects there; an old stored
+  `black-hole` row rebuilt by the new intermediate-mass-split
+  constructor (GEN.166) may no longer come out intermediate-mass, so
+  either keep the legacy path for rows from a NULL-cut plan or say so in
+  the changes note. Keeping already filled sectors across the reseed
+  needs this and GEN.167's NULL rule; the alternative recommended to
+  Boss is to land the combined reseed, then reset and re-plan.
   Prerequisite: GEN.167.
   Design: [docs/design/phenomenon-scatter-mass-cut.md](design/phenomenon-scatter-mass-cut.md)
 
@@ -3006,6 +3028,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generates, and that one-time seed change lands with these two
   together, not in separate steps. Whichever lands first must not claim
   the reseed alone; the second says so in its changes note.
+  Requirement (2026-10-09): seeding requirement (Research Lane 1, read
+  from code on main): the lazy word-salad name must draw from a stream
+  keyed to the object (its scatter row seed or its address), never from
+  the ambient sector stream at first read, or the name depends on read
+  order.
   Prerequisites: none.
   Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
 
