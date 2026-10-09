@@ -112,7 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, NAV.11, NAV.42, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.57, TEST.77, UX.49, PERF.31, PERF.32, GEN.128, ADM.42 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, NAV.11, NAV.42, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.57, TEST.77, UX.49, PERF.31, PERF.32, GEN.128, ADM.42 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.17, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18, PERF.33, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, DB.15, ADM.43, ADM.44 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, and the anomalies chosen in phase 2. | NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, GEN.114, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies. | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, GEN.55 |
@@ -833,7 +833,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   camera radius; it only dims stars much farther than the target, so the
   two rules never thin the same stars twice. The distance-cut tiles it
   leads to also need MAP.154 (nested lists).
-  Prerequisites: MAP.153. Related: MAP.116, MAP.146, MAP.147.
+  Prerequisite: MAP.153. Related: MAP.116, MAP.146, MAP.147.
   Design: [docs/design/fly-through-view-distance.md](design/fly-through-view-distance.md)
 
 - [ ] **MAP.149 The near field: depth fade, a see-through focus tube, drawing from inside a container, and picking that matches what is drawn**
@@ -902,7 +902,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Open question for Boss (default: a 3-ary pyramid accepting cells 0.84
   to 1.25 of an edge across): or keep 9-ary and accept a 2.45x gap in
   sizes?
-  Prerequisites: ADM.29. Related: MAP.120, MAP.147, ADM.30, GEN.101,
+  Prerequisite: ADM.29. Related: MAP.120, MAP.147, ADM.30, GEN.101,
   GEN.126, MAP.131, MAP.134, MAP.146.
   Dependency (2026-10-09, fly-through-view-distance.md): The region data
   layer and its aggregates (3-ary pyramid, per-star id, per-level
@@ -3485,52 +3485,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
 
-- [ ] **DB.8 Check a galaxy database and say whether it is damaged**
-  Boss (2026-10-02 02:13Z): "add to TODO and inject into Phase 0 build DB
-  consistency checking so that we can check a DB and tell if it's been
-  damaged, then Phase 1 inject a DB repair using parity data stored in a
-  file." Done: `generate.py check-db`, and a button on the Admin
-  dashboard that runs it as a job, check the galaxy and control
-  databases without changing anything. The checks:
-  - Schema: tables, columns and indexes match the recorded migration
-    level (sharing DB.4's shape detection).
-  - Orphans: no planet without its system, moon without its planet,
-    system without its sector, composition row without its field or
-    comet, and so on.
-  - Ids: every row id sits below `id_blocks`' next ids (the DB.3 case),
-    and no blocks overlap.
-  - Names: the name registries match the names in use.
-  - Values: every sector address is inside the galaxy's bounds, no
-    value is NaN or infinite, and every system passes
-    `validation.check_star_system`.
-  - Counts: the per-sector stats table agrees with the rows, once GEN.44
-    and PERF.11 exist; the version keys are present and well formed,
-    once DB.6 and DB.7 exist.
-  The report lists each problem with the rows involved and ends with a
-  pass or fail line per check; the exit code is non-zero when damage is
-  found. `--sector` and `--region` limit it to part of the galaxy. A test
-  damages a copy of a small galaxy in each of these ways and checks the
-  matching problem is reported, and an undamaged one passes.
-  Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
-  Plan (2026-10-07): The schema check reads Alembic's revision (DB.11);
-  the name-registry check is dropped, since GEN.71 removes the
-  registries.
-  Research (2026-10-09, db-check-and-parity-repair.md): replace "tables,
-  columns and indexes match the recorded migration level" with three
-  checks: `alembic_version` against `schema_migrations` against
-  `SCHEMA_VERSION`; `compare_metadata` against `db/models.py`;
-  `detect_schema_version` as the tiebreaker. Add per-table `CHECK TABLE
-  ... QUICK` (it may flag a damaged index corrupt), FK-orphan queries
-  generated from `information_schema` plus hand-written ones for
-  `object_table`/`object_id` and `first_object_*`, range checks in place
-  of "no value is NaN or infinite" (a DOUBLE column cannot hold either),
-  a `--deep` mode (`CHECK ... EXTENDED`, `CHECKSUM TABLE`), a time
-  estimate (about 6 s per 5 million rows for the quick check, hot), a
-  progress bar, an option to skip `CHECK TABLE`, and a SELECT-only
-  account. Drop the name-registry check (GEN.71 drops it). The exit code
-  distinguishes "damaged" from "could not check". Range checks also
-  cover the orbit-updated columns DB.9 leaves out.
-
 - [ ] **DB.9 Repair a damaged galaxy database from a parity file**
   Boss (same message): "then Phase 1 inject a DB repair using parity
   data stored in a file." Done:
@@ -3579,7 +3533,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   only if exact positions matter); G = 32, m = 2; repairing a bad
   clustered-index page may mean restarting the database server with
   `innodb_force_recovery=1`.
-  Prerequisites: DB.8, GEN.57.
+  Prerequisite: GEN.57.
   Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
 - [ ] **DB.15 A migration progress bar with the time remaining**
