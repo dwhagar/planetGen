@@ -1,0 +1,250 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>planetGen Execution Plan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: the priority order and the reorderings up top, the lane board by wave, then one block per priority group (blockers first), then conflicts and decisions. Hand-written; the item graph itself lives in the tier plan and the TODO tree. */
+:root{
+  --bg:#F3F5F8; --surface:#FFFFFF; --sunk:#E9EDF3; --ink:#152030; --muted:#566275; --line:#D8DEE7;
+  --accent:#B05E0C; --accent-soft:#F6E7D6; --ground:#0E7682; --ground-soft:#D8EEF0;
+  --bug:#B3261E; --bug-soft:#F8DEDB; --new:#3F5BB0; --new-soft:#E1E7F8;
+  --f-display:"Bricolage Grotesque","Avenir Next","Segoe UI",system-ui,sans-serif;
+  --f-body:"Source Sans 3","Segoe UI",system-ui,-apple-system,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0C1118; --surface:#141B25; --sunk:#1A2330; --ink:#E5EAF1; --muted:#97A3B5; --line:#273244;
+  --accent:#E7A05A; --accent-soft:#3A2814; --ground:#55C3CC; --ground-soft:#12313A;
+  --bug:#F2786E; --bug-soft:#3D1A18; --new:#93A9F0; --new-soft:#1D2747; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0C1118; --surface:#141B25; --sunk:#1A2330; --ink:#E5EAF1; --muted:#97A3B5; --line:#273244;
+  --accent:#E7A05A; --accent-soft:#3A2814; --ground:#55C3CC; --ground-soft:#12313A;
+  --bug:#F2786E; --bug-soft:#3D1A18; --new:#93A9F0; --new-soft:#1D2747; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:16px/1.55 var(--f-body);margin:0}
+.wrap{max-width:1120px;margin:0 auto;padding-inline:16px;padding-block:28px 80px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.15}
+h1{font-size:clamp(2rem,4.5vw,2.9rem);font-weight:700;letter-spacing:-.01em}
+h2{font-size:1.5rem;font-weight:700;margin-top:44px}
+h3{font-size:1.05rem;font-weight:700;margin-top:20px}
+p{max-width:76ch}
+code,.mono{font-family:var(--f-mono);font-size:.84em}
+a{color:var(--accent)}
+.eyebrow{font:600 .74rem/1 var(--f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.lede{color:var(--muted);margin:.6rem 0 0}
+.order{display:flex;flex-wrap:wrap;gap:8px;margin:22px 0 0;padding:0;list-style:none}
+.order li{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 14px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.order li b{font-family:var(--f-display);font-size:1.05rem}
+.order li span{color:var(--muted);font-size:.84rem}
+.order li.last{border-style:dashed}
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface);margin-top:12px}
+table{border-collapse:collapse;width:100%;font-size:.92rem}
+th,td{text-align:left;vertical-align:top;padding:9px 12px;border-bottom:1px solid var(--line)}
+th{font:600 .72rem/1.2 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted);background:var(--sunk);position:sticky;top:0}
+tr:last-child td{border-bottom:0}
+td.k{font:600 .8rem/1.3 var(--f-mono);color:var(--ground);white-space:nowrap}
+.lanes td,.lanes th{min-width:190px}
+.lanes td.k,.lanes th.k{min-width:90px}
+.id{font:600 .8rem/1.3 var(--f-mono);color:var(--ground);white-space:nowrap}
+.bug{font:600 .66rem/1 var(--f-mono);text-transform:uppercase;padding:2px 5px;border-radius:5px;background:var(--bug-soft);color:var(--bug)}
+.flag{font:600 .66rem/1 var(--f-mono);text-transform:uppercase;padding:2px 5px;border-radius:5px;background:var(--accent-soft);color:var(--accent)}
+.blk{font:600 .66rem/1 var(--f-mono);text-transform:uppercase;padding:2px 5px;border-radius:5px;background:var(--ground-soft);color:var(--ground)}
+.later{font:600 .66rem/1 var(--f-mono);text-transform:uppercase;padding:2px 5px;border-radius:5px;background:var(--new-soft);color:var(--new)}
+ul.tight{margin:.4rem 0 0;padding-left:1.2rem;max-width:80ch}
+ul.tight li{margin:.2rem 0}
+.group{margin-top:26px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:6px 18px 18px}
+.group h3{margin-top:14px}
+.muted{color:var(--muted)}
+.note{background:var(--accent-soft);border-radius:10px;padding:10px 14px;margin-top:14px;max-width:84ch}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (max-width:520px){th,td{padding:8px}}
+</style>
+<body>
+<div class="wrap">
+<header>
+  <div class="eyebrow">planetGen · Phase 1 and after · Boss's priorities of 2026-10-09 07:13Z</div>
+  <h1>Execution Plan</h1>
+  <p class="lede">Four groups in Boss's order, each with the items that block it listed first and what it unblocks. Repeatable Galaxy is last, but its small blockers are cleared early so nothing waits on them later. Lanes are as they stand now: Foundations 1 on GEN.98 and GEN.100, Foundations 2 on GEN.56, Foundations 3 finishing GEN.125, and the Bugfix lane on the 11 Phase 1 bugs.</p>
+  <ol class="order" aria-label="Priority order">
+    <li><b>1 · Orbital updates</b><span>GEN.106 gates five items</span></li>
+    <li><b>2 · Maps</b><span>MAP.89 retired (done)</span></li>
+    <li><b>3 · Nearby search</b><span>nothing blocks it</span></li>
+    <li><b>4 · Routing</b><span>NAV.10 gates the rest</span></li>
+    <li class="last"><b>Last · Repeatable galaxy</b><span>blockers first, GEN.56 finishes, GEN.57 waits</span></li>
+  </ol>
+</header>
+
+<h2>Main reordering decisions</h2>
+<ul class="tight">
+  <li><b>Orbital updates moves to the front and goes to Foundations 3.</b> Foundations 3 already owns the physics code. GEN.106 goes ahead of GEN.104 because it unblocks GEN.107, GEN.108, GEN.115, GEN.109 and GEN.105; GEN.104 depends on nothing. Foundations 2 no longer takes GEN.106 after GEN.56.</li>
+  <li><b>GEN.56 finishes its current work, then stops.</b> It is the biggest conflict risk (it touches every generator) and is now lowest priority. Foundations 2 lands what is in flight, then GEN.57 waits until Repeatable Galaxy's turn, and Foundations 2 starts Maps.</li>
+  <li><b>New random draws use the derived-seed helpers from GEN.56 from the start.</b> GEN.98, GEN.100 and GEN.104 are drawing now; if they use the old calls, GEN.57 has to find and convert them later.</li>
+  <li><b>The map bugs go first in the Bugfix lane.</b> MAP.135 to MAP.138 touch the same map files as the Maps group, so they land before Foundations 2 starts Maps. Foundations 2 and the Bugfix lane never edit those files at the same time.</li>
+  <li><b>Nearby search and Routing go to Foundations 1</b> after GEN.100, in that order. GEN.100 is also the one outside blocker of NAV.47.</li>
+  <li><b>The small blockers of Repeatable Galaxy (DB.7, OPS.8, OPS.13, OPS.14, ADM.18, GEN.58) are filler work.</b> They depend on nothing and take little time, so any lane that has a gap takes them. They are what keeps GEN.59, OPS.12 and GEN.55 from queuing behind each other later.</li>
+  <li><b>NAV.10, NAV.12 and GEN.84 do not hang off seeded draws.</b> NAV.10 and NAV.12 only read stored data, and GEN.84 is a design note with no draws. The items that do depend on the draws are the generation items that add them: GEN.104, GEN.85 to GEN.88, GEN.99, GEN.101, GEN.127 and GEN.128 to GEN.130.</li>
+</ul>
+
+<h2>Lanes by wave</h2>
+<p class="muted">A wave is "when the lane's current item merges"; lanes move on independently. The first row is where each lane is now.</p>
+<div class="tw"><table class="lanes">
+<thead><tr><th class="k">Wave</th><th>Foundations 1</th><th>Foundations 2</th><th>Foundations 3 (physics)</th><th>Bugfix lane</th></tr></thead>
+<tbody>
+<tr><td class="k">Now</td>
+ <td><span class="id">GEN.98</span> + <span class="id">GEN.100</span> (finish both; GEN.100 unblocks NAV.47)</td>
+ <td><span class="id">GEN.56</span> (finish what is in flight, no GEN.57)</td>
+ <td><span class="id">GEN.125</span> (finishing)</td>
+ <td><span class="id">MAP.135</span>, <span class="id">MAP.138</span>, <span class="id">MAP.136</span>, <span class="id">MAP.137</span> (map bugs first)</td></tr>
+<tr><td class="k">2</td>
+ <td><span class="id">NAV.43</span> → <span class="id">NAV.44</span> → <span class="id">NAV.45</span> (nearby search, with issue #677)</td>
+ <td>Maps: <span class="id">MAP.122</span> → <span class="id">MAP.119</span> → <span class="id">MAP.120</span> → <span class="id">ADM.35</span>; <span class="id">MAP.75</span> → <span class="id">MAP.59</span></td>
+ <td><span class="id">GEN.106</span> → <span class="id">GEN.104</span> → <span class="id">GEN.107</span> → <span class="id">GEN.108</span></td>
+ <td><span class="id">ADM.39</span>, <span class="id">ADM.41</span>, <span class="id">ADM.40</span>, <span class="id">UX.76</span>, <span class="id">UX.77</span></td></tr>
+<tr><td class="k">3</td>
+ <td>Routing: <span class="id">UX.35</span> → <span class="id">NAV.42</span>; <span class="id">NAV.10</span> → <span class="id">NAV.12</span> → <span class="id">NAV.11</span>, <span class="id">NAV.48</span>, <span class="id">NAV.47</span></td>
+ <td><span class="id">MAP.121</span>, <span class="id">MAP.139</span> to <span class="id">MAP.142</span>, bookmarks <span class="id">UX.46</span> → <span class="id">UX.47</span> → <span class="id">UX.48</span> → <span class="id">UX.45</span></td>
+ <td>Phase 2 orbital chain: <span class="id">GEN.115</span> → <span class="id">GEN.109</span> → <span class="id">GEN.110</span>, <span class="id">ADM.36</span> → <span class="id">GEN.105</span></td>
+ <td><span class="id">PERF.31</span> → <span class="id">PERF.34</span>; <span class="id">GEN.127</span> once GEN.56 has merged</td></tr>
+<tr><td class="k">4</td>
+ <td>Course records: <span class="id">NAV.17</span> → <span class="id">NAV.18</span> → <span class="id">NAV.4</span>; <span class="id">NAV.8</span>, <span class="id">NAV.9</span>; then waypoints <span class="id">NAV.49</span></td>
+ <td>Blockers of Repeatable Galaxy: <span class="id">DB.7</span>, <span class="id">OPS.8</span> → <span class="id">OPS.13</span> → <span class="id">OPS.14</span>, <span class="id">ADM.18</span>, <span class="id">GEN.58</span></td>
+ <td>Gaps filled by <span class="id">PERF.32</span>, <span class="id">PERF.33</span>, <span class="id">GEN.128</span> design</td>
+ <td>Gaps filled by any of <span class="id">UX.23</span>, <span class="id">UX.22</span>, <span class="id">UX.46</span></td></tr>
+<tr><td class="k">Last</td>
+ <td colspan="4"><b>Repeatable Galaxy proper</b>, once its blockers are in: <span class="id">GEN.57</span> → <span class="id">TEST.77</span> → <span class="id">GEN.59</span>, then <span class="id">GEN.61</span>, <span class="id">OPS.18</span>, <span class="id">OPS.16</span>, <span class="id">OPS.17</span>, <span class="id">ADM.19</span>, <span class="id">OPS.15</span>, <span class="id">ADM.17</span>, then <span class="id">OPS.12</span> → <span class="id">GEN.55</span>. Whichever lane has the most room takes it; Foundations 2 holds the GEN.56 context.</td></tr>
+</tbody></table></div>
+
+<h2>The groups, blockers first</h2>
+
+<section class="group" id="orbital">
+<h3>1 · Orbital updates <span class="muted">(Foundations 3)</span></h3>
+<div class="tw"><table>
+<thead><tr><th>Item</th><th>What it is</th><th>Needs</th><th>Unblocks</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td class="id">GEN.125</td><td>Stand-alone facilities store a velocity</td><td>none</td><td>none</td><td><span class="blk">in flight</span> every object then carries a vector</td></tr>
+<tr><td class="id">GEN.106</td><td>Movement thresholds and a next-update-due column</td><td>none</td><td>GEN.107, GEN.108, GEN.115, GEN.109, GEN.105</td><td><span class="blk">gate</span> Alembic revision 0064</td></tr>
+<tr><td class="id">GEN.104</td><td>Spin vector and axial tilt for every rotating object</td><td>none</td><td>none</td><td>Alembic 0065; its draws use the derived-seed helpers</td></tr>
+<tr><td class="id">GEN.107</td><td>The update reports how many objects moved, changed sector or entered a nebula</td><td>GEN.106</td><td>GEN.105</td><td></td></tr>
+<tr><td class="id">GEN.108</td><td>Where each orbital method breaks down, and what happens there</td><td>GEN.106</td><td>GEN.115, GEN.109, GEN.105</td><td><span class="blk">gate</span> research and rules, small code</td></tr>
+<tr><td class="id">GEN.115</td><td>The galaxy's own gravity: disk, bulge and halo potential</td><td>GEN.106, GEN.108</td><td>GEN.109, GEN.105</td><td><span class="later">phase 2</span></td></tr>
+<tr><td class="id">GEN.109</td><td>N-body influence from the nearest ten bodies</td><td>GEN.106, GEN.108, GEN.115</td><td>GEN.110, ADM.36, GEN.105</td><td><span class="later">phase 2</span></td></tr>
+<tr><td class="id">GEN.110</td><td>Rogue planet collisions</td><td>GEN.109</td><td>GEN.105</td><td><span class="later">phase 2</span></td></tr>
+<tr><td class="id">ADM.36</td><td>Change an object's trajectory vector</td><td>GEN.109</td><td>none</td><td><span class="later">phase 2</span></td></tr>
+<tr><td class="id">GEN.105</td><td>Orbital updates (the parent)</td><td>GEN.106, GEN.107, GEN.108, GEN.115, GEN.109, GEN.110</td><td>none</td><td><span class="later">phase 2</span> closes the group</td></tr>
+</tbody></table></div>
+<p class="muted">No outside blocker. The chain is strictly GEN.106 → GEN.108 → GEN.115 → GEN.109 → GEN.110, so it is the long pole; GEN.104 and GEN.125 fit beside it. GEN.126 (orbit update after a generation run) is already done.</p>
+</section>
+
+<section class="group" id="maps">
+<h3>2 · Maps <span class="muted">(Foundations 2 after GEN.56, with the Bugfix lane's map bugs first)</span></h3>
+<div class="tw"><table>
+<thead><tr><th>Item</th><th>What it is</th><th>Needs</th><th>Unblocks</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td class="id">MAP.135</td><td>First slab and wedge show their bounds <span class="bug">bug</span></td><td>none</td><td>none</td><td>Bugfix lane, first</td></tr>
+<tr><td class="id">MAP.138</td><td>Recenter the camera in every 3D view <span class="bug">bug</span></td><td>none</td><td>none</td><td>Bugfix lane</td></tr>
+<tr><td class="id">MAP.136</td><td>Binary stars pick as one system, orbits drawn clearly <span class="bug">bug</span></td><td>none</td><td>none</td><td>Bugfix lane</td></tr>
+<tr><td class="id">MAP.137</td><td>Rogue planets easy to see, default filters <span class="bug">bug</span></td><td>none</td><td>none</td><td>Bugfix lane</td></tr>
+<tr><td class="id">MAP.122</td><td>Select mode on every galaxy view</td><td>none</td><td>NAV.49</td><td><span class="blk">gate</span></td></tr>
+<tr><td class="id">MAP.75</td><td>The mini map as a second engine view</td><td>none</td><td>MAP.59</td><td><span class="blk">gate</span></td></tr>
+<tr><td class="id">MAP.120</td><td>Bright-star backfill from the block, slab and wedge menus</td><td>none</td><td>ADM.35</td><td><span class="blk">gate</span></td></tr>
+<tr><td class="id">MAP.119</td><td>Expected star density editable by admins</td><td>none</td><td>none</td><td></td></tr>
+<tr><td class="id">MAP.59, ADM.35</td><td>Slab is clearly a slab; full admin control from every screen</td><td>MAP.75; MAP.120</td><td>none</td><td></td></tr>
+<tr><td class="id">MAP.121, MAP.139 to MAP.142</td><td>Neighbouring regions on every map; info box and spare space; double-click; faint context; fuzzy nebulae</td><td>none</td><td>none</td><td>one map engine; serialize in the lane</td></tr>
+<tr><td class="id">UX.46 → UX.47 → UX.48 → UX.45</td><td>Bookmarks: wipe, manager, charted regions, management</td><td>chain</td><td>each the next</td><td>UX.46 is free</td></tr>
+<tr><td class="id">MAP.143, MAP.132</td><td>Habitability colouring and overlay markers</td><td>GEN.89 / GEN.84</td><td>none</td><td><span class="flag">parked</span> waits on the habitability chain</td></tr>
+<tr><td class="id">MAP.89</td><td>System Map fitted orbit spacing</td><td>none</td><td>none</td><td><span class="blk">retired</span> Boss: already done</td></tr>
+</tbody></table></div>
+<p class="muted">The only outside blocker is the Phase 1 habitability chain (GEN.84 → GEN.85 and GEN.86 → GEN.87 and GEN.88 → GEN.89) for MAP.143 and MAP.132, so those two wait. Everything else is free to start.</p>
+</section>
+
+<section class="group" id="nearby">
+<h3>3 · Nearby search <span class="muted">(Foundations 1)</span></h3>
+<div class="tw"><table>
+<thead><tr><th>Item</th><th>What it is</th><th>Needs</th><th>Unblocks</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td class="id">NAV.43</td><td>Find everything within a distance of a place: the query and the API</td><td>NAV.7 (done)</td><td>NAV.44</td><td>no migration; NAV.10's indexes speed it up later</td></tr>
+<tr><td class="id">NAV.44</td><td>A "What's nearby" page</td><td>NAV.43</td><td>NAV.45</td><td></td></tr>
+<tr><td class="id">NAV.45</td><td>"What's within N pc" from the Galaxy and Sector Maps (issue #677: any object, down to planets and moons)</td><td>NAV.44; MAP.65 and NAV.15 (done)</td><td>none</td><td><span class="later">phase 2</span> touches the map control panel</td></tr>
+</tbody></table></div>
+<p class="muted">Nothing blocks the group. It reads stored data only, so it conflicts with nothing in flight except the shared map control panel at the NAV.45 step.</p>
+</section>
+
+<section class="group" id="routing">
+<h3>4 · Routing <span class="muted">(Foundations 1 after nearby search)</span></h3>
+<div class="tw"><table>
+<thead><tr><th>Item</th><th>What it is</th><th>Needs</th><th>Unblocks</th><th>Notes</th></tr></thead>
+<tbody>
+<tr><td class="id">GEN.100</td><td>Phenomena placed galaxy-wide first</td><td>none</td><td>NAV.47, GEN.99</td><td><span class="blk">in flight</span> the one outside blocker</td></tr>
+<tr><td class="id">NAV.10</td><td>Routing that scales past a few thousand systems</td><td>none</td><td>NAV.12, NAV.11, NAV.25</td><td><span class="blk">gate</span> Alembic position indexes; <span class="flag">Opus-sized</span> with NAV.12</td></tr>
+<tr><td class="id">NAV.12</td><td>No maximum hop length: a route always reaches the nearest star</td><td>NAV.10</td><td>NAV.11, NAV.36, NAV.39, NAV.47, NAV.48</td><td><span class="blk">gate</span></td></tr>
+<tr><td class="id">UX.35</td><td>The route shown horizontally, wrapping</td><td>none</td><td>NAV.42, NAV.36</td><td>small; same page as NAV.42</td></tr>
+<tr><td class="id">NAV.11, NAV.42, NAV.47, NAV.48</td><td>Travel times; course to the next stop; unknown-space stops; offer to generate uncharted sectors</td><td>NAV.12 (and UX.35, GEN.100)</td><td>none</td><td></td></tr>
+<tr><td class="id">NAV.17 → NAV.18 → NAV.4</td><td>Saved course record, list, save</td><td>chain</td><td>NAV.39, NAV.49, NAV.23, NAV.28</td><td><span class="later">phase 2</span></td></tr>
+<tr><td class="id">NAV.49</td><td>Waypoints in Star select mode</td><td>MAP.122, NAV.17</td><td>none</td><td><span class="later">phase 2</span> waits on the Maps gate</td></tr>
+<tr><td class="id">NAV.8, NAV.9</td><td>Pages and anchors for every kind; search and locate references</td><td>none</td><td>none</td><td>NAV.8 has an open question for Boss</td></tr>
+<tr><td class="id">NAV.22, NAV.25, NAV.26, NAV.51</td><td>Obstacle avoidance chain</td><td>NAV.10</td><td>NAV.6</td><td><span class="flag">parked</span> by Boss</td></tr>
+</tbody></table></div>
+</section>
+
+<section class="group" id="repeatable">
+<h3>Last · Repeatable galaxy</h3>
+<p>Boss wants this done but at the lowest priority, so the plan clears what blocks it first and puts the big step, GEN.57, at the end.</p>
+<h3>What blocks it</h3>
+<ul class="tight">
+  <li><b>DB.7</b> (the version that generated each sector; Alembic) blocks ADM.18, OPS.14 and OPS.12.</li>
+  <li><b>OPS.8 → OPS.13 → OPS.14</b> (Apache reload, version-key history, key-mismatch warning) block ADM.18, OPS.17, OPS.15 and OPS.12.</li>
+  <li><b>ADM.18</b> (creation settings as a JSON file) blocks GEN.59, GEN.61, ADM.19 and OPS.12.</li>
+  <li><b>GEN.58</b> (a fingerprint of generated content) blocks TEST.77, GEN.59, DB.9, OPS.15 and OPS.12.</li>
+  <li><b>GEN.56</b> (every draw from the derived seeds) has no listed prerequisite. In practice it conflicts with every other generation item, so it merges before new random draws land or those items use its helpers from the start.</li>
+</ul>
+<h3>What it blocks</h3>
+<ul class="tight">
+  <li><b>GEN.56</b> blocks GEN.57 and GEN.59. <b>GEN.57</b> blocks TEST.77, DB.9, API.17 and OPS.12. <b>TEST.77</b> blocks OPS.12, which blocks GEN.55 (the end goal).</li>
+  <li>GEN.101 (fill order) and GEN.99 (nebula backfill) do not need it, but they should use the same helpers.</li>
+</ul>
+<h3>Sequence</h3>
+<div class="tw"><table>
+<thead><tr><th>Step</th><th>Items</th><th>Why here</th></tr></thead>
+<tbody>
+<tr><td class="k">1 · now</td><td><span class="id">GEN.56</span> finishes what is in flight (Foundations 2); GEN.98, GEN.100 and GEN.104 use its helpers</td><td>Already started; stopping halfway is worse than finishing. New draws avoid creating more to convert.</td></tr>
+<tr><td class="k">2 · filler</td><td><span class="id">DB.7</span>, <span class="id">OPS.8</span> → <span class="id">OPS.13</span> → <span class="id">OPS.14</span>, <span class="id">ADM.18</span>, <span class="id">GEN.58</span></td><td>Small, independent, and each one unblocks a later item. Any lane with a gap takes one.</td></tr>
+<tr><td class="k">3 · last</td><td><span class="id">GEN.57</span> → <span class="id">TEST.77</span> → <span class="id">GEN.59</span></td><td>GEN.57 is the large change; it comes once the draws are final and the fingerprint exists to check it.</td></tr>
+<tr><td class="k">4 · tail</td><td><span class="id">GEN.61</span>, <span class="id">OPS.18</span>, <span class="id">OPS.16</span>, <span class="id">OPS.17</span>, <span class="id">ADM.19</span>, <span class="id">OPS.15</span>, <span class="id">ADM.17</span>, then <span class="id">OPS.12</span> → <span class="id">GEN.55</span></td><td>Daily maintenance and the end goal only make sense after GEN.59.</td></tr>
+</tbody></table></div>
+</section>
+
+<h2>Conflicts to watch</h2>
+<h3>Alembic revisions (next free: 0064)</h3>
+<div class="tw"><table>
+<thead><tr><th>Revision</th><th>Item</th><th>Lane</th><th>Note</th></tr></thead>
+<tbody>
+<tr><td class="k">0064</td><td>GEN.106 next-update-due column</td><td>Foundations 3</td><td>first in line</td></tr>
+<tr><td class="k">0065</td><td>GEN.104 spin columns</td><td>Foundations 3</td><td>same lane, no clash</td></tr>
+<tr><td class="k">0066</td><td>DB.7 generating version per sector</td><td>Foundations 2, wave 4</td><td></td></tr>
+<tr><td class="k">next</td><td>NAV.10 position indexes</td><td>Foundations 1, wave 3</td><td></td></tr>
+<tr><td class="k">control</td><td>PERF.32 stats table (control v11); OPS.13 version-key history; ADM.18 if it needs one</td><td>various</td><td>separate version counter, so no clash with content revisions</td></tr>
+</tbody></table></div>
+<p class="muted">Each revision brings a previous-version fixture in <code>tests/fixtures/old_schemas/</code>. When two PRs claim one number, the second to merge renumbers.</p>
+<h3>Files two groups both touch</h3>
+<ul class="tight">
+  <li><b>Every generator module:</b> GEN.56 (Foundations 2) against GEN.98, GEN.100 (Foundations 1), GEN.104 (Foundations 3) and GEN.127 (Bugfix). Land GEN.56's helper layer first; GEN.127 waits for its merge.</li>
+  <li><b>Map engine files</b> (<code>galaxystageview.js</code>, the stage and picker modules): MAP.135 to MAP.138 (Bugfix) against every Maps item (Foundations 2). The Bugfix lane goes first; Foundations 2 starts after.</li>
+  <li><b>Nearby search and the map control panel:</b> NAV.45 (Foundations 1) shares MAP.65's panel with the Maps items. Do NAV.45 last in its group.</li>
+  <li><b>The NAV page:</b> UX.35, NAV.42 and NAV.11 share <code>nav.html</code>; one lane, in order.</li>
+  <li><b>Queue and Generate page code:</b> ADM.39, ADM.40, ADM.41 and PERF.34 (Bugfix) against PERF.32 and PERF.33; the same lane, in that order.</li>
+</ul>
+
+<h2>Needs Boss</h2>
+<ul class="tight">
+  <li><b>GEN.84</b> (which habitability score structure) is still open. It blocks GEN.85 to GEN.89, GEN.83, MAP.143, MAP.132 and the class refactor. Not on the priority list, so nothing moves until Boss answers.</li>
+  <li><b>NAV.8 and NAV.11</b> carry open questions in TODO.md; Routing reaches them in wave 3 to 4.</li>
+  <li><b>GEN.56 and GEN.57:</b> the plan finishes GEN.56 and holds GEN.57. Say so if Boss would rather pause GEN.56 now.</li>
+</ul>
+<p class="muted">Links: <a href="https://claude.ai/artifact/UFM7fnjRrv9TRhJNhvnbF2">tier plan</a> · <a href="https://claude.ai/artifact/8K7xJzr9xQgD6XdNCFbvdF">TODO tree</a> · <a href="https://claude.ai/artifact/RndQ2NzUi9ptWe9B3ECF1a">every ID explained</a></p>
+</div>
+</body>
+</html>
