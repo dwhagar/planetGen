@@ -495,7 +495,7 @@ Gas extinction in the embedded phase lowers these by roughly e^(-3 A_V) in the F
 
 - White dwarfs: planets survive the transformation [S, arXiv 2010.09747]. WD 1856+534 b is a Jupiter-sized candidate (at most 14 Jupiter masses, 1.4 day period) around a white dwarf of about half a solar mass, 80 ly away; common-envelope migration from 1.69 to 2.35 AU is one explanation [S]. Polluted white-dwarf atmospheres (a quarter to a half [R]) show rocky survivors. Orbits widen as M_initial/M_final (about 1.8 for 1 to 0.55 Msun [R]). `WD_PROGENITOR_ENGULFMENT_AU = 1.5` suits 1 to 2 Msun progenitors; for 3 to 8 Msun progenitors (class L) the AGB radius is 3 to 6 AU [R], so use `1.5 + 0.8 (M_prog - 1)` AU as a first formula (design choice).
 - Inside a planetary nebula a survivor is briefly baked: `T = 278 K (1 - A)^(1/4) L^(1/4) / sqrt(d)` gives 840 K at 5 AU for L = 3,000 Lsun (A = 0.3) and 1,140 K for 10,000 Lsun [C], plus extreme ultraviolet, for about 1e4 yr. The nebula gas is irrelevant to a planet.
-- In-situ planets: second-generation formation from AGB ejecta or common-envelope debris is theoretical [R, Perets 2010]. PSR B1257+12 has three planets (two Earth-mass, one tiny) at 0.2 to 0.5 AU, probably from a fallback or merger disc, but fallback discs are short-lived [S, arXiv 1609.06409, 0709.2922]. PSR B1620-26 b in M4 (about 2.6 Jupiter masses, circumbinary, about 12.7 Gyr) formed through a stellar encounter [S]. Pulsar planets are rare, about 1% of pulsars [R].
+- In-situ planets: second-generation formation from AGB ejecta or common-envelope debris is theoretical [R, Perets 2010]. PSR B1257+12 has three planets (two Earth-mass, one tiny) at 0.2 to 0.5 AU, probably from a fallback or merger disc, but fallback discs are short-lived [S, arXiv 1609.06409, 0709.2922]. PSR B1620-26 b in M4 (about 2.6 Jupiter masses, circumbinary, about 12.7 Gyr) formed through a stellar encounter [S]. Pulsar planets are rare: about 0.1% of known pulsars and about 0.7% of millisecond pulsars ([exotic-environments-planets-and-compact-binaries.md](exotic-environments-planets-and-compact-binaries.md) 2.1).
 - Free-floating planets in H II regions: JWST found Jupiter-mass binary objects in the Trapezium (about 40, 25 to 400 AU apart, 0.6 to 13 Jupiter masses; Pearson and McCaughrean 2023) but the status is disputed (Luhman's reanalysis) [S]. Rogue planets inside nebulae stay ordinary rogue planets.
 
 ### Surface conditions
@@ -507,6 +507,8 @@ Gas extinction in the embedded phase lowers these by roughly e^(-3 A_V) in the F
 - **Oceans.** Oceans survive any cloud for a world with a star. They do not survive the planetary-nebula phase at 1 to 5 AU (300 to 1,100 K [C]); volatile loss in the UV phase gives "no surface liquid water in classes H to L; volatile inventory reduced".
 
 ## Rule table (GEN.94)
+
+Boss's research of 2026-10-09 18:23Z confirms this table and adds three refinements (host-mass scaling of the photoevaporation cut, a circumbinary exception for H to L, a swallowed-giant flag); see [exotic-environments-planets-and-compact-binaries.md](exotic-environments-planets-and-compact-binaries.md) section 1.
 
 Columns: *In situ* can a planet-forming disc exist and finish now; *Pre-existing* can a planet formed elsewhere or earlier be here; *Temp* change to a star-hosted planet's equilibrium temperature; *Radiation tier* added to the habitability index's dose tier (0 field values; +1 up to 3 times cosmic rays or UV; +2 up to 10 times; +3 above 10 times or ionizing X-rays; design numbers, [R]-based); *G0 rule* the tier from the photoevaporation section using the nebula's host stars.
 
@@ -527,7 +529,7 @@ Columns: *In situ* can a planet-forming disc exist and finish now; *Pre-existing
 | P, Q | disc phase only (age under 3 Myr): give a protoplanetary disc, not planets | no | as M | 0 | none |
 | R | no (rare fallback or merger planets: 1% flag) | survivors only beyond the blast zone; the blast does not strip them | none | +3 (young) | surface irradiated; fresh 26Al/60Fe only in systems under 10 Myr |
 | S | no (1% flag) | yes | none | +2 | as R, weaker |
-| T | rare: pulsar planets about 1% of pulsars [R] | no | pulsar luminosity heating | +3 | |
+| T | rare: pulsar planets about 1% of millisecond pulsars [R] | no | pulsar luminosity heating | +3 | |
 | U | as T | as T | | +2 | |
 | V | no | yes | none | +1 | |
 | W | no | yes | none | +1 | no neutron star; iron-rich dust |
