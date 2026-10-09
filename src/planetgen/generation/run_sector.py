@@ -459,6 +459,8 @@ def _add_hypervelocity_star(sector, args, row, position, dist_ly):
     speed = math.sqrt(sum(component * component for component in velocity))
     system.runaway_class = "hypervelocity"
     system.runaway_speed_kms = speed
+    # Its point holds at the time the scatter drew it; the orbit update flies it on from there (GEN.137).
+    system.epoch_unix = row.get("epoch_unix")
     system.runaway_direction = tuple(component / speed for component in velocity) if speed > 0.0 else (1.0, 0.0, 0.0)
     return sector.add_preplaced_system(system, position, system_config=config)
 

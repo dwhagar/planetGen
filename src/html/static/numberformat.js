@@ -28,13 +28,19 @@ export function formatNumber(value, maxDecimals = 0, minDecimals = maxDecimals) 
   if (value == null || !isFinite(value)) {
     return String(value);
   }
-  const text = value.toLocaleString("en-US", {
+  const text = noNegativeZero(value.toLocaleString("en-US", {
     maximumFractionDigits: maxDecimals, minimumFractionDigits: minDecimals,
-  });
+  }));
   if (showsTooManyDigits(text)) {
     return scientificText(value);
   }
   return text;
+}
+
+// `text` without its minus sign when every digit is zero: "-0" is "0" (UX.80).
+// Ties round away from zero, as the Python copy's `round_half_up` does (UX.79).
+function noNegativeZero(text) {
+  return text.startsWith("-") && !/[1-9]/.test(text) ? text.slice(1) : text;
 }
 
 // True when formatted `text` should be scientific instead: 7 or more whole
@@ -50,12 +56,15 @@ function showsTooManyDigits(text) {
 // planetgen/util/format.py `_three_figures`; distance.js, speed.js and
 // period.js share it.
 export function threeFigures(value) {
-  if (value === 0 || !isFinite(value)) {
+  if (value === 0) {
+    return "0";
+  }
+  if (!isFinite(value)) {
     return String(value);
   }
   const magnitude = Math.floor(Math.log10(Math.abs(value)));
   const decimals = Math.max(0, 2 - magnitude);
-  const text = value.toLocaleString("en-US", { maximumFractionDigits: decimals, minimumFractionDigits: 0 });
+  const text = noNegativeZero(value.toLocaleString("en-US", { maximumFractionDigits: decimals, minimumFractionDigits: 0 }));
   if (showsTooManyDigits(text)) {
     return scientificText(value);
   }

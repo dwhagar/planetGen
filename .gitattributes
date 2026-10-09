@@ -31,3 +31,9 @@ src/html/**/*.py text eol=lf
 # scripts. A minified bundle also has no meaningful line-based diff to
 # preserve in the first place.
 src/html/static/vendor/* binary
+
+# The lock files and the offensive-word list are hashed (OPS.13, OPS.14), so
+# a checkout with core.autocrlf=true (Windows) must hold the same bytes as a
+# Linux one (OPS.33).
+*.lock text eol=lf
+src/planetgen/names/*.txt text eol=lf

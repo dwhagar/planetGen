@@ -1036,6 +1036,10 @@
 --   the spin vector is the axis times 2 pi over that period. NULL on a row
 --   generated before v68. Draws: `planetgen/physics/spin.py`, and
 --   docs/design/orbital-updates.md section 6.
+-- v69: `phenomenon_scatter.epoch_unix` (GEN.137): the orbit epoch the scatter
+--   was drawn at, Unix seconds. A hypervelocity star travels in a straight
+--   line, `p0 + v (t - epoch_unix)` (`galaxy/straight_line.py`); NULL on a row
+--   drawn before v69, which holds at the database's orbit epoch.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -2983,6 +2987,7 @@ CREATE TABLE IF NOT EXISTS phenomenon_scatter (
     velocity_z_kms       DOUBLE,
     seed                 BIGINT UNSIGNED NOT NULL,
     built_at             TIMESTAMP NULL,
+    epoch_unix           DOUBLE,  -- v69 (GEN.137): when the position holds, see the header comment
 
     KEY idx_phenomenon_scatter_address (ring_index, layer_index, ring_slot_index),
     CONSTRAINT chk_phenomenon_scatter_kind CHECK (kind IN (

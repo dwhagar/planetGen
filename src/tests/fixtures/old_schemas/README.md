@@ -20,3 +20,4 @@ Commit each file came from:
 - v65: 15d3f7a (GEN.100 phenomenon scatter, before GEN.106)
 - v66: eebcfb3b (GEN.106 update clocks, before DB.7)
 - v67: 500facd (DB.7 sector version, before GEN.104)
+- v68: de8d3a7 (GEN.104 spin, before GEN.137)

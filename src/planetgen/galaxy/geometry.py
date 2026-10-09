@@ -641,6 +641,14 @@ def enumerate_sectors_within_radius(center, radius_pc, edge_pc):
 
     Raises:
         ValueError: If `radius_pc < 0` or `edge_pc <= 0`.
+
+    Note:
+        This lists cells by their *center*, not the cells the sphere
+        touches: a point inside the sphere whose cell's center lies outside
+        it is missed (about 21.5% of points at 10 pc, 3.1% at 50 pc), so a
+        caller that needs "every cell holding part of the sphere" uses
+        `cells_touching_sphere`. Cells come ring by ring, not nearest
+        first; sort by the distance before applying any limit.
     """
     if radius_pc < 0:
         raise ValueError(f"radius_pc must be >= 0, got {radius_pc}")
@@ -722,3 +730,23 @@ def describe_sector_cell(ring_index, layer_index, slot_index, edge_pc):
         "volume_pc3": cell.volume,
         "vertices_pc": [list(v) for v in sector_cell_vertices_pc(ring_index, layer_index, slot_index, edge_pc)],
     }
+
+
+def cells_touching_sphere(center, radius_pc, edge_pc):
+    """
+    Every sector address whose cell can hold part of the sphere of
+    `radius_pc` around `center` (NAV.53): `enumerate_sectors_within_radius`
+    with the radius padded by one edge, which is more than any cell's
+    farthest point from its center (3.5 pc on a slotted ring, 3.46 pc for a
+    cube, at the 4 pc edge). A superset: a few cells it lists may miss the
+    sphere by a hair. Same tuples and, like it, in no particular order;
+    `distance_pc` is the cell center's distance from `center`.
+
+    Raises:
+        ValueError: As `enumerate_sectors_within_radius`.
+    """
+    if radius_pc < 0:
+        raise ValueError(f"radius_pc must be >= 0, got {radius_pc}")
+    if edge_pc <= 0:
+        raise ValueError(f"edge_pc must be > 0, got {edge_pc}")
+    return enumerate_sectors_within_radius(center, radius_pc + edge_pc, edge_pc)

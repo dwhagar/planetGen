@@ -19,6 +19,7 @@ import pytest
 
 from planetgen.galaxy.geometry import (
     SectorCell,
+    cells_touching_sphere,
     enumerate_sectors_within_radius,
     galactic_radius_pc,
     layer_bounds_pc,
@@ -351,3 +352,43 @@ def test_enumerate_zero_radius_on_a_center_returns_just_that_sector():
 
 def test_galactic_radius_pc_is_3d_distance():
     assert galactic_radius_pc((3.0, 4.0, 12.0)) == pytest.approx(13.0)
+
+
+def _miss_fraction(center, radius_pc, samples=6000, seed=11):
+    """The share of random points inside the sphere whose cell the center-based listing leaves out."""
+    rng = random.Random(seed)
+    listed = {(r, l, s) for r, l, s, *_ in enumerate_sectors_within_radius(center, radius_pc, EDGE_PC)}
+    missed = total = 0
+    while total < samples:
+        point = tuple(c + rng.uniform(-radius_pc, radius_pc) for c in center)
+        if math.dist(point, center) > radius_pc:
+            continue
+        total += 1
+        missed += sector_address_at(point, EDGE_PC) not in listed
+    return missed / total
+
+
+@pytest.mark.parametrize("radius_pc, expected", [(10.0, 0.215), (50.0, 0.031)])
+def test_center_based_listing_misses_the_documented_share_of_points(radius_pc, expected):
+    # NAV.53: pinned as documented behaviour of `enumerate_sectors_within_radius`, which is why
+    # a caller needing every cell the sphere touches uses `cells_touching_sphere`.
+    # (The share depends on where the sphere sits in its cell; this center is the documented case.)
+    assert _miss_fraction((300.0, 0.0, 0.0), radius_pc) == pytest.approx(expected, abs=0.015)
+
+
+@pytest.mark.parametrize("radius_pc", [3.0, 10.0, 25.0])
+def test_cells_touching_sphere_holds_every_point_of_the_sphere(radius_pc):
+    center = (300.0, 120.0, 2.0)
+    touching = {(r, l, s) for r, l, s, *_ in cells_touching_sphere(center, radius_pc, EDGE_PC)}
+    rng = random.Random(5)
+    for _ in range(4000):
+        point = tuple(c + rng.uniform(-radius_pc, radius_pc) for c in center)
+        if math.dist(point, center) <= radius_pc:
+            assert sector_address_at(point, EDGE_PC) in touching
+
+
+def test_cells_touching_sphere_validates_like_the_listing():
+    with pytest.raises(ValueError):
+        list(cells_touching_sphere((0, 0, 0), -1.0, EDGE_PC))
+    with pytest.raises(ValueError):
+        list(cells_touching_sphere((0, 0, 0), 5.0, 0.0))

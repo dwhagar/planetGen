@@ -776,6 +776,9 @@ def download_galaxy_settings(name):
     return _no_store(response)
 
 
+download_galaxy_settings.json_only = True  # a file download, not a page: tests/test_web_a11y.py skips it
+
+
 def _generation_panel(cookie_header, db):
     """PERF.10: this server's measured generation speed per density
     bucket, and this galaxy's size per star system."""
