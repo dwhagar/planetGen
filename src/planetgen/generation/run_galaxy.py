@@ -50,8 +50,8 @@ out. Anything larger takes a real, unbounded amount of time and disk, so
 it needs an explicit choice."""
 
 
-BACKFILL_FROM_CHOICES = ("requested", "all", "none")
-"""tuple: `--backfill-from`'s choices (GEN.30)."""
+BACKFILL_FROM_CHOICES = ("edge", "none")
+"""tuple: `--backfill-from`'s choices (GEN.30, GEN.98)."""
 
 
 def _format_address(address):
@@ -145,22 +145,27 @@ class _BatchDensity:
 
 def _fill_context(args, address, position_pc):
     """The `brightStars.FillContext` for one galaxy sector: its population
-    mix, and its unfilled pre-placed bright stars down to its own level
+    mix, its unfilled pre-placed bright stars down to its own level
     (`store.bright_star_fill_level`: its backfill's, GEN.44, else the galaxy
-    scatter's). `None` without a stored skeleton (nothing to take the mix
-    from)."""
+    scatter's), and its unbuilt scattered phenomena when the galaxy's
+    phenomenon scatter ran (GEN.100). `None` without a stored skeleton
+    (nothing to take the mix from)."""
     conn = store.get_connection(store.mysql_config_from_args(args))
     try:
         skeleton = store.get_galaxy_shape(conn)
         if skeleton is None:
             return None
+        phenomena = None
+        if store.phenomenon_scatter_seed(conn) is not None:
+            phenomena = store.phenomena_for_sector(conn, *address)
         level = store.bright_star_fill_level(conn, *address)
         if level is None:
-            return brightStars.FillContext(position_pc, skeleton.shape)
+            return brightStars.FillContext(position_pc, skeleton.shape, phenomenon_rows=phenomena)
         rows = store.bright_stars_for_sector(conn, *address)
     finally:
         conn.close()
-    return brightStars.FillContext(position_pc, skeleton.shape, rows, min_luminosity_sol=level)
+    return brightStars.FillContext(position_pc, skeleton.shape, rows, min_luminosity_sol=level,
+                                   phenomenon_rows=phenomena)
 
 
 def backfill_tiers(radius_ly=None, min_luminosity_sol=None, tiers=None):
@@ -296,34 +301,14 @@ def backfill_bright_stars_around(config, centers_pc, radius_ly=None, min_luminos
     return summary
 
 
-def _requested_center(args, generated, edge_pc, conn):
-    """
-    `backfill_after_run`'s requested sector: the random start or
-    `--center-sector` (`args.center_sector`), the `--slot` address, else
-    (ring, column, shell and block runs) the generated sector nearest the
-    middle of `generated`. `None` when there is none.
-    """
-    many = (getattr(args, "block", None) is not None or getattr(args, "column", False)
-            or getattr(args, "shell", False))
-    if not many and getattr(args, "slot", None) is not None:
-        return sector_position_pc(args.ring, args.layer, args.slot, edge_pc)
-    if not many and getattr(args, "ring", None) is None and getattr(args, "center_sector", None) is not None:
-        row = store.get_sector_galaxy_position(conn, args.center_sector)
-        if row is not None:
-            return (row["center_x_pc"], row["center_y_pc"], row["center_z_pc"])
-    if not generated:
-        return None
-    middle = tuple(sum(point[axis] for point in generated) / len(generated) for axis in range(3))
-    return min(generated, key=lambda point: math.dist(point, middle))
-
-
 def backfill_after_run(args, edge_pc, started_at):
     """
     The bright-star backfill once a `galaxy` run has generated every
-    sector it was asked for (GEN.30): around the requested sector only
-    (`--backfill-from requested`, the default, `_requested_center`),
-    around every sector the run generated (`all`), or not at all
-    (`none`). Nothing when the run generated no sector.
+    sector it was asked for (GEN.30, GEN.98): out from the run's edge
+    (`--backfill-from edge`, the default), the backfill distance past the
+    farthest generated sector in every direction (the union of the tier
+    radii around every sector the run generated), or not at all (`none`).
+    Nothing when the run generated no sector.
 
     Args:
         args (argparse.Namespace): The run's arguments.
@@ -334,7 +319,7 @@ def backfill_after_run(args, edge_pc, started_at):
     Returns:
         dict: `backfill_bright_stars_around`'s summary (zeros when skipped).
     """
-    mode = getattr(args, "backfill_from", "requested") or "requested"
+    mode = getattr(args, "backfill_from", "edge") or "edge"
     summary = {"sectors": 0, "stars": 0}
     if mode == "none":
         return summary
@@ -344,13 +329,10 @@ def backfill_after_run(args, edge_pc, started_at):
         generated = store.sector_centers_since(conn, started_at)
         if not generated:
             return summary
-        centers = generated if mode == "all" else [_requested_center(args, generated, edge_pc, conn)]
+        centers = generated
     finally:
         conn.close()
-    centers = [center for center in centers if center is not None]
-    if not centers:
-        return summary
-    log.normal(f"Backfilling the bright stars around {'every generated sector' if mode == 'all' else 'the requested sector'}...")
+    log.normal("Backfilling the bright stars out from the edge of the run...")
     # Its own bar and ETA (PERF.28): a backfill can take minutes.
     with run_common._generation_progress() as progress:
         log.set_console(progress.console)
@@ -440,7 +422,7 @@ def generate_and_save_sector_at(args, address, position_pc, edge_pc):
     with galaxySeed.seeded(galaxy_seed, "sector", address):
         _sector_name, sector = run_sector.generate_sector(args, galactic_center_dist_ly=pc_to_ly(radius_pc), cell=cell,
                                                fill=fill, cloud_field=cloud_field)
-        if address == run_sector.NUCLEUS_ADDRESS:
+        if address == run_sector.NUCLEUS_ADDRESS and not (fill is not None and fill.phenomena_scattered):
             run_sector.add_galactic_nucleus(sector, args, pc_to_ly(radius_pc))
         sector.place_in_galaxy(tuple(pc_to_ly(c) for c in position_pc))
         sector_id = store.save_sector(sector, config=store.mysql_config_from_args(args),

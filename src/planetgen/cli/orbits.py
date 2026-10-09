@@ -13,7 +13,7 @@ column -- `planets`/`moons` (their own orbit) and `stars`/`star_systems`
 other) -- so a single run brings the whole database's motion up to date
 in one pass.
 
-Each object keeps its own clock (GEN.106, schema v65): `epoch_unix`, when
+Each object keeps its own clock (GEN.106, schema v66): `epoch_unix`, when
 its stored position holds, and an indexed `next_update_due`, when it will
 have moved far enough to be worth storing again -- 0.01 mpc on a galactic
 orbit (stars, black holes, neutron stars, every other star-like object

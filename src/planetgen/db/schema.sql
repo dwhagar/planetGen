@@ -995,13 +995,17 @@
 -- v62: `sector_paths` and `sector_path_knots` (GEN.123): the path of each star
 --   system, rogue planet and interstellar comet through its sector as
 --   cubic Hermite spline knots -- see the tables' own comment.
+-- v63: `generation_run_arguments` replaces the JSON `generation_runs.arguments` (DB.13).
 -- v64: `facilities` gains `velocity_x_kms`/`_y_kms`/`_z_kms` (GEN.125): a
 --   stand-alone facility's velocity in km/s on the galactic axes, the rotation
 --   curve's tangent at its place (the same as a star system's before any
 --   runaway speed). `advance_galactic_positions` turns it with the position.
 --   Facilities on a body, in orbit or in a belt keep 0: their motion is the
 --   `orbit_*` columns, relative to their host.
--- v65: every object the orbit update moves gains `epoch_unix` and an indexed
+-- v65: `phenomenon_scatter` (GEN.100): the black holes, neutron stars,
+--   planetary nebulae, supernova remnants, hypervelocity stars and nucleus
+--   `planetgen plan` places galaxy-wide, and `galaxy_shape.phenomenon_scatter_seed`.
+-- v66: every object the orbit update moves gains `epoch_unix` and an indexed
 --   `next_update_due` (GEN.106), both in Unix seconds by the database
 --   server's clock: `planets`, `moons`, `comets`, `star_systems` (its
 --   galactic orbit; `binary_epoch_unix`/`binary_next_update_due` for a
@@ -1202,6 +1206,11 @@ CREATE TABLE IF NOT EXISTS galaxy_shape (
     bright_star_min_luminosity_sol  DOUBLE,
     bright_star_seed                BIGINT UNSIGNED,
 
+    -- v64 (GEN.100): the seed the phenomenon scatter (`phenomenon_scatter`)
+    -- used; NULL when none has run (a sector's fill then rolls its own
+    -- black holes, neutron stars, planetary nebulae and supernova remnants).
+    phenomenon_scatter_seed         BIGINT UNSIGNED,
+
     -- v51: the galaxy's 128-bit seed (GEN.39), set by `planetgen plan`
     -- (`--seed`, or drawn at random) and kept by every later plan.
     -- NULL only on a galaxy planned before v51.
@@ -1371,7 +1380,7 @@ CREATE TABLE IF NOT EXISTS star_systems (
     binary_mutual_orbital_inclination_deg      DOUBLE,
     binary_mutual_orbital_ascending_node_deg   DOUBLE,
     binary_mutual_orbital_phase_deg            DOUBLE,
-    binary_epoch_unix                          DOUBLE,  -- v65 (GEN.106)
+    binary_epoch_unix                          DOUBLE,  -- v66 (GEN.106)
     binary_next_update_due                     DOUBLE,
     binary_mutual_min_update_interval_years    DOUBLE,
     -- v14 (see header comment): the secondary's position relative to the
@@ -1410,7 +1419,7 @@ CREATE TABLE IF NOT EXISTS star_systems (
     velocity_x_kms       DOUBLE NOT NULL DEFAULT 0,
     velocity_y_kms       DOUBLE NOT NULL DEFAULT 0,
     velocity_z_kms       DOUBLE NOT NULL DEFAULT 0,
-    epoch_unix           DOUBLE,  -- v65 (GEN.106), see header comment
+    epoch_unix           DOUBLE,  -- v66 (GEN.106), see header comment
     next_update_due      DOUBLE,
     schema_version       INT NOT NULL DEFAULT 1,
 
@@ -1581,7 +1590,7 @@ CREATE TABLE IF NOT EXISTS planets (
     velocity_x_kms              DOUBLE NOT NULL DEFAULT 0,
     velocity_y_kms              DOUBLE NOT NULL DEFAULT 0,
     velocity_z_kms              DOUBLE NOT NULL DEFAULT 0,
-    epoch_unix                  DOUBLE,  -- v65 (GEN.106), see header comment
+    epoch_unix                  DOUBLE,  -- v66 (GEN.106), see header comment
     next_update_due             DOUBLE,
     min_update_interval_years   DOUBLE NOT NULL,  -- v12, see header comment
     rotation_period_hours       DOUBLE NOT NULL,
@@ -1701,7 +1710,7 @@ CREATE TABLE IF NOT EXISTS moons (
     velocity_x_kms              DOUBLE NOT NULL DEFAULT 0,
     velocity_y_kms              DOUBLE NOT NULL DEFAULT 0,
     velocity_z_kms              DOUBLE NOT NULL DEFAULT 0,
-    epoch_unix                  DOUBLE,  -- v65 (GEN.106), see header comment
+    epoch_unix                  DOUBLE,  -- v66 (GEN.106), see header comment
     next_update_due             DOUBLE,
     min_update_interval_years   DOUBLE NOT NULL,  -- v12, see header comment
     rotation_period_hours       DOUBLE NOT NULL,
@@ -1865,7 +1874,7 @@ CREATE TABLE IF NOT EXISTS comets (
     velocity_x_kms              DOUBLE NOT NULL DEFAULT 0,
     velocity_y_kms              DOUBLE NOT NULL DEFAULT 0,
     velocity_z_kms              DOUBLE NOT NULL DEFAULT 0,
-    epoch_unix                  DOUBLE,  -- v65 (GEN.106), see header comment
+    epoch_unix                  DOUBLE,  -- v66 (GEN.106), see header comment
     next_update_due             DOUBLE,
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
     uid                   BIGINT UNSIGNED,
@@ -1933,7 +1942,7 @@ CREATE TABLE IF NOT EXISTS black_holes (
     galactic_orbital_period_gy           DOUBLE,
     galactic_orbital_phase_deg           DOUBLE,
     galactic_min_update_interval_years   DOUBLE,
-    epoch_unix                  DOUBLE,  -- v65 (GEN.106), see header comment
+    epoch_unix                  DOUBLE,  -- v66 (GEN.106), see header comment
     next_update_due             DOUBLE,
 
     -- v21: this black hole's own galaxy-frame center -- see nebulae's
@@ -2006,7 +2015,7 @@ CREATE TABLE IF NOT EXISTS neutron_stars (
     galactic_orbital_period_gy           DOUBLE,
     galactic_orbital_phase_deg           DOUBLE,
     galactic_min_update_interval_years   DOUBLE,
-    epoch_unix                  DOUBLE,  -- v65 (GEN.106), see header comment
+    epoch_unix                  DOUBLE,  -- v66 (GEN.106), see header comment
     next_update_due             DOUBLE,
 
     -- v21: same galaxy-frame center convention as black_holes above.
@@ -2087,7 +2096,7 @@ CREATE TABLE IF NOT EXISTS nebulae (
     galactic_orbital_period_gy           DOUBLE NOT NULL,
     galactic_orbital_phase_deg           DOUBLE NOT NULL,
     galactic_min_update_interval_years   DOUBLE NOT NULL,
-    epoch_unix                  DOUBLE,  -- v65 (GEN.106), see header comment
+    epoch_unix                  DOUBLE,  -- v66 (GEN.106), see header comment
     next_update_due             DOUBLE,
 
     -- v18: this nebula's own galaxy-frame center -- see this file's "v18"
@@ -2206,7 +2215,7 @@ CREATE TABLE IF NOT EXISTS supernova_remnants (
     galactic_orbital_period_gy           DOUBLE NOT NULL,
     galactic_orbital_phase_deg           DOUBLE NOT NULL,
     galactic_min_update_interval_years   DOUBLE NOT NULL,
-    epoch_unix                  DOUBLE,  -- v65 (GEN.106), see header comment
+    epoch_unix                  DOUBLE,  -- v66 (GEN.106), see header comment
     next_update_due             DOUBLE,
 
     -- v28: this remnant's own galaxy-frame center -- see this file's "v28"
@@ -2332,7 +2341,7 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     galactic_orbital_period_gy           DOUBLE NOT NULL,
     galactic_orbital_phase_deg           DOUBLE NOT NULL,
     galactic_min_update_interval_years   DOUBLE NOT NULL,
-    epoch_unix                  DOUBLE,  -- v65 (GEN.106), see header comment
+    epoch_unix                  DOUBLE,  -- v66 (GEN.106), see header comment
     next_update_due             DOUBLE,
 
     -- v28: this rogue planet's own galaxy-frame center -- see this file's "v28"
@@ -2402,7 +2411,7 @@ CREATE TABLE IF NOT EXISTS interstellar_comets (
     galactic_orbital_period_gy           DOUBLE NOT NULL,
     galactic_orbital_phase_deg           DOUBLE NOT NULL,
     galactic_min_update_interval_years   DOUBLE NOT NULL,
-    epoch_unix                  DOUBLE,  -- v65 (GEN.106), see header comment
+    epoch_unix                  DOUBLE,  -- v66 (GEN.106), see header comment
     next_update_due             DOUBLE,
 
     -- v28: this comet's own galaxy-frame center -- see this file's "v28"
@@ -2490,7 +2499,7 @@ CREATE TABLE IF NOT EXISTS asteroid_fields (
     galactic_orbital_period_gy           DOUBLE NOT NULL,
     galactic_orbital_phase_deg           DOUBLE NOT NULL,
     galactic_min_update_interval_years   DOUBLE NOT NULL,
-    epoch_unix                  DOUBLE,  -- v65 (GEN.106), see header comment
+    epoch_unix                  DOUBLE,  -- v66 (GEN.106), see header comment
     next_update_due             DOUBLE,
 
     -- v18: this field's own galaxy-frame center -- see schema.sql's "v18"
@@ -2675,7 +2684,7 @@ CREATE TABLE IF NOT EXISTS facilities (
     orbit_period_years   DOUBLE,
     orbital_speed_kms    DOUBLE,
     orbit_phase_deg      DOUBLE,
-    epoch_unix           DOUBLE,  -- v65 (GEN.106), see header comment
+    epoch_unix           DOUBLE,  -- v66 (GEN.106), see header comment
     next_update_due      DOUBLE,
     description          TEXT,
 
@@ -2874,6 +2883,41 @@ CREATE TABLE IF NOT EXISTS generation_run_arguments (
     value        VARCHAR(1024) NOT NULL,
     PRIMARY KEY (run_id, position),
     CONSTRAINT fk_generation_run_arguments_run FOREIGN KEY (run_id) REFERENCES generation_runs(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- ---------------------------------------------------------------------
+-- phenomenon_scatter (v64, GEN.100): every black hole, neutron star,
+-- planetary nebula and supernova remnant of the galaxy, its hypervelocity
+-- stars and its nucleus, placed galaxy-wide by `planetgen plan` just
+-- before the bright-star scatter and before any sector is filled. A row is
+-- a point (milliparsecs, galaxy frame) in its sector's cell and the 63-bit
+-- seed the object is built from; filling the sector builds the object at
+-- that point and sets `built_at`, so what was placed stays where it was
+-- put. `subtype` is `supermassive` for the nucleus black hole and NULL for
+-- the rest (the object draws its own class from `seed`); the velocity
+-- columns hold a hypervelocity star's galactic velocity (km/s) and are
+-- NULL otherwise. A plan re-run or reset empties the table.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS phenomenon_scatter (
+    id                   BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    ring_index           INT NOT NULL,
+    layer_index          SMALLINT NOT NULL,
+    ring_slot_index      INT NOT NULL,
+    kind                 VARCHAR(24) NOT NULL,
+    subtype              VARCHAR(16),
+    position_x_mpc       BIGINT NOT NULL,
+    position_y_mpc       BIGINT NOT NULL,
+    position_z_mpc       BIGINT NOT NULL,
+    velocity_x_kms       DOUBLE,
+    velocity_y_kms       DOUBLE,
+    velocity_z_kms       DOUBLE,
+    seed                 BIGINT UNSIGNED NOT NULL,
+    built_at             TIMESTAMP NULL,
+
+    KEY idx_phenomenon_scatter_address (ring_index, layer_index, ring_slot_index),
+    CONSTRAINT chk_phenomenon_scatter_kind CHECK (kind IN (
+        'black-hole', 'neutron-star', 'planetary-nebula', 'supernova-remnant', 'hypervelocity-star', 'quasar'))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 

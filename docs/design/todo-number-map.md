@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.78 |
 | MAP | MAP.144 |
 | NAV | NAV.52 |
-| GEN | GEN.131 |
+| GEN | GEN.132 |
 | PERF | PERF.35 |
 | DB | DB.16 |
 | API | API.20 |
@@ -568,9 +568,9 @@ Parents marked "new parent" had no old number of their own.
 | GEN.95 | Nebula conditions applied when planets and surfaces are generated | none | open |
 | GEN.96 | Generation directives for a sector (an override button) | none | open |
 | GEN.97 | Generate N random neighborhoods | none | open |
-| GEN.98 | Bright-star backfill from the farthest generated boundary outward | none | open |
+| GEN.98 | Bright-star backfill from the farthest generated boundary outward | none | done, PR #795 |
 | GEN.99 | Nebula volume backfill with the star types the nebula needs | none | open |
-| GEN.100 | Phenomena placed galaxy-wide first and kept when sectors fill | none | open |
+| GEN.100 | Phenomena placed galaxy-wide first and kept when sectors fill | none | done, PR #793 |
 | GEN.101 | Fill order: nearest sectors first along a pruned Hilbert octree curve | none | open |
 | GEN.102 | Investigate filling all near-zero-density void space at once | none | open |
 | GEN.103 | Research where each star type and phenomenon belongs in the galaxy's structure | none | open |
@@ -601,6 +601,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.128 | Design: multi-star hierarchies and compact-object primaries | none | open |
 | GEN.129 | Multi-star systems of up to seven stars | none | open |
 | GEN.130 | Exotic star systems: a black hole, neutron star or similar at the center | none | open |
+| GEN.131 | Bright-star scatter logs how many stars it added to each layer, by type | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -736,9 +737,9 @@ Parents marked "new parent" had no old number of their own.
 | MAP.125 | Infinite zoom: one 3D interface from the galaxy down to a moon | none | done, PR #683 |
 | MAP.126 | Show the orbital trajectories of selected objects in their frame of reference | none | done, PR #686 |
 | MAP.135 | Selecting the first slab or wedge shows its bounds (bug) | none | done, PR #788 |
-| MAP.136 | Binary stars pick as one system and their 3D orbits are drawn clearly (bug) | none | open |
-| MAP.137 | Rogue planets are easy to see, with the right default filters (bug) | none | open |
-| MAP.138 | Recenter the camera in every 3D view (bug) | none | open |
+| MAP.136 | Binary stars pick as one system and their 3D orbits are drawn clearly (bug) | none | done, PR #797 |
+| MAP.137 | Rogue planets are easy to see, with the right default filters (bug) | none | done, PR #797 |
+| MAP.138 | Recenter the camera in every 3D view (bug) | none | done, PR #797 |
 | MAP.139 | The Galaxy View uses its spare space: an info box with a Details link, and menu items | none | open |
 | MAP.140 | Double-click on a selected object goes there and opens its information | none | open |
 | MAP.141 | Context around the selection: faint neighbours, and the sectors above and below | none | open |
@@ -982,7 +983,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.74 | Generate page shows an empty Current job card | none | done, PR #617 |
 | UX.75 | Admin menus on the sector and phenomenon pages sit in the page body, not the action bar | none | done, PR #679 |
 | UX.76 | Icons and highlights follow the light and dark theme (bug) | none | open |
-| UX.77 | The class list is alphabetized (bug) | none | open |
+| UX.77 | The class list is alphabetized (bug) | none | done, PR #797 |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |

@@ -31,6 +31,10 @@ _EMPTY_TABLE_ROWS = {
     "moon_reflection_spectrum": (
         "INSERT INTO moon_reflection_spectrum (moon_id, spectrum_type, position, value)"
         " VALUES ((SELECT MIN(id) FROM moons), 'visible', 0, 'blue')"),
+    # Only a `planetgen plan` scatter writes these.
+    "phenomenon_scatter": (
+        "INSERT INTO phenomenon_scatter (ring_index, layer_index, ring_slot_index, kind, position_x_mpc,"
+        " position_y_mpc, position_z_mpc, seed) VALUES (0, 0, 0, 'neutron-star', 0, 0, 0, 1)"),
 }
 
 

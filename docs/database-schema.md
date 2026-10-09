@@ -1104,7 +1104,7 @@ passed since the last update.
 | `id` | BIGINT UNSIGNED | PK, `CHECK (id = 1)` | Always `1` — singleton. |
 | `last_updated_at` | TIMESTAMP | NOT NULL | When `planetgen.cli.orbits` last ran against this database. |
 
-**Per-object clocks (v65, GEN.106).** Each object the update moves also
+**Per-object clocks (v66, GEN.106).** Each object the update moves also
 keeps its own clock: `epoch_unix`, when its stored position holds, and an
 indexed `next_update_due`, when it will have moved far enough to store
 again, both Unix seconds by the database server's clock. The columns are on
@@ -1227,7 +1227,7 @@ One row per generated system (single-star or binary).
 | `runaway_class` | VARCHAR(16) | nullable, `runaway` or `hypervelocity` | Added in v37. NULL for an ordinary star; set by `generate.flag_fast_stars`. |
 | `runaway_speed_kms` | DOUBLE | nullable | Added in v37. The star's speed relative to its neighbors when `runaway_class` is set. |
 | `velocity_x_kms`, `velocity_y_kms`, `velocity_z_kms` | DOUBLE | NOT NULL, default 0 | Added in v61 (GEN.121). The system's velocity, km/s on the galactic axes: the rotation curve's tangent at its place plus its runaway motion. `advance_galactic_positions` turns it with the position. 0 while the system has no place in the galaxy. |
-| `epoch_unix`, `next_update_due` | DOUBLE | nullable, `next_update_due` indexed | Added in v65 (GEN.106). The galactic orbit's clock (see `orbit_simulation_state`): the system, its stars' `galactic_orbital_phase_deg` and a close pair's `binary_galactic_orbital_phase_deg` move together when it is due. `binary_epoch_unix`/`binary_next_update_due` are the same for a pair's mutual orbit. |
+| `epoch_unix`, `next_update_due` | DOUBLE | nullable, `next_update_due` indexed | Added in v66 (GEN.106). The galactic orbit's clock (see `orbit_simulation_state`): the system, its stars' `galactic_orbital_phase_deg` and a close pair's `binary_galactic_orbital_phase_deg` move together when it is due. `binary_epoch_unix`/`binary_next_update_due` are the same for a pair's mutual orbit. |
 | `schema_version` | INTEGER | NOT NULL, default 1 | See "Versioning" above. |
 | `mediawiki_url` | TEXT | nullable | Where this system's page lives (or should live) on MediaWiki. |
 | `wikijs_url` | TEXT | nullable | Where this system's page lives (or should live) on Wiki.js. |
@@ -1334,9 +1334,9 @@ both terrestrial and gas-giant bodies (`body_type`).
 | `orbital_phase_deg` | DOUBLE | NOT NULL | Added in v9. This body's current position angle around its orbit — the one orbital-motion column that changes over time, advanced in place by `planetgen.cli.orbits` (see `orbit_simulation_state` below). |
 | `position_x_km`, `_y_km`, `_z_km` | DOUBLE | NOT NULL | Added in v11. This body's Cartesian position relative to its orbital anchor — the star (or a binary's combined center) for a planet — derived from `distance_km` and the three orbital-motion columns above (`orbits.orbital_position_au`). Changes in lockstep with `orbital_phase_deg` as `planetgen.cli.orbits` advances it. |
 | `velocity_x_kms`, `_y_kms`, `_z_kms` | DOUBLE | NOT NULL, default 0 | Added in v60 (GEN.121). This body's velocity, km/s, relative to its orbital anchor and on the same axes as `position_x/y/z_km`: the tangent of its circular orbit at `orbital_phase_deg`, `orbital_speed_kms` long (`orbits.circular_orbital_velocity_au_per_year`). `advance_orbital_phases` moves it with the position. |
-| `epoch_unix`, `next_update_due` | DOUBLE | nullable, `next_update_due` indexed | Added in v65 (GEN.106). When the stored position holds and when the body will have moved 0.01 AU (100,000 km for a moon) at its orbital speed; see `orbit_simulation_state`. An edit that changes the orbit sets `next_update_due` back to NULL. |
+| `epoch_unix`, `next_update_due` | DOUBLE | nullable, `next_update_due` indexed | Added in v66 (GEN.106). When the stored position holds and when the body will have moved 0.01 AU (100,000 km for a moon) at its orbital speed; see `orbit_simulation_state`. An edit that changes the orbit sets `next_update_due` back to NULL. |
 | `orbital_speed_kms` | DOUBLE | NOT NULL | Added in v11. Constant circular-orbit speed (`orbits.circular_orbital_speed_kms`, `v = 2*pi*r/T`). Only changes if `distance_km`/`period_years` do (e.g. `StarSystem.validate_system` resolving an orbital overlap at generation time), never from phase advancing alone. |
-| `min_update_interval_years` | DOUBLE | NOT NULL | Added in v12; not read by the update since v65 (`next_update_due` decides). Not a narrative stat -- a floating-point update guard: the shortest `elapsed_years` worth calling it for, below which the phase delta added is smaller than `orbital_phase_deg`'s own double-precision resolution and so is guaranteed to be a no-op write (`orbits.minimum_update_interval_years`, `period_years * math.ulp(360.0) / 360`). Like `orbital_speed_kms`, only changes if `distance_km`/`period_years` do. |
+| `min_update_interval_years` | DOUBLE | NOT NULL | Added in v12; not read by the update since v66 (`next_update_due` decides). Not a narrative stat -- a floating-point update guard: the shortest `elapsed_years` worth calling it for, below which the phase delta added is smaller than `orbital_phase_deg`'s own double-precision resolution and so is guaranteed to be a no-op write (`orbits.minimum_update_interval_years`, `period_years * math.ulp(360.0) / 360`). Like `orbital_speed_kms`, only changes if `distance_km`/`period_years` do. |
 | `rotation_period_hours` | DOUBLE | NOT NULL | Added in v9. Axial rotation ("day length") — a static descriptive stat; no rotational phase is tracked. |
 | `reflex_offset_x_km`, `_y_km`, `_z_km` | DOUBLE | nullable | Added in v20. This planet's own displacement from its nominal fixed point, from the combined pull of its own moons (`moons.planet_id`) — see `orbits.calculate_reflex_offset`. NULL/0 with no moons. **Not present on `moons`** — a moon never hosts its own moons. |
 

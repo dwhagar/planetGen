@@ -73,6 +73,7 @@ if (root && diagram && diagramButton && button3d) {
     scale: document.getElementById("sysview3d-scale"),
     scaleNote: document.getElementById("sysview3d-scale-note"),
     reset: document.getElementById("sysview3d-reset"),
+    recenter: document.getElementById("sysview3d-recenter"),
     list: document.getElementById("sysview3d-list"),
   };
 
@@ -171,6 +172,7 @@ if (root && diagram && diagramButton && button3d) {
   els.faster.addEventListener("click", () => { if (clock) { clock.faster(); showRate(); } });
   els.now.addEventListener("click", () => { if (clock) { clock.now(Date.now()); showRate(); } });
   els.reset.addEventListener("click", () => { if (view) view.reset(); });
+  els.recenter.addEventListener("click", () => { if (view) view.recenter(); });
   els.scale.addEventListener("change", () => {
     if (!view) return;
     view.setMode(els.scale.value);

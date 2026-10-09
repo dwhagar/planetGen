@@ -19,7 +19,7 @@ from tests.rich_galaxy_support import rich_galaxy  # noqa: F401  (fixture)
 pytestmark = pytest.mark.db
 
 BOOKKEEPING_TABLES = {
-    "schema_migrations", "alembic_version", "generation_run_arguments", "id_blocks", "system_name_registry", "sector_name_registry", "population_state",
+    "schema_migrations", "alembic_version", "generation_run_arguments", "phenomenon_scatter", "id_blocks", "system_name_registry", "sector_name_registry", "population_state",
     "orbit_simulation_state", "galaxy_column", "galaxy_layer", "sector_stats", "bright_stars",
     "nearest_systems", "sector_paths", "sector_path_knots",
 }
@@ -48,6 +48,7 @@ NULL_IN_THIS_GALAXY = {
        ("compact_remnant_kind", "compact_remnant_black_hole_id", "compact_remnant_neutron_star_id")},
     # `plan --no-bright-stars`: the scatter is slow and tested on its own.
     ("galaxy_shape", "bright_star_min_luminosity_sol"): "no scatter", ("galaxy_shape", "bright_star_seed"): "no scatter",
+    ("galaxy_shape", "phenomenon_scatter_seed"): "no scatter",
     # Facilities on stars, moons and asteroid fields, and the field's galaxy position.
     **{("facilities", column): "facility hosts used" for column in
        ("star_id", "moon_id", "asteroid_field_id", "sector_id", "center_x_pc", "center_y_pc", "center_z_pc",
@@ -94,6 +95,7 @@ NEVER_READ = {
         ("system_owners", "star_system_id"), ("nebula_shape_balls", "nebula_id"))},
     ("star_systems", "schema_version"): "the version that wrote the row, for diagnosis",
     ("galaxy_shape", "id"): "singleton key", ("galaxy_shape", "bright_star_seed"): "only to repeat a scatter",
+    ("galaxy_shape", "phenomenon_scatter_seed"): "only to repeat a scatter",
     ("facilities", "galactic_radius_pc"): "an index column; pages place a facility by its center",
     # Empty unless a moon bears life (see NULL_IN_THIS_GALAXY).
     ("moon_evolutionary_paragraphs", "paragraph"): CHANCE,

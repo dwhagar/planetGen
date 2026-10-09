@@ -151,6 +151,28 @@ function start(view, shape, around) {
     draw();
   }, { passive: false });
 
+  // MAP.138: C (or the button) puts the view back about the nebula's center
+  // at its opening angle and zoom.
+  function recenter() {
+    pivot.rotation.y = 0;
+    zoom = 1;
+    touched = true;
+    placeCamera();
+    draw();
+  }
+  canvas.tabIndex = 0;
+  canvas.addEventListener("keydown", function (event) {
+    if ((event.key === "c" || event.key === "C") && !event.ctrlKey && !event.metaKey && !event.altKey) {
+      event.preventDefault();
+      recenter();
+    }
+  });
+  var recenterButton = document.getElementById("nebulaview-recenter");
+  if (recenterButton) {
+    recenterButton.hidden = false;
+    recenterButton.addEventListener("click", recenter);
+  }
+
   if (typeof ResizeObserver === "function") {
     new ResizeObserver(function () {
       resize();

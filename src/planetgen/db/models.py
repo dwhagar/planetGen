@@ -344,6 +344,7 @@ galaxy_shape = sa.Table(
     sa.Column('outer_ring_index', mysql.INTEGER(), nullable=False),
     sa.Column('bright_star_min_luminosity_sol', mysql.DOUBLE(), nullable=True),
     sa.Column('bright_star_seed', mysql.BIGINT(unsigned=True), nullable=True),
+    sa.Column('phenomenon_scatter_seed', mysql.BIGINT(unsigned=True), nullable=True),
     sa.Column('galaxy_seed', mysql.BINARY(16), nullable=True),
     sa.Column('version_key', mysql.CHAR(22), nullable=True),
     sa.Column('planetgen_version', sa.String(32), nullable=True),
@@ -696,6 +697,29 @@ orbit_simulation_state = sa.Table(
     metadata,
     sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, nullable=False),
     sa.Column('last_updated_at', mysql.TIMESTAMP(), nullable=False),
+    mysql_engine="InnoDB",
+)
+
+
+phenomenon_scatter = sa.Table(
+    'phenomenon_scatter',
+    metadata,
+    sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
+    sa.Column('ring_index', mysql.INTEGER(), nullable=False),
+    sa.Column('layer_index', mysql.SMALLINT(), nullable=False),
+    sa.Column('ring_slot_index', mysql.INTEGER(), nullable=False),
+    sa.Column('kind', sa.String(24), nullable=False),
+    sa.Column('subtype', sa.String(16), nullable=True),
+    sa.Column('position_x_mpc', mysql.BIGINT(), nullable=False),
+    sa.Column('position_y_mpc', mysql.BIGINT(), nullable=False),
+    sa.Column('position_z_mpc', mysql.BIGINT(), nullable=False),
+    sa.Column('velocity_x_kms', mysql.DOUBLE(), nullable=True),
+    sa.Column('velocity_y_kms', mysql.DOUBLE(), nullable=True),
+    sa.Column('velocity_z_kms', mysql.DOUBLE(), nullable=True),
+    sa.Column('seed', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('built_at', mysql.TIMESTAMP(), nullable=True),
+    sa.Index('idx_phenomenon_scatter_address', 'ring_index', 'layer_index', 'ring_slot_index'),
+    sa.CheckConstraint("`kind` in ('black-hole','neutron-star','planetary-nebula','supernova-remnant','hypervelocity-star','quasar')", name='chk_phenomenon_scatter_kind'),
     mysql_engine="InnoDB",
 )
 

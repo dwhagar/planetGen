@@ -121,6 +121,7 @@ export function mapControlHandlers(ctx) {
       if (menu) menu.open = false;
       if (dialog && typeof dialog.show === "function") dialog.show();
     },
+    "center-on": function () { ctx.stageView.recenter(); },
     "zoom-in": function () { ctx.stageView.zoomIn(); },
     "zoom-out": function () { ctx.stageView.zoomOut(); },
     "toggle-rogue-markers": function (button) {

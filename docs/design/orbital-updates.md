@@ -76,7 +76,7 @@ speed and its threshold (time = threshold / speed, capped). An indexed
 `next_update_due` column lets the run select only what is due. Objects
 that didn't pass their threshold are not moved or counted.
 
-Built (GEN.106, schema v65): each moving row has `epoch_unix` (when its
+Built (GEN.106, schema v66): each moving row has `epoch_unix` (when its
 stored position holds; NULL means at the last run) and an indexed
 `next_update_due`, both Unix seconds by the database server's clock, on
 planets, moons, comets, star systems (galactic orbit, plus

@@ -223,6 +223,9 @@ def test_nebula_page_draws_its_shape_in_3d(page, base_url, site_app):
     _open(page, f"{base_url}/phenomenon/nebula/{nebula['id']}", "main")
     assert page.locator("#phenomenonmap-svg").count() == 0
     page.locator("#nebulaview-canvas[data-nebula-view='ready']").wait_for(state="attached", timeout=15000)
+    # MAP.138: the view can be put back about the nebula's center.
+    assert page.locator("#nebulaview-recenter").is_visible()
+    page.locator("#nebulaview-recenter").click()
     client = site_app.test_client()
     assert client.get(f"/galaxy/nebula/{nebula['id']}/shape?lod=full").status_code == 200
     assert client.get(f"/galaxy/nebula/{nebula['id']}/surroundings").status_code == 200
@@ -611,6 +614,12 @@ def test_system_page_3d_view_draws_switches_scale_and_keeps_the_diagram(page, ba
     # NAV.50: the picked body can start or end a course.
     hrefs = [link.get_attribute("href") for link in page.locator("#sysmap-info .map-info-actions a").all()]
     assert any(re.fullmatch(r"/nav\?to=[a-z]+:\d+", href or "") for href in hrefs), hrefs
+
+    # MAP.138: Center moves the view's center to the picked body.
+    before_center = _canvas_pixels(page)
+    page.click("#sysview3d-recenter")
+    page.wait_for_timeout(300)
+    assert _canvas_pixels(page) != before_center, "Center changes the view"
 
     # The scale changes the picture and its note.
     page.select_option("#sysview3d-scale", "true")

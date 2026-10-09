@@ -1064,15 +1064,23 @@ def map_scene_data(
 
         stars = system["stars"]
         is_binary = len(stars) > 1
-        stars_data.append(_star_data(link_url, system, stars[0], x_px, y_px, z_px))
+        primary_index = len(stars_data)
+        primary_entry = _star_data(link_url, system, stars[0], x_px, y_px, z_px)
+        if is_binary:
+            primary_entry["name"] = system["name"]  # the system is what gets picked
+        stars_data.append(primary_entry)
 
         if is_binary:
             primary_r = _star_dot_radius(stars[0]["radius_km"])
             offset = primary_r * _BINARY_OFFSET_FRACTION
-            stars_data.append(_star_data(
+            companion = _star_data(
                 link_url, system, stars[1], x_px + offset, y_px + offset, z_px,
                 max_r=primary_r * _SECONDARY_MAX_RATIO,
-            ))
+            )
+            # A binary is one pickable system (MAP.136): the map resolves a
+            # pick of the companion to this entry.
+            companion["companionOf"] = primary_index
+            stars_data.append(companion)
 
     clouds_data = []
     for phenomenon in (phenomena or []) if ly_to_milliparsecs is not None else ():

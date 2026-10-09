@@ -1,6 +1,6 @@
 """Every moving object gets its own update clock (GEN.106).
 
-Schema v65. The objects the orbit update moves gain `epoch_unix` (when the
+Schema v66. The objects the orbit update moves gain `epoch_unix` (when the
 stored position holds) and an indexed `next_update_due` (when it will have
 moved far enough to store again), both NULL here: the next update run
 fills them in (see `schema.sql`'s "v65" note).
@@ -9,8 +9,8 @@ fills them in (see `schema.sql`'s "v65" note).
 import sqlalchemy as sa
 from alembic import op
 
-revision = "0065"
-down_revision = "0064"
+revision = "0066"
+down_revision = "0065"
 branch_labels = None
 depends_on = None
 
