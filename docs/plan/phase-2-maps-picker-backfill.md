@@ -36,7 +36,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| MAP.58 | Galaxy Map zoom limits: a short manual range on the galaxy wedge, locked below it |  | A zoom policy of MAP.64. |
 | MAP.75 | The mini map as a second engine view |  | Locked second camera on MAP.64. |
 | MAP.59 | Make it plain that a zoomed-in slab is a slab, not a wedge | MAP.75 |  |
 | MAP.132 | Overlay markers for black holes, nebulae and habitable worlds | GEN.84 | Later (Boss 2026-10-08 01:59Z colors). |
@@ -45,7 +44,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| NAV.21 | Fit the view to the whole course | MAP.58 | Same fit as MAP.53, exempt from MAP.58's lock. |
+| NAV.21 | Fit the view to the whole course |  | Same fit as MAP.53, exempt from any zoom limit (MAP.58 was superseded by MAP.125). |
 | NAV.17 | A saved course record with both forms |  |  |
 | NAV.18 | Save, list, open, rename and delete, per browser | NAV.17 | Sibling of bookmarks.js. |
 | NAV.4 | Save a course | NAV.17, NAV.18 | Per browser now; NAV.19 moves it into accounts in phase 3+. |
@@ -169,7 +168,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 ## Open questions for Boss
 
-- MAP.58: Galaxy Map zoom limits: a short manual range on the galaxy wedge, locked below it, see its entry in TODO.md.
 - NAV.24: A keep-out radius for every kind of object, see its entry in TODO.md.
 - UX.32: Planet rows show the class only, without the type and moon labels, see its entry in TODO.md.
 - UX.30: Planet information without the Markdown render, see its entry in TODO.md.
