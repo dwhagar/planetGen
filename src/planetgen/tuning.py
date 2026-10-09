@@ -2740,6 +2740,18 @@ galaxy-wide"; Brown 2015). Each starts at the central black hole and moves
 outward at `HYPERVELOCITY_STAR_SPEED_RANGE_KMS`."""
 
 
+PHENOMENON_MIN_MASS_SOLAR = 20.0
+"""float: The phenomenon scatter's lowest mass (GEN.167, `planetgen plan
+--phenomenon-min-mass`; docs/design/phenomenon-scatter-mass-cut.md, Boss
+2026-10-09). The scatter places only the neutron stars and black holes at
+or above it; a sector draws the rest when it is filled (GEN.168). An
+object's tidal sphere (1.44 pc per cube root of a solar mass) reaches one
+4 pc sector edge at about 21 solar masses, so below the cut an object's
+pull stays within its own and the neighbouring sectors. At 20 only the
+intermediate-mass black holes are scattered: about 2.7e5 rows instead of
+1.17e9."""
+
+
 def phenomenon_rate_per_star(kind):
     """Expected count of `kind` (a PHENOMENON_DENSITY_PC3 key) per star:
     its density over REFERENCE_STELLAR_DENSITY_PC3, times its

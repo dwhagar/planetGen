@@ -12,7 +12,9 @@ potential of [galactic-potential.md](galactic-potential.md).
 
 Informs: DB.19, GEN.100, GEN.104, GEN.109, GEN.115, PERF.31
 
-Status: research, 2026-10-09; Boss accepted the 20 solar mass cut on a decision card (2026-10-09). No generator code changed.
+Status: built, 2026-10-09 (GEN.166 to GEN.168, schema v71); Boss accepted the 20 solar mass cut on a decision card (2026-10-09).
+
+As built: the cut is `galaxy_shape.phenomenon_min_mass_solar` and `--phenomenon-min-mass` (in the settings file's plan settings); the scatter's classes are `phenomenon_scatter.SCATTER_CLASSES`, and a sector's below-cut draw is `phenomenon_scatter.below_cut_draws` with `run_sector.add_below_cut_remnants`. No per-sector level or band top-up was needed: a filled sector already holds every mass (its scattered rows above the cut, its own draw below), and a rescatter at a new cut (`planetgen plan --phenomena-only`) replaces the rows of every unfilled cell and leaves filled ones out, so nothing is missing or doubled whichever way the cut moves.
 
 Evidence tags: [C] computed or measured here (`/mnt/project-files/research/scripts/genperf/`:
 `default_totals.py`, `mass_cut_table.py`, `walk_cost.py`); [S] read in the repository; [R] recalled and unconfirmed.

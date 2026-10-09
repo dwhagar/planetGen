@@ -806,6 +806,15 @@ def add_plan_arguments(parser):
                                    "placed and add only those from L_SUN up to the level already scattered. "
                                    "Sectors already filled are left out (their own systems already reach "
                                    "that bright). Does nothing when L_SUN is not below the current level.")
+    phenomena_group = parser.add_argument_group("phenomenon scatter (planetgen.generation.phenomenon_scatter)")
+    phenomena_group.add_argument('--phenomenon-min-mass', type=finite_float,
+                                 default=program_constants.PHENOMENON_MIN_MASS_SOLAR, metavar='M_SUN',
+                                 help="The lightest neutron star or black hole placed galaxy-wide after the plan "
+                                      "(solar masses); a sector draws the lighter ones when it is filled. "
+                                      f"Default: {program_constants.PHENOMENON_MIN_MASS_SOLAR:g}.")
+    phenomena_group.add_argument('--phenomena-only', action='store_true',
+                                 help="Re-scatter the phenomena on the stored plan without rebuilding it or the "
+                                      "bright stars (to change --phenomenon-min-mass). Filled sectors are left out.")
     store.add_mysql_connection_args(parser)
     add_logging_arguments(parser)
 
@@ -853,6 +862,10 @@ def validate_plan_args(args, parser):
         parser.error(f"these galaxy shape parameters can't be normalized (k_norm={shape.k_norm!r}).")
     if args.no_bright_stars and args.bright_stars_only:
         parser.error("--no-bright-stars and --bright-stars-only can't be combined.")
+    if not args.phenomenon_min_mass > 0.0:
+        parser.error("--phenomenon-min-mass must be above 0.")
+    if args.phenomena_only and (args.bright_stars_only or args.bright_stars_down_to is not None):
+        parser.error("--phenomena-only can't be combined with --bright-stars-only or --bright-stars-down-to.")
     if args.bright_stars_down_to is not None:
         if args.no_bright_stars or args.bright_stars_only:
             parser.error("--bright-stars-down-to can't be combined with --no-bright-stars or --bright-stars-only.")

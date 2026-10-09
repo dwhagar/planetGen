@@ -15,6 +15,7 @@ import pytest
 from planetgen import tuning
 from planetgen.cli import generate as generate_cli
 from planetgen.db import store
+from planetgen.galaxy import remnant_distribution
 from planetgen.galaxy.density import build_galaxy_shape
 from planetgen.galaxy.geometry import sector_address_at, sector_position_pc
 from planetgen.generation import phenomenon_scatter as scatter
@@ -31,6 +32,8 @@ EXTENTS = [(1, 6), (0, 8), (-1, 6)]
 
 
 def _layer(layer_index=0, seed=5, **kwargs):
+    # A cut of 1 solar mass scatters every neutron star and black hole.
+    kwargs.setdefault("min_mass_solar", 1.0)
     return list(scatter.scatter_layer(SHAPE, layer_index, dict(EXTENTS)[layer_index], EDGE_PC, E_VALUE, seed,
                                       **kwargs))
 
@@ -53,7 +56,11 @@ def test_scattered_objects_sit_in_their_own_cell_inside_the_outline():
         address = (row["ring_index"], row["layer_index"], row["ring_slot_index"])
         assert sector_address_at(point, EDGE_PC) == address
         assert address[0] <= outer[address[1]]
-        assert row["velocity_x_kms"] is None and row["subtype"] is None
+        assert row["velocity_x_kms"] is None
+        if row["kind"] == "black-hole":
+            assert row["subtype"] in ("stellar", "intermediate")
+        else:
+            assert row["subtype"] is None
         assert 0 <= row["seed"] < 2 ** 63
 
 
@@ -76,7 +83,8 @@ def test_each_kind_follows_its_rate_per_star():
     rows = [row for layer_index, _outer in EXTENTS for row in _layer(layer_index, seed=3)]
     counts = {kind: sum(1 for row in rows if row[3] == kind) for kind in scatter.SCATTERED_KINDS}
     assert counts["neutron-star"] > 3 * counts["black-hole"] > 0
-    expected = sum(scatter.layer_expected(SHAPE, layer_index, outer, EDGE_PC, E_VALUE) for layer_index, outer in EXTENTS)
+    expected = sum(scatter.layer_expected(SHAPE, layer_index, outer, EDGE_PC, E_VALUE, 1.0)
+                   for layer_index, outer in EXTENTS)
     assert sum(counts.values()) == pytest.approx(expected, rel=0.15)
 
 
@@ -125,7 +133,8 @@ def _plan_args(mysql_config, *extra):
     args = parser.parse_args([
         "--mysql-host", mysql_config.host, "--mysql-port", str(mysql_config.port),
         "--mysql-user", mysql_config.user, "--mysql-password", mysql_config.password,
-        "--mysql-database", mysql_config.database, "--workers", "1", *extra,
+        "--mysql-database", mysql_config.database, "--workers", "1",
+        *(extra or ("--phenomenon-min-mass", "1")),
     ])
     generate_cli.validate_plan_args(args, parser)
     return args
@@ -303,3 +312,135 @@ def test_the_nucleus_row_builds_the_nucleus_and_the_fill_rolls_none(mysql_config
     nuclei = [entry for entry in sector.phenomena if entry.phenomenon_type == "quasar"
               or (entry.phenomenon_type == "black-hole" and entry.phenomenon.mass_class == "supermassive")]
     assert len(nuclei) == 1
+
+
+# --- The mass cut (GEN.166 to GEN.168) ---
+
+def test_the_share_above_the_cut_follows_each_mass_law():
+    assert scatter.share_above("neutron-star", None, 2.0) == pytest.approx(0.2 / 1.1)
+    assert scatter.share_above("neutron-star", None, 20.0) == 0.0
+    assert scatter.share_above("black-hole", "stellar", 10.0) == pytest.approx(10.0 / 15.0)
+    assert scatter.share_above("black-hole", "stellar", 20.0) == 0.0
+    assert scatter.share_above("black-hole", "intermediate", 20.0) == 1.0
+    assert scatter.share_above("black-hole", "intermediate", 1e3) == pytest.approx(2.0 / 3.0)
+    assert scatter.share_above("planetary-nebula", None, 1e9) == 1.0
+    assert scatter.mass_range("black-hole", "stellar", 10.0, True) == (10.0, 20.0)
+    assert scatter.mass_range("black-hole", "stellar", 10.0, False) == (5.0, 10.0)
+    assert scatter.mass_range("neutron-star", None, 20.0, False) == (1.1, 2.2)
+    assert scatter.mass_range("supernova-remnant", None, 20.0, True) is None
+    # The two black-hole classes split the kind's rate.
+    total = sum(scatter.class_rate_per_star("black-hole", subtype) for subtype in ("stellar", "intermediate"))
+    assert total == pytest.approx(tuning.phenomenon_rate_per_star("black-hole"))
+
+
+def test_a_mass_range_truncates_the_remnant_mass_draw():
+    from planetgen.generation.config import SystemConfig
+    from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
+    for _ in range(50):
+        assert 10.0 <= BlackHole(SystemConfig(), mass_class="stellar", mass_range=(10.0, 20.0)).mass_solar <= 20.0
+        hole = BlackHole(SystemConfig(), mass_class="intermediate", mass_range=(1e3, 1e5))
+        assert hole.mass_class == "intermediate" and hole.mass_solar >= 1e3
+        assert 1.1 <= NeutronStar(SystemConfig(), mass_range=(1.1, 1.5)).mass_solar <= 1.5
+    with pytest.raises(ValueError):
+        BlackHole(SystemConfig(), mass_class="stellar", mass_range=(30.0, 40.0))
+
+
+def test_the_default_cut_scatters_only_the_intermediate_mass_black_holes():
+    rows = [row for layer_index, _outer in EXTENTS for row in _layer(layer_index, seed=3, min_mass_solar=20.0)]
+    kinds = {(row[3], row[4]) for row in rows}
+    assert ("neutron-star", None) not in kinds
+    assert ("black-hole", "stellar") not in kinds
+    everything = [row for layer_index, _outer in EXTENTS for row in _layer(layer_index, seed=3)]
+    assert len(rows) < len(everything) / 20
+
+
+def test_the_sector_draws_what_the_scatter_left_below_the_cut():
+    address, center = (2, 0, 3), sector_position_pc(2, 0, 3, EDGE_PC)
+    first, _ = scatter.below_cut_draws(address, center, SHAPE, 5000.0, 20.0, 7)
+    again, _ = scatter.below_cut_draws(address, center, SHAPE, 5000.0, 20.0, 7)
+    assert first == again
+    assert {(kind, subtype) for kind, subtype, _range, _count in first} <= {
+        ("neutron-star", None), ("black-hole", "stellar")}
+    for kind, subtype, mass_range, _count in first:
+        assert mass_range == scatter.mass_range(kind, subtype, 20.0, False)
+    # Below a cut under every mass law there is nothing left to draw.
+    assert scatter.below_cut_draws(address, center, SHAPE, 5000.0, 1.0, 7)[0] == []
+    # Over many sectors the counts follow the rate below the cut.
+    total = sum(count for slot in range(400) for kind, _subtype, _range, count in
+                scatter.below_cut_draws((2, 0, slot), center, SHAPE, 100.0, 20.0, 7)[0] if kind == "neutron-star")
+    mean = 400 * 100.0 * tuning.phenomenon_rate_per_star("neutron-star") * \
+        remnant_distribution.placement_factor("neutron-star", center, SHAPE.disk_scale_height_pc)
+    assert total == pytest.approx(mean, rel=0.2)
+
+
+def test_a_scattered_black_hole_is_built_above_the_cut(mysql_config):
+    from planetgen.galaxy.sector import SpaceSector
+    row = {"kind": "black-hole", "subtype": "stellar", "seed": 99}
+    args = run_galaxy._default_generation_args(config=mysql_config)
+    for seed in range(20):
+        row["seed"] = seed
+        entry = run_sector._seeded_build(seed, lambda: run_sector._build_scattered(
+            SpaceSector(name="Probe"), args, row, (0.0, 0.0, 0.0), 1000.0, 12.0))
+        assert entry.phenomenon.mass_solar >= 12.0 and entry.phenomenon.mass_class == "stellar"
+
+
+def test_a_plan_records_its_cut_and_a_fill_draws_below_it(mysql_config, monkeypatch):
+    _seed_galaxy(mysql_config)
+    run_plan.scatter_phenomena(_plan_args(mysql_config, "--phenomenon-min-mass", "20"))
+    conn = store.get_connection(mysql_config)
+    try:
+        seed, cut = store.phenomenon_scatter_settings(conn)
+        kinds = {(row["kind"], row["subtype"]) for row in conn.execute("SELECT kind, subtype FROM phenomenon_scatter").fetchall()}
+    finally:
+        conn.close()
+    assert cut == 20.0 and seed is not None
+    assert ("neutron-star", None) not in kinds and ("black-hole", "stellar") not in kinds
+
+    # Rates high enough that the sector surely draws some of each below the cut.
+    monkeypatch.setitem(tuning.PHENOMENON_RATE_SCALE, "neutron-star", 20.0)
+    monkeypatch.setitem(tuning.PHENOMENON_RATE_SCALE, "black-hole", 100.0)
+    args = run_galaxy._default_generation_args(config=mysql_config)
+    args.num_systems = 0
+    address = (0, 0, 1)
+    _id, _name, sector = run_galaxy.generate_and_save_sector_at(
+        args, address, sector_position_pc(*address, EDGE_PC), EDGE_PC)
+    neutron = [entry.phenomenon for entry in sector.phenomena if entry.phenomenon_type == "neutron-star"]
+    stellar = [entry.phenomenon for entry in sector.phenomena if entry.phenomenon_type == "black-hole"
+               and entry.phenomenon.mass_class == "stellar"]
+    assert neutron and stellar
+    assert all(1.1 <= remnant.mass_solar <= 2.2 for remnant in neutron)
+    assert all(5.0 <= remnant.mass_solar <= 20.0 for remnant in stellar)
+
+
+def test_phenomena_only_rescatters_at_a_new_cut(mysql_config):
+    _seed_galaxy(mysql_config)
+    run_plan.scatter_phenomena(_plan_args(mysql_config, "--phenomenon-min-mass", "20"))
+    few = len(_rows(mysql_config))
+    args = _plan_args(mysql_config, "--phenomenon-min-mass", "1", "--phenomena-only")
+    run_plan.run_plan(args)
+    assert len(_rows(mysql_config)) > few
+    conn = store.get_connection(mysql_config)
+    try:
+        assert store.phenomenon_scatter_settings(conn)[1] == 1.0
+    finally:
+        conn.close()
+
+
+def test_a_scatter_with_no_stored_cut_draws_nothing_below_one(mysql_config, monkeypatch):
+    # A scatter recorded before v71 placed every mass: its sectors are
+    # complete from their rows and draw no neutron star or black hole on top.
+    _seed_galaxy(mysql_config)
+    run_plan.scatter_phenomena(_plan_args(mysql_config, "--phenomenon-min-mass", "20"))
+    conn = store.get_connection(mysql_config)
+    try:
+        conn.execute("UPDATE galaxy_shape SET phenomenon_min_mass_solar = NULL")
+        conn.commit()
+    finally:
+        conn.close()
+    monkeypatch.setitem(tuning.PHENOMENON_RATE_SCALE, "neutron-star", 20.0)
+    args = run_galaxy._default_generation_args(config=mysql_config)
+    args.num_systems = 0
+    address = (0, 0, 1)
+    _id, _name, sector = run_galaxy.generate_and_save_sector_at(
+        args, address, sector_position_pc(*address, EDGE_PC), EDGE_PC)
+    assert not [entry for entry in sector.phenomena if entry.phenomenon_type == "neutron-star"]

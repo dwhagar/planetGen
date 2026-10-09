@@ -155,17 +155,26 @@ def _fill_context(args, address, position_pc):
         skeleton = store.get_galaxy_shape(conn)
         if skeleton is None:
             return None
-        phenomena = None
-        if store.phenomenon_scatter_seed(conn) is not None:
+        phenomena = below_cut = None
+        settings = store.phenomenon_scatter_settings(conn)
+        if settings is not None:
             phenomena = store.phenomena_for_sector(conn, *address)
+            seed, min_mass_solar = settings
+            if min_mass_solar is not None:
+                # GEN.168: what the scatter left below its cut, at the
+                # density it used (the plan's, not this sector's own roll).
+                expected = (max(relative_density(position_pc, skeleton.shape), 0.0)
+                            * skeleton.expected_system_count_at_density_1)
+                below_cut = brightStars.BelowCut(tuple(address), min_mass_solar, seed, expected)
         level = store.bright_star_fill_level(conn, *address)
         if level is None:
-            return brightStars.FillContext(position_pc, skeleton.shape, phenomenon_rows=phenomena)
+            return brightStars.FillContext(position_pc, skeleton.shape, phenomenon_rows=phenomena,
+                                           below_cut=below_cut)
         rows = store.bright_stars_for_sector(conn, *address)
     finally:
         conn.close()
     return brightStars.FillContext(position_pc, skeleton.shape, rows, min_luminosity_sol=level,
-                                   phenomenon_rows=phenomena)
+                                   phenomenon_rows=phenomena, below_cut=below_cut)
 
 
 def backfill_tiers(radius_ly=None, min_luminosity_sol=None, tiers=None):

@@ -112,7 +112,7 @@ def test_supermassive_black_hole_sits_still_and_glows_faintly():
     rebuilt = BlackHole.from_dict(bh.to_dict(), make_config())
     assert rebuilt.mass_class == "supermassive"
     with pytest.raises(ValueError):
-        BlackHole(make_config(), mass_class="stellar")
+        BlackHole(make_config(), mass_class="giant")
 
 
 def test_black_hole_from_old_data_infers_its_mass_class():
