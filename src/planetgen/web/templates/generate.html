@@ -88,6 +88,9 @@
 {%- if error %}
 <p class="error" role="alert">{{ error }}</p>
 {%- endif %}
+{%- if summary.version_warning %}
+<p class="hint" role="note"><strong>Mixed versions.</strong> {{ summary.version_warning }}</p>
+{%- endif %}
 {%- if jobs_error %}
 <p class="error" role="alert">Jobs can't run on this server: {{ jobs_error }}</p>
 {%- endif %}

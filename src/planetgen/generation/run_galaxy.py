@@ -23,7 +23,7 @@ import pymysql
 
 from planetgen.db import sector_paths, store
 from planetgen.generation import bright_stars as brightStars
-from planetgen.galaxy import seed as galaxySeed
+from planetgen.galaxy import seed as galaxySeed, version_check
 from planetgen.physics import mathcheck
 from planetgen import tuning as program_constants
 from planetgen.util import log
@@ -1351,8 +1351,11 @@ def run_galaxy(args):
     conn = store.get_connection(store.mysql_config_from_args(args))
     try:
         bounds = store.get_galaxy_bounds(conn)
+        warning = version_check.mixed_version_warning(store.sector_versions(conn))
     finally:
         conn.close()
+    if warning:
+        log.normal(f"Warning: {warning}")  # DB.7: a heads-up before it extends a mixed-version galaxy
     if bounds is None:
         log.error("The galaxy has never been planned -- run 'planetgen plan' first, so every sector "
                   "can be checked against the galaxy's bounds before it is generated.")

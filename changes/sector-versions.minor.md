@@ -1,0 +1,2 @@
+### Added
+- Every sector now records the PlanetGen version, Python and platform that generated it (schema v67, Alembic 0067: `sectors.version_key`, `planetgen_version`, `python_version`, `platform`). `planetgen galaxy` and the Generate page warn before extending a galaxy whose sectors came from a different version, naming what differs; `GET /api/galaxy/shape` carries the same text as `version_warning` (DB.7).
