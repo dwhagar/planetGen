@@ -416,21 +416,6 @@ with `clamp()`.
   Prerequisite: UX.23.
   Design: [docs/design/units-and-number-formatting.md](design/units-and-number-formatting.md)
 
-- [ ] **UX.79 Python and JS round half-way values differently (bug)**
-  9.995 gives "9.99" in Python and "10" in JS; 1.005 gives "1" versus
-  "1.01"; 2.675 likewise. Fix in UX.23 step 0 with half-up on
-  `Decimal(repr(x))` in Python and the matching rule in JS, with a
-  boundary-table test.
-  Prerequisites: none.
-  Design: [docs/design/units-and-number-formatting.md](design/units-and-number-formatting.md)
-
-- [ ] **UX.80 Negative values that round to zero print "-0" (bug)**
-  `format_number(-0.4)` and Python `_three_figures(-0.0)` print "-0"; JS
-  differs. Normalise to "0" in both, with tests (negative zero and
-  half-way rounding).
-  Prerequisites: none.
-  Design: [docs/design/units-and-number-formatting.md](design/units-and-number-formatting.md)
-
 - [ ] **UX.81 Time symbols Gyr, Myr, kyr in place of Gy, My, ky; AU from 1,000,000 km; scientific text below mantissa 1e-3**
   Rename before GEN.87 introduces the gray (touches `PERIOD_LADDER`,
   `format_age_string`, `period.js`, tests). Start the AU rung at
@@ -1023,7 +1008,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   over a `kind` index on about 5e8 rows). Open question for Boss
   (default: no): do planetary nebulae and supernova remnants count as
   stops? Needs the galactic-motion bug below fixed first.
-  Prerequisite: GEN.137.
   Design: [docs/design/course-routing.md](design/course-routing.md)
 
 - [ ] **NAV.48 Offer to generate the uncharted sectors that block a course**
@@ -1066,21 +1050,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   performance cliff, not a correctness bug; NAV.10 shipped on the old
   code. Avoid `np.unique` on very large arrays in new code (9.4 s on 6e6
   int64 against 0.11 s for sort-plus-diff).
-  Prerequisites: none.
-  Design: [docs/design/course-routing.md](design/course-routing.md)
-
-- [ ] **NAV.53 A `cells_touching_sphere` helper, and pad `store.sectors_reached_by` by one edge (bug)**
-  `enumerate_sectors_within_radius` lists cells by their center, so a
-  caller that treats it as "cells the sphere touches" misses up to 21.5%
-  of points at 10 pc and 3.1% at 50 pc; its yield order is also
-  ring-major, not nearest first. `store.sectors_reached_by` pads by the
-  nominal half diagonal (3.46 pc) where slotted rings reach 3.5 pc.
-  Done: a docstring note on the first, a `cells_touching_sphere` helper
-  that pads by one edge, tests pinning the 21.5% miss at 10 pc as
-  documented behaviour, and the one-edge pad in `sectors_reached_by`.
-  `run_galaxy._neighborhood_batch`'s docstring says "nearest first as
-  enumerated", which is false; sort before applying any limit (see
-  GEN.101).
   Prerequisites: none.
   Design: [docs/design/course-routing.md](design/course-routing.md)
 
@@ -2521,18 +2490,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   round?
   Prerequisite: GEN.135.
   Design: [docs/design/generation-determinism.md](design/generation-determinism.md)
-
-- [ ] **GEN.137 Placed objects move along a galactic orbit but never by velocity times time, and phenomenon_scatter has no plan time (bug)**
-  `store.advance_galactic_positions` moves every placed object along its
-  galactic orbit by rotation and rotates its velocity, never adding
-  velocity times elapsed time, and does not touch `phenomenon_scatter`,
-  so hypervelocity stars in filled sectors orbit instead of travelling
-  outward. `phenomenon_scatter` stores no plan time, so a hypervelocity
-  star's position at a later time cannot be computed. Done: a stated
-  rule for both before NAV.47 (position at a time is `p0 + v (t -
-  t_plan)`; store the plan time or epoch), implemented and tested.
-  Prerequisites: none.
-  Design: [docs/design/course-routing.md](design/course-routing.md)
 
 - [ ] **GEN.138 Moon `hill_radius_km` uses the star's mass, so moon spacing and the orbit slider are wrong (bug)**
   `physics/planets.py` `generate_planet_properties` ends with
@@ -4309,14 +4266,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   `install-maintenance-timer.sh` ends its bootstrap with `|| true`, so
   the failure is silent. Done: reword the comment and test that
   `plistlib.load` reads every `examples/macos/*.plist`.
-  Prerequisites: none.
-  Design: [docs/design/ops-scheduling-and-rotation.md](design/ops-scheduling-and-rotation.md)
-
-- [ ] **OPS.33 `.gitattributes` has no LF pins for the lock files and word list, so hashes differ between a Windows and a Linux checkout (bug)**
-  Add `*.lock text eol=lf` and `src/planetgen/names/*.txt text eol=lf`
-  (or hash normalised text). With `core.autocrlf=true` identical content
-  hashes differently, which would make the OPS.13 and OPS.14 hashes
-  disagree.
   Prerequisites: none.
   Design: [docs/design/ops-scheduling-and-rotation.md](design/ops-scheduling-and-rotation.md)
 
