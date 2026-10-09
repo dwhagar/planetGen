@@ -20,7 +20,7 @@ release is stamped.
 | PERF | PERF.42 |
 | DB | DB.19 |
 | API | API.22 |
-| ADM | ADM.46 |
+| ADM | ADM.47 |
 | SEC | SEC.33 |
 | TEST | TEST.110 |
 | USR | USR.10 |
@@ -434,6 +434,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.43 | A full configuration page under Admin | none | open |
 | ADM.44 | Web, Open Graph and SEO settings | none | open |
 | ADM.45 | Prevalence fields take the override share directly and must total 100% | none | open |
+| ADM.46 | Generate page: a progress line and per-layer counts instead of one line per sector | none | open |
 | API.1 | Create a system inside an existing sector | 10 (2026-09-24 01:32Z to 02:18Z); 7 (2026-09-24 01:57Z to 02:02Z); 5 (2026-09-24 02:25Z to 05:38Z); 4 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 13 (2026-09-30 16:44Z); 14 (2026-09-30 16:49Z); 15 (2026-09-30 16:51Z to 18:09Z); 32 (2026-09-30 18:14Z); 37 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.2 | Edit a system's generated content | 11 (2026-09-24 01:32Z to 02:18Z); 8 (2026-09-24 01:57Z to 02:02Z); 6 (2026-09-24 02:25Z to 05:38Z); 5 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 14 (2026-09-30 16:44Z); 15 (2026-09-30 16:49Z); 16 (2026-09-30 16:51Z to 18:09Z); 33 (2026-09-30 18:14Z); 38 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.3 | Remote generate: generate on a local machine, upload through the API | none | open |
