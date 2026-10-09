@@ -9,6 +9,8 @@ sector names. GEN.71 replaces it with the phoneme codec.
 """
 
 
+import re
+
 from planetgen.names.wordlists import (
     BAD_CONSONANTS, COMPANION_SUFFIXES, DICTIONARY_WORDS, DIMINUTIVE_PREFIXES, GREEK_LETTERS, NSFW_WORDS, ROMAN_NUMERALS_BY_VALUE, SECTOR_NAMES, SECTOR_PREFIXES, SECTOR_SUFFIXES, STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES, UNIVERSAL_PHONEMES, VOWELS, WORD_SIZE_MEAN,
 )
@@ -42,6 +44,16 @@ def split_into_syllables(name):
 
 _NSFW_PLAIN_WORDS = tuple(w for w in NSFW_WORDS if w and "'" not in w and " " not in w)
 _NSFW_SPACED_WORDS = tuple(w for w in NSFW_WORDS if w and ("'" in w or " " in w))
+
+
+def _any_of(words):
+    """One compiled pattern that finds any of `words` inside a string (longest first), `None` for no words:
+    the same answer as testing each `word in text`, in one pass (PERF.49)."""
+    return re.compile("|".join(re.escape(word) for word in sorted(words, key=len, reverse=True))) if words else None
+
+
+_NSFW_PLAIN = _any_of(_NSFW_PLAIN_WORDS)
+_NSFW_SPACED = _any_of(_NSFW_SPACED_WORDS)
 
 
 def is_name_valid(name):
@@ -83,11 +95,11 @@ def is_name_valid(name):
     # one of those need every variant (keeps this hot check one pass).
     squeezed = name_lower.replace("'", "")
     fully_squeezed = squeezed.replace(" ", "")
-    if any(word in fully_squeezed for word in _NSFW_PLAIN_WORDS):
+    if _NSFW_PLAIN is not None and _NSFW_PLAIN.search(fully_squeezed):
         return False
-    if _NSFW_SPACED_WORDS:
+    if _NSFW_SPACED is not None:
         variants = (name_lower, squeezed, name_lower.replace(" ", ""))
-        if any(word in variant for word in _NSFW_SPACED_WORDS for variant in variants):
+        if any(_NSFW_SPACED.search(variant) for variant in variants):
             return False
     
     vowel_count = 0

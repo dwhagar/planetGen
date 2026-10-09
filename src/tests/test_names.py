@@ -64,3 +64,13 @@ def test_name_list_constants_cover_every_list_of_strings_in_module():
         and all(isinstance(item, str) for item in getattr(wordlists, attr))
     }
     assert actual_list_constants == set(NAME_LIST_CONSTANTS)
+
+
+def test_the_offensive_word_filter_catches_every_listed_word_in_any_spelling():
+    """PERF.49: the combined pattern answers as testing each word in turn did."""
+    from planetgen.names import wordsalad
+    from planetgen.names.wordlists import NSFW_WORDS
+
+    for word in NSFW_WORDS:
+        if word:
+            assert not wordsalad.is_name_valid(f"ka{word}ka"), word
