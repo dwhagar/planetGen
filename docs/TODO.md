@@ -1003,10 +1003,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   secondary place (a menu entry or the advanced section of the control
   panel), never as a main control or a step the user must take to move
   around, and it is off by default so the free camera of MAP.146 is what
-  opens. Leaving it restores the previous view. Open question for Boss
-  (default a two-handle layer range in the "Show" menu, top-down camera
-  with the same vertical-fade rules as the rest of the map, stars and
-  sectors outside the range hidden): other placement or look?
+  opens. Leaving it restores the previous view. Decided (Boss, 2026-10-09 23:18Z, "default is approved"): a two-handle
+  layer range in the "Show" menu, top-down camera with the same
+  vertical-fade rules as the rest of the map, stars and sectors outside
+  the range hidden.
   Prerequisites: none. Related: MAP.146, MAP.150, MAP.141, MAP.122,
   ADM.29.
 
