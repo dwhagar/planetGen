@@ -118,7 +118,6 @@ LOCK_PINS="$SCRIPT_DIR/scripts/lock_pins.py"
 REQUIREMENTS=(
     "nltk>=3.9.1 python3-nltk"
     "pymysql>=1.1.1 python3-pymysql"
-    "dbutils>=3.1.0 python3-dbutils"
     "werkzeug>=3.0.0 python3-werkzeug"
     "rich>=13.7.0 python3-rich"
     "flask>=3.0.3 python3-flask"
