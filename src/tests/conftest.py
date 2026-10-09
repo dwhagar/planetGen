@@ -204,7 +204,7 @@ def mysql_config(_mysql_server_available):
 
     Every test gets its own database name, so `planetgen.db.store`'s
     module-level pool cache (keyed by connection params, database
-    included) would otherwise grow by one `PooledDB` -- and its
+    included) would otherwise grow by one pool -- and its
     `mincached` real connections -- per test for the life of the process.
     Closing that pool here, once this test's database is being dropped for
     good, keeps a long test run from exhausting the server's

@@ -50,7 +50,8 @@ setup(
         # the offensive-word list (planetgen.names.wordlists) and the two
         # database schemas (planetgen.db.store).
         'planetgen.admin': ['common_passwords.txt.gz', 'common_passwords.LICENSE'],
-        'planetgen.db': ['schema.sql', 'control_schema.sql'],
+        'planetgen.db': ['schema.sql', 'control_schema.sql', 'migrations/*.py', 'migrations/*.mako', 'migrations/*.md',
+                         'migrations/versions/*.py'],
         'planetgen.names': ['offensive_words.txt'],
     },
     entry_points={

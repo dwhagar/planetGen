@@ -66,6 +66,7 @@ import sqlalchemy.exc
 import sqlalchemy.pool
 
 from planetgen.admin import activity_log
+from planetgen.db import alembic_runner
 from planetgen.names import object_id as objectId
 from planetgen.galaxy import seed as galaxySeed, uid as galaxyUid, version_key as versionKey
 from planetgen.physics import constants as physical_constants, kepler
@@ -106,11 +107,12 @@ from planetgen.names.wordsalad import generate_phoneme_salad_name, generate_sect
 from planetgen.physics.units import ly_to_milliparsecs, ly_to_pc, milliparsecs_to_ly, mpc_to_pc, pc_to_ly
 from planetgen.generation.wide_binary import WideBinaryPair
 
-SCHEMA_VERSION = 61
+SCHEMA_VERSION = alembic_runner.head_version()
 """int: Matches `star_systems.schema_version` and the highest row in the
 `schema_migrations` table (see `planetgen/db/schema.sql`'s header
 comment). Also the target version `migrate_database` brings a database's
-`schema_migrations` bookkeeping up to."""
+`schema_migrations` bookkeeping up to. It is the number of the newest
+Alembic revision (`planetgen/db/migrations/`)."""
 
 
 
@@ -9839,7 +9841,8 @@ def schema_status(config=None):
         if version is None:
             version = detect_schema_version(conn)
         _refuse_newer(conn, version, SCHEMA_VERSION)
-        return version, sum(1 for target, _ in _migration_steps() if version < target)
+        return version, (sum(1 for target, _ in _migration_steps() if version < target)
+                         + len(alembic_runner.pending(version)))
     finally:
         conn.close()
 
@@ -9924,14 +9927,26 @@ def migrate_database(config=None, on_step=None):
             version = _schema_version(conn)
             _refuse_newer(conn, version, SCHEMA_VERSION)
             pending = [(target, step) for target, step in _migration_steps() if version < target]
+            total = len(pending) + len(alembic_runner.pending(version))
             for number, (target, step) in enumerate(pending, start=1):
                 if on_step is not None:
-                    on_step(number, len(pending), version, target)
+                    on_step(number, total, version, target)
                 step(_MigrationConnection(conn))
                 activity_log.event("DB", "migrate", db=(config or DEFAULT_MYSQL_CONFIG).database,
                                   from_version=version, to_version=target)
                 version = target
             conn.commit()
+
+            # From the baseline on, Alembic carries the migrations; each
+            # revision reached is mirrored into `schema_migrations`.
+            def record(reached):
+                conn.execute("INSERT INTO schema_migrations (version) VALUES (?)", (reached,))
+                conn.commit()
+                activity_log.event("DB", "migrate", db=(config or DEFAULT_MYSQL_CONFIG).database,
+                                  from_version=version, to_version=reached)
+
+            version = alembic_runner.upgrade(config or DEFAULT_MYSQL_CONFIG, version, record,
+                                             on_step=on_step, step_offset=len(pending), total=total)
         return version
     finally:
         conn.close()

@@ -19,7 +19,7 @@ from tests.rich_galaxy_support import rich_galaxy  # noqa: F401  (fixture)
 pytestmark = pytest.mark.db
 
 BOOKKEEPING_TABLES = {
-    "schema_migrations", "id_blocks", "system_name_registry", "sector_name_registry", "population_state",
+    "schema_migrations", "alembic_version", "id_blocks", "system_name_registry", "sector_name_registry", "population_state",
     "orbit_simulation_state", "galaxy_column", "galaxy_layer", "sector_stats", "bright_stars",
     "nearest_systems",
 }
