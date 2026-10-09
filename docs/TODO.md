@@ -3877,6 +3877,19 @@ Boss (2026-10-07 11:47Z): "Actual specs on layers on the generation
   not 100%. A share that depends on the local star density is not part
   of this item; the shares stay the same in every sector.
 
+- [ ] **ADM.46 Generate page: a progress line and per-layer counts instead of one line per sector**
+  Boss (2026-10-09, via the coordinator and Foundations lane 1): "While
+  a run fills a neighbourhood, the Generate page text feedback lists
+  every sector as it is generated. Replace it with a progress line and
+  per-layer counts (like GEN.131's per-layer scatter log)." Done: a fill
+  shows one progress line and a count per layer (sectors done and stars
+  made so far) instead of a line for every sector. The reason is cost:
+  the per-sector lines add log and page-update work to a fill that
+  already runs for hours. For Foundations lane 1, in the Generate page
+  group after ADM.31; not to be started ahead of the lane's current list
+  unless Boss says so.
+  Prerequisites: none.
+
 ## SEC: Security
 
 The login protection of 2026-10-01 (SEC.1, SEC.20 to
