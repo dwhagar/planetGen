@@ -2000,6 +2000,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Build thread (not a lane). Prerequisite: GEN.121.
   Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
 
+- [ ] **GEN.124 Every object knows its sector address (ring, layer, slot), recalculated whenever its position changes**
+  Boss (2026-10-08 23:25Z): "I also want to add a coordinate for where it
+  is in the blocking system, so that we store what layer, ring, and
+  slot.  Every object should know where it is and every time any value
+  is updated, the system should recalculate the other related values
+  automatically." Done: `SpatialPosition3D` carries the sector address
+  (ring, layer, slot) as a fourth coordinate beside the galactic, sector
+  and system ones, and every change to any of them recalculates the
+  others, the address included. Stars, bodies and phenomena get it when
+  placed in the galaxy, and objects loaded from the database get it too.
+  Build thread (not a lane). Ties in with GEN.121 and GEN.74.
+
 - [ ] **GEN.105 Orbital updates**
   Boss (2026-10-03 and 2026-10-07) asked for an orbital update that
   moves only what has visibly moved, counts what changed, and lets

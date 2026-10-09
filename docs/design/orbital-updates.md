@@ -381,6 +381,43 @@ The defaults below hold until Boss decides otherwise:
 checks every entry, star, planet and moon sits at the same galactic place
 with the same mass and mu.
 
+### Velocity, epoch and orbit elements (Boss, 2026-10-08)
+
+Boss (2026-10-08 23:11Z): store the orbit as part of the coordinates, with
+the velocity (the immediate vector of movement) relative to the center of
+the star system, then the projected course; each orbital update refreshes
+the vector (wobble included) and the ellipse from it. Bodies with no closed
+orbit get a path through their sector from the vector, curved by the nearby
+masses (23:16Z), as a spline.
+
+- `SpatialPosition3D` keeps a velocity in two frames, as it does a
+  position: **galactic** (the sector frame has the same axes) and
+  **system**, relative to the nearest star. The one last set is the truth
+  and the other is derived: galactic = `star_velocity` + system, so a
+  planet's 30 km/s round its star stays apart from the star's 220 km/s
+  round the galaxy. `set_velocity_cartesian(vx, vy, vz, frame=)` sets it,
+  `set_star_velocity` keeps the body's galactic velocity when the star's
+  changes and `carry_star_velocity` keeps its system velocity. `epoch_unix`
+  is when the position and velocity hold. `get_time_to_observable_movement`
+  measures a "galactic" move by the galactic velocity and the others by the
+  system velocity.
+- With the sector edge known, the position also knows its **sector
+  address**, `(ring, layer, slot)`, the cell of the galaxy's sector grid
+  (`galaxy/geometry.py`) it is in. It is worked out again from the galactic
+  position whenever anything moves it, so it is never stale; sector entries
+  and every body of their systems get the edge when the sector is placed in
+  the galaxy (`place_in_galaxy`). `set_sector_address` carries the body to
+  another cell's center, keeping its offset from the sector's center (in
+  galactic axes). A system near a cell face can have a body in the next
+  cell: the address is where the body is.
+- `physics/state_vectors.py` converts between a state vector (position and
+  velocity relative to the primary) and orbital elements for every conic,
+  ellipse, parabola or hyperbola: `state_from_elements`,
+  `elements_from_state`. The orbital update takes the new vector to the new
+  osculating ellipse with the second; `closed_orbit_points` samples a
+  closed one for drawing. `orbits.circular_orbital_velocity_au_per_year` is
+  the velocity of the circular orbits planets and moons are on today.
+
 ### Positions at any time (MAP.70)
 
 `physics/body_positions.positions_at(scene, years)` and its browser twin

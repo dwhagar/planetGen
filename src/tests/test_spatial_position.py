@@ -347,3 +347,183 @@ def test_a_close_pairs_planets_are_offset_from_its_center_not_its_primary_star()
     offset = planet.spatial.get_coordinates("system", "cartesian")
     assert planet.spatial.get_coordinates("galactic", "cartesian") == pytest.approx(
         tuple(c + o for c, o in zip(center, offset)), rel=1e-9, abs=1e-3)
+
+
+# --- Velocity in two frames, and the epoch -----------------------------------------
+
+STAR_V = (2.0e5, 1.0e5, 0.0)
+
+
+def _planet_moving():
+    return SpatialPosition3D((STAR[0] + 1.5e11, STAR[1], STAR[2]), SECTOR, star_center_galactic=STAR,
+                             star_velocity_galactic=STAR_V, mass_kg=6.0e24)
+
+
+def test_a_system_velocity_is_the_stars_velocity_plus_the_relative_one():
+    p = _planet_moving()
+    p.set_velocity_cartesian(0.0, 3.0e4, 0.0, frame="system")
+    assert p.get_velocity_vector("system") == (0.0, 3.0e4, 0.0)
+    assert _close(p.get_velocity_vector("galactic"), (2.0e5, 1.3e5, 0.0))
+    assert p.get_velocity_vector("sector") == p.get_velocity_vector("galactic")
+    assert p.get_speed("system") == pytest.approx(3.0e4)
+    assert p.get_velocity_direction("system") == (0.0, 1.0, 0.0)
+
+
+def test_a_galactic_velocity_derives_the_system_one():
+    p = _planet_moving()
+    p.set_velocity_cartesian(2.0e5, 1.3e5, 4.0e3)
+    assert _close(p.get_velocity_vector("system"), (0.0, 3.0e4, 4.0e3))
+
+
+def test_the_stars_velocity_changing_keeps_the_galactic_velocity_or_the_relative_one():
+    p = _planet_moving()
+    p.set_velocity_cartesian(0.0, 3.0e4, 0.0, frame="system")
+    p.set_star_velocity((1.0e5, 0.0, 0.0))
+    assert _close(p.get_velocity_vector("galactic"), (2.0e5, 1.3e5, 0.0))
+    assert _close(p.get_velocity_vector("system"), (1.0e5, 1.3e5, 0.0))
+    p.set_velocity_cartesian(0.0, 3.0e4, 0.0, frame="system")
+    p.carry_star_velocity((1.0e5, 0.0, 0.0))
+    assert _close(p.get_velocity_vector("system"), (0.0, 3.0e4, 0.0))
+    assert _close(p.get_velocity_vector("galactic"), (1.0e5, 3.0e4, 0.0))
+
+
+def test_a_star_or_a_body_without_a_star_has_no_system_velocity():
+    star = SpatialPosition3D((0.0, 0.0, 0.0), SECTOR, is_star=True)
+    assert star.get_velocity_vector("system") is None and star.get_speed("system") is None
+    assert star.get_velocity_direction("system") is None
+    with pytest.raises(ValueError):
+        star.set_velocity_cartesian(1.0, 0.0, 0.0, frame="system")
+    with pytest.raises(ValueError):
+        star.carry_star_velocity((1.0, 0.0, 0.0))
+    with pytest.raises(KeyError):
+        star.get_velocity_vector("orbital")
+
+
+def test_dropping_the_star_keeps_the_galactic_velocity():
+    p = _planet_moving()
+    p.set_velocity_cartesian(0.0, 3.0e4, 0.0, frame="system")
+    p.set_nearest_star_center(None)
+    assert _close(p.get_velocity_vector("galactic"), (2.0e5, 1.3e5, 0.0))
+    assert p.get_velocity_vector("system") is None
+
+
+def test_the_speed_of_light_limit_covers_both_frames():
+    p = _planet_moving()
+    with pytest.raises(ValueError):
+        p.set_velocity_cartesian(pos.SPEED_OF_LIGHT_MS, 0.0, 0.0, frame="system")
+    with pytest.raises(ValueError):
+        p.set_velocity_cartesian(pos.SPEED_OF_LIGHT_MS - 1.0e5, 0.0, 0.0, frame="system")
+
+
+def test_the_time_to_observable_movement_uses_the_relative_speed_inside_a_system():
+    p = _planet_moving()
+    p.set_velocity_cartesian(1.0e4, 0.0, 0.0, frame="system")
+    assert p.get_time_to_observable_movement("system") == pytest.approx(0.01 * constants.AU_M / 1.0e4)
+    assert p.get_time_to_observable_movement("galactic") == pytest.approx(
+        pos.THRESHOLDS_M["galactic"] / p.get_speed("galactic"))
+
+
+def test_the_epoch_is_kept_and_checked():
+    p = _planet_moving()
+    assert p.epoch_unix is None
+    p.set_epoch_unix(946_728_000)
+    assert p.epoch_unix == 946_728_000.0
+    p.set_epoch_unix(None)
+    assert p.epoch_unix is None
+    with pytest.raises(ValueError):
+        p.set_epoch_unix(float("nan"))
+    assert SpatialPosition3D((0.0, 0.0, 0.0), SECTOR, epoch_unix=5).epoch_unix == 5.0
+
+
+# --- The sector address: ring, layer, slot, kept in step -----------------------------
+
+EDGE_PC = 4.0
+
+
+def _in_pc(point_pc, edge=EDGE_PC):
+    return SpatialPosition3D(point_pc, (0.0, 0.0, 0.0), length_unit_m=constants.PARSEC_M, sector_edge_pc=edge)
+
+
+def test_the_sector_address_is_the_cell_holding_the_position():
+    from planetgen.galaxy import geometry
+
+    for address in ((10, 0, 3), (1500, -7, 4000), (0, 2, 0), (300, 40, 77)):
+        center = geometry.sector_position_pc(*address, EDGE_PC)
+        assert _in_pc(center).sector_address == address
+        near = tuple(c + 0.4 for c in center)
+        assert _in_pc(near).sector_address == geometry.sector_address_at(near, EDGE_PC)
+
+
+def test_the_address_is_none_until_the_edge_is_known():
+    p = SpatialPosition3D((1.0, 2.0, 3.0), (0.0, 0.0, 0.0))
+    assert p.sector_address is None and p.sector_edge_pc is None
+    with pytest.raises(ValueError):
+        p.set_sector_address(1, 0, 0)
+    p.set_sector_edge_pc(EDGE_PC)
+    assert p.sector_address is not None
+    p.set_sector_edge_pc(None)
+    assert p.sector_address is None
+    for bad in (0.0, -4.0, float("inf")):
+        with pytest.raises(ValueError):
+            p.set_sector_edge_pc(bad)
+        with pytest.raises(ValueError):
+            SpatialPosition3D((0.0, 0.0, 0.0), (0.0, 0.0, 0.0), sector_edge_pc=bad)
+
+
+def test_every_way_of_changing_the_position_recalculates_the_address():
+    from planetgen.galaxy import geometry
+
+    p = _in_pc((100.0, 0.0, 0.0))
+    first = p.sector_address
+    p.set_galactic_cartesian(0.0, 100.0, 9.0)
+    assert p.sector_address == geometry.sector_address_at((0.0, 100.0, 9.0), EDGE_PC) != first
+    p.set_galactic_cylindrical(50.0, 2.0, -9.0)
+    assert p.sector_address == geometry.sector_address_at(p.get_coordinates("galactic", "cartesian"), EDGE_PC)
+    p.set_galactic_spherical(70.0, -1.0, 2.0)
+    assert p.sector_address == geometry.sector_address_at(p.get_coordinates("galactic", "cartesian"), EDGE_PC)
+    p.set_sector_cartesian(3.0, 1.0, 0.5)  # the sector center is the origin here
+    assert p.sector_address == geometry.sector_address_at((3.0, 1.0, 0.5), EDGE_PC)
+    p.set_sector_center((40.0, 40.0, 0.0))
+    assert p.sector_address == geometry.sector_address_at((3.0, 1.0, 0.5), EDGE_PC)  # the body stayed put
+    offset = p.get_coordinates("sector", "cartesian")
+    p.carry_sector_center((100.0, 100.0, 0.0))
+    moved = tuple(c + o for c, o in zip((100.0, 100.0, 0.0), offset))
+    assert p.sector_address == geometry.sector_address_at(moved, EDGE_PC)  # it went with the center
+
+
+def test_setting_the_address_moves_the_body_to_that_cell_keeping_its_offset():
+    from planetgen.galaxy import geometry
+
+    p = _in_pc(geometry.sector_position_pc(10, 0, 3, EDGE_PC))
+    p.set_sector_center(geometry.sector_position_pc(10, 0, 3, EDGE_PC))
+    p.set_sector_cartesian(0.5, 0.0, 0.5)
+    assert p.sector_address == (10, 0, 3)
+    p.set_sector_address(200, 3, 17)
+    assert p.sector_address == (200, 3, 17)
+    assert _close(p.get_coordinates("sector", "cartesian"), (0.5, 0.0, 0.5))  # the offset is in galactic axes
+    assert _close(p.get_coordinates("galactic", "cartesian"),
+                  tuple(c + o for c, o in zip(geometry.sector_position_pc(200, 3, 17, EDGE_PC), (0.5, 0.0, 0.5))))
+    with pytest.raises(ValueError):
+        p.set_sector_address(1, 0, 99)  # ring 1 has few slots
+
+
+def test_bodies_in_a_system_know_their_sector():
+    from planetgen.galaxy import geometry
+    from planetgen.galaxy.sector import SpaceSector
+
+    edge_ly = EDGE_PC * constants.PARSEC_M / constants.LY_TO_M
+    center_pc = geometry.sector_position_pc(1200, 5, 321, EDGE_PC)
+    center_ly = tuple(c * constants.PARSEC_M / constants.LY_TO_M for c in center_pc)
+    system = _system_with(lambda s: any(getattr(p, "spatial", None) for p in s.planets))
+    sector = SpaceSector("Addressed", edge_ly=edge_ly)
+    early = sector.add_system(_system_with(lambda s: True), position=(0.5, 0.5, 0.5))
+    assert early.spatial.sector_address is None  # not in the grid yet
+    sector.place_in_galaxy(center_ly)
+    entry = sector.add_system(system, position=(0.5, -0.5, 0.2))
+    assert early.spatial.sector_address == entry.spatial.sector_address == (1200, 5, 321)
+    for star in system.stars:
+        assert star.spatial.sector_address == (1200, 5, 321)
+    planet = next(p for p in system.planets if getattr(p, "spatial", None))
+    assert planet.spatial.sector_address == (1200, 5, 321)
+    entry.position = (1.0, 1.0, 1.0)
+    assert planet.spatial.sector_address == (1200, 5, 321)
