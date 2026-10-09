@@ -15,6 +15,7 @@ or as the installed `planetgen` command):
     planetgen phenomenon [options]  -- one exotic stellar phenomenon
     planetgen population [options]  -- species, civilizations and territories
     planetgen check-math            -- the math check bulk runs start with
+    planetgen versions              -- the version keys each update recorded
     planetgen fingerprint [options] -- a digest of the generated content (GEN.58)
 
 Run `planetgen <command> --help` for that command's own full option
@@ -1044,6 +1045,13 @@ def build_parser():
                                    help="List every check, not only the failures.")
     add_logging_arguments(check_math_parser)
 
+    versions_parser = subparsers.add_parser(
+        'versions',
+        description="Lists the version key each galaxy database was updated under (OPS.13), newest first.",
+        help="List the version keys recorded by updates.")
+    store.add_mysql_connection_args(versions_parser)
+    add_logging_arguments(versions_parser)
+
     fingerprint_parser = subparsers.add_parser(
         'fingerprint',
         description="Prints a canonical SHA-256 digest of each sector's generated content, and one for the "
@@ -1067,6 +1075,7 @@ def build_parser():
         'phenomenon': phenomenon_parser,
         'population': population_parser,
         'check-math': check_math_parser,
+        'versions': versions_parser,
         'fingerprint': fingerprint_parser,
     }
 
@@ -1155,7 +1164,13 @@ def run_check_math(args):
     log.normal(report)
 
 
-READ_ONLY_COMMANDS = ("check-math", "fingerprint")
+def run_versions(args):
+    """`planetgen versions`: prints the version-key history (OPS.13)."""
+    from planetgen.cli import version_history
+    log.normal(version_history.format_history(store.mysql_config_from_args(args)))
+
+
+READ_ONLY_COMMANDS = ("check-math", "fingerprint", "versions")
 """tuple: Subcommands that write nothing, so they aren't logged as runs
 (no activity log lines, job tree node or run history)."""
 
@@ -1175,6 +1190,7 @@ def is_bulk_run(args):
 
 _COMMAND_HANDLERS = {
     'check-math': run_check_math,
+    'versions': run_versions,
     'fingerprint': run_fingerprint,
     'system': run_system.run_system,
     'sector': run_sector.run_sector,

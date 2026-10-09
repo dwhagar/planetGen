@@ -290,6 +290,16 @@ function Invoke-MigrateOrReset {
     Invoke-Checked $python -m planetgen.cli.migrate
 }
 
+# Records the version key this update runs under, one row per galaxy in the
+# control database's history (OPS.13; the last 10 are kept). A failure only
+# warns: the update carries on.
+function Invoke-RecordVersionKey {
+    & (Get-VenvPython) -m planetgen.cli.version_history
+    if ($LASTEXITCODE -ne 0) {
+        Write-Warning "Could not record the version key (see above); the update carries on."
+    }
+}
+
 # Optionally runs the population pass (planetgen.cli.generate population: species,
 # civilizations and territories, docs\design\population-and-politics.md).
 # Off by default (Boss, 2026-10-01): it runs with -Population, or when

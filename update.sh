@@ -35,6 +35,8 @@
 #      migrate_or_reset_db in scripts/deploy-common.sh. The update never
 #      runs the population pass (OPS.7); run `planetgen population` by
 #      hand when wanted.
+#      Then it records the version key (OPS.13): one row per galaxy in the
+#      control database, the last 10 kept; `planetgen versions` lists them.
 #   6. Apache's headers, deflate and wsgi modules: enabled only if not
 #      already (mod_wsgi installed first if it's missing). On macOS, the
 #      gunicorn launchd daemon instead: installed only if it's missing.
@@ -161,6 +163,7 @@ check_math
 echo
 echo "== 5/9: Migrating the configured MySQL database to the current schema =="
 migrate_or_reset_db
+record_version_key
 
 echo
 echo "== 6/9: Checking Apache's modules (macOS: the gunicorn daemon) =="
