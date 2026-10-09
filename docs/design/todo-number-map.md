@@ -528,7 +528,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.63 | Planet names are unique within a sector | none | dropped: names come from IDs (GEN.67, 2026-10-07) |
 | GEN.64 | A packed position ID as the name of every interstellar object and bright-sweep system | none | done, PR #406 |
 | GEN.65 | A generation run fails from the web UI but not from the CLI (bug) | none | done, PR #476 |
-| GEN.66 | Physics on scipy, and astropy constants and units | none | open |
+| GEN.66 | Physics on scipy, and astropy constants and units | none | done, PR #767 |
 | GEN.67 | Names from IDs for objects that have no star-derived name | none | done, PR #740 |
 | GEN.68 | Research: the cheapest unique IDs for every object, unfilled sectors included | none | done, PR #623 |
 | GEN.69 | A unique ID for every object, star systems and unfilled sectors included | none | done, PR #623 |
@@ -792,7 +792,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.17 | Install and update set up the daily maintenance schedule | none | open |
 | OPS.18 | Settings JSON backups kept in 18 slots: 7 daily, 4 weekly, 6 monthly, 1 yearly | none | open |
 | OPS.19 | The Generate jobs folder is /var/lib/planetgen while the checkout is /var/lib/planetGen (bug) | none | done, PR #525 |
-| OPS.20 | Move the code base from zero dependencies to third-party open-source libraries | none | open |
+| OPS.20 | Move the code base from zero dependencies to third-party open-source libraries | none | done, PR #767 |
 | OPS.21 | Pinned third-party dependencies and a Redis server in install, update and CI | none | done, PR #437 |
 | OPS.22 | Reorganize the code into importable Python packages with shared utility libraries | none | done, PR #473 |
 | OPS.23 | A package layout plan for the reorganization | none | done, PR #435 |
