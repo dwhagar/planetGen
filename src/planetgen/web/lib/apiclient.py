@@ -880,6 +880,25 @@ def admin_lockouts(cookie_header):
     return body
 
 
+def admin_naming_key(cookie_header, db):
+    """`GET /api/admin/naming-key?db=` -- the galaxy's naming key and when it
+    was drawn or last changed (GEN.70)."""
+    _require_db(db)
+    body, _set_cookie_headers = _auth_request(
+        "GET", f"/admin/naming-key?{_build_query({'db': db})}", cookie_header=cookie_header)
+    return body
+
+
+def admin_set_naming_key(cookie_header, db, key=None, draw=False):
+    """`POST /api/admin/naming-key?db=` -- sets the key (8 hex digits) or,
+    with `draw`, a fresh random one (GEN.70)."""
+    _require_db(db)
+    body, _set_cookie_headers = _auth_request(
+        "POST", f"/admin/naming-key?{_build_query({'db': db})}", cookie_header=cookie_header,
+        json_body={"draw": True} if draw else {"key": key})
+    return body
+
+
 def admin_generation_stats(cookie_header):
     """`GET /api/admin/generation-stats` -- the server's generation speed
     per density bucket and each galaxy's size per star system (PERF.10)."""

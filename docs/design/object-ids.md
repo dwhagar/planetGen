@@ -96,6 +96,22 @@ haven't been filled. The plan:
    corpus or the name registries: stars, sectors, planets, moons and
    belts still use them.
 
+### The naming key (GEN.70, control schema v9)
+
+The key is 8 hex digits in the control database's `galaxy_naming` (one
+row per galaxy database), drawn as the first 32 bits of SHA-256(galaxy
+seed || `"naming-key"`) when `planetgen plan` makes a new seed (planning
+again over the same seed keeps the stored key) and changeable on the Stats
+page or by `POST /api/admin/naming-key`. `names/naming_key.py` turns an
+ID, a kind and the key into a name: the codec domain is `<key>:<kind>`
+for the kinds in `naming_key.KINDS` (the GEN.64 kinds without the
+bright-sweep system, plus `constellation`). The codec derives its
+permutation from the domain's CRC32, so a kind has 128 permutations and
+two keys can occasionally name an object alike; the ID stays the
+identity. `CODEC_VERSION` is stored beside the key and the Stats page
+warns when the code's differs; bump it whenever the codec's golden words
+change. Stars, sectors, planets, moons and belts do not use the key.
+
 ### Unique IDs for every object (GEN.69, schema v58)
 
 Every object has a `uid` column (NULL for a row saved before v58), by

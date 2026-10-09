@@ -21,6 +21,7 @@ from planetgen.queue import progress_rate, redisqueue, work as workQueue
 from planetgen.db import store
 from planetgen.generation import bright_stars as brightStars
 from planetgen.galaxy import seed as galaxySeed
+from planetgen.names import naming_key
 from planetgen.physics import constants
 from planetgen import tuning as program_constants
 from planetgen.util import log
@@ -203,6 +204,7 @@ def build_skeleton(args):
     else:
         source = "drawn at random"
     log.normal(f"Galaxy seed {galaxySeed.format_seed(galaxy_seed)} ({source}).")
+    _draw_naming_key(mysql_config, galaxy_seed, new_seed=stored_seed != galaxy_seed)
 
     return {
         "outer_ring_index": outer_ring_index,
@@ -212,6 +214,28 @@ def build_skeleton(args):
         "elapsed_s": elapsed,
         "edge_confirmed": edge_confirmed,
     }
+
+
+def _draw_naming_key(mysql_config, galaxy_seed, new_seed):
+    """
+    GEN.70: the galaxy's naming key, drawn from its seed into the control
+    database. A new seed draws a new key; planning again over the same seed
+    keeps the key an admin may have changed. Without a control database the
+    plan still succeeds and the key is drawn the first time an admin asks.
+    """
+    try:
+        conn = store.get_control_connection(store.control_mysql_config(mysql_config))
+    except Exception as exc:  # noqa: BLE001 -- no control database yet
+        log.normal(f"No naming key drawn: the control database can't be opened ({exc}). Run update.sh.")
+        return
+    try:
+        key = naming_key.draw(conn, mysql_config.database, galaxy_seed, replace=new_seed)
+    except Exception as exc:  # noqa: BLE001 -- control schema older than v9
+        log.normal(f"No naming key drawn: {exc}. Run update.sh.")
+        return
+    finally:
+        conn.close()
+    log.normal(f"Naming key {key}.")
 
 
 def scatter_bright_stars(args):
