@@ -23,13 +23,12 @@ import math
 
 from planetgen.generation.belt import format_composition_summary, generate_asteroid_composition
 from planetgen.generation.config import SystemConfig
-from planetgen.names.wordlists import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from planetgen.galaxy.galactic_orbit import format_galactic_orbit, generate_galactic_orbit_fields
-from planetgen.names.wordsalad import generate_phoneme_salad_name
+from planetgen.names.wordsalad import LazySaladName
 from planetgen.util.format import format_distance_ly
 
 
@@ -90,7 +89,7 @@ def asteroid_field_designation(field_class, sector_code, index):
     return f"AF {field_class}-{index:02d}"
 
 
-class AsteroidField:
+class AsteroidField(LazySaladName):
     """
     A basic class to store information for a standalone field of asteroid
     debris drifting in open space, bound to no star.
@@ -143,7 +142,7 @@ class AsteroidField:
         self.system_config = system_config
         # A placeholder: `_db.insert_asteroid_field` replaces it with the
         # field's designation (`asteroid_field_designation`, v40).
-        self.name = name if name else generate_phoneme_salad_name(STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES)
+        self._init_salad_name(name)  # drawn on first read (PERF.43)
         self.name_given = bool(name)  # a given name is kept over an object ID (GEN.64)
 
         self.density = draw.choice(["dense", "sparse", "typical"])

@@ -16,13 +16,12 @@ phenomenon mode (see that module's docstring), not by
 import math
 
 from planetgen.generation.config import SystemConfig
-from planetgen.names.wordlists import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from planetgen.galaxy.galactic_orbit import format_galactic_orbit, generate_galactic_orbit_fields
-from planetgen.names.wordsalad import generate_phoneme_salad_name
+from planetgen.names.wordsalad import LazySaladName
 from planetgen.util.format import format_distance_ly, format_number
 from planetgen.util.random import log_uniform
 
@@ -116,7 +115,7 @@ def infer_nebula_class(nebula_type, radius_ly):
     return by_frequency[0]
 
 
-class Nebula:
+class Nebula(LazySaladName):
     """
     A basic class to store information for an interstellar nebula.
 
@@ -182,7 +181,7 @@ class Nebula:
         self.system_config = system_config
         # A draft name: `_db.insert_nebula` reserves it through the
         # system-name registry (v40), which may decorate it.
-        self.name = name if name else generate_phoneme_salad_name(STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES)
+        self._init_salad_name(name)  # drawn on first read (PERF.43)
         self.name_given = bool(name)  # a given name is kept over an object ID (GEN.64)
 
         if nebula_class is not None:

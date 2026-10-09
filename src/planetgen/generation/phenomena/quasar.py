@@ -27,19 +27,18 @@ its Eddington ratio:
 
 
 from planetgen.generation.config import SystemConfig
-from planetgen.names.wordlists import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
 from planetgen.physics import constants as physical_constants
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
-from planetgen.names.wordsalad import generate_phoneme_salad_name
+from planetgen.names.wordsalad import LazySaladName
 from planetgen.util.format import format_distance_km, format_distance_ly, format_number
 from planetgen.util.random import log_uniform
 
 
 
-class Quasar:
+class Quasar(LazySaladName):
     """
     A galaxy's active nucleus.
 
@@ -81,7 +80,7 @@ class Quasar:
             name (str, optional): An explicit name. Random if omitted.
         """
         self.system_config = system_config
-        self.name = name if name else generate_phoneme_salad_name(STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES)
+        self._init_salad_name(name)  # drawn on first read (PERF.43)
         self.name_given = bool(name)  # a given name is kept over an object ID (GEN.64)
 
         self.black_hole_mass_solar = log_uniform(*tuning.QUASAR_BLACK_HOLE_MASS_RANGE_SOLAR)
