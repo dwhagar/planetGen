@@ -2,7 +2,7 @@
 
 Boss's design for getting around the Galaxy Map, recorded 2026-10-01.
 
-**Planned change (Boss, 2026-10-09 22:24Z, MAP.146):** the fixed block ladder in section 3 is to be replaced by regions centred on the clicked sector, described as ranges of layers, rings and slots. This note stays as the record of what is built today.
+**Planned change (Boss, 2026-10-09 22:24Z and 22:56Z, MAP.146):** the fixed block ladder in section 3 and the arc, slab and segment picks are to be replaced by a free camera with scroll-zoom, double-click flight and distance-based visibility, with region data as aligned cells described by ranges of layers, rings and slots (MAP.146 and MAP.148 to MAP.152; designs in [fly-through-view-distance.md](fly-through-view-distance.md) and [drilldown-region-sizes.md](drilldown-region-sizes.md)). This note is superseded in part when that ships and stays as the record of what is built today.
 
 **Status (2026-10-02):** built. The arc pick (MAP.85) has replaced the
 galaxy's first pick (section 4); section 15's later steps (slab, then

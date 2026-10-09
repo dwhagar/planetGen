@@ -14,7 +14,7 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.83 |
-| MAP | MAP.148 |
+| MAP | MAP.153 |
 | NAV | NAV.58 |
 | GEN | GEN.177 |
 | PERF | PERF.50 |
@@ -806,8 +806,13 @@ Parents marked "new parent" had no old number of their own.
 | MAP.143 | Color sectors by their number of habitable locations | none | open |
 | MAP.144 | Replace `THREE.Clock` with `THREE.Timer` in `phenomenonrender.js` (bug) | none | done, PR #865 |
 | MAP.145 | A sky and Galaxy Map drawing rule for neighbour galaxies | none | open |
-| MAP.146 | Zoom drill-down centred on the clicked point, not on fixed wedges, blocks and slabs | none | open |
+| MAP.146 | Fly through the galaxy: scroll-zoom, double-click flight, distance-based visibility and a see-through near field | none | open |
 | MAP.147 | The Galaxy Map wire format: measure what the browser downloads and compare smaller options | none | open |
+| MAP.148 | The star visibility law: apparent-magnitude opacity, flux-based brightness and an on-screen limit from a histogram | none | open |
+| MAP.149 | The near field: depth fade, a see-through focus tube, drawing from inside a container, and picking that matches what is drawn | none | open |
+| MAP.150 | The free camera: wheel zoom to the cursor, double-click flight, and the observer inside, with the container named from position | none | open |
+| MAP.151 | The region data layer: exact-centred frame, aligned cells, per-level aggregates and slot-wrap ranges | none | open |
+| MAP.152 | Scale hand-offs: galaxy, sector and system cross-fade with hysteresis, and per-tile camera-relative origins | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
