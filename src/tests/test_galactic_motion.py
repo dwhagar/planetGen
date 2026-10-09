@@ -25,7 +25,8 @@ RING = 10
 def test_rotation_follows_galactic_phase():
     x, y, z = store._rotate_about_axis((10.0, 0.0, 1.0), math.pi / 2)
     assert (x, y, z) == pytest.approx((0.0, 10.0, 1.0))
-    assert store._galactic_turn(250e6, 0.25) == pytest.approx(2 * math.pi)
+    assert store._galactic_turn(125e6, 0.25) == pytest.approx(math.pi)
+    assert store._galactic_turn(250e6, 0.25) == 0.0  # a whole orbit lands where it started (GEN.108)
     assert store._galactic_turn(1.0, None) == 0.0
 
 

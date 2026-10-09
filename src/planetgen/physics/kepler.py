@@ -235,7 +235,11 @@ def true_anomaly_and_distance_elliptical(mean_anomaly_rad, eccentricity, semi_ma
         math.sqrt(1 + eccentricity) * math.sin(eccentric_anomaly / 2),
         math.sqrt(1 - eccentricity) * math.cos(eccentric_anomaly / 2),
     )
-    distance_au = semi_major_axis_au * (1 - eccentricity * math.cos(eccentric_anomaly))
+    # a (1 - e cos E) written as q + 2 a e sin^2(E/2) (GEN.108): near
+    # perihelion of a near-parabolic orbit, 1 - e cos E subtracts two
+    # nearly equal numbers and the radius loses digits; this form doesn't.
+    half_sin = math.sin(eccentric_anomaly / 2)
+    distance_au = semi_major_axis_au * ((1 - eccentricity) + 2 * eccentricity * half_sin * half_sin)
     return true_anomaly_rad, distance_au
 
 
@@ -359,6 +363,175 @@ def vis_viva_speed_kms(distance_au, semi_major_axis_au, primary_mass_solar):
     return speed_au_per_year * au_per_year_to_kms
 
 
+UNIVERSAL_TOLERANCE = 1e-13
+"""float: The relative error in the universal anomaly where
+`universal_step`'s iteration stops."""
+
+UNIVERSAL_MAX_ITERATIONS = 60
+"""int: `universal_step`'s iteration cap; reaching it raises (logged by the
+caller), never returns a guess."""
+
+
+def stumpff_c2_c3(z):
+    """
+    The Stumpff functions `c2(z) = (1 - cos sqrt z) / z` and
+    `c3(z) = (sqrt z - sin sqrt z) / z^(3/2)` (hyperbolic forms for `z < 0`),
+    with their series near `z = 0`, where the closed forms cancel to
+    nothing: the near-parabolic case.
+
+    Returns:
+        tuple: `(c2, c3)`.
+    """
+    if abs(z) < 1e-3:
+        # Six terms of each series: the next is below 1e-20 at |z| < 1e-3.
+        c2 = 1 / 2 - z / 24 + z * z / 720 - z ** 3 / 40320 + z ** 4 / 3628800 - z ** 5 / 479001600
+        c3 = 1 / 6 - z / 120 + z * z / 5040 - z ** 3 / 362880 + z ** 4 / 39916800 - z ** 5 / 6227020800
+        return c2, c3
+    if z > 0:
+        root = math.sqrt(z)
+        return (1 - math.cos(root)) / z, (root - math.sin(root)) / (root ** 3)
+    root = math.sqrt(-z)
+    return (math.cosh(root) - 1) / -z, (math.sinh(root) - root) / (root ** 3)
+
+
+def universal_step(position, velocity, mu, dt):
+    """
+    Moves a two-body state `dt` forward (or back, for negative `dt`) on
+    its conic, whatever the conic: the universal-variable form of Kepler's
+    equation (docs/design/orbital-updates.md section 10.6, with the
+    document's double-counted term corrected), the GEN.108 guard for
+    near-parabolic orbits, where the elliptical and hyperbolic forms both
+    lose precision, and for steps of any length (a whole number of orbits
+    drops out of the bracket below).
+
+    The equation in the universal anomaly `chi`,
+    `F = s0 chi^2 c2 + (1 - alpha r0) chi^3 c3 + r0 chi - sqrt(mu) dt`,
+    with `alpha = 2 / r0 - v0^2 / mu` and `z = alpha chi^2`, is solved by
+    Halley's method kept inside a bracket that always holds the root
+    (`F` rises with `chi`, since `F' = r > 0`), falling back to bisection
+    whenever a Halley step leaves it: it cannot diverge.
+
+    Args:
+        position, velocity (sequence): The state relative to the primary,
+            in any consistent units (`L`, `L/T`).
+        mu (float): The primary's `G M`, in `L^3/T^2`. Positive.
+        dt (float): The time to move, in `T`.
+
+    Returns:
+        tuple: `(position, velocity)` after `dt`, each an (x, y, z) tuple.
+
+    Raises:
+        ValueError: For a non-positive `mu`, a non-finite input, a body at
+            the primary, or no convergence within
+            `UNIVERSAL_MAX_ITERATIONS`.
+    """
+    if not mu > 0 or not math.isfinite(mu):
+        raise ValueError(f"universal_step: mu must be positive, got {mu!r}")
+    r0v = [float(c) for c in position]
+    v0v = [float(c) for c in velocity]
+    if not all(math.isfinite(c) for c in r0v + v0v + [dt]):
+        raise ValueError("universal_step: the state and step must be finite")
+    if dt == 0:
+        return tuple(r0v), tuple(v0v)
+    r0 = math.sqrt(sum(c * c for c in r0v))
+    if r0 == 0:
+        raise ValueError("universal_step: the body sits on its primary")
+    v0_sq = sum(c * c for c in v0v)
+    sqrt_mu = math.sqrt(mu)
+    s0 = sum(a * b for a, b in zip(r0v, v0v)) / sqrt_mu
+    alpha = 2 / r0 - v0_sq / mu
+
+    def residual(chi):
+        z = alpha * chi * chi
+        c2, c3 = stumpff_c2_c3(z)
+        f = s0 * chi * chi * c2 + (1 - alpha * r0) * chi ** 3 * c3 + r0 * chi - sqrt_mu * dt
+        df = s0 * chi * (1 - z * c3) + (1 - alpha * r0) * chi * chi * c2 + r0
+        d2f = s0 * (1 - z * c2) + (1 - alpha * r0) * chi * (1 - z * c3)
+        return f, df, d2f, c2, c3
+
+    # First guess (Vallado): the mean motion for an ellipse; the signed
+    # log form for a hyperbola (the document drops sign(dt)); r0-scaled
+    # for a parabola.
+    if alpha > 1e-12 / r0:
+        chi = sqrt_mu * dt * alpha
+        period = 2 * math.pi / (sqrt_mu * alpha ** 1.5)
+        if abs(dt) > period:
+            # A whole number of orbits changes nothing: step the rest.
+            dt = math.fmod(dt, period)
+            chi = sqrt_mu * dt * alpha
+    elif alpha < -1e-12 / r0:
+        a = 1 / alpha
+        sign = 1.0 if dt > 0 else -1.0
+        inner = (-2 * mu * alpha * dt) / (s0 * sqrt_mu + sign * math.sqrt(-mu * a) * (1 - r0 * alpha))
+        chi = sign * math.sqrt(-a) * math.log(inner) if inner > 0 else sign * math.sqrt(-a)
+    else:
+        chi = sqrt_mu * dt / r0
+
+    # A bracket: F(0) = -sqrt(mu) dt, and F grows at least as fast as
+    # r_min * chi, so widen until the sign changes.
+    low, high = (0.0, abs(chi) or 1.0) if dt > 0 else (-(abs(chi) or 1.0), 0.0)
+    for _ in range(200):
+        if dt > 0 and residual(high)[0] < 0:
+            low, high = high, high * 2
+        elif dt < 0 and residual(low)[0] > 0:
+            low, high = low * 2, low
+        else:
+            break
+    if not low <= chi <= high:
+        chi = 0.5 * (low + high)
+
+    for _ in range(UNIVERSAL_MAX_ITERATIONS):
+        f, df, d2f, c2, c3 = residual(chi)
+        if f > 0:
+            high = chi
+        else:
+            low = chi
+        step = 2 * f * df / (2 * df * df - f * d2f) if (2 * df * df - f * d2f) != 0 else f / df
+        new = chi - step
+        if not low < new < high:
+            new = 0.5 * (low + high)  # the Halley step left the bracket: bisect
+        if abs(new - chi) <= UNIVERSAL_TOLERANCE * max(1.0, abs(new)) or high - low <= 4e-16 * max(1.0, abs(new)):
+            chi = new
+            break
+        chi = new
+    else:
+        raise ValueError(f"universal_step: no convergence in {UNIVERSAL_MAX_ITERATIONS} iterations")
+
+    z = alpha * chi * chi
+    c2, c3 = stumpff_c2_c3(z)
+    f = 1 - chi * chi * c2 / r0
+    g = dt - chi ** 3 * c3 / sqrt_mu
+    r_vec = [f * a + g * b for a, b in zip(r0v, v0v)]
+    r = math.sqrt(sum(c * c for c in r_vec))
+    g_dot = 1 - chi * chi * c2 / r
+    f_dot = sqrt_mu * chi * (z * c3 - 1) / (r * r0)
+    v_vec = [f_dot * a + g_dot * b for a, b in zip(r0v, v0v)]
+    return tuple(r_vec), tuple(v_vec)
+
+
+KEPLER_MAX_ECCENTRICITY = 0.999
+"""float: The most eccentric ellipse Kepler's equation is trusted for
+(GEN.108). Past it, `M = E - e sin E` subtracts two nearly equal numbers
+near perihelion and the anomaly loses digits (at e = 1 - 1e-9 it is off
+by percent), so `comet_orbital_state` moves the body from perihelion
+with `universal_step` instead. Generated elliptical comets stop at 0.999
+(`tuning.COMET_PERIOD_CLASSES`); an edit can go further."""
+
+
+def _near_parabolic_anomaly_and_distance(mean_anomaly_rad, eccentricity, perihelion_distance_au,
+                                         primary_mass_solar):
+    """The true anomaly and radius of a near-parabolic ellipse at
+    `mean_anomaly_rad`, by `universal_step` from perihelion over the time
+    the mean anomaly stands for (M / n, M taken in [-pi, pi])."""
+    mu = gravitational_parameter_au3_yr2(primary_mass_solar)
+    semi_major_axis_au = perihelion_distance_au / (1 - eccentricity)
+    mean = math.remainder(mean_anomaly_rad, TWO_PI)  # exact, unlike (M + pi) % 2 pi - pi for a tiny M
+    since_perihelion = mean / math.sqrt(mu / semi_major_axis_au ** 3)
+    position, velocity = state_from_elements(mu, perihelion_distance_au, eccentricity, 0.0, 0.0, 0.0, 0.0)
+    position, velocity = universal_step(position, velocity, mu, since_perihelion)
+    return math.atan2(position[1], position[0]), math.hypot(position[0], position[1])
+
+
 def comet_orbital_state(orbit_type, perihelion_distance_au, eccentricity, inclination_deg,
                         arg_periapsis_deg, ascending_node_deg, primary_mass_solar,
                         mean_anomaly_rad=None, parabolic_mean_anomaly_value=None,
@@ -417,9 +590,13 @@ def comet_orbital_state(orbit_type, perihelion_distance_au, eccentricity, inclin
         if mean_anomaly_rad is None:
             raise ValueError("comet_orbital_state: mean_anomaly_rad is required for an elliptical orbit.")
         semi_major_axis_au = perihelion_distance_au / (1 - eccentricity)
-        true_anomaly_rad, distance_au = true_anomaly_and_distance_elliptical(
-            mean_anomaly_rad, eccentricity, semi_major_axis_au, eccentric_anomaly_rad
-        )
+        if eccentricity > KEPLER_MAX_ECCENTRICITY:
+            true_anomaly_rad, distance_au = _near_parabolic_anomaly_and_distance(
+                mean_anomaly_rad, eccentricity, perihelion_distance_au, primary_mass_solar)
+        else:
+            true_anomaly_rad, distance_au = true_anomaly_and_distance_elliptical(
+                mean_anomaly_rad, eccentricity, semi_major_axis_au, eccentric_anomaly_rad
+            )
     elif orbit_type == "parabolic":
         if parabolic_mean_anomaly_value is None:
             raise ValueError("comet_orbital_state: parabolic_mean_anomaly_value is required for a parabolic orbit.")
