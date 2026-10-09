@@ -64,6 +64,7 @@ import math
 
 from planetgen.galaxy import geometry
 from planetgen.physics import constants as physical_constants
+from planetgen.physics import state_vectors
 
 FRAMES = ("galactic", "sector", "system")
 """tuple: The frames a position is kept in."""
@@ -624,6 +625,50 @@ class HoldsOrbitPosition:
             self.spatial.set_mass(mass)
         if self._staged_velocity_kms is not None and all(v is not None for v in self._staged_velocity_kms):
             self.set_velocity_kms(*self._staged_velocity_kms)
+
+    def orbit_mu_au3_per_year2(self):
+        """The gravitational parameter, AU^3/yr^2, of what the body orbits;
+        each class that holds an orbit position defines it."""
+        raise NotImplementedError
+
+    def orbit_from_vector(self):
+        """
+        The orbit the body is on right now, worked out from its position
+        and velocity relative to its primary (`state_vectors.elements_from_state`,
+        AU and years): periapsis distance, eccentricity, inclination,
+        ascending node, argument of periapsis, true anomaly (radians),
+        semi-major axis, period, `kind` and energy. Never stored, so it
+        cannot fall out of step with the vector: anything that moves the
+        body or changes its velocity changes this orbit with it.
+
+        Raises:
+            ValueError: With no position or velocity yet, or for a body
+                moving straight at or away from its primary.
+        """
+        if self.spatial is None or self.spatial.get_velocity_vector("system") is None:
+            raise ValueError("the body has no position and velocity yet")
+        to_au_per_year = physical_constants.SECONDS_PER_YEAR / physical_constants.AU_M
+        position = self.spatial.get_coordinates("system", "cartesian")
+        velocity = tuple(v * to_au_per_year for v in self.spatial.get_velocity_vector("system"))
+        return state_vectors.elements_from_state(position, velocity, self.orbit_mu_au3_per_year2())
+
+    def projected_orbit_au(self, count=128):
+        """
+        `count` points, AU from the primary, round the closed ellipse the
+        body is on now (`orbit_from_vector`), starting at periapsis: the
+        course it follows when nothing disturbs it. Wobble and other
+        perturbations in the vector are not part of it.
+
+        Raises:
+            ValueError: For an orbit that does not close (parabolic or
+                hyperbolic), or as `orbit_from_vector`.
+        """
+        orbit = self.orbit_from_vector()
+        if orbit["kind"] != "elliptical":
+            raise ValueError(f"a {orbit['kind']} orbit does not close")
+        return state_vectors.closed_orbit_points(
+            orbit["periapsis_distance"], orbit["eccentricity"], orbit["inclination"], orbit["ascending_node"],
+            orbit["arg_periapsis"], count)
 
     def set_velocity_kms(self, vx, vy, vz):
         """Sets the velocity relative to the primary, km/s. A body with no
