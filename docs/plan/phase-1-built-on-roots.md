@@ -202,11 +202,8 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | PERF.46 | Planets and moons: set the position once per body |  | Generation performance study. |
 | PERF.49 | Batch system-name reservation: remove the quadratic scan and the long-held registry locks (re-measure first) |  | Name reservation timing; overlaps PERF.43. |
 | OPS.36 | Space and size checks measure the boot drive, not the drive holding the database (bug) |  | Bugfixes lane 1; from Boss 20:22Z. |
-| DB.19 | Phenomenon rows: implement the mass cut (1.17 billion rows and 161 GB become about 2.7e5 rows) | GEN.167 | Decided: Boss accepted the 20 solar mass cut. |
+| DB.19 | Compact or derive phenomenon rows (needed only if the mass cut is lowered to 10 solar masses or less) |  | Decided: Boss accepted the 20 solar mass cut. |
 | GEN.169 | Decide the phenomenon scatter rates: regional factors and the 0.1% intermediate-mass black holes |  | Needs Boss to decide. |
-| GEN.168 | The sector fill draws the phenomena below the scatter cut | GEN.167 | Phenomenon mass cut (decided). |
-| GEN.167 | A lowest-mass option for the phenomenon scatter: --phenomenon-min-mass, default 20 solar masses | GEN.166 | Phenomenon mass cut (decided). |
-| GEN.166 | A mass_range argument on NeutronStar and BlackHole, and intermediate-mass black holes as their own kind |  | Phenomenon mass cut (decided). |
 | PERF.41 | Stamp the tile and page caches with a TILE_FORMAT constant instead of the version (optional) | PERF.31 | Research follow-up to PERF.25 (built). |
 | PERF.40 | Two shared queues, a reserved interactive worker and a real "cancel now" | PERF.39 | Research follow-up to PERF.24 (built). |
 | PERF.39 | Every API job costs 2.4 s and 195 MB: import lazily and cap the burst workers |  | Research follow-up to PERF.24 (built); before batch wiki uploads. |
