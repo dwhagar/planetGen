@@ -669,13 +669,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   zero habitable worlds drawn with no fill; blocks never fully opaque
   (Boss).
 
-- [ ] **MAP.144 Replace `THREE.Clock` with `THREE.Timer` in `phenomenonrender.js` (bug)**
-  `src/html/static/phenomenonrender.js:528` uses the deprecated
-  `THREE.Clock` (a runtime warning on r186; deprecated since r183).
-  Change it before the next three.js bump.
-  Prerequisites: none.
-  Design: [docs/design/map-ui-and-frontend-libraries.md](design/map-ui-and-frontend-libraries.md)
-
 - [ ] **MAP.145 A sky and Galaxy Map drawing rule for neighbour galaxies**
   An extended sprite with computed magnitude and size and a
   surface-brightness cut at about 23 mag/arcsec^2; the Magellanic Clouds
@@ -2312,24 +2305,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisite: GEN.135.
   Design: [docs/design/generation-determinism.md](design/generation-determinism.md)
 
-- [ ] **GEN.138 Moon `hill_radius_km` uses the star's mass, so moon spacing and the orbit slider are wrong (bug)**
-  `physics/planets.py` `generate_planet_properties` ends with
-  `update_hill_sphere(planet)`, which uses `planet.star.mass`;
-  `generate_moons` passes `planet.star` to the moon's `Planet(...)`, and
-  `generation/validation.py` `refresh_moon_orbit` calls it again. For
-  the Moon: 888 km stored against 61,525 km correct (hand arithmetic).
-  Effects: a wrong `min_orbit_distance` (5 x Hill), so moons are spaced
-  about 4,400 km against about 307,000 km apart; the facility orbit
-  slider falls back to a radius multiple for small moons;
-  `test_web_facilities.py` fixtures use a correct-looking 61,500 km, so
-  the tests miss it. Done: the Hill radius of a moon uses the planet's
-  mass, with a test on a Moon-like moon. Also check
-  `physics.orbits.calculate_hill_sphere` call sites: it uses `a (m / 3
-  M_enc)^(1/3)` and should use `a (1 - e) (m / (3 (M + m)))^(1/3)` for
-  bound pairs.
-  Prerequisites: none.
-  Design: [docs/design/course-avoidance.md](design/course-avoidance.md)
-
 - [ ] **GEN.139 Orbit-update thresholds: per-object epoch, path-length rule and what the 0.01 mpc applies to (GEN.106 built)**
   Follow-up to GEN.106: (a) a per-object epoch column beside
   `next_update_due`; (b) define the movement rule on path length, not
@@ -2424,18 +2399,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the zone of every star, so it needs reproducibility handling (the
   GEN.57 family) and the epoch bump.
   Prerequisite: GEN.91.
-  Design: [docs/design/atmospheres-retention-and-classes.md](design/atmospheres-retention-and-classes.md)
-
-- [ ] **GEN.147 Classes N and Q carry a life chemical and an uncapped life timeline though they are lifeless (bug)**
-  `tuning.PLANET_CLASSES["N"]` and `["Q"]` carry a `life_chemical`, but
-  neither is in `HABITABLE_PLANET_CLASSES` and neither has a
-  `PLANET_CLASS_MAX_LIFE_STAGE` cap, so `life.py` (line 198) stores an
-  uncapped `evolutionary_data` timeline for them and
-  `Planet.to_paragraph_list` prints "suitable for life based on
-  <chemical>" for a lifeless Venus analog. Done: strip the chemical from
-  N (and Q if confirmed lifeless) or add them to the habitable list with
-  a cap.
-  Prerequisites: none.
   Design: [docs/design/atmospheres-retention-and-classes.md](design/atmospheres-retention-and-classes.md)
 
 - [ ] **GEN.148 Habitability index follow-ups from the research (GEN.84 built)**
@@ -2864,14 +2827,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   core); the span and core modes need it.
   Prerequisites: none.
   Design: [docs/design/fill-order-curves-and-core.md](design/fill-order-curves-and-core.md)
-
-- [ ] **PERF.37 `DecayingRate` starts from the first single completion, so the ETA is up to twice too long early in a run (bug)**
-  `queue/progress_rate.py` `DecayingRate` reads 2.0 times the true time
-  left at 5% done, 1.6 at 10% and 1.2 at 25% on a 4-worker run. Fix with
-  decayed sums (N/D), which is also the first step of PERF.33; test with
-  a fake clock and several workers finishing together.
-  Prerequisites: none.
-  Design: [docs/design/performance-eta-queue-and-caching.md](design/performance-eta-queue-and-caching.md)
 
 - [ ] **PERF.38 Cache fixes for the Galaxy Map under a fill: single-flight tile builds, a busy rule for the page cache, a deletion epoch in place of COUNT(*)**
   PERF.34 is built; the research reorders its suspects by evidence
@@ -3489,7 +3444,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   `seed_used` rule. Existing routes keep 400 (open question for Boss,
   default: only recipes and uploads move to 422). The
   `require_json_body` depth fix is a prerequisite.
-  Prerequisites: GEN.96, API.9, API.20.
+  Prerequisites: GEN.96, API.9.
 
 - [ ] **API.19 Galaxy-scale recipes: build a whole galaxy, piece by piece, from JSON**
   Boss (2026-10-07 11:47Z): "The idea is that one could go so far as to
@@ -3504,20 +3459,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Research (2026-10-09, api-design-standards.md): recipes stay one
   region per request.
   Prerequisite: API.18.
-
-- [ ] **API.20 `require_json_body` returns 500 for a deeply nested JSON body (bug)**
-  A 100,000-deep nested JSON body (200 KB, under `MAX_CONTENT_LENGTH`)
-  gives a 500 because `RecursionError` escapes
-  `request.get_json(silent=True)` in `api/common.py`. Done: a 400, with
-  a depth limit, and a test.
-  Prerequisites: none.
-  Design: [docs/design/api-design-standards.md](design/api-design-standards.md)
-
-- [ ] **API.21 Flask-Limiter puts `Retry-After` on successful responses (bug)**
-  Flask-Limiter 4.1.1 sends `Retry-After: 3599` on 200 responses. Done:
-  suppress the header on every non-429 response, with a test.
-  Prerequisites: none.
-  Design: [docs/design/api-design-standards.md](design/api-design-standards.md)
 
 - [ ] **API.22 An API version number: one sequential integer, shown in admin and in the status response**
   Boss (2026-10-09 20:59Z): "I want ... API version number (same) by the
@@ -4041,16 +3982,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Prerequisites: none.
   Design: [docs/design/ops-scheduling-and-rotation.md](design/ops-scheduling-and-rotation.md)
 
-- [ ] **OPS.32 `examples/macos/org.planetgen.update.plist` is not well-formed XML, so the update daemon silently fails to install (bug)**
-  The header comment contains `--skip-update-timer`, and `--` is illegal
-  inside an XML comment (`xmllint --noout` reports "Double hyphen within
-  comment"; `plistlib.load` raises at line 12, column 34).
-  `install-maintenance-timer.sh` ends its bootstrap with `|| true`, so
-  the failure is silent. Done: reword the comment and test that
-  `plistlib.load` reads every `examples/macos/*.plist`.
-  Prerequisites: none.
-  Design: [docs/design/ops-scheduling-and-rotation.md](design/ops-scheduling-and-rotation.md)
-
 - [ ] **OPS.34 Windows Redis in WSL: fix the keep-alive advice and add a Start-RedisInWsl remedy**
   `docs/deployment/windows.md` (Redis, step 4) says a logon task running
   `wsl -d Ubuntu` keeps Redis alive; it does not (a WSL instance idles
@@ -4071,24 +4002,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Shoelace (Lit, floating-ui, tinycolor).
   Prerequisites: none.
   Design: [docs/design/map-ui-and-frontend-libraries.md](design/map-ui-and-frontend-libraries.md)
-
-- [ ] **OPS.36 Space and size checks measure the boot drive, not the drive holding the database (bug)**
-  Boss (2026-10-09 20:22Z): "make sure that our size and space remaining
-  check properly checks the space remaining not on the boot drive but if
-  my database data is stored elsewhere (it is now) that it looks that
-  up." Symptom: the disk-space and size checks (the Admin dashboard, the
-  stats and size pages, the PERF.3 "enough space" pre-flight for fills
-  and plans, the update scripts and the debug log) measure the boot
-  drive, not the drive that holds the MySQL data directory. Done when:
-  every place that reports or checks database size or free space asks
-  the server for its data directory (`SELECT @@datadir`), resolves it to
-  its mount (handling Windows drive letters, symlinks and bind mounts)
-  and measures the free space there; when the database is on another
-  host and the data directory is not reachable from the web host, it
-  says "unknown" instead of showing boot-drive numbers; the path or
-  drive measured is shown; tests use a fake data directory on another
-  mount point. Owner: Bugfixes lane 1, after its current batch.
-  Prerequisites: none.
 
 - [ ] **OPS.37 A Generator version number: one sequential integer, shown in admin and the API**
   Boss (2026-10-09 20:59Z): "I want a Generator version number (like DB
