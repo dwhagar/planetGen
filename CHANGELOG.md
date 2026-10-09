@@ -1,5 +1,10 @@
 # Changelog
 
+## [7.373.678] - 2026-10-09
+
+### Added
+- A planet, moon or comet can tell the orbit it is on right now from its position and velocity (`orbit_from_vector`: periapsis, eccentricity, inclination, node, argument of periapsis, true anomaly, semi-major axis, period) and give its projected course, the closed ellipse round its primary (`projected_orbit_au`). The orbit is never stored, so it follows the vector whenever the vector changes.
+
 ## [7.372.678] - 2026-10-09
 
 ### Changed
