@@ -973,6 +973,18 @@
 --   tile's bright stars from each population in turn, so the old giants
 --   of the bulge and the thick disk are listed beside the young blue
 --   stars that outshine them (`queryDb.galaxy_brightest_stars`).
+-- v60: velocity (GEN.121, GEN.122): `planets`, `moons` and `comets` each gain
+--   `velocity_x_kms`/`_y_kms`/`_z_kms`, the body's velocity in km/s relative
+--   to its orbital anchor (the same one `position_x/y/z_km` is measured
+--   from), on the same axes. `advance_orbital_phases` and
+--   `advance_comet_orbits` move it with the position, so it is always the
+--   velocity at the stored phase or anomaly: a planet's or moon's is the
+--   tangent of its circular orbit, `orbital_speed_kms` long, a comet's the
+--   Kepler or Barker velocity. `_migrate_v59_to_v60` works it out for rows
+--   saved before. A star's or system's galactic velocity is not stored: it
+--   is its `galactic_orbital_speed_kms` along the rotation curve's tangent
+--   at its place (`galaxy.system_position.galactic_velocity_ms`), put on
+--   the objects when a sector is loaded.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -1509,6 +1521,10 @@ CREATE TABLE IF NOT EXISTS planets (
     position_y_km               DOUBLE NOT NULL,
     position_z_km               DOUBLE NOT NULL,
     orbital_speed_kms           DOUBLE NOT NULL,
+    -- v60: velocity relative to the orbital anchor, km/s, in step with the position (see the header comment's "v60" note).
+    velocity_x_kms              DOUBLE NOT NULL DEFAULT 0,
+    velocity_y_kms              DOUBLE NOT NULL DEFAULT 0,
+    velocity_z_kms              DOUBLE NOT NULL DEFAULT 0,
     min_update_interval_years   DOUBLE NOT NULL,  -- v12, see header comment
     rotation_period_hours       DOUBLE NOT NULL,
     -- v20 (see header comment): this planet's own reflex-offset "wobble"
@@ -1621,6 +1637,10 @@ CREATE TABLE IF NOT EXISTS moons (
     position_y_km               DOUBLE NOT NULL,
     position_z_km               DOUBLE NOT NULL,
     orbital_speed_kms           DOUBLE NOT NULL,
+    -- v60: velocity relative to the orbital anchor, km/s, in step with the position (see the header comment's "v60" note).
+    velocity_x_kms              DOUBLE NOT NULL DEFAULT 0,
+    velocity_y_kms              DOUBLE NOT NULL DEFAULT 0,
+    velocity_z_kms              DOUBLE NOT NULL DEFAULT 0,
     min_update_interval_years   DOUBLE NOT NULL,  -- v12, see header comment
     rotation_period_hours       DOUBLE NOT NULL,
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
@@ -1777,6 +1797,10 @@ CREATE TABLE IF NOT EXISTS comets (
     position_y_km               DOUBLE NOT NULL,
     position_z_km               DOUBLE NOT NULL,
     orbital_speed_kms           DOUBLE NOT NULL,
+    -- v60: velocity relative to the orbital anchor, km/s, in step with the position (see the header comment's "v60" note).
+    velocity_x_kms              DOUBLE NOT NULL DEFAULT 0,
+    velocity_y_kms              DOUBLE NOT NULL DEFAULT 0,
+    velocity_z_kms              DOUBLE NOT NULL DEFAULT 0,
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
     uid                   BIGINT UNSIGNED,
 

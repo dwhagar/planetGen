@@ -22,18 +22,40 @@ from planetgen._version import __version__  # noqa: E402
 
 # --- static_url ---------------------------------------------------------------
 
-def test_static_url_appends_package_version():
-    assert fmt.static_url("style.css") == f"static/style.css?v={__version__}"
+def test_static_url_appends_package_version_and_the_static_fingerprint():
+    fingerprint = fmt._static_fingerprint()
+    assert re.fullmatch(r"[0-9a-f]{8}", fingerprint)
+    assert fmt.static_url("style.css") == f"static/style.css?v={__version__}-{fingerprint}"
     assert fmt.STATIC_VERSION == __version__
 
 
 def test_static_url_keeps_subdirectories():
-    assert fmt.static_url("vendor/three.module.min.js") == f"static/vendor/three.module.min.js?v={__version__}"
+    url = fmt.static_url("vendor/three.module.min.js")
+    assert url.startswith("static/vendor/three.module.min.js?v=" + __version__ + "-")
 
 
 def test_static_url_quotes_an_odd_version(monkeypatch):
     monkeypatch.setattr(fmt, "STATIC_VERSION", "1.0+local build")
-    assert fmt.static_url("a.js") == "static/a.js?v=1.0%2Blocal%20build"
+    monkeypatch.setattr(fmt, "_static_fingerprint", lambda: "abcd1234")
+    assert fmt.static_url("a.js") == "static/a.js?v=1.0%2Blocal%20build-abcd1234"
+
+
+def test_a_changed_static_file_gets_a_new_url_even_within_one_release(tmp_path, monkeypatch):
+    """Scripts deployed before the release stamp lands (or an Apache that
+    wasn't restarted) must not be served under the URL their previous
+    content was cached at for a year: two modules from two versions meet,
+    an import fails, and the maps stay blank."""
+    static = tmp_path / "static"
+    static.mkdir()
+    (static / "a.js").write_text("export const a = 1;\n")
+    monkeypatch.setattr(fmt, "_STATIC_DIR", str(static))
+    monkeypatch.setattr(fmt, "STATIC_FINGERPRINT_TTL_SECONDS", 0.0)
+    before = fmt.static_url("a.js")
+    assert fmt.static_url("a.js") == before
+    (static / "a.js").write_text("export const a = 2; // changed\n")
+    assert fmt.static_url("a.js") != before
+    (static / "new.js").write_text("export {};\n")
+    assert fmt.static_url("a.js") != before
 
 
 def test_no_page_links_an_unversioned_static_file():

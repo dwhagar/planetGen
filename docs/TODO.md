@@ -112,8 +112,8 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 is done (PR #476); GEN.117, and GEN.116 is closed (Boss 2026-10-08 17:46Z). | MAP.133, UX.39, OPS.20, DB.11, DB.13, ADM.21, GEN.66, GEN.70, GEN.71, GEN.67 |
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, NAV.3, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.41, GEN.98, GEN.100, GEN.99, GEN.101, GEN.102, GEN.103, GEN.84, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, GEN.94, GEN.104, GEN.106, GEN.107, GEN.108, NAV.10, NAV.12, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, NAV.43, NAV.44, MAP.119, MAP.122, MAP.123, MAP.89, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, OPS.8, OPS.13, OPS.14, ADM.18, GEN.59, UX.49, NAV.50 |
+| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 is done (PR #476); GEN.117, and GEN.116 is closed (Boss 2026-10-08 17:46Z). | UX.39, OPS.20, DB.11, DB.13, ADM.21, GEN.66, GEN.71, GEN.67 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.41, GEN.98, GEN.100, GEN.99, GEN.101, GEN.102, GEN.103, GEN.84, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, GEN.94, GEN.104, GEN.106, GEN.107, GEN.108, NAV.10, NAV.12, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, NAV.43, NAV.44, MAP.119, MAP.122, MAP.123, MAP.89, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, OPS.8, OPS.13, OPS.14, ADM.18, GEN.59, UX.49 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.58, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, API.16, ADM.17, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, repair that reads the newest settings JSON, and the anomalies chosen in phase 2. | NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, DB.10, ADM.20, GEN.114, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies, and the end state of reproducible galaxies (`generate.py reproduce`). | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, OPS.12, GEN.55 |
@@ -510,19 +510,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   density; admins can edit it for the slab or block in view, stored as
   an override that later fills use and logged.
 
-- [ ] **MAP.133 The Galaxy Map shows no bright stars in the bulge, and only layers -121 to 121 (bug)**
-  Boss found (2026-10-08, after the bright-star scatter): the Galaxy Map
-  shows bright stars only for layers -121 to 121 and none in the bulge.
-  Cause: the map's galaxy-wide bright-star sample and its per-tile cap
-  rank stars by luminosity alone, so old bulge giants (capped near 2,500
-  Lsun) never make the cut against the young, brighter disk stars. Fix:
-  sample per population (young, intermediate, old and bulge) so each
-  keeps its share of the budget, with a `bright_stars` index and a
-  migration for it. Done: the bulge and the outer layers show their
-  bright stars on the Galaxy Map after the scatter, with a test that
-  fails if one population crowds out the others.
-  Owner: Bugfixes lane.
-
 - [ ] **MAP.120 Bright-star backfill from the Galaxy Map's block, slab and wedge menus**
   Boss (2026-10-03 05:38Z): "Add bright star backfill to block menus in
   galactic view." Done: the admin menu on a block, slab or wedge runs
@@ -575,8 +562,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   buttons for the Sector Map (stars, nebulae, remnants, asteroid fields,
   black holes, neutron stars, quasars, rogue planets, comets, neighbouring
   sectors) in the Menu under "Show on the map", kept in the URL as `hide=`.
-  Still to do here: star classes, highlight, the luminosity slider, the
-  Galaxy Map's side, and putting `hide=` in bookmarks.
+  Progress (PR #721, 2026-10-09): highlight (`mark=`), filters kept in
+  stage bookmarks, and star classes with the luminosity slider are done.
+  Still to do here: the galaxy-scale tile stars honoring class and
+  luminosity.
 
 - [ ] **MAP.132 Overlay markers for black holes, nebulae and habitable worlds**
   Boss (2026-10-08 01:59Z): "Density determines transparency with more solid meaning more dense. Stellar age measures hue. Brightness measures luminosity of the sector or block. Blocks will never be fully opaque for coloring that is the color of the translucent fill."
@@ -589,43 +578,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisite: GEN.84.
 
 ## NAV: Navigation and courses
-
-- [ ] **NAV.3 One shared picker for the Galaxy, Sector and System displays**
-  Boss (2026-10-01 20:55Z): "completely functionalize all functions
-  for the Galactic Picker and join it up with functionalizing the
-  Sector Display and Star System Display so that the user, upon
-  clicking on things in the navigation segment, can: go from one
-  specific item (say, a moon in a star system) and go back out;
-  navigate visually via the UI; select another sector, another star
-  system, stellar phenomena, or anything like that, and vice versa to
-  go from one to the other, so that we don't have to repeat code for
-  the visual interfaces." Today the NAV page (`web/nav_page.py`) picks
-  endpoints from dropdowns (a sector, then a system), and the Galaxy
-  Map's drill-down, the Sector Map and the System Map each have their
-  own picking code. Done: one picker module, shared by every visual
-  display and the NAV page, that can:
-  - pick any object at any level: a sector, a star system, a
-    phenomenon, a star, a planet or a moon;
-  - step out from any item to its parents (moon to planet to system to
-    sector to the galaxy) and back in, visually and through a
-    breadcrumb;
-  - move sideways from one item to another of any kind.
-  The NAV page uses it for both endpoints, so a course's ends are
-  picked on the maps. Ties in with MAP.61 and MAP.62, and NAV.4 to
-  NAV.6.
-  Built on MAP.61's engine; the parts that don't need the
-  engine (the picker module, the breadcrumb, pick mode) can start first.
-  Prerequisite: NAV.50.
-  Plan (2026-10-07): Moved from phase 3 to phase 1: its subitems are now
-  in phases 0 and 1.
-
-  - [ ] **NAV.50 Pick any object down to a moon as a NAV endpoint**
-    Split from NAV.15 (Foundations lane 1, 2026-10-08): NAV.15's pick
-    mode returns a system or a phenomenon, but returning a planet, moon
-    or belt to the NAV page needs the page and `/api/nav` to accept body
-    endpoints, which NAV.16 added. Done: in pick mode on every display the
-    System Map included, a user can pick any body down to a moon, and
-    the NAV page opens with it as the start or destination. Not a bug.
 
 - [ ] **NAV.4 Save a course**
   Boss (2026-10-01 20:55Z): "add a to-do item where I can save a course
@@ -772,7 +724,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     from its stored `radius_ly`, finds it with NAV.25's obstacle query and
     goes around it with NAV.26's planner, at every scale. Nebulae and
     supernova remnants stay undecided: the course passes through them
-    with a note. Foundations lane 1 is building it (2026-10-09).
+    with a note. Parked with the rest of the NAV chain (Boss, 2026-10-09).
     Prerequisites: NAV.25, NAV.26.
 
 - [ ] **NAV.8 Pages and anchors for stars, planets, moons and belts**
@@ -1462,11 +1414,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     OPS.12 rebuilds from this file. A test creates a small galaxy,
     downloads the file and checks the name, settings, seed, key and word
     list.
-    Prerequisites: DB.7, OPS.13, GEN.70.
+    Prerequisites: DB.7, OPS.13.
     Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
     Plan (2026-10-07): The JSON stores the galaxy's naming key (GEN.70)
     instead of the word list; the word list and corpus hashes go with
     GEN.71.
+    Progress (GEN.70, PR #731, control schema v9): the key is stored per
+    galaxy database in the control table `galaxy_naming`. The settings
+    JSON does not carry it yet; this item adds it.
     Superseded (2026-10-08): it stores the naming key in addition to the
     word list and corpus hashes, which stay for the stars' and sectors'
     word-salad names (GEN.67).
@@ -1619,24 +1574,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   guessing the length. Two IDs of the same length never share a name,
   so names are unique for fixed-length IDs (details in
   `docs/design/object-ids.md`).
-  Prerequisites: GEN.70, GEN.71.
+  Prerequisite: GEN.71.
   Design: [docs/design/object-ids.md](design/object-ids.md)
-
-  - [ ] **GEN.70 A naming key in the control database, made at galaxy creation and changeable by admin**
-    Done: a new galaxy draws a random naming key (from the galaxy seed's
-    stream) into the control database; the admin console can change it,
-    which renames every codec-named object at once with no rows
-    rewritten (names are computed from ID and key); stars, sectors,
-    planets, moons and belts keep their names and do not change with
-    the key (Boss, 2026-10-08, GEN.67). ADM.18's settings JSON stores the
-    key in addition to the word list, which stays for those names. The
-    codec's own version is part of the galaxy's version key or schema
-    (decided here, GEN.120 left it open). Decoding takes the ID length
-    (`decode(phrase, domain, length=19)` is exact; GEN.120 done), so the
-    key's code always passes 19 for object IDs, and since same-length
-    IDs never share a name, uniqueness holds for fixed-length IDs (see
-    GEN.67 and `docs/design/object-ids.md`).
-    Design: [docs/design/object-ids.md](design/object-ids.md)
 
   - [ ] **GEN.71 Name interstellar objects, phenomena and constellations from the codec**
     Done: the objects with no star-derived name show their codec name
@@ -1664,7 +1603,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     position-ID names today; the codec name replaces them, so GEN.73
     needs GEN.70 and has no separate work (the Bugfixes lane checked,
     2026-10-08).
-    Prerequisite: GEN.70.
     Design: [docs/design/object-ids.md](design/object-ids.md)
 
 - [ ] **GEN.83 A planetary habitability index (PHI)**
@@ -1921,6 +1859,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   vector, so perturbation wobble shows up in it.
   Build thread (not a lane): started 2026-10-08 after Boss's "Alright,
   do it".
+  Progress (PR #729, schema v60): planets, moons and comets store a
+  velocity relative to their primary, set at generation and refreshed by
+  the orbital update; stars and bodies carry a galactic velocity. Still
+  to do: stored velocity for stars, systems and phenomena, and the
+  runaway-star direction.
   Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
 
 - [ ] **GEN.122 Orbital elements for planets, moons and comets, kept in step with the state vector**
@@ -1937,6 +1880,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   planetary orbits are a generation decision that this item does not
   make.
   Build thread (not a lane). Prerequisite: GEN.121.
+  Progress (PR #729): the state-vector and orbit-element maths is in
+  `kepler.py`. Still to do: the body orbit elements derived from the
+  stored vector on each orbital update.
 
 - [ ] **GEN.123 The projected path of a body through a sector, saved as a spline**
   Boss (2026-10-08 23:11Z, 23:16Z): "for objects that are not that easy,
@@ -1960,18 +1906,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   drawing should use these paths later.
   Build thread (not a lane). Prerequisite: GEN.121.
   Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
-
-- [ ] **GEN.124 Every object knows its sector address (ring, layer, slot), recalculated whenever its position changes**
-  Boss (2026-10-08 23:25Z): "I also want to add a coordinate for where it
-  is in the blocking system, so that we store what layer, ring, and
-  slot.  Every object should know where it is and every time any value
-  is updated, the system should recalculate the other related values
-  automatically." Done: `SpatialPosition3D` carries the sector address
-  (ring, layer, slot) as a fourth coordinate beside the galactic, sector
-  and system ones, and every change to any of them recalculates the
-  others, the address included. Stars, bodies and phenomena get it when
-  placed in the galaxy, and objects loaded from the database get it too.
-  Build thread (not a lane). Ties in with GEN.121 and GEN.74.
 
 - [ ] **GEN.105 Orbital updates**
   Boss (2026-10-03 and 2026-10-07) asked for an orbital update that

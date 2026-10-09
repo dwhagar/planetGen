@@ -12,6 +12,8 @@ A system made before it has a place keeps those anchors at the origin;
 while its sector and galactic coordinates follow.
 """
 
+import math
+
 from planetgen.physics import constants as physical_constants
 from planetgen.physics.position import SpatialPosition3D
 
@@ -38,18 +40,59 @@ def _add(a, b):
     return tuple(x + y for x, y in zip(a, b))
 
 
-def _carry(body, sector_au, primary_au, sector_edge_pc):
-    """Gives a planet, moon or comet its anchors, keeping its own offset."""
+def galactic_velocity_ms(position, speed_kms):
+    """
+    The velocity, galactic axes, m/s, of something on the galaxy's circular
+    rotation (`galaxy/galactic_orbit.py`): `speed_kms` along the tangent at
+    `position` (any galactic unit), counterclockwise seen from galactic
+    north, the way `db.store.advance_galactic_positions` turns it. At rest
+    for no speed or on the axis.
+    """
+    if not isinstance(speed_kms, (int, float)) or isinstance(speed_kms, bool) or not speed_kms > 0.0:
+        return (0.0, 0.0, 0.0)
+    r = math.hypot(position[0], position[1])
+    if r == 0.0:
+        return (0.0, 0.0, 0.0)
+    scale = speed_kms * 1000.0 / r
+    return (-position[1] * scale, position[0] * scale, 0.0)
+
+
+def set_system_epoch(system, epoch_unix):
+    """Stamps every star, planet, moon and comet of `system` that holds a
+    position with the time it holds at."""
+    if not hasattr(system, "primary_star"):
+        return
+    bodies = list(getattr(system, "stars", None) or [system.primary_star])
+    for planet in list(getattr(system, "planets", []) or []) + list(getattr(system, "secondary_planets", []) or []):
+        bodies.append(planet)
+        bodies.extend(getattr(planet, "moons", []) or [])
+    bodies.extend(getattr(system, "comets", []) or [])
+    bodies.extend(getattr(system, "secondary_comets", []) or [])
+    for body in bodies:
+        spatial = getattr(body, "spatial", None)
+        if spatial is not None:
+            spatial.set_epoch_unix(epoch_unix)
+
+
+def _carry(body, sector_au, primary_au, sector_edge_pc, primary_velocity_ms):
+    """Gives a planet, moon or comet its anchors (and its primary's velocity),
+    keeping its own offset and its velocity relative to the primary."""
     if getattr(body, "spatial", None) is None:  # an asteroid belt is a ring, with no point
         return None
     body.spatial.set_sector_edge_pc(sector_edge_pc)
     body.spatial.carry_anchors(sector_au, primary_au)
-    return body.spatial.get_coordinates("galactic", "cartesian")
+    body.spatial.carry_star_velocity(primary_velocity_ms)
+    return body.spatial.get_coordinates("galactic", "cartesian"), body.spatial.get_velocity_vector("galactic")
 
 
 def place_system(system, sector_center_ly, position_ly, sector_edge_pc=None):
     """
     Puts every body of `system` where it is in the galaxy.
+
+    Every star moves on the galaxy's rotation curve
+    (`galactic_velocity_ms`: its `galactic_orbital_speed_kms` along the
+    tangent at its place), and every body carries its primary's velocity
+    with the velocity it has relative to it.
 
     Args:
         system (StarSystem): The system (a stand-in without bodies is left
@@ -60,34 +103,48 @@ def place_system(system, sector_center_ly, position_ly, sector_edge_pc=None):
         sector_edge_pc (float or None): The sector grid's edge, parsecs, so
             every body knows its sector address; `None` when the sector is
             not a cell of the galaxy's grid.
+
+    Returns:
+        tuple: The system center's velocity, galactic axes, m/s.
     """
     if not hasattr(system, "primary_star"):
-        return
+        return None
     to_au = physical_constants.LY_TO_AU
     sector_au = tuple(c * to_au for c in sector_center_ly)
     center_au = tuple((c + p) * to_au for c, p in zip(sector_center_ly, position_ly))
 
-    star_centers = {}
+    system_speed = getattr(getattr(system, "star", None), "galactic_orbital_speed_kms", None)
+    system_velocity = galactic_velocity_ms(center_au, system_speed)
+    star_centers, star_velocities = {}, {}
     for star, offset in _star_offsets_au(system):
         at = _add(center_au, offset)
         star_centers[id(star)] = at
+        speed = getattr(star, "galactic_orbital_speed_kms", None)
+        star_velocities[id(star)] = galactic_velocity_ms(at, speed if speed is not None else system_speed)
         mass = getattr(star, "mass", None)
         star.spatial = SpatialPosition3D(
             at, sector_au, is_star=True, length_unit_m=physical_constants.AU_M, sector_edge_pc=sector_edge_pc,
-            mass_kg=mass if isinstance(mass, (int, float)) and mass >= 0 else None)
+            mass_kg=mass if isinstance(mass, (int, float)) and mass >= 0 else None,
+            velocity_vector_cartesian=star_velocities[id(star)])
 
     wide = getattr(system, "binary_type", None) == "wide"
     primary_at = star_centers[id(system.primary_star)]
     secondary = getattr(system, "secondary_star", None)
     secondary_at = star_centers.get(id(secondary), center_au) if secondary is not None else center_au
+    primary_v = star_velocities[id(system.primary_star)]
+    secondary_v = star_velocities.get(id(secondary), system_velocity) if secondary is not None else system_velocity
     groups = [
-        (getattr(system, "planets", []) or [], getattr(system, "comets", []) or [], primary_at if wide else center_au),
-        (getattr(system, "secondary_planets", []) or [], getattr(system, "secondary_comets", []) or [], secondary_at),
+        (getattr(system, "planets", []) or [], getattr(system, "comets", []) or [],
+         primary_at if wide else center_au, primary_v if wide else system_velocity),
+        (getattr(system, "secondary_planets", []) or [], getattr(system, "secondary_comets", []) or [],
+         secondary_at, secondary_v),
     ]
-    for planets, comets, anchor in groups:
+    for planets, comets, anchor, anchor_v in groups:
         for planet in planets:
-            planet_at = _carry(planet, sector_au, anchor, sector_edge_pc)
+            placed = _carry(planet, sector_au, anchor, sector_edge_pc, anchor_v)
+            planet_at, planet_v = placed if placed is not None else (anchor, anchor_v)
             for moon in getattr(planet, "moons", []) or []:
-                _carry(moon, sector_au, planet_at if planet_at is not None else anchor, sector_edge_pc)
+                _carry(moon, sector_au, planet_at, sector_edge_pc, planet_v)
         for comet in comets:
-            _carry(comet, sector_au, anchor, sector_edge_pc)
+            _carry(comet, sector_au, anchor, sector_edge_pc, anchor_v)
+    return system_velocity

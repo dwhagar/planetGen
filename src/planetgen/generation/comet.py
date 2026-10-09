@@ -40,7 +40,7 @@ import random
 
 from planetgen.generation.config import SystemConfig
 from planetgen.physics import constants as physical_constants, kepler
-from planetgen.physics.position import HoldsOrbitPosition, axis_property
+from planetgen.physics.position import HoldsOrbitPosition, axis_property, velocity_axis_property
 from planetgen import tuning
 from planetgen.util import log
 from planetgen.names.wordlists import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
@@ -174,6 +174,8 @@ class Comet(HoldsOrbitPosition):
         position_x_au / position_y_au / position_z_au (float): Current
             3D position relative to the star, in AU.
         orbital_speed_kms (float): Current orbital speed, in km/s.
+        velocity_x_kms / velocity_y_kms / velocity_z_kms (float): Current
+            velocity relative to the star, km/s (`orbital_speed_kms` long).
     """
 
     SERIALIZABLE_FIELDS = [
@@ -183,6 +185,7 @@ class Comet(HoldsOrbitPosition):
         "mean_anomaly_deg", "parabolic_mean_anomaly", "min_update_interval_years",
         "primary_mass_solar", "is_active",
         "distance_au", "position_x_au", "position_y_au", "position_z_au", "orbital_speed_kms",
+        "velocity_x_kms", "velocity_y_kms", "velocity_z_kms",
     ]
     """Every attribute set by `__init__`, excluding `system_config` (a
     shared back-reference) and `composition` (handled separately in
@@ -192,6 +195,9 @@ class Comet(HoldsOrbitPosition):
     position_x_au = axis_property(0)
     position_y_au = axis_property(1)
     position_z_au = axis_property(2)
+    velocity_x_kms = velocity_axis_property(0)
+    velocity_y_kms = velocity_axis_property(1)
+    velocity_z_kms = velocity_axis_property(2)
     """float: This comet's offset from its star, AU: the "system" frame of
     `spatial`, its `SpatialPosition3D` (GEN.74), which `set_position_au` moves."""
 
@@ -301,6 +307,9 @@ class Comet(HoldsOrbitPosition):
         self.distance_au = state["distance_au"]
         self.set_position_au(state["position_x_au"], state["position_y_au"], state["position_z_au"])
         self.orbital_speed_kms = state["orbital_speed_kms"]
+        to_kms = physical_constants.AU_TO_KM / physical_constants.SECONDS_PER_YEAR
+        self.set_velocity_kms(state["velocity_x_au_per_year"] * to_kms, state["velocity_y_au_per_year"] * to_kms,
+                              state["velocity_z_au_per_year"] * to_kms)
 
     def to_dict(self):
         """
