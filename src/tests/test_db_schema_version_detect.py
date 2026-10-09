@@ -38,6 +38,7 @@ def _make_older_than_the_baseline(config):
         conn.execute("DROP TABLE generation_run_arguments")
         conn.execute("DROP TABLE sector_path_knots")  # the later revisions' markers too
         conn.execute("DROP TABLE sector_paths")
+        conn.execute("ALTER TABLE facilities DROP COLUMN velocity_x_kms")
         conn.execute("ALTER TABLE star_systems DROP COLUMN velocity_x_kms")
         conn.commit()
     finally:

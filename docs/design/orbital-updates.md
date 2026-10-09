@@ -419,7 +419,11 @@ masses (23:16Z), as a spline.
   `advance_comet_orbits` move it with the position; `star_systems` stores
   the system's galactic velocity (schema v61) and `advance_galactic_positions`
   turns it with the position, so the motion update still follows the
-  rotation curve and the runaway velocity is carried with it, not integrated. A loaded sector's
+  rotation curve and the runaway velocity is carried with it, not integrated.
+  A stand-alone facility stores the rotation curve's tangent at its place
+  (`facilities.velocity_*_kms`, schema v64, GEN.125), turned the same way; a
+  facility on a body, in orbit or in a belt stores 0, its motion being its
+  `orbit_*` columns relative to its host. A loaded sector's
   objects carry the epoch `store.get_orbit_epoch_unix` gives (when the
   orbits were last advanced).
 - **A body with no closed orbit gets a path through its sector**

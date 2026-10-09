@@ -100,7 +100,7 @@ from planetgen.generation.phenomena.quasar import Quasar
 from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant
 from planetgen.generation.system import StarSystem
 from planetgen.galaxy.galactic_orbit import calculate_galactic_orbit
-from planetgen.galaxy.system_position import system_velocity_ms
+from planetgen.galaxy.system_position import galactic_velocity_ms, system_velocity_ms
 from planetgen.names.wordsalad import generate_phoneme_salad_name, generate_sector_name
 from planetgen.physics.units import ly_to_milliparsecs, ly_to_pc, milliparsecs_to_ly, mpc_to_pc, pc_to_ly
 from planetgen.generation.wide_binary import WideBinaryPair
@@ -1415,6 +1415,7 @@ def _table_marker(table):
 
 
 _VERSION_MARKERS = (
+    (64, _column_marker("facilities", "velocity_x_kms")),
     (63, _table_marker("generation_run_arguments")),
     (62, _table_marker("sector_paths")),
     (61, _column_marker("star_systems", "velocity_x_kms")),
@@ -4515,6 +4516,7 @@ def add_facility(conn, name, kind, placement, host_type, host_id, distance_km=No
         orbit = _belt_orbit(conn, host_id, mass, radius)
 
     placement_values = (None, None, None, None)
+    velocity_kms = (0.0, 0.0, 0.0)
     if host_type == "space":
         sector = conn.execute("SELECT center_x_pc, center_y_pc, center_z_pc, edge_mpc FROM sectors WHERE id = ?",
                               (host_id,)).fetchone()
@@ -4527,6 +4529,9 @@ def add_facility(conn, name, kind, placement, host_type, host_id, distance_km=No
         center = (sector["center_x_pc"], sector["center_y_pc"], sector["center_z_pc"])
         point = local_to_galaxy_pc(center, tuple(ly_to_pc(c) for c in offset_ly))
         placement_values = (*point, math.sqrt(sum(c * c for c in point)))
+        # GEN.125: on the galaxy's rotation curve at its place.
+        speed_kms, _period_gy = calculate_galactic_orbit(pc_to_ly(math.hypot(point[0], point[1])))
+        velocity_kms = tuple(v / 1000.0 for v in galactic_velocity_ms(point, speed_kms))
     elif offset_ly is not None:
         raise FacilityError("only a stand-alone facility has a position in space")
 
@@ -4536,14 +4541,15 @@ def add_facility(conn, name, kind, placement, host_type, host_id, distance_km=No
             name, kind, placement, host_type, star_system_id, star_id, planet_id, moon_id,
             asteroid_belt_id, asteroid_field_id, sector_id,
             center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc,
+            velocity_x_kms, velocity_y_kms, velocity_z_kms,
             orbit_distance_km, orbit_period_years, orbital_speed_kms, orbit_phase_deg, description
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             name, kind, placement, host_type, columns.get("star_system_id"), columns.get("star_id"),
             columns.get("planet_id"), columns.get("moon_id"), columns.get("asteroid_belt_id"),
             columns.get("asteroid_field_id"), columns.get("sector_id"),
-            *placement_values,
+            *placement_values, *velocity_kms,
             orbit.get("distance_km"), orbit.get("period_years"), orbit.get("orbital_speed_kms"),
             orbit.get("phase_deg"), description,
         ),
@@ -4720,7 +4726,8 @@ def advance_galactic_positions(conn, elapsed_years, on_progress=None):
 
     updates, refile_updates = [], []
     for row in conn.execute(
-        "SELECT id, sector_id, center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc FROM facilities"
+        "SELECT id, sector_id, center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc,"
+        " velocity_x_kms, velocity_y_kms, velocity_z_kms FROM facilities"
         " WHERE host_type = 'space' AND center_x_pc IS NOT NULL"
     ).fetchall():
         _speed, period_gy = calculate_galactic_orbit(pc_to_ly(math.hypot(row["center_x_pc"], row["center_y_pc"])))
@@ -4728,20 +4735,23 @@ def advance_galactic_positions(conn, elapsed_years, on_progress=None):
         if angle == 0.0:
             continue
         point = _rotate_about_axis((row["center_x_pc"], row["center_y_pc"], row["center_z_pc"]), angle)
+        velocity = _rotate_about_axis((row["velocity_x_kms"], row["velocity_y_kms"], row["velocity_z_kms"]), angle)
         moved += 1
         sector_id = index.sector_at(point, row["sector_id"])
         if sector_id != row["sector_id"]:
             refiled += 1
             touched.update((sector_id, row["sector_id"]))
-            refile_updates.append((sector_id, *point, row["galactic_radius_pc"], row["id"]))
+            refile_updates.append((sector_id, *point, row["galactic_radius_pc"], *velocity, row["id"]))
         else:
-            updates.append((*point, row["id"]))
+            updates.append((*point, *velocity, row["id"]))
     if updates:
         conn.executemany("UPDATE facilities SET center_x_pc = ?, center_y_pc = ?, center_z_pc = ?,"
+                         " velocity_x_kms = ?, velocity_y_kms = ?, velocity_z_kms = ?,"
                          " modified_at = modified_at WHERE id = ?", updates)
     if refile_updates:
         conn.executemany("UPDATE facilities SET sector_id = ?, center_x_pc = ?, center_y_pc = ?, center_z_pc = ?,"
-                         " galactic_radius_pc = ? WHERE id = ?", refile_updates)
+                         " galactic_radius_pc = ?, velocity_x_kms = ?, velocity_y_kms = ?, velocity_z_kms = ?"
+                         " WHERE id = ?", refile_updates)
     _report(on_progress, "facilities", steps, steps)
 
     touched.discard(None)
