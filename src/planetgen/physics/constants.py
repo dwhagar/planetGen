@@ -16,44 +16,51 @@ these values are needed.
 
 import math
 
+from astropy import constants as astropy_constants
+from astropy import units as astropy_units
+
+# Values that are measured or defined come from `astropy.constants` and
+# `astropy.units` (GEN.66), in SI floats; the module's own names, units and
+# comments stay as the rest of the program uses them.
+
 # --- Physical Constants ---
 EARTH_RADIUS_KM = 6371  # Earth's mean radius in kilometers
-EARTH_GRAVITY = 9.807  # Standard Earth gravity in m/s^2
+EARTH_GRAVITY = float(astropy_constants.g0.value)  # Standard Earth gravity in m/s^2 (9.80665)
 # --- Distance ladder (Boss's exact values, in meters) ---
 # Every displayed distance goes through `format.format_distance_m`, which picks
 # the largest of these units the value is at least 1 of: km < AU < mpc <
 # cpc < ly < pc < kpc < Mpc < Gpc. Every other length conversion below is
 # derived from these, so none of them is rounded on its own.
 KM_M = 1e3
-AU_M = 149_597_870_700  # IAU 2012, exact
-LIGHTYEAR_M = 9_460_730_472_580_800  # c x 365.25 days, exact
-PARSEC_M = 3.085677581491367e16  # 648000/pi AU
+AU_M = int(astropy_constants.au.value)  # IAU 2012, exact
+LIGHTYEAR_M = int(astropy_units.lyr.to(astropy_units.m))  # c x 365.25 days, exact
+PARSEC_M = float(astropy_constants.pc.value)  # 648000/pi AU
 MILLIPARSEC_M = PARSEC_M * 1e-3
 CENTIPARSEC_M = PARSEC_M * 1e-2
 KILOPARSEC_M = PARSEC_M * 1e3
 MEGAPARSEC_M = PARSEC_M * 1e6
 GIGAPARSEC_M = PARSEC_M * 1e9
 AU_TO_KM = AU_M / KM_M  # Astronomical Unit to kilometers conversion factor
-G = 6.6743e-11  # Gravitational constant in m^3/kg/s^2
-SPEED_OF_LIGHT_M_S = 299_792_458  # Speed of light in a vacuum, m/s, exact (the SI definition; LIGHTYEAR_M uses the same c) -- used for Schwarzschild radius (compactRemnant.BlackHole)
+G = float(astropy_constants.G.value)  # Gravitational constant in m^3/kg/s^2
+SPEED_OF_LIGHT_M_S = int(astropy_constants.c.value)  # Speed of light in a vacuum, m/s, exact (the SI definition; LIGHTYEAR_M uses the same c) -- used for Schwarzschild radius (compactRemnant.BlackHole)
 CELSIUS_ZERO_K = 273.15  # 0 °C in K (format.format_temperature_k)
 STANDARD_ATMOSPHERE_PA = 101_325.0  # 1 atm, exact, Pa (format.format_pressure_pa)
 PSI_PA = 6_894.757293168361  # 1 lbf/in², Pa (format.format_pressure_pa)
-SPEED_OF_LIGHT_KMS = 299_792.458  # Exact (the SI definition), km/s -- the speed ladder's c (format.format_speed_kms, static/speed.js)
-R = 8.314  # Ideal gas constant in J/(mol·K)
-BOLTZMANN = 1.381e-23  # Boltzmann constant in J/K
-REDUCED_PLANCK = 1.054571817e-34  # hbar, J*s (CODATA 2018) -- Hawking radiation (compactRemnant)
-STEFAN_BOLTZMANN_CONSTANT = 5.67e-8  # Stefan-Boltzmann constant in W/m²/K⁴
+SPEED_OF_LIGHT_KMS = SPEED_OF_LIGHT_M_S / KM_M  # Exact (the SI definition), km/s -- the speed ladder's c (format.format_speed_kms, static/speed.js)
+R = float(astropy_constants.R.value)  # Ideal gas constant in J/(mol·K)
+BOLTZMANN = float(astropy_constants.k_B.value)  # Boltzmann constant in J/K
+REDUCED_PLANCK = float(astropy_constants.hbar.value)  # hbar, J*s -- Hawking radiation (compactRemnant)
+STEFAN_BOLTZMANN_CONSTANT = float(astropy_constants.sigma_sb.value)  # Stefan-Boltzmann constant in W/m²/K⁴
 COSMIC_BACKGROUND_TEMPERATURE_K = 2.725  # Cosmic microwave background, K -- the floor for any body's surface temperature
 
 # --- Astronomical Constants ---
-SOLAR_MASS_TO_KG = 1.989e30  # Solar mass to kilograms conversion factor
-SOLAR_LUMINOSITY = 3.82e26  # Solar luminosity in Watts
+SOLAR_MASS_TO_KG = float(astropy_constants.M_sun.value)  # Solar mass to kilograms conversion factor
+SOLAR_LUMINOSITY = float(astropy_constants.L_sun.value)  # Solar luminosity in Watts
 MILKY_WAY_MASS = 1.15e12 * SOLAR_MASS_TO_KG  # Mass of the Milky Way in kg
 GALACTIC_CENTER_DISTANCE_LY = 25800  # Distance from Sol to the Galactic Center in light-years
-EARTH_MASS_TO_KG = 5.972e24  # Earth mass to kilograms conversion factor
-JUPITER_MASS_TO_KG = 1.898e27  # Jupiter mass to kilograms conversion factor
-JUPITER_RADIUS_KM = 71492  # Jupiter's mean equatorial radius in kilometers
+EARTH_MASS_TO_KG = float(astropy_constants.M_earth.value)  # Earth mass to kilograms conversion factor
+JUPITER_MASS_TO_KG = float(astropy_constants.M_jup.value)  # Jupiter mass to kilograms conversion factor
+JUPITER_RADIUS_KM = float(astropy_constants.R_jup.to_value(astropy_units.km))  # Jupiter's mean equatorial radius in kilometers
 
 # Minimum Mass Solar Nebula (MMSN, Hayashi 1981) *solid* surface density at
 # 1 AU, and its power-law falloff exponent: Sigma_s(a) = SOL_GCM2 *
@@ -102,12 +109,12 @@ ISM_PRESSURE = 2.5e-13  # Pressure of the local interstellar medium in Pascals (
 # ISM_PRESSURE at the heliopause: its ram pressure (rho * v^2, with the
 # star moving through the cloud) plus its thermal pressure (n k T). See
 # starData.compressed_heliosphere_radius.
-HYDROGEN_ATOM_MASS_KG = 1.6735575e-27  # Mass of a hydrogen atom in kg
+HYDROGEN_ATOM_MASS_KG = float((astropy_constants.m_p + astropy_constants.m_e).value)  # Mass of a hydrogen atom in kg
 ISM_MASS_PER_HYDROGEN = 1.4  # Gas mass per hydrogen atom, in hydrogen masses (helium adds ~40%)
 STAR_CLOUD_RELATIVE_SPEED_MS = 26.0 * 1000  # A star's typical speed through its surrounding gas, m/s (the Sun's through the local cloud)
 CM3_TO_M3 = 1e6  # Particles per cm^3 to particles per m^3
-SOLAR_RADIUS_M = 6.957e8  # Radius of the Sun in meters
-SOLAR_ESCAPE_VELOCITY = 617.7 * 1000  # Sun's escape velocity in m/s
+SOLAR_RADIUS_M = float(astropy_constants.R_sun.value)  # Radius of the Sun in meters
+SOLAR_ESCAPE_VELOCITY = math.sqrt(2 * G * SOLAR_MASS_TO_KG / SOLAR_RADIUS_M)  # Sun's escape velocity in m/s (about 617.5 km/s)
 SOLAR_WIND_VELOCITY = 400 * 1000  # Average solar wind velocity in m/s
 SOLAR_MASS_LOSS_RATE = 2e-14 * SOLAR_MASS_TO_KG * (365.25 * 24 * 3600)  # Sun's mass loss rate in kg/s
 
@@ -262,7 +269,7 @@ ESCAPE_VELOCITY_CONSTANT = 2
 RADIUS_SOL_EXPONENT = 2
 LUMINOSITY_SOL_EXPONENT = -0.5
 MASS_SOL_EXPONENT = -1.0
-SECONDS_PER_YEAR = 365.25 * 24 * 3600
+SECONDS_PER_YEAR = float(astropy_units.year.to(astropy_units.s))  # the Julian year, 365.25 days
 HELIOPAUSE_RADIUS_DEFAULT_M = 0
 HYPERGIANT_WIND_VELOCITY_FACTOR = 2.6
 GIANT_WIND_VELOCITY_FACTOR = 0.3

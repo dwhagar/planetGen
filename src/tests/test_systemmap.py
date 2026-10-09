@@ -21,6 +21,7 @@ import re
 import pytest  # noqa: E402
 
 from planetgen.web.maps import systemmap as sm  # noqa: E402
+from planetgen.physics.constants import EARTH_MASS_TO_KG, JUPITER_MASS_TO_KG  # noqa: E402
 
 AU_KM = 1.496e8
 
@@ -768,9 +769,9 @@ def _marker_attrs(html, kind, body_id):
 
 def test_planet_and_moon_markers_carry_radius_and_mass():
     moon = dict(_moon(7, 4e5, 0.0, radius_km=1737.0), mass_kg=7.35e22)
-    earth = dict(_planet(1, 10, AU_KM, 0.0, moons=[moon]), mass_kg=5.972e24)
+    earth = dict(_planet(1, 10, AU_KM, 0.0, moons=[moon]), mass_kg=EARTH_MASS_TO_KG)
     giant = dict(_planet(2, 10, 5 * AU_KM, 0.0, radius_km=69_911.0, planet_class="J", body_type="g"),
-                 mass_kg=1.898e27)
+                 mass_kg=JUPITER_MASS_TO_KG)
     html = sm.render_system_map_panel({"name": "Sol", "binary_configuration": None}, [_star(10)], [earth, giant], [])
     planet = _marker_attrs(html, "planet", 1)
     assert planet["data-radius"] == "6.37 × 10³ km (1.00 Earth radii)"
