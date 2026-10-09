@@ -739,7 +739,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.17 | A saved course record with both forms | none | open |
 | NAV.18 | Save, list, open, rename and delete, per browser | none | open |
 | NAV.19 | Saved courses in the account (after USR.7) | none | open |
-| NAV.20 | Draw the direct line and the route apart | none | open |
+| NAV.20 | Draw the direct line and the route apart | none | done, PR #711 |
 | NAV.21 | Fit the view to the whole course | none | open |
 | NAV.22 | Courses inside a sector and a system | none | open |
 | NAV.23 | Open a saved course on the map | none | open |
