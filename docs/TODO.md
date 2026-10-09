@@ -3010,6 +3010,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   answers it for the scatter and fill phases (see PERF.42, PERF.43,
   PERF.44, PERF.45, PERF.46, PERF.47 and DB.19). Open for Boss: which
   phase took the 10 hours (the log will say).
+  Measurement (2026-10-09): Bugfixes lane 1 (2026-10-09, while fixing
+  ADM.47, PR #846) timed one dense core sector at 84 s: 43 s in
+  `store.insert_sector`, of which 30 s is `reserve_system_names`
+  (database round trips), and 15 s generation. Name reservation is
+  therefore the largest single cost of a dense sector; batch it into one
+  round trip per sector.
 
 - [ ] **PERF.32 Generation performance stats: rates recorded per run, deleted on every new version**
   Boss (GitHub issues [#661](https://github.com/dwhagar/planetGen/issues/661) and [#750](https://github.com/dwhagar/planetGen/issues/750)): "The system should store and use
@@ -3153,6 +3159,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   SupernovaRemnant, Quasar and the compact remnants build their
   word-salad name at generation. Build it when it is first shown. About
   3.5% of a sector fill.
+  Measurement (2026-10-09): the same measurement shows
+  `reserve_system_names` as 30 of a dense core sector's 84 s (see
+  PERF.31); that cost is system names, not the word-salad object names
+  this item covers.
   Prerequisites: none.
   Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
 
@@ -3959,25 +3969,6 @@ Boss (2026-10-07 11:47Z): "Actual specs on layers on the generation
   CLI's `--prevalence` accepts the same shares and rejects a set that is
   not 100%. A share that depends on the local star density is not part
   of this item; the shares stay the same in every sector.
-
-- [ ] **ADM.47 Generating a neighbourhood from the Generate page shows no per-sector stats and looks slow or silent (bug)**
-  Boss (2026-10-09 19:36Z to 19:38Z): generating a neighbourhood from
-  the Generate page gives no per-sector stats (stars per sector,
-  expected against generated density, rogue planets and other objects
-  generated with it) and looks very slow or just silent. Found so far by
-  Bugfixes lane 1: `run_galaxy._log_saved` still logs a "Saved sector"
-  line plus `run_sector.sector_generation_summary_lines` (systems by
-  class, phenomena, actual against expected density) through
-  `log.normal`, but that summary has no rogue planet or other-object
-  counts; what actually reaches the job log from the Generate-page path
-  (subprocess stdout to output.log, non-TTY rich console) is being
-  reproduced, and the speed checked. Done: one cheap per-sector job-log
-  line with stars, expected against generated density, rogue planets and
-  other object counts (no extra queries), and the reason for any
-  slowness found and fixed. Owned by Bugfixes lane 1, in progress.
-  Supersedes the withdrawn ADM.46 request (a progress line and per-layer
-  counts), which Boss does not want.
-  Prerequisites: none.
 
 ## SEC: Security
 
