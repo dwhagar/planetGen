@@ -113,7 +113,7 @@ that files it.
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
 | 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 is done (PR #476); GEN.117, and GEN.116 is closed (Boss 2026-10-08 17:46Z). |  |
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.41, GEN.98, GEN.100, GEN.99, GEN.101, GEN.102, GEN.103, GEN.84, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, GEN.94, GEN.104, GEN.106, GEN.107, GEN.108, NAV.10, NAV.12, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, NAV.43, NAV.44, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, OPS.8, OPS.13, OPS.14, ADM.18, GEN.59, UX.49, UX.76, UX.77, MAP.135, MAP.136, MAP.137, MAP.138, ADM.39, ADM.40, ADM.41, PERF.34, GEN.127, PERF.31, PERF.32, GEN.128, ADM.42 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.41, GEN.98, GEN.100, GEN.99, GEN.101, GEN.102, GEN.103, GEN.84, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, GEN.94, GEN.104, GEN.106, GEN.107, GEN.108, NAV.10, NAV.12, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, NAV.43, NAV.44, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, OPS.8, OPS.13, OPS.14, ADM.18, GEN.59, UX.49, UX.76, UX.77, MAP.136, MAP.137, MAP.138, ADM.39, ADM.40, ADM.41, PERF.34, GEN.127, PERF.31, PERF.32, GEN.128, ADM.42 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, API.16, ADM.17, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18, PERF.33, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, DB.15, ADM.43, ADM.44 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, repair that reads the newest settings JSON, and the anomalies chosen in phase 2. | NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, DB.10, ADM.20, GEN.114, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies, and the end state of reproducible galaxies (`generate.py reproduce`). | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, OPS.12, GEN.55 |
@@ -483,16 +483,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   each kind can be turned off (MAP.123), and a browser test finds one of
   each on a seeded sector.
   Prerequisite: GEN.84.
-
-- [ ] **MAP.135 Selecting the first slab or wedge shows its bounds (bug)**
-  Boss (GitHub issue [#770](https://github.com/dwhagar/planetGen/issues/770), 2026-10-09 05:39Z): "When the user selects
-  the first slab after selecting the wedge segment of the galaxy they
-  want to view, the system shows no information about the bounds of that
-  location. Same for the wedge." Done: selecting a wedge, and the first
-  slab inside it, shows the same bounds information every other stage
-  shows (layer range, ring and column span, sector counts); a browser
-  test selects a wedge then its first slab and checks the info panel.
-  Shares the info panel of MAP.65 and the stage logic of MAP.59.
 
 - [ ] **MAP.136 Binary stars pick as one system and their 3D orbits are drawn clearly (bug)**
   Boss (GitHub issues [#709](https://github.com/dwhagar/planetGen/issues/709) and [#708](https://github.com/dwhagar/planetGen/issues/708), 2026-10-09 00:16Z): "In binary star
@@ -1726,6 +1716,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   fill time, since scattering them would mean about 1.3 billion rows.
 
 - [ ] **GEN.101 Fill order: nearest sectors first along a pruned Hilbert octree curve**
+  Boss (2026-10-07 17:11Z) approved keeping the Hilbert order, with a
+  logged jump where the ball cuts the curve.
   Boss (2026-10-07 11:47Z): "Change fill algorithm to fill sectors
   nearest to the original sector first, circling outward using a
   geometric 3D space-filling curve via a pruned Hilbert octree over the
@@ -1833,6 +1825,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
 
   - [ ] **GEN.115 The galaxy's own gravity: a smooth disk, bulge and halo potential**
+    Boss (2026-10-07 17:11Z) approved scaling the potential with the
+    galaxy's shape.
     Boss (2026-10-07 12:25Z): "We'll have to add a galactic gravitational
     gradient but we need to make sure that it's consistent with actual
     science." His research ("Computational Astrodynamics.md") gives the
@@ -2525,6 +2519,21 @@ Boss (2026-10-07 11:47Z): "Actual specs on layers on the generation
   like robots.txt and such." Done: the settings page gains site icons,
   Open Graph and link-preview fields, a description and keywords, and
   editable robots.txt and similar documents, all served by the site.
+
+- [ ] **ADM.45 Prevalence fields take the override share directly and must total 100%**
+  Boss (2026-10-09 07:48Z): "Prevalence fields instead of being +/- % they will be just type in the override % number, the form should force the user to make sure the whole thing =100% and should make it clear what to do so it isn't confusing. I don't think we need a density dependent share."
+  Follows ADM.37 (PR #514), which made the Generate page show each
+  feature's real default share. Done: every prevalence field on the
+  Generate page is a plain number box holding the share, in percent,
+  that the feature should have, starting at its real default; the user
+  types the override instead of a plus or minus change. The page shows a
+  running total of the shares that belong together, says in words what
+  to do when it is not 100% (which fields to raise or lower and by how
+  much), and will not start the run until the set adds up to exactly
+  100%. A test submits sets that add up and sets that do not, and the
+  CLI's `--prevalence` accepts the same shares and rejects a set that is
+  not 100%. A share that depends on the local star density is not part
+  of this item; the shares stay the same in every sector.
 
 ## SEC: Security
 

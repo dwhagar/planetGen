@@ -242,9 +242,9 @@ From PR #431's red CI (coordinator, 2026-10-03): PERF.27, DB.12, OPS.25, MAP.114
 
 DB.8, DB.7, NAV.10 (Alembic), ADM.15 (RQ workers), UX.3 (progress from RQ), UX.23 (astropy.units), ADM.18 and OPS.13 (naming key instead of word lists and corpus hashes), GEN.57 (no name collisions), PERF.18 and PERF.20 (RQ and the new caches), API.12 and VIEW.4 (naming key), NAV.5, MAP.70. Each has a "Plan (2026-10-07)" line in TODO.md.
 
-### Decisions for Boss
+### Boss's answers
 
-Boss (2026-10-07 17:11Z, answering the open decisions). His words are quoted.
+Boss (2026-10-07 17:11Z, answering the open decisions; 2026-10-09 07:48Z, confirming them all). His words are quoted. Each answer is written into its TODO item.
 
 - **Lane order**: "When one thread is idle waiting for CI we can start another thread on something else, the idea being to always have at least 1 thread going without even going tover the 2 dev 1 todo limit." So up to two build threads and the TODO thread; a thread waiting on CI may hand off to another.
 - **Redis on Windows (OPS.21)**: "Let's say Redis in WSL". OPS.27 dropped Memurai from the installer and docs (done, PR #475).
@@ -259,7 +259,7 @@ Boss (2026-10-07 17:11Z, answering the open decisions). His words are quoted.
 - **GEN.65**: "I do not have the error message, keep an eye out for it, but put it on the back burner for something to watch out for, design a test that will test for it in a variety of situations, I think this error occurred when I was attempting to generate  a neighborhood when the center was close to the edge of the galaxy." In GEN.65.
 
 - **Wiki uploads on the queue (PERF.24)**: Boss (2026-10-08 00:14Z) reversed the audit decision: wiki uploads go on the Redis queue too, because he may want batch uploads later.
-- **Prevalence fields show real shares (ADM.37)**: Boss (2026-10-08 00:12Z): the Generate page shows each feature's real default share (habitable worlds 24.2%, asteroid belts 59%) and the user types the share they want, not "0% change"; the page must always show meaningful information. Shares are the same in every sector today; a density-dependent share would be a new generation feature, filed only if Boss asks.
+- **Prevalence fields (ADM.37, then ADM.45)**: Boss (2026-10-08 00:12Z): the Generate page shows each feature's real default share (habitable worlds 24.2%, asteroid belts 59%), not "0% change" (done, PR #514). Boss (2026-10-09 07:48Z): the fields are not plus or minus percentages: the user types the override percent, the form forces the set to total 100% and makes clear what to do, and there is no density-dependent share. This is ADM.45.
 
 No decisions are open. (GEN.67, Boss 2026-10-08: stars and sectors keep word salad, planets, moons and belts keep the "<star name> I" pattern, and the codec names only the objects with no star-derived name; defaults stand for constellations and the naming key.)
 

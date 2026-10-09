@@ -20,7 +20,7 @@ release is stamped.
 | PERF | PERF.35 |
 | DB | DB.16 |
 | API | API.20 |
-| ADM | ADM.45 |
+| ADM | ADM.46 |
 | SEC | SEC.32 |
 | TEST | TEST.110 |
 | USR | USR.9 |
@@ -433,6 +433,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.42 | One settings model describes every config.json option | none | open |
 | ADM.43 | A full configuration page under Admin | none | open |
 | ADM.44 | Web, Open Graph and SEO settings | none | open |
+| ADM.45 | Prevalence fields take the override share directly and must total 100% | none | open |
 | API.1 | Create a system inside an existing sector | 10 (2026-09-24 01:32Z to 02:18Z); 7 (2026-09-24 01:57Z to 02:02Z); 5 (2026-09-24 02:25Z to 05:38Z); 4 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 13 (2026-09-30 16:44Z); 14 (2026-09-30 16:49Z); 15 (2026-09-30 16:51Z to 18:09Z); 32 (2026-09-30 18:14Z); 37 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.2 | Edit a system's generated content | 11 (2026-09-24 01:32Z to 02:18Z); 8 (2026-09-24 01:57Z to 02:02Z); 6 (2026-09-24 02:25Z to 05:38Z); 5 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 14 (2026-09-30 16:44Z); 15 (2026-09-30 16:49Z); 16 (2026-09-30 16:51Z to 18:09Z); 33 (2026-09-30 18:14Z); 38 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.3 | Remote generate: generate on a local machine, upload through the API | none | open |
@@ -734,7 +735,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.124 | The Galaxy Map opens zoomed to fit all charted space | none | done, PR #696 |
 | MAP.125 | Infinite zoom: one 3D interface from the galaxy down to a moon | none | done, PR #683 |
 | MAP.126 | Show the orbital trajectories of selected objects in their frame of reference | none | done, PR #686 |
-| MAP.135 | Selecting the first slab or wedge shows its bounds (bug) | none | open |
+| MAP.135 | Selecting the first slab or wedge shows its bounds (bug) | none | done, PR #788 |
 | MAP.136 | Binary stars pick as one system and their 3D orbits are drawn clearly (bug) | none | open |
 | MAP.137 | Rogue planets are easy to see, with the right default filters (bug) | none | open |
 | MAP.138 | Recenter the camera in every 3D view (bug) | none | open |
