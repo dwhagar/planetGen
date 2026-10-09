@@ -422,6 +422,20 @@ masses (23:16Z), as a spline.
   rotation curve and the runaway velocity is carried with it, not integrated. A loaded sector's
   objects carry the epoch `store.get_orbit_epoch_unix` gives (when the
   orbits were last advanced).
+- **A body with no closed orbit gets a path through its sector**
+  (`physics/sector_path.py`, GEN.123). `integrate_path` follows a test
+  particle from the sector entry, with the velocity it has there, against
+  the sector's point masses until it leaves the cell (`sector_inside`,
+  `galaxy.geometry`). Masses that cannot move it by a tenth of the
+  tolerance are skipped (`relevant_masses`: a pass at impact parameter `b`
+  bends velocity by about `2 mu / (b v)`), at most 32 are used, and each is
+  softened like the galaxy's own (1 pc). The path is cubic Hermite spline
+  knots (time, position, velocity): the ends, then the integrated sample the
+  spline is furthest from, until it is within 0.2% of the sector edge or 48
+  knots, so a straight crossing is two knots. The exit knot is the next
+  sector's entry (`SectorPath.restart`). Tests check the bend against the
+  hyperbolic deflection `2 asin(1/e)`, `e = sqrt(1 + (b v^2 / mu)^2)`, to 2%.
+  Saving the knots with the sector and the job that fills them follow.
 - **The orbit is derived from the vector, never stored.** A planet's, moon's
   or comet's `orbit_from_vector()` works the osculating orbit out of its
   position and velocity relative to its primary
