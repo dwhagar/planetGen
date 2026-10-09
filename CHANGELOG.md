@@ -1,5 +1,10 @@
 # Changelog
 
+## [7.379.678] - 2026-10-09
+
+### Changed
+- The Galaxy Map's star class buttons and dimmest-star slider now also thin the stars drawn from the map's tiles at galaxy scale, and the Menu offers them even with no sector open (MAP.123).
+
 ## [7.378.678] - 2026-10-09
 
 ### Changed
