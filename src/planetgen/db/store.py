@@ -3972,14 +3972,36 @@ def refresh_containment(conn, sector_ids, on_progress=None):
         sector_ids (iterable): `sectors.id` values; unplaced ones are skipped.
         on_progress (callable, optional): `on_progress("Sectors", done, total)`
             after each batch of sectors.
+
+    Returns:
+        dict: How many objects entered and left a container (GEN.107):
+            `CONTAINMENT_COUNTS` -> count. Moving from one nebula straight
+            into another counts as leaving one and entering the other.
     """
+    counts = dict.fromkeys(CONTAINMENT_COUNTS, 0)
     sector_ids = sorted(set(sector_ids))
     for start in range(0, len(sector_ids), 500):
-        _refresh_containment_batch(conn, sector_ids[start:start + 500])
+        _refresh_containment_batch(conn, sector_ids[start:start + 500], counts)
         _report(on_progress, "Sectors", min(start + 500, len(sector_ids)), len(sector_ids))
+    return counts
 
 
-def _refresh_containment_batch(conn, sector_ids):
+CONTAINMENT_COUNTS = ("entered_nebula", "left_nebula", "entered_remnant", "left_remnant")
+"""tuple: The keys of `refresh_containment`'s counts."""
+
+
+def _count_containment_change(counts, old, new):
+    """Adds one row's change of `(nebula, remnant)` container to `counts`."""
+    for (old_id, new_id), kind in zip(zip(old, new), ("nebula", "remnant")):
+        if old_id == new_id:
+            continue
+        if old_id is not None:
+            counts[f"left_{kind}"] += 1
+        if new_id is not None:
+            counts[f"entered_{kind}"] += 1
+
+
+def _refresh_containment_batch(conn, sector_ids, counts):
     marks = ", ".join("?" * len(sector_ids))
     sectors = conn.execute(
         f"SELECT id, center_x_pc, center_y_pc, center_z_pc, edge_mpc FROM sectors"
@@ -4002,8 +4024,10 @@ def _refresh_containment_batch(conn, sector_ids):
         best = innermost_container(point, containers, own_radius_pc, own) if point is not None else None
         new = (best["id"] if best and best["column"] == "inside_nebula_id" else None,
                best["id"] if best and best["column"] == "inside_remnant_id" else None)
-        if new != (row["inside_nebula_id"], row["inside_remnant_id"]):
+        old = (row["inside_nebula_id"], row["inside_remnant_id"])
+        if new != old:
             changes.setdefault(table, []).append((row["id"], *new))
+            _count_containment_change(counts, old, new)
 
     for row in conn.execute(
         f"SELECT id, sector_id, position_x_mpc, position_y_mpc, position_z_mpc, inside_nebula_id, inside_remnant_id"
@@ -4889,10 +4913,13 @@ def refresh_after_motion(conn, refiled_sectors=(), on_progress=None):
             systems"`) are refreshed.
 
     Returns:
-        int: How many location texts were rewritten.
+        dict: `"locations"`, how many location texts were rewritten, and
+            how many objects entered or left a nebula or supernova remnant
+            (`refresh_containment`'s counts, GEN.107).
     """
     placed = [row["id"] for row in conn.execute("SELECT id FROM sectors WHERE center_x_pc IS NOT NULL").fetchall()]
-    refresh_containment(conn, placed, lambda _label, done, total: _report(on_progress, "Containment: sectors", done, total))
+    containment = refresh_containment(
+        conn, placed, lambda _label, done, total: _report(on_progress, "Containment: sectors", done, total))
     changed = refresh_nearest_systems(
         conn, placed, lambda _label, done, total: _report(on_progress, "Nearest systems: sectors", done, total))
     system_ids = {object_id for table, object_id in changed if table == "star_systems"}
@@ -4923,7 +4950,7 @@ def refresh_after_motion(conn, refiled_sectors=(), on_progress=None):
             conn.executemany("UPDATE star_systems SET location = ?, modified_at = modified_at WHERE id = ?", updates)
             rewritten += len(updates)
         _report(on_progress, "Locations: systems", min(start + 500, len(system_ids)), len(system_ids))
-    return rewritten
+    return {"locations": rewritten, **containment}
 
 
 # ---------------------------------------------------------------------------

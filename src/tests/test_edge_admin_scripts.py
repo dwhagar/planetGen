@@ -366,8 +366,9 @@ def test_update_orbits_first_run_sets_a_starting_point_then_advances(seeded, mon
     second = capsys.readouterr().out
     assert "years elapsed since the last update" in second
     lines = second.strip().splitlines()
-    assert lines[-2].startswith("Updated:")
-    assert lines[-1].startswith("Moved ")  # galactic motion, after the phases
+    assert lines[-3].startswith("Updated:")
+    assert lines[-2].startswith("Moved ")  # galactic motion, after the phases
+    assert "entered a nebula" in lines[-1] and "left one" in lines[-1]  # GEN.107
 
 
 def test_update_orbits_reports_its_five_steps_to_the_progress_file(seeded, monkeypatch, tmp_path):
