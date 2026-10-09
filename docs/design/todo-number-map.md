@@ -897,7 +897,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.18 | Show phenomena's octant and nearest systems | 26 (2026-09-30 18:14Z to 2026-10-01 04:37Z) | done: storage in 7.33.0 (PR #149), pages in 7.48.0 (PR #167) |
 | UX.19 | Asteroid belt rows: density, range, top minerals; no Zone column (bug) | none | done, PR #213 |
 | UX.20 | Scientific notation past 4 digits before the decimal point (bug) | none | done, PR #216 |
-| UX.21 | Clean up the web interface: overlapping buttons and dead controls (bug) | none | open |
+| UX.21 | Clean up the web interface: overlapping buttons and dead controls (bug) | none | done, PR #707 |
 | UX.22 | Meaningful units for every measurement | none | open |
 | UX.23 | A shared unit-ladder module | none | open |
 | UX.24 | Sector contents: rogue planets after systems and phenomena, and expanded rows the full table width (bug) | none | done, PR #487 |
