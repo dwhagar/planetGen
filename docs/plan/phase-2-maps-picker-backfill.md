@@ -181,6 +181,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | DB.15 | A migration progress bar with the time remaining | PERF.32 | GitHub issue [#727](https://github.com/dwhagar/planetGen/issues/727). |
 | ADM.43 | A full configuration page under Admin | ADM.42 | GitHub issue [#515](https://github.com/dwhagar/planetGen/issues/515). |
 | ADM.44 | Web, Open Graph and SEO settings | ADM.42, ADM.43 | GitHub issue [#743](https://github.com/dwhagar/planetGen/issues/743). |
+| GEN.134 | Tune the star populations to the observed star-formation profile by galactic radius |  | From GEN.133's four unbuilt proposals (star-types-by-galactic-radius.md); Boss to confirm which he wants. |
 
 ## Open questions for Boss
 
