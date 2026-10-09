@@ -447,6 +447,27 @@ with `clamp()`.
   count of units done against units expected, with the estimate PERF.33
   describes once that lands (until then the plain count). Handed to
   Bugfixes lane 1.
+  Survey (2026-10-09): read of the code on main (not run): steps that
+  already draw a bar are the sector batches, the bright-star backfill,
+  "Neighbours" (one bar over batches of sectors in
+  `store.link_sector_neighbors`), "Sector paths" (`settle_after_run`),
+  "Topping up backfilled sectors", the plan's layer tracker, the
+  phenomenon scatter (one bar over layers, `scatter_phenomena`), and the
+  two-bar `StageProgress` of `planetgen.cli.reset` and
+  `planetgen.cli.orbits`. Lacking a bar of their own, to check and fix:
+  (1) inside each neighbour batch, the three passes of
+  `link_sector_neighbors` (containment, nearest systems, merge into the
+  neighbours), which are one silent step per batch and can run long on a
+  big batch; (2) the phenomenon scatter: `clear_phenomenon_scatter`, one
+  whole layer (a single queue task with no bar inside it) and the
+  closing `special_rows`, insert and stamp; (3) the Generate page job
+  view, which shows only what the progress file carries, so every step
+  above must write to it; (4) not yet checked: the name registry passes,
+  the containment and nearest passes of `refresh_containment` and
+  `refresh_nearest_systems` when run outside a galaxy run, the
+  end-of-update map warm-up (`warm_map`) and the migration (DB.15). Each
+  step found without one is a sub-bullet of this bug; the 15 second rule
+  applies to any pass the measured rate (PERF.32) says will pass it.
   Prerequisites: none. Related: PERF.33, PERF.34, DB.15, UX.3.
 
 ## MAP: Galaxy Map, Sector Map, System Map
