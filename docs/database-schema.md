@@ -1227,7 +1227,7 @@ One row per generated system (single-star or binary).
 | `system_flavor_text` | TEXT | nullable | Decided once at generation time (Phase 0 fix). |
 | `runaway_class` | VARCHAR(16) | nullable, `runaway` or `hypervelocity` | Added in v37. NULL for an ordinary star; set by `generate.flag_fast_stars`. |
 | `runaway_speed_kms` | DOUBLE | nullable | Added in v37. The star's speed relative to its neighbors when `runaway_class` is set. |
-| `velocity_x_kms`, `velocity_y_kms`, `velocity_z_kms` | DOUBLE | NOT NULL, default 0 | Added in v61 (GEN.121). The system's velocity, km/s on the galactic axes: the rotation curve's tangent at its place plus its runaway motion. `advance_galactic_positions` turns it with the position. 0 while the system has no place in the galaxy. |
+| `velocity_x_kms`, `velocity_y_kms`, `velocity_z_kms` | DOUBLE | NOT NULL, default 0 | Added in v61 (GEN.121). The system's velocity, km/s on the galactic axes: the rotation curve's tangent at its place plus its runaway motion. `advance_galactic_positions` turns it with the position (a hypervelocity star instead flies a straight line, `p0 + v (t − t0)`, and keeps its velocity; GEN.137, `galaxy/straight_line.py`). 0 while the system has no place in the galaxy. |
 | `epoch_unix`, `next_update_due` | DOUBLE | nullable, `next_update_due` indexed | Added in v66 (GEN.106). The galactic orbit's clock (see `orbit_simulation_state`): the system, its stars' `galactic_orbital_phase_deg` and a close pair's `binary_galactic_orbital_phase_deg` move together when it is due. `binary_epoch_unix`/`binary_next_update_due` are the same for a pair's mutual orbit. |
 | `schema_version` | INTEGER | NOT NULL, default 1 | See "Versioning" above. |
 | `mediawiki_url` | TEXT | nullable | Where this system's page lives (or should live) on MediaWiki. |
@@ -1982,3 +1982,8 @@ content), not any individual sector; `sectors.ring_index` is the ring
 both an actual generated sector and a `galaxy_layer` row are
 independently expressed in, not an FK
 relationship.
+
+
+### v69 (GEN.137): `phenomenon_scatter.epoch_unix`
+
+`phenomenon_scatter.epoch_unix` (DOUBLE, nullable): the orbit epoch a scattered hypervelocity star's position holds at, stamped when the plan draws it (NULL when no orbit update has run yet, meaning the database's orbit epoch). The built star system inherits it as its own `epoch_unix`, so the next orbit update flies it on from there.

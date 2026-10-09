@@ -15,7 +15,9 @@ from planetgen.galaxy.geometry import (
 )
 from planetgen.galaxy.galactic_orbit import calculate_galactic_orbit
 from planetgen.galaxy.sector import SpaceSector
+from planetgen.galaxy.straight_line import scatter_position_mpc, straight_line_position_pc
 from planetgen.generation.system import StarSystem
+from planetgen.physics import constants as physical_constants
 from planetgen.physics.units import pc_to_ly
 
 EDGE_PC = 4.0
@@ -204,3 +206,58 @@ def test_update_orbits_runs_end_to_end(mysql_config, monkeypatch, capsys):
     updateOrbits.main()
     out = capsys.readouterr().out
     assert "Moved 1 object(s) along their galactic orbits; 0 changed sector." in out
+
+
+def test_a_hypervelocity_star_flies_a_straight_line_while_a_bound_star_orbits(mysql_config):
+    sector, position = _place(3, [(0.0, 0.0, 0.0), (0.0, 0.0, 0.0)], "Runaway")
+    sector_id = store.save_sector(sector, config=mysql_config, galaxy_position=position)
+    center = (position["center_x_pc"], position["center_y_pc"], position["center_z_pc"])
+    velocity = (30.0, -40.0, 5.0)
+    elapsed = 1e5
+    conn = store.get_connection(mysql_config)
+    try:
+        flyer, bound = [r["id"] for r in conn.execute(
+            "SELECT id FROM star_systems WHERE sector_id = ? ORDER BY id", (sector_id,)).fetchall()]
+        with conn:
+            conn.execute("UPDATE stars SET galactic_orbital_period_gy = 1.0")
+            conn.execute("UPDATE star_systems SET runaway_class = 'hypervelocity', runaway_speed_kms = 50.0,"
+                         " velocity_x_kms = ?, velocity_y_kms = ?, velocity_z_kms = ? WHERE id = ?", (*velocity, flyer))
+            start = conn.execute("SELECT position_x_mpc, position_y_mpc, position_z_mpc FROM star_systems"
+                                 " WHERE id = ?", (flyer,)).fetchone()
+            motion = store.advance_galactic_positions(conn, store.orbit_clock(conn, elapsed))
+        assert motion["moved"] >= 2
+        row = conn.execute("SELECT * FROM star_systems WHERE id = ?", (flyer,)).fetchone()
+        assert (row["velocity_x_kms"], row["velocity_y_kms"], row["velocity_z_kms"]) == pytest.approx(velocity)
+        orbiting = conn.execute("SELECT velocity_x_kms, velocity_y_kms FROM star_systems WHERE id = ?",
+                                (bound,)).fetchone()
+        assert (orbiting["velocity_x_kms"], orbiting["velocity_y_kms"]) != pytest.approx(velocity[:2])
+        found = conn.execute("SELECT ring_index, layer_index, ring_slot_index FROM sectors WHERE id = ?",
+                             (row["sector_id"],)).fetchone()
+        now = local_to_galaxy_pc(sector_position_pc(found["ring_index"], found["layer_index"],
+                                                    found["ring_slot_index"], EDGE_PC),
+                                 (row["position_x_mpc"] / 1000, row["position_y_mpc"] / 1000,
+                                  row["position_z_mpc"] / 1000))
+    finally:
+        conn.close()
+    origin = local_to_galaxy_pc(center, tuple(start[k] / 1000 for k in
+                                              ("position_x_mpc", "position_y_mpc", "position_z_mpc")))
+    expected = straight_line_position_pc(origin, velocity, elapsed * physical_constants.SECONDS_PER_YEAR)
+    assert now == pytest.approx(expected, abs=1e-3)
+    assert math.dist(now, origin) > 0.5  # it did go somewhere
+
+
+def test_straight_line_position_is_the_start_plus_velocity_times_time():
+    km_per_pc = physical_constants.PARSEC_M / 1000.0
+    assert straight_line_position_pc((1.0, 2.0, 3.0), (km_per_pc, 0.0, -km_per_pc), 10.0) == pytest.approx(
+        (11.0, 2.0, -7.0))
+    assert straight_line_position_pc((1.0, 2.0, 3.0), (5.0, 5.0, 5.0), 0.0) == (1.0, 2.0, 3.0)
+    assert straight_line_position_pc((0.0, 0.0, 0.0), (km_per_pc, 0.0, 0.0), -3.0) == pytest.approx((-3.0, 0.0, 0.0))
+
+
+def test_a_scatter_row_flies_on_from_its_epoch_and_other_kinds_stay():
+    row = {"kind": "hypervelocity-star", "position_x_mpc": 1000.0, "position_y_mpc": 0.0, "position_z_mpc": 0.0,
+           "velocity_x_kms": physical_constants.PARSEC_M / 1000.0, "velocity_y_kms": 0.0, "velocity_z_kms": 0.0,
+           "epoch_unix": 100.0}
+    assert scatter_position_mpc(row, 105.0) == pytest.approx((6000.0, 0.0, 0.0))
+    assert scatter_position_mpc(dict(row, epoch_unix=None), 105.0) == (1000.0, 0.0, 0.0)
+    assert scatter_position_mpc(dict(row, kind="neutron-star"), 105.0) == (1000.0, 0.0, 0.0)

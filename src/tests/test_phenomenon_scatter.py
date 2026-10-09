@@ -161,6 +161,7 @@ def test_a_plan_run_stores_the_scatter_and_its_seed_and_a_rerun_replaces_it(mysq
         conn.close()
     assert seed is not None
 
+    assert {row["epoch_unix"] for row in stored if row["kind"] == "hypervelocity-star"} == {None}  # no orbit update yet
     run_plan.scatter_phenomena(_plan_args(mysql_config))
     again = _rows(mysql_config)
     assert 50 < len(again)

@@ -759,6 +759,7 @@ def scatter_phenomena(args):
                              weight=weights[layer_index], on_done=layer_done)
         special = list(phenomenon_scatter.special_rows(extents, skeleton.edge_pc, seed, filled))
         store.insert_phenomenon_scatter(conn, special)
+        store.stamp_phenomenon_scatter_epoch(conn)
         for row in special:
             counts[row[3]] = counts.get(row[3], 0) + 1
         store.record_phenomenon_scatter(conn, seed)

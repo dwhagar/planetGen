@@ -779,8 +779,10 @@ def _neighborhood_candidates(center, radius_pc, edge_pc, config, bounds):
 def _neighborhood_batch(args, candidates, occupied, batch_density, suffix="", skip=()):
     """
     The not-yet-generated sectors among `candidates`
-    (`_neighborhood_candidates`), as `_submit_batch` items, nearest
-    first as enumerated; `suffix` may hold `{distance}` (pc).
+    (`_neighborhood_candidates`), as `_submit_batch` items, in
+    the order `candidates` came (ring by ring, not nearest first: sort them
+    by distance before applying any limit, GEN.101); `suffix` may hold
+    `{distance}` (pc).
 
     Returns:
         tuple: `(batch, already_existed, skipped)`.
