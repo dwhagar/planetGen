@@ -181,6 +181,16 @@ used, so the OS, architecture and Python parts cover the maths library.
   SHA-256 per sector and for a region, in address order with canonical
   number formatting, skipping ids and timestamps, either as first
   generated or with the settings file applied.
+  As built (GEN.58, `planetgen/db/fingerprint.py`): each row is one
+  line of canonical JSON (floats in shortest round-trip form, bytes in
+  hex), foreign keys replaced by what they point at (a sector's address,
+  an object's `uid`, a system configuration's digest); a sector's digest
+  is the SHA-256 of its lines sorted, so save order doesn't count; the
+  region's is over its sectors' lines in address order, with the plan's
+  first for the whole galaxy. Clocks (GEN.106), nearest systems, the
+  location text, sector paths and stats, and population data are left
+  out. It reads the galaxy as stored; the settings-file layer waits for
+  GEN.59.
 - **Golden test (TEST.77).** A fixed seed builds a small galaxy (plan, a
   few sectors, a scatter, a backfill) at 1 and 4 workers on every CI
   Python leg, and its fingerprint must match the one pinned in

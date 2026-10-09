@@ -16,6 +16,7 @@ or as the installed `planetgen` command):
     planetgen population [options]  -- species, civilizations and territories
     planetgen check-math            -- the math check bulk runs start with
     planetgen versions              -- the version keys each update recorded
+    planetgen fingerprint [options] -- a digest of the generated content (GEN.58)
 
 Run `planetgen <command> --help` for that command's own full option
 list. This module is the command line: every command's options and
@@ -33,7 +34,7 @@ import time
 import pymysql
 
 from planetgen.queue import work as workQueue
-from planetgen.db import store
+from planetgen.db import fingerprint, store
 from planetgen.admin import activity_log
 from planetgen.generation import limits, prevalence
 from planetgen.galaxy import seed as galaxySeed, version_key
@@ -941,6 +942,23 @@ def validate_phenomenon_args(args, parser):
                      "belongs to its own StarSystem, not directly to a sector.")
 
 
+def add_fingerprint_arguments(parser):
+    """
+    Adds the `fingerprint` subcommand's options: the region (`--ring`,
+    `--sector`; the whole galaxy without either), and the MySQL connection
+    and logging args.
+
+    Args:
+        parser (argparse.ArgumentParser): The parser to add options to.
+    """
+    parser.add_argument('--ring', type=int, action='append', metavar='RING',
+                        help="Fingerprint every sector on this ring (repeatable).")
+    parser.add_argument('--sector', type=int, nargs=3, action='append', metavar=('RING', 'LAYER', 'SLOT'),
+                        help="Fingerprint the sector at this address (repeatable).")
+    store.add_mysql_connection_args(parser)
+    add_logging_arguments(parser)
+
+
 def add_population_arguments(parser):
     """
     Adds the `population` subcommand's options: `--rescan`,
@@ -1034,6 +1052,15 @@ def build_parser():
     store.add_mysql_connection_args(versions_parser)
     add_logging_arguments(versions_parser)
 
+    fingerprint_parser = subparsers.add_parser(
+        'fingerprint',
+        description="Prints a canonical SHA-256 digest of each sector's generated content, and one for the "
+                    "region (the whole galaxy, plan included, without --ring or --sector), skipping row ids, "
+                    "timestamps and what is rebuilt from positions (docs/design/reproducible-galaxies.md). "
+                    "Two builds of one galaxy are the same when their digests match. Writes nothing.",
+        help="Print a digest of the generated content, to compare two builds.")
+    add_fingerprint_arguments(fingerprint_parser)
+
     population_parser = subparsers.add_parser(
         'population',
         description="Population and Politics Pass",
@@ -1049,6 +1076,7 @@ def build_parser():
         'population': population_parser,
         'check-math': check_math_parser,
         'versions': versions_parser,
+        'fingerprint': fingerprint_parser,
     }
 
 
@@ -1112,6 +1140,19 @@ def process_args():
     return args
 
 
+def run_fingerprint(args):
+    """`planetgen fingerprint`: prints one line a sector (its address and
+    digest), the plan's digest for the whole galaxy, and the region's
+    (`planetgen.db.fingerprint`, GEN.58)."""
+    conn = store.get_connection(store.mysql_config_from_args(args))
+    try:
+        result = fingerprint.region_fingerprint(conn, rings=args.ring, addresses=args.sector)
+    finally:
+        conn.close()
+    for line in result.lines():
+        print(line)
+
+
 def run_check_math(args):
     """`planetgen check-math`: prints the math check's report and exits
     1 if any check failed (TEST.68)."""
@@ -1127,6 +1168,11 @@ def run_versions(args):
     """`planetgen versions`: prints the version-key history (OPS.13)."""
     from planetgen.cli import version_history
     log.normal(version_history.format_history(store.mysql_config_from_args(args)))
+
+
+READ_ONLY_COMMANDS = ("check-math", "fingerprint", "versions")
+"""tuple: Subcommands that write nothing, so they aren't logged as runs
+(no activity log lines, job tree node or run history)."""
 
 
 BULK_COMMANDS = ("galaxy", "plan", "population")
@@ -1145,6 +1191,7 @@ def is_bulk_run(args):
 _COMMAND_HANDLERS = {
     'check-math': run_check_math,
     'versions': run_versions,
+    'fingerprint': run_fingerprint,
     'system': run_system.run_system,
     'sector': run_sector.run_sector,
     'galaxy': run_galaxy.run_galaxy,
@@ -1174,7 +1221,7 @@ def main():
         log.configure(level, debug_file=(args.debug or None))
     except OSError as exc:
         _fatal(f"cannot open --debug file {args.debug!r}: {exc.strerror or exc}", logger_ready=False)
-    logged = not getattr(args, "output", None) and args.command not in ("check-math", "versions")
+    logged = not getattr(args, "output", None) and args.command not in READ_ONLY_COMMANDS
     log.normal(version_key.run_line(_run_line_seed(args) if logged else None, " ".join(_run_argv(sys.argv[1:]))))
     log.debug("Command: %s, options: %s", args.command,
               {key: ("<withheld>" if "password" in key else value) for key, value in sorted(vars(args).items())})
@@ -1194,7 +1241,7 @@ def main():
 
     # One start and one finish line per run in the activity log (SEC.28);
     # a `system --output` run writes no database, so it isn't logged, nor
-    # is `check-math`, which writes nothing (`logged`, above).
+    # are `check-math` and `fingerprint`, which write nothing (`logged`, above).
     try:
         database = store.mysql_config_from_args(args).database
     except AttributeError:  # a subcommand without the --mysql-* options
