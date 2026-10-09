@@ -722,7 +722,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.126 | Show the orbital trajectories of selected objects in their frame of reference | none | done, PR #686 |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
-| NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | open |
+| NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
 | NAV.4 | Save a course | none | open |
 | NAV.5 | Show a course on the Galaxy Map | none | open |
 | NAV.6 | Courses that steer clear of gravity wells | none | open |
@@ -769,7 +769,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.47 | Unknown-space jumps stop at scattered stars, black holes, neutron stars and quasars | none | open |
 | NAV.48 | Offer to generate the uncharted sectors that block a course | none | open |
 | NAV.49 | Waypoints: pick objects in Star select mode and plot a course through them, kept on the map until cleared | none | open |
-| NAV.50 | Pick any object down to a moon as a NAV endpoint | none | open |
+| NAV.50 | Pick any object down to a moon as a NAV endpoint | none | done, PR #724 |
 | NAV.51 | Courses route around asteroid fields | none | open |
 | OPS.1 | Build the version number from the category counters (item 80's version-scheme questions) | none (split from 80 by the renumbering) | done in the version-from-todo-counters PR |
 | OPS.2 | Apache OOM-killed on the production server | 1 (2026-09-24 01:32Z to 02:02Z) | done in 5.47.0, PR #72 |
