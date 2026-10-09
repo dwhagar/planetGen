@@ -528,6 +528,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   each on a seeded sector.
   Prerequisite: GEN.84.
 
+- [ ] **MAP.134 Build the Galaxy Map's opening view ahead of time on every update**
+  Boss (2026-10-09 04:29Z, approved; asked for by the map lane): the
+  first open of the Galaxy Map after a release should be fast and should
+  not read the 150,000-star sample. Done: the opening view's tiles (the
+  tile cache) are warmed on every `update.sh` and whenever the cache is
+  cleared, as a bounded background (queued) job that never blocks the
+  update, and it stays correct and bounded at 26.9 million stars. The
+  measured time to warm the opening view, and the first-open time before
+  and after, are reported.
+  Map lane.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
