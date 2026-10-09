@@ -576,7 +576,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.103 | Research where each star type and phenomenon belongs in the galaxy's structure | none | open |
 | GEN.104 | A spin vector and a realistic axial tilt for every rotating object | none | open |
 | GEN.105 | Orbital updates | none | open |
-| GEN.106 | Movement thresholds and a next-update-due column | none | open |
+| GEN.106 | Movement thresholds and a next-update-due column | none | done, PR #802 |
 | GEN.107 | The update reports how many objects moved, changed sector, or entered or left a nebula | none | open |
 | GEN.108 | Orbital math limits: where each method breaks down and what happens there | none | open |
 | GEN.109 | N-body influence from every object inside the largest nearby Hill sphere plus the galactic gradient, with a Hill-radius warning | none | open |
