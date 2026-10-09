@@ -577,8 +577,8 @@ def test_block_scene_sorts_glass_far_to_near():
 
 
 def test_block_scene_counts_filled_sectors_into_blocks():
-    """At one sector per block: a generated sector's own block is solid,
-    keeps its point index and takes the warm color; a coarse cell's count
+    """At one sector per block: a generated sector's own block is drawn at
+    the opacity cap (never solid), keeps its point index and takes the warm color; a coarse cell's count
     lands in the block holding its middle, unless the slice hides it."""
     view = dict(VIEW, pcPerPixel=0.1, viewRadius=40.0)
     ring, layer, slot = 2000, 0, 5
@@ -587,7 +587,8 @@ def test_block_scene_counts_filled_sectors_into_blocks():
     out = _build(view, points)
     stride = out["cellStride"]
     assert out["m"] == 1
-    solid = _cells(out["solid"], stride)
+    assert out["solid"]["vertexCount"] == 0
+    solid = [cell for cell in _cells(out["glass"], stride) if cell[5] > 0]
     by_address = {tuple(int(v) for v in cell[:3]): cell for cell in solid}
     sector_cell = by_address.pop((ring, slot, layer))
     assert sector_cell[5] == sector_cell[6] == 1  # filled == total
@@ -596,17 +597,24 @@ def test_block_scene_counts_filled_sectors_into_blocks():
     # Five in one sector's block counts as all of it.
     [(_, coarse)] = by_address.items()
     assert coarse[5] == coarse[6] == 5 and coarse[10] is None
-    assert set(out["solid"]["alphas"]) == {255} and set(out["solid"]["fills"]) == {255}
+    # Filled blocks sit at the cap, 50% (Boss, 2026-10-08): the fill alphas of the filled
+    # cells are all at most half of 255.
+    filled_owners = {i for i, cell in enumerate(_cells(out["glass"], stride)) if cell[5] > 0}
+    filled_alphas = {a for a, owner, f in zip(out["glass"]["alphas"], out["glass"]["owners"], out["glass"]["fills"])
+                     if owner in filled_owners and f == 255}
+    assert filled_alphas == {128}
     # The sector's warm placed color: red above blue, unlike the bluish
     # density ramp the other block takes.
-    owners = out["solid"]["owners"]
-    colors = out["solid"]["colors"]
-    sector_index = solid.index(sector_cell)
+    cells = _cells(out["glass"], stride)
+    owners = out["glass"]["owners"]
+    colors = out["glass"]["colors"]
+    sector_index = cells.index(sector_cell)
+    coarse_index = cells.index(coarse)
     v_sector = owners.index(sector_index)
-    v_coarse = owners.index(1 - sector_index)
+    v_coarse = owners.index(coarse_index)
     assert colors[3 * v_sector] > colors[3 * v_sector + 2]
     assert colors[3 * v_coarse] < colors[3 * v_coarse + 2]
-    assert all(cell[5] == 0 for cell in _cells(out["glass"], stride))
+    assert len(filled_owners) == 2
 
 
 def test_block_scene_without_a_shape_draws_only_filled_blocks():
@@ -647,31 +655,100 @@ console.log(JSON.stringify({young: B.ageColor(0), disk: B.ageColor(B.DISK_AGE_GY
     assert out["mid"] == pytest.approx([(a + b) / 2 for a, b in zip(out["young"], out["disk"])])
 
 
-def test_density_sets_the_opacity_and_a_filled_cell_is_never_fully_opaque():
+def test_a_filled_cells_opacity_follows_what_it_holds_and_never_passes_the_cap():
     out = _run(STATS_SETUP + """
-console.log(JSON.stringify({sparse: B.statsOpacity(sparse, ranges), dense: B.statsOpacity(dense, ranges),
-  young: B.statsOpacity(young, ranges), empty: B.statsOpacity(empty, ranges), unknown: B.statsOpacity(unknown, ranges),
-  unfilled: B.statsOpacity(unfilled, ranges), base: B.blockOpacity(unfilled), range: [B.FILLED_OPACITY_SPARSE,
-  B.FILLED_OPACITY_DENSE], step: B.FILLED_EMPTY_STEP}));
+const one = cell(1, 1, stats(1, 1, 8, 1));
+const huge = cell(1, 1, stats(1e9, 1e9, 4.5, 3000));
+console.log(JSON.stringify({sparse: B.statsOpacity(sparse), dense: B.statsOpacity(dense), one: B.statsOpacity(one),
+  huge: B.statsOpacity(huge), young: B.statsOpacity(young), empty: B.statsOpacity(empty), unknown: B.statsOpacity(unknown),
+  unfilled: B.statsOpacity(unfilled), base: B.blockOpacity(unfilled), range: [B.FILLED_OPACITY_SPARSE,
+  B.FILLED_OPACITY_DENSE], step: B.FILLED_EMPTY_STEP, cap: B.MAX_FILL_OPACITY}));
 """)
     low, high = out["range"]
+    assert out["cap"] == 0.5 and high == out["cap"]
     assert out["unfilled"] == pytest.approx(out["base"])
-    assert out["sparse"] == pytest.approx(low) and out["dense"] == pytest.approx(high)
-    assert out["sparse"] < out["young"] < out["dense"] < 1
+    assert out["one"] <= out["sparse"] < out["young"] < out["dense"] <= out["cap"]
+    assert out["huge"] == pytest.approx(out["cap"])
+    # One system, however alone in view, is faint: Boss's lone one-star sector.
+    assert low <= out["one"] < 0.2
     assert out["empty"] == pytest.approx(out["base"] + out["step"])
     assert out["unknown"] == pytest.approx(out["empty"])
+
+
+def test_no_fill_is_ever_more_opaque_than_half():
+    """Boss (2026-10-08): "never under any frame be more opaque than 50%": not
+    a block with every sector filled, nor a sector holding millions of stars."""
+    out = _run(STATS_SETUP + """
+const worst = [];
+for (const total of [1, 10, 531441]) {
+  for (const filled of [0, 1, total]) {
+    for (const systems of [0, 1, 50, 5e5, 1e10]) {
+      const c = cell(filled, total, stats(systems, systems, 5, 1e6));
+      const plain = {density: 100, filled, total};
+      worst.push(B.blockOpacity(plain), B.blockOpacity({density: 1e-6, filled, total}));
+      worst.push(B.statsOpacity(c));
+    }
+  }
+}
+console.log(JSON.stringify({max: Math.max(...worst), cap: B.MAX_FILL_OPACITY}));
+""")
+    assert out["max"] <= 0.5 and out["cap"] == 0.5
 
 
 def test_a_partly_filled_block_is_between_unfilled_space_and_its_stars_opacity():
     out = _run(STATS_SETUP + """
 const one = cell(1, 531441, stats(900, 1200, 4.5, 3000));
 const half = cell(5, 10, stats(4500, 6000, 4.5, 3000));
-const r = B.statsRanges(all.concat([one, half]));
-console.log(JSON.stringify({base: B.blockOpacity(unfilled), one: B.statsOpacity(one, r), half: B.statsOpacity(half, r),
-  dense: B.statsOpacity(dense, r), min: B.FILLED_MIN_STEP}));
+console.log(JSON.stringify({base: B.blockOpacity(unfilled), one: B.statsOpacity(one), half: B.statsOpacity(half),
+  dense: B.statsOpacity(dense), min: B.FILLED_MIN_STEP}));
 """)
-    assert out["base"] < out["one"] < out["half"] <= out["dense"] < 1
+    assert out["base"] < out["one"] < out["half"] <= out["dense"] <= 0.5
     assert out["one"] - out["base"] >= out["min"] * (out["dense"] - out["base"]) - 1e-9
+
+
+def test_one_or_two_cells_put_their_mean_in_the_middle_of_each_scale():
+    """Boss (2026-10-08): with one or two stars, the average goes in the middle of the
+    scale and the ends are padded, instead of the lone value sitting at an end."""
+    out = _run(STATS_SETUP + """
+const unfilledColor = [0.1, 0.2, 0.4];
+const lone = cell(1, 1, stats(40, 60, 4, 500));
+const a = cell(1, 1, stats(40, 60, 4, 100));
+const b = cell(1, 1, stats(40, 60, 4, 1000));
+const r1 = B.statsRanges([lone]);
+const r2 = B.statsRanges([a, b]);
+const shade = (c, r) => B.statsColor(c, unfilledColor, r);
+const bright = (c, r) => B.statsColor(c, unfilledColor, r, "luminosity");
+console.log(JSON.stringify({
+  ends1: B.scaleEnds(r1.luminosity, "luminosity"), mean1: r1.luminosity.mean, count1: r1.luminosity.count,
+  ends2: B.scaleEnds(r2.luminosity, "luminosity"), mean2: r2.luminosity.mean,
+  loneBrightness: shade(lone, r1), loneRamp: bright(lone, r1), aRamp: bright(a, r2), bRamp: bright(b, r2),
+  hue: B.ageColor(4), midRamp: B.statRampColor(0.5), lowRamp: B.statRampColor(0), highRamp: B.statRampColor(1),
+  floor: B.BRIGHTNESS_FLOOR, legend: B.legendFor("luminosity", r1), few: B.FEW_ITEMS,
+  pad: B.SCALE_MIN_HALF_SPAN.luminosity,
+}));
+""")
+    lone_log = math.log10(500)
+    low, high = out["ends1"]
+    assert out["count1"] == 1 and out["mean1"] == pytest.approx(lone_log)
+    assert (low + high) / 2 == pytest.approx(lone_log) and high - low == pytest.approx(2 * out["pad"])
+    # Two cells: still centred on their mean, the ends at least as far out as the cells themselves.
+    low2, high2 = out["ends2"]
+    assert (low2 + high2) / 2 == pytest.approx(out["mean2"])
+    assert low2 <= math.log10(100) and high2 >= math.log10(1000)
+    # A lone cell sits in the middle of the brightness range (and of a single-statistic ramp), not at its bright end.
+    def linear(v):
+        return v / 12.92 if v <= 0.04045 else ((v + 0.055) / 1.055) ** 2.4
+
+    mid = out["floor"] + (1 - out["floor"]) * 0.5
+    assert out["loneBrightness"] == pytest.approx([linear(v) * mid for v in out["hue"]], rel=1e-6)
+    assert out["loneRamp"] == pytest.approx([linear(v) for v in out["midRamp"]], abs=1e-9)
+    # The two cells sit either side of the middle (a decade apart, so about a fifth either way of
+    # the padded two-decade scale or more), the brighter nearer the ramp's high end.
+    a_share = [linear(v) for v in out["lowRamp"]]
+    assert out["aRamp"] != out["bRamp"] and out["loneRamp"] not in (out["aRamp"], out["bRamp"])
+    assert out["aRamp"] != a_share and out["bRamp"] != [linear(v) for v in out["highRamp"]]
+    legend = out["legend"]
+    assert legend["lowText"] != legend["highText"]
 
 
 def test_luminosity_sets_the_brightness_of_the_age_hue():
