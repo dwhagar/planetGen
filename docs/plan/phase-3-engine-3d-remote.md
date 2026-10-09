@@ -70,6 +70,12 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.114 | Add the chosen anomalies to the starmap | GEN.113 | Placeholder until the analysis picks them. |
+| GEN.163 | Type-B pulsar planets in globular clusters (GEN.130 follow-on) | GEN.130, GEN.158, GEN.159 | Globular-cluster chain. |
+| GEN.162 | Planet cull and blue stragglers in clusters | GEN.158, GEN.160 | Globular-cluster chain. |
+| GEN.161 | Bright-first fill for cluster sectors | GEN.160 | Globular-cluster chain. |
+| GEN.160 | Cluster density in the sector gate, with a "cluster" population | GEN.159 | Globular-cluster chain. |
+| GEN.159 | Globular clusters: cluster table, King tables and the Milky Way catalogue | GEN.158 | Globular-cluster chain. |
+| GEN.158 | Add a metallicity value to stars |  | Globular-cluster chain. |
 
 ### Infinite zoom
 

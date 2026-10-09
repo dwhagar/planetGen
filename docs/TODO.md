@@ -1203,6 +1203,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the host's frame as the intergalactic origin; no second fully
   generated galaxy soon; the data file is edited by file and a re-plan,
   not from a page.
+  Research (2026-10-09, globular-clusters.md): the globular-cluster
+  system for generated galaxies is GEN.164.
 
 - [ ] **GEN.24 Generate the galactic core on layer 0**
   Boss (2026-10-01): "Add a new TODO item to TODO.md (don't start
@@ -2512,9 +2514,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the verified published forms: Peters for the gravitational-wave
   inspiral time, and the Mardling-Aarseth and Eggleton-Kiseleva
   criteria for triple stability (see GEN.129).
+  Research (2026-10-09, globular-clusters.md): the captured-giant type
+  (type B) is enabled once clusters exist, as GEN.163; Boss's 18:37Z
+  decision (left out until clusters are modelled) holds today.
 
 - [ ] **GEN.134 Tune the star populations to the observed star-formation profile by galactic radius**
   From GEN.133 (Boss's 09:20Z request; the analysis is `docs/design/star-types-by-galactic-radius.md`, PR #807), whose four proposals were left unbuilt. Done: (1) the young and intermediate populations are weighted by the observed star-formation profile (peak at 5 kpc, about -0.28 dex per kpc beyond, a dip inside 3 kpc, the Central Molecular Zone as its own small young region); (2) the young population's B share is lowered, or its weight cut, so local B stars come to about 0.04%; (3) the bulge gets a small young tail (about 10% under 5 Gyr, between the HST and microlensing figures); (4) a metallicity gradient is added only if planet occurrence is later tied to it, otherwise the note records why not. The changes are reproducible (GEN.56), and a test compares the star type shares at the core, mid radius and rim against the note's table. Boss to confirm which of the four proposals he wants before the build starts.
+  Research (2026-10-09, globular-clusters.md): item 4 now has its
+  reason: planet occurrence is tied to metallicity in clusters (see
+  GEN.158).
   Prerequisites: none. Related: GEN.133 (done).
 
 - [ ] **GEN.135 Deterministic math helpers for every stored float, with a lint and frozen constants**
@@ -2797,6 +2805,98 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the neighbours use it as their `uid`.
   Prerequisites: none.
   Design: [docs/design/multiple-galaxies.md](design/multiple-galaxies.md)
+
+- [ ] **GEN.158 Add a metallicity value to stars**
+  Research (2026-10-09, globular-clusters.md, PR #824; handoff in
+  /mnt/project-files/research/handoff/globular-clusters.md): one [Fe/H]
+  per star, defaulting from position (a mild disc gradient of about
+  -0.06 dex per kpc, recalled and to verify; clusters carry their own).
+  The first slice feeds only the planet-occurrence factor. Prerequisite
+  for the cluster items. It gives GEN.134 item 4 its reason: giant
+  planets are multiplied by 10^(2 [Fe/H]) in clusters. The repository's
+  lifetime law gives a 0.93 Msun turn-off at 12 Gyr (the note's 0.85
+  needs metallicity, which the code lacks).
+  Prerequisites: none.
+
+- [ ] **GEN.159 Globular clusters: cluster table, King tables and the Milky Way catalogue**
+  Research (2026-10-09, globular-clusters.md, PR #824; handoff in
+  /mnt/project-files/research/handoff/globular-clusters.md): one row per
+  cluster (galaxy, name, source, position and velocity in the galaxy
+  frame, epoch, mass, half-mass radius, King W0, age, [Fe/H],
+  core-collapse flag, tidal radius). Ten King tables for W0 = 3 to 12
+  built once, resampled to about 2,000 log-grid points and scaled by
+  length. Tests: the solver reproduces concentrations c = 0.67, 1.03,
+  1.53, 2.12 and 2.74 for W0 = 3, 5, 7, 9 and 12; the total expected
+  count is M / 0.4. Open question for Boss (default: wait, build the
+  synthetic generator first): supply the Harris catalogue (about 157
+  rows: position, distance, [Fe/H], c, r_c, r_h, M_V, sigma_v,
+  core-collapse flag) or approve a one-time download script. Open
+  question for Boss (default: derived): a cluster star's sector address
+  is derived from the cluster centre's sector path, not stored per star.
+  Prerequisites: GEN.158.
+
+- [ ] **GEN.160 Cluster density in the sector gate, with a "cluster" population**
+  Research (2026-10-09, globular-clusters.md, PR #824; handoff in
+  /mnt/project-files/research/handoff/globular-clusters.md): add the
+  summed cluster density to relative_density and predicted_star_count
+  with a spatial index (a sector tests only the clusters whose tidal
+  sphere meets it), include the cluster peak in the skeleton's bound
+  (_bound_raw_density_at), and add a "cluster" population (age 10 to 13
+  Gyr, from the cluster row) to tuning.STELLAR_POPULATION_AGE_RANGES_GY.
+  The lifetime redraw removes stars above the turn-off by itself. Tests:
+  the sampled radial profile matches the table; no sector above the gate
+  is skipped; counts match the note's table (a typical cluster 5.0e5
+  systems in 965 sectors, a 47 Tuc-like one 2.0e6 in 5,848).
+  Prerequisites: GEN.159.
+
+- [ ] **GEN.161 Bright-first fill for cluster sectors**
+  Research (2026-10-09, globular-clusters.md, PR #824; handoff in
+  /mnt/project-files/research/handoff/globular-clusters.md): giants,
+  blue stragglers and horizontal-branch stars first, by luminosity level
+  (GEN.44); the dim main sequence on demand. The cost reason: every
+  system of a 157-cluster Milky Way is 1.8e8 systems, 10 to 34 days of
+  single-worker time at 5 to 16.6 ms each.
+  Prerequisites: GEN.160.
+
+- [ ] **GEN.162 Planet cull and blue stragglers in clusters**
+  Research (2026-10-09, globular-clusters.md, PR #824; handoff in
+  /mnt/project-files/research/handoff/globular-clusters.md):
+  giant-planet probability multiplied by 10^(2 [Fe/H]), capped at 1;
+  hard cut: drop planets with a > a_h = G M_host / sigma(r)^2 (2 AU at
+  15 km/s, 4.4 at 10, 18 at 5, 440 at 1), with sigma(r) from the King
+  model. Blue straggler count N_BSS ~ M_core^0.4 (main-sequence stars of
+  1 to 1.7 Msun in the core). Open questions for Boss (defaults taken):
+  a hard cut at a_h rather than a smooth exponential; blue stragglers
+  scale as M_core^0.4 while millisecond pulsars and X-ray binaries scale
+  with the encounter rate (his text says linearly with Gamma for both).
+  Prerequisites: GEN.158, GEN.160.
+
+- [ ] **GEN.163 Type-B pulsar planets in globular clusters (GEN.130 follow-on)**
+  Research (2026-10-09, globular-clusters.md, PR #824; handoff in
+  /mnt/project-files/research/handoff/globular-clusters.md): enable
+  GEN.130's captured-circumbinary-giant type only for millisecond
+  pulsars inside a cluster: pulsar plus white-dwarf companion plus
+  circumbinary giant, exempt from the metallicity cull. Rate 0.7% x 25%
+  = 0.175% of cluster millisecond pulsars (PSR B1620-26 b: 1 of about
+  340 = 0.29%, computed). Pulsar counts per cluster scale with the
+  encounter rate Gamma ~ rho_c^2 r_c^3 / sigma; default 10 times the
+  field rate per star, by Gamma rank.
+  Prerequisites: GEN.130, GEN.158, GEN.159.
+
+- [ ] **GEN.164 Synthetic globular-cluster systems for generated galaxies**
+  Research (2026-10-09, globular-clusters.md, PR #824; handoff in
+  /mnt/project-files/research/handoff/globular-clusters.md): for the
+  galaxies of GEN.9 and VIEW.2: N_GC = S_N 10^(-0.4 (M_V + 15)) from
+  each galaxy's M_V; S_N by morphology (spirals 0.5 to 1.5, ellipticals
+  2 to 8, central giants 8 to 15, recalled); a lognormal mass function
+  with peak 2e5 Msun and width 0.5 dex (recalled, not in Boss's text),
+  truncated to 1e4 to 3e6; [Fe/H] a two-Gaussian mixture (-1.5 and -0.5,
+  width 0.3, recalled) truncated near [-2.4, 0.0]; metal-rich positions
+  drawn from the bulge plus thick-disc density, metal-poor from a
+  spherical r^-3.5 profile with a core of a few kpc. Open question for
+  Boss (default: 0.5 dex and the S_N ranges above): the mass-function
+  width and S_N ranges.
+  Prerequisites: GEN.9, GEN.158, GEN.159.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -4201,6 +4301,8 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
     only; physical colour from blackbody, desaturated for faint stars,
     with a "boost colour" option; galactic plane dust A_V 1.0 per kpc;
     the planet's north for the horizon is its spin pole.
+    Research (2026-10-09, globular-clusters.md): the globular clusters
+    of generated galaxies come from GEN.164.
 
   - [ ] **VIEW.3 Render the view as a PNG, with constellations**
     Boss: "when
