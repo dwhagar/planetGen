@@ -717,7 +717,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.120 | Bright-star backfill from the Galaxy Map's block, slab and wedge menus | none | open |
 | MAP.121 | Every map shows and steps to its neighbouring regions, on one map engine | none | open |
 | MAP.122 | A Select mode on every galaxy view: Galaxy (blocks and sectors) or Star | none | open |
-| MAP.123 | Show or hide star types and phenomena, and set the luminosity floor, on the Galaxy and Sector Maps | none | open |
+| MAP.123 | Show or hide star types and phenomena, and set the luminosity floor, on the Galaxy and Sector Maps | none | done, PR #753 |
 | MAP.124 | The Galaxy Map opens zoomed to fit all charted space | none | done, PR #696 |
 | MAP.125 | Infinite zoom: one 3D interface from the galaxy down to a moon | none | done, PR #683 |
 | MAP.126 | Show the orbital trajectories of selected objects in their frame of reference | none | done, PR #686 |
