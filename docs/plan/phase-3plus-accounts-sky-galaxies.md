@@ -12,7 +12,7 @@ the judgment calls behind the placement are in [notes.md](notes.md).
 
 ## Goal
 
-The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies, and the end state of reproducible galaxies (`generate.py reproduce`).
+The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies.
 
 ## Threads
 
@@ -66,8 +66,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| OPS.12 | `generate.py reproduce`: a version and a seed rebuild a galaxy and check it | GEN.57, TEST.77, GEN.59, OPS.14, GEN.61, OPS.18 | The end state. |
-| GEN.55 | A version number and a seed reproduce the same galaxy (end goal) | OPS.12 | Parent of the chain. |
+| GEN.55 | Same seed, same data: a sector's contents depend only on the seed, the version and its address (internal) |  | Parent of the chain. |
 
 ## Open questions for Boss
 

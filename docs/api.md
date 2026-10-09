@@ -1412,10 +1412,6 @@ items and their full text are in `docs/TODO.md`, and the phases in
   [`design/course-routing.md`](design/course-routing.md).
 - **Key scopes (API.9, phase 1).** API keys get a scope: read, admin or
   upload.
-- **The galaxy's seed, version and run history (API.16, phase 2).** A
-  route returns the galaxy's 128-bit seed, its 22-hex-digit version key
-  and the run history; API.12's download uses the same fields. See
-  [`design/reproducible-galaxies.md`](design/reproducible-galaxies.md).
 - **Remote generation (API.3 and its parts, phases 2 and 3).** The
   download of the seed, skeleton and naming key (API.12), run
   reservations (API.10), staging tables (API.11), compressed batch

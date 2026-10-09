@@ -12,7 +12,7 @@ the judgment calls behind the placement are in [notes.md](notes.md).
 
 ## Goal
 
-The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, repair that reads the newest settings JSON, and the anomalies chosen in phase 2.
+The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make and the anomalies chosen in phase 2.
 
 ## Threads
 
@@ -57,13 +57,11 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| DB.10 | Repair reads the newest settings JSON and the pending deltas | DB.9, GEN.61, OPS.18 | Falls back to the next backup if the newest JSON is damaged. |
 
 ### Daily maintenance
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| ADM.20 | A "merge now" button on the Admin dashboard (low priority) | OPS.16, GEN.61, OPS.18 | Boss 02:31Z: phase 3, low priority. Same lock and rules as the daily run; counts toward the day's slot. |
 
 ### Anomalies
 
