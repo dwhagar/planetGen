@@ -12,6 +12,8 @@ seeds in [reproducible-galaxies.md](reproducible-galaxies.md) section 3 and
 [generation-determinism.md](generation-determinism.md), and fill order and
 region enumeration in [fill-order-curves-and-core.md](fill-order-curves-and-core.md).
 
+The cost of the queue that runs these tasks, cancelling a task mid-run, and the time-left estimate for a long backfill are in [performance-eta-queue-and-caching.md](performance-eta-queue-and-caching.md).
+
 Informs: GEN.40, GEN.41, GEN.42, GEN.43, GEN.96, GEN.97, GEN.99, GEN.102, PERF.18, PERF.29, PERF.30 (and the GEN.39 rule that one seed gives the same stars wherever a run lands)
 
 Status: research, 2026-10-09; decisions marked "Boss" are his, everything else is a recommendation

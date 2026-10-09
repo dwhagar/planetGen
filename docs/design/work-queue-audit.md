@@ -132,3 +132,5 @@ the queue tests that way.
    for its state.
 
 Live progress and log lines over SSE are ADM.22, built on step 3.
+
+What the queue costs per job, how RQ orders, cancels and retries, how the Redis queue should be split into an interactive and a bulk queue, and how time left should be estimated and cached are in [performance-eta-queue-and-caching.md](performance-eta-queue-and-caching.md).
