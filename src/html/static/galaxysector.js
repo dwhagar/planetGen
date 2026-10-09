@@ -48,16 +48,20 @@ export function cubeCorners(center, halfEdge) {
   return points;
 }
 
+export const DEFAULT_HIDDEN_KINDS = ["roguePlanet"];
+
 export function createSectorStage(host) {
   const selectionRing = createRing(host.scene, host.camera, host.canvasEl, host.accentColor, { depthTest: false, renderOrder: 5 });
   const hoverRing = createRing(host.scene, host.camera, host.canvasEl, host.accentColor, { depthTest: false, renderOrder: 5, opacity: 0.45 });
   // {id, data, sector (the scene), layers, selected, hovered, center, halfEdge}
   let open = null;
   let token = 0;
-  // "Mark rogue planets" (MAP.46): kept across sectors opened.
-  let roguesMarked = false;
-  // The kinds of object left off the map (MAP.79), kept across sectors.
-  const hiddenKinds = new Set();
+  // "Mark rogue planets" (MAP.46): kept across sectors opened. On to begin
+  // with (MAP.137), so a rogue planet is easy to find once it is shown.
+  let roguesMarked = true;
+  // The kinds of object left off the map (MAP.79), kept across sectors:
+  // rogue planets to begin with (MAP.137).
+  const hiddenKinds = new Set(DEFAULT_HIDDEN_KINDS);
   const markedKinds = new Set();
   // MAP.123: star classes left off and the dimmest star shown (L☉).
   const hiddenClasses = new Set();

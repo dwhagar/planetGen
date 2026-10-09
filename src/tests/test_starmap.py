@@ -244,9 +244,12 @@ def test_map_scene_data_binary_system_gets_two_star_entries():
     })
     scene = map_scene_data(_link, 1000.0, None, None, [system])
     assert len(scene["stars"]) == 2
-    # Each star shows its own name, with no A/B letters (bodyNames.py).
-    assert scene["stars"][0]["name"] == "Test System Kelmoor"
+    # MAP.136: the pair is one pickable system. The primary's entry is
+    # named for the system and the companion points at it.
+    assert scene["stars"][0]["name"] == system["name"]
     assert scene["stars"][1]["name"] == "Test System Ostra"
+    assert "companionOf" not in scene["stars"][0]
+    assert scene["stars"][1]["companionOf"] == 0
     # The secondary is offset from (not stacked exactly on) the primary.
     assert (scene["stars"][1]["x"], scene["stars"][1]["y"]) != (scene["stars"][0]["x"], scene["stars"][0]["y"])
 

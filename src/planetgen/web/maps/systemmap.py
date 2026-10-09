@@ -1761,6 +1761,8 @@ def render_system_map_panel(system, stars, planets, belts, facilities=None, scen
             '<output class="sysview-rate" id="sysview3d-rate" aria-live="polite"></output>'
             '<label class="sysview-scale">Scale <select id="sysview3d-scale">'
             '<option value="compressed">Compressed</option><option value="true">True scale</option></select></label>'
+            '<button type="button" class="starmap-btn" id="sysview3d-recenter" '
+            'title="Center the view on the selected body, or the middle (C)">Center</button>'
             '<button type="button" class="starmap-btn" id="sysview3d-reset">Reset view</button>'
             '<button type="button" class="starmap-btn" data-dialog-open="sysview3d-help" '
             'title="How to use the 3D view">Map help</button></div>'
@@ -1771,7 +1773,7 @@ def render_system_map_panel(system, stars, planets, belts, facilities=None, scen
         view3d_help = (
             '<sl-dialog id="sysview3d-help" class="map-help-dialog" label="3D system view help"><ul>'
             "<li>Drag to turn, shift-drag or right-drag to pan, the wheel or a pinch to zoom.</li>"
-            "<li>W, A, S, D and the arrow keys fly; Home or Reset view goes back.</li>"
+            "<li>W, A, S, D and the arrow keys fly; C or Center puts the center the view turns about on the selected body; Home or Reset view goes back.</li>"
             "<li>Click a body for details; double-click flies to it. Follow rides along with it.</li>"
             "<li>Pause, Slower and Faster move time; Now returns to the present.</li>"
             "<li>Compressed scale shows everything; True scale shows real sizes and distances.</li></ul>"

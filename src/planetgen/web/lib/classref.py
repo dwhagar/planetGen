@@ -432,6 +432,12 @@ def catalog():
     return types
 
 
+def alphabetical(rows, key="name"):
+    """`rows` (dicts) in alphabetical order of `row[key]`, ignoring case: how
+    the site lists the class categories (UX.77)."""
+    return sorted(rows, key=lambda row: str(row[key]).casefold())
+
+
 def class_type(type_slug):
     """One type's entry from `catalog()`, or `None`."""
     return catalog().get(type_slug)

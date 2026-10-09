@@ -293,6 +293,8 @@ export function createSystemStage(host) {
     selected: function () { return open && open.selected ? open.selected.ref : null; },
     // The opacity of a body's orbit line, for tests (MAP.126).
     trailOpacity: function (ref) { return open ? open.built.trailOpacity(ref) : null; },
+    // How far a body's orbit line reaches from what it goes round, for tests (MAP.136).
+    trailRadius: function (ref) { return open ? open.built.trailRadius(ref) : null; },
     // Where a body is in the map's world now: {center, radius}, for flying to it.
     where: function (ref) {
       const entry = open && open.world.find(function (w) { return w.ref === ref; });

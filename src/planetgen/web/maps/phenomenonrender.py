@@ -207,6 +207,8 @@ def render_nebula_view_panel(detail):
 <canvas class="phenomrender-canvas" id="nebulaview-canvas" hidden
   role="img" aria-label="{esc(name)}, its shape in 3D with the brightest stars round it. Drag to turn it."></canvas>
 </div>
+<p><button type="button" class="starmap-btn" id="nebulaview-recenter" hidden
+  title="Back to the opening angle and zoom, about the nebula's center (C)">Re-center</button></p>
 <p class="hint phenomrender-caption">An irregular cloud drawn from its properties. The dimmed points are the
 brightest stars of the galaxy near it, there for reference.</p>
 </section>
