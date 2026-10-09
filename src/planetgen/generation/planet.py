@@ -339,6 +339,12 @@ class Planet(HoldsOrbitPosition):
                     or self._draw_moons()):
                 planetPhysics.generate_moons(self)
 
+    def orbit_mu_au3_per_year2(self):
+        """AU^3/yr^2 of what the planet or moon orbits, from its circular
+        orbit's radius and period (Kepler's third law), so it agrees with
+        the velocity `update_orbital_position` gives it."""
+        return (2.0 * math.pi / self.period) ** 2 * self.distance ** 3
+
     def _draw_moons(self):
         """Whether a planet left to chance gets moons: an even chance, moved
         by the run's moons prevalence (GEN.52)."""

@@ -422,6 +422,16 @@ masses (23:16Z), as a spline.
   rotation curve and the runaway velocity is carried with it, not integrated. A loaded sector's
   objects carry the epoch `store.get_orbit_epoch_unix` gives (when the
   orbits were last advanced).
+- **The orbit is derived from the vector, never stored.** A planet's, moon's
+  or comet's `orbit_from_vector()` works the osculating orbit out of its
+  position and velocity relative to its primary
+  (`state_vectors.elements_from_state`; mu from its circular radius and
+  period, or 4 pi^2 per solar mass of a comet's star), so a vector that
+  carries wobble or a flyby's pull gives the orbit it is really on, and the
+  generated elements (`distance`, `period`, the comet's perihelion and
+  eccentricity) stay what they were generated as. `projected_orbit_au()` is
+  that orbit's closed ellipse for drawing (an open orbit raises
+  `ValueError`; the sector path of GEN.123 covers those).
 - With the sector edge known, the position also knows its **sector
   address**, `(ring, layer, slot)`, the cell of the galaxy's sector grid
   (`galaxy/geometry.py`) it is in. It is worked out again from the galactic

@@ -112,7 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 is done (PR #476); GEN.117, and GEN.116 is closed (Boss 2026-10-08 17:46Z). | UX.39, OPS.20, DB.11, DB.13, ADM.21, GEN.66, GEN.71, GEN.67 |
+| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 is done (PR #476); GEN.117, and GEN.116 is closed (Boss 2026-10-08 17:46Z). | UX.39, OPS.20, DB.11, DB.13, ADM.21, GEN.66 |
 | 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.41, GEN.98, GEN.100, GEN.99, GEN.101, GEN.102, GEN.103, GEN.84, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, GEN.94, GEN.104, GEN.106, GEN.107, GEN.108, NAV.10, NAV.12, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, NAV.43, NAV.44, MAP.119, MAP.122, MAP.123, MAP.89, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, OPS.8, OPS.13, OPS.14, ADM.18, GEN.59, UX.49 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.58, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, API.16, ADM.17, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, repair that reads the newest settings JSON, and the anomalies chosen in phase 2. | NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, DB.10, ADM.20, GEN.114, API.19 |
@@ -1540,71 +1540,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   tolerances (tests), and the hand-rolled solvers are deleted.
   Design: [docs/design/library-migration.md](design/library-migration.md)
 
-- [ ] **GEN.67 Names from IDs for objects that have no star-derived name**
-  Boss (2026-10-03 05:38Z): "Do away with name generation for any
-  object, do away with our word-salad code entirely add a value in the
-  control database that will be generated by random generation at the
-  galaxy generation time (add the ability to change it via admin consol)
-  so when the galaxy is generated we'll generate a random numbe." Boss's
-  codec (`src/planetgen/names/gated_phoneme_codec.py`, moved there from
-  the repo root by GEN.120, PR #554) turns an ID and a key into
-  pronounceable words and back. Boss (2026-10-08 03:57Z): "A note about GEN.120 keep word salad method for stars and sectors, everything else gets a name derived from it's unique ID."
-  So the word-salad method stays for stars and sectors: their
-  generator, name pool and registries, and their reproducibility stay as
-  they are. Boss (2026-10-08 04:00Z, decision card): planets, moons and
-  belts keep the "<star name> I" pattern built from their star's name,
-  so GEN.71's wide-binary rule about "A I" planet names stays in force.
-  Done: the codec names the objects with no star-derived name, which
-  are rogue planets, standalone black holes and neutron stars, nebulae, supernova remnants and their collapsed cores, quasars, interstellar comets and asteroid fields (GEN.64's kinds, today named by a hex position ID) and constellations (VIEW.4): each name is the codec's output for the object's ID, in
-  its own domain, under the galaxy's naming key (the hex position ID
-  stays as the ID); stars, sectors, planets, moons and belts, and the
-  comets and asteroid belts inside a system, keep the names they get
-  today; and the subitems are done.
-  Defaults (Boss did not object, 04:00Z): constellations use the codec;
-  changing the naming key renames only the codec-named objects, never
-  star, sector, planet, moon or belt names. No question is open.
-  Decoding (Bugfixes lane, 2026-10-08, GEN.120 done): the original
-  codec's decoder was not exact. About one ID in five from five hex
-  digits up did not round-trip, and about half the names of 19-digit
-  IDs can read as two different lengths. GEN.120 made decoding exact:
-  `decode(phrase, domain, length=19)` had 0 failures in 100,000 random
-  19-digit IDs, and without `length` it answers only when one length
-  fits. Names are unchanged from the original file. So GEN.67 must
-  always pass 19 for the GEN.64 IDs and never rely on the decoder
-  guessing the length. Two IDs of the same length never share a name,
-  so names are unique for fixed-length IDs (details in
-  `docs/design/object-ids.md`).
-  Prerequisite: GEN.71.
-  Design: [docs/design/object-ids.md](design/object-ids.md)
-
-  - [ ] **GEN.71 Name interstellar objects, phenomena and constellations from the codec**
-    Done: the objects with no star-derived name show their codec name
-    where they show a hex position ID today: rogue planets, standalone black holes and neutron stars, nebulae, supernova remnants and their collapsed cores, quasars, interstellar comets and asteroid fields (GEN.64's kinds, today named by a hex position ID) and constellations (VIEW.4). Stars, sectors,
-    planets, moons and belts keep their word-salad and "<star> I"
-    names, so the word-salad code, the nltk corpus,
-    `offensive_words.txt` and the name registries stay (Boss,
-    2026-10-08 03:57Z and 04:00Z); only code that served the hex-ID
-    display of those kinds goes.
-    Wide binaries: Boss (2026-10-07 17:11Z): "No, we should never have
-    A I or such for planet names.  Adjust the algorithm to produce 2
-    words from the name.  A says word 1 I, word 1 II, etc...  B planets
-    say word 2 I, word 2 II, etc..." So a wide pair's codec name has two
-    words; star A's planets are "<word 1> I", "<word 1> II" and so on,
-    and star B's are "<word 2> I", "<word 2> II". No planet name carries
-    "A" or "B", and a test checks it. Boss confirmed on 2026-10-08
-    04:00Z that planets keep the "<star name> I" pattern, so this rule
-    stays in force; a wide pair's two-word star name is the existing
-    word-salad rule (GEN.62, done), not codec output.
-    Folds in GEN.73 (bug, "Nebulae don't get unique names"; Boss
-    2026-10-03 05:38Z: "Nebulae should get unique names."): nebulae and
-    supernova remnants are on this list, so their unique codec names
-    from the ID and the naming key, shown on the maps, lists and the
-    nebula's page, are this item's job. Nebulae already get unique
-    position-ID names today; the codec name replaces them, so GEN.73
-    needs GEN.70 and has no separate work (the Bugfixes lane checked,
-    2026-10-08).
-    Design: [docs/design/object-ids.md](design/object-ids.md)
-
 - [ ] **GEN.83 A planetary habitability index (PHI)**
   Boss (2026-10-03 05:38Z): "Create a habitability index based on the
   pressure, temperature, composition, etc...  This will use several
@@ -1842,48 +1777,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   for small bodies, black hole spin distributions).
   Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
 
-- [ ] **GEN.121 A velocity on every object, filled at generation and stored with an epoch**
-  Boss (2026-10-08 23:11Z, 23:19Z): "so I want to add vector
-  information so we know not only where it's going but how fast"; "let's
-  go ahead and store the orbital information ... as part of the
-  coordinates, velocity, immediate vector of movement relative to the
-  center of the star system". Done: `SpatialPosition3D` carries a
-  velocity that generation fills in. A bound body (planet, moon, comet,
-  second star of a pair) stores its velocity relative to its primary; a
-  star or rogue body stores a galactic velocity (the rotation curve plus
-  any runaway or hypervelocity flag). The velocity carries an epoch (the
-  moment it is valid for, the same epoch the orbit simulation state
-  keeps), and both are stored in the database. A bound body's galactic
-  velocity is its primary's plus its relative one, so a planet's 30 km/s
-  is not lost in a star's 220 km/s. Each orbital update refreshes the
-  vector, so perturbation wobble shows up in it.
-  Build thread (not a lane): started 2026-10-08 after Boss's "Alright,
-  do it".
-  Progress (PR #729, schema v60): planets, moons and comets store a
-  velocity relative to their primary, set at generation and refreshed by
-  the orbital update; stars and bodies carry a galactic velocity. Still
-  to do: stored velocity for stars, systems and phenomena, and the
-  runaway-star direction.
-  Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
-
-- [ ] **GEN.122 Orbital elements for planets, moons and comets, kept in step with the state vector**
-  Boss (2026-10-08 23:11Z): "Each orbital update we'll update the vector
-  (which will contain the wobble as part of it's changes etc) and update
-  the orbital ellipse." Done: planets, moons and comets (closed
-  ellipses) store orbital elements (size, eccentricity, inclination,
-  node, periapsis angle, phase) beside the vector, and each orbital
-  update converts between the two in both directions in `kepler.py`, so
-  the ellipse is always derived from the current vector and never a
-  second copy of the truth. The projected course is the closed ellipse
-  around the primary; wobble is ignored. Planets and moons are circular
-  today (`positions_at` uses distance and phase only); eccentric
-  planetary orbits are a generation decision that this item does not
-  make.
-  Build thread (not a lane). Prerequisite: GEN.121.
-  Progress (PR #729): the state-vector and orbit-element maths is in
-  `kepler.py`. Still to do: the body orbit elements derived from the
-  stored vector on each orbital update.
-
 - [ ] **GEN.123 The projected path of a body through a sector, saved as a spline**
   Boss (2026-10-08 23:11Z, 23:16Z): "for objects that are not that easy,
   that do not have a closed elipse, how about the path the object takes
@@ -1904,7 +1797,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   velocity are the next sector's entry, so the path chains across
   sectors. Masses too weak or far to matter are skipped. MAP.126's orbit
   drawing should use these paths later.
-  Build thread (not a lane). Prerequisite: GEN.121.
+  Build thread (not a lane).
+  Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
+
+- [ ] **GEN.125 Stand-alone facilities store a velocity**
+  Asked by the physics build thread after PR #735 (GEN.121 left them
+  out): a stand-alone facility (one not attached to a star's system)
+  follows the galaxy's rotation curve in `advance_galactic_positions`
+  but stores no velocity. Give it the same stored galactic velocity and
+  epoch that stars and systems have, filled at generation and refreshed
+  when positions advance, so every object carries a vector.
+  Build thread (not a lane).
   Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
 
 - [ ] **GEN.105 Orbital updates**

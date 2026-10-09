@@ -281,6 +281,10 @@ class Comet(HoldsOrbitPosition):
                    f"roll against activity chance {activity_chance:.4g} at perihelion "
                    f"{self.perihelion_distance_au:.4g} AU")
 
+    def orbit_mu_au3_per_year2(self):
+        """AU^3/yr^2 of the comet's host star: 4 pi^2 per solar mass."""
+        return 4.0 * math.pi ** 2 * self.primary_mass_solar
+
     def update_orbital_state(self):
         """
         Recomputes `distance_au`, `position_x/y/z_au`, and

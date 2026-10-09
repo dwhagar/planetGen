@@ -112,6 +112,24 @@ identity. `CODEC_VERSION` is stored beside the key and the Stats page
 warns when the code's differs; bump it whenever the codec's golden words
 change. Stars, sectors, planets, moons and belts do not use the key.
 
+### Names shown for IDs (GEN.71)
+
+The `name` column of a codec-named object keeps its 19-digit hex ID (the
+identity, and what `_claim_object_ids` checks for collisions). Every JSON
+answer of the API passes through `api/naming.NamingJSONProvider`, which
+replaces a `name` that is such an ID with its codec name under the
+galaxy's key (the kind comes from the ID's own type bits, so a remnant
+core and a black hole name themselves correctly; a bright-sweep system's
+ID is not renamed). The pages call the API in-process, so the maps,
+lists, info panels and the nebula page all show the codec name. The key
+is read once per request (cached 5 s per process, dropped when an admin
+changes it) and `query.galaxy_content_state` mixes it into its `base`, so
+a key change refreshes the tile and page caches. With no key drawn, or in
+the CLI, the ID is shown. Lists sorted by name order by the ID, which
+groups the kinds. `naming_key.stored_name_for` turns a typed codec name
+back into its ID for a search that wants it. The wide-pair rule (never
+"A I"; test in `test_body_names.py`) was already in force from GEN.62.
+
 ### Unique IDs for every object (GEN.69, schema v58)
 
 Every object has a `uid` column (NULL for a row saved before v58), by
