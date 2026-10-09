@@ -88,10 +88,10 @@ def test_generate_sector_phenomena_passes_rate_per_star_times_star_count_as_the_
 
 def test_research_rates_per_star():
     """Boss's research densities at 0.14 stars per pc^3."""
-    assert _rate("rogue-planet") == pytest.approx(6.5)
+    assert _rate("rogue-planet") == pytest.approx(5.8)
     assert _rate("brown-dwarf") == pytest.approx(0.03 / 0.14)
-    assert _rate("neutron-star") == pytest.approx(0.005)
-    assert _rate("black-hole") == pytest.approx(0.001)
+    assert _rate("neutron-star") == pytest.approx(0.004)
+    assert _rate("black-hole") == pytest.approx(0.0005)
     assert _rate("comet") == pytest.approx(0.05)
     assert _rate("asteroid-field") == 0.0
     assert _rate("runaway-star") == pytest.approx(0.015)
@@ -99,7 +99,7 @@ def test_research_rates_per_star():
 
 def test_rate_scale_dials_a_kind(monkeypatch):
     monkeypatch.setitem(tuning.PHENOMENON_RATE_SCALE, "rogue-planet", 0.1)
-    assert _rate("rogue-planet") == pytest.approx(0.65)
+    assert _rate("rogue-planet") == pytest.approx(0.58)
 
 
 def _only(kind, count):

@@ -140,7 +140,7 @@ def test_rogue_planet_split_follows_the_mass_function():
     threshold = prog_c.ROGUE_PLANET_GAS_GIANT_MASS_THRESHOLD_JUPITER * pc.JUPITER_MASS_TO_KG / pc.EARTH_MASS_TO_KG
     expected = (threshold ** -slope - high ** -slope) / (low ** -slope - high ** -slope)
     assert expected == pytest.approx(0.036, abs=0.002)
-    assert sum(rate for _lo, _hi, rate in prog_c.ROGUE_PLANET_MASS_BINS.values()) == pytest.approx(6.5)
+    assert sum(rate for _lo, _hi, rate in prog_c.ROGUE_PLANET_MASS_BINS.values()) == pytest.approx(5.8)
 
     cfg = SystemConfig()
     n = 20000

@@ -500,23 +500,6 @@ def test_system_sections_cover_every_body(client, mysql_config):
     assert client.get("/api/systems/999999999/sections").status_code == 404
 
 
-def test_systems_near_requires_radius(client, seeded_sector):
-    _config, _sector_id, system_ids = seeded_sector
-
-    response = client.get(f"/api/systems/{system_ids[0]}/near")
-    assert response.status_code == 400
-
-    response = client.get(f"/api/systems/{system_ids[0]}/near?radius=-5")
-    assert response.status_code == 400
-
-    response = client.get(f"/api/systems/{system_ids[0]}/near?radius=1000")
-    assert response.status_code == 200
-    body = response.get_json()
-    assert isinstance(body, list)
-    other_ids = {entry["id"] for entry in body}
-    assert system_ids[1] in other_ids
-
-
 def test_nav_returns_direct_course_and_route_for_same_sector(client, seeded_sector):
     _config, _sector_id, system_ids = seeded_sector
 

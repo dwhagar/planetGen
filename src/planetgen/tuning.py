@@ -1685,10 +1685,11 @@ HABITABLE_FLAVOR = [ # Flavor text for any habitable world.
 # instead draws an intermediate-mass black hole (IMBH), log-uniform over
 # ~1e2-1e5 Msun -- the range between stellar and supermassive black
 # holes (Greene, Strader & Ho 2020, ARA&A 58:257). Boss (2026-09-30)
-# wants them "a smattering (rare)": 2% of black holes, tweak here.
+# wants them "a smattering (rare)": retuned 2026-10-09 from 2% to 0.1%
+# (about 1e5 in a Milky Way-sized galaxy; the observed candidates number a handful).
 BLACK_HOLE_MASS_RANGE_SOLAR = (5.0, 20.0)
 BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR = (1e2, 1e5)
-BLACK_HOLE_INTERMEDIATE_MASS_CHANCE = 0.02
+BLACK_HOLE_INTERMEDIATE_MASS_CHANCE = 0.001
 
 # A quiescent supermassive black hole sits at the center of every galaxy
 # whose nucleus isn't an active quasar (generate.add_galactic_nucleus).
@@ -1723,7 +1724,7 @@ BLACK_HOLE_SPIN_RANGE = (0.0, 0.998)
 # stellar-mass black holes are quiescent/isolated; only a minority are
 # actively accreting from a companion or interstellar medium enough to
 # be luminous, e.g. Cygnus X-1-like systems).
-BLACK_HOLE_ACCRETION_DISK_CHANCE = 0.15
+BLACK_HOLE_ACCRETION_DISK_CHANCE = 0.001
 
 # Neutron star mass range in solar masses -- real measured masses cluster
 # tightly around ~1.4 Msun with a hard floor near the Chandrasekhar-like
@@ -1759,8 +1760,8 @@ PULSAR_MAGNETIC_FIELD_GAUSS_RANGE_MILLISECOND = (1e8, 1e9)
 # non-pulsing remnant, e.g. an old isolated neutron star whose beam no
 # longer sweeps past this vantage point), and the chance a pulsing one
 # is specifically a recycled millisecond pulsar rather than a young one.
-NEUTRON_STAR_PULSAR_CHANCE = 0.7
-PULSAR_MILLISECOND_CHANCE = 0.3
+NEUTRON_STAR_PULSAR_CHANCE = 0.02
+PULSAR_MILLISECOND_CHANCE = 0.1
 
 # Neutron star surface temperature range in Kelvin, from thermal
 # X-ray emission measurements of young-to-middle-aged isolated
@@ -2044,7 +2045,7 @@ up, already a white dwarf in the Yerkes scheme (class VII)."""
 # (5, 1, 0.25, 0.25) with a log-uniform mass in each bin gave 91% and 9%,
 # twice the reference's share of gas giants.
 # Above 13 Jupiter masses is a brown dwarf (ROGUE_BROWN_DWARF_*).
-ROGUE_PLANET_RATE_PER_STAR = 6.5
+ROGUE_PLANET_RATE_PER_STAR = 5.8
 ROGUE_PLANET_MASS_FUNCTION_SLOPE = 0.65
 _ROGUE_PLANET_BIN_EDGES_EARTH = {
     "terrestrial": (0.1, 2.0),
@@ -2634,8 +2635,10 @@ PHENOMENON_DENSITY_PC3 = {
     # shares (docs: galaxy-studies star-fix spec, 2026-09-30): a Kroupa IMF
     # with a 10 Gy thin disk leaves ~0.5% of stars as neutron stars and
     # ~0.1% as black holes, i.e. 0.005 and 0.001 per star at n*0 = 0.14.
-    "neutron-star": 7e-4,
-    "black-hole": 1.4e-4,
+    # GEN.100 retune (Boss, 2026-10-09): the central observed values, 1e9
+    # neutron stars (0.4% of ~2.5e11 stars) and 1e8 black holes (0.05%).
+    "neutron-star": 5.6e-4,
+    "black-hole": 7e-5,
     # Giant molecular clouds: 1e-6 to 1e-5 (Kennicutt & Evans 2012, ARA&A
     # 50:531): cloud centers, generated as dark-family nebulae (classes
     # M-Q). GMC_ARM_FILLING_FACTOR is the matching fraction of arm volume
@@ -2643,7 +2646,8 @@ PHENOMENON_DENSITY_PC3 = {
     "molecular-cloud": 5e-6,
     # ~20,000 planetary nebulae galaxy-wide (Frew & Parker 2010, PASA
     # 27:129).
-    "planetary-nebula": 3e-8,
+    # 1.4e-8 is 1e-7 per star (20,000 over ~2e11 stars).
+    "planetary-nebula": 1.4e-8,
     # 1e-8 to 1e-7, really n_* * rho_gas (Draine 2011); 1e-8 counts
     # faint remnants too (~1,000 are detectable, ~1.5e-9).
     "supernova-remnant": 1e-8,
