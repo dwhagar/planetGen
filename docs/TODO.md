@@ -993,6 +993,23 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisite: MAP.153. Related: MAP.153, MAP.148, MAP.149.
   Design: [docs/design/zoom-star-visibility.md](design/zoom-star-visibility.md)
 
+- [ ] **MAP.156 View one layer or a range of layers top-down from the galaxy view, as a secondary option**
+  Boss (2026-10-09 23:17Z): "I should be able to from the galaxy view
+  select a single layer (or range of layers) to view top-down. It should
+  not be a main option." Done: from the Galaxy Map the user can pick one
+  layer or a range of layers (layers are the vertical slices of the
+  galaxy, the same layers the Generate page fills) and see only those
+  looking straight down on the galaxy plane. The choice sits in a
+  secondary place (a menu entry or the advanced section of the control
+  panel), never as a main control or a step the user must take to move
+  around, and it is off by default so the free camera of MAP.146 is what
+  opens. Leaving it restores the previous view. Open question for Boss
+  (default a two-handle layer range in the "Show" menu, top-down camera
+  with the same vertical-fade rules as the rest of the map, stars and
+  sectors outside the range hidden): other placement or look?
+  Prerequisites: none. Related: MAP.146, MAP.150, MAP.141, MAP.122,
+  ADM.29.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
