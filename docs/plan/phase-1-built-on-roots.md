@@ -201,6 +201,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | PERF.46 | Planets and moons: set the position once per body |  | Generation performance study. |
 | PERF.45 | Nearest-system links and containment as one later pass |  | Generation performance study. |
 | PERF.49 | Batch system-name reservation: remove the quadratic scan and the long-held registry locks (30 s of an 84 s dense sector) |  | Name reservation timing; overlaps PERF.43. |
+| OPS.36 | Space and size checks measure the boot drive, not the drive holding the database (bug) |  | Bugfixes lane 1; from Boss 20:22Z. |
 | DB.19 | Phenomenon rows: implement the mass cut (1.17 billion rows and 161 GB become about 2.7e5 rows) | GEN.167 | Decided: Boss accepted the 20 solar mass cut. |
 | GEN.169 | Decide the phenomenon scatter rates: regional factors and the 0.1% intermediate-mass black holes |  | Needs Boss to decide. |
 | GEN.168 | The sector fill draws the phenomena below the scatter cut | GEN.167 | Phenomenon mass cut (decided). |

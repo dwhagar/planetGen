@@ -4310,6 +4310,24 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Prerequisites: none.
   Design: [docs/design/map-ui-and-frontend-libraries.md](design/map-ui-and-frontend-libraries.md)
 
+- [ ] **OPS.36 Space and size checks measure the boot drive, not the drive holding the database (bug)**
+  Boss (2026-10-09 20:22Z): "make sure that our size and space remaining
+  check properly checks the space remaining not on the boot drive but if
+  my database data is stored elsewhere (it is now) that it looks that
+  up." Symptom: the disk-space and size checks (the Admin dashboard, the
+  stats and size pages, the PERF.3 "enough space" pre-flight for fills
+  and plans, the update scripts and the debug log) measure the boot
+  drive, not the drive that holds the MySQL data directory. Done when:
+  every place that reports or checks database size or free space asks
+  the server for its data directory (`SELECT @@datadir`), resolves it to
+  its mount (handling Windows drive letters, symlinks and bind mounts)
+  and measures the free space there; when the database is on another
+  host and the data directory is not reachable from the web host, it
+  says "unknown" instead of showing boot-drive numbers; the path or
+  drive measured is shown; tests use a fake data directory on another
+  mount point. Owner: Bugfixes lane 1, after its current batch.
+  Prerequisites: none.
+
 ## DOC: Documentation
 
 - [ ] **DOC.4 Correct the stale statements the research found in docs, docstrings and comments**

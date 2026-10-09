@@ -24,7 +24,7 @@ release is stamped.
 | SEC | SEC.33 |
 | TEST | TEST.110 |
 | USR | USR.10 |
-| OPS | OPS.36 |
+| OPS | OPS.37 |
 | DOC | DOC.5 |
 | VIEW | VIEW.11 |
 | POP | POP.11 |
@@ -886,6 +886,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.33 | `.gitattributes` has no LF pins for the lock files and word list, so hashes differ between a Windows and a Linux checkout (bug) | none | done, PR #843 |
 | OPS.34 | Windows Redis in WSL: fix the keep-alive advice and add a Start-RedisInWsl remedy | none | open |
 | OPS.35 | A vendored-version lock file for the static libraries | none | open |
+| OPS.36 | Space and size checks measure the boot drive, not the drive holding the database (bug) | none | open |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
 | PERF.3 | Estimate size and time before bulk generation | 86 (2026-10-01 03:15Z to 05:29Z) | done, PR #238 (stats in control schema v6) |
