@@ -102,7 +102,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.104 | A spin vector and a realistic axial tilt for every rotating object |  | Rules from "Observational Kinetics for Rotational Vectors.md". |
 
 ### Routing
 
