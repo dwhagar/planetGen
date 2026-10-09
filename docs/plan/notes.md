@@ -294,3 +294,4 @@ No decisions are open. (GEN.67, Boss 2026-10-08: stars and sectors keep word sal
 - **Kept in the bugfix lane, not folded**: UX.24, UX.29, UX.25 (already built once), OPS.6 (one check, not worth waiting for Pydantic), MAP.114 (CI red, though MAP.68 deletes sectormap.js later).
 - **DB.13 in phase 0**: Boss called it "a Phaser 0 priority".
 - Execution plan (Boss's priority order of 2026-10-09 07:13Z: Orbital updates, Maps, Nearby search, Routing; Repeatable galaxy last, blockers first): `docs/plan/execution-plan.html`, with lanes by wave and the Alembic and file conflicts between groups.
+- Boss (2026-10-09 07:54Z): "I haven't held anything, so integrate ALL phase 1 items into the immediate TODO breakdown, focusing on unblocking things as a first priority." The execution plan's lane lists now hold all 77 non-bug Phase 1 items, ordered with the items that unblock the most work first (`docs/plan/execution-plan.html`).
