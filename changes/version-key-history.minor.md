@@ -1,0 +1,2 @@
+### Added
+- Every update now records the version key it ran under, one row per planned galaxy in the control database (`version_key_history`, control schema v11): the galaxy's seed, the key, the release and the SHA-256 of `requirements.lock`. The last 10 rows per galaxy are kept. `planetgen versions` (or `python -m planetgen.cli.version_history --list`) lists them (OPS.13). The galaxy seed itself never changes on an update.

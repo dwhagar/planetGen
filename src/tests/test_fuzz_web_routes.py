@@ -638,7 +638,7 @@ def test_int_path_params_accept_digit_aliases(app, fuzz_db, rule, alias):
         assert response.status_code == 302, f"{path} -> {response.status_code}"
         assert urlsplit(response.headers["Location"]).path.endswith("/galaxy"), response.headers["Location"]
         return
-    # 400: /near without its required radius.
+    # 400: /near without its required distance.
     assert response.status_code in (200, 400, 404), f"{path} -> {response.status_code}"
 
 
@@ -695,7 +695,7 @@ _API_BAD_INPUT = [
     ("/api/sectors", {"db": "planetgen_control"}), ("/api/sectors", {"db": "planetgen%"}),  # security #47
     ("/api/phenomena/nebula/999999", {}), ("/api/phenomena/NEBULA/1", {}), ("/api/phenomena/nebula%00/1", {}),
     ("/api/sectors/999999", {}), ("/api/systems/999999", {}), ("/api/systems/999999/text", {}),
-    ("/api/systems/999999/sections", {}), ("/api/systems/999999/near", {"radius": "5"}),
+    ("/api/systems/999999/sections", {}), ("/api/near", {"from": "system:999999", "distance": "5"}),
     ("/api/no-such-route", {}), ("/api/", {}),
 ]
 
@@ -727,14 +727,16 @@ def test_api_system_text_format(app, fuzz_db, params, status):
     assert response.status_code == status
 
 
-@pytest.mark.parametrize("radius,status", [
+@pytest.mark.parametrize("distance,status", [
     (None, 400), ("", 400), ("0", 400), ("-0", 400), ("-5", 400), ("x", 400), ("1e-300", 200), ("5", 200),
-    ("1e300", 200), ("1_0", 200), (" 5 ", 200),
+    ("1e300", 400), ("50", 200), ("51", 400), ("1_0", 200), (" 5 ", 200), ("nan", 400), ("inf", 400),
 ])
-def test_api_systems_near_radius(app, fuzz_db, radius, status):
-    path = f"/api/systems/{fuzz_db['system_ids'][0]}/near"
-    response = app.test_client().get(path, query_string={} if radius is None else {"radius": radius})
-    check_response(response, path)
+def test_api_near_distance(app, fuzz_db, distance, status):
+    params = {"from": f"system:{fuzz_db['system_ids'][0]}"}
+    if distance is not None:
+        params["distance"] = distance
+    response = app.test_client().get("/api/near", query_string=params)
+    check_response(response, "/api/near")
     assert response.status_code == status
 
 
@@ -1422,13 +1424,6 @@ def test_regression_databases_listing_survives_an_unopenable_schema(app, fuzz_db
 def test_regression_nav_legacy_param_unicode_digit(app, fuzz_db, value):
     response = app.test_client().get("/nav", query_string={"from_id": value, "to_id": "1"})
     assert response.status_code < 500
-
-
-# B4 (fixed): /api/systems/<id>/near accepts radius=nan (answers []) and radius=inf (answers every placed system)
-@pytest.mark.parametrize("radius", ["nan", "inf", "1e309", "Infinity"])
-def test_regression_systems_near_non_finite_radius_is_a_400(app, fuzz_db, radius):
-    response = app.test_client().get(f"/api/systems/{fuzz_db['system_ids'][0]}/near", query_string={"radius": radius})
-    assert response.status_code == 400
 
 
 # B5 (fixed): /api/search size bounds accept nan/inf and pass them to pymysql -> 500

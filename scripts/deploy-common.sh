@@ -192,6 +192,24 @@ ensure_apache_modules() {
     check_mod_wsgi_python
 }
 
+# Reloads Apache itself when it is running (OPS.8), or restarts it when a
+# module was just enabled (APACHE_NEEDS_RESTART=1). Prints "reloaded" or
+# "restarted" on success; returns 1 when it didn't act (no systemctl, Apache
+# not running, or the command failed), so the caller prints the command for
+# the admin to run. The caller must be root; update.sh always is.
+reload_apache_if_running() {
+    local verb=reload
+    (( APACHE_NEEDS_RESTART )) && verb=restart
+    command -v systemctl >/dev/null 2>&1 || return 1
+    systemctl is-active --quiet apache2 2>/dev/null || return 1
+    if systemctl "$verb" apache2 >/dev/null 2>&1; then
+        echo "${verb}ed Apache."
+        return 0
+    fi
+    echo "warning: systemctl $verb apache2 failed." >&2
+    return 1
+}
+
 # mod_wsgi embeds the Python it was built against, not whatever `python3`
 # is. The libraries (which live in that Python's own
 # site-packages) are set up for $PYTHON, so the two must be the same
@@ -307,6 +325,13 @@ migrate_or_reset_db() {
         fi
     fi
     run_cli migrate
+}
+
+# Records the version key this update runs under, one row per galaxy in the
+# control database's history (OPS.13; the last 10 are kept), after the
+# schemas are current. A failure only warns: the update carries on.
+record_version_key() {
+    run_cli version_history || echo "warning: could not record the version key (see above); the update carries on." >&2
 }
 
 # The math check (`planetgen check-math`, TEST.68): known answers from

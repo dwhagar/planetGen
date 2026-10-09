@@ -47,6 +47,7 @@ from .helpers import (
     bookmark, crumb, current_admin, db_name, page_url, population_status, render_page, trusted_html,
 )
 from .nav_page import endpoint, nav_url
+from .nearby_page import nearby_url
 
 # ---------------------------------------------------------------------
 # /system/<id>
@@ -310,6 +311,7 @@ def system(system_id):
         badges=_badges(detail),
         inside=_inside_link(inside["type"], inside["id"], inside["name"]) if inside else None,
         nav_links=links,
+        nearby_url=nearby_url(endpoint("system", system_id)),
         pick=pick,
         bookmark=bookmark("system", endpoint("system", system_id), detail["name"],
                           page_url("system", system_id=system_id)),
@@ -760,6 +762,7 @@ def phenomenon(phenomenon_type, phenomenon_id):
         if detail.get("nearest") else None,
         inside=_phenomenon_inside(detail),
         nav_links=phenomenon_nav[0],
+        nearby_url=nearby_url(endpoint(phenomenon_type, phenomenon_id)),
         pick=phenomenon_nav[1],
         galaxy_url=page_url("sector_on_galaxy_map", sector_id=detail["sector_id"])
         if detail.get("sector_id") is not None else None,

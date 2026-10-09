@@ -597,61 +597,6 @@ def list_moons(conn, planet_class=None, min_radius_km=None, max_radius_km=None,
     return [dict(r) for r in rows]
 
 
-def systems_within_radius(conn, system_id, radius_ly):
-    """
-    Finds every other system in the same sector as `system_id`, within
-    `radius_ly` light-years, nearest first.
-
-    Args:
-        conn (planetgen.db.store.Connection): An open, read-only connection.
-        system_id (int): The `star_systems.id` to measure distances from.
-        radius_ly (float): The search radius, in light-years.
-
-    Returns:
-        list[dict]: One entry per match, nearest first, each with `id`,
-                   `name`, `distance_ly`.
-
-    Raises:
-        SystemExit: If `system_id` doesn't exist or isn't placed in a
-                   sector (no position to measure from).
-    """
-    origin = conn.execute(
-        "SELECT sector_id, position_x_mpc, position_y_mpc, position_z_mpc "
-        "FROM star_systems WHERE id = ?",
-        (system_id,),
-    ).fetchone()
-    if origin is None:
-        raise SystemExit(f"Error: no star_systems row with id {system_id}.")
-    if origin["sector_id"] is None or origin["position_x_mpc"] is None:
-        raise SystemExit(f"Error: system {system_id} isn't placed in a sector (no position to measure from).")
-
-    origin_ly = (
-        milliparsecs_to_ly(origin["position_x_mpc"]),
-        milliparsecs_to_ly(origin["position_y_mpc"]),
-        milliparsecs_to_ly(origin["position_z_mpc"]),
-    )
-
-    candidates = conn.execute(
-        "SELECT id, name, position_x_mpc, position_y_mpc, position_z_mpc "
-        "FROM star_systems WHERE sector_id = ? AND id != ?",
-        (origin["sector_id"], system_id),
-    ).fetchall()
-
-    results = []
-    for row in candidates:
-        candidate_ly = (
-            milliparsecs_to_ly(row["position_x_mpc"]),
-            milliparsecs_to_ly(row["position_y_mpc"]),
-            milliparsecs_to_ly(row["position_z_mpc"]),
-        )
-        distance_ly = math.dist(origin_ly, candidate_ly)
-        if distance_ly <= radius_ly:
-            results.append({"id": row["id"], "name": row["name"], "distance_ly": distance_ly})
-
-    results.sort(key=lambda entry: entry["distance_ly"])
-    return results
-
-
 class NavUnavailable(Exception):
     """
     Raised by `nav_between` when NAV is unavailable between two systems --
@@ -4088,13 +4033,13 @@ that (a big generation run, say) reports `full` instead -- refetching
 everything is cheaper than invalidating tens of thousands of tiles one
 by one."""
 
-_STATE_TOKEN_RE = re.compile(r"^([0-9a-f]{16})\.(\d+)\.(\d+)\.(\d{17}|0)\.(\d+)$")
+_STATE_TOKEN_RE = re.compile(r"^([0-9a-f]{16})\.(\d+)\.(\d+)\.(\d{17}|0)\.(\d+)\.(\d+)$")
 
 
 def _state_token(state):
     """`galaxy_content_state`'s dict as the opaque string the API hands
     out and `galaxy_changes` reads back."""
-    return "{base}.{sectors}.{sector_max_id}.{sector_modified}.{system_max_id}".format(**state)
+    return "{base}.{sectors}.{sector_max_id}.{sector_modified}.{system_max_id}.{bright_max_id}".format(**state)
 
 
 def _parse_state_token(token):
@@ -4102,10 +4047,11 @@ def _parse_state_token(token):
     match = _STATE_TOKEN_RE.match(str(token or ""))
     if not match:
         return None
-    base, sectors, sector_max_id, sector_modified, system_max_id = match.groups()
+    base, sectors, sector_max_id, sector_modified, system_max_id, bright_max_id = match.groups()
     return {
         "base": base, "sectors": int(sectors), "sector_max_id": int(sector_max_id),
         "sector_modified": sector_modified, "system_max_id": int(system_max_id),
+        "bright_max_id": int(bright_max_id),
     }
 
 
@@ -4145,6 +4091,9 @@ def galaxy_content_state(conn):
     - `sector_modified`: the newest `sectors.modified_at` (v27). A
       sector's own edit (a rename, say) bumps it, and so does deleting one
       of its systems (`_db.touch_sector`).
+    - `bright_max_id`: the highest `bright_stars` id; it grows while a
+      backfill runs, so it is kept out of `base` and `galaxy_changes`
+      reports it as `busy` rather than `full` (PERF.34).
     - `system_max_id`: the highest star-system id. A new system changes
       its sector's system count. System edits don't touch a tile (tiles
       only show the count), so `star_systems.modified_at` isn't used.
@@ -4169,7 +4118,7 @@ def galaxy_content_state(conn):
     ).fetchone()
     base = hashlib.sha256(json.dumps(
         {"shape": galaxy_density_shape(conn), "version": __version__,
-         "bright_stars": [bright["max_id"], bright["seed"]],
+         "bright_stars": bright["seed"],
          # GEN.70: the naming key renames the codec-named objects in every tile and page.
          "naming_key": naming_key.active_key()}, sort_keys=True, default=str,
     ).encode("utf-8")).hexdigest()[:16]
@@ -4179,6 +4128,7 @@ def galaxy_content_state(conn):
         "sector_max_id": int(maxima["sector_max_id"]),
         "sector_modified": _timestamp_digits(maxima["sector_modified"]),
         "system_max_id": int(maxima["system_max_id"]),
+        "bright_max_id": int(bright["max_id"]),
     }
 
 
@@ -4228,7 +4178,11 @@ def galaxy_changes(conn, since=None):
             changed), `tiles` (sorted keys of the changed tiles; empty
             when `full`), and `stages` (sorted keys of the drill-down
             stages whose counts changed, `galaxy_stage_keys`; empty when
-            `full`).
+            `full`), and, only when true, `busy`: `full` because so much
+            changed at once (a generation run, a backfill), not because
+            something was deleted, so a cache may keep its tiles a while
+            longer instead of refetching all of them under that load
+            (PERF.34).
     """
     state = galaxy_content_state(conn)
     result = {
@@ -4240,6 +4194,11 @@ def galaxy_changes(conn, since=None):
         result["full"] = True
         return result
     if previous == state:
+        return result
+    if previous["bright_max_id"] != state["bright_max_id"]:
+        # A backfill is adding stars to cells all over (PERF.34): which
+        # tiles they touch isn't worked out, so everything counts as changed.
+        result["full"] = result["busy"] = True
         return result
 
     new_placed = conn.execute(
@@ -4265,7 +4224,7 @@ def galaxy_changes(conn, since=None):
         ),
     ).fetchall()
     if len(rows) > GALAXY_CHANGES_MAX_SECTORS:
-        result["full"] = True
+        result["full"] = result["busy"] = True
         return result
 
     keys = set()

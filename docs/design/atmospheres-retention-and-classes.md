@@ -407,7 +407,7 @@ Sweep findings for GEN.29 [C, from the section 2 medians]: A and B hold 13 to
 shoreline (such bodies should be airless or hold micro-bar volcanic air); N
 sits in the ecosphere at S about 1.05, below the runaway threshold (1.107 for
 1 Earth mass [S]); K, L and P are at or below the Armstrong limit (full list in
-[habitability-index.md](habitability-index.md) 6); P (r about 0.1) is
+[habitability-index.md](habitability-index.md) 5); P (r about 0.1) is
 consistent with the shoreline, so GEN.27 is independent of retention. A rocky
 rogue of 10 to 16 Me should be R, not a 17,600 km Class S: an Earth-like 16 Me
 planet is 2.1 Re = 13,400 km, and 4.2 g/cm3 at 2.76 Re is a Neptunian density.
@@ -563,5 +563,5 @@ Found by search (the full papers could not be opened):
   https://mpg.de/23861226/ducrot_trappist-1b_natureastronomy_2024.pdf,
   https://astrobiology.com/2025/09/jwst-tst-dreams-nirspec-prism-transmission-spectroscopy-of-the-habitable-zone-planet-trappist-1-e.html
 - Earth timeline: https://en.wikipedia.org/wiki/Timeline_of_life
-- Pressure breathing sources are listed in [habitability-index.md](habitability-index.md) 4.
+- Pressure breathing sources are listed in [habitability-index.md](habitability-index.md) 7.2 and 7.3.
 

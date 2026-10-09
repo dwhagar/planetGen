@@ -247,15 +247,25 @@ full key text living on the `generation_runs` row. Detail:
 - **Fingerprint (GEN.58).** `planetgen fingerprint` prints a canonical
   SHA-256 per sector and for a region, in address order with canonical
   number formatting, skipping ids and timestamps, either as first
-  generated or with the settings file applied. Design (recommended):
-  a small canonical encoder with floats rounded to 9 significant digits
-  (so 1-ulp differences in `exp`, `sin`, `atan2` between machines do not
-  show), integers and strings exact, SHA-256, a leaf digest per sector
-  saved with the sector, a (ring, layer) node table and ring and galaxy
-  roots, and a region digest that includes the sector count. Separate
-  structural and float digests over named sections localise a failure.
-  Details: [generation-determinism.md](generation-determinism.md)
-  section 4.
+  generated or with the settings file applied.
+  As built (GEN.58, `planetgen/db/fingerprint.py`): each row is one
+  line of canonical JSON (floats in shortest round-trip form, bytes in
+  hex), foreign keys replaced by what they point at (a sector's address,
+  an object's `uid`, a system configuration's digest); a sector's digest
+  is the SHA-256 of its lines sorted, so save order doesn't count; the
+  region's is over its sectors' lines in address order, with the plan's
+  first for the whole galaxy. Clocks (GEN.106), nearest systems, the
+  location text, sector paths and stats, and population data are left
+  out. It reads the galaxy as stored; the settings-file layer waits for
+  GEN.59.
+  Not built, recommended in
+  [generation-determinism.md](generation-determinism.md) section 4: round
+  floats to 9 significant digits before hashing, so 1-ulp differences in
+  `exp`, `sin` and `atan2` between machines do not show; add separate
+  structural and float digests over named sections to localise a failure;
+  save a leaf digest per sector with a (ring, layer) node table and ring
+  and galaxy roots (DB.9). The built encoder hashes floats exactly, so run
+  TEST.77 on every CI leg before deciding whether rounding is needed.
 - **Golden test (TEST.77).** A fixed seed builds a small galaxy (plan, a
   few sectors, a scatter, a backfill) at 1 and 4 workers on every CI
   Python leg, and its fingerprint must match the one pinned in
@@ -285,19 +295,22 @@ full key text living on the `generation_runs` row. Detail:
 
 ## 6. Updates and the version history (phase 1, then 2)
 
-- **History (OPS.13, phase 1).** After updating the code, `update.sh`
-  and `update.ps1` compute the running key and add one row per galaxy
-  to a control-database table: the galaxy seed (unchanged by an update),
-  the key, the corpus and lock hashes, and the date. The row also holds
+- **History (OPS.13, built).** After the databases are migrated,
+  `update.sh` and `update.ps1` run `planetgen.cli.version_history`, which
+  adds one row per planned galaxy to the control database's
+  `version_key_history` (control schema v11): the galaxy seed (unchanged by
+  an update), the key, the release, the SHA-256 of `requirements.lock` and
+  the date. The corpus and name-list hashes are not recorded (the name
+  codec replaced them). Only the last 10 rows per galaxy are kept;
+  `planetgen versions` lists them. A failure to record only warns.
+  Not built, recommended: the row also holds
   the `generator_epoch`, the battery digest and an environment record
   (libc, numpy, astropy, scipy, scikit-image versions). A row is added only
   when the key or a hash differs from the newest row (an update that
   changes nothing only refreshes that row's last-seen date), so repeated
   "already up to date" runs do not push the older distinct versions out.
-  Only the last 10 rows per galaxy are kept; `planetgen` can list them.
-  The lock and word-list files are pinned to LF in `.gitattributes` (or
-  hashed as normalised text) so a Windows checkout hashes the same as a
-  Linux one. Lands after OPS.7 and OPS.8, which change the same scripts.
+  The lock file is pinned to LF in `.gitattributes` (or hashed as
+  normalised text) so a Windows checkout hashes the same as a Linux one.
   *The seed question.* Boss's wording (2026-10-02 02:08Z) was that each
   update makes "a sweet to recalculate the seed value based on the current
   code version". The seed is not changed: it identifies the galaxy whose

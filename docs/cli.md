@@ -18,9 +18,10 @@ planetgen plan [options]        # the galaxy's density skeleton
 planetgen phenomenon [options]  # one exotic stellar phenomenon
 planetgen population [options]  # species, civilizations and territories
 planetgen check-math [-v]       # the math check bulk runs start with
+planetgen fingerprint [options] # a digest of the generated content, to compare two builds
 ```
 
-Run `planetgen <command> --help` for that command's own full option list. Every subcommand except `check-math` saves what it generates to the database.
+Run `planetgen <command> --help` for that command's own full option list. Every subcommand except `check-math` and `fingerprint` saves what it generates to the database.
 
 **The math check comes first.** `check-math` runs `planetgen/physics/mathcheck.py` (known answers from real astronomy, identities, and sampler distributions; see [testing.md](testing.md#the-math-check-runs-first)) and exits 1 if a check fails; `-v` lists every check. Every bulk run (`galaxy`, `plan`, `population`, and `sector --num-sectors` above 1) runs it first and refuses to start if a check fails, naming the failed checks and writing nothing, not even the activity log line. So do the Generate page's jobs (their first step, "Check the math") and the Sector page's "generate the neighbourhood" button. One system, one sector or one phenomenon is not gated. `update.sh` and `update.ps1` run it after updating and warn (and skip the population pass) if it fails.
 
@@ -431,6 +432,31 @@ Map's Territories overlay until it has made something to show
 options work as on the other subcommands. Design and decisions:
 [`design/population-and-politics.md`](design/population-and-politics.md).
 
+## Fingerprint
+
+`planetgen fingerprint` prints a canonical SHA-256 digest of each
+sector's generated content, one line a sector (`ring layer slot
+digest`, unplaced sectors last), then the plan's digest and the
+region's. Two builds of one galaxy are the same when their digests
+match; a sector whose line differs is where they part. It writes
+nothing and isn't logged as a run.
+
+```bash
+planetgen fingerprint                      # the whole galaxy, plan included
+planetgen fingerprint --ring 3 --ring 4    # every sector on rings 3 and 4
+planetgen fingerprint --sector 12 3 0      # one sector (repeatable)
+```
+
+It compares what [`design/reproducible-galaxies.md`](design/reproducible-galaxies.md)
+section 2 defines: every object's address, position, properties and
+name, with their child rows and the cell's bright stars and phenomenon
+scatter. Row ids, timestamps, each row's update clock, the nearest
+systems and the location text written from them, sector paths and
+stats, population data and bookkeeping are left out; a foreign key
+counts as what it points at (a sector's address, an object's unique
+ID). It reads the galaxy as stored; comparing a rebuild with the
+settings file's admin changes applied comes with GEN.59.
+
 ## Planned commands
 
 Not built yet. Each names its TODO item and phase; the design is in
@@ -439,7 +465,6 @@ Not built yet. Each names its TODO item and phase; the design is in
 | Command or option | Item | Phase | What it will do |
 |---|---|---|---|
 | `planetgen check-db [--sector S] [--region R]` | DB.8 | 0 | Check the galaxy and control databases without changing anything (schema, orphans, ids, names, values, counts) and exit non-zero when damage is found; also a button on the Admin dashboard. |
-| `planetgen fingerprint` | GEN.58 | 1 | A canonical SHA-256 digest per sector and for a region, as first generated or with the settings file's admin changes applied. |
 | Version-key history listing | OPS.13 | 1 | List the last 10 version keys recorded for a galaxy by `update.sh` / `update.ps1`. |
 | `planetgen repair-db` | DB.9 | 1 | Rebuild damaged sectors from the parity file, or regenerate them from their seed when the version key matches, then check again. |
 | `--strict` | GEN.81 | 0 | Today's refusals (density, qualify, size, no room) become warnings and the run goes ahead; `--strict` keeps the old stop for scripts. |

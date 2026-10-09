@@ -115,6 +115,23 @@ speed and its threshold (time = threshold / speed, capped). An indexed
 `next_update_due` column lets the run select only what is due. Objects
 that didn't pass their threshold are not moved or counted.
 
+Built (GEN.106, schema v66): each moving row has `epoch_unix` (when its
+stored position holds; NULL means at the last run) and an indexed
+`next_update_due`, both Unix seconds by the database server's clock, on
+planets, moons, comets, star systems (galactic orbit, plus
+`binary_epoch_unix`/`binary_next_update_due` for a pair's mutual orbit),
+facilities and the six orbiting phenomenon tables. A run
+(`store.orbit_clock`) first works out a due time for rows that have none
+(new, or an orbit edited since), then moves each due row from its own epoch
+to now and sets its epoch to now and its next due time from its speed
+(`position.update_interval_s`). A row that isn't due keeps its epoch, so it
+catches up the whole time when it next comes due. A star system's stars
+and a close pair's galactic phase move with the system on its clock; a
+phenomenon's galactic phase moves with its center. Planets use the system
+scale, moons the planetary one, facilities by what they orbit (planetary
+round a planet or moon, system scale round a star or in a belt, galactic
+in open space).
+
 What the thresholds cost, and how to apply them without rewriting every row, is
 in [orbital-solvers-and-integrators.md](orbital-solvers-and-integrators.md)
 section 5. In short: applied literally to the galaxy-frame velocity, 0.01 mpc
@@ -123,8 +140,8 @@ stars follow their analytic orbit and are rewritten at sector exit or when
 their influence set changes; planets and moons are computed from their phase
 on read; the moon rule is defined on path length, because Phobos and Deimos
 never move 100,000 km from where they were; each object needs its own epoch
-beside `next_update_due`. Until Boss decides, the table above is the rule the
-position object's `get_time_to_observable_movement` implements.
+beside `next_update_due`. The built version above applies the table literally to each row; the position object's
+`get_time_to_observable_movement` is the rule it uses.
 
 ## 4. The update run
 

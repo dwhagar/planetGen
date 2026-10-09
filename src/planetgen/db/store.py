@@ -92,6 +92,7 @@ from planetgen.names.uniqueness import (
 )
 from planetgen.generation.phenomena.nebula import Nebula
 from planetgen.generation.planet import Planet
+from planetgen.physics.position import MAX_UPDATE_INTERVAL_S, THRESHOLDS_M, update_interval_s
 from planetgen.physics.rogue_surface import ROGUE_SURFACE_FIELDS
 from planetgen.generation.phenomena.rogue import InterstellarComet, RoguePlanet, interstellar_comet_designation
 from planetgen.galaxy.sector import SectorSystemEntry, SpaceSector, classify_octant, distance_between
@@ -185,7 +186,7 @@ collision renames an existing system, which the holder's nearest-neighbor
 rows then reference) neither would move until InnoDB's own 50 s timeout.
 Giving up early breaks that wait at once."""
 
-CONTROL_SCHEMA_VERSION = 10
+CONTROL_SCHEMA_VERSION = 11
 """int: Version counter for `control_schema.sql`, independent of
 `SCHEMA_VERSION` above -- see that file's header comment for why the
 control plane (admin identities/sessions/API keys/audit log) is a
@@ -195,7 +196,7 @@ separate schema with its own versioning. v2 added `login_throttle`
 PERF.10), v7 the job tree's columns on `work_jobs` and the queue pause
 on `work_lease` (ADM.12, ADM.10), v8 the drop of `login_throttle`
 (SEC.30), v9 `galaxy_naming` (GEN.70), v10 `work_job_args` and the drop
-of the JSON columns `work_jobs.argv`, `work_tasks.result` (DB.13). New tables need nothing more than
+of the JSON columns `work_jobs.argv`, `work_tasks.result` (DB.13), v11 `version_key_history` (OPS.13). New tables need nothing more than
 `CREATE TABLE IF NOT EXISTS`; new columns on an existing table are
 added by `_add_control_columns`."""
 
@@ -1416,6 +1417,7 @@ def _table_marker(table):
 
 
 _VERSION_MARKERS = (
+    (66, _column_marker("planets", "next_update_due")),
     (65, _table_marker("phenomenon_scatter")),
     (64, _column_marker("facilities", "velocity_x_kms")),
     (63, _table_marker("generation_run_arguments")),
@@ -4619,53 +4621,78 @@ class _SectorIndex:
         return self.by_address.get(sector_address_at(point, self.edge_pc), current)
 
 
-def advance_galactic_positions(conn, elapsed_years, on_progress=None):
+def advance_galactic_positions(conn, clock, on_progress=None):
     """
-    Moves every placed star system, standalone phenomenon and stand-alone
-    facility along its galactic orbit by `elapsed_years`, the same turn
-    its galactic phase advances by (`advance_orbital_phases`): a system by
-    its close pair's or primary star's period, a phenomenon by its own,
-    a facility by the rotation curve at its radius
-    (`galactic_orbit.calculate_galactic_orbit`). Sectors are fixed cells, so an
-    object that drifts into another generated sector is refiled there
-    (`sector_id`, its sector-relative position, and later its octant,
-    location text, containment and nearest systems -- see
+    Moves every due star system, standalone phenomenon and stand-alone
+    facility along its galactic orbit, from its epoch to `clock.end_unix`:
+    a system by its close pair's or primary star's period (its stars'
+    `galactic_orbital_phase_deg` and a close pair's
+    `binary_galactic_orbital_phase_deg` advance with it, each by its own
+    period), a phenomenon by its own (its `galactic_orbital_phase_deg`
+    with it), a facility by the rotation curve at its radius
+    (`galactic_orbit.calculate_galactic_orbit`). Sectors are fixed cells,
+    so an object that drifts into another generated sector is refiled
+    there (`sector_id`, its sector-relative position, and later its
+    octant, location text, containment and nearest systems -- see
     `refresh_after_motion`). A pure move keeps `modified_at`; a change of
     sector bumps it.
 
+    Due (GEN.106): an object's `next_update_due` (indexed) is at or before
+    the update's end, so it has moved at least 0.01 mpc on its galactic
+    orbit since its epoch. A row without one (new or edited since the last
+    update) gets one first, from its epoch and galactic orbital speed. An
+    object that isn't due is neither moved nor counted. A system with no
+    place in a generated sector still advances its phases on the same
+    clock.
+
     Args:
         conn (Connection): An open, read-write connection.
-        elapsed_years (float): Simulated time to move by.
+        clock (OrbitClock): The span to move over (`orbit_clock`).
         on_progress (callable, optional): `on_progress(label, done, total)`
             after the star systems, each phenomenon table and the
             facilities are moved.
 
     Returns:
-        dict: `moved` and `refiled` counts, and `sectors` -- the ids of
-            every sector something moved in or out of.
+        dict: `moved` (objects whose galaxy position moved) and `refiled`
+            counts, `sectors` -- the ids of every sector something moved
+            in or out of -- and `counts`, `{name: rows_moved}`:
+            `"star_systems"`, `"binary_galactic_orbits"`, each orbiting
+            phenomenon table and `"space_facilities"`.
     """
     index = _SectorIndex(conn)
     moved = refiled = 0
     touched = set()
+    counts = {}
+    seconds_per_year = physical_constants.SECONDS_PER_YEAR
     # The star systems, each phenomenon table (the quasars, which don't orbit, report nothing), the facilities.
     steps = len(PLACED_PHENOMENON_TABLES) + 1
 
     systems = conn.execute(
         """
         SELECT ss.id, ss.sector_id, ss.position_x_mpc, ss.position_y_mpc, ss.position_z_mpc,
-               ss.velocity_x_kms, ss.velocity_y_kms, ss.velocity_z_kms,
-               COALESCE(ss.binary_galactic_orbital_period_gy, s.galactic_orbital_period_gy) AS period_gy
+               ss.velocity_x_kms, ss.velocity_y_kms, ss.velocity_z_kms, ss.binary_configuration,
+               ss.epoch_unix, ss.next_update_due,
+               COALESCE(ss.binary_galactic_orbital_period_gy, s.galactic_orbital_period_gy) AS period_gy,
+               COALESCE(ss.binary_galactic_orbital_speed_kms, s.galactic_orbital_speed_kms) AS speed_kms
         FROM star_systems ss
         LEFT JOIN stars s ON s.star_system_id = ss.id AND s.role IN ('single', 'primary')
-        WHERE ss.position_x_mpc IS NOT NULL AND ss.sector_id IS NOT NULL
-        """
+        WHERE ss.next_update_due IS NULL OR ss.next_update_due <= ?
+        """,
+        (clock.end_unix,),
     ).fetchall()
-    updates, refile_updates = [], []
+    scheduled, clocks, phases, updates, refile_updates = [], [], [], [], []
+    close_pairs = 0
     for row in systems:
-        if row["sector_id"] not in index.info:
+        epoch, interval, due = _due_interval_s(row, clock, row["speed_kms"], "galactic")
+        if due > clock.end_unix:
+            scheduled.append((epoch, due, row["id"]))
             continue
+        elapsed_years = (clock.end_unix - epoch) / seconds_per_year
+        clocks.append((elapsed_years, clock.end_unix, clock.end_unix + interval, row["id"]))
+        phases.append((elapsed_years, row["id"]))
+        close_pairs += row["binary_configuration"] == "close"
         angle = _galactic_turn(elapsed_years, row["period_gy"])
-        if angle == 0.0:
+        if angle == 0.0 or row["position_x_mpc"] is None or row["sector_id"] not in index.info:
             continue
         _name, center = index.info[row["sector_id"]]
         offset = (row["position_x_mpc"] / 1000.0, row["position_y_mpc"] / 1000.0, row["position_z_mpc"] / 1000.0)
@@ -4681,6 +4708,20 @@ def advance_galactic_positions(conn, elapsed_years, on_progress=None):
             refile_updates.append((sector_id, *local_mpc, quadrant, *velocity, row["id"]))
         else:
             updates.append((*local_mpc, quadrant, *velocity, row["id"]))
+    if scheduled:
+        conn.executemany("UPDATE star_systems SET epoch_unix = ?, next_update_due = ?, modified_at = modified_at"
+                         " WHERE id = ?", scheduled)
+    if clocks:
+        conn.executemany(
+            "UPDATE star_systems SET binary_galactic_orbital_phase_deg = CASE"
+            " WHEN binary_configuration = 'close' AND binary_galactic_orbital_period_gy > 0"
+            " THEN MOD(binary_galactic_orbital_phase_deg + 360 * ? / (binary_galactic_orbital_period_gy * 1e9), 360)"
+            " ELSE binary_galactic_orbital_phase_deg END,"
+            " epoch_unix = ?, next_update_due = ?, modified_at = modified_at WHERE id = ?", clocks)
+        conn.executemany(
+            "UPDATE stars SET galactic_orbital_phase_deg ="
+            " MOD(galactic_orbital_phase_deg + 360 * ? / (galactic_orbital_period_gy * 1e9), 360)"
+            " WHERE star_system_id = ? AND galactic_orbital_period_gy > 0", phases)
     if updates:
         conn.executemany(
             "UPDATE star_systems SET position_x_mpc = ?, position_y_mpc = ?, position_z_mpc = ?, quadrant = ?,"
@@ -4692,18 +4733,29 @@ def advance_galactic_positions(conn, elapsed_years, on_progress=None):
             " quadrant = ?, velocity_x_kms = ?, velocity_y_kms = ?, velocity_z_kms = ? WHERE id = ?",
             refile_updates)
         _refile_nearest_rows(conn, "star_systems", [(update[0], update[-1]) for update in refile_updates])
+    counts["star_systems"] = len(clocks)
+    counts["binary_galactic_orbits"] = close_pairs
     _report(on_progress, "star_systems", 1, steps)
 
     for done, table in enumerate(PLACED_PHENOMENON_TABLES, start=2):
         if table == "quasars":
             continue  # the galaxy's nucleus sits at the center and doesn't orbit it
-        updates, refile_updates = [], []
+        # An anchored black hole or neutron star moves with its system's star row.
+        anchored = " AND star_id IS NULL" if table in ("black_holes", "neutron_stars") else ""
+        scheduled, clocks, updates, refile_updates = [], [], [], []
         for row in conn.execute(
-            f"SELECT id, sector_id, center_x_pc, center_y_pc, center_z_pc, galactic_orbital_period_gy"
-            f" FROM {table} WHERE center_x_pc IS NOT NULL"
+            f"SELECT id, sector_id, center_x_pc, center_y_pc, center_z_pc, galactic_orbital_period_gy,"
+            f" galactic_orbital_speed_kms, epoch_unix, next_update_due FROM {table}"
+            f" WHERE (next_update_due IS NULL OR next_update_due <= ?){anchored}", (clock.end_unix,)
         ).fetchall():
+            epoch, interval, due = _due_interval_s(row, clock, row["galactic_orbital_speed_kms"], "galactic")
+            if due > clock.end_unix:
+                scheduled.append((epoch, due, row["id"]))
+                continue
+            elapsed_years = (clock.end_unix - epoch) / seconds_per_year
+            clocks.append((elapsed_years, clock.end_unix, clock.end_unix + interval, row["id"]))
             angle = _galactic_turn(elapsed_years, row["galactic_orbital_period_gy"])
-            if angle == 0.0:
+            if angle == 0.0 or row["center_x_pc"] is None:
                 continue
             point = _rotate_about_axis((row["center_x_pc"], row["center_y_pc"], row["center_z_pc"]), angle)
             radius = math.sqrt(sum(c * c for c in point))
@@ -4715,6 +4767,15 @@ def advance_galactic_positions(conn, elapsed_years, on_progress=None):
                 refile_updates.append((sector_id, *point, radius, row["id"]))
             else:
                 updates.append((*point, radius, row["id"]))
+        if scheduled:
+            conn.executemany(f"UPDATE {table} SET epoch_unix = ?, next_update_due = ?, modified_at = modified_at"
+                             f" WHERE id = ?", scheduled)
+        if clocks:
+            conn.executemany(
+                f"UPDATE {table} SET galactic_orbital_phase_deg = CASE WHEN galactic_orbital_period_gy > 0"
+                f" THEN MOD(galactic_orbital_phase_deg + 360 * ? / (galactic_orbital_period_gy * 1e9), 360)"
+                f" ELSE galactic_orbital_phase_deg END, epoch_unix = ?, next_update_due = ?,"
+                f" modified_at = modified_at WHERE id = ?", clocks)
         if updates:
             conn.executemany(
                 f"UPDATE {table} SET center_x_pc = ?, center_y_pc = ?, center_z_pc = ?, galactic_radius_pc = ?,"
@@ -4724,17 +4785,25 @@ def advance_galactic_positions(conn, elapsed_years, on_progress=None):
                 f"UPDATE {table} SET sector_id = ?, center_x_pc = ?, center_y_pc = ?, center_z_pc = ?,"
                 f" galactic_radius_pc = ? WHERE id = ?", refile_updates)
             _refile_nearest_rows(conn, table, [(update[0], update[-1]) for update in refile_updates])
+        counts[table] = len(clocks)
         _report(on_progress, table, done, steps)
 
-    updates, refile_updates = [], []
+    scheduled, updates, refile_updates = [], [], []
     for row in conn.execute(
         "SELECT id, sector_id, center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc,"
-        " velocity_x_kms, velocity_y_kms, velocity_z_kms FROM facilities"
+        " velocity_x_kms, velocity_y_kms, velocity_z_kms, epoch_unix, next_update_due FROM facilities"
         " WHERE host_type = 'space' AND center_x_pc IS NOT NULL"
+        " AND (next_update_due IS NULL OR next_update_due <= ?)", (clock.end_unix,)
     ).fetchall():
-        _speed, period_gy = calculate_galactic_orbit(pc_to_ly(math.hypot(row["center_x_pc"], row["center_y_pc"])))
-        angle = _galactic_turn(elapsed_years, period_gy)
+        speed_kms, period_gy = calculate_galactic_orbit(pc_to_ly(math.hypot(row["center_x_pc"], row["center_y_pc"])))
+        epoch, interval, due = _due_interval_s(row, clock, speed_kms, "galactic")
+        if due > clock.end_unix:
+            scheduled.append((epoch, due, row["id"]))
+            continue
+        angle = _galactic_turn((clock.end_unix - epoch) / seconds_per_year, period_gy)
+        next_due = clock.end_unix + interval
         if angle == 0.0:
+            scheduled.append((clock.end_unix, next_due, row["id"]))
             continue
         point = _rotate_about_axis((row["center_x_pc"], row["center_y_pc"], row["center_z_pc"]), angle)
         velocity = _rotate_about_axis((row["velocity_x_kms"], row["velocity_y_kms"], row["velocity_z_kms"]), angle)
@@ -4743,23 +4812,28 @@ def advance_galactic_positions(conn, elapsed_years, on_progress=None):
         if sector_id != row["sector_id"]:
             refiled += 1
             touched.update((sector_id, row["sector_id"]))
-            refile_updates.append((sector_id, *point, row["galactic_radius_pc"], *velocity, row["id"]))
+            refile_updates.append((sector_id, *point, row["galactic_radius_pc"], *velocity,
+                                   clock.end_unix, next_due, row["id"]))
         else:
-            updates.append((*point, *velocity, row["id"]))
+            updates.append((*point, *velocity, clock.end_unix, next_due, row["id"]))
+    if scheduled:
+        conn.executemany("UPDATE facilities SET epoch_unix = ?, next_update_due = ?, modified_at = modified_at"
+                         " WHERE id = ?", scheduled)
     if updates:
         conn.executemany("UPDATE facilities SET center_x_pc = ?, center_y_pc = ?, center_z_pc = ?,"
                          " velocity_x_kms = ?, velocity_y_kms = ?, velocity_z_kms = ?,"
-                         " modified_at = modified_at WHERE id = ?", updates)
+                         " epoch_unix = ?, next_update_due = ?, modified_at = modified_at WHERE id = ?", updates)
     if refile_updates:
         conn.executemany("UPDATE facilities SET sector_id = ?, center_x_pc = ?, center_y_pc = ?, center_z_pc = ?,"
-                         " galactic_radius_pc = ?, velocity_x_kms = ?, velocity_y_kms = ?, velocity_z_kms = ?"
-                         " WHERE id = ?", refile_updates)
+                         " galactic_radius_pc = ?, velocity_x_kms = ?, velocity_y_kms = ?, velocity_z_kms = ?,"
+                         " epoch_unix = ?, next_update_due = ? WHERE id = ?", refile_updates)
+    counts["space_facilities"] = len(updates) + len(refile_updates)
     _report(on_progress, "facilities", steps, steps)
 
     touched.discard(None)
     for sector_id in touched:
         touch_sector(conn, sector_id)
-    return {"moved": moved, "refiled": refiled, "sectors": touched}
+    return {"moved": moved, "refiled": refiled, "sectors": touched, "counts": counts}
 
 
 def _refile_nearest_rows(conn, table, moves):
@@ -4774,16 +4848,18 @@ def _refile_nearest_rows(conn, table, moves):
         conn.executemany("DELETE FROM nearest_systems WHERE object_table = ? AND object_id = ?", dropped)
 
 
-def advance_facility_orbits(conn, elapsed_years):
-    """Advances every orbital facility's `orbit_phase_deg` by its period,
-    the way `advance_orbital_phases` does for moons, and every asteroid
-    facility in a belt around its star the same way. Returns the count."""
-    if elapsed_years <= 0:
-        return 0
+def advance_facility_orbits(conn, clock):
+    """Advances every due orbital facility's `orbit_phase_deg` by its period
+    from its epoch to `clock.end_unix`, the way `advance_orbital_phases`
+    does for moons, and every asteroid facility in a belt around its star
+    the same way. Returns the count."""
+    where = "placement IN ('orbital', 'asteroid') AND orbit_period_years > 0"
+    _schedule_updates(conn, clock, "facilities", _FACILITY_INTERVAL_SQL, where, keep_modified=True)
     return conn.execute(
-        "UPDATE facilities SET orbit_phase_deg = MOD(orbit_phase_deg + 360.0 * ? / orbit_period_years, 360.0),"
-        " modified_at = modified_at WHERE placement IN ('orbital', 'asteroid') AND orbit_period_years > 0",
-        (elapsed_years,),
+        f"UPDATE facilities SET orbit_phase_deg = MOD(orbit_phase_deg + 360.0 * {_elapsed_years_sql()}"
+        f" / orbit_period_years, 360.0), epoch_unix = ?, next_update_due = ? + {_FACILITY_INTERVAL_SQL},"
+        f" modified_at = modified_at WHERE {where} AND next_update_due <= ?",
+        (clock.end_unix, clock.end_unix, clock.end_unix, clock.end_unix),
     ).rowcount
 
 
@@ -5665,8 +5741,8 @@ _SYSTEM_CONTENT_COLUMNS = (
     "binary_galactic_orbital_phase_deg", "binary_galactic_min_update_interval_years",
     "binary_mutual_orbital_period_years", "binary_mutual_orbital_speed_kms",
     "binary_mutual_orbital_inclination_deg", "binary_mutual_orbital_ascending_node_deg",
-    "binary_mutual_orbital_phase_deg", "binary_mutual_min_update_interval_years",
-    "binary_mutual_position_x_km", "binary_mutual_position_y_km", "binary_mutual_position_z_km",
+    "binary_mutual_orbital_phase_deg", "binary_epoch_unix", "binary_next_update_due",
+    "binary_mutual_min_update_interval_years", "binary_mutual_position_x_km", "binary_mutual_position_y_km", "binary_mutual_position_z_km",
     "binary_primary_position_x_km", "binary_primary_position_y_km", "binary_primary_position_z_km",
     "binary_secondary_position_x_km", "binary_secondary_position_y_km", "binary_secondary_position_z_km",
     "binary_secondary_mass_fraction",
@@ -5731,7 +5807,7 @@ def replace_star_system_content(conn, star_system_id, star_system, system_config
     assignments = ", ".join(f"kept.{column} = made.{column}" for column in _SYSTEM_CONTENT_COLUMNS)
     conn.execute(
         f"UPDATE star_systems kept JOIN star_systems made ON made.id = ? SET {assignments},"
-        " kept.modified_at = CURRENT_TIMESTAMP(3) WHERE kept.id = ?",
+        " kept.next_update_due = NULL, kept.modified_at = CURRENT_TIMESTAMP(3) WHERE kept.id = ?",
         (temp_id, star_system_id),
     )
     conn.execute("DELETE FROM star_systems WHERE id = ?", (temp_id,))
@@ -7405,10 +7481,103 @@ def get_orbit_epoch_unix(conn):
     return None if row is None or row["unix"] is None else int(row["unix"])
 
 
-# Quasars have no galactic orbit: the nucleus sits at the center. Galactic
-# positions follow the phases in `advance_galactic_positions`
-# (updateOrbits.main runs both).
-ORBITAL_PHASE_UPDATES = 15
+OrbitClock = namedtuple("OrbitClock", ("start_unix", "end_unix"))
+OrbitClock.__doc__ = """The span one orbit update moves the database over, in Unix seconds by
+the database server's clock: from `start_unix`, when every position without
+its own `epoch_unix` holds (the last update), to `end_unix`."""
+
+
+def orbit_clock(conn, elapsed_years=None):
+    """
+    The `OrbitClock` for an orbit update: from the last update (or now, when
+    none has run) to now, or to `elapsed_years` after the last update when
+    given (a simulated step). A server clock that went back since the last
+    update gives an empty span at now, so nothing moves backwards.
+
+    Args:
+        conn (Connection): An open, schema-initialized connection.
+        elapsed_years (float, optional): How far to step instead of to now.
+
+    Returns:
+        OrbitClock.
+
+    Raises:
+        ValueError: If `elapsed_years` is negative.
+    """
+    if elapsed_years is not None and elapsed_years < 0:
+        raise ValueError(f"elapsed_years must be >= 0, got {elapsed_years}")
+    now = float(conn.execute("SELECT UNIX_TIMESTAMP(NOW(6)) AS now").fetchone()["now"])
+    last = get_orbit_epoch_unix(conn)
+    start = now if last is None else float(last)
+    if elapsed_years is not None:
+        return OrbitClock(start, start + elapsed_years * physical_constants.SECONDS_PER_YEAR)
+    return OrbitClock(min(start, now), now)
+
+
+def finish_orbit_update(conn, clock):
+    """Records `clock.end_unix` as the time every stored position without its
+    own epoch holds (`orbit_simulation_state.last_updated_at`): the start of
+    the next update. `planetgen.cli.orbits` calls it after the last step."""
+    conn.execute(
+        "INSERT INTO orbit_simulation_state (id, last_updated_at) VALUES (1, FROM_UNIXTIME(?)) "
+        "ON DUPLICATE KEY UPDATE last_updated_at = FROM_UNIXTIME(?)",
+        (clock.end_unix, clock.end_unix),
+    )
+    conn.commit()
+
+
+def _update_interval_sql(speed_kms, scale):
+    """SQL for `position.update_interval_s` of a speed in km/s (`speed_kms` is
+    an SQL expression): seconds until the object has moved its scale's
+    threshold, capped."""
+    threshold_km = THRESHOLDS_M[scale] / 1000.0
+    cap = MAX_UPDATE_INTERVAL_S
+    return f"(CASE WHEN {speed_kms} > 0 THEN LEAST({cap!r}, {threshold_km!r} / ({speed_kms})) ELSE {cap!r} END)"
+
+
+_FACILITY_SPEED_SQL = (f"(orbit_distance_km * 2 * PI() / (orbit_period_years"
+                       f" * {physical_constants.SECONDS_PER_YEAR!r}))")
+"""str: SQL for an orbiting facility's speed, km/s, on its circular orbit."""
+
+_FACILITY_INTERVAL_SQL = (
+    f"(CASE WHEN host_type IN ('planet', 'moon') THEN {_update_interval_sql(_FACILITY_SPEED_SQL, 'planetary')}"
+    f" ELSE {_update_interval_sql(_FACILITY_SPEED_SQL, 'system')} END)")
+"""str: A facility orbiting a planet or moon is on the planetary scale, one
+round a star or in a belt on the system scale."""
+
+
+def _schedule_updates(conn, clock, table, interval_sql, where, prefix="", keep_modified=False):
+    """Works out `next_update_due` for `table`'s rows that don't have one yet
+    (new or edited since the last update): their epoch (the last update's,
+    `clock.start_unix`, when they have none) plus `interval_sql`. Rows
+    matching `where` only."""
+    keep = ", modified_at = modified_at" if keep_modified else ""
+    conn.execute(
+        f"UPDATE {table} SET {prefix}epoch_unix = COALESCE({prefix}epoch_unix, ?),"
+        f" {prefix}next_update_due = COALESCE({prefix}epoch_unix, ?) + {interval_sql}{keep}"
+        f" WHERE {prefix}next_update_due IS NULL AND {where}",
+        (clock.start_unix, clock.start_unix),
+    )
+
+
+def _elapsed_years_sql(prefix=""):
+    """SQL for the years from a row's epoch to the update's end (the `?`)."""
+    return f"((? - {prefix}epoch_unix) / {physical_constants.SECONDS_PER_YEAR!r})"
+
+
+def _due_interval_s(row, clock, speed_kms, scale, prefix=""):
+    """For the rows the Python steps move: `(epoch, interval, due)` -- the
+    row's epoch (the last update's when it has none), the seconds it takes
+    to move its threshold at `speed_kms`, and when it is due (worked out
+    from those when the row has no `next_update_due` yet)."""
+    epoch = row[f"{prefix}epoch_unix"]
+    epoch = clock.start_unix if epoch is None else epoch
+    interval = update_interval_s((speed_kms or 0.0) * 1000.0, scale)
+    due = row[f"{prefix}next_update_due"]
+    return epoch, interval, (epoch + interval if due is None else due)
+
+
+ORBITAL_PHASE_UPDATES = 6
 """int: How many table updates `advance_orbital_phases` runs (the `total` it
 reports progress against)."""
 
@@ -7420,177 +7589,75 @@ def _report(on_progress, label, done, total):
         on_progress(label, done, total)
 
 
-def advance_orbital_phases(conn, elapsed_years, on_progress=None):
+def advance_orbital_phases(conn, clock, on_progress=None):
     """
-    Advances every planet's and moon's `orbital_phase_deg` in place by the
-    fraction of a full revolution `elapsed_years` represents, given each
-    body's own already-stored `period_years` -- one set-based `UPDATE` per
-    table rather than a per-row Python loop, so this stays fast regardless
-    of how many bodies the database holds (see `planetgen.cli.orbits`).
-    `position_x/y/z_km` are recomputed in lockstep from the *new* phase --
-    position is a pure function of distance/inclination/ascending-node/
-    phase, so it has no independent update of its own; it just has to move
-    whenever phase does. `orbital_phase_deg` is assigned first in the
-    `SET` list and every position expression below reads it back
-    afterward, relying on documented single-table `UPDATE` behavior (MySQL/
-    MariaDB evaluate a single table's `SET` assignments left to right, so a
-    later expression sees an earlier assignment's *new* value) rather than
-    a CTE -- tried first, but MariaDB (unlike MySQL 8) doesn't allow a CTE
-    to be joined into a multi-table `UPDATE`; see
-    `orbits.orbital_position_au`'s docstring for the same formula in its
-    Python form.
+    Advances the orbits inside star systems that are due (GEN.106): every
+    planet's and moon's `orbital_phase_deg`, and a binary pair's
+    `binary_mutual_orbital_phase_deg`, each by the time from its own epoch
+    to `clock.end_unix`, given its own stored period -- one set-based
+    `UPDATE` per table rather than a per-row Python loop, so this stays
+    fast regardless of how many bodies the database holds (see
+    `planetgen.cli.orbits`). Galactic orbits are `advance_galactic_positions`'.
 
-    A row is skipped entirely (not just a no-op write, no `UPDATE` attempt
-    at all) when `elapsed_years < min_update_interval_years` -- that body's
-    own precomputed floor below which the phase delta added is smaller
-    than `orbital_phase_deg`'s own floating-point resolution, so the write
-    is guaranteed to round back to the exact value already stored (see
-    `orbits.minimum_update_interval_years`'s docstring). In practice this
-    floor sits many orders of magnitude below any realistic `elapsed_years`
-    (`planetgen.cli.orbits` runs "once a month or so"), so the guard exists for
-    correctness against a caller advancing time in much smaller steps
-    (e.g. a fast-forward simulation), not because today's actual usage
-    pattern comes close to tripping it.
+    Due: a row's `next_update_due` (indexed) is at or before the update's
+    end, so it has moved at least its threshold since its epoch (0.01 AU
+    for a planet or a pair's mutual orbit, 100,000 km for a moon; see
+    `physics.position.THRESHOLDS_M`). Rows without one (new or edited since
+    the last update) get one first, from their epoch and orbital speed.
+    A row that isn't due is neither moved nor counted. A moved row's epoch
+    becomes the update's end and its next due time that plus its interval.
 
-    `orbital_inclination_deg`/`orbital_ascending_node_deg`/
-    `rotation_period_hours` are untouched -- fixed at generation time, per
-    `planetPhysics.generate_orbital_motion_properties`. `orbital_speed_kms`/
-    `min_update_interval_years` are also untouched -- both constant around
-    a circular orbit, only changing if `distance_km`/`period_years`
-    themselves do (never from phase advancing alone).
+    `position_x/y/z_km` and the velocity are recomputed in lockstep from
+    the *new* phase -- position is a pure function of distance/
+    inclination/ascending-node/phase. `orbital_phase_deg` is assigned first
+    in the `SET` list and every position expression below reads it back
+    afterward, relying on documented single-table `UPDATE` behavior
+    (MySQL/MariaDB evaluate a single table's `SET` assignments left to
+    right, so a later expression sees an earlier assignment's *new* value);
+    the epoch is assigned last, so the phase reads the old one. See
+    `orbits.orbital_position_au`'s docstring for the same formula in Python.
 
-    Also advances `stars.galactic_orbital_phase_deg` (guarded by that row's
-    own `galactic_min_update_interval_years`, `galactic_orbital_period_gy`
-    converted from Gy to years the same way `Star.__init__` computes the
-    guard itself) and, for a binary `star_systems` row,
-    `binary_mutual_orbital_phase_deg` (both binary configurations --
-    `binary_configuration` 'close' and 'wide' alike, see `schema.sql`'s
-    "v15" header note on why these columns are shared) and, separately,
-    `binary_galactic_orbital_phase_deg` (a 'close' pair only -- a 'wide'
-    pair's two stars already each advance their own galactic phase via the
-    per-row `stars` `UPDATE` above, individually, since they're real
-    stored `stars` rows rather than a merged proxy). These are TWO
-    separate `UPDATE`s, not one combined statement: an earlier version
-    combined them, guarded by "either interval qualifies" against a single
-    `WHERE` that (incorrectly) required BOTH `binary_galactic_orbital_period_gy`
-    and `binary_mutual_orbital_period_years` to be positive -- for a 'wide'
-    pair, `binary_galactic_orbital_period_gy` is always NULL (see
-    `schema.sql`'s "v15" note), which made that combined `WHERE` silently
-    false for every 'wide' row, forever, so its mutual-orbit phase (and
-    the P-type-only-in-spirit galactic phase this generator never intended
-    to apply to it in the first place) would never advance. Splitting
-    the mutual-orbit update out with its own, independent guard fixes
-    this: it now applies correctly to both configurations, matching the
-    exact same "own guard interval" pattern the per-table planets/moons/
-    stars `UPDATE`s above already use, rather than the removed combined
-    approach's non-independent one.
-    `binary_mutual_position_x/y/z_km` are recomputed in lockstep from the
-    *new* `binary_mutual_orbital_phase_deg` the same way a planet's/moon's
-    position is -- see `schema.sql`'s "v14" note; `binary_mutual_orbital_phase_deg`
-    is assigned earlier in this same `SET` list so the position expressions
-    read back its new value, the identical left-to-right trick the
-    planets/moons `UPDATE`s above use. The galactic orbit has no such
-    position to keep in lockstep -- it's treated as planar (no
-    inclination/ascending node to resolve a 3D position from), unlike the
-    mutual orbit's full orbital-element set.
+    `binary_mutual_position_x/y/z_km` (the secondary's position relative to
+    the primary) and each star's offset from the pair's barycenter
+    (`binary_primary/secondary_position_*_km`, from the constant
+    `binary_secondary_mass_fraction`) move with the mutual phase the same
+    way, for both binary configurations.
 
-    Also advances every standalone exotic phenomenon's own
-    `galactic_orbital_phase_deg` the identical way `stars`' is advanced
-    above -- `black_holes`/`neutron_stars` (only the rows with `star_id IS
-    NULL`; an anchored remnant's motion already lives on its own `stars`
-    row, updated by the `stars` `UPDATE` above instead) and `nebulae`/
-    `supernova_remnants`/`rogue_planets`/`interstellar_comets`/
-    `asteroid_fields` (always, every row there is standalone) -- see
-    `schema.sql`'s "v17" header note. Each gets its own independent
-    `UPDATE` with its own `galactic_min_update_interval_years` guard, the
-    same "one table, one guard" pattern every other `UPDATE` in this
-    function already follows.
+    v20 "reflex offset"/"wobble" values (`stars.reflex_offset_*_km` from
+    each star's planets, `planets.reflex_offset_*_km` from each planet's
+    moons, `star_systems.binary_planetary_wobble_*_km` from a close pair's
+    circumbinary planets) are derived from the children's positions, so
+    they're recomputed on every call with a correlated subquery
+    (`SELECT SUM(...) FROM <children> WHERE <parent link>`) -- see
+    `orbits.calculate_reflex_offset`.
 
-    v27: every `UPDATE` here on a table with a `modified_at` column
-    (`star_systems` and the phenomenon tables) sets `modified_at =
-    modified_at` explicitly, which stops MySQL's `ON UPDATE
-    CURRENT_TIMESTAMP` from firing -- an orbit tick is the simulation
-    clock moving, not the row being edited, and would otherwise mark
-    every row in the galaxy as changed on each run. Anything that needs
-    to know when the simulation last moved reads
-    `orbit_simulation_state.last_updated_at` instead. See `schema.sql`'s
-    "v27" header note.
-
-    Also upserts `orbit_simulation_state.last_updated_at` to `NOW()` (the
-    reference point the *next* call's `elapsed_years` should be measured
-    from), in the same transaction, so a caller can never advance phases
-    without also recording that it did.
-
-    v20 additionally recomputes three "reflex offset"/"wobble" values --
-    a proper two-body (barycentric) treatment layered on top of the
-    existing relative-position model, never changing what any existing
-    column means (see `schema.sql`'s "v20" header note and
-    `orbits.calculate_reflex_offset`'s docstring for the underlying
-    formula):
-      - `stars.reflex_offset_x/y/z_km`, from each star's own hosted
-        planets (`planets.star_id`).
-      - `planets.reflex_offset_x/y/z_km`, from each planet's own hosted
-        moons (`moons.planet_id`).
-      - `star_systems.binary_primary_position_*_km`/
-        `binary_secondary_position_*_km`, recomputed from the same-`SET`-
-        list's freshly-advanced `binary_mutual_position_*_km` and the
-        stored constant `binary_secondary_mass_fraction`, folded into the
-        existing mutual-orbit `UPDATE` rather than a separate statement.
-      - `star_systems.binary_planetary_wobble_*_km`, a 'close' pair's
-        combined pull from its own circumbinary planets (`star_id IS
-        NULL`).
-    Unlike every phase-advancing `UPDATE` above, these three are cheap
-    values *derived from* other rows' just-advanced positions rather than
-    an independently advancing phase of their own, so they're recomputed
-    unconditionally on every call -- no `min_update_interval_years`-style
-    guard of their own. The two per-child-table ones use a correlated
-    subquery (`SELECT SUM(...) FROM <children> WHERE <parent link>`) to
-    sum a parent's pull from *multiple* children in one set-based
-    statement -- a different, well-supported mechanism from the CTE-in-
-    multi-table-UPDATE approach flagged as unsupported above; this one
-    works because it's a plain correlated scalar subquery in a
-    single-table `UPDATE`'s own `SET` clause, not a join.
+    v27: `UPDATE`s on `star_systems` set `modified_at = modified_at`, which
+    stops MySQL's `ON UPDATE CURRENT_TIMESTAMP` from firing -- an orbit
+    tick is the simulation clock moving, not the row being edited.
 
     Args:
         conn (Connection): An open, schema-initialized, read-write
                            connection.
-        elapsed_years (float): How much simulated time has passed since
-                               the reference point `elapsed_years` was
-                               computed from (typically
-                               `get_last_orbit_update`'s return value).
-                               Must be >= 0.
+        clock (OrbitClock): The span to move over (`orbit_clock`).
         on_progress (callable, optional): `on_progress(label, done, total)`
                                after each of the `total` table updates
                                (see `_report`); `planetgen.cli.orbits`
                                draws its progress bar from it.
 
     Returns:
-        dict: `{table_name: rows_updated}` for every table this function
-            touches -- `"planets"`, `"moons"`, `"stars"`,
+        dict: `{name: rows_updated}` -- `"planets"`, `"moons"`,
             `"star_reflex_offsets"`, `"planet_reflex_offsets"`,
-            `"binary_mutual_orbits"`, `"binary_planetary_wobbles"`,
-            `"binary_galactic_orbits"`, `"black_holes"`, `"neutron_stars"`,
-            `"nebulae"`, `"supernova_remnants"`, `"rogue_planets"`,
-            `"interstellar_comets"`, `"asteroid_fields"`. A dict rather
-            than a positional tuple (this function's shape before v17)
-            specifically because this list keeps growing as new phenomena
-            gain their own tracked motion -- a name-keyed result stays
-            self-describing and immune to callers silently unpacking the
-            wrong position as the list grows further.
-
-    Raises:
-        ValueError: If `elapsed_years` is negative.
+            `"binary_mutual_orbits"`, `"binary_planetary_wobbles"`.
     """
-    if elapsed_years < 0:
-        raise ValueError(f"elapsed_years must be >= 0, got {elapsed_years}")
-
     counts = {}
     circular_rate = CIRCULAR_VELOCITY_SQL
-    for table in ("planets", "moons"):
+    for table, scale in (("planets", "system"), ("moons", "planetary")):
+        interval = _update_interval_sql(circular_rate, scale)
+        _schedule_updates(conn, clock, table, interval, "period_years > 0")
         cur = conn.execute(
             f"""
             UPDATE {table}
-            SET orbital_phase_deg = MOD(orbital_phase_deg + (? / period_years) * 360, 360),
+            SET orbital_phase_deg = MOD(orbital_phase_deg + ({_elapsed_years_sql()} / period_years) * 360, 360),
                 position_x_km = distance_km * (
                     COS(RADIANS(orbital_ascending_node_deg)) * COS(RADIANS(orbital_phase_deg))
                     - SIN(RADIANS(orbital_ascending_node_deg)) * SIN(RADIANS(orbital_phase_deg))
@@ -7612,35 +7679,23 @@ def advance_orbital_phases(conn, elapsed_years, on_progress=None):
                     + COS(RADIANS(orbital_ascending_node_deg)) * COS(RADIANS(orbital_phase_deg))
                       * COS(RADIANS(orbital_inclination_deg))
                 ),
-                velocity_z_kms = {circular_rate} * COS(RADIANS(orbital_phase_deg)) * SIN(RADIANS(orbital_inclination_deg))
-            WHERE period_years > 0 AND ? >= min_update_interval_years
+                velocity_z_kms = {circular_rate} * COS(RADIANS(orbital_phase_deg)) * SIN(RADIANS(orbital_inclination_deg)),
+                epoch_unix = ?,
+                next_update_due = ? + {interval}
+            WHERE period_years > 0 AND next_update_due <= ?
             """,
-            (elapsed_years, elapsed_years),
+            (clock.end_unix, clock.end_unix, clock.end_unix, clock.end_unix),
         )
         counts[table] = cur.rowcount
         _report(on_progress, table, len(counts), ORBITAL_PHASE_UPDATES)
-
-    cur = conn.execute(
-        """
-        UPDATE stars
-        SET galactic_orbital_phase_deg =
-            MOD(galactic_orbital_phase_deg + (? / (galactic_orbital_period_gy * 1e9)) * 360, 360)
-        WHERE galactic_orbital_period_gy > 0 AND ? >= galactic_min_update_interval_years
-        """,
-        (elapsed_years, elapsed_years),
-    )
-    counts["stars"] = cur.rowcount
-    _report(on_progress, "stars", len(counts), ORBITAL_PHASE_UPDATES)
 
     # v20: each star's own reflex-offset "wobble" from the planets it
     # hosts (planets.star_id) -- a correlated subquery summing every
     # hosted planet's individual pairwise pull, the same
     # orbits.calculate_reflex_offset formula generation time uses (see its
-    # docstring). Recomputed unconditionally on every run, using each
-    # planet's just-advanced position_x/y/z_km above -- this is a cheap
-    # derived value, not an independently advancing phase, so (unlike
-    # every other UPDATE in this function) it has no min-update-interval
-    # guard of its own. NULL/0 rows (no planets) are simply left alone by
+    # docstring). Recomputed on every run, using each planet's
+    # position_x/y/z_km as it now stands -- a cheap derived value, not an
+    # independently advancing phase, so it has no due time of its own. NULL/0 rows (no planets) are simply left alone by
     # the WHERE EXISTS guard, matching those rows' already-NULL default.
     cur = conn.execute(
         """
@@ -7687,9 +7742,8 @@ def advance_orbital_phases(conn, elapsed_years, on_progress=None):
     counts["planet_reflex_offsets"] = cur.rowcount
     _report(on_progress, "planet_reflex_offsets", len(counts), ORBITAL_PHASE_UPDATES)
 
-    # Mutual orbit: shared by both binary configurations (see this
-    # function's own docstring on why this is now a separate UPDATE from
-    # the galactic-phase one below, guarded independently). v20: also
+    # Mutual orbit: shared by both binary configurations, with its own
+    # clock (binary_epoch_unix/binary_next_update_due). v20: also
     # recomputes each star's own offset from the pair's barycenter
     # (binary_primary/secondary_position_*_km) from the freshly-advanced
     # binary_mutual_position_*_km above and the constant
@@ -7698,11 +7752,16 @@ def advance_orbital_phases(conn, elapsed_years, on_progress=None):
     # computation already relies on (each position expression here reads
     # binary_mutual_position_*_km's *new* value, assigned earlier in this
     # same SET list).
+    binary_interval = _update_interval_sql(
+        f"(binary_separation_km * 2 * PI() / (binary_mutual_orbital_period_years"
+        f" * {physical_constants.SECONDS_PER_YEAR!r}))", "system")
+    _schedule_updates(conn, clock, "star_systems", binary_interval,
+                      "is_binary = 1 AND binary_mutual_orbital_period_years > 0", prefix="binary_", keep_modified=True)
     cur = conn.execute(
-        """
+        f"""
         UPDATE star_systems
-        SET binary_mutual_orbital_phase_deg =
-                MOD(binary_mutual_orbital_phase_deg + (? / binary_mutual_orbital_period_years) * 360, 360),
+        SET binary_mutual_orbital_phase_deg = MOD(binary_mutual_orbital_phase_deg
+                + ({_elapsed_years_sql("binary_")} / binary_mutual_orbital_period_years) * 360, 360),
             binary_mutual_position_x_km = binary_separation_km * (
                 COS(RADIANS(binary_mutual_orbital_ascending_node_deg)) * COS(RADIANS(binary_mutual_orbital_phase_deg))
                 - SIN(RADIANS(binary_mutual_orbital_ascending_node_deg)) * SIN(RADIANS(binary_mutual_orbital_phase_deg))
@@ -7721,12 +7780,14 @@ def advance_orbital_phases(conn, elapsed_years, on_progress=None):
             binary_secondary_position_x_km = (1 - binary_secondary_mass_fraction) * binary_mutual_position_x_km,
             binary_secondary_position_y_km = (1 - binary_secondary_mass_fraction) * binary_mutual_position_y_km,
             binary_secondary_position_z_km = (1 - binary_secondary_mass_fraction) * binary_mutual_position_z_km,
+            binary_epoch_unix = ?,
+            binary_next_update_due = ? + {binary_interval},
             modified_at = modified_at
         WHERE is_binary = 1
           AND binary_mutual_orbital_period_years > 0
-          AND ? >= binary_mutual_min_update_interval_years
+          AND binary_next_update_due <= ?
         """,
-        (elapsed_years, elapsed_years),
+        (clock.end_unix, clock.end_unix, clock.end_unix, clock.end_unix),
     )
     counts["binary_mutual_orbits"] = cur.rowcount
     _report(on_progress, "binary_mutual_orbits", len(counts), ORBITAL_PHASE_UPDATES)
@@ -7737,7 +7798,7 @@ def advance_orbital_phases(conn, elapsed_years, on_progress=None):
     # planets have star_id IS NULL, so there's no stars row to attach this
     # to -- see schema.sql's "v20" header note on why it's modeled as one
     # shared wobble rather than split between primary/secondary). Also
-    # recomputed unconditionally, no guard interval of its own.
+    # recomputed on every run, no due time of its own.
     cur = conn.execute(
         """
         UPDATE star_systems ss
@@ -7760,137 +7821,69 @@ def advance_orbital_phases(conn, elapsed_years, on_progress=None):
     counts["binary_planetary_wobbles"] = cur.rowcount
     _report(on_progress, "binary_planetary_wobbles", len(counts), ORBITAL_PHASE_UPDATES)
 
-    # Galactic phase: a 'close' pair only -- a 'wide' pair's two stars
-    # already each advance their own galactic phase individually via the
-    # per-row `stars` UPDATE above (real stored rows, not a merged proxy).
-    cur = conn.execute(
-        """
-        UPDATE star_systems
-        SET binary_galactic_orbital_phase_deg =
-                MOD(binary_galactic_orbital_phase_deg
-                    + (? / (binary_galactic_orbital_period_gy * 1e9)) * 360, 360),
-            modified_at = modified_at
-        WHERE binary_configuration = 'close'
-          AND binary_galactic_orbital_period_gy > 0
-          AND ? >= binary_galactic_min_update_interval_years
-        """,
-        (elapsed_years, elapsed_years),
-    )
-    counts["binary_galactic_orbits"] = cur.rowcount
-    _report(on_progress, "binary_galactic_orbits", len(counts), ORBITAL_PHASE_UPDATES)
-
-    # v17: standalone exotic phenomena -- black_holes/neutron_stars only
-    # for their star_id IS NULL rows (an anchored remnant's motion already
-    # advanced via the stars UPDATE above); the other five tables are
-    # always standalone, so every row there qualifies.
-    for table in ("black_holes", "neutron_stars"):
-        cur = conn.execute(
-            f"""
-            UPDATE {table}
-            SET galactic_orbital_phase_deg =
-                MOD(galactic_orbital_phase_deg + (? / (galactic_orbital_period_gy * 1e9)) * 360, 360),
-                modified_at = modified_at
-            WHERE star_id IS NULL AND galactic_orbital_period_gy > 0 AND ? >= galactic_min_update_interval_years
-            """,
-            (elapsed_years, elapsed_years),
-        )
-        counts[table] = cur.rowcount
-        _report(on_progress, table, len(counts), ORBITAL_PHASE_UPDATES)
-
-    for table in ("nebulae", "supernova_remnants", "rogue_planets", "interstellar_comets", "asteroid_fields"):
-        cur = conn.execute(
-            f"""
-            UPDATE {table}
-            SET galactic_orbital_phase_deg =
-                MOD(galactic_orbital_phase_deg + (? / (galactic_orbital_period_gy * 1e9)) * 360, 360),
-                modified_at = modified_at
-            WHERE galactic_orbital_period_gy > 0 AND ? >= galactic_min_update_interval_years
-            """,
-            (elapsed_years, elapsed_years),
-        )
-        counts[table] = cur.rowcount
-        _report(on_progress, table, len(counts), ORBITAL_PHASE_UPDATES)
-
-    conn.execute(
-        "INSERT INTO orbit_simulation_state (id, last_updated_at) VALUES (1, NOW()) "
-        "ON DUPLICATE KEY UPDATE last_updated_at = NOW()"
-    )
-    conn.commit()
     return counts
 
 
-def advance_comet_orbits(conn, elapsed_years):
+def advance_comet_orbits(conn, clock):
     """
-    Advances every comet's own orbital anomaly (`mean_anomaly_deg` for an
-    elliptical comet, `parabolic_mean_anomaly` for a parabolic one) by
-    `elapsed_years`, and recomputes `distance_km`/`position_x/y/z_km`/
-    `orbital_speed_kms` from the new anomaly via
-    `kepler.comet_orbital_state` -- the Kepler/Barker-equation
+    Advances every due comet's own orbital anomaly (`mean_anomaly_deg` for
+    an elliptical comet, `parabolic_mean_anomaly` for a parabolic one) from
+    its epoch to `clock.end_unix`, and recomputes `distance_km`/
+    `position_x/y/z_km`/`orbital_speed_kms` and the velocity from the new
+    anomaly via `kepler.comet_orbital_state` -- the Kepler/Barker-equation
     analog of `advance_orbital_phases`'s planet/moon handling, called
     separately by `planetgen.cli.orbits` alongside it.
 
-    Unlike `advance_orbital_phases` (a pure, set-based SQL `UPDATE` for
-    every table it touches -- `orbital_phase_deg` is a LINEAR function of
-    elapsed time for a circular orbit, so MySQL/MariaDB can compute the
-    resulting position directly), a comet's position is NOT a linear SQL
-    expression: turning an advanced anomaly into a distance/position
-    requires solving Kepler's equation (Newton-Raphson, elliptical) or
-    Barker's equation (a real-cube-root closed form, parabolic) -- neither
-    expressible in standard SQL. So this fetches every `comets` row and
-    does that computation in Python -- one Python loop instead of one
-    set-based statement, the necessary tradeoff for correctness here (in
-    practice a small table -- see `tuning.SYSTEM_COMET_COUNT_RANGE`
-    -- so this isn't the scaling concern it would be for `planets`/`moons`).
-    The resulting rows are still written back in one batched `UPDATE` via
-    `executemany` (like `insert_sector`'s per-vertex rows), not one
-    `execute` per row -- the per-row work has to stay in Python, but the
-    round trips to the database don't.
+    A comet's position is NOT a linear SQL expression of time: turning an
+    advanced anomaly into a distance/position requires solving Kepler's
+    equation (Newton-Raphson, elliptical) or Barker's equation (a
+    real-cube-root closed form, parabolic). So this fetches the due rows
+    and does that in Python (a small table -- see
+    `tuning.SYSTEM_COMET_COUNT_RANGE`), then writes them back in one
+    batched `executemany`.
 
-    An elliptical comet's `mean_anomaly_deg` advances the same
-    `MOD(current + (elapsed_years / period_years) * 360, 360)` way
-    `orbital_phase_deg` does, guarded by its own `min_update_interval_years`
-    the identical way (see `advance_orbital_phases`'s docstring) -- skipped
-    entirely, not just a no-op write, when `elapsed_years` is below it. A
-    parabolic comet's `parabolic_mean_anomaly` instead advances LINEARLY
-    (via `kepler.parabolic_mean_anomaly`) and does NOT wrap (a
-    parabolic pass is a one-shot event, not periodic -- see
-    `cometData.Comet`'s own `parabolic_mean_anomaly` docstring), and has no
-    `min_update_interval_years` floor to guard against (same docstring) --
-    so every parabolic row is always updated, regardless of `elapsed_years`.
+    Due (GEN.106): like a planet's, a comet's `next_update_due` is when it
+    will have moved 0.01 AU at its current speed; a row without one gets
+    one first. A comet that isn't due is neither moved nor counted. An
+    elliptical comet's `mean_anomaly_deg` advances
+    `MOD(current + (elapsed_years / period_years) * 360, 360)` like
+    `orbital_phase_deg`; a parabolic comet's `parabolic_mean_anomaly`
+    advances LINEARLY (via `kepler.parabolic_mean_anomaly`) and does NOT
+    wrap (a parabolic pass is a one-shot event, not periodic).
 
     Args:
         conn (Connection): An open, schema-initialized, read-write
                            connection.
-        elapsed_years (float): How much simulated time has passed since
-                               the reference point `elapsed_years` was
-                               computed from (the same value passed to
-                               `advance_orbital_phases` -- both share one
-                               `orbit_simulation_state` clock, which only
-                               that function updates). Must be >= 0.
+        clock (OrbitClock): The span to move over (`orbit_clock`).
 
     Returns:
-        int: The number of `comets` rows actually updated (a skipped,
-            below-guard elliptical row doesn't count).
-
-    Raises:
-        ValueError: If `elapsed_years` is negative.
+        int: The number of `comets` rows moved.
     """
-    if elapsed_years < 0:
-        raise ValueError(f"elapsed_years must be >= 0, got {elapsed_years}")
-
     rows = conn.execute(
         "SELECT id, orbit_type, perihelion_distance_km, eccentricity, inclination_deg, "
         "arg_periapsis_deg, ascending_node_deg, orbital_period_years, mean_anomaly_deg, "
-        "parabolic_mean_anomaly, min_update_interval_years, primary_mass_solar FROM comets"
+        "parabolic_mean_anomaly, primary_mass_solar, orbital_speed_kms, epoch_unix, next_update_due "
+        "FROM comets WHERE next_update_due IS NULL OR next_update_due <= ?",
+        (clock.end_unix,),
     ).fetchall()
+
+    elapsed_by_id, scheduled = {}, []
+    for row in rows:
+        epoch, _interval, due = _due_interval_s(row, clock, row["orbital_speed_kms"], "system")
+        if due > clock.end_unix:
+            scheduled.append((epoch, due, row["id"]))
+        else:
+            elapsed_by_id[row["id"]] = (clock.end_unix - epoch) / physical_constants.SECONDS_PER_YEAR
+    if scheduled:
+        conn.executemany("UPDATE comets SET epoch_unix = ?, next_update_due = ? WHERE id = ?", scheduled)
+    rows = [row for row in rows if row["id"] in elapsed_by_id]
 
     update_params = []
     to_kms = physical_constants.AU_TO_KM / physical_constants.SECONDS_PER_YEAR
     # Kepler's equation for every elliptical comet that moves, in one vectorised solve.
-    moving = [row for row in rows
-              if row["orbit_type"] == "elliptical" and elapsed_years >= row["min_update_interval_years"]]
+    moving = [row for row in rows if row["orbit_type"] == "elliptical"]
     new_mean_anomalies_deg = {
-        row["id"]: (row["mean_anomaly_deg"] + (elapsed_years / row["orbital_period_years"]) * 360) % 360
+        row["id"]: (row["mean_anomaly_deg"] + (elapsed_by_id[row["id"]] / row["orbital_period_years"]) * 360) % 360
         for row in moving}
     eccentric_anomalies = dict(zip(
         (row["id"] for row in moving),
@@ -7902,8 +7895,6 @@ def advance_comet_orbits(conn, elapsed_years):
 
         eccentric_anomaly_rad = None
         if row["orbit_type"] == "elliptical":
-            if elapsed_years < row["min_update_interval_years"]:
-                continue
             new_mean_anomaly_deg = new_mean_anomalies_deg[row["id"]]
             eccentric_anomaly_rad = float(eccentric_anomalies[row["id"]])
             mean_anomaly_rad = math.radians(new_mean_anomaly_deg)
@@ -7913,7 +7904,7 @@ def advance_comet_orbits(conn, elapsed_years):
             new_mean_anomaly_deg = None
             mean_anomaly_rad = None
             new_parabolic_mean_anomaly = row["parabolic_mean_anomaly"] + kepler.parabolic_mean_anomaly(
-                elapsed_years, perihelion_distance_au, row["primary_mass_solar"]
+                elapsed_by_id[row["id"]], perihelion_distance_au, row["primary_mass_solar"]
             )
             parabolic_mean_anomaly_value = new_parabolic_mean_anomaly
 
@@ -7937,6 +7928,8 @@ def advance_comet_orbits(conn, elapsed_years):
             state["velocity_x_au_per_year"] * to_kms,
             state["velocity_y_au_per_year"] * to_kms,
             state["velocity_z_au_per_year"] * to_kms,
+            clock.end_unix,
+            clock.end_unix + update_interval_s(state["orbital_speed_kms"] * 1000.0, "system"),
             row["id"],
         ))
 
@@ -7948,7 +7941,8 @@ def advance_comet_orbits(conn, elapsed_years):
             UPDATE comets
             SET mean_anomaly_deg = ?, parabolic_mean_anomaly = ?,
                 distance_km = ?, position_x_km = ?, position_y_km = ?, position_z_km = ?,
-                orbital_speed_kms = ?, velocity_x_kms = ?, velocity_y_kms = ?, velocity_z_kms = ?
+                orbital_speed_kms = ?, velocity_x_kms = ?, velocity_y_kms = ?, velocity_z_kms = ?,
+                epoch_unix = ?, next_update_due = ?
             WHERE id = ?
             """,
             update_params,

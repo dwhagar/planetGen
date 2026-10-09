@@ -35,6 +35,8 @@
 #      migrate_or_reset_db in scripts/deploy-common.sh. The update never
 #      runs the population pass (OPS.7); run `planetgen population` by
 #      hand when wanted.
+#      Then it records the version key (OPS.13): one row per galaxy in the
+#      control database, the last 10 kept; `planetgen versions` lists them.
 #   6. Apache's headers, deflate and wsgi modules: enabled only if not
 #      already (mod_wsgi installed first if it's missing). On macOS, the
 #      gunicorn launchd daemon instead: installed only if it's missing.
@@ -48,6 +50,10 @@
 #      only warns, with the commands that fix it (OPS.5).
 #   9. Imports the web app as Apache's user, so anything still unusable
 #      fails here instead of as a 500.
+#
+# At the end, on Linux, it reloads Apache itself when Apache is running
+# (restarts it when step 6 just enabled a module) and says so; if Apache
+# isn't running it prints the command instead (OPS.8).
 #
 # After the steps it starts building the Galaxy Map's opening view into the
 # tile cache in the background (`planetgen.cli.warm_map`, MAP.134), so the
@@ -157,6 +163,7 @@ check_math
 echo
 echo "== 5/9: Migrating the configured MySQL database to the current schema =="
 migrate_or_reset_db
+record_version_key
 
 echo
 echo "== 6/9: Checking Apache's modules (macOS: the gunicorn daemon) =="
@@ -204,11 +211,19 @@ if is_macos; then
         echo "Done. Nothing new was pulled."
     fi
 elif (( APACHE_NEEDS_RESTART )); then
-    echo "Done. An Apache module was just enabled: restart Apache to load it:"
-    echo "  sudo systemctl restart apache2"
+    if reload_apache_if_running; then
+        echo "Done. An Apache module was just enabled, so Apache was restarted to load it."
+    else
+        echo "Done. An Apache module was just enabled: restart Apache to load it:"
+        echo "  sudo systemctl restart apache2"
+    fi
 elif [[ "$before" != "$after" ]]; then
-    echo "Done. Reload Apache so the site runs the new code:"
-    echo "  sudo systemctl reload apache2"
+    if reload_apache_if_running; then
+        echo "Done. The site is running the new code."
+    else
+        echo "Done. Reload Apache so the site runs the new code:"
+        echo "  sudo systemctl reload apache2"
+    fi
 else
     echo "Done. Nothing new was pulled."
 fi

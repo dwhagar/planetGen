@@ -38,6 +38,7 @@ from planetgen.names.wordsalad import generate_sector_name
 from planetgen.physics.units import ly_to_pc, pc_to_ly
 from planetgen.util.random import log_uniform
 from planetgen.generation import phenomenon_scatter
+from planetgen.generation.star_labels import describe_types, star_label
 from planetgen.generation import run_common
 from planetgen.generation import run_phenomenon
 from planetgen.generation import run_population
@@ -620,31 +621,9 @@ def generate_sector(args, galactic_center_dist_ly=None, cell=None, fill=None, cl
     return sector_name, sector
 
 
-_GIANT_YERKES = ("III", "II")
-
-
-_SUPERGIANT_YERKES = ("IB", "IAB", "IA", "IA+", "0")
-
-
 def _summary_star_label(star):
-    """
-    `(label, plural)` for one system's star in the sector summary (UX.34):
-    white dwarfs, black holes and neutron stars by name, giants and
-    supergiants under their letter, others by spectral letter alone.
-    """
-    yerkes = getattr(star, "yerkes_class", None)
-    if yerkes in ("D", "VII"):
-        return "white dwarf", "white dwarfs"
-    if yerkes == "BH":
-        return "black hole", "black holes"
-    if yerkes == "NS":
-        return "neutron star", "neutron stars"
-    letter = (star.type or "?")[0]
-    if yerkes in _GIANT_YERKES:
-        return f"{letter}-type giant", f"{letter}-type giants"
-    if yerkes in _SUPERGIANT_YERKES:
-        return f"{letter}-type supergiant", f"{letter}-type supergiants"
-    return f"{letter}-type", f"{letter}-type"
+    """`(label, plural)` for one system's star in the sector summary (UX.34)."""
+    return star_label(getattr(star, "type", None), getattr(star, "yerkes_class", None))
 
 
 def _log_summary(text):
@@ -695,8 +674,7 @@ def sector_generation_summary_lines(sector, args_used):
 
     lines = []
     if system_types:
-        types_str = ", ".join(f"{count} {label if count == 1 else plural}"
-                              for (label, plural), count in sorted(system_types.items()))
+        types_str = describe_types(system_types)
     else:
         types_str = "none"
     lines.append(f"    Systems: {types_str}")

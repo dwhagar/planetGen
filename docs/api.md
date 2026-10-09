@@ -187,8 +187,15 @@ connectivity to that specific schema rather than the default one.
   relative to what it orbits, and an `orbit` (`around`, `distance_km`,
   `period_years`, `inclination_deg`, `ascending_node_deg`, `phase_deg`; a
   comet's holds its Kepler elements under `kepler`).
-- `GET /api/systems/<id>/near?radius=<ly>` — other systems in the same
-  sector within `radius` light-years (`queryDb.systems_within_radius`).
+- `GET /api/near?from=<ref>&distance=<pc>` (or `point=x,y,z` in galaxy-frame
+  parsecs) — everything generated within `distance` parsecs (at most 50) of
+  a place (NAV.43, `planetgen.db.near.objects_within`): systems, stars,
+  planets, moons, belts, comets, facilities and the standalone phenomena,
+  nearest first, each with `ref`, `kind`, `id`, `name`, `parent` and
+  `distance_pc`. Optional `kinds` (comma-separated), `limit` (50, at most
+  200) and `offset`. The answer also carries `total`, `by_kind`, and how
+  many of the sectors the sphere reaches are not generated yet
+  (`sectors_in_range` / `sectors_generated`); the search never generates.
 - `GET /api/objects/<ref>` — one object by its reference (NAV.7), the one
   form every kind shares: `<kind>:<id>` with kind `sector`, `system`, `star`,
   `planet`, `moon`, `belt`, `comet` or a phenomenon type (`nebula`,
@@ -344,7 +351,11 @@ connectivity to that specific schema rather than the default one.
   those sectors (`"galaxy"` and each one's level-243, 27 and 3 block
   keys). `full` is `true` (and both lists empty) when that can't
   be pinned to tiles: a deleted sector, a new shape or release, more than
-  1,000 changed sectors, or a missing or unreadable `since`.
+  1,000 changed sectors, new bright stars (a backfill), or a missing or
+  unreadable `since`. When `full` is only because so much changed at once
+  (more than 1,000 sectors, or new bright stars), the answer also has
+  `"busy": true`, and the web layer keeps its cached tiles for up to ten
+  minutes instead of refetching them all under that load (PERF.34).
   `../src/planetgen/web/lib/tilecache.py` (the web layer's disk cache) calls it
   about once a minute and deletes only the listed tiles, and passes the
   list on to the map's browser cache.

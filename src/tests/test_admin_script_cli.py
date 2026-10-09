@@ -183,14 +183,17 @@ def test_query_db_lists_sectors_systems_planets_and_moons(seeded, monkeypatch, c
     assert capsys.readouterr().out.strip() == "No matching moons."
 
 
-def test_query_db_near_an_unknown_or_unplaced_system(seeded, monkeypatch, capsys):
-    argv = mysql_argv(seeded) + ["near", "999999", "--radius", "50"]
+def test_query_db_near_an_unknown_or_unplaced_place(seeded, monkeypatch, capsys):
+    argv = mysql_argv(seeded) + ["near", "system:999999", "--distance", "5"]
     assert _run_main(query, argv, monkeypatch) == 1
-    assert capsys.readouterr().err.strip() == "Error: no star_systems row with id 999999."
+    assert "Error: no star_systems row with id 999999" in capsys.readouterr().err
     system_id = _query(seeded, "SELECT MIN(id) AS i FROM star_systems")[0]["i"]
-    argv = mysql_argv(seeded) + ["near", str(system_id), "--radius", "50"]
+    argv = mysql_argv(seeded) + ["near", str(system_id), "--distance", "5"]
     assert _run_main(query, argv, monkeypatch) == 1
-    assert "isn't placed in a sector" in capsys.readouterr().err
+    assert "is not placed in the galaxy" in capsys.readouterr().err
+    argv = mysql_argv(seeded) + ["near", "0,0,0", "--distance", "99"]
+    assert _run_main(query, argv, monkeypatch) == 1
+    assert "the largest distance is 50 pc" in capsys.readouterr().err
 
 
 @pytest.mark.parametrize("argv", [[], ["near", "1"], ["near", "x", "--radius", "5"], ["galaxies"]])

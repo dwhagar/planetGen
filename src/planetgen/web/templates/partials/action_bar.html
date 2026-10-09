@@ -5,13 +5,13 @@
     Navigate menu, and on a phone Show on Galaxy Map joins that menu (container
     queries in style.css pick the layout).
 
-    `action_bar(bookmark, nav_links, pick, galaxy_url)`: `nav_links` is
+    `action_bar(bookmark, nav_links, pick, galaxy_url, admin, nearby)`: `nav_links` is
     web.system_pages.nav_links (None where the page has no Navigate yet, as a
-    sector does until NAV.44/49); `pick` is the NAV pick in progress, if any;
+    sector does until NAV.49); `pick` is the NAV pick in progress, if any;
     `galaxy_url` is where Show on Galaxy Map goes (None leaves it out);
     `admin` is the Admin menu button (`admin_menu_button`, UX.68), last in the bar. -#}
 {% from "partials/bookmark.html" import bookmark_button %}
-{%- macro action_bar(bookmark, nav_links=none, pick=none, galaxy_url=none, admin=none) -%}
+{%- macro action_bar(bookmark, nav_links=none, pick=none, galaxy_url=none, admin=none, nearby=none) -%}
 <div class="page-actions nav-row">
   {%- if pick %}
   <a class="btn btn-small starmap-pick" href="{{ nav_links.pick }}">{{ nav_links.pickLabel }}</a>
@@ -39,4 +39,7 @@
   {{ admin }}
   {%- endif %}
 </div>
+{%- if nearby and not pick %}
+<p class="page-actions"><a class="btn btn-small btn-secondary" href="{{ nearby }}">What's nearby</a></p>
+{%- endif %}
 {%- endmacro -%}

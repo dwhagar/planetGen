@@ -119,14 +119,16 @@ def test_a_loaded_sector_knows_every_objects_cell_and_velocity(mysql_config):
 
 
 def test_a_loaded_sector_carries_the_time_its_orbits_were_last_advanced(mysql_config):
-    """GEN.121: the epoch of every stored position and velocity is when `advance_orbital_phases` last ran."""
+    """GEN.121: the epoch of every stored position and velocity is when the orbit update last ran."""
     sector = _sector_with_moons()
     sector_id = store.save_sector(sector, config=mysql_config)
     conn = store.get_connection(mysql_config)
     try:
         assert store.get_orbit_epoch_unix(conn) is None
         assert store.load_sector(conn, sector_id).entries[0].spatial.epoch_unix is None
-        store.advance_orbital_phases(conn, elapsed_years=0.001)
+        clock = store.orbit_clock(conn, 0.001)
+        store.advance_orbital_phases(conn, clock)
+        store.finish_orbit_update(conn, clock)
         epoch = store.get_orbit_epoch_unix(conn)
         assert epoch is not None and epoch > 1.7e9
         loaded = store.load_sector(conn, sector_id)

@@ -361,7 +361,7 @@ def test_migrate_reports_an_unreachable_server_with_exit_1(monkeypatch, capsys):
 def test_update_orbits_first_run_sets_a_starting_point_then_advances(seeded, monkeypatch, capsys):
     assert _run_main(orbits, mysql_argv(seeded), monkeypatch) == 0
     first = capsys.readouterr().out
-    assert "establishing a starting point" in first
+    assert "No previous orbit update" in first
     assert _run_main(orbits, mysql_argv(seeded), monkeypatch) == 0
     second = capsys.readouterr().out
     assert "years elapsed since the last update" in second
@@ -383,12 +383,12 @@ def test_the_orbit_steps_report_how_far_they_are(seeded):
     reports = []
     conn = store.get_connection(seeded)
     try:
-        store.advance_orbital_phases(conn, 1.0, on_progress=lambda *args: reports.append(args))
+        store.advance_orbital_phases(conn, store.orbit_clock(conn, 1.0), on_progress=lambda *args: reports.append(args))
         assert [done for _label, done, _total in reports] == list(range(1, store.ORBITAL_PHASE_UPDATES + 1))
         assert {total for _label, _done, total in reports} == {store.ORBITAL_PHASE_UPDATES}
 
         reports.clear()
-        motion = store.advance_galactic_positions(conn, 1.0, on_progress=lambda *args: reports.append(args))
+        motion = store.advance_galactic_positions(conn, store.orbit_clock(conn, 1.0), on_progress=lambda *args: reports.append(args))
         assert reports[0][0] == "star_systems" and reports[-1][1] == reports[-1][2]
         assert [done for _label, done, _total in reports] == sorted({done for _label, done, _total in reports})
 
