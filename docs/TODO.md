@@ -3268,9 +3268,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   shared offensive-word filter. Since GEN.64, placed phenomena such as
   rogue planets are named by object ID and no longer reach the registry,
   so the 2026-10-02 figure of 88% of names being rogue planets no longer
-  holds; re-measure on a dense core sector first. Decision from the
-  coordinator (Boss's project chat, 2026-10-09 20:17Z): file as its own
-  item, Phase 1, Foundations lane 1, after PERF.45.
+  holds; re-measure on a dense core sector first. Filed as its own item
+  (Phase 1, Foundations lane 1, after PERF.45) on the coordinator's
+  instruction of 2026-10-09 20:17Z.
   Prerequisites: none.
   Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
 
