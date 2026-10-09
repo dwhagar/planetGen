@@ -113,7 +113,7 @@ that files it.
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
 | 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 is done (PR #476); GEN.117, and GEN.116 is closed (Boss 2026-10-08 17:46Z). |  |
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.41, GEN.98, GEN.100, GEN.99, GEN.101, GEN.102, GEN.103, GEN.84, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, GEN.94, GEN.104, GEN.106, GEN.107, GEN.108, NAV.10, NAV.12, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, NAV.43, NAV.44, MAP.119, MAP.122, MAP.89, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, OPS.8, OPS.13, OPS.14, ADM.18, GEN.59, UX.49, UX.76, UX.77, MAP.135, MAP.136, MAP.137, MAP.138, ADM.39, ADM.40, ADM.41, PERF.34, GEN.127, PERF.31, PERF.32, GEN.128, ADM.42 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.41, GEN.98, GEN.100, GEN.99, GEN.101, GEN.102, GEN.103, GEN.84, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, GEN.94, GEN.104, GEN.106, GEN.107, GEN.108, NAV.10, NAV.12, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, NAV.43, NAV.44, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, OPS.8, OPS.13, OPS.14, ADM.18, GEN.59, UX.49, UX.76, UX.77, MAP.135, MAP.136, MAP.137, MAP.138, ADM.39, ADM.40, ADM.41, PERF.34, GEN.127, PERF.31, PERF.32, GEN.128, ADM.42 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, API.16, ADM.17, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18, PERF.33, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, DB.15, ADM.43, ADM.44 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, repair that reads the newest settings JSON, and the anomalies chosen in phase 2. | NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, DB.10, ADM.20, GEN.114, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies, and the end state of reproducible galaxies (`generate.py reproduce`). | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, OPS.12, GEN.55 |
@@ -343,59 +343,6 @@ with `clamp()`.
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
-
-- [ ] **MAP.89 System Map: space orbits with a fitted scale and a minimum ring gap instead of plain log**
-  Boss (2026-10-02 00:45Z): "investigate different ways to space orbits
-  visually, right now we use logarithmic spacing because of the vast
-  distances involved, but investigate other methods of spacing to make
-  better use of the visual space and make more visual sense to someone
-  looking at it. Then pick the best option and add the plan to the
-  TODO.md file." Today `lib/systemmap.py` places every orbit on one log
-  scale per scene (`_radial_scale_bounds`, `_radial_px`: `55 + frac *
-  280` px in a 700 px square), used for planets, belt edges
-  (`_belt_band`), close-binary stars, facilities and moon scenes, and
-  `static/systemmap.js` `kmToPx()` repeats the formula for the Measure
-  distance route. In a study of 240 generated systems, 13 methods were
-  scored (the "Orbit spacing options" thread; plan and comparison
-  renders in the project's shared files under `orbit-spacing/`). Plain
-  log leaves the tightest ring gap at a median 2.4 px, with 27% of gaps
-  under 6 px. Square root, cube root and linear knot the inner planets
-  together. Even (rank) spacing throws distance away. Frost-line zones
-  leave half the map empty. Chosen: a fitted scale with a gap floor,
-  which gives a median tightest gap of 11.3 px with 15% under 6 px, and
-  keeps big real gaps looking big better than log does.
-  1. Fit the scale per scene: power curves from linear (p = 1) down to
-     log (p = 0) between today's `lo`/`hi` bounds; pick the most linear
-     one that needs the gap floor on no more than a quarter of its ring
-     gaps (compact systems go linear, huge-span systems stay log).
-  2. Gap floor: any gap between neighboring rings (orbits, belt edges,
-     close-binary star rings) under 12 px widens to 12 px, and the other
-     gaps shrink in proportion so everything fits; with too many orbits
-     for 12 px each, the floor drops to 60% of an even share.
-  3. One mapping for everything: a list of knots (km, px), interpolated
-     in log km between knots, written onto the scene (for example
-     `data-knots`) so `kmToPx()` reads it instead of its own log formula.
-  Order, real angles and "farther out is drawn farther out" don't
-  change. Done:
-  - `_radial_scale_bounds`/`_radial_px` are replaced by the fitted scale
-    with the gap floor, in the system scene, both wide-binary scenes and
-    moon scenes.
-  - Belts, facilities and close-binary star placement use the same
-    mapping; no orbit is drawn inside a belt ring (MAP.49's test still
-    passes).
-  - `systemmap.js` `kmToPx()` reads the scene's knots; the measure route
-    still meets marker centers and bends around bodies as today.
-  - The panel hint stops saying "log-scaled distance" (for example
-    "distance scaled to fit, order and angle true").
-  - Tests: the scale only increases with distance; no neighboring-ring
-    gap under 12 px when the orbits allow it; a compact system gets
-    p = 1; a huge-span system falls back to log; JavaScript and Python
-    give the same pixel radius for the same knots.
-  - Before and after screenshots of the six system types in the study.
-  Builds on MAP.88 (fit the whole drawn system inside the frame; done,
-  PR #405) in the same `lib/systemmap.py`, and keeps that fit working. Decided (Boss, 2026-10-02 01:01Z: "I agree, we'll go
-  with fitted for the orbital spacing in MAP.89"): fitted scale with the
-  12 px minimum ring gap, and no "fitted / even" spacing toggle.
 
 - [ ] **MAP.59 Make it plain that a zoomed-in slab is a slab, not a wedge**
   Boss (2026-10-01 20:45Z): "We need to make it clearer, when we've

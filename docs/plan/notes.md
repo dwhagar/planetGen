@@ -187,6 +187,7 @@ From PR #431's red CI (coordinator, 2026-10-03): PERF.27, DB.12, OPS.25, MAP.114
 - The two "add a star system to a sector" asks (10-07) are ADM.32.
 - "Have phenomena ... generated through the entire galaxy first" (10-07) and the 10-03 scatter move are GEN.100.
 - "Research different ways to generate an object ID" (10-07) is GEN.68, the first step of the names-from-IDs stream.
+- MAP.89 (fitted System Map orbit spacing with a 12 px gap floor) was closed on Boss's word (2026-10-09 07:13Z: "Retire MAP.89, we have that done already"). No PR carries it: on main the 2D System Map still places orbits on the log scale (`_radial_px`, web/maps/systemmap.py) and the 3D view's compressed mode is also logarithmic (systemscale.js), so reopen it if Boss sees rings crowded together.
 - GitHub issues of 2026-10-08/09: #736 (Generate screen tabs) went into ADM.28 and #677 (search near a picked point) into NAV.45; #709 and #708 are MAP.136; #758 and #715 are MAP.139; #718 and #716 are MAP.141; #614 and #535 are ADM.41; #638 and #614 are PERF.34; #661 and #750 are PERF.32 and PERF.33; #761 is PERF.31; #777 and #778 are GEN.129, GEN.130 and their design GEN.128; #515 and #743 are ADM.43, ADM.44 and their model ADM.42.
 - "We need a planet that is like earth sized but never had any life" (10-03) is GEN.28's class Z (Lifeless temperate world), noted on GEN.28.
 
@@ -292,3 +293,4 @@ No decisions are open. (GEN.67, Boss 2026-10-08: stars and sectors keep word sal
 - **The prevalence group in phase 0**: GEN.48 is a bug, so its controls (GEN.52, ADM.16, TEST.75) came with it.
 - **Kept in the bugfix lane, not folded**: UX.24, UX.29, UX.25 (already built once), OPS.6 (one check, not worth waiting for Pydantic), MAP.114 (CI red, though MAP.68 deletes sectormap.js later).
 - **DB.13 in phase 0**: Boss called it "a Phaser 0 priority".
+- Execution plan (Boss's priority order of 2026-10-09 07:13Z: Orbital updates, Maps, Nearby search, Routing; Repeatable galaxy last, blockers first): `docs/plan/execution-plan.html`, with lanes by wave and the Alembic and file conflicts between groups.
