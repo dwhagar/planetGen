@@ -1968,6 +1968,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     nebulae roll a birth environment, plus a small field enrichment
     roll; a "planets forming" text label for stars in classes C, P and
     Q.
+    Research (2026-10-09,
+    exotic-environments-planets-and-compact-binaries.md): Boss's
+    research answers this item: the rule table stands with three
+    refinements (section 1 of the note), and "pulsar planets about 1% of
+    pulsars" in the T and U rows now reads "about 1% of millisecond
+    pulsars" (0.1% of all known pulsars). The Done condition is met once
+    Boss accepts; then retire GEN.94. Open question for Boss (default:
+    accept and retire). The formula for orbit expansion in the pasted
+    text is wrong (the law is a (M_star + M_p) = constant) and the
+    Vynatheya et al. 2022 criterion as pasted does not match the
+    published form: check the reference before using either.
     Design: [docs/design/nebula-and-asteroid-field-classes.md](design/nebula-and-asteroid-field-classes.md)
 
   - [ ] **GEN.95 Nebula conditions applied when planets and surfaces are generated**
@@ -1981,6 +1992,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     add `age_myr` and `q_total` to `nebulae` and `age_years` to
     remnants. Depends on GEN.94 and the habitability index (radiation
     tier).
+    Research (2026-10-09,
+    exotic-environments-planets-and-compact-binaries.md): Add to its
+    Done: (1) the photoevaporation cut radius scales with host mass (cut
+    x M/Msun; 200/50/10 AU is the solar-mass calibration); (2) planetary
+    nebulae H to L allow a flagged circumbinary young disc only when the
+    central star is a close binary, never planets; (3) an engulfed giant
+    of over 5 Jupiter masses sets a "swallowed giant" flag (a flag only,
+    for the red-nova anomaly); (4) surviving planets near the engulfment
+    radius get an eccentricity draw (up to about 0.3). Open question for
+    Boss (default yes): the swallowed-giant flag.
     Prerequisites: GEN.94, GEN.89.
     Design: [docs/design/nebula-and-asteroid-field-classes.md](design/nebula-and-asteroid-field-classes.md)
 
@@ -2460,6 +2481,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   seven stars) with a directive to force N and a prevalence knob; the
   path-code naming; REBOUND stays out (dev script outside the package,
   leapfrog or `DOP853` regression in the suite).
+  Research (2026-10-09,
+  exotic-environments-planets-and-compact-binaries.md): Extend the Kozai
+  screen with the relativistic-precession quench: reject the hierarchy,
+  or mark it `kl_active`, only if the inclination is 39.2 to 140.8
+  degrees, the Kozai-Lidov timescale is shorter than the system's age,
+  and it is also shorter than the inner orbit's general-relativity
+  precession period.
 
 - [ ] **GEN.130 Exotic star systems: a black hole, neutron star or similar at the center**
   Boss (GitHub issue [#778](https://github.com/dwhagar/planetGen/issues/778)): "We need to add exotic star systems that
@@ -2480,6 +2508,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   remnant to a system when it draws a bound companion or planets, at the
   design 7.3 fractions): do neutron star and black hole systems appear
   in normal fills at their real rate?
+  Research (2026-10-09,
+  exotic-environments-planets-and-compact-binaries.md): Millisecond
+  pulsars get planets with probability 0.7% (upper bound 1%), in three
+  types: disc 25%, captured circumbinary giant 25% (only in globular
+  clusters), ablated companion 50%; young pulsars get none; pulsar
+  planets are carbon rich with no atmosphere and radiation tier 3.
+  Checks to add: reject a compact-compact binary whose
+  gravitational-wave inspiral time (Peters) at its drawn separation and
+  eccentricity is shorter than the system's age; allow a bound companion
+  beyond about 1,000 AU around a black hole or neutron star only for
+  direct-collapse black holes. Slices (a) to (c) as in
+  multistar-and-compact-systems.md section 8. Open questions for Boss
+  (defaults taken): a globular-cluster model does not exist, so the
+  captured-giant type is left out until clusters are modelled; the 0.7%
+  rate for millisecond pulsars is accepted.
 
 - [ ] **GEN.134 Tune the star populations to the observed star-formation profile by galactic radius**
   From GEN.133 (Boss's 09:20Z request; the analysis is `docs/design/star-types-by-galactic-radius.md`, PR #807), whose four proposals were left unbuilt. Done: (1) the young and intermediate populations are weighted by the observed star-formation profile (peak at 5 kpc, about -0.28 dex per kpc beyond, a dip inside 3 kpc, the Central Molecular Zone as its own small young region); (2) the young population's B share is lowered, or its weight cut, so local B stars come to about 0.04%; (3) the bulge gets a small young tail (about 10% under 5 Gyr, between the HST and microlensing figures); (4) a metallicity gradient is added only if planet occurrence is later tied to it, otherwise the note records why not. The changes are reproducible (GEN.56), and a test compares the star type shares at the core, mid radius and rim against the note's table. Boss to confirm which of the four proposals he wants before the build starts.
