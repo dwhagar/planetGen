@@ -143,6 +143,17 @@ class FakeAuth:
         self.calls.append(("admin_naming_key", db))
         return self.naming
 
+    settings_files = [{"name": "AB-CD-20261009-010000Z.json", "seed": "AB", "version_key": "CD",
+                       "created_at": "2026-10-09T01:00:00Z", "size": 2048, "current": True}]
+
+    def admin_galaxy_settings(self, cookie_header):
+        return {"items": self.settings_files}
+
+    def admin_galaxy_settings_file(self, cookie_header, name):
+        if name != self.settings_files[0]["name"]:
+            raise apiclient.ApiError("No such settings file.", status_code=404)
+        return {"format": 1, "seed": "AB"}
+
     def admin_set_naming_key(self, cookie_header, db, key=None, draw=False):
         self.calls.append(("admin_set_naming_key", db, key, draw))
 
@@ -169,7 +180,8 @@ class FakeAuth:
 _FAKED = ("auth_me", "auth_login", "auth_logout", "auth_change_credentials", "auth_list_api_keys",
           "auth_create_api_key", "auth_revoke_api_key", "admin_set_sector_wiki_url", "admin_stats",
           "admin_duplicate_names", "admin_login_failures", "admin_lockouts", "admin_generation_stats",
-          "admin_lift_lockout", "auth_totp_status", "admin_naming_key", "admin_set_naming_key")
+          "admin_lift_lockout", "auth_totp_status", "admin_naming_key", "admin_set_naming_key",
+          "admin_galaxy_settings", "admin_galaxy_settings_file")
 
 
 @pytest.fixture
@@ -978,3 +990,16 @@ def test_lift_lockout_needs_an_admin(client, fake, token):
     resp = client.post("/admin/stats/lockouts", data={csrf.FIELD_NAME: token, "all": "1"})
     assert resp.status_code == 302 and "/login" in resp.headers["Location"]
     assert not fake.called("admin_lift_lockout")
+
+
+def test_admin_stats_lists_and_downloads_galaxy_settings(client, fake):
+    """ADM.18: the creation-settings file is listed and downloadable."""
+    _logged_in(client, fake)
+    name = fake.settings_files[0]["name"]
+    html = client.get("/admin/stats").get_data(as_text=True)
+    assert name in html and "Current" in html
+    resp = client.get(f"/admin/stats/galaxy-settings/{name}")
+    assert resp.status_code == 200
+    assert f'attachment; filename="{name}"' in resp.headers["Content-Disposition"]
+    assert resp.get_json()["seed"] == "AB"
+    assert client.get("/admin/stats/galaxy-settings/nope.json").status_code == 404

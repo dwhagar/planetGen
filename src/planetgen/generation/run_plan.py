@@ -22,7 +22,7 @@ from planetgen.db import store
 from planetgen.generation import bright_stars as brightStars
 from planetgen.generation import phenomenon_scatter
 from planetgen.generation.star_labels import describe_types, star_label
-from planetgen.galaxy import seed as galaxySeed
+from planetgen.galaxy import seed as galaxySeed, settings_file
 from planetgen.names import naming_key
 from planetgen.physics import constants
 from planetgen import tuning as program_constants
@@ -212,7 +212,8 @@ def build_skeleton(args):
     else:
         source = "drawn at random"
     log.normal(f"Galaxy seed {galaxySeed.format_seed(galaxy_seed)} ({source}).")
-    _draw_naming_key(mysql_config, galaxy_seed, new_seed=stored_seed != galaxy_seed)
+    key = _draw_naming_key(mysql_config, galaxy_seed, new_seed=stored_seed != galaxy_seed)
+    _write_settings_file(args, galaxy_seed, key, edge_pc, outer_ring_index, e_value, shape)
 
     return {
         "outer_ring_index": outer_ring_index,
@@ -235,15 +236,36 @@ def _draw_naming_key(mysql_config, galaxy_seed, new_seed):
         conn = store.get_control_connection(store.control_mysql_config(mysql_config))
     except Exception as exc:  # noqa: BLE001 -- no control database yet
         log.normal(f"No naming key drawn: the control database can't be opened ({exc}). Run update.sh.")
-        return
+        return None
     try:
         key = naming_key.draw(conn, mysql_config.database, galaxy_seed, replace=new_seed)
     except Exception as exc:  # noqa: BLE001 -- control schema older than v9
         log.normal(f"No naming key drawn: {exc}. Run update.sh.")
-        return
+        return None
     finally:
         conn.close()
     log.normal(f"Naming key {key}.")
+    return key
+
+
+def _write_settings_file(args, galaxy_seed, naming_key_value, edge_pc, outer_ring_index, e_value, shape):
+    """
+    ADM.18: the creation settings, seed, version and word lists as a JSON
+    file for the Admin dashboard (`galaxy/settings_file.py`). A plan that
+    changes nothing writes nothing; one that changes a setting keeps the old
+    file as a dated backup. A file that can't be written only warns: the
+    plan itself is done.
+    """
+    try:
+        document = settings_file.build(
+            vars(args), galaxy_seed, naming_key=naming_key_value,
+            shape={"edge_pc": edge_pc, "outer_ring_index": outer_ring_index,
+                   "expected_system_count_at_density_1": e_value, "k_norm": shape.k_norm})
+        entry = settings_file.write(document, galaxy_seed)
+    except Exception as exc:  # noqa: BLE001 -- no writable folder, or no word lists installed
+        log.normal(f"Warning: the settings file was not written: {exc}")
+        return
+    log.normal(f"Settings file {entry['path']}.")
 
 
 def scatter_bright_stars(args):
