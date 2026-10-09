@@ -217,7 +217,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| PERF.50 | A progress bar inside one sector's save: workers report their sub-steps to the main process | PERF.51 | Left over from UX.83; Boss 23:13Z rule: a bar on any sub-step over 15 s. |
+| PERF.50 | A progress bar inside one sector's save: workers report their sub-steps to the main process | PERF.51 | Left over from UX.83; Boss 23:13Z rule: a bar on any sub-step over 15 s. Bugfixes lane 1 (Boss, 23:38Z). |
 | UX.84 | Every sub-step must show a progress bar that starts by itself when it is predicted to take over 15 seconds (bug) | PERF.51, PERF.50 | Boss 23:13Z and 23:34Z; Bugfixes lane 1 after the mechanism (PERF.51). |
 | TEST.111 | test_ensure_sector_generated_creates_then_reuses_the_same_sector fails in a busy parallel run (bug) |  | Test flake reported 2026-10-09; Bugfixes lane 1. |
 
@@ -233,10 +233,10 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | PERF.40 | Two shared queues, a reserved interactive worker and a real "cancel now" | PERF.39 | Research follow-up to PERF.24 (built). |
 | PERF.39 | Every API job costs 2.4 s and 195 MB: import lazily and cap the burst workers |  | Research follow-up to PERF.24 (built); before batch wiki uploads. |
 | PERF.38 | Cache fixes for the Galaxy Map under a fill: single-flight tile builds, a busy rule for the page cache, a deletion epoch in place of COUNT(*) |  | Research follow-up to PERF.34 (built). |
-| PERF.32 | Generation performance stats: rates recorded per run, deleted on every new version |  | GitHub issues [#661](https://github.com/dwhagar/planetGen/issues/661) (store half) and #750. |
-| PERF.33 | Progress bars and ETAs from measured performance | PERF.32 | GitHub issue [#661](https://github.com/dwhagar/planetGen/issues/661) (the use half). |
-| DB.15 | A migration progress bar with the time remaining | PERF.32, PERF.51 | GitHub issue [#727](https://github.com/dwhagar/planetGen/issues/727). |
-| PERF.51 | One progress mechanism for every sub-step: a bar starts by itself when a step is predicted to take over 15 seconds | PERF.33 | Boss 23:34Z: one mechanism, bars start themselves over 15 s. |
+| PERF.32 | Generation performance stats: rates recorded per run, deleted on every new version |  | GitHub issues [#661](https://github.com/dwhagar/planetGen/issues/661) (store half) and #750. Bugfixes lane 1 (Boss, 23:38Z). |
+| PERF.33 | Progress bars and ETAs from measured performance | PERF.32 | GitHub issue [#661](https://github.com/dwhagar/planetGen/issues/661) (the use half). Bugfixes lane 1 (Boss, 23:38Z). |
+| DB.15 | A migration progress bar with the time remaining | PERF.32, PERF.51 | GitHub issue [#727](https://github.com/dwhagar/planetGen/issues/727). Bugfixes lane 1 (Boss, 23:38Z). |
+| PERF.51 | One progress mechanism for every sub-step: a bar starts by itself when a step is predicted to take over 15 seconds | PERF.33 | Boss 23:34Z: one mechanism, bars start themselves over 15 s. Bugfixes lane 1 (Boss, 23:38Z). |
 | GEN.128 | Design: multi-star hierarchies and compact-object primaries |  | GitHub issues [#777](https://github.com/dwhagar/planetGen/issues/777) and [#778](https://github.com/dwhagar/planetGen/issues/778): the research both builds wait on. |
 | ADM.42 | One settings model describes every config.json option |  | Foundation for GitHub issues [#515](https://github.com/dwhagar/planetGen/issues/515) and [#743](https://github.com/dwhagar/planetGen/issues/743). |
 

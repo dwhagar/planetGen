@@ -475,6 +475,7 @@ with `clamp()`.
   no bar); the migration (DB.15) and the name registry passes.
   Prerequisites: PERF.51, PERF.50. Related: UX.83, PERF.33, PERF.34,
   PERF.32, DB.15, DB.21.
+  Lane (Boss, 2026-10-09 23:38Z): Bugfixes lane 1, order PERF.32, PERF.33, PERF.51, PERF.50, DB.15, then UX.84.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -3357,6 +3358,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   every timed step records its rate under its own kind, so `kind` must
   cover every sub-step PERF.51's helper runs, not only the work queue's
   task kinds.
+  Lane (Boss, 2026-10-09 23:38Z): Bugfixes lane 1, order PERF.32, PERF.33, PERF.51, PERF.50, DB.15, then UX.84.
 
 - [ ] **PERF.33 Progress bars and ETAs from measured performance**
   Boss (GitHub issue [#661](https://github.com/dwhagar/planetGen/issues/661)): "time remaining on all progress bars should
@@ -3385,6 +3387,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   population pass now draw their own bars; a bar inside one sector's
   save (the slowest sub-step in a dense sector) is now PERF.50.
   Prerequisite: PERF.32. Related: PERF.51, UX.84, PERF.50, DB.15.
+  Lane (Boss, 2026-10-09 23:38Z): Bugfixes lane 1, order PERF.32, PERF.33, PERF.51, PERF.50, DB.15, then UX.84.
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
   Replace the one-`sector_stats`-row-per-visited-cell ledger of
@@ -3515,6 +3518,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Fold (2026-10-09): the first application of PERF.51 (the shared
   progress mechanism); registered by UX.84.
   Prerequisite: PERF.51. Related: UX.83, PERF.33, PERF.34, PERF.32.
+  Lane (Boss, 2026-10-09 23:38Z): Bugfixes lane 1, order PERF.32, PERF.33, PERF.51, PERF.50, DB.15, then UX.84.
 
 - [ ] **PERF.51 One progress mechanism for every sub-step: a bar starts by itself when a step is predicted to take over 15 seconds**
   Source: Boss (2026-10-09 23:34Z): "I believe I said a progress bar on
@@ -3535,6 +3539,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   for Boss (default 15 seconds, fixed in `tuning.py`, and the fallback used only while a kind has no recorded history): other?
   Prerequisites: PERF.33. Related: UX.84, PERF.50, PERF.33, PERF.32,
   PERF.34, UX.3.
+  Lane (Boss, 2026-10-09 23:38Z): Bugfixes lane 1, order PERF.32, PERF.33, PERF.51, PERF.50, DB.15, then UX.84.
 
 ## DB: Database and schema
 
@@ -3615,6 +3620,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   the migration process only and have the update script say when a
   revision is expected to be long).
   Prerequisites: PERF.32, PERF.51.
+  Lane (Boss, 2026-10-09 23:38Z): Bugfixes lane 1, order PERF.32, PERF.33, PERF.51, PERF.50, DB.15, then UX.84.
 
 - [ ] **DB.16 Store the generator epoch and run id on each sector instead of four version text columns**
   DB.7 stored `version_key`, the version, python and platform as text on
