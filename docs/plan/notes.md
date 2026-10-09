@@ -4,6 +4,18 @@ Kept from the first phase plan (2026-10-01) and the dependency report
 (2026-10-02). [docs/TODO.md](../TODO.md) is the master file and wins
 where they disagree; the phase files list the items and their order.
 
+## Phase 0 (finished)
+
+Phase 0 held every bug and the groundwork the new architecture needed
+(package layout, third-party libraries, Alembic, per-unit seeds, the
+map engine, Redis queues). Its last items shipped on 2026-10-09 (DB.13,
+GEN.126; later GEN.125, GEN.56, GEN.100, GEN.98 moved in and finished),
+Boss asked on 2026-10-09 08:37Z for its plan file to be deleted, and the
+version moved to 8.0 (`changes/phase-0-complete.major.md`). The item
+list and each item's PR are in git history (`docs/plan/phase-0-roots.md`
+before this change) and in CHANGELOG.md. The "1 → 0" and "→ 0" rows in
+the change list below record moves into it.
+
 ## Research notes
 
 ### From "Phase 1: Foundations and fixes" (first plan)

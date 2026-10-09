@@ -52,7 +52,7 @@ OUTPUTS = {
 }
 ID_RE = re.compile(r"^[A-Z]+\.\d+$")
 ITEM_RE = re.compile(r"^(\s*)- \[[ x]\] \*\*([A-Z]+\.\d+) (.*?)\*\*\s*$")
-PHASE_ORDER = ["0", "1", "2", "3", "3+"]
+PHASE_ORDER = ["1", "2", "3", "3+"]
 CATEGORIES = {
     "GEN": "Generation", "MAP": "Maps", "NAV": "Navigation", "UX": "User experience",
     "ADM": "Admin", "OPS": "Operations", "API": "API", "TEST": "Tests",
@@ -118,7 +118,7 @@ def parse_todo(text: str) -> dict:
 
 
 def phase_key(path: Path) -> str:
-    m = re.search(r"phase-(0|1|2|3plus|3)-", path.name)
+    m = re.search(r"phase-(1|2|3plus|3)-", path.name)
     return {"3plus": "3+"}.get(m.group(1), m.group(1))
 
 

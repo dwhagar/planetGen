@@ -626,7 +626,9 @@ forced credential change. They back the admin stats page
   — asks a live node and everything under it to pause (running tasks
   finish, then it stands by without the lease, so other jobs run),
   resume, or cancel. `POST /api/admin/work/<id>/delete` deletes a
-  finished tree by its root. `POST /api/admin/work/queue`
+  finished tree by its root; `POST /api/admin/work/clear-finished`
+  deletes every finished tree and answers `{"cleared": count}`.
+  `POST /api/admin/work/queue`
   `{"action": "pause"|"resume"}` pauses the whole queue (no run takes the
   lease or a task) or resumes it. `POST /api/admin/work/lease/clear`
   frees a lease whose holder stopped refreshing it. Each answers

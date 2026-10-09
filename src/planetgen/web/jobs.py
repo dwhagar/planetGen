@@ -347,13 +347,23 @@ def get_job(job_id, root=None):
     }
 
 
-def list_jobs(limit=10, root=None):
-    """The newest `limit` jobs, newest first (`get_job` dicts)."""
-    root = root or jobs_dir()
+def _job_names(root):
+    """Every job's id under `root`, newest first (`[]` when unreadable)."""
     try:
-        names = sorted((name for name in os.listdir(root) if JOB_ID_RE.match(name)), reverse=True)
+        return sorted((name for name in os.listdir(root) if JOB_ID_RE.match(name)), reverse=True)
     except OSError:
         return []
+
+
+def count_jobs(root=None):
+    """How many jobs are kept under `root`."""
+    return len(_job_names(root or jobs_dir()))
+
+
+def list_jobs(limit=10, root=None, offset=0):
+    """The newest `limit` jobs from `offset`, newest first (`get_job` dicts)."""
+    root = root or jobs_dir()
+    names = _job_names(root)[offset:]
     jobs = []
     for name in names:
         job = get_job(name, root)

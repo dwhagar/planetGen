@@ -98,10 +98,10 @@ maps, search, NAV, admin auth and wiki publishing.
 Boss (2026-10-01 23:53Z) asked for the open work to be planned in
 phases, one plan file per phase with everything that phase needs, and
 this file as the master and index. On 2026-10-02 the phases were
-rebuilt as phases 0 to 3+ from the dependency report, and on
-2026-10-07 rebuilt again from Boss's lists of 2026-10-03 and
-2026-10-07: every bug in phase 0, which has two lanes (bugfixes and
-groundwork). Every open item below is in exactly one phase, and every
+rebuilt from the dependency report, and on 2026-10-07 rebuilt again
+from Boss's lists of 2026-10-03 and 2026-10-07. Phase 0 (every bug and
+the groundwork) was finished on 2026-10-09 and its plan file deleted;
+the open bugs now sit in phase 1. Every open item below is in exactly one phase, and every
 item's prerequisites are in its own phase or an earlier one. Each phase
 file gives the goal, the build threads with their order and
 prerequisites, and the open questions;
@@ -112,8 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 is done (PR #476); GEN.117, and GEN.116 is closed (Boss 2026-10-08 17:46Z). |  |
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.41, GEN.99, GEN.101, GEN.102, GEN.103, GEN.84, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, GEN.94, GEN.104, GEN.106, GEN.107, GEN.108, NAV.10, NAV.12, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, NAV.43, NAV.44, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.57, DB.7, GEN.58, TEST.77, OPS.8, OPS.13, OPS.14, ADM.18, GEN.59, UX.49, UX.76, ADM.39, ADM.40, ADM.41, PERF.34, GEN.127, PERF.31, PERF.32, GEN.128, ADM.42 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.41, GEN.99, GEN.101, GEN.102, GEN.103, GEN.84, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, GEN.94, GEN.104, GEN.106, GEN.107, GEN.108, NAV.10, NAV.12, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, NAV.43, NAV.44, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.57, DB.7, GEN.58, TEST.77, OPS.8, OPS.13, OPS.14, ADM.18, GEN.59, UX.49, PERF.34, GEN.127, PERF.31, PERF.32, GEN.128, ADM.42 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, API.16, ADM.17, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18, PERF.33, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, DB.15, ADM.43, ADM.44 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, repair that reads the newest settings JSON, and the anomalies chosen in phase 2. | NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, DB.10, ADM.20, GEN.114, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies, and the end state of reproducible galaxies (`generate.py reproduce`). | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, OPS.12, GEN.55 |
@@ -322,16 +321,6 @@ with `clamp()`.
     charted) that opens the Galaxy Map fitted to the group with its
     outline highlighted.
     Prerequisite: UX.47.
-
-- [ ] **UX.76 Icons and highlights follow the light and dark theme (bug)**
-  Boss (GitHub issue [#706](https://github.com/dwhagar/planetGen/issues/706), 2026-10-09 00:13Z): "Make sure to adapt your
-  icons for dark or light mode, same with highlights and such. Some of
-  the buttons highlight dark with dark text and the new icons are dark
-  in dark mode." Done: every icon, and every button state (hover, focus,
-  pressed, selected), reads against its background in both themes; icons
-  take their colour from the theme (currentColor) instead of a fixed
-  fill; a browser test opens the main pages in both themes and checks
-  text at 4.5:1 and icons at 3:1 against their backgrounds.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -2349,35 +2338,6 @@ Boss (2026-10-07 11:47Z): "Actual specs on layers on the generation
   screen; the change is validated (escape, collisions), logged, and used
   by the next orbital update.
   Prerequisite: GEN.109.
-
-- [ ] **ADM.39 Running queue jobs show an ETA (bug)**
-  Boss (GitHub issue [#676](https://github.com/dwhagar/planetGen/issues/676), 2026-10-08 22:17Z): "Jobs on the work queue
-  should have an ETA If they are running, if it can be calculated."
-  Done: each running job on the Queue page shows an estimated finish
-  time computed from the progress the RQ job already publishes (ADM.22),
-  and says nothing when it cannot be computed; it also feeds the banner
-  of UX.3. PERF.33 later improves the estimate with measured rates.
-
-- [ ] **ADM.40 The Generate page stops reporting a lost connection (bug)**
-  Boss (GitHub issue [#656](https://github.com/dwhagar/planetGen/issues/656), 2026-10-08 21:16Z): "Every so often the
-  generation page says it has 'lost connection' and then reconnects."
-  Done: the cause is found (the job log stream of ADM.22 over SSE, a
-  proxy or Redis timeout, or the worker being busy) and fixed or made to
-  resume silently without losing lines; a test drops the stream mid-job
-  and checks that the page resumes at the right line without a message.
-  May share a cause with PERF.34.
-
-- [ ] **ADM.41 Every job is easy to find and cancel in the web queue, and past jobs are paginated and clean (bug)**
-  Boss (GitHub issues [#614](https://github.com/dwhagar/planetGen/issues/614), with his correction in a comment, and #535):
-  a plan job started from the CLI over SSH showed up in the queue "but
-  were difficult to access" when the connection dropped, and "Past jobs
-  list needs to be paginated, also should be cleanable and minimalist."
-  Done: a job started from the command line or the web appears in the
-  Queue page the same way with its state, progress and a Cancel button
-  that works for either; past jobs are paged at 50 rows like every list,
-  a Clear action removes finished ones, and the list is minimal (name,
-  state, start, duration); a test starts a job outside the web process
-  and cancels it from the page.
 
 - [ ] **ADM.42 One settings model describes every config.json option**
   Foundation for the full config page (GitHub issue [#515](https://github.com/dwhagar/planetGen/issues/515)) and the SEO
