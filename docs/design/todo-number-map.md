@@ -580,7 +580,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.101 | Fill order: nearest sectors first along a pruned Hilbert octree curve | none | open |
 | GEN.102 | Investigate filling all near-zero-density void space at once | none | open |
 | GEN.103 | Research where each star type and phenomenon belongs in the galaxy's structure | none | open |
-| GEN.104 | A spin vector and a realistic axial tilt for every rotating object | none | open |
+| GEN.104 | A spin vector and a realistic axial tilt for every rotating object | none | done, PR #826 |
 | GEN.105 | Orbital updates | none | open |
 | GEN.106 | Movement thresholds and a next-update-due column | none | done, PR #802 |
 | GEN.107 | The update reports how many objects moved, changed sector, or entered or left a nebula | none | done, PR #817 |

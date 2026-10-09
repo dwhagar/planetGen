@@ -112,7 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, GEN.104, NAV.12, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.57, TEST.77, OPS.14, GEN.59, UX.49, PERF.31, PERF.32, GEN.128, ADM.42 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, NAV.12, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.57, TEST.77, OPS.14, GEN.59, UX.49, PERF.31, PERF.32, GEN.128, ADM.42 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, API.16, ADM.17, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18, PERF.33, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, DB.15, ADM.43, ADM.44 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, repair that reads the newest settings JSON, and the anomalies chosen in phase 2. | NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, DB.10, ADM.20, GEN.114, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies, and the end state of reproducible galaxies (`generate.py reproduce`). | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, OPS.12, GEN.55 |
@@ -1975,9 +1975,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     radius get an eccentricity draw (up to about 0.3). Open question for
     Boss (default yes): the swallowed-giant flag.
     Decided (2026-10-09): Boss (2026-10-09 18:37Z): the defaults are
-    accepted, including the swallowed-giant flag. Use the established
-    published forms for the orbit-expansion law and the stability
-    criterion; ask Boss to verify any form that cannot be confirmed.
+    accepted, including the swallowed-giant flag. The orbit-expansion
+    law for adiabatic mass loss is verified: a (M_star + M_planet) =
+    constant with the eccentricity unchanged (Jeans 1924; Hadjidemetriou
+    1963; Veras et al. 2011), valid when the mass-loss time is much
+    longer than the orbital period and the loss is isotropic; impulsive
+    loss uses vis-viva and unbinds an orbit when more than half the mass
+    goes; engulfment overrides. Worked example: 1 AU round a 1 Msun star
+    that drops to 0.6 Msun moves to 1/0.6 = 1.67 AU.
     Prerequisite: GEN.89.
     Design: [docs/design/nebula-and-asteroid-field-classes.md](design/nebula-and-asteroid-field-classes.md)
 
@@ -2120,39 +2125,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   multistar-and-compact-systems.md 6.6 (metallicity-dependent
   close-binary fraction, massive multiples in young regions, a wide-pair
   survival cap shrinking in dense regions).
-
-- [ ] **GEN.104 A spin vector and a realistic axial tilt for every rotating object**
-  Boss (2026-10-07 11:47Z): "Add to the database every object gets a
-  spin value as a vector containing direction of spin, velocity of spin,
-  in 3 dimensional space.  Each rotating object will be generated a
-  realistic axis tilt. To be clear when I say spin I am talking
-  literally about the movement of a body around it's center of gravity
-  (i.e. the rotation of the Earth)." Done: stars, planets, moons, small
-  bodies and black holes store a spin axis and rate, drawn by the doc's
-  cascade (tidal locking, gyrochronology for cool stars, log-normal
-  speeds under the breakup limit for hot ones, the 2.2-hour spin barrier
-  for small bodies, black hole spin distributions).
-  Research (2026-10-09, orbital-solvers-and-integrators.md): settle
-  before building: asteroid obliquity (the procedure says 10 or 170
-  degrees, the prose 90; use the procedure), one small-body period
-  distribution (median 8.2 h or 13 h), the gyrochronology constants
-  (they look like Mamajek and Hillenbrand 2008, not Barnes 2007, and
-  give 26.3 d for the Sun, not 25.4), and the tidal-locking coefficient
-  and worked example (the 1.2 Myr example reproduces as about 80 yr).
-  Extend the tidal-locking check to planets, not only moons (k2 = 0.3, Q
-  = 100 for rocky planets, k2/Q = 3e-4 for icy), since M-dwarf
-  habitable-zone planets lock within 15 kyr to 3.4 Myr; the locked flag
-  must exist before GEN.86's magnetic field. Replace the uniform 10 to
-  1,400 h terrestrial rotation draw with a log-uniform 6 to 100 h for
-  unlocked planets, with a separate sample for slow Venus-like rotators
-  (`constants.ROTATION_PERIOD_RANGE_HOURS`). Store a rotation phase `W0`
-  at an epoch (or derive it from the seed) and define the stored period
-  as sidereal (today `planets.rotation_period_hours` is day length and a
-  locked moon gets its orbital period, which is sidereal); use the
-  product `Rz(90 + a0) Rx(90 - d0) Rz(W)`, not the document's expanded
-  matrix. Until then, a seeded tilt and phase are an acceptable stand-in
-  for VIEW.2.
-  Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
 
 - [ ] **GEN.105 Orbital updates**
   Boss (2026-10-03 and 2026-10-07) asked for an orbital update that
@@ -2464,6 +2436,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   degrees, the Kozai-Lidov timescale is shorter than the system's age,
   and it is also shorter than the inner orbit's general-relativity
   precession period.
+  Verified (2026-10-09,
+  exotic-environments-planets-and-compact-binaries.md): Boss's engine
+  verified the triple-stability criteria (2026-10-09): Mardling and
+  Aarseth 2001 and Eggleton and Kiseleva 1995 stay the implemented
+  forms. Acceptance tests: (1) P-type, m1 = m2 = 1, m3 close to 0, outer
+  eccentricity 0, inclination 0 gives R_p / a_in = 2.80; (2) S-type, m1
+  = 1, m2 close to 0, m3 = 1, outer eccentricity 0.5, inclination 0
+  gives R_p / a_in = 2.8 x 2^0.4 x (1.5 / sqrt(0.5))^0.4 = 4.99 and
+  a_out / a_in = 9.98. The Vynatheya et al. 2022 (MNRAS 516, 4146)
+  empirical criterion is NOT built until Boss supplies its exact
+  equation (the e_in term and f(i)); the Tory-Grishin-Mandel boundary as
+  pasted contradicts the test-particle limit; the missing pieces are
+  listed in exotic-environments-planets-and-compact-binaries.md section
+  2.3.
 
 - [ ] **GEN.130 Exotic star systems: a black hole, neutron star or similar at the center**
   Boss (GitHub issue [#778](https://github.com/dwhagar/planetGen/issues/778)): "We need to add exotic star systems that
@@ -2501,9 +2487,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   rate for millisecond pulsars is accepted.
   Decided (2026-10-09): Boss (2026-10-09 18:37Z): the defaults are
   accepted (millisecond-pulsar rate 0.7%, no globular-cluster model so
-  the captured-giant type stays out). Use the established published
-  forms for any formula; ask Boss to verify any that cannot be
-  confirmed.
+  the captured-giant type stays out). Where a formula is needed, use
+  the verified published forms: Peters for the gravitational-wave
+  inspiral time, and the Mardling-Aarseth and Eggleton-Kiseleva
+  criteria for triple stability (see GEN.129).
 
 - [ ] **GEN.134 Tune the star populations to the observed star-formation profile by galactic radius**
   From GEN.133 (Boss's 09:20Z request; the analysis is `docs/design/star-types-by-galactic-radius.md`, PR #807), whose four proposals were left unbuilt. Done: (1) the young and intermediate populations are weighted by the observed star-formation profile (peak at 5 kpc, about -0.28 dex per kpc beyond, a dip inside 3 kpc, the Central Molecular Zone as its own small young region); (2) the young population's B share is lowered, or its weight cut, so local B stars come to about 0.04%; (3) the bulge gets a small young tail (about 10% under 5 Gyr, between the HST and microlensing figures); (4) a metallicity gradient is added only if planet occurrence is later tied to it, otherwise the note records why not. The changes are reproducible (GEN.56), and a test compares the star type shares at the core, mid radius and rim against the note's table. Boss to confirm which of the four proposals he wants before the build starts.
