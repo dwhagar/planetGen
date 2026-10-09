@@ -370,13 +370,13 @@ def test_update_orbits_first_run_sets_a_starting_point_then_advances(seeded, mon
     assert lines[-1].startswith("Moved ")  # galactic motion, after the phases
 
 
-def test_update_orbits_reports_its_four_steps_to_the_progress_file(seeded, monkeypatch, tmp_path):
+def test_update_orbits_reports_its_five_steps_to_the_progress_file(seeded, monkeypatch, tmp_path):
     path = tmp_path / "progress.json"
     monkeypatch.setenv("PLANETGEN_PROGRESS_FILE", str(path))
     assert _run_main(orbits, mysql_argv(seeded), monkeypatch) == 0
     body = json.loads(path.read_text())
-    assert body["completed"] == body["total"] == len(orbits.STAGES) == 4
-    assert body["description"].startswith("Step 4 of 4: ")
+    assert body["completed"] == body["total"] == len(orbits.STAGES) == 5
+    assert body["description"].startswith("Step 5 of 5: ")
 
 
 def test_the_orbit_steps_report_how_far_they_are(seeded):

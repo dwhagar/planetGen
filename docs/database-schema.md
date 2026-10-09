@@ -1774,6 +1774,38 @@ row per sector address a backfill reached or a fill generated. See
 | `filled_at` | TIMESTAMP(3) | nullable | When the fill saved it. |
 | `updated_at` | TIMESTAMP | NOT NULL | |
 
+### `sector_paths`
+
+Added in v62 (GEN.123). One row per star system, rogue planet or
+interstellar comet: the path it takes from where it is now to where it
+leaves its sector (`physics/sector_path.py`), recomputed by
+`sector_paths.compute_sector_paths` when a sector is generated and for the
+sectors something moved into or out of at each orbit update.
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | BIGINT UNSIGNED | PK | |
+| `sector_id` | BIGINT UNSIGNED | NOT NULL | `sectors.id`, cascade delete. |
+| `object_table`, `object_id` | VARCHAR(24) / BIGINT UNSIGNED | NOT NULL | `star_systems`, `rogue_planets` or `interstellar_comets`, and the row's id. Unique together; no foreign key. |
+| `exited` | TINYINT(1) | NOT NULL | 1 when the body leaves the sector, 0 when the path was cut off (at rest, held by a mass, step limit). |
+| `duration_years` | DOUBLE | NOT NULL | How long the crossing takes. |
+| `computed_at` | TIMESTAMP | NOT NULL | |
+
+### `sector_path_knots`
+
+Added in v62 (GEN.123). The cubic Hermite spline knots of a `sector_paths`
+row, in order (`position` 0 is where the body is now; the last knot is where
+it leaves, the next sector's entry).
+
+| Column | Type | Null | Notes |
+|---|---|---|---|
+| `id` | BIGINT UNSIGNED | PK | |
+| `path_id` | BIGINT UNSIGNED | NOT NULL | `sector_paths.id`, cascade delete. Unique with `position`. |
+| `position` | INT | NOT NULL | The knot's index. |
+| `t_years` | DOUBLE | NOT NULL | Years after the path starts. |
+| `x_pc`, `y_pc`, `z_pc` | DOUBLE | NOT NULL | Position, galactic parsecs. |
+| `vx_kms`, `vy_kms`, `vz_kms` | DOUBLE | NOT NULL | Velocity, km/s, galactic axes. |
+
 ### `generation_runs`
 
 Added in v52 (DB.6). One row per `planetgen` run that changes the
