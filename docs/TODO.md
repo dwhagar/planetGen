@@ -3608,6 +3608,26 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Prerequisite: GEN.170.
   Design: [docs/design/object-id-options.md](design/object-id-options.md)
 
+- [ ] **DB.21 A deep pass for the database check: validate every star system, with the estimated time shown first**
+  Boss (2026-10-09 23:32Z): "Yes, add an option for a deep pass but warn
+  the user the estimated time it will take." Foundations lane 1 left
+  `validation.check_star_system` for every system out of `planetgen
+  check-db` (DB.8, PR #893) because of its cost. Done: `planetgen
+  check-db --deep` also runs `validation.check_star_system` on every
+  star system (and the slower table checks DB.8's research proposed,
+  `CHECK TABLE ... EXTENDED` and `CHECKSUM TABLE`, where the lane judges
+  them worth it), and the "Check the database" section of the Generate
+  page offers a "Deep check" option. Before it runs, both show the
+  estimated time, from the sector count and a measured cost per system
+  (PERF.32 rates once they exist), and the Generate page asks for
+  confirmation; the CLI prints the estimate and waits for a yes unless
+  `--yes` is given. The deep pass draws its own progress bar (UX.83's
+  rule: any sub-step over 15 seconds) and its report lists each failing
+  system with its rows, like the plain check. Open question for Boss
+  (default `--deep` flag and a "Deep check" option with the estimate and
+  a confirmation, as written): other?
+  Prerequisites: none. Related: DB.9, PERF.33, PERF.32, PERF.50.
+
 ## API: The JSON API
 
 - [ ] **API.3 Remote generate: generate on a local machine, upload through the API**
