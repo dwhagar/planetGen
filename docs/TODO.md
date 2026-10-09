@@ -2827,8 +2827,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   built once, resampled to about 2,000 log-grid points and scaled by
   length. Tests: the solver reproduces concentrations c = 0.67, 1.03,
   1.53, 2.12 and 2.74 for W0 = 3, 5, 7, 9 and 12; the total expected
-  count is M / 0.4. Open question for Boss (default: wait, build the
-  synthetic generator first): supply the Harris catalogue (about 157
+  count is M / 0.4. Decided by Boss (2026-10-09 19:02Z, default taken): wait and build the synthetic generator first; the options were to supply the Harris catalogue (about 157
   rows: position, distance, [Fe/H], c, r_c, r_h, M_V, sigma_v,
   core-collapse flag) or approve a one-time download script. Open
   question for Boss (default: derived): a cluster star's sector address
@@ -2865,8 +2864,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   hard cut: drop planets with a > a_h = G M_host / sigma(r)^2 (2 AU at
   15 km/s, 4.4 at 10, 18 at 5, 440 at 1), with sigma(r) from the King
   model. Blue straggler count N_BSS ~ M_core^0.4 (main-sequence stars of
-  1 to 1.7 Msun in the core). Open questions for Boss (defaults taken):
-  a hard cut at a_h rather than a smooth exponential; blue stragglers
+  1 to 1.7 Msun in the core). Decided by Boss (2026-10-09 19:02Z, default taken): a hard cut at a_h rather than a smooth exponential. Open question for Boss (default taken): blue stragglers
   scale as M_core^0.4 while millisecond pulsars and X-ray binaries scale
   with the encounter rate (his text says linearly with Gamma for both).
   Prerequisites: GEN.158, GEN.160.
