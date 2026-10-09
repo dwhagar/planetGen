@@ -122,6 +122,8 @@ def test_the_galactic_orbit_update_turns_the_velocity_with_the_position(mysql_co
             row = conn.execute("SELECT velocity_x_kms, velocity_y_kms, velocity_z_kms FROM star_systems").fetchone()
             return (row["velocity_x_kms"], row["velocity_y_kms"], row["velocity_z_kms"])
 
+        with conn:  # a bound star: only a hypervelocity star flies straight (GEN.137)
+            conn.execute("UPDATE star_systems SET runaway_class = NULL, runaway_speed_kms = NULL")
         start = velocity()
         period_gy = conn.execute(
             "SELECT s.galactic_orbital_period_gy AS p FROM stars s JOIN star_systems ss ON ss.id = s.star_system_id"
