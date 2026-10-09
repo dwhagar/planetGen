@@ -1030,6 +1030,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   fly-through step): go ahead?
   Prerequisites: none. Related: MAP.147, MAP.158, MAP.159, PERF.38,
   PERF.41, MAP.109.
+  Detail (2026-10-09, galaxy-map-wire-format.md): detail from Research
+  Lane 3 (Boss said yes, 2026-10-09 23:26Z): drop `placed`, `planned`
+  and `filled` and the star fields `ring_index`, `layer_index`,
+  `ring_slot_index`, `population`, `yerkes_class` and the generated
+  name; `star_type` to its class letter; round x/y/z to 3 decimals,
+  luminosity to 4 and radius to 3 significant digits, temperature to 10
+  K. Re-grep `static/` for readers before removing any field. Fix the
+  `GALAXY_VIEW_MAX_STARS` docstring (270 bytes a star, not about 114).
+  Serve stored response bytes in `fetch_tiles` and add `mod_brotli` (or
+  serve the `.br` copy) to `examples/apache`. Lands after or with
+  PERF.38.
   Design: [docs/design/galaxy-map-wire-format.md](design/galaxy-map-wire-format.md)
 
 - [ ] **MAP.158 A gentler tile prefetch and an IndexedDB tile cache instead of localStorage**
@@ -1043,6 +1054,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   per tile) and a revisit finds them; the old localStorage cache is
   removed (no compatibility). Open question for Boss (default yes): go
   ahead?
+  Detail (2026-10-09, galaxy-map-wire-format.md): detail from Research
+  Lane 3: prefetch in the zoom-in direction only, after idle, skipped on
+  `navigator.connection.saveData` or a slow `effectiveType`, with a byte
+  cap (`prefetchTiles` in `galaxymap3d.js`). Interim cheap fix for the
+  cache before IndexedDB: store only the tiles the next view needs and
+  cap by bytes with least-recently-used removal, instead of `storeTile`
+  wiping every stored tile when the quota fails.
   Prerequisites: none. Related: MAP.147, MAP.157, MAP.109.
   Design: [docs/design/galaxy-map-wire-format.md](design/galaxy-map-wire-format.md)
 
@@ -1062,6 +1080,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   go ahead?
   Prerequisites: MAP.154, MAP.158. Related: MAP.147, MAP.154, MAP.151,
   MAP.153, MAP.157.
+  Detail (2026-10-09, galaxy-map-wire-format.md): detail from Research
+  Lane 3 and Research Lane 2: x/y/z uint16 inside the tile cube, log
+  luminosity uint16, log temperature and radius uint8, class and flags
+  uint8, id uint32 (a lean record without ids is 11 bytes); `clouds` and
+  `points` stay JSON; the 80-bit object ID stays off the tile wire. Keep
+  list order, so rank is implied (use the unsorted 16.7 byte form, or
+  add a 2 byte rank plane). The format fits any octree edge from 16 pc
+  to 65,536 pc; aggregates cost about 10 bytes a cell; block responses
+  are tiny, so changing block keys costs nothing on the wire. Depends on
+  MAP.157 and MAP.158 and on Boss's yes on the design.
   Design: [docs/design/galaxy-map-wire-format.md](design/galaxy-map-wire-format.md)
 
 - [ ] **MAP.160 Quantise the Galaxy Map GPU buffers (deferred)**
@@ -1074,7 +1102,28 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   appends the new tile's stars instead of rebuilding every star is
   considered with it. Open question for Boss (default defer until a real
   phone or GPU measurement shows the upload matters): build it?
+  Detail (2026-10-09, galaxy-map-wire-format.md): also considered here:
+  the client appends the new tile's stars instead of rebuilding and
+  re-uploading every star on each tile arrival (3,200 stars is a 166 KB
+  upload, 11,000 is 572 KB each time), and `tileStars` copies an object
+  per generated star. Optional.
   Prerequisites: none. Related: MAP.147, MAP.159, MAP.109.
+  Design: [docs/design/galaxy-map-wire-format.md](design/galaxy-map-wire-format.md)
+
+- [ ] **MAP.161 Load the Galaxy Map faster on a first visit: bundle or preload its scripts**
+  Source: docs/design/galaxy-map-wire-format.md (sections 2.3 and 1).
+  Measured by Research Lane 3: the first star does not wait on a tile
+  (the opening tile is inside the 35 KB gzipped page); it waits on 173
+  static files (543 KB gzipped, 1.8 MB decoded; the map scripts and
+  three.js), which is 7.9 to 8.1 s on a slow 4G link and 1.0 to 1.3 s
+  locally. Production serves `/static` immutable, so repeat visits are
+  fine. Done: the map scripts load faster on a first visit, by bundling
+  them or `modulepreload` hints, and HTTP/2 in the Apache example
+  (`examples/apache/planetgen.conf.example`); this keeps the no-bundler
+  decision (vendored ES modules) unless Boss says otherwise, so the
+  default is `modulepreload` plus HTTP/2. Open question for Boss
+  (default `modulepreload` and HTTP/2, no bundler): or bundle?
+  Prerequisites: none. Related: MAP.147, MAP.157, MAP.158.
   Design: [docs/design/galaxy-map-wire-format.md](design/galaxy-map-wire-format.md)
 
 ## NAV: Navigation and courses

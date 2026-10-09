@@ -14,7 +14,7 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.84 |
-| MAP | MAP.161 |
+| MAP | MAP.162 |
 | NAV | NAV.58 |
 | GEN | GEN.177 |
 | PERF | PERF.50 |
@@ -821,6 +821,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.158 | A gentler tile prefetch and an IndexedDB tile cache instead of localStorage | none | open |
 | MAP.159 | Packed binary Galaxy Map tiles (quantised planes) with the nested tile lists, on one cache stamp bump | none | open |
 | MAP.160 | Quantise the Galaxy Map GPU buffers (deferred) | none | open |
+| MAP.161 | Load the Galaxy Map faster on a first visit: bundle or preload its scripts | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
