@@ -194,6 +194,31 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ADM.18 | The galaxy's creation settings saved as a JSON file, downloadable from the Admin dashboard | DB.7, OPS.13 | Stores the naming key instead of the word list. Boss 02:13Z: phase 1. Includes the key history; dated backup on every change. |
 | GEN.59 | Admin changes stored as a net difference from the generated galaxy | GEN.56, GEN.58, ADM.18 | Boss 02:20Z: net diff by stable address path, regenerate seeds, in ADM.18's JSON. |
 
+### Bugs from the GitHub issues
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| UX.76 | Icons and highlights follow the light and dark theme (bug) |  | GitHub issue #706. |
+| UX.77 | The class list is alphabetized (bug) |  | GitHub issue #681. |
+| MAP.135 | Selecting the first slab or wedge shows its bounds (bug) |  | GitHub issue #770. |
+| MAP.136 | Binary stars pick as one system and their 3D orbits are drawn clearly (bug) |  | GitHub issues #709, #708. One item: both are how binary pairs show on the maps. |
+| MAP.137 | Rogue planets are easy to see, with the right default filters (bug) |  | GitHub issue #705. |
+| MAP.138 | Recenter the camera in every 3D view (bug) |  | GitHub issue #699 (labelled bug and enhancement) and its comment. |
+| ADM.39 | Running queue jobs show an ETA (bug) |  | GitHub issue #676. |
+| ADM.40 | The Generate page stops reporting a lost connection (bug) |  | GitHub issue #656. |
+| ADM.41 | Every job is easy to find and cancel in the web queue, and past jobs are paginated and clean (bug) |  | GitHub issues #614 (first half) and #535. |
+| PERF.34 | The site stays responsive during heavy generation jobs (bug) | PERF.31 | GitHub issues #638 and #614 (second half). |
+| GEN.127 | A sector generated around a backfilled bright star gives that star a planetary system (bug) |  | GitHub issue #513. |
+
+### Foundations for the issue features
+
+| ID | Item | Needs | Note |
+|---|---|---|---|
+| PERF.31 | Investigate: where generation spends its time, from the plan to a finished galaxy |  | GitHub issues #761 and #750 (benchmark half). |
+| PERF.32 | Generation performance stats: rates recorded per run, deleted on every new version |  | GitHub issues #661 (store half) and #750. |
+| GEN.128 | Design: multi-star hierarchies and compact-object primaries |  | GitHub issues #777 and #778: the research both builds wait on. |
+| ADM.42 | One settings model describes every config.json option |  | Foundation for GitHub issues #515 and #743. |
+
 ## Open questions for Boss
 
 - NAV.8: Pages and anchors for stars, planets, moons and belts, see its entry in TODO.md.
