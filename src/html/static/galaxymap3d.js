@@ -332,6 +332,27 @@ function showBlockInfo(info, edgePc) {
   });
 }
 
+// A drill-down stage that isn't one block (an arc, or a slab of one;
+// MAP.135): what it covers in the plane and in height, and how many
+// sectors it holds and has generated. `info.span` is {r0, r1, t0, t1,
+// z0, z1} (pc and radians); `info.hint` goes under it.
+function showRegionInfo(info) {
+  var span = info.span;
+  var fields = [
+    ["Distance from core", Math.round(span.r0) + "–" + Math.round(span.r1) + " pc"],
+    ["Bearing", Math.round(span.t0 * 180 / Math.PI) + "° to " + Math.round(span.t1 * 180 / Math.PI) + "°"],
+    ["Height", Math.round(span.z0) + " to " + Math.round(span.z1) + " pc"],
+  ];
+  if (info.total != null) {
+    fields.push(["Sectors", formatNumber(info.total)]);
+  }
+  if (info.generated != null) {
+    fields.push(["Generated", formatNumber(info.generated)
+      + (info.generated > 0 && info.total > 0 ? " (" + formatShare(info.generated / info.total) + ")" : "")]);
+  }
+  showInfo({ title: info.title, fields: fields, hint: info.hint });
+}
+
 // A hint paragraph in the info panel: replacing what's there, or (keep)
 // under it.
 function showHint(text, keep) {
@@ -2314,6 +2335,7 @@ function initGalaxyMap3d(canvasEl, data) {
         });
     },
     showBlockInfo: function (info) { showBlockInfo(info, edgePc); },
+    showRegionInfo: showRegionInfo,
     showPlacedInfo: showPlacedInfo,
     showCellInfo: showCellInfo,
     showHint: function (text) { showHint(text, false); },

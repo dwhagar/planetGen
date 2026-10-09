@@ -1470,7 +1470,7 @@ export function createStageView(host) {
   function showStageInfo() {
     const hint = hintFor(resolved);
     if (!stage.at) {
-      host.showHint(hint);
+      showRegionInfo(hint);
       return;
     }
     const data = dataFor(stage.at);
@@ -1481,6 +1481,26 @@ export function createStageView(host) {
       block: stage.at, total: total,
       generated: data ? generated : null, hint: hint, enter: null,
       generate: generateOffer(total, data ? generated : null),
+    });
+  }
+
+  // At the galaxy: the hint alone for the whole galaxy; for an arc, or a
+  // slab picked inside one, what it covers and holds (MAP.135).
+  function showRegionInfo(hint) {
+    const blocks = resolved.view.blocks;
+    if (isWholeGalaxy(resolved) || !stage.picks.length || !blocks.length || !host.showRegionInfo) {
+      host.showHint(hint);
+      return;
+    }
+    const last = stage.picks[stage.picks.length - 1];
+    const span = spanOf(blocks, (resolved.view.a0 + resolved.view.a1) / 2);
+    const sum = sumOf(blocks, dataFor(stage.at));
+    host.showRegionInfo({
+      title: S.pickLabel(last, stage.at, resolved.view),
+      span: span,
+      total: getOutline().shapeless ? null : sum.total,
+      generated: sum.generated,
+      hint: hint,
     });
   }
 
