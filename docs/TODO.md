@@ -918,11 +918,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the cap and tiebreak).
   Open question for Boss (default the rank birth-radius fade is stage 1
   and the apparent-magnitude law of MAP.148 is the end state): which
-  rule leads? Open question for Boss (default each star fades over one
-  halving of the camera radius, W = 1): slower or faster? Open question
-  for Boss (default yes): may a dense sector show all its stars only at
-  sector zoom (they appear in rank order between about 35 pc and 8 pc of
-  view radius)?
+  rule leads?
+  Decided (Boss, 2026-10-09 23:11Z, "default options are approved"): each
+  star fades over one halving of the camera radius (W = 1); a dense
+  sector's stars arrive in rank order between about 35 pc and 8 pc of
+  view radius, so they wait for sector zoom; the GEN.30 backfill shells
+  stay as they are.
   Prerequisites: none. Related: MAP.148, MAP.146, MAP.149, MAP.147,
   MAP.116.
   Design: [docs/design/zoom-star-visibility.md](design/zoom-star-visibility.md)
@@ -950,8 +951,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   starts one pixel and faint and grows to its size with its opacity.
   Rows with no natural rank use a hash tiebreak (a fixed random number
   from the object id). Sector blocks and fills keep their own
-  level-of-detail question (the mega-block plan). Open question for Boss
-  (default yes): point objects from level 8?
+  level-of-detail question (the mega-block plan). Decided (Boss, 2026-10-09 23:11Z, "default options are
+  approved"): point objects are listed from level 8.
   Prerequisite: MAP.153. Related: MAP.153, MAP.148, MAP.149.
   Design: [docs/design/zoom-star-visibility.md](design/zoom-star-visibility.md)
 
