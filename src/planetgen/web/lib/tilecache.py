@@ -42,6 +42,7 @@ import re
 import tempfile
 import time
 
+from planetgen.web.lib import apiclient
 from planetgen.web.lib.apiclient import get_galaxy_changes, get_galaxy_stage, get_galaxy_tiles
 from planetgen.web.lib.privatedir import ensure_private_dir
 from planetgen.util.appconfig import load_config
@@ -54,6 +55,21 @@ DEFAULT_CACHE_DIR = "/var/cache/planetgen/tiles"
 folder in the system temp directory when Apache can't create this one."""
 
 STAMP_TTL_SECONDS = 60
+
+BUSY_KEEP_SECONDS = 600
+"""int: While the galaxy changes faster than tiles can be refetched (a fill
+adds sectors and stars every second, PERF.34), a cached generation is kept
+and served at most this long past its start, instead of being thrown away at
+every check, which made every map request recompute its tiles on a database
+already under load. Then one full refresh brings it up to date."""
+
+FAILED_CHECK_RETRY_SECONDS = 15
+"""int: After the freshness check itself fails (a database too busy to answer
+in time), the cache is served as it is and the check is not tried again for
+this long."""
+
+_failed_checks = {}
+"""dict: `db -> time.monotonic()` of that database's last failed check."""
 """int: How long a database's stamp is trusted before asking the API again
 -- the longest a newly generated or edited sector can take to appear on
 an open map."""
@@ -268,15 +284,35 @@ def current_stamp(db, root=None):
     if remembered is not None and age is not None and 0 <= age < STAMP_TTL_SECONDS:
         return remembered
 
-    changes = get_galaxy_changes(db, remembered["state"] if remembered else None)
+    if remembered is not None and time.monotonic() - _failed_checks.get(db, -1e9) < FAILED_CHECK_RETRY_SECONDS:
+        return remembered
+    try:
+        changes = get_galaxy_changes(db, remembered["state"] if remembered else None)
+    except apiclient.ApiError:
+        if remembered is None:
+            raise
+        # A busy database that can't answer the check is no reason to fail a
+        # request the cache can serve (PERF.34).
+        _failed_checks[db] = time.monotonic()
+        return remembered
+    _failed_checks.pop(db, None)
     stamp = changes.get("stamp")
+    if changes.get("busy") and remembered is not None:
+        generation_age = time.time() - float(remembered.get("started") or 0)
+        if 0 <= generation_age < BUSY_KEEP_SECONDS:
+            # Keep the stored state, so the next check still sees everything
+            # that changed since; just look again in a minute.
+            _write_json(stamp_path, remembered)
+            return remembered
     if not _STAMP_RE.match(str(stamp)):
         return {"stamp": stamp, "generation": None, "history": []}
 
     stale = []
     stale_stages = []
+    started = time.time()
     if remembered is not None and not changes.get("full"):
         generation = remembered["generation"]
+        started = remembered.get("started") or started
         history = remembered["history"]
         if stamp != remembered["stamp"]:
             stale = [str(key) for key in changes.get("tiles") or []]
@@ -286,7 +322,8 @@ def current_stamp(db, root=None):
         generation = stamp
         history = []
 
-    info = {"stamp": stamp, "state": str(changes.get("state") or ""), "generation": generation, "history": history}
+    info = {"stamp": stamp, "state": str(changes.get("state") or ""), "generation": generation, "history": history,
+            "started": started}
     generation_dir = os.path.join(db_dir, generation)
     # Deleted both before and after the new stamp is written: a request
     # still working under the old stamp checks it before writing a tile

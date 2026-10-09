@@ -268,3 +268,41 @@ def test_stage_keys_are_checked(api):
         with pytest.raises(tilecache.TileRequestError):
             tilecache.fetch_stage("mydb", bad)
     assert api.stage_calls == []
+
+
+def test_a_busy_galaxy_keeps_its_cached_tiles_for_a_while_then_refreshes(api, monkeypatch):
+    # PERF.34: a fill changes so much that every check says "full"; the cache is kept (and the stored state
+    # with it) until the generation is BUSY_KEEP_SECONDS old, then thrown away once.
+    monkeypatch.setattr(tilecache, "STAMP_TTL_SECONDS", 0)
+    tilecache.fetch_tiles("mydb", ["12/1/2/3"])
+    api.stamp = "00000000000000bb"
+    real = api.get_galaxy_changes
+    api.get_galaxy_changes = lambda db, since=None: {**real(db, since), "full": True, "busy": True, "tiles": []}
+    monkeypatch.setattr(tilecache, "get_galaxy_changes", api.get_galaxy_changes)
+
+    again = tilecache.fetch_tiles("mydb", ["12/1/2/3"])
+    assert again["cached"] == 1 and again["stamp"] == "00000000000000aa"
+    assert len(api.tile_calls) == 1
+
+    monkeypatch.setattr(tilecache, "BUSY_KEEP_SECONDS", -1)
+    refreshed = tilecache.fetch_tiles("mydb", ["12/1/2/3"])
+    assert refreshed["cached"] == 0 and refreshed["stamp"] == "00000000000000bb"
+
+
+def test_a_check_that_fails_under_load_serves_the_cache(api, monkeypatch):
+    # PERF.34: a database too busy to answer the freshness check in time must not fail a request the cache can serve.
+    monkeypatch.setattr(tilecache, "STAMP_TTL_SECONDS", 0)
+    tilecache._failed_checks.clear()
+    tilecache.fetch_tiles("mydb", ["12/1/2/3"])
+    calls = []
+
+    def failing(db, since=None):
+        calls.append(since)
+        raise tilecache.apiclient.ApiError("planetGen API error (503): database unavailable", status_code=503)
+
+    monkeypatch.setattr(tilecache, "get_galaxy_changes", failing)
+    again = tilecache.fetch_tiles("mydb", ["12/1/2/3"])
+    assert again["cached"] == 1
+    tilecache.fetch_tiles("mydb", ["12/1/2/3"])
+    assert len(calls) == 1  # not asked again straight away
+    tilecache._failed_checks.clear()
