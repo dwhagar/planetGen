@@ -687,6 +687,11 @@ def sector_generation_summary_lines(sector, args_used):
         )
         lines.append(f"    Phenomena: {phenomena_str}")
 
+    stars = sum(len(getattr(entry.star_system, "stars", None) or [None]) for entry in sector.entries)
+    planets = sum(len(getattr(entry.star_system, "planets", None) or ())
+                  + len(getattr(entry.star_system, "secondary_planets", None) or ()) for entry in sector.entries)
+    lines.append(f"    Totals: {len(sector.entries):,} star systems, {stars:,} stars, {planets:,} planets, "
+                 f"{len(sector.phenomena):,} phenomena")
     lines.append(
         f"    Star density: actual {actual_density:.2f}x local, expected {expected_density:.2f}x local"
     )

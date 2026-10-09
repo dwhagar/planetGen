@@ -40,3 +40,15 @@ def test_the_summary_is_logged_one_line_per_record(monkeypatch):
     monkeypatch.setattr(log, "normal", logged.append)
     run_sector._log_summary("    Systems: 1 G-type\n    Star density: actual 1.00x local, expected 1.00x local")
     assert logged == ["    Systems: 1 G-type", "    Star density: actual 1.00x local, expected 1.00x local"]
+
+
+def test_the_summary_totals_systems_stars_planets_and_phenomena():
+    def entry(stars, planets, secondary_planets=()):
+        return SimpleNamespace(star_system=SimpleNamespace(
+            star=SimpleNamespace(type="G2V Main Sequence Star", yerkes_class="V"), stars=list(range(stars)),
+            planets=list(range(planets)), secondary_planets=list(secondary_planets)))
+
+    sector = SimpleNamespace(entries=[entry(1, 3), entry(2, 1, [0, 0])], phenomena=[SimpleNamespace(phenomenon_type="nebula")],
+                             expected_system_count=lambda: 10.0)
+    lines = run_sector.sector_generation_summary_lines(sector, SimpleNamespace(density=1.0, num_systems=None)).splitlines()
+    assert "    Totals: 2 star systems, 3 stars, 6 planets, 1 phenomena" in lines
