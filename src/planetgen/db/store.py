@@ -1417,6 +1417,7 @@ def _table_marker(table):
 
 
 _VERSION_MARKERS = (
+    (67, _column_marker("sectors", "version_key")),
     (66, _column_marker("planets", "next_update_due")),
     (65, _table_marker("phenomenon_scatter")),
     (64, _column_marker("facilities", "velocity_x_kms")),
@@ -5433,13 +5434,15 @@ def insert_sector(conn, sector: SpaceSector, galaxy_position=None) -> int:
 
 
 def _insert_sector_rows(conn, sector, galaxy_position):
+    made_by = versionKey.current()  # DB.7: the code generating this sector
     if galaxy_position is not None:
         cur = conn.execute(
             """
             INSERT INTO sectors (
                 name, edge_mpc, center_x_pc, center_y_pc, center_z_pc,
-                galactic_radius_pc, ring_index, layer_index, ring_slot_index
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                galactic_radius_pc, ring_index, layer_index, ring_slot_index,
+                version_key, planetgen_version, python_version, platform
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 sector.name, ly_to_milliparsecs(sector.edge_ly),
@@ -5447,12 +5450,16 @@ def _insert_sector_rows(conn, sector, galaxy_position):
                 galaxy_position["center_z_pc"], galaxy_position["galactic_radius_pc"],
                 galaxy_position.get("ring_index"), galaxy_position.get("layer_index"),
                 galaxy_position.get("ring_slot_index"),
+                made_by["version_key"], made_by["planetgen_version"], made_by["python_version"],
+                made_by["platform"],
             ),
         )
     else:
         cur = conn.execute(
-            "INSERT INTO sectors (name, edge_mpc) VALUES (?, ?)",
-            (sector.name, ly_to_milliparsecs(sector.edge_ly)),
+            "INSERT INTO sectors (name, edge_mpc, version_key, planetgen_version, python_version, platform)"
+            " VALUES (?, ?, ?, ?, ?, ?)",
+            (sector.name, ly_to_milliparsecs(sector.edge_ly), made_by["version_key"],
+             made_by["planetgen_version"], made_by["python_version"], made_by["platform"]),
         )
     sector_id = cur.lastrowid
 
@@ -6112,6 +6119,20 @@ def get_galaxy_maker(conn):
     if row is None or row.get("version_key") is None:
         return None
     return GalaxyMaker(row["version_key"], row["planetgen_version"], row["python_version"], row["platform"])
+
+
+def sector_versions(conn):
+    """
+    The code that generated the galaxy's sectors (v67, DB.7): one dict per
+    distinct `version_key` (`None` for sectors generated before it was
+    recorded) with `planetgen_version`, `python_version`, `platform` and the
+    `sectors` count, the largest group first.
+    """
+    rows = conn.execute(
+        "SELECT version_key, MIN(planetgen_version) AS planetgen_version, MIN(python_version) AS python_version,"
+        " MIN(platform) AS platform, COUNT(*) AS sectors FROM sectors GROUP BY version_key"
+        " ORDER BY sectors DESC, version_key").fetchall()
+    return [dict(row) for row in rows]
 
 
 GENERATION_ARGUMENT_LENGTH = 1024

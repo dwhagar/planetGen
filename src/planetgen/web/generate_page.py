@@ -640,10 +640,11 @@ def _admin_or_403():
 def _galaxy_summary(database):
     """Whether the galaxy is planned and how many sectors it holds.
     Fails open: the page still works when the database doesn't answer."""
-    summary = {"shape": None, "sectors": None, "bright": None, "error": None}
+    summary = {"shape": None, "sectors": None, "bright": None, "version_warning": None, "error": None}
     try:
         summary["shape"] = apiclient.get_galaxy_shape(database)
         summary["bright"] = apiclient.get_bright_star_status(database)
+        summary["version_warning"] = apiclient.get_version_warning(database)
         summary["sectors"] = apiclient.get_sectors(database, limit=1, offset=0)["total"]
     except (apiclient.ApiError, apiclient.NotFoundError) as exc:
         summary["error"] = str(exc)

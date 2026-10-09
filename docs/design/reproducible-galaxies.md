@@ -199,9 +199,15 @@ used, so the OS, architecture and Python parts cover the maths library.
   `bump_version.py --check` checks the two go together. It also watches
   for the one known risk: a maths function (`exp`, `pow`) differing in
   the last digit between machines and tipping a value over a threshold.
-- **Mixed versions (DB.7).** Extending a galaxy with a different release
-  warns first, since a mixed-version galaxy reproduces only sector by
-  sector, each on its own version.
+- **Mixed versions (DB.7, built).** Each sector records the key, release,
+  Python and platform that generated it (schema v67, `sectors.version_key`
+  and friends). Extending a galaxy whose sectors came from a different
+  version warns first, naming what differs ("PlanetGen 7.381.1 now,
+  7.379.678 when generated"), since a mixed-version galaxy reproduces only
+  sector by sector, each on its own version: `planetgen galaxy` prints it,
+  and the Generate page shows it (`GET /api/galaxy/shape`'s
+  `version_warning`). Sectors from before v67 have no version and are not
+  compared.
 
 ## 6. Updates and the version history (phase 1, then 2)
 
