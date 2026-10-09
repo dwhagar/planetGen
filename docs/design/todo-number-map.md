@@ -918,7 +918,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.36 | Scientific notation starts too early for whole numbers (bug) | none | done, PR #457 |
 | UX.37 | A UX sweep: remove redundant and duplicate controls so the interface gets out of the way | none | done, PR #671 |
 | UX.38 | The nebula and remnant diagrams' "-" button does nothing at the 1 ly limit (bug) | none | done, PR #590 |
-| UX.39 | Markdown rendered by the markdown library | none | open |
+| UX.39 | Markdown rendered by the markdown library | none | done, PR #759 |
 | UX.40 | Buttons, menus and dialogs from Shoelace web components | none | done, PR #544 |
 | UX.41 | Tables on TanStack Table and TanStack Virtual | none | done, PR #606 |
 | UX.42 | In-universe wording across the interface | none | open |
