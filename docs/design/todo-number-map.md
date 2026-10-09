@@ -25,7 +25,7 @@ release is stamped.
 | TEST | TEST.112 |
 | USR | USR.10 |
 | OPS | OPS.38 |
-| DOC | DOC.6 |
+| DOC | DOC.17 |
 | VIEW | VIEW.11 |
 | POP | POP.11 |
 
@@ -486,6 +486,17 @@ Parents marked "new parent" had no old number of their own.
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.4 | Correct the stale statements the research found in docs, docstrings and comments | none | open |
 | DOC.5 | Rewrite the object ID docs: object-ids.md, database-schema.md and api.md | none | open |
+| DOC.6 | A static help section in the web interface: page template, index, per-page help links and a coverage test | none | open |
+| DOC.7 | The Galaxy Map help page: layers, zoom, fly-through, Color by, select modes, bookmarks and the locate box | none | open |
+| DOC.8 | The sector help pages: the sector list, a sector page, the sector map and the sector scene | none | open |
+| DOC.9 | The star system help pages: the system list, a system page, the system map and the planets, moons and belts shown | none | open |
+| DOC.10 | The search and navigation help pages: search, nearby, the nav page and routes | none | open |
+| DOC.11 | The reference browser help pages: species, polities, object classes and phenomena | none | open |
+| DOC.12 | The account help pages: signing in, two-factor, the account page, API keys and bookmarks | none | open |
+| DOC.13 | The Generate page help pages: layer specs, spans, radial fills, directives, one-off systems and jobs | none | open |
+| DOC.14 | The admin help pages: the queue, the stats page, settings, lockouts and the naming key | none | open |
+| DOC.15 | A glossary and units help page: coordinates, scales, sector paths, object IDs, time and the in-universe wording | none | open |
+| DOC.16 | The API help page for visitors: what the API is, how to get a key, and where the reference lives | none | open |
 | GEN.1 | Real-world rates for interstellar objects | 5 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.2 | Rogue planet mass bins | 6 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.3 | A supermassive black hole in every galaxy | 7 (2026-09-30 18:14Z to 22:54Z) | done in 7.15.0, PR #132 |

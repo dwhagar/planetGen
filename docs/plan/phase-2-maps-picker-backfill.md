@@ -170,6 +170,17 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | MAP.121 | Every map shows and steps to its neighbouring regions, on one map engine |  | Folds MAP.127, the Galaxy Map's neighbouring blocks and slabs (Boss 2026-10-07 16:27Z: one map engine for all maps). |
 | MAP.156 | View one layer or a range of layers top-down from the galaxy view, as a secondary option |  | Boss 2026-10-09 23:17Z; secondary option, not a main control. |
+| DOC.16 | The API help page for visitors: what the API is, how to get a key, and where the reference lives | DOC.6 | Boss 23:53Z; Phase 2. |
+| DOC.15 | A glossary and units help page: coordinates, scales, sector paths, object IDs, time and the in-universe wording | DOC.6 | Boss 23:53Z; Phase 2. |
+| DOC.14 | The admin help pages: the queue, the stats page, settings, lockouts and the naming key | DOC.6 | Boss 23:53Z; Phase 2. |
+| DOC.13 | The Generate page help pages: layer specs, spans, radial fills, directives, one-off systems and jobs | DOC.6 | Boss 23:53Z; Phase 2. |
+| DOC.12 | The account help pages: signing in, two-factor, the account page, API keys and bookmarks | DOC.6 | Boss 23:53Z; Phase 2. |
+| DOC.11 | The reference browser help pages: species, polities, object classes and phenomena | DOC.6 | Boss 23:53Z; Phase 2. |
+| DOC.10 | The search and navigation help pages: search, nearby, the nav page and routes | DOC.6 | Boss 23:53Z; Phase 2. |
+| DOC.9 | The star system help pages: the system list, a system page, the system map and the planets, moons and belts shown | DOC.6 | Boss 23:53Z; Phase 2. |
+| DOC.8 | The sector help pages: the sector list, a sector page, the sector map and the sector scene | DOC.6 | Boss 23:53Z; Phase 2. |
+| DOC.7 | The Galaxy Map help page: layers, zoom, fly-through, Color by, select modes, bookmarks and the locate box | DOC.6 | Boss 23:53Z; Phase 2. |
+| DOC.6 | A static help section in the web interface: page template, index, per-page help links and a coverage test |  | Boss 23:53Z; the framework the per-feature help pages use. |
 | MAP.160 | Quantise the Galaxy Map GPU buffers (deferred) |  | Deferred; MAP.147 recommendation step 3. |
 
 ### Recipes
