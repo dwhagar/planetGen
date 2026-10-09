@@ -2456,10 +2456,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Y_crit. It was fitted for 0.01 <= q_in <= 1, 0.01 <= q_out <= 100 and
   1e-4 < alpha < 1. Accuracy against N-body runs (paper Table 4): EK95
   0.86, MA01 0.90, Equation 4 0.93, the paper's neural net 0.95 (its
-  weights were not reachable, so it is not implementable). Open question
-  for Boss (default): one function with a switch, Equation 4 inside the
-  fitted range, Mardling-Aarseth outside it (a planet, q about 1e-3, is
-  outside), EK95 as a cross-check. Extra tests, a_out / a_in needed (MA01
+  weights were not reachable, so it is not implementable). Decided by
+  Boss (2026-10-09 18:56Z): one function with a switch; Mardling-Aarseth
+  for planets (q about 1e-3 is outside Equation 4's fitted range),
+  Equation 4 for star-only triples inside the fitted range, EK95 as a
+  cross-check; unit tests for both formulas. Extra tests, a_out / a_in needed (MA01
   / Equation 4): P-type coplanar circular m1 = m2 = 1, m3 close to 0:
   2.80 / 2.40; S-type m1 = 1, m2 close to 0, m3 = 1, e_out = 0.5, i = 0:
   9.98 / 7.28; q_out = 0.5, all e = 0, i = 0: 3.29 / 2.82; i = 90
