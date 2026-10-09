@@ -526,7 +526,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.53 | The two stars of a binary don't share one age (bug) | none | done, PR #367 |
 | GEN.54 | A `--star-type` secondary gets a mass that doesn't fit its type (bug) | none | done, PR #367 |
 | GEN.55 | A version number and a seed reproduce the same galaxy (end goal) | none | open |
-| GEN.56 | Every random draw in generation comes from the derived seeds | none | open |
+| GEN.56 | Every random draw in generation comes from the derived seeds | none | done, PR #791 |
 | GEN.57 | A sector's contents depend only on the seed, the version and its address | none | open |
 | GEN.58 | A fingerprint of a galaxy's generated content | none | open |
 | GEN.59 | Admin changes stored as a net difference from the generated galaxy | none | open |
