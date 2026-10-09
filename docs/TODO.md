@@ -433,6 +433,22 @@ with `clamp()`.
   Prerequisites: none.
   Design: [docs/design/map-ui-and-frontend-libraries.md](design/map-ui-and-frontend-libraries.md)
 
+- [ ] **UX.83 Generation steps that run long show no progress bar of their own: linking new sectors to their neighbours, the phenomenon scatter and others (bug)**
+  Boss (2026-10-09 23:13Z): "linking new sectors to their neighbors
+  should have a progress bar of it's own, as should the phenomena
+  scatter, all generation items should have progress bars, if a sub-step
+  is probably going to take longer than 15 seconds give it a progress
+  bar as well." Today the neighbour linking and the phenomenon scatter
+  run with no bar of their own, so a run looks stuck. Done: every
+  generation step has a progress bar (in the terminal and on the
+  Generate and Queue pages), including the neighbour linking of new
+  sectors and the phenomenon scatter, and any sub-step expected to take
+  more than 15 seconds gets its own bar under the main one. A bar is a
+  count of units done against units expected, with the estimate PERF.33
+  describes once that lands (until then the plain count). Handed to
+  Bugfixes lane 1.
+  Prerequisites: none. Related: PERF.33, PERF.34, DB.15, UX.3.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
