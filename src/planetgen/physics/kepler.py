@@ -43,6 +43,10 @@ angle instead. No new rotation math is needed.
 """
 
 import math
+import warnings
+
+import numpy as np
+from scipy import optimize
 
 from planetgen.physics import constants
 from planetgen.physics.orbits import orbital_position_au
@@ -50,6 +54,9 @@ from planetgen.physics.state_vectors import state_from_elements
 from planetgen.util.checks import finite_domain
 
 TWO_PI = 2 * math.pi
+
+KEPLER_XTOL = 1e-14
+"""float: How close, in radians, Kepler's equation is solved to (about 50 times machine epsilon at 2*pi)."""
 
 AU3_PER_YR2_PER_SOLAR_MASS = 4 * math.pi ** 2
 """
@@ -95,37 +102,26 @@ def mean_motion_per_year(semi_major_axis_au, primary_mass_solar):
 
 
 @finite_domain()
-def solve_eccentric_anomaly(mean_anomaly_rad, eccentricity, tolerance=1e-10, max_iterations=100):
+def solve_eccentric_anomaly(mean_anomaly_rad, eccentricity):
     """
-    Newton-Raphson solution of Kepler's equation `M = E - e*sin(E)` for
-    the eccentric anomaly `E`, given the mean anomaly `M` (radians) and
-    eccentricity `e` in `[0, 1)`.
+    Solves Kepler's equation `M = E - e*sin(E)` for the eccentric anomaly
+    `E`, given the mean anomaly `M` (radians) and eccentricity `e` in
+    `[0, 1)`, with `scipy.optimize.brentq`.
 
-    Kepler's equation has no closed-form solution -- this is the standard
-    numerical approach (e.g. Meeus, "Astronomical Algorithms", ch. 30),
-    converging quadratically from an initial guess of `M` itself for
-    low-to-moderate eccentricity, or `pi` for a high-eccentricity orbit
-    (where `M` alone is a poor starting guess -- see e.g. Danby, "Fundamentals
-    of Celestial Mechanics"). `tolerance`/`max_iterations` bound how far
-    this iterates; for any physically realistic comet eccentricity (this
-    generator caps elliptical comets below `PARABOLIC_COMET_ECCENTRICITY_RANGE`'s
-    floor -- see `program_constants.COMET_PERIOD_CLASSES`), convergence to
-    machine precision typically takes under 10 iterations.
+    Kepler's equation has no closed-form solution. For `e < 1` the left
+    side minus the right, `E - e*sin(E) - M`, rises monotonically from
+    `-M <= 0` at `E = 0` to `2*pi - M > 0` at `E = 2*pi`, so that interval
+    always brackets the one root and Brent's method always converges,
+    including as `e` approaches 1 where a Newton iteration from `M` alone
+    wanders.
 
     Args:
         mean_anomaly_rad (float): Mean anomaly, in radians (any real
             value -- wrapped into `[0, 2*pi)` internally).
         eccentricity (float): Orbital eccentricity, `0 <= e < 1`.
-        tolerance (float, optional): Convergence tolerance, in radians.
-        max_iterations (int, optional): Maximum Newton-Raphson iterations.
-
-    If Newton-Raphson hasn't converged within `max_iterations`, this falls
-    back to bisection on `[0, 2*pi]` (Kepler's equation is monotonic there
-    for `e < 1`, so bisection always converges) rather than returning the
-    last, unconverged iterate.
 
     Returns:
-        float: The eccentric anomaly `E`, in radians.
+        float: The eccentric anomaly `E`, in radians, in `[0, 2*pi]`.
 
     Raises:
         ValueError: If `eccentricity` is outside `[0, 1)`.
@@ -135,38 +131,65 @@ def solve_eccentric_anomaly(mean_anomaly_rad, eccentricity, tolerance=1e-10, max
             f"solve_eccentric_anomaly: eccentricity ({eccentricity}) must be in [0, 1) for Kepler's equation."
         )
     m = mean_anomaly_rad % TWO_PI
-    eccentric_anomaly = m if eccentricity < 0.8 else math.pi
-    for _ in range(max_iterations):
-        delta = (eccentric_anomaly - eccentricity * math.sin(eccentric_anomaly) - m) / (
-            1 - eccentricity * math.cos(eccentric_anomaly)
-        )
-        eccentric_anomaly -= delta
-        if abs(delta) < tolerance:
-            return eccentric_anomaly
-    return _bisect_eccentric_anomaly(m, eccentricity, tolerance)
+    return float(optimize.brentq(_kepler_residual, 0.0, TWO_PI, args=(eccentricity, m), xtol=KEPLER_XTOL))
 
 
-def _bisect_eccentric_anomaly(m, eccentricity, tolerance):
+def _kepler_residual(eccentric_anomaly, eccentricity, mean_anomaly):
+    return eccentric_anomaly - eccentricity * np.sin(eccentric_anomaly) - mean_anomaly
+
+
+def _kepler_slope(eccentric_anomaly, eccentricity, mean_anomaly):
+    return 1 - eccentricity * np.cos(eccentric_anomaly)
+
+
+def _kepler_curvature(eccentric_anomaly, eccentricity, mean_anomaly):
+    return eccentricity * np.sin(eccentric_anomaly)
+
+
+def solve_eccentric_anomalies(mean_anomalies_rad, eccentricities):
     """
-    Bisection fallback for `solve_eccentric_anomaly`: `E - e*sin(E) - m`
-    rises monotonically from `-m <= 0` at `E = 0` to `2*pi - m > 0` at
-    `E = 2*pi`, so halving that bracket always converges (to `tolerance`,
-    or until the bracket can't shrink any further in floating point).
+    `solve_eccentric_anomaly` for many orbits at once: one vectorised
+    Halley iteration (`scipy.optimize.newton` with arrays) for the whole
+    batch, and `brentq` for any orbit it did not settle (very eccentric
+    ones, mostly).
+
+    Args:
+        mean_anomalies_rad (array-like): Mean anomalies, radians (any real values, finite).
+        eccentricities (array-like): Eccentricities, each in `[0, 1)`; same length.
+
+    Returns:
+        numpy.ndarray: The eccentric anomalies, radians, each in `[0, 2*pi]`.
+
+    Raises:
+        ValueError: If any eccentricity is outside `[0, 1)`, any mean
+            anomaly is not finite, or the lengths differ.
     """
-    lo, hi = 0.0, TWO_PI
-    while hi - lo > tolerance:
-        mid = (lo + hi) / 2
-        if mid in (lo, hi):
-            break
-        if mid - eccentricity * math.sin(mid) - m < 0:
-            lo = mid
-        else:
-            hi = mid
-    return (lo + hi) / 2
+    m = np.asarray(mean_anomalies_rad, dtype=float)
+    e = np.asarray(eccentricities, dtype=float)
+    if m.shape != e.shape or m.ndim != 1:
+        raise ValueError("solve_eccentric_anomalies: mean anomalies and eccentricities must be 1-D and the same length.")
+    if not np.all(np.isfinite(m)):
+        raise ValueError("solve_eccentric_anomalies: mean anomalies must be finite numbers.")
+    if not np.all((e >= 0) & (e < 1)):
+        raise ValueError("solve_eccentric_anomalies: every eccentricity must be in [0, 1) for Kepler's equation.")
+    if m.size < 2:  # scipy's newton() takes its scalar path for a single start value
+        return np.array([solve_eccentric_anomaly(mean, ecc) for mean, ecc in zip(m, e)], dtype=float)
+    m = m % TWO_PI
+    start = np.where(e < 0.8, m, np.pi)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", RuntimeWarning)  # the orbits it leaves unsettled go to brentq below
+        solved, converged, _zero_derivative = optimize.newton(
+            _kepler_residual, start, fprime=_kepler_slope, args=(e, m), fprime2=_kepler_curvature,
+            tol=KEPLER_XTOL, maxiter=50, full_output=True, disp=False)
+    solved = np.array(solved, dtype=float)
+    settled = np.asarray(converged) & (solved >= 0) & (solved <= TWO_PI)
+    for index in np.flatnonzero(~settled):
+        solved[index] = solve_eccentric_anomaly(m[index], e[index])
+    return solved
 
 
 @finite_domain()
-def true_anomaly_and_distance_elliptical(mean_anomaly_rad, eccentricity, semi_major_axis_au):
+def true_anomaly_and_distance_elliptical(mean_anomaly_rad, eccentricity, semi_major_axis_au, eccentric_anomaly_rad=None):
     """
     The true anomaly and current orbital radius for a bound (`e < 1`)
     orbit at a given mean anomaly.
@@ -181,6 +204,10 @@ def true_anomaly_and_distance_elliptical(mean_anomaly_rad, eccentricity, semi_ma
         mean_anomaly_rad (float): Mean anomaly, in radians.
         eccentricity (float): Orbital eccentricity, `0 <= e < 1`.
         semi_major_axis_au (float): Orbital semi-major axis, in AU.
+        eccentric_anomaly_rad (float, optional): The eccentric anomaly for
+            this mean anomaly when the caller already has it (from
+            `solve_eccentric_anomalies` for a whole batch); solved here
+            when left out.
 
     Returns:
         tuple: `(true_anomaly_rad, distance_au)`.
@@ -202,7 +229,8 @@ def true_anomaly_and_distance_elliptical(mean_anomaly_rad, eccentricity, semi_ma
             f"true_anomaly_and_distance_elliptical: eccentricity ({eccentricity}) must be in [0, 1) "
             f"for a bound elliptical orbit -- e >= 1 is a parabolic/hyperbolic orbit, not this function."
         )
-    eccentric_anomaly = solve_eccentric_anomaly(mean_anomaly_rad, eccentricity)
+    eccentric_anomaly = (solve_eccentric_anomaly(mean_anomaly_rad, eccentricity)
+                         if eccentric_anomaly_rad is None else eccentric_anomaly_rad)
     true_anomaly_rad = 2 * math.atan2(
         math.sqrt(1 + eccentricity) * math.sin(eccentric_anomaly / 2),
         math.sqrt(1 - eccentricity) * math.cos(eccentric_anomaly / 2),
@@ -334,7 +362,7 @@ def vis_viva_speed_kms(distance_au, semi_major_axis_au, primary_mass_solar):
 def comet_orbital_state(orbit_type, perihelion_distance_au, eccentricity, inclination_deg,
                         arg_periapsis_deg, ascending_node_deg, primary_mass_solar,
                         mean_anomaly_rad=None, parabolic_mean_anomaly_value=None,
-                        orbital_period_years=None):
+                        orbital_period_years=None, eccentric_anomaly_rad=None):
     """
     A star-bound comet's full orbital state -- 3D position, distance from
     its primary, and orbital speed -- at whatever point along its orbit
@@ -369,6 +397,10 @@ def comet_orbital_state(orbit_type, perihelion_distance_au, eccentricity, inclin
         orbital_period_years (float, optional): The orbit's own period, in
             years -- only meaningful (and only used) for `orbit_type ==
             "elliptical"`.
+        eccentric_anomaly_rad (float, optional): The eccentric anomaly for
+            `mean_anomaly_rad` when the caller solved a batch of them at
+            once (`solve_eccentric_anomalies`); solved here when left out.
+            Only used for `orbit_type == "elliptical"`.
 
     Returns:
         dict: `position_x_au`, `position_y_au`, `position_z_au`,
@@ -386,7 +418,7 @@ def comet_orbital_state(orbit_type, perihelion_distance_au, eccentricity, inclin
             raise ValueError("comet_orbital_state: mean_anomaly_rad is required for an elliptical orbit.")
         semi_major_axis_au = perihelion_distance_au / (1 - eccentricity)
         true_anomaly_rad, distance_au = true_anomaly_and_distance_elliptical(
-            mean_anomaly_rad, eccentricity, semi_major_axis_au
+            mean_anomaly_rad, eccentricity, semi_major_axis_au, eccentric_anomaly_rad
         )
     elif orbit_type == "parabolic":
         if parabolic_mean_anomaly_value is None:

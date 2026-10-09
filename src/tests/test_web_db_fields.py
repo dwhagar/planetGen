@@ -38,7 +38,7 @@ def test_black_hole_stored_with_zero_hawking_values_shows_the_real_ones():
     fields = _fields("black_hole", {"mass_solar": 10.0, "has_accretion_disk": False,
                                     "temperature_k": 0.0, "luminosity_w": 0.0})
     assert fields["Hawking Temperature"] == "6.17 × 10⁻⁹ K"
-    assert fields["Luminosity"] == "9.00 × 10⁻³¹ W"
+    assert fields["Luminosity"] == "9.01 × 10⁻³¹ W"
 
 
 def test_runaway_text():

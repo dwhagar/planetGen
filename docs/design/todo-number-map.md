@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.76 |
 | MAP | MAP.135 |
 | NAV | NAV.52 |
-| GEN | GEN.126 |
+| GEN | GEN.127 |
 | PERF | PERF.31 |
 | DB | DB.15 |
 | API | API.20 |
@@ -528,7 +528,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.63 | Planet names are unique within a sector | none | dropped: names come from IDs (GEN.67, 2026-10-07) |
 | GEN.64 | A packed position ID as the name of every interstellar object and bright-sweep system | none | done, PR #406 |
 | GEN.65 | A generation run fails from the web UI but not from the CLI (bug) | none | done, PR #476 |
-| GEN.66 | Physics on scipy, and astropy constants and units | none | open |
+| GEN.66 | Physics on scipy, and astropy constants and units | none | done, PR #767 |
 | GEN.67 | Names from IDs for objects that have no star-derived name | none | done, PR #740 |
 | GEN.68 | Research: the cheapest unique IDs for every object, unfilled sectors included | none | done, PR #623 |
 | GEN.69 | A unique ID for every object, star systems and unfilled sectors included | none | done, PR #623 |
@@ -588,6 +588,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.123 | The projected path of a body through a sector, saved as a spline | none | done, PR #762 |
 | GEN.124 | Every object knows its sector address (ring, layer, slot), recalculated whenever its position changes | none | done, PR #729 |
 | GEN.125 | Stand-alone facilities store a velocity | none | open |
+| GEN.126 | Run an orbital update as the last step of a generation run | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -792,7 +793,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.17 | Install and update set up the daily maintenance schedule | none | open |
 | OPS.18 | Settings JSON backups kept in 18 slots: 7 daily, 4 weekly, 6 monthly, 1 yearly | none | open |
 | OPS.19 | The Generate jobs folder is /var/lib/planetgen while the checkout is /var/lib/planetGen (bug) | none | done, PR #525 |
-| OPS.20 | Move the code base from zero dependencies to third-party open-source libraries | none | open |
+| OPS.20 | Move the code base from zero dependencies to third-party open-source libraries | none | done, PR #767 |
 | OPS.21 | Pinned third-party dependencies and a Redis server in install, update and CI | none | done, PR #437 |
 | OPS.22 | Reorganize the code into importable Python packages with shared utility libraries | none | done, PR #473 |
 | OPS.23 | A package layout plan for the reorganization | none | done, PR #435 |

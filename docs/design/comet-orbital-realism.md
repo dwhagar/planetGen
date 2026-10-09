@@ -36,7 +36,7 @@ comets are sector phenomena, drawn per star at the design rate in
   out with a period outside 3.3 to 20 years. The tag is descriptive only.
 - Motion uses the mean anomaly `mean_anomaly_deg`, which advances linearly
   and wraps at 360. Position comes from solving Kepler's equation
-  (`keplerMotion.solve_eccentric_anomaly`, Newton-Raphson), so a comet moves
+  (`kepler.solve_eccentric_anomaly`, scipy Brent), so a comet moves
   fast near perihelion and slowly near aphelion.
 
 ### Parabolic comets

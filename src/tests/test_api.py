@@ -24,6 +24,7 @@ from planetgen.api.config import Config
 from planetgen.db import store as _db
 from planetgen.admin import auth as adminAuth
 from planetgen.galaxy import sector as spaceSector
+from planetgen.physics.constants import SOLAR_LUMINOSITY as SOLAR_LUMINOSITY_W
 from planetgen.db.store import MySQLConfig
 from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.viewport import tile_keys_containing, tiles_intersecting_sphere
@@ -907,7 +908,7 @@ def _bright_row(position_pc, luminosity_sol, edge_pc):
 
     ring, layer, slot = sector_address_at(position_pc, edge_pc)
     return (ring, layer, slot, *(int(round(v * 1000)) for v in position_pc), "young", "B", "III", 1e31, 1e7,
-            15000.0, luminosity_sol * 3.82e26, 0.05, 0.1, 8.0, None, 1)
+            15000.0, luminosity_sol * SOLAR_LUMINOSITY_W, 0.05, 0.1, 8.0, None, 1)
 
 
 @pytest.mark.parametrize("outline, ranges_per_ring", [(False, False), (True, False), (True, True)])

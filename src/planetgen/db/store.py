@@ -7800,15 +7800,26 @@ def advance_comet_orbits(conn, elapsed_years):
 
     update_params = []
     to_kms = physical_constants.AU_TO_KM / physical_constants.SECONDS_PER_YEAR
+    # Kepler's equation for every elliptical comet that moves, in one vectorised solve.
+    moving = [row for row in rows
+              if row["orbit_type"] == "elliptical" and elapsed_years >= row["min_update_interval_years"]]
+    new_mean_anomalies_deg = {
+        row["id"]: (row["mean_anomaly_deg"] + (elapsed_years / row["orbital_period_years"]) * 360) % 360
+        for row in moving}
+    eccentric_anomalies = dict(zip(
+        (row["id"] for row in moving),
+        kepler.solve_eccentric_anomalies(
+            [math.radians(new_mean_anomalies_deg[row["id"]]) for row in moving],
+            [row["eccentricity"] for row in moving])))
     for row in rows:
         perihelion_distance_au = row["perihelion_distance_km"] / physical_constants.AU_TO_KM
 
+        eccentric_anomaly_rad = None
         if row["orbit_type"] == "elliptical":
             if elapsed_years < row["min_update_interval_years"]:
                 continue
-            new_mean_anomaly_deg = (
-                row["mean_anomaly_deg"] + (elapsed_years / row["orbital_period_years"]) * 360
-            ) % 360
+            new_mean_anomaly_deg = new_mean_anomalies_deg[row["id"]]
+            eccentric_anomaly_rad = float(eccentric_anomalies[row["id"]])
             mean_anomaly_rad = math.radians(new_mean_anomaly_deg)
             new_parabolic_mean_anomaly = None
             parabolic_mean_anomaly_value = None
@@ -7827,6 +7838,7 @@ def advance_comet_orbits(conn, elapsed_years):
             mean_anomaly_rad=mean_anomaly_rad,
             parabolic_mean_anomaly_value=parabolic_mean_anomaly_value,
             orbital_period_years=row["orbital_period_years"],
+            eccentric_anomaly_rad=eccentric_anomaly_rad,
         )
 
         update_params.append((
