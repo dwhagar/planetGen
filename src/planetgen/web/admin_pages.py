@@ -39,9 +39,10 @@ import os
 import re
 import shutil
 import time
+import json
 from urllib.parse import urlsplit
 
-from flask import abort, current_app, make_response, redirect, request, url_for
+from flask import Response, abort, current_app, make_response, redirect, request, url_for
 from itsdangerous import BadSignature, URLSafeTimedSerializer
 
 from planetgen.web.lib import apiclient
@@ -745,6 +746,36 @@ def _naming_panel(cookie_header, db):
     }
 
 
+def _settings_panel(cookie_header):
+    """ADM.18: the galaxy's creation-settings files, newest first."""
+    try:
+        body = apiclient.admin_galaxy_settings(cookie_header)
+    except apiclient.ApiError as exc:
+        return {"error": _api_message(exc), "files": []}
+    return {"error": None, "files": [{
+        "name": item["name"], "seed": item["seed"], "key": item["version_key"],
+        "when": _time_or(item["created_at"], ""), "size": format_bytes(item["size"]),
+        "current": item["current"],
+    } for item in body["items"]]}
+
+
+@bp.route("/admin/stats/galaxy-settings/<name>")
+def download_galaxy_settings(name):
+    """ADM.18: one creation-settings file as a download."""
+    _identity, bounce = _require_admin()
+    if bounce is not None:
+        return bounce
+    try:
+        body = apiclient.admin_galaxy_settings_file(_cookie_header(), name)
+    except apiclient.ApiError as exc:
+        if exc.status_code == 404:
+            abort(404)
+        raise
+    response = Response(json.dumps(body, indent=1, sort_keys=True) + "\n", mimetype="application/json")
+    response.headers["Content-Disposition"] = f'attachment; filename="{name}"'
+    return _no_store(response)
+
+
 def _generation_panel(cookie_header, db):
     """PERF.10: this server's measured generation speed per density
     bucket, and this galaxy's size per star system."""
@@ -828,7 +859,8 @@ def admin_stats():
                "health": _health(stats, api_ms, tile_cache_info()), "database": database,
                "failures": _failures_panel(cookie_header), "lockouts": _lockouts_panel(cookie_header),
                "generation": _generation_panel(cookie_header, db),
-               "naming": _naming_panel(cookie_header, db)}
+               "naming": _naming_panel(cookie_header, db),
+               "settings": _settings_panel(cookie_header)}
     if database["reachable"]:
         counts = database["counts"]
         collisions = database["name_collisions"]

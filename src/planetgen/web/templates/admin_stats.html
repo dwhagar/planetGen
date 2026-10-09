@@ -29,6 +29,24 @@
 {%- if flash_message %}
 <p class="hint" role="status">{{ flash_message }}</p>
 {%- endif %}
+<section class="panel" id="galaxy-settings" aria-labelledby="galaxy-settings-heading">
+  <h2 id="galaxy-settings-heading">Galaxy settings</h2>
+  <p class="hint">The seed, version key, creation settings, naming key and word
+  lists needed to build this galaxy again. Written when the galaxy is planned;
+  planning with other settings keeps the earlier file as a dated backup.</p>
+  {%- if settings.error %}
+  <p class="error">{{ settings.error }}</p>
+  {%- elif not settings.files %}
+  <p class="hint">No settings file yet: plan the galaxy first (<code>planetgen plan</code>).</p>
+  {%- else %}
+  <ul>
+    {%- for file in settings.files %}
+    <li><a href="{{ url_for('web.download_galaxy_settings', name=file.name) }}" download>{{ file.name }}</a>
+      <span class="hint">{{ 'Current' if file.current else 'Backup' }}, {{ file.when }}, {{ file.size }}</span></li>
+    {%- endfor %}
+  </ul>
+  {%- endif %}
+</section>
 <section class="panel" id="naming-key" aria-labelledby="naming-key-heading">
   <h2 id="naming-key-heading">Naming key</h2>
   <p class="hint">Rogue planets, black holes, neutron stars, nebulae,
