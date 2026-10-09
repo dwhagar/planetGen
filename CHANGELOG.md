@@ -1,5 +1,10 @@
 # Changelog
 
+## [7.363.678] - 2026-10-09
+
+### Added
+- **A TODO item for asteroid-field avoidance.** NAV.51: courses go around asteroid fields (Boss, 2026-10-09).
+
 ## [7.362.678] - 2026-10-09
 
 ### Fixed
