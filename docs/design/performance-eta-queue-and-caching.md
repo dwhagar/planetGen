@@ -15,6 +15,8 @@ Informs: PERF.31, PERF.32, PERF.33, PERF.34, PERF.20, PERF.18, UX.3, ADM.15, DB.
 
 Status: research, 2026-10-09; decisions marked "Boss" are his, everything else is a recommendation
 
+The measured profile of the scatters and the sector fill is in [generation-performance-study.md](generation-performance-study.md).
+
 Evidence tags: [C] computed or measured in this research (scripts under the research
 scratchpad `perf/`, listed in Evidence notes); [S] read in the repository, a downloaded
 package or a search result (URLs under Sources); [R] recalled and unconfirmed. The
