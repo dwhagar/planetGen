@@ -127,7 +127,7 @@ footer{margin-top:60px;color:var(--muted);font-size:.85rem;border-top:1px solid 
 (function(){
 const D=JSON.parse(document.getElementById('data').textContent);
 const items=D.items, all=Object.values(items), CAT=D.categories;
-const PH={'0':'Phase 0','1':'Phase 1','2':'Phase 2','3':'Phase 3','3+':'Phase 3+'};
+const PH={'1':'Phase 1','2':'Phase 2','3':'Phase 3','3+':'Phase 3+'};
 const STATUS={open:'open',done:'done',closed:'dropped or merged',other:'other'};
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const num=id=>+id.split('.')[1];

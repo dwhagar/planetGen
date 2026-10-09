@@ -194,10 +194,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| UX.76 | Icons and highlights follow the light and dark theme (bug) |  | GitHub issue [#706](https://github.com/dwhagar/planetGen/issues/706). |
-| ADM.39 | Running queue jobs show an ETA (bug) |  | GitHub issue [#676](https://github.com/dwhagar/planetGen/issues/676). |
-| ADM.40 | The Generate page stops reporting a lost connection (bug) |  | GitHub issue [#656](https://github.com/dwhagar/planetGen/issues/656). |
-| ADM.41 | Every job is easy to find and cancel in the web queue, and past jobs are paginated and clean (bug) |  | GitHub issues [#614](https://github.com/dwhagar/planetGen/issues/614) (first half) and #535. |
 | PERF.34 | The site stays responsive during heavy generation jobs (bug) | PERF.31 | GitHub issues [#638](https://github.com/dwhagar/planetGen/issues/638) and [#614](https://github.com/dwhagar/planetGen/issues/614) (second half). |
 | GEN.127 | A sector generated around a backfilled bright star gives that star a planetary system (bug) |  | GitHub issue [#513](https://github.com/dwhagar/planetGen/issues/513). |
 

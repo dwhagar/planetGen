@@ -129,7 +129,7 @@ footer{margin-top:60px;color:var(--muted);font-size:.85rem;border-top:1px solid 
     <span class="eyebrow">planetGen · TODO tasks · built by scripts/build_todo_docs.py</span>
     <span class="meta"><a href="https://claude.ai/artifact/8K7xJzr9xQgD6XdNCFbvdF">TODO tree</a> · <a href="https://claude.ai/artifact/RndQ2NzUi9ptWe9B3ECF1a">Every ID explained</a></span>
     <h1>Tier plan</h1>
-    <p class="lede">Every open item in <code>docs/TODO.md</code>, in the order it is meant to be built. Phase 0 holds every bug and the groundwork the new architecture needs; each later phase builds on the ones before it. Open an item for its full text, its prerequisites and what it unblocks. The <a href="todo-reference.html">TODO reference</a> lists every ID ever issued, open or closed.</p>
+    <p class="lede">Every open item in <code>docs/TODO.md</code>, in the order it is meant to be built. Each phase builds on the ones before it; phase 1 holds every open bug. Open an item for its full text, its prerequisites and what it unblocks. The <a href="todo-reference.html">TODO reference</a> lists every ID ever issued, open or closed.</p>
     <div class="meta" id="meta"></div>
   </header>
 
@@ -162,7 +162,7 @@ footer{margin-top:60px;color:var(--muted);font-size:.85rem;border-top:1px solid 
 (function(){
 const D=JSON.parse(document.getElementById('data').textContent);
 const CAT={GEN:'Generation',MAP:'Maps',NAV:'Navigation',UX:'User experience',ADM:'Admin',OPS:'Operations',API:'API',TEST:'Tests',PERF:'Performance',USR:'Accounts',DB:'Database',VIEW:'View from a planet',POP:'Population',SEC:'Security',DOC:'Documentation'};
-const PH=[{key:'0',lbl:'Phase 0'},{key:'1',lbl:'Phase 1'},{key:'2',lbl:'Phase 2'},{key:'3',lbl:'Phase 3'},{key:'3+',lbl:'Phase 3+'}];
+const PH=[{key:'1',lbl:'Phase 1'},{key:'2',lbl:'Phase 2'},{key:'3',lbl:'Phase 3'},{key:'3+',lbl:'Phase 3+'}];
 const items=D.items, all=Object.values(items);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function inline(s){
