@@ -338,3 +338,5 @@ Search results (secondary unless noted):
 - itsdangerous: https://itsdangerous.palletsprojects.com/url_safe/
 
 Repository files read: `docs/TODO.md` (ADM.42-44, ADM.18, USR.1-8, API.6, API.15, UX.49, VIEW.3), `docs/config.md`, `config.json.example`, the code under `src/planetgen/` named above, `db/control_schema.sql`, `setup.py` and `requirements.lock`.
+
+See also [api-design-standards.md](api-design-standards.md) for the API conventions (keys, errors, paging, logging) that API.6 and the account items rely on.

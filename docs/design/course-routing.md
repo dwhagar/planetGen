@@ -295,6 +295,20 @@ sort-plus-diff [C].
 `queryDb.objects_within` and `GET /api/near`, the "What's nearby" page and the
 map actions.
 
+**As built (NAV.43 and NAV.44, PR #804, `planetgen/db/near.py`).** The search
+is `near.objects_within(conn, place, distance_pc, kinds, limit, offset)` behind
+`GET /api/near`; a place is an object reference or a point in parsecs, the
+limit is 50 pc, pages default to 50 rows (largest 200) and use `limit` and
+`offset`. It reads the sectors the sphere can reach with one bounding-box query
+on `idx_sectors_center`, measures exact distances in the galaxy frame, loads
+only per-system body counts for the whole sphere and the bodies of the systems
+on the requested page, and counts ungenerated sectors without filling them.
+The shell-by-shell page 1, keyset cursor and "300+" capped totals described
+below are not built; use them if a measurement at the core of a full galaxy
+shows the bounding-box read too slow (this section's 1.3 million systems
+figure is the case to test). The design below is the research behind the
+choice.
+
 1. **Cells.** `enumerate_sectors_within_radius(center, R + 4.0, edge)`, about
    10,000 cells at R = 50. Drop cells not in the cached generated set
    (section 2); their count is "sectors not generated yet".

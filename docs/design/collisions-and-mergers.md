@@ -231,9 +231,13 @@ the galactic gradient (GEN.115).
   within 12% when M_enc is the galaxy mass inside the orbit (1.26 pc against
   1.44 pc for the Sun) [C]. Use one function everywhere. With the GEN.115 curve
   (229 km/s at 8.128 kpc) the radii are about 4% smaller.
-- The search covers this sector and the sectors touching it, which reaches at
-  least 4 pc. A larger radius (a 50 Msun star has about 5.3 pc) is clipped to
-  the stencil; the gradient term covers the rest.
+- The first scan covers this sector and the sectors touching it, which reaches
+  at least 4 pc. A larger radius (a 50 Msun star has about 5.3 pc) is not
+  clipped: Boss's rule is the full Hill sphere of the largest object, so objects
+  with a wider sphere are also listed in a per-sector cover list
+  ([orbital-updates.md](orbital-updates.md) section 4), and a body inside a
+  heavy object's sphere finds it there. The gradient term covers only what lies
+  beyond that radius.
 
 Radius and expected number of other bodies inside it at local density (stars
 0.14, all rogues 0.91, brown dwarfs 0.03 per pc^3) [C]:

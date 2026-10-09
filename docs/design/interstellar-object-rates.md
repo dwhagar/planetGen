@@ -249,4 +249,9 @@ Balogh 2010, intracluster supernovae.
 
 ## Retune of 2026-10-09 (Boss: central observed values)
 
+See also [star-types-by-galactic-radius.md](star-types-by-galactic-radius.md)
+(GEN.133) for how star-type shares change with radius.
+
 Neutron stars 0.4% and black holes 0.05% of stars; planetary nebulae 1e-7 per star; terrestrial rogue planets 5.8 per star (0.7 per pc³ central); intermediate-mass black holes 0.1% of black holes; accretion disks on 0.1% of black holes; 2% of neutron stars pulsing, 10% of those millisecond pulsars. Regional differences (scale height, radius, type) are in [`compact-remnant-regions.md`](compact-remnant-regions.md) and are not modeled yet.
+
+See also [multistar-and-compact-systems.md](multistar-and-compact-systems.md) for binaries and systems around compact remnants, and [anomalies.md](anomalies.md) for the anomaly classes and rates.

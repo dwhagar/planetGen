@@ -165,7 +165,7 @@ The deterministic machinery exists. `generation/bright_stars.py` splits luminosi
 | 3 | 34 pc | 2.6e3 | 54 pc | 1.0e4 |
 | 1 | 20 pc | 490 | 31 pc | 2.0e3 |
 
-The project's whole backfill (100 ly) is 1,886 cells. The 1,000 L_sun level is already galaxy-wide in `bright_stars` (26.9 million stars in the 2026-10-08 timing run, `bright-star-timing/report.md`); 100 to 300 L_sun is the expensive middle, 0.5 to 2.6 million cells per sky, where a cell-by-cell Poisson draw is mostly empty. The backfill's cost per cell is unmeasured (the timing run measured the sector fill, 46.6 ms per bright star, not `backfill_cells`). Two ways to cut it: (a) share the work, since `sector_stats` remembers each cell's level and neighbouring planets reuse it; (b) draw the middle bands ring by ring in angle bins as `scatter_layer` does for the whole galaxy, keeping the same per-band streams. Dust helps: at 1 mag/kpc the 1,000 L_sun radius drops from 619 to about 480 pc.
+The project's whole backfill (100 ly) is 1,886 cells. The 1,000 L_sun level is already galaxy-wide in `bright_stars` (26.9 million stars in the 2026-10-08 timing run, `bright-star-timing/report.md`); 100 to 300 L_sun is the expensive middle, 0.5 to 2.6 million cells per sky, where a cell-by-cell Poisson draw is mostly empty. The backfill's cost per cell was measured later: about 0.06 ms per cell for the draws, about 2 ms per sector once warm and about 5 s for a cold start ([sampling-backfill-and-resume.md](sampling-backfill-and-resume.md)); the earlier timing run measured the sector fill, 46.6 ms per bright star, not `backfill_cells`. Two ways to cut it: (a) share the work, since `sector_stats` remembers each cell's level and neighbouring planets reuse it; (b) draw the middle bands ring by ring in angle bins as `scatter_layer` does for the whole galaxy, keeping the same per-band streams. Dust helps: at 1 mag/kpc the 1,000 L_sun radius drops from 619 to about 480 pc.
 
 ### 3.3 Rule
 
@@ -347,7 +347,7 @@ Calibrate the generator against them (does a generated sky have about 9,000 star
 - Dust scale length 2.26 kpc and height 134 pc (Drimmel and Spergel 2001); the 1.0 mag/kpc plane default; the 23 mag/arcsec^2 naked-eye limit; k = 0.2 mag per airmass; the real Milky Way band at 21 to 23 mag/arcsec^2; the local V luminosity density 0.05 L_sun/pc^3.
 - Stellarium Web Engine's licence (probably AGPL-3.0) and Gaia DR3's exact licence name (a third-party page says CC BY-NC 3.0 IGO) are unconfirmed.
 - The ICRS to galactic matrix used for the demo images was recalled and matches astropy to 1.2e-7.
-- Backfill cost (cells per second) is unmeasured.
+- Backfill cost per cell is measured (see section 3.2); the cost of the middle 100 to 300 L_sun bands for a whole sky is not.
 - HYG is incomplete fainter than about V = 9, so "gained" star counts in the 20 ly parallax test are lower bounds; the "lost" counts and the shifts are unaffected. The unit of HYG's `vx/vy/vz` (pc/yr) was assumed; the median 29 km/s it gave is the only check.
 - The kinetics-document matrix check (section 2.6) is [C]; the IAU 2009 report (Archinal et al. 2011) itself was not read.
 

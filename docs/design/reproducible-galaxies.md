@@ -582,3 +582,5 @@ TEST.77 green.
 | 2 | OPS.15, ADM.17, API.16 | OPS.13 and GEN.58; DB.6; DB.6 and API.5 |
 | 3 | API.17, DB.10, ADM.20 (merge now, low priority) | API.12, API.13, GEN.57, GEN.58; DB.9, GEN.61, OPS.18; OPS.16, GEN.61, OPS.18 |
 | 3+ | OPS.12, closing GEN.55 | everything above it |
+
+See also [ops-scheduling-and-rotation.md](ops-scheduling-and-rotation.md) (the daily maintenance run and the backup rotation, OPS.16 to OPS.18).

@@ -692,3 +692,5 @@ barycenter by its mass fraction. `tests/test_js_unit.py` checks the two
 copies against each other. `static/orbitclock.js` is the view's time
 control (real time, faster, pause, back to now); the 3D view (MAP.74) wires
 it in.
+
+See also [multistar-and-compact-systems.md](multistar-and-compact-systems.md) (binary and multiple-star orbits).

@@ -272,6 +272,13 @@ default, noted in the README.
 
 ## 5. Movement thresholds and scheduling (GEN.106)
 
+Status: GEN.106 is built (schema v66, PR #802): each moving row has an
+`epoch_unix` and an indexed `next_update_due`, and a run moves only rows past
+their threshold ([orbital-updates.md](orbital-updates.md) section 3). The
+recommendations here that are not built: letting a star follow its analytic
+orbit between rewrites, computing planets and moons from their phase on read,
+and defining the moon rule on path length.
+
 **Thresholds in time** (`THRESHOLDS_M` in `physics/position.py`; 1 km/s = 1.0227
 pc/Myr; 0.01 mpc = 3.086e11 m = 2.06 AU [C]):
 
