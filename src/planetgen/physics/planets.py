@@ -20,7 +20,7 @@ import math
 import re
 
 from planetgen.physics import constants
-from planetgen.physics import spin
+from planetgen.physics import atmosphere, spin
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -719,6 +719,10 @@ def calculate_atmospheric_conditions(planet, distance_override=None):
         #         planet.surface_temperature = draw.uniform(surface_temperature_no_atmosphere, 283)
         #     else:
         #         planet.surface_temperature = draw.uniform(200, 283) # A reasonable cold range for P class
+
+    # GEN.85: the mantle redox and the ten gases' partial pressures, which
+    # write the atmosphere text and freeze out what the cold side can't hold.
+    atmosphere.generate_atmosphere(planet)
 
 
 def _tidal_locking_timescale_seconds(moon, primary_mass_kg, initial_rotation_period_hours):

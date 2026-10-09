@@ -21,3 +21,4 @@ Commit each file came from:
 - v66: eebcfb3b (GEN.106 update clocks, before DB.7)
 - v67: 500facd (DB.7 sector version, before GEN.104)
 - v68: de8d3a7 (GEN.104 spin, before GEN.137)
+- v69: 222288d (GEN.137 scatter epoch, before GEN.85)
