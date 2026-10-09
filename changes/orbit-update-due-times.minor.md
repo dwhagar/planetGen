@@ -1,2 +1,0 @@
-### Changed
-- The orbit update (`python -m planetgen.cli.orbits`) moves and counts only objects that have moved far enough since their own last update: 0.01 mpc on a galactic orbit, 0.01 AU in a system, 100,000 km round a planet. Every moving object stores when its position holds and an indexed next-update-due time worked out from its speed, so a run looks only at what is due, and an object it skips catches up the whole time when it next comes due. Schema v66 (GEN.106).

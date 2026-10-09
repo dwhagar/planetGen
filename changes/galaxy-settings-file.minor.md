@@ -1,2 +1,0 @@
-### Added
-- Planning a galaxy writes its creation settings to a JSON file (ADM.18): every plan option, the seed, the version key with its parts, the naming key, the `requirements.lock` hash and the name generator's word lists. Planning again with other settings keeps the earlier file as a dated backup. The Admin dashboard has a new "Galaxy settings" panel that lists the files and downloads any of them.

@@ -1,2 +1,0 @@
-### Fixed
-- The Galaxy Map no longer times out while a bright-star fill or a big sector run is writing. Every minute the web layer's tile cache saw "so much changed" (more than 1,000 sectors, or new bright stars) and threw every cached tile away, so every map request recomputed its tiles on a database that was already busy. Now a change that big is marked busy and the cache keeps serving its tiles for up to ten minutes before one refresh, and a freshness check that times out serves the cache instead of failing the request.
