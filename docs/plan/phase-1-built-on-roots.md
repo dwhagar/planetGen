@@ -182,8 +182,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.56 | Every random draw in generation comes from the derived seeds |  | Touches every generator module. |
-| GEN.57 | A sector's contents depend only on the seed, the version and its address | GEN.56 | Name collisions go away with GEN.67; GEN.63 dropped. Also keys GEN.64's ID collision counter on address (it checks stored rows, PR #406). |
+| GEN.57 | A sector's contents depend only on the seed, the version and its address |  | Name collisions go away with GEN.67; GEN.63 dropped. Also keys GEN.64's ID collision counter on address (it checks stored rows, PR #406). |
 | DB.7 | The version that generated each sector, and a warning for mixed-version galaxies |  | An Alembic migration. |
 | GEN.58 | A fingerprint of a galaxy's generated content |  | Judgment: phase 1 so the golden test guards later changes. |
 | TEST.77 | A golden-seed regression test | GEN.57, GEN.58 |  |
@@ -191,7 +190,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | OPS.13 | Every update records the version key, keeping the last 10 | OPS.8 | No corpus or name-list hashes once GEN.71 lands; the lock hashes stay. update.sh / update.ps1 after OPS.7 and OPS.8; control-database history table. Open question on "recalculate the seed value". |
 | OPS.14 | A warning when the running version key differs from the galaxy's | DB.7, OPS.13 | Feeds GEN.58's output and OPS.12. |
 | ADM.18 | The galaxy's creation settings saved as a JSON file, downloadable from the Admin dashboard | DB.7, OPS.13 | Stores the naming key instead of the word list. Boss 02:13Z: phase 1. Includes the key history; dated backup on every change. |
-| GEN.59 | Admin changes stored as a net difference from the generated galaxy | GEN.56, GEN.58, ADM.18 | Boss 02:20Z: net diff by stable address path, regenerate seeds, in ADM.18's JSON. |
+| GEN.59 | Admin changes stored as a net difference from the generated galaxy | GEN.58, ADM.18 | Boss 02:20Z: net diff by stable address path, regenerate seeds, in ADM.18's JSON. |
 
 ### Bugs from the GitHub issues
 
