@@ -1975,9 +1975,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     radius get an eccentricity draw (up to about 0.3). Open question for
     Boss (default yes): the swallowed-giant flag.
     Decided (2026-10-09): Boss (2026-10-09 18:37Z): the defaults are
-    accepted, including the swallowed-giant flag. Use the established
-    published forms for the orbit-expansion law and the stability
-    criterion; ask Boss to verify any form that cannot be confirmed.
+    accepted, including the swallowed-giant flag. The orbit-expansion
+    law for adiabatic mass loss is verified: a (M_star + M_planet) =
+    constant with the eccentricity unchanged (Jeans 1924; Hadjidemetriou
+    1963; Veras et al. 2011), valid when the mass-loss time is much
+    longer than the orbital period and the loss is isotropic; impulsive
+    loss uses vis-viva and unbinds an orbit when more than half the mass
+    goes; engulfment overrides. Worked example: 1 AU round a 1 Msun star
+    that drops to 0.6 Msun moves to 1/0.6 = 1.67 AU.
     Prerequisite: GEN.89.
     Design: [docs/design/nebula-and-asteroid-field-classes.md](design/nebula-and-asteroid-field-classes.md)
 
@@ -2464,6 +2469,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   degrees, the Kozai-Lidov timescale is shorter than the system's age,
   and it is also shorter than the inner orbit's general-relativity
   precession period.
+  Verified (2026-10-09,
+  exotic-environments-planets-and-compact-binaries.md): Boss's engine
+  verified the triple-stability criteria (2026-10-09): Mardling and
+  Aarseth 2001 and Eggleton and Kiseleva 1995 stay the implemented
+  forms. Acceptance tests: (1) P-type, m1 = m2 = 1, m3 close to 0, outer
+  eccentricity 0, inclination 0 gives R_p / a_in = 2.80; (2) S-type, m1
+  = 1, m2 close to 0, m3 = 1, outer eccentricity 0.5, inclination 0
+  gives R_p / a_in = 2.8 x 2^0.4 x (1.5 / sqrt(0.5))^0.4 = 4.99 and
+  a_out / a_in = 9.98. The Vynatheya et al. 2022 (MNRAS 516, 4146)
+  empirical criterion is NOT built until Boss supplies its exact
+  equation (the e_in term and f(i)); the Tory-Grishin-Mandel boundary as
+  pasted contradicts the test-particle limit; the missing pieces are
+  listed in exotic-environments-planets-and-compact-binaries.md section
+  2.3.
 
 - [ ] **GEN.130 Exotic star systems: a black hole, neutron star or similar at the center**
   Boss (GitHub issue [#778](https://github.com/dwhagar/planetGen/issues/778)): "We need to add exotic star systems that
@@ -2501,9 +2520,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   rate for millisecond pulsars is accepted.
   Decided (2026-10-09): Boss (2026-10-09 18:37Z): the defaults are
   accepted (millisecond-pulsar rate 0.7%, no globular-cluster model so
-  the captured-giant type stays out). Use the established published
-  forms for any formula; ask Boss to verify any that cannot be
-  confirmed.
+  the captured-giant type stays out). Where a formula is needed, use
+  the verified published forms: Peters for the gravitational-wave
+  inspiral time, and the Mardling-Aarseth and Eggleton-Kiseleva
+  criteria for triple stability (see GEN.129).
 
 - [ ] **GEN.134 Tune the star populations to the observed star-formation profile by galactic radius**
   From GEN.133 (Boss's 09:20Z request; the analysis is `docs/design/star-types-by-galactic-radius.md`, PR #807), whose four proposals were left unbuilt. Done: (1) the young and intermediate populations are weighted by the observed star-formation profile (peak at 5 kpc, about -0.28 dex per kpc beyond, a dip inside 3 kpc, the Central Molecular Zone as its own small young region); (2) the young population's B share is lowered, or its weight cut, so local B stars come to about 0.04%; (3) the bulge gets a small young tail (about 10% under 5 Gyr, between the HST and microlensing figures); (4) a metallicity gradient is added only if planet occurrence is later tied to it, otherwise the note records why not. The changes are reproducible (GEN.56), and a test compares the star type shares at the core, mid radius and rim against the note's table. Boss to confirm which of the four proposals he wants before the build starts.
