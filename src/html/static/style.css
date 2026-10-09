@@ -4081,6 +4081,7 @@ body.app {
   height: 0.9rem;
   border: 2px solid var(--accent);
   border-radius: 50%;
+}
 
 /* MAP.123: the luminosity floor in the "Show on the map" panel. */
 .galaxy-lum {
