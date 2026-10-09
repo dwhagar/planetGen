@@ -16,7 +16,7 @@ Related notes: [nebula-and-asteroid-field-classes.md](nebula-and-asteroid-field-
 1. **The photoevaporation cut should scale with the host's mass.** The existing table cuts outer discs at fixed radii (200, 50 and 10 AU for G0 above 1e2, 1e3 and 1e4). The physics Boss's text cites is the gravitational radius, `r_g = G M / c_s^2`, inside which the gas cannot escape: a 0.2 Msun star keeps a fifth of the disc a 1 Msun star keeps (section 1.1).
 2. **Planetary-nebula second-generation planets need a binary.** The post-AGB discs seen are circumbinary, last only 1e4 to 1e5 yr, and only massive ones (about 0.1 Msun) form planetesimals; keep the rule "no in-situ planets in H to L" except a flagged rare case for a central binary (section 1.3).
 3. **Engulfed giants become events, not losses.** A giant of more than about 5 Jupiter masses swallowed on the AGB is a luminous-red-nova candidate; the engulfment radius rule is unchanged (section 1.2).
-4. **The formula in Boss's text for orbit expansion is garbled.** The correct adiabatic law is `a (M_star + M_p) = constant`; the existing note's `M_initial / M_final` factor is right (section 1.2).
+4. **The formula in Boss's text for orbit expansion is garbled.** The correct adiabatic law is `a (M_star + M_p) = constant`; the existing note's `M_initial / M_final` factor is right. Boss's engine verified the law (Jeans 1924, Hadjidemetriou 1963, Veras et al. 2011) on 2026-10-09 18:45Z (section 1.2).
 
 **GEN.130 stays a go in the three slices of [multistar-and-compact-systems.md](multistar-and-compact-systems.md) section 8, with these refinements:**
 
@@ -57,11 +57,21 @@ ALMA survey [B]: 23 discs in the central ONC down to about 1.2 Jupiter masses of
 
 Boss's text [B]: stellar mass loss widens orbits while tides in the giant's envelope pull them in; engulfed planets feel drag `F = -0.5 C_d pi R_p^2 rho v^2`, spiralling in over 100 to 1,000 yr and depositing energy that can drive a "luminous red nova". Giants above about 5 Jupiter masses are named as the likely progenitors of low-luminosity red novae.
 
-**Correction to the formula.** The text gives `a_dot / a = -2 M_p_dot (M_star - M_p) / (M_star M_p)`, which depends on the planet's mass-loss rate and does not reduce to the known result. For mass lost from the star, slowly and isotropically, angular momentum conservation gives `a (M_star + M_p) = constant`, so
+**Correction to the formula.** The text of 18:23Z gives `a_dot / a = -2 M_p_dot (M_star - M_p) / (M_star M_p)`, which depends on the planet's mass-loss rate and does not reduce to the known result. For mass lost from the star, slowly and isotropically, angular momentum conservation gives `a (M_star + M_p) = constant`, so
 
 `a_dot / a = - M_star_dot / (M_star + M_p)`
 
-(positive, an expansion, when the star loses mass). Integrated, a planet's orbit grows by `M_initial / M_final`. The generator already uses this for white dwarf hosts [C]:
+(positive, an expansion, when the star loses mass). Integrated, a planet's orbit grows by `M_initial / M_final`.
+
+**Verified by Boss's engine (2026-10-09 18:45Z).** The law `a (M_star + M_p) = constant` is the adiabatic result of Jeans 1924 (Monthly Notices of the Royal Astronomical Society 85, 2-11), formalised for variable-mass binaries by Hadjidemetriou 1963 (Icarus 2, 440-451) and treated for dying stars by Veras, Wyatt, Mustill, Bonsor and Eldridge 2011 (MNRAS 417, 2104-2123). Its conditions, which the generator should check before applying it:
+
+- *Adiabatic*: the mass-loss timescale `M / Mdot` is much longer than the orbital period. Stellar winds on the giant branches and the planetary-nebula ejection of a white dwarf progenitor qualify.
+- *Isotropic*: spherically symmetric loss. An asymmetric ejection kicks the star and moves the barycentre.
+- *Eccentricity* stays constant in the adiabatic, isotropic limit.
+- *Impulsive loss* (faster than an orbit, as in a supernova): position and velocity do not change, so the new orbit comes from vis-viva, `1/a_new = 2/r - v^2 / (G M_new)`, and the eccentricity depends on the orbital phase at the moment of loss. A previously circular orbit becomes unbound when `M_new < 0.5 M_old`. This is the Blaauw limit used in section 2.3 and in section 7.1 of the multi-star note.
+- *Engulfment* overrides all of it: a planet inside the giant's envelope is dragged inward, not expanded.
+
+Worked example (Boss's engine, corrected): a 1 Msun star becoming a 0.6 Msun white dwarf moves a planet from 1.0 AU to `1.0 / 0.6 = 1.67` AU (the engine printed 1.66). The generator uses the law for white dwarf hosts [C]:
 
 | Progenitor to remnant | Outer orbit grows by |
 |---|---|
@@ -122,7 +132,23 @@ Boss's text states the channels in prose: white dwarf mergers leave a carbon-dom
 
 ### 2.3 Hierarchical compact systems
 
-**Stability criterion.** Boss's text writes a generalised "Vynatheya" criterion with a machine-learning inclination factor [B]. The formula as pasted does not match the published empirical criterion as far as can be recalled [R] and should not be implemented from the pasted text. Keep Mardling and Aarseth 2001 and Eggleton and Kiseleva 1995 from section 5.1 of the multi-star note, which are implemented and tested there. Vynatheya et al. 2022 (Publications of the Astronomical Society of Australia) is an empirical refit worth checking when paper access is allowed; record its equation then.
+**Stability criterion.** Boss's text of 18:23Z wrote a generalised "Vynatheya" criterion; the formula as pasted does not match the published one and is not used. Boss's engine then identified the paper on 2026-10-09 18:45Z: Vynatheya, Hamers, Mardling and Bellinger 2022, "Algebraic and machine learning approach to hierarchical triple-star stability", Monthly Notices of the Royal Astronomical Society 516(3), 4146-4155 (arXiv 2207.03151, doi 10.1093/mnras/stac2540). The earlier recollection of the journal (Publications of the Astronomical Society of Australia) was wrong.
+
+What is verified (by Boss's engine, from the paper's text) and what is not:
+
+- The baseline is Mardling and Aarseth 2001 (MNRAS 321, 398-420), as in section 5.1 of the multi-star note: `R_p,out / a_in = 2.8 [(1 + m3/(m1+m2)) (1 + e_out) / sqrt(1 - e_out)]^(2/5) (1 - 0.3 i_mut / pi)`, with `R_p,out = a_out (1 - e_out)`.
+- Vynatheya et al. add a dependence on the inner eccentricity `e_in` (which Mardling and Aarseth lack) and replace the linear inclination penalty by a non-monotonic function `f(i)` that makes near-polar orbits unstable (the Kozai-Lidov regime) and stays robust for retrograde orbits. They also give a neural-network classifier (a multilayer perceptron); quoted accuracy rises from about 92% (Mardling and Aarseth) to over 97%. The criterion is an empirical fit to N-body runs, not a derivation. It treats bodies as point masses, so it serves both planet cases: circumbinary (P-type, planet is `m3`, the mass term tends to 1) and circumstellar (S-type, planet is `m2`, the mass term is `(1 + m3/m1)^(2/5)`).
+- **Not verified: the exact piecewise algebraic form** of the updated equation and its `f(i)`. Boss's engine could not read it from the paper. Until Boss supplies it, keep Mardling and Aarseth 2001 and Eggleton and Kiseleva 1995 as the implemented criteria and mark the Vynatheya form as unverified.
+- Also unverified: a parallel 2022 boundary by Tory, Grishin and Mandel for low mass ratios, quoted as `a_in / R_p,out <= 10^(-0.6 + 0.04 q_out) q_out^(0.32 + 0.1 q_out)`. As pasted it gives `R_p,out / a_in >= 17` at `q_out = 0.01`, against 2.8 for the test-particle limit of Mardling and Aarseth [C], so the definition of `q_out` in that paper must differ from the one used here. Do not implement it from the pasted text.
+
+**Unit tests** from Boss's engine, with the second one corrected [C] (the engine multiplied the eccentricity term by 2.12 without the 2/5 power, giving 7.8 and 15.6; the whole bracket carries the exponent):
+
+| Case | Inputs | Critical `R_p,out / a_in` | Critical `a_out / a_in` |
+|---|---|---|---|
+| P-type, coplanar, circular | `m1 = m2 = 1`, `m3 -> 0`, `e_out = 0`, `i = 0` | 2.80 | 2.80 |
+| S-type, coplanar, eccentric | `m1 = 1`, `m2 -> 0`, `m3 = 1`, `e_out = 0.5`, `i = 0` | `2.8 (2 x 2.121)^0.4 = 4.99` | `4.99 / 0.5 = 9.98` |
+
+Both cases belong in the unit tests of the criterion code (GEN.129). The V404 Cygni figures below use the same formula.
 
 **V404 Cygni** [B, Burdge et al. 2024]: a 9 Msun black hole in a 6.5-day orbit with a K star, and a tertiary at about 70,000 yr. Computed [C]:
 
@@ -196,8 +222,8 @@ The objects would be dynamically ordinary (long periods, wide Hill spheres), so 
 
 ## 4. Corrections to the text and open verification
 
-- The orbit-expansion law (section 1.2).
-- The pasted stability criterion (section 2.3): use Mardling and Aarseth, Eggleton and Kiseleva.
+- The orbit-expansion law (section 1.2): verified by Boss's engine; the 18:23Z formula was wrong.
+- The pasted stability criterion (section 2.3): the Vynatheya paper is real (MNRAS 2022, not PASA), but its equation is still unverified; use Mardling and Aarseth, Eggleton and Kiseleva. The engine's S-type unit test should read 4.99 and 9.98, not 7.8 and 15.6.
 - PSR J1719-1438 b's minimum density: 21 g/cm3 from the stated mass and radius limit, not 11 (section 2.1).
 - M51-ULS-1 b is an X-ray transit candidate, not microlensing [R] (section 2.4).
 - "Pulsar planets are about 1% of pulsars" in the nebula note is too high for normal pulsars: about 0.1% of all known pulsars and 0.7% of millisecond pulsars (section 2.1). The rule table's "about 1% of pulsars" for T and U should read "about 1% of millisecond pulsars".
@@ -205,10 +231,12 @@ The objects would be dynamically ordinary (long periods, wide Hill spheres), so 
 
 ## Evidence notes
 
-[R] items to confirm when paper access is allowed: the `0.2 r_g` launch radius; the ATNF pulsar count (3,700) and the millisecond pulsar count (600); the J1719-1438 b density; the Vynatheya et al. 2022 equation; the Foucart disruption fits; the direct-collapse progenitor threshold (40 Msun); the OJ 287 redshift (0.306); the M51-ULS-1 b detection method; the B1257+12 3:2 resonance and the approximate Peters-time eccentricity correction. All [C] values come from `calc.py` and `calc2.py` in `/mnt/project-files/research/scripts/exotic/`.
+[R] items to confirm when paper access is allowed: the `0.2 r_g` launch radius; the ATNF pulsar count (3,700) and the millisecond pulsar count (600); the J1719-1438 b density; the exact Vynatheya et al. 2022 equation and `f(i)` (the paper is identified; the equation is not); the Tory, Grishin and Mandel boundary; the Foucart disruption fits; the direct-collapse progenitor threshold (40 Msun); the OJ 287 redshift (0.306); the M51-ULS-1 b detection method; the B1257+12 3:2 resonance and the approximate Peters-time eccentricity correction. All [C] values come from `calc.py` and `calc2.py` in `/mnt/project-files/research/scripts/exotic/`.
 
 ## Sources
 
-Boss's research text of 2026-10-09 18:23Z cites the following (not opened by this digest): Agazie et al. 2023 (NANOGrav 15-year, ApJL); Amaro-Seoane et al. 2024 (SMBHs in hierarchical triples, MNRAS); Bhowmick et al. 2026 (arXiv 2606.12851); Burdge et al. 2024 (V404 Cygni triple, Nature); Chatterjee and Tan 2013 (inside-out planet formation); De Marco, Aleman and Akras 2025 (planetary nebulae, arXiv 2501.07869); Giang et al. 2021 (grain disruption barriers by radiative torques); Konacki and Wolszczan 2003 (PSR B1257+12 masses, ApJ 591 L147); Liu and Lai 2018 and Liu, Lai and Wang 2019 (NS and BH mergers in triples); Margalit and Metzger 2016 (white dwarf-neutron star merger and the pulsar planets, MNRAS); Pourmand et al. 2025 (second generation planet formation in post-AGB discs, arXiv 2509.03894); Ressler et al. 2025 (BH collisions with thin discs, OJ 287, arXiv 2509.18241); Toonen et al. 2016 (hierarchical triple evolution, arXiv 1612.06172); Vynatheya, Hamers, Mardling and Bellinger 2022 (empirical stability boundary, PASA); Wada, Tsukamoto and Kokubo 2019 (planet formation around SMBHs); Winter et al. 2019 (a solution to the proplyd lifetime problem, MNRAS). Wikipedia pages on star formation, blanet, PSR B1620-26, pulsar planet and V404 Cygni are also cited.
+Boss's research text of 2026-10-09 18:23Z cites the following (not opened by this digest): Agazie et al. 2023 (NANOGrav 15-year, ApJL); Amaro-Seoane et al. 2024 (SMBHs in hierarchical triples, MNRAS); Bhowmick et al. 2026 (arXiv 2606.12851); Burdge et al. 2024 (V404 Cygni triple, Nature); Chatterjee and Tan 2013 (inside-out planet formation); De Marco, Aleman and Akras 2025 (planetary nebulae, arXiv 2501.07869); Giang et al. 2021 (grain disruption barriers by radiative torques); Konacki and Wolszczan 2003 (PSR B1257+12 masses, ApJ 591 L147); Liu and Lai 2018 and Liu, Lai and Wang 2019 (NS and BH mergers in triples); Margalit and Metzger 2016 (white dwarf-neutron star merger and the pulsar planets, MNRAS); Pourmand et al. 2025 (second generation planet formation in post-AGB discs, arXiv 2509.03894); Ressler et al. 2025 (BH collisions with thin discs, OJ 287, arXiv 2509.18241); Toonen et al. 2016 (hierarchical triple evolution, arXiv 1612.06172); Vynatheya, Hamers, Mardling and Bellinger 2022 (algebraic and machine learning approach to hierarchical triple-star stability, MNRAS 516(3) 4146-4155, arXiv 2207.03151); Wada, Tsukamoto and Kokubo 2019 (planet formation around SMBHs); Winter et al. 2019 (a solution to the proplyd lifetime problem, MNRAS). Wikipedia pages on star formation, blanet, PSR B1620-26, pulsar planet and V404 Cygni are also cited.
+
+Verified by Boss's engine on 2026-10-09 18:45Z: Jeans 1924, MNRAS 85, 2-11; Hadjidemetriou 1963, Icarus 2, 440-451, doi 10.1016/0019-1035(63)90074-6; Mardling and Aarseth 2001, MNRAS 321, 398-420, doi 10.1046/j.1365-8711.2001.03974.x; Veras et al. 2011, MNRAS 417, 2104-2123, doi 10.1111/j.1365-2966.2011.19393.x; Vynatheya et al. 2022 (citation only, doi 10.1093/mnras/stac2540). The engine's reported citation counts are not used.
 
 Formulas used: Peters 1964 gravitational-wave inspiral time; Mardling and Aarseth 2001 and Eggleton and Kiseleva 1995 (as in [multistar-and-compact-systems.md](multistar-and-compact-systems.md) 5.1); Kozai-Lidov timescale and test-particle inclination limits (standard, [R]); Blaauw 1961 mass-loss limit; Bardeen, Press and Teukolsky 1972 ISCO radius.

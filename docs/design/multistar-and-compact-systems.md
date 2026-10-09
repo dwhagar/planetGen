@@ -262,6 +262,7 @@ coplanar retrograde).
   S-type about 4% typical and 11% worst for 0.1 <= mu <= 0.9, 0 <= e <= 0.8; P-type
   about 3% and 6%, with resonance "islands" of instability. Quarles et al. 2018
   refit a wider grid with different coefficients; do not mix the sets.
+- **Mardling and Aarseth, verified.** The formula above was checked by Boss's engine on 2026-10-09 (18:45Z): P-type coplanar circular gives 2.80; S-type with `m1 = m3 = 1`, `e_out = 0.5` gives `R_p/a_in = 4.99` and `a_out/a_in = 9.98` (use as unit tests). Vynatheya et al. 2022 (MNRAS 516, 4146) refine it with `e_in` and a non-monotonic inclination term; their exact equation is unverified, so this criterion stays implemented as written. See [exotic-environments-planets-and-compact-binaries.md](exotic-environments-planets-and-compact-binaries.md) 2.3.
 
 ### 5.2 The criteria alone are not enough
 
@@ -604,7 +605,7 @@ generator puts (a) and (b) around black holes only through the companion and lea
 
 | Primary | Put around it | Skip |
 |---|---|---|
-| **White dwarf** | normal planet draw with a floor at the fluid Roche limit; surviving outer planets expanded by the progenitor-to-remnant mass ratio (1 Msun to 0.54 Msun doubles outer orbits [R]); engulfment floor from the giant phase (`_engulfment_radius_au`); optional debris belt; an extremely rare close giant (WD 1856+534 b type); pollution flag for a quarter to a half | habitable worlds inside the Roche limit; life on a planet younger than the zone's lifetime |
+| **White dwarf** | normal planet draw with a floor at the fluid Roche limit; surviving outer planets expanded by the progenitor-to-remnant mass ratio (1 Msun to 0.54 Msun grows outer orbits by 1.85; the law `a (M_star + M_p) = constant` is verified for adiabatic mass loss, see [exotic-environments-planets-and-compact-binaries.md](exotic-environments-planets-and-compact-binaries.md) 1.2); engulfment floor from the giant phase (`_engulfment_radius_au`); optional debris belt; an extremely rare close giant (WD 1856+534 b type); pollution flag for a quarter to a half | habitable worlds inside the Roche limit; life on a planet younger than the zone's lifetime |
 | **Neutron star, young** | nothing | all planets; the star's own fields only |
 | **Millisecond pulsar** | 1% of them get 1 to 3 small planets at 0.1 to 0.5 AU (PSR B1257+12 type) or an ablated companion (black widow, J1719-1438 type); optionally a captured outer planet in a cluster | any habitable score above the lowest tier (radiation); atmospheres on short-period planets |
 | **Stellar black hole, dormant** | the companion star with its S-type zone from Holman and Wiegert (often only inside 0.1 to 0.5 AU) and a P-type zone far out | planets in the hole's debris disk; a habitable zone around the hole |
