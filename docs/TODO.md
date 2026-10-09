@@ -112,7 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 is done (PR #476); GEN.117, and GEN.116 is closed (Boss 2026-10-08 17:46Z). | UX.39, OPS.20, DB.11, DB.13, ADM.21, GEN.66, GEN.70, GEN.71, GEN.67 |
+| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 is done (PR #476); GEN.117, and GEN.116 is closed (Boss 2026-10-08 17:46Z). | UX.39, OPS.20, DB.11, DB.13, ADM.21, GEN.66, GEN.71, GEN.67 |
 | 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.41, GEN.98, GEN.100, GEN.99, GEN.101, GEN.102, GEN.103, GEN.84, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, GEN.94, GEN.104, GEN.106, GEN.107, GEN.108, NAV.10, NAV.12, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, NAV.43, NAV.44, MAP.119, MAP.122, MAP.123, MAP.89, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, OPS.8, OPS.13, OPS.14, ADM.18, GEN.59, UX.49 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.58, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, API.16, ADM.17, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, repair that reads the newest settings JSON, and the anomalies chosen in phase 2. | NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, DB.10, ADM.20, GEN.114, API.19 |
@@ -562,8 +562,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   buttons for the Sector Map (stars, nebulae, remnants, asteroid fields,
   black holes, neutron stars, quasars, rogue planets, comets, neighbouring
   sectors) in the Menu under "Show on the map", kept in the URL as `hide=`.
-  Still to do here: star classes, highlight, the luminosity slider, the
-  Galaxy Map's side, and putting `hide=` in bookmarks.
+  Progress (PR #721, 2026-10-09): highlight (`mark=`), filters kept in
+  stage bookmarks, and star classes with the luminosity slider are done.
+  Still to do here: the galaxy-scale tile stars honoring class and
+  luminosity.
 
 - [ ] **MAP.132 Overlay markers for black holes, nebulae and habitable worlds**
   Boss (2026-10-08 01:59Z): "Density determines transparency with more solid meaning more dense. Stellar age measures hue. Brightness measures luminosity of the sector or block. Blocks will never be fully opaque for coloring that is the color of the translucent fill."
@@ -1412,11 +1414,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     OPS.12 rebuilds from this file. A test creates a small galaxy,
     downloads the file and checks the name, settings, seed, key and word
     list.
-    Prerequisites: DB.7, OPS.13, GEN.70.
+    Prerequisites: DB.7, OPS.13.
     Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
     Plan (2026-10-07): The JSON stores the galaxy's naming key (GEN.70)
     instead of the word list; the word list and corpus hashes go with
     GEN.71.
+    Progress (GEN.70, PR #731, control schema v9): the key is stored per
+    galaxy database in the control table `galaxy_naming`. The settings
+    JSON does not carry it yet; this item adds it.
     Superseded (2026-10-08): it stores the naming key in addition to the
     word list and corpus hashes, which stay for the stars' and sectors'
     word-salad names (GEN.67).
@@ -1569,24 +1574,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   guessing the length. Two IDs of the same length never share a name,
   so names are unique for fixed-length IDs (details in
   `docs/design/object-ids.md`).
-  Prerequisites: GEN.70, GEN.71.
+  Prerequisite: GEN.71.
   Design: [docs/design/object-ids.md](design/object-ids.md)
-
-  - [ ] **GEN.70 A naming key in the control database, made at galaxy creation and changeable by admin**
-    Done: a new galaxy draws a random naming key (from the galaxy seed's
-    stream) into the control database; the admin console can change it,
-    which renames every codec-named object at once with no rows
-    rewritten (names are computed from ID and key); stars, sectors,
-    planets, moons and belts keep their names and do not change with
-    the key (Boss, 2026-10-08, GEN.67). ADM.18's settings JSON stores the
-    key in addition to the word list, which stays for those names. The
-    codec's own version is part of the galaxy's version key or schema
-    (decided here, GEN.120 left it open). Decoding takes the ID length
-    (`decode(phrase, domain, length=19)` is exact; GEN.120 done), so the
-    key's code always passes 19 for object IDs, and since same-length
-    IDs never share a name, uniqueness holds for fixed-length IDs (see
-    GEN.67 and `docs/design/object-ids.md`).
-    Design: [docs/design/object-ids.md](design/object-ids.md)
 
   - [ ] **GEN.71 Name interstellar objects, phenomena and constellations from the codec**
     Done: the objects with no star-derived name show their codec name
@@ -1614,7 +1603,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     position-ID names today; the codec name replaces them, so GEN.73
     needs GEN.70 and has no separate work (the Bugfixes lane checked,
     2026-10-08).
-    Prerequisite: GEN.70.
     Design: [docs/design/object-ids.md](design/object-ids.md)
 
 - [ ] **GEN.83 A planetary habitability index (PHI)**
@@ -1854,30 +1842,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   for small bodies, black hole spin distributions).
   Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
 
-- [ ] **GEN.121 A velocity on every object, filled at generation and stored with an epoch**
-  Boss (2026-10-08 23:11Z, 23:19Z): "so I want to add vector
-  information so we know not only where it's going but how fast"; "let's
-  go ahead and store the orbital information ... as part of the
-  coordinates, velocity, immediate vector of movement relative to the
-  center of the star system". Done: `SpatialPosition3D` carries a
-  velocity that generation fills in. A bound body (planet, moon, comet,
-  second star of a pair) stores its velocity relative to its primary; a
-  star or rogue body stores a galactic velocity (the rotation curve plus
-  any runaway or hypervelocity flag). The velocity carries an epoch (the
-  moment it is valid for, the same epoch the orbit simulation state
-  keeps), and both are stored in the database. A bound body's galactic
-  velocity is its primary's plus its relative one, so a planet's 30 km/s
-  is not lost in a star's 220 km/s. Each orbital update refreshes the
-  vector, so perturbation wobble shows up in it.
-  Build thread (not a lane): started 2026-10-08 after Boss's "Alright,
-  do it".
-  Progress (PR #729, schema v60): planets, moons and comets store a
-  velocity relative to their primary, set at generation and refreshed by
-  the orbital update; stars and bodies carry a galactic velocity. Still
-  to do: stored velocity for stars, systems and phenomena, and the
-  runaway-star direction.
-  Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
-
 - [ ] **GEN.122 Orbital elements for planets, moons and comets, kept in step with the state vector**
   Boss (2026-10-08 23:11Z): "Each orbital update we'll update the vector
   (which will contain the wobble as part of it's changes etc) and update
@@ -1891,7 +1855,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   today (`positions_at` uses distance and phase only); eccentric
   planetary orbits are a generation decision that this item does not
   make.
-  Build thread (not a lane). Prerequisite: GEN.121.
+  Build thread (not a lane).
   Progress (PR #729): the state-vector and orbit-element maths is in
   `kepler.py`. Still to do: the body orbit elements derived from the
   stored vector on each orbital update.
@@ -1916,7 +1880,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   velocity are the next sector's entry, so the path chains across
   sectors. Masses too weak or far to matter are skipped. MAP.126's orbit
   drawing should use these paths later.
-  Build thread (not a lane). Prerequisite: GEN.121.
+  Build thread (not a lane).
+  Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
+
+- [ ] **GEN.125 Stand-alone facilities store a velocity**
+  Asked by the physics build thread after PR #735 (GEN.121 left them
+  out): a stand-alone facility (one not attached to a star's system)
+  follows the galaxy's rotation curve in `advance_galactic_positions`
+  but stores no velocity. Give it the same stored galactic velocity and
+  epoch that stars and systems have, filled at generation and refreshed
+  when positions advance, so every object carries a vector.
+  Build thread (not a lane).
   Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
 
 - [ ] **GEN.105 Orbital updates**

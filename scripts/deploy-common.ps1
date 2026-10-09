@@ -24,7 +24,6 @@ Set-StrictMode -Version 2.0
 $script:Requirements = @(
     "nltk>=3.9.1",
     "pymysql>=1.1.1",
-    "dbutils>=3.1.0",
     "werkzeug>=3.0.0",
     "rich>=13.7.0",
     "flask>=3.0.3",

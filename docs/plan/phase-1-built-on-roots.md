@@ -102,9 +102,9 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.104 | A spin vector and a realistic axial tilt for every rotating object |  | Rules from "Observational Kinetics for Rotational Vectors.md". |
-| GEN.121 | A velocity on every object, filled at generation and stored with an epoch |  | Build thread (not a lane), started 2026-10-08. |
-| GEN.122 | Orbital elements for planets, moons and comets, kept in step with the state vector | GEN.121 | Build thread. |
-| GEN.123 | The projected path of a body through a sector, saved as a spline | GEN.121 | Build thread. MAP.126's orbit drawing should use it later. |
+| GEN.122 | Orbital elements for planets, moons and comets, kept in step with the state vector |  | Build thread. |
+| GEN.123 | The projected path of a body through a sector, saved as a spline |  | Build thread. MAP.126's orbit drawing should use it later. |
+| GEN.125 | Stand-alone facilities store a velocity |  | Build thread. |
 | GEN.106 | Movement thresholds and a next-update-due column | DB.11 |  |
 | GEN.107 | The update reports how many objects moved, changed sector, or entered or left a nebula | GEN.106 |  |
 | GEN.108 | Orbital math limits: where each method breaks down and what happens there | GEN.106 | Boss (2026-10-07 11:47Z): "we need to ensure that reasonable limitations for when the math breaks down at the edge cases." |
@@ -194,7 +194,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | OPS.8 | Update reloads Apache itself when run as root |  | 13 in the same update scripts. Not a bug, but the same files as OPS.7, so it rides along. |
 | OPS.13 | Every update records the version key, keeping the last 10 | OPS.8 | No corpus or name-list hashes once GEN.71 lands; the lock hashes stay. update.sh / update.ps1 after OPS.7 and OPS.8; control-database history table. Open question on "recalculate the seed value". |
 | OPS.14 | A warning when the running version key differs from the galaxy's | DB.7, OPS.13 | Feeds GEN.58's output and OPS.12. |
-| ADM.18 | The galaxy's creation settings saved as a JSON file, downloadable from the Admin dashboard | DB.7, OPS.13, GEN.70 | Stores the naming key instead of the word list. Boss 02:13Z: phase 1. Includes the key history; dated backup on every change. |
+| ADM.18 | The galaxy's creation settings saved as a JSON file, downloadable from the Admin dashboard | DB.7, OPS.13 | Stores the naming key instead of the word list. Boss 02:13Z: phase 1. Includes the key history; dated backup on every change. |
 | GEN.59 | Admin changes stored as a net difference from the generated galaxy | GEN.56, GEN.58, ADM.18 | Boss 02:20Z: net diff by stable address path, regenerate seeds, in ADM.18's JSON. |
 
 ## Open questions for Boss

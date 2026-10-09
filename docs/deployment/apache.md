@@ -60,7 +60,7 @@ checks for that file and picks a path, printing which one it took:
   before.
 - **Managed:** everything goes into the system Python, no virtual
   environment. Each library comes from apt (`python3-flask`,
-  `python3-nltk`, `python3-pymysql`, `python3-dbutils`,
+  `python3-nltk`, `python3-pymysql`,
   `python3-werkzeug`, `python3-rich`, `python3-flask-limiter`) when the
   distribution packages it at or above the version `setup.py` asks for.
   Only a library apt lacks, or ships too old, is pip-installed

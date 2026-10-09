@@ -41,7 +41,7 @@ module's and `planetgen.db.query`'s `?` positional placeholders, which the
 wrapper rewrites to `pymysql`'s `%s` at the point of execution, and
 `sqlite3.Row`-style `row["column"]` access, which `pymysql`'s
 `DictCursor` already provides natively. Real concurrent access uses a
-connection pool (`DBUtils.PooledDB`) rather than opening a fresh TCP
+connection pool (SQLAlchemy's `QueuePool`) rather than opening a fresh TCP
 connection per call, per TODO.md's "add real connection pooling" note.
 """
 
@@ -61,7 +61,9 @@ from collections import namedtuple
 
 import pymysql
 import pymysql.cursors
-from dbutils.pooled_db import PooledDB
+import sqlalchemy.event
+import sqlalchemy.exc
+import sqlalchemy.pool
 
 from planetgen.admin import activity_log
 from planetgen.names import object_id as objectId
@@ -99,11 +101,12 @@ from planetgen.generation.phenomena.quasar import Quasar
 from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant
 from planetgen.generation.system import StarSystem
 from planetgen.galaxy.galactic_orbit import calculate_galactic_orbit
+from planetgen.galaxy.system_position import galactic_velocity_ms, random_unit_vector, system_velocity_ms
 from planetgen.names.wordsalad import generate_phoneme_salad_name, generate_sector_name
 from planetgen.physics.units import ly_to_milliparsecs, ly_to_pc, milliparsecs_to_ly, mpc_to_pc, pc_to_ly
 from planetgen.generation.wide_binary import WideBinaryPair
 
-SCHEMA_VERSION = 60
+SCHEMA_VERSION = 61
 """int: Matches `star_systems.schema_version` and the highest row in the
 `schema_migrations` table (see `planetgen/db/schema.sql`'s header
 comment). Also the target version `migrate_database` brings a database's
@@ -336,7 +339,7 @@ def mysql_config_from_args(args) -> MySQLConfig:
     )
 
 _pools = {}
-"""dict: `MySQLConfig._key() -> PooledDB`, one pool per distinct set of
+"""dict: `MySQLConfig._key() -> sqlalchemy `QueuePool`, one pool per distinct set of
 connection parameters seen so far in this process. A WSGI worker or a
 single CLI invocation only ever needs one (the process-wide default), but
 keying by config rather than keeping a single module-level pool lets
@@ -400,12 +403,7 @@ def _get_pool(config, statement_timeout_s=None):
         sql_mode = _session_sql_mode()
         if sql_mode:
             init += f", SESSION sql_mode = '{sql_mode}'"
-        _pools[key] = PooledDB(
-            creator=pymysql,
-            mincached=1,
-            maxcached=5,
-            maxconnections=10,
-            blocking=True,
+        connect_args = dict(
             host=config.host,
             port=config.port,
             user=config.user,
@@ -421,25 +419,42 @@ def _get_pool(config, statement_timeout_s=None):
             # PERF.17: a web pool also stops any statement that runs
             # past `statement_timeout_s`.
             init_command=init,
-            # Never fail over to a fresh connection mid-use. DBUtils
-            # otherwise re-runs a statement that hit any OperationalError
-            # -- a deadlock included -- on a new cursor or connection, and
-            # the caller carries on in a transaction MySQL has already
-            # rolled back (the error 1452s of PERF.14's parallel test). A
-            # dead pooled connection is still replaced when it's checked
-            # out (`ping`); one lost mid-use raises.
-            isfatal=_never_fail_over,
         )
+        # Never fail over to a fresh connection mid-use: SQLAlchemy's pool
+        # hands out one DBAPI connection and never re-runs a statement on
+        # another, so a deadlock leaves the caller to see it (the error
+        # 1452s of PERF.14's parallel test came from a silent re-run in a
+        # transaction MySQL had already rolled back). A dead pooled
+        # connection is still replaced when it's checked out
+        # (`_ping_on_checkout`); one lost mid-use raises.
+        # A bare pool, not an Engine: an Engine's dialect would probe the
+        # server through these DictCursor connections and read rows by
+        # position.
+        pool = sqlalchemy.pool.QueuePool(
+            lambda: pymysql.connect(**connect_args),
+            pool_size=5,
+            max_overflow=5,
+        )
+        sqlalchemy.event.listen(pool, "checkout", _ping_on_checkout)
+        # Open one connection now, so an unreachable server or a wrong
+        # password fails here rather than at the first query.
+        pool.connect().close()
+        _pools[key] = pool
     return _pools[key]
 
 
-def _never_fail_over(_error):
-    return False
+def _ping_on_checkout(dbapi_connection, _record, _proxy):
+    """Replaces a pooled connection the server has dropped, before the
+    caller gets it."""
+    try:
+        dbapi_connection.ping(reconnect=False)
+    except pymysql.err.Error:
+        raise sqlalchemy.exc.DisconnectionError() from None
 
 
 def close_pool(config):
     """
-    Closes and discards the cached `PooledDB` for `config`, if one exists.
+    Closes and discards the cached engine for `config`, if one exists.
 
     `_get_pool` never evicts an entry from `_pools` on its own -- fine for
     the handful of long-lived databases a real deployment or WSGI worker
@@ -452,7 +467,7 @@ def close_pool(config):
     """
     key = config._key()
     for pool_key in [k for k in _pools if k == key or (isinstance(k, tuple) and k and k[0] == key)]:
-        _pools.pop(pool_key).close()
+        _pools.pop(pool_key).dispose()
     _schema_ensured.discard(key)
     forget_id_blocks(key)
 
@@ -612,7 +627,7 @@ def _reserve_id_block(config, table, size, at_least):
     """Reserves `size` ids for `table` and returns the first. `at_least`
     is past every id this process already handed out for it, which the
     table's `MAX(id)` can't show while those rows are uncommitted."""
-    raw = _get_pool(config).connection()
+    raw = _get_pool(config).connect()
     try:
         cur = raw.cursor()
         cur.execute(f"SELECT COALESCE(MAX(id), 0) + 1 AS floor_id FROM {table}")
@@ -775,6 +790,9 @@ class Connection:
         self.deferred_name_confirmations = None
         self._txn_locks = []
         self._short_row_waits = False
+        self.sector_centers_pc = {}
+        """dict: `sector_id -> (x, y, z)` or `None`, the sector centers `_system_velocity_kms` has read inside the
+        current `batched()` scope (a read flushes the held-back INSERTs, so each is read once)."""
 
     def _run(self, sql, params):
         cur = self._conn.cursor()
@@ -1017,6 +1035,7 @@ class _BatchScope:
         conn = self._conn
         if conn._batch_depth == 0:
             conn._batch = {}
+            conn.sector_centers_pc = {}
         conn._batch_depth += 1
         return conn
 
@@ -1029,6 +1048,7 @@ class _BatchScope:
                     conn.flush()
             finally:
                 conn._batch = None
+                conn.sector_centers_pc = {}
         return False
 
 
@@ -1100,7 +1120,7 @@ def get_connection(config=None, ensure_schema=True, statement_timeout_s=None):
                     truly closing a socket).
     """
     config = config or DEFAULT_MYSQL_CONFIG
-    conn = Connection(_get_pool(config, statement_timeout_s).connection(), config)
+    conn = Connection(_get_pool(config, statement_timeout_s).connect(), config)
     if ensure_schema and config._key() not in _schema_ensured:
         try:
             _ensure_schema(conn)
@@ -1370,6 +1390,7 @@ def _table_marker(table):
 
 
 _VERSION_MARKERS = (
+    (61, _column_marker("star_systems", "velocity_x_kms")),
     (60, _column_marker("planets", "velocity_x_kms")),
     (59, _index_marker("bright_stars", "idx_bright_stars_population")),
     (58, _column_marker("sectors", "uid")),
@@ -1534,7 +1555,7 @@ def get_control_connection(config=None, ensure_schema=False):
         Connection: An open connection.
     """
     config = config or control_mysql_config()
-    conn = Connection(_get_pool(config).connection(), config)
+    conn = Connection(_get_pool(config).connect(), config)
     if ensure_schema:
         try:
             _ensure_control_schema(conn)
@@ -3577,6 +3598,30 @@ def _designate_comets(star_system):
             comet.name = comet_designation(host_name, index, comet)
 
 
+def _system_velocity_kms(conn, star_system, sector_id, position_pc):
+    """
+    The galactic velocity, km/s, `star_system` has at `position_pc`
+    (`(x, y, z)` parsecs from the center of sector `sector_id`): the rotation
+    curve's tangent at its place plus its runaway motion
+    (`system_position.system_velocity_ms`). At rest while it has no place.
+    """
+    if sector_id is None or position_pc is None:
+        return (0.0, 0.0, 0.0)
+    if conn._batch is not None and sector_id in conn.sector_centers_pc:
+        center = conn.sector_centers_pc[sector_id]
+    else:
+        row = conn.execute("SELECT center_x_pc, center_y_pc, center_z_pc FROM sectors WHERE id = ?",
+                           (sector_id,)).fetchone()
+        center = None if row is None or row["center_x_pc"] is None else tuple(
+            row[f"center_{axis}_pc"] for axis in "xyz")
+        if conn._batch is not None:
+            conn.sector_centers_pc[sector_id] = center
+    if center is None:
+        return (0.0, 0.0, 0.0)
+    place = tuple(c + offset for c, offset in zip(center, position_pc))
+    return tuple(v / 1000.0 for v in system_velocity_ms(star_system, place))
+
+
 def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfig,
                         sector_id=None, position=None, location=None) -> int:
     """
@@ -3675,6 +3720,8 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
         position_x_mpc = position_y_mpc = position_z_mpc = None
         quadrant = None
         location = None
+    velocity_kms = _system_velocity_kms(conn, star_system, sector_id,
+                                        None if position is None else tuple(ly_to_pc(c) for c in position))
 
     # Name-uniqueness (v24, nameUniqueness.py) -- the stars, planets and
     # moons are renamed from the final name in place, so the caller's
@@ -3705,8 +3752,9 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
             binary_secondary_position_x_km, binary_secondary_position_y_km, binary_secondary_position_z_km,
             binary_secondary_mass_fraction,
             binary_planetary_wobble_x_km, binary_planetary_wobble_y_km, binary_planetary_wobble_z_km,
-            system_flavor_text, runaway_class, runaway_speed_kms, schema_version
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            system_flavor_text, runaway_class, runaway_speed_kms,
+            velocity_x_kms, velocity_y_kms, velocity_z_kms, schema_version
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             sector_id, config_id, star_system.name,
@@ -3718,6 +3766,7 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
             *planetary_wobble_fields,
             star_system.system_flavor_text,
             getattr(star_system, "runaway_class", None), getattr(star_system, "runaway_speed_kms", None),
+            *velocity_kms,
             SCHEMA_VERSION,
         ),
     )
@@ -4597,6 +4646,7 @@ def advance_galactic_positions(conn, elapsed_years, on_progress=None):
     systems = conn.execute(
         """
         SELECT ss.id, ss.sector_id, ss.position_x_mpc, ss.position_y_mpc, ss.position_z_mpc,
+               ss.velocity_x_kms, ss.velocity_y_kms, ss.velocity_z_kms,
                COALESCE(ss.binary_galactic_orbital_period_gy, s.galactic_orbital_period_gy) AS period_gy
         FROM star_systems ss
         LEFT JOIN stars s ON s.star_system_id = ss.id AND s.role IN ('single', 'primary')
@@ -4616,21 +4666,24 @@ def advance_galactic_positions(conn, elapsed_years, on_progress=None):
         sector_id = index.sector_at(point, row["sector_id"])
         local_mpc = tuple(c * 1000.0 for c in galaxy_to_local_pc(index.info[sector_id][1], point))
         quadrant, _magnitudes = classify_octant(local_mpc)
+        velocity = _rotate_about_axis((row["velocity_x_kms"], row["velocity_y_kms"], row["velocity_z_kms"]), angle)
         moved += 1
         if sector_id != row["sector_id"]:
             refiled += 1
             touched.update((sector_id, row["sector_id"]))
-            refile_updates.append((sector_id, *local_mpc, quadrant, row["id"]))
+            refile_updates.append((sector_id, *local_mpc, quadrant, *velocity, row["id"]))
         else:
-            updates.append((*local_mpc, quadrant, row["id"]))
+            updates.append((*local_mpc, quadrant, *velocity, row["id"]))
     if updates:
         conn.executemany(
             "UPDATE star_systems SET position_x_mpc = ?, position_y_mpc = ?, position_z_mpc = ?, quadrant = ?,"
-            " modified_at = modified_at WHERE id = ?", updates)
+            " velocity_x_kms = ?, velocity_y_kms = ?, velocity_z_kms = ?, modified_at = modified_at WHERE id = ?",
+            updates)
     if refile_updates:
         conn.executemany(
             "UPDATE star_systems SET sector_id = ?, position_x_mpc = ?, position_y_mpc = ?, position_z_mpc = ?,"
-            " quadrant = ? WHERE id = ?", refile_updates)
+            " quadrant = ?, velocity_x_kms = ?, velocity_y_kms = ?, velocity_z_kms = ? WHERE id = ?",
+            refile_updates)
         _refile_nearest_rows(conn, "star_systems", [(update[0], update[-1]) for update in refile_updates])
     _report(on_progress, "star_systems", 1, steps)
 
@@ -5597,6 +5650,13 @@ def replace_star_system_content(conn, star_system_id, star_system, system_config
         (temp_id, star_system_id),
     )
     conn.execute("DELETE FROM star_systems WHERE id = ?", (temp_id,))
+    kept = conn.execute("SELECT sector_id, position_x_mpc, position_y_mpc, position_z_mpc FROM star_systems"
+                        " WHERE id = ?", (star_system_id,)).fetchone()
+    if kept["position_x_mpc"] is not None:  # the new star moves at its own speed from the kept place
+        velocity = _system_velocity_kms(conn, star_system, kept["sector_id"], tuple(
+            mpc_to_pc(kept[f"position_{axis}_mpc"]) for axis in "xyz"))
+        conn.execute("UPDATE star_systems SET velocity_x_kms = ?, velocity_y_kms = ?, velocity_z_kms = ?,"
+                     " modified_at = modified_at WHERE id = ?", (*velocity, star_system_id))
     _rename_bodies_with_prefix(conn, star_system_id, temp_name, row["name"])
     assign_uids(conn, system_ids=[star_system_id])  # the new bodies take the IDs the old ones had
     return True
@@ -7035,8 +7095,8 @@ def load_sector(conn, sector_id) -> SpaceSector:
         sector.place_in_galaxy(tuple(pc_to_ly(row[f"center_{axis}_pc"]) for axis in "xyz"))
 
     system_rows = conn.execute(
-        "SELECT id, position_x_mpc, position_y_mpc, position_z_mpc FROM star_systems "
-        "WHERE sector_id = ? ORDER BY id",
+        "SELECT id, position_x_mpc, position_y_mpc, position_z_mpc, velocity_x_kms, velocity_y_kms, velocity_z_kms"
+        " FROM star_systems WHERE sector_id = ? ORDER BY id",
         (sector_id,),
     ).fetchall()
 
@@ -7050,7 +7110,9 @@ def load_sector(conn, sector_id) -> SpaceSector:
         sector.entries.append(SectorSystemEntry(star_system, position, system_config=star_system.system_config,
                                                 sector_center_ly=sector.center_galactic_ly,
                                                 sector_edge_pc=sector.sector_edge_pc,
-                                                epoch_unix=sector.epoch_unix))
+                                                epoch_unix=sector.epoch_unix,
+                                                velocity_ms=tuple(r[f"velocity_{axis}_kms"] * 1000.0 for axis in "xyz")
+                                                if row["center_x_pc"] is not None else None))
 
     return sector
 
@@ -9589,6 +9651,48 @@ def _migrate_v59_to_v60(conn):
     conn.execute("INSERT INTO schema_migrations (version) VALUES (60)")
 
 
+def _migrate_v60_to_v61(conn):
+    """
+    Adds `star_systems.velocity_x_kms`/`_y_kms`/`_z_kms` (GEN.121) and works
+    them out for the systems already there: the rotation curve's tangent at
+    the system's place at its `galactic_orbital_speed_kms`, plus, for a
+    runaway or hypervelocity system, its `runaway_speed_kms` along a
+    direction drawn from its id (a system saved before had no direction) --
+    see `schema.sql`'s "v61" header note. A system with no place in the
+    galaxy stays at rest.
+
+    Args:
+        conn (Connection): An open connection, mid-migration.
+    """
+    if not _has_column(conn, "star_systems", "velocity_x_kms"):
+        conn.execute("ALTER TABLE star_systems ADD COLUMN velocity_x_kms DOUBLE NOT NULL DEFAULT 0,"
+                     " ADD COLUMN velocity_y_kms DOUBLE NOT NULL DEFAULT 0,"
+                     " ADD COLUMN velocity_z_kms DOUBLE NOT NULL DEFAULT 0")
+    rows = conn.execute(
+        """
+        SELECT ss.id, ss.runaway_speed_kms, ss.position_x_mpc, ss.position_y_mpc, ss.position_z_mpc,
+               sec.center_x_pc, sec.center_y_pc, sec.center_z_pc,
+               COALESCE(ss.binary_galactic_orbital_speed_kms, s.galactic_orbital_speed_kms) AS speed_kms
+        FROM star_systems ss
+        JOIN sectors sec ON sec.id = ss.sector_id
+        LEFT JOIN stars s ON s.star_system_id = ss.id AND s.role IN ('single', 'primary')
+        WHERE ss.position_x_mpc IS NOT NULL AND sec.center_x_pc IS NOT NULL
+        """
+    ).fetchall()
+    updates = []
+    for row in rows:
+        place = tuple(row[f"center_{axis}_pc"] + mpc_to_pc(row[f"position_{axis}_mpc"]) for axis in "xyz")
+        velocity = list(galactic_velocity_ms(place, row["speed_kms"]))
+        if row["runaway_speed_kms"]:
+            direction = random_unit_vector(random.Random(f"runaway-direction:{row['id']}"))
+            velocity = [v + row["runaway_speed_kms"] * 1000.0 * d for v, d in zip(velocity, direction)]
+        updates.append((*(v / 1000.0 for v in velocity), row["id"]))
+    if updates:
+        conn.executemany("UPDATE star_systems SET velocity_x_kms = ?, velocity_y_kms = ?, velocity_z_kms = ?,"
+                         " modified_at = modified_at WHERE id = ?", updates)
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (61)")
+
+
 def _schema_statement(table):
     """`schema.sql`'s own `CREATE TABLE IF NOT EXISTS <table>` statement."""
     with open(SCHEMA_PATH, "r", encoding="utf-8") as handle:
@@ -9708,6 +9812,7 @@ def _migration_steps():
         (58, _migrate_v57_to_v58),
         (59, _migrate_v58_to_v59),
         (60, _migrate_v59_to_v60),
+        (61, _migrate_v60_to_v61),
     ]
 
 
