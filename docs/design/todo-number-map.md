@@ -405,10 +405,10 @@ Parents marked "new parent" had no old number of their own.
 | ADM.14 | Line up the Generate page's text boxes, not their headings (bug) | none | done, PR #544 |
 | ADM.15 | Change the worker count from the Queue page, with a "Ludicrous Speed" mode | none | open |
 | ADM.16 | Prevalence controls on the Generate page | none | done, PR #506 |
-| ADM.17 | The Generate page shows the galaxy's seed and version | none | open |
+| ADM.17 | The Generate page shows the galaxy's seed and version | none | dropped (Boss, 2026-10-09 20:42Z) |
 | ADM.18 | The galaxy's creation settings saved as a JSON file, downloadable from the Admin dashboard | none | done, PR #816 |
-| ADM.19 | The Admin dashboard lists the 18 settings backups for download | none | open |
-| ADM.20 | A "merge now" button on the Admin dashboard (low priority) | none | open |
+| ADM.19 | The Admin dashboard lists the 18 settings backups for download | none | dropped (Boss, 2026-10-09 20:42Z) |
+| ADM.20 | A "merge now" button on the Admin dashboard (low priority) | none | dropped (Boss, 2026-10-09 20:42Z) |
 | ADM.21 | Input validation on Pydantic models | none | done, PR #748 |
 | ADM.22 | Job logs streamed over SSE into Xterm.js, with native progress bars | none | done, PR #551 |
 | ADM.23 | Log output wraps with hard line breaks (bug) | none | done, PR #508 |
@@ -451,7 +451,7 @@ Parents marked "new parent" had no old number of their own.
 | API.13 | Generation without a database | none | open |
 | API.14 | Upload routes, compressed, in batches | none | open |
 | API.15 | Log every API call with its user, how it came in, and its HTTP response code | none | open |
-| API.16 | The API reports the galaxy's seed, version and run history | none | open |
+| API.16 | The API reports the galaxy's seed, version and run history | none | dropped (Boss, 2026-10-09 20:42Z) |
 | API.17 | Remote generation reproduces what the server would make | none | open |
 | API.18 | Generate by recipe: JSON for sectors, systems, planets, moons and phenomena | none | open |
 | API.19 | Galaxy-scale recipes: build a whole galaxy, piece by piece, from JSON | none | open |
@@ -466,7 +466,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.7 | The version that generated each sector, and a warning for mixed-version galaxies | none | done, PR #813 |
 | DB.8 | Check a galaxy database and say whether it is damaged | none | open |
 | DB.9 | Repair a damaged galaxy database from a parity file | none | open |
-| DB.10 | Repair reads the newest settings JSON and the pending deltas | none | open |
+| DB.10 | Repair reads the newest settings JSON and the pending deltas | none | dropped (Boss, 2026-10-09 20:42Z) |
 | DB.11 | The database layer and migrations on SQLAlchemy and Alembic | none | done, PR #751 |
 | DB.12 | MariaDB reads a stored -0.0 back as +0.0 (bug) | none | done, PR #442 |
 | DB.13 | Every stored value in its own column, not in JSON blocks, and indexed for search | none | done, PR #766 |
@@ -534,13 +534,13 @@ Parents marked "new parent" had no old number of their own.
 | GEN.52 | Prevalence controls for sector and galaxy runs | none | done, PR #502 |
 | GEN.53 | The two stars of a binary don't share one age (bug) | none | done, PR #367 |
 | GEN.54 | A `--star-type` secondary gets a mass that doesn't fit its type (bug) | none | done, PR #367 |
-| GEN.55 | A version number and a seed reproduce the same galaxy (end goal) | none | open |
+| GEN.55 | Same seed, same data: a sector's contents depend only on the seed, the version and its address (internal) | none | open |
 | GEN.56 | Every random draw in generation comes from the derived seeds | none | done, PR #791 |
 | GEN.57 | A sector's contents depend only on the seed, the version and its address | none | open |
 | GEN.58 | A fingerprint of a galaxy's generated content | none | done, PR #809 |
-| GEN.59 | Admin changes stored as a net difference from the generated galaxy | none | open |
+| GEN.59 | Admin changes stored as a net difference from the generated galaxy | none | dropped (Boss, 2026-10-09 20:42Z) |
 | GEN.60 | Rogue gas giants get a Jupiter-sized radius at every mass (bug) | none | done, PR #415 |
-| GEN.61 | The daily merge folds pending admin changes into a new JSON file | none | open |
+| GEN.61 | The daily merge folds pending admin changes into a new JSON file | none | dropped (Boss, 2026-10-09 20:42Z) |
 | GEN.62 | Binary stars: two-word names sharing the first word, the companion's word drawn from "small" and "child" sounds, planets named for one word (bug) | none | done, PR #393 |
 | GEN.63 | Planet names are unique within a sector | none | dropped: names come from IDs (GEN.67, 2026-10-07) |
 | GEN.64 | A packed position ID as the name of every interstellar object and bright-sweep system | none | done, PR #406 |
@@ -862,13 +862,13 @@ Parents marked "new parent" had no old number of their own.
 | OPS.9 | Multi-line messages lose their prefix in the debug log (bug) | none | done, PR #448 |
 | OPS.10 | The galaxy seed and version at the top of every generation log | none | done, PR #391 |
 | OPS.11 | Define "the same galaxy" and which versions stay reproducible | none | done, PR #362 (docs/design/reproducible-galaxies.md) |
-| OPS.12 | `generate.py reproduce`: a version and a seed rebuild a galaxy and check it | none | open |
+| OPS.12 | `generate.py reproduce`: a version and a seed rebuild a galaxy and check it | none | dropped (Boss, 2026-10-09 20:42Z) |
 | OPS.13 | Every update records the version key, keeping the last 10 | none | done, PR #810 |
 | OPS.14 | A warning when the running version key differs from the galaxy's | none | open |
 | OPS.15 | Each update says whether it changes generated output | none | open |
 | OPS.16 | A daily maintenance script for Linux, macOS and Windows | none | open |
 | OPS.17 | Install and update set up the daily maintenance schedule | none | open |
-| OPS.18 | Settings JSON backups kept in 18 slots: 7 daily, 4 weekly, 6 monthly, 1 yearly | none | open |
+| OPS.18 | Settings JSON backups kept in 18 slots: 7 daily, 4 weekly, 6 monthly, 1 yearly | none | dropped (Boss, 2026-10-09 20:42Z) |
 | OPS.19 | The Generate jobs folder is /var/lib/planetgen while the checkout is /var/lib/planetGen (bug) | none | done, PR #525 |
 | OPS.20 | Move the code base from zero dependencies to third-party open-source libraries | none | done, PR #767 |
 | OPS.21 | Pinned third-party dependencies and a Redis server in install, update and CI | none | done, PR #437 |
@@ -880,7 +880,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.27 | The Windows installer and docs point at Redis in WSL, not Memurai | none | done, PR #475 |
 | OPS.28 | Generator epoch and battery digest: say whether two checkouts generate the same galaxy | none | open |
 | OPS.29 | Update reload: cover the gunicorn units and non-Apache hosts, and say what a reload aborts | none | open |
-| OPS.30 | A lock helper for the maintenance run and the admin merge | none | open |
+| OPS.30 | A lock helper for the maintenance run | none | open |
 | OPS.31 | Lint every example plist, XML and service file in CI | none | open |
 | OPS.32 | `examples/macos/org.planetgen.update.plist` is not well-formed XML, so the update daemon silently fails to install (bug) | none | open |
 | OPS.33 | `.gitattributes` has no LF pins for the lock files and word list, so hashes differ between a Windows and a Linux checkout (bug) | none | done, PR #843 |

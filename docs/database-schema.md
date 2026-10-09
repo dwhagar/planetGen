@@ -966,7 +966,6 @@ Control schema:
 | API.15 | 0 | Every API call logged: time, route, account (the key's owner, the signed-in admin, or "god" for the console), how it came in (API key, web session or console) and the HTTP response code. Where the rows are kept is settled when it is built. |
 | GEN.70 | 0 | The galaxy's naming key, drawn at creation and changeable by an admin. |
 | OPS.13 | 1 | A version-key history table: one row per galaxy per update with the galaxy seed, the version key, SHA-256 hashes of the lock files, and the date (the nltk corpus and name-list hashes are dropped with GEN.71); only the last 10 rows per galaxy are kept. OPS.15 (phase 2) adds the fingerprint of a small fixed region to each row. |
-| GEN.59 | 1 | A pending-delta table: admin edits, deletes and regenerate seeds, by stable address path, as they happen, with the positional-update epoch. The daily merge (GEN.61, phase 2) folds them into a new settings file and clears them only after the file is written and read back. |
 | API.9 | 1 | `admin_api_keys` gains a scope column (read, admin, upload). |
 | USR.2, USR.4, USR.7, NAV.19 | 3+ | Accounts with roles, invite links, per-account bookmarks and `user_courses`. |
 

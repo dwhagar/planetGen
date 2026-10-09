@@ -455,7 +455,7 @@ systems and the location text written from them, sector paths and
 stats, population data and bookkeeping are left out; a foreign key
 counts as what it points at (a sector's address, an object's unique
 ID). It reads the galaxy as stored; comparing a rebuild with the
-settings file's admin changes applied comes with GEN.59.
+stored galaxy is internal testing only.
 
 ## Planned commands
 
@@ -471,13 +471,11 @@ Not built yet. Each names its TODO item and phase; the design is in
 | `--resume` | PERF.30 | 1 | Finish the runs an interrupted fill left, from the step each reached. |
 | Layer, ring and column ranges; a radial cylinder; N random neighborhoods | ADM.29, ADM.30, GEN.97 | 1 | New fill shapes, also on the Generate page. |
 | `--directive` | GEN.96 | 1 | Generation directives for a sector (density, at least N stars of a type, at least N habitable worlds). |
-| `planetgen reproduce --seed X --version Y` | OPS.12 | 3+ | Rebuild a galaxy or region into a fresh database from the seed, the run history and the settings file, and compare fingerprints. |
 
 Work runs as RQ jobs on Redis from phase 0 (PERF.24), so `--workers` sets the RQ worker count.
 
 Phase 2 also adds a daily maintenance run, `scripts/maintenance.sh`
 (Linux and macOS) and `scripts/maintenance.ps1` (Windows), set up as a
 scheduled job by install and update (OPS.16, OPS.17): the positional
-update (`planetgen.cli.orbits`), then the day's admin changes folded into a
-new settings file (GEN.61), then the backups rotated to 18 kept files,
-7 daily, 4 weekly, 6 monthly and 1 yearly (OPS.18).
+update (`planetgen.cli.orbits`). (The daily settings-file merge and the
+18 backup slots, GEN.61 and OPS.18, were dropped on 2026-10-09.)

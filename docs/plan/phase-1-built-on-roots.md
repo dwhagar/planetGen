@@ -182,10 +182,9 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.156 | Pin astropy to CODATA 2018 and IAU 2015 constants before its first import (GEN.66 follow-up) |  | Research follow-up to GEN.66 (built). |
 | GEN.136 | Fingerprint encoding: floats to 9 significant digits, a stored leaf digest per sector and a ring-and-layer tree | GEN.135 | Research follow-up to GEN.58 (built). |
 | GEN.135 | Deterministic math helpers for every stored float, with a lint and frozen constants |  | Research: Python 3.9 and 3.10 to 3.13 draw different sectors without it. Blocks TEST.77. |
-| OPS.14 | A warning when the running version key differs from the galaxy's |  | Feeds GEN.58's output and OPS.12. |
+| OPS.14 | A warning when the running version key differs from the galaxy's |  | Feeds GEN.58's output. |
 | OPS.29 | Update reload: cover the gunicorn units and non-Apache hosts, and say what a reload aborts |  | Research follow-up to OPS.8 (built). |
 | OPS.28 | Generator epoch and battery digest: say whether two checkouts generate the same galaxy | GEN.135 | Research: OPS.13 is built; this is the epoch it records. OPS.14, OPS.15, OPS.12 and TEST.77 read it. |
-| GEN.59 | Admin changes stored as a net difference from the generated galaxy |  | Boss 02:20Z: net diff by stable address path, regenerate seeds, in ADM.18's JSON. |
 
 ### Bugs from the GitHub issues
 
