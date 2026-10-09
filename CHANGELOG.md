@@ -3,6 +3,7 @@
 ## [8.0.783] - 2026-10-09
 
 ### Changed
+- The globular-cluster items link their design note and record the sector-address answer.
 - The globular-cluster items record Boss's answers on the catalogue file and the planet cut.
 - The multi-star systems item (GEN.129) carries the exact triple-stability equation from Vynatheya et al. 2022 and its tests.
 - The to-do items for nebula planets, multi-star systems and exotic star systems cite the verified orbit-expansion law and triple-stability criteria, with unit tests.
