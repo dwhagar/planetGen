@@ -2832,7 +2832,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   rows: position, distance, [Fe/H], c, r_c, r_h, M_V, sigma_v,
   core-collapse flag) or approve a one-time download script. Decided by Boss (2026-10-09 19:02Z, default taken): derived: a cluster star's sector address
   is derived from the cluster centre's sector path, not stored per star.
-  Prerequisites: GEN.158.
+  Prerequisite: GEN.158.
   Design: [docs/design/globular-clusters.md](design/globular-clusters.md)
 
 - [ ] **GEN.160 Cluster density in the sector gate, with a "cluster" population**
@@ -2847,7 +2847,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the sampled radial profile matches the table; no sector above the gate
   is skipped; counts match the note's table (a typical cluster 5.0e5
   systems in 965 sectors, a 47 Tuc-like one 2.0e6 in 5,848).
-  Prerequisites: GEN.159.
+  Prerequisite: GEN.159.
   Design: [docs/design/globular-clusters.md](design/globular-clusters.md)
 
 - [ ] **GEN.161 Bright-first fill for cluster sectors**
@@ -2857,7 +2857,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (GEN.44); the dim main sequence on demand. The cost reason: every
   system of a 157-cluster Milky Way is 1.8e8 systems, 10 to 34 days of
   single-worker time at 5 to 16.6 ms each.
-  Prerequisites: GEN.160.
+  Prerequisite: GEN.160.
   Design: [docs/design/globular-clusters.md](design/globular-clusters.md)
 
 - [ ] **GEN.162 Planet cull and blue stragglers in clusters**
@@ -3876,19 +3876,6 @@ Boss (2026-10-07 11:47Z): "Actual specs on layers on the generation
   CLI's `--prevalence` accepts the same shares and rejects a set that is
   not 100%. A share that depends on the local star density is not part
   of this item; the shares stay the same in every sector.
-
-- [ ] **ADM.46 Generate page: a progress line and per-layer counts instead of one line per sector**
-  Boss (2026-10-09, via the coordinator and Foundations lane 1): "While
-  a run fills a neighbourhood, the Generate page text feedback lists
-  every sector as it is generated. Replace it with a progress line and
-  per-layer counts (like GEN.131's per-layer scatter log)." Done: a fill
-  shows one progress line and a count per layer (sectors done and stars
-  made so far) instead of a line for every sector. The reason is cost:
-  the per-sector lines add log and page-update work to a fill that
-  already runs for hours. For Foundations lane 1, in the Generate page
-  group after ADM.31; not to be started ahead of the lane's current list
-  unless Boss says so.
-  Prerequisites: none.
 
 ## SEC: Security
 
