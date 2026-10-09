@@ -3877,6 +3877,25 @@ Boss (2026-10-07 11:47Z): "Actual specs on layers on the generation
   not 100%. A share that depends on the local star density is not part
   of this item; the shares stay the same in every sector.
 
+- [ ] **ADM.47 Generating a neighbourhood from the Generate page shows no per-sector stats and looks slow or silent (bug)**
+  Boss (2026-10-09 19:36Z to 19:38Z): generating a neighbourhood from
+  the Generate page gives no per-sector stats (stars per sector,
+  expected against generated density, rogue planets and other objects
+  generated with it) and looks very slow or just silent. Found so far by
+  Bugfixes lane 1: `run_galaxy._log_saved` still logs a "Saved sector"
+  line plus `run_sector.sector_generation_summary_lines` (systems by
+  class, phenomena, actual against expected density) through
+  `log.normal`, but that summary has no rogue planet or other-object
+  counts; what actually reaches the job log from the Generate-page path
+  (subprocess stdout to output.log, non-TTY rich console) is being
+  reproduced, and the speed checked. Done: one cheap per-sector job-log
+  line with stars, expected against generated density, rogue planets and
+  other object counts (no extra queries), and the reason for any
+  slowness found and fixed. Owned by Bugfixes lane 1, in progress.
+  Supersedes the withdrawn ADM.46 request (a progress line and per-layer
+  counts), which Boss does not want.
+  Prerequisites: none.
+
 ## SEC: Security
 
 The login protection of 2026-10-01 (SEC.1, SEC.20 to
