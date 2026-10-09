@@ -406,7 +406,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.15 | Change the worker count from the Queue page, with a "Ludicrous Speed" mode | none | open |
 | ADM.16 | Prevalence controls on the Generate page | none | done, PR #506 |
 | ADM.17 | The Generate page shows the galaxy's seed and version | none | open |
-| ADM.18 | The galaxy's creation settings saved as a JSON file, downloadable from the Admin dashboard | none | open |
+| ADM.18 | The galaxy's creation settings saved as a JSON file, downloadable from the Admin dashboard | none | done, PR #816 |
 | ADM.19 | The Admin dashboard lists the 18 settings backups for download | none | open |
 | ADM.20 | A "merge now" button on the Admin dashboard (low priority) | none | open |
 | ADM.21 | Input validation on Pydantic models | none | done, PR #748 |
@@ -459,7 +459,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.4 | A database with an emptied schema_migrations table is treated as current (bug) | none | done, PR #342 |
 | DB.5 | Several first connections to an empty database race to create the schema (bug) | none | done, PR #342 |
 | DB.6 | Store the galaxy's 128-bit seed, the version that made it, and every generation run | none | done, PR #387 |
-| DB.7 | The version that generated each sector, and a warning for mixed-version galaxies | none | open |
+| DB.7 | The version that generated each sector, and a warning for mixed-version galaxies | none | done, PR #813 |
 | DB.8 | Check a galaxy database and say whether it is damaged | none | open |
 | DB.9 | Repair a damaged galaxy database from a parity file | none | open |
 | DB.10 | Repair reads the newest settings JSON and the pending deltas | none | open |
@@ -577,8 +577,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.104 | A spin vector and a realistic axial tilt for every rotating object | none | open |
 | GEN.105 | Orbital updates | none | open |
 | GEN.106 | Movement thresholds and a next-update-due column | none | done, PR #802 |
-| GEN.107 | The update reports how many objects moved, changed sector, or entered or left a nebula | none | open |
-| GEN.108 | Orbital math limits: where each method breaks down and what happens there | none | open |
+| GEN.107 | The update reports how many objects moved, changed sector, or entered or left a nebula | none | done, PR #817 |
+| GEN.108 | Orbital math limits: where each method breaks down and what happens there | none | done, PR #815 |
 | GEN.109 | N-body influence from every object inside the largest nearby Hill sphere plus the galactic gradient, with a Hill-radius warning | none | open |
 | GEN.110 | Rogue planet collisions: asteroid fields, merged giants and new stars | none | open |
 | GEN.111 | Email the admin when two objects are inside each other's Hill radius | none | open |
@@ -757,7 +757,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.7 | One reference for every object, with its parents | none | done, PR #688 |
 | NAV.8 | Pages and anchors for stars, planets, moons and belts | none | open |
 | NAV.9 | Search and locate return references for every kind | none | open |
-| NAV.10 | Routing that scales past a few thousand systems | none | open |
+| NAV.10 | Routing that scales past a few thousand systems | none | done, PR #814 |
 | NAV.11 | Travel times for the system-to-system route too | none | open |
 | NAV.12 | No maximum hop length: a route always reaches the nearest star it can, across any number of sectors | none | open |
 | NAV.13 | A picker module: select, step out, step in, step sideways | none | done, PR #564 |

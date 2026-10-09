@@ -55,7 +55,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| OPS.12 | `generate.py reproduce`: a version and a seed rebuild a galaxy and check it | DB.7, GEN.57, TEST.77, GEN.59, OPS.14, ADM.18, GEN.61, OPS.18 | The end state. |
+| OPS.12 | `generate.py reproduce`: a version and a seed rebuild a galaxy and check it | GEN.57, TEST.77, GEN.59, OPS.14, GEN.61, OPS.18 | The end state. |
 | GEN.55 | A version number and a seed reproduce the same galaxy (end goal) | OPS.12 | Parent of the chain. |
 
 ## Open questions for Boss
