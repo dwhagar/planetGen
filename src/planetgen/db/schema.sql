@@ -1005,6 +1005,20 @@
 -- v65: `phenomenon_scatter` (GEN.100): the black holes, neutron stars,
 --   planetary nebulae, supernova remnants, hypervelocity stars and nucleus
 --   `planetgen plan` places galaxy-wide, and `galaxy_shape.phenomenon_scatter_seed`.
+-- v66: every object the orbit update moves gains `epoch_unix` and an indexed
+--   `next_update_due` (GEN.106), both in Unix seconds by the database
+--   server's clock: `planets`, `moons`, `comets`, `star_systems` (its
+--   galactic orbit; `binary_epoch_unix`/`binary_next_update_due` for a
+--   pair's mutual orbit), `facilities`, and the six orbiting phenomenon
+--   tables. `epoch_unix` is when the stored position holds (NULL: at
+--   `orbit_simulation_state.last_updated_at`, the last update run);
+--   `next_update_due` is when the object will have moved its threshold
+--   (0.01 mpc on a galactic orbit, 0.01 AU in a system, 100,000 km round a
+--   planet), from its speed, capped at a billion years. NULL means not yet
+--   worked out: the next update fills it in. The update moves and counts
+--   only rows that are due, and anything that changes an orbit sets
+--   `next_update_due` back to NULL. See docs/design/orbital-updates.md
+--   section 3.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -1366,6 +1380,8 @@ CREATE TABLE IF NOT EXISTS star_systems (
     binary_mutual_orbital_inclination_deg      DOUBLE,
     binary_mutual_orbital_ascending_node_deg   DOUBLE,
     binary_mutual_orbital_phase_deg            DOUBLE,
+    binary_epoch_unix                          DOUBLE,  -- v66 (GEN.106)
+    binary_next_update_due                     DOUBLE,
     binary_mutual_min_update_interval_years    DOUBLE,
     -- v14 (see header comment): the secondary's position relative to the
     -- primary, kept in lockstep with binary_mutual_orbital_phase_deg --
@@ -1403,6 +1419,8 @@ CREATE TABLE IF NOT EXISTS star_systems (
     velocity_x_kms       DOUBLE NOT NULL DEFAULT 0,
     velocity_y_kms       DOUBLE NOT NULL DEFAULT 0,
     velocity_z_kms       DOUBLE NOT NULL DEFAULT 0,
+    epoch_unix           DOUBLE,  -- v66 (GEN.106), see header comment
+    next_update_due      DOUBLE,
     schema_version       INT NOT NULL DEFAULT 1,
 
     -- No stored page text since v29: wikitext/Markdown are rendered on
@@ -1432,6 +1450,8 @@ CREATE TABLE IF NOT EXISTS star_systems (
     CONSTRAINT fk_star_systems_config
         FOREIGN KEY (system_config_id) REFERENCES system_configs(id),
     KEY idx_star_systems_sector_id (sector_id),
+    KEY idx_star_systems_next_update_due (next_update_due),
+    KEY idx_star_systems_binary_next_update_due (binary_next_update_due),
     KEY idx_star_systems_system_config_id (system_config_id),
     KEY idx_star_systems_name (name),
     FULLTEXT KEY ft_star_systems_name (name),
@@ -1570,6 +1590,8 @@ CREATE TABLE IF NOT EXISTS planets (
     velocity_x_kms              DOUBLE NOT NULL DEFAULT 0,
     velocity_y_kms              DOUBLE NOT NULL DEFAULT 0,
     velocity_z_kms              DOUBLE NOT NULL DEFAULT 0,
+    epoch_unix                  DOUBLE,  -- v66 (GEN.106), see header comment
+    next_update_due             DOUBLE,
     min_update_interval_years   DOUBLE NOT NULL,  -- v12, see header comment
     rotation_period_hours       DOUBLE NOT NULL,
     -- v20 (see header comment): this planet's own reflex-offset "wobble"
@@ -1586,6 +1608,7 @@ CREATE TABLE IF NOT EXISTS planets (
     CONSTRAINT fk_planets_star
         FOREIGN KEY (star_id) REFERENCES stars(id) ON DELETE SET NULL,
     KEY idx_planets_star_system_id (star_system_id),
+    KEY idx_planets_next_update_due (next_update_due),
     KEY idx_planets_star_id (star_id),
     KEY idx_planets_name (name),
     FULLTEXT KEY ft_planets_name (name),
@@ -1687,6 +1710,8 @@ CREATE TABLE IF NOT EXISTS moons (
     velocity_x_kms              DOUBLE NOT NULL DEFAULT 0,
     velocity_y_kms              DOUBLE NOT NULL DEFAULT 0,
     velocity_z_kms              DOUBLE NOT NULL DEFAULT 0,
+    epoch_unix                  DOUBLE,  -- v66 (GEN.106), see header comment
+    next_update_due             DOUBLE,
     min_update_interval_years   DOUBLE NOT NULL,  -- v12, see header comment
     rotation_period_hours       DOUBLE NOT NULL,
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
@@ -1700,6 +1725,7 @@ CREATE TABLE IF NOT EXISTS moons (
     CONSTRAINT fk_moons_star
         FOREIGN KEY (star_id) REFERENCES stars(id) ON DELETE SET NULL,
     KEY idx_moons_planet_id (planet_id),
+    KEY idx_moons_next_update_due (next_update_due),
     KEY idx_moons_star_system_id (star_system_id),
     KEY idx_moons_star_id (star_id),
     KEY idx_moons_name (name),
@@ -1848,6 +1874,8 @@ CREATE TABLE IF NOT EXISTS comets (
     velocity_x_kms              DOUBLE NOT NULL DEFAULT 0,
     velocity_y_kms              DOUBLE NOT NULL DEFAULT 0,
     velocity_z_kms              DOUBLE NOT NULL DEFAULT 0,
+    epoch_unix                  DOUBLE,  -- v66 (GEN.106), see header comment
+    next_update_due             DOUBLE,
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
     uid                   BIGINT UNSIGNED,
 
@@ -1857,6 +1885,7 @@ CREATE TABLE IF NOT EXISTS comets (
     CONSTRAINT fk_comets_star
         FOREIGN KEY (star_id) REFERENCES stars(id) ON DELETE SET NULL,
     KEY idx_comets_star_system_id (star_system_id),
+    KEY idx_comets_next_update_due (next_update_due),
     KEY idx_comets_star_id (star_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
@@ -1913,6 +1942,8 @@ CREATE TABLE IF NOT EXISTS black_holes (
     galactic_orbital_period_gy           DOUBLE,
     galactic_orbital_phase_deg           DOUBLE,
     galactic_min_update_interval_years   DOUBLE,
+    epoch_unix                  DOUBLE,  -- v66 (GEN.106), see header comment
+    next_update_due             DOUBLE,
 
     -- v21: this black hole's own galaxy-frame center -- see nebulae's
     -- identical "v18" column comment above (same shape, added here a
@@ -1937,6 +1968,7 @@ CREATE TABLE IF NOT EXISTS black_holes (
 
     UNIQUE KEY uq_black_holes_uid (uid),
     KEY idx_black_holes_name (name),  -- v40: name uniqueness lookups
+    KEY idx_black_holes_next_update_due (next_update_due),
     CONSTRAINT chk_black_holes_mass_class CHECK (mass_class IN ('stellar', 'intermediate', 'supermassive')),
     CONSTRAINT chk_black_holes_placement CHECK (
         (center_x_pc IS NULL) = (center_y_pc IS NULL) AND
@@ -1983,6 +2015,8 @@ CREATE TABLE IF NOT EXISTS neutron_stars (
     galactic_orbital_period_gy           DOUBLE,
     galactic_orbital_phase_deg           DOUBLE,
     galactic_min_update_interval_years   DOUBLE,
+    epoch_unix                  DOUBLE,  -- v66 (GEN.106), see header comment
+    next_update_due             DOUBLE,
 
     -- v21: same galaxy-frame center convention as black_holes above.
     center_x_pc         DOUBLE,
@@ -2005,6 +2039,7 @@ CREATE TABLE IF NOT EXISTS neutron_stars (
 
     UNIQUE KEY uq_neutron_stars_uid (uid),
     KEY idx_neutron_stars_name (name),  -- v40: name uniqueness lookups
+    KEY idx_neutron_stars_next_update_due (next_update_due),
     CONSTRAINT chk_neutron_stars_placement CHECK (
         (center_x_pc IS NULL) = (center_y_pc IS NULL) AND
         (center_y_pc IS NULL) = (center_z_pc IS NULL) AND
@@ -2061,6 +2096,8 @@ CREATE TABLE IF NOT EXISTS nebulae (
     galactic_orbital_period_gy           DOUBLE NOT NULL,
     galactic_orbital_phase_deg           DOUBLE NOT NULL,
     galactic_min_update_interval_years   DOUBLE NOT NULL,
+    epoch_unix                  DOUBLE,  -- v66 (GEN.106), see header comment
+    next_update_due             DOUBLE,
 
     -- v18: this nebula's own galaxy-frame center -- see this file's "v18"
     -- header note. NULL together: never placed in the galaxy (the default,
@@ -2100,6 +2137,7 @@ CREATE TABLE IF NOT EXISTS nebulae (
 
     UNIQUE KEY uq_nebulae_uid (uid),
     KEY idx_nebulae_name (name),  -- v40: name uniqueness lookups
+    KEY idx_nebulae_next_update_due (next_update_due),
 
     -- Named explicitly (unlike sectors' own identical v4 CHECK above) so
     -- `_migrate_v17_to_v18` can add the exact same constraint by name to a
@@ -2177,6 +2215,8 @@ CREATE TABLE IF NOT EXISTS supernova_remnants (
     galactic_orbital_period_gy           DOUBLE NOT NULL,
     galactic_orbital_phase_deg           DOUBLE NOT NULL,
     galactic_min_update_interval_years   DOUBLE NOT NULL,
+    epoch_unix                  DOUBLE,  -- v66 (GEN.106), see header comment
+    next_update_due             DOUBLE,
 
     -- v28: this remnant's own galaxy-frame center -- see this file's "v28"
     -- header note. NULL together: never placed in the galaxy.
@@ -2195,6 +2235,7 @@ CREATE TABLE IF NOT EXISTS supernova_remnants (
 
     UNIQUE KEY uq_supernova_remnants_uid (uid),
     KEY idx_supernova_remnants_name (name),  -- v40: name uniqueness lookups
+    KEY idx_supernova_remnants_next_update_due (next_update_due),
 
     -- v28: named explicitly -- see `nebulae`'s identical "v18" CHECK comment.
     CONSTRAINT chk_supernova_remnants_placement CHECK (
@@ -2300,6 +2341,8 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     galactic_orbital_period_gy           DOUBLE NOT NULL,
     galactic_orbital_phase_deg           DOUBLE NOT NULL,
     galactic_min_update_interval_years   DOUBLE NOT NULL,
+    epoch_unix                  DOUBLE,  -- v66 (GEN.106), see header comment
+    next_update_due             DOUBLE,
 
     -- v28: this rogue planet's own galaxy-frame center -- see this file's "v28"
     -- header note. NULL together: never placed in the galaxy.
@@ -2323,6 +2366,7 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
 
     UNIQUE KEY uq_rogue_planets_uid (uid),
     KEY idx_rogue_planets_name (name),  -- v40: name uniqueness lookups
+    KEY idx_rogue_planets_next_update_due (next_update_due),
     -- v28: named explicitly -- see `nebulae`'s identical "v18" CHECK comment.
     CONSTRAINT chk_rogue_planets_placement CHECK (
         (center_x_pc IS NULL) = (center_y_pc IS NULL) AND
@@ -2367,6 +2411,8 @@ CREATE TABLE IF NOT EXISTS interstellar_comets (
     galactic_orbital_period_gy           DOUBLE NOT NULL,
     galactic_orbital_phase_deg           DOUBLE NOT NULL,
     galactic_min_update_interval_years   DOUBLE NOT NULL,
+    epoch_unix                  DOUBLE,  -- v66 (GEN.106), see header comment
+    next_update_due             DOUBLE,
 
     -- v28: this comet's own galaxy-frame center -- see this file's "v28"
     -- header note. NULL together: never placed in the galaxy.
@@ -2399,6 +2445,7 @@ CREATE TABLE IF NOT EXISTS interstellar_comets (
     CONSTRAINT fk_interstellar_comets_sector
         FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE CASCADE,
     KEY idx_interstellar_comets_sector_id (sector_id),
+    KEY idx_interstellar_comets_next_update_due (next_update_due),
     -- v28: see the header comment's "v28" note.
     KEY idx_interstellar_comets_galactic_radius_pc (galactic_radius_pc),
     KEY idx_interstellar_comets_center (center_x_pc, center_y_pc, center_z_pc),
@@ -2452,6 +2499,8 @@ CREATE TABLE IF NOT EXISTS asteroid_fields (
     galactic_orbital_period_gy           DOUBLE NOT NULL,
     galactic_orbital_phase_deg           DOUBLE NOT NULL,
     galactic_min_update_interval_years   DOUBLE NOT NULL,
+    epoch_unix                  DOUBLE,  -- v66 (GEN.106), see header comment
+    next_update_due             DOUBLE,
 
     -- v18: this field's own galaxy-frame center -- see schema.sql's "v18"
     -- header note. NULL together: never placed in the galaxy.
@@ -2484,6 +2533,7 @@ CREATE TABLE IF NOT EXISTS asteroid_fields (
     CONSTRAINT fk_asteroid_fields_sector
         FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE SET NULL,
     KEY idx_asteroid_fields_sector_id (sector_id),
+    KEY idx_asteroid_fields_next_update_due (next_update_due),
     KEY idx_asteroid_fields_galactic_radius_pc (galactic_radius_pc),
     -- v26: see black_holes' identical "v26" index comment above.
     KEY idx_asteroid_fields_center (center_x_pc, center_y_pc, center_z_pc),
@@ -2634,12 +2684,15 @@ CREATE TABLE IF NOT EXISTS facilities (
     orbit_period_years   DOUBLE,
     orbital_speed_kms    DOUBLE,
     orbit_phase_deg      DOUBLE,
+    epoch_unix           DOUBLE,  -- v66 (GEN.106), see header comment
+    next_update_due      DOUBLE,
     description          TEXT,
 
     created_at           TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_at          TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
 
     KEY idx_facilities_star_system (star_system_id),
+    KEY idx_facilities_next_update_due (next_update_due),
     KEY idx_facilities_sector (sector_id),
     KEY idx_facilities_name (name),
     CONSTRAINT chk_facilities_kind CHECK (kind IN ('colony', 'outpost', 'mining-colony', 'station', 'starbase')),
