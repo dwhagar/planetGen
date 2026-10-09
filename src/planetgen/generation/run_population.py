@@ -9,6 +9,7 @@ what is already stored (`planetgen.population.model`), also run after a
 `sector` or `galaxy` run given `--population`.
 """
 
+from planetgen.cli.stage_progress import StageProgress
 from planetgen.queue import work as workQueue
 from planetgen.db import store
 from planetgen.population import model
@@ -34,7 +35,9 @@ def run_population(args):
     """
     conn = store.get_connection(store.mysql_config_from_args(args))
     try:
-        counts = model.run_pass(conn, rescan=args.rescan, territories_only=args.territories_only)
+        with StageProgress(model.pass_stage_count(args.territories_only)) as bar:
+            counts = model.run_pass(conn, rescan=args.rescan, territories_only=args.territories_only,
+                                    on_stage=bar.stage)
     finally:
         conn.close()
     log.normal(f"Population: {_population_summary(counts)}")
@@ -48,7 +51,8 @@ def run_population_after(args):
     conn = store.get_connection(store.mysql_config_from_args(args))
     try:
         with workQueue.job_node("population", "Population pass"):
-            counts = model.run_pass(conn)
+            with StageProgress(model.pass_stage_count()) as bar:
+                counts = model.run_pass(conn, on_stage=bar.stage)
     finally:
         conn.close()
     log.normal(f"Population: {_population_summary(counts)}")

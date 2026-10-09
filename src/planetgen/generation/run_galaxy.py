@@ -389,10 +389,13 @@ def link_after_run(args, started_at):
         with run_common._generation_progress() as progress:
             log.set_console(progress.console)
             try:
-                task = progress.add_task("Neighbours", total=len(created))
+                task = progress.add_task("Neighbours", total=len(created) * store.LINK_PHASES)
 
-                def on_progress(done, total):
-                    progress.update(task, total=total, completed=done)
+                def on_progress(done, total, step=""):
+                    # Never back: a batch retried after a deadlock repeats its steps.
+                    completed = max(done, progress.tasks[task].completed)
+                    progress.update(task, total=total, completed=completed,
+                                    description="Neighbours" + (f" ({step})" if step else ""))
 
                 linked = store.link_sector_neighbors(config, created, on_progress)
             finally:

@@ -257,7 +257,7 @@ def resolve_claims(polities, systems):
 # Database pass
 # ---------------------------------------------------------------------------
 
-def run_pass(conn, rescan=False, territories_only=False):
+def run_pass(conn, rescan=False, territories_only=False, on_stage=None):
     """
     The whole population pass, committed as it goes: scan new life
     worlds, refresh eras and polities, recompute territories.
@@ -267,13 +267,15 @@ def run_pass(conn, rescan=False, territories_only=False):
         rescan (bool): Forget every species (and with them every polity
             and territory) and scan every planet again.
         territories_only (bool): Skip straight to recomputing territories.
+        on_stage (callable, optional): `on_stage(description)` as each of
+            the pass's `pass_stage_count` steps starts (UX.83's bar).
 
     Returns:
         dict: Counts -- `new_species`, `species`, `spacefaring`,
             `polities`, `owned_systems`.
     """
     with _one_pass_at_a_time(conn):
-        return _run_pass(conn, rescan, territories_only)
+        return _run_pass(conn, rescan, territories_only, on_stage)
 
 
 def _pass_lock_name(conn):
@@ -315,16 +317,29 @@ def _one_pass_at_a_time(conn):
             pass
 
 
-def _run_pass(conn, rescan, territories_only):
+def pass_stage_count(territories_only=False):
+    """How many steps `run_pass` announces through `on_stage`."""
+    return 1 if territories_only else 4
+
+
+def _run_pass(conn, rescan, territories_only, on_stage=None):
+    def stage(description):
+        if on_stage is not None:
+            on_stage(description)
+
     new_species = 0
     if not territories_only:
+        stage("Population: scanning life worlds")
         if rescan:
             with conn:
                 conn.execute("DELETE FROM species")
                 conn.execute("DELETE FROM population_state")
         new_species = scan_life_worlds(conn)
+        stage("Population: dropping species without a civilization")
         drop_species_without_civilization(conn)
+        stage("Population: dating civilizations and founding polities")
         refresh_civilizations(conn)
+    stage("Population: recomputing territories")
     owned = refresh_territories(conn)
     counts = conn.execute(
         "SELECT COUNT(*) AS species, COALESCE(SUM(spacefaring), 0) AS spacefaring FROM species"
