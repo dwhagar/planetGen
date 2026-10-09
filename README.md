@@ -200,7 +200,8 @@ Each runs as `python3 -m <module>`; `--help` shows its options:
 | [docs/TODO.md](docs/TODO.md) | Open work, and the index of the phase plans |
 | [docs/plan/](docs/plan/) | The phase plans: order, dependencies and research notes for each phase of the open work |
 | [docs/plan/tier-plan.html](docs/plan/tier-plan.html) | Every open item by phase, lane and dependency, as one page to open in a browser |
-| [docs/plan/todo-reference.html](docs/plan/todo-reference.html) | Every TODO ID ever issued, explained in full, with search and filters (both pages are rebuilt by `python scripts/build_todo_docs.py`) |
+| [docs/plan/todo-tree.html](docs/plan/todo-tree.html) | Every open item as a tree, each under the prerequisite that finishes last, with search and phase and bug filters |
+| [docs/plan/todo-reference.html](docs/plan/todo-reference.html) | Every TODO ID ever issued, explained in full, with search and filters (all three pages are rebuilt by `python scripts/build_todo_docs.py`) |
 | [docs/testing.md](docs/testing.md) | Running the tests |
 | [CHANGELOG.md](CHANGELOG.md) | What changed in each release |
 
