@@ -458,7 +458,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.10 | Repair reads the newest settings JSON and the pending deltas | none | open |
 | DB.11 | The database layer and migrations on SQLAlchemy and Alembic | none | done, PR #751 |
 | DB.12 | MariaDB reads a stored -0.0 back as +0.0 (bug) | none | done, PR #442 |
-| DB.13 | Every stored value in its own column, not in JSON blocks, and indexed for search | none | open |
+| DB.13 | Every stored value in its own column, not in JSON blocks, and indexed for search | none | done, PR #766 |
 | DB.14 | Sector stats keep the raw star statistics (mean age, summed luminosity, star count) and no baked color | none | done, PR #556 |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
