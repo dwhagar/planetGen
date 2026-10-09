@@ -2656,84 +2656,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   flake. Not a Phase 1 blocker.
   Prerequisites: none.
 
-- [ ] **GEN.166 A mass_range argument on NeutronStar and BlackHole, and intermediate-mass black holes as their own kind**
-  Research (2026-10-09, phenomenon-scatter-mass-cut.md, PR #837; handoff
-  in /mnt/project-files/research/handoff/phenomenon-mass-cut.md): Boss
-  decided at 19:54Z that the GEN.100 scatter keeps only objects above a
-  lowest mass and the sector fill draws the rest below it, like the
-  bright stars. Add `mass_range` to `NeutronStar` and `BlackHole`
-  (compact_remnant.py, about lines 262 and 464) so a draw can be limited
-  to a mass interval. Make intermediate-mass black holes (100 to 100,000
-  solar masses) a kind of their own, with rates 0.999 r and 0.001 r of
-  the black-hole rate r.
-  Boss (2026-10-09): Decided by Boss (2026-10-09 20:28Z, via the
-  coordinator): ONE combined reseed. Lazy names (PERF.43) and the 20
-  solar mass cut (GEN.166 to GEN.168) change what a given seed
-  generates, and that one-time seed change lands with these two
-  together, not in separate steps. Whichever lands first must not claim
-  the reseed alone; the second says so in its changes note.
-  Prerequisites: none.
-  Design: [docs/design/phenomenon-scatter-mass-cut.md](design/phenomenon-scatter-mass-cut.md)
-
-- [ ] **GEN.167 A lowest-mass option for the phenomenon scatter: --phenomenon-min-mass, default 20 solar masses**
-  Research (2026-10-09, phenomenon-scatter-mass-cut.md, PR #837; handoff
-  in /mnt/project-files/research/handoff/phenomenon-mass-cut.md): Boss
-  decided at 19:54Z that the GEN.100 scatter keeps only objects above a
-  lowest mass and the sector fill draws the rest below it, like the
-  bright stars. Add `--phenomenon-min-mass` (default 20 solar masses,
-  the cut Boss accepted), stored with the scatter settings, the settings
-  file and the reproducibility key; the scatter draws only objects above
-  it. The per-kind mean counts are truncated by the share S_k(c) above
-  the cut c: neutron stars (2.2 - c) / 1.1, stellar-mass black holes (20
-  - c) / 15, intermediate-mass black holes ln(1e5 / c) / ln(1e3). At 20
-  solar masses the table falls from 1.17e9 rows (161 GB) to about 2.7e5
-  rows (37 MB).
-  Boss (2026-10-09): Decided by Boss (2026-10-09 20:28Z, via the
-  coordinator): ONE combined reseed. Lazy names (PERF.43) and the 20
-  solar mass cut (GEN.166 to GEN.168) change what a given seed
-  generates, and that one-time seed change lands with these two
-  together, not in separate steps. Whichever lands first must not claim
-  the reseed alone; the second says so in its changes note.
-  Requirement (2026-10-09, phenomenon-scatter-mass-cut.md): seeding
-  requirement (Research Lane 1): a plan with no stored cut means no cut
-  (NULL is 0), so old plans keep working; the cut is stored in
-  `galaxy_shape` beside `phenomenon_scatter_seed`.
-  Prerequisite: GEN.166.
-  Design: [docs/design/phenomenon-scatter-mass-cut.md](design/phenomenon-scatter-mass-cut.md)
-
-- [ ] **GEN.168 The sector fill draws the phenomena below the scatter cut**
-  Research (2026-10-09, phenomenon-scatter-mass-cut.md, PR #837; handoff
-  in /mnt/project-files/research/handoff/phenomenon-mass-cut.md): Boss
-  decided at 19:54Z that the GEN.100 scatter keeps only objects above a
-  lowest mass and the sector fill draws the rest below it, like the
-  bright stars. When a sector is made, draw the neutron stars and black
-  holes below the cut: a per-sector stream, Poisson thinning with the
-  scatter's expected-star count, a level per sector, and a band top-up
-  when the cut is lowered (the `run_plan._draw_sector_bands` pattern
-  used for the bright stars).
-  Boss (2026-10-09): Decided by Boss (2026-10-09 20:28Z, via the
-  coordinator): ONE combined reseed. Lazy names (PERF.43) and the 20
-  solar mass cut (GEN.166 to GEN.168) change what a given seed
-  generates, and that one-time seed change lands with these two
-  together, not in separate steps. Whichever lands first must not claim
-  the reseed alone; the second says so in its changes note.
-  Requirement (2026-10-09, phenomenon-scatter-mass-cut.md): seeding
-  requirements (Research Lane 1): the below-cut draw uses its own
-  per-sector sub-stream, not the sector's sequential stream; every
-  sector filled before the reseed counts as complete (level 0), so a
-  band top-up never redraws below-cut objects there; an old stored
-  `black-hole` row rebuilt by the new intermediate-mass-split
-  constructor (GEN.166) may no longer come out intermediate-mass, so
-  either keep the legacy path for rows from a NULL-cut plan or say so in
-  the changes note. Keeping already filled sectors across the reseed
-  needs this and GEN.167's NULL rule; the alternative recommended to
-  Boss is to land the combined reseed, then reset and re-plan.
-  Test (2026-10-09): a test fills a sector before the cut exists and
-  checks that the later top-up draws nothing below the cut there, and a
-  second test checks the below-cut stream is independent of read order.
-  Prerequisite: GEN.167.
-  Design: [docs/design/phenomenon-scatter-mass-cut.md](design/phenomenon-scatter-mass-cut.md)
-
 - [ ] **GEN.169 Decide the phenomenon scatter rates: regional factors and the 0.1% intermediate-mass black holes**
   Research (2026-10-09, phenomenon-scatter-mass-cut.md, PR #837; handoff
   in /mnt/project-files/research/handoff/phenomenon-mass-cut.md): Boss
@@ -3255,7 +3177,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Prerequisite: DB.15.
   Design: [docs/design/db-check-and-parity-repair.md](design/db-check-and-parity-repair.md)
 
-- [ ] **DB.19 Phenomenon rows: implement the mass cut (1.17 billion rows and 161 GB become about 2.7e5 rows)**
+- [ ] **DB.19 Compact or derive phenomenon rows (needed only if the mass cut is lowered to 10 solar masses or less)**
   Research (2026-10-09, phenomenon-scatter-mass-cut.md, PR #837, after
   generation-performance-study.md, PR #835): the default galaxy would write
   about 1.17e9 phenomenon rows (138 bytes a row, about 161 GB, 43 times the
@@ -3263,11 +3185,14 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Boss decided (2026-10-09 19:54Z) that the scatter keeps only objects above
   a lowest mass and the sector fill draws the rest below it, like the bright
   stars. Boss accepted the cut of 20 solar masses (decision
-  card, 2026-10-09). The work is GEN.166, GEN.167 and GEN.168.
-  Deriving neutron stars and black holes on demand, or compacting the row,
+  card, 2026-10-09). The cut is built (GEN.166 to GEN.168, PR #866,
+  2026-10-09): the scatter keeps objects above 20 solar masses and the
+  sector fill draws the rest. Same seed now gives a different galaxy from
+  PERF.43 (PR #861) and PR #866 together, the one combined reseed. Caveat
+  from the PR: an old black-hole row rebuilt by the new code can come
+  out intermediate-mass. Deriving neutron stars and black holes on demand, or compacting the row,
   is needed only if the cut is lowered to 10 solar masses or less. The
   notes' earlier 1.6e8 rows was an unverified estimate, not a result.
-  Prerequisite: GEN.167.
   Design: [docs/design/phenomenon-scatter-mass-cut.md](design/phenomenon-scatter-mass-cut.md)
   Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
 
