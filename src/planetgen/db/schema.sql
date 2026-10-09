@@ -968,6 +968,12 @@
 --   in place from the same galaxy seed gives the same IDs. `store.assign_uids`
 --   writes them after a sector or system is saved.
 --
+-- v59: `idx_bright_stars_population (population, off_plane, luminosity_w)`
+--   replaces v57's `idx_bright_stars_off_plane`: the Galaxy Map picks a
+--   tile's bright stars from each population in turn, so the old giants
+--   of the bulge and the thick disk are listed beside the young blue
+--   stars that outshine them (`queryDb.galaxy_brightest_stars`).
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -1014,6 +1020,7 @@
 --     and `utf8mb4`/`utf8mb4_unicode_ci` (full Unicode, including
 --     generated names/flavor text outside the Basic Multilingual Plane,
 --     rather than MySQL's legacy 3-byte `utf8`).
+
 
 -- v39: star_systems and several phenomenon tables point at nebulae and
 -- supernova_remnants, which are created further down, so foreign key
@@ -2617,7 +2624,7 @@ CREATE TABLE IF NOT EXISTS bright_stars (
 
     KEY idx_bright_stars_address (ring_index, layer_index, ring_slot_index),
     KEY idx_bright_stars_luminosity (luminosity_w),
-    KEY idx_bright_stars_off_plane (off_plane, luminosity_w),
+    KEY idx_bright_stars_population (population, off_plane, luminosity_w),
     CONSTRAINT chk_bright_stars_population CHECK (population IN ('young', 'intermediate', 'old', 'bulge')),
     CONSTRAINT fk_bright_stars_system
         FOREIGN KEY (star_system_id) REFERENCES star_systems(id) ON DELETE SET NULL

@@ -41,7 +41,7 @@ from planetgen.db.store import escape_like, get_connection, get_galaxy_bounds, g
 from planetgen.physics import constants
 from planetgen import tuning
 from planetgen.generation.star import compressed_heliosphere_radius
-from planetgen.generation.bright_stars import MPC_PER_PC
+from planetgen.generation.bright_stars import MPC_PER_PC, POPULATIONS as BRIGHT_STAR_POPULATIONS
 from planetgen._version import __version__
 from planetgen.galaxy.density import shape_with_terms
 from planetgen.galaxy.geometry import (
@@ -3183,7 +3183,7 @@ def _bright_star_entry(row):
         "z": row["position_z_mpc"] / MPC_PER_PC,
         "luminosity_sol": row["luminosity_w"] / constants.SOLAR_LUMINOSITY,
         "temperature_k": row["temperature_k"], "radius_sol": _radius_sol(row["radius_km"]),
-        "star_type": row["star_type"],
+        "star_type": row["star_type"], "population": row["population"],
         "yerkes_class": row["yerkes_class"], "ring_index": row["ring_index"],
         "layer_index": row["layer_index"], "ring_slot_index": row["ring_slot_index"],
         "system_id": row["star_system_id"],
@@ -3213,7 +3213,7 @@ def bright_stars_in_sector(conn, ring_index, layer_index, ring_slot_index, unfil
     rows = conn.execute(
         f"""
         SELECT id, position_x_mpc, position_y_mpc, position_z_mpc, luminosity_w, temperature_k, radius_km,
-               star_type, yerkes_class, ring_index, layer_index, ring_slot_index, star_system_id
+               star_type, population, yerkes_class, ring_index, layer_index, ring_slot_index, star_system_id
         FROM bright_stars
         WHERE ring_index = ? AND layer_index = ? AND ring_slot_index = ?{unfilled}
         ORDER BY luminosity_w DESC, id
@@ -3223,33 +3223,77 @@ def bright_stars_in_sector(conn, ring_index, layer_index, ring_slot_index, unfil
     return [_bright_star_entry(row) for row in rows]
 
 
+def _stratified(stars, limit):
+    """
+    At most `limit` of `stars`, an equal share from each population: the
+    most luminous of each, a population with fewer than its share leaving
+    the rest to the others. Ranking all of them by luminosity alone puts
+    the young blue stars first and leaves no room for the old giants of
+    the bulge and the thick disk, which top out near 2,500 Lsun while a
+    young star reaches a million.
+
+    Returns:
+        list[dict]: Most luminous first (ties by descending id).
+    """
+    groups = {}
+    for star in sorted(stars, key=lambda star: (-star["luminosity_sol"], -star["id"])):
+        groups.setdefault(star["population"], []).append(star)
+    picks, remaining = [], limit
+    # Smallest group first, so what it leaves unused is shared by the rest.
+    pending = sorted(groups.values(), key=len)
+    for index, group in enumerate(pending):
+        share = -(-remaining // (len(pending) - index))
+        picks += group[:share]
+        remaining -= min(len(group), share)
+    picks.sort(key=lambda star: (-star["luminosity_sol"], -star["id"]))
+    return picks
+
+
 def galaxy_brightest_stars(conn, count=GALAXY_TILE_BRIGHTEST_SAMPLE):
     """
-    The galaxy's most luminous bright stars, most luminous first (ties by
-    descending id) -- `galaxy_tiles`' sample for tiles too big to query on
-    their own. Two walks down `idx_bright_stars_off_plane`: the `count`
-    brightest on the plane and the `count // 2` brightest 250 pc or more
-    off it (GEN.117), so the old giants above and below the plane aren't
-    left out by the plane's luminous young stars.
+    The galaxy's most luminous bright stars of each population, most
+    luminous first (ties by descending id) -- `galaxy_tiles`' sample for
+    tiles too big to query on their own. One walk down
+    `idx_bright_stars_population` per population and height: the `count`
+    stars on the plane, split equally among the four populations, and half
+    as many 250 pc or more off it (GEN.117). Ranked together by
+    luminosity, the sample held only young stars: the old giants of the
+    bulge and the thick disk never reach the luminosity of the young
+    ones, so the bulge and everything off the plane's thin young layer
+    were missing from every zoomed-out tile.
 
     Returns:
         list[dict]: As `galaxy_bright_stars_in_box`.
     """
-    picks = []
-    for off_plane, limit in ((0, int(count)), (1, int(count) // 2)):
-        picks += [
+    def top(population, off_plane, limit):
+        return [
             _bright_star_entry(row) for row in conn.execute(
                 """
-                SELECT id, position_x_mpc, position_y_mpc, position_z_mpc, luminosity_w, temperature_k, radius_km,
-                       star_type, yerkes_class, ring_index, layer_index, ring_slot_index, star_system_id
-                FROM bright_stars FORCE INDEX (idx_bright_stars_off_plane)
-                WHERE off_plane = ?
+                SELECT id, position_x_mpc, position_y_mpc, position_z_mpc, luminosity_w, temperature_k,
+                       radius_km, star_type, population, yerkes_class, ring_index, layer_index,
+                       ring_slot_index, star_system_id
+                FROM bright_stars FORCE INDEX (idx_bright_stars_population)
+                WHERE population = ? AND off_plane = ?
                 ORDER BY luminosity_w DESC, id DESC
                 LIMIT ?
                 """,
-                (off_plane, limit),
+                (population, off_plane, limit),
             ).fetchall()
         ]
+
+    picks = []
+    for off_plane, total in ((0, int(count)), (1, int(count) // 2)):
+        limits = {population: -(-total // len(BRIGHT_STAR_POPULATIONS)) for population in BRIGHT_STAR_POPULATIONS}
+        found = {population: top(population, off_plane, limit) for population, limit in limits.items()}
+        # A population short of its share leaves the rest to those that
+        # filled theirs, once.
+        spare = total - sum(len(stars) for stars in found.values())
+        full = [population for population, stars in found.items() if len(stars) >= limits[population]]
+        if spare >= len(full) > 0:
+            for population in full:
+                found[population] = top(population, off_plane, limits[population] + spare // len(full))
+        for stars in found.values():
+            picks += stars
     picks.sort(key=lambda star: (-star["luminosity_sol"], -star["id"]))
     return picks
 
@@ -3295,25 +3339,31 @@ def galaxy_bright_stars_in_box(conn, lo, hi, edge_pc, limit=GALAXY_TILE_MAX_BRIG
     """
     bands = _height_bands(lo, hi)
     if len(bands) == 1:
-        return _galaxy_bright_stars_in_band(conn, lo, hi, edge_pc, limit, unfilled_only, brightest)
+        return _galaxy_bright_stars_in_band(conn, lo, hi, edge_pc, limit, unfilled_only, brightest,
+                                            off_plane=0 if bands[0][2] else 1)
     off = [band for band in bands if not band[2]]
     share = int(limit * BRIGHT_STAR_OFF_PLANE_SHARE) // max(1, len(off))
     picks = []
     for band_lo, band_hi, on_plane in bands:
         if not on_plane:
-            picks += _galaxy_bright_stars_in_band(conn, band_lo, band_hi, edge_pc, share, unfilled_only, brightest)
+            picks += _galaxy_bright_stars_in_band(conn, band_lo, band_hi, edge_pc, share, unfilled_only, brightest,
+                                                  off_plane=1)
     plane = [band for band in bands if band[2]]
     room = limit - len(picks)
     for band_lo, band_hi, _on in plane:
-        picks += _galaxy_bright_stars_in_band(conn, band_lo, band_hi, edge_pc, room, unfilled_only, brightest)
+        picks += _galaxy_bright_stars_in_band(conn, band_lo, band_hi, edge_pc, room, unfilled_only, brightest,
+                                              off_plane=0)
     picks.sort(key=lambda star: (-star["luminosity_sol"], -star["id"]))
     return picks[:limit]
 
 
-def _galaxy_bright_stars_in_band(conn, lo, hi, edge_pc, limit, unfilled_only, brightest):
+def _galaxy_bright_stars_in_band(conn, lo, hi, edge_pc, limit, unfilled_only, brightest, off_plane):
     """
     The most luminous pre-placed bright stars in the box `[lo, hi)`, at
-    most `limit`, with no height banding (`galaxy_bright_stars_in_box`).
+    most `limit`, with no height banding (`galaxy_bright_stars_in_box`):
+    `off_plane` says which band the box is in (1 for 250 pc or more off
+    the plane). The picks are an equal share from each population, the
+    most luminous of each (`_stratified`).
 
     `bright_stars` is indexed by address and by luminosity, not by
     position, so the box is turned into address ranges: one per ring and
@@ -3385,40 +3435,51 @@ def _galaxy_bright_stars_in_band(conn, lo, hi, edge_pc, limit, unfilled_only, br
             if all(math.ceil(lo[a] * MPC_PER_PC) <= round(star[k] * MPC_PER_PC) < math.ceil(hi[a] * MPC_PER_PC)
                    for a, k in enumerate(("x", "y", "z"))):
                 found.append(star)
-                if len(found) >= limit:
-                    break
-        return found
+        return _stratified(found, limit)
 
-    clauses, params = [], []
+    columns = ("id, position_x_mpc, position_y_mpc, position_z_mpc, luminosity_w, temperature_k, radius_km, "
+               "star_type, population, yerkes_class, ring_index, layer_index, ring_slot_index, star_system_id")
     # Both keys descending, so the luminosity path walks its index
     # backwards and stops at `limit`: with `id` ascending MariaDB and MySQL
     # sort every star in the box first, millions in a zoomed-out tile.
     order = "luminosity_w DESC, id DESC"
     if by_luminosity < by_address:
-        where, index = box, "idx_bright_stars_luminosity"
-    else:
-        exact = sum(t - b + 1 for _r, b, t in bands) <= BRIGHT_STAR_MAX_EXACT_RANGES
-        for ring, bottom, top in bands:
-            slots = _ring_slot_ranges(ring, intervals)
-            slot_test = " OR ".join("ring_slot_index BETWEEN ? AND ?" for _ in slots)
-            slot_params = [v for pair in slots for v in pair]
-            layers = [(layer, layer) for layer in range(bottom, top + 1)] if exact else [(bottom, top)]
-            for first, last in layers:
-                clauses.append(f"(ring_index = ? AND layer_index BETWEEN ? AND ? AND ({slot_test}))")
-                params += [ring, first, last] + slot_params
-        where, index = "(" + " OR ".join(clauses) + ") AND " + box, "idx_bright_stars_address"
+        # One walk per population down (population, off_plane, luminosity),
+        # each stopping at `limit`: a single walk down the luminosity index
+        # would meet only young stars (`_stratified`).
+        selects, params = [], []
+        for population in BRIGHT_STAR_POPULATIONS:
+            selects.append(
+                f"(SELECT {columns} FROM bright_stars FORCE INDEX (idx_bright_stars_population) "
+                f"WHERE population = ? AND off_plane = ? AND {box} ORDER BY {order} LIMIT ?)")
+            params += [population, off_plane] + box_params + [int(limit)]
+        rows = conn.execute(" UNION ALL ".join(selects), params).fetchall()
+        return _stratified([_bright_star_entry(row) for row in rows], limit)
+    clauses, params = [], []
+    exact = sum(t - b + 1 for _r, b, t in bands) <= BRIGHT_STAR_MAX_EXACT_RANGES
+    for ring, bottom, top in bands:
+        slots = _ring_slot_ranges(ring, intervals)
+        slot_test = " OR ".join("ring_slot_index BETWEEN ? AND ?" for _ in slots)
+        slot_params = [v for pair in slots for v in pair]
+        layers = [(layer, layer) for layer in range(bottom, top + 1)] if exact else [(bottom, top)]
+        for first, last in layers:
+            clauses.append(f"(ring_index = ? AND layer_index BETWEEN ? AND ? AND ({slot_test}))")
+            params += [ring, first, last] + slot_params
+    # The address path reads the box's stars once and keeps the `limit`
+    # most luminous of each population.
     rows = conn.execute(
         f"""
-        SELECT id, position_x_mpc, position_y_mpc, position_z_mpc, luminosity_w, temperature_k, radius_km,
-               star_type, yerkes_class, ring_index, layer_index, ring_slot_index, star_system_id
-        FROM bright_stars FORCE INDEX ({index})
-        WHERE {where}
-        ORDER BY {order}
-        LIMIT ?
+        SELECT * FROM (
+            SELECT {columns},
+                   ROW_NUMBER() OVER (PARTITION BY population ORDER BY {order}) AS rank_in_population
+            FROM bright_stars FORCE INDEX (idx_bright_stars_address)
+            WHERE ({" OR ".join(clauses)}) AND {box}
+        ) ranked
+        WHERE rank_in_population <= ?
         """,
         params + box_params + [int(limit)],
     ).fetchall()
-    return [_bright_star_entry(row) for row in rows]
+    return _stratified([_bright_star_entry(row) for row in rows], limit)
 
 
 GALAXY_TILE_MAX_GENERATED_STARS = 1000
