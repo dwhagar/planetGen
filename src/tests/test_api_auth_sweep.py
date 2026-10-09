@@ -45,7 +45,7 @@ from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.system import StarSystem
 
 from tests.test_fuzz_web_routes import csrf_pair, session_of
-from tests.test_two_factor import _now_code
+from tests.test_two_factor import _now_code, _one_totp_step  # noqa: F401 (the autouse clock pin)
 
 PASSWORD_A = "violet-orbit-ledger-91"
 PASSWORD_B = "amber-comet-harbor-42"
