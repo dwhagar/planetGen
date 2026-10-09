@@ -27,7 +27,10 @@ from planetgen import tuning
 
 def _sech2_profile(z_pc, scale_pc):
     """A sech^2 layer's density at height `z_pc`, normalized to a unit column."""
-    return 1.0 / math.cosh(z_pc / (2.0 * scale_pc)) ** 2 / (4.0 * scale_pc)
+    x = abs(z_pc) / (2.0 * scale_pc)
+    if x > 300.0:
+        return 0.0
+    return 1.0 / math.cosh(x) ** 2 / (4.0 * scale_pc)
 
 
 def vertical_factor(kind, z_pc, thin_height_pc):
