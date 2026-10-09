@@ -200,8 +200,9 @@ def test_hill_radius_scales_with_the_cube_root_of_mass_ratio():
     heavy_star = hill_stub(1.0, 8e24, constants.SOLAR_MASS_TO_KG * 8)
     for planet in (light, heavy, heavy_star):
         planets.update_hill_sphere(planet)
-    assert heavy.hill_radius == pytest.approx(2 * light.hill_radius)
-    assert heavy_star.hill_radius == pytest.approx(light.hill_radius)
+    # The pair's total mass (GEN.138) differs from the star's alone by parts per million.
+    assert heavy.hill_radius == pytest.approx(2 * light.hill_radius, rel=1e-4)
+    assert heavy_star.hill_radius == pytest.approx(light.hill_radius, rel=1e-4)
 
 
 def test_update_hill_sphere_tracks_a_moved_planet(star):

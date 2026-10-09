@@ -155,3 +155,12 @@ def test_a_command_runs_here_without_redis(monkeypatch):
     monkeypatch.setattr(api_jobs, "submit", down)
     done = api_jobs.command_and_wait([sys.executable, "-c", "print(7)"], None, None, 30, merge_stderr=True)
     assert done["stdout"].strip() == "7"
+
+
+def test_a_deeply_nested_json_body_is_a_400_not_a_500(admin_client):
+    """API.20: a 100,000-deep body, well under MAX_CONTENT_LENGTH, used to escape as a RecursionError."""
+    deep = "[" * 100_000 + "]" * 100_000
+    for path in ("/api/sectors/1/generate-neighborhood", "/api/sectors"):
+        response = admin_client.post(path, data=deep, content_type="application/json")
+        assert response.status_code == 400, path
+        assert "nested too deeply" in response.get_json()["error"]

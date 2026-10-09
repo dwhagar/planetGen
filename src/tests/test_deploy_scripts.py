@@ -510,3 +510,15 @@ def test_the_update_leaves_a_stopped_apache_alone(tmp_path):
 def test_a_failed_reload_falls_back_to_printing_the_command(tmp_path):
     proc, _calls = _run_reload(tmp_path, active=True, restart=0, fail=True)
     assert proc.returncode == 1 and "failed" in proc.stderr
+
+
+def test_every_macos_plist_is_well_formed_xml():
+    """OPS.32: `--` inside the header comment made the update plist invalid, and the installer's `|| true` hid it."""
+    import glob
+    import plistlib
+
+    plists = sorted(glob.glob(os.path.join(os.path.dirname(__file__), "..", "..", "examples", "macos", "*.plist")))
+    assert plists
+    for path in plists:
+        with open(path, "rb") as handle:
+            assert isinstance(plistlib.load(handle), dict), path

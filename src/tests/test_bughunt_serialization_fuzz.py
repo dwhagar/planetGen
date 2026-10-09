@@ -124,7 +124,8 @@ _STAR_TYPES = ["M5V", "K2V", "G2V", "F5V", "A1V", "B3V", "O5V"]
 # property, which draws it on first read from `_name_seed` (PERF.43).
 _RUNTIME_ONLY = {
     Star: {"system_config", "galactic_center_dist_ly", "spatial", "_name", "_name_seed"},
-    Planet: {"system_config", "star", "moons", "spatial", "_staged_au", "_staged_velocity_kms"},
+    Planet: {"system_config", "star", "moons", "spatial", "_staged_au", "_staged_velocity_kms",
+             "primary_mass_kg"},
     AsteroidBelt: {"system_config", "composition"},
 }
 

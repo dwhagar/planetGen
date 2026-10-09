@@ -161,3 +161,40 @@ def test_a_parallel_scatter_places_the_same_stars_as_a_serial_one(mysql_config, 
     assert serial["total"] == parallel["total"] == len(serial_rows) > 20
     assert serial["counts"] == parallel["counts"]
     assert _stored_stars(mysql_config) == serial_rows
+
+
+def test_the_early_eta_of_a_many_worker_run_is_not_inflated():
+    """PERF.37: 4 workers each take 10 s per task (staggered by half a second), 100 tasks in all, so the true
+    pace is 0.4 per second. The first-completion running average read 2.8 times the true time left at 5 done,
+    2.1 at 10 and 1.4 at 25; decayed sums read 1.6, 1.2 and 1.1."""
+    rate, clock = _rate()
+    events = sorted(10.0 * n + 0.5 * k for k in range(4) for n in range(1, 26))
+    ratios = {}
+    for done, when in enumerate(events, start=1):
+        clock.now = when
+        rate.add(1)
+        if done in (5, 10, 25, 50):
+            ratios[done] = rate.eta(100 - done) / ((100 - done) / 4 * 10.0)
+    assert ratios[5] < 1.7 and ratios[10] < 1.25 and ratios[25] < 1.15 and ratios[50] < 1.05
+    assert ratios[5] > ratios[10] > ratios[25] > ratios[50] > 0.95
+
+
+def test_several_workers_finishing_together_read_the_true_pace():
+    rate, clock = _rate()
+    for batch in range(1, 6):
+        clock.now = 10.0 * batch
+        for _ in range(4):
+            rate.add(1)
+    assert rate.rate == pytest.approx(0.4)
+
+
+def test_workers_finishing_a_moment_apart_read_close_to_the_same_as_together():
+    together, together_clock = _rate()
+    apart, apart_clock = _rate()
+    for batch in range(1, 6):
+        together_clock.now = 10.0 * batch
+        for _ in range(4):
+            together.add(1)
+        for offset in (0.0, 0.01, 0.02, 0.03):
+            apart.add(1, now=10.0 * batch + offset - 0.03)
+    assert apart.rate == pytest.approx(together.rate, rel=0.08)
