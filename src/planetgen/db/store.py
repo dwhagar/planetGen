@@ -4375,12 +4375,22 @@ def _add_sector_to_nearest(conn, sector_id):
     new sector's systems are enough.
     """
     refresh_nearest_systems(conn, [sector_id])
-    own = _sector_centers(conn, [sector_id])
+    _merge_into_neighbors(conn, [sector_id])
+
+
+def _merge_into_neighbors(conn, sector_ids, skip=()):
+    """
+    Merges the systems of `sector_ids` into the nearest-system lists of the
+    objects in the sectors around them (not those in `sector_ids` or
+    `skip`, which `refresh_nearest_systems` computes whole).
+    """
+    own = _sector_centers(conn, sector_ids)
     if not own:
         return
     half_diagonal = _edge_pc(conn) * math.sqrt(3) / 2
     near = _sectors_near(conn, own, 2 * half_diagonal + NEAREST_SYSTEMS_SEARCH_PC)
-    near.pop(sector_id, None)
+    for sector_id in (*sector_ids, *skip):
+        near.pop(sector_id, None)
     if not near:
         return
     new_systems = [(system_id, point) for system_id, _sector, point in _placed_systems(conn, own)]
@@ -4397,6 +4407,48 @@ def _add_sector_to_nearest(conn, sector_id):
             changed[key] = merged
             sectors[key] = other_sector
     _write_nearest(conn, changed, sectors)
+
+
+LINK_BATCH_SECTORS = 200
+"""int: Sectors `link_sector_neighbors` links in one transaction."""
+
+
+def link_sector_neighbors(config, sector_ids, on_progress=None):
+    """
+    PERF.45: the neighbour step of saving sectors, done once for many (a
+    `galaxy` run saves its sectors with `link_neighbors=False` and links
+    them here at its end): containment in nebulae and remnants, each
+    object's nearest systems and quadrant, and the new systems merged into
+    the lists of the already-linked sectors around. Done in batches of
+    `LINK_BATCH_SECTORS`, each a transaction under the neighbor lock (so an
+    on-demand sector saved meanwhile is not missed), retried on a deadlock.
+    The result equals linking each sector as it was saved.
+
+    Args:
+        config (MySQLConfig): Connection parameters.
+        sector_ids (iterable): The `sectors.id` values to link.
+        on_progress (callable, optional): `on_progress(done, total)`.
+
+    Returns:
+        int: How many sectors were linked.
+    """
+    sector_ids = sorted(set(sector_ids))
+    skip = set(sector_ids)
+
+    def link(batch):
+        def work(conn):
+            conn.lock_until_commit(_neighbor_lock_name(conn))
+            refresh_containment(conn, batch)
+            refresh_nearest_systems(conn, batch)
+            _merge_into_neighbors(conn, batch, skip=skip)
+        return work
+
+    for start in range(0, len(sector_ids), LINK_BATCH_SECTORS):
+        batch = sector_ids[start:start + LINK_BATCH_SECTORS]
+        _save_with_retries(config, [], link(batch))
+        if on_progress is not None:
+            on_progress(min(start + LINK_BATCH_SECTORS, len(sector_ids)), len(sector_ids))
+    return len(sector_ids)
 
 
 # ---------------------------------------------------------------------------
@@ -5438,7 +5490,7 @@ def _refresh_containment_around(conn, placement, radius_ly):
     refresh_containment(conn, sectors_reached_by(conn, center, ly_to_pc(radius_ly)))
 
 
-def insert_sector(conn, sector: SpaceSector, galaxy_position=None) -> int:
+def insert_sector(conn, sector: SpaceSector, galaxy_position=None, link_neighbors=True) -> int:
     """
     Inserts a full `SpaceSector` -- the `sectors` row, every system it
     contains (with its placement), and every exotic phenomenon it contains
@@ -5475,7 +5527,7 @@ def insert_sector(conn, sector: SpaceSector, galaxy_position=None) -> int:
         int: The new `sectors.id`.
     """
     with conn.batched():
-        sector_id = _insert_sector_rows(conn, sector, galaxy_position)
+        sector_id = _insert_sector_rows(conn, sector, galaxy_position, link_neighbors)
     assign_uids(conn, sector_id=sector_id)
     address = None if galaxy_position is None else tuple(
         galaxy_position.get(key) for key in ("ring_index", "layer_index", "ring_slot_index"))
@@ -5485,7 +5537,7 @@ def insert_sector(conn, sector: SpaceSector, galaxy_position=None) -> int:
     return sector_id
 
 
-def _insert_sector_rows(conn, sector, galaxy_position):
+def _insert_sector_rows(conn, sector, galaxy_position, link_neighbors=True):
     made_by = versionKey.current()  # DB.7: the code generating this sector
     if galaxy_position is not None:
         cur = conn.execute(
@@ -5583,16 +5635,20 @@ def _insert_sector_rows(conn, sector, galaxy_position):
         _update_by_id(conn, "bright_stars", ("star_system_id",), bright_star_links, touch=True)
     mark_phenomena_built(conn, built_scatter_ids)
 
-    if galaxy_position is not None:
+    field_nebulae = getattr(sector, "field_nebulae", None)
+    if galaxy_position is not None and (link_neighbors or field_nebulae):
         # Containment and nearest-neighbor lists read the sectors around
         # this one and rewrite theirs, so two neighbors saved at once
         # (parallel generation, PERF.7) would each miss the other. One
         # writer at a time does this last step, holding the lock until
-        # commit; the slower part above still runs side by side.
+        # commit; the slower part above still runs side by side. A run that
+        # links its sectors later (PERF.45, `link_sector_neighbors`) only needs the
+        # lock for a cloud's first sector.
         conn.lock_until_commit(_neighbor_lock_name(conn))
         _insert_field_nebulae(conn, sector, sector_id)
-        refresh_containment(conn, [sector_id])
-        _add_sector_to_nearest(conn, sector_id)
+        if link_neighbors:
+            refresh_containment(conn, [sector_id])
+            _add_sector_to_nearest(conn, sector_id)
 
     return sector_id
 
@@ -6585,7 +6641,7 @@ def _neighbor_lock_name(conn):
     return f"planetgen.neighbors.{database}"[:64]
 
 
-def save_sector(sector: SpaceSector, config=None, galaxy_position=None) -> int:
+def save_sector(sector: SpaceSector, config=None, galaxy_position=None, link_neighbors=True) -> int:
     """
     Opens the database and persists a full `SpaceSector` to it in one
     transaction.
@@ -6604,12 +6660,16 @@ def save_sector(sector: SpaceSector, config=None, galaxy_position=None) -> int:
         galaxy_position (dict, optional): This sector's galaxy-frame
             placement -- see `insert_sector`'s docstring. `None` (the
             default) for a sector never placed in a galaxy.
+        link_neighbors (bool): Link the sector to its neighbours now
+            (containment, nearest systems). `False` leaves that to the
+            caller's later `link_sector_neighbors` (a `galaxy` run, PERF.45).
 
     Returns:
         int: The new `sectors.id`.
     """
     return _save_with_retries(config, _sector_names(sector),
-                              lambda conn: insert_sector(conn, sector, galaxy_position=galaxy_position))
+                              lambda conn: insert_sector(conn, sector, galaxy_position=galaxy_position,
+                                                         link_neighbors=link_neighbors))
 
 
 _RETRY_JITTER = random.Random()

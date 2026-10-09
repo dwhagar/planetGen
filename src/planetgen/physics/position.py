@@ -204,6 +204,8 @@ class SpatialPosition3D:
             sector_edge_pc = float(sector_edge_pc)
         self._sector_edge_pc = sector_edge_pc
         self._sector_address = None
+        self._coords = {}
+        self._stale = True
         self._truth = ("galactic", tuple(float(v) for v in galactic_cartesian))
         self._mass_kg = None
         self._mu = None
@@ -241,6 +243,7 @@ class SpatialPosition3D:
     def sector_address(self):
         """tuple or None: The `(ring, layer, slot)` of the sector cell the
         position is in; `None` when the sector edge is not known."""
+        self._fresh()
         return self._sector_address
 
     def set_sector_edge_pc(self, sector_edge_pc):
@@ -271,7 +274,26 @@ class SpatialPosition3D:
         anchor = self._anchor(frame)
         return tuple(a + b for a, b in zip(anchor, xyz))
 
+    def _truth_in(self, frame):
+        """The coordinates in `frame` (cartesian): straight from the truth when
+        that is the frame they are kept in, else the worked-out ones."""
+        if self._truth[0] == frame:
+            return self._truth[1]
+        self._fresh()
+        return self._coords[frame]["cartesian"]
+
     def _sync(self):
+        """Marks the derived coordinates and sector address out of date; they
+        are worked out when first read (PERF.46: a body is moved several
+        times as it is placed, and only the last position is ever read)."""
+        self._stale = True
+
+    def _fresh(self):
+        """Works out the coordinates in every frame, and the sector address,
+        from the truth, if a move has left them out of date."""
+        if not self._stale:
+            return
+        self._stale = False
         gal = self._galactic_cartesian()
         self._coords = {}
         for frame in FRAMES:
@@ -478,7 +500,7 @@ class SpatialPosition3D:
         coordinates stay, its galactic ones follow. For placing a sector
         whose bodies were made before its place in the galaxy was known."""
         _finite(sector_center_galactic, "sector center")
-        keep = self._coords["sector"]["cartesian"]
+        keep = self._truth_in("sector")
         self._sector_center = tuple(float(v) for v in sector_center_galactic)
         self._truth = ("sector", keep)
         self._sync()
@@ -491,7 +513,7 @@ class SpatialPosition3D:
         _finite(star_center_galactic, "star center")
         if not self.has_system_frame:
             raise ValueError("a body with no system frame has no offset to carry")
-        keep = self._coords["system"]["cartesian"]
+        keep = self._truth_in("system")
         self._sector_center = tuple(float(v) for v in sector_center_galactic)
         self._star_center = tuple(float(v) for v in star_center_galactic)
         self._truth = ("system", keep)
@@ -504,7 +526,7 @@ class SpatialPosition3D:
         _finite(star_center_galactic, "star center")
         if self._is_star:
             raise ValueError("a star has no system frame to carry")
-        keep = self._coords["system"]["cartesian"] if self.has_system_frame else None
+        keep = self._truth_in("system") if self.has_system_frame else None
         self._star_center = tuple(float(v) for v in star_center_galactic)
         self._truth = ("system", keep if keep is not None else (0.0, 0.0, 0.0))
         self._sync()
@@ -549,6 +571,7 @@ class SpatialPosition3D:
             raise KeyError(f"Invalid frame {frame!r}. Valid frames: {', '.join(FRAMES)}.")
         if form_key not in FORMS:
             raise KeyError(f"Invalid coordinate type {form!r}. Valid types: {', '.join(FORMS)}.")
+        self._fresh()
         entry = self._coords.get(frame_key)
         return None if entry is None else entry[form_key]
 

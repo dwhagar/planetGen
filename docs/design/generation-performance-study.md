@@ -220,9 +220,28 @@ timer runs differ by a few points.
   locks off the critical path, which is what limits the fill to 1.87 times at 2 to 4
   workers [S, report]. Risk: queries made mid-fill see incomplete links, which they already
   can.
+  **Built (PERF.45).** A `galaxy` run saves its sectors with `link_neighbors=False` and
+  `run_galaxy.link_after_run` links them once at the end (`store.link_sector_neighbors`):
+  containment, each object's nearest systems and quadrant, then the new systems merged into the
+  lists of the already-linked sectors around, 200 sectors per transaction under the neighbour
+  lock, retried on a deadlock. It runs after a cancelled or failed run too (for the sectors that
+  were saved). The first sector of a molecular cloud still takes the lock while it saves, since
+  it stores the cloud. Sectors made on demand (API, `ensure_sector_generated`) link as they are
+  saved. Measured by decision rule "whichever is more efficient": 4 workers, 400 sectors in ring
+  2000, 52.0 s linking as saved against 46.9 s linking at the end (about 10% faster; the
+  link pass is serial, 150 sectors took 3 s). The two runs' nearest-system lists and
+  containment, compared system by system, are identical; so are single-worker runs compared
+  row by row. If a run dies without linking, the orbit update script (`planetgen.cli.orbits`)
+  links everything again.
 - **G. Cut the repeated coordinate work in planet and moon generation.**
   `SpatialPosition3D._sync` ran 83,725 times in four sectors and `update_orbital_position`
-  15,481 times; set the position once after the orbit is final. The `finite_domain` wrapper
+  15,481 times; set the position once after the orbit is final.
+  **Built (PERF.46, position half).** `SpatialPosition3D` now marks its derived coordinates
+  and sector address out of date when a body moves and works them out when first read, and
+  `carry_anchors`/`carry_sector_center`/`carry_star_center` read the coordinates they keep
+  straight from the stored truth. `place_system` asks only a planet for its place (its moons
+  need it). Coordinates are identical (a hash of 60 seeded systems, 1,666 bodies, before and
+  after) and `place_system` took 0.035 s instead of 0.049 s. The `finite_domain` wrapper
   ran 202,622 times (about 3 to 4% of the fill); an environment switch to skip it during bulk
   fills loses a safety net, so only if Boss accepts that.
 

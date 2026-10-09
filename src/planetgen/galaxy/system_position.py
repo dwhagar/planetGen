@@ -106,14 +106,18 @@ def set_system_epoch(system, epoch_unix):
             spatial.set_epoch_unix(epoch_unix)
 
 
-def _carry(body, sector_au, primary_au, sector_edge_pc, primary_velocity_ms):
+def _carry(body, sector_au, primary_au, sector_edge_pc, primary_velocity_ms, report=False):
     """Gives a planet, moon or comet its anchors (and its primary's velocity),
-    keeping its own offset and its velocity relative to the primary."""
+    keeping its own offset and its velocity relative to the primary. Returns
+    where it is and how it moves when `report` (a planet's moons are placed
+    from it); the others' coordinates are worked out when first read."""
     if getattr(body, "spatial", None) is None:  # an asteroid belt is a ring, with no point
         return None
     body.spatial.set_sector_edge_pc(sector_edge_pc)
     body.spatial.carry_anchors(sector_au, primary_au)
     body.spatial.carry_star_velocity(primary_velocity_ms)
+    if not report:
+        return None
     return body.spatial.get_coordinates("galactic", "cartesian"), body.spatial.get_velocity_vector("galactic")
 
 
@@ -181,7 +185,7 @@ def place_system(system, sector_center_ly, position_ly, sector_edge_pc=None, vel
     ]
     for planets, comets, anchor, anchor_v in groups:
         for planet in planets:
-            placed = _carry(planet, sector_au, anchor, sector_edge_pc, anchor_v)
+            placed = _carry(planet, sector_au, anchor, sector_edge_pc, anchor_v, report=True)
             planet_at, planet_v = placed if placed is not None else (anchor, anchor_v)
             for moon in getattr(planet, "moons", []) or []:
                 _carry(moon, sector_au, planet_at, sector_edge_pc, planet_v)

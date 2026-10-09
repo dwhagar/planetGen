@@ -347,6 +347,54 @@ def backfill_after_run(args, edge_pc, started_at):
     return summary
 
 
+def link_after_run(args, started_at):
+    """
+    PERF.45: links the sectors a `galaxy` run created to their neighbours
+    (`store.link_sector_neighbors`): containment, nearest systems and
+    quadrants, and the new systems merged into the lists of the sectors
+    around. Done once for the whole run, in place of one locked step per
+    saved sector, so the workers no longer queue for it; the stored result is
+    the same. Runs even when the run is cancelled or fails, for the sectors it
+    saved; a failure here only warns (the correlative update links
+    everything again).
+
+    Args:
+        args (argparse.Namespace): The run's arguments.
+        started_at (datetime): The database's clock when the run started.
+
+    Returns:
+        int: How many sectors were linked.
+    """
+    if not getattr(args, "link_later", False):
+        return 0
+    config = store.mysql_config_from_args(args)
+    try:
+        conn = store.get_connection(config)
+        try:
+            created = sector_paths.sector_ids_since(conn, started_at)
+        finally:
+            conn.close()
+        if not created:
+            return 0
+        log.normal("Linking the new sectors to their neighbours...")
+        with run_common._generation_progress() as progress:
+            log.set_console(progress.console)
+            try:
+                task = progress.add_task("Neighbours", total=len(created))
+
+                def on_progress(done, total):
+                    progress.update(task, total=total, completed=done)
+
+                linked = store.link_sector_neighbors(config, created, on_progress)
+            finally:
+                log.reset_console()
+    except Exception as exc:  # noqa: BLE001 -- the sectors are saved; the links can be redone
+        log.normal(f"Warning: linking the new sectors to their neighbours failed: {exc}")
+        return 0
+    log.normal(f"Linked {linked:,} sectors to their neighbours.")
+    return linked
+
+
 def settle_after_run(args, started_at):
     """
     The last step of a `galaxy` run (GEN.126): once every sector, bright star and population is
@@ -428,8 +476,11 @@ def generate_and_save_sector_at(args, address, position_pc, edge_pc):
         if address == run_sector.NUCLEUS_ADDRESS and not (fill is not None and fill.phenomena_scattered):
             run_sector.add_galactic_nucleus(sector, args, pc_to_ly(radius_pc))
         sector.place_in_galaxy(tuple(pc_to_ly(c) for c in position_pc))
+        # PERF.45: a run links its sectors to their neighbours once, at its end
+        # (`link_after_run`), instead of one at a time under a lock.
         sector_id = store.save_sector(sector, config=store.mysql_config_from_args(args),
-                                    galaxy_position=galaxy_position)
+                                    galaxy_position=galaxy_position,
+                                    link_neighbors=not getattr(args, "link_later", False))
     run_common._count_sector(sector)
     return sector_id, sector.name, sector
 
@@ -511,7 +562,7 @@ def queue_settle(config, sector_ids):
 
 
 def ensure_sector_generated(ring_index, layer_index, ring_slot_index, config=None, backfill=True,
-                            outside_ok=False, settle=True):
+                            outside_ok=False, settle=True, link=True):
     """
     The galaxy map's "recalculate on visit" entry point: returns the
     sector already generated at this address if one exists; otherwise
@@ -537,7 +588,10 @@ def ensure_sector_generated(ring_index, layer_index, ring_slot_index, config=Non
 
     A new sector's paths (and its neighbours') are saved by a queued job
     unless `settle` is false (GEN.126): the caller that settles at the end
-    of its own run, or after its own edit, passes false.
+    of its own run, or after its own edit, passes false. Likewise the sector is
+    linked to its neighbours (containment, nearest systems) as it is saved
+    unless `link` is false (PERF.45): the run that links its sectors at its
+    end passes false.
 
     Returns:
         dict: `created` (bool), `qualifies` (bool: inside the galaxy's
@@ -580,6 +634,7 @@ def ensure_sector_generated(ring_index, layer_index, ring_slot_index, config=Non
     args = _default_generation_args(config=config)
     args.density = relative_density(position_pc, skeleton.shape)
     args.num_systems = None
+    args.link_later = not link
 
     try:
         sector_id, sector_name, _sector = generate_and_save_sector_at(
@@ -1150,7 +1205,7 @@ def run_single_slot(args, edge_pc, progress):
     # The backfill waits for the end of the run (backfill_after_run), with
     # its own bar, instead of stalling this one at 0 of 1 (PERF.28).
     result = ensure_sector_generated(*address, config=mysql_config, backfill=False, outside_ok=outside_ok,
-                                     settle=False)  # the run settles at its end
+                                     settle=False, link=False)  # the run settles and links at its end
     progress.update(task, advance=1)
 
     designation = provisional_sector_designation(*address)
@@ -1370,6 +1425,7 @@ def run_galaxy(args):
         raise SystemExit(1)
 
     estimate_only = getattr(args, "estimate_only", False)
+    args.link_later = not estimate_only
     conn = store.get_connection(store.mysql_config_from_args(args))
     try:
         started_at = store.database_now(conn)
@@ -1387,6 +1443,7 @@ def run_galaxy(args):
         return
     finally:
         run_common._finish_stats(args)
+        link_after_run(args, started_at)
     # GEN.30: the bright stars come after the sectors, so neither the
     # scatter nor the backfill draws stars for a sector the run filled.
     if getattr(args, "then_scatter", False):

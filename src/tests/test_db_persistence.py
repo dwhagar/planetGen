@@ -1459,6 +1459,54 @@ def test_nearest_systems_cross_sector_boundaries(mysql_config):
         conn.close()
 
 
+def test_sectors_linked_later_get_the_links_they_would_have_had_at_save(mysql_config):
+    """PERF.45: sectors saved with `link_neighbors=False` and linked at the end
+    have the nearest systems a brute-force search gives, the neighbour that was
+    already linked included."""
+    import math
+    from planetgen.physics.units import milliparsecs_to_ly, pc_to_ly
+
+    edge_ly = pc_to_ly(4.0)
+
+    def place(center_x):
+        return {"center_x_pc": center_x, "center_y_pc": 0.0, "center_z_pc": 0.0, "galactic_radius_pc": center_x}
+
+    first = store.save_sector(_sector_with_systems("Linked", [(edge_ly / 2 - 0.5, 0.0, 0.0), (-5.0, 0.0, 0.0)]),
+                              config=mysql_config, galaxy_position=place(100.0))
+    saved = [
+        store.save_sector(_sector_with_systems("LaterB", [(-edge_ly / 2 + 0.5, 0.0, 0.0), (0.0, 3.0, 0.0)]),
+                          config=mysql_config, galaxy_position=place(104.0), link_neighbors=False),
+        store.save_sector(_sector_with_systems("LaterC", [(-edge_ly / 2 + 1.5, 1.0, 0.0), (2.0, 2.0, 2.0)]),
+                          config=mysql_config, galaxy_position=place(108.0), link_neighbors=False),
+    ]
+    conn = store.get_connection(mysql_config)
+    try:
+        assert conn.execute("SELECT COUNT(*) AS n FROM nearest_systems WHERE sector_id IN (?, ?)",
+                            tuple(saved)).fetchone()["n"] == 0
+    finally:
+        conn.close()
+    assert store.link_sector_neighbors(mysql_config, saved) == 2
+
+    conn = store.get_connection(mysql_config)
+    try:
+        systems = {}
+        for row in conn.execute(
+                "SELECT s.id, s.position_x_mpc AS x, s.position_y_mpc AS y, s.position_z_mpc AS z, c.center_x_pc AS cx"
+                " FROM star_systems s JOIN sectors c ON c.id = s.sector_id").fetchall():
+            systems[row["id"]] = (pc_to_ly(row["cx"]) + milliparsecs_to_ly(row["x"]), milliparsecs_to_ly(row["y"]),
+                                  milliparsecs_to_ly(row["z"]))
+        limit_ly = pc_to_ly(store.NEAREST_SYSTEMS_SEARCH_PC)
+        for system_id, point in systems.items():
+            expected = sorted((math.dist(point, other), other_id) for other_id, other in systems.items()
+                              if other_id != system_id and math.dist(point, other) <= limit_ly)
+            stored = conn.execute(
+                "SELECT neighbor_system_id AS n FROM nearest_systems WHERE object_table = 'star_systems'"
+                " AND object_id = ? ORDER BY neighbor_rank", (system_id,)).fetchall()
+            assert [row["n"] for row in stored] == [other_id for _d, other_id in expected][:store.NEAREST_SYSTEMS_COUNT]
+    finally:
+        conn.close()
+
+
 def test_phenomena_store_their_octant_and_nearest_systems(mysql_config):
     from planetgen.db import query as queryDb
     sector_id = store.save_sector(_sector_with_systems("Octmark", [(1.0, 1.0, 1.0)]), config=mysql_config,
