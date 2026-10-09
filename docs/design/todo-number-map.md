@@ -14,7 +14,7 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.83 |
-| MAP | MAP.146 |
+| MAP | MAP.147 |
 | NAV | NAV.58 |
 | GEN | GEN.170 |
 | PERF | PERF.50 |
@@ -796,6 +796,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.143 | Color sectors by their number of habitable locations | none | open |
 | MAP.144 | Replace `THREE.Clock` with `THREE.Timer` in `phenomenonrender.js` (bug) | none | done, PR #865 |
 | MAP.145 | A sky and Galaxy Map drawing rule for neighbour galaxies | none | open |
+| MAP.146 | Zoom drill-down centred on the clicked point, not on fixed wedges, blocks and slabs | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
