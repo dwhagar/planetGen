@@ -1,5 +1,7 @@
 # Interstellar object IDs (GEN.64)
 
+**Planned change (Boss, 2026-10-09 22:39Z):** the `uid` column moves to an 80-bit birth-location ID (GEN.170, DB.20, GEN.171, GEN.172, GEN.176, API.23; design in [object-id-options.md](object-id-options.md)). GEN.69's hash scheme is superseded when that ships; GEN.64's position IDs stay as the names of interstellar objects.
+
 Boss, 2026-10-02: every object in sector space that isn't a generated
 star system gets a unique ID built from where it sits, and that ID, in
 hex, is its name. This covers rogue planets, standalone black holes and

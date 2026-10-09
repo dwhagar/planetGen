@@ -2724,6 +2724,133 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none.
   Design: [docs/design/phenomenon-scatter-mass-cut.md](design/phenomenon-scatter-mass-cut.md)
 
+- [ ] **GEN.170 Object ID layout: an 80-bit ID of birth sector, serial and body number, with pack, unpack, format and parse functions**
+  Source: docs/design/object-id-options.md section 0 (Boss decided
+  2026-10-09 22:39Z: birth location plus serial, galaxy-wide; the same
+  length for every object; always identifies that one object; up to 128
+  bits but shorter preferred; fix the deficits; no backward
+  compatibility). Filed from the object-ID research thread. Nothing is
+  built until Boss asks.
+  Done: pure functions that pack, unpack, format and parse the 80-bit ID
+  (20 hex digits, stored as BINARY(10)): a 40-bit birth sector address
+  (ring 12 bits, biased layer 12 bits, slot 16 bits), a 28-bit serial in
+  that sector (top two bits 00 generated rank, 01 added at run time, 10
+  field-drawn) and a 12-bit body number (0 is the top-level object; 1
+  and up number the stars, planets, moons, belts and comets of that
+  system on one counter). The kind is not in the ID. Field widths are
+  chosen at plan time and stored in galaxy_shape; they grow to 96 or 128
+  bits only when a galaxy's bounds do not fit. Replaces the hash in
+  galaxy/uid.py. Tests for fixed length and round trip. As a generator
+  change it bumps the generator version (OPS.37) when it ships.
+  Open question for Boss (default 80 bits, 20 hex digits): 80 bits with
+  system and body fields, or a 64-bit flat per-sector counter (BIGINT,
+  67 million objects per sector, no system and body split, no room for a
+  bigger galaxy)?
+  Prerequisites: none.
+  Design: [docs/design/object-id-options.md](design/object-id-options.md)
+
+- [ ] **GEN.171 The sector fill gives object IDs by generation rank**
+  Source: docs/design/object-id-options.md section 0 (Boss decided
+  2026-10-09 22:39Z: birth location plus serial, galaxy-wide; the same
+  length for every object; always identifies that one object; up to 128
+  bits but shorter preferred; fix the deficits; no backward
+  compatibility). Filed from the object-ID research thread. Nothing is
+  built until Boss asks.
+  Done: the fill assigns generated serials by generation rank inside the
+  sector (replaces `_UidIssuer` hashing and the `assign_uids` rank
+  recount); one worker owns a sector, so no coordination and no database
+  read. Re-measure the insert rate on the real fill order and on MySQL
+  8.4 and MariaDB 11.4 (research model: 63,000 to 67,000 rows a second
+  against 46,000 for the hash, one run on MariaDB 10.11).
+  Prerequisites: DB.20.
+  Design: [docs/design/object-id-options.md](design/object-id-options.md)
+
+- [ ] **GEN.172 Run-time births get object IDs from the counters**
+  Source: docs/design/object-id-options.md section 0 (Boss decided
+  2026-10-09 22:39Z: birth location plus serial, galaxy-wide; the same
+  length for every object; always identifies that one object; up to 128
+  bits but shorter preferred; fix the deficits; no backward
+  compatibility). Filed from the object-ID research thread. Nothing is
+  built until Boss asks.
+  Done: an admin-added body or system, an ejected object, a merger
+  remnant, split fragments and a stand-alone facility take their IDs
+  from the `id_counters` allocator. An ejected planet keeps its ID and
+  becomes a rogue-planet row; a merge keeps the heavier body's ID and
+  retires the other; a split gives each fragment a new run-time serial;
+  a deleted ID is never reused.
+  Open question for Boss (default yes): an ejected planet keeps its ID?
+  Prerequisites: DB.20.
+  Design: [docs/design/object-id-options.md](design/object-id-options.md)
+
+- [ ] **GEN.173 Deleting a body and then adding one fails with IntegrityError 1062 on uq_planets_uid (bug)**
+  Source: docs/design/object-id-options.md section 0 (Boss decided
+  2026-10-09 22:39Z: birth location plus serial, galaxy-wide; the same
+  length for every object; always identifies that one object; up to 128
+  bits but shorter preferred; fix the deficits; no backward
+  compatibility). Filed from the object-ID research thread. Nothing is
+  built until Boss asks.
+  Reproduced on MariaDB with `save_system_edits` plus `assign_uids`: the
+  new row is ranked by position among the current rows and takes a uid
+  already used. `add_system_to_sector` runs the sector-wide pass (by
+  code reading). Fixed by the layout, fill and run-time birth items;
+  keep a regression test.
+  Prerequisites: GEN.171, GEN.172.
+  Design: [docs/design/object-id-options.md](design/object-id-options.md)
+
+- [ ] **GEN.174 Bodies an admin adds are saved with a NULL uid (bug)**
+  Source: docs/design/object-id-options.md section 0 (Boss decided
+  2026-10-09 22:39Z: birth location plus serial, galaxy-wide; the same
+  length for every object; always identifies that one object; up to 128
+  bits but shorter preferred; fix the deficits; no backward
+  compatibility). Filed from the object-ID research thread. Nothing is
+  built until Boss asks.
+  `db/edits.py` `save_system_edits` goes through `store.insert_planet`,
+  `insert_moon` and `insert_belt`, and nothing assigns a uid. Fixed by
+  the run-time birth item.
+  Prerequisites: GEN.172.
+  Design: [docs/design/object-id-options.md](design/object-id-options.md)
+
+- [ ] **GEN.175 Regenerating a phenomenon sets its uid to NULL (bug)**
+  Source: docs/design/object-id-options.md section 0 (Boss decided
+  2026-10-09 22:39Z: birth location plus serial, galaxy-wide; the same
+  length for every object; always identifies that one object; up to 128
+  bits but shorter preferred; fix the deficits; no backward
+  compatibility). Filed from the object-ID research thread. Nothing is
+  built until Boss asks.
+  `replace_phenomenon_content` in `db/edits.py` copies every column
+  except `_KEPT_PHENOMENON_COLUMNS`, which omits `uid` (reproduced: a
+  rogue planet's uid 0000004986A0FFFE64000000 became NULL). A one-line
+  keep of `uid` in `_KEPT_PHENOMENON_COLUMNS` can go first, in the
+  Bugfixes queue, if Boss prefers. Also make a system content swap keep
+  the system's ID and give new bodies fresh body numbers from the
+  counter, never reusing a deleted body's number.
+  Prerequisites: none.
+  Design: [docs/design/object-id-options.md](design/object-id-options.md)
+
+- [ ] **GEN.176 A nebula or remnant is born in the sector holding the centre of the space it occupies**
+  Source: docs/design/object-id-options.md section 0 (Boss decided
+  2026-10-09 22:39Z: birth location plus serial, galaxy-wide; the same
+  length for every object; always identifies that one object; up to 128
+  bits but shorter preferred; fix the deficits; no backward
+  compatibility). Filed from the object-ID research thread. Nothing is
+  built until Boss asks.
+  Done: the birth sector of a nebula or supernova remnant is the sector
+  holding the geometric centre of the space it occupies: the centroid of
+  the interior of its metaball field on the fixed 24-cell grid, in
+  integer arithmetic, rounded to 1 mpc before the sector is taken (for a
+  remnant, the centre of the shell), not the shape origin. Replaces
+  "first sector saved that the cloud reaches" in
+  `_insert_field_nebulae`, so the home sector no longer depends on save
+  order. The field-drawn serial is the cloud's rank among the clouds of
+  its field cell (`nebula_field.cell_clouds`) whose centroid is in that
+  sector, so no shared counter is needed and the centre sector need not
+  exist yet. Test the sector-face tie case. The same rule holds for any
+  object stored by a sector other than its own.
+  Open question for Boss (default 1 mpc): the rounding used before the
+  birth sector is taken from the centroid?
+  Prerequisites: DB.20.
+  Design: [docs/design/object-id-options.md](design/object-id-options.md)
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.18 Run the GEN.30 bright-star backfill in parallel on the work queue**
@@ -3202,6 +3329,29 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Design: [docs/design/phenomenon-scatter-mass-cut.md](design/phenomenon-scatter-mass-cut.md)
   Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
 
+- [ ] **DB.20 Object IDs in the schema: uid becomes BINARY(10), unique on its own, plus an id_counters table**
+  Source: docs/design/object-id-options.md section 0 (Boss decided
+  2026-10-09 22:39Z: birth location plus serial, galaxy-wide; the same
+  length for every object; always identifies that one object; up to 128
+  bits but shorter preferred; fix the deficits; no backward
+  compatibility). Filed from the object-ID research thread. Nothing is
+  built until Boss asks.
+  Done: one Alembic revision. `uid` becomes BINARY(10) on the object
+  tables that belong to a sector (star_systems, stars, planets, moons,
+  asteroid_belts, comets, every phenomenon table, facilities) and is
+  UNIQUE on `uid` alone (drops UNIQUE (star_system_id, uid)). A new
+  `id_counters` table (per sector for run-time serials, per system for
+  body numbers) whose counters only grow and survive the deletion of the
+  object or the sector, with an upsert-and-LAST_INSERT_ID allocator like
+  `_reserve_id_block`. The row `id` stays as the foreign key. Existing
+  rows are migrated (rank = row id order within each sector or system,
+  which is how the old ranks were counted) unless the combined reseed
+  has not run yet, in which case the change rides it; nebulae need their
+  centroid recomputed (see the nebula item). Boss resets by hand anyway,
+  so a fresh galaxy is acceptable. Takes the next free Alembic revision.
+  Prerequisites: GEN.170.
+  Design: [docs/design/object-id-options.md](design/object-id-options.md)
+
 ## API: The JSON API
 
 - [ ] **API.3 Remote generate: generate on a local machine, upload through the API**
@@ -3528,6 +3678,23 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   endpoint; additive changes do not bump.
   Prerequisites: none. Related: API.4, API.17.
 
+- [ ] **API.23 The object ID as the public reference: pages, URLs, the API, wiki links and objectref use it in place of row ids**
+  Source: docs/design/object-id-options.md section 0 (Boss decided
+  2026-10-09 22:39Z: birth location plus serial, galaxy-wide; the same
+  length for every object; always identifies that one object; up to 128
+  bits but shorter preferred; fix the deficits; no backward
+  compatibility). Filed from the object-ID research thread. Nothing is
+  built until Boss asks.
+  Done: pages, URLs, API routes and payloads, wiki links and `objectref`
+  use the object ID in place of row ids (lookup probes the object tables
+  by `uid`; a kind prefix such as planet:ID is only a hint). Row ids
+  stay internal. No compatibility shim. This is a breaking API change,
+  so it bumps API.22's API version number.
+  Open question for Boss (default yes): the ID replaces row ids as the
+  public reference? Ask before it is built.
+  Prerequisites: API.22, GEN.171, GEN.172.
+  Design: [docs/design/object-id-options.md](design/object-id-options.md)
+
 ## ADM: Admin tools
 
 - [ ] **ADM.13 Incomplete uploads page**
@@ -3786,6 +3953,20 @@ means read from the code, not reproduced yet; the bug hunt confirms or
 clears each one.
 
 ### Infrastructure and CI
+
+- [ ] **TEST.110 Object ID tests: identical IDs on 1 and 4 workers, none reused, none missing**
+  Source: docs/design/object-id-options.md section 0 (Boss decided
+  2026-10-09 22:39Z: birth location plus serial, galaxy-wide; the same
+  length for every object; always identifies that one object; up to 128
+  bits but shorter preferred; fix the deficits; no backward
+  compatibility). Filed from the object-ID research thread. Nothing is
+  built until Boss asks.
+  Done: tests that 1 worker and 4 workers give identical IDs; no ID is
+  reused after a delete; an ejected planet keeps its ID; every object in
+  a saved sector has a 20-digit ID; the golden fill digests (TEST.77)
+  use the new IDs.
+  Prerequisites: GEN.171, GEN.172, GEN.176.
+  Design: [docs/design/object-id-options.md](design/object-id-options.md)
 
 ## USR: User accounts
 
@@ -4132,6 +4313,22 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   the three map-ui design docs. Open the Boss-facing decisions these
   touch as they are made.
   Prerequisites: none.
+
+- [ ] **DOC.5 Rewrite the object ID docs: object-ids.md, database-schema.md and api.md**
+  Source: docs/design/object-id-options.md section 0 (Boss decided
+  2026-10-09 22:39Z: birth location plus serial, galaxy-wide; the same
+  length for every object; always identifies that one object; up to 128
+  bits but shorter preferred; fix the deficits; no backward
+  compatibility). Filed from the object-ID research thread. Nothing is
+  built until Boss asks.
+  Done: docs/design/object-ids.md (the GEN.68 and GEN.69 section) is
+  rewritten for the 80-bit ID; GEN.69's hash scheme is marked
+  superseded; database-schema.md and api.md describe the new column and
+  the ID as the public reference; GEN.72 and GEN.73 and the position-ID
+  naming (GEN.64 stays as the name of interstellar objects) are updated
+  to match.
+  Prerequisites: GEN.170.
+  Design: [docs/design/object-id-options.md](design/object-id-options.md)
 
 ## VIEW: The view from a planet
 
