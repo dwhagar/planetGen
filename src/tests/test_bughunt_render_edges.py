@@ -1,9 +1,9 @@
 # tests/test_bughunt_render_edges.py
 
 """
-Tier 1 bug-hunt coverage: `mdconvert.py`/`systemmap.py` fed
+Tier 1 bug-hunt coverage: `mdrender.py`/`systemmap.py` fed
 adversarial or degenerate data -- the two rendering layers most exposed to
-whatever the database actually holds (mdconvert renders the stored
+whatever the database actually holds (mdrender renders the stored
 wikitext/Markdown write-up; systemmap renders raw `planets`/`stars`/
 `asteroid_belts` rows).
 
@@ -28,7 +28,7 @@ import re
 
 import pytest
 
-from planetgen.web.lib import mdconvert  # noqa: E402
+from planetgen.web.lib import mdrender  # noqa: E402
 from planetgen.web.maps import systemmap as sm  # noqa: E402
 
 ADVERSARIAL_MARKDOWN = [
@@ -49,18 +49,18 @@ ADVERSARIAL_MARKDOWN = [
 
 @pytest.mark.parametrize("text", ADVERSARIAL_MARKDOWN)
 def test_markdown_to_html_never_crashes_on_adversarial_input(text):
-    html = mdconvert.markdown_to_html(text)
+    html = mdrender.markdown_to_html(text)
     assert isinstance(html, str)
 
 
 def test_markdown_to_html_script_tag_is_escaped_not_executable():
-    html = mdconvert.markdown_to_html("<script>alert(document.cookie)</script>")
+    html = mdrender.markdown_to_html("<script>alert(document.cookie)</script>")
     assert "<script>" not in html
     assert "&lt;script&gt;" in html
 
 
 def test_markdown_to_html_event_handler_attribute_is_escaped():
-    html = mdconvert.markdown_to_html('<img src=x onerror="alert(1)">')
+    html = mdrender.markdown_to_html('<img src=x onerror="alert(1)">')
     assert "<img" not in html
     assert "onerror=" not in html or "&quot;" in html
 

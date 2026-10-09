@@ -1,5 +1,5 @@
 """
-planetgen/web/lib/mdconvert.py regression tests.
+planetgen/web/lib/mdrender.py regression tests.
 
 Covers exactly the narrow Markdown subset `StarSystem.__str__` actually
 generates: ATX headers, GFM-style pipe tables, plain paragraphs, and the
@@ -7,10 +7,10 @@ one legitimate raw-HTML pattern (`<sup>...</sup>`) -- plus the escaping
 behavior that keeps anything else (e.g. a `--name`-injected `<script>`)
 from being rendered as live HTML.
 
-Run with: pytest src/tests/test_mdconvert.py
+Run with: pytest src/tests/test_mdrender.py
 """
 
-from planetgen.web.lib.mdconvert import markdown_to_html, markdown_to_html_with_headings  # noqa: E402
+from planetgen.web.lib.mdrender import markdown_to_html, markdown_to_html_with_headings  # noqa: E402
 
 
 def test_empty_input_returns_empty_string():
@@ -65,15 +65,51 @@ def test_sup_tag_survives_while_everything_else_is_escaped():
     assert "&lt;script&gt;" in html
 
 
-def test_apostrophe_and_ampersand_are_escaped_in_paragraphs_and_tables():
+def test_ampersand_is_escaped_in_paragraphs_and_tables():
     html = markdown_to_html("The star's wind & heliosphere.")
-    assert "&#x27;" in html
-    assert "&amp;" in html
+    assert "star&#x27;s wind &amp; heliosphere" in html
 
     md = "| Name | Note |\n|---|---|\n| Ka'Iara | AT&T style name |"
     table_html = markdown_to_html(md)
-    assert "&#x27;" in table_html
-    assert "&amp;" in table_html
+    assert "<td>Ka&#x27;Iara</td>" in table_html
+    assert "AT&amp;T style name" in table_html
+
+
+def test_entities_and_markdown_syntax_in_names_stay_literal():
+    html = markdown_to_html("&lt;b&gt; *star* [link](http://x) `code`\n\n- item\n\n> quote\n\n---")
+    assert "&amp;lt;b&amp;gt; *star* [link](http://x) `code`" in html
+    assert "<ul>" not in html and "<blockquote>" not in html and "<hr" not in html and "<code>" not in html
+    assert "<p>- item</p>" in html and "<p>&gt; quote</p>" in html
+
+
+def test_heading_list_has_the_text_as_written():
+    html, headings = markdown_to_html_with_headings("# A & B")
+    assert headings == [{"level": 1, "text": "A & B", "id": "a-b"}]
+    assert '<h1 id="a-b">A &amp; B</h1>' in html
+
+
+def test_table_alignment_uses_an_attribute_not_an_inline_style():
+    html = markdown_to_html("| a | b |\n|:--|--:|\n| 1 | 2 |")
+    assert 'align="left"' in html and 'align="right"' in html
+    assert "style=" not in html
+
+
+def test_table_is_wrapped_in_a_scrollable_div():
+    html = markdown_to_html("| a |\n|---|\n| 1 |")
+    assert html.startswith('<div class="table-scroll" tabindex="0"><table>')
+
+
+def test_a_generated_system_page_renders_headings_tables_and_exponents():
+    from planetgen.db import render
+    from planetgen.generation.system import StarSystem
+    from tests.test_systems import make_config
+
+    text = render.render_star_system(StarSystem(system_config=make_config("G2V")), "markdown")
+    html, headings = markdown_to_html_with_headings(text)
+    assert headings and headings[0]["level"] == 1
+    assert html.count("<table>") == html.count("</table>") >= 1
+    assert "<sup>" in html
+    assert "<script" not in html
 
 
 def test_multiple_blocks_are_joined_in_order():
