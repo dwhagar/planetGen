@@ -170,7 +170,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| PERF.33 | Progress bars and ETAs from measured performance | PERF.32, ADM.39 | GitHub issue [#661](https://github.com/dwhagar/planetGen/issues/661) (the use half). |
+| PERF.33 | Progress bars and ETAs from measured performance | PERF.32 | GitHub issue [#661](https://github.com/dwhagar/planetGen/issues/661) (the use half). |
 | MAP.139 | The Galaxy View uses its spare space: an info box with a Details link, and menu items |  | GitHub issues [#758](https://github.com/dwhagar/planetGen/issues/758) and [#715](https://github.com/dwhagar/planetGen/issues/715), one layout change. |
 | MAP.140 | Double-click on a selected object goes there and opens its information |  | GitHub issue [#714](https://github.com/dwhagar/planetGen/issues/714). |
 | MAP.141 | Context around the selection: faint neighbours, and the sectors above and below |  | GitHub issues [#718](https://github.com/dwhagar/planetGen/issues/718) and [#716](https://github.com/dwhagar/planetGen/issues/716), one context view. The #716 bug label was overruled. |

@@ -427,9 +427,9 @@ Parents marked "new parent" had no old number of their own.
 | ADM.36 | Change an object's trajectory vector | none | open |
 | ADM.37 | The Generate page's prevalence fields show "0% change" instead of each feature's real share (bug) | none | done, PR #514 |
 | ADM.38 | Worker exceptions fail on Python 3.9 because _picklable_error calls Exception.add_note, which needs 3.11 (bug) | none | done, PR #627 |
-| ADM.39 | Running queue jobs show an ETA (bug) | none | open |
-| ADM.40 | The Generate page stops reporting a lost connection (bug) | none | open |
-| ADM.41 | Every job is easy to find and cancel in the web queue, and past jobs are paginated and clean (bug) | none | open |
+| ADM.39 | Running queue jobs show an ETA (bug) | none | done, PR #800 |
+| ADM.40 | The Generate page stops reporting a lost connection (bug) | none | done, PR #800 |
+| ADM.41 | Every job is easy to find and cancel in the web queue, and past jobs are paginated and clean (bug) | none | done, PR #800 |
 | ADM.42 | One settings model describes every config.json option | none | open |
 | ADM.43 | A full configuration page under Admin | none | open |
 | ADM.44 | Web, Open Graph and SEO settings | none | open |
@@ -982,7 +982,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.73 | Sector wiki link form on the Admin hub | none | done, PR #632 |
 | UX.74 | Generate page shows an empty Current job card | none | done, PR #617 |
 | UX.75 | Admin menus on the sector and phenomenon pages sit in the page body, not the action bar | none | done, PR #679 |
-| UX.76 | Icons and highlights follow the light and dark theme (bug) | none | open |
+| UX.76 | Icons and highlights follow the light and dark theme (bug) | none | done, PR #800 |
 | UX.77 | The class list is alphabetized (bug) | none | done, PR #797 |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
