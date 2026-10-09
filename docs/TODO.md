@@ -2995,12 +2995,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   answers it for the scatter and fill phases (see PERF.42, PERF.43,
   PERF.44, PERF.45, PERF.46, PERF.47 and DB.19). Open for Boss: which
   phase took the 10 hours (the log will say).
-  Measurement (2026-10-09): Bugfixes lane 1 (2026-10-09, while fixing
-  ADM.47, PR #846) timed one dense core sector at 84 s: 43 s in
-  `store.insert_sector`, of which 30 s is `reserve_system_names`
-  (database round trips), and 15 s generation. Name reservation is
-  therefore the largest single cost of a dense sector; batch it into one
-  round trip per sector.
+  Measurement (2026-10-09, corrected): Bugfixes lane 1 first reported
+  that one dense core sector took 84 s with 30 s in
+  `reserve_system_names`; it retracted that, because the profile ran
+  while another run was saving into the same database, so it measured
+  lock waiting. Alone, name reservation was 1.7 s of a 17.8 s sector
+  (about 870 names). See PERF.49, which starts by re-measuring.
 
 - [ ] **PERF.32 Generation performance stats: rates recorded per run, deleted on every new version**
   Boss (GitHub issues [#661](https://github.com/dwhagar/planetGen/issues/661) and [#750](https://github.com/dwhagar/planetGen/issues/750)): "The system should store and use
@@ -3144,9 +3144,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   SupernovaRemnant, Quasar and the compact remnants build their
   word-salad name at generation. Build it when it is first shown. About
   3.5% of a sector fill.
-  Measurement (2026-10-09): the same measurement shows
-  `reserve_system_names` as 30 of a dense core sector's 84 s (see
-  PERF.31); that cost is system names, not the word-salad object names
+  Measurement (2026-10-09, corrected): the 30 s once quoted for
+  `reserve_system_names` was a contaminated measurement (another run was
+  saving into the same database); alone it was 1.7 s of a 17.8 s dense
+  sector. That cost is system names, not the word-salad object names
   this item covers.
   Scope (2026-10-09): the system-name reservation cost is its own item,
   PERF.49; this item stays on the lazy word-salad names of phenomena
@@ -3221,11 +3222,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none.
   Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
 
-- [ ] **PERF.49 Batch system-name reservation: remove the quadratic scan and the long-held registry locks (30 s of an 84 s dense sector)**
-  Bugfixes lane 1 (2026-10-09, PR #846 work) timed one dense core sector
-  at 84 s: 43 s in `store.insert_sector`, of which 30 s is
-  `reserve_system_names` (the system name-uniqueness reservation in
-  `db/store.py`), and 15 s generation. Naming-cost analysis of
+- [ ] **PERF.49 Batch system-name reservation: remove the quadratic scan and the long-held registry locks (re-measure first)**
+  Correction (2026-10-09, Bugfixes lane 1): its first figure for this item, 30 s of an
+  84 s dense core sector, was a contaminated measurement (it profiled while another run
+  was saving into the same database, so it measured lock waiting). Alone, name
+  reservation was 1.7 s of a 17.8 s sector, about 870 names. First step: re-measure
+  alone on a dense core sector, and drop this item if reservation is a small share.
+  Naming-cost analysis of
   2026-10-02 (artifact Naming Cost in Generation; release 7.144.463)
   found three costs; checked against main on 2026-10-09: (1) the
   quadratic scan is still there: for every distinct base name the loop
