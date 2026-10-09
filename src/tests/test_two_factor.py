@@ -90,8 +90,35 @@ def admin_id(control_conn):
     return cur.lastrowid
 
 
+class _Clock:
+    """`time` as the auth code sees it: `time()` is held at the middle of the
+    TOTP step the test started in, everything else is the real module."""
+
+    def __init__(self, real, now):
+        self._real, self.now = real, now
+
+    def time(self):
+        return self.now
+
+    def __getattr__(self, name):
+        return getattr(self._real, name)
+
+
+_clock = _Clock(time, time.time())
+
+
+@pytest.fixture(autouse=True)
+def _one_totp_step(monkeypatch):
+    """Holds the clock the TOTP checks read inside one 30 s step, so a test
+    run slowly (a loaded machine) cannot cross a step boundary between
+    making a code and checking it, which turned "used once" codes into
+    fresh ones (and the other way round)."""
+    _clock.now = (int(time.time() // 30) * 30) + 15
+    monkeypatch.setattr(adminAuth, "time", _clock)
+
+
 def _now_code(secret, offset=0):
-    return pyotp.TOTP(secret).at((int(time.time() // 30) + offset) * 30)
+    return pyotp.TOTP(secret).at((int(_clock.now // 30) + offset) * 30)
 
 
 def test_setup_confirm_and_check(control_conn, admin_id):
