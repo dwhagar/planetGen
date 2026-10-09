@@ -797,7 +797,10 @@ export function createStageView(host) {
   canvasEl.galaxyCamera = function () {
     if (!view) return null;
     const back = new THREE.Vector3(0, 0, 1).applyQuaternion(view.quat);
-    return { tilt: THREE.MathUtils.radToDeg(Math.acos(Math.max(-1, Math.min(1, back.z)))), flying: !!animation };
+    return {
+      tilt: THREE.MathUtils.radToDeg(Math.acos(Math.max(-1, Math.min(1, back.z)))), flying: !!animation,
+      zoom: view.zoom,
+    };
   };
 
   // Keeps the view fitted round the stage as it turns or the map changes
@@ -867,6 +870,8 @@ export function createStageView(host) {
     if (pickQuery) extra.push(pickQuery.slice(1));
     const hidden = sectorStage.hiddenKinds();
     if (hidden.length) extra.push("hide=" + hidden.join(","));
+    if (sectorStage.hiddenClasses().length) extra.push("stars=" + sectorStage.hiddenClasses().join(","));
+    if (sectorStage.minLuminosity() > 0) extra.push("lum=" + sectorStage.minLuminosity());
     if (colorBy !== "default") extra.push("color=" + colorBy);
     if (!extra.length) return query;
     return (query ? query + "&" : "?") + extra.join("&");
@@ -897,11 +902,35 @@ export function createStageView(host) {
     writeHiddenToUrl();
   }
 
+  // MAP.123: the star classes left off and the luminosity floor, from the URL.
+  function applyStarFiltersFromLocation() {
+    const params = new URLSearchParams(location.search);
+    const classes = (params.get("stars") || "").split(",").filter(Boolean);
+    sectorStage.setHiddenClasses(classes);
+    const lum = Number(params.get("lum"));
+    sectorStage.setMinLuminosity(lum > 0 && isFinite(lum) ? lum : 0);
+  }
+
+  function setStarClassHidden(starClass, hidden) {
+    sectorStage.setStarClassHidden(starClass, hidden);
+    writeHiddenToUrl();
+  }
+
+  function setMinLuminosity(value) {
+    sectorStage.setMinLuminosity(value);
+    writeHiddenToUrl();
+  }
+
   function writeHiddenToUrl() {
     const params = new URLSearchParams(location.search);
     const now = sectorStage.hiddenKinds();
     if (now.length) params.set("hide", now.join(","));
     else params.delete("hide");
+    const classes = sectorStage.hiddenClasses();
+    if (classes.length) params.set("stars", classes.join(","));
+    else params.delete("stars");
+    if (sectorStage.minLuminosity() > 0) params.set("lum", String(sectorStage.minLuminosity()));
+    else params.delete("lum");
     const query = params.toString().replace(/%2C/gi, ",");
     history.replaceState(history.state, "", location.pathname + (query ? "?" + query : "") + location.hash);
   }
@@ -978,6 +1007,23 @@ export function createStageView(host) {
     });
   }
 
+  // MAP.124: the whole galaxy opens as close as its zoom range allows
+  // while every charted sector shows, centered on them; zooming out still
+  // reaches the whole galaxy. Only on the first view, with no sector asked.
+  function closeOnCharted(r, v) {
+    if (!isWholeGalaxy(r) || pendingOpen || selectedSector) return;
+    const data = dataFor(r.stage.at);
+    const charted = r.view.blocks.filter(function (block) { return generatedOf(block, data) > 0; });
+    if (!charted.length) return;
+    const fit = centeredFit(boundsPoints(charted), v.target.slice(), v.quat);
+    const full = fitDistance(fitPointsOf(r), v.fit.target, v.quat);
+    const zoom = Math.max(GALAXY_MIN_ZOOM, Math.min(1, fit.dist / full));
+    if (zoom >= 1) return;
+    v.zoom = zoom;
+    v.target = fit.target.slice();
+    v.dist = zoom * full;
+  }
+
   function flyTo(r) {
     const from = display && view ? viewNow() : null;
     const to = cameraFor(r);
@@ -988,6 +1034,7 @@ export function createStageView(host) {
     display = incoming;
     if (!from) {
       view = settledView(to);
+      closeOnCharted(r, view);
       applyView();
       afterArrival();
       return;
@@ -2641,6 +2688,7 @@ export function createStageView(host) {
     maxIndex = Math.max(mapIndex, state && state.maxIndex != null ? state.maxIndex : mapIndex);
     if (!pinned) history.replaceState({ galaxyStage: true, mapIndex: mapIndex, maxIndex: maxIndex }, "");
     sectorStage.setHiddenKinds(hiddenFromLocation());
+    applyStarFiltersFromLocation();
     setColorFromLocation();
     const asked = stageFromLocation(true);
     let r = resolve(asked.stage);
@@ -2667,6 +2715,7 @@ export function createStageView(host) {
     // Forward goes.
     if (state) history.replaceState({ galaxyStage: true, mapIndex: mapIndex, maxIndex: maxIndex }, "");
     sectorStage.setHiddenKinds(hiddenFromLocation());
+    applyStarFiltersFromLocation();
     setColorFromLocation();
     const asked = stageFromLocation(false);
     if (asked.problem) {
@@ -2735,6 +2784,12 @@ export function createStageView(host) {
     kinds: sectorStage.kinds,
     kindHidden: sectorStage.kindHidden,
     setKindHidden: setKindHidden,
+    // MAP.123: star classes and the luminosity floor.
+    starClasses: sectorStage.starClasses,
+    starClassHidden: sectorStage.starClassHidden,
+    setStarClassHidden: setStarClassHidden,
+    minLuminosity: sectorStage.minLuminosity,
+    setMinLuminosity: setMinLuminosity,
     pickChanged: pickChanged,
     entryByKey: sectorStage.entryByKey,
     selectEntry: sectorStage.select,

@@ -64,7 +64,7 @@ from planetgen.galaxy.drill import (
 )
 from planetgen.galaxy.nav_graph import build_route_graph, shortest_path
 from planetgen.galaxy.navigation import (
-    FRAME_GALACTIC, FRAME_SECTOR, course_between, fold_travel_times, warp_travel_times,
+    FRAME_GALACTIC, FRAME_SECTOR, FRAME_SYSTEM, course_between, fold_travel_times, warp_travel_times,
 )
 from planetgen.physics.constants import SPECTRAL_CLASS_COLORS
 from planetgen.generation.evolution import life_stage_from_paragraphs
@@ -1009,6 +1009,134 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
         "destination_position": destination_position,
         "route": route,
     }
+
+
+NAV_DEFAULT_HELIOPAUSE_AU = 120.0
+"""float: The heliopause used for a system that stores none (Boss's text
+in `docs/design/navigation-frames.md`)."""
+
+NAV_IN_SYSTEM_NOTE = (
+    "Travel times use the same warp and fold tables as courses between systems; "
+    "they are not tuned for distances inside a system."
+)
+"""str: Shown with a course that has a leg inside a system (NAV.16)."""
+
+
+def _system_heliopause_km(conn, system_id):
+    """A system's heliopause radius in km, as `system_detail` reports it
+    (pressed in by a surrounding cloud), else `NAV_DEFAULT_HELIOPAUSE_AU`."""
+    row = conn.execute("SELECT * FROM star_systems WHERE id = ?", (system_id,)).fetchone()
+    _open, heliopause_au = _heliopause_au(conn, row, containing_cloud(conn, row))
+    return (heliopause_au if heliopause_au is not None else NAV_DEFAULT_HELIOPAUSE_AU) * constants.AU_TO_KM
+
+
+def _km_to_ly(km):
+    return km * 1000.0 / constants.LY_TO_M
+
+
+def _nav_endpoint(conn, ref):
+    """
+    Resolves one `from`/`to` reference for `nav_course`.
+
+    Returns:
+        dict: `ref`, `kind`, `id`, `name`, `anchor` (`(kind, id, type)` as
+            `nav_between` takes it: a system or a phenomenon) and
+            `system_km` (a body's system-local position in km, `None` for a
+            system, a phenomenon, or anything NAV treats as the system itself).
+
+    Raises:
+        ValueError: For a bad reference or a missing row.
+        NavUnavailable: For a sector (not a place a ship can go).
+    """
+    kind, object_id = object_ref.parse(ref)
+    if kind == "sector":
+        raise NavUnavailable("a sector is not an endpoint; pick a system or something in one")
+    obj = resolve_object(conn, kind, object_id)
+    if kind in object_ref.PHENOMENON_KINDS:
+        anchor = ("phenomenon", object_id, kind)
+    elif kind == "system":
+        anchor = ("system", object_id, None)
+    else:
+        system = next(parent for parent in obj["parents"] if parent["kind"] == "system")
+        anchor = ("system", object_ref.parse(system["ref"])[1], None)
+    system_km = None
+    if kind in object_ref.BODY_KINDS:
+        system_km = obj["positions"]["system_km"]
+        if system_km is None:  # an asteroid belt is a ring: take its mean radius
+            row = conn.execute("SELECT distance_km FROM asteroid_belts WHERE id = ?", (object_id,)).fetchone()
+            system_km = [row["distance_km"], 0.0, 0.0]
+    return {"ref": obj["ref"], "kind": kind, "id": object_id, "name": obj["name"],
+            "anchor": anchor, "system_km": system_km}
+
+
+def _nav_leg(kind, origin_ref, destination_ref, course):
+    return {
+        "kind": kind, "from": origin_ref, "to": destination_ref, "direct": course,
+        "warp_times": warp_travel_times(course.distance_ly), "fold_times": fold_travel_times(course.distance_ly),
+    }
+
+
+def nav_course(conn, from_ref, to_ref, adjacency_k=NAV_ADJACENCY_K):
+    """
+    NAV between any two objects (NAV.16): `nav_between`'s result plus
+    `origin`/`destination` (`{ref, kind, name}`), `legs` and `note`.
+
+    Two systems or phenomena are `nav_between`'s course, one `"between"`
+    leg. A body (star, planet, moon, belt, comet) adds an `"out"` leg from
+    it to its system's heliopause on the side facing the destination (a
+    destination body, an `"into"` leg from the heliopause on the side
+    facing the origin to the body), each in the System Local Frame. Two
+    objects in one system are a single `"within"` leg (`scope`
+    `"system"`; positions in light-years from the system's origin, no
+    route). Each leg is `{kind, from, to, direct, warp_times, fold_times}`;
+    `direct` is a `navigation.Course`.
+
+    Raises:
+        ValueError: For a bad reference or a missing row.
+        NavUnavailable: As `nav_between`, and for a sector endpoint.
+    """
+    origin, destination = _nav_endpoint(conn, from_ref), _nav_endpoint(conn, to_ref)
+    ends = {"origin": {k: origin[k] for k in ("ref", "kind", "name")},
+            "destination": {k: destination[k] for k in ("ref", "kind", "name")}}
+
+    if origin["anchor"] == destination["anchor"] and origin["anchor"][0] == "system":
+        # Inside one system (a system itself sits at the origin).
+        a = [_km_to_ly(v) for v in origin["system_km"] or (0.0, 0.0, 0.0)]
+        b = [_km_to_ly(v) for v in destination["system_km"] or (0.0, 0.0, 0.0)]
+        course = course_between(a, b, frame=FRAME_SYSTEM)
+        return {
+            "scope": "system", "direct": course,
+            "warp_times": warp_travel_times(course.distance_ly), "fold_times": fold_travel_times(course.distance_ly),
+            "origin_position": tuple(a), "destination_position": tuple(b), "route": None,
+            "legs": [_nav_leg("within", origin["ref"], destination["ref"], course)],
+            "note": NAV_IN_SYSTEM_NOTE, **ends,
+        }
+
+    def anchor_args(point):
+        kind, anchor_id, anchor_type = point["anchor"]
+        return anchor_id, kind, anchor_type
+
+    from_id, from_kind, from_type = anchor_args(origin)
+    to_id, to_kind, to_type = anchor_args(destination)
+    result = nav_between(conn, from_id, to_id, adjacency_k, from_kind=from_kind, to_kind=to_kind,
+                         from_type=from_type, to_type=to_type)
+
+    toward = [d - o for o, d in zip(result["origin_position"], result["destination_position"])]
+    length = math.sqrt(sum(v * v for v in toward))
+    heading = [v / length for v in toward] if length else [1.0, 0.0, 0.0]
+
+    legs = []
+    if origin["system_km"] is not None:
+        edge = [v * _system_heliopause_km(conn, from_id) for v in heading]
+        legs.append(_nav_leg("out", origin["ref"], object_ref.format("system", from_id), course_between(
+            [_km_to_ly(v) for v in origin["system_km"]], [_km_to_ly(v) for v in edge], frame=FRAME_SYSTEM)))
+    legs.append(_nav_leg("between", object_ref.format(from_kind if from_kind == "system" else from_type, from_id),
+                         object_ref.format(to_kind if to_kind == "system" else to_type, to_id), result["direct"]))
+    if destination["system_km"] is not None:
+        edge = [-v * _system_heliopause_km(conn, to_id) for v in heading]
+        legs.append(_nav_leg("into", object_ref.format("system", to_id), destination["ref"], course_between(
+            [_km_to_ly(v) for v in edge], [_km_to_ly(v) for v in destination["system_km"]], frame=FRAME_SYSTEM)))
+    return {**result, "legs": legs, "note": NAV_IN_SYSTEM_NOTE if len(legs) > 1 else None, **ends}
 
 
 def sector_address(row):

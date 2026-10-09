@@ -299,6 +299,40 @@ def orbital_position_au(distance_au, inclination_deg, ascending_node_deg, phase_
     return x, y, z
 
 
+@finite_domain()
+def circular_orbital_velocity_au_per_year(distance_au, inclination_deg, ascending_node_deg, phase_deg, period_years):
+    """
+    The velocity, relative to the primary, of a body on the circular orbit
+    `orbital_position_au` places it on: the position's derivative with the
+    phase, times the phase's rate of change (360 degrees a period, in the
+    direction of increasing phase). Same axes as `orbital_position_au`.
+
+    Args:
+        distance_au (float): Orbital radius, in AU.
+        inclination_deg (float): Orbital plane tilt, in degrees.
+        ascending_node_deg (float): Longitude of the ascending node, in degrees.
+        phase_deg (float): Current argument of latitude, in degrees.
+        period_years (float): Orbital period, in years. Positive.
+
+    Returns:
+        tuple: `(vx, vy, vz)` in AU per year.
+    """
+    if period_years <= 0:
+        raise ValueError(f"the orbital period must be positive, got {period_years!r}")
+    u = math.radians(phase_deg)
+    i = math.radians(inclination_deg)
+    node = math.radians(ascending_node_deg)
+    cos_u, sin_u = math.cos(u), math.sin(u)
+    cos_i = math.cos(i)
+    cos_node, sin_node = math.cos(node), math.sin(node)
+    scale = distance_au * 2 * math.pi / period_years
+    return (
+        scale * (-cos_node * sin_u - sin_node * cos_u * cos_i),
+        scale * (-sin_node * sin_u + cos_node * cos_u * cos_i),
+        scale * cos_u * math.sin(i),
+    )
+
+
 def calculate_reflex_offset(parent_mass_kg, children):
     """
     A parent body's own displacement from its nominal fixed point, caused

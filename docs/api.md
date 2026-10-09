@@ -204,8 +204,8 @@ connectivity to that specific schema rather than the default one.
   sector positions; a belt is a ring with no `system_km`). A bad reference
   or a missing row is a `404`. `queryDb.resolve_object`,
   `planetgen.galaxy.objectref` and `static/objectref.js` hold the logic.
-- `GET /api/nav?from=<id>&to=<id>` — course, distance, and an optimal route
-  between two systems (`queryDb.nav_between`) — see "NAV" below.
+- `GET /api/nav?from=<ref>&to=<ref>` — course, distance, and an optimal route
+  between two objects (systems, bodies, phenomena) (`queryDb.nav_between`) — see "NAV" below.
 - `GET /api/galaxy/sectors` — every galaxy-placed sector (non-`null`
   galaxy placement), each with `id`, `name`, `x`/`y`/`z`
   (`center_x/y/z_pc`), `galactic_radius_pc`, `ring_index`, and
@@ -762,24 +762,32 @@ in over HTTPS, `Strict-Transport-Security: max-age=31536000`.
 
 ## NAV
 
-`GET /api/nav?from=<system_id>&to=<system_id>` returns a direct course
+`GET /api/nav?from=<ref>&to=<ref>` returns a direct course
 (distance, bearing and mark, warp and fold travel times) plus an optimal route via
 adjacent systems (`planetgen.galaxy.nav_graph`, a k-nearest-neighbor adjacency
-graph with Dijkstra shortest-path) between two endpoints -- each either a
-star system (the default) or a standalone phenomenon (nebula/asteroid
-field/black hole/neutron star/supernova remnant/rogue planet/interstellar
-comet/quasar).
+graph with Dijkstra shortest-path) between two endpoints. An endpoint is an
+object reference (`GET /api/objects/<ref>`): a star system (`system:12`, or a
+bare number), a body in one (`star:7`, `planet:40`, `moon:41`, `belt:5`,
+`comet:8`), or a standalone phenomenon (`nebula:2`, `asteroid_field`,
+`black_hole`, `neutron_star`, `supernova_remnant`, `rogue_planet`,
+`interstellar_comet`, `quasar`). A sector is not an endpoint (`400`); a bad
+reference or nonexistent id is a `404`. A phenomenon endpoint's own
+`route.path`/`route.positions` id is a `"phenomenon:<type>:<id>"` string (a
+plain int id for a system) -- only `route.path[0]`/`route.path[-1]` can ever
+be a phenomenon; every intermediate hop is always a system.
 
-**Phenomenon endpoints.** Pass `from_kind=phenomenon&from_type=<type>`
-(and/or the `to_*` equivalents) to route to/from a phenomenon instead of a
-system -- `from`/`to` then names that phenomenon's own row id, and
-`from_type`/`to_type` is one of `nebula`, `asteroid_field`, `black_hole`,
-`neutron_star`, `supernova_remnant`, `rogue_planet`, `interstellar_comet`,
-`quasar` (an unrecognized type or a nonexistent id is a `404`). A phenomenon
-endpoint's own `route.path`/`route.positions` id is a
-`"phenomenon:<type>:<id>"` string (a plain int id, same as always, for a
-system) -- only `route.path[0]`/`route.path[-1]` can ever be a phenomenon;
-every intermediate hop is always a system.
+**Bodies and legs (NAV.16).** `origin` and `destination` echo
+`{ref, kind, name}`. `legs` lists the course's legs, each `{kind, from, to,
+direct, warp_times, fold_times}`: `between` (the system-to-system or
+phenomenon course, the same as the top-level `direct`), plus `out` when the
+origin is a body (from it to its system's heliopause on the side facing the
+destination) and `into` when the destination is one (from the heliopause on
+the side facing the origin to the body), both in the System Local Frame
+(`frame: "system"`). Two objects in one system (a system itself counts) are a
+single `within` leg with `scope: "system"`, `route: null` and positions in
+light-years from the system's origin. `note` says the in-system legs use the
+same warp and fold tables as between systems (`null` when there is none).
+A belt is placed at its mean radius.
 
 **Availability.** NAV only applies to a pair of endpoints that satisfy one of:
 
