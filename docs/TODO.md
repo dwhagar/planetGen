@@ -324,7 +324,7 @@ with `clamp()`.
     Prerequisite: UX.47.
 
 - [ ] **UX.76 Icons and highlights follow the light and dark theme (bug)**
-  Boss (GitHub issue #706, 2026-10-09 00:13Z): "Make sure to adapt your
+  Boss (GitHub issue [#706](https://github.com/dwhagar/planetGen/issues/706), 2026-10-09 00:13Z): "Make sure to adapt your
   icons for dark or light mode, same with highlights and such. Some of
   the buttons highlight dark with dark text and the new icons are dark
   in dark mode." Done: every icon, and every button state (hover, focus,
@@ -334,7 +334,7 @@ with `clamp()`.
   text at 4.5:1 and icons at 3:1 against their backgrounds.
 
 - [ ] **UX.77 The class list is alphabetized (bug)**
-  Boss (GitHub issue #681, 2026-10-08 22:33Z): "The list of class
+  Boss (GitHub issue [#681](https://github.com/dwhagar/planetGen/issues/681), 2026-10-08 22:33Z): "The list of class
   categories should be alphabetized." Done: everywhere the site lists
   planet class categories (filters, search facets, legends, the class
   pages), they are in alphabetical order, with a test on the shared
@@ -485,7 +485,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisite: GEN.84.
 
 - [ ] **MAP.135 Selecting the first slab or wedge shows its bounds (bug)**
-  Boss (GitHub issue #770, 2026-10-09 05:39Z): "When the user selects
+  Boss (GitHub issue [#770](https://github.com/dwhagar/planetGen/issues/770), 2026-10-09 05:39Z): "When the user selects
   the first slab after selecting the wedge segment of the galaxy they
   want to view, the system shows no information about the bounds of that
   location. Same for the wedge." Done: selecting a wedge, and the first
@@ -495,7 +495,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Shares the info panel of MAP.65 and the stage logic of MAP.59.
 
 - [ ] **MAP.136 Binary stars pick as one system and their 3D orbits are drawn clearly (bug)**
-  Boss (GitHub issues #709 and #708, 2026-10-09 00:16Z): "In binary star
+  Boss (GitHub issues [#709](https://github.com/dwhagar/planetGen/issues/709) and [#708](https://github.com/dwhagar/planetGen/issues/708), 2026-10-09 00:16Z): "In binary star
   selection from the galaxy or sector view, you should only be able to
   select the binary star system rather than individual stars" and "In 3D
   view some binary star orbital paths make it look like they are going
@@ -510,7 +510,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   close pair never intersect.
 
 - [ ] **MAP.137 Rogue planets are easy to see, with the right default filters (bug)**
-  Boss (GitHub issue #705, 2026-10-09 00:04Z): "Rogue planet filter
+  Boss (GitHub issue [#705](https://github.com/dwhagar/planetGen/issues/705), 2026-10-09 00:04Z): "Rogue planet filter
   should start off and stars should start 'on'. Secondly, when rogue
   plants are shown we need to artificially make them more visible by
   making them bright enough to see or maybe given them an aura or
@@ -523,7 +523,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   covers the defaults and the marker.
 
 - [ ] **MAP.138 Recenter the camera in every 3D view (bug)**
-  Boss (GitHub issue #699, 2026-10-08 23:44Z): "We need the ability to
+  Boss (GitHub issue [#699](https://github.com/dwhagar/planetGen/issues/699), 2026-10-08 23:44Z): "We need the ability to
   manually recenter a camera in all 3D views, so that we can zoom in and
   out of what we want without playing with weird angles from the
   center." and his comment: "Center for keyboard controls should move
@@ -536,7 +536,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   center.
 
 - [ ] **MAP.139 The Galaxy View uses its spare space: an info box with a Details link, and menu items**
-  Boss (GitHub issues #758 and #715): "there's a lot of wasted space
+  Boss (GitHub issues [#758](https://github.com/dwhagar/planetGen/issues/758) and [#715](https://github.com/dwhagar/planetGen/issues/715)): "there's a lot of wasted space
   that I want to fill up with something useful, maybe menu items? Maybe
   information about what is selected?" and "A simple information box
   should appear overlaid on the map when there is room that displays the
@@ -548,7 +548,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   shared panel.
 
 - [ ] **MAP.140 Double-click on a selected object goes there and opens its information**
-  Boss (GitHub issue #714, 2026-10-09 00:26Z): "Double clicking on a
+  Boss (GitHub issue [#714](https://github.com/dwhagar/planetGen/issues/714), 2026-10-09 00:26Z): "Double clicking on a
   selected object goes there and pulls up its information." Done: on
   every map a double-click on the selected object moves the view to it
   (the next stage down, or the object's page) and opens its information;
@@ -556,7 +556,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Galaxy, Sector and System views.
 
 - [ ] **MAP.141 Context around the selection: faint neighbours, and the sectors above and below**
-  Boss (GitHub issues #718 and #716): "When selecting a slab we should
+  Boss (GitHub issues [#718](https://github.com/dwhagar/planetGen/issues/718) and [#716](https://github.com/dwhagar/planetGen/issues/716)): "When selecting a slab we should
   still be able to see what is behind it and around it faintly just like
   in the other views" and "When viewing a sector you should also be able
   to see what is above and below it in the same style as what is around
@@ -569,14 +569,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   here.
 
 - [ ] **MAP.142 Nebulae have fuzzy, fading boundaries**
-  Boss (GitHub issue #713, 2026-10-09 00:25Z): "Can we make the nebula
+  Boss (GitHub issue [#713](https://github.com/dwhagar/planetGen/issues/713), 2026-10-09 00:25Z): "Can we make the nebula
   boundaries fuzzy and kind of fade a bit so it looks more gaseous?"
   Done: nebulae drawn from their shape (GEN.75) fade out toward the edge
   with a soft falloff instead of a hard outline, in the Galaxy, Sector
   and nebula views, and the falloff keeps the nebula's extent readable.
 
 - [ ] **MAP.143 Color sectors by their number of habitable locations**
-  Boss (GitHub issue #717, 2026-10-09 00:44Z): "Coloring option
+  Boss (GitHub issue [#717](https://github.com/dwhagar/planetGen/issues/717), 2026-10-09 00:44Z): "Coloring option
   available for sectors based on the number of habitable locations."
   Done: the Galaxy Map's Color by switch (MAP.131) gains a Habitable
   worlds choice that colours each sector and block by how many planets
@@ -903,7 +903,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   opens NAV.44 with that place filled in. Optional (default left out
   unless Boss asks): the map draws the search sphere and highlights the
   objects inside it. It uses MAP.65's shared control panel and NAV.15's picking of
-  any object on the maps. GitHub issue #677 (Boss, 2026-10-08 22:24Z): "Add search options so that when I select a star from anywhere I can take it directly to the search tab to search for items / objects within x distance of that point. Should work for stars, phenomena, even planets and moons." So the action is offered for any pickable object, down to planets and moons (NAV.15), and the result lists every kind.
+  any object on the maps. GitHub issue [#677](https://github.com/dwhagar/planetGen/issues/677) (Boss, 2026-10-08 22:24Z): "Add search options so that when I select a star from anywhere I can take it directly to the search tab to search for items / objects within x distance of that point. Should work for stars, phenomena, even planets and moons." So the action is offered for any pickable object, down to planets and moons (NAV.15), and the result lists every kind.
   Prerequisite: NAV.44.
 
 - [ ] **NAV.47 Unknown-space jumps stop at scattered stars, black holes, neutron stars and quasars**
@@ -1927,7 +1927,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisite: GEN.113.
 
 - [ ] **GEN.127 A sector generated around a backfilled bright star gives that star a planetary system (bug)**
-  Boss (GitHub issue #513, 2026-10-08 00:34Z): "When a star is filled in
+  Boss (GitHub issue [#513](https://github.com/dwhagar/planetGen/issues/513), 2026-10-08 00:34Z): "When a star is filled in
   for brightness and a sector is generated around it it should get a
   whole system. Right now when the sector generates it does not generate
   a planetary system around stars already present." Done: generating a
@@ -1937,7 +1937,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   first whether GEN.72 (PR #657) already changed this.
 
 - [ ] **GEN.128 Design: multi-star hierarchies and compact-object primaries**
-  Boss (GitHub issues #777 and #778, 2026-10-09 06:43Z): "scientifically
+  Boss (GitHub issues [#777](https://github.com/dwhagar/planetGen/issues/777) and [#778](https://github.com/dwhagar/planetGen/issues/778), 2026-10-09 06:43Z): "scientifically
   accurate star systems with up to 7 stars, this is going to be complex
   but that is the highest number of stars we've seen in orbit around
   each other" and "exotic star systems that have black holes, neutron
@@ -1951,7 +1951,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   no-go list for GEN.129 and GEN.130.
 
 - [ ] **GEN.129 Multi-star systems of up to seven stars**
-  Boss (GitHub issue #777): "We need to add scientifically accurate star
+  Boss (GitHub issue [#777](https://github.com/dwhagar/planetGen/issues/777)): "We need to add scientifically accurate star
   systems with up to 7 stars, this is going to be complex but that is
   the highest number of stars we've seen in orbit around each other."
   Done as GEN.128's design says: generation draws hierarchies of three
@@ -1959,7 +1959,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   them (GEN.62), and the maps and the orbital update handle them.
 
 - [ ] **GEN.130 Exotic star systems: a black hole, neutron star or similar at the center**
-  Boss (GitHub issue #778): "We need to add exotic star systems that
+  Boss (GitHub issue [#778](https://github.com/dwhagar/planetGen/issues/778)): "We need to add exotic star systems that
   have black holes, neutron stars, or similar as the central star for
   systems, binary systems." Done as GEN.128's design says: generation
   can make a system or binary whose primary is a black hole, neutron
@@ -2021,7 +2021,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisite: PERF.29.
 
 - [ ] **PERF.34 The site stays responsive during heavy generation jobs (bug)**
-  Boss (GitHub issues #638 and #614): during a bright-star fill "the
+  Boss (GitHub issues [#638](https://github.com/dwhagar/planetGen/issues/638) and [#614](https://github.com/dwhagar/planetGen/issues/614)): during a bright-star fill "the
   galaxy map doesn't respond, it gives a timeout error" and "the web
   site is having trouble loading while it's doing the bright star fill.
   The DB is being hit hard." Done: the cause is measured with PERF.31's
@@ -2033,10 +2033,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   same time.
 
 - [ ] **PERF.31 Investigate: where generation spends its time, from the plan to a finished galaxy**
-  Boss (GitHub issue #761, 2026-10-09 04:43Z): "We need to do a timed
+  Boss (GitHub issue [#761](https://github.com/dwhagar/planetGen/issues/761), 2026-10-09 04:43Z): "We need to do a timed
   analysis in full debug from the planning of the galaxy to the galaxy
   being ready and generation finished. We need to know where the system
-  spends the most time in each phase." and (issue #750) "there should be
+  spends the most time in each phase." and (issue [#750](https://github.com/dwhagar/planetGen/issues/750)) "there should be
   a method to benchmark." Done: a repeatable benchmark command runs a
   small galaxy from the plan to the finished fill in full debug and
   prints the time spent in each phase and sub-phase; a report names the
@@ -2044,7 +2044,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   PERF.34 and PERF.32 build on it.
 
 - [ ] **PERF.32 Generation performance stats: rates recorded per run, deleted on every new version**
-  Boss (GitHub issues #661 and #750): "The system should store and use
+  Boss (GitHub issues [#661](https://github.com/dwhagar/planetGen/issues/661) and [#750](https://github.com/dwhagar/planetGen/issues/750)): "The system should store and use
   performance data so that it has a better idea how long things will
   take. It should record things like bright stars created / second,
   sectors / second, phenomena / second of every generation should be
@@ -2058,7 +2058,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   PERF.33 uses them.
 
 - [ ] **PERF.33 Progress bars and ETAs from measured performance**
-  Boss (GitHub issue #661): "time remaining on all progress bars should
+  Boss (GitHub issue [#661](https://github.com/dwhagar/planetGen/issues/661)): "time remaining on all progress bars should
   be calculated from this performance metric averaged with the actual
   performance at the time" and "if it is expected to take longer than 15
   seconds to complete, it gets a progress bar for that sub-task from the
@@ -2136,7 +2136,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
 - [ ] **DB.15 A migration progress bar with the time remaining**
-  Boss (GitHub issue #727, 2026-10-09 01:18Z): "I'd like the progress
+  Boss (GitHub issue [#727](https://github.com/dwhagar/planetGen/issues/727), 2026-10-09 01:18Z): "I'd like the progress
   bar to estimate time remaining and progress through a single DB
   migration." Done: a long migration step reports its progress in
   batches, and the update script shows a bar with the time remaining for
@@ -2402,7 +2402,7 @@ Boss (2026-10-07 11:47Z): "Actual specs on layers on the generation
   the page shows the galaxy's layer specs (count, height, extent, how
   many charted), the common actions stay on the page and every other
   setting moves into a Customize dialog, and its subitems are done.
-  GitHub issue #736 (Boss, 2026-10-09 02:26Z): "Each set of settings should be a tab for the generate screen so the user only sees the ones relevant to what they are looking at." So the Customize dialog groups its settings into tabs, one per kind of generation.
+  GitHub issue [#736](https://github.com/dwhagar/planetGen/issues/736) (Boss, 2026-10-09 02:26Z): "Each set of settings should be a tab for the generate screen so the user only sees the ones relevant to what they are looking at." So the Customize dialog groups its settings into tabs, one per kind of generation.
   Prerequisites: ADM.29, ADM.30, ADM.31, GEN.97.
 
   - [ ] **ADM.29 Fill a span of layers, rings or columns**
@@ -2473,7 +2473,7 @@ Boss (2026-10-07 11:47Z): "Actual specs on layers on the generation
   Prerequisite: GEN.109.
 
 - [ ] **ADM.39 Running queue jobs show an ETA (bug)**
-  Boss (GitHub issue #676, 2026-10-08 22:17Z): "Jobs on the work queue
+  Boss (GitHub issue [#676](https://github.com/dwhagar/planetGen/issues/676), 2026-10-08 22:17Z): "Jobs on the work queue
   should have an ETA If they are running, if it can be calculated."
   Done: each running job on the Queue page shows an estimated finish
   time computed from the progress the RQ job already publishes (ADM.22),
@@ -2481,7 +2481,7 @@ Boss (2026-10-07 11:47Z): "Actual specs on layers on the generation
   of UX.3. PERF.33 later improves the estimate with measured rates.
 
 - [ ] **ADM.40 The Generate page stops reporting a lost connection (bug)**
-  Boss (GitHub issue #656, 2026-10-08 21:16Z): "Every so often the
+  Boss (GitHub issue [#656](https://github.com/dwhagar/planetGen/issues/656), 2026-10-08 21:16Z): "Every so often the
   generation page says it has 'lost connection' and then reconnects."
   Done: the cause is found (the job log stream of ADM.22 over SSE, a
   proxy or Redis timeout, or the worker being busy) and fixed or made to
@@ -2490,7 +2490,7 @@ Boss (2026-10-07 11:47Z): "Actual specs on layers on the generation
   May share a cause with PERF.34.
 
 - [ ] **ADM.41 Every job is easy to find and cancel in the web queue, and past jobs are paginated and clean (bug)**
-  Boss (GitHub issues #614, with his correction in a comment, and #535):
+  Boss (GitHub issues [#614](https://github.com/dwhagar/planetGen/issues/614), with his correction in a comment, and #535):
   a plan job started from the CLI over SSH showed up in the queue "but
   were difficult to access" when the connection dropped, and "Past jobs
   list needs to be paginated, also should be cleanable and minimalist."
@@ -2502,8 +2502,8 @@ Boss (2026-10-07 11:47Z): "Actual specs on layers on the generation
   and cancels it from the page.
 
 - [ ] **ADM.42 One settings model describes every config.json option**
-  Foundation for the full config page (GitHub issue #515) and the SEO
-  settings (#743). Done: config.json is described by one Pydantic model
+  Foundation for the full config page (GitHub issue [#515](https://github.com/dwhagar/planetGen/issues/515)) and the SEO
+  settings ([#743](https://github.com/dwhagar/planetGen/issues/743)). Done: config.json is described by one Pydantic model
   (ADM.21 already uses Pydantic for request bodies) holding every option
   with its type, default, help text, whether it is secret and whether
   changing it needs a restart; the loader and the docs read the model,
@@ -2512,7 +2512,7 @@ Boss (2026-10-07 11:47Z): "Actual specs on layers on the generation
   the web.
 
 - [ ] **ADM.43 A full configuration page under Admin**
-  Boss (GitHub issue #515, 2026-10-08 00:39Z): "A page under admin is
+  Boss (GitHub issue [#515](https://github.com/dwhagar/planetGen/issues/515), 2026-10-08 00:39Z): "A page under admin is
   needed to configure everything EXCEPT for the database information.
   All other settings should be accessed and changeable from there."
   Done: an Admin page generated from ADM.42's model lists every option
@@ -2520,7 +2520,7 @@ Boss (2026-10-07 11:47Z): "Actual specs on layers on the generation
   says which changes need a restart.
 
 - [ ] **ADM.44 Web, Open Graph and SEO settings**
-  Boss (GitHub issue #743, 2026-10-09 02:55Z): "Add config options to
+  Boss (GitHub issue [#743](https://github.com/dwhagar/planetGen/issues/743), 2026-10-09 02:55Z): "Add config options to
   set up icons, open graph fields for discord and other link previews,
   SEO fields for description and keywords, and web documents for things
   like robots.txt and such." Done: the settings page gains site icons,

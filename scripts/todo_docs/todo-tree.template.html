@@ -70,6 +70,7 @@ details[open]>summary .twist{transform:rotate(90deg)}
 .also{flex-basis:100%;margin-left:1.6em;font-size:.82rem;color:var(--muted)}
 .also a{color:var(--accent);font-family:var(--f-mono);font-size:.9em;text-decoration:none;border-bottom:1px dotted var(--accent)}
 .note{flex-basis:100%;margin-left:1.6em;font-size:.86rem;color:var(--muted);max-width:90ch}
+.note a{color:var(--accent)}
 .node.hit>details>summary,.node.hit>.leaf{background:var(--accent-soft)}
 .node.flash>details>summary,.node.flash>.leaf{outline:2px solid var(--accent)}
 .empty{color:var(--muted);padding:12px 0}
@@ -165,7 +166,18 @@ function nodeFor(i,forceOpen){
     others.forEach((d,n)=>{const l=el('a',null,d);l.href='#n-'+d;l.title=items[d].title;l.addEventListener('click',e=>{e.preventDefault();jump(d)});a.append(l);if(n<others.length-1)a.append(', ')});
     head.append(a);
   }
-  if(it.note) head.append(el('span','note',it.note));
+  if(it.note){
+    const n=el('span','note');
+    const re=/\[([^\]]+)\]\((https:\/\/[^)\s]+)\)/g;
+    let last=0,m;
+    while((m=re.exec(it.note))){
+      n.append(it.note.slice(last,m.index));
+      const l=el('a',null,m[1]);l.href=m[2];l.target='_blank';l.rel='noopener';n.append(l);
+      last=m.index+m[0].length;
+    }
+    n.append(it.note.slice(last));
+    head.append(n);
+  }
   if(matches(i)&&filtering()) li.classList.add('hit');
   if(matches(i)) shown++;
   if(!k.length){li.append(head);return li}
