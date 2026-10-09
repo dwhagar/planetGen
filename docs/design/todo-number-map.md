@@ -436,7 +436,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.45 | Prevalence fields take the override share directly and must total 100% | none | open |
 | ADM.46 | Generate page: a progress line and per-layer counts instead of one line per sector | none | dropped |
 | ADM.47 | Generating a neighbourhood from the Generate page shows no per-sector stats and looks slow or silent (bug) | none | done, PR #846 |
-| ADM.48 | Two test_api_auth_sweep tests fail: /admin/stats/galaxy-settings/<name> answers 302, not 403, to an unauthorised caller (bug) | none | open |
+| ADM.48 | Two test_api_auth_sweep tests fail: /admin/stats/galaxy-settings/<name> answers 302, not 403, to an unauthorised caller (bug) | none | done, PR #863 |
 | API.1 | Create a system inside an existing sector | 10 (2026-09-24 01:32Z to 02:18Z); 7 (2026-09-24 01:57Z to 02:02Z); 5 (2026-09-24 02:25Z to 05:38Z); 4 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 13 (2026-09-30 16:44Z); 14 (2026-09-30 16:49Z); 15 (2026-09-30 16:51Z to 18:09Z); 32 (2026-09-30 18:14Z); 37 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.2 | Edit a system's generated content | 11 (2026-09-24 01:32Z to 02:18Z); 8 (2026-09-24 01:57Z to 02:02Z); 6 (2026-09-24 02:25Z to 05:38Z); 5 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 14 (2026-09-30 16:44Z); 15 (2026-09-30 16:49Z); 16 (2026-09-30 16:51Z to 18:09Z); 33 (2026-09-30 18:14Z); 38 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.3 | Remote generate: generate on a local machine, upload through the API | none | open |
@@ -933,8 +933,8 @@ Parents marked "new parent" had no old number of their own.
 | PERF.41 | Stamp the tile and page caches with a TILE_FORMAT constant instead of the version (optional) | none | open |
 | PERF.42 | Warm the RQ worker before the fork: pre-import generation modules and build the bright-star table once | none | done, PR #841 |
 | PERF.43 | Lazy word-salad names for phenomena named by object ID | none | done, PR #861 |
-| PERF.44 | Compute object uids in Python and write them with the row | none | open |
-| PERF.45 | Nearest-system links and containment as one later pass | none | open |
+| PERF.44 | Compute object uids in Python and write them with the row | none | done, PR #863 |
+| PERF.45 | Nearest-system links and containment as one later pass | none | done, PR #863 |
 | PERF.46 | Planets and moons: set the position once per body | none | open |
 | PERF.47 | The PERF.31 benchmark records the buffer pool, table sizes and worker start-up cost | none | open |
 | PERF.48 | Low priority: a numeric-only INSERT formatter or C driver for bright_stars and phenomenon_scatter | none | open |
