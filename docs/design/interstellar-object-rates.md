@@ -220,4 +220,4 @@ Balogh 2010, intracluster supernovae.
 
 ## Retune of 2026-10-09 (Boss: central observed values)
 
-Neutron stars 0.4% and black holes 0.05% of stars; planetary nebulae 1e-7 per star; terrestrial rogue planets 5.8 per star (0.7 per pc³ central); intermediate-mass black holes 0.1% of black holes; accretion disks on 0.1% of black holes; 2% of neutron stars pulsing, 10% of those millisecond pulsars. Regional differences (scale height, radius, type) are in `/mnt/project-files/ns-bh-regions/report.md` and are not modeled yet.
+Neutron stars 0.4% and black holes 0.05% of stars; planetary nebulae 1e-7 per star; terrestrial rogue planets 5.8 per star (0.7 per pc³ central); intermediate-mass black holes 0.1% of black holes; accretion disks on 0.1% of black holes; 2% of neutron stars pulsing, 10% of those millisecond pulsars. Regional differences (scale height, radius, type) are in [`compact-remnant-regions.md`](compact-remnant-regions.md) and are not modeled yet.
