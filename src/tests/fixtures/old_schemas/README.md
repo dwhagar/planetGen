@@ -52,6 +52,7 @@ Commit each file came from:
 - v57: 5528f58
 - v58: 26d9960
 - v59: 9841a47
+- v60: 5d28e4e
 
 To add the schema a release is leaving behind (run from the repo root,
 before bumping `SCHEMA_VERSION`):

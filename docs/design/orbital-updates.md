@@ -411,10 +411,15 @@ masses (23:16Z), as a spline.
   `galactic_orbital_speed_kms` along the tangent of the galaxy's rotation at
   its place, counterclockwise (`system_position.galactic_velocity_ms`, which
   `place_system` and `place_in_galaxy` apply, so it follows the object into
-  another sector); a body's galactic velocity is its star's plus its own.
-  `planets`, `moons` and `comets` store theirs (schema v60,
-  `velocity_x/y/z_kms`), and `advance_orbital_phases` and
-  `advance_comet_orbits` move it with the position. A loaded sector's
+  another sector), plus, for a runaway or hypervelocity system, its
+  `runaway_speed_kms` along `runaway_direction`
+  (`system_position.peculiar_velocity_ms`); a body's galactic velocity is its
+  star's plus its own. `planets`, `moons` and `comets` store theirs (schema
+  v60, `velocity_x/y/z_kms`) and `advance_orbital_phases` and
+  `advance_comet_orbits` move it with the position; `star_systems` stores
+  the system's galactic velocity (schema v61) and `advance_galactic_positions`
+  turns it with the position, so the motion update still follows the
+  rotation curve and the runaway velocity is carried with it, not integrated. A loaded sector's
   objects carry the epoch `store.get_orbit_epoch_unix` gives (when the
   orbits were last advanced).
 - With the sector edge known, the position also knows its **sector

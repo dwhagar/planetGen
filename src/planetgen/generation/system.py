@@ -142,6 +142,11 @@ class StarSystem:
     runaway_speed_kms = None
     """float or None: That speed, km/s; `None` unless `runaway_class`."""
 
+    runaway_direction = None
+    """tuple or None: The unit vector, galactic axes, it moves along beyond
+    the galaxy's rotation (`galaxy.system_position.peculiar_velocity_ms`);
+    `None` unless `runaway_class`."""
+
     unmet_requirements = ()
     """list of str: What `system_config` forced (a habitable world, an
     asteroid belt) that every placement attempt failed to give this
@@ -1181,6 +1186,7 @@ class StarSystem:
             "binary_planetary_wobble_z": self.binary_planetary_wobble_z,
             "runaway_class": self.runaway_class,
             "runaway_speed_kms": self.runaway_speed_kms,
+            "runaway_direction": list(self.runaway_direction) if self.runaway_direction is not None else None,
         }
 
     @classmethod
@@ -1293,6 +1299,8 @@ class StarSystem:
         system.system_flavor_text = data.get("system_flavor_text")
         system.runaway_class = data.get("runaway_class")
         system.runaway_speed_kms = data.get("runaway_speed_kms")
+        direction = data.get("runaway_direction")
+        system.runaway_direction = tuple(direction) if direction is not None else None
         # Absent from an export written before bodyNames.py -- the star's
         # own name was the system name then.
         system._name = data.get("name") or star.name

@@ -981,10 +981,17 @@
 --   velocity at the stored phase or anomaly: a planet's or moon's is the
 --   tangent of its circular orbit, `orbital_speed_kms` long, a comet's the
 --   Kepler or Barker velocity. `_migrate_v59_to_v60` works it out for rows
---   saved before. A star's or system's galactic velocity is not stored: it
---   is its `galactic_orbital_speed_kms` along the rotation curve's tangent
---   at its place (`galaxy.system_position.galactic_velocity_ms`), put on
---   the objects when a sector is loaded.
+--   saved before.
+-- v61: `star_systems` gains `velocity_x_kms`/`_y_kms`/`_z_kms` (GEN.121), the
+--   system's velocity in km/s on the galactic axes: the rotation curve's
+--   tangent at its place (`galactic_orbital_speed_kms`,
+--   `galaxy.system_position.galactic_velocity_ms`) plus, for a runaway or
+--   hypervelocity system, `runaway_speed_kms` along a random direction.
+--   `advance_galactic_positions` turns it with the position, and a loaded
+--   sector puts it on the system's entry, stars and bodies. The direction
+--   is not a column of its own: `_migrate_v60_to_v61` gives a system saved
+--   before one from its id. Placed phenomena store none: they only follow
+--   the rotation curve, so it is worked out from `galactic_orbital_speed_kms`.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -1362,6 +1369,10 @@ CREATE TABLE IF NOT EXISTS star_systems (
     -- together otherwise.
     runaway_class        VARCHAR(16),
     runaway_speed_kms    DOUBLE,
+    -- v61: velocity on the galactic axes, km/s (see the header comment's "v61" note).
+    velocity_x_kms       DOUBLE NOT NULL DEFAULT 0,
+    velocity_y_kms       DOUBLE NOT NULL DEFAULT 0,
+    velocity_z_kms       DOUBLE NOT NULL DEFAULT 0,
     schema_version       INT NOT NULL DEFAULT 1,
 
     -- No stored page text since v29: wikitext/Markdown are rendered on
