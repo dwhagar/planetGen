@@ -856,7 +856,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.28 | The console's second progress bar (the bright-star backfill after a sector run) never updates its ETA (bug) | none | done, PR #454 |
 | PERF.29 | Record which runs a partly filled sector still needs | none | open |
 | PERF.30 | Finish an interrupted block or sector run on the next start | none | open |
-| PERF.34 | The site stays responsive during heavy generation jobs (bug) | none | open |
+| PERF.34 | The site stays responsive during heavy generation jobs (bug) | none | done, PR #811 |
 | PERF.31 | Investigate: where generation spends its time, from the plan to a finished galaxy | none | open |
 | PERF.32 | Generation performance stats: rates recorded per run, deleted on every new version | none | open |
 | PERF.33 | Progress bars and ETAs from measured performance | none | open |

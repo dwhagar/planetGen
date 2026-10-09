@@ -323,3 +323,7 @@ items. New notes are listed here when the PR that adds them merges.
 | [orbital-updates.md](../design/orbital-updates.md) | The orbital update design (GEN.105 and its chain). |
 | [library-migration.md](../design/library-migration.md) | The move to third-party libraries. |
 | [reproducible-galaxies.md](../design/reproducible-galaxies.md) | Seeds, version keys and the same-seed rule. |
+
+## Not yet checked in live use
+
+- **PERF.34 (PR #811)**: the fix (tile cache wiped every minute during a fill when more than 1,000 sectors or new bright stars forced a full rebuild; now a `busy` answer plus keeping the cache for up to 10 minutes) was found by reading the code path and has not been load-tested. Boss's next real fill is the check; reopen issue #638 if the site is still slow.
