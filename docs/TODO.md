@@ -916,9 +916,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   they are not two rules. Until MAP.148 lands, the rank rule leads;
   MAP.148 then replaces the rank with apparent magnitude (rank stays as
   the cap and tiebreak).
-  Open question for Boss (default the rank birth-radius fade is stage 1
-  and the apparent-magnitude law of MAP.148 is the end state): which
-  rule leads?
+  Decided (Boss, 2026-10-09 23:11Z, "default options are approved"):
+  the rank birth-radius fade is stage 1 and the apparent-magnitude law
+  of MAP.148 is the end state.
   Decided (Boss, 2026-10-09 23:11Z, "default options are approved"): each
   star fades over one halving of the camera radius (W = 1); a dense
   sector's stars arrive in rank order between about 35 pc and 8 pc of
