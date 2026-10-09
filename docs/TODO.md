@@ -1454,9 +1454,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     Scope cut by Boss (2026-10-09 20:42Z): the delta merge and the
     18-slot JSON backups (GEN.61, OPS.18) are dropped with the user-facing
     galaxy rebuild, so this script runs the positional update only (and
-    any later daily step). Open question for Boss (default: keep the
-    daily positional update): is the daily run still wanted at all, now
-    that GEN.106 stores a next-update-due column?
+    any later daily step). Decided (Boss, 2026-10-09 20:52Z): keep the
+    daily positional update.
     Done: `scripts/maintenance.sh` (Linux and macOS) and
     `scripts/maintenance.ps1` (Windows) run once a day: the
     positional update (`updateOrbits.py`). A lock keeps two runs
@@ -1538,10 +1537,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     server would for those sectors, checked by fingerprint (GEN.58); and
     API.8 can verify an upload by re-running a sample of its sectors on
     the server and comparing. Prerequisites: API.12, API.13, GEN.57.
-    Open question for Boss (default: keep): this is remote generation
-    matching the server, not a user rebuild of a galaxy from a seed and
-    version; drop the fingerprint check and keep only the upload sample
-    check if you would rather not support it.
+    Decided (Boss, 2026-10-09 20:52Z): keep the fingerprint check. This
+    is remote generation matching the server, not a user rebuild of a
+    galaxy from a seed and version.
     Research (2026-10-09, reproducible-galaxies.md): the remote path
     calls the same pure generation function; compare fingerprints at 9
     digits; per api-design-standards.md the handshake compares epoch and
@@ -3290,7 +3288,8 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   the settings file (ADM.18), then replay its edits from the edit log.
   (Boss, 2026-10-09 20:42Z, dropped the pending-delta JSON and daily
   merge this item used to read; the seed is still used internally for
-  repair.) Compare the result with the stored leaf digest. Open question for Boss (default
+  repair. Boss, 2026-10-09 20:52Z: keep the repair from the seed, replaying
+  the edit log.) Compare the result with the stored leaf digest. Open question for Boss (default
   yes): ship the parity half first, without GEN.57, GEN.58 and OPS.14.
   Note (2026-10-09): admin regenerate of a planet, moon or belt
   (`admin/edits.py`) draws from the process stream, so an edited sector
