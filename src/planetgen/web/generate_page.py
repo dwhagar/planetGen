@@ -873,7 +873,9 @@ def _estimate_view(estimate):
     view["time_text"] = stats.format_duration(estimate.get("seconds"))
     disk = estimate.get("disk")
     view["disk_text"] = (f"{stats.format_bytes(disk['free_bytes'])} free of "
-                         f"{stats.format_bytes(disk['total_bytes'])}") if disk else None
+                         f"{stats.format_bytes(disk['total_bytes'])} on {disk.get('where') or disk['path']}") if disk else None
+    note = estimate.get("disk_note")
+    view["disk_note_text"] = f"Not measured: {note}. Nothing is refused for space." if note else None
     return view
 
 

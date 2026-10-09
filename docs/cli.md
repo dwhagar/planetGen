@@ -298,9 +298,12 @@ carries on; the Generate page shows the estimate and asks first.
 A run is **refused**, with nothing written, when it would take more than
 a quarter of the database disk or leave less than 5 GB free; the
 message says how much it needs. The disk is the one holding MySQL's
-data directory (`@@datadir`), checked only when MySQL runs on this
-machine: a database on another server can't be measured from here, so
-nothing is refused for space then. `--yes` never overrides a refusal;
+data directory, asked of the server itself (`SELECT @@datadir`) and never
+assumed to be the boot drive; the estimate names the path and the mount
+(or Windows drive) measured, with symlinks and bind mounts resolved. A
+server on another machine is measured only if that directory is visible
+here or the server reports its own disks (MariaDB); otherwise the disk
+shows as "unknown" with the reason and nothing is refused for space. `--yes` never overrides a refusal;
 generate fewer sectors (`--limit`, a smaller radius) instead.
 
 `--estimate-only` prints the estimate (and any refusal) and stops

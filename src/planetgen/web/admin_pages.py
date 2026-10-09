@@ -549,6 +549,16 @@ def tile_cache_info():
     return info
 
 
+def _disk_tile(disk):
+    """The free space of the drive holding the database's data, with the path measured; "unknown" and why
+    when it can't be measured from here (never the boot drive's numbers)."""
+    if not disk:
+        return "unknown"
+    if not disk.get("measured"):
+        return f"unknown ({disk.get('note') or 'not measurable from this machine'})"
+    return f"{format_bytes(disk['free_bytes'])} of {format_bytes(disk['total_bytes'])} on {disk['where']}"
+
+
 def _health(stats, api_ms, cache):
     api = stats["api"]
     mysql = stats.get("mysql") or {}
@@ -874,6 +884,7 @@ def admin_stats():
                 ("Sectors", format_count(counts.get("sectors"))),
                 ("Star systems", format_count(counts.get("star_systems"))),
                 ("Size on disk", format_bytes(database["size_bytes"])),
+                ("Free on its drive", _disk_tile(database.get("disk"))),
                 ("Names made unique", format_count(collisions.get("distinct_base_names"))),
             ],
             db_rows=[

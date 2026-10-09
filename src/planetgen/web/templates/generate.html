@@ -102,7 +102,7 @@
     <dt>Sectors</dt><dd>{{ num(estimate.sectors) }} (about {{ num(estimate.systems) }} star systems, {{ num(estimate.stars) }} stars)</dd>
     <dt>Database growth</dt><dd>About {{ estimate.size_text }} (10% margin included)</dd>
     <dt>Time</dt><dd>About {{ estimate.time_text }} with {{ estimate.workers }} worker{{ "" if estimate.workers == 1 else "s" }}{% if not estimate.measured %} (this server's speed isn't measured yet, so this is a rough default){% endif %}</dd>
-    <dt>Database disk</dt><dd>{{ estimate.disk_text or "Not measured: the database runs on another machine, so nothing is refused for space." }}</dd>
+    <dt>Database disk</dt><dd>{{ estimate.disk_text or estimate.disk_note_text or "Not measured, so nothing is refused for space." }}</dd>
   </dl>
   {%- if estimate.refused %}
   <p class="error" role="alert">{{ estimate.refusal }}</p>

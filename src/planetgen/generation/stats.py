@@ -34,6 +34,7 @@ and `DEFAULT_BYTES_PER_SYSTEM`, and nothing is recorded.
 
 import math
 import os
+import shutil
 import time
 from dataclasses import dataclass, field
 
@@ -333,37 +334,112 @@ class GenerationStats:
 
 @dataclass
 class DiskSpace:
-    """The disk the galaxy database lives on."""
+    """The drive the galaxy database's data directory lives on."""
 
     path: str
     total_bytes: int
     free_bytes: int
+    mount: str = None
+    """str or None: The mount point (a drive letter on Windows) holding `path`."""
+    source: str = "data directory"
+    """str: How it was measured: the server's `data directory` seen from here, or `server report`
+    (MariaDB's `information_schema.DISKS`, for a database on another machine)."""
+
+    def where(self):
+        """`"/mnt/data (data directory /mnt/data/mysql/)"`: the drive and the path measured."""
+        if self.mount and self.mount != self.path:
+            return f"{self.mount} (data directory {self.path})"
+        return self.path
 
 
-def database_disk(galaxy_conn, mysql_host):
+@dataclass
+class Unmeasured:
+    """The drive could not be measured, and why (shown instead of any number)."""
+
+    reason: str
+
+
+def _mount_point(path):
+    """The mount point (or Windows drive) holding `path`, symlinks and bind mounts resolved; `None` if unknown."""
+    try:
+        drive, _rest = os.path.splitdrive(path)
+        if drive:
+            return drive + os.sep
+        real = os.path.realpath(path)
+        while not os.path.ismount(real):
+            parent = os.path.dirname(real)
+            if parent == real:
+                break
+            real = parent
+        return real
+    except OSError:
+        return None
+
+
+def _disk_from_server(conn, datadir):
+    """MariaDB lists its mounts in `information_schema.DISKS` (the `disks` plugin); the one holding
+    `datadir` is the longest `Path` that prefixes it. `None` when the server has no such table."""
+    try:
+        rows = conn.execute("SELECT Path AS p, Total AS t, Available AS a FROM information_schema.DISKS").fetchall()
+    except Exception:  # noqa: BLE001 -- MySQL, or the plugin is off
+        return None
+    wanted = datadir.rstrip("/\\").lower()
+    best = None
+    for row in rows:
+        path = (row["p"] or "").rstrip("/\\")
+        if (wanted == path.lower() or wanted.startswith(path.lower() + "/") or wanted.startswith(path.lower() + "\\")
+                or path == "") and (best is None or len(path) > len(best[0])):
+            best = (path, row)
+    if best is None:
+        return None
+    row = best[1]
+    return DiskSpace(datadir, int(row["t"]), int(row["a"]), mount=row["p"] or "/", source="server report")
+
+
+def database_disk(galaxy_conn, mysql_host, database=None):
     """
-    The disk holding the MySQL server's data directory, when that server
-    runs on this machine and the directory can be looked at; `None`
-    otherwise (a database on another machine can't be measured from
-    here, so nothing is refused for space then).
+    The drive holding the MySQL server's data directory, asked of the
+    server itself (`SELECT @@datadir`), never the boot drive: the
+    directory is resolved to its mount (symlinks, bind mounts, a Windows
+    drive letter) and measured there. A server on this machine is
+    measured at that path. A server on another machine is measured only if
+    that path is really its data directory seen from here (the database's
+    own folder is in it) or, failing that, from the server's own report
+    (MariaDB's `information_schema.DISKS`).
+
+    Args:
+        galaxy_conn (Connection): Any connection to the server.
+        mysql_host (str): Its host, as configured.
+        database (str, optional): The schema, to check a path on another
+            machine is the same data directory.
+
+    Returns:
+        DiskSpace or Unmeasured: What to show; an `Unmeasured` says why
+            (and nothing is refused for space then).
     """
     from planetgen.queue.work import _is_local_host
 
-    if not _is_local_host(mysql_host):
-        return None
     try:
-        path = galaxy_conn.execute("SELECT @@datadir AS d").fetchone()["d"]
-        stats = os.statvfs(path)
-    except Exception as exc:  # noqa: BLE001 -- e.g. no os.statvfs on Windows
-        log.debug(f"Generation estimate: can't read the database's disk ({exc}).")
+        datadir = galaxy_conn.execute("SELECT @@datadir AS d").fetchone()["d"]
+    except Exception as exc:  # noqa: BLE001
+        log.debug(f"Database disk: the server did not report its data directory ({exc}).")
+        return Unmeasured("the server did not report its data directory")
+    local = _is_local_host(mysql_host)
+    visible = local or (bool(database) and os.path.isdir(os.path.join(datadir, database)))
+    if visible:
         try:
-            import shutil
-
-            usage = shutil.disk_usage(path)
-            return DiskSpace(path, usage.total, usage.free)
-        except Exception:  # noqa: BLE001
-            return None
-    return DiskSpace(path, stats.f_blocks * stats.f_frsize, stats.f_bavail * stats.f_frsize)
+            usage = shutil.disk_usage(datadir)
+            disk = DiskSpace(datadir, usage.total, usage.free, mount=_mount_point(datadir))
+            log.debug(f"Database disk: {disk.where()}, {usage.free} of {usage.total} bytes free.")
+            return disk
+        except OSError as exc:
+            log.debug(f"Database disk: can't read {datadir} ({exc}).")
+    reported = _disk_from_server(galaxy_conn, datadir)
+    if reported is not None:
+        log.debug(f"Database disk: {reported.where()} from the server's own report.")
+        return reported
+    where = "its data directory isn't visible from this machine" if not local else f"can't read {datadir}"
+    return Unmeasured(f"the database server's data directory ({datadir}) is not measurable here: {where}")
 
 
 @dataclass
@@ -392,6 +468,7 @@ class Estimate:
     disk: DiskSpace = None
     measured: bool = False
     refusal: str = field(default=None)
+    disk_note: str = None
 
     def as_dict(self):
         return {
@@ -399,8 +476,10 @@ class Estimate:
             "bytes": self.bytes, "seconds": round(self.seconds, 1), "workers": self.workers,
             "measured": self.measured, "refused": self.refusal is not None, "refusal": self.refusal,
             "disk": None if self.disk is None else {
-                "path": self.disk.path, "total_bytes": self.disk.total_bytes, "free_bytes": self.disk.free_bytes,
+                "path": self.disk.path, "mount": self.disk.mount, "where": self.disk.where(),
+                "total_bytes": self.disk.total_bytes, "free_bytes": self.disk.free_bytes,
             },
+            "disk_note": self.disk_note,
             "summary": self.summary(),
         }
 
@@ -411,7 +490,10 @@ class Estimate:
                 f"~{round(self.stars):,} stars, {self.workers} worker{'s' if self.workers != 1 else ''}"
                 f"{'' if self.measured else ', speed not yet measured on this server'}).")
         if self.disk is not None:
-            text += f" {format_bytes(self.disk.free_bytes)} free of {format_bytes(self.disk.total_bytes)}."
+            text += (f" {format_bytes(self.disk.free_bytes)} free of {format_bytes(self.disk.total_bytes)} "
+                     f"on {self.disk.where()}.")
+        elif self.disk_note:
+            text += f" Free space not measured: {self.disk_note}; nothing is refused for space."
         return text
 
 
@@ -466,20 +548,24 @@ def check_disk(result, disk):
     Returns:
         str or None: The refusal.
     """
-    result.disk = disk
     result.refusal = None
+    result.disk_note = None
+    if isinstance(disk, Unmeasured):
+        result.disk, result.disk_note = None, disk.reason
+        return None
+    result.disk = disk
     if disk is None:
         return None
     if result.bytes > disk.total_bytes * MAX_DISK_SHARE:
         result.refusal = (
             f"Refused: this would take about {format_bytes(result.bytes)}, more than a quarter of the "
-            f"database disk ({format_bytes(disk.total_bytes)} at {disk.path}). Generate fewer sectors "
+            f"database disk ({format_bytes(disk.total_bytes)} at {disk.where()}). Generate fewer sectors "
             f"(at most about {format_bytes(int(disk.total_bytes * MAX_DISK_SHARE))} worth)."
         )
     elif disk.free_bytes - result.bytes < MIN_FREE_BYTES:
         result.refusal = (
             f"Refused: this would take about {format_bytes(result.bytes)} and leave "
-            f"{format_bytes(max(disk.free_bytes - result.bytes, 0))} free on the database disk ({disk.path}); "
+            f"{format_bytes(max(disk.free_bytes - result.bytes, 0))} free on the database disk ({disk.where()}); "
             f"at least {format_bytes(MIN_FREE_BYTES)} must stay free. It needs "
             f"{format_bytes(result.bytes + MIN_FREE_BYTES - disk.free_bytes)} more free space, or fewer sectors."
         )

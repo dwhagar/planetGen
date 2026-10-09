@@ -144,14 +144,6 @@ def test_an_unmeasurable_disk_refuses_nothing():
     assert check_disk(result, None) is None
 
 
-def test_a_remote_database_has_no_disk_to_check():
-    class _Conn:
-        def execute(self, *_args):
-            raise AssertionError("not asked")
-
-    assert generationStats.database_disk(_Conn(), "db.example.com") is None
-
-
 @pytest.mark.parametrize("count, text", [
     (0, "0 bytes"), (999, "999 bytes"), (1500, "1.5 KB"), (12_000_000, "12 MB"), (2.5e9, "2.5 GB"), (3e12, "3.0 TB"),
 ])
@@ -247,7 +239,7 @@ def test_a_run_the_disk_cant_hold_is_refused_before_anything_is_written_under_st
                                                                                       capsys):
     _plan_wide_galaxy(mysql_config)
     monkeypatch.setattr(generationStats, "database_disk",
-                        lambda conn, host: DiskSpace("/data", 100 * GB, 5 * GB))
+                        lambda conn, host, *a, **k: DiskSpace("/data", 100 * GB, 5 * GB))
     with pytest.raises(SystemExit) as exit_info:
         _run_cli(RING_0 + ["--yes", "--strict"] + _mysql_argv(mysql_config))
     assert exit_info.value.code == 1
@@ -259,7 +251,7 @@ def test_a_run_the_disk_cant_hold_warns_and_goes_ahead(mysql_config, monkeypatch
     # GEN.81: the console never says no; it warns and does what was asked.
     _plan_wide_galaxy(mysql_config)
     monkeypatch.setattr(generationStats, "database_disk",
-                        lambda conn, host: DiskSpace("/data", 100 * GB, 5 * GB))
+                        lambda conn, host, *a, **k: DiskSpace("/data", 100 * GB, 5 * GB))
     _run_cli(RING_0 + ["--yes"] + _mysql_argv(mysql_config))
     assert len(_all_sectors(mysql_config)) == 3
     out = capsys.readouterr().out
@@ -269,7 +261,7 @@ def test_a_run_the_disk_cant_hold_warns_and_goes_ahead(mysql_config, monkeypatch
 def test_estimate_only_reports_a_refusal(mysql_config, monkeypatch, capsys):
     _plan_wide_galaxy(mysql_config)
     monkeypatch.setattr(generationStats, "database_disk",
-                        lambda conn, host: DiskSpace("/data", 100 * GB, 5 * GB))
+                        lambda conn, host, *a, **k: DiskSpace("/data", 100 * GB, 5 * GB))
     _run_cli(RING_0 + ["--estimate-only"] + _mysql_argv(mysql_config))
     assert _estimate_line(capsys)["refused"] is True
 
@@ -323,7 +315,7 @@ def test_the_web_neighborhood_can_be_estimated_and_refused(mysql_config, monkeyp
     assert len(_all_sectors(mysql_config)) == 3
 
     monkeypatch.setattr(generationStats, "database_disk",
-                        lambda conn, host: DiskSpace("/data", 100 * GB, 5 * GB))
+                        lambda conn, host, *a, **k: DiskSpace("/data", 100 * GB, 5 * GB))
     with pytest.raises(run_galaxy.GenerationRefused, match="must stay free"):
         run_galaxy.generate_sector_neighborhood(center, radius_ly=40.0, config=mysql_config)
     assert len(_all_sectors(mysql_config)) == 3
