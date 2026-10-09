@@ -465,6 +465,14 @@ with `clamp()`.
   then PERF.51 (the mechanism), then PERF.50 (the first application),
   then this item, which registers the rest. Open question for Boss
   (default the mechanism first, registrations after, as written): other?
+  Correction from Bugfixes lane 1 (PR #895 survey): before UX.83 the
+  phenomenon scatter had no bar (only the bright-star scatter did); it
+  now has one over layers, neighbour linking reports 3 named steps per
+  sector, and the population pass has a bar. Still without one, all in
+  the list above: inside one scatter layer, `clear_phenomenon_scatter`
+  and the closing special rows and insert; one sector's save (PERF.50,
+  needs a worker-to-parent channel); `cli/warm_map.py` (prints a line,
+  no bar); the migration (DB.15) and the name registry passes.
   Prerequisites: PERF.51, PERF.50. Related: UX.83, PERF.33, PERF.34,
   PERF.32, DB.15, DB.21.
 
