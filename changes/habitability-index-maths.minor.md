@@ -1,0 +1,2 @@
+### Added
+- The habitability index's reference maths (`planetgen.physics.habitability`, GEN.84): the PHI-4 display (Pressure, Temperature, Chemistry and Radiation, each a score and a Blue, Green, Yellow or Red tier), PHI_bio, PHI_cpx, Phi_tech and the equipment a visitor needs, with every constant and threshold fixed and sourced in `docs/design/habitability-index.md`. Nothing calls it yet; GEN.89 stores the scores.
