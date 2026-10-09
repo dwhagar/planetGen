@@ -38,7 +38,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| DB.8 | Check a galaxy database and say whether it is damaged |  | Schema check reads Alembic's revision; the name-registry check goes with GEN.71. 9 after it. Boss 02:13Z: phase 0, its own thread. Read-only. Stats and version checks switch on once GEN.44/PERF.11 and DB.6/DB.7 land; no hard dependency. |
 | DB.16 | Store the generator epoch and run id on each sector instead of four version text columns | OPS.28 | Research follow-up to DB.7 (built). |
 | DOC.5 | Rewrite the object ID docs: object-ids.md, database-schema.md and api.md | GEN.170 | Object-ID research. |
 | TEST.110 | Object ID tests: identical IDs on 1 and 4 workers, none reused, none missing | GEN.171, GEN.172, GEN.176 | Object-ID research. |
@@ -50,7 +49,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.171 | The sector fill gives object IDs by generation rank | DB.20 | Object-ID research. |
 | DB.20 | Object IDs in the schema: uid becomes BINARY(10), unique on its own, plus an id_counters table | GEN.170 | Object-ID research. |
 | GEN.170 | Object ID layout: an 80-bit ID of birth sector, serial and body number, with pack, unpack, format and parse functions |  | Object-ID research. First of the object-ID items; 80 bits decided (Boss, 2026-10-09 22:44Z); nothing built until Boss asks. |
-| DB.9 | Repair a damaged galaxy database from a parity file | DB.8, GEN.57 | Boss 02:13Z: phase 1. Reed-Solomon parity over groups of sector exports; seed regeneration as fallback. |
+| DB.9 | Repair a damaged galaxy database from a parity file | GEN.57 | Boss 02:13Z: phase 1. Reed-Solomon parity over groups of sector exports; seed regeneration as fallback. |
 | DB.17 | Repair by regenerating a damaged sector from its seed when parity cannot rebuild it | DB.9, GEN.57 | Research split of DB.9: the regenerate-from-seed fallback. |
 
 ### Generation

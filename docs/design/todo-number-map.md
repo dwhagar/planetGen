@@ -467,7 +467,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.5 | Several first connections to an empty database race to create the schema (bug) | none | done, PR #342 |
 | DB.6 | Store the galaxy's 128-bit seed, the version that made it, and every generation run | none | done, PR #387 |
 | DB.7 | The version that generated each sector, and a warning for mixed-version galaxies | none | done, PR #813 |
-| DB.8 | Check a galaxy database and say whether it is damaged | none | open |
+| DB.8 | Check a galaxy database and say whether it is damaged | none | done, PR #893 |
 | DB.9 | Repair a damaged galaxy database from a parity file | none | open |
 | DB.10 | Repair reads the newest settings JSON and the pending deltas | none | dropped (Boss, 2026-10-09 20:42Z) |
 | DB.11 | The database layer and migrations on SQLAlchemy and Alembic | none | done, PR #751 |
