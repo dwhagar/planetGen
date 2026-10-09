@@ -187,6 +187,7 @@ From PR #431's red CI (coordinator, 2026-10-03): PERF.27, DB.12, OPS.25, MAP.114
 - The two "add a star system to a sector" asks (10-07) are ADM.32.
 - "Have phenomena ... generated through the entire galaxy first" (10-07) and the 10-03 scatter move are GEN.100.
 - "Research different ways to generate an object ID" (10-07) is GEN.68, the first step of the names-from-IDs stream.
+- GitHub issues of 2026-10-08/09: #736 (Generate screen tabs) went into ADM.28 and #677 (search near a picked point) into NAV.45; #709 and #708 are MAP.136; #758 and #715 are MAP.139; #718 and #716 are MAP.141; #614 and #535 are ADM.41; #638 and #614 are PERF.34; #661 and #750 are PERF.32 and PERF.33; #761 is PERF.31; #777 and #778 are GEN.129, GEN.130 and their design GEN.128; #515 and #743 are ADM.43, ADM.44 and their model ADM.42.
 - "We need a planet that is like earth sized but never had any life" (10-03) is GEN.28's class Z (Lifeless temperate world), noted on GEN.28.
 
 ### Folded into a larger stream (closes with it)
