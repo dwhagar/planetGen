@@ -351,7 +351,11 @@ connectivity to that specific schema rather than the default one.
   those sectors (`"galaxy"` and each one's level-243, 27 and 3 block
   keys). `full` is `true` (and both lists empty) when that can't
   be pinned to tiles: a deleted sector, a new shape or release, more than
-  1,000 changed sectors, or a missing or unreadable `since`.
+  1,000 changed sectors, new bright stars (a backfill), or a missing or
+  unreadable `since`. When `full` is only because so much changed at once
+  (more than 1,000 sectors, or new bright stars), the answer also has
+  `"busy": true`, and the web layer keeps its cached tiles for up to ten
+  minutes instead of refetching them all under that load (PERF.34).
   `../src/planetgen/web/lib/tilecache.py` (the web layer's disk cache) calls it
   about once a minute and deletes only the listed tiles, and passes the
   list on to the map's browser cache.
