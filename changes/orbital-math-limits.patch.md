@@ -1,2 +1,0 @@
-### Changed
-- The orbital maths guards its edge cases (GEN.108): very eccentric comets past e = 0.999 move by the universal variable instead of Kepler's equation, a near-parabolic radius keeps its digits at perihelion, and an orbit update many orbits long drops the whole orbits before turning the phase. New building blocks for the n-body update: `kepler.universal_step` (any conic), modified equinoctial elements, the Roche limit and `classify_encounter`. Docs: orbital-updates.md section 7.

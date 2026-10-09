@@ -1,2 +1,0 @@
-### Added
-- `planetgen plan` now places the galaxy's black holes, neutron stars, planetary nebulae, supernova remnants and hypervelocity stars, and its nucleus, galaxy-wide just before the bright-star scatter (schema v64, `phenomenon_scatter`). A sector's fill builds them from their rows at the stored points, no longer rolls those kinds itself, and keeps them where they were put. Molecular clouds stay on the galaxy's seeded cloud field; rogue planets, comets, asteroid fields and brown dwarfs are still rolled per sector.
