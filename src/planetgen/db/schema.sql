@@ -1026,6 +1026,16 @@
 --   extended by a different release has sectors with different keys: it
 --   reproduces only sector by sector, and the CLI and the Generate page warn
 --   before extending it (`galaxy/version_check.py`).
+-- v68: every rotating object stores its spin (GEN.104): `spin_axis_x/y/z`, a
+--   unit vector, and `axial_tilt_deg`, its angle from the orbit normal (from
+--   the galactic pole for stars, remnants, rogue planets and interstellar
+--   comets), on `stars`, `planets`, `moons`, `comets`, `rogue_planets`,
+--   `interstellar_comets` and standalone `black_holes`/`neutron_stars` (an
+--   anchored remnant's is on its `stars` row). `stars`, `comets`,
+--   `rogue_planets` and `interstellar_comets` gain `rotation_period_hours`;
+--   the spin vector is the axis times 2 pi over that period. NULL on a row
+--   generated before v68. Draws: `planetgen/physics/spin.py`, and
+--   docs/design/orbital-updates.md section 6.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -1519,6 +1529,12 @@ CREATE TABLE IF NOT EXISTS stars (
     reflex_offset_x_km       DOUBLE,
     reflex_offset_y_km       DOUBLE,
     reflex_offset_z_km       DOUBLE,
+    -- v68 (GEN.104): the spin, see header comment.
+    rotation_period_hours       DOUBLE,
+    spin_axis_x                 DOUBLE,
+    spin_axis_y                 DOUBLE,
+    spin_axis_z                 DOUBLE,
+    axial_tilt_deg              DOUBLE,
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
     uid                   BIGINT UNSIGNED,
 
@@ -1609,6 +1625,11 @@ CREATE TABLE IF NOT EXISTS planets (
     next_update_due             DOUBLE,
     min_update_interval_years   DOUBLE NOT NULL,  -- v12, see header comment
     rotation_period_hours       DOUBLE NOT NULL,
+    -- v68 (GEN.104): the spin, see header comment.
+    spin_axis_x                 DOUBLE,
+    spin_axis_y                 DOUBLE,
+    spin_axis_z                 DOUBLE,
+    axial_tilt_deg              DOUBLE,
     -- v20 (see header comment): this planet's own reflex-offset "wobble"
     -- from the combined pull of its own moons -- NULL/0 with no moons.
     reflex_offset_x_km       DOUBLE,
@@ -1729,6 +1750,11 @@ CREATE TABLE IF NOT EXISTS moons (
     next_update_due             DOUBLE,
     min_update_interval_years   DOUBLE NOT NULL,  -- v12, see header comment
     rotation_period_hours       DOUBLE NOT NULL,
+    -- v68 (GEN.104): the spin, see header comment.
+    spin_axis_x                 DOUBLE,
+    spin_axis_y                 DOUBLE,
+    spin_axis_z                 DOUBLE,
+    axial_tilt_deg              DOUBLE,
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
     uid                   BIGINT UNSIGNED,
 
@@ -1891,6 +1917,12 @@ CREATE TABLE IF NOT EXISTS comets (
     velocity_z_kms              DOUBLE NOT NULL DEFAULT 0,
     epoch_unix                  DOUBLE,  -- v66 (GEN.106), see header comment
     next_update_due             DOUBLE,
+    -- v68 (GEN.104): the spin, see header comment.
+    rotation_period_hours       DOUBLE,
+    spin_axis_x                 DOUBLE,
+    spin_axis_y                 DOUBLE,
+    spin_axis_z                 DOUBLE,
+    axial_tilt_deg              DOUBLE,
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
     uid                   BIGINT UNSIGNED,
 
@@ -1959,6 +1991,11 @@ CREATE TABLE IF NOT EXISTS black_holes (
     galactic_min_update_interval_years   DOUBLE,
     epoch_unix                  DOUBLE,  -- v66 (GEN.106), see header comment
     next_update_due             DOUBLE,
+    -- v68 (GEN.104): the spin, see header comment.
+    spin_axis_x                 DOUBLE,
+    spin_axis_y                 DOUBLE,
+    spin_axis_z                 DOUBLE,
+    axial_tilt_deg              DOUBLE,
 
     -- v21: this black hole's own galaxy-frame center -- see nebulae's
     -- identical "v18" column comment above (same shape, added here a
@@ -2032,6 +2069,11 @@ CREATE TABLE IF NOT EXISTS neutron_stars (
     galactic_min_update_interval_years   DOUBLE,
     epoch_unix                  DOUBLE,  -- v66 (GEN.106), see header comment
     next_update_due             DOUBLE,
+    -- v68 (GEN.104): the spin, see header comment.
+    spin_axis_x                 DOUBLE,
+    spin_axis_y                 DOUBLE,
+    spin_axis_z                 DOUBLE,
+    axial_tilt_deg              DOUBLE,
 
     -- v21: same galaxy-frame center convention as black_holes above.
     center_x_pc         DOUBLE,
@@ -2358,6 +2400,12 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     galactic_min_update_interval_years   DOUBLE NOT NULL,
     epoch_unix                  DOUBLE,  -- v66 (GEN.106), see header comment
     next_update_due             DOUBLE,
+    -- v68 (GEN.104): the spin, see header comment.
+    rotation_period_hours       DOUBLE,
+    spin_axis_x                 DOUBLE,
+    spin_axis_y                 DOUBLE,
+    spin_axis_z                 DOUBLE,
+    axial_tilt_deg              DOUBLE,
 
     -- v28: this rogue planet's own galaxy-frame center -- see this file's "v28"
     -- header note. NULL together: never placed in the galaxy.
@@ -2428,6 +2476,12 @@ CREATE TABLE IF NOT EXISTS interstellar_comets (
     galactic_min_update_interval_years   DOUBLE NOT NULL,
     epoch_unix                  DOUBLE,  -- v66 (GEN.106), see header comment
     next_update_due             DOUBLE,
+    -- v68 (GEN.104): the spin, see header comment.
+    rotation_period_hours       DOUBLE,
+    spin_axis_x                 DOUBLE,
+    spin_axis_y                 DOUBLE,
+    spin_axis_z                 DOUBLE,
+    axial_tilt_deg              DOUBLE,
 
     -- v28: this comet's own galaxy-frame center -- see this file's "v28"
     -- header note. NULL together: never placed in the galaxy.

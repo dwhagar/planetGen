@@ -238,10 +238,9 @@ def reconcile_moved_planet(planet, keep_class=False):
     around it, so every moon's period needs refreshing whenever the
     parent was reclassified, even a moon that didn't need
     reclassifying itself -- via `generate_orbital_motion_properties`
-    rather than only `update_orbital_position`, since a *moon's*
-    `rotation_period_hours` can itself be period-derived (a tidally
-    locked moon's day equals its orbit) in a way an ordinary planet's
-    never is, and a period change can flip whether that still holds.
+    rather than only `update_orbital_position`, since a tidally locked
+    body's day equals its orbit and a period change can flip whether that
+    still holds (a moved planet gets `generate_spin` for the same reason).
 
     Args:
         planet (Planet): The planet that moved.
@@ -268,6 +267,7 @@ def reconcile_moved_planet(planet, keep_class=False):
         planetPhysics.calculate_atmospheric_conditions(planet)
         planet.period = planetPhysics.calculate_orbital_period_years(planet.distance, planet.star.mass)
         planetPhysics.update_orbital_position(planet)
+        planetPhysics.generate_spin(planet, planet.star.mass)
 
     if reclassified:
         # A new class brings a new radius and mass, and so a new range

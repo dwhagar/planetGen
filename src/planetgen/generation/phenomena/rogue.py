@@ -23,7 +23,7 @@ import math
 from planetgen.generation.config import SystemConfig
 from planetgen.physics.rogue_surface import ROGUE_SURFACE_FIELDS, SURFACE_REGIME_LABELS, rogue_surface_conditions
 from planetgen.names.wordlists import STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES
-from planetgen.physics import constants, planets as planetPhysics
+from planetgen.physics import constants, planets as planetPhysics, spin
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -179,6 +179,7 @@ class RoguePlanet:
         "has_internal_heat", "has_moons", *ROGUE_SURFACE_FIELDS,
         "galactic_orbital_speed_kms", "galactic_orbital_period_gy",
         "galactic_orbital_phase_deg", "galactic_min_update_interval_years",
+        "rotation_period_hours", *spin.SPIN_FIELDS,
     ]
     """Every attribute set by `__init__`, excluding `system_config` (a
     shared back-reference). The `galactic_orbital_*` fields (see
@@ -270,6 +271,9 @@ class RoguePlanet:
         (self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy,
          self.galactic_orbital_phase_deg, self.galactic_min_update_interval_years) = \
             generate_galactic_orbit_fields()
+        # GEN.104: a planet's day and a Rayleigh tilt from the galactic pole.
+        self.rotation_period_hours = draw.uniform(*constants.ROTATION_PERIOD_RANGE_HOURS[self.planet_type])
+        spin.set_spin(self, spin.GALACTIC_POLE, spin.rayleigh_tilt_deg())
 
     def _apply_surface_conditions(self, conditions):
         """Sets `ROGUE_SURFACE_FIELDS` and `has_internal_heat` from a
@@ -443,6 +447,7 @@ class InterstellarComet:
         "name", "nucleus_diameter_km", "velocity_kms", "is_active",
         "galactic_orbital_speed_kms", "galactic_orbital_period_gy",
         "galactic_orbital_phase_deg", "galactic_min_update_interval_years",
+        "rotation_period_hours", *spin.SPIN_FIELDS,
     ]
     """Every attribute set by `__init__`, excluding `system_config` (a
     shared back-reference) and `composition` (handled separately in
@@ -481,6 +486,9 @@ class InterstellarComet:
         (self.galactic_orbital_speed_kms, self.galactic_orbital_period_gy,
          self.galactic_orbital_phase_deg, self.galactic_min_update_interval_years) = \
             generate_galactic_orbit_fields()
+        # GEN.104: a small body's spin, YORP-tilted from the galactic pole.
+        self.rotation_period_hours = spin.small_body_period_hours()
+        spin.set_spin(self, spin.GALACTIC_POLE, spin.yorp_tilt_deg())
 
     def to_dict(self):
         """

@@ -20,6 +20,7 @@ import math
 import re
 
 from planetgen.physics import constants
+from planetgen.physics import spin
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -792,7 +793,8 @@ def generate_orbital_motion_properties(planet, primary_mass_kg):
     stat (this generator doesn't track rotational phase -- nothing consumes
     "which side currently faces the primary"). A candidate (pre-locking)
     rotation period is always drawn first from a `body_type`-appropriate
-    range; for a moon, that candidate is kept only if real tidal physics
+    range (see `generate_spin`, which also draws the spin axis); for a
+    planet or moon, that candidate is kept only if real tidal physics
     (`_tidal_locking_timescale_seconds`) says there *hasn't* been enough
     time (`planet.star.age`, the best available proxy for the system's
     age -- planets/moons don't carry an independent age of their own) to
@@ -824,23 +826,48 @@ def generate_orbital_motion_properties(planet, primary_mass_kg):
     planet.orbital_ascending_node_deg = draw.uniform(0, 360)
     planet.orbital_phase_deg = draw.uniform(0, 360)
 
+    generate_spin(planet, primary_mass_kg)
+    update_orbital_position(planet)
+
+
+def generate_spin(planet, primary_mass_kg):
+    """
+    Draws a planet's or moon's `rotation_period_hours` and spin axis
+    (GEN.104; `physics.spin.SPIN_FIELDS`). A tidally locked body (its
+    locking time under the system's age, against the body it orbits) turns
+    once per orbit with its axis on the orbit normal; any other gets a
+    `body_type` rotation period and a tilt drawn by `physics.spin`. Called
+    again when a move changes the body's period, since that can flip the
+    lock.
+    """
     min_hours, max_hours = constants.ROTATION_PERIOD_RANGE_HOURS[planet.body_type]
     candidate_rotation_period_hours = draw.uniform(min_hours, max_hours)
 
-    is_locked = False
-    if planet.is_moon:
-        lock_timescale_s = _tidal_locking_timescale_seconds(
-            planet, primary_mass_kg, candidate_rotation_period_hours
-        )
-        system_age_s = planet.star.age * 1e9 * constants.SECONDS_PER_YEAR
-        is_locked = lock_timescale_s < system_age_s
+    # GEN.104: planets lock to their star by the same rule as moons to
+    # their planet (close-in worlds end up with one face to the star).
+    lock_timescale_s = _tidal_locking_timescale_seconds(
+        planet, primary_mass_kg, candidate_rotation_period_hours
+    )
+    system_age_s = planet.star.age * 1e9 * constants.SECONDS_PER_YEAR
+    is_locked = lock_timescale_s < system_age_s
 
     if is_locked:
         planet.rotation_period_hours = planet.period * (constants.SECONDS_PER_YEAR / 3600)
     else:
         planet.rotation_period_hours = candidate_rotation_period_hours
 
-    update_orbital_position(planet)
+    # GEN.104: the spin axis, tilted from the orbit normal. Locked bodies
+    # spin upright; rocky planets take the impact-modified tilt, gas giants
+    # and moons a Rayleigh one.
+    if is_locked:
+        tilt = 0.0
+    elif planet.body_type == "t" and not planet.is_moon:
+        tilt = spin.impact_tilt_deg()
+    else:
+        tilt = spin.rayleigh_tilt_deg()
+    spin.set_spin(planet, spin.orbit_normal(planet.orbital_inclination_deg,
+                                            planet.orbital_ascending_node_deg), tilt)
+
 
 
 def update_orbital_position(planet):
