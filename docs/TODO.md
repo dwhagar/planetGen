@@ -2831,6 +2831,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   to a mass interval. Make intermediate-mass black holes (100 to 100,000
   solar masses) a kind of their own, with rates 0.999 r and 0.001 r of
   the black-hole rate r.
+  Boss (2026-10-09): Decided by Boss (2026-10-09 20:28Z, via the
+  coordinator): ONE combined reseed. Lazy names (PERF.43) and the 20
+  solar mass cut (GEN.166 to GEN.168) change what a given seed
+  generates, and that one-time seed change lands with these two
+  together, not in separate steps. Whichever lands first must not claim
+  the reseed alone; the second says so in its changes note.
   Prerequisites: none.
   Design: [docs/design/phenomenon-scatter-mass-cut.md](design/phenomenon-scatter-mass-cut.md)
 
@@ -2847,6 +2853,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   - c) / 15, intermediate-mass black holes ln(1e5 / c) / ln(1e3). At 20
   solar masses the table falls from 1.17e9 rows (161 GB) to about 2.7e5
   rows (37 MB).
+  Boss (2026-10-09): Decided by Boss (2026-10-09 20:28Z, via the
+  coordinator): ONE combined reseed. Lazy names (PERF.43) and the 20
+  solar mass cut (GEN.166 to GEN.168) change what a given seed
+  generates, and that one-time seed change lands with these two
+  together, not in separate steps. Whichever lands first must not claim
+  the reseed alone; the second says so in its changes note.
   Prerequisite: GEN.166.
   Design: [docs/design/phenomenon-scatter-mass-cut.md](design/phenomenon-scatter-mass-cut.md)
 
@@ -2860,6 +2872,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   scatter's expected-star count, a level per sector, and a band top-up
   when the cut is lowered (the `run_plan._draw_sector_bands` pattern
   used for the bright stars).
+  Boss (2026-10-09): Decided by Boss (2026-10-09 20:28Z, via the
+  coordinator): ONE combined reseed. Lazy names (PERF.43) and the 20
+  solar mass cut (GEN.166 to GEN.168) change what a given seed
+  generates, and that one-time seed change lands with these two
+  together, not in separate steps. Whichever lands first must not claim
+  the reseed alone; the second says so in its changes note.
   Prerequisite: GEN.167.
   Design: [docs/design/phenomenon-scatter-mass-cut.md](design/phenomenon-scatter-mass-cut.md)
 
@@ -3152,6 +3170,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Scope (2026-10-09): the system-name reservation cost is its own item,
   PERF.49; this item stays on the lazy word-salad names of phenomena
   named by object ID.
+  Boss (2026-10-09): Decided by Boss (2026-10-09 20:28Z, via the
+  coordinator): ONE combined reseed. Lazy names (PERF.43) and the 20
+  solar mass cut (GEN.166 to GEN.168) change what a given seed
+  generates, and that one-time seed change lands with these two
+  together, not in separate steps. Whichever lands first must not claim
+  the reseed alone; the second says so in its changes note.
   Prerequisites: none.
   Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
 
