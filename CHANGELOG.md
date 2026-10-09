@@ -3,6 +3,7 @@
 ## [8.0.783] - 2026-10-09
 
 ### Changed
+- The nebula planet-formation study (GEN.94) is finished and its rule table stands.
 - The to-do items for nebula planets, multi-star systems and exotic star systems carry the exotic-environments research.
 - The version stays on 8.0 until Phase 1 is complete: patch and minor changes keep the revision and join the 8.0 entry.
 
