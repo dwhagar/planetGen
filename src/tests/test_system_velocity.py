@@ -138,29 +138,3 @@ def test_the_galactic_orbit_update_turns_the_velocity_with_the_position(mysql_co
         conn.close()
 
 
-def test_migrate_v60_to_v61_works_out_the_velocity_of_systems_saved_before(mysql_config):
-    ordinary = _runaway_system()
-    ordinary[0].runaway_class = ordinary[0].runaway_speed_kms = ordinary[0].runaway_direction = None
-    sector, center_pc = _sector(*ordinary)
-    _save(sector, center_pc, mysql_config)
-    conn = store.get_connection(mysql_config)
-    try:
-        before = conn.execute("SELECT velocity_x_kms AS x, velocity_y_kms AS y, velocity_z_kms AS z"
-                              " FROM star_systems").fetchone()
-        conn.execute("ALTER TABLE star_systems DROP COLUMN velocity_x_kms, DROP COLUMN velocity_y_kms,"
-                     " DROP COLUMN velocity_z_kms")
-        conn.execute("DELETE FROM schema_migrations")
-        conn.execute("INSERT INTO schema_migrations (version) VALUES (60)")
-        conn.commit()
-    finally:
-        conn.close()
-    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        after = conn.execute("SELECT velocity_x_kms AS x, velocity_y_kms AS y, velocity_z_kms AS z"
-                             " FROM star_systems").fetchone()
-    finally:
-        conn.close()
-    assert (after["x"], after["y"], after["z"]) == pytest.approx((before["x"], before["y"], before["z"]),
-                                                                rel=1e-6, abs=1e-9)
-    assert _norm((after["x"], after["y"], after["z"])) > 100.0  # a star on the rotation curve, ~220 km/s

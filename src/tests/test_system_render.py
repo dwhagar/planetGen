@@ -153,32 +153,6 @@ def test_sections_split_the_page_per_body(mysql_config):
     assert len(sections["moons"]) == sum(len(p.moons) for p in planets)
 
 
-def test_migrate_v28_to_v29_drops_the_stored_page_text(mysql_config):
-    cfg = _config(BINARY_SYSTEM=False, PLANETS=False)
-    system_id = store.save_system(StarSystem(system_config=cfg), cfg, config=mysql_config)
-
-    conn = store.get_connection(mysql_config)
-    try:
-        conn.execute("ALTER TABLE star_systems ADD COLUMN wikitext_content LONGTEXT, ADD COLUMN markdown_content LONGTEXT")
-        conn.execute("UPDATE star_systems SET wikitext_content = 'old', markdown_content = 'old'")
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61)")
-        conn.execute("INSERT INTO schema_migrations (version) VALUES (28)")
-        conn.commit()
-    finally:
-        conn.close()
-
-    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
-
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        columns = {row["Field"] for row in conn.execute("SHOW COLUMNS FROM star_systems").fetchall()}
-        assert not columns & set(store.V29_DROPPED_COLUMNS)
-        assert render_system_text(conn, system_id, "markdown").startswith("# ")
-    finally:
-        conn.close()
-
-    # Already current: a no-op.
-    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
 
 
 def test_life_stage_is_read_back_from_the_timeline_paragraph():

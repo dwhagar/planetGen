@@ -183,30 +183,3 @@ def test_advancing_the_orbits_moves_the_velocity_with_the_position(mysql_config)
         conn.close()
 
 
-def test_migrate_v59_to_v60_works_out_the_velocity_of_rows_saved_before(mysql_config):
-    from planetgen.physics.orbits import circular_orbital_velocity_au_per_year
-
-    _system, system_id = _saved_system(mysql_config)
-    conn = store.get_connection(mysql_config)
-    try:
-        before = {table: {row["id"]: row for row in conn.execute(
-            f"SELECT * FROM {table} WHERE star_system_id = ?", (system_id,)).fetchall()}
-            for table in ("planets", "moons", "comets")}
-        for table in store.VELOCITY_TABLES:
-            conn.execute(f"ALTER TABLE {table} DROP COLUMN velocity_x_kms, DROP COLUMN velocity_y_kms,"
-                         " DROP COLUMN velocity_z_kms")
-        conn.execute("DELETE FROM schema_migrations")
-        conn.execute("INSERT INTO schema_migrations (version) VALUES (59)")
-        conn.commit()
-    finally:
-        conn.close()
-    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        for table, rows in before.items():
-            for row_id, old in rows.items():
-                new = conn.execute(f"SELECT * FROM {table} WHERE id = ?", (row_id,)).fetchone()
-                assert (new["velocity_x_kms"], new["velocity_y_kms"], new["velocity_z_kms"]) == pytest.approx(
-                    (old["velocity_x_kms"], old["velocity_y_kms"], old["velocity_z_kms"]), rel=1e-9, abs=1e-9)
-    finally:
-        conn.close()

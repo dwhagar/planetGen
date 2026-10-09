@@ -145,3 +145,34 @@ def check_constraints(conn):
         "  AND tc.CONSTRAINT_TYPE = 'CHECK'"
         " WHERE cc.CONSTRAINT_SCHEMA = DATABASE() ORDER BY tc.TABLE_NAME, cc.CONSTRAINT_NAME"
     ).fetchall()
+
+
+PROBE_REVISIONS = {
+    62: "op.execute('CREATE TABLE alembic_probe (id INT PRIMARY KEY)')",
+    63: "op.execute('ALTER TABLE alembic_probe ADD COLUMN note VARCHAR(20)')",
+}
+
+_PROBE_TEMPLATE = """from alembic import op
+
+revision = "{revision}"
+down_revision = "{previous}"
+branch_labels = None
+depends_on = None
+
+
+def upgrade():
+    {body}
+"""
+
+
+def migrations_with_probes(tmp_path, up_to=62):
+    """A copy of the real migrations directory plus test revisions 0062..
+    `up_to`, for exercising Alembic's upgrade path. Returns its path."""
+    import shutil
+    from planetgen.db import alembic_runner
+    target = tmp_path / "migrations"
+    shutil.copytree(alembic_runner.MIGRATIONS_DIR, target, ignore=shutil.ignore_patterns("__pycache__"))
+    for version in range(62, up_to + 1):
+        (target / "versions" / f"{version:04d}_probe.py").write_text(_PROBE_TEMPLATE.format(
+            revision=f"{version:04d}", previous=f"{version - 1:04d}", body=PROBE_REVISIONS[version]))
+    return str(target)

@@ -163,23 +163,6 @@ def test_sector_and_system_pages_use_a_fixed_number_of_queries(mysql_config, mon
         conn.close()
 
 
-def test_migration_to_v46_adds_the_fulltext_indexes(mysql_config):
-    conn = store.get_connection(mysql_config)
-    try:
-        with conn:
-            for table in store.FULLTEXT_NAME_TABLES:
-                conn.execute(f"ALTER TABLE {table} DROP INDEX ft_{table}_name")
-            conn.execute("DELETE FROM schema_migrations")
-            conn.execute("INSERT INTO schema_migrations (version) VALUES (45)")
-    finally:
-        conn.close()
-    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        for table in store.FULLTEXT_NAME_TABLES:
-            assert store._has_index(conn, table, f"ft_{table}_name"), table
-    finally:
-        conn.close()
 
 
 def test_a_slow_statement_is_stopped(mysql_config):

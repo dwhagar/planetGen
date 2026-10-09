@@ -3,19 +3,14 @@
 """
 DB.4: a database whose `schema_migrations` table was emptied (or lost)
 is no longer taken for current. Its version is read from its tables
-(`store.detect_schema_version`), and `migrate_database` runs the steps it is
-missing. Checked against every released schema in `fixtures/old_schemas/`.
+(`store.detect_schema_version`), and `migrate_database` runs the revisions it
+is missing. One older than the Alembic baseline (v61) is refused.
 """
 
 import pytest
 
-from planetgen.db import store
+from planetgen.db import alembic_runner, store
 from tests.db_schema_support import load_old_schema, old_schema_versions
-
-# Versions whose tables look the same as the one before (their step only
-# changed rows): v30 reads as v29 (its step is safe to repeat), v35 as
-# v35 even when it is v34 (repeating its step would delete sectors).
-_READ_AS = {30: 29, 34: 35}
 
 
 def _forget_version(config, drop=False):
@@ -35,11 +30,22 @@ def _detected(config):
         conn.close()
 
 
+def _make_older_than_the_baseline(config):
+    """A current database with the baseline's marker column gone."""
+    store.get_connection(config).close()
+    conn = store.get_connection(config, ensure_schema=False)
+    try:
+        conn.execute("ALTER TABLE star_systems DROP COLUMN velocity_x_kms")
+        conn.commit()
+    finally:
+        conn.close()
+
+
 @pytest.mark.parametrize("version", old_schema_versions())
-def test_every_released_schema_is_recognized(mysql_config, version):
+def test_every_checked_in_schema_is_recognized(mysql_config, version):
     load_old_schema(mysql_config, version)
     _forget_version(mysql_config)
-    assert _detected(mysql_config) == _READ_AS.get(version, version)
+    assert _detected(mysql_config) == version
 
 
 def test_a_current_database_is_recognized(mysql_config):
@@ -53,33 +59,55 @@ def test_a_new_database_is_current(mysql_config):
 
 
 @pytest.mark.parametrize("drop", [False, True], ids=["emptied", "dropped"])
-def test_an_old_database_without_its_version_is_migrated(mysql_config, drop):
-    load_old_schema(mysql_config, 44)
+def test_a_baseline_database_without_its_version_is_migrated(mysql_config, drop):
+    load_old_schema(mysql_config, alembic_runner.BASELINE_VERSION)
     _forget_version(mysql_config, drop=drop)
 
-    assert store.schema_status(mysql_config) == (44, store.SCHEMA_VERSION - 44)
+    assert store.schema_status(mysql_config) == (61, store.SCHEMA_VERSION - 61)
     assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
 
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
         versions = sorted(row["version"] for row in conn.execute("SELECT version FROM schema_migrations").fetchall())
-        # v45's table and v50's columns, which only the migration adds.
-        has_id_blocks = conn.execute(
-            "SELECT COUNT(*) AS n FROM information_schema.tables"
-            " WHERE table_schema = DATABASE() AND table_name = 'id_blocks'").fetchone()["n"]
     finally:
         conn.close()
-    assert versions == list(range(44, store.SCHEMA_VERSION + 1))
-    assert has_id_blocks == 1
-    assert store._has_column(store.get_connection(mysql_config, ensure_schema=False), "system_configs", "comets")
+    assert versions == list(range(61, store.SCHEMA_VERSION + 1))
 
 
 def test_first_connection_records_the_detected_version(mysql_config):
     """A plain first connection (not a migration) records what the tables
-    show rather than `SCHEMA_VERSION`, so update.sh still sees steps
-    pending."""
-    load_old_schema(mysql_config, 47)
+    show rather than `SCHEMA_VERSION`."""
+    load_old_schema(mysql_config, alembic_runner.BASELINE_VERSION)
     _forget_version(mysql_config)
     store._schema_ensured.discard(mysql_config._key())
     store.get_connection(mysql_config).close()
-    assert store.schema_status(mysql_config) == (47, store.SCHEMA_VERSION - 47)
+    assert store.schema_status(mysql_config) == (61, store.SCHEMA_VERSION - 61)
+
+
+def test_a_database_older_than_the_baseline_is_refused_untouched(mysql_config):
+    _make_older_than_the_baseline(mysql_config)
+    _forget_version(mysql_config)
+    assert _detected(mysql_config) == alembic_runner.BASELINE_VERSION - 1
+    with pytest.raises(store.SchemaTooOldError, match="older than v61"):
+        store.migrate_database(mysql_config)
+    with pytest.raises(store.SchemaTooOldError):
+        store.schema_status(mysql_config)
+    conn = store.get_connection(mysql_config, ensure_schema=False)
+    try:
+        assert conn.execute("SELECT COUNT(*) AS n FROM schema_migrations").fetchone()["n"] == 0
+    finally:
+        conn.close()
+
+
+def test_a_recorded_old_version_is_refused(mysql_config):
+    store.get_connection(mysql_config).close()
+    conn = store.get_connection(mysql_config, ensure_schema=False)
+    try:
+        conn.execute("DELETE FROM schema_migrations")
+        conn.execute("INSERT INTO schema_migrations (version) VALUES (55)")
+        conn.commit()
+    finally:
+        conn.close()
+    store._schema_ensured.discard(mysql_config._key())
+    with pytest.raises(store.SchemaTooOldError, match="v55"):
+        store.migrate_database(mysql_config)

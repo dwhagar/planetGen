@@ -310,22 +310,6 @@ def test_population_cli(mysql_config, galaxy, monkeypatch):
         generate_cli.main()
 
 
-def test_migration_from_v43_adds_the_tables(mysql_config):
-    conn = store.get_connection(mysql_config)
-    try:
-        with conn:
-            for table in ("system_owners", "polities", "species", "population_state"):
-                conn.execute(f"DROP TABLE {table}")
-            conn.execute("DELETE FROM schema_migrations WHERE version IN (44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61)")
-    finally:
-        conn.close()
-    store.migrate_database(mysql_config)
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        assert conn.execute("SELECT MAX(version) AS v FROM schema_migrations").fetchone()["v"] == store.SCHEMA_VERSION
-        assert conn.execute("SELECT COUNT(*) AS n FROM species").fetchone()["n"] == 0
-    finally:
-        conn.close()
 
 
 # ---------------------------------------------------------------------------
