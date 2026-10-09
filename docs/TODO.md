@@ -433,6 +433,42 @@ with `clamp()`.
   Prerequisites: none.
   Design: [docs/design/map-ui-and-frontend-libraries.md](design/map-ui-and-frontend-libraries.md)
 
+- [ ] **UX.84 Every sub-step must show a progress bar that starts by itself when it is predicted to take over 15 seconds (bug)**
+  Boss (2026-10-09 23:13Z): "linking new sectors to their neighbors
+  should have a progress bar of it's own, as should the phenomena
+  scatter, all generation items should have progress bars, if a sub-step
+  is probably going to take longer than 15 seconds give it a progress
+  bar as well." Corrected (23:34Z): "I believe I said a progress bar on
+  all substeps that automatically activates on the start of that
+  sub-item if it's predicted to take longer than 15 seconds to
+  complete." The first pass (UX.83, PR #895) hand-added bars to the
+  scatter, the neighbour-linking steps and the population pass; that is
+  not the rule. Done: the rule holds for every sub-step of every
+  generation and maintenance operation, through the one mechanism of
+  PERF.51 (a bar starts at the start of a step when its predicted
+  duration exceeds 15 seconds, in the terminal and on the Generate and
+  Queue pages), and every sub-step below is registered with a cost model
+  and a work count. The list to register (from the read of the code on
+  2026-10-09, with the steps the first pass added and the ones not yet
+  checked): the three passes inside each neighbour batch of
+  `link_sector_neighbors` (containment, nearest systems, merge into the
+  neighbours); `refresh_containment` and `refresh_nearest_systems` run
+  outside a galaxy run; the phenomenon scatter's clear, each layer (a
+  bar inside one layer), the special rows, the insert and the stamp; the
+  population pass; the bright-star backfill; topping up backfilled
+  sectors; the sector paths of the settle step; the plan's layer
+  tracker; the name registry passes; the end-of-update map warm-up
+  (`warm_map`); migrations (DB.15); the reset's table wipes and the
+  orbit update's stages (`StageProgress`); the check-db and deep check
+  passes (DB.21); and one sector's save in a dense sector (PERF.50). A
+  test registers each step and fails when a step that is predicted to
+  pass 15 seconds draws no bar. Build order: PERF.33 (the estimator),
+  then PERF.51 (the mechanism), then PERF.50 (the first application),
+  then this item, which registers the rest. Open question for Boss
+  (default the mechanism first, registrations after, as written): other?
+  Prerequisites: PERF.51, PERF.50. Related: UX.83, PERF.33, PERF.34,
+  PERF.32, DB.15, DB.21.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -3335,6 +3371,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   1): the phenomenon scatter, the neighbour-linking steps and the
   population pass now draw their own bars; a bar inside one sector's
   save (the slowest sub-step in a dense sector) is now PERF.50.
+  Prerequisite: PERF.32. Related: PERF.51, UX.84, PERF.50, DB.15.
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
   Replace the one-`sector_stats`-row-per-visited-cell ledger of
@@ -3462,7 +3499,34 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   expected to pass 15 seconds (the expected time comes from the PERF.32
   rates once they exist). Open question for Boss (default build it with
   PERF.33's estimator so both share one channel): or separately?
-  Prerequisites: none. Related: UX.83, PERF.33, PERF.34, PERF.32.
+  Fold (2026-10-09): the first application of PERF.51 (the shared
+  progress mechanism); registered by UX.84.
+  Prerequisite: PERF.51. Related: UX.83, PERF.33, PERF.34, PERF.32.
+
+- [ ] **PERF.51 One progress mechanism for every sub-step: a bar starts by itself when a step is predicted to take over 15 seconds**
+  Source: Boss (2026-10-09 23:34Z): "I believe I said a progress bar on
+  all substeps that automatically activates on the start of that
+  sub-item if it's predicted to take longer than 15 seconds to
+  complete." This is the mechanism UX.84 applies. Done: every generation
+  and maintenance step reports its progress through one shared helper (a
+  step with a name, a work count and a cost model, in the terminal bar,
+  the progress file the Generate and Queue pages read, and the work
+  queue), and the helper starts a visible bar by itself at the start of
+  a step when the predicted duration exceeds 15 seconds, from the step's
+  cost model and work count with the PERF.33 estimator as the source of
+  the rate; when no estimate exists yet it uses a conservative per-unit
+  default (a step with an unknown cost is treated as long) so a first
+  run still shows its bar. A step predicted under 15 seconds draws
+  nothing, and a step that runs past its prediction gets its bar the
+  moment it passes 15 seconds. A step can run inside a worker: the
+  helper carries a worker-to-parent progress channel (see PERF.50), so a
+  bar can show progress from inside one task. Replaces the hand-built
+  `add_task` calls in `run_galaxy`, `run_plan`, `StageProgress` and
+  `store` with the one helper (no compatibility wrappers). Open question
+  for Boss (default 15 seconds, fixed in `tuning.py`, and a conservative
+  per-unit default kept beside each step until PERF.32 has a measured rate): other?
+  Prerequisites: PERF.33. Related: UX.84, PERF.50, PERF.33, PERF.32,
+  PERF.34, UX.3.
 
 ## DB: Database and schema
 
@@ -3542,6 +3606,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   heavy revision. Open question for Boss (default: raise the wait for
   the migration process only and have the update script say when a
   revision is expected to be long).
+  Prerequisites: PERF.32, PERF.51.
 
 - [ ] **DB.16 Store the generator epoch and run id on each sector instead of four version text columns**
   DB.7 stored `version_key`, the version, python and platform as text on
