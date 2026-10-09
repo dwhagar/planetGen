@@ -616,7 +616,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.134 | Tune the star populations to the observed star-formation profile by galactic radius | none | open |
 | GEN.135 | Deterministic math helpers for every stored float, with a lint and frozen constants | none | open |
 | GEN.136 | Fingerprint encoding: floats to 9 significant digits, a stored leaf digest per sector and a ring-and-layer tree | none | open |
-| GEN.137 | Placed objects move along a galactic orbit but never by velocity times time, and phenomenon_scatter has no plan time (bug) | none | open |
+| GEN.137 | Placed objects move along a galactic orbit but never by velocity times time, and phenomenon_scatter has no plan time (bug) | none | done, PR #843 |
 | GEN.138 | Moon `hill_radius_km` uses the star's mass, so moon spacing and the orbit slider are wrong (bug) | none | open |
 | GEN.139 | Orbit-update thresholds: per-object epoch, path-length rule and what the 0.01 mpc applies to (GEN.106 built) | none | open |
 | GEN.140 | Orbital math guards the edge-case table adds (GEN.108 built) | none | open |
@@ -846,7 +846,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.50 | Pick any object down to a moon as a NAV endpoint | none | done, PR #724 |
 | NAV.51 | Courses route around asteroid fields | none | open |
 | NAV.52 | Port `join_islands` and the k-d tree to cKDTree | none | open |
-| NAV.53 | A `cells_touching_sphere` helper, and pad `store.sectors_reached_by` by one edge (bug) | none | open |
+| NAV.53 | A `cells_touching_sphere` helper, and pad `store.sectors_reached_by` by one edge (bug) | none | done, PR #843 |
 | NAV.54 | Keep-out radii for asteroid fields, supermassive holes, moons and nebulae (NAV.24 built) | none | open |
 | NAV.55 | A tuning block for the keep-out knobs | none | open |
 | NAV.56 | Census of overlapping keep-out spheres in a generated galaxy | none | open |
@@ -883,7 +883,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.30 | A lock helper for the maintenance run and the admin merge | none | open |
 | OPS.31 | Lint every example plist, XML and service file in CI | none | open |
 | OPS.32 | `examples/macos/org.planetgen.update.plist` is not well-formed XML, so the update daemon silently fails to install (bug) | none | open |
-| OPS.33 | `.gitattributes` has no LF pins for the lock files and word list, so hashes differ between a Windows and a Linux checkout (bug) | none | open |
+| OPS.33 | `.gitattributes` has no LF pins for the lock files and word list, so hashes differ between a Windows and a Linux checkout (bug) | none | done, PR #843 |
 | OPS.34 | Windows Redis in WSL: fix the keep-alive advice and add a Start-RedisInWsl remedy | none | open |
 | OPS.35 | A vendored-version lock file for the static libraries | none | open |
 | PERF.1 | Generation at scale | none | done, PR #425 |
@@ -1064,8 +1064,8 @@ Parents marked "new parent" had no old number of their own.
 | UX.76 | Icons and highlights follow the light and dark theme (bug) | none | done, PR #800 |
 | UX.77 | The class list is alphabetized (bug) | none | done, PR #797 |
 | UX.78 | Unit preference: Automatic, Metric only or Customary | none | open |
-| UX.79 | Python and JS round half-way values differently (bug) | none | open |
-| UX.80 | Negative values that round to zero print "-0" (bug) | none | open |
+| UX.79 | Python and JS round half-way values differently (bug) | none | done, PR #843 |
+| UX.80 | Negative values that round to zero print "-0" (bug) | none | done, PR #843 |
 | UX.81 | Time symbols Gyr, Myr, kyr in place of Gy, My, ky; AU from 1,000,000 km; scientific text below mantissa 1e-3 | none | open |
 | UX.82 | Theme checks after PR #800: SVG currentColor, two Shoelace contrast failures, alpha in --bg-subtle | none | open |
 | VIEW.1 | View from a planet | none | open |
