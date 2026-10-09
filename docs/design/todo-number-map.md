@@ -594,7 +594,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.122 | Orbital elements for planets, moons and comets, kept in step with the state vector | none | done, PR #741 |
 | GEN.123 | The projected path of a body through a sector, saved as a spline | none | done, PR #762 |
 | GEN.124 | Every object knows its sector address (ring, layer, slot), recalculated whenever its position changes | none | done, PR #729 |
-| GEN.125 | Stand-alone facilities store a velocity | none | open |
+| GEN.125 | Stand-alone facilities store a velocity | none | done, PR #782 |
 | GEN.126 | Run an orbital update as the last step of a generation run | none | done, PR #771 |
 | GEN.127 | A sector generated around a backfilled bright star gives that star a planetary system (bug) | none | open |
 | GEN.128 | Design: multi-star hierarchies and compact-object primaries | none | open |
