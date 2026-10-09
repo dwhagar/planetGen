@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.78 |
 | MAP | MAP.144 |
 | NAV | NAV.52 |
-| GEN | GEN.132 |
+| GEN | GEN.134 |
 | PERF | PERF.35 |
 | DB | DB.16 |
 | API | API.20 |
@@ -554,7 +554,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.81 | The console refuses runs instead of warning and doing what was asked (bug) | none | done, PR #467 |
 | GEN.82 | Black holes show a Hawking temperature and luminosity of zero (bug) | none | done, PR #448 |
 | GEN.83 | A planetary habitability index (PHI) | none | open |
-| GEN.84 | Habitability design: one score structure and reconciled thresholds | none | open |
+| GEN.84 | Habitability design: one score structure and reconciled thresholds | none | done, PR #803 |
 | GEN.85 | Atmosphere species, partial pressures and mantle redox for every planet | none | open |
 | GEN.86 | Stellar activity (XUV, flares) and planetary magnetic fields | none | open |
 | GEN.87 | Surface radiation dose | none | open |
@@ -576,10 +576,10 @@ Parents marked "new parent" had no old number of their own.
 | GEN.103 | Research where each star type and phenomenon belongs in the galaxy's structure | none | open |
 | GEN.104 | A spin vector and a realistic axial tilt for every rotating object | none | open |
 | GEN.105 | Orbital updates | none | open |
-| GEN.106 | Movement thresholds and a next-update-due column | none | open |
+| GEN.106 | Movement thresholds and a next-update-due column | none | done, PR #802 |
 | GEN.107 | The update reports how many objects moved, changed sector, or entered or left a nebula | none | open |
 | GEN.108 | Orbital math limits: where each method breaks down and what happens there | none | open |
-| GEN.109 | N-body influence from the nearest 10 bodies of equal or larger mass, with a Hill-radius warning | none | open |
+| GEN.109 | N-body influence from every object inside the largest nearby Hill sphere plus the galactic gradient, with a Hill-radius warning | none | open |
 | GEN.110 | Rogue planet collisions: asteroid fields, merged giants and new stars | none | open |
 | GEN.111 | Email the admin when two objects are inside each other's Hill radius | none | open |
 | GEN.112 | Plan asteroid fields and belts as object systems for rendering | none | open |
@@ -602,6 +602,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.129 | Multi-star systems of up to seven stars | none | open |
 | GEN.130 | Exotic star systems: a black hole, neutron star or similar at the center | none | open |
 | GEN.131 | Bright-star scatter logs how many stars it added to each layer, by type | none | open |
+| GEN.132 | Per-sector regional rates for neutron stars and black holes, extended system-wide where the research supports it | none | open |
+| GEN.133 | Analysis of every star type's rate against its distance from the galactic core | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -787,8 +789,8 @@ Parents marked "new parent" had no old number of their own.
 | NAV.40 | Bookmarks can't be used to find the start or destination once a course pick has begun (bug) | none | done, PR #399 |
 | NAV.41 | The NAV page's course map is too small to read (bug) | none | done, PR #457 |
 | NAV.42 | Each route stop shows the course and distance to the next stop | none | open |
-| NAV.43 | Find everything within a distance of a place: the query and the API | none | open |
-| NAV.44 | A "What's nearby" page: pick a place, enter a distance in parsecs, list what is there | none | open |
+| NAV.43 | Find everything within a distance of a place: the query and the API | none | done, PR #804 |
+| NAV.44 | A "What's nearby" page: pick a place, enter a distance in parsecs, list what is there | none | done, PR #804 |
 | NAV.45 | "What's within N pc" from the Galaxy Map and Sector Map | none | open |
 | NAV.46 | The NAV picker can't click galaxy wedges to zoom in (bug) | none | closed, already fixed; covered by a browser test (#568) |
 | NAV.47 | Unknown-space jumps stop at scattered stars, black holes, neutron stars and quasars | none | open |
