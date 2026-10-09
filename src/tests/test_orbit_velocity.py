@@ -166,8 +166,8 @@ def test_advancing_the_orbits_moves_the_velocity_with_the_position(mysql_config)
     _system, system_id = _saved_system(mysql_config)
     conn = store.get_connection(mysql_config)
     try:
-        store.advance_orbital_phases(conn, elapsed_years=0.37)
-        store.advance_comet_orbits(conn, elapsed_years=0.37)
+        store.advance_orbital_phases(conn, store.orbit_clock(conn, 0.37))
+        store.advance_comet_orbits(conn, store.orbit_clock(conn, 0.37))
         for table in ("planets", "moons"):
             for row in conn.execute(f"SELECT * FROM {table} WHERE star_system_id = ?", (system_id,)).fetchall():
                 expected = circular_orbital_velocity_au_per_year(

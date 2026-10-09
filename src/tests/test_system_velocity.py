@@ -126,7 +126,7 @@ def test_the_galactic_orbit_update_turns_the_velocity_with_the_position(mysql_co
         period_gy = conn.execute(
             "SELECT s.galactic_orbital_period_gy AS p FROM stars s JOIN star_systems ss ON ss.id = s.star_system_id"
             " WHERE s.role IN ('single', 'primary')").fetchone()["p"]
-        store.advance_galactic_positions(conn, elapsed_years=period_gy * 1e9 / 4.0)
+        store.advance_galactic_positions(conn, store.orbit_clock(conn, period_gy * 1e9 / 4.0))
         turned = velocity()
         assert _norm(turned) == pytest.approx(_norm(start), rel=1e-9)
         assert turned[2] == pytest.approx(start[2], rel=1e-9)  # the axis is unchanged
