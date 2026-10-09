@@ -53,7 +53,7 @@ const B = await import(`./bookmarks.js${VERSION_QUERY}`);
 const { createSelection } = await import(`./picker.js${VERSION_QUERY}`);
 const { createBreadcrumb } = await import(`./breadcrumb.js${VERSION_QUERY}`);
 const { createPicker, createTooltip } = await import(`./mappick.js${VERSION_QUERY}`);
-const { createSectorStage } = await import(`./galaxysector.js${VERSION_QUERY}`);
+const { createSectorStage, DEFAULT_HIDDEN_KINDS } = await import(`./galaxysector.js${VERSION_QUERY}`);
 const { createSystemStage } = await import(`./galaxysystem.js${VERSION_QUERY}`);
 
 // The other choices while one is hovered (MAP.18).
@@ -749,7 +749,7 @@ export function createStageView(host) {
     if (!enteredSystem) return null;
     return {
       id: enteredSystem.id, name: enteredSystem.name, mode: systemStage.mode(), refs: systemStage.entries().map(function (e) { return e.ref; }),
-      flying: !!animation, following: followBody, trailOpacity: systemStage.trailOpacity, distance: view ? view.dist : null, selected: systemStage.selected(),
+      flying: !!animation, following: followBody, trailOpacity: systemStage.trailOpacity, trailRadius: systemStage.trailRadius, distance: view ? view.dist : null, selected: systemStage.selected(),
       // Where a body is on screen, in client pixels (null: behind the camera).
       screen: function (ref) {
         const entry = systemStage.entry(ref);
@@ -799,7 +799,7 @@ export function createStageView(host) {
     const back = new THREE.Vector3(0, 0, 1).applyQuaternion(view.quat);
     return {
       tilt: THREE.MathUtils.radToDeg(Math.acos(Math.max(-1, Math.min(1, back.z)))), flying: !!animation,
-      zoom: view.zoom,
+      zoom: view.zoom, target: view.target.slice(),
     };
   };
 
@@ -876,7 +876,10 @@ export function createStageView(host) {
   function displayParts() {
     const extra = [];
     const hidden = sectorStage.hiddenKinds();
-    if (hidden.length) extra.push("hide=" + hidden.join(","));
+    const hide = hidden.filter(function (kind) { return DEFAULT_HIDDEN_KINDS.indexOf(kind) < 0; });
+    const show = DEFAULT_HIDDEN_KINDS.filter(function (kind) { return hidden.indexOf(kind) < 0; });
+    if (hide.length) extra.push("hide=" + hide.join(","));
+    if (show.length) extra.push("show=" + show.join(","));
     if (sectorStage.markedKinds().length) extra.push("mark=" + sectorStage.markedKinds().join(","));
     if (sectorStage.hiddenClasses().length) extra.push("stars=" + sectorStage.hiddenClasses().join(","));
     if (sectorStage.minLuminosity() > 0) extra.push("lum=" + sectorStage.minLuminosity());
@@ -906,9 +909,12 @@ export function createStageView(host) {
   }
 
   // The kinds a URL's `hide` names.
+  // Kinds that begin hidden (rogue planets, MAP.137) are named by `show` when shown.
   function hiddenFromLocation() {
-    const raw = new URLSearchParams(location.search).get("hide");
-    return raw ? raw.split(",").filter(Boolean) : [];
+    const params = new URLSearchParams(location.search);
+    const list = function (name) { return (params.get(name) || "").split(",").filter(Boolean); };
+    const shown = list("show");
+    return DEFAULT_HIDDEN_KINDS.filter(function (kind) { return shown.indexOf(kind) < 0; }).concat(list("hide"));
   }
 
   // Shows or hides a kind of object on the open sector, and keeps the choice
@@ -946,8 +952,12 @@ export function createStageView(host) {
   function writeHiddenToUrl() {
     const params = new URLSearchParams(location.search);
     const now = sectorStage.hiddenKinds();
-    if (now.length) params.set("hide", now.join(","));
+    const hide = now.filter(function (kind) { return DEFAULT_HIDDEN_KINDS.indexOf(kind) < 0; });
+    const show = DEFAULT_HIDDEN_KINDS.filter(function (kind) { return now.indexOf(kind) < 0; });
+    if (hide.length) params.set("hide", hide.join(","));
     else params.delete("hide");
+    if (show.length) params.set("show", show.join(","));
+    else params.delete("show");
     const marked = sectorStage.markedKinds();
     if (marked.length) params.set("mark", marked.join(","));
     else params.delete("mark");
@@ -1858,6 +1868,29 @@ export function createStageView(host) {
     });
   }
 
+  // Moves the orbit center to the selection (a star, cloud or body), or to
+  // the middle of what the stage shows when nothing is selected, keeping the
+  // angle and the zoom, so the mouse and the keys then turn and zoom about it
+  // (MAP.138).
+  function recenter() {
+    if (!view || animation || !resolved || !view.fit) return;
+    let goal = null;
+    const selected = systemStage.selected();
+    const where = selected ? systemStage.where(selected) : null;
+    const entry = sectorStage.selectedEntry();
+    if (where) goal = where.center.slice();
+    else if (entry) goal = [entry.x, entry.y, entry.z];
+    else goal = view.fit.target.slice();
+    const from = viewNow();
+    const to = { target: goal, dist: view.dist, quat: view.quat.clone() };
+    followBody = null;
+    const kept = view;
+    flyCamera(from, to, null, function () {
+      view = Object.assign({}, kept, { target: goal.slice(), dist: kept.dist, quat: kept.quat.clone() });
+      applyView();
+    });
+  }
+
   // The other layer (a phenomenon) under the pointer, while there is one.
   let hoveredOther = null;
 
@@ -1965,6 +1998,11 @@ export function createStageView(host) {
     if (key === "Home") {
       event.preventDefault();
       home();
+      return;
+    }
+    if ((key === "c" || key === "C") && !event.ctrlKey && !event.metaKey && !event.altKey) {
+      event.preventDefault();
+      recenter();
       return;
     }
     if (["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown", "Enter"].indexOf(key) < 0) return;
@@ -2813,6 +2851,7 @@ export function createStageView(host) {
     onKey: onKey,
     onWheel: onWheel,
     resetView: resetView,
+    recenter: recenter,
     home: home,
     up: up,
     travel: travel,

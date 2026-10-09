@@ -88,6 +88,19 @@ MAX_UPDATE_INTERVAL_S = 1.0e9 * 365.25 * 86400.0
 """float: The longest a next-due time runs, a billion years in seconds, so a
 very slow body still gets looked at."""
 
+
+def update_interval_s(speed_ms, scale):
+    """Seconds a body at `speed_ms` takes to move `THRESHOLDS_M[scale]`
+    ("galactic", "system" or "planetary"), capped at
+    `MAX_UPDATE_INTERVAL_S`; the cap for a body at rest. What the orbit
+    update stores as each object's next-due time (GEN.106)."""
+    if scale not in THRESHOLDS_M:
+        raise KeyError(f"unknown scale {scale!r}; use one of {sorted(THRESHOLDS_M)}")
+    if not speed_ms or speed_ms <= 0.0:
+        return MAX_UPDATE_INTERVAL_S
+    return min(THRESHOLDS_M[scale] / speed_ms, MAX_UPDATE_INTERVAL_S)
+
+
 SPEED_OF_LIGHT_MS = 299_792_458.0
 """float: The speed no body reaches, m/s."""
 
@@ -456,10 +469,7 @@ class SpatialPosition3D:
         if scale not in THRESHOLDS_M:
             raise KeyError(f"unknown scale {scale!r}; use one of {sorted(THRESHOLDS_M)}")
         frame = "galactic" if scale == "galactic" or not self.has_system_frame else "system"
-        speed = self.get_speed(frame)
-        if speed == 0.0:
-            return MAX_UPDATE_INTERVAL_S
-        return min(THRESHOLDS_M[scale] / speed, MAX_UPDATE_INTERVAL_S)
+        return update_interval_s(self.get_speed(frame), scale)
 
     # --- Carrying the anchors ---------------------------------------------------------
 

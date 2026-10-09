@@ -266,17 +266,19 @@ def test_sector_map_show_on_map_selects_a_rogue_planet(page, map_site):
 
 def test_sector_map_rogue_planet_markers_toggle(page, map_site):
     _open_sector(page, map_site)
-    page.locator("#galaxymap3d-menu summary").click()
     toggle = page.locator('#galaxymap3d-controls [data-action="toggle-rogue-markers"]')
+    # MAP.137: rogue planets start off, and ringed once they are shown.
+    _open_menu(page)
+    page.locator('#galaxymap3d-kinds button[data-kind="roguePlanet"]').click()
+    assert toggle.get_attribute("aria-pressed") == "true", "on by default (MAP.137)"
     background = toggle.evaluate("b => getComputedStyle(b).backgroundColor")
-    assert toggle.get_attribute("aria-pressed") == "false", "off by default (MAP.83)"
     before = _shot(page, SECTOR_CANVAS)
     toggle.click()
-    assert toggle.get_attribute("aria-pressed") == "true"
-    assert toggle.evaluate("b => getComputedStyle(b).backgroundColor") != background, "highlighted while on"
+    assert toggle.get_attribute("aria-pressed") == "false"
+    assert toggle.evaluate("b => getComputedStyle(b).backgroundColor") != background, "plain while off"
     assert _shot(page, SECTOR_CANVAS) != before
     toggle.click()
-    assert toggle.get_attribute("aria-pressed") == "false"
+    assert toggle.get_attribute("aria-pressed") == "true"
     assert toggle.evaluate("b => getComputedStyle(b).backgroundColor") == background
 
 
@@ -296,7 +298,8 @@ def test_sector_map_kinds_can_be_hidden_one_by_one_and_the_choice_is_kept(page, 
     buttons = page.locator("#galaxymap3d-kinds button[data-kind]")
     names = buttons.all_inner_texts()
     assert "Stars" in names and "Rogue planets" in names, names
-    assert all(b.get_attribute("aria-pressed") == "true" for b in buttons.all()), "all on to begin with"
+    assert [b.get_attribute("aria-pressed") for b in buttons.all()] == [
+        "false" if name == "Rogue planets" else "true" for name in names], "all on but the rogue planets (MAP.137)"
     stars = page.locator('#galaxymap3d-kinds button[data-kind="star"]')
     stars.click()
     assert stars.get_attribute("aria-pressed") == "false"
@@ -320,14 +323,13 @@ def test_sector_map_show_on_map_shows_a_hidden_kind_again(page, map_site):
     _open_menu(page)
     rogue = next(p for p in PHENOMENA if p["type"] == "rogue_planet")
     toggle = page.locator('#galaxymap3d-kinds button[data-kind="roguePlanet"]')
-    toggle.click()
-    assert toggle.get_attribute("aria-pressed") == "false"
+    assert toggle.get_attribute("aria-pressed") == "false", "rogue planets begin hidden (MAP.137)"
     page.locator("#galaxymap3d-menu summary").click()  # closed, so its panel isn't over the table
     button = page.locator(f'[data-map-target="rogue_planet:{rogue["id"]}"]')
     button.click()
     assert _info_title(page) == rogue["name"]
     assert toggle.get_attribute("aria-pressed") == "true", "selecting it shows its kind again"
-    assert "hide=roguePlanet" not in page.url
+    assert "show=roguePlanet" in page.url and "hide" not in page.url
 
 
 def test_sector_map_screen_reader_list_selects(page, map_site):
@@ -597,6 +599,56 @@ def test_galaxy_map_opens_a_sector_in_place(page, map_site):
     _settle(page)
     assert _query(page) == OPEN_PRIME[1:]
     assert any(_bright_spots(page, GALAXY_CANVAS)), "the reloaded sector draws its stars"
+
+
+def test_a_binary_picks_as_one_system_in_an_opened_sector(page, map_site):
+    """MAP.136: every dot of an opened sector, a binary's companion too,
+    picks a system by its own name; a star is never picked on its own."""
+    _open_galaxy(page, map_site, OPEN_PRIME)
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-info h3')")
+    page.wait_for_timeout(500)
+    info = page.locator("#galaxymap3d-info")
+    headings = set()
+    for x, y in _bright_spots(page, GALAXY_CANVAS):
+        page.mouse.click(x, y)
+        if info.locator("h3").count():
+            headings.add(info.locator("h3").inner_text())
+    assert "Twin Lamps" in headings, headings
+    assert headings - {"Fixture Prime"} <= SYSTEM_NAMES, headings
+
+
+def _camera(page):
+    page.wait_for_function("() => { const c = document.querySelector('#galaxymap3d-canvas').galaxyCamera(); return c && !c.flying; }")
+    return page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyCamera()")
+
+
+def test_c_recenters_the_view_on_the_selection_and_the_mouse_turns_about_it(page, map_site):
+    """MAP.138: C (or Menu's Center on selection) moves the center the view
+    turns and zooms about to the selected star, keeping the angle and zoom;
+    a mouse drag then turns about it and leaves it where it is."""
+    _open_galaxy(page, map_site, OPEN_PRIME)
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-info h3')")
+    page.wait_for_timeout(500)
+    _x, _y, _name = _click_a_star(page)
+    before = _camera(page)
+    page.locator(GALAXY_CANVAS).focus()
+    page.keyboard.press("c")
+    after = _camera(page)
+    assert after["target"] != before["target"], "the center moved to the star"
+    assert abs(after["tilt"] - before["tilt"]) < 1e-6 and abs(after["zoom"] - before["zoom"]) < 1e-9
+    box = page.locator(GALAXY_CANVAS).bounding_box()
+    cx, cy = box["x"] + box["width"] / 2, box["y"] + box["height"] / 2
+    page.mouse.move(cx, cy)
+    page.mouse.down()
+    page.mouse.move(cx + 80, cy + 40, steps=5)
+    page.mouse.up()
+    turned = _camera(page)
+    assert turned["tilt"] != after["tilt"] and turned["target"] == after["target"], (after, turned)
+    # With nothing selected, C goes back to the middle of the view.
+    page.keyboard.press("Escape")
+    page.keyboard.press("c")
+    again = _camera(page)
+    assert again["target"] != after["target"]
 
 
 def test_galaxy_map_back_forward_and_url_state(page, map_site):
@@ -1927,6 +1979,17 @@ def _open_system_in_place(page, map_site, name="Middling Sun"):
     page.locator(".starmap-sr-list button", has_text=name).first.evaluate("b => b.click()")
     page.locator("#galaxymap3d-info button", has_text="Open system here").click()
     _wait_system(page)
+
+
+def test_a_close_pairs_two_orbits_are_drawn_each_at_its_share(page, map_site):
+    """MAP.136: both stars of a close pair circle the barycenter on their own
+    line, the lighter one on the wider (the fixture pair's mass fraction is
+    0.25, so its second star keeps three times the first's distance)."""
+    _open_system_in_place(page, map_site)
+    radii = page.evaluate("() => { const s = document.querySelector('#galaxymap3d-canvas').galaxySystem(); "
+                          "return ['star:1', 'star:2'].map((r) => s.trailRadius(r)); }")
+    assert all(r and r > 0 for r in radii), radii
+    assert 1.5 < radii[1] / radii[0] < 6, radii
 
 
 def test_galaxy_map_opens_a_system_in_place_and_zooms_to_a_moon(page, map_site):

@@ -97,6 +97,11 @@ NEVER_READ = {
     ("galaxy_shape", "id"): "singleton key", ("galaxy_shape", "bright_star_seed"): "only to repeat a scatter",
     ("galaxy_shape", "phenomenon_scatter_seed"): "only to repeat a scatter",
     ("facilities", "galactic_radius_pc"): "an index column; pages place a facility by its center",
+    # GEN.106: the orbit update's own clock, read only by planetgen.cli.orbits.
+    **{(table, column): "the orbit update's clock" for table, column in (
+        ("star_systems", "epoch_unix"), ("star_systems", "next_update_due"),
+        ("star_systems", "binary_epoch_unix"), ("star_systems", "binary_next_update_due"),
+        ("facilities", "epoch_unix"), ("facilities", "next_update_due"))},
     # Empty unless a moon bears life (see NULL_IN_THIS_GALAXY).
     ("moon_evolutionary_paragraphs", "paragraph"): CHANCE,
     ("moon_reflection_spectrum", "spectrum_type"): CHANCE, ("moon_reflection_spectrum", "value"): CHANCE,

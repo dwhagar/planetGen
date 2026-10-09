@@ -120,6 +120,18 @@ def delete(node_id):
     return jsonify({"ok": ok})
 
 
+@bp.route("/clear-finished", methods=["POST"])
+@require_admin(fresh=True)
+def clear_finished():
+    """`POST /api/admin/work/clear-finished` deletes every finished job
+    tree with its tasks (ADM.41). `{"cleared": <count>}`; live jobs stay."""
+    conn = get_control_db()
+    cleared = workQueue.clear_finished(conn)
+    if cleared:
+        audit("work.clear", detail=f"{cleared} finished jobs")
+    return jsonify({"cleared": cleared})
+
+
 @bp.route("/queue", methods=["POST"])
 @require_admin(fresh=True)
 def queue():

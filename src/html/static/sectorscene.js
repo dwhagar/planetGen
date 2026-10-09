@@ -671,6 +671,10 @@ export function buildSectorScene(data, options) {
   }
 
   var stars = data.stars || [];
+  // A binary is one system to pick (MAP.136): a companion's pick is its primary's.
+  stars.forEach(function (star) {
+    if (star.companionOf != null && stars[star.companionOf]) star.pickAs = stars[star.companionOf];
+  });
   var clouds = data.clouds || [];
   var neighbors = data.neighbors || [];
   stars.forEach(place);

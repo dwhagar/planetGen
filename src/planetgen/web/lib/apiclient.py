@@ -936,6 +936,12 @@ def admin_work_delete(cookie_header, node_id):
     return body["ok"]
 
 
+def admin_work_clear_finished(cookie_header):
+    """`POST /api/admin/work/clear-finished` -- deletes every finished tree; returns how many."""
+    body, _set_cookie_headers = _auth_request("POST", "/admin/work/clear-finished", cookie_header=cookie_header)
+    return body["cleared"]
+
+
 def admin_work_queue(cookie_header, action):
     """`POST /api/admin/work/queue` -- pauses or resumes the whole queue."""
     body, _set_cookie_headers = _auth_request("POST", "/admin/work/queue", cookie_header=cookie_header,

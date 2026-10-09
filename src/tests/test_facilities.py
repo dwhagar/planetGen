@@ -162,7 +162,7 @@ def test_facilities_are_stored_on_their_hosts(mysql_config):
         # Position updates move orbital and belt facilities alike.
         quarter = rockpile["orbit_period_years"] / 4
         with conn:
-            assert store.advance_facility_orbits(conn, quarter) == 3
+            assert store.advance_facility_orbits(conn, store.orbit_clock(conn, quarter)) == 3
         moved = conn.execute("SELECT orbit_phase_deg FROM facilities WHERE name = 'Rockpile'").fetchone()
         assert (moved["orbit_phase_deg"] - rockpile["orbit_phase_deg"]) % 360.0 == pytest.approx(90.0)
 

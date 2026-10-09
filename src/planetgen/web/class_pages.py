@@ -14,7 +14,7 @@ phenomenon and other pages use to link a class label here.
 
 from flask import abort
 
-from planetgen.web.lib.classref import catalog, class_entry, class_type, class_url_parts
+from planetgen.web.lib.classref import alphabetical, catalog, class_entry, class_type, class_url_parts
 
 from . import bp
 from .helpers import crumb, page_url, population_status, render_page
@@ -41,6 +41,7 @@ def classes():
         "summary": entry["summary"],
         "count": len(entry["classes"]),
     } for slug, entry in catalog().items()]
+    rows = alphabetical(rows)
     return render_page(
         "classes.html",
         title="Classes",

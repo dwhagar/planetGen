@@ -65,7 +65,8 @@ export function createPicker(camera, canvasEl) {
       });
       if (!found) return null;
       at.set(found.entry.x, found.entry.y, found.entry.z);
-      return { entry: found.entry, distance: camera.position.distanceTo(at), px: found.px };
+      // An entry may stand in for another (a binary's companion for its primary).
+      return { entry: found.entry.pickAs || found.entry, distance: camera.position.distanceTo(at), px: found.px };
     }
     if (layer.meshes) {
       const hits = raycaster.intersectObjects(layer.meshes(), false);

@@ -427,9 +427,9 @@ Parents marked "new parent" had no old number of their own.
 | ADM.36 | Change an object's trajectory vector | none | open |
 | ADM.37 | The Generate page's prevalence fields show "0% change" instead of each feature's real share (bug) | none | done, PR #514 |
 | ADM.38 | Worker exceptions fail on Python 3.9 because _picklable_error calls Exception.add_note, which needs 3.11 (bug) | none | done, PR #627 |
-| ADM.39 | Running queue jobs show an ETA (bug) | none | open |
-| ADM.40 | The Generate page stops reporting a lost connection (bug) | none | open |
-| ADM.41 | Every job is easy to find and cancel in the web queue, and past jobs are paginated and clean (bug) | none | open |
+| ADM.39 | Running queue jobs show an ETA (bug) | none | done, PR #800 |
+| ADM.40 | The Generate page stops reporting a lost connection (bug) | none | done, PR #800 |
+| ADM.41 | Every job is easy to find and cancel in the web queue, and past jobs are paginated and clean (bug) | none | done, PR #800 |
 | ADM.42 | One settings model describes every config.json option | none | open |
 | ADM.43 | A full configuration page under Admin | none | open |
 | ADM.44 | Web, Open Graph and SEO settings | none | open |
@@ -568,9 +568,9 @@ Parents marked "new parent" had no old number of their own.
 | GEN.95 | Nebula conditions applied when planets and surfaces are generated | none | open |
 | GEN.96 | Generation directives for a sector (an override button) | none | open |
 | GEN.97 | Generate N random neighborhoods | none | open |
-| GEN.98 | Bright-star backfill from the farthest generated boundary outward | none | open |
+| GEN.98 | Bright-star backfill from the farthest generated boundary outward | none | done, PR #795 |
 | GEN.99 | Nebula volume backfill with the star types the nebula needs | none | open |
-| GEN.100 | Phenomena placed galaxy-wide first and kept when sectors fill | none | open |
+| GEN.100 | Phenomena placed galaxy-wide first and kept when sectors fill | none | done, PR #793 |
 | GEN.101 | Fill order: nearest sectors first along a pruned Hilbert octree curve | none | open |
 | GEN.102 | Investigate filling all near-zero-density void space at once | none | open |
 | GEN.103 | Research where each star type and phenomenon belongs in the galaxy's structure | none | open |
@@ -737,9 +737,9 @@ Parents marked "new parent" had no old number of their own.
 | MAP.125 | Infinite zoom: one 3D interface from the galaxy down to a moon | none | done, PR #683 |
 | MAP.126 | Show the orbital trajectories of selected objects in their frame of reference | none | done, PR #686 |
 | MAP.135 | Selecting the first slab or wedge shows its bounds (bug) | none | done, PR #788 |
-| MAP.136 | Binary stars pick as one system and their 3D orbits are drawn clearly (bug) | none | open |
-| MAP.137 | Rogue planets are easy to see, with the right default filters (bug) | none | open |
-| MAP.138 | Recenter the camera in every 3D view (bug) | none | open |
+| MAP.136 | Binary stars pick as one system and their 3D orbits are drawn clearly (bug) | none | done, PR #797 |
+| MAP.137 | Rogue planets are easy to see, with the right default filters (bug) | none | done, PR #797 |
+| MAP.138 | Recenter the camera in every 3D view (bug) | none | done, PR #797 |
 | MAP.139 | The Galaxy View uses its spare space: an info box with a Details link, and menu items | none | open |
 | MAP.140 | Double-click on a selected object goes there and opens its information | none | open |
 | MAP.141 | Context around the selection: faint neighbours, and the sectors above and below | none | open |
@@ -982,8 +982,8 @@ Parents marked "new parent" had no old number of their own.
 | UX.73 | Sector wiki link form on the Admin hub | none | done, PR #632 |
 | UX.74 | Generate page shows an empty Current job card | none | done, PR #617 |
 | UX.75 | Admin menus on the sector and phenomenon pages sit in the page body, not the action bar | none | done, PR #679 |
-| UX.76 | Icons and highlights follow the light and dark theme (bug) | none | open |
-| UX.77 | The class list is alphabetized (bug) | none | open |
+| UX.76 | Icons and highlights follow the light and dark theme (bug) | none | done, PR #800 |
+| UX.77 | The class list is alphabetized (bug) | none | done, PR #797 |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |

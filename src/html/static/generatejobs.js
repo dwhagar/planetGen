@@ -17,8 +17,10 @@
 // Imported with this module's own `?v=` query, as systemmap.js explains.
 const VERSION_QUERY = new URL(import.meta.url).search;
 const { createJobLog } = await import(`./joblog.js${VERSION_QUERY}`);
+const { quietReconnect } = await import(`./connectionnote.js${VERSION_QUERY}`);
 
 const POLL_MS = 2000;
+const RECONNECT_GRACE_MS = 8000;
 
 const panel = document.getElementById("current-job");
 
@@ -132,9 +134,12 @@ function stream(url, log) {
     connection("");
     finish();
   });
-  source.addEventListener("open", () => connection(""));
-  // EventSource reconnects by itself, resuming from the last event id.
-  source.addEventListener("error", () => connection("Connection lost; reconnecting..."));
+  // EventSource reconnects by itself, resuming from the last event id; the
+  // server ends every response on purpose (STREAM_SECONDS), which the browser
+  // reports as an error too, so the note waits to see whether it reconnects.
+  const link = quietReconnect(connection, RECONNECT_GRACE_MS);
+  source.addEventListener("open", () => link.restored());
+  source.addEventListener("error", () => link.lost());
 }
 
 // The polling fallback: the job's state and the tail of its output.

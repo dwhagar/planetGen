@@ -1670,12 +1670,27 @@ a.btn.btn-active:visited {
 }
 
 .btn.btn-secondary:hover {
-  background: var(--bg-subtle);
+  background: transparent;
+  box-shadow: inset 0 0 0 2px var(--accent);
   filter: none;
 }
 
 .btn.btn-secondary.btn-active {
   background: var(--bg-subtle);
+  color: var(--text);
+}
+
+/* UX.76: `a.btn:visited` above is as specific as the secondary rules, so a
+   visited secondary link kept the primary button's dark text on a clear
+   background: dark on dark. Secondary links keep their own colors visited
+   or not. */
+a.btn.btn-secondary,
+a.btn.btn-secondary:visited {
+  color: var(--accent);
+}
+
+a.btn.btn-secondary.btn-active,
+a.btn.btn-secondary.btn-active:visited {
   color: var(--text);
 }
 

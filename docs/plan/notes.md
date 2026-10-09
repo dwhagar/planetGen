@@ -4,6 +4,18 @@ Kept from the first phase plan (2026-10-01) and the dependency report
 (2026-10-02). [docs/TODO.md](../TODO.md) is the master file and wins
 where they disagree; the phase files list the items and their order.
 
+## Phase 0 (finished)
+
+Phase 0 held every bug and the groundwork the new architecture needed
+(package layout, third-party libraries, Alembic, per-unit seeds, the
+map engine, Redis queues). Its last items shipped on 2026-10-09 (DB.13,
+GEN.126; later GEN.125, GEN.56, GEN.100, GEN.98 moved in and finished),
+Boss asked on 2026-10-09 08:37Z for its plan file to be deleted, and the
+version moved to 8.0 (`changes/phase-0-complete.major.md`). The item
+list and each item's PR are in git history (`docs/plan/phase-0-roots.md`
+before this change) and in CHANGELOG.md. The "1 → 0" and "→ 0" rows in
+the change list below record moves into it.
+
 ## Research notes
 
 ### From "Phase 1: Foundations and fixes" (first plan)
@@ -295,3 +307,4 @@ No decisions are open. (GEN.67, Boss 2026-10-08: stars and sectors keep word sal
 - **DB.13 in phase 0**: Boss called it "a Phaser 0 priority".
 - Execution plan (Boss's priority order of 2026-10-09 07:13Z: Orbital updates, Maps, Nearby search, Routing; Repeatable galaxy last, blockers first): `docs/plan/execution-plan.html`, with lanes by wave and the Alembic and file conflicts between groups.
 - Boss (2026-10-09 07:54Z): "I haven't held anything, so integrate ALL phase 1 items into the immediate TODO breakdown, focusing on unblocking things as a first priority." The execution plan's lane lists now hold all 77 non-bug Phase 1 items, ordered with the items that unblock the most work first (`docs/plan/execution-plan.html`).
+- GEN.100's galaxy-wide scatter writes about 1.6e8 rows at the default galaxy size (phenomenon_scatter table). Boss may lower the scatter rate; the coordinator is asking him (2026-10-09 08:15Z).
