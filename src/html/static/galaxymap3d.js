@@ -676,11 +676,12 @@ function initGalaxyMap3d(canvasEl, data) {
   // brighter outline along each face's own edges (found from the face's
   // 0..1 uv, about a screen pixel wide) keeps neighboring blocks apart.
   // Each part is two meshes sharing one shader:
-  // - solid: blocks whose every sector is generated, opaque;
+  // - solid: blocks opaque enough to write depth (none now: no fill is
+  //   more than 50% opaque, galaxyblocks.MAX_FILL_OPACITY);
   // - glass: everything else, translucent (no depth writes), its blocks
   //   sorted back to front from the camera when built. Unfilled space is
-  //   10% to 30% opaque by density, and a filled sector more solid by its
-  //   stars' density, never fully (galaxyblocks.statsOpacity, MAP.128).
+  //   10% to 30% opaque by density, and a filled sector more opaque by what
+  //   it holds, up to 50% (galaxyblocks.statsOpacity, MAP.128).
   // `fade` scales a mesh's opacity (the drill-down's fades and dimming);
   // `gridEdges` (0 or 1) turns the outlines off, as on the whole galaxy,
   // which shows no sector or block lines (MAP.85).

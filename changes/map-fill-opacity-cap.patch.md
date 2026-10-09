@@ -1,0 +1,4 @@
+### Fixed
+- No block or sector fill on the Galaxy Map is more opaque than 50% now, so what is inside it always shows, even when every sector is filled. Before, a filled sector could reach 85% and a fully filled block drew solid (Boss's lone one-star sector was a solid tan wedge).
+- A generated sector's opacity follows what it holds (systems per sector on a log scale, up to 50% at about 600) instead of ranking against the other sectors in view, so a sector with one star is faint even when it is the only one on screen.
+- When only one to three cells hold stars, the brightness and Color by scales put their mean in the middle and pad both ends (at least a decade of luminosity, 3 Gy of age, and so on), instead of stretching from the lowest to the highest of so few values; the legend shows the padded ends.
