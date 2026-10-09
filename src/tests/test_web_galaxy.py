@@ -438,6 +438,29 @@ def test_galaxy_page_draws_a_course(client, fake, monkeypatch):
     assert 'href="/nav?from=system:1&amp;to=system:2"' in html
 
 
+def test_galaxy_page_shows_the_course_legend_and_readout(client, fake, monkeypatch):
+    """NAV.20: the page names both line styles, the course's numbers and the stops as links."""
+    from planetgen.web import nav_page
+
+    points = [{"name": "Alpha", "role": "origin", "url": "/system/1", "x": 1.0, "y": 2.0, "z": 0.0},
+              {"name": "Waypoint", "role": "hop", "url": "/system/9", "x": 40.0, "y": 9.0, "z": 0.0},
+              {"name": "Omega", "role": "destination", "url": "/system/2", "x": 90.0, "y": 2.0, "z": 0.0}]
+    course = {
+        "scope": "galaxy", "navUrl": "/nav", "sector": None, "points": points, "direct": [points[0], points[2]],
+        "readout": {"distance": "290 ly", "course": "045 mark 000", "frame": "Galactic", "route_distance": "300 ly",
+                    "times": [{"label": "Warp 1", "text": "290 years"}],
+                    "stops": [{"name": "Waypoint", "url": "/system/9"}]},
+    }
+    monkeypatch.setattr(nav_page, "galaxy_course", lambda f, t: course)
+    html = client.get("/galaxy?course=system:1,system:2").get_data(as_text=True)
+    assert "Route via adjacent systems" in html and "Direct line" in html
+    assert '<a href="/system/9">Waypoint</a>' in html
+    assert "<dt>Course</dt><dd>045 mark 000</dd>" in html and "<dt>Warp 1</dt><dd>290 years</dd>" in html
+    assert _scene(html)["course"]["direct"][1]["name"] == "Omega"
+    course["direct"] = None
+    assert "Direct line" not in client.get("/galaxy?course=system:1,system:2").get_data(as_text=True)
+
+
 def test_galaxy_page_without_a_course(client, fake):
     assert _scene(client.get("/galaxy").get_data(as_text=True))["course"] is None
     # A malformed value asks nothing and draws nothing.

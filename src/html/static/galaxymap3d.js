@@ -1985,6 +1985,21 @@ function initGalaxyMap3d(canvasEl, data) {
       new THREE.BufferGeometry().setFromPoints(linePoints),
       new THREE.LineBasicMaterial({ color: new THREE.Color(accentColor), depthTest: false, transparent: true })
     ));
+    // NAV.20: with stops on the way, the straight line from the start to the
+    // end is drawn apart from the route, dashed and muted.
+    if (course.direct && course.direct.length === 2) {
+      var directPoints = course.direct.map(function (point) { return new THREE.Vector3(point.x, point.y, point.z); });
+      var directLine = new THREE.Line(
+        new THREE.BufferGeometry().setFromPoints(directPoints),
+        new THREE.LineDashedMaterial({
+          color: new THREE.Color(0x9aa3b8), depthTest: false, transparent: true,
+          dashSize: directPoints[0].distanceTo(directPoints[1]) / 60,
+          gapSize: directPoints[0].distanceTo(directPoints[1]) / 120,
+        })
+      );
+      directLine.computeLineDistances();
+      courseGroup.add(directLine);
+    }
     course.points.forEach(function (point, n) {
       var ends = n === 0 || n === course.points.length - 1;
       var ring = new THREE.Sprite(new THREE.SpriteMaterial({
@@ -2007,6 +2022,43 @@ function initGalaxyMap3d(canvasEl, data) {
     });
     courseSectors = course.points.map(function (point) {
       return sectorAddressAt(point.x, point.y, point.z, edgePc);
+    });
+  }
+
+  // NAV.20: a click on a ringed stop opens its page. Registered ahead of the
+  // stage view's own pointer handlers (which come later) and ending the event
+  // for them, so a click on a ring never drills into the sector beneath it.
+  if (course) {
+    var ringDown = null;
+    var ringVector = new THREE.Vector3();
+    var ringAt = function (event) {
+      var rect = canvasEl.getBoundingClientRect();
+      var found = null;
+      var best = COURSE_RING_PX * 0.9;
+      course.points.forEach(function (point) {
+        ringVector.set(point.x, point.y, point.z).project(camera);
+        if (ringVector.z > 1) return;
+        var dx = (ringVector.x + 1) / 2 * rect.width + rect.left - event.clientX;
+        var dy = (1 - ringVector.y) / 2 * rect.height + rect.top - event.clientY;
+        var distance = Math.sqrt(dx * dx + dy * dy);
+        if (distance < best) { best = distance; found = point; }
+      });
+      return found;
+    };
+    canvasEl.addEventListener("pointerdown", function (event) {
+      ringDown = event.button === 0 && ringAt(event) ? { x: event.clientX, y: event.clientY } : null;
+      if (ringDown) event.stopImmediatePropagation();
+    });
+    canvasEl.addEventListener("pointerup", function (event) {
+      if (!ringDown) return;
+      var moved = Math.abs(event.clientX - ringDown.x) + Math.abs(event.clientY - ringDown.y);
+      ringDown = null;
+      event.stopImmediatePropagation();
+      var point = moved < 6 ? ringAt(event) : null;
+      if (point && point.url) window.location.href = point.url;
+    });
+    canvasEl.addEventListener("pointermove", function (event) {
+      canvasEl.style.cursor = ringAt(event) ? "pointer" : "";
     });
   }
 

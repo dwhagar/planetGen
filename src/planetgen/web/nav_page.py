@@ -419,7 +419,37 @@ def galaxy_course(from_raw, to_raw):
             "name": point["name"], "role": point["role"], "url": _point_url(point),
             "x": ly_to_pc(x), "y": ly_to_pc(y), "z": ly_to_pc(z),
         })
-    return {"scope": "galaxy", "points": points, "sector": None, "navUrl": nav_url_here}
+    direct = result["direct"]
+    return {
+        "scope": "galaxy", "points": points, "sector": None, "navUrl": nav_url_here,
+        # NAV.20: the straight line apart from the route, and the readout beside the map.
+        "direct": [points[0], points[-1]] if len(points) > 2 else None,
+        "readout": _course_readout(result, direct, route=result["route"], stops=_route_stops(result["route"], names)
+                                   if result["route"] and len(points) > 2 else []),
+    }
+
+
+READOUT_WARP_FACTORS = (1, 9)
+"""tuple: The warp factors whose travel times the Galaxy Map's course
+readout shows."""
+
+
+def _course_readout(result, direct, route, stops):
+    """
+    The course readout beside the Galaxy Map (NAV.20): `distance`,
+    `course` ("045 mark 000"), `frame`, `route_distance` (or `None`),
+    `times` (`[{label, text}]`) and `stops` (`[{name, url}]`, the route's
+    hops between the two ends).
+    """
+    return {
+        "distance": format_distance_ly(direct["distance_ly"]),
+        "course": format_course(direct["bearing_deg"], direct["mark_deg"]),
+        "frame": FRAME_LABELS.get(direct["frame"], direct["frame"]),
+        "route_distance": format_distance_ly(route["distance_ly"]) if route and stops else None,
+        "times": [{"label": f"Warp {leg['warp_factor']:g}", "text": leg["formatted"]}
+                  for leg in result["warp_times"] if leg["warp_factor"] in READOUT_WARP_FACTORS],
+        "stops": stops[1:-1],
+    }
 
 
 def _point_url(point):

@@ -4032,3 +4032,53 @@ body.app {
 .galaxy-legend-high {
   text-align: right;
 }
+
+/* NAV.20: the Galaxy Map's course legend and readout. */
+.course-readout {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  align-items: flex-start;
+  margin: 0.25rem 0 0.75rem;
+  font-size: 0.9rem;
+}
+.course-key,
+.course-stops {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.course-stops {
+  list-style: decimal inside;
+}
+.course-facts {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 0.1rem 0.75rem;
+  margin: 0;
+}
+.course-facts dt {
+  color: var(--text-muted);
+}
+.course-facts dd {
+  margin: 0;
+}
+.course-key-route,
+.course-key-direct,
+.course-key-ring {
+  display: inline-block;
+  width: 1.6rem;
+  vertical-align: middle;
+}
+.course-key-route {
+  border-top: 3px solid var(--accent);
+}
+.course-key-direct {
+  border-top: 3px dashed var(--text-muted);
+}
+.course-key-ring {
+  width: 0.9rem;
+  height: 0.9rem;
+  border: 2px solid var(--accent);
+  border-radius: 50%;
+}

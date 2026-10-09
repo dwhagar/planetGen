@@ -417,6 +417,34 @@ HISTORY_BUTTONS = """  <button type="button" class="starmap-btn" data-action="ba
 """
 """Back, the steps menu (with Jump to newest), Forward, Up and Whole galaxy."""
 
+def _course_readout_html(course):
+    """
+    The course readout and legend above the map (NAV.20): what the two
+    line styles are, the course's distance, bearing and mark, the warp
+    times, and the route's stops as links (the keyboard way to a hop; the
+    ringed hops on the map are clickable too).
+    """
+    readout = course.get("readout") or {}
+    has_hops = bool(course.get("direct"))
+    key = ['<li><span class="course-key-route" aria-hidden="true"></span> '
+           + ("Route via adjacent systems" if has_hops else "Course (the direct line is the route)") + "</li>"]
+    if has_hops:
+        key.append('<li><span class="course-key-direct" aria-hidden="true"></span> Direct line</li>')
+    key.append('<li><span class="course-key-ring" aria-hidden="true"></span> Stop (click to open it)</li>')
+    rows = [("Distance", readout.get("distance")), ("Course", readout.get("course")),
+            ("Frame", readout.get("frame")), ("Route length", readout.get("route_distance"))]
+    rows += [(item["label"], item["text"]) for item in readout.get("times", [])]
+    facts = "".join(f"<dt>{_escape(label)}</dt><dd>{_escape(value)}</dd>" for label, value in rows if value)
+    stops = "".join(f'<li><a href="{_escape(stop["url"])}">{_escape(stop["name"])}</a></li>'
+                    for stop in readout.get("stops", []))
+    return (
+        '<div class="course-readout"><ul class="course-key" aria-label="Legend">' + "".join(key) + "</ul>"
+        + (f'<dl class="course-facts">{facts}</dl>' if facts else "")
+        + (f'<ol class="course-stops" aria-label="Stops on the route">{stops}</ol>' if stops else "")
+        + "</div>"
+    )
+
+
 def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetch_path="/galaxy/tiles",
                               sector_url=None, generate=None, phenomenon_url=None,
                               system_url=None, stage_path="/galaxy/stage",
@@ -594,7 +622,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
             + _escape(ends[1]) + "</strong>"
             + (f" ({stops} stop{'s' if stops != 1 else ''} on the way)" if stops else "")
             + ' &middot; <a href="' + _escape(course["navUrl"]) + '">back to NAV</a></p>'
-        )
+        ) + _course_readout_html(course)
     elif course and course.get("sector"):
         course_hint = (
             '<p class="hint">That whole course sits inside <strong>' + _escape(course["sector"]["name"])
