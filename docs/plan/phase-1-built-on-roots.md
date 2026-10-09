@@ -64,9 +64,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | GEN.24 | Generate the galactic core on layer 0 |  | Bulk core fill runs on the parallel path; new mode on generate.html. |
 | GEN.41 | Investigate: how much backfill work a density pre-pass would save |  | Investigation; go/no-go for GEN.42. |
-| GEN.98 | Bright-star backfill from the farthest generated boundary outward |  |  |
-| GEN.100 | Phenomena placed galaxy-wide first and kept when sectors fill |  | Merges the 2026-10-03 scatter-order item and the 2026-10-07 "generated through the entire galaxy first". |
-| GEN.99 | Nebula volume backfill with the star types the nebula needs | GEN.100 |  |
+| GEN.99 | Nebula volume backfill with the star types the nebula needs |  |  |
 | GEN.101 | Fill order: nearest sectors first along a pruned Hilbert octree curve |  |  |
 | GEN.102 | Investigate filling all near-zero-density void space at once |  |  |
 | GEN.103 | Research where each star type and phenomenon belongs in the galaxy's structure |  |  |
@@ -116,7 +114,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | UX.35 | The NAV page route shown horizontally, wrapping onto several lines on narrow screens |  | In parallel with NAV.12; replaces ol.nav-route in nav.html. |
 | NAV.11 | Travel times for the system-to-system route too | NAV.10, NAV.12 | Times per hop, including unknown-space jumps; total assumes a stop at every system (Boss 04:19Z); open question on a stay per stop. |
 | NAV.42 | Each route stop shows the course and distance to the next stop | UX.35 | Boss 04:19Z. format_course per hop, frame per pair. |
-| NAV.47 | Unknown-space jumps stop at scattered stars, black holes, neutron stars and quasars | NAV.12, GEN.100 |  |
+| NAV.47 | Unknown-space jumps stop at scattered stars, black holes, neutron stars and quasars | NAV.12 |  |
 | NAV.48 | Offer to generate the uncharted sectors that block a course | NAV.12 |  |
 
 ### Nearby search

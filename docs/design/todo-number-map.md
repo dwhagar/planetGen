@@ -568,9 +568,9 @@ Parents marked "new parent" had no old number of their own.
 | GEN.95 | Nebula conditions applied when planets and surfaces are generated | none | open |
 | GEN.96 | Generation directives for a sector (an override button) | none | open |
 | GEN.97 | Generate N random neighborhoods | none | open |
-| GEN.98 | Bright-star backfill from the farthest generated boundary outward | none | open |
+| GEN.98 | Bright-star backfill from the farthest generated boundary outward | none | done, PR #795 |
 | GEN.99 | Nebula volume backfill with the star types the nebula needs | none | open |
-| GEN.100 | Phenomena placed galaxy-wide first and kept when sectors fill | none | open |
+| GEN.100 | Phenomena placed galaxy-wide first and kept when sectors fill | none | done, PR #793 |
 | GEN.101 | Fill order: nearest sectors first along a pruned Hilbert octree curve | none | open |
 | GEN.102 | Investigate filling all near-zero-density void space at once | none | open |
 | GEN.103 | Research where each star type and phenomenon belongs in the galaxy's structure | none | open |
