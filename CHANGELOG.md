@@ -1,5 +1,10 @@
 # Changelog
 
+## [7.357.678] - 2026-10-09
+
+### Changed
+- The web interface pass (UX.21) found nothing left to fix: with every page at 390, 600, 820 and 1280 px in light and dark, no buttons or labels overlap or run off their panel (the maps' open menus included), and every plain button changes something when clicked. Two new browser tests keep it that way: one clicks every button on every page, the other checks the controls inside each open map menu.
+
 ## [7.356.678] - 2026-10-09
 
 ### Added
