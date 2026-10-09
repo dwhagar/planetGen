@@ -102,9 +102,9 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.104 | A spin vector and a realistic axial tilt for every rotating object |  | Rules from "Observational Kinetics for Rotational Vectors.md". |
-| GEN.121 | A velocity on every object, filled at generation and stored with an epoch |  | Build thread (not a lane), started 2026-10-08. |
-| GEN.122 | Orbital elements for planets, moons and comets, kept in step with the state vector | GEN.121 | Build thread. |
-| GEN.123 | The projected path of a body through a sector, saved as a spline | GEN.121 | Build thread. MAP.126's orbit drawing should use it later. |
+| GEN.122 | Orbital elements for planets, moons and comets, kept in step with the state vector |  | Build thread. |
+| GEN.123 | The projected path of a body through a sector, saved as a spline |  | Build thread. MAP.126's orbit drawing should use it later. |
+| GEN.125 | Stand-alone facilities store a velocity |  | Build thread. |
 | GEN.106 | Movement thresholds and a next-update-due column | DB.11 |  |
 | GEN.107 | The update reports how many objects moved, changed sector, or entered or left a nebula | GEN.106 |  |
 | GEN.108 | Orbital math limits: where each method breaks down and what happens there | GEN.106 | Boss (2026-10-07 11:47Z): "we need to ensure that reasonable limitations for when the math breaks down at the edge cases." |

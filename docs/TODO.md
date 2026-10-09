@@ -1842,30 +1842,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   for small bodies, black hole spin distributions).
   Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
 
-- [ ] **GEN.121 A velocity on every object, filled at generation and stored with an epoch**
-  Boss (2026-10-08 23:11Z, 23:19Z): "so I want to add vector
-  information so we know not only where it's going but how fast"; "let's
-  go ahead and store the orbital information ... as part of the
-  coordinates, velocity, immediate vector of movement relative to the
-  center of the star system". Done: `SpatialPosition3D` carries a
-  velocity that generation fills in. A bound body (planet, moon, comet,
-  second star of a pair) stores its velocity relative to its primary; a
-  star or rogue body stores a galactic velocity (the rotation curve plus
-  any runaway or hypervelocity flag). The velocity carries an epoch (the
-  moment it is valid for, the same epoch the orbit simulation state
-  keeps), and both are stored in the database. A bound body's galactic
-  velocity is its primary's plus its relative one, so a planet's 30 km/s
-  is not lost in a star's 220 km/s. Each orbital update refreshes the
-  vector, so perturbation wobble shows up in it.
-  Build thread (not a lane): started 2026-10-08 after Boss's "Alright,
-  do it".
-  Progress (PR #729, schema v60): planets, moons and comets store a
-  velocity relative to their primary, set at generation and refreshed by
-  the orbital update; stars and bodies carry a galactic velocity. Still
-  to do: stored velocity for stars, systems and phenomena, and the
-  runaway-star direction.
-  Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
-
 - [ ] **GEN.122 Orbital elements for planets, moons and comets, kept in step with the state vector**
   Boss (2026-10-08 23:11Z): "Each orbital update we'll update the vector
   (which will contain the wobble as part of it's changes etc) and update
@@ -1879,7 +1855,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   today (`positions_at` uses distance and phase only); eccentric
   planetary orbits are a generation decision that this item does not
   make.
-  Build thread (not a lane). Prerequisite: GEN.121.
+  Build thread (not a lane).
   Progress (PR #729): the state-vector and orbit-element maths is in
   `kepler.py`. Still to do: the body orbit elements derived from the
   stored vector on each orbital update.
@@ -1904,7 +1880,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   velocity are the next sector's entry, so the path chains across
   sectors. Masses too weak or far to matter are skipped. MAP.126's orbit
   drawing should use these paths later.
-  Build thread (not a lane). Prerequisite: GEN.121.
+  Build thread (not a lane).
+  Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
+
+- [ ] **GEN.125 Stand-alone facilities store a velocity**
+  Asked by the physics build thread after PR #735 (GEN.121 left them
+  out): a stand-alone facility (one not attached to a star's system)
+  follows the galaxy's rotation curve in `advance_galactic_positions`
+  but stores no velocity. Give it the same stored galactic velocity and
+  epoch that stars and systems have, filled at generation and refreshed
+  when positions advance, so every object carries a vector.
+  Build thread (not a lane).
   Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
 
 - [ ] **GEN.105 Orbital updates**
