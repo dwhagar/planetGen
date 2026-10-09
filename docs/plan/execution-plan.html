@@ -68,7 +68,7 @@ ul.tight li{margin:.2rem 0}
 <header>
   <div class="eyebrow">planetGen · Phase 1 and after · Boss's priorities of 2026-10-09 07:13Z</div>
   <h1>Execution Plan</h1>
-  <p class="lede">Four groups in Boss's order, each with the items that block it listed first and what it unblocks. Repeatable Galaxy is last, but its small blockers are cleared early so nothing waits on them later. Lanes are as they stand now: Foundations 1 on GEN.98 and GEN.100, Foundations 2 on GEN.56, Foundations 3 free after GEN.125 (merged, schema v64), and the Bugfix lane on the 11 Phase 1 bugs.</p>
+  <p class="lede">Four groups in Boss's order, each with the items that block it listed first and what it unblocks. Repeatable Galaxy is last, but its small blockers are cleared early so nothing waits on them later. Lanes are as they stand now: Foundations 1 on GEN.98 and GEN.100, Foundations 2 on GEN.56, Foundations 3 idle after GEN.125 (merged, schema v64) until Boss releases GEN.104, and the Bugfix lane on the 11 Phase 1 bugs.</p>
   <ol class="order" aria-label="Priority order">
     <li><b>1 · Orbital updates</b><span>GEN.106 gates five items</span></li>
     <li><b>2 · Maps</b><span>MAP.89 retired (done)</span></li>
@@ -80,7 +80,7 @@ ul.tight li{margin:.2rem 0}
 
 <h2>Main reordering decisions</h2>
 <ul class="tight">
-  <li><b>Orbital updates moves to the front and goes to Foundations 3.</b> Foundations 3 already owns the physics code. GEN.106 goes ahead of GEN.104 because it unblocks GEN.107, GEN.108, GEN.115, GEN.109 and GEN.105; GEN.104 depends on nothing. Foundations 2 no longer takes GEN.106 after GEN.56.</li>
+  <li><b>Orbital updates moves to the front, and GEN.106 stays on Foundations 2 right after GEN.56</b> (Boss's decision on the card, replacing the earlier idea of moving it to Foundations 3). GEN.106 goes ahead of GEN.104 because it unblocks GEN.107, GEN.108, GEN.115, GEN.109 and GEN.105; GEN.104 depends on nothing. Foundations 3 stays idle until Boss releases GEN.104. Everything after GEN.106 in this group is proposed, not yet approved.</li>
   <li><b>GEN.56 finishes its current work, then stops.</b> It is the biggest conflict risk (it touches every generator) and is now lowest priority. Foundations 2 lands what is in flight, then GEN.57 waits until Repeatable Galaxy's turn, and Foundations 2 starts Maps.</li>
   <li><b>New random draws use the derived-seed helpers from GEN.56 from the start.</b> GEN.98, GEN.100 and GEN.104 are drawing now; if they use the old calls, GEN.57 has to find and convert them later.</li>
   <li><b>The map bugs go first in the Bugfix lane.</b> MAP.135 to MAP.138 touch the same map files as the Maps group, so they land before Foundations 2 starts Maps. Foundations 2 and the Bugfix lane never edit those files at the same time.</li>
@@ -101,13 +101,13 @@ ul.tight li{margin:.2rem 0}
  <td><span class="id">MAP.135</span>, <span class="id">MAP.138</span>, <span class="id">MAP.136</span>, <span class="id">MAP.137</span> (map bugs first)</td></tr>
 <tr><td class="k">2</td>
  <td><span class="id">NAV.43</span> → <span class="id">NAV.44</span> → <span class="id">NAV.45</span> (nearby search, with issue #677)</td>
- <td>Maps: <span class="id">MAP.122</span> → <span class="id">MAP.119</span> → <span class="id">MAP.120</span> → <span class="id">ADM.35</span>; <span class="id">MAP.75</span> → <span class="id">MAP.59</span></td>
- <td><span class="id">GEN.106</span> → <span class="id">GEN.104</span> → <span class="id">GEN.107</span> → <span class="id">GEN.108</span></td>
+ <td><span class="id">GEN.106</span> (Boss: stays here after GEN.56), then proposed: <span class="id">GEN.107</span>, <span class="id">GEN.108</span>; Maps: <span class="id">MAP.122</span> → <span class="id">MAP.119</span> → <span class="id">MAP.120</span> → <span class="id">ADM.35</span>; <span class="id">MAP.75</span> → <span class="id">MAP.59</span></td>
+ <td>idle until Boss releases <span class="id">GEN.104</span></td>
  <td><span class="id">ADM.39</span>, <span class="id">ADM.41</span>, <span class="id">ADM.40</span>, <span class="id">UX.76</span>, <span class="id">UX.77</span></td></tr>
 <tr><td class="k">3</td>
  <td>Routing: <span class="id">UX.35</span> → <span class="id">NAV.42</span>; <span class="id">NAV.10</span> → <span class="id">NAV.12</span> → <span class="id">NAV.11</span>, <span class="id">NAV.48</span>, <span class="id">NAV.47</span></td>
  <td><span class="id">MAP.121</span>, <span class="id">MAP.139</span> to <span class="id">MAP.142</span>, bookmarks <span class="id">UX.46</span> → <span class="id">UX.47</span> → <span class="id">UX.48</span> → <span class="id">UX.45</span></td>
- <td>Phase 2 orbital chain: <span class="id">GEN.115</span> → <span class="id">GEN.109</span> → <span class="id">GEN.110</span>, <span class="id">ADM.36</span> → <span class="id">GEN.105</span></td>
+ <td>Proposed, once GEN.104 is released: <span class="id">GEN.104</span>, then phase 2 orbital chain: <span class="id">GEN.115</span> → <span class="id">GEN.109</span> → <span class="id">GEN.110</span>, <span class="id">ADM.36</span> → <span class="id">GEN.105</span></td>
  <td><span class="id">PERF.31</span> → <span class="id">PERF.34</span>; <span class="id">GEN.127</span> once GEN.56 has merged</td></tr>
 <tr><td class="k">4</td>
  <td>Course records: <span class="id">NAV.17</span> → <span class="id">NAV.18</span> → <span class="id">NAV.4</span>; <span class="id">NAV.8</span>, <span class="id">NAV.9</span>; then waypoints <span class="id">NAV.49</span></td>
@@ -121,7 +121,7 @@ ul.tight li{margin:.2rem 0}
 <h2>The groups, blockers first</h2>
 
 <section class="group" id="orbital">
-<h3>1 · Orbital updates <span class="muted">(Foundations 3)</span></h3>
+<h3>1 · Orbital updates <span class="muted">(GEN.106 on Foundations 2; Foundations 3 idle until GEN.104 is released)</span></h3>
 <div class="tw"><table>
 <thead><tr><th>Item</th><th>What it is</th><th>Needs</th><th>Unblocks</th><th>Notes</th></tr></thead>
 <tbody>
@@ -222,8 +222,8 @@ ul.tight li{margin:.2rem 0}
 <div class="tw"><table>
 <thead><tr><th>Revision</th><th>Item</th><th>Lane</th><th>Note</th></tr></thead>
 <tbody>
-<tr><td class="k">0065</td><td>GEN.106 next-update-due column</td><td>Foundations 3</td><td>first in line</td></tr>
-<tr><td class="k">0066</td><td>GEN.104 spin columns</td><td>Foundations 3</td><td>same lane, no clash</td></tr>
+<tr><td class="k">0065</td><td>GEN.106 next-update-due column</td><td>Foundations 2</td><td>first in line, after GEN.56</td></tr>
+<tr><td class="k">0066</td><td>GEN.104 spin columns</td><td>Foundations 3, when released</td><td>a different lane from GEN.106: the second to merge renumbers</td></tr>
 <tr><td class="k">0067</td><td>DB.7 generating version per sector</td><td>Foundations 2, wave 4</td><td></td></tr>
 <tr><td class="k">next</td><td>NAV.10 position indexes</td><td>Foundations 1, wave 3</td><td></td></tr>
 <tr><td class="k">control</td><td>PERF.32 stats table (control v11); OPS.13 version-key history; ADM.18 if it needs one</td><td>various</td><td>separate version counter, so no clash with content revisions</td></tr>
