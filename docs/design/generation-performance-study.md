@@ -68,6 +68,29 @@ Alone, name reservation was 1.7 s of a 17.8 s dense core sector (about 870 names
 TODO thread; PERF.49 starts by re-measuring). The profiles in this note were taken with nothing else writing
 to the database.
 
+**PERF.49 re-measured, and built.** Name reservation in a dense core sector (ring 40, about 890 names a sector,
+8 sectors, nothing else writing) takes 0.12 s alone, so the scan and the call itself are not the cost. At 4
+workers the registry upsert waited 6 to 25 s per sector (112 s over 8 sectors, about 37% of worker time): the
+upsert's row locks were held until the sector's whole save committed (8.4 s from reservation to commit), and
+any two sectors of the core share a name, so the saves queued behind one another. Now `_save_with_retries` opens
+a second connection and `reserve_system_names` claims the names on it in their own short transaction (sector
+check, sorted upsert, read-back, commit). Consequences, all handled in `store.py`:
+
+- A claim is given back (`_release_name_claims`) when the save rolls back, but only while nobody has claimed after
+  it; otherwise the count stays one high, which only skips a decoration. Names stay unique either way (an index is
+  claimed once).
+- The holder of a base name is the first claimer, not the first to confirm: a claimer after another holder does not
+  write the holder (`conn.later_name_keys`).
+- A later claimer cannot rename a holder that has not committed ("Vega" to "Alpha Vega"), so the holder renames
+  itself when it confirms (`_rename_unconfirmed_holders`), applying the renames the claims since its own would
+  have made. If the holder is already committed the later claimer renames it as before.
+- The pool allows 10 connections plus 10 overflow (5 plus 5 before) since a save uses two.
+
+Also: the quadratic `uses` scan now looks the indexes up by key, and the offensive-word filter is one compiled
+pattern (7 microseconds against 13 for the plain words, 3 against 4 for the spaced ones). On a seeded one-worker
+run (8 sectors) system, star, planet and moon names and every registry row are identical to main. 8 sectors of
+ring 40 on 4 workers went from about 90 s to 54 s wall, and the name lookups no longer wait.
+
 ## Findings by phase
 
 ### Bright-star scatter (`scatter_bright_stars`, one RQ job per layer)

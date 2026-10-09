@@ -459,8 +459,8 @@ def _get_pool(config, statement_timeout_s=None):
         # position.
         pool = sqlalchemy.pool.QueuePool(
             lambda: pymysql.connect(**connect_args),
-            pool_size=5,
-            max_overflow=5,
+            pool_size=10,
+            max_overflow=10,
         )
         sqlalchemy.event.listen(pool, "checkout", _ping_on_checkout)
         # Open one connection now, so an unreachable server or a wrong
@@ -815,6 +815,19 @@ class Connection:
         self._batch_levels = {}
         self.prereserved_names = None
         self.deferred_name_confirmations = None
+        self.claim_connection = None
+        """`Connection` or `None`: a second connection of the same database on which `reserve_system_names` claims
+        names in their own short transactions (PERF.49), so the registry's row locks are not held to this
+        transaction's commit. Set by `_save_with_retries`."""
+        self.name_claims = []
+        """list: `(base_name, count, count_after)` per claim made on `claim_connection`, for
+        `_release_name_claims` if this transaction fails."""
+        self.later_name_keys = set()
+        """set: Registry keys this transaction claimed after another holder had; it is not their first holder."""
+        self.burned_name_keys = {}
+        """dict: Registry key -> claims of this transaction's own that a redrawn name left counted."""
+        self.sector_name_keys = set()
+        """set: Registry keys it claimed that an existing sector also uses as its base name."""
         self._txn_locks = []
         self._short_row_waits = False
         self.uid_issuer = None
@@ -2120,6 +2133,62 @@ def _registry_rows(conn, bases):
     return rows
 
 
+def _claim_names(c, keys, counts, spelled):
+    """
+    The registry statements of one `reserve_system_names` pass on connection
+    `c`: which of `keys` an existing sector already uses as its base name,
+    then one multi-row upsert in sorted order adding each key's `counts`,
+    then the rows read back. Returns `(sector_hits, rows)`, `rows` keyed by
+    `_name_key` (a key stored under a spelling `_name_key` doesn't match is
+    looked up by its spelling).
+    """
+    sector_hits = set()
+    for first in range(0, len(keys), _NAME_BATCH):
+        chunk = [spelled[key] for key in keys[first:first + _NAME_BATCH]]
+        sector_hits.update(_name_key(row["base_name"]) for row in c.execute(
+            f"SELECT base_name FROM sector_name_registry WHERE base_name IN ({', '.join('?' * len(chunk))})",
+            tuple(chunk),
+        ).fetchall())
+    for first in range(0, len(keys), _NAME_BATCH):
+        chunk = keys[first:first + _NAME_BATCH]
+        c.execute(
+            "INSERT INTO system_name_registry (base_name, occurrence_count) VALUES "
+            + ", ".join(["(?, ?)"] * len(chunk))
+            + " ON DUPLICATE KEY UPDATE occurrence_count = occurrence_count + VALUES(occurrence_count)",
+            tuple(value for key in chunk for value in (spelled[key], counts[key])),
+        )
+    rows = _registry_rows(c, [spelled[key] for key in keys])
+    for key in keys:
+        if key not in rows:
+            rows[key] = c.execute(
+                "SELECT id, base_name, occurrence_count, diminutive_index, first_star_system_id, "
+                "first_object_table, first_object_id FROM system_name_registry WHERE base_name = ?",
+                (spelled[key],),
+            ).fetchone()
+    return sector_hits, rows
+
+
+def _release_name_claims(claim, claims):
+    """
+    Gives back the counts `reserve_system_names` claimed on `claim` when the
+    save they were for rolled back (PERF.49), so a retry or a resumed run
+    draws the same decorations it would have. A count is only taken back
+    while it is still what the claim left (nobody has claimed after it):
+    otherwise the count stays one high, which just skips a decoration.
+    """
+    try:
+        with claim:
+            for base, count, after in sorted(reversed(claims), key=lambda item: _name_key(item[0])):
+                claim.execute(
+                    "UPDATE system_name_registry SET occurrence_count = occurrence_count - ? "
+                    "WHERE base_name = ? AND occurrence_count = ?", (count, base, after))
+                claim.execute(
+                    "DELETE FROM system_name_registry WHERE base_name = ? AND occurrence_count <= 0 "
+                    "AND first_star_system_id IS NULL AND first_object_id IS NULL", (base,))
+    except pymysql.err.Error as exc:
+        log.debug(f"Could not give back {len(claims)} name claims: {exc}")
+
+
 def reserve_system_names(conn, candidate_names):
     """
     System name-uniqueness reservation for many systems and uniquely
@@ -2164,6 +2233,7 @@ def reserve_system_names(conn, candidate_names):
     names = list(candidate_names)
     results = [None] * len(names)
     todo = list(range(len(names)))
+    own_claims = {}
     while todo:
         # Each name's key as this pass inserts it, taken once: a name
         # redrawn below (`_regenerate_star_name`) belongs to the next pass,
@@ -2178,41 +2248,38 @@ def reserve_system_names(conn, candidate_names):
         for i in todo:
             spelled.setdefault(key_of[i], names[i])
         keys = sorted(counts)
-        sector_hits = set()
-        for first in range(0, len(keys), _NAME_BATCH):
-            chunk = [spelled[key] for key in keys[first:first + _NAME_BATCH]]
-            sector_hits.update(_name_key(row["base_name"]) for row in conn.execute(
-                f"SELECT base_name FROM sector_name_registry WHERE base_name IN ({', '.join('?' * len(chunk))})",
-                tuple(chunk),
-            ).fetchall())
-        for first in range(0, len(keys), _NAME_BATCH):
-            chunk = keys[first:first + _NAME_BATCH]
-            conn.execute(
-                "INSERT INTO system_name_registry (base_name, occurrence_count) VALUES "
-                + ", ".join(["(?, ?)"] * len(chunk))
-                + " ON DUPLICATE KEY UPDATE occurrence_count = occurrence_count + VALUES(occurrence_count)",
-                tuple(value for key in chunk for value in (spelled[key], counts[key])),
-            )
-        rows = _registry_rows(conn, [spelled[key] for key in keys])
+        claim = getattr(conn, "claim_connection", None)
+        if claim is not None:
+            # PERF.49: the registry rows are locked only for this short
+            # transaction, not until the whole sector is saved.
+            with claim:
+                sector_hits, rows = _claim_names(claim, keys, counts, spelled)
+        else:
+            sector_hits, rows = _claim_names(conn, keys, counts, spelled)
 
         # Keys the collation still counts as one name (a spelling
         # `_name_key` folds differently) land on one registry row: they
         # are one name's holders, counted together.
         by_row = {}
         for key in keys:
-            row = rows.get(key)
-            if row is None:  # stored under a spelling _name_key() doesn't match
-                row = conn.execute(
-                    "SELECT id, base_name, occurrence_count, diminutive_index, first_star_system_id, "
-                    "first_object_table, first_object_id FROM system_name_registry WHERE base_name = ?",
-                    (spelled[key],),
-                ).fetchone()
+            row = rows[key]
             by_row.setdefault(row["id"], (row, set()))[1].add(key)
+        if claim is not None:
+            conn.name_claims.extend((row["base_name"], sum(counts[key] for key in row_keys), row["occurrence_count"])
+                                    for row, row_keys in by_row.values())
+            conn.sector_name_keys.update(sector_hits)
+        todo_by_key = {}
+        for i in todo:
+            todo_by_key.setdefault(key_of[i], []).append(i)
 
         retry = []
         for row, row_keys in by_row.values():
-            uses = [i for i in todo if key_of[i] in row_keys]
+            uses = sorted(i for key in row_keys for i in todo_by_key.get(key, ()))
             existing_before = row["occurrence_count"] - len(uses)
+            # (A name this call drew again counts the earlier pass's claim too: that is no other holder.)
+            if claim is not None and existing_before - own_claims.get(row["id"], 0) > 0:
+                conn.later_name_keys.update(row_keys)
+            own_claims[row["id"]] = own_claims.get(row["id"], 0) + len(uses)
             diminutive_index = row["diminutive_index"]
             holder = "db" if existing_before > 0 else None
             for offset, i in enumerate(uses):
@@ -2227,6 +2294,7 @@ def reserve_system_names(conn, candidate_names):
                 if new_name is None:
                     # Every decoration for this base is used, or would
                     # make the name longer than two words (GEN.46).
+                    conn.burned_name_keys[key_of[i]] = conn.burned_name_keys.get(key_of[i], 0) + 1
                     names[i] = _regenerate_star_name()
                     retry.append(i)
                     continue
@@ -2283,17 +2351,23 @@ def confirm_system_names(conn, confirmations):
             the others `None`. The first entry per base name is its
             holder; the last sets its diminutive index.
     """
+    claimed = getattr(conn, "claim_connection", None) is not None
     by_base = {}
+    held = {}
     for base, system_id, table, object_id, diminutive_index in confirmations:
         key = _name_key(base)
+        held[key] = held.get(key, 0) + 1
         if key in by_base:
             by_base[key][4] = diminutive_index
         else:
+            if claimed and key in conn.later_name_keys:
+                # Claimed after another holder (`reserve_system_names`): the first claimer is the holder.
+                system_id = table = object_id = None
             by_base[key] = [base, system_id, table, object_id, diminutive_index]
-    rows = list(by_base.values())
+    ordered = sorted(by_base.items())
     vacant = "first_star_system_id IS NULL AND first_object_id IS NULL"
-    for first in range(0, len(rows), _NAME_BATCH):
-        chunk = rows[first:first + _NAME_BATCH]
+    for first in range(0, len(ordered), _NAME_BATCH):
+        chunk = [row for _key, row in ordered[first:first + _NAME_BATCH]]
         conn.execute(
             "INSERT INTO system_name_registry "
             "(base_name, occurrence_count, first_star_system_id, first_object_table, first_object_id, diminutive_index) "
@@ -2304,6 +2378,52 @@ def confirm_system_names(conn, confirmations):
             " diminutive_index = VALUES(diminutive_index)",
             tuple(value for row in chunk for value in row),
         )
+    return _rename_unconfirmed_holders(conn, ordered, held) if claimed else {}
+
+
+_HOLDER_RENAME_SPAN = 40
+"""int: Claims past which a first holder is never renamed again (the Greek tier hands off to the roman at 24)."""
+
+
+def _rename_unconfirmed_holders(conn, ordered, held):
+    """
+    PERF.49: a name claimed on its own short transaction can be claimed
+    again before its first holder saves, and the later claimer then has no
+    holder row to rename ("Vega" to "Alpha Vega"). The holder renames itself
+    here instead, once it is confirmed: whatever renames the claims since its
+    own would have made. Returns `{key: new name}` for the holders renamed.
+    """
+    mine = [(key, row) for key, row in ordered if row[1] is not None or row[3] is not None]
+    if not mine:
+        return {}
+    registry = _registry_rows(conn, [row[0] for _key, row in mine])
+    healed = {}
+    for key, (base, system_id, table, object_id, _diminutive_index) in mine:
+        registered = registry.get(key)
+        spent = held[key] + conn.burned_name_keys.get(key, 0)  # this transaction's own claims
+        if registered is None or registered["occurrence_count"] <= spent:
+            continue
+        if (registered["first_star_system_id"], registered["first_object_id"]) != (system_id, object_id):
+            continue
+        target = None
+        for later in range(spent, min(registered["occurrence_count"], _HOLDER_RENAME_SPAN)):
+            new_name, rename = resolve_greek_roman_collision(base, later, max_words=MAX_SYSTEM_NAME_WORDS)
+            if new_name is not None and key in conn.sector_name_keys:
+                # A claimer that shares the base with a sector gets a diminutive as well, and
+                # redraws its name instead when that is too long (`reserve_system_names`).
+                prefix, _next_index = resolve_diminutive(None)
+                if prefix is None or not fits_word_limit(f"{prefix} {new_name}", word_limit_for(base)):
+                    new_name = None
+            if new_name is not None and rename is not None:
+                target = rename[1]
+        if target is None:
+            continue
+        if system_id is not None:
+            rename_star_system(conn, system_id, target)
+        else:
+            rename_phenomenon(conn, table, object_id, target)
+        healed[key] = target
+    return healed
 
 
 def confirm_system_name(conn, base_name, star_system_id, diminutive_index):
@@ -5599,6 +5719,18 @@ def insert_sector(conn, sector: SpaceSector, galaxy_position=None, link_neighbor
     return sector_id
 
 
+def _set_reserved_name(obj, final, rename_bodies=False):
+    """Gives a system or phenomenon the name `reserve_system_names` settled
+    on, and its remnant's core with it. `rename_bodies`: also rename a
+    system's stars, planets and moons (for a system already inserted)."""
+    core = getattr(obj, "compact_remnant", None) if isinstance(obj, SupernovaRemnant) else None
+    if core is not None and core.name == f"{obj.name} Core":
+        core.name = f"{final} Core"
+    obj.name = final
+    if rename_bodies and hasattr(obj, "assign_names"):
+        obj.assign_names(final)
+
+
 def _insert_sector_rows(conn, sector, galaxy_position, link_neighbors=True):
     made_by = versionKey.current()  # DB.7: the code generating this sector
     if galaxy_position is not None:
@@ -5661,10 +5793,7 @@ def _insert_sector_rows(conn, sector, galaxy_position, link_neighbors=True):
                   if _phenomenon_registers_name(entry.phenomenon) and id(entry.phenomenon) not in claimed]
         reservations = reserve_system_names(conn, [obj.name for obj in named])
         for obj, (final, base, diminutive_index) in zip(named, reservations):
-            core = getattr(obj, "compact_remnant", None) if isinstance(obj, SupernovaRemnant) else None
-            if core is not None and core.name == f"{obj.name} Core":
-                core.name = f"{final} Core"
-            obj.name = final
+            _set_reserved_name(obj, final)
             conn.prereserved_names[id(obj)] = (base, diminutive_index)
 
         bright_star_links = []
@@ -5690,7 +5819,14 @@ def _insert_sector_rows(conn, sector, galaxy_position, link_neighbors=True):
             if getattr(entry, "scatter_id", None) is not None:
                 built_scatter_ids.append(entry.scatter_id)
 
-        confirm_system_names(conn, conn.deferred_name_confirmations)
+        healed = confirm_system_names(conn, conn.deferred_name_confirmations)
+        if healed:
+            seen = set()
+            for obj, (_final, base, _index) in zip(named, reservations):
+                key = _name_key(base)
+                if key not in seen and key in healed:
+                    _set_reserved_name(obj, healed[key], rename_bodies=True)
+                seen.add(key)
     finally:
         conn.prereserved_names = None
         conn.deferred_name_confirmations = None
@@ -6869,12 +7005,21 @@ def _save_with_retries(config, names, insert):
     state = draw.getstate()
     for attempt in range(1, SECTOR_SAVE_ATTEMPTS + 1):
         conn = get_connection(config)
+        claim = None
         try:
             conn.execute("SET TRANSACTION ISOLATION LEVEL READ COMMITTED")
+            # PERF.49: names are claimed on a connection of their own that
+            # commits at once, so other writers wait for a claim, not for
+            # this whole save.
+            claim = get_connection(config)
+            claim.execute("SET TRANSACTION ISOLATION LEVEL READ COMMITTED")
+            conn.claim_connection = claim
             draw.setstate(state)
             with conn:
                 return insert(conn)
         except Exception as exc:
+            if claim is not None and conn.name_claims:
+                _release_name_claims(claim, conn.name_claims)
             retry = (isinstance(exc, pymysql.err.OperationalError) and exc.args
                      and exc.args[0] in RETRYABLE_ERRORS and attempt < SECTOR_SAVE_ATTEMPTS)
             for obj, name in names:
@@ -6885,6 +7030,9 @@ def _save_with_retries(config, names, insert):
                       f"retrying ({attempt}/{SECTOR_SAVE_ATTEMPTS - 1}).")
             time.sleep(_RETRY_JITTER.uniform(0.05, 0.25) * attempt)
         finally:
+            conn.claim_connection = None
+            if claim is not None:
+                claim.close()
             conn.close()
 
 
