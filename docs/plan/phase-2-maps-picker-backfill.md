@@ -170,6 +170,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | MAP.121 | Every map shows and steps to its neighbouring regions, on one map engine |  | Folds MAP.127, the Galaxy Map's neighbouring blocks and slabs (Boss 2026-10-07 16:27Z: one map engine for all maps). |
 | MAP.146 | Zoom drill-down centred on the clicked point, not on fixed wedges, blocks and slabs | ADM.29, MAP.122 | Boss 2026-10-09 22:24Z. Replaces the fixed ladder in galaxy/drill.py and galaxyprisms.js. |
+| MAP.147 | The Galaxy Map wire format: measure what the browser downloads and compare smaller options |  | Boss 2026-10-09 22:41Z. Starts with the investigation (Research Lane 3). Decide with MAP.146's tile keys. |
 
 ### Recipes
 

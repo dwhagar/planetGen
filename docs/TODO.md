@@ -731,6 +731,42 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.101, ADM.30, MAP.134, GEN.126, MAP.131.
   Design: [docs/design/galaxy-drilldown-navigation.md](design/galaxy-drilldown-navigation.md)
 
+- [ ] **MAP.147 The Galaxy Map wire format: measure what the browser downloads and compare smaller options**
+  Boss (2026-10-09 22:41Z): "File section 5.6 as an item please, and
+  start an investigation thread to measure current payload and compare
+  options please, use research lane 3 after it's current research is
+  done." From section 5.6 of map-ui-and-frontend-libraries.md: the
+  Galaxy Map's star points carry 13 floats each, 52 bytes, so a full
+  view at the 70,000-star cap (MAP.109) is about 3.6 MB; quantising
+  colour, scalars and flags would cut that to about 20 to 24 bytes a
+  star (about 1.5 MB), an optional saving for phones and tile swaps.
+  Above about 1e6 points the section recommends level of detail by tile
+  (MAP.102, MAP.116) over a faster picker.
+  This item starts with an investigation, run by Research Lane 3 (the
+  thread that did the unique-ID investigation) once its current research
+  is done: (1) measure what the browser actually downloads today for the
+  opening view and for a drill-down step: bytes on the wire and after
+  gzip, request count, time to first star and time to a full view, on a
+  phone-class connection and on a desktop one; (2) compare the options,
+  at least JSON as it is, packed binary typed arrays, quantised
+  attributes, gzip or brotli on top, delta or tile reuse between zoom
+  steps, and request batching, against what each costs in server time,
+  cache size and code; (3) recommend one. The recommendation decides the
+  design, and the build is then split out of this item, or this item is
+  rewritten, from it.
+  Related: MAP.102 and MAP.109 (done: tiles, camera-relative rendering,
+  the 70,000-star cap), PERF.38 (open: single-flight tile builds and
+  page-cache rules) and PERF.41 (open, optional: what stamps the tile
+  cache). MAP.146 changes the tile keys when drill-down regions centre
+  on the click, so the format choice and the new keys should be decided
+  together, and any format change bumps the cache stamp.
+  Open question for Boss (default: the investigation measures first and
+  recommends; nothing is built until you approve the recommendation): or
+  build the quantised format straight from section 5.6?
+  Prerequisites: none. Related: MAP.102, MAP.109, MAP.146, PERF.38,
+  PERF.41.
+  Design: [docs/design/map-ui-and-frontend-libraries.md](design/map-ui-and-frontend-libraries.md)
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
