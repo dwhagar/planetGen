@@ -3005,38 +3005,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisite: PERF.31.
   Design: [docs/design/performance-eta-queue-and-caching.md](design/performance-eta-queue-and-caching.md)
 
-- [ ] **PERF.43 Lazy word-salad names for phenomena named by object ID**
-  Research (2026-10-09, generation-performance-study.md, PR #835;
-  handoff in
-  /mnt/project-files/research/handoff/generation-performance.md; from
-  Boss's requests of 19:08Z and 19:21Z, generation being his slowest
-  point): phenomena named from their object ID (GEN.64): RoguePlanet
-  (rogue.py lines 206 and 473), Comet, Nebula, AsteroidField,
-  SupernovaRemnant, Quasar and the compact remnants build their
-  word-salad name at generation. Build it when it is first shown. About
-  3.5% of a sector fill.
-  Measurement (2026-10-09, corrected): the 30 s once quoted for
-  `reserve_system_names` was a contaminated measurement (another run was
-  saving into the same database); alone it was 1.7 s of a 17.8 s dense
-  sector. That cost is system names, not the word-salad object names
-  this item covers.
-  Scope (2026-10-09): the system-name reservation cost is its own item,
-  PERF.49; this item stays on the lazy word-salad names of phenomena
-  named by object ID.
-  Boss (2026-10-09): Decided by Boss (2026-10-09 20:28Z, via the
-  coordinator): ONE combined reseed. Lazy names (PERF.43) and the 20
-  solar mass cut (GEN.166 to GEN.168) change what a given seed
-  generates, and that one-time seed change lands with these two
-  together, not in separate steps. Whichever lands first must not claim
-  the reseed alone; the second says so in its changes note.
-  Requirement (2026-10-09): seeding requirement (Research Lane 1, read
-  from code on main): the lazy word-salad name must draw from a stream
-  keyed to the object (its scatter row seed or its address), never from
-  the ambient sector stream at first read, or the name depends on read
-  order.
-  Prerequisites: none.
-  Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
-
 - [ ] **PERF.44 Compute object uids in Python and write them with the row**
   Research (2026-10-09, generation-performance-study.md, PR #835;
   handoff in
@@ -3893,6 +3861,18 @@ Boss (2026-10-07 11:47Z): "Actual specs on layers on the generation
   not 100%. A share that depends on the local star density is not part
   of this item; the shares stay the same in every sector.
 
+- [ ] **ADM.48 Two test_api_auth_sweep tests fail: /admin/stats/galaxy-settings/<name> answers 302, not 403, to an unauthorised caller (bug)**
+  Reported by Foundations lane 2 (2026-10-09 21:04Z) while merging
+  PERF.43 (PR #861): two `test_api_auth_sweep` tests fail on main as
+  well. The web route `/admin/stats/galaxy-settings/<name>` (ADM.18,
+  `web/admin_pages.py` `download_galaxy_settings`) redirects an
+  unauthorised caller (302) where the sweep expects 403. Find which is
+  right: either the route should answer 403 like the other admin
+  download routes, or the sweep needs the route in its redirect list.
+  Done: both tests pass and the route's behaviour matches the other
+  admin routes. Owner: Bugfixes lane 1, behind its current list.
+  Prerequisites: none.
+
 ## SEC: Security
 
 The login protection of 2026-10-01 (SEC.1, SEC.20 to
@@ -4237,7 +4217,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Decided (Boss, 2026-10-09 21:02Z): the generator version and OPS.28's
   `generator_epoch` are the same number, bumped only when output changes
   for the same seed.
-  Prerequisites: OPS.28.
+  Prerequisite: OPS.28.
 
 ## DOC: Documentation
 
