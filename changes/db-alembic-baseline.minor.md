@@ -1,2 +1,0 @@
-### Added
-- Alembic now carries database migrations from schema v61 on (`src/planetgen/db/migrations/`, run by `planetgen.cli.migrate` after the older steps). A revision's id is its schema version, `SCHEMA_VERSION` is the newest revision's number, and each revision is still recorded in `schema_migrations`. New schema changes are revisions instead of `_migrate_vN_to_vM` steps; `migrations/README.md` lists the steps (DB.11, second step).

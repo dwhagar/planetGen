@@ -112,9 +112,9 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 is done (PR #476); GEN.117, and GEN.116 is closed (Boss 2026-10-08 17:46Z). | UX.39, OPS.20, DB.11, DB.13, GEN.66 |
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.41, GEN.98, GEN.100, GEN.99, GEN.101, GEN.102, GEN.103, GEN.84, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, GEN.94, GEN.104, GEN.106, GEN.107, GEN.108, NAV.10, NAV.12, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, NAV.43, NAV.44, MAP.119, MAP.122, MAP.123, MAP.89, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, OPS.8, OPS.13, OPS.14, ADM.18, GEN.59, UX.49 |
-| 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.58, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, API.16, ADM.17, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18 |
+| 0 | [phase-0-roots.md](plan/phase-0-roots.md) | Two lanes (Boss 2026-10-03 05:38Z: "the most fundamental and needed changes first in phase 0 along with the bug fixes in 2 lanes, bugfixes and groundwork"). Bugfixes: the CI failures first, then generation, console and progress, maps and pages, prevalence (GEN.48), and ops and test flakes. Groundwork: the package layout and the move to third-party libraries with Redis (Boss's explicit directive), the data model (SQLAlchemy and Alembic, values in columns not JSON, one point-in-space object, Pydantic, scipy and astropy), names from IDs, the RQ queue with streamed logs and progress, Shoelace and TanStack components, the shared map engine, nebula shapes, and the UX sweep. Bugs that the groundwork fixes are folded into it and listed under it. GEN.65 is done (PR #476); GEN.117, and GEN.116 is closed (Boss 2026-10-08 17:46Z). | UX.39, OPS.20, DB.13, GEN.66 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.41, GEN.98, GEN.100, GEN.99, GEN.101, GEN.102, GEN.103, GEN.84, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, GEN.94, GEN.104, GEN.106, GEN.107, GEN.108, NAV.10, NAV.12, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, NAV.43, NAV.44, MAP.119, MAP.122, MAP.89, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.56, GEN.57, DB.7, GEN.58, TEST.77, OPS.8, OPS.13, OPS.14, ADM.18, GEN.59, UX.49 |
+| 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, API.16, ADM.17, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, repair that reads the newest settings JSON, and the anomalies chosen in phase 2. | NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, DB.10, ADM.20, GEN.114, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies, and the end state of reproducible galaxies (`generate.py reproduce`). | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, OPS.12, GEN.55 |
 
@@ -388,38 +388,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   with fitted for the orbital spacing in MAP.89"): fitted scale with the
   12 px minimum ring gap, and no "fitted / even" spacing toggle.
 
-- [ ] **MAP.58 Galaxy Map zoom limits: a short manual range on the galaxy wedge, locked below it**
-  Boss (2026-10-01 20:45Z): "It may be necessary for users to zoom in
-  and out manually. This should only be within a short range ... they
-  can zoom in to about, say, twice as close as it starts out and they
-  can zoom out back to the full galaxy, but no further. When we get into
-  smaller chunks like blocks and wedges that aren't as large as the full
-  galactic wedge, we're going to lock the zoom ... The system will still
-  be able to zoom in stages as we've discussed but the user won't be
-  able to arbitrarily zoom in and out." Today every view below the whole
-  galaxy and its quarters can be zoomed freely with the wheel, a pinch
-  or the zoom keys (`isFree` in `galaxystageview.js`), from
-  `MIN_ZOOM` = 1/8 of the stage's fitted camera distance (8 times
-  closer) to `MAX_ZOOM` = 2.5 times it, and the galaxy and its quarters
-  can't be zoomed at all. Done:
-  - On the full galaxy wedge (the 40-degree wedge of MAP.52, fitted to
-    the window by MAP.53), the user can zoom in to about twice as close
-    as the fitted view, and out only until the whole galaxy fits, with
-    the wheel, pinch, keys and any zoom buttons.
-  - On every smaller view (slabs, segments, blocks, the sector cube),
-    user zoom is locked: the wheel scrolls the page, and pinch and the
-    zoom keys do nothing. The staged zoom of each pick (MAP.53, MAP.56)
-    still animates to its fitted view.
-  - Rotation (MAP.53) and panning are not affected.
-  - Reset (MAP.55) returns to the fitted zoom.
-  Ties in with MAP.53, MAP.55 and MAP.56. Open questions: does the
-  whole-galaxy view itself zoom (today it doesn't)? Should a locked view
-  keep panning, or only rotate?
-  Arc pick (MAP.85, Boss 2026-10-01 23:53Z): the short manual zoom range
-  applies on the whole galaxy and the picked arc; it locks below the
-  arc.
-  Design: [docs/design/galaxy-drilldown-navigation.md](design/galaxy-drilldown-navigation.md), section 15
-
 - [ ] **MAP.59 Make it plain that a zoomed-in slab is a slab, not a wedge**
   Boss (2026-10-01 20:45Z): "We need to make it clearer, when we've
   zoomed into a specific slab, that we're viewing a specific slab and
@@ -493,7 +461,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   second way to pick a slab), MAP.55 (where the mini map sits next to
   the slab buttons and the Sector cell panel, and below the map on a
   phone), MAP.56 (the segment pick happens on the solid slab) and
-  MAP.58 (the mini map is never zoomable).
+  the rule that the mini map is never zoomable (MAP.58, superseded by MAP.125).
   Design: [docs/design/galaxy-drilldown-navigation.md](design/galaxy-drilldown-navigation.md), section 15
 
   - [ ] **MAP.75 The mini map as a second engine view**
@@ -550,23 +518,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   other objects pick, hover and open their info panel with Bookmark and
   Waypoint actions.
 
-- [ ] **MAP.123 Show or hide star types and phenomena, and set the luminosity floor, on the Galaxy and Sector Maps**
-  Boss (2026-10-07 11:47Z): "Sector display can hide systems by star
-  type or phenomena, same in galaxy views, users can select to hide or
-  show classes of stars, adjust the luminosity at which stars appear on
-  the map, and highlight phenomena or hide them in the galactic view."
-  Done: both maps have a filter panel for star classes and phenomenon
-  kinds (show, hide, highlight) and a luminosity slider, kept in the
-  URL.
-  Progress (2026-10-08): MAP.79 (PR #577) added the per-kind hide
-  buttons for the Sector Map (stars, nebulae, remnants, asteroid fields,
-  black holes, neutron stars, quasars, rogue planets, comets, neighbouring
-  sectors) in the Menu under "Show on the map", kept in the URL as `hide=`.
-  Progress (PR #721, 2026-10-09): highlight (`mark=`), filters kept in
-  stage bookmarks, and star classes with the luminosity slider are done.
-  Still to do here: the galaxy-scale tile stars honoring class and
-  luminosity.
-
 - [ ] **MAP.132 Overlay markers for black holes, nebulae and habitable worlds**
   Boss (2026-10-08 01:59Z): "Density determines transparency with more solid meaning more dense. Stellar age measures hue. Brightness measures luminosity of the sector or block. Blocks will never be fully opaque for coloring that is the color of the translucent fill."
   Later. The sector and block fills carry only age, density and
@@ -576,6 +527,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   each kind can be turned off (MAP.123), and a browser test finds one of
   each on a seeded sector.
   Prerequisite: GEN.84.
+
+- [ ] **MAP.134 Build the Galaxy Map's opening view ahead of time on every update**
+  Boss (2026-10-09 04:29Z, approved; asked for by the map lane): the
+  first open of the Galaxy Map after a release should be fast and should
+  not read the 150,000-star sample. Done: the opening view's tiles (the
+  tile cache) are warmed on every `update.sh` and whenever the cache is
+  cleared, as a bounded background (queued) job that never blocks the
+  update, and it stays correct and bounded at 26.9 million stars. The
+  measured time to warm the opening view, and the first-open time before
+  and after, are reported.
+  Map lane.
 
 ## NAV: Navigation and courses
 
@@ -630,9 +592,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   as it can be while showing the whole path. Both the direct line and
   the system-to-system route are drawn in a distinct course style,
   told apart from each other, with their end points and hops marked
-  and clickable. The same works inside a sector. Ties in with MAP.58
-  (zoom limits: a course view may need a fitted zoom outside the user
-  range) and MAP.61.
+  and clickable. The same works inside a sector. Ties in with MAP.61 (a course view
+  may need a fitted zoom outside the user range; MAP.58's zoom limits
+  were superseded by MAP.125).
   Much of this exists: `/galaxy?course=<from>,<to>` (MAP.27, 7.52.0)
   draws one line through the route's stops with the ends named. Missing:
   the direct line drawn apart from the route, a fitted zoom, and any
@@ -644,8 +606,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   - [ ] **NAV.21 Fit the view to the whole course**
     Done: the course opens zoomed in as far as possible with every
     point of both paths on screen, fitted to the window (the same fit as
-    MAP.53), refitted on resize. This view is exempt from MAP.58's zoom
-    lock; the user can still rotate it.
+    MAP.53), refitted on resize. This view is exempt from any zoom
+    limit (MAP.58 was superseded by MAP.125); the user can still rotate it.
 
   - [ ] **NAV.22 Courses inside a sector and a system**
     Today a course that stays in one sector opens the sector with no
@@ -757,7 +719,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   systems. NAV.34 (joining the graph's islands) is done (PR #427), and NAV.12
   (a route always exists, no hop limit) is built with it.
   Design: [docs/design/course-routing.md](design/course-routing.md)
-  Prerequisite: DB.11.
   Plan (2026-10-07): The position indexes are an Alembic migration
   (DB.11).
 
@@ -1230,7 +1191,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     because a mixed-version galaxy reproduces only sector by sector, each
     on its own version. Prerequisite: none (DB.6 done, PR #387).
     Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
-    Prerequisite: DB.11.
     Plan (2026-10-07): Written as an Alembic migration (DB.11).
 
   - [ ] **OPS.13 Every update records the version key, keeping the last 10**
@@ -1846,7 +1806,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     the table with when the next update should be due for that object."
     Done as he says: an indexed `next_update_due` per object, set from
     its speed and its threshold whenever it moves.
-    Prerequisite: DB.11.
     Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
 
   - [ ] **GEN.107 The update reports how many objects moved, changed sector, or entered or left a nebula**
@@ -2051,7 +2010,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   damages a copy of a small galaxy in each of these ways and checks the
   matching problem is reported, and an undamaged one passes.
   Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
-  Prerequisite: DB.11.
   Plan (2026-10-07): The schema check reads Alembic's revision (DB.11);
   the name-registry check is dropped, since GEN.71 removes the
   registries.
@@ -2088,16 +2046,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   DB.9, GEN.61, OPS.18.
   Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
-- [ ] **DB.11 The database layer and migrations on SQLAlchemy and Alembic**
-  Today `_db.py` (9,800 lines) builds SQL strings over PyMySQL with its
-  own pooling, and `migrateDb.py` replays `schema_vNN.sql.gz` fixtures.
-  Done: tables are declared as SQLAlchemy models (MySQL 8.4 and MariaDB
-  11.4 both supported), connections and transactions use SQLAlchemy's
-  pool, Alembic carries migrations from the current schema (v53) forward
-  with a baseline that recognises existing databases, and the id-block
-  and batching behaviour is kept (TEST.81 and TEST.87 stay fixed).
-  Design: [docs/design/library-migration.md](design/library-migration.md)
-
 - [ ] **DB.13 Every stored value in its own column, not in JSON blocks, and indexed for search**
   Boss (2026-10-07 11:47Z): "Ensure to have all database information to
   be stored directly in the database and not in JSON blocks.  Optimize
@@ -2108,7 +2056,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   columns or child tables (as Alembic migrations), the searches in
   `queryDb.py` and the API use indexed columns, and a test checks no
   galaxy table keeps a JSON blob.
-  Prerequisite: DB.11.
 
 ## API: The JSON API
 
@@ -2621,7 +2568,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Each library swap is its own subitem and PR, after the package layout
   (OPS.23, done in PR #435, then OPS.24) so code moves once. Done when every subitem is done
   and the hand-rolled modules they replace are deleted.
-  Prerequisites: UX.39, DB.11, GEN.66.
+  Prerequisites: UX.39, GEN.66.
   Design: [docs/design/library-migration.md](design/library-migration.md)
 
 ## VIEW: The view from a planet

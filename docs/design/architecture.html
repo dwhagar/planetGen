@@ -208,7 +208,7 @@ footer{margin-top:60px;color:var(--muted);font-size:.85rem;border-top:1px solid 
     Inst[&quot;install.sh / update.sh&lt;br/&gt;deploy-common migrate_or_reset_db&quot;] --&gt; Status[&quot;planetgen.cli.migrate --status&lt;br/&gt;store.schema_status&quot;]
     Status --&gt;|&quot;steps pending&quot;| Ask{&quot;delete the galaxy&lt;br/&gt;instead? (y/N, 30 s)&quot;}
     Status --&gt;|&quot;current&quot;| Mig
-    Ask --&gt;|&quot;N&quot;| Mig[&quot;planetgen.cli.migrate&lt;br/&gt;store.migrate_database&lt;br/&gt;each _migrate_vN_to_vN+1&quot;]
+    Ask --&gt;|&quot;N&quot;| Mig[&quot;planetgen.cli.migrate&lt;br/&gt;store.migrate_database&lt;br/&gt;each Alembic revision&quot;]
     Ask --&gt;|&quot;y&quot;| Reset[&quot;planetgen.cli.reset --yes&lt;br/&gt;(admin logins kept)&quot;]
     Reset --&gt; Mig
     Mig --&gt; Content
@@ -368,7 +368,7 @@ let L='<div class="side"><span class="eyebrow">Generation side</span>';
 L+='<div class="node who"><span class="nm">An admin, a timer or a Generate job</span><span class="ds">Terminal commands, scheduled maintenance, or planetgen.cli.job spawned by the Generate page</span></div>'+arrow('runs');
 L+=node('core','cli','planetgen and planetgen.cli','The planetgen CLI with seven subcommands (system, sector, galaxy, plan, phenomenon, check-math, population), plus migrate, reset, orbit update, query, lockouts, the Generate job runner and one-off fixes.')+arrow('builds with');
 L+='<div class="tiles">'+['gen_runs','bodies','population_stars','phenomena','physics','galaxy','nav','pop','names','queue','shared','proto'].map(k=>node('core',k,gl(k).label.replace(/ \(.*\)$/,''),' ')).join('')+'</div>'+arrow('saves through');
-L+=node('store','db','planetgen.db','store.py: connection pools, every insert and load, name reservation, containment, migrations (SCHEMA_VERSION 53 lives here); query.py, the read layer.')+'</div>';
+L+=node('store','db','planetgen.db','store.py: connection pools, every insert and load, name reservation, containment, migrate_database over the Alembic revisions (SCHEMA_VERSION, the head revision, is set here); query.py, the read layer.')+'</div>';
 let R='<div class="side"><span class="eyebrow">Serving side</span>';
 R+='<div class="node who"><span class="nm">A visitor\'s browser</span><span class="ds">The three.js Galaxy, Sector and System Maps, NAV, search, class reference and admin pages</span></div>'+arrow('loads');
 R+=node('serve','static','Browser code','Map scenes, the drill-down, bookmarks, Generate buttons and browser copies of the number, distance and time formatters.')+arrow('requests');

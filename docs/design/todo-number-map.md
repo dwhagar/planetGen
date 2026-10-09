@@ -14,7 +14,7 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.76 |
-| MAP | MAP.134 |
+| MAP | MAP.135 |
 | NAV | NAV.52 |
 | GEN | GEN.126 |
 | PERF | PERF.31 |
@@ -456,7 +456,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.8 | Check a galaxy database and say whether it is damaged | none | open |
 | DB.9 | Repair a damaged galaxy database from a parity file | none | open |
 | DB.10 | Repair reads the newest settings JSON and the pending deltas | none | open |
-| DB.11 | The database layer and migrations on SQLAlchemy and Alembic | none | open |
+| DB.11 | The database layer and migrations on SQLAlchemy and Alembic | none | done, PR #751 |
 | DB.12 | MariaDB reads a stored -0.0 back as +0.0 (bug) | none | done, PR #442 |
 | DB.13 | Every stored value in its own column, not in JSON blocks, and indexed for search | none | open |
 | DB.14 | Sector stats keep the raw star statistics (mean age, summed luminosity, star count) and no baked color | none | done, PR #556 |
@@ -645,7 +645,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.55 | Galaxy Map buttons: a menu, with only back, forward, up, reset and bookmark showing | none | done, PR #369 |
 | MAP.56 | Drop the 3x3 block pick: select a slab, zoom in, select a segment (bug) | none | done, PR #408 |
 | MAP.57 | The System Map writes NaN or infinite positions into its SVG (bug) | none | done, PR #405 |
-| MAP.58 | Galaxy Map zoom limits: a short manual range on the galaxy wedge, locked below it | none | open |
+| MAP.58 | Galaxy Map zoom limits: a short manual range on the galaxy wedge, locked below it | none | superseded by MAP.125 (Boss, 2026-10-09) |
 | MAP.59 | Make it plain that a zoomed-in slab is a slab, not a wedge | none | open |
 | MAP.60 | Galaxy Map scale readout: one scale line | none | done, PR #369 |
 | MAP.61 | One map engine and control set for the Galaxy Map and the Sector Map | none | done, PR #629 |
@@ -711,13 +711,14 @@ Parents marked "new parent" had no old number of their own.
 | MAP.131 | A Color by switch on the Galaxy Map, with a legend | none | done, PR #692 |
 | MAP.132 | Overlay markers for black holes, nebulae and habitable worlds | none | open |
 | MAP.133 | The Galaxy Map shows no bright stars in the bulge, and only layers -121 to 121 (bug) | none | done, PR #722 |
+| MAP.134 | Build the Galaxy Map's opening view ahead of time on every update | none | open |
 | MAP.117 | Surface pressure missing from the planet and moon side panel (bug) | none | done, PR #457 |
 | MAP.118 | The Galaxy Map shows an unfilled sector above the galaxy that can't be filled (bug) | none | done, PR #457 |
 | MAP.119 | Expected star density editable by admins on the Galaxy Map | none | open |
 | MAP.120 | Bright-star backfill from the Galaxy Map's block, slab and wedge menus | none | open |
 | MAP.121 | Every map shows and steps to its neighbouring regions, on one map engine | none | open |
 | MAP.122 | A Select mode on every galaxy view: Galaxy (blocks and sectors) or Star | none | open |
-| MAP.123 | Show or hide star types and phenomena, and set the luminosity floor, on the Galaxy and Sector Maps | none | open |
+| MAP.123 | Show or hide star types and phenomena, and set the luminosity floor, on the Galaxy and Sector Maps | none | done, PR #753 |
 | MAP.124 | The Galaxy Map opens zoomed to fit all charted space | none | done, PR #696 |
 | MAP.125 | Infinite zoom: one 3D interface from the galaxy down to a moon | none | done, PR #683 |
 | MAP.126 | Show the orbital trajectories of selected objects in their frame of reference | none | done, PR #686 |

@@ -339,8 +339,11 @@ def run(job_dir):
     finally:
         state["finished_at"] = time.time()
         _write_json(state_path, state)
-        _release_lock(jobs_dir, job["id"])
+        # The queue goes before the lock: a job that has released its lock
+        # is over, queue included (a test or the next job saw the queue
+        # a moment after).
         _drop_queue(job["id"])
+        _release_lock(jobs_dir, job["id"])
         tree.close(step_node, "failed")
         tree.close(tree.root, _TREE_STATES.get(state["status"], "failed"))
     return 0 if state["status"] == "succeeded" else 1

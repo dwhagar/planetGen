@@ -1391,22 +1391,29 @@ def test_regression_raw_non_utf8_query_string_is_a_400(app, fuzz_db, path, raw):
 
 
 # B12 (fixed): /api/databases calls open_readonly outside its try; a listed schema that can't be opened (dropped meanwhile, no grant) raises SystemExit, which escapes Flask entirely
-def test_regression_databases_listing_survives_an_unopenable_schema(app, fuzz_db, monkeypatch):
-    from planetgen.api import routes
+def test_regression_databases_listing_survives_an_unopenable_schema(app, fuzz_db):
+    from tests.conftest import _test_server_kwargs
 
-    real = routes.list_databases
-
-    def with_a_vanished_schema(*args, **kwargs):
-        entries = real(*args, **kwargs)
-        return entries + [{**entries[0], "name": f"planetgen_test_vanished_{uuid.uuid4().hex[:8]}"}]
-
-    monkeypatch.setattr(routes, "list_databases", with_a_vanished_schema)
+    # A real schema with none of the project's tables, so its counts are
+    # None whoever runs the suite and whatever grants the test user has
+    # (a copy of another listed schema's entry would carry that schema's
+    # counts instead).
+    name = f"planetgen_test_vanished_{uuid.uuid4().hex[:8]}"
+    server = pymysql.connect(**_test_server_kwargs(), autocommit=True)
     try:
-        response = app.test_client().get("/api/databases")
-    except SystemExit as exc:
-        pytest.fail(f"SystemExit escaped the app: {exc}")
+        with server.cursor() as cursor:
+            cursor.execute(f"CREATE DATABASE `{name}`")
+        try:
+            response = app.test_client().get("/api/databases")
+        except SystemExit as exc:
+            pytest.fail(f"SystemExit escaped the app: {exc}")
+        finally:
+            with server.cursor() as cursor:
+                cursor.execute(f"DROP DATABASE IF EXISTS `{name}`")
+    finally:
+        server.close()
     assert response.status_code == 200
-    vanished = [item for item in response.get_json()["items"] if item["name"].startswith("planetgen_test_vanished_")]
+    vanished = [item for item in response.get_json()["items"] if item["name"] == name]
     assert [(item["sector_count"], item["system_count"]) for item in vanished] == [(None, None)]
 
 

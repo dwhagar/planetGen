@@ -1,2 +1,0 @@
-### Fixed
-- Static scripts and styles are linked with a fingerprint of the files themselves as well as the release (`?v=<release>-<fingerprint>`). The release version only changes when the post-merge stamp lands, so an update taken just before it (or an Apache that was not restarted) served new scripts under an old `?v=` that browsers keep for a year; modules from two versions then met, an import failed, and the Galaxy and Sector Maps stayed blank with dead controls while the System Map kept working. A changed file now always gets a new URL.

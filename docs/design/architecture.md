@@ -206,7 +206,7 @@ stores. The groups below are by role, not by folder (the package is flat).
 
 | Path | What it holds |
 |---|---|
-| [`store.py`](../../src/stellarObjects/store.py) | Everything that touches MySQL for writing and full-object reading: connection pools (`get_connection`, `open_write`, `get_control_connection`), `save_system`/`save_sector`/`save_phenomenon`, every `insert_*`, `add_system_to_sector` (a new system placed clear of a stored sector's Hill spheres) and `replace_star_system_content` (regenerate a system in place, keeping its id, name and links), name reservation, containment and nearest-neighbor refresh, the galaxy skeleton and bright-star tables, `load_star_system`/`load_sector`, orbit advancement, and every `_migrate_vN_to_vN+1` step plus `migrate_database`. `SCHEMA_VERSION` lives here. |
+| [`store.py`](../../src/stellarObjects/store.py) | Everything that touches MySQL for writing and full-object reading: connection pools (`get_connection`, `open_write`, `get_control_connection`), `save_system`/`save_sector`/`save_phenomenon`, every `insert_*`, `add_system_to_sector` (a new system placed clear of a stored sector's Hill spheres) and `replace_star_system_content` (regenerate a system in place, keeping its id, name and links), name reservation, containment and nearest-neighbor refresh, the galaxy skeleton and bright-star tables, `load_star_system`/`load_sector`, orbit advancement, and `migrate_database`, which runs the Alembic revisions. `SCHEMA_VERSION` (the head revision's number) is set here. |
 | [`schema.sql`](../../src/planetgen/db/schema.sql) | The content schema DDL (one database per galaxy). Its header notes record what each schema version changed. See [database-schema.md](../database-schema.md). |
 | [`control_schema.sql`](../../src/planetgen/db/control_schema.sql) | The control schema: admin users, sessions, API keys, audit log. One per deployment, versioned separately. |
 | `adminAuth.py` | Password hashing, sessions, API keys, credential rotation, audit log, and `bootstrap_control_schema` (creates the control schema and seeds the first admin). |
@@ -504,7 +504,7 @@ flowchart TD
     Inst["install.sh / update.sh<br/>deploy-common migrate_or_reset_db"] --> Status["planetgen.cli.migrate --status<br/>store.schema_status"]
     Status -->|"steps pending"| Ask{"delete the galaxy<br/>instead? (y/N, 30 s)"}
     Status -->|"current"| Mig
-    Ask -->|"N"| Mig["planetgen.cli.migrate<br/>store.migrate_database<br/>each _migrate_vN_to_vN+1"]
+    Ask -->|"N"| Mig["planetgen.cli.migrate<br/>store.migrate_database<br/>each Alembic revision"]
     Ask -->|"y"| Reset["planetgen.cli.reset --yes<br/>(admin logins kept)"]
     Reset --> Mig
     Mig --> Content
@@ -520,11 +520,15 @@ default `ensure_schema=True`) applies `schema.sql`. Every statement is
 
 **Migrating.** `schema.sql` always describes the current shape. An older
 database is moved forward by `store.migrate_database`, which runs every
-`_migrate_vN_to_vN+1` step above the stored version, in order
-(`_migration_steps`). `planetgen.cli.migrate` is the CLI wrapper with a progress
-bar. A schema change therefore touches three places: `schema.sql` (and its
-header note), a new migration step in `store.py` with `SCHEMA_VERSION` bumped,
-and [database-schema.md](../database-schema.md).
+Alembic revision (`planetgen/db/migrations/versions/`, run through
+`planetgen.db.alembic_runner`) above the stored version, in order. A revision's
+id is its schema version, so `SCHEMA_VERSION` is the head revision's number.
+Databases older than v61 (the baseline) are refused with `SchemaTooOldError`
+rather than migrated. `planetgen.cli.migrate` is the CLI wrapper with a progress
+bar. A schema change therefore touches `schema.sql`, a new revision file, the
+regenerated `planetgen/db/models.py` (`scripts/generate_db_models.py`), and
+[database-schema.md](../database-schema.md); the steps are in
+`src/planetgen/db/migrations/README.md`.
 
 **Control schema.** After the content migration, `planetgen.cli.migrate` calls
 `adminAuth.bootstrap_control_schema`. It creates the control database if

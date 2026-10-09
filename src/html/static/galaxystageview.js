@@ -2813,6 +2813,7 @@ export function createStageView(host) {
     setKindMarked: setKindMarked,
     // MAP.123: star classes and the luminosity floor.
     starClasses: sectorStage.starClasses,
+    hiddenClasses: sectorStage.hiddenClasses,
     starClassHidden: sectorStage.starClassHidden,
     setStarClassHidden: setStarClassHidden,
     minLuminosity: sectorStage.minLuminosity,
