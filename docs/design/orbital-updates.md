@@ -114,6 +114,15 @@ From "Orbital Update Full Algorithm.md", adapted to planetGen:
    entries and exits (by the nebula shape test), Hill-radius warnings,
    collisions.
 
+Built so far (GEN.106, GEN.107): `planetgen.cli.orbits` prints the objects
+moved per table (only those that were due), how many changed sector, and
+how many entered or left a nebula or supernova remnant.
+`store.refresh_containment` counts those from the change in each row's
+`inside_nebula_id` and `inside_remnant_id` after the shape test; moving
+from one nebula straight into another counts as leaving one and entering
+the other. Hill-radius warnings and collisions come with GEN.109 and
+GEN.110.
+
 **Point-mass tables**: each sector stores a small table of its masses
 (id, position, mass, velocity; about 128 bytes a row), rebuilt when a
 sector is generated, when something moves in or out, and when something
