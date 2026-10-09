@@ -8,7 +8,7 @@ The read endpoints each open a strictly-read-only connection
 the `planetgen.db.query` CLI already relies on, see that module's docstring for
 how "read-only" is enforced by the configured account's grants). Listing
 endpoints delegate straight to `planetgen.db.query`'s existing `list_sectors`/
-`list_systems`/`systems_within_radius` functions rather than
+`list_systems` functions rather than
 re-implementing the same SQL a third time; the two detail endpoints go
 through `planetgen.db.store.load_sector`/`load_star_system` for the full
 nested object graph, serialized via each class's own `to_dict()` (Phase 1
@@ -76,8 +76,8 @@ from planetgen.db.query import (
     search as run_search,
     sector_detail as query_sector_detail,
     system_detail as query_system_detail,
-    systems_within_radius,
 )
+from planetgen.db import near as near_search
 from planetgen.db import store
 from planetgen.generation import bright_stars as brightStars, limits as generationLimits
 from planetgen import tuning
@@ -590,31 +590,43 @@ def system_sections(system_id):
     return jsonify(sections)
 
 
-@bp.route("/systems/<int:system_id>/near")
-def systems_near(system_id):
-    # This endpoint itself still returns bare JSON, just a list of ids and
-    # distances -- but "no way to actually see the two points" is covered
-    # now by /api/nav's web page (`html/nav.py`), which renders the
-    # `navmap.py` top-down plot on top of the same course/route data.
-    raw_radius = request.args.get("radius")
-    if raw_radius is None:
-        raise ApiError("radius query parameter is required")
+@bp.route("/near")
+def near():
+    """
+    Everything generated within a distance of a place (NAV.43). The place
+    is `from` (an object reference such as `system:12`; a bare number is a
+    system) or `point` (`x,y,z`, galaxy-frame parsecs); `distance` is in
+    parsecs, up to 50. Optional: `kinds` (comma-separated), `limit`
+    (default 50, at most 200) and `offset`.
+    """
+    args = request.args
+    conn = get_db()
+    if (args.get("from") is None) == (args.get("point") is None):
+        raise ApiError("give exactly one of from (an object reference) or point (x,y,z in parsecs)")
+    if args.get("distance") is None:
+        raise ApiError("distance query parameter is required")
     try:
-        radius = float(raw_radius)
-    except ValueError:
-        raise ApiError(f"radius must be a number, got {raw_radius!r}")
-    if not math.isfinite(radius) or radius <= 0:
-        raise ApiError("radius must be a finite number greater than 0")
+        if args.get("from") is not None:
+            place = near_search.place_from_reference(conn, args["from"])
+        else:
+            place = near_search.place_from_point(args["point"].split(","))
+        kinds = [kind for kind in args["kinds"].split(",") if kind] if args.get("kinds") else None
+        result = near_search.objects_within(
+            conn, place, args["distance"], kinds=kinds,
+            limit=_int_arg(args, "limit", near_search.DEFAULT_LIMIT), offset=_int_arg(args, "offset", 0))
+    except near_search.NearError as exc:
+        raise ApiError(str(exc))
+    return jsonify(result)
 
+
+def _int_arg(query_args, name, default):
+    raw = query_args.get(name)
+    if raw is None:
+        return default
     try:
-        matches = systems_within_radius(get_db(), system_id, radius)
-    except SystemExit as exc:
-        # systems_within_radius is shared with the planetgen.db.query CLI and raises
-        # SystemExit (its CLI-appropriate error signal) for a missing/
-        # unplaced system id -- caught here rather than changing its shared
-        # behavior just for this one caller.
-        return jsonify({"error": str(exc)}), 404
-    return jsonify(matches)
+        return int(raw)
+    except ValueError:
+        raise ApiError(f"{name} must be a whole number, got {raw!r}")
 
 
 def _nav_ref_param(query_args, name):

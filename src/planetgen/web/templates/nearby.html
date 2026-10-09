@@ -1,0 +1,116 @@
+{#- The What's nearby page (web/nearby_page.py). -#}
+{% extends "base.html" %}
+{% block subhead %}
+{%- if place_name and not pickers %}
+<p class="badges">
+  <span class="badge">Around: {% if place_url %}<a href="{{ place_url }}">{{ place_name }}</a>{% else %}{{ place_name }}{% endif %}</span>
+  {%- if total is defined %}<span class="badge">{{ num(total) }} found</span>{% endif %}
+</p>
+{%- endif %}
+{% endblock %}
+{% block content %}
+{%- if error %}
+<section class="panel"><p class="error" role="alert">{{ error }}</p></section>
+{%- endif %}
+
+{%- for picker in (pickers or []) %}
+<section class="panel" aria-labelledby="picker-{{ loop.index }}">
+  <h2 id="picker-{{ loop.index }}">{{ picker.heading }}</h2>
+  {%- if picker.start_over %}
+  <p class="hint"><a href="{{ picker.start_over }}">&larr; Start over</a></p>
+  {%- endif %}
+  {%- if picker.options %}
+  <form method="get" action="{{ url_for('web.nearby') }}" class="search-form">
+    {%- for name, value in picker.hidden %}
+    <input type="hidden" name="{{ name }}" value="{{ value }}">
+    {%- endfor %}
+    <div class="search-fields">
+      <label class="search-field">{{ picker.label }}
+        <select name="{{ picker.field }}">
+          {%- for option in picker.options %}
+          <option value="{{ option.value }}">{{ option.label }}</option>
+          {%- endfor %}
+        </select>
+      </label>
+    </div>
+    <div class="search-actions">
+      <button type="submit" class="btn">{{ picker.button }}</button>
+    </div>
+  </form>
+  {%- else %}
+  <p class="hint">{{ picker.empty }}</p>
+  {%- endif %}
+</section>
+{%- endfor %}
+{%- if pickers and pickers|length == 1 and not pickers[0].start_over %}
+<section class="panel" aria-labelledby="point-heading">
+  <h2 id="point-heading">Or a point in space</h2>
+  <form method="get" action="{{ url_for('web.nearby') }}" class="search-form">
+    <div class="search-fields">
+      <label class="search-field">Galaxy-frame x, y, z in parsecs
+        <input type="text" name="place" placeholder="0, 0, 0" inputmode="decimal" required>
+      </label>
+    </div>
+    <div class="search-actions">
+      <button type="submit" class="btn">Continue</button>
+    </div>
+  </form>
+</section>
+{%- endif %}
+
+{%- if place_param %}
+<section class="panel" aria-labelledby="ask-heading">
+  <h2 id="ask-heading">How far, and what</h2>
+  <form method="get" action="{{ url_for('web.nearby') }}" class="search-form">
+    <input type="hidden" name="place" value="{{ place_param }}">
+    <div class="search-fields">
+      <label class="search-field">Distance in parsecs (up to {{ max_distance|int }})
+        <input type="number" name="distance" value="{{ distance_text }}" min="0.01" max="{{ max_distance }}" step="any" required>
+      </label>
+    </div>
+    <fieldset class="search-field">
+      <legend>Only these kinds (none ticked: everything)</legend>
+      {%- for option in kind_options %}
+      <label><input type="checkbox" name="kinds" value="{{ option.value }}"{% if option.checked %} checked{% endif %}> {{ option.label }}</label>
+      {%- endfor %}
+    </fieldset>
+    <div class="search-actions">
+      <button type="submit" class="btn">Search</button>
+      <a class="btn btn-secondary" href="{{ url_for('web.nearby') }}">Another place</a>
+    </div>
+  </form>
+</section>
+{%- endif %}
+
+{%- if rows is defined %}
+<section class="panel" id="nearby-results" aria-labelledby="results-heading">
+  <h2 id="results-heading">Within {{ distance_text }} pc of {{ place_name }}</h2>
+  {%- if counts %}
+  <p class="badges">
+    {%- for entry in counts %}<span class="badge">{{ num(entry.count) }} {{ entry.label|lower }}</span>{% endfor %}
+  </p>
+  {%- endif %}
+  {%- if not_generated %}
+  <p class="hint">{{ num(not_generated) }} of the {{ num(sectors_in_range) }} sectors in range {{ "has" if not_generated == 1 else "have" }} not been generated yet, so what is there is not listed.</p>
+  {%- endif %}
+  {%- if rows %}
+  <div class="table-scroll"><table>
+    <thead><tr><th scope="col">Kind</th><th scope="col">Name</th><th scope="col">In</th><th scope="col">Distance</th></tr></thead>
+    <tbody>
+      {%- for row in rows %}
+      <tr>
+        <td>{{ row.label }}</td>
+        <td>{% if row.url %}<a href="{{ row.url }}">{{ row.name }}</a>{% else %}{{ row.name }}{% endif %}</td>
+        <td>{% if row.parent_link %}<a href="{{ row.parent_link.url }}">{{ row.parent_link.name }}</a>{% endif %}</td>
+        <td>{{ row.distance_text }}</td>
+      </tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+  {{ pages }}
+  {%- else %}
+  <p class="hint">Nothing generated is within that distance.</p>
+  {%- endif %}
+</section>
+{%- endif %}
+{% endblock %}

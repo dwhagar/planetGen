@@ -72,7 +72,7 @@
 {%- if quadrant %}
 <p class="location">In <a href="{{ page_url('galaxy', quadrant=quadrant) }}">Quadrant {{ quadrant }}</a> of the galaxy</p>
 {%- endif %}
-{{ action_bar(bookmark, none, none, galaxy_url, admin_button) }}
+{{ action_bar(bookmark, none, none, galaxy_url, admin_button, nearby_url) }}
 </div>
 {% endblock %}
 {% block content %}

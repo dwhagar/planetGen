@@ -37,7 +37,7 @@
     {%- if octant %}<span class="badge">Octant {{ octant }}</span>{% endif -%}
     {%- if inside %}<span class="badge">Inside: <a href="{{ inside.url }}">{{ inside.name }}</a></span>{% endif -%}
   </p>
-  {{ action_bar(bookmark, nav_links, pick, galaxy_url, admin_button) }}
+  {{ action_bar(bookmark, nav_links, pick, galaxy_url, admin_button, nearby_url) }}
   {%- if nearest_html %}
   <p class="location inline-links">Nearest systems: {{ nearest_html }}</p>
   {%- endif %}

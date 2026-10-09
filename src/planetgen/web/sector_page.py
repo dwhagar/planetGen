@@ -655,6 +655,8 @@ sector_scene.json_only = True  # not a page: tests/test_web_a11y.py skips it
 def sector(sector_id):
     """One sector: badges, Sector Map, Contents (`contents_*` parameters), and
     the admin forms for a logged-in admin."""
+    from .nearby_page import nearby_url  # nearby_page imports nav_page, which imports this module
+
     admin = current_admin()
     errors = {}
     estimate = None
@@ -698,6 +700,7 @@ def sector(sector_id):
                     f"{'' if system_count == 1 else 's'}, its 3D sector map and nearby phenomena.",
         sector=detail,
         sector_id=sector_id,
+        nearby_url=nearby_url(f"sector:{sector_id}"),
         edge_text=format_distance_ly(detail['edge_ly']),
         system_count=system_count,
         star_count=detail.get("star_count"),

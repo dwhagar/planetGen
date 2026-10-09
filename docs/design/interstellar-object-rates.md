@@ -79,10 +79,10 @@ Three types don't scale with `n_*` alone:
 | Jupiter-mass rogue planets (> 1 Mjup) | 0.035 | ≤ 0.25 | n_* | ~2.2 |
 | Rogue brown dwarfs (13-80 Mjup) | 0.025-0.035 (0.03) | ~0.21 | n_* | ~1.9 |
 | Runaway stars (> 30 km/s) | 2.1e-3 | 0.015 (1-2%) | n_* | ~0.13 |
-| Isolated neutron stars | 7e-4 (research 1e-3) | 5e-3 | n_* | ~0.045 |
-| Isolated stellar black holes | 1.4e-4 (research 1e-4) | 1e-3 | n_* | ~8e-3 |
+| Isolated neutron stars | 5.6e-4 (1e9 over ~2.5e11 stars) | 4e-3 | n_* | ~0.036 |
+| Isolated stellar black holes | 7e-5 (1e8 over ~2.5e11 stars) | 5e-4 | n_* | ~4.5e-3 |
 | Giant molecular clouds | 1e-6 to 1e-5 (5e-6) | n/a | ρ_gas^1.4 | ~3e-4 |
-| Planetary nebulae | 3e-8 | ~2e-7 | n_* | ~2e-6 |
+| Planetary nebulae | 1.4e-8 | ~1e-7 | n_* | ~9e-7 |
 | Supernova remnants | 1e-8 to 1e-7 | n/a | n_* · ρ_gas | ~6e-7 |
 | Hypervelocity stars (> 500 km/s) | 5e-9 at 8 kpc (see Checks) | n/a | r_GC⁻² | ~3e-7 |
 | Isolated asteroid fields | ~0 (disperse in 1e6-1e7 yr) | 0 | n/a | 0 |
@@ -216,3 +216,8 @@ Balogh 2010, intracluster supernovae.
 - Supernova remnants at the detectable-only density (1.5e-9). The code
   chose 1e-8; the comment says it "counts faint remnants too". No further
   reason is recorded.
+
+
+## Retune of 2026-10-09 (Boss: central observed values)
+
+Neutron stars 0.4% and black holes 0.05% of stars; planetary nebulae 1e-7 per star; terrestrial rogue planets 5.8 per star (0.7 per pc³ central); intermediate-mass black holes 0.1% of black holes; accretion disks on 0.1% of black holes; 2% of neutron stars pulsing, 10% of those millisecond pulsars. Regional differences (scale height, radius, type) are in [`compact-remnant-regions.md`](compact-remnant-regions.md) and are not modeled yet.
