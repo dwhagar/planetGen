@@ -467,7 +467,9 @@ def test_galaxy_map_buttons(page, base_url):
         territories.click()
         assert not page.locator("#galaxymap3d-territories").is_visible()
 
-    # One step down: Back and Up work; Back then enables Forward.
+    # One step down: Back and Up work; Back then enables Forward. (The Menu's
+    # star filters make it tall enough to cover the map, so it is closed.)
+    page.click("#galaxymap3d-menu summary")
     _click_choice(page)
     for action in ("back", "up"):
         assert not controls.locator(f'[data-action="{action}"]').is_disabled()
