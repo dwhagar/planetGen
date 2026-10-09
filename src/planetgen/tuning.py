@@ -1726,6 +1726,24 @@ BLACK_HOLE_SPIN_RANGE = (0.0, 0.998)
 # be luminous, e.g. Cygnus X-1-like systems).
 BLACK_HOLE_ACCRETION_DISK_CHANCE = 0.001
 
+# Where remnants are against where stars are (GEN.132; see
+# docs/design/compact-remnant-regions.md). Estimates from the trends there.
+# A remnant's layer is this many times as thick as the thin disk: compact
+# remnants about 3x the stars' height (Sweeney et al., 1260 pc against
+# 306-420 pc), black holes 2.5x (786 pc against 306 pc).
+REMNANT_SCALE_HEIGHT_RATIO = {"neutron-star": 3.0, "black-hole": 2.5}
+REMNANT_VERTICAL_FACTOR_MAX = 4.0
+# Black holes' extra share toward the core (smaller kicks keep them near
+# where they formed): this much more at the center, over this scale.
+BLACK_HOLE_CORE_EXCESS = 1.0
+BLACK_HOLE_CORE_SCALE_PC = 2000.0
+# Active radio pulsars' radial profile, Lorimer et al. 2006 (a = 1.9, b = 5.0),
+# against the Milky Way's own stars: the Sun's radius and the disk's scale length.
+PULSAR_RADIAL_A = 1.9
+PULSAR_RADIAL_B = 5.0
+GALAXY_SUN_RADIUS_PC = 8200.0
+GALAXY_DISK_SCALE_LENGTH_PC = 2600.0
+
 # Neutron star mass range in solar masses -- real measured masses cluster
 # tightly around ~1.4 Msun with a hard floor near the Chandrasekhar-like
 # collapse threshold and a soft ceiling near the maximum mass general

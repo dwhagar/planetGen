@@ -35,3 +35,26 @@ Neutron stars and black holes follow the stellar density map exactly: same radia
 2. Black hole share rising toward the core, plus a central cusp.
 3. Active radio pulsars weighted to arms, peaking at 3 to 4 kpc; millisecond pulsars weighted toward the bulge.
 4. Net neutron star count about 40% lower than formed, black holes 2% lower (kick losses).
+
+## How the generator uses this (GEN.132)
+
+The scatter no longer places neutron stars and black holes in simple
+proportion to the stellar density. `galaxy/remnant_distribution.py` multiplies
+each bin's density by a factor for the kind, at the bin's centerline point:
+
+- **Height.** Neutron stars are spread over 3x the thin disk's scale height
+  and black holes over 2.5x (`tuning.REMNANT_SCALE_HEIGHT_RATIO`), as a ratio
+  of sech^2 profiles, capped at 4x. In the plane that is about 0.35x the
+  star-proportional rate; a few scale heights up it is 3x or more.
+- **Radius.** Black holes get `1 + 1.0 * exp(-R / 2 kpc)` times the stars'
+  density: twice the rate at the core, 1.02x at the Sun.
+- **Pulsars.** The share of neutron stars that are active pulsars is scaled
+  by the Lorimer et al. (2006) radial profile over the stellar exponential,
+  1 at the Sun, about 0.1 at 1 kpc and 0.5 at 3 kpc.
+
+These sizes are **estimates** drawn from the trends above; the sources give
+shapes, not percentages, so the constants in `tuning.py` are the knobs. Only
+these two kinds have regional research; planetary nebulae and supernova
+remnants stay proportional to the stars, and the star-type analysis in
+`star-types-by-galactic-radius.md` (GEN.133) lists what could follow.
+`layer_expected` (the progress bar) uses the layer-centre height factor only.

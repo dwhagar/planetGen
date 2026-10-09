@@ -27,10 +27,12 @@ import math
 
 
 from planetgen import tuning
+from planetgen.galaxy import remnant_distribution
 from planetgen.galaxy.geometry import sector_address_at
 from planetgen.galaxy.sector import _sample_poisson_count
 from planetgen.generation import bright_stars
 from planetgen.generation.bright_stars import MPC_PER_PC, _place_one
+from planetgen.galaxy.geometry import layer_center_z_pc, ring_radius_pc
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
 
@@ -92,18 +94,36 @@ def scatter_layer(shape, layer_index, outer_ring, edge_pc, expected_at_density_1
     skip_addresses = skip_addresses or set()
     for ring_index in range(outer_ring + 1):
         slots, bins = bright_stars._ring_bins(ring_index, layer_index, shape, expected_at_density_1, edge_pc)
-        weights = [sum(densities.values()) for densities in bins]
-        weight_sum = sum(weights)
-        if weight_sum <= 0.0:
+        base = [sum(densities.values()) for densities in bins]
+        if sum(base) <= 0.0:
             continue
         slots_per_bin = slots / len(bins)
         for kind in SCATTERED_KINDS:
+            weights = _kind_weights(kind, base, ring_index, layer_index, edge_pc, shape.disk_scale_height_pc)
+            weight_sum = sum(weights)
             count = _sample_poisson_count(kind_mean(kind, expected_at_density_1, slots_per_bin, weight_sum), rng=rng)
             for _ in range(count):
                 spot = _place_one(rng, weights, ring_index, layer_index, slots, edge_pc)
                 if spot is None or (ring_index, layer_index, spot[0]) in skip_addresses:
                     continue
                 yield _row(ring_index, layer_index, spot[0], kind, spot[1], rng)
+
+
+def _kind_weights(kind, base, ring_index, layer_index, edge_pc, thin_height_pc):
+    """The per-bin weights for `kind`: the stellar density of each bin times
+    the kind's regional factor at the bin's centerline point (GEN.132; a
+    kind with no research stays flat)."""
+    if kind not in tuning.REMNANT_SCALE_HEIGHT_RATIO:
+        return base
+    radius = ring_radius_pc(ring_index, edge_pc)
+    z = layer_center_z_pc(layer_index, edge_pc)
+    count = len(base)
+    weights = []
+    for k, weight in enumerate(base):
+        theta = (k + 0.5) * 2 * math.pi / count
+        point = (radius * math.cos(theta), radius * math.sin(theta), z)
+        weights.append(weight * remnant_distribution.placement_factor(kind, point, thin_height_pc))
+    return weights
 
 
 def layer_expected(shape, layer_index, outer_ring, edge_pc, expected_at_density_1):
@@ -113,7 +133,12 @@ def layer_expected(shape, layer_index, outer_ring, edge_pc, expected_at_density_
     fractions = {population: 1.0 for population in bright_stars.POPULATIONS}
     stars = bright_stars.layer_expected_stars(shape, layer_index, outer_ring, edge_pc, expected_at_density_1,
                                               fractions)
-    return stars * sum(tuning.phenomenon_rate_per_star(kind) for kind in SCATTERED_KINDS)
+    # The layer-centre vertical factor stands in for each ring's regional one.
+    z = layer_center_z_pc(layer_index, edge_pc)
+    return stars * sum(
+        tuning.phenomenon_rate_per_star(kind)
+        * remnant_distribution.vertical_factor(kind, z, shape.disk_scale_height_pc)
+        for kind in SCATTERED_KINDS)
 
 
 def nucleus_row(seed):
