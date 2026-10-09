@@ -1245,7 +1245,7 @@ def test_galaxy_map_slab_buttons_have_lines_that_follow_the_view(page, map_site)
             break
         _click_choice(page, GENERATED_CHOICE)
     assert page.locator(".galaxy-slab-button").count() >= 2, _crumbs(page)
-    assert not page.locator("input[type=range]").count(), "the slab slider is gone"
+    assert not page.locator("input[type=range]:not(#galaxymap3d-lum)").count(), "the slab slider is gone"
     before = page.evaluate(LEADERS)
     _check_leaders(before)
     # Turning the view moves the lines' ends with their slabs.
@@ -2105,3 +2105,25 @@ def test_sector_map_highlight_draws_a_phenomenon_kind_larger_and_keeps_it_in_the
     assert page.locator('#galaxymap3d-kinds [data-highlight-kind="roguePlanet"]').get_attribute("aria-pressed") == "true"
     page.locator('#galaxymap3d-kinds [data-highlight-kind="roguePlanet"]').click()
     assert "mark" not in page.url
+
+
+def test_galaxy_map_star_filters_apply_to_the_stars_drawn_at_galaxy_scale(page, map_site):
+    """MAP.123: with no sector open the Menu still offers the star classes and
+    the luminosity floor, and they thin the stars the tiles draw."""
+    _open_galaxy(page, map_site)
+    _settle(page)
+    count = "() => document.querySelector('#galaxymap3d-canvas').galaxyStarFrame().count"
+    before = page.evaluate(count)
+    assert before > 0
+    page.locator("#galaxymap3d-menu summary").click()
+    page.wait_for_selector("#galaxymap3d-kinds [data-star-class]", state="attached")
+    assert page.locator("#galaxymap3d-kinds [data-star-class]").count() == 8
+    page.evaluate("""() => { const s = document.getElementById('galaxymap3d-lum'); s.value = s.max;
+                              s.dispatchEvent(new Event('input', {bubbles: true})); }""")
+    assert page.evaluate(count) < before
+    page.evaluate("""() => { const s = document.getElementById('galaxymap3d-lum'); s.value = 0;
+                              s.dispatchEvent(new Event('input', {bubbles: true})); }""")
+    assert page.evaluate(count) == before
+    for button in page.locator("#galaxymap3d-kinds [data-star-class]").all():
+        button.click()
+    assert page.evaluate(count) < before

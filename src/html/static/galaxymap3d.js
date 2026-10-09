@@ -1609,10 +1609,33 @@ function initGalaxyMap3d(canvasEl, data) {
     return tile.allStars;
   }
 
+  // MAP.123: whether the star filters (classes hidden, dimmest star shown)
+  // let `star` through. Phenomena are never filtered here: they have their
+  // own kind toggles.
+  var STAR_FILTER_CLASSES = ["O", "B", "A", "F", "G", "K", "M", "other"];
+  var lastNeed = null;
+  function filterStamp() {
+    if (typeof stageView === "undefined" || !stageView) return "";
+    return stageView.hiddenClasses().sort().join("") + "/" + stageView.minLuminosity();
+  }
+  function starShown(star) {
+    if (star.phenomenon || typeof stageView === "undefined" || !stageView) return true;
+    var letter = String(star.star_type || "").charAt(0).toUpperCase();
+    if (stageView.starClassHidden(STAR_FILTER_CLASSES.indexOf(letter) >= 0 ? letter : "other")) return false;
+    var floor = stageView.minLuminosity();
+    return !(floor > 0) || (star.luminosity_sol || 0) >= floor;
+  }
+  // Draws the stars again after a filter changed.
+  function refreshStarFilters() {
+    starSignature = "";
+    if (lastNeed) renderFromCache(lastNeed);
+  }
+
   // Takes the filled sectors from whatever of the needed tiles is already
   // cached (the blocks are rebuilt from them when they change); returns
   // what's still missing.
   function renderFromCache(need) {
+    lastNeed = need;
     var missing = [];
     var clouds = new Map();
     var stars = new Map();
@@ -1626,13 +1649,13 @@ function initGalaxyMap3d(canvasEl, data) {
         clouds.set(cloudKey(cloud), cloud);
       });
       tileStars(tile).forEach(function (star) {
-        stars.set(starKey(star), star);
+        if (starShown(star)) stars.set(starKey(star), star);
       });
     });
     missing.forEach(function (key) {
       carriedStars(key, stars);
     });
-    var starKeys = currentStamp + "|" + Array.from(stars.keys()).sort().join(",");
+    var starKeys = currentStamp + "|" + filterStamp() + "|" + Array.from(stars.keys()).sort().join(",");
     if (starKeys !== starSignature) {
       starSignature = starKeys;
       setStars(Array.from(stars.values()));
@@ -2108,8 +2131,14 @@ function initGalaxyMap3d(canvasEl, data) {
     if (!kindsEl) return;
     var kinds = stageView.kinds();
     kindsEl.textContent = "";
-    kindsEl.hidden = !kinds.length;
-    if (!kinds.length) return;
+    refreshStarFilters();
+    // With no sector open the star filters still apply to the stars drawn
+    // at galaxy scale, so they stay.
+    kindsEl.hidden = false;
+    if (!kinds.length) {
+      rebuildStarFilters();
+      return;
+    }
     var heading = document.createElement("span");
     heading.className = "galaxy-kinds-heading";
     heading.textContent = "Show on the map";
@@ -2167,7 +2196,9 @@ function initGalaxyMap3d(canvasEl, data) {
   }
   function rebuildStarFilters() {
     var classes = stageView.starClasses();
-    if (!classes.length) return;
+    if (!classes.length) {
+      classes = STAR_FILTER_CLASSES.map(function (c) { return { starClass: c, count: null }; });
+    }
     var heading = document.createElement("span");
     heading.className = "galaxy-kinds-heading";
     heading.textContent = "Star classes";
@@ -2178,11 +2209,12 @@ function initGalaxyMap3d(canvasEl, data) {
       button.className = "starmap-btn starmap-toggle";
       button.dataset.starClass = item.starClass;
       button.textContent = item.starClass === "other" ? "Other" : item.starClass;
-      button.title = "Show or hide the class " + button.textContent + " stars (" + item.count + ")";
+      button.title = "Show or hide the class " + button.textContent + " stars" + (item.count == null ? "" : " (" + item.count + ")");
       button.setAttribute("aria-pressed", String(!stageView.starClassHidden(item.starClass)));
       button.addEventListener("click", function () {
         stageView.setStarClassHidden(item.starClass, button.getAttribute("aria-pressed") === "true");
         button.setAttribute("aria-pressed", String(!stageView.starClassHidden(item.starClass)));
+        refreshStarFilters();
       });
       kindsEl.appendChild(button);
     });
@@ -2200,6 +2232,7 @@ function initGalaxyMap3d(canvasEl, data) {
     slider.addEventListener("input", function () {
       show();
       stageView.setMinLuminosity(lumFromStep(Number(slider.value)));
+      refreshStarFilters();
     });
     show();
     label.appendChild(text);
@@ -2348,6 +2381,7 @@ function initGalaxyMap3d(canvasEl, data) {
       steps: document.getElementById("galaxymap3d-steps"),
     },
   });
+  rebuildKinds();
 
   // --- Pointer and keys ------------------------------------------------------
   //
