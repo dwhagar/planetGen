@@ -73,13 +73,12 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.84 | Habitability design: one score structure and reconciled thresholds |  | Decision for Boss inside it: which score structure. |
-| GEN.85 | Atmosphere species, partial pressures and mantle redox for every planet | GEN.84 |  |
-| GEN.86 | Stellar activity (XUV, flares) and planetary magnetic fields | GEN.84 |  |
+| GEN.85 | Atmosphere species, partial pressures and mantle redox for every planet |  |  |
+| GEN.86 | Stellar activity (XUV, flares) and planetary magnetic fields |  |  |
 | GEN.87 | Surface radiation dose | GEN.85, GEN.86 |  |
 | GEN.88 | Hydrosphere and ocean chemistry | GEN.85 | Reuses rogueSurface's ice-shell and ocean functions. |
 | GEN.89 | The habitability score for every planet and moon | GEN.85, GEN.86, GEN.87, GEN.88 |  |
-| GEN.83 | A planetary habitability index (PHI) | GEN.84, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89 | Parent; the class refactor (GEN item GEN.90) follows it. |
+| GEN.83 | A planetary habitability index (PHI) | GEN.85, GEN.86, GEN.87, GEN.88, GEN.89 | Parent; the class refactor (GEN item GEN.90) follows it. |
 
 ### Tech levels and facilities
 

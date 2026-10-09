@@ -554,7 +554,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.81 | The console refuses runs instead of warning and doing what was asked (bug) | none | done, PR #467 |
 | GEN.82 | Black holes show a Hawking temperature and luminosity of zero (bug) | none | done, PR #448 |
 | GEN.83 | A planetary habitability index (PHI) | none | open |
-| GEN.84 | Habitability design: one score structure and reconciled thresholds | none | open |
+| GEN.84 | Habitability design: one score structure and reconciled thresholds | none | done, PR #803 |
 | GEN.85 | Atmosphere species, partial pressures and mantle redox for every planet | none | open |
 | GEN.86 | Stellar activity (XUV, flares) and planetary magnetic fields | none | open |
 | GEN.87 | Surface radiation dose | none | open |

@@ -38,7 +38,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | MAP.75 | The mini map as a second engine view |  | Locked second camera on MAP.64. |
 | MAP.59 | Make it plain that a zoomed-in slab is a slab, not a wedge | MAP.75 |  |
-| MAP.132 | Overlay markers for black holes, nebulae and habitable worlds | GEN.84 | Later (Boss 2026-10-08 01:59Z colors). |
+| MAP.132 | Overlay markers for black holes, nebulae and habitable worlds |  | Later (Boss 2026-10-08 01:59Z colors). |
 
 ### Courses
 
