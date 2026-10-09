@@ -48,6 +48,7 @@ from planetgen.util import draw
 from planetgen.util import log
 from planetgen.util.serialization import fields_from_dict, fields_to_dict
 from planetgen.generation.star import Star
+from planetgen.galaxy.remnant_distribution import pulsar_radial_factor
 from planetgen.galaxy.galactic_orbit import format_galactic_orbit, generate_galactic_orbit_fields
 from planetgen.physics.orbits import calculate_habitable_zone
 from planetgen.util.format import (
@@ -432,6 +433,15 @@ class NeutronStar(CompactRemnant):
     `Star.SERIALIZABLE_FIELDS`-extension convention; `yerkes_class` here is
     the literal marker `"NS"`."""
 
+    def _pulsar_chance(self):
+        """The chance this neutron star is an active pulsar: the base chance
+        times the Lorimer radial profile at its galactocentric distance
+        (GEN.132), unchanged when the distance is unknown."""
+        if not self.galactic_center_dist_ly:
+            return tuning.NEUTRON_STAR_PULSAR_CHANCE
+        radius_pc = self.galactic_center_dist_ly * constants.LY_TO_AU / constants.AU_PER_PARSEC
+        return min(1.0, tuning.NEUTRON_STAR_PULSAR_CHANCE * pulsar_radial_factor(radius_pc))
+
     def __init__(self, system_config: SystemConfig, name=None, galactic_center_dist_ly=None,
                  galactic_orbital_phase_deg=None):
         super().__init__(system_config, name=name, galactic_center_dist_ly=galactic_center_dist_ly)
@@ -443,7 +453,7 @@ class NeutronStar(CompactRemnant):
         self.surface_temperature_k = draw.uniform(*tuning.NEUTRON_STAR_SURFACE_TEMPERATURE_RANGE_K)
         self.temperature = self.surface_temperature_k
 
-        is_pulsar = draw.random() < tuning.NEUTRON_STAR_PULSAR_CHANCE
+        is_pulsar = draw.random() < self._pulsar_chance()
         if is_pulsar and draw.random() < tuning.PULSAR_MILLISECOND_CHANCE:
             self.pulsar_type = "millisecond"
             self.spin_period_ms = draw.uniform(*tuning.PULSAR_SPIN_PERIOD_MS_RANGE_MILLISECOND)
