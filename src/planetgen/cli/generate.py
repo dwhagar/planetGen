@@ -583,6 +583,10 @@ def add_galaxy_arguments(parser):
                              "address is (see RANDOM_START_MAX_PLACEMENT_ATTEMPTS). Cannot "
                              "be combined with --density/--num-systems (those override every position's "
                              "density uniformly, leaving no per-position value to compare against).")
+    parser.add_argument('--no-settle', action='store_true',
+                        help="Skip the last step of the run, which saves the path every star system, "
+                             "rogue planet and comet takes through its sector (for the sectors the run "
+                             "created and the ones around them). 'planetgen orbits' saves them later.")
     backfill_group = parser.add_argument_group("bright stars after the run (GEN.30)")
     backfill_group.add_argument('--backfill-from', choices=run_galaxy.BACKFILL_FROM_CHOICES, default="requested",
                                 help="Once every sector of the run is generated, backfill the bright stars "

@@ -437,8 +437,16 @@ masses (23:16Z), as a spline.
   hyperbolic deflection `2 asin(1/e)`, `e = sqrt(1 + (b v^2 / mu)^2)`, to 2%.
   The knots are saved (`sector_paths`, `sector_path_knots`, schema v62;
   `db/sector_paths.py`): the paths of every sector holding a star system, rogue planet
-  or comet, at each orbit update (not at generation, where they would depend on which
-  neighbours the workers had filled so far).
+  or comet, at each orbit update, and as the last step of a `galaxy` run (GEN.126) for
+  the sectors the run created and the sectors around them, once the neighbour set is
+  final. A path is never computed sector by sector during the run, where it would depend
+  on which neighbours the workers had filled so far. Everything else a body carries (its
+  velocity, its sector address, the orbit derived from the vector) is already filled at
+  generation, so the paths are all the final step has to add; it draws nothing at random
+  and reads no clock, so the same seed still makes the same galaxy. Measured cost: about
+  1.8 ms a body (8,100 bodies in 123 sectors in 15.7 s; 2,900 bodies in 5 dense sectors in
+  5.1 s), the same at 6 and at 56 systems a sector, so a million bodies take about 30
+  minutes in one process. `--no-settle` skips it.
   A path starts at the body's stored position and velocity, so it is as old
   as its sector's last pass.
 - **The orbit is derived from the vector, never stored.** A planet's, moon's

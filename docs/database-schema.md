@@ -1780,8 +1780,10 @@ Added in v62 (GEN.123). One row per star system, rogue planet or
 interstellar comet: the path it takes from where it is now to where it
 leaves its sector (`physics/sector_path.py`), recomputed by
 `sector_paths.compute_sector_paths` for every sector holding one of them
-at each orbit update (not at generation: a path depends on the
-neighbours that exist, which varies with the order workers fill sectors).
+at each orbit update, and for the sectors a `galaxy` run created and the
+sectors around them as the last step of the run (`--no-settle` skips it).
+Never sector by sector during the run: a path depends on the neighbours
+that exist, which varies with the order workers fill sectors.
 
 | Column | Type | Null | Notes |
 |---|---|---|---|
