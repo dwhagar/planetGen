@@ -163,9 +163,25 @@ Defaults are taken so work can start; each can change.
 - Two-factor optional or required for admins? Default: optional, and
   required for the Owner once roles exist.
 
-## 5. Planned: libraries (2026-10-07)
+## 5. Libraries (done)
 
-The design above stays; its implementation moves to libraries
-(library-migration.md): request limits to Flask-Limiter with Redis
-storage, one-time codes to pyotp and QR codes to segno. The lockout
-rules, the activity log and the fail2ban lines don't change.
+The design above stays; its implementation moved to libraries
+(library-migration.md), and the lockout rules, the activity log and the
+fail2ban lines did not change:
+
+- **SEC.29** (PR #612): one-time codes on pyotp and QR codes on segno
+  (`admin/auth.py`), with the same secrets, step and window, so enrolled
+  admins kept working.
+- **SEC.30** (PR #643): request limits on Flask-Limiter, and the
+  lockout counters (`admin/throttle.py` `RedisStore`, used by
+  `api/loginguard.py`) on the Redis server in `redis.url`, shared by
+  every worker and kept across restarts. The control database's
+  `login_throttle` table was dropped (control schema v8).
+- **SEC.31** (PR #457) is a bug fix, not a library move: a sign-in
+  form sent a second time after the first already signed in no longer
+  ends on a "form expired" error (`web/csrf.py`).
+
+Still open: the password hash is PBKDF2-SHA256 (OWASP lists it last) and
+user accounts add reset and invite flows that need the same throttles;
+both are planned in [settings-seo-and-accounts.md](settings-seo-and-accounts.md)
+(parts B2, B3 and B5).

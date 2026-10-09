@@ -4,7 +4,9 @@ The plan of record for moving planetGen off its zero-dependency model and
 onto third-party open-source libraries, and for reorganizing the code into
 importable packages. It condenses Boss's research documents in this folder
 ("Library Migration Workflow.md", "Web UX Development Notes.md" and "Web UX
-and Job Management Guide.md") and records where this plan departs from them.
+and Job Management Guide.md") and records where this plan departs from them. Measured costs and the
+health of the front-end libraries are in
+[map-ui-and-frontend-libraries.md](map-ui-and-frontend-libraries.md).
 
 ## 1. What Boss asked for
 
@@ -43,10 +45,10 @@ by the new libraries rather than patched in the old code.
 | Database | `store.py` (9,800 lines), `planetgen.cli.migrate` with `schema_vNN.sql.gz` fixtures | SQLAlchemy, Alembic | Alembic starts from a baseline that recognises existing databases at the current schema. |
 | Validation | `validation.py` | Pydantic | The same limits; errors list every field. |
 | Physics | `keplerMotion.py`, `physical_constants.py`, replaced (GEN.66, PR #767) by `physics/kepler.py` on scipy and constants from astropy | scipy, astropy | Results checked against the old values within stated tolerances (`tests/test_astropy_constants.py`). Barker keeps its exact closed form. |
-| Job logs and progress | `generatejobs.js`, `generatefolds.js`, `jobs.py`, `progressRate.py` | Xterm.js over Server-Sent Events, native `<progress>` | See section 4. |
-| Buttons, menus, dialogs | hand-written HTML and CSS | Shoelace web components | Uses the approved icon set. |
-| Tables | `tabledisplay.py` | TanStack Table and TanStack Virtual | The server still pages 50 rows. |
-| Galaxy Map picking and streaming | `galaxymap3d.js`, `galaxyprisms.js` | three-mesh-bvh, 3D tiles, camera-relative rendering | Level of detail per tile. |
+| Job logs and progress | `generatejobs.js`, `generatefolds.js`, `jobs.py`, `progressRate.py` | Xterm.js over Server-Sent Events, native `<progress>` | Done (ADM.22). See section 4. |
+| Buttons, menus, dialogs | hand-written HTML and CSS | Shoelace web components | Done (UX.40). Uses the approved icon set. Shoelace 2.20.1 is its final release; see section 5. |
+| Tables | `tabledisplay.py` | TanStack Table and TanStack Virtual | Done (UX.41, PR #606). The server still pages 50 rows. |
+| Galaxy Map streaming | `galaxymap3d.js`, `galaxyprisms.js` | 3D tiles, camera-relative rendering | Done (MAP.102, PR #574): level of detail per tile. three-mesh-bvh was dropped: stars are not pickable in Galaxy mode, and for Star mode (MAP.122) a screen-space typed-array pick measured 5.4 ms at 70,000 stars against 0.6 s just to build a point BVH (map-ui-and-frontend-libraries.md, section 5.2). |
 | Nebula meshes | none | scikit-image (marching cubes) | For the nebula shape (nebula-and-asteroid-field-classes.md). |
 
 ## 3. The work queue: Redis and RQ
@@ -81,12 +83,49 @@ deployment docs give the settings. Log messages are single lines (the
 terminal wraps them), a failed job's log stays open until the user
 continues, and tracebacks appear in full with a Copy button.
 
+As built (ADM.22, ADM.40): the stream route sends `log` events whose id is
+the byte offset reached, so a browser that reconnects resumes where it left
+off, and closes itself every 40 seconds to stay under the daemon's request
+timeout. The browser's `EventSource` reports each such close as an error, so
+the "connection lost" note appears only after a grace period
+(`connectionnote.js`). The job guide's in-memory queue per job id was not
+used: the log is a file read by offset, which works across the several
+processes Apache and the workers run in.
+
 ## 5. Front-end libraries
 
-Shoelace, TanStack and three-mesh-bvh are vendored as ES module builds and
-served by Flask, with no bundler and no CDN at runtime (default until Boss
-decides otherwise). Both themes, keyboard use and reduced motion are kept.
+Shoelace, TanStack, Xterm.js and three.js are vendored as ES module builds
+under `src/html/static/vendor/` and served by Flask, with no bundler and no
+CDN at runtime (default until Boss decides otherwise; the site's
+`default-src 'self'` policy also forbids a CDN script, inline import maps and
+`data:` icons). Both themes, keyboard use and reduced motion are kept.
+three-mesh-bvh is not vendored (section 2).
 
+State on 2026-10-09 (details and sources in
+[map-ui-and-frontend-libraries.md](map-ui-and-frontend-libraries.md), section 1):
+
+- **Shoelace 2.20.1 is the last release.** Its README says "Shoelace is
+  sunset. There is no active development"; the registry shows no deprecation
+  and `npm audit` finds nothing in the pinned set. Nothing breaks, so there is
+  no migration now. Its successor, Web Awesome (MIT free tier, 3.14.0), needs
+  `wa-` tag renames and a local icon library (its default fetches from a CDN
+  the CSP refuses). If the move is wanted, do it inside the UX.43 restyle,
+  which rewrites `shoelace-theme.css` anyway.
+- **three.js stays on the vendored r186** (`three.module.min.js`, three.js
+  and its core file bundled with esbuild). Rebuilding from `three@0.186.0`
+  with esbuild 0.28.2 reproduces the file byte for byte. `THREE.Clock` is
+  deprecated since r183 and logs a warning in r186; `phenomenonrender.js` is
+  the one user, to move to `THREE.Timer` before the next bump.
+- **Xterm.js 6.0.0** (`@xterm/xterm`, with `@xterm/addon-fit` 0.11.0) and
+  **TanStack** table-core 8.21.3 and virtual-core 3.13.12 are current enough;
+  TanStack Table 9 exists, and stays unused until a feature needs it.
+- **Record versions and hashes in one lock file** (recommended, not yet
+  built). `vendor/THIRD_PARTY_NOTICES.txt` lists versions and rebuild commands
+  but no hashes or build-tool version. Add `static/vendor/VENDORED.json`
+  (package, version, npm `dist.integrity`, SHA-256 of each shipped file,
+  esbuild version, licence), written by the vendor scripts and checked by a
+  pytest that fails on a mismatch or an unlisted file; add the esbuild version
+  to the notices file.
 ## 6. Package layout (OPS.23)
 
 The plan for OPS.24's move. Boss approves it before the move starts.

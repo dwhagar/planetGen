@@ -323,6 +323,34 @@ items. New notes are listed here when the PR that adds them merges.
 | [orbital-updates.md](../design/orbital-updates.md) | The orbital update design (GEN.105 and its chain). |
 | [library-migration.md](../design/library-migration.md) | The move to third-party libraries. |
 | [reproducible-galaxies.md](../design/reproducible-galaxies.md) | Seeds, version keys and the same-seed rule. |
+| [star-types-by-galactic-radius.md](../design/star-types-by-galactic-radius.md) | How star-type shares change with distance from the core, against observation (GEN.133). |
+| [generation-determinism.md](../design/generation-determinism.md) | Floating-point rules, rounding, fingerprints and CI for the same-seed guarantee (GEN.55, GEN.57 to GEN.61, TEST.77, OPS.12 to OPS.15, DB.7). |
+| [db-check-and-parity-repair.md](../design/db-check-and-parity-repair.md) | Damage check, parity file and repair, Alembic progress and locks (DB.8 to DB.15). |
+| [ops-scheduling-and-rotation.md](../design/ops-scheduling-and-rotation.md) | The daily maintenance run, schedules on three systems and the 18-slot backup rotation (OPS.8, OPS.13, OPS.14, OPS.16 to OPS.18, ADM.19, ADM.20, OPS.21, OPS.27). |
+| [sampling-backfill-and-resume.md](../design/sampling-backfill-and-resume.md) | Backfill cost, sampling equivalence and resumable runs (GEN.40 to GEN.43, GEN.96 to GEN.99, GEN.102, PERF.18, PERF.29, PERF.30). |
+| [fill-order-curves-and-core.md](../design/fill-order-curves-and-core.md) | Hilbert and other fill orders, region enumeration and the galactic core (GEN.101, ADM.29, ADM.30, GEN.97, GEN.23, GEN.24). |
+| [course-routing.md](../design/course-routing.md) | Routes, the route graph, hop lengths and nearby search (NAV.9 to NAV.12, NAV.36, NAV.39 to NAV.48). |
+| [course-avoidance.md](../design/course-avoidance.md) | Keep-out zones for courses around hazards (NAV.22, NAV.24 to NAV.28, NAV.51). |
+| [orbital-solvers-and-integrators.md](../design/orbital-solvers-and-integrators.md) | Kepler solvers, N-body integrators, thresholds and scheduling (GEN.105 to GEN.109, GEN.111, GEN.115). |
+| [galactic-potential.md](../design/galactic-potential.md) | The galactic gravity model and its gradient for object updates (GEN.108, GEN.115, GEN.106, GEN.125). |
+| [collisions-and-mergers.md](../design/collisions-and-mergers.md) | Detecting and resolving collisions and mergers during an orbital update (GEN.109 to GEN.112). |
+| [atmospheres-retention-and-classes.md](../design/atmospheres-retention-and-classes.md) | When a planet keeps an atmosphere, the new hot- and cold-zone classes and life stage (GEN.91, GEN.92). |
+| [activity-magnetism-radiation-hydrosphere.md](../design/activity-magnetism-radiation-hydrosphere.md) | Stellar activity, magnetic fields, surface dose, water and oceans (GEN.86 to GEN.89, GEN.104). |
+| [anomalies.md](../design/anomalies.md) | Anomalies and asteroid fields: classes, rates and generation rules (GEN.113, GEN.114, GEN.103, GEN.128 to GEN.130). |
+| [multistar-and-compact-systems.md](../design/multistar-and-compact-systems.md) | Multi-star systems, binaries and compact-remnant systems (GEN.62, GEN.71, GEN.128 to GEN.130, GEN.103). |
+| [population-and-politics.md](../design/population-and-politics.md) | Population, politics, technology levels and facilities (POP.7 to POP.10). |
+| [api-design-standards.md](../design/api-design-standards.md) | API conventions: errors, paging, versioning, keys, logging and limits (API.3 to API.19, ADM.13). |
+| [units-and-number-formatting.md](../design/units-and-number-formatting.md) | Units, unit ladders and number formatting in code and in the browser (UX.36). |
+| [map-ui-and-frontend-libraries.md](../design/map-ui-and-frontend-libraries.md) | Map interface patterns and front-end library choices (UX.3, UX.40 to UX.49). |
+| [settings-seo-and-accounts.md](../design/settings-seo-and-accounts.md) | Settings pages, search-engine behaviour and account design (ADM.42 to ADM.44, USR.1 to USR.8, API.6). |
+| [sky-view.md](../design/sky-view.md) | The view from a planet's surface: stars, backfill levels and cost (VIEW.1 to VIEW.4). |
+| [multiple-galaxies.md](../design/multiple-galaxies.md) | Neighbour galaxies in the sky and several galaxies in one install (GEN.9, VIEW.2, VIEW.3). |
+| [navigation-frames.md](../design/navigation-frames.md) | Coordinate frames used for navigation and courses. |
+| [galaxy-coordinate-system.md](../design/galaxy-coordinate-system.md) | The galaxy frame, rings, layers and slots. |
+| [galaxy-disk-density.md](../design/galaxy-disk-density.md) | The disk density model behind sector fill. |
+| [performance-eta-queue-and-caching.md](../design/performance-eta-queue-and-caching.md) | Profiling, progress and ETA estimates, the RQ queue and cache invalidation (PERF.20, PERF.31 to PERF.34, UX.3, ADM.15). |
+
+Most of these notes are the research pass Boss asked for on 2026-10-09 (08:43Z): each gives its sources, marks numbers as seen in a search [S], computed [C] or recalled and still to verify [R], and names the TODO items it informs. The research environment could read search-result text but not the papers themselves, so every [R] needs checking once paper access is allowed.
 
 ## Not yet checked in live use
 

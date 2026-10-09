@@ -6,13 +6,31 @@ damaged database is found and repaired. Recorded 2026-10-02 from Boss's
 decisions of 01:34Z to 02:31Z and the seed math report (dependency tree
 thread). This is the design note OPS.11 asks for.
 
-**Status (2026-10-02, checked against main after PR #359, 7.132.433):
-planned, nothing in this note is built.** Today every generation draw
-comes from the operating system's random source, so no seed reproduces a
-galaxy (GEN.39). Each piece below names its TODO item and phase;
-`docs/TODO.md` holds each item's full text and `docs/plan/` the order.
+**Status (2026-10-09, checked against main at 27220d8): partly built.**
+GEN.39 (per-unit seeds), GEN.56 (every draw through `util/draw.py`), DB.6
+(seed, version key, run history) and OPS.10 (the log line) are in, each
+described under "As built" in section 3 or 5. Everything else here is
+planned: the fingerprint, the golden test, the update history, the
+settings file, the maintenance run, the check and repair, and `reproduce`.
+Each piece names its TODO item and phase; `docs/TODO.md` holds each item's
+full text and `docs/plan/` the order.
 
-## 1. What Boss asked for
+Measurements of what breaks reproducibility across Python versions, operating
+systems and CPUs, and the design built on them (deterministic-math helpers,
+fingerprint encoder, generator epoch, net-diff delta format, golden-test
+structure), are in [generation-determinism.md](generation-determinism.md)
+(research, 2026-10-09). Where that note recommends something different from
+the TODO text, this note says so in the section concerned.
+
+The check, the parity codec and file, the stale-record rules, how MariaDB
+behaves on a damaged page, and the long-migration helpers are in
+[db-check-and-parity-repair.md](db-check-and-parity-repair.md) (research,
+2026-10-09); section 9 below summarises and corrects the TODO text.
+
+## 1. Decisions already taken
+
+Boss's decisions, as recorded; sections 2 onward say which parts are built and
+which are still recommendations.
 
 > Ok use a 128 bit value and store the seed in the database, and put it
 > in the log at the top of any generation, also populate the TODO upward
@@ -30,6 +48,13 @@ the file (02:20Z); the file name (02:21Z); the daily maintenance run and
 going to nuke the galaxy anyway"), so nothing here migrates or supports
 an unseeded galaxy.
 
+Later decisions that touch this design: every generation draw reaches the
+unit's stream through a `ContextVar` instead of an `rng` argument on every
+function (2026-10-09 07:02Z); IDs and the naming key name the interstellar
+objects while stars and sectors keep word-salad names, and planets, moons
+and belts keep the "<system> I" pattern (2026-10-08 03:57Z and 04:00Z,
+[object-ids.md](object-ids.md)).
+
 ## 2. What "the same galaxy" means
 
 Every generated object has the same address, position, properties and
@@ -42,9 +67,15 @@ A seed reproduces a galaxy only on the exact setup that made it: the
 same PlanetGen release, Python version, OS, architecture and word list.
 New code turns the same seed into a different galaxy and no formula
 converts between versions, so an older galaxy is rebuilt by running its
-own release. A seed cannot be worked out for a galaxy that already
-exists: today's galaxy came from true randomness, and finding a seed for
-a given galaxy means running SHA-256 backwards (about 2^128 tries).
+own release. The guarantee is exact equality on the same setup; across
+Python versions or platforms it does not hold today (Python 3.9 and 3.10 and
+later give different sectors from one seed, because `math.hypot` changed;
+[generation-determinism.md](generation-determinism.md) section 2), and
+the recommended fix makes integers, strings and structure exact and floats
+equal to 9 significant digits there. A seed cannot be worked out for a
+galaxy that already exists: one made before GEN.39 came from true
+randomness, and finding a seed for a given galaxy means running SHA-256
+backwards (about 2^128 tries).
 
 ## 3. The seed (GEN.39, DB.6, phase 0)
 
@@ -65,9 +96,8 @@ a given galaxy means running SHA-256 backwards (about 2^128 tries).
   its address, never on the order sectors run in or the worker count.
 - The version is not mixed into the hash: a release that changes one
   formula changes only what that formula touches.
-- The bright-star scatter's 63-bit seed (today
-  `random.SystemRandom().getrandbits(63)` in `planetgen`) is derived
-  from the galaxy seed too, so no step throws bits away.
+- The bright-star scatter's 63-bit seeds come from the unit's stream
+  (`draw.getrandbits(63)`), so no step throws bits away.
 - Odds, from the seed math report: two of a billion random 128-bit seeds
   match with a chance of about 1.5 x 10^-21; two of 12 billion sectors
   sharing a unit seed, about 10^-57.
@@ -134,8 +164,30 @@ Inputs outside the key that can change a galaxy are hashed (SHA-256) and
 kept with each update's history row (section 6): nltk's `words` corpus
 files (downloaded apart from the pinned packages), `offensive_words.txt`
 and any name lists, and `requirements.lock`. The word list itself goes in
-the settings file (section 7). No numpy or other numeric library is
-used, so the OS, architecture and Python parts cover the maths library.
+the settings file (section 7).
+
+The OS, architecture and Python digits do not cover everything that moves
+a float. Generation also uses numpy and scipy (`galaxy/nebula_shape.py`,
+`physics/sector_path.py`, `physics/kepler.py`), scikit-image (marching cubes)
+and astropy (`physics/constants.py`), the lock pins a different version of
+each per Python leg, and the C maths library and BLAS kernel depend on the
+OS and CPU in ways the digits do not name. The lock hash covers the
+versions; [generation-determinism.md](generation-determinism.md) section
+2.3 lists the specific fixes (freeze astropy constants, no BLAS in
+generation).
+
+**The key follows releases, not output (recommendation).** MAJOR.REVISION.BUILD
+moves on nearly every release (each patch or minor note bumps REVISION and
+BUILD is a sum of TODO counters), so the key alone would flag almost every
+update as a change. Beside the key, the history row, the settings file and
+the log line carry a `generator_epoch` (an integer bumped only by a PR that
+changes the golden digest, enforced by `bump_version.py --check-pr`) and a
+battery digest (a hash of a canned set of tiny generations run in the
+running environment, OPS.15). A galaxy is reproducible here when its epoch
+matches and the battery digest now equals the stored one. DB.7 then stores
+`generator_epoch` and a run id per sector instead of four text columns, the
+full key text living on the `generation_runs` row. Detail:
+[generation-determinism.md](generation-determinism.md) section 5.
 
 ## 5. Every draw seeded, every sector independent (phase 1)
 
@@ -143,8 +195,7 @@ used, so the OS, architecture and Python parts cover the maths library.
   web or API job and work queue run first writes, at normal level, the
   galaxy seed, the version with its key, and the run's command, for
   example `Galaxy seed 3f2a...c901, PlanetGen 7.127.352
-  (0007007F000160030C0300), run: sector 12 3 0`. Today `planetgen`
-  logs its `secrets.randbits(128)` run seed at debug level only.
+  (0007007F000160030C0300), run: sector 12 3 0`.
   As built (OPS.10): `versionKey.run_line` writes it, first thing after
   `planetgen` sets up logging (a `plan --seed` names the seed given,
   otherwise the stored one, `none yet` before the first plan), and
@@ -156,15 +207,20 @@ used, so the OS, architecture and Python parts cover the maths library.
   start and end, outcome). A galaxy is built by a series of commands
   (plan, sectors, scatter, backfill), not by the seed alone, so this is
   what makes a rebuild possible.
-- **Every draw from the derived seeds (GEN.56).** Today `secrets.choice`
-  and `secrets.randbelow` pick planet classes, life, moons and name
-  syllables (`planetPhysics.py`, `planetLife.py`, `planetData.py`,
-  `utils.py`); `spaceSector._rng` is a `secrets.SystemRandom`; and
-  `utils.reseed_rng()` reseeds the global `random` from `secrets` in 13
-  generator modules. All of that moves to the unit's `random.Random`.
-  Python promises the same sequence only for `random()` itself, not for
-  `choice`, `uniform`, `gauss` or `shuffle`, so generators draw through
-  small in-house helpers built on `random()` alone. Nothing may depend on
+- **Every draw from the derived seeds (GEN.56, built).** Before GEN.56,
+  `secrets.choice` and `secrets.randbelow` picked planet classes, life,
+  moons and name syllables, `spaceSector._rng` was a `secrets.SystemRandom`
+  and `utils.reseed_rng()` reseeded the global `random` from `secrets` in 13
+  generator modules; all of that now draws from the unit's stream (the
+  "As built (GEN.56)" paragraph in section 3). Python promises the same
+  sequence only for `random()` itself, so generators draw through the
+  in-house helpers built on `random()` alone. Measured on Python 3.9 to 3.14,
+  `draw.Stream` gives identical output (stdlib `choice`, `shuffle` and the
+  others also agreed there, so the rule is insurance, not a response to
+  observed breakage; only `paretovariate` changed), with one exception:
+  `Stream.gauss` uses `log` and `cos` from the C maths library
+  ([generation-determinism.md](generation-determinism.md) section 2).
+  Nothing may depend on
   set or string-keyed dict iteration order (`PYTHONHASHSEED`) or locale
   sorting. A test scans the generation modules for `secrets`,
   `SystemRandom`, `os.urandom`, `uuid4`, `time`, unseeded `random.seed()`
@@ -177,6 +233,17 @@ used, so the OS, architecture and Python parts cover the maths library.
   and the other is renamed from its own seeded stream (with GEN.46);
   population seeds stop keying on row ids; the backfill stops depending
   on which sectors are already filled (with GEN.44).
+- **Deterministic-math helpers (proposed item, no ID yet).** Measured:
+  `math.hypot` and `math.dist` give different results on Python 3.9 and
+  3.10 and later, and `sum()` of three or more floats differs between 3.11
+  and 3.12, so one seed gives different sectors on the 3.9 CI leg and the
+  others. Generation code uses `planetgen/util/detmath.py` (`hypot`, `dist`,
+  `fsum`) instead, `test_reproducible_draws.py`'s scan flags the builtins,
+  astropy-derived constants become literals, and `@` (BLAS) leaves
+  `nebula_shape.py` and `sector_path.py`. The change alters stored values, so it
+  bumps the epoch. It must land before TEST.77 or that test fails on 3.9.
+  Rules and measurements: [generation-determinism.md](generation-determinism.md)
+  sections 2 and 3.
 - **Fingerprint (GEN.58).** `planetgen fingerprint` prints a canonical
   SHA-256 per sector and for a region, in address order with canonical
   number formatting, skipping ids and timestamps, either as first
@@ -191,6 +258,14 @@ used, so the OS, architecture and Python parts cover the maths library.
   location text, sector paths and stats, and population data are left
   out. It reads the galaxy as stored; the settings-file layer waits for
   GEN.59.
+  Not built, recommended in
+  [generation-determinism.md](generation-determinism.md) section 4: round
+  floats to 9 significant digits before hashing, so 1-ulp differences in
+  `exp`, `sin` and `atan2` between machines do not show; add separate
+  structural and float digests over named sections to localise a failure;
+  save a leaf digest per sector with a (ring, layer) node table and ring
+  and galaxy roots (DB.9). The built encoder hashes floats exactly, so run
+  TEST.77 on every CI leg before deciding whether rounding is needed.
 - **Golden test (TEST.77).** A fixed seed builds a small galaxy (plan, a
   few sectors, a scatter, a backfill) at 1 and 4 workers on every CI
   Python leg, and its fingerprint must match the one pinned in
@@ -199,6 +274,18 @@ used, so the OS, architecture and Python parts cover the maths library.
   `bump_version.py --check` checks the two go together. It also watches
   for the one known risk: a maths function (`exp`, `pow`) differing in
   the last digit between machines and tipping a value over a threshold.
+  Recommended changes to the TODO text: the golden is pinned per
+  `generator_epoch`, one digest for all legs, not per release with the
+  version it was made on (REVISION moves every release, and per-leg
+  goldens would hide cross-version drift); a database-free tier A (the
+  OPS.15 battery, 3 to 5 s) also runs on the Windows and macOS CI jobs,
+  tier B is the 1 against 4 workers galaxy, tier C the hash-seed and
+  locale probe; one small sector is stored as full text so a failure can
+  be read as a diff; a `golden_update` tool rewrites the goldens and bumps
+  the epoch; `bump_version.py --check-pr` requires golden change, epoch
+  bump and a `generation-output: changed` line in the note together.
+  Details: [generation-determinism.md](generation-determinism.md)
+  section 7.
 - **Mixed versions (DB.7, built).** Each sector records the key, release,
   Python and platform that generated it (schema v67, `sectors.version_key`
   and friends). Extending a galaxy whose sectors came from a different
@@ -208,6 +295,9 @@ used, so the OS, architecture and Python parts cover the maths library.
   and the Generate page shows it (`GET /api/galaxy/shape`'s
   `version_warning`). Sectors from before v67 have no version and are not
   compared.
+  Not built, recommended: a `generator_epoch` (SMALLINT) and a
+  `generation_runs` id per sector in place of repeated text columns, which at
+  12 billion sectors repeat the same strings.
 
 ## 6. Updates and the version history (phase 1, then 2)
 
@@ -219,16 +309,42 @@ used, so the OS, architecture and Python parts cover the maths library.
   the date. The corpus and name-list hashes are not recorded (the name
   codec replaced them). Only the last 10 rows per galaxy are kept;
   `planetgen versions` lists them. A failure to record only warns.
+  Not built, recommended: the row also holds
+  the `generator_epoch`, the battery digest and an environment record
+  (libc, numpy, astropy, scipy, scikit-image versions). A row is added only
+  when the key or a hash differs from the newest row (an update that
+  changes nothing only refreshes that row's last-seen date), so repeated
+  "already up to date" runs do not push the older distinct versions out.
+  The lock file is pinned to LF in `.gitattributes` (or hashed as
+  normalised text) so a Windows checkout hashes the same as a Linux one.
+  *The seed question.* Boss's wording (2026-10-02 02:08Z) was that each
+  update makes "a sweet to recalculate the seed value based on the current
+  code version". The seed is not changed: it identifies the galaxy whose
+  rows exist, and mixing the version or epoch into it would re-roll every
+  sector at each epoch bump, against section 3's rule that a release
+  changes only what its formula touches. The sweep recomputes and records
+  what depends on the code (key, epoch, dependency versions and hashes,
+  battery digest) beside the unchanged seed
+  ([generation-determinism.md](generation-determinism.md) section 5.3).
 - **Mismatch warning (OPS.14, phase 1).** One check compares the running
   key and hashes with the galaxy's (and each sector's) and names every
   field that differs ("Python 3.12.3 now, 3.11.9 when generated").
   `planetgen`, the Generate page, the fingerprint output and the
-  reproduce report all print it.
+  reproduce report all print it. Recommended severities: an epoch
+  difference (output differs, and `epochs.json` names the release that
+  introduced it); the epoch equal but the battery digest different (the
+  environment or a library moved the output, naming the first differing
+  battery case); everything else (release, Python micro, OS, architecture)
+  as notes.
 - **Did this update change output? (OPS.15, phase 2).** The update
   fingerprints a small fixed region from the galaxy seed under the new
   code, compares it with the previous history row's, stores it, and says
   "generated output unchanged" or names the sectors that differ. The
-  live galaxy is not touched.
+  live galaxy is not touched. Recommended: the compared fingerprint is the
+  battery digest of [generation-determinism.md](generation-determinism.md)
+  section 5.4, a pure database-free function over 6 to 8 tiny canned
+  cases (3 to 5 s), compared together with the epoch, so a new Python or
+  library that moves a value shows up even when no code changed.
 
 ## 7. The settings file (phase 1, then 2)
 
@@ -245,6 +361,11 @@ JSON file is written holding only what reproduction needs:
   name lists), gzip-compressed and base64-encoded, with its SHA-256. A
   rebuild reads names from this list, not from whatever nltk has
   installed;
+- the naming key and the codec version ([object-ids.md](object-ids.md),
+  GEN.70), for the objects the codec names;
+- the `generator_epoch`, the fingerprint format version and a
+  `content_sha256` of the canonical body, so the read-back check after a
+  write is one comparison;
 - the admin changes and the positional-update epoch (below).
 
 The name is `<32-hex seed>-<22-hex key>-<YYYYMMDD>-<HHMMSS>Z.json` in UTC,
@@ -277,16 +398,41 @@ what seed + key would not produce, not a history:
 - an edit that puts a value back to the original drops its entry;
 - a regenerate draws a fresh random 128-bit seed for that object, which
   replaces its derived seed, and clears earlier entries for the object
-  and its children; edits after it are recorded on top (this replaces
-  today's `random.seed()` in `api/edits.py`);
+  and its children; edits after it are recorded on top. (GEN.56 already
+  removed the old `random.seed()` from `api/edits.py`. What is left is that
+  `admin/edits.py: regenerate_planet`, `regenerate_moon` and `regenerate_belt`
+  draw from the run stream with no stored seed, so GEN.59 adds a seed
+  argument to them, binds `draw.bound(seed)` around the draws and stores
+  the seed.)
 - objects are named by a stable address path (sector ring, layer and
   slot, then system, body and moon by generated index), never by
-  database id, since ids change on every rebuild;
+  database id, since ids change on every rebuild. The index must be a
+  stored generation index that is never renumbered, not a row rank:
+  `store.assign_uids` and `galaxy/uid.py` rank an object among its
+  parent's rows by row id, which can shift when an admin deletes one and
+  the sector is saved again;
 - the positional-update epoch: when `planetgen.cli.orbits` last moved the
   systems, so a rebuild reaches the same positions.
 
 Admin changes go into a pending-delta table in the control database as
 they happen. The file is not rewritten per change.
+
+*Delta format (recommended).* One entry per changed object, keyed by
+address path: `set` holds each changed field as `{was, now}` (`was` is
+the generated value captured before the first edit, so a field put back
+to its original drops out without regenerating); `regen` holds the new
+128-bit seed; `deleted` marks a tombstone; `added` marks an admin-created
+object, addressed with a random `+hex` index so it cannot collide with a
+generated one. A regenerate or delete clears every entry under its path
+(prefix operations), later edits go on top, and the merge folds pending
+rows in time order, so the result is the same however they are grouped. A
+custom form was chosen over RFC 6902 (it silently patched the wrong
+planet once a later generator version inserted a system) and RFC 7396
+(arrays are replaced whole and a field cannot be set to null).
+Floats in the file are the exact repr, not rounded; a changed epoch
+means the file is refused, since there is no automatic migration. Format,
+rules and the demonstration: [generation-determinism.md](generation-determinism.md)
+section 6.
 
 **The daily merge (GEN.61, phase 2).** Boss (02:28Z): "a JSON file is
 only changed with the deltas at the end of the day." A merge step reads
@@ -302,51 +448,94 @@ next one; the parity file (section 9) protects them in between.
 **Merge now (ADM.20, phase 3, low priority).** Boss (02:31Z): "Let's
 put that part of Phase 3, low priority." An admin-only button on the
 Admin dashboard runs the delta merge at once, under the same lock and
-rules as the daily run, and writes a new seed-key-date-time file that
-counts toward that day's daily backup slot. If the daily run holds the
-lock, the button says so and does nothing. Needs OPS.16, GEN.61 and
-OPS.18.
+rules as the daily run, and writes a new seed-key-date-time file. The
+newest file of a day holds that day's daily backup slot, so the night
+run's file replaces a merge-now file from earlier the same day. If the
+daily run holds the lock, or a Generate job is running, the button says so
+and does nothing. The merge runs as a job or thread, not inside the web
+request, as the same account that runs maintenance (lock file and JSON
+ownership). Needs OPS.16, GEN.61 and OPS.18.
 
 ## 8. The daily maintenance run (phase 2)
 
-- **The script (OPS.16).** `scripts/maintenance.sh` (Linux and macOS)
-  and `scripts/maintenance.ps1` (Windows) run once a day: the positional
-  update (`planetgen.cli.orbits`), then the delta merge (GEN.61), then the
-  backup rotation (OPS.18). A lock stops two runs overlapping, each step
-  logs, and any failure exits non-zero. Optionally it runs OPS.15's
-  fingerprint check too.
-- **The schedule (OPS.17).** Install and update set it up: a systemd
-  timer or cron entry on Linux, launchd on macOS, Task Scheduler on
-  Windows. Update keeps an existing schedule and adds a missing one; the
-  deployment docs say how to change the time or turn it off. Lands after
-  OPS.7, OPS.8 and OPS.13, which change the same scripts.
+- **The script (OPS.16).** The logic lives once, in
+  `planetgen.cli.maintenance`; `scripts/maintenance.sh` (Linux and macOS)
+  and `scripts/maintenance.ps1` (Windows) are thin launchers that run it as
+  the web user. It runs once a day: the positional update
+  (`planetgen.cli.orbits`, for every galaxy database), then the delta
+  merge (GEN.61), then the backup rotation (OPS.18). A lock file stops two
+  runs overlapping, and the run is skipped (exit 75) while a Generate job
+  is running; each step logs and any failure exits non-zero. `--if-due`
+  makes the run a no-op when the last success is under about 20 hours old,
+  which enforces "once every 24 hours" however often the scheduler fires.
+  Redis is optional here, so an unreachable Redis is a warning. Optionally
+  it runs OPS.15's fingerprint check too.
+- **The schedule (OPS.17).** Install and update set it up by calling the
+  installers that already exist in `examples/maintenance/`: a systemd
+  timer (cron.d where there is no systemd) on Linux, launchd on macOS, Task
+  Scheduler on Windows. The daily run replaces the monthly orbit timers,
+  tasks and plists (`planetgen-orbits@`, `org.planetgen.orbits.*`), which
+  are removed when it is installed, since it runs orbits itself. Update
+  keeps an existing schedule and adds a missing one; a
+  `maintenance.schedule` key in `config.json` (`auto` or `off`) is the off
+  switch that survives updates. The deployment docs say how to change the
+  time. Lands after OPS.7, OPS.8 and OPS.13, which change the same scripts.
 - **18 backups (OPS.18).** After each merge the files are kept by
-  grandfather-father-son rotation: the newest 7 daily, then 4 weekly, 6
-  monthly and 1 yearly, 18 in all; older files are deleted and the
-  current one is always kept.
+  grandfather-father-son rotation with calendar periods taken from the UTC
+  time in each file name: the newest file of each of the last 7 days, 4 ISO
+  weeks, 6 months and 1 year that have a file, a file kept by a finer tier
+  not counting again. That is exactly 18 distinct files once history
+  exists; the yearly file is the last file of a past calendar year, 188 to
+  553 days old, not exactly 365. Older files are deleted, the current one
+  is always kept, and only parsed names of the same seed are touched.
 - **Listing them (ADM.19).** The Admin dashboard lists all 18 with date,
-  slot and version key, each downloadable.
+  slot and version key, each downloadable. The slot comes from the same
+  selection function as the rotation, not from a stored label.
+
+The reload step, the per-OS schedulers, the lock, the rotation function and
+its tests are in [ops-scheduling-and-rotation.md](ops-scheduling-and-rotation.md).
 
 ## 9. Damage: check and repair
 
 - **Check (DB.8, phase 0).** `planetgen check-db` and an Admin
-  dashboard button (run as a job) check the galaxy and control databases
-  without changing anything: schema against the recorded migration
-  level, orphan rows, ids against `id_blocks`, name registries against
-  names in use, sector addresses in bounds, no NaN or infinite values,
-  every system passing `validation.check_star_system`, and, once they
-  exist, the per-sector stats (GEN.44, PERF.11) and version keys (DB.6,
-  DB.7). One pass or fail line per check; non-zero exit on damage;
-  `--sector` and `--region` limit it.
-- **Repair (DB.9, phase 1).** Each sector gets a content checksum (the
-  hash of its GEN.58 fingerprint). A parity file outside the database
-  (path in `config.json`) holds Reed-Solomon parity over groups of
-  sector exports, so one damaged sector per group can be rebuilt; it is
-  updated as sectors are saved or edited and carries its own checksum.
-  `planetgen repair-db` finds damage with DB.8's check and rebuilds
-  from parity; where parity can't and the key matches the running code
-  (OPS.14), it regenerates the sector from its seed and replays its
-  edits. It checks again and lists anything it could not repair.
+  dashboard button (run as a job) check the galaxy and control
+  databases without changing anything: the Alembic revision (`alembic_version`,
+  `schema_migrations` and `store.SCHEMA_VERSION` agree, and the live shape
+  matches `db/models.py` through `compare_metadata`), `CHECK TABLE ... QUICK`
+  per table, orphan rows (foreign-key queries generated from
+  `information_schema`, plus hand-written ones for the polymorphic
+  `object_table`/`object_id` columns), ids against `id_blocks`, sector
+  addresses in bounds, stored values inside plausibility ranges (a DOUBLE
+  column cannot hold NaN or infinity, so a NaN check can only run before a
+  save), every system passing `validation.check_star_system`, and, once they
+  exist, the per-sector stats (GEN.44, PERF.11), version keys (DB.6, DB.7)
+  and per-sector checksums (DB.9). The name-registry check goes with the
+  registries (GEN.71). One pass or fail line per check; non-zero exit on
+  damage, a different code for "could not check"; `--sector` and `--region`
+  limit it. Queries, costs and lock behaviour:
+  [db-check-and-parity-repair.md](db-check-and-parity-repair.md) section 6.
+- **Repair (DB.9, phase 1).** Each sector gets a storage checksum: SHA-256
+  over a lossless, id-preserving dump of its stored rows, read back after
+  the write. It is not the GEN.58 fingerprint, which is rounded to 9 digits,
+  skips ids and describes the sector as generated, so it would miss a
+  flipped low bit and would not match an edited sector. Neither the checksum
+  nor the parity covers the columns the daily orbit update rewrites (phases,
+  positions, velocities, reflex offsets, a placed object's sector), which
+  would make every record stale each day. A parity file outside the database
+  (path in `config.json`) holds Reed-Solomon parity over groups of sector
+  exports, so one damaged sector per group (two with the recommended
+  G = 32, m = 2) can be rebuilt; groups are sectors of similar export size
+  far apart in id (about 7 percent overhead), it is updated by delta as
+  sectors are saved or edited, and each record carries its own checksum.
+  `planetgen repair-db` finds damage with DB.8's check and rebuilds from
+  parity; where parity can't and the key matches the running code (OPS.14),
+  it regenerates the sector from its seed and replays its edits. It checks
+  again and lists anything it could not repair. A damaged clustered-index
+  page cannot be read or deleted through SQL, so for that case repair
+  rebuilds the affected table from the surviving rows and the rebuilt
+  exports. Codec, layout, stale-record table and the page-damage behaviour:
+  [db-check-and-parity-repair.md](db-check-and-parity-repair.md) sections 4
+  and 5.
 - **Repair with the settings file (DB.10, phase 3).** Where repair
   regenerates a sector, it applies the newest file's diff and epoch plus
   any pending deltas, so changes since the last merge survive; if the
@@ -354,7 +543,10 @@ OPS.18.
 
 The seed and the parity file cover different risks: the seed rebuilds
 the galaxy as generated, with admin changes replayed on top; the parity
-file repairs damage to the database as it is now, with no rebuild.
+file repairs damage to the database as it was at the last save, with no
+rebuild (the orbit-updated columns excepted: how repair restores them is
+open, [db-check-and-parity-repair.md](db-check-and-parity-repair.md)
+section 5.2).
 
 ## 10. The end state: `planetgen reproduce` (OPS.12, phase 3+)
 
@@ -367,11 +559,16 @@ comparison of keys and hashes. Without the settings file it rebuilds the
 galaxy as first generated; with it, as it is now. It reads the newest
 file plus any pending deltas, or any of the 18 backups (`--as-of DATE`).
 No automatic migration of old galaxies to a new release's output.
+Recommended: it refuses on an epoch mismatch (naming the first release of
+that epoch from `epochs.json`) or a battery-digest mismatch rather than on a
+release mismatch, and rebuilds per address, which GEN.57's order
+independence allows, rather than replaying commands where it can.
 
 Seed and version also reach the web and API: the Generate page shows
 the seed (with a copy button), the version and the run history, and its
 new-galaxy form takes an optional seed (ADM.17, phase 2); an API route
-returns the same (API.16, phase 2); a remote run with the same seed and
+returns the same (API.16, phase 2), both adding the epoch and the battery
+status; a remote run with the same seed and
 release produces exactly what the server would, checked by fingerprint
 (API.17, phase 3). Anything that draws new randomness later (GEN.47,
 GEN.42, PERF.18, API.12, API.13) uses the derived seeds and keeps
@@ -379,10 +576,13 @@ TEST.77 green.
 
 ## 10a. Changes from the 2026-10-07 plan
 
-- Names come from IDs and a naming key (object-ids.md), so the settings
-  file stores the naming key instead of the word list, the update history
-  drops the corpus and name-list hashes (the lock-file hashes stay), and
-  the name-collision rule in section 5 goes away.
+- IDs and a naming key (object-ids.md) name only the interstellar objects
+  and constellations; stars and sectors keep word-salad names (Boss,
+  2026-10-08 03:57Z and 04:00Z). So the settings file stores the naming key
+  and codec version in addition to the filtered word list, the update
+  history keeps the corpus and name-list hashes along with the lock-file
+  hashes, and the name-collision rule in section 5 stays for stars and
+  sectors.
 - Schema changes are Alembic migrations, and the consistency check reads
   Alembic's revision.
 - Generation runs as RQ jobs on Redis; results must not depend on the
@@ -394,11 +594,14 @@ TEST.77 green.
 |---|---|---|
 | 0 | GEN.39 (per-unit seeds), DB.6 (seed, key, run history), OPS.10 (log line) | PERF.21; then in that order |
 | 0 | DB.8 (consistency check) | none; later checks switch on as DB.6, DB.7, GEN.44 and PERF.11 land |
+| 1 | Deterministic-math helpers (proposed item) | GEN.56; before TEST.77 |
 | 1 | OPS.11 (this note), GEN.56, GEN.57, DB.7, GEN.58, TEST.77 | GEN.39 and DB.6; GEN.57 also GEN.46 and GEN.44 |
 | 1 | OPS.13, OPS.14 | DB.6, OPS.7, OPS.8 |
 | 1 | ADM.18, GEN.59 | DB.6, DB.7, OPS.13; GEN.59 also GEN.56, GEN.58 |
-| 1 | DB.9 (parity repair) | DB.8, GEN.39, GEN.57, GEN.44, GEN.58, OPS.14 |
+| 1 | DB.9 (parity repair) | DB.8, GEN.39, GEN.57, GEN.44, GEN.58, OPS.14 (recommended: the parity half needs only DB.8, and the regenerate-from-seed fallback needs the rest) |
 | 2 | GEN.61, OPS.18, OPS.16, OPS.17, ADM.19 | GEN.59, ADM.18; OPS.17 also OPS.13 |
 | 2 | OPS.15, ADM.17, API.16 | OPS.13 and GEN.58; DB.6; DB.6 and API.5 |
 | 3 | API.17, DB.10, ADM.20 (merge now, low priority) | API.12, API.13, GEN.57, GEN.58; DB.9, GEN.61, OPS.18; OPS.16, GEN.61, OPS.18 |
 | 3+ | OPS.12, closing GEN.55 | everything above it |
+
+See also [ops-scheduling-and-rotation.md](ops-scheduling-and-rotation.md) (the daily maintenance run and the backup rotation, OPS.16 to OPS.18).

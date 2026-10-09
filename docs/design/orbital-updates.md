@@ -21,6 +21,29 @@ being trusted. This condenses Boss's documents in this folder:
   elements, the time step and epoch, and collisions)
 - `spacial-position.py` at the repo root (Boss's prototype position class)
 
+Where the documents are wrong, superseded or already implemented differently,
+[orbital-solvers-and-integrators.md](orbital-solvers-and-integrators.md)
+section 1 lists each point with its correction. That document also holds the
+Kepler solvers, the universal-variable guards, the integrator and library
+comparison (with the licence decision), the threshold and scheduling analysis
+(GEN.106), the influence search under the Hill rule checked against the sector
+geometry (GEN.109) and the edge-case guard table (GEN.108). See also:
+[collisions-and-mergers.md](collisions-and-mergers.md) (the authority for
+collision detection, mergers, Roche limits and Hill-sphere warnings) and
+[galactic-potential.md](galactic-potential.md) (the galaxy's smooth potential,
+GEN.115).
+
+Where the code is today: `planetgen orbits` (`src/planetgen/cli/orbits.py`) is
+the positional update, run "once a month or so"; the work is in `db/store.py`
+(`advance_galactic_positions`, `advance_orbital_phases`, `advance_comet_orbits`)
+with `physics/kepler.py` (Kepler and Barker solvers), `physics/state_vectors.py`,
+`physics/position.py`, `physics/sector_path.py` and `galaxy/geometry.py`. There
+is no `updateOrbits.py` or `keplerMotion.py` file; those names survive only in an
+import alias in `tests/test_galactic_motion.py` and a docstring in
+`physics/mathcheck.py`. Nothing yet implements the thresholds' `next_update_due`
+column, the influence set, collisions or the galactic potential (GEN.106, GEN.109,
+GEN.110, GEN.115).
+
 ## 1. What Boss asked for
 
 - (2026-10-03) Only update and count objects that moved noticeably: 0.01
@@ -31,17 +54,33 @@ being trusted. This condenses Boss's documents in this folder:
   a nebula.
 - (2026-10-03) Paths bent by the nearest 10 bodies at least as massive,
   only at updates; warn when an object is inside another's Hill radius,
-  and email the admin when email is set up.
+  and email the admin when email is set up. **The "nearest 10 bodies at
+  least as massive" part is superseded by the 2026-10-09 bullet below;**
+  the warning and the email stand, with the refined criterion in the
+  2026-10-09 bullet.
 - (2026-10-03) Rogue planet collisions: a terrestrial one makes an
   asteroid field; two gas giants merge, and if the result can fuse it
   becomes a star with a planetary nebula and no planets, reported to the
-  admin.
+  admin. The physical outcome table and the "planetary nebula" wording
+  (a dying-star object, wrong for a newly lit red dwarf) are treated in
+  [collisions-and-mergers.md](collisions-and-mergers.md) sections 4 and 5.
 - (2026-10-07) One point-in-space object that keeps every coordinate
   system in step, used by every object, with its point-mass data; a spin
   vector and a realistic axial tilt for every rotating body; editable
   trajectories; trajectories shown in their own frame.
 - (2026-10-07) "we need to ensure that reasonable limitations for when
   the math breaks down at the edge cases."
+- (2026-10-09) Replaces the 2026-10-03 "nearest 10 bodies" rule. For each
+  object visited, the influence radius is the Hill sphere of the largest
+  nearby object; the point masses of all objects inside that radius plus
+  the galactic gravitational gradient (section 10.1, GEN.115) give the new
+  vector. Recommendation, not part of his decision: the Hill-radius warning
+  of the 2026-10-03 bullet uses a gravitational criterion (a bound or capture
+  candidate, a deflection of about 1 degree or more, or the same system) and
+  logs bare Hill-sphere entries at debug level, because "inside a Hill radius"
+  is a state that is true for every planet and moon and for about 12 rogues
+  around every star ([collisions-and-mergers.md](collisions-and-mergers.md)
+  section 3.3).
 
 ## 2. The position object
 
@@ -93,25 +132,50 @@ scale, moons the planetary one, facilities by what they orbit (planetary
 round a planet or moon, system scale round a star or in a belt, galactic
 in open space).
 
+What the thresholds cost, and how to apply them without rewriting every row, is
+in [orbital-solvers-and-integrators.md](orbital-solvers-and-integrators.md)
+section 5. In short: applied literally to the galaxy-frame velocity, 0.01 mpc
+makes every star due every 16 days (rotation moves it 2 AU in that time), so
+stars follow their analytic orbit and are rewritten at sector exit or when
+their influence set changes; planets and moons are computed from their phase
+on read; the moon rule is defined on path length, because Phobos and Deimos
+never move 100,000 km from where they were; each object needs its own epoch
+beside `next_update_due`. The built version above applies the table literally to each row; the position object's
+`get_time_to_observable_movement` is the rule it uses.
+
 ## 4. The update run
 
-From "Orbital Update Full Algorithm.md", adapted to planetGen:
+From "Orbital Update Full Algorithm.md", adapted to planetGen (the document's
+"nightly batch" and one-year `delta_t` are replaced by the real-time step of
+section 10.4: each object is advanced over the whole interval since its own last
+update):
 
 1. **Galactic pass**: for each due root object (stars, remnants, rogue
-   bodies), gather point masses from its sector and the neighbouring
-   sectors, keep the top 10 influencers of equal or greater mass (plus
-   the galactic anchors), and advance it with Velocity Verlet. Check its
-   swept path against those influencers for collisions; record close
-   encounters.
+   bodies), find the largest object nearby, take its Hill sphere (a galactic
+   tidal radius for an object with no host star) as the influence radius, and
+   gather the point masses of every object inside it from the sector tables
+   that sphere touches. The new vector comes from those point masses plus the
+   galactic gradient (GEN.115); the Full Algorithm's "top 10 influencers" is
+   superseded (Boss, 2026-10-09). Advance it with one adaptive integration over
+   its interval (not Velocity Verlet at fixed day steps), capping the exact
+   members (default 64, the rest as one monopole per sector). How the sphere is
+   found through the ring, layer and slot grid, the cover lists for heavy
+   objects and the tests are in
+   [orbital-solvers-and-integrators.md](orbital-solvers-and-integrators.md)
+   section 6. Collision candidates are not this set: they come from a mass-blind
+   distance query ([collisions-and-mergers.md](collisions-and-mergers.md)
+   section 2.4); record close encounters.
 2. **Encounters**: resolve each close pair with a finer step.
 3. **System pass**: move each system's children by the star's
-   displacement, then advance their orbits with a Kepler propagator; check
-   Hill-sphere crossings (capture if bound, deflection if not, disruption
-   inside the Roche limit, ejection).
+   displacement, then advance their orbits with a Kepler propagator (the
+   child's velocity taken relative to the star); check Hill-sphere crossings
+   (capture if bound and stable, deflection if not, disruption inside the Roche
+   limit, ejection).
 4. **Bookkeeping**: rebuild the point-mass table of every sector that
    changed, refresh Hill-sphere occupants for objects that moved far
    enough, and write the summary: objects moved, sector changes, nebula
-   entries and exits (by the nebula shape test), Hill-radius warnings,
+   entries and exits (by the nebula shape test), Hill-radius warnings (by the
+   gravitational criterion of section 1),
    collisions.
 
 Built so far (GEN.106, GEN.107): `planetgen.cli.orbits` prints the objects
@@ -126,24 +190,53 @@ GEN.110.
 **Point-mass tables**: each sector stores a small table of its masses
 (id, position, mass, velocity; about 128 bytes a row), rebuilt when a
 sector is generated, when something moves in or out, and when something
-is created or destroyed. The run loads tables for the sectors it needs and
-builds a temporary in-memory tree; vector fields are never stored.
+is created or destroyed, with the sector's largest mass (`max_mass_kg`, `max_mass_id`) so the
+largest nearby object, and with it the influence radius, is found without reading
+every row. The run loads tables for the sectors it needs and builds a temporary
+in-memory tree; vector fields are never stored. Objects whose Hill sphere is wider
+than the first scan (about 6 pc) are also listed in a per-sector cover list, so a
+body inside a heavy object's sphere does not miss it (solvers document section 6.3).
 
-**Sector geometry**: the documents assume 11.5 ly cylindrical sectors
-(and the anomaly documents 20 ly cubes). planetGen's sectors are 4 pc
-(about 13 ly) cells of the ring, layer and slot grid
+**Sector geometry**: the documents assume 10 ly cubes (Update Algorithms),
+11.5 ly cylindrical cells (Full Algorithm) or 4 pc cubes with Morton keys
+(Astrodynamics), and the anomaly documents 20 ly cubes. planetGen's sectors are
+4 pc (about 13 ly) cells of the ring, layer and slot grid
 (galaxy-coordinate-system.md), so neighbour lookup uses that grid's own
-address arithmetic.
+address arithmetic: `geometry.enumerate_sectors_within_radius` returns cells
+whose centre is within the radius, so the search radius is widened by the cell
+reach (about 4 pc). With that margin the search matched brute force at the
+core, the rim, the slot-0 seam and the top and bottom layers; without it 21.6%
+of true neighbours are missed
+([orbital-solvers-and-integrators.md](orbital-solvers-and-integrators.md)
+section 6.4).
 
 ## 5. Collisions
 
-Continuous collision detection on swept spheres: two bodies collide in a
-step when the quadratic for their closest approach has a root inside the
-step at a distance below the sum of their radii (with gravitational
-focusing). A collision is an inelastic merger that keeps momentum. Rogue
-planet rules on top of that are Boss's (section 1); a merged gas giant
-above the deuterium or hydrogen burning limit becomes a brown dwarf or a
-star, reported to the admin.
+[collisions-and-mergers.md](collisions-and-mergers.md) is the authority for
+collisions: rates, the outcome table, the detection routine, Roche limits and
+the admin report. This section keeps the outline and the corrections that
+affect the rest of the update.
+
+Continuous collision detection on straight swept paths, in the closest-approach
+form: find the time of closest approach and the miss distance as a vector, then
+the entry time (collisions-and-mergers.md section 5.2). The source's quadratic
+discriminant `B^2 - 4A(C - R^2)` loses all precision when the start distance
+is much larger than the radii and is wrong for 19% to 50% of geometries at
+long steps. A step is limited to the window in which the straight relative path
+stays within 1% of the combined radius of the curved one (about 1,800 years for
+two Earths, 100 years for two 1 km bodies; the one-day default is far inside).
+The focusing radius is a capture cross-section, not a contact point.
+
+A merger keeps momentum and mass and is placed at the centre of mass at impact;
+the merged radius is the volume sum for two terrestrial bodies and
+`giant_radius_km(M_new)` for giants and brown dwarfs (the volume sum is 30% too
+large for two Jupiters). The Roche factor is 2.44 for fluid bodies only (1.26
+rigid). Rogue planet rules on top of that are Boss's (section 1); a merged gas
+giant is a brown dwarf from 13 Jupiter masses and a star from about 78.6, which
+two giants alone cannot reach, so the fusion check covers any substellar pair.
+A new star gets no planets and is reported to the admin; "planetary nebula" is
+discussed in the collisions document (recommended: none, with the star flagged as
+a merger remnant), which also lists what an event records.
 
 ## 6. Spin and axial tilt
 
@@ -159,10 +252,24 @@ document's cascade:
 | Black holes | spin a* from Beta(1.4, 3.6), or about 0.69 for merger remnants |
 | Stellar tilt | Rayleigh, sigma 15 degrees |
 | Planet tilt | impact-modified distribution |
-| Asteroid tilt | near 10 or 170 degrees (YORP) |
+| Asteroid tilt | near 10 or 170 degrees (YORP; two Gaussians, sigma 8 degrees, equal probability) |
 
 The axis is the orbit normal tilted by the obliquity at a random
-precession angle.
+precession angle (the pole is given as right ascension and declination in the
+galactic frame, section 10.2).
+
+Points to settle before GEN.104 is built, found in the kinetics document
+(orbital-solvers-and-integrators.md sections 1 and 9): its prose says YORP drives
+obliquity toward 90 degrees but its procedure (and the table above) says near 10
+or 170 degrees, which is the usual finding, so the procedure stands; the
+small-body period distribution is given twice with different medians (8.2 h and
+13 h); the gyrochronology constants credited to Barnes (2007) look like
+Mamajek and Hillenbrand's (2008), and its worked solar period is 26.3 days, not
+25.4; and the tidal-locking example does not reproduce (about 80 years, not 1.2
+Myr), so the coefficient (4/9 or 1/3) needs checking before the "system age past
+locking time" test is written. GEN.104 is not in the code yet: the schema holds
+only a static `rotation_period_hours`, a black hole `spin` and a neutron star
+`spin_period_ms`.
 
 ## 7. Where the math breaks down
 
@@ -180,6 +287,8 @@ guard. Built in GEN.108; `src/tests/test_orbital_limits.py` hits each one.
 | Precision at galactic distances | A 100,000 km moon move lost when added to a 30 kpc position | Positions are stored in integer milliparsecs relative to the sector and in kilometres relative to the system or planet (section 9); the position object does the frames | `physics/position.py` |
 | Unbound results | A body flung out of the galaxy | Kept and flagged, never deleted (GEN.109) | to come |
 
+The full checklist, with the numbers behind each guard, is also in [orbital-solvers-and-integrators.md](orbital-solvers-and-integrators.md) section 7.
+
 ## 8. Light-travel positions## 8. Light-travel positions
 
 What an observer sees is where an object was, not where it is: its
@@ -190,19 +299,25 @@ planet.
 ## 9. Numerical methods and their limits
 
 The foundations document covers the solvers the update leans on, how each
-one fails, and what to fall back to. In planetGen terms:
+one fails, and what to fall back to. In planetGen terms (the measured
+accuracy and speed of the Kepler solvers, and the choice between them, are in
+[orbital-solvers-and-integrators.md](orbital-solvers-and-integrators.md)
+section 2: below e = 1 - 1e-5 the project's `brentq` and Halley code is correct
+but 20 to 30 times slower than a Mikkola or Markley solver for comets):
 
 | Problem | Method | Where it breaks | Fallback |
 |---|---|---|---|
-| Kepler's equation (anomaly from time), Hill and Roche radii, the light-travel time in section 8 | Newton's method, quadratic near the root | the derivative 1 - e cos E goes to zero as e nears 1 near periapsis; a poor first guess wanders | Brent's method on a bracket that always holds the root ([M - e, M + e] for ellipses), which halves the bracket every step and cannot diverge; past e of about 0.99, the universal-variable form (section 7) |
+| Kepler's equation (anomaly from time), Hill and Roche radii, the light-travel time in section 8 | Newton's method, quadratic near the root | the derivative 1 - e cos E goes to zero as e nears 1 near periapsis; a poor first guess wanders | Brent's method on a bracket that always holds the root ([M - e, M + e] for ellipses), which halves the bracket every step and cannot diverge; within 1e-5 of e = 1 the universal-variable form (section 7), and for many orbits at once a non-iterative solver (Mikkola or Markley) |
 | Stopping any iteration | tolerance 2 eps \|x\| + an absolute floor | a bracket narrower than one floating-point step never shrinks, so the loop never ends | stop at that width, cap the iteration count, and log the case |
 | Editable trajectories and course fitting (phase 2 and 3) | BFGS (scipy.optimize) with a Wolfe line search | curvature turns non-positive and the step stops going downhill | Powell's damped update, then reset to steepest descent |
 | Small linear systems (frame changes, encounter fits) | LU with partial pivoting (numpy and LAPACK) | element growth, or a matrix nearly singular | QR, then a regularized least-squares solve, and the result is flagged |
 | Rotation matrices for frames and spin axes | products of rotations | round-off drifts them away from orthonormal after many updates | re-orthonormalize with the SVD (or a quaternion renormalize) on every save |
 
-Precision: positions are 64-bit floats (epsilon about 2.2e-16). Across
-the 30 kpc galaxy that is about 0.2 km in absolute coordinates, far below
-the 0.01 mpc galactic threshold. Systems and moons still use their local
+Precision: positions are 64-bit floats (epsilon about 2.2e-16). The
+spacing of absolute coordinates is 32.8 km at 8.128 kpc, 65.5 km at 15 kpc and
+131 km at 30 kpc (an earlier version of this section said 0.2 km), still far
+below the 0.01 mpc galactic threshold (3.1e8 km) but not below a moon's
+100,000 km by a wide margin (3,000 spacings at 8 kpc). Systems and moons still use their local
 frames (section 7), because a moon's 100,000 km threshold must survive
 being added to a star's galactic position. A problem whose condition
 number nears 1 / epsilon (nearly equal eigenvalues, near-singular
@@ -217,7 +332,9 @@ come from numpy.
 
 From "Computational Astrodynamics.md". Every number below was rerun
 here; section 10.6 lists the places the document is wrong and the fix
-the code uses.
+the code uses, and
+[orbital-solvers-and-integrators.md](orbital-solvers-and-integrators.md)
+section 1 lists the rest.
 
 ### 10.1 The galaxy's own gravity (GEN.115)
 
@@ -245,9 +362,19 @@ At 8.128 kpc the parts are v_b = 68.5, v_d = 163.6 and v_h = 145.3 km/s,
 matching the document and the observed 229 to 232 km/s. These are the
 values GEN.115's tests check at the default galaxy shape.
 
+The potential, its masses and scales, the rotation curve and the scaling to
+the galaxy's shape are developed in
+[galactic-potential.md](galactic-potential.md) (GEN.115), which is the
+authority for this part.
+
 Point masses use Plummer softening, `a = G M r / (r^2 + eps^2)^(3/2)` with
-eps = 1 pc, so the pull near the central black hole and in dense
-clusters stays finite and falls to zero at the centre.
+eps = 1 pc, so the pull near the central black hole stays finite and falls to
+zero at the centre. The document applies the 1 pc to every point mass; that
+cancels 46% of the pull of a solar-mass star at its own Hill radius (1.4 pc), the
+region the influence rule cares about, so the recommendation is 1 pc for the
+central black hole only and none (or 1e-3 to 1e-2 pc) between stars
+(orbital-solvers-and-integrators.md section 1, row 9). The Hernquist,
+Miyamoto-Nagai and NFW potentials are finite at the centre without softening.
 
 ### 10.2 Frames
 
@@ -270,9 +397,9 @@ equator.
 
 | Routine | What it does | Notes |
 |---|---|---|
-| PropagateKeplerianOrbit | Moves a two-body orbit by any time step through the universal variable chi and the Stumpff functions c0 to c3, solved by Halley's method to 1e-12, then Lagrange f and g | One routine for circles, ellipses, parabolas and hyperbolas. Use the corrected equation in 10.6. |
+| PropagateKeplerianOrbit | Moves a two-body orbit by any time step through the universal variable chi and the Stumpff functions c0 to c3, solved by Halley's method to 1e-12, then Lagrange f and g | One routine for circles, ellipses, parabolas and hyperbolas. Use the corrected equation in 10.6, Stumpff functions by series for `|z| < 1`, a Cardano start and Laguerre iteration (orbital-solvers-and-integrators.md section 3). |
 | ComputeTwoBodyHyperbolicDeflection | A flyby that stays unbound: e = sqrt(1 + (b v_inf^2 / mu)^2), turning angle 2 asin(1/e), the relative velocity rotated about h by Rodrigues' formula, the change split by mass | Momentum is conserved. v_inf must be the speed at infinity (10.6). |
-| ResolveCloseEncounterMicroPass | Inside a mutual Hill sphere the step pauses for that pair and a 4th-order Hermite or Yoshida integrator sub-steps at `eta sqrt(r^3 / G(M1+M2))`, eta 0.01 to 0.05 | Fluid Roche limit `2.44 R1 (rho1/rho2)^(1/3)` disrupts the smaller body into ring debris; contact merges them. |
+| ResolveCloseEncounterMicroPass | Inside a mutual Hill sphere the step pauses for that pair and a 4th-order Hermite or Yoshida integrator sub-steps at `eta sqrt(r^3 / G(M1+M2))`, eta 0.01 to 0.05 | Roche limit `alpha R1 (rho1/rho2)^(1/3)` disrupts the smaller body; alpha is 2.44 for fluid bodies (gas giants, stars) and 1.26 for rigid ones, and it is tested on every sub-step; contact merges them. The 4th-order Hermite is not symplectic, and Yoshida's symplectic composition needs a fixed step; the adaptive `DOP853` or IAS15-class integrator does the sub-stepping (solvers document section 4). Collision handling is in [collisions-and-mergers.md](collisions-and-mergers.md). |
 
 Orbits inside a system are stored as modified equinoctial elements
 (p, f, g, h, k, L): no division by zero for circular or equatorial
@@ -287,9 +414,14 @@ A run advances the galaxy by the real time since its last update
 paths in real time ... Default is 1 day = 1 day"), and an option adds a
 stated extra span in one go. With `dt` that time:
 
-- Phase A: each star moves by Velocity Verlet in the galactic potential
-  plus its point masses, and everything it holds is shifted by the same
-  displacement.
+- Phase A: each star moves in the galactic potential plus the point masses
+  inside its influence radius (section 1, 2026-10-09), and everything it holds is
+  shifted by the same displacement. The document uses Velocity Verlet; at the
+  galactic scale Verlet is a poor choice (after 1 Gyr the position error is 4.6 pc
+  at a 0.5 Myr step), so use one adaptive integration (`DOP853`) over the
+  interval since the star's last update, or its analytic galactic orbit when its
+  influence set is empty. Verlet at fixed day steps would need 3.65e8 steps per
+  Myr per star (orbital-solvers-and-integrators.md sections 1 and 4).
 - Phase B: each bound child's mean anomaly advances by `n dt mod 2 pi`,
   exact for any number of orbits per step. A child that is no longer
   bound (e >= 1) uses PropagateKeplerianOrbit instead.
@@ -299,14 +431,23 @@ the spin formulas in "Observational Kinetics for Rotational Vectors.md".
 
 ### 10.5 Collisions
 
-Continuous detection over the step: the squared separation of two
-straight paths, `A t^2 + B t + C`, against an effective radius widened by
-gravitational focusing,
-`R_eff = (R1 + R2) sqrt(1 + v_esc^2 / max(dv^2, floor))`. A hit inside the
-step merges the pair inelastically: mass and momentum conserved,
-`R_new = (R1^3 + R2^3)^(1/3)`, the smaller body deleted, and the sectors
-marked for their point-mass tables to be rebuilt. GEN.110's rogue-planet
-rules decide what the merged body becomes.
+[collisions-and-mergers.md](collisions-and-mergers.md) is the authority;
+this is the outline with its corrections. Continuous detection over the step:
+the squared separation of two straight paths is `A t^2 + B t + C`, but the
+discriminant form `B^2 - 4A(C - R^2)` is wrong in float64 for long steps (19% to
+50% of geometries at 1,000 to 10,000 years), so the code finds the time of
+closest approach and the miss distance first (collisions-and-mergers.md section
+5.2). The focusing radius
+`R_eff = (R1 + R2) sqrt(1 + v_esc^2 / max(dv^2, floor))` is a capture
+cross-section, not a contact point, and is capped at the smaller body's Hill
+radius. A hit inside the step merges the pair inelastically: mass and momentum
+conserved, at the centre of mass; the merged radius is the volume sum
+`(R1^3 + R2^3)^(1/3)` only for two terrestrial bodies and `giant_radius_km` of
+the new mass for giants and brown dwarfs (the volume sum is 30% too large for two
+Jupiters). The smaller body is hidden with its event id rather than deleted
+mid-loop, and the sectors are marked for their point-mass tables to be rebuilt.
+GEN.110's rogue-planet rules decide what the merged body becomes (the outcome
+table is collisions-and-mergers.md section 5.1).
 
 ### 10.6 Errors in the document, and the fix the code uses
 
@@ -336,31 +477,51 @@ rules decide what the merged body becomes.
 - **The focusing floor has no unit.** `max(dv^2, 1.0)` means 1 m/s in SI
   and 1 km/s in galactic units. The code works in SI and uses 1 m/s.
 
-## 11. Open questions for Boss
+Further corrections found later (the closed-form Stumpff functions, the
+`alpha > 0.15` split, the Hill formula, the symplectic claims, the 1 pc
+softening of every mass, the `a_min` filter, 0.01 pc against 0.01 mpc, the sector
+stencil, the Phase B velocity frame) are in
+[orbital-solvers-and-integrators.md](orbital-solvers-and-integrators.md)
+section 1, and the collision-specific ones (discriminant precision, merged
+radius, the Roche factor, the candidate set) in
+[collisions-and-mergers.md](collisions-and-mergers.md) section 2.
 
-The defaults below hold until Boss decides otherwise:
+## 11. Settled points and defaults in force
+
+Boss approved the first, second and third points below on 2026-10-07 17:11Z
+(keep the ring, layer and slot sectors with forces summed in galactic
+coordinates, "but verify the algorithm will work with our sector geometry";
+scale the potential with the galaxy's shape); the verification is
+orbital-solvers-and-integrators.md section 6.4. The other defaults hold until
+Boss decides otherwise:
 
 - **Sector shape.** The document proposes cubic 4 pc cells keyed by a
   Morton code with a 27-cell stencil, to avoid wedge-shaped cells near
   the core. planetGen's sectors are already 4 pc but sit in rings,
   layers and slots (galaxy-coordinate-system.md), and
   galaxy-drilldown-navigation.md already turned down Morton keys.
-  Default: keep the current sectors; the stencil is "this sector and
-  every sector touching it", found by the existing address math. The
-  physics does not change because forces are summed in galactic
-  coordinates.
+  Default: keep the current sectors; neighbours are the sectors returned by
+  `geometry.enumerate_sectors_within_radius` for the influence radius plus the
+  cell reach (about 4 pc), which for a small radius is this sector and every
+  sector touching it. The physics does not change because forces are summed in
+  galactic coordinates.
 - **Sector frame axes.** The document's sectors are unrotated so that
   forces add without rotation. Ours rotate (+X radially outward).
   Default: physics works in galactic coordinates; the rotated sector
   frame stays for display and navigation.
 - **Scaling the potential to the galaxy's shape.** The masses and scales
-  above are the Milky Way's. planetGen's shape is a setting (disk scale
-  length 2,800 pc, bulge scale radius 200 pc, radius 15 kpc by
-  default). Default: the document's values at the default shape; when a
-  galaxy's disk scale length differs, every length scales by
-  `disk_scale_length / 2800 pc` and the masses stay, so the rotation
-  curve keeps its shape. Galaxy-to-galaxy differences beyond that are
-  phase 3+ (several galaxies).
+  above are the Milky Way's. planetGen's shape is a setting; the shipped
+  defaults (`planetgen plan`, the Generate page, `docs/design/galaxy-disk-density.md`)
+  are a thin disk scale length of 2,600 pc, height 300 pc and a bar bulge scale
+  radius of 1,580 pc (COBE/DIRBE fit). Earlier text here said 2,800 pc and 200
+  pc; both were stale, and the 15 kpc "radius" is only the map camera's fallback
+  (`tuning.GALAXY_RADIUS_PC`), the extent coming from the plan. Default: the
+  document's values at the default shape; when a galaxy's disk scale length
+  differs, every length of the potential scales by `disk_scale_length / 2600 pc`
+  and the masses stay, so the rotation curve keeps its shape. The potential's
+  Hernquist scale (c_b = 0.5 kpc) is not the density model's bulge scale radius
+  and does not follow it. Galaxy-to-galaxy differences beyond that are phase 3+
+  (several galaxies); see [galactic-potential.md](galactic-potential.md).
 - **Epoch and step.** The earlier default was year 0 at the galaxy's
   generation. The epoch is J2000.0, as the document and the spin
   document both use. The step is not a fixed year: Boss (2026-10-07
@@ -525,3 +686,5 @@ barycenter by its mass fraction. `tests/test_js_unit.py` checks the two
 copies against each other. `static/orbitclock.js` is the view's time
 control (real time, faster, pause, back to now); the 3D view (MAP.74) wires
 it in.
+
+See also [multistar-and-compact-systems.md](multistar-and-compact-systems.md) (binary and multiple-star orbits).
