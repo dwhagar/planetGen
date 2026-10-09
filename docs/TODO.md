@@ -1713,7 +1713,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     Prerequisites: GEN.106, GEN.108.
     Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
 
-  - [ ] **GEN.109 N-body influence from the nearest 10 bodies of equal or larger mass, with a Hill-radius warning**
+  - [ ] **GEN.109 N-body influence from every object inside the largest nearby Hill sphere plus the galactic gradient, with a Hill-radius warning**
     Boss (2026-10-03 05:38Z): "Add robust vector geometry updates for
     orbital path influenced by the nearest 10 gravitational bodies that
     are as large or larger than the object in question so that object
@@ -1737,6 +1737,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     influencer search finds the same nearest bodies as a brute-force
     search for sectors at the core, at mid radius, at the rim, at the
     top and bottom layers and across the slot-0 seam.
+    Boss (2026-10-09 09:01Z, relayed): drop "nearest 10". The influence
+    radius is the maximum Hill sphere of the largest nearby object; the
+    point masses of every object inside it, plus the galactic
+    gravitational gradient, give each visited object's new vector. This
+    replaces the nearest-10 rule above (the Hill-radius warning, the
+    update-only trajectory changes and the sector-geometry check stand).
+    The influencer search test therefore compares the objects found
+    inside that radius against a brute-force search.
     Prerequisites: GEN.106, GEN.108, GEN.115.
     Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
 

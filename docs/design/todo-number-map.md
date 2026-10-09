@@ -579,7 +579,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.106 | Movement thresholds and a next-update-due column | none | open |
 | GEN.107 | The update reports how many objects moved, changed sector, or entered or left a nebula | none | open |
 | GEN.108 | Orbital math limits: where each method breaks down and what happens there | none | open |
-| GEN.109 | N-body influence from the nearest 10 bodies of equal or larger mass, with a Hill-radius warning | none | open |
+| GEN.109 | N-body influence from every object inside the largest nearby Hill sphere plus the galactic gradient, with a Hill-radius warning | none | open |
 | GEN.110 | Rogue planet collisions: asteroid fields, merged giants and new stars | none | open |
 | GEN.111 | Email the admin when two objects are inside each other's Hill radius | none | open |
 | GEN.112 | Plan asteroid fields and belts as object systems for rendering | none | open |
