@@ -97,7 +97,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.94 | Feasibility study: can planets form in each nebula class, and what changes |  | None of the habitability docs cover nebulae; this is new research. |
 
 ### Orbital updates
 

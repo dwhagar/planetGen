@@ -152,10 +152,10 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.95 | Nebula conditions applied when planets and surfaces are generated | GEN.94, GEN.89 |  |
+| GEN.95 | Nebula conditions applied when planets and surfaces are generated | GEN.89 |  |
 | GEN.152 | Nebula cloud field is 10 to 40 times too full; lower it to the observed filling (GEN.47 rate check) |  | Research: reopens GEN.47 as a rate check. |
 | GEN.151 | Supernova remnant sizes from the density-dependent Sedov-Taylor law (GEN.10 follow-up) |  | Research follow-up to GEN.10 (built). |
-| GEN.93 | Nebula conditions in planet generation | GEN.94, GEN.95 | Parent. |
+| GEN.93 | Nebula conditions in planet generation | GEN.95 | Parent. |
 | GEN.149 | Planetary-nebula central stars: 0.5 to 0.7 Msun, 1e2 to 1e4 Lsun, up to 2e5 K |  | Research: sub-item of GEN.93. |
 
 ### Asteroid fields

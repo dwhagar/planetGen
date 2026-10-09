@@ -112,7 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, GEN.94, GEN.104, NAV.12, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.57, TEST.77, OPS.14, GEN.59, UX.49, PERF.31, PERF.32, GEN.128, ADM.42 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, GEN.104, NAV.12, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.57, TEST.77, OPS.14, GEN.59, UX.49, PERF.31, PERF.32, GEN.128, ADM.42 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, API.16, ADM.17, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18, PERF.33, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, DB.15, ADM.43, ADM.44 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, repair that reads the newest settings JSON, and the anomalies chosen in phase 2. | NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, DB.10, ADM.20, GEN.114, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies, and the end state of reproducible galaxies (`generate.py reproduce`). | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, OPS.12, GEN.55 |
@@ -1950,36 +1950,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   planet could even form there and what would happen if one did, how it
   would change the planets development and envirionment according to the
   science." Done when the subitems are.
-  Prerequisites: GEN.94, GEN.95.
+  Prerequisite: GEN.95.
   Design: [docs/design/nebula-and-asteroid-field-classes.md](design/nebula-and-asteroid-field-classes.md)
-
-  - [ ] **GEN.94 Feasibility study: can planets form in each nebula class, and what changes**
-    Done: for each nebula and remnant class (A to W), whether disks
-    survive (photoevaporation near O and B stars), what enrichment does
-    (26Al and 60Fe heating), how extinction and cosmic rays change
-    surface conditions, and a rule table for generation, written into
-    nebula-and-asteroid-field-classes.md and reviewed by Boss.
-    Research (2026-10-09, nebula-and-asteroid-field-classes.md): its
-    Done clause (the rule table) is met by the sections "Rule table
-    (GEN.94)" and "Planets in and around nebulae" of the design doc;
-    ready for Boss's review. Tighten "26Al and 60Fe heating": the effect
-    is dryness and iron-core size (composition), not present-day
-    heating. Open questions for Boss (defaults taken): only stars inside
-    nebulae roll a birth environment, plus a small field enrichment
-    roll; a "planets forming" text label for stars in classes C, P and
-    Q.
-    Research (2026-10-09,
-    exotic-environments-planets-and-compact-binaries.md): Boss's
-    research answers this item: the rule table stands with three
-    refinements (section 1 of the note), and "pulsar planets about 1% of
-    pulsars" in the T and U rows now reads "about 1% of millisecond
-    pulsars" (0.1% of all known pulsars). The Done condition is met once
-    Boss accepts; then retire GEN.94. Open question for Boss (default:
-    accept and retire). The formula for orbit expansion in the pasted
-    text is wrong (the law is a (M_star + M_p) = constant) and the
-    Vynatheya et al. 2022 criterion as pasted does not match the
-    published form: check the reference before using either.
-    Design: [docs/design/nebula-and-asteroid-field-classes.md](design/nebula-and-asteroid-field-classes.md)
 
   - [ ] **GEN.95 Nebula conditions applied when planets and surfaces are generated**
     Done: generation knows a system's surrounding cloud while it runs
@@ -2002,7 +1974,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     for the red-nova anomaly); (4) surviving planets near the engulfment
     radius get an eccentricity draw (up to about 0.3). Open question for
     Boss (default yes): the swallowed-giant flag.
-    Prerequisites: GEN.94, GEN.89.
+    Decided (2026-10-09): Boss (2026-10-09 18:37Z): the defaults are
+    accepted, including the swallowed-giant flag. Use the established
+    published forms for the orbit-expansion law and the stability
+    criterion; ask Boss to verify any form that cannot be confirmed.
+    Prerequisite: GEN.89.
     Design: [docs/design/nebula-and-asteroid-field-classes.md](design/nebula-and-asteroid-field-classes.md)
 
 - [ ] **GEN.96 Generation directives for a sector (an override button)**
@@ -2523,6 +2499,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (defaults taken): a globular-cluster model does not exist, so the
   captured-giant type is left out until clusters are modelled; the 0.7%
   rate for millisecond pulsars is accepted.
+  Decided (2026-10-09): Boss (2026-10-09 18:37Z): the defaults are
+  accepted (millisecond-pulsar rate 0.7%, no globular-cluster model so
+  the captured-giant type stays out). Use the established published
+  forms for any formula; ask Boss to verify any that cannot be
+  confirmed.
 
 - [ ] **GEN.134 Tune the star populations to the observed star-formation profile by galactic radius**
   From GEN.133 (Boss's 09:20Z request; the analysis is `docs/design/star-types-by-galactic-radius.md`, PR #807), whose four proposals were left unbuilt. Done: (1) the young and intermediate populations are weighted by the observed star-formation profile (peak at 5 kpc, about -0.28 dex per kpc beyond, a dip inside 3 kpc, the Central Molecular Zone as its own small young region); (2) the young population's B share is lowered, or its weight cut, so local B stars come to about 0.04%; (3) the bulge gets a small young tail (about 10% under 5 Gyr, between the HST and microlensing figures); (4) a metallicity gradient is added only if planet occurrence is later tied to it, otherwise the note records why not. The changes are reproducible (GEN.56), and a test compares the star type shares at the core, mid radius and rim against the note's table. Boss to confirm which of the four proposals he wants before the build starts.
