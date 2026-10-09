@@ -570,6 +570,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   a browser test steps sideways and up and back on each map.
   Research (2026-10-09, course-avoidance.md): draw the course on a layer
   that is not faded with the sectors in front of the camera.
+  Folded (2026-10-09, fly-through-view-distance.md): the blocker fade
+  and the faint context around the focus are folded into MAP.149 (the
+  near field), which is built as part of the fly-through (MAP.146).
 
 - [ ] **MAP.122 A Select mode on every galaxy view: Galaxy (blocks and sectors) or Star**
   Boss (2026-10-07 11:47Z): "Button in Galaxy display to allow selecting
@@ -626,6 +629,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the 350 ms deferral of the MAP.113 deselect (open question for Boss,
   default yes), and a non-gesture "Go to" alternative (MAP.139's button
   beside the Details link).
+  Extended (2026-10-09, fly-through-view-distance.md): the go-to flight
+  is extended by MAP.150 (the free camera): double-click flies to the
+  thing clicked, with the wheel zooming to the cursor.
 
 - [ ] **MAP.141 Context around the selection: faint neighbours, and the sectors above and below**
   Boss (GitHub issues [#718](https://github.com/dwhagar/planetGen/issues/718) and [#716](https://github.com/dwhagar/planetGen/issues/716)): "When selecting a slab we should
@@ -642,6 +648,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Research (2026-10-09, map-ui-and-frontend-libraries.md): use one
   shared `contextOpacity(region, focus, camera)` with MAP.121; the
   blocker fade formula is in design doc section 5.4.
+  Folded (2026-10-09, fly-through-view-distance.md): the faint context
+  around the selection is folded into MAP.149 (the near field), built as
+  part of the fly-through (MAP.146).
 
 - [ ] **MAP.142 Nebulae have fuzzy, fading boundaries**
   Boss (GitHub issue [#713](https://github.com/dwhagar/planetGen/issues/713), 2026-10-09 00:25Z): "Can we make the nebula
@@ -677,58 +686,44 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisite: GEN.157.
   Design: [docs/design/multiple-galaxies.md](design/multiple-galaxies.md)
 
-- [ ] **MAP.146 Zoom drill-down centred on the clicked point, not on fixed wedges, blocks and slabs**
-  Boss (2026-10-09 22:24Z): "inject into Phase 2, new item, I want the
-  zoom drill down to be less specific, instead of set wedges, blocks,
-  and slabs pre-determined, have them based on the center of where the
-  cursor is clicked. So that we always are drilling down exactly where
-  the user wants. We'll have to convert block/slab measures to ranges of
-  layers/shells/slots for filling on demand." Done: a click on the
-  Galaxy Map drills into a region centred on the sector under the
-  cursor, at the next zoom step, instead of into the fixed block of the
-  243/27/3/1 ladder that happens to hold it. Every region is described
-  as a range: layers (centre +/- half the span), rings (shells, centre
-  +/- half the span) and, for each ring, the slot range covering the
-  same arc, so the same description drives drawing, statistics, the
-  admin generate and backfill actions (MAP.120) and fill on demand
-  (ADM.29's span fill, GEN.101's fill order). Today's ladder
-  (`galaxy/drill.py` and `static/galaxyprisms.js`, nested blocks 243,
-  27, 3 and 1 sectors a side, with the nested-wedge rule in
-  galaxy-drilldown-navigation.md) is replaced, not kept beside the new
-  one.
-  What this touches: (1) the cached cube tiles and their cache stamp:
-  tiles are keyed by fixed block today, so centred regions need keys by
-  centre sector and size, a cap on cached tiles, and a bump of the
-  planetGen-version stamp (clear /var/cache/planetgen/tiles on update);
-  (2) per-sector stats and the density, age and luminosity colouring of
-  the Galaxy Map (MAP.131), which assume fixed blocks: a region's
-  figures become sums over its sector range, computed on demand from the
-  sector stats and cached by the region key; (3) the Galaxy Map opening
-  view built at the end of update.sh and by `python -m
-  planetgen.cli.warm_map` (MAP.134): the top level stays one fixed view,
-  so it is unaffected unless Boss wants the first click centred too; (4)
-  the settle step (GEN.126), which saves sector paths for created
-  sectors and their neighbours and should be handed a region's sector
-  range, not a block; (5) the breadcrumb and picker trail (NAV.13,
-  NAV.14), the neighbouring-region steps (MAP.121), the
-  slab-versus-wedge wording (MAP.59) and the Select mode (MAP.122), all
-  of which name blocks, slabs and wedges; (6) tests:
-  `tests/test_galaxydrill.py` checks the Python and JavaScript ladders
-  agree and becomes a test of the range maths on both sides.
-  Open question for Boss (default: step sizes stay 243, 27, 3 and 1
-  sectors a side, but the region is centred on the clicked sector and is
-  an odd number of sectors wide so it centres exactly; regions at
-  different zoom steps no longer nest, so a click inside a region may
-  open one that reaches slightly outside it): or keep strict nesting by
-  snapping the centre?
-  Open question for Boss (default: the first click from the whole-galaxy
-  view is centred like the rest, with the opening view unchanged): or
-  keep the first split fixed?
-  Open question for Boss (default: the slot range of a region is the
-  same arc, as an angle, at every ring it covers, rounded outward to
-  whole sectors): or the same number of slots at each ring?
-  Prerequisites: ADM.29, MAP.122. Related: MAP.120, MAP.121, MAP.59,
-  GEN.101, ADM.30, MAP.134, GEN.126, MAP.131.
+- [ ] **MAP.146 Fly through the galaxy: scroll-zoom, double-click flight, distance-based visibility and a see-through near field**
+  Boss (2026-10-09 22:24Z): "I want the zoom drill down to be less
+  specific, instead of set wedges, blocks, and slabs pre-determined, have
+  them based on the center of where the cursor is clicked. So that we
+  always are drilling down exactly where the user wants. We'll have to
+  convert block/slab measures to ranges of layers/shells/slots for
+  filling on demand." Boss (22:49Z and 22:56Z): the end goal is to
+  scroll-zoom and fly smoothly through the interface to a location; the
+  system does not do view distance well and renders and keeps clickable
+  what is right in front of the camera and the object the camera is in;
+  stars should be shown by a smooth distance-and-brightness gradient so
+  only what the observer could see is drawn; inside a block or sector the
+  observer should see its contents without looking around what is in the
+  way, the nearer things becoming more transparent as they approach;
+  double-click zooms or flies to a clickable thing, the wheel zooms in and
+  out, the user is always in the 3D galaxy even when viewing a sector;
+  the sectors looked at are rendered well and the surroundings stay
+  visible but quiet; smooth from the galaxy down to a star system.
+  Done: the Galaxy Map has one free camera from the whole galaxy to a
+  star system, built by its five sub-items: MAP.148 (the star visibility
+  law), MAP.149 (the near field), MAP.150 (the free camera), MAP.151
+  (the region data layer) and MAP.152 (scale hand-offs). The wheel zooms
+  toward the point under the cursor, double-click flies to the thing
+  clicked, stars fade by apparent magnitude against an on-screen limit,
+  things near the camera dissolve, and the camera position names the
+  container. The arc, slab and segment picks stop being the way to move;
+  old stage URLs stop working (no backward compatibility). The open
+  questions for Boss, each with a default, are on the sub-items.
+  Order (from the report, section 8): MAP.149 and MAP.148 (client side
+  first) can start now and improve today's map; MAP.150 needs MAP.149;
+  MAP.151 and MAP.152 follow. MAP.147 (the wire format) must be decided
+  together with MAP.151's tile keys.
+  Prerequisites: MAP.148, MAP.149, MAP.150, MAP.151, MAP.152. Related:
+  MAP.120, MAP.121, MAP.141, MAP.140, MAP.59, MAP.116, MAP.122, MAP.125,
+  MAP.131, MAP.134, MAP.147, ADM.29, ADM.30, GEN.101, GEN.126, NAV.13,
+  NAV.14.
+  Design: [docs/design/fly-through-view-distance.md](design/fly-through-view-distance.md)
+  Design: [docs/design/drilldown-region-sizes.md](design/drilldown-region-sizes.md)
   Design: [docs/design/galaxy-drilldown-navigation.md](design/galaxy-drilldown-navigation.md)
 
 - [ ] **MAP.147 The Galaxy Map wire format: measure what the browser downloads and compare smaller options**
@@ -765,7 +760,107 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   build the quantised format straight from section 5.6?
   Prerequisites: none. Related: MAP.102, MAP.109, MAP.146, PERF.38,
   PERF.41.
+  Linked (2026-10-09, fly-through-view-distance.md): the tile and stage
+  cache keys follow MAP.151 (the region data layer), so decide the wire
+  format and those keys together; the star visibility law (MAP.148) sets
+  how many stars a view needs.
   Design: [docs/design/map-ui-and-frontend-libraries.md](design/map-ui-and-frontend-libraries.md)
+
+- [ ] **MAP.148 The star visibility law: apparent-magnitude opacity, flux-based brightness and an on-screen limit from a histogram**
+  Source: docs/design/fly-through-view-distance.md (section 7 and 8),
+  written at Boss's request of 2026-10-09 22:56Z. Open questions are for
+  Boss; defaults stand until he answers. Nothing is built until he
+  decides.
+  Done: a star's opacity follows its apparent magnitude from the camera,
+  against a limit chosen so about 20,000 stars are on screen, found from
+  a histogram of the stars in view. Brightness is by flux. This replaces
+  the step floors in `generated_star_floor_sol` as the rule and folds
+  MAP.116's budget table into it. First on the tiles already fetched
+  (client side, no schema change), then tiles chosen by distance (with
+  MAP.152).
+  Open question for Boss (default 20,000 stars on screen, 8,000 on a
+  phone, with a 1.5 magnitude ramp, tuned after a first build): other
+  numbers?
+  Prerequisites: none. Related: MAP.116, MAP.146, MAP.147.
+  Design: [docs/design/fly-through-view-distance.md](design/fly-through-view-distance.md)
+
+- [ ] **MAP.149 The near field: depth fade, a see-through focus tube, drawing from inside a container, and picking that matches what is drawn**
+  Source: docs/design/fly-through-view-distance.md (section 7 and 8),
+  written at Boss's request of 2026-10-09 22:56Z. Open questions are for
+  Boss; defaults stand until he answers. Nothing is built until he
+  decides.
+  Done: things nearer the camera than a fraction of the focus distance
+  dissolve; a soft see-through tube thins what stands between the camera
+  and the focus; the container the camera is in is drawn from the
+  inside; only what is visible enough can be picked, so picking agrees
+  with drawing. One shared function does the fade for drawing and
+  picking. The region looked at and the container are drawn at full
+  strength and the rest faintly. Folds in MAP.121's blocker fade and
+  MAP.141's faint context. First client-side, no schema change; it
+  improves today's map.
+  Open question for Boss (default: context regions at opacity 0.08 to
+  0.3 and 2.5 magnitudes shallower than the focus): other strengths?
+  Prerequisites: none. Related: MAP.121, MAP.141, MAP.146.
+  Design: [docs/design/fly-through-view-distance.md](design/fly-through-view-distance.md)
+
+- [ ] **MAP.150 The free camera: wheel zoom to the cursor, double-click flight, and the observer inside, with the container named from position**
+  Source: docs/design/fly-through-view-distance.md (section 7 and 8),
+  written at Boss's request of 2026-10-09 22:56Z. Open questions are for
+  Boss; defaults stand until he answers. Nothing is built until he
+  decides.
+  Done: one free camera from the whole galaxy to a star system. The
+  wheel zooms toward the point under the cursor with clearance from what
+  is in front; double-click flies to the thing clicked (MAP.140's go-to
+  extended); the observer is always in the 3D galaxy, also when looking
+  at a sector; the container is named from the camera position and the
+  breadcrumb is derived from it; URLs and bookmarks hold the camera. The
+  arc, slab and segment picks (MAP.85, MAP.56 and MAP.17 flow) stop
+  being the way to move, and old stage URLs stop working (no backward
+  compatibility).
+  Open question for Boss (default yes): retire the arc, slab and segment
+  picks as the navigation flow?
+  Open question for Boss (default: keep the slab strip as an optional
+  section plane, not a stage): or drop it?
+  Prerequisites: MAP.149. Related: MAP.140, MAP.85, MAP.59, NAV.13,
+  NAV.14, MAP.146.
+  Design: [docs/design/fly-through-view-distance.md](design/fly-through-view-distance.md)
+
+- [ ] **MAP.151 The region data layer: exact-centred frame, aligned cells, per-level aggregates and slot-wrap ranges**
+  Source: docs/design/fly-through-view-distance.md (section 7 and 8),
+  written at Boss's request of 2026-10-09 22:56Z. Open questions are for
+  Boss; defaults stand until he answers. Nothing is built until he
+  decides.
+  Done: region data is read in aligned cells with an exact-centred
+  frame, with per-level aggregates, and a region is described as layer,
+  ring and slot-arc ranges (with slot wrap) that stats, ADM.29 and
+  ADM.30 fills, MAP.120 backfills and fill on demand all use. Tile and
+  stage cache keys follow the cells and bump the cache stamp (clear
+  /var/cache/planetgen/tiles on update); decide them together with
+  MAP.147's wire format. This is the data layer of the original MAP.146
+  text (see docs/design/drilldown-region-sizes.md for region sizes,
+  shapes and the cell pyramid). It touches the per-sector stats and
+  colouring (MAP.131), the Galaxy Map opening view (MAP.134) and the
+  settle step (GEN.126), and `galaxy/drill.py` and `galaxyprisms.js` are
+  replaced, not kept beside it.
+  Open question for Boss (default: a 3-ary pyramid accepting cells 0.84
+  to 1.25 of an edge across): or keep 9-ary and accept a 2.45x gap in
+  sizes?
+  Prerequisites: ADM.29. Related: MAP.120, MAP.147, ADM.30, GEN.101,
+  GEN.126, MAP.131, MAP.134, MAP.146.
+  Design: [docs/design/drilldown-region-sizes.md](design/drilldown-region-sizes.md)
+
+- [ ] **MAP.152 Scale hand-offs: galaxy, sector and system cross-fade with hysteresis, and per-tile camera-relative origins**
+  Source: docs/design/fly-through-view-distance.md (section 7 and 8),
+  written at Boss's request of 2026-10-09 22:56Z. Open questions are for
+  Boss; defaults stand until he answers. Nothing is built until he
+  decides.
+  Done: the galaxy, sector and system scales cross-fade with hysteresis
+  so the camera never flickers between them, and each tile has its own
+  camera-relative origin below about 100 pc so stars stay precise at
+  close range. Includes the distance-cut tile choice that completes the
+  visibility law.
+  Prerequisites: MAP.148, MAP.150. Related: MAP.102, MAP.125, MAP.146.
+  Design: [docs/design/fly-through-view-distance.md](design/fly-through-view-distance.md)
 
 ## NAV: Navigation and courses
 
