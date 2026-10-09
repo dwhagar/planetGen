@@ -722,6 +722,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   MAP.120, MAP.121, MAP.141, MAP.140, MAP.59, MAP.116, MAP.122, MAP.125,
   MAP.131, MAP.134, MAP.147, ADM.29, ADM.30, GEN.101, GEN.126, NAV.13,
   NAV.14.
+  Overlap (2026-10-09, zoom-star-visibility.md): Star visibility while
+  zooming is also covered by MAP.153 to MAP.155
+  (docs/design/zoom-star-visibility.md): MAP.153 is the first client
+  stage of MAP.148's law.
   Design: [docs/design/fly-through-view-distance.md](design/fly-through-view-distance.md)
   Design: [docs/design/drilldown-region-sizes.md](design/drilldown-region-sizes.md)
   Design: [docs/design/galaxy-drilldown-navigation.md](design/galaxy-drilldown-navigation.md)
@@ -781,6 +785,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Open question for Boss (default 20,000 stars on screen, 8,000 on a
   phone, with a 1.5 magnitude ramp, tuned after a first build): other
   numbers?
+  Overlap (2026-10-09, zoom-star-visibility.md): MAP.153 is the first
+  client stage of this same visibility rule
+  (docs/design/zoom-star-visibility.md, Research Lane 1): a rank birth
+  radius on the tiles as fetched today, with the apparent-magnitude law
+  here as the end state; the two are one rule in two stages, not
+  competitors. MAP.154 and MAP.155 carry the server list nesting and the
+  other objects.
   Prerequisites: none. Related: MAP.116, MAP.146, MAP.147.
   Design: [docs/design/fly-through-view-distance.md](design/fly-through-view-distance.md)
 
@@ -861,6 +872,65 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   visibility law.
   Prerequisites: MAP.148, MAP.150. Related: MAP.102, MAP.125, MAP.146.
   Design: [docs/design/fly-through-view-distance.md](design/fly-through-view-distance.md)
+
+- [ ] **MAP.153 Stars fade in with the zoom: a birth radius from each star's rank in its tile list (first client stage)**
+  Source: docs/design/zoom-star-visibility.md (section 3.1 and 5, stage
+  1), written at Boss's request of 2026-10-09 22:30Z: "I want a very
+  smooth transition where stars and objects are slowly added as one
+  zooms in." Today the drawn set is frozen between 11 tile-level radii
+  and then up to 8.8 times as many stars appear in one frame. Done: in
+  `galaxymap3d.js` every star gets a birth radius from its rank in its
+  tile's list (most luminous first, as the server already sorts it), R_b
+  = R* 2^W (N0/r)^(1/3), and its opacity is a smoothstep of the camera
+  radius, cross-faded from the parent tile's rank across the tile
+  level's octave; zooming out removes stars as smoothly as zooming in
+  adds them, a late tile changes nothing visible, and a browser-test
+  hook returns the opacity sum at a given radius so a test bounds the
+  step. Measured on the same tile data the worst single 9% step falls
+  from +883% to +59% (dense) and from +775% to +74% (thin). No server or
+  schema change. This is the FIRST STAGE of the visibility rule that
+  MAP.148 ends with: both decide when a star shows while zooming, so
+  they are not two rules. Until MAP.148 lands, the rank rule leads;
+  MAP.148 then replaces the rank with apparent magnitude (rank stays as
+  the cap and tiebreak).
+  Open question for Boss (default the rank birth-radius fade is stage 1
+  and the apparent-magnitude law of MAP.148 is the end state): which
+  rule leads? Open question for Boss (default each star fades over one
+  halving of the camera radius, W = 1): slower or faster? Open question
+  for Boss (default yes): may a dense sector show all its stars only at
+  sector zoom (they appear in rank order between about 35 pc and 8 pc of
+  view radius)?
+  Prerequisites: none. Related: MAP.148, MAP.146, MAP.149, MAP.147,
+  MAP.116.
+  Design: [docs/design/zoom-star-visibility.md](design/zoom-star-visibility.md)
+
+- [ ] **MAP.154 Nested bright-star lists on the server, so every parent list is a subset of its child's**
+  Source: docs/design/zoom-star-visibility.md (3 scheme J, section 5
+  stage 2). Done: the bright lists use one key for every tile level (a
+  population weight in the key instead of equal-share picking) and the
+  per-level budgets never fall, so a child list always holds the
+  parent's stars inside its box and the rank fade of the previous item
+  is exact instead of degrading gracefully. This changes the tile cache
+  stamp. The key and list shapes are decided together with MAP.147 (wire
+  format) and MAP.151 (region data layer), and with MAP.148 if the
+  magnitude law changes what a tile lists. Open question for Boss
+  (default build it only after MAP.153 is seen working): go ahead?
+  Prerequisites: MAP.153. Related: MAP.147, MAP.148, MAP.151.
+  Design: [docs/design/zoom-star-visibility.md](design/zoom-star-visibility.md)
+
+- [ ] **MAP.155 Other objects fade in too: point objects from level 8, a size ramp for cloud sprites, and stars that grow from a faint dot**
+  Source: docs/design/zoom-star-visibility.md (section 5 stage 3,
+  schemes I and E). Done: black holes, neutron stars and quasars are
+  listed from tile level 8 (160 pc) instead of 10 (40 pc) and fade in by
+  the same rank rule, cloud sprites ramp opacity between 1 and 4 px
+  instead of switching on at 2 px (`CLOUD_MIN_PX`), and a new star
+  starts one pixel and faint and grows to its size with its opacity.
+  Rows with no natural rank use a hash tiebreak (a fixed random number
+  from the object id). Sector blocks and fills keep their own
+  level-of-detail question (the mega-block plan). Open question for Boss
+  (default yes): point objects from level 8?
+  Prerequisites: MAP.153. Related: MAP.153, MAP.148, MAP.149.
+  Design: [docs/design/zoom-star-visibility.md](design/zoom-star-visibility.md)
 
 ## NAV: Navigation and courses
 
