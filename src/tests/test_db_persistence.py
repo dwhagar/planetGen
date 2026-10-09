@@ -1167,6 +1167,20 @@ def test_a_nebula_holds_only_the_points_inside_its_shape():
     assert store.innermost_container((11.0, 0.0, 0.0), [nebula]) is None
 
 
+def _point_inside(shape):
+    """A point inside `shape`: a metaball centre when one is (the usual
+    case), else the nearest to the middle of a coarse grid. The shape's warp
+    can carry every centre out of it (about 1 draw in 40), which made this
+    helper's first version raise StopIteration at random."""
+    centres = ([v / shape.scale for v in c] for c in shape.centres)
+    found = next((point for point in centres if shape.contains(point)), None)
+    if found is not None:
+        return found
+    steps = [i / 4.0 for i in range(-8, 9)]
+    grid = sorted(([x, y, z] for x in steps for y in steps for z in steps), key=lambda p: sum(v * v for v in p))
+    return next(point for point in grid if shape.contains(point))
+
+
 def _placed_nebula(conn, sector_id, around_pc, radius_ly, nebula_class="D"):
     """A nebula placed so `around_pc` lies inside its shape (GEN.75): a
     nebula holds only the points within its shape, not its whole sphere."""
@@ -1176,7 +1190,7 @@ def _placed_nebula(conn, sector_id, around_pc, radius_ly, nebula_class="D"):
     shape = nebula.get_shape()
     from planetgen.physics.units import ly_to_pc
 
-    inside = next(point for point in ([v / shape.scale for v in c] for c in shape.centres) if shape.contains(point))
+    inside = _point_inside(shape)
     x, y, z = (around_pc[i] - inside[i] * ly_to_pc(radius_ly) for i in range(3))
     return store.insert_nebula(conn, nebula, sector_id=sector_id, placement={
         "center_x_pc": x, "center_y_pc": y, "center_z_pc": z, "galactic_radius_pc": math.hypot(x, y, z),

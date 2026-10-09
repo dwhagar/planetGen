@@ -243,13 +243,14 @@ def _windows_process_alive(pid, created_by=None):
 def _runner_alive(pid, job_id, created_at=None):
     """Whether `pid` is still this job's runner. Reads the process's
     command line where `/proc` exists, and on Windows checks it was
-    created within `STARTING_GRACE_SECONDS` of the job (`created_at`),
-    so a reused pid doesn't count."""
+    created within `RUNNER_START_LIMIT_SECONDS` of the job (`created_at`),
+    so a reused pid doesn't count. (The start limit, not the shorter
+    grace period: a runner that is slow to start is still this job's.)"""
     if not pid:
         return False
     if WINDOWS:
         try:
-            created_by = created_at + STARTING_GRACE_SECONDS if created_at else None
+            created_by = created_at + RUNNER_START_LIMIT_SECONDS if created_at else None
             return _windows_process_alive(int(pid), created_by)
         except (OSError, ValueError):
             return False
@@ -598,8 +599,9 @@ def _release_lock(root, job_id):
     lock = os.path.join(root, LOCK_NAME)
     try:
         with open(lock, "r", encoding="utf-8") as f:
-            if f.read().strip() == job_id:
-                os.remove(lock)
+            holder = f.read().strip()
+        if holder == job_id:   # removed once closed: Windows can't delete an open file
+            os.remove(lock)
     except OSError:
         pass
 

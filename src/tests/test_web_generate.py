@@ -1252,7 +1252,6 @@ def test_without_redis_windows_runs_the_job_itself(jobs_root, monkeypatch):
     # then runs in planetgen.web.job_runner, started the same way.
     monkeypatch.setenv("PLANETGEN_REDIS_URL", "redis://127.0.0.1:1/0")
     monkeypatch.setattr(jobs, "WINDOWS", True)
-    monkeypatch.setattr(redisqueue, "detached_options", lambda: [{"start_new_session": True}])
     job_id = jobs.start_job("reset", "Direct", [_step("x", "print('ran directly')")])
     monkeypatch.setattr(jobs, "WINDOWS", False)   # liveness checks as on this machine
     job = _wait_finished(job_id, jobs_root)

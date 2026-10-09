@@ -32,7 +32,8 @@ def test_system_generated_via_cli_is_correct_through_db_api_and_webpage(mysql_co
     try:
         row = conn.execute(
             "SELECT ss.id, s.star_type, s.name AS star_name FROM star_systems ss "
-            "JOIN stars s ON s.star_system_id = ss.id WHERE ss.name = ?",
+            "JOIN stars s ON s.star_system_id = ss.id WHERE ss.name = ? AND s.role IN ('primary', 'single') "
+            "ORDER BY s.id",
             (system_name,),
         ).fetchone()
     finally:
