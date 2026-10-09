@@ -1036,6 +1036,18 @@
 --   the spin vector is the axis times 2 pi over that period. NULL on a row
 --   generated before v68. Draws: `planetgen/physics/spin.py`, and
 --   docs/design/orbital-updates.md section 6.
+-- v69: `phenomenon_scatter.epoch_unix` (GEN.137): the orbit epoch the scatter
+--   was drawn at, Unix seconds. A hypervelocity star travels in a straight
+--   line, `p0 + v (t - epoch_unix)` (`galaxy/straight_line.py`); NULL on a row
+--   drawn before v69, which holds at the database's orbit epoch.
+-- v70: planets and moons store their mantle redox and their air (GEN.85):
+--   `mantle_redox` ('reduced' at or below the iron-wustite buffer, 'oxidized'
+--   from IW+2.5, else 'intermediate'; NULL for a gas giant), `mantle_delta_iw`
+--   (log units above IW) and `p_<gas>_kpa`, the partial pressure in kPa of
+--   O2, CO2, CO, N2, Ar, H2, H2O, CH4, H2S and SO2 (0 for an airless body).
+--   The `atmosphere` text is written from them; a gas outside the ten (helium,
+--   ammonia, sodium) is named there but not stored. NULL on a row generated
+--   before v70. Draws: `planetgen/physics/atmosphere.py`.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -1630,6 +1642,19 @@ CREATE TABLE IF NOT EXISTS planets (
     spin_axis_y                 DOUBLE,
     spin_axis_z                 DOUBLE,
     axial_tilt_deg              DOUBLE,
+    -- v70 (GEN.85): mantle redox and the air's partial pressures, see header comment.
+    mantle_redox                VARCHAR(16) CHECK (mantle_redox IN ('reduced', 'intermediate', 'oxidized')),
+    mantle_delta_iw             DOUBLE,
+    p_o2_kpa                      DOUBLE,
+    p_co2_kpa                     DOUBLE,
+    p_co_kpa                      DOUBLE,
+    p_n2_kpa                      DOUBLE,
+    p_ar_kpa                      DOUBLE,
+    p_h2_kpa                      DOUBLE,
+    p_h2o_kpa                     DOUBLE,
+    p_ch4_kpa                     DOUBLE,
+    p_h2s_kpa                     DOUBLE,
+    p_so2_kpa                     DOUBLE,
     -- v20 (see header comment): this planet's own reflex-offset "wobble"
     -- from the combined pull of its own moons -- NULL/0 with no moons.
     reflex_offset_x_km       DOUBLE,
@@ -1755,6 +1780,19 @@ CREATE TABLE IF NOT EXISTS moons (
     spin_axis_y                 DOUBLE,
     spin_axis_z                 DOUBLE,
     axial_tilt_deg              DOUBLE,
+    -- v70 (GEN.85): mantle redox and the air's partial pressures, see header comment.
+    mantle_redox                VARCHAR(16) CHECK (mantle_redox IN ('reduced', 'intermediate', 'oxidized')),
+    mantle_delta_iw             DOUBLE,
+    p_o2_kpa                      DOUBLE,
+    p_co2_kpa                     DOUBLE,
+    p_co_kpa                      DOUBLE,
+    p_n2_kpa                      DOUBLE,
+    p_ar_kpa                      DOUBLE,
+    p_h2_kpa                      DOUBLE,
+    p_h2o_kpa                     DOUBLE,
+    p_ch4_kpa                     DOUBLE,
+    p_h2s_kpa                     DOUBLE,
+    p_so2_kpa                     DOUBLE,
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
     uid                   BIGINT UNSIGNED,
 
@@ -2983,6 +3021,7 @@ CREATE TABLE IF NOT EXISTS phenomenon_scatter (
     velocity_z_kms       DOUBLE,
     seed                 BIGINT UNSIGNED NOT NULL,
     built_at             TIMESTAMP NULL,
+    epoch_unix           DOUBLE,  -- v69 (GEN.137): when the position holds, see the header comment
 
     KEY idx_phenomenon_scatter_address (ring_index, layer_index, ring_slot_index),
     CONSTRAINT chk_phenomenon_scatter_kind CHECK (kind IN (

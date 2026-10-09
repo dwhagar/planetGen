@@ -28,7 +28,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.28 | Seven new planet classes in the letter gaps (R, S, U, W, X, Y, Z) | GEN.33 | Under GEN.90; class Z is Boss's Earth-size world that never had life (2026-10-03). Class S landed with GEN.38 (PR #415); the other six classes here. Closes with GEN.33's PRs; PLANET_CLASSES in program_constants.py. |
 | GEN.145 | Class S atmosphere rule: S keeps air unless the shoreline ratio is over 30 | GEN.91 | Research follow-up to class S (built). |
 | GEN.27 | Class P (glaciated world) only in the habitable zone, and fitting there | GEN.33 | Under GEN.90. Same reconcile/zone code as phase 0's physics fixes. |
-| GEN.91 | Classes like S and V in the hot and cold zones | GEN.33, GEN.85 |  |
+| GEN.91 | Classes like S and V in the hot and cold zones | GEN.33 |  |
 | GEN.146 | Teff-dependent habitable zone from the Kopparapu table | GEN.91 | Research: in GEN.91's dependency chain. |
 | GEN.92 | Life and its highest stage follow the habitability score | GEN.89, GEN.28 |  |
 | GEN.147 | Classes N and Q carry a life chemical and an uncapped life timeline though they are lifeless (bug) |  | Bug from the research. |
@@ -52,8 +52,8 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | NAV.17 | A saved course record with both forms |  |  |
 | NAV.18 | Save, list, open, rename and delete, per browser | NAV.17 | Sibling of bookmarks.js. |
 | NAV.4 | Save a course | NAV.17, NAV.18 | Per browser now; NAV.19 moves it into accounts in phase 3+. |
-| NAV.36 | Unknown-space jumps drawn red and glowing | NAV.12, UX.35 | Route strip, navmap.py and the Galaxy Map course; legend; reduced motion; both themes. |
-| NAV.39 | Saved courses remember their unknown-space jumps and check them again | NAV.12, NAV.17 | With NAV.17. |
+| NAV.36 | Unknown-space jumps drawn red and glowing | UX.35 | Route strip, navmap.py and the Galaxy Map course; legend; reduced motion; both themes. |
+| NAV.39 | Saved courses remember their unknown-space jumps and check them again | NAV.17 | With NAV.17. |
 | NAV.49 | Waypoints: pick objects in Star select mode and plot a course through them, kept on the map until cleared | MAP.122, NAV.17 | Merges "Plotted courses should appear on the galactic map and stay until cleared". |
 
 ### Pages
@@ -91,7 +91,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | API.10 | Reservations: claimed sectors and id blocks per run | API.9 | Reserved id blocks build on DB.3's id-block fix (PR #347). |
 | API.11 | Staging tables | API.10 | Galaxy schema migration (staging); after NAV.10 in the writer queue. |
 | API.12 | The download: seed, skeleton and name state | API.5 | Downloads the naming key, not name registries. Downloads the seed (what a seed means is GEN.39) and the name state (rules from GEN.46, done in PR #370). |
-| API.16 | The API reports the galaxy's seed, version and run history | API.5 |  |
 
 ### 3D system
 
@@ -102,22 +101,18 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| ADM.17 | The Generate page shows the galaxy's seed and version |  |  |
 | OPS.15 | Each update says whether it changes generated output |  | Needs the fingerprint, so phase 2. |
 
 ### Daily maintenance
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.61 | The daily merge folds pending admin changes into a new JSON file | GEN.59 | Boss 02:28Z: JSON changes only with the day's deltas. |
-| OPS.18 | Settings JSON backups kept in 18 slots: 7 daily, 4 weekly, 6 monthly, 1 yearly | GEN.61 | Grandfather-father-son rotation; unit test with simulated dates. |
-| OPS.16 | A daily maintenance script for Linux, macOS and Windows | GEN.61, OPS.18 | scripts/maintenance.sh and .ps1: positional update, delta merge, rotation; lock; optional OPS.15 check. |
-| OPS.30 | A lock helper for the maintenance run and the admin merge |  | Research: shared by OPS.16 and ADM.20. |
+| OPS.16 | A daily maintenance script for Linux, macOS and Windows |  | scripts/maintenance.sh and .ps1: positional update, delta merge, rotation; lock; optional OPS.15 check. |
+| OPS.30 | A lock helper for the maintenance run |  | Research: used by OPS.16 (ADM.20's admin merge was dropped). |
 | OPS.17 | Install and update set up the daily maintenance schedule | OPS.16 | Same scripts as OPS.7/OPS.8/OPS.13 (install/update, deploy-common), after them. |
 | OPS.34 | Windows Redis in WSL: fix the keep-alive advice and add a Start-RedisInWsl remedy |  | Research: corrects OPS.21 and OPS.27 (built). |
 | OPS.32 | `examples/macos/org.planetgen.update.plist` is not well-formed XML, so the update daemon silently fails to install (bug) |  | Bug from the research. |
 | OPS.31 | Lint every example plist, XML and service file in CI |  | Research: found with the macOS plist bug. |
-| ADM.19 | The Admin dashboard lists the 18 settings backups for download | OPS.18 |  |
 
 ### Picker
 

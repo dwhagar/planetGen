@@ -230,7 +230,7 @@ def test_placed_sector_links_its_quadrant(client, fake):
     fake.sectors = [_sector(7, placed=True)]
     html = client.get("/sectors").get_data(as_text=True)
     assert 'href="/galaxy?quadrant=I">Quadrant I</a>' in html
-    assert "378 pc (1,234 ly)" in html
+    assert "378 pc (1,235 ly)" in html
 
 
 def test_pagination_uses_get_links(client, fake):

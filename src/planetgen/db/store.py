@@ -69,7 +69,7 @@ from planetgen.admin import activity_log
 from planetgen.db import alembic_runner
 from planetgen.names import object_id as objectId
 from planetgen.galaxy import seed as galaxySeed, uid as galaxyUid, version_key as versionKey
-from planetgen.physics import constants as physical_constants, kepler, spin
+from planetgen.physics import atmosphere, constants as physical_constants, kepler, spin
 from planetgen.util import log
 from planetgen.util.appconfig import load_config
 from planetgen.generation.belt import AsteroidBelt
@@ -101,6 +101,7 @@ from planetgen.generation.phenomena.quasar import Quasar
 from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant
 from planetgen.generation.system import StarSystem
 from planetgen.galaxy.galactic_orbit import calculate_galactic_orbit
+from planetgen.galaxy.straight_line import straight_line_position_pc
 from planetgen.galaxy.system_position import galactic_velocity_ms, system_velocity_ms
 from planetgen.names.wordsalad import generate_phoneme_salad_name, generate_sector_name
 from planetgen.physics.units import ly_to_milliparsecs, ly_to_pc, milliparsecs_to_ly, mpc_to_pc, pc_to_ly
@@ -1425,6 +1426,8 @@ def _table_marker(table):
 
 
 _VERSION_MARKERS = (
+    (70, _column_marker("planets", "mantle_redox")),
+    (69, _column_marker("phenomenon_scatter", "epoch_unix")),
     (68, _column_marker("stars", "axial_tilt_deg")),
     (67, _column_marker("sectors", "version_key")),
     (66, _column_marker("planets", "next_update_due")),
@@ -2544,6 +2547,7 @@ _BODY_COLUMNS = (
     "velocity_x_kms", "velocity_y_kms", "velocity_z_kms",
     "min_update_interval_years",
     "rotation_period_hours", "spin_axis_x", "spin_axis_y", "spin_axis_z", "axial_tilt_deg",
+    *atmosphere.ATMOSPHERE_FIELDS,
 )
 """tuple: The generated-content columns `planets` and `moons` share, in
 `body_row_values` order."""
@@ -2587,6 +2591,7 @@ def body_row_values(body):
         body.min_update_interval_years,
         body.rotation_period_hours,
         *spin.spin_values(body),
+        *(getattr(body, name, None) for name in atmosphere.ATMOSPHERE_FIELDS),
     ]
     if not body.is_moon:
         values += [
@@ -3813,6 +3818,9 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
     if position_uid is not None and not (conn.uid_issuer is not None and conn.uid_issuer.used_given):
         # a bright-sweep system keeps its position ID (GEN.72)
         _update_by_id(conn, "star_systems", ("uid",), [(star_system_id, galaxyUid.uid_bytes(position_uid))])
+    system_epoch = getattr(star_system, "epoch_unix", None)
+    if system_epoch is not None:  # a scattered hypervelocity star holds at the time it was drawn (GEN.137)
+        _update_by_id(conn, "star_systems", ("epoch_unix",), [(star_system_id, system_epoch)])
 
     if proxy_like:
         insert_star(conn, star_system.primary_star, star_system_id, "primary")
@@ -4784,7 +4792,7 @@ def advance_galactic_positions(conn, clock, on_progress=None):
         """
         SELECT ss.id, ss.sector_id, ss.position_x_mpc, ss.position_y_mpc, ss.position_z_mpc,
                ss.velocity_x_kms, ss.velocity_y_kms, ss.velocity_z_kms, ss.binary_configuration,
-               ss.epoch_unix, ss.next_update_due,
+               ss.epoch_unix, ss.next_update_due, ss.runaway_class, ss.runaway_speed_kms,
                COALESCE(ss.binary_galactic_orbital_period_gy, s.galactic_orbital_period_gy) AS period_gy,
                COALESCE(ss.binary_galactic_orbital_speed_kms, s.galactic_orbital_speed_kms) AS speed_kms
         FROM star_systems ss
@@ -4796,7 +4804,9 @@ def advance_galactic_positions(conn, clock, on_progress=None):
     scheduled, clocks, phases, updates, refile_updates = [], [], [], [], []
     close_pairs = 0
     for row in systems:
-        epoch, interval, due = _due_interval_s(row, clock, row["speed_kms"], "galactic")
+        ballistic = row["runaway_class"] == "hypervelocity" and row["runaway_speed_kms"]
+        epoch, interval, due = _due_interval_s(row, clock, row["runaway_speed_kms"] if ballistic else row["speed_kms"],
+                                               "galactic")
         if due > clock.end_unix:
             scheduled.append((epoch, due, row["id"]))
             continue
@@ -4805,15 +4815,23 @@ def advance_galactic_positions(conn, clock, on_progress=None):
         phases.append((elapsed_years, row["id"]))
         close_pairs += row["binary_configuration"] == "close"
         angle = _galactic_turn(elapsed_years, row["period_gy"])
+        if ballistic:
+            angle = None  # not on an orbit: a straight line (GEN.137)
         if angle == 0.0 or row["position_x_mpc"] is None or row["sector_id"] not in index.info:
             continue
         _name, center = index.info[row["sector_id"]]
         offset = (row["position_x_mpc"] / 1000.0, row["position_y_mpc"] / 1000.0, row["position_z_mpc"] / 1000.0)
-        point = _rotate_about_axis(local_to_galaxy_pc(center, offset), angle)
+        if ballistic:
+            point = straight_line_position_pc(
+                local_to_galaxy_pc(center, offset), (row["velocity_x_kms"], row["velocity_y_kms"], row["velocity_z_kms"]),
+                clock.end_unix - epoch)
+            velocity = (row["velocity_x_kms"], row["velocity_y_kms"], row["velocity_z_kms"])
+        else:
+            point = _rotate_about_axis(local_to_galaxy_pc(center, offset), angle)
+            velocity = _rotate_about_axis((row["velocity_x_kms"], row["velocity_y_kms"], row["velocity_z_kms"]), angle)
         sector_id = index.sector_at(point, row["sector_id"])
         local_mpc = tuple(c * 1000.0 for c in galaxy_to_local_pc(index.info[sector_id][1], point))
         quadrant, _magnitudes = classify_octant(local_mpc)
-        velocity = _rotate_about_axis((row["velocity_x_kms"], row["velocity_y_kms"], row["velocity_z_kms"]), angle)
         moved += 1
         if sector_id != row["sector_id"]:
             refiled += 1
@@ -5083,6 +5101,14 @@ def bright_star_scatter_settings(conn):
     if row is None or row["bright_star_min_luminosity_sol"] is None:
         return None
     return row["bright_star_min_luminosity_sol"], row["bright_star_seed"]
+
+
+def stamp_phenomenon_scatter_epoch(conn):
+    """Records the database's orbit epoch (`get_orbit_epoch_unix`) as the time
+    the just-drawn hypervelocity stars' positions hold at (GEN.137); NULL
+    when no orbit update has run yet."""
+    conn.execute("UPDATE phenomenon_scatter SET epoch_unix = ? WHERE kind = 'hypervelocity-star'",
+                 (get_orbit_epoch_unix(conn),))
 
 
 def clear_phenomenon_scatter(conn):
@@ -5479,11 +5505,13 @@ def mark_bright_star_filled(conn, bright_star_id, star_system_id):
 
 def sectors_reached_by(conn, center_pc, radius_pc):
     """The ids of every placed sector a sphere of `radius_pc` around
-    `center_pc` (galaxy-frame parsecs) overlaps."""
+    `center_pc` (galaxy-frame parsecs) overlaps. Padded by one sector edge,
+    not the nominal half diagonal, since a slotted ring's cells reach 3.5 pc
+    from their centers at the 4 pc edge, past the cube's 3.46 (NAV.53)."""
     edge_row = conn.execute("SELECT MAX(edge_mpc) AS edge FROM sectors").fetchone()
     if edge_row["edge"] is None:
         return []
-    reach = radius_pc + _sector_half_diagonal_pc(edge_row["edge"])
+    reach = radius_pc + edge_row["edge"] / 1000.0
     rows = conn.execute(
         "SELECT id, center_x_pc, center_y_pc, center_z_pc FROM sectors"
         " WHERE center_x_pc BETWEEN ? AND ? AND center_y_pc BETWEEN ? AND ? AND center_z_pc BETWEEN ? AND ?",
@@ -7233,6 +7261,7 @@ def _planet_or_moon_row_to_dict(conn, row, is_moon):
         "min_update_interval_years": row["min_update_interval_years"],
         "rotation_period_hours": row["rotation_period_hours"],
         **{name: row[name] for name in spin.SPIN_FIELDS},
+        **{name: row[name] for name in atmosphere.ATMOSPHERE_FIELDS},
         # v20: only the `planets` table has these columns (a planet's own
         # wobble from its moons) -- `moons` has no such column at all
         # (moons never host their own moons), so a moon always gets the

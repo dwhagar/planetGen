@@ -596,7 +596,8 @@ def ensure_sector_generated(ring_index, layer_index, ring_slot_index, config=Non
     Returns:
         dict: `created` (bool), `qualifies` (bool: inside the galaxy's
               stored outline; a sector made with `outside_ok` is not), `sector_id` (int or `None`), `sector_name`
-              (str or `None`, only when `created`).
+              (str or `None`, only when `created`), and `summary`
+              (`sector_generation_summary_lines`, only when `created`).
 
     Raises:
         ValueError: If `ring_slot_index` is out of range for the ring.
@@ -637,7 +638,7 @@ def ensure_sector_generated(ring_index, layer_index, ring_slot_index, config=Non
     args.link_later = not link
 
     try:
-        sector_id, sector_name, _sector = generate_and_save_sector_at(
+        sector_id, sector_name, sector = generate_and_save_sector_at(
             args, address, position_pc, skeleton.edge_pc,
         )
     except pymysql.err.IntegrityError:
@@ -654,7 +655,8 @@ def ensure_sector_generated(ring_index, layer_index, ring_slot_index, config=Non
         backfill_bright_stars(config, position_pc)  # GEN.30: around the requested sector
     if settle:
         queue_settle(config, [sector_id])
-    return {"created": True, "qualifies": qualifies, "sector_id": sector_id, "sector_name": sector_name}
+    return {"created": True, "qualifies": qualifies, "sector_id": sector_id, "sector_name": sector_name,
+            "summary": run_sector.sector_generation_summary_lines(sector, args)}
 
 
 def _log_saved(saved, address, suffix=""):
@@ -671,6 +673,8 @@ def _submit_batch(args, batch, title, edge_pc, progress, task):
     `batch` (`_submit_sector`) and waits for them."""
     with run_common._work_queue(args, title) as queue:
         queue.expect(len(batch))
+        log.normal(f"Generating {len(batch):,} sector(s) with {queue.workers} worker(s); each is reported below as it "
+                   f"is saved, so the first report can take a while in a dense region.")
         for address, position_pc, sector_args, suffix in batch:
             _submit_sector(queue, sector_args, address, position_pc, edge_pc, progress, task, suffix=suffix)
 
@@ -834,8 +838,10 @@ def _neighborhood_candidates(center, radius_pc, edge_pc, config, bounds):
 def _neighborhood_batch(args, candidates, occupied, batch_density, suffix="", skip=()):
     """
     The not-yet-generated sectors among `candidates`
-    (`_neighborhood_candidates`), as `_submit_batch` items, nearest
-    first as enumerated; `suffix` may hold `{distance}` (pc).
+    (`_neighborhood_candidates`), as `_submit_batch` items, in
+    the order `candidates` came (ring by ring, not nearest first: sort them
+    by distance before applying any limit, GEN.101); `suffix` may hold
+    `{distance}` (pc).
 
     Returns:
         tuple: `(batch, already_existed, skipped)`.
@@ -1214,6 +1220,7 @@ def run_single_slot(args, edge_pc, progress):
             f"Saved sector '{result['sector_name']}' [{designation}] at {_format_address(address)} "
             f"(sector_id={result['sector_id']})."
         )
+        run_sector._log_summary(result["summary"])
     else:
         log.normal(
             f"Sector [{designation}] at {_format_address(address)} already existed "

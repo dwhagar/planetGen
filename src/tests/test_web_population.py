@@ -208,7 +208,7 @@ def test_polity_pages(monkeypatch, client, fake):
     assert '<a href="/polities/2">Velar Concord</a>' in listing and "80.0 ly" in listing
     assert "Territories on the Galaxy Map" in listing
     page = client.get("/polities/2").get_data(as_text=True)
-    assert '<a href="/system/6">Far&lt;b&gt;</a>' in page and "7.2 ly" in page
+    assert '<a href="/system/6">Far&lt;b&gt;</a>' in page and "7.3 ly" in page
     assert page.index("/system/5") < page.index("/system/6")
     assert 'data-col="distance" aria-sort="ascending"' in page
     reversed_page = client.get("/polities/2?systems_sort=distance&systems_order=desc").get_data(as_text=True)

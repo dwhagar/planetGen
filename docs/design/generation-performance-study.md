@@ -62,6 +62,12 @@ and unconfirmed; [B] Boss's words.
 1.17e9 rows and 161 GB. [phenomenon-scatter-mass-cut.md](phenomenon-scatter-mass-cut.md) has the corrected
 counts, traces the notes' 1.6e8 and recommends a mass cut that takes the table to about 2.7e5 rows.
 
+**A figure not to rely on.** Bugfixes lane 1's "30 s of 84 s in `reserve_system_names`" was a contaminated
+measurement: it profiled while another run was saving into the same database, so it measured lock waiting.
+Alone, name reservation was 1.7 s of a 17.8 s dense core sector (about 870 names), about 10% (reported by the
+TODO thread; PERF.49 starts by re-measuring). The profiles in this note were taken with nothing else writing
+to the database.
+
 ## Findings by phase
 
 ### Bright-star scatter (`scatter_bright_stars`, one RQ job per layer)

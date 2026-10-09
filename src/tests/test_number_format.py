@@ -34,12 +34,50 @@ CASES = [
     (1234.567, ",.2f", 2, "1,234.57"),  # 4 whole digits with decimals: plain
     (12345.6, ",.1f", 1, "1.23 × 10⁴"),  # 5 with decimals: scientific
     (0.5, ",.2f", 2, "0.50"),
+    # UX.79: ties round away from zero on the shortest decimal, in both copies.
+    (9.995, ",.2f", 2, "10.00"),
+    (1.005, ",.2f", 2, "1.01"),
+    (2.675, ",.2f", 2, "2.68"),
+    (0.285, ",.2f", 2, "0.29"),
+    (-1.005, ",.2f", 2, "-1.01"),
+    (0.5, ",.0f", 0, "1"),
+    (1.5, ",.0f", 0, "2"),
+    (2.5, ",.0f", 0, "3"),
+    (-2.5, ",.0f", 0, "-3"),
+    # UX.80: a negative that rounds to zero is "0", not "-0".
+    (-0.4, ",.0f", 0, "0"),
+    (-0.0, ",.0f", 0, "0"),
+    (-0.004, ",.2f", 2, "0.00"),
+    (-0.4, ",.1f", 1, "-0.4"),
 ]
 
 
 @pytest.mark.parametrize("value,spec,_decimals,expected", CASES)
 def test_format_number(value, spec, _decimals, expected):
     assert format_number(value, spec) == expected
+
+
+def test_three_figures_rounds_half_up_and_has_no_negative_zero():
+    from planetgen.util.format import _three_figures
+    assert _three_figures(9.995) == "10"
+    assert _three_figures(1.005) == "1.01"
+    assert _three_figures(-0.0) == "0"
+    assert _three_figures(0.0) == "0"
+    assert _three_figures(2.675) == "2.68"
+
+
+@pytest.mark.skipif(shutil.which("node") is None, reason="Node isn't installed")
+def test_browser_three_figures_matches_python():
+    from planetgen.util.format import _three_figures
+    values = [9.995, 1.005, 2.675, -0.0, 0.0, 12345.678, 0.000499, 4.2, 495.5, -1.005]
+    script = (
+        "const m = await import(process.argv[1]);"
+        "console.log(JSON.stringify(JSON.parse(process.argv[2]).map((v) => m.threeFigures(v))));"
+    )
+    module_url = "file://" + os.path.abspath(os.path.join(_STATIC, "numberformat.js"))
+    out = subprocess.run(["node", "--input-type=module", "-e", script, module_url, json.dumps(values)],
+                         check=True, capture_output=True, text=True).stdout
+    assert json.loads(out) == [_three_figures(v) for v in values]
 
 
 def test_scientific_text_negative_exponent():

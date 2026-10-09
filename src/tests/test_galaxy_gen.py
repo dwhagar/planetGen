@@ -1713,3 +1713,21 @@ def test_ensure_sector_generated_queues_a_settle_job_for_a_new_sector_only_when_
     run_galaxy.ensure_sector_generated(0, 0, 1, config=mysql_config, backfill=False, settle=False)
     assert queued == [[first["sector_id"]]]
     assert api_jobs.settle_sectors  # the job the queue runs
+
+
+def test_slot_mode_reports_the_sector_it_made_with_its_stats(mysql_config, capsys):
+    """ADM.47: the one sector named outright is reported like every sector of a batch."""
+    _seed_skeleton(mysql_config, layers=_layers(0, 3))
+    _run_cli(["--ring", "0", "--layer", "2", "--slot", "1"] + _mysql_argv(mysql_config))
+    out = capsys.readouterr().out
+    assert "Saved sector" in out
+    assert "Systems:" in out and "Totals:" in out and "Star density: actual" in out
+
+
+def test_a_batch_says_how_many_sectors_it_runs_and_reports_each_with_its_stats(mysql_config, capsys):
+    ring_index = 0
+    _seed_skeleton(mysql_config, layers=_layers(ring_index, 3))
+    _run_cli(["--ring", str(ring_index), "--layer", "2", "--limit", "2"] + _mysql_argv(mysql_config))
+    out = capsys.readouterr().out
+    assert "Generating 2 sector(s) with" in out
+    assert out.count("Saved sector") == 2 and out.count("Totals:") == 2 and out.count("Star density: actual") == 2

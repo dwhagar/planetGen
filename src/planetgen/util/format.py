@@ -10,7 +10,9 @@ web pages (`planetgen.web.lib.fmt` wraps these with its HTML dash for a
 missing value), and the property table every body writes.
 """
 
+import decimal
 import math
+import re
 
 from planetgen import tuning
 from planetgen.generation.config import SystemConfig
@@ -65,6 +67,35 @@ def scientific_text(value, significant=SCIENTIFIC_SIGNIFICANT_FIGURES):
     return f"{mantissa} \u00d7 10{str(int(exponent)).translate(_SUPERSCRIPT_DIGITS)}"
 
 
+_FIXED_SPEC_RE = re.compile(r"^(,?)\.(\d+)f$")
+
+
+_ROUNDING_CONTEXT = decimal.Context(prec=400)
+"""decimal.Context: Precise enough for any float (1e308 with a few decimals)."""
+
+
+def round_half_up(value, decimals):
+    """
+    `value` rounded to `decimals` places, ties away from zero, judged on the
+    shortest decimal that reads back as `value` (UX.79): 9.995 gives 10.00,
+    1.005 gives 1.01, as the browser's own rounding does. Python's own
+    `round` and `format` go by the binary value instead (9.995 is really
+    9.99499...), so the two copies of a number disagreed.
+
+    Returns:
+        decimal.Decimal: Finite `value`, rounded.
+    """
+    return decimal.Decimal(repr(float(value))).quantize(
+        decimal.Decimal(1).scaleb(-decimals), rounding=decimal.ROUND_HALF_UP, context=_ROUNDING_CONTEXT)
+
+
+def _no_negative_zero(text):
+    """`text` without a minus sign when every digit in it is zero ("-0" is "0", UX.80)."""
+    if text.startswith("-") and not any(char in "123456789" for char in text):
+        return text[1:]
+    return text
+
+
 def format_number(value, spec=",.0f"):
     """
     The site's one number formatter (UX.20): `value` formatted with `spec`
@@ -78,7 +109,11 @@ def format_number(value, spec=",.0f"):
         str: e.g. "9,999", "1.5", "1.23 × 10⁴". NaN and infinities are
              formatted as-is.
     """
-    text = format(value, spec)
+    fixed = _FIXED_SPEC_RE.match(spec)
+    if fixed and math.isfinite(value):
+        text = _no_negative_zero(format(round_half_up(value, int(fixed.group(2))), spec))
+    else:
+        text = format(value, spec)
     if not math.isfinite(value):
         return text
     if "e" in text or _shows_too_many_digits(text):
@@ -97,11 +132,13 @@ def _shows_too_many_digits(text):
 def _three_figures(value):
     """`value` to three significant figures, comma-grouped, trailing zeros
     dropped: 4.2, 13.7, 0.499, 495, 12,300."""
-    if value == 0 or not math.isfinite(value):
+    if value == 0:
+        return "0"
+    if not math.isfinite(value):
         return f"{value:g}"
     magnitude = math.floor(math.log10(abs(value)))
     decimals = max(0, 2 - magnitude)
-    text = f"{round(value, decimals):,.{decimals}f}"
+    text = f"{round_half_up(value, decimals):,.{decimals}f}"
     if _shows_too_many_digits(text):
         return scientific_text(value)
     if "." in text:

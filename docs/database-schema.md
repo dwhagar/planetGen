@@ -966,7 +966,6 @@ Control schema:
 | API.15 | 0 | Every API call logged: time, route, account (the key's owner, the signed-in admin, or "god" for the console), how it came in (API key, web session or console) and the HTTP response code. Where the rows are kept is settled when it is built. |
 | GEN.70 | 0 | The galaxy's naming key, drawn at creation and changeable by an admin. |
 | OPS.13 | 1 | A version-key history table: one row per galaxy per update with the galaxy seed, the version key, SHA-256 hashes of the lock files, and the date (the nltk corpus and name-list hashes are dropped with GEN.71); only the last 10 rows per galaxy are kept. OPS.15 (phase 2) adds the fingerprint of a small fixed region to each row. |
-| GEN.59 | 1 | A pending-delta table: admin edits, deletes and regenerate seeds, by stable address path, as they happen, with the positional-update epoch. The daily merge (GEN.61, phase 2) folds them into a new settings file and clears them only after the file is written and read back. |
 | API.9 | 1 | `admin_api_keys` gains a scope column (read, admin, upload). |
 | USR.2, USR.4, USR.7, NAV.19 | 3+ | Accounts with roles, invite links, per-account bookmarks and `user_courses`. |
 
@@ -1227,7 +1226,7 @@ One row per generated system (single-star or binary).
 | `system_flavor_text` | TEXT | nullable | Decided once at generation time (Phase 0 fix). |
 | `runaway_class` | VARCHAR(16) | nullable, `runaway` or `hypervelocity` | Added in v37. NULL for an ordinary star; set by `generate.flag_fast_stars`. |
 | `runaway_speed_kms` | DOUBLE | nullable | Added in v37. The star's speed relative to its neighbors when `runaway_class` is set. |
-| `velocity_x_kms`, `velocity_y_kms`, `velocity_z_kms` | DOUBLE | NOT NULL, default 0 | Added in v61 (GEN.121). The system's velocity, km/s on the galactic axes: the rotation curve's tangent at its place plus its runaway motion. `advance_galactic_positions` turns it with the position. 0 while the system has no place in the galaxy. |
+| `velocity_x_kms`, `velocity_y_kms`, `velocity_z_kms` | DOUBLE | NOT NULL, default 0 | Added in v61 (GEN.121). The system's velocity, km/s on the galactic axes: the rotation curve's tangent at its place plus its runaway motion. `advance_galactic_positions` turns it with the position (a hypervelocity star instead flies a straight line, `p0 + v (t − t0)`, and keeps its velocity; GEN.137, `galaxy/straight_line.py`). 0 while the system has no place in the galaxy. |
 | `epoch_unix`, `next_update_due` | DOUBLE | nullable, `next_update_due` indexed | Added in v66 (GEN.106). The galactic orbit's clock (see `orbit_simulation_state`): the system, its stars' `galactic_orbital_phase_deg` and a close pair's `binary_galactic_orbital_phase_deg` move together when it is due. `binary_epoch_unix`/`binary_next_update_due` are the same for a pair's mutual orbit. |
 | `schema_version` | INTEGER | NOT NULL, default 1 | See "Versioning" above. |
 | `mediawiki_url` | TEXT | nullable | Where this system's page lives (or should live) on MediaWiki. |
@@ -1343,6 +1342,9 @@ both terrestrial and gas-giant bodies (`body_type`).
 | `rotation_period_hours` | DOUBLE | NOT NULL | Added in v9. Axial rotation ("day length") — a static descriptive stat; no rotational phase is tracked. |
 | `reflex_offset_x_km`, `_y_km`, `_z_km` | DOUBLE | nullable | Added in v20. This planet's own displacement from its nominal fixed point, from the combined pull of its own moons (`moons.planet_id`) — see `orbits.calculate_reflex_offset`. NULL/0 with no moons. **Not present on `moons`** — a moon never hosts its own moons. |
 | `spin_axis_x`, `_y`, `_z`, `axial_tilt_deg` | DOUBLE | nullable | Added in v68 (GEN.104). The spin axis as a unit vector and its angle, degrees, from the orbit normal (the orbit frame: inclination and ascending node); see `planetgen/physics/spin.py` and docs/design/orbital-updates.md section 6. NULL on a row generated before v68. A tidally locked body (now planets as well as moons) has tilt 0 and `rotation_period_hours` equal to its orbit. |
+| `mantle_redox` | VARCHAR(16) | nullable, CHECK reduced / intermediate / oxidized | Added in v70 (GEN.85). The upper mantle's redox state: reduced at or below the iron-wustite buffer, oxidized from IW+2.5. NULL for a gas giant. See `planetgen/physics/atmosphere.py`. |
+| `mantle_delta_iw` | DOUBLE | nullable | Added in v70 (GEN.85). The upper mantle's oxygen fugacity, log units above IW, drawn from mass (Earth about +3.5, the Moon about -1). |
+| `p_o2_kpa`, `p_co2_kpa`, `p_co_kpa`, `p_n2_kpa`, `p_ar_kpa`, `p_h2_kpa`, `p_h2o_kpa`, `p_ch4_kpa`, `p_h2s_kpa`, `p_so2_kpa` | DOUBLE | nullable | Added in v70 (GEN.85). Each gas's partial pressure, kPa, from the class's mix, the mantle redox and the cold side (a gas past its vapour pressure is ice). 0 for an airless body. `atmosphere` is written from them; a gas outside the ten (helium, ammonia, sodium) is named there but not stored, so on a giant they sum to less than `atmospheric_pressure_pa`. |
 
 ### `planet_evolutionary_paragraphs`
 
@@ -1388,7 +1390,7 @@ e.g. `"Voranthis IIa"` (v34), and can be renamed (`PATCH /api/moons/<id>`).
 | `star_system_id` | INTEGER | FK -> `star_systems.id`, `ON DELETE CASCADE`, NOT NULL | Redundant with the owning planet's own `star_system_id` — kept here too so a moon can be queried/joined to its system without an extra hop through `planets`. |
 | `star_id` | INTEGER | FK -> `stars.id`, `ON DELETE SET NULL`, nullable | Same value as the owning planet's `star_id` (see that column's note above — NULL for a binary system). |
 | `orbital_index` | INTEGER | NOT NULL | Position in the parent planet's `moons` list. |
-| `body_type`, `name`, `planet_class`, `distance_km` (from the parent planet), `radius_km`, `mass_kg`, `volume_km3`, `period_years`, `zone`, `description`, `gravity_g`, `surface_temperature_k`, `density_g_cm3`, `atmosphere`, `atm_density`, `atm_molar_density`, `atmospheric_pressure_pa`, `composition`, `scale_height_km`, `hill_radius_km`, `min_orbit_distance_km`, `habitable_zone_inner_km`, `_outer_km`, `life_chemical`, `evolutionary_speed`, `flavor_text`, `flavor_text_count`, `orbital_inclination_deg`, `orbital_ascending_node_deg`, `orbital_phase_deg`, `position_x_km`, `_y_km`, `_z_km`, `orbital_speed_kms`, `velocity_x_kms`, `_y_kms`, `_z_kms`, `epoch_unix`, `next_update_due`, `min_update_interval_years`, `rotation_period_hours`, `spin_axis_x`, `_y`, `_z`, `axial_tilt_deg` | — | — | Identical meaning/type/nullability to the same-named column on `planets` above, except `position_x/y/z_km` are relative to *this moon's* orbital anchor — its parent planet, not the star. |
+| `body_type`, `name`, `planet_class`, `distance_km` (from the parent planet), `radius_km`, `mass_kg`, `volume_km3`, `period_years`, `zone`, `description`, `gravity_g`, `surface_temperature_k`, `density_g_cm3`, `atmosphere`, `atm_density`, `atm_molar_density`, `atmospheric_pressure_pa`, `composition`, `scale_height_km`, `hill_radius_km`, `min_orbit_distance_km`, `habitable_zone_inner_km`, `_outer_km`, `life_chemical`, `evolutionary_speed`, `flavor_text`, `flavor_text_count`, `orbital_inclination_deg`, `orbital_ascending_node_deg`, `orbital_phase_deg`, `position_x_km`, `_y_km`, `_z_km`, `orbital_speed_kms`, `velocity_x_kms`, `_y_kms`, `_z_kms`, `epoch_unix`, `next_update_due`, `min_update_interval_years`, `rotation_period_hours`, `spin_axis_x`, `_y`, `_z`, `axial_tilt_deg`, `mantle_redox`, `mantle_delta_iw`, `p_<gas>_kpa` | — | — | Identical meaning/type/nullability to the same-named column on `planets` above, except `position_x/y/z_km` are relative to *this moon's* orbital anchor — its parent planet, not the star. |
 
 ### `moon_evolutionary_paragraphs`
 
@@ -1982,3 +1984,8 @@ content), not any individual sector; `sectors.ring_index` is the ring
 both an actual generated sector and a `galaxy_layer` row are
 independently expressed in, not an FK
 relationship.
+
+
+### v69 (GEN.137): `phenomenon_scatter.epoch_unix`
+
+`phenomenon_scatter.epoch_unix` (DOUBLE, nullable): the orbit epoch a scattered hypervelocity star's position holds at, stamped when the plan draws it (NULL when no orbit update has run yet, meaning the database's orbit epoch). The built star system inherits it as its own `epoch_unix`, so the next orbit update flies it on from there.

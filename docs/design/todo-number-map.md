@@ -17,14 +17,14 @@ release is stamped.
 | MAP | MAP.146 |
 | NAV | NAV.58 |
 | GEN | GEN.170 |
-| PERF | PERF.49 |
+| PERF | PERF.50 |
 | DB | DB.20 |
 | API | API.22 |
 | ADM | ADM.48 |
 | SEC | SEC.33 |
 | TEST | TEST.110 |
 | USR | USR.10 |
-| OPS | OPS.36 |
+| OPS | OPS.37 |
 | DOC | DOC.5 |
 | VIEW | VIEW.11 |
 | POP | POP.11 |
@@ -405,10 +405,10 @@ Parents marked "new parent" had no old number of their own.
 | ADM.14 | Line up the Generate page's text boxes, not their headings (bug) | none | done, PR #544 |
 | ADM.15 | Change the worker count from the Queue page, with a "Ludicrous Speed" mode | none | open |
 | ADM.16 | Prevalence controls on the Generate page | none | done, PR #506 |
-| ADM.17 | The Generate page shows the galaxy's seed and version | none | open |
+| ADM.17 | The Generate page shows the galaxy's seed and version | none | dropped (Boss, 2026-10-09 20:42Z) |
 | ADM.18 | The galaxy's creation settings saved as a JSON file, downloadable from the Admin dashboard | none | done, PR #816 |
-| ADM.19 | The Admin dashboard lists the 18 settings backups for download | none | open |
-| ADM.20 | A "merge now" button on the Admin dashboard (low priority) | none | open |
+| ADM.19 | The Admin dashboard lists the 18 settings backups for download | none | dropped (Boss, 2026-10-09 20:42Z) |
+| ADM.20 | A "merge now" button on the Admin dashboard (low priority) | none | dropped (Boss, 2026-10-09 20:42Z) |
 | ADM.21 | Input validation on Pydantic models | none | done, PR #748 |
 | ADM.22 | Job logs streamed over SSE into Xterm.js, with native progress bars | none | done, PR #551 |
 | ADM.23 | Log output wraps with hard line breaks (bug) | none | done, PR #508 |
@@ -435,7 +435,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.44 | Web, Open Graph and SEO settings | none | open |
 | ADM.45 | Prevalence fields take the override share directly and must total 100% | none | open |
 | ADM.46 | Generate page: a progress line and per-layer counts instead of one line per sector | none | dropped |
-| ADM.47 | Generating a neighbourhood from the Generate page shows no per-sector stats and looks slow or silent (bug) | none | open |
+| ADM.47 | Generating a neighbourhood from the Generate page shows no per-sector stats and looks slow or silent (bug) | none | done, PR #846 |
 | API.1 | Create a system inside an existing sector | 10 (2026-09-24 01:32Z to 02:18Z); 7 (2026-09-24 01:57Z to 02:02Z); 5 (2026-09-24 02:25Z to 05:38Z); 4 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 13 (2026-09-30 16:44Z); 14 (2026-09-30 16:49Z); 15 (2026-09-30 16:51Z to 18:09Z); 32 (2026-09-30 18:14Z); 37 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.2 | Edit a system's generated content | 11 (2026-09-24 01:32Z to 02:18Z); 8 (2026-09-24 01:57Z to 02:02Z); 6 (2026-09-24 02:25Z to 05:38Z); 5 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 14 (2026-09-30 16:44Z); 15 (2026-09-30 16:49Z); 16 (2026-09-30 16:51Z to 18:09Z); 33 (2026-09-30 18:14Z); 38 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.3 | Remote generate: generate on a local machine, upload through the API | none | open |
@@ -451,7 +451,7 @@ Parents marked "new parent" had no old number of their own.
 | API.13 | Generation without a database | none | open |
 | API.14 | Upload routes, compressed, in batches | none | open |
 | API.15 | Log every API call with its user, how it came in, and its HTTP response code | none | open |
-| API.16 | The API reports the galaxy's seed, version and run history | none | open |
+| API.16 | The API reports the galaxy's seed, version and run history | none | dropped (Boss, 2026-10-09 20:42Z) |
 | API.17 | Remote generation reproduces what the server would make | none | open |
 | API.18 | Generate by recipe: JSON for sectors, systems, planets, moons and phenomena | none | open |
 | API.19 | Galaxy-scale recipes: build a whole galaxy, piece by piece, from JSON | none | open |
@@ -466,7 +466,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.7 | The version that generated each sector, and a warning for mixed-version galaxies | none | done, PR #813 |
 | DB.8 | Check a galaxy database and say whether it is damaged | none | open |
 | DB.9 | Repair a damaged galaxy database from a parity file | none | open |
-| DB.10 | Repair reads the newest settings JSON and the pending deltas | none | open |
+| DB.10 | Repair reads the newest settings JSON and the pending deltas | none | dropped (Boss, 2026-10-09 20:42Z) |
 | DB.11 | The database layer and migrations on SQLAlchemy and Alembic | none | done, PR #751 |
 | DB.12 | MariaDB reads a stored -0.0 back as +0.0 (bug) | none | done, PR #442 |
 | DB.13 | Every stored value in its own column, not in JSON blocks, and indexed for search | none | done, PR #766 |
@@ -534,13 +534,13 @@ Parents marked "new parent" had no old number of their own.
 | GEN.52 | Prevalence controls for sector and galaxy runs | none | done, PR #502 |
 | GEN.53 | The two stars of a binary don't share one age (bug) | none | done, PR #367 |
 | GEN.54 | A `--star-type` secondary gets a mass that doesn't fit its type (bug) | none | done, PR #367 |
-| GEN.55 | A version number and a seed reproduce the same galaxy (end goal) | none | open |
+| GEN.55 | Same seed, same data: a sector's contents depend only on the seed, the version and its address (internal) | none | open |
 | GEN.56 | Every random draw in generation comes from the derived seeds | none | done, PR #791 |
 | GEN.57 | A sector's contents depend only on the seed, the version and its address | none | open |
 | GEN.58 | A fingerprint of a galaxy's generated content | none | done, PR #809 |
-| GEN.59 | Admin changes stored as a net difference from the generated galaxy | none | open |
+| GEN.59 | Admin changes stored as a net difference from the generated galaxy | none | dropped (Boss, 2026-10-09 20:42Z) |
 | GEN.60 | Rogue gas giants get a Jupiter-sized radius at every mass (bug) | none | done, PR #415 |
-| GEN.61 | The daily merge folds pending admin changes into a new JSON file | none | open |
+| GEN.61 | The daily merge folds pending admin changes into a new JSON file | none | dropped (Boss, 2026-10-09 20:42Z) |
 | GEN.62 | Binary stars: two-word names sharing the first word, the companion's word drawn from "small" and "child" sounds, planets named for one word (bug) | none | done, PR #393 |
 | GEN.63 | Planet names are unique within a sector | none | dropped: names come from IDs (GEN.67, 2026-10-07) |
 | GEN.64 | A packed position ID as the name of every interstellar object and bright-sweep system | none | done, PR #406 |
@@ -564,7 +564,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.82 | Black holes show a Hawking temperature and luminosity of zero (bug) | none | done, PR #448 |
 | GEN.83 | A planetary habitability index (PHI) | none | open |
 | GEN.84 | Habitability design: one score structure and reconciled thresholds | none | done, PR #803 |
-| GEN.85 | Atmosphere species, partial pressures and mantle redox for every planet | none | open |
+| GEN.85 | Atmosphere species, partial pressures and mantle redox for every planet | none | done, PR #848 |
 | GEN.86 | Stellar activity (XUV, flares) and planetary magnetic fields | none | open |
 | GEN.87 | Surface radiation dose | none | open |
 | GEN.88 | Hydrosphere and ocean chemistry | none | open |
@@ -616,7 +616,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.134 | Tune the star populations to the observed star-formation profile by galactic radius | none | open |
 | GEN.135 | Deterministic math helpers for every stored float, with a lint and frozen constants | none | open |
 | GEN.136 | Fingerprint encoding: floats to 9 significant digits, a stored leaf digest per sector and a ring-and-layer tree | none | open |
-| GEN.137 | Placed objects move along a galactic orbit but never by velocity times time, and phenomenon_scatter has no plan time (bug) | none | open |
+| GEN.137 | Placed objects move along a galactic orbit but never by velocity times time, and phenomenon_scatter has no plan time (bug) | none | done, PR #843 |
 | GEN.138 | Moon `hill_radius_km` uses the star's mass, so moon spacing and the orbit slider are wrong (bug) | none | open |
 | GEN.139 | Orbit-update thresholds: per-object epoch, path-length rule and what the 0.01 mpc applies to (GEN.106 built) | none | open |
 | GEN.140 | Orbital math guards the edge-case table adds (GEN.108 built) | none | open |
@@ -805,7 +805,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.9 | Search and locate return references for every kind | none | open |
 | NAV.10 | Routing that scales past a few thousand systems | none | done, PR #814 |
 | NAV.11 | Travel times for the system-to-system route too | none | open |
-| NAV.12 | No maximum hop length: a route always reaches the nearest star it can, across any number of sectors | none | open |
+| NAV.12 | No maximum hop length: a route always reaches the nearest star it can, across any number of sectors | none | done, PR #841 |
 | NAV.13 | A picker module: select, step out, step in, step sideways | none | done, PR #564 |
 | NAV.14 | One breadcrumb for every level | none | done, PR #571 |
 | NAV.15 | Pick mode everywhere | none | done, PR #566 |
@@ -846,7 +846,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.50 | Pick any object down to a moon as a NAV endpoint | none | done, PR #724 |
 | NAV.51 | Courses route around asteroid fields | none | open |
 | NAV.52 | Port `join_islands` and the k-d tree to cKDTree | none | open |
-| NAV.53 | A `cells_touching_sphere` helper, and pad `store.sectors_reached_by` by one edge (bug) | none | open |
+| NAV.53 | A `cells_touching_sphere` helper, and pad `store.sectors_reached_by` by one edge (bug) | none | done, PR #843 |
 | NAV.54 | Keep-out radii for asteroid fields, supermassive holes, moons and nebulae (NAV.24 built) | none | open |
 | NAV.55 | A tuning block for the keep-out knobs | none | open |
 | NAV.56 | Census of overlapping keep-out spheres in a generated galaxy | none | open |
@@ -862,13 +862,13 @@ Parents marked "new parent" had no old number of their own.
 | OPS.9 | Multi-line messages lose their prefix in the debug log (bug) | none | done, PR #448 |
 | OPS.10 | The galaxy seed and version at the top of every generation log | none | done, PR #391 |
 | OPS.11 | Define "the same galaxy" and which versions stay reproducible | none | done, PR #362 (docs/design/reproducible-galaxies.md) |
-| OPS.12 | `generate.py reproduce`: a version and a seed rebuild a galaxy and check it | none | open |
+| OPS.12 | `generate.py reproduce`: a version and a seed rebuild a galaxy and check it | none | dropped (Boss, 2026-10-09 20:42Z) |
 | OPS.13 | Every update records the version key, keeping the last 10 | none | done, PR #810 |
 | OPS.14 | A warning when the running version key differs from the galaxy's | none | open |
 | OPS.15 | Each update says whether it changes generated output | none | open |
 | OPS.16 | A daily maintenance script for Linux, macOS and Windows | none | open |
 | OPS.17 | Install and update set up the daily maintenance schedule | none | open |
-| OPS.18 | Settings JSON backups kept in 18 slots: 7 daily, 4 weekly, 6 monthly, 1 yearly | none | open |
+| OPS.18 | Settings JSON backups kept in 18 slots: 7 daily, 4 weekly, 6 monthly, 1 yearly | none | dropped (Boss, 2026-10-09 20:42Z) |
 | OPS.19 | The Generate jobs folder is /var/lib/planetgen while the checkout is /var/lib/planetGen (bug) | none | done, PR #525 |
 | OPS.20 | Move the code base from zero dependencies to third-party open-source libraries | none | done, PR #767 |
 | OPS.21 | Pinned third-party dependencies and a Redis server in install, update and CI | none | done, PR #437 |
@@ -880,12 +880,13 @@ Parents marked "new parent" had no old number of their own.
 | OPS.27 | The Windows installer and docs point at Redis in WSL, not Memurai | none | done, PR #475 |
 | OPS.28 | Generator epoch and battery digest: say whether two checkouts generate the same galaxy | none | open |
 | OPS.29 | Update reload: cover the gunicorn units and non-Apache hosts, and say what a reload aborts | none | open |
-| OPS.30 | A lock helper for the maintenance run and the admin merge | none | open |
+| OPS.30 | A lock helper for the maintenance run | none | open |
 | OPS.31 | Lint every example plist, XML and service file in CI | none | open |
 | OPS.32 | `examples/macos/org.planetgen.update.plist` is not well-formed XML, so the update daemon silently fails to install (bug) | none | open |
-| OPS.33 | `.gitattributes` has no LF pins for the lock files and word list, so hashes differ between a Windows and a Linux checkout (bug) | none | open |
+| OPS.33 | `.gitattributes` has no LF pins for the lock files and word list, so hashes differ between a Windows and a Linux checkout (bug) | none | done, PR #843 |
 | OPS.34 | Windows Redis in WSL: fix the keep-alive advice and add a Start-RedisInWsl remedy | none | open |
 | OPS.35 | A vendored-version lock file for the static libraries | none | open |
+| OPS.36 | Space and size checks measure the boot drive, not the drive holding the database (bug) | none | open |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
 | PERF.3 | Estimate size and time before bulk generation | 86 (2026-10-01 03:15Z to 05:29Z) | done, PR #238 (stats in control schema v6) |
@@ -927,13 +928,14 @@ Parents marked "new parent" had no old number of their own.
 | PERF.39 | Every API job costs 2.4 s and 195 MB: import lazily and cap the burst workers | none | open |
 | PERF.40 | Two shared queues, a reserved interactive worker and a real "cancel now" | none | open |
 | PERF.41 | Stamp the tile and page caches with a TILE_FORMAT constant instead of the version (optional) | none | open |
-| PERF.42 | Warm the RQ worker before the fork: pre-import generation modules and build the bright-star table once | none | open |
+| PERF.42 | Warm the RQ worker before the fork: pre-import generation modules and build the bright-star table once | none | done, PR #841 |
 | PERF.43 | Lazy word-salad names for phenomena named by object ID | none | open |
 | PERF.44 | Compute object uids in Python and write them with the row | none | open |
 | PERF.45 | Nearest-system links and containment as one later pass | none | open |
 | PERF.46 | Planets and moons: set the position once per body | none | open |
 | PERF.47 | The PERF.31 benchmark records the buffer pool, table sizes and worker start-up cost | none | open |
 | PERF.48 | Low priority: a numeric-only INSERT formatter or C driver for bright_stars and phenomenon_scatter | none | open |
+| PERF.49 | Batch system-name reservation: remove the quadratic scan and the long-held registry locks (re-measure first) | none | open |
 | POP.1 | Government ownership of systems | 12 (2026-09-24 01:32Z to 02:18Z); 9 (2026-09-24 01:57Z to 02:02Z); 7 (2026-09-24 02:25Z to 05:38Z); 6 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 15 (2026-09-30 16:44Z); 16 (2026-09-30 16:49Z); 17 (2026-09-30 16:51Z to 18:09Z); 34 (2026-09-30 18:14Z); 39 (2026-09-30 18:39Z to 18:41Z); 59 (2026-09-30 19:02Z to 19:17Z); 63 (2026-09-30 20:01Z to 20:27Z); 46 (2026-09-30 20:07Z); 50 (2026-09-30 20:08Z to 20:48Z); 51 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 (optional since 7.58.2, PR #180) |
 | POP.2 | Names for dominant species on living worlds | 13 (2026-09-24 01:32Z to 02:18Z); 10 (2026-09-24 01:57Z to 02:02Z); 8 (2026-09-24 02:25Z to 05:38Z); 7 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 16 (2026-09-30 16:44Z); 17 (2026-09-30 16:49Z); 18 (2026-09-30 16:51Z to 18:09Z); 35 (2026-09-30 18:14Z); 40 (2026-09-30 18:39Z to 18:41Z); 60 (2026-09-30 19:02Z to 19:17Z); 64 (2026-09-30 20:01Z to 20:27Z); 47 (2026-09-30 20:07Z); 51 (2026-09-30 20:08Z to 20:48Z); 52 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
 | POP.3 | Database of spacefaring species | 14 (2026-09-24 01:32Z to 02:18Z); 11 (2026-09-24 01:57Z to 02:02Z); 9 (2026-09-24 02:25Z to 05:38Z); 8 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 17 (2026-09-30 16:44Z); 18 (2026-09-30 16:49Z); 19 (2026-09-30 16:51Z to 18:09Z); 36 (2026-09-30 18:14Z); 41 (2026-09-30 18:39Z to 18:41Z); 61 (2026-09-30 19:02Z to 19:17Z); 65 (2026-09-30 20:01Z to 20:27Z); 48 (2026-09-30 20:07Z); 52 (2026-09-30 20:08Z to 20:48Z); 53 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
@@ -1064,8 +1066,8 @@ Parents marked "new parent" had no old number of their own.
 | UX.76 | Icons and highlights follow the light and dark theme (bug) | none | done, PR #800 |
 | UX.77 | The class list is alphabetized (bug) | none | done, PR #797 |
 | UX.78 | Unit preference: Automatic, Metric only or Customary | none | open |
-| UX.79 | Python and JS round half-way values differently (bug) | none | open |
-| UX.80 | Negative values that round to zero print "-0" (bug) | none | open |
+| UX.79 | Python and JS round half-way values differently (bug) | none | done, PR #843 |
+| UX.80 | Negative values that round to zero print "-0" (bug) | none | done, PR #843 |
 | UX.81 | Time symbols Gyr, Myr, kyr in place of Gy, My, ky; AU from 1,000,000 km; scientific text below mantissa 1e-3 | none | open |
 | UX.82 | Theme checks after PR #800: SVG currentColor, two Shoelace contrast failures, alpha in --bg-subtle | none | open |
 | VIEW.1 | View from a planet | none | open |

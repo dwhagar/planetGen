@@ -55,7 +55,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ADM.29 | Fill a span of layers, rings or columns |  |  |
 | ADM.30 | Radial generation: a cylinder of N sectors around a point |  |  |
 | ADM.31 | Every generate action offers to show what it made on the Galaxy Map |  | Merges two asks: the 2026-10-03 button and the 2026-10-07 "see that space". |
-| ADM.47 | Generating a neighbourhood from the Generate page shows no per-sector stats and looks slow or silent (bug) |  | Bugfixes lane 1, in progress. |
 | GEN.96 | Generation directives for a sector (an override button) |  | A subset of what API recipes (API.18) later take. |
 | GEN.97 | Generate N random neighborhoods |  |  |
 | ADM.45 | Prevalence fields take the override share directly and must total 100% |  | Boss 2026-10-09 07:48Z; follows ADM.37. |
@@ -77,13 +76,12 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| GEN.85 | Atmosphere species, partial pressures and mantle redox for every planet |  |  |
-| GEN.148 | Habitability index follow-ups from the research (GEN.84 built) | GEN.85 | Research follow-up to GEN.84 (built). |
+| GEN.148 | Habitability index follow-ups from the research (GEN.84 built) |  | Research follow-up to GEN.84 (built). |
 | GEN.86 | Stellar activity (XUV, flares) and planetary magnetic fields |  |  |
-| GEN.87 | Surface radiation dose | GEN.85, GEN.86 |  |
-| GEN.88 | Hydrosphere and ocean chemistry | GEN.85 | Reuses rogueSurface's ice-shell and ocean functions. |
-| GEN.89 | The habitability score for every planet and moon | GEN.85, GEN.86, GEN.87, GEN.88 |  |
-| GEN.83 | A planetary habitability index (PHI) | GEN.85, GEN.86, GEN.87, GEN.88, GEN.89 | Parent; the class refactor (GEN item GEN.90) follows it. |
+| GEN.87 | Surface radiation dose | GEN.86 |  |
+| GEN.88 | Hydrosphere and ocean chemistry |  | Reuses rogueSurface's ice-shell and ocean functions. |
+| GEN.89 | The habitability score for every planet and moon | GEN.86, GEN.87, GEN.88 |  |
+| GEN.83 | A planetary habitability index (PHI) | GEN.86, GEN.87, GEN.88, GEN.89 | Parent; the class refactor (GEN item GEN.90) follows it. |
 
 ### Tech levels and facilities
 
@@ -108,15 +106,12 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| NAV.12 | No maximum hop length: a route always reaches the nearest star it can, across any number of sectors |  | Anchor (Boss 01:53Z game mechanic). Built with NAV.10. Per-hop unknown-space flag in /api/nav. |
-| NAV.53 | A `cells_touching_sphere` helper, and pad `store.sectors_reached_by` by one edge (bug) |  | Bug from the research. |
 | NAV.52 | Port `join_islands` and the k-d tree to cKDTree |  | Research: performance cliff in the built router. |
 | UX.35 | The NAV page route shown horizontally, wrapping onto several lines on narrow screens |  | In parallel with NAV.12; replaces ol.nav-route in nav.html. |
-| NAV.11 | Travel times for the system-to-system route too | NAV.12 | Times per hop, including unknown-space jumps; total assumes a stop at every system (Boss 04:19Z); open question on a stay per stop. |
+| NAV.11 | Travel times for the system-to-system route too |  | Times per hop, including unknown-space jumps; total assumes a stop at every system (Boss 04:19Z); open question on a stay per stop. |
 | NAV.42 | Each route stop shows the course and distance to the next stop | UX.35 | Boss 04:19Z. format_course per hop, frame per pair. |
-| NAV.47 | Unknown-space jumps stop at scattered stars, black holes, neutron stars and quasars | NAV.12, GEN.137 |  |
-| GEN.137 | Placed objects move along a galactic orbit but never by velocity times time, and phenomenon_scatter has no plan time (bug) |  | Bug from the research; NAV.47 needs the rule. |
-| NAV.48 | Offer to generate the uncharted sectors that block a course | NAV.12 |  |
+| NAV.47 | Unknown-space jumps stop at scattered stars, black holes, neutron stars and quasars |  |  |
+| NAV.48 | Offer to generate the uncharted sectors that block a course |  |  |
 
 ### Nearby search
 
@@ -158,8 +153,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | UX.23 | A shared unit-ladder module |  | The ladder uses astropy.units. 22 (a feature); UX.36 keeps today's formatter and needs no ladder. Shared unit ladder; UX.22 then UX.30 build on it. |
 | UX.81 | Time symbols Gyr, Myr, kyr in place of Gy, My, ky; AU from 1,000,000 km; scientific text below mantissa 1e-3 |  | Research: wording and ladder fixes. |
-| UX.80 | Negative values that round to zero print "-0" (bug) |  | Bug from the research. |
-| UX.79 | Python and JS round half-way values differently (bug) |  | Bug from the research. |
 | UX.78 | Unit preference: Automatic, Metric only or Customary | UX.23 | Research: under UX.23. |
 | UX.22 | Meaningful units for every measurement | UX.23 | One quantity family per PR. |
 | UX.3 | Warn every visitor while a background job changes the galaxy |  | ETA from the RQ job's published progress. ETA from progress.json, which PERF.23 caps. |
@@ -189,11 +182,9 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.156 | Pin astropy to CODATA 2018 and IAU 2015 constants before its first import (GEN.66 follow-up) |  | Research follow-up to GEN.66 (built). |
 | GEN.136 | Fingerprint encoding: floats to 9 significant digits, a stored leaf digest per sector and a ring-and-layer tree | GEN.135 | Research follow-up to GEN.58 (built). |
 | GEN.135 | Deterministic math helpers for every stored float, with a lint and frozen constants |  | Research: Python 3.9 and 3.10 to 3.13 draw different sectors without it. Blocks TEST.77. |
-| OPS.14 | A warning when the running version key differs from the galaxy's |  | Feeds GEN.58's output and OPS.12. |
-| OPS.33 | `.gitattributes` has no LF pins for the lock files and word list, so hashes differ between a Windows and a Linux checkout (bug) |  | Bug from the research. |
+| OPS.14 | A warning when the running version key differs from the galaxy's |  | Feeds GEN.58's output. |
 | OPS.29 | Update reload: cover the gunicorn units and non-Apache hosts, and say what a reload aborts |  | Research follow-up to OPS.8 (built). |
 | OPS.28 | Generator epoch and battery digest: say whether two checkouts generate the same galaxy | GEN.135 | Research: OPS.13 is built; this is the epoch it records. OPS.14, OPS.15, OPS.12 and TEST.77 read it. |
-| GEN.59 | Admin changes stored as a net difference from the generated galaxy |  | Boss 02:20Z: net diff by stable address path, regenerate seeds, in ADM.18's JSON. |
 
 ### Bugs from the GitHub issues
 
@@ -208,14 +199,15 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | PERF.47 | The PERF.31 benchmark records the buffer pool, table sizes and worker start-up cost | PERF.31 | Generation performance study. |
 | PERF.46 | Planets and moons: set the position once per body |  | Generation performance study. |
 | PERF.45 | Nearest-system links and containment as one later pass |  | Generation performance study. |
-| DB.19 | Phenomenon rows: implement the mass cut (1.17 billion rows and 161 GB become about 2.7e5 rows) | GEN.167 | Cut decided by Boss; recommended 20 solar masses. |
+| PERF.49 | Batch system-name reservation: remove the quadratic scan and the long-held registry locks (re-measure first) |  | Name reservation timing; overlaps PERF.43. |
+| OPS.36 | Space and size checks measure the boot drive, not the drive holding the database (bug) |  | Bugfixes lane 1; from Boss 20:22Z. |
+| DB.19 | Phenomenon rows: implement the mass cut (1.17 billion rows and 161 GB become about 2.7e5 rows) | GEN.167 | Decided: Boss accepted the 20 solar mass cut. |
 | GEN.169 | Decide the phenomenon scatter rates: regional factors and the 0.1% intermediate-mass black holes |  | Needs Boss to decide. |
-| GEN.168 | The sector fill draws the phenomena below the scatter cut | GEN.167 | Phenomenon mass cut. |
-| GEN.167 | A lowest-mass option for the phenomenon scatter: --phenomenon-min-mass, default 20 solar masses | GEN.166 | Phenomenon mass cut. |
-| GEN.166 | A mass_range argument on NeutronStar and BlackHole, and intermediate-mass black holes as their own kind |  | Phenomenon mass cut. |
+| GEN.168 | The sector fill draws the phenomena below the scatter cut | GEN.167 | Phenomenon mass cut (decided). |
+| GEN.167 | A lowest-mass option for the phenomenon scatter: --phenomenon-min-mass, default 20 solar masses | GEN.166 | Phenomenon mass cut (decided). |
+| GEN.166 | A mass_range argument on NeutronStar and BlackHole, and intermediate-mass black holes as their own kind |  | Phenomenon mass cut (decided). |
 | PERF.44 | Compute object uids in Python and write them with the row |  | Generation performance study. |
 | PERF.43 | Lazy word-salad names for phenomena named by object ID |  | Generation performance study. |
-| PERF.42 | Warm the RQ worker before the fork: pre-import generation modules and build the bright-star table once |  | Generation performance study. |
 | PERF.41 | Stamp the tile and page caches with a TILE_FORMAT constant instead of the version (optional) | PERF.31 | Research follow-up to PERF.25 (built). |
 | PERF.40 | Two shared queues, a reserved interactive worker and a real "cancel now" | PERF.39 | Research follow-up to PERF.24 (built). |
 | PERF.39 | Every API job costs 2.4 s and 195 MB: import lazily and cap the burst workers |  | Research follow-up to PERF.24 (built); before batch wiki uploads. |

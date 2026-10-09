@@ -459,6 +459,8 @@ def _add_hypervelocity_star(sector, args, row, position, dist_ly):
     speed = math.sqrt(sum(component * component for component in velocity))
     system.runaway_class = "hypervelocity"
     system.runaway_speed_kms = speed
+    # Its point holds at the time the scatter drew it; the orbit update flies it on from there (GEN.137).
+    system.epoch_unix = row.get("epoch_unix")
     system.runaway_direction = tuple(component / speed for component in velocity) if speed > 0.0 else (1.0, 0.0, 0.0)
     return sector.add_preplaced_system(system, position, system_config=config)
 
@@ -685,6 +687,11 @@ def sector_generation_summary_lines(sector, args_used):
         )
         lines.append(f"    Phenomena: {phenomena_str}")
 
+    stars = sum(len(getattr(entry.star_system, "stars", None) or [None]) for entry in sector.entries)
+    planets = sum(len(getattr(entry.star_system, "planets", None) or ())
+                  + len(getattr(entry.star_system, "secondary_planets", None) or ()) for entry in sector.entries)
+    lines.append(f"    Totals: {len(sector.entries):,} star systems, {stars:,} stars, {planets:,} planets, "
+                 f"{len(sector.phenomena):,} phenomena")
     lines.append(
         f"    Star density: actual {actual_density:.2f}x local, expected {expected_density:.2f}x local"
     )

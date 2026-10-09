@@ -6,6 +6,23 @@ damaged database is found and repaired. Recorded 2026-10-02 from Boss's
 decisions of 01:34Z to 02:31Z and the seed math report (dependency tree
 thread). This is the design note OPS.11 asks for.
 
+**Scope change (Boss, 2026-10-09 20:42Z).** "Remove the idea of us letting
+the USER regenerate an entire galaxy from the seed and version, we'll use
+that internally, but no need for it to go anywhere else." What stays, as
+internal mechanism only: the 128-bit galaxy seed, per-unit seeds
+(GEN.39, GEN.56), GEN.57 (a sector's contents depend only on the seed, the
+version and its address, so parallel workers, fills, backfills, the
+phenomenon scatter and its sector fill, and settle agree), the version
+stamp that rejects stale data (DB.7, OPS.13, OPS.14, OPS.28), the
+fingerprint and golden-seed tests (GEN.58, GEN.135, GEN.136, TEST.77), and
+the seed-based sector repair (DB.9, DB.17). What is dropped: `generate.py
+reproduce` (OPS.12), the pages and routes that show the seed and version
+(ADM.17, API.16), the net-difference JSON of admin changes (GEN.59), the
+daily merge, the 18 backup slots and their dashboard (GEN.61, OPS.18,
+ADM.19, ADM.20), and repair from the JSON deltas (DB.10). OPS.16 now runs
+the positional update only. Sections below that describe the dropped
+parts are kept as history and are not planned.
+
 **Status (2026-10-09, checked against main at 27220d8): partly built.**
 GEN.39 (per-unit seeds), GEN.56 (every draw through `util/draw.py`), DB.6
 (seed, version key, run history) and OPS.10 (the log line) are in, each

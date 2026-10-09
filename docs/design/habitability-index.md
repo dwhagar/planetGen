@@ -198,6 +198,20 @@ unless given.
 
 Values are stored in their own columns, not JSON, so they can be searched.
 
+Rows 1 and 2 are built (GEN.85, schema v70, `planetgen/physics/atmosphere.py`).
+The redox mean is `IW+3.5 + 2 log10(M / M_earth)` with a sigma of 1 [D],
+reduced at or below IW and oxidized from IW+2.5. Each class's mix is a
+template read from its old atmosphere text and its solar-system analogue,
+scattered log-normally. A reduced mantle under anoxic air moves 60 percent of
+CO2, SO2 and H2O to CO and CH4, H2S and H2 (15 percent for intermediate). No
+gas exceeds its vapour pressure at the surface temperature (the
+`pN2_cap` of the retention document's 3.3, applied to every gas), and the
+surface pressure drops by what freezes out. Helium, ammonia and sodium are a
+class's unstored balance. `atmosphere.hydrogen_kpa` gives the H inventory for
+the water-loss clock. An H2-dominated mix (`x_H2` over 0.5) is never called
+"reducing" in the text, so the sub-Neptune and Hycean classes can reuse it
+once GEN.90 adds them.
+
 ## 5. Classes and life
 
 Known conflicts between today's classes and the research:

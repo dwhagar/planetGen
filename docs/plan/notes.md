@@ -309,6 +309,7 @@ No decisions are open. (GEN.67, Boss 2026-10-08: stars and sectors keep word sal
 - Execution plan (Boss's priority order of 2026-10-09 07:13Z: Orbital updates, Maps, Nearby search, Routing; Repeatable galaxy last, blockers first): `docs/plan/execution-plan.html`, with lanes by wave and the Alembic and file conflicts between groups.
 - Boss (2026-10-09 07:54Z): "I haven't held anything, so integrate ALL phase 1 items into the immediate TODO breakdown, focusing on unblocking things as a first priority." The execution plan's lane lists now hold all 77 non-bug Phase 1 items, ordered with the items that unblock the most work first (`docs/plan/execution-plan.html`).
 - GEN.100's galaxy-wide scatter would write about 1.17e9 rows (161 GB) at the default galaxy size before a mass cut (phenomenon_scatter table); the 1.6e8 first noted here (2026-10-09 08:15Z) was an unverified estimate. Boss decided (2026-10-09 19:54Z) on a lowest-mass cut with the sector fill drawing the rest; at the recommended 20 solar masses the table is about 2.7e5 rows (DB.19, GEN.166 to GEN.168; [phenomenon-scatter-mass-cut.md](../design/phenomenon-scatter-mass-cut.md)).
+- One combined reseed (Boss, 2026-10-09 20:28Z): the one-time seed change from lazy names (PERF.43) and from the 20 solar mass cut (GEN.166 to GEN.168) lands with these two items together; the release notes of whichever lands second name both.
 
 ## Design notes in docs/design
 
@@ -324,9 +325,9 @@ items. New notes are listed here when the PR that adds them merges.
 | [orbital-updates.md](../design/orbital-updates.md) | The orbital update design (GEN.105 and its chain). |
 | [library-migration.md](../design/library-migration.md) | The move to third-party libraries. |
 | [reproducible-galaxies.md](../design/reproducible-galaxies.md) | Seeds, version keys and the same-seed rule. |
-| [generation-determinism.md](../design/generation-determinism.md) | Floating-point rules, rounding, fingerprints and CI for the same-seed guarantee (GEN.55, GEN.57 to GEN.61, TEST.77, OPS.12 to OPS.15, DB.7). |
+| [generation-determinism.md](../design/generation-determinism.md) | Floating-point rules, rounding, fingerprints and CI for the same-seed guarantee (GEN.55, GEN.57, GEN.58, TEST.77, OPS.14, OPS.15, DB.7; GEN.59, GEN.61 and OPS.12 were dropped 2026-10-09). |
 | [db-check-and-parity-repair.md](../design/db-check-and-parity-repair.md) | Damage check, parity file and repair, Alembic progress and locks (DB.8 to DB.15). |
-| [ops-scheduling-and-rotation.md](../design/ops-scheduling-and-rotation.md) | The daily maintenance run, schedules on three systems and the 18-slot backup rotation (OPS.8, OPS.13, OPS.14, OPS.16 to OPS.18, ADM.19, ADM.20, OPS.21, OPS.27). |
+| [ops-scheduling-and-rotation.md](../design/ops-scheduling-and-rotation.md) | The daily maintenance run and schedules on three systems (OPS.8, OPS.13, OPS.14, OPS.16, OPS.17, OPS.21, OPS.27); the 18-slot backup rotation (OPS.18, ADM.19, ADM.20) was dropped 2026-10-09. |
 | [sampling-backfill-and-resume.md](../design/sampling-backfill-and-resume.md) | Backfill cost, sampling equivalence and resumable runs (GEN.40 to GEN.43, GEN.96 to GEN.99, GEN.102, PERF.18, PERF.29, PERF.30). |
 | [fill-order-curves-and-core.md](../design/fill-order-curves-and-core.md) | Hilbert and other fill orders, region enumeration and the galactic core (GEN.101, ADM.29, ADM.30, GEN.97, GEN.23, GEN.24). |
 | [course-routing.md](../design/course-routing.md) | Routes, the route graph, hop lengths and nearby search (NAV.9 to NAV.12, NAV.36, NAV.39 to NAV.48). |

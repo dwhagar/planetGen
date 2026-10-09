@@ -112,10 +112,10 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, NAV.12, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.57, TEST.77, OPS.14, GEN.59, UX.49, PERF.31, PERF.32, GEN.128, ADM.42 |
-| 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, API.16, ADM.17, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18, PERF.33, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, DB.15, ADM.43, ADM.44 |
-| 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, repair that reads the newest settings JSON, and the anomalies chosen in phase 2. | NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, DB.10, ADM.20, GEN.114, API.19 |
-| 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies, and the end state of reproducible galaxies (`generate.py reproduce`). | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, OPS.12, GEN.55 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.57, TEST.77, OPS.14, UX.49, PERF.31, PERF.32, GEN.128, ADM.42 |
+| 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.17, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18, PERF.33, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, DB.15, ADM.43, ADM.44 |
+| 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, and the anomalies chosen in phase 2. | NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, GEN.114, API.19 |
+| 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies. | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, GEN.55 |
 
 Phases overlap: a phase's later threads can start while the next
 phase's first ones run, as long as the order inside each phase holds.
@@ -416,21 +416,6 @@ with `clamp()`.
   Prerequisite: UX.23.
   Design: [docs/design/units-and-number-formatting.md](design/units-and-number-formatting.md)
 
-- [ ] **UX.79 Python and JS round half-way values differently (bug)**
-  9.995 gives "9.99" in Python and "10" in JS; 1.005 gives "1" versus
-  "1.01"; 2.675 likewise. Fix in UX.23 step 0 with half-up on
-  `Decimal(repr(x))` in Python and the matching rule in JS, with a
-  boundary-table test.
-  Prerequisites: none.
-  Design: [docs/design/units-and-number-formatting.md](design/units-and-number-formatting.md)
-
-- [ ] **UX.80 Negative values that round to zero print "-0" (bug)**
-  `format_number(-0.4)` and Python `_three_figures(-0.0)` print "-0"; JS
-  differs. Normalise to "0" in both, with tests (negative zero and
-  half-way rounding).
-  Prerequisites: none.
-  Design: [docs/design/units-and-number-formatting.md](design/units-and-number-formatting.md)
-
 - [ ] **UX.81 Time symbols Gyr, Myr, kyr in place of Gy, My, ky; AU from 1,000,000 km; scientific text below mantissa 1e-3**
   Rename before GEN.87 introduces the gray (touches `PERIOD_LADDER`,
   `format_age_string`, `period.js`, tests). Start the AU rung at
@@ -554,8 +539,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Research (2026-10-09, map-ui-and-frontend-libraries.md): adopt design
   doc section 8: a multiplier, not E; an append-only `density_overrides`
   table; `density_multiplier_used` on each filled sector; range 0.1 to
-  10; an activity-log entry; live preview, confirm and undo. Add the new
-  admin change kind to GEN.59 and GEN.61.
+  10; an activity-log entry; live preview, confirm and undo.
 
 - [ ] **MAP.120 Bright-star backfill from the Galaxy Map's block, slab and wedge menus**
   Boss (2026-10-03 05:38Z): "Add bright star backfill to block menus in
@@ -924,49 +908,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Research (2026-10-09, course-routing.md): build `ref` and the parent
   chain from each panel's own JOIN, not `resolve_object` per row.
 
-- [ ] **NAV.12 No maximum hop length: a route always reaches the nearest star it can, across any number of sectors**
-  Boss (2026-10-02 01:53Z): "routs will always find the nearest star
-  they can even if it crosses sector boundaries even across multiple
-  sectors. This is for a game mechanic I need in place and I also want
-  a jump through unknown space is marked in red and glows to draw
-  attention to it. Also UX change here to display the path
-  horizontally and find a way to split it between multiple lines for
-  mobile or limited displays." This replaces the hop-length study's
-  "optional ship range" (the study has reported; report in the
-  project's shared files under `nav-hop-length/`). Today two things
-  stop it: a same-sector route uses only that sector's own systems
-  (`queryDb.nav_between`, sector scope), and the k = 6
-  nearest-neighbour graph split into pieces (fixed by NAV.34, PR #427:
-  `navGraph.join_islands` joins them, so a route always exists). Done:
-  same-sector routes may leave the sector; the longest hop is shown; each
-  hop is flagged as a jump through unknown space when its line crosses
-  one or more unfilled (ungenerated) sectors (the default reading of
-  "unknown space"; NAV.38's `galaxyGeometry.sectors_along_segment`,
-  done in PR #357, finds the sectors), and `/api/nav` returns the flag
-  per hop. Built with NAV.10, which already rebuilds the routing.
-  Three strict-xfail tests in `src/tests/test_route_edge_cases.py` pin
-  it (TEST.79, PR #427): `test_nav_between_reports_the_longest_hop`
-  (`route["longest_hop_ly"]`), `test_nav_between_flags_a_hop_through_unfilled_sectors`
-  (`route["hops"][i]["unknown_space"]`) and
-  `test_nav_between_same_sector_route_uses_nearer_stars_next_door` (a
-  same-sector route that leaves the sector); NAV.12 turns them green and
-  removes the xfail marks (it may rename the keys).
-  Phase 1 is its anchor: NAV.34 and TEST.79 are done (PR #427), UX.35 runs alongside it (phase 1), and NAV.36
-  and NAV.39 need it first (phase 2).
-  Research (2026-10-09, course-routing.md): add the packed-int64
-  filled-set cache keyed by `galaxy_content_state`, the
-  outside-the-galaxy case (flagged but never chartable) and the
-  cheap-test-first rule; note that the third xfail test depends on graph
-  shape, not cost; keep cost as plain length. Corridor widening is for
-  quality, not existence (the island join runs on the corridor's graph);
-  the half-width is `max(50 pc, 5% of L)` with one doubling past 1.3
-  times the straight line, or a point budget of about 50,000 from
-  `sector_stats`. NAV.10 loads by cells along the segment
-  (`sectors_along_segment`); the measured 1e7-system, 1.56M-sector
-  result was corridor load 15 to 60 ms for 1,000 to 52,000 rows and
-  route 2 to 34 ms.
-  Design: [docs/design/course-routing.md](design/course-routing.md)
-
 - [ ] **NAV.11 Travel times for the system-to-system route too**
   Today warp and fold times are shown only for the direct distance;
   the route shows only its length. Boss (2026-10-02 04:19Z, with
@@ -1004,6 +945,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   sector-local position to the route data; a stone stop in an unfilled
   sector uses the Galactic frame. For an adjusted course (NAV.28) the
   readout bearing and mark are the first leg's, not the direct line's.
+  Built (2026-10-09, course-routing.md): NAV.12 (PR #838) built the
+  unbounded route but left three things out, all already in the design
+  text of course-routing.md section 2: per-stop sector_id and local
+  position (this item needs them), the packed filled-set cache, and the
+  adjacent-cell shortcut.
   Prerequisite: UX.35.
   Design: [docs/design/navigation-frames.md](design/navigation-frames.md)
 
@@ -1015,15 +961,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Galaxy Map course (with NAV.20), with a legend entry; with
   `prefers-reduced-motion` it stays red without the pulse; it reads in
   both themes, and the route list also labels it in text so it isn't
-  shown by color alone. Prerequisites: NAV.12, UX.35.
+  shown by color alone. Prerequisite: UX.35.
   Design: [docs/design/course-routing.md](design/course-routing.md)
 
 - [ ] **NAV.39 Saved courses remember their unknown-space jumps and check them again**
   Done: a saved course (NAV.17) keeps which hops were unknown-space
   jumps when it was saved, and opening it checks again, since sectors
   may have been filled in the meantime; a hop that is now known shows
-  as ordinary, and the course says what changed. Prerequisites: NAV.12,
-  NAV.17.
+  as ordinary, and the course says what changed. Prerequisite: NAV.17.
   Design: [docs/design/course-routing.md](design/course-routing.md)
 
 - [ ] **NAV.45 "What's within N pc" from the Galaxy Map and Sector Map**
@@ -1062,7 +1007,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   over a `kind` index on about 5e8 rows). Open question for Boss
   (default: no): do planetary nebulae and supernova remnants count as
   stops? Needs the galactic-motion bug below fixed first.
-  Prerequisites: NAV.12, GEN.137.
   Design: [docs/design/course-routing.md](design/course-routing.md)
 
 - [ ] **NAV.48 Offer to generate the uncharted sectors that block a course**
@@ -1083,7 +1027,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   unknown hops only, then re-plot): or every cell on the straight line?
   And how long may a charting job be before the page refuses (default:
   the 5,000-sector confirmation plus the PERF.3 disk refusal)?
-  Prerequisite: NAV.12.
   Design: [docs/design/course-routing.md](design/course-routing.md)
 
 - [ ] **NAV.49 Waypoints: pick objects in Star select mode and plot a course through them, kept on the map until cleared**
@@ -1106,21 +1049,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   performance cliff, not a correctness bug; NAV.10 shipped on the old
   code. Avoid `np.unique` on very large arrays in new code (9.4 s on 6e6
   int64 against 0.11 s for sort-plus-diff).
-  Prerequisites: none.
-  Design: [docs/design/course-routing.md](design/course-routing.md)
-
-- [ ] **NAV.53 A `cells_touching_sphere` helper, and pad `store.sectors_reached_by` by one edge (bug)**
-  `enumerate_sectors_within_radius` lists cells by their center, so a
-  caller that treats it as "cells the sphere touches" misses up to 21.5%
-  of points at 10 pc and 3.1% at 50 pc; its yield order is also
-  ring-major, not nearest first. `store.sectors_reached_by` pads by the
-  nominal half diagonal (3.46 pc) where slotted rings reach 3.5 pc.
-  Done: a docstring note on the first, a `cells_touching_sphere` helper
-  that pads by one edge, tests pinning the 21.5% miss at 10 pc as
-  documented behaviour, and the one-edge pad in `sectors_reached_by`.
-  `run_galaxy._neighborhood_batch`'s docstring says "nearest first as
-  enumerated", which is false; sort before applying any limit (see
-  GEN.101).
   Prerequisites: none.
   Design: [docs/design/course-routing.md](design/course-routing.md)
 
@@ -1401,36 +1329,38 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     sector). Include one block-first backfill in TEST.77's golden
     galaxy; the bound uses the `detmath` helpers.
 
-- [ ] **GEN.55 A version number and a seed reproduce the same galaxy (end goal)**
+- [ ] **GEN.55 Same seed, same data: a sector's contents depend only on the seed, the version and its address (internal)**
   Boss (2026-10-02 01:40Z): "Ok use a 128 bit value and store the seed in
   the database, and put it in the log at the top of any generation, also
   populate the TODO upward from here to eventually build a system that a
   version number and a seed value would reproduce the same galaxy by the
-  end of the phases." This item is the
-  chain that gets there; it is done when its last sub-item is. Order:
+  end of the phases."
+  Changed by Boss (2026-10-09 20:42Z): "remove the idea of us letting
+  the USER regenerate an entire galaxy from the seed and version, we'll
+  use that internally, but no need for it to go anywhere else." The seed
+  stays as an internal mechanism: parallel workers, fills, backfills, the
+  phenomenon scatter and its sector fill, and the settle step all rely on
+  the same seed and address giving the same data. There is no user-facing
+  rebuild of a galaxy from a seed and a version: no `generate.py
+  reproduce`, no seed and version pages, no JSON net-difference file, no
+  daily merge or backup slots. This item is done when its last internal
+  sub-item is. Order:
   - Phase 0: GEN.39 (per-unit seeds, after PERF.21) with DB.6 and
-    OPS.10.
-  - Phase 1: GEN.56 (every
-    draw seeded), GEN.57 (a sector's contents depend only on the seed,
-    the version and its address), DB.7 (the version kept with each
-    sector), GEN.58 (a fingerprint), TEST.77 (the golden-galaxy
-    test), ADM.18 (the creation settings as a JSON file), GEN.59 (admin
-    changes as a net difference in that file), OPS.13 (each
-    update records the key, keeping the last 10) and OPS.14 (a warning when the running key differs from the
-    galaxy's). GEN.47's nebula field (done, PR #419) uses the derived seeds.
-  - Phase 2: PERF.18 and GEN.42 give the one-process stars for one
-    seed (already in their Done text); API.16 and ADM.17 show the seed
-    and version; OPS.15 has each update say whether it changes
-    generated output.
-  - Phase 2: the daily maintenance run (OPS.16, with OPS.17's
-    schedule) merges pending admin changes into a new JSON file
-    (GEN.61) and keeps 18 backups (OPS.18, listed by ADM.19).
-  - Phase 3: API.17 makes remote generation reproduce the server's;
-    DB.10 repairs from the newest JSON plus pending deltas; ADM.20 adds
-    a "merge now" button (low priority).
-  - Phase 3+ (the end state): OPS.12, `generate.py reproduce`.
-  Anything that draws new randomness later (GEN.42, PERF.18,
-  API.12, API.13) uses the derived seeds and keeps TEST.77 green.
+    OPS.10 (done).
+  - Phase 1: GEN.56 (every draw seeded), GEN.57 (a sector's contents
+    depend only on the seed, the version and its address), DB.7 (the
+    version kept with each sector), GEN.58 (a fingerprint), TEST.77 (the
+    golden-seed test), OPS.13 (each update records the key, keeping the
+    last 10) and OPS.14 (a warning when the running key differs from the
+    galaxy's). GEN.47's nebula field (done, PR #419) uses the derived
+    seeds.
+  - Phase 2: PERF.18 and GEN.42 give the one-process stars for one seed
+    (already in their Done text); OPS.15 has each update say whether it
+    changes generated output.
+  - Phase 3: API.17 makes a remote run produce what the server would
+    (kept for remote generation; open question for Boss).
+  Anything that draws new randomness later (GEN.42, PERF.18, API.12,
+  API.13) uses the derived seeds and keeps TEST.77 green.
   Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
   - [ ] **GEN.57 A sector's contents depend only on the seed, the version and its address**
@@ -1483,9 +1413,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     each sector (DB.7) when it has them, and names each field that
     differs (for example "Python 3.12.3 now, 3.11.9 when generated").
     `generate.py` and the Generate page warn before a run that extends
-    the galaxy; GEN.58's fingerprint output and OPS.12's reproduce
-    report print the same comparison, so a mismatched fingerprint says
-    whether the platform or the corpus changed too. A test checks each
+    the galaxy; GEN.58's fingerprint output prints the same comparison,
+    so a mismatched fingerprint says whether the platform or the corpus
+    changed too. A test checks each
     field is named.
     Research (2026-10-09, reproducible-galaxies.md): report three
     severities: an epoch difference (name the introducing release from
@@ -1511,23 +1441,23 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
   - [ ] **OPS.16 A daily maintenance script for Linux, macOS and Windows**
-    Boss (2026-10-02 02:28Z): "a JSON file is only changed with the
-    deltas at the end of the day. We're going to have to build a
+    Boss (2026-10-02 02:28Z): "We're going to have to build a
     maintenance script for powershell and bash that will run the
-    positional update script, then kick off this delta script that will
-    update the JSON so it's only updated once every 24 hours, old JSON
-    files are kept in the following order, 1 year ago, 6 months ago, 4
-    weeks ago, 7 days ago. A total of 18 backup slots so that we have a
-    good span of the different deltas."
+    positional update script, then kick off this delta script ..."
+    Scope cut by Boss (2026-10-09 20:42Z): the delta merge and the
+    18-slot JSON backups (GEN.61, OPS.18) are dropped with the user-facing
+    galaxy rebuild, so this script runs the positional update only (and
+    any later daily step). Open question for Boss (default: keep the
+    daily positional update): is the daily run still wanted at all, now
+    that GEN.106 stores a next-update-due column?
     Done: `scripts/maintenance.sh` (Linux and macOS) and
-    `scripts/maintenance.ps1` (Windows) run once a day: first the
-    positional update (`updateOrbits.py`), then the delta merge
-    (GEN.61), then the backup rotation (OPS.18). A lock keeps two runs
+    `scripts/maintenance.ps1` (Windows) run once a day: the
+    positional update (`updateOrbits.py`). A lock keeps two runs
     from overlapping, every step logs to the normal log, and the script
     exits non-zero on any failure. Optionally it also runs OPS.15's
     fingerprint check, so changed output is noticed daily. A test runs
     it on a small galaxy and checks a second run started during the
-    first exits at once. Prerequisites: GEN.61, OPS.18.
+    first exits at once. Prerequisites: none.
     Research (2026-10-09, db-check-and-parity-repair.md): the parity
     export and checksum must not cover the columns the orbit update
     rewrites, or the daily run invalidates all of them; the run also
@@ -1572,29 +1502,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     powered-off Mac skips).
     Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
-  - [ ] **OPS.18 Settings JSON backups kept in 18 slots: 7 daily, 4 weekly, 6 monthly, 1 yearly**
-    Boss (2026-10-02 02:28Z): "old JSON files are kept in the following
-    order, 1 year ago, 6 months ago, 4 weeks ago, 7 days ago. A total of
-    18 backup slots". Done: after each merge, the JSON files are kept by
-    grandfather-father-son rotation: the newest 7 daily files, then 4
-    weekly, 6 monthly and 1 yearly, 18 in all, and older files are
-    deleted. The current file is always kept. A unit test runs the
-    rotation over a simulated year of dates and checks which files
-    survive. Prerequisite: GEN.61.
-    Research (2026-10-09, db-check-and-parity-repair.md): also take a
-    scheduled logical dump of the control database (admin logins, API
-    keys), which nothing in the plan covers. Open question for Boss
-    (default yes).
-    Research (2026-10-09, ops-scheduling-and-rotation.md): specify the
-    algorithm as the borg-style pure function in the design doc (UTC
-    from the name, ISO weeks, distinct files, newest of each period,
-    future-date guard, `next_stamp`) with its 15 listed tests. The
-    yearly slot is calendar-based (the last file of a past year, 188 to
-    553 days old). Group by seed; ignore unparsed names; delete only
-    under the lock after the new file is written, synced and read back;
-    `--dry-run`.
-    Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
-
   - [ ] **TEST.77 A golden-seed regression test**
     Done: a fixed 128-bit seed builds a small galaxy (plan, a few
     sectors, a scatter and a backfill) at 1 and 4 workers, and its
@@ -1618,86 +1525,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
     Prerequisites: GEN.135, OPS.28.
 
-  - [ ] **OPS.12 `generate.py reproduce`: a version and a seed rebuild a galaxy and check it**
-    The end state Boss asked for (phase 3+). Done: `generate.py reproduce
-    --seed X --version Y` rebuilds a galaxy, or a region, into a fresh
-    database from the seed and the stored run history (DB.6), and checks
-    it against the fingerprint (GEN.58) of the live galaxy or a given
-    one, listing any sector that differs; it refuses, naming the version
-    to check out, when the running release isn't Y. Without the edit and
-    epoch layers (GEN.59) it rebuilds the galaxy as first generated; with
-    the JSON file's net changes, regeneration seeds and epoch, as it is
-    now. It reads the newest JSON file plus any pending deltas still in
-    the control database (GEN.59), or rebuilds from any of the 18
-    backups kept by OPS.18 (`--as-of DATE` picks one). A test runs it on a small galaxy, and on one with
-    a deliberately changed sector. Simplest default: no automatic
-    migration of old galaxies to a new release's output. It prints
-    OPS.14's comparison of the stored and running key and hashes, and
-    warns when they differ. It reads the galaxy's settings from ADM.18's
-    JSON file. Prerequisites: GEN.57, TEST.77,
-    GEN.59, OPS.14, GEN.61, OPS.18.
-    Research (2026-10-09, reproducible-galaxies.md): refuse on an epoch
-    mismatch (naming the first release of that epoch) or a battery
-    mismatch, not on a release mismatch; rebuild per address rather than
-    replaying commands where possible.
-    Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
-
-  - [ ] **ADM.17 The Generate page shows the galaxy's seed and version**
-    Done: the Generate page shows the galaxy seed (32 hex digits, with a
-    copy button), the version that made the galaxy and the run history
-    (DB.6), and the new-galaxy form takes an optional seed (blank means a
-    random one); the admin's System page shows the same for one system.
-    Research (2026-10-09, reproducible-galaxies.md): also show the epoch
-    and the battery status.
-    Prerequisite: none (DB.6 done, PR #387).
-    Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
-
-  - [ ] **ADM.19 The Admin dashboard lists the 18 settings backups for download**
-    Done: the Admin dashboard lists every kept JSON file (OPS.18's 18
-    slots) with its date, slot (daily, weekly, monthly, yearly) and
-    version key, each downloadable as a `.json` file, next to the
-    current one (ADM.18). Admin only. A test checks the list matches
-    the files on disk and a download returns the file. Prerequisite:
-    OPS.18.
-    Research (2026-10-09, ops-scheduling-and-rotation.md): compute the
-    slot label with the same `select_keep` instead of storing it, so the
-    dashboard and the rotation cannot disagree. Show a file whose delete
-    failed on Windows as still present.
-    Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
-
-  - [ ] **ADM.20 A "merge now" button on the Admin dashboard (low priority)**
-    Boss (2026-10-02 02:31Z), on an on-demand merge button: "Let's put
-    that part of Phase 3, low priority." Done: an admin-only button on
-    the Admin dashboard runs the delta merge (GEN.61) now, under the
-    same lock and rules as the daily run (OPS.16), and writes a new
-    seed-key-date-time JSON file. That file counts toward the day's
-    daily slot in OPS.18's rotation. If the daily run holds the lock,
-    the button says so and does nothing. A test presses it with pending
-    deltas and checks the new file and the cleared rows. Prerequisites:
-    OPS.16, GEN.61, OPS.18.
-    Research (2026-10-09, ops-scheduling-and-rotation.md): use the same
-    lock and user: the web user must be the account that runs
-    maintenance (lock file and JSON ownership); catch `PermissionError`
-    on the lock; run the merge in a job or thread, not inside the
-    request; if a Generate job is active, say so as well as the lock
-    case.
-    Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
-
-  - [ ] **API.16 The API reports the galaxy's seed, version and run history**
-    Done: an API route returns the galaxy seed, the version that made it
-    and the run history (DB.6), documented with the API; API.12's
-    download uses the same fields. Prerequisite: API.5.
-    Research (2026-10-09, api-design-standards.md): decide whether the
-    seed route is public; the default requires an `upload` or `generate`
-    key.
-    Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
-
   - [ ] **API.17 Remote generation reproduces what the server would make**
     Done: a remote run (API.12's download, API.13's generation without a
     database) with the same seed and release produces exactly what the
     server would for those sectors, checked by fingerprint (GEN.58); and
     API.8 can verify an upload by re-running a sample of its sectors on
     the server and comparing. Prerequisites: API.12, API.13, GEN.57.
+    Open question for Boss (default: keep): this is remote generation
+    matching the server, not a user rebuild of a galaxy from a seed and
+    version; drop the fingerprint check and keep only the upload sample
+    check if you would rather not support it.
     Research (2026-10-09, reproducible-galaxies.md): the remote path
     calls the same pure generation function; compare fingerprints at 9
     digits; per api-design-standards.md the handshake compares epoch and
@@ -1705,84 +1542,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     with a different OS, architecture or Python micro version cannot
     match the fingerprint unless the key is loosened or the check is
     advisory.
-    Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
-
-  - [ ] **GEN.59 Admin changes stored as a net difference from the generated galaxy**
-    Boss (2026-10-02 02:20Z): "Now track changes from original to new
-    (skipping everything inbetween) made through the admin system,
-    regenerate will generate a new seed for that specific whatever it is
-    beingr regenerated and store that in the JSON storing only as mcuh
-    as is required in the JSON to reproduce the identical data in the
-    databse." Admin changes are stored in ADM.18's JSON file as a net
-    difference from what seed + key would produce, not as a history.
-    Done:
-    - For each changed object the JSON keeps only its final state:
-      changed fields with their current values, and deleted objects as
-      tombstones.
-    - A regenerate draws a fresh random 128-bit seed for that object,
-      which replaces its derived seed, and stores it; edits made after
-      the regenerate are recorded on top. A regenerate clears earlier
-      entries for that object and its children. This replaces the
-      SHA-256(sector seed || edit number) idea and today's
-      `random.seed()` in `api/edits.py`.
-    - An edit that puts a value back to the original drops its entry.
-    - Objects are named by a stable address path (sector ring, layer
-      and slot, then system, body and moon by generated index), never by
-      database id, through a small stable-path helper (it may share
-      NAV.7's reference work but must not use row ids).
-    - Admin changes (edits, deletes and regenerate seeds, by stable
-      path) go into a pending-delta table in the control database as
-      they happen. The JSON file is not rewritten per change: Boss
-      (2026-10-02 02:28Z): "a JSON file is only changed with the deltas
-      at the end of the day". The daily merge (GEN.61) folds the
-      pending deltas into a new file with the rules above.
-    - The positional-update epoch (when `updateOrbits.py` last moved
-      systems) is recorded with the deltas and in the JSON, and
-      `updateOrbits.py` is checked to give the same positions for the
-      same epoch.
-    Rebuild = seed + key + JSON + epoch: "seed + key" gives the galaxy
-    as first generated, and the JSON's diff and epoch give it as it is
-    now. Changes made since the last daily merge live only in the
-    database until the next one; DB.9's parity file protects them in
-    between. A test
-    edits, regenerates and deletes objects, merges the deltas, rebuilds
-    a fresh database from seed + key + JSON + epoch, and gets the same
-    content by fingerprint
-    (GEN.58). Moved to phase 1, beside ADM.18. Uses the admin edit code
-    (`adminEdits.py`, `editStore.py`).
-    Research (2026-10-09, reproducible-galaxies.md): adopt the delta
-    format of generation-determinism.md section 6.2 (`set` with
-    `was`/`now`, a `regen` seed, a tombstone, `added` with a random
-    `+hex` index, prefix-clearing regenerate and delete); add a seed
-    argument to `admin/edits.py` `regenerate_planet`, `regenerate_moon`
-    and `regenerate_belt` and bind `draw.bound(seed)` around them;
-    address objects by a stored generation index that survives deletes
-    (`store.assign_uids` ranks a system by row id today).
-    Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
-
-  - [ ] **GEN.61 The daily merge folds pending admin changes into a new JSON file**
-    Boss (2026-10-02 02:28Z): "a JSON file is only changed with the
-    deltas at the end of the day. We're going to have to build a
-    maintenance script for powershell and bash that will run the
-    positional update script, then kick off this delta script that will
-    update the JSON so it's only updated once every 24 hours, old JSON
-    files are kept in the following order, 1 year ago, 6 months ago, 4
-    weeks ago, 7 days ago. A total of 18 backup slots so that we have a
-    good span of the different deltas."
-    Done: a delta-merge step reads the pending-delta table (GEN.59) and
-    the newest JSON file, applies the net-diff rules (latest value per
-    field, tombstones, a regenerate clearing earlier entries for that
-    object and its children, values back at the original dropped),
-    records the positional-update epoch, and writes a new JSON file
-    named by ADM.18's seed-key-date-time rule. Pending rows are cleared
-    only after the new file is written and read back. With nothing
-    pending and no epoch change it writes nothing. A test merges a set
-    of deltas, rebuilds from the new file, and matches the live galaxy
-    by fingerprint (GEN.58); another kills the merge before the check
-    and finds the pending rows still there. Prerequisite: GEN.59.
-    Research (2026-10-09, reproducible-galaxies.md): the merge is
-    prefix-clearing, per-field last writer, drops reverted fields, is
-    idempotent and reads back a `content_sha256`.
     Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
 - [ ] **GEN.83 A planetary habitability index (PHI)**
@@ -1794,21 +1553,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Index.md, Speculative Xenobiology Extremes.md, Speculative Xenobiology
   Examples.md, Mathematical and Algorithmic Implementation of the
   Planetary Habitability Index.md" Done when the subitems are.
-  Prerequisites: GEN.85, GEN.86, GEN.87, GEN.88, GEN.89.
+  Prerequisites: GEN.86, GEN.87, GEN.88, GEN.89.
   Design: [docs/design/habitability-index.md](design/habitability-index.md)
-
-  - [ ] **GEN.85 Atmosphere species, partial pressures and mantle redox for every planet**
-    Today `atmosphere` and `composition` are free text. Done: each
-    planet and moon stores its mantle redox state and the partial
-    pressures of O2, CO2, CO, N2, Ar, H2, H2O, CH4, H2S and SO2
-    (columns, DB.13), drawn by class and redox, with the free text
-    generated from them.
-    Research (2026-10-09, atmospheres-retention-and-classes.md): keep
-    the ten species; add H (for the water-loss clock) as a derived
-    quantity, `x_H2` handling for sub-Neptune and Hycean air, and a
-    `pN2_cap` from the vapour-pressure table (design doc 3.3).
-    Acid-sulfate pH is 1.0 to 4.5 (Chemical Habitability.md).
-    Design: [docs/design/habitability-index.md](design/habitability-index.md)
 
   - [ ] **GEN.86 Stellar activity (XUV, flares) and planetary magnetic fields**
     Done: stars store activity (saturation phase, L_XUV/L_bol, flare and
@@ -1841,7 +1587,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     question for Boss (default on): the supernova and GRB flag lowers
     the score only if the flagged event rate exceeds one lethal event
     per 100 Myr.
-    Prerequisites: GEN.85, GEN.86.
+    Prerequisite: GEN.86.
     Design: [docs/design/habitability-index.md](design/habitability-index.md)
 
   - [ ] **GEN.88 Hydrosphere and ocean chemistry**
@@ -1865,7 +1611,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     temperature fixed at 273.15 K). Open question for Boss (default
     yes): the cap is a hard limit and changes saved data on regeneration
     only.
-    Prerequisite: GEN.85.
     Design: [docs/design/habitability-index.md](design/habitability-index.md)
 
   - [ ] **GEN.89 The habitability score for every planet and moon**
@@ -1884,7 +1629,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     `land_fraction`. It returns the lowest tier, with a reason string,
     for any pulsar, black hole or X-ray-binary planet. Open question for
     Boss (default: store the two flare numbers, derive the rest).
-    Prerequisites: GEN.85, GEN.86, GEN.87, GEN.88.
+    Prerequisites: GEN.86, GEN.87, GEN.88.
     Design: [docs/design/habitability-index.md](design/habitability-index.md)
 
 - [ ] **GEN.90 Refactor the planet classes around the habitability index**
@@ -1925,7 +1670,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     for Q rows. Open question for Boss (default Option A): re-scope N,
     extend X, Hycean as an R flag and retire T, or two-character class
     codes.
-    Prerequisites: GEN.33, GEN.85.
+    Prerequisite: GEN.33.
     Design: [docs/design/habitability-index.md](design/habitability-index.md)
 
   - [ ] **GEN.92 Life and its highest stage follow the habitability score**
@@ -1999,7 +1744,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   `generate.py` takes the same as `--directive`.
   Research (2026-10-09, sampling-backfill-and-resume.md): attempt number
   and directive digest in the seed key (attempt 0 is the plain sector);
-  a stored record per directive sector for OPS.12; an up-front
+  a stored record per directive sector for DB.17's repair; an up-front
   impossibility check from the compound-Poisson table; the exact
   truncated-Poisson route for star-count and star-type directives; a
   `--directive` result status enum (`met_naturally`,
@@ -2562,18 +2307,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisite: GEN.135.
   Design: [docs/design/generation-determinism.md](design/generation-determinism.md)
 
-- [ ] **GEN.137 Placed objects move along a galactic orbit but never by velocity times time, and phenomenon_scatter has no plan time (bug)**
-  `store.advance_galactic_positions` moves every placed object along its
-  galactic orbit by rotation and rotates its velocity, never adding
-  velocity times elapsed time, and does not touch `phenomenon_scatter`,
-  so hypervelocity stars in filled sectors orbit instead of travelling
-  outward. `phenomenon_scatter` stores no plan time, so a hypervelocity
-  star's position at a later time cannot be computed. Done: a stated
-  rule for both before NAV.47 (position at a time is `p0 + v (t -
-  t_plan)`; store the plan time or epoch), implemented and tested.
-  Prerequisites: none.
-  Design: [docs/design/course-routing.md](design/course-routing.md)
-
 - [ ] **GEN.138 Moon `hill_radius_km` uses the star's mass, so moon spacing and the orbit slider are wrong (bug)**
   `physics/planets.py` `generate_planet_properties` ends with
   `update_hill_sphere(planet)`, which uses `planet.star.mass`;
@@ -2718,7 +2451,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   astropy on Python 3.9 (6.0.1 has no `Gy` or `Sv`); keep Gy/yr and
   mSv/yr as two quantities. Open question for Boss (default: 20 mSv/yr
   for the Blue tier, 50 as the single-year limit).
-  Prerequisite: GEN.85.
   Design: [docs/design/habitability-index.md](design/habitability-index.md)
 
 - [ ] **GEN.149 Planetary-nebula central stars: 0.5 to 0.7 Msun, 1e2 to 1e4 Lsun, up to 2e5 K**
@@ -2929,6 +2661,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   to a mass interval. Make intermediate-mass black holes (100 to 100,000
   solar masses) a kind of their own, with rates 0.999 r and 0.001 r of
   the black-hole rate r.
+  Boss (2026-10-09): Decided by Boss (2026-10-09 20:28Z, via the
+  coordinator): ONE combined reseed. Lazy names (PERF.43) and the 20
+  solar mass cut (GEN.166 to GEN.168) change what a given seed
+  generates, and that one-time seed change lands with these two
+  together, not in separate steps. Whichever lands first must not claim
+  the reseed alone; the second says so in its changes note.
   Prerequisites: none.
   Design: [docs/design/phenomenon-scatter-mass-cut.md](design/phenomenon-scatter-mass-cut.md)
 
@@ -2938,14 +2676,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   decided at 19:54Z that the GEN.100 scatter keeps only objects above a
   lowest mass and the sector fill draws the rest below it, like the
   bright stars. Add `--phenomenon-min-mass` (default 20 solar masses,
-  the recommended cut), stored with the scatter settings, the settings
+  the cut Boss accepted), stored with the scatter settings, the settings
   file and the reproducibility key; the scatter draws only objects above
   it. The per-kind mean counts are truncated by the share S_k(c) above
   the cut c: neutron stars (2.2 - c) / 1.1, stellar-mass black holes (20
   - c) / 15, intermediate-mass black holes ln(1e5 / c) / ln(1e3). At 20
   solar masses the table falls from 1.17e9 rows (161 GB) to about 2.7e5
   rows (37 MB).
-  Prerequisites: GEN.166.
+  Boss (2026-10-09): Decided by Boss (2026-10-09 20:28Z, via the
+  coordinator): ONE combined reseed. Lazy names (PERF.43) and the 20
+  solar mass cut (GEN.166 to GEN.168) change what a given seed
+  generates, and that one-time seed change lands with these two
+  together, not in separate steps. Whichever lands first must not claim
+  the reseed alone; the second says so in its changes note.
+  Prerequisite: GEN.166.
   Design: [docs/design/phenomenon-scatter-mass-cut.md](design/phenomenon-scatter-mass-cut.md)
 
 - [ ] **GEN.168 The sector fill draws the phenomena below the scatter cut**
@@ -2958,7 +2702,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   scatter's expected-star count, a level per sector, and a band top-up
   when the cut is lowered (the `run_plan._draw_sector_bands` pattern
   used for the bright stars).
-  Prerequisites: GEN.167.
+  Boss (2026-10-09): Decided by Boss (2026-10-09 20:28Z, via the
+  coordinator): ONE combined reseed. Lazy names (PERF.43) and the 20
+  solar mass cut (GEN.166 to GEN.168) change what a given seed
+  generates, and that one-time seed change lands with these two
+  together, not in separate steps. Whichever lands first must not claim
+  the reseed alone; the second says so in its changes note.
+  Prerequisite: GEN.167.
   Design: [docs/design/phenomenon-scatter-mass-cut.md](design/phenomenon-scatter-mass-cut.md)
 
 - [ ] **GEN.169 Decide the phenomenon scatter rates: regional factors and the 0.1% intermediate-mass black holes**
@@ -3093,6 +2843,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   answers it for the scatter and fill phases (see PERF.42, PERF.43,
   PERF.44, PERF.45, PERF.46, PERF.47 and DB.19). Open for Boss: which
   phase took the 10 hours (the log will say).
+  Measurement (2026-10-09, corrected): Bugfixes lane 1 first reported
+  that one dense core sector took 84 s with 30 s in
+  `reserve_system_names`; it retracted that, because the profile ran
+  while another run was saving into the same database, so it measured
+  lock waiting. Alone, name reservation was 1.7 s of a 17.8 s sector
+  (about 870 names). See PERF.49, which starts by re-measuring.
 
 - [ ] **PERF.32 Generation performance stats: rates recorded per run, deleted on every new version**
   Boss (GitHub issues [#661](https://github.com/dwhagar/planetGen/issues/661) and [#750](https://github.com/dwhagar/planetGen/issues/750)): "The system should store and use
@@ -3226,21 +2982,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisite: PERF.31.
   Design: [docs/design/performance-eta-queue-and-caching.md](design/performance-eta-queue-and-caching.md)
 
-- [ ] **PERF.42 Warm the RQ worker before the fork: pre-import generation modules and build the bright-star table once**
-  Research (2026-10-09, generation-performance-study.md, PR #835;
-  handoff in
-  /mnt/project-files/research/handoff/generation-performance.md; from
-  Boss's requests of 19:08Z and 19:21Z, generation being his slowest
-  point): pre-import the generation modules and warm
-  `star_population._bright_table` in `cli/worker.py` before the RQ fork,
-  and restart workers on update (or compare the version in the horse).
-  Measured on the scatter: 322 s down to 39.5 s (8.2 times) with
-  identical output (420,840 stars), because 95% of the scatter's CPU was
-  per-job import and band-table rebuild. It also removes about 2 to 3 s
-  per queue job (PERF.39 gets the same fix).
-  Prerequisites: none.
-  Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
-
 - [ ] **PERF.43 Lazy word-salad names for phenomena named by object ID**
   Research (2026-10-09, generation-performance-study.md, PR #835;
   handoff in
@@ -3251,6 +2992,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   SupernovaRemnant, Quasar and the compact remnants build their
   word-salad name at generation. Build it when it is first shown. About
   3.5% of a sector fill.
+  Measurement (2026-10-09, corrected): the 30 s once quoted for
+  `reserve_system_names` was a contaminated measurement (another run was
+  saving into the same database); alone it was 1.7 s of a 17.8 s dense
+  sector. That cost is system names, not the word-salad object names
+  this item covers.
+  Scope (2026-10-09): the system-name reservation cost is its own item,
+  PERF.49; this item stays on the lazy word-salad names of phenomena
+  named by object ID.
+  Boss (2026-10-09): Decided by Boss (2026-10-09 20:28Z, via the
+  coordinator): ONE combined reseed. Lazy names (PERF.43) and the 20
+  solar mass cut (GEN.166 to GEN.168) change what a given seed
+  generates, and that one-time seed change lands with these two
+  together, not in separate steps. Whichever lands first must not claim
+  the reseed alone; the second says so in its changes note.
   Prerequisites: none.
   Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
 
@@ -3309,7 +3064,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   point): record `innodb_buffer_pool_size`, the table sizes and the
   worker start-up cost with every benchmark run, so a result can be
   compared with the next.
-  Prerequisites: PERF.31.
+  Prerequisite: PERF.31.
   Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
 
 - [ ] **PERF.48 Low priority: a numeric-only INSERT formatter or C driver for bright_stars and phenomenon_scatter**
@@ -3318,6 +3073,48 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   /mnt/project-files/research/handoff/generation-performance.md; from
   Boss's requests of 19:08Z and 19:21Z, generation being his slowest
   point): 13.8 down to 10.1 microseconds a row. Low priority.
+  Prerequisites: none.
+  Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
+
+- [ ] **PERF.49 Batch system-name reservation: remove the quadratic scan and the long-held registry locks (re-measure first)**
+  Correction (2026-10-09, Bugfixes lane 1): its first figure for this item, 30 s of an
+  84 s dense core sector, was a contaminated measurement (it profiled while another run
+  was saving into the same database, so it measured lock waiting). Alone, name
+  reservation was 1.7 s of a 17.8 s sector, about 870 names. First step: re-measure
+  alone on a dense core sector, and drop this item if reservation is a small share.
+  Naming-cost analysis of
+  2026-10-02 (artifact Naming Cost in Generation; release 7.144.463)
+  found three costs; checked against main on 2026-10-09: (1) the
+  quadratic scan is still there: for every distinct base name the loop
+  `uses = [i for i in todo if key_of[i] in row_keys]` walks every name
+  in the sector, so a core sector with thousands of systems costs n
+  squared steps (the keys are now computed once per pass, which fixed
+  the TEST.85 crash and the repeated normalising, not the scan); group
+  the candidate indexes by key once and look them up. (2) the registry
+  row locks are still held until the sector's whole save commits (the
+  `INSERT ... ON DUPLICATE KEY UPDATE` runs inside the caller's
+  transaction), which made parallel workers wait about 1.3 s per dense
+  sector at 2 workers; claim the names in their own short transaction
+  ahead of the sector's main save, keeping the sorted claim order that
+  avoids deadlocks. (3) the offensive-word filter in
+  `names/wordsalad.py` `is_name_valid` scans the whole word list per
+  name (about 32 microseconds a call, two calls per accepted name, 3 to
+  5% of a dense sector); one combined pattern makes it close to free.
+  Requirement: a seeded run must produce identical names, registry rows
+  and final tables before and after (check with a golden-seed run before
+  touching anything). Scope against PERF.43 (Foundations lane 2):
+  PERF.43 makes the word-salad names of phenomena named by object ID
+  lazy and does not touch the registry; this item covers star system
+  names and any phenomenon still reserving through the registry
+  (`reserve_system_names`, `_take_name`, `confirm_system_names`) and the
+  shared offensive-word filter. Since GEN.64, placed phenomena such as
+  rogue planets are named by object ID and no longer reach the registry,
+  so the 2026-10-02 figure of 88% of names being rogue planets no longer
+  holds; re-measure on a dense core sector first. Filed as its own item
+  (Phase 1, Foundations lane 1, after PERF.45) on the coordinator's
+  instruction of 2026-10-09 20:17Z.
+  Approved by Boss (2026-10-09 20:24Z); in the execution plan it follows PERF.44
+  and PERF.45 and comes ahead of PERF.47, DB.19 and OPS.14.
   Prerequisites: none.
   Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
 
@@ -3422,21 +3219,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Prerequisites: DB.8, GEN.57, OPS.14.
   Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
-- [ ] **DB.10 Repair reads the newest settings JSON and the pending deltas**
-  From Boss's 02:28Z daily-merge rule (GEN.61). Done: DB.9's repair,
-  where it regenerates a sector from its seed, applies the newest JSON
-  file's diff and epoch plus any pending deltas still in the control
-  database, so admin changes since the last daily run survive a repair.
-  If the newest JSON file is damaged it falls back to the next backup
-  (OPS.18) and replays the pending deltas on top, saying so. A test
-  repairs a sector with both merged and pending changes. Prerequisites:
-  DB.9, GEN.61, OPS.18.
-  Research (2026-10-09, db-check-and-parity-repair.md): depends on the
-  regenerate-from-seed fallback item (plus GEN.61 and OPS.18 as before)
-  and on no other change.
-  Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
-  Prerequisite: DB.17.
-
 - [ ] **DB.15 A migration progress bar with the time remaining**
   Boss (GitHub issue [#727](https://github.com/dwhagar/planetGen/issues/727), 2026-10-09 01:18Z): "I'd like the progress
   bar to estimate time remaining and progress through a single DB
@@ -3475,8 +3257,10 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
 - [ ] **DB.17 Repair by regenerating a damaged sector from its seed when parity cannot rebuild it**
   The second half of DB.9: when the parity file cannot rebuild a sector,
   regenerate it from the galaxy seed, the sector's stored directives and
-  the settings JSON, then merge the pending deltas (GEN.61). Compare the
-  result with the stored leaf digest. Open question for Boss (default
+  the settings file (ADM.18), then replay its edits from the edit log.
+  (Boss, 2026-10-09 20:42Z, dropped the pending-delta JSON and daily
+  merge this item used to read; the seed is still used internally for
+  repair.) Compare the result with the stored leaf digest. Open question for Boss (default
   yes): ship the parity half first, without GEN.57, GEN.58 and OPS.14.
   Prerequisites: DB.9, GEN.57, OPS.14.
   Design: [docs/design/db-check-and-parity-repair.md](design/db-check-and-parity-repair.md)
@@ -3502,11 +3286,12 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   bright-star scatter; the 1.06e9 and 146 GB first reported ran 10% low).
   Boss decided (2026-10-09 19:54Z) that the scatter keeps only objects above
   a lowest mass and the sector fill draws the rest below it, like the bright
-  stars; the recommended cut is 20 solar masses. The work is GEN.166, GEN.167 and GEN.168.
+  stars. Boss accepted the cut of 20 solar masses (decision
+  card, 2026-10-09). The work is GEN.166, GEN.167 and GEN.168.
   Deriving neutron stars and black holes on demand, or compacting the row,
   is needed only if the cut is lowered to 10 solar masses or less. The
   notes' earlier 1.6e8 rows was an unverified estimate, not a result.
-  Prerequisites: GEN.167.
+  Prerequisite: GEN.167.
   Design: [docs/design/phenomenon-scatter-mass-cut.md](design/phenomenon-scatter-mass-cut.md)
   Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
 
@@ -4057,25 +3842,6 @@ Boss (2026-10-07 11:47Z): "Actual specs on layers on the generation
   not 100%. A share that depends on the local star density is not part
   of this item; the shares stay the same in every sector.
 
-- [ ] **ADM.47 Generating a neighbourhood from the Generate page shows no per-sector stats and looks slow or silent (bug)**
-  Boss (2026-10-09 19:36Z to 19:38Z): generating a neighbourhood from
-  the Generate page gives no per-sector stats (stars per sector,
-  expected against generated density, rogue planets and other objects
-  generated with it) and looks very slow or just silent. Found so far by
-  Bugfixes lane 1: `run_galaxy._log_saved` still logs a "Saved sector"
-  line plus `run_sector.sector_generation_summary_lines` (systems by
-  class, phenomena, actual against expected density) through
-  `log.normal`, but that summary has no rogue planet or other-object
-  counts; what actually reaches the job log from the Generate-page path
-  (subprocess stdout to output.log, non-TTY rich console) is being
-  reproduced, and the speed checked. Done: one cheap per-sector job-log
-  line with stars, expected against generated density, rogue planets and
-  other object counts (no extra queries), and the reason for any
-  slowness found and fixed. Owned by Bugfixes lane 1, in progress.
-  Supersedes the withdrawn ADM.46 request (a progress line and per-layer
-  counts), which Boss does not want.
-  Prerequisites: none.
-
 ## SEC: Security
 
 The login protection of 2026-10-01 (SEC.1, SEC.20 to
@@ -4342,7 +4108,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Prerequisites: none.
   Design: [docs/design/ops-scheduling-and-rotation.md](design/ops-scheduling-and-rotation.md)
 
-- [ ] **OPS.30 A lock helper for the maintenance run and the admin merge**
+- [ ] **OPS.30 A lock helper for the maintenance run**
   `planetgen/util/locks.py` with `filelock` (pinned `==3.19.1` for
   Python 3.9, current otherwise), a sidecar info file, `timeout=0`
   helpers and `PermissionError` handling, plus a two-process test that
@@ -4367,14 +4133,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Prerequisites: none.
   Design: [docs/design/ops-scheduling-and-rotation.md](design/ops-scheduling-and-rotation.md)
 
-- [ ] **OPS.33 `.gitattributes` has no LF pins for the lock files and word list, so hashes differ between a Windows and a Linux checkout (bug)**
-  Add `*.lock text eol=lf` and `src/planetgen/names/*.txt text eol=lf`
-  (or hash normalised text). With `core.autocrlf=true` identical content
-  hashes differently, which would make the OPS.13 and OPS.14 hashes
-  disagree.
-  Prerequisites: none.
-  Design: [docs/design/ops-scheduling-and-rotation.md](design/ops-scheduling-and-rotation.md)
-
 - [ ] **OPS.34 Windows Redis in WSL: fix the keep-alive advice and add a Start-RedisInWsl remedy**
   `docs/deployment/windows.md` (Redis, step 4) says a logon task running
   `wsl -d Ubuntu` keeps Redis alive; it does not (a WSL instance idles
@@ -4395,6 +4153,24 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Shoelace (Lit, floating-ui, tinycolor).
   Prerequisites: none.
   Design: [docs/design/map-ui-and-frontend-libraries.md](design/map-ui-and-frontend-libraries.md)
+
+- [ ] **OPS.36 Space and size checks measure the boot drive, not the drive holding the database (bug)**
+  Boss (2026-10-09 20:22Z): "make sure that our size and space remaining
+  check properly checks the space remaining not on the boot drive but if
+  my database data is stored elsewhere (it is now) that it looks that
+  up." Symptom: the disk-space and size checks (the Admin dashboard, the
+  stats and size pages, the PERF.3 "enough space" pre-flight for fills
+  and plans, the update scripts and the debug log) measure the boot
+  drive, not the drive that holds the MySQL data directory. Done when:
+  every place that reports or checks database size or free space asks
+  the server for its data directory (`SELECT @@datadir`), resolves it to
+  its mount (handling Windows drive letters, symlinks and bind mounts)
+  and measures the free space there; when the database is on another
+  host and the data directory is not reachable from the web host, it
+  says "unknown" instead of showing boot-drive numbers; the path or
+  drive measured is shown; tests use a fake data directory on another
+  mount point. Owner: Bugfixes lane 1, after its current batch.
+  Prerequisites: none.
 
 ## DOC: Documentation
 
@@ -4445,7 +4221,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   traits come out the same), `web/__init__.py` line 157 and
   `static/galaxystages.js` line 720 (scientific notation thresholds),
   `facilityform.js` `aria-valuetext`. TODO.md text still naming old
-  paths: GEN.55 and GEN.40 (`generate.py`), GEN.59 and GEN.105
+  paths: GEN.55 and GEN.40 (`generate.py`), GEN.105
   (`random.seed()` in `api/edits.py`, `updateOrbits.py`), UX.22 and
   UX.23, USR.1, USR.2 and USR.8. Cross-links to add:
   collisions-and-mergers.md from orbital-updates.md section 5,
