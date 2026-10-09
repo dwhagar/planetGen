@@ -2730,6 +2730,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the changes note. Keeping already filled sectors across the reseed
   needs this and GEN.167's NULL rule; the alternative recommended to
   Boss is to land the combined reseed, then reset and re-plan.
+  Test (2026-10-09): a test fills a sector before the cut exists and
+  checks that the later top-up draws nothing below the cut there, and a
+  second test checks the below-cut stream is independent of read order.
   Prerequisite: GEN.167.
   Design: [docs/design/phenomenon-scatter-mass-cut.md](design/phenomenon-scatter-mass-cut.md)
 
@@ -3289,6 +3292,11 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   merge this item used to read; the seed is still used internally for
   repair.) Compare the result with the stored leaf digest. Open question for Boss (default
   yes): ship the parity half first, without GEN.57, GEN.58 and OPS.14.
+  Note (2026-10-09): admin regenerate of a planet, moon or belt
+  (`admin/edits.py`) draws from the process stream, so an edited sector
+  cannot be rebuilt from its seed alone, which is why this repair
+  replays the edit log; the web handlers were not checked (Research Lane
+  1).
   Prerequisites: DB.9, GEN.57, OPS.14.
   Design: [docs/design/db-check-and-parity-repair.md](design/db-check-and-parity-repair.md)
 
