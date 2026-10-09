@@ -1248,6 +1248,31 @@ def test_systems_inside_a_nebula_point_at_it_and_the_innermost_wins(mysql_config
         conn.close()
 
 
+def test_containment_counts_what_entered_and_left_a_nebula(mysql_config):
+    """GEN.107: the orbit update's summary counts nebula entries and exits
+    from `refresh_containment`."""
+    sector_id = store.save_sector(_sector_with_one_system("Drifting"), config=mysql_config, galaxy_position={
+        "center_x_pc": 100.0, "center_y_pc": 0.0, "center_z_pc": 0.0, "galactic_radius_pc": 100.0,
+    })
+    conn = store.get_connection(mysql_config)
+    try:
+        with conn:
+            cloud = _placed_nebula(conn, sector_id, _system_point_pc(conn, sector_id), radius_ly=3.0, nebula_class="C")
+        home = conn.execute("SELECT center_x_pc FROM nebulae WHERE id = ?", (cloud,)).fetchone()["center_x_pc"]
+        with conn:
+            conn.execute("UPDATE nebulae SET center_x_pc = center_x_pc + 50 WHERE id = ?", (cloud,))
+            left = store.refresh_containment(conn, [sector_id])
+        assert left == {"entered_nebula": 0, "left_nebula": 1, "entered_remnant": 0, "left_remnant": 0}
+        with conn:
+            conn.execute("UPDATE nebulae SET center_x_pc = ? WHERE id = ?", (home, cloud))
+            entered = store.refresh_containment(conn, [sector_id])
+        assert entered == {"entered_nebula": 1, "left_nebula": 0, "entered_remnant": 0, "left_remnant": 0}
+        with conn:
+            assert store.refresh_containment(conn, [sector_id]) == dict.fromkeys(store.CONTAINMENT_COUNTS, 0)
+    finally:
+        conn.close()
+
+
 
 
 def _named_system(name):

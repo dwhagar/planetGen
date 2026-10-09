@@ -25,7 +25,8 @@ RING = 10
 def test_rotation_follows_galactic_phase():
     x, y, z = store._rotate_about_axis((10.0, 0.0, 1.0), math.pi / 2)
     assert (x, y, z) == pytest.approx((0.0, 10.0, 1.0))
-    assert store._galactic_turn(250e6, 0.25) == pytest.approx(2 * math.pi)
+    assert store._galactic_turn(125e6, 0.25) == pytest.approx(math.pi)
+    assert store._galactic_turn(250e6, 0.25) == 0.0  # a whole orbit lands where it started (GEN.108)
     assert store._galactic_turn(1.0, None) == 0.0
 
 
@@ -63,7 +64,7 @@ def test_a_system_that_drifts_across_a_boundary_is_refiled(mysql_config):
         elapsed = 1e9 * (1.0 / 3.2616) / (2 * math.pi * radius_pc)
         with conn:
             motion = store.advance_galactic_positions(conn, store.orbit_clock(conn, elapsed))
-            rewritten = store.refresh_after_motion(conn, motion["sectors"])
+            rewritten = store.refresh_after_motion(conn, motion["sectors"])["locations"]
         assert motion["refiled"] >= 1 and {first, second} <= motion["sectors"]
         row = conn.execute("SELECT * FROM star_systems WHERE id = ?", (mover,)).fetchone()
         assert row["sector_id"] == second

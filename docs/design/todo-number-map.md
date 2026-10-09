@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.78 |
 | MAP | MAP.144 |
 | NAV | NAV.52 |
-| GEN | GEN.134 |
+| GEN | GEN.135 |
 | PERF | PERF.35 |
 | DB | DB.16 |
 | API | API.20 |
@@ -528,7 +528,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.55 | A version number and a seed reproduce the same galaxy (end goal) | none | open |
 | GEN.56 | Every random draw in generation comes from the derived seeds | none | done, PR #791 |
 | GEN.57 | A sector's contents depend only on the seed, the version and its address | none | open |
-| GEN.58 | A fingerprint of a galaxy's generated content | none | open |
+| GEN.58 | A fingerprint of a galaxy's generated content | none | done, PR #809 |
 | GEN.59 | Admin changes stored as a net difference from the generated galaxy | none | open |
 | GEN.60 | Rogue gas giants get a Jupiter-sized radius at every mass (bug) | none | done, PR #415 |
 | GEN.61 | The daily merge folds pending admin changes into a new JSON file | none | open |
@@ -597,13 +597,14 @@ Parents marked "new parent" had no old number of their own.
 | GEN.124 | Every object knows its sector address (ring, layer, slot), recalculated whenever its position changes | none | done, PR #729 |
 | GEN.125 | Stand-alone facilities store a velocity | none | done, PR #782 |
 | GEN.126 | Run an orbital update as the last step of a generation run | none | done, PR #771 |
-| GEN.127 | A sector generated around a backfilled bright star gives that star a planetary system (bug) | none | open |
+| GEN.127 | A sector generated around a backfilled bright star gives that star a planetary system (bug) | none | done, PR #805 |
 | GEN.128 | Design: multi-star hierarchies and compact-object primaries | none | open |
 | GEN.129 | Multi-star systems of up to seven stars | none | open |
 | GEN.130 | Exotic star systems: a black hole, neutron star or similar at the center | none | open |
-| GEN.131 | Bright-star scatter logs how many stars it added to each layer, by type | none | open |
-| GEN.132 | Per-sector regional rates for neutron stars and black holes, extended system-wide where the research supports it | none | open |
-| GEN.133 | Analysis of every star type's rate against its distance from the galactic core | none | open |
+| GEN.131 | Bright-star scatter logs how many stars it added to each layer, by type | none | done, PR #805 |
+| GEN.132 | Per-sector regional rates for neutron stars and black holes, extended system-wide where the research supports it | none | done, PR #807 |
+| GEN.133 | Analysis of every star type's rate against its distance from the galactic core | none | done, PR #807 |
+| GEN.134 | Tune the star populations to the observed star-formation profile by galactic radius | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -805,12 +806,12 @@ Parents marked "new parent" had no old number of their own.
 | OPS.5 | Install and update check the log locations and say how to fix them | none | done, PR #288 |
 | OPS.6 | Admin scripts accept impossible `--mysql-port` values (bug) | none | done, PR #457 |
 | OPS.7 | Update asks to fill a wiped database with population data (bug) | none | done, PR #457 |
-| OPS.8 | Update reloads Apache itself when run as root | none | open |
+| OPS.8 | Update reloads Apache itself when run as root | none | done, PR #808 |
 | OPS.9 | Multi-line messages lose their prefix in the debug log (bug) | none | done, PR #448 |
 | OPS.10 | The galaxy seed and version at the top of every generation log | none | done, PR #391 |
 | OPS.11 | Define "the same galaxy" and which versions stay reproducible | none | done, PR #362 (docs/design/reproducible-galaxies.md) |
 | OPS.12 | `generate.py reproduce`: a version and a seed rebuild a galaxy and check it | none | open |
-| OPS.13 | Every update records the version key, keeping the last 10 | none | open |
+| OPS.13 | Every update records the version key, keeping the last 10 | none | done, PR #810 |
 | OPS.14 | A warning when the running version key differs from the galaxy's | none | open |
 | OPS.15 | Each update says whether it changes generated output | none | open |
 | OPS.16 | A daily maintenance script for Linux, macOS and Windows | none | open |
@@ -855,7 +856,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.28 | The console's second progress bar (the bright-star backfill after a sector run) never updates its ETA (bug) | none | done, PR #454 |
 | PERF.29 | Record which runs a partly filled sector still needs | none | open |
 | PERF.30 | Finish an interrupted block or sector run on the next start | none | open |
-| PERF.34 | The site stays responsive during heavy generation jobs (bug) | none | open |
+| PERF.34 | The site stays responsive during heavy generation jobs (bug) | none | done, PR #811 |
 | PERF.31 | Investigate: where generation spends its time, from the plan to a finished galaxy | none | open |
 | PERF.32 | Generation performance stats: rates recorded per run, deleted on every new version | none | open |
 | PERF.33 | Progress bars and ETAs from measured performance | none | open |

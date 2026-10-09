@@ -64,6 +64,7 @@ from planetgen.galaxy.viewport import (
 from planetgen.galaxy.drill import (
     DRILL_TOP, DrillBlock, drill_chain_of, drill_wedge_count, format_drill_key, parse_drill_key,
 )
+from planetgen.db.corridor import positions_near_segment
 from planetgen.galaxy.nav_graph import build_route_graph, shortest_path
 from planetgen.galaxy.navigation import (
     FRAME_GALACTIC, FRAME_SECTOR, FRAME_SYSTEM, course_between, fold_travel_times, warp_travel_times,
@@ -71,7 +72,8 @@ from planetgen.galaxy.navigation import (
 from planetgen.physics.constants import SPECTRAL_CLASS_COLORS
 from planetgen.generation.evolution import life_stage_from_paragraphs
 from planetgen.tuning import (
-    DEFAULT_SECTOR_EDGE_LY, HABITABLE_PLANET_CLASSES, NAV_ADJACENCY_K, NAV_ISLAND_LINKS, PLANET_CLASSES,
+    DEFAULT_SECTOR_EDGE_LY, HABITABLE_PLANET_CLASSES, NAV_ADJACENCY_K, NAV_CORRIDOR_FRACTION, NAV_CORRIDOR_MAX_LY,
+    NAV_CORRIDOR_MAX_SYSTEMS, NAV_CORRIDOR_MIN_LY, NAV_CORRIDOR_START_MAX_LY, NAV_ISLAND_LINKS, PLANET_CLASSES,
 )
 from planetgen.physics.units import ly_to_pc, milliparsecs_to_ly, mpc_to_pc, pc_to_ly
 
@@ -774,44 +776,40 @@ def _sector_local_positions(conn, sector_id):
     }
 
 
-def _galaxy_frame_positions(conn):
+def _longest_hop(path, positions):
+    return max((math.dist(positions[a], positions[b]) for a, b in zip(path, path[1:])), default=0.0)
+
+
+def _galaxy_route(conn, origin_position, destination_position, from_key, to_key, adjacency_k):
     """
-    Returns every placed system's absolute galaxy-frame position (in
-    light-years) across every galaxy-placed sector -- the position set a
-    cross-sector NAV route's adjacency graph is built from. Systems in a
-    sector with no galaxy placement (`sectors.center_x_pc IS NULL`, e.g. a
-    standalone sector in a database with no galaxy at all) are excluded,
-    same as an unplaced system within a sector -- neither has an absolute
-    position to route through.
-
-    This necessarily only sees sectors that have actually been generated
-    and stored (see `galaxyGen.ensure_sector_generated`'s lazy generation),
-    not every sector a galaxy's skeleton says *could* exist -- there is no
-    position to route through for a sector nothing has visited yet either.
-
-    Args:
-        conn (planetgen.db.store.Connection): An open, read-only connection.
+    The cross-sector route between two galaxy-frame positions, searched among
+    the systems near the straight line between them instead of every placed
+    system (NAV.10): the corridor starts at `NAV_CORRIDOR_FRACTION` of the
+    direct distance either side of the line (clamped to
+    `NAV_CORRIDOR_MIN_LY`..`NAV_CORRIDOR_START_MAX_LY`) and doubles, up to
+    `NAV_CORRIDOR_MAX_LY`, while the route found has a hop longer than half
+    the half-width -- a hop that long may be hugging the corridor's edge with
+    stepping stones just outside it. A corridor holding more than
+    `NAV_CORRIDOR_MAX_SYSTEMS` is not widened. The route is found with A*.
 
     Returns:
-        dict: `{star_systems.id: (x, y, z)}`, light-years, galaxy-frame.
+        tuple: `(positions, found)`: the positions the graph was built from
+            (`{node_id: (x, y, z)}`, light-years) and `shortest_path`'s answer.
     """
-    rows = conn.execute(
-        """
-        SELECT ss.id, ss.position_x_mpc, ss.position_y_mpc, ss.position_z_mpc,
-               sec.center_x_pc, sec.center_y_pc, sec.center_z_pc
-        FROM star_systems ss
-        JOIN sectors sec ON sec.id = ss.sector_id
-        WHERE ss.position_x_mpc IS NOT NULL AND sec.center_x_pc IS NOT NULL
-        """
-    ).fetchall()
-    positions = {}
-    for row in rows:
-        positions[row["id"]] = (
-            pc_to_ly(row["center_x_pc"]) + milliparsecs_to_ly(row["position_x_mpc"]),
-            pc_to_ly(row["center_y_pc"]) + milliparsecs_to_ly(row["position_y_mpc"]),
-            pc_to_ly(row["center_z_pc"]) + milliparsecs_to_ly(row["position_z_mpc"]),
-        )
-    return positions
+    direct_ly = math.dist(origin_position, destination_position)
+    half_width = min(max(direct_ly * NAV_CORRIDOR_FRACTION, NAV_CORRIDOR_MIN_LY), NAV_CORRIDOR_START_MAX_LY)
+    while True:
+        positions = positions_near_segment(conn, origin_position, destination_position, half_width)
+        # The ends are nodes whatever they are: a phenomenon is no star_systems
+        # row, and a system's own position is the one NAV measured.
+        positions[from_key] = origin_position
+        positions[to_key] = destination_position
+        graph = build_route_graph(positions, adjacency_k, NAV_ISLAND_LINKS)
+        found = shortest_path(graph, from_key, to_key, positions)
+        settled = (found is not None and _longest_hop(found[0], positions) <= half_width / 2.0)
+        if settled or half_width >= NAV_CORRIDOR_MAX_LY or len(positions) > NAV_CORRIDOR_MAX_SYSTEMS:
+            return positions, found
+        half_width = min(half_width * 2.0, NAV_CORRIDOR_MAX_LY)
 
 
 def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
@@ -912,16 +910,8 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
         origin_position, destination_position = origin["position_ly"], destination["position_ly"]
     elif galaxy_scope_ok:
         scope = "galaxy"
-        positions = _galaxy_frame_positions(conn)
-        # A phenomenon endpoint is never itself a row _galaxy_frame_positions
-        # reads (it isn't a star_systems row at all) -- added as this one-
-        # off query's own extra graph node instead, under its own
-        # _phenomenon_nav_key so it can't collide with any real system id.
-        if from_kind == "phenomenon":
-            positions[from_key] = origin["galaxy_position_ly"]
-        if to_kind == "phenomenon":
-            positions[to_key] = destination["galaxy_position_ly"]
         origin_position, destination_position = origin["galaxy_position_ly"], destination["galaxy_position_ly"]
+        positions = None  # read below, from the corridor round the direct line (NAV.10)
     else:
         raise NavUnavailable(
             "NAV requires both endpoints to share a sector, or both to have a galaxy placement"
@@ -937,8 +927,12 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
     if from_key != to_key:
         # The graph's islands are joined (NAV.34), so two placed
         # endpoints always have a route.
-        graph = build_route_graph(positions, adjacency_k, NAV_ISLAND_LINKS)
-        found = shortest_path(graph, from_key, to_key)
+        if positions is not None:
+            graph = build_route_graph(positions, adjacency_k, NAV_ISLAND_LINKS)
+            found = shortest_path(graph, from_key, to_key, positions)
+        else:
+            positions, found = _galaxy_route(conn, origin_position, destination_position, from_key, to_key,
+                                             adjacency_k)
         if found is not None:
             path, distance_ly = found
             route = {

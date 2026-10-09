@@ -104,22 +104,50 @@ over 2 sector edges" flag.
 - **Cost stays plain length** (section 3.3). Route edge cases are tests
   first (TEST.79, PR #427).
 
-## 3. Routing that scales (NAV.10, phase 1)
+## 3. Routing that scales (NAV.10, built)
 
-Built with NAV.12, which changes the same code. The research changes four
-things in NAV.10 as written.
-
-1. **No position index or schema migration.** The TODO's "box query on
-   indexed sector centers" is weak: `idx_sectors_center` is `(center_x_pc,
-   center_y_pc, center_z_pc)`, so only X prunes. The address index already
-   does the job (section 4).
-2. **The stored `nearest_systems` table cannot back routing:** 3 neighbours
-   per object, only within `NEAREST_SYSTEMS_SEARCH_PC` (4 pc), no island data.
-3. **cKDTree** for the k-nearest graph and the island join (scipy and numpy
-   are already in `setup.py`; `physics/kepler.py` imports scipy).
-4. **A corridor, not the galaxy.** Built from the sector cells along the
-   segment, it loaded 1,000 to 52,000 rows in 15 to 60 ms and routed in 2 to
-   34 ms on a 1e7-system, 1.56 million-sector test database [C] (section 6).
+- **Corridor search.** `query.nav_between` at galaxy scope no longer loads
+  every placed system. `corridor.positions_near_segment` reads the sectors
+  near the straight line between the ends from `sectors`' center index, cut
+  into pieces so the read grows with the line's length, then the systems of
+  those sectors by their indexed sector id, and keeps those within a
+  half-width of the line. The half-width starts at a quarter of the direct
+  distance, between 25 and 100 ly, and doubles (to at most 6,400 ly) while
+  the route found has a hop longer than half of it: a hop that long may be
+  hugging the corridor's edge with stepping stones just outside it. A
+  corridor of more than 300,000 systems is not widened. The joined graph
+  (NAV.34) still guarantees a route among whatever the corridor holds.
+  Because the graph is built from the corridor's systems, a route can differ
+  from the one a whole-galaxy graph would give where a nearest neighbour lies
+  outside the corridor; the benchmark below shows the length stays within a
+  few percent.
+- **A\*.** `nav_graph.shortest_path` takes the node positions and uses the
+  straight-line distance to the goal as its heuristic. The length is the
+  same as Dijkstra's (a test checks it); fewer nodes are visited.
+- **Objects near a line.** `corridor.objects_near_segment` returns every
+  generated system, star and phenomenon within a distance of a segment, in
+  order along it (NAV.6's steering will use it).
+- **No new indexes.** The existing center indexes (`idx_sectors_center` and
+  each phenomenon table's own) and `idx_star_systems_sector_id` serve the
+  boxes, so NAV.10 needs no schema change.
+- **Measured.** `scripts/bench_nav.py` builds a synthetic galaxy of any size
+  with bulk SQL and times a corner-to-corner route. On 100,000 sectors and
+  400,000 systems (a flat grid, 4 pc apart, four systems each), a 4,519 ly
+  route took 3.3 s through the corridor and found a 5,162 ly path of 561
+  stops; loading every system and rebuilding the graph, as before, took 88 s
+  (2.9 s to load, 84.6 s to build). On 10,000 sectors and 40,000 systems: 0.9
+  s against 4.9 s, a 2,098 ly path against 2,101 ly with the whole graph.
+  Measured on the build server with a test suite running beside it.
+- **Research recommendations not taken.** The research proposed building the
+  corridor from the sector cells along the segment through the address index
+  (1,000 to 52,000 rows in 15 to 60 ms and a route in 2 to 34 ms on a
+  1e7-system, 1.56 million-sector test database [C], section 6), a cKDTree
+  for the k-nearest graph and the island join, and noted that
+  `idx_sectors_center` prunes only on X because it is `(center_x_pc,
+  center_y_pc, center_z_pc)`. The built version reads the centre index in
+  pieces along the line; revisit the cell-based read if the benchmark above
+  grows slow on a full galaxy. The stored `nearest_systems` table cannot back
+  routing (3 neighbours per object, within 4 pc, no island data).
 
 ### 3.1 Corridor rule and widening
 
@@ -529,8 +557,8 @@ that is 11.8 days, at warp 1 about 395 years, against 9.8 days for the direct
 | TEST.79 | Route edge cases, written first | 0 | **Built, PR #427** |
 | NAV.34 | Join the route graph's islands (bug) | 0 | **Built, PR #427** |
 | NAV.38 | Every sector a straight line passes through | 0 | **Built, PR #357** |
-| NAV.10 | Corridor by cells, cKDTree, A*, vectorised island join | 1 | no schema migration; shares the segment query with NAV.25 |
-| NAV.12 | No hop limit, longest hop, unknown-space flag, filled-set cache | 1 | NAV.34, NAV.38, TEST.79, NAV.10 |
+| NAV.10 | Corridor search, A*, the segment query | 1 | **Built** |
+| NAV.12 | No hop limit, longest hop shown, unknown-space flag | 1 | NAV.34, NAV.38, TEST.79, NAV.10 |
 | UX.35 | Horizontal, wrapping route strip | 1 | alongside NAV.12 |
 | NAV.11 | Travel times per hop and for the route | 1 | NAV.10, NAV.12 |
 | NAV.42 | Course and distance per stop | 1 | UX.35 |

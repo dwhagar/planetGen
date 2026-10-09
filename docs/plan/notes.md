@@ -317,7 +317,8 @@ items. New notes are listed here when the PR that adds them merges.
 | Note | Covers |
 |---|---|
 | [interstellar-object-rates.md](../design/interstellar-object-rates.md) | Real-world rates for interstellar objects (retuned in PR #804). |
-| [compact-remnant-regions.md](../design/compact-remnant-regions.md) | Research on where neutron stars and black holes are in the galaxy, behind the regional rates (GEN.132); added in PR #804. |
+| [star-types-by-galactic-radius.md](../design/star-types-by-galactic-radius.md) | GEN.133: every star type's rate against distance from the core, checked against the observed Milky Way; four proposals (young and intermediate populations weighted by the star-formation profile, a lower B share, a young tail in the bulge, a metallicity gradient only if planets need it), none built or filed yet (PR #807). |
+| [compact-remnant-regions.md](../design/compact-remnant-regions.md) | Research on where neutron stars and black holes are in the galaxy, behind the regional rates (GEN.132, PR #807); added in PR #804. |
 | [habitability-index.md](../design/habitability-index.md) | The habitability score structure, equipment profiles and tiers (GEN.84, PR #803). |
 | [orbital-updates.md](../design/orbital-updates.md) | The orbital update design (GEN.105 and its chain). |
 | [library-migration.md](../design/library-migration.md) | The move to third-party libraries. |
@@ -350,3 +351,7 @@ items. New notes are listed here when the PR that adds them merges.
 | [performance-eta-queue-and-caching.md](../design/performance-eta-queue-and-caching.md) | Profiling, progress and ETA estimates, the RQ queue and cache invalidation (PERF.20, PERF.31 to PERF.34, UX.3, ADM.15). |
 
 Most of these notes are the research pass Boss asked for on 2026-10-09 (08:43Z): each gives its sources, marks numbers as seen in a search [S], computed [C] or recalled and still to verify [R], and names the TODO items it informs. The research environment could read search-result text but not the papers themselves, so every [R] needs checking once paper access is allowed.
+
+## Not yet checked in live use
+
+- **PERF.34 (PR #811)**: the fix (tile cache wiped every minute during a fill when more than 1,000 sectors or new bright stars forced a full rebuild; now a `busy` answer plus keeping the cache for up to 10 minutes) was found by reading the code path and has not been load-tested. Boss's next real fill is the check; reopen issue #638 if the site is still slow.

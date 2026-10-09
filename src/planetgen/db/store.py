@@ -1417,6 +1417,7 @@ def _table_marker(table):
 
 
 _VERSION_MARKERS = (
+    (67, _column_marker("sectors", "version_key")),
     (66, _column_marker("planets", "next_update_due")),
     (65, _table_marker("phenomenon_scatter")),
     (64, _column_marker("facilities", "velocity_x_kms")),
@@ -3971,14 +3972,36 @@ def refresh_containment(conn, sector_ids, on_progress=None):
         sector_ids (iterable): `sectors.id` values; unplaced ones are skipped.
         on_progress (callable, optional): `on_progress("Sectors", done, total)`
             after each batch of sectors.
+
+    Returns:
+        dict: How many objects entered and left a container (GEN.107):
+            `CONTAINMENT_COUNTS` -> count. Moving from one nebula straight
+            into another counts as leaving one and entering the other.
     """
+    counts = dict.fromkeys(CONTAINMENT_COUNTS, 0)
     sector_ids = sorted(set(sector_ids))
     for start in range(0, len(sector_ids), 500):
-        _refresh_containment_batch(conn, sector_ids[start:start + 500])
+        _refresh_containment_batch(conn, sector_ids[start:start + 500], counts)
         _report(on_progress, "Sectors", min(start + 500, len(sector_ids)), len(sector_ids))
+    return counts
 
 
-def _refresh_containment_batch(conn, sector_ids):
+CONTAINMENT_COUNTS = ("entered_nebula", "left_nebula", "entered_remnant", "left_remnant")
+"""tuple: The keys of `refresh_containment`'s counts."""
+
+
+def _count_containment_change(counts, old, new):
+    """Adds one row's change of `(nebula, remnant)` container to `counts`."""
+    for (old_id, new_id), kind in zip(zip(old, new), ("nebula", "remnant")):
+        if old_id == new_id:
+            continue
+        if old_id is not None:
+            counts[f"left_{kind}"] += 1
+        if new_id is not None:
+            counts[f"entered_{kind}"] += 1
+
+
+def _refresh_containment_batch(conn, sector_ids, counts):
     marks = ", ".join("?" * len(sector_ids))
     sectors = conn.execute(
         f"SELECT id, center_x_pc, center_y_pc, center_z_pc, edge_mpc FROM sectors"
@@ -4001,8 +4024,10 @@ def _refresh_containment_batch(conn, sector_ids):
         best = innermost_container(point, containers, own_radius_pc, own) if point is not None else None
         new = (best["id"] if best and best["column"] == "inside_nebula_id" else None,
                best["id"] if best and best["column"] == "inside_remnant_id" else None)
-        if new != (row["inside_nebula_id"], row["inside_remnant_id"]):
+        old = (row["inside_nebula_id"], row["inside_remnant_id"])
+        if new != old:
             changes.setdefault(table, []).append((row["id"], *new))
+            _count_containment_change(counts, old, new)
 
     for row in conn.execute(
         f"SELECT id, sector_id, position_x_mpc, position_y_mpc, position_z_mpc, inside_nebula_id, inside_remnant_id"
@@ -4590,10 +4615,13 @@ def _rotate_about_axis(point, angle_rad):
 
 
 def _galactic_turn(elapsed_years, period_gy):
-    """The angle (radians) an orbit of `period_gy` sweeps in `elapsed_years`."""
+    """The angle (radians) an orbit of `period_gy` sweeps in `elapsed_years`,
+    whole orbits dropped first (GEN.108: a step longer than an orbit wraps
+    exactly instead of losing the fraction to rounding)."""
     if not period_gy or period_gy <= 0 or elapsed_years <= 0:
         return 0.0
-    return 2 * math.pi * elapsed_years / (period_gy * 1e9)
+    period_years = period_gy * 1e9
+    return 2 * math.pi * math.fmod(elapsed_years, period_years) / period_years
 
 
 class _SectorIndex:
@@ -4715,12 +4743,14 @@ def advance_galactic_positions(conn, clock, on_progress=None):
         conn.executemany(
             "UPDATE star_systems SET binary_galactic_orbital_phase_deg = CASE"
             " WHEN binary_configuration = 'close' AND binary_galactic_orbital_period_gy > 0"
-            " THEN MOD(binary_galactic_orbital_phase_deg + 360 * ? / (binary_galactic_orbital_period_gy * 1e9), 360)"
+            " THEN MOD(binary_galactic_orbital_phase_deg + 360 * MOD(?, binary_galactic_orbital_period_gy * 1e9)"
+            " / (binary_galactic_orbital_period_gy * 1e9), 360)"
             " ELSE binary_galactic_orbital_phase_deg END,"
             " epoch_unix = ?, next_update_due = ?, modified_at = modified_at WHERE id = ?", clocks)
         conn.executemany(
             "UPDATE stars SET galactic_orbital_phase_deg ="
-            " MOD(galactic_orbital_phase_deg + 360 * ? / (galactic_orbital_period_gy * 1e9), 360)"
+            " MOD(galactic_orbital_phase_deg + 360 * MOD(?, galactic_orbital_period_gy * 1e9)"
+            " / (galactic_orbital_period_gy * 1e9), 360)"
             " WHERE star_system_id = ? AND galactic_orbital_period_gy > 0", phases)
     if updates:
         conn.executemany(
@@ -4773,7 +4803,8 @@ def advance_galactic_positions(conn, clock, on_progress=None):
         if clocks:
             conn.executemany(
                 f"UPDATE {table} SET galactic_orbital_phase_deg = CASE WHEN galactic_orbital_period_gy > 0"
-                f" THEN MOD(galactic_orbital_phase_deg + 360 * ? / (galactic_orbital_period_gy * 1e9), 360)"
+                f" THEN MOD(galactic_orbital_phase_deg + 360 * MOD(?, galactic_orbital_period_gy * 1e9)"
+                f" / (galactic_orbital_period_gy * 1e9), 360)"
                 f" ELSE galactic_orbital_phase_deg END, epoch_unix = ?, next_update_due = ?,"
                 f" modified_at = modified_at WHERE id = ?", clocks)
         if updates:
@@ -4856,8 +4887,8 @@ def advance_facility_orbits(conn, clock):
     where = "placement IN ('orbital', 'asteroid') AND orbit_period_years > 0"
     _schedule_updates(conn, clock, "facilities", _FACILITY_INTERVAL_SQL, where, keep_modified=True)
     return conn.execute(
-        f"UPDATE facilities SET orbit_phase_deg = MOD(orbit_phase_deg + 360.0 * {_elapsed_years_sql()}"
-        f" / orbit_period_years, 360.0), epoch_unix = ?, next_update_due = ? + {_FACILITY_INTERVAL_SQL},"
+        f"UPDATE facilities SET orbit_phase_deg = MOD(orbit_phase_deg + {_phase_turn_sql('orbit_period_years')},"
+        f" 360.0), epoch_unix = ?, next_update_due = ? + {_FACILITY_INTERVAL_SQL},"
         f" modified_at = modified_at WHERE {where} AND next_update_due <= ?",
         (clock.end_unix, clock.end_unix, clock.end_unix, clock.end_unix),
     ).rowcount
@@ -4882,10 +4913,13 @@ def refresh_after_motion(conn, refiled_sectors=(), on_progress=None):
             systems"`) are refreshed.
 
     Returns:
-        int: How many location texts were rewritten.
+        dict: `"locations"`, how many location texts were rewritten, and
+            how many objects entered or left a nebula or supernova remnant
+            (`refresh_containment`'s counts, GEN.107).
     """
     placed = [row["id"] for row in conn.execute("SELECT id FROM sectors WHERE center_x_pc IS NOT NULL").fetchall()]
-    refresh_containment(conn, placed, lambda _label, done, total: _report(on_progress, "Containment: sectors", done, total))
+    containment = refresh_containment(
+        conn, placed, lambda _label, done, total: _report(on_progress, "Containment: sectors", done, total))
     changed = refresh_nearest_systems(
         conn, placed, lambda _label, done, total: _report(on_progress, "Nearest systems: sectors", done, total))
     system_ids = {object_id for table, object_id in changed if table == "star_systems"}
@@ -4916,7 +4950,7 @@ def refresh_after_motion(conn, refiled_sectors=(), on_progress=None):
             conn.executemany("UPDATE star_systems SET location = ?, modified_at = modified_at WHERE id = ?", updates)
             rewritten += len(updates)
         _report(on_progress, "Locations: systems", min(start + 500, len(system_ids)), len(system_ids))
-    return rewritten
+    return {"locations": rewritten, **containment}
 
 
 # ---------------------------------------------------------------------------
@@ -5433,13 +5467,15 @@ def insert_sector(conn, sector: SpaceSector, galaxy_position=None) -> int:
 
 
 def _insert_sector_rows(conn, sector, galaxy_position):
+    made_by = versionKey.current()  # DB.7: the code generating this sector
     if galaxy_position is not None:
         cur = conn.execute(
             """
             INSERT INTO sectors (
                 name, edge_mpc, center_x_pc, center_y_pc, center_z_pc,
-                galactic_radius_pc, ring_index, layer_index, ring_slot_index
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                galactic_radius_pc, ring_index, layer_index, ring_slot_index,
+                version_key, planetgen_version, python_version, platform
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 sector.name, ly_to_milliparsecs(sector.edge_ly),
@@ -5447,12 +5483,16 @@ def _insert_sector_rows(conn, sector, galaxy_position):
                 galaxy_position["center_z_pc"], galaxy_position["galactic_radius_pc"],
                 galaxy_position.get("ring_index"), galaxy_position.get("layer_index"),
                 galaxy_position.get("ring_slot_index"),
+                made_by["version_key"], made_by["planetgen_version"], made_by["python_version"],
+                made_by["platform"],
             ),
         )
     else:
         cur = conn.execute(
-            "INSERT INTO sectors (name, edge_mpc) VALUES (?, ?)",
-            (sector.name, ly_to_milliparsecs(sector.edge_ly)),
+            "INSERT INTO sectors (name, edge_mpc, version_key, planetgen_version, python_version, platform)"
+            " VALUES (?, ?, ?, ?, ?, ?)",
+            (sector.name, ly_to_milliparsecs(sector.edge_ly), made_by["version_key"],
+             made_by["planetgen_version"], made_by["python_version"], made_by["platform"]),
         )
     sector_id = cur.lastrowid
 
@@ -6112,6 +6152,20 @@ def get_galaxy_maker(conn):
     if row is None or row.get("version_key") is None:
         return None
     return GalaxyMaker(row["version_key"], row["planetgen_version"], row["python_version"], row["platform"])
+
+
+def sector_versions(conn):
+    """
+    The code that generated the galaxy's sectors (v67, DB.7): one dict per
+    distinct `version_key` (`None` for sectors generated before it was
+    recorded) with `planetgen_version`, `python_version`, `platform` and the
+    `sectors` count, the largest group first.
+    """
+    rows = conn.execute(
+        "SELECT version_key, MIN(planetgen_version) AS planetgen_version, MIN(python_version) AS python_version,"
+        " MIN(platform) AS platform, COUNT(*) AS sectors FROM sectors GROUP BY version_key"
+        " ORDER BY sectors DESC, version_key").fetchall()
+    return [dict(row) for row in rows]
 
 
 GENERATION_ARGUMENT_LENGTH = 1024
@@ -7565,6 +7619,14 @@ def _elapsed_years_sql(prefix=""):
     return f"((? - {prefix}epoch_unix) / {physical_constants.SECONDS_PER_YEAR!r})"
 
 
+def _phase_turn_sql(period_column, prefix=""):
+    """SQL for the degrees an orbit of `period_column` (years) turns from a
+    row's epoch to the update's end (the `?`), whole orbits dropped first
+    (GEN.108): a step many orbits long wraps exactly, where elapsed / period
+    would leave few digits for the fraction."""
+    return f"(MOD({_elapsed_years_sql(prefix)}, {period_column}) / {period_column} * 360)"
+
+
 def _due_interval_s(row, clock, speed_kms, scale, prefix=""):
     """For the rows the Python steps move: `(epoch, interval, due)` -- the
     row's epoch (the last update's when it has none), the seconds it takes
@@ -7657,7 +7719,7 @@ def advance_orbital_phases(conn, clock, on_progress=None):
         cur = conn.execute(
             f"""
             UPDATE {table}
-            SET orbital_phase_deg = MOD(orbital_phase_deg + ({_elapsed_years_sql()} / period_years) * 360, 360),
+            SET orbital_phase_deg = MOD(orbital_phase_deg + {_phase_turn_sql("period_years")}, 360),
                 position_x_km = distance_km * (
                     COS(RADIANS(orbital_ascending_node_deg)) * COS(RADIANS(orbital_phase_deg))
                     - SIN(RADIANS(orbital_ascending_node_deg)) * SIN(RADIANS(orbital_phase_deg))
@@ -7761,7 +7823,7 @@ def advance_orbital_phases(conn, clock, on_progress=None):
         f"""
         UPDATE star_systems
         SET binary_mutual_orbital_phase_deg = MOD(binary_mutual_orbital_phase_deg
-                + ({_elapsed_years_sql("binary_")} / binary_mutual_orbital_period_years) * 360, 360),
+                + {_phase_turn_sql("binary_mutual_orbital_period_years", "binary_")}, 360),
             binary_mutual_position_x_km = binary_separation_km * (
                 COS(RADIANS(binary_mutual_orbital_ascending_node_deg)) * COS(RADIANS(binary_mutual_orbital_phase_deg))
                 - SIN(RADIANS(binary_mutual_orbital_ascending_node_deg)) * SIN(RADIANS(binary_mutual_orbital_phase_deg))
@@ -7883,7 +7945,9 @@ def advance_comet_orbits(conn, clock):
     # Kepler's equation for every elliptical comet that moves, in one vectorised solve.
     moving = [row for row in rows if row["orbit_type"] == "elliptical"]
     new_mean_anomalies_deg = {
-        row["id"]: (row["mean_anomaly_deg"] + (elapsed_by_id[row["id"]] / row["orbital_period_years"]) * 360) % 360
+        row["id"]: (row["mean_anomaly_deg"]
+                    + math.fmod(elapsed_by_id[row["id"]], row["orbital_period_years"]) / row["orbital_period_years"] * 360)
+        % 360
         for row in moving}
     eccentric_anomalies = dict(zip(
         (row["id"] for row in moving),

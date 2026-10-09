@@ -95,7 +95,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | ADM.17 | The Generate page shows the galaxy's seed and version |  |  |
-| OPS.15 | Each update says whether it changes generated output | OPS.13, GEN.58 | Needs the fingerprint, so phase 2. |
+| OPS.15 | Each update says whether it changes generated output |  | Needs the fingerprint, so phase 2. |
 
 ### Daily maintenance
 
@@ -104,7 +104,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.61 | The daily merge folds pending admin changes into a new JSON file | GEN.59, ADM.18 | Boss 02:28Z: JSON changes only with the day's deltas. |
 | OPS.18 | Settings JSON backups kept in 18 slots: 7 daily, 4 weekly, 6 monthly, 1 yearly | GEN.61 | Grandfather-father-son rotation; unit test with simulated dates. |
 | OPS.16 | A daily maintenance script for Linux, macOS and Windows | GEN.61, OPS.18 | scripts/maintenance.sh and .ps1: positional update, delta merge, rotation; lock; optional OPS.15 check. |
-| OPS.17 | Install and update set up the daily maintenance schedule | OPS.16, OPS.8, OPS.13 | Same scripts as OPS.7/OPS.8/OPS.13 (install/update, deploy-common), after them. |
+| OPS.17 | Install and update set up the daily maintenance schedule | OPS.16 | Same scripts as OPS.7/OPS.8/OPS.13 (install/update, deploy-common), after them. |
 | ADM.19 | The Admin dashboard lists the 18 settings backups for download | ADM.18, OPS.18 |  |
 
 ### Picker
@@ -181,6 +181,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | DB.15 | A migration progress bar with the time remaining | PERF.32 | GitHub issue [#727](https://github.com/dwhagar/planetGen/issues/727). |
 | ADM.43 | A full configuration page under Admin | ADM.42 | GitHub issue [#515](https://github.com/dwhagar/planetGen/issues/515). |
 | ADM.44 | Web, Open Graph and SEO settings | ADM.42, ADM.43 | GitHub issue [#743](https://github.com/dwhagar/planetGen/issues/743). |
+| GEN.134 | Tune the star populations to the observed star-formation profile by galactic radius |  | From GEN.133's four unbuilt proposals (star-types-by-galactic-radius.md); Boss to confirm which he wants. |
 
 ## Open questions for Boss
 
