@@ -18,7 +18,7 @@ Research of 2026-10-09 (GEN.100 rate retune; rates are in `interstellar-object-r
 - Magnetars: only 20 to 31 pc, far thinner than radio pulsars, consistent with the most massive young progenitors ([McGill Magnetar Catalog](https://arxiv.org/pdf/1309.4167)).
 
 **By type**
-- Millisecond pulsars: 340 known in 45 globular clusters; cluster MSPs are about 10x over-abundant per star against the field. Estimates of the hidden cluster population run 1,000 to 4,700. No field total was found ([arXiv 2412.05220](https://arxiv.org/pdf/2412.05220), [arXiv 2111.08153](https://arxiv.org/pdf/2111.08153)).
+- Millisecond pulsars: 340 known in 45 globular clusters; cluster MSPs are about 10x over-abundant per star against the field. Estimates of the hidden cluster population run 1,000 to 4,700. No field total was found ([arXiv 2412.05220](https://arxiv.org/pdf/2412.05220), [arXiv 2111.08153](https://arxiv.org/pdf/2111.08153)). A cluster model (density component, encounter rate, pulsar counts by `Γ`) is in [globular-clusters.md](globular-clusters.md).
 - Magnetars: no total or fraction of all neutron stars was found in these searches. Only a local density of recently born ones, about 1.3e-2 per kpc^3.
 
 ## Not found

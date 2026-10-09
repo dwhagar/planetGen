@@ -350,6 +350,7 @@ items. New notes are listed here when the PR that adds them merges.
 | [galaxy-disk-density.md](../design/galaxy-disk-density.md) | The disk density model behind sector fill. |
 | [performance-eta-queue-and-caching.md](../design/performance-eta-queue-and-caching.md) | Profiling, progress and ETA estimates, the RQ queue and cache invalidation (PERF.20, PERF.31 to PERF.34, UX.3, ADM.15). |
 | [exotic-environments-planets-and-compact-binaries.md](../design/exotic-environments-planets-and-compact-binaries.md) | Planets and compact-object orbits in extreme environments: Boss's research digested for GEN.94, GEN.95, GEN.130. |
+| [globular-clusters.md](../design/globular-clusters.md) | Globular clusters: density-component storage, King sampling, metallicity, planet culls and pulsar planets; Boss's research digested with computed checks (GEN.9, GEN.130, GEN.134). |
 
 Most of these notes are the research pass Boss asked for on 2026-10-09 (08:43Z): each gives its sources, marks numbers as seen in a search [S], computed [C] or recalled and still to verify [R], and names the TODO items it informs. The research environment could read search-result text but not the papers themselves, so every [R] needs checking once paper access is allowed.
 
