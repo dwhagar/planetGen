@@ -28,7 +28,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.28 | Seven new planet classes in the letter gaps (R, S, U, W, X, Y, Z) | GEN.33 | Under GEN.90; class Z is Boss's Earth-size world that never had life (2026-10-03). Class S landed with GEN.38 (PR #415); the other six classes here. Closes with GEN.33's PRs; PLANET_CLASSES in program_constants.py. |
 | GEN.145 | Class S atmosphere rule: S keeps air unless the shoreline ratio is over 30 | GEN.91 | Research follow-up to class S (built). |
 | GEN.27 | Class P (glaciated world) only in the habitable zone, and fitting there | GEN.33 | Under GEN.90. Same reconcile/zone code as phase 0's physics fixes. |
-| GEN.91 | Classes like S and V in the hot and cold zones | GEN.33, GEN.85 |  |
+| GEN.91 | Classes like S and V in the hot and cold zones | GEN.33 |  |
 | GEN.146 | Teff-dependent habitable zone from the Kopparapu table | GEN.91 | Research: in GEN.91's dependency chain. |
 | GEN.92 | Life and its highest stage follow the habitability score | GEN.89, GEN.28 |  |
 | GEN.147 | Classes N and Q carry a life chemical and an uncapped life timeline though they are lifeless (bug) |  | Bug from the research. |
