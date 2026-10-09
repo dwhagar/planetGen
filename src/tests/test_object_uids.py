@@ -166,3 +166,29 @@ def test_a_system_saved_on_its_own_gets_ids(mysql_config):
     [row] = _rows(mysql_config, f"SELECT uid FROM star_systems WHERE id = {system_id}")
     assert row["uid"] is not None
     assert all(r["uid"] is not None for r in _rows(mysql_config, f"SELECT uid FROM stars WHERE star_system_id = {system_id}"))
+
+
+def test_ids_issued_as_rows_are_inserted_match_the_ones_assigned_afterwards(mysql_config):
+    """PERF.44: a save gives rows their ID in the INSERT; clearing them all and running `assign_uids` finds the same."""
+    store.save_sector(_sector("Uid Issued", 3, "Uid Wanderer"), config=mysql_config, galaxy_position=PLACE)
+    tables = ("star_systems", "stars", "planets", "moons", "asteroid_belts", "comets", *store.PHENOMENON_UID_TABLES)
+    issued = {table: _rows(mysql_config, f"SELECT id, uid FROM {table} ORDER BY id") for table in tables}
+    assert sum(len(rows) for rows in issued.values()) > 10
+    conn = store.get_connection(mysql_config)
+    try:
+        for table in tables:
+            conn.execute(f"UPDATE {table} SET uid = NULL")
+        [sector] = conn.execute("SELECT id FROM sectors").fetchall()
+        store.assign_uids(conn, sector_id=sector["id"])
+        conn.commit()
+    finally:
+        conn.close()
+    for table in tables:
+        again = _rows(mysql_config, f"SELECT id, uid FROM {table} ORDER BY id")
+        assert [(r["id"], r["uid"]) for r in again] == [(r["id"], r["uid"]) for r in issued[table]], table
+
+
+def test_a_row_under_a_parent_the_issuer_never_saw_is_left_for_the_assigning_pass():
+    issuer = store._UidIssuer(None, 1, "row1")
+    assert issuer.issue("stars", ["star_system_id"], (99,)) is None
+    assert not issuer.complete

@@ -816,6 +816,9 @@ class Connection:
         self.deferred_name_confirmations = None
         self._txn_locks = []
         self._short_row_waits = False
+        self.uid_issuer = None
+        """`_UidIssuer` or `None`: while a sector is being saved, gives each new row its unique ID in the INSERT
+        (PERF.44)."""
         self.sector_centers_pc = {}
         """dict: `sector_id -> (x, y, z)` or `None`, the sector centers `_system_velocity_kms` has read inside the
         current `batched()` scope (a read flushes the held-back INSERTs, so each is read once)."""
@@ -845,6 +848,11 @@ class Connection:
             if new_id is not None:
                 shape = shape._replace(columns=["id", *shape.columns], values="(?, " + shape.values[1:], has_id=True)
                 params = (new_id, *params)
+            if self.uid_issuer is not None and shape.table in _UID_ISSUED_TABLES:
+                uid = self.uid_issuer.issue(shape.table, shape.columns, params)
+                if uid is not None:
+                    shape = shape._replace(columns=[*shape.columns, "uid"], values=shape.values[:-1] + ", ?)")
+                    params = (*params, uid)
             if self._batch is not None and (new_id is not None or shape.table in BATCH_CHILD_TABLES):
                 level = self._batch_level(shape.table)
                 self._batch.setdefault((shape.table, tuple(shape.columns), shape.values, level), []).append(
@@ -3755,6 +3763,10 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
     star_system.assign_names(star_system.name)
     _designate_comets(star_system)
 
+    position_uid = getattr(star_system, "position_uid", None)
+    if conn.uid_issuer is not None:
+        conn.uid_issuer.given_system_uid = position_uid
+        conn.uid_issuer.used_given = False
     cur = conn.execute(
         """
         INSERT INTO star_systems (
@@ -3796,8 +3808,10 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
     )
     star_system_id = cur.lastrowid
     confirm_system_name(conn, name_base, star_system_id, diminutive_index)
-    position_uid = getattr(star_system, "position_uid", None)
-    if position_uid is not None:  # a bright-sweep system keeps its position ID (GEN.72)
+    if conn.uid_issuer is not None:
+        conn.uid_issuer.given_system_uid = None
+    if position_uid is not None and not (conn.uid_issuer is not None and conn.uid_issuer.used_given):
+        # a bright-sweep system keeps its position ID (GEN.72)
         _update_by_id(conn, "star_systems", ("uid",), [(star_system_id, galaxyUid.uid_bytes(position_uid))])
 
     if proxy_like:
@@ -5526,9 +5540,15 @@ def insert_sector(conn, sector: SpaceSector, galaxy_position=None, link_neighbor
     Returns:
         int: The new `sectors.id`.
     """
-    with conn.batched():
-        sector_id = _insert_sector_rows(conn, sector, galaxy_position, link_neighbors)
-    assign_uids(conn, sector_id=sector_id)
+    try:
+        with conn.batched():
+            sector_id = _insert_sector_rows(conn, sector, galaxy_position, link_neighbors)
+    finally:
+        issuer, conn.uid_issuer = conn.uid_issuer, None
+    if issuer is None or not issuer.complete:
+        assign_uids(conn, sector_id=sector_id)
+    else:
+        _set_sector_uid(conn, sector_id)
     address = None if galaxy_position is None else tuple(
         galaxy_position.get(key) for key in ("ring_index", "layer_index", "ring_slot_index"))
     if address is not None and None not in address:
@@ -5583,6 +5603,7 @@ def _insert_sector_rows(conn, sector, galaxy_position, link_neighbors=True):
     # in `deferred_name_confirmations` for one upsert at the end.
     conn.prereserved_names = {}
     conn.deferred_name_confirmations = []
+    conn.uid_issuer = _uid_issuer_for_sector(conn, sector_id, galaxy_position)
     try:
         # Every placed phenomenon is named by its object ID (GEN.64),
         # claimed here for the whole sector in generation order; only the
@@ -6441,6 +6462,115 @@ PHENOMENON_UID_TABLES = ("black_holes", "neutron_stars", "nebulae", "supernova_r
 """tuple: The phenomenon tables a sector holds, each with a `uid` (v58)."""
 
 _UID_SYSTEM_BATCH = 200
+
+
+def _sector_address_of(galaxy_position):
+    address = None if galaxy_position is None else tuple(
+        galaxy_position.get(key) for key in ("ring_index", "layer_index", "ring_slot_index"))
+    return address if address is not None and None not in address else None
+
+
+def _uid_issuer_for_sector(conn, sector_id, galaxy_position):
+    """The `_UidIssuer` for a sector just inserted (its `uid` is set by
+    `_set_sector_uid`), or `None` when a sector's rows can't be ranked here."""
+    address = _sector_address_of(galaxy_position)
+    sector_text = (galaxyUid.format_sector_uid(galaxyUid.sector_uid(*address)) if address is not None
+                   else f"row{sector_id}")
+    return _UidIssuer(get_galaxy_seed(conn), sector_id, sector_text)
+
+
+def _set_sector_uid(conn, sector_id):
+    """Writes a grid sector's own `uid` (its designation) when it has none."""
+    row = conn.execute("SELECT ring_index, layer_index, ring_slot_index, uid FROM sectors WHERE id = ?",
+                       (sector_id,)).fetchone()
+    if row is None or row["uid"] is not None:
+        return
+    address = (row["ring_index"], row["layer_index"], row["ring_slot_index"])
+    if None not in address:
+        conn.execute("UPDATE sectors SET uid = ?, modified_at = modified_at WHERE id = ?",
+                     (galaxyUid.sector_uid(*address), sector_id))
+
+
+_UID_ISSUED_TABLES = frozenset(("star_systems", "stars", "planets", "moons", "asteroid_belts", "comets",
+                                *PHENOMENON_UID_TABLES))
+"""frozenset: Tables whose new rows `_UidIssuer` gives a `uid` as they are inserted."""
+
+
+class _UidIssuer:
+    """
+    PERF.44: the unique IDs of a sector's rows, worked out as the rows are
+    inserted instead of selected back and updated afterwards
+    (`assign_uids`). An ID is `derived_uid(seed, kind, parent, rank)`, where
+    `rank` is the row's place among its parent's rows of that kind in id
+    order, which for rows inserted one after another is the order they are
+    inserted in; so a counter per parent gives the same ranks (and the same
+    IDs) `assign_uids` finds. `Connection.execute` asks for one per INSERT
+    into `_UID_ISSUED_TABLES` while `conn.uid_issuer` is set
+    (`insert_sector`).
+
+    `complete` turns false when a row's parent isn't one this issuer saw;
+    `insert_sector` then runs `assign_uids` as before for the rows with none.
+    """
+
+    def __init__(self, seed, sector_id, sector_text):
+        self.seed = seed
+        self.sector_id = sector_id
+        self.sector_text = sector_text
+        self.complete = True
+        self._ranks = {}
+        self._system_text = {}
+        self._planet_text = {}
+        self.given_system_uid = None
+        """int or `None`: The next system's own ID, when it keeps one (a bright-sweep system's position ID,
+        GEN.72); `issue` uses it in place of the derived one and clears it."""
+        self.used_given = False
+
+    def _next(self, key):
+        rank = self._ranks.get(key, 0)
+        self._ranks[key] = rank + 1
+        return rank
+
+    def issue(self, table, columns, params):
+        """The `uid` value for a row about to be inserted (bytes at the
+        galaxy width, an integer at the local width), or `None` when the row
+        gets none here."""
+        row = dict(zip(columns, params))
+        if table == "star_systems":
+            if row.get("sector_id") != self.sector_id:
+                return None
+            rank = self._next(("system", self.sector_id))
+            uid, self.given_system_uid = self.given_system_uid, None
+            self.used_given = uid is not None
+            if uid is None:
+                uid = galaxyUid.derived_uid(self.seed, "system", self.sector_text, rank)
+            self._system_text[row["id"]] = galaxyUid.format_uid(uid)
+            return galaxyUid.uid_bytes(uid)
+        if table in PHENOMENON_UID_TABLES:
+            if row.get("sector_id") != self.sector_id:
+                return None
+            rank = self._next((table, self.sector_id))
+            uid = _gen64_uid(row.get("name"))
+            if uid is None:
+                uid = galaxyUid.derived_uid(self.seed, table, self.sector_text, rank)
+            return galaxyUid.uid_bytes(uid)
+        system_id = row.get("star_system_id")
+        parent = self._system_text.get(system_id)
+        if parent is None:
+            self.complete = False
+            return None
+        bits = galaxyUid.LOCAL_BITS
+        if table == "moons":
+            planet_id = row.get("planet_id")
+            parent = self._planet_text.get(planet_id)
+            if parent is None:
+                self.complete = False
+                return None
+            return galaxyUid.derived_uid(self.seed, "moon", parent, self._next(("moon", planet_id)), bits)
+        kind = {"stars": "star", "planets": "planet", "asteroid_belts": "belt", "comets": "comet"}[table]
+        uid = galaxyUid.derived_uid(self.seed, kind, parent, self._next((kind, system_id)), bits)
+        if table == "planets":
+            self._planet_text[row["id"]] = galaxyUid.format_uid(uid, bits)
+        return uid
 
 
 def assign_uids(conn, sector_id=None, system_ids=(), phenomenon=None):

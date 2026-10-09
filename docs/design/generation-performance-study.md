@@ -198,6 +198,14 @@ timer runs differ by a few points.
   1.8 s of 11 s SQL in the 1,045-system run). Risk: the id order and the generation order must
   match, which `insert_sector` already relies on; GEN.69's idempotence ("a row that has one keeps
   it") must still hold for a re-save.
+  **Built (PERF.44).** `Connection.execute` asks a `_UidIssuer` (set by `insert_sector`) for
+  the `uid` of each INSERT into a table that has one, and adds it to the statement; the issuer
+  counts ranks per parent as rows go in, which is their id order. A bright-sweep system keeps its
+  position ID (GEN.72) as before. If a row's parent was not one the issuer saw, `insert_sector`
+  runs `assign_uids` for the rest as it did. The IDs are identical (14,000 rows across 30 sectors
+  compared with the SELECT-and-UPDATE pass; a test clears every ID and checks `assign_uids` finds
+  the same). The pass it replaces cost 0.026 s per sector at about 9 systems a sector, more in
+  a denser one.
 - **D. Build INSERT text without pymysql's per-value escape for numeric-only tables**
   (`bright_stars`, `phenomenon_scatter`): 13.8 to 10.1 us per row, 27%. Risk: floats and
   ints only plus a `kind` drawn from a fixed list; any string value must still go through
