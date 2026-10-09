@@ -58,6 +58,7 @@ export function createSectorStage(host) {
   let roguesMarked = false;
   // The kinds of object left off the map (MAP.79), kept across sectors.
   const hiddenKinds = new Set();
+  const markedKinds = new Set();
   // MAP.123: star classes left off and the dimmest star shown (L☉).
   const hiddenClasses = new Set();
   let minLuminosity = 0;
@@ -147,6 +148,12 @@ export function createSectorStage(host) {
       if (host.kindsChanged) host.kindsChanged();
     }
     open.layers[0].select(entry);
+  }
+
+  function setKindMarked(kind, marked) {
+    if (marked) markedKinds.add(kind);
+    else markedKinds.delete(kind);
+    if (open) open.sector.setKindMarked(kind, marked);
   }
 
   function setKindHidden(kind, hidden) {
@@ -258,6 +265,7 @@ export function createSectorStage(host) {
       host.scene.add(state.sector.group);
       state.sector.setRoguesMarked(roguesMarked);
       hiddenKinds.forEach(function (kind) { state.sector.setKindHidden(kind, true); });
+      markedKinds.forEach(function (kind) { state.sector.setKindMarked(kind, true); });
       hiddenClasses.forEach(function (c) { state.sector.setStarClassHidden(c, true); });
       if (minLuminosity > 0) state.sector.setMinLuminosity(minLuminosity);
       state.layers = state.sector.layers.map(function (layer) { return host.picker.addLayer(layerFor(layer, state)); });
@@ -303,6 +311,20 @@ export function createSectorStage(host) {
     setKindHidden: setKindHidden,
     kindHidden: function (kind) { return hiddenKinds.has(kind); },
     hiddenKinds: function () { return Array.from(hiddenKinds); },
+    setKindMarked: setKindMarked,
+    kindMarked: function (kind) { return markedKinds.has(kind); },
+    markedKinds: function () { return Array.from(markedKinds); },
+    // The kinds named by a URL's `mark` (unknown names ignored), before any sector opens.
+    setMarkedKinds: function (kinds) {
+      let changed = false;
+      KINDS.forEach(function (pair) {
+        const want = kinds.indexOf(pair[0]) >= 0;
+        if (want === markedKinds.has(pair[0])) return;
+        setKindMarked(pair[0], want);
+        changed = true;
+      });
+      if (changed && host.kindsChanged) host.kindsChanged();
+    },
     setStarClassHidden: setStarClassHidden,
     starClassHidden: function (c) { return hiddenClasses.has(c); },
     hiddenClasses: function () { return Array.from(hiddenClasses); },
