@@ -145,22 +145,27 @@ class _BatchDensity:
 
 def _fill_context(args, address, position_pc):
     """The `brightStars.FillContext` for one galaxy sector: its population
-    mix, and its unfilled pre-placed bright stars down to its own level
+    mix, its unfilled pre-placed bright stars down to its own level
     (`store.bright_star_fill_level`: its backfill's, GEN.44, else the galaxy
-    scatter's). `None` without a stored skeleton (nothing to take the mix
-    from)."""
+    scatter's), and its unbuilt scattered phenomena when the galaxy's
+    phenomenon scatter ran (GEN.100). `None` without a stored skeleton
+    (nothing to take the mix from)."""
     conn = store.get_connection(store.mysql_config_from_args(args))
     try:
         skeleton = store.get_galaxy_shape(conn)
         if skeleton is None:
             return None
+        phenomena = None
+        if store.phenomenon_scatter_seed(conn) is not None:
+            phenomena = store.phenomena_for_sector(conn, *address)
         level = store.bright_star_fill_level(conn, *address)
         if level is None:
-            return brightStars.FillContext(position_pc, skeleton.shape)
+            return brightStars.FillContext(position_pc, skeleton.shape, phenomenon_rows=phenomena)
         rows = store.bright_stars_for_sector(conn, *address)
     finally:
         conn.close()
-    return brightStars.FillContext(position_pc, skeleton.shape, rows, min_luminosity_sol=level)
+    return brightStars.FillContext(position_pc, skeleton.shape, rows, min_luminosity_sol=level,
+                                   phenomenon_rows=phenomena)
 
 
 def backfill_tiers(radius_ly=None, min_luminosity_sol=None, tiers=None):
@@ -440,7 +445,7 @@ def generate_and_save_sector_at(args, address, position_pc, edge_pc):
     with galaxySeed.seeded(galaxy_seed, "sector", address):
         _sector_name, sector = run_sector.generate_sector(args, galactic_center_dist_ly=pc_to_ly(radius_pc), cell=cell,
                                                fill=fill, cloud_field=cloud_field)
-        if address == run_sector.NUCLEUS_ADDRESS:
+        if address == run_sector.NUCLEUS_ADDRESS and not (fill is not None and fill.phenomena_scattered):
             run_sector.add_galactic_nucleus(sector, args, pc_to_ly(radius_pc))
         sector.place_in_galaxy(tuple(pc_to_ly(c) for c in position_pc))
         sector_id = store.save_sector(sector, config=store.mysql_config_from_args(args),

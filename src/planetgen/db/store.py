@@ -1416,6 +1416,7 @@ def _table_marker(table):
 
 
 _VERSION_MARKERS = (
+    (65, _table_marker("phenomenon_scatter")),
     (64, _column_marker("facilities", "velocity_x_kms")),
     (63, _table_marker("generation_run_arguments")),
     (62, _table_marker("sector_paths")),
@@ -4889,6 +4890,74 @@ def bright_star_scatter_settings(conn):
     return row["bright_star_min_luminosity_sol"], row["bright_star_seed"]
 
 
+def clear_phenomenon_scatter(conn):
+    """Empties `phenomenon_scatter` and forgets the scatter's seed -- a
+    plan re-run or a new galaxy starts over. `TRUNCATE` (an implicit
+    commit), since a real scatter leaves over a hundred million rows."""
+    conn.execute("TRUNCATE TABLE phenomenon_scatter")
+    conn.execute("UPDATE galaxy_shape SET phenomenon_scatter_seed = NULL")
+    conn.commit()
+
+
+def record_phenomenon_scatter(conn, seed):
+    """Stores the seed a finished phenomenon scatter used: its presence
+    tells a sector fill to build its objects from `phenomenon_scatter`
+    instead of rolling its own."""
+    conn.execute("UPDATE galaxy_shape SET phenomenon_scatter_seed = ? WHERE id = 1", (seed,))
+
+
+def phenomenon_scatter_seed(conn):
+    """The seed of the galaxy's phenomenon scatter, or `None` when none
+    has run (a fill then rolls its own black holes, neutron stars,
+    planetary nebulae and supernova remnants)."""
+    row = conn.execute("SELECT phenomenon_scatter_seed FROM galaxy_shape WHERE id = 1").fetchone()
+    if row is None or row["phenomenon_scatter_seed"] is None:
+        return None
+    return int(row["phenomenon_scatter_seed"])
+
+
+PHENOMENON_SCATTER_COLUMNS = (
+    "ring_index", "layer_index", "ring_slot_index", "kind", "subtype", "position_x_mpc", "position_y_mpc",
+    "position_z_mpc", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms", "seed",
+)
+"""tuple: The `phenomenon_scatter` columns a scatter writes, in the order
+`insert_phenomenon_scatter` expects each row's values."""
+
+
+def insert_phenomenon_scatter(conn, rows, batch_size=10000):
+    """Bulk-writes scattered phenomena (`PHENOMENON_SCATTER_COLUMNS` order)
+    in batches of `batch_size`. Returns the rows written."""
+    columns = ", ".join(PHENOMENON_SCATTER_COLUMNS)
+    marks = ", ".join("?" * len(PHENOMENON_SCATTER_COLUMNS))
+    written = 0
+    batch = []
+    for row in rows:
+        batch.append(tuple(row))
+        if len(batch) >= batch_size:
+            conn.executemany(f"INSERT INTO phenomenon_scatter ({columns}) VALUES ({marks})", batch)
+            written += len(batch)
+            batch = []
+    if batch:
+        conn.executemany(f"INSERT INTO phenomenon_scatter ({columns}) VALUES ({marks})", batch)
+        written += len(batch)
+    return written
+
+
+def phenomena_for_sector(conn, ring_index, layer_index, ring_slot_index):
+    """The scattered phenomena in one sector cell not yet built, in
+    placement order, as dicts of every `phenomenon_scatter` column."""
+    return [dict(row) for row in conn.execute(
+        "SELECT * FROM phenomenon_scatter WHERE ring_index = ? AND layer_index = ? AND ring_slot_index = ?"
+        " AND built_at IS NULL ORDER BY id", (ring_index, layer_index, ring_slot_index)).fetchall()]
+
+
+def mark_phenomena_built(conn, scatter_ids):
+    """Stamps the scattered phenomena a sector's save has built."""
+    ids = [(int(value),) for value in scatter_ids]
+    if ids:
+        conn.executemany("UPDATE phenomenon_scatter SET built_at = CURRENT_TIMESTAMP WHERE id = ?", ids)
+
+
 UNTOUCHED_LEVEL = -1.0
 """float: `sector_stats.bright_level_sol` of a sector no backfill has
 drawn (GEN.44): it follows the galaxy scatter's level."""
@@ -5349,6 +5418,7 @@ def _insert_sector_rows(conn, sector, galaxy_position):
             conn.prereserved_names[id(obj)] = (base, diminutive_index)
 
         bright_star_links = []
+        built_scatter_ids = []
         for entry in sector.entries:
             star_system_id = insert_star_system(
                 conn, entry.star_system, entry.system_config,
@@ -5358,6 +5428,8 @@ def _insert_sector_rows(conn, sector, galaxy_position):
             bright_star_id = getattr(entry, "bright_star_id", None)
             if bright_star_id is not None:
                 bright_star_links.append((bright_star_id, star_system_id))
+            if getattr(entry, "scatter_id", None) is not None:
+                built_scatter_ids.append(entry.scatter_id)
 
         for entry in sector.phenomena:
             inserter = _PHENOMENON_INSERTERS.get(entry.phenomenon_type)
@@ -5365,6 +5437,8 @@ def _insert_sector_rows(conn, sector, galaxy_position):
                 raise ValueError(f"Unknown phenomenon type: {entry.phenomenon_type!r}")
             placement = _galaxy_placement_from_sector_offset(galaxy_position, entry.position)
             inserter(conn, entry.phenomenon, sector_id=sector_id, placement=placement)
+            if getattr(entry, "scatter_id", None) is not None:
+                built_scatter_ids.append(entry.scatter_id)
 
         confirm_system_names(conn, conn.deferred_name_confirmations)
     finally:
@@ -5372,6 +5446,7 @@ def _insert_sector_rows(conn, sector, galaxy_position):
         conn.deferred_name_confirmations = None
     if bright_star_links:
         _update_by_id(conn, "bright_stars", ("star_system_id",), bright_star_links, touch=True)
+    mark_phenomena_built(conn, built_scatter_ids)
 
     if galaxy_position is not None:
         # Containment and nearest-neighbor lists read the sectors around
