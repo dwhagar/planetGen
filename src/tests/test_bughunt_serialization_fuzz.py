@@ -123,7 +123,7 @@ _STAR_TYPES = ["M5V", "K2V", "G2V", "F5V", "A1V", "B3V", "O5V"]
 # columns rebuild on load.
 _RUNTIME_ONLY = {
     Star: {"system_config", "galactic_center_dist_ly", "spatial"},
-    Planet: {"system_config", "star", "moons", "spatial", "_staged_au"},
+    Planet: {"system_config", "star", "moons", "spatial", "_staged_au", "_staged_velocity_kms"},
     AsteroidBelt: {"system_config", "composition"},
 }
 
