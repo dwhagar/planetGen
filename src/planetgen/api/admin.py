@@ -12,16 +12,18 @@ The queries themselves live in `planetgen.db.stats`.
 
 import os
 import platform
+import secrets
 import sys
 import time
 
 import pymysql
-from flask import Blueprint, current_app, jsonify, request
+from flask import Blueprint, current_app, g, jsonify, request
 
 from planetgen.db import stats as adminStats
 from planetgen.db import store as _db
 from planetgen.admin import auth, throttle
 from planetgen.generation import stats as generationStats
+from planetgen.names import naming_key
 from planetgen._version import __version__
 
 from .authz import audit, require_admin
@@ -195,6 +197,58 @@ def generation_stats():
     except Exception:  # noqa: BLE001 -- update.sh not run yet
         available = False
     return jsonify({"buckets": stats.rows(), "sizes": stats.sizes, "available": available})
+
+
+def _naming_view(database, stored):
+    return {
+        "database": database, "key": stored["key"] if stored else None,
+        "codec_version": stored["codec_version"] if stored else None,
+        "current_codec_version": naming_key.CODEC_VERSION,
+        "drawn_at": stored["drawn_at"].isoformat() if stored and stored["drawn_at"] else None,
+        "changed_at": stored["changed_at"].isoformat() if stored and stored["changed_at"] else None,
+        "changed_by": stored["changed_by"] if stored else None,
+    }
+
+
+@bp.route("/naming-key", methods=["GET"])
+@require_admin(fresh=True)
+def naming_key_get():
+    """
+    `GET /api/admin/naming-key` -- the galaxy's naming key (GEN.70,
+    `planetgen/names/naming_key.py`): `{"database", "key", "codec_version",
+    "current_codec_version", "drawn_at", "changed_at", "changed_by"}`.
+    `key` is `null` before the galaxy is planned.
+    """
+    database = _resolve_requested_db_config().database
+    return jsonify(_naming_view(database, naming_key.get(get_control_db(), database)))
+
+
+@bp.route("/naming-key", methods=["POST"])
+@require_admin(fresh=True)
+def naming_key_set():
+    """
+    `POST /api/admin/naming-key` `{"key": "0123ABCD"}` sets the naming key
+    (8 hex digits), or `{"draw": true}` draws a fresh random one. Every
+    object the phoneme codec names takes a new name at once; no row is
+    rewritten. 409 before the galaxy is planned. Written to the audit log as
+    `naming-key.change`.
+    """
+    body = require_json_body()
+    database = _resolve_requested_db_config().database
+    if body.get("draw") is True:
+        key = secrets.token_hex(naming_key.KEY_DIGITS // 2).upper()
+    else:
+        try:
+            key = naming_key.parse_key(body.get("key", ""))
+        except ValueError as exc:
+            raise ApiError(str(exc)) from exc
+    conn = get_control_db()
+    try:
+        naming_key.change(conn, database, key, g.admin_user["username"])
+    except LookupError as exc:
+        raise ApiError(str(exc), status_code=409) from exc
+    audit("naming-key.change", target=database, detail=f"key={key}")
+    return jsonify(_naming_view(database, naming_key.get(conn, database)))
 
 
 @bp.route("/lockouts")

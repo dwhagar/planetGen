@@ -299,3 +299,19 @@ CREATE TABLE IF NOT EXISTS generation_size (
     total_bytes          BIGINT UNSIGNED NOT NULL,
     measured_at          DATETIME(6) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- v9 (GEN.70): the naming key of each galaxy database, one row per
+-- database. It is drawn from the galaxy seed when the galaxy is planned
+-- and an admin can change it; the objects the phoneme codec names
+-- (`planetgen/names/naming_key.py`) get their names from their ID and
+-- this key, so changing it renames them all without rewriting a row.
+-- `codec_version` is the codec's version when the key was set. A galaxy
+-- reset keeps the row until a new plan draws a new key.
+CREATE TABLE IF NOT EXISTS galaxy_naming (
+    database_name        VARCHAR(64) NOT NULL PRIMARY KEY,
+    naming_key           CHAR(8) NOT NULL,        -- 8 uppercase hex digits
+    codec_version        SMALLINT UNSIGNED NOT NULL,
+    drawn_at             DATETIME(6) NOT NULL,
+    changed_at           DATETIME(6) NULL,        -- the last admin change
+    changed_by           VARCHAR(64) NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

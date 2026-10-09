@@ -599,6 +599,14 @@ forced credential change. They back the admin stats page
   "max_density"}], "sizes": {database: {"bytes_per_system", "systems",
   "total_bytes"}}, "available"}` (`available` is false until `update.sh`
   has added control schema v6). Shown on the Stats page.
+- `GET /api/admin/naming-key[?db=]` — the galaxy's naming key (GEN.70):
+  `{"database", "key", "codec_version", "current_codec_version",
+  "drawn_at", "changed_at", "changed_by"}`; `key` is `null` before the
+  galaxy is planned. `POST /api/admin/naming-key[?db=]` `{"key": "0A1B2C3D"}`
+  (8 hex digits) or `{"draw": true}` sets or draws a key; every object the
+  phoneme codec names takes a new name at once and no row is rewritten.
+  409 before the galaxy is planned. Audited as `naming-key.change`. On the
+  Stats page.
 - `GET /api/admin/work[?limit=&offset=]` — the work queue (ADM.10):
   `{"available", "status": {"workers_active", "runs_active", "paused",
   "paused_by", "paused_at", "holder", "job_id", "heartbeat_age_s",

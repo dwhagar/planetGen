@@ -26,6 +26,42 @@
     </tbody>
   </table></div>
 </section>
+{%- if flash_message %}
+<p class="hint" role="status">{{ flash_message }}</p>
+{%- endif %}
+<section class="panel" id="naming-key" aria-labelledby="naming-key-heading">
+  <h2 id="naming-key-heading">Naming key</h2>
+  <p class="hint">Rogue planets, black holes, neutron stars, nebulae,
+  remnants, quasars, interstellar comets, asteroid fields and constellations
+  are named from their ID and this key. Changing it renames all of them at
+  once and rewrites no row. Stars, sectors, planets, moons and belts keep
+  their names.</p>
+  {%- if flash_error %}
+  <p class="error" role="alert">{{ flash_error }}</p>
+  {%- endif %}
+  {%- if naming.error %}
+  <p class="error">{{ naming.error }}</p>
+  {%- elif naming.key is none %}
+  <p class="hint">No key yet: plan the galaxy first (<code>planetgen plan</code>).</p>
+  {%- else %}
+  <p>Key <code>{{ naming.key }}</code> <span class="hint">{{ naming.when }}</span></p>
+  {%- if naming.stale_codec %}
+  <p class="error">The name codec has changed since this key was set, so some names differ from before. Setting a key again settles this.</p>
+  {%- endif %}
+  <form method="post" action="{{ url_for('web.change_naming_key') }}" class="search-form">
+    {{ csrf_field() }}
+    <div class="search-fields">
+      <label class="search-field">New key (8 hex digits)
+        <input type="text" name="key" value="{{ naming.key }}" pattern="[0-9A-Fa-f]{8}" maxlength="8" required>
+      </label>
+    </div>
+    <div class="search-actions"><button type="submit" class="btn">Change key</button></div>
+  </form>
+  <form method="post" action="{{ url_for('web.change_naming_key') }}">
+    {{ csrf_field() }}<input type="hidden" name="draw" value="1"><button type="submit">Draw a random key</button>
+  </form>
+  {%- endif %}
+</section>
 <section class="panel" id="lockouts" aria-labelledby="lockouts-heading">
   <h2 id="lockouts-heading">Login lockouts</h2>
   <p class="hint">Addresses locked after 3 failed logins (5 minutes, doubling
