@@ -3334,8 +3334,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Left over (2026-10-09): left over from UX.83 (PR #895, Bugfixes lane
   1): the phenomenon scatter, the neighbour-linking steps and the
   population pass now draw their own bars; a bar inside one sector's
-  save (the slowest sub-step in a dense sector) still needs a
-  worker-to-parent progress channel.
+  save (the slowest sub-step in a dense sector) is now PERF.50.
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
   Replace the one-`sector_stats`-row-per-visited-cell ledger of
@@ -3448,6 +3447,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   point): 13.8 down to 10.1 microseconds a row. Low priority.
   Prerequisites: none.
   Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
+
+- [ ] **PERF.50 A progress bar inside one sector's save: workers report their sub-steps to the main process**
+  Left over from UX.83 (Bugfixes lane 1, PR #895; Boss, 2026-10-09
+  23:13Z: "if a sub-step is probably going to take longer than 15
+  seconds give it a progress bar as well"). The phenomenon scatter, the
+  neighbour-linking steps and the population pass now draw their own
+  bars, but the slowest sub-step left, the save of one dense sector
+  inside a worker, shows nothing because a worker has no channel to the
+  main process's bar. Done: workers report their sub-step progress
+  (units done of units expected) to the parent through a progress
+  channel, and the parent draws it as a bar under the sector's step, in
+  the terminal and on the Generate and Queue pages, for any sub-step
+  expected to pass 15 seconds (the expected time comes from the PERF.32
+  rates once they exist). Open question for Boss (default build it with
+  PERF.33's estimator so both share one channel): or separately?
+  Prerequisites: none. Related: UX.83, PERF.33, PERF.34, PERF.32.
 
 ## DB: Database and schema
 
@@ -4211,6 +4226,16 @@ clears each one.
   use the new IDs.
   Prerequisites: GEN.171, GEN.172, GEN.176.
   Design: [docs/design/object-id-options.md](design/object-id-options.md)
+
+- [ ] **TEST.111 test_ensure_sector_generated_creates_then_reuses_the_same_sector fails in a busy parallel run (bug)**
+  Reported by Bugfixes lane 1 (2026-10-09 23:32Z):
+  `test_ensure_sector_generated_creates_then_reuses_the_same_sector`
+  failed once in a busy parallel full-suite run and passed alone, with
+  no change to the code it covers. Done: the cause is found (a shared
+  sector address or timing under load is the first thing to check) and
+  the test is made robust without skipping or loosening it, or the
+  product bug it hides is fixed. Related: TEST.71, TEST.73, OPS.19.
+  Prerequisites: none.
 
 ## USR: User accounts
 

@@ -216,6 +216,8 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
+| PERF.50 | A progress bar inside one sector's save: workers report their sub-steps to the main process |  | Left over from UX.83; Boss 23:13Z rule: a bar on any sub-step over 15 s. |
+| TEST.111 | test_ensure_sector_generated_creates_then_reuses_the_same_sector fails in a busy parallel run (bug) |  | Test flake reported 2026-10-09; Bugfixes lane 1. |
 
 ### Foundations for the issue features
 
