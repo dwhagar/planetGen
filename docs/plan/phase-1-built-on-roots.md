@@ -102,7 +102,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.104 | A spin vector and a realistic axial tilt for every rotating object |  | Rules from "Observational Kinetics for Rotational Vectors.md". |
-| GEN.122 | Orbital elements for planets, moons and comets, kept in step with the state vector |  | Build thread. |
 | GEN.123 | The projected path of a body through a sector, saved as a spline |  | Build thread. MAP.126's orbit drawing should use it later. |
 | GEN.125 | Stand-alone facilities store a velocity |  | Build thread. |
 | GEN.106 | Movement thresholds and a next-update-due column | DB.11 |  |
