@@ -3256,6 +3256,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   holds; re-measure on a dense core sector first. Filed as its own item
   (Phase 1, Foundations lane 1, after PERF.45) on the coordinator's
   instruction of 2026-10-09 20:17Z.
+  Approved by Boss (2026-10-09 20:24Z); in the execution plan it follows PERF.44
+  and PERF.45 and comes ahead of PERF.47, DB.19 and OPS.14.
   Prerequisites: none.
   Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
 
