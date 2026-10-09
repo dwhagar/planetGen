@@ -806,7 +806,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.5 | Install and update check the log locations and say how to fix them | none | done, PR #288 |
 | OPS.6 | Admin scripts accept impossible `--mysql-port` values (bug) | none | done, PR #457 |
 | OPS.7 | Update asks to fill a wiped database with population data (bug) | none | done, PR #457 |
-| OPS.8 | Update reloads Apache itself when run as root | none | open |
+| OPS.8 | Update reloads Apache itself when run as root | none | done, PR #808 |
 | OPS.9 | Multi-line messages lose their prefix in the debug log (bug) | none | done, PR #448 |
 | OPS.10 | The galaxy seed and version at the top of every generation log | none | done, PR #391 |
 | OPS.11 | Define "the same galaxy" and which versions stay reproducible | none | done, PR #362 (docs/design/reproducible-galaxies.md) |

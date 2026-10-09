@@ -104,7 +104,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.61 | The daily merge folds pending admin changes into a new JSON file | GEN.59, ADM.18 | Boss 02:28Z: JSON changes only with the day's deltas. |
 | OPS.18 | Settings JSON backups kept in 18 slots: 7 daily, 4 weekly, 6 monthly, 1 yearly | GEN.61 | Grandfather-father-son rotation; unit test with simulated dates. |
 | OPS.16 | A daily maintenance script for Linux, macOS and Windows | GEN.61, OPS.18 | scripts/maintenance.sh and .ps1: positional update, delta merge, rotation; lock; optional OPS.15 check. |
-| OPS.17 | Install and update set up the daily maintenance schedule | OPS.16, OPS.8, OPS.13 | Same scripts as OPS.7/OPS.8/OPS.13 (install/update, deploy-common), after them. |
+| OPS.17 | Install and update set up the daily maintenance schedule | OPS.16, OPS.13 | Same scripts as OPS.7/OPS.8/OPS.13 (install/update, deploy-common), after them. |
 | ADM.19 | The Admin dashboard lists the 18 settings backups for download | ADM.18, OPS.18 |  |
 
 ### Picker
