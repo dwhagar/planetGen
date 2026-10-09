@@ -669,7 +669,7 @@ def test_nav_course_and_route(client, fake):
     assert "Same sector" in html
     assert "<title>Course: Alpha \u2192 Other - " in html  # UX.70
     assert 'To: <a' not in html and 'From: <a' not in html
-    route = re.search(r'<ol class="nav-route">.*?</ol>', html, re.S).group(0)
+    route = re.search(r'<ol class="nav-route"[^>]*>.*?</ol>', html, re.S).group(0)
     assert [name for name in re.findall(r">([^<]+)</a>", route)] == ["Alpha", "Waypoint", "Other"]
     assert "3 stops, 1.07 pc (3.5 ly) total." in html
     # The NAV map's points are plain links.
@@ -722,7 +722,7 @@ def test_nav_phenomenon_origin(client, fake):
     html = client.get("/nav?from=nebula:3&to=system:1002").get_data(as_text=True)
     assert ("get_nav", DB, "nebula:3", "system:1002") in fake.calls
     assert "<title>Course: Veil \u2192 Other - " in html
-    route = re.search(r'<ol class="nav-route">.*?</ol>', html, re.S).group(0)
+    route = re.search(r'<ol class="nav-route"[^>]*>.*?</ol>', html, re.S).group(0)
     assert 'href="/phenomenon/nebula/3">Veil</a>' in route
 
 
@@ -886,7 +886,7 @@ def test_real_sector_page_and_nav(db_client, mysql_config, monkeypatch):
     html = resp.get_data(as_text=True)
     assert resp.status_code == 200
     assert "Direct Course" in html and "Same sector" in html and "NAV Map" in html
-    assert '<ol class="nav-route">' not in html  # UX.70: a direct hop lists no route
+    assert 'class="nav-route"' not in html  # UX.70: a direct hop lists no route
 
 
 def test_real_sector_page_unknown_id_is_404(db_client, mysql_config):
@@ -1255,3 +1255,31 @@ def test_sector_header_chips_are_facts_only(client, fake):
     assert re.search(r'<p class="location">In <a href="/galaxy\?quadrant=[^"]+">Quadrant \w+</a>', html)
     assert re.search(r'<p class="hint sector-details"><strong>Details:</strong> About', html)
 
+
+
+def test_nav_route_runs_left_to_right_with_the_hop_after_each_stop(client, fake):
+    """UX.35: a stop, then the hop to the next one; the last stop has none; still an ordered list."""
+    html = client.get("/nav?from=system:1001&to=system:1002").get_data(as_text=True)
+    route = re.search(r'<ol class="nav-route"[^>]*>.*?</ol>', html, re.S).group(0)
+    assert 'role="list"' in route
+    assert re.findall(r'class="nav-hop[^"]*"', route) == ['class="nav-hop"', 'class="nav-hop"']
+    assert "1.25 ly" in route and "2.25 ly" in route
+    assert route.index("Alpha") < route.index("1.25 ly") < route.index("Waypoint") < route.index("2.25 ly") < route.index("Other")
+    assert "<details" not in html.split('id="route-heading"')[1].split("</section>")[0]  # three stops: no collapse
+    fake.nav_unknown_space = True
+    html = client.get("/nav?from=system:1001&to=system:1002").get_data(as_text=True)
+    assert 'class="nav-hop nav-hop-unknown"' in html
+
+
+def test_a_long_route_shows_its_ends_its_longest_hop_and_every_unknown_hop():
+    from planetgen.web.nav_page import ROUTE_COLLAPSE_AT, _route_short_list
+
+    count = ROUTE_COLLAPSE_AT + 6
+    stops = [{"name": f"S{i}", "url": f"/system/{i}"} for i in range(count)]
+    hops = [{"distance_ly": 1.0, "unknown_space": False} for _ in range(count - 1)]
+    hops[6]["distance_ly"] = 9.0       # the longest hop: stops 6 and 7
+    hops[10]["unknown_space"] = True   # an unknown-space hop: stops 10 and 11
+    short = _route_short_list(stops, {"hops": hops})
+    assert [item["name"] for item in short] == ["S0", "S6", "S7", "S10", "S11", f"S{count - 3}", f"S{count - 2}", f"S{count - 1}"]
+    assert [bool(item["gap_before"]) for item in short] == [False, True, False, True, False, False, False, False]
+    assert _route_short_list(stops[:ROUTE_COLLAPSE_AT], {"hops": hops}) is None
