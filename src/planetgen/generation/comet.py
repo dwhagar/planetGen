@@ -38,7 +38,7 @@ why that's out of scope for this pass).
 import math
 
 from planetgen.generation.config import SystemConfig
-from planetgen.physics import constants as physical_constants, kepler
+from planetgen.physics import constants as physical_constants, kepler, spin
 from planetgen.physics.position import HoldsOrbitPosition, axis_property, velocity_axis_property
 from planetgen import tuning
 from planetgen.util import draw
@@ -186,6 +186,7 @@ class Comet(HoldsOrbitPosition):
         "primary_mass_solar", "is_active",
         "distance_au", "position_x_au", "position_y_au", "position_z_au", "orbital_speed_kms",
         "velocity_x_kms", "velocity_y_kms", "velocity_z_kms",
+        "rotation_period_hours", *spin.SPIN_FIELDS,
     ]
     """Every attribute set by `__init__`, excluding `system_config` (a
     shared back-reference) and `composition` (handled separately in
@@ -280,6 +281,10 @@ class Comet(HoldsOrbitPosition):
         log.choice("Comet activity", self.is_active,
                    f"roll against activity chance {activity_chance:.4g} at perihelion "
                    f"{self.perihelion_distance_au:.4g} AU")
+        # GEN.104: a small body's spin, YORP-tilted from its orbit normal.
+        self.rotation_period_hours = spin.small_body_period_hours()
+        spin.set_spin(self, spin.orbit_normal(self.inclination_deg, self.ascending_node_deg),
+                      spin.yorp_tilt_deg())
 
     def orbit_mu_au3_per_year2(self):
         """AU^3/yr^2 of the comet's host star: 4 pi^2 per solar mass."""

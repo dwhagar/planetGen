@@ -1917,10 +1917,9 @@ class StarSystem:
         around it, so every moon's period needs refreshing whenever the
         parent was reclassified, even a moon that didn't need
         reclassifying itself -- via `generate_orbital_motion_properties`
-        rather than only `update_orbital_position`, since a *moon's*
-        `rotation_period_hours` can itself be period-derived (a tidally
-        locked moon's day equals its orbit) in a way an ordinary planet's
-        never is, and a period change can flip whether that still holds.
+        rather than only `update_orbital_position`, since a tidally locked
+        body's day equals its orbit and a period change can flip whether
+        that still holds.
 
         Returns:
             bool: True if `planet` itself was reclassified (and so may

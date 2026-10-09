@@ -107,7 +107,7 @@ def test_rotation_period_within_body_type_range_or_tidally_locked(bodies):
     planets, moons = bodies
     for planet in planets:
         min_h, max_h = pc.ROTATION_PERIOD_RANGE_HOURS[planet.body_type]
-        assert min_h <= planet.rotation_period_hours <= max_h
+        assert _is_tidally_locked(planet) or (min_h <= planet.rotation_period_hours <= max_h)
 
     for moon in moons:
         min_h, max_h = pc.ROTATION_PERIOD_RANGE_HOURS[moon.body_type]
@@ -192,18 +192,17 @@ def test_generate_orbital_motion_properties_does_not_lock_a_far_moon_around_a_yo
     assert moon.rotation_period_hours != pytest.approx(expected_locked_hours)
 
 
-def test_generate_orbital_motion_properties_never_evaluates_locking_for_a_planet():
-    """A planet (is_moon=False) should never take the tidal-locking
-    branch at all -- rotation_period_hours always comes from the plain
-    body_type range, regardless of star.age."""
+def test_a_close_in_planet_locks_to_its_star():
+    """GEN.104: a planet takes the tidal-locking branch like a moon -- a
+    tiny body hugging a star for 100 Gyr turns once per orbit, upright."""
     star = types.SimpleNamespace(age=100.0)
     planet = types.SimpleNamespace(
         is_moon=False, body_type="t", distance=0.0005, mass=5e20, radius=800,
         period=0.001, star=star, set_position_au=lambda *xyz: None, set_velocity_kms=lambda *xyz: None,
     )
     generate_orbital_motion_properties(planet, primary_mass_kg=6e30)
-    min_h, max_h = pc.ROTATION_PERIOD_RANGE_HOURS["t"]
-    assert min_h <= planet.rotation_period_hours <= max_h
+    assert planet.rotation_period_hours == pytest.approx(planet.period * pc.SECONDS_PER_YEAR / 3600)
+    assert planet.axial_tilt_deg == 0.0
 
 
 def test_period_uses_the_actual_primary_not_always_the_star(bodies):
