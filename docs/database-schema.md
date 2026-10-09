@@ -774,12 +774,12 @@ several galaxy databases sharing one MySQL server, and admin identities
 describe the deployment, not any one galaxy, so they aren't duplicated
 into each content schema's `schema.sql`).
 
-Twelve tables, versioned independently via `control_schema_migrations`
-(currently version 8, mirroring `schema_migrations`'s own shape; v2 added
+Thirteen tables, versioned independently via `control_schema_migrations`
+(currently version 9, mirroring `schema_migrations`'s own shape; v2 added
 `login_throttle`, which v8 dropped (SEC.30: the login lockouts live in Redis), v3 `admin_devices`, v4 `admin_totp` and
 `admin_recovery_codes`, v5 the work queue's three tables, v6
-`generation_stats` and `generation_size`, and v7 the work queue's job
-tree and pause columns; v2 to v6 are new tables, which `CREATE TABLE IF
+`generation_stats` and `generation_size`, v7 the work queue's job
+tree and pause columns, and v9 `galaxy_naming`; v2 to v6 and v9 are new tables, which `CREATE TABLE IF
 NOT EXISTS` adds to an older schema on the next `planetgen.cli.migrate` run, and
 v7 adds columns, see below):
 
@@ -846,6 +846,16 @@ v7 adds columns, see below):
   deleted whole. `work_lease` gained `paused`, `paused_by` and
   `paused_at` for "Pause the queue" (ADM.10). The columns are added to
   an older control schema by `update.sh` (`_db._add_control_columns`).
+- **`galaxy_naming`** (v9, GEN.70) — one row per galaxy database:
+  `naming_key` (8 uppercase hex digits), drawn from the galaxy seed when
+  the galaxy is planned (`planetgen plan` draws a new one for a new seed
+  and keeps an admin's over the same seed) and changeable by an admin
+  (Stats page, `POST /api/admin/naming-key`); `codec_version` (the name
+  codec's version when the key was set), `drawn_at`, and `changed_at` /
+  `changed_by` for the last admin change. The names of the objects the
+  phoneme codec names are computed from their ID and this key
+  (`planetgen/names/naming_key.py`), so changing it rewrites no row. A
+  galaxy reset keeps the row until the next plan draws a new key.
 - **`generation_stats`**, **`generation_size`** (v6, PERF.3, PERF.10) —
   how fast this server generates and how big a galaxy gets
   (`planetgen/generation/stats.py`, see

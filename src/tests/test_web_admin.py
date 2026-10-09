@@ -136,6 +136,16 @@ class FakeAuth:
         self.calls.append(("admin_generation_stats",))
         return self.generation
 
+    naming = {"database": "planetgen", "key": "0A1B2C3D", "codec_version": 1, "current_codec_version": 1,
+              "drawn_at": "2026-10-01T10:00:00Z", "changed_at": None, "changed_by": None}
+
+    def admin_naming_key(self, cookie_header, db):
+        self.calls.append(("admin_naming_key", db))
+        return self.naming
+
+    def admin_set_naming_key(self, cookie_header, db, key=None, draw=False):
+        self.calls.append(("admin_set_naming_key", db, key, draw))
+
     def admin_lockouts(self, cookie_header):
         self.calls.append(("admin_lockouts",))
         return {"items": self.lockouts, "proxy_warning": False}
@@ -159,7 +169,7 @@ class FakeAuth:
 _FAKED = ("auth_me", "auth_login", "auth_logout", "auth_change_credentials", "auth_list_api_keys",
           "auth_create_api_key", "auth_revoke_api_key", "admin_set_sector_wiki_url", "admin_stats",
           "admin_duplicate_names", "admin_login_failures", "admin_lockouts", "admin_generation_stats",
-          "admin_lift_lockout", "auth_totp_status")
+          "admin_lift_lockout", "auth_totp_status", "admin_naming_key", "admin_set_naming_key")
 
 
 @pytest.fixture
@@ -709,7 +719,7 @@ def test_admin_stats_renders(client, fake):
     assert 'href="/sector.py?db=' in html or 'href="/sector/5"' in html
     assert "Planet/moon collisions" not in html
     assert '<a href="/admin/stats" aria-current="page">Stats</a>' in html
-    assert "<form" not in re.search(r'<main.*</main>', html, re.S).group(0)
+    assert "/admin/stats/lockouts" not in re.search(r'<main.*</main>', html, re.S).group(0)
 
 
 def test_admin_stats_shows_generation_speed(client, fake):
@@ -945,6 +955,23 @@ def test_admin_stats_lists_and_lifts_lockouts(client, fake, admin_token):
     assert fake.called("admin_lift_lockout") == [("admin_lift_lockout", "ip", "93.184.216.34", False)]
     client.post("/admin/stats/lockouts", data={csrf.FIELD_NAME: admin_token, "all": "1"})
     assert fake.called("admin_lift_lockout")[-1] == ("admin_lift_lockout", None, None, True)
+
+
+def test_admin_stats_shows_and_changes_the_naming_key(client, fake, admin_token):
+    _logged_in(client, fake)
+    html = client.get("/admin/stats").get_data(as_text=True)
+    assert "<code>0A1B2C3D</code>" in html and "Naming key" in html
+    resp = client.post("/admin/stats/naming-key", data={csrf.FIELD_NAME: admin_token, "key": "ffeeddcc"})
+    assert resp.status_code == 303 and resp.headers["Location"] == "/admin/stats#naming-key"
+    assert fake.called("admin_set_naming_key")[-1][2:] == ("ffeeddcc", False)
+    client.post("/admin/stats/naming-key", data={csrf.FIELD_NAME: admin_token, "draw": "1"})
+    assert fake.called("admin_set_naming_key")[-1][2:] == (None, True)
+
+
+def test_naming_key_form_needs_an_admin(client, fake, token):
+    resp = client.post("/admin/stats/naming-key", data={csrf.FIELD_NAME: token, "draw": "1"})
+    assert resp.status_code == 302 and "/login" in resp.headers["Location"]
+    assert not fake.called("admin_set_naming_key")
 
 
 def test_lift_lockout_needs_an_admin(client, fake, token):

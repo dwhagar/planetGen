@@ -730,6 +730,21 @@ def _lockouts_panel(cookie_header):
     } for item in body["items"]]}
 
 
+def _naming_panel(cookie_header, db):
+    """GEN.70: the galaxy's naming key, which an admin can change."""
+    try:
+        body = apiclient.admin_naming_key(cookie_header, db)
+    except apiclient.ApiError as exc:
+        return {"error": _api_message(exc), "key": None}
+    changed = body["changed_at"]
+    return {
+        "error": None, "key": body["key"],
+        "stale_codec": body["key"] is not None and body["codec_version"] != body["current_codec_version"],
+        "when": ("Changed " + _time_or(changed, "") + " by " + str(body["changed_by"])) if changed
+                else ("Drawn " + _time_or(body["drawn_at"], "") if body["drawn_at"] else ""),
+    }
+
+
 def _generation_panel(cookie_header, db):
     """PERF.10: this server's measured generation speed per density
     bucket, and this galaxy's size per star system."""
@@ -754,6 +769,27 @@ def _generation_panel(cookie_header, db):
             "systems": f"{row['systems_per_task']:.1f}",
         } for row in body["buckets"]],
     }
+
+
+@bp.route("/admin/stats/naming-key", methods=["POST"])
+def change_naming_key():
+    """The Stats page's naming key form: sets the key typed, or draws a new one."""
+    _identity, bounce = _require_admin()
+    if bounce is not None:
+        return bounce
+    try:
+        if request.form.get("draw") == "1":
+            apiclient.admin_set_naming_key(_cookie_header(), db_name(), draw=True)
+            message = "A new naming key was drawn."
+        else:
+            apiclient.admin_set_naming_key(_cookie_header(), db_name(), key=request.form.get("key", ""))
+            message = "The naming key was changed."
+        flash = {"message": message}
+    except apiclient.ApiError as exc:
+        if exc.status_code is None or exc.status_code >= 500:
+            raise
+        flash = {"error": _api_message(exc)}
+    return _flash(_see_other(url_for("web.admin_stats", _anchor="naming-key")), **flash)
 
 
 @bp.route("/admin/stats/lockouts", methods=["POST"])
@@ -787,9 +823,12 @@ def admin_stats():
     api_ms = (time.perf_counter() - started) * 1000
     database = stats["database"]
 
-    context = {"health": _health(stats, api_ms, tile_cache_info()), "database": database,
+    flashed = _take_flash()
+    context = {"flash_message": flashed.get("message"), "flash_error": flashed.get("error"),
+               "health": _health(stats, api_ms, tile_cache_info()), "database": database,
                "failures": _failures_panel(cookie_header), "lockouts": _lockouts_panel(cookie_header),
-               "generation": _generation_panel(cookie_header, db)}
+               "generation": _generation_panel(cookie_header, db),
+               "naming": _naming_panel(cookie_header, db)}
     if database["reachable"]:
         counts = database["counts"]
         collisions = database["name_collisions"]
@@ -824,6 +863,6 @@ def admin_stats():
             } for table in database["tables"]],
         )
     return _render(
-        "admin_stats.html", title="Server & Database Stats", section="admin_stats",
+        "admin_stats.html", flashed=True, title="Server & Database Stats", section="admin_stats",
         breadcrumbs=[crumb("Admin", "admin"), crumb("Stats")], **context,
     )
