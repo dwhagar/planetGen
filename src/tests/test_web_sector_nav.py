@@ -703,6 +703,11 @@ def test_galaxy_course_is_the_waypoints_in_parsecs(client, fake):
         assert [p["role"] for p in course["points"]] == ["origin", "hop", "destination"]
         assert course["points"][-1]["x"] == pytest.approx(ly_to_pc(3.0))
         assert course["points"][0]["url"] == "/system/1001"
+        # NAV.20: the straight line apart from the route, and the readout beside the map.
+        assert [p["name"] for p in course["direct"]] == ["Alpha", "Distant"]
+        assert course["readout"]["distance"] and course["readout"]["course"]
+        assert [stop["name"] for stop in course["readout"]["stops"]] == ["Waypoint"]
+        assert [t["label"] for t in course["readout"]["times"]] == ["Warp 1"]
 
         # A pair that can't be navigated together simply isn't drawn.
         fake.nav_error = apiclient.ApiError("planetGen API error (400): different sectors", status_code=400)
@@ -1236,3 +1241,4 @@ def test_sector_header_chips_are_facts_only(client, fake):
     assert "<a " not in chips and "interstellar" not in chips and "Quadrant" not in chips
     assert re.search(r'<p class="location">In <a href="/galaxy\?quadrant=[^"]+">Quadrant \w+</a>', html)
     assert re.search(r'<p class="hint sector-details"><strong>Details:</strong> About', html)
+

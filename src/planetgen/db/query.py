@@ -48,6 +48,7 @@ from planetgen.galaxy.geometry import (
     galaxy_to_local_pc, layer_index_at, neighbor_addresses, provisional_sector_designation, ring_index_at,
     ring_sector_count, sector_cell_vertices_pc, sector_position_pc,
 )
+from planetgen.galaxy import keepout
 from planetgen.galaxy import objectref as object_ref
 from planetgen.galaxy import uid as galaxy_uid
 from planetgen.galaxy.sector import classify_octant
@@ -1794,6 +1795,76 @@ def _sibling_refs(conn, kind, table, where, params, object_id):
     return refs, len(rows) > OBJECT_SIBLING_LIMIT
 
 
+def keep_out_radius(conn, kind, object_id):
+    """
+    The keep-out radius of one object (NAV.24, `planetgen.galaxy.keepout`).
+
+    Returns:
+        keepout.KeepOut: `radius_km`, `basis` and `note`.
+
+    Raises:
+        ValueError: For a kind with no such rule (a sector) or a missing row.
+    """
+    def row(table, columns, row_id=object_id):
+        found = conn.execute(f"SELECT {columns} FROM {table} WHERE id = ?", (row_id,)).fetchone()
+        if found is None:
+            raise ValueError(f"no {table} row with id {row_id}")
+        return found
+
+    def system_perimeter(system_id):
+        system = row("star_systems", "binary_system_perimeter_km", system_id)
+        stars = conn.execute(
+            "SELECT system_perimeter_km FROM stars WHERE star_system_id = ?", (system_id,)).fetchall()
+        sizes = [s["system_perimeter_km"] for s in stars] + [system["binary_system_perimeter_km"]]
+        sizes = [v for v in sizes if v is not None]
+        return keepout.KeepOut(max(sizes), "perimeter", None) if sizes else keepout.NO_KEEP_OUT
+
+    if kind in ("planet", "moon"):
+        body = row(object_ref.TABLES[kind], "hill_radius_km, radius_km")
+        if body["hill_radius_km"] is None:
+            return keepout.KeepOut(body["radius_km"], "radius", None)
+        return keepout.KeepOut(body["hill_radius_km"], "hill", None)
+    if kind == "star":
+        return system_perimeter(row("stars", "star_system_id")["star_system_id"])
+    if kind == "system":
+        row("star_systems", "id")
+        return system_perimeter(object_id)
+    if kind in ("black_hole", "neutron_star"):
+        table = _PHENOMENON_TYPE_TO_TABLE[kind]
+        body = row(table, "star_id, mass_solar, radius_km, galactic_radius_pc"
+                   if kind == "neutron_star" else "star_id, mass_solar, event_horizon_radius_km AS radius_km, "
+                   "galactic_radius_pc")
+        if body["galactic_radius_pc"] is None and body["star_id"] is not None:
+            # An anchored remnant is a star of its own system.
+            return system_perimeter(row("stars", "star_system_id", body["star_id"])["star_system_id"])
+        if body["galactic_radius_pc"] is None:
+            return keepout.NO_KEEP_OUT  # never placed in the galaxy: nowhere to measure from
+        return keepout.compact_keep_out(
+            body["mass_solar"] * constants.SOLAR_MASS_TO_KG, body["galactic_radius_pc"], body["radius_km"])
+    if kind in ("quasar", "rogue_planet"):
+        table = _PHENOMENON_TYPE_TO_TABLE[kind]
+        body = row(table, "black_hole_mass_solar * " + str(constants.SOLAR_MASS_TO_KG)
+                   + " AS mass_kg, event_horizon_radius_km AS radius_km, galactic_radius_pc"
+                   if kind == "quasar" else "mass_kg, radius_km, galactic_radius_pc")
+        if body["galactic_radius_pc"] is None:
+            return keepout.NO_KEEP_OUT
+        return keepout.compact_keep_out(body["mass_kg"], body["galactic_radius_pc"], body["radius_km"])
+    if kind in ("nebula", "supernova_remnant", "asteroid_field"):
+        row(_PHENOMENON_TYPE_TO_TABLE[kind], "id")
+        return keepout.KeepOut(None, "none", keepout.PASS_THROUGH_NOTE)
+    if kind in ("belt", "comet", "interstellar_comet"):
+        row(object_ref.TABLES.get(kind) or _PHENOMENON_TYPE_TO_TABLE[kind], "id")
+        return keepout.NO_KEEP_OUT
+    raise ValueError(f"no keep-out radius for a {kind}")
+
+
+def keep_out_radius_dict(conn, kind, object_id):
+    """`keep_out_radius` as the plain dict `resolve_object` returns; a
+    sector, which has none, gets the empty one."""
+    found = keepout.NO_KEEP_OUT if kind == "sector" else keep_out_radius(conn, kind, object_id)
+    return found._asdict()
+
+
 def resolve_object(conn, kind, object_id):
     """
     Resolves one object reference (NAV.7, `planetgen.galaxy.objectref`).
@@ -1924,6 +1995,7 @@ def resolve_object(conn, kind, object_id):
         "ref": object_ref.format(kind, object_id), "kind": kind, "id": object_id, "name": name,
         "parents": parents, "siblings": siblings, "siblings_truncated": truncated,
         "positions": positions,
+        "keep_out": keep_out_radius_dict(conn, kind, object_id),
     }
 
 
