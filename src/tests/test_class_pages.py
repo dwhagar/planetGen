@@ -61,6 +61,19 @@ def test_index_lists_every_type_with_its_count(client):
     assert '<a href="/classes" aria-current="page">Classes</a>' in html
 
 
+def test_index_lists_the_types_alphabetically(client):
+    """UX.77: the class categories are in alphabetical order."""
+    html = _html(client, "/classes")
+    names = [escape(entry["name"]) for entry in classref.catalog().values()]
+    positions = [html.index(f'">{name}</a>') for name in sorted(names, key=str.casefold)]
+    assert positions == sorted(positions), "the index is not in alphabetical order"
+
+
+def test_alphabetical_ignores_case():
+    rows = [{"name": "star"}, {"name": "Nebula"}, {"name": "asteroid"}]
+    assert [r["name"] for r in classref.alphabetical(rows)] == ["asteroid", "Nebula", "star"]
+
+
 def test_every_type_and_class_page_renders(client):
     for slug, entry in classref.catalog().items():
         html = _html(client, f"/classes/{slug}")
