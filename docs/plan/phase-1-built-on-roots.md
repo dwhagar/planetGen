@@ -221,9 +221,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 - NAV.8: Pages and anchors for stars, planets, moons and belts, see its entry in TODO.md.
 - NAV.11: Travel times for the system-to-system route too, see its entry in TODO.md.
-- NAV.43: Find everything within a distance of a place: the query and the API, see its entry in TODO.md.
 - UX.22: Meaningful units for every measurement, see its entry in TODO.md.
 - UX.3: Warn every visitor while a background job changes the galaxy, see its entry in TODO.md.
 - API.4: API compatibility data in the docs, see its entry in TODO.md.
-- GEN.57: A sector's contents depend only on the seed, the version and its address, see its entry in TODO.md.
 - OPS.13: Every update records the version key, keeping the last 10, see its entry in TODO.md.
