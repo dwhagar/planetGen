@@ -546,11 +546,14 @@ def update_hill_sphere(planet):
     """
     Sets `planet.hill_radius` (km) and `planet.min_orbit_distance` (5 Hill
     radii, in AU: the clearance the next body out must keep) from the
-    planet's current distance and mass. Call again whenever either changes,
-    e.g. after `StarSystem.validate_system` moves the planet.
+    planet's current distance and mass about `planet.primary_mass_kg` (the
+    star for a planet, the parent planet for a moon). Call again whenever
+    either changes, e.g. after `StarSystem.validate_system` moves the planet.
     """
     distance_m = planet.distance * constants.AU_TO_M
-    planet.hill_radius = calculate_hill_sphere(distance_m, planet.mass, planet.star.mass) / 1000  # Convert to km
+    # A moon's Hill sphere is within its planet's pull, not the star's (GEN.138).
+    primary_mass_kg = getattr(planet, "primary_mass_kg", None) or planet.star.mass
+    planet.hill_radius = calculate_hill_sphere(distance_m, planet.mass, primary_mass_kg) / 1000  # Convert to km
     planet.min_orbit_distance = (5 * planet.hill_radius) / constants.AU_TO_KM
 
 
@@ -988,6 +991,7 @@ def reconcile_zone_and_class(planet, primary_mass_kg, distance_override=None, pa
 
     zone_changed = new_zone != planet.zone
     planet.zone = new_zone
+    planet.primary_mass_kg = primary_mass_kg  # what its Hill sphere is measured against (GEN.138)
 
     if not zone_changed or tuning.PLANET_CLASSES[planet.planet_class][new_zone]:
         return False

@@ -95,7 +95,7 @@ from planetgen.util.format import format_distance_ly
 from planetgen.wiki import WikiClient, WikiClientAuthError, WikiClientPageExistsError, WikiClientRequestError
 
 from .authz import audit, require_admin
-from .common import ApiError, require_json_body
+from .common import ApiError, request_json, require_json_body
 from .schemas import (
     BodyRename, FacilityCreate, NeighborhoodRequest, SectorCreate, SectorUpdate, SystemCreate, SystemPatch,
     SystemRename, WikiUpload, given, parse_body,
@@ -1201,7 +1201,7 @@ def generate_sector_neighborhood_route(sector_id):
     time `estimate` without writing anything; a run the database disk
     can't hold (over a quarter of it, or under 5 GB left) is refused with
     507 and nothing written."""
-    body = request.get_json(silent=True)
+    body = request_json()
     if body is None:
         body = {}
     if not isinstance(body, dict):

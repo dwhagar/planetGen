@@ -1,7 +1,7 @@
 # planetgen/queue/progress_rate.py
 
 """
-The rate behind every generation progress bar's ETA (PERF.7): work
+The rate behind every generation progress bar's ETA (PERF.7, PERF.37): work
 finished per second as an exponentially weighted average over time, so
 the estimate follows the run's current speed (a dense stretch of the
 galaxy, more workers, a busy database) instead of rich's own short
@@ -22,12 +22,16 @@ counts about a third (1/e) as much as work finished just now."""
 
 class DecayingRate:
     """
-    Units finished per second, averaged with weight `exp(-age / tau)`.
+    Units finished per second, as two decayed sums (PERF.37): `N`, the
+    units finished with weight `exp(-age / tau)`, and `D`, the time that
+    has passed with the same weight; the rate is `N / D`.
 
-    Each `add(amount)` folds in the speed since the previous one
-    (`amount / interval`), weighted by how long that interval was, so a
-    burst of tasks finishing together moves the average no more than the
-    same tasks finishing evenly over the same time.
+    Each `add(amount)` spreads `amount` evenly over the interval since the
+    previous one, so a burst of tasks finishing together (several workers
+    at once) counts exactly as much as the same tasks finishing evenly over
+    the same time. Because the average is a ratio of sums rather than a
+    running average that started at the first single completion, the early
+    rate is not up to twice too low and the ETA not up to twice too long.
 
     Args:
         tau (float): The time constant, seconds.
@@ -39,10 +43,13 @@ class DecayingRate:
         self.clock = clock
         self.rate = None
         self.last = clock()
-        # The average before the latest interval was folded in, so more
-        # units finishing at that same instant join that interval.
-        self._before = (None, self.last)
-        self._amount = 0.0
+        self._units = 0.0
+        self._time = 0.0
+        # The latest interval's average weight (decayed time over time), so
+        # more units finishing at that same instant join that interval.
+        self._share = None
+        # Units finished before any time has passed carry into the first interval.
+        self._pending = 0.0
 
     def add(self, amount, now=None):
         """Records `amount` more units finished (at `now`). A NaN or
@@ -55,23 +62,20 @@ class DecayingRate:
         if not _finite(now):
             return
         if now > self.last:
-            # Units that finished at the bar's very first instant (a
-            # coarse clock) had no interval to fold into yet: they carry
-            # over into this one instead of being dropped.
-            if self.rate is not None or not self._amount:
-                self._before = (self.rate, self.last)
-                self._amount = 0.0
+            interval = now - self.last
+            decay = math.exp(-interval / self.tau)
+            weight = self.tau * (1.0 - decay)
+            self._share = weight / interval
+            self._time = self._time * decay + weight
+            self._units = self._units * decay + (self._pending + amount) * self._share
+            self._pending = 0.0
             self.last = now
-        self._amount += amount
-        rate, since = self._before
-        interval = self.last - since
-        if interval <= 0:
+        elif self._share is None:
+            self._pending += amount
             return
-        speed = self._amount / interval
-        if rate is None:
-            self.rate = speed
         else:
-            self.rate = rate + (1.0 - math.exp(-interval / self.tau)) * (speed - rate)
+            self._units += amount * self._share
+        self.rate = self._units / self._time
 
     def eta(self, remaining, now=None):
         """

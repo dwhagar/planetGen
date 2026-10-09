@@ -252,7 +252,8 @@ def test_hill_sphere_scaling(d, m, big):
     r = orbits.calculate_hill_sphere(d, m, big)
     assert r > 0
     assert _close(orbits.calculate_hill_sphere(2 * d, m, big), 2 * r)
-    assert _close(orbits.calculate_hill_sphere(d, 8 * m, big), 2 * r)
+    # Cube root of the mass ratio, with the pair's total mass in the denominator (GEN.138).
+    assert _close(orbits.calculate_hill_sphere(d, 8 * m, big), d * (8 * m / (3 * (big + 8 * m))) ** (1 / 3))
 
 
 @given(sep=positive, mu=any_float, e=any_float)

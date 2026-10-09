@@ -9,7 +9,7 @@
   database) as root at 03:00 on the 1st of every month, half an hour
   before the orbit update. Whatever is on the tracked branch gets
   deployed with no human review in between; leave this out
-  (install-maintenance-timer.sh --skip-update-timer) if only a person
+  (give install-maintenance-timer.sh its skip-update-timer option) if only a person
   should update this site. update.sh can't ask anything here, so a
   pending migration keeps the data and migrates it.
 

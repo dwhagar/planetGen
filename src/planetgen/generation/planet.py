@@ -339,12 +339,14 @@ class Planet(HoldsOrbitPosition):
         self.habitable_zone = habitable_zone
         self.star = star # Store the Star object
 
-        # Calculate physical/orbital properties (no life data yet).
-        planetPhysics.generate_planet_properties(self, zone_override)  # sets self.volume (km^3) and self.mass
         # The primary is the star for an ordinary planet, but a moon orbits
         # its parent planet -- primary_mass_kg (defaulted to star.mass)
-        # carries that distinction in from generate_moons below.
+        # carries that distinction in from generate_moons below. Its Hill
+        # sphere (set inside generate_planet_properties) uses it (GEN.138).
         primary_mass_kg = primary_mass_kg if primary_mass_kg is not None else star.mass
+        self.primary_mass_kg = primary_mass_kg
+        # Calculate physical/orbital properties (no life data yet).
+        planetPhysics.generate_planet_properties(self, zone_override)  # sets self.volume (km^3) and self.mass
         self.period = planetPhysics.calculate_orbital_period_years(self.distance, primary_mass_kg)
         planetPhysics.calculate_surface_gravity(self)
         planetPhysics.calculate_atmospheric_conditions(self, distance_override)

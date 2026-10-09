@@ -29,7 +29,7 @@ from planetgen import tuning
 from planetgen.generation.config import SystemConfig
 
 from .authz import audit, require_admin
-from .common import ApiError
+from .common import ApiError, request_json
 from .limiter import limiter
 from .schemas import ChangeClass, ChangeStar, DropFacilities, parse_body
 from .routes import WRITE_RATE_LIMIT, accepted, run_queued, _resolve_requested_write_db_config, _write_conn
@@ -42,7 +42,7 @@ _FACILITY_COLUMNS = {"planet": "planet_id", "moon": "moon_id", "belt": "asteroid
 
 def _optional_body():
     """The optional JSON body: absent is `{}`."""
-    body = request.get_json(silent=True)
+    body = request_json()
     if body is None:
         return {}
     if not isinstance(body, dict):

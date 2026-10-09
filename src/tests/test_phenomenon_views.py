@@ -112,3 +112,13 @@ def test_asteroid_field_page_has_no_view(client, fake):
     assert "Asteroid Field Data" in page
     assert "phenomrender" not in page and "phenomenonmap" not in page
     assert "mapzoom.js" not in page
+
+
+def test_the_render_script_does_not_use_the_deprecated_three_clock():
+    """MAP.144: `THREE.Clock` is deprecated since r183 and warns at runtime on r186; `THREE.Timer` replaces it."""
+    import os
+    path = os.path.join(os.path.dirname(__file__), "..", "html", "static", "phenomenonrender.js")
+    with open(path, encoding="utf-8") as handle:
+        source = handle.read()
+    assert "THREE.Clock" not in source
+    assert "new THREE.Timer()" in source

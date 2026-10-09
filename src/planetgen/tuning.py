@@ -1081,7 +1081,8 @@ PLANET_CLASSES = {
         "atm_molar_density_range": (0.0433, 0.0435),
         "atm_density_range": (300, 350),
         "greenhouse_multiplier_range": (260, 295),
-        "life_chemical": ["Bacteriochlorophylls", "Zinc-Bacteriochlorophyll", "Retinal", "Melanin"],
+        # No life_chemical (GEN.147): at Venus's 737 K and 9 MPa nothing lives on the
+        # surface, and the class is not on HABITABLE_PLANET_CLASSES.
         "age_ranges": {
             "fast": (0.005, 0.015),
             "normal": (0.5, 1.5),
@@ -1503,7 +1504,7 @@ EVOLUTIONARY_TEXT = {
 }
 
 # --- Planet Generation Specific Constants ---
-HABITABLE_PLANET_CLASSES = ['E', 'F', 'G', 'H', 'K', 'L', 'M', 'O', 'P', 'V']
+HABITABLE_PLANET_CLASSES = ['E', 'F', 'G', 'H', 'K', 'L', 'M', 'O', 'P', 'Q', 'V']
 """
 list: A list of planet class codes that are considered habitable.
 """
@@ -1533,6 +1534,9 @@ PLANET_CLASS_MAX_LIFE_STAGE = {
                                  # microbial mats" (no nucleated cells yet).
     "G": "photosynthesis",      # description: "...simple life" -- same
                                  # prokaryotic tier as Class F.
+    "Q": "photosynthesis",      # "extreme temperature variations" (GEN.147): an
+                                 # eccentric orbit swings it between freezing and
+                                 # scorching, so only microbial life survives.
     "L": "multicellularity",    # description: "...with vegetation" --
                                  # matches EVOLUTIONARY_TEXT
                                  # ['multicellularity']'s own "pioneering

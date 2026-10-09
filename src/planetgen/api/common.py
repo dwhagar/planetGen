@@ -38,6 +38,25 @@ class ApiError(Exception):
         when a request body failed several checks at once (ADM.21)."""
 
 
+def request_json():
+    """
+    `request.get_json(silent=True)` that also survives a body nested so
+    deeply that the JSON parser runs out of stack (API.20): a 100,000-deep
+    `[[[[...` is under `MAX_CONTENT_LENGTH` and used to end in a 500.
+
+    Returns:
+        object: The parsed body, `None` when there is none or it isn't
+            usable JSON.
+
+    Raises:
+        ApiError: 400, if the body is nested too deeply to parse.
+    """
+    try:
+        return request.get_json(silent=True)
+    except RecursionError:
+        raise ApiError("request body is nested too deeply") from None
+
+
 def require_json_body():
     """
     Parses the request body as JSON, for every route that needs one.
@@ -55,7 +74,7 @@ def require_json_body():
             JSON *object* (a bare list/string/number is valid JSON but
             not a usable request body here).
     """
-    body = request.get_json(silent=True)
+    body = request_json()
     if not isinstance(body, dict):
         raise ApiError("request body must be a JSON object")
     return body
