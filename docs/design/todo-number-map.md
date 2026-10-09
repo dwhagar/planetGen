@@ -13,20 +13,20 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.78 |
-| MAP | MAP.144 |
-| NAV | NAV.52 |
-| GEN | GEN.135 |
-| PERF | PERF.35 |
-| DB | DB.16 |
-| API | API.20 |
+| UX | UX.83 |
+| MAP | MAP.146 |
+| NAV | NAV.58 |
+| GEN | GEN.158 |
+| PERF | PERF.42 |
+| DB | DB.19 |
+| API | API.22 |
 | ADM | ADM.46 |
-| SEC | SEC.32 |
+| SEC | SEC.33 |
 | TEST | TEST.110 |
-| USR | USR.9 |
-| OPS | OPS.28 |
-| DOC | DOC.4 |
-| VIEW | VIEW.6 |
+| USR | USR.10 |
+| OPS | OPS.36 |
+| DOC | DOC.5 |
+| VIEW | VIEW.11 |
 | POP | POP.11 |
 
 ## Why this exists
@@ -453,6 +453,8 @@ Parents marked "new parent" had no old number of their own.
 | API.17 | Remote generation reproduces what the server would make | none | open |
 | API.18 | Generate by recipe: JSON for sectors, systems, planets, moons and phenomena | none | open |
 | API.19 | Galaxy-scale recipes: build a whole galaxy, piece by piece, from JSON | none | open |
+| API.20 | `require_json_body` returns 500 for a deeply nested JSON body (bug) | none | open |
+| API.21 | Flask-Limiter puts `Retry-After` on successful responses (bug) | none | open |
 | DB.1 | Starbases, colonies and outposts in the database | 30 (2026-09-30 18:14Z); 35 (2026-09-30 18:39Z to 2026-10-01 02:24Z) | done in 7.35.0, PR #152 |
 | DB.2 | Asteroid field and comet composition rows are written but never read (bug) | none | done, PR #347 |
 | DB.3 | resetDb while another process holds id blocks can duplicate primary keys (bug) | none | done, PR #347 |
@@ -468,9 +470,13 @@ Parents marked "new parent" had no old number of their own.
 | DB.13 | Every stored value in its own column, not in JSON blocks, and indexed for search | none | done, PR #766 |
 | DB.14 | Sector stats keep the raw star statistics (mean age, summed luminosity, star count) and no baked color | none | done, PR #556 |
 | DB.15 | A migration progress bar with the time remaining | none | open |
+| DB.16 | Store the generator epoch and run id on each sector instead of four version text columns | none | open |
+| DB.17 | Repair by regenerating a damaged sector from its seed when parity cannot rebuild it | none | open |
+| DB.18 | Migration helpers for slow DDL: online indexes, instant columns and batched updates | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
+| DOC.4 | Correct the stale statements the research found in docs, docstrings and comments | none | open |
 | GEN.1 | Real-world rates for interstellar objects | 5 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.2 | Rogue planet mass bins | 6 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.3 | A supermassive black hole in every galaxy | 7 (2026-09-30 18:14Z to 22:54Z) | done in 7.15.0, PR #132 |
@@ -511,9 +517,9 @@ Parents marked "new parent" had no old number of their own.
 | GEN.38 | Rocky rogue planets over 10,000 km are still classed C (bug) | none | done, PR #415 |
 | GEN.39 | The same seed can't reproduce the same galaxy (bug) | none | done, PR #381 |
 | GEN.40 | Weed out sectors by star density before the bright-star backfill | none | open |
-| GEN.41 | Investigate: how much backfill work a density pre-pass would save | none | open |
+| GEN.41 | Investigate: how much backfill work a density pre-pass would save | none | done, PR #812 |
 | GEN.42 | A pass that drops sectors from a region by probability | none | open |
-| GEN.43 | Don't over-filter: keep bright stars in odd places | none | open |
+| GEN.43 | Don't over-filter: keep bright stars in odd places | none | done, PR #812 |
 | GEN.44 | Store each sector's backfill level so finished sectors drop out of any backfill | none | done, PR #425 |
 | GEN.45 | Check the rogue planet mix of terrestrial and gas giants (bug) | none | done, PR #350 (mass mix uses dN/dM ∝ M^-0.65 read per log mass; per unit mass gave 87% gas giants) |
 | GEN.46 | Star system names of at most two words (bug) | none | done, PR #370 |
@@ -605,6 +611,29 @@ Parents marked "new parent" had no old number of their own.
 | GEN.132 | Per-sector regional rates for neutron stars and black holes, extended system-wide where the research supports it | none | done, PR #807 |
 | GEN.133 | Analysis of every star type's rate against its distance from the galactic core | none | done, PR #807 |
 | GEN.134 | Tune the star populations to the observed star-formation profile by galactic radius | none | open |
+| GEN.135 | Deterministic math helpers for every stored float, with a lint and frozen constants | none | open |
+| GEN.136 | Fingerprint encoding: floats to 9 significant digits, a stored leaf digest per sector and a ring-and-layer tree | none | open |
+| GEN.137 | Placed objects move along a galactic orbit but never by velocity times time, and phenomenon_scatter has no plan time (bug) | none | open |
+| GEN.138 | Moon `hill_radius_km` uses the star's mass, so moon spacing and the orbit slider are wrong (bug) | none | open |
+| GEN.139 | Orbit-update thresholds: per-object epoch, path-length rule and what the 0.01 mpc applies to (GEN.106 built) | none | open |
+| GEN.140 | Orbital math guards the edge-case table adds (GEN.108 built) | none | open |
+| GEN.141 | Faster Kepler solver (Mikkola or Markley) with brentq as fallback | none | open |
+| GEN.142 | Peculiar velocity for rogue planets and asteroid fields | none | open |
+| GEN.143 | A collision_events table, an admin report and a test that runs the whole collision path | none | open |
+| GEN.144 | One distance for the Sun from the galactic centre across the constants, the density model and the design docs | none | open |
+| GEN.145 | Class S atmosphere rule: S keeps air unless the shoreline ratio is over 30 | none | open |
+| GEN.146 | Teff-dependent habitable zone from the Kopparapu table | none | open |
+| GEN.147 | Classes N and Q carry a life chemical and an uncapped life timeline though they are lifeless (bug) | none | open |
+| GEN.148 | Habitability index follow-ups from the research (GEN.84 built) | none | open |
+| GEN.149 | Planetary-nebula central stars: 0.5 to 0.7 Msun, 1e2 to 1e4 Lsun, up to 2e5 K | none | open |
+| GEN.150 | H II region radius and density from the ionizing photon rate, and IMF-based nebula hosts | none | open |
+| GEN.151 | Supernova remnant sizes from the density-dependent Sedov-Taylor law (GEN.10 follow-up) | none | open |
+| GEN.152 | Nebula cloud field is 10 to 40 times too full; lower it to the observed filling (GEN.47 rate check) | none | open |
+| GEN.153 | Magnetar subtype of neutron star, and an age-dependent pulsar fraction | none | open |
+| GEN.154 | Show the Einstein radius on compact-object pages | none | open |
+| GEN.155 | A nuclear-cluster object for the Sgr A* sector (optional) | none | open |
+| GEN.156 | Pin astropy to CODATA 2018 and IAU 2015 constants before its first import (GEN.66 follow-up) | none | open |
+| GEN.157 | The `neighbor_galaxies` table and a verified data file of about 25 real galaxies | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -748,6 +777,8 @@ Parents marked "new parent" had no old number of their own.
 | MAP.141 | Context around the selection: faint neighbours, and the sectors above and below | none | open |
 | MAP.142 | Nebulae have fuzzy, fading boundaries | none | open |
 | MAP.143 | Color sectors by their number of habitable locations | none | open |
+| MAP.144 | Replace `THREE.Clock` with `THREE.Timer` in `phenomenonrender.js` (bug) | none | open |
+| MAP.145 | A sky and Galaxy Map drawing rule for neighbour galaxies | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
@@ -799,6 +830,12 @@ Parents marked "new parent" had no old number of their own.
 | NAV.49 | Waypoints: pick objects in Star select mode and plot a course through them, kept on the map until cleared | none | open |
 | NAV.50 | Pick any object down to a moon as a NAV endpoint | none | done, PR #724 |
 | NAV.51 | Courses route around asteroid fields | none | open |
+| NAV.52 | Port `join_islands` and the k-d tree to cKDTree | none | open |
+| NAV.53 | A `cells_touching_sphere` helper, and pad `store.sectors_reached_by` by one edge (bug) | none | open |
+| NAV.54 | Keep-out radii for asteroid fields, supermassive holes, moons and nebulae (NAV.24 built) | none | open |
+| NAV.55 | A tuning block for the keep-out knobs | none | open |
+| NAV.56 | Census of overlapping keep-out spheres in a generated galaxy | none | open |
+| NAV.57 | The Intergalactic Frame in navigation-frames.md and `navigation.py` | none | open |
 | OPS.1 | Build the version number from the category counters (item 80's version-scheme questions) | none (split from 80 by the renumbering) | done in the version-from-todo-counters PR |
 | OPS.2 | Apache OOM-killed on the production server | 1 (2026-09-24 01:32Z to 02:02Z) | done in 5.47.0, PR #72 |
 | OPS.3 | PowerShell installers and macOS-safe bash scripts | 50 (2026-09-30 20:43Z to 2026-10-01 02:57Z) | done in 7.16.0, PR #125 (see note 4) |
@@ -826,6 +863,14 @@ Parents marked "new parent" had no old number of their own.
 | OPS.25 | Update tries to drop bright_star_blocks, a table that no longer exists (bug) | none | done, PR #442 |
 | OPS.26 | Installer mixes apt's NumPy-1 builds (astropy, erfa, scikit-image) with pip's NumPy 2, so the requirements probe fails (bug) | none | done, PR #467 |
 | OPS.27 | The Windows installer and docs point at Redis in WSL, not Memurai | none | done, PR #475 |
+| OPS.28 | Generator epoch and battery digest: say whether two checkouts generate the same galaxy | none | open |
+| OPS.29 | Update reload: cover the gunicorn units and non-Apache hosts, and say what a reload aborts | none | open |
+| OPS.30 | A lock helper for the maintenance run and the admin merge | none | open |
+| OPS.31 | Lint every example plist, XML and service file in CI | none | open |
+| OPS.32 | `examples/macos/org.planetgen.update.plist` is not well-formed XML, so the update daemon silently fails to install (bug) | none | open |
+| OPS.33 | `.gitattributes` has no LF pins for the lock files and word list, so hashes differ between a Windows and a Linux checkout (bug) | none | open |
+| OPS.34 | Windows Redis in WSL: fix the keep-alive advice and add a Start-RedisInWsl remedy | none | open |
+| OPS.35 | A vendored-version lock file for the static libraries | none | open |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
 | PERF.3 | Estimate size and time before bulk generation | 86 (2026-10-01 03:15Z to 05:29Z) | done, PR #238 (stats in control schema v6) |
@@ -860,6 +905,13 @@ Parents marked "new parent" had no old number of their own.
 | PERF.31 | Investigate: where generation spends its time, from the plan to a finished galaxy | none | open |
 | PERF.32 | Generation performance stats: rates recorded per run, deleted on every new version | none | open |
 | PERF.33 | Progress bars and ETAs from measured performance | none | open |
+| PERF.35 | An interval or chunk ledger for untouched sectors once block-first backfill lands | none | open |
+| PERF.36 | Memory and request guard: never list more than about 50,000 candidate cells, and refuse huge enumerations in a web request | none | open |
+| PERF.37 | `DecayingRate` starts from the first single completion, so the ETA is up to twice too long early in a run (bug) | none | open |
+| PERF.38 | Cache fixes for the Galaxy Map under a fill: single-flight tile builds, a busy rule for the page cache, a deletion epoch in place of COUNT(*) | none | open |
+| PERF.39 | Every API job costs 2.4 s and 195 MB: import lazily and cap the burst workers | none | open |
+| PERF.40 | Two shared queues, a reserved interactive worker and a real "cancel now" | none | open |
+| PERF.41 | Stamp the tile and page caches with a TILE_FORMAT constant instead of the version (optional) | none | open |
 | POP.1 | Government ownership of systems | 12 (2026-09-24 01:32Z to 02:18Z); 9 (2026-09-24 01:57Z to 02:02Z); 7 (2026-09-24 02:25Z to 05:38Z); 6 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 15 (2026-09-30 16:44Z); 16 (2026-09-30 16:49Z); 17 (2026-09-30 16:51Z to 18:09Z); 34 (2026-09-30 18:14Z); 39 (2026-09-30 18:39Z to 18:41Z); 59 (2026-09-30 19:02Z to 19:17Z); 63 (2026-09-30 20:01Z to 20:27Z); 46 (2026-09-30 20:07Z); 50 (2026-09-30 20:08Z to 20:48Z); 51 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 (optional since 7.58.2, PR #180) |
 | POP.2 | Names for dominant species on living worlds | 13 (2026-09-24 01:32Z to 02:18Z); 10 (2026-09-24 01:57Z to 02:02Z); 8 (2026-09-24 02:25Z to 05:38Z); 7 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 16 (2026-09-30 16:44Z); 17 (2026-09-30 16:49Z); 18 (2026-09-30 16:51Z to 18:09Z); 35 (2026-09-30 18:14Z); 40 (2026-09-30 18:39Z to 18:41Z); 60 (2026-09-30 19:02Z to 19:17Z); 64 (2026-09-30 20:01Z to 20:27Z); 47 (2026-09-30 20:07Z); 51 (2026-09-30 20:08Z to 20:48Z); 52 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
 | POP.3 | Database of spacefaring species | 14 (2026-09-24 01:32Z to 02:18Z); 11 (2026-09-24 01:57Z to 02:02Z); 9 (2026-09-24 02:25Z to 05:38Z); 8 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 17 (2026-09-30 16:44Z); 18 (2026-09-30 16:49Z); 19 (2026-09-30 16:51Z to 18:09Z); 36 (2026-09-30 18:14Z); 41 (2026-09-30 18:39Z to 18:41Z); 61 (2026-09-30 19:02Z to 19:17Z); 65 (2026-09-30 20:01Z to 20:27Z); 48 (2026-09-30 20:07Z); 52 (2026-09-30 20:08Z to 20:48Z); 53 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
@@ -901,6 +953,7 @@ Parents marked "new parent" had no old number of their own.
 | SEC.29 | Two-step sign-in on pyotp, QR codes on segno | none | done, PR #612 |
 | SEC.30 | Login and request rate limits on Flask-Limiter with Redis storage | none | done, PR #643 |
 | SEC.31 | Signing in as admin works but shows a "form expired" error (bug) | none | done, PR #457 |
+| SEC.32 | Argon2id password hashing, a 1,024-character password limit and the `__Host-` cookie prefix | none | open |
 | USR.1 | User accounts | none | open |
 | USR.2 | Accounts with roles: user, admin and Owner | 64 (2026-10-01 02:13Z to 05:29Z) | open |
 | USR.3 | SMTP settings in the admin config | 65 (2026-10-01 02:13Z to 05:29Z) | open |
@@ -909,6 +962,7 @@ Parents marked "new parent" had no old number of their own.
 | USR.6 | Owner transfer | 68 (2026-10-01 02:13Z to 05:29Z) | open |
 | USR.7 | A user-level interface with bookmarks | 69 (2026-10-01 02:13Z to 05:29Z) | open |
 | USR.8 | Every signed-in user can generate a one-off system | none | open |
+| USR.9 | `seo.privacy_note` text, "download my data" and "delete my account" on the account page | none | open |
 | UX.0 | Bugs and small fixes (standing item) | none | open while it holds bugs |
 | UX.1 | Class reference pages | 56 (2026-10-01 01:19Z to 04:37Z) | done in 7.46.0, PR #167 |
 | UX.2 | Menus sized to what they hold (bug) | 62 (2026-10-01 01:44Z to 05:29Z) | done, PR #528 |
@@ -987,11 +1041,21 @@ Parents marked "new parent" had no old number of their own.
 | UX.75 | Admin menus on the sector and phenomenon pages sit in the page body, not the action bar | none | done, PR #679 |
 | UX.76 | Icons and highlights follow the light and dark theme (bug) | none | done, PR #800 |
 | UX.77 | The class list is alphabetized (bug) | none | done, PR #797 |
+| UX.78 | Unit preference: Automatic, Metric only or Customary | none | open |
+| UX.79 | Python and JS round half-way values differently (bug) | none | open |
+| UX.80 | Negative values that round to zero print "-0" (bug) | none | open |
+| UX.81 | Time symbols Gyr, Myr, kyr in place of Gy, My, ky; AU from 1,000,000 km; scientific text below mantissa 1e-3 | none | open |
+| UX.82 | Theme checks after PR #800: SVG currentColor, two Shoelace contrast failures, alpha in --bg-subtle | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.4 | Constellation names in the name generator | 85 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.5 | Light-travel positions: where an object appears to a distant observer | none | done, PR #719 |
+| VIEW.6 | Settle the handedness of the generated galaxy before mapping real sky coordinates | none | open |
+| VIEW.7 | Sky tiers and the backfill cost measurement | none | open |
+| VIEW.8 | A dust model for the sky: the galactic extinction law and `nebulae.extinction_av` | none | open |
+| VIEW.9 | Replace the BC_V table with a published relation (Flower 1996 or Torres 2010) | none | open |
+| VIEW.10 | Declare `pillow` in `setup.py` if it is used, and add a HYG calibration test | none | open |
 
 ## Tree IDs to flat IDs
 

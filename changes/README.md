@@ -26,6 +26,12 @@ category's next free ID minus one, from the "Next free IDs" table in
 `docs/design/todo-number-map.md`), so it grows as items are added to
 `docs/TODO.md`. With counters adding up to 155, 7.58.2 -> 7.59.155 for a
 `patch` or `minor` note and 7.58.2 -> 8.0.155 for a `major` one.
+**Revision hold (Boss, 2026-10-09):** no release goes to 8.1 until Phase 1
+is complete. While `REVISION_HOLD` in `scripts/bump_version.py` is on, a
+`patch` or `minor` note keeps REVISION as it is (it still takes the current
+BUILD), and a release that has the same version as the newest changelog
+entry joins that entry. Notes keep their `patch` / `minor` names. When Boss
+says Phase 1 is done, set `REVISION_HOLD = False`.
 `bump_version.py --check` prints the current sum and fails if
 `docs/TODO.md` uses an ID the table hasn't counted yet.
 
