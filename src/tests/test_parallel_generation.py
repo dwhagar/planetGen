@@ -180,6 +180,7 @@ def test_one_galaxy_seed_makes_the_same_sectors_at_any_worker_count(make_databas
         assert counts["systems"] == sum(_systems_per_sector(config).values())
         results[count] = galaxy_rows(config)
     assert results[1]["star_systems"] and results[1]["planets"]
+    assert results[1]["sector_paths"] and results[1]["sector_path_knots"]  # GEN.126: saved at the end of the run
     assert results[1] == results[workers]
 
 

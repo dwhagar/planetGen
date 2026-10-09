@@ -1,0 +1,2 @@
+### Added
+- A `galaxy` run now ends by saving the sector paths of the sectors it created and of the sectors around them, once the neighbours are final, so a freshly generated galaxy has every body's velocity, sector address and sector path filled in without waiting for the first orbit update. The same seed still makes the same galaxy at any worker count. About 1.8 ms a body; `--no-settle` skips the step.

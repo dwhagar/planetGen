@@ -22,7 +22,7 @@ import time
 
 import pymysql
 
-from planetgen.db import store
+from planetgen.db import sector_paths, store
 from planetgen.generation import bright_stars as brightStars
 from planetgen.galaxy import seed as galaxySeed
 from planetgen.physics import mathcheck
@@ -360,6 +360,45 @@ def backfill_after_run(args, edge_pc, started_at):
             log.reset_console()
     log.normal(f"Backfilled {summary['stars']:,} bright stars in {summary['sectors']:,} sectors.")
     return summary
+
+
+def settle_after_run(args, started_at):
+    """
+    The last step of a `galaxy` run (GEN.126): once every sector, bright star and population is
+    final, saves the path of every body in the sectors the run created and in the sectors around
+    them (`sector_paths.settle_sectors`), so each path sees the final set of neighbours whatever
+    order the workers filled sectors in. Skipped with `--no-settle` (and for an estimate).
+
+    Args:
+        args (argparse.Namespace): The run's arguments.
+        started_at (datetime): The database's clock when the run started.
+
+    Returns:
+        int: How many paths were saved (0 when skipped or nothing was generated).
+    """
+    if getattr(args, "no_settle", False):
+        return 0
+    conn = store.get_connection(store.mysql_config_from_args(args))
+    try:
+        created = sector_paths.sector_ids_since(conn, started_at)
+        if not created:
+            return 0
+        log.normal("Saving the sector paths...")
+        with run_common._generation_progress() as progress:
+            log.set_console(progress.console)
+            try:
+                task = progress.add_task("Sector paths", total=1)
+
+                def on_progress(done, total):
+                    progress.update(task, total=total, completed=done)
+
+                saved = sector_paths.settle_sectors(conn, created, on_progress)
+            finally:
+                log.reset_console()
+    finally:
+        conn.close()
+    log.normal(f"Saved {saved:,} sector paths.")
+    return saved
 
 
 def generate_and_save_sector_at(args, address, position_pc, edge_pc):
@@ -1332,6 +1371,7 @@ def run_galaxy(args):
         run_plan.scatter_bright_stars(args)
     backfill_after_run(args, edge_pc, started_at)
     run_population.run_population_after(args)
+    settle_after_run(args, started_at)
 
 
 def _run_galaxy_mode(args, edge_pc, progress):

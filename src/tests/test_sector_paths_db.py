@@ -3,6 +3,7 @@
 """GEN.123: sector paths are computed from the stored sector, saved as spline knots and read back. Needs MySQL."""
 
 import math
+import sys
 
 import pytest
 
@@ -115,5 +116,25 @@ def test_deleting_a_sector_deletes_its_paths(mysql_config):
         conn.commit()
         assert conn.execute("SELECT COUNT(*) AS n FROM sector_paths").fetchone()["n"] == 0
         assert conn.execute("SELECT COUNT(*) AS n FROM sector_path_knots").fetchone()["n"] == 0
+    finally:
+        conn.close()
+
+
+def test_settling_covers_a_sector_and_its_neighbours_and_nothing_far(mysql_config, monkeypatch):
+    near_id, _center = _save(mysql_config, systems=1)
+    monkeypatch.setattr(sys.modules[__name__], "ADDRESS", (1500, 2, 701))
+    neighbour_id, _center = _save(mysql_config, with_black_hole=False, systems=1)
+    monkeypatch.setattr(sys.modules[__name__], "ADDRESS", (1500, 2, 760))
+    far_id, _center = _save(mysql_config, with_black_hole=False, systems=1)
+    conn = store.get_connection(mysql_config)
+    try:
+        assert sector_paths.sectors_to_settle(conn, [near_id]) == sorted([near_id, neighbour_id])
+        progress = []
+        saved = sector_paths.settle_sectors(conn, [near_id], lambda done, total: progress.append((done, total)))
+        assert saved == 2 and progress == [(1, 2), (2, 2)]  # the sector's system and the neighbour's
+        assert sorted(sector_paths.load_sector_paths(conn, neighbour_id)) != []
+        assert sector_paths.load_sector_paths(conn, far_id) == {}
+        assert sector_paths.sector_ids_since(conn, "2999-01-01") == []
+        assert far_id in sector_paths.sector_ids_since(conn, "2000-01-01")
     finally:
         conn.close()

@@ -13,10 +13,12 @@ back as `SectorPath`s.
 
 A path starts at the body's stored position and velocity, so it is as old
 as the last time paths were computed for its sector: the orbit update
-(`planetgen.cli.orbits`) recomputes them for every sector holding a body.
-Generation does not compute them: a path depends on the
-neighbouring sectors that exist at the time, which varies with the order
-workers fill sectors in, and generated data must not.
+(`planetgen.cli.orbits`) recomputes them for every sector holding a body,
+and a `galaxy` run settles the sectors it created and the sectors around
+them as its last step (`settle_sectors`, GEN.126). They are never computed
+sector by sector during the run: a path depends on the neighbouring sectors
+that exist at the time, which varies with the order workers fill sectors
+in, and generated data must not.
 
 Point masses are the stars of each star system (summed per system), black
 holes and neutron stars. The stored velocity of a star system is its
@@ -166,6 +168,57 @@ def _save_path(conn, sector_id, table, object_id, path):
         " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)",
         [(path_id, index, knot.t_s / _YEAR, *(c / _PC for c in knot.position), *(v / 1000.0 for v in knot.velocity))
          for index, knot in enumerate(path.knots)])
+
+
+def sectors_to_settle(conn, sector_ids):
+    """
+    The sectors whose saved paths a change to `sector_ids` can alter: the
+    sectors themselves and every sector within the neighbour reach of one
+    (a body's path sees the point masses of the sectors around its own).
+
+    Returns:
+        list: Sector ids, ascending. Ids that are not placed galaxy sectors
+        are kept (their paths clear to nothing).
+    """
+    wanted = set(sector_ids)
+    for sector_id in sector_ids:
+        sector = _sector(conn, sector_id)
+        if sector["center_x_pc"] is None or not sector["edge_mpc"]:
+            continue
+        wanted.update(_neighbour_centers(conn, sector, sector["edge_mpc"] / 1000.0))
+    return sorted(wanted)
+
+
+def settle_sectors(conn, sector_ids, on_progress=None):
+    """
+    Recomputes the saved paths of `sector_ids` and the sectors around them
+    (`sectors_to_settle`), committing every sector as it finishes: the last
+    step of a generation run (GEN.126), when the neighbour set is final.
+    Nothing here is random or depends on the clock, so it leaves a
+    reproducible galaxy reproducible.
+
+    Args:
+        conn (Connection): An open, schema-initialized, read-write connection.
+        sector_ids (iterable): The sectors a run created or changed.
+        on_progress (callable, optional): `on_progress(done, total)` after each sector.
+
+    Returns:
+        int: How many paths were saved.
+    """
+    sectors = sectors_to_settle(conn, list(sector_ids))
+    saved = 0
+    for done, sector_id in enumerate(sectors, start=1):
+        saved += compute_sector_paths(conn, sector_id)
+        conn.commit()
+        if on_progress is not None:
+            on_progress(done, len(sectors))
+    return saved
+
+
+def sector_ids_since(conn, since):
+    """The ids of every galaxy sector created at or after `since` (`database_now`), ascending."""
+    return [row["id"] for row in conn.execute(
+        "SELECT id FROM sectors WHERE created_at >= ? AND ring_index IS NOT NULL ORDER BY id", (since,)).fetchall()]
 
 
 def load_sector_paths(conn, sector_id):
