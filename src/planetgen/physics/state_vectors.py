@@ -195,6 +195,72 @@ def elements_from_state(position, velocity, mu):
     }
 
 
+def equinoctial_from_state(position, velocity, mu):
+    """
+    The modified equinoctial elements (Walker, Ireland and Owens 1985) of
+    the orbit through `position` and `velocity`: `p` (semi-latus rectum),
+    `f`, `g` (the eccentricity vector in the equinoctial frame), `h`, `k`
+    (the orbit pole), and `L` (true longitude, radians in [0, 2 pi)).
+
+    The GEN.108 guard for circular and equatorial orbits: there the
+    classical argument of periapsis and ascending node are undefined
+    (`elements_from_state` falls back to conventions), while these
+    elements stay smooth and exact through e = 0 and i = 0. They are
+    singular only for an exactly retrograde equatorial orbit (i = pi),
+    which `ValueError`s.
+
+    Returns:
+        dict: `p`, `f`, `g`, `h`, `k`, `L`.
+    """
+    if not mu > 0.0 or not math.isfinite(mu):
+        raise ValueError(f"mu must be positive, got {mu!r}")
+    r = _norm(position)
+    h_vec = _cross(position, velocity)
+    h_norm = _norm(h_vec)
+    if r == 0.0 or h_norm <= 1.0e-12 * r * _norm(velocity):
+        raise ValueError("the body has no orbital plane (it sits on its primary or moves along the line to it)")
+    h_hat = _scale(h_vec, 1.0 / h_norm)
+    if 1.0 + h_hat[2] < 1.0e-12:
+        raise ValueError("modified equinoctial elements are singular for a retrograde equatorial orbit")
+    k_eq = h_hat[0] / (1.0 + h_hat[2])
+    h_eq = -h_hat[1] / (1.0 + h_hat[2])
+    # The equinoctial frame: f_hat, g_hat in the orbit plane, w_hat = h_hat.
+    s2 = 1.0 + h_eq * h_eq + k_eq * k_eq
+    f_hat = ((1.0 - k_eq * k_eq + h_eq * h_eq) / s2, 2.0 * k_eq * h_eq / s2, -2.0 * k_eq / s2)
+    g_hat = (2.0 * k_eq * h_eq / s2, (1.0 + k_eq * k_eq - h_eq * h_eq) / s2, 2.0 * h_eq / s2)
+    eccentricity_vector = tuple(c / mu - q / r for c, q in zip(_cross(velocity, h_vec), position))
+    return {
+        "p": h_norm * h_norm / mu,
+        "f": _dot(eccentricity_vector, f_hat),
+        "g": _dot(eccentricity_vector, g_hat),
+        "h": h_eq,
+        "k": k_eq,
+        "L": math.atan2(_dot(position, g_hat), _dot(position, f_hat)) % TWO_PI,
+    }
+
+
+def state_from_equinoctial(p, f, g, h, k, true_longitude, mu):
+    """The position and velocity of the modified equinoctial elements
+    (`equinoctial_from_state`'s inverse)."""
+    if not mu > 0.0 or not p > 0.0:
+        raise ValueError(f"mu and p must be positive, got {mu!r}, {p!r}")
+    cos_l, sin_l = math.cos(true_longitude), math.sin(true_longitude)
+    w = 1.0 + f * cos_l + g * sin_l
+    if w <= 0.0:
+        raise ValueError("the true longitude is beyond the orbit's asymptote")
+    r = p / w
+    s2 = 1.0 + h * h + k * k
+    alpha2 = h * h - k * k
+    root = math.sqrt(mu / p)
+    position = (r / s2 * (cos_l + alpha2 * cos_l + 2.0 * h * k * sin_l),
+                r / s2 * (sin_l - alpha2 * sin_l + 2.0 * h * k * cos_l),
+                2.0 * r / s2 * (h * sin_l - k * cos_l))
+    velocity = (-root / s2 * (sin_l + alpha2 * sin_l - 2.0 * h * k * cos_l + g - 2.0 * f * h * k + alpha2 * g),
+                -root / s2 * (-cos_l + alpha2 * cos_l + 2.0 * h * k * sin_l - f + 2.0 * g * h * k + alpha2 * f),
+                2.0 * root / s2 * (h * cos_l + k * sin_l + f * h + g * k))
+    return position, velocity
+
+
 def mean_anomaly_from_true(true_anomaly, eccentricity):
     """The mean anomaly (radians, in [0, 2 pi)) of an elliptical orbit's
     `true_anomaly`; the inverse of `kepler.true_anomaly_and_distance_elliptical`."""
