@@ -3,6 +3,7 @@
 ## [8.0.783] - 2026-10-09
 
 ### Changed
+- The multi-star systems item (GEN.129) carries the exact triple-stability equation from Vynatheya et al. 2022 and its tests.
 - The to-do items for nebula planets, multi-star systems and exotic star systems cite the verified orbit-expansion law and triple-stability criteria, with unit tests.
 - The spin vector and axial tilt item (GEN.104) is finished.
 - Planets now tidally lock to their star by the same rule moons use; a locked body turns once per orbit, upright. Seeds give different systems than before.
