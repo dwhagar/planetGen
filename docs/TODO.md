@@ -1730,32 +1730,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   for small bodies, black hole spin distributions).
   Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
 
-- [ ] **GEN.123 The projected path of a body through a sector, saved as a spline**
-  Boss (2026-10-08 23:11Z, 23:16Z): "for objects that are not that easy,
-  that do not have a closed elipse, how about the path the object takes
-  through the sector, again, not in perfect terms"; "a planetary body
-  passes near a black hole but not close enough to be captured, that's
-  not a streight line, so I want a way to make sure the orbital path is
-  a spline that curves through the sector roughly the way the object
-  would. Some sectors are really dense". Done: for a body with no closed
-  ellipse (stars, rogue planets, hyperbolic and parabolic comets,
-  interstellar objects), a test particle is integrated across the
-  sector from its entry point and velocity against the sector's point
-  masses (stars, black holes, remnants; the masses are fixed during the
-  crossing and the particle does not pull back). The path is saved as
-  cubic Hermite spline knots (position and velocity), few where the path
-  is nearly straight and more near a heavy mass, with a hard cap, so a
-  sparse sector gets two knots. A single dominant flyby may use the
-  hyperbolic deflection formula instead. Each sector's exit point and
-  velocity are the next sector's entry, so the path chains across
-  sectors. Masses too weak or far to matter are skipped. MAP.126's orbit
-  drawing should use these paths later.
-  Build thread (not a lane).
-  Progress (PR #746): the path maths is done (`physics/sector_path.py`:
-  Hermite spline knots bent by the sector's masses). Still to do: saving
-  the knots (a table, as an Alembic revision) and filling them.
-  Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
-
 - [ ] **GEN.125 Stand-alone facilities store a velocity**
   Asked by the physics build thread after PR #735 (GEN.121 left them
   out): a stand-alone facility (one not attached to a star's system)

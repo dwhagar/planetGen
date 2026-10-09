@@ -585,7 +585,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.120 | Integrate gatedPhonemeCodec.py into the naming package and remove it from the repo root | none | done, PR #554 |
 | GEN.121 | A velocity on every object, filled at generation and stored with an epoch | none | done, PR #735 |
 | GEN.122 | Orbital elements for planets, moons and comets, kept in step with the state vector | none | done, PR #741 |
-| GEN.123 | The projected path of a body through a sector, saved as a spline | none | open |
+| GEN.123 | The projected path of a body through a sector, saved as a spline | none | done, PR #762 |
 | GEN.124 | Every object knows its sector address (ring, layer, slot), recalculated whenever its position changes | none | done, PR #729 |
 | GEN.125 | Stand-alone facilities store a velocity | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
