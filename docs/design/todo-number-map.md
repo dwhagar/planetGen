@@ -478,7 +478,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.16 | Store the generator epoch and run id on each sector instead of four version text columns | none | open |
 | DB.17 | Repair by regenerating a damaged sector from its seed when parity cannot rebuild it | none | open |
 | DB.18 | Migration helpers for slow DDL: online indexes, instant columns and batched updates | none | open |
-| DB.19 | Compact or derive phenomenon rows (needed only if the mass cut is lowered to 10 solar masses or less) | none | open |
+| DB.19 | Compact or derive phenomenon rows (needed only if the mass cut is lowered to 10 solar masses or less) | none | closed, not needed at the 20 solar mass cut (PR #866); reopen if the cut is lowered to 10 solar masses or less |
 | DB.20 | Object IDs in the schema: uid becomes BINARY(10), unique on its own, plus an id_counters table | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
@@ -878,7 +878,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.11 | Define "the same galaxy" and which versions stay reproducible | none | done, PR #362 (docs/design/reproducible-galaxies.md) |
 | OPS.12 | `generate.py reproduce`: a version and a seed rebuild a galaxy and check it | none | dropped (Boss, 2026-10-09 20:42Z) |
 | OPS.13 | Every update records the version key, keeping the last 10 | none | done, PR #810 |
-| OPS.14 | A warning when the running version key differs from the galaxy's | none | open |
+| OPS.14 | A warning when the running version key differs from the galaxy's | none | done, PR #876 |
 | OPS.15 | Each update says whether it changes generated output | none | open |
 | OPS.16 | A daily maintenance script for Linux, macOS and Windows | none | open |
 | OPS.17 | Install and update set up the daily maintenance schedule | none | open |
