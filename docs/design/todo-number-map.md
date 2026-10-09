@@ -743,7 +743,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.21 | Fit the view to the whole course | none | open |
 | NAV.22 | Courses inside a sector and a system | none | open |
 | NAV.23 | Open a saved course on the map | none | open |
-| NAV.24 | A keep-out radius for every kind of object | none | open |
+| NAV.24 | A keep-out radius for every kind of object | none | done, PR #719 |
 | NAV.25 | Find the obstacles along a path | none | open |
 | NAV.26 | Bend the path around keep-out spheres | none | open |
 | NAV.27 | Moving bodies inside a system | none | open |
@@ -956,7 +956,7 @@ Parents marked "new parent" had no old number of their own.
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.4 | Constellation names in the name generator | 85 (2026-10-01 02:55Z to 05:29Z) | open |
-| VIEW.5 | Light-travel positions: where an object appears to a distant observer | none | open |
+| VIEW.5 | Light-travel positions: where an object appears to a distant observer | none | done, PR #719 |
 
 ## Tree IDs to flat IDs
 
