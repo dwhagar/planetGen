@@ -304,7 +304,6 @@ def test_nav_between_reaches_a_lone_system_in_the_halo(mysql_config):
     assert result["route"]["path"][-1] == halo[0]
 
 
-@pytest.mark.xfail(strict=True, reason="NAV.12: the longest hop is shown with the route")
 def test_nav_between_reports_the_longest_hop(mysql_config):
     home = _save_grid_sector(mysql_config, "Home", 0, _cluster((0.0, 0.0, 0.0)))
     halo = _save_grid_sector(mysql_config, "Halo", 0, [(0.0, 0.0, 0.0)], layer=500)
@@ -317,7 +316,6 @@ def test_nav_between_reports_the_longest_hop(mysql_config):
     assert route["longest_hop_ly"] == pytest.approx(max(hops))
 
 
-@pytest.mark.xfail(strict=True, reason="NAV.12: a hop through unfilled sectors is flagged as unknown space")
 def test_nav_between_flags_a_hop_through_unfilled_sectors(mysql_config):
     # Slots 1-4 between the two generated sectors are never generated.
     west = _save_grid_sector(mysql_config, "West", 0, _cluster((0.0, 0.0, 0.0)))
@@ -329,7 +327,6 @@ def test_nav_between_flags_a_hop_through_unfilled_sectors(mysql_config):
     assert flags.count(True) == 1
 
 
-@pytest.mark.xfail(strict=True, reason="NAV.12: same-sector routes may leave the sector")
 def test_nav_between_same_sector_route_uses_nearer_stars_next_door(mysql_config):
     # Both ends in one sector, 10 ly apart near its top face, with
     # nothing else in it; the sector above holds a line of stars just

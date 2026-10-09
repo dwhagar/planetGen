@@ -538,6 +538,8 @@ def nav():
             result["scope"], "Cross-sector (galaxy)"),
         legs=_leg_rows(result["legs"], origin, destination, names), in_system=in_system, note=result["note"],
         route=route, stops=_route_stops(route, names) if route and route["path"] else [],
+        longest_hop_text=format_distance_ly(route["longest_hop_ly"]) if route and "longest_hop_ly" in route else None,
+        unknown_jumps=sum(1 for hop in route.get("hops", []) if hop.get("unknown_space")) if route else 0,
         map_html=trusted_html(map_html),
         reverse_url=nav_url(_param_of(destination), _param_of(origin)),
         bookmark_changes=[_bookmark_pick("from", _param_of(destination), "New start"),

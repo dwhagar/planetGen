@@ -76,6 +76,14 @@ limit of any kind.
   from `galaxyGeometry.sectors_along_segment` (NAV.38, built in PR #357),
   exact at sector faces and edges, with its browser twin
   `galaxyprisms.sectorsAlongSegment`. `/api/nav` returns the flag per hop.
+- **Built (NAV.12).** `route.hops` carries `{from, to, distance_ly,
+  unknown_space}` per hop and `route.longest_hop_ly` the longest
+  (`query.nav_between`, `corridor.unknown_space_flags`: a hop is flagged when
+  a cell on its line has no `sectors` row). A same-sector pair with a galaxy
+  placement is routed in the galaxy corridor and shifted back into the
+  sector's frame; without one it keeps the sector-local graph. The NAV page
+  states the longest hop and the number of unknown-space jumps; the red glow
+  is NAV.36 and the horizontal strip UX.35.
 - Route edge cases from the study (islands, lone systems, the halo, the
   dense core, endpoints that are phenomena) are written as tests first
   (TEST.79, built in PR #427).

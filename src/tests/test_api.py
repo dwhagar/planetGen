@@ -516,6 +516,9 @@ def test_nav_returns_direct_course_and_route_for_same_sector(client, seeded_sect
     assert len(body["origin_position"]) == 3
     assert len(body["destination_position"]) == 3
     assert set(body["route"]["positions"]) == {str(system_ids[0]), str(system_ids[1])}
+    assert [(hop["from"], hop["to"], hop["unknown_space"]) for hop in body["route"]["hops"]] == [
+        (system_ids[0], system_ids[1], False)]
+    assert body["route"]["longest_hop_ly"] == pytest.approx(body["route"]["hops"][0]["distance_ly"])
 
 
 def test_nav_requires_from_and_to(client, seeded_sector):

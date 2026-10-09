@@ -27,6 +27,7 @@ import math
 from planetgen import tuning
 from planetgen.db.store import get_galaxy_shape
 from planetgen.galaxy import objectref as object_ref
+from planetgen.galaxy.geometry import sectors_along_segment
 from planetgen.physics.units import ly_to_pc, mpc_to_pc, pc_to_ly
 
 _CHUNK = 500
@@ -71,6 +72,44 @@ def _pieces(start, end, reach):
 def _sector_edge_pc(conn):
     shape = get_galaxy_shape(conn)
     return float(shape.edge_pc) if shape is not None else float(tuning.DEFAULT_SECTOR_EDGE_PC)
+
+
+def generated_cells(conn, cells):
+    """The subset of `(ring_index, layer_index, ring_slot_index)` cells that
+    hold a generated sector."""
+    by_band = {}
+    for ring, layer, slot in cells:
+        by_band.setdefault((ring, layer), []).append(slot)
+    found = set()
+    for (ring, layer), slots in by_band.items():
+        for start in range(0, len(slots), _CHUNK):
+            chunk = slots[start:start + _CHUNK]
+            marks = ",".join("?" * len(chunk))
+            rows = conn.execute(
+                f"SELECT ring_slot_index FROM sectors WHERE ring_index = ? AND layer_index = ? "
+                f"AND ring_slot_index IN ({marks})", (ring, layer, *chunk)).fetchall()
+            found.update((ring, layer, row["ring_slot_index"]) for row in rows)
+    return found
+
+
+def unknown_space_flags(conn, points_ly):
+    """
+    NAV.12: for each hop of a route (`points_ly`, the stops' galaxy-frame
+    light-year positions in order), whether its straight line crosses a sector
+    that has not been generated -- "a jump through unknown space". The cells a
+    line crosses come from `sectors_along_segment` (NAV.38); a cell is known
+    when `sectors` holds a row at its address.
+
+    Returns:
+        list[bool]: One flag per hop (`len(points_ly) - 1`).
+    """
+    edge = _sector_edge_pc(conn)
+    per_hop = [
+        sectors_along_segment(tuple(ly_to_pc(c) for c in a), tuple(ly_to_pc(c) for c in b), edge)
+        for a, b in zip(points_ly, points_ly[1:])
+    ]
+    known = generated_cells(conn, {cell for cells in per_hop for cell in cells})
+    return [any(cell not in known for cell in cells) for cells in per_hop]
 
 
 def _sectors_near(conn, start, end, distance, edge):
