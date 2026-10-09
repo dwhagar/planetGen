@@ -23,8 +23,7 @@ needs a terminal on the server. Four actions, each a background job
   sector" names its center as a filled sector (searched by name or
   picked from `/admin/generate/sectors`'s list), a sector address, or a
   galaxy-frame position in pc. The bright-star backfill runs once the
-  sectors are done, around the requested sector, or around every
-  generated one when ticked (GEN.30).
+  sectors are done, out from the run's edge (GEN.30, GEN.98).
 - Reset: wipe the database only.
 
 New galaxy and Reset delete every generated sector and system, so both
@@ -471,15 +470,6 @@ def scatter_argv(form):
     return argv
 
 
-def backfill_argv(form):
-    """
-    `planetgen galaxy --backfill-from all` when the form's "backfill
-    from every generated sector" box is ticked (GEN.30); nothing
-    otherwise, so the backfill runs from the requested sector only.
-    """
-    return ["--backfill-from", "all"] if form.get("backfill_all") else []
-
-
 PREVALENCE_LABELS = {
     "habitable_world": "Habitable worlds (% of systems)",
     "asteroid_belt": "Asteroid belts (% of systems)",
@@ -578,7 +568,7 @@ def _build_job_steps(action, form, edge_pc=None):
         # GEN.30: the scatter runs after the sectors (`galaxy
         # --then-scatter`), so it leaves out every sector just filled.
         plan = {"label": "Plan the galaxy", "argv": generate + ["plan"] + plan_argv(form) + ["--no-bright-stars"]}
-        argv = generate + ["galaxy"] + random_start_argv(form) + prevalence_argv(form) + backfill_argv(form)
+        argv = generate + ["galaxy"] + random_start_argv(form) + prevalence_argv(form)
         label = "Generate sectors around a random start"
         if not form.get("skip_bright_stars"):
             argv += ["--then-scatter"] + scatter_argv(form)[2:]
@@ -598,7 +588,7 @@ def _build_job_steps(action, form, edge_pc=None):
     if action == "galaxy":
         argv, description = galaxy_argv(form, edge_pc)
         label = f"Generate sectors {description}"
-        return "galaxy", label, [{"label": label, "argv": generate + ["galaxy"] + argv + prevalence_argv(form) + backfill_argv(form)}]
+        return "galaxy", label, [{"label": label, "argv": generate + ["galaxy"] + argv + prevalence_argv(form)}]
     if action == "reset":
         return "reset", "Reset the galaxy", [reset_step]
     raise FormError("Unknown action.")
