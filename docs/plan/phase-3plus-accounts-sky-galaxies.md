@@ -57,6 +57,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.9 | Plan for more than one galaxy in the database |  | Plan only; floats. Judgment: if a second galaxy is likely, writing it before phase 2's schema work tells those migrations whether to add a galaxy id. |
+| GEN.164 | Synthetic globular-cluster systems for generated galaxies | GEN.9, GEN.158, GEN.159 | Globular-cluster chain. |
 | MAP.145 | A sky and Galaxy Map drawing rule for neighbour galaxies | GEN.157 | Research. |
 | NAV.57 | The Intergalactic Frame in navigation-frames.md and `navigation.py` | GEN.157 | Research: stage 2 of GEN.9. |
 | GEN.157 | The `neighbor_galaxies` table and a verified data file of about 25 real galaxies |  | Research: stage 1 of GEN.9. |
