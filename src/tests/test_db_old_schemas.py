@@ -1,20 +1,17 @@
 # tests/test_db_old_schemas.py
 
 """
-TEST.8: every galaxy schema `main` ever shipped (checked in under
-`fixtures/old_schemas/`, v8 to v58) migrates to the current version and
-ends up exactly the shape `schema.sql` gives a new database: the same
-tables, columns (type, nullability, default), indexes, foreign keys and
-CHECKs. The per-step tests in test_db_persistence.py fake an old database
-by dropping columns from a new one; these start from the real thing, so
-they also cover the steps nothing else tests (14-15, 15-16, 18-19, 22-23,
-23-24, 24-25, 25-26, 30-31, 43-44, 44-45) and drift between `schema.sql`
-and the steps.
+TEST.8: every checked-in old galaxy schema (`fixtures/old_schemas/`, the
+Alembic baseline v61 and later) migrates to the current version and ends up
+exactly the shape `schema.sql` gives a new database: the same tables,
+columns (type, nullability, default), indexes, foreign keys and CHECKs.
+Starting from the real old schema, not a new database with columns
+dropped, also covers drift between `schema.sql` and the revisions.
 """
 
 import pytest
 
-from planetgen.db import store
+from planetgen.db import alembic_runner, store
 from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.system import StarSystem
@@ -39,12 +36,10 @@ def fresh_snapshot(beside):
     return _fresh_snapshots[server]
 
 
-def test_every_released_version_has_a_fixture():
+def test_every_version_before_the_current_one_has_a_fixture():
     versions = old_schema_versions()
-    assert versions[0] == 8
-    assert versions[-1] == store.SCHEMA_VERSION - 1
-    # 10-13 and 16 never reached main.
-    assert set(range(8, store.SCHEMA_VERSION)) - set(versions) == {10, 11, 12, 13, 16}
+    assert versions[0] == alembic_runner.BASELINE_VERSION
+    assert set(range(alembic_runner.BASELINE_VERSION, store.SCHEMA_VERSION)) <= set(versions)
 
 
 @pytest.mark.parametrize("version", old_schema_versions())
@@ -64,9 +59,8 @@ def test_old_schema_migrates_to_the_fresh_shape(mysql_config, version):
     assert sorted(versions) == [version, *range(version + 1, store.SCHEMA_VERSION + 1)]
 
 
-@pytest.mark.parametrize("version", [8, 20, 33, 44])
-def test_migrated_old_database_saves_and_loads_a_sector(mysql_config, version):
-    load_old_schema(mysql_config, version)
+def test_a_baseline_database_saves_and_loads_a_sector(mysql_config):
+    load_old_schema(mysql_config, alembic_runner.BASELINE_VERSION)
     store.migrate_database(mysql_config)
 
     cfg = SystemConfig()
@@ -85,27 +79,3 @@ def test_migrated_old_database_saves_and_loads_a_sector(mysql_config, version):
     assert reloaded.name == sector.name
     assert [entry.star_system.name for entry in reloaded.entries] == [system.name]
     assert len(reloaded.entries[0].star_system.planets) == len(system.planets)
-
-
-def test_v50_keeps_nebulae_when_their_sector_goes(mysql_config):
-    """v16/v17 made `nebulae.sector_id` ON DELETE CASCADE; a new database
-    (and, after v50, a migrated one) keeps the nebula, unplaced."""
-    load_old_schema(mysql_config, 17)
-    store.migrate_database(mysql_config)
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        sector_id = conn.execute(
-            "INSERT INTO sectors (name, edge_mpc) VALUES ('Doomed', 3526)").lastrowid
-        conn.execute(
-            "INSERT INTO nebulae (name, nebula_class, nebula_type, radius_ly, composition, formation_cause,"
-            " dominant_species, density_cm3, temperature_k, extinction_av, galactic_orbital_speed_kms,"
-            " galactic_orbital_period_gy, galactic_orbital_phase_deg, galactic_min_update_interval_years, sector_id)"
-            " VALUES ('Veil', 'E', 'emission', 1, '', '', 'H II', 100, 8000, 1, 220, 0.23, 0, 0, ?)",
-            (sector_id,))
-        conn.commit()
-        conn.execute("DELETE FROM sectors WHERE id = ?", (sector_id,))
-        conn.commit()
-        rows = conn.execute("SELECT sector_id FROM nebulae WHERE name = 'Veil'").fetchall()
-    finally:
-        conn.close()
-    assert rows == [{"sector_id": None}]

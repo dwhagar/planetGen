@@ -21,8 +21,10 @@ from alembic.config import Config
 from alembic.runtime.migration import MigrationContext
 from alembic.script import ScriptDirectory
 
-MIGRATIONS_DIR = os.path.join(os.path.dirname(__file__), "migrations")
-"""str: The directory holding `env.py` and `versions/`."""
+MIGRATIONS_DIR = os.environ.get("PLANETGEN_MIGRATIONS_DIR") or os.path.join(os.path.dirname(__file__), "migrations")
+"""str: The directory holding `env.py` and `versions/`. `PLANETGEN_MIGRATIONS_DIR`
+points it elsewhere (the update-step test runs a database through an extra
+revision that way)."""
 
 BASELINE_VERSION = 61
 """int: The first revision; databases below it are upgraded by the legacy

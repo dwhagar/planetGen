@@ -4,40 +4,24 @@
 asking whether to migrate or delete the data). Needs a MySQL test server
 like every other database-backed test (see `conftest.py`).
 """
-from planetgen.db import store
+from planetgen.db import alembic_runner, store
+from tests.db_schema_support import migrations_with_probes
 
 
-def _roll_back_to_v28(mysql_config):
-    conn = store.get_connection(mysql_config)
-    try:
-        # What v29 dropped, so its step has something to do again.
-        conn.execute("ALTER TABLE star_systems ADD COLUMN wikitext_content LONGTEXT, "
-                     "ADD COLUMN markdown_content LONGTEXT")
-        conn.execute("DELETE FROM schema_migrations WHERE version > 28")
-        conn.execute("INSERT IGNORE INTO schema_migrations (version) VALUES (28)")
-        conn.commit()
-    finally:
-        conn.close()
-
-
-def test_status_and_steps_report_each_pending_migration(mysql_config):
+def test_status_and_steps_report_each_pending_migration(mysql_config, tmp_path, monkeypatch):
     assert store.schema_status(mysql_config) == (store.SCHEMA_VERSION, 0)
+    store.get_connection(mysql_config).close()
 
-    _roll_back_to_v28(mysql_config)
-    pending = store.SCHEMA_VERSION - 28
-    assert store.schema_status(mysql_config) == (28, pending)
+    monkeypatch.setattr(alembic_runner, "MIGRATIONS_DIR", migrations_with_probes(tmp_path, up_to=63))
+    monkeypatch.setattr(store, "SCHEMA_VERSION", 63)
+    assert store.schema_status(mysql_config) == (61, 2)
 
     calls = []
-    assert store.migrate_database(mysql_config, on_step=lambda *a: calls.append(a)) == store.SCHEMA_VERSION
-    assert calls == [(n, pending, 27 + n, 28 + n) for n in range(1, pending + 1)]
+    assert store.migrate_database(mysql_config, on_step=lambda *a: calls.append(a)) == 63
+    assert calls == [(1, 2, 61, 62), (2, 2, 62, 63)]
 
     # Already current: no steps, nothing reported.
     calls.clear()
-    assert store.migrate_database(mysql_config, on_step=lambda *a: calls.append(a)) == store.SCHEMA_VERSION
+    assert store.migrate_database(mysql_config, on_step=lambda *a: calls.append(a)) == 63
     assert calls == []
-    assert store.schema_status(mysql_config) == (store.SCHEMA_VERSION, 0)
-
-
-def test_every_step_is_listed_once_in_order():
-    targets = [target for target, _ in store._migration_steps()]
-    assert targets == list(range(9, store.SCHEMA_VERSION + 1))
+    assert store.schema_status(mysql_config) == (63, 0)

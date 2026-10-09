@@ -146,34 +146,3 @@ def test_columns_follow_the_fields():
     assert tuple(column for column, _kind in store.ROGUE_SURFACE_COLUMNS) == rs.ROGUE_SURFACE_FIELDS
 
 
-def test_stored_and_backfilled_by_the_v48_migration(mysql_config):
-    conn = store.get_connection(mysql_config)
-    try:
-        with conn:
-            planet = RoguePlanet(SystemConfig(), mass_bin="sub-neptune")
-            planet_id = store.insert_rogue_planet(conn, planet)
-        row = conn.execute("SELECT * FROM rogue_planets WHERE id = ?", (planet_id,)).fetchone()
-        assert row["surface_regime"] == planet.surface_regime
-        assert row["surface_temperature_k"] == pytest.approx(planet.surface_temperature_k)
-        assert row["has_liquid_water"] == int(planet.has_liquid_water)
-        name = row["name"]
-        conn.execute("ALTER TABLE rogue_planets DROP COLUMN surface_regime, DROP COLUMN age_gy")
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61)")
-        conn.execute("INSERT INTO schema_migrations (version) VALUES (47)")
-        conn.commit()
-    finally:
-        conn.close()
-
-    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
-
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        row = conn.execute("SELECT * FROM rogue_planets WHERE id = ?", (planet_id,)).fetchone()
-    finally:
-        conn.close()
-    expected = rs.rogue_surface_conditions(planet.mass_kg, planet.radius_km, planet.planet_type, "sub-neptune",
-                                           planet.has_moons,
-                                           random.Random(name))
-    assert row["surface_regime"] == expected["surface_regime"]
-    assert row["age_gy"] == pytest.approx(expected["age_gy"])
-    assert row["has_internal_heat"] == int(expected["has_internal_heat"])

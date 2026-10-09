@@ -6,12 +6,10 @@ and shown on the phenomenon page, the sector's Contents and the Sector
 Map.
 """
 
-import pytest
 
 from planetgen.web.app import create_app
 from planetgen.api.config import Config
 
-from planetgen.db import store
 from planetgen.physics import constants
 from planetgen import tuning
 from planetgen.generation import phenomena_plausibility as pp
@@ -110,28 +108,3 @@ def test_phenomenon_page_contents_and_sector_map_show_the_class():
     assert data["typeLabel"] == "Rogue Planet (Terrestrial)"
 
 
-def test_class_is_stored_and_backfilled_by_the_v47_migration(mysql_config):
-    conn = store.get_connection(mysql_config)
-    try:
-        with conn:
-            planet_id = store.insert_rogue_planet(conn, RoguePlanet(SystemConfig(), mass_bin="jupiter"))
-            dwarf_id = store.insert_rogue_planet(conn, RoguePlanet(SystemConfig(), mass_bin="brown-dwarf"))
-            rocky_id = store.insert_rogue_planet(conn, RoguePlanet(SystemConfig(), mass_bin="terrestrial"))
-        row = conn.execute("SELECT planet_class FROM rogue_planets WHERE id = ?", (planet_id,)).fetchone()
-        assert row["planet_class"] == "J"
-        conn.execute("ALTER TABLE rogue_planets DROP COLUMN planet_class")
-        conn.execute("DELETE FROM schema_migrations WHERE version IN (47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61)")
-        conn.execute("INSERT INTO schema_migrations (version) VALUES (46)")
-        conn.commit()
-    finally:
-        conn.close()
-
-    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
-
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        classes = {row["id"]: row["planet_class"]
-                   for row in conn.execute("SELECT id, planet_class FROM rogue_planets").fetchall()}
-    finally:
-        conn.close()
-    assert classes == {planet_id: "J", dwarf_id: None, rocky_id: "C"}

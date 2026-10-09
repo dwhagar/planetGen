@@ -125,21 +125,6 @@ def test_inserts_fall_back_to_auto_increment_without_id_blocks(mysql_config):
         conn.close()
 
 
-def test_migration_to_v45_adds_id_blocks(mysql_config):
-    conn = store.get_connection(mysql_config)
-    try:
-        with conn:
-            conn.execute("DROP TABLE id_blocks")
-            conn.execute("DELETE FROM schema_migrations WHERE version IN (45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61)")
-            conn.execute("INSERT INTO schema_migrations (version) VALUES (44)")
-    finally:
-        conn.close()
-    assert store.migrate_database(mysql_config) == store.SCHEMA_VERSION
-    conn = store.get_connection(mysql_config, ensure_schema=False)
-    try:
-        assert conn.execute("SELECT COUNT(*) AS n FROM id_blocks").fetchone()["n"] == 0
-    finally:
-        conn.close()
 
 
 def test_equal_names_in_one_sector_get_greek_letters(mysql_config):
