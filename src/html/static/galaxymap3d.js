@@ -2075,7 +2075,32 @@ function initGalaxyMap3d(canvasEl, data) {
       });
       kindsEl.appendChild(button);
     });
+    rebuildHighlights(kinds);
     rebuildStarFilters();
+  }
+
+  // MAP.123: a toggle per kind of phenomenon that draws it larger and brighter.
+  function rebuildHighlights(kinds) {
+    const phenomena = kinds.filter(function (kind) { return kind.kind !== "star"; });
+    if (!phenomena.length) return;
+    const heading = document.createElement("span");
+    heading.className = "galaxy-kinds-heading";
+    heading.textContent = "Highlight";
+    kindsEl.appendChild(heading);
+    phenomena.forEach(function (kind) {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "starmap-btn starmap-toggle";
+      button.dataset.highlightKind = kind.kind;
+      button.textContent = kind.label;
+      button.title = "Draw the " + kind.label.toLowerCase() + " larger and brighter";
+      button.setAttribute("aria-pressed", String(stageView.kindMarked(kind.kind)));
+      button.addEventListener("click", function () {
+        stageView.setKindMarked(kind.kind, button.getAttribute("aria-pressed") !== "true");
+        button.setAttribute("aria-pressed", String(stageView.kindMarked(kind.kind)));
+      });
+      kindsEl.appendChild(button);
+    });
   }
 
   // MAP.123: the star classes shown (a toggle each, all on to begin with) and
