@@ -14,7 +14,7 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.84 |
-| MAP | MAP.157 |
+| MAP | MAP.161 |
 | NAV | NAV.58 |
 | GEN | GEN.177 |
 | PERF | PERF.50 |
@@ -807,7 +807,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.144 | Replace `THREE.Clock` with `THREE.Timer` in `phenomenonrender.js` (bug) | none | done, PR #865 |
 | MAP.145 | A sky and Galaxy Map drawing rule for neighbour galaxies | none | open |
 | MAP.146 | Fly through the galaxy: scroll-zoom, double-click flight, distance-based visibility and a see-through near field | none | open |
-| MAP.147 | The Galaxy Map wire format: measure what the browser downloads and compare smaller options | none | open |
+| MAP.147 | The Galaxy Map wire format: the investigation (done) and the record of what was built from it | none | open |
 | MAP.148 | The star visibility law: apparent-magnitude opacity, flux-based brightness and an on-screen limit from a histogram | none | open |
 | MAP.149 | The near field: depth fade, a see-through focus tube, drawing from inside a container, and picking that matches what is drawn | none | open |
 | MAP.150 | The free camera: wheel zoom to the cursor, double-click flight, and the observer inside, with the container named from position | none | open |
@@ -817,6 +817,10 @@ Parents marked "new parent" had no old number of their own.
 | MAP.154 | Nested bright-star lists on the server, so every parent list is a subset of its child's | none | open |
 | MAP.155 | Other objects fade in too: point objects from level 8, a size ramp for cloud sprites, and stars that grow from a faint dot | none | open |
 | MAP.156 | View one layer or a range of layers top-down from the galaxy view, as a secondary option | none | open |
+| MAP.157 | Trim the Galaxy Map tile JSON and serve it from prebuilt, precompressed bytes | none | open |
+| MAP.158 | A gentler tile prefetch and an IndexedDB tile cache instead of localStorage | none | open |
+| MAP.159 | Packed binary Galaxy Map tiles (quantised planes) with the nested tile lists, on one cache stamp bump | none | open |
+| MAP.160 | Quantise the Galaxy Map GPU buffers (deferred) | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
