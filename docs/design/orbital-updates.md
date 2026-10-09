@@ -436,8 +436,8 @@ masses (23:16Z), as a spline.
   sector's entry (`SectorPath.restart`). Tests check the bend against the
   hyperbolic deflection `2 asin(1/e)`, `e = sqrt(1 + (b v^2 / mu)^2)`, to 2%.
   The knots are saved (`sector_paths`, `sector_path_knots`, schema v62;
-  `db/sector_paths.py`): the paths of every sector something moved into or out of,
-  at each orbit update (not at generation, where they would depend on which
+  `db/sector_paths.py`): the paths of every sector holding a star system, rogue planet
+  or comet, at each orbit update (not at generation, where they would depend on which
   neighbours the workers had filled so far).
   A path starts at the body's stored position and velocity, so it is as old
   as its sector's last pass.

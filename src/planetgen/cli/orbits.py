@@ -97,8 +97,8 @@ recomputes containment (`refresh_containment`), octants and the stored
 nearest systems (`refresh_nearest_systems`) for every placed sector, and
 rewrites the `location` text of every system whose sector or nearest
 systems changed. Last, the saved sector paths (GEN.123,
-`planetgen.db.sector_paths`) are recomputed for every sector something
-moved into or out of. Orbital facilities advance their orbit phase like moons
+`planetgen.db.sector_paths`) are recomputed for every sector holding a star
+system, rogue planet or comet. Orbital facilities advance their orbit phase like moons
 (`advance_facility_orbits`). Page text is rendered from these rows
 (schema v29), so nothing else names the old sector.
 
@@ -231,10 +231,13 @@ def main():
             bar.stage(_stage_label(3))
             locations = refresh_after_motion(conn, motion["sectors"], on_progress=bar.detail)
             conn.commit()
-            # Paths of the sectors something moved into or out of; a pure move inside a sector
-            # leaves its paths as good as they were (they begin where the body was).
+            # Paths of every sector holding a star system, rogue planet or comet (they all begin
+            # where their body is now, which just moved), and of the ones that emptied.
             bar.stage(_stage_label(4))
-            sectors = sorted(sector_id for sector_id in motion["sectors"] if sector_id is not None)
+            holding = conn.execute(
+                "SELECT sector_id FROM star_systems UNION SELECT sector_id FROM rogue_planets"
+                " UNION SELECT sector_id FROM interstellar_comets").fetchall()
+            sectors = sorted({row["sector_id"] for row in holding}.union(motion["sectors"]) - {None})
             for done, sector_id in enumerate(sectors, start=1):
                 compute_sector_paths(conn, sector_id)
                 bar.detail("sector paths", done, len(sectors))

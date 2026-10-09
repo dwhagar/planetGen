@@ -13,8 +13,8 @@ back as `SectorPath`s.
 
 A path starts at the body's stored position and velocity, so it is as old
 as the last time paths were computed for its sector: the orbit update
-(`planetgen.cli.orbits`) recomputes them for the sectors something moved
-into or out of. Generation does not compute them: a path depends on the
+(`planetgen.cli.orbits`) recomputes them for every sector holding a body.
+Generation does not compute them: a path depends on the
 neighbouring sectors that exist at the time, which varies with the order
 workers fill sectors in, and generated data must not.
 

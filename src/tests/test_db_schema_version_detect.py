@@ -35,6 +35,8 @@ def _make_older_than_the_baseline(config):
     store.get_connection(config).close()
     conn = store.get_connection(config, ensure_schema=False)
     try:
+        conn.execute("DROP TABLE sector_path_knots")  # the later revisions' markers too
+        conn.execute("DROP TABLE sector_paths")
         conn.execute("ALTER TABLE star_systems DROP COLUMN velocity_x_kms")
         conn.commit()
     finally:

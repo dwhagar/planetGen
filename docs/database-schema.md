@@ -1779,8 +1779,8 @@ row per sector address a backfill reached or a fill generated. See
 Added in v62 (GEN.123). One row per star system, rogue planet or
 interstellar comet: the path it takes from where it is now to where it
 leaves its sector (`physics/sector_path.py`), recomputed by
-`sector_paths.compute_sector_paths` for the sectors something moved into
-or out of at each orbit update (not at generation: a path depends on the
+`sector_paths.compute_sector_paths` for every sector holding one of them
+at each orbit update (not at generation: a path depends on the
 neighbours that exist, which varies with the order workers fill sectors).
 
 | Column | Type | Null | Notes |
