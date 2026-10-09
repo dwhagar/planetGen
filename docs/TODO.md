@@ -3665,8 +3665,8 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   response shapes change without the integer moving (a stored schema
   snapshot). API.4's compatibility data and the remote-run handshake
   (API.17) compare this integer.
-  Open question for Boss (default: bump on any breaking change to an
-  endpoint, additive changes do not bump): or bump on every API change?
+  Decided (Boss, 2026-10-09 21:02Z): bump on any breaking change to an
+  endpoint; additive changes do not bump.
   Prerequisites: none. Related: API.4, API.17.
 
 ## ADM: Admin tools
@@ -4234,10 +4234,9 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   (DB.16) and in the settings file (ADM.18), shown on the admin status
   page beside the DB schema number, and returned by the API status
   response. The release version (MAJOR.REVISION.BUILD) stays as it is.
-  Open question for Boss (default: the generator version and OPS.28's
+  Decided (Boss, 2026-10-09 21:02Z): the generator version and OPS.28's
   `generator_epoch` are the same number, bumped only when output changes
-  for the same seed): or keep two numbers, one for any generator code
-  change and one for output changes?
+  for the same seed.
   Prerequisites: OPS.28.
 
 ## DOC: Documentation
