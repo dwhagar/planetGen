@@ -1019,6 +1019,13 @@
 --   only rows that are due, and anything that changes an orbit sets
 --   `next_update_due` back to NULL. See docs/design/orbital-updates.md
 --   section 3.
+-- v67: each sector records the code that generated it (DB.7): `version_key`
+--   (the 22-digit key, `planetgen/galaxy/version_key.py`), `planetgen_version`,
+--   `python_version` and `platform`, the same four values `galaxy_shape` keeps
+--   for the galaxy's plan. NULL on a sector generated before v67. A galaxy
+--   extended by a different release has sectors with different keys: it
+--   reproduces only sector by sector, and the CLI and the Generate page warn
+--   before extending it (`galaxy/version_check.py`).
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -1130,6 +1137,12 @@ CREATE TABLE IF NOT EXISTS sectors (
     modified_at         TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
     uid                   BIGINT UNSIGNED,
+    -- v67: the code that generated this sector (DB.7), as `galaxy_shape` records
+    -- the one that planned the galaxy (v52); see the header comment's "v67" note.
+    version_key           CHAR(22),
+    planetgen_version     VARCHAR(32),
+    python_version        VARCHAR(32),
+    platform              VARCHAR(64),
 
     UNIQUE KEY uq_sectors_uid (uid),
     CHECK (
@@ -1153,7 +1166,9 @@ CREATE TABLE IF NOT EXISTS sectors (
     -- header comment's "v25" note.
     KEY idx_sectors_center (center_x_pc, center_y_pc, center_z_pc),
     -- v27: see the header comment's "v27" note.
-    KEY idx_sectors_modified_at (modified_at)
+    KEY idx_sectors_modified_at (modified_at),
+    -- v67: lets the mixed-version check group sectors by key without a table scan.
+    KEY idx_sectors_version_key (version_key)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
