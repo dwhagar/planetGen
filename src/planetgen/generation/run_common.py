@@ -393,7 +393,7 @@ def _estimate_sectors(args, sector_args_list):
     try:
         conn = store.get_connection(config)
         try:
-            disk = generationStats.database_disk(conn, config.host)
+            disk = generationStats.database_disk(conn, config.host, config.database)
         finally:
             conn.close()
     except Exception as exc:  # noqa: BLE001 -- no disk reading: nothing refused for space
