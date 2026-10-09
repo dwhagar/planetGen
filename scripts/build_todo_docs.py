@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Builds the two browsable TODO pages from the TODO sources.
+Builds the three browsable TODO pages from the TODO sources.
 
 Why this exists
 ===============
@@ -14,6 +14,9 @@ already keeps, so one command refreshes them:
 - `docs/plan/todo-reference.html`: every ID ever issued, open or closed,
   with its full text, status, phase, prerequisites and what it unblocks,
   plus search and filters.
+- `docs/plan/todo-tree.html`: every open item as a tree, each item under the
+  prerequisite that finishes last, with phase and bug marks, search and
+  filters (Boss 2026-10-09 07:03Z: "a TODO as a tree structure").
 
 Sources
 =======
@@ -25,7 +28,7 @@ Sources
 
 Usage
 =====
-    python scripts/build_todo_docs.py          # rewrite both pages
+    python scripts/build_todo_docs.py          # rewrite all three pages
     python scripts/build_todo_docs.py --check  # fail if either page is stale
 
 The output carries no dates, so rebuilding unchanged sources gives
@@ -45,6 +48,7 @@ TEMPLATES = ROOT / "scripts" / "todo_docs"
 OUTPUTS = {
     "tier-plan.template.html": ROOT / "docs" / "plan" / "tier-plan.html",
     "todo-reference.template.html": ROOT / "docs" / "plan" / "todo-reference.html",
+    "todo-tree.template.html": ROOT / "docs" / "plan" / "todo-tree.html",
 }
 ID_RE = re.compile(r"^[A-Z]+\.\d+$")
 ITEM_RE = re.compile(r"^(\s*)- \[[ x]\] \*\*([A-Z]+\.\d+) (.*?)\*\*\s*$")
@@ -247,7 +251,7 @@ def build(root: Path = ROOT) -> dict[Path, str]:
     out = {}
     for name, target in OUTPUTS.items():
         template = (TEMPLATES / name).read_text(encoding="utf-8")
-        key = "plan" if name.startswith("tier-plan") else "reference"
+        key = "reference" if name.startswith("todo-reference") else "plan"
         out[target] = render(template, data[key])
     return out
 
