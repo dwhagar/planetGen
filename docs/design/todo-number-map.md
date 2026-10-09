@@ -570,7 +570,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.91 | Classes like S and V in the hot and cold zones | none | open |
 | GEN.92 | Life and its highest stage follow the habitability score | none | open |
 | GEN.93 | Nebula conditions in planet generation | none | open |
-| GEN.94 | Feasibility study: can planets form in each nebula class, and what changes | none | open |
+| GEN.94 | Feasibility study: can planets form in each nebula class, and what changes | none | done, PR #823 |
 | GEN.95 | Nebula conditions applied when planets and surfaces are generated | none | open |
 | GEN.96 | Generation directives for a sector (an override button) | none | open |
 | GEN.97 | Generate N random neighborhoods | none | open |
