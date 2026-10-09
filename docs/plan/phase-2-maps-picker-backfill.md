@@ -169,6 +169,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | MAP.121 | Every map shows and steps to its neighbouring regions, on one map engine |  | Folds MAP.127, the Galaxy Map's neighbouring blocks and slabs (Boss 2026-10-07 16:27Z: one map engine for all maps). |
+| MAP.146 | Zoom drill-down centred on the clicked point, not on fixed wedges, blocks and slabs | ADM.29, MAP.122 | Boss 2026-10-09 22:24Z. Replaces the fixed ladder in galaxy/drill.py and galaxyprisms.js. |
 
 ### Recipes
 

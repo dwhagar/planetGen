@@ -2,6 +2,8 @@
 
 Boss's design for getting around the Galaxy Map, recorded 2026-10-01.
 
+**Planned change (Boss, 2026-10-09 22:24Z, MAP.146):** the fixed block ladder in section 3 is to be replaced by regions centred on the clicked sector, described as ranges of layers, rings and slots. This note stays as the record of what is built today.
+
 **Status (2026-10-02):** built. The arc pick (MAP.85) has replaced the
 galaxy's first pick (section 4); section 15's later steps (slab, then
 segment, MAP.56 onward) are still planned.

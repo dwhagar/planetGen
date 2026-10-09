@@ -677,6 +677,60 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisite: GEN.157.
   Design: [docs/design/multiple-galaxies.md](design/multiple-galaxies.md)
 
+- [ ] **MAP.146 Zoom drill-down centred on the clicked point, not on fixed wedges, blocks and slabs**
+  Boss (2026-10-09 22:24Z): "inject into Phase 2, new item, I want the
+  zoom drill down to be less specific, instead of set wedges, blocks,
+  and slabs pre-determined, have them based on the center of where the
+  cursor is clicked. So that we always are drilling down exactly where
+  the user wants. We'll have to convert block/slab measures to ranges of
+  layers/shells/slots for filling on demand." Done: a click on the
+  Galaxy Map drills into a region centred on the sector under the
+  cursor, at the next zoom step, instead of into the fixed block of the
+  243/27/3/1 ladder that happens to hold it. Every region is described
+  as a range: layers (centre +/- half the span), rings (shells, centre
+  +/- half the span) and, for each ring, the slot range covering the
+  same arc, so the same description drives drawing, statistics, the
+  admin generate and backfill actions (MAP.120) and fill on demand
+  (ADM.29's span fill, GEN.101's fill order). Today's ladder
+  (`galaxy/drill.py` and `static/galaxyprisms.js`, nested blocks 243,
+  27, 3 and 1 sectors a side, with the nested-wedge rule in
+  galaxy-drilldown-navigation.md) is replaced, not kept beside the new
+  one.
+  What this touches: (1) the cached cube tiles and their cache stamp:
+  tiles are keyed by fixed block today, so centred regions need keys by
+  centre sector and size, a cap on cached tiles, and a bump of the
+  planetGen-version stamp (clear /var/cache/planetgen/tiles on update);
+  (2) per-sector stats and the density, age and luminosity colouring of
+  the Galaxy Map (MAP.131), which assume fixed blocks: a region's
+  figures become sums over its sector range, computed on demand from the
+  sector stats and cached by the region key; (3) the Galaxy Map opening
+  view built at the end of update.sh and by `python -m
+  planetgen.cli.warm_map` (MAP.134): the top level stays one fixed view,
+  so it is unaffected unless Boss wants the first click centred too; (4)
+  the settle step (GEN.126), which saves sector paths for created
+  sectors and their neighbours and should be handed a region's sector
+  range, not a block; (5) the breadcrumb and picker trail (NAV.13,
+  NAV.14), the neighbouring-region steps (MAP.121), the
+  slab-versus-wedge wording (MAP.59) and the Select mode (MAP.122), all
+  of which name blocks, slabs and wedges; (6) tests:
+  `tests/test_galaxydrill.py` checks the Python and JavaScript ladders
+  agree and becomes a test of the range maths on both sides.
+  Open question for Boss (default: step sizes stay 243, 27, 3 and 1
+  sectors a side, but the region is centred on the clicked sector and is
+  an odd number of sectors wide so it centres exactly; regions at
+  different zoom steps no longer nest, so a click inside a region may
+  open one that reaches slightly outside it): or keep strict nesting by
+  snapping the centre?
+  Open question for Boss (default: the first click from the whole-galaxy
+  view is centred like the rest, with the opening view unchanged): or
+  keep the first split fixed?
+  Open question for Boss (default: the slot range of a region is the
+  same arc, as an angle, at every ring it covers, rounded outward to
+  whole sectors): or the same number of slots at each ring?
+  Prerequisites: ADM.29, MAP.122. Related: MAP.120, MAP.121, MAP.59,
+  GEN.101, ADM.30, MAP.134, GEN.126, MAP.131.
+  Design: [docs/design/galaxy-drilldown-navigation.md](design/galaxy-drilldown-navigation.md)
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
