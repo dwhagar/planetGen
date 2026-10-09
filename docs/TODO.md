@@ -1871,6 +1871,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   vector, so perturbation wobble shows up in it.
   Build thread (not a lane): started 2026-10-08 after Boss's "Alright,
   do it".
+  Progress (PR #729, schema v60): planets, moons and comets store a
+  velocity relative to their primary, set at generation and refreshed by
+  the orbital update; stars and bodies carry a galactic velocity. Still
+  to do: stored velocity for stars, systems and phenomena, and the
+  runaway-star direction.
   Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
 
 - [ ] **GEN.122 Orbital elements for planets, moons and comets, kept in step with the state vector**
@@ -1887,6 +1892,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   planetary orbits are a generation decision that this item does not
   make.
   Build thread (not a lane). Prerequisite: GEN.121.
+  Progress (PR #729): the state-vector and orbit-element maths is in
+  `kepler.py`. Still to do: the body orbit elements derived from the
+  stored vector on each orbital update.
 
 - [ ] **GEN.123 The projected path of a body through a sector, saved as a spline**
   Boss (2026-10-08 23:11Z, 23:16Z): "for objects that are not that easy,
@@ -1910,18 +1918,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   drawing should use these paths later.
   Build thread (not a lane). Prerequisite: GEN.121.
   Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
-
-- [ ] **GEN.124 Every object knows its sector address (ring, layer, slot), recalculated whenever its position changes**
-  Boss (2026-10-08 23:25Z): "I also want to add a coordinate for where it
-  is in the blocking system, so that we store what layer, ring, and
-  slot.  Every object should know where it is and every time any value
-  is updated, the system should recalculate the other related values
-  automatically." Done: `SpatialPosition3D` carries the sector address
-  (ring, layer, slot) as a fourth coordinate beside the galactic, sector
-  and system ones, and every change to any of them recalculates the
-  others, the address included. Stars, bodies and phenomena get it when
-  placed in the galaxy, and objects loaded from the database get it too.
-  Build thread (not a lane). Ties in with GEN.121 and GEN.74.
 
 - [ ] **GEN.105 Orbital updates**
   Boss (2026-10-03 and 2026-10-07) asked for an orbital update that
