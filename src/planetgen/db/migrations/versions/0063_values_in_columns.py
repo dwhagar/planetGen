@@ -1,6 +1,6 @@
 """Values in their own columns (DB.13): a run's command line, and the search indexes.
 
-Schema v62. `generation_runs.arguments` (one JSON text) becomes one
+Schema v63. `generation_runs.arguments` (one JSON text) becomes one
 `generation_run_arguments` row per argument, and the size and spectral
 columns the search filters on get indexes. `schema.sql` has already created
 the new table by the time this runs, so each step first checks what exists.
@@ -11,8 +11,8 @@ import json
 import sqlalchemy as sa
 from alembic import op
 
-revision = "0062"
-down_revision = "0061"
+revision = "0063"
+down_revision = "0062"
 branch_labels = None
 depends_on = None
 

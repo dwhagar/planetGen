@@ -36,7 +36,7 @@ by the new libraries rather than patched in the old code.
 | Area | Today | Library | Notes |
 |---|---|---|---|
 | Two-step sign-in | `totp.py` and `qrcodegen.py`, deleted (SEC.29, PR #612) | pyotp, segno | Same secrets, step and window, so enrolled users keep working. segno renders SVG with no further dependencies. |
-| Markdown | `mdconvert.py` | markdown | Same output for pages and the wiki export. |
+| Markdown | `mdconvert.py`, replaced by `web/lib/mdrender.py` (UX.39, PR #759) | markdown | Narrow subset only; everything else stays plain text and is escaped. |
 | Rate limits | `loginThrottle.py`, `api/limiter.py`, `api/loginguard.py` | Flask-Limiter (Redis storage) | The lockout rules in login-brute-force-protection.md are kept. |
 | Work queue and web jobs | `workQueue.py` (1,600 lines), `planetgen.cli.job`, the `work_lease` table | RQ on Redis | See section 3. |
 | Caches | `pagecache.py`, `tilecache.py` | cachetools for `pagecache.py` only (done: a `TTLCache` sized by body length, `max_entries` held on top; PERF.25) | Boss agreed (2026-10-07 13:27Z): `tilecache.py` stays (JSON only, never unpickles, prunes by size, checks its folder is private). Out: diskcache and sqlitedict (unfixed advisories PYSEC-2026-2447 and PYSEC-2026-1939, rejected by pip-audit), cachelib and Flask-Caching (pickle by default, count items not bytes). Fallback if disk caching proves slow: an optional Redis backend through redis-py storing JSON, on its own instance or with TTL'd keys so tile eviction can't evict rate-limit counters. |

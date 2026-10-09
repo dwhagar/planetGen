@@ -96,7 +96,9 @@ sector-relative position and octant. `refresh_after_motion` then
 recomputes containment (`refresh_containment`), octants and the stored
 nearest systems (`refresh_nearest_systems`) for every placed sector, and
 rewrites the `location` text of every system whose sector or nearest
-systems changed. Orbital facilities advance their orbit phase like moons
+systems changed. Last, the saved sector paths (GEN.123,
+`planetgen.db.sector_paths`) are recomputed for every sector holding a star
+system, rogue planet or comet. Orbital facilities advance their orbit phase like moons
 (`advance_facility_orbits`). Page text is rendered from these rows
 (schema v29), so nothing else names the old sector.
 
@@ -119,6 +121,7 @@ import argparse
 import sys
 
 from planetgen.cli.stage_progress import StageProgress
+from planetgen.db.sector_paths import compute_sector_paths
 from planetgen.db.store import (
     add_mysql_connection_args,
     advance_comet_orbits,
@@ -164,6 +167,7 @@ STAGES = (
     "Advancing comets and facilities",
     "Moving along galactic orbits",
     "Refreshing containment, nearest systems and locations",
+    "Recomputing sector paths",
 )
 """tuple: The steps of a run, in order, as the progress bar names them."""
 
@@ -226,6 +230,17 @@ def main():
             motion = advance_galactic_positions(conn, elapsed_years, on_progress=bar.detail)
             bar.stage(_stage_label(3))
             locations = refresh_after_motion(conn, motion["sectors"], on_progress=bar.detail)
+            conn.commit()
+            # Paths of every sector holding a star system, rogue planet or comet (they all begin
+            # where their body is now, which just moved), and of the ones that emptied.
+            bar.stage(_stage_label(4))
+            holding = conn.execute(
+                "SELECT sector_id FROM star_systems UNION SELECT sector_id FROM rogue_planets"
+                " UNION SELECT sector_id FROM interstellar_comets").fetchall()
+            sectors = sorted({row["sector_id"] for row in holding}.union(motion["sectors"]) - {None})
+            for done, sector_id in enumerate(sectors, start=1):
+                compute_sector_paths(conn, sector_id)
+                bar.detail("sector paths", done, len(sectors))
             conn.commit()
         summary = ", ".join(f"{counts[table]} {label}" for table, label in TABLE_LABELS.items())
         print(f"Updated: {summary}.")

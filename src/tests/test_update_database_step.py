@@ -91,9 +91,9 @@ def _systems(config):
 
 def _extra_revision(tmp_path):
     """`PLANETGEN_MIGRATIONS_DIR` for the step's own Python: the real
-    revisions plus a test revision after the head, so a database at the head has one
+    revisions plus one test revision after the head, so a database at the head has one
     migration step to run."""
-    return {"PLANETGEN_MIGRATIONS_DIR": migrations_with_probes(tmp_path, count=1)}
+    return {"PLANETGEN_MIGRATIONS_DIR": migrations_with_probes(tmp_path)}
 
 
 def _make_older_than_the_baseline(config):

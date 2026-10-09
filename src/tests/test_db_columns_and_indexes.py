@@ -122,7 +122,7 @@ def test_a_generation_runs_command_line_is_one_row_per_argument(mysql_config):
         conn.close()
 
 
-def test_the_v62_migration_moves_the_json_command_lines_into_rows(mysql_config):
+def test_the_v63_migration_moves_the_json_command_lines_into_rows(mysql_config):
     load_old_schema(mysql_config, 61)
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:

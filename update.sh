@@ -49,6 +49,10 @@
 #   9. Imports the web app as Apache's user, so anything still unusable
 #      fails here instead of as a 500.
 #
+# After the steps it starts building the Galaxy Map's opening view into the
+# tile cache in the background (`planetgen.cli.warm_map`, MAP.134), so the
+# first visit after the update is fast; the update does not wait for it.
+#
 # Steps 2, 3 and 6 share their code with install.sh (scripts/), so the
 # two can't disagree about what a working server needs. `sudo
 # ./install.sh` is still there for a full reinstall.
@@ -182,6 +186,9 @@ check_app_imports
 echo
 echo "Checking the Redis server (config.json's redis.url):"
 ensure_redis
+
+echo
+warm_galaxy_map
 
 echo
 if [[ "$MATH_CHECK_FAILED" == 1 ]]; then

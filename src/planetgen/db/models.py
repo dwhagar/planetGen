@@ -906,6 +906,42 @@ sector_name_registry = sa.Table(
 )
 
 
+sector_path_knots = sa.Table(
+    'sector_path_knots',
+    metadata,
+    sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
+    sa.Column('path_id', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('position', mysql.INTEGER(), nullable=False),
+    sa.Column('t_years', mysql.DOUBLE(), nullable=False),
+    sa.Column('x_pc', mysql.DOUBLE(), nullable=False),
+    sa.Column('y_pc', mysql.DOUBLE(), nullable=False),
+    sa.Column('z_pc', mysql.DOUBLE(), nullable=False),
+    sa.Column('vx_kms', mysql.DOUBLE(), nullable=False),
+    sa.Column('vy_kms', mysql.DOUBLE(), nullable=False),
+    sa.Column('vz_kms', mysql.DOUBLE(), nullable=False),
+    sa.Index('path_id', 'path_id', 'position', unique=True),
+    sa.ForeignKeyConstraint(['path_id'], ['sector_paths.id'], name='fk_sector_path_knots_path', ondelete='CASCADE'),
+    mysql_engine="InnoDB",
+)
+
+
+sector_paths = sa.Table(
+    'sector_paths',
+    metadata,
+    sa.Column('id', mysql.BIGINT(unsigned=True), primary_key=True, autoincrement=True, nullable=False),
+    sa.Column('sector_id', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('object_table', sa.String(24), nullable=False),
+    sa.Column('object_id', mysql.BIGINT(unsigned=True), nullable=False),
+    sa.Column('exited', mysql.TINYINT(), nullable=False),
+    sa.Column('duration_years', mysql.DOUBLE(), nullable=False),
+    sa.Column('computed_at', mysql.TIMESTAMP(), server_default=sa.text('current_timestamp()'), nullable=False),
+    sa.Index('idx_sector_paths_sector', 'sector_id'),
+    sa.Index('object_table', 'object_table', 'object_id', unique=True),
+    sa.ForeignKeyConstraint(['sector_id'], ['sectors.id'], name='fk_sector_paths_sector', ondelete='CASCADE'),
+    mysql_engine="InnoDB",
+)
+
+
 sector_stats = sa.Table(
     'sector_stats',
     metadata,

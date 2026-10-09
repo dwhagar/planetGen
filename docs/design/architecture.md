@@ -207,6 +207,8 @@ stores. The groups below are by role, not by folder (the package is flat).
 | Path | What it holds |
 |---|---|
 | [`store.py`](../../src/stellarObjects/store.py) | Everything that touches MySQL for writing and full-object reading: connection pools (`get_connection`, `open_write`, `get_control_connection`), `save_system`/`save_sector`/`save_phenomenon`, every `insert_*`, `add_system_to_sector` (a new system placed clear of a stored sector's Hill spheres) and `replace_star_system_content` (regenerate a system in place, keeping its id, name and links), name reservation, containment and nearest-neighbor refresh, the galaxy skeleton and bright-star tables, `load_star_system`/`load_sector`, orbit advancement, and `migrate_database`, which runs the Alembic revisions. `SCHEMA_VERSION` (the head revision's number) is set here. |
+| `alembic_runner.py`, `migrations/` | Runs the Alembic revisions in `db/migrations/versions/` (a revision's id is its schema version, so `SCHEMA_VERSION` is the head revision's number); databases older than v61 are refused. Steps for a schema change are in `db/migrations/README.md`. |
+| `models.py` | SQLAlchemy table definitions, generated from `schema.sql` by `scripts/generate_db_models.py`. |
 | [`schema.sql`](../../src/planetgen/db/schema.sql) | The content schema DDL (one database per galaxy). Its header notes record what each schema version changed. See [database-schema.md](../database-schema.md). |
 | [`control_schema.sql`](../../src/planetgen/db/control_schema.sql) | The control schema: admin users, sessions, API keys, audit log. One per deployment, versioned separately. |
 | `adminAuth.py` | Password hashing, sessions, API keys, credential rotation, audit log, and `bootstrap_control_schema` (creates the control schema and seeds the first admin). |
@@ -324,7 +326,7 @@ Names without a folder are in `src/planetgen/web/lib/`; `maps/` names are in `sr
 | `maps/phenomenonrender.py` | The phenomenon page's View panel: which view suits each type (`view_kind`), the numbers for the three.js render, and a static SVG still for no JavaScript. Asteroid fields get no view. |
 | `maps/navmap.py` | The NAV page's top-down SVG of origin, destination and route. |
 | `tabledisplay.py` | Star and planet display strings computed from raw columns. |
-| `mdconvert.py` | Converts the generator's narrow Markdown subset to HTML. |
+| `mdrender.py` | Renders the generator's narrow Markdown subset to HTML with the `markdown` package (UX.39); anything outside the subset stays plain text and is escaped. |
 | `pagination.py` | The site's one pager. |
 | `fmt.py` | Escaping and formatting helpers (`esc`, distances, UTC times). |
 | `privatedir.py` | Safe private fallback directories in the system temp folder. |

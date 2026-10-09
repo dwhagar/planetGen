@@ -24,7 +24,8 @@ from flask import jsonify, request, url_for
 from planetgen.web.lib import apiclient
 from planetgen.web.lib.fmt import format_distance_ly
 from planetgen.web.maps.galaxymap import QUADRANT_LABELS, sector_quadrant, sector_zone, zone_bounds_ly
-from planetgen.web.maps.galaxymap3d import initial_tile_request, render_galaxy_map3d_panel, view_radius_bounds
+from planetgen.web.maps.galaxymap3d import render_galaxy_map3d_panel
+from planetgen.web.warmup import opening_request
 from planetgen.web.lib.datatable import Column, Facet, Table, in_memory, plain
 from planetgen.util import log
 from planetgen.tuning import DEFAULT_SECTOR_EDGE_LY
@@ -163,8 +164,7 @@ def galaxy():
     sectors = apiclient.get_galaxy_sectors(db)
     galaxy_shape = apiclient.get_galaxy_shape(db)
     edge_pc = galaxy_shape["edge_pc"] if galaxy_shape else ly_to_pc(DEFAULT_SECTOR_EDGE_LY)
-    _min_radius, max_radius = view_radius_bounds(edge_pc, galaxy_shape)
-    initial_view = fetch_tiles(db, initial_tile_request(max_radius))
+    initial_view = fetch_tiles(db, opening_request(galaxy_shape))
     course = _course_from_args()
     pick = _pick_from_args()
     map_html = render_galaxy_map3d_panel(

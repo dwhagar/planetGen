@@ -11,12 +11,14 @@ import pytest
 
 from planetgen.db import alembic_runner, store
 
-HEAD = alembic_runner.head_version()
-PROBE = HEAD + 1
+HEAD = store.SCHEMA_VERSION
+NEXT = HEAD + 1
+HEAD_ID = alembic_runner.revision_id(HEAD)
+NEXT_ID = alembic_runner.revision_id(NEXT)
 
-REVISION_PROBE = f'''
-revision = "{PROBE:04d}"
-down_revision = "{HEAD:04d}"
+REVISION_NEXT = f'''
+revision = "{NEXT_ID}"
+down_revision = "{HEAD_ID}"
 branch_labels = None
 depends_on = None
 
@@ -26,9 +28,9 @@ def upgrade():
     op.execute("CREATE TABLE alembic_probe (id INT PRIMARY KEY)")
 '''
 
-REVISION_BAD_ID = '''
+REVISION_BAD_ID = f'''
 revision = "abc"
-down_revision = "0061"
+down_revision = "{HEAD_ID}"
 branch_labels = None
 depends_on = None
 
@@ -40,17 +42,17 @@ def upgrade():
 
 @pytest.fixture
 def scripts(tmp_path):
-    """A copy of the real migrations with one probe revision added."""
+    """A copy of the real migrations with one more revision (the next schema version) added."""
     import shutil
     target = tmp_path / "migrations"
     shutil.copytree(alembic_runner.MIGRATIONS_DIR, target, ignore=shutil.ignore_patterns("__pycache__"))
-    (target / "versions" / f"{PROBE:04d}_probe.py").write_text(REVISION_PROBE)
+    (target / "versions" / f"{NEXT_ID}_probe.py").write_text(REVISION_NEXT)
     return str(target)
 
 
 def test_schema_version_is_the_head_revision():
     versions = alembic_runner.revisions()
-    assert versions[0] == (61, "0061")
+    assert versions[0] == (61, "0061")  # the baseline
     assert store.SCHEMA_VERSION == versions[-1][0]
 
 
@@ -59,13 +61,13 @@ def test_revision_ids_must_be_consecutive_schema_versions(tmp_path):
     target = tmp_path / "migrations"
     shutil.copytree(alembic_runner.MIGRATIONS_DIR, target, ignore=shutil.ignore_patterns("__pycache__"))
     (target / "versions" / "bad.py").write_text(REVISION_BAD_ID)
-    with pytest.raises(RuntimeError, match="should be '{:04d}'".format(HEAD)):
+    with pytest.raises(RuntimeError, match=f"should be '{NEXT_ID}'"):
         alembic_runner.revisions(str(target))
 
 
 def test_pending_lists_only_later_revisions(scripts):
-    assert alembic_runner.pending(HEAD, scripts) == [(PROBE, f"{PROBE:04d}")]
-    assert alembic_runner.pending(PROBE, scripts) == []
+    assert alembic_runner.pending(HEAD, scripts) == [(NEXT, NEXT_ID)]
+    assert alembic_runner.pending(NEXT, scripts) == []
 
 
 def test_upgrade_stamps_the_baseline_then_runs_later_revisions(mysql_config, scripts):
@@ -74,18 +76,18 @@ def test_upgrade_stamps_the_baseline_then_runs_later_revisions(mysql_config, scr
     steps = []
     version = alembic_runner.upgrade(mysql_config, HEAD, recorded.append,
                                      on_step=lambda *args: steps.append(args), scripts_dir=scripts)
-    assert version == PROBE
-    assert recorded == [PROBE]
-    assert steps == [(1, 1, HEAD, PROBE)]
+    assert version == NEXT
+    assert recorded == [NEXT]
+    assert steps == [(1, 1, HEAD, NEXT)]
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
-        assert conn.execute("SELECT version_num FROM alembic_version").fetchone()["version_num"] == f"{PROBE:04d}"
+        assert conn.execute("SELECT version_num FROM alembic_version").fetchone()["version_num"] == NEXT_ID
         assert conn.execute("SELECT COUNT(*) AS n FROM alembic_probe").fetchone()["n"] == 0
     finally:
         conn.close()
     # Running again finds nothing to do.
-    assert alembic_runner.upgrade(mysql_config, PROBE, recorded.append, scripts_dir=scripts) == PROBE
-    assert recorded == [PROBE]
+    assert alembic_runner.upgrade(mysql_config, NEXT, recorded.append, scripts_dir=scripts) == NEXT
+    assert recorded == [NEXT]
 
 
 def test_the_baseline_alone_only_stamps(mysql_config):
@@ -102,13 +104,13 @@ def test_the_baseline_alone_only_stamps(mysql_config):
 def test_migrate_database_mirrors_revisions_into_schema_migrations(mysql_config, scripts, monkeypatch):
     store.get_connection(mysql_config).close()
     monkeypatch.setattr(alembic_runner, "MIGRATIONS_DIR", scripts)
-    monkeypatch.setattr(store, "SCHEMA_VERSION", PROBE)
+    monkeypatch.setattr(store, "SCHEMA_VERSION", NEXT)
     steps = []
-    assert store.migrate_database(mysql_config, on_step=lambda *args: steps.append(args)) == PROBE
-    assert steps == [(1, 1, HEAD, PROBE)]
+    assert store.migrate_database(mysql_config, on_step=lambda *args: steps.append(args)) == NEXT
+    assert steps == [(1, 1, HEAD, NEXT)]
     conn = store.get_connection(mysql_config, ensure_schema=False)
     try:
-        assert conn.execute("SELECT MAX(version) AS v FROM schema_migrations").fetchone()["v"] == PROBE
+        assert conn.execute("SELECT MAX(version) AS v FROM schema_migrations").fetchone()["v"] == NEXT
     finally:
         conn.close()
-    assert store.schema_status(mysql_config) == (PROBE, 0)
+    assert store.schema_status(mysql_config) == (NEXT, 0)

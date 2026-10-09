@@ -992,6 +992,9 @@
 --   is not a column of its own: `_migrate_v60_to_v61` gives a system saved
 --   before one from its id. Placed phenomena store none: they only follow
 --   the rotation curve, so it is worked out from `galactic_orbital_speed_kms`.
+-- v62: `sector_paths` and `sector_path_knots` (GEN.123): the path of each star
+--   system, rogue planet and interstellar comet through its sector as
+--   cubic Hermite spline knots -- see the tables' own comment.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -1419,7 +1422,7 @@ CREATE TABLE IF NOT EXISTS star_systems (
     FULLTEXT KEY ft_star_systems_name (name),
     -- v27: see the header comment's "v27" note.
     KEY idx_star_systems_modified_at (modified_at),
-    -- v62 (DB.13): the Systems table's octant filter and sort.
+    -- v63 (DB.13): the Systems table's octant filter and sort.
     KEY idx_star_systems_quadrant (quadrant),
     -- v39: containment -- see the header comment's "v39" note.
     CONSTRAINT fk_star_systems_inside_nebula
@@ -2731,6 +2734,52 @@ CREATE TABLE IF NOT EXISTS sector_stats (
 
 
 -- ---------------------------------------------------------------------
+-- sector_paths and sector_path_knots (v62, GEN.123): the path a body with
+-- no closed orbit takes through its sector (`physics/sector_path.py`), as
+-- cubic Hermite spline knots. One `sector_paths` row per body
+-- (`object_table`/`object_id`: a star system, rogue planet or interstellar
+-- comet), in the sector that holds it, with `exited` saying whether the
+-- body leaves the sector (rather than the path being cut off) and
+-- `duration_years` how long the crossing takes; its `sector_path_knots`
+-- hold the spline: `t_years` after the body's current position and
+-- velocity, position in galactic parsecs, velocity in km/s. There is no
+-- foreign key to the body, so a deleted body's path lives until its
+-- sector's paths are next rewritten (`db.sector_paths.compute_sector_paths`).
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS sector_paths (
+    id              BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    sector_id       BIGINT UNSIGNED NOT NULL,
+    object_table    VARCHAR(24) NOT NULL CHECK (object_table IN ('star_systems', 'rogue_planets', 'interstellar_comets')),
+    object_id       BIGINT UNSIGNED NOT NULL,
+    exited          TINYINT(1) NOT NULL,
+    duration_years  DOUBLE NOT NULL,
+    computed_at     TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    UNIQUE (object_table, object_id),
+    KEY idx_sector_paths_sector (sector_id),
+    CONSTRAINT fk_sector_paths_sector
+        FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS sector_path_knots (
+    id        BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    path_id   BIGINT UNSIGNED NOT NULL,
+    position  INT NOT NULL,
+    t_years   DOUBLE NOT NULL,
+    x_pc      DOUBLE NOT NULL,
+    y_pc      DOUBLE NOT NULL,
+    z_pc      DOUBLE NOT NULL,
+    vx_kms    DOUBLE NOT NULL,
+    vy_kms    DOUBLE NOT NULL,
+    vz_kms    DOUBLE NOT NULL,
+
+    UNIQUE (path_id, position),
+    CONSTRAINT fk_sector_path_knots_path
+        FOREIGN KEY (path_id) REFERENCES sector_paths(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- ---------------------------------------------------------------------
 -- generation_runs (v52, DB.6): one row per `planetgen` run that changes
 -- the galaxy, written when it starts and finished when it ends: its
 -- subcommand and command line (one `generation_run_arguments` row per
@@ -2755,7 +2804,7 @@ CREATE TABLE IF NOT EXISTS generation_runs (
     KEY idx_generation_runs_started_at (started_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- v62 (DB.13): a run's command line, one row per argument in order (it was
+-- v63 (DB.13): a run's command line, one row per argument in order (it was
 -- one JSON text column).
 CREATE TABLE IF NOT EXISTS generation_run_arguments (
     run_id       BIGINT UNSIGNED NOT NULL,

@@ -1415,7 +1415,8 @@ def _table_marker(table):
 
 
 _VERSION_MARKERS = (
-    (62, _table_marker("generation_run_arguments")),
+    (63, _table_marker("generation_run_arguments")),
+    (62, _table_marker("sector_paths")),
     (61, _column_marker("star_systems", "velocity_x_kms")),
 )
 """tuple: `(version, test)` pairs, newest first, for
