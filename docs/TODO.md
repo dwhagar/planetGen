@@ -752,15 +752,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   8.1 stamp waits until all of them are done, and the 8.0 hold stays
   until then. The open questions on the sub-items stand, each with its
   default.
-  Order (Foundations lane 2, the map engine lane): MAP.153 and MAP.149
-  first (client side only, no prerequisites), then MAP.148 (needs
+  Order (Foundations lane 2, the map engine lane): MAP.157 and MAP.158
+  (the small wire format steps, no prerequisites), then MAP.153 and
+  MAP.149 (client side only, no prerequisites), then MAP.148 (needs
   MAP.153), MAP.150 (needs MAP.149) and MAP.155 (needs MAP.153), then
-  MAP.154 (needs MAP.153; its tile keys are decided with MAP.147, the
-  wire format investigation by Research Lane 3), MAP.151 (needs ADM.29
-  from Foundations lane 1, and MAP.147) and MAP.152 (needs MAP.148,
+  MAP.154 (needs MAP.153), MAP.159 (packed binary tiles; needs MAP.154
+  and MAP.158; one cache stamp bump with MAP.154 and MAP.151's tile
+  keys), MAP.151 (needs ADM.29 from Foundations lane 1) and MAP.152 (needs MAP.148,
   MAP.150 and MAP.154); this umbrella closes last.
   Prerequisites: MAP.148, MAP.149, MAP.150, MAP.151, MAP.152, MAP.153,
-  MAP.154, MAP.155. Related:
+  MAP.154, MAP.155, MAP.157, MAP.158, MAP.159. Related:
   MAP.120, MAP.121, MAP.141, MAP.140, MAP.59, MAP.116, MAP.122, MAP.125,
   MAP.131, MAP.134, MAP.147, ADM.29, ADM.30, GEN.101, GEN.126, NAV.13,
   NAV.14.
@@ -772,40 +773,31 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Design: [docs/design/drilldown-region-sizes.md](design/drilldown-region-sizes.md)
   Design: [docs/design/galaxy-drilldown-navigation.md](design/galaxy-drilldown-navigation.md)
 
-- [ ] **MAP.147 The Galaxy Map wire format: measure what the browser downloads and compare smaller options**
+- [ ] **MAP.147 The Galaxy Map wire format: the investigation (done) and the record of what was built from it**
   Boss (2026-10-09 22:41Z): "File section 5.6 as an item please, and
   start an investigation thread to measure current payload and compare
   options please, use research lane 3 after it's current research is
-  done." From section 5.6 of map-ui-and-frontend-libraries.md: the
-  Galaxy Map's star points carry 13 floats each, 52 bytes, so a full
-  view at the 70,000-star cap (MAP.109) is about 3.6 MB; quantising
-  colour, scalars and flags would cut that to about 20 to 24 bytes a
-  star (about 1.5 MB), an optional saving for phones and tile swaps.
-  Above about 1e6 points the section recommends level of detail by tile
-  (MAP.102, MAP.116) over a faster picker.
-  This item starts with an investigation, run by Research Lane 3 (the
-  thread that did the unique-ID investigation) once its current research
-  is done: (1) measure what the browser actually downloads today for the
-  opening view and for a drill-down step: bytes on the wire and after
-  gzip, request count, time to first star and time to a full view, on a
-  phone-class connection and on a desktop one; (2) compare the options,
-  at least JSON as it is, packed binary typed arrays, quantised
-  attributes, gzip or brotli on top, delta or tile reuse between zoom
-  steps, and request batching, against what each costs in server time,
-  cache size and code; (3) recommend one. The recommendation decides the
-  design, and the build is then split out of this item, or this item is
-  rewritten, from it.
-  Related: MAP.102 and MAP.109 (done: tiles, camera-relative rendering,
-  the 70,000-star cap), PERF.38 (open: single-flight tile builds and
-  page-cache rules) and PERF.41 (open, optional: what stamps the tile
-  cache). MAP.146 changes the tile keys when drill-down regions centre
-  on the click, so the format choice and the new keys should be decided
-  together, and any format change bumps the cache stamp.
-  Open question for Boss (default: the investigation measures first and
-  recommends; nothing is built until you approve the recommendation): or
-  build the quantised format straight from section 5.6?
-  Prerequisites: none. Related: MAP.102, MAP.109, MAP.146, PERF.38,
-  PERF.41.
+  done." Investigation finished by Research Lane 3 (2026-10-09, report
+  docs/design/galaxy-map-wire-format.md). Measured facts: on the wire a
+  star is about 270 bytes of JSON (45 gzipped), so a full 70,000-star
+  view (MAP.109) is about 19 MB raw and 3.2 MB gzipped, not the 3.6 MB
+  section 5.6 assumed; the 52 bytes a star in section 5.6 is the GPU
+  buffer, so quantising it would not change the download; the opening
+  view pre-fetches 28 tiles (533 KB gzipped), about 18 times what it
+  shows; `placed`, `planned` and `filled` are 9 to 35% of every tile and
+  are never read; localStorage caps at about 5 MB, so revisits mostly
+  miss; the first star waits on the 173 static files, not on a tile.
+  Recommendation, now built as separate items: (1) MAP.157 trims the JSON
+  (-48% gzipped, no client change) and serves prebuilt, brotli
+  precompressed bytes; MAP.158 makes the prefetch gentler and moves the
+  tile cache to IndexedDB; (2) MAP.159 packs the tiles as binary (12.9 to
+  16.7 bytes a star, -78% gzipped) together with the nested lists of
+  MAP.154 and MAP.151's tile keys, on one cache stamp bump; (3) MAP.160
+  defers quantising the GPU buffers. This item stays open as the record of
+  the investigation until MAP.157 to MAP.159 are done.
+  Open question for Boss (default each sub-item goes ahead as written;
+  MAP.160 is deferred): other?
+  Prerequisites: MAP.157, MAP.158, MAP.159.
   Linked (2026-10-09, fly-through-view-distance.md): the tile and stage
   cache keys follow MAP.151 (the region data layer), so decide the wire
   format and those keys together; the star visibility law (MAP.148) sets
@@ -841,7 +833,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   camera radius; it only dims stars much farther than the target, so the
   two rules never thin the same stars twice. The distance-cut tiles it
   leads to also need MAP.154 (nested lists).
-  Prerequisites: none. Related: MAP.116, MAP.146, MAP.147, MAP.153.
+  Prerequisites: MAP.153. Related: MAP.116, MAP.146, MAP.147.
   Design: [docs/design/fly-through-view-distance.md](design/fly-through-view-distance.md)
 
 - [ ] **MAP.149 The near field: depth fade, a see-through focus tube, drawing from inside a container, and picking that matches what is drawn**
@@ -910,11 +902,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Open question for Boss (default: a 3-ary pyramid accepting cells 0.84
   to 1.25 of an edge across): or keep 9-ary and accept a 2.45x gap in
   sizes?
-  Prerequisites: ADM.29. Related: MAP.120, MAP.147, ADM.30, GEN.101,, .
+  Prerequisites: ADM.29. Related: MAP.120, MAP.147, ADM.30, GEN.101,
   GEN.126, MAP.131, MAP.134, MAP.146.
   Dependency (2026-10-09, fly-through-view-distance.md): The region data
   layer and its aggregates (3-ary pyramid, per-star id, per-level
   aggregates) wait on MAP.147 (wire format, Research Lane 3).
+  Wire format (2026-10-09, galaxy-map-wire-format.md): The wire format
+  decision is made (MAP.147's report): the tile and stage cache keys are
+  decided here together with MAP.159 (packed binary tiles) and MAP.154,
+  on one cache stamp bump.
   Design: [docs/design/drilldown-region-sizes.md](design/drilldown-region-sizes.md)
 
 - [ ] **MAP.152 Scale hand-offs: galaxy, sector and system cross-fade with hysteresis, and per-tile camera-relative origins**
@@ -930,7 +926,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Dependency (2026-10-09, fly-through-view-distance.md): Distance-cut
   tiles need MAP.154 (nested server lists: a child tile must contain the
   parent's stars in its box).
-  Prerequisites: MAP.148, MAP.150. Related: MAP.102, MAP.125, MAP.146, MAP.154.
+  Prerequisites: MAP.148, MAP.150, MAP.154. Related: MAP.102, MAP.125,
+  MAP.146.
   Design: [docs/design/fly-through-view-distance.md](design/fly-through-view-distance.md)
 
 - [ ] **MAP.153 Stars fade in with the zoom: a birth radius from each star's rank in its tile list (first client stage)**
@@ -976,6 +973,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   format) and MAP.151 (region data layer), and with MAP.148 if the
   magnitude law changes what a tile lists. Open question for Boss
   (default build it only after MAP.153 is seen working): go ahead?
+  Wire format (2026-10-09, galaxy-map-wire-format.md): MAP.147's
+  investigation is done (docs/design/galaxy-map-wire-format.md): the
+  packed binary tile format ships with these nested lists as MAP.159, on
+  one cache stamp bump, so list order is rank and finer tiles omit stars
+  a coarser tile sent.
   Prerequisite: MAP.153. Related: MAP.147, MAP.148, MAP.151.
   Design: [docs/design/zoom-star-visibility.md](design/zoom-star-visibility.md)
 
@@ -1009,6 +1011,71 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the range hidden.
   Prerequisites: none. Related: MAP.146, MAP.150, MAP.141, MAP.122,
   ADM.29.
+
+- [ ] **MAP.157 Trim the Galaxy Map tile JSON and serve it from prebuilt, precompressed bytes**
+  Source: docs/design/galaxy-map-wire-format.md (section 1, steps 1 and
+  2; MAP.147's recommendation). Measured by Research Lane 3
+  (2026-10-09): a star is about 270 bytes of JSON on the wire (45
+  gzipped); the `placed`, `planned` and `filled` sections are 9 to 35%
+  of every tile and the client never reads them. Done: the tile JSON
+  drops the sections and star fields the client never reads, writes
+  `star_type` as its letter code only and rounds the floats; the cache
+  stores the finished bytes (not parsed dicts that are serialised again
+  on every hit) and a brotli copy made at cache-write time, which Apache
+  serves. Measured on 400 real tiles the gzipped size falls 48% (3.52 MB
+  to 1.83 MB) with no change to what the page draws; a warm hit falls
+  from 22-75 ms to about 2 ms. No client change, so it can land at once
+  and does not wait for the fly-through work; it changes the tile cache
+  stamp. Open question for Boss (default yes, do it now and first in the
+  fly-through step): go ahead?
+  Prerequisites: none. Related: MAP.147, MAP.158, MAP.159, PERF.38,
+  PERF.41, MAP.109.
+  Design: [docs/design/galaxy-map-wire-format.md](design/galaxy-map-wire-format.md)
+
+- [ ] **MAP.158 A gentler tile prefetch and an IndexedDB tile cache instead of localStorage**
+  Source: docs/design/galaxy-map-wire-format.md (sections 2.3, 4.4, 1
+  step 2 and 5). Measured: the opening view downloads 28 tiles (533 KB
+  gzipped) to show one, about 18 times what is on screen; localStorage
+  holds about 5 MB, which one sector link fills (40 tiles), so a revisit
+  mostly misses. Done: the page prefetches only the next zoom step in,
+  only after the view has been idle, and not when the browser asks to
+  save data; tiles are cached in IndexedDB (or by immutable HTTP caching
+  per tile) and a revisit finds them; the old localStorage cache is
+  removed (no compatibility). Open question for Boss (default yes): go
+  ahead?
+  Prerequisites: none. Related: MAP.147, MAP.157, MAP.109.
+  Design: [docs/design/galaxy-map-wire-format.md](design/galaxy-map-wire-format.md)
+
+- [ ] **MAP.159 Packed binary Galaxy Map tiles (quantised planes) with the nested tile lists, on one cache stamp bump**
+  Source: docs/design/galaxy-map-wire-format.md (section 1 step 2, 4.1,
+  4.3). Measured: a packed binary tile is 12.9 to 16.7 bytes a star, 78%
+  fewer gzipped bytes than today's JSON (3.52 MB to 0.79 MB over 400
+  real tiles; the worst 70,000-star view falls from 3.2 MB to about 0.8
+  MB). Done: the server writes tiles as packed typed arrays (quantised
+  position, colour and scalar planes; `clouds` and `points` stay JSON),
+  the client decodes them in `tileStars`, list order is rank so the rank
+  fade of MAP.153 reads it directly, and a finer tile omits the stars a
+  coarser tile already sent (31 to 43% of bright records at levels 3 to
+  6, all at 7 to 12). It ships together with MAP.154 (the nested lists)
+  and MAP.151's tile keys so the cache is invalidated once. Open
+  question for Boss (default yes, with MAP.154 and MAP.151 on one bump):
+  go ahead?
+  Prerequisites: MAP.154, MAP.158. Related: MAP.147, MAP.154, MAP.151,
+  MAP.153, MAP.157.
+  Design: [docs/design/galaxy-map-wire-format.md](design/galaxy-map-wire-format.md)
+
+- [ ] **MAP.160 Quantise the Galaxy Map GPU buffers (deferred)**
+  Source: docs/design/galaxy-map-wire-format.md (section 5, from section
+  5.6 of map-ui-and-frontend-libraries.md). The 52 bytes a star in
+  section 5.6 is the GPU buffer, not the download, so quantising it (to
+  about 20 to 24 bytes) saves GPU memory and the re-upload on each tile
+  arrival, not network bytes; not measured on a real GPU. Done: colour,
+  scalars and flags in `setStars` are byte-quantised, and a client that
+  appends the new tile's stars instead of rebuilding every star is
+  considered with it. Open question for Boss (default defer until a real
+  phone or GPU measurement shows the upload matters): build it?
+  Prerequisites: none. Related: MAP.147, MAP.159, MAP.109.
+  Design: [docs/design/galaxy-map-wire-format.md](design/galaxy-map-wire-format.md)
 
 ## NAV: Navigation and courses
 
