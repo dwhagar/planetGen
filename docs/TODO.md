@@ -1121,7 +1121,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   them or `modulepreload` hints, and HTTP/2 in the Apache example
   (`examples/apache/planetgen.conf.example`); this keeps the no-bundler
   decision (vendored ES modules) unless Boss says otherwise, so the
-  default is `modulepreload` plus HTTP/2. Open question for Boss
+  default is `modulepreload` plus HTTP/2. Phase 1 (Boss, 2026-10-09 23:29Z).
+  Open question for Boss
   (default `modulepreload` and HTTP/2, no bundler): or bundle?
   Prerequisites: none. Related: MAP.147, MAP.157, MAP.158.
   Design: [docs/design/galaxy-map-wire-format.md](design/galaxy-map-wire-format.md)
