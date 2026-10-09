@@ -31,7 +31,7 @@
 const VERSION_QUERY = new URL(import.meta.url).search;
 const { createRing } = await import(`./mappick.js${VERSION_QUERY}`);
 const {
-  buildSectorScene, entryLabel, infoSpec, kindOf, KINDS, POINT_CLOSE_GROWTH, tooltipText,
+  buildSectorScene, entryLabel, infoSpec, kindOf, KINDS, STAR_CLASSES, starClassOf, POINT_CLOSE_GROWTH, tooltipText,
 } = await import(`./sectorscene.js${VERSION_QUERY}`);
 
 // The corners of the sector's cell as a flat [x, y, z, ...] list, for
@@ -58,6 +58,9 @@ export function createSectorStage(host) {
   let roguesMarked = false;
   // The kinds of object left off the map (MAP.79), kept across sectors.
   const hiddenKinds = new Set();
+  // MAP.123: star classes left off and the dimmest star shown (L☉).
+  const hiddenClasses = new Set();
+  let minLuminosity = 0;
 
   // How much the points have grown with the view closing in (as the
   // Sector Map's own zoom does): their own size at the fit, POINT_CLOSE_GROWTH
@@ -137,6 +140,12 @@ export function createSectorStage(host) {
       setKindHidden(kind, false);
       if (host.kindsChanged) host.kindsChanged();
     }
+    if (kind === "star" && open.sector.hides(entry)) {
+      // Picked by name (a Contents row): its class and the floor give way.
+      setStarClassHidden(starClassOf(entry), false);
+      if ((entry.luminositySol || 0) < minLuminosity) setMinLuminosity(0);
+      if (host.kindsChanged) host.kindsChanged();
+    }
     open.layers[0].select(entry);
   }
 
@@ -164,7 +173,37 @@ export function createSectorStage(host) {
   // The screen-reader list offers only what is on the map.
   function showListed() {
     if (!open || !open.listed) return;
-    open.listed.forEach(function (pair) { pair[1].hidden = hiddenKinds.has(kindOf(pair[0])); });
+    open.listed.forEach(function (pair) { pair[1].hidden = open.sector.hides(pair[0]); });
+  }
+
+  // What was selected or hovered goes when it is hidden.
+  function dropHidden() {
+    if (open.selectedEntry && open.sector.hides(open.selectedEntry)) {
+      selectionRing.hide();
+      open.selected = open.selectedEntry = null;
+    }
+    if (open.hoveredEntry && open.sector.hides(open.hoveredEntry)) {
+      hoverRing.hide();
+      open.hovered = open.hoveredEntry = null;
+    }
+    showListed();
+  }
+
+  // MAP.123: hides or shows the stars of one class.
+  function setStarClassHidden(starClass, hidden) {
+    if (hidden) hiddenClasses.add(starClass);
+    else hiddenClasses.delete(starClass);
+    if (!open) return;
+    open.sector.setStarClassHidden(starClass, hidden);
+    dropHidden();
+  }
+
+  // MAP.123: shows only stars at least this luminous (L☉; 0 shows all).
+  function setMinLuminosity(value) {
+    minLuminosity = value > 0 ? value : 0;
+    if (!open) return;
+    open.sector.setMinLuminosity(minLuminosity);
+    dropHidden();
   }
 
   // A visually hidden button per entry, for the keyboard and screen
@@ -219,6 +258,8 @@ export function createSectorStage(host) {
       host.scene.add(state.sector.group);
       state.sector.setRoguesMarked(roguesMarked);
       hiddenKinds.forEach(function (kind) { state.sector.setKindHidden(kind, true); });
+      hiddenClasses.forEach(function (c) { state.sector.setStarClassHidden(c, true); });
+      if (minLuminosity > 0) state.sector.setMinLuminosity(minLuminosity);
       state.layers = state.sector.layers.map(function (layer) { return host.picker.addLayer(layerFor(layer, state)); });
       state.list = entryList(state.sector.entries);
       state.listed = state.list ? state.list.listed : null;
@@ -262,6 +303,23 @@ export function createSectorStage(host) {
     setKindHidden: setKindHidden,
     kindHidden: function (kind) { return hiddenKinds.has(kind); },
     hiddenKinds: function () { return Array.from(hiddenKinds); },
+    setStarClassHidden: setStarClassHidden,
+    starClassHidden: function (c) { return hiddenClasses.has(c); },
+    hiddenClasses: function () { return Array.from(hiddenClasses); },
+    starClasses: function () { return open ? open.sector.starClasses() : []; },
+    // The classes named by a URL's `stars` (unknown names ignored), before any sector opens.
+    setHiddenClasses: function (classes) {
+      let changed = false;
+      STAR_CLASSES.forEach(function (c) {
+        const want = classes.indexOf(c) >= 0;
+        if (want === hiddenClasses.has(c)) return;
+        setStarClassHidden(c, want);
+        changed = true;
+      });
+      if (changed && host.kindsChanged) host.kindsChanged();
+    },
+    setMinLuminosity: setMinLuminosity,
+    minLuminosity: function () { return minLuminosity; },
     // The kinds named by a URL's `hide` (unknown names ignored), before any sector opens.
     setHiddenKinds: function (kinds) {
       let changed = false;

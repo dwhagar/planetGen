@@ -580,6 +580,16 @@ export function kindOf(entry) {
   return entry.kind;
 }
 
+// The star classes the filter offers (MAP.123), "other" for the rest
+// (white dwarfs and anything the type string does not start with a class).
+export var STAR_CLASSES = ["O", "B", "A", "F", "G", "K", "M", "other"];
+
+// The class (one of STAR_CLASSES) of a star entry.
+export function starClassOf(entry) {
+  var letter = ((entry && entry.starType) || "").charAt(0).toUpperCase();
+  return STAR_CLASSES.indexOf(letter) >= 0 && letter !== "" ? letter : "other";
+}
+
 // --- Building a sector ------------------------------------------------------
 
 // How big a neighboring sector's or compass label is, in scene units.
@@ -710,6 +720,23 @@ export function buildSectorScene(data, options) {
     objectsOfEntry.get(entry).push(object);
   }
   var hiddenKinds = new Set();
+  // MAP.123: star classes left off, and the dimmest star shown (L☉; 0 shows all).
+  var hiddenClasses = new Set();
+  var minLuminosity = 0;
+
+  // Whether `entry` is left off the map: its kind is hidden, or it is a star
+  // of a class that is, or one dimmer than the floor.
+  function hides(entry) {
+    var kind = kindOf(entry);
+    if (hiddenKinds.has(kind)) return true;
+    if (kind !== "star") return false;
+    if (hiddenClasses.has(starClassOf(entry))) return true;
+    return minLuminosity > 0 && !((entry.luminositySol || 0) >= minLuminosity);
+  }
+
+  function anyHidden() {
+    return hiddenKinds.size > 0 || hiddenClasses.size > 0 || minLuminosity > 0;
+  }
 
   // Every star and light-giving phenomenon, drawn as points of light
   // (MAP.15) and picked on screen, not by raycast.
@@ -741,7 +768,7 @@ export function buildSectorScene(data, options) {
     var geometry = pointsOfLight.geometry;
     var entry = pointEntries[i];
     var light = entry.light;
-    var shown = !hiddenKinds.has(kindOf(entry));
+    var shown = !hides(entry);
     var dim = entry.neighbor ? NEIGHBOR_CLOUD_DIM : 1;
     var color = new THREE.Color(light.color || "#ffffff");
     geometry.getAttribute("pointColor").array.set([color.r, color.g, color.b], 3 * i);
@@ -877,13 +904,13 @@ export function buildSectorScene(data, options) {
   var entryOf = function (hit) { return entryByObject.get(hit.object) || null; };
   // What of `objects` is not hidden with its kind (a hidden mesh isn't picked).
   function shown(objects) {
-    return hiddenKinds.size ? objects.filter(function (object) { return object.visible; }) : objects;
+    return anyHidden() ? objects.filter(function (object) { return object.visible; }) : objects;
   }
   var layers = [
     {
       name: "sector-points",
       points: function () {
-        return hiddenKinds.size ? pointEntries.filter(function (entry) { return !hiddenKinds.has(kindOf(entry)); }) : pointEntries;
+        return anyHidden() ? pointEntries.filter(function (entry) { return !hides(entry); }) : pointEntries;
       },
       reach: function (entry) {
         return entry.kind === "roguePlanet"
@@ -928,21 +955,50 @@ export function buildSectorScene(data, options) {
     });
   }
 
+  // Puts every entry's objects and points as the hidden kinds, classes and
+  // floor say (a hidden object cannot be hovered or picked).
+  function applyHidden() {
+    allEntries.forEach(function (entry) {
+      var hidden = hides(entry);
+      (objectsOfEntry.get(entry) || []).forEach(function (object) { object.visible = !hidden; });
+    });
+    if (pointsOfLight) {
+      pointEntries.forEach(function (entry, i) { refreshPoint(i); });
+      pointsChanged();
+    }
+  }
+
   // Hides or shows every object of a kind (MAP.79): its points, bodies,
   // clouds, rings and labels, none of which can then be hovered or picked.
   function setKindHidden(kind, hidden) {
     if (hidden) hiddenKinds.add(kind);
     else hiddenKinds.delete(kind);
-    allEntries.forEach(function (entry) {
-      if (kindOf(entry) !== kind) return;
-      (objectsOfEntry.get(entry) || []).forEach(function (object) { object.visible = !hidden; });
+    applyHidden();
+  }
+
+  // Hides or shows the stars of one class (MAP.123).
+  function setStarClassHidden(starClass, hidden) {
+    if (hidden) hiddenClasses.add(starClass);
+    else hiddenClasses.delete(starClass);
+    applyHidden();
+  }
+
+  // Shows only stars at least this luminous (L☉); 0 shows them all.
+  function setMinLuminosity(value) {
+    minLuminosity = value > 0 ? value : 0;
+    applyHidden();
+  }
+
+  // The star classes in this sector, in STAR_CLASSES' order, with how many.
+  function starClasses() {
+    var counts = new Map();
+    stars.forEach(function (entry) {
+      var c = starClassOf(entry);
+      counts.set(c, (counts.get(c) || 0) + 1);
     });
-    if (pointsOfLight) {
-      pointEntries.forEach(function (entry, i) {
-        if (kindOf(entry) === kind) refreshPoint(i);
-      });
-      pointsChanged();
-    }
+    return STAR_CLASSES.filter(function (c) { return counts.has(c); }).map(function (c) {
+      return { starClass: c, count: counts.get(c) };
+    });
   }
 
   function update() {
@@ -975,6 +1031,13 @@ export function buildSectorScene(data, options) {
     kinds: kinds,
     setKindHidden: setKindHidden,
     kindHidden: function (kind) { return hiddenKinds.has(kind); },
+    setStarClassHidden: setStarClassHidden,
+    starClassHidden: function (starClass) { return hiddenClasses.has(starClass); },
+    starClasses: starClasses,
+    setMinLuminosity: setMinLuminosity,
+    minLuminosity: function () { return minLuminosity; },
+    // Whether an entry is left off the map by a hidden kind, class or the floor.
+    hides: hides,
     update: update,
     nebulaMeshCount: function () { return nebulaMeshes; },
     dispose: dispose,

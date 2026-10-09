@@ -845,6 +845,8 @@ def _star_data(link_url, system, star, x_px, y_px, z_px, max_r=None):
         "fill": fill, "stroke": stroke,
         "name": star.get("name") or system["name"],
         "starType": star["star_type"],
+        # The star's luminosity in suns, for the map's luminosity floor (MAP.123).
+        "luminositySol": (star["luminosity_w"] or 0) / SOLAR_LUMINOSITY,
         "temp": star["temp_display"],
         "quadrant": system["quadrant"],
         "location": system["location"],

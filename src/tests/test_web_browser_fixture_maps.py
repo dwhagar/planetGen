@@ -2033,3 +2033,40 @@ def test_galaxy_map_opens_zoomed_in_on_the_charted_space(page, map_site):
     # A view the address names is not moved.
     _open_galaxy(page, map_site, "?at=3.250.0.0")
     assert page.evaluate(CAMERA)["zoom"] == pytest.approx(1)
+
+
+def test_galaxy_map_star_classes_and_the_luminosity_floor_hide_stars_and_ride_in_the_url(page, map_site):
+    """MAP.123: the Menu's star classes hide the stars of a class, the
+    luminosity slider hides the dimmer ones, both go to the screen-reader
+    list and the address, and a reload keeps them."""
+    _open_galaxy(page, map_site, OPEN_PRIME)
+    page.wait_for_selector(".starmap-sr-list button", state="attached")
+
+    def listed():
+        return page.evaluate("""() => Array.from(document.querySelectorAll('.starmap-sr-list li'))
+            .filter((li) => !li.hidden && li.querySelector('button') && !li.querySelector('button').hidden
+                    && !li.hidden).length""")
+
+    page.locator("#galaxymap3d-menu summary").click()
+    classes = page.locator("#galaxymap3d-kinds [data-star-class]")
+    assert classes.count() >= 1
+    before = listed()
+    first = classes.first
+    letter = first.get_attribute("data-star-class")
+    first.click()
+    assert first.get_attribute("aria-pressed") == "false"
+    assert f"stars={letter}" in _query(page)
+    assert listed() < before
+    first.click()
+    assert "stars=" not in _query(page)
+    assert listed() == before
+
+    # The floor: the top of the slider hides every star.
+    page.evaluate("""() => { const s = document.getElementById('galaxymap3d-lum'); s.value = s.max;
+                              s.dispatchEvent(new Event('input', {bubbles: true})); }""")
+    assert "lum=" in _query(page)
+    assert listed() < before
+    page.reload()
+    page.wait_for_selector(".starmap-sr-list button", state="attached")
+    assert "lum=" in _query(page)
+    assert listed() < before

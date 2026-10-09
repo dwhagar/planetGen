@@ -4032,3 +4032,11 @@ body.app {
 .galaxy-legend-high {
   text-align: right;
 }
+
+/* MAP.123: the luminosity floor in the "Show on the map" panel. */
+.galaxy-lum {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  font-size: 0.85rem;
+}
