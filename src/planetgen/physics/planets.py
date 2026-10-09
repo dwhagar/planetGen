@@ -24,7 +24,8 @@ from planetgen.physics import constants
 from planetgen import tuning
 from planetgen.util import log
 from planetgen.physics.orbits import (
-    calculate_hill_sphere, calculate_reflex_offset, circular_orbital_speed_kms, minimum_update_interval_years, orbital_position_au,
+    calculate_hill_sphere, calculate_reflex_offset, circular_orbital_speed_kms, circular_orbital_velocity_au_per_year,
+    minimum_update_interval_years, orbital_position_au,
 )
 from planetgen.util.checks import finite_domain
 from planetgen.util.random import sample_bounded_bell, sample_power_law
@@ -885,6 +886,10 @@ def update_orbital_position(planet):
         planet.orbital_ascending_node_deg, planet.orbital_phase_deg,
     ))
     planet.orbital_speed_kms = circular_orbital_speed_kms(planet.distance, planet.period)
+    to_kms = constants.AU_TO_KM / constants.SECONDS_PER_YEAR
+    planet.set_velocity_kms(*(v * to_kms for v in circular_orbital_velocity_au_per_year(
+        planet.distance, planet.orbital_inclination_deg, planet.orbital_ascending_node_deg, planet.orbital_phase_deg,
+        planet.period)))
     planet.min_update_interval_years = minimum_update_interval_years(planet.period)
 
 

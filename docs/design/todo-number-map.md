@@ -586,7 +586,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.121 | A velocity on every object, filled at generation and stored with an epoch | none | open |
 | GEN.122 | Orbital elements for planets, moons and comets, kept in step with the state vector | none | open |
 | GEN.123 | The projected path of a body through a sector, saved as a spline | none | open |
-| GEN.124 | Every object knows its sector address (ring, layer, slot), recalculated whenever its position changes | none | open |
+| GEN.124 | Every object knows its sector address (ring, layer, slot), recalculated whenever its position changes | none | done, PR #729 |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -709,7 +709,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.130 | Retire the average-star-color rule in the docs and tests | none | done, PR #556 |
 | MAP.131 | A Color by switch on the Galaxy Map, with a legend | none | done, PR #692 |
 | MAP.132 | Overlay markers for black holes, nebulae and habitable worlds | none | open |
-| MAP.133 | The Galaxy Map shows no bright stars in the bulge, and only layers -121 to 121 (bug) | none | open |
+| MAP.133 | The Galaxy Map shows no bright stars in the bulge, and only layers -121 to 121 (bug) | none | done, PR #722 |
 | MAP.117 | Surface pressure missing from the planet and moon side panel (bug) | none | done, PR #457 |
 | MAP.118 | The Galaxy Map shows an unfilled sector above the galaxy that can't be filled (bug) | none | done, PR #457 |
 | MAP.119 | Expected star density editable by admins on the Galaxy Map | none | open |

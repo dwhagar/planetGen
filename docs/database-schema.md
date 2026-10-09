@@ -612,6 +612,16 @@ v53 replaced the table with per-sector levels in `sector_stats`.
 adds `galaxy_shape`'s version columns (NULL on an existing galaxy) and
 the empty `generation_runs` table (DB.6).
 
+**Velocity (v60, GEN.121).** `planets`, `moons` and `comets` each gain
+`velocity_x_kms`, `velocity_y_kms` and `velocity_z_kms`: the body's velocity,
+km/s, relative to its orbital anchor and on the same axes as its
+`position_x/y/z_km`. `advance_orbital_phases` (planets and moons, from the
+new phase) and `advance_comet_orbits` (Kepler or Barker) move it with the
+position. `_migrate_v59_to_v60` works it out for rows saved before. A star's
+or system's galactic velocity is not a column: it is its
+`galactic_orbital_speed_kms` along the rotation curve's tangent at its place,
+put on the objects when a sector is loaded (`system_position.place_system`).
+
 **A nebula's shape (v56, GEN.75).** `nebulae.shape_*` hold the single
 values of its shape (`galaxy/nebula_shape.py`: the ellipsoid's stretch
 and turn, the noise warp, the isovalue and the scale that puts the
@@ -1291,6 +1301,7 @@ both terrestrial and gas-giant bodies (`body_type`).
 | `orbital_inclination_deg`, `orbital_ascending_node_deg` | DOUBLE | NOT NULL | Added in v9. Fixed at generation time — together they orient this (circular) orbital plane in 3D. |
 | `orbital_phase_deg` | DOUBLE | NOT NULL | Added in v9. This body's current position angle around its orbit — the one orbital-motion column that changes over time, advanced in place by `planetgen.cli.orbits` (see `orbit_simulation_state` below). |
 | `position_x_km`, `_y_km`, `_z_km` | DOUBLE | NOT NULL | Added in v11. This body's Cartesian position relative to its orbital anchor — the star (or a binary's combined center) for a planet — derived from `distance_km` and the three orbital-motion columns above (`orbits.orbital_position_au`). Changes in lockstep with `orbital_phase_deg` as `planetgen.cli.orbits` advances it. |
+| `velocity_x_kms`, `_y_kms`, `_z_kms` | DOUBLE | NOT NULL, default 0 | Added in v60 (GEN.121). This body's velocity, km/s, relative to its orbital anchor and on the same axes as `position_x/y/z_km`: the tangent of its circular orbit at `orbital_phase_deg`, `orbital_speed_kms` long (`orbits.circular_orbital_velocity_au_per_year`). `advance_orbital_phases` moves it with the position. |
 | `orbital_speed_kms` | DOUBLE | NOT NULL | Added in v11. Constant circular-orbit speed (`orbits.circular_orbital_speed_kms`, `v = 2*pi*r/T`). Only changes if `distance_km`/`period_years` do (e.g. `StarSystem.validate_system` resolving an orbital overlap at generation time), never from phase advancing alone. |
 | `min_update_interval_years` | DOUBLE | NOT NULL | Added in v12. Not a narrative stat -- a floating-point update guard for `_db.advance_orbital_phases`: the shortest `elapsed_years` worth calling it for, below which the phase delta added is smaller than `orbital_phase_deg`'s own double-precision resolution and so is guaranteed to be a no-op write (`orbits.minimum_update_interval_years`, `period_years * math.ulp(360.0) / 360`). Like `orbital_speed_kms`, only changes if `distance_km`/`period_years` do. |
 | `rotation_period_hours` | DOUBLE | NOT NULL | Added in v9. Axial rotation ("day length") — a static descriptive stat; no rotational phase is tracked. |
@@ -1340,7 +1351,7 @@ e.g. `"Voranthis IIa"` (v34), and can be renamed (`PATCH /api/moons/<id>`).
 | `star_system_id` | INTEGER | FK -> `star_systems.id`, `ON DELETE CASCADE`, NOT NULL | Redundant with the owning planet's own `star_system_id` — kept here too so a moon can be queried/joined to its system without an extra hop through `planets`. |
 | `star_id` | INTEGER | FK -> `stars.id`, `ON DELETE SET NULL`, nullable | Same value as the owning planet's `star_id` (see that column's note above — NULL for a binary system). |
 | `orbital_index` | INTEGER | NOT NULL | Position in the parent planet's `moons` list. |
-| `body_type`, `name`, `planet_class`, `distance_km` (from the parent planet), `radius_km`, `mass_kg`, `volume_km3`, `period_years`, `zone`, `description`, `gravity_g`, `surface_temperature_k`, `density_g_cm3`, `atmosphere`, `atm_density`, `atm_molar_density`, `atmospheric_pressure_pa`, `composition`, `scale_height_km`, `hill_radius_km`, `min_orbit_distance_km`, `habitable_zone_inner_km`, `_outer_km`, `life_chemical`, `evolutionary_speed`, `flavor_text`, `flavor_text_count`, `orbital_inclination_deg`, `orbital_ascending_node_deg`, `orbital_phase_deg`, `position_x_km`, `_y_km`, `_z_km`, `orbital_speed_kms`, `min_update_interval_years`, `rotation_period_hours` | — | — | Identical meaning/type/nullability to the same-named column on `planets` above, except `position_x/y/z_km` are relative to *this moon's* orbital anchor — its parent planet, not the star. |
+| `body_type`, `name`, `planet_class`, `distance_km` (from the parent planet), `radius_km`, `mass_kg`, `volume_km3`, `period_years`, `zone`, `description`, `gravity_g`, `surface_temperature_k`, `density_g_cm3`, `atmosphere`, `atm_density`, `atm_molar_density`, `atmospheric_pressure_pa`, `composition`, `scale_height_km`, `hill_radius_km`, `min_orbit_distance_km`, `habitable_zone_inner_km`, `_outer_km`, `life_chemical`, `evolutionary_speed`, `flavor_text`, `flavor_text_count`, `orbital_inclination_deg`, `orbital_ascending_node_deg`, `orbital_phase_deg`, `position_x_km`, `_y_km`, `_z_km`, `orbital_speed_kms`, `velocity_x_kms`, `_y_kms`, `_z_kms`, `min_update_interval_years`, `rotation_period_hours` | — | — | Identical meaning/type/nullability to the same-named column on `planets` above, except `position_x/y/z_km` are relative to *this moon's* orbital anchor — its parent planet, not the star. |
 
 ### `moon_evolutionary_paragraphs`
 
@@ -1409,6 +1420,7 @@ fixed slot in the `planets`/`asteroid_belts` orbital-spacing sequence.
 | `primary_mass_solar` | DOUBLE | NOT NULL | |
 | `is_active` | BOOLEAN | NOT NULL | Coma/tail activity. |
 | `distance_km`, `position_x_km`, `position_y_km`, `position_z_km`, `orbital_speed_kms` | DOUBLE | NOT NULL | Current derived orbital state — recomputed by `_db.advance_comet_orbits` as `mean_anomaly_deg`/`parabolic_mean_anomaly` advance over time. |
+| `velocity_x_kms`, `_y_kms`, `_z_kms` | DOUBLE | NOT NULL, default 0 | Added in v60 (GEN.121). The velocity, km/s, relative to the star on the position's axes (`kepler.comet_orbital_state`), recomputed with the position by `advance_comet_orbits`. |
 
 ### `comet_composition`
 

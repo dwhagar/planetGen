@@ -103,7 +103,7 @@ from planetgen.names.wordsalad import generate_phoneme_salad_name, generate_sect
 from planetgen.physics.units import ly_to_milliparsecs, ly_to_pc, milliparsecs_to_ly, mpc_to_pc, pc_to_ly
 from planetgen.generation.wide_binary import WideBinaryPair
 
-SCHEMA_VERSION = 59
+SCHEMA_VERSION = 60
 """int: Matches `star_systems.schema_version` and the highest row in the
 `schema_migrations` table (see `planetgen/db/schema.sql`'s header
 comment). Also the target version `migrate_database` brings a database's
@@ -1370,6 +1370,7 @@ def _table_marker(table):
 
 
 _VERSION_MARKERS = (
+    (60, _column_marker("planets", "velocity_x_kms")),
     (59, _index_marker("bright_stars", "idx_bright_stars_population")),
     (58, _column_marker("sectors", "uid")),
     (57, _column_marker("bright_stars", "off_plane")),
@@ -2502,6 +2503,7 @@ _BODY_COLUMNS = (
     "life_chemical", "evolutionary_speed", "flavor_text", "flavor_text_count",
     "orbital_inclination_deg", "orbital_ascending_node_deg", "orbital_phase_deg",
     "position_x_km", "position_y_km", "position_z_km", "orbital_speed_kms",
+    "velocity_x_kms", "velocity_y_kms", "velocity_z_kms",
     "min_update_interval_years",
     "rotation_period_hours",
 )
@@ -2543,6 +2545,7 @@ def body_row_values(body):
         body.position_y * physical_constants.AU_TO_KM,
         body.position_z * physical_constants.AU_TO_KM,
         body.orbital_speed_kms,
+        body.velocity_x_kms, body.velocity_y_kms, body.velocity_z_kms,
         body.min_update_interval_years,
         body.rotation_period_hours,
     ]
@@ -2721,8 +2724,9 @@ def insert_comet(conn, comet: Comet, star_system_id, star_id=None) -> int:
             eccentricity, inclination_deg, arg_periapsis_deg, ascending_node_deg,
             orbital_period_years, mean_anomaly_deg, parabolic_mean_anomaly,
             min_update_interval_years, primary_mass_solar, is_active,
-            distance_km, position_x_km, position_y_km, position_z_km, orbital_speed_kms
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            distance_km, position_x_km, position_y_km, position_z_km, orbital_speed_kms,
+            velocity_x_kms, velocity_y_kms, velocity_z_kms
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             star_system_id, star_id, comet.name, comet.orbit_type, comet.period_class,
@@ -2736,6 +2740,7 @@ def insert_comet(conn, comet: Comet, star_system_id, star_id=None) -> int:
             comet.position_y_au * physical_constants.AU_TO_KM,
             comet.position_z_au * physical_constants.AU_TO_KM,
             comet.orbital_speed_kms,
+            comet.velocity_x_kms, comet.velocity_y_kms, comet.velocity_z_kms,
         ),
     )
     comet_id = cur.lastrowid
@@ -6729,6 +6734,9 @@ def _planet_or_moon_row_to_dict(conn, row, is_moon):
         "position_y": row["position_y_km"] / physical_constants.AU_TO_KM,
         "position_z": row["position_z_km"] / physical_constants.AU_TO_KM,
         "orbital_speed_kms": row["orbital_speed_kms"],
+        "velocity_x_kms": row["velocity_x_kms"],
+        "velocity_y_kms": row["velocity_y_kms"],
+        "velocity_z_kms": row["velocity_z_kms"],
         "min_update_interval_years": row["min_update_interval_years"],
         "rotation_period_hours": row["rotation_period_hours"],
         # v20: only the `planets` table has these columns (a planet's own
@@ -6783,6 +6791,9 @@ def _comet_row_to_dict(row, composition_rows):
         "position_y_au": row["position_y_km"] / physical_constants.AU_TO_KM,
         "position_z_au": row["position_z_km"] / physical_constants.AU_TO_KM,
         "orbital_speed_kms": row["orbital_speed_kms"],
+        "velocity_x_kms": row["velocity_x_kms"],
+        "velocity_y_kms": row["velocity_y_kms"],
+        "velocity_z_kms": row["velocity_z_kms"],
         "composition": [r["component"] for r in composition_rows],
     }
 
@@ -7019,6 +7030,7 @@ def load_sector(conn, sector_id) -> SpaceSector:
     # determined by its ring and edge (as planetgen builds it).
     cell = SectorCell.for_ring(row["ring_index"], edge_ly) if row["ring_index"] is not None else None
     sector = SpaceSector(row["name"], edge_ly=edge_ly, cell=cell)
+    sector.epoch_unix = get_orbit_epoch_unix(conn)
     if row["center_x_pc"] is not None:
         sector.place_in_galaxy(tuple(pc_to_ly(row[f"center_{axis}_pc"]) for axis in "xyz"))
 
@@ -7036,7 +7048,9 @@ def load_sector(conn, sector_id) -> SpaceSector:
             milliparsecs_to_ly(r["position_z_mpc"]),
         )
         sector.entries.append(SectorSystemEntry(star_system, position, system_config=star_system.system_config,
-                                                sector_center_ly=sector.center_galactic_ly))
+                                                sector_center_ly=sector.center_galactic_ly,
+                                                sector_edge_pc=sector.sector_edge_pc,
+                                                epoch_unix=sector.epoch_unix))
 
     return sector
 
@@ -9451,6 +9465,12 @@ def _migrate_v56_to_v57(conn):
     conn.execute("INSERT INTO schema_migrations (version) VALUES (57)")
 
 
+CIRCULAR_VELOCITY_SQL = f"(distance_km * 2 * PI() / (period_years * {physical_constants.SECONDS_PER_YEAR!r}))"
+"""str: SQL for the speed, km/s, of a planet or moon on its circular orbit
+(`2 pi r / T`); the velocity columns are this times the position's
+derivative with the phase (`orbits.circular_orbital_velocity_au_per_year`)."""
+
+
 UID_TABLES = {
     "sectors": ("BIGINT UNSIGNED", None),
     "star_systems": ("BINARY(12)", None),
@@ -9504,6 +9524,69 @@ def _migrate_v58_to_v59(conn):
     if _has_index(conn, "bright_stars", "idx_bright_stars_off_plane"):
         conn.execute("ALTER TABLE bright_stars DROP KEY idx_bright_stars_off_plane")
     conn.execute("INSERT INTO schema_migrations (version) VALUES (59)")
+
+
+VELOCITY_TABLES = ("planets", "moons", "comets")
+"""tuple: The tables v60 gives `velocity_x/y/z_kms` (GEN.121)."""
+
+
+def _migrate_v59_to_v60(conn):
+    """
+    Adds `velocity_x_kms`/`_y_kms`/`_z_kms` to `planets`, `moons` and
+    `comets` (GEN.121) and works them out for the rows already there: a
+    planet's or moon's from its circular orbit at its stored phase (the same
+    expression `advance_orbital_phases` keeps them with), a comet's from
+    its Kepler or Barker state at its stored anomaly -- see `schema.sql`'s
+    "v60" header note.
+
+    Args:
+        conn (Connection): An open connection, mid-migration.
+    """
+    for table in VELOCITY_TABLES:
+        if not _has_column(conn, table, "velocity_x_kms"):
+            conn.execute(f"ALTER TABLE {table} ADD COLUMN velocity_x_kms DOUBLE NOT NULL DEFAULT 0,"
+                         " ADD COLUMN velocity_y_kms DOUBLE NOT NULL DEFAULT 0,"
+                         " ADD COLUMN velocity_z_kms DOUBLE NOT NULL DEFAULT 0")
+    for table in ("planets", "moons"):
+        conn.execute(
+            f"""
+            UPDATE {table}
+            SET velocity_x_kms = {CIRCULAR_VELOCITY_SQL} * (
+                    -COS(RADIANS(orbital_ascending_node_deg)) * SIN(RADIANS(orbital_phase_deg))
+                    - SIN(RADIANS(orbital_ascending_node_deg)) * COS(RADIANS(orbital_phase_deg))
+                      * COS(RADIANS(orbital_inclination_deg))
+                ),
+                velocity_y_kms = {CIRCULAR_VELOCITY_SQL} * (
+                    -SIN(RADIANS(orbital_ascending_node_deg)) * SIN(RADIANS(orbital_phase_deg))
+                    + COS(RADIANS(orbital_ascending_node_deg)) * COS(RADIANS(orbital_phase_deg))
+                      * COS(RADIANS(orbital_inclination_deg))
+                ),
+                velocity_z_kms = {CIRCULAR_VELOCITY_SQL} * COS(RADIANS(orbital_phase_deg))
+                    * SIN(RADIANS(orbital_inclination_deg))
+            WHERE period_years > 0
+            """
+        )
+    to_kms = physical_constants.AU_TO_KM / physical_constants.SECONDS_PER_YEAR
+    comets = conn.execute(
+        "SELECT id, orbit_type, perihelion_distance_km, eccentricity, inclination_deg, arg_periapsis_deg,"
+        " ascending_node_deg, orbital_period_years, mean_anomaly_deg, parabolic_mean_anomaly, primary_mass_solar"
+        " FROM comets"
+    ).fetchall()
+    updates = []
+    for row in comets:
+        elliptical = row["orbit_type"] == "elliptical"
+        state = kepler.comet_orbital_state(
+            row["orbit_type"], row["perihelion_distance_km"] / physical_constants.AU_TO_KM, row["eccentricity"],
+            row["inclination_deg"], row["arg_periapsis_deg"], row["ascending_node_deg"], row["primary_mass_solar"],
+            mean_anomaly_rad=math.radians(row["mean_anomaly_deg"]) if elliptical else None,
+            parabolic_mean_anomaly_value=None if elliptical else row["parabolic_mean_anomaly"],
+            orbital_period_years=row["orbital_period_years"])
+        updates.append((state["velocity_x_au_per_year"] * to_kms, state["velocity_y_au_per_year"] * to_kms,
+                        state["velocity_z_au_per_year"] * to_kms, row["id"]))
+    if updates:
+        conn.executemany("UPDATE comets SET velocity_x_kms = ?, velocity_y_kms = ?, velocity_z_kms = ? WHERE id = ?",
+                         updates)
+    conn.execute("INSERT INTO schema_migrations (version) VALUES (60)")
 
 
 def _schema_statement(table):
@@ -9624,6 +9707,7 @@ def _migration_steps():
         (57, _migrate_v56_to_v57),
         (58, _migrate_v57_to_v58),
         (59, _migrate_v58_to_v59),
+        (60, _migrate_v59_to_v60),
     ]
 
 
@@ -9774,6 +9858,23 @@ def get_orbit_update_elapsed_years(conn):
     if row is None:
         return None
     return row["elapsed_seconds"] / physical_constants.SECONDS_PER_YEAR
+
+
+def get_orbit_epoch_unix(conn):
+    """
+    When `planetgen.cli.orbits` last advanced this database's orbits, in Unix
+    seconds: the time every stored position and velocity holds at. `None`
+    when it has never run (`systemscene._epoch` reads the same row for the
+    scene).
+
+    Args:
+        conn (Connection): An open, schema-initialized connection.
+
+    Returns:
+        int or None.
+    """
+    row = conn.execute("SELECT UNIX_TIMESTAMP(last_updated_at) AS unix FROM orbit_simulation_state WHERE id = 1").fetchone()
+    return None if row is None or row["unix"] is None else int(row["unix"])
 
 
 # Quasars have no galactic orbit: the nucleus sits at the center. Galactic
@@ -9956,6 +10057,7 @@ def advance_orbital_phases(conn, elapsed_years, on_progress=None):
         raise ValueError(f"elapsed_years must be >= 0, got {elapsed_years}")
 
     counts = {}
+    circular_rate = CIRCULAR_VELOCITY_SQL
     for table in ("planets", "moons"):
         cur = conn.execute(
             f"""
@@ -9971,7 +10073,18 @@ def advance_orbital_phases(conn, elapsed_years, on_progress=None):
                     + COS(RADIANS(orbital_ascending_node_deg)) * SIN(RADIANS(orbital_phase_deg))
                       * COS(RADIANS(orbital_inclination_deg))
                 ),
-                position_z_km = distance_km * SIN(RADIANS(orbital_phase_deg)) * SIN(RADIANS(orbital_inclination_deg))
+                position_z_km = distance_km * SIN(RADIANS(orbital_phase_deg)) * SIN(RADIANS(orbital_inclination_deg)),
+                velocity_x_kms = {circular_rate} * (
+                    -COS(RADIANS(orbital_ascending_node_deg)) * SIN(RADIANS(orbital_phase_deg))
+                    - SIN(RADIANS(orbital_ascending_node_deg)) * COS(RADIANS(orbital_phase_deg))
+                      * COS(RADIANS(orbital_inclination_deg))
+                ),
+                velocity_y_kms = {circular_rate} * (
+                    -SIN(RADIANS(orbital_ascending_node_deg)) * SIN(RADIANS(orbital_phase_deg))
+                    + COS(RADIANS(orbital_ascending_node_deg)) * COS(RADIANS(orbital_phase_deg))
+                      * COS(RADIANS(orbital_inclination_deg))
+                ),
+                velocity_z_kms = {circular_rate} * COS(RADIANS(orbital_phase_deg)) * SIN(RADIANS(orbital_inclination_deg))
             WHERE period_years > 0 AND ? >= min_update_interval_years
             """,
             (elapsed_years, elapsed_years),
@@ -10244,6 +10357,7 @@ def advance_comet_orbits(conn, elapsed_years):
     ).fetchall()
 
     update_params = []
+    to_kms = physical_constants.AU_TO_KM / physical_constants.SECONDS_PER_YEAR
     for row in rows:
         perihelion_distance_au = row["perihelion_distance_km"] / physical_constants.AU_TO_KM
 
@@ -10280,6 +10394,9 @@ def advance_comet_orbits(conn, elapsed_years):
             state["position_y_au"] * physical_constants.AU_TO_KM,
             state["position_z_au"] * physical_constants.AU_TO_KM,
             state["orbital_speed_kms"],
+            state["velocity_x_au_per_year"] * to_kms,
+            state["velocity_y_au_per_year"] * to_kms,
+            state["velocity_z_au_per_year"] * to_kms,
             row["id"],
         ))
 
@@ -10291,7 +10408,7 @@ def advance_comet_orbits(conn, elapsed_years):
             UPDATE comets
             SET mean_anomaly_deg = ?, parabolic_mean_anomaly = ?,
                 distance_km = ?, position_x_km = ?, position_y_km = ?, position_z_km = ?,
-                orbital_speed_kms = ?
+                orbital_speed_kms = ?, velocity_x_kms = ?, velocity_y_kms = ?, velocity_z_kms = ?
             WHERE id = ?
             """,
             update_params,

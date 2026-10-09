@@ -569,17 +569,45 @@ def axis_property(index):
     return property(read, write)
 
 
+def velocity_axis_property(index):
+    """
+    `axis_property`'s counterpart for the velocity: a property for one
+    Cartesian axis (0 x, 1 y, 2 z), in km/s, of a body that holds a
+    `SpatialPosition3D` as `spatial` and mixes in `HoldsOrbitPosition`.
+    Reading gives the body's velocity relative to its primary (the "system"
+    frame); writing before the body has a position stages the value until
+    all three axes are given.
+    """
+    def read(self):
+        if self.spatial is not None:
+            return self.spatial.get_velocity_vector("system")[index] / 1000.0
+        staged = self._staged_velocity_kms
+        return None if staged is None else staged[index]
+
+    def write(self, value):
+        staged = list(self._staged_velocity_kms or (None, None, None))
+        staged[index] = value
+        self._staged_velocity_kms = tuple(staged)
+        if all(v is not None for v in staged):
+            self.set_velocity_kms(*staged)
+
+    return property(read, write)
+
+
 class HoldsOrbitPosition:
     """
     Mixin for a planet, moon or comet: its position is a `SpatialPosition3D`
     in AU (`spatial`), whose "system" frame is the offset from the body's
     primary (the star, or the parent planet for a moon). The subclass
     declares its three attributes with `axis_property`; `set_position_au`
-    is the one way to move it.
+    is the one way to move it. Its velocity relative to the primary is the
+    "system" frame velocity of `spatial`, in km/s (`velocity_axis_property`);
+    `set_velocity_kms` sets it.
     """
 
     spatial = None
     _staged_au = None
+    _staged_velocity_kms = None
 
     def set_position_au(self, x, y, z):
         """Puts the body at `(x, y, z)` AU from its primary; creates its
@@ -594,3 +622,14 @@ class HoldsOrbitPosition:
         mass = getattr(self, "mass", None)
         if isinstance(mass, (int, float)) and not isinstance(mass, bool) and mass >= 0:
             self.spatial.set_mass(mass)
+        if self._staged_velocity_kms is not None and all(v is not None for v in self._staged_velocity_kms):
+            self.set_velocity_kms(*self._staged_velocity_kms)
+
+    def set_velocity_kms(self, vx, vy, vz):
+        """Sets the velocity relative to the primary, km/s. A body with no
+        position yet keeps it until it has one."""
+        if self.spatial is None:
+            self._staged_velocity_kms = (vx, vy, vz)
+            return
+        self.spatial.set_velocity_cartesian(vx * 1000.0, vy * 1000.0, vz * 1000.0, frame="system")
+        self._staged_velocity_kms = None

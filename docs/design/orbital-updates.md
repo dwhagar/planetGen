@@ -401,6 +401,22 @@ masses (23:16Z), as a spline.
   is when the position and velocity hold. `get_time_to_observable_movement`
   measures a "galactic" move by the galactic velocity and the others by the
   system velocity.
+- **Where the velocity comes from (GEN.121).** A planet's or moon's is
+  the tangent of its circular orbit at its phase (`orbit_speed_kms` long,
+  `orbits.circular_orbital_velocity_au_per_year`), a comet's is
+  `state_from_elements` at its true anomaly (`kepler.comet_orbital_state`
+  returns it), both relative to the body's primary and put on the body when
+  its position is (`update_orbital_position`, `Comet.update_orbital_state`).
+  A star's, a system's and a phenomenon's is its
+  `galactic_orbital_speed_kms` along the tangent of the galaxy's rotation at
+  its place, counterclockwise (`system_position.galactic_velocity_ms`, which
+  `place_system` and `place_in_galaxy` apply, so it follows the object into
+  another sector); a body's galactic velocity is its star's plus its own.
+  `planets`, `moons` and `comets` store theirs (schema v60,
+  `velocity_x/y/z_kms`), and `advance_orbital_phases` and
+  `advance_comet_orbits` move it with the position. A loaded sector's
+  objects carry the epoch `store.get_orbit_epoch_unix` gives (when the
+  orbits were last advanced).
 - With the sector edge known, the position also knows its **sector
   address**, `(ring, layer, slot)`, the cell of the galaxy's sector grid
   (`galaxy/geometry.py`) it is in. It is worked out again from the galactic

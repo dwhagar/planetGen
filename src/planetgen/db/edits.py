@@ -215,10 +215,12 @@ def _save_comet_orbit(conn, comet):
     conn.execute(
         "UPDATE comets SET perihelion_distance_km = ?, orbital_period_years = ?, primary_mass_solar = ?,"
         " distance_km = ?, position_x_km = ?, position_y_km = ?, position_z_km = ?, orbital_speed_kms = ?,"
+        " velocity_x_kms = ?, velocity_y_kms = ?, velocity_z_kms = ?,"
         " min_update_interval_years = ? WHERE id = ?",
         (comet.perihelion_distance_au * au, comet.orbital_period_years, comet.primary_mass_solar,
          comet.distance_au * au, comet.position_x_au * au, comet.position_y_au * au, comet.position_z_au * au,
-         comet.orbital_speed_kms, comet.min_update_interval_years, comet.db_id),
+         comet.orbital_speed_kms, comet.velocity_x_kms, comet.velocity_y_kms, comet.velocity_z_kms,
+         comet.min_update_interval_years, comet.db_id),
     )
 
 
