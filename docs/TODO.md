@@ -112,7 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.41, GEN.99, GEN.101, GEN.102, GEN.103, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, GEN.94, GEN.104, GEN.107, GEN.108, NAV.10, NAV.12, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.57, DB.7, TEST.77, OPS.13, OPS.14, ADM.18, GEN.59, UX.49, PERF.34, PERF.31, PERF.32, GEN.128, ADM.42 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.41, GEN.99, GEN.101, GEN.102, GEN.103, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, GEN.94, GEN.104, GEN.107, GEN.108, NAV.10, NAV.12, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.57, DB.7, TEST.77, OPS.14, ADM.18, GEN.59, UX.49, PERF.34, PERF.31, PERF.32, GEN.128, ADM.42 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, API.16, ADM.17, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18, PERF.33, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, DB.15, ADM.43, ADM.44 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, repair that reads the newest settings JSON, and the anomalies chosen in phase 2. | NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, DB.10, ADM.20, GEN.114, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies, and the end state of reproducible galaxies (`generate.py reproduce`). | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, OPS.12, GEN.55 |
@@ -1088,34 +1088,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
     Plan (2026-10-07): Written as an Alembic migration (DB.11).
 
-  - [ ] **OPS.13 Every update records the version key, keeping the last 10**
-    Boss (2026-10-02 02:08Z): "I approve the plan, every time the script
-    updates it will have to make a sweet to recalculate the seed value
-    based on the current code version and it'll need to keep the
-    seed/version combo for say the last 10 updates, that won't take up
-    much space in the control database." Done: `update.sh` and
-    `update.ps1`, after updating the code, compute the current key
-    (DB.6's helper, `versionKey.version_key`, PR #387) and add one row
-    per galaxy to a new control-database
-    history table: the galaxy seed, the key, the SHA-256 of the nltk
-    `words` corpus files, `offensive_words.txt` and any name lists, the
-    SHA-256 of `requirements.lock`, and the date. Only the last 10 rows
-    per galaxy are kept, and `generate.py` can list them. The galaxy
-    seed never changes on update. A test runs the step 11 times and
-    checks the oldest row goes. Lands after OPS.7 and OPS.8, which
-    change the same two scripts. Open question: Boss wrote "recalculate
-    the seed value". The default reads that as recording the current
-    key next to the unchanged seed, because a changed seed makes a
-    different galaxy.
-    Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
-    Plan (2026-10-07): The nltk corpus, offensive_words.txt and
-    name-list hashes were to be dropped once GEN.71 landed; the lock-file
-    hashes stay.
-    Superseded (2026-10-08): the corpus, offensive_words.txt and
-    name-list hashes stay too, because stars and sectors keep their
-    word-salad names (GEN.67); the codec's version joins the recorded
-    parts.
-
   - [ ] **OPS.14 A warning when the running version key differs from the galaxy's**
     Done: one check compares the running key (DB.6) and the corpus and
     lock hashes (OPS.13) with the ones stored for the galaxy, and for
@@ -1125,7 +1097,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     the galaxy; GEN.58's fingerprint output and OPS.12's reproduce
     report print the same comparison, so a mismatched fingerprint says
     whether the platform or the corpus changed too. A test checks each
-    field is named. Prerequisites: DB.7, OPS.13.
+    field is named. Prerequisite: DB.7.
     Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
   - [ ] **OPS.15 Each update says whether it changes generated output**
@@ -1135,7 +1107,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     the fingerprint stored in the previous history row, stores the new
     one, and reports "generated output unchanged" or names the sectors
     that differ. The live galaxy is not touched. A test runs it across a
-    change that alters a sector. Prerequisite: OPS.13.
+    change that alters a sector.
     Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
   - [ ] **OPS.16 A daily maintenance script for Linux, macOS and Windows**
@@ -1165,7 +1137,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     Windows. Update leaves an existing schedule as it is and adds a
     missing one. The deployment docs say how to change the time or turn
     it off. Same scripts as OPS.7, OPS.8 and OPS.13, so it lands after
-    them. Prerequisites: OPS.16, OPS.13.
+    them. Prerequisite: OPS.16.
     Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
   - [ ] **OPS.18 Settings JSON backups kept in 18 slots: 7 daily, 4 weekly, 6 monthly, 1 yearly**
@@ -1258,7 +1230,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     OPS.12 rebuilds from this file. A test creates a small galaxy,
     downloads the file and checks the name, settings, seed, key and word
     list.
-    Prerequisites: DB.7, OPS.13.
+    Prerequisite: DB.7.
     Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
     Plan (2026-10-07): The JSON stores the galaxy's naming key (GEN.70)
     instead of the word list; the word list and corpus hashes go with

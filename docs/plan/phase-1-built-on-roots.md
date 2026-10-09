@@ -179,9 +179,8 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.57 | A sector's contents depend only on the seed, the version and its address |  | Name collisions go away with GEN.67; GEN.63 dropped. Also keys GEN.64's ID collision counter on address (it checks stored rows, PR #406). |
 | DB.7 | The version that generated each sector, and a warning for mixed-version galaxies |  | An Alembic migration. |
 | TEST.77 | A golden-seed regression test | GEN.57 |  |
-| OPS.13 | Every update records the version key, keeping the last 10 |  | No corpus or name-list hashes once GEN.71 lands; the lock hashes stay. update.sh / update.ps1 after OPS.7 and OPS.8; control-database history table. Open question on "recalculate the seed value". |
-| OPS.14 | A warning when the running version key differs from the galaxy's | DB.7, OPS.13 | Feeds GEN.58's output and OPS.12. |
-| ADM.18 | The galaxy's creation settings saved as a JSON file, downloadable from the Admin dashboard | DB.7, OPS.13 | Stores the naming key instead of the word list. Boss 02:13Z: phase 1. Includes the key history; dated backup on every change. |
+| OPS.14 | A warning when the running version key differs from the galaxy's | DB.7 | Feeds GEN.58's output and OPS.12. |
+| ADM.18 | The galaxy's creation settings saved as a JSON file, downloadable from the Admin dashboard | DB.7 | Stores the naming key instead of the word list. Boss 02:13Z: phase 1. Includes the key history; dated backup on every change. |
 | GEN.59 | Admin changes stored as a net difference from the generated galaxy | ADM.18 | Boss 02:20Z: net diff by stable address path, regenerate seeds, in ADM.18's JSON. |
 
 ### Bugs from the GitHub issues

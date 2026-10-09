@@ -811,7 +811,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.10 | The galaxy seed and version at the top of every generation log | none | done, PR #391 |
 | OPS.11 | Define "the same galaxy" and which versions stay reproducible | none | done, PR #362 (docs/design/reproducible-galaxies.md) |
 | OPS.12 | `generate.py reproduce`: a version and a seed rebuild a galaxy and check it | none | open |
-| OPS.13 | Every update records the version key, keeping the last 10 | none | open |
+| OPS.13 | Every update records the version key, keeping the last 10 | none | done, PR #810 |
 | OPS.14 | A warning when the running version key differs from the galaxy's | none | open |
 | OPS.15 | Each update says whether it changes generated output | none | open |
 | OPS.16 | A daily maintenance script for Linux, macOS and Windows | none | open |
