@@ -112,7 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.57, TEST.77, OPS.14, UX.49, PERF.31, PERF.32, GEN.128, ADM.42 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.57, TEST.77, UX.49, PERF.31, PERF.32, GEN.128, ADM.42 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.17, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18, PERF.33, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, DB.15, ADM.43, ADM.44 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, and the anomalies chosen in phase 2. | NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, GEN.114, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies. | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, GEN.55 |
@@ -1497,25 +1497,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     admin-edited sector is not rebuildable from the seed alone; DB.17's
     repair therefore replays the edit log rather than the seed.
 
-  - [ ] **OPS.14 A warning when the running version key differs from the galaxy's**
-    Done: one check compares the running key (DB.6) and the corpus and
-    lock hashes (OPS.13) with the ones stored for the galaxy, and for
-    each sector (DB.7) when it has them, and names each field that
-    differs (for example "Python 3.12.3 now, 3.11.9 when generated").
-    `generate.py` and the Generate page warn before a run that extends
-    the galaxy; GEN.58's fingerprint output prints the same comparison,
-    so a mismatched fingerprint says whether the platform or the corpus
-    changed too. A test checks each
-    field is named.
-    Research (2026-10-09, reproducible-galaxies.md): report three
-    severities: an epoch difference (name the introducing release from
-    `epochs.json`), equal epoch but a different battery digest (name the
-    first differing battery case), and notes only for release, Python
-    micro, OS and architecture. Without LF pins in `.gitattributes` the
-    comparison would report a changed lock or word-list hash between a
-    Windows and a Linux checkout of identical content.
-    Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
-
   - [ ] **OPS.15 Each update says whether it changes generated output**
     The second half of Boss's update "sweep". Done: after OPS.13's row
     is written, the update script fingerprints a small fixed region
@@ -2760,7 +2741,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   read. Re-measure the insert rate on the real fill order and on MySQL
   8.4 and MariaDB 11.4 (research model: 63,000 to 67,000 rows a second
   against 46,000 for the hash, one run on MariaDB 10.11).
-  Prerequisites: DB.20.
+  Prerequisite: DB.20.
   Design: [docs/design/object-id-options.md](design/object-id-options.md)
 
 - [ ] **GEN.172 Run-time births get object IDs from the counters**
@@ -2777,7 +2758,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   retires the other; a split gives each fragment a new run-time serial;
   a deleted ID is never reused.
   Open question for Boss (default yes): an ejected planet keeps its ID?
-  Prerequisites: DB.20.
+  Prerequisite: DB.20.
   Design: [docs/design/object-id-options.md](design/object-id-options.md)
 
 - [ ] **GEN.173 Deleting a body and then adding one fails with IntegrityError 1062 on uq_planets_uid (bug)**
@@ -2805,7 +2786,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   `db/edits.py` `save_system_edits` goes through `store.insert_planet`,
   `insert_moon` and `insert_belt`, and nothing assigns a uid. Fixed by
   the run-time birth item.
-  Prerequisites: GEN.172.
+  Prerequisite: GEN.172.
   Design: [docs/design/object-id-options.md](design/object-id-options.md)
 
 - [ ] **GEN.175 Regenerating a phenomenon sets its uid to NULL (bug)**
@@ -2846,7 +2827,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   object stored by a sector other than its own.
   Open question for Boss (default 1 mpc): the rounding used before the
   birth sector is taken from the centroid?
-  Prerequisites: DB.20.
+  Prerequisite: DB.20.
   Design: [docs/design/object-id-options.md](design/object-id-options.md)
 
 ## PERF: Speed, caching, bulk generation and parallel work
@@ -3239,7 +3220,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   only if exact positions matter); G = 32, m = 2; repairing a bad
   clustered-index page may mean restarting the database server with
   `innodb_force_recovery=1`.
-  Prerequisites: DB.8, GEN.57, OPS.14.
+  Prerequisites: DB.8, GEN.57.
   Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
 - [ ] **DB.15 A migration progress bar with the time remaining**
@@ -3291,7 +3272,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   cannot be rebuilt from its seed alone, which is why this repair
   replays the edit log; the web handlers were not checked (Research Lane
   1).
-  Prerequisites: DB.9, GEN.57, OPS.14.
+  Prerequisites: DB.9, GEN.57.
   Design: [docs/design/db-check-and-parity-repair.md](design/db-check-and-parity-repair.md)
 
 - [ ] **DB.18 Migration helpers for slow DDL: online indexes, instant columns and batched updates**
@@ -3307,25 +3288,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   tables.
   Prerequisite: DB.15.
   Design: [docs/design/db-check-and-parity-repair.md](design/db-check-and-parity-repair.md)
-
-- [ ] **DB.19 Compact or derive phenomenon rows (needed only if the mass cut is lowered to 10 solar masses or less)**
-  Research (2026-10-09, phenomenon-scatter-mass-cut.md, PR #837, after
-  generation-performance-study.md, PR #835): the default galaxy would write
-  about 1.17e9 phenomenon rows (138 bytes a row, about 161 GB, 43 times the
-  bright-star scatter; the 1.06e9 and 146 GB first reported ran 10% low).
-  Boss decided (2026-10-09 19:54Z) that the scatter keeps only objects above
-  a lowest mass and the sector fill draws the rest below it, like the bright
-  stars. Boss accepted the cut of 20 solar masses (decision
-  card, 2026-10-09). The cut is built (GEN.166 to GEN.168, PR #866,
-  2026-10-09): the scatter keeps objects above 20 solar masses and the
-  sector fill draws the rest. Same seed now gives a different galaxy from
-  PERF.43 (PR #861) and PR #866 together, the one combined reseed. Caveat
-  from the PR: an old black-hole row rebuilt by the new code can come
-  out intermediate-mass. Deriving neutron stars and black holes on demand, or compacting the row,
-  is needed only if the cut is lowered to 10 solar masses or less. The
-  notes' earlier 1.6e8 rows was an unverified estimate, not a result.
-  Design: [docs/design/phenomenon-scatter-mass-cut.md](design/phenomenon-scatter-mass-cut.md)
-  Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
 
 - [ ] **DB.20 Object IDs in the schema: uid becomes BINARY(10), unique on its own, plus an id_counters table**
   Source: docs/design/object-id-options.md section 0 (Boss decided
@@ -3347,7 +3309,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   has not run yet, in which case the change rides it; nebulae need their
   centroid recomputed (see the nebula item). Boss resets by hand anyway,
   so a fresh galaxy is acceptable. Takes the next free Alembic revision.
-  Prerequisites: GEN.170.
+  Prerequisite: GEN.170.
   Design: [docs/design/object-id-options.md](design/object-id-options.md)
 
 ## API: The JSON API
@@ -4325,7 +4287,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   the ID as the public reference; GEN.72 and GEN.73 and the position-ID
   naming (GEN.64 stays as the name of interstellar objects) are updated
   to match.
-  Prerequisites: GEN.170.
+  Prerequisite: GEN.170.
   Design: [docs/design/object-id-options.md](design/object-id-options.md)
 
 ## VIEW: The view from a planet
