@@ -34,12 +34,12 @@
   <a class="btn btn-small btn-secondary{% if nav_links %} nav-galaxy{% endif %}" href="{{ galaxy_url }}">Show on Galaxy Map</a>
   {%- endif %}
   {%- endif %}
-  {%- if nearby and not pick %}
-  <a class="btn btn-small btn-secondary" href="{{ nearby }}">What's nearby</a>
-  {%- endif %}
   {{ bookmark_button(bookmark) }}
   {%- if admin %}
   {{ admin }}
   {%- endif %}
 </div>
+{%- if nearby and not pick %}
+<p class="page-actions"><a class="btn btn-small btn-secondary" href="{{ nearby }}">What's nearby</a></p>
+{%- endif %}
 {%- endmacro -%}

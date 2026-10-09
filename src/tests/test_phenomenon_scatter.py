@@ -71,7 +71,7 @@ def test_skipped_addresses_get_nothing():
 
 def test_each_kind_follows_its_rate_per_star():
     # Neutron stars are about five times as common as black holes (tuning's
-    # rates are 7e-4 against 1.4e-4 per pc^3); a Poisson count sits well
+    # rates are 5.6e-4 against 7e-5 per pc^3); a Poisson count sits well
     # inside 5 sigma of its mean over a layer this size.
     rows = [row for layer_index, _outer in EXTENTS for row in _layer(layer_index, seed=3)]
     counts = {kind: sum(1 for row in rows if row[3] == kind) for kind in scatter.SCATTERED_KINDS}
