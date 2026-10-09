@@ -1500,6 +1500,31 @@ def test_galaxy_changes_lists_a_new_sectors_tiles(client, mysql_config):
     assert changes["tiles"] == sorted(tile_keys_containing((-800.0, 40.0, 3.0)))
 
 
+def test_galaxy_changes_is_busy_when_a_run_changes_too_much_at_once(client, mysql_config, monkeypatch):
+    # PERF.34: more changed sectors than a list holds, or a backfill adding stars, is `busy` (full, but
+    # not a deletion), so a cache can keep its tiles a while instead of refetching all of them.
+    _place_sector(mysql_config, "Old", (5.0, 5.0, 5.0))
+    before = client.get("/api/galaxy/stamp").get_json()
+    _place_sector(mysql_config, "New", (-800.0, 40.0, 3.0))
+    monkeypatch.setattr(query, "GALAXY_CHANGES_MAX_SECTORS", 0)
+    changes = _galaxy_changes(client, before["state"])
+    assert changes["full"] is True and changes["busy"] is True and changes["tiles"] == []
+
+    monkeypatch.undo()
+    settled = client.get("/api/galaxy/stamp").get_json()
+    conn = _db.get_connection(mysql_config)
+    try:
+        _db.insert_bright_stars(conn, [(1, 0, 0, 1.0, 2.0, 3.0, "old", "G2", "V", 2e30, 7e5, 5772.0, 4e26,
+                                        4.0, 10.0, 1.0, 9.0, 123)])
+        conn.commit()
+    finally:
+        conn.close()
+    changes = _galaxy_changes(client, settled["state"])
+    assert changes["full"] is True and changes["busy"] is True
+    # A deletion is full, but not busy.
+    assert "busy" not in _galaxy_changes(client, "nonsense")
+
+
 def test_galaxy_changes_lists_the_tiles_of_a_sector_that_lost_a_system(admin_client, mysql_config):
     # Tiles show each sector's system count; deleting a system bumps its
     # sector (`_db.touch_sector`).
