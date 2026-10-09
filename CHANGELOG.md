@@ -1,5 +1,10 @@
 # Changelog
 
+## [7.360.678] - 2026-10-09
+
+### Added
+- Light-travel positions: `planetgen.physics.light_travel.apparent_position` gives where an observer sees an object, its position at the time the light left it (the retarded time, found by iteration), and `apparent_position_of` does the same for a `SpatialPosition3D` moving at its galactic velocity. A star 1 ly away at rest is seen a year ago where it is; one receding at 0.1 c is seen at 1/1.1 ly (VIEW.5).
+
 ## [7.359.678] - 2026-10-09
 
 ### Added
