@@ -1,11 +1,10 @@
 """
 Kepler solver extremes (TODO TEST.34).
 
-Direct tests of `keplerMotion.solve_eccentric_anomaly` past e = 0.99, with
-mean anomalies below zero and above 2*pi, with too few iterations for
-Newton-Raphson to converge (it falls back to bisection rather than
-returning the last unconverged iterate), and of `_real_cube_root` at 0 and
-for negative values. Reference values belong to the physics reference
+Direct tests of `kepler.solve_eccentric_anomaly` (scipy's Brent solver) and
+`solve_eccentric_anomalies` (its vectorised form) past e = 0.99, with mean
+anomalies below zero and above 2*pi, and of `_real_cube_root` at 0 and for
+negative values. Reference values belong to the physics reference
 gate; these check behavior only.
 """
 import math
@@ -55,28 +54,37 @@ def test_huge_mean_anomalies_still_converge(mean_anomaly):
     assert abs(kepler_residual(e_anomaly, mean_anomaly, 0.995)) < 1e-8
 
 
-@pytest.mark.parametrize("eccentricity", [0.1, 0.7, 0.99, 0.9999])
-@pytest.mark.parametrize("max_iterations", [0, 1, 2])
-def test_non_convergence_is_not_silently_returned(eccentricity, max_iterations):
-    """Too few Newton steps used to hand back the last, unconverged
-    iterate; the solver now falls back to bisection, so the answer still
-    satisfies Kepler's equation."""
-    mean_anomaly = 0.1
-    e_anomaly = km.solve_eccentric_anomaly(mean_anomaly, eccentricity, max_iterations=max_iterations)
-    assert abs(kepler_residual(e_anomaly, mean_anomaly, eccentricity)) < 1e-9
-
-
-def test_zero_tolerance_never_breaks_early_but_still_converges():
-    e_anomaly = km.solve_eccentric_anomaly(2.0, 0.9, tolerance=0.0)
-    assert abs(kepler_residual(e_anomaly, 2.0, 0.9)) < 1e-12
-
-
-def test_bisection_fallback_brackets_and_converges():
+def test_the_whole_circle_of_mean_anomalies_is_bracketed_at_both_ends():
+    """M = 0 solves to E = 0, and the largest wrapped M lands just below 2*pi."""
     for eccentricity in (0.0, 0.5, 0.999999):
-        for mean_anomaly in (0.0, 1e-12, 1.0, math.pi, TWO_PI - 1e-12):
-            e_anomaly = km._bisect_eccentric_anomaly(mean_anomaly, eccentricity, 1e-12)
-            assert 0.0 <= e_anomaly <= TWO_PI
-            assert abs(kepler_residual(e_anomaly, mean_anomaly, eccentricity)) < 1e-9
+        assert km.solve_eccentric_anomaly(0.0, eccentricity) == 0.0
+        e_anomaly = km.solve_eccentric_anomaly(TWO_PI - 1e-12, eccentricity)
+        assert 0.0 <= e_anomaly <= TWO_PI
+        assert abs(kepler_residual(e_anomaly, TWO_PI - 1e-12, eccentricity)) < 1e-9
+
+
+def test_batch_solver_matches_the_scalar_solver():
+    eccentricities = [0.0, 0.3, 0.8, 0.95, 0.999, 0.999999, 1 - 1e-12]
+    anomalies = [-7.0, 0.0, 1e-9, 0.5, math.pi, 5.0, 1e6]
+    pairs = [(m, e) for e in eccentricities for m in anomalies]
+    solved = km.solve_eccentric_anomalies([m for m, _ in pairs], [e for _, e in pairs])
+    for (m, e), value in zip(pairs, solved):
+        assert abs(kepler_residual(value, m, e)) < 1e-9
+        assert value == pytest.approx(km.solve_eccentric_anomaly(m, e), abs=1e-9)
+
+
+def test_batch_solver_handles_empty_and_single_batches():
+    assert len(km.solve_eccentric_anomalies([], [])) == 0
+    assert km.solve_eccentric_anomalies([2.0], [0.7])[0] == pytest.approx(km.solve_eccentric_anomaly(2.0, 0.7), abs=1e-12)
+
+
+def test_batch_solver_rejects_bad_input():
+    with pytest.raises(ValueError, match="eccentricity"):
+        km.solve_eccentric_anomalies([1.0, 1.0], [0.5, 1.0])
+    with pytest.raises(ValueError, match="finite"):
+        km.solve_eccentric_anomalies([1.0, math.nan], [0.5, 0.5])
+    with pytest.raises(ValueError, match="same length"):
+        km.solve_eccentric_anomalies([1.0], [0.5, 0.5])
 
 
 @pytest.mark.parametrize("eccentricity", [1.0, 1.5, -0.01, -1.0])
