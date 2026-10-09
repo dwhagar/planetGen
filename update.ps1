@@ -98,6 +98,7 @@ if (Test-DatabaseUnconfigured) {
     Write-Host "  $(Join-Path $Root 'config.json'), then run this again."
 } else {
     Invoke-MigrateOrReset
+    Invoke-RecordVersionKey
 }
 
 Write-Step "6/8: Checking the tile cache, jobs and log folders"
