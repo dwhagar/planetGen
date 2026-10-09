@@ -73,6 +73,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.42 | A pass that drops sectors from a region by probability |  | Same function as PERF.18 (backfill_bright_stars_around); one thread. |
 | PERF.35 | An interval or chunk ledger for untouched sectors once block-first backfill lands | GEN.42 | Research: ledger size at full galaxy. |
 | PERF.18 | Run the GEN.30 bright-star backfill in parallel on the work queue |  | Backfill blocks become RQ jobs. Same stars as the one-process backfill for one seed needs GEN.39. |
+| PERF.48 | Low priority: a numeric-only INSERT formatter or C driver for bright_stars and phenomenon_scatter |  | Generation performance study. |
 | PERF.36 | Memory and request guard: never list more than about 50,000 candidate cells, and refuse huge enumerations in a web request |  | Research: protects the Generate page estimates. |
 | GEN.40 | Weed out sectors by star density before the bright-star backfill | GEN.42 | Parent; closes with its subitems. |
 

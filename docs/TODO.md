@@ -2946,6 +2946,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and 1.0 million enumerated cells for a 50 pc core, about 70 s
   extrapolated for 200 pc): enumerate once around the run's boundary or
   bounding disc and keep cells within the tier radius of the region.
+  Research (2026-10-09, generation-performance-study.md): the remark
+  that the CPU gain is small is wrong for the scatter: 95% of its CPU
+  was per-job import and band-table rebuild, and pre-warming the worker
+  took 322 s to 39.5 s (PERF.42).
 
 - [ ] **PERF.20 Short-term caching through the work queue and API (needs planning)**
   Boss (2026-10-01 22:17Z): "Everything should go through the work
@@ -3028,6 +3032,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generation is about 5 ms per system, 16.6 ms per system in a filled
   sector, so the database path (neighbour lock, uid pass, registry
   upsert) is the target.
+  Research (2026-10-09, generation-performance-study.md): this study
+  answers it for the scatter and fill phases (see PERF.42, PERF.43,
+  PERF.44, PERF.45, PERF.46, PERF.47 and DB.19). Open for Boss: which
+  phase took the 10 hours (the log will say).
 
 - [ ] **PERF.32 Generation performance stats: rates recorded per run, deleted on every new version**
   Boss (GitHub issues [#661](https://github.com/dwhagar/planetGen/issues/661) and [#750](https://github.com/dwhagar/planetGen/issues/750)): "The system should store and use
@@ -3132,6 +3140,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   only when fewer than `worker_count()` are alive, on shared queues.
   Required before Boss's batch wiki uploads. Reuse one Redis connection
   in `api_jobs.status` and `wait`.
+  Research (2026-10-09, generation-performance-study.md): the same fix
+  as PERF.42 (warm the worker before the fork) removes about 2 to 3 s
+  per queue job.
   Prerequisites: none.
   Design: [docs/design/performance-eta-queue-and-caching.md](design/performance-eta-queue-and-caching.md)
 
@@ -3157,6 +3168,90 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   more than a minute.
   Prerequisite: PERF.31.
   Design: [docs/design/performance-eta-queue-and-caching.md](design/performance-eta-queue-and-caching.md)
+
+- [ ] **PERF.42 Warm the RQ worker before the fork: pre-import generation modules and build the bright-star table once**
+  Research (2026-10-09, generation-performance-study.md, PR #835;
+  handoff in
+  /mnt/project-files/research/handoff/generation-performance.md; from
+  Boss's requests of 19:08Z and 19:21Z, generation being his slowest
+  point): pre-import the generation modules and warm
+  `star_population._bright_table` in `cli/worker.py` before the RQ fork,
+  and restart workers on update (or compare the version in the horse).
+  Measured on the scatter: 322 s down to 39.5 s (8.2 times) with
+  identical output (420,840 stars), because 95% of the scatter's CPU was
+  per-job import and band-table rebuild. It also removes about 2 to 3 s
+  per queue job (PERF.39 gets the same fix).
+  Prerequisites: none.
+  Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
+
+- [ ] **PERF.43 Lazy word-salad names for phenomena named by object ID**
+  Research (2026-10-09, generation-performance-study.md, PR #835;
+  handoff in
+  /mnt/project-files/research/handoff/generation-performance.md; from
+  Boss's requests of 19:08Z and 19:21Z, generation being his slowest
+  point): phenomena named from their object ID (GEN.64): RoguePlanet
+  (rogue.py lines 206 and 473), Comet, Nebula, AsteroidField,
+  SupernovaRemnant, Quasar and the compact remnants build their
+  word-salad name at generation. Build it when it is first shown. About
+  3.5% of a sector fill.
+  Prerequisites: none.
+  Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
+
+- [ ] **PERF.44 Compute object uids in Python and write them with the row**
+  Research (2026-10-09, generation-performance-study.md, PR #835;
+  handoff in
+  /mnt/project-files/research/handoff/generation-performance.md; from
+  Boss's requests of 19:08Z and 19:21Z, generation being his slowest
+  point): `store.assign_uids` selects every moon, planet and rogue row
+  back and updates it with its uid. Compute the uid in Python and write
+  it with the INSERT. 6 to 9% of a fill.
+  Prerequisites: none.
+  Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
+
+- [ ] **PERF.45 Nearest-system links and containment as one later pass**
+  Research (2026-10-09, generation-performance-study.md, PR #835;
+  handoff in
+  /mnt/project-files/research/handoff/generation-performance.md; from
+  Boss's requests of 19:08Z and 19:21Z, generation being his slowest
+  point): do the nearest-system links and the containment as one later
+  pass (the GEN.126 settle) instead of per sector at save. That takes
+  the neighbour locks off the critical path; today a fill is only 1.87
+  times faster at 2 to 4 workers.
+  Prerequisites: none.
+  Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
+
+- [ ] **PERF.46 Planets and moons: set the position once per body**
+  Research (2026-10-09, generation-performance-study.md, PR #835;
+  handoff in
+  /mnt/project-files/research/handoff/generation-performance.md; from
+  Boss's requests of 19:08Z and 19:21Z, generation being his slowest
+  point): `SpatialPosition3D._sync` was called 83,000 times for 4
+  sectors. Set a planet's or moon's position once per body. Optional:
+  skip `util/checks.finite_domain` in bulk fills (3 to 4%, but it loses
+  a safety net). Open question for Boss (default: keep the check):
+  accept skipping it in bulk fills?
+  Prerequisites: none.
+  Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
+
+- [ ] **PERF.47 The PERF.31 benchmark records the buffer pool, table sizes and worker start-up cost**
+  Research (2026-10-09, generation-performance-study.md, PR #835;
+  handoff in
+  /mnt/project-files/research/handoff/generation-performance.md; from
+  Boss's requests of 19:08Z and 19:21Z, generation being his slowest
+  point): record `innodb_buffer_pool_size`, the table sizes and the
+  worker start-up cost with every benchmark run, so a result can be
+  compared with the next.
+  Prerequisites: PERF.31.
+  Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
+
+- [ ] **PERF.48 Low priority: a numeric-only INSERT formatter or C driver for bright_stars and phenomenon_scatter**
+  Research (2026-10-09, generation-performance-study.md, PR #835;
+  handoff in
+  /mnt/project-files/research/handoff/generation-performance.md; from
+  Boss's requests of 19:08Z and 19:21Z, generation being his slowest
+  point): 13.8 down to 10.1 microseconds a row. Low priority.
+  Prerequisites: none.
+  Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
 
 ## DB: Database and schema
 
@@ -3329,6 +3424,22 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   tables.
   Prerequisite: DB.15.
   Design: [docs/design/db-check-and-parity-repair.md](design/db-check-and-parity-repair.md)
+
+- [ ] **DB.19 Phenomenon rows: about 1.06 billion rows and 146 GB at the default scale**
+  Research (2026-10-09, generation-performance-study.md, PR #835;
+  handoff in
+  /mnt/project-files/research/handoff/generation-performance.md; from
+  Boss's requests of 19:08Z and 19:21Z, generation being his slowest
+  point): the default galaxy writes about 1.06e9 phenomenon rows (138
+  bytes a row, about 146 GB, 43 times the bright-star scatter). Decision
+  for Boss (recommended, taken as the default until he says otherwise):
+  derive neutron stars and black holes per cell on demand instead of
+  storing them; the alternative is to compact the row (about 3 times
+  smaller). Open for Boss: why the notes' 1.6e8 neutron-star and
+  black-hole rows differ from the 1.06e9 total computed for the default
+  galaxy.
+  Prerequisites: none.
+  Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
 
 ## API: The JSON API
 
