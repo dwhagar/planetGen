@@ -11,7 +11,8 @@ the checkout's `src/`:
 import argparse
 
 from planetgen._version import VersionAction, version_banner
-from planetgen.db.query import list_moons, list_planets, list_sectors, list_systems, open_readonly, systems_within_radius
+from planetgen.db.query import list_moons, list_planets, list_sectors, list_systems, open_readonly
+from planetgen.db import near
 from planetgen.db.store import add_mysql_connection_args, mysql_config_from_args
 
 
@@ -41,11 +42,15 @@ def process_args():
     systems_parser.add_argument('--sector-id', type=int, help="Only systems in this sector.")
 
     near_parser = subparsers.add_parser(
-        'near', help="Find systems within a radius of another system, in the same sector.",
+        'near', help="Find everything generated within a distance of a place (NAV.43).",
     )
-    near_parser.add_argument('system_id', type=int, help="The star_systems.id to measure distances from.")
-    near_parser.add_argument('--radius', type=float, required=True,
-                             help="Search radius in light-years (e.g. 50 for 'everything within 50 ly').")
+    near_parser.add_argument('place', help="An object reference (system:12, planet:7, nebula:3 ...; a bare "
+                                           "number is a system) or a galaxy-frame point 'x,y,z' in parsecs.")
+    near_parser.add_argument('--distance', type=float, required=True,
+                             help=f"Search distance in parsecs, up to {near.MAX_DISTANCE_PC:g}.")
+    near_parser.add_argument('--kinds', help="Only these kinds, comma-separated: " + ", ".join(near.SEARCH_KINDS) + ".")
+    near_parser.add_argument('--limit', type=int, default=near.DEFAULT_LIMIT, help="Rows to show (default 50).")
+    near_parser.add_argument('--offset', type=int, default=0, help="Rows to skip.")
 
     planets_parser = subparsers.add_parser(
         'planets', help="List planets, optionally filtered by class, radius, sector, or system.",
@@ -98,12 +103,23 @@ def main():
                 print(f"[{system['id']}] {system['name']} ({kind}, {sector_note})")
 
         elif args.command == 'near':
-            matches = systems_within_radius(conn, args.system_id, args.radius)
-            if not matches:
-                print(f"No other systems within {args.radius} ly.")
-                return
-            for match in matches:
-                print(f"[{match['id']}] {match['name']} -- {match['distance_ly']:.2f} ly")
+            try:
+                if "," in args.place:
+                    place = near.place_from_point(args.place.split(","))
+                else:
+                    place = near.place_from_reference(conn, args.place)
+                kinds = [kind for kind in args.kinds.split(",") if kind] if args.kinds else None
+                result = near.objects_within(conn, place, args.distance, kinds=kinds,
+                                             limit=args.limit, offset=args.offset)
+            except near.NearError as exc:
+                raise SystemExit(f"Error: {exc}")
+            if not result["rows"]:
+                print(f"Nothing within {args.distance:g} pc of {place['name']}.")
+            for row in result["rows"]:
+                parent = f" -- {row['parent']['name']}" if row["parent"] else ""
+                print(f"[{row['ref']}] {row['name']}{parent} -- {row['distance_pc']:.2f} pc")
+            print(f"{result['total']} found; {result['sectors_in_range'] - result['sectors_generated']} of "
+                  f"{result['sectors_in_range']} sectors in range are not generated yet.")
 
         elif args.command == 'planets':
             planets = list_planets(

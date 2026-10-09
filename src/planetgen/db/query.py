@@ -597,61 +597,6 @@ def list_moons(conn, planet_class=None, min_radius_km=None, max_radius_km=None,
     return [dict(r) for r in rows]
 
 
-def systems_within_radius(conn, system_id, radius_ly):
-    """
-    Finds every other system in the same sector as `system_id`, within
-    `radius_ly` light-years, nearest first.
-
-    Args:
-        conn (planetgen.db.store.Connection): An open, read-only connection.
-        system_id (int): The `star_systems.id` to measure distances from.
-        radius_ly (float): The search radius, in light-years.
-
-    Returns:
-        list[dict]: One entry per match, nearest first, each with `id`,
-                   `name`, `distance_ly`.
-
-    Raises:
-        SystemExit: If `system_id` doesn't exist or isn't placed in a
-                   sector (no position to measure from).
-    """
-    origin = conn.execute(
-        "SELECT sector_id, position_x_mpc, position_y_mpc, position_z_mpc "
-        "FROM star_systems WHERE id = ?",
-        (system_id,),
-    ).fetchone()
-    if origin is None:
-        raise SystemExit(f"Error: no star_systems row with id {system_id}.")
-    if origin["sector_id"] is None or origin["position_x_mpc"] is None:
-        raise SystemExit(f"Error: system {system_id} isn't placed in a sector (no position to measure from).")
-
-    origin_ly = (
-        milliparsecs_to_ly(origin["position_x_mpc"]),
-        milliparsecs_to_ly(origin["position_y_mpc"]),
-        milliparsecs_to_ly(origin["position_z_mpc"]),
-    )
-
-    candidates = conn.execute(
-        "SELECT id, name, position_x_mpc, position_y_mpc, position_z_mpc "
-        "FROM star_systems WHERE sector_id = ? AND id != ?",
-        (origin["sector_id"], system_id),
-    ).fetchall()
-
-    results = []
-    for row in candidates:
-        candidate_ly = (
-            milliparsecs_to_ly(row["position_x_mpc"]),
-            milliparsecs_to_ly(row["position_y_mpc"]),
-            milliparsecs_to_ly(row["position_z_mpc"]),
-        )
-        distance_ly = math.dist(origin_ly, candidate_ly)
-        if distance_ly <= radius_ly:
-            results.append({"id": row["id"], "name": row["name"], "distance_ly": distance_ly})
-
-    results.sort(key=lambda entry: entry["distance_ly"])
-    return results
-
-
 class NavUnavailable(Exception):
     """
     Raised by `nav_between` when NAV is unavailable between two systems --

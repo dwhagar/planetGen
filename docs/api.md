@@ -187,8 +187,15 @@ connectivity to that specific schema rather than the default one.
   relative to what it orbits, and an `orbit` (`around`, `distance_km`,
   `period_years`, `inclination_deg`, `ascending_node_deg`, `phase_deg`; a
   comet's holds its Kepler elements under `kepler`).
-- `GET /api/systems/<id>/near?radius=<ly>` — other systems in the same
-  sector within `radius` light-years (`queryDb.systems_within_radius`).
+- `GET /api/near?from=<ref>&distance=<pc>` (or `point=x,y,z` in galaxy-frame
+  parsecs) — everything generated within `distance` parsecs (at most 50) of
+  a place (NAV.43, `planetgen.db.near.objects_within`): systems, stars,
+  planets, moons, belts, comets, facilities and the standalone phenomena,
+  nearest first, each with `ref`, `kind`, `id`, `name`, `parent` and
+  `distance_pc`. Optional `kinds` (comma-separated), `limit` (50, at most
+  200) and `offset`. The answer also carries `total`, `by_kind`, and how
+  many of the sectors the sphere reaches are not generated yet
+  (`sectors_in_range` / `sectors_generated`); the search never generates.
 - `GET /api/objects/<ref>` — one object by its reference (NAV.7), the one
   form every kind shares: `<kind>:<id>` with kind `sector`, `system`, `star`,
   `planet`, `moon`, `belt`, `comet` or a phenomenon type (`nebula`,

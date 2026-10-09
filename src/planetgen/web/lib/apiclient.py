@@ -251,8 +251,7 @@ def _request(path, params=None):
             list of pairs is used exactly as given.
 
     Returns:
-        The parsed JSON body (usually a `dict`, `/systems/<id>/near`
-        returns a bare `list`).
+        The parsed JSON body (usually a `dict`; a few endpoints return a bare `list`).
 
     Raises:
         NotFoundError: On a 404 response.
@@ -433,11 +432,12 @@ def get_system_scene(db, system_id):
     return _request(f"/systems/{system_id}/scene", {"db": db})
 
 
-def get_systems_near(db, system_id, radius):
-    """Returns `GET /api/systems/<id>/near`'s bare list of
-    `{id, name, distance_ly}`."""
+def get_near(db, params):
+    """Returns `GET /api/near` (NAV.43): everything within a distance of a
+    place. `params` are the query parameters (`from` or `point`,
+    `distance`, `kinds`, `limit`, `offset`)."""
     _require_db(db)
-    return _request(f"/systems/{system_id}/near", {"db": db, "radius": radius})
+    return _request("/near", {"db": db, **params})
 
 
 def get_nav(db, from_ref, to_ref):
