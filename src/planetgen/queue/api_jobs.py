@@ -146,6 +146,17 @@ def status(job_id):
     return body
 
 
+def settle_sectors(sector_ids, config):
+    """The queued body of a settle (GEN.126): saves the sector paths of
+    `sector_ids` and the sectors around them. Returns `{"saved": n}`."""
+    from planetgen.db import sector_paths, store
+    conn = store.get_connection(config or store.DEFAULT_MYSQL_CONFIG)
+    try:
+        return {"saved": sector_paths.settle_sectors(conn, sector_ids)}
+    finally:
+        conn.close()
+
+
 def generate_neighborhood(sector_id, radius_ly, config):
     """The queued body of `POST /api/sectors/<id>/generate-neighborhood`
     (a module-level function so a worker can import it by name)."""
@@ -163,17 +174,27 @@ def regenerate_sector(sector_id, config):
             the new sector (`None` when the slot is outside the outline).
     """
     import random
-    from planetgen.db import edits as editStore, store
+    from planetgen.db import edits as editStore, sector_paths, store
     from planetgen.generation import run_galaxy
     conn = store.get_connection(config or store.DEFAULT_MYSQL_CONFIG)
     try:
         with conn:
             address = editStore.sector_address(conn, sector_id)
+            around = [other for other in sector_paths.sectors_to_settle(conn, [sector_id]) if other != sector_id]
             counts = editStore.delete_sector_with_contents(conn, sector_id)
     finally:
         conn.close()
     random.seed()
-    result = run_galaxy.ensure_sector_generated(*address, config=config)
+    result = run_galaxy.ensure_sector_generated(*address, config=config, settle=False)
+    # GEN.126: the new sector's masses and the old neighbours' paths, now the neighbour set is final.
+    conn = store.get_connection(config or store.DEFAULT_MYSQL_CONFIG)
+    try:
+        wanted = set(around)
+        if result["sector_id"] is not None:
+            wanted.add(result["sector_id"])
+        sector_paths.settle_sectors(conn, wanted, expand=False)
+    finally:
+        conn.close()
     return {"deleted": counts, "sector_id": result["sector_id"], "sector_name": result["sector_name"]}
 
 

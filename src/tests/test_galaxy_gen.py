@@ -1698,3 +1698,18 @@ def test_random_start_and_its_neighborhood_stay_inside_a_real_plan(mysql_config)
     for row in sectors:
         assert bounds.contains(row["ring_index"], row["layer_index"]), _address(row)
 
+
+
+def test_ensure_sector_generated_queues_a_settle_job_for_a_new_sector_only_when_asked(mysql_config, monkeypatch):
+    """GEN.126: a sector made on the spot has its paths saved by a queued job; a caller that
+    settles for itself passes `settle=False`, and an existing sector queues nothing."""
+    from planetgen.queue import api_jobs
+    _seed_skeleton(mysql_config, layers=_layers(0, 1))
+    queued = []
+    monkeypatch.setattr(run_galaxy, "queue_settle", lambda config, ids: queued.append(list(ids)))
+    first = run_galaxy.ensure_sector_generated(0, 0, 0, config=mysql_config, backfill=False)
+    assert queued == [[first["sector_id"]]]
+    run_galaxy.ensure_sector_generated(0, 0, 0, config=mysql_config, backfill=False)  # exists: nothing new
+    run_galaxy.ensure_sector_generated(0, 0, 1, config=mysql_config, backfill=False, settle=False)
+    assert queued == [[first["sector_id"]]]
+    assert api_jobs.settle_sectors  # the job the queue runs
