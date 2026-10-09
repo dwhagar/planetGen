@@ -506,8 +506,27 @@ def _default_generation_args(config=None):
     return args
 
 
+def queue_settle(config, sector_ids):
+    """
+    Saves the sector paths of `sector_ids` and the sectors around them
+    (GEN.126) as a queued job, so a caller that generated a sector on the
+    spot doesn't wait for up to 125 sectors of integration. With no Redis
+    server to queue it on, it runs here instead.
+
+    Returns:
+        str | None: The job's id, or `None` when it ran inline.
+    """
+    from planetgen.queue import api_jobs
+    sector_ids = sorted(sector_ids)
+    try:
+        return api_jobs.submit(api_jobs.settle_sectors, sector_ids, config)
+    except api_jobs.NoQueue:
+        api_jobs.settle_sectors(sector_ids, config)
+        return None
+
+
 def ensure_sector_generated(ring_index, layer_index, ring_slot_index, config=None, backfill=True,
-                            outside_ok=False):
+                            outside_ok=False, settle=True):
     """
     The galaxy map's "recalculate on visit" entry point: returns the
     sector already generated at this address if one exists; otherwise
@@ -530,6 +549,10 @@ def ensure_sector_generated(ring_index, layer_index, ring_slot_index, config=Non
     An address outside the galaxy's stored outline is generated only with
     `outside_ok` (`planetgen galaxy --slot` naming it outright, GEN.81),
     at the halo floor's density.
+
+    A new sector's paths (and its neighbours') are saved by a queued job
+    unless `settle` is false (GEN.126): the caller that settles at the end
+    of its own run, or after its own edit, passes false.
 
     Returns:
         dict: `created` (bool), `qualifies` (bool: inside the galaxy's
@@ -589,6 +612,8 @@ def ensure_sector_generated(ring_index, layer_index, ring_slot_index, config=Non
 
     if backfill:
         backfill_bright_stars(config, position_pc)  # GEN.30: around the requested sector
+    if settle:
+        queue_settle(config, [sector_id])
     return {"created": True, "qualifies": qualifies, "sector_id": sector_id, "sector_name": sector_name}
 
 
@@ -984,10 +1009,12 @@ def generate_sector_neighborhood(center_sector_id, radius_ly=None, config=None, 
         raise GenerationRefused(estimate.refusal)
 
     generated = 0
+    created_ids = []
     try:
         for address, position_pc, sector_args, _suffix in batch:
             started = time.monotonic()
-            _sector_id, _name, sector = generate_and_save_sector_at(sector_args, address, position_pc, edge_pc)
+            sector_id, _name, sector = generate_and_save_sector_at(sector_args, address, position_pc, edge_pc)
+            created_ids.append(sector_id)
             run_common._record_sector(args, {"density": run_common._sector_density(sector_args), "systems": len(sector.entries),
                                   "stars": run_sector.sector_star_count(sector)}, time.monotonic() - started)
             generated += 1
@@ -995,6 +1022,12 @@ def generate_sector_neighborhood(center_sector_id, radius_ly=None, config=None, 
         run_common._finish_stats(args)
     if generated:
         backfill_bright_stars(config, center)  # GEN.30: once, around the requested sector
+        # GEN.126: once the neighbours are final; this runs as the API's queued job.
+        conn = store.get_connection(config)
+        try:
+            sector_paths.settle_sectors(conn, created_ids)
+        finally:
+            conn.close()
     return {"generated": generated, "estimate": estimate.as_dict(), **counts}
 
 
@@ -1131,7 +1164,8 @@ def run_single_slot(args, edge_pc, progress):
     task = progress.add_task(f"Sector ({_format_address(address)})", total=1)
     # The backfill waits for the end of the run (backfill_after_run), with
     # its own bar, instead of stalling this one at 0 of 1 (PERF.28).
-    result = ensure_sector_generated(*address, config=mysql_config, backfill=False, outside_ok=outside_ok)
+    result = ensure_sector_generated(*address, config=mysql_config, backfill=False, outside_ok=outside_ok,
+                                     settle=False)  # the run settles at its end
     progress.update(task, advance=1)
 
     designation = provisional_sector_designation(*address)

@@ -22,7 +22,7 @@ from flask import Blueprint, jsonify, request
 
 from planetgen.queue import api_jobs
 from planetgen.generation import run_phenomenon
-from planetgen.db import edits as editStore, store
+from planetgen.db import edits as editStore, sector_paths, store
 from planetgen.admin import edits as adminEdits
 from planetgen.generation import validation
 from planetgen import tuning
@@ -304,6 +304,10 @@ def change_star_job(config, system_id, star_type, drop_facilities):
                 raise ApiError(f"this would delete {lost} facilit{'y' if lost == 1 else 'ies'} on the bodies "
                                "with no room left; send \"drop_facilities\": true to go ahead", status_code=409)
             editStore.save_system_edits(conn, system_id, system, stars=[new_star])
+        # GEN.126: a new star has a new mass, which bends the paths around it.
+        sector_id = conn.execute("SELECT sector_id FROM star_systems WHERE id = ?", (system_id,)).fetchone()["sector_id"]
+        if sector_id is not None:
+            sector_paths.settle_sectors(conn, [sector_id])
     finally:
         conn.close()
     return _result_dict(result, star_system_id=system_id, star_type=new_star.type.split()[0])
@@ -321,19 +325,29 @@ def delete_phenomenon(phenomenon_type, phenomenon_id):
     phenomenon (a system's own black hole or neutron star goes with its
     system instead: 409)."""
     _options()
-    conn = _write_conn()
+    return _queued_edit("phenomenon.delete", f"{phenomenon_type}:{phenomenon_id}", delete_phenomenon_job,
+                        _resolve_requested_write_db_config(), phenomenon_type, phenomenon_id)
+
+
+def delete_phenomenon_job(config, phenomenon_type, phenomenon_id):
+    """Deletes one standalone phenomenon and saves the sector paths its
+    mass was bending (GEN.126, which is why this runs on the queue); returns the response."""
+    conn = store.open_write(config)
     try:
         with conn:
+            row = None
             try:
+                row = editStore.phenomenon_row(conn, phenomenon_type, phenomenon_id)
                 deleted = editStore.delete_phenomenon(conn, phenomenon_type, phenomenon_id)
             except editStore.EditError as exc:
                 raise ApiError(str(exc), status_code=409 if phenomenon_type in editStore.PHENOMENON_TABLES else 404)
+        if not deleted:
+            raise ApiError(f"no such {phenomenon_type}: {phenomenon_id}", status_code=404)
+        if row.get("sector_id") is not None:
+            sector_paths.settle_sectors(conn, [row["sector_id"]])
     finally:
         conn.close()
-    if not deleted:
-        raise ApiError(f"no such {phenomenon_type}: {phenomenon_id}", status_code=404)
-    audit("phenomenon.delete", target=f"{phenomenon_type}:{phenomenon_id}")
-    return jsonify({"status": "ok", "summary": "Deleted."})
+    return {"status": "ok", "summary": "Deleted."}
 
 
 @bp.route("/phenomena/<phenomenon_type>/<int:phenomenon_id>/regenerate", methods=["POST"])
@@ -365,6 +379,8 @@ def regenerate_phenomenon_job(config, phenomenon_type, phenomenon_id):
                 editStore.replace_phenomenon_content(conn, phenomenon_type, phenomenon_id, fresh)
             except editStore.EditError as exc:
                 raise ApiError(str(exc), status_code=409)
+        if row.get("sector_id") is not None:  # GEN.126: its new mass bends the paths around it
+            sector_paths.settle_sectors(conn, [row["sector_id"]])
     finally:
         conn.close()
     return {"status": "ok", "summary": f"Regenerated {row['name']}."}
@@ -384,16 +400,27 @@ def delete_sector_with_contents(sector_id):
     generated again. (`DELETE /api/sectors/<id>` deletes only the sector
     row and keeps its systems as standalone ones.)"""
     _options()
-    conn = _write_conn()
+    return _queued_edit("sector.delete", f"sector:{sector_id}", delete_sector_job,
+                        _resolve_requested_write_db_config(), sector_id)
+
+
+def delete_sector_job(config, sector_id):
+    """Deletes a sector with its contents, then saves the sector paths of the
+    sectors around it, which its masses were bending (GEN.126, which is why this
+    runs on the queue); returns the response."""
+    conn = store.open_write(config)
     try:
+        around = [other for other in sector_paths.sectors_to_settle(conn, [sector_id]) if other != sector_id] \
+            if conn.execute("SELECT 1 FROM sectors WHERE id = ?", (sector_id,)).fetchone() else []
         with conn:
             counts = editStore.delete_sector_with_contents(conn, sector_id)
+        if counts is None:
+            raise ApiError(f"no such sector: {sector_id}", status_code=404)
+        sector_paths.settle_sectors(conn, around, expand=False)
     finally:
         conn.close()
-    if counts is None:
-        raise ApiError(f"no such sector: {sector_id}", status_code=404)
-    audit("sector.delete", target=f"sector:{sector_id}", detail=f"with contents {counts}")
-    return jsonify({"status": "ok", **counts})
+    return {"status": "ok", "summary": f"Sector deleted with {counts['systems']} system(s) and "
+                                       f"{counts['phenomena']} phenomena.", **counts}
 
 
 @bp.route("/sectors/<int:sector_id>/regenerate", methods=["POST"])

@@ -899,6 +899,11 @@ def add_phenomenon_arguments(parser):
                               "quasar needs a ring-0, layer-0 (galactic core) sector and is placed at the galactic "
                               "center; only one per galaxy. Omit to generate it unplaced/unlinked, as before.")
 
+    parser.add_argument('--no-settle', action='store_true',
+                        help="With --sector-id: skip saving the sector paths of that sector and the sectors "
+                             "around it, which a black hole or neutron star can bend ('planetgen orbits' "
+                             "saves them later).")
+
     # Database persistence
     store.add_mysql_connection_args(parser)
 

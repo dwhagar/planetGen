@@ -189,11 +189,12 @@ def sectors_to_settle(conn, sector_ids):
     return sorted(wanted)
 
 
-def settle_sectors(conn, sector_ids, on_progress=None):
+def settle_sectors(conn, sector_ids, on_progress=None, expand=True):
     """
     Recomputes the saved paths of `sector_ids` and the sectors around them
     (`sectors_to_settle`), committing every sector as it finishes: the last
-    step of a generation run (GEN.126), when the neighbour set is final.
+    step of a generation run or of an edit that changes the masses in a
+    sector (GEN.126), when the neighbour set is final.
     Nothing here is random or depends on the clock, so it leaves a
     reproducible galaxy reproducible.
 
@@ -201,11 +202,20 @@ def settle_sectors(conn, sector_ids, on_progress=None):
         conn (Connection): An open, schema-initialized, read-write connection.
         sector_ids (iterable): The sectors a run created or changed.
         on_progress (callable, optional): `on_progress(done, total)` after each sector.
+        expand (bool, optional): Also settle the sectors around `sector_ids`
+            (the default). With `False`, exactly `sector_ids` (those that still exist),
+            for a caller that worked the neighbours out before deleting a sector.
 
     Returns:
         int: How many paths were saved.
     """
-    sectors = sectors_to_settle(conn, list(sector_ids))
+    if expand:
+        sectors = sectors_to_settle(conn, list(sector_ids))
+    else:
+        sectors = sorted(set(sector_ids))
+        existing = {row["id"] for row in conn.execute(
+            f"SELECT id FROM sectors WHERE id IN ({', '.join('?' for _ in sectors)})", sectors).fetchall()} if sectors else set()
+        sectors = [sector_id for sector_id in sectors if sector_id in existing]
     saved = 0
     for done, sector_id in enumerate(sectors, start=1):
         saved += compute_sector_paths(conn, sector_id)

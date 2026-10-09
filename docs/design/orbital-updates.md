@@ -447,6 +447,19 @@ masses (23:16Z), as a spline.
   1.8 ms a body (8,100 bodies in 123 sectors in 15.7 s; 2,900 bodies in 5 dense sectors in
   5.1 s), the same at 6 and at 56 systems a sector, so a million bodies take about 30
   minutes in one process. `--no-settle` skips it.
+  Every entry point that changes the masses in a sector settles that sector and its
+  neighbours as its last step, through `sector_paths.settle_sectors`: `planetgen galaxy`
+  (which the admin Generate page runs, as an RQ job), `planetgen phenomenon --sector-id`,
+  the admin API's queued jobs for regenerating a sector, deleting a sector with its
+  contents, changing a system's star, and regenerating or deleting a phenomenon, and the
+  neighbourhood job (`generate_sector_neighborhood`, which settles every sector it made at
+  its end). A sector generated on the spot (`ensure_sector_generated`) queues its own
+  settle job (`api_jobs.settle_sectors`, run inline when no Redis answers). (The two
+  deletes used to answer inline and now run as queued jobs, answering at once if they
+  finish within the API's 8 s wait, else `202`). Not settled, because no mass or
+  neighbour changes: a one-off system or `planetgen sector` (standalone, in no galaxy
+  sector), planet, moon and belt edits and the population pass (planets carry no point
+  mass).
   A path starts at the body's stored position and velocity, so it is as old
   as its sector's last pass.
 - **The orbit is derived from the vector, never stored.** A planet's, moon's
