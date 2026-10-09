@@ -298,7 +298,8 @@ def objects_within(conn, place, distance_pc, kinds=None, limit=DEFAULT_LIMIT, of
             `limit`, `offset`, `sectors_in_range` and `sectors_generated`
             (the sectors the sphere reaches and how many of them hold
             generated stars), and `rows`: each `ref`, `kind`, `id`, `name`,
-            `parent` (`ref`, `kind`, `name`, or `None`) and `distance_pc`.
+            `parent` (`ref`, `kind`, `name`, or `None`), `system_id` (the system
+            it is in or is, else `None`) and `distance_pc`.
             The place itself is left out when it is a system or a phenomenon (a
             planet or moon is not removed from its own system's bodies).
 
@@ -368,16 +369,20 @@ def objects_within(conn, place, distance_pc, kinds=None, limit=DEFAULT_LIMIT, of
             system = systems[object_id]
             made = [("system", object_id, system["name"],
                      {"ref": _ref("sector", system["sector_id"]), "kind": "sector", "name": system["sector_name"]})]
+            home = object_id
         elif what == "bodies":
             made = _bodies_of(conn, object_id, systems[object_id], body_wanted)
+            home = object_id
         elif what == FACILITY_KIND:
             made = [(FACILITY_KIND, object_id, extra[0], extra[1])]
+            home = (object_ref.parse(extra[1]["ref"])[1] if extra[1] and extra[1]["kind"] == "system" else None)
         else:
             made = [(extra[0], object_id, extra[1], None)]
+            home = None
         for kind, row_id, name, parent in made:
             if offset <= position < offset + limit:
                 rows.append({"ref": _ref(kind, row_id), "kind": kind, "id": row_id, "name": name,
-                             "parent": parent, "distance_pc": away})
+                             "parent": parent, "system_id": home, "distance_pc": away})
             position += 1
     reached, generated = _sector_counts(conn, center, distance, margin)
     return {
