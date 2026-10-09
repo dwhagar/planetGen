@@ -663,7 +663,8 @@ def refresh_moon_orbit(moon, planet):
     sphere, climate) after its own distance or its planet's mass or
     distance changed."""
     moon.period = planetPhysics.calculate_orbital_period_years(moon.distance, planet.mass)
-    # The same Hill sphere generation gives a moon (`Planet.__init__`).
+    # The same Hill sphere generation gives a moon (`Planet.__init__`), about its planet.
+    moon.primary_mass_kg = planet.mass
     planetPhysics.update_hill_sphere(moon)
     planetPhysics.calculate_atmospheric_conditions(moon, planet.distance)
     planetPhysics.generate_orbital_motion_properties(moon, planet.mass)

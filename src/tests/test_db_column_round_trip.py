@@ -49,6 +49,7 @@ NULL_IN_THIS_GALAXY = {
     # `plan --no-bright-stars`: the scatter is slow and tested on its own.
     ("galaxy_shape", "bright_star_min_luminosity_sol"): "no scatter", ("galaxy_shape", "bright_star_seed"): "no scatter",
     ("galaxy_shape", "phenomenon_scatter_seed"): "no scatter",
+    ("galaxy_shape", "phenomenon_min_mass_solar"): "no scatter",
     # Facilities on stars, moons and asteroid fields, and the field's galaxy position.
     **{("facilities", column): "facility hosts used" for column in
        ("star_id", "moon_id", "asteroid_field_id", "sector_id", "center_x_pc", "center_y_pc", "center_z_pc",
@@ -96,6 +97,7 @@ NEVER_READ = {
     ("star_systems", "schema_version"): "the version that wrote the row, for diagnosis",
     ("galaxy_shape", "id"): "singleton key", ("galaxy_shape", "bright_star_seed"): "only to repeat a scatter",
     ("galaxy_shape", "phenomenon_scatter_seed"): "only to repeat a scatter",
+    ("galaxy_shape", "phenomenon_min_mass_solar"): "read by a sector fill, not a loader",
     ("facilities", "galactic_radius_pc"): "an index column; pages place a facility by its center",
     # GEN.106: the orbit update's own clock, read only by planetgen.cli.orbits.
     **{(table, column): "the orbit update's clock" for table, column in (

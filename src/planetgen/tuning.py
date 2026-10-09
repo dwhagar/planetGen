@@ -1081,7 +1081,8 @@ PLANET_CLASSES = {
         "atm_molar_density_range": (0.0433, 0.0435),
         "atm_density_range": (300, 350),
         "greenhouse_multiplier_range": (260, 295),
-        "life_chemical": ["Bacteriochlorophylls", "Zinc-Bacteriochlorophyll", "Retinal", "Melanin"],
+        # No life_chemical (GEN.147): at Venus's 737 K and 9 MPa nothing lives on the
+        # surface, and the class is not on HABITABLE_PLANET_CLASSES.
         "age_ranges": {
             "fast": (0.005, 0.015),
             "normal": (0.5, 1.5),
@@ -1503,7 +1504,7 @@ EVOLUTIONARY_TEXT = {
 }
 
 # --- Planet Generation Specific Constants ---
-HABITABLE_PLANET_CLASSES = ['E', 'F', 'G', 'H', 'K', 'L', 'M', 'O', 'P', 'V']
+HABITABLE_PLANET_CLASSES = ['E', 'F', 'G', 'H', 'K', 'L', 'M', 'O', 'P', 'Q', 'V']
 """
 list: A list of planet class codes that are considered habitable.
 """
@@ -1533,6 +1534,9 @@ PLANET_CLASS_MAX_LIFE_STAGE = {
                                  # microbial mats" (no nucleated cells yet).
     "G": "photosynthesis",      # description: "...simple life" -- same
                                  # prokaryotic tier as Class F.
+    "Q": "photosynthesis",      # "extreme temperature variations" (GEN.147): an
+                                 # eccentric orbit swings it between freezing and
+                                 # scorching, so only microbial life survives.
     "L": "multicellularity",    # description: "...with vegetation" --
                                  # matches EVOLUTIONARY_TEXT
                                  # ['multicellularity']'s own "pioneering
@@ -2734,6 +2738,18 @@ HYPERVELOCITY_STARS_PER_GALAXY = (1e3, 1e4)
 log-uniformly between the two ends (Boss 2026-10-08: "about 1e3 to 1e4
 galaxy-wide"; Brown 2015). Each starts at the central black hole and moves
 outward at `HYPERVELOCITY_STAR_SPEED_RANGE_KMS`."""
+
+
+PHENOMENON_MIN_MASS_SOLAR = 20.0
+"""float: The phenomenon scatter's lowest mass (GEN.167, `planetgen plan
+--phenomenon-min-mass`; docs/design/phenomenon-scatter-mass-cut.md, Boss
+2026-10-09). The scatter places only the neutron stars and black holes at
+or above it; a sector draws the rest when it is filled (GEN.168). An
+object's tidal sphere (1.44 pc per cube root of a solar mass) reaches one
+4 pc sector edge at about 21 solar masses, so below the cut an object's
+pull stays within its own and the neighbouring sectors. At 20 only the
+intermediate-mass black holes are scattered: about 2.7e5 rows instead of
+1.17e9."""
 
 
 def phenomenon_rate_per_star(kind):

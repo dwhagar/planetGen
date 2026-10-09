@@ -108,7 +108,7 @@ def test_planet_life_chemical_matches_class_and_star(host_star, cls, zone):
     planet = make_planet(host_star, cls, zone)
     for _ in range(5):
         planetLife.apply_life_data(planet)
-        class_chems = prog_c.PLANET_CLASSES[cls]["life_chemical"]
+        class_chems = prog_c.PLANET_CLASSES[cls].get("life_chemical")
         if planet.life_chemical is not None:
             assert class_chems is not None, f"{cls}-{zone}: assigned a chemical but class has none listed"
             assert any(planet.life_chemical in c or c in planet.life_chemical for c in class_chems), (
@@ -284,3 +284,12 @@ def test_zone_position_mode_does_not_move_a_moon(host_star):
     )
 
     assert moon.distance == pytest.approx(moon_distance)
+
+
+def test_only_habitable_classes_carry_a_life_chemical():
+    """GEN.147: a class with a life_chemical but not on HABITABLE_PLANET_CLASSES got an uncapped life
+    timeline and a "suitable for life" paragraph; Class N (Venus analog) is lifeless and Class Q is capped."""
+    carrying = {cls for cls, data in prog_c.PLANET_CLASSES.items() if data.get("life_chemical")}
+    assert carrying <= set(prog_c.HABITABLE_PLANET_CLASSES)
+    assert "N" not in carrying and "N" not in prog_c.HABITABLE_PLANET_CLASSES
+    assert prog_c.PLANET_CLASS_MAX_LIFE_STAGE["Q"] == "photosynthesis"

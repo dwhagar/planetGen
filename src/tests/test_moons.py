@@ -124,3 +124,23 @@ def test_moons_cannot_themselves_have_moons(host_star):
     host = make_host_planet(host_star, "J", "c", moon_count=3)
     for moon in host.moons:
         assert moon.moons == []
+
+
+def test_a_moons_hill_sphere_is_about_its_planet_not_the_star(host_star):
+    """GEN.138: the Moon's Hill sphere about the Earth is about 61,500 km, not the 888 km the Sun's mass gave."""
+    from planetgen.physics import constants
+    from planetgen.physics.planets import update_hill_sphere
+
+    host = make_host_planet(host_star, "J", "c", moon_count=3)
+    assert host.moons
+    for moon in host.moons:
+        assert moon.primary_mass_kg == host.mass
+        expected_km = moon.distance * constants.AU_TO_M * (moon.mass / (3 * (host.mass + moon.mass))) ** (1 / 3) / 1000
+        assert moon.hill_radius == pytest.approx(expected_km, rel=1e-9)
+        assert moon.min_orbit_distance == pytest.approx(5 * moon.hill_radius / constants.AU_TO_KM, rel=1e-9)
+
+    # The Earth-Moon pair, by hand: 384,400 km out, 7.342e22 kg about 5.972e24 kg.
+    moon = host.moons[0]
+    moon.distance, moon.mass, moon.primary_mass_kg = 384_400e3 / constants.AU_TO_M, 7.342e22, 5.972e24
+    update_hill_sphere(moon)
+    assert moon.hill_radius == pytest.approx(61_500, rel=0.01)

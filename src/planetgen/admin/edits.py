@@ -348,6 +348,7 @@ def _apply_class(body, owner, planet_class):
     planetPhysics.calculate_surface_gravity(body)
     planetPhysics.calculate_atmospheric_conditions(body, parent_distance)
     planetPhysics.generate_orbital_motion_properties(body, primary_mass)
+    body.primary_mass_kg = primary_mass
     planetPhysics.update_hill_sphere(body)
     validation.reapply_life(body)
     if not body.is_moon:

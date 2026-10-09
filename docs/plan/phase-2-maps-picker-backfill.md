@@ -31,7 +31,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.91 | Classes like S and V in the hot and cold zones | GEN.33 |  |
 | GEN.146 | Teff-dependent habitable zone from the Kopparapu table | GEN.91 | Research: in GEN.91's dependency chain. |
 | GEN.92 | Life and its highest stage follow the habitability score | GEN.89, GEN.28 |  |
-| GEN.147 | Classes N and Q carry a life chemical and an uncapped life timeline though they are lifeless (bug) |  | Bug from the research. |
 | GEN.29 | Sweep every planet class for sense once the new ones are in (bug) | GEN.28, GEN.27, GEN.91, GEN.92 | Under GEN.90: the refactor is the sweep. Bug, but by definition a sweep after the new classes; it can't go earlier. Includes rocky rogues of 10-16 Earth masses (up to 17,600 km) that get S as nearest fit (PR #415). |
 | GEN.90 | Refactor the planet classes around the habitability index | GEN.33, GEN.28, GEN.27, GEN.29, GEN.91, GEN.92 | Parent; takes GEN.33, GEN.28, GEN.27 and GEN.29 as its subitems. |
 
@@ -42,7 +41,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.75 | The mini map as a second engine view |  | Locked second camera on MAP.64. |
 | MAP.59 | Make it plain that a zoomed-in slab is a slab, not a wedge | MAP.75 |  |
 | MAP.132 | Overlay markers for black holes, nebulae and habitable worlds |  | Later (Boss 2026-10-08 01:59Z colors). |
-| MAP.144 | Replace `THREE.Clock` with `THREE.Timer` in `phenomenonrender.js` (bug) |  | Bug from the research. |
 
 ### Courses
 
@@ -111,7 +109,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | OPS.30 | A lock helper for the maintenance run |  | Research: used by OPS.16 (ADM.20's admin merge was dropped). |
 | OPS.17 | Install and update set up the daily maintenance schedule | OPS.16 | Same scripts as OPS.7/OPS.8/OPS.13 (install/update, deploy-common), after them. |
 | OPS.34 | Windows Redis in WSL: fix the keep-alive advice and add a Start-RedisInWsl remedy |  | Research: corrects OPS.21 and OPS.27 (built). |
-| OPS.32 | `examples/macos/org.planetgen.update.plist` is not well-formed XML, so the update daemon silently fails to install (bug) |  | Bug from the research. |
 | OPS.31 | Lint every example plist, XML and service file in CI |  | Research: found with the macOS plist bug. |
 
 ### Picker
@@ -136,7 +133,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.109 | N-body influence from every object inside the largest nearby Hill sphere plus the galactic gradient, with a Hill-radius warning | GEN.115 |  |
 | GEN.140 | Orbital math guards the edge-case table adds (GEN.108 built) |  | Research follow-up to GEN.108 (built). |
 | GEN.139 | Orbit-update thresholds: per-object epoch, path-length rule and what the 0.01 mpc applies to (GEN.106 built) |  | Research follow-up to GEN.106 (built). |
-| GEN.138 | Moon `hill_radius_km` uses the star's mass, so moon spacing and the orbit slider are wrong (bug) |  | Bug from the research; changes generated moons, needs an epoch bump. |
 | ADM.36 | Change an object's trajectory vector | GEN.109 |  |
 | GEN.110 | Rogue planet collisions: asteroid fields, merged giants and new stars | GEN.109, GEN.142 |  |
 | GEN.143 | A collision_events table, an admin report and a test that runs the whole collision path | GEN.110 | Research: makes the collision code testable. |
@@ -178,9 +174,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| API.18 | Generate by recipe: JSON for sectors, systems, planets, moons and phenomena | GEN.96, API.9, API.20 | Validation through the Pydantic models; 400 for nonsense, 422 for validation failures. |
-| API.21 | Flask-Limiter puts `Retry-After` on successful responses (bug) |  | Bug from the research. |
-| API.20 | `require_json_body` returns 500 for a deeply nested JSON body (bug) |  | Bug from the research; prerequisite of API.18. |
+| API.18 | Generate by recipe: JSON for sectors, systems, planets, moons and phenomena | GEN.96, API.9 | Validation through the Pydantic models; 400 for nonsense, 422 for validation failures. |
 
 ### View
 
@@ -192,7 +186,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | PERF.33 | Progress bars and ETAs from measured performance | PERF.32 | GitHub issue [#661](https://github.com/dwhagar/planetGen/issues/661) (the use half). |
-| PERF.37 | `DecayingRate` starts from the first single completion, so the ETA is up to twice too long early in a run (bug) |  | Bug from the research; first step of PERF.33. |
 | MAP.139 | The Galaxy View uses its spare space: an info box with a Details link, and menu items |  | GitHub issues [#758](https://github.com/dwhagar/planetGen/issues/758) and [#715](https://github.com/dwhagar/planetGen/issues/715), one layout change. |
 | MAP.140 | Double-click on a selected object goes there and opens its information |  | GitHub issue [#714](https://github.com/dwhagar/planetGen/issues/714). |
 | MAP.141 | Context around the selection: faint neighbours, and the sectors above and below |  | GitHub issues [#718](https://github.com/dwhagar/planetGen/issues/718) and [#716](https://github.com/dwhagar/planetGen/issues/716), one context view. The #716 bug label was overruled. |

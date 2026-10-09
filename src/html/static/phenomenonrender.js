@@ -525,10 +525,11 @@ function start(view) {
     camera.updateProjectionMatrix();
   }
 
-  var clock = new THREE.Clock();
+  var timer = new THREE.Timer();  // the old clock class is deprecated since r183 (MAP.144)
   var STILL_TIME = 3.7;
   function draw() {
-    var t = reducedMotion ? STILL_TIME : clock.getElapsedTime();
+    timer.update();
+    var t = reducedMotion ? STILL_TIME : timer.getElapsed();
     scene.updateMatrixWorld();
     built.update(t, camera);
     renderer.render(scene, camera);

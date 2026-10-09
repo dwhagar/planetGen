@@ -274,3 +274,14 @@ def test_an_unreachable_server_with_db_param_is_a_generic_503():
     assert response.status_code == 503
     assert response.get_json() == {"error": DATABASE_UNAVAILABLE}
     _assert_no_detail(response.get_data(as_text=True))
+
+
+def test_retry_after_is_only_on_a_429():
+    """API.21: Flask-Limiter's `Retry-After` stays off every response that isn't a 429."""
+    client = _app({"search": "2 per minute"}).test_client()
+    answered = [_get(client, "/search?q=x") for _ in range(2)]
+    assert all(response.status_code != 429 for response in answered)
+    assert all("X-RateLimit-Limit" in response.headers for response in answered)  # the limiter did run
+    assert all("Retry-After" not in response.headers for response in answered)
+    limited = _get(client, "/search?q=x")
+    assert limited.status_code == 429 and limited.headers.get("Retry-After")

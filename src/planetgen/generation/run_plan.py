@@ -710,10 +710,18 @@ def _phenomenon_scatter_seed(skeleton):
     return galaxySeed.short_seed(skeleton.galaxy_seed, "phenomenon-scatter", "scatter")
 
 
+def _phenomenon_min_mass(args):
+    """The scatter's mass cut (GEN.167): `--phenomenon-min-mass`, else
+    `tuning.PHENOMENON_MIN_MASS_SOLAR`."""
+    value = getattr(args, "phenomenon_min_mass", None)
+    return float(program_constants.PHENOMENON_MIN_MASS_SOLAR if value is None else value)
+
+
 def scatter_phenomena(args):
     """
     Pre-places the galaxy's black holes, neutron stars, planetary nebulae
-    and supernova remnants (`phenomenon_scatter.scatter_layer`), its
+    and supernova remnants (`phenomenon_scatter.scatter_layer`; neutron
+    stars and black holes only from `--phenomenon-min-mass` up), its
     hypervelocity stars and its nucleus into `phenomenon_scatter`, replacing
     any earlier scatter, one layer per task. Sectors already filled are left
     out, as the bright-star scatter does (GEN.30), and the nucleus and the
@@ -731,6 +739,7 @@ def scatter_phenomena(args):
         extents = store.get_galaxy_layers(conn)
         filled = store.filled_sector_addresses(conn)
         seed = _phenomenon_scatter_seed(skeleton)
+        min_mass_solar = _phenomenon_min_mass(args)
         store.clear_phenomenon_scatter(conn)
 
         t0 = time.perf_counter()
@@ -738,10 +747,11 @@ def scatter_phenomena(args):
         e_value = skeleton.expected_system_count_at_density_1
         layers = sorted(extents, key=lambda extent: (abs(extent[0]), extent[0]))
         weights = {layer_index: phenomenon_scatter.layer_expected(skeleton.shape, layer_index, outer_ring,
-                                                                  skeleton.edge_pc, e_value)
+                                                                  skeleton.edge_pc, e_value, min_mass_solar)
                    + brightStars.RING_WEIGHT_STARS * (outer_ring + 1)
                    for layer_index, outer_ring in layers}
-        log.normal(f"Phenomena: about {round(sum(weights.values())):,} to place in {len(layers):,} layers.")
+        log.normal(f"Phenomena: about {round(sum(weights.values())):,} to place in {len(layers):,} layers "
+                   f"(neutron stars and black holes from {min_mass_solar:g} solar masses).")
 
         def layer_done(layer_counts, _seconds, _weight):
             for kind, count in layer_counts.items():
@@ -753,6 +763,7 @@ def scatter_phenomena(args):
                 payload = {
                     "mysql_config": mysql_config, "shape": skeleton.shape, "layer_index": layer_index,
                     "outer_ring": outer_ring, "edge_pc": skeleton.edge_pc, "expected": e_value, "seed": seed,
+                    "min_mass_solar": min_mass_solar,
                     "skip": {address for address in filled if address[1] == layer_index},
                 }
                 queue.submit("phenomena", f"layer {layer_index}", _phenomenon_layer_task, payload,
@@ -762,7 +773,7 @@ def scatter_phenomena(args):
         store.stamp_phenomenon_scatter_epoch(conn)
         for row in special:
             counts[row[3]] = counts.get(row[3], 0) + 1
-        store.record_phenomenon_scatter(conn, seed)
+        store.record_phenomenon_scatter(conn, seed, min_mass_solar)
         conn.commit()
     finally:
         conn.close()
@@ -789,6 +800,7 @@ def _phenomenon_layer_task(payload):
         for row in phenomenon_scatter.scatter_layer(
             payload["shape"], payload["layer_index"], payload["outer_ring"], payload["edge_pc"],
             payload["expected"], payload["seed"], skip_addresses=payload["skip"],
+            min_mass_solar=payload["min_mass_solar"],
         ):
             counts[row[3]] = counts.get(row[3], 0) + 1
             batch.append(row)
@@ -818,6 +830,10 @@ def run_plan(args):
     if getattr(args, "bright_stars_down_to", None) is not None:
         with workQueue.job_node("bright-stars", f"Bright stars down to {args.bright_stars_down_to:g} L_sun"):
             add_bright_star_band(args)
+        return
+    if getattr(args, "phenomena_only", False):
+        with workQueue.job_node("phenomena", "Phenomena"):
+            scatter_phenomena(args)
         return
     if getattr(args, "bright_stars_only", False):
         with workQueue.job_node("bright-stars", "Bright stars"):

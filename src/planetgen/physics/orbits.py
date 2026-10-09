@@ -58,7 +58,7 @@ def calculate_hill_sphere(distance_m, body_mass_kg, central_mass_kg):
     Returns:
         float: The radius of the Hill sphere in meters.
     """
-    return distance_m * (body_mass_kg / (3 * central_mass_kg)) ** (1 / 3)
+    return distance_m * (body_mass_kg / (3 * (central_mass_kg + body_mass_kg))) ** (1 / 3)
 
 
 ROCHE_FLUID_COEFFICIENT = 2.44

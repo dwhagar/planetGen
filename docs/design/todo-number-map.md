@@ -436,7 +436,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.45 | Prevalence fields take the override share directly and must total 100% | none | open |
 | ADM.46 | Generate page: a progress line and per-layer counts instead of one line per sector | none | dropped |
 | ADM.47 | Generating a neighbourhood from the Generate page shows no per-sector stats and looks slow or silent (bug) | none | done, PR #846 |
-| ADM.48 | Two test_api_auth_sweep tests fail: /admin/stats/galaxy-settings/<name> answers 302, not 403, to an unauthorised caller (bug) | none | open |
+| ADM.48 | Two test_api_auth_sweep tests fail: /admin/stats/galaxy-settings/<name> answers 302, not 403, to an unauthorised caller (bug) | none | done, PR #863 |
 | API.1 | Create a system inside an existing sector | 10 (2026-09-24 01:32Z to 02:18Z); 7 (2026-09-24 01:57Z to 02:02Z); 5 (2026-09-24 02:25Z to 05:38Z); 4 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 13 (2026-09-30 16:44Z); 14 (2026-09-30 16:49Z); 15 (2026-09-30 16:51Z to 18:09Z); 32 (2026-09-30 18:14Z); 37 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.2 | Edit a system's generated content | 11 (2026-09-24 01:32Z to 02:18Z); 8 (2026-09-24 01:57Z to 02:02Z); 6 (2026-09-24 02:25Z to 05:38Z); 5 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 14 (2026-09-30 16:44Z); 15 (2026-09-30 16:49Z); 16 (2026-09-30 16:51Z to 18:09Z); 33 (2026-09-30 18:14Z); 38 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.3 | Remote generate: generate on a local machine, upload through the API | none | open |
@@ -456,8 +456,8 @@ Parents marked "new parent" had no old number of their own.
 | API.17 | Remote generation reproduces what the server would make | none | open |
 | API.18 | Generate by recipe: JSON for sectors, systems, planets, moons and phenomena | none | open |
 | API.19 | Galaxy-scale recipes: build a whole galaxy, piece by piece, from JSON | none | open |
-| API.20 | `require_json_body` returns 500 for a deeply nested JSON body (bug) | none | open |
-| API.21 | Flask-Limiter puts `Retry-After` on successful responses (bug) | none | open |
+| API.20 | `require_json_body` returns 500 for a deeply nested JSON body (bug) | none | done, PR #865 |
+| API.21 | Flask-Limiter puts `Retry-After` on successful responses (bug) | none | done, PR #865 |
 | API.22 | An API version number: one sequential integer, shown in admin and in the status response | none | open |
 | DB.1 | Starbases, colonies and outposts in the database | 30 (2026-09-30 18:14Z); 35 (2026-09-30 18:39Z to 2026-10-01 02:24Z) | done in 7.35.0, PR #152 |
 | DB.2 | Asteroid field and comet composition rows are written but never read (bug) | none | done, PR #347 |
@@ -477,7 +477,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.16 | Store the generator epoch and run id on each sector instead of four version text columns | none | open |
 | DB.17 | Repair by regenerating a damaged sector from its seed when parity cannot rebuild it | none | open |
 | DB.18 | Migration helpers for slow DDL: online indexes, instant columns and batched updates | none | open |
-| DB.19 | Phenomenon rows: implement the mass cut (1.17 billion rows and 161 GB become about 2.7e5 rows) | none | open |
+| DB.19 | Compact or derive phenomenon rows (needed only if the mass cut is lowered to 10 solar masses or less) | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
@@ -619,7 +619,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.135 | Deterministic math helpers for every stored float, with a lint and frozen constants | none | open |
 | GEN.136 | Fingerprint encoding: floats to 9 significant digits, a stored leaf digest per sector and a ring-and-layer tree | none | open |
 | GEN.137 | Placed objects move along a galactic orbit but never by velocity times time, and phenomenon_scatter has no plan time (bug) | none | done, PR #843 |
-| GEN.138 | Moon `hill_radius_km` uses the star's mass, so moon spacing and the orbit slider are wrong (bug) | none | open |
+| GEN.138 | Moon `hill_radius_km` uses the star's mass, so moon spacing and the orbit slider are wrong (bug) | none | done, PR #865 |
 | GEN.139 | Orbit-update thresholds: per-object epoch, path-length rule and what the 0.01 mpc applies to (GEN.106 built) | none | open |
 | GEN.140 | Orbital math guards the edge-case table adds (GEN.108 built) | none | open |
 | GEN.141 | Faster Kepler solver (Mikkola or Markley) with brentq as fallback | none | open |
@@ -628,7 +628,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.144 | One distance for the Sun from the galactic centre across the constants, the density model and the design docs | none | open |
 | GEN.145 | Class S atmosphere rule: S keeps air unless the shoreline ratio is over 30 | none | open |
 | GEN.146 | Teff-dependent habitable zone from the Kopparapu table | none | open |
-| GEN.147 | Classes N and Q carry a life chemical and an uncapped life timeline though they are lifeless (bug) | none | open |
+| GEN.147 | Classes N and Q carry a life chemical and an uncapped life timeline though they are lifeless (bug) | none | done, PR #865 |
 | GEN.148 | Habitability index follow-ups from the research (GEN.84 built) | none | open |
 | GEN.149 | Planetary-nebula central stars: 0.5 to 0.7 Msun, 1e2 to 1e4 Lsun, up to 2e5 K | none | open |
 | GEN.150 | H II region radius and density from the ionizing photon rate, and IMF-based nebula hosts | none | open |
@@ -647,9 +647,9 @@ Parents marked "new parent" had no old number of their own.
 | GEN.163 | Type-B pulsar planets in globular clusters (GEN.130 follow-on) | none | open |
 | GEN.164 | Synthetic globular-cluster systems for generated galaxies | none | open |
 | GEN.165 | A comet's time-0 scene position disagrees with its stored position in a rare random system (bug) | none | open |
-| GEN.166 | A mass_range argument on NeutronStar and BlackHole, and intermediate-mass black holes as their own kind | none | open |
-| GEN.167 | A lowest-mass option for the phenomenon scatter: --phenomenon-min-mass, default 20 solar masses | none | open |
-| GEN.168 | The sector fill draws the phenomena below the scatter cut | none | open |
+| GEN.166 | A mass_range argument on NeutronStar and BlackHole, and intermediate-mass black holes as their own kind | none | done, PR #866 |
+| GEN.167 | A lowest-mass option for the phenomenon scatter: --phenomenon-min-mass, default 20 solar masses | none | done, PR #866 |
+| GEN.168 | The sector fill draws the phenomena below the scatter cut | none | done, PR #866 |
 | GEN.169 | Decide the phenomenon scatter rates: regional factors and the 0.1% intermediate-mass black holes | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
@@ -794,7 +794,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.141 | Context around the selection: faint neighbours, and the sectors above and below | none | open |
 | MAP.142 | Nebulae have fuzzy, fading boundaries | none | open |
 | MAP.143 | Color sectors by their number of habitable locations | none | open |
-| MAP.144 | Replace `THREE.Clock` with `THREE.Timer` in `phenomenonrender.js` (bug) | none | open |
+| MAP.144 | Replace `THREE.Clock` with `THREE.Timer` in `phenomenonrender.js` (bug) | none | done, PR #865 |
 | MAP.145 | A sky and Galaxy Map drawing rule for neighbour galaxies | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
@@ -884,11 +884,11 @@ Parents marked "new parent" had no old number of their own.
 | OPS.29 | Update reload: cover the gunicorn units and non-Apache hosts, and say what a reload aborts | none | open |
 | OPS.30 | A lock helper for the maintenance run | none | open |
 | OPS.31 | Lint every example plist, XML and service file in CI | none | open |
-| OPS.32 | `examples/macos/org.planetgen.update.plist` is not well-formed XML, so the update daemon silently fails to install (bug) | none | open |
+| OPS.32 | `examples/macos/org.planetgen.update.plist` is not well-formed XML, so the update daemon silently fails to install (bug) | none | done, PR #865 |
 | OPS.33 | `.gitattributes` has no LF pins for the lock files and word list, so hashes differ between a Windows and a Linux checkout (bug) | none | done, PR #843 |
 | OPS.34 | Windows Redis in WSL: fix the keep-alive advice and add a Start-RedisInWsl remedy | none | open |
 | OPS.35 | A vendored-version lock file for the static libraries | none | open |
-| OPS.36 | Space and size checks measure the boot drive, not the drive holding the database (bug) | none | open |
+| OPS.36 | Space and size checks measure the boot drive, not the drive holding the database (bug) | none | done, PR #868 |
 | OPS.37 | A Generator version number: one sequential integer, shown in admin and the API | none | open |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
@@ -926,15 +926,15 @@ Parents marked "new parent" had no old number of their own.
 | PERF.33 | Progress bars and ETAs from measured performance | none | open |
 | PERF.35 | An interval or chunk ledger for untouched sectors once block-first backfill lands | none | open |
 | PERF.36 | Memory and request guard: never list more than about 50,000 candidate cells, and refuse huge enumerations in a web request | none | open |
-| PERF.37 | `DecayingRate` starts from the first single completion, so the ETA is up to twice too long early in a run (bug) | none | open |
+| PERF.37 | `DecayingRate` starts from the first single completion, so the ETA is up to twice too long early in a run (bug) | none | done, PR #865 |
 | PERF.38 | Cache fixes for the Galaxy Map under a fill: single-flight tile builds, a busy rule for the page cache, a deletion epoch in place of COUNT(*) | none | open |
 | PERF.39 | Every API job costs 2.4 s and 195 MB: import lazily and cap the burst workers | none | open |
 | PERF.40 | Two shared queues, a reserved interactive worker and a real "cancel now" | none | open |
 | PERF.41 | Stamp the tile and page caches with a TILE_FORMAT constant instead of the version (optional) | none | open |
 | PERF.42 | Warm the RQ worker before the fork: pre-import generation modules and build the bright-star table once | none | done, PR #841 |
 | PERF.43 | Lazy word-salad names for phenomena named by object ID | none | done, PR #861 |
-| PERF.44 | Compute object uids in Python and write them with the row | none | open |
-| PERF.45 | Nearest-system links and containment as one later pass | none | open |
+| PERF.44 | Compute object uids in Python and write them with the row | none | done, PR #863 |
+| PERF.45 | Nearest-system links and containment as one later pass | none | done, PR #863 |
 | PERF.46 | Planets and moons: set the position once per body | none | open |
 | PERF.47 | The PERF.31 benchmark records the buffer pool, table sizes and worker start-up cost | none | open |
 | PERF.48 | Low priority: a numeric-only INSERT formatter or C driver for bright_stars and phenomenon_scatter | none | open |

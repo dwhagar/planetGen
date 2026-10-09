@@ -80,6 +80,19 @@ def _api_process_info():
     }
 
 
+def _database_disk(conn, config):
+    """The drive holding the database's data directory (never the boot drive, unless the data is there),
+    for the stats page: `{"measured", "path", "mount", "total_bytes", "free_bytes", "source", "note"}`."""
+    from planetgen.generation import stats as generationStats
+
+    disk = generationStats.database_disk(conn, config.host, config.database)
+    if isinstance(disk, generationStats.DiskSpace):
+        return {"measured": True, "path": disk.path, "mount": disk.mount, "where": disk.where(),
+                "total_bytes": disk.total_bytes, "free_bytes": disk.free_bytes, "source": disk.source, "note": None}
+    return {"measured": False, "path": None, "mount": None, "where": None, "total_bytes": None,
+            "free_bytes": None, "source": None, "note": disk.reason}
+
+
 @bp.route("/stats")
 @require_admin(fresh=True)
 def stats():
@@ -117,6 +130,7 @@ def stats():
         "schema_expected": _db.SCHEMA_VERSION,
         "schema_current": version == _db.SCHEMA_VERSION,
         "size_bytes": sum(t["data_bytes"] + t["index_bytes"] for t in tables),
+        "disk": _database_disk(conn, _resolve_requested_db_config()),
         "counts": adminStats.exact_counts(conn),
         "bright_stars": adminStats.bright_star_counts(conn),
         "sector_stats": adminStats.density_stats(conn),

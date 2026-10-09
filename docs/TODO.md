@@ -669,13 +669,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   zero habitable worlds drawn with no fill; blocks never fully opaque
   (Boss).
 
-- [ ] **MAP.144 Replace `THREE.Clock` with `THREE.Timer` in `phenomenonrender.js` (bug)**
-  `src/html/static/phenomenonrender.js:528` uses the deprecated
-  `THREE.Clock` (a runtime warning on r186; deprecated since r183).
-  Change it before the next three.js bump.
-  Prerequisites: none.
-  Design: [docs/design/map-ui-and-frontend-libraries.md](design/map-ui-and-frontend-libraries.md)
-
 - [ ] **MAP.145 A sky and Galaxy Map drawing rule for neighbour galaxies**
   An extended sprite with computed magnitude and size and a
   surface-brightness cut at about 23 mag/arcsec^2; the Magellanic Clouds
@@ -2312,24 +2305,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisite: GEN.135.
   Design: [docs/design/generation-determinism.md](design/generation-determinism.md)
 
-- [ ] **GEN.138 Moon `hill_radius_km` uses the star's mass, so moon spacing and the orbit slider are wrong (bug)**
-  `physics/planets.py` `generate_planet_properties` ends with
-  `update_hill_sphere(planet)`, which uses `planet.star.mass`;
-  `generate_moons` passes `planet.star` to the moon's `Planet(...)`, and
-  `generation/validation.py` `refresh_moon_orbit` calls it again. For
-  the Moon: 888 km stored against 61,525 km correct (hand arithmetic).
-  Effects: a wrong `min_orbit_distance` (5 x Hill), so moons are spaced
-  about 4,400 km against about 307,000 km apart; the facility orbit
-  slider falls back to a radius multiple for small moons;
-  `test_web_facilities.py` fixtures use a correct-looking 61,500 km, so
-  the tests miss it. Done: the Hill radius of a moon uses the planet's
-  mass, with a test on a Moon-like moon. Also check
-  `physics.orbits.calculate_hill_sphere` call sites: it uses `a (m / 3
-  M_enc)^(1/3)` and should use `a (1 - e) (m / (3 (M + m)))^(1/3)` for
-  bound pairs.
-  Prerequisites: none.
-  Design: [docs/design/course-avoidance.md](design/course-avoidance.md)
-
 - [ ] **GEN.139 Orbit-update thresholds: per-object epoch, path-length rule and what the 0.01 mpc applies to (GEN.106 built)**
   Follow-up to GEN.106: (a) a per-object epoch column beside
   `next_update_due`; (b) define the movement rule on path length, not
@@ -2424,18 +2399,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the zone of every star, so it needs reproducibility handling (the
   GEN.57 family) and the epoch bump.
   Prerequisite: GEN.91.
-  Design: [docs/design/atmospheres-retention-and-classes.md](design/atmospheres-retention-and-classes.md)
-
-- [ ] **GEN.147 Classes N and Q carry a life chemical and an uncapped life timeline though they are lifeless (bug)**
-  `tuning.PLANET_CLASSES["N"]` and `["Q"]` carry a `life_chemical`, but
-  neither is in `HABITABLE_PLANET_CLASSES` and neither has a
-  `PLANET_CLASS_MAX_LIFE_STAGE` cap, so `life.py` (line 198) stores an
-  uncapped `evolutionary_data` timeline for them and
-  `Planet.to_paragraph_list` prints "suitable for life based on
-  <chemical>" for a lifeless Venus analog. Done: strip the chemical from
-  N (and Q if confirmed lifeless) or add them to the habitable list with
-  a cap.
-  Prerequisites: none.
   Design: [docs/design/atmospheres-retention-and-classes.md](design/atmospheres-retention-and-classes.md)
 
 - [ ] **GEN.148 Habitability index follow-ups from the research (GEN.84 built)**
@@ -2656,84 +2619,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   flake. Not a Phase 1 blocker.
   Prerequisites: none.
 
-- [ ] **GEN.166 A mass_range argument on NeutronStar and BlackHole, and intermediate-mass black holes as their own kind**
-  Research (2026-10-09, phenomenon-scatter-mass-cut.md, PR #837; handoff
-  in /mnt/project-files/research/handoff/phenomenon-mass-cut.md): Boss
-  decided at 19:54Z that the GEN.100 scatter keeps only objects above a
-  lowest mass and the sector fill draws the rest below it, like the
-  bright stars. Add `mass_range` to `NeutronStar` and `BlackHole`
-  (compact_remnant.py, about lines 262 and 464) so a draw can be limited
-  to a mass interval. Make intermediate-mass black holes (100 to 100,000
-  solar masses) a kind of their own, with rates 0.999 r and 0.001 r of
-  the black-hole rate r.
-  Boss (2026-10-09): Decided by Boss (2026-10-09 20:28Z, via the
-  coordinator): ONE combined reseed. Lazy names (PERF.43) and the 20
-  solar mass cut (GEN.166 to GEN.168) change what a given seed
-  generates, and that one-time seed change lands with these two
-  together, not in separate steps. Whichever lands first must not claim
-  the reseed alone; the second says so in its changes note.
-  Prerequisites: none.
-  Design: [docs/design/phenomenon-scatter-mass-cut.md](design/phenomenon-scatter-mass-cut.md)
-
-- [ ] **GEN.167 A lowest-mass option for the phenomenon scatter: --phenomenon-min-mass, default 20 solar masses**
-  Research (2026-10-09, phenomenon-scatter-mass-cut.md, PR #837; handoff
-  in /mnt/project-files/research/handoff/phenomenon-mass-cut.md): Boss
-  decided at 19:54Z that the GEN.100 scatter keeps only objects above a
-  lowest mass and the sector fill draws the rest below it, like the
-  bright stars. Add `--phenomenon-min-mass` (default 20 solar masses,
-  the cut Boss accepted), stored with the scatter settings, the settings
-  file and the reproducibility key; the scatter draws only objects above
-  it. The per-kind mean counts are truncated by the share S_k(c) above
-  the cut c: neutron stars (2.2 - c) / 1.1, stellar-mass black holes (20
-  - c) / 15, intermediate-mass black holes ln(1e5 / c) / ln(1e3). At 20
-  solar masses the table falls from 1.17e9 rows (161 GB) to about 2.7e5
-  rows (37 MB).
-  Boss (2026-10-09): Decided by Boss (2026-10-09 20:28Z, via the
-  coordinator): ONE combined reseed. Lazy names (PERF.43) and the 20
-  solar mass cut (GEN.166 to GEN.168) change what a given seed
-  generates, and that one-time seed change lands with these two
-  together, not in separate steps. Whichever lands first must not claim
-  the reseed alone; the second says so in its changes note.
-  Requirement (2026-10-09, phenomenon-scatter-mass-cut.md): seeding
-  requirement (Research Lane 1): a plan with no stored cut means no cut
-  (NULL is 0), so old plans keep working; the cut is stored in
-  `galaxy_shape` beside `phenomenon_scatter_seed`.
-  Prerequisite: GEN.166.
-  Design: [docs/design/phenomenon-scatter-mass-cut.md](design/phenomenon-scatter-mass-cut.md)
-
-- [ ] **GEN.168 The sector fill draws the phenomena below the scatter cut**
-  Research (2026-10-09, phenomenon-scatter-mass-cut.md, PR #837; handoff
-  in /mnt/project-files/research/handoff/phenomenon-mass-cut.md): Boss
-  decided at 19:54Z that the GEN.100 scatter keeps only objects above a
-  lowest mass and the sector fill draws the rest below it, like the
-  bright stars. When a sector is made, draw the neutron stars and black
-  holes below the cut: a per-sector stream, Poisson thinning with the
-  scatter's expected-star count, a level per sector, and a band top-up
-  when the cut is lowered (the `run_plan._draw_sector_bands` pattern
-  used for the bright stars).
-  Boss (2026-10-09): Decided by Boss (2026-10-09 20:28Z, via the
-  coordinator): ONE combined reseed. Lazy names (PERF.43) and the 20
-  solar mass cut (GEN.166 to GEN.168) change what a given seed
-  generates, and that one-time seed change lands with these two
-  together, not in separate steps. Whichever lands first must not claim
-  the reseed alone; the second says so in its changes note.
-  Requirement (2026-10-09, phenomenon-scatter-mass-cut.md): seeding
-  requirements (Research Lane 1): the below-cut draw uses its own
-  per-sector sub-stream, not the sector's sequential stream; every
-  sector filled before the reseed counts as complete (level 0), so a
-  band top-up never redraws below-cut objects there; an old stored
-  `black-hole` row rebuilt by the new intermediate-mass-split
-  constructor (GEN.166) may no longer come out intermediate-mass, so
-  either keep the legacy path for rows from a NULL-cut plan or say so in
-  the changes note. Keeping already filled sectors across the reseed
-  needs this and GEN.167's NULL rule; the alternative recommended to
-  Boss is to land the combined reseed, then reset and re-plan.
-  Test (2026-10-09): a test fills a sector before the cut exists and
-  checks that the later top-up draws nothing below the cut there, and a
-  second test checks the below-cut stream is independent of read order.
-  Prerequisite: GEN.167.
-  Design: [docs/design/phenomenon-scatter-mass-cut.md](design/phenomenon-scatter-mass-cut.md)
-
 - [ ] **GEN.169 Decide the phenomenon scatter rates: regional factors and the 0.1% intermediate-mass black holes**
   Research (2026-10-09, phenomenon-scatter-mass-cut.md, PR #837; handoff
   in /mnt/project-files/research/handoff/phenomenon-mass-cut.md): Boss
@@ -2943,14 +2828,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none.
   Design: [docs/design/fill-order-curves-and-core.md](design/fill-order-curves-and-core.md)
 
-- [ ] **PERF.37 `DecayingRate` starts from the first single completion, so the ETA is up to twice too long early in a run (bug)**
-  `queue/progress_rate.py` `DecayingRate` reads 2.0 times the true time
-  left at 5% done, 1.6 at 10% and 1.2 at 25% on a 4-worker run. Fix with
-  decayed sums (N/D), which is also the first step of PERF.33; test with
-  a fake clock and several workers finishing together.
-  Prerequisites: none.
-  Design: [docs/design/performance-eta-queue-and-caching.md](design/performance-eta-queue-and-caching.md)
-
 - [ ] **PERF.38 Cache fixes for the Galaxy Map under a fill: single-flight tile builds, a busy rule for the page cache, a deletion epoch in place of COUNT(*)**
   PERF.34 is built; the research reorders its suspects by evidence
   (design doc 5.4): no single-flight on tile builds; the page cache is
@@ -3005,35 +2882,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisite: PERF.31.
   Design: [docs/design/performance-eta-queue-and-caching.md](design/performance-eta-queue-and-caching.md)
 
-- [ ] **PERF.44 Compute object uids in Python and write them with the row**
-  Research (2026-10-09, generation-performance-study.md, PR #835;
-  handoff in
-  /mnt/project-files/research/handoff/generation-performance.md; from
-  Boss's requests of 19:08Z and 19:21Z, generation being his slowest
-  point): `store.assign_uids` selects every moon, planet and rogue row
-  back and updates it with its uid. Compute the uid in Python and write
-  it with the INSERT. 6 to 9% of a fill.
-  Prerequisites: none.
-  Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
-
-- [ ] **PERF.45 Nearest-system links and containment as one later pass**
-  Research (2026-10-09, generation-performance-study.md, PR #835;
-  handoff in
-  /mnt/project-files/research/handoff/generation-performance.md; from
-  Boss's requests of 19:08Z and 19:21Z, generation being his slowest
-  point): do the nearest-system links and the containment as one later
-  pass (the GEN.126 settle) instead of per sector at save. That takes
-  the neighbour locks off the critical path; today a fill is only 1.87
-  times faster at 2 to 4 workers.
-  Boss (2026-10-09, generation-performance-study.md): Decided by Boss
-  (2026-10-09 20:02Z): the lossless savings are approved, and the
-  nearest-system and containment work (`store.refresh_nearest_systems`,
-  `store.refresh_containment`) moves out of the per-sector save into its
-  own phase after placement, or into the same phase as placement,
-  whichever is more efficient. Decide by measurement.
-  Prerequisites: none.
-  Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
-
 - [ ] **PERF.46 Planets and moons: set the position once per body**
   Research (2026-10-09, generation-performance-study.md, PR #835;
   handoff in
@@ -3049,6 +2897,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stays open: it costs 2 to 4% of a fill (0.85 microseconds a call,
   about 535 calls a system) and Research Lane 1 recommended keeping it;
   Boss's answer is pending, so do not skip the check yet.
+  Built (PR #863, 2026-10-09): the position half; bodies work out their
+  coordinates when first read. Only the `finite_domain` question is
+  open, on Foundations lane 2.
   Prerequisites: none.
   Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
 
@@ -3281,7 +3132,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Prerequisite: DB.15.
   Design: [docs/design/db-check-and-parity-repair.md](design/db-check-and-parity-repair.md)
 
-- [ ] **DB.19 Phenomenon rows: implement the mass cut (1.17 billion rows and 161 GB become about 2.7e5 rows)**
+- [ ] **DB.19 Compact or derive phenomenon rows (needed only if the mass cut is lowered to 10 solar masses or less)**
   Research (2026-10-09, phenomenon-scatter-mass-cut.md, PR #837, after
   generation-performance-study.md, PR #835): the default galaxy would write
   about 1.17e9 phenomenon rows (138 bytes a row, about 161 GB, 43 times the
@@ -3289,11 +3140,14 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Boss decided (2026-10-09 19:54Z) that the scatter keeps only objects above
   a lowest mass and the sector fill draws the rest below it, like the bright
   stars. Boss accepted the cut of 20 solar masses (decision
-  card, 2026-10-09). The work is GEN.166, GEN.167 and GEN.168.
-  Deriving neutron stars and black holes on demand, or compacting the row,
+  card, 2026-10-09). The cut is built (GEN.166 to GEN.168, PR #866,
+  2026-10-09): the scatter keeps objects above 20 solar masses and the
+  sector fill draws the rest. Same seed now gives a different galaxy from
+  PERF.43 (PR #861) and PR #866 together, the one combined reseed. Caveat
+  from the PR: an old black-hole row rebuilt by the new code can come
+  out intermediate-mass. Deriving neutron stars and black holes on demand, or compacting the row,
   is needed only if the cut is lowered to 10 solar masses or less. The
   notes' earlier 1.6e8 rows was an unverified estimate, not a result.
-  Prerequisite: GEN.167.
   Design: [docs/design/phenomenon-scatter-mass-cut.md](design/phenomenon-scatter-mass-cut.md)
   Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
 
@@ -3590,7 +3444,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   `seed_used` rule. Existing routes keep 400 (open question for Boss,
   default: only recipes and uploads move to 422). The
   `require_json_body` depth fix is a prerequisite.
-  Prerequisites: GEN.96, API.9, API.20.
+  Prerequisites: GEN.96, API.9.
 
 - [ ] **API.19 Galaxy-scale recipes: build a whole galaxy, piece by piece, from JSON**
   Boss (2026-10-07 11:47Z): "The idea is that one could go so far as to
@@ -3605,20 +3459,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Research (2026-10-09, api-design-standards.md): recipes stay one
   region per request.
   Prerequisite: API.18.
-
-- [ ] **API.20 `require_json_body` returns 500 for a deeply nested JSON body (bug)**
-  A 100,000-deep nested JSON body (200 KB, under `MAX_CONTENT_LENGTH`)
-  gives a 500 because `RecursionError` escapes
-  `request.get_json(silent=True)` in `api/common.py`. Done: a 400, with
-  a depth limit, and a test.
-  Prerequisites: none.
-  Design: [docs/design/api-design-standards.md](design/api-design-standards.md)
-
-- [ ] **API.21 Flask-Limiter puts `Retry-After` on successful responses (bug)**
-  Flask-Limiter 4.1.1 sends `Retry-After: 3599` on 200 responses. Done:
-  suppress the header on every non-429 response, with a test.
-  Prerequisites: none.
-  Design: [docs/design/api-design-standards.md](design/api-design-standards.md)
 
 - [ ] **API.22 An API version number: one sequential integer, shown in admin and in the status response**
   Boss (2026-10-09 20:59Z): "I want ... API version number (same) by the
@@ -3860,18 +3700,6 @@ Boss (2026-10-07 11:47Z): "Actual specs on layers on the generation
   CLI's `--prevalence` accepts the same shares and rejects a set that is
   not 100%. A share that depends on the local star density is not part
   of this item; the shares stay the same in every sector.
-
-- [ ] **ADM.48 Two test_api_auth_sweep tests fail: /admin/stats/galaxy-settings/<name> answers 302, not 403, to an unauthorised caller (bug)**
-  Reported by Foundations lane 2 (2026-10-09 21:04Z) while merging
-  PERF.43 (PR #861): two `test_api_auth_sweep` tests fail on main as
-  well. The web route `/admin/stats/galaxy-settings/<name>` (ADM.18,
-  `web/admin_pages.py` `download_galaxy_settings`) redirects an
-  unauthorised caller (302) where the sweep expects 403. Find which is
-  right: either the route should answer 403 like the other admin
-  download routes, or the sweep needs the route in its redirect list.
-  Done: both tests pass and the route's behaviour matches the other
-  admin routes. Owner: Bugfixes lane 1, behind its current list.
-  Prerequisites: none.
 
 ## SEC: Security
 
@@ -4154,16 +3982,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Prerequisites: none.
   Design: [docs/design/ops-scheduling-and-rotation.md](design/ops-scheduling-and-rotation.md)
 
-- [ ] **OPS.32 `examples/macos/org.planetgen.update.plist` is not well-formed XML, so the update daemon silently fails to install (bug)**
-  The header comment contains `--skip-update-timer`, and `--` is illegal
-  inside an XML comment (`xmllint --noout` reports "Double hyphen within
-  comment"; `plistlib.load` raises at line 12, column 34).
-  `install-maintenance-timer.sh` ends its bootstrap with `|| true`, so
-  the failure is silent. Done: reword the comment and test that
-  `plistlib.load` reads every `examples/macos/*.plist`.
-  Prerequisites: none.
-  Design: [docs/design/ops-scheduling-and-rotation.md](design/ops-scheduling-and-rotation.md)
-
 - [ ] **OPS.34 Windows Redis in WSL: fix the keep-alive advice and add a Start-RedisInWsl remedy**
   `docs/deployment/windows.md` (Redis, step 4) says a logon task running
   `wsl -d Ubuntu` keeps Redis alive; it does not (a WSL instance idles
@@ -4184,24 +4002,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Shoelace (Lit, floating-ui, tinycolor).
   Prerequisites: none.
   Design: [docs/design/map-ui-and-frontend-libraries.md](design/map-ui-and-frontend-libraries.md)
-
-- [ ] **OPS.36 Space and size checks measure the boot drive, not the drive holding the database (bug)**
-  Boss (2026-10-09 20:22Z): "make sure that our size and space remaining
-  check properly checks the space remaining not on the boot drive but if
-  my database data is stored elsewhere (it is now) that it looks that
-  up." Symptom: the disk-space and size checks (the Admin dashboard, the
-  stats and size pages, the PERF.3 "enough space" pre-flight for fills
-  and plans, the update scripts and the debug log) measure the boot
-  drive, not the drive that holds the MySQL data directory. Done when:
-  every place that reports or checks database size or free space asks
-  the server for its data directory (`SELECT @@datadir`), resolves it to
-  its mount (handling Windows drive letters, symlinks and bind mounts)
-  and measures the free space there; when the database is on another
-  host and the data directory is not reachable from the web host, it
-  says "unknown" instead of showing boot-drive numbers; the path or
-  drive measured is shown; tests use a fake data directory on another
-  mount point. Owner: Bugfixes lane 1, after its current batch.
-  Prerequisites: none.
 
 - [ ] **OPS.37 A Generator version number: one sequential integer, shown in admin and the API**
   Boss (2026-10-09 20:59Z): "I want a Generator version number (like DB

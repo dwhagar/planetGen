@@ -52,6 +52,8 @@ def create_app(config_object=Config):
     naming.install(app)
     app.before_request(_reject_undecodable_query_string)
     app.before_request(_reject_oversized_body)
+    # Registered before the limiter, so it runs after the limiter's own after_request hook (API.21).
+    app.after_request(_drop_retry_after_unless_limited)
     limiter.init_app(app)
     app.register_blueprint(bp)
     app.register_blueprint(auth_bp)
@@ -112,6 +114,14 @@ def _reject_undecodable_query_string():
         abort(400, description="The query string is not valid UTF-8.")
 
 
+def _drop_retry_after_unless_limited(response):
+    """Flask-Limiter 4 puts `Retry-After` on every response it counts; it
+    belongs only on a 429, where it tells the caller when to retry (API.21)."""
+    if response.status_code != 429:
+        response.headers.pop("Retry-After", None)
+    return response
+
+
 def _reject_oversized_body():
     """
     A request whose `Content-Length` is over `MAX_CONTENT_LENGTH` is a 413
@@ -150,7 +160,10 @@ def _register_request_logging(app):
                       else "session cookie" if request.cookies else "none")
         body = ""
         if request.is_json:
-            payload = request.get_json(silent=True)
+            try:
+                payload = request.get_json(silent=True)
+            except RecursionError:  # logging never decides the answer; the route will say 400 (API.20)
+                payload = None
             if isinstance(payload, dict):
                 body = f", JSON body fields {sorted(payload)}"
         log.debug(f"API request: {request.method} {request.path} args={args} from {request.remote_addr} "
