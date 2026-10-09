@@ -141,10 +141,6 @@ croniter==6.2.4 \
     --hash=sha256:8ef3d544107a5c05a150a2d78f8bf5a8eb9c5c4d93405a736b824109574e3f4d \
     --hash=sha256:fc124f751b1b04805c2a04b061898b436b45ab2320b045e1e052ea895de65189
     # via rq
-dbutils==3.2.0 \
-    --hash=sha256:5b512edbff29697d118359c1a7a48ce9f93b9b6e4ecebad25396b987b4bce947 \
-    --hash=sha256:dfe3f5eb6e383042d68ad07e4e9778b2abbcc4627a283f85efc8210319c075d2
-    # via planetgen (setup.py)
 defusedxml==0.7.1 ; python_full_version >= '3.10' \
     --hash=sha256:1bb3032db185915b62d7c6209c5a8792be6a32ab2fedacc84e01b52c51aa3e69 \
     --hash=sha256:a352e7e428770286cc899e2542b6cdaedb2b4953ff269a210103ec58f6198a61

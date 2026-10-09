@@ -41,7 +41,7 @@ module's and `planetgen.db.query`'s `?` positional placeholders, which the
 wrapper rewrites to `pymysql`'s `%s` at the point of execution, and
 `sqlite3.Row`-style `row["column"]` access, which `pymysql`'s
 `DictCursor` already provides natively. Real concurrent access uses a
-connection pool (`DBUtils.PooledDB`) rather than opening a fresh TCP
+connection pool (SQLAlchemy's `QueuePool`) rather than opening a fresh TCP
 connection per call, per TODO.md's "add real connection pooling" note.
 """
 
@@ -61,7 +61,9 @@ from collections import namedtuple
 
 import pymysql
 import pymysql.cursors
-from dbutils.pooled_db import PooledDB
+import sqlalchemy.event
+import sqlalchemy.exc
+import sqlalchemy.pool
 
 from planetgen.admin import activity_log
 from planetgen.names import object_id as objectId
@@ -336,7 +338,7 @@ def mysql_config_from_args(args) -> MySQLConfig:
     )
 
 _pools = {}
-"""dict: `MySQLConfig._key() -> PooledDB`, one pool per distinct set of
+"""dict: `MySQLConfig._key() -> sqlalchemy `QueuePool`, one pool per distinct set of
 connection parameters seen so far in this process. A WSGI worker or a
 single CLI invocation only ever needs one (the process-wide default), but
 keying by config rather than keeping a single module-level pool lets
@@ -400,12 +402,7 @@ def _get_pool(config, statement_timeout_s=None):
         sql_mode = _session_sql_mode()
         if sql_mode:
             init += f", SESSION sql_mode = '{sql_mode}'"
-        _pools[key] = PooledDB(
-            creator=pymysql,
-            mincached=1,
-            maxcached=5,
-            maxconnections=10,
-            blocking=True,
+        connect_args = dict(
             host=config.host,
             port=config.port,
             user=config.user,
@@ -421,25 +418,42 @@ def _get_pool(config, statement_timeout_s=None):
             # PERF.17: a web pool also stops any statement that runs
             # past `statement_timeout_s`.
             init_command=init,
-            # Never fail over to a fresh connection mid-use. DBUtils
-            # otherwise re-runs a statement that hit any OperationalError
-            # -- a deadlock included -- on a new cursor or connection, and
-            # the caller carries on in a transaction MySQL has already
-            # rolled back (the error 1452s of PERF.14's parallel test). A
-            # dead pooled connection is still replaced when it's checked
-            # out (`ping`); one lost mid-use raises.
-            isfatal=_never_fail_over,
         )
+        # Never fail over to a fresh connection mid-use: SQLAlchemy's pool
+        # hands out one DBAPI connection and never re-runs a statement on
+        # another, so a deadlock leaves the caller to see it (the error
+        # 1452s of PERF.14's parallel test came from a silent re-run in a
+        # transaction MySQL had already rolled back). A dead pooled
+        # connection is still replaced when it's checked out
+        # (`_ping_on_checkout`); one lost mid-use raises.
+        # A bare pool, not an Engine: an Engine's dialect would probe the
+        # server through these DictCursor connections and read rows by
+        # position.
+        pool = sqlalchemy.pool.QueuePool(
+            lambda: pymysql.connect(**connect_args),
+            pool_size=5,
+            max_overflow=5,
+        )
+        sqlalchemy.event.listen(pool, "checkout", _ping_on_checkout)
+        # Open one connection now, so an unreachable server or a wrong
+        # password fails here rather than at the first query.
+        pool.connect().close()
+        _pools[key] = pool
     return _pools[key]
 
 
-def _never_fail_over(_error):
-    return False
+def _ping_on_checkout(dbapi_connection, _record, _proxy):
+    """Replaces a pooled connection the server has dropped, before the
+    caller gets it."""
+    try:
+        dbapi_connection.ping(reconnect=False)
+    except pymysql.err.Error:
+        raise sqlalchemy.exc.DisconnectionError() from None
 
 
 def close_pool(config):
     """
-    Closes and discards the cached `PooledDB` for `config`, if one exists.
+    Closes and discards the cached engine for `config`, if one exists.
 
     `_get_pool` never evicts an entry from `_pools` on its own -- fine for
     the handful of long-lived databases a real deployment or WSGI worker
@@ -452,7 +466,7 @@ def close_pool(config):
     """
     key = config._key()
     for pool_key in [k for k in _pools if k == key or (isinstance(k, tuple) and k and k[0] == key)]:
-        _pools.pop(pool_key).close()
+        _pools.pop(pool_key).dispose()
     _schema_ensured.discard(key)
     forget_id_blocks(key)
 
@@ -612,7 +626,7 @@ def _reserve_id_block(config, table, size, at_least):
     """Reserves `size` ids for `table` and returns the first. `at_least`
     is past every id this process already handed out for it, which the
     table's `MAX(id)` can't show while those rows are uncommitted."""
-    raw = _get_pool(config).connection()
+    raw = _get_pool(config).connect()
     try:
         cur = raw.cursor()
         cur.execute(f"SELECT COALESCE(MAX(id), 0) + 1 AS floor_id FROM {table}")
@@ -1100,7 +1114,7 @@ def get_connection(config=None, ensure_schema=True, statement_timeout_s=None):
                     truly closing a socket).
     """
     config = config or DEFAULT_MYSQL_CONFIG
-    conn = Connection(_get_pool(config, statement_timeout_s).connection(), config)
+    conn = Connection(_get_pool(config, statement_timeout_s).connect(), config)
     if ensure_schema and config._key() not in _schema_ensured:
         try:
             _ensure_schema(conn)
@@ -1534,7 +1548,7 @@ def get_control_connection(config=None, ensure_schema=False):
         Connection: An open connection.
     """
     config = config or control_mysql_config()
-    conn = Connection(_get_pool(config).connection(), config)
+    conn = Connection(_get_pool(config).connect(), config)
     if ensure_schema:
         try:
             _ensure_control_schema(conn)
