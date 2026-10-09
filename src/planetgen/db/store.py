@@ -184,7 +184,7 @@ collision renames an existing system, which the holder's nearest-neighbor
 rows then reference) neither would move until InnoDB's own 50 s timeout.
 Giving up early breaks that wait at once."""
 
-CONTROL_SCHEMA_VERSION = 9
+CONTROL_SCHEMA_VERSION = 10
 """int: Version counter for `control_schema.sql`, independent of
 `SCHEMA_VERSION` above -- see that file's header comment for why the
 control plane (admin identities/sessions/API keys/audit log) is a
@@ -193,7 +193,8 @@ separate schema with its own versioning. v2 added `login_throttle`
 `work_lease` (PERF.8), v6 `generation_stats`/`generation_size` (PERF.3,
 PERF.10), v7 the job tree's columns on `work_jobs` and the queue pause
 on `work_lease` (ADM.12, ADM.10), v8 the drop of `login_throttle`
-(SEC.30), v9 `galaxy_naming` (GEN.70). New tables need nothing more than
+(SEC.30), v9 `galaxy_naming` (GEN.70), v10 `work_job_args` and the drop
+of the JSON columns `work_jobs.argv`, `work_tasks.result` (DB.13). New tables need nothing more than
 `CREATE TABLE IF NOT EXISTS`; new columns on an existing table are
 added by `_add_control_columns`."""
 
@@ -206,7 +207,6 @@ _CONTROL_COLUMNS = {
         ("tasks_total", "INT UNSIGNED NULL"),
         ("web_job_id", "VARCHAR(32) NULL"),
         ("database_name", "VARCHAR(64) NULL"),
-        ("argv", "TEXT NULL"),
         ("control", "VARCHAR(16) NULL"),
     ],
     "work_lease": [
@@ -1415,6 +1415,7 @@ def _table_marker(table):
 
 
 _VERSION_MARKERS = (
+    (63, _table_marker("generation_run_arguments")),
     (62, _table_marker("sector_paths")),
     (61, _column_marker("star_systems", "velocity_x_kms")),
 )
@@ -1557,6 +1558,7 @@ def _apply_control_schema(conn):
     with open(CONTROL_SCHEMA_PATH, "r", encoding="utf-8") as f:
         conn.executescript(f.read())
     _add_control_columns(conn)
+    _retire_control_json_columns(conn)
 
     row = conn.execute("SELECT MAX(version) AS v FROM control_schema_migrations").fetchone()
     if row["v"] is None or row["v"] < CONTROL_SCHEMA_VERSION:
@@ -1565,6 +1567,33 @@ def _apply_control_schema(conn):
         if row["v"] is not None:
             activity_log.event("DB", "migrate", db=configured_control_database(), from_version=row["v"],
                               to_version=CONTROL_SCHEMA_VERSION)
+
+
+def _retire_control_json_columns(conn):
+    """
+    v10 (DB.13): moves `work_jobs.argv` (a JSON command line) into
+    `work_job_args` rows and drops it, and drops `work_tasks.result` (a JSON
+    summary nothing read) -- each only while the column is still there.
+    """
+    def has(table, column):
+        return conn.execute(
+            "SELECT COUNT(*) AS n FROM information_schema.COLUMNS"
+            " WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?", (table, column),
+        ).fetchone()["n"] > 0
+
+    if has("work_jobs", "argv"):
+        for row in conn.execute("SELECT id, argv FROM work_jobs WHERE argv IS NOT NULL").fetchall():
+            try:
+                arguments = [str(argument) for argument in json.loads(row["argv"])]
+            except (TypeError, ValueError):
+                continue
+            for position, argument in enumerate(arguments):
+                conn.execute("INSERT IGNORE INTO work_job_args (job_id, position, value) VALUES (?, ?, ?)",
+                             (row["id"], position, argument[:1024]))
+        conn.execute("ALTER TABLE work_jobs DROP COLUMN argv")
+    if has("work_tasks", "result"):
+        conn.execute("ALTER TABLE work_tasks DROP COLUMN result")
+    conn.commit()
 
 
 def _add_control_columns(conn):
@@ -5923,6 +5952,10 @@ def get_galaxy_maker(conn):
     return GalaxyMaker(row["version_key"], row["planetgen_version"], row["python_version"], row["platform"])
 
 
+GENERATION_ARGUMENT_LENGTH = 1024
+"""int: The longest command-line argument `generation_run_arguments` keeps."""
+
+
 def start_generation_run(conn, command, arguments, run_seed=None):
     """
     Records a run that changes the galaxy (v52, DB.6) as started, with the
@@ -5933,7 +5966,7 @@ def start_generation_run(conn, command, arguments, run_seed=None):
         conn (Connection): An open connection to the galaxy database.
         command (str): The `planetgen` subcommand.
         arguments (list): Its command line, without the --mysql-* and
-            --debug options (stored as JSON).
+            --debug options (one `generation_run_arguments` row each).
         run_seed (int, optional): The run's own 128-bit seed.
 
     Returns:
@@ -5942,11 +5975,14 @@ def start_generation_run(conn, command, arguments, run_seed=None):
     made_by = versionKey.current()
     seed_bytes = None if run_seed is None else int(run_seed).to_bytes(galaxySeed.SEED_BYTES, "big")
     run_id = conn.execute(
-        "INSERT INTO generation_runs (command, arguments, run_seed, galaxy_seed, version_key, planetgen_version,"
-        " python_version, platform) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-        (command, json.dumps(list(arguments)), seed_bytes, get_galaxy_seed(conn), made_by["version_key"],
+        "INSERT INTO generation_runs (command, run_seed, galaxy_seed, version_key, planetgen_version,"
+        " python_version, platform) VALUES (?, ?, ?, ?, ?, ?, ?)",
+        (command, seed_bytes, get_galaxy_seed(conn), made_by["version_key"],
          made_by["planetgen_version"], made_by["python_version"], made_by["platform"]),
     ).lastrowid
+    for position, argument in enumerate(arguments):
+        conn.execute("INSERT INTO generation_run_arguments (run_id, position, value) VALUES (?, ?, ?)",
+                     (run_id, position, str(argument)[:GENERATION_ARGUMENT_LENGTH]))
     conn.commit()
     return run_id
 

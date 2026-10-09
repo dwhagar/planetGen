@@ -110,6 +110,15 @@ def _runs(mysql_config):
         conn.close()
 
 
+def _arguments(mysql_config, run_id):
+    conn = store.get_connection(mysql_config)
+    try:
+        return [row["value"] for row in conn.execute(
+            "SELECT value FROM generation_run_arguments WHERE run_id = ? ORDER BY position", (run_id,)).fetchall()]
+    finally:
+        conn.close()
+
+
 def _generate(mysql_config, monkeypatch, *argv):
     monkeypatch.setenv("PLANETGEN_CONTROL_DATABASE", mysql_config.database)
     monkeypatch.setattr(sys, "argv", ["planetgen", *argv] + _mysql_argv(mysql_config))
@@ -125,9 +134,9 @@ def test_every_run_that_changes_the_galaxy_is_recorded(mysql_config, monkeypatch
     runs = _runs(mysql_config)
     assert [run["command"] for run in runs] == ["plan", "galaxy"]
     plan, galaxy = runs
-    assert json.loads(plan["arguments"]) == ["plan", "--no-bright-stars", "--max-ring", "40",
-                                             "--seed", galaxySeed.format_seed(SEED)]
-    assert "--mysql-password" not in galaxy["arguments"]
+    assert _arguments(mysql_config, plan["id"]) == ["plan", "--no-bright-stars", "--max-ring", "40",
+                                                    "--seed", galaxySeed.format_seed(SEED)]
+    assert "--mysql-password" not in _arguments(mysql_config, galaxy["id"])
     # The plan ran before the galaxy had a seed; the galaxy run against it.
     assert bytes(galaxy["galaxy_seed"]) == SEED
     for run in runs:

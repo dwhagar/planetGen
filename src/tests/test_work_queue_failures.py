@@ -150,13 +150,13 @@ def test_a_result_that_wont_pickle_fails_its_task(control_config):
 
 
 @pytest.mark.parametrize("workers", [1, 2])
-def test_a_result_that_isnt_json_is_recorded_as_text(control_config, workers):
+def test_a_result_that_isnt_json_still_completes(control_config, workers):
     results = []
     with workQueue.WorkQueue("Not JSON", workers=workers, control_config=control_config) as queue:
         queue.submit("set", "s", _a_set, 5, on_done=lambda result, *_: results.append(result))
     assert results == [{5, "x"}]
-    row = _rows(control_config, "SELECT state, result FROM work_tasks WHERE job_id = ?", (queue.job_id,))[0]
-    assert row["state"] == "done" and row["result"]
+    row = _rows(control_config, "SELECT state FROM work_tasks WHERE job_id = ?", (queue.job_id,))[0]
+    assert row["state"] == "done"
     _ended_cleanly(control_config, queue.job_id, "done")
 
 

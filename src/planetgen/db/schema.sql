@@ -1422,6 +1422,8 @@ CREATE TABLE IF NOT EXISTS star_systems (
     FULLTEXT KEY ft_star_systems_name (name),
     -- v27: see the header comment's "v27" note.
     KEY idx_star_systems_modified_at (modified_at),
+    -- v63 (DB.13): the Systems table's octant filter and sort.
+    KEY idx_star_systems_quadrant (quadrant),
     -- v39: containment -- see the header comment's "v39" note.
     CONSTRAINT fk_star_systems_inside_nebula
         FOREIGN KEY (inside_nebula_id) REFERENCES nebulae(id) ON DELETE SET NULL,
@@ -1476,7 +1478,9 @@ CREATE TABLE IF NOT EXISTS stars (
     KEY idx_stars_star_system_id (star_system_id),
     KEY idx_stars_name (name),
     FULLTEXT KEY ft_stars_name (name),
-    KEY idx_stars_yerkes_class (yerkes_class)
+    KEY idx_stars_yerkes_class (yerkes_class),
+    KEY idx_stars_radius_km (radius_km),
+    KEY idx_stars_star_type (star_type)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
@@ -1572,7 +1576,8 @@ CREATE TABLE IF NOT EXISTS planets (
     FULLTEXT KEY ft_planets_name (name),
     KEY idx_planets_planet_class (planet_class),
     KEY idx_planets_body_type (body_type),
-    KEY idx_planets_life_chemical (life_chemical)
+    KEY idx_planets_life_chemical (life_chemical),
+    KEY idx_planets_radius_km (radius_km)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Child table for the variable-length evolutionary narrative list
@@ -1686,7 +1691,8 @@ CREATE TABLE IF NOT EXISTS moons (
     FULLTEXT KEY ft_moons_name (name),
     KEY idx_moons_planet_class (planet_class),
     KEY idx_moons_body_type (body_type),
-    KEY idx_moons_life_chemical (life_chemical)
+    KEY idx_moons_life_chemical (life_chemical),
+    KEY idx_moons_radius_km (radius_km)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Moon counterpart of planet_evolutionary_paragraphs.
@@ -2776,8 +2782,8 @@ CREATE TABLE IF NOT EXISTS sector_path_knots (
 -- ---------------------------------------------------------------------
 -- generation_runs (v52, DB.6): one row per `planetgen` run that changes
 -- the galaxy, written when it starts and finished when it ends: its
--- subcommand and command line (JSON, without the --mysql-* and --debug
--- options), the run's own 128-bit seed (what a random start or a
+-- subcommand and command line (one `generation_run_arguments` row per
+-- argument, without the --mysql-* and --debug options), the run's own 128-bit seed (what a random start or a
 -- one-off system draws from) and the galaxy seed it ran against, the
 -- code's version key and versions, and the outcome (`ok`, `failed`,
 -- `interrupted`; NULL while it runs or when it died without saying).
@@ -2785,7 +2791,6 @@ CREATE TABLE IF NOT EXISTS sector_path_knots (
 CREATE TABLE IF NOT EXISTS generation_runs (
     id                   BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     command              VARCHAR(32) NOT NULL,
-    arguments            TEXT NOT NULL,
     run_seed             BINARY(16),
     galaxy_seed          BINARY(16),
     version_key          CHAR(22) NOT NULL,
@@ -2797,6 +2802,16 @@ CREATE TABLE IF NOT EXISTS generation_runs (
     outcome              VARCHAR(16),
 
     KEY idx_generation_runs_started_at (started_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- v63 (DB.13): a run's command line, one row per argument in order (it was
+-- one JSON text column).
+CREATE TABLE IF NOT EXISTS generation_run_arguments (
+    run_id       BIGINT UNSIGNED NOT NULL,
+    position     INT NOT NULL,
+    value        VARCHAR(1024) NOT NULL,
+    PRIMARY KEY (run_id, position),
+    CONSTRAINT fk_generation_run_arguments_run FOREIGN KEY (run_id) REFERENCES generation_runs(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 

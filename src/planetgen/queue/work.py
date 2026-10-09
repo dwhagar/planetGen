@@ -59,7 +59,6 @@ import contextlib
 import hashlib
 import importlib
 import ipaddress
-import json
 import math
 import os
 import pickle
@@ -91,6 +90,8 @@ HEARTBEAT_SECONDS = 5
 STALE_SECONDS = 30
 WAIT_POLL_SECONDS = 2
 KEEP_DAYS = 7
+ARGV_LENGTH = 1024
+"""int: The longest command-line argument a job node keeps."""
 CONTROL_POLL_SECONDS = 1.0
 """float: How often a run reads its nodes' pause and cancel requests
 (ADM.10) between tasks."""
@@ -317,7 +318,7 @@ class _NoStore:
     def start_tasks(self, tasks):
         pass
 
-    def finish_task(self, job_id, task, state, seconds=None, result=None, error=None):
+    def finish_task(self, job_id, task, state, seconds=None, error=None):
         pass
 
     def finish_job(self, job_id, holder, state):
@@ -362,12 +363,15 @@ class _ControlStore:
                     )
                 conn.execute(
                     "INSERT INTO work_jobs (id, parent_id, root_id, kind, title, holder, state, workers,"
-                    " web_job_id, database_name, argv, created_at, started_at, heartbeat_at)"
-                    " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(6), "
+                    " web_job_id, database_name, created_at, started_at, heartbeat_at)"
+                    " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(6), "
                     + ("NOW(6)" if state == "running" else "NULL") + ", NOW(6))",
                     (node.id, node.parent_id, node.root_id, node.kind[:32], node.title[:255], node.holder, state,
-                     node.workers, node.web_job_id, node.database, node.argv),
+                     node.workers, node.web_job_id, node.database),
                 )
+                for position, argument in enumerate(node.argv or ()):
+                    conn.execute("INSERT INTO work_job_args (job_id, position, value) VALUES (?, ?, ?)",
+                                 (node.id, position, argument))
         finally:
             conn.close()
 
@@ -553,22 +557,16 @@ class _ControlStore:
         finally:
             conn.close()
 
-    def finish_task(self, job_id, task, state, seconds=None, result=None, error=None):
+    def finish_task(self, job_id, task, state, seconds=None, error=None):
         if task.row_id is None:
             return
-        summary = None
-        if result is not None:
-            try:
-                summary = json.dumps(result, default=str)[:4000]
-            except (TypeError, ValueError):
-                summary = None
         conn = self._connect()
         try:
             with conn:
                 conn.execute(
-                    "UPDATE work_tasks SET state = ?, finished_at = NOW(6), seconds = ?, result = ?, error = ?"
+                    "UPDATE work_tasks SET state = ?, finished_at = NOW(6), seconds = ?, error = ?"
                     " WHERE id = ?",
-                    (state, seconds, summary, error[:4000] if error else None, task.row_id),
+                    (state, seconds, error[:4000] if error else None, task.row_id),
                 )
                 column = {"done": "tasks_done", "failed": "tasks_failed"}.get(state)
                 if column:
@@ -655,7 +653,7 @@ class Node:
         self.holder = holder or _process_holder()
         self.workers = int(workers)
         self.web_job_id, self.database = web_job_id, database
-        self.argv = None if argv is None else json.dumps(list(argv))[:60000]
+        self.argv = None if argv is None else [str(arg)[:ARGV_LENGTH] for arg in argv]
         self.closed = False
 
 
@@ -819,11 +817,26 @@ _TASK_STATES = ("queued", "running", "done", "failed", "cancelled")
 
 # Times come back as Unix times (floats), whatever the server's zone.
 _NODE_COLUMNS = ("id, parent_id, root_id, kind, title, holder, state, workers, tasks_total, web_job_id,"
-                 " database_name, argv, control, UNIX_TIMESTAMP(created_at) AS created_at,"
+                 " database_name, control, UNIX_TIMESTAMP(created_at) AS created_at,"
                  " UNIX_TIMESTAMP(started_at) AS started_at, UNIX_TIMESTAMP(finished_at) AS finished_at, seconds,"
                  " UNIX_TIMESTAMP(heartbeat_at) AS heartbeat_at,"
                  " heartbeat_at < NOW(6) - INTERVAL ? SECOND AS stale,"
                  " TIMESTAMPDIFF(MICROSECOND, COALESCE(started_at, created_at), NOW(6)) / 1e6 AS age_seconds")
+
+
+def _attach_argv(conn, nodes):
+    """Sets each `_node_dict`'s `argv` to its command line (`work_job_args`),
+    or leaves `None` for a node that has none."""
+    by_id = {node["id"]: node for node in nodes}
+    if not by_id:
+        return
+    marks = ", ".join("?" * len(by_id))
+    for row in conn.execute(
+        f"SELECT job_id, value FROM work_job_args WHERE job_id IN ({marks}) ORDER BY job_id, position",
+        list(by_id),
+    ).fetchall():
+        node = by_id[row["job_id"]]
+        node["argv"] = (node["argv"] or []) + [row["value"]]
 
 
 def _float_or_none(value):
@@ -839,10 +852,7 @@ def _node_dict(row):
     # A run that died without finishing shows as interrupted.
     node["status"] = "interrupted" if node["state"] in LIVE_STATES and node["stale"] else node["state"]
     node["root_id"] = node["root_id"] or node["id"]
-    try:
-        node["argv"] = json.loads(node["argv"]) if node["argv"] else None
-    except ValueError:
-        node["argv"] = None
+    node["argv"] = None
     node["children"] = []
     node["tasks"] = []
     return node
@@ -865,7 +875,9 @@ def list_roots(conn, limit=50, offset=0):
         " ORDER BY created_at DESC, id DESC LIMIT ? OFFSET ?",
         (STALE_SECONDS, int(limit), int(offset)),
     ).fetchall()
-    return [_node_dict(row) for row in rows], int(total)
+    roots = [_node_dict(row) for row in rows]
+    _attach_argv(conn, roots)
+    return roots, int(total)
 
 
 def load_tree(conn, root_id, max_tasks=200):
@@ -893,6 +905,7 @@ def load_tree(conn, root_id, max_tasks=200):
     root = nodes.get(root_id)
     if root is None:
         return None
+    _attach_argv(conn, nodes.values())
     for node in nodes.values():
         parent = nodes.get(node["parent_id"])
         if parent is not None and node is not root:
@@ -1483,7 +1496,7 @@ class WorkQueue:
         seconds = time.monotonic() - started
         self.finished += 1
         if recorded:
-            self._book("finish_task", self.job_id, task, "done", seconds=round(seconds, 3), result=result)
+            self._book("finish_task", self.job_id, task, "done", seconds=round(seconds, 3))
         if task.on_done:
             task.on_done(result, seconds, task.weight)
 
@@ -1515,7 +1528,7 @@ class WorkQueue:
                     self._failure = exc
                     self._waiting.clear()
                 continue
-            self._book("finish_task", self.job_id, task, "done", seconds=round(seconds, 3), result=result)
+            self._book("finish_task", self.job_id, task, "done", seconds=round(seconds, 3))
             if task.on_done:
                 task.on_done(result, seconds, task.weight)
 

@@ -215,7 +215,6 @@ CREATE TABLE IF NOT EXISTS work_jobs (
     tasks_total      INT UNSIGNED NULL,       -- tasks the run said it would queue
     web_job_id       VARCHAR(32) NULL,        -- the Generate page's job (web/jobs.py)
     database_name    VARCHAR(64) NULL,        -- the galaxy database it wrote
-    argv             TEXT NULL,               -- JSON command line, without --mysql-* options
     control          VARCHAR(16) NULL,        -- ADM.10: 'pause' or 'cancel', asked from the web
 
     KEY idx_work_jobs_state (state),
@@ -237,6 +236,17 @@ CREATE TABLE IF NOT EXISTS work_jobs (
 -- tree at once; deleting a root deletes its subtree and tasks. `control`
 -- is how the admin queue page (ADM.10) asks a node to pause or cancel.
 
+-- v10 (DB.13): a job's command line without --mysql-* options, one row per
+-- argument in order (it was one JSON text column, `work_jobs.argv`). A task's
+-- `result` summary, written but never read, is gone.
+CREATE TABLE IF NOT EXISTS work_job_args (
+    job_id           VARCHAR(32) NOT NULL,
+    position         INT NOT NULL,
+    value            VARCHAR(1024) NOT NULL,
+    PRIMARY KEY (job_id, position),
+    CONSTRAINT fk_work_job_args_job FOREIGN KEY (job_id) REFERENCES work_jobs(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS work_tasks (
     id               BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
     job_id           VARCHAR(32) NOT NULL,
@@ -248,7 +258,6 @@ CREATE TABLE IF NOT EXISTS work_tasks (
     started_at       DATETIME(6) NULL,
     finished_at      DATETIME(6) NULL,
     seconds          DOUBLE NULL,             -- time the worker spent on it
-    result           TEXT NULL,               -- short JSON summary
     error            TEXT NULL,
 
     CONSTRAINT fk_work_tasks_job FOREIGN KEY (job_id) REFERENCES work_jobs(id) ON DELETE CASCADE,
