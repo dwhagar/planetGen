@@ -1798,6 +1798,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   sectors. Masses too weak or far to matter are skipped. MAP.126's orbit
   drawing should use these paths later.
   Build thread (not a lane).
+  Progress (PR #746): the path maths is done (`physics/sector_path.py`:
+  Hermite spline knots bent by the sector's masses). Still to do: saving
+  the knots (a table, as an Alembic revision) and filling them.
   Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
 
 - [ ] **GEN.125 Stand-alone facilities store a velocity**
