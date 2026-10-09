@@ -31,6 +31,7 @@ from planetgen.generation.config import SystemConfig
 from .authz import audit, require_admin
 from .common import ApiError
 from .limiter import limiter
+from .schemas import ChangeClass, ChangeStar, DropFacilities, parse_body
 from .routes import WRITE_RATE_LIMIT, accepted, run_queued, _resolve_requested_write_db_config, _write_conn
 
 bp = Blueprint("edits", __name__, url_prefix="/api")
@@ -39,26 +40,19 @@ _BODY_TABLES = {"planet": "planets", "moon": "moons", "belt": "asteroid_belts"}
 _FACILITY_COLUMNS = {"planet": "planet_id", "moon": "moon_id", "belt": "asteroid_belt_id"}
 
 
-def _json_object(allowed):
-    """The optional JSON body, checked for unknown fields."""
+def _optional_body():
+    """The optional JSON body: absent is `{}`."""
     body = request.get_json(silent=True)
     if body is None:
-        body = {}
+        return {}
     if not isinstance(body, dict):
         raise ApiError("request body must be a JSON object")
-    unknown = set(body) - set(allowed)
-    if unknown:
-        raise ApiError(f"unrecognized field(s): {', '.join(sorted(unknown))}")
     return body
 
 
 def _options():
     """The optional JSON body: `{"drop_facilities": bool}`."""
-    body = _json_object({"drop_facilities"})
-    drop = body.get("drop_facilities", False)
-    if not isinstance(drop, bool):
-        raise ApiError("'drop_facilities' must be a boolean")
-    return drop
+    return parse_body(DropFacilities, _optional_body()).drop_facilities
 
 
 def _facilities_lost(conn, kind, body, regenerate):
@@ -196,13 +190,8 @@ def system_class_options(system_id):
 
 
 def _change_class(kind, body_id):
-    body = _json_object({"class", "force"})
-    planet_class = body.get("class")
-    force = body.get("force", False)
-    if not isinstance(planet_class, str) or planet_class not in tuning.PLANET_CLASSES:
-        raise ApiError(f"'class' must be one of {', '.join(sorted(tuning.PLANET_CLASSES))}")
-    if not isinstance(force, bool):
-        raise ApiError("'force' must be a boolean")
+    change = parse_body(ChangeClass, _optional_body())
+    planet_class, force = change.planet_class, change.force
     return _queued_edit(f"{kind}.class", f"{kind}:{body_id}", change_class_job,
                         _resolve_requested_write_db_config(), kind, body_id, planet_class, force,
                         detail_prefix=f"{planet_class} force={force}: ")
@@ -283,13 +272,8 @@ def change_system_star(system_id):
     and listed in `removed`. 409 for a binary, a black hole or neutron
     star, a system built around a pre-placed bright star, or when removed
     bodies host facilities and `"drop_facilities": true` isn't sent."""
-    body = _json_object({"star_type", "drop_facilities"})
-    star_type = body.get("star_type")
-    drop_facilities = body.get("drop_facilities", False)
-    if not isinstance(star_type, str):
-        raise ApiError("'star_type' must be a spectral type such as \"K2V\"")
-    if not isinstance(drop_facilities, bool):
-        raise ApiError("'drop_facilities' must be a boolean")
+    change = parse_body(ChangeStar, _optional_body())
+    star_type, drop_facilities = change.star_type, change.drop_facilities
     return _queued_edit("system.star", f"system:{system_id}", change_star_job,
                         _resolve_requested_write_db_config(), system_id, star_type, drop_facilities,
                         detail_prefix=f"{star_type}: ")

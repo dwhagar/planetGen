@@ -46,12 +46,17 @@ and any POST or status request without an admin session gets a 403.
 Every form carries `csrf_field()` (checked app-wide by `csrf.protect`).
 """
 
+import contextlib
+import contextvars
 import json
 import os
 import time
+from typing import Annotated
 
 from flask import (Response, abort, current_app, jsonify, make_response, redirect, request, send_file,
                    stream_with_context, url_for)
+
+from pydantic import Field, TypeAdapter, ValidationError
 
 from planetgen.queue import api_jobs
 from planetgen.web.lib import apiclient
@@ -226,23 +231,62 @@ def run_estimate(argv, env):
     raise FormError(f"Nothing was generated: {message}")
 
 
+_problems = contextvars.ContextVar("generate_form_problems", default=None)
+"""ContextVar: The list `collecting_problems` is filling, or `None`."""
+
+
+@contextlib.contextmanager
+def collecting_problems():
+    """
+    Collect every bad field of a form instead of stopping at the first:
+    `_number` records its message and returns `None`, and leaving the
+    block raises one `FormError` listing them all.
+    """
+    found = []
+    token = _problems.set(found)
+    try:
+        yield found
+    finally:
+        _problems.reset(token)
+    if found:
+        raise FormError(" ".join(found))
+
+
+def _problem(message):
+    found = _problems.get()
+    if found is None:
+        raise FormError(message)
+    if message not in found:
+        found.append(message)
+
+
 def _number(form, name, label, kind, required=False, minimum=None, maximum=None, exclusive_max=False):
     raw = (form.get(name) or "").strip()
     if not raw:
         if required:
-            raise FormError(f"{label} is required.")
+            _problem(f"{label} is required.")
         return None
     try:
-        value = kind(raw)
+        number = kind(raw)
     except ValueError:
-        raise FormError(f"{label} must be {'a whole number' if kind is int else 'a number'}.") from None
-    if value != value or value in (float("inf"), float("-inf")):
-        raise FormError(f"{label} must be a finite number.")
-    if minimum is not None and value < minimum:
-        raise FormError(f"{label} must be at least {minimum:g}.")
-    if maximum is not None and (value >= maximum if exclusive_max else value > maximum):
-        raise FormError(f"{label} must be {'less than' if exclusive_max else 'at most'} {maximum:g}.")
-    return value
+        _problem(f"{label} must be {'a whole number' if kind is int else 'a number'}.")
+        return None
+    if number != number or number in (float("inf"), float("-inf")):
+        _problem(f"{label} must be a finite number.")
+        return None
+    bounds = {}
+    if minimum is not None:
+        bounds["ge"] = minimum
+    if maximum is not None:
+        bounds["lt" if exclusive_max else "le"] = maximum
+    try:
+        return TypeAdapter(Annotated[kind, Field(**bounds)]).validate_python(number)
+    except ValidationError:
+        if minimum is not None and number < minimum:
+            _problem(f"{label} must be at least {minimum:g}.")
+        else:
+            _problem(f"{label} must be {'less than' if exclusive_max else 'at most'} {maximum:g}.")
+        return None
 
 
 def plan_argv(form):
@@ -320,6 +364,8 @@ def center_argv(form, edge_pc=None):
         point = (_number(form, "center_x_pc", "x (pc)", float, required=True),
                  _number(form, "center_y_pc", "y (pc)", float, required=True),
                  _number(form, "center_z_pc", "z (pc)", float) or 0.0)
+        if None in point:
+            return [], ""
         edge = float(edge_pc or tuning.DEFAULT_SECTOR_EDGE_PC)
         if max(abs(v) for v in point) > (MAX_GENERATE_RING + 1) * edge:
             raise FormError("That position is outside the galaxy grid.")
@@ -515,7 +561,8 @@ def build_job(action, form, database, edge_pc=None):
     """
     if action in CONFIRM_ACTIONS and (form.get("confirm") or "").strip() != database:
         raise FormError(f"Type the database name ({database}) to confirm. Nothing was changed.")
-    kind, title, steps = _build_job_steps(action, form, edge_pc)
+    with collecting_problems():
+        kind, title, steps = _build_job_steps(action, form, edge_pc)
     if kind != "reset":
         python = jobs.python_executable()
         steps = [{"label": MATH_CHECK_LABEL, "argv": [python, *jobs.GENERATE_COMMAND, "check-math"]}, *steps]
@@ -544,6 +591,8 @@ def _build_job_steps(action, form, edge_pc=None):
         return "bright_stars", "Rebuild the bright stars", [{"label": SCATTER_LABEL, "argv": argv}]
     if action == "bright_band":
         down_to = _number(form, "down_to", "Go down to (solar luminosities)", float, required=True, minimum=1.0)
+        if down_to is None:
+            return "bright_band", "", []
         argv = generate + ["plan", "--bright-stars-down-to", f"{down_to:g}"]
         return "bright_band", f"Bright stars down to {down_to:g} L\u2609", [{"label": BAND_LABEL, "argv": argv}]
     if action == "galaxy":
