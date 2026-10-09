@@ -214,6 +214,33 @@ check_mod_wsgi_python() {
     fi
 }
 
+# Builds the Galaxy Map's opening view into the tile cache (MAP.134), in the
+# background as Apache's user (the cache belongs to it), so the update
+# doesn't wait for it and the first visitor after it doesn't either. At
+# most 30 minutes; the output goes to $WARM_MAP_LOG. Never fails the
+# update: the first visit builds the view itself when this doesn't.
+warm_galaxy_map() {
+    local user="" runner=()
+    WARM_MAP_LOG="${WARM_MAP_LOG:-/tmp/planetgen-warm-map.log}"
+    if [[ -r "$SCRIPT_DIR/examples/apache/apache-identity.sh" ]]; then
+        # shellcheck source=../examples/apache/apache-identity.sh
+        source "$SCRIPT_DIR/examples/apache/apache-identity.sh"
+        user="$(detect_apache_group 2>/dev/null | awk '{print $1}')"
+    fi
+    if [[ -n "$user" ]] && id "$user" >/dev/null 2>&1 && command -v runuser >/dev/null 2>&1; then
+        runner=(runuser -u "$user" --)
+    elif [[ -n "$user" ]] && id "$user" >/dev/null 2>&1 && is_macos; then
+        runner=(sudo -u "$user" --)
+    fi
+    local limit=()
+    if command -v timeout >/dev/null 2>&1; then
+        limit=(timeout 1800)
+    fi
+    (cd / && nohup ${runner[@]+"${runner[@]}"} ${limit[@]+"${limit[@]}"} "$PYTHON" -m planetgen.cli.warm_map \
+        >"$WARM_MAP_LOG" 2>&1 </dev/null &) || true
+    echo "Building the Galaxy Map's opening view in the background (log: $WARM_MAP_LOG)."
+}
+
 # Imports the web app and the generator package with the interpreter the
 # site runs under, as Apache's own user when that user exists, so a
 # library that's installed but unreadable to www-data (or the checkout's
