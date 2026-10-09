@@ -112,7 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.41, GEN.99, GEN.101, GEN.102, GEN.103, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, GEN.94, GEN.104, GEN.107, GEN.108, NAV.10, NAV.12, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.57, DB.7, TEST.77, OPS.14, ADM.18, GEN.59, UX.49, PERF.31, PERF.32, GEN.128, ADM.42 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.41, GEN.99, GEN.101, GEN.102, GEN.103, GEN.85, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, GEN.94, GEN.104, NAV.12, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.57, TEST.77, OPS.14, GEN.59, UX.49, PERF.31, PERF.32, GEN.128, ADM.42 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, GEN.43, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, API.16, ADM.17, OPS.15, GEN.61, OPS.18, OPS.16, OPS.17, ADM.19, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18, PERF.33, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, DB.15, ADM.43, ADM.44 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, repair that reads the newest settings JSON, and the anomalies chosen in phase 2. | NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, DB.10, ADM.20, GEN.114, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies, and the end state of reproducible galaxies (`generate.py reproduce`). | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, OPS.12, GEN.55 |
@@ -676,58 +676,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   each hit's reference and parent chain, so any picker can jump to a
   star, planet or moon by name.
 
-- [ ] **NAV.10 Routing that scales past a few thousand systems**
-  Today `queryDb.nav_between` rebuilds the whole k-nearest-neighbour
-  graph (`navGraph.build_knn_adjacency`, k = 6, an in-memory k-d tree)
-  from every placed system on every galaxy-scope request, then runs
-  Dijkstra; no position column has an index, and nothing finds the
-  systems or bodies near a line. Done: the route search loads only the
-  systems in a corridor around the direct line (a box query on indexed
-  sector centers, widened if no route is found), or reads the stored
-  `nearest_systems` table instead of rebuilding the graph; A* with the
-  straight-line distance as its heuristic; a query that returns every
-  system, star and phenomenon within a given distance of a line segment
-  (used by NAV.6); and a measured time on a 100,000-sector database.
-  Needs a galaxy schema migration for the position indexes. The
-  hop-length study measured the full graph rebuild at 16 s for 200,000
-  systems. NAV.34 (joining the graph's islands) is done (PR #427), and NAV.12
-  (a route always exists, no hop limit) is built with it.
-  Design: [docs/design/course-routing.md](design/course-routing.md)
-  Plan (2026-10-07): The position indexes are an Alembic migration
-  (DB.11).
-
-  - [ ] **NAV.11 Travel times for the system-to-system route too**
-    Today warp and fold times are shown only for the direct distance;
-    the route shows only its length. Boss (2026-10-02 04:19Z, with
-    NAV.41): "it should calculate the travel time using that route
-    assuming each planet gets stopped at." Done: the route gets the
-    same warp and fold tables, per hop and in total, the total being
-    the sum of the hops with a stop at every system on the route (each
-    hop timed from rest to rest at the chosen warp or fold factor, the
-    constant speeds `warp_speed_c` and `fold_speed_c` of
-    `navigation-frames.md`; no acceleration model exists, and no ship
-    range since NAV.37 was dropped). Default taken: no time spent at a
-    stop. Open question: should each stop add a fixed stay, and does
-    "each planet" mean only the systems on the route (the default) or
-    a visit to every planet inside each system?
-    Design: [docs/design/course-routing.md](design/course-routing.md)
-
-  - [ ] **NAV.42 Each route stop shows the course and distance to the next stop**
-    Boss (2026-10-02 04:19Z, with NAV.41): "each stop has the course and
-    distance to the next stop in xxx mark yyy zzz distance". Done: every
-    stop in the route (UX.35's strip, and the course map's tooltip)
-    shows the course to the next stop in the existing notation from
-    `navigation.format_course`, three-digit bearing, "mark", three-digit
-    mark, then the hop's distance on the site's distance ladder, for
-    example `045 mark 012, 3.2 ly`; each hop's course is worked out with
-    `course_between` in the frame NAV uses for that pair (the Sector
-    Local Frame when both stops share a sector, the Galactic Frame
-    otherwise, as `navigation-frames.md` sets out), and the last stop
-    shows none. Unknown-space jumps (NAV.36) show theirs the same way.
-    A test checks the bearing, mark and distance of a known hop.
-    Prerequisite: UX.35.
-    Design: [docs/design/navigation-frames.md](design/navigation-frames.md)
-
 - [ ] **NAV.12 No maximum hop length: a route always reaches the nearest star it can, across any number of sectors**
   Boss (2026-10-02 01:53Z): "routs will always find the nearest star
   they can even if it crosses sector boundaries even across multiple
@@ -1075,19 +1023,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     from IDs), so the name part of this item is dropped, and GEN.63 with
     it.
 
-  - [ ] **DB.7 The version that generated each sector, and a warning for mixed-version galaxies**
-    Done: each sector row records the PlanetGen release that generated
-    it, as DB.6's packed hex version and the full string (DB.6, done in
-    PR #387, keeps the galaxy's first version in `galaxy_shape.version_key`
-    with `planetgen_version`, `python_version` and `platform`, galaxy
-    schema v52; each sector gets the same four columns); extending a
-    galaxy with
-    a different release warns before it starts (CLI and Generate page),
-    because a mixed-version galaxy reproduces only sector by sector, each
-    on its own version. Prerequisite: none (DB.6 done, PR #387).
-    Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
-    Plan (2026-10-07): Written as an Alembic migration (DB.11).
-
   - [ ] **OPS.14 A warning when the running version key differs from the galaxy's**
     Done: one check compares the running key (DB.6) and the corpus and
     lock hashes (OPS.13) with the ones stored for the galaxy, and for
@@ -1097,7 +1032,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     the galaxy; GEN.58's fingerprint output and OPS.12's reproduce
     report print the same comparison, so a mismatched fingerprint says
     whether the platform or the corpus changed too. A test checks each
-    field is named. Prerequisite: DB.7.
+    field is named.
     Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
   - [ ] **OPS.15 Each update says whether it changes generated output**
@@ -1179,8 +1114,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     migration of old galaxies to a new release's output. It prints
     OPS.14's comparison of the stored and running key and hashes, and
     warns when they differ. It reads the galaxy's settings from ADM.18's
-    JSON file. Prerequisites: DB.7, GEN.57, TEST.77,
-    GEN.59, OPS.14, ADM.18, GEN.61, OPS.18.
+    JSON file. Prerequisites: GEN.57, TEST.77,
+    GEN.59, OPS.14, GEN.61, OPS.18.
     Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
   - [ ] **ADM.17 The Generate page shows the galaxy's seed and version**
@@ -1191,64 +1126,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     Prerequisite: none (DB.6 done, PR #387).
     Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
-  - [ ] **ADM.18 The galaxy's creation settings saved as a JSON file, downloadable from the Admin dashboard**
-    Boss (2026-10-02 02:13Z): "Inject into Phase 1 that the system
-    should also take all the variables that were set at galaxy creation
-    time and when the galaxy is created generate a backup file with all
-    the settings in JSON format with the seed and version data. The file
-    will be downloadable as a json file from the Admin dashboard at any
-    time and a backup is made if the file ever has to be changed." Then
-    (02:20Z): "The wordlist will also be in the JSON file", and (02:21Z):
-    "JSON file name will be seed-version-date-time". Done:
-    - When a galaxy is created, a JSON file is written holding only what
-      reproduction needs: every creation setting (all `plan` and
-      new-galaxy options, defaults included: disk scale length and
-      height, bulge radius, max ring, bright-star floor, prevalence
-      settings and the rest), the 128-bit seed, DB.6's 22-digit version
-      key with its parts spelled out, the corpus and lock hashes
-      (OPS.13), the word list, and GEN.59's regenerate seeds and net
-      diff.
-    - The word list is the filtered list the name generator actually
-      uses (from nltk's `words` corpus, about 2.5 MB raw, after
-      `offensive_words.txt` and any name lists are applied), stored
-      gzip-compressed and base64-encoded with its SHA-256. A rebuild
-      reads names from this list. This supersedes keeping only a hash of
-      the corpus; the hashes stay for OPS.14's check.
-    - The file name is `<32-hex seed>-<22-hex version key>-<YYYYMMDD>-<HHMMSS>Z.json`
-      in UTC, with no colons so it is valid on Windows, for example
-      `9F3A07C2E81B44D5A1C06E7B3D2F9081-0007007F000160030C0300-20261002-022133Z.json`.
-      It lives in the site's data directory (path in `config.json`).
-    - The file is written once when the galaxy is created. After that
-      it changes only through the daily merge (GEN.61), which writes a
-      new file under the new date-time and leaves the old one as a dated
-      backup, so the newest file is the current one. Setting changes
-      and admin changes wait in the pending-delta table until then.
-      Backups are kept by OPS.18's 18-slot rotation.
-    - The Admin dashboard offers the current file as a `.json` download
-      at any time, with the control database's key history (the last 10
-      updates, OPS.13) alongside it. ADM.19 later lists every backup.
-    OPS.12 rebuilds from this file. A test creates a small galaxy,
-    downloads the file and checks the name, settings, seed, key and word
-    list.
-    Prerequisite: DB.7.
-    Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
-    Plan (2026-10-07): The JSON stores the galaxy's naming key (GEN.70)
-    instead of the word list; the word list and corpus hashes go with
-    GEN.71.
-    Progress (GEN.70, PR #731, control schema v9): the key is stored per
-    galaxy database in the control table `galaxy_naming`. The settings
-    JSON does not carry it yet; this item adds it.
-    Superseded (2026-10-08): it stores the naming key in addition to the
-    word list and corpus hashes, which stay for the stars' and sectors'
-    word-salad names (GEN.67).
-
   - [ ] **ADM.19 The Admin dashboard lists the 18 settings backups for download**
     Done: the Admin dashboard lists every kept JSON file (OPS.18's 18
     slots) with its date, slot (daily, weekly, monthly, yearly) and
     version key, each downloadable as a `.json` file, next to the
     current one (ADM.18). Admin only. A test checks the list matches
-    the files on disk and a download returns the file. Prerequisites:
-    ADM.18, OPS.18.
+    the files on disk and a download returns the file. Prerequisite:
+    OPS.18.
     Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
   - [ ] **ADM.20 A "merge now" button on the Admin dashboard (low priority)**
@@ -1319,7 +1203,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     a fresh database from seed + key + JSON + epoch, and gets the same
     content by fingerprint
     (GEN.58). Moved to phase 1, beside ADM.18. Uses the admin edit code
-    (`adminEdits.py`, `editStore.py`). Prerequisite: ADM.18.
+    (`adminEdits.py`, `editStore.py`).
     Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
   - [ ] **GEN.61 The daily merge folds pending admin changes into a new JSON file**
@@ -1341,8 +1225,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     pending and no epoch change it writes nothing. A test merges a set
     of deltas, rebuilds from the new file, and matches the live galaxy
     by fingerprint (GEN.58); another kills the merge before the check
-    and finds the pending rows still there. Prerequisites: GEN.59,
-    ADM.18.
+    and finds the pending rows still there. Prerequisite: GEN.59.
     Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
 - [ ] **GEN.83 A planetary habitability index (PHI)**
@@ -1546,31 +1429,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   its last update (one day of real time is one day of orbit), and an
   option advances it by a stated extra span in one go. Done when its
   subitems are.
-  Prerequisites: GEN.107, GEN.108, GEN.115, GEN.109, GEN.110.
+  Prerequisites: GEN.115, GEN.109, GEN.110.
   Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
-
-  - [ ] **GEN.107 The update reports how many objects moved, changed sector, or entered or left a nebula**
-    Boss (2026-10-03 05:38Z): "orbital update script should also say how
-    many objects changed sector or entered / exited a nebulae." Done:
-    the update's summary counts objects moved (only those past their
-    threshold), sector changes and nebula entries and exits (by the
-    nebula shape test).
-    Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
-
-  - [ ] **GEN.108 Orbital math limits: where each method breaks down and what happens there**
-    Boss (2026-10-07 11:47Z): "Orbital path implementation, we need to
-    ensure that reasonable limitations for when the math breaks down at
-    the edge cases." Done: orbital-updates.md lists each edge case
-    (near-parabolic orbits, e close to 1, time steps longer than an
-    orbit, bodies inside a Roche limit or a Hill sphere, the galactic
-    centre's singular potential, float precision at galactic distances)
-    with the guard the code applies, and tests hit each guard. The
-    guards follow "Computational Astrodynamics.md": the universal
-    variable for near-parabolic orbits (with the corrected Kepler
-    equation in orbital-updates.md 10.6), modified equinoctial elements
-    for circular and equatorial orbits, phase wrapping for steps longer
-    than an orbit, and Plummer softening at the centre.
-    Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
 
   - [ ] **GEN.115 The galaxy's own gravity: a smooth disk, bulge and halo potential**
     Boss (2026-10-07 17:11Z) approved scaling the potential with the
@@ -1587,7 +1447,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     curve (229.3 km/s at 8.128 kpc, 213 to 231 km/s from 4 to 20 kpc),
     the vertical pull near the disk and a star staying at its radius over
     many runs.
-    Prerequisite: GEN.108.
     Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
 
   - [ ] **GEN.109 N-body influence from every object inside the largest nearby Hill sphere plus the galactic gradient, with a Hill-radius warning**
@@ -1622,7 +1481,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     update-only trajectory changes and the sector-geometry check stand).
     The influencer search test therefore compares the objects found
     inside that radius against a brute-force search.
-    Prerequisites: GEN.108, GEN.115.
+    Prerequisite: GEN.115.
     Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
 
   - [ ] **GEN.110 Rogue planet collisions: asteroid fields, merged giants and new stars**

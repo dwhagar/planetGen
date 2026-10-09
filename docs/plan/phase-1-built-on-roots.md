@@ -100,17 +100,14 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.104 | A spin vector and a realistic axial tilt for every rotating object |  | Rules from "Observational Kinetics for Rotational Vectors.md". |
-| GEN.107 | The update reports how many objects moved, changed sector, or entered or left a nebula |  |  |
-| GEN.108 | Orbital math limits: where each method breaks down and what happens there |  | Boss (2026-10-07 11:47Z): "we need to ensure that reasonable limitations for when the math breaks down at the edge cases." |
 
 ### Routing
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| NAV.10 | Routing that scales past a few thousand systems |  | Its position indexes are an Alembic migration. Galaxy schema migration for position indexes (v53 taken by PR #425). Built with NAV.12 (no hop limit, a route always exists). |
-| NAV.12 | No maximum hop length: a route always reaches the nearest star it can, across any number of sectors | NAV.10 | Anchor (Boss 01:53Z game mechanic). Built with NAV.10. Per-hop unknown-space flag in /api/nav. |
+| NAV.12 | No maximum hop length: a route always reaches the nearest star it can, across any number of sectors |  | Anchor (Boss 01:53Z game mechanic). Built with NAV.10. Per-hop unknown-space flag in /api/nav. |
 | UX.35 | The NAV page route shown horizontally, wrapping onto several lines on narrow screens |  | In parallel with NAV.12; replaces ol.nav-route in nav.html. |
-| NAV.11 | Travel times for the system-to-system route too | NAV.10, NAV.12 | Times per hop, including unknown-space jumps; total assumes a stop at every system (Boss 04:19Z); open question on a stay per stop. |
+| NAV.11 | Travel times for the system-to-system route too | NAV.12 | Times per hop, including unknown-space jumps; total assumes a stop at every system (Boss 04:19Z); open question on a stay per stop. |
 | NAV.42 | Each route stop shows the course and distance to the next stop | UX.35 | Boss 04:19Z. format_course per hop, frame per pair. |
 | NAV.47 | Unknown-space jumps stop at scattered stars, black holes, neutron stars and quasars | NAV.12 |  |
 | NAV.48 | Offer to generate the uncharted sectors that block a course | NAV.12 |  |
@@ -177,11 +174,9 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.57 | A sector's contents depend only on the seed, the version and its address |  | Name collisions go away with GEN.67; GEN.63 dropped. Also keys GEN.64's ID collision counter on address (it checks stored rows, PR #406). |
-| DB.7 | The version that generated each sector, and a warning for mixed-version galaxies |  | An Alembic migration. |
 | TEST.77 | A golden-seed regression test | GEN.57 |  |
-| OPS.14 | A warning when the running version key differs from the galaxy's | DB.7 | Feeds GEN.58's output and OPS.12. |
-| ADM.18 | The galaxy's creation settings saved as a JSON file, downloadable from the Admin dashboard | DB.7 | Stores the naming key instead of the word list. Boss 02:13Z: phase 1. Includes the key history; dated backup on every change. |
-| GEN.59 | Admin changes stored as a net difference from the generated galaxy | ADM.18 | Boss 02:20Z: net diff by stable address path, regenerate seeds, in ADM.18's JSON. |
+| OPS.14 | A warning when the running version key differs from the galaxy's |  | Feeds GEN.58's output and OPS.12. |
+| GEN.59 | Admin changes stored as a net difference from the generated galaxy |  | Boss 02:20Z: net diff by stable address path, regenerate seeds, in ADM.18's JSON. |
 
 ### Bugs from the GitHub issues
 
