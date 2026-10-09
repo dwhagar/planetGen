@@ -345,3 +345,19 @@ def test_a_job_outlives_the_server_process_that_started_it(jobs_root, redis_serv
     job = _wait_finished(job_id, jobs_root)
     assert job["status"] == "succeeded"
     assert "still here" in jobs.log_tail(job_id, root=jobs_root)
+
+
+def test_jobs_are_listed_a_page_at_a_time(jobs_root):
+    # ADM.41: the Generate page's job list is paged; `offset` skips the newest.
+    for number in range(5):
+        job_id = f"20260101-00000{number}-{number:04x}"
+        os.makedirs(os.path.join(jobs_root, job_id))
+        with open(os.path.join(jobs_root, job_id, "job.json"), "w", encoding="utf-8") as f:
+            json.dump({"id": job_id, "title": f"Job {number}", "kind": "galaxy", "steps": [],
+                       "created_at": 1_700_000_000 + number}, f)
+        with open(os.path.join(jobs_root, job_id, "state.json"), "w", encoding="utf-8") as f:
+            json.dump({"status": "succeeded"}, f)
+    assert jobs.count_jobs(jobs_root) == 5
+    assert [job["title"] for job in jobs.list_jobs(limit=2, root=jobs_root)] == ["Job 4", "Job 3"]
+    assert [job["title"] for job in jobs.list_jobs(limit=2, root=jobs_root, offset=2)] == ["Job 2", "Job 1"]
+    assert [job["title"] for job in jobs.list_jobs(limit=2, root=jobs_root, offset=4)] == ["Job 0"]

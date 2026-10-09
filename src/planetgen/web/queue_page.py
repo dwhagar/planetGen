@@ -15,6 +15,7 @@ a Generate page job (`web/jobs.py`), like the Generate page's own forms.
 """
 
 import re
+import time
 
 from flask import abort, current_app, request, url_for
 
@@ -64,12 +65,18 @@ ACTION_TEXT = {
                          "a step or a Generate page job ends that run."),
     "retry": ("Retry", None),
     "delete": ("Delete", "The job's record and timings are deleted. Nothing it generated is touched."),
+    "clear-finished": ("Clear finished jobs", "Every finished job's record and timings are deleted, "
+                                              "leaving the ones still running. Nothing they generated is touched."),
     "queue-pause": ("Pause the queue", "No job starts or takes another task until you resume the queue. "
                                        "Running tasks finish first."),
     "queue-resume": ("Resume the queue", "Jobs waiting for the queue start again, one at a time."),
     "clear-lease": ("Clear the stale lease", "The run holding it has stopped answering. Its unfinished "
                                              "work is marked cancelled so the next job can start."),
 }
+
+
+QUEUE_WIDE_ACTIONS = ("clear-lease", "clear-finished")
+"""tuple[str]: The controls that act on the whole queue, not one job."""
 
 
 def _duration(seconds):
@@ -147,6 +154,29 @@ def _node_view(node, root):
         } for task in node["tasks"]],
     }
     return view
+
+
+def _remaining_seconds(root):
+    """
+    Seconds a running job has left, or `None` when it can't be told (ADM.39):
+    the job tree's own estimate from its finished tasks' pace, else the
+    estimate a Generate page job's runner publishes (PERF.7), counted down
+    from when it was written. A job that isn't running has none.
+    """
+    if not root["live"]:
+        return None
+    eta = root["totals"]["eta_seconds"]
+    if eta is not None:
+        return eta
+    web_job_id = root.get("web_job_id")
+    if root["kind"] != "web-job" or not web_job_id or not jobs.JOB_ID_RE.match(web_job_id):
+        return None
+    job = jobs.get_job(web_job_id)
+    progress = (job or {}).get("progress") or {}
+    if job is None or job.get("finished_at") or progress.get("eta_s") is None:
+        return None
+    updated_at = progress.get("updated_at") or time.time()
+    return max(0.0, float(progress["eta_s"]) - max(0.0, time.time() - float(updated_at)))
 
 
 def _status_view(status):
@@ -240,10 +270,10 @@ def _job_cells(root):
     asked = f" ({node['asked']})" if node["asked"] else ""
     return [
         {"text": node["title"], "href": node["url"]},
-        {"text": node["kind"]},
         {"text": node["status_label"] + asked},
         {"text": started},
         {"text": node["duration"] or ""},
+        {"text": _duration(_remaining_seconds(root)) or ""},
         {"text": f"{node['done']} of {node['tasks']}" if node["tasks"] else ""},
         {"text": "", "parts": links} if links else {"text": ""},
     ]
@@ -265,9 +295,9 @@ def _jobs_load(state, limit, offset, want_facets):
 
 JOBS_TABLE = tables.register(Table(
     "queue-jobs", "Jobs",
-    [Column("job", "Job", sortable=False), Column("kind", "Kind", sortable=False),
-     Column("status", "Status", sortable=False), Column("started", "Started", sortable=False),
-     Column("duration", "Duration", sortable=False), Column("progress", "Progress", sortable=False),
+    [Column("job", "Job", sortable=False), Column("status", "Status", sortable=False), Column("started", "Started", sortable=False),
+     Column("duration", "Duration", sortable=False), Column("left", "Time left", sortable=False),
+     Column("progress", "Progress", sortable=False),
      Column("actions", "Actions", sortable=False)],
     _jobs_load, prefix="jobs_", noun=("job", "jobs"),
 ))
@@ -318,7 +348,7 @@ def admin_queue_tree(node_id):
 def _confirm_text(action, tree, node, task):
     """`(heading, explanation)` for the confirmation page."""
     label, explanation = ACTION_TEXT[action]
-    if action.startswith("queue-") or action == "clear-lease":
+    if action.startswith("queue-") or action in QUEUE_WIDE_ACTIONS:
         return f"{label}?", explanation
     if task is not None:
         argv = _task_retry_argv(task)
@@ -344,7 +374,7 @@ def admin_queue_confirm(action):
     if action not in ACTION_TEXT:
         abort(404, description="No such action.")
     tree = node = task = None
-    if not (action.startswith("queue-") or action == "clear-lease"):
+    if not (action.startswith("queue-") or action in QUEUE_WIDE_ACTIONS):
         if not workQueue.NODE_ID_RE.match(node_id):
             abort(404, description="No such job.")
         tree, node = _load(_cookie_header(), node_id)
@@ -409,6 +439,10 @@ def admin_queue_action():
         elif action == "queue-resume":
             ok = apiclient.admin_work_queue(cookie_header, "resume")
             message = "The queue is running again." if ok else "The queue wasn't paused."
+        elif action == "clear-finished":
+            cleared = apiclient.admin_work_clear_finished(cookie_header)
+            message = f"Cleared {cleared} finished {'job' if cleared == 1 else 'jobs'}." if cleared \
+                else "There were no finished jobs to clear."
         elif action == "clear-lease":
             holder = apiclient.admin_work_clear_lease(cookie_header)
             message = f"Cleared the lease held by {holder}." if holder else "The lease wasn't stale."

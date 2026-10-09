@@ -60,6 +60,7 @@ from pydantic import Field, TypeAdapter, ValidationError
 from planetgen.queue import api_jobs
 from planetgen.web.lib import apiclient
 from planetgen.web.lib.fmt import utc_time_html
+from planetgen.web.lib.pagination import PAGE_SIZE, clamp_page, page_offset, parse_page
 from planetgen.admin import activity_log
 from planetgen.generation import prevalence, stats
 from planetgen import tuning
@@ -73,7 +74,7 @@ from planetgen.generation.limits import (
 )
 
 from . import bp, jobs
-from .helpers import crumb, current_admin, db_name, page_url, render_page, trusted_html
+from .helpers import crumb, current_admin, db_name, page_url, pager, render_page, trusted_html
 
 # ---------------------------------------------------------------------
 # Form fields
@@ -744,10 +745,13 @@ def _page(admin, error=None, status=200, form=None, estimate=None, estimate_titl
     try:
         root = jobs.jobs_dir()
         active = jobs.active_job(root)
-        recent = jobs.list_jobs(limit=10, root=root)
+        recent_total = jobs.count_jobs(root)
+        recent_page = clamp_page(parse_page(request.args.get("jobs_page")), recent_total)
+        recent = jobs.list_jobs(limit=PAGE_SIZE, root=root, offset=page_offset(recent_page))
         jobs_error = None
     except OSError as exc:
         active, recent, jobs_error = None, [], str(exc)
+        recent_total, recent_page = 0, 1
         log.error(f"Generate page: {exc}")
     return _no_store(render_page(
         "generate.html",
@@ -761,6 +765,7 @@ def _page(admin, error=None, status=200, form=None, estimate=None, estimate_titl
         active=_job_view(active),
         active_log=jobs.log_tail(active["id"], max_bytes=8 * 1024) if active else None,
         recent=[_job_view(job) for job in recent],
+        recent_pager=pager("jobs_page", recent_page, recent_total, anchor="recent-jobs", label="Recent jobs pages"),
         jobs_error=jobs_error,
         plan_fields=PLAN_FIELDS,
         prevalence_fields=PREVALENCE_FIELDS,

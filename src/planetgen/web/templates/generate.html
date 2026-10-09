@@ -343,19 +343,20 @@
 {% call fold("recent-jobs", "Recent jobs") %}
   {%- if recent %}
   <div class="table-scroll"><table>
-    <thead><tr><th scope="col">Started</th><th scope="col">Job</th><th scope="col">By</th><th scope="col">Status</th><th scope="col" class="num">Time</th></tr></thead>
+    <thead><tr><th scope="col">Started</th><th scope="col">Job</th><th scope="col">Status</th><th scope="col" class="num">Time</th></tr></thead>
     <tbody>
       {%- for job in recent %}
       <tr>
         <td>{{ job.created_html }}</td>
         <td><a href="{{ job.url }}">{{ job.title }}</a></td>
-        <td>{{ job.admin or "" }}</td>
         <td><span class="badge job-{{ job.status }}">{{ job.status }}</span></td>
         <td class="num">{{ job.elapsed_text }}</td>
       </tr>
       {%- endfor %}
     </tbody>
   </table></div>
+  {{ recent_pager }}
+  <p class="hint">Every job, including ones started from the command line, is on the <a href="{{ url_for('web.admin_queue') }}">Work Queue</a> page, where finished ones can be cleared.</p>
   {%- else %}
   <p class="hint">No jobs yet.</p>
   {%- endif %}

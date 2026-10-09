@@ -1172,6 +1172,18 @@ def delete_tree(conn, root_id):
         return cur.rowcount > 0
 
 
+def clear_finished(conn):
+    """Deletes every finished (or dead) job tree with its tasks. Returns
+    how many there were; live trees stay."""
+    with conn:
+        cur = conn.execute(
+            "DELETE FROM work_jobs WHERE parent_id IS NULL"
+            " AND (state NOT IN ('waiting', 'running', 'paused') OR heartbeat_at < NOW(6) - INTERVAL ? SECOND)",
+            (STALE_SECONDS,),
+        )
+        return cur.rowcount
+
+
 class WorkQueue:
     """
     One run's tasks and the worker pool that runs them; see this module's
