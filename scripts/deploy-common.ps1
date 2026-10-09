@@ -526,6 +526,22 @@ from planetgen.web.app import create_app
 # answers, and otherwise says to run Redis in WSL2
 # (docs/deployment/windows.md#redis). Nothing uses Redis yet, so a
 # server that doesn't answer only warns.
+# Builds the Galaxy Map's opening view into the tile cache in the
+# background (MAP.134), so the first visit after the update is fast. The
+# update doesn't wait for it and a failure only means the first visit
+# builds the view itself.
+function Start-GalaxyMapWarmup {
+    $python = Get-VenvPython
+    $log = Join-Path $env:TEMP "planetgen-warm-map.log"
+    try {
+        Start-Process -FilePath $python -ArgumentList "-m", "planetgen.cli.warm_map" -WindowStyle Hidden `
+            -RedirectStandardOutput $log -RedirectStandardError "$log.err" | Out-Null
+        Write-Host "Building the Galaxy Map's opening view in the background (log: $log)."
+    } catch {
+        Write-Warning "Couldn't start the Galaxy Map warm-up ($_); the first visit builds the view."
+    }
+}
+
 function Test-Redis {
     $python = Get-VenvPython
     $url = & $python -c "from planetgen.util.appconfig import load_config; print(load_config()['redis']['url'])"
