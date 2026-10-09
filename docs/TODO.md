@@ -120,6 +120,14 @@ that files it.
 Phases overlap: a phase's later threads can start while the next
 phase's first ones run, as long as the order inside each phase holds.
 
+Version: the next revision is 8.1 (Boss, 2026-10-09 18:12Z: no 8.1 until
+Phase 1 is complete). Boss (23:07Z) put the fly-through Galaxy Map
+(MAP.146 and MAP.147 to MAP.155) into phase 1 as the main feature that
+earns the 8.1 bump. Phase 1 is complete only when those are done too;
+until then every release stays on 8.0 (`REVISION_HOLD` in
+`scripts/bump_version.py`), and the TODO thread flips the hold when Boss
+declares phase 1 complete.
+
 Boss's list of 2026-10-01 23:53Z (`new todos.txt`, with research notes;
 the files are in the project's shared files under `todo-tasks/research/`)
 became these items:
@@ -699,12 +707,23 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   container. The arc, slab and segment picks stop being the way to move;
   old stage URLs stop working (no backward compatibility). The open
   questions for Boss, each with a default, are on the sub-items.
-  Order (from the report, section 8): MAP.149 and MAP.153 (client side
-  first) can start now and improve today's map, then MAP.148 (it builds
-  on MAP.153); MAP.150 needs MAP.149;
-  MAP.151 and MAP.152 follow. MAP.147 (the wire format) must be decided
-  together with MAP.151's tile keys.
-  Prerequisites: MAP.148, MAP.149, MAP.150, MAP.151, MAP.152. Related:
+  Phase 1, and the headline of the 8.1 release (Boss, 2026-10-09
+  23:07Z): "Let's inject into phase 1 to full build ... This will be our
+  major version bump to 8.1 later when we finish Phase 1, this is the
+  main feature to move that." So MAP.146 and every item under it
+  (MAP.147 to MAP.155) are part of what "Phase 1 complete" means: the
+  8.1 stamp waits until all of them are done, and the 8.0 hold stays
+  until then. The open questions on the sub-items stand, each with its
+  default.
+  Order (Foundations lane 2, the map engine lane): MAP.153 and MAP.149
+  first (client side only, no prerequisites), then MAP.148 (needs
+  MAP.153), MAP.150 (needs MAP.149) and MAP.155 (needs MAP.153), then
+  MAP.154 (needs MAP.153; its tile keys are decided with MAP.147, the
+  wire format investigation by Research Lane 3), MAP.151 (needs ADM.29
+  from Foundations lane 1, and MAP.147) and MAP.152 (needs MAP.148,
+  MAP.150 and MAP.154); this umbrella closes last.
+  Prerequisites: MAP.148, MAP.149, MAP.150, MAP.151, MAP.152, MAP.153,
+  MAP.154, MAP.155. Related:
   MAP.120, MAP.121, MAP.141, MAP.140, MAP.59, MAP.116, MAP.122, MAP.125,
   MAP.131, MAP.134, MAP.147, ADM.29, ADM.30, GEN.101, GEN.126, NAV.13,
   NAV.14.
@@ -3889,6 +3908,9 @@ Boss (2026-10-07 11:47Z): "Actual specs on layers on the generation
     ring, layer and column spans come from prefix sums with no
     enumeration (`GalaxyBounds._cumulative`; column layers from
     `galaxy_column`), so the estimate and warning show instantly.
+    Dependency (2026-10-09): MAP.151 (the fly-through region data layer,
+    Phase 1, headline of 8.1) needs this item, so Foundations 1 should
+    take it early rather than at the end of the Generate page step.
 
   - [ ] **ADM.30 Radial generation: a cylinder of N sectors around a point**
     Boss (2026-10-07 11:47Z): "From generate menu specify a radial
