@@ -12,7 +12,7 @@ potential of [galactic-potential.md](galactic-potential.md).
 
 Informs: DB.19, GEN.100, GEN.104, GEN.109, GEN.115, PERF.31
 
-Status: research, 2026-10-09; the cut is a recommendation, the decision is Boss's. No generator code changed.
+Status: research, 2026-10-09; Boss accepted the 20 solar mass cut on a decision card (2026-10-09). No generator code changed.
 
 Evidence tags: [C] computed or measured here (`/mnt/project-files/research/scripts/genperf/`:
 `default_totals.py`, `mass_cut_table.py`, `walk_cost.py`); [S] read in the repository; [R] recalled and unconfirmed.

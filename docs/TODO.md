@@ -2855,7 +2855,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   decided at 19:54Z that the GEN.100 scatter keeps only objects above a
   lowest mass and the sector fill draws the rest below it, like the
   bright stars. Add `--phenomenon-min-mass` (default 20 solar masses,
-  the recommended cut), stored with the scatter settings, the settings
+  the cut Boss accepted), stored with the scatter settings, the settings
   file and the reproducibility key; the scatter draws only objects above
   it. The per-kind mean counts are truncated by the share S_k(c) above
   the cut c: neutron stars (2.2 - c) / 1.1, stellar-mass black holes (20
@@ -3404,7 +3404,8 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   bright-star scatter; the 1.06e9 and 146 GB first reported ran 10% low).
   Boss decided (2026-10-09 19:54Z) that the scatter keeps only objects above
   a lowest mass and the sector fill draws the rest below it, like the bright
-  stars; the recommended cut is 20 solar masses. The work is GEN.166, GEN.167 and GEN.168.
+  stars. Boss accepted the cut of 20 solar masses (decision
+  card, 2026-10-09). The work is GEN.166, GEN.167 and GEN.168.
   Deriving neutron stars and black holes on demand, or compacting the row,
   is needed only if the cut is lowered to 10 solar masses or less. The
   notes' earlier 1.6e8 rows was an unverified estimate, not a result.
