@@ -147,3 +147,75 @@ def test_resolve_a_phenomenon(client, mysql_config):
     body = client.get(f"/api/objects/nebula:{nebula_id}").get_json()
     assert body["kind"] == "nebula" and body["parents"][0]["ref"] == "galaxy"
     assert body["positions"] == {"galaxy_pc": [5.0, 1.0, 2.0], "sector_ly": None, "system_km": None}
+
+
+# --- NAV.24: the keep-out radius of every kind of object ------------------------
+
+def test_a_compact_object_at_the_galactic_center_keeps_out_by_its_own_size():
+    from planetgen.galaxy import keepout
+    from planetgen.physics import constants
+
+    mass = 4e6 * constants.SOLAR_MASS_TO_KG
+    at_core = keepout.compact_keep_out(mass, 0.0, 1.2e7)
+    assert (at_core.radius_km, at_core.basis) == (1.2e7, "radius")
+    far = keepout.compact_keep_out(10 * constants.SOLAR_MASS_TO_KG, 8000.0, 30.0)
+    assert far.basis == "galactic_hill" and far.radius_km > 30.0
+    # The Hill radius grows with the cube root of the mass and linearly with distance.
+    assert keepout.galactic_hill_radius_km(8 * 1e30, 2000.0) == pytest.approx(
+        2 * keepout.galactic_hill_radius_km(1e30, 2000.0))
+    assert keepout.galactic_hill_radius_km(1e30, 4000.0) == pytest.approx(
+        2 * keepout.galactic_hill_radius_km(1e30, 2000.0))
+
+
+def test_keep_out_for_bodies_and_systems(client, mysql_config):
+    system_id = _save_wide_binary_with_moons(mysql_config)
+    moon_id = _ids(mysql_config, "SELECT id FROM moons WHERE star_system_id = ? ORDER BY id", (system_id,))[0]
+    planet_id = _ids(mysql_config, "SELECT planet_id AS id FROM moons WHERE id = ?", (moon_id,))[0]
+    conn = store.get_connection(mysql_config)
+    try:
+        hill = conn.execute("SELECT hill_radius_km FROM planets WHERE id = ?", (planet_id,)).fetchone()
+        perimeters = [r["system_perimeter_km"] for r in conn.execute(
+            "SELECT system_perimeter_km FROM stars WHERE star_system_id = ?", (system_id,)).fetchall()]
+    finally:
+        conn.close()
+
+    planet = client.get(f"/api/objects/planet:{planet_id}").get_json()["keep_out"]
+    assert planet["basis"] == "hill" and planet["radius_km"] == pytest.approx(hill["hill_radius_km"])
+    assert client.get(f"/api/objects/moon:{moon_id}").get_json()["keep_out"]["radius_km"] > 0
+
+    system = client.get(f"/api/objects/system:{system_id}").get_json()["keep_out"]
+    assert system["basis"] == "perimeter" and system["radius_km"] >= max(perimeters)
+    star_id = _ids(mysql_config, "SELECT id FROM stars WHERE star_system_id = ?", (system_id,))[0]
+    assert client.get(f"/api/objects/star:{star_id}").get_json()["keep_out"] == system
+
+
+def test_keep_out_of_a_cloud_is_a_pass_through_with_a_note(client, mysql_config):
+    conn = store.get_connection(mysql_config)
+    try:
+        nebula_id = store.insert_nebula(conn, Nebula(SystemConfig()), sector_id=None, placement={
+            "center_x_pc": 5.0, "center_y_pc": 1.0, "center_z_pc": 2.0, "galactic_radius_pc": 5.5})
+        conn.commit()
+    finally:
+        conn.close()
+    keep_out = client.get(f"/api/objects/nebula:{nebula_id}").get_json()["keep_out"]
+    assert keep_out["radius_km"] is None and keep_out["basis"] == "none" and "passes through" in keep_out["note"]
+
+
+def test_keep_out_of_compact_objects_and_rogues_uses_the_galactic_hill_radius(client, mysql_config):
+    from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
+    from planetgen.generation.phenomena.rogue import RoguePlanet
+
+    placement = {"center_x_pc": 8000.0, "center_y_pc": 0.0, "center_z_pc": 0.0, "galactic_radius_pc": 8000.0}
+    conn = store.get_connection(mysql_config)
+    try:
+        ids = {
+            "black_hole": store.insert_black_hole(conn, BlackHole(SystemConfig()), placement=placement),
+            "neutron_star": store.insert_neutron_star(conn, NeutronStar(SystemConfig()), placement=placement),
+            "rogue_planet": store.insert_rogue_planet(conn, RoguePlanet(SystemConfig()), placement=placement),
+        }
+        conn.commit()
+    finally:
+        conn.close()
+    for kind, object_id in ids.items():
+        keep_out = client.get(f"/api/objects/{kind}:{object_id}").get_json()["keep_out"]
+        assert keep_out["basis"] in ("galactic_hill", "radius") and keep_out["radius_km"] > 0, kind
