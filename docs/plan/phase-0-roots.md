@@ -59,6 +59,7 @@ Done: all eight items landed in PR #442 (2026-10-07).
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | DB.13 | Every stored value in its own column, not in JSON blocks, and indexed for search |  | Boss (2026-10-07 11:47Z): "This is to be considered a Phaser 0 priority." |
+| GEN.126 | Run an orbital update as the last step of a generation run |  | Physics build thread; Boss (2026-10-09 05:03Z). Ahead of GEN.125. |
 
 ### Groundwork: names from IDs
 

@@ -1709,6 +1709,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   for small bodies, black hole spin distributions).
   Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
 
+- [ ] **GEN.126 Run an orbital update as the last step of a generation run**
+  Boss (2026-10-09 05:03Z): "when generation finishes, or rather as the
+  last step we run an orbital update as part of the generation process,
+  that way everything then has its vectors filled in once it's static."
+  Asked by the physics build thread. After a generation run, run the
+  orbit update (velocities, orbital elements, sector address, saved
+  sector paths) for the sectors the run touched plus their neighbours,
+  so paths see the final neighbour set; this also removes the
+  worker-order dependence that kept GEN.123 from computing paths at
+  generation. The same-seed-same-galaxy test must still pass. Measure
+  the cost at realistic sizes before deciding whether it must be a
+  queued job for huge fills (26.9M bright stars).
+  Physics build thread, phase 0, ahead of GEN.125.
+  Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
+
 - [ ] **GEN.125 Stand-alone facilities store a velocity**
   Asked by the physics build thread after PR #735 (GEN.121 left them
   out): a stand-alone facility (one not attached to a star's system)
