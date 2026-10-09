@@ -120,9 +120,10 @@ _STAR_TYPES = ["M5V", "K2V", "G2V", "F5V", "A1V", "B3V", "O5V"]
 # children `to_dict` writes itself (moons, a belt's composition), and the
 # galactic distance the star's serialized perimeter and orbit come from, and
 # the `SpatialPosition3D` a body holds (GEN.74), which the stored position
-# columns rebuild on load.
+# columns rebuild on load. A star's name is serialized through its `name`
+# property, which draws it on first read from `_name_seed` (PERF.43).
 _RUNTIME_ONLY = {
-    Star: {"system_config", "galactic_center_dist_ly", "spatial"},
+    Star: {"system_config", "galactic_center_dist_ly", "spatial", "_name", "_name_seed"},
     Planet: {"system_config", "star", "moons", "spatial", "_staged_au", "_staged_velocity_kms"},
     AsteroidBelt: {"system_config", "composition"},
 }
