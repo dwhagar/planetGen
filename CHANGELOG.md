@@ -1,5 +1,10 @@
 # Changelog
 
+## [7.376.678] - 2026-10-09
+
+### Added
+- The path of a body with no closed orbit through a sector (`physics/sector_path.py`): a test particle is followed from where it enters, with its velocity, against the sector's heavy masses until it leaves, and kept as a few cubic Hermite spline knots (two for a straight crossing, more where a mass bends it, at most 48). The exit is the next sector's entry. Saving it with the sector comes next.
+
 ## [7.375.678] - 2026-10-09
 
 ### Added
