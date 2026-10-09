@@ -112,13 +112,21 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.57, TEST.77, UX.49, PERF.31, PERF.32, GEN.128, ADM.42 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, NAV.11, NAV.42, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.57, TEST.77, UX.49, PERF.31, PERF.32, GEN.128, ADM.42 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.17, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18, PERF.33, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, DB.15, ADM.43, ADM.44 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, and the anomalies chosen in phase 2. | NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, GEN.114, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies. | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, GEN.55 |
 
 Phases overlap: a phase's later threads can start while the next
 phase's first ones run, as long as the order inside each phase holds.
+
+Version: the next revision is 8.1 (Boss, 2026-10-09 18:12Z: no 8.1 until
+Phase 1 is complete). Boss (23:07Z) put the fly-through Galaxy Map
+(MAP.146 and MAP.147 to MAP.155) into phase 1 as the main feature that
+earns the 8.1 bump. Phase 1 is complete only when those are done too;
+until then every release stays on 8.0 (`REVISION_HOLD` in
+`scripts/bump_version.py`), and the TODO thread flips the hold when Boss
+declares phase 1 complete.
 
 Boss's list of 2026-10-01 23:53Z (`new todos.txt`, with research notes;
 the files are in the project's shared files under `todo-tasks/research/`)
@@ -292,21 +300,6 @@ with `clamp()`.
   moon label; the moons stay reachable from a small count on the row.
   Open question: does "Habitable" stay as a chip?
 
-- [ ] **UX.35 The NAV page route shown horizontally, wrapping onto several lines on narrow screens**
-  Boss (2026-10-02 01:53Z): "display the path horizontally and find a
-  way to split it between multiple lines for mobile or limited
-  displays." Today the route is a vertical list (`<ol class="nav-route">`
-  in `nav.html`). Done: the stops run left to right, each a link, with
-  the hop distance between them; on phones and narrow panels it wraps
-  onto several lines (a container query, not a device check), never
-  splitting a stop across lines; screen readers still get an ordered
-  list. Runs alongside NAV.12; NAV.36 styles its unknown-space hops.
-  Research (2026-10-09, course-routing.md): add the long-route collapse
-  (`<details>`, first and last three stops, longest hop, every
-  unknown-space hop) and `role="list"`; about 58 stops per 100 pc in the
-  solar disk; test at 320 px.
-  Design: [docs/design/course-routing.md](design/course-routing.md)
-
 - [ ] **UX.49 Form fields as Shoelace components (sl-input, sl-select, sl-checkbox) across the site**
   UX.40 (done, PRs #528, #533, #539, #544) moved the buttons, menus and
   dialogs onto Shoelace and lined up the Generate page's text boxes with
@@ -440,6 +433,43 @@ with `clamp()`.
   Prerequisites: none.
   Design: [docs/design/map-ui-and-frontend-libraries.md](design/map-ui-and-frontend-libraries.md)
 
+- [ ] **UX.83 Generation steps that run long show no progress bar of their own: linking new sectors to their neighbours, the phenomenon scatter and others (bug)**
+  Boss (2026-10-09 23:13Z): "linking new sectors to their neighbors
+  should have a progress bar of it's own, as should the phenomena
+  scatter, all generation items should have progress bars, if a sub-step
+  is probably going to take longer than 15 seconds give it a progress
+  bar as well." Today the neighbour linking and the phenomenon scatter
+  run with no bar of their own, so a run looks stuck. Done: every
+  generation step has a progress bar (in the terminal and on the
+  Generate and Queue pages), including the neighbour linking of new
+  sectors and the phenomenon scatter, and any sub-step expected to take
+  more than 15 seconds gets its own bar under the main one. A bar is a
+  count of units done against units expected, with the estimate PERF.33
+  describes once that lands (until then the plain count). Handed to
+  Bugfixes lane 1.
+  Survey (2026-10-09): read of the code on main (not run): steps that
+  already draw a bar are the sector batches, the bright-star backfill,
+  "Neighbours" (one bar over batches of sectors in
+  `store.link_sector_neighbors`), "Sector paths" (`settle_after_run`),
+  "Topping up backfilled sectors", the plan's layer tracker, the
+  phenomenon scatter (one bar over layers, `scatter_phenomena`), and the
+  two-bar `StageProgress` of `planetgen.cli.reset` and
+  `planetgen.cli.orbits`. Lacking a bar of their own, to check and fix:
+  (1) inside each neighbour batch, the three passes of
+  `link_sector_neighbors` (containment, nearest systems, merge into the
+  neighbours), which are one silent step per batch and can run long on a
+  big batch; (2) the phenomenon scatter: `clear_phenomenon_scatter`, one
+  whole layer (a single queue task with no bar inside it) and the
+  closing `special_rows`, insert and stamp; (3) the Generate page job
+  view, which shows only what the progress file carries, so every step
+  above must write to it; (4) not yet checked: the name registry passes,
+  the containment and nearest passes of `refresh_containment` and
+  `refresh_nearest_systems` when run outside a galaxy run, the
+  end-of-update map warm-up (`warm_map`) and the migration (DB.15). Each
+  step found without one is a sub-bullet of this bug; the 15 second rule
+  applies to any pass the measured rate (PERF.32) says will pass it.
+  Prerequisites: none. Related: PERF.33, PERF.34, DB.15, UX.3.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -570,6 +600,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   a browser test steps sideways and up and back on each map.
   Research (2026-10-09, course-avoidance.md): draw the course on a layer
   that is not faded with the sectors in front of the camera.
+  Folded (2026-10-09, fly-through-view-distance.md): the blocker fade
+  and the faint context around the focus are folded into MAP.149 (the
+  near field), which is built as part of the fly-through (MAP.146).
 
 - [ ] **MAP.122 A Select mode on every galaxy view: Galaxy (blocks and sectors) or Star**
   Boss (2026-10-07 11:47Z): "Button in Galaxy display to allow selecting
@@ -626,6 +659,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the 350 ms deferral of the MAP.113 deselect (open question for Boss,
   default yes), and a non-gesture "Go to" alternative (MAP.139's button
   beside the Details link).
+  Extended (2026-10-09, fly-through-view-distance.md): the go-to flight
+  is extended by MAP.150 (the free camera): double-click flies to the
+  thing clicked, with the wheel zooming to the cursor.
 
 - [ ] **MAP.141 Context around the selection: faint neighbours, and the sectors above and below**
   Boss (GitHub issues [#718](https://github.com/dwhagar/planetGen/issues/718) and [#716](https://github.com/dwhagar/planetGen/issues/716)): "When selecting a slab we should
@@ -642,6 +678,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Research (2026-10-09, map-ui-and-frontend-libraries.md): use one
   shared `contextOpacity(region, focus, camera)` with MAP.121; the
   blocker fade formula is in design doc section 5.4.
+  Folded (2026-10-09, fly-through-view-distance.md): the faint context
+  around the selection is folded into MAP.149 (the near field), built as
+  part of the fly-through (MAP.146).
 
 - [ ] **MAP.142 Nebulae have fuzzy, fading boundaries**
   Boss (GitHub issue [#713](https://github.com/dwhagar/planetGen/issues/713), 2026-10-09 00:25Z): "Can we make the nebula
@@ -677,95 +716,415 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisite: GEN.157.
   Design: [docs/design/multiple-galaxies.md](design/multiple-galaxies.md)
 
-- [ ] **MAP.146 Zoom drill-down centred on the clicked point, not on fixed wedges, blocks and slabs**
-  Boss (2026-10-09 22:24Z): "inject into Phase 2, new item, I want the
-  zoom drill down to be less specific, instead of set wedges, blocks,
-  and slabs pre-determined, have them based on the center of where the
-  cursor is clicked. So that we always are drilling down exactly where
-  the user wants. We'll have to convert block/slab measures to ranges of
-  layers/shells/slots for filling on demand." Done: a click on the
-  Galaxy Map drills into a region centred on the sector under the
-  cursor, at the next zoom step, instead of into the fixed block of the
-  243/27/3/1 ladder that happens to hold it. Every region is described
-  as a range: layers (centre +/- half the span), rings (shells, centre
-  +/- half the span) and, for each ring, the slot range covering the
-  same arc, so the same description drives drawing, statistics, the
-  admin generate and backfill actions (MAP.120) and fill on demand
-  (ADM.29's span fill, GEN.101's fill order). Today's ladder
-  (`galaxy/drill.py` and `static/galaxyprisms.js`, nested blocks 243,
-  27, 3 and 1 sectors a side, with the nested-wedge rule in
-  galaxy-drilldown-navigation.md) is replaced, not kept beside the new
-  one.
-  What this touches: (1) the cached cube tiles and their cache stamp:
-  tiles are keyed by fixed block today, so centred regions need keys by
-  centre sector and size, a cap on cached tiles, and a bump of the
-  planetGen-version stamp (clear /var/cache/planetgen/tiles on update);
-  (2) per-sector stats and the density, age and luminosity colouring of
-  the Galaxy Map (MAP.131), which assume fixed blocks: a region's
-  figures become sums over its sector range, computed on demand from the
-  sector stats and cached by the region key; (3) the Galaxy Map opening
-  view built at the end of update.sh and by `python -m
-  planetgen.cli.warm_map` (MAP.134): the top level stays one fixed view,
-  so it is unaffected unless Boss wants the first click centred too; (4)
-  the settle step (GEN.126), which saves sector paths for created
-  sectors and their neighbours and should be handed a region's sector
-  range, not a block; (5) the breadcrumb and picker trail (NAV.13,
-  NAV.14), the neighbouring-region steps (MAP.121), the
-  slab-versus-wedge wording (MAP.59) and the Select mode (MAP.122), all
-  of which name blocks, slabs and wedges; (6) tests:
-  `tests/test_galaxydrill.py` checks the Python and JavaScript ladders
-  agree and becomes a test of the range maths on both sides.
-  Open question for Boss (default: step sizes stay 243, 27, 3 and 1
-  sectors a side, but the region is centred on the clicked sector and is
-  an odd number of sectors wide so it centres exactly; regions at
-  different zoom steps no longer nest, so a click inside a region may
-  open one that reaches slightly outside it): or keep strict nesting by
-  snapping the centre?
-  Open question for Boss (default: the first click from the whole-galaxy
-  view is centred like the rest, with the opening view unchanged): or
-  keep the first split fixed?
-  Open question for Boss (default: the slot range of a region is the
-  same arc, as an angle, at every ring it covers, rounded outward to
-  whole sectors): or the same number of slots at each ring?
-  Prerequisites: ADM.29, MAP.122. Related: MAP.120, MAP.121, MAP.59,
-  GEN.101, ADM.30, MAP.134, GEN.126, MAP.131.
+- [ ] **MAP.146 Fly through the galaxy: scroll-zoom, double-click flight, distance-based visibility and a see-through near field**
+  Boss (2026-10-09 22:24Z): "I want the zoom drill down to be less
+  specific, instead of set wedges, blocks, and slabs pre-determined, have
+  them based on the center of where the cursor is clicked. So that we
+  always are drilling down exactly where the user wants. We'll have to
+  convert block/slab measures to ranges of layers/shells/slots for
+  filling on demand." Boss (22:49Z and 22:56Z): the end goal is to
+  scroll-zoom and fly smoothly through the interface to a location; the
+  system does not do view distance well and renders and keeps clickable
+  what is right in front of the camera and the object the camera is in;
+  stars should be shown by a smooth distance-and-brightness gradient so
+  only what the observer could see is drawn; inside a block or sector the
+  observer should see its contents without looking around what is in the
+  way, the nearer things becoming more transparent as they approach;
+  double-click zooms or flies to a clickable thing, the wheel zooms in and
+  out, the user is always in the 3D galaxy even when viewing a sector;
+  the sectors looked at are rendered well and the surroundings stay
+  visible but quiet; smooth from the galaxy down to a star system.
+  Done: the Galaxy Map has one free camera from the whole galaxy to a
+  star system, built by its five sub-items: MAP.148 (the star visibility
+  law), MAP.149 (the near field), MAP.150 (the free camera), MAP.151
+  (the region data layer) and MAP.152 (scale hand-offs). The wheel zooms
+  toward the point under the cursor, double-click flies to the thing
+  clicked, stars fade by apparent magnitude against an on-screen limit,
+  things near the camera dissolve, and the camera position names the
+  container. The arc, slab and segment picks stop being the way to move;
+  old stage URLs stop working (no backward compatibility). The open
+  questions for Boss, each with a default, are on the sub-items.
+  Phase 1, and the headline of the 8.1 release (Boss, 2026-10-09
+  23:07Z): "Let's inject into phase 1 to full build ... This will be our
+  major version bump to 8.1 later when we finish Phase 1, this is the
+  main feature to move that." So MAP.146 and every item under it
+  (MAP.147 to MAP.155) are part of what "Phase 1 complete" means: the
+  8.1 stamp waits until all of them are done, and the 8.0 hold stays
+  until then. The open questions on the sub-items stand, each with its
+  default.
+  Order (Foundations lane 2, the map engine lane): MAP.157 and MAP.158
+  (the small wire format steps, no prerequisites), then MAP.153 and
+  MAP.149 (client side only, no prerequisites), then MAP.148 (needs
+  MAP.153), MAP.150 (needs MAP.149) and MAP.155 (needs MAP.153), then
+  MAP.154 (needs MAP.153), MAP.159 (packed binary tiles; needs MAP.154
+  and MAP.158; one cache stamp bump with MAP.154 and MAP.151's tile
+  keys), MAP.151 (needs ADM.29 from Foundations lane 1) and MAP.152 (needs MAP.148,
+  MAP.150 and MAP.154); this umbrella closes last.
+  Prerequisites: MAP.148, MAP.149, MAP.150, MAP.151, MAP.152, MAP.153,
+  MAP.154, MAP.155, MAP.157, MAP.158, MAP.159. Related:
+  MAP.120, MAP.121, MAP.141, MAP.140, MAP.59, MAP.116, MAP.122, MAP.125,
+  MAP.131, MAP.134, MAP.147, ADM.29, ADM.30, GEN.101, GEN.126, NAV.13,
+  NAV.14.
+  Overlap (2026-10-09, zoom-star-visibility.md): Star visibility while
+  zooming is also covered by MAP.153 to MAP.155
+  (docs/design/zoom-star-visibility.md): MAP.153 is the first client
+  stage of MAP.148's law.
+  Design: [docs/design/fly-through-view-distance.md](design/fly-through-view-distance.md)
+  Design: [docs/design/drilldown-region-sizes.md](design/drilldown-region-sizes.md)
   Design: [docs/design/galaxy-drilldown-navigation.md](design/galaxy-drilldown-navigation.md)
 
-- [ ] **MAP.147 The Galaxy Map wire format: measure what the browser downloads and compare smaller options**
+- [ ] **MAP.147 The Galaxy Map wire format: the investigation (done) and the record of what was built from it**
   Boss (2026-10-09 22:41Z): "File section 5.6 as an item please, and
   start an investigation thread to measure current payload and compare
   options please, use research lane 3 after it's current research is
-  done." From section 5.6 of map-ui-and-frontend-libraries.md: the
-  Galaxy Map's star points carry 13 floats each, 52 bytes, so a full
-  view at the 70,000-star cap (MAP.109) is about 3.6 MB; quantising
-  colour, scalars and flags would cut that to about 20 to 24 bytes a
-  star (about 1.5 MB), an optional saving for phones and tile swaps.
-  Above about 1e6 points the section recommends level of detail by tile
-  (MAP.102, MAP.116) over a faster picker.
-  This item starts with an investigation, run by Research Lane 3 (the
-  thread that did the unique-ID investigation) once its current research
-  is done: (1) measure what the browser actually downloads today for the
-  opening view and for a drill-down step: bytes on the wire and after
-  gzip, request count, time to first star and time to a full view, on a
-  phone-class connection and on a desktop one; (2) compare the options,
-  at least JSON as it is, packed binary typed arrays, quantised
-  attributes, gzip or brotli on top, delta or tile reuse between zoom
-  steps, and request batching, against what each costs in server time,
-  cache size and code; (3) recommend one. The recommendation decides the
-  design, and the build is then split out of this item, or this item is
-  rewritten, from it.
-  Related: MAP.102 and MAP.109 (done: tiles, camera-relative rendering,
-  the 70,000-star cap), PERF.38 (open: single-flight tile builds and
-  page-cache rules) and PERF.41 (open, optional: what stamps the tile
-  cache). MAP.146 changes the tile keys when drill-down regions centre
-  on the click, so the format choice and the new keys should be decided
-  together, and any format change bumps the cache stamp.
-  Open question for Boss (default: the investigation measures first and
-  recommends; nothing is built until you approve the recommendation): or
-  build the quantised format straight from section 5.6?
-  Prerequisites: none. Related: MAP.102, MAP.109, MAP.146, PERF.38,
-  PERF.41.
+  done." Investigation finished by Research Lane 3 (2026-10-09, report
+  docs/design/galaxy-map-wire-format.md). Measured facts: on the wire a
+  star is about 270 bytes of JSON (45 gzipped), so a full 70,000-star
+  view (MAP.109) is about 19 MB raw and 3.2 MB gzipped, not the 3.6 MB
+  section 5.6 assumed; the 52 bytes a star in section 5.6 is the GPU
+  buffer, so quantising it would not change the download; the opening
+  view pre-fetches 28 tiles (533 KB gzipped), about 18 times what it
+  shows; `placed`, `planned` and `filled` are 9 to 35% of every tile and
+  are never read; localStorage caps at about 5 MB, so revisits mostly
+  miss; the first star waits on the 173 static files, not on a tile.
+  Recommendation, now built as separate items: (1) MAP.157 trims the JSON
+  (-48% gzipped, no client change) and serves prebuilt, brotli
+  precompressed bytes; MAP.158 makes the prefetch gentler and moves the
+  tile cache to IndexedDB; (2) MAP.159 packs the tiles as binary (12.9 to
+  16.7 bytes a star, -78% gzipped) together with the nested lists of
+  MAP.154 and MAP.151's tile keys, on one cache stamp bump; (3) MAP.160
+  defers quantising the GPU buffers. This item stays open as the record of
+  the investigation until MAP.157 to MAP.159 are done.
+  Open question for Boss (default each sub-item goes ahead as written;
+  MAP.160 is deferred): other?
+  Prerequisites: MAP.157, MAP.158, MAP.159.
+  Linked (2026-10-09, fly-through-view-distance.md): the tile and stage
+  cache keys follow MAP.151 (the region data layer), so decide the wire
+  format and those keys together; the star visibility law (MAP.148) sets
+  how many stars a view needs.
   Design: [docs/design/map-ui-and-frontend-libraries.md](design/map-ui-and-frontend-libraries.md)
+
+- [ ] **MAP.148 The star visibility law: apparent-magnitude opacity, flux-based brightness and an on-screen limit from a histogram**
+  Source: docs/design/fly-through-view-distance.md (section 7 and 8),
+  written at Boss's request of 2026-10-09 22:56Z. Open questions are for
+  Boss; defaults stand until he answers. Nothing is built until he
+  decides.
+  Done: a star's opacity follows its apparent magnitude from the camera,
+  against a limit chosen so about 20,000 stars are on screen, found from
+  a histogram of the stars in view. Brightness is by flux. This replaces
+  the step floors in `generated_star_floor_sol` as the rule and folds
+  MAP.116's budget table into it. First on the tiles already fetched
+  (client side, no schema change), then tiles chosen by distance (with
+  MAP.152).
+  Open question for Boss (default 20,000 stars on screen, 8,000 on a
+  phone, with a 1.5 magnitude ramp, tuned after a first build): other
+  numbers?
+  Overlap (2026-10-09, zoom-star-visibility.md): MAP.153 is the first
+  client stage of this same visibility rule
+  (docs/design/zoom-star-visibility.md, Research Lane 1): a rank birth
+  radius on the tiles as fetched today, with the apparent-magnitude law
+  here as the end state; the two are one rule in two stages, not
+  competitors. MAP.154 and MAP.155 carry the server list nesting and the
+  other objects.
+  Dependency (2026-10-09, fly-through-view-distance.md): The law
+  multiplies MAP.153's rank birth radius in one shader: a = a_rank(R) *
+  a_mag(d) * a_near, built after MAP.153. Calibrate m_lim so the
+  magnitude factor is about 1 for a star at the target distance at any
+  camera radius; it only dims stars much farther than the target, so the
+  two rules never thin the same stars twice. The distance-cut tiles it
+  leads to also need MAP.154 (nested lists).
+  Prerequisites: MAP.153. Related: MAP.116, MAP.146, MAP.147.
+  Design: [docs/design/fly-through-view-distance.md](design/fly-through-view-distance.md)
+
+- [ ] **MAP.149 The near field: depth fade, a see-through focus tube, drawing from inside a container, and picking that matches what is drawn**
+  Source: docs/design/fly-through-view-distance.md (section 7 and 8),
+  written at Boss's request of 2026-10-09 22:56Z. Open questions are for
+  Boss; defaults stand until he answers. Nothing is built until he
+  decides.
+  Done: things nearer the camera than a fraction of the focus distance
+  dissolve; a soft see-through tube thins what stands between the camera
+  and the focus; the container the camera is in is drawn from the
+  inside; only what is visible enough can be picked, so picking agrees
+  with drawing. One shared function does the fade for drawing and
+  picking. The region looked at and the container are drawn at full
+  strength and the rest faintly. Folds in MAP.121's blocker fade and
+  MAP.141's faint context. First client-side, no schema change; it
+  improves today's map.
+  Open question for Boss (default: context regions at opacity 0.08 to
+  0.3 and 2.5 magnitudes shallower than the focus): other strengths?
+  Prerequisites: none. Related: MAP.121, MAP.141, MAP.146.
+  Design: [docs/design/fly-through-view-distance.md](design/fly-through-view-distance.md)
+
+- [ ] **MAP.150 The free camera: wheel zoom to the cursor, double-click flight, and the observer inside, with the container named from position**
+  Source: docs/design/fly-through-view-distance.md (section 7 and 8),
+  written at Boss's request of 2026-10-09 22:56Z. Open questions are for
+  Boss; defaults stand until he answers. Nothing is built until he
+  decides.
+  Done: one free camera from the whole galaxy to a star system. The
+  wheel zooms toward the point under the cursor with clearance from what
+  is in front; double-click flies to the thing clicked (MAP.140's go-to
+  extended); the observer is always in the 3D galaxy, also when looking
+  at a sector; the container is named from the camera position and the
+  breadcrumb is derived from it; URLs and bookmarks hold the camera. The
+  arc, slab and segment picks (MAP.85, MAP.56 and MAP.17 flow) stop
+  being the way to move, and old stage URLs stop working (no backward
+  compatibility).
+  Open question for Boss (default yes): retire the arc, slab and segment
+  picks as the navigation flow?
+  Open question for Boss (default: keep the slab strip as an optional
+  section plane, not a stage): or drop it?
+  Prerequisite: MAP.149. Related: MAP.140, MAP.85, MAP.59, NAV.13,
+  NAV.14, MAP.146.
+  Dependency (2026-10-09, fly-through-view-distance.md): If the camera
+  radius R used by MAP.153's rank rule is redefined for a free camera
+  (for example distance to the nearest sector instead of to the target),
+  keep it continuous in the camera position: a jump in R is a pop for
+  every star at once.
+  Design: [docs/design/fly-through-view-distance.md](design/fly-through-view-distance.md)
+
+- [ ] **MAP.151 The region data layer: exact-centred frame, aligned cells, per-level aggregates and slot-wrap ranges**
+  Source: docs/design/fly-through-view-distance.md (section 7 and 8),
+  written at Boss's request of 2026-10-09 22:56Z. Open questions are for
+  Boss; defaults stand until he answers. Nothing is built until he
+  decides.
+  Done: region data is read in aligned cells with an exact-centred
+  frame, with per-level aggregates, and a region is described as layer,
+  ring and slot-arc ranges (with slot wrap) that stats, ADM.29 and
+  ADM.30 fills, MAP.120 backfills and fill on demand all use. Tile and
+  stage cache keys follow the cells and bump the cache stamp (clear
+  /var/cache/planetgen/tiles on update); decide them together with
+  MAP.147's wire format. This is the data layer of the original MAP.146
+  text (see docs/design/drilldown-region-sizes.md for region sizes,
+  shapes and the cell pyramid). It touches the per-sector stats and
+  colouring (MAP.131), the Galaxy Map opening view (MAP.134) and the
+  settle step (GEN.126), and `galaxy/drill.py` and `galaxyprisms.js` are
+  replaced, not kept beside it.
+  Open question for Boss (default: a 3-ary pyramid accepting cells 0.84
+  to 1.25 of an edge across): or keep 9-ary and accept a 2.45x gap in
+  sizes?
+  Prerequisites: ADM.29. Related: MAP.120, MAP.147, ADM.30, GEN.101,
+  GEN.126, MAP.131, MAP.134, MAP.146.
+  Dependency (2026-10-09, fly-through-view-distance.md): The region data
+  layer and its aggregates (3-ary pyramid, per-star id, per-level
+  aggregates) wait on MAP.147 (wire format, Research Lane 3).
+  Wire format (2026-10-09, galaxy-map-wire-format.md): The wire format
+  decision is made (MAP.147's report): the tile and stage cache keys are
+  decided here together with MAP.159 (packed binary tiles) and MAP.154,
+  on one cache stamp bump.
+  Design: [docs/design/drilldown-region-sizes.md](design/drilldown-region-sizes.md)
+
+- [ ] **MAP.152 Scale hand-offs: galaxy, sector and system cross-fade with hysteresis, and per-tile camera-relative origins**
+  Source: docs/design/fly-through-view-distance.md (section 7 and 8),
+  written at Boss's request of 2026-10-09 22:56Z. Open questions are for
+  Boss; defaults stand until he answers. Nothing is built until he
+  decides.
+  Done: the galaxy, sector and system scales cross-fade with hysteresis
+  so the camera never flickers between them, and each tile has its own
+  camera-relative origin below about 100 pc so stars stay precise at
+  close range. Includes the distance-cut tile choice that completes the
+  visibility law.
+  Dependency (2026-10-09, fly-through-view-distance.md): Distance-cut
+  tiles need MAP.154 (nested server lists: a child tile must contain the
+  parent's stars in its box).
+  Prerequisites: MAP.148, MAP.150, MAP.154. Related: MAP.102, MAP.125,
+  MAP.146.
+  Design: [docs/design/fly-through-view-distance.md](design/fly-through-view-distance.md)
+
+- [ ] **MAP.153 Stars fade in with the zoom: a birth radius from each star's rank in its tile list (first client stage)**
+  Source: docs/design/zoom-star-visibility.md (section 3.1 and 5, stage
+  1), written at Boss's request of 2026-10-09 22:30Z: "I want a very
+  smooth transition where stars and objects are slowly added as one
+  zooms in." Today the drawn set is frozen between 11 tile-level radii
+  and then up to 8.8 times as many stars appear in one frame. Done: in
+  `galaxymap3d.js` every star gets a birth radius from its rank in its
+  tile's list (most luminous first, as the server already sorts it), R_b
+  = R* 2^W (N0/r)^(1/3), and its opacity is a smoothstep of the camera
+  radius, cross-faded from the parent tile's rank across the tile
+  level's octave; zooming out removes stars as smoothly as zooming in
+  adds them, a late tile changes nothing visible, and a browser-test
+  hook returns the opacity sum at a given radius so a test bounds the
+  step. Measured on the same tile data the worst single 9% step falls
+  from +883% to +59% (dense) and from +775% to +74% (thin). No server or
+  schema change. This is the FIRST STAGE of the visibility rule that
+  MAP.148 ends with: both decide when a star shows while zooming, so
+  they are not two rules. Until MAP.148 lands, the rank rule leads;
+  MAP.148 then replaces the rank with apparent magnitude (rank stays as
+  the cap and tiebreak).
+  Decided (Boss, 2026-10-09 23:11Z, "default options are approved"):
+  the rank birth-radius fade is stage 1 and the apparent-magnitude law
+  of MAP.148 is the end state.
+  Decided (Boss, 2026-10-09 23:11Z, "default options are approved"): each
+  star fades over one halving of the camera radius (W = 1); a dense
+  sector's stars arrive in rank order between about 35 pc and 8 pc of
+  view radius, so they wait for sector zoom; the GEN.30 backfill shells
+  stay as they are.
+  Prerequisites: none. Related: MAP.148, MAP.146, MAP.149, MAP.147,
+  MAP.116.
+  Design: [docs/design/zoom-star-visibility.md](design/zoom-star-visibility.md)
+
+- [ ] **MAP.154 Nested bright-star lists on the server, so every parent list is a subset of its child's**
+  Source: docs/design/zoom-star-visibility.md (3 scheme J, section 5
+  stage 2). Done: the bright lists use one key for every tile level (a
+  population weight in the key instead of equal-share picking) and the
+  per-level budgets never fall, so a child list always holds the
+  parent's stars inside its box and the rank fade of the previous item
+  is exact instead of degrading gracefully. This changes the tile cache
+  stamp. The key and list shapes are decided together with MAP.147 (wire
+  format) and MAP.151 (region data layer), and with MAP.148 if the
+  magnitude law changes what a tile lists. Open question for Boss
+  (default build it only after MAP.153 is seen working): go ahead?
+  Wire format (2026-10-09, galaxy-map-wire-format.md): MAP.147's
+  investigation is done (docs/design/galaxy-map-wire-format.md): the
+  packed binary tile format ships with these nested lists as MAP.159, on
+  one cache stamp bump, so list order is rank and finer tiles omit stars
+  a coarser tile sent.
+  Prerequisite: MAP.153. Related: MAP.147, MAP.148, MAP.151.
+  Design: [docs/design/zoom-star-visibility.md](design/zoom-star-visibility.md)
+
+- [ ] **MAP.155 Other objects fade in too: point objects from level 8, a size ramp for cloud sprites, and stars that grow from a faint dot**
+  Source: docs/design/zoom-star-visibility.md (section 5 stage 3,
+  schemes I and E). Done: black holes, neutron stars and quasars are
+  listed from tile level 8 (160 pc) instead of 10 (40 pc) and fade in by
+  the same rank rule, cloud sprites ramp opacity between 1 and 4 px
+  instead of switching on at 2 px (`CLOUD_MIN_PX`), and a new star
+  starts one pixel and faint and grows to its size with its opacity.
+  Rows with no natural rank use a hash tiebreak (a fixed random number
+  from the object id). Sector blocks and fills keep their own
+  level-of-detail question (the mega-block plan). Decided (Boss, 2026-10-09 23:11Z, "default options are
+  approved"): point objects are listed from level 8.
+  Prerequisite: MAP.153. Related: MAP.153, MAP.148, MAP.149.
+  Design: [docs/design/zoom-star-visibility.md](design/zoom-star-visibility.md)
+
+- [ ] **MAP.156 View one layer or a range of layers top-down from the galaxy view, as a secondary option**
+  Boss (2026-10-09 23:17Z): "I should be able to from the galaxy view
+  select a single layer (or range of layers) to view top-down. It should
+  not be a main option." Done: from the Galaxy Map the user can pick one
+  layer or a range of layers (layers are the vertical slices of the
+  galaxy, the same layers the Generate page fills) and see only those
+  looking straight down on the galaxy plane. The choice sits in a
+  secondary place (a menu entry or the advanced section of the control
+  panel), never as a main control or a step the user must take to move
+  around, and it is off by default so the free camera of MAP.146 is what
+  opens. Leaving it restores the previous view. Decided (Boss, 2026-10-09 23:18Z, "default is approved"): a two-handle
+  layer range in the "Show" menu, top-down camera with the same
+  vertical-fade rules as the rest of the map, stars and sectors outside
+  the range hidden.
+  Prerequisites: none. Related: MAP.146, MAP.150, MAP.141, MAP.122,
+  ADM.29.
+
+- [ ] **MAP.157 Trim the Galaxy Map tile JSON and serve it from prebuilt, precompressed bytes**
+  Source: docs/design/galaxy-map-wire-format.md (section 1, steps 1 and
+  2; MAP.147's recommendation). Measured by Research Lane 3
+  (2026-10-09): a star is about 270 bytes of JSON on the wire (45
+  gzipped); the `placed`, `planned` and `filled` sections are 9 to 35%
+  of every tile and the client never reads them. Done: the tile JSON
+  drops the sections and star fields the client never reads, writes
+  `star_type` as its letter code only and rounds the floats; the cache
+  stores the finished bytes (not parsed dicts that are serialised again
+  on every hit) and a brotli copy made at cache-write time, which Apache
+  serves. Measured on 400 real tiles the gzipped size falls 48% (3.52 MB
+  to 1.83 MB) with no change to what the page draws; a warm hit falls
+  from 22-75 ms to about 2 ms. No client change, so it can land at once
+  and does not wait for the fly-through work; it changes the tile cache
+  stamp. Open question for Boss (default yes, do it now and first in the
+  fly-through step): go ahead?
+  Prerequisites: none. Related: MAP.147, MAP.158, MAP.159, PERF.38,
+  PERF.41, MAP.109.
+  Detail (2026-10-09, galaxy-map-wire-format.md): detail from Research
+  Lane 3 (Boss said yes, 2026-10-09 23:26Z): drop `placed`, `planned`
+  and `filled` and the star fields `ring_index`, `layer_index`,
+  `ring_slot_index`, `population`, `yerkes_class` and the generated
+  name; `star_type` to its class letter; round x/y/z to 3 decimals,
+  luminosity to 4 and radius to 3 significant digits, temperature to 10
+  K. Re-grep `static/` for readers before removing any field. Fix the
+  `GALAXY_VIEW_MAX_STARS` docstring (270 bytes a star, not about 114).
+  Serve stored response bytes in `fetch_tiles` and add `mod_brotli` (or
+  serve the `.br` copy) to `examples/apache`. Lands after or with
+  PERF.38.
+  Design: [docs/design/galaxy-map-wire-format.md](design/galaxy-map-wire-format.md)
+
+- [ ] **MAP.158 A gentler tile prefetch and an IndexedDB tile cache instead of localStorage**
+  Source: docs/design/galaxy-map-wire-format.md (sections 2.3, 4.4, 1
+  step 2 and 5). Measured: the opening view downloads 28 tiles (533 KB
+  gzipped) to show one, about 18 times what is on screen; localStorage
+  holds about 5 MB, which one sector link fills (40 tiles), so a revisit
+  mostly misses. Done: the page prefetches only the next zoom step in,
+  only after the view has been idle, and not when the browser asks to
+  save data; tiles are cached in IndexedDB (or by immutable HTTP caching
+  per tile) and a revisit finds them; the old localStorage cache is
+  removed (no compatibility). Open question for Boss (default yes): go
+  ahead?
+  Detail (2026-10-09, galaxy-map-wire-format.md): detail from Research
+  Lane 3: prefetch in the zoom-in direction only, after idle, skipped on
+  `navigator.connection.saveData` or a slow `effectiveType`, with a byte
+  cap (`prefetchTiles` in `galaxymap3d.js`). Interim cheap fix for the
+  cache before IndexedDB: store only the tiles the next view needs and
+  cap by bytes with least-recently-used removal, instead of `storeTile`
+  wiping every stored tile when the quota fails.
+  Prerequisites: none. Related: MAP.147, MAP.157, MAP.109.
+  Design: [docs/design/galaxy-map-wire-format.md](design/galaxy-map-wire-format.md)
+
+- [ ] **MAP.159 Packed binary Galaxy Map tiles (quantised planes) with the nested tile lists, on one cache stamp bump**
+  Source: docs/design/galaxy-map-wire-format.md (section 1 step 2, 4.1,
+  4.3). Measured: a packed binary tile is 12.9 to 16.7 bytes a star, 78%
+  fewer gzipped bytes than today's JSON (3.52 MB to 0.79 MB over 400
+  real tiles; the worst 70,000-star view falls from 3.2 MB to about 0.8
+  MB). Done: the server writes tiles as packed typed arrays (quantised
+  position, colour and scalar planes; `clouds` and `points` stay JSON),
+  the client decodes them in `tileStars`, list order is rank so the rank
+  fade of MAP.153 reads it directly, and a finer tile omits the stars a
+  coarser tile already sent (31 to 43% of bright records at levels 3 to
+  6, all at 7 to 12). It ships together with MAP.154 (the nested lists)
+  and MAP.151's tile keys so the cache is invalidated once. Open
+  question for Boss (default yes, with MAP.154 and MAP.151 on one bump):
+  go ahead?
+  Prerequisites: MAP.154, MAP.158. Related: MAP.147, MAP.154, MAP.151,
+  MAP.153, MAP.157.
+  Detail (2026-10-09, galaxy-map-wire-format.md): detail from Research
+  Lane 3 and Research Lane 2: x/y/z uint16 inside the tile cube, log
+  luminosity uint16, log temperature and radius uint8, class and flags
+  uint8, id uint32 (a lean record without ids is 11 bytes); `clouds` and
+  `points` stay JSON; the 80-bit object ID stays off the tile wire. Keep
+  list order, so rank is implied (use the unsorted 16.7 byte form, or
+  add a 2 byte rank plane). The format fits any octree edge from 16 pc
+  to 65,536 pc; aggregates cost about 10 bytes a cell; block responses
+  are tiny, so changing block keys costs nothing on the wire. Depends on
+  MAP.157 and MAP.158 and on Boss's yes on the design.
+  Design: [docs/design/galaxy-map-wire-format.md](design/galaxy-map-wire-format.md)
+
+- [ ] **MAP.160 Quantise the Galaxy Map GPU buffers (deferred)**
+  Source: docs/design/galaxy-map-wire-format.md (section 5, from section
+  5.6 of map-ui-and-frontend-libraries.md). The 52 bytes a star in
+  section 5.6 is the GPU buffer, not the download, so quantising it (to
+  about 20 to 24 bytes) saves GPU memory and the re-upload on each tile
+  arrival, not network bytes; not measured on a real GPU. Done: colour,
+  scalars and flags in `setStars` are byte-quantised, and a client that
+  appends the new tile's stars instead of rebuilding every star is
+  considered with it. Open question for Boss (default defer until a real
+  phone or GPU measurement shows the upload matters): build it?
+  Detail (2026-10-09, galaxy-map-wire-format.md): also considered here:
+  the client appends the new tile's stars instead of rebuilding and
+  re-uploading every star on each tile arrival (3,200 stars is a 166 KB
+  upload, 11,000 is 572 KB each time), and `tileStars` copies an object
+  per generated star. Optional.
+  Prerequisites: none. Related: MAP.147, MAP.159, MAP.109.
+  Design: [docs/design/galaxy-map-wire-format.md](design/galaxy-map-wire-format.md)
+
+- [ ] **MAP.161 Load the Galaxy Map faster on a first visit: bundle or preload its scripts**
+  Source: docs/design/galaxy-map-wire-format.md (sections 2.3 and 1).
+  Measured by Research Lane 3: the first star does not wait on a tile
+  (the opening tile is inside the 35 KB gzipped page); it waits on 173
+  static files (543 KB gzipped, 1.8 MB decoded; the map scripts and
+  three.js), which is 7.9 to 8.1 s on a slow 4G link and 1.0 to 1.3 s
+  locally. Production serves `/static` immutable, so repeat visits are
+  fine. Done: the map scripts load faster on a first visit, by bundling
+  them or `modulepreload` hints, and HTTP/2 in the Apache example
+  (`examples/apache/planetgen.conf.example`); this keeps the no-bundler
+  decision (vendored ES modules) unless Boss says otherwise, so the
+  default is `modulepreload` plus HTTP/2. Open question for Boss
+  (default `modulepreload` and HTTP/2, no bundler): or bundle?
+  Prerequisites: none. Related: MAP.147, MAP.157, MAP.158.
+  Design: [docs/design/galaxy-map-wire-format.md](design/galaxy-map-wire-format.md)
 
 ## NAV: Navigation and courses
 
@@ -1033,7 +1392,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   text of course-routing.md section 2: per-stop sector_id and local
   position (this item needs them), the packed filled-set cache, and the
   adjacent-cell shortcut.
-  Prerequisite: UX.35.
   Design: [docs/design/navigation-frames.md](design/navigation-frames.md)
 
 - [ ] **NAV.36 Unknown-space jumps drawn red and glowing**
@@ -3721,6 +4079,9 @@ Boss (2026-10-07 11:47Z): "Actual specs on layers on the generation
     ring, layer and column spans come from prefix sums with no
     enumeration (`GalaxyBounds._cumulative`; column layers from
     `galaxy_column`), so the estimate and warning show instantly.
+    Dependency (2026-10-09): MAP.151 (the fly-through region data layer,
+    Phase 1, headline of 8.1) needs this item, so Foundations 1 should
+    take it early rather than at the end of the Generate page step.
 
   - [ ] **ADM.30 Radial generation: a cylinder of N sectors around a point**
     Boss (2026-10-07 11:47Z): "From generate menu specify a radial

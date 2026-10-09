@@ -12,7 +12,9 @@ the judgment calls behind the placement are in [notes.md](notes.md).
 
 ## Goal
 
-Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test.
+Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, the fly-through Galaxy Map (MAP.146: scroll-zoom to the cursor, double-click flight, stars that fade in with distance and zoom, a see-through near field; the headline of the 8.1 release), bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test.
+
+The headline of this phase, and of the 8.1 release it ends with, is the fly-through Galaxy Map (MAP.146, with MAP.147 to MAP.155): scroll-zoom to the cursor, double-click flight, stars that fade in smoothly with distance and zoom, and a see-through near field (Boss, 2026-10-09 23:07Z). The 8.1 version stamp happens only when the whole phase, these items included, is done.
 
 ## Threads
 
@@ -117,9 +119,8 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | NAV.52 | Port `join_islands` and the k-d tree to cKDTree |  | Research: performance cliff in the built router. |
-| UX.35 | The NAV page route shown horizontally, wrapping onto several lines on narrow screens |  | In parallel with NAV.12; replaces ol.nav-route in nav.html. |
 | NAV.11 | Travel times for the system-to-system route too |  | Times per hop, including unknown-space jumps; total assumes a stop at every system (Boss 04:19Z); open question on a stay per stop. |
-| NAV.42 | Each route stop shows the course and distance to the next stop | UX.35 | Boss 04:19Z. format_course per hop, frame per pair. |
+| NAV.42 | Each route stop shows the course and distance to the next stop |  | Boss 04:19Z. format_course per hop, frame per pair. |
 | NAV.47 | Unknown-space jumps stop at scattered stars, black holes, neutron stars and quasars |  |  |
 | NAV.48 | Offer to generate the uncharted sectors that block a course |  |  |
 
@@ -134,6 +135,19 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | MAP.119 | Expected star density editable by admins on the Galaxy Map |  |  |
 | MAP.122 | A Select mode on every galaxy view: Galaxy (blocks and sectors) or Star |  | Merges the 2026-10-07 "button to select a star" ask; MAP.101 (PR #431) made stars unpickable by default. |
+| MAP.146 | Fly through the galaxy: scroll-zoom, double-click flight, distance-based visibility and a see-through near field | MAP.148, MAP.149, MAP.150, MAP.151, MAP.152, MAP.153, MAP.154, MAP.155, MAP.157, MAP.158, MAP.159 | Boss 2026-10-09 22:24Z and 22:56Z. Umbrella for MAP.148 to MAP.152; replaces the fixed ladder in galaxy/drill.py and galaxyprisms.js. |
+| MAP.147 | The Galaxy Map wire format: the investigation (done) and the record of what was built from it | MAP.157, MAP.158, MAP.159 | Research Lane 3 report in docs/design/galaxy-map-wire-format.md; record until the build items are done. |
+| MAP.157 | Trim the Galaxy Map tile JSON and serve it from prebuilt, precompressed bytes |  | MAP.147 recommendation step 1; no client change. |
+| MAP.158 | A gentler tile prefetch and an IndexedDB tile cache instead of localStorage |  | MAP.147 recommendation step 1; client only. |
+| MAP.148 | The star visibility law: apparent-magnitude opacity, flux-based brightness and an on-screen limit from a histogram | MAP.153 | Fly-through report item 1; builds after MAP.153 (its first stage). |
+| MAP.149 | The near field: depth fade, a see-through focus tube, drawing from inside a container, and picking that matches what is drawn |  | Fly-through report item 2; can start now. Folds MAP.121 blocker fade and MAP.141 context. |
+| MAP.150 | The free camera: wheel zoom to the cursor, double-click flight, and the observer inside, with the container named from position | MAP.149 | Fly-through report item 3; needs the near field. |
+| MAP.151 | The region data layer: exact-centred frame, aligned cells, per-level aggregates and slot-wrap ranges | ADM.29 | Fly-through report item 4. Decide cache keys with MAP.147. |
+| MAP.152 | Scale hand-offs: galaxy, sector and system cross-fade with hysteresis, and per-tile camera-relative origins | MAP.148, MAP.150, MAP.154 | Fly-through report item 5. |
+| MAP.153 | Stars fade in with the zoom: a birth radius from each star's rank in its tile list (first client stage) |  | Zoom visibility note stage 1; first stage of MAP.148, same ground. |
+| MAP.154 | Nested bright-star lists on the server, so every parent list is a subset of its child's | MAP.153 | Zoom visibility note stage 2; shares tile keys with MAP.147 and MAP.151. |
+| MAP.159 | Packed binary Galaxy Map tiles (quantised planes) with the nested tile lists, on one cache stamp bump | MAP.154, MAP.158 | MAP.147 recommendation step 2; one stamp bump with MAP.154 and MAP.151. |
+| MAP.155 | Other objects fade in too: point objects from level 8, a size ramp for cloud sprites, and stars that grow from a faint dot | MAP.153 | Zoom visibility note stage 3. |
 
 ### System Map
 
@@ -202,6 +216,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
+| UX.83 | Generation steps that run long show no progress bar of their own: linking new sectors to their neighbours, the phenomenon scatter and others (bug) |  | Boss 2026-10-09 23:13Z; Bugfixes lane 1. |
 
 ### Foundations for the issue features
 

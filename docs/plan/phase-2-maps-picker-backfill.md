@@ -50,7 +50,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | NAV.17 | A saved course record with both forms |  |  |
 | NAV.18 | Save, list, open, rename and delete, per browser | NAV.17 | Sibling of bookmarks.js. |
 | NAV.4 | Save a course | NAV.17, NAV.18 | Per browser now; NAV.19 moves it into accounts in phase 3+. |
-| NAV.36 | Unknown-space jumps drawn red and glowing | UX.35 | Route strip, navmap.py and the Galaxy Map course; legend; reduced motion; both themes. |
+| NAV.36 | Unknown-space jumps drawn red and glowing |  | Route strip, navmap.py and the Galaxy Map course; legend; reduced motion; both themes. |
 | NAV.39 | Saved courses remember their unknown-space jumps and check them again | NAV.17 | With NAV.17. |
 | NAV.49 | Waypoints: pick objects in Star select mode and plot a course through them, kept on the map until cleared | MAP.122, NAV.17 | Merges "Plotted courses should appear on the galactic map and stay until cleared". |
 
@@ -169,8 +169,9 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | MAP.121 | Every map shows and steps to its neighbouring regions, on one map engine |  | Folds MAP.127, the Galaxy Map's neighbouring blocks and slabs (Boss 2026-10-07 16:27Z: one map engine for all maps). |
-| MAP.146 | Zoom drill-down centred on the clicked point, not on fixed wedges, blocks and slabs | ADM.29, MAP.122 | Boss 2026-10-09 22:24Z. Replaces the fixed ladder in galaxy/drill.py and galaxyprisms.js. |
-| MAP.147 | The Galaxy Map wire format: measure what the browser downloads and compare smaller options |  | Boss 2026-10-09 22:41Z. Starts with the investigation (Research Lane 3). Decide with MAP.146's tile keys. |
+| MAP.156 | View one layer or a range of layers top-down from the galaxy view, as a secondary option |  | Boss 2026-10-09 23:17Z; secondary option, not a main control. |
+| MAP.160 | Quantise the Galaxy Map GPU buffers (deferred) |  | Deferred; MAP.147 recommendation step 3. |
+| MAP.161 | Load the Galaxy Map faster on a first visit: bundle or preload its scripts |  | Wire format report, finding 7; separate from the tile format. |
 
 ### Recipes
 

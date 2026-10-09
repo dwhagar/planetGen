@@ -13,8 +13,8 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.83 |
-| MAP | MAP.148 |
+| UX | UX.84 |
+| MAP | MAP.162 |
 | NAV | NAV.58 |
 | GEN | GEN.177 |
 | PERF | PERF.50 |
@@ -806,8 +806,22 @@ Parents marked "new parent" had no old number of their own.
 | MAP.143 | Color sectors by their number of habitable locations | none | open |
 | MAP.144 | Replace `THREE.Clock` with `THREE.Timer` in `phenomenonrender.js` (bug) | none | done, PR #865 |
 | MAP.145 | A sky and Galaxy Map drawing rule for neighbour galaxies | none | open |
-| MAP.146 | Zoom drill-down centred on the clicked point, not on fixed wedges, blocks and slabs | none | open |
-| MAP.147 | The Galaxy Map wire format: measure what the browser downloads and compare smaller options | none | open |
+| MAP.146 | Fly through the galaxy: scroll-zoom, double-click flight, distance-based visibility and a see-through near field | none | open |
+| MAP.147 | The Galaxy Map wire format: the investigation (done) and the record of what was built from it | none | open |
+| MAP.148 | The star visibility law: apparent-magnitude opacity, flux-based brightness and an on-screen limit from a histogram | none | open |
+| MAP.149 | The near field: depth fade, a see-through focus tube, drawing from inside a container, and picking that matches what is drawn | none | open |
+| MAP.150 | The free camera: wheel zoom to the cursor, double-click flight, and the observer inside, with the container named from position | none | open |
+| MAP.151 | The region data layer: exact-centred frame, aligned cells, per-level aggregates and slot-wrap ranges | none | open |
+| MAP.152 | Scale hand-offs: galaxy, sector and system cross-fade with hysteresis, and per-tile camera-relative origins | none | open |
+| MAP.153 | Stars fade in with the zoom: a birth radius from each star's rank in its tile list (first client stage) | none | open |
+| MAP.154 | Nested bright-star lists on the server, so every parent list is a subset of its child's | none | open |
+| MAP.155 | Other objects fade in too: point objects from level 8, a size ramp for cloud sprites, and stars that grow from a faint dot | none | open |
+| MAP.156 | View one layer or a range of layers top-down from the galaxy view, as a secondary option | none | open |
+| MAP.157 | Trim the Galaxy Map tile JSON and serve it from prebuilt, precompressed bytes | none | open |
+| MAP.158 | A gentler tile prefetch and an IndexedDB tile cache instead of localStorage | none | open |
+| MAP.159 | Packed binary Galaxy Map tiles (quantised planes) with the nested tile lists, on one cache stamp bump | none | open |
+| MAP.160 | Quantise the Galaxy Map GPU buffers (deferred) | none | open |
+| MAP.161 | Load the Galaxy Map faster on a first visit: bundle or preload its scripts | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
@@ -1037,7 +1051,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.32 | Planet rows show the class only, without the type and moon labels | none | open |
 | UX.33 | Filter phenomena by their classes and types (bug) | none | done, PR #606 |
 | UX.34 | The sector summary calls white dwarfs "B-type" and "A-type" systems (bug) | none | done, PR #448 |
-| UX.35 | The NAV page route shown horizontally, wrapping onto several lines on narrow screens | none | open |
+| UX.35 | The NAV page route shown horizontally, wrapping onto several lines on narrow screens | none | done, PR #879 |
 | UX.36 | Scientific notation starts too early for whole numbers (bug) | none | done, PR #457 |
 | UX.37 | A UX sweep: remove redundant and duplicate controls so the interface gets out of the way | none | done, PR #671 |
 | UX.38 | The nebula and remnant diagrams' "-" button does nothing at the 1 ly limit (bug) | none | done, PR #590 |
@@ -1085,6 +1099,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.80 | Negative values that round to zero print "-0" (bug) | none | done, PR #843 |
 | UX.81 | Time symbols Gyr, Myr, kyr in place of Gy, My, ky; AU from 1,000,000 km; scientific text below mantissa 1e-3 | none | open |
 | UX.82 | Theme checks after PR #800: SVG currentColor, two Shoelace contrast failures, alpha in --bg-subtle | none | open |
+| UX.83 | Generation steps that run long show no progress bar of their own: linking new sectors to their neighbours, the phenomenon scatter and others (bug) | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
