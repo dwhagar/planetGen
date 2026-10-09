@@ -271,6 +271,21 @@ locking time" test is written. GEN.104 is not in the code yet: the schema holds
 only a static `rotation_period_hours`, a black hole `spin` and a neutron star
 `spin_period_ms`.
 
+Built in GEN.104 (`planetgen/physics/spin.py`, schema v68). Each object
+stores `spin_axis_x/y/z` (a unit vector) and `axial_tilt_deg`, with
+`rotation_period_hours` beside them; the spin vector is the axis times
+2 pi over the period. Planets, moons and comets measure the axis in their
+orbit's frame, tilted from the orbit normal; stars, black holes, neutron
+stars, rogue planets and interstellar comets measure it from the galactic
+pole. Planets now lock to their star by the same despinning time as
+moons to their planet; a locked body turns once per orbit, upright. The
+generator's orbits are circular, so the 3:2 resonance for e > 0.1 waits
+for eccentric planet orbits. Rocky planets take the impact-modified tilt,
+gas giants and moons a Rayleigh one with sigma 15 degrees. A black hole's
+period is its horizon's (`2 pi / Omega_H`); a neutron star's is its
+`spin_period_ms`. Merger remnants (a* near 0.69) wait for binary black
+hole mergers, which the generator does not make yet.
+
 ## 7. Where the math breaks down
 
 Each method has a range where it is trusted; outside it the code applies a

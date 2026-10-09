@@ -19,3 +19,4 @@ Commit each file came from:
 - v64: 3b9bb5f0 (GEN.125 facility velocity, before GEN.100)
 - v65: 15d3f7a (GEN.100 phenomenon scatter, before GEN.106)
 - v66: eebcfb3b (GEN.106 update clocks, before DB.7)
+- v67: 500facd (DB.7 sector version, before GEN.104)

@@ -69,7 +69,7 @@ from planetgen.admin import activity_log
 from planetgen.db import alembic_runner
 from planetgen.names import object_id as objectId
 from planetgen.galaxy import seed as galaxySeed, uid as galaxyUid, version_key as versionKey
-from planetgen.physics import constants as physical_constants, kepler
+from planetgen.physics import constants as physical_constants, kepler, spin
 from planetgen.util import log
 from planetgen.util.appconfig import load_config
 from planetgen.generation.belt import AsteroidBelt
@@ -1417,6 +1417,7 @@ def _table_marker(table):
 
 
 _VERSION_MARKERS = (
+    (68, _column_marker("stars", "axial_tilt_deg")),
     (67, _column_marker("sectors", "version_key")),
     (66, _column_marker("planets", "next_update_due")),
     (65, _table_marker("phenomenon_scatter")),
@@ -2472,8 +2473,9 @@ def insert_star(conn, star, star_system_id, role) -> int:
             galactic_orbital_speed_kms, galactic_orbital_period_gy,
             galactic_orbital_phase_deg, galactic_min_update_interval_years,
             wide_binary_a_crit_km,
-            reflex_offset_x_km, reflex_offset_y_km, reflex_offset_z_km
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            reflex_offset_x_km, reflex_offset_y_km, reflex_offset_z_km,
+            rotation_period_hours, spin_axis_x, spin_axis_y, spin_axis_z, axial_tilt_deg
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             star_system_id, role, star.name, star.type, star.yerkes_class,
@@ -2491,6 +2493,8 @@ def insert_star(conn, star, star_system_id, role) -> int:
             star.reflex_offset_x * physical_constants.AU_TO_KM,
             star.reflex_offset_y * physical_constants.AU_TO_KM,
             star.reflex_offset_z * physical_constants.AU_TO_KM,
+            getattr(star, "rotation_period_hours", None),
+            *spin.spin_values(star),
         ),
     )
     return cur.lastrowid
@@ -2531,7 +2535,7 @@ _BODY_COLUMNS = (
     "position_x_km", "position_y_km", "position_z_km", "orbital_speed_kms",
     "velocity_x_kms", "velocity_y_kms", "velocity_z_kms",
     "min_update_interval_years",
-    "rotation_period_hours",
+    "rotation_period_hours", "spin_axis_x", "spin_axis_y", "spin_axis_z", "axial_tilt_deg",
 )
 """tuple: The generated-content columns `planets` and `moons` share, in
 `body_row_values` order."""
@@ -2574,6 +2578,7 @@ def body_row_values(body):
         body.velocity_x_kms, body.velocity_y_kms, body.velocity_z_kms,
         body.min_update_interval_years,
         body.rotation_period_hours,
+        *spin.spin_values(body),
     ]
     if not body.is_moon:
         values += [
@@ -2751,8 +2756,9 @@ def insert_comet(conn, comet: Comet, star_system_id, star_id=None) -> int:
             orbital_period_years, mean_anomaly_deg, parabolic_mean_anomaly,
             min_update_interval_years, primary_mass_solar, is_active,
             distance_km, position_x_km, position_y_km, position_z_km, orbital_speed_kms,
-            velocity_x_kms, velocity_y_kms, velocity_z_kms
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            velocity_x_kms, velocity_y_kms, velocity_z_kms,
+            rotation_period_hours, spin_axis_x, spin_axis_y, spin_axis_z, axial_tilt_deg
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             star_system_id, star_id, comet.name, comet.orbit_type, comet.period_class,
@@ -2767,6 +2773,7 @@ def insert_comet(conn, comet: Comet, star_system_id, star_id=None) -> int:
             comet.position_z_au * physical_constants.AU_TO_KM,
             comet.orbital_speed_kms,
             comet.velocity_x_kms, comet.velocity_y_kms, comet.velocity_z_kms,
+            getattr(comet, "rotation_period_hours", None), *spin.spin_values(comet),
         ),
     )
     comet_id = cur.lastrowid
@@ -2835,6 +2842,8 @@ def insert_black_hole(conn, black_hole: BlackHole, star_id=None, sector_id=None,
             black_hole.galactic_orbital_phase_deg, black_hole.galactic_min_update_interval_years,
         )
     )
+    # GEN.104: like the galactic fields, an anchored remnant's spin is on its stars row.
+    spin_fields = (None,) * len(spin.SPIN_FIELDS) if star_id is not None else spin.spin_values(black_hole)
     placement = placement or {}
     cur = conn.execute(
         """
@@ -2843,8 +2852,9 @@ def insert_black_hole(conn, black_hole: BlackHole, star_id=None, sector_id=None,
             has_accretion_disk, temperature_k, luminosity_w, age_gy,
             galactic_orbital_speed_kms, galactic_orbital_period_gy,
             galactic_orbital_phase_deg, galactic_min_update_interval_years,
-            center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc,
+            spin_axis_x, spin_axis_y, spin_axis_z, axial_tilt_deg
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             star_id, sector_id, black_hole.name, black_hole.mass_class, black_hole.mass_solar,
@@ -2854,6 +2864,7 @@ def insert_black_hole(conn, black_hole: BlackHole, star_id=None, sector_id=None,
             *galactic_fields,
             placement.get("center_x_pc"), placement.get("center_y_pc"),
             placement.get("center_z_pc"), placement.get("galactic_radius_pc"),
+            *spin_fields,
         ),
     )
     if name_base is not None:
@@ -2896,6 +2907,8 @@ def insert_neutron_star(conn, neutron_star: NeutronStar, star_id=None, sector_id
             neutron_star.galactic_orbital_phase_deg, neutron_star.galactic_min_update_interval_years,
         )
     )
+    # GEN.104: like the galactic fields, an anchored remnant's spin is on its stars row.
+    spin_fields = (None,) * len(spin.SPIN_FIELDS) if star_id is not None else spin.spin_values(neutron_star)
     placement = placement or {}
     cur = conn.execute(
         """
@@ -2904,8 +2917,9 @@ def insert_neutron_star(conn, neutron_star: NeutronStar, star_id=None, sector_id
             pulsar_type, surface_temperature_k, luminosity_w, age_gy,
             galactic_orbital_speed_kms, galactic_orbital_period_gy,
             galactic_orbital_phase_deg, galactic_min_update_interval_years,
-            center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc,
+            spin_axis_x, spin_axis_y, spin_axis_z, axial_tilt_deg
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             star_id, sector_id, neutron_star.name, neutron_star.mass_solar, neutron_star.radius,
@@ -2915,6 +2929,7 @@ def insert_neutron_star(conn, neutron_star: NeutronStar, star_id=None, sector_id
             *galactic_fields,
             placement.get("center_x_pc"), placement.get("center_y_pc"),
             placement.get("center_z_pc"), placement.get("galactic_radius_pc"),
+            *spin_fields,
         ),
     )
     if name_base is not None:
@@ -3100,9 +3115,10 @@ def insert_rogue_planet(conn, planet: RoguePlanet, sector_id=None, placement=Non
             has_internal_heat, has_moons, {", ".join(ROGUE_SURFACE_FIELDS)},
             galactic_orbital_speed_kms, galactic_orbital_period_gy,
             galactic_orbital_phase_deg, galactic_min_update_interval_years,
-            center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc
+            center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc,
+            rotation_period_hours, spin_axis_x, spin_axis_y, spin_axis_z, axial_tilt_deg
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, {", ".join("?" * len(ROGUE_SURFACE_FIELDS))},
-                  ?, ?, ?, ?, ?, ?, ?, ?)
+                  ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             sector_id, planet.name, planet.planet_type, getattr(planet, "planet_class", None), planet.mass_bin, planet.mass_kg, planet.radius_km,
@@ -3111,6 +3127,7 @@ def insert_rogue_planet(conn, planet: RoguePlanet, sector_id=None, placement=Non
             planet.galactic_orbital_speed_kms, planet.galactic_orbital_period_gy,
             planet.galactic_orbital_phase_deg, planet.galactic_min_update_interval_years,
             *_placement_values(placement),
+            getattr(planet, "rotation_period_hours", None), *spin.spin_values(planet),
         ),
     )
     confirm_object_name(conn, name_base, "rogue_planets", cur.lastrowid, diminutive_index)
@@ -3173,8 +3190,9 @@ def insert_interstellar_comet(conn, comet: InterstellarComet, sector_id=None, pl
             sector_id, name, nucleus_diameter_km, velocity_kms, is_active, composition_summary,
             galactic_orbital_speed_kms, galactic_orbital_period_gy,
             galactic_orbital_phase_deg, galactic_min_update_interval_years,
-            center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            center_x_pc, center_y_pc, center_z_pc, galactic_radius_pc,
+            rotation_period_hours, spin_axis_x, spin_axis_y, spin_axis_z, axial_tilt_deg
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             sector_id, comet.name, comet.nucleus_diameter_km, comet.velocity_kms,
@@ -3182,6 +3200,7 @@ def insert_interstellar_comet(conn, comet: InterstellarComet, sector_id=None, pl
             comet.galactic_orbital_speed_kms, comet.galactic_orbital_period_gy,
             comet.galactic_orbital_phase_deg, comet.galactic_min_update_interval_years,
             *_placement_values(placement),
+            getattr(comet, "rotation_period_hours", None), *spin.spin_values(comet),
         ),
     )
     comet_id = cur.lastrowid
@@ -6762,6 +6781,8 @@ def _star_row_to_dict(row):
         "reflex_offset_x": row["reflex_offset_x_km"] / physical_constants.AU_TO_KM if row["reflex_offset_x_km"] is not None else 0.0,
         "reflex_offset_y": row["reflex_offset_y_km"] / physical_constants.AU_TO_KM if row["reflex_offset_y_km"] is not None else 0.0,
         "reflex_offset_z": row["reflex_offset_z_km"] / physical_constants.AU_TO_KM if row["reflex_offset_z_km"] is not None else 0.0,
+        "rotation_period_hours": row["rotation_period_hours"],
+        **{name: row[name] for name in spin.SPIN_FIELDS},
     }
 
 
@@ -7021,6 +7042,7 @@ def _planet_or_moon_row_to_dict(conn, row, is_moon):
         "velocity_z_kms": row["velocity_z_kms"],
         "min_update_interval_years": row["min_update_interval_years"],
         "rotation_period_hours": row["rotation_period_hours"],
+        **{name: row[name] for name in spin.SPIN_FIELDS},
         # v20: only the `planets` table has these columns (a planet's own
         # wobble from its moons) -- `moons` has no such column at all
         # (moons never host their own moons), so a moon always gets the
@@ -7076,6 +7098,8 @@ def _comet_row_to_dict(row, composition_rows):
         "velocity_x_kms": row["velocity_x_kms"],
         "velocity_y_kms": row["velocity_y_kms"],
         "velocity_z_kms": row["velocity_z_kms"],
+        "rotation_period_hours": row["rotation_period_hours"],
+        **{name: row[name] for name in spin.SPIN_FIELDS},
         "composition": [r["component"] for r in composition_rows],
     }
 
