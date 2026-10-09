@@ -764,7 +764,7 @@ def download_galaxy_settings(name):
     """ADM.18: one creation-settings file as a download."""
     _identity, bounce = _require_admin()
     if bounce is not None:
-        return bounce
+        abort(403)  # a file download, not a page: a plain 403 like the other json_only views
     try:
         body = apiclient.admin_galaxy_settings_file(_cookie_header(), name)
     except apiclient.ApiError as exc:

@@ -197,9 +197,9 @@ def test_a_deadlock_on_every_attempt_gives_up_after_the_last_one(mysql_config, m
     real_insert = store.insert_sector
     seen, sleeps = [], []
 
-    def insert(conn, sector_arg, galaxy_position=None):
+    def insert(conn, sector_arg, galaxy_position=None, **kwargs):
         seen.append(_names(sector_arg))
-        return real_insert(conn, sector_arg, galaxy_position=galaxy_position)
+        return real_insert(conn, sector_arg, galaxy_position=galaxy_position, **kwargs)
 
     def deadlock(conn, sector_id):
         raise pymysql.err.OperationalError(1213, "Deadlock found when trying to get lock")
@@ -231,9 +231,9 @@ def test_a_lock_wait_timeout_on_the_neighbour_lock_retries_until_it_is_free(mysq
         real_insert = store.insert_sector
         attempts, sleeps = [], []
 
-        def insert(conn, sector_arg, galaxy_position=None):
+        def insert(conn, sector_arg, galaxy_position=None, **kwargs):
             attempts.append(_names(sector_arg))
-            return real_insert(conn, sector_arg, galaxy_position=galaxy_position)
+            return real_insert(conn, sector_arg, galaxy_position=galaxy_position, **kwargs)
 
         def sleep(seconds):
             sleeps.append(seconds)

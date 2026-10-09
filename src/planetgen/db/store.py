@@ -817,6 +817,9 @@ class Connection:
         self.deferred_name_confirmations = None
         self._txn_locks = []
         self._short_row_waits = False
+        self.uid_issuer = None
+        """`_UidIssuer` or `None`: while a sector is being saved, gives each new row its unique ID in the INSERT
+        (PERF.44)."""
         self.sector_centers_pc = {}
         """dict: `sector_id -> (x, y, z)` or `None`, the sector centers `_system_velocity_kms` has read inside the
         current `batched()` scope (a read flushes the held-back INSERTs, so each is read once)."""
@@ -846,6 +849,11 @@ class Connection:
             if new_id is not None:
                 shape = shape._replace(columns=["id", *shape.columns], values="(?, " + shape.values[1:], has_id=True)
                 params = (new_id, *params)
+            if self.uid_issuer is not None and shape.table in _UID_ISSUED_TABLES:
+                uid = self.uid_issuer.issue(shape.table, shape.columns, params)
+                if uid is not None:
+                    shape = shape._replace(columns=[*shape.columns, "uid"], values=shape.values[:-1] + ", ?)")
+                    params = (*params, uid)
             if self._batch is not None and (new_id is not None or shape.table in BATCH_CHILD_TABLES):
                 level = self._batch_level(shape.table)
                 self._batch.setdefault((shape.table, tuple(shape.columns), shape.values, level), []).append(
@@ -3760,6 +3768,10 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
     star_system.assign_names(star_system.name)
     _designate_comets(star_system)
 
+    position_uid = getattr(star_system, "position_uid", None)
+    if conn.uid_issuer is not None:
+        conn.uid_issuer.given_system_uid = position_uid
+        conn.uid_issuer.used_given = False
     cur = conn.execute(
         """
         INSERT INTO star_systems (
@@ -3801,8 +3813,10 @@ def insert_star_system(conn, star_system: StarSystem, system_config: SystemConfi
     )
     star_system_id = cur.lastrowid
     confirm_system_name(conn, name_base, star_system_id, diminutive_index)
-    position_uid = getattr(star_system, "position_uid", None)
-    if position_uid is not None:  # a bright-sweep system keeps its position ID (GEN.72)
+    if conn.uid_issuer is not None:
+        conn.uid_issuer.given_system_uid = None
+    if position_uid is not None and not (conn.uid_issuer is not None and conn.uid_issuer.used_given):
+        # a bright-sweep system keeps its position ID (GEN.72)
         _update_by_id(conn, "star_systems", ("uid",), [(star_system_id, galaxyUid.uid_bytes(position_uid))])
     system_epoch = getattr(star_system, "epoch_unix", None)
     if system_epoch is not None:  # a scattered hypervelocity star holds at the time it was drawn (GEN.137)
@@ -4383,12 +4397,22 @@ def _add_sector_to_nearest(conn, sector_id):
     new sector's systems are enough.
     """
     refresh_nearest_systems(conn, [sector_id])
-    own = _sector_centers(conn, [sector_id])
+    _merge_into_neighbors(conn, [sector_id])
+
+
+def _merge_into_neighbors(conn, sector_ids, skip=()):
+    """
+    Merges the systems of `sector_ids` into the nearest-system lists of the
+    objects in the sectors around them (not those in `sector_ids` or
+    `skip`, which `refresh_nearest_systems` computes whole).
+    """
+    own = _sector_centers(conn, sector_ids)
     if not own:
         return
     half_diagonal = _edge_pc(conn) * math.sqrt(3) / 2
     near = _sectors_near(conn, own, 2 * half_diagonal + NEAREST_SYSTEMS_SEARCH_PC)
-    near.pop(sector_id, None)
+    for sector_id in (*sector_ids, *skip):
+        near.pop(sector_id, None)
     if not near:
         return
     new_systems = [(system_id, point) for system_id, _sector, point in _placed_systems(conn, own)]
@@ -4405,6 +4429,48 @@ def _add_sector_to_nearest(conn, sector_id):
             changed[key] = merged
             sectors[key] = other_sector
     _write_nearest(conn, changed, sectors)
+
+
+LINK_BATCH_SECTORS = 200
+"""int: Sectors `link_sector_neighbors` links in one transaction."""
+
+
+def link_sector_neighbors(config, sector_ids, on_progress=None):
+    """
+    PERF.45: the neighbour step of saving sectors, done once for many (a
+    `galaxy` run saves its sectors with `link_neighbors=False` and links
+    them here at its end): containment in nebulae and remnants, each
+    object's nearest systems and quadrant, and the new systems merged into
+    the lists of the already-linked sectors around. Done in batches of
+    `LINK_BATCH_SECTORS`, each a transaction under the neighbor lock (so an
+    on-demand sector saved meanwhile is not missed), retried on a deadlock.
+    The result equals linking each sector as it was saved.
+
+    Args:
+        config (MySQLConfig): Connection parameters.
+        sector_ids (iterable): The `sectors.id` values to link.
+        on_progress (callable, optional): `on_progress(done, total)`.
+
+    Returns:
+        int: How many sectors were linked.
+    """
+    sector_ids = sorted(set(sector_ids))
+    skip = set(sector_ids)
+
+    def link(batch):
+        def work(conn):
+            conn.lock_until_commit(_neighbor_lock_name(conn))
+            refresh_containment(conn, batch)
+            refresh_nearest_systems(conn, batch)
+            _merge_into_neighbors(conn, batch, skip=skip)
+        return work
+
+    for start in range(0, len(sector_ids), LINK_BATCH_SECTORS):
+        batch = sector_ids[start:start + LINK_BATCH_SECTORS]
+        _save_with_retries(config, [], link(batch))
+        if on_progress is not None:
+            on_progress(min(start + LINK_BATCH_SECTORS, len(sector_ids)), len(sector_ids))
+    return len(sector_ids)
 
 
 # ---------------------------------------------------------------------------
@@ -5466,7 +5532,7 @@ def _refresh_containment_around(conn, placement, radius_ly):
     refresh_containment(conn, sectors_reached_by(conn, center, ly_to_pc(radius_ly)))
 
 
-def insert_sector(conn, sector: SpaceSector, galaxy_position=None) -> int:
+def insert_sector(conn, sector: SpaceSector, galaxy_position=None, link_neighbors=True) -> int:
     """
     Inserts a full `SpaceSector` -- the `sectors` row, every system it
     contains (with its placement), and every exotic phenomenon it contains
@@ -5502,9 +5568,15 @@ def insert_sector(conn, sector: SpaceSector, galaxy_position=None) -> int:
     Returns:
         int: The new `sectors.id`.
     """
-    with conn.batched():
-        sector_id = _insert_sector_rows(conn, sector, galaxy_position)
-    assign_uids(conn, sector_id=sector_id)
+    try:
+        with conn.batched():
+            sector_id = _insert_sector_rows(conn, sector, galaxy_position, link_neighbors)
+    finally:
+        issuer, conn.uid_issuer = conn.uid_issuer, None
+    if issuer is None or not issuer.complete:
+        assign_uids(conn, sector_id=sector_id)
+    else:
+        _set_sector_uid(conn, sector_id)
     address = None if galaxy_position is None else tuple(
         galaxy_position.get(key) for key in ("ring_index", "layer_index", "ring_slot_index"))
     if address is not None and None not in address:
@@ -5513,7 +5585,7 @@ def insert_sector(conn, sector: SpaceSector, galaxy_position=None) -> int:
     return sector_id
 
 
-def _insert_sector_rows(conn, sector, galaxy_position):
+def _insert_sector_rows(conn, sector, galaxy_position, link_neighbors=True):
     made_by = versionKey.current()  # DB.7: the code generating this sector
     if galaxy_position is not None:
         cur = conn.execute(
@@ -5559,6 +5631,7 @@ def _insert_sector_rows(conn, sector, galaxy_position):
     # in `deferred_name_confirmations` for one upsert at the end.
     conn.prereserved_names = {}
     conn.deferred_name_confirmations = []
+    conn.uid_issuer = _uid_issuer_for_sector(conn, sector_id, galaxy_position)
     try:
         # Every placed phenomenon is named by its object ID (GEN.64),
         # claimed here for the whole sector in generation order; only the
@@ -5611,16 +5684,20 @@ def _insert_sector_rows(conn, sector, galaxy_position):
         _update_by_id(conn, "bright_stars", ("star_system_id",), bright_star_links, touch=True)
     mark_phenomena_built(conn, built_scatter_ids)
 
-    if galaxy_position is not None:
+    field_nebulae = getattr(sector, "field_nebulae", None)
+    if galaxy_position is not None and (link_neighbors or field_nebulae):
         # Containment and nearest-neighbor lists read the sectors around
         # this one and rewrite theirs, so two neighbors saved at once
         # (parallel generation, PERF.7) would each miss the other. One
         # writer at a time does this last step, holding the lock until
-        # commit; the slower part above still runs side by side.
+        # commit; the slower part above still runs side by side. A run that
+        # links its sectors later (PERF.45, `link_sector_neighbors`) only needs the
+        # lock for a cloud's first sector.
         conn.lock_until_commit(_neighbor_lock_name(conn))
         _insert_field_nebulae(conn, sector, sector_id)
-        refresh_containment(conn, [sector_id])
-        _add_sector_to_nearest(conn, sector_id)
+        if link_neighbors:
+            refresh_containment(conn, [sector_id])
+            _add_sector_to_nearest(conn, sector_id)
 
     return sector_id
 
@@ -6415,6 +6492,115 @@ PHENOMENON_UID_TABLES = ("black_holes", "neutron_stars", "nebulae", "supernova_r
 _UID_SYSTEM_BATCH = 200
 
 
+def _sector_address_of(galaxy_position):
+    address = None if galaxy_position is None else tuple(
+        galaxy_position.get(key) for key in ("ring_index", "layer_index", "ring_slot_index"))
+    return address if address is not None and None not in address else None
+
+
+def _uid_issuer_for_sector(conn, sector_id, galaxy_position):
+    """The `_UidIssuer` for a sector just inserted (its `uid` is set by
+    `_set_sector_uid`), or `None` when a sector's rows can't be ranked here."""
+    address = _sector_address_of(galaxy_position)
+    sector_text = (galaxyUid.format_sector_uid(galaxyUid.sector_uid(*address)) if address is not None
+                   else f"row{sector_id}")
+    return _UidIssuer(get_galaxy_seed(conn), sector_id, sector_text)
+
+
+def _set_sector_uid(conn, sector_id):
+    """Writes a grid sector's own `uid` (its designation) when it has none."""
+    row = conn.execute("SELECT ring_index, layer_index, ring_slot_index, uid FROM sectors WHERE id = ?",
+                       (sector_id,)).fetchone()
+    if row is None or row["uid"] is not None:
+        return
+    address = (row["ring_index"], row["layer_index"], row["ring_slot_index"])
+    if None not in address:
+        conn.execute("UPDATE sectors SET uid = ?, modified_at = modified_at WHERE id = ?",
+                     (galaxyUid.sector_uid(*address), sector_id))
+
+
+_UID_ISSUED_TABLES = frozenset(("star_systems", "stars", "planets", "moons", "asteroid_belts", "comets",
+                                *PHENOMENON_UID_TABLES))
+"""frozenset: Tables whose new rows `_UidIssuer` gives a `uid` as they are inserted."""
+
+
+class _UidIssuer:
+    """
+    PERF.44: the unique IDs of a sector's rows, worked out as the rows are
+    inserted instead of selected back and updated afterwards
+    (`assign_uids`). An ID is `derived_uid(seed, kind, parent, rank)`, where
+    `rank` is the row's place among its parent's rows of that kind in id
+    order, which for rows inserted one after another is the order they are
+    inserted in; so a counter per parent gives the same ranks (and the same
+    IDs) `assign_uids` finds. `Connection.execute` asks for one per INSERT
+    into `_UID_ISSUED_TABLES` while `conn.uid_issuer` is set
+    (`insert_sector`).
+
+    `complete` turns false when a row's parent isn't one this issuer saw;
+    `insert_sector` then runs `assign_uids` as before for the rows with none.
+    """
+
+    def __init__(self, seed, sector_id, sector_text):
+        self.seed = seed
+        self.sector_id = sector_id
+        self.sector_text = sector_text
+        self.complete = True
+        self._ranks = {}
+        self._system_text = {}
+        self._planet_text = {}
+        self.given_system_uid = None
+        """int or `None`: The next system's own ID, when it keeps one (a bright-sweep system's position ID,
+        GEN.72); `issue` uses it in place of the derived one and clears it."""
+        self.used_given = False
+
+    def _next(self, key):
+        rank = self._ranks.get(key, 0)
+        self._ranks[key] = rank + 1
+        return rank
+
+    def issue(self, table, columns, params):
+        """The `uid` value for a row about to be inserted (bytes at the
+        galaxy width, an integer at the local width), or `None` when the row
+        gets none here."""
+        row = dict(zip(columns, params))
+        if table == "star_systems":
+            if row.get("sector_id") != self.sector_id:
+                return None
+            rank = self._next(("system", self.sector_id))
+            uid, self.given_system_uid = self.given_system_uid, None
+            self.used_given = uid is not None
+            if uid is None:
+                uid = galaxyUid.derived_uid(self.seed, "system", self.sector_text, rank)
+            self._system_text[row["id"]] = galaxyUid.format_uid(uid)
+            return galaxyUid.uid_bytes(uid)
+        if table in PHENOMENON_UID_TABLES:
+            if row.get("sector_id") != self.sector_id:
+                return None
+            rank = self._next((table, self.sector_id))
+            uid = _gen64_uid(row.get("name"))
+            if uid is None:
+                uid = galaxyUid.derived_uid(self.seed, table, self.sector_text, rank)
+            return galaxyUid.uid_bytes(uid)
+        system_id = row.get("star_system_id")
+        parent = self._system_text.get(system_id)
+        if parent is None:
+            self.complete = False
+            return None
+        bits = galaxyUid.LOCAL_BITS
+        if table == "moons":
+            planet_id = row.get("planet_id")
+            parent = self._planet_text.get(planet_id)
+            if parent is None:
+                self.complete = False
+                return None
+            return galaxyUid.derived_uid(self.seed, "moon", parent, self._next(("moon", planet_id)), bits)
+        kind = {"stars": "star", "planets": "planet", "asteroid_belts": "belt", "comets": "comet"}[table]
+        uid = galaxyUid.derived_uid(self.seed, kind, parent, self._next((kind, system_id)), bits)
+        if table == "planets":
+            self._planet_text[row["id"]] = galaxyUid.format_uid(uid, bits)
+        return uid
+
+
 def assign_uids(conn, sector_id=None, system_ids=(), phenomenon=None):
     """
     Writes the unique ID (`galaxy/uid.py`, GEN.69) of every row below that
@@ -6613,7 +6799,7 @@ def _neighbor_lock_name(conn):
     return f"planetgen.neighbors.{database}"[:64]
 
 
-def save_sector(sector: SpaceSector, config=None, galaxy_position=None) -> int:
+def save_sector(sector: SpaceSector, config=None, galaxy_position=None, link_neighbors=True) -> int:
     """
     Opens the database and persists a full `SpaceSector` to it in one
     transaction.
@@ -6632,12 +6818,16 @@ def save_sector(sector: SpaceSector, config=None, galaxy_position=None) -> int:
         galaxy_position (dict, optional): This sector's galaxy-frame
             placement -- see `insert_sector`'s docstring. `None` (the
             default) for a sector never placed in a galaxy.
+        link_neighbors (bool): Link the sector to its neighbours now
+            (containment, nearest systems). `False` leaves that to the
+            caller's later `link_sector_neighbors` (a `galaxy` run, PERF.45).
 
     Returns:
         int: The new `sectors.id`.
     """
     return _save_with_retries(config, _sector_names(sector),
-                              lambda conn: insert_sector(conn, sector, galaxy_position=galaxy_position))
+                              lambda conn: insert_sector(conn, sector, galaxy_position=galaxy_position,
+                                                         link_neighbors=link_neighbors))
 
 
 _RETRY_JITTER = random.Random()

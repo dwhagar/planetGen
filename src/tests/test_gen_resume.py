@@ -174,10 +174,10 @@ def test_a_run_stopped_before_a_save_resumes_to_the_uninterrupted_result(
 @pytest.mark.parametrize("mode", sorted(MODES))
 def test_a_save_that_fails_in_its_transaction_leaves_nothing_and_resumes(
         mysql_config, second_mysql_config, monkeypatch, tmp_path, mode):
-    # `refresh_containment` runs last inside `insert_sector`'s transaction,
+    # `record_sector_stats` runs last inside `insert_sector`'s transaction,
     # after the sector, its systems and their bright-star links are written.
     _seed_skeleton(mysql_config, layers=LAYERS)
-    _fail_on_call(monkeypatch, tmp_path, store, "refresh_containment", 3)
+    _fail_on_call(monkeypatch, tmp_path, store, "record_sector_stats", 3)
     with pytest.raises(_Interrupted):
         _galaxy(mysql_config, MODES[mode])
     partial, orphans, unbuilt, dangling = _snapshot(mysql_config)

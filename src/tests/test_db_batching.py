@@ -164,9 +164,9 @@ def test_a_deadlocked_save_is_retried_with_the_generated_names(mysql_config, mon
     real_insert = store.insert_sector
     attempts = []
 
-    def flaky(conn, sector_arg, galaxy_position=None):
+    def flaky(conn, sector_arg, galaxy_position=None, **kwargs):
         attempts.append(sector_arg.entries[0].star_system.name)
-        sector_id = real_insert(conn, sector_arg, galaxy_position=galaxy_position)
+        sector_id = real_insert(conn, sector_arg, galaxy_position=galaxy_position, **kwargs)
         if len(attempts) == 1:
             sector_arg.entries[0].star_system.name = "Mangled"
             raise pymysql.err.OperationalError(1213, "Deadlock found when trying to get lock")
@@ -188,7 +188,7 @@ def test_a_deadlocked_save_is_retried_with_the_generated_names(mysql_config, mon
 def test_other_errors_are_not_retried(mysql_config, monkeypatch):
     calls = []
 
-    def broken(conn, sector_arg, galaxy_position=None):
+    def broken(conn, sector_arg, galaxy_position=None, **kwargs):
         calls.append(1)
         raise pymysql.err.OperationalError(1146, "Table doesn't exist")
 

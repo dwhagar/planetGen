@@ -527,3 +527,18 @@ def test_bodies_in_a_system_know_their_sector():
     assert planet.spatial.sector_address == (1200, 5, 321)
     entry.position = (1.0, 1.0, 1.0)
     assert planet.spatial.sector_address == (1200, 5, 321)
+
+
+def test_a_body_moved_several_times_reads_only_its_last_place():
+    """PERF.46: the derived coordinates and sector address are worked out when
+    first read, from the last move, not once for every move."""
+    from planetgen.physics.position import SpatialPosition3D
+    moved = SpatialPosition3D((1.0, 2.0, 3.0), (0.0, 0.0, 0.0), sector_edge_pc=4.0)
+    moved.set_sector_edge_pc(4.0)
+    moved.carry_sector_center((5.0, 6.0, 7.0))
+    moved.set_galactic_cartesian(9.0, 8.0, 7.0)
+    fresh = SpatialPosition3D((9.0, 8.0, 7.0), (5.0, 6.0, 7.0), sector_edge_pc=4.0)
+    for frame in ("galactic", "sector"):
+        for form in ("cartesian", "cylindrical", "spherical"):
+            assert moved.get_coordinates(frame, form) == fresh.get_coordinates(frame, form)
+    assert moved.sector_address == fresh.sector_address
