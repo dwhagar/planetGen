@@ -601,6 +601,10 @@ one: `{ring, layer, slot, id, name, system_count}`.
   `interstellarComet`, `neighbor`). It rides on every stage URL and on a
   sector page's, and the Menu's "Show on the map" buttons change it in
   place (no history entry). Unknown names are ignored.
+- `mark=<kind>,<kind>` (MAP.123) lists the phenomenon kinds drawn larger
+  and brighter (the same names as `hide`, but never `star`); the Menu's
+  "Highlight" buttons change it in place. A bookmark of a stage view keeps
+  `hide`, `mark`, `stars`, `lum` and `color`.
 - One scheme (MAP.67): a map's position is always a query of `/galaxy`
   (`at`, `p`, `sector`, `open`) and every move is a history entry, so
   Back, Forward, a reload and a bookmark behave the same at every level

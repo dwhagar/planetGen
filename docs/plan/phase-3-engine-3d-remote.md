@@ -32,11 +32,12 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | NAV.22 | Courses inside a sector and a system |  |  |
 | NAV.23 | Open a saved course on the map | NAV.4, NAV.21 |  |
 | NAV.5 | Show a course on the Galaxy Map | NAV.21, NAV.22, NAV.23 | Courses stay drawn until cleared (NAV.49). Parent; most of it exists (MAP.27). |
-| NAV.25 | Find the obstacles along a path | NAV.10, NAV.24 | Corridor query from NAV.10; sectors along the line from NAV.38. |
+| NAV.25 | Find the obstacles along a path | NAV.10 | Corridor query from NAV.10; sectors along the line from NAV.38. |
 | NAV.26 | Bend the path around keep-out spheres | NAV.25 |  |
 | NAV.27 | Moving bodies inside a system | NAV.26 |  |
 | NAV.28 | Show and save the adjusted course | NAV.26, NAV.4 |  |
-| NAV.6 | Courses that steer clear of gravity wells | NAV.24, NAV.25, NAV.26, NAV.27, NAV.28 | Parent; closes with its subitems. |
+| NAV.51 | Courses route around asteroid fields | NAV.25, NAV.26 | Boss 2026-10-09 01:02Z. Foundations lane 1 is building it. |
+| NAV.6 | Courses that steer clear of gravity wells | NAV.25, NAV.26, NAV.27, NAV.28, NAV.51 | Parent; closes with its subitems. |
 
 ### API
 

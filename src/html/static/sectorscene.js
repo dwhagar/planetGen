@@ -431,6 +431,8 @@ function makeCloudVolume(cloud, volume) {
 // a white core would vanish, so there the core is a darker shade of its
 // own color instead, and the halo blends as usual.
 export const POINT_CLOSE_GROWTH = 1.5;
+// A highlighted kind of phenomenon (MAP.123) is drawn this many times larger.
+var HIGHLIGHT_GROWTH = 2.2;
 // A click within this many pixels of a point's center (or inside its
 // core, for a big one) picks it.
 var POINT_PICK_PX = 8;
@@ -720,6 +722,8 @@ export function buildSectorScene(data, options) {
     objectsOfEntry.get(entry).push(object);
   }
   var hiddenKinds = new Set();
+  // MAP.123: kinds of phenomenon drawn larger and brighter to find them.
+  var markedKinds = new Set();
   // MAP.123: star classes left off, and the dimmest star shown (L☉; 0 shows all).
   var hiddenClasses = new Set();
   var minLuminosity = 0;
@@ -772,10 +776,11 @@ export function buildSectorScene(data, options) {
     var dim = entry.neighbor ? NEIGHBOR_CLOUD_DIM : 1;
     var color = new THREE.Color(light.color || "#ffffff");
     geometry.getAttribute("pointColor").array.set([color.r, color.g, color.b], 3 * i);
-    geometry.getAttribute("pointSize").array[i] = shown ? light.sizePx : 0;
-    geometry.getAttribute("pointCore").array[i] = shown ? light.corePx : 0;
-    geometry.getAttribute("pointGlow").array[i] = shown ? light.glow * dim : 0;
-    geometry.getAttribute("pointBright").array[i] = shown ? light.bright * dim : 0;
+    var mark = markedKinds.has(kindOf(entry)) ? HIGHLIGHT_GROWTH : 1;
+    geometry.getAttribute("pointSize").array[i] = shown ? light.sizePx * mark : 0;
+    geometry.getAttribute("pointCore").array[i] = shown ? light.corePx * mark : 0;
+    geometry.getAttribute("pointGlow").array[i] = shown ? light.glow * dim * mark : 0;
+    geometry.getAttribute("pointBright").array[i] = shown ? Math.min(1, light.bright * dim * mark) : 0;
     geometry.getAttribute("pointWhiten").array[i] = light.whiten != null ? light.whiten : 1;
   }
 
@@ -976,6 +981,17 @@ export function buildSectorScene(data, options) {
     applyHidden();
   }
 
+  // Draws every point of a phenomenon kind larger and brighter, or as it was (MAP.123).
+  function setKindMarked(kind, marked) {
+    if (marked) markedKinds.add(kind);
+    else markedKinds.delete(kind);
+    if (!pointsOfLight) return;
+    pointEntries.forEach(function (entry, i) {
+      if (kindOf(entry) === kind) refreshPoint(i);
+    });
+    pointsChanged();
+  }
+
   // Hides or shows the stars of one class (MAP.123).
   function setStarClassHidden(starClass, hidden) {
     if (hidden) hiddenClasses.add(starClass);
@@ -1031,6 +1047,8 @@ export function buildSectorScene(data, options) {
     kinds: kinds,
     setKindHidden: setKindHidden,
     kindHidden: function (kind) { return hiddenKinds.has(kind); },
+    setKindMarked: setKindMarked,
+    kindMarked: function (kind) { return markedKinds.has(kind); },
     setStarClassHidden: setStarClassHidden,
     starClassHidden: function (starClass) { return hiddenClasses.has(starClass); },
     starClasses: starClasses,

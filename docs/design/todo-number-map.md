@@ -15,7 +15,7 @@ release is stamped.
 |---|---|
 | UX | UX.76 |
 | MAP | MAP.134 |
-| NAV | NAV.51 |
+| NAV | NAV.52 |
 | GEN | GEN.125 |
 | PERF | PERF.31 |
 | DB | DB.15 |
@@ -743,7 +743,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.21 | Fit the view to the whole course | none | open |
 | NAV.22 | Courses inside a sector and a system | none | open |
 | NAV.23 | Open a saved course on the map | none | open |
-| NAV.24 | A keep-out radius for every kind of object | none | open |
+| NAV.24 | A keep-out radius for every kind of object | none | done, PR #719 |
 | NAV.25 | Find the obstacles along a path | none | open |
 | NAV.26 | Bend the path around keep-out spheres | none | open |
 | NAV.27 | Moving bodies inside a system | none | open |
@@ -770,6 +770,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.48 | Offer to generate the uncharted sectors that block a course | none | open |
 | NAV.49 | Waypoints: pick objects in Star select mode and plot a course through them, kept on the map until cleared | none | open |
 | NAV.50 | Pick any object down to a moon as a NAV endpoint | none | open |
+| NAV.51 | Courses route around asteroid fields | none | open |
 | OPS.1 | Build the version number from the category counters (item 80's version-scheme questions) | none (split from 80 by the renumbering) | done in the version-from-todo-counters PR |
 | OPS.2 | Apache OOM-killed on the production server | 1 (2026-09-24 01:32Z to 02:02Z) | done in 5.47.0, PR #72 |
 | OPS.3 | PowerShell installers and macOS-safe bash scripts | 50 (2026-09-30 20:43Z to 2026-10-01 02:57Z) | done in 7.16.0, PR #125 (see note 4) |
@@ -956,7 +957,7 @@ Parents marked "new parent" had no old number of their own.
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.4 | Constellation names in the name generator | 85 (2026-10-01 02:55Z to 05:29Z) | open |
-| VIEW.5 | Light-travel positions: where an object appears to a distant observer | none | open |
+| VIEW.5 | Light-travel positions: where an object appears to a distant observer | none | done, PR #719 |
 
 ## Tree IDs to flat IDs
 

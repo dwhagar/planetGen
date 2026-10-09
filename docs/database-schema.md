@@ -1714,6 +1714,13 @@ before any sector is filled. See "Bright-star pre-placement (v43)" above.
 | `seed` | BIGINT UNSIGNED | NOT NULL | Seed for the system built around it later. |
 | `star_system_id` | BIGINT UNSIGNED | FK -> `star_systems.id`, `ON DELETE SET NULL`, nullable | Set when its sector is filled. |
 | `created_at` | TIMESTAMP | NOT NULL | |
+| `off_plane` | TINYINT | virtual | Added in v57 (GEN.117): 1 when `|position_z_mpc|` is 250 pc or more. Computed; nothing writes it. |
+
+Indexes: the address (`ring_index`, `layer_index`, `ring_slot_index`),
+`luminosity_w`, and `idx_bright_stars_population` (`population`,
+`off_plane`, `luminosity_w`, v59), which the Galaxy Map's tile picks walk
+once per population so the old giants of the bulge and the thick disk
+are listed beside the young stars that outshine them.
 
 ### `sector_stats`
 
