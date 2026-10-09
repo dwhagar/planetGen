@@ -624,6 +624,8 @@ row here applies.
 
 ## 8. Go / no-go and build order
 
+Boss's research of 2026-10-09 18:23Z refines the GEN.130 answer below (millisecond-pulsar planet rate and types, wide tertiaries only for direct-collapse holes, a gravitational-wave age check for compact binaries, Kozai screen with relativistic quenching): [exotic-environments-planets-and-compact-binaries.md](exotic-environments-planets-and-compact-binaries.md) sections 2 and 3.
+
 **GEN.129: go.** The value is clear, the physics is tractable and verified, the risk
 is plumbing. Do not start by adding code for N=7; start with the data model at N=2.
 
