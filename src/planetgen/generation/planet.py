@@ -25,7 +25,7 @@ import math
 
 from planetgen.generation import prevalence
 from planetgen.generation.config import SystemConfig
-from planetgen.physics import constants, planets as planetPhysics
+from planetgen.physics import atmosphere, constants, planets as planetPhysics
 from planetgen.physics.position import HoldsOrbitPosition, axis_property, velocity_axis_property
 from planetgen import tuning
 from planetgen.util import draw
@@ -176,6 +176,13 @@ class Planet(HoldsOrbitPosition):
                                  times 2 pi / the rotation period.
         axial_tilt_deg (float): The angle, degrees, between that axis and the
                                 orbit normal.
+        mantle_redox (str or None): 'reduced', 'intermediate' or 'oxidized'
+                                    (GEN.85, `physics.atmosphere`); `None`
+                                    for a gas giant.
+        mantle_delta_iw (float or None): The upper mantle's oxygen fugacity,
+                                         log units above the iron-wustite buffer.
+        p_o2_kpa ... p_so2_kpa (float): Each `physics.atmosphere.SPECIES`
+                                        gas's partial pressure, kPa.
         evolutionary_data (list): A list of strings describing the evolutionary timeline
                                   (set by `planetLife.apply_life_data`, empty until then).
         flavor_text (str): A randomly selected flavor text for the planet.
@@ -195,6 +202,7 @@ class Planet(HoldsOrbitPosition):
         "velocity_x_kms", "velocity_y_kms", "velocity_z_kms",
         "min_update_interval_years",
         "rotation_period_hours", "spin_axis_x", "spin_axis_y", "spin_axis_z", "axial_tilt_deg",
+        *atmosphere.ATMOSPHERE_FIELDS,
         "reflex_offset_x", "reflex_offset_y", "reflex_offset_z",
     ]
     """
@@ -324,6 +332,8 @@ class Planet(HoldsOrbitPosition):
         self.spin_axis_y = None
         self.spin_axis_z = None
         self.axial_tilt_deg = None
+        for field in atmosphere.ATMOSPHERE_FIELDS:
+            setattr(self, field, None)
 
         # From the star, should not be changed.
         self.habitable_zone = habitable_zone

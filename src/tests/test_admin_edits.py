@@ -493,7 +493,8 @@ def test_class_change_regenerates_surface_conditions_keeping_orbit_mass_and_name
     assert planet.mass == pytest.approx(mass, rel=1e-9)
     assert planet.distance == pytest.approx(distance, rel=1e-6)
     assert planet.composition == data["composition"]
-    assert planet.atmosphere == (data["atmosphere"] or "None")
+    # GEN.85: the new class's air is drawn, and the text written from it.
+    assert (planet.atmosphere == "None") == (data["atmosphere"] is None)
     low, high = data["radius_range"]
     assert low <= planet.radius <= high
     volume_m3 = 4 / 3 * 3.141592653589793 * (planet.radius * 1000) ** 3

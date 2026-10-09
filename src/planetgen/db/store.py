@@ -69,7 +69,7 @@ from planetgen.admin import activity_log
 from planetgen.db import alembic_runner
 from planetgen.names import object_id as objectId
 from planetgen.galaxy import seed as galaxySeed, uid as galaxyUid, version_key as versionKey
-from planetgen.physics import constants as physical_constants, kepler, spin
+from planetgen.physics import atmosphere, constants as physical_constants, kepler, spin
 from planetgen.util import log
 from planetgen.util.appconfig import load_config
 from planetgen.generation.belt import AsteroidBelt
@@ -1418,6 +1418,7 @@ def _table_marker(table):
 
 
 _VERSION_MARKERS = (
+    (70, _column_marker("planets", "mantle_redox")),
     (69, _column_marker("phenomenon_scatter", "epoch_unix")),
     (68, _column_marker("stars", "axial_tilt_deg")),
     (67, _column_marker("sectors", "version_key")),
@@ -2538,6 +2539,7 @@ _BODY_COLUMNS = (
     "velocity_x_kms", "velocity_y_kms", "velocity_z_kms",
     "min_update_interval_years",
     "rotation_period_hours", "spin_axis_x", "spin_axis_y", "spin_axis_z", "axial_tilt_deg",
+    *atmosphere.ATMOSPHERE_FIELDS,
 )
 """tuple: The generated-content columns `planets` and `moons` share, in
 `body_row_values` order."""
@@ -2581,6 +2583,7 @@ def body_row_values(body):
         body.min_update_interval_years,
         body.rotation_period_hours,
         *spin.spin_values(body),
+        *(getattr(body, name, None) for name in atmosphere.ATMOSPHERE_FIELDS),
     ]
     if not body.is_moon:
         values += [
@@ -7068,6 +7071,7 @@ def _planet_or_moon_row_to_dict(conn, row, is_moon):
         "min_update_interval_years": row["min_update_interval_years"],
         "rotation_period_hours": row["rotation_period_hours"],
         **{name: row[name] for name in spin.SPIN_FIELDS},
+        **{name: row[name] for name in atmosphere.ATMOSPHERE_FIELDS},
         # v20: only the `planets` table has these columns (a planet's own
         # wobble from its moons) -- `moons` has no such column at all
         # (moons never host their own moons), so a moon always gets the
