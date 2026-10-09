@@ -57,6 +57,11 @@ and unconfirmed; [B] Boss's words.
 5. **I cannot map "10 hours for the bright stars" to one phase without his log.** The numbers
    that could produce it are below ("Where ten hours could come from").
 
+**Correction (same day).** The default-scale phenomenon count above (1.06e9 rows, 146 GB) came from
+`phenomenon_scatter.layer_expected`, which runs 10% low; 64 times the 18.24M rows actually drawn is
+1.17e9 rows and 161 GB. [phenomenon-scatter-mass-cut.md](phenomenon-scatter-mass-cut.md) has the corrected
+counts, traces the notes' 1.6e8 and recommends a mass cut that takes the table to about 2.7e5 rows.
+
 ## Findings by phase
 
 ### Bright-star scatter (`scatter_bright_stars`, one RQ job per layer)
