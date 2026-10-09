@@ -642,7 +642,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
 
     rogue_button = (
         '    <button type="button" class="starmap-btn starmap-toggle" data-action="toggle-rogue-markers" data-icon="rogue-markers"'
-        ' aria-pressed="false"\n'
+        ' aria-pressed="true"\n'
         '            title="Ring each rogue planet, so it is easy to find among the stars">Mark rogue planets</button>\n'
         if pinned else ""
     )
