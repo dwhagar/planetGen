@@ -117,9 +117,8 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | NAV.52 | Port `join_islands` and the k-d tree to cKDTree |  | Research: performance cliff in the built router. |
-| UX.35 | The NAV page route shown horizontally, wrapping onto several lines on narrow screens |  | In parallel with NAV.12; replaces ol.nav-route in nav.html. |
 | NAV.11 | Travel times for the system-to-system route too |  | Times per hop, including unknown-space jumps; total assumes a stop at every system (Boss 04:19Z); open question on a stay per stop. |
-| NAV.42 | Each route stop shows the course and distance to the next stop | UX.35 | Boss 04:19Z. format_course per hop, frame per pair. |
+| NAV.42 | Each route stop shows the course and distance to the next stop |  | Boss 04:19Z. format_course per hop, frame per pair. |
 | NAV.47 | Unknown-space jumps stop at scattered stars, black holes, neutron stars and quasars |  |  |
 | NAV.48 | Offer to generate the uncharted sectors that block a course |  |  |
 

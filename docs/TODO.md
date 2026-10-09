@@ -112,7 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, UX.35, NAV.11, NAV.42, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.57, TEST.77, UX.49, PERF.31, PERF.32, GEN.128, ADM.42 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, NAV.11, NAV.42, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.57, TEST.77, UX.49, PERF.31, PERF.32, GEN.128, ADM.42 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.17, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18, PERF.33, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, DB.15, ADM.43, ADM.44 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, and the anomalies chosen in phase 2. | NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, GEN.114, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies. | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, GEN.55 |
@@ -291,21 +291,6 @@ with `clamp()`.
   (linked to its reference page) and no Terrestrial/Gas Giant chip or
   moon label; the moons stay reachable from a small count on the row.
   Open question: does "Habitable" stay as a chip?
-
-- [ ] **UX.35 The NAV page route shown horizontally, wrapping onto several lines on narrow screens**
-  Boss (2026-10-02 01:53Z): "display the path horizontally and find a
-  way to split it between multiple lines for mobile or limited
-  displays." Today the route is a vertical list (`<ol class="nav-route">`
-  in `nav.html`). Done: the stops run left to right, each a link, with
-  the hop distance between them; on phones and narrow panels it wraps
-  onto several lines (a container query, not a device check), never
-  splitting a stop across lines; screen readers still get an ordered
-  list. Runs alongside NAV.12; NAV.36 styles its unknown-space hops.
-  Research (2026-10-09, course-routing.md): add the long-route collapse
-  (`<details>`, first and last three stops, longest hop, every
-  unknown-space hop) and `role="list"`; about 58 stops per 100 pc in the
-  solar disk; test at 320 px.
-  Design: [docs/design/course-routing.md](design/course-routing.md)
 
 - [ ] **UX.49 Form fields as Shoelace components (sl-input, sl-select, sl-checkbox) across the site**
   UX.40 (done, PRs #528, #533, #539, #544) moved the buttons, menus and
@@ -714,8 +699,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   container. The arc, slab and segment picks stop being the way to move;
   old stage URLs stop working (no backward compatibility). The open
   questions for Boss, each with a default, are on the sub-items.
-  Order (from the report, section 8): MAP.149 and MAP.148 (client side
-  first) can start now and improve today's map; MAP.150 needs MAP.149;
+  Order (from the report, section 8): MAP.149 and MAP.153 (client side
+  first) can start now and improve today's map, then MAP.148 (it builds
+  on MAP.153); MAP.150 needs MAP.149;
   MAP.151 and MAP.152 follow. MAP.147 (the wire format) must be decided
   together with MAP.151's tile keys.
   Prerequisites: MAP.148, MAP.149, MAP.150, MAP.151, MAP.152. Related:
@@ -792,7 +778,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   here as the end state; the two are one rule in two stages, not
   competitors. MAP.154 and MAP.155 carry the server list nesting and the
   other objects.
-  Prerequisites: none. Related: MAP.116, MAP.146, MAP.147.
+  Dependency (2026-10-09, fly-through-view-distance.md): The law
+  multiplies MAP.153's rank birth radius in one shader: a = a_rank(R) *
+  a_mag(d) * a_near, built after MAP.153. Calibrate m_lim so the
+  magnitude factor is about 1 for a star at the target distance at any
+  camera radius; it only dims stars much farther than the target, so the
+  two rules never thin the same stars twice. The distance-cut tiles it
+  leads to also need MAP.154 (nested lists).
+  Prerequisites: none. Related: MAP.116, MAP.146, MAP.147, MAP.153.
   Design: [docs/design/fly-through-view-distance.md](design/fly-through-view-distance.md)
 
 - [ ] **MAP.149 The near field: depth fade, a see-through focus tube, drawing from inside a container, and picking that matches what is drawn**
@@ -832,8 +825,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   picks as the navigation flow?
   Open question for Boss (default: keep the slab strip as an optional
   section plane, not a stage): or drop it?
-  Prerequisites: MAP.149. Related: MAP.140, MAP.85, MAP.59, NAV.13,
+  Prerequisite: MAP.149. Related: MAP.140, MAP.85, MAP.59, NAV.13,
   NAV.14, MAP.146.
+  Dependency (2026-10-09, fly-through-view-distance.md): If the camera
+  radius R used by MAP.153's rank rule is redefined for a free camera
+  (for example distance to the nearest sector instead of to the target),
+  keep it continuous in the camera position: a jump in R is a pop for
+  every star at once.
   Design: [docs/design/fly-through-view-distance.md](design/fly-through-view-distance.md)
 
 - [ ] **MAP.151 The region data layer: exact-centred frame, aligned cells, per-level aggregates and slot-wrap ranges**
@@ -856,8 +854,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Open question for Boss (default: a 3-ary pyramid accepting cells 0.84
   to 1.25 of an edge across): or keep 9-ary and accept a 2.45x gap in
   sizes?
-  Prerequisites: ADM.29. Related: MAP.120, MAP.147, ADM.30, GEN.101,
+  Prerequisites: ADM.29. Related: MAP.120, MAP.147, ADM.30, GEN.101,, .
   GEN.126, MAP.131, MAP.134, MAP.146.
+  Dependency (2026-10-09, fly-through-view-distance.md): The region data
+  layer and its aggregates (3-ary pyramid, per-star id, per-level
+  aggregates) wait on MAP.147 (wire format, Research Lane 3).
   Design: [docs/design/drilldown-region-sizes.md](design/drilldown-region-sizes.md)
 
 - [ ] **MAP.152 Scale hand-offs: galaxy, sector and system cross-fade with hysteresis, and per-tile camera-relative origins**
@@ -870,7 +871,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   camera-relative origin below about 100 pc so stars stay precise at
   close range. Includes the distance-cut tile choice that completes the
   visibility law.
-  Prerequisites: MAP.148, MAP.150. Related: MAP.102, MAP.125, MAP.146.
+  Dependency (2026-10-09, fly-through-view-distance.md): Distance-cut
+  tiles need MAP.154 (nested server lists: a child tile must contain the
+  parent's stars in its box).
+  Prerequisites: MAP.148, MAP.150. Related: MAP.102, MAP.125, MAP.146, MAP.154.
   Design: [docs/design/fly-through-view-distance.md](design/fly-through-view-distance.md)
 
 - [ ] **MAP.153 Stars fade in with the zoom: a birth radius from each star's rank in its tile list (first client stage)**
@@ -915,7 +919,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   format) and MAP.151 (region data layer), and with MAP.148 if the
   magnitude law changes what a tile lists. Open question for Boss
   (default build it only after MAP.153 is seen working): go ahead?
-  Prerequisites: MAP.153. Related: MAP.147, MAP.148, MAP.151.
+  Prerequisite: MAP.153. Related: MAP.147, MAP.148, MAP.151.
   Design: [docs/design/zoom-star-visibility.md](design/zoom-star-visibility.md)
 
 - [ ] **MAP.155 Other objects fade in too: point objects from level 8, a size ramp for cloud sprites, and stars that grow from a faint dot**
@@ -929,7 +933,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   from the object id). Sector blocks and fills keep their own
   level-of-detail question (the mega-block plan). Open question for Boss
   (default yes): point objects from level 8?
-  Prerequisites: MAP.153. Related: MAP.153, MAP.148, MAP.149.
+  Prerequisite: MAP.153. Related: MAP.153, MAP.148, MAP.149.
   Design: [docs/design/zoom-star-visibility.md](design/zoom-star-visibility.md)
 
 ## NAV: Navigation and courses
@@ -1198,7 +1202,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   text of course-routing.md section 2: per-stop sector_id and local
   position (this item needs them), the packed filled-set cache, and the
   adjacent-cell shortcut.
-  Prerequisite: UX.35.
   Design: [docs/design/navigation-frames.md](design/navigation-frames.md)
 
 - [ ] **NAV.36 Unknown-space jumps drawn red and glowing**

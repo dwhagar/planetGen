@@ -1045,7 +1045,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.32 | Planet rows show the class only, without the type and moon labels | none | open |
 | UX.33 | Filter phenomena by their classes and types (bug) | none | done, PR #606 |
 | UX.34 | The sector summary calls white dwarfs "B-type" and "A-type" systems (bug) | none | done, PR #448 |
-| UX.35 | The NAV page route shown horizontally, wrapping onto several lines on narrow screens | none | open |
+| UX.35 | The NAV page route shown horizontally, wrapping onto several lines on narrow screens | none | done, PR #879 |
 | UX.36 | Scientific notation starts too early for whole numbers (bug) | none | done, PR #457 |
 | UX.37 | A UX sweep: remove redundant and duplicate controls so the interface gets out of the way | none | done, PR #671 |
 | UX.38 | The nebula and remnant diagrams' "-" button does nothing at the 1 ly limit (bug) | none | done, PR #590 |

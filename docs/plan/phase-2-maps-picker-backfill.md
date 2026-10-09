@@ -50,7 +50,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | NAV.17 | A saved course record with both forms |  |  |
 | NAV.18 | Save, list, open, rename and delete, per browser | NAV.17 | Sibling of bookmarks.js. |
 | NAV.4 | Save a course | NAV.17, NAV.18 | Per browser now; NAV.19 moves it into accounts in phase 3+. |
-| NAV.36 | Unknown-space jumps drawn red and glowing | UX.35 | Route strip, navmap.py and the Galaxy Map course; legend; reduced motion; both themes. |
+| NAV.36 | Unknown-space jumps drawn red and glowing |  | Route strip, navmap.py and the Galaxy Map course; legend; reduced motion; both themes. |
 | NAV.39 | Saved courses remember their unknown-space jumps and check them again | NAV.17 | With NAV.17. |
 | NAV.49 | Waypoints: pick objects in Star select mode and plot a course through them, kept on the map until cleared | MAP.122, NAV.17 | Merges "Plotted courses should appear on the galactic map and stay until cleared". |
 
@@ -171,11 +171,11 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.121 | Every map shows and steps to its neighbouring regions, on one map engine |  | Folds MAP.127, the Galaxy Map's neighbouring blocks and slabs (Boss 2026-10-07 16:27Z: one map engine for all maps). |
 | MAP.146 | Fly through the galaxy: scroll-zoom, double-click flight, distance-based visibility and a see-through near field | MAP.148, MAP.149, MAP.150, MAP.151, MAP.152 | Boss 2026-10-09 22:24Z and 22:56Z. Umbrella for MAP.148 to MAP.152; replaces the fixed ladder in galaxy/drill.py and galaxyprisms.js. |
 | MAP.147 | The Galaxy Map wire format: measure what the browser downloads and compare smaller options |  | Boss 2026-10-09 22:41Z. Starts with the investigation (Research Lane 3). Decide with MAP.146's tile keys. |
-| MAP.148 | The star visibility law: apparent-magnitude opacity, flux-based brightness and an on-screen limit from a histogram |  | Fly-through report item 1; can start now. |
+| MAP.148 | The star visibility law: apparent-magnitude opacity, flux-based brightness and an on-screen limit from a histogram | MAP.153 | Fly-through report item 1; builds after MAP.153 (its first stage). |
 | MAP.149 | The near field: depth fade, a see-through focus tube, drawing from inside a container, and picking that matches what is drawn |  | Fly-through report item 2; can start now. Folds MAP.121 blocker fade and MAP.141 context. |
 | MAP.150 | The free camera: wheel zoom to the cursor, double-click flight, and the observer inside, with the container named from position | MAP.149 | Fly-through report item 3; needs the near field. |
-| MAP.151 | The region data layer: exact-centred frame, aligned cells, per-level aggregates and slot-wrap ranges | ADM.29 | Fly-through report item 4. Decide cache keys with MAP.147. |
-| MAP.152 | Scale hand-offs: galaxy, sector and system cross-fade with hysteresis, and per-tile camera-relative origins | MAP.148, MAP.150 | Fly-through report item 5. |
+| MAP.151 | The region data layer: exact-centred frame, aligned cells, per-level aggregates and slot-wrap ranges | ADM.29, MAP.147 | Fly-through report item 4. Decide cache keys with MAP.147. |
+| MAP.152 | Scale hand-offs: galaxy, sector and system cross-fade with hysteresis, and per-tile camera-relative origins | MAP.148, MAP.150, MAP.154 | Fly-through report item 5. |
 | MAP.153 | Stars fade in with the zoom: a birth radius from each star's rank in its tile list (first client stage) |  | Zoom visibility note stage 1; first stage of MAP.148, same ground. |
 | MAP.154 | Nested bright-star lists on the server, so every parent list is a subset of its child's | MAP.153 | Zoom visibility note stage 2; shares tile keys with MAP.147 and MAP.151. |
 | MAP.155 | Other objects fade in too: point objects from level 8, a size ramp for cloud sprites, and stars that grow from a faint dot | MAP.153 | Zoom visibility note stage 3. |
