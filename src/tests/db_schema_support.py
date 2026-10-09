@@ -147,10 +147,10 @@ def check_constraints(conn):
     ).fetchall()
 
 
-PROBE_REVISIONS = {
-    62: "op.execute('CREATE TABLE alembic_probe (id INT PRIMARY KEY)')",
-    63: "op.execute('ALTER TABLE alembic_probe ADD COLUMN note VARCHAR(20)')",
-}
+PROBE_REVISIONS = [
+    "op.execute('CREATE TABLE alembic_probe (id INT PRIMARY KEY)')",
+    "op.execute('ALTER TABLE alembic_probe ADD COLUMN note VARCHAR(20)')",
+]
 
 _PROBE_TEMPLATE = """from alembic import op
 
@@ -165,14 +165,17 @@ def upgrade():
 """
 
 
-def migrations_with_probes(tmp_path, up_to=62):
-    """A copy of the real migrations directory plus test revisions 0062..
-    `up_to`, for exercising Alembic's upgrade path. Returns its path."""
+def migrations_with_probes(tmp_path, count=1):
+    """A copy of the real migrations directory plus `count` (1 or 2) test
+    revisions after the real head, for exercising Alembic's upgrade path
+    whatever the head is. Returns its path."""
     import shutil
     from planetgen.db import alembic_runner
     target = tmp_path / "migrations"
     shutil.copytree(alembic_runner.MIGRATIONS_DIR, target, ignore=shutil.ignore_patterns("__pycache__"))
-    for version in range(62, up_to + 1):
+    head = alembic_runner.head_version()
+    for offset in range(count):
+        version = head + 1 + offset
         (target / "versions" / f"{version:04d}_probe.py").write_text(_PROBE_TEMPLATE.format(
-            revision=f"{version:04d}", previous=f"{version - 1:04d}", body=PROBE_REVISIONS[version]))
+            revision=f"{version:04d}", previous=f"{version - 1:04d}", body=PROBE_REVISIONS[offset]))
     return str(target)
