@@ -1773,16 +1773,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   for small bodies, black hole spin distributions).
   Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
 
-- [ ] **GEN.125 Stand-alone facilities store a velocity**
-  Asked by the physics build thread after PR #735 (GEN.121 left them
-  out): a stand-alone facility (one not attached to a star's system)
-  follows the galaxy's rotation curve in `advance_galactic_positions`
-  but stores no velocity. Give it the same stored galactic velocity and
-  epoch that stars and systems have, filled at generation and refreshed
-  when positions advance, so every object carries a vector.
-  Build thread (not a lane).
-  Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
-
 - [ ] **GEN.105 Orbital updates**
   Boss (2026-10-03 and 2026-10-07) asked for an orbital update that
   moves only what has visibly moved, counts what changed, and lets

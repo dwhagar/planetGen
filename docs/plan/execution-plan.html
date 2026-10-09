@@ -68,7 +68,7 @@ ul.tight li{margin:.2rem 0}
 <header>
   <div class="eyebrow">planetGen · Phase 1 and after · Boss's priorities of 2026-10-09 07:13Z</div>
   <h1>Execution Plan</h1>
-  <p class="lede">Four groups in Boss's order, each with the items that block it listed first and what it unblocks. Repeatable Galaxy is last, but its small blockers are cleared early so nothing waits on them later. Lanes are as they stand now: Foundations 1 on GEN.98 and GEN.100, Foundations 2 on GEN.56, Foundations 3 finishing GEN.125, and the Bugfix lane on the 11 Phase 1 bugs.</p>
+  <p class="lede">Four groups in Boss's order, each with the items that block it listed first and what it unblocks. Repeatable Galaxy is last, but its small blockers are cleared early so nothing waits on them later. Lanes are as they stand now: Foundations 1 on GEN.98 and GEN.100, Foundations 2 on GEN.56, Foundations 3 free after GEN.125 (merged, schema v64), and the Bugfix lane on the 11 Phase 1 bugs.</p>
   <ol class="order" aria-label="Priority order">
     <li><b>1 · Orbital updates</b><span>GEN.106 gates five items</span></li>
     <li><b>2 · Maps</b><span>MAP.89 retired (done)</span></li>
@@ -97,7 +97,7 @@ ul.tight li{margin:.2rem 0}
 <tr><td class="k">Now</td>
  <td><span class="id">GEN.98</span> + <span class="id">GEN.100</span> (finish both; GEN.100 unblocks NAV.47)</td>
  <td><span class="id">GEN.56</span> (finish what is in flight, no GEN.57)</td>
- <td><span class="id">GEN.125</span> (finishing)</td>
+ <td><span class="id">GEN.125</span> (done, PR #782)</td>
  <td><span class="id">MAP.135</span>, <span class="id">MAP.138</span>, <span class="id">MAP.136</span>, <span class="id">MAP.137</span> (map bugs first)</td></tr>
 <tr><td class="k">2</td>
  <td><span class="id">NAV.43</span> → <span class="id">NAV.44</span> → <span class="id">NAV.45</span> (nearby search, with issue #677)</td>
@@ -125,9 +125,9 @@ ul.tight li{margin:.2rem 0}
 <div class="tw"><table>
 <thead><tr><th>Item</th><th>What it is</th><th>Needs</th><th>Unblocks</th><th>Notes</th></tr></thead>
 <tbody>
-<tr><td class="id">GEN.125</td><td>Stand-alone facilities store a velocity</td><td>none</td><td>none</td><td><span class="blk">in flight</span> every object then carries a vector</td></tr>
-<tr><td class="id">GEN.106</td><td>Movement thresholds and a next-update-due column</td><td>none</td><td>GEN.107, GEN.108, GEN.115, GEN.109, GEN.105</td><td><span class="blk">gate</span> Alembic revision 0064</td></tr>
-<tr><td class="id">GEN.104</td><td>Spin vector and axial tilt for every rotating object</td><td>none</td><td>none</td><td>Alembic 0065; its draws use the derived-seed helpers</td></tr>
+<tr><td class="id">GEN.125</td><td>Stand-alone facilities store a velocity</td><td>none</td><td>none</td><td><span class="blk">done</span> PR #782, schema v64 every object then carries a vector</td></tr>
+<tr><td class="id">GEN.106</td><td>Movement thresholds and a next-update-due column</td><td>none</td><td>GEN.107, GEN.108, GEN.115, GEN.109, GEN.105</td><td><span class="blk">gate</span> Alembic revision 0065</td></tr>
+<tr><td class="id">GEN.104</td><td>Spin vector and axial tilt for every rotating object</td><td>none</td><td>none</td><td>Alembic 0066; its draws use the derived-seed helpers</td></tr>
 <tr><td class="id">GEN.107</td><td>The update reports how many objects moved, changed sector or entered a nebula</td><td>GEN.106</td><td>GEN.105</td><td></td></tr>
 <tr><td class="id">GEN.108</td><td>Where each orbital method breaks down, and what happens there</td><td>GEN.106</td><td>GEN.115, GEN.109, GEN.105</td><td><span class="blk">gate</span> research and rules, small code</td></tr>
 <tr><td class="id">GEN.115</td><td>The galaxy's own gravity: disk, bulge and halo potential</td><td>GEN.106, GEN.108</td><td>GEN.109, GEN.105</td><td><span class="later">phase 2</span></td></tr>
@@ -218,13 +218,13 @@ ul.tight li{margin:.2rem 0}
 </section>
 
 <h2>Conflicts to watch</h2>
-<h3>Alembic revisions (next free: 0064)</h3>
+<h3>Alembic revisions (next free: 0065; 0064 was taken by GEN.125)</h3>
 <div class="tw"><table>
 <thead><tr><th>Revision</th><th>Item</th><th>Lane</th><th>Note</th></tr></thead>
 <tbody>
-<tr><td class="k">0064</td><td>GEN.106 next-update-due column</td><td>Foundations 3</td><td>first in line</td></tr>
-<tr><td class="k">0065</td><td>GEN.104 spin columns</td><td>Foundations 3</td><td>same lane, no clash</td></tr>
-<tr><td class="k">0066</td><td>DB.7 generating version per sector</td><td>Foundations 2, wave 4</td><td></td></tr>
+<tr><td class="k">0065</td><td>GEN.106 next-update-due column</td><td>Foundations 3</td><td>first in line</td></tr>
+<tr><td class="k">0066</td><td>GEN.104 spin columns</td><td>Foundations 3</td><td>same lane, no clash</td></tr>
+<tr><td class="k">0067</td><td>DB.7 generating version per sector</td><td>Foundations 2, wave 4</td><td></td></tr>
 <tr><td class="k">next</td><td>NAV.10 position indexes</td><td>Foundations 1, wave 3</td><td></td></tr>
 <tr><td class="k">control</td><td>PERF.32 stats table (control v11); OPS.13 version-key history; ADM.18 if it needs one</td><td>various</td><td>separate version counter, so no clash with content revisions</td></tr>
 </tbody></table></div>
