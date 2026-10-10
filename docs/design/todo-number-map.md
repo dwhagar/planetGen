@@ -22,7 +22,7 @@ release is stamped.
 | API | API.24 |
 | ADM | ADM.49 |
 | SEC | SEC.33 |
-| TEST | TEST.114 |
+| TEST | TEST.115 |
 | USR | USR.10 |
 | OPS | OPS.38 |
 | DOC | DOC.17 |
@@ -418,7 +418,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.27 | Changing a planet's class doesn't regenerate its surface conditions (bug) | none | done, PR #448 |
 | ADM.28 | A simpler Generate page: layer specs, a Customize window and plain controls | none | open |
 | ADM.29 | Fill a span of layers, rings or columns | none | done, PR #926 |
-| ADM.30 | Radial generation: a cylinder of N sectors around a point | none | open |
+| ADM.30 | Radial generation: a cylinder of N sectors around a point | none | done, PR #934 |
 | ADM.31 | Every generate action offers to show what it made on the Galaxy Map | none | open |
 | ADM.32 | Add a star system to a sector: at the emptiest spot, at given coordinates, or at random outside every Hill sphere | none | open |
 | ADM.33 | The owner can override "no room" warnings and generate anyway | none | done, PR #476 |
@@ -1333,6 +1333,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.111 | test_ensure_sector_generated_creates_then_reuses_the_same_sector fails in a busy parallel run (bug) | none | open |
 | TEST.112 | test_regenerate_phenomenon_keeps_id_name_and_place fails now and then in the full suite (bug) | none | open |
 | TEST.113 | tests/js/generatejobs.test.mjs fails on main: "asks for the job's status two seconds in" (bug) | none | done, PR #920 |
+| TEST.114 | test_the_check_writes_nothing fails now and then in a parallel full run (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

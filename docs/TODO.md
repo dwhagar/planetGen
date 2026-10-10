@@ -112,7 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.9, PERF.29, PERF.30, ADM.30, ADM.31, GEN.97, ADM.28, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, NAV.11, NAV.42, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.57, TEST.77, UX.49, PERF.31, GEN.128 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.9, PERF.29, PERF.30, ADM.31, GEN.97, ADM.28, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, NAV.11, NAV.42, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.57, TEST.77, UX.49, PERF.31, GEN.128 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.17, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18, PERF.33, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, ADM.43, ADM.44 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, and the anomalies chosen in phase 2. | NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, GEN.114, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies. | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, GEN.55 |
@@ -4032,21 +4032,7 @@ Boss (2026-10-07 11:47Z): "Actual specs on layers on the generation
   many charted), the common actions stay on the page and every other
   setting moves into a Customize dialog, and its subitems are done.
   GitHub issue [#736](https://github.com/dwhagar/planetGen/issues/736) (Boss, 2026-10-09 02:26Z): "Each set of settings should be a tab for the generate screen so the user only sees the ones relevant to what they are looking at." So the Customize dialog groups its settings into tabs, one per kind of generation.
-  Prerequisites: ADM.30, ADM.31, GEN.97.
-
-  - [ ] **ADM.30 Radial generation: a cylinder of N sectors around a point**
-    Boss (2026-10-07 11:47Z): "From generate menu specify a radial
-    generation from a point in a direct cylinder x sectors radius (1 =
-    minimum for contiguous orthogonal connection between each sector and
-    it's adjacent sectors." Done: a point (sector or coordinates) and a
-    radius in sectors fill a cylinder around it; radius 1 fills the
-    point and its face neighbours.
-    Research (2026-10-09, fill-order-curves-and-core.md): define radius
-    x as a Euclidean disc of (x + 0.385) edges, not x edges (x = 1 would
-    return only 3 cells); add a separate half-height field, default x
-    layers either side (open question for Boss); the shape is a round
-    disc connected by face adjacency from the centre; correct "radius 1
-    fills the point and its face neighbours" to follow this definition.
+  Prerequisites: ADM.31, GEN.97.
 
   - [ ] **ADM.31 Every generate action offers to show what it made on the Galaxy Map**
     Boss (2026-10-03 05:38Z): "Add a button from the generate screen to
@@ -4238,6 +4224,18 @@ clears each one.
   product bug it hides is fixed. Bugfixes lane 1 or whichever lane
   touches regeneration next.
   Prerequisites: none. Related: TEST.111, TEST.71, TEST.73, OPS.19.
+
+- [ ] **TEST.114 test_the_check_writes_nothing fails now and then in a parallel full run (bug)**
+  Reported by Foundations lane 1 (2026-10-10 02:45Z, ADM.30 merge, PR
+  #934): tests/test_db_check.py::test_the_check_writes_nothing failed
+  once in a parallel full run (system_name_registry count 0 against 4)
+  and passes alone, so it looks load-sensitive. Done: the cause is found
+  (shared state or timing under load, or a real bug in the check) and
+  the test is made robust without skipping or loosening it, or the
+  product bug it hides is fixed. Bugfixes lane 1 or whichever lane
+  touches the database check next.
+  Prerequisites: none. Related: TEST.111, TEST.112, TEST.71, TEST.73,
+  OPS.19.
 
 ## USR: User accounts
 
