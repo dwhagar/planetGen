@@ -430,7 +430,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.39 | Running queue jobs show an ETA (bug) | none | done, PR #800 |
 | ADM.40 | The Generate page stops reporting a lost connection (bug) | none | done, PR #800 |
 | ADM.41 | Every job is easy to find and cancel in the web queue, and past jobs are paginated and clean (bug) | none | done, PR #800 |
-| ADM.42 | One settings model describes every config.json option | none | open |
+| ADM.42 | One settings model describes every config.json option | none | done, PR #912 |
 | ADM.43 | A full configuration page under Admin | none | open |
 | ADM.44 | Web, Open Graph and SEO settings | none | open |
 | ADM.45 | Prevalence fields take the override share directly and must total 100% | none | open |
