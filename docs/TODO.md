@@ -462,6 +462,25 @@ with `clamp()`.
   otherwise.
   Prerequisite: UX.45. Related: UX.47.
 
+- [ ] **UX.93 No TODO code (like PERF.67 or NAV.42) appears anywhere a user can see it, with a test that fails if one does**
+  Boss (2026-10-10 20:28Z): "TODO codes should never appear in the
+  finished product, so add a TODO item to scrub output lines with things
+  like PERF.67 etc etc etc". Done: every user-facing line is scrubbed of
+  TODO IDs (a category from the TODO table, a dot and a number, such as
+  PERF.67 or NAV.42): page and template text, tooltips, error and
+  refusal messages, CLI and job-log lines, API error and help text,
+  setting descriptions, the in-app help and any docs shown to users of
+  the site. Code comments, docstrings, TODO.md, `changes/` notes, the
+  changelog and the design docs may keep them. A pytest scans the
+  templates, the static files and the string literals the code shows to
+  users (settings descriptions, messages, CLI output) and fails on a
+  TODO-ID pattern there, with a short allowlist for the places where an
+  ID is wanted (none expected). The first pass found about 44 hits in
+  the templates and static files, most of them in template comments (`{#
+  ... #}`), which stay, and about 130 string literals in the Python code
+  to check by hand. Owner: Bugfixes lane 2, after its current items.
+  Prerequisites: none.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
