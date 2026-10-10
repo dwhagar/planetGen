@@ -3434,6 +3434,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   table).
   Prerequisites: none. Related: PERF.52, PERF.33, GEN.185.
 
+- [ ] **PERF.54 Separate generation-stats rows for the mass pass and the luminosity pass of the star scatter**
+  Reported by Bugfixes lane 1 (2026-10-10 06:36Z), left out of PERF.52
+  because it is not a small fix: the admin generation-stats table
+  records the GEN.185 star scatter as one layer, but the scatter now has
+  separate mass-limit and luminosity-limit passes (and the phenomenon
+  passes). Done: the stats record each pass on its own row, the admin
+  table shows them, and the size and time estimates use the right row
+  for the plan being estimated. Phase 2.
+  Prerequisites: none. Related: PERF.52, PERF.53, GEN.185.
+
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
@@ -4149,27 +4159,6 @@ clears each one.
   or the product bug is fixed. Open question for Boss (default: leave
   open until it recurs, then investigate with the failing run's data).
   Prerequisites: none. Related: TEST.111, TEST.71.
-
-- [ ] **TEST.120 test_sampled_stars_stay_inside_their_mass_range still fails on main after TEST.118 (bug)**
-  Reported by Bugfixes lane 1 (2026-10-10 05:31Z):
-  test_star_scatter_passes.py::test_sampled_stars_stay_inside_their_mass_range
-  fails on main even after PR #975 (TEST.118). Probably the same family:
-  the scatter test setup against GEN.184's 2500 L_sun floor. Done: the
-  cause is found and the test passes on main with the full test file
-  green.
-  Owner (Boss via coordinator, 2026-10-10 06:15Z): Bugfixes lane 1 (not
-  Foundations lane 3, which is retired).
-  Prerequisites: none. Related: TEST.118, GEN.184, GEN.185.
-
-- [ ] **TEST.121 test_open_map_menus_hold_no_overlap fails under load: the Menu panel intercepts the close click (bug)**
-  Reported by Bugfixes lane 1 (2026-10-10 06:15Z):
-  test_open_map_menus_hold_no_overlap[web.sector-820] and [390] fail on
-  their close click when three browser workers run in parallel; the Menu
-  panel intercepts the click on the summary. They pass alone. Done: the
-  test closes the menu in a way that does not depend on timing (wait for
-  the panel to settle or click the summary through the page), and the
-  test passes with 3 parallel browser workers.
-  Prerequisites: none. Related: UX.86, TEST.119.
 
 ## USR: User accounts
 
