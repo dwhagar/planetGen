@@ -13,7 +13,7 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.88 |
+| UX | UX.89 |
 | MAP | MAP.165 |
 | NAV | NAV.58 |
 | GEN | GEN.194 |
@@ -1146,6 +1146,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.85 | Button menus open out of sight and make the user scroll to see them (bug) | none | done, PR #932 |
 | UX.86 | The Galaxy Map controls take too much room: buttons too large and filters one character wide (bug) | none | done, PR #936 |
 | UX.87 | The system list shows uncharted systems: every scattered star, with its location and a way to generate it | none | open |
+| UX.88 | Say "uncharted" instead of "unbuilt" or "not generated" in all user-facing text outside Generate and admin | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |

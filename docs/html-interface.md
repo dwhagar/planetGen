@@ -25,6 +25,16 @@ browser today, on nothing more than a web server (Apache2 with mod_wsgi,
 or nginx or Caddy in front of gunicorn), Python 3 and a
 MySQL server (see "Locating the database" and "Deploying" below).
 
+## Wording: "uncharted"
+
+Boss (2026-10-10 07:26Z): anything not yet generated is called **uncharted**
+in text shown to the user (labels, tooltips, map legends, empty states,
+messages, API text meant for people), never "unbuilt", "not generated" or
+the like. The exception is the Generate system and the admin panels and
+controls, which keep the plain technical words ("generated", "not
+generated", "queued", and so on). New items and pages follow this rule;
+UX.88 carries the sweep of the existing wording.
+
 ## How it works
 
 Every page is served by the same Flask app as the JSON API
