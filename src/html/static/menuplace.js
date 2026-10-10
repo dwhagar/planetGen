@@ -80,12 +80,25 @@ export function placeMenu(menu, panel) {
 function wire(menu, panelSelector) {
   const panel = menu.querySelector(panelSelector);
   if (!panel) return;
+  // A panel's content can arrive after it opens (the Galaxy Map Menu's kinds are built
+  // once the sector is in), so it grows past the room it was placed in and covers its own
+  // button. While it is open, a change in its content height places it again.
+  let placedHeight = 0;
+  const watcher = typeof ResizeObserver === "function" ? new ResizeObserver(function () {
+    if (menu.open && panel.scrollHeight !== placedHeight) {
+      placeMenu(menu, panel);
+      placedHeight = panel.scrollHeight;
+    }
+  }) : null;
   menu.addEventListener("toggle", function () {
     if (menu.open) {
       placeMenu(menu, panel);
+      placedHeight = panel.scrollHeight;
       menu.dataset.placed = "1";      // the browser tests wait for this
+      if (watcher) watcher.observe(panel);
     } else {
       delete menu.dataset.placed;
+      if (watcher) watcher.disconnect();
     }
   });
 }

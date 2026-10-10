@@ -1114,6 +1114,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   same log scale the map uses now, only with the per-zoom range).
   Prerequisites: none. Related: MAP.148, MAP.153, GEN.184.
 
+- [ ] **MAP.164 Galaxy Map shows phenomena: black holes purple, neutron stars dark blue, sized by mass, dark colors out-shine brighter stars**
+  Boss (2026-10-10 06:39Z, ASAP): black holes and neutron stars should
+  show on the Galaxy Map by mass relative to similarly massed stars and
+  brightness. Black holes are purple, neutron stars are dark blue, and
+  these dark colors are made to out-shine brighter stars so they do not
+  vanish among them. The largest of them are visible from the full
+  galactic view. Done: the Galaxy Map draws black holes and neutron
+  stars from the Phenomena table in those colors, their size and glow
+  follow mass relative to stars of similar mass, a rule keeps them
+  visible against brighter stars (a halo or boosted contrast), the
+  largest ones show at the widest zoom, and a test checks the colors and
+  that they draw above brighter stars. Needs the Phenomena table filled
+  (see the bug before this). Owner: Bugfixes lane 2, after its defaults
+  PR. Related: MAP.163, MAP.148, MAP.155.
+  Prerequisites: none. Related: MAP.163, MAP.148, MAP.155.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
@@ -3134,6 +3150,37 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   priority.
   Prerequisites: none. Related: GEN.87, GEN.89.
 
+- [ ] **GEN.190 The Phenomena table is empty after a web-generated galaxy: the phenomena scatter pass never runs (bug)**
+  Boss (2026-10-10 06:39Z, ASAP): neutron stars and nebulae are
+  supposedly being added, but the Phenomena table is empty and there is
+  no way to find them; the system seems to think it is creating them.
+  The phenomena scatter pass never runs in the web generation flow (and
+  with `galaxy --then-scatter`), and its log output is thinner than the
+  star scatter's. Done: a galaxy generated from the web page and with
+  `--then-scatter` fills the Phenomena table (black holes, neutron
+  stars, nebulae and the rest) with the counts the plan says, the log
+  shows each phenomenon pass with counts and timing as the star passes
+  do, and a test generates a small galaxy through the web job path and
+  finds rows in the Phenomena table. Owner: Bugfixes lane 1.
+  Bugfixes lane 1 (2026-10-09): Bugfixes lane 1 (2026-10-10, relayed)
+  pinned the cause: New galaxy runs plan --no-bright-stars (which skips
+  phenomena) then galaxy --then-scatter (stars only), and Plan and
+  Rebuild the bright stars run plan --bright-stars-only (stars only).
+  Fix: every Generate-page job that scatters stars also scatters
+  phenomena, in GEN.185 order (stars, then other phenomena), tested.
+  Shares a PR with GEN.191.
+  Prerequisites: none. Related: GEN.185, GEN.100, PERF.53.
+
+- [ ] **GEN.191 New galaxy ignores the mass limit slider: the plan step does not store the limit, so the scatter uses the default whatever the form says (bug)**
+  Bugfixes lane 1 found it while fixing GEN.190 (2026-10-10, relayed).
+  The New galaxy job's plan step does not store the mass limit, so
+  `galaxy --then-scatter` uses the built-in default (20 solar masses)
+  whatever the form's slider and dropdown say (GEN.183, GEN.188). Done:
+  the form's limit reaches both scatters (stars and other phenomena) in
+  the New galaxy job, and a test sets a non-default limit on the form
+  and finds it used. Owner: Bugfixes lane 1, one PR with GEN.190.
+  Prerequisites: none. Related: GEN.183, GEN.185, GEN.188, GEN.190.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.18 Run the GEN.30 bright-star backfill in parallel on the work queue**
@@ -3433,6 +3480,34 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   layers checks both. Related to PERF.52 (the admin generation-stats
   table).
   Prerequisites: none. Related: PERF.52, PERF.33, GEN.185.
+
+- [ ] **PERF.54 Separate generation-stats rows for the mass pass and the luminosity pass of the star scatter**
+  Reported by Bugfixes lane 1 (2026-10-10 06:36Z), left out of PERF.52
+  because it is not a small fix: the admin generation-stats table
+  records the GEN.185 star scatter as one layer, but the scatter now has
+  separate mass-limit and luminosity-limit passes (and the phenomenon
+  passes). Done: the stats record each pass on its own row, the admin
+  table shows them, and the size and time estimates use the right row
+  for the plan being estimated. Phase 2.
+  Prerequisites: none. Related: PERF.52, PERF.53, GEN.185.
+
+- [ ] **PERF.55 One global progress bar for generation jobs that run in phases, with an ETA across all phases**
+  Boss (2026-10-10 06:44Z): a generation process that runs in phases
+  gets one global progress bar that tracks the ETA across all phases,
+  fed by the incremental updates of the phase bars below it, so there is
+  a constant view of elapsed time and how long the whole process should
+  have left. Done: the Generate page, the job page and the command line
+  show one overall bar for a phased job (the star passes, the phenomena
+  passes, settling, the Galaxy Map warm-up and the rest) with elapsed
+  time and time remaining; the estimate is the sum of the finished
+  phases' real times and the remaining phases' estimates from the
+  generation stats, and it is corrected as each phase bar reports; a
+  test checks the total and the ETA on a small galaxy with several
+  phases. Unassigned: in no lane's queue. Related: PERF.33 (progress
+  bars and ETAs from measured performance), PERF.51 (the progress-bar
+  mechanism), PERF.52 and PERF.53 (the generation stats), UX.83, UX.3.
+  Prerequisites: PERF.33. Related: PERF.33, PERF.51, PERF.52, PERF.53,
+  UX.83, UX.3.
 
 ## DB: Database and schema
 
@@ -4149,27 +4224,6 @@ clears each one.
   or the product bug is fixed. Open question for Boss (default: leave
   open until it recurs, then investigate with the failing run's data).
   Prerequisites: none. Related: TEST.111, TEST.71.
-
-- [ ] **TEST.120 test_sampled_stars_stay_inside_their_mass_range still fails on main after TEST.118 (bug)**
-  Reported by Bugfixes lane 1 (2026-10-10 05:31Z):
-  test_star_scatter_passes.py::test_sampled_stars_stay_inside_their_mass_range
-  fails on main even after PR #975 (TEST.118). Probably the same family:
-  the scatter test setup against GEN.184's 2500 L_sun floor. Done: the
-  cause is found and the test passes on main with the full test file
-  green.
-  Owner (Boss via coordinator, 2026-10-10 06:15Z): Bugfixes lane 1 (not
-  Foundations lane 3, which is retired).
-  Prerequisites: none. Related: TEST.118, GEN.184, GEN.185.
-
-- [ ] **TEST.121 test_open_map_menus_hold_no_overlap fails under load: the Menu panel intercepts the close click (bug)**
-  Reported by Bugfixes lane 1 (2026-10-10 06:15Z):
-  test_open_map_menus_hold_no_overlap[web.sector-820] and [390] fail on
-  their close click when three browser workers run in parallel; the Menu
-  panel intercepts the click on the summary. They pass alone. Done: the
-  test closes the menu in a way that does not depend on timing (wait for
-  the panel to settle or click the summary through the page), and the
-  test passes with 3 parallel browser workers.
-  Prerequisites: none. Related: UX.86, TEST.119.
 
 ## USR: User accounts
 

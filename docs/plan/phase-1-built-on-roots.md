@@ -65,6 +65,8 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.180 | Directives: a forced fill (met_forced) after K failed draws |  | Left over from GEN.96. |
 | GEN.179 | Store each sector's generation directive and attempt record with the sector |  | Left over from GEN.96. |
 | GEN.186 | Random neighborhoods: an option to keep away from filled space |  | Left over from GEN.97 (merged, PR #950). |
+| GEN.190 | The Phenomena table is empty after a web-generated galaxy: the phenomena scatter pass never runs (bug) |  | Boss 06:39Z via coordinator, ASAP; Bugfixes lane 1. |
+| GEN.191 | New galaxy ignores the mass limit slider: the plan step does not store the limit, so the scatter uses the default whatever the form says (bug) |  |  |
 | ADM.49 | Galaxy shape density settings: the user changes the density range of the spiral arms, the inter-arm space, the core and the bulge |  | Boss 06:16Z via coordinator; unassigned. |
 
 ### Galaxy gen
@@ -145,6 +147,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.154 | Nested bright-star lists on the server, so every parent list is a subset of its child's |  | Zoom visibility note stage 2; shares tile keys with MAP.147 and MAP.151. |
 | MAP.159 | Packed binary Galaxy Map tiles (quantised planes) with the nested tile lists, on one cache stamp bump | MAP.154, MAP.158 | MAP.147 recommendation step 2; one stamp bump with MAP.154 and MAP.151. |
 | MAP.155 | Other objects fade in too: point objects from level 8, a size ramp for cloud sprites, and stars that grow from a faint dot |  | Zoom visibility note stage 3. |
+| MAP.164 | Galaxy Map shows phenomena: black holes purple, neutron stars dark blue, sized by mass, dark colors out-shine brighter stars |  | Boss 06:39Z via coordinator, ASAP; Bugfixes lane 2. |
 
 ### System Map
 
@@ -215,8 +218,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | TEST.111 | test_ensure_sector_generated_creates_then_reuses_the_same_sector fails in a busy parallel run (bug) |  | Test flake reported 2026-10-09; Bugfixes lane 1. |
 | PERF.53 | Timing stats are skewed by layers and sectors that generated nothing (bug) |  | Boss 06:28Z via coordinator; Bugfixes lane 1, after its current items. |
-| TEST.121 | test_open_map_menus_hold_no_overlap fails under load: the Menu panel intercepts the close click (bug) |  | Bugfixes lane 1 report 06:15Z. |
-| TEST.120 | test_sampled_stars_stay_inside_their_mass_range still fails on main after TEST.118 (bug) |  | Bugfixes lane 1 report 05:31Z. |
 | OPS.40 | update.sh step 8 fails: setup-debug-log.sh loads the deleted util/appconfig.py (bug) |  | Bugfixes lane 2 report 04:39Z. |
 | TEST.116 | test_bughunt_end_to_end stores M2V or M6V where it expects K2V on the MySQL 8.4 and MariaDB legs once (bug) |  | Bugfixes lane 1 report 03:57Z. |
 
@@ -235,6 +236,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | PERF.39 | Every API job costs 2.4 s and 195 MB: import lazily and cap the burst workers |  | Research follow-up to PERF.24 (built); before batch wiki uploads. |
 | PERF.38 | Cache fixes for the Galaxy Map under a fill: single-flight tile builds, a busy rule for the page cache, a deletion epoch in place of COUNT(*) |  | Research follow-up to PERF.34 (built). |
 | PERF.33 | Progress bars and ETAs from measured performance |  | GitHub issue [#661](https://github.com/dwhagar/planetGen/issues/661) (the use half). Bugfixes lane 1 (Boss, 23:38Z). |
+| PERF.55 | One global progress bar for generation jobs that run in phases, with an ETA across all phases | PERF.33 | Boss 06:44Z via coordinator; unassigned. |
 | GEN.128 | Design: multi-star hierarchies and compact-object primaries |  | GitHub issues [#777](https://github.com/dwhagar/planetGen/issues/777) and [#778](https://github.com/dwhagar/planetGen/issues/778): the research both builds wait on. |
 
 ## Open questions for Boss
