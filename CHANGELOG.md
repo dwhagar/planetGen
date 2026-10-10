@@ -3,6 +3,7 @@
 ## [8.0.866] - 2026-10-10
 
 ### Changed
+- TEST.114: the "check writes nothing" test compares exact row counts instead of MySQL's background-refreshed row estimates, so it no longer fails under load.
 - The System Map no longer shows a comet on an open (parabolic) orbit once its pass is over (or before it arrives): beyond the drawn path, 2,000 AU out, it disappears instead of flying on forever. Closed-orbit comets always show.
 - **Docs only:** recorded Boss's answers on NAV.8 (stars only get pages), NAV.11 (stay per stop defaults to 0 minutes, user-changeable) and API.23 (the object ID replaces row ids, API break accepted).
 - **Docs only:** ADM.31 is partly built (PR #942); the remaining half stays open and MAP.151 notes the 2,000-sector cap.
