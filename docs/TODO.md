@@ -771,7 +771,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the investigation until MAP.157 to MAP.159 are done.
   Open question for Boss (default each sub-item goes ahead as written;
   MAP.160 is deferred): other?
-  Prerequisites: MAP.157, MAP.158, MAP.159.
+  Prerequisites: MAP.158, MAP.159.
   Linked (2026-10-09, fly-through-view-distance.md): the tile and stage
   cache keys follow MAP.151 (the region data layer), so decide the wire
   format and those keys together; the star visibility law (MAP.148) sets
@@ -977,37 +977,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: MAP.146, MAP.150, MAP.141, MAP.122,
   ADM.29.
 
-- [ ] **MAP.157 Trim the Galaxy Map tile JSON and serve it from prebuilt, precompressed bytes**
-  Source: docs/design/galaxy-map-wire-format.md (section 1, steps 1 and
-  2; MAP.147's recommendation). Measured by Research Lane 3
-  (2026-10-09): a star is about 270 bytes of JSON on the wire (45
-  gzipped); the `placed`, `planned` and `filled` sections are 9 to 35%
-  of every tile and the client never reads them. Done: the tile JSON
-  drops the sections and star fields the client never reads, writes
-  `star_type` as its letter code only and rounds the floats; the cache
-  stores the finished bytes (not parsed dicts that are serialised again
-  on every hit) and a brotli copy made at cache-write time, which Apache
-  serves. Measured on 400 real tiles the gzipped size falls 48% (3.52 MB
-  to 1.83 MB) with no change to what the page draws; a warm hit falls
-  from 22-75 ms to about 2 ms. No client change, so it can land at once
-  and does not wait for the fly-through work; it changes the tile cache
-  stamp. Open question for Boss (default yes, do it now and first in the
-  fly-through step): go ahead?
-  Prerequisites: none. Related: MAP.147, MAP.158, MAP.159, PERF.38,
-  PERF.41, MAP.109.
-  Detail (2026-10-09, galaxy-map-wire-format.md): detail from Research
-  Lane 3 (Boss said yes, 2026-10-09 23:26Z): drop `placed`, `planned`
-  and `filled` and the star fields `ring_index`, `layer_index`,
-  `ring_slot_index`, `population`, `yerkes_class` and the generated
-  name; `star_type` to its class letter; round x/y/z to 3 decimals,
-  luminosity to 4 and radius to 3 significant digits, temperature to 10
-  K. Re-grep `static/` for readers before removing any field. Fix the
-  `GALAXY_VIEW_MAX_STARS` docstring (270 bytes a star, not about 114).
-  Serve stored response bytes in `fetch_tiles` and add `mod_brotli` (or
-  serve the `.br` copy) to `examples/apache`. Lands after or with
-  PERF.38.
-  Design: [docs/design/galaxy-map-wire-format.md](design/galaxy-map-wire-format.md)
-
 - [ ] **MAP.158 A gentler tile prefetch and an IndexedDB tile cache instead of localStorage**
   Source: docs/design/galaxy-map-wire-format.md (sections 2.3, 4.4, 1
   step 2 and 5). Measured: the opening view downloads 28 tiles (533 KB
@@ -1055,6 +1024,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   to 65,536 pc; aggregates cost about 10 bytes a cell; block responses
   are tiny, so changing block keys costs nothing on the wire. Depends on
   MAP.157 and MAP.158 and on Boss's yes on the design.
+  Foundations lane 2 (2026-10-09): Foundations lane 2 (2026-10-10,
+  MAP.157, PR #1112): the brotli copy made at cache-write time was NOT
+  built: Python has no stdlib brotli, the project has no brotli
+  dependency, and stored gzip copies joined as one gzip stream failed in
+  Chromium (it decodes only the first member). Instead the tile cache
+  stores the trimmed JSON bytes and joins them without parsing (a warm
+  hit no longer re-serialises), and Apache compresses (examples/apache
+  now also loads mod_brotli). Open question for Boss (default: leave as
+  is): add the brotli package as a dependency so tiles can be served
+  from precompressed copies.
   Design: [docs/design/galaxy-map-wire-format.md](design/galaxy-map-wire-format.md)
 
 - [ ] **MAP.160 Quantise the Galaxy Map GPU buffers (deferred)**

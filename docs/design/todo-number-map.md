@@ -852,7 +852,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.154 | Nested bright-star lists on the server, so every parent list is a subset of its child's | none | open |
 | MAP.155 | Other objects fade in too: point objects from level 8, a size ramp for cloud sprites, and stars that grow from a faint dot | none | open |
 | MAP.156 | View one layer or a range of layers top-down from the galaxy view, as a secondary option | none | open |
-| MAP.157 | Trim the Galaxy Map tile JSON and serve it from prebuilt, precompressed bytes | none | open |
+| MAP.157 | Trim the Galaxy Map tile JSON and serve it from prebuilt, precompressed bytes | none | done, PR #1112 |
 | MAP.158 | A gentler tile prefetch and an IndexedDB tile cache instead of localStorage | none | open |
 | MAP.159 | Packed binary Galaxy Map tiles (quantised planes) with the nested tile lists, on one cache stamp bump | none | open |
 | MAP.160 | Quantise the Galaxy Map GPU buffers (deferred) | none | open |
