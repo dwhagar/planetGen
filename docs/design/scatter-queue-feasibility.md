@@ -63,9 +63,59 @@ Per layer: draw N from Poisson(Σ e·slots·M) where M is a certified density ma
 | Default | Mass | 19.6 s | 267,092 | 266,390 |
 | Default | Luminosity | 21.0 s | 318,218 | 317,800 |
 
-- **Speed.** About 78 times faster at quarter-scale (47 s to 0.6 s) and about 35 times at default scale (about 12.7 minutes to 20 s). The default time is mostly the numpy majorant over 3.1M rings, which could be cached across passes and runs.
+- **Speed.** About 78 times faster at quarter-scale (47 s to 0.6 s) and about 35 times at default scale (about 12.7 minutes to 20 s). Measured later (see Layer stacks below): the majorant over all 3.1M rings is 3.75 s of the run, the rest is the candidates (about 37 µs each, 41% of them rejected), so the time is spent on candidates and objects, not on rings.
 - **Counts.** 12 seeds: mass mean 4,189.6 (sd 53.4), luminosity 4,996.2 (sd 40.1), +0.7% and +0.6% against expected, within about 1.5σ.
 - **Spatial distribution.** At a 1,000 Lsun floor (about 420k stars per replicate, a 9 × 8 × 8 histogram) the chi-square per degree of freedom was 0.93 to 1.02 between the sampler and today's code, 1.07 pooled (p about 0.12). Ring-band and layer-band shares agree within 0.05 points. The two cannot be told apart.
+
+## Follow-up (Boss, 2026-10-10): several objects per sector, and stacks of layers
+
+### Several objects per sector: tiered capacity
+
+Boss's variant: keep several objects per sector where that is what we have today, still place by popping from a queue, and give dense sectors a higher capacity by density tier. Evaluated on the per-sector expected counts at default scale (2.39e10 sectors, arrays in `scripts/lamarr_*.npz`, analysis in `scripts/tier_analysis.py`, output in `scripts/tiers.log`).
+
+**Capacity is a function of the sector's expected count λ.** Take the smallest capacity from 1, 2, 4, 8, 16 such that P(Poisson(λ) > capacity) is below ε. At ε = 1e-4 the tiers fill up like this:
+
+| Pass | Sectors at capacity 1 | 2 | 4 | 8+ | Objects dropped by the cap | Queue slots per sector |
+|---|---|---|---|---|---|---|
+| Mass (8 Msun) and luminosity (5,000 Lsun) | 100% | | | | 0.02% (same as cap 1) | 1.000 |
+| Luminosity, 1,000 Lsun | 98.6% | 1.38% | 0.019% | | 0.13% (was 0.84% at cap 1) | 1.014 |
+| Luminosity, 300 Lsun | 82.0% | 14.9% | 2.55% | 0.57% | 0.07% (was 11.8%) | 1.265 |
+| Luminosity, 100 Lsun | 70.1% | 23.5% | 5.06% | 1.33% | 0.05% (was 18.9%) | 1.49 |
+| Phenomena (14 Msun) | 96.3% | 3.37% | 0.29% | | 0.12% (was 1.43%) | 1.043 |
+
+So tiers fix the low-floor and phenomena loss, and cost nothing at the shipped star floors, where every sector sits in tier 1. A tier is also a clean density rating: a sector's count never exceeds its capacity, so its fill (count over capacity) stays between 0 and 1.
+
+**The queue itself changes the statistics; independent draws with a tier cap do not.** If a sector is listed `c` times and each pop takes one slot, a sector with expected count λ ends up with Binomial(c, λ/c) objects, not Poisson(λ). That has the same mean but fewer sectors with two or more objects: with c = 2 the chance of two is λ²/4, half of Poisson's λ²/2. Measured on the default phenomena load, objects beyond the first in a sector are 1.43% under Poisson, 0.50% for a queue with ε = 1e-3 tiers, and 0.81% with ε = 1e-4 (at the 100 Lsun floor 18.9% against 17.3%). Cap 1 gives none. Two ways to avoid it:
+
+1. **Preferred: draw as today (independent, object-first), count objects per sector in a small dictionary, and drop an object when its sector is at capacity.** The count is Poisson up to the cap, so dispersion is exactly today's, and the cap is a pure function of λ. At ε = 1e-4 the drop is 0.05% to 0.13% of objects. Cost: one dictionary lookup per accepted object.
+2. A true queue needs capacity much larger than λ (copy weight λ/c with c ≥ 8λ) before it looks Poisson, which means long lists. Not worth it.
+
+The tier is computed from λ at the sector centre, so it is the same for every object in the sector. Not measured: the sampler running with the cap (only the analytic effect above; the queue's Binomial shape is a standard result and was not simulated).
+
+### Stacks of layers (the sparse method)
+
+Boss's sparse method for runs of blank layers, adapted: one majorant, one Poisson draw and one ring table for a stack of G consecutive layers, layer chosen uniformly among the stack's layers that reach the sampled ring, accept with true density over the stack majorant (`scripts/stack.py`, `bench_stack.py`).
+
+| Scale | Stack size G | Time | Objects | Candidates |
+|---|---|---|---|---|
+| Quarter | 1 | 1.11 s | 12,484 | 21,456 |
+| Quarter | 4 | 0.93 s | 12,285 | 23,049 |
+| Quarter | 16 | 1.07 s | 12,519 | 29,906 |
+| Quarter | 64 | 2.12 s | 12,555 | 67,723 |
+| Quarter | 509 (all) | 4.97 s | 12,442 | 150,546 |
+| Default | 1 | 49.5 s | 795,968 | 1,350,353 |
+| Default | 4 | 46.0 s | 795,528 | 1,374,921 |
+| Default | 16 | 49.4 s | 795,313 | 1,479,856 |
+
+(Luminosity pass at 5,000 Lsun with an 8 Msun mass split, so the object counts differ from the 14 Msun tables above. Single process.)
+
+**Result: stacks do not pay.** A bigger stack has a looser majorant, so more candidates are rejected, and that cancels the saving of fewer majorants. Best case is G = 4 at 7% faster; G = 16 is break-even; whole-galaxy stacks are 5 times slower at quarter-scale. Reason: an empty layer costs only its majorant, about 1.2 µs per ring (3.75 s for all 3.1M default rings), so there is nothing left to skip. What costs time is the candidates, about 37 µs each (11.5 µs to place the point and check its address, 5.9 µs for the density, the rest loop overhead), with 41% rejected, and the per-object work after that (about 62 µs per object here).
+
+So the stack idea's job, avoiding a visit to every empty layer, is done by the object-first draw itself: each layer costs one majorant and one Poisson draw whether it is empty or not. PERF.57's grouping is not needed.
+
+**Where a further 10% to 20% is, if wanted.** Rejected candidates are 41% of the 1.35M and cost the same 37 µs as accepted ones. Doing the sector-address check only after the density test saves about 8 µs per rejected candidate (about 4.5 s of 49 s). A tighter majorant (per azimuth bin, not per ring) would raise the 59% acceptance toward 85%. Neither is needed for the 35 times.
+
+**Recommended wording for PERF.58.** Per-layer sampler (a stack of one); stack size is a named tuning value defaulting to 1, so a stack of G can be tried later without a code change (G = 4 measured 7% faster). Several objects per sector: independent draws with a per-sector count dictionary and a tier cap from λ at the sector centre (smallest of 1, 2, 4, 8, 16 with P(N > cap) < 1e-4), objects over the cap dropped; the cap applies in the star passes and phenomena alike and replaces the one-per-sector rule. Optional: defer the address check until after acceptance.
 
 ## What could not be measured
 
@@ -81,7 +131,8 @@ Per layer: draw N from Poisson(Σ e·slots·M) where M is a certified density ma
 2. **Share `_ring_bins` across the three passes.** Low-risk, no change to results, about a 2 times saving at quarter-scale.
 3. **Build the object-first sampler for the mass and luminosity passes**, replacing the per-ring walk and PERF.57's grouping. About 35 times faster at default scale, distribution unchanged, needs a reseed and a large-mean Poisson helper.
 4. **Phenomena pass next, separately.** Same idea with per-kind majorants. The gain is smaller because row costs dominate.
-5. **Keep the cap-of-one only where λ is small** (the shipped floors); do not apply it at low luminosity floors or to phenomena.
+5. **Use tiered capacity, not cap-of-one,** so several objects per sector stay possible (see Follow-up): independent draws, a per-sector count, cap from λ.
+6. **Do not group layers into stacks.** Measured: no gain over one layer at a time (see Follow-up).
 
 Suggested TODO items (for the TODO thread to file if Boss agrees): share `_ring_bins` across passes; object-first thinned sampler for the star passes (supersedes the PERF.57 grouping); large-mean Poisson helper; object-first sampler for phenomena.
 
