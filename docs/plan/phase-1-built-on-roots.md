@@ -207,6 +207,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | PERF.39 | Every API job costs 2.4 s and 195 MB: import lazily and cap the burst workers |  | Research follow-up to PERF.24 (built); before batch wiki uploads. |
 | PERF.64 | The Galaxy Map and the Systems list stop with "Took too long" and the whole site is sluggish (bug) |  | Boss 2026-10-10 19:45Z; Foundations lane 1 first. |
 | PERF.33 | Progress bars and ETAs from measured performance |  | GitHub issue [#661](https://github.com/dwhagar/planetGen/issues/661) (the use half). Bugfixes lane 1 (Boss, 23:38Z). |
+| PERF.65 | The text output of a multi-step job counts its steps, not its tasks: "Step 1 of 4" when the job has 12 (bug) |  | Boss 2026-10-10 19:54Z; Bugfixes lane 1. |
 | GEN.128 | Design: multi-star hierarchies and compact-object primaries |  | GitHub issues [#777](https://github.com/dwhagar/planetGen/issues/777) and [#778](https://github.com/dwhagar/planetGen/issues/778): the research both builds wait on. |
 
 ## Open questions for Boss

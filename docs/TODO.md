@@ -3329,6 +3329,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: PERF.34, PERF.36, PERF.38, PERF.39,
   PERF.40.
 
+- [ ] **PERF.65 The text output of a multi-step job counts its steps, not its tasks: "Step 1 of 4" when the job has 12 (bug)**
+  Boss (2026-10-10 19:54Z, with a Generate-page log): a new-galaxy run
+  prints "=== Step 1 of 4: Check the math ===" up to "Step 4 of 4:
+  Generate sectors ...", but the last step runs nine stages of its own
+  ("9 stages: 1. Generate the starting sector; ..."), so the run really
+  has 12 tasks (1 + 1 + 1 + 9). Each step's own lines also restart at
+  "Stage 1 of 1" or "Stage 1 of 9", so the two counts never agree.
+  "Minor, but needs to be fixed." The step header comes from
+  `web/job_runner.py` (`Step {index} of {len(steps)}`) and the stages
+  from the CLI's whole-job bar (PERF.55). Done: the step header and the
+  stage lines of every process in a multi-step job use one task count
+  that matches the real total (here "Task 1 of 12" through "Task 12 of
+  12", or the step number with the stage count added up front), the CLI
+  run alone prints the same numbers, and a test checks that a multi-step
+  job's printed totals equal the sum of its steps' stage counts. Owner:
+  Bugfixes lane 1, folded into the PERF.33 progress-bar remainders.
+  Prerequisites: none. Related: PERF.33, PERF.55.
+
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
