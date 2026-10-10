@@ -372,6 +372,18 @@ def _settle_jobs_run_inline(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def _api_jobs_wait_patiently(monkeypatch):
+    """A queued API edit (`run_queued`) starts a burst worker process and waits `SHORT_WAIT_SECONDS` for
+    it; in a busy parallel run the worker can take longer than that to start, and the route answers
+    202 instead of 200 (TEST.111, TEST.112). The tests that want the 202 patch `api_jobs.wait`
+    themselves, so here the wait is long enough that a slow start is still a 200."""
+    from planetgen.queue import api_jobs
+    real_wait = api_jobs.wait
+    monkeypatch.setattr(api_jobs, "wait", lambda job_id, seconds=120.0: real_wait(job_id, seconds))
+    yield
+
+
+@pytest.fixture(autouse=True)
 def _reset_rate_limits():
     """Flask-Limiter's one shared instance keeps its counts for the whole
     process, so a test would otherwise start with whatever the tests
