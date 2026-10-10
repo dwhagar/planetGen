@@ -2746,6 +2746,9 @@ lowest mass of a neutron star or black hole the scatter places. `--compact-min-m
 and the Generate page's compact-object control accept only these, or "star" to use the
 stellar mass limit."""
 
+REDO_SCATTERS = ("mass", "luminosity", "phenomena")
+"""tuple: The scatters `planetgen plan --redo-scatters` can redo (GEN.196), in the order they are listed."""
+
 COMPACT_MIN_MASS_STAR = "star"
 """str: `--compact-min-mass`'s word for "use the stellar mass limit" (the default)."""
 

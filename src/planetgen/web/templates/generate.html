@@ -407,9 +407,11 @@
   </form>
 {% endcall %}
 
-{% call fold("bright-stars", "Rebuild the bright stars") %}
-  <p class="hint">Scatters the bright stars again on the current plan, replacing the ones placed before.
-  Sectors already generated are always left out. Needs a plan. It keeps the plan's mass limit.</p>
+{% call fold("redo-scatters", "Redo scatters") %}
+  <p class="hint">Tick the scatters to redo on the current plan, each with its own new setting. They run as one job,
+  every stage listed, the ones left unticked shown as skipped. A scatter clears and rewrites only its own rows;
+  the others are left as they are. Sectors already generated are always left out. The central black hole or quasar
+  is always created. Needs a plan.</p>
   {%- if summary.bright %}
   <p class="hint">{% if summary.bright.scattered %}Now: every star of {{ num(summary.bright.min_luminosity_sol, ",.0f") }}
   solar luminosities or more is placed (seed {{ summary.bright.seed }}).{% else %}No scatter has run on this plan yet.{% endif %}
@@ -417,12 +419,24 @@
   {%- endif %}
   <form method="post" action="{{ url_for('web.generate') }}" class="search-form">
     {{ csrf_field() }}
-    <input type="hidden" name="action" value="bright_stars">
-    <div class="search-fields">
-      {{ scatter_threshold() }}
-    </div>
+    <input type="hidden" name="action" value="redo_scatters">
+    <fieldset class="redo-scatter">
+      <label class="redo-scatter-check"><input type="checkbox" name="redo_mass" value="1" id="redo-mass"
+        {%- if form and form.get("redo_mass") %} checked{% endif %}> Massive stars (the stellar mass limit)</label>
+      <div class="search-fields">{{ mass_slider("redo-mass-limit") }}</div>
+    </fieldset>
+    <fieldset class="redo-scatter">
+      <label class="redo-scatter-check"><input type="checkbox" name="redo_luminosity" value="1" id="redo-luminosity"
+        {%- if form and form.get("redo_luminosity") %} checked{% endif %}> Bright stars (the luminosity floor)</label>
+      <div class="search-fields">{{ scatter_threshold() }}</div>
+    </fieldset>
+    <fieldset class="redo-scatter">
+      <label class="redo-scatter-check"><input type="checkbox" name="redo_phenomena" value="1" id="redo-phenomena"
+        {%- if form and form.get("redo_phenomena") %} checked{% endif %}> Phenomena (neutron stars, black holes, nebulae and the rest)</label>
+      <div class="search-fields">{{ compact_limit("redo-compact") }}</div>
+    </fieldset>
     <div class="search-actions">
-      <button type="submit" class="btn"{% if busy %} disabled{% endif %}>Rebuild bright stars</button>
+      <button type="submit" class="btn"{% if busy %} disabled{% endif %}>Redo the chosen scatters</button>
     </div>
   </form>
 {% endcall %}

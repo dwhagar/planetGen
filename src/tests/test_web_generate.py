@@ -230,7 +230,7 @@ def test_page_renders_summary_and_forms(site, client):
     assert f"Database {DB}" in html
     assert "Planned, edge at ring 4,100" in html
     assert "7 sectors" in html
-    for action in ("new_galaxy", "galaxy", "plan", "bright_stars", "reset"):
+    for action in ("new_galaxy", "galaxy", "plan", "redo_scatters", "reset"):
         assert f'name="action" value="{action}"' in html
     # UX.74: with nothing running, a chip in the header row replaces the Current job card.
     assert 'id="job-idle"' in html and "No job running" in html
@@ -500,7 +500,7 @@ def test_sections_fold_with_only_current_job_open(site, client):
     while a job runs, and then starts open."""
     html = client.get("/admin/generate").get_data(as_text=True)
     assert 'id="current-job"' not in html
-    for section in ("one-off-system", "new-galaxy", "generate-sectors", "plan", "bright-stars", "bright-band",
+    for section in ("one-off-system", "new-galaxy", "generate-sectors", "plan", "redo-scatters", "bright-band",
                     "check-db", "reset", "recent-jobs"):
         attrs = _fold(html, section)
         assert "open" not in attrs and "data-fold-keep" not in attrs, section
@@ -591,14 +591,6 @@ def test_plan_job_scatters_bright_stars_as_its_own_step(site, client, no_spawn):
     assert _argv(phenomena) == ["plan", "--phenomena-only"]
 
 
-def test_the_bright_star_rebuild_also_rebuilds_the_phenomena(site, client, no_spawn):
-    assert _post(client, action="bright_stars", phenomenon_min_mass="12").status_code == 303
-    (job,) = no_spawn
-    scatter, phenomena = _work_steps(job)
-    assert _argv(scatter) == ["plan", "--bright-stars-only", "--phenomenon-min-mass", "12"]
-    assert _argv(phenomena) == ["plan", "--phenomena-only", "--phenomenon-min-mass", "12"]
-
-
 @pytest.mark.parametrize("action", ["plan", "new_galaxy"])
 def test_skip_the_bright_star_scatter(site, client, no_spawn, action):
     assert _post(client, action=action, confirm=DB, skip_bright_stars="1").status_code == 303
@@ -608,19 +600,6 @@ def test_skip_the_bright_star_scatter(site, client, no_spawn, action):
     assert all("--then-scatter" not in step["argv"] for step in job["steps"])
     plan = next(step for step in job["steps"] if step["label"] == "Plan the galaxy")
     assert _argv(plan)[-1] == "--no-bright-stars"
-
-
-@pytest.mark.parametrize("form, argv", [
-    ({}, ["plan", "--bright-stars-only"]),
-    ({"bright_min_luminosity": "2500"}, ["plan", "--bright-stars-only", "--bright-star-min-luminosity", "2500"]),
-])
-def test_rebuild_bright_stars_job(site, client, no_spawn, form, argv):
-    assert _post(client, action="bright_stars", **form).status_code == 303
-    (job,) = no_spawn
-    assert job["kind"] == "bright_stars"
-    step, phenomena = _work_steps(job)
-    assert _argv(step) == argv
-    assert phenomena["label"] == generate_page.PHENOMENA_LABEL and _argv(phenomena) == ["plan", "--phenomena-only"]
 
 
 def test_add_a_dimmer_bright_star_layer_job(site, client, no_spawn):
@@ -1255,7 +1234,7 @@ def test_map_generate_target_only_for_a_usable_admin():
 @pytest.mark.parametrize("action, form", [
     ("new_galaxy", {"confirm": DB}),
     ("plan", {}),
-    ("bright_stars", {}),
+    ("redo_scatters", {"redo_mass": "1"}),
     ("bright_band", {"down_to": "100"}),
     ("galaxy", {"mode": "random"}),
 ])
@@ -1330,7 +1309,7 @@ def test_the_plan_forms_offer_the_mass_limit_slider(site, client):
     for slider in ("new-galaxy-mass-limit", "plan-mass-limit"):
         assert re.search(rf'<input type="range" id="{slider}" name="phenomenon_min_mass"[^>]*min="8" max="20" step="2"'
                          r'[^>]*value="14"', html, re.S)
-    assert html.count('name="phenomenon_min_mass"') == 2
+    assert html.count('name="phenomenon_min_mass"') == 3    # Plan, New galaxy and Redo scatters
     assert re.search(r'<script type="module" src="/static/generateranges.js\?v=[^"]+"></script>', html)
 
 
@@ -1397,8 +1376,8 @@ def test_the_page_has_the_star_mix_and_no_separate_binary_fields(site, client):
 
 def test_both_plan_forms_offer_the_compact_object_limit(site, client):
     html = client.get("/admin/generate").get_data(as_text=True)
-    assert html.count('name="compact_use_star"') == 2
-    assert html.count('name="compact_min_mass"') == 2
+    assert html.count('name="compact_use_star"') == 3    # Plan, New galaxy and Redo scatters
+    assert html.count('name="compact_min_mass"') == 3
     assert re.search(r'name="compact_use_star" value="1" id="plan-mass-limit-compact-star" checked', html)
     for preset in ("1", "2", "4", "6"):
         assert f'<option value="{preset}"' in html
@@ -1426,10 +1405,6 @@ def test_an_unticked_compact_limit_reaches_every_scatter_step(site, client, no_s
                                  "--compact-min-mass", "2"]
 
 
-def test_the_rebuild_passes_the_compact_limit_to_the_phenomena(site, client, no_spawn):
-    assert _post(client, action="bright_stars", phenomenon_min_mass="14", compact_min_mass="4").status_code == 303
-    _scatter, phenomena = _work_steps(no_spawn[-1])
-    assert _argv(phenomena) == ["plan", "--phenomena-only", "--phenomenon-min-mass", "14", "--compact-min-mass", "4"]
 
 
 @pytest.mark.parametrize("value", ["3", "0.5", "8"])
@@ -1437,4 +1412,45 @@ def test_the_compact_limit_must_be_a_preset(site, client, no_spawn, value):
     resp = _post(client, action="plan", compact_min_mass=value)
     assert resp.status_code == 400
     assert "must be one of 1, 2, 4, 6." in resp.get_data(as_text=True)
+    assert no_spawn == []
+
+
+# --- Redo scatters (GEN.196) ----------------------------------------------------------
+
+def test_redo_scatters_is_one_box_with_a_setting_for_each_scatter(site, client):
+    html = client.get("/admin/generate").get_data(as_text=True)
+    fold = html[html.index('id="redo-scatters-heading"'):html.index('id="bright-band-heading"')]
+    for name in ("redo_mass", "redo_luminosity", "redo_phenomena", "phenomenon_min_mass", "bright_min_luminosity",
+                 "compact_min_mass", "compact_use_star"):
+        assert f'name="{name}"' in fold, name
+    assert 'name="action" value="redo_scatters"' in fold
+    assert "Rebuild the bright stars" not in html
+
+
+def test_redo_scatters_runs_one_job_with_the_ticked_scatters_and_their_settings(site, client, no_spawn):
+    assert _post(client, action="redo_scatters", redo_mass="1", redo_luminosity="1", redo_phenomena="1",
+                 phenomenon_min_mass="12", bright_min_luminosity="2500", compact_min_mass="2").status_code == 303
+    (job,) = no_spawn
+    (step,) = _work_steps(job)
+    assert job["kind"] == "redo_scatters"
+    assert _argv(step) == ["plan", "--redo-scatters", "mass", "luminosity", "phenomena", "--phenomenon-min-mass", "12",
+                           "--bright-star-min-luminosity", "2500", "--compact-min-mass", "2"]
+    stages = [(entry["label"], entry["skipped"]) for entry in step["stages"]]
+    assert stages == [("Scatter the phenomena", None), ("Scatter the massive stars", None),
+                      ("Scatter the bright stars", None)]
+
+
+def test_redo_scatters_lists_the_unticked_ones_as_skipped_with_the_reason(site, client, no_spawn):
+    assert _post(client, action="redo_scatters", redo_luminosity="1", bright_min_luminosity="5000",
+                 phenomenon_min_mass="12", compact_use_star="1").status_code == 303
+    (job,) = no_spawn
+    (step,) = _work_steps(job)
+    assert _argv(step) == ["plan", "--redo-scatters", "luminosity", "--bright-star-min-luminosity", "5000"]
+    assert [entry["skipped"] is not None for entry in step["stages"]] == [True, True, False]
+    assert "not chosen to be redone" in step["stages"][0]["skipped"]
+
+
+def test_redo_scatters_needs_at_least_one_scatter_ticked(site, client, no_spawn):
+    resp = _post(client, action="redo_scatters", phenomenon_min_mass="12")
+    assert resp.status_code == 400 and "Tick at least one scatter to redo." in resp.get_data(as_text=True)
     assert no_spawn == []

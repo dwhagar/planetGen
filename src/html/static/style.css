@@ -4283,3 +4283,17 @@ body.app {
 p.hint a {
   text-decoration: underline;
 }
+
+/* GEN.196: one box per scatter in "Redo scatters". */
+.redo-scatter {
+  margin: 0 0 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+.redo-scatter-check {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-weight: 600;
+}
