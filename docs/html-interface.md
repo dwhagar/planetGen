@@ -44,10 +44,11 @@ that is the worst of the four PHI-4 domains (pressure, temperature,
 chemistry, radiation; Blue, Green, Yellow, Red), and the Habitable,
 Habitable moon and Inhabited chips. Planets around pulsars, neutron stars
 and black holes follow a host rule. The Equipment search has a facet for
-the labels. As of 2026-10-10 none of this is explained in the interface:
-UX.90 adds a visible explanation page under Classes (not tooltips only), linked from the chips and the Equipment filter, the per-domain colours and the stored microbial,
-complex-life and human-operability scores; this section is then rewritten
-to match the final wording and thresholds.
+the labels. The explanation page is /classes/habitability under Classes (UX.90, PR
+#1065), linked from the chips and the Equipment filter; planet and moon
+rows carry the per-domain colours and the stored microbial, complex-life
+and human-operability scores. UX.91 adds the full per-factor explanation
+to the planet and moon description.
 
 ## How it works
 
