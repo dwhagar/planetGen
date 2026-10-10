@@ -628,6 +628,12 @@ MIN_RELATIVE_DENSITY = 1.0e-3
 # of a star being at least the threshold's brightness is tabulated.
 BRIGHT_STAR_MASS_GRID_CELLS = 4000
 
+# The layer-walking scatter passes (stars and phenomena) walk the layers
+# from the galactic plane outwards and stop, going on to the next stage,
+# once this many layers in a row (in walk order) produced nothing
+# (`generation/early_stop.py`). 0 walks every layer.
+SCATTER_DRY_LAYERS = 100
+
 # Binary mass ratio q = M2/M1, uniform (Moe & Di Stefano 2017, ApJS 230:15,
 # find it close to flat); the secondary shares the primary's age.
 BINARY_MASS_RATIO_RANGE = (0.1, 1.0)
