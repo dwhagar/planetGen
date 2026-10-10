@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.91 |
 | MAP | MAP.166 |
 | NAV | NAV.58 |
-| GEN | GEN.195 |
+| GEN | GEN.196 |
 | PERF | PERF.57 |
 | DB | DB.22 |
 | API | API.24 |
@@ -692,6 +692,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.192 | Phenomena scatter log is thin and the Phenomena table page needs checking after a run (bug) | none | done, PR #1013 |
 | GEN.193 | Phenomena table stays empty after the scatter: scattered unbuilt phenomena are not listed (bug) | none | done, PR #1019 |
 | GEN.194 | Default mass limit 14 solar masses and default luminosity floor 9,000 solar luminosities | none | open |
+| GEN.195 | A separate mass limit for neutron stars and black holes, and the central black hole or quasar always created | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |

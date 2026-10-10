@@ -3131,6 +3131,27 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   cover the defaults. Owner: Bugfixes lane 1, first in its order.
   Prerequisites: none. Related: GEN.183, GEN.184, GEN.188.
 
+- [ ] **GEN.195 A separate mass limit for neutron stars and black holes, and the central black hole or quasar always created**
+  Boss (2026-10-10 08:28Z, via the coordinator): control the stellar
+  masses with one setting and the neutron star and black hole creation
+  with another. The stellar mass limit (8 to 20 solar masses, default 14
+  by GEN.194) now applies to stars only. A new compact-object mass limit
+  for neutron stars and black holes has presets of 1, 2, 4 and 6 solar
+  masses and a "use the star mass setting" option, which is the default
+  and works as the single mass limit does today. Both appear in Plan the
+  galaxy, New galaxy and the CLI, are stored with the scatter settings,
+  and are used by the scatter passes of GEN.185 (and GEN.187). Hard
+  requirement: whatever either setting says, the central supermassive
+  black hole or quasar at the centre of the galaxy is always created.
+  Done: the setting exists in the form, the CLI and the plan; the
+  scatter honours the two limits; a test covers every combination of the
+  two settings and finds the central black hole or quasar each time; the
+  scatter design note (docs/design/phenomenon-scatter-mass-cut.md)
+  describes the split. Owner: Bugfixes lane 2 (coordinator, 2026-10-10
+  08:29Z).
+  Prerequisites: none. Related: GEN.183, GEN.185, GEN.187, GEN.194,
+  PERF.56.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.18 Run the GEN.30 bright-star backfill in parallel on the work queue**
