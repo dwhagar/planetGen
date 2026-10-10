@@ -618,7 +618,7 @@ def get_planet_species(db, planet_id):
     (`GET /api/planets/<id>/species`), or `None` when it has none."""
     _require_db(db)
     try:
-        return _request(f"/planets/{int(planet_id)}/species", {"db": db})
+        return _request(f"/planets/{planet_id}/species", {"db": db})
     except NotFoundError:
         return None
 

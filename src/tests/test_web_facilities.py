@@ -365,7 +365,7 @@ def test_remove_deletes_only_this_systems_facilities(app, client, fake):
     resp = _post(app, client, facility_action="remove", facility_id="3")
     assert resp.status_code == 303
     assert resp.headers["Location"] == "/system/5?facility=removed#facilities"
-    assert ("delete", DB, 3) in fake.calls
+    assert ("delete", DB, "3") in fake.calls
 
     fake.calls.clear()
     html = _post(app, client, facility_action="remove", facility_id="777").get_data(as_text=True)
@@ -524,7 +524,7 @@ def test_real_admin_previews_saves_and_removes(db_app, mysql_config):
     finally:
         conn.close()
     limits = facility_rules.orbit_limits(star["radius_km"], star["heliosphere_radius_km"])
-    form = {"name": "Sunwatch", "host": f"star:{ids['star']}", "placement": "orbital", "kind": "outpost",
+    form = {"name": "Sunwatch", "host": f"star:{pid('star', ids['star'])}", "placement": "orbital", "kind": "outpost",
             "orbit_step": str(facility_rules.step_for_distance(0.5 * AU_KM, *limits))}
 
     resp = client.post(f"/system/{pid('system', system_id)}", data={csrf.FIELD_NAME: _csrf(db_app, client),
@@ -556,7 +556,7 @@ def test_real_admin_previews_saves_and_removes(db_app, mysql_config):
     assert 'data-kind="facility"' in page
 
     resp = client.post(f"/system/{pid('system', system_id)}", data={csrf.FIELD_NAME: _csrf(db_app, client),
-                                                     "facility_action": "remove", "facility_id": str(saved["id"])})
+                                                     "facility_action": "remove", "facility_id": pid("facility", saved["id"])})
     assert resp.status_code == 303
     assert "Facility removed." in client.get(resp.headers["Location"]).get_data(as_text=True)
     conn = store.get_connection(mysql_config)

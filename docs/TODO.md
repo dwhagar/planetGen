@@ -735,7 +735,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   keys), MAP.151 (needs ADM.29 from Foundations lane 1) and MAP.152 (needs MAP.148,
   MAP.150 and MAP.154); this umbrella closes last.
   Prerequisites: MAP.148, MAP.149, MAP.150, MAP.151, MAP.152, MAP.153,
-  MAP.154, MAP.155, MAP.157, MAP.158, MAP.159. Related:
+  MAP.154, MAP.155, MAP.157, MAP.159. Related:
   MAP.120, MAP.121, MAP.141, MAP.140, MAP.59, MAP.116, MAP.122, MAP.125,
   MAP.131, MAP.134, MAP.147, ADM.29, ADM.30, GEN.101, GEN.126, NAV.13,
   NAV.14.
@@ -771,7 +771,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the investigation until MAP.157 to MAP.159 are done.
   Open question for Boss (default each sub-item goes ahead as written;
   MAP.160 is deferred): other?
-  Prerequisites: MAP.158, MAP.159.
+  Prerequisite: MAP.159.
   Linked (2026-10-09, fly-through-view-distance.md): the tile and stage
   cache keys follow MAP.151 (the region data layer), so decide the wire
   format and those keys together; the star visibility law (MAP.148) sets
@@ -977,27 +977,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: MAP.146, MAP.150, MAP.141, MAP.122,
   ADM.29.
 
-- [ ] **MAP.158 A gentler tile prefetch and an IndexedDB tile cache instead of localStorage**
-  Source: docs/design/galaxy-map-wire-format.md (sections 2.3, 4.4, 1
-  step 2 and 5). Measured: the opening view downloads 28 tiles (533 KB
-  gzipped) to show one, about 18 times what is on screen; localStorage
-  holds about 5 MB, which one sector link fills (40 tiles), so a revisit
-  mostly misses. Done: the page prefetches only the next zoom step in,
-  only after the view has been idle, and not when the browser asks to
-  save data; tiles are cached in IndexedDB (or by immutable HTTP caching
-  per tile) and a revisit finds them; the old localStorage cache is
-  removed (no compatibility). Open question for Boss (default yes): go
-  ahead?
-  Detail (2026-10-09, galaxy-map-wire-format.md): detail from Research
-  Lane 3: prefetch in the zoom-in direction only, after idle, skipped on
-  `navigator.connection.saveData` or a slow `effectiveType`, with a byte
-  cap (`prefetchTiles` in `galaxymap3d.js`). Interim cheap fix for the
-  cache before IndexedDB: store only the tiles the next view needs and
-  cap by bytes with least-recently-used removal, instead of `storeTile`
-  wiping every stored tile when the quota fails.
-  Prerequisites: none. Related: MAP.147, MAP.157, MAP.109.
-  Design: [docs/design/galaxy-map-wire-format.md](design/galaxy-map-wire-format.md)
-
 - [ ] **MAP.159 Packed binary Galaxy Map tiles (quantised planes) with the nested tile lists, on one cache stamp bump**
   Source: docs/design/galaxy-map-wire-format.md (section 1 step 2, 4.1,
   4.3). Measured: a packed binary tile is 12.9 to 16.7 bytes a star, 78%
@@ -1012,7 +991,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and MAP.151's tile keys so the cache is invalidated once. Open
   question for Boss (default yes, with MAP.154 and MAP.151 on one bump):
   go ahead?
-  Prerequisites: MAP.154, MAP.158. Related: MAP.147, MAP.154, MAP.151,
+  Prerequisite: MAP.154. Related: MAP.147, MAP.154, MAP.151,
   MAP.153, MAP.157.
   Detail (2026-10-09, galaxy-map-wire-format.md): detail from Research
   Lane 3 and Research Lane 2: x/y/z uint16 inside the tile cube, log
@@ -1034,6 +1013,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   now also loads mod_brotli). Open question for Boss (default: leave as
   is): add the brotli package as a dependency so tiles can be served
   from precompressed copies.
+  Built (2026-10-10): MAP.158 as built (PR #1123): tiles live in
+  IndexedDB (96 MB cap, least recently used out); localStorage keeps
+  only the stamp record. The prefetch is zoom-in only, starts after 1.5
+  s idle, is off on saveData or 3G and slower, and takes at most 1.5 MB
+  per page visit. The interim localStorage LRU was skipped (IndexedDB
+  replaces it).
   Design: [docs/design/galaxy-map-wire-format.md](design/galaxy-map-wire-format.md)
 
 - [ ] **MAP.160 Quantise the Galaxy Map GPU buffers (deferred)**
@@ -3261,8 +3246,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   pages. Still open: the command-line overall bar, only if Boss asks;
   and the whole-job layers-per-second stat noted above.
   Lane (2026-10-09): Owner of the remainder (command-line bar, whole-job
-  layers-per-second stat): Bugfixes lane 2, second after TEST.122
-  (coordinator, 2026-10-10).
+  layers-per-second stat): Bugfixes lane 2 (coordinator, 2026-10-10).
 
 - [ ] **PERF.59 Share the ring inputs between the phenomena pass and the backfill rings (top priority)**
   From the scatter study (docs/design/scatter-queue-feasibility.md): the
@@ -3402,16 +3386,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   and a per-row INSERT loop: fine today, not a pattern for the 10^8-row
   tables.
   Design: [docs/design/db-check-and-parity-repair.md](design/db-check-and-parity-repair.md)
-
-- [ ] **DB.22 Sectors saved by hand without a grid address have no stored object ID until they are saved again (bug)**
-  Foundations lane 1 (2026-10-10, from API.23 stage 1, PR #1119):
-  hand-made sectors with no grid address that were saved before the
-  object-ID work have no stored uid until they are saved again. A
-  data-only schema revision is not seen by detect_schema_version, so no
-  migration was added. Decide how to fill them in (a one-off command, or
-  a revision that changes the schema version) and do it. Owner:
-  Foundations lane 1.
-  Prerequisite: API.23.
 
 ## API: The JSON API
 
@@ -3719,9 +3693,14 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   stay internal. No compatibility shim. This is a breaking API change,
   so it bumps the API version number (API.22, built).
   Decided (Boss, 2026-10-10 02:48Z, via Foundations lane 1): yes, the 80-bit object ID replaces row ids in pages, URLs and the API, and Boss accepts the API break. Cleared to build once API.22, GEN.171 and GEN.172 are in.
-  Stage 1 of 3 done (PR #1119): sectors, systems and phenomena use
-  printed IDs. Stage 2 = bodies and facilities; stage 3 = edit
-  endpoints, wiki, NAV, objectref.js and the galaxy JS.
+  Stages 1 and 2 of 3 done (PRs #1119 and #1127): sectors, systems,
+  phenomena, stars, planets, moons, belts, comets and facilities use
+  printed IDs (API version 3). Stage 3 = edit endpoints, wiki, NAV,
+  objectref.js and the galaxy JS.
+  Known failure (2026-10-09): Open after stage 1 (Bugfixes lane 2,
+  2026-10-10): tests/test_web_a11y.py, the sector page at phone width,
+  fails on main because the galaxy JS still requests /sector/<row
+  id>/scene and gets 404. Stage 3 (galaxy JS) fixes it.
   Design: [docs/design/object-id-options.md](design/object-id-options.md)
 
 ## ADM: Admin tools
@@ -3925,17 +3904,6 @@ clears each one.
   or the product bug is fixed. Open question for Boss (default: leave
   open until it recurs, then investigate with the failing run's data).
   Prerequisites: none. Related: TEST.111, TEST.71.
-
-- [ ] **TEST.122 Browser map tests fail on plain main in Bugfixes lane 2's container (fixture maps, controls, system-page maps) (bug)**
-  Bugfixes lane 2 (2026-10-10, relayed):
-  test_web_browser_fixture_maps.py, test_web_browser_controls.py and the
-  system page in test_web_browser_maps.py fail on plain main in its
-  container, not only on a branch (2 system map browser tests failed in
-  the GEN.188 run). Find whether it is the container's browser or a real
-  regression; if real, fix it; if the container, record what the lane
-  needs. Related to the earlier TEST.119 and TEST.120 fixes. Owner:
-  Bugfixes lane 2 (first; coordinator, 2026-10-10).
-  Prerequisites: none. Related: TEST.119, TEST.120.
 
 ## USR: User accounts
 

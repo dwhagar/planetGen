@@ -14,7 +14,7 @@ response, and shown on the admin Stats page. The remote-run handshake (API.17)
 and the compatibility data (API.4) compare it.
 """
 
-API_VERSION = 2
+API_VERSION = 3
 """int: The version of the API this code serves."""
 
 API_VERSION_HEADER = "X-PlanetGen-API-Version"

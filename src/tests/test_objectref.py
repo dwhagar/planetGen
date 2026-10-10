@@ -144,7 +144,7 @@ def test_a_placed_sector_gives_galaxy_positions(client, mysql_config):
 def test_resolve_bodies_down_to_a_moon(client, mysql_config):
     system_id = _save_wide_binary_with_moons(mysql_config)
     moon_id = _ids(mysql_config, "SELECT id FROM moons WHERE star_system_id = ? ORDER BY id", (system_id,))[0]
-    body = client.get(f"/api/objects/moon:{moon_id}").get_json()
+    body = client.get(f"/api/objects/moon:{pid('moon', moon_id)}").get_json()
     kinds = [p["kind"] for p in body["parents"]]
     assert kinds[0] == "galaxy" and kinds[-2:] == ["system", "planet"]
     assert body["parents"][-2]["ref"] == f"system:{pid('system', system_id)}"
@@ -154,7 +154,7 @@ def test_resolve_bodies_down_to_a_moon(client, mysql_config):
     assert len(body["positions"]["system_km"]) == 3
 
     for star_id in _ids(mysql_config, "SELECT id FROM stars WHERE star_system_id = ?", (system_id,)):
-        star = client.get(f"/api/objects/star:{star_id}").get_json()
+        star = client.get(f"/api/objects/star:{pid('star', star_id)}").get_json()
         assert star["parents"][-1]["ref"] == f"system:{pid('system', system_id)}"
         assert len(star["positions"]["system_km"]) == 3
     # The two stars of a wide pair are apart, so they are each other's siblings.
@@ -212,14 +212,14 @@ def test_keep_out_for_bodies_and_systems(client, mysql_config):
     finally:
         conn.close()
 
-    planet = client.get(f"/api/objects/planet:{planet_id}").get_json()["keep_out"]
+    planet = client.get(f"/api/objects/planet:{pid('planet', planet_id)}").get_json()["keep_out"]
     assert planet["basis"] == "hill" and planet["radius_km"] == pytest.approx(hill["hill_radius_km"])
-    assert client.get(f"/api/objects/moon:{moon_id}").get_json()["keep_out"]["radius_km"] > 0
+    assert client.get(f"/api/objects/moon:{pid('moon', moon_id)}").get_json()["keep_out"]["radius_km"] > 0
 
     system = client.get(f"/api/objects/system:{pid('system', system_id)}").get_json()["keep_out"]
     assert system["basis"] == "perimeter" and system["radius_km"] >= max(perimeters)
     star_id = _ids(mysql_config, "SELECT id FROM stars WHERE star_system_id = ?", (system_id,))[0]
-    assert client.get(f"/api/objects/star:{star_id}").get_json()["keep_out"] == system
+    assert client.get(f"/api/objects/star:{pid('star', star_id)}").get_json()["keep_out"] == system
 
 
 def test_keep_out_of_a_cloud_is_a_pass_through_with_a_note(client, mysql_config):

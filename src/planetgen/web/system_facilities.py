@@ -239,11 +239,8 @@ def handle_post(system_id, system, facilities):
         page_url("system", system_id=system_id, facility=code, _anchor="facilities"), code=303)
 
     if action == "remove":
-        try:
-            facility_id = int(request.form.get("facility_id", ""))
-        except ValueError:
-            facility_id = None
-        if facility_id not in {facility["id"] for facility in facilities}:
+        facility_id = request.form.get("facility_id", "").strip().upper()
+        if facility_id not in {str(facility["id"]) for facility in facilities}:
             return {"fields": {}, "errors": ["That facility is not in this system."], "preview": None}
         try:
             apiclient.delete_facility(cookie_header, db_name(), facility_id)

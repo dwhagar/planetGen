@@ -482,7 +482,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.19 | Compact or derive phenomenon rows (needed only if the mass cut is lowered to 10 solar masses or less) | none | closed, not needed at the 20 solar mass cut (PR #866); reopen if the cut is lowered to 10 solar masses or less |
 | DB.20 | Object IDs in the schema: uid becomes BINARY(10), unique on its own, plus an id_counters table | none | done, PR #1055 |
 | DB.21 | A deep pass for the database check: validate every star system, with the estimated time shown first | none | done, PR #1082 |
-| DB.22 | Sectors saved by hand without a grid address have no stored object ID until they are saved again (bug) | none | open |
+| DB.22 | Sectors saved by hand without a grid address have no stored object ID until they are saved again (bug) | none | done, PR #1127 |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
@@ -854,7 +854,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.155 | Other objects fade in too: point objects from level 8, a size ramp for cloud sprites, and stars that grow from a faint dot | none | open |
 | MAP.156 | View one layer or a range of layers top-down from the galaxy view, as a secondary option | none | open |
 | MAP.157 | Trim the Galaxy Map tile JSON and serve it from prebuilt, precompressed bytes | none | done, PR #1112 |
-| MAP.158 | A gentler tile prefetch and an IndexedDB tile cache instead of localStorage | none | open |
+| MAP.158 | A gentler tile prefetch and an IndexedDB tile cache instead of localStorage | none | done, PR #1123 |
 | MAP.159 | Packed binary Galaxy Map tiles (quantised planes) with the nested tile lists, on one cache stamp bump | none | open |
 | MAP.160 | Quantise the Galaxy Map GPU buffers (deferred) | none | open |
 | MAP.161 | Load the Galaxy Map faster on a first visit: bundle or preload its scripts | none | open |
@@ -1385,7 +1385,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.119 | 15 browser map tests fail on main since the UX.86 menu regrouping (bug) | none | done, PR #993 |
 | TEST.120 | test_sampled_stars_stay_inside_their_mass_range still fails on main after TEST.118 (bug) | none | done, PR #975 |
 | TEST.121 | test_open_map_menus_hold_no_overlap fails under load: the Menu panel intercepts the close click (bug) | none | done, PR #1002 |
-| TEST.122 | Browser map tests fail on plain main in Bugfixes lane 2's container (fixture maps, controls, system-page maps) (bug) | none | open |
+| TEST.122 | Browser map tests fail on plain main in Bugfixes lane 2's container (fixture maps, controls, system-page maps) (bug) | none | done, PR #1125 |
 | TEST.123 | test_a_loaded_sector_knows_every_objects_cell_and_velocity fails once under full-suite load (bug) | none | done, PR #1121 |
 | TEST.124 | Phenomena page tests fail with KeyError scattered in system_pages._phenomena_load (bug) | none | done, PR #1077 |
 | USR.1.1 | USR.2 |

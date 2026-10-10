@@ -272,7 +272,7 @@ class FacilityCreate(Body):
     kind: StrictStr
     placement: StrictStr
     host_type: StrictStr
-    host_id: StrictInt = Field(gt=0)
+    host_id: StrictStr
     distance_km: Optional[Number] = Field(default=None, gt=0)
     phase_deg: Optional[Number] = None
     offset_ly: Optional[list[Number]] = None

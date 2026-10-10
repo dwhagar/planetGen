@@ -78,10 +78,6 @@ with why: each is set only by something this small galaxy doesn't
 contain (the cases are exercised in their own tests)."""
 
 NEVER_READ = {
-    # GEN.69: a system's and a star's own ID is written when it is saved and
-    # looked up by it from GEN.72 on; nothing reads it back yet.
-    ("stars", "uid"): "looked up by ID from GEN.72",
-    ("facilities", "uid"): "looked up by ID from API.23",
     # Row order in a child table: the loaders read them ORDER BY position.
     **{(table, "position"): "sort key" for table in (
         "asteroid_belt_composition", "asteroid_field_composition", "comet_composition",
@@ -184,7 +180,7 @@ def test_every_column_is_read_back(rich_galaxy, monkeypatch):
             pages += [f"/api/phenomena/{label}/{pid(label, i, conn)}" for table, label, *_ in query._PHENOMENON_TABLES
                       for i in ids(table)]
             pages += [f"/api/nebulae/{pid('nebula', i, conn)}/shape" for i in ids("nebulae")]
-            pages += [f"/api/facilities/{i}" for i in ids("facilities")]
+            pages += [f"/api/facilities/{pid('facility', i, conn)}" for i in ids("facilities")]
             pages += [f"/api/species/{i}" for i in ids("species")]
             pages += [f"/api/polities/{i}" for i in ids("polities")]
             pages += ["/api/galaxy/shape", "/api/population", "/api/territories"]
