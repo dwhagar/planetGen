@@ -3295,7 +3295,9 @@ CREATE TABLE IF NOT EXISTS id_blocks (
 -- object IDs. `kind` 'sector': `scope` is a birth sector's address (5
 -- bytes) and the number the next run-time serial there. `kind` 'system':
 -- `scope` is a system's ID (10 bytes) and the number the next body number
--- in it. A row only moves up, on its own autocommitted connection
+-- in it. `kind` 'sdel' (PERF.38), empty `scope`: the deletion epoch, one more
+-- with every sector deleted, so the Galaxy Map's stamp tells a deletion
+-- without counting the placed sectors. A row only moves up, on its own autocommitted connection
 -- (`store._reserve_counter`), and survives the deletion of the object or
 -- sector, so a number is never given twice. Kept by `planetgen reset`
 -- like `id_blocks`.

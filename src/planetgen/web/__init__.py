@@ -201,7 +201,7 @@ def _install_page_cache(app):
     settings = get_settings().page_cache.model_dump()
     if not settings["enabled"]:
         return
-    cache = pagecache.ResponseCache(lambda db: apiclient.get_galaxy_changes(db)["stamp"], settings)
+    cache = pagecache.ResponseCache(apiclient.get_galaxy_changes, settings)
     app.extensions[PAGE_CACHE_EXTENSION] = cache
     apiclient.set_response_cache(_app_page_cache)
 

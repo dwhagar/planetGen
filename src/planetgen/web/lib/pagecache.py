@@ -23,7 +23,10 @@ A cached answer is dropped when any of these says it may be stale:
   Galaxy Map's tile cache uses, from the v27 `modified_at` columns) says
   whether sectors or systems were added, edited or deleted, by another
   process too (a `planetgen` job, another web worker). A new stamp
-  drops that database's entries.
+  drops that database's entries, except while a fill changes the galaxy
+  faster than any page could be rebuilt (`busy`, PERF.38): then the
+  entries are kept until they age out, and the check keeps comparing
+  against the state it last accepted, as the Galaxy Map's tile cache does.
 - **Age.** Nothing is served older than `max_age_seconds`, the backstop
   for edits the stamp can't see (a rename of a single system from the
   command line, say).
@@ -74,16 +77,19 @@ class ResponseCache:
     recently used first out, grouped by database for the stamp check.
 
     Args:
-        stamp_for (callable): `stamp_for(db)` -> the database's current
-            content stamp (a short string). Raising anything means "can't
-            tell", and that call goes uncached.
+        changes_for (callable): `changes_for(db, since)` -> what
+            `GET /api/galaxy/changes` answers: `stamp` (the database's
+            current content stamp, a short string), `state` (to pass as
+            `since` next time) and, when a fill is changing too much at
+            once, `busy`. Raising anything means "can't tell", and that
+            call goes uncached.
         settings (dict): `settings.PageCache`'s fields as a dict.
         clock (callable): Seconds, monotonic; replaceable in tests.
     """
 
-    def __init__(self, stamp_for, settings=None, clock=time.monotonic):
+    def __init__(self, changes_for, settings=None, clock=time.monotonic):
         settings = dict(DEFAULTS, **(settings or {}))
-        self._stamp_for = stamp_for
+        self._changes_for = changes_for
         self._max_entries = int(settings["max_entries"])
         self._max_bytes = int(float(settings["max_mb"]) * 1024 * 1024)
         self._stamp_seconds = float(settings["stamp_seconds"])
@@ -94,7 +100,7 @@ class ResponseCache:
         # a test can swap the clock after construction.
         self._entries = cachetools.TTLCache(maxsize=max(self._max_bytes, 1), ttl=self._max_age,
                                             timer=lambda: self._clock(), getsizeof=len)
-        self._stamps = {}  # db -> (stamp, checked_at)
+        self._stamps = {}  # db -> (stamp, checked_at, state, accepted_at, busy)
         self._generation = 0  # bumped by clear()
 
     def __len__(self):
@@ -127,14 +133,25 @@ class ResponseCache:
         if db is None:
             return True  # Nothing database-specific (the list of databases): age alone.
         try:
-            stamp = self._stamp_for(db)
+            changes = self._changes_for(db, known[2] if known is not None else None)
+            stamp = changes["stamp"]
         except Exception:  # noqa: BLE001 -- fail open: just don't cache
             return False
+        state = changes.get("state")
         with self._lock:
+            busy = bool(changes.get("busy"))
+            if known is not None and busy and known[4] and now - known[3] < self._max_age:
+                # A fill is adding sectors faster than pages could be
+                # rebuilt (PERF.38) -- this is the second check in a row
+                # that says so: keep the entries (they age out on their
+                # own) and the state they were accepted under, so the next
+                # check still sees everything since; just look again later.
+                self._stamps[db] = (known[0], now, known[2], known[3], True)
+                return True
             if known is not None and known[0] != stamp:
                 for key in [key for key in self._entries if key[0] == db]:
                     self._entries.pop(key, None)
-            self._stamps[db] = (stamp, now)
+            self._stamps[db] = (stamp, now, state, now, busy)
         return True
 
     def get(self, db, target):

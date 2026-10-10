@@ -30,13 +30,15 @@ class _Clock:
 def _cache(stamps, clock, **settings):
     calls = []
 
-    def stamp_for(db):
+    def changes_for(db, since):
         calls.append(db)
         value = stamps[db]
         if isinstance(value, Exception):
             raise value
-        return value
-    cache = pagecache.ResponseCache(stamp_for, dict(pagecache.DEFAULTS, **settings), clock=clock)
+        if isinstance(value, dict):
+            return dict(value, seen=since)
+        return {"stamp": value, "state": f"state-{value}"}
+    cache = pagecache.ResponseCache(changes_for, dict(pagecache.DEFAULTS, **settings), clock=clock)
     return cache, calls
 
 
@@ -58,6 +60,48 @@ def test_hit_until_the_stamp_changes():
     clock.now += 10
     assert cache.get("g", "/sectors/1?db=g") is None
     assert calls == ["g", "g"]
+
+
+def test_a_busy_fill_keeps_the_entries_and_the_state_until_they_age_out():
+    """PERF.38: while the galaxy changes faster than pages can be rebuilt, a new stamp
+    no longer empties the cache at every check."""
+    clock = _Clock()
+    stamps = {"g": "a"}
+    cache, calls = _cache(stamps, clock, stamp_seconds=15, max_age_seconds=300)
+    _miss_then_put(cache, "g", "/t", "body")
+    clock.now += 20
+    stamps["g"] = {"stamp": "b", "state": "state-b", "busy": True}
+    assert cache.get("g", "/t") is None  # the first busy check is an ordinary change
+    cache.put("g", "/t", "body", cache.generation)
+    clock.now += 20
+    stamps["g"] = {"stamp": "c", "state": "state-c", "busy": True}
+    assert cache.get("g", "/t") == "body"  # still busy: a fill, so kept
+    clock.now += 20
+    stamps["g"] = {"stamp": "d", "state": "state-d", "busy": True}
+    assert cache.get("g", "/t") == "body"
+    assert cache._stamps["g"][2] == "state-b"  # still comparing against what it accepted
+    stamps["g"] = {"stamp": "d", "state": "state-d"}
+    clock.now += 20
+    clock.now += 20
+    assert cache.get("g", "/t") is None  # settled: a plain change drops it
+    assert cache._stamps["g"][2] == "state-d"
+
+
+def test_a_fill_that_stays_busy_past_max_age_drops_the_entries():
+    clock = _Clock()
+    stamps = {"g": "a"}
+    cache, _ = _cache(stamps, clock, stamp_seconds=15, max_age_seconds=300)
+    _miss_then_put(cache, "g", "/t", "body")
+    stamps["g"] = {"stamp": "b", "state": "state-b", "busy": True}
+    clock.now += 20
+    assert cache.get("g", "/t") is None  # the first busy check
+    cache.put("g", "/t", "body", cache.generation)
+    stamps["g"] = {"stamp": "c", "state": "state-c", "busy": True}
+    clock.now += 100
+    assert cache.get("g", "/t") == "body"
+    clock.now += 250  # busy since 320 s ago: the state is taken at last
+    assert cache.get("g", "/t") is None
+    assert cache._stamps["g"][2] == "state-c"
 
 
 def test_stamp_change_drops_only_that_database():

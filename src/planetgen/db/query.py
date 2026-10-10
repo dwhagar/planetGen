@@ -37,7 +37,9 @@ import time
 
 import pymysql
 
-from planetgen.db.store import escape_like, get_connection, get_galaxy_bounds, get_galaxy_shape, surrounding_cloud
+from planetgen.db.store import (
+    escape_like, get_connection, get_galaxy_bounds, get_galaxy_shape, sector_deletions, surrounding_cloud,
+)
 from planetgen.physics import constants
 from planetgen.physics.habitability_world import EQUIPMENT_LABELS, EQUIPMENT_NAMES
 from planetgen import tuning
@@ -4487,7 +4489,7 @@ _STATE_TOKEN_RE = re.compile(r"^([0-9a-f]{16})\.(\d+)\.(\d+)\.(\d{17}|0)\.(\d+)\
 def _state_token(state):
     """`galaxy_content_state`'s dict as the opaque string the API hands
     out and `galaxy_changes` reads back."""
-    return "{base}.{sectors}.{sector_max_id}.{sector_modified}.{system_max_id}.{bright_max_id}".format(**state)
+    return "{base}.{deletions}.{sector_max_id}.{sector_modified}.{system_max_id}.{bright_max_id}".format(**state)
 
 
 def _parse_state_token(token):
@@ -4495,9 +4497,9 @@ def _parse_state_token(token):
     match = _STATE_TOKEN_RE.match(str(token or ""))
     if not match:
         return None
-    base, sectors, sector_max_id, sector_modified, system_max_id, bright_max_id = match.groups()
+    base, deletions, sector_max_id, sector_modified, system_max_id, bright_max_id = match.groups()
     return {
-        "base": base, "sectors": int(sectors), "sector_max_id": int(sector_max_id),
+        "base": base, "deletions": int(deletions), "sector_max_id": int(sector_max_id),
         "sector_modified": sector_modified, "system_max_id": int(system_max_id),
         "bright_max_id": int(bright_max_id),
     }
@@ -4533,9 +4535,11 @@ def galaxy_content_state(conn):
       depend on the shape, every tile's `stars` on the scatter, and a
       release may change the tile format, so a new `base` means every
       tile is stale.
-    - `sectors`/`sector_max_id`: how many sectors are placed, and the
-      highest sector id. Together they tell a new sector (higher id) from
-      a deleted one (the count drops).
+    - `deletions`/`sector_max_id`: the deletion epoch (`store.
+      note_sector_deleted`, PERF.38: it goes up with every sector deleted,
+      where a count of the placed sectors cost 0.13 s per million of them
+      on every check), and the highest sector id. Together they tell a new
+      sector (higher id) from a deleted one (a new epoch).
     - `sector_modified`: the newest `sectors.modified_at` (v27). A
       sector's own edit (a rename, say) bumps it, and so does deleting one
       of its systems (`_db.touch_sector`).
@@ -4546,15 +4550,12 @@ def galaxy_content_state(conn):
       its sector's system count. System edits don't touch a tile (tiles
       only show the count), so `star_systems.modified_at` isn't used.
 
-    Cheap by design -- one indexed count and four index-only maxima --
+    Cheap by design -- one primary-key read and four index-only maxima --
     since the web layer checks it about once a minute per database.
 
     Returns:
         dict: The keys above; `sector_modified` as `_timestamp_digits`.
     """
-    sector_row = conn.execute(
-        "SELECT COUNT(*) AS n FROM sectors WHERE center_x_pc IS NOT NULL"
-    ).fetchone()
     maxima = conn.execute(
         "SELECT (SELECT COALESCE(MAX(id), 0) FROM sectors) AS sector_max_id, "
         "(SELECT MAX(modified_at) FROM sectors) AS sector_modified, "
@@ -4572,7 +4573,7 @@ def galaxy_content_state(conn):
     ).encode("utf-8")).hexdigest()[:16]
     return {
         "base": base,
-        "sectors": int(sector_row["n"]),
+        "deletions": sector_deletions(conn),
         "sector_max_id": int(maxima["sector_max_id"]),
         "sector_modified": _timestamp_digits(maxima["sector_modified"]),
         "system_max_id": int(maxima["system_max_id"]),
@@ -4611,7 +4612,7 @@ def galaxy_changes(conn, since=None):
     never moves once placed, so its center is where it was before too.
 
     Deletions leave no row behind, so a deleted sector can't be located;
-    the placed count drops, and the answer is `full` instead. So is a new
+    the deletion epoch moves, and the answer is `full` instead. So is a new
     shape or release (`base`), an unreadable `since`, or more than
     `GALAXY_CHANGES_MAX_SECTORS` changed sectors.
 
@@ -4649,11 +4650,7 @@ def galaxy_changes(conn, since=None):
         result["full"] = result["busy"] = True
         return result
 
-    new_placed = conn.execute(
-        "SELECT COUNT(*) AS n FROM sectors WHERE id > ? AND center_x_pc IS NOT NULL",
-        (previous["sector_max_id"],),
-    ).fetchone()["n"]
-    if previous["sectors"] + int(new_placed) != state["sectors"]:
+    if previous["deletions"] != state["deletions"]:
         result["full"] = True
         return result
 
