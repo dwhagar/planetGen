@@ -219,7 +219,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| UX.84 | Every sub-step must show a progress bar that starts by itself when it is predicted to take over 15 seconds (bug) |  | Boss 23:13Z and 23:34Z; Bugfixes lane 1 after the mechanism (PERF.51). |
 | UX.86 | The Galaxy Map controls take too much room: buttons too large and filters one character wide (bug) | UX.85 | Boss 00:01Z; Bugfixes lane 1 after UX.85. |
 | UX.85 | Button menus open out of sight and make the user scroll to see them (bug) |  | Boss 00:01Z; Bugfixes lane 1 after its current work. |
 | TEST.111 | test_ensure_sector_generated_creates_then_reuses_the_same_sector fails in a busy parallel run (bug) |  | Test flake reported 2026-10-09; Bugfixes lane 1. |
