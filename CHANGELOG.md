@@ -3,6 +3,7 @@
 ## [8.0.911] - 2026-10-10
 
 ### Changed
+- **Docs only:** GEN.191 (New galaxy ignores the mass limit slider, bug) is filed for Bugfixes lane 1; GEN.190 gets the cause found.
 - **Docs only:** PERF.55 (one global progress bar with an ETA across the phases of a generation job) is filed as an unassigned Phase 1 item.
 - **Docs only:** GEN.190 (Phenomena table empty after a web-generated galaxy, bug) and MAP.164 (Galaxy Map phenomena colors and visibility) are filed, both ASAP.
 - **Docs only:** TEST.121 (PR #1002) and TEST.120 (fixed by PR #975) are retired; PERF.54 files separate stats rows for the star scatter passes as a Phase 2 item.
