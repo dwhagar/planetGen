@@ -569,7 +569,7 @@ def test_new_galaxy_resets_plans_then_generates(site, client, no_spawn):
     resp = _post(client, action="new_galaxy", confirm=DB, arm_count="4", radius_pc="40")
     assert resp.status_code == 303
     (job,) = no_spawn
-    reset, plan, galaxy = _work_steps(job)
+    reset, plan, galaxy = _work_steps(job)    # the phenomena follow the stars inside the galaxy step
     assert reset["argv"][1:] == [*jobs.RESET_COMMAND, "--yes"]
     assert _argv(plan) == ["plan", "--arm-count", "4", "--no-bright-stars"]
     # GEN.30: the scatter comes after the sectors, inside the galaxy step.
@@ -582,10 +582,21 @@ def test_new_galaxy_resets_plans_then_generates(site, client, no_spawn):
 def test_plan_job_scatters_bright_stars_as_its_own_step(site, client, no_spawn):
     assert _post(client, action="plan").status_code == 303
     (job,) = no_spawn
-    plan, scatter = _work_steps(job)
+    plan, scatter, phenomena = _work_steps(job)
     assert _argv(plan) == ["plan", "--no-bright-stars"]
     assert scatter["label"] == generate_page.SCATTER_LABEL
     assert _argv(scatter) == ["plan", "--bright-stars-only"]
+    # --bright-stars-only leaves the phenomena out, so they are a step of their own (GEN.185).
+    assert phenomena["label"] == generate_page.PHENOMENA_LABEL
+    assert _argv(phenomena) == ["plan", "--phenomena-only"]
+
+
+def test_the_bright_star_rebuild_also_rebuilds_the_phenomena(site, client, no_spawn):
+    assert _post(client, action="bright_stars", phenomenon_min_mass="12").status_code == 303
+    (job,) = no_spawn
+    scatter, phenomena = _work_steps(job)
+    assert _argv(scatter) == ["plan", "--bright-stars-only", "--phenomenon-min-mass", "12"]
+    assert _argv(phenomena) == ["plan", "--phenomena-only", "--phenomenon-min-mass", "12"]
 
 
 @pytest.mark.parametrize("action", ["plan", "new_galaxy"])
@@ -593,7 +604,7 @@ def test_skip_the_bright_star_scatter(site, client, no_spawn, action):
     assert _post(client, action=action, confirm=DB, skip_bright_stars="1").status_code == 303
     (job,) = no_spawn
     labels = [step["label"] for step in _work_steps(job)]
-    assert generate_page.SCATTER_LABEL not in labels
+    assert generate_page.SCATTER_LABEL not in labels and generate_page.PHENOMENA_LABEL not in labels
     assert all("--then-scatter" not in step["argv"] for step in job["steps"])
     plan = next(step for step in job["steps"] if step["label"] == "Plan the galaxy")
     assert _argv(plan)[-1] == "--no-bright-stars"
@@ -607,8 +618,9 @@ def test_rebuild_bright_stars_job(site, client, no_spawn, form, argv):
     assert _post(client, action="bright_stars", **form).status_code == 303
     (job,) = no_spawn
     assert job["kind"] == "bright_stars"
-    (step,) = _work_steps(job)
+    step, phenomena = _work_steps(job)
     assert _argv(step) == argv
+    assert phenomena["label"] == generate_page.PHENOMENA_LABEL and _argv(phenomena) == ["plan", "--phenomena-only"]
 
 
 def test_add_a_dimmer_bright_star_layer_job(site, client, no_spawn):
@@ -648,6 +660,8 @@ def test_scatter_flags_exist_in_generate_py():
                                            "--backfill-from", "none"])
     assert galaxy.then_scatter is True and galaxy.bright_star_min_luminosity == 20000.0
     assert galaxy.backfill_from == "none"
+    assert parsers["galaxy"].parse_args(["--then-scatter", "--phenomenon-min-mass", "8"]).phenomenon_min_mass == 8.0
+    assert plan.parse_args(["--phenomena-only", "--phenomenon-min-mass", "12"]).phenomena_only is True
 
 
 def test_page_offers_the_scatter_checkbox(site, client):
@@ -1323,17 +1337,19 @@ def test_the_plan_forms_offer_the_mass_limit_slider(site, client):
 def test_the_mass_limit_reaches_the_plan_and_the_scatter(site, client, no_spawn):
     assert _post(client, action="plan", phenomenon_min_mass="12").status_code == 303
     (job,) = no_spawn
-    plan, scatter = _work_steps(job)
+    plan, scatter, phenomena = _work_steps(job)
     assert _argv(plan) == ["plan", "--phenomenon-min-mass", "12", "--no-bright-stars"]
     assert _argv(scatter) == ["plan", "--bright-stars-only", "--phenomenon-min-mass", "12"]
+    assert _argv(phenomena) == ["plan", "--phenomena-only", "--phenomenon-min-mass", "12"]
 
 
-def test_a_new_galaxy_scatters_at_the_plans_mass_limit(site, client, no_spawn):
+def test_a_new_galaxy_scatters_at_the_form_s_mass_limit(site, client, no_spawn):
+    """The plan step doesn't store the limit, so the galaxy step carries it to the scatters."""
     assert _post(client, action="new_galaxy", confirm=DB, phenomenon_min_mass="8").status_code == 303
     (job,) = no_spawn
     _reset, plan, galaxy = _work_steps(job)
     assert _argv(plan) == ["plan", "--phenomenon-min-mass", "8", "--no-bright-stars"]
-    assert "--phenomenon-min-mass" not in _argv(galaxy)
+    assert _argv(galaxy)[:4] == ["galaxy", "--then-scatter", "--phenomenon-min-mass", "8"]
 
 
 @pytest.mark.parametrize("value", ["13", "7", "21", "20.5"])

@@ -656,13 +656,18 @@ def add_galaxy_arguments(parser):
                                      "generated.")
     backfill_group.add_argument('--then-scatter', action='store_true',
                                 help="After the sectors and before the backfill, scatter the bright stars "
-                                     "galaxy-wide (as 'planetgen plan --bright-stars-only'), leaving out "
+                                     "galaxy-wide (as 'planetgen plan --bright-stars-only'), then the "
+                                     "phenomena (as 'planetgen plan --phenomena-only'), leaving out "
                                      "every sector already generated. A new galaxy uses this, so the "
                                      "scatter never draws stars for sectors it would fill anyway.")
     backfill_group.add_argument('--bright-star-min-luminosity', type=finite_float,
                                 default=program_constants.BRIGHT_STAR_MIN_LUMINOSITY_SOL,
                                 help="With --then-scatter: the scatter's threshold, solar luminosities. "
                                      f"Default: {program_constants.BRIGHT_STAR_MIN_LUMINOSITY_SOL:g}.")
+    backfill_group.add_argument('--phenomenon-min-mass', type=finite_float, default=None, metavar='M_SUN',
+                                help="With --then-scatter: the mass limit of the scatters (GEN.183), solar "
+                                     "masses; blank keeps the one already stored, else "
+                                     f"{program_constants.PHENOMENON_MIN_MASS_SOLAR:g}.")
     store.add_mysql_connection_args(parser)
 
 
@@ -916,7 +921,9 @@ def add_plan_arguments(parser):
     bright_group.add_argument('--no-bright-stars', action='store_true',
                               help="Build the plan without scattering bright stars.")
     bright_group.add_argument('--bright-stars-only', action='store_true',
-                              help="Re-scatter the bright stars on the stored plan without rebuilding it.")
+                              help="Re-scatter the bright stars on the stored plan without rebuilding it. "
+                                   "The phenomena (black holes, neutron stars, nebulae, ...) are a separate "
+                                   "scatter: --phenomena-only.")
     bright_group.add_argument('--force', action='store_true',
                               help="No longer needed: the scatter always leaves filled sectors out (GEN.30).")
     bright_group.add_argument('--workers', type=int, default=None,

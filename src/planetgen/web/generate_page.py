@@ -171,9 +171,12 @@ BAND_LABEL = "Add a dimmer layer of bright stars"
 
 SCATTER_LABEL = "Scatter the bright stars"
 
-NEW_GALAXY_SCATTER_LABEL = "Generate sectors around a random start, then scatter the bright stars"
+PHENOMENA_LABEL = "Scatter the phenomena"
+
+NEW_GALAXY_SCATTER_LABEL = "Generate sectors around a random start, then scatter the bright stars and phenomena"
 """str: New galaxy's last step (GEN.30): the sectors first, then the
-galaxy-wide scatter, which leaves them out, then the backfill."""
+galaxy-wide scatters (bright stars, then the phenomena), which leave them
+out, then the backfill."""
 
 BRIGHT_THRESHOLD_LABEL = "Bright stars from (solar luminosities)"
 """str: The galaxy-wide scatter threshold field (GEN.30), on New galaxy,
@@ -670,12 +673,21 @@ def directive_argv(form):
     return argv
 
 
+def phenomena_step(generate, form):
+    """The phenomena scatter as its own step (`planetgen plan --phenomena-only`,
+    GEN.185's passes 1 and 5), at the form's mass limit. The bright-star scatter
+    alone (`--bright-stars-only`) leaves the phenomena out, so every job that
+    scatters the bright stars on its own follows it with this."""
+    return {"label": PHENOMENA_LABEL,
+            "argv": generate + ["plan", "--phenomena-only"] + mass_limit_argv(form)}
+
+
 def plan_steps(generate, form):
     """
     The plan step and, unless the form's "skip the bright-star scatter"
-    box is ticked, the scatter as a second step (`planetgen plan` would
-    otherwise run both in one command, with no separate label), at the
-    form's threshold (`scatter_argv`).
+    box is ticked, the scatter as a second step and the phenomena as a
+    third (`planetgen plan` would otherwise run them in one command, with
+    no separate labels), at the form's threshold (`scatter_argv`).
 
     Returns:
         list[dict]: Job steps.
@@ -683,6 +695,7 @@ def plan_steps(generate, form):
     steps = [{"label": "Plan the galaxy", "argv": generate + ["plan"] + plan_argv(form) + ["--no-bright-stars"]}]
     if not form.get("skip_bright_stars"):
         steps.append({"label": SCATTER_LABEL, "argv": generate + scatter_argv(form)})
+        steps.append(phenomena_step(generate, form))
     return steps
 
 
@@ -720,14 +733,16 @@ def _build_job_steps(action, form, edge_pc=None):
         argv = generate + ["galaxy"] + random_start_argv(form) + prevalence_argv(form)
         label = "Generate sectors around a random start"
         if not form.get("skip_bright_stars"):
-            argv += ["--then-scatter"] + scatter_argv(form, with_mass_limit=False)[2:]
+            # The plan step doesn't store the mass limit, so the scatters take it from here.
+            argv += ["--then-scatter"] + mass_limit_argv(form) + scatter_argv(form, with_mass_limit=False)[2:]
             label = NEW_GALAXY_SCATTER_LABEL
         return "new_galaxy", "New galaxy", [reset_step, plan, {"label": label, "argv": argv}]
     if action == "plan":
         return "plan", "Plan the galaxy", plan_steps(generate, form)
     if action == "bright_stars":
         argv = generate + scatter_argv(form)
-        return "bright_stars", "Rebuild the bright stars", [{"label": SCATTER_LABEL, "argv": argv}]
+        return "bright_stars", "Rebuild the bright stars", [{"label": SCATTER_LABEL, "argv": argv},
+                                                            phenomena_step(generate, form)]
     if action == "bright_band":
         down_to = _number(form, "down_to", "Go down to (solar luminosities)", float, required=True, minimum=1.0)
         if down_to is None:
