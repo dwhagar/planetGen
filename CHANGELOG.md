@@ -3,6 +3,7 @@
 ## [8.0.911] - 2026-10-10
 
 ### Changed
+- The mass and luminosity scatters place stars object first: each layer draws one Poisson count from a certified density bound, gives each candidate a ring, slot and point, and keeps it with probability true density over bound. The scatter is far faster (an empty layer costs only its bound), the counts and positions follow the density, and a sector can hold several stars up to a capacity that follows its expected count. A new random sequence: run `planetgen plan` again to reseed. The layer grouping and the 100-empty-layer stop are removed (PERF.58, replacing PERF.57 and PERF.62).
 - TODO list: PERF.60 retired (merged, PR #1106).
 - TODO list: UX.91 retired (merged, PR #1104); MAP.165 then ADM.49 assigned to Bugfixes lane 2.
 - TODO list: TEST.124 retired (fixed in PR #1077).
