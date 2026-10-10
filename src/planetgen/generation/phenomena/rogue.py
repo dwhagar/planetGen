@@ -271,7 +271,7 @@ class RoguePlanet(LazySaladName):
          self.galactic_orbital_phase_deg, self.galactic_min_update_interval_years) = \
             generate_galactic_orbit_fields()
         # GEN.104: a planet's day and a Rayleigh tilt from the galactic pole.
-        self.rotation_period_hours = draw.uniform(*constants.ROTATION_PERIOD_RANGE_HOURS[self.planet_type])
+        self.rotation_period_hours = spin.planet_day_hours(self.planet_type)
         spin.set_spin(self, spin.GALACTIC_POLE, spin.rayleigh_tilt_deg())
 
     def _apply_surface_conditions(self, conditions):

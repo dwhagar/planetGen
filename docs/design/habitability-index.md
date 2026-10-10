@@ -45,8 +45,10 @@ recommendation. Informs: GEN.83 to GEN.92.
   age, habitable zone, heliosphere radius. No XUV or flare activity. The
   habitable zone is a fixed pair of fluxes (1.1 and 0.53) for every star, and
   a main-sequence star's luminosity is constant for its life.
-- **Spin**: only moons are tidally locked; a planet's rotation is a uniform
-  10 to 1,400 h draw. GEN.104 adds the spin vector.
+- **Spin**: planets and moons lock by the tidal-locking time (GEN.104, which
+  also adds the spin vector); an unlocked rocky planet's day is log-uniform
+  from 8 to 48 h (Kokubo and Genda 2010; Boss 2026-10-10), a gas giant's
+  uniform from 8 to 20 h.
 - **Rogue planets** already have internal heat flux, a surface regime,
   ice-shell thickness and ocean depth (`rogue_surface.py`); nothing in a
   star system has these.
