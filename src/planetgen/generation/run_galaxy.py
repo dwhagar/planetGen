@@ -42,7 +42,7 @@ from planetgen.generation import run_common
 from planetgen.generation import run_plan
 from planetgen.generation import run_population
 from planetgen.generation import run_sector
-from planetgen.generation import steps
+from planetgen.generation import stages, steps
 from planetgen.util import draw
 
 
@@ -344,10 +344,12 @@ def backfill_after_run(args, edge_pc, started_at):
     try:
         generated = store.sector_centers_since(conn, started_at)
         if not generated:
+            stages.skip("backfill", "the run generated no sector")
             return summary
         centers = generated
     finally:
         conn.close()
+    stages.enter("backfill")
     log.normal("Backfilling the bright stars out from the edge of the run...")
     # Its own bar and ETA (PERF.28): a backfill can take minutes.
     with run_common._generation_progress() as progress:
@@ -388,7 +390,9 @@ def link_after_run(args, started_at):
         finally:
             conn.close()
         if not created:
+            stages.skip("link", "the run created no sectors")
             return 0
+        stages.enter("link")
         log.normal("Linking the new sectors to their neighbours...")
         with run_common._generation_progress() as progress:
             log.set_console(progress.console)
@@ -430,7 +434,9 @@ def settle_after_run(args, started_at):
     try:
         created = sector_paths.sector_ids_since(conn, started_at)
         if not created:
+            stages.skip("settle", "the run created no sectors")
             return 0
+        stages.enter("settle")
         log.normal("Saving the sector paths...")
         with run_common._generation_progress() as progress:
             log.set_console(progress.console)
@@ -1284,6 +1290,7 @@ def run_random_start(args, edge_pc, progress):
     run_common._check_estimate(args, estimate_args, what, progress)
 
     for address, position_pc, sector_args in starts:
+        stages.enter("start")
         started = time.monotonic()
         sector_id, sector_name, sector = generate_and_save_sector_at(sector_args, address, position_pc, edge_pc)
         run_common._record_sector(args, {"density": run_common._sector_density(sector_args), "systems": len(sector.entries),
@@ -1297,6 +1304,7 @@ def run_random_start(args, edge_pc, progress):
 
         args.center_sector = sector_id
         args.radius_pc = radius_pc
+        stages.enter("neighborhood")
         run_local_neighborhood(args, edge_pc, progress)
 
 
@@ -1595,6 +1603,8 @@ def run_galaxy(args):
         raise SystemExit(1)
 
     estimate_only = getattr(args, "estimate_only", False)
+    if not estimate_only:
+        stages.begin(stages.galaxy_stages(args))
     args.link_later = not estimate_only
     conn = store.get_connection(store.mysql_config_from_args(args))
     try:
@@ -1622,11 +1632,19 @@ def run_galaxy(args):
     backfill_after_run(args, edge_pc, started_at)
     run_population.run_population_after(args)
     settle_after_run(args, started_at)
+    stages.finish()
     run_common._finish_stats(args)    # the steps after the sectors recorded their speeds too
+
+
+def _random_start_mode(args):
+    """Whether `_run_galaxy_mode` will pick a random start (no mode argument was given)."""
+    return stages.galaxy_stages(args)[0].key == "start"
 
 
 def _run_galaxy_mode(args, edge_pc, progress):
     """`run_galaxy`'s dispatch to the mode its arguments ask for."""
+    if not _random_start_mode(args):
+        stages.enter("sectors")
     if getattr(args, "block", None) is not None:
         run_block(args, edge_pc, progress)
     elif getattr(args, "span", None) is not None:
