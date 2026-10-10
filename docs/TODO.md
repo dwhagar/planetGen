@@ -465,6 +465,21 @@ with `clamp()`.
   1 (coordinator, 2026-10-10 07:31Z; it was Bugfixes lane 2).
   Prerequisites: none. Related: GEN.193, MAP.164.
 
+- [ ] **UX.89 Staged jobs show wrong stage counts and numbers, and skipped stages are not listed (bug)**
+  Boss (2026-10-10 07:54Z, via the coordinator): generating a new galaxy
+  says it has 4 stages, but it runs 9: 1 Math Check, 2 DB Wipe, 3 Plan
+  new Galaxy, 4 Generate initial Sector, 5 Generate neighborhood, 6 Mass
+  Star Scatter from Neighborhood, 7 Mass Star Scatter Galactic, 8 Bright
+  Star Scatter Galactic, 9 Phenomena Scatter. Some stages are optional.
+  Done: every staged action (New galaxy, Plan, Rebuild the bright stars,
+  and every other job with stages) lists all its stages with the right
+  count and numbers; an optional stage that is skipped is still listed,
+  marked skipped, with the reason; the stage numbers on the Generate
+  page, job pages, Queue page and the terminal agree; tests cover each
+  staged job with and without its optional stages. Owner: Bugfixes lane
+  1, after the defaults item (GEN.194) and before UX.88.
+  Prerequisites: none. Related: PERF.33, PERF.55, GEN.185.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -3093,6 +3108,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   priority.
   Prerequisites: none. Related: GEN.87, GEN.89.
 
+- [ ] **GEN.194 Default mass limit 14 solar masses and default luminosity floor 9,000 solar luminosities**
+  Boss (2026-10-10 07:49Z, via the coordinator): the default mass limit
+  becomes 14 solar masses, about the middle of the 8 to 20 range, and
+  the default bright-star luminosity floor becomes 9,000 solar
+  luminosities, in the next PR that can carry it. This supersedes the 8
+  and 5,000 of GEN.188. Done: the plan form, the New galaxy form, the
+  CLI default and the stored default use 14 and 9,000; both values exist
+  among the presets; the scatter design note
+  (docs/design/phenomenon-scatter-mass-cut.md) and the TODO text name
+  the new defaults; a galaxy that stored other values keeps them; tests
+  cover the defaults. Owner: Bugfixes lane 1, first in its order.
+  Prerequisites: none. Related: GEN.183, GEN.184, GEN.188.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.18 Run the GEN.30 bright-star backfill in parallel on the work queue**
@@ -3422,6 +3450,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lane 1, PR #1023): the overall bar with ETA is on the Generate and job
   pages. Still open: the command-line overall bar, only if Boss asks;
   and the whole-job layers-per-second stat noted above.
+
+- [ ] **PERF.56 Record how long each stage of a staged job takes, with the settings it ran with**
+  Boss (2026-10-10 07:54Z, via the coordinator): record stats on how
+  long each stage takes with the settings it is given (mass limit,
+  luminosity floor, layers, workers and the rest). Done: each stage of
+  every staged job (see the stage-count bug UX.89) stores its name, number,
+  skipped flag and reason, start and end, and the settings that shaped
+  it; a stats view or the admin stats table shows the history by stage
+  and settings; the estimator of PERF.33 and the overall bar of PERF.55
+  can read it. Owner: Bugfixes lane 1, after the stage-count bug (UX.89).
+  Prerequisites: none. Related: PERF.32, PERF.33, PERF.52, PERF.54,
+  PERF.55.
 
 ## DB: Database and schema
 
