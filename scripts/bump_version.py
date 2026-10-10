@@ -32,7 +32,10 @@ A version is MAJOR.REVISION.BUILD (Boss, 2026-10-01: "major feature
 set.revision.build", the build being "a composite of the change numbers
 for each category added up"):
 
-- MAJOR goes up for a `major` note, and REVISION resets to 0.
+- MAJOR goes up for a `major` note, and REVISION resets to 0. Exception:
+  while `REVISION_HOLD` is on a `major` note is treated like `minor` (Boss,
+  2026-10-10: nobody authorised the accidental 9.0 and 10.0), and the PR
+  check refuses to accept a new `major` note.
 - REVISION goes up by one for every other release (`minor` or `patch`
   note), so each release still gets its own number. Exception: while
   `REVISION_HOLD` is on (Boss: no 8.1 until Phase 1 is complete) it stays
@@ -75,7 +78,8 @@ BUMP_LEVELS = ("patch", "minor", "major")
 # complete". While this is True a `patch` or `minor` note leaves REVISION
 # alone (it still takes the current BUILD), and a release whose version is
 # already the top CHANGELOG entry joins that entry instead of opening a
-# second one. Set it to False when Boss calls Phase 1 complete; the next
+# second one. A `major` note is held back the same way, and the PR check
+# refuses a new one. Set it to False when Boss calls Phase 1 complete; the next
 # note then goes to MAJOR.(REVISION+1).BUILD as usual.
 REVISION_HOLD = True
 
@@ -146,12 +150,13 @@ def next_version(version, level, build=None):
 
     With `build` (the TODO counter sum, see `todo_build_number`) it is
     MAJOR.REVISION.BUILD: a `major` note bumps MAJOR and resets REVISION,
-    anything else bumps REVISION (unless `REVISION_HOLD`), and BUILD is
+    anything else bumps REVISION (and under `REVISION_HOLD` nothing bumps
+    MAJOR or REVISION, `major` included), and BUILD is
     `build`. Without it, plain semver.
     """
     major, minor, patch = parse_version(version)
     if build is not None:
-        if level == "major":
+        if level == "major" and not REVISION_HOLD:
             return f"{major + 1}.0.{build}"
         if REVISION_HOLD:
             return f"{major}.{minor}.{build}"
@@ -430,6 +435,15 @@ def check_pr(root, base, allow_no_fragment=False):
     merge_base = _git(root, "merge-base", base, "HEAD").strip()
     added = _git(root, "diff", "--name-only", "--diff-filter=A", merge_base, "HEAD", "--", f"{CHANGES_DIR}/")
     added_notes = [p for p in added.split() if FRAGMENT_RE.match(os.path.basename(p))]
+    if REVISION_HOLD:
+        for note in added_notes:
+            if FRAGMENT_RE.match(os.path.basename(note)).group("level") == "major":
+                problems.append(
+                    f"{note} is a 'major' note, but MAJOR and REVISION are on hold until Boss "
+                    "calls Phase 1 complete (REVISION_HOLD in scripts/bump_version.py). Rename "
+                    "it to '<short-name>.minor.md' or '.patch.md'; only Boss can approve a "
+                    "major release."
+                )
     if not added_notes and not allow_no_fragment:
         problems.append(
             f"This PR adds no release note under {CHANGES_DIR}/. Add one "
