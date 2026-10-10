@@ -216,3 +216,100 @@ def test_a_run_is_estimated_from_its_stages_stored_times_by_their_settings(contr
         assert stages.estimate_seconds(conn, "plan", _plan("--no-bright-stars")) == 5.0
     finally:
         conn.close()
+
+
+# --- PERF.55: the whole job's layers per second, and the command line's overall bar -------
+
+def test_the_whole_job_stores_its_layers_per_second_over_all_its_layers(control_config, monkeypatch):
+    mysql_config = control_config
+    from planetgen.generation import stats as generation_stats
+    monkeypatch.setenv(generation_stats.STATS_ENV_VAR, "1")
+    args = _galaxy("--then-scatter", "--phenomenon-min-mass", "16", "--workers", "2", "--mysql-host", mysql_config.host,
+                   "--mysql-port", str(mysql_config.port), "--mysql-user", mysql_config.user,
+                   "--mysql-password", mysql_config.password, "--mysql-database", mysql_config.database)
+    stages.begin(stages.galaxy_stages(args), args, "galaxy")
+    stages.enter("mass")
+    stages.note(layers=40, layers_modified=0, objects=0)    # a pass that placed nothing still visited its layers
+    stages.enter("luminosity")
+    stages.note(layers=60, layers_modified=5, objects=9)
+    stages.finish()
+    conn = _control(mysql_config)
+    try:
+        (job,) = generation_stats.stage_history(conn, stages.JOB_KEY)
+        rate = generation_stats.job_layers_per_second(conn, {"workers": 2, "mass_limit_sol": 16.0})
+        fallback = generation_stats.job_layers_per_second(conn, {"workers": 2})
+    finally:
+        conn.close()
+    assert job["metrics"]["layers"] == 100 and job["seconds"] > 0
+    assert job["metrics"]["layers_per_second"] == pytest.approx(100 / job["seconds"])
+    assert job["settings"]["mass_limit_sol"] == 16.0 and rate == pytest.approx(job["metrics"]["layers_per_second"])
+    assert fallback == pytest.approx(rate)
+
+
+def test_a_run_that_visited_no_layers_stores_no_whole_job_row(control_config, monkeypatch):
+    mysql_config = control_config
+    from planetgen.generation import stats as generation_stats
+    monkeypatch.setenv(generation_stats.STATS_ENV_VAR, "1")
+    args = _galaxy("--mysql-host", mysql_config.host, "--mysql-port", str(mysql_config.port), "--mysql-user",
+                   mysql_config.user, "--mysql-password", mysql_config.password, "--mysql-database",
+                   mysql_config.database)
+    stages.begin(stages.galaxy_stages(args), args, "galaxy")
+    stages.enter("start")
+    stages.finish()
+    conn = _control(mysql_config)
+    try:
+        assert generation_stats.stage_history(conn, stages.JOB_KEY) == []
+        assert generation_stats.job_layers_per_second(conn) is None
+    finally:
+        conn.close()
+
+
+def test_the_overall_bar_is_the_time_so_far_against_the_stored_time_of_every_stage(monkeypatch):
+    monkeypatch.delenv(progress_file.ENV_VAR, raising=False)
+    found = stages.plan_stages(_plan())
+    stages.begin(found)
+    try:
+        assert stages._state["overall"] is not None
+        clock = stages._state["overall"]["t0"]
+        description, done, total = stages.overall_progress(clock + 30.0)
+        assert description == "Whole job (stage 1 of 4)" and done == pytest.approx(30.0) and total is None
+        stages._state["overall"]["estimate"] = 100.0
+        assert stages.overall_progress(clock + 30.0)[1:] == (pytest.approx(30.0), 100.0)
+        stages.enter("mass")
+        assert stages.overall_progress(clock + 30.0)[0] == "Whole job (stage 3 of 4)"
+        # Past its estimate the bar waits just short of full rather than claiming to be done.
+        _d, done, total = stages.overall_progress(clock + 200.0)
+        assert done == pytest.approx(200.0) and total == pytest.approx(200.0 * stages.OVERALL_MARGIN)
+        assert done / total < 1.0
+    finally:
+        stages.finish()
+    assert stages.overall_progress() is None
+
+
+def test_a_single_stage_run_and_a_web_run_have_no_command_line_overall_bar(monkeypatch):
+    monkeypatch.delenv(progress_file.ENV_VAR, raising=False)
+    stages.begin(stages.plan_stages(_plan("--phenomena-only")))
+    assert stages.overall_progress() is None
+    stages.finish()
+    monkeypatch.setenv(progress_file.ENV_VAR, "/tmp/progress-from-the-web.json")
+    stages.begin(stages.plan_stages(_plan()))
+    assert stages.overall_progress() is None
+    stages.finish()
+
+
+def test_the_generation_display_carries_the_overall_bar_and_stops_updating_it(monkeypatch):
+    from planetgen.generation import run_common
+    monkeypatch.delenv(progress_file.ENV_VAR, raising=False)
+    stages.begin(stages.plan_stages(_plan()))
+    try:
+        progress = run_common._generation_progress()
+        with progress:
+            tasks = [task for task in progress.tasks if task.description.startswith("Whole job")]
+            assert len(tasks) == 1 and tasks[0].total is None
+            stop = progress.overall_stop
+            assert not stop.is_set()
+        assert stop.is_set()
+    finally:
+        stages.finish()
+    with run_common._generation_progress() as plain:
+        assert plain.tasks == [] and plain.overall_stop is None
