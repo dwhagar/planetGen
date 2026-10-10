@@ -3,6 +3,7 @@
 ## [8.0.911] - 2026-10-10
 
 ### Changed
+- TODO list: PERF.61 retired (measured, no gain, PR #1113); PERF.63 filed (numpy follow-up, Boss's call); PERF.59 stands and carries the benchmark note.
 - The Galaxy Map's tile data is smaller and quicker to serve (MAP.157): tiles no longer carry the `placed`, `planned` and `filled` sections or the star fields the page never reads, `star_type` is its class letter and numbers are rounded to what the screen can show (about 114 bytes a star instead of 284). The tile cache stores the finished bytes, so a request joins stored bytes instead of parsing and writing the JSON again. The example Apache config also compresses with Brotli when `mod_brotli` is enabled (10 to 29% smaller than gzip). The tile cache restarts empty at the next release.
 - The star scatter checks that a kept candidate stayed in its sector after rounding only once it has passed the density test, which saves about a fifth of its time.
 - TODO list: MAP.165 retired (merged, PR #1110; schema v80).
