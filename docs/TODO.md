@@ -499,7 +499,7 @@ with `clamp()`.
   a one-line explanation each, the Map help dialog explains what the
   colours mean and what a saddle point is, and no TODO code appears in
   any of it (UX.93).
-  Prerequisites: MAP.168. Related: MAP.167, UX.93.
+  Prerequisite: MAP.168. Related: MAP.167, UX.93.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -1112,7 +1112,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   orbital plane, with the Lagrange points of each pair of bodies marked
   and each Hill sphere outlined, switching modes and keeping the choice
   in the URL; a browser test checks it draws.
-  Prerequisites: MAP.168. Related: MAP.167, GEN.109.
+  Prerequisite: MAP.168. Related: MAP.167, GEN.109.
 
 - [ ] **MAP.170 The Galaxy Map gravity layer: the galaxy potential and region aggregates, coarse and optional**
   Later (phase 3+): a coarse gravity layer on the Galaxy Map drawn from
@@ -1429,20 +1429,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   marked with an icon at every map level, two or more plot a course, and
   the course stays drawn on every map until cleared.
   Prerequisites: MAP.122, NAV.17.
-  Design: [docs/design/course-routing.md](design/course-routing.md)
-
-- [ ] **NAV.52 Port `join_islands` and the k-d tree to cKDTree**
-  `galaxy/nav_graph.py`'s pure-Python k-d tree is 44 times slower than
-  cKDTree at 10,000 points, and `join_islands` takes 15 to 18 s for
-  10,000 points in 4 islands and 6.9 s for 53,000 points in 394
-  (vectorised: 0.07 s and 0.23 s, identical edges). Done: cKDTree
-  versions with the same edge set, compared on the 106,529-point set. A
-  performance cliff, not a correctness bug; NAV.10 shipped on the old
-  code. Avoid `np.unique` on very large arrays in new code (9.4 s on 6e6
-  int64 against 0.11 s for sort-plus-diff).
-  Lane (2026-10-09): Owner: Bugfixes lane 2 (moved from Foundations lane
-  1 by the coordinator, 2026-10-10).
-  Prerequisites: none.
   Design: [docs/design/course-routing.md](design/course-routing.md)
 
 - [ ] **NAV.54 Keep-out radii for asteroid fields, supermassive holes, moons and nebulae (NAV.24 built)**
@@ -3514,7 +3500,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   against the exact sum, and says when a grid is recomputed after an
   orbital update (every step, or only for sectors whose sources moved by
   a set amount). Ends with the build items filed.
-  Prerequisites: GEN.198. Related: GEN.198, GEN.199, MAP.151.
+  Prerequisite: GEN.198. Related: GEN.198, GEN.199, MAP.151.
   Design: [docs/design/gravity-map.md](design/gravity-map.md)
 
 ## DB: Database and schema
@@ -3929,7 +3915,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   usual API scopes and logging (API.15), queued with the 202 behaviour
   when the grid has to be built; documented in the API docs and the
   compatibility data.
-  Prerequisites: GEN.199. Related: MAP.167.
+  Prerequisite: GEN.199. Related: MAP.167.
 
 ## ADM: Admin tools
 
@@ -4315,7 +4301,7 @@ clears each one.
   galaxy potential's rotation curve (229.3 km/s at 8.128 kpc); the
   near/far split agrees with the exact sum to a stated tolerance on a
   random sector; the same seed gives the same field twice.
-  Prerequisites: GEN.198. Related: GEN.198, GEN.115.
+  Prerequisite: GEN.198. Related: GEN.198, GEN.115.
 
 - [ ] **TEST.132 test_a_fill_after_a_layer_failed_mid_scatter_builds_no_leftover_star failed once in a full parallel run (bug)**
   Reported by Bugfixes lane 2 (2026-10-10 21:06Z):
