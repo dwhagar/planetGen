@@ -92,6 +92,16 @@ def _row(ring_index, layer_index, slot, kind, point, rng, subtype=None, velocity
             velocity[0], velocity[1], velocity[2], rng.getrandbits(63))
 
 
+def class_label(kind, subtype):
+    """What a log line calls a class: a black hole's mass class in front ("stellar black-hole"), else its kind."""
+    return f"{subtype} {kind}" if subtype else kind
+
+
+EXPECTED_LABELS = tuple(class_label(kind, subtype) for kind, subtype in SCATTER_CLASSES) + (
+    HYPERVELOCITY_KIND, class_label("black-hole", NUCLEUS_SUBTYPE), "quasar")
+"""tuple: Every class a phenomena scatter can place, so a summary lists the ones that drew none too."""
+
+
 def mass_law(kind, subtype):
     """`((low, high), logarithmic)`: the solar-mass range a class draws
     from and whether the draw is log-uniform; `None` for a kind not drawn

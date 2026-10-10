@@ -859,10 +859,15 @@ def scatter_phenomena(args):
                    for layer_index, outer_ring in layers}
         log.normal(f"Phenomena: about {round(sum(weights.values())):,} to place in {len(layers):,} layers "
                    f"(neutron stars and black holes from {min_mass_solar:g} solar masses).")
+        if filled:
+            log.normal(f"Leaving out the {len(filled):,} sectors already filled.")
+        landed = [0]
 
         def layer_done(layer_counts, seconds, weight):
             for kind, count in layer_counts.items():
                 counts[kind] = counts.get(kind, 0) + count
+            if sum(layer_counts.values()):
+                landed[0] += 1
             # Recorded in the bar's own units (the layer's weight), so the next run's bar can start from it.
             run_common._generation_stats(args).record("phenomena", 0.0, seconds, systems=weight, stars=weight,
                                                       workers=run_common._worker_count(args))
@@ -894,7 +899,8 @@ def scatter_phenomena(args):
                 log.reset_console()
         special_counts = {}
         for row in special:
-            special_counts[row[3]] = special_counts.get(row[3], 0) + 1
+            label = phenomenon_scatter.class_label(row[3], row[4])
+            special_counts[label] = special_counts.get(label, 0) + 1
         for kind, count in special_counts.items():
             counts[kind] = counts.get(kind, 0) + count
         if special_counts:
@@ -905,8 +911,13 @@ def scatter_phenomena(args):
         conn.close()
     elapsed = time.perf_counter() - t0
     total = sum(counts.values())
+    if landed[0]:
+        log.normal(f"Phenomena landed in {landed[0]:,} of {len(layers):,} layers.")
+    else:
+        log.normal(f"No phenomena landed in any of the {len(layers):,} layers.")
+    labels = list(phenomenon_scatter.EXPECTED_LABELS) + sorted(set(counts) - set(phenomenon_scatter.EXPECTED_LABELS))
     log.normal(f"Placed {total:,} phenomena in {elapsed:.1f}s: "
-               + ", ".join(f"{count:,} {kind}" for kind, count in sorted(counts.items())) + ".")
+               + ", ".join(f"{counts.get(label, 0):,} {label}" for label in labels) + ".")
     return {"counts": counts, "total": total, "elapsed_s": elapsed}
 
 
@@ -928,7 +939,8 @@ def _phenomenon_layer_task(payload):
             payload["expected"], payload["seed"], skip_addresses=payload["skip"],
             min_mass_solar=payload["min_mass_solar"],
         ):
-            counts[row[3]] = counts.get(row[3], 0) + 1
+            label = phenomenon_scatter.class_label(row[3], row[4])
+            counts[label] = counts.get(label, 0) + 1
             batch.append(row)
             if len(batch) >= 10000:
                 store.insert_phenomenon_scatter(conn, batch)
