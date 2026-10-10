@@ -1,0 +1,2 @@
+### Changed
+- The Galaxy Map keeps the tiles it has fetched in the browser's IndexedDB instead of localStorage (MAP.158), so a revisit or reload finds them (localStorage filled up after one sector link). The prefetch is gentler: only the tiles one zoom step in, only after the camera has been still for a moment, not with the browser's data saver on or on a slow connection, and no more than about 1.5 MB per page visit. Tiles an earlier version left in localStorage are removed.
