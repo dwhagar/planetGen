@@ -1,0 +1,2 @@
+### Added
+- **The Galaxy Map's locate box finds planets and moons by name (NAV.9).** A planet or moon appears in the list as "Name (planet of System, Sector)" and links through `/object/<ID>` to its row on the system page. Typing a name that only one planet or moon has goes straight there. Every locate match and every search result row now carries its object reference (`ref`) and its parent chain (`parents`: sector, system, and a moon's planet), built from the panel's own query. Asteroid belts have no names, so the box cannot find them.

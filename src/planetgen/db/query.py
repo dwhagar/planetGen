@@ -4371,9 +4371,11 @@ def _locate_match(conn, column, term):
 
 def galaxy_locate(conn, term, limit=GALAXY_LOCATE_LIMIT):
     """
-    Sectors and star systems whose name contains `term`, with each one's
-    sector address, for the Galaxy Map's address bar (the drill-down's
-    section 9.3): picking a match flies to that sector. Exact names come
+    Sectors, star systems, planets and moons whose name contains `term`
+    (asteroid belts have no names), with each one's sector address,
+    reference and parent chain, for the Galaxy Map's address bar (the
+    drill-down's section 9.3): picking a match flies to that sector, and a
+    planet or moon links through `/object/<ref>` (NAV.9). Exact names come
     first, then names that start with `term`, then the rest, by name.
     Sectors without an address (placed before the cylindrical grid) and
     systems outside a sector are left out.
@@ -4384,8 +4386,10 @@ def galaxy_locate(conn, term, limit=GALAXY_LOCATE_LIMIT):
         limit (int): Most matches to return.
 
     Returns:
-        list[dict]: `{kind ("sector" or "system"), id, name, sector_id,
-            sector_name, ring, layer, slot}`.
+        list[dict]: `{kind ("sector", "system", "planet" or "moon"), ref,
+            id, name, parents ([{ref, kind, name}], sector down to the
+            direct parent), sector_id, sector_name, ring, layer, slot}`; a
+            planet or moon also has `system_id` and `system_name`.
     """
     term = (term or "").strip()
     if not term:
@@ -4408,14 +4412,54 @@ def galaxy_locate(conn, term, limit=GALAXY_LOCATE_LIMIT):
         f"ORDER BY {order.format(col='ss.name').replace(', id', ', ss.id')} LIMIT ?",
         (*system_params, term, prefix, limit),
     ).fetchall()
+    body_order = order.format(col="b.name").replace(", id", ", b.id")
+    planets = conn.execute(
+        "SELECT b.id, b.name, b.star_system_id, ss.name AS system_name, s.id AS sector_id, s.name AS sector_name, "
+        "s.ring_index, s.layer_index, s.ring_slot_index "
+        "FROM planets b JOIN star_systems ss ON ss.id = b.star_system_id JOIN sectors s ON s.id = ss.sector_id "
+        f"WHERE s.ring_index IS NOT NULL AND {_locate_match(conn, 'b.name', term)[0]} "
+        f"ORDER BY {body_order} LIMIT ?",
+        (*_locate_match(conn, "b.name", term)[1], term, prefix, limit),
+    ).fetchall()
+    moons = conn.execute(
+        "SELECT b.id, b.name, b.star_system_id, b.planet_id, p.name AS planet_name, ss.name AS system_name, "
+        "s.id AS sector_id, s.name AS sector_name, s.ring_index, s.layer_index, s.ring_slot_index "
+        "FROM moons b JOIN planets p ON p.id = b.planet_id JOIN star_systems ss ON ss.id = b.star_system_id "
+        "JOIN sectors s ON s.id = ss.sector_id "
+        f"WHERE s.ring_index IS NOT NULL AND {_locate_match(conn, 'b.name', term)[0]} "
+        f"ORDER BY {body_order} LIMIT ?",
+        (*_locate_match(conn, "b.name", term)[1], term, prefix, limit),
+    ).fetchall()
+
+    def where(r):
+        return {"sector_id": r["sector_id"], "sector_name": r["sector_name"],
+                "ring": int(r["ring_index"]), "layer": int(r["layer_index"]), "slot": int(r["ring_slot_index"])}
+
+    def sector_parent(r):
+        return {"ref": object_ref.format("sector", r["sector_id"]), "kind": "sector", "name": r["sector_name"]}
+
+    def system_parent(r, system_id):
+        return {"ref": object_ref.format("system", system_id), "kind": "system", "name": r["system_name"]}
+
     found = [{
-        "kind": "sector", "id": r["id"], "name": r["name"], "sector_id": r["id"], "sector_name": r["name"],
+        "kind": "sector", "ref": object_ref.format("sector", r["id"]), "id": r["id"], "name": r["name"],
+        "sector_id": r["id"], "sector_name": r["name"], "parents": [],
         "ring": int(r["ring_index"]), "layer": int(r["layer_index"]), "slot": int(r["ring_slot_index"]),
     } for r in sectors] + [{
-        "kind": "system", "id": r["id"], "name": r["name"], "sector_id": r["sector_id"],
-        "sector_name": r["sector_name"],
+        "kind": "system", "ref": object_ref.format("system", r["id"]), "id": r["id"], "name": r["name"],
+        "sector_id": r["sector_id"], "sector_name": r["sector_name"], "parents": [sector_parent(r)],
         "ring": int(r["ring_index"]), "layer": int(r["layer_index"]), "slot": int(r["ring_slot_index"]),
-    } for r in systems]
+    } for r in systems] + [{
+        "kind": "planet", "ref": object_ref.format("planet", r["id"]), "id": r["id"], "name": r["name"],
+        "system_id": r["star_system_id"], "system_name": r["system_name"],
+        "parents": [sector_parent(r), system_parent(r, r["star_system_id"])], **where(r),
+    } for r in planets] + [{
+        "kind": "moon", "ref": object_ref.format("moon", r["id"]), "id": r["id"], "name": r["name"],
+        "system_id": r["star_system_id"], "system_name": r["system_name"],
+        "parents": [sector_parent(r), system_parent(r, r["star_system_id"]),
+                    {"ref": object_ref.format("planet", r["planet_id"]), "kind": "planet", "name": r["planet_name"]}],
+        **where(r),
+    } for r in moons]
     lowered = term.lower()
 
     def rank(match):
@@ -5015,7 +5059,7 @@ def _search_result_phenomena(conn, type_tags, class_tags, limit, offset):
         conn, "SELECT type, id, name, phenomenon_class, sector_id",
         f"FROM ({' UNION ALL '.join(parts)}) AS p", "name, type, id", params, limit, offset,
     )
-    return {"rows": [dict(r) for r in rows], **page}
+    return {"rows": _with_refs(conn, [dict(r) for r in rows], None), **page}
 
 
 def _search_name_list(conn, table, limit=SEARCH_AUTOCOMPLETE_LIMIT):
@@ -5066,12 +5110,43 @@ def _search_page(conn, select_sql, from_sql, order_sql, params, limit, offset):
                   "truncated": len(rows) < total}
 
 
+def _with_refs(conn, rows, kind):
+    """
+    Adds `ref` (the hit's object reference) and `parents` (its chain below the galaxy: sector, system, and for
+    a moon its planet, each `{ref, kind, name}`) to search or locate rows, from the names the panel's own JOIN
+    already selected plus one batched lookup of the sector names (NAV.9). `kind` is a reference kind, or `None`
+    for the phenomenon panel, whose rows carry their own `type`.
+    """
+    sector_ids = {r["sector_id"] for r in rows if r.get("sector_id") is not None and kind != "sector"}
+    names = {}
+    if sector_ids:
+        marks = ",".join("?" * len(sector_ids))
+        names = {r["id"]: r["name"] for r in conn.execute(
+            f"SELECT id, name FROM sectors WHERE id IN ({marks})", sorted(sector_ids)).fetchall()}
+    for row in rows:
+        row_kind = kind or row["type"]
+        parents = []
+        if kind != "sector" and row.get("sector_id") is not None:
+            parents.append({"ref": object_ref.format("sector", row["sector_id"]), "kind": "sector",
+                            "name": names.get(row["sector_id"])})
+        system_id = row["id"] if kind == "system" else row.get("star_system_id")
+        if kind in ("star", "planet", "moon", "belt"):
+            parents.append({"ref": object_ref.format("system", system_id), "kind": "system",
+                            "name": row.get("system_name")})
+        if kind == "moon":
+            parents.append({"ref": object_ref.format("planet", row["planet_id"]), "kind": "planet",
+                            "name": row.get("planet_name")})
+        row["ref"] = object_ref.format(row_kind, row["id"])
+        row["parents"] = parents
+    return rows
+
+
 def _search_result_sectors(conn, term, limit, offset):
     match, params = _name_match(conn, "name", term)
     rows, page = _search_page(
         conn, "SELECT id, name, edge_mpc", f"FROM sectors WHERE {match}", "name, id", params, limit, offset,
     )
-    return {"rows": [dict(r) for r in rows], **page}
+    return {"rows": _with_refs(conn, [dict(r) for r in rows], "sector"), **page}
 
 
 def _search_result_systems(conn, term, limit, offset):
@@ -5084,13 +5159,13 @@ def _search_result_systems(conn, term, limit, offset):
         params, limit, offset,
     )
     return {
-        "rows": [
+        "rows": _with_refs(conn, [
             {
                 "id": r["id"], "name": r["name"], "sector_id": r["sector_id"], "is_binary": r["is_binary"],
                 "star_summary": _star_summary(r),
             }
             for r in _with_star_types(conn, rows)
-        ],
+        ], "system"),
         **page,
     }
 
@@ -5116,7 +5191,7 @@ def _search_result_stars(conn, spectral_tags, luminosity_tags, term, limit, offs
         "ss.name, s.name, s.id",
         params, limit, offset,
     )
-    return {"rows": [dict(r) for r in rows], **page}
+    return {"rows": _with_refs(conn, [dict(r) for r in rows], "star"), **page}
 
 
 def _search_result_planets(conn, class_tags, body_tags, life_tags, term, limit, offset, size_range=None,
@@ -5148,7 +5223,7 @@ def _search_result_planets(conn, class_tags, body_tags, life_tags, term, limit, 
         "ss.name, ss.id, p.orbital_index, p.id",
         params, limit, offset,
     )
-    return {"rows": [dict(r) for r in rows], **page}
+    return {"rows": _with_refs(conn, [dict(r) for r in rows], "planet"), **page}
 
 
 def _search_result_moons(conn, class_tags, body_tags, life_tags, term, limit, offset, size_range=None,
@@ -5173,7 +5248,7 @@ def _search_result_moons(conn, class_tags, body_tags, life_tags, term, limit, of
     rows, page = _search_page(
         conn,
         """
-        SELECT m.id, m.name, m.planet_class, m.body_type, m.life_chemical, m.equipment_tier, m.radius_km, p.name AS planet_name,
+        SELECT m.id, m.name, m.planet_class, m.body_type, m.life_chemical, m.equipment_tier, m.radius_km, m.planet_id, p.name AS planet_name,
                m.star_system_id, ss.name AS system_name, ss.sector_id
         """,
         f"""
@@ -5185,7 +5260,7 @@ def _search_result_moons(conn, class_tags, body_tags, life_tags, term, limit, of
         "ss.name, ss.id, p.orbital_index, m.orbital_index, m.id",
         params, limit, offset,
     )
-    return {"rows": [dict(r) for r in rows], **page}
+    return {"rows": _with_refs(conn, [dict(r) for r in rows], "moon"), **page}
 
 
 def _search_result_belts(conn, density_tags, limit, offset):
@@ -5201,7 +5276,7 @@ def _search_result_belts(conn, density_tags, limit, offset):
         "ss.name, ss.id, ab.orbital_index, ab.id",
         params, limit, offset,
     )
-    return {"rows": [dict(r) for r in rows], **page}
+    return {"rows": _with_refs(conn, [dict(r) for r in rows], "belt"), **page}
 
 
 SEARCH_FACET_CACHE_SECONDS = 600
