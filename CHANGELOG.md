@@ -3,6 +3,7 @@
 ## [8.0.911] - 2026-10-10
 
 ### Changed
+- Filed PERF.58 to PERF.61 (object-first scatter sampler, shared ring inputs, large-mean Poisson helper, phenomena sampler; top priority) from the scatter study; PERF.57 is superseded by PERF.58.
 - Retired UX.90 (habitability explanation page and Ideal rename, PR #1065).
 - The lowest PHI-4 equipment level is now called "Ideal" instead of "Shirtsleeve", on the system page, in the search tags and column and in the docs. The stored tier numbers are unchanged.
 - PERF.56: GEN.187 needs no new stage entry; the existing backfill stage is relabelled (PR #1062).
