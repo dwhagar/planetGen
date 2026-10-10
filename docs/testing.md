@@ -95,7 +95,7 @@ where the expected value comes from. It takes well under a second.
   every page if it failed (the site keeps serving).
 - Bulk generation runs it first and refuses to start if it fails:
   `planetgen check-math` by hand, and every bulk path (see
-  [cli.md](cli.md#subcommands)); `update.sh`/`update.ps1` warn.
+  [cli.md](cli.md#subcommands)); `update.sh` warns.
 
 ```sh
 python -m planetgen.physics.mathcheck -v            # the report, exit 1 on failure
@@ -256,7 +256,7 @@ prints it, together with a `@reproduce_failure(...)` line. To fix it:
 ## CI runs by hand
 
 `.github/workflows/ci.yml` (every test leg: math check, MySQL 8.4, MariaDB
-11.4, Python 3.9, Windows, browser and accessibility, the JS tests, the
+11.4, Python 3.9, browser and accessibility, the JS tests, the
 installer checks) runs only on **Actions > CI > Run workflow**, on main or
 any branch. It does not run on a push or a pull request. The post-merge
 `stamp-version.yml` and the PR check `release-note.yml` still run on their

@@ -636,7 +636,7 @@ the pre-placement plan, not re-measured).
 Not verified: uid claim and name confirmation inside the sector transaction
 (section 7.2); database cost at scale (the run is 1,800 sectors on a shared 4-core
 box); block-first in the bulge (worse there, by design); `SpawnWorker` behaviour
-on Windows and macOS.
+on macOS.
 
 ## Sources
 

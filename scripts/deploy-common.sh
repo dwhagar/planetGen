@@ -4,8 +4,6 @@
 # can't drift apart. Each one looks first and only changes what is
 # missing, so running it again on a working server does nothing.
 # (Python libraries have their own script, install-python-deps.sh.)
-# scripts/deploy-common.ps1 is the Windows counterpart for install.ps1
-# and update.ps1: a change to a step here belongs there too.
 #
 # Two platforms: Linux with Debian's Apache and mod_wsgi
 # (docs/deployment/apache.md), and macOS with gunicorn under launchd and

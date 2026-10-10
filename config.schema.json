@@ -582,7 +582,7 @@
     },
     "log_dir": {
       "default": "",
-      "description": "The folder of the always-on activity log; empty means /var/log/planetgen on Linux, /Library/Logs/planetgen on macOS, logs under the checkout on Windows.",
+      "description": "The folder of the always-on activity log; empty means /var/log/planetgen on Linux, /Library/Logs/planetgen on macOS.",
       "title": "Log Dir",
       "type": "string",
       "x-category": "logging",
@@ -594,7 +594,7 @@
     },
     "log_file": {
       "default": "/var/log/planetgen.log",
-      "description": "Where the debug log goes (set it explicitly on Windows).",
+      "description": "Where the debug log goes.",
       "title": "Log File",
       "type": "string",
       "x-category": "logging",

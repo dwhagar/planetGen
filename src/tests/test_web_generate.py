@@ -776,8 +776,8 @@ def test_a_slow_runner_still_alive_is_starting_not_interrupted(jobs_root):
             f.write(str(runner.pid))
         _wait_until_exec(runner.pid, path)
         job = jobs.get_job(job_id)
-        assert job["status"] == "starting", (   # TEST.115: what the Windows leg needs to show
-            f"pid {runner.pid} alive={jobs._runner_alive(runner.pid, job_id, body['created_at'])} "
+        assert job["status"] == "starting", (
+            f"pid {runner.pid} alive={jobs._runner_alive(runner.pid, job_id)} "
             f"created_at={body['created_at']} now={time.time()} state={job}")
         assert not jobs.get_job(job_id)["finished"]
         with pytest.raises(jobs.JobBusy):
@@ -918,39 +918,13 @@ def test_cancel_of_a_finished_job_does_nothing(jobs_root, redis_server):
     assert not os.path.exists(os.path.join(jobs_root, job_id, jobs.CANCEL_NAME))
 
 
-def test_state_file_write_retries_while_the_page_reads_it(tmp_path, monkeypatch):
-    """Windows refuses to replace a file another process has open; the
-    runner waits for the reader to close it instead of failing."""
-    from planetgen.web import job_runner as jobRunner
-    real_replace = os.replace
-    failures = []
-
-    def flaky_replace(src, dst):
-        if len(failures) < 3:
-            failures.append(dst)
-            raise PermissionError(13, "in use", dst)
-        real_replace(src, dst)
-
-    monkeypatch.setattr(jobRunner.os, "replace", flaky_replace)
-    target = tmp_path / "state.json"
-    jobRunner._write_json(str(target), {"status": "running"})
-    assert json.loads(target.read_text()) == {"status": "running"}
-    assert len(failures) == 3
-    assert sorted(os.listdir(tmp_path)) == ["state.json"]  # no temp files left
-
-
 def test_runner_liveness_on_this_platform(jobs_root):
     """The page's liveness check sees this process as alive and a pid
-    that has exited as dead (on Windows through OpenProcess, where
-    os.kill(pid, 0) would send CTRL_C_EVENT instead)."""
+    that has exited as dead."""
     import subprocess
     proc = subprocess.Popen([PY, "-c", "pass"])
     proc.wait()
-    assert not jobs._runner_alive(proc.pid, "20260101-000000-abcd", time.time())
-    if jobs.WINDOWS:
-        assert jobs._runner_alive(os.getpid(), "any", time.time())
-        # A process created after the job's grace window is a reused pid.
-        assert not jobs._runner_alive(os.getpid(), "any", 0.0 + 1)
+    assert not jobs._runner_alive(proc.pid, "20260101-000000-abcd")
 
 
 def test_old_jobs_are_pruned(jobs_root, monkeypatch, redis_server):
@@ -1131,7 +1105,6 @@ def test_generate_py_system_output_writes_a_file_and_no_database(tmp_path):
 
     out = tmp_path / "system.md"
     # An unreachable database: --output must never try to connect.
-    # UTF-8 both ways, so Windows' cp1252 default never decodes the output.
     env = {**os.environ, "PLANETGEN_MYSQL_HOST": "203.0.113.1", "PLANETGEN_MYSQL_PORT": "1",
            "PYTHONIOENCODING": "utf-8"}
     proc = subprocess.run([PY, *jobs.GENERATE_COMMAND, "system", "--markdown", "--output", str(out),
@@ -1251,23 +1224,10 @@ def test_a_plain_reset_has_no_math_step():
 
 def test_without_redis_no_job_starts(jobs_root, monkeypatch):
     monkeypatch.setenv("PLANETGEN_REDIS_URL", "redis://127.0.0.1:1/0")
-    monkeypatch.setattr(jobs, "WINDOWS", False)
     with pytest.raises(OSError, match="no Redis server"):
         jobs.start_job("reset", "No Redis", [_step("x", "pass")])
     lock = os.path.join(jobs_root, jobs.LOCK_NAME)
     assert jobs.active_job(jobs_root) is None, f"lock left behind: {os.path.exists(lock)} {os.listdir(jobs_root)}"
-
-
-def test_without_redis_windows_runs_the_job_itself(jobs_root, monkeypatch):
-    # Redis on Windows runs in WSL, which a machine may not have: the job
-    # then runs in planetgen.web.job_runner, started the same way.
-    monkeypatch.setenv("PLANETGEN_REDIS_URL", "redis://127.0.0.1:1/0")
-    monkeypatch.setattr(jobs, "WINDOWS", True)
-    job_id = jobs.start_job("reset", "Direct", [_step("x", "print('ran directly')")])
-    monkeypatch.setattr(jobs, "WINDOWS", False)   # liveness checks as on this machine
-    job = _wait_finished(job_id, jobs_root)
-    assert job["status"] == "succeeded", f"{job} log: {jobs.log_tail(job_id, root=jobs_root)}"   # TEST.115
-    assert "ran directly" in jobs.log_tail(job_id, root=jobs_root)
 
 
 def test_a_job_runs_on_its_own_queue_and_leaves_none_behind(jobs_root, redis_server):

@@ -24,10 +24,7 @@ import os
 
 from planetgen.queue import work as workQueue
 
-try:
-    import fcntl
-except ImportError:  # Windows, where CI runs none of the generation tests
-    fcntl = None
+import fcntl
 
 PATCHES_ENV = "PLANETGEN_TEST_WORKER_PATCHES"
 HOOK = "tests.worker_patches:install"
@@ -82,8 +79,7 @@ def patch_everywhere(monkeypatch, owner, name, factory, **params):
 
 def _lock(f):
     """Locks `f` until it is closed."""
-    if fcntl is not None:
-        fcntl.flock(f, fcntl.LOCK_EX)
+    fcntl.flock(f, fcntl.LOCK_EX)
 
 
 def bump(path):

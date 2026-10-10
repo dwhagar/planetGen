@@ -48,9 +48,7 @@
 # Rotation files that can't be written only warn too. Exits 0 whatever
 # happens to the logs; only running it without root is an error.
 #
-# Runs on Linux and macOS. Windows has no rotation for it; install.ps1
-# and update.ps1 check the log folders themselves
-# (Test-LogLocations in scripts/deploy-common.ps1).
+# Runs on Linux and macOS.
 #
 # Usage:
 #   sudo examples/apache/setup-debug-log.sh

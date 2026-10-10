@@ -84,7 +84,7 @@ cores."""
 
 WORKER_NICENESS = 10
 """int: How much `os.nice` lowers a worker's priority on Linux and
-macOS. Windows workers run at `BELOW_NORMAL_PRIORITY_CLASS`."""
+macOS."""
 
 HEARTBEAT_SECONDS = 5
 STALE_SECONDS = 30
@@ -99,8 +99,6 @@ CONTROL_POLL_SECONDS = 1.0
 CANCELLED_EXIT_CODE = 130
 """int: The exit status of a run cancelled from the admin queue page
 (`Cancelled`); the job runner reads it as "cancelled"."""
-
-_BELOW_NORMAL_PRIORITY_CLASS = 0x4000
 
 PARENT_ENV_VAR = "PLANETGEN_WORK_PARENT"
 """str: Environment variable naming the job tree node a process's root
@@ -168,13 +166,7 @@ def lower_priority():
     """Lowers this process's scheduling priority so everything else on
     the machine comes first. Never raises."""
     try:
-        if os.name == "nt":
-            import ctypes
-
-            kernel32 = ctypes.windll.kernel32
-            kernel32.SetPriorityClass(kernel32.GetCurrentProcess(), _BELOW_NORMAL_PRIORITY_CLASS)
-        else:
-            os.nice(WORKER_NICENESS)
+        os.nice(WORKER_NICENESS)
     except Exception:  # noqa: BLE001 -- a normal-priority worker is still a worker
         pass
 

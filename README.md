@@ -68,11 +68,11 @@ into the [game's wiki](https://wiki.moltenaether.com).
 - Python 3.9 or later (3.10+ on macOS).
 - MySQL 8.0.16+ or MariaDB 10.4+.
 - For the website, a web server: Apache2 with mod_wsgi on Debian or
-  Ubuntu (the reference setup), nginx or Caddy on Linux, IIS, Caddy or
-  Apache on Windows, or nginx on macOS.
-- Install and update scripts for all three: `install.sh` and
-  `update.sh` on Linux and macOS, `install.ps1` and `update.ps1` on
-  Windows.
+  Ubuntu (the reference setup), nginx or Caddy on Linux, or nginx on
+  macOS.
+- Install and update scripts: `install.sh` and `update.sh` on Linux and
+  macOS.
+- Windows: see [docs/WINDOWS.md](docs/WINDOWS.md).
 
 [INSTALL.md](INSTALL.md) lists the full requirements and walks through
 the install.
@@ -127,9 +127,8 @@ and [`docs/api.md`](docs/api.md) the JSON API.
 
 `planetgen.cli.generate`, in the checkout, is the one entry point for
 every generator. On Linux and macOS the installer adds a `planetgen`
-command that runs it; on Windows run it with the venv's Python
-(`C:\srv\planetgen-venv\Scripts\python.exe -m planetgen.cli.generate`). Each
-subcommand saves what it makes to the database unless told otherwise:
+command that runs it. Each subcommand saves what it makes to the database
+unless told otherwise:
 
 ```bash
 planetgen plan         # plan the galaxy's shape (once, before galaxy)

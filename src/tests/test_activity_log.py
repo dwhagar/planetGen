@@ -176,8 +176,6 @@ def test_existing_but_unwritable_folder_warns(tmp_path, monkeypatch, capsys):
 def test_default_folders_per_platform():
     assert logpaths.default_log_dir("linux") == "/var/log/planetgen"
     assert logpaths.default_log_dir("darwin") == "/Library/Logs/planetgen"
-    assert logpaths.default_log_dir("win32") == os.path.join(
-        os.path.dirname(logpaths.CONFIG_PATH), "logs")
 
 
 def test_log_dir_precedence(monkeypatch):
@@ -202,10 +200,9 @@ def test_rotation_mode(monkeypatch, tmp_path):
     monkeypatch.setattr(logpaths, "SYSTEM_ROTATION_FILES", (str(marker),))
     assert logpaths.log_rotation_mode({"log_rotation": "system"}) == "system"
     assert logpaths.log_rotation_mode({"log_rotation": " APP "}) == "app"
-    if not logpaths.sys.platform.startswith("win"):
-        assert logpaths.log_rotation_mode({"log_rotation": "auto"}) == "app"
-        marker.write_text("")
-        assert logpaths.log_rotation_mode({}) == "system"
+    assert logpaths.log_rotation_mode({"log_rotation": "auto"}) == "app"
+    marker.write_text("")
+    assert logpaths.log_rotation_mode({}) == "system"
 
 
 def test_debug_log_also_gets_each_line(log_dir, monkeypatch):

@@ -22,7 +22,7 @@ directly itself, though the search page (`/search`, see "Flask pages"
 below) does provide a faceted/name search (built on `GET /api/search`, same as every
 other page). It exists so a generated galaxy can be looked at from a
 browser today, on nothing more than a web server (Apache2 with mod_wsgi,
-or nginx, Caddy or IIS in front of gunicorn or waitress), Python 3 and a
+or nginx or Caddy in front of gunicorn), Python 3 and a
 MySQL server (see "Locating the database" and "Deploying" below).
 
 ## How it works
@@ -42,7 +42,7 @@ itself, which needs `pymysql`/`DBUtils` and a database account.
 
 | File | Purpose |
 |---|---|
-| `../src/html/wsgi.py` | The WSGI entry point (loaded by mod_wsgi, gunicorn or waitress): the Flask app serving the API under `/api` and every page. |
+| `../src/html/wsgi.py` | The WSGI entry point (loaded by mod_wsgi or gunicorn): the Flask app serving the API under `/api` and every page. |
 | `../src/planetgen/web/` | The pages: routes, templates and helpers (see "Flask pages" below). `web/old_urls.py` answers the old `/<name>.py` CGI URLs with a 301 to the page that replaced them. |
 | `../src/planetgen/web/lib/pagination.py` | The site's one pager, used under every paged table (Browse's two tables, Phenomena, a sector's Contents table, a Galaxy Map Quadrant's sector list, each Search result panel, the admin API key list and the admin stats page's duplicate-names list): a "Showing X-Y of Z" summary, then First/Prev, numbered pages and Next/Last, 50 rows a page. Each table has its own page parameter (e.g. `sectors_page`), a plain GET link, and changing a Search filter starts its results back at page 1. |
 | `../src/planetgen/web/lib/apiclient.py` | The API client every page calls instead of querying MySQL directly -- one typed wrapper function per read endpoint, plus `auth_*` wrappers (the admin pages) supporting POST/DELETE, a request body, and `Cookie`/`Set-Cookie` relay, and `NotFoundError`/`ApiError` (`web/errors.py` turns these into a 404/502 page; `ApiError.status_code` lets `auth_me`/the admin pages branch on a 401 without string-matching). Inside the Flask app it runs in-process (`web/transport.py`); elsewhere it uses HTTP to `PLANETGEN_API_BASE_URL` (default `http://127.0.0.1/api`). Not web-accessible. |
@@ -60,7 +60,7 @@ itself, which needs `pymysql`/`DBUtils` and a database account.
 | `../src/planetgen/web/maps/navmap.py` | Builds the NAV page's "NAV Map" panel (`render_nav_map_panel(link_url, ...)`; each point is an SVG `<a href>`): a flat, static, top-down SVG plot of the galactic X-Y plane -- origin and destination as labeled points, a dashed line for the direct course, and (when one was found) a solid polyline through the optimal route's intermediate hops. Auto-scaled to whatever points it's given (no fixed sector size to normalize against), with one uniform light-years-per-pixel ratio on both axes so bearings aren't visually distorted, plus a compass arrow along the origin's bearing 000 (toward the frame's center) and a scale-bar legend. Deliberately blind to altitude/z, same as the flat SVG phenomenon Diagram panel (`planetgen/web/maps/phenomenonmap.py`) -- the course's mark already covers that axis. Not web-accessible. |
 | `../src/planetgen/web/maps/phenomenonmap.py` | Builds the phenomenon page's flat, zoomable SVG diagram of a nebula's or supernova remnant's real extent, drawn in astronomical units against an AU-scale yardstick (`static/phenomenonmap.js` adds the zoom and pan). Not web-accessible. |
 | `../src/planetgen/web/maps/phenomenonrender.py` | Builds the phenomenon page's "View" panel for a neutron star, black hole, quasar, rogue planet or interstellar comet: the numbers `static/phenomenonrender.js` draws with three.js, plus a static SVG used when WebGL can't start. Not web-accessible. |
-| `../src/planetgen/web/warmup.py` | The Galaxy Map's opening view built ahead of time (MAP.134): `opening_request` names the tiles the first frame of `/galaxy` asks for (the page uses it too) and `warm_opening_view` fetches them and the galaxy stage into the tile cache. `python -m planetgen.cli.warm_map` runs it in a request context; `update.sh` / `update.ps1` start it in the background after every update (at most 30 minutes on Linux, never waited for), and it is the command to run after clearing the tile cache by hand. Not web-accessible. |
+| `../src/planetgen/web/warmup.py` | The Galaxy Map's opening view built ahead of time (MAP.134): `opening_request` names the tiles the first frame of `/galaxy` asks for (the page uses it too) and `warm_opening_view` fetches them and the galaxy stage into the tile cache. `python -m planetgen.cli.warm_map` runs it in a request context; `update.sh` starts it in the background after every update (at most 30 minutes on Linux, never waited for), and it is the command to run after clearing the tile cache by hand. Not web-accessible. |
 | `../src/planetgen/web/lib/privatedir.py` | The private fallback directory (mode 0700, in the system temp directory) the tile cache and the Generate jobs use when their configured directory can't be created. A directory found there that isn't a real directory owned by this user, or that others can write to, is refused rather than reused. Not web-accessible. |
 | `../src/html/static/style.css` | Shared stylesheet (CSS custom properties, light/dark via `prefers-color-scheme` or an explicit `data-theme` on `<html>`, card-style panels, phone layout under 40rem), served directly by the web server. |
 | `../src/html/static/theme.js` | Loaded on every page, blocking, before `style.css` (`web/templates/base.html`): applies the saved light/dark/system theme before the first paint and drives the header's theme button. See "The page shell" below. |
@@ -219,7 +219,7 @@ URLs" below).
 | `/account` | `changecreds.py` | Change the admin username and password, and turn two-factor sign-in on or off (QR code, then recovery codes shown once; forms `POST` to `/account/two-factor`). |
 | `/admin` | `admin.py` | API keys (list, create, revoke; `?keys_page=N`) and a sector's manual wiki link. |
 | `/admin/stats` | `adminstats.py` | Server health and database stats (including about how many bright stars the plan pre-placed, from the `bright_stars` table's row estimate), every name made unique (`?names_page=N`), the galaxy's naming key with Change and Draw buttons (POST `/admin/stats/naming-key`, GEN.70), current login lockouts with Lift buttons (POST `/admin/stats/lockouts`), the newest failed sign-ins, and this server's generation speed per density bucket with the galaxy's size per star system (`GET /api/admin/generation-stats`). |
-| `/admin/queue` | (new) | Admins only: the work queue (ADM.10). Workers active and the server's load as "x / x / x" (1, 5 and 15 minutes; CPU percent on Windows), who holds the workers' lease and how long since it was refreshed, Pause the queue / Resume the queue, Clear the stale lease, then every job tree newest first (paged) with its state, start, end, duration, progress, task counts and ETA. `/admin/queue/<id>` shows one tree as nested expandable nodes down to single tasks, each with Pause, Resume, Cancel, Retry (a failed or cancelled job, or one failed sector) and Delete (a finished job). Every control first shows `/admin/queue/confirm/<action>?node=<id>`, then posts to `/admin/queue/action`. Retry starts a Generate page job. |
+| `/admin/queue` | (new) | Admins only: the work queue (ADM.10). Workers active and the server's load as "x / x / x" (1, 5 and 15 minutes), who holds the workers' lease and how long since it was refreshed, Pause the queue / Resume the queue, Clear the stale lease, then every job tree newest first (paged) with its state, start, end, duration, progress, task counts and ETA. `/admin/queue/<id>` shows one tree as nested expandable nodes down to single tasks, each with Pause, Resume, Cancel, Retry (a failed or cancelled job, or one failed sector) and Delete (a finished job). Every control first shows `/admin/queue/confirm/<action>?node=<id>`, then posts to `/admin/queue/action`. Retry starts a Generate page job. |
 | `/admin/generate` | (new) | Admins only: generate, plan or reset the galaxy from the browser (see below). |
 | `/admin/generate/system` | (new) | Admins only: one star system with every `planetgen system` option, shown as Markdown or wikitext and never saved (see below). |
 
@@ -471,18 +471,15 @@ file), plus a rendered preview for Markdown.
 A job is an RQ job on Redis (`redis.url`): the page queues
 `planetgen.web.job_runner.run(<job dir>)` on a queue of the job's own and
 starts one burst worker for it (`python3 -m planetgen.cli.worker`) in its
-own session (on Windows, a detached process in its own process group,
-broken away from the server's job object where the server allows it),
-so it outlives the request and a graceful reload (Apache's, or
+own session, so it outlives the request and a graceful reload (Apache's, or
 gunicorn's). A full stop or restart of the service under systemd (which
-stops everything in the service's cgroup), or an IIS app pool recycle
-that doesn't allow breakaway, does stop it; the page then shows it as
+stops everything in the service's cgroup), does stop it; the page then shows it as
 interrupted. Cancel writes a `cancel` file into the job's directory; the
 runner sees it within a quarter second and stops the running step's
-whole process tree (`os.killpg` on POSIX, `taskkill /T /F` on Windows).
-Without a Redis server no job starts and the page says so, except on Windows (Redis there runs in WSL, which a machine may not have): the job then runs in `python -m planetgen.web.job_runner <job dir>`, started the same way.
-The worker is named after the job, so liveness comes from `/proc` on Linux, `os.kill(pid, 0)` on other POSIX
-systems, and `OpenProcess`/`GetExitCodeProcess` on Windows.
+whole process tree (`os.killpg`).
+Without a Redis server no job starts and the page says so.
+The worker is named after the job, so liveness comes from `/proc` on Linux and `os.kill(pid, 0)` on other POSIX
+systems.
 So closing the browser never stops a job (ADM.11): the Sector Map's
 "Generate the neighborhood" button also starts a Generate page job
 rather than running inside the request. To restart the web server
@@ -718,15 +715,14 @@ and how it relates to the `PLANETGEN_*` environment variables.
 
 [`../INSTALL.md`](../INSTALL.md) walks through a first install, and
 [`deployment/README.md`](deployment/README.md) compares every supported
-platform (Apache, nginx or Caddy on Linux; IIS, Caddy or Apache on
-Windows; macOS; a VPS) and links a guide for each. The reference setup is
+platform (Apache, nginx or Caddy on Linux; macOS; a VPS) and links a guide for each. The reference setup is
 Apache2 with mod_wsgi on Debian or Ubuntu
 ([`deployment/apache.md`](deployment/apache.md)), where `sudo
 ./install.sh` does everything except the virtual host.
 
 ### Updating an existing deployment
 
-Run `sudo ./update.sh` (`update.ps1` on Windows) instead of pulling
+Run `sudo ./update.sh` instead of pulling
 manually. `git pull` on its own isn't enough: pulling a changed file
 rewrites it with whatever mode is tracked in the repo, silently undoing
 any executable bit `install.sh` previously fixed. `update.sh` fetches and

@@ -268,14 +268,13 @@ def circular_speed(R, p):            # midplane, km/s; seeding and stepping shar
 PyPI facts read 2026-10-09 [C]. galpy 1.12.0 (BSD) needs Python 3.10+ (1.11.1
 is the last for 3.9) and has matplotlib as a hard dependency plus a C
 extension. gala 1.12.0 needs Python 3.12+, numpy 2.2+ and astropy 7+, ships
-wheels for Linux x86_64 and macOS arm64 only (none for Windows in recent
-releases) and otherwise needs a compiler. agama 1.0.0 is sdist-only, needs a
+wheels for Linux x86_64 and macOS arm64 only and otherwise needs a compiler. agama 1.0.0 is sdist-only, needs a
 C++ compiler and builds action-based models, the wrong tool. Astropy 8.0.1 is
 already a dependency (locks use 6.0.1 on Python 3.9 and 6.1.7 on 3.10).
 
-The project supports Python 3.9+ on Linux, macOS and Windows (`setup.py`).
+The project supports Python 3.9+ on Linux and macOS (`setup.py`).
 galpy would add matplotlib and a compiled extension for three analytic
-potentials; gala would break Windows and Python 3.9 to 3.11. Neither gives
+potentials; gala would break Python 3.9 to 3.11. Neither gives
 anything the numpy version lacks (2e-8 against gala, 0.4 s per million stars).
 Recommendation: no runtime dependency; an optional test against gala when it
 is installed, skipped otherwise.

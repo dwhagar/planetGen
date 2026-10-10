@@ -6,6 +6,8 @@ release."""
 
 import sys
 
+import rq
+
 from planetgen import tuning
 from planetgen.cli import worker
 from planetgen.generation import star_population
@@ -50,6 +52,6 @@ def test_the_worker_class_restarts_itself_on_a_new_release(monkeypatch):
     instance.register_death = lambda: deaths.append(1)
     monkeypatch.setattr(worker, "stale", lambda: True)
     monkeypatch.setattr(worker.os, "execv", lambda *args: execs.append(args))
-    monkeypatch.setattr(redisqueue.worker_class(), "dequeue_job_and_maintain_ttl", lambda *a, **k: None)
+    monkeypatch.setattr(rq.Worker, "dequeue_job_and_maintain_ttl", lambda *a, **k: None)
     instance.dequeue_job_and_maintain_ttl(1)
     assert deaths == [1] and execs and execs[0][1][1:3] == ["-m", "planetgen.cli.worker"]

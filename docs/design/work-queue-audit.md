@@ -100,14 +100,9 @@ at lowered priority. RQ's burst mode exits once the queue is empty.
 That keeps today's model: no service to install, nothing running when
 there's no work, and the 80%-of-cores cap holds because the count is
 checked against RQ's live worker registry. The alternative is standing
-worker services that install and update set up (a systemd unit, a
-launchd daemon, a Windows service). That is simpler at run time, but it
+worker services that install and update set up (a systemd unit or a
+launchd daemon). That is simpler at run time, but it
 is one more service on every platform and holds memory while idle.
-
-**Windows.** RQ's normal worker forks, and Windows can't fork. Windows
-workers use RQ's `SpawnWorker` with a timer-based timeout instead of
-`SIGALRM`, talking to the Redis in WSL2 (OPS.27). CI's Windows job runs
-the queue tests that way.
 
 **Steps, one PR each:**
 

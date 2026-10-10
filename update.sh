@@ -77,8 +77,7 @@
 #
 # Runs on Linux (Apache with mod_wsgi) and macOS (gunicorn under launchd,
 # in the venv install-python-deps.sh makes; docs/deployment/macos.md),
-# under macOS's bash 3.2 too. update.ps1 is the Windows counterpart and
-# follows the same steps.
+# under macOS's bash 3.2 too.
 
 set -euo pipefail
 

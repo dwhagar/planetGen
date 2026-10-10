@@ -1,7 +1,7 @@
 # Installing planetGen
 
 This guide takes you from nothing to a running planetGen site with a
-generated galaxy, on Linux, Windows or macOS. It covers the install
+generated galaxy, on Linux or macOS. It covers the install
 scripts, where the example configs live, and what to do after the first
 install. For what planetGen is and how to use it, see the
 [README](README.md).
@@ -23,10 +23,10 @@ install. For what planetGen is and how to use it, see the
 
 | What | Version | Notes |
 |---|---|---|
-| Python | 3.9+ on Linux, 3.10+ on macOS (Homebrew's), 3.12+ recommended on Windows (python.org, "for all users") | Linux uses the system Python. |
+| Python | 3.9+ on Linux, 3.10+ on macOS (Homebrew's) | Linux uses the system Python. |
 | MySQL or MariaDB | MySQL 8.0.16+ or MariaDB 10.4+ | Local or on another machine. |
-| A web server | Apache2 + mod_wsgi (reference), nginx, Caddy, IIS | Only for the website. The command line needs none. |
-| git | any (Git for Windows on Windows) | The checkout must be a git clone so the update scripts can pull. |
+| A web server | Apache2 + mod_wsgi (reference), nginx, Caddy | Only for the website. The command line needs none. |
+| git | any | The checkout must be a git clone so the update scripts can pull. |
 | Disk | about 10 GB once the galaxy is planned, more as sectors fill | The plan stores about 60 million bright stars. Most people then fill neighborhoods as they need them rather than the whole galaxy. |
 
 Supported platforms:
@@ -34,17 +34,16 @@ Supported platforms:
 | Platform | Installer | Updater | Guide |
 |---|---|---|---|
 | Debian or Ubuntu (reference) | `install.sh` | `update.sh` | [Apache](docs/deployment/apache.md), [nginx](docs/deployment/nginx.md), [Caddy](docs/deployment/caddy.md) |
-| Windows | `install.ps1` | `update.ps1` | [Windows](docs/deployment/windows.md): IIS, Caddy or Apache Lounge in front of waitress, or WSL2 |
 | macOS | `install.sh` | `update.sh` | [macOS](docs/deployment/macos.md): Homebrew nginx in front of gunicorn under launchd |
 | A rented server | as on Linux | as on Linux | [VPS and PaaS](docs/deployment/paas.md) |
 
 [`docs/deployment/README.md`](docs/deployment/README.md) compares the
-platforms in more detail.
+platforms in more detail. Windows: see [docs/WINDOWS.md](docs/WINDOWS.md).
 
 > Do not install planetGen with `pip install .`. The installers put its
 > libraries where the web server can use them: from apt first on Linux,
 > or in a virtual environment built from a hash-checked lock file on
-> Windows and macOS. They then install the checkout itself as an
+> macOS. They then install the checkout itself as an
 > editable package (`pip install -e`), so the site and the command line
 > run the checkout's code and a `git pull` takes effect without a
 > reinstall.
@@ -52,17 +51,11 @@ platforms in more detail.
 ## 1. Get the code
 
 Clone the repository where the site will run from. The guides use
-`/var/lib/planetGen` on Linux and macOS and `C:\srv\planetGen` on
-Windows:
+`/var/lib/planetGen`:
 
 ```bash
 sudo git clone https://github.com/dwhagar/planetGen.git /var/lib/planetGen
 cd /var/lib/planetGen
-```
-
-```powershell
-git clone https://github.com/dwhagar/planetGen.git C:\srv\planetGen
-cd C:\srv\planetGen
 ```
 
 Keep it a git checkout: the update scripts update it by fetching and
@@ -92,17 +85,10 @@ actions empty the tables, so a less privileged web account still needs
 
 ## 3. Write `config.json`
 
-On Linux and macOS:
-
 ```bash
 sudo cp config.json.example config.json
 sudo ${EDITOR:-nano} config.json
 ```
-
-On Windows, `install.ps1` writes `config.json` for you from
-`examples\windows\config.json.example` (with this install's folders and a
-new `secret_key`) when there is none. Edit its `mysql` settings
-afterwards.
 
 At minimum set:
 
@@ -111,7 +97,7 @@ At minimum set:
   `python3 -c "import secrets; print(secrets.token_hex(32))"`;
 - `site_name` and `base_url` for your site;
 - `proxy_fix` when a separate web server proxies to the app (nginx,
-  Caddy, IIS, macOS): `{"x_for": 1, "x_proto": 1, "x_host": 0}`
+  Caddy, macOS): `{"x_for": 1, "x_proto": 1, "x_host": 0}`
   ([why](docs/deployment/README.md#behind-a-reverse-proxy-proxy_fix)).
   Apache with mod_wsgi does not need it.
 
@@ -122,7 +108,7 @@ by administrators and the web server's account.
 
 ## 4. Run the installer
 
-Every installer prints the first admin password **once**, in a box, when
+The installer prints the first admin password **once**, in a box, when
 it creates a new database. Write it down.
 
 ### Linux (Debian or Ubuntu)
@@ -160,38 +146,6 @@ question when the database
 isn't ready yet; run `sudo ./update.sh` once it is. The installer never
 writes the web server's site file; it prints what to do next.
 
-### Windows
-
-From an elevated PowerShell in the checkout:
-
-```powershell
-powershell -ExecutionPolicy Bypass -File .\install.ps1
-```
-
-It runs six steps:
-
-1. Makes a virtual environment (`C:\srv\planetgen-venv`) with the
-   libraries and waitress from `requirements-server.lock`, checked by
-   hash, and the checkout installed into it as an editable package.
-2. Fetches the NLTK corpus and sets `NLTK_DATA` machine-wide.
-3. Writes `config.json` if there is none, then migrates the database,
-   with the same migrate-or-delete question as `update.sh`. While
-   `mysql.password` is still the example's `CHANGE-ME`, it skips this
-   step and tells you to run `update.ps1` once the settings are in.
-4. Creates the tile cache, jobs and log folders under
-   `C:\ProgramData\planetgen`.
-5. Sets permissions with `icacls` for the app's account.
-6. Checks that the web app imports.
-
-Options: `-VenvDir`, `-DataDir`, `-ServiceAccount` (default
-`NT SERVICE\planetgen` for the waitress service; use
-`"IIS AppPool\planetgen"` for IIS), `-SkipDatabase`, and `-Population`
-to run the optional population pass without the y/N question the
-database step asks. The permissions
-step needs the account to exist, so run `update.ps1` again after
-creating the service. The [Windows guide](docs/deployment/windows.md)
-covers the rest.
-
 ### macOS
 
 ```bash
@@ -224,10 +178,6 @@ sudo systemctl reload apache2
 and the certificate paths, put `user _www _www;` at the top of
 `nginx.conf`, then `sudo nginx -t && sudo brew services start nginx`.
 
-**Windows:** pick IIS, Caddy or Apache Lounge in the
-[Windows guide](docs/deployment/windows.md); `install.ps1` prints the
-command to try waitress by hand first.
-
 Where the examples live:
 
 | Directory | What is in it | Guide |
@@ -236,9 +186,8 @@ Where the examples live:
 | [`examples/nginx/`](examples/nginx/) | nginx site file | [nginx.md](docs/deployment/nginx.md) |
 | [`examples/caddy/`](examples/caddy/) | Caddyfile | [caddy.md](docs/deployment/caddy.md) |
 | [`examples/systemd/`](examples/systemd/) | gunicorn service for nginx or Caddy | [nginx.md](docs/deployment/nginx.md) |
-| [`examples/windows/`](examples/windows/) | IIS `web.config`, Caddy and Apache Lounge configs, WinSW service files, `config.json` example, orbit-update command | [windows.md](docs/deployment/windows.md) |
 | [`examples/macos/`](examples/macos/) | nginx config and launchd plists (gunicorn, orbit update, `update.sh`) | [macos.md](docs/deployment/macos.md) |
-| [`examples/maintenance/`](examples/maintenance/) | Monthly maintenance: systemd timers or launchd daemons (`install-maintenance-timer.sh`), Task Scheduler tasks (`install-maintenance-task.ps1`) | [below](#scheduled-maintenance) |
+| [`examples/maintenance/`](examples/maintenance/) | Monthly maintenance: systemd timers or launchd daemons (`install-maintenance-timer.sh`) | [below](#scheduled-maintenance) |
 | [`examples/systems/`](examples/systems/) | Example system files for `planetgen system --system-file` | [system-file-format.md](docs/system-file-format.md) |
 
 ## 6. HTTPS and the first admin login
@@ -270,9 +219,7 @@ planetgen plan      # the galaxy's shape and its bright stars; once, before anyt
 planetgen galaxy    # a random start and every sector within 100 ly of it
 ```
 
-On Windows run them with the venv's Python
-(`C:\srv\planetgen-venv\Scripts\python.exe -m planetgen.cli.generate ...`).
-On Linux and macOS the installer adds the `planetgen` command.
+The installer adds the `planetgen` command.
 
 **Planning takes a while and needs space.** The plan places every star
 of 500 solar luminosities or more across the whole galaxy, about 60
@@ -296,14 +243,10 @@ right, with commands for each platform.
 ## Keeping it up to date
 
 ```bash
-sudo ./update.sh                                             # Linux and macOS
+sudo ./update.sh
 ```
 
-```powershell
-powershell -ExecutionPolicy Bypass -File .\update.ps1        # Windows, elevated
-```
-
-Each one pulls the latest code (a `git reset --hard` to the tracked
+It pulls the latest code (a `git reset --hard` to the tracked
 branch; `config.json` and other untracked files are kept), checks the
 Python libraries and installs only a missing or too-old one, migrates
 the database, re-applies folders and permissions, and checks that the
@@ -316,8 +259,7 @@ notes say to regenerate, then generate the galaxy again
 ([step 7](#7-generate-the-galaxy)). The update never runs the
 population pass; run `planetgen population` by hand when wanted. Then
 reload the site as the script's last line says (Apache reload on Linux,
-a `SIGHUP` to gunicorn on macOS, restarting the service or app pool on
-Windows).
+a `SIGHUP` to gunicorn on macOS).
 
 Do not use a plain `git pull`: it skips the migration and can drop the
 scripts' executable bits.
@@ -332,20 +274,14 @@ sudo examples/maintenance/install-maintenance-timer.sh                      # Li
 sudo examples/maintenance/install-maintenance-timer.sh --skip-update-timer  # orbits only
 ```
 
-```powershell
-powershell -ExecutionPolicy Bypass -File .\examples\maintenance\install-maintenance-task.ps1 -Database planetgen   # Windows (Task Scheduler)
-```
-
-Add `-SkipUpdateTask` on Windows to leave the update out. An unattended
-update deploys whatever is on the tracked branch with no review, and
+An unattended update deploys whatever is on the tracked branch with no review, and
 keeps the data when a migration is pending.
 
 ## Command line only
 
 The generator does not need the website. Run the installer anyway (it
 sets up the libraries, database and NLTK corpus) and skip step 5. Then
-run `planetgen`, the command the installer adds on Linux and macOS (on
-Windows, the venv's `python -m planetgen.cli.generate`).
+run `planetgen`, the command the installer adds.
 
 ## Development setup
 

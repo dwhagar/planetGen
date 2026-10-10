@@ -297,11 +297,11 @@ greenlet==3.5.6 ; (python_full_version == '3.10.*' and platform_machine == 'AMD6
     --hash=sha256:fe3170a69fe039b18ad18171e66faa9a75f6fe9d78f968fd9b54e09fbd714d81 \
     --hash=sha256:fea4427d1ffdb3b523d7daa6712038428a4c16c450b9777bdd1221cfee0eab49
     # via sqlalchemy
-gunicorn==23.0.0 ; python_full_version < '3.10' and sys_platform != 'win32' \
+gunicorn==23.0.0 ; python_full_version < '3.10' \
     --hash=sha256:ec400d38950de4dfd418cff8328b2c8faed0edb0d517d3394e457c317908ca4d \
     --hash=sha256:f014447a0101dc57e294f6c18ca6b40227a4c90e9bdb586042628030cba004ec
     # via planetgen (setup.py)
-gunicorn==26.2.0 ; python_full_version >= '3.10' and sys_platform != 'win32' \
+gunicorn==26.2.0 ; python_full_version >= '3.10' \
     --hash=sha256:62b864895d9ebff0b2f9867ba04fe811c93121596540830c9c916d0769668447 \
     --hash=sha256:bd249d0b3f7972f7432f0a6b6ff3b3ee2d129f70cd1ff6c09a9dd9e29a2b88e3
     # via planetgen (setup.py)
@@ -2071,10 +2071,6 @@ typing-inspection==0.4.4 ; python_full_version >= '3.10' \
     --hash=sha256:547274fa6b0a561ccf549cc9524b999a578e737d015d8709d021f9d0d13bea47 \
     --hash=sha256:65b8397ba37ccbce054456aaccddfc91e6e3083c92824df348d96ca832f3f147
     # via pydantic
-waitress==3.0.2 ; sys_platform == 'win32' \
-    --hash=sha256:682aaaf2af0c44ada4abfb70ded36393f0e307f4ab9456a215ce0020baefc31f \
-    --hash=sha256:c56d67fd6e87c2ee598b76abdd4e96cfad1f24cacdea5078d382b1f9d7b5ed2e
-    # via planetgen (setup.py)
 werkzeug==3.1.9 \
     --hash=sha256:55ca7c70a75689be937aa27f8ff4b018f06ff4838fc73045560bf0f5a1291060 \
     --hash=sha256:6392e50c78460ba618e5b21f08a71f59c99ce99cdc6cf6e3dd7e6ccca8754fab

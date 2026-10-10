@@ -5,8 +5,7 @@
 # Detects the user/group Apache2 actually runs as (on macOS, _www, which
 # gunicorn runs as) and sets ownership and permissions on the deployed
 # planetGen web directory accordingly. Runs on Linux and macOS (only
-# chown, chmod and find flags both have); install.ps1's
-# Set-PlanetGenPermissions does the same with icacls on Windows.
+# chown, chmod and find flags both have).
 # Deliberately bash rather than Python -- this is a one-shot
 # root-privileged deployment step, not part of the portable application.
 #

@@ -203,11 +203,9 @@ Population is optional and off by default (Boss, 2026-10-01): nothing
 runs it unless asked. `planetgen galaxy` and `planetgen sector` run
 the whole pass after they save only with `--population` (this replaced
 7.49.0's `--no-population`); the admin Generate page's jobs don't pass
-it. `install.sh` (and `install.ps1`) offer to
-run it after the database step (`offer_population_pass`,
-`Invoke-OptionalPopulation`), y/N with a 30-second timeout defaulting to
-No and skipped with no terminal; `POPULATION=1` (`-Population` on
-Windows) runs it without asking. Nothing in system generation itself
+it. `install.sh` offers to
+run it after the database step (`offer_population_pass`), y/N with a 30-second timeout defaulting to
+No and skipped with no terminal; `POPULATION=1` runs it without asking. Nothing in system generation itself
 changes.
 
 ## Tech levels (POP.7, POP.8, POP.9)

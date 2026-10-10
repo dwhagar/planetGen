@@ -13,7 +13,7 @@ SETTINGS = {name: 1 for name in settings_file.PLAN_SETTINGS}
 WORDS = {"dictionary": {"apple", "pear"}, "offensive": {"zzz"}}
 
 
-def test_file_name_is_windows_safe():
+def test_file_name_is_portable():
     when = datetime.datetime(2026, 10, 9, 18, 5, 7)
     name = settings_file.file_name(SEED, "A" * 22, when)
     assert name == "000102030405060708090A0B0C0D0E0F-" + "A" * 22 + "-20261009-180507Z.json"

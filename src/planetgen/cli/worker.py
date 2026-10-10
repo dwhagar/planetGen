@@ -15,6 +15,8 @@ import os
 import re
 import sys
 
+import rq
+
 from planetgen import _version
 from planetgen.queue import redisqueue, work
 
@@ -84,11 +86,7 @@ def worker_class():
     import the new files on every job), so before it waits for the next job
     it starts itself over when the release on disk has changed.
     """
-    base = redisqueue.worker_class()
-    if not hasattr(os, "fork"):
-        return base  # a spawned horse is a fresh interpreter anyway
-
-    class WarmWorker(base):
+    class WarmWorker(rq.Worker):
         def dequeue_job_and_maintain_ttl(self, *args, **kwargs):
             if stale():
                 self.register_death()

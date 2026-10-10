@@ -20,12 +20,12 @@ seeded first login — see "Authentication" and "Write endpoints" below.
 Comparison against FastAPI/Django REST Framework: the persistence layer
 (`planetgen/db/store.py`) is deliberately plain SQL over a small `pymysql`
 wrapper with no ORM, this API is read-heavy with no concurrency pressure yet,
-and it needs to deploy onto a plain Apache2/VPS setup (or nginx, Caddy,
-IIS or macOS; see [`deployment/`](deployment/README.md)).
+and it needs to deploy onto a plain Apache2/VPS setup (or nginx, Caddy
+or macOS; see [`deployment/`](deployment/README.md)).
 Flask has no opinion
 about the data layer (route handlers call straight into `planetgen.db.query`'s and
 `planetgen.db.store`'s existing functions), deploys as a plain WSGI app
-(`mod_wsgi`, gunicorn or waitress), and
+(`mod_wsgi` or gunicorn), and
 lives at `../src/planetgen/api/`, mounted at `/api/` by the same Flask app that
 serves the HTML pages (`../src/planetgen/web/`, see "Deploying"
 below). Those pages are this API's own frontend, calling it in-process. FastAPI's
@@ -625,7 +625,7 @@ forced credential change. They back the admin stats page
   "stale", "load": {"values", "kind", "text"}}, "items": [job tree
   roots, newest first, each with "totals"], "total", "limit",
   "offset"}`. `load.kind` is `load` (the 1, 5 and 15 minute load
-  average) or, on Windows, `cpu` (CPU percent over the same windows).
+  average); `load.values` is null where the system has no load average.
   `available` is false until `update.sh` has added control schema v7.
 - `GET /api/admin/work/<id>` — the whole job tree holding node `<id>`
   (ADM.12): every node's `kind`, `title`, `state`, `status` (`interrupted`
@@ -1258,7 +1258,7 @@ every write endpoint applies its own stricter limit
   (`ratelimit.storage_uri` empty; `PLANETGEN_RATELIMIT_STORAGE_URI`
   overrides it), shared by every worker process, and by the login
   lockouts. `memory://` is right only for a single-process deployment
-  (Flask's dev server, or `mod_wsgi`/`gunicorn`/waitress with exactly one
+  (Flask's dev server, or `mod_wsgi`/`gunicorn` with exactly one
   process): each worker would otherwise track its own separate counters
   and the real, aggregate request rate could exceed the configured limit
   by roughly the worker count. A Redis outage falls back to counting in
@@ -1272,7 +1272,7 @@ every write endpoint applies its own stricter limit
 - Exceeding a limit returns `429` with a `Retry-After` header and
   `X-RateLimit-*` headers (`RATELIMIT_HEADERS_ENABLED`).
 - "Client IP" is `request.remote_addr`. Behind a separate reverse proxy
-  (nginx, Caddy, IIS, Apache `mod_proxy`) that is the proxy's address
+  (nginx, Caddy, Apache `mod_proxy`) that is the proxy's address
   unless `config.json`'s `proxy_fix` is set (see
   [`config.md`](config.md) and
   [`deployment/README.md`](deployment/README.md#behind-a-reverse-proxy-proxy_fix));
@@ -1350,11 +1350,9 @@ setup loads that one file:
   [`deployment/apache.md`](deployment/apache.md).
 - **gunicorn** behind nginx or Caddy (Linux, macOS):
   `gunicorn --pythonpath <checkout>/src/html wsgi:application`.
-- **waitress** behind IIS, Caddy or Apache (Windows):
-  `waitress-serve wsgi:application` run from `src/html`.
 
 [`deployment/README.md`](deployment/README.md) compares them and links
-each guide. Behind nginx, Caddy, IIS or Apache's `mod_proxy`, set
+each guide. Behind nginx, Caddy or Apache's `mod_proxy`, set
 `config.json`'s `proxy_fix` so the rate limits see the client's address
 and the app knows a request came over HTTPS; under `mod_wsgi` leave it
 off. No separate vhost or `ServerName` is needed for the API: the pages
@@ -1371,9 +1369,9 @@ line on the apache2 systemd unit), **not** the vhost's `SetEnv`
 directives: those never reach `os.environ` under `mod_wsgi` --
 `planetgen/api/config.py` reads its config from `os.environ` once, at process
 startup, and `SetEnv` values only ever show up in a request's `environ`
-dict, which doesn't exist yet at that point. Under gunicorn or waitress,
+dict, which doesn't exist yet at that point. Under gunicorn,
 the service's own environment (systemd `EnvironmentFile`, launchd
-`EnvironmentVariables`, WinSW `<env>`) works the normal way. If running
+`EnvironmentVariables`) works the normal way. If running
 more than one process, leave `ratelimit.storage_uri` empty so the counts
 are on Redis (see "Rate limiting").
 

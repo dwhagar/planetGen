@@ -34,9 +34,6 @@ from tests.db_schema_support import migrations_with_probes
 
 REPO_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-pytestmark = pytest.mark.skipif(sys.platform.startswith("win"), reason="update.sh is Linux and macOS only")
-
-
 @pytest.fixture
 def control_db(monkeypatch):
     """A control schema of the test's own, dropped afterwards."""

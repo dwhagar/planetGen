@@ -3,8 +3,7 @@
 """
 The admin work queue page (ADM.10): `/admin/queue` lists the job trees
 (ADM.12) newest first, under the number of workers active and the
-server's load ("x / x / x" over 1, 5 and 15 minutes; CPU percent on
-Windows); `/admin/queue/<id>` shows one tree, expandable from the master
+server's load ("x / x / x" over 1, 5 and 15 minutes); `/admin/queue/<id>` shows one tree, expandable from the master
 job down to single tasks. Every control (pause, resume, cancel, retry,
 delete, pause the whole queue, clear a stale lease) first shows a
 confirmation page (`/admin/queue/confirm/<action>`), then posts to
@@ -195,8 +194,7 @@ def _status_view(status):
         "workers_active": status.get("workers_active", 0),
         "runs_active": status.get("runs_active", 0),
         "load": load.get("text") or "unknown",
-        "load_label": "CPU in use, 1 / 5 / 15 minutes" if load.get("kind") == "cpu"
-        else "Load average, 1 / 5 / 15 minutes",
+        "load_label": "Load average, 1 / 5 / 15 minutes",
         "paused": status.get("paused", False),
         "paused_by": status.get("paused_by"),
         "paused_at": status.get("paused_at"),

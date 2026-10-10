@@ -11,7 +11,6 @@ Tests that take the `mysql_config` fixture (see `conftest.py`) are
 skipped, not failed, when no MySQL test server is configured/reachable.
 """
 
-import math
 import os
 import threading
 import time
@@ -238,31 +237,9 @@ def test_the_load_line_on_this_system():
         assert load["text"].count(" / ") == 2
 
 
-def test_cpu_percent_averages_decay_like_the_load_average():
-    readings = iter([(0, 0), (50, 100), (50, 200), (50, 300)])
-    clock = iter([0.0, 5.0, 10.0, 15.0])
-    sampler = systemLoad.CpuSampler(lambda: next(readings), clock=lambda: next(clock))
-    sampler._thread = object()  # no background thread in the test
-    assert sampler.averages() is None
-    sampler.sample()
-    sampler.sample()
-    assert sampler.averages() == [50.0, 50.0, 50.0]  # first interval: half idle
-    sampler.sample()
-    one, five, fifteen = sampler.averages()
-    assert one == pytest.approx(50 + 50 * (1 - math.exp(-5 / 60)))
-    assert 50 < fifteen < five < one < 100
-
-
-def test_windows_shows_cpu_percent(monkeypatch):
+def test_a_system_without_a_load_average_says_unknown(monkeypatch):
     monkeypatch.delattr(os, "getloadavg", raising=False)
-    monkeypatch.setattr(os, "name", "nt")
-
-    class Fake:
-        def averages(self):
-            return [12.4, 9.0, 8.2]
-
-    monkeypatch.setattr(systemLoad, "_sampler", lambda: Fake())
-    assert systemLoad.load_average() == {"values": [12.4, 9.0, 8.2], "kind": "cpu", "text": "12% / 9% / 8%"}
+    assert systemLoad.load_average() == {"values": None, "kind": "load", "text": "unknown"}
 
 
 # ---------------------------------------------------------------------------

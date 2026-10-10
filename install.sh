@@ -5,8 +5,7 @@
 # One-shot installer for deploying planetGen's web interface: on Linux
 # behind an Apache2 server with mod_wsgi (docs/deployment/apache.md), and
 # on macOS under gunicorn and launchd with Homebrew's nginx in front
-# (docs/deployment/macos.md). install.ps1 is the Windows counterpart;
-# the three follow the same steps, so a change to one belongs in all. `setup.py` stays scoped to the Python side only (the
+# (docs/deployment/macos.md).  `setup.py` stays scoped to the Python side only (the
 # `planetgen` package plus the `sectorgen`/`systemgen` console
 # scripts, installable on any OS); everything Linux/Apache-specific lives
 # here instead:

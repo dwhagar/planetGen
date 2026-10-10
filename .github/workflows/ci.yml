@@ -17,7 +17,7 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 # Where jobs run: see docs/ci-runners.md. Every job runs on GitHub's
-# machines (ubuntu-latest, windows-latest, macos-latest) unless the
+# machines (ubuntu-latest, macos-latest) unless the
 # repository variable SELF_HOSTED is set to true (Settings > Secrets and
 # variables > Actions > Variables); then each job reads its RUNNER_*
 # variable, a JSON label list or runner name, or falls back to the
@@ -44,7 +44,7 @@ jobs:
         # Self-hosted runners keep their Python between jobs; installing
         # into a fresh venv under RUNNER_TEMP (emptied for every job) keeps
         # one job's packages out of the next.
-        run: python -c "import os, venv; d = os.path.join(os.environ['RUNNER_TEMP'], 'venv'); venv.create(d, with_pip=True); open(os.environ['GITHUB_PATH'], 'a').write(os.path.join(d, 'Scripts' if os.name == 'nt' else 'bin') + '\n')"
+        run: python -c "import os, venv; d = os.path.join(os.environ['RUNNER_TEMP'], 'venv'); venv.create(d, with_pip=True); open(os.environ['GITHUB_PATH'], 'a').write(os.path.join(d, 'bin') + '\n')"
 
       - name: Install package with test extras
         run: python -m pip install --upgrade pip && pip install -e ".[test]"
@@ -146,7 +146,7 @@ jobs:
         # Self-hosted runners keep their Python between jobs; installing
         # into a fresh venv under RUNNER_TEMP (emptied for every job) keeps
         # one job's packages out of the next.
-        run: python -c "import os, venv; d = os.path.join(os.environ['RUNNER_TEMP'], 'venv'); venv.create(d, with_pip=True); open(os.environ['GITHUB_PATH'], 'a').write(os.path.join(d, 'Scripts' if os.name == 'nt' else 'bin') + '\n')"
+        run: python -c "import os, venv; d = os.path.join(os.environ['RUNNER_TEMP'], 'venv'); venv.create(d, with_pip=True); open(os.environ['GITHUB_PATH'], 'a').write(os.path.join(d, 'bin') + '\n')"
 
       - name: Install package with test/api extras
         run: python -m pip install --upgrade pip && pip install -e ".[test,api]"
@@ -210,7 +210,7 @@ jobs:
         # Self-hosted runners keep their Python between jobs; installing
         # into a fresh venv under RUNNER_TEMP (emptied for every job) keeps
         # one job's packages out of the next.
-        run: python -c "import os, venv; d = os.path.join(os.environ['RUNNER_TEMP'], 'venv'); venv.create(d, with_pip=True); open(os.environ['GITHUB_PATH'], 'a').write(os.path.join(d, 'Scripts' if os.name == 'nt' else 'bin') + '\n')"
+        run: python -c "import os, venv; d = os.path.join(os.environ['RUNNER_TEMP'], 'venv'); venv.create(d, with_pip=True); open(os.environ['GITHUB_PATH'], 'a').write(os.path.join(d, 'bin') + '\n')"
 
       - name: Install package with test/api/browser extras
         run: python -m pip install --upgrade pip && pip install -e ".[test,api,browser]"
@@ -383,119 +383,6 @@ jobs:
           grep -q "denied" "$LOG"
           [ "$(mysql -h 127.0.0.1 -P "$DB_PORT" -u root planetgen -N -e 'SELECT MAX(version) FROM schema_migrations')" = 61 ]
 
-  windows-jobs:
-    needs: mathcheck
-    # The admin Generate page's background jobs on native Windows:
-    # spawning the runner detached, liveness through OpenProcess, Cancel
-    # through the job's cancel file and taskkill /T, and the state file
-    # write retry. No MySQL here; the one database test skips. Jobs run
-    # on Redis (PERF.24), which has no Windows build: it runs in WSL, as
-    # docs/deployment/windows.md sets it up (OPS.27), and the jobs' RQ
-    # workers are SpawnWorkers.
-    runs-on: ${{ fromJSON((!github.event.pull_request.head.repo.fork && vars.SELF_HOSTED == 'true' && (vars.RUNNER_WINDOWS || '["self-hosted", "Windows"]')) || '"windows-latest"') }}
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: Vampire/setup-wsl@v5
-        with:
-          distribution: Ubuntu-24.04
-          additional-packages: redis-server
-
-      - name: Start Redis in WSL
-        # TEST.115. A `--daemonize` redis started by a step's own WSL session
-        # went away with it (WSL stops a distro when its last session ends),
-        # so the tests saw "connection refused" on 127.0.0.1:6379 although
-        # `redis-cli ping` had answered inside WSL. Redis runs in the
-        # foreground of a wsl.exe this job keeps open, and the step waits
-        # until Windows itself can connect, trying WSL's own address when
-        # localhost forwarding is missing, and hands the working URL to the
-        # test step through GITHUB_ENV.
-        shell: pwsh
-        run: |
-          Start-Process -FilePath wsl.exe -WindowStyle Hidden -ArgumentList @('-d', 'Ubuntu-24.04', '--exec', 'redis-server', '--port', '6379', '--bind', '0.0.0.0', '--protected-mode', 'no', '--dir', '/tmp')
-          $ips = @('127.0.0.1')
-          $wslIp = ((wsl.exe -d Ubuntu-24.04 --exec hostname -I) -join ' ').Trim().Split(' ')[0]
-          if ($wslIp) { $ips += $wslIp }
-          $found = $null
-          for ($try = 0; $try -lt 30 -and -not $found; $try++) {
-            foreach ($ip in $ips) {
-              $client = [System.Net.Sockets.TcpClient]::new()
-              try { $client.Connect($ip, 6379); $found = $ip } catch { } finally { $client.Dispose() }
-              if ($found) { break }
-            }
-            if (-not $found) { Start-Sleep -Seconds 2 }
-          }
-          if (-not $found) {
-            wsl.exe -l -v
-            wsl.exe -d Ubuntu-24.04 --exec ps aux
-            throw "Redis in WSL does not answer from Windows on $($ips -join ', '):6379"
-          }
-          Write-Host "Redis answers from Windows on ${found}:6379"
-          "PLANETGEN_TEST_REDIS_URL=redis://${found}:6379/0" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
-
-      - uses: actions/setup-python@v5
-        id: setup-python
-        # On a self-hosted Windows runner whose service account isn't an
-        # administrator, setup-python can't install Python into its tool
-        # cache. Carry on with the machine's own Python 3.12 instead (the
-        # next step); docs/ci-runners.md, "Windows runner".
-        continue-on-error: ${{ runner.environment == 'self-hosted' }}
-        with:
-          python-version: "3.12"
-
-      - name: Find or install Python 3.12 without administrator rights
-        # In order: a copy this step installed before, the py launcher, an
-        # all-users install, else python.org's installer run per-user into
-        # the tool cache (reused next time). That last one works when the
-        # service runs as a normal user account, but not as NETWORK SERVICE
-        # or LOCAL SERVICE (access denied): install Python 3.12 for all
-        # users on those machines (docs/ci-runners.md, "Windows runner").
-        # The runner's service account can't see a Python installed only
-        # for your own login, so that one doesn't count.
-        if: steps.setup-python.outcome == 'failure'
-        run: |
-          $own = Join-Path $env:RUNNER_TOOL_CACHE 'python-3.12-user'
-          $python = $null
-          if (Test-Path "$own\python.exe") { $python = "$own\python.exe" }
-          if (-not $python -and (Get-Command py -ErrorAction SilentlyContinue)) {
-            $found = & py -3.12 -c "import sys; print(sys.executable)" 2>$null
-            if ($LASTEXITCODE -eq 0 -and $found) { $python = $found.Trim() }
-          }
-          if (-not $python) {
-            foreach ($dir in @("$env:ProgramFiles\Python312", "C:\Python312")) {
-              if (Test-Path "$dir\python.exe") { $python = "$dir\python.exe"; break }
-            }
-          }
-          if (-not $python) {
-            $installer = Join-Path $env:RUNNER_TEMP 'python-3.12-amd64.exe'
-            Invoke-WebRequest 'https://www.python.org/ftp/python/3.12.10/python-3.12.10-amd64.exe' -OutFile $installer
-            $opts = @('/quiet', 'InstallAllUsers=0', "TargetDir=`"$own`"", 'Include_launcher=0',
-                      'Include_test=0', 'Shortcuts=0', 'AssociateFiles=0', 'PrependPath=0')
-            $p = Start-Process -FilePath $installer -ArgumentList $opts -Wait -PassThru
-            if ($p.ExitCode -ne 0 -or -not (Test-Path "$own\python.exe")) {
-              throw "No Python 3.12 this runner can use, and installing one for its account failed (exit $($p.ExitCode)). Install Python 3.12 from python.org for all users and restart the runner service; see docs/ci-runners.md, Windows runner."
-            }
-            $python = "$own\python.exe"
-          }
-          & $python --version
-          Split-Path $python | Out-File -FilePath $env:GITHUB_PATH -Append -Encoding utf8
-
-      - name: Private virtualenv for this job
-        # Self-hosted runners keep their Python between jobs; installing
-        # into a fresh venv under RUNNER_TEMP (emptied for every job) keeps
-        # one job's packages out of the next.
-        run: python -c "import os, venv; d = os.path.join(os.environ['RUNNER_TEMP'], 'venv'); venv.create(d, with_pip=True); open(os.environ['GITHUB_PATH'], 'a').write(os.path.join(d, 'Scripts' if os.name == 'nt' else 'bin') + '\n')"
-
-      - name: Install package with test/api extras
-        run: python -m pip install --upgrade pip && pip install -e ".[test,api]"
-
-      - name: Pre-fetch the NLTK 'words' corpus
-        run: python -m nltk.downloader words
-
-      - name: Run the Generate page and job tests
-        # PLANETGEN_TEST_REDIS_URL comes from "Start Redis in WSL" (GITHUB_ENV).
-        run: pytest src/tests/test_web_generate.py src/tests/test_redis_queue.py -rs -p no:cacheprovider
-
   macos-installers:
     needs: mathcheck
     # install.sh and its helpers on macOS, under /bin/bash 3.2 as a Mac
@@ -547,54 +434,6 @@ jobs:
           sudo launchctl print system/org.planetgen.update | head -n 5
           grep -q '<string>ci_test</string>' /Library/LaunchDaemons/org.planetgen.orbits.ci_test.plist
 
-  windows-installers:
-    needs: mathcheck
-    # install.ps1 under Windows PowerShell 5.1 (what Windows ships) with no
-    # database (-SkipDatabase), waitress answering from the venv it made,
-    # and install-maintenance-task.ps1's Task Scheduler tasks. The job
-    # runner itself is covered by windows-jobs above.
-    runs-on: ${{ fromJSON((!github.event.pull_request.head.repo.fork && vars.SELF_HOSTED == 'true' && vars.RUNNER_WINDOWS_INSTALLERS) || '"windows-latest"') }}
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Every PowerShell script parses
-        shell: pwsh
-        run: |
-          $failed = $false
-          Get-ChildItem -Recurse -Filter *.ps1 | ForEach-Object {
-            $errors = $null
-            [System.Management.Automation.Language.Parser]::ParseFile($_.FullName, [ref]$null, [ref]$errors) | Out-Null
-            if ($errors) { $errors | ForEach-Object { Write-Host "$($_.Extent.File):$($_.Extent.StartLineNumber): $($_.Message)" }; $failed = $true }
-          }
-          if ($failed) { exit 1 }
-
-      - name: install.ps1
-        shell: powershell
-        run: .\install.ps1 -SkipDatabase -VenvDir "$env:RUNNER_TEMP\venv" -DataDir "$env:RUNNER_TEMP\pgdata" -ServiceAccount "NT AUTHORITY\NETWORK SERVICE"
-
-      - name: waitress answers from the venv
-        shell: pwsh
-        run: |
-          $env:NLTK_DATA = "$env:RUNNER_TEMP\pgdata\nltk_data"
-          $server = Start-Process -PassThru -NoNewWindow -WorkingDirectory src\html -FilePath "$env:RUNNER_TEMP\venv\Scripts\waitress-serve.exe" -ArgumentList "--listen=127.0.0.1:8000", "wsgi:application"
-          $code = 0
-          foreach ($i in 1..30) {
-            try { $code = (Invoke-WebRequest -UseBasicParsing -SkipHttpErrorCheck http://127.0.0.1:8000/api/health).StatusCode; break } catch { Start-Sleep 2 }
-          }
-          Stop-Process -Id $server.Id -Force
-          Write-Host "GET /api/health: HTTP $code"
-          if ($code -eq 0) { exit 1 }
-
-      - name: install-maintenance-task.ps1 makes the scheduled tasks
-        shell: powershell
-        run: |
-          .\examples\maintenance\install-maintenance-task.ps1 -Database ci_test -VenvDir "$env:RUNNER_TEMP\venv" -DataDir "$env:RUNNER_TEMP\pgdata"
-          schtasks.exe /Query /TN "planetGen orbits (ci_test)"
-          if ($LASTEXITCODE) { exit 1 }
-          schtasks.exe /Query /TN "planetGen update"
-          if ($LASTEXITCODE) { exit 1 }
-          Get-Content "$env:RUNNER_TEMP\pgdata\tasks\orbits-ci_test.cmd"
-
   dependency-audit:
     needs: mathcheck
     runs-on: ${{ fromJSON((!github.event.pull_request.head.repo.fork && vars.SELF_HOSTED == 'true' && (vars.RUNNER_LINUX || '["self-hosted", "Linux"]')) || '"ubuntu-latest"') }}
@@ -609,7 +448,7 @@ jobs:
         # Self-hosted runners keep their Python between jobs; installing
         # into a fresh venv under RUNNER_TEMP (emptied for every job) keeps
         # one job's packages out of the next.
-        run: python -c "import os, venv; d = os.path.join(os.environ['RUNNER_TEMP'], 'venv'); venv.create(d, with_pip=True); open(os.environ['GITHUB_PATH'], 'a').write(os.path.join(d, 'Scripts' if os.name == 'nt' else 'bin') + '\n')"
+        run: python -c "import os, venv; d = os.path.join(os.environ['RUNNER_TEMP'], 'venv'); venv.create(d, with_pip=True); open(os.environ['GITHUB_PATH'], 'a').write(os.path.join(d, 'bin') + '\n')"
 
       - name: Install package with test/api extras
         run: python -m pip install --upgrade pip setuptools && pip install -e ".[test,api]"
