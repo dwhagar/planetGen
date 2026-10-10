@@ -22,7 +22,7 @@ release is stamped.
 | API | API.24 |
 | ADM | ADM.50 |
 | SEC | SEC.33 |
-| TEST | TEST.129 |
+| TEST | TEST.131 |
 | USR | USR.10 |
 | OPS | OPS.42 |
 | DOC | DOC.18 |
@@ -1402,6 +1402,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.126 | The heavy WebGL browser-map tests time out when four workers run them together (bug) | none | open |
 | TEST.127 | test_nebula_shape_endpoint_serves_a_mesh failed once in a full parallel run (bug) | none | open |
 | TEST.128 | test_spatial_position_db and test_web_db_fields fail under a parallel run on one MySQL (bug) | none | open |
+| TEST.129 | Two orbit-update tests fail on the MySQL 8.4 leg: the stored last_updated_at rounds up (bug) | none | open |
+| TEST.130 | test_the_scene_positions_at_the_epoch_match_the_stored_ones fails when a random system has comets (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
