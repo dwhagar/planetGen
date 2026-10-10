@@ -22,7 +22,7 @@ release is stamped.
 | API | API.24 |
 | ADM | ADM.50 |
 | SEC | SEC.33 |
-| TEST | TEST.125 |
+| TEST | TEST.126 |
 | USR | USR.10 |
 | OPS | OPS.41 |
 | DOC | DOC.18 |
@@ -845,7 +845,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.146 | Fly through the galaxy: scroll-zoom, double-click flight, distance-based visibility and a see-through near field | none | open |
 | MAP.147 | The Galaxy Map wire format: the investigation (done) and the record of what was built from it | none | open |
 | MAP.148 | The star visibility law: apparent-magnitude opacity, flux-based brightness and an on-screen limit from a histogram | none | open |
-| MAP.149 | The near field: depth fade, a see-through focus tube, drawing from inside a container, and picking that matches what is drawn | none | open |
+| MAP.149 | The near field: depth fade, a see-through focus tube, drawing from inside a container, and picking that matches what is drawn | none | done, PR #1141 |
 | MAP.150 | The free camera: wheel zoom to the cursor, double-click flight, and the observer inside, with the container named from position | none | open |
 | MAP.151 | The region data layer: exact-centred frame, aligned cells, per-level aggregates and slot-wrap ranges | none | open |
 | MAP.152 | Scale hand-offs: galaxy, sector and system cross-fade with hysteresis, and per-tile camera-relative origins | none | open |
@@ -871,7 +871,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.6 | Courses that steer clear of gravity wells | none | open |
 | NAV.7 | One reference for every object, with its parents | none | done, PR #688 |
 | NAV.8 | Pages and anchors for stars, planets, moons and belts | none | done, PR #1095 |
-| NAV.9 | Search and locate return references for every kind | none | open |
+| NAV.9 | Search and locate return references for every kind | none | done, PR #1139 |
 | NAV.10 | Routing that scales past a few thousand systems | none | done, PR #814 |
 | NAV.11 | Travel times for the system-to-system route too | none | done, PR #1099 |
 | NAV.12 | No maximum hop length: a route always reaches the nearest star it can, across any number of sectors | none | done, PR #841 |
@@ -1388,6 +1388,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.122 | Browser map tests fail on plain main in Bugfixes lane 2's container (fixture maps, controls, system-page maps) (bug) | none | done, PR #1125 |
 | TEST.123 | test_a_loaded_sector_knows_every_objects_cell_and_velocity fails once under full-suite load (bug) | none | done, PR #1121 |
 | TEST.124 | Phenomena page tests fail with KeyError scattered in system_pages._phenomena_load (bug) | none | done, PR #1077 |
+| TEST.125 | Three browser-map tests fail on main with "no generated system has a moon" (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

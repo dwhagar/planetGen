@@ -25,6 +25,7 @@ const GB = await import(new URL("galaxyblocks.js", STATIC_URL).href);
 // stage view gets it from the host anyway).
 const SV = await import(new URL("galaxystageview.js", STATIC_URL).href);
 const G3 = await import(new URL("galaxymap3d.js", STATIC_URL).href);
+const NF = await import(new URL("nearfield.js", STATIC_URL).href);
 
 const WIDTH = 800;
 const HEIGHT = 600;
@@ -77,6 +78,7 @@ function open(href, options) {
     els.address, els.matches, els.controls);
   const calls = { cameras: [], fetches: [], blockInfo: [], placed: [], cells: [], hints: [], sizes: [], clips: [], locates: [], scenes: [], infos: [], hidden: [], pages: [], uncharted: [] };
   const server = options.server || (() => ({ children: [], sectors: [] }));
+  const near = { D: 1, R: 0 };
   const host = {
     THREE, scene, camera, canvasEl, edgePc: F.edgePc, shape: F.shape, galaxyRadius: F.galaxyRadius,
     reducedMotion: true, accentColor: "#4f5fe8", canGenerate: !!options.canGenerate, courseSectors: options.courseSectors || [],
@@ -85,7 +87,11 @@ function open(href, options) {
       palette: { dim: [0.2, 0.2, 0.3], accent: [0.3, 0.4, 0.9], hot: [1, 1, 1], placedLow: [0.3, 0.25, 0.2], placedHigh: [1, 0.96, 0.87] },
     }),
     makeBlockMesh,
+    // The near field of the camera last set (MAP.149), as galaxymap3d.js works it.
+    nearFieldAt: (x, y, z) => NF.nearFieldAtWorld(camera.matrixWorldInverse.elements, x, y, z, near.D, near.R),
     setCamera(v) {
+      near.D = v.dist;
+      near.R = v.focusRadius || 0;
       camera.quaternion.fromArray(v.quaternion);
       const back = new THREE.Vector3(0, 0, v.dist).applyQuaternion(camera.quaternion);
       camera.position.set(v.target[0] + back.x, v.target[1] + back.y, v.target[2] + back.z);
@@ -745,6 +751,16 @@ test("clicking an arc on the map drills into it", async () => {
   assert.equal(stage.picks[0].kind, "arc");
   assert.ok(spot.text.startsWith(crumbLabels(m)[1]), `${spot.text} vs ${crumbLabels(m)}`);
   assert.match(m.win.location.search, /^\?p=a[0-2]\.\d+$/, "the URL names the arc by band and bearing");
+});
+
+test("a block the near field has faded out can't be picked (MAP.149)", async () => {
+  const m = await start();
+  assert.ok(pointOver(m, /^Arc /), "arcs show their tooltip while the near field lets them");
+  m.view.onPointerLeave();
+  m.host.nearFieldAt = () => 0.2;
+  assert.equal(pointOver(m, /^Arc /), null, "nothing is picked below a share of 0.35");
+  m.host.nearFieldAt = () => 0.35;
+  assert.ok(pointOver(m, /^Arc /), "a share of 0.35 can be picked");
 });
 
 // The outline lines drawn over the map: [opacity, line count].

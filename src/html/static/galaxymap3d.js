@@ -61,6 +61,9 @@ const { formatDistancePc, LIGHTYEAR_M, PARSEC_M } = await import(`./distance.js$
 const { formatNumber } = await import(`./numberformat.js${VERSION_QUERY}`);
 const { boostLight, starLightBoost } = await import(`./starlight.js${VERSION_QUERY}`);
 const {
+  INSIDE_FACE_ALPHA, NEAR_FIELD_GLSL, nearFieldAtWorld, visibleEnough,
+} = await import(`./nearfield.js${VERSION_QUERY}`);
+const {
   FADE_OCTAVES, POINT_FADE, birthRadius, opacitySum, tileRanks,
 } = await import(`./starfade.js${VERSION_QUERY}`);
 const {
@@ -731,14 +734,40 @@ function initGalaxyMap3d(canvasEl, data) {
   // lines (a filled block's amber edges add up to 0.7 more).
   var GRID_EDGE_MIX = 0.1;
 
+  // MAP.149, the near field (static/nearfield.js): the camera-to-focus
+  // distance, the focus's radius (0: unknown) and the center of the block the
+  // camera is inside (far away: none), shared by every block and star
+  // material and set with the camera (setCamera).
+  var NO_BLOCK_INSIDE = 1e12;
+  var nearUniforms = {
+    nearD: { value: 1 }, nearR: { value: 0 },
+    insideCenter: { value: new THREE.Vector3(NO_BLOCK_INSIDE, NO_BLOCK_INSIDE, NO_BLOCK_INSIDE) },
+  };
+
+  // The near field's share (0..1) at a world point, as the shaders work it
+  // out, and whether it is enough to be picked (the same numbers, so
+  // picking agrees with drawing).
+  function nearFieldAt(x, y, z) {
+    return nearFieldAtWorld(camera.matrixWorldInverse.elements, x, y, z, nearUniforms.nearD.value, nearUniforms.nearR.value);
+  }
+
+  function nearFieldVisible(x, y, z) {
+    return visibleEnough(nearFieldAt(x, y, z));
+  }
+
   function makeBlockMaterial(translucent) {
     return new THREE.ShaderMaterial({
       uniforms: {
         filledTint: { value: FILLED_TINT }, fade: { value: 1 }, gridEdges: { value: 1 },
         faceAlpha: { value: data.pinned ? 0 : 1 },
+        nearD: nearUniforms.nearD, nearR: nearUniforms.nearR, insideCenter: nearUniforms.insideCenter,
       },
       transparent: translucent,
       depthWrite: !translucent,
+      // Both sides drawn: the back faces only of the block the camera is
+      // inside (the fragment shader drops the others), so a container is
+      // seen from the inside (MAP.149). Picking ignores back faces.
+      side: THREE.DoubleSide,
       vertexShader: [
         "#include <common>",
         "#include <logdepthbuf_pars_vertex>",
@@ -746,16 +775,21 @@ function initGalaxyMap3d(canvasEl, data) {
         "attribute float prismAlpha;",
         "attribute float prismFill;",
         "attribute vec2 faceUv;",
+        "attribute vec3 prismCenter;",
         "varying vec3 vColor;",
         "varying float vAlpha;",
         "varying float vFill;",
         "varying vec2 vUv;",
+        "varying vec3 vView;",
+        "varying vec3 vCenter;",
         "void main() {",
         "  vColor = prismColor;",
         "  vAlpha = prismAlpha;",
         "  vFill = prismFill;",
         "  vUv = faceUv;",
+        "  vCenter = prismCenter;",
         "  vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);",
+        "  vView = mvPosition.xyz;",
         "  gl_Position = projectionMatrix * mvPosition;",
         "  #include <logdepthbuf_vertex>",
         "}",
@@ -768,16 +802,27 @@ function initGalaxyMap3d(canvasEl, data) {
         "uniform float fade;",
         "uniform float gridEdges;",
         "uniform float faceAlpha;",
+        "uniform float nearD;",
+        "uniform float nearR;",
+        "uniform vec3 insideCenter;",
         "varying float vAlpha;",
         "varying float vFill;",
         "varying vec2 vUv;",
+        "varying vec3 vView;",
+        "varying vec3 vCenter;",
+        NEAR_FIELD_GLSL,
         "void main() {",
         "  #include <logdepthbuf_fragment>",
+        // Back faces are only the walls of the block the camera is in.
+        "  bool own = distance(vCenter, insideCenter) < 0.05;",
+        "  if (!gl_FrontFacing && !own) discard;",
         "  vec2 toEdge = min(vUv, 1.0 - vUv) / max(fwidth(vUv), vec2(1e-6));",
         "  float edge = gridEdges * (1.0 - smoothstep(0.5, 1.5, min(toEdge.x, toEdge.y)));",
         "  vec3 face = mix(vColor, filledTint, step(0.001, vFill) * " + FILLED_FACE_MIX.toFixed(3) + ");",
         "  vec3 edgeColor = mix(vec3(1.0), filledTint, step(0.001, vFill));",
-        "  gl_FragColor = vec4(mix(face, edgeColor, (" + GRID_EDGE_MIX.toFixed(3) + " + 0.7 * vFill) * edge), vAlpha * fade * mix(edge, 1.0, faceAlpha));",
+        "  float shown = mix(edge, 1.0, faceAlpha);",
+        "  if (!gl_FrontFacing) shown = mix(edge, 1.0, " + INSIDE_FACE_ALPHA.toFixed(3) + ");",
+        "  gl_FragColor = vec4(mix(face, edgeColor, (" + GRID_EDGE_MIX.toFixed(3) + " + 0.7 * vFill) * edge), vAlpha * fade * shown * nearField(vView, nearD, nearR));",
         "  #include <colorspace_fragment>",
         "}",
       ].join("\n"),
@@ -1527,6 +1572,7 @@ function initGalaxyMap3d(canvasEl, data) {
       fadeIn: { value: Math.max(STAR_FADE_IN_MS, 1) / 1000 },
       chartedOnly: { value: 0 }, unchartedDim: { value: UNCHARTED_STAR_DIM },
       camRadius: { value: 1 }, radiusFactor: { value: FETCH_RADIUS_FACTOR }, zoomFadeOn: { value: 1 },
+      nearD: nearUniforms.nearD, nearR: nearUniforms.nearR,
     },
     vertexShader: [
       "#include <common>",
@@ -1541,6 +1587,9 @@ function initGalaxyMap3d(canvasEl, data) {
       "uniform float camRadius;",
       "uniform float radiusFactor;",
       "uniform float zoomFadeOn;",
+      "uniform float nearD;",
+      "uniform float nearR;",
+      NEAR_FIELD_GLSL,
       "float ease01(float x) {",
       "  float t = clamp(x, 0.0, 1.0);",
       "  return t * t * (3.0 - 2.0 * t);",
@@ -1575,7 +1624,11 @@ function initGalaxyMap3d(canvasEl, data) {
       "  vShown = clamp((now - starBorn) / fadeIn, 0.0, 1.0) * mix(1.0, zoomShown, zoomFadeOn);",
       // "Charted only" (MAP.111): a star outside charted space dimmed.
       "  vShown *= mix(1.0, unchartedDim, chartedOnly * starUncharted);",
-      "  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);",
+      "  vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);",
+      // MAP.149: stars close to the camera, or between it and the focus,
+      // thin out.
+      "  vShown *= nearField(mvPosition.xyz, nearD, nearR);",
+      "  gl_Position = projectionMatrix * mvPosition;",
       "  gl_PointSize = starSize * pixelRatio;",
       // Outside the wedge shown (setWedgeClip): dropped.
       "  if (starClipped > 0.5) {",
@@ -1711,6 +1764,20 @@ function initGalaxyMap3d(canvasEl, data) {
     starPoints.updateMatrixWorld();
     markClippedStars();
   }
+
+  // For tests (MAP.149): the near field the shaders were given (the
+  // camera-to-focus distance, the focus's radius, the center of the block
+  // the camera is inside or null), the camera and its target, and the
+  // near-field share at a world point if one is given.
+  canvasEl.galaxyNearField = function (x, y, z) {
+    var inside = nearUniforms.insideCenter.value;
+    return {
+      distance: nearUniforms.nearD.value, radius: nearUniforms.nearR.value,
+      inside: inside.x === NO_BLOCK_INSIDE ? null : inside.toArray(),
+      camera: camera.position.toArray(), target: target.toArray(),
+      share: x === undefined ? null : nearFieldAt(x, y, z),
+    };
+  };
 
   // For tests (MAP.153): the sum of the drawn stars' zoom opacities if the
   // camera orbited at `radius` pc (the same arithmetic as the shader's),
@@ -2755,9 +2822,17 @@ function initGalaxyMap3d(canvasEl, data) {
     navPick: navPick,
     // The stage view turns the camera freely (MAP.96): `quaternion` is
     // its turn, the camera sitting `dist` back along it from `target`.
+    // `focusRadius` (optional) is how wide the focus is and `inside` (the
+    // center of the block the camera is inside, or null) the block drawn
+    // from the inside (MAP.149).
+    nearFieldAt: nearFieldAt,
     setCamera: function (v) {
       target.set(v.target[0], v.target[1], v.target[2]);
       orbit.radius = v.dist;
+      nearUniforms.nearD.value = v.dist;
+      nearUniforms.nearR.value = v.focusRadius || 0;
+      if (v.inside) nearUniforms.insideCenter.value.set(v.inside[0], v.inside[1], v.inside[2]);
+      else nearUniforms.insideCenter.value.set(NO_BLOCK_INSIDE, NO_BLOCK_INSIDE, NO_BLOCK_INSIDE);
       camera.quaternion.fromArray(v.quaternion);
       var back = new THREE.Vector3(0, 0, v.dist).applyQuaternion(camera.quaternion);
       camera.position.copy(target).add(back);
@@ -2918,7 +2993,7 @@ function initGalaxyMap3d(canvasEl, data) {
     enabled: function () { return stageView.inContainer(); },
     points: function () { return starList; },
     reach: function () { return POINT_PICK_PX; },
-    accept: function (star) { return star.phenomenon && inWedgeClip(star.x, star.y, star.z); },
+    accept: function (star) { return star.phenomenon && inWedgeClip(star.x, star.y, star.z) && nearFieldVisible(star.x, star.y, star.z); },
     lastWins: true,
     tooltip: function (point) { return (point.name ? point.name + ", " : "") + pointTypeLabel(point); },
     hover: phenomenonHover,

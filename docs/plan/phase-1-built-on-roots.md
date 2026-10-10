@@ -26,7 +26,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| NAV.9 | Search and locate return references for every kind |  | queryDb search and galaxy_locate. |
 
 ### Picker
 
@@ -115,11 +114,10 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | MAP.119 | Expected star density editable by admins on the Galaxy Map |  |  |
 | MAP.122 | A Select mode on every galaxy view: Galaxy (blocks and sectors) or Star |  | Merges the 2026-10-07 "button to select a star" ask; MAP.101 (PR #431) made stars unpickable by default. |
-| MAP.146 | Fly through the galaxy: scroll-zoom, double-click flight, distance-based visibility and a see-through near field | MAP.148, MAP.149, MAP.150, MAP.151, MAP.152, MAP.154, MAP.155, MAP.159 | Boss 2026-10-09 22:24Z and 22:56Z. Umbrella for MAP.148 to MAP.152; replaces the fixed ladder in galaxy/drill.py and galaxyprisms.js. |
+| MAP.146 | Fly through the galaxy: scroll-zoom, double-click flight, distance-based visibility and a see-through near field | MAP.148, MAP.150, MAP.151, MAP.152, MAP.154, MAP.155, MAP.159 | Boss 2026-10-09 22:24Z and 22:56Z. Umbrella for MAP.148 to MAP.152; replaces the fixed ladder in galaxy/drill.py and galaxyprisms.js. |
 | MAP.147 | The Galaxy Map wire format: the investigation (done) and the record of what was built from it | MAP.159 | Research Lane 3 report in docs/design/galaxy-map-wire-format.md; record until the build items are done. |
 | MAP.148 | The star visibility law: apparent-magnitude opacity, flux-based brightness and an on-screen limit from a histogram |  | Fly-through report item 1; builds after MAP.153 (its first stage). |
-| MAP.149 | The near field: depth fade, a see-through focus tube, drawing from inside a container, and picking that matches what is drawn |  | Fly-through report item 2; can start now. Folds MAP.121 blocker fade and MAP.141 context. |
-| MAP.150 | The free camera: wheel zoom to the cursor, double-click flight, and the observer inside, with the container named from position | MAP.149 | Fly-through report item 3; needs the near field. |
+| MAP.150 | The free camera: wheel zoom to the cursor, double-click flight, and the observer inside, with the container named from position |  | Fly-through report item 3; needs the near field. |
 | MAP.151 | The region data layer: exact-centred frame, aligned cells, per-level aggregates and slot-wrap ranges |  | Fly-through report item 4. Decide cache keys with MAP.147. |
 | MAP.152 | Scale hand-offs: galaxy, sector and system cross-fade with hysteresis, and per-tile camera-relative origins | MAP.148, MAP.150, MAP.154 | Fly-through report item 5. |
 | MAP.154 | Nested bright-star lists on the server, so every parent list is a subset of its child's |  | Zoom visibility note stage 2; shares tile keys with MAP.147 and MAP.151. |
@@ -192,6 +190,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | TEST.111 | test_ensure_sector_generated_creates_then_reuses_the_same_sector fails in a busy parallel run (bug) |  | Test flake reported 2026-10-09; Bugfixes lane 1. |
+| TEST.125 | Three browser-map tests fail on main with "no generated system has a moon" (bug) |  |  |
 | TEST.116 | test_bughunt_end_to_end stores M2V or M6V where it expects K2V on the MySQL 8.4 and MariaDB legs once (bug) |  | Bugfixes lane 1 report 03:57Z. |
 
 ### Foundations for the issue features

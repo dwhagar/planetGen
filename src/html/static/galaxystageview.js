@@ -58,6 +58,7 @@ const { createBreadcrumb } = await import(`./breadcrumb.js${VERSION_QUERY}`);
 const { createPicker, createTooltip } = await import(`./mappick.js${VERSION_QUERY}`);
 const { createSectorStage, DEFAULT_HIDDEN_KINDS } = await import(`./galaxysector.js${VERSION_QUERY}`);
 const { createSystemStage } = await import(`./galaxysystem.js${VERSION_QUERY}`);
+const NF = await import(`./nearfield.js${VERSION_QUERY}`);
 
 // The other choices while one is hovered (MAP.18).
 const OTHER_FADE = 0.25;
@@ -815,8 +816,26 @@ export function createStageView(host) {
     view.dist = view.zoom * fitDistance(around, view.fit.target, view.quat);
   }
 
+  // The block of the stage the camera is inside, if any (MAP.149): its
+  // center, for the block shader to draw its walls from the inside.
+  function containerCenter(eye) {
+    if (!display || !display.options) return null;
+    for (let n = 0; n < display.options.length; n++) {
+      const blocks = display.options[n].blocks;
+      for (let k = 0; k < blocks.length; k++) {
+        if (NF.blockContains(blocks[k].bounds, eye[0], eye[1], eye[2])) return NF.blockCenter(blocks[k].bounds);
+      }
+    }
+    return null;
+  }
+
   function applyView() {
-    host.setCamera({ target: view.target.slice(), dist: view.dist, quaternion: view.quat.toArray() });
+    const back = new THREE.Vector3(0, 0, view.dist).applyQuaternion(view.quat);
+    const eye = [view.target[0] + back.x, view.target[1] + back.y, view.target[2] + back.z];
+    host.setCamera({
+      target: view.target.slice(), dist: view.dist, quaternion: view.quat.toArray(),
+      focusRadius: entered ? entered.halfEdge : 0, inside: containerCenter(eye),
+    });
     drawLeaders();
   }
 
@@ -1272,6 +1291,13 @@ export function createStageView(host) {
       const meshes = [];
       display.groups.forEach(function (group) { Array.prototype.push.apply(meshes, group.meshes); });
       return meshes;
+    },
+    // Only what is drawn can be picked (MAP.149): not the back faces (the
+    // walls of the block the camera is inside) and not what the near field
+    // has faded out, so the pick falls through to what is behind it.
+    visible: function (hit, ray) {
+      if (hit.face && ray && hit.face.normal.dot(ray.direction) > 0) return false;
+      return NF.visibleEnough(host.nearFieldAt(hit.point.x, hit.point.y, hit.point.z));
     },
     entryOf: function (hit) {
       const cell = hit.object.userData.cells[hit.object.userData.part.owners[hit.face.a]];
@@ -2681,7 +2707,28 @@ export function createStageView(host) {
     }
   }
 
-  // The name lookup's matches, as buttons that fly to each one's sector.
+  // A planet or moon hit is a body inside a system (NAV.9): it opens through
+  // /object/<ref>, which lands on its row on the system page.
+  function isBody(match) {
+    return match.kind === "planet" || match.kind === "moon";
+  }
+
+  function bodyUrl(match) {
+    return "/object/" + encodeURIComponent(match.ref);
+  }
+
+  function matchLabel(match) {
+    if (match.kind === "system") return match.name + " (system in " + (match.sector_name || "sector " + match.sector_id) + ")";
+    if (isBody(match)) {
+      const chain = (match.parents || []).filter(function (p) { return p.kind === "planet" || p.kind === "system"; })
+        .reverse().map(function (p) { return p.name; }).filter(Boolean).join(", ");
+      return match.name + " (" + match.kind + (chain ? " of " + chain : "") + ")";
+    }
+    return match.name + " (sector)";
+  }
+
+  // The name lookup's matches: sectors and systems as buttons that fly to the
+  // sector, planets and moons as links to their row on the system page.
   function showMatches(matches) {
     const box = els.matches;
     if (!box) return;
@@ -2689,16 +2736,21 @@ export function createStageView(host) {
     const list = document.createElement("ul");
     matches.forEach(function (match) {
       const item = document.createElement("li");
-      const button = document.createElement("button");
-      button.type = "button";
-      button.textContent = match.kind === "system"
-        ? match.name + " (system in " + (match.sector_name || "sector " + match.sector_id) + ")"
-        : match.name + " (sector)";
-      button.addEventListener("click", function () {
-        clearMatches();
-        locate(match);
-      });
-      item.appendChild(button);
+      if (isBody(match)) {
+        const link = document.createElement("a");
+        link.href = bodyUrl(match);
+        link.textContent = matchLabel(match);
+        item.appendChild(link);
+      } else {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.textContent = matchLabel(match);
+        button.addEventListener("click", function () {
+          clearMatches();
+          locate(match);
+        });
+        item.appendChild(button);
+      }
       list.appendChild(item);
     });
     box.appendChild(list);
@@ -2728,7 +2780,12 @@ export function createStageView(host) {
       const sectors = new Set((exact.length ? exact : matches).map(function (m) { return m.sector_id; }));
       if (matches.length === 1 || (exact.length && sectors.size === 1)) {
         notice("");
-        locate(exact[0] || matches[0]);
+        const only = exact[0] || matches[0];
+        if (isBody(only)) {
+          window.location.assign(bodyUrl(only));
+          return;
+        }
+        locate(only);
         return;
       }
       notice(matches.length + " names match; pick one.");

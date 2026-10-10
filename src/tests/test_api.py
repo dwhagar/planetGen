@@ -1498,6 +1498,66 @@ def test_galaxy_locate_finds_sectors_and_systems_by_name(client, mysql_config):
     assert client.get("/api/galaxy/locate?q=%25").get_json()["matches"] == []
 
 
+def test_galaxy_locate_and_search_give_planet_and_moon_hits_a_reference_and_parent_chain(client, mysql_config):
+    """NAV.9: the locate box finds planets and moons by name (belts have no names), and both it and the
+    search panels give each hit its printed-ID reference and its chain of parents."""
+    from planetgen.galaxy.geometry import sector_position_pc
+
+    address = (12, 1, 30)
+    center = sector_position_pc(*address, 4.0)
+    cfg = SystemConfig()
+    cfg.STAR_TYPE = "G2V"
+    cfg.MOONS = True
+    cfg.BINARY_SYSTEM = False
+    for _ in range(60):
+        system = StarSystem(system_config=cfg)
+        if any(p.body_type != "a" and p.moons for p in system.planets):
+            break
+    sector = SpaceSector("Zorbulon Field", edge_ly=10.0)
+    sector.add_system(system, position=(0.0, 0.0, 0.0), system_config=cfg)
+    position = {"center_x_pc": center[0], "center_y_pc": center[1], "center_z_pc": center[2],
+                "galactic_radius_pc": math.dist(center, (0.0, 0.0, 0.0)),
+                "ring_index": address[0], "layer_index": address[1], "ring_slot_index": address[2]}
+    sector_id = _db.save_sector(sector, config=mysql_config, galaxy_position=position)
+    conn = _db.get_connection(mysql_config)
+    try:
+        planet = conn.execute(
+            "SELECT p.id, p.star_system_id FROM planets p JOIN moons m ON m.planet_id = p.id "
+            "WHERE p.body_type <> 'a' LIMIT 1").fetchone()
+        moon_id = conn.execute("SELECT id FROM moons WHERE planet_id = ? LIMIT 1", (planet["id"],)).fetchone()["id"]
+        conn.execute("UPDATE planets SET name = 'Zorbulon Prime' WHERE id = ?", (planet["id"],))
+        conn.execute("UPDATE moons SET name = 'Zorbulon Minor' WHERE id = ?", (moon_id,))
+        conn.execute("UPDATE star_systems SET name = 'Zorbulon' WHERE id = ?", (planet["star_system_id"],))
+        conn.commit()
+    finally:
+        conn.close()
+    system_ref = f"system:{pid('system', planet['star_system_id'])}"
+    sector_ref = f"sector:{pid('sector', sector_id)}"
+    planet_ref = f"planet:{pid('planet', planet['id'])}"
+
+    matches = client.get("/api/galaxy/locate?q=zorbulon").get_json()["matches"]
+    by_kind = {m["kind"]: m for m in matches}
+    assert {"system", "planet", "moon"} <= set(by_kind)
+    assert by_kind["planet"]["ref"] == planet_ref
+    assert by_kind["planet"]["parents"] == [
+        {"ref": sector_ref, "kind": "sector", "name": "Zorbulon Field"},
+        {"ref": system_ref, "kind": "system", "name": "Zorbulon"}]
+    assert by_kind["moon"]["ref"] == f"moon:{pid('moon', moon_id)}"
+    assert [p["ref"] for p in by_kind["moon"]["parents"]] == [sector_ref, system_ref, planet_ref]
+    assert (by_kind["moon"]["ring"], by_kind["moon"]["layer"], by_kind["moon"]["slot"]) == address
+    assert by_kind["system"]["parents"] == [{"ref": sector_ref, "kind": "sector", "name": "Zorbulon Field"}]
+
+    results = client.get("/api/search?planet_q=Zorbulon&moon_q=Zorbulon&system_q=Zorbulon").get_json()["results"]
+    planet_row = results["planets"]["rows"][0]
+    assert planet_row["ref"] == planet_ref
+    assert [p["ref"] for p in planet_row["parents"]] == [sector_ref, system_ref]
+    moon_row = results["moons"]["rows"][0]
+    assert moon_row["ref"] == f"moon:{pid('moon', moon_id)}"
+    assert [(p["kind"], p["name"]) for p in moon_row["parents"]] == [
+        ("sector", "Zorbulon Field"), ("system", "Zorbulon"), ("planet", "Zorbulon Prime")]
+    assert results["systems"]["rows"][0]["ref"] == system_ref
+
+
 def test_galaxy_sectors_in_box_samples_evenly_past_the_cap(mysql_config):
     """A box holding more than `limit` placed sectors returns every Nth by
     id, not the lowest ids -- a neighborhood is generated outward from the core,
