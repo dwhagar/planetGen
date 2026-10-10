@@ -181,7 +181,7 @@
 <section class="panel" aria-labelledby="route-heading">
   <h2 id="route-heading">Optimal Route</h2>
   <p>{{ stops|length }} stop{{ "" if stops|length == 1 else "s" }}, {{ route_distance_text }} total. Longest hop {{ longest_hop_text }}.
-  {%- if unknown_jumps %} {{ unknown_jumps }} jump{{ "" if unknown_jumps == 1 else "s" }} cross{{ "es" if unknown_jumps == 1 else "" }} unknown space (sectors not yet generated).{% endif %}</p>
+  {%- if unknown_jumps %} {{ unknown_jumps }} jump{{ "" if unknown_jumps == 1 else "s" }} cross{{ "es" if unknown_jumps == 1 else "" }} unknown space (uncharted sectors).{% endif %}</p>
   {%- macro route_list(items, label) %}
   <ol class="nav-route" role="list" aria-label="{{ label }}">
     {%- for stop in items %}

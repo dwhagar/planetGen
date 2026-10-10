@@ -74,7 +74,7 @@ def test_the_list_shows_what_is_near_with_links_and_the_ungenerated_count(client
     assert response.status_code == 200
     assert "Within 12 pc of" in html and system["name"] in html
     assert re.search(r'href="/system/\d+"', html)
-    assert "have not been generated yet" in html or "has not been generated yet" in html
+    assert "are uncharted" in html or "is uncharted" in html
     assert 'id="nearby-results"' in html
 
 
