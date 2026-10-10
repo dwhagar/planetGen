@@ -453,3 +453,9 @@ HOLMAN_WIEGERT_ECCENTRICITY_RANGE = (0.0, 0.8)
 # *different* stars of a wide binary rather than one shared star -- see
 # that method's docstring and orbits.mutual_hill_radius_au for the caveat.
 GLADMAN_MUTUAL_HILL_STABILITY_FACTOR = 2 * math.sqrt(3)
+
+ELECTRON_VOLT_J = float(astropy_constants.e.value)  # One electron volt in joules (the elementary charge times 1 V)
+
+# Earth's XUV flux today, 4.6 erg/cm^2/s at 1 AU (Ribas et al. 2005), W/m^2:
+# the unit of a planet's `xuv_flux_earth` (GEN.86).
+EARTH_XUV_FLUX_W_M2 = 4.6e-3

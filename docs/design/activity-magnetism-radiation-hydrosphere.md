@@ -15,7 +15,7 @@ in [atmospheres-retention-and-classes.md](atmospheres-retention-and-classes.md);
 the score structure and tiers are in [habitability-index.md](habitability-index.md).
 
 Informs: GEN.84, GEN.86, GEN.87, GEN.88, GEN.89, GEN.104, rogue-planet-surface.md
-Status: research, 2026-10-09; decisions marked "Boss" are his, everything else is a recommendation
+Status: research, 2026-10-09; decisions marked "Boss" are his, everything else is a recommendation. Sections 2 and 3 built in GEN.86 (schema v72: `physics/activity.py`, `physics/magnetism.py`); the stagnant-lid factor and the induced field of a moon with an ocean are not modelled yet.
 
 Evidence tags: [S] seen in a search result (URL under Sources), [C] computed
 (inputs shown), [R] recalled from memory or a design default, unconfirmed.

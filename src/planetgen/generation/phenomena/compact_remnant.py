@@ -42,7 +42,7 @@ first version.
 import math
 
 from planetgen.generation.config import SystemConfig
-from planetgen.physics import constants, spin
+from planetgen.physics import activity, constants, spin
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -169,10 +169,17 @@ class CompactRemnant(Star):
         # GEN.104: the spin axis, a Rayleigh tilt from the galactic pole.
         self.rotation_period_hours = self._rotation_period_hours()
         spin.set_spin(self, spin.GALACTIC_POLE, spin.rayleigh_tilt_deg())
+        # GEN.86: no corona or flares; what the remnant gives off as XUV.
+        activity.generate_remnant_activity(self, self._xuv_w())
 
     def _rotation_period_hours(self):
         """This remnant's rotation period, hours (GEN.104)."""
         raise NotImplementedError
+
+    def _xuv_w(self):
+        """This remnant's XUV luminosity, W (GEN.86): a black hole's disk
+        (or Hawking) luminosity; a neutron star overrides it."""
+        return self.luminosity or 0.0
 
     def to_dict(self):
         """
@@ -525,6 +532,10 @@ class NeutronStar(CompactRemnant):
     def _rotation_period_hours(self):
         """`spin_period_ms` in hours."""
         return self.spin_period_ms / 3.6e6
+
+    def _xuv_w(self):
+        """Thermal X-rays or spin-down X-rays (`activity.neutron_star_xuv_w`)."""
+        return activity.neutron_star_xuv_w(self)
 
     def get_table_properties(self):
         """

@@ -112,7 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, NAV.11, NAV.42, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.57, TEST.77, UX.49, PERF.31, PERF.32, GEN.128, ADM.42 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, NAV.11, NAV.42, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.57, TEST.77, UX.49, PERF.31, GEN.128, ADM.42 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.17, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18, PERF.33, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, DB.15, ADM.43, ADM.44 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, and the anomalies chosen in phase 2. | NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, GEN.114, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies. | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, GEN.55 |
@@ -507,7 +507,7 @@ with `clamp()`.
   with a before and after screenshot in the PR. Applies to the same
   shared control code on the other map pages. Bugfixes lane 1 after
   UX.85. Decided (Boss, 2026-10-10 00:02Z): the Galaxy Map, built on the shared control code.
-  Prerequisites: UX.85. Related: UX.85, MAP.131, MAP.122.
+  Prerequisite: UX.85. Related: UX.85, MAP.131, MAP.122.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -2020,25 +2020,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Index.md, Speculative Xenobiology Extremes.md, Speculative Xenobiology
   Examples.md, Mathematical and Algorithmic Implementation of the
   Planetary Habitability Index.md" Done when the subitems are.
-  Prerequisites: GEN.86, GEN.87, GEN.88, GEN.89.
+  Prerequisites: GEN.87, GEN.88, GEN.89.
   Design: [docs/design/habitability-index.md](design/habitability-index.md)
-
-  - [ ] **GEN.86 Stellar activity (XUV, flares) and planetary magnetic fields**
-    Done: stars store activity (saturation phase, L_XUV/L_bol, flare and
-    particle-event rates by mass and age), and planets a magnetic field
-    strength from mass, rotation and tidal locking (the spin from GEN
-    item GEN.104 when it lands).
-    Research (2026-10-09, activity-magnetism-radiation-hydrosphere.md):
-    split into two sub-items: "star activity columns" (log L_X/L_bol,
-    L_XUV, saturation flag, flare N33, alpha, flare irradiation index)
-    and "planet dipole moment and magnetopause" (needs GEN.104). Use the
-    design doc's 2.1 and 2.4 tables and the 3.5 rules; state that the
-    rates are design defaults with +/-0.5 dex; the tidal-locking time
-    (formula in 3.3), not a stellar-mass cut, decides spin. Add a
-    compact-remnant branch (spin-down power for pulsars, X-ray
-    luminosity for accreting systems, white dwarf UV/XUV decay with
-    age). The dose ladder cannot lean on astropy on Python 3.9.
-    Design: [docs/design/habitability-index.md](design/habitability-index.md)
 
   - [ ] **GEN.87 Surface radiation dose**
     Done: each planet stores its surface dose from column mass (P0/g),
@@ -2054,7 +2037,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     question for Boss (default on): the supernova and GRB flag lowers
     the score only if the flagged event rate exceeds one lethal event
     per 100 Myr.
-    Prerequisite: GEN.86.
     Design: [docs/design/habitability-index.md](design/habitability-index.md)
 
   - [ ] **GEN.88 Hydrosphere and ocean chemistry**
@@ -2096,7 +2078,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     `land_fraction`. It returns the lowest tier, with a reason string,
     for any pulsar, black hole or X-ray-binary planet. Open question for
     Boss (default: store the two flare numbers, derive the rest).
-    Prerequisites: GEN.86, GEN.87, GEN.88.
+    Prerequisites: GEN.87, GEN.88.
     Design: [docs/design/habitability-index.md](design/habitability-index.md)
 
 - [ ] **GEN.90 Refactor the planet classes around the habitability index**
@@ -3228,6 +3210,26 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisite: DB.20.
   Design: [docs/design/object-id-options.md](design/object-id-options.md)
 
+- [ ] **GEN.177 Planetary magnetic fields: a stagnant-lid factor**
+  Left over from GEN.86 (PR #908, Foundations lane 2): the planetary
+  magnetic field model does not yet apply the stagnant-lid factor (a
+  planet with a single rigid lid and no plate tectonics cools its core
+  differently, which changes whether a dynamo runs). Done: the factor is
+  applied where the field strength is computed, with a test on a
+  stagnant-lid and a plate-tectonic planet. Decided with GEN.86 (Boss,
+  decision card, 2026-10-10): unlocked rocky planets draw their day
+  length from 8 to 48 h log-uniform ("Realistic days"), shipped as a
+  small follow-up patch without an item.
+  Prerequisites: none. Related: GEN.86, GEN.88.
+
+- [ ] **GEN.178 Magnetic fields: the induced field of an ocean moon**
+  Left over from GEN.86 (PR #908): the induced magnetic field of a moon
+  with a subsurface ocean in its parent's changing field is not
+  modelled. Done: the induced field is computed for ocean moons and
+  stored beside the intrinsic field, with a test on a known case (a
+  Europa-like moon of a gas giant).
+  Prerequisites: GEN.88. Related: GEN.86.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.18 Run the GEN.30 bright-star backfill in parallel on the work queue**
@@ -3355,43 +3357,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   short transaction of their own; 8 core sectors on 4 workers take 54 s
   against about 90 s.
 
-- [ ] **PERF.32 Generation performance stats: rates recorded per run, deleted on every new version**
-  Boss (GitHub issues [#661](https://github.com/dwhagar/planetGen/issues/661) and [#750](https://github.com/dwhagar/planetGen/issues/750)): "The system should store and use
-  performance data so that it has a better idea how long things will
-  take. It should record things like bright stars created / second,
-  sectors / second, phenomena / second of every generation should be
-  kept along with # of workers", "These stats should be available on the
-  stats page", "Should have the option to do a stat reset from admin"
-  and "Stats should be deleted on every new version." Done: every
-  generation run records its rates per kind of work with the worker
-  count in a control-database table (an Alembic revision); the Stats
-  page shows them; they are deleted when the version changes; Admin has
-  a Reset stats button; PERF.31's benchmark writes into the same table.
-  PERF.33 uses them.
-  Research (2026-10-09, performance-eta-queue-and-caching.md): extend
-  `generation_stats` with `version_key`, `workers`, `kind` (including
-  PERF.31's phase names), sums and `rate_cost_per_s` (pool throughput
-  per `(kind, workers)`); the estimate reads the row for the run's
-  worker count and interpolates, instead of dividing a task time by the
-  worker count (3 workers measured 0.17 s per system against 0.04 s for
-  one; the bright-star fill 1.87 times at 4 workers;
-  `generation/stats.py` `estimate` divides by `min(workers, sectors)`
-  today). Delete rows with another `version_key` on first read or write;
-  benchmark rows use a `bench:` prefix; `queue.work.timing_by_kind` has
-  no caller (reuse or delete). The control schema is v11 after OPS.13,
-  so this is v12. Open question for Boss (default as written): deleting
-  on every new version leaves the first run after each update, and a
-  development server (26 to 123 releases a day) forever, with no
-  recorded rate; the alternative keeps the previous row as a flagged
-  prior until five new samples exist.
-  Boss (2026-10-09): Boss (2026-10-09 23:35Z): "That's why we are
-  tracking the stats for generation." The automatic progress bar rule
-  (PERF.51, UX.84) and the DB.21 deep check estimate read this table:
-  every timed step records its rate under its own kind, so `kind` must
-  cover every sub-step PERF.51's helper runs, not only the work queue's
-  task kinds.
-  Lane (Boss, 2026-10-09 23:38Z): Bugfixes lane 1, order PERF.32, PERF.33, PERF.51, PERF.50, DB.15, then UX.84.
-
 - [ ] **PERF.33 Progress bars and ETAs from measured performance**
   Boss (GitHub issue [#661](https://github.com/dwhagar/planetGen/issues/661)): "time remaining on all progress bars should
   be calculated from this performance metric averaged with the actual
@@ -3420,6 +3385,26 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   save (the slowest sub-step in a dense sector) is now PERF.50.
   Prerequisite: PERF.32. Related: PERF.51, UX.84, PERF.50, DB.15.
   Lane (Boss, 2026-10-09 23:38Z): Bugfixes lane 1, order PERF.32, PERF.33, PERF.51, PERF.50, DB.15, then UX.84.
+  Built with PERF.32 (PR #905): the control schema is v12; the
+  recorded kinds are sector, scatter and phenomena; the `sums` and
+  `rate_cost_per_s` columns from the research sketch were not added and
+  belong to this estimator; the `bench:` prefix is reserved for PERF.31's
+  rows.
+  Partly built (PR #910, Bugfixes lane 1): one `blended_rate`,
+  `time_constant` and `eta_range` in `queue/progress_rate.py` (the
+  recorded rate of PERF.32 blended with the live rate, weight n/(n+15),
+  held back for 5 units or 20 s, tau = max(60, 20 x mean task seconds /
+  workers), a stall hold); the sector and bright-star bars start from
+  the recorded rate; the Generate and Queue pages show a range or
+  "estimating", never dashes; the Queue page ETA blends the recorded
+  task seconds. Remaining in this item: (1) a multi-step job adds each
+  not-yet-started step's estimate, which needs the estimate stored on
+  the step node when the job is planned; (2) the UX.3 banner reads the
+  same `blended_rate`; (3) the phenomenon scatter bar has no recorded
+  rate to start from (its recorded units are placed phenomena, the
+  bar's are weights), so it needs a recorded rate in the bar's own
+  units, or it keeps the live rate. The migration bar (DB.15) stays its
+  own item.
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
   Replace the one-`sector_stats`-row-per-visited-cell ledger of
@@ -3569,7 +3554,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   `add_task` calls in `run_galaxy`, `run_plan`, `StageProgress` and
   `store` with the one helper (no compatibility wrappers). Open question
   for Boss (default 15 seconds, fixed in `tuning.py`, and the fallback used only while a kind has no recorded history): other?
-  Prerequisites: PERF.33. Related: UX.84, PERF.50, PERF.33, PERF.32,
+  Prerequisite: PERF.33. Related: UX.84, PERF.50, PERF.33, PERF.32,
   PERF.34, UX.3.
   Lane (Boss, 2026-10-09 23:38Z): Bugfixes lane 1, order PERF.32, PERF.33, PERF.51, PERF.50, DB.15, then UX.84.
 
@@ -3651,7 +3636,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   heavy revision. Open question for Boss (default: raise the wait for
   the migration process only and have the update script say when a
   revision is expected to be long).
-  Prerequisites: PERF.32, PERF.51.
+  Prerequisite: PERF.51.
   Lane (Boss, 2026-10-09 23:38Z): Bugfixes lane 1, order PERF.32, PERF.33, PERF.51, PERF.50, DB.15, then UX.84.
 
 - [ ] **DB.16 Store the generator epoch and run id on each sector instead of four version text columns**
@@ -3736,7 +3721,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   system with its rows, like the plain check. Open question for Boss
   (default `--deep` flag and a "Deep check" option with the estimate and
   a confirmation, as written): other?
-  Prerequisites: PERF.33. Related: DB.9, PERF.33, PERF.32, PERF.50.
+  Prerequisite: PERF.33. Related: DB.9, PERF.33, PERF.32, PERF.50.
 
 ## API: The JSON API
 
@@ -3801,8 +3786,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
     column (read, admin, upload)" with four scopes (`read`, `generate`,
     `upload`, `admin`; `admin` implies all, `upload` and `generate`
     imply `read`) in a join table `admin_api_key_scopes`, plus
-    `expires_at` and `key_prefix`; control migration v12 (control v11 is
-    OPS.13's; the text says "v8"); existing keys grandfathered as
+    `expires_at` and `key_prefix`; control migration v13 or later (control v11 is OPS.13's, v12 is PERF.32's; the text says "v8"); existing keys grandfathered as
     `admin`; throttle `last_used_at` writes; per-key rate-limit buckets
     (the 50/hour IP default must not apply to keys). Add the sweep
     checks of design doc 5.4 to the Done text. The scope work is a
@@ -4367,6 +4351,16 @@ clears each one.
   product bug it hides is fixed. Related: TEST.71, TEST.73, OPS.19.
   Prerequisites: none.
 
+- [ ] **TEST.112 test_regenerate_phenomenon_keeps_id_name_and_place fails now and then in the full suite (bug)**
+  Reported by Foundations lane 1 (2026-10-10 00:04Z, PERF.32 merge, PR
+  #905): `test_regenerate_phenomenon_keeps_id_name_and_place` is a known
+  intermittent failure in the full suite. Done: the cause is found
+  (shared state or timing under load, or a real regeneration bug) and
+  the test is made robust without skipping or loosening it, or the
+  product bug it hides is fixed. Bugfixes lane 1 or whichever lane
+  touches regeneration next.
+  Prerequisites: none. Related: TEST.111, TEST.71, TEST.73, OPS.19.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -4761,7 +4755,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   built into the Help section, linked from each page it describes, and
   updated by any later change to those features (a feature item is not
   done until its help text is).
-  Prerequisites: DOC.6. Related: DOC.6.
+  Prerequisite: DOC.6. Related: DOC.6.
 
 - [ ] **DOC.8 The sector help pages: the sector list, a sector page, the sector map and the sector scene**
   Boss (2026-10-09 23:53Z): "Add to-do items to build static
@@ -4773,7 +4767,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   file in docs/help/ built into the Help section, linked from each page
   it describes, and updated by any later change to those features (a
   feature item is not done until its help text is).
-  Prerequisites: DOC.6. Related: DOC.6.
+  Prerequisite: DOC.6. Related: DOC.6.
 
 - [ ] **DOC.9 The star system help pages: the system list, a system page, the system map and the planets, moons and belts shown**
   Boss (2026-10-09 23:53Z): "Add to-do items to build static
@@ -4785,7 +4779,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   a Markdown file in docs/help/ built into the Help section, linked from
   each page it describes, and updated by any later change to those
   features (a feature item is not done until its help text is).
-  Prerequisites: DOC.6. Related: DOC.6.
+  Prerequisite: DOC.6. Related: DOC.6.
 
 - [ ] **DOC.10 The search and navigation help pages: search, nearby, the nav page and routes**
   Boss (2026-10-09 23:53Z): "Add to-do items to build static
@@ -4797,7 +4791,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Markdown file in docs/help/ built into the Help section, linked from
   each page it describes, and updated by any later change to those
   features (a feature item is not done until its help text is).
-  Prerequisites: DOC.6. Related: DOC.6.
+  Prerequisite: DOC.6. Related: DOC.6.
 
 - [ ] **DOC.11 The reference browser help pages: species, polities, object classes and phenomena**
   Boss (2026-10-09 23:53Z): "Add to-do items to build static
@@ -4808,7 +4802,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Markdown file in docs/help/ built into the Help section, linked from
   each page it describes, and updated by any later change to those
   features (a feature item is not done until its help text is).
-  Prerequisites: DOC.6. Related: DOC.6.
+  Prerequisite: DOC.6. Related: DOC.6.
 
 - [ ] **DOC.12 The account help pages: signing in, two-factor, the account page, API keys and bookmarks**
   Boss (2026-10-09 23:53Z): "Add to-do items to build static
@@ -4819,7 +4813,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Markdown file in docs/help/ built into the Help section, linked from
   each page it describes, and updated by any later change to those
   features (a feature item is not done until its help text is).
-  Prerequisites: DOC.6. Related: DOC.6.
+  Prerequisite: DOC.6. Related: DOC.6.
 
 - [ ] **DOC.13 The Generate page help pages: layer specs, spans, radial fills, directives, one-off systems and jobs**
   Boss (2026-10-09 23:53Z): "Add to-do items to build static
@@ -4832,7 +4826,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   page is a Markdown file in docs/help/ built into the Help section,
   linked from each page it describes, and updated by any later change to
   those features (a feature item is not done until its help text is).
-  Prerequisites: DOC.6. Related: DOC.6.
+  Prerequisite: DOC.6. Related: DOC.6.
 
 - [ ] **DOC.14 The admin help pages: the queue, the stats page, settings, lockouts and the naming key**
   Boss (2026-10-09 23:53Z): "Add to-do items to build static
@@ -4844,7 +4838,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   built into the Help section, linked from each page it describes, and
   updated by any later change to those features (a feature item is not
   done until its help text is).
-  Prerequisites: DOC.6. Related: DOC.6.
+  Prerequisite: DOC.6. Related: DOC.6.
 
 - [ ] **DOC.15 A glossary and units help page: coordinates, scales, sector paths, object IDs, time and the in-universe wording**
   Boss (2026-10-09 23:53Z): "Add to-do items to build static
@@ -4857,7 +4851,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   section, linked from each page it describes, and updated by any later
   change to those features (a feature item is not done until its help
   text is).
-  Prerequisites: DOC.6. Related: DOC.6.
+  Prerequisite: DOC.6. Related: DOC.6.
 
 - [ ] **DOC.16 The API help page for visitors: what the API is, how to get a key, and where the reference lives**
   Boss (2026-10-09 23:53Z): "Add to-do items to build static
@@ -4869,7 +4863,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Help section, linked from each page it describes, and updated by any
   later change to those features (a feature item is not done until its
   help text is).
-  Prerequisites: DOC.6. Related: DOC.6.
+  Prerequisite: DOC.6. Related: DOC.6.
 
 ## VIEW: The view from a planet
 

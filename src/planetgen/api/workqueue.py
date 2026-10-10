@@ -14,6 +14,7 @@ page (`web/queue_page.py`), not here.
 
 from flask import Blueprint, g, jsonify, request
 
+from planetgen.generation import stats as generationStats
 from planetgen.queue import load as systemLoad, work as workQueue
 
 from .authz import audit, require_admin
@@ -67,11 +68,26 @@ def work():
     status["load"] = load
     roots, total = workQueue.list_roots(conn, limit=limit, offset=offset)
     items = []
+    recorded = _recorded_task_seconds(conn)
     for root in roots:
-        tree = workQueue.load_tree(conn, root["id"], max_tasks=0)
+        tree = workQueue.load_tree(conn, root["id"], max_tasks=0, recorded_task_seconds=recorded)
         items.append(_summary(tree if tree is not None else root))
     return jsonify({"available": True, "status": status, "items": items, "total": total,
                     "limit": limit, "offset": offset})
+
+
+STATS_KIND = {"sector": "sector", "bright-stars": "scatter", "phenomena": "phenomena"}
+"""dict: Work queue task kind -> the generation stats kind its speeds are recorded under."""
+
+
+def _recorded_task_seconds(conn):
+    """`(task kind, workers) -> seconds one task took a worker in earlier runs` (PERF.33), or `None` when
+    nothing was recorded or the stats can't be read."""
+    try:
+        stats = generationStats.GenerationStats().read(conn)
+    except Exception:  # noqa: BLE001 -- an older control schema: the run's own pace alone
+        return None
+    return lambda kind, workers: stats.seconds_per_task(STATS_KIND[kind], workers) if kind in STATS_KIND else None
 
 
 @bp.route("/<node_id>")
@@ -83,7 +99,9 @@ def tree(node_id):
     node = workQueue.get_node(conn, _node_id(node_id))
     if node is None:
         raise ApiError("No such job.", 404)
-    return jsonify({"tree": workQueue.load_tree(conn, node["root_id"]), "node_id": node_id})
+    return jsonify({"tree": workQueue.load_tree(conn, node["root_id"],
+                                                recorded_task_seconds=_recorded_task_seconds(conn)),
+                    "node_id": node_id})
 
 
 @bp.route("/<node_id>/control", methods=["POST"])

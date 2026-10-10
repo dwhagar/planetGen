@@ -70,7 +70,7 @@ import threading
 import time
 import traceback
 
-from planetgen.queue import redisqueue
+from planetgen.queue import progress_rate, redisqueue
 from planetgen.util import log
 from planetgen.util import draw
 
@@ -880,7 +880,7 @@ def list_roots(conn, limit=50, offset=0):
     return roots, int(total)
 
 
-def load_tree(conn, root_id, max_tasks=200):
+def load_tree(conn, root_id, max_tasks=200, recorded_task_seconds=None):
     """
     One whole job tree, every node with its totals added up from its
     children (`_roll_up`).
@@ -890,6 +890,10 @@ def load_tree(conn, root_id, max_tasks=200):
         root_id (str): The root's id (any node's `root_id`).
         max_tasks (int): The most task rows listed per queue node (the
             counts always cover them all); failed tasks come first.
+        recorded_task_seconds (callable, optional): `(task_kind, workers)`
+            -> the seconds one task of that kind took a worker in earlier
+            runs (PERF.32), or `None`; the time left blends it with the
+            run's own pace (PERF.33).
 
     Returns:
         dict | None: The root `_node_dict`, its `children` nested, each
@@ -919,8 +923,17 @@ def load_tree(conn, root_id, max_tasks=200):
         ids,
     ).fetchall():
         counts.setdefault(row["job_id"], {})[row["state"]] = (int(row["n"]), float(row["seconds"]))
+    kinds = {}
+    for row in conn.execute(
+        f"SELECT job_id, kind, COUNT(*) AS n FROM work_tasks WHERE job_id IN ({marks}) GROUP BY job_id, kind", ids,
+    ).fetchall():
+        if int(row["n"]) > kinds.get(row["job_id"], (None, 0))[1]:
+            kinds[row["job_id"]] = (row["kind"], int(row["n"]))
     for node_id, node in nodes.items():
         node["own_counts"] = counts.get(node_id, {})
+        node["recorded_task_seconds"] = None
+        if recorded_task_seconds is not None and node_id in kinds:
+            node["recorded_task_seconds"] = recorded_task_seconds(kinds[node_id][0], node["workers"] or 1)
         if node["own_counts"] and max_tasks:
             node["tasks"] = [dict(task) for task in conn.execute(
                 "SELECT id, kind, task_key, state, UNIX_TIMESTAMP(started_at) AS started_at,"
@@ -956,9 +969,14 @@ def _roll_up(node):
     eta = None
     if node["live"] and planned:
         remaining = planned - totals["done"] - totals["failed"] - totals["cancelled"]
-        if totals["done"]:
-            per_task = own.get("done", (0, 0.0))[1] / totals["done"]
-            eta = remaining * per_task / max(node["workers"] or 1, 1)
+        live_rate = None
+        if totals["done"] and own.get("done", (0, 0.0))[1] > 0:
+            live_rate = totals["done"] / own["done"][1]       # tasks a worker second
+        recorded = node.pop("recorded_task_seconds", None)
+        # PERF.33: the pace measured so far blended with the recorded one.
+        rate = progress_rate.blended_rate(live_rate, totals["done"], 1.0 / recorded if recorded else None)
+        if rate:
+            eta = remaining / rate / max(node["workers"] or 1, 1)
     starts = [node["started_at"]] if node["started_at"] else []
     ends = [node["finished_at"]] if node["finished_at"] else []
     child_etas = []

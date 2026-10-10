@@ -1053,6 +1053,22 @@
 --   (`planetgen plan --phenomenon-min-mass`, default 20 solar masses). A
 --   sector fill draws those below it itself, from its own stream (GEN.168).
 --   NULL on a scatter drawn before v71, which placed every mass.
+-- v72: stellar activity and planetary magnetic fields (GEN.86). `stars`:
+--   `log_lx_lbol` (log10 of the coronal X-ray share of the luminosity; NULL
+--   for a white dwarf or compact remnant), `l_xuv_w` (X-ray plus EUV, W,
+--   including a hot photosphere's own output above 13.6 eV),
+--   `xuv_saturated` (the corona still saturated), `flare_n33_per_yr`
+--   (flares above 1e33 erg a year), `flare_alpha` (the flare-energy slope)
+--   and `xuv_fluence_j` (the XUV given off over the star's age, J).
+--   `planets` and `moons`: `magnetic_moment_a_m2`, `dipole_class` ('none',
+--   'weak', 'earth-like', 'strong', 'multipolar'), `magnetopause_rp`
+--   (standoff in body radii; NULL without a field), `xuv_flux_earth` (XUV
+--   flux in units of Earth's today), `xuv_exposure_index` (lifetime XUV
+--   against a 1 solar mass star's at 1 AU over 5 Gyr) and
+--   `flare_irradiation_index` (flares above 1e33 erg a year over distance
+--   squared, AU). NULL on a row generated before v72. Draws:
+--   `planetgen/physics/activity.py` and `magnetism.py`; design
+--   docs/design/activity-magnetism-radiation-hydrosphere.md sections 2 and 3.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -1554,6 +1570,13 @@ CREATE TABLE IF NOT EXISTS stars (
     spin_axis_y                 DOUBLE,
     spin_axis_z                 DOUBLE,
     axial_tilt_deg              DOUBLE,
+    -- v72 (GEN.86): stellar activity, see header comment.
+    log_lx_lbol                 DOUBLE,
+    l_xuv_w                     DOUBLE,
+    xuv_saturated               BOOLEAN,
+    flare_n33_per_yr            DOUBLE,
+    flare_alpha                 DOUBLE,
+    xuv_fluence_j               DOUBLE,
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
     uid                   BIGINT UNSIGNED,
 
@@ -1662,6 +1685,13 @@ CREATE TABLE IF NOT EXISTS planets (
     p_ch4_kpa                     DOUBLE,
     p_h2s_kpa                     DOUBLE,
     p_so2_kpa                     DOUBLE,
+    -- v72 (GEN.86): magnetic field and the star's XUV and flares here, see header comment.
+    magnetic_moment_a_m2        DOUBLE,
+    dipole_class                VARCHAR(16) CHECK (dipole_class IN ('none', 'weak', 'earth-like', 'strong', 'multipolar')),
+    magnetopause_rp             DOUBLE,
+    xuv_flux_earth              DOUBLE,
+    xuv_exposure_index          DOUBLE,
+    flare_irradiation_index     DOUBLE,
     -- v20 (see header comment): this planet's own reflex-offset "wobble"
     -- from the combined pull of its own moons -- NULL/0 with no moons.
     reflex_offset_x_km       DOUBLE,
@@ -1800,6 +1830,13 @@ CREATE TABLE IF NOT EXISTS moons (
     p_ch4_kpa                     DOUBLE,
     p_h2s_kpa                     DOUBLE,
     p_so2_kpa                     DOUBLE,
+    -- v72 (GEN.86): magnetic field and the star's XUV and flares here, see header comment.
+    magnetic_moment_a_m2        DOUBLE,
+    dipole_class                VARCHAR(16) CHECK (dipole_class IN ('none', 'weak', 'earth-like', 'strong', 'multipolar')),
+    magnetopause_rp             DOUBLE,
+    xuv_flux_earth              DOUBLE,
+    xuv_exposure_index          DOUBLE,
+    flare_irradiation_index     DOUBLE,
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
     uid                   BIGINT UNSIGNED,
 

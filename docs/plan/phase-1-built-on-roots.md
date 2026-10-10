@@ -89,11 +89,12 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.148 | Habitability index follow-ups from the research (GEN.84 built) |  | Research follow-up to GEN.84 (built). |
-| GEN.86 | Stellar activity (XUV, flares) and planetary magnetic fields |  |  |
-| GEN.87 | Surface radiation dose | GEN.86 |  |
+| GEN.87 | Surface radiation dose |  |  |
 | GEN.88 | Hydrosphere and ocean chemistry |  | Reuses rogueSurface's ice-shell and ocean functions. |
-| GEN.89 | The habitability score for every planet and moon | GEN.86, GEN.87, GEN.88 |  |
-| GEN.83 | A planetary habitability index (PHI) | GEN.86, GEN.87, GEN.88, GEN.89 | Parent; the class refactor (GEN item GEN.90) follows it. |
+| GEN.178 | Magnetic fields: the induced field of an ocean moon | GEN.88 | Left over from GEN.86 (PR #908); waits on the hydrosphere model. |
+| GEN.177 | Planetary magnetic fields: a stagnant-lid factor |  | Left over from GEN.86 (PR #908). |
+| GEN.89 | The habitability score for every planet and moon | GEN.87, GEN.88 |  |
+| GEN.83 | A planetary habitability index (PHI) | GEN.87, GEN.88, GEN.89 | Parent; the class refactor (GEN item GEN.90) follows it. |
 
 ### Tech levels and facilities
 
@@ -222,6 +223,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | UX.86 | The Galaxy Map controls take too much room: buttons too large and filters one character wide (bug) | UX.85 | Boss 00:01Z; Bugfixes lane 1 after UX.85. |
 | UX.85 | Button menus open out of sight and make the user scroll to see them (bug) |  | Boss 00:01Z; Bugfixes lane 1 after its current work. |
 | TEST.111 | test_ensure_sector_generated_creates_then_reuses_the_same_sector fails in a busy parallel run (bug) |  | Test flake reported 2026-10-09; Bugfixes lane 1. |
+| TEST.112 | test_regenerate_phenomenon_keeps_id_name_and_place fails now and then in the full suite (bug) |  | Foundations lane 1 report 00:04Z. |
 
 ### Foundations for the issue features
 
@@ -235,9 +237,8 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | PERF.40 | Two shared queues, a reserved interactive worker and a real "cancel now" | PERF.39 | Research follow-up to PERF.24 (built). |
 | PERF.39 | Every API job costs 2.4 s and 195 MB: import lazily and cap the burst workers |  | Research follow-up to PERF.24 (built); before batch wiki uploads. |
 | PERF.38 | Cache fixes for the Galaxy Map under a fill: single-flight tile builds, a busy rule for the page cache, a deletion epoch in place of COUNT(*) |  | Research follow-up to PERF.34 (built). |
-| PERF.32 | Generation performance stats: rates recorded per run, deleted on every new version |  | GitHub issues [#661](https://github.com/dwhagar/planetGen/issues/661) (store half) and #750. Bugfixes lane 1 (Boss, 23:38Z). |
-| PERF.33 | Progress bars and ETAs from measured performance | PERF.32 | GitHub issue [#661](https://github.com/dwhagar/planetGen/issues/661) (the use half). Bugfixes lane 1 (Boss, 23:38Z). |
-| DB.15 | A migration progress bar with the time remaining | PERF.32, PERF.51 | GitHub issue [#727](https://github.com/dwhagar/planetGen/issues/727). Bugfixes lane 1 (Boss, 23:38Z). |
+| PERF.33 | Progress bars and ETAs from measured performance |  | GitHub issue [#661](https://github.com/dwhagar/planetGen/issues/661) (the use half). Bugfixes lane 1 (Boss, 23:38Z). |
+| DB.15 | A migration progress bar with the time remaining | PERF.51 | GitHub issue [#727](https://github.com/dwhagar/planetGen/issues/727). Bugfixes lane 1 (Boss, 23:38Z). |
 | PERF.51 | One progress mechanism for every sub-step: a bar starts by itself when a step is predicted to take over 15 seconds | PERF.33 | Boss 23:34Z: one mechanism, bars start themselves over 15 s. Bugfixes lane 1 (Boss, 23:38Z). |
 | GEN.128 | Design: multi-star hierarchies and compact-object primaries |  | GitHub issues [#777](https://github.com/dwhagar/planetGen/issues/777) and [#778](https://github.com/dwhagar/planetGen/issues/778): the research both builds wait on. |
 | ADM.42 | One settings model describes every config.json option |  | Foundation for GitHub issues [#515](https://github.com/dwhagar/planetGen/issues/515) and [#743](https://github.com/dwhagar/planetGen/issues/743). |

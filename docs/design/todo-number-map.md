@@ -16,13 +16,13 @@ release is stamped.
 | UX | UX.87 |
 | MAP | MAP.162 |
 | NAV | NAV.58 |
-| GEN | GEN.177 |
+| GEN | GEN.179 |
 | PERF | PERF.52 |
 | DB | DB.22 |
 | API | API.24 |
 | ADM | ADM.49 |
 | SEC | SEC.33 |
-| TEST | TEST.112 |
+| TEST | TEST.113 |
 | USR | USR.10 |
 | OPS | OPS.38 |
 | DOC | DOC.17 |
@@ -582,7 +582,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.83 | A planetary habitability index (PHI) | none | open |
 | GEN.84 | Habitability design: one score structure and reconciled thresholds | none | done, PR #803 |
 | GEN.85 | Atmosphere species, partial pressures and mantle redox for every planet | none | done, PR #848 |
-| GEN.86 | Stellar activity (XUV, flares) and planetary magnetic fields | none | open |
+| GEN.86 | Stellar activity (XUV, flares) and planetary magnetic fields | none | done, PR #908 |
 | GEN.87 | Surface radiation dose | none | open |
 | GEN.88 | Hydrosphere and ocean chemistry | none | open |
 | GEN.89 | The habitability score for every planet and moon | none | open |
@@ -673,6 +673,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.174 | Bodies an admin adds are saved with a NULL uid (bug) | none | open |
 | GEN.175 | Regenerating a phenomenon sets its uid to NULL (bug) | none | open |
 | GEN.176 | A nebula or remnant is born in the sector holding the centre of the space it occupies | none | open |
+| GEN.177 | Planetary magnetic fields: a stagnant-lid factor | none | open |
+| GEN.178 | Magnetic fields: the induced field of an ocean moon | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -960,7 +962,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.30 | Finish an interrupted block or sector run on the next start | none | open |
 | PERF.34 | The site stays responsive during heavy generation jobs (bug) | none | done, PR #811 |
 | PERF.31 | Investigate: where generation spends its time, from the plan to a finished galaxy | none | open |
-| PERF.32 | Generation performance stats: rates recorded per run, deleted on every new version | none | open |
+| PERF.32 | Generation performance stats: rates recorded per run, deleted on every new version | none | done, PR #905 |
 | PERF.33 | Progress bars and ETAs from measured performance | none | open |
 | PERF.35 | An interval or chunk ledger for untouched sectors once block-first backfill lands | none | open |
 | PERF.36 | Memory and request guard: never list more than about 50,000 candidate cells, and refuse huge enumerations in a web request | none | open |
@@ -1325,6 +1327,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.109 | test_sector_map_click_on_the_selected_nebula_clears_it fails on main since PR #605 (bug) | none | done, PR #690 |
 | TEST.110 | Object ID tests: identical IDs on 1 and 4 workers, none reused, none missing | none | open |
 | TEST.111 | test_ensure_sector_generated_creates_then_reuses_the_same_sector fails in a busy parallel run (bug) | none | open |
+| TEST.112 | test_regenerate_phenomenon_keeps_id_name_and_place fails now and then in the full suite (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

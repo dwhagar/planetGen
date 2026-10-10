@@ -69,7 +69,7 @@ from planetgen.admin import activity_log
 from planetgen.db import alembic_runner
 from planetgen.names import object_id as objectId
 from planetgen.galaxy import seed as galaxySeed, uid as galaxyUid, version_key as versionKey
-from planetgen.physics import atmosphere, constants as physical_constants, kepler, spin
+from planetgen.physics import activity, atmosphere, constants as physical_constants, kepler, magnetism, spin
 from planetgen.util import log
 from planetgen.util.settings import env_name, get_settings
 from planetgen.generation.belt import AsteroidBelt
@@ -1414,6 +1414,7 @@ def _table_marker(table):
 
 
 _VERSION_MARKERS = (
+    (72, _column_marker("stars", "l_xuv_w")),
     (71, _column_marker("galaxy_shape", "phenomenon_min_mass_solar")),
     (70, _column_marker("planets", "mantle_redox")),
     (69, _column_marker("phenomenon_scatter", "epoch_unix")),
@@ -2599,8 +2600,10 @@ def insert_star(conn, star, star_system_id, role) -> int:
             galactic_orbital_phase_deg, galactic_min_update_interval_years,
             wide_binary_a_crit_km,
             reflex_offset_x_km, reflex_offset_y_km, reflex_offset_z_km,
-            rotation_period_hours, spin_axis_x, spin_axis_y, spin_axis_z, axial_tilt_deg
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            rotation_period_hours, spin_axis_x, spin_axis_y, spin_axis_z, axial_tilt_deg,
+            log_lx_lbol, l_xuv_w, xuv_saturated, flare_n33_per_yr, flare_alpha, xuv_fluence_j
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                  ?, ?, ?, ?, ?, ?)
         """,
         (
             star_system_id, role, star.name, star.type, star.yerkes_class,
@@ -2620,6 +2623,7 @@ def insert_star(conn, star, star_system_id, role) -> int:
             star.reflex_offset_z * physical_constants.AU_TO_KM,
             getattr(star, "rotation_period_hours", None),
             *spin.spin_values(star),
+            *(getattr(star, name, None) for name in activity.STAR_ACTIVITY_FIELDS),
         ),
     )
     return cur.lastrowid
@@ -2662,6 +2666,7 @@ _BODY_COLUMNS = (
     "min_update_interval_years",
     "rotation_period_hours", "spin_axis_x", "spin_axis_y", "spin_axis_z", "axial_tilt_deg",
     *atmosphere.ATMOSPHERE_FIELDS,
+    *magnetism.BODY_FIELDS,
 )
 """tuple: The generated-content columns `planets` and `moons` share, in
 `body_row_values` order."""
@@ -2706,6 +2711,7 @@ def body_row_values(body):
         body.rotation_period_hours,
         *spin.spin_values(body),
         *(getattr(body, name, None) for name in atmosphere.ATMOSPHERE_FIELDS),
+        *(getattr(body, name, None) for name in magnetism.BODY_FIELDS),
     ]
     if not body.is_moon:
         values += [
@@ -7169,6 +7175,8 @@ def _star_row_to_dict(row):
         "reflex_offset_z": row["reflex_offset_z_km"] / physical_constants.AU_TO_KM if row["reflex_offset_z_km"] is not None else 0.0,
         "rotation_period_hours": row["rotation_period_hours"],
         **{name: row[name] for name in spin.SPIN_FIELDS},
+        **{name: row[name] for name in activity.STAR_ACTIVITY_FIELDS},
+        "xuv_saturated": None if row["xuv_saturated"] is None else bool(row["xuv_saturated"]),
     }
 
 
@@ -7430,6 +7438,7 @@ def _planet_or_moon_row_to_dict(conn, row, is_moon):
         "rotation_period_hours": row["rotation_period_hours"],
         **{name: row[name] for name in spin.SPIN_FIELDS},
         **{name: row[name] for name in atmosphere.ATMOSPHERE_FIELDS},
+        **{name: row[name] for name in magnetism.BODY_FIELDS},
         # v20: only the `planets` table has these columns (a planet's own
         # wobble from its moons) -- `moons` has no such column at all
         # (moons never host their own moons), so a moon always gets the
