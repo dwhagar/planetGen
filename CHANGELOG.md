@@ -3,6 +3,7 @@
 ## [8.0.911] - 2026-10-10
 
 ### Changed
+- Filed PERF.57 (stop a layer-walking scatter early after 100 empty layers) from Boss's request.
 - **Docs only:** GEN.195 and GEN.196 gain details from Bugfixes lane 2 (every scatter path, redo scope).
 - **Docs only:** GEN.196 (one Redo scatters box on Generate) filed for Bugfixes lane 2.
 - **Docs only:** MAP.166 (honest "Dimmest star shown" label) filed; GEN.195 gains the CLI option and storage figures.
