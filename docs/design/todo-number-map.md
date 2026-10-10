@@ -1014,7 +1014,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.52 | Admin generation-stats table is wrong (bug) | none | done, PR #994 |
 | PERF.53 | Timing stats are skewed by layers and sectors that generated nothing (bug) | none | done, PR #1015 |
 | PERF.54 | Separate generation-stats rows for the mass pass and the luminosity pass of the star scatter | none | open |
-| PERF.55 | One global progress bar for generation jobs that run in phases, with an ETA across all phases | none | open |
+| PERF.55 | One global progress bar for generation jobs that run in phases, with an ETA across all phases | none | done, PR #1131 |
 | PERF.56 | Record how long each stage of a staged job takes, with the settings it ran with | none | done, PR #1077 |
 | PERF.57 | Skip empty stretches in a galactic scatter by combining layers into growing groups | none | done, PR #1101; removed by PERF.58 (PR #1108) |
 | PERF.58 | Object-first star sampler for the mass and luminosity passes (top priority, replaces PERF.57) | none | done, PR #1108 |
