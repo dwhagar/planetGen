@@ -117,7 +117,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.122 | A Select mode on every galaxy view: Galaxy (blocks and sectors) or Star |  | Merges the 2026-10-07 "button to select a star" ask; MAP.101 (PR #431) made stars unpickable by default. |
 | MAP.146 | Fly through the galaxy: scroll-zoom, double-click flight, distance-based visibility and a see-through near field | MAP.148, MAP.149, MAP.150, MAP.151, MAP.152, MAP.154, MAP.155, MAP.159 | Boss 2026-10-09 22:24Z and 22:56Z. Umbrella for MAP.148 to MAP.152; replaces the fixed ladder in galaxy/drill.py and galaxyprisms.js. |
 | MAP.147 | The Galaxy Map wire format: the investigation (done) and the record of what was built from it | MAP.159 | Research Lane 3 report in docs/design/galaxy-map-wire-format.md; record until the build items are done. |
-| MAP.161 | Load the Galaxy Map faster on a first visit: bundle or preload its scripts |  | Boss 2026-10-09 23:29Z: moved to Phase 1. Wire format report, finding 7; client side, no prerequisite. |
 | MAP.148 | The star visibility law: apparent-magnitude opacity, flux-based brightness and an on-screen limit from a histogram |  | Fly-through report item 1; builds after MAP.153 (its first stage). |
 | MAP.149 | The near field: depth fade, a see-through focus tube, drawing from inside a container, and picking that matches what is drawn |  | Fly-through report item 2; can start now. Folds MAP.121 blocker fade and MAP.141 context. |
 | MAP.150 | The free camera: wheel zoom to the cursor, double-click flight, and the observer inside, with the container named from position | MAP.149 | Fly-through report item 3; needs the near field. |
@@ -174,7 +173,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | API.15 | Log every API call with its user, how it came in, and its HTTP response code |  | Needs no user accounts (Boss 01:31Z). |
 | API.4 | API compatibility data in the docs |  | Docs and version number. |
 | API.23 | The object ID as the public reference: pages, URLs, the API, wiki links and objectref use it in place of row ids |  | Object-ID research. Breaking: bumps the API version (API.22). |
-| DB.22 | Sectors saved by hand without a grid address have no stored object ID until they are saved again (bug) | API.23 |  |
 | DOC.17 | Describe the object ID in api.md | API.23 |  |
 | API.7 | Investigate and plan upload limits |  | Plan only. |
 

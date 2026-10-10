@@ -148,9 +148,9 @@ def _body_routes(kind, plural):
                       "would go too).")
     regenerate.__doc__ = (f"`POST /api/{plural}/<id>/regenerate` -- rolls the {kind} again at the same "
                           "orbit, keeping its name and row, then re-validates the system.")
-    bp.route(f"/{plural}/<int:body_id>", methods=["DELETE"])(
+    bp.route(f"/{plural}/<uid:body_id>", methods=["DELETE"])(
         limiter.limit(WRITE_RATE_LIMIT)(require_admin(fresh=True)(delete)))
-    bp.route(f"/{plural}/<int:body_id>/regenerate", methods=["POST"])(
+    bp.route(f"/{plural}/<uid:body_id>/regenerate", methods=["POST"])(
         limiter.limit(WRITE_RATE_LIMIT)(require_admin(fresh=True)(regenerate)))
 
 
@@ -214,7 +214,7 @@ def change_class_job(config, kind, body_id, planet_class, force):
     return _result_dict(result, star_system_id=system_id)
 
 
-@bp.route("/planets/<int:body_id>/class", methods=["POST"])
+@bp.route("/planets/<uid:body_id>/class", methods=["POST"])
 @limiter.limit(WRITE_RATE_LIMIT)
 @require_admin(fresh=True)
 def change_planet_class(body_id):
@@ -229,7 +229,7 @@ def change_planet_class(body_id):
     return _change_class("planet", body_id)
 
 
-@bp.route("/moons/<int:body_id>/class", methods=["POST"])
+@bp.route("/moons/<uid:body_id>/class", methods=["POST"])
 @limiter.limit(WRITE_RATE_LIMIT)
 @require_admin(fresh=True)
 def change_moon_class(body_id):

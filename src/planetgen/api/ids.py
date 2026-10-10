@@ -126,7 +126,24 @@ def row_ids(conn, kind, printed_ids):
         for row in conn.execute(f"SELECT id, uid FROM {table} WHERE uid IN ({marks})", chunk).fetchall():
             stored = int(row["uid"]) if kind == SECTOR else bytes(row["uid"])
             found[wanted[stored]] = row["id"]
+    if kind == SECTOR:
+        found.update(_unplaced_sectors(conn, wanted, found))
     return found
+
+
+def _unplaced_sectors(conn, wanted, found):
+    """`{printed: row id}` for the IDs among `wanted` that name a sector made by hand before it had a stored ID:
+    one with no grid address and no `uid`, whose ID is `uid.unplaced_sector_uid(id)`."""
+    base = sector_uid.UNPLACED_SECTOR_BASE
+    out = {}
+    for value, text in wanted.items():
+        if text in found or not base < value < 2 * base:
+            continue
+        row = conn.execute("SELECT id FROM sectors WHERE id = ? AND uid IS NULL AND ring_index IS NULL",
+                           (value - base,)).fetchone()
+        if row is not None:
+            out[text] = row["id"]
+    return out
 
 
 def row_id(conn, kind, printed_id):
@@ -229,12 +246,21 @@ class UidConverter(BaseConverter):
 VIEW_ARG_KINDS = {
     "sector_id": SECTOR,
     "system_id": "system",
+    "star_id": "star",
+    "planet_id": "planet",
+    "moon_id": "moon",
+    "facility_id": "facility",
+    "body_id": "body",
     "phenomenon_id": "phenomenon",
     "nebula_id": "nebula",
 }
 
 
-def resolve_view_args(conn_factory, view_args, abort_not_found, fallback=None):
+BODY_URL_KINDS = {"planets": "planet", "moons": "moon", "belts": "belt", "comets": "comet", "stars": "star"}
+"""dict: The first path segment after `/api/` of a body route -> the kind its `body_id` names."""
+
+
+def resolve_view_args(conn_factory, view_args, abort_not_found, fallback=None, body_kind=None):
     """
     Replaces the printed IDs in `view_args` (in place) with row ids. `conn_factory()` opens the request's
     read-only connection when an ID has to be looked up; `abort_not_found(message)` is called, and must
@@ -245,6 +271,8 @@ def resolve_view_args(conn_factory, view_args, abort_not_found, fallback=None):
             continue
         if kind == "phenomenon":
             kind = view_args.get("phenomenon_type")
+        elif kind == "body":
+            kind = body_kind
         text = view_args[name]
         found = row_id(conn_factory(), kind, text) if kind in ACTIVE_KINDS else None
         if found is None:
@@ -253,14 +281,25 @@ def resolve_view_args(conn_factory, view_args, abort_not_found, fallback=None):
         view_args[name] = found
 
 
-ACTIVE_KINDS = frozenset(("sector", "system", *PHENOMENON_KINDS))
-"""frozenset: The kinds whose IDs the API already speaks; any other kind keeps its row id for now."""
+ACTIVE_KINDS = frozenset(("sector", "system", "star", "planet", "moon", "belt", "comet", "facility",
+                          *PHENOMENON_KINDS))
+"""frozenset: The kinds whose IDs the API speaks."""
 
 KEY_KINDS = {
     "sector_id": "sector",
     "star_system_id": "system",
     "system_id": "system",
     "capital_system_id": "system",
+    "star_id": "star",
+    "planet_id": "planet",
+    "moon_id": "moon",
+    "belt_id": "belt",
+    "comet_id": "comet",
+    "facility_id": "facility",
+    "host_id": "host",
+    "homeworld_planet_id": "planet",
+    "asteroid_belt_id": "belt",
+    "asteroid_field_id": "asteroid_field",
     "ref": "ref",
 }
 """dict: Keys that name the same kind wherever they appear in an answer that has rules."""
@@ -278,6 +317,9 @@ def _kind_of(kind, container, context):
         return context.get("phenomenon_type")
     if kind == "by-kind":
         return container.get("kind") if isinstance(container, dict) else None
+    if kind == "host":
+        host_type = container.get("host_type") if isinstance(container, dict) else None
+        return {"asteroid_belt": "belt", "space": "sector"}.get(host_type, host_type)
     return kind
 
 
@@ -358,7 +400,7 @@ def _rebuild(node, path, rules, maps, context):
                 keys_kind = rules.get(here + "{}")
                 if keys_kind is not None and isinstance(value, dict):
                     value = {(_replacement(keys_kind, int(k) if str(k).isdigit() else k, value, maps, context)
-                              if str(k).isdigit() or keys_kind == "navkey" else k): v for k, v in value.items()}
+                              if str(k).isdigit() or keys_kind in ("navkey", "ref") else k): v for k, v in value.items()}
             out[key] = value
         return out
     if isinstance(node, list):
@@ -408,7 +450,11 @@ def _resolve(view_args, strict):
         if strict:
             raise ApiError(message, 404)
 
-    resolve_view_args(get_db, view_args, missing, fallback=0)
+    from flask import request
+
+    segments = request.path.split("/")
+    body_kind = BODY_URL_KINDS.get(segments[2]) if len(segments) > 2 else None
+    resolve_view_args(get_db, view_args, missing, fallback=0, body_kind=body_kind)
 
 
 def _resolve_request_ids():

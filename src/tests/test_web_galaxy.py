@@ -130,6 +130,19 @@ def _scene(html):
 
 # --- /galaxy ------------------------------------------------------------------------
 
+def test_galaxy_page_names_the_maps_modules_up_front(client, fake):
+    """MAP.161: every module the map script imports is a modulepreload hint at the very URL the
+    script's own import() uses, so the browser fetches the tree in parallel and each file once."""
+    html = client.get("/galaxy").get_data(as_text=True)
+    hinted = re.findall(r'<link rel="modulepreload" href="([^"]+)">', html)
+    assert len(hinted) == len(set(hinted)) >= 20
+    script = re.search(r'<script type="module" src="([^"]+galaxymap3d\.js[^"]*)"', html).group(1)
+    query = script.split("?", 1)[1]
+    assert all(url.endswith("?" + query) for url in hinted), "same ?v= as the page's script"
+    assert any(url.startswith("/static/galaxystageview.js?") for url in hinted)
+    assert html.index('rel="modulepreload"') < html.index(script)
+
+
 def test_galaxy_page_renders_map_and_quadrant_summary(client, fake, app):
     resp = client.get("/galaxy")
     html = resp.get_data(as_text=True)

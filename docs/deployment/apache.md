@@ -177,6 +177,7 @@ See [`install.sh`](../../install.sh) for the full install script,
   newly enabled module. `a2enmod brotli` is optional: with it, browsers that
   accept Brotli get the Galaxy Map's tile JSON 10 to 29% smaller than gzip
   (MAP.157), and the rest still get gzip.
+- **HTTP/2 and preloading (MAP.161).** The Galaxy and Sector pages name their whole module tree in `<link rel="modulepreload">` hints, so a first visit fetches the ~30 script files in parallel instead of one round trip after another (measured with a throttled slow-4G profile: the map ready in about a third of the time). Over HTTPS, turn on HTTP/2 as well: `Protocols h2 http/1.1` with `a2enmod http2` and the event MPM (see the HTTPS notes in the example vhost).
 - **Caching `static/`.** Every page links its CSS/JS/favicon as
   `static/<file>?v=<release version>` (`src/planetgen/web/lib/fmt.py`'s
   `static_url`), and the map modules pass that same `?v=` on to the
