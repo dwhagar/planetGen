@@ -36,7 +36,7 @@ import pymysql
 from planetgen.queue import work as workQueue
 from planetgen.db import check as db_check, fingerprint, store
 from planetgen.admin import activity_log
-from planetgen.generation import limits, prevalence
+from planetgen.generation import directives, limits, prevalence
 from planetgen.galaxy import seed as galaxySeed, version_check, version_key
 from planetgen.physics import mathcheck
 from planetgen import tuning as program_constants
@@ -358,6 +358,13 @@ def add_shared_generation_options(parser):
     parser.add_argument('--min-habitable', type=int, default=0,
                         help="Guarantee at least this many systems in the sector have a habitable world, "
                              "chosen randomly among them, without requiring every system to have one.")
+    parser.add_argument('--directive', action='append', default=None, metavar='MINIMUM',
+                        help="Redraw each sector until it holds at least this much (GEN.96): systems>=N, "
+                             "habitable>=N or type:X>=N (X: O B A F G K M wd bh ns). Repeat for more. "
+                             "After --directive-attempts draws the closest one is kept and the run "
+                             "reports which minimum it missed.")
+    parser.add_argument('--directive-attempts', type=int, default=directives.DEFAULT_ATTEMPTS,
+                        help="Draws to make at most per sector for --directive (default %(default)s).")
     parser.add_argument('--markdown', '-m', action='store_true', help="Output in Markdown format.")
     parser.add_argument('--star-type', type=str,
                         help="Force every system's star to a specific type (e.g., G2V).")
@@ -405,6 +412,12 @@ def validate_shared_generation_args(args, parser):
         parser.error("--density cannot be combined with --num-systems.")
     if args.workers is not None and args.workers < 0:
         parser.error("--workers must be 0 (automatic) or more.")
+    if args.directive_attempts < 1:
+        parser.error("--directive-attempts must be 1 or more.")
+    try:
+        directives.parse(args.directive)
+    except directives.DirectiveError as exc:
+        parser.error(f"--directive {exc}")
 
     if args.density is not None and args.density <= 0:
         parser.error("--density must be a positive number.")

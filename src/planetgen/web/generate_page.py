@@ -522,6 +522,31 @@ def prevalence_argv(form):
     return argv
 
 
+DIRECTIVE_FIELDS = (
+    ("directive_systems", "Systems", "systems"),
+    ("directive_habitable", "Habitable worlds", "habitable"),
+    ("directive_type_g", "G-type stars", "type:G"),
+    ("directive_type_k", "K-type stars", "type:K"),
+    ("directive_type_m", "M-type stars", "type:M"),
+)
+
+
+def directive_argv(form):
+    """
+    `--directive KEY>=N` for each minimum the Override section asks for
+    (GEN.96); blank or 0 asks for nothing.
+
+    Raises:
+        FormError: A count that isn't a whole number from 0 to 1,000.
+    """
+    argv = []
+    for name, label, key in DIRECTIVE_FIELDS:
+        count = _number(form, name, label, int, minimum=0, maximum=1000)
+        if count:
+            argv += ["--directive", f"{key}>={count}"]
+    return argv
+
+
 def plan_steps(generate, form):
     """
     The plan step and, unless the form's "skip the bright-star scatter"
@@ -589,7 +614,7 @@ def _build_job_steps(action, form, edge_pc=None):
     if action == "galaxy":
         argv, description = galaxy_argv(form, edge_pc)
         label = f"Generate sectors {description}"
-        return "galaxy", label, [{"label": label, "argv": generate + ["galaxy"] + argv + prevalence_argv(form)}]
+        return "galaxy", label, [{"label": label, "argv": generate + ["galaxy"] + argv + prevalence_argv(form) + directive_argv(form)}]
     if action == "reset":
         return "reset", "Reset the galaxy", [reset_step]
     if action == "check_db":
@@ -786,6 +811,7 @@ def _page(admin, error=None, status=200, form=None, estimate=None, estimate_titl
         jobs_error=jobs_error,
         plan_fields=PLAN_FIELDS,
         prevalence_fields=PREVALENCE_FIELDS,
+        directive_fields=DIRECTIVE_FIELDS,
         bright_min_luminosity=tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL,
         bright_threshold_label=BRIGHT_THRESHOLD_LABEL,
         backfill_text=BACKFILL_TEXT,

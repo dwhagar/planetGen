@@ -18,6 +18,8 @@ import sys
 from collections import Counter
 
 from planetgen.db import store
+from planetgen.galaxy import seed as galaxySeed
+from planetgen.generation import directives
 from planetgen.generation import bright_stars as brightStars
 from planetgen.galaxy import nebula_field
 from planetgen.galaxy.system_position import random_unit_vector
@@ -796,10 +798,30 @@ def run_sector(args):
     run_population.run_population_after(args)
 
 
+def generate_directed_sector(args, galaxy_seed=None, address=None, **kwargs):
+    """
+    `generate_sector`, redrawn until the run's `--directive` minimums hold
+    (GEN.96; see `directives.generate`). With none given it is one plain
+    draw. A directive the closest draw still misses is logged as a warning.
+
+    Returns:
+        tuple: `(sector_name, SpaceSector)`, as `generate_sector`.
+    """
+    directive = directives.parse(getattr(args, "directive", None))
+    if not directive:
+        return generate_sector(args, **kwargs)
+    sector, outcome = directives.generate(
+        directive, lambda: generate_sector(args, **kwargs)[1], galaxy_seed=galaxy_seed, address=address,
+        max_attempts=getattr(args, "directive_attempts", None) or directives.DEFAULT_ATTEMPTS)
+    where = f" {galaxySeed.address_text(address)}" if address is not None else ""
+    log.normal(f"Sector{where}: {outcome.describe()}.")
+    return sector.name, sector
+
+
 def _unplaced_sector_task(args):
     """One `sector` subcommand sector, generated and saved -- a work queue
     task (see `_fill_sector_task`)."""
-    _sector_name, sector = generate_sector(args)
+    _sector_name, sector = generate_directed_sector(args)
     sector_id = store.save_sector(sector, config=store.mysql_config_from_args(args))
     run_common._count_sector(sector)
     return {

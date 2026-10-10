@@ -483,8 +483,9 @@ def generate_and_save_sector_at(args, address, position_pc, edge_pc):
     # GEN.39: every draw for this sector, its save included, comes from
     # its own seed, so the run's order and worker count don't matter.
     with galaxySeed.seeded(galaxy_seed, "sector", address):
-        _sector_name, sector = run_sector.generate_sector(args, galactic_center_dist_ly=pc_to_ly(radius_pc), cell=cell,
-                                               fill=fill, cloud_field=cloud_field)
+        _sector_name, sector = run_sector.generate_directed_sector(
+            args, galaxy_seed=galaxy_seed, address=address,
+            galactic_center_dist_ly=pc_to_ly(radius_pc), cell=cell, fill=fill, cloud_field=cloud_field)
         if address == run_sector.NUCLEUS_ADDRESS and not (fill is not None and fill.phenomena_scattered):
             run_sector.add_galactic_nucleus(sector, args, pc_to_ly(radius_pc))
         sector.place_in_galaxy(tuple(pc_to_ly(c) for c in position_pc))
