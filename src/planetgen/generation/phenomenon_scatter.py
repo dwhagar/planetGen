@@ -42,7 +42,7 @@ from planetgen.galaxy.geometry import sector_address_at
 from planetgen.galaxy.sector import _sample_poisson_count
 from planetgen.generation import bright_stars
 from planetgen.generation.bright_stars import MPC_PER_PC, _place_one
-from planetgen.galaxy.geometry import layer_center_z_pc, ring_radius_pc
+from planetgen.galaxy.geometry import layer_center_z_pc, ring_radius_pc, ring_sector_count
 from planetgen.util import draw
 from planetgen.util.random import log_uniform
 
@@ -207,6 +207,95 @@ def scatter_layer(shape, layer_index, outer_ring, edge_pc, expected_at_density_1
                 if spot is None or (ring_index, layer_index, spot[0]) in skip_addresses:
                     continue
                 yield _row(ring_index, layer_index, spot[0], kind, spot[1], rng, subtype=subtype)
+
+
+def group_layer_expected(shape, layer_index, outer_ring, edge_pc, expected_at_density_1, min_mass_solar):
+    """
+    About how many objects `scatter_layer` places in one layer, worked out as it does (each kind's regional
+    weights per angle bin, `_kind_weights`) but on `bright_stars.WEIGHT_RING_SAMPLES` evenly spaced rings with
+    `WEIGHT_ANGLE_BINS` bins each, so a group of layers is judged in a fraction of the time drawing them takes.
+    `layer_expected` (the progress bar's weight) uses one vertical factor per layer and runs a little off.
+    """
+    rates = _scattered_rates(min_mass_solar)
+    rings = outer_ring + 1
+    count = min(rings, bright_stars.WEIGHT_RING_SAMPLES)
+    step = rings / count
+    expected = 0.0
+    for k in range(count):
+        ring_index = min(int((k + 0.5) * step), rings - 1)
+        slots = ring_sector_count(ring_index)
+        bins = min(slots, bright_stars.WEIGHT_ANGLE_BINS)
+        radius = ring_radius_pc(ring_index, edge_pc)
+        z = layer_center_z_pc(layer_index, edge_pc)
+        base = []
+        for j in range(bins):
+            theta = (j + 0.5) * 2 * math.pi / bins
+            base.append(sum(bright_stars._densities((radius * math.cos(theta), radius * math.sin(theta), z),
+                                                    shape).values()))
+        if sum(base) <= 0.0:
+            continue
+        ring_total = 0.0
+        weight_sums = {}
+        for kind, _subtype, rate in rates:
+            if kind not in weight_sums:
+                weight_sums[kind] = sum(_kind_weights(kind, base, ring_index, layer_index, edge_pc,
+                                                      shape.disk_scale_height_pc))
+            ring_total += rate * weight_sums[kind]
+        expected += expected_at_density_1 * slots / bins * ring_total * step
+    return expected
+
+
+def scatter_group(shape, layers, edge_pc, expected_at_density_1, seed, skip_addresses=None, min_mass_solar=None):
+    """
+    Several layers drawn as one (PERF.57), as `bright_stars.scatter_group` does
+    for stars: one Poisson count for the group from its layers' summed
+    `layer_expected`, each object placed in a layer by its share, a ring and
+    class by their share of it, and a sector by its density. One stream named
+    by the group's first layer and size.
+
+    Args:
+        layers (list): `(layer_index, outer_ring)` for each layer of the group, in walk order.
+
+    Yields:
+        tuple: One row per object, in `PHENOMENON_SCATTER_COLUMNS` order.
+    """
+    if min_mass_solar is None:
+        min_mass_solar = tuning.PHENOMENON_MIN_MASS_SOLAR
+    rng = draw.Stream(f"{seed}:phenomena:group:{layers[0][0]}:{len(layers)}")
+    skip_addresses = skip_addresses or set()
+    rates = _scattered_rates(min_mass_solar)
+    expected = [group_layer_expected(shape, layer_index, outer_ring, edge_pc, expected_at_density_1, min_mass_solar)
+                for layer_index, outer_ring in layers]
+    count = _sample_poisson_count(sum(expected), rng=rng) if sum(expected) > 0.0 else 0
+    choices = {}
+    for _ in range(count):
+        layer_index, outer_ring = layers[bright_stars._pick(rng, expected)]
+        if layer_index not in choices:
+            options = []
+            for ring_index in range(outer_ring + 1):
+                slots, bins = bright_stars._ring_bins(ring_index, layer_index, shape, expected_at_density_1, edge_pc)
+                base = [sum(densities.values()) for densities in bins]
+                if sum(base) <= 0.0:
+                    continue
+                slots_per_bin = slots / len(bins)
+                weights_by_kind = {}
+                for kind, subtype, rate in rates:
+                    if kind not in weights_by_kind:
+                        weights = _kind_weights(kind, base, ring_index, layer_index, edge_pc, shape.disk_scale_height_pc)
+                        weights_by_kind[kind] = (weights, sum(weights))
+                    weights, weight_sum = weights_by_kind[kind]
+                    mean = rate * expected_at_density_1 * slots_per_bin * weight_sum
+                    if mean > 0.0:
+                        options.append((mean, ring_index, slots, kind, subtype, weights))
+            choices[layer_index] = options
+        options = choices[layer_index]
+        if not options:
+            continue
+        _mean, ring_index, slots, kind, subtype, weights = options[bright_stars._pick(rng, [o[0] for o in options])]
+        spot = _place_one(rng, weights, ring_index, layer_index, slots, edge_pc)
+        if spot is None or (ring_index, layer_index, spot[0]) in skip_addresses:
+            continue
+        yield _row(ring_index, layer_index, spot[0], kind, spot[1], rng, subtype=subtype)
 
 
 def below_cut_draws(address, center_pc, shape, expected_stars, min_mass_solar, seed):

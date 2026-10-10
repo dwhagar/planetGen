@@ -20,7 +20,7 @@ import time
 from planetgen.queue import progress_rate, redisqueue, work as workQueue
 from planetgen.db import store
 from planetgen.generation import bright_stars as brightStars
-from planetgen.generation import early_stop, phenomenon_scatter
+from planetgen.generation import layer_groups, phenomenon_scatter
 from planetgen.generation import star_population as starPopulation
 from planetgen.generation.star_labels import describe_types, star_label
 from planetgen.galaxy import seed as galaxySeed, settings_file
@@ -572,6 +572,21 @@ def log_layers(label, layers):
         _log_layer(label, layer_index, layers[layer_index])
 
 
+def _log_group(label, group, types):
+    """One line for a group of layers drawn as one (PERF.57) that took stars, as `_log_layer` does for a layer."""
+    total = sum(types.values())
+    log.normal(f"{label}, {len(group)} layers from {group[0][0]} drawn as a group: added {total:,} stars: "
+               f"{describe_types(types)}.")
+
+
+def _log_groups(label, walk):
+    """The note on how many layers a pass drew in groups, when it did."""
+    if walk.group_sizes:
+        log.normal(f"{label}: {sum(walk.group_sizes):,} of {walk.total:,} layers drawn in "
+                   f"{len(walk.group_sizes):,} groups (sizes {', '.join(f'{size:,}' for size in walk.group_sizes[:8])}"
+                   f"{', ...' if len(walk.group_sizes) > 8 else ''}).")
+
+
 def _log_layer(label, layer_index, types):
     """One line saying how many stars a layer was given, by kind (GEN.131);
     nothing for a layer that drew none (GEN.79's note says how many did)."""
@@ -616,9 +631,7 @@ def _scatter_layers(args, mysql_config, skeleton, extents, filled, min_luminosit
             skeleton.shape, layer_index, outer_ring, skeleton.edge_pc, e_value, fractions,
         )
     log.normal(f"{label}: about {round(sum(expected.values())):,} stars expected in {len(layers):,} layers.")
-    streak = early_stop.DryStreak(len(layers))
-    walk_position = {layer_index: position for position, (layer_index, _ring) in enumerate(layers)}
-    walked = 0
+    walk = layer_groups.Walk([expected[layer_index] for layer_index, _ring in layers])
     band_share = sum(fractions.values())
     with run_common._generation_progress() as progress:
         log.set_console(progress.console)
@@ -632,7 +645,7 @@ def _scatter_layers(args, mysql_config, skeleton, extents, filled, min_luminosit
             tracker = _LayerTracker(progress, label, weights, prior=prior, bar=bar)
             outer_rings = dict(layers)
 
-            def on_done_for(layer_index):
+            def on_done_for(layer_index, position):
                 def layer_done(result, seconds, _weight):
                     layer_counts = result["counts"]
                     _log_layer(label, layer_index, collections.Counter(
@@ -641,7 +654,7 @@ def _scatter_layers(args, mysql_config, skeleton, extents, filled, min_luminosit
                         counts[population] += count
                     tracker.layer_done(layer_index)
                     stars = sum(layer_counts.values())
-                    streak.record(walk_position[layer_index], stars)
+                    walk.record(position, stars)
                     if stars:
                         drew.add(layer_index)
                     slots = _layer_slots(outer_rings[layer_index])
@@ -663,19 +676,46 @@ def _scatter_layers(args, mysql_config, skeleton, extents, filled, min_luminosit
                     else:
                         channel = _DirectChannel(tracker)
                     queue.expect(len(layers))
-                    for layer_index, outer_ring in layers:
-                        if streak.stopped:
-                            break
-                        walked += 1
-                        payload = {
+
+                    def payload_for(layer_index, outer_ring):
+                        return {
                             "mysql_config": mysql_config, "shape": skeleton.shape, "layer_index": layer_index,
                             "outer_ring": outer_ring, "edge_pc": skeleton.edge_pc, "expected": e_value,
                             "min_luminosity_sol": min_luminosity_sol, "max_luminosity_sol": max_luminosity_sol,
                             "seed": seed, "skip": skip_by_layer.get(layer_index, set()), "mass_range": mass_range,
                             "channel": channel,
                         }
-                        queue.submit("bright-stars", f"layer {layer_index}", _scatter_layer_task, payload,
-                                     weight=weights[layer_index], on_done=on_done_for(layer_index))
+
+                    def submit_single(position):
+                        layer_index, outer_ring = layers[position]
+                        queue.submit("bright-stars", f"layer {layer_index}", _scatter_layer_task,
+                                     payload_for(layer_index, outer_ring), weight=weights[layer_index],
+                                     on_done=on_done_for(layer_index, position))
+
+                    def submit_group(start, size):
+                        group = layers[start:start + size]
+                        payload = payload_for(*group[0])
+                        payload["layers"] = group
+                        payload["skip"] = {address for layer_index, _ring in group
+                                           for address in skip_by_layer.get(layer_index, ())}
+
+                        def group_done(result, seconds, _weight):
+                            for population, count in result["counts"].items():
+                                counts[population] += count
+                            stars = sum(result["counts"].values())
+                            hit = set(result["hit"])
+                            drew.update(hit)
+                            walk.record_group(start, size, stars)
+                            for layer_index, _ring in group:
+                                tracker.layer_done(layer_index)
+                            if stars:
+                                _log_group(label, group, collections.Counter(
+                                    {(name, plural): count for name, plural, count in result["types"]}))
+                        queue.submit("bright-stars", f"group {group[0][0]}+{size}", _scatter_group_task, payload,
+                                     weight=sum(weights[layer_index] for layer_index, _ring in group),
+                                     on_done=group_done)
+
+                    walk.drive(queue, submit_single, submit_group)
             finally:
                 stop.set()
                 if drain is not None:
@@ -684,22 +724,19 @@ def _scatter_layers(args, mysql_config, skeleton, extents, filled, min_luminosit
                     channel.close()
                 run_common._finish_stats(args)
             finished = True
-            if walked < len(layers):   # the layers never queued are done as far as the bar goes
-                bar.update(advance=sum(weights[layer_index] for layer_index, _ring in layers[walked:]))
         finally:
             if bar is not None:
                 bar.close(success=finished)
             log.reset_console()
     # Only the layers that drew a star count as holding any (GEN.79).
-    if walked < len(layers):
-        log.normal(streak.message(label, walked))
+    _log_groups(label, walk)
     if drew:
         log.normal(f"{label}: stars landed in {len(drew):,} of {len(layers):,} layers "
                    f"(layers {min(drew)} to {max(drew)}).")
     else:
         log.normal(f"{label}: no stars landed in any of the {len(layers):,} layers.")
-    stages.note(layers=len(layers), layers_walked=walked, layers_modified=len(drew),
-                stopped_early=walked < len(layers), objects=sum(counts.values()))
+    stages.note(layers=len(layers), layers_walked=walk.singles, layers_grouped=sum(walk.group_sizes),
+                group_sizes=walk.group_sizes, layers_modified=len(drew), objects=sum(counts.values()))
     return counts
 
 
@@ -842,6 +879,42 @@ def _scatter_layer_task(payload):
     return {"counts": counts, "types": [[label, plural, count] for (label, plural), count in types.items()]}
 
 
+def _scatter_group_task(payload):
+    """
+    A group of layers drawn as one (PERF.57) -- a work queue task: draws it
+    (`brightStars.scatter_group`) and writes its rows.
+
+    Returns:
+        dict: `counts`, `types` (as `_scatter_layer_task`) and `hit`, the layers that took a star.
+    """
+    counts = {population: 0 for population in brightStars.POPULATIONS}
+    types = collections.Counter()
+    hit = set()
+    conn = store.get_connection(payload["mysql_config"])
+    try:
+        batch = []
+        for row in brightStars.scatter_group(
+            payload["shape"], payload["layers"], payload["edge_pc"], payload["expected"],
+            payload["min_luminosity_sol"], payload["seed"], skip_addresses=payload["skip"],
+            max_luminosity_sol=payload.get("max_luminosity_sol"), mass_range=payload.get("mass_range"),
+        ):
+            counts[row[6]] += 1
+            types[star_label(row[7], row[8])] += 1
+            hit.add(row[1])
+            batch.append(row)
+            if len(batch) >= 10000:
+                store.insert_bright_stars(conn, batch)
+                conn.commit()
+                batch = []
+        if batch:
+            store.insert_bright_stars(conn, batch)
+        conn.commit()
+    finally:
+        conn.close()
+    return {"counts": counts, "hit": sorted(hit),
+            "types": [[label, plural, count] for (label, plural), count in types.items()]}
+
+
 def _phenomenon_scatter_seed(skeleton):
     """
     The 63-bit seed of the phenomenon scatter (GEN.100): the top 63 bits of
@@ -891,18 +964,17 @@ def _log_phenomena_layer(layer_index, counts):
                    + ", ".join(f"{count:,} {kind}" for kind, count in sorted(counts.items())) + ".")
 
 
-def _scatter_phenomena_layers(args, bar, layers, weights, layer_done, mysql_config, skeleton, e_value, seed,
-                              min_mass_solar, filled, streak=None):
+def _scatter_phenomena_layers(args, bar, layers, weights, expected, layer_done, group_done, mysql_config, skeleton,
+                              e_value, seed, min_mass_solar, filled):
     """The layers of the phenomenon scatter through the work queue, the step `bar` credited with each
-    layer's expected work as it finishes (UX.83, PERF.51)."""
+    layer's expected work as it finishes (UX.83, PERF.51). Empty stretches are drawn as groups of layers
+    (`layer_groups.Walk`, PERF.57); returns the `Walk`, for its counts."""
     layers_done = [0]
-    walked = 0
-    streak = streak or early_stop.DryStreak(len(layers))
-    walk_position = {layer_index: position for position, (layer_index, _ring) in enumerate(layers)}
+    walk = layer_groups.Walk([expected[layer_index] for layer_index, _ring in layers])
 
-    def done_with(layer_index):
+    def done_with(layer_index, position):
         def on_done(layer_counts, seconds, weight):
-            streak.record(walk_position[layer_index], sum(layer_counts.values()))
+            walk.record(position, sum(layer_counts.values()))
             layer_done(layer_counts, seconds, weight)
             _log_phenomena_layer(layer_index, layer_counts)
             layers_done[0] += 1
@@ -912,22 +984,43 @@ def _scatter_phenomena_layers(args, bar, layers, weights, layer_done, mysql_conf
 
     with run_common._work_queue(args, "Phenomena") as queue:
         queue.expect(len(layers))
-        for layer_index, outer_ring in layers:
-            if streak.stopped:
-                break
-            walked += 1
-            payload = {
+
+        def payload_for(layer_index, outer_ring):
+            return {
                 "mysql_config": mysql_config, "shape": skeleton.shape, "layer_index": layer_index,
                 "outer_ring": outer_ring, "edge_pc": skeleton.edge_pc, "expected": e_value, "seed": seed,
                 "min_mass_solar": min_mass_solar,
                 "skip": {address for address in filled if address[1] == layer_index},
             }
-            queue.submit("phenomena", f"layer {layer_index}", _phenomenon_layer_task, payload,
-                         weight=weights[layer_index], on_done=done_with(layer_index))
-    if walked < len(layers):
-        bar.update(advance=sum(weights[layer_index] for layer_index, _ring in layers[walked:]))
-        log.normal(streak.message("Phenomena", walked))
-    return walked
+
+        def submit_single(position):
+            layer_index, outer_ring = layers[position]
+            queue.submit("phenomena", f"layer {layer_index}", _phenomenon_layer_task,
+                         payload_for(layer_index, outer_ring), weight=weights[layer_index],
+                         on_done=done_with(layer_index, position))
+
+        def submit_group(start, size):
+            group = layers[start:start + size]
+            payload = payload_for(*group[0])
+            payload["layers"] = group
+            payload["skip"] = {address for address in filled if address[1] in {layer for layer, _ring in group}}
+
+            def on_group(result, seconds, _weight):
+                walk.record_group(start, size, sum(result["counts"].values()))
+                group_done(result["counts"], result["hit"])
+                if result["counts"]:
+                    log.normal(f"Phenomena, {size} layers from {group[0][0]} drawn as a group: placed "
+                               f"{sum(result['counts'].values()):,}: "
+                               + ", ".join(f"{count:,} {kind}" for kind, count in sorted(result["counts"].items())) + ".")
+                layers_done[0] += size
+                bar.update(advance=sum(weights[layer_index] for layer_index, _ring in group),
+                           description=f"Phenomena ({layers_done[0]:,} of {len(layers):,} layers)")
+            queue.submit("phenomena", f"group {group[0][0]}+{size}", _phenomenon_group_task, payload,
+                         weight=sum(weights[layer_index] for layer_index, _ring in group), on_done=on_group)
+
+        walk.drive(queue, submit_single, submit_group)
+    _log_groups("Phenomena", walk)
+    return walk
 
 
 def scatter_phenomena(args):
@@ -968,9 +1061,10 @@ def scatter_phenomena(args):
         counts = {}
         e_value = skeleton.expected_system_count_at_density_1
         layers = sorted(extents, key=lambda extent: (abs(extent[0]), extent[0]))
-        weights = {layer_index: phenomenon_scatter.layer_expected(skeleton.shape, layer_index, outer_ring,
-                                                                  skeleton.edge_pc, e_value, min_mass_solar)
-                   + brightStars.RING_WEIGHT_STARS * (outer_ring + 1)
+        expected = {layer_index: phenomenon_scatter.layer_expected(skeleton.shape, layer_index, outer_ring,
+                                                                   skeleton.edge_pc, e_value, min_mass_solar)
+                    for layer_index, outer_ring in layers}
+        weights = {layer_index: expected[layer_index] + brightStars.RING_WEIGHT_STARS * (outer_ring + 1)
                    for layer_index, outer_ring in layers}
         log.normal(f"Phenomena: about {round(sum(weights.values())):,} to place in {len(layers):,} layers "
                    f"(neutron stars and black holes from {min_mass_solar:g} solar masses).")
@@ -989,14 +1083,19 @@ def scatter_phenomena(args):
                 run_common._generation_stats(args).record("phenomena", 0.0, seconds, systems=weight, stars=weight,
                                                           workers=run_common._worker_count(args))
 
+        def group_done(group_counts, hit):
+            for kind, count in group_counts.items():
+                counts[kind] = counts.get(kind, 0) + count
+            landed[0] += len(hit)
+
         with run_common._generation_progress() as progress:
             log.set_console(progress.console)
             try:
                 with steps.Step(f"Phenomena (0 of {len(layers):,} layers)", "phenomena",
                                 max(sum(weights.values()), 1.0), args=args, progress=progress,
                                 workers=run_common._worker_count(args), percent=True, record=False) as bar:
-                    walked = _scatter_phenomena_layers(args, bar, layers, weights, layer_done, mysql_config,
-                                                       skeleton, e_value, seed, min_mass_solar, filled)
+                    walk = _scatter_phenomena_layers(args, bar, layers, weights, expected, layer_done, group_done,
+                                                     mysql_config, skeleton, e_value, seed, min_mass_solar, filled)
             finally:
                 log.reset_console()
         with run_common._generation_progress() as progress:
@@ -1030,8 +1129,8 @@ def scatter_phenomena(args):
         conn.close()
     elapsed = time.perf_counter() - t0
     total = sum(counts.values())
-    stages.note(layers=len(layers), layers_walked=walked, layers_modified=landed[0],
-                stopped_early=walked < len(layers), objects=total)
+    stages.note(layers=len(layers), layers_walked=walk.singles, layers_grouped=sum(walk.group_sizes),
+                group_sizes=walk.group_sizes, layers_modified=landed[0], objects=total)
     if landed[0]:
         log.normal(f"Phenomena landed in {landed[0]:,} of {len(layers):,} layers.")
     else:
@@ -1042,6 +1141,38 @@ def scatter_phenomena(args):
     listed = ": " + ", ".join(f"{counts[label]:,} {label}" for label in labels) if labels else ""
     log.normal(f"Placed {total:,} phenomena in {elapsed:.1f}s{listed}.")
     return {"counts": counts, "total": total, "elapsed_s": elapsed}
+
+
+def _phenomenon_group_task(payload):
+    """
+    A group of layers of the phenomenon scatter drawn as one (PERF.57) -- a work queue task.
+
+    Returns:
+        dict: `counts` (rows written per kind) and `hit` (the layers that took one).
+    """
+    counts = {}
+    hit = set()
+    conn = store.get_connection(payload["mysql_config"])
+    try:
+        batch = []
+        for row in phenomenon_scatter.scatter_group(
+            payload["shape"], payload["layers"], payload["edge_pc"], payload["expected"], payload["seed"],
+            skip_addresses=payload["skip"], min_mass_solar=payload["min_mass_solar"],
+        ):
+            label = phenomenon_scatter.class_label(row[3], row[4])
+            counts[label] = counts.get(label, 0) + 1
+            hit.add(row[1])
+            batch.append(row)
+            if len(batch) >= 10000:
+                store.insert_phenomenon_scatter(conn, batch)
+                conn.commit()
+                batch = []
+        if batch:
+            store.insert_phenomenon_scatter(conn, batch)
+        conn.commit()
+    finally:
+        conn.close()
+    return {"counts": counts, "hit": sorted(hit)}
 
 
 def _phenomenon_layer_task(payload):

@@ -398,6 +398,69 @@ def scatter_layer(shape, layer_index, outer_ring, edge_pc, expected_at_density_1
             yield _row(ring_index, layer_index, slot, point, population, params, rng)
 
 
+def _pick(rng, weights):
+    """An index drawn with probability proportional to `weights`."""
+    pick = rng.random() * sum(weights)
+    for index, weight in enumerate(weights):
+        if pick < weight:
+            return index
+        pick -= weight
+    return max(index for index, weight in enumerate(weights) if weight > 0)
+
+
+def scatter_group(shape, layers, edge_pc, expected_at_density_1, min_luminosity_sol, seed, skip_addresses=None,
+                  max_luminosity_sol=None, mass_range=None):
+    """
+    Several layers drawn as one (PERF.57): one Poisson count for the whole
+    group, from the layers' summed expected stars (`layer_expected_stars`),
+    then each star placed in a layer chosen by that layer's share, a ring and
+    population by their share of it, and a sector by its density
+    (`_place_one`, as `scatter_layer` does). A group is drawn from one stream,
+    named by its first layer and size, so it gives the same stars on any
+    worker.
+
+    Args:
+        layers (list): `(layer_index, outer_ring)` for each layer of the group, in walk order.
+
+    Yields:
+        tuple: One row per star, in `_db.BRIGHT_STAR_COLUMNS` order.
+    """
+    rng = draw.Stream(f"{seed}:group:{layers[0][0]}:{len(layers)}")
+    skip_addresses = skip_addresses or set()
+    fractions = band_fractions(min_luminosity_sol, max_luminosity_sol, mass_range)
+    expected = [layer_expected_stars(shape, layer_index, outer_ring, edge_pc, expected_at_density_1, fractions)
+                for layer_index, outer_ring in layers]
+    count = _sample_poisson_count(sum(expected), rng=rng) if sum(expected) > 0.0 else 0
+    choices = {}
+    placed = {population: [] for population in POPULATIONS}
+    for _ in range(count):
+        layer_index, outer_ring = layers[_pick(rng, expected)]
+        if layer_index not in choices:
+            options = []
+            for ring_index in range(outer_ring + 1):
+                slots, bins = _ring_bins(ring_index, layer_index, shape, expected_at_density_1, edge_pc)
+                for population in POPULATIONS:
+                    weights = [densities[population] for densities in bins]
+                    mean = expected_at_density_1 * slots / len(bins) * sum(weights) * fractions[population]
+                    if mean > 0.0:
+                        options.append((mean, ring_index, slots, population, weights))
+            choices[layer_index] = options
+        options = choices[layer_index]
+        if not options:
+            continue
+        _mean, ring_index, slots, population, weights = options[_pick(rng, [option[0] for option in options])]
+        spot = _place_one(rng, weights, ring_index, layer_index, slots, edge_pc)
+        if spot is not None and (ring_index, layer_index, spot[0]) not in skip_addresses:
+            placed[population].append((layer_index, ring_index, spot[0], spot[1]))
+    for population, spots in placed.items():
+        if not spots:
+            continue
+        stars = sample_bright_stars(len(spots), min_luminosity_sol, population, rng,
+                                    max_luminosity_sol=max_luminosity_sol, mass_range=mass_range)
+        for (layer_index, ring_index, slot, point), params in zip(spots, stars):
+            yield _row(ring_index, layer_index, slot, point, population, params, rng)
+
+
 def backfill_cells(shape, addresses, edge_pc, expected_at_density_1, min_luminosity_sol, max_luminosity_sol, seed,
                    mass_range=None):
     """

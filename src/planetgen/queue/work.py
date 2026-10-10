@@ -1591,6 +1591,19 @@ class WorkQueue:
         self._check_signal()
         raise failure
 
+    def wait_until(self, condition):
+        """Collects finished tasks (running each `on_done`) until `condition()` is true, or until none is left
+        to wait for. With one worker every task has already finished when `submit` returns."""
+        if not self.parallel:
+            return
+        while not condition() and (self._waiting or self._running):
+            self._raise_failure()
+            self._obey()
+            self._dispatch()
+            self._collect(block=True)
+            self._check_signal()
+        self._raise_failure()
+
     def drain(self):
         """Waits for every submitted task (running each `on_done`)."""
         if not self.parallel:
