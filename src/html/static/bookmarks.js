@@ -37,7 +37,8 @@
 export const MAX_BOOKMARKS = 100;
 const KEY_PREFIX = "planetgen.bookmarks.";
 const CHANGE_EVENT = "planetgen-bookmarks-change";
-const ENDPOINT_RE = /^[a-z_]+:\d+$/;
+// `<kind>:<printed object ID>` (objectref.js; API.23): hex parts, up to three, joined by dashes.
+const ENDPOINT_RE = /^[a-z_]+:[0-9A-Fa-f]+(?:-[0-9A-Fa-f]+){0,2}$/;
 
 // --- Storage -------------------------------------------------------------------
 
@@ -227,7 +228,7 @@ function wireToggles() {
   document.querySelectorAll("[data-bookmark-toggle]").forEach(function (button) {
     const d = button.dataset;
     const entry = { name: d.bookmarkName || "", kind: d.bookmarkKind, value: d.bookmarkValue, url: d.bookmarkUrl || null };
-    if (d.bookmarkSectorId) entry.sectorId = Number(d.bookmarkSectorId);
+    if (d.bookmarkSectorId) entry.sectorId = d.bookmarkSectorId;
     toggleButton(button, function () { return entry; });
     button.hidden = false;
   });
@@ -392,7 +393,7 @@ function renderNavSelect(form) {
   const keep = form.getAttribute("data-keep-value") || "";
   const entries = read();
   const places = entries.filter(function (e) { return e.kind !== "stage" && e.kind !== "sector" && ENDPOINT_RE.test(e.value) && e.value !== keep; });
-  const sectors = entries.filter(function (e) { return e.kind === "sector" && Number.isInteger(e.sectorId); });
+  const sectors = entries.filter(function (e) { return e.kind === "sector" && typeof e.sectorId === "string" && e.sectorId !== ""; });
   const views = entries.filter(function (e) { return e.kind === "stage"; });
   select.textContent = "";
   [["Systems and phenomena", places, function (e) { return e.value; }],
