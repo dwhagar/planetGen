@@ -47,3 +47,14 @@ run, not as wall time.
 
 Default-scale galaxy; MySQL 8.4; more than 2 workers. The profile is of
 the fill only, not the plan.
+
+## After PERF.79 (scatter layers in chunks)
+
+The plan's three scatter passes now send their layers to the workers in at most 8 chunks per worker instead of one task per layer (`WorkQueue.submit_each`). Same benchmark (ring 12, seed ...BEEF, 2 sectors), machine otherwise idle:
+
+| workers | plan | phenomena | massive | bright | objects |
+|---|---|---|---|---|---|
+| 1 | 38.5 s | 18.4 s | 8.8 s | 6.7 s | 52,517 |
+| 2 | 24.2 s | 8.2 s | 6.0 s | 5.4 s | 52,517 |
+
+Before the change two workers took 593.9 s for the plan (about 12 times slower than one). The object counts match between one and two workers, so the rows are the same. The scatter is still one job on the RQ queue; the chunks are tasks of that job.
