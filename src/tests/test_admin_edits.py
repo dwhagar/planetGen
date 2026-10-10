@@ -214,6 +214,7 @@ def _saved_nebula(mysql_config):
             nebula_id = store.insert_nebula(conn, Nebula(cfg, name="Test Veil"), sector_id=sector_id,
                                           placement={"center_x_pc": 1.0, "center_y_pc": 2.0, "center_z_pc": 3.0,
                                                      "galactic_radius_pc": 3.7})
+            store.assign_uids(conn, phenomenon=("nebulae", nebula_id))
     finally:
         conn.close()
     return sector_id, nebula_id
@@ -227,7 +228,8 @@ def test_regenerate_phenomenon_keeps_id_name_and_place(admin, mysql_config):
     rows = _rows(mysql_config, "SELECT * FROM nebulae")
     assert len(rows) == 1
     after = rows[0]
-    for key in ("id", "name", "sector_id", "center_x_pc", "center_y_pc", "center_z_pc"):
+    assert before["uid"] is not None      # GEN.175: regenerating kept a NULL uid before, not the old one
+    for key in ("id", "uid", "name", "sector_id", "center_x_pc", "center_y_pc", "center_z_pc"):
         assert after[key] == before[key]
 
 
