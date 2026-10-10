@@ -21,10 +21,12 @@ from planetgen.physics import constants
 from planetgen.physics.stellar_evolution import sample_living_star
 from planetgen.galaxy.geometry import sector_position_pc
 from tests.test_bright_star_scatter import (
-    EDGE_PC, E_VALUE, EXTENTS, SHAPE, THRESHOLD, _plan_args, _row_dict, _seed_galaxy,
+    EDGE_PC, E_VALUE, EXTENTS, SHAPE, _plan_args, _row_dict, _seed_galaxy,
 )
 
 MASS_LIMIT = 3.0
+THRESHOLD = 1000.0
+"""float: Below the 2500 Lsun minimum a run may use (GEN.184): the lighter-star pass needs a floor that stars under the mass limit can reach."""
 
 
 @pytest.mark.parametrize("population", [None, "young", "intermediate"])
@@ -86,6 +88,7 @@ def test_the_backfill_draws_only_stars_lighter_than_the_mass_limit():
 def _scattered(mysql_config, mass_limit=MASS_LIMIT):
     _seed_galaxy(mysql_config)
     args = _plan_args(mysql_config, "--bright-stars-only", "--workers", "1")
+    args.bright_star_min_luminosity = THRESHOLD
     args.phenomenon_min_mass = mass_limit
     summary = run_plan.scatter_bright_stars(args)
     conn = store.get_connection(mysql_config)
