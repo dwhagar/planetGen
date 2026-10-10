@@ -58,6 +58,7 @@ ID_PATHS = {
     "api.object_ref_route": {"id": "by-kind", "siblings[]": "ref"},
     "api.nav": {
         "route.path[]": "navkey",
+        "route.stop_places[].node": "navkey",
         "route.hops[].from": "navkey",
         "route.hops[].to": "navkey",
         "route.positions{}": "navkey",

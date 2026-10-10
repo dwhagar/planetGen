@@ -1,0 +1,2 @@
+### Added
+- **Each route stop shows the course and distance to the next stop (NAV.42).** The NAV page's route reads `045 mark 012, 3.2 ly` after each stop, and the course map's tooltip names the course to the next stop; the last stop shows none. A hop between two systems of one sector uses the Sector Local Frame, any other hop the Galactic Frame. The routing API's hops carry `bearing_deg`, `mark_deg`, `elevation_deg` and `frame`, and the route has `stop_places` (each stop's sector and sector-local position).

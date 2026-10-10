@@ -778,6 +778,7 @@ def _route_for_json(route):
         "path": route["path"],
         "distance_ly": route["distance_ly"],
         "positions": {str(node_id): position for node_id, position in route["positions"].items()},
+        "stop_places": route["stop_places"],
         "hops": route["hops"],
         "longest_hop_ly": route["longest_hop_ly"],
         "stops": route["stops"],

@@ -577,3 +577,34 @@ def test_route_times_are_the_hops_rest_to_rest_plus_a_stay_at_every_stop():
     direct = route_warp_times([7.5], stay_minutes=600.0)
     assert [leg.years for leg in direct] == pytest.approx([leg.years for leg in warp_travel_times(7.5)])
     assert [leg.fold_factor for leg in route_fold_times(hops)] == [4, 5, 6, 6.5, 7, 7.5, 8, 8.5]
+
+
+def test_a_route_hop_course_uses_the_sector_frame_within_a_sector_and_the_galactic_frame_between_sectors():
+    """NAV.42: `_hop_course` works a hop's bearing, mark and frame out the way NAV does for that pair of stops."""
+    from planetgen.db.query import _hop_course
+
+    local_a, local_b = (0.0, 0.0, 0.0), (3.0, 4.0, 0.0)
+    places = {
+        1: {"sector_id": 7, "sector_position_ly": local_a},
+        2: {"sector_id": 7, "sector_position_ly": local_b},
+        3: {"sector_id": 8, "sector_position_ly": (1.0, 1.0, 1.0)},
+    }
+    galaxy = {1: (100.0, 0.0, 0.0), 2: (103.0, 4.0, 0.0), 3: (110.0, 0.0, 0.0)}
+
+    same_sector = _hop_course({"from": 1, "to": 2}, places, galaxy, {})
+    assert same_sector["frame"] == "sector"
+    expected = course_between(local_a, local_b, frame="sector")
+    assert (same_sector["bearing_deg"], same_sector["mark_deg"]) == (expected.bearing_deg, expected.mark_deg)
+
+    between = _hop_course({"from": 2, "to": 3}, places, galaxy, {})
+    assert between["frame"] == "galactic"
+    expected = course_between(galaxy[2], galaxy[3], frame="galactic")
+    assert (between["bearing_deg"], between["mark_deg"]) == (expected.bearing_deg, expected.mark_deg)
+    assert format_course(between["bearing_deg"], between["mark_deg"]) == format_course(expected.bearing_deg, expected.mark_deg)
+
+    # A phenomenon end has no sector position: the Galactic Frame, or the sector-local positions when the
+    # whole search was in one sector and there are no galaxy positions.
+    places["phenomenon:x"] = {"sector_id": None, "sector_position_ly": None}
+    galaxy["phenomenon:x"] = (120.0, 0.0, 0.0)
+    assert _hop_course({"from": 3, "to": "phenomenon:x"}, places, galaxy, {})["frame"] == "galactic"
+    assert _hop_course({"from": 1, "to": "phenomenon:x"}, places, None, {1: local_a, "phenomenon:x": (2.0, 0.0, 0.0)})["frame"] == "sector"

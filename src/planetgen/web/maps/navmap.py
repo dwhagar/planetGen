@@ -254,10 +254,15 @@ def _point_url(link_url, waypoint):
     return link_url("system", system_id=waypoint["id"])
 
 
+def _course_note(waypoint):
+    """NAV.42: a stop's tooltip line for the course to the next stop, or nothing (the last stop, or no route)."""
+    return f" (next stop: {waypoint['course']})" if waypoint.get("course") else ""
+
+
 def _point_html(url, waypoint, svg_x, svg_y, css_class, radius):
     return (
         f'<a class="navmap-point {css_class}" href="{esc(url)}">'
-        f'<title>{esc(waypoint["name"])}</title>'
+        f'<title>{esc(waypoint["name"])}{esc(_course_note(waypoint))}</title>'
         f'<circle cx="{svg_x:.1f}" cy="{svg_y:.1f}" r="{radius:.1f}"/></a>'
     )
 
