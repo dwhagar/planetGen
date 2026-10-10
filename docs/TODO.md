@@ -3357,8 +3357,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   sampler is a different random sequence, so a reseed (planetgen plan)
   is needed after the update; a statistical test compares it with the
   per-layer expected counts on a small galaxy. This replaces PERF.57,
-  which is retired as superseded. Owner: Bugfixes lane
-  1, first in its queue after TEST.124.
+  which was built (PR #1101) and is replaced. Owner: Bugfixes lane
+  1, first in its queue (after PERF.60).
   Prerequisite: PERF.60. Related: PERF.56, PERF.59, PERF.60, PERF.61,
   GEN.185, GEN.195.
   Grouped empty layers (PERF.57, PR #1101, Bugfixes lane 1; replaced
@@ -4074,20 +4074,6 @@ clears each one.
   (shared state, ordering or timing) and make the test robust; never
   skip it. Owner: unassigned.
   Prerequisites: none. Related: TEST.111, TEST.116.
-
-- [ ] **TEST.124 Phenomena page tests fail with KeyError scattered in system_pages._phenomena_load (bug)**
-  Reported by Foundations lane 2 (2026-10-10, PR #1059): on current main
-  15 tests fail with KeyError 'scattered' in
-  system_pages._phenomena_load, in test_web_system_phen.py and
-  test_web_browser_tables.py. They fail on a clean origin/main worktree,
-  so they come from the Phenomena table class-totals work (PR #1038),
-  not from PR #1059. Done: the Phenomena page loads for galaxies with
-  and without the class totals, the 15 tests pass, and the cause is
-  named here. Check first whether the page itself breaks for a real
-  galaxy (GEN.193 still wants confirming that the table shows rows after
-  a real run). Owner: Bugfixes lane 1, FIRST in the lane (priority
-  fix: main is red and the other lanes are merging onto it).
-  Prerequisites: none. Related: GEN.193, PERF.56.
 
 ## USR: User accounts
 
