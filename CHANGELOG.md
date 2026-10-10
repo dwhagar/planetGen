@@ -3,6 +3,7 @@
 ## [8.0.911] - 2026-10-10
 
 ### Changed
+- TODO list: GEN.186 retired (merged, PR #1088).
 - TODO list: PERF.62 recorded as built (PR #1087); PERF.58 and PERF.61 note the early stop.
 - TODO list: MAP.162 retired (merged, PR #1085).
 - TODO list: DB.21 retired (merged, PR #1082).
