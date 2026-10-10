@@ -3462,7 +3462,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   every scatter action also store the number of layers modified, kept in
   separate rows per mass floor and per luminosity floor used (a run at 8
   Msun and one at 14 Msun, or at 5,000 and 9,000 Lsun, are different
-  rows). With the object-first sampler (PERF.58) the row records stack sizes, layers visited
+  rows). With the object-first sampler (PERF.58) the row records layers visited
   and layers modified.
   GEN.187 stage (2026-10-10): no new stage needed. The existing backfill
   stage is now labelled "Scatter the massive stars from the neighborhood"
@@ -3484,23 +3484,43 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   per pass) and 78 times at quarter scale, with counts and spatial
   distribution matching today's code (chi-square per degree of freedom
   0.93 to 1.07). Boss also asked that his sparse method for stacks of
-  empty layers use the same fast method: a stack of layers is handled as
-  one draw (one Poisson count over the whole stack's majorant, then pick
-  the layer within the stack by its share), so empty stretches cost one
-  draw, not one visit per layer. The final wording of that stack rule
-  comes from Research lane 3 (it will send it to this thread; until then
-  build the per-layer sampler first). Done: the mass pass and the
-  luminosity pass use the sampler; the density majorant is certified,
-  and a check mode asserts true density never exceeds it; objects
-  dropped in filled or mass-marked sectors are thinned, not
-  renormalised; the one-object-per-sector cap applies only to the star
-  passes at the shipped floors (lambda about 0.004 at most) and not at
-  low luminosity floors; stats record layers visited and layers
-  modified, and stack sizes (PERF.56); the central black hole or quasar
-  is untouched; the new sampler is a different random sequence, so a
-  reseed (planetgen plan) is needed after the update; a statistical test
-  compares it with the per-layer expected counts on a small galaxy. This
-  replaces PERF.57, which is retired as superseded. Owner: Bugfixes lane
+  empty layers use the same fast method. Research lane 3 measured it
+  (follow-up in the study, PR #1068): do NOT group layers. At default
+  scale one layer at a time took 49.5 s, stacks of 4 took 46.0 s and
+  stacks of 16 took 49.4 s, and a whole-galaxy stack was 5 times slower
+  at quarter scale, because a bigger stack has a looser majorant and
+  the extra rejected candidates cancel the saving. An empty layer
+  already costs only its majorant (about 1.2 us per ring), so the
+  object-first draw does the sparse method's job by itself. The sampler
+  runs per layer (a stack of one); the stack size is a named tuning
+  value defaulting to 1, so stacks can be tried later. PERF.57's
+  grouping is not built.
+  Several objects per sector (Boss 09:32Z, tiers by density rating):
+  independent object-first draws and a per-sector count dictionary; each
+  sector has a capacity from its expected count at the sector centre,
+  the smallest of 1, 2, 4, 8 or 16 with P(Poisson(lambda) > capacity)
+  below 1e-4; an object over the capacity is dropped. Drops are 0.02%
+  at the shipped star floors (every sector is tier 1), 0.13% at 1,000
+  Lsun and 0.05% at 100 Lsun, and 0.12% for phenomena (a cap of 1 would
+  drop 0.84%, 18.9% and 1.43%). Not a queue where a sector is listed c
+  times: that makes counts Binomial(c, lambda/c) and the doubles fall
+  from 1.43% to 0.5 to 0.8% on phenomena. Optional: run the sector
+  address check only after the density test passes (saves about 8 us on
+  each of the 41% rejected candidates, about 9% of the run). Cost: a
+  candidate is about 37 us and an object about 62 us at default scale;
+  the numpy majorant is 3.75 s of the run, not the main cost. Boss
+  (09:53Z): "Even if the database row writes make things slower, on some
+  level, a 35x improvement to the speed, I'll take it."
+  Done: the mass pass and the luminosity pass use the sampler; the
+  density majorant is certified, and a check mode asserts true density
+  never exceeds it; objects dropped in filled or mass-marked sectors are
+  thinned, not renormalised; sectors take several objects by the
+  capacity tiers above; stats record layers visited and layers modified
+  (PERF.56); the central black hole or quasar is untouched; the new
+  sampler is a different random sequence, so a reseed (planetgen plan)
+  is needed after the update; a statistical test compares it with the
+  per-layer expected counts on a small galaxy. This replaces PERF.57,
+  which is retired as superseded. Owner: Bugfixes lane
   1, first in its queue after TEST.124 and ahead of PERF.56.
   Prerequisite: PERF.60. Related: PERF.56, PERF.59, PERF.60, PERF.61,
   GEN.185, GEN.195.
@@ -3538,10 +3558,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   follow the study recommendations, top priority. Done: a prototype with
   per-kind density majorants is measured against today's code (counts,
   spatial distribution, time, reseed) before it replaces the pass; the
-  one-object-per-sector cap is kept only where two objects in a sector
-  is very unlikely (the study found it would lose 1.4% of phenomena at
-  the shipped cut, so the sampler draws the number per sector from a
-  Poisson instead where lambda is not small); stats record layers
+  sectors take several objects by the capacity tiers of PERF.58 (1, 2, 4,
+  8 or 16, dropping 0.12% of phenomena where a cap of 1 would drop 1.4%); stats record layers
   visited and layers modified, per kind (PERF.56); a reseed is needed.
   Owner: Bugfixes lane 1, after PERF.58.
   Prerequisites: PERF.58, PERF.60. Related: PERF.58, PERF.59, PERF.60,
