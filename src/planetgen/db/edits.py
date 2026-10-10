@@ -213,6 +213,7 @@ def save_system_edits(conn, system_id, system, stars=()):
         if getattr(comet, "db_id", None) is not None:
             _save_comet_orbit(conn, comet)
     store.refresh_system_dose(conn, system_id)
+    store.assign_uids(conn, system_ids=[system_id])   # bodies added by the edit get their IDs (GEN.174)
     store.touch_star_system(conn, system_id)
 
 
