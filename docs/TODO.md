@@ -112,7 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.9, PERF.29, PERF.30, ADM.30, ADM.31, GEN.97, ADM.28, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, NAV.11, NAV.42, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.57, TEST.77, UX.49, PERF.31, GEN.128 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.9, PERF.29, PERF.30, ADM.31, GEN.97, ADM.28, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, NAV.11, NAV.42, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.57, TEST.77, UX.49, PERF.31, GEN.128 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.17, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18, PERF.33, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, ADM.43, ADM.44 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, and the anomalies chosen in phase 2. | NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, GEN.114, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies. | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, GEN.55 |
@@ -432,22 +432,6 @@ with `clamp()`.
   `a.btn:visited` out-specifying the secondary-button rules.
   Prerequisites: none.
   Design: [docs/design/map-ui-and-frontend-libraries.md](design/map-ui-and-frontend-libraries.md)
-
-- [ ] **UX.86 The Galaxy Map controls take too much room: buttons too large and filters one character wide (bug)**
-  Boss (2026-10-10 00:01Z): "button menus should open where they can be
-  seen, I keep having to scroll down to see the menu. In addition,
-  buttons need to be smaller or we need to use submenus, it's just too
-  big the way it is and most of the verticle space is taken by the
-  filters that are only 1 character wide, so we should revamp that so
-  that we make the most use of the space as possible." Done: the
-  controls are redesigned to leave the most room for the map: smaller
-  buttons, related actions grouped under submenus, and filters laid out
-  in the width they need instead of a column one character wide that
-  uses most of the vertical space; checked at desktop and phone widths
-  with a before and after screenshot in the PR. Applies to the same
-  shared control code on the other map pages. Bugfixes lane 1 after
-  UX.85. Decided (Boss, 2026-10-10 00:02Z): the Galaxy Map, built on the shared control code.
-  Prerequisite: UX.85. Related: UX.85, MAP.131, MAP.122.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -3008,6 +2992,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the factors so the totals match his figures? And is the 0.1% share of
   intermediate-mass black holes intended? They carry 53% of the
   black-hole mass.
+  Note (2026-10-09): Superseded in part (Boss, 2026-10-10 03:01Z rush
+  job): the mass cut is now a user preset between 8 and 20 solar masses
+  (GEN.183, default 20) and the scatter runs in the five passes of
+  GEN.185; the rates above are still open.
   Prerequisites: none.
   Design: [docs/design/phenomenon-scatter-mass-cut.md](design/phenomenon-scatter-mass-cut.md)
 
@@ -3179,32 +3167,60 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   in the Generate page and the CLI.
   Prerequisites: none. Related: GEN.96, GEN.180.
 
-- [ ] **GEN.182 Some comets' orbits do not bring them back: they are ejected into space (bug)**
-  Boss (2026-10-10 01:12Z): "in a star system orbital path of some
-  comets doesn't bring them back, it ejects them out into space, if this
-  is intentional, no problem, if not then we need to fix it". Done:
-  first, check whether the ejection is intended by design: read how the
-  generator draws comet orbits (semi-major axis and eccentricity, and
-  whether any can be unbound, e >= 1 or an energy above zero) against
-  the Hill-sphere and stability rules of GEN.109, and say what was found
-  in the PR. If the ejection is intended (for example a hyperbolic
-  interloper), record that on the comet page and in the docs, make the
-  system page say the orbit is unbound instead of drawing an open path
-  as if it returned, and close the item. If it is not intended, fix the
-  generator so every bound comet gets a closed orbit that stays inside
-  the star's Hill sphere, with a test that draws many comets and checks
-  that none is unbound, and make the orbit-update step (GEN.105) never
-  eject one by accident. Bugfixes lane 1, after its current queue (the
-  progress-bar chain, the main CI errors, UX.85 and UX.86).
-  Prerequisites: none. Related: GEN.109, GEN.105, GEN.104.
-  Boss (2026-10-10 01:17Z): "it could also be a render issue, I'm
-  running it right now on 100 y/s simulation and it hasn't come back
-  around yet, but it might." So the first check compares the stored
-  orbital elements of the comet (bound or unbound, period) with what the
-  system map draws and with how the simulation advances them at high
-  speed (a comet with a period longer than the run so far has simply not
-  returned yet), before the generator and Hill-sphere rules are
-  blamed; the investigation covers the renderer as well.
+- [ ] **GEN.183 A mass cut the user sets: preset values on a slider from 8 to 20 solar masses**
+  Boss (2026-10-10 03:01Z): "Add the solar masses pass, user can specify
+  preset values on a slider between 8 and 20." Rush job, as fast
+  as possible. Done: the phenomenon scatter's lowest
+  mass (galaxy_shape.phenomenon_min_mass_solar, --phenomenon-min-mass,
+  the settings file and the Generate page) is picked from a slider of
+  preset values between 8 and 20 solar masses; 20 stays the default (the
+  cut Boss accepted on 2026-10-09). Everything above the cut is
+  scattered galaxy-wide; everything below is drawn when its sector is
+  made, as built in GEN.166 to GEN.168. Open question for Boss (default:
+  presets 8, 10, 12, 14, 16, 18 and 20).
+  Lane (Boss, 2026-10-10 03:04Z): Foundations lane 2.
+  Prerequisites: none. Related: GEN.169, GEN.166, GEN.167, GEN.168,
+  PERF.18.
+
+- [ ] **GEN.184 A luminosity floor the user sets: presets from 2500 to 4 million solar luminosities, default 3000**
+  Boss (2026-10-10 03:01Z): "Change the luminosity code, the user has
+  preset settings, default is 3000 solar luminosities, user can choose
+  no lower than 2500, but goes up to 4 million in an exponential scale,
+  so the user has the best control (jumps of 100 solar luminosities)
+  near 2500 but ending with 500,000 jumps near the 4 million mark."
+  Done: the bright-star luminosity floor is one of a preset list that
+  starts at 2500 L_sun with steps of 100, grows exponentially and ends
+  at 4,000,000 L_sun with steps near 500,000; the default is 3000 L_sun.
+  This replaces the fixed 1000 L_sun floor (GEN.30) as the default and
+  sets 2500 as the lowest allowed. Open question for Boss (default: a
+  geometric ladder of about 60 presets built from the step rule, rounded
+  to 2 significant digits above 10,000, and a database already filled
+  below the new floor keeps its stars).
+  Lane (Boss, 2026-10-10 03:04Z): Foundations lane 1.
+  Prerequisites: none. Related: GEN.30, PERF.18, GEN.40, MAP.120.
+
+- [ ] **GEN.185 The scatter in five passes: mass-limit objects, mass-limit stars, brightest-star sector marks, the luminosity pass, then other phenomena**
+  Boss (2026-10-10 03:01Z) algorithm: (1) scatter quasars, stars and
+  black holes above the set mass limit; (2) scatter the stars above the
+  mass limit; (3) as each star scatters in step 2, mark its sector with
+  that star's luminosity in solar luminosities; (4) scatter the stars
+  over the luminosity limit, skipping every sector marked in step 3 with
+  a luminosity equal to or above the luminosity setting, because it
+  already holds a bright enough star; (5) scatter the other phenomena as
+  already discussed, with no comets and no rogue planets. Done: the
+  passes run in this order in one plan, the per-sector mark is stored
+  with the scatter (or computed in the pass) so step 4 can skip, and the
+  sector fill draws below the cuts as before. This changes the default
+  luminosity pass (it no longer adds a star to a sector that already has
+  one at or above the floor) and so the bright-star count; GEN.100's
+  scatter is passes 1, 2 and 5 here, and the 20 solar mass phenomenon
+  cut of phenomenon-scatter-mass-cut.md is now only the slider's default
+  (GEN.183). Open question for Boss (default: the mark is each sector's
+  brightest scattered star; a step 1 star counts as a step 2 star; a
+  reseed of the combined plan is expected).
+  Lane (Boss, 2026-10-10 03:04Z): Foundations lane 3.
+  Prerequisites: GEN.183, GEN.184. Related: GEN.100, GEN.166, GEN.167,
+  GEN.168, GEN.183, GEN.184, GEN.30, GEN.169, PERF.18.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -4032,21 +4048,7 @@ Boss (2026-10-07 11:47Z): "Actual specs on layers on the generation
   many charted), the common actions stay on the page and every other
   setting moves into a Customize dialog, and its subitems are done.
   GitHub issue [#736](https://github.com/dwhagar/planetGen/issues/736) (Boss, 2026-10-09 02:26Z): "Each set of settings should be a tab for the generate screen so the user only sees the ones relevant to what they are looking at." So the Customize dialog groups its settings into tabs, one per kind of generation.
-  Prerequisites: ADM.30, ADM.31, GEN.97.
-
-  - [ ] **ADM.30 Radial generation: a cylinder of N sectors around a point**
-    Boss (2026-10-07 11:47Z): "From generate menu specify a radial
-    generation from a point in a direct cylinder x sectors radius (1 =
-    minimum for contiguous orthogonal connection between each sector and
-    it's adjacent sectors." Done: a point (sector or coordinates) and a
-    radius in sectors fill a cylinder around it; radius 1 fills the
-    point and its face neighbours.
-    Research (2026-10-09, fill-order-curves-and-core.md): define radius
-    x as a Euclidean disc of (x + 0.385) edges, not x edges (x = 1 would
-    return only 3 cells); add a separate half-height field, default x
-    layers either side (open question for Boss); the shape is a round
-    disc connected by face adjacency from the centre; correct "radius 1
-    fills the point and its face neighbours" to follow this definition.
+  Prerequisites: ADM.31, GEN.97.
 
   - [ ] **ADM.31 Every generate action offers to show what it made on the Galaxy Map**
     Boss (2026-10-03 05:38Z): "Add a button from the generate screen to
@@ -4238,6 +4240,18 @@ clears each one.
   product bug it hides is fixed. Bugfixes lane 1 or whichever lane
   touches regeneration next.
   Prerequisites: none. Related: TEST.111, TEST.71, TEST.73, OPS.19.
+
+- [ ] **TEST.114 test_the_check_writes_nothing fails now and then in a parallel full run (bug)**
+  Reported by Foundations lane 1 (2026-10-10 02:45Z, ADM.30 merge, PR
+  #934): tests/test_db_check.py::test_the_check_writes_nothing failed
+  once in a parallel full run (system_name_registry count 0 against 4)
+  and passes alone, so it looks load-sensitive. Done: the cause is found
+  (shared state or timing under load, or a real bug in the check) and
+  the test is made robust without skipping or loosening it, or the
+  product bug it hides is fixed. Bugfixes lane 1 or whichever lane
+  touches the database check next.
+  Prerequisites: none. Related: TEST.111, TEST.112, TEST.71, TEST.73,
+  OPS.19.
 
 ## USR: User accounts
 

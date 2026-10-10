@@ -16,13 +16,13 @@ release is stamped.
 | UX | UX.87 |
 | MAP | MAP.162 |
 | NAV | NAV.58 |
-| GEN | GEN.183 |
+| GEN | GEN.186 |
 | PERF | PERF.52 |
 | DB | DB.22 |
 | API | API.24 |
 | ADM | ADM.49 |
 | SEC | SEC.33 |
-| TEST | TEST.114 |
+| TEST | TEST.115 |
 | USR | USR.10 |
 | OPS | OPS.38 |
 | DOC | DOC.17 |
@@ -418,7 +418,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.27 | Changing a planet's class doesn't regenerate its surface conditions (bug) | none | done, PR #448 |
 | ADM.28 | A simpler Generate page: layer specs, a Customize window and plain controls | none | open |
 | ADM.29 | Fill a span of layers, rings or columns | none | done, PR #926 |
-| ADM.30 | Radial generation: a cylinder of N sectors around a point | none | open |
+| ADM.30 | Radial generation: a cylinder of N sectors around a point | none | done, PR #934 |
 | ADM.31 | Every generate action offers to show what it made on the Galaxy Map | none | open |
 | ADM.32 | Add a star system to a sector: at the emptiest spot, at given coordinates, or at random outside every Hill sphere | none | open |
 | ADM.33 | The owner can override "no room" warnings and generate anyway | none | done, PR #476 |
@@ -678,7 +678,10 @@ Parents marked "new parent" had no old number of their own.
 | GEN.179 | Store each sector's generation directive and attempt record with the sector | none | open |
 | GEN.180 | Directives: a forced fill (met_forced) after K failed draws | none | open |
 | GEN.181 | Directives: refuse impossible requests up front from the compound-Poisson tables | none | open |
-| GEN.182 | Some comets' orbits do not bring them back: they are ejected into space (bug) | none | open |
+| GEN.182 | Some comets' orbits do not bring them back: they are ejected into space (bug) | none | done, PR #938 |
+| GEN.183 | A mass cut the user sets: preset values on a slider from 8 to 20 solar masses | none | open |
+| GEN.184 | A luminosity floor the user sets: presets from 2500 to 4 million solar luminosities, default 3000 | none | open |
+| GEN.185 | The scatter in five passes: mass-limit objects, mass-limit stars, brightest-star sector marks, the luminosity pass, then other phenomena | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -1122,7 +1125,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.83 | Generation steps that run long show no progress bar of their own: linking new sectors to their neighbours, the phenomenon scatter and others (bug) | none | done, PR #895 |
 | UX.84 | Every sub-step must show a progress bar that starts by itself when it is predicted to take over 15 seconds (bug) | none | done, PR #930 |
 | UX.85 | Button menus open out of sight and make the user scroll to see them (bug) | none | done, PR #932 |
-| UX.86 | The Galaxy Map controls take too much room: buttons too large and filters one character wide (bug) | none | open |
+| UX.86 | The Galaxy Map controls take too much room: buttons too large and filters one character wide (bug) | none | done, PR #936 |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
@@ -1333,6 +1336,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.111 | test_ensure_sector_generated_creates_then_reuses_the_same_sector fails in a busy parallel run (bug) | none | open |
 | TEST.112 | test_regenerate_phenomenon_keeps_id_name_and_place fails now and then in the full suite (bug) | none | open |
 | TEST.113 | tests/js/generatejobs.test.mjs fails on main: "asks for the job's status two seconds in" (bug) | none | done, PR #920 |
+| TEST.114 | test_the_check_writes_nothing fails now and then in a parallel full run (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

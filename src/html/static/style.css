@@ -2346,6 +2346,12 @@ code {
   flex-wrap: wrap;
 }
 
+.galaxymap3d-panel .starmap-controls > .starmap-btn,
+.galaxymap3d-panel .starmap-controls > details > summary.starmap-btn {
+  padding: 0.25rem 0.55rem;
+  font-size: 0.9rem;
+}
+
 .galaxymap3d-panel .starmap-info {
   flex: 1 1 16rem;
   min-width: 0;
@@ -2396,8 +2402,7 @@ code {
   flex-direction: column;
   align-items: stretch;
   gap: 0.5rem;
-  width: max-content;
-  max-width: calc(100vw - 2rem);
+  width: min(30rem, calc(100vw - 2rem));
   margin-top: 0.4rem;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
   padding: 0.5rem 0.75rem;
@@ -2429,11 +2434,37 @@ code {
 /* "Show on the map" in the Menu: a toggle per kind of object (MAP.79). */
 .galaxy-kinds {
   display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 0.35rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid var(--border);
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.3rem;
+  padding: 0.35rem 0 0.25rem;
+}
+
+/* UX.86: toggles in the Menu take their natural width and sit side by side. */
+.galaxy-kinds .starmap-btn,
+.galaxy-menu-actions .starmap-btn {
+  padding: 0.2rem 0.55rem;
+  font-size: 0.85rem;
+}
+
+.galaxy-kinds .galaxy-lum,
+.galaxy-kinds .galaxy-kinds-heading {
+  flex: 0 0 100%;
+}
+
+.galaxy-sub > summary {
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.galaxy-menu-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border);
 }
 
 .galaxy-kinds[hidden] {

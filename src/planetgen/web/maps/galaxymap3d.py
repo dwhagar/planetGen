@@ -739,16 +739,21 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
 {zoom_buttons}{history_buttons}{bookmarks_block}  <details class="galaxy-menu" id="galaxymap3d-menu">
     <summary class="starmap-btn" data-icon="menu" title="More map controls">Menu</summary>
     <div class="galaxy-menu-panel" role="group" aria-label="More map controls">
-    <div class="galaxy-kinds" id="galaxymap3d-kinds" role="group" aria-label="Show on the map" hidden></div>
+    <details class="galaxy-sub" id="galaxymap3d-show" open>
+      <summary>Show on the map</summary>
+      <div class="galaxy-kinds" id="galaxymap3d-kinds" role="group" aria-label="Show on the map" hidden></div>
+    </details>
+    <div class="galaxy-menu-actions">
     <button type="button" class="starmap-btn" data-action="center-on" data-icon="center-on"
             title="Move the center the view turns and zooms about to what is selected, or the middle of the view (C)">Center on selection</button>
     <button type="button" class="starmap-btn" data-action="reset-view" data-icon="reset-view"
             title="Back to this step's own view after turning, moving or zooming it">Re-center</button>
     <button type="button" class="starmap-btn" data-action="charted-only" data-icon="charted-only" aria-pressed="false"
             title="Dim the stars and blocks outside charted sectors and outline the charted ones">Charted only</button>
-{color_block}{rogue_button}{territory_button}    <button type="button" class="starmap-btn" data-action="map-help" data-icon="help"
+{rogue_button}{territory_button}    <button type="button" class="starmap-btn" data-action="map-help" data-icon="help"
             title="How to move around the map and read it">Map help</button>
     </div>
+{color_block}    </div>
   </details>
 </div>
 {territory_box}</div>

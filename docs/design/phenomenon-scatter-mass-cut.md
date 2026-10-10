@@ -14,6 +14,8 @@ Informs: DB.19, GEN.100, GEN.104, GEN.109, GEN.115, PERF.31
 
 Status: built, 2026-10-09 (GEN.166 to GEN.168, schema v71); Boss accepted the 20 solar mass cut on a decision card (2026-10-09).
 
+Update (Boss, 2026-10-10 03:01Z): the cut becomes a user setting with preset values between 8 and 20 solar masses (GEN.183; 20 stays the default), the bright-star luminosity floor becomes a preset from 2500 to 4,000,000 L_sun with a default of 3000 (GEN.184), and the scatter runs in five passes (GEN.185). The fixed 20 solar mass cut and the 1000 L_sun default below are superseded as defaults.
+
 As built: the cut is `galaxy_shape.phenomenon_min_mass_solar` and `--phenomenon-min-mass` (in the settings file's plan settings); the scatter's classes are `phenomenon_scatter.SCATTER_CLASSES`, and a sector's below-cut draw is `phenomenon_scatter.below_cut_draws` with `run_sector.add_below_cut_remnants`. No per-sector level or band top-up was needed: a filled sector already holds every mass (its scattered rows above the cut, its own draw below), and a rescatter at a new cut (`planetgen plan --phenomena-only`) replaces the rows of every unfilled cell and leaves filled ones out, so nothing is missing or doubled whichever way the cut moves.
 
 Evidence tags: [C] computed or measured here (`/mnt/project-files/research/scripts/genperf/`:
