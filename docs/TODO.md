@@ -949,6 +949,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stay as they are.
   Prerequisites: none. Related: MAP.148, MAP.146, MAP.149, MAP.147,
   MAP.116.
+  Lane (2026-10-09): Queue (Boss, 2026-10-10 05:13Z): Foundations lane 2
+  does this right after GEN.87 (in flight), then GEN.188, GEN.89,
+  GEN.83, GEN.187, MAP.162, UX.87 and the wire-format items. One of the
+  three biggest blockers on the tree.
   Design: [docs/design/zoom-star-visibility.md](design/zoom-star-visibility.md)
 
 - [ ] **MAP.154 Nested bright-star lists on the server, so every parent list is a subset of its child's**
@@ -2998,6 +3002,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   change it bumps the generator version (OPS.37) when it ships.
   Decided (Boss, 2026-10-09 22:44Z): 80 bits, 20 hex digits, with system
   and body fields, not a 64-bit flat per-sector counter.
+  Lane (2026-10-09): Queue (Boss, 2026-10-10 05:13Z): Foundations lane 1
+  does this first, then API.9, DB.21, GEN.186, NAV.8, NAV.11. One of the
+  three biggest blockers on the tree.
   Prerequisites: none.
   Design: [docs/design/object-id-options.md](design/object-id-options.md)
 
@@ -3668,6 +3675,9 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
     (the 50/hour IP default must not apply to keys). Add the sweep
     checks of design doc 5.4 to the Done text. The scope work is a
     prerequisite for API.15's `key_id` field and for API.18.
+    Lane (2026-10-09): Queue (Boss, 2026-10-10 05:13Z): moves from
+    Foundations lane 2 to Foundations lane 1, second after GEN.170; one
+    of the three biggest blockers on the tree.
 
   - [ ] **API.10 Reservations: claimed sectors and id blocks per run**
     `id_blocks` exists (one next id per table, used by parallel
