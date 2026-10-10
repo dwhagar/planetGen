@@ -3,6 +3,7 @@
 ## [8.0.866] - 2026-10-10
 
 ### Added
+- Filed MAP.147 (the Galaxy Map wire format: measure the payload, compare options) in Phase 2.
 - Filed MAP.146 (zoom drill-down centred on the clicked point) in Phase 2.
 - Filed OPS.37 (a Generator version number) and API.22 (an API version number), both plain sequential integers due by the end of Phase 1.
 - Planets and moons store their mantle redox (reduced, intermediate or oxidized, with its offset from the iron-wustite buffer) and the partial pressures of O2, CO2, CO, N2, Ar, H2, H2O, CH4, H2S and SO2 (GEN.85, schema v70). Each class's mix shifts with the redox, and no gas exceeds its vapour pressure at the surface temperature.
