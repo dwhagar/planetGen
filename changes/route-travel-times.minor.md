@@ -1,2 +1,0 @@
-### Added
-- A route between systems now shows travel times for each hop and for the whole trip at every warp and fold factor, with a stop at every system between the ends. Each hop is timed from rest to rest at the factor's constant speed. The stay per stop defaults to 0 minutes and can be changed on the NAV page ("Stay at each stop") or with `stay=` on `GET /api/nav`; the response adds `warp_times` and `fold_times` to each hop and to the route, plus `route.stops` and `route.stay_minutes`. (NAV.11)
