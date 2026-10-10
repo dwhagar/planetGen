@@ -582,3 +582,36 @@ def test_system_page_changes_the_star(web_app, mysql_config):
     assert response.status_code == 303
     client.get(response.headers["Location"])
     assert _load(mysql_config, system_id).star.type.split()[0] == "K2V"
+
+
+def _planet_uids(mysql_config, system_id):
+    return [row["uid"] for row in _rows(mysql_config, "SELECT uid FROM planets WHERE star_system_id = ? ORDER BY id",
+                                       (system_id,))]
+
+
+def test_a_body_added_after_a_delete_gets_its_own_uid(mysql_config):
+    """GEN.173 and GEN.174: delete a planet, then add one: the new row is saved with an ID (it was NULL), and
+    not one another planet already has (it ranked among the current rows and took a used one)."""
+    import copy
+    _sector_id, system_id = _saved_system(mysql_config, lambda s: sum(p.body_type != 'a' for p in s.planets) >= 3)
+    conn = store.get_connection(mysql_config)
+    try:
+        system = store.load_star_system(conn, system_id)
+        planets = [p for p in system.planets if p.body_type != 'a']
+        system.planets.remove(planets[0])                       # delete one, not the last
+        with conn:
+            editStore.save_system_edits(conn, system_id, system)
+        system = store.load_star_system(conn, system_id)
+        added = copy.deepcopy([p for p in system.planets if p.body_type != 'a'][-1])
+        added.db_id = None
+        added.name = "Added Planet"
+        for moon in added.moons:
+            moon.db_id = None
+        system.planets.append(added)
+        with conn:
+            editStore.save_system_edits(conn, system_id, system)
+    finally:
+        conn.close()
+    uids = _planet_uids(mysql_config, system_id)
+    assert all(uid is not None for uid in uids), uids
+    assert len(set(uids)) == len(uids), uids

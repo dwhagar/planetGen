@@ -6988,11 +6988,27 @@ def _assign_system_uids(conn, seed, system_ids, sector_parent):
             counts[row[scope]] = index + 1
             yield row, index
 
-    def fill(table, rows_with_index, parent_of, kind):
+    def pick(kind, parent, index, used):
+        """A new row's ID: the one of its rank, or the next rank whose ID no row of the same scope has yet. After a
+        delete the new row's rank is one some other row's ID already carries (GEN.173), and `uq_*_uid` refuses a
+        second. `used` holds the scope's IDs and takes the new one."""
+        while True:
+            uid = galaxyUid.derived_uid(seed, kind, parent, index, galaxyUid.LOCAL_BITS)
+            if uid not in used:
+                used.add(uid)
+                return uid
+            index += 1
+
+    def fill(table, rows_with_index, parent_of, kind, scope="star_system_id"):
+        rows_with_index = list(rows_with_index)
+        used = {}
+        for row, _index in rows_with_index:
+            if row["uid"] is not None:
+                used.setdefault(row[scope], set()).add(row["uid"])
         new = []
         for row, index in rows_with_index:
             if row["uid"] is None:
-                new.append((row["id"], galaxyUid.derived_uid(seed, kind, parent_of(row), index, galaxyUid.LOCAL_BITS)))
+                new.append((row["id"], pick(kind, parent_of(row), index, used.setdefault(row[scope], set()))))
         _update_by_id(conn, table, ("uid",), new, touch=True)  # these tables have no `modified_at`
 
     def select(table, extra=""):
@@ -7005,16 +7021,20 @@ def _assign_system_uids(conn, seed, system_ids, sector_parent):
     fill("stars", ranked(select("stars")), of_system, "star")
     planets = select("planets")
     planet_uid = {}
+    planet_used = {}
+    for planet, _index in ranked(planets):
+        if planet["uid"] is not None:
+            planet_used.setdefault(planet["star_system_id"], set()).add(planet["uid"])
     for planet, index in ranked(planets):
         uid = planet["uid"]
         if uid is None:
-            uid = galaxyUid.derived_uid(seed, "planet", of_system(planet), index, galaxyUid.LOCAL_BITS)
+            uid = pick("planet", of_system(planet), index, planet_used.setdefault(planet["star_system_id"], set()))
         planet_uid[planet["id"]] = uid
     _update_by_id(conn, "planets", ("uid",), [(p["id"], planet_uid[p["id"]]) for p in planets if p["uid"] is None],
                   touch=True)
     planet_text = {planet_id: galaxyUid.format_uid(uid, galaxyUid.LOCAL_BITS) for planet_id, uid in planet_uid.items()}
     moons = select("moons", ", planet_id")
-    fill("moons", ranked(moons, "planet_id"), lambda row: planet_text[row["planet_id"]], "moon")
+    fill("moons", ranked(moons, "planet_id"), lambda row: planet_text[row["planet_id"]], "moon", scope="planet_id")
     fill("asteroid_belts", ranked(select("asteroid_belts")), of_system, "belt")
     fill("comets", ranked(select("comets")), of_system, "comet")
 
