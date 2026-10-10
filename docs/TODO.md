@@ -3559,6 +3559,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Bugfixes lane 1, after UX.89, PERF.56 and UX.88.
   Prerequisites: none. Related: UX.89, PERF.56, GEN.185, GEN.187,
   GEN.195.
+  Clarification (2026-10-09): Boss clarification (2026-10-10 08:32Z):
+  the test is "the last 100 layers produced 0 stars OR 0 phenomena". The
+  star passes count stars; the phenomena pass counts phenomena.
 
 ## DB: Database and schema
 
