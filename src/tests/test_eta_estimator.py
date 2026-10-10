@@ -155,3 +155,23 @@ def test_the_sector_bar_carries_the_recorded_rate_into_the_progress_bar():
 
         with run_common.sector_bar(progress, Unrecorded(), "Sectors", 10):
             assert progress.tasks[1].fields["rate"].prior is None
+
+
+def test_a_job_adds_the_time_of_each_step_not_started_yet():
+    node = _node(0, 0.0, 0, recorded=None)
+    node["unstarted_step_seconds"] = [60.0, 30.0]
+    work._roll_up(node)
+    assert node["totals"]["eta_seconds"] == pytest.approx(90.0)
+    assert node["totals"]["eta_partial"] is False
+
+
+def test_a_step_with_no_recorded_time_makes_the_job_estimate_partial():
+    node = _node(0, 0.0, 0, recorded=None)
+    node["unstarted_step_seconds"] = [60.0, None]
+    work._roll_up(node)
+    assert node["totals"]["eta_seconds"] == pytest.approx(60.0)
+    assert node["totals"]["eta_partial"] is True
+    nothing = _node(0, 0.0, 0, recorded=None)
+    work._roll_up(nothing)
+    assert nothing["totals"]["eta_seconds"] is None
+    assert nothing["totals"]["eta_partial"] is False
