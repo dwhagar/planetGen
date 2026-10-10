@@ -607,10 +607,24 @@ def _release_lock(root, job_id):
     try:
         with open(lock, "r", encoding="utf-8") as f:
             holder = f.read().strip()
-        if holder == job_id:   # removed once closed: Windows can't delete an open file
-            os.remove(lock)
     except OSError:
-        pass
+        return
+    if holder != job_id:
+        return
+    # Removed once closed (Windows can't delete an open file), and tried
+    # again briefly: a scanner or indexer may hold the new file for a moment
+    # there, and a lock left behind blocks every later job (TEST.115).
+    for attempt in range(5):
+        try:
+            os.remove(lock)
+            return
+        except FileNotFoundError:
+            return
+        except OSError as exc:
+            if attempt == 4:
+                log.warning("jobs: could not remove the lock for job %s: %s", job_id, exc)
+            else:
+                time.sleep(0.1)
 
 
 def _prune(root, keep):
