@@ -2966,17 +2966,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   in the Generate page and the CLI.
   Prerequisites: none. Related: GEN.96, GEN.180.
 
-- [ ] **GEN.186 Random neighborhoods: an option to keep away from filled space**
-  Left over from GEN.97 (merged, PR #950; Foundations lane 1 report,
-  2026-10-10 03:37Z). The research note
-  (sampling-backfill-and-resume.md) made it optional that the qualifying
-  list excludes centres near filled space; neighborhoods already avoid
-  each other always. Done: the Generate page and generate.py take a flag
-  that drops random neighborhood centres whose neighborhood touches
-  sectors that are already filled, with a cost line that says how many
-  centres qualify.
-  Prerequisites: none. Related: GEN.97, ADM.28.
-
 - [ ] **GEN.189 Gamma-ray burst and AGN ozone loss for the ozone_loss_flag (low priority)**
   Foundations lane 2 (2026-10-10 06:20Z), design 4.5 of
   activity-magnetism-radiation-hydrosphere.md: GEN.87 stores
@@ -3210,6 +3199,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   estimate to its ETA. Still open: the scatter-bar recorded rate (GEN.187
   has landed) and the UX.3 banner reading the same estimator (the banner is
   not built yet, so nothing to read from).
+  Bugfixes lane 1 (2026-10-09): Audit gaps (Bugfixes lane 1, 2026-10-10,
+  PR #1091 built the Generate page whole-job bar from stage times by
+  settings; answers Boss 08:36Z question on whether every ETA uses
+  stored stats): not yet fixed: (1) scatter and other step bars start
+  from the pool rate by kind and workers only, not matched on the mass
+  or luminosity floor (the stored stage seconds by settings should seed
+  the rate and decide whether a sub-bar is drawn); (2) the backfill step
+  has an unknown count at start; (3) the command-line whole-job bar (the
+  PERF.55 remainder) is not built; (4) job-page tree estimates are by
+  step label, not by settings. Folded here; (3) is also in PERF.55.
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
   Replace the one-`sector_stats`-row-per-visited-cell ledger of
@@ -3413,7 +3412,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   1, first in its queue after TEST.124.
   Prerequisite: PERF.60. Related: PERF.56, PERF.59, PERF.60, PERF.61,
   GEN.185, GEN.195.
-  The interim early stop (PERF.62) was dropped: not built.
+  Early stop (PERF.62, built in PR #1087): tuning.SCATTER_DRY_LAYERS stops
+  the current layer walk after 100 layers in a row with 0 stars or 0
+  phenomena. This sampler replaces that walk, so it keeps or replaces
+  the early stop and removes the constant if it is no longer needed.
 
 - [ ] **PERF.59 Share the ring inputs across the three scatter passes (top priority)**
   From the scatter study (docs/design/scatter-queue-feasibility.md): the
@@ -3453,6 +3455,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Bugfixes lane 1, after PERF.58.
   Prerequisites: PERF.58, PERF.60. Related: PERF.58, PERF.59, PERF.60,
   GEN.185.
+  Early stop (PERF.62, built in PR #1087): the 100-dry-layer stop of
+  the current phenomena walk (0 phenomena) is kept or replaced by this
+  sampler, like PERF.58.
 
 ## DB: Database and schema
 
