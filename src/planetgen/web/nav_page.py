@@ -309,6 +309,8 @@ def _route_stops(route, names):
     for stop, hop in zip(stops, route.get("hops", [])):
         # UX.35: the hop to the next stop, shown between the two; NAV.11: and how long it takes.
         stop["hop_text"] = format_distance_ly(hop["distance_ly"])
+        if "bearing_deg" in hop:  # NAV.42: the course to the next stop, "045 mark 012"
+            stop["hop_course"] = format_course(hop["bearing_deg"], hop["mark_deg"])
         stop["hop_unknown"] = bool(hop.get("unknown_space"))
         stop["hop_times"] = [f"Warp {leg['warp_factor']:g}: {leg['formatted']}"
                              for leg in hop.get("warp_times", []) if leg["warp_factor"] in READOUT_WARP_FACTORS]
@@ -374,9 +376,16 @@ def _waypoints(origin, destination, result, names):
                "position": result["origin_position"], "role": "origin"}]
     route = result["route"]
     if route is not None:
-        for node in route["path"][1:-1]:
+        hops = route.get("hops", [])
+
+        def to_next(index):  # NAV.42: the course to the next stop, for the map's tooltip
+            hop = hops[index] if index < len(hops) else None
+            return format_course(hop["bearing_deg"], hop["mark_deg"]) if hop and "bearing_deg" in hop else None
+
+        points[0]["course"] = to_next(0)
+        for index, node in enumerate(route["path"][1:-1], start=1):
             points.append({"id": node, "kind": "system", "type": None, "name": names.get(node, str(node)),
-                           "position": route["positions"][str(node)], "role": "hop"})
+                           "position": route["positions"][str(node)], "role": "hop", "course": to_next(index)})
     points.append({"id": destination["anchor_id"], "kind": destination["anchor_kind"], "type": destination["type"],
                    "name": destination["name"], "position": result["destination_position"],
                    "role": "destination"})
