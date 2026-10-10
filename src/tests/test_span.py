@@ -89,3 +89,37 @@ def test_page_builds_span_argv():
     for bad in ({}, {"span_slots": "1:2"}, {"span_rings": "x"}):
         with pytest.raises(generate_page.FormError):
             generate_page.span_argv(bad)
+
+
+def test_cylinder_extent_holds_the_face_neighbours_at_one_sector():
+    import math
+    from planetgen.galaxy.geometry import enumerate_sectors_within_radius, sector_address_at
+    from planetgen.generation import run_galaxy
+    edge = 4.0
+    horizontal, layers, sphere = run_galaxy.cylinder_extent(1, 1, edge)
+    assert horizontal == pytest.approx(1.385 * edge) and layers == 1
+    assert sphere == pytest.approx(math.hypot(horizontal, 1.5 * edge))
+    center = (60.0, 25.0, 0.0)
+    here = sector_address_at(center, edge)
+    can = [c for c in enumerate_sectors_within_radius(center, sphere, edge)
+           if abs(c[1] - here[1]) <= layers and math.hypot(c[3] - center[0], c[4] - center[1]) <= horizontal]
+    plane = [c for c in can if c[1] == here[1]]
+    assert 5 <= len(plane) <= 7 and len(can) == len(plane) * 3
+
+
+def test_cli_cylinder_options():
+    args = _parse(["--center-sector", "3", "--cylinder-sectors", "2"])
+    assert args.cylinder_sectors == 2 and args.cylinder_layers == 2 and args.radius_pc > 0
+    assert _parse(["--center-sector", "3", "--cylinder-sectors", "2", "--cylinder-layers", "0"]).cylinder_layers == 0
+    for bad in (["--cylinder-sectors", "2"], ["--center-sector", "3", "--cylinder-sectors", "2", "--radius-pc", "5"],
+                ["--center-sector", "3", "--cylinder-layers", "1"], ["--center-sector", "3", "--cylinder-sectors", "999"],
+                ["--rings", "1", "--cylinder-sectors", "2"]):
+        with pytest.raises(SystemExit):
+            _parse(bad)
+
+
+def test_page_center_argv_takes_a_radius_in_sectors():
+    argv, description = generate_page.center_argv({"center_by": "sector", "center_sector": "7",
+                                                   "center_cylinder_sectors": "3", "center_cylinder_layers": "1"})
+    assert argv == ["--center-sector", "7", "--cylinder-sectors", "3", "--cylinder-layers", "1"]
+    assert "3 sectors across" in description

@@ -383,6 +383,13 @@ def center_argv(form, edge_pc=None):
         argv = ["--ring", str(ring), "--layer", str(layer), "--slot", str(slot)]
     else:
         raise FormError("Choose how to name the center sector.")
+    sectors = _number(form, "center_cylinder_sectors", "Radius (sectors)", float, minimum=0.5, maximum=40)
+    if sectors is not None:
+        argv += ["--cylinder-sectors", f"{sectors:g}"]
+        layers = _number(form, "center_cylinder_layers", "Layers either side", int, minimum=0, maximum=40)
+        if layers is not None:
+            argv += ["--cylinder-layers", str(layers)]
+        return argv, f"{description} ({sectors:g} sectors across, {int(sectors) if layers is None else layers} layers either side)"
     radius = _number(form, "center_radius_pc", "Radius (pc)", float, required=True, minimum=0.1,
                      maximum=MAX_GENERATE_RADIUS_PC)
     return argv + ["--radius-pc", str(radius)], description

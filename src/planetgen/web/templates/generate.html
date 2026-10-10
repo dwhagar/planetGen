@@ -208,7 +208,11 @@
         {{ field("limit", "Limit (sectors)", placeholder="the whole ring", step="1", min=1, max=max_limit) }}
         <label class="search-field generate-check"><span><input type="checkbox" name="whole_ring" value="1"> Allow a very large ring (over 2,000 slots) without a limit</span></label>
       {%- elif mode == "center" %}
-        {{ field("center_radius_pc", "Radius (pc)", min=0.1, max=max_radius_pc) }}
+        {{ field("center_radius_pc", "Radius (pc)", min=0.1, max=max_radius_pc, hint="A sphere around the center.") }}
+        {{ field("center_cylinder_sectors", "or radius (sectors)", step="any", min=0.5, max=40,
+                 hint="A round disc this many sectors across the plane (1 is the center and its face neighbors); used instead of the radius in parsecs.") }}
+        {{ field("center_cylinder_layers", "Layers either side", step="1", min=0, max=40, placeholder="the same as the radius",
+                 hint="With a radius in sectors: how far above and below the center's layer to fill.") }}
       {%- elif mode == "slot" %}
         {{ field("slot_ring", "Ring", step="1", min=0, max=max_ring) }}
         {{ field("slot_layer", "Layer", placeholder="0", step="1") }}

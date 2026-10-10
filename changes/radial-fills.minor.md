@@ -1,0 +1,2 @@
+### Added
+- Radial fills (ADM.30): `planetgen galaxy --center-sector ID --cylinder-sectors X [--cylinder-layers H]` (or with `--ring --layer --slot`) generates a round disc of radius X + 0.385 sector edges around the centre, through H layers either side (default X). X = 1 is the centre and its in-plane face neighbours. The Generate page's "Around a sector" mode takes a radius in sectors and layers either side as an alternative to the radius in parsecs.
