@@ -78,3 +78,18 @@ test("a comet's orbit is described as bound with its period, or unbound and not 
   assert.match(open.Orbit, /^Unbound.*does not return/);
   assert.equal(open.Eccentricity, "0.9987");
 });
+
+test("a parabolic comet is gone once its pass is over, an elliptical one never is (GEN.182)", () => {
+  const kepler = {
+    perihelion_distance_km: 1 * AU_KM, eccentricity: 0.999, inclination_deg: 0, arg_periapsis_deg: 0,
+    ascending_node_deg: 0, primary_mass_solar: 1, mean_anomaly_deg: 10, period_years: 1000,
+    parabolic_mean_anomaly: 0,
+  };
+  const comet = (ref, type) => ({ ref, orbit: { around: "barycenter", type, kepler } });
+  const scene = { stars: [], planets: [], comets: [comet("comet:1", "parabolic"), comet("comet:2", "elliptical")] };
+  const near = P.relativeAt(scene, 0);
+  assert.equal(near["comet:1"].gone, false);
+  const later = P.relativeAt(scene, 1e6);
+  assert.equal(later["comet:1"].gone, true);
+  assert.equal(later["comet:2"].gone, false);
+});
