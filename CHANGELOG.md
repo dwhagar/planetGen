@@ -3,6 +3,7 @@
 ## [8.0.866] - 2026-10-10
 
 ### Added
+- Filed the object ID items from Boss's decision of 2026-10-09 22:39Z: GEN.170 to GEN.176 (layout, fill, run-time births, nebula birth sector and three bugs), DB.20 (schema), API.23 (public reference), TEST.110 and DOC.5, all in Phase 1. Added docs/design/object-id-options.md.
 - Filed MAP.147 (the Galaxy Map wire format: measure the payload, compare options) in Phase 2.
 - Filed MAP.146 (zoom drill-down centred on the clicked point) in Phase 2.
 - Filed OPS.37 (a Generator version number) and API.22 (an API version number), both plain sequential integers due by the end of Phase 1.
