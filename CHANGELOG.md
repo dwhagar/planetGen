@@ -3,6 +3,7 @@
 ## [8.0.911] - 2026-10-10
 
 ### Changed
+- The phenomena scatter's final line lists only the kinds it created, like the star scatter's, with no zero counts.
 - **Docs only:** the plan notes schema v77 (Phenomena table class totals, PR #1038) and next Alembic revision 0078.
 - The Phenomena table counts and pages the scattered, unbuilt phenomena from stored per-class totals (schema v77), after the built ones, so it stays fast with hundreds of millions of scatter rows.
 - **Docs only:** UX.90 now covers the Shirtsleeve to Ideal rename and an explanation page under Classes, owner Bugfixes lane 2; docs use "Ideal".
