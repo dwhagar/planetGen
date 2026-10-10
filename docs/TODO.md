@@ -3425,21 +3425,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none.
   Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
 
-- [ ] **PERF.52 Admin generation-stats table is wrong (bug)**
-  Boss (2026-10-10 05:40Z, via Bugfixes lane 1): "I feel like the stats
-  are all messed up". The admin table "How long this server takes to
-  fill a sector, place a layer of bright stars or phenomena, by star
-  density and number of workers" shows impossible numbers: the
-  bright-star layer rows show 1,262 / 8,987 / 22,554 "systems per
-  sector" in a galaxy of 7,663 systems; per-system times of 3.8 / 1.0 /
-  0.6 ms against per-sector times of 4.55 to 13.86 s; Migration shows a
-  per-sector time and 1,076 ms per system with 2.0 systems per sector;
-  the Galaxy Map warm-up has a per-sector row. Done: each column's
-  meaning is defined, recording matches the GEN.185 five-pass scatter,
-  units are right, the size and time estimates that use the stats are
-  right, and a test on a small galaxy checks the numbers.
-  Prerequisites: none. Related: GEN.185, PERF.33.
-
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
@@ -4141,16 +4126,6 @@ clears each one.
   open until it recurs, then investigate with the failing run's data).
   Prerequisites: none. Related: TEST.111, TEST.71.
 
-- [ ] **TEST.119 15 browser map tests fail on main since the UX.86 menu regrouping (bug)**
-  Reported by Bugfixes lane 1 (2026-10-10 05:31Z):
-  test_web_browser_fixture_maps, test_web_browser_maps and
-  test_web_browser_controls (15 tests in all) fail on main since the
-  UX.86 menu regrouping (PR #936). The locator `#galaxymap3d-menu
-  summary` now also matches the nested group summaries. Done: the
-  locators name the top-level summary only and the 15 tests pass on
-  main. Bugfixes lane 1 is fixing the locators.
-  Prerequisites: none. Related: UX.86.
-
 - [ ] **TEST.120 test_sampled_stars_stay_inside_their_mass_range still fails on main after TEST.118 (bug)**
   Reported by Bugfixes lane 1 (2026-10-10 05:31Z):
   test_star_scatter_passes.py::test_sampled_stars_stay_inside_their_mass_range
@@ -4158,7 +4133,20 @@ clears each one.
   the scatter test setup against GEN.184's 2500 L_sun floor. Done: the
   cause is found and the test passes on main with the full test file
   green.
+  Owner (2026-10-09): Owner (Bugfixes lane 1, 2026-10-10 06:15Z): left
+  to Foundations lane 3, whose 2500 L_sun floor scatter tests it
+  concerns.
   Prerequisites: none. Related: TEST.118, GEN.184, GEN.185.
+
+- [ ] **TEST.121 test_open_map_menus_hold_no_overlap fails under load: the Menu panel intercepts the close click (bug)**
+  Reported by Bugfixes lane 1 (2026-10-10 06:15Z):
+  test_open_map_menus_hold_no_overlap[web.sector-820] and [390] fail on
+  their close click when three browser workers run in parallel; the Menu
+  panel intercepts the click on the summary. They pass alone. Done: the
+  test closes the menu in a way that does not depend on timing (wait for
+  the panel to settle or click the summary through the page), and the
+  test passes with 3 parallel browser workers.
+  Prerequisites: none. Related: UX.86, TEST.119.
 
 ## USR: User accounts
 
