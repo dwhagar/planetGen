@@ -189,9 +189,11 @@ def test_the_scatter_lists_each_layers_phenomena_by_kind_like_the_star_scatter(m
     assert any(m.startswith("Special phenomena: ") for m in messages)
     assert any(m.startswith("Phenomena landed in ") and " layers." in m for m in messages)
     final = next(m for m in messages if m.startswith("Placed "))
-    for label in scatter.EXPECTED_LABELS:           # every class is listed, the ones that drew none with a 0
-        assert f" {label}" in final, label
-    assert "stellar black-hole" in final and "intermediate black-hole" in final
+    for label, count in summary["counts"].items():  # only what was created, like the star count
+        assert f"{count:,} {label}" in final, label
+    for label in scatter.EXPECTED_LABELS:
+        assert (f" {label}" in final) == bool(summary["counts"].get(label)), label
+    assert " 0 " not in final
     placed = sum(int(m.split(": placed ")[1].split(":")[0].replace(",", "")) for m in layer_lines)
     assert placed <= summary["total"]
 
