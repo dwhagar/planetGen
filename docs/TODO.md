@@ -3125,22 +3125,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   in the Generate page and the CLI.
   Prerequisites: none. Related: GEN.96, GEN.180.
 
-- [ ] **GEN.183 A mass cut the user sets: preset values on a slider from 8 to 20 solar masses**
-  Boss (2026-10-10 03:01Z): "Add the solar masses pass, user can specify
-  preset values on a slider between 8 and 20." Rush job, as fast
-  as possible. Done: the phenomenon scatter's lowest
-  mass (galaxy_shape.phenomenon_min_mass_solar, --phenomenon-min-mass,
-  the settings file and the Generate page) is picked from a slider of
-  preset values between 8 and 20 solar masses; 20 stays the default (the
-  cut Boss accepted on 2026-10-09). Everything above the cut is
-  scattered galaxy-wide; everything below is drawn when its sector is
-  made, as built in GEN.166 to GEN.168. Decided (Boss, 2026-10-10 04:06Z, "your defaults are confirmed"):
-  presets 8, 10, 12, 14, 16, 18 and 20.
-  Note (2026-10-10, GEN.185 merged, PR #953): the five passes are built with one mass limit (phenomenon_min_mass_solar) for phenomena and stars, and galaxy_shape.bright_star_mass_limit_sol records it (phenomenon-scatter-mass-cut.md, "The star passes").
-  Lane (Boss, 2026-10-10 03:04Z): Foundations lane 2.
-  Prerequisites: none. Related: GEN.169, GEN.166, GEN.167, GEN.168,
-  PERF.18.
-
 - [ ] **GEN.186 Random neighborhoods: an option to keep away from filled space**
   Left over from GEN.97 (merged, PR #950; Foundations lane 1 report,
   2026-10-10 03:37Z). The research note
@@ -4215,6 +4199,15 @@ clears each one.
   or the product bug is fixed. Open question for Boss (default: leave
   open until it recurs, then investigate with the failing run's data).
   Prerequisites: none. Related: TEST.111, TEST.71.
+
+- [ ] **TEST.118 test_star_scatter_passes.py fails twice on main since GEN.184 raised the luminosity floor to 2500 or more (bug)**
+  Reported by Foundations lane 2 (2026-10-10 04:23Z, GEN.183 merge, PR
+  #969): test_sampled_stars_stay_inside_their_mass_range and
+  test_the_scatter_runs_the_mass_pass_then_a_luminosity_pass_that_skips_marked_sectors
+  fail on main since GEN.184's luminosity floors (2500 L_sun at the
+  lowest) met GEN.185's test setup. Done: the tests' setup uses a floor
+  the new ladder allows, and the full test file passes on main.
+  Prerequisites: none. Related: GEN.184, GEN.185, GEN.183.
 
 ## USR: User accounts
 
