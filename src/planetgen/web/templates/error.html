@@ -1,4 +1,5 @@
 {% extends "base.html" %}
+{% block head %}{% if retry_after %}<meta http-equiv="refresh" content="{{ retry_after }}">{% endif %}{% endblock %}
 {% block content %}
 <section class="panel">
   <p class="error">{{ message }}</p>

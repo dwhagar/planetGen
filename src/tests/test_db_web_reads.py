@@ -200,6 +200,7 @@ def test_a_timed_out_api_request_is_a_504(client, monkeypatch):
     response = client.get("/api/phenomena")
     assert response.status_code == 504
     assert "QUERY_TIMEOUT" in response.get_json()["error"]
+    assert response.headers["Retry-After"] == "10"  # PERF.64: a client may ask again
 
 
 def test_other_database_errors_stay_500(client, monkeypatch):

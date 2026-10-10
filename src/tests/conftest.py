@@ -71,6 +71,8 @@ os.environ.setdefault("PLANETGEN_RATELIMIT_STORAGE_URI", "memory://")
 # and size stats (PERF.3, PERF.10); tests/test_generation_stats.py turns
 # them on where it checks them.
 os.environ.setdefault("PLANETGEN_GENERATION_STATS", "0")
+# Table pages count exactly in the tests; tests/test_count_cache.py turns the stored counts (PERF.64) on.
+os.environ.setdefault("PLANETGEN_COUNT_CACHE", "off")
 
 # Every pooled connection runs at MySQL 8's default sql_mode (TEST.7) --
 # ONLY_FULL_GROUP_BY and STRICT_TRANS_TABLES included -- on MariaDB too,

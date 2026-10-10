@@ -40,6 +40,7 @@ import pymysql
 from planetgen.db.store import (
     escape_like, get_connection, get_galaxy_bounds, get_galaxy_shape, sector_deletions, surrounding_cloud,
 )
+from planetgen.db import countcache
 from planetgen.physics import constants
 from planetgen.physics.habitability_world import EQUIPMENT_LABELS, EQUIPMENT_NAMES
 from planetgen import tuning
@@ -204,12 +205,31 @@ def list_sectors(conn, limit=None, offset=None, sort=None, descending=False, qua
     ]
 
 
+COUNT_FALLBACK_CAP = 50000
+"""int: The most a request counts itself when the stored count isn't there yet (PERF.64): `count_*` answers with
+at most this many, or with the table's estimated size when nothing filters it."""
+
+
+def _estimated_rows(conn, table):
+    """The table's row count as the storage engine estimates it (instant, within some tens of percent)."""
+    row = conn.execute("SELECT table_rows AS n FROM information_schema.tables "
+                       "WHERE table_schema = DATABASE() AND table_name = ?", (table,)).fetchone()
+    return int(row["n"] or 0) if row else 0
+
+
+def _counted(conn, key, compute, fallback):
+    """`countcache.cached` under the galaxy's content stamp (PERF.64)."""
+    return countcache.cached(conn, key, compute, fallback, galaxy_content_stamp)
+
+
 def count_sectors(conn, quadrants=()):
     """
     Returns the total number of sectors (that pass the same `quadrants`
     filter as `list_sectors`), ignoring any pagination --
     the denominator `list_sectors(conn, limit=...)` callers (the API's
-    `/api/sectors`) need to report how many pages exist.
+    `/api/sectors`) need to report how many pages exist. Kept by
+    `countcache` (PERF.64): the last count made when the galaxy has changed
+    since, an estimate before the first.
 
     Args:
         conn (planetgen.db.store.Connection): An open, read-only connection.
@@ -218,7 +238,17 @@ def count_sectors(conn, quadrants=()):
         int: Total sector count.
     """
     where, params = _sector_quadrant_filter(quadrants)
-    return conn.execute(f"SELECT COUNT(*) AS n FROM sectors sec{where}", params).fetchone()["n"]
+
+    def exact(c):
+        return c.execute(f"SELECT COUNT(*) AS n FROM sectors sec{where}", params).fetchone()["n"]
+
+    def estimate(c):
+        if not where:
+            return _estimated_rows(c, "sectors")
+        return c.execute(f"SELECT COUNT(*) AS n FROM (SELECT 1 FROM sectors sec{where} LIMIT ?) c",
+                         list(params) + [COUNT_FALLBACK_CAP]).fetchone()["n"]
+
+    return _counted(conn, ["count_sectors", list(quadrants)], exact, estimate)
 
 
 def sectors_facets(conn, quadrants=()):
@@ -231,10 +261,14 @@ def sectors_facets(conn, quadrants=()):
         dict: `{"quadrant": [{"value", "count"}]}` in Quadrant order, only
             those with sectors.
     """
-    counts = {row["quadrant"]: row["n"] for row in conn.execute(
-        f"SELECT {_SECTOR_QUADRANT_SQL} AS quadrant, COUNT(*) AS n FROM sectors sec GROUP BY quadrant").fetchall()}
-    return {"quadrant": [{"value": value, "count": counts[value]}
-                         for value in (*SECTOR_QUADRANTS, "unplaced") if counts.get(value)]}
+    def exact(c):
+        counts = {row["quadrant"]: row["n"] for row in c.execute(
+            f"SELECT {_SECTOR_QUADRANT_SQL} AS quadrant, COUNT(*) AS n FROM sectors sec GROUP BY quadrant"
+        ).fetchall()}
+        return {"quadrant": [{"value": value, "count": counts[value]}
+                             for value in (*SECTOR_QUADRANTS, "unplaced") if counts.get(value)]}
+
+    return _counted(conn, ["sectors_facets"], exact, lambda c: {"quadrant": []})
 
 
 class _NoSector:
@@ -341,8 +375,10 @@ def list_systems(conn, star_type_prefix=None, sector_id=None, limit=None, offset
     column = SYSTEM_SORTS[sort]
     direction = "DESC" if descending else "ASC"
     nulls_last = f"{column} IS NULL, " if sort in ("sector", "octant") else ""
+    # DISTINCT only matters when the star join can repeat a system; without it the sort can stop at the page (PERF.64).
+    distinct = "DISTINCT " if join_sql else ""
     query = f"""
-        SELECT DISTINCT ss.id, ss.name, ss.sector_id, ss.quadrant, ss.is_binary, ss.binary_configuration,
+        SELECT {distinct}ss.id, ss.name, ss.sector_id, ss.quadrant, ss.is_binary, ss.binary_configuration,
                ss.binary_type, sec.name AS sector_sort
         FROM star_systems ss LEFT JOIN sectors sec ON sec.id = ss.sector_id{join_sql}{where_sql}
         ORDER BY {nulls_last}{column} {direction}, ss.name, ss.id
@@ -445,8 +481,20 @@ def count_systems(conn, star_type_prefix=None, sector_id=None, binary=None, octa
         int: Total matching system count.
     """
     join_sql, where_sql, params = _systems_filter_clause(star_type_prefix, sector_id, binary, octants, in_sector)
-    query = f"SELECT COUNT(DISTINCT ss.id) AS n FROM star_systems ss{join_sql}{where_sql}"
-    return conn.execute(query, params).fetchone()["n"]
+    # A system matches a star type once however many of its stars do; with no star join every row is its own.
+    counted = "COUNT(DISTINCT ss.id)" if join_sql else "COUNT(*)"
+
+    def exact(c):
+        return c.execute(f"SELECT {counted} AS n FROM star_systems ss{join_sql}{where_sql}", params).fetchone()["n"]
+
+    def estimate(c):
+        if not join_sql and not where_sql:
+            return _estimated_rows(c, "star_systems")
+        return c.execute(f"SELECT COUNT(*) AS n FROM (SELECT DISTINCT ss.id FROM star_systems ss{join_sql}{where_sql} "
+                         f"LIMIT ?) c", list(params) + [COUNT_FALLBACK_CAP]).fetchone()["n"]
+
+    return _counted(conn, ["count_systems", star_type_prefix, sector_id, binary, list(octants), in_sector],
+                    exact, estimate)
 
 
 def systems_facets(conn, sector_id=None, binary=None, octants=(), in_sector=None):
@@ -460,21 +508,25 @@ def systems_facets(conn, sector_id=None, binary=None, octants=(), in_sector=None
         dict: `{"placement"|"binary"|"octant": [{"value", "count"}]}`,
             options with no systems left out.
     """
-    def counts(select, **filters):
-        base = {"binary": binary, "octants": octants, "in_sector": in_sector, **filters}
-        _join, where, params = _systems_filter_clause(None, sector_id, **base)
-        return {row["value"]: row["n"] for row in conn.execute(
-            f"SELECT {select} AS value, COUNT(*) AS n FROM star_systems ss{where} GROUP BY value",
-            params).fetchall()}
+    def exact(c):
+        def counts(select, **filters):
+            base = {"binary": binary, "octants": octants, "in_sector": in_sector, **filters}
+            _join, where, params = _systems_filter_clause(None, sector_id, **base)
+            return {row["value"]: row["n"] for row in c.execute(
+                f"SELECT {select} AS value, COUNT(*) AS n FROM star_systems ss{where} GROUP BY value",
+                params).fetchall()}
 
-    placement = counts("(CASE WHEN ss.sector_id IS NULL THEN 'standalone' ELSE 'sector' END)", in_sector=None)
-    binaries = counts("(CASE WHEN ss.is_binary THEN 'yes' ELSE 'no' END)", binary=None)
-    found = counts("ss.quadrant", octants=())
-    return {
-        "placement": [{"value": v, "count": placement[v]} for v in ("sector", "standalone") if placement.get(v)],
-        "binary": [{"value": v, "count": binaries[v]} for v in ("yes", "no") if binaries.get(v)],
-        "octant": [{"value": v, "count": found[v]} for v in sorted(x for x in found if x is not None)],
-    }
+        placement = counts("(CASE WHEN ss.sector_id IS NULL THEN 'standalone' ELSE 'sector' END)", in_sector=None)
+        binaries = counts("(CASE WHEN ss.is_binary THEN 'yes' ELSE 'no' END)", binary=None)
+        found = counts("ss.quadrant", octants=())
+        return {
+            "placement": [{"value": v, "count": placement[v]} for v in ("sector", "standalone") if placement.get(v)],
+            "binary": [{"value": v, "count": binaries[v]} for v in ("yes", "no") if binaries.get(v)],
+            "octant": [{"value": v, "count": found[v]} for v in sorted(x for x in found if x is not None)],
+        }
+
+    return _counted(conn, ["systems_facets", sector_id, binary, list(octants), in_sector], exact,
+                    lambda c: {"placement": [], "binary": [], "octant": []})
 
 
 def _body_filter_clause(table_alias, planet_class, min_radius_km, max_radius_km, sector_id, system_id):
@@ -5333,18 +5385,17 @@ _facet_cache_lock = threading.Lock()
 
 
 def _search_content_key(conn):
-    """One cheap row (index-only maxima and one count) that changes
+    """One cheap row (index-only maxima and the deletion epoch) that changes
     whenever a sector or system is added, edited or deleted -- what the
     facet counts depend on."""
     row = conn.execute(
-        "SELECT (SELECT COUNT(*) FROM sectors) AS sectors, "
-        "(SELECT COALESCE(MAX(id), 0) FROM sectors) AS sector_max_id, "
+        "SELECT (SELECT COALESCE(MAX(id), 0) FROM sectors) AS sector_max_id, "
         "(SELECT MAX(modified_at) FROM sectors) AS sector_modified, "
         "(SELECT COALESCE(MAX(id), 0) FROM star_systems) AS system_max_id, "
         "(SELECT MAX(modified_at) FROM star_systems) AS system_modified"
     ).fetchone()
-    return tuple(str(row[column]) for column in
-                 ("sectors", "sector_max_id", "sector_modified", "system_max_id", "system_modified"))
+    return (str(sector_deletions(conn)),) + tuple(str(row[column]) for column in (
+        "sector_max_id", "sector_modified", "system_max_id", "system_modified"))
 
 
 def _search_facets_cached(conn):
