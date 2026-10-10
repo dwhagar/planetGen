@@ -1,0 +1,37 @@
+<section id="hl-panel" aria-label="Headline features" style="margin:18px 0;padding:14px 16px;border:1px solid color-mix(in srgb,currentColor 22%,transparent);border-radius:10px">
+<style>
+#hl-panel h2{margin:0 0 4px;font-size:1.05rem}
+#hl-panel .hl-note{margin:0 0 10px;opacity:.75;font-size:.85rem}
+#hl-panel details{margin:6px 0;border-top:1px solid color-mix(in srgb,currentColor 14%,transparent);padding-top:6px}
+#hl-panel summary{cursor:pointer;display:flex;flex-wrap:wrap;gap:8px;align-items:baseline}
+#hl-panel .hl-v{font-weight:700;font-variant-numeric:tabular-nums}
+#hl-panel .hl-n{opacity:.8;font-size:.85rem}
+#hl-panel ol{margin:8px 0 4px;padding-left:22px;font-size:.88rem}
+#hl-panel li{margin:3px 0}
+#hl-panel .hl-id{font-family:ui-monospace,monospace;font-size:.8rem;margin-right:6px}
+#hl-panel .hl-t{font-size:.7rem;text-transform:uppercase;letter-spacing:.05em;opacity:.7;margin-left:6px}
+</style>
+<h2>Headline features: what each one needs</h2>
+<p class="hl-note">Each upcoming release has one headline feature. Every open item it needs is listed below it in build order; "ready" means nothing else has to land first.</p>
+<div id="hl-list"></div>
+<script>
+(function(){
+  const H=(JSON.parse(document.getElementById('data').textContent).headlines)||[];
+  const root=document.getElementById('hl-list');
+  H.forEach(h=>{
+    const d=document.createElement('details');
+    const s=document.createElement('summary');
+    s.innerHTML='<span class="hl-v">'+h.version+'</span><span>'+h.name+'</span><span class="hl-n">'+h.remaining+' open items needed, '+h.ready+' ready now'+(h.bugs?', '+h.bugs+' bugs':'')+'</span>';
+    d.append(s);
+    const ol=document.createElement('ol');
+    h.items.forEach(r=>{
+      const li=document.createElement('li');
+      li.innerHTML='<span class="hl-id">'+r.id+'</span>'+r.title.replace(/</g,'&lt;')+'<span class="hl-t">phase '+(r.phase||'?')+(r.ready?' · ready':' · needs '+r.deps.join(', '))+'</span>';
+      ol.append(li);
+    });
+    d.append(ol); root.append(d);
+  });
+  if(!H.length) document.getElementById('hl-panel').hidden=true;
+})();
+</script>
+</section>
