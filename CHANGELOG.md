@@ -3,6 +3,7 @@
 ## [8.0.866] - 2026-10-10
 
 ### Changed
+- TODO: recorded the measured Galaxy Map wire format facts on MAP.147 and split its recommendation into MAP.157 (trim the tile JSON), MAP.158 (gentler prefetch, IndexedDB), MAP.159 (packed binary tiles, with MAP.154) and MAP.160 (deferred GPU buffer quantising); fixed prerequisite lines on MAP.146, MAP.148, MAP.151 and MAP.152.
 - TODO: recorded Boss's approval of the MAP.156 default.
 - TODO: filed the top-down view of one layer or a range of layers as a secondary Galaxy Map option (Phase 2).
 - TODO: UX.83 lists the generation steps found without a progress bar.
