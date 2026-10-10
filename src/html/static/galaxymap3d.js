@@ -2448,7 +2448,19 @@ function initGalaxyMap3d(canvasEl, data) {
   function updateLumSlider() {
     if (!lumSliderEl || !lumSliderEl.isConnected) return;
     lumSliderEl.value = String(stepFromLum(stageView.minLuminosity()));
-    if (lumTextEl) lumTextEl.textContent = "Dimmest star shown: " + formatLum(stageView.minLuminosity());
+    if (lumTextEl) lumTextEl.textContent = "Dimmest star shown: " + floorText(stageView.minLuminosity());
+  }
+  // MAP.166: "every star" only when the view holds every star there is, which
+  // only an open sector's scene does. A galaxy view's tiles are capped and
+  // budgeted (and sectors may be unmade), so with the floor at 0 it names
+  // the dimmest star it actually carries.
+  function viewIsComplete() {
+    return !!(typeof stageView !== "undefined" && stageView && stageView.sectorLuminosityRange());
+  }
+  function floorText(lum) {
+    if (lum > 0) return formatLum(lum);
+    if (viewIsComplete()) return "every star";
+    return tileLumRange ? formatLum(tileLumRange[0]) : "no stars in view";
   }
   function formatLum(lum) {
     if (!(lum > 0)) return "every star";
@@ -2490,7 +2502,7 @@ function initGalaxyMap3d(canvasEl, data) {
     slider.value = String(stepFromLum(stageView.minLuminosity()));
     lumSliderEl = slider;
     lumTextEl = text;
-    var show = function () { text.textContent = "Dimmest star shown: " + formatLum(lumFromStep(Number(slider.value))); };
+    var show = function () { text.textContent = "Dimmest star shown: " + floorText(lumFromStep(Number(slider.value))); };
     slider.addEventListener("input", function () {
       show();
       stageView.setMinLuminosity(lumFromStep(Number(slider.value)));
