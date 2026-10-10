@@ -3,6 +3,7 @@
 ## [8.0.911] - 2026-10-10
 
 ### Changed
+- Retired GEN.194 (defaults 14 Msun and 9,000 Lsun, PR #1051).
 - The default mass limit is now 14 solar masses (was 8) and the default luminosity floor for the brightest stars is 9,000 solar luminosities (was 5,000); both are presets on their lists.
 - Retired UX.88 (the "uncharted" wording sweep, PR #1049).
 - Text shown to visitors says "uncharted" instead of "unbuilt" or "not generated" (the Phenomena table's rows, the nearby search and route notes, the Sector Map and Galaxy Map labels and hovers, the command-line query note); the Generate system and admin panels keep the technical words (UX.88).
