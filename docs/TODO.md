@@ -3172,20 +3172,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none.
   Design: [docs/design/fill-order-curves-and-core.md](design/fill-order-curves-and-core.md)
 
-- [ ] **PERF.39 Every API job costs 2.4 s and 195 MB: import lazily and cap the burst workers**
-  `queue/api_jobs.py` `execute` imports `planetgen.api.common` (2.3 s)
-  before running anything, and `submit` starts one uncapped burst worker
-  per job. Fix: catch refusals via a light `Refused` base class or a
-  lazy lookup; import `nltk` and `scipy.stats` lazily; start a worker
-  only when fewer than `worker_count()` are alive, on shared queues.
-  Required before Boss's batch wiki uploads. Reuse one Redis connection
-  in `api_jobs.status` and `wait`.
-  Research (2026-10-09, generation-performance-study.md): the same fix
-  as PERF.42 (warm the worker before the fork) removes about 2 to 3 s
-  per queue job.
-  Prerequisites: none.
-  Design: [docs/design/performance-eta-queue-and-caching.md](design/performance-eta-queue-and-caching.md)
-
 - [ ] **PERF.40 Two shared queues, a reserved interactive worker and a real "cancel now"**
   `planetgen-interactive` (one reserved worker) and `planetgen-bulk`
   (workers serve `[interactive, bulk]`); "cancel now" for running tasks
@@ -3197,7 +3183,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   default yes): a reserved
   interactive worker costs one process (about 195 MB) while any bulk run
   is active; start it on demand and exit when its queue is empty.
-  Prerequisite: PERF.39.
   Design: [docs/design/performance-eta-queue-and-caching.md](design/performance-eta-queue-and-caching.md)
 
 - [ ] **PERF.41 Stamp the tile and page caches with a TILE_FORMAT constant instead of the version (optional)**
@@ -3323,9 +3308,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   that fails when a page query reads more than a page needs. Earlier
   work on the same family: PERF.34 (site responsive during heavy jobs,
   PR #811), PERF.38 (cache fixes under a fill, PR #1144), PERF.36 (never
-  list more than about 50,000 candidate cells), PERF.39 and PERF.40 (API
-  job cost, reserved interactive worker). Owner: Foundations lane 1,
-  taking it ahead of PERF.39.
+  list more than about 50,000 candidate cells), PERF.39 (API job cost,
+  PR #1151) and PERF.40 (reserved interactive worker). Owner:
+  Foundations lane 1.
   Prerequisites: none. Related: PERF.34, PERF.36, PERF.38, PERF.39,
   PERF.40.
 

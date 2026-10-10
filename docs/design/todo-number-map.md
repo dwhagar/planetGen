@@ -998,7 +998,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.36 | Memory and request guard: never list more than about 50,000 candidate cells, and refuse huge enumerations in a web request | none | open |
 | PERF.37 | `DecayingRate` starts from the first single completion, so the ETA is up to twice too long early in a run (bug) | none | done, PR #865 |
 | PERF.38 | Cache fixes for the Galaxy Map under a fill: single-flight tile builds, a busy rule for the page cache, a deletion epoch in place of COUNT(*) | none | done, PR #1144 |
-| PERF.39 | Every API job costs 2.4 s and 195 MB: import lazily and cap the burst workers | none | open |
+| PERF.39 | Every API job costs 2.4 s and 195 MB: import lazily and cap the burst workers | none | done, PR #1151 |
 | PERF.40 | Two shared queues, a reserved interactive worker and a real "cancel now" | none | open |
 | PERF.41 | Stamp the tile and page caches with a TILE_FORMAT constant instead of the version (optional) | none | open |
 | PERF.42 | Warm the RQ worker before the fork: pre-import generation modules and build the bright-star table once | none | done, PR #841 |

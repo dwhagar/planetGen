@@ -203,8 +203,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | PERF.46 | Planets and moons: set the position once per body |  | Generation performance study. |
 | GEN.169 | Decide the phenomenon scatter rates: regional factors and the 0.1% intermediate-mass black holes |  | Needs Boss to decide. |
 | PERF.41 | Stamp the tile and page caches with a TILE_FORMAT constant instead of the version (optional) | PERF.31 | Research follow-up to PERF.25 (built). |
-| PERF.40 | Two shared queues, a reserved interactive worker and a real "cancel now" | PERF.39 | Research follow-up to PERF.24 (built). |
-| PERF.39 | Every API job costs 2.4 s and 195 MB: import lazily and cap the burst workers |  | Research follow-up to PERF.24 (built); before batch wiki uploads. |
+| PERF.40 | Two shared queues, a reserved interactive worker and a real "cancel now" |  | Research follow-up to PERF.24 (built). |
 | PERF.64 | The Galaxy Map and the Systems list stop with "Took too long" and the whole site is sluggish (bug) |  | Boss 2026-10-10 19:45Z; Foundations lane 1 first. |
 | PERF.33 | Progress bars and ETAs from measured performance |  | GitHub issue [#661](https://github.com/dwhagar/planetGen/issues/661) (the use half). Bugfixes lane 1 (Boss, 23:38Z). |
 | PERF.65 | The text output of a multi-step job counts its steps, not its tasks: "Step 1 of 4" when the job has 12 (bug) |  | Boss 2026-10-10 19:54Z; Bugfixes lane 1. |
