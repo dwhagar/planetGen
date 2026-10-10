@@ -4519,6 +4519,14 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   OPS.28, OPS.30.
   Lane (Boss, 2026-10-10 04:26Z): Foundations lane 3 (not lane 1).
 
+- [ ] **OPS.40 update.sh step 8 fails: setup-debug-log.sh loads the deleted util/appconfig.py (bug)**
+  Reported by Bugfixes lane 2 (2026-10-10 04:39Z): step 8 of update.sh
+  runs setup-debug-log.sh, which still loads util/appconfig.py after
+  that module was deleted, so the step fails. Done: setup-debug-log.sh
+  uses the current settings loader, update.sh step 8 completes, and a
+  test or check covers the script's import.
+  Prerequisites: none.
+
 ## DOC: Documentation
 
 - [ ] **DOC.4 Correct the stale statements the research found in docs, docstrings and comments**
