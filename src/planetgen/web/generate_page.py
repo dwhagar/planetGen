@@ -57,7 +57,7 @@ from flask import (Response, abort, current_app, jsonify, make_response, redirec
 
 from pydantic import Field, TypeAdapter, ValidationError
 
-from planetgen.queue import api_jobs
+from planetgen.queue import api_jobs, progress_rate
 from planetgen.web.lib import apiclient
 from planetgen.web.lib.fmt import utc_time_html
 from planetgen.web.lib.pagination import PAGE_SIZE, clamp_page, page_offset, parse_page
@@ -701,6 +701,8 @@ def _job_view(job):
         updated_at = progress.get("updated_at") or time.time()
         remaining = max(0.0, float(eta_s) - max(0.0, time.time() - float(updated_at)))
     view["remaining_text"] = format_elapsed(remaining)
+    view["remaining_label"] = remaining_label(
+        remaining, running=not job.get("finished") and bool(progress.get("description")))
     view["progress_text"] = _progress_text(progress)
     # PERF.4: the second bar (the bright-star layers being drawn while
     # layers are slow), or blank.
@@ -712,6 +714,18 @@ def _job_view(job):
             text += f", about {format_elapsed(detail['eta_s'])} left"
         view["progress_detail_text"] = text
     return view
+
+
+def remaining_label(remaining, running=True):
+    """What the page says about the time left (PERF.33): "about 3 m 05 s to 4 m 00 s left" as a range around the
+    estimate, "estimating the time left" while a running job has none yet, never dashes; `""` once it finished."""
+    if remaining is None:
+        return "estimating the time left" if running else ""
+    low, high = progress_rate.eta_range(remaining)
+    low_text, high_text = format_elapsed(low), format_elapsed(high)
+    if low_text == high_text:
+        return f"about {high_text} left"
+    return f"about {low_text} to {high_text} left"
 
 
 def _progress_text(progress):

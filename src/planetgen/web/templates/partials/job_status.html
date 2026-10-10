@@ -15,7 +15,7 @@ redraws the same parts (a failed job's log stays open until Continue, ADM.24; Co
     aria-labelledby="job-progress-text"></progress>
   <span id="job-progress-text" data-job-progress-text>{{ job.progress_text }}</span>
   <span class="hint" data-job-elapsed>{{ job.elapsed_text }}</span>
-  <span class="hint" data-job-remaining>{% if job.remaining_text %}about {{ job.remaining_text }} left{% endif %}</span>
+  <span class="hint" data-job-remaining>{{ job.remaining_label }}</span>
 </p>
 <p class="hint" data-job-progress-detail{% if not job.progress_detail_text %} hidden{% endif %}>{{ job.progress_detail_text }}</p>
 <p class="error" role="alert" data-job-error{% if not job.error %} hidden{% endif %}>{{ job.error or "" }}</p>
