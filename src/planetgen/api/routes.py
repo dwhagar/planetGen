@@ -1096,7 +1096,7 @@ def phenomena():
     `desc`); the filters `type` and `descriptor` (each repeatable, any of),
     and `placed` (`yes` or `no`); and `facets=1` to add the option counts
     for the type and descriptor filter menus (`queryDb.phenomena_facets`).
-    `total` counts the rows that pass the filters.
+    `total` counts the rows that pass the filters (`total_capped`: it stopped at 10,000, PERF.69).
     """
     limit, offset = _paginate(request.args)
     sort, descending = _parse_sort(request.args, PHENOMENON_SORTS)
@@ -1106,9 +1106,11 @@ def phenomena():
         "placed": _parse_yes_no(request.args.get("placed"), "placed"),
     }
     db = get_db()
+    total = count_phenomena(db, **filters)
     body = {
         "items": list_phenomena(db, limit=limit, offset=offset, sort=sort, descending=descending, **filters),
-        "total": count_phenomena(db, **filters),
+        "total": total,
+        "total_capped": is_capped(total),
         "limit": limit,
         "offset": offset,
     }

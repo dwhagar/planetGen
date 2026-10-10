@@ -2108,12 +2108,22 @@ def count_phenomena(conn, types=(), descriptors=(), placed=None):
         conn (planetgen.db.store.Connection): An open, read-only connection.
 
     Returns:
-        int: Phenomenon count.
+        int: Phenomenon count. Kept by `countcache` (PERF.69): the last count made when the galaxy has changed
+            since, a capped count (`CappedCount`) before the first.
     """
     where, params = _phenomena_where(types, descriptors, placed)
-    built = conn.execute(
-        f"SELECT COUNT(*) AS n FROM ({_phenomena_union()}) AS phenomena{where}", params).fetchone()["n"]
-    return built + sum(entry["unbuilt"] for entry in _scattered_classes(conn, types, descriptors, placed))
+
+    def exact(c):
+        built = c.execute(
+            f"SELECT COUNT(*) AS n FROM ({_phenomena_union()}) AS phenomena{where}", params).fetchone()["n"]
+        return built + sum(entry["unbuilt"] for entry in _scattered_classes(c, types, descriptors, placed))
+
+    def estimate(c):
+        built = c.execute(f"SELECT COUNT(*) AS n FROM (SELECT 1 FROM ({_phenomena_union()}) AS phenomena{where} "
+                          f"LIMIT ?) c", list(params) + [COUNT_FALLBACK_CAP]).fetchone()["n"]
+        return _capped(built + sum(entry["unbuilt"] for entry in _scattered_classes(c, types, descriptors, placed)))
+
+    return _counted(conn, ["count_phenomena", list(types), list(descriptors), placed], exact, estimate)
 
 
 def phenomena_facets(conn, types=(), descriptors=(), placed=None):
@@ -2128,18 +2138,22 @@ def phenomena_facets(conn, types=(), descriptors=(), placed=None):
         dict: `{"type": [{"value", "count"}], "descriptor": [{"value",
             "count"}]}`, options ordered by value.
     """
-    facets = {}
-    for column, own in (("type", "types"), ("descriptor", "descriptors")):
-        filters = {"types": types, "descriptors": descriptors, own: ()}
-        where, params = _phenomena_where(filters["types"], filters["descriptors"], placed)
-        rows = conn.execute(
-            f"SELECT {column} AS value, COUNT(*) AS n FROM ({_phenomena_union()}) AS phenomena{where} "
-            f"GROUP BY {column} ORDER BY {column}", params).fetchall()
-        merged = {row["value"]: row["n"] for row in rows}
-        for entry in _scattered_classes(conn, types, descriptors, placed, ignore=(own,)):
-            merged[entry[column]] = merged.get(entry[column], 0) + entry["unbuilt"]
-        facets[column] = [{"value": value, "count": merged[value]} for value in sorted(merged)]
-    return facets
+    def exact(c):
+        facets = {}
+        for column, own in (("type", "types"), ("descriptor", "descriptors")):
+            filters = {"types": types, "descriptors": descriptors, own: ()}
+            where, params = _phenomena_where(filters["types"], filters["descriptors"], placed)
+            rows = c.execute(
+                f"SELECT {column} AS value, COUNT(*) AS n FROM ({_phenomena_union()}) AS phenomena{where} "
+                f"GROUP BY {column} ORDER BY {column}", params).fetchall()
+            merged = {row["value"]: row["n"] for row in rows}
+            for entry in _scattered_classes(c, types, descriptors, placed, ignore=(own,)):
+                merged[entry[column]] = merged.get(entry[column], 0) + entry["unbuilt"]
+            facets[column] = [{"value": value, "count": merged[value]} for value in sorted(merged)]
+        return facets
+
+    return _counted(conn, ["phenomena_facets", list(types), list(descriptors), placed], exact,
+                    lambda c: {"type": [], "descriptor": []})
 
 
 _PHENOMENON_TYPE_TO_TABLE = {

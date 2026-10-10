@@ -714,17 +714,15 @@ def _scatter_layers(args, mysql_config, skeleton, extents, filled, min_luminosit
                         drain.start()
                     else:
                         channel = _DirectChannel(tracker)
-                    queue.expect(len(layers))
-                    for layer_index, outer_ring in layers:
-                        payload = {
+                    queue.submit_each("bright-stars", [
+                        (f"layer {layer_index}", {
                             "mysql_config": mysql_config, "shape": skeleton.shape, "layer_index": layer_index,
                             "outer_ring": outer_ring, "edge_pc": skeleton.edge_pc, "expected": e_value,
                             "min_luminosity_sol": min_luminosity_sol, "max_luminosity_sol": max_luminosity_sol,
                             "seed": seed, "skip": skip_by_layer.get(layer_index, set()), "mass_range": mass_range,
                             "channel": channel,
-                        }
-                        queue.submit("bright-stars", f"layer {layer_index}", _scatter_layer_task, payload,
-                                     weight=weights[layer_index], on_done=on_done_for(layer_index))
+                        }, weights[layer_index], on_done_for(layer_index))
+                        for layer_index, outer_ring in layers], _scatter_layer_task)
             finally:
                 stop.set()
                 if drain is not None:
@@ -952,16 +950,14 @@ def _scatter_phenomena_layers(args, bar, layers, weights, layer_done, mysql_conf
         return on_done
 
     with run_common._work_queue(args, "Phenomena") as queue:
-        queue.expect(len(layers))
-        for layer_index, outer_ring in layers:
-            payload = {
+        queue.submit_each("phenomena", [
+            (f"layer {layer_index}", {
                 "mysql_config": mysql_config, "shape": skeleton.shape, "layer_index": layer_index,
                 "outer_ring": outer_ring, "edge_pc": skeleton.edge_pc, "expected": e_value, "seed": seed,
                 "min_mass_solar": min_mass_solar,
                 "skip": {address for address in filled if address[1] == layer_index},
-            }
-            queue.submit("phenomena", f"layer {layer_index}", _phenomenon_layer_task, payload,
-                         weight=weights[layer_index], on_done=done_with(layer_index))
+            }, weights[layer_index], done_with(layer_index))
+            for layer_index, outer_ring in layers], _phenomenon_layer_task)
 
 
 def scatter_phenomena(args):
