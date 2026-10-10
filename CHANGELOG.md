@@ -3,6 +3,7 @@
 ## [8.0.866] - 2026-10-10
 
 ### Changed
+- **Docs only:** recorded Boss's answers on NAV.8 (stars only get pages), NAV.11 (stay per stop defaults to 0 minutes, user-changeable) and API.23 (the object ID replaces row ids, API break accepted).
 - **Docs only:** ADM.31 is partly built (PR #942); the remaining half stays open and MAP.151 notes the 2,000-sector cap.
 - **Docs only:** the scatter-preset rush job is split across the Foundations lanes (GEN.183 to lane 2, GEN.184 to lane 1, GEN.185 to lane 3) and Bugfixes lane 1 is running again.
 - **Docs only:** filed GEN.183 (mass cut presets, 8 to 20 solar masses), GEN.184 (luminosity floor presets, 2500 to 4 million L_sun, default 3000) and GEN.185 (the five-pass scatter order) for Foundations lane 3, and noted that Foundations lanes 1 and 2 are paused.
