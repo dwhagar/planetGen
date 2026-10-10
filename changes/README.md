@@ -20,19 +20,19 @@ Name it `<short-name>.<level>.md`, for example `galaxy-map-timeout.patch.md`:
 - `major` for a new major feature set or a breaking change
 
 The version is MAJOR.REVISION.BUILD. A `major` note bumps MAJOR and resets
-REVISION to 0; a `patch` or `minor` note bumps REVISION. BUILD is not
-counted per release: it is the sum of the TODO category counters (each
-category's next free ID minus one, from the "Next free IDs" table in
-`docs/design/todo-number-map.md`), so it grows as items are added to
-`docs/TODO.md`. With counters adding up to 155, 7.58.2 -> 7.59.155 for a
-`patch` or `minor` note and 7.58.2 -> 8.0.155 for a `major` one.
+REVISION to 0; a `patch` or `minor` note bumps REVISION. BUILD counts
+releases (Boss, 2026-10-10: "I want build to always change"): every note
+takes the previous BUILD plus one and it never resets, so 7.58.2 -> 7.59.3
+for a `patch` or `minor` note and 7.58.2 -> 8.0.3 for a `major` one. The
+TODO counters no longer feed the version.
 **Revision hold (Boss, 2026-10-09):** no release goes to 8.1 until Phase 1
 is complete. While `REVISION_HOLD` in `scripts/bump_version.py` is on, a
-`patch` or `minor` note keeps REVISION as it is (it still takes the current
-BUILD), and a release that has the same version as the newest changelog
+`patch` or `minor` note keeps REVISION as it is (BUILD still goes up by
+one), a `major` note counts as `minor`, the PR check refuses a new `major`
+note, and a release that has the same version as the newest changelog
 entry joins that entry. Notes keep their `patch` / `minor` names. When Boss
 says Phase 1 is done, set `REVISION_HOLD = False`.
-`bump_version.py --check` prints the current sum and fails if
+`bump_version.py --check` fails if
 `docs/TODO.md` uses an ID the table hasn't counted yet.
 
 Pick a short name nobody else is likely to use; the branch name works.

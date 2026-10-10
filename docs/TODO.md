@@ -3172,23 +3172,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none.
   Design: [docs/design/fill-order-curves-and-core.md](design/fill-order-curves-and-core.md)
 
-- [ ] **PERF.38 Cache fixes for the Galaxy Map under a fill: single-flight tile builds, a busy rule for the page cache, a deletion epoch in place of COUNT(*)**
-  PERF.34 is built; the research reorders its suspects by evidence
-  (design doc 5.4): no single-flight on tile builds; the page cache is
-  emptied at every stamp check during a fill; the stamp's linear
-  `COUNT(*)` in `db/query.py` `galaxy_content_state` (0.13 s per million
-  placed sectors, 2.7 s at 20 million, per web process per database
-  every 15 to 60 s); five API threads held 2.4 s or more by queued
-  waits. Done: `busy` handling in `pagecache.py` like `tilecache.py`; a
-  Redis `SET NX EX` single-flight around tile and stage builds; a
-  deletion epoch counter in place of the `COUNT(*)`. The first four can
-  be fixed before the benchmark. Re-run PERF.34's page-time test under
-  Ludicrous Speed. The `"""int: How long a database's stamp is trusted
-  ..."""` docstring in `web/lib/tilecache.py` sits after
-  `FAILED_CHECK_RETRY_SECONDS` instead of under `STAMP_TTL_SECONDS`.
-  Prerequisites: none.
-  Design: [docs/design/performance-eta-queue-and-caching.md](design/performance-eta-queue-and-caching.md)
-
 - [ ] **PERF.39 Every API job costs 2.4 s and 195 MB: import lazily and cap the burst workers**
   `queue/api_jobs.py` `execute` imports `planetgen.api.common` (2.3 s)
   before running anything, and `submit` starts one uncapped burst worker
@@ -3322,6 +3305,62 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   prototype. Owner: Bugfixes lane 1 (moved from Phase 2 to Phase 1 by
   the coordinator).
   Prerequisites: none. Related: PERF.59, GEN.185.
+
+- [ ] **PERF.64 The Galaxy Map and the Systems list stop with "Took too long" and the whole site is sluggish (bug)**
+  Boss (2026-10-10 19:45Z, with a screenshot): the Galaxy Map and the
+  Systems list show the 504 page "Took too long: This page asked the
+  database for more than it could answer in time, so it was stopped. Try
+  a narrower search or a smaller page.", and the site as a whole feels
+  sluggish; "I've had this happen before, so we need to fix it". The
+  page is the web statement timeout at work
+  (`statement_timeout_seconds`, 10 s, `MAX_EXECUTION_TIME` on the
+  read-only connections), so some query on those pages now runs past 10
+  s on his database. Done: find which statements time out on the Galaxy
+  Map tiles and the Systems list (log the statement and its time, run
+  EXPLAIN on his database size), fix them with an index, a narrower
+  query or a cache, and show the slow pages and the sluggishness no
+  longer happen while the database is busy and idle alike; add a test
+  that fails when a page query reads more than a page needs. Earlier
+  work on the same family: PERF.34 (site responsive during heavy jobs,
+  PR #811), PERF.38 (cache fixes under a fill, PR #1144), PERF.36 (never
+  list more than about 50,000 candidate cells), PERF.39 and PERF.40 (API
+  job cost, reserved interactive worker). Owner: Foundations lane 1,
+  taking it ahead of PERF.39.
+  Prerequisites: none. Related: PERF.34, PERF.36, PERF.38, PERF.39,
+  PERF.40.
+
+- [ ] **PERF.65 The text output of a multi-step job counts its steps, not its tasks: "Step 1 of 4" when the job has 12 (bug)**
+  Boss (2026-10-10 19:54Z, with a Generate-page log): a new-galaxy run
+  prints "=== Step 1 of 4: Check the math ===" up to "Step 4 of 4:
+  Generate sectors ...", but the last step runs nine stages of its own
+  ("9 stages: 1. Generate the starting sector; ..."), so the run really
+  has 12 tasks (1 + 1 + 1 + 9). Each step's own lines also restart at
+  "Stage 1 of 1" or "Stage 1 of 9", so the two counts never agree.
+  "Minor, but needs to be fixed." The step header comes from
+  `web/job_runner.py` (`Step {index} of {len(steps)}`) and the stages
+  from the CLI's whole-job bar (PERF.55). Done: the step header and the
+  stage lines of every process in a multi-step job use one task count
+  that matches the real total (here "Task 1 of 12" through "Task 12 of
+  12", or the step number with the stage count added up front), the CLI
+  run alone prints the same numbers, and a test checks that a multi-step
+  job's printed totals equal the sum of its steps' stage counts. Owner:
+  Bugfixes lane 1, folded into the PERF.33 progress-bar remainders.
+  Prerequisites: none. Related: PERF.33, PERF.55.
+
+- [ ] **PERF.66 The whole-job progress bar should track total elapsed time and estimate a stage with no performance data from the earlier stages (bug)**
+  Boss (2026-10-10 20:00Z): "the whole task progress bar should keep
+  track of total time that has passed and in the absence of performance
+  data the ETA for items on the main progress bar should be calculated
+  by the time it has taken to do the previous stages averaged." Done:
+  the whole-job bar (PERF.55's CLI bar and the job page's) shows the
+  total time elapsed since the job started, counted across every step
+  and stage and not restarted when a step or stage begins; a stage with
+  no measured rate (no performance data yet, PERF.33's ETA gap) takes
+  its estimate from the average time of the stages already finished in
+  the job, so the time left on the main bar is never blank or zero; a
+  test covers a job whose later stages have no data. Owner: Bugfixes
+  lane 1, with PERF.65 and the other PERF.33 remainders.
+  Prerequisites: none. Related: PERF.33, PERF.55, PERF.65.
 
 ## DB: Database and schema
 
@@ -3775,6 +3814,9 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   connection per worker, a cap on total worker connections and the
   reserved interactive worker; re-run PERF.34's page-time test under
   Ludicrous Speed.
+  Foundations lane 1 (2026-10-10, PERF.38, PR #1144): the page-time re-
+  run under Ludicrous Speed moved here from PERF.38; it needs this item
+  built and a real fill.
 
 - [ ] **ADM.32 Add a star system to a sector: at the emptiest spot, at given coordinates, or at random outside every Hill sphere**
   Boss (2026-10-07 11:47Z): "Need a way to add a single star system to a
