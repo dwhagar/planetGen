@@ -3849,8 +3849,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   to look), the scatter batches its layers so that 2 or more workers are
   not slower than 1 on the same plan, and the benchmark shows it; the
   rows stay identical. Owner: Foundations lane 1.
-  Prerequisites: none. Related: PERF.31, PERF.47, PERF.73, PERF.58,
-  GEN.185.
+  Decided (Boss, 2026-10-10 22:00Z): if more workers do not let the
+  scatter scale, the scatter still runs as one single-process job on the
+  Redis queue (RQ), one job and not a collection of jobs. It always goes
+  through RQ and never bypasses the queue; parallelism is used only
+  where it measurably helps.
+  Prerequisites: none. Related: PERF.19, PERF.24, PERF.31, PERF.47,
+  PERF.73, PERF.58, GEN.185.
   Design: [docs/design/generation-benchmark-report.md](design/generation-benchmark-report.md)
 
 - [ ] **PERF.80 "Save the sector paths" takes 24% of a small run and does not speed up with workers**
