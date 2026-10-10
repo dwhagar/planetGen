@@ -45,8 +45,13 @@ class _ReportingProgress(Progress):
     """A second bar under `main_task` (PERF.4's slow-layer bar), written
     to the progress file as its `detail`."""
 
-    def add_task(self, description, *args, **kwargs):
-        task_id = super().add_task(description, *args, rate=progress_rate.DecayingRate(), **kwargs)
+    def add_task(self, description, *args, prior=None, tau=None, **kwargs):
+        """Adds a bar. `prior` is the rate recorded for this kind of work in
+        the bar's own units a second (PERF.33), which the live rate is
+        blended into; `tau` the decay time constant (`progress_rate.time_constant`)."""
+        rate = progress_rate.DecayingRate(prior=prior) if tau is None else progress_rate.DecayingRate(tau=tau,
+                                                                                                    prior=prior)
+        task_id = super().add_task(description, *args, rate=rate, **kwargs)
         self._report(task_id, force=True)
         return task_id
 
@@ -424,6 +429,7 @@ def _check_estimate(args, sector_args_list, what, progress=None):
     if getattr(args, "estimate_only", False):
         raise _EstimateOnly(what, result)
     args._estimate_checked = True
+    args._sector_prior = _sector_prior(result)
     log.normal(f"Estimate for {what}: {result.summary()}")
     if result.refusal:
         _refuse_or_warn(args, result.refusal)
@@ -431,6 +437,24 @@ def _check_estimate(args, sector_args_list, what, progress=None):
         if _ask(progress, f"Generate these {result.sectors:,} sectors? [y/N] ") not in ("y", "yes"):
             log.normal("Nothing was generated.")
             raise SystemExit(0)
+
+
+def _sector_prior(result):
+    """`(sectors a second, decay time constant)` the stored speeds predict for the run `result`
+    estimated, or `None` when nothing was recorded for it yet (PERF.33)."""
+    if not result.measured or not result.sectors or not result.seconds or result.seconds <= 0:
+        return None
+    mean_task_seconds = result.seconds * result.workers / result.sectors
+    return (result.sectors / result.seconds, progress_rate.time_constant(mean_task_seconds, result.workers))
+
+
+def sector_task(progress, args, description, total):
+    """Adds the bar that counts the sectors of a run, starting from the rate
+    this server recorded for such sectors (`_check_estimate` worked it out)."""
+    prior = getattr(args, "_sector_prior", None)
+    if prior is None:
+        return progress.add_task(description, total=total)
+    return progress.add_task(description, total=total, prior=prior[0], tau=prior[1])
 
 
 def _print_estimate(exc):

@@ -58,7 +58,7 @@ function render(job) {
     detail.hidden = !job.progress_detail_text;
   }
   setText("[data-job-elapsed]", job.elapsed_text || "");
-  setText("[data-job-remaining]", job.remaining_text ? `about ${job.remaining_text} left` : "");
+  setText("[data-job-remaining]", job.remaining_label || "");
 
   const error = panel.querySelector("[data-job-error]");
   if (error) {

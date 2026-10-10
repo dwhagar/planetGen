@@ -1,0 +1,3 @@
+### Changed
+- The time left on every progress bar now starts from the rate this server recorded for the same kind of work and worker count (PERF.32), so a bar has an estimate before its first unit finishes, and blends in the live rate as units finish (weight n / (n + 15), held back for the first 5 units and 20 seconds). The decay time constant follows the task length.
+- The Generate and Queue pages show the time left as a range ("about 1 m 28 s to 1 m 54 s left"), "estimating" while there is none, and hold it when nothing has finished for a minute or more; the Queue page's time left blends the recorded task time into the job's own pace.

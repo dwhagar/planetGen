@@ -807,7 +807,7 @@ def run_ring_batch(args, edge_pc, progress):
         batch.append((address, position_pc, sector_args, ""))
 
     run_common._check_estimate(args, [item[2] for item in batch], what, progress)
-    outer_task = progress.add_task(f"Sectors ({what})", total=len(batch))
+    outer_task = run_common.sector_task(progress, args, f"Sectors ({what})", len(batch))
     _submit_batch(args, batch, f"Sectors ({what})", edge_pc, progress, outer_task)
     generated = len(batch)
     skip_note = f", {skipped} skipped (outside the outline)" if skipped else ""
@@ -930,7 +930,7 @@ def run_local_neighborhood(args, edge_pc, progress):
     )
     run_common._check_estimate(args, [item[2] for item in batch],
                     f"the sectors within {args.radius_pc:g} pc of sector {args.center_sector}", progress)
-    outer_task = progress.add_task("Sectors (local neighborhood)", total=len(batch))
+    outer_task = run_common.sector_task(progress, args, "Sectors (local neighborhood)", len(batch))
     _submit_batch(args, batch, f"Sectors (within {args.radius_pc:g} pc of sector {args.center_sector})",
                   edge_pc, progress, outer_task)
     generated = len(batch)
@@ -1219,7 +1219,7 @@ def run_single_slot(args, edge_pc, progress):
         sectors += [item[2] for item in batch]
         what += f" and the sectors within {args.radius_pc:g} pc of it"
     run_common._check_estimate(args, sectors, what, progress)
-    task = progress.add_task(f"Sector ({_format_address(address)})", total=1)
+    task = run_common.sector_task(progress, args, f"Sector ({_format_address(address)})", 1)
     # The backfill waits for the end of the run (backfill_after_run), with
     # its own bar, instead of stalling this one at 0 of 1 (PERF.28).
     result = ensure_sector_generated(*address, config=mysql_config, backfill=False, outside_ok=outside_ok,
@@ -1279,7 +1279,7 @@ def _generate_addresses(args, addresses, what, edge_pc, progress, batch_density)
         batch.append((address, position_pc, sector_args, ""))
 
     run_common._check_estimate(args, [item[2] for item in batch], what, progress)
-    task = progress.add_task(f"Sectors ({what})", total=len(batch))
+    task = run_common.sector_task(progress, args, f"Sectors ({what})", len(batch))
     _submit_batch(args, batch, f"Sectors ({what})", edge_pc, progress, task)
     generated = len(batch)
     skip_note = f", {skipped} skipped (outside the outline)" if skipped else ""

@@ -21,7 +21,7 @@ from flask import abort, current_app, request, url_for
 
 from planetgen.web.lib import apiclient
 from planetgen.web.lib.datatable import Column, Result, Table, time_text
-from planetgen.queue import work as workQueue
+from planetgen.queue import progress_rate, work as workQueue
 from planetgen.admin import activity_log
 from planetgen.util import log
 
@@ -131,7 +131,7 @@ def _node_view(node, root):
         "done": totals["done"],
         "failed": totals["failed"],
         "cancelled": totals["cancelled"],
-        "eta": _duration(totals["eta_seconds"]),
+        "eta": _eta_text(totals["eta_seconds"], node["live"]),
         "workers": node["workers"],
         "holder": node["holder"],
         "web_job_url": url_for("web.generate_job", job_id=node["web_job_id"])
@@ -154,6 +154,16 @@ def _node_view(node, root):
         } for task in node["tasks"]],
     }
     return view
+
+
+def _eta_text(seconds, live):
+    """The time left as a range around the estimate, "estimating" while a running job has none (PERF.33, never
+    dashes), `""` for a job that isn't running."""
+    if seconds is None:
+        return "estimating" if live else ""
+    low, high = progress_rate.eta_range(seconds)
+    low_text, high_text = _duration(low), _duration(high)
+    return high_text if low_text == high_text else f"{low_text} to {high_text}"
 
 
 def _remaining_seconds(root):
@@ -273,7 +283,7 @@ def _job_cells(root):
         {"text": node["status_label"] + asked},
         {"text": started},
         {"text": node["duration"] or ""},
-        {"text": _duration(_remaining_seconds(root)) or ""},
+        {"text": _eta_text(_remaining_seconds(root), root["live"])},
         {"text": f"{node['done']} of {node['tasks']}" if node["tasks"] else ""},
         {"text": "", "parts": links} if links else {"text": ""},
     ]

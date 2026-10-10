@@ -344,7 +344,7 @@ class _LayerTracker:
     SLOW_LAYER_SECONDS = 30.0
     FAST_LAYER_SECONDS = 20.0
 
-    def __init__(self, progress, label, weights, clock=time.monotonic):
+    def __init__(self, progress, label, weights, clock=time.monotonic, prior=None):
         self.progress = progress
         self.label = label
         self.weights = weights
@@ -358,7 +358,8 @@ class _LayerTracker:
         self.layer_rate = progress_rate.DecayingRate(clock=clock)
         self.last_done = clock()
         self.detail = None
-        self.task = progress.add_task(self._description(), total=max(sum(weights.values()), 1.0), percent=True)
+        self.task = progress.add_task(self._description(), total=max(sum(weights.values()), 1.0), percent=True,
+                                      prior=prior)
         progress.main_task = self.task
 
     def _description(self):
@@ -504,7 +505,9 @@ def _scatter_layers(args, mysql_config, skeleton, extents, filled, min_luminosit
     with run_common._generation_progress() as progress:
         log.set_console(progress.console)
         try:
-            tracker = _LayerTracker(progress, label, weights)
+            # PERF.33: the bar starts from the stars a second this server recorded for this many workers.
+            prior = run_common._generation_stats(args).pool_rate("scatter", run_common._worker_count(args))
+            tracker = _LayerTracker(progress, label, weights, prior=prior)
             outer_rings = dict(layers)
 
             def on_done_for(layer_index):

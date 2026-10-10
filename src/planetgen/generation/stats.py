@@ -377,6 +377,43 @@ class GenerationStats:
                     + fraction * self._nearest_bucket(kind, density, high))
         return self._nearest_bucket(kind, density, (below or above)[-1 if below else 0])
 
+    def _mean_for_workers(self, kind, workers, attribute):
+        """`attribute` of the `kind` buckets at `workers`, averaged by their samples; with no rows for that
+        worker count the neighbouring counts' averages blended by distance (the nearest when one side has
+        none); `None` with nothing recorded."""
+        workers = max(1, int(workers or 1))
+        counts = sorted({w for (k, w, _i), b in self.buckets.items() if k == kind and b.samples})
+        if not counts:
+            return None
+
+        def mean(count):
+            rows = [b for (k, w, _i), b in self.buckets.items() if k == kind and w == count and b.samples]
+            return sum(getattr(b, attribute) * b.samples for b in rows) / sum(b.samples for b in rows)
+
+        if workers in counts:
+            return mean(workers)
+        below = [w for w in counts if w < workers]
+        above = [w for w in counts if w > workers]
+        if below and above:
+            fraction = (workers - below[-1]) / (above[0] - below[-1])
+            return (1 - fraction) * mean(below[-1]) + fraction * mean(above[0])
+        return mean((below or above)[-1 if below else 0])
+
+    def pool_rate(self, kind, workers=1):
+        """
+        PERF.33: the units a second the whole pool of `workers` got through
+        for `kind` (a unit is what `record` counted as `systems`: a system,
+        or a star of a scatter layer), averaged over densities; `None` with
+        nothing recorded.
+        """
+        seconds = self._mean_for_workers(kind, workers, "seconds_per_system")
+        return max(1, int(workers or 1)) / seconds if seconds else None
+
+    def seconds_per_task(self, kind, workers=1):
+        """PERF.33: the wall seconds one task of `kind` takes a worker when `workers` run side by side,
+        averaged over densities; `None` with nothing recorded."""
+        return self._mean_for_workers(kind, workers, "seconds_per_task") or None
+
     def _nearest_bucket(self, kind, density, workers):
         index = bucket_index(density)
         measured = [b for (k, w, _i), b in self.buckets.items() if k == kind and w == workers and b.samples]
