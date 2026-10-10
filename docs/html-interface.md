@@ -33,7 +33,7 @@ messages, API text meant for people), never "unbuilt", "not generated" or
 the like. The exception is the Generate system and the admin panels and
 controls, which keep the plain technical words ("generated", "not
 generated", "queued", and so on). New items and pages follow this rule;
-UX.88 carries the sweep of the existing wording.
+The sweep of the existing wording is done (PR #1049).
 
 ## Habitability chips
 
