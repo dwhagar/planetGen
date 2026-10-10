@@ -1904,6 +1904,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     says `updateOrbits.py`, which no longer exists). Open question for
     Boss (default: skip the day while a Generate job runs, exit 75,
     alert after 3 skipped days).
+    Note (2026-10-09): The Windows parts are dropped by OPS.39 (Boss,
+    2026-10-10 04:25Z).
     Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
   - [ ] **OPS.17 Install and update set up the daily maintenance schedule**
@@ -1929,6 +1931,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     and test `org.planetgen.update.plist`, and correct
     `docs/deployment/macos.md` (an asleep Mac runs at wake; only a
     powered-off Mac skips).
+    Note (2026-10-09): The Windows parts are dropped by OPS.39 (Boss,
+    2026-10-10 04:25Z).
     Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
   - [ ] **TEST.77 A golden-seed regression test**
@@ -3058,23 +3062,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisite: GEN.172.
   Design: [docs/design/object-id-options.md](design/object-id-options.md)
 
-- [ ] **GEN.175 Regenerating a phenomenon sets its uid to NULL (bug)**
-  Source: docs/design/object-id-options.md section 0 (Boss decided
-  2026-10-09 22:39Z: birth location plus serial, galaxy-wide; the same
-  length for every object; always identifies that one object; up to 128
-  bits but shorter preferred; fix the deficits; no backward
-  compatibility). Filed from the object-ID research thread. Nothing is
-  built until Boss asks.
-  `replace_phenomenon_content` in `db/edits.py` copies every column
-  except `_KEPT_PHENOMENON_COLUMNS`, which omits `uid` (reproduced: a
-  rogue planet's uid 0000004986A0FFFE64000000 became NULL). A one-line
-  keep of `uid` in `_KEPT_PHENOMENON_COLUMNS` can go first, in the
-  Bugfixes queue, if Boss prefers. Also make a system content swap keep
-  the system's ID and give new bodies fresh body numbers from the
-  counter, never reusing a deleted body's number.
-  Prerequisites: none.
-  Design: [docs/design/object-id-options.md](design/object-id-options.md)
-
 - [ ] **GEN.176 A nebula or remnant is born in the sector holding the centre of the space it occupies**
   Source: docs/design/object-id-options.md section 0 (Boss decided
   2026-10-09 22:39Z: birth location plus serial, galaxy-wide; the same
@@ -3142,40 +3129,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   in the Generate page and the CLI.
   Prerequisites: none. Related: GEN.96, GEN.180.
 
-- [ ] **GEN.183 A mass cut the user sets: preset values on a slider from 8 to 20 solar masses**
-  Boss (2026-10-10 03:01Z): "Add the solar masses pass, user can specify
-  preset values on a slider between 8 and 20." Rush job, as fast
-  as possible. Done: the phenomenon scatter's lowest
-  mass (galaxy_shape.phenomenon_min_mass_solar, --phenomenon-min-mass,
-  the settings file and the Generate page) is picked from a slider of
-  preset values between 8 and 20 solar masses; 20 stays the default (the
-  cut Boss accepted on 2026-10-09). Everything above the cut is
-  scattered galaxy-wide; everything below is drawn when its sector is
-  made, as built in GEN.166 to GEN.168. Decided (Boss, 2026-10-10 04:06Z, "your defaults are confirmed"):
-  presets 8, 10, 12, 14, 16, 18 and 20.
-  Note (2026-10-10, GEN.185 merged, PR #953): the five passes are built with one mass limit (phenomenon_min_mass_solar) for phenomena and stars, and galaxy_shape.bright_star_mass_limit_sol records it (phenomenon-scatter-mass-cut.md, "The star passes").
-  Lane (Boss, 2026-10-10 03:04Z): Foundations lane 2.
-  Prerequisites: none. Related: GEN.169, GEN.166, GEN.167, GEN.168,
-  PERF.18.
-
-- [ ] **GEN.184 A luminosity floor the user sets: presets from 2500 to 4 million solar luminosities, default 3000**
-  Boss (2026-10-10 03:01Z): "Change the luminosity code, the user has
-  preset settings, default is 3000 solar luminosities, user can choose
-  no lower than 2500, but goes up to 4 million in an exponential scale,
-  so the user has the best control (jumps of 100 solar luminosities)
-  near 2500 but ending with 500,000 jumps near the 4 million mark."
-  Done: the bright-star luminosity floor is one of a preset list that
-  starts at 2500 L_sun with steps of 100, grows exponentially and ends
-  at 4,000,000 L_sun with steps near 500,000; the default is 3000 L_sun.
-  This replaces the fixed 1000 L_sun floor (GEN.30) as the default and
-  sets 2500 as the lowest allowed. Decided (Boss, 2026-10-10 04:06Z, "your defaults are confirmed"): a
-  geometric ladder of about 60 presets built from the step rule, rounded
-  to 2 significant digits above 10,000, and a database already filled
-  below the new floor keeps its stars.
-  Note (2026-10-10, GEN.185 merged, PR #953): the five passes are built with one mass limit (phenomenon_min_mass_solar) for phenomena and stars, and galaxy_shape.bright_star_mass_limit_sol records it (phenomenon-scatter-mass-cut.md, "The star passes").
-  Lane (Boss, 2026-10-10 03:04Z): Foundations lane 1.
-  Prerequisites: none. Related: GEN.30, PERF.18, GEN.40, MAP.120.
-
 - [ ] **GEN.186 Random neighborhoods: an option to keep away from filled space**
   Left over from GEN.97 (merged, PR #950; Foundations lane 1 report,
   2026-10-10 03:37Z). The research note
@@ -3203,7 +3156,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (GEN.183) applies. Decided (Boss, 2026-10-10 04:06Z, "your defaults are confirmed"): the nearest ring
   takes the lowest mass cut, as above, and each ring is counted from the
   previous ring's outer edge; the GEN.30 luminosity tiers go away.
-  Prerequisite: GEN.184. Related: GEN.30, GEN.40, GEN.99, GEN.183,
+  Prerequisites: none (GEN.184 merged, PR #965). Related: GEN.30, GEN.40, GEN.99, GEN.183,
   GEN.184, MAP.120, PERF.18.
 
 ## PERF: Speed, caching, bulk generation and parallel work
@@ -4238,6 +4191,9 @@ clears each one.
   path set up that state themselves; the Windows leg passes on main. CI
   now runs only by hand (Actions, CI, Run workflow), so the leg is
   checked when someone runs it.
+  Superseded (2026-10-09): Superseded by OPS.39 (Boss, 2026-10-10
+  04:25Z): Windows support is being removed. Do not start; retire with
+  OPS.39.
   Prerequisites: none. Related: TEST.111, OPS.19, PERF.24.
 
 - [ ] **TEST.116 test_bughunt_end_to_end stores M2V or M6V where it expects K2V on the MySQL 8.4 and MariaDB legs once (bug)**
@@ -4251,13 +4207,14 @@ clears each one.
   open until it recurs, then investigate with the failing run's data).
   Prerequisites: none. Related: TEST.111, TEST.71.
 
-- [ ] **TEST.117 generatejobs.test.mjs fails on main since PERF.33 (PR #910) (bug)**
-  Reported by Foundations lane 2 (2026-10-10 04:09Z):
-  src/tests/js/generatejobs.test.mjs fails on main since PERF.33 (PR
-  #910) changed the Generate page's job display. Done: the test (or the
-  page) is corrected so the JS suite passes on main, and the Windows and
-  Linux JS test runs both pass.
-  Prerequisites: none. Related: PERF.33, TEST.111.
+- [ ] **TEST.118 test_star_scatter_passes.py fails twice on main since GEN.184 raised the luminosity floor to 2500 or more (bug)**
+  Reported by Foundations lane 2 (2026-10-10 04:23Z, GEN.183 merge, PR
+  #969): test_sampled_stars_stay_inside_their_mass_range and
+  test_the_scatter_runs_the_mass_pass_then_a_luminosity_pass_that_skips_marked_sectors
+  fail on main since GEN.184's luminosity floors (2500 L_sun at the
+  lowest) met GEN.185's test setup. Done: the tests' setup uses a floor
+  the new ladder allows, and the full test file passes on main.
+  Prerequisites: none. Related: GEN.184, GEN.185, GEN.183.
 
 ## USR: User accounts
 
@@ -4468,6 +4425,8 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   the version record acceptable? Default yes. (3) Does a mismatch refuse
   a remote or rebuild run? Default: refuse on an epoch mismatch, warn on
   a battery-digest mismatch naming the first differing case.
+  Note (2026-10-09): The Windows parts are dropped by OPS.39 (Boss,
+  2026-10-10 04:25Z).
   Prerequisite: GEN.135.
   Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
@@ -4495,6 +4454,8 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Python 3.9, current otherwise), a sidecar info file, `timeout=0`
   helpers and `PermissionError` handling, plus a two-process test that
   runs on the Windows CI leg.
+  Note (2026-10-09): The Windows parts are dropped by OPS.39 (Boss,
+  2026-10-10 04:25Z).
   Prerequisites: none.
   Design: [docs/design/ops-scheduling-and-rotation.md](design/ops-scheduling-and-rotation.md)
 
@@ -4514,6 +4475,9 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   remedy to `Test-Redis` (only when the account can see a distro); state
   that unattended Windows servers cannot rely on WSL. Open question for
   Boss (default: keep telling unattended servers to use a Linux VM).
+  Superseded (2026-10-09): Superseded by OPS.39 (Boss, 2026-10-10
+  04:25Z): Windows support is being removed. Do not start; retire with
+  OPS.39.
   Prerequisites: none.
   Design: [docs/design/ops-scheduling-and-rotation.md](design/ops-scheduling-and-rotation.md)
 
@@ -4542,13 +4506,26 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   for the same seed.
   Prerequisite: OPS.28.
 
-- [ ] **OPS.38 Two Redis dump files (dump.rdb and src/dump.rdb) are committed to main and should be removed and git-ignored (bug)**
-  Reported by Foundations lane 2 (2026-10-10 04:09Z, GEN.88 merge, PR
-  #963): dump.rdb, a Redis dump, was committed to main by PR #953, and
-  src/dump.rdb is tracked too. Done: both files are removed from the
-  repository, *.rdb is added to .gitignore, and the test and dev Redis
-  configuration writes its dump outside the working tree or not at all.
-  Prerequisites: none. Related: PERF.24, OPS.19.
+- [ ] **OPS.39 Remove Windows support; keep only a simple docs/WINDOWS.md**
+  Decided (Boss, 2026-10-10 04:25Z, in the Foundations lane 1 thread):
+  rip out all Windows support. If someone wants it to work on Windows
+  they do that work themselves; the most the project provides is a
+  simple docs/WINDOWS.md with basic instructions for a typical Windows
+  setup. Done: the Windows CI leg, update.ps1, install.ps1, every other
+  .ps1 script and scheduled-task helper, Windows branches in the code,
+  Windows-only tests and test setup, and Windows mentions in the docs
+  are removed; docs/reference/deployment/windows.md (and any
+  docs/deployment/windows.md) is replaced by docs/WINDOWS.md; the README
+  and install docs name Linux (and macOS where it still applies) only; a
+  search for 'windows', 'ps1', 'WSL' and 'win32' finds nothing outside
+  docs/WINDOWS.md and history. This supersedes TEST.115 (Windows-leg
+  Redis failures) and OPS.34 (Windows Redis in WSL): retire both with
+  this item, and drop the Windows halves of OPS.16, OPS.17, OPS.28 and
+  OPS.30 (the epoch question about Windows reproducibility is answered
+  by this). No backward compatibility.
+  Prerequisites: none. Related: TEST.115, OPS.34, OPS.16, OPS.17,
+  OPS.28, OPS.30.
+  Lane (Boss, 2026-10-10 04:26Z): Foundations lane 3 (not lane 1).
 
 ## DOC: Documentation
 

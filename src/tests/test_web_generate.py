@@ -775,7 +775,10 @@ def test_a_slow_runner_still_alive_is_starting_not_interrupted(jobs_root):
         with open(os.path.join(path, "runner.pid"), "w") as f:
             f.write(str(runner.pid))
         _wait_until_exec(runner.pid, path)
-        assert jobs.get_job(job_id)["status"] == "starting"
+        job = jobs.get_job(job_id)
+        assert job["status"] == "starting", (   # TEST.115: what the Windows leg needs to show
+            f"pid {runner.pid} alive={jobs._runner_alive(runner.pid, job_id, body['created_at'])} "
+            f"created_at={body['created_at']} now={time.time()} state={job}")
         assert not jobs.get_job(job_id)["finished"]
         with pytest.raises(jobs.JobBusy):
             jobs.start_job("reset", "Reset", [{"label": "x", "argv": ["true"]}], spawn=False)
@@ -1251,7 +1254,8 @@ def test_without_redis_no_job_starts(jobs_root, monkeypatch):
     monkeypatch.setattr(jobs, "WINDOWS", False)
     with pytest.raises(OSError, match="no Redis server"):
         jobs.start_job("reset", "No Redis", [_step("x", "pass")])
-    assert jobs.active_job(jobs_root) is None
+    lock = os.path.join(jobs_root, jobs.LOCK_NAME)
+    assert jobs.active_job(jobs_root) is None, f"lock left behind: {os.path.exists(lock)} {os.listdir(jobs_root)}"
 
 
 def test_without_redis_windows_runs_the_job_itself(jobs_root, monkeypatch):
@@ -1262,7 +1266,7 @@ def test_without_redis_windows_runs_the_job_itself(jobs_root, monkeypatch):
     job_id = jobs.start_job("reset", "Direct", [_step("x", "print('ran directly')")])
     monkeypatch.setattr(jobs, "WINDOWS", False)   # liveness checks as on this machine
     job = _wait_finished(job_id, jobs_root)
-    assert job["status"] == "succeeded"
+    assert job["status"] == "succeeded", f"{job} log: {jobs.log_tail(job_id, root=jobs_root)}"   # TEST.115
     assert "ran directly" in jobs.log_tail(job_id, root=jobs_root)
 
 
@@ -1306,3 +1310,38 @@ def test_random_start_argv_carries_the_neighborhood_count():
     assert generate_page.random_start_argv({"neighborhoods": "1", "neighborhood_gamma": "2"}) == []
     with pytest.raises(generate_page.FormError):
         generate_page.random_start_argv({"neighborhoods": "101"})
+
+
+# --- Mass limit slider (GEN.183) --------------------------------------------------
+
+def test_the_plan_forms_offer_the_mass_limit_slider(site, client):
+    html = client.get("/admin/generate").get_data(as_text=True)
+    for slider in ("new-galaxy-mass-limit", "plan-mass-limit"):
+        assert re.search(rf'<input type="range" id="{slider}" name="phenomenon_min_mass"[^>]*min="8" max="20" step="2"'
+                         r'[^>]*value="20"', html, re.S)
+    assert html.count('name="phenomenon_min_mass"') == 2
+    assert re.search(r'<script type="module" src="/static/generateranges.js\?v=[^"]+"></script>', html)
+
+
+def test_the_mass_limit_reaches_the_plan_and_the_scatter(site, client, no_spawn):
+    assert _post(client, action="plan", phenomenon_min_mass="12").status_code == 303
+    (job,) = no_spawn
+    plan, scatter = _work_steps(job)
+    assert _argv(plan) == ["plan", "--phenomenon-min-mass", "12", "--no-bright-stars"]
+    assert _argv(scatter) == ["plan", "--bright-stars-only", "--phenomenon-min-mass", "12"]
+
+
+def test_a_new_galaxy_scatters_at_the_plans_mass_limit(site, client, no_spawn):
+    assert _post(client, action="new_galaxy", confirm=DB, phenomenon_min_mass="8").status_code == 303
+    (job,) = no_spawn
+    _reset, plan, galaxy = _work_steps(job)
+    assert _argv(plan) == ["plan", "--phenomenon-min-mass", "8", "--no-bright-stars"]
+    assert "--phenomenon-min-mass" not in _argv(galaxy)
+
+
+@pytest.mark.parametrize("value", ["13", "7", "21", "20.5"])
+def test_the_mass_limit_must_be_a_preset(site, client, no_spawn, value):
+    resp = _post(client, action="plan", phenomenon_min_mass=value)
+    assert resp.status_code == 400
+    assert "Mass limit (solar masses) must be one of 8, 10, 12, 14, 16, 18, 20." in resp.get_data(as_text=True)
+    assert no_spawn == []

@@ -181,3 +181,6 @@ cython_debug/
 src/planetgen/web/lib/**/__pycache__/
 # Generate jobs (OPS.19: the default jobs folder, /var/lib/planetGen/jobs, sits in the checkout)
 /jobs/
+
+# Redis snapshots (a redis-server started in the repo writes one)
+*.rdb

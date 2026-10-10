@@ -22,9 +22,9 @@ release is stamped.
 | API | API.24 |
 | ADM | ADM.49 |
 | SEC | SEC.33 |
-| TEST | TEST.118 |
+| TEST | TEST.119 |
 | USR | USR.10 |
-| OPS | OPS.39 |
+| OPS | OPS.40 |
 | DOC | DOC.17 |
 | VIEW | VIEW.11 |
 | POP | POP.11 |
@@ -671,7 +671,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.172 | Run-time births get object IDs from the counters | none | open |
 | GEN.173 | Deleting a body and then adding one fails with IntegrityError 1062 on uq_planets_uid (bug) | none | open |
 | GEN.174 | Bodies an admin adds are saved with a NULL uid (bug) | none | open |
-| GEN.175 | Regenerating a phenomenon sets its uid to NULL (bug) | none | open |
+| GEN.175 | Regenerating a phenomenon sets its uid to NULL (bug) | none | done, PR #960 |
 | GEN.176 | A nebula or remnant is born in the sector holding the centre of the space it occupies | none | open |
 | GEN.177 | Planetary magnetic fields: a stagnant-lid factor | none | open |
 | GEN.178 | Magnetic fields: the induced field of an ocean moon | none | open |
@@ -679,8 +679,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.180 | Directives: a forced fill (met_forced) after K failed draws | none | open |
 | GEN.181 | Directives: refuse impossible requests up front from the compound-Poisson tables | none | open |
 | GEN.182 | Some comets' orbits do not bring them back: they are ejected into space (bug) | none | done, PR #938 |
-| GEN.183 | A mass cut the user sets: preset values on a slider from 8 to 20 solar masses | none | open |
-| GEN.184 | A luminosity floor the user sets: presets from 2500 to 4 million solar luminosities, default 3000 | none | open |
+| GEN.183 | A mass cut the user sets: preset values on a slider from 8 to 20 solar masses | none | done, PR #969 |
+| GEN.184 | A luminosity floor the user sets: presets from 2500 to 4 million solar luminosities, default 3000 | none | done, PR #965 |
 | GEN.185 | The scatter in five passes: mass-limit objects, mass-limit stars, brightest-star sector marks, the luminosity pass, then other phenomena | none | done, PR #953 |
 | GEN.186 | Random neighborhoods: an option to keep away from filled space | none | open |
 | GEN.187 | Bright-star back scatter by mass: rings of 1, 2, 5 and 8 solar masses around filled space | none | open |
@@ -940,7 +940,8 @@ Parents marked "new parent" had no old number of their own.
 | OPS.35 | A vendored-version lock file for the static libraries | none | open |
 | OPS.36 | Space and size checks measure the boot drive, not the drive holding the database (bug) | none | done, PR #868 |
 | OPS.37 | A Generator version number: one sequential integer, shown in admin and the API | none | open |
-| OPS.38 | Two Redis dump files (dump.rdb and src/dump.rdb) are committed to main and should be removed and git-ignored (bug) | none | open |
+| OPS.38 | Two Redis dump files (dump.rdb and src/dump.rdb) are committed to main and should be removed and git-ignored (bug) | none | done, PR #967 |
+| OPS.39 | Remove Windows support; keep only a simple docs/WINDOWS.md | none | open |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
 | PERF.3 | Estimate size and time before bulk generation | 86 (2026-10-01 03:15Z to 05:29Z) | done, PR #238 (stats in control schema v6) |
@@ -1344,7 +1345,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.114 | test_the_check_writes_nothing fails now and then in a parallel full run (bug) | none | done, PR #946 |
 | TEST.115 | Three tests fail on the Windows CI leg in every recent run: Redis in WSL is unreachable (bug) | none | open |
 | TEST.116 | test_bughunt_end_to_end stores M2V or M6V where it expects K2V on the MySQL 8.4 and MariaDB legs once (bug) | none | open |
-| TEST.117 | generatejobs.test.mjs fails on main since PERF.33 (PR #910) (bug) | none | open |
+| TEST.117 | generatejobs.test.mjs fails on main since PERF.33 (PR #910) (bug) | none | done, PR #920 |
+| TEST.118 | test_star_scatter_passes.py fails twice on main since GEN.184 raised the luminosity floor to 2500 or more (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

@@ -402,11 +402,36 @@ jobs:
           additional-packages: redis-server
 
       - name: Start Redis in WSL
-        shell: wsl-bash {0}
+        # TEST.115. A `--daemonize` redis started by a step's own WSL session
+        # went away with it (WSL stops a distro when its last session ends),
+        # so the tests saw "connection refused" on 127.0.0.1:6379 although
+        # `redis-cli ping` had answered inside WSL. Redis runs in the
+        # foreground of a wsl.exe this job keeps open, and the step waits
+        # until Windows itself can connect, trying WSL's own address when
+        # localhost forwarding is missing, and hands the working URL to the
+        # test step through GITHUB_ENV.
+        shell: pwsh
         run: |
-          redis-server --daemonize yes --port 6379 --bind 0.0.0.0 --protected-mode no
-          sleep 1
-          redis-cli ping
+          Start-Process -FilePath wsl.exe -WindowStyle Hidden -ArgumentList @('-d', 'Ubuntu-24.04', '--exec', 'redis-server', '--port', '6379', '--bind', '0.0.0.0', '--protected-mode', 'no', '--dir', '/tmp')
+          $ips = @('127.0.0.1')
+          $wslIp = ((wsl.exe -d Ubuntu-24.04 --exec hostname -I) -join ' ').Trim().Split(' ')[0]
+          if ($wslIp) { $ips += $wslIp }
+          $found = $null
+          for ($try = 0; $try -lt 30 -and -not $found; $try++) {
+            foreach ($ip in $ips) {
+              $client = [System.Net.Sockets.TcpClient]::new()
+              try { $client.Connect($ip, 6379); $found = $ip } catch { } finally { $client.Dispose() }
+              if ($found) { break }
+            }
+            if (-not $found) { Start-Sleep -Seconds 2 }
+          }
+          if (-not $found) {
+            wsl.exe -l -v
+            wsl.exe -d Ubuntu-24.04 --exec ps aux
+            throw "Redis in WSL does not answer from Windows on $($ips -join ', '):6379"
+          }
+          Write-Host "Redis answers from Windows on ${found}:6379"
+          "PLANETGEN_TEST_REDIS_URL=redis://${found}:6379/0" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
 
       - uses: actions/setup-python@v5
         id: setup-python
@@ -468,8 +493,7 @@ jobs:
         run: python -m nltk.downloader words
 
       - name: Run the Generate page and job tests
-        env:
-          PLANETGEN_TEST_REDIS_URL: redis://127.0.0.1:6379/0
+        # PLANETGEN_TEST_REDIS_URL comes from "Start Redis in WSL" (GITHUB_ENV).
         run: pytest src/tests/test_web_generate.py src/tests/test_redis_queue.py -rs -p no:cacheprovider
 
   macos-installers:

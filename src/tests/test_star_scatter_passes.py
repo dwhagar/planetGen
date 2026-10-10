@@ -21,12 +21,13 @@ from planetgen.physics import constants
 from planetgen.physics.stellar_evolution import sample_living_star
 from planetgen.galaxy.geometry import sector_position_pc
 from tests.test_bright_star_scatter import (
-    EDGE_PC, E_VALUE, EXTENTS, SHAPE, _plan_args, _row_dict, _seed_galaxy,
+    EDGE_PC, E_VALUE, EXTENTS, SHAPE, THRESHOLD, _plan_args, _row_dict, _seed_galaxy,
 )
 
 MASS_LIMIT = 3.0
-THRESHOLD = 1000.0
-"""float: Below the 2500 Lsun minimum a run may use (GEN.184): the lighter-star pass needs a floor that stars under the mass limit can reach."""
+LIGHT_FLOOR = 500.0
+"""The luminosity the tests that need stars lighter than the limit use: at the real floor (2,500 and up, GEN.184) a
+star under 3 solar masses is rare, so the toy galaxy would hold none."""
 
 
 @pytest.mark.parametrize("population", [None, "young", "intermediate"])
@@ -56,9 +57,9 @@ def test_sampled_stars_stay_inside_their_mass_range():
     rng = random.Random(3)
     heavy = sp.sample_bright_stars(300, sp.MASS_PASS_MIN_LUMINOSITY_SOL, "young", rng, mass_range=(MASS_LIMIT, None))
     assert all(star["initial_mass_sol"] >= MASS_LIMIT * 0.999999 for star in heavy)
-    light = sp.sample_bright_stars(300, THRESHOLD, "intermediate", rng, mass_range=(None, MASS_LIMIT))
+    light = sp.sample_bright_stars(300, LIGHT_FLOOR, "intermediate", rng, mass_range=(None, MASS_LIMIT))
     assert all(star["initial_mass_sol"] < MASS_LIMIT for star in light)
-    assert all(star["luminosity_w"] >= THRESHOLD * constants.SOLAR_LUMINOSITY * 0.999999 for star in light)
+    assert all(star["luminosity_w"] >= LIGHT_FLOOR * constants.SOLAR_LUMINOSITY * 0.999999 for star in light)
 
 
 def test_a_sectors_own_stars_are_lighter_than_the_mass_limit():
@@ -88,8 +89,8 @@ def test_the_backfill_draws_only_stars_lighter_than_the_mass_limit():
 def _scattered(mysql_config, mass_limit=MASS_LIMIT):
     _seed_galaxy(mysql_config)
     args = _plan_args(mysql_config, "--bright-stars-only", "--workers", "1")
-    args.bright_star_min_luminosity = THRESHOLD
     args.phenomenon_min_mass = mass_limit
+    args.bright_star_min_luminosity = LIGHT_FLOOR
     summary = run_plan.scatter_bright_stars(args)
     conn = store.get_connection(mysql_config)
     try:
@@ -103,7 +104,7 @@ def _scattered(mysql_config, mass_limit=MASS_LIMIT):
 def test_the_scatter_runs_the_mass_pass_then_a_luminosity_pass_that_skips_marked_sectors(mysql_config):
     summary, rows, limit = _scattered(mysql_config)
     assert limit == MASS_LIMIT and summary["total"] == len(rows) > 20
-    floor_w = THRESHOLD * constants.SOLAR_LUMINOSITY
+    floor_w = LIGHT_FLOOR * constants.SOLAR_LUMINOSITY
     heavy = [row for row in rows if row["initial_mass_sol"] >= MASS_LIMIT]
     light = [row for row in rows if row["initial_mass_sol"] < MASS_LIMIT]
     assert heavy and light
@@ -122,7 +123,7 @@ def test_a_band_below_the_floor_draws_only_lighter_stars(mysql_config, monkeypat
     conn = store.get_connection(mysql_config)
     try:
         band = conn.execute("SELECT initial_mass_sol FROM bright_stars WHERE luminosity_w < ?",
-                            (THRESHOLD * constants.SOLAR_LUMINOSITY,)).fetchall()
+                            (LIGHT_FLOOR * constants.SOLAR_LUMINOSITY,)).fetchall()
     finally:
         conn.close()
     assert band and all(row["initial_mass_sol"] < MASS_LIMIT for row in band)
