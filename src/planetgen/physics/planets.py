@@ -20,7 +20,7 @@ import math
 import re
 
 from planetgen.physics import constants
-from planetgen.physics import atmosphere, hydrosphere, magnetism, rogue_surface, spin
+from planetgen.physics import atmosphere, hydrosphere, magnetism, radiation, rogue_surface, spin
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -887,6 +887,8 @@ def generate_spin(planet, primary_mass_kg):
                                             planet.orbital_ascending_node_deg), tilt)
     # GEN.86: the field depends on the rotation just set.
     magnetism.generate_field(planet)
+    # GEN.87: the surface dose, from the air, water and field above.
+    radiation.generate_dose(planet)
 
 
 

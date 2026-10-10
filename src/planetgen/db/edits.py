@@ -212,6 +212,7 @@ def save_system_edits(conn, system_id, system, stars=()):
     for comet in list(system.comets) + list(getattr(system, "secondary_comets", [])):
         if getattr(comet, "db_id", None) is not None:
             _save_comet_orbit(conn, comet)
+    store.refresh_system_dose(conn, system_id)
     store.touch_star_system(conn, system_id)
 
 

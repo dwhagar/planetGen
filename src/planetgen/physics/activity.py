@@ -38,10 +38,16 @@ from planetgen.util import draw
 
 STAR_ACTIVITY_FIELDS = (
     "log_lx_lbol", "l_xuv_w", "xuv_saturated", "flare_n33_per_yr", "flare_alpha", "xuv_fluence_j",
+    "lethal_event_rate_per_gyr",
 )
 """tuple: What `generate_activity` sets on a star, as stored in `stars`."""
 
 ERG_PER_J = 1e7
+
+SN_RATE_AT_SUN_PER_GYR = 1.5
+SN_SCALE_LENGTH_PC = 1450.0
+SUN_GALACTIC_RADIUS_PC = 8000.0
+SN_MAX_BOOST = 250.0
 
 ACTIVITY_TABLE = (
     # mass (Msun), t_sat (Gyr), decay exponent b
@@ -198,9 +204,26 @@ def reference_fluence_j():
 REFERENCE_FLUENCE_J = reference_fluence_j()
 
 
+def lethal_event_rate_per_gyr(galactic_distance_ly):
+    """GEN.87 rule 7: supernovae within 8 pc per Gyr at this distance from
+    the galactic centre (1.5 at the Sun's 8 kpc, up to 250 times that),
+    or `None` for a star with no galaxy placement."""
+    if galactic_distance_ly is None:
+        return None
+    radius_pc = galactic_distance_ly * constants.LY_TO_M / constants.PARSEC_M
+    boost = min(SN_MAX_BOOST, math.exp((SUN_GALACTIC_RADIUS_PC - radius_pc) / SN_SCALE_LENGTH_PC))
+    return SN_RATE_AT_SUN_PER_GYR * boost
+
+
+def set_galactic_hazard(star):
+    """Sets `lethal_event_rate_per_gyr` from the star's galaxy placement."""
+    star.lethal_event_rate_per_gyr = lethal_event_rate_per_gyr(getattr(star, "galactic_center_dist_ly", None))
+
+
 def generate_activity(star):
     """Sets `STAR_ACTIVITY_FIELDS` on an ordinary star (main sequence,
     subgiant, subdwarf, giant or white dwarf)."""
+    set_galactic_hazard(star)
     mass_sol = star.mass / constants.SOLAR_MASS_TO_KG
     luminosity = star.luminosity or 0.0
     age = max(star.age or 0.0, 1e-4)
@@ -254,6 +277,7 @@ def neutron_star_xuv_w(neutron_star):
 
 def generate_remnant_activity(remnant, l_xuv_w):
     """`STAR_ACTIVITY_FIELDS` for a neutron star or black hole (no draws)."""
+    set_galactic_hazard(remnant)
     _set_remnant(remnant, l_xuv_w, max(remnant.age or 0.0, 1e-4))
 
 

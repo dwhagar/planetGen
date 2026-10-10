@@ -266,6 +266,11 @@ class BinaryStarProxy(Star):
         return self._summed("xuv_fluence_j")
 
     @property
+    def lethal_event_rate_per_gyr(self):
+        """The pair's galactic hazard (GEN.87): both stars share one place."""
+        return getattr(self.stars[0], "lethal_event_rate_per_gyr", None)
+
+    @property
     def flare_n33_per_yr(self):
         """Both stars' flares above 1e33 erg a year (GEN.86)."""
         return self._summed("flare_n33_per_yr")
