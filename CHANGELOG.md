@@ -3,6 +3,7 @@
 ## [8.0.911] - 2026-10-10
 
 ### Changed
+- On the Generate page, the mass limit slider and the luminosity floor dropdown now sit side by side, in Plan the galaxy and in the New galaxy section (GEN.188). The defaults are 8 solar masses and 5,000 solar luminosities.
 - **Docs only:** GEN.191 (New galaxy ignores the mass limit slider, bug) is filed for Bugfixes lane 1; GEN.190 gets the cause found.
 - **Docs only:** PERF.55 (one global progress bar with an ETA across the phases of a generation job) is filed as an unassigned Phase 1 item.
 - **Docs only:** GEN.190 (Phenomena table empty after a web-generated galaxy, bug) and MAP.164 (Galaxy Map phenomena colors and visibility) are filed, both ASAP.
