@@ -3,6 +3,7 @@
 ## [8.0.866] - 2026-10-10
 
 ### Changed
+- TODO: TEST.112 filed for an intermittent phenomenon-regeneration test; API.9 control migration number moved past v12.
 - TODO: PERF.32 retired (PR #905); PERF.33 records what PERF.32 left for it.
 - Recorded rates are deleted by the first run of a new version, since they describe the release, Python and machine that measured them. Control schema v12 replaces the old `generation_stats` table.
 - TODO: UX.85 and UX.86 scope confirmed as the Galaxy Map.
