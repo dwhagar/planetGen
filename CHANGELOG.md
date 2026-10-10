@@ -3,6 +3,7 @@
 ## [8.0.866] - 2026-10-10
 
 ### Changed
+- TODO: replaced the hand-picked progress bars with the rule Boss stated (a bar starts by itself on any sub-step predicted over 15 seconds): UX.84 (bug), PERF.51 (the mechanism), PERF.50 reworked as its first application, PERF.33 and DB.15 moved into Phase 1.
 - TODO: filed DB.21, a deep pass for the database check (every star system validated) with the estimated time shown first.
 - TODO: retired UX.83 (PR #895); filed PERF.50 (a bar inside one sector save, from the worker-to-parent channel) and TEST.111 (a parallel-run test flake) in Phase 1.
 - Linking new sectors to their neighbours now counts three steps per sector (containment, nearest systems, the neighbours' lists) and names the one under way, so the bar moves during a long batch.
