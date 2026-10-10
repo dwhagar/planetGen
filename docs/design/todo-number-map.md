@@ -22,7 +22,7 @@ release is stamped.
 | API | API.24 |
 | ADM | ADM.49 |
 | SEC | SEC.33 |
-| TEST | TEST.112 |
+| TEST | TEST.113 |
 | USR | USR.10 |
 | OPS | OPS.38 |
 | DOC | DOC.17 |
@@ -1325,6 +1325,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.109 | test_sector_map_click_on_the_selected_nebula_clears_it fails on main since PR #605 (bug) | none | done, PR #690 |
 | TEST.110 | Object ID tests: identical IDs on 1 and 4 workers, none reused, none missing | none | open |
 | TEST.111 | test_ensure_sector_generated_creates_then_reuses_the_same_sector fails in a busy parallel run (bug) | none | open |
+| TEST.112 | test_regenerate_phenomenon_keeps_id_name_and_place fails now and then in the full suite (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
