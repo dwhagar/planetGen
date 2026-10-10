@@ -1039,23 +1039,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: MAP.147, MAP.159, MAP.109.
   Design: [docs/design/galaxy-map-wire-format.md](design/galaxy-map-wire-format.md)
 
-- [ ] **MAP.161 Load the Galaxy Map faster on a first visit: bundle or preload its scripts**
-  Source: docs/design/galaxy-map-wire-format.md (sections 2.3 and 1).
-  Measured by Research Lane 3: the first star does not wait on a tile
-  (the opening tile is inside the 35 KB gzipped page); it waits on 173
-  static files (543 KB gzipped, 1.8 MB decoded; the map scripts and
-  three.js), which is 7.9 to 8.1 s on a slow 4G link and 1.0 to 1.3 s
-  locally. Production serves `/static` immutable, so repeat visits are
-  fine. Done: the map scripts load faster on a first visit, by bundling
-  them or `modulepreload` hints, and HTTP/2 in the Apache example
-  (`examples/apache/planetgen.conf.example`); this keeps the no-bundler
-  decision (vendored ES modules) unless Boss says otherwise, so the
-  default is `modulepreload` plus HTTP/2. Phase 1 (Boss, 2026-10-09 23:29Z).
-  Open question for Boss
-  (default `modulepreload` and HTTP/2, no bundler): or bundle?
-  Prerequisites: none. Related: MAP.147, MAP.157, MAP.158.
-  Design: [docs/design/galaxy-map-wire-format.md](design/galaxy-map-wire-format.md)
-
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
@@ -3093,9 +3076,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   from the pool rate by kind and workers only, not matched on the mass
   or luminosity floor (the stored stage seconds by settings should seed
   the rate and decide whether a sub-bar is drawn); (2) the backfill step
-  has an unknown count at start; (3) the command-line whole-job bar (the
-  PERF.55 remainder) is not built; (4) job-page tree estimates are by
-  step label, not by settings. Folded here; (3) is also in PERF.55.
+  has an unknown count at start; (3) the command-line whole-job bar (built
+  with PERF.55, PR #1131); (4) job-page tree estimates are by
+  step label, not by settings. Folded here; (3) is done.
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
   Replace the one-`sector_stats`-row-per-visited-cell ledger of
@@ -3218,35 +3201,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   table shows them, and the size and time estimates use the right row
   for the plan being estimated. Phase 2.
   Prerequisites: none. Related: PERF.52, PERF.53, GEN.185.
-
-- [ ] **PERF.55 One global progress bar for generation jobs that run in phases, with an ETA across all phases**
-  Boss (2026-10-10 06:44Z): a generation process that runs in phases
-  gets one global progress bar that tracks the ETA across all phases,
-  fed by the incremental updates of the phase bars below it, so there is
-  a constant view of elapsed time and how long the whole process should
-  have left. Done: the Generate page, the job page and the command line
-  show one overall bar for a phased job (the star passes, the phenomena
-  passes, settling, the Galaxy Map warm-up and the rest) with elapsed
-  time and time remaining; the estimate is the sum of the finished
-  phases' real times and the remaining phases' estimates from the
-  generation stats, and it is corrected as each phase bar reports; a
-  test checks the total and the ETA on a small galaxy with several
-  phases. Unassigned: in no lane's queue. Related: PERF.33 (progress
-  bars and ETAs from measured performance), PERF.51 (the progress-bar
-  mechanism), PERF.52 and PERF.53 (the generation stats), UX.83, UX.3.
-  Prerequisite: PERF.33. Related: PERF.33, PERF.51, PERF.52, PERF.53,
-  UX.83, UX.3.
-  Bugfixes lane 1 (2026-10-09): Bugfixes lane 1 (2026-10-10, PERF.53, PR
-  #1015): a stored 'layers per second for the whole job' stat (all
-  layers, including ones that generated nothing, per Boss 06:28Z) does
-  not exist yet; the progress bar measures the whole job but nothing is
-  stored. Add it here if wanted.
-  Bugfixes lane 1 (2026-10-09): Web half built (2026-10-10, Bugfixes
-  lane 1, PR #1023): the overall bar with ETA is on the Generate and job
-  pages. Still open: the command-line overall bar, only if Boss asks;
-  and the whole-job layers-per-second stat noted above.
-  Lane (2026-10-09): Owner of the remainder (command-line bar, whole-job
-  layers-per-second stat): Bugfixes lane 2 (coordinator, 2026-10-10).
 
 - [ ] **PERF.59 Share the ring inputs between the phenomena pass and the backfill rings (top priority)**
   From the scatter study (docs/design/scatter-queue-feasibility.md): the

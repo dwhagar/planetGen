@@ -226,6 +226,14 @@ or so, so it follows the run's current speed and doesn't jump about when
 several workers finish at once. The Generate page shows the same
 estimate ("about 4 m 10 s left").
 
+A `galaxy` or `plan` run that does more than one stage also draws one "Whole job (stage 3 of 7)" bar at the top
+of the display (PERF.55). It counts the time since the run began against the stored time of all its stages (the
+same stage times the Generate page's overall bar uses), so it shows the time left across every phase; with no
+stored time for a stage it shows only the elapsed time. A run that outlasts its estimate keeps the bar just short
+of full. When the run ends it stores one more row in the stage history, "Whole job": the layers the scatter
+stages visited, those that placed nothing included, per second of the whole run, with the run's settings
+(`generation_stats.job_layers_per_second`).
+
 The bright-star bar ("Bright stars (12 of 1,271 layers)") shows a share
 done rather than a count: before the scatter starts, every layer gets an
 expected star count from the same density model the scatter draws from
