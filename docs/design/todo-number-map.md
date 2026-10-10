@@ -661,7 +661,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.162 | Planet cull and blue stragglers in clusters | none | open |
 | GEN.163 | Type-B pulsar planets in globular clusters (GEN.130 follow-on) | none | open |
 | GEN.164 | Synthetic globular-cluster systems for generated galaxies | none | open |
-| GEN.165 | A comet's time-0 scene position disagrees with its stored position in a rare random system (bug) | none | open |
+| GEN.165 | A comet's time-0 scene position disagrees with its stored position in a rare random system (bug) | none | done, PR #948 |
 | GEN.166 | A mass_range argument on NeutronStar and BlackHole, and intermediate-mass black holes as their own kind | none | done, PR #866 |
 | GEN.167 | A lowest-mass option for the phenomenon scatter: --phenomenon-min-mass, default 20 solar masses | none | done, PR #866 |
 | GEN.168 | The sector fill draws the phenomena below the scatter cut | none | done, PR #866 |
@@ -1336,7 +1336,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.111 | test_ensure_sector_generated_creates_then_reuses_the_same_sector fails in a busy parallel run (bug) | none | open |
 | TEST.112 | test_regenerate_phenomenon_keeps_id_name_and_place fails now and then in the full suite (bug) | none | open |
 | TEST.113 | tests/js/generatejobs.test.mjs fails on main: "asks for the job's status two seconds in" (bug) | none | done, PR #920 |
-| TEST.114 | test_the_check_writes_nothing fails now and then in a parallel full run (bug) | none | open |
+| TEST.114 | test_the_check_writes_nothing fails now and then in a parallel full run (bug) | none | done, PR #946 |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

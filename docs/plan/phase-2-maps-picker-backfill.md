@@ -205,7 +205,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.143 | Color sectors by their number of habitable locations | GEN.89 | GitHub issue [#717](https://github.com/dwhagar/planetGen/issues/717). |
 | GEN.129 | Multi-star systems of up to seven stars | GEN.128 | GitHub issue [#777](https://github.com/dwhagar/planetGen/issues/777). Build after the GEN.128 design. |
 | GEN.130 | Exotic star systems: a black hole, neutron star or similar at the center | GEN.128 | GitHub issue [#778](https://github.com/dwhagar/planetGen/issues/778). Build after the GEN.128 design. |
-| GEN.165 | A comet's time-0 scene position disagrees with its stored position in a rare random system (bug) |  | Bugfix lane. |
 | DB.18 | Migration helpers for slow DDL: online indexes, instant columns and batched updates |  | Research: slow DDL for the big tables. |
 | ADM.43 | A full configuration page under Admin |  | GitHub issue [#515](https://github.com/dwhagar/planetGen/issues/515). |
 | ADM.44 | Web, Open Graph and SEO settings | ADM.43 | GitHub issue [#743](https://github.com/dwhagar/planetGen/issues/743). |

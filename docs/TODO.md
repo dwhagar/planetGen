@@ -880,6 +880,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   instant count from prefix sums). This item is unblocked on the ADM.29
   side and reuses `span.py`; the wire-format steps it still waits on
   are in its other notes (MAP.157 to MAP.159).
+  Note (2026-10-09): From ADM.31 (PR #942, 2026-10-10): the 'made' rings
+  on the Galaxy Map cover only the first 2,000 sectors of a run; the
+  region data layer should replace that cap with ranges.
 
 - [ ] **MAP.152 Scale hand-offs: galaxy, sector and system cross-fade with hysteresis, and per-tile camera-relative origins**
   Source: docs/design/fly-through-view-distance.md (section 7 and 8),
@@ -1309,8 +1312,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   by default the system page scrolled to and highlighting that body
   (`/system/<id>#planet-<id>`), with its own System Map scene
   selected, rather than a new page per body. Search results, the
-  locate box and bookmarks link this way. Open question: should
-  planets and moons get pages of their own later?
+  locate box and bookmarks link this way. Decided (Boss, 2026-10-10 02:48Z, via Foundations lane 1): only stars get pages; planets and moons are anchors on the system page.
 
 - [ ] **NAV.9 Search and locate return references for every kind**
   `/api/search` and `/galaxy/locate` (`queryDb.galaxy_locate`) return
@@ -1330,9 +1332,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   constant speeds `warp_speed_c` and `fold_speed_c` of
   `navigation-frames.md`; no acceleration model exists, and no ship
   range since NAV.37 was dropped). Default taken: no time spent at a
-  stop. Open question: should each stop add a fixed stay, and does
-  "each planet" mean only the systems on the route (the default) or
-  a visit to every planet inside each system?
+  stop. Decided (Boss, 2026-10-10 02:48Z, via Foundations lane 1): the stay per stop defaults to 0 minutes but is a user-changeable parameter; stops are the systems on the route, not every planet inside each system.
   Research (2026-10-09, course-routing.md): stops are the systems on the
   route; default stay 0; an optional stay per stop; do not model
   visiting every planet (the research answers the open question this
@@ -2963,23 +2963,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.9, GEN.158, GEN.159.
   Design: [docs/design/globular-clusters.md](design/globular-clusters.md)
 
-- [ ] **GEN.165 A comet's time-0 scene position disagrees with its stored position in a rare random system (bug)**
-  Reported by Bugfixes lane 1 (2026-10-09 19:04Z):
-  `tests/test_body_positions.py::test_the_scene_positions_at_the_epoch_match_the_stored_ones`
-  failed once in a full non-browser run. The comet check (about line
-  140) found `positions_at(scene, 0.0)[comet]` at about -9.56e9 km on
-  one axis against the stored `position_km` (tolerance rel 1e-5, abs 1e6
-  km). It passed 25 of 25 reruns alone and the file passes 7 of 7
-  repeatedly. The test builds a random system (up to 400 draws until it
-  has moons, comets and more than one star), so the likely cause is a
-  rare draw, perhaps an extreme-eccentricity or near-parabolic comet,
-  where the scene's time-0 position and the stored position disagree.
-  Not caused by Bugfixes lane 1's branch. Done: reproduce by seeding the
-  draw (find the failing seed by looping the draw), fix the comet epoch
-  position code or the scene's, and make the test seeded so it cannot
-  flake. Not a Phase 1 blocker.
-  Prerequisites: none.
-
 - [ ] **GEN.169 Decide the phenomenon scatter rates: regional factors and the 0.1% intermediate-mass black holes**
   Research (2026-10-09, phenomenon-scatter-mass-cut.md, PR #837; handoff
   in /mnt/project-files/research/handoff/phenomenon-mass-cut.md): Boss
@@ -3988,8 +3971,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   by `uid`; a kind prefix such as planet:ID is only a hint). Row ids
   stay internal. No compatibility shim. This is a breaking API change,
   so it bumps API.22's API version number.
-  Open question for Boss (default yes): the ID replaces row ids as the
-  public reference? Ask before it is built.
+  Decided (Boss, 2026-10-10 02:48Z, via Foundations lane 1): yes, the 80-bit object ID replaces row ids in pages, URLs and the API, and Boss accepts the API break. Cleared to build once API.22, GEN.171 and GEN.172 are in.
   Prerequisites: API.22, GEN.171, GEN.172.
   Design: [docs/design/object-id-options.md](design/object-id-options.md)
 
@@ -4060,6 +4042,14 @@ Boss (2026-10-07 11:47Z): "Actual specs on layers on the generation
     it made with those sectors highlighted.
     Research (2026-10-09, fill-order-curves-and-core.md): return large
     results as ring/layer/slot-window ranges, not address lists.
+    Note (2026-10-09): Partly built (PR #942, Foundations lane 1,
+    2026-10-10): a finished Generate-page job of the galaxy and
+    new_galaxy kinds shows "Show on Galaxy Map" (GET /api/galaxy/made,
+    /galaxy?made=since,until, rings drawn in galaxymap3d.js). Still
+    open: the same button for the Galaxy Map menus' generate actions and
+    for API-queue jobs, which have no job page with a start and finish
+    window yet; and a run over 2,000 sectors rings only the first 2,000
+    (MAP.151's region data layer is the proper fix).
 
 - [ ] **ADM.32 Add a star system to a sector: at the emptiest spot, at given coordinates, or at random outside every Hill sphere**
   Boss (2026-10-07 11:47Z): "Need a way to add a single star system to a
@@ -4240,18 +4230,6 @@ clears each one.
   product bug it hides is fixed. Bugfixes lane 1 or whichever lane
   touches regeneration next.
   Prerequisites: none. Related: TEST.111, TEST.71, TEST.73, OPS.19.
-
-- [ ] **TEST.114 test_the_check_writes_nothing fails now and then in a parallel full run (bug)**
-  Reported by Foundations lane 1 (2026-10-10 02:45Z, ADM.30 merge, PR
-  #934): tests/test_db_check.py::test_the_check_writes_nothing failed
-  once in a parallel full run (system_name_registry count 0 against 4)
-  and passes alone, so it looks load-sensitive. Done: the cause is found
-  (shared state or timing under load, or a real bug in the check) and
-  the test is made robust without skipping or loosening it, or the
-  product bug it hides is fixed. Bugfixes lane 1 or whichever lane
-  touches the database check next.
-  Prerequisites: none. Related: TEST.111, TEST.112, TEST.71, TEST.73,
-  OPS.19.
 
 ## USR: User accounts
 

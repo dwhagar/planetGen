@@ -159,7 +159,8 @@ export function buildSystemScene(scene, layout, options) {
   const dotColors = new Float32Array(entries.length * 3);
   entries.forEach((entry, n) => {
     const c = colorOf(entry.body);
-    dotColors.set([c.r, c.g, c.b], n * 3);
+    entry.dotColor = [c.r, c.g, c.b];
+    dotColors.set(entry.dotColor, n * 3);
   });
   const dotGeometry = new THREE.BufferGeometry();
   dotGeometry.setAttribute("position", new THREE.BufferAttribute(dotPositions, 3));
@@ -211,11 +212,20 @@ export function buildSystemScene(scene, layout, options) {
       entry.y = p[1];
       entry.z = p[2];
     }
-    entries.forEach((entry, n) => {
-      dotPositions[n * 3] = entry.x;
-      dotPositions[n * 3 + 1] = entry.y;
-      dotPositions[n * 3 + 2] = entry.z;
+    // GEN.182: a comet that has left on an open orbit (or has not arrived) is off its path and is not shown.
+    let shown = 0;
+    entries.forEach((entry) => {
+      entry.hidden = Boolean(at[entry.ref] && at[entry.ref].gone);
+      objects[entry.ref].visible = !entry.hidden;
+      if (entry.hidden) return;
+      dotPositions[shown * 3] = entry.x;
+      dotPositions[shown * 3 + 1] = entry.y;
+      dotPositions[shown * 3 + 2] = entry.z;
+      dotColors.set(entry.dotColor, shown * 3);
+      shown += 1;
     });
+    dotGeometry.setDrawRange(0, shown);
+    dotGeometry.attributes.color.needsUpdate = true;
     dotGeometry.attributes.position.needsUpdate = true;
     lights.forEach((l) => l.light.position.copy(objects[l.ref].position));
     for (const parent of Object.keys(hangers)) {
@@ -425,7 +435,7 @@ export function createSystemView(options) {
   }
 
   picker.addLayer({
-    points: () => (built ? built.entries : []),
+    points: () => (built ? built.entries.filter((entry) => !entry.hidden) : []),
     reach: () => PICK_REACH_PX,
   });
 
