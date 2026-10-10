@@ -3,6 +3,7 @@
 ## [8.0.866] - 2026-10-10
 
 ### Changed
+- Rewrote MAP.146 as the fly-through umbrella (scroll-zoom, double-click flight, distance-based visibility, see-through near field) and split it into MAP.148 to MAP.152; added the two research reports under docs/design.
 - The NAV page's route now runs left to right with the distance of each hop after its stop, wrapping onto more lines as the panel narrows, and a route of more than nine stops shows its first stop, last three stops, longest hop and every jump through unknown space, with the whole route under "All N stops" (UX.35).
 - Retired OPS.14 (PR #876) and closed DB.19, which the 20 solar mass cut (PR #866) made unnecessary.
 - GEN.170 records Boss's decision: the object ID is 80 bits (20 hex digits).
