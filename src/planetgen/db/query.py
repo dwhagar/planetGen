@@ -51,7 +51,7 @@ from planetgen.galaxy.geometry import (
 )
 from planetgen.galaxy import keepout
 from planetgen.galaxy import objectref as object_ref
-from planetgen.galaxy import uid as galaxy_uid
+from planetgen.galaxy import object_uid
 from planetgen.names import naming_key
 from planetgen.galaxy.sector import classify_octant
 from planetgen.galaxy.viewport import (
@@ -1595,23 +1595,22 @@ PHENOMENON_SORTS = {
 keys) -> the column of the union they order by."""
 
 
-_SCATTER_TYPE_SQL = (
-    "(CASE ps.kind WHEN 'black-hole' THEN 'black_hole' WHEN 'neutron-star' THEN 'neutron_star' "
-    "WHEN 'planetary-nebula' THEN 'nebula' WHEN 'supernova-remnant' THEN 'supernova_remnant' "
-    "WHEN 'hypervelocity-star' THEN 'hypervelocity_star' ELSE ps.kind END)")
-"""str: The Phenomena type of a `phenomenon_scatter` row, from its `kind`."""
+_SCATTER_TYPES = {
+    "black-hole": "black_hole", "neutron-star": "neutron_star", "planetary-nebula": "nebula",
+    "supernova-remnant": "supernova_remnant", "hypervelocity-star": "hypervelocity_star",
+}
+"""dict: A `phenomenon_scatter` row's `kind` -> the Phenomena table's `type`."""
 
 
 def _phenomena_union():
     """The `SELECT` that stacks every `_PHENOMENON_TABLES` table into one
     shape (`type`, `id`, `name`, `descriptor`, `radius_ly`, `sector_id`,
-    `sector_name`, `placed`, `scattered`). Scatter rows no sector has built
-    yet (`phenomenon_scatter.built_at` NULL) are stacked in too, flagged
-    `scattered`: they are placed on the galaxy but have no page of their own
-    until their sector is filled. A `black_holes`/`neutron_stars` row with
+    `sector_name`, `placed`, `scattered`). A `black_holes`/`neutron_stars` row with
     `star_id` set is a normal system's own compact-remnant star, already on
     that system's page, so it is left out; every other table is always
-    standalone."""
+    standalone. The scatter's unbuilt rows are not here: they number in the
+    hundreds of millions, so `_scattered_classes` counts them from the
+    stored class totals and `_scattered_page` reads just the page asked for."""
     return " UNION ALL ".join(
         f"""
         SELECT '{type_label}' AS type, t.id AS id, t.name AS name,
@@ -1623,15 +1622,57 @@ def _phenomena_union():
         {"WHERE t.star_id IS NULL" if table in ("black_holes", "neutron_stars") else ""}
         """
         for table, type_label, descriptor_expr, radius_expr in _PHENOMENON_TABLES
-    ) + f""" UNION ALL
-        SELECT {_SCATTER_TYPE_SQL} AS type, ps.id AS id,
-               CONCAT('Unbuilt ', REPLACE(ps.kind, '-', ' '), ' ', ps.ring_index, '.', ps.layer_index, '.',
-                      ps.ring_slot_index) AS name,
-               COALESCE(ps.subtype, 'scattered') AS descriptor, 0 AS radius_ly,
-               NULL AS sector_id, NULL AS sector_name, 1 AS placed, 1 AS scattered
-        FROM phenomenon_scatter ps
-        WHERE ps.built_at IS NULL
-        """
+    )
+
+
+def _scattered_classes(conn, types=(), descriptors=(), placed=None, ignore=()):
+    """
+    The scattered classes that still have unbuilt phenomena and pass the
+    Phenomena table's filters: `[{"kind", "subtype", "type", "descriptor",
+    "unbuilt"}]`. A scattered phenomenon is placed on the galaxy, so
+    `placed=False` matches none. `ignore` names a filter (`"types"` or
+    `"descriptors"`) to leave out, for the filter menus' own counts.
+    """
+    if placed is False:
+        return []
+    classes = []
+    for row in conn.execute(
+            "SELECT kind, subtype, placed - built AS unbuilt FROM phenomenon_scatter_classes"
+            " WHERE placed > built ORDER BY kind, subtype").fetchall():
+        kind, subtype = row["kind"], row["subtype"]
+        entry = {"kind": kind, "subtype": subtype, "type": _SCATTER_TYPES.get(kind, kind),
+                 "descriptor": subtype or "scattered", "unbuilt": int(row["unbuilt"])}
+        if types and "types" not in ignore and entry["type"] not in types:
+            continue
+        if descriptors and "descriptors" not in ignore and entry["descriptor"] not in descriptors:
+            continue
+        classes.append(entry)
+    return classes
+
+
+def _scattered_page(conn, classes, limit, offset):
+    """`limit` unbuilt scatter rows from `offset` among the `classes`, in id order, shaped like the Phenomena rows
+    (`scattered` True, named "Uncharted <kind> <ring>.<layer>.<slot>")."""
+    if not classes:
+        return []
+    by_class = {(entry["kind"], entry["subtype"]): entry for entry in classes}
+    clauses, params = [], []
+    for entry in classes:
+        clauses.append("(kind = ? AND COALESCE(subtype, '') = ?)")
+        params.extend([entry["kind"], entry["subtype"]])
+    query = ("SELECT id, kind, COALESCE(subtype, '') AS subtype, ring_index, layer_index, ring_slot_index"
+             f" FROM phenomenon_scatter WHERE built_at IS NULL AND ({' OR '.join(clauses)}) ORDER BY id")
+    if limit is not None:
+        query += " LIMIT ? OFFSET ?"
+        params.extend([limit, offset or 0])
+    return [
+        {"id": row["id"], "type": by_class[(row["kind"], row["subtype"])]["type"],
+         "name": f"Uncharted {row['kind'].replace('-', ' ')} {row['ring_index']}.{row['layer_index']}."
+                 f"{row['ring_slot_index']}",
+         "descriptor": by_class[(row["kind"], row["subtype"])]["descriptor"], "radius_ly": 0.0,
+         "sector_id": None, "sector_name": None, "placed": True, "scattered": True}
+        for row in conn.execute(query, params).fetchall()
+    ]
 
 
 def _phenomena_where(types=(), descriptors=(), placed=None):
@@ -1695,13 +1736,16 @@ def list_phenomena(conn, limit=None, offset=None, sort="name", descending=False,
         raise ValueError(f"unknown phenomenon sort {sort!r}")
     where, params = _phenomena_where(types, descriptors, placed)
     column = PHENOMENON_SORTS[sort]
+    built_total = conn.execute(
+        f"SELECT COUNT(*) AS n FROM ({_phenomena_union()}) AS phenomena{where}", params).fetchone()["n"]
     query = (f"SELECT * FROM ({_phenomena_union()}) AS phenomena{where} "
              f"ORDER BY {column} IS NULL, {column} {'DESC' if descending else 'ASC'}, name, type, id")
+    start = offset or 0
+    built_limit = limit
     if limit is not None:
         query += " LIMIT ? OFFSET ?"
-        params.extend([limit, offset or 0])
-
-    return [
+        params.extend([limit, start])
+    items = [
         {
             "id": row["id"], "type": row["type"], "name": row["name"],
             "descriptor": row["descriptor"], "radius_ly": row["radius_ly"],
@@ -1709,7 +1753,13 @@ def list_phenomena(conn, limit=None, offset=None, sort="name", descending=False,
             "placed": bool(row["placed"]), "scattered": bool(row["scattered"]),
         }
         for row in conn.execute(query, params).fetchall()
-    ]
+    ] if start < built_total or limit is None else []
+    # The unbuilt scattered phenomena come after the built ones, in id order.
+    room = None if limit is None else limit - len(items)
+    if room is None or room > 0:
+        items += _scattered_page(conn, _scattered_classes(conn, types, descriptors, placed), room,
+                                 max(0, start - built_total))
+    return items
 
 
 def count_phenomena(conn, types=(), descriptors=(), placed=None):
@@ -1727,9 +1777,9 @@ def count_phenomena(conn, types=(), descriptors=(), placed=None):
         int: Phenomenon count.
     """
     where, params = _phenomena_where(types, descriptors, placed)
-    return conn.execute(
-        f"SELECT COUNT(*) AS n FROM ({_phenomena_union()}) AS phenomena{where}", params
-    ).fetchone()["n"]
+    built = conn.execute(
+        f"SELECT COUNT(*) AS n FROM ({_phenomena_union()}) AS phenomena{where}", params).fetchone()["n"]
+    return built + sum(entry["unbuilt"] for entry in _scattered_classes(conn, types, descriptors, placed))
 
 
 def phenomena_facets(conn, types=(), descriptors=(), placed=None):
@@ -1751,7 +1801,10 @@ def phenomena_facets(conn, types=(), descriptors=(), placed=None):
         rows = conn.execute(
             f"SELECT {column} AS value, COUNT(*) AS n FROM ({_phenomena_union()}) AS phenomena{where} "
             f"GROUP BY {column} ORDER BY {column}", params).fetchall()
-        facets[column] = [{"value": row["value"], "count": row["n"]} for row in rows]
+        merged = {row["value"]: row["n"] for row in rows}
+        for entry in _scattered_classes(conn, types, descriptors, placed, ignore=(own,)):
+            merged[entry[column]] = merged.get(entry[column], 0) + entry["unbuilt"]
+        facets[column] = [{"value": value, "count": merged[value]} for value in sorted(merged)]
     return facets
 
 
@@ -2073,11 +2126,11 @@ def nebula_surroundings(conn, nebula_id):
 
 
 def _with_printed_uid(row):
-    """A copy of a table row as a dict with its `uid` (a BINARY column, GEN.69) as
-    the hex text the site prints, so the row can be written as JSON."""
+    """A copy of a table row as a dict with its `uid` (a BINARY(10) column, GEN.170) as
+    the text the site prints, so the row can be written as JSON."""
     out = dict(row)
     if isinstance(out.get("uid"), (bytes, bytearray)):
-        out["uid"] = galaxy_uid.format_uid(galaxy_uid.uid_from_bytes(out["uid"]))
+        out["uid"] = object_uid.format_id(object_uid.from_bytes(out["uid"]))
     return out
 
 
@@ -2440,12 +2493,12 @@ def system_detail(conn, system_id):
         moons_by_planet.setdefault(moon["planet_id"], []).append(moon)
     planets = []
     for planet in planet_rows:
-        planet_dict = _with_life_fields(dict(planet), planet_stages, colonized["planets"])
-        planet_dict["moons"] = [_with_life_fields(dict(m), moon_stages, colonized["moons"])
+        planet_dict = _with_life_fields(_with_printed_uid(planet), planet_stages, colonized["planets"])
+        planet_dict["moons"] = [_with_life_fields(_with_printed_uid(m), moon_stages, colonized["moons"])
                                 for m in moons_by_planet.get(planet["id"], [])]
         planets.append(planet_dict)
 
-    belts = [dict(b) for b in conn.execute(
+    belts = [_with_printed_uid(b) for b in conn.execute(
         "SELECT * FROM asteroid_belts WHERE star_system_id = ? ORDER BY orbital_index", (system_id,)
     ).fetchall()]
     belt_composition = {}
@@ -2497,7 +2550,7 @@ def system_detail(conn, system_id):
         "stars": [dict(s) for s in stars],
         "planets": planets,
         "belts": belts,
-        "comets": [dict(c) for c in comets],
+        "comets": [_with_printed_uid(c) for c in comets],
         "sector_siblings": sector_siblings,
         "nearest_neighbors": nearest_neighbors,
         "inside": cloud,

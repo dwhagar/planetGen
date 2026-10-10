@@ -62,7 +62,7 @@ from planetgen.web.lib import apiclient
 from planetgen.web.lib.fmt import utc_time_html
 from planetgen.web.lib.pagination import PAGE_SIZE, clamp_page, page_offset, parse_page
 from planetgen.admin import activity_log
-from planetgen.generation import luminosity_floor, prevalence, stats
+from planetgen.generation import luminosity_floor, prevalence, stages, stats
 from planetgen import tuning
 from planetgen.util import log
 from planetgen.galaxy.drill import format_drill_key, parse_drill_key
@@ -99,26 +99,25 @@ MASS_LIMIT_LABEL = "Mass limit (solar masses)"
 
 
 def _backfill_text():
-    """The backfill tiers in words ("down to 100 solar luminosities within
-    10 ly, 250 within 25 ly, ... and 750 out to 100 ly")."""
-    tiers = tuning.BRIGHT_STAR_BACKFILL_TIERS
-    parts = [f"{floor:,.0f} within {out_to:g} ly" for out_to, floor in tiers[:-1]]
-    last = f"{tiers[-1][1]:,.0f} out to {tiers[-1][0]:g} ly"
-    if parts:
-        parts[0] = parts[0].replace(" within", " solar luminosities within", 1)
-        return "down to " + ", ".join(parts) + " and " + last
-    return f"down to {tiers[-1][1]:,.0f} solar luminosities out to {tiers[-1][0]:g} ly"
+    """The backfill rings in words ("down to 1 solar mass in the ring of
+    sectors around the generated ones, 2 in the next, ... and 8 in the
+    fourth")."""
+    masses = tuning.BRIGHT_STAR_BACKFILL_RING_MASSES_SOL
+    ordinals = ("first", "second", "third", "fourth", "fifth", "sixth")
+    parts = [f"{mass:g} in the {ordinals[index]}" for index, mass in enumerate(masses[1:], start=1)]
+    first = f"down to {masses[0]:g} solar mass{'' if masses[0] == 1 else 'es'} in the ring of sectors around the generated ones"
+    return ", ".join([first, *parts[:-1]]) + (f" and {parts[-1]} ring" if parts else "")
 
 
 BACKFILL_TEXT = _backfill_text()
-"""str: How far down the bright-star backfill around a generated sector
-goes, by distance (GEN.30, `tuning.BRIGHT_STAR_BACKFILL_TIERS`)."""
+"""str: How far down the bright-star backfill around the generated sectors
+goes, ring by ring (GEN.187, `tuning.BRIGHT_STAR_BACKFILL_RING_MASSES_SOL`)."""
 
 GALAXY_MODES = (
     ("random", "Around a random start",
      "Picks a random populated spot and generates the sectors within a radius of it "
-     "(12 pc, about 39 ly, when the radius is left blank; the 100 ly around every generated "
-     f"sector gets its bright stars either way, {BACKFILL_TEXT})."),
+     "(12 pc, about 39 ly, when the radius is left blank; the four rings of sectors around every "
+     f"generated one get their heavier stars either way, {BACKFILL_TEXT})."),
     ("ring", "A whole ring",
      "Every not-yet-generated sector in one ring at one height layer (0 is the galactic plane), "
      "or only the first few with a limit."),
@@ -718,7 +717,73 @@ def build_job(action, form, database, edge_pc=None):
     if kind not in ("reset", "check_db"):
         python = jobs.python_executable()
         steps = [{"label": MATH_CHECK_LABEL, "argv": [python, *jobs.GENERATE_COMMAND, "check-math"]}, *steps]
+    for step in steps:
+        step["stages"] = step_stages(step, form)
     return kind, title, steps
+
+
+def step_stages(step, form):
+    """
+    The stages one job step goes through (UX.89), `{"label", "skipped"}` each:
+    the stages its `galaxy` or `plan` command declares (`generation.stages`),
+    with a scatter stage left out by the form's "skip the bright-star scatter"
+    box saying so; any other step is one stage of its own label.
+    """
+    argv = step["argv"]
+    start = len(jobs.GENERATE_COMMAND) + 1
+    command = argv[start] if len(argv) > start and argv[:start] == [argv[0], *jobs.GENERATE_COMMAND] else None
+    if command in ("galaxy", "plan"):
+        try:
+            from planetgen.cli import generate as generate_cli
+            _parser, parsers = generate_cli.build_parser()
+            args = parsers[command].parse_args(argv[start + 1:])
+            found = stages.for_command(command, args)
+        except (SystemExit, Exception):  # noqa: BLE001 -- the step is then one stage
+            found = []
+        if found:
+            ticked = bool(form.get("skip_bright_stars"))
+            return [{"label": stage.label,
+                     "skipped": ("the \"skip the bright-star scatter\" box is ticked"
+                                 if ticked and stage.skip and "scatter was not asked for" in stage.skip
+                                 else stage.skip)} for stage in found]
+    return [{"label": step["label"], "skipped": None}]
+
+
+def stage_view(job):
+    """
+    What the page shows of a job's stages (UX.89): `stage_text` ("Stage 7 of
+    12: Scatter the phenomena", with the reason when it is being skipped) and
+    `stage_list`, one `{n, label, state, reason}` per stage with `state` one of
+    done, running, skipped or waiting.
+    """
+    stages_ = job.get("stages") or []
+    step = int(job.get("step") or 0)
+    reported = (job.get("progress") or {}).get("stage") or {}
+    current = None
+    if 0 < step:
+        inside = [s for s in stages_ if s["step"] == step]
+        local = int(reported.get("index") or 1)
+        local = min(max(local, 1), len(inside)) if inside else 1
+        current = inside[local - 1]["n"] if inside else None
+    listing = []
+    for stage in stages_:
+        if job.get("finished") and current is None:
+            state = "skipped" if stage["skipped"] else "waiting"
+        elif current is not None and stage["n"] < current:
+            state = "skipped" if stage["skipped"] else "done"
+        elif current is not None and stage["n"] == current:
+            state = "skipped" if stage["skipped"] or reported.get("skipped") else "running"
+        else:
+            state = "skipped" if stage["skipped"] else "waiting"
+        reason = stage["skipped"] or (reported.get("skipped") if stage["n"] == current else None)
+        listing.append({"n": stage["n"], "label": stage["label"], "state": state, "reason": reason})
+    text = ""
+    if current is not None and not job.get("finished"):
+        entry = listing[current - 1]
+        text = f"Stage {current} of {len(stages_)}: {entry['label']}"
+        if entry["state"] == "skipped":
+            text += f" (skipped: {entry['reason']})"
+    return {"stage_text": text, "stage_list": listing}
 
 
 def _build_job_steps(action, form, edge_pc=None):
@@ -878,6 +943,7 @@ def _job_view(job):
         remaining, running=not job.get("finished") and bool(progress.get("description")))
     view["progress_text"] = _progress_text(progress)
     view.update(overall_view(job, remaining))
+    view.update(stage_view(job))
     # PERF.4: the second bar (the bright-star layers being drawn while
     # layers are slow), or blank.
     detail = progress.get("detail") if not job.get("finished") else None
@@ -924,7 +990,7 @@ def overall_view(job, step_remaining, now=None):
     partial = any(seconds is None for seconds in later)
     if step == 0:
         current = 0.0
-    view["overall_text"] = f"Whole job, step {max(step, 1)} of {len(steps)}"
+    view["overall_text"] = "Whole job"
     if current is None:
         view["overall_remaining_label"] = "estimating the time left" if step else ""
         return view

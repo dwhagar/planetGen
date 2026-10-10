@@ -99,7 +99,7 @@ CO2 can't be filtered, so its Yellow ends at the acute 5 kPa (scrubbers);
 cell division; 50 mSv/yr is the occupational limit and 10 Sv/yr the
 Eigen threshold.
 
-**Equipment**: ideal; breathing mask (low O2 or pressure below Blue);
+**Equipment**: ideal (called "shirtsleeve" until Boss renamed it, 2026-10-10 08:08Z); breathing mask (low O2 or pressure below Blue);
 mask with scrubber (a gas above its chronic limit); sealed suit (pressure
 below Green, or any domain Red); full life support with radiation
 hardening (Radiation Red).
@@ -149,13 +149,13 @@ unless given.
 
 | World | Inputs | P / T / C / R | PHI-4 | PHI_bio | PHI_cpx | Phi_tech | Equipment |
 |---|---|---|---|---|---|---|---|
-| Earth | 101.3 kPa, 15 C, N2 78%, O2 21%, CO2 0.04%, pH 8.1, RH 0.7 | Blue / Blue / Blue / Blue | 1.00 | 0.96 | 0.96 | 1.00 | ideal |
+| Earth | 101.3 kPa, 15 C, N2 78%, O2 21%, CO2 0.04%, pH 8.1, RH 0.7 | Blue / Blue / Blue / Blue | 1.00 | 0.96 | 0.96 | 1.00 | shirtsleeve |
 | Dense CO2 | 300 kPa, 40 C, CO2 95%, N2 5%, pH 6.5, RH 0.8, 40 W/m^2 | Green / Yellow / Red / Blue | 0 | 0.96 | 0 | 0.48 | sealed suit |
 | Hycean | 2 MPa, 60 C, H2 90%, He 10%, pH 7, RH 0.99, 20 W/m^2 | Yellow / Yellow / Green / Blue | 0.74 | 0.96 | 0 | 0.02 | sealed suit |
 | Photochemical CO | 100 kPa, 10 C, N2 90%, CO2 5%, CO 5%, pH 7.5 | Blue / Blue / Red / Blue | 0.59 | 0.96 | 0 | 1.00 | sealed suit |
 | Ice-sealed ocean | vacuum, -170 C, g 1.3, pH 8, 1e-3 W/m^2, surface 0.05 Sv/yr, ocean 2 mSv/yr, ice | Red / Red / Green / Blue | 0 | 0.41 | 0 | 0.47 | sealed suit |
 | Mars-analog brine | 0.6 kPa, -60 C, CO2 95%, g 3.71, aw 0.5, chi 90, pH 8, C/N/H 0.05/0.01/0.05, 0.5 umol/L P, 40 W/m^2, ice | Red / Red / Red / Yellow | 0 | 0.00 | 0 | 0.46 | sealed suit |
-| Dune world | 90 kPa, 45 C, N2 78%, O2 21%, RH 0.05, aw 0.7, pH 8, C/N/H 0.5/0.5/0.05, vapour | Blue / Green / Yellow / Blue | 0.83 | 0.54 | 0.54 | 0.80 | ideal |
+| Dune world | 90 kPa, 45 C, N2 78%, O2 21%, RH 0.05, aw 0.7, pH 8, C/N/H 0.5/0.5/0.05, vapour | Blue / Green / Yellow / Blue | 0.83 | 0.54 | 0.54 | 0.80 | shirtsleeve |
 | Europan ocean | vacuum, -160 C, g 1.31, pH 9, 1e-4 W/m^2, surface 2000 Sv/yr, ocean 2 mSv/yr, ice | Red / Red / Green / Red | 0 | 0.27 | 0 | 0.28 | full life support |
 
 ## 3. How the documents' problems were settled

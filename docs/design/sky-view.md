@@ -153,7 +153,7 @@ Naked-eye stars by absolute magnitude (HYG v4.1, V <= 6.5, known distance, 8,714
 
 Share of the naked-eye sky above a luminosity floor (M_V from L with BC = -0.3): L >= 1,000 L_sun 8%, >= 250 27%, >= 100 42%, >= 30 75%, >= 10 89% [C]. Only 602 naked-eye stars lie within 100 ly.
 
-The deterministic machinery exists. `generation/bright_stars.py` splits luminosity into eight fixed bands per decade, each cell's band drawn from its own stream (`canonical_bands`), so stars between two levels never depend on the steps taken to get there. `sector_stats.bright_level_sol` records how deep a cell has been drawn, and `tuning.BRIGHT_STAR_BACKFILL_TIERS` is `((10, 100), (25, 250), (50, 500), (100, 750))` as `(out_to_ly, min_luminosity_sol)`. A sky needs a second tier table whose floors follow visibility. Cells are 4 pc cubes; the naked-eye distance for a floor L is `10^((6.5 - M_V + 5)/5)` pc, ignoring dust:
+The deterministic machinery exists. `generation/bright_stars.py` splits luminosity into eight fixed bands per decade, each cell's band drawn from its own stream (`canonical_bands`), so stars between two levels never depend on the steps taken to get there. `sector_stats.bright_level_sol` records how deep a cell has been drawn, and (until GEN.187 replaced it with four mass rings, `tuning.BRIGHT_STAR_BACKFILL_RING_MASSES_SOL`) a table of `(out_to_ly, min_luminosity_sol)` tiers `((10, 100), (25, 250), (50, 500), (100, 750))` did the filling. A sky needs a second tier table whose floors follow visibility. Cells are 4 pc cubes; the naked-eye distance for a floor L is `10^((6.5 - M_V + 5)/5)` pc, ignoring dust:
 
 | L floor (L_sun) | naked-eye radius | cells within | radius at V <= 7.5 | cells |
 |---:|---:|---:|---:|---:|

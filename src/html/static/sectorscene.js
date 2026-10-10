@@ -74,7 +74,7 @@ function neighborSpec(entry, data) {
     var more = entry.brightStarCount - entry.brightStars.length;
     fields.push(["Bright stars waiting", entry.brightStars.join("; ") + (more > 0 ? "; and " + more + " more" : "")]);
   }
-  var spec = { title: entry.exists ? entry.name || "Unnamed sector" : "Not yet generated", fields: fields };
+  var spec = { title: entry.exists ? entry.name || "Unnamed sector" : "Uncharted", fields: fields };
   if (entry.exists) {
     spec.bookmark = {
       kind: "sector", value: entry.designation, name: entry.name || entry.designation, url: entry.href || null,
@@ -90,7 +90,7 @@ function neighborSpec(entry, data) {
 // The hover tooltip's text: what it is and its name.
 export function tooltipText(entry) {
   if (entry.isNeighbor) {
-    return (entry.exists ? entry.name || "Unnamed sector" : "Sector " + entry.designation + ", not yet generated")
+    return (entry.exists ? entry.name || "Unnamed sector" : "Sector " + entry.designation + ", uncharted")
       + " (neighboring sector)";
   }
   if (entry.kind) {
@@ -1081,7 +1081,7 @@ export function buildSectorScene(data, options) {
 // The screen-reader list's name for an entry.
 export function entryLabel(entry) {
   if (entry.isNeighbor) {
-    return entry.exists ? entry.name || "Unnamed sector" : "Not yet generated (" + entry.designation + ")";
+    return entry.exists ? entry.name || "Unnamed sector" : "Uncharted (" + entry.designation + ")";
   }
   return entry.name || "Unknown";
 }

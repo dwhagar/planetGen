@@ -1084,7 +1084,7 @@ def _add_stars_to_sector(mysql_config, sector_id, luminosities):
             conn.execute(
                 f"INSERT INTO stars (name, luminosity_w, role, uid, {names}) SELECT ?, ?, 'secondary', ?, {names} "
                 "FROM stars WHERE star_system_id = ? ORDER BY id LIMIT 1",
-                (f"Extra {sector_id}-{n}", lum * constants.SOLAR_LUMINOSITY, 1 << (40 + n), system_id),
+                (f"Extra {sector_id}-{n}", lum * constants.SOLAR_LUMINOSITY, (1 << (40 + n)).to_bytes(10, "big"), system_id),
             )
         conn.commit()
     finally:
@@ -1292,7 +1292,7 @@ def test_galaxy_shape_reports_the_bright_star_scatter(client, mysql_config):
         body = client.get("/api/galaxy/shape").get_json()
         assert body["shape"] is None and body["layers"] is None
         assert body["bright_stars"] == {"scattered": False, "min_luminosity_sol": None, "seed": None,
-                                        "default_min_luminosity_sol": 5000.0}
+                                        "default_min_luminosity_sol": 9000.0}
         with conn:
             conn.execute("INSERT INTO galaxy_shape (id, disk_scale_length_pc, disk_scale_height_pc,"
                          " bulge_scale_radius_pc, bulge_amplitude, arm_count, pitch_angle_rad, arm_amplitude,"
@@ -1313,7 +1313,7 @@ def test_galaxy_shape_reports_the_bright_star_scatter(client, mysql_config):
     assert [row["layer"] for row in layers["rows"]] == [1, 0, -1] and not layers["sampled"]
     assert layers["rows"][1]["bottom_pc"] == -2.0 and layers["rows"][1]["top_pc"] == 2.0
     assert body["bright_stars"] == {"scattered": True, "min_luminosity_sol": 500.0, "seed": 1234,
-                                    "default_min_luminosity_sol": 5000.0}
+                                    "default_min_luminosity_sol": 9000.0}
 
 
 def test_galaxy_bright_stars_in_one_cell(client, mysql_config):

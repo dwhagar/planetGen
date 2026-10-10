@@ -143,7 +143,7 @@ What D shows: at 33 pc the dense sector draws about 135 stars instead of 714, an
 
 - **Filters.** The class buttons and the dimmest-star slider (MAP.123) multiply on top; they are chosen by the viewer, not by zoom.
 - **Charted only, wedge clip.** Unchanged.
-- **Backfill tiers (GEN.30).** Around a generated sector the generator fills stars down to 100, 250, 500 and 750 L_sun in four shells at 10, 25, 50 and 100 ly [S: `tuning.BRIGHT_STAR_BACKFILL_TIERS`]. On the map that is four concentric steps in the star density, independent of zoom. The generator already draws in eight bands per decade of luminosity (`canonical_bands`), so smaller tiers cost nothing extra to store; the map could also blend each shell edge by distance. Boss set these tiers; this note only records the effect.
+- **Backfill tiers (GEN.30, replaced by GEN.187's four mass rings).** Around a generated sector the generator fills stars down to 100, 250, 500 and 750 L_sun in four shells at 10, 25, 50 and 100 ly [S: the retired `tuning.BRIGHT_STAR_BACKFILL_TIERS`]. On the map that is four concentric steps in the star density, independent of zoom. The generator already draws in eight bands per decade of luminosity (`canonical_bands`), so smaller tiers cost nothing extra to store; the map could also blend each shell edge by distance. Boss set these tiers; this note only records the effect.
 
 ## 7. Open questions for Boss
 

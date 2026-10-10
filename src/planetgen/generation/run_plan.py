@@ -35,7 +35,7 @@ from planetgen.galaxy.skeleton import (
     build_layer_extents, candidate_sector_count, expected_system_count_at_density_1,
 )
 from planetgen.generation import run_common
-from planetgen.generation import steps
+from planetgen.generation import stages, steps
 
 
 BACKFILL_CHUNK_SECTORS = 200
@@ -91,9 +91,9 @@ def _draw_sector_bands(conn, skeleton, addresses, floors, galaxy_level, seed, ce
     """
     sectors = stars = 0
     e_value = skeleton.expected_system_count_at_density_1
-    # GEN.185: a galaxy whose mass pass placed every heavy star draws the lighter ones here.
+    # GEN.185: a galaxy whose mass pass placed every heavy star draws the lighter ones here
+    # (GEN.187: a sector a mass backfill took lower holds every star from its own mass up).
     mass_limit = store.bright_star_mass_limit(conn)
-    mass_range = None if mass_limit is None else (None, mass_limit)
     for start in range(0, len(addresses), BACKFILL_CHUNK_SECTORS):
         chunk = addresses[start:start + BACKFILL_CHUNK_SECTORS]
         entries = []
@@ -101,6 +101,7 @@ def _draw_sector_bands(conn, skeleton, addresses, floors, galaxy_level, seed, ce
             density = max(relative_density(sector_position_pc(*address, skeleton.edge_pc), skeleton.shape), 0.0)
             entries.append((address, density, density * e_value))
         locked = store.lock_sector_stats(conn, entries)
+        held_masses = store.sector_bright_masses(conn, chunk, current=True)
         filled = store.get_occupied_addresses(conn, {address[0] for address in chunk})
         rows, new_levels = [], {}
         for address in chunk:
@@ -120,8 +121,11 @@ def _draw_sector_bands(conn, skeleton, addresses, floors, galaxy_level, seed, ce
                              " AND ring_slot_index = ? AND star_system_id IS NULL", address)
             if ceiling_cap is not None:
                 ceiling = ceiling_cap if ceiling is None else min(ceiling, ceiling_cap)
+            held = held_masses.get(address)
+            mass_cap = mass_limit if held is None else held if mass_limit is None else min(held, mass_limit)
             rows.extend(brightStars.backfill_cells(skeleton.shape, [address], skeleton.edge_pc, e_value, floor,
-                                                   ceiling, seed, mass_range=mass_range))
+                                                   ceiling, seed,
+                                                   mass_range=None if mass_cap is None else (None, mass_cap)))
             new_levels[address] = floor
             if on_sector is not None:
                 on_sector()
@@ -135,6 +139,73 @@ def _draw_sector_bands(conn, skeleton, addresses, floors, galaxy_level, seed, ce
             for row in rows:
                 layers.setdefault(row[1], collections.Counter())[star_label(row[7], row[8])] += 1
         sectors += len(new_levels)
+        stars += len(rows)
+    return sectors, stars
+
+
+def _draw_sector_masses(conn, skeleton, targets, galaxy_level, mass_limit, seed, on_sector=None, layers=None):
+    """
+    The mass backfill's draw (GEN.187): takes each sector of `targets` (a
+    dict, `(ring, layer, slot)` -> the lightest initial mass to place,
+    solar masses) down to its target, `BACKFILL_CHUNK_SECTORS` at a time,
+    the way `_draw_sector_bands` does for luminosity: locks the chunk's
+    `sector_stats` rows, rechecks each sector under the lock (another run
+    may have got there first, or filled it), writes the stars and the new
+    mass (`store.set_sector_bright_masses`; the galaxy scatter's level too,
+    so the sector counts as having its own state from then on), and
+    commits.
+
+    A sector holds its stars from `held` up: its own backfill's mass, else
+    the galaxy's mass limit (`None`: none placed by mass). The stars drawn
+    are those born in [target, held) that are dimmer than the sector's
+    luminosity level (`_effective_level`): the brighter ones were placed
+    already. A sector at or below its target, or filled, is skipped.
+
+    Returns:
+        tuple: `(sectors drawn, stars written)`.
+    """
+    sectors = stars = 0
+    e_value = skeleton.expected_system_count_at_density_1
+    edges = brightStars.mass_band_edges(mass_limit)
+    addresses = sorted(targets)
+    for start in range(0, len(addresses), BACKFILL_CHUNK_SECTORS):
+        chunk = addresses[start:start + BACKFILL_CHUNK_SECTORS]
+        entries = []
+        for address in chunk:
+            density = max(relative_density(sector_position_pc(*address, skeleton.edge_pc), skeleton.shape), 0.0)
+            entries.append((address, density, density * e_value))
+        locked = store.lock_sector_stats(conn, entries)
+        masses = store.sector_bright_masses(conn, chunk, current=True)
+        filled = store.get_occupied_addresses(conn, {address[0] for address in chunk})
+        rows, states = [], {}
+        for address in chunk:
+            target = targets[address]
+            level = locked.get(address)
+            held = masses.get(address, mass_limit)
+            if address in filled or level == 0 or (held is not None and held <= target):
+                if on_sector is not None:
+                    on_sector()
+                continue
+            ceiling = _effective_level(level, galaxy_level)
+            if ceiling is None and held is None:
+                # Nothing was placed here by any pass: an unbuilt star in this
+                # cell is left over from a run that failed before it recorded
+                # a level (TEST.25, GEN.44), so it is wiped and drawn again.
+                conn.execute("DELETE FROM bright_stars WHERE ring_index = ? AND layer_index = ?"
+                             " AND ring_slot_index = ? AND star_system_id IS NULL", address)
+            rows.extend(brightStars.backfill_mass_cells(skeleton.shape, [address], skeleton.edge_pc, e_value,
+                                                        target, held, ceiling, seed, edges))
+            own = galaxy_level if galaxy_level is not None and (level is None or level < 0) else None
+            states[address] = (target, own)
+            if on_sector is not None:
+                on_sector()
+        store.insert_bright_stars(conn, rows)
+        store.set_sector_bright_masses(conn, states)
+        conn.commit()
+        if layers is not None:
+            for row in rows:
+                layers.setdefault(row[1], collections.Counter())[star_label(row[7], row[8])] += 1
+        sectors += len(states)
         stars += len(rows)
     return sectors, stars
 
@@ -313,6 +384,7 @@ def scatter_bright_stars(args):
         store.clear_bright_stars(conn)
 
         t0 = time.perf_counter()
+        stages.enter("mass")
         counts = _scatter_layers(args, mysql_config, skeleton, extents, filled,
                                  starPopulation.MASS_PASS_MIN_LUMINOSITY_SOL, mass_seed, "Massive stars",
                                  mass_range=(mass_limit, None))
@@ -320,6 +392,7 @@ def scatter_bright_stars(args):
         marked = store.bright_star_marked_addresses(conn, mass_limit, min_luminosity_sol * constants.SOLAR_LUMINOSITY)
         log.normal(f"{len(marked):,} sectors hold a star born at {mass_limit:g} solar masses or more and at least "
                    f"{min_luminosity_sol:g} L_sun bright; the luminosity pass skips them.")
+        stages.enter("luminosity")
         light = _scatter_layers(args, mysql_config, skeleton, extents, set(filled) | marked, min_luminosity_sol, seed,
                                 "Bright stars", mass_range=(None, mass_limit))
         for population, count in light.items():
@@ -851,6 +924,7 @@ def scatter_phenomena(args):
                 log.reset_console()
 
         t0 = time.perf_counter()
+        stages.enter("phenomena")
         counts = {}
         e_value = skeleton.expected_system_count_at_density_1
         layers = sorted(extents, key=lambda extent: (abs(extent[0]), extent[0]))
@@ -909,6 +983,8 @@ def scatter_phenomena(args):
         if special_counts:
             log.normal("Special phenomena: " + ", ".join(f"{count:,} {kind}" for kind, count in sorted(special_counts.items())) + ".")
         store.record_phenomenon_scatter(conn, seed, min_mass_solar)
+        store.record_phenomenon_scatter_classes(
+            conn, {phenomenon_scatter.split_label(label): count for label, count in counts.items()})
         conn.commit()
     finally:
         conn.close()
@@ -918,9 +994,11 @@ def scatter_phenomena(args):
         log.normal(f"Phenomena landed in {landed[0]:,} of {len(layers):,} layers.")
     else:
         log.normal(f"No phenomena landed in any of the {len(layers):,} layers.")
-    labels = list(phenomenon_scatter.EXPECTED_LABELS) + sorted(set(counts) - set(phenomenon_scatter.EXPECTED_LABELS))
-    log.normal(f"Placed {total:,} phenomena in {elapsed:.1f}s: "
-               + ", ".join(f"{counts.get(label, 0):,} {label}" for label in labels) + ".")
+    # Like the star count: only what was created.
+    labels = [label for label in list(phenomenon_scatter.EXPECTED_LABELS) + sorted(
+        set(counts) - set(phenomenon_scatter.EXPECTED_LABELS)) if counts.get(label)]
+    listed = ": " + ", ".join(f"{counts[label]:,} {label}" for label in labels) if labels else ""
+    log.normal(f"Placed {total:,} phenomena in {elapsed:.1f}s{listed}.")
     return {"counts": counts, "total": total, "elapsed_s": elapsed}
 
 
@@ -968,18 +1046,24 @@ def run_plan(args):
         args (argparse.Namespace): Validated arguments (`command ==
             "plan"`).
     """
+    stages.begin(stages.plan_stages(args))
     if getattr(args, "bright_stars_down_to", None) is not None:
+        stages.enter("band")
         with workQueue.job_node("bright-stars", f"Bright stars down to {args.bright_stars_down_to:g} L_sun"):
             add_bright_star_band(args)
+        stages.finish()
         return
     if getattr(args, "phenomena_only", False):
         with workQueue.job_node("phenomena", "Phenomena"):
             scatter_phenomena(args)
+        stages.finish()
         return
     if getattr(args, "bright_stars_only", False):
         with workQueue.job_node("bright-stars", "Bright stars"):
             scatter_bright_stars(args)
+        stages.finish()
         return
+    stages.enter("skeleton")
     with workQueue.job_node("skeleton", "Galaxy skeleton"):
         summary = build_skeleton(args)
     if summary["layer_count"]:
@@ -1001,3 +1085,4 @@ def run_plan(args):
             scatter_phenomena(args)
         with workQueue.job_node("bright-stars", "Bright stars"):
             scatter_bright_stars(args)
+    stages.finish("the galaxy has no layers" if not summary["layer_count"] else None)

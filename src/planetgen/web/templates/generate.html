@@ -93,7 +93,7 @@
     <option value="{{ preset|int }}"{% if preset == chosen_floor %} selected{% endif %}>{{ num(preset, ",.0f") }}{% if preset == bright_min_luminosity %} (default){% endif %}</option>
     {%- endfor %}
   </select>
-  <span class="field-hint">Every star this bright or brighter is placed galaxy-wide. The steps are fine near the bottom ({{ num(bright_floor_presets[0], ",.0f") }}) and coarse near the top ({{ num(bright_floor_presets[-1], ",.0f") }}). Around each generated sector, dimmer ones are added later, {{ backfill_text }}.</span>
+  <span class="field-hint">Every star this bright or brighter is placed galaxy-wide. The steps are fine near the bottom ({{ num(bright_floor_presets[0], ",.0f") }}) and coarse near the top ({{ num(bright_floor_presets[-1], ",.0f") }}). Around the generated sectors, lighter ones are added later, {{ backfill_text }}.</span>
 </label>
 {%- endmacro -%}
 {%- macro confirm_field(id) -%}

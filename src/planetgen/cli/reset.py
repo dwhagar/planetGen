@@ -61,10 +61,10 @@ from planetgen.db.store import (
     SchemaTooNewError, add_mysql_connection_args, forget_id_blocks, get_connection, mysql_config_from_args,
 )
 
-_EXCLUDED_TABLES = {"schema_migrations", "id_blocks"}
+_EXCLUDED_TABLES = {"schema_migrations", "id_blocks", "id_counters"}
 """set: Real tables that exist in every fresh database but hold
 bookkeeping, not galaxy content -- never truncated (`id_blocks`: see this
-module's docstring, DB.3). `sector_objects` (a
+module's docstring, DB.3; `id_counters`, DB.20: a number is never given twice). `sector_objects` (a
 VIEW) needs no equivalent entry here; `SHOW FULL TABLES ... BASE TABLE`
 already excludes it."""
 

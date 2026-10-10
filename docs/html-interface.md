@@ -33,20 +33,19 @@ messages, API text meant for people), never "unbuilt", "not generated" or
 the like. The exception is the Generate system and the admin panels and
 controls, which keep the plain technical words ("generated", "not
 generated", "queued", and so on). New items and pages follow this rule;
-UX.88 carries the sweep of the existing wording.
+The sweep of the existing wording is done (PR #1049).
 
 ## Habitability chips
 
 Planet and moon rows carry habitability chips (GEN.89, design in
-`docs/design/habitability-index.md`): an equipment label (Ideal,
+`docs/design/habitability-index.md`): an equipment label (Ideal, formerly Shirtsleeve;
 Mask, Mask and scrubber, Sealed suit, Full life support), a colour chip
 that is the worst of the four PHI-4 domains (pressure, temperature,
 chemistry, radiation; Blue, Green, Yellow, Red), and the Habitable,
 Habitable moon and Inhabited chips. Planets around pulsars, neutron stars
 and black holes follow a host rule. The Equipment search has a facet for
 the labels. As of 2026-10-10 none of this is explained in the interface:
-UX.90 adds a visible legend (not tooltips only) on the system page, a link
-from the Equipment filter, the per-domain colours and the stored microbial,
+UX.90 adds a visible explanation page under Classes (not tooltips only), linked from the chips and the Equipment filter, the per-domain colours and the stored microbial,
 complex-life and human-operability scores; this section is then rewritten
 to match the final wording and thresholds.
 

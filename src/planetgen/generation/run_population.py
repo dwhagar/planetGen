@@ -10,6 +10,7 @@ what is already stored (`planetgen.population.model`), also run after a
 """
 
 from planetgen.cli.stage_progress import StageProgress
+from planetgen.generation import stages
 from planetgen.queue import work as workQueue
 from planetgen.db import store
 from planetgen.population import model
@@ -48,6 +49,7 @@ def run_population_after(args):
     `--population` (off by default, Boss 2026-10-01)."""
     if not getattr(args, "population", False):
         return
+    stages.enter("population")
     conn = store.get_connection(store.mysql_config_from_args(args))
     try:
         with workQueue.job_node("population", "Population pass"):
