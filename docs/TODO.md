@@ -3170,6 +3170,26 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   54 GB; 4 Msun about 2.2e8 rows, 30 GB; 6 Msun about 2.0e8 rows, 28
   GB).
 
+- [ ] **GEN.196 One "Redo scatters" box on Generate: choose which scatters to redo, with new settings for each**
+  Boss (2026-10-10 08:30Z, via the coordinator): make sure the stellar
+  and compact-object mass limits (GEN.195) apply everywhere a scatter (a
+  "sweep") happens, and give Generate one box where the admin ticks
+  which scatters to redo with new settings, so the scatters can be
+  redone from one place. Done: every place that runs a scatter (New
+  galaxy, Plan, Rebuild the bright stars, the CLI, on-demand and queued
+  jobs) takes the stellar limit, the compact-object limit and the
+  luminosity floor from the stored plan or from the form; the Generate
+  page has a single Redo scatters box with a checkbox for each scatter
+  pass of GEN.185 (the mass pass for stars, the luminosity-floor pass
+  for stars, and the phenomena pass with the compact-object limit) and
+  the settings for each pass; the ticked passes run as one job with a
+  stage list in which the unticked stages are shown as skipped with the
+  reason (UX.89); the new settings are stored with the plan and the
+  stage timings of PERF.56 record them; tests cover redoing each pass
+  alone and all together. Owner: Bugfixes lane 2, after GEN.195.
+  Prerequisites: GEN.195. Related: GEN.185, GEN.187, GEN.194, GEN.195,
+  UX.89, PERF.56.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.18 Run the GEN.30 bright-star backfill in parallel on the work queue**
