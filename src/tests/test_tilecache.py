@@ -17,6 +17,14 @@ import pytest  # noqa: E402
 from planetgen.web.lib import tilecache  # noqa: E402
 
 
+FAKE_STAR = {
+    "id": 7, "name": "Named", "x": 1.23456789, "y": -2.0, "z": 0.00049, "luminosity_sol": 1234.56789,
+    "temperature_k": 5778.4, "radius_sol": 1.234567, "star_type": "G2V Yellow Main Sequence Star",
+    "population": "young", "yerkes_class": "V", "ring_index": 3, "layer_index": 1, "ring_slot_index": 4,
+    "system_id": None,
+}
+
+
 class FakeApi:
     """`stamp` is the database's current stamp; `changed` the tiles
     `get_galaxy_changes` reports since the last stamp, or `None` for a
@@ -48,7 +56,10 @@ class FakeApi:
     def get_galaxy_tiles(self, db, tile_keys):
         self.tile_calls.append(list(tile_keys))
         return {
-            "tiles": {key: {"placed": [{"id": 1, "x": 1.23456789, "y": 0.0, "z": 0.0}], "planned": []} for key in tile_keys},
+            "tiles": {key: {"placed": [{"id": 1, "x": 1.23456789, "y": 0.0, "z": 0.0}], "planned": [], "filled": {"g": 1},
+                            "stars": [dict(FAKE_STAR)], "generated": [], "points": [], "clouds": [
+                                {"id": 3, "x": 1.23456789, "y": 0.0, "z": 0.0, "radius_pc": 2.34567891}]}
+                      for key in tile_keys},
             "edge_pc": 3.526, "has_shape": True,
         }
 
@@ -69,7 +80,8 @@ def test_second_request_is_served_from_disk(api):
     first = tilecache.fetch_tiles("mydb", ["12/1/2/3", "12/1/2/4"])
     assert first["cached"] == 0
     assert first["stamp"] == api.stamp
-    assert first["tiles"]["12/1/2/3"]["placed"][0]["x"] == 1.2346  # rounded for size
+    clouds = first["tiles"]["12/1/2/3"]["clouds"]
+    assert clouds[0]["x"] == 1.2346 and clouds[0]["radius_pc"] == 2.3457  # rounded for size
     assert "density" not in first
     assert len(api.tile_calls) == 1
 
@@ -199,7 +211,7 @@ def test_unwritable_cache_dir_falls_back_to_the_api(api, monkeypatch, tmp_path):
     monkeypatch.setenv("PLANETGEN_TILE_CACHE_DIR", str(blocker / "tiles"))
     assert tilecache.cache_dir() is None
     result = tilecache.fetch_tiles("mydb", ["12/1/2/3"])
-    assert result["tiles"]["12/1/2/3"]["placed"]
+    assert result["tiles"]["12/1/2/3"]["stars"]
 
 
 def test_corrupt_cache_file_is_refetched(api):
@@ -210,7 +222,7 @@ def test_corrupt_cache_file_is_refetched(api):
     result = tilecache.fetch_tiles("mydb", ["12/1/2/3"])
     assert result["cached"] == 0
     with open(path, encoding="utf-8") as f:
-        assert json.load(f)["placed"]
+        assert json.load(f)["stars"]
 
 
 def test_prune_deletes_oldest_files_down_to_budget(tmp_path):
@@ -307,3 +319,47 @@ def test_a_check_that_fails_under_load_serves_the_cache(api, monkeypatch):
     tilecache.fetch_tiles("mydb", ["12/1/2/3"])
     assert len(calls) == 1  # not asked again straight away
     tilecache._failed_checks.clear()
+
+
+# --- MAP.157: trimmed tiles, served as stored bytes --------------------------------------
+
+def test_a_tile_keeps_only_what_the_page_reads():
+    tile = tilecache.trim_tile({"placed": [{"id": 1}], "planned": [], "filled": {"g": 1}, "clouds": [],
+                                "stars": [dict(FAKE_STAR)], "generated": [dict(FAKE_STAR, system_id=12)], "points": []})
+    assert set(tile) == {"clouds", "stars", "generated", "points"}
+    assert tile["stars"][0] == {
+        "id": 7, "x": 1.235, "y": -2.0, "z": 0.0, "luminosity_sol": 1235.0, "temperature_k": 5780,
+        "radius_sol": 1.23, "star_type": "G"}
+    assert tile["generated"][0]["system_id"] == 12 and "name" not in tile["generated"][0]
+
+
+def test_a_star_without_a_radius_or_temperature_stays_without(api):
+    star = {key: value for key, value in FAKE_STAR.items() if key not in ("radius_sol", "temperature_k")}
+    trimmed = tilecache.trim_tile({"stars": [star]})["stars"][0]
+    assert "radius_sol" not in trimmed and "temperature_k" not in trimmed
+
+
+def test_the_wire_body_is_the_stored_bytes_joined(api):
+    keys = ["12/1/2/3", "12/1/2/4"]
+    cold = tilecache.fetch_tiles_wire("mydb", keys)
+    warm = tilecache.fetch_tiles_wire("mydb", keys)
+    assert json.loads(warm)["cached"] == 2 and json.loads(cold)["cached"] == 0
+    body = json.loads(cold)
+    assert list(body["tiles"]) == keys and body["stamp"] == api.stamp and body["edge_pc"] == 3.526
+    assert body["tiles"]["12/1/2/3"]["stars"][0]["star_type"] == "G"
+    assert len(api.tile_calls) == 1, "the second request was served from disk"
+
+
+def test_an_empty_request_still_makes_valid_json(api):
+    body = tilecache.fetch_tiles_wire("mydb", [])
+    assert json.loads(body)["tiles"] == {}
+
+
+def test_a_torn_tile_file_is_refetched_not_sent(api):
+    tilecache.fetch_tiles_wire("mydb", ["12/1/2/3"])
+    path = os.path.join(tilecache._db_dir(tilecache.cache_dir(), "mydb"), api.stamp, "t12_1_2_3.json")
+    with open(path, "wb") as f:
+        f.write(b'{"stars":[')
+    body = tilecache.fetch_tiles_wire("mydb", ["12/1/2/3"])
+    assert json.loads(body)["tiles"]["12/1/2/3"]["stars"]
+    assert len(api.tile_calls) == 2

@@ -19,7 +19,7 @@ survive the move.
 """
 
 
-from flask import jsonify, redirect, request, url_for
+from flask import Response, jsonify, redirect, request, url_for
 
 from planetgen.web.lib import apiclient
 from planetgen.web.lib.fmt import format_distance_ly
@@ -31,7 +31,7 @@ from planetgen.web.lib.datatable import Column, Facet, Table, in_memory, plain
 from planetgen.util import log
 from planetgen.tuning import DEFAULT_SECTOR_EDGE_LY
 from planetgen.physics.units import ly_to_pc, pc_to_ly
-from planetgen.web.lib.tilecache import TileRequestError, fetch_stage, fetch_tiles
+from planetgen.web.lib.tilecache import TileRequestError, fetch_stage, fetch_tiles, fetch_tiles_wire
 
 from planetgen.api.limiter import page_limit
 
@@ -284,13 +284,13 @@ def galaxy_tiles():
     """
     JSON for the map's script: `?tiles=<level/ix/iy/iz,...>` and optional
     `&stamp=<the browser cache's stamp>`. Returns
-    `tilecache.fetch_tiles`' payload; a malformed request is a 400, an
+    `tilecache.fetch_tiles`' payload, sent as stored bytes (MAP.157); a malformed request is a 400, an
     API failure a 502, both as `{"error": ...}` JSON.
     """
     tile_keys = [key for key in (request.args.get("tiles") or "").split(",") if key]
     known_stamp = request.args.get("stamp") or None
     try:
-        payload = fetch_tiles(db_name(), tile_keys, known_stamp)
+        body = fetch_tiles_wire(db_name(), tile_keys, known_stamp)
     except TileRequestError as exc:
         return _json_error(str(exc), 400)
     except apiclient.NotFoundError as exc:
@@ -298,7 +298,7 @@ def galaxy_tiles():
     except apiclient.ApiError as exc:
         log.exception(f"API error while fetching galaxy tiles: {exc}")
         return _json_error("The tiles could not be loaded. Please try again shortly.", 502)
-    response = jsonify(payload)
+    response = Response(body, mimetype="application/json")
     # Freshness is the tile cache's job (stamps); never let a shared
     # cache hand one visitor's stale answer to another.
     response.headers["Cache-Control"] = "no-store"
