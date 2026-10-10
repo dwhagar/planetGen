@@ -240,3 +240,28 @@ def finish(reason=None):
         _announce(index, _state["stages"][index].skip or reason or "not needed")
     _close_open()
     _state.update(stages=[], next=0, args=None, command=None, open=None)
+
+
+def estimate_seconds(conn, command, args):
+    """
+    How long a `galaxy` or `plan` run with `args` is expected to take: the
+    stored time of each of its stages that will run, looked up by the settings
+    that stage runs with (`stage_settings`, `generation.stats.stage_seconds`,
+    PERF.56), skipped stages counting nothing. `None` unless every stage that
+    will run has a stored time, so the overall bar says "at least" rather than
+    quoting a guess.
+    """
+    from planetgen.generation import stats
+
+    total = 0.0
+    found = for_command(command, args)
+    if not found:
+        return None
+    for stage in found:
+        if stage.skip:
+            continue
+        seconds = stats.stage_seconds(conn, stage.key, stage_settings(stage.key, args))
+        if seconds is None:
+            return None
+        total += seconds
+    return total

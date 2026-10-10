@@ -193,3 +193,26 @@ def test_the_backfill_stage_is_the_mass_scatter_from_the_neighborhood():
     assert found.label == "Scatter the massive stars from the neighborhood"
     (off,) = [stage for stage in stages.galaxy_stages(_galaxy("--backfill-from", "none")) if stage.key == "backfill"]
     assert off.skip and "--backfill-from none" in off.skip
+
+
+def test_a_run_is_estimated_from_its_stages_stored_times_by_their_settings(control_config):
+    """Boss: an ETA looks up the stored stats by the settings the stage runs with (PERF.56, PERF.33)."""
+    from planetgen.generation import stats as generation_stats
+    args = _plan("--phenomenon-min-mass", "8", "--workers", "1")
+    conn = _control(control_config)
+    try:
+        assert stages.estimate_seconds(conn, "plan", args) is None   # nothing recorded yet
+        for key, seconds, settings in (("skeleton", 5.0, {"max_ring": 60}), ("phenomena", 7.0, {"mass_limit_sol": 8.0}),
+                                       ("mass", 11.0, {"mass_limit_sol": 8.0}),
+                                       ("luminosity", 13.0, {"mass_limit_sol": 8.0})):
+            conn.execute(
+                "INSERT INTO generation_stage_runs (database_name, command, stage_key, stage_n, stage_total, label,"
+                " skipped, started_at, finished_at, seconds, workers, settings, metrics, version_key)"
+                " VALUES ('d', 'plan', ?, 1, 4, 'x', 0, NOW(6), NOW(6), ?, 1, ?, '{}', ?)",
+                (key, seconds, json.dumps(settings), generation_stats.current_version_key()))
+        conn.commit()
+        assert stages.estimate_seconds(conn, "plan", args) == 36.0
+        # A stage that is skipped counts nothing.
+        assert stages.estimate_seconds(conn, "plan", _plan("--no-bright-stars")) == 5.0
+    finally:
+        conn.close()
