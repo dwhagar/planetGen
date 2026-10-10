@@ -474,7 +474,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.12 | MariaDB reads a stored -0.0 back as +0.0 (bug) | none | done, PR #442 |
 | DB.13 | Every stored value in its own column, not in JSON blocks, and indexed for search | none | done, PR #766 |
 | DB.14 | Sector stats keep the raw star statistics (mean age, summed luminosity, star count) and no baked color | none | done, PR #556 |
-| DB.15 | A migration progress bar with the time remaining | none | open |
+| DB.15 | A migration progress bar with the time remaining | none | done, PR #924 |
 | DB.16 | Store the generator epoch and run id on each sector instead of four version text columns | none | open |
 | DB.17 | Repair by regenerating a damaged sector from its seed when parity cannot rebuild it | none | open |
 | DB.18 | Migration helpers for slow DDL: online indexes, instant columns and batched updates | none | open |
