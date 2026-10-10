@@ -143,7 +143,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.159 | Packed binary Galaxy Map tiles (quantised planes) with the nested tile lists, on one cache stamp bump | MAP.154, MAP.158 | MAP.147 recommendation step 2; one stamp bump with MAP.154 and MAP.151. |
 | MAP.155 | Other objects fade in too: point objects from level 8, a size ramp for cloud sprites, and stars that grow from a faint dot |  | Zoom visibility note stage 3. |
 | UX.91 | Planet and moon description carries a full PHI-4 explanation, each colour factor and why |  |  |
-| PERF.57 | Stop a layer-walking scatter early once the last 100 layers produced no stars |  |  |
+| PERF.57 | Skip empty stretches in a galactic scatter by combining layers into growing groups |  |  |
 | GEN.196 | One "Redo scatters" box on Generate: choose which scatters to redo, with new settings for each | GEN.195 |  |
 | MAP.166 | Galaxy Map "Dimmest star shown" says "every star" only when the view is complete |  |  |
 | GEN.195 | A separate mass limit for neutron stars and black holes, and the central black hole or quasar always created |  |  |
