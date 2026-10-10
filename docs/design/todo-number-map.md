@@ -15,7 +15,7 @@ release is stamped.
 |---|---|
 | UX | UX.95 |
 | MAP | MAP.171 |
-| NAV | NAV.58 |
+| NAV | NAV.60 |
 | GEN | GEN.200 |
 | PERF | PERF.73 |
 | DB | DB.23 |
@@ -927,6 +927,8 @@ Parents marked "new parent" had no old number of their own.
 | NAV.55 | A tuning block for the keep-out knobs | none | open |
 | NAV.56 | Census of overlapping keep-out spheres in a generated galaxy | none | open |
 | NAV.57 | The Intergalactic Frame in navigation-frames.md and `navigation.py` | none | open |
+| NAV.58 | Edit a course: add, remove, reorder and drag its waypoints, then save the edit | none | open |
+| NAV.59 | Headline of 8.5: courses that bend around gravity wells, with waypoints, editable and saved courses | none | open |
 | OPS.1 | Build the version number from the category counters (item 80's version-scheme questions) | none (split from 80 by the renumbering) | done in the version-from-todo-counters PR |
 | OPS.2 | Apache OOM-killed on the production server | 1 (2026-09-24 01:32Z to 02:02Z) | done in 5.47.0, PR #72 |
 | OPS.3 | PowerShell installers and macOS-safe bash scripts | 50 (2026-09-30 20:43Z to 2026-10-01 02:57Z) | done in 7.16.0, PR #125 (see note 4) |
