@@ -170,6 +170,17 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | MAP.121 | Every map shows and steps to its neighbouring regions, on one map engine |  | Folds MAP.127, the Galaxy Map's neighbouring blocks and slabs (Boss 2026-10-07 16:27Z: one map engine for all maps). |
 | MAP.156 | View one layer or a range of layers top-down from the galaxy view, as a secondary option |  | Boss 2026-10-09 23:17Z; secondary option, not a main control. |
+| DOC.16 | The API help page for visitors: what the API is, how to get a key, and where the reference lives | DOC.6 | Boss 23:53Z; Phase 2. |
+| DOC.15 | A glossary and units help page: coordinates, scales, sector paths, object IDs, time and the in-universe wording | DOC.6 | Boss 23:53Z; Phase 2. |
+| DOC.14 | The admin help pages: the queue, the stats page, settings, lockouts and the naming key | DOC.6 | Boss 23:53Z; Phase 2. |
+| DOC.13 | The Generate page help pages: layer specs, spans, radial fills, directives, one-off systems and jobs | DOC.6 | Boss 23:53Z; Phase 2. |
+| DOC.12 | The account help pages: signing in, two-factor, the account page, API keys and bookmarks | DOC.6 | Boss 23:53Z; Phase 2. |
+| DOC.11 | The reference browser help pages: species, polities, object classes and phenomena | DOC.6 | Boss 23:53Z; Phase 2. |
+| DOC.10 | The search and navigation help pages: search, nearby, the nav page and routes | DOC.6 | Boss 23:53Z; Phase 2. |
+| DOC.9 | The star system help pages: the system list, a system page, the system map and the planets, moons and belts shown | DOC.6 | Boss 23:53Z; Phase 2. |
+| DOC.8 | The sector help pages: the sector list, a sector page, the sector map and the sector scene | DOC.6 | Boss 23:53Z; Phase 2. |
+| DOC.7 | The Galaxy Map help page: layers, zoom, fly-through, Color by, select modes, bookmarks and the locate box | DOC.6 | Boss 23:53Z; Phase 2. |
+| DOC.6 | A static help section in the web interface: page template, index, per-page help links and a coverage test |  | Boss 23:53Z; the framework the per-feature help pages use. |
 | MAP.160 | Quantise the Galaxy Map GPU buffers (deferred) |  | Deferred; MAP.147 recommendation step 3. |
 
 ### Recipes
@@ -187,7 +198,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| PERF.33 | Progress bars and ETAs from measured performance | PERF.32 | GitHub issue [#661](https://github.com/dwhagar/planetGen/issues/661) (the use half). |
 | MAP.139 | The Galaxy View uses its spare space: an info box with a Details link, and menu items |  | GitHub issues [#758](https://github.com/dwhagar/planetGen/issues/758) and [#715](https://github.com/dwhagar/planetGen/issues/715), one layout change. |
 | MAP.140 | Double-click on a selected object goes there and opens its information |  | GitHub issue [#714](https://github.com/dwhagar/planetGen/issues/714). |
 | MAP.141 | Context around the selection: faint neighbours, and the sectors above and below |  | GitHub issues [#718](https://github.com/dwhagar/planetGen/issues/718) and [#716](https://github.com/dwhagar/planetGen/issues/716), one context view. The #716 bug label was overruled. |
@@ -196,7 +206,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.129 | Multi-star systems of up to seven stars | GEN.128 | GitHub issue [#777](https://github.com/dwhagar/planetGen/issues/777). Build after the GEN.128 design. |
 | GEN.130 | Exotic star systems: a black hole, neutron star or similar at the center | GEN.128 | GitHub issue [#778](https://github.com/dwhagar/planetGen/issues/778). Build after the GEN.128 design. |
 | GEN.165 | A comet's time-0 scene position disagrees with its stored position in a rare random system (bug) |  | Bugfix lane. |
-| DB.15 | A migration progress bar with the time remaining | PERF.32 | GitHub issue [#727](https://github.com/dwhagar/planetGen/issues/727). |
 | DB.18 | Migration helpers for slow DDL: online indexes, instant columns and batched updates | DB.15 | Research: slow DDL for the big tables. |
 | ADM.43 | A full configuration page under Admin | ADM.42 | GitHub issue [#515](https://github.com/dwhagar/planetGen/issues/515). |
 | ADM.44 | Web, Open Graph and SEO settings | ADM.42, ADM.43 | GitHub issue [#743](https://github.com/dwhagar/planetGen/issues/743). |

@@ -112,7 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.8, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, NAV.11, NAV.42, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.57, TEST.77, UX.49, PERF.31, PERF.32, GEN.128, ADM.42 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, NAV.11, NAV.42, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.57, TEST.77, UX.49, PERF.31, PERF.32, GEN.128, ADM.42 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.17, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18, PERF.33, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, DB.15, ADM.43, ADM.44 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, and the anomalies chosen in phase 2. | NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, GEN.114, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies. | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, GEN.55 |
@@ -433,42 +433,84 @@ with `clamp()`.
   Prerequisites: none.
   Design: [docs/design/map-ui-and-frontend-libraries.md](design/map-ui-and-frontend-libraries.md)
 
-- [ ] **UX.83 Generation steps that run long show no progress bar of their own: linking new sectors to their neighbours, the phenomenon scatter and others (bug)**
+- [ ] **UX.84 Every sub-step must show a progress bar that starts by itself when it is predicted to take over 15 seconds (bug)**
   Boss (2026-10-09 23:13Z): "linking new sectors to their neighbors
   should have a progress bar of it's own, as should the phenomena
   scatter, all generation items should have progress bars, if a sub-step
   is probably going to take longer than 15 seconds give it a progress
-  bar as well." Today the neighbour linking and the phenomenon scatter
-  run with no bar of their own, so a run looks stuck. Done: every
-  generation step has a progress bar (in the terminal and on the
-  Generate and Queue pages), including the neighbour linking of new
-  sectors and the phenomenon scatter, and any sub-step expected to take
-  more than 15 seconds gets its own bar under the main one. A bar is a
-  count of units done against units expected, with the estimate PERF.33
-  describes once that lands (until then the plain count). Handed to
-  Bugfixes lane 1.
-  Survey (2026-10-09): read of the code on main (not run): steps that
-  already draw a bar are the sector batches, the bright-star backfill,
-  "Neighbours" (one bar over batches of sectors in
-  `store.link_sector_neighbors`), "Sector paths" (`settle_after_run`),
-  "Topping up backfilled sectors", the plan's layer tracker, the
-  phenomenon scatter (one bar over layers, `scatter_phenomena`), and the
-  two-bar `StageProgress` of `planetgen.cli.reset` and
-  `planetgen.cli.orbits`. Lacking a bar of their own, to check and fix:
-  (1) inside each neighbour batch, the three passes of
+  bar as well." Corrected (23:34Z): "I believe I said a progress bar on
+  all substeps that automatically activates on the start of that
+  sub-item if it's predicted to take longer than 15 seconds to
+  complete." The first pass (UX.83, PR #895) hand-added bars to the
+  scatter, the neighbour-linking steps and the population pass; that is
+  not the rule. Done: the rule holds for every sub-step of every
+  generation and maintenance operation, through the one mechanism of
+  PERF.51 (a bar starts at the start of a step when its predicted
+  duration exceeds 15 seconds, in the terminal and on the Generate and
+  Queue pages), and every sub-step below is registered with a stats kind and a work count; the prediction reads the recorded generation statistics (`generation_stats`, PERF.32), with a conservative fallback only for a kind that has no history yet. The list to register (from the read of the code on
+  2026-10-09, with the steps the first pass added and the ones not yet
+  checked): the three passes inside each neighbour batch of
   `link_sector_neighbors` (containment, nearest systems, merge into the
-  neighbours), which are one silent step per batch and can run long on a
-  big batch; (2) the phenomenon scatter: `clear_phenomenon_scatter`, one
-  whole layer (a single queue task with no bar inside it) and the
-  closing `special_rows`, insert and stamp; (3) the Generate page job
-  view, which shows only what the progress file carries, so every step
-  above must write to it; (4) not yet checked: the name registry passes,
-  the containment and nearest passes of `refresh_containment` and
-  `refresh_nearest_systems` when run outside a galaxy run, the
-  end-of-update map warm-up (`warm_map`) and the migration (DB.15). Each
-  step found without one is a sub-bullet of this bug; the 15 second rule
-  applies to any pass the measured rate (PERF.32) says will pass it.
-  Prerequisites: none. Related: PERF.33, PERF.34, DB.15, UX.3.
+  neighbours); `refresh_containment` and `refresh_nearest_systems` run
+  outside a galaxy run; the phenomenon scatter's clear, each layer (a
+  bar inside one layer), the special rows, the insert and the stamp; the
+  population pass; the bright-star backfill; topping up backfilled
+  sectors; the sector paths of the settle step; the plan's layer
+  tracker; the name registry passes; the end-of-update map warm-up
+  (`warm_map`); migrations (DB.15); the reset's table wipes and the
+  orbit update's stages (`StageProgress`); the check-db and deep check
+  passes (DB.21); and one sector's save in a dense sector (PERF.50). A
+  test registers each step and fails when a step that is predicted to
+  pass 15 seconds draws no bar. The sub-steps with no timing recorded today (only the work queue's task kinds have timings, and `queue.work.timing_by_kind` has no caller) all need a stats kind added by this work: every item in the list above except the sector, bright-star and phenomenon task kinds. Build order: PERF.33 (the estimator),
+  then PERF.51 (the mechanism), then PERF.50 (the first application),
+  then this item, which registers the rest. Open question for Boss
+  (default the mechanism first, registrations after, as written): other?
+  Correction from Bugfixes lane 1 (PR #895 survey): before UX.83 the
+  phenomenon scatter had no bar (only the bright-star scatter did); it
+  now has one over layers, neighbour linking reports 3 named steps per
+  sector, and the population pass has a bar. Still without one, all in
+  the list above: inside one scatter layer, `clear_phenomenon_scatter`
+  and the closing special rows and insert; one sector's save (PERF.50,
+  needs a worker-to-parent channel); `cli/warm_map.py` (prints a line,
+  no bar); the migration (DB.15) and the name registry passes.
+  Prerequisites: PERF.51, PERF.50. Related: UX.83, PERF.33, PERF.34,
+  PERF.32, DB.15, DB.21.
+  Lane (Boss, 2026-10-09 23:38Z): Bugfixes lane 1, order PERF.32, PERF.33, PERF.51, PERF.50, DB.15, then UX.84.
+
+- [ ] **UX.85 Button menus open out of sight and make the user scroll to see them (bug)**
+  Boss (2026-10-10 00:01Z): "button menus should open where they can be
+  seen, I keep having to scroll down to see the menu. In addition,
+  buttons need to be smaller or we need to use submenus, it's just too
+  big the way it is and most of the verticle space is taken by the
+  filters that are only 1 character wide, so we should revamp that so
+  that we make the most use of the space as possible." Done: every menu
+  opened from a button (the Galaxy Map block, slab, wedge and Color by
+  menus, the toolbar menus and any dropdown on the other pages) opens
+  inside the visible part of the window, flipping above or beside its
+  button, or scrolling itself into view, when there is no room below; a
+  test opens each menu in a short window and checks that the whole menu
+  is on screen. Bugfixes lane 1, after its current work (the
+  progress-bar chain and UX.84). Open question for Boss (default as
+  written; the Galaxy Map first, then the same shared menu code for the
+  rest): other?
+  Prerequisites: none. Related: UX.86.
+
+- [ ] **UX.86 The Galaxy Map controls take too much room: buttons too large and filters one character wide (bug)**
+  Boss (2026-10-10 00:01Z): "button menus should open where they can be
+  seen, I keep having to scroll down to see the menu. In addition,
+  buttons need to be smaller or we need to use submenus, it's just too
+  big the way it is and most of the verticle space is taken by the
+  filters that are only 1 character wide, so we should revamp that so
+  that we make the most use of the space as possible." Done: the
+  controls are redesigned to leave the most room for the map: smaller
+  buttons, related actions grouped under submenus, and filters laid out
+  in the width they need instead of a column one character wide that
+  uses most of the vertical space; checked at desktop and phone widths
+  with a before and after screenshot in the PR. Applies to the same
+  shared control code on the other map pages. Bugfixes lane 1 after
+  UX.85. Open question for Boss (default: start with the Galaxy Map,
+  then the sector and system maps use the same controls): other?
+  Prerequisites: UX.85. Related: UX.85, MAP.131, MAP.122.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -833,7 +875,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   camera radius; it only dims stars much farther than the target, so the
   two rules never thin the same stars twice. The distance-cut tiles it
   leads to also need MAP.154 (nested lists).
-  Prerequisites: MAP.153. Related: MAP.116, MAP.146, MAP.147.
+  Prerequisite: MAP.153. Related: MAP.116, MAP.146, MAP.147.
   Design: [docs/design/fly-through-view-distance.md](design/fly-through-view-distance.md)
 
 - [ ] **MAP.149 The near field: depth fade, a see-through focus tube, drawing from inside a container, and picking that matches what is drawn**
@@ -902,7 +944,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Open question for Boss (default: a 3-ary pyramid accepting cells 0.84
   to 1.25 of an edge across): or keep 9-ary and accept a 2.45x gap in
   sizes?
-  Prerequisites: ADM.29. Related: MAP.120, MAP.147, ADM.30, GEN.101,
+  Prerequisite: ADM.29. Related: MAP.120, MAP.147, ADM.30, GEN.101,
   GEN.126, MAP.131, MAP.134, MAP.146.
   Dependency (2026-10-09, fly-through-view-distance.md): The region data
   layer and its aggregates (3-ary pyramid, per-star id, per-level
@@ -3345,6 +3387,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   development server (26 to 123 releases a day) forever, with no
   recorded rate; the alternative keeps the previous row as a flagged
   prior until five new samples exist.
+  Boss (2026-10-09): Boss (2026-10-09 23:35Z): "That's why we are
+  tracking the stats for generation." The automatic progress bar rule
+  (PERF.51, UX.84) and the DB.21 deep check estimate read this table:
+  every timed step records its rate under its own kind, so `kind` must
+  cover every sub-step PERF.51's helper runs, not only the work queue's
+  task kinds.
+  Lane (Boss, 2026-10-09 23:38Z): Bugfixes lane 1, order PERF.32, PERF.33, PERF.51, PERF.50, DB.15, then UX.84.
 
 - [ ] **PERF.33 Progress bars and ETAs from measured performance**
   Boss (GitHub issue [#661](https://github.com/dwhagar/planetGen/issues/661)): "time remaining on all progress bars should
@@ -3368,6 +3417,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   them from the parent's sum); the web shows a range or "estimating",
   never `-:--:--`; one pure function serves the terminal bar, the Queue
   page, the banner and DB.15.
+  Left over (2026-10-09): left over from UX.83 (PR #895, Bugfixes lane
+  1): the phenomenon scatter, the neighbour-linking steps and the
+  population pass now draw their own bars; a bar inside one sector's
+  save (the slowest sub-step in a dense sector) is now PERF.50.
+  Prerequisite: PERF.32. Related: PERF.51, UX.84, PERF.50, DB.15.
+  Lane (Boss, 2026-10-09 23:38Z): Bugfixes lane 1, order PERF.32, PERF.33, PERF.51, PERF.50, DB.15, then UX.84.
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
   Replace the one-`sector_stats`-row-per-visited-cell ledger of
@@ -3481,55 +3536,49 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none.
   Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
 
+- [ ] **PERF.50 A progress bar inside one sector's save: workers report their sub-steps to the main process**
+  Left over from UX.83 (Bugfixes lane 1, PR #895; Boss, 2026-10-09
+  23:13Z: "if a sub-step is probably going to take longer than 15
+  seconds give it a progress bar as well"). The phenomenon scatter, the
+  neighbour-linking steps and the population pass now draw their own
+  bars, but the slowest sub-step left, the save of one dense sector
+  inside a worker, shows nothing because a worker has no channel to the
+  main process's bar. Done: workers report their sub-step progress
+  (units done of units expected) to the parent through a progress
+  channel, and the parent draws it as a bar under the sector's step, in
+  the terminal and on the Generate and Queue pages, for any sub-step
+  expected to pass 15 seconds (the expected time comes from the PERF.32
+  rates once they exist). Open question for Boss (default build it with
+  PERF.33's estimator so both share one channel): or separately?
+  Fold (2026-10-09): the first application of PERF.51 (the shared
+  progress mechanism); registered by UX.84.
+  Prerequisite: PERF.51. Related: UX.83, PERF.33, PERF.34, PERF.32.
+  Lane (Boss, 2026-10-09 23:38Z): Bugfixes lane 1, order PERF.32, PERF.33, PERF.51, PERF.50, DB.15, then UX.84.
+
+- [ ] **PERF.51 One progress mechanism for every sub-step: a bar starts by itself when a step is predicted to take over 15 seconds**
+  Source: Boss (2026-10-09 23:34Z): "I believe I said a progress bar on
+  all substeps that automatically activates on the start of that
+  sub-item if it's predicted to take longer than 15 seconds to
+  complete." This is the mechanism UX.84 applies. Done: every generation
+  and maintenance step reports its progress through one shared helper (a
+  step with a name, a stats kind and a work count, in the terminal bar,
+  the progress file the Generate and Queue pages read, and the work
+  queue), and the helper starts a visible bar by itself at the start of
+  a step when the predicted duration exceeds 15 seconds, from the step's kind and work count and the recorded generation timing statistics (Boss, 23:35Z: "That's why we are tracking the stats for generation"): the `generation_stats` table of PERF.32, the rate per `(kind, workers)`, read through the PERF.33 estimator, not a hard-coded cost model. Only a step with no recorded history yet (the first run after a version change, or a kind never timed) uses a conservative fallback, and the fallback treats an unknown cost as long, so a first run still shows its bar. Every step the helper runs records its measured rate back into `generation_stats` under its kind, so the next prediction has history; the kinds that are not timed today (everything outside the work queue's kinds: see UX.84's list) are added as part of this item. A step predicted under 15 seconds draws
+  nothing, and a step that runs past its prediction gets its bar the
+  moment it passes 15 seconds. A step can run inside a worker: the
+  helper carries a worker-to-parent progress channel (see PERF.50), so a
+  bar can show progress from inside one task. Replaces the hand-built
+  `add_task` calls in `run_galaxy`, `run_plan`, `StageProgress` and
+  `store` with the one helper (no compatibility wrappers). Open question
+  for Boss (default 15 seconds, fixed in `tuning.py`, and the fallback used only while a kind has no recorded history): other?
+  Prerequisites: PERF.33. Related: UX.84, PERF.50, PERF.33, PERF.32,
+  PERF.34, UX.3.
+  Lane (Boss, 2026-10-09 23:38Z): Bugfixes lane 1, order PERF.32, PERF.33, PERF.51, PERF.50, DB.15, then UX.84.
+
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
-
-- [ ] **DB.8 Check a galaxy database and say whether it is damaged**
-  Boss (2026-10-02 02:13Z): "add to TODO and inject into Phase 0 build DB
-  consistency checking so that we can check a DB and tell if it's been
-  damaged, then Phase 1 inject a DB repair using parity data stored in a
-  file." Done: `generate.py check-db`, and a button on the Admin
-  dashboard that runs it as a job, check the galaxy and control
-  databases without changing anything. The checks:
-  - Schema: tables, columns and indexes match the recorded migration
-    level (sharing DB.4's shape detection).
-  - Orphans: no planet without its system, moon without its planet,
-    system without its sector, composition row without its field or
-    comet, and so on.
-  - Ids: every row id sits below `id_blocks`' next ids (the DB.3 case),
-    and no blocks overlap.
-  - Names: the name registries match the names in use.
-  - Values: every sector address is inside the galaxy's bounds, no
-    value is NaN or infinite, and every system passes
-    `validation.check_star_system`.
-  - Counts: the per-sector stats table agrees with the rows, once GEN.44
-    and PERF.11 exist; the version keys are present and well formed,
-    once DB.6 and DB.7 exist.
-  The report lists each problem with the rows involved and ends with a
-  pass or fail line per check; the exit code is non-zero when damage is
-  found. `--sector` and `--region` limit it to part of the galaxy. A test
-  damages a copy of a small galaxy in each of these ways and checks the
-  matching problem is reported, and an undamaged one passes.
-  Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
-  Plan (2026-10-07): The schema check reads Alembic's revision (DB.11);
-  the name-registry check is dropped, since GEN.71 removes the
-  registries.
-  Research (2026-10-09, db-check-and-parity-repair.md): replace "tables,
-  columns and indexes match the recorded migration level" with three
-  checks: `alembic_version` against `schema_migrations` against
-  `SCHEMA_VERSION`; `compare_metadata` against `db/models.py`;
-  `detect_schema_version` as the tiebreaker. Add per-table `CHECK TABLE
-  ... QUICK` (it may flag a damaged index corrupt), FK-orphan queries
-  generated from `information_schema` plus hand-written ones for
-  `object_table`/`object_id` and `first_object_*`, range checks in place
-  of "no value is NaN or infinite" (a DOUBLE column cannot hold either),
-  a `--deep` mode (`CHECK ... EXTENDED`, `CHECKSUM TABLE`), a time
-  estimate (about 6 s per 5 million rows for the quick check, hot), a
-  progress bar, an option to skip `CHECK TABLE`, and a SELECT-only
-  account. Drop the name-registry check (GEN.71 drops it). The exit code
-  distinguishes "damaged" from "could not check". Range checks also
-  cover the orbit-updated columns DB.9 leaves out.
 
 - [ ] **DB.9 Repair a damaged galaxy database from a parity file**
   Boss (same message): "then Phase 1 inject a DB repair using parity
@@ -3579,7 +3628,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   only if exact positions matter); G = 32, m = 2; repairing a bad
   clustered-index page may mean restarting the database server with
   `innodb_force_recovery=1`.
-  Prerequisites: DB.8, GEN.57.
+  Prerequisite: GEN.57.
   Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
 - [ ] **DB.15 A migration progress bar with the time remaining**
@@ -3605,6 +3654,8 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   heavy revision. Open question for Boss (default: raise the wait for
   the migration process only and have the update script say when a
   revision is expected to be long).
+  Prerequisites: PERF.32, PERF.51.
+  Lane (Boss, 2026-10-09 23:38Z): Bugfixes lane 1, order PERF.32, PERF.33, PERF.51, PERF.50, DB.15, then UX.84.
 
 - [ ] **DB.16 Store the generator epoch and run id on each sector instead of four version text columns**
   DB.7 stored `version_key`, the version, python and platform as text on
@@ -3670,6 +3721,25 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   so a fresh galaxy is acceptable. Takes the next free Alembic revision.
   Prerequisite: GEN.170.
   Design: [docs/design/object-id-options.md](design/object-id-options.md)
+
+- [ ] **DB.21 A deep pass for the database check: validate every star system, with the estimated time shown first**
+  Boss (2026-10-09 23:32Z): "Yes, add an option for a deep pass but warn
+  the user the estimated time it will take." Foundations lane 1 left
+  `validation.check_star_system` for every system out of `planetgen
+  check-db` (DB.8, PR #893) because of its cost. Done: `planetgen
+  check-db --deep` also runs `validation.check_star_system` on every
+  star system (and the slower table checks DB.8's research proposed,
+  `CHECK TABLE ... EXTENDED` and `CHECKSUM TABLE`, where the lane judges
+  them worth it), and the "Check the database" section of the Generate
+  page offers a "Deep check" option. Before it runs, both show the
+  estimated time, from the sector count and the recorded generation statistics (`generation_stats`, PERF.32): a stats kind for the per-system validation is recorded by the check itself, so the second deep check on a version predicts from the first; a conservative fallback is used only when no history exists yet, and then the estimate says so, and the Generate page asks for
+  confirmation; the CLI prints the estimate and waits for a yes unless
+  `--yes` is given. The deep pass draws its own progress bar (UX.83's
+  rule: any sub-step over 15 seconds) and its report lists each failing
+  system with its rows, like the plain check. Open question for Boss
+  (default `--deep` flag and a "Deep check" option with the estimate and
+  a confirmation, as written): other?
+  Prerequisites: PERF.33. Related: DB.9, PERF.33, PERF.32, PERF.50.
 
 ## API: The JSON API
 
@@ -4290,6 +4360,16 @@ clears each one.
   Prerequisites: GEN.171, GEN.172, GEN.176.
   Design: [docs/design/object-id-options.md](design/object-id-options.md)
 
+- [ ] **TEST.111 test_ensure_sector_generated_creates_then_reuses_the_same_sector fails in a busy parallel run (bug)**
+  Reported by Bugfixes lane 1 (2026-10-09 23:32Z):
+  `test_ensure_sector_generated_creates_then_reuses_the_same_sector`
+  failed once in a busy parallel full-suite run and passed alone, with
+  no change to the code it covers. Done: the cause is found (a shared
+  sector address or timing under load is the first thing to check) and
+  the test is made robust without skipping or loosening it, or the
+  product bug it hides is fixed. Related: TEST.71, TEST.73, OPS.19.
+  Prerequisites: none.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -4651,6 +4731,148 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   to match.
   Prerequisite: GEN.170.
   Design: [docs/design/object-id-options.md](design/object-id-options.md)
+
+- [ ] **DOC.6 A static help section in the web interface: page template, index, per-page help links and a coverage test**
+  Boss (2026-10-09 23:53Z): "Add to-do items to build static
+  documentation pages for all features accessible through the web
+  interface." Done: the web interface serves a Help section of static
+  pages (no database, no JavaScript needed to read them), with one
+  shared template that matches the site shell, an index page that groups
+  the pages below by feature, a "?" link in the header of every
+  interface page that opens the matching help page, a search box over
+  the help text, and a plain page of the current version. The pages are
+  written as Markdown files in the repository (docs/help/) and built
+  into HTML by the update script, so they can be edited without touching
+  code. A test lists every user-facing route and fails when a route has
+  no help page or a help page has no route, and a second test checks
+  that every link inside the help section resolves. Open question for
+  Boss (default: Phase 2, after the features they describe have settled;
+  Markdown source in docs/help/, built at update time, served at /help):
+  other?
+  Prerequisites: none. Related: DOC.7, DOC.8, DOC.9, DOC.10, DOC.11,
+  DOC.12, DOC.13, DOC.14, DOC.15, DOC.16.
+
+- [ ] **DOC.7 The Galaxy Map help page: layers, zoom, fly-through, Color by, select modes, bookmarks and the locate box**
+  Boss (2026-10-09 23:53Z): "Add to-do items to build static
+  documentation pages for all features accessible through the web
+  interface." Done: every control and gesture on /galaxy: the opening
+  view, the layer and ring menus, zooming and the fly-through camera
+  (MAP.146 when built), Color by, Select mode, the block, slab and wedge
+  menus, nebula and territory overlays, bookmarks, and how big a tile is
+  and why a sector may be empty. Screenshots are captured by script so
+  they can be regenerated. The page is a Markdown file in docs/help/
+  built into the Help section, linked from each page it describes, and
+  updated by any later change to those features (a feature item is not
+  done until its help text is).
+  Prerequisites: DOC.6. Related: DOC.6.
+
+- [ ] **DOC.8 The sector help pages: the sector list, a sector page, the sector map and the sector scene**
+  Boss (2026-10-09 23:53Z): "Add to-do items to build static
+  documentation pages for all features accessible through the web
+  interface." Done: the sectors list (/sectors), the sector page
+  (/sector/<id>) with its star-system table, the sector map and 3D
+  scene, sector paths and neighbours, what the sector address means, and
+  the admin edit panel that appears for admins. The page is a Markdown
+  file in docs/help/ built into the Help section, linked from each page
+  it describes, and updated by any later change to those features (a
+  feature item is not done until its help text is).
+  Prerequisites: DOC.6. Related: DOC.6.
+
+- [ ] **DOC.9 The star system help pages: the system list, a system page, the system map and the planets, moons and belts shown**
+  Boss (2026-10-09 23:53Z): "Add to-do items to build static
+  documentation pages for all features accessible through the web
+  interface." Done: the systems list (/systems), the system page
+  (/system/<id>), the system map and scene (orbits, scale, time), the
+  tables of stars, planets, moons and belts, the habitability index
+  (GEN.83/GEN.89) and what each column means with its units. The page is
+  a Markdown file in docs/help/ built into the Help section, linked from
+  each page it describes, and updated by any later change to those
+  features (a feature item is not done until its help text is).
+  Prerequisites: DOC.6. Related: DOC.6.
+
+- [ ] **DOC.10 The search and navigation help pages: search, nearby, the nav page and routes**
+  Boss (2026-10-09 23:53Z): "Add to-do items to build static
+  documentation pages for all features accessible through the web
+  interface." Done: search (/search), nearby search (/nearby), the nav
+  page (/nav), routes between systems and across sectors,
+  within-N-parsec search, travel times (NAV.11 when built), and how
+  unknown space and asteroid fields affect a course. The page is a
+  Markdown file in docs/help/ built into the Help section, linked from
+  each page it describes, and updated by any later change to those
+  features (a feature item is not done until its help text is).
+  Prerequisites: DOC.6. Related: DOC.6.
+
+- [ ] **DOC.11 The reference browser help pages: species, polities, object classes and phenomena**
+  Boss (2026-10-09 23:53Z): "Add to-do items to build static
+  documentation pages for all features accessible through the web
+  interface." Done: /species, /polities, /classes and /phenomena with
+  their detail pages: what each field means, how classes and codes are
+  named, and how a phenomenon differs from a star system. The page is a
+  Markdown file in docs/help/ built into the Help section, linked from
+  each page it describes, and updated by any later change to those
+  features (a feature item is not done until its help text is).
+  Prerequisites: DOC.6. Related: DOC.6.
+
+- [ ] **DOC.12 The account help pages: signing in, two-factor, the account page, API keys and bookmarks**
+  Boss (2026-10-09 23:53Z): "Add to-do items to build static
+  documentation pages for all features accessible through the web
+  interface." Done: /login, the one-time code step, /account, two-factor
+  setup, API keys and their scopes (API.9 when built), bookmarks (UX.47
+  when built) and what is stored about a signed-in user. The page is a
+  Markdown file in docs/help/ built into the Help section, linked from
+  each page it describes, and updated by any later change to those
+  features (a feature item is not done until its help text is).
+  Prerequisites: DOC.6. Related: DOC.6.
+
+- [ ] **DOC.13 The Generate page help pages: layer specs, spans, radial fills, directives, one-off systems and jobs**
+  Boss (2026-10-09 23:53Z): "Add to-do items to build static
+  documentation pages for all features accessible through the web
+  interface." Done: /admin/generate and its job pages: the layer specs,
+  Customize window, spans and radial fills (ADM.28, ADM.29, ADM.30),
+  directives (GEN.96), random neighbourhoods (GEN.97), the one-off
+  system generator (/admin/generate/system) and its download, reading a
+  job log and the progress bars, and what a regeneration changes. The
+  page is a Markdown file in docs/help/ built into the Help section,
+  linked from each page it describes, and updated by any later change to
+  those features (a feature item is not done until its help text is).
+  Prerequisites: DOC.6. Related: DOC.6.
+
+- [ ] **DOC.14 The admin help pages: the queue, the stats page, settings, lockouts and the naming key**
+  Boss (2026-10-09 23:53Z): "Add to-do items to build static
+  documentation pages for all features accessible through the web
+  interface." Done: /admin, /admin/queue and its tree, confirm and
+  action pages, /admin/stats (galaxy settings, naming key, lockouts),
+  the worker count and the performance statistics (PERF.32), and which
+  actions cannot be undone. The page is a Markdown file in docs/help/
+  built into the Help section, linked from each page it describes, and
+  updated by any later change to those features (a feature item is not
+  done until its help text is).
+  Prerequisites: DOC.6. Related: DOC.6.
+
+- [ ] **DOC.15 A glossary and units help page: coordinates, scales, sector paths, object IDs, time and the in-universe wording**
+  Boss (2026-10-09 23:53Z): "Add to-do items to build static
+  documentation pages for all features accessible through the web
+  interface." Done: the coordinate frames (galactic, sector, system),
+  the unit ladder and when a unit switches (UX.22, UX.23, UX.78, UX.81),
+  sector addresses and paths, the object ID (GEN.170), the epoch and
+  time scales, and the in-universe terms (UX.42), each with a worked
+  example. The page is a Markdown file in docs/help/ built into the Help
+  section, linked from each page it describes, and updated by any later
+  change to those features (a feature item is not done until its help
+  text is).
+  Prerequisites: DOC.6. Related: DOC.6.
+
+- [ ] **DOC.16 The API help page for visitors: what the API is, how to get a key, and where the reference lives**
+  Boss (2026-10-09 23:53Z): "Add to-do items to build static
+  documentation pages for all features accessible through the web
+  interface." Done: a short non-developer page on the API (/api): what
+  it can do, getting a key, rate and upload limits, versioning (API.22),
+  and a link to the full reference in docs/api.md; kept in step with
+  that file. The page is a Markdown file in docs/help/ built into the
+  Help section, linked from each page it describes, and updated by any
+  later change to those features (a feature item is not done until its
+  help text is).
+  Prerequisites: DOC.6. Related: DOC.6.
 
 ## VIEW: The view from a planet
 

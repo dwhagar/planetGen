@@ -718,6 +718,31 @@ def _phenomenon_min_mass(args):
     return float(program_constants.PHENOMENON_MIN_MASS_SOLAR if value is None else value)
 
 
+def _scatter_phenomena_layers(args, progress, task, layers_done, layers, weights, layer_done, mysql_config,
+                              skeleton, e_value, seed, min_mass_solar, filled):
+    """The layers of the phenomenon scatter through the work queue, the bar `task` credited with each
+    layer's expected work as it finishes (UX.83)."""
+    def done_with(layer_index):
+        def on_done(layer_counts, seconds, weight):
+            layer_done(layer_counts, seconds, weight)
+            layers_done[0] += 1
+            progress.update(task, advance=weights[layer_index],
+                            description=f"Phenomena ({layers_done[0]:,} of {len(layers):,} layers)")
+        return on_done
+
+    with run_common._work_queue(args, "Phenomena") as queue:
+        queue.expect(len(layers))
+        for layer_index, outer_ring in layers:
+            payload = {
+                "mysql_config": mysql_config, "shape": skeleton.shape, "layer_index": layer_index,
+                "outer_ring": outer_ring, "edge_pc": skeleton.edge_pc, "expected": e_value, "seed": seed,
+                "min_mass_solar": min_mass_solar,
+                "skip": {address for address in filled if address[1] == layer_index},
+            }
+            queue.submit("phenomena", f"layer {layer_index}", _phenomenon_layer_task, payload,
+                         weight=weights[layer_index], on_done=done_with(layer_index))
+
+
 def scatter_phenomena(args):
     """
     Pre-places the galaxy's black holes, neutron stars, planetary nebulae
@@ -761,17 +786,17 @@ def scatter_phenomena(args):
             run_common._generation_stats(args).record("phenomena", 0.0, seconds, systems=placed, stars=placed,
                                                       workers=run_common._worker_count(args))
 
-        with run_common._work_queue(args, "Phenomena") as queue:
-            queue.expect(len(layers))
-            for layer_index, outer_ring in layers:
-                payload = {
-                    "mysql_config": mysql_config, "shape": skeleton.shape, "layer_index": layer_index,
-                    "outer_ring": outer_ring, "edge_pc": skeleton.edge_pc, "expected": e_value, "seed": seed,
-                    "min_mass_solar": min_mass_solar,
-                    "skip": {address for address in filled if address[1] == layer_index},
-                }
-                queue.submit("phenomena", f"layer {layer_index}", _phenomenon_layer_task, payload,
-                             weight=weights[layer_index], on_done=layer_done)
+        with run_common._generation_progress() as progress:
+            log.set_console(progress.console)
+            task = progress.add_task(f"Phenomena (0 of {len(layers):,} layers)", total=max(sum(weights.values()), 1.0),
+                                     percent=True)
+            progress.main_task = task
+            layers_done = [0]
+            try:
+                _scatter_phenomena_layers(args, progress, task, layers_done, layers, weights, layer_done,
+                                          mysql_config, skeleton, e_value, seed, min_mass_solar, filled)
+            finally:
+                log.reset_console()
         special = list(phenomenon_scatter.special_rows(extents, skeleton.edge_pc, seed, filled))
         store.insert_phenomenon_scatter(conn, special)
         store.stamp_phenomenon_scatter_epoch(conn)

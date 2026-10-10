@@ -444,3 +444,24 @@ def test_a_scatter_with_no_stored_cut_draws_nothing_below_one(mysql_config, monk
     _id, _name, sector = run_galaxy.generate_and_save_sector_at(
         args, address, sector_position_pc(*address, EDGE_PC), EDGE_PC)
     assert not [entry for entry in sector.phenomena if entry.phenomenon_type == "neutron-star"]
+
+
+def test_the_phenomenon_scatter_has_a_bar_that_ends_full(mysql_config, tmp_path, monkeypatch):
+    """UX.83: the scatter reports a bar of its own (to the terminal and the Generate page's progress file)."""
+    from planetgen.queue import progress_file
+
+    monkeypatch.setenv(progress_file.ENV_VAR, str(tmp_path / "progress.json"))
+    reports = []
+    real = progress_file.report
+
+    def record(completed, total=None, description=None, **kwargs):
+        reports.append((description, completed, total))
+        real(completed, total, description, **kwargs)
+
+    monkeypatch.setattr(progress_file, "report", record)
+    _seed_galaxy(mysql_config)
+    run_plan.scatter_phenomena(_plan_args(mysql_config))
+    bar = [report for report in reports if report[0].startswith("Phenomena (")]
+    assert bar and bar[0][1] == 0 and bar[0][2] > 0
+    assert bar[-1][0].startswith(f"Phenomena ({len(EXTENTS):,} of {len(EXTENTS):,} layers)")
+    assert bar[-1][1] == pytest.approx(bar[-1][2])
