@@ -25,6 +25,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | USR.2 | Accounts with roles: user, admin and Owner |  | Control schema; no blockers, placed late by priority. |
+| MAP.170 | The Galaxy Map gravity layer: the galaxy potential and region aggregates, coarse and optional | MAP.168, MAP.151 | Later; only if PERF.72 says it is cheap. |
 | API.6 | User-level API keys, owned by the account that created them, that can read but not upload | USR.2 | Boss 01:31Z: every key belongs to the account that made it, so it follows USR.2. The API call logging he asked for is filed separately. |
 | USR.3 | SMTP settings in the admin config | USR.2 |  |
 | USR.4 | Invite-only sign-up by unique link | USR.2, USR.3 |  |
