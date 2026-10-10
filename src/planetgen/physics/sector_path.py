@@ -247,11 +247,13 @@ def relevant_masses(position, velocity, masses, edge_m, softening_m=DEFAULT_SOFT
 
 
 def _acceleration(position, masses, softening_sq):
+    """The pull at `position`; `masses` as `(x, y, z, mu)` tuples (`integrate_path` unpacks them once)."""
     ax = ay = az = 0.0
-    for mass in masses:
-        dx, dy, dz = mass.position[0] - position[0], mass.position[1] - position[1], mass.position[2] - position[2]
+    px, py, pz = position
+    for mx, my, mz, mu in masses:
+        dx, dy, dz = mx - px, my - py, mz - pz
         r2 = dx * dx + dy * dy + dz * dz + softening_sq
-        k = mass.mu / (r2 * math.sqrt(r2))
+        k = mu / (r2 * math.sqrt(r2))
         ax += k * dx
         ay += k * dy
         az += k * dz
@@ -260,11 +262,12 @@ def _acceleration(position, masses, softening_sq):
 
 def _step_size(position, speed, masses, softening_sq, max_step):
     step = max_step
-    for mass in masses:
-        dx, dy, dz = mass.position[0] - position[0], mass.position[1] - position[1], mass.position[2] - position[2]
+    px, py, pz = position
+    for mx, my, mz, mu in masses:
+        dx, dy, dz = mx - px, my - py, mz - pz
         r2 = dx * dx + dy * dy + dz * dz + softening_sq
         r = math.sqrt(r2)
-        step = min(step, STEP_FRACTION * math.sqrt(r * r2 / mass.mu), STEP_FRACTION * r / speed)
+        step = min(step, STEP_FRACTION * math.sqrt(r * r2 / mu), STEP_FRACTION * r / speed)
     return max(step, max_step * 1.0e-6)
 
 
@@ -370,6 +373,7 @@ def integrate_path(position, velocity, masses, inside, edge_m, softening_m=DEFAU
         tolerance_m = DEFAULT_TOLERANCE_FRACTION * edge_m
     softening_sq = softening_m * softening_m
     active = relevant_masses(position, velocity, masses, edge_m, softening_m, tolerance_m, exclude_key=exclude_key)
+    active = [(m.position[0], m.position[1], m.position[2], m.mu) for m in active]
     max_step = edge_m / (speed * 20.0)
     max_time = CROSSINGS_ALLOWED * edge_m / speed
 
