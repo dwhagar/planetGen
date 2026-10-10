@@ -875,6 +875,22 @@ of one sector and in the Galactic Frame otherwise
 `{node, sector_id, sector_position_ly}` per id in `path` (both `null` for a
 phenomenon end). The NAV page shows each course as `045 mark 012, 3.2 ly`.
 
+**Charting a course (NAV.48).** `GET /api/nav/chart?from=<ref>&to=<ref>[&border=1]`
+works out the uncharted sectors that block a course, without generating
+anything: `unknown_hops` (how many hops of the route cross unknown space),
+`cells` (`[ring, layer, slot]` of the cells those hops cross that hold no
+sector and lie inside the galaxy's outline, in the order the route enters
+them; `border=1` adds the uncharted cells that share a face with them),
+`count`, `outside_galaxy` (uncharted cells past the outline, never offered),
+`route_distance_ly`, `bypass` (`{found, distance_ly, checked}`, `null` when no
+hop is unknown: whether a route through charted space exists; `checked` false
+means the search gave up after `tuning.NAV_BYPASS_MAX_EDGES` hops) and
+`confirm_over` (`tuning.NAV_CHART_CONFIRM_SECTORS`, 5,000: past it charting
+asks for a confirmation). The cells are those of the unknown hops only, not
+every cell on the straight line. Errors are as for `/api/nav`. The NAV chart
+page (`/nav/chart`, admins) starts the job through the Generate page, which
+shows the size and time first and refuses a run the disk cannot hold.
+
 **Travel times for the route (NAV.11).** Each `route.hops` entry also has
 `warp_times` and `fold_times` for that hop alone (the same factors as the
 top-level lists), and the route has `warp_times` and `fold_times` for the

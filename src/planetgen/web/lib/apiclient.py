@@ -463,6 +463,17 @@ def get_nav(db, from_ref, to_ref, stay=None):
     return _request("/nav", params)
 
 
+def get_nav_chart(db, from_ref, to_ref, border=False):
+    """Returns `GET /api/nav/chart` (NAV.48): the uncharted sectors that block the course between two
+    objects -- `unknown_hops`, `cells`, `count`, `outside_galaxy`, `route_distance_ly`, `bypass` and
+    `confirm_over`; `border` adds the uncharted cells next to them."""
+    _require_db(db)
+    params = {"db": db, "from": from_ref, "to": to_ref}
+    if border:
+        params["border"] = 1
+    return _request("/nav/chart", params)
+
+
 def get_galaxy_sectors(db):
     """Returns `GET /api/galaxy/sectors`'s `items` list (every
     galaxy-placed sector)."""

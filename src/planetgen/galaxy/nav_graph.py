@@ -319,7 +319,7 @@ def build_route_graph(positions, k, island_links):
     return join_islands(build_knn_adjacency(positions, k), positions, island_links)
 
 
-def shortest_path(graph, start_id, end_id, positions=None):
+def shortest_path(graph, start_id, end_id, positions=None, blocked=None):
     """
     Finds the shortest path from `start_id` to `end_id` through `graph`:
     Dijkstra's algorithm, or A* when `positions` is given, with the
@@ -334,6 +334,9 @@ def shortest_path(graph, start_id, end_id, positions=None):
         end_id: The id to route to. Must be a key in `graph`.
         positions (dict, optional): `{id: (x, y, z)}` for every id in
                       `graph`, the units the edge distances are in.
+        blocked (callable, optional): `blocked(a, b)` is true for an edge the
+                      path must not use (NAV.48's bypass test: a hop through
+                      unknown space). It is asked lazily, once per edge looked at.
 
     Returns:
         tuple or None: `(path, total_distance)` where `path` is the list
@@ -372,6 +375,8 @@ def shortest_path(graph, start_id, end_id, positions=None):
 
         for neighbor_id, edge_distance in graph.get(current_id, {}).items():
             if neighbor_id in visited:
+                continue
+            if blocked is not None and blocked(current_id, neighbor_id):
                 continue
             candidate_distance = distance + edge_distance
             if candidate_distance < best_distance.get(neighbor_id, math.inf):

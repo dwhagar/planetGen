@@ -101,6 +101,10 @@ class FakeData:
         self.nav_error = None
         self.nav_galaxy_scope = False
         self.nav_unknown_space = False
+        self.nav_chart_error = None
+        self.nav_chart = {"unknown_hops": 2, "cells": [[1980, 0, 1], [1980, 0, 2]], "outside_galaxy": 1,
+                          "route_distance_ly": 40.0, "confirm_over": 5000,
+                          "bypass": {"found": False, "distance_ly": None, "checked": True}}
         self.action_error = None
         self.bright_stars = {}
 
@@ -184,6 +188,12 @@ class FakeData:
             "note": "Same warp and fold tables." if kind in objectref.BODY_KINDS else None,
         }
 
+    def get_nav_chart(self, db, from_ref, to_ref, border=False):
+        self.calls.append(("get_nav_chart", db, from_ref, to_ref, border))
+        if self.nav_chart_error:
+            raise self.nav_chart_error
+        return {**self.nav_chart, "count": len(self.nav_chart["cells"]) + (3 if border else 0)}
+
     def get_wiki_config(self):
         return self.wiki_config
 
@@ -215,7 +225,7 @@ class FakeData:
         return {"generated": 4, "already_existed": 2, "candidates": 6}
 
 
-_FAKED = ("get_sector", "get_galaxy_shape", "get_sector_facilities", "get_bright_stars_in_cell", "get_sectors", "get_system", "get_object", "get_phenomenon", "get_nav", "get_wiki_config",
+_FAKED = ("get_sector", "get_galaxy_shape", "get_sector_facilities", "get_bright_stars_in_cell", "get_sectors", "get_system", "get_object", "get_phenomenon", "get_nav", "get_nav_chart", "get_wiki_config",
           "auth_me", "upload_sector_to_wiki", "admin_set_sector_wiki_url", "generate_sector_neighborhood")
 
 
@@ -1298,3 +1308,58 @@ def test_a_long_route_shows_its_ends_its_longest_hop_and_every_unknown_hop():
     assert [item["name"] for item in short] == ["S0", "S6", "S7", "S10", "S11", f"S{count - 3}", f"S{count - 2}", f"S{count - 1}"]
     assert [bool(item["gap_before"]) for item in short] == [False, True, False, True, False, False, False, False]
     assert _route_short_list(stops[:ROUTE_COLLAPSE_AT], {"hops": hops}) is None
+
+
+def test_nav_chart_is_for_admins_and_the_route_page_links_to_it_only_for_them(client, fake):
+    """NAV.48: the link to chart the sectors that block a course shows only to a logged-in admin, and only when a hop is unknown."""
+    fake.nav_unknown_space = True
+    assert "Chart those sectors" not in client.get("/nav?from=system:1001&to=system:1002").get_data(as_text=True)
+    response = client.get("/nav/chart?from=system:1001&to=system:1002")
+    assert response.status_code == 302 and "/login" in response.headers["Location"]
+
+    _log_in(client, fake)
+    html = client.get("/nav?from=system:1001&to=system:1002").get_data(as_text=True)
+    assert re.search(r'<a href="/nav/chart\?[^"]*">Chart those sectors', html)
+    fake.nav_unknown_space = False
+    assert "Chart those sectors" not in client.get("/nav?from=system:1001&to=system:1002").get_data(as_text=True)
+
+
+def test_nav_chart_page_shows_the_plan_and_posts_the_job_to_the_generate_page(client, fake):
+    _log_in(client, fake)
+    html = client.get("/nav/chart?from=system:1001&to=system:1002").get_data(as_text=True)
+
+    assert "2 hops of the route cross unknown space" in html and "generating 2 sectors" in html
+    assert "1 uncharted cell on the line lies outside the galaxy" in html
+    assert "No route through charted space exists" in html
+    form = re.search(r'<form method="post" action="/admin/generate".*?</form>', html, re.S).group(0)
+    assert f'name="{csrf.FIELD_NAME}"' in form
+    for field in ('name="action" value="galaxy"', 'name="mode" value="course"',
+                  'name="course_from" value="system:1001"', 'name="course_to" value="system:1002"'):
+        assert field in form
+    assert "course_border" not in form and "course_confirm" not in form
+    assert ("get_nav_chart", DB, "system:1001", "system:1002", False) in fake.calls
+
+
+def test_nav_chart_border_confirmation_and_bypass(client, fake):
+    _log_in(client, fake)
+    html = client.get("/nav/chart?from=system:1001&to=system:1002&border=1").get_data(as_text=True)
+    assert "generating 5 sectors (a border of one cell included)" in html
+    assert 'name="course_border" value="1"' in html and ("get_nav_chart", DB, "system:1001", "system:1002", True) in fake.calls
+
+    fake.nav_chart = {**fake.nav_chart, "confirm_over": 1,
+                      "bypass": {"found": True, "distance_ly": 55.0, "checked": True}}
+    html = client.get("/nav/chart?from=system:1001&to=system:1002").get_data(as_text=True)
+    assert 'name="course_confirm" value="1" required' in html and "need confirming" in html
+    assert "A route through charted space exists, 16.9 pc (55 ly) against 12.3 pc (40 ly)" in html and "charting is optional" in html
+
+
+def test_nav_chart_with_nothing_to_chart_or_no_course(client, fake):
+    _log_in(client, fake)
+    fake.nav_chart = {**fake.nav_chart, "unknown_hops": 0, "cells": [], "outside_galaxy": 0, "bypass": None}
+    html = client.get("/nav/chart?from=system:1001&to=system:1002").get_data(as_text=True)
+    assert "nothing to chart" in html and "Chart these sectors" not in html
+
+    fake.nav_chart_error = apiclient.ApiError("planetGen API error (400): NAV requires both endpoints to share a sector", 400)
+    html = client.get("/nav/chart?from=system:1001&to=system:1002").get_data(as_text=True)
+    assert "NAV requires both endpoints to share a sector" in html and "planetGen API error" not in html
+    assert client.get("/nav/chart").status_code == 302
