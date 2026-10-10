@@ -3409,28 +3409,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   pages. Still open: the command-line overall bar, only if Boss asks;
   and the whole-job layers-per-second stat noted above.
 
-- [ ] **PERF.56 Record how long each stage of a staged job takes, with the settings it ran with**
-  Boss (2026-10-10 07:54Z, via the coordinator): record stats on how
-  long each stage takes with the settings it is given (mass limit,
-  luminosity floor, layers, workers and the rest). Done: each stage of
-  every staged job (see the stage-count bug UX.89) stores its name, number,
-  skipped flag and reason, start and end, and the settings that shaped
-  it; a stats view or the admin stats table shows the history by stage
-  and settings; the estimator of PERF.33 and the overall bar of PERF.55
-  can read it. Owner: Bugfixes lane 1, after the stage-count fix (UX.89, merged in PR #1057).
-  Prerequisites: none. Related: PERF.32, PERF.33, PERF.52, PERF.54,
-  PERF.55.
-  Layers modified (2026-10-09): Boss addition (2026-10-10 08:34Z): for
-  every scatter action also store the number of layers modified, kept in
-  separate rows per mass floor and per luminosity floor used (a run at 8
-  Msun and one at 14 Msun, or at 5,000 and 9,000 Lsun, are different
-  rows). With the object-first sampler (PERF.58) the row records layers visited
-  and layers modified.
-  GEN.187 stage (2026-10-10): no new stage needed. The existing backfill
-  stage is now labelled "Scatter the massive stars from the neighborhood"
-  (PR #1062); PERF.56 records its timing and layers like the other
-  scatters.
-
 - [ ] **PERF.58 Object-first star sampler for the mass and luminosity passes (top priority, replaces PERF.57)**
   Boss (2026-10-10 09:52Z, via the coordinator and Research lane 3):
   follow the recommendations of the scatter study
@@ -3481,7 +3459,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   is needed after the update; a statistical test compares it with the
   per-layer expected counts on a small galaxy. This replaces PERF.57,
   which is retired as superseded. Owner: Bugfixes lane
-  1, first in its queue after TEST.124 and ahead of PERF.56.
+  1, first in its queue after TEST.124.
   Prerequisite: PERF.60. Related: PERF.56, PERF.59, PERF.60, PERF.61,
   GEN.185, GEN.195.
 
@@ -4214,7 +4192,7 @@ clears each one.
   and without the class totals, the 15 tests pass, and the cause is
   named here. Check first whether the page itself breaks for a real
   galaxy (GEN.193 still wants confirming that the table shows rows after
-  a real run). Owner: Bugfixes lane 1, FIRST in the lane, ahead of PERF.56 (priority
+  a real run). Owner: Bugfixes lane 1, FIRST in the lane (priority
   fix: main is red and the other lanes are merging onto it).
   Prerequisites: none. Related: GEN.193, PERF.56.
 
