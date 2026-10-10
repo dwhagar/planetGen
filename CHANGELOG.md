@@ -3,6 +3,7 @@
 ## [8.0.911] - 2026-10-10
 
 ### Changed
+- TODO list: TEST.123, TEST.122 and the PERF.55 remainder assigned to Bugfixes lane 2.
 - TODO list: ADM.49 retired (merged, PR #1116; schema v81).
 - `planetgen plan --arm-amplitude` is replaced by `--arm-density` and `--interarm-density` (the usual 1.4 and 0.6 are the old 0.4). Galaxy settings files saved with the old option name must be saved again.
 - TODO list: MAP.157 retired (merged, PR #1112); MAP.159 notes the brotli copy that was not built.
