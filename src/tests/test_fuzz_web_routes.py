@@ -124,7 +124,7 @@ PARAM_NAMES = sorted({
     "from", "to", "from_kind", "to_kind", "from_type", "to_type", "from_id", "to_id", "from_sector",
     "to_sector", "radius", "star_type", "sector_id", "ring", "layer", "slot", "x", "y", "z", "q",
     "sector_q", "system_q", "star_q", "planet_q", "moon_q", "type", "spectral", "luminosity", "class",
-    "body", "life", "moon_class", "moon_body", "moon_life", "job",
+    "body", "life", "equipment", "moon_class", "moon_body", "moon_life", "moon_equipment", "job",
 })
 
 # Numbers written every way a hand-edited URL might.
