@@ -153,13 +153,21 @@
 {%- if estimate %}
 
 <section class="panel" id="estimate" aria-labelledby="estimate-heading">
-  <h2 id="estimate-heading">{{ estimate_title }}: size and time</h2>
+  <h2 id="estimate-heading">{{ estimate_title }}: {{ "time" if estimate.deep_check else "size and time" }}</h2>
+  {%- if estimate.deep_check %}
+  <dl class="estimate-facts">
+    <dt>Star systems</dt><dd>{{ num(estimate.systems) }} to load and validate, besides the table checks</dd>
+    <dt>Time</dt><dd>About {{ estimate.time_text }}{% if not estimate.measured %} (this server's speed isn't measured yet, so this is a rough guess){% endif %}</dd>
+  </dl>
+  <p class="hint">The check changes nothing. It runs as a job you can watch and cancel.</p>
+  {%- else %}
   <dl class="estimate-facts">
     <dt>Sectors</dt><dd>{{ num(estimate.sectors) }} (about {{ num(estimate.systems) }} star systems, {{ num(estimate.stars) }} stars)</dd>
     <dt>Database growth</dt><dd>About {{ estimate.size_text }} (10% margin included)</dd>
     <dt>Time</dt><dd>About {{ estimate.time_text }} with {{ estimate.workers }} worker{{ "" if estimate.workers == 1 else "s" }}{% if not estimate.measured %} (this server's speed isn't measured yet, so this is a rough default){% endif %}</dd>
     <dt>Database disk</dt><dd>{{ estimate.disk_text or estimate.disk_note_text or "Not measured, so nothing is refused for space." }}</dd>
   </dl>
+  {%- endif %}
   {%- if estimate.refused %}
   <p class="error" role="alert">{{ estimate.refusal }}</p>
   <p class="hint">You can still generate it. Generating anyway is recorded in the activity log.</p>
@@ -174,7 +182,7 @@
     <input type="hidden" name="{{ generate_anyway_field }}" value="1">
     {%- endif %}
     <div class="search-actions">
-      <button type="submit" class="btn"{% if active %} disabled{% endif %}>{{ "Generate anyway" if estimate.refused else "Generate" }}</button>
+      <button type="submit" class="btn"{% if active %} disabled{% endif %}>{{ "Check" if estimate.deep_check else ("Generate anyway" if estimate.refused else "Generate") }}</button>
       <a class="btn" href="{{ url_for('web.generate') }}">Cancel</a>
     </div>
   </form>
@@ -432,6 +440,8 @@
   <form method="post" action="{{ url_for('web.generate') }}" class="search-form">
     {{ csrf_field() }}
     <input type="hidden" name="action" value="check_db">
+    <label class="check"><input type="checkbox" name="deep" value="1"> Deep check: also validate every star system
+      and run the slower table checks. It shows the time it expects first and asks you to confirm.</label>
     <div class="search-actions">
       <button type="submit" class="btn"{% if busy %} disabled{% endif %}>Check the database</button>
     </div>

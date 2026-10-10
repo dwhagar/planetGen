@@ -464,7 +464,7 @@ Not built yet. Each names its TODO item and phase; the design is in
 
 | Command or option | Item | Phase | What it will do |
 |---|---|---|---|
-| `planetgen check-db [--sector S] [--region R]` | DB.8 | 0 | Check the galaxy and control databases without changing anything (schema, orphans, ids, names, values, counts) and exit non-zero when damage is found; also a button on the Admin dashboard. |
+| `planetgen check-db [--sector S] [--region R] [--deep [--yes] [--estimate-only]]` | DB.8, DB.21 | 0 | Check the galaxy and control databases without changing anything (schema, orphans, ids, names, values, counts) and exit non-zero when damage is found; `--deep` also validates every star system after showing a time estimate and asking to confirm (`--yes` skips the question). Also a button on the Admin dashboard. |
 | Version-key history listing | OPS.13 | 1 | List the last 10 version keys recorded for a galaxy by `update.sh`. |
 | `planetgen repair-db` | DB.9 | 1 | Rebuild damaged sectors from the parity file, or regenerate them from their seed when the version key matches, then check again. |
 | `--strict` | GEN.81 | 0 | Today's refusals (density, qualify, size, no room) become warnings and the run goes ahead; `--strict` keeps the old stop for scripts. |

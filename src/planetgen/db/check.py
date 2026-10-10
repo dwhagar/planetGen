@@ -29,6 +29,11 @@ The checks:
    from the star systems filed in the sector (an orbit refile moves a
    system without updating the stats).
 7. `version keys`: every sector has a well formed version key.
+8. `systems` (`--deep` only, DB.21): every star system is loaded and run
+   through `validation.check_star_system` (orbit spacing, the stable-orbit
+   ceiling, each planet's moons). Slow, so `deep_estimate` tells how long
+   first, from the speed this server recorded for it, and the pass draws
+   its own progress bar.
 
 `--ring` and `--sector` scope the value, count and version-key checks to
 those sectors; the others always look at the whole database. A galaxy too
@@ -44,6 +49,7 @@ from alembic.autogenerate import compare_metadata
 from alembic.migration import MigrationContext
 
 from planetgen.db import alembic_runner, models, store
+from planetgen.generation import steps, validation
 
 MAX_ROWS_SHOWN = 10
 """int: How many offending rows a problem lists before "and N more"."""
@@ -397,6 +403,80 @@ def check_version_keys(ctx):
                     [f"sector id {row['id']}: {row['k']!r}" for row in bad])]
 
 
+DEEP_STATS_KIND = "db-check"
+"""str: The `generation_stats` kind the per-system pass records its speed under (a unit is a system)."""
+
+DEEP_FALLBACK_SECONDS_PER_SYSTEM = 0.04
+"""float: Seconds a system takes to load and validate when the server has no speed recorded: a measured
+figure on a mid-size server with a margin, so a first estimate errs long."""
+
+
+@dataclass
+class DeepEstimate:
+    """What the `--deep` per-system pass will take: `systems` to validate, `seconds`, and whether `measured`
+    (from this server's recorded speed) or a fallback guess."""
+    systems: int
+    seconds: float
+    measured: bool
+
+    def summary(self):
+        from planetgen.generation import stats as generation_stats
+
+        basis = ("from the speed this server recorded" if self.measured
+                 else "a rough guess: this server has not recorded the speed yet")
+        return (f"Deep check: {self.systems:,} star systems to validate, about "
+                f"{generation_stats.format_duration(self.seconds)} ({basis}), plus the table checks.")
+
+    def as_dict(self):
+        return {"deep_check": True, "systems": self.systems, "seconds": self.seconds, "measured": self.measured,
+                "what": "the deep database check", "summary": self.summary()}
+
+
+def _system_ids(conn, scope):
+    where, params = scope.where("sector_id")
+    return [row["id"] for row in conn.execute(
+        f"SELECT id FROM star_systems WHERE 1 = 1{where} ORDER BY id", params).fetchall()]
+
+
+def deep_estimate(conn, config, scope=None):
+    """The `DeepEstimate` for validating every star system in `scope` (all by default), from the recorded
+    speed of the pass (`DEEP_STATS_KIND`), else `DEEP_FALLBACK_SECONDS_PER_SYSTEM` a system."""
+    from planetgen.generation import run_common
+
+    where, params = (scope or Scope()).where("sector_id")
+    count = conn.execute(f"SELECT COUNT(*) AS n FROM star_systems WHERE 1 = 1{where}", params).fetchone()["n"]
+    stats = run_common._stats_for_config(config)
+    seconds = steps.predict(stats, DEEP_STATS_KIND, count)
+    if seconds is None:
+        return DeepEstimate(count, count * DEEP_FALLBACK_SECONDS_PER_SYSTEM, False)
+    return DeepEstimate(count, seconds, True)
+
+
+def check_systems(ctx):
+    """Every star system in scope loads and passes `validation.check_star_system`. One problem lists each
+    failing system with what is wrong (a system that cannot be loaded says so). Only run with `--deep`."""
+    from planetgen.generation import run_common
+
+    ids = _system_ids(ctx.conn, ctx.scope)
+    failing = []
+    stats = run_common._stats_for_config(ctx.config)
+    with steps.step("Validating star systems", DEEP_STATS_KIND, len(ids), stats=stats, own=True) as bar:
+        for system_id in ids:
+            try:
+                system = store.load_star_system(ctx.conn, system_id)
+                found = validation.check_star_system(system)
+                lines = [f"{problem.body}: {problem.message}" for problem in found]
+                name = system.name
+            except Exception as exc:  # noqa: BLE001 -- a system that will not load is the finding
+                lines, name = [f"could not be loaded or checked: {type(exc).__name__}: {exc}"], "?"
+            if lines:
+                failing.append(f"star system {name!r} (id {system_id}): " + "; ".join(lines))
+            bar.advance()
+    if not failing:
+        return []
+    return [Problem(f"{len(failing)} star system(s) fail validation.", failing)]
+
+
 CHECKS = (
     ("revision", check_revision),
     ("tables", check_tables),
@@ -424,7 +504,7 @@ def run_checks(conn, config, scope=None, deep=False, check_table=True, on_progre
     """
     ctx = _Context(conn, config, scope or Scope(), deep, check_table)
     results = []
-    for name, function in CHECKS:
+    for name, function in CHECKS + ((("systems", check_systems),) if deep else ()):
         if on_progress is not None:
             on_progress(name)
         try:
