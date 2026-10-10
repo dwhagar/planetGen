@@ -2,6 +2,13 @@
 
 ## [8.0.911] - 2026-10-10
 
+### Fixed
+- The Galaxy Map's "Dimmest star shown" slider says "every star" only when the view holds every star there is (an open sector). At galaxy scale, where tiles are capped and some sectors are uncharted, it names the dimmest star the view actually carries (MAP.166).
+- Galaxy Map: the "Dimmest star shown" slider now runs from the dimmest to the brightest star the current view's tiles actually carry, at galaxy scale too, instead of stopping at a fixed 2,500 solar luminosities (MAP.163 follow-up). 0 still shows every star.
+- Galaxy Map: the galactic nucleus now shows from the whole-galaxy view whether it is a quasar or a supermassive black hole, and stays there once its sector is filled (MAP.164 follow-up). The nucleus quasar was missing from the scattered objects the map lists.
+- `./update.sh` step 8 ("Checking the cache, jobs and debug log locations") no longer fails with `FileNotFoundError` on `util/appconfig.py`; `setup-debug-log.sh` now loads the log paths from `util/logpaths.py`, so the logs and their rotation are set up again. Two new tests (the log-location check runs against the checkout; deploy scripts only name repo paths that exist) fail on the old script.
+- The star scatter pass tests use a luminosity floor the toy galaxy can fill with lighter stars, since the real floor now starts at 2,500 solar luminosities (GEN.184).
+
 ### Changed
 - PERF.58: final stack rule (no layer grouping; per-layer sampler) and several objects per sector by capacity tiers, from Research lane 3 (PR #1068); PERF.61 follows the same tiers.
 - Filed PERF.58 to PERF.61 (object-first scatter sampler, shared ring inputs, large-mean Poisson helper, phenomena sampler; top priority) from the scatter study; PERF.57 is superseded by PERF.58.
@@ -113,12 +120,6 @@
 - **Surface radiation dose, UV and galactic hazards (GEN.87).** Every rocky planet and moon now stores its yearly surface dose in mSv (cosmic rays through the air and any dipole, stellar particles, crust and radon, and a cosmic-ray boost while a nebula or remnant presses on its star), a DNA-weighted UV index after the ozone layer, and an ozone-loss flag. Each star stores how many lethal supernovae per Gyr its place in the galaxy brings. Schema v75. Seeded output differs from earlier versions (the crust draws one more value per rocky body).
 - The mass limit (GEN.183) is now picked from the presets 8, 10, 12, 14, 16, 18 and 20 solar masses, 20 by default: a slider in the Generate page's new galaxy and plan forms, and `--phenomenon-min-mass` on the command line, which refuses any other value. Every star, neutron star and black hole at or above it is placed across the whole galaxy; lighter ones are drawn when their sector is made.
 - Every rocky planet and moon now has a hydrosphere (GEN.88): its water share of its mass, where the water is (dry, in the air, frozen, under ice, open ocean, or a hycean ocean under hydrogen), how much of the surface is ocean and land, the ocean's depth, any ice lid and high-pressure ice beneath, and the ocean's chemistry class (ice-sealed, chloride brine, acid sulfate, soda or neutral) with its pH, water activity and phosphorus supply. Schema v74.
-
-### Fixed
-- Galaxy Map: the "Dimmest star shown" slider now runs from the dimmest to the brightest star the current view's tiles actually carry, at galaxy scale too, instead of stopping at a fixed 2,500 solar luminosities (MAP.163 follow-up). 0 still shows every star.
-- Galaxy Map: the galactic nucleus now shows from the whole-galaxy view whether it is a quasar or a supermassive black hole, and stays there once its sector is filled (MAP.164 follow-up). The nucleus quasar was missing from the scattered objects the map lists.
-- `./update.sh` step 8 ("Checking the cache, jobs and debug log locations") no longer fails with `FileNotFoundError` on `util/appconfig.py`; `setup-debug-log.sh` now loads the log paths from `util/logpaths.py`, so the logs and their rotation are set up again. Two new tests (the log-location check runs against the checkout; deploy scripts only name repo paths that exist) fail on the old script.
-- The star scatter pass tests use a luminosity floor the toy galaxy can fill with lighter stars, since the real floor now starts at 2,500 solar luminosities (GEN.184).
 
 ### Removed
 - Windows support (OPS.39). `install.ps1`, `update.ps1`, `scripts/deploy-common.ps1`, `examples/maintenance/install-maintenance-task.ps1`, `examples/windows/` and `docs/deployment/windows.md` are gone, as are the Windows CI jobs (`windows-jobs`, `windows-installers`), the Windows branches in the code (the detached-process, `taskkill` and `OpenProcess` handling of Generate page jobs and the no-Redis fallback to run a job directly, the CPU-percent load reading on the admin queue page, `SpawnWorker`, the below-normal worker priority class, the checkout-relative log and settings folders, drive-letter disk measuring) and the Windows-only tests. The admin Generate page's jobs now always run on Redis, and the queue page shows only the load average. `waitress` leaves the `server` extra and `requirements-server.lock`.
