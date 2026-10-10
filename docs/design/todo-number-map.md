@@ -872,7 +872,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.8 | Pages and anchors for stars, planets, moons and belts | none | done, PR #1095 |
 | NAV.9 | Search and locate return references for every kind | none | open |
 | NAV.10 | Routing that scales past a few thousand systems | none | done, PR #814 |
-| NAV.11 | Travel times for the system-to-system route too | none | open |
+| NAV.11 | Travel times for the system-to-system route too | none | done, PR #1099 |
 | NAV.12 | No maximum hop length: a route always reaches the nearest star it can, across any number of sectors | none | done, PR #841 |
 | NAV.13 | A picker module: select, step out, step in, step sideways | none | done, PR #564 |
 | NAV.14 | One breadcrumb for every level | none | done, PR #571 |
