@@ -2,10 +2,8 @@
 
 ## [8.0.911] - 2026-10-10
 
-### Fixed
-- The star scatter pass tests use a luminosity floor the toy galaxy can fill with lighter stars, since the real floor now starts at 2,500 solar luminosities (GEN.184).
-
 ### Changed
+- `GET /api/jobs/<id>` now gives `made_url` for a finished neighborhood or regenerate job: the Galaxy Map fitted to the sectors it made (ADM.31). The map menus' Generate buttons already reach the Generate page's job, which offers the same link.
 - **Docs only:** OPS.39 (remove Windows support) is assigned to Foundations lane 3.
 - **Docs only:** OPS.39 (remove Windows support, keep only docs/WINDOWS.md) is filed; TEST.115 and OPS.34 are marked superseded by it.
 - TEST.116: when test_bughunt_end_to_end finds a star type other than K2V, the message lists every star of the system with its role and type, so a rare failure names its cause.
@@ -19,6 +17,9 @@
 - **Docs only:** GEN.88 (hydrosphere and ocean chemistry, PR #963, schema v74) is retired from the TODO list and the plans; OPS.38 (committed Redis dump files) and TEST.117 (generatejobs.test.mjs failing since PERF.33) are filed.
 - Rogue planet oceans now stop at the depth where high-pressure ice forms (the rest is stored as high-pressure ice), their ice lid is compared with the water in matching units and melts lower under its own weight, and an ocean under a hydrogen envelope is shown as a hycean ocean. New seeded output differs from earlier versions.
 - **Docs only:** Boss confirmed the defaults on GEN.183, GEN.184, GEN.187 and UX.87; their open questions are now decisions.
+
+### Fixed
+- The star scatter pass tests use a luminosity floor the toy galaxy can fill with lighter stars, since the real floor now starts at 2,500 solar luminosities (GEN.184).
 
 ### Added
 - The mass limit (GEN.183) is now picked from the presets 8, 10, 12, 14, 16, 18 and 20 solar masses, 20 by default: a slider in the Generate page's new galaxy and plan forms, and `--phenomenon-min-mass` on the command line, which refuses any other value. Every star, neutron star and black hole at or above it is placed across the whole galaxy; lighter ones are drawn when their sector is made.
