@@ -1149,6 +1149,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   same layer on the System Map; subitems GEN.198, TEST.131, PERF.72 and
   GEN.199 (phase 2), then API.24, MAP.168, MAP.169 and UX.94 (phase 3),
   with MAP.170 (Galaxy Map layer) later.
+  Note (2026-10-10): Boss (22:14Z) asked that the size of each gradient
+  measure be built from the preset minimum movement values of the
+  orbital update system (THRESHOLDS_M in physics/position.py: galactic
+  0.01 mpc, about 2 AU; system 0.01 AU; planetary 100,000 km). The
+  umbrella carries the rule for all layers: gradient step and zone size
+  come from those thresholds, and the legend names the scale in use. See
+  docs/design/gravity-map.md.
   Headline: 9.0 (the gravity map).
   Prerequisites: GEN.199, MAP.168, MAP.169, UX.94, API.24. Related:
   GEN.105, NAV.6.
@@ -3211,6 +3218,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   a pure function of the stored vectors, so the same galaxy gives the
   same field, and course planning (NAV.6) can use it instead of a pull
   model of its own.
+  Note (2026-10-10): Boss (22:14Z) asked that the size of each gradient
+  measure be built from the preset minimum movement values of the
+  orbital update system (THRESHOLDS_M in physics/position.py: galactic
+  0.01 mpc, about 2 AU; system 0.01 AU; planetary 100,000 km). The
+  gradient step of the evaluator is the threshold of the scale being
+  drawn (galactic for a sector, system for the System Map, planetary for
+  a moon neighbourhood), read from the same constants, not a copy. See
+  the new section in docs/design/gravity-map.md.
   Prerequisites: GEN.115, GEN.109. Related: GEN.105, NAV.6, TEST.131,
   PERF.72, MAP.167.
 
@@ -3224,6 +3239,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (GEN.105) moves its sources, and a sector with no neighbours generated
   yet is marked uncharted-edge. A test builds a small sector and checks
   the grid against the evaluator zone by zone.
+  Note (2026-10-10): Boss (22:14Z) asked that the size of each gradient
+  measure be built from the preset minimum movement values of the
+  orbital update system (THRESHOLDS_M in physics/position.py: galactic
+  0.01 mpc, about 2 AU; system 0.01 AU; planetary 100,000 km). A zone
+  edge is a whole number of those steps (the default sector zone of 0.25
+  pc is 25,000 galactic steps) and never finer than one step; a cached
+  zone is thrown away only when a source passes its own threshold, the
+  same event that sets its next update due time (GEN.106). PERF.72 sets
+  the multiples.
   Prerequisites: GEN.198, PERF.72. Related: GEN.105, PERF.72, MAP.167.
 
 - [ ] **GEN.200 One shared function for the "map luminosity" of a mass: the luminosity a main-sequence star of that mass would have**
