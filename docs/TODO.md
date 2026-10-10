@@ -462,7 +462,7 @@ with `clamp()`.
   panels keep the technical words; a test fails if a user-facing
   template outside those areas says unbuilt or not generated. The rule
   is recorded in docs/html-interface.md (Wording). Owner: Bugfixes lane
-  2, after MAP.163 and MAP.164.
+  1 (coordinator, 2026-10-10 07:31Z; it was Bugfixes lane 2).
   Prerequisites: none. Related: GEN.193, MAP.164.
 
 ## MAP: Galaxy Map, Sector Map, System Map
