@@ -3347,6 +3347,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Bugfixes lane 1, folded into the PERF.33 progress-bar remainders.
   Prerequisites: none. Related: PERF.33, PERF.55.
 
+- [ ] **PERF.66 The whole-job progress bar should track total elapsed time and estimate a stage with no performance data from the earlier stages (bug)**
+  Boss (2026-10-10 20:00Z): "the whole task progress bar should keep
+  track of total time that has passed and in the absence of performance
+  data the ETA for items on the main progress bar should be calculated
+  by the time it has taken to do the previous stages averaged." Done:
+  the whole-job bar (PERF.55's CLI bar and the job page's) shows the
+  total time elapsed since the job started, counted across every step
+  and stage and not restarted when a step or stage begins; a stage with
+  no measured rate (no performance data yet, PERF.33's ETA gap) takes
+  its estimate from the average time of the stages already finished in
+  the job, so the time left on the main bar is never blank or zero; a
+  test covers a job whose later stages have no data. Owner: Bugfixes
+  lane 1, with PERF.65 and the other PERF.33 remainders.
+  Prerequisites: none. Related: PERF.33, PERF.55, PERF.65.
+
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
