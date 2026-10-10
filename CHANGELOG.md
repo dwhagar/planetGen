@@ -3,6 +3,7 @@
 ## [8.0.911] - 2026-10-10
 
 ### Changed
+- Each stage of a galaxy or plan run is now stored with how long it took and the settings it ran with (mass limit, luminosity floor, workers, radius ...) and what it did (layers visited and changed, objects placed); skipped stages are stored with their reason. The admin Stats page lists the latest stage times, and the estimate helper `stage_seconds` reads the runs with matching settings (PERF.56, control schema v14).
 - Retired GEN.172, GEN.176, TEST.110 and DOC.5 (object IDs for run-time births, nebula birth sector, ID tests and docs, PR #1075). Filed the leftovers as GEN.197 (ID rules on ejection, merger and split) and DOC.17 (api.md object ID, after API.23).
 - PERF.58: the shunting amendment is withdrawn; objects over a sector's capacity are dropped (Boss 10:09Z).
 - PERF.58: objects over a sector's capacity are shunted to a face-adjacent sector with room instead of dropped (Boss 10:07Z).
