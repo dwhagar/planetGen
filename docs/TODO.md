@@ -3185,7 +3185,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (GEN.183) applies. Decided (Boss, 2026-10-10 04:06Z, "your defaults are confirmed"): the nearest ring
   takes the lowest mass cut, as above, and each ring is counted from the
   previous ring's outer edge; the GEN.30 luminosity tiers go away.
-  Prerequisite: GEN.184. Related: GEN.30, GEN.40, GEN.99, GEN.183,
+  Prerequisites: none (GEN.184 merged, PR #965). Related: GEN.30, GEN.40, GEN.99, GEN.183,
   GEN.184, MAP.120, PERF.18.
 
 ## PERF: Speed, caching, bulk generation and parallel work
