@@ -27,3 +27,4 @@ Commit each file came from:
 - v72: df5df13 (GEN.86 activity and magnetism, before GEN.185)
 - v73: 7c06976 (GEN.185 star scatter mass limit, before GEN.88)
 - v74: ea2e00e (GEN.88 hydrosphere, before GEN.87)
+- v75: 62f3842 (GEN.87 surface radiation, before GEN.89)

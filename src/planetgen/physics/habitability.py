@@ -452,14 +452,22 @@ def m_press(world):
     return math.exp(-(p - 250.0) / SIGMA_P_KPA)
 
 
+def _logistic(x):
+    """1 / (1 + exp(-x)) without overflowing at a very hot or cold extreme."""
+    if x >= 0.0:
+        return 1.0 / (1.0 + math.exp(-x))
+    e = math.exp(x)
+    return e / (1.0 + e)
+
+
 def m_therm(world):
     hot = 1.0
     if world.temperature_c >= -20.0:
         twb = wet_bulb_c(min(world.temperature_c, 50.0), world.relative_humidity)
         if world.temperature_c > 50.0:
             twb += world.temperature_c - 50.0  # past Stull's fit, the wet bulb tracks the dry
-        hot = 1.0 / (1.0 + math.exp(K_T_PER_K * (twb - WET_BULB_CRIT_C)))
-    cold = 1.0 / (1.0 + math.exp(-K_COLD_PER_K * (world.temperature_c - COLD_LIMIT_C)))
+        hot = _logistic(-K_T_PER_K * (twb - WET_BULB_CRIT_C))
+    cold = _logistic(K_COLD_PER_K * (world.temperature_c - COLD_LIMIT_C))
     return hot * (COLD_FLOOR + (1.0 - COLD_FLOOR) * cold)
 
 

@@ -14,6 +14,10 @@
   --link: #3a4bd6;
   --link-visited: #6f4bd6;
   --error: #c22b3a;
+  --tier-blue: #2562d4;
+  --tier-green: #1f7a3d;
+  --tier-yellow: #8a6500;
+  --tier-red: #c22b3a;
   --shadow: 0 1px 2px rgba(20, 22, 40, 0.06), 0 4px 16px rgba(20, 22, 40, 0.05);
   --radius: 10px;
   --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -47,6 +51,10 @@
     --link: #9aa3ff;
     --link-visited: #c39bff;
     --error: #ff6b7a;
+    --tier-blue: #7fb0ff;
+    --tier-green: #5fcf86;
+    --tier-yellow: #e8c24a;
+    --tier-red: #ff6b7a;
     --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
   }
 }
@@ -64,6 +72,10 @@
   --link: #9aa3ff;
   --link-visited: #c39bff;
   --error: #ff6b7a;
+  --tier-blue: #7fb0ff;
+  --tier-green: #5fcf86;
+  --tier-yellow: #e8c24a;
+  --tier-red: #ff6b7a;
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px rgba(0, 0, 0, 0.35);
 }
 
@@ -598,6 +610,17 @@ tbody tr:last-child td {
   padding: 0 0.5rem;
   border: 1px solid var(--border);
 }
+
+.flag-tier {
+  font-weight: 600;
+}
+
+/* GEN.89: a body's equipment chip, coloured by its worst PHI-4 domain
+   (Blue, Green, Yellow, Red). */
+.flag-tier-0 { color: var(--tier-blue); border-color: var(--tier-blue); }
+.flag-tier-1 { color: var(--tier-green); border-color: var(--tier-green); }
+.flag-tier-2 { color: var(--tier-yellow); border-color: var(--tier-yellow); }
+.flag-tier-3 { color: var(--tier-red); border-color: var(--tier-red); }
 
 .flag-yes {
   color: var(--accent);
