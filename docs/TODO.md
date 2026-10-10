@@ -3549,12 +3549,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   - Applies to every galactic scatter pass: the mass pass, the
     luminosity pass, the phenomena pass and the bright-star back scatter
     of GEN.187 when it lands.
-  - Defaults chosen where Boss did not say: after a placement the pass
-    goes back to single layers and counts 5 empty layers again; the 5
-    and the 10 are named constants in tuning.py; the same seed gives the
-    same galaxy (each group draw is seeded from the group's first
-    address, GEN.56); the galactic nucleus guarantee (GEN.195) is
-    untouched.
+  - Scaling back (Boss 09:19Z): grouping starts only after 5 contiguous
+    layers placed nothing. In group mode a group that places nothing
+    doubles the next group (10, 20, 40, ...); a group that places
+    something makes the next group half the size (a 40 that places is
+    followed by a 20, then a 10); when a group of 10 places something
+    the pass is back on single layers, and grouping needs 5 empty
+    layers in a row again. An empty group at a reduced size doubles
+    again.
+  - Defaults chosen where Boss did not say: the 5 and the 10 are named
+    constants in tuning.py; the same seed gives the same galaxy (each
+    group draw is seeded from the group's first address, GEN.56); the
+    galactic nucleus guarantee (GEN.195) is untouched.
   - The stage result and the PERF.56 stats record the group sizes used,
     layers visited and layers modified (see the PERF.56 note).
   - A statistical test shows grouped placement matches the per-layer
@@ -3563,6 +3569,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   1, after UX.89 and PERF.56.
   Prerequisites: none. Related: UX.89, PERF.56, GEN.185, GEN.187,
   GEN.195.
+  Revised (2026-10-10 09:19Z): after a placement the next group is half
+  the size instead of returning to single layers.
   Replaced (2026-10-10): the 08:32Z "stop after 100 empty layers" rule is
   gone; Boss's 08:32Z clarification (0 stars or 0 phenomena) no longer
   applies.
