@@ -1114,6 +1114,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   same log scale the map uses now, only with the per-zoom range).
   Prerequisites: none. Related: MAP.148, MAP.153, GEN.184.
 
+- [ ] **MAP.164 Galaxy Map shows phenomena: black holes purple, neutron stars dark blue, sized by mass, dark colors out-shine brighter stars**
+  Boss (2026-10-10 06:39Z, ASAP): black holes and neutron stars should
+  show on the Galaxy Map by mass relative to similarly massed stars and
+  brightness. Black holes are purple, neutron stars are dark blue, and
+  these dark colors are made to out-shine brighter stars so they do not
+  vanish among them. The largest of them are visible from the full
+  galactic view. Done: the Galaxy Map draws black holes and neutron
+  stars from the Phenomena table in those colors, their size and glow
+  follow mass relative to stars of similar mass, a rule keeps them
+  visible against brighter stars (a halo or boosted contrast), the
+  largest ones show at the widest zoom, and a test checks the colors and
+  that they draw above brighter stars. Needs the Phenomena table filled
+  (see the bug before this). Owner: Bugfixes lane 2, after its defaults
+  PR. Related: MAP.163, MAP.148, MAP.155.
+  Prerequisites: none. Related: MAP.163, MAP.148, MAP.155.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
@@ -3133,6 +3149,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   planet near a burst-prone region gets the flag more often. Low
   priority.
   Prerequisites: none. Related: GEN.87, GEN.89.
+
+- [ ] **GEN.190 The Phenomena table is empty after a web-generated galaxy: the phenomena scatter pass never runs (bug)**
+  Boss (2026-10-10 06:39Z, ASAP): neutron stars and nebulae are
+  supposedly being added, but the Phenomena table is empty and there is
+  no way to find them; the system seems to think it is creating them.
+  The phenomena scatter pass never runs in the web generation flow (and
+  with `galaxy --then-scatter`), and its log output is thinner than the
+  star scatter's. Done: a galaxy generated from the web page and with
+  `--then-scatter` fills the Phenomena table (black holes, neutron
+  stars, nebulae and the rest) with the counts the plan says, the log
+  shows each phenomenon pass with counts and timing as the star passes
+  do, and a test generates a small galaxy through the web job path and
+  finds rows in the Phenomena table. Owner: Bugfixes lane 1.
+  Prerequisites: none. Related: GEN.185, GEN.100, PERF.53.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
