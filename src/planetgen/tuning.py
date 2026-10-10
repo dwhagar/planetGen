@@ -2213,10 +2213,6 @@ ROGUE_WATER_MASS_FRACTION_RANGE = (1e-4, 0.1)
 """tuple: A water-rich rogue's water share of its mass, drawn log-uniformly
 (Earth's oceans are 2.3e-4)."""
 
-ROGUE_ICE_CONDUCTIVITY_A_W_M = 567.0
-"""float: Water ice conducts heat as k = A / T (Boss's research, after
-Turcotte & Schubert)."""
-
 ROGUE_FROZEN_ATMOSPHERE_MIN_MASS_EARTH = 0.3
 """float: A rocky rogue at least this heavy once held an air (like Earth or
 Venus, unlike the Moon) that has frozen onto its surface as nitrogen and

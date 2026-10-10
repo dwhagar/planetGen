@@ -69,7 +69,7 @@ from planetgen.admin import activity_log
 from planetgen.db import alembic_runner
 from planetgen.names import object_id as objectId
 from planetgen.galaxy import seed as galaxySeed, uid as galaxyUid, version_key as versionKey
-from planetgen.physics import activity, atmosphere, constants as physical_constants, kepler, magnetism, spin
+from planetgen.physics import activity, atmosphere, constants as physical_constants, hydrosphere, kepler, magnetism, spin
 from planetgen.util import log
 from planetgen.util.settings import env_name, get_settings
 from planetgen.generation import steps
@@ -1415,6 +1415,7 @@ def _table_marker(table):
 
 
 _VERSION_MARKERS = (
+    (74, _column_marker("planets", "ocean_class")),
     (73, _column_marker("galaxy_shape", "bright_star_mass_limit_sol")),
     (72, _column_marker("stars", "l_xuv_w")),
     (71, _column_marker("galaxy_shape", "phenomenon_min_mass_solar")),
@@ -2669,6 +2670,7 @@ _BODY_COLUMNS = (
     "rotation_period_hours", "spin_axis_x", "spin_axis_y", "spin_axis_z", "axial_tilt_deg",
     *atmosphere.ATMOSPHERE_FIELDS,
     *magnetism.BODY_FIELDS,
+    *hydrosphere.HYDROSPHERE_FIELDS,
 )
 """tuple: The generated-content columns `planets` and `moons` share, in
 `body_row_values` order."""
@@ -2714,6 +2716,7 @@ def body_row_values(body):
         *spin.spin_values(body),
         *(getattr(body, name, None) for name in atmosphere.ATMOSPHERE_FIELDS),
         *(getattr(body, name, None) for name in magnetism.BODY_FIELDS),
+        *(getattr(body, name, None) for name in hydrosphere.HYDROSPHERE_FIELDS),
     ]
     if not body.is_moon:
         values += [
@@ -7500,6 +7503,7 @@ def _planet_or_moon_row_to_dict(conn, row, is_moon):
         **{name: row[name] for name in spin.SPIN_FIELDS},
         **{name: row[name] for name in atmosphere.ATMOSPHERE_FIELDS},
         **{name: row[name] for name in magnetism.BODY_FIELDS},
+        **{name: row[name] for name in hydrosphere.HYDROSPHERE_FIELDS},
         # v20: only the `planets` table has these columns (a planet's own
         # wobble from its moons) -- `moons` has no such column at all
         # (moons never host their own moons), so a moon always gets the
@@ -7836,6 +7840,7 @@ ROGUE_SURFACE_COLUMNS = (
     ("age_gy", "DOUBLE"), ("internal_heat_flux_w_m2", "DOUBLE"), ("effective_temperature_k", "DOUBLE"),
     ("surface_regime", "VARCHAR(24)"), ("surface_temperature_k", "DOUBLE"), ("surface_pressure_pa", "DOUBLE"),
     ("ice_shell_thickness_km", "DOUBLE"), ("ocean_depth_km", "DOUBLE"), ("has_liquid_water", "TINYINT(1)"),
+    ("hp_ice_km", "DOUBLE"),
 )
 """tuple: `(column, type)` of each v48 `rogue_planets` column, in
 `ROGUE_SURFACE_FIELDS` order."""

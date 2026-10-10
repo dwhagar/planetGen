@@ -12,7 +12,7 @@ import random
 import pytest
 
 from planetgen.db import store
-from planetgen.physics import constants
+from planetgen.physics import constants, hydrosphere
 from planetgen import tuning
 from planetgen.physics import rogue_surface as rs
 from planetgen.generation.config import SystemConfig
@@ -32,7 +32,7 @@ def test_earth_like_rogue_matches_boss_numbers():
     t_eff = rs.effective_temperature_k(flux)
     assert t_eff == pytest.approx(35.5, abs=1.0)
     # D = (A / F) ln(273 / 35) ~ 11.6 km at 0.1 W/m^2.
-    assert rs.ice_shell_thickness_km(0.1, 35.0) == pytest.approx(11.6, abs=0.2)
+    assert hydrosphere.ice_shell_thickness_km(0.1, 35.0) == pytest.approx(11.6, abs=0.2)
 
 
 def test_no_heat_means_the_cmb_temperature():

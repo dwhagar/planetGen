@@ -1077,6 +1077,21 @@
 --   bright. A sector's own draw is lighter than the limit and dimmer than
 --   the floor. NULL on a scatter drawn before v73, which had no mass pass.
 --
+-- v74: hydrosphere and ocean chemistry (GEN.88). `planets` and `moons`:
+--   `water_mass_fraction`, `hydrosphere` ('dry', 'vapour', 'ice',
+--   'ice-covered ocean', 'surface ocean', 'hycean'), `ocean_fraction` and
+--   `land_fraction` (shares of the surface; water counts liquid or
+--   frozen), `ocean_depth_km` (mean liquid depth where there is water),
+--   `ice_shell_km` (the ice lid), `hp_ice_km` (high-pressure ice under the
+--   deepest possible liquid), `ocean_class` ('ice-sealed', 'chloride
+--   brine', 'acid sulfate', 'soda', 'neutral'), `ocean_ph`,
+--   `water_activity` and `phosphorus` ('high', 'limited', 'starved'). All
+--   NULL for a gas giant; the ocean fields NULL without liquid water.
+--   `rogue_planets` gains `hp_ice_km`, and its `surface_regime` may be
+--   'hycean'. NULL on a row generated before v74. Draws:
+--   `planetgen/physics/hydrosphere.py`; design
+--   docs/design/activity-magnetism-radiation-hydrosphere.md section 5.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -1704,6 +1719,18 @@ CREATE TABLE IF NOT EXISTS planets (
     xuv_flux_earth              DOUBLE,
     xuv_exposure_index          DOUBLE,
     flare_irradiation_index     DOUBLE,
+    -- v74 (GEN.88): water, land, ice and the ocean's chemistry, see header comment.
+    water_mass_fraction         DOUBLE,
+    hydrosphere                 VARCHAR(20) CHECK (hydrosphere IN ('dry', 'vapour', 'ice', 'ice-covered ocean', 'surface ocean', 'hycean')),
+    ocean_fraction              DOUBLE,
+    land_fraction               DOUBLE,
+    ocean_depth_km              DOUBLE,
+    ice_shell_km                DOUBLE,
+    hp_ice_km                   DOUBLE,
+    ocean_class                 VARCHAR(16) CHECK (ocean_class IN ('ice-sealed', 'chloride brine', 'acid sulfate', 'soda', 'neutral')),
+    ocean_ph                    DOUBLE,
+    water_activity              DOUBLE,
+    phosphorus                  VARCHAR(8) CHECK (phosphorus IN ('high', 'limited', 'starved')),
     -- v20 (see header comment): this planet's own reflex-offset "wobble"
     -- from the combined pull of its own moons -- NULL/0 with no moons.
     reflex_offset_x_km       DOUBLE,
@@ -1849,6 +1876,18 @@ CREATE TABLE IF NOT EXISTS moons (
     xuv_flux_earth              DOUBLE,
     xuv_exposure_index          DOUBLE,
     flare_irradiation_index     DOUBLE,
+    -- v74 (GEN.88): water, land, ice and the ocean's chemistry, see header comment.
+    water_mass_fraction         DOUBLE,
+    hydrosphere                 VARCHAR(20) CHECK (hydrosphere IN ('dry', 'vapour', 'ice', 'ice-covered ocean', 'surface ocean', 'hycean')),
+    ocean_fraction              DOUBLE,
+    land_fraction               DOUBLE,
+    ocean_depth_km              DOUBLE,
+    ice_shell_km                DOUBLE,
+    hp_ice_km                   DOUBLE,
+    ocean_class                 VARCHAR(16) CHECK (ocean_class IN ('ice-sealed', 'chloride brine', 'acid sulfate', 'soda', 'neutral')),
+    ocean_ph                    DOUBLE,
+    water_activity              DOUBLE,
+    phosphorus                  VARCHAR(8) CHECK (phosphorus IN ('high', 'limited', 'starved')),
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
     uid                   BIGINT UNSIGNED,
 
@@ -2487,6 +2526,7 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     ice_shell_thickness_km   DOUBLE,
     ocean_depth_km           DOUBLE,
     has_liquid_water         TINYINT(1),
+    hp_ice_km                DOUBLE,  -- v74 (GEN.88)
     -- v17: always populated (a rogue planet is always standalone).
     galactic_orbital_speed_kms           DOUBLE NOT NULL,
     galactic_orbital_period_gy           DOUBLE NOT NULL,

@@ -652,6 +652,7 @@ FIELD_SPECS = {
         ("surface_pressure_pa", "Surface Pressure", _pressure_text),
         ("ice_shell_thickness_km", "Ice Thickness", lambda v: f"{format_number(v, ',.1f')} km" if v else None),
         ("ocean_depth_km", "Liquid Ocean Depth", lambda v: f"{format_number(v, ',.0f')} km" if v else None),
+        ("hp_ice_km", "High-Pressure Ice Below", lambda v: f"{format_number(v, ',.0f')} km" if v else None),
         _SPEED, _PERIOD,
     ],
     "interstellar_comet": [
