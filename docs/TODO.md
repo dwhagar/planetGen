@@ -3634,29 +3634,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   region per request.
   Prerequisite: API.18.
 
-- [ ] **API.23 The object ID as the public reference: pages, URLs, the API, wiki links and objectref use it in place of row ids**
-  Source: docs/design/object-id-options.md section 0 (Boss decided
-  2026-10-09 22:39Z: birth location plus serial, galaxy-wide; the same
-  length for every object; always identifies that one object; up to 128
-  bits but shorter preferred; fix the deficits; no backward
-  compatibility). Filed from the object-ID research thread. Nothing is
-  built until Boss asks.
-  Done: pages, URLs, API routes and payloads, wiki links and `objectref`
-  use the object ID in place of row ids (lookup probes the object tables
-  by `uid`; a kind prefix such as planet:ID is only a hint). Row ids
-  stay internal. No compatibility shim. This is a breaking API change,
-  so it bumps the API version number (API.22, built).
-  Decided (Boss, 2026-10-10 02:48Z, via Foundations lane 1): yes, the 80-bit object ID replaces row ids in pages, URLs and the API, and Boss accepts the API break. Cleared to build once API.22, GEN.171 and GEN.172 are in.
-  Stages 1 and 2 of 3 done (PRs #1119 and #1127): sectors, systems,
-  phenomena, stars, planets, moons, belts, comets and facilities use
-  printed IDs (API version 3). Stage 3 = edit endpoints, wiki, NAV,
-  objectref.js and the galaxy JS.
-  Known failure (2026-10-09): Open after stage 1 (Bugfixes lane 2,
-  2026-10-10): tests/test_web_a11y.py, the sector page at phone width,
-  fails on main because the galaxy JS still requests /sector/<row
-  id>/scene and gets 404. Stage 3 (galaxy JS) fixes it.
-  Design: [docs/design/object-id-options.md](design/object-id-options.md)
-
 ## ADM: Admin tools
 
 - [ ] **ADM.13 Incomplete uploads page**
@@ -4338,13 +4315,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   later change to those features (a feature item is not done until its
   help text is).
   Prerequisite: DOC.6. Related: DOC.6.
-
-- [ ] **DOC.17 Describe the object ID in api.md**
-  Left over from DOC.5 when Foundations lane 1 merged the rest (PR
-  #1075). Done: docs/api.md describes the object ID as the public
-  reference in pages, URLs and the API, once API.23 has made it so.
-  Prerequisite: API.23.
-  Prerequisite: API.23. Related: DOC.5, API.23.
 
 ## VIEW: The view from a planet
 
