@@ -402,3 +402,16 @@ def test_absurd_densities_stay_finite():
     assert math.isfinite(result.seconds) and result.bytes > 0
     assert generationStats.format_bytes(float("inf")) == "more than any disk holds"
     assert generationStats.format_duration(float("inf")) == "longer than anyone will wait"
+
+
+def test_a_sector_that_made_nothing_is_not_recorded(monkeypatch):
+    """PERF.53: an empty sector (or layer) would pull the per-sector and per-system averages toward nothing."""
+    from planetgen.generation import run_common
+    stats = GenerationStats()
+    monkeypatch.setattr(run_common, "_generation_stats", lambda args: stats)
+    monkeypatch.setattr(run_common, "_worker_count", lambda args: 1)
+    run_common._record_sector(None, {"density": 1.0, "systems": 0, "stars": 0}, 0.4)
+    assert stats.buckets == {}
+    run_common._record_sector(None, {"density": 1.0, "systems": 3, "stars": 4}, 0.9)
+    (bucket,) = stats.buckets.values()
+    assert bucket.samples == 1 and bucket.seconds_per_task == 0.9 and bucket.systems_per_task == 3

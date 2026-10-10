@@ -569,8 +569,9 @@ def _scatter_layers(args, mysql_config, skeleton, extents, filled, min_luminosit
                         drew.add(layer_index)
                     slots = _layer_slots(outer_rings[layer_index])
                     density = expected[layer_index] / (e_value * band_share * slots) if band_share and slots else 0.0
-                    run_common._generation_stats(args).record("scatter", density, seconds, systems=stars, stars=stars,
-                                                                 workers=run_common._worker_count(args))
+                    if stars:   # PERF.53: a layer that drew nothing says nothing about how long a star takes
+                        run_common._generation_stats(args).record("scatter", density, seconds, systems=stars,
+                                                                     stars=stars, workers=run_common._worker_count(args))
                 return layer_done
 
             stop = threading.Event()
@@ -868,9 +869,11 @@ def scatter_phenomena(args):
                 counts[kind] = counts.get(kind, 0) + count
             if sum(layer_counts.values()):
                 landed[0] += 1
-            # Recorded in the bar's own units (the layer's weight), so the next run's bar can start from it.
-            run_common._generation_stats(args).record("phenomena", 0.0, seconds, systems=weight, stars=weight,
-                                                      workers=run_common._worker_count(args))
+            # Recorded in the bar's own units (the layer's weight), so the next run's bar can start from it;
+            # not for a layer that placed nothing (PERF.53).
+            if sum(layer_counts.values()):
+                run_common._generation_stats(args).record("phenomena", 0.0, seconds, systems=weight, stars=weight,
+                                                          workers=run_common._worker_count(args))
 
         with run_common._generation_progress() as progress:
             log.set_console(progress.console)
