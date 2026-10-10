@@ -95,6 +95,10 @@ PLAN_FIELDS = (
 defaults (a test checks they still match `planetgen plan`'s parser)."""
 
 MASS_LIMIT_LABEL = "Mass limit (solar masses)"
+COMPACT_LIMIT_LABEL = "Neutron star and black hole limit (solar masses)"
+COMPACT_STORAGE_WARNINGS = ((1.0, "about 1.2 billion rows (161 GB)"), (2.0, "about 390 million rows (54 GB)"),
+                            (4.0, "about 220 million rows (30 GB)"), (6.0, "about 200 million rows (28 GB)"))
+"""tuple: What each compact-object limit costs in the database (GEN.195, Boss 2026-10-10), beside the control."""
 """str: The mass-limit slider's label (GEN.183)."""
 
 
@@ -301,22 +305,43 @@ def _number(form, name, label, kind, required=False, minimum=None, maximum=None,
         return None
 
 
+def compact_limit_argv(form):
+    """`--compact-min-mass` from the form's neutron star and black hole limit
+    (GEN.195): "star" when "Use the star mass setting" is ticked, else one of
+    `tuning.COMPACT_MIN_MASS_PRESETS`; nothing when the form has neither.
+
+    Raises:
+        FormError: A value that isn't one of the presets.
+    """
+    if form.get("compact_use_star"):
+        return ["--compact-min-mass", tuning.COMPACT_MIN_MASS_STAR]
+    value = _number(form, "compact_min_mass", COMPACT_LIMIT_LABEL, float)
+    if value is None:
+        return []
+    if not any(abs(value - preset) < 1e-9 for preset in tuning.COMPACT_MIN_MASS_PRESETS):
+        _problem(f"{COMPACT_LIMIT_LABEL} must be one of "
+                 + ", ".join(f"{preset:g}" for preset in tuning.COMPACT_MIN_MASS_PRESETS) + ".")
+        return []
+    return ["--compact-min-mass", f"{value:g}"]
+
+
 def mass_limit_argv(form):
     """`--phenomenon-min-mass` from the form's mass-limit slider (GEN.183:
     one of `tuning.PHENOMENON_MIN_MASS_PRESETS`; blank leaves the galaxy's
-    stored limit, else 20).
+    stored limit, else 20), then the neutron star and black hole limit
+    (`compact_limit_argv`).
 
     Raises:
         FormError: A value that isn't one of the presets.
     """
     value = _number(form, "phenomenon_min_mass", MASS_LIMIT_LABEL, float)
     if value is None:
-        return []
+        return compact_limit_argv(form)
     if not any(abs(value - preset) < 1e-9 for preset in tuning.PHENOMENON_MIN_MASS_PRESETS):
         _problem(f"{MASS_LIMIT_LABEL} must be one of "
                  + ", ".join(f"{preset:g}" for preset in tuning.PHENOMENON_MIN_MASS_PRESETS) + ".")
         return []
-    return ["--phenomenon-min-mass", f"{value:g}"]
+    return ["--phenomenon-min-mass", f"{value:g}"] + compact_limit_argv(form)
 
 
 def plan_argv(form):
@@ -821,7 +846,10 @@ def _build_job_steps(action, form, edge_pc=None):
     if action == "reset":
         return "reset", "Reset the galaxy", [reset_step]
     if action == "check_db":
-        return "check_db", "Check the database", [{"label": "Check the database", "argv": generate + ["check-db"]}]
+        deep = bool(form.get("deep"))
+        argv = generate + ["check-db"] + (["--deep", "--yes"] if deep else [])
+        title = "Check the database (deep)" if deep else "Check the database"
+        return "check_db", title, [{"label": title, "argv": argv}]
     raise FormError("Unknown action.")
 
 
@@ -1080,6 +1108,9 @@ def _page(admin, error=None, status=200, form=None, estimate=None, estimate_titl
         mass_limit_label=MASS_LIMIT_LABEL,
         mass_limit_presets=tuning.PHENOMENON_MIN_MASS_PRESETS,
         mass_limit_default=tuning.PHENOMENON_MIN_MASS_SOLAR,
+        compact_label=COMPACT_LIMIT_LABEL,
+        compact_presets=tuning.COMPACT_MIN_MASS_PRESETS,
+        compact_warnings=COMPACT_STORAGE_WARNINGS,
         backfill_text=BACKFILL_TEXT,
         galaxy_modes=GALAXY_MODES,
         max_radius_pc=MAX_GENERATE_RADIUS_PC,
@@ -1130,7 +1161,8 @@ def generate():
             return _no_store(make_response(jsonify({"error": str(exc)}), 400))
         return _page(admin, error=str(exc), status=400, form=request.form)
     env = jobs.mysql_env(current_app.config["MYSQL_CONFIG"], database)
-    if kind == "galaxy" and not request.form.get(ESTIMATE_CONFIRM_FIELD):
+    if kind in ("galaxy", "check_db") and (kind == "galaxy" or request.form.get("deep")) \
+            and not request.form.get(ESTIMATE_CONFIRM_FIELD):
         # PERF.3: show the size and time first; the admin confirms (or the
         # disk refuses it) before the job starts.
         try:
@@ -1141,7 +1173,7 @@ def generate():
             return _page(admin, error=str(exc), status=400, form=request.form)
         if wants_json:
             return _no_store(make_response(jsonify({
-                "error": estimate["refusal"] or f"Confirm first: {estimate['summary']}",
+                "error": estimate.get("refusal") or f"Confirm first: {estimate.get('summary') or estimate.get('what')}",
                 "estimate": estimate, "confirm_field": ESTIMATE_CONFIRM_FIELD,
                 "generate_anyway_field": GENERATE_ANYWAY_FIELD,
             }), 409))
@@ -1178,8 +1210,10 @@ def generate():
 def _estimate_view(estimate):
     """`run_estimate`'s dict plus the text the page shows."""
     view = dict(estimate)
-    view["size_text"] = stats.format_bytes(estimate.get("bytes"))
     view["time_text"] = stats.format_duration(estimate.get("seconds"))
+    if estimate.get("deep_check"):      # DB.21: a time and a count of systems, no size or disk
+        return view
+    view["size_text"] = stats.format_bytes(estimate.get("bytes"))
     disk = estimate.get("disk")
     view["disk_text"] = (f"{stats.format_bytes(disk['free_bytes'])} free of "
                          f"{stats.format_bytes(disk['total_bytes'])} on {disk.get('where') or disk['path']}") if disk else None

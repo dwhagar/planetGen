@@ -3339,6 +3339,48 @@ def bright_stars_in_sector(conn, ring_index, layer_index, ring_slot_index, unfil
     return [_bright_star_entry(row) for row in rows]
 
 
+UNCHARTED_SCATTER_LIMIT = 500
+"""int: Most scattered phenomena one uncharted sector lists (MAP.162)."""
+
+
+def uncharted_sector_contents(conn, ring_index, layer_index, ring_slot_index):
+    """
+    What the scatters left in one sector cell that nothing has built yet
+    (MAP.162): its waiting bright stars (`bright_stars_in_sector`) and its
+    unbuilt scattered phenomena (`phenomenon_scatter`), so a cell with no
+    generated contents can still be opened and its objects looked at.
+
+    Returns:
+        dict: `stars` (as `bright_stars_in_sector`) and `scattered`, one
+            `{"id", "kind", "subtype", "type", "x", "y", "z"}` per unbuilt
+            scatter row (`type` as `_SCATTER_TYPES`; positions in
+            galaxy-frame parsecs), at most `UNCHARTED_SCATTER_LIMIT`.
+    """
+    address = (int(ring_index), int(layer_index), int(ring_slot_index))
+    try:
+        stars = bright_stars_in_sector(conn, *address)
+    except pymysql.err.ProgrammingError:  # no bright_stars table yet (before v43)
+        stars = []
+    rows = conn.execute(
+        """
+        SELECT id, kind, subtype, position_x_mpc, position_y_mpc, position_z_mpc
+        FROM phenomenon_scatter
+        WHERE ring_index = ? AND layer_index = ? AND ring_slot_index = ? AND built_at IS NULL
+        ORDER BY id
+        LIMIT ?
+        """,
+        (*address, UNCHARTED_SCATTER_LIMIT),
+    ).fetchall()
+    scattered = [
+        {"id": row["id"], "kind": row["kind"], "subtype": row["subtype"],
+         "type": _SCATTER_TYPES.get(row["kind"], row["kind"]),
+         "x": row["position_x_mpc"] / MPC_PER_PC, "y": row["position_y_mpc"] / MPC_PER_PC,
+         "z": row["position_z_mpc"] / MPC_PER_PC}
+        for row in rows
+    ]
+    return {"stars": stars, "scattered": scattered}
+
+
 def _stratified(stars, limit):
     """
     At most `limit` of `stars`, an equal share from each population: the

@@ -794,6 +794,22 @@ tbody tr:last-child td {
   cursor: grabbing;
 }
 
+/* The mark on a sector opened in place that nothing was generated in
+   (MAP.162): a dashed tag in the map's corner, out of the pointer's way. */
+.sector-uncharted-badge {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  max-width: calc(100% - 1rem);
+  padding: 0.25rem 0.6rem;
+  border: 1px dashed var(--accent);
+  border-radius: var(--radius);
+  background: var(--bg-elevated);
+  color: var(--text);
+  font-size: 0.8125rem;
+  pointer-events: none;
+}
+
 .starmap-canvas:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 4px;
@@ -1428,6 +1444,20 @@ a:focus-visible .navmap-point circle {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   align-items: start;
+}
+
+.scatter-limits .generate-compact {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin: 0;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
 }
 
 @media (max-width: 40rem) {
@@ -4263,4 +4293,9 @@ body.app {
   flex-direction: column;
   gap: 0.2rem;
   font-size: 0.85rem;
+}
+
+/* UX.90: a link inside a hint line is underlined, so it never relies on colour alone. */
+p.hint a {
+  text-decoration: underline;
 }

@@ -247,6 +247,12 @@ function showCellInfo(cell) {
     if (cell.filled != null) {
       fields.push(["Generated", cell.filled > 0 ? "Yes" : "Not yet"]);
     }
+    if (cell.uncharted) {
+      // Opened in place with what the scatters left in it (MAP.162).
+      fields.unshift(["Status", "Uncharted: not generated yet, but scattered objects are placed here"]);
+      fields.push(["Stars waiting", formatNumber(cell.uncharted.stars)]);
+      fields.push(["Other objects", formatNumber(cell.uncharted.objects)]);
+    }
   } else {
     var ranges = blockSectorRanges(cell.ring, cell.slab, cell.m);
     fields.push(["Rings", ranges.ringFirst + "–" + ranges.ringLast]);
@@ -295,7 +301,7 @@ function showCellInfo(cell) {
     ? generateButtons(sceneData.generate, cell.address.ring, cell.address.layer, cell.address.slot, sceneData.edgeLy)
     : null;
   showInfo({
-    title: single ? "Sector cell" : "Sector block (" + cell.m + " sectors a side)",
+    title: single ? (cell.uncharted ? "Uncharted sector" : "Sector cell") : "Sector block (" + cell.m + " sectors a side)",
     fields: fields, after: [corners], generate: generate,
   });
 }
@@ -2614,6 +2620,18 @@ function initGalaxyMap3d(canvasEl, data) {
     } : null,
     fetchSectorScene: sceneData.sectorUrl ? function (id) {
       var path = sectorUrl(id).split("?")[0] + "/scene";
+      return fetch(path, { headers: { Accept: "application/json" } })
+        .then(function (response) {
+          if (!response.ok) {
+            throw new Error("HTTP " + response.status);
+          }
+          return response.json();
+        });
+    } : null,
+    // The scene of a cell nothing was generated in (MAP.162), from its address.
+    fetchUnchartedScene: sceneData.unchartedSceneUrl ? function (at) {
+      var path = String(sceneData.unchartedSceneUrl).replace("{ring}", encodeURIComponent(at.ring))
+        .replace("{layer}", encodeURIComponent(at.layer)).replace("{slot}", encodeURIComponent(at.slot));
       return fetch(path, { headers: { Accept: "application/json" } })
         .then(function (response) {
           if (!response.ok) {

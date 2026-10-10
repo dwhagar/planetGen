@@ -1114,20 +1114,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: MAP.147, MAP.157, MAP.158.
   Design: [docs/design/galaxy-map-wire-format.md](design/galaxy-map-wire-format.md)
 
-- [ ] **MAP.162 A sector holding scattered objects but never generated can still be opened, marked uncharted**
-  Boss (GitHub issue
-  [#928](https://github.com/dwhagar/planetGen/issues/928), 2026-10-10
-  01:44Z): "When a scatter places an object inside a sector that is
-  otherwise ungenerated, the user should still be able to select that
-  sector and view it, so they can view the placed item(s) within the
-  sector. But the sector should have some indicator that the sector is
-  uncharted." Done: on the Galaxy Map and the sector view, a sector with
-  scattered stars, black holes or other phenomena but no generated
-  contents opens, shows those objects, and carries a clear uncharted
-  mark (in the title, the info panel and the sector view's frame);
-  generating it removes the mark.
-  Prerequisites: none. Related: MAP.122, MAP.120, UX.87, NAV.48.
-
 - [ ] **MAP.165 Scattered phenomena store a mass so the Galaxy Map sizes them exactly**
   Bugfixes lane 2 (2026-10-10, MAP.164, PR #1029): the scatter rows hold
   no mass, so the Galaxy Map sizes black holes and neutron stars by mass
@@ -3004,40 +2990,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   priority.
   Prerequisites: none. Related: GEN.87, GEN.89.
 
-- [ ] **GEN.195 A separate mass limit for neutron stars and black holes, and the central black hole or quasar always created**
-  Boss (2026-10-10 08:28Z, via the coordinator): control the stellar
-  masses with one setting and the neutron star and black hole creation
-  with another. The stellar mass limit (8 to 20 solar masses, default 14)
-  now applies to stars only. A new compact-object mass limit
-  for neutron stars and black holes has presets of 1, 2, 4 and 6 solar
-  masses and a "use the star mass setting" option, which is the default
-  and works as the single mass limit does today. Both appear in Plan the
-  galaxy, New galaxy and the CLI, are stored with the scatter settings,
-  and are used by the scatter passes of GEN.185 (and GEN.187). Hard
-  requirement: whatever either setting says, the central supermassive
-  black hole or quasar at the centre of the galaxy is always created.
-  Done: the setting exists in the form, the CLI and the plan; the
-  scatter honours the two limits; a test covers every combination of the
-  two settings and finds the central black hole or quasar each time; the
-  scatter design note (docs/design/phenomenon-scatter-mass-cut.md)
-  describes the split. Owner: Bugfixes lane 2 (coordinator, 2026-10-10
-  08:29Z).
-  Prerequisites: none. Related: GEN.183, GEN.185, GEN.187,
-  PERF.56.
-  Bugfixes lane 2 (2026-10-09): Details from Bugfixes lane 2 (2026-10-10
-  08:29Z): the compact-object control sits side by side with the stellar
-  controls in Plan the galaxy and New galaxy; CLI option
-  --compact-min-mass (1, 2, 4, 6 or star); stored with the plan and
-  shown in the stage stats settings (PERF.56); a storage warning sits
-  next to it (1 Msun about 1.17e9 rows, 161 GB; 2 Msun about 3.9e8 rows,
-  54 GB; 4 Msun about 2.2e8 rows, 30 GB; 6 Msun about 2.0e8 rows, 28
-  GB).
-  Bugfixes lane 2 (2026-10-09): Added (Bugfixes lane 2, 2026-10-10
-  08:30Z): the limits apply on every path that scatters: New galaxy,
-  Plan, Rebuild the bright stars, plan --phenomena-only,
-  --bright-stars-only and --then-scatter, and the below-cut draws of
-  sector fill. GEN.196 (the Redo scatters box) builds on this.
-
 - [ ] **GEN.196 One "Redo scatters" box on Generate: choose which scatters to redo, with new settings for each**
   Boss (2026-10-10 08:30Z, via the coordinator): make sure the stellar
   and compact-object mass limits (GEN.195) apply everywhere a scatter (a
@@ -3054,9 +3006,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stage list in which the unticked stages are shown as skipped with the
   reason (UX.89); the new settings are stored with the plan and the
   stage timings of PERF.56 record them; tests cover redoing each pass
-  alone and all together. Owner: Bugfixes lane 2, after GEN.195.
-  Prerequisite: GEN.195. Related: GEN.185, GEN.187, GEN.195,
-  UX.89, PERF.56.
+  alone and all together. Owner: Bugfixes lane 2 (GEN.195 has merged).
+  Related: GEN.185, GEN.187, GEN.195, UX.89, PERF.56.
   Bugfixes lane 2 (2026-10-09): Details from Bugfixes lane 2 (2026-10-10
   08:30Z): each ticked pass has its own settings fields in the same box
   (stellar mass limit, luminosity floor, compact-object limit); the
@@ -3462,6 +3413,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   1, first in its queue after TEST.124.
   Prerequisite: PERF.60. Related: PERF.56, PERF.59, PERF.60, PERF.61,
   GEN.185, GEN.195.
+  The interim early stop (PERF.62) was dropped: not built.
 
 - [ ] **PERF.59 Share the ring inputs across the three scatter passes (top priority)**
   From the scatter study (docs/design/scatter-queue-feasibility.md): the
@@ -3597,28 +3549,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   and a per-row INSERT loop: fine today, not a pattern for the 10^8-row
   tables.
   Design: [docs/design/db-check-and-parity-repair.md](design/db-check-and-parity-repair.md)
-
-- [ ] **DB.21 A deep pass for the database check: validate every star system, with the estimated time shown first**
-  Boss (2026-10-09 23:32Z): "Yes, add an option for a deep pass but warn
-  the user the estimated time it will take." Foundations lane 1 left
-  `validation.check_star_system` for every system out of `planetgen
-  check-db` (DB.8, PR #893) because of its cost. Done: `planetgen
-  check-db --deep` also runs `validation.check_star_system` on every
-  star system (and the slower table checks DB.8's research proposed,
-  `CHECK TABLE ... EXTENDED` and `CHECKSUM TABLE`, where the lane judges
-  them worth it), and the "Check the database" section of the Generate
-  page offers a "Deep check" option. Before it runs, both show the
-  estimated time, from the sector count and the recorded generation statistics (`generation_stats`, PERF.32): a stats kind for the per-system validation is recorded by the check itself, so the second deep check on a version predicts from the first; a conservative fallback is used only when no history exists yet, and then the estimate says so, and the Generate page asks for
-  confirmation; the CLI prints the estimate and waits for a yes unless
-  `--yes` is given. The deep pass draws its own progress bar (UX.83's
-  rule: any sub-step over 15 seconds) and its report lists each failing
-  system with its rows, like the plain check. Open question for Boss
-  (default `--deep` flag and a "Deep check" option with the estimate and
-  a confirmation, as written): other?
-  Prerequisite: PERF.33. Related: DB.9, PERF.33, PERF.32, PERF.50.
-  From UX.84 (PR #930): the deep check's passes register on the shared
-  mechanism: use `steps.Step` with a `STEP_KINDS` entry (a test in
-  `tests/test_step_registry.py` fails on an unregistered kind).
 
 ## API: The JSON API
 

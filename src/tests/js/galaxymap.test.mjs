@@ -75,7 +75,7 @@ function open(href, options) {
   };
   document.body.append(h("div", { "data-bookmark-db": "planetgen" }), viewport, els.crumbs, els.slabs, els.notice,
     els.address, els.matches, els.controls);
-  const calls = { cameras: [], fetches: [], blockInfo: [], placed: [], cells: [], hints: [], sizes: [], clips: [], locates: [], scenes: [], infos: [], hidden: [], pages: [] };
+  const calls = { cameras: [], fetches: [], blockInfo: [], placed: [], cells: [], hints: [], sizes: [], clips: [], locates: [], scenes: [], infos: [], hidden: [], pages: [], uncharted: [] };
   const server = options.server || (() => ({ children: [], sectors: [] }));
   const host = {
     THREE, scene, camera, canvasEl, edgePc: F.edgePc, shape: F.shape, galaxyRadius: F.galaxyRadius,
@@ -119,6 +119,20 @@ function open(href, options) {
       data.halfEdgePc = data.halfEdgePc || 5;
       return Promise.resolve(options.sectorScene ? options.sectorScene(data) : data);
     },
+    // MAP.162: a cell nothing was generated in, opened from what the scatters left there.
+    fetchUnchartedScene: options.unchartedScene ? (at) => {
+      calls.uncharted.push(at);
+      const data = structuredClone(F.sectorMap.data);
+      data.centerPc = [1000, 2000, 30];
+      data.halfEdgePc = 5;
+      Object.assign(data, { uncharted: true, designation: S.sectorDesignation(at.ring, at.layer, at.slot) });
+      try {
+        return Promise.resolve(options.unchartedScene(data, at));
+      } catch (err) {
+        return Promise.reject(err);
+      }
+    } : undefined,
+    viewport: options.unchartedScene ? viewport : undefined,
     lightBackground: false,
     pixelRatio: () => 1,
     showInfo: (spec) => calls.infos.push(spec),
@@ -815,6 +829,87 @@ test("a generated sector opens in place; one uncharted is selected", async () =>
   assert.equal(m.calls.hidden[m.calls.hidden.length - 1], null);
   assert.equal(S.parseStageQuery(m.win.location.search).open, false);
   assert.deepEqual(S.parseStageQuery(m.win.location.search).sector, sector);
+});
+
+// Drills a fresh map down to one layer of sectors and returns the address of the sector
+// the pointer is on next (not generated: the server lists no sectors). Taking a choice
+// on the way down already opens the first sector, so the calls are cleared first.
+async function toAnUnchartedSector(m) {
+  for (let n = 0; n < 12; n++) {
+    if (S.parseStageQuery(m.win.location.search).stage.at?.m === 3 && !(await drillOnce(m))) break;
+    if (!S.parseStageQuery(m.win.location.search).stage.at || S.parseStageQuery(m.win.location.search).stage.at.m !== 3) {
+      await drillOnce(m);
+    }
+  }
+  for (let n = 0; n < 3; n++) await drillOnce(m);
+  key(m, "ArrowRight");
+  const match = /^Sector ([\d,]+)·(-?\d+)·([\d,]+),.*uncharted$/.exec(m.els.tooltip.textContent);
+  assert.ok(match, "the tooltip names a sector: " + m.els.tooltip.textContent);
+  m.calls.uncharted.length = 0;
+  m.calls.hidden.length = 0;
+  return { ring: Number(match[1].replace(/,/g, "")), layer: Number(match[2]), slot: Number(match[3].replace(/,/g, "")) };
+}
+
+test("a sector nothing was generated in opens in place with what the scatters left, marked uncharted (MAP.162)", async () => {
+  const m = await start(undefined, { unchartedScene: (data) => data });
+  const sector = await toAnUnchartedSector(m);
+  key(m, "Enter");
+  await arrive(m);
+  assert.deepEqual(m.calls.uncharted, [sector]);
+  assert.deepEqual(m.calls.scenes, [], "there is no sector to fetch");
+  assert.deepEqual(m.win.location.assigned, [], "no page load: it opens in the map");
+  const query = S.parseStageQuery(m.win.location.search);
+  assert.equal(query.open, true, "the URL says it is open: " + m.win.location.search);
+  assert.deepEqual(query.sector, sector);
+  assert.ok(m.calls.hidden[m.calls.hidden.length - 1].r1 > 0, "the galaxy's own stars leave the cell");
+  // The title, the info panel and the frame all carry the mark.
+  const crumbs = crumbLabels(m);
+  assert.match(crumbs[crumbs.length - 1], /^Sector .* \(uncharted\)$/);
+  const cell = m.calls.cells[m.calls.cells.length - 1];
+  assert.deepEqual(cell.address, sector);
+  assert.equal(cell.uncharted.designation, S.sectorDesignation(sector.ring, sector.layer, sector.slot));
+  assert.ok(cell.uncharted.stars > 0);
+  const badge = m.win.document.querySelector(".sector-uncharted-badge");
+  assert.ok(badge && /Uncharted sector/.test(badge.textContent), "the frame carries a badge");
+  // Up closes it: the mark goes with it and the cell is selected again.
+  m.view.up();
+  await arrive(m);
+  assert.equal(m.win.document.querySelector(".sector-uncharted-badge"), null);
+  assert.equal(m.calls.hidden[m.calls.hidden.length - 1], null);
+  assert.equal(S.parseStageQuery(m.win.location.search).open, false);
+  assert.ok(!/uncharted/.test(crumbLabels(m).join(" ")));
+});
+
+test("a cell the scatters left empty is only selected, not opened (MAP.162)", async () => {
+  const m = await start(undefined, { unchartedScene: (data) => Object.assign(data, { stars: [], clouds: [] }) });
+  const sector = await toAnUnchartedSector(m);
+  key(m, "Enter");
+  await arrive(m);
+  assert.deepEqual(m.calls.uncharted, [sector]);
+  assert.ok(!S.parseStageQuery(m.win.location.search).open, "it is not open: " + m.win.location.search);
+  assert.equal(m.win.document.querySelector(".sector-uncharted-badge"), null);
+  const cell = m.calls.cells[m.calls.cells.length - 1];
+  assert.deepEqual(cell.address, sector);
+  assert.equal(cell.uncharted, null);
+  assert.ok(!/uncharted/.test(crumbLabels(m).join(" ")));
+});
+
+test("a failed uncharted scene leaves the cell selected (MAP.162)", async () => {
+  const m = await start(undefined, { unchartedScene: () => { throw new Error("HTTP 502"); } });
+  const sector = await toAnUnchartedSector(m);
+  key(m, "Enter");
+  await arrive(m);
+  assert.equal(m.win.document.querySelector(".sector-uncharted-badge"), null);
+  assert.deepEqual(m.calls.cells[m.calls.cells.length - 1].address, sector);
+  assert.equal(m.els.notice.hidden, true, "no error notice for what is only an extra");
+});
+
+test("?sector=...&open=1 opens an uncharted sector from the address (MAP.162)", async () => {
+  const m = await start("http://localhost/galaxy?sector=" + S.sectorDesignation(3, 0, 4) + "&open=1", {
+    unchartedScene: (data) => data,
+  });
+  assert.deepEqual(m.calls.uncharted, [{ ring: 3, layer: 0, slot: 4 }]);
+  assert.ok(m.win.document.querySelector(".sector-uncharted-badge"));
 });
 
 test("a sector page's map opens its sector, keeps to it and sends another sector to its page (MAP.68)", async () => {

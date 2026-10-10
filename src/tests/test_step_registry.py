@@ -12,7 +12,7 @@ from planetgen.generation import steps
 PACKAGE = pathlib.Path(steps.__file__).resolve().parents[1]
 
 # Where each call keeps its kind: a position, or a keyword.
-KIND_ARGUMENT = {"Step": 1, "hooked": 2, "worker_step": 3}
+KIND_ARGUMENT = {"Step": 1, "step": 1, "hooked": 2, "worker_step": 3}
 
 
 def _kinds_used():

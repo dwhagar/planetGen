@@ -2746,6 +2746,15 @@ PHENOMENON_MIN_MASS_PRESETS = (8.0, 10.0, 12.0, 14.0, 16.0, 18.0, 20.0)
 """tuple: The mass limits the user may pick (GEN.183, Boss 2026-10-10): the
 Generate page's slider and `--phenomenon-min-mass` accept only these."""
 
+COMPACT_MIN_MASS_PRESETS = (1.0, 2.0, 4.0, 6.0)
+"""tuple: The compact-object limits the user may pick (GEN.195, Boss 2026-10-10): the
+lowest mass of a neutron star or black hole the scatter places. `--compact-min-mass`
+and the Generate page's compact-object control accept only these, or "star" to use the
+stellar mass limit."""
+
+COMPACT_MIN_MASS_STAR = "star"
+"""str: `--compact-min-mass`'s word for "use the stellar mass limit" (the default)."""
+
 PHENOMENON_MIN_MASS_SOLAR = 14.0
 """float: The phenomenon scatter's lowest mass, the default of
 `PHENOMENON_MIN_MASS_PRESETS` (GEN.167, `planetgen plan

@@ -27,6 +27,26 @@
   sector is made. Presets: {{ mass_limit_presets|map("int")|join(", ") }}. Lower limits place more and take longer.</span>
 </label>
 {%- endmacro -%}
+{#- GEN.195: the neutron star and black hole limit, apart from the stellar mass limit above. Ticked, it
+    follows the star setting; unticked, the dropdown's mass applies. Lower limits fill the database fast. -#}
+{%- macro compact_limit(id) -%}
+{%- set use_star = (not form) or form.get("compact_use_star") -%}
+{%- set chosen = (form.get("compact_min_mass") if form else none) or compact_presets[-1] -%}
+<fieldset class="generate-compact" data-compact-limit>
+  <legend>{{ compact_label }}</legend>
+  <label class="generate-compact-star"><input type="checkbox" name="compact_use_star" value="1" id="{{ id }}-star"
+    {%- if use_star %} checked{% endif %}> Use the star mass setting</label>
+  <label for="{{ id }}">Or neutron stars and black holes from
+    <select id="{{ id }}" name="compact_min_mass">
+      {%- for preset in compact_presets %}
+      <option value="{{ preset|int }}"{% if preset|int == chosen|float|int %} selected{% endif %}>{{ preset|int }}</option>
+      {%- endfor %}
+    </select> solar masses</label>
+  <span class="field-hint">Every neutron star and black hole at least this heavy is placed across the whole galaxy;
+  lighter ones are drawn when their sector is made. The central black hole or quasar is always created. Lower
+  limits fill the database: {% for preset, cost in compact_warnings %}{{ preset|int }} solar mass{{ "es" if preset > 1 }} is {{ cost }}{{ "; " if not loop.last else "." }}{% endfor %}</span>
+</fieldset>
+{%- endmacro -%}
 {%- macro plan_inputs() -%}
 <div class="search-fields">
   {%- for name, flag, label, kind, default, minimum, maximum in plan_fields %}
@@ -40,6 +60,7 @@
 <div class="search-fields scatter-limits">
   {{ mass_slider(id) }}
   {{ scatter_threshold() }}
+  {{ compact_limit(id ~ "-compact") }}
 </div>
 {%- endmacro -%}
 {#- ADM.16: the share of each feature a sector or galaxy run should
@@ -153,13 +174,21 @@
 {%- if estimate %}
 
 <section class="panel" id="estimate" aria-labelledby="estimate-heading">
-  <h2 id="estimate-heading">{{ estimate_title }}: size and time</h2>
+  <h2 id="estimate-heading">{{ estimate_title }}: {{ "time" if estimate.deep_check else "size and time" }}</h2>
+  {%- if estimate.deep_check %}
+  <dl class="estimate-facts">
+    <dt>Star systems</dt><dd>{{ num(estimate.systems) }} to load and validate, besides the table checks</dd>
+    <dt>Time</dt><dd>About {{ estimate.time_text }}{% if not estimate.measured %} (this server's speed isn't measured yet, so this is a rough guess){% endif %}</dd>
+  </dl>
+  <p class="hint">The check changes nothing. It runs as a job you can watch and cancel.</p>
+  {%- else %}
   <dl class="estimate-facts">
     <dt>Sectors</dt><dd>{{ num(estimate.sectors) }} (about {{ num(estimate.systems) }} star systems, {{ num(estimate.stars) }} stars)</dd>
     <dt>Database growth</dt><dd>About {{ estimate.size_text }} (10% margin included)</dd>
     <dt>Time</dt><dd>About {{ estimate.time_text }} with {{ estimate.workers }} worker{{ "" if estimate.workers == 1 else "s" }}{% if not estimate.measured %} (this server's speed isn't measured yet, so this is a rough default){% endif %}</dd>
     <dt>Database disk</dt><dd>{{ estimate.disk_text or estimate.disk_note_text or "Not measured, so nothing is refused for space." }}</dd>
   </dl>
+  {%- endif %}
   {%- if estimate.refused %}
   <p class="error" role="alert">{{ estimate.refusal }}</p>
   <p class="hint">You can still generate it. Generating anyway is recorded in the activity log.</p>
@@ -174,7 +203,7 @@
     <input type="hidden" name="{{ generate_anyway_field }}" value="1">
     {%- endif %}
     <div class="search-actions">
-      <button type="submit" class="btn"{% if active %} disabled{% endif %}>{{ "Generate anyway" if estimate.refused else "Generate" }}</button>
+      <button type="submit" class="btn"{% if active %} disabled{% endif %}>{{ "Check" if estimate.deep_check else ("Generate anyway" if estimate.refused else "Generate") }}</button>
       <a class="btn" href="{{ url_for('web.generate') }}">Cancel</a>
     </div>
   </form>
@@ -432,6 +461,8 @@
   <form method="post" action="{{ url_for('web.generate') }}" class="search-form">
     {{ csrf_field() }}
     <input type="hidden" name="action" value="check_db">
+    <label class="check"><input type="checkbox" name="deep" value="1"> Deep check: also validate every star system
+      and run the slower table checks. It shows the time it expects first and asks you to confirm.</label>
     <div class="search-actions">
       <button type="submit" class="btn"{% if busy %} disabled{% endif %}>Check the database</button>
     </div>

@@ -352,7 +352,7 @@ def scatter_bright_stars(args):
     other phenomena, are `scatter_phenomena`'s):
 
     2. the mass pass: every star born at or above the mass limit
-       (`--phenomenon-min-mass`, one of 8 to 20 solar masses), whatever its
+       (`--phenomenon-min-mass`, the stellar mass limit, one of 8 to 20 solar masses), whatever its
        luminosity (`brightStars.scatter` with `mass_range=(limit, None)`);
     3. the marks: each sector holding a pass 2 star at least as bright as
        the luminosity floor is marked (`store.bright_star_marked_addresses`);
@@ -378,7 +378,7 @@ def scatter_bright_stars(args):
         if filled:
             log.normal(f"Leaving out the {len(filled):,} sectors already filled.")
         min_luminosity_sol = float(args.bright_star_min_luminosity)
-        mass_limit = _phenomenon_min_mass(args, conn)
+        mass_limit = _stellar_mass_limit(args, conn)
         seed = _bright_star_seed(skeleton, "scatter")
         mass_seed = _bright_star_seed(skeleton, "mass-scatter")
         store.clear_bright_stars(conn)
@@ -854,15 +854,32 @@ def _phenomenon_scatter_seed(skeleton):
     return galaxySeed.short_seed(skeleton.galaxy_seed, "phenomenon-scatter", "scatter")
 
 
-def _phenomenon_min_mass(args, conn):
-    """The mass limit (GEN.167, GEN.183): `--phenomenon-min-mass`, else the
-    one already stored with the galaxy, else
-    `tuning.PHENOMENON_MIN_MASS_SOLAR`."""
+def _stellar_mass_limit(args, conn):
+    """The stellar mass limit (GEN.167, GEN.183, GEN.195): `--phenomenon-min-mass`,
+    else the one already stored with the star scatter, else
+    `tuning.PHENOMENON_MIN_MASS_SOLAR`. It governs stars only."""
     value = getattr(args, "phenomenon_min_mass", None)
     if value is None:
-        stored = store.phenomenon_scatter_settings(conn)
-        value = stored[1] if stored is not None else None
+        value = store.bright_star_mass_limit(conn)
     return float(program_constants.PHENOMENON_MIN_MASS_SOLAR if value is None else value)
+
+
+def _compact_mass_limit(args, conn):
+    """The lowest mass of a neutron star or black hole the phenomena scatter
+    places (GEN.195): `--compact-min-mass` when it is a number, the stellar
+    mass limit for "star". Left out, it follows a `--phenomenon-min-mass` given
+    in the same run, else keeps the cut already stored with the galaxy, else
+    is the stellar limit."""
+    value = getattr(args, "compact_min_mass", None)
+    if value == program_constants.COMPACT_MIN_MASS_STAR:
+        return _stellar_mass_limit(args, conn)
+    if value is not None:
+        return float(value)
+    if getattr(args, "phenomenon_min_mass", None) is None:
+        stored = store.phenomenon_scatter_settings(conn)
+        if stored is not None and stored[1] is not None:
+            return float(stored[1])
+    return _stellar_mass_limit(args, conn)
 
 
 def _log_phenomena_layer(layer_index, counts):
@@ -917,7 +934,7 @@ def scatter_phenomena(args):
     """
     Pre-places the galaxy's black holes, neutron stars, planetary nebulae
     and supernova remnants (`phenomenon_scatter.scatter_layer`; neutron
-    stars and black holes only from `--phenomenon-min-mass` up), its
+    stars and black holes only from `--compact-min-mass` up, GEN.195), its
     hypervelocity stars and its nucleus into `phenomenon_scatter`, replacing
     any earlier scatter, one layer per task. Sectors already filled are left
     out, as the bright-star scatter does (GEN.30), and the nucleus and the
@@ -935,7 +952,7 @@ def scatter_phenomena(args):
         extents = store.get_galaxy_layers(conn)
         filled = store.filled_sector_addresses(conn)
         seed = _phenomenon_scatter_seed(skeleton)
-        min_mass_solar = _phenomenon_min_mass(args, conn)
+        min_mass_solar = _compact_mass_limit(args, conn)
         with run_common._generation_progress() as progress:
             log.set_console(progress.console)
             try:
