@@ -3246,8 +3246,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   pages. Still open: the command-line overall bar, only if Boss asks;
   and the whole-job layers-per-second stat noted above.
   Lane (2026-10-09): Owner of the remainder (command-line bar, whole-job
-  layers-per-second stat): Bugfixes lane 2, second after TEST.122
-  (coordinator, 2026-10-10).
+  layers-per-second stat): Bugfixes lane 2 (coordinator, 2026-10-10).
 
 - [ ] **PERF.59 Share the ring inputs between the phenomena pass and the backfill rings (top priority)**
   From the scatter study (docs/design/scatter-queue-feasibility.md): the
@@ -3707,6 +3706,10 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Stage 1 of 3 done (PR #1119): sectors, systems and phenomena use
   printed IDs. Stage 2 = bodies and facilities; stage 3 = edit
   endpoints, wiki, NAV, objectref.js and the galaxy JS.
+  Known failure (2026-10-09): Open after stage 1 (Bugfixes lane 2,
+  2026-10-10): tests/test_web_a11y.py, the sector page at phone width,
+  fails on main because the galaxy JS still requests /sector/<row
+  id>/scene and gets 404. Stage 3 (galaxy JS) fixes it.
   Design: [docs/design/object-id-options.md](design/object-id-options.md)
 
 ## ADM: Admin tools
@@ -3910,17 +3913,6 @@ clears each one.
   or the product bug is fixed. Open question for Boss (default: leave
   open until it recurs, then investigate with the failing run's data).
   Prerequisites: none. Related: TEST.111, TEST.71.
-
-- [ ] **TEST.122 Browser map tests fail on plain main in Bugfixes lane 2's container (fixture maps, controls, system-page maps) (bug)**
-  Bugfixes lane 2 (2026-10-10, relayed):
-  test_web_browser_fixture_maps.py, test_web_browser_controls.py and the
-  system page in test_web_browser_maps.py fail on plain main in its
-  container, not only on a branch (2 system map browser tests failed in
-  the GEN.188 run). Find whether it is the container's browser or a real
-  regression; if real, fix it; if the container, record what the lane
-  needs. Related to the earlier TEST.119 and TEST.120 fixes. Owner:
-  Bugfixes lane 2 (first; coordinator, 2026-10-10).
-  Prerequisites: none. Related: TEST.119, TEST.120.
 
 ## USR: User accounts
 
