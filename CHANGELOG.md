@@ -3,6 +3,7 @@
 ## [8.0.911] - 2026-10-10
 
 ### Changed
+- **Docs only:** GEN.188 (mass limit default 8; mass slider and luminosity dropdown side by side on Generate and New galaxy) is filed, and the mass-cut design note records the new default.
 - **Docs only:** ADM.31 (every generate action offers the Galaxy Map, PR #976) is retired from the TODO list and the plans.
 - `GET /api/jobs/<id>` now gives `made_url` for a finished neighborhood or regenerate job: the Galaxy Map fitted to the sectors it made (ADM.31). The map menus' Generate buttons already reach the Generate page's job, which offers the same link.
 - **Docs only:** OPS.39 (remove Windows support) is assigned to Foundations lane 3.
