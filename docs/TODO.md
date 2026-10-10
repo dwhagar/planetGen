@@ -446,10 +446,9 @@ with `clamp()`.
   the system list has an 'uncharted' filter (off by default) that lists
   scattered stars with their coordinates, sector coordinates, layer,
   shell and slot and the star's own data; each row has a Generate button
-  for that one system, with a note recommending the whole sector. Open
-  question for Boss (default: scattered stars from the mass-limit and
+  for that one system, with a note recommending the whole sector. Decided (Boss, 2026-10-10 04:06Z, "your defaults are confirmed"): scattered stars from the mass-limit and
   luminosity passes both count; generating one system fills only that
-  system and leaves the sector's other contents ungenerated).
+  system and leaves the sector's other contents ungenerated.
   Prerequisites: none. Related: MAP.162, ADM.32, ADM.35, NAV.48, DOC.9.
 
 ## MAP: Galaxy Map, Sector Map, System Map
@@ -3175,8 +3174,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   preset values between 8 and 20 solar masses; 20 stays the default (the
   cut Boss accepted on 2026-10-09). Everything above the cut is
   scattered galaxy-wide; everything below is drawn when its sector is
-  made, as built in GEN.166 to GEN.168. Open question for Boss (default:
-  presets 8, 10, 12, 14, 16, 18 and 20).
+  made, as built in GEN.166 to GEN.168. Decided (Boss, 2026-10-10 04:06Z, "your defaults are confirmed"):
+  presets 8, 10, 12, 14, 16, 18 and 20.
   Note (2026-10-10, GEN.185 merged, PR #953): the five passes are built with one mass limit (phenomenon_min_mass_solar) for phenomena and stars, and galaxy_shape.bright_star_mass_limit_sol records it (phenomenon-scatter-mass-cut.md, "The star passes").
   Lane (Boss, 2026-10-10 03:04Z): Foundations lane 2.
   Prerequisites: none. Related: GEN.169, GEN.166, GEN.167, GEN.168,
@@ -3192,10 +3191,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   starts at 2500 L_sun with steps of 100, grows exponentially and ends
   at 4,000,000 L_sun with steps near 500,000; the default is 3000 L_sun.
   This replaces the fixed 1000 L_sun floor (GEN.30) as the default and
-  sets 2500 as the lowest allowed. Open question for Boss (default: a
+  sets 2500 as the lowest allowed. Decided (Boss, 2026-10-10 04:06Z, "your defaults are confirmed"): a
   geometric ladder of about 60 presets built from the step rule, rounded
   to 2 significant digits above 10,000, and a database already filled
-  below the new floor keeps its stars).
+  below the new floor keeps its stars.
   Note (2026-10-10, GEN.185 merged, PR #953): the five passes are built with one mass limit (phenomenon_min_mass_solar) for phenomena and stars, and galaxy_shape.bright_star_mass_limit_sol records it (phenomenon-scatter-mass-cut.md, "The star passes").
   Lane (Boss, 2026-10-10 03:04Z): Foundations lane 1.
   Prerequisites: none. Related: GEN.30, PERF.18, GEN.40, MAP.120.
@@ -3224,9 +3223,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   adjacency only (no diagonals): the first ring fills stars down to 1
   solar mass, the second down to 2, the third down to 5 and the fourth
   down to 8; beyond the fourth ring only the scatter's own mass limit
-  (GEN.183) applies. Open question for Boss (default: the nearest ring
+  (GEN.183) applies. Decided (Boss, 2026-10-10 04:06Z, "your defaults are confirmed"): the nearest ring
   takes the lowest mass cut, as above, and each ring is counted from the
-  previous ring's outer edge; the GEN.30 luminosity tiers go away).
+  previous ring's outer edge; the GEN.30 luminosity tiers go away.
   Prerequisites: GEN.184. Related: GEN.30, GEN.40, GEN.99, GEN.183,
   GEN.184, MAP.120, PERF.18.
 
