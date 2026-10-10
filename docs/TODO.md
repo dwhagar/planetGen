@@ -477,6 +477,41 @@ with `clamp()`.
   PERF.32, DB.15, DB.21.
   Lane (Boss, 2026-10-09 23:38Z): Bugfixes lane 1, order PERF.32, PERF.33, PERF.51, PERF.50, DB.15, then UX.84.
 
+- [ ] **UX.85 Button menus open out of sight and make the user scroll to see them (bug)**
+  Boss (2026-10-10 00:01Z): "button menus should open where they can be
+  seen, I keep having to scroll down to see the menu. In addition,
+  buttons need to be smaller or we need to use submenus, it's just too
+  big the way it is and most of the verticle space is taken by the
+  filters that are only 1 character wide, so we should revamp that so
+  that we make the most use of the space as possible." Done: every menu
+  opened from a button (the Galaxy Map block, slab, wedge and Color by
+  menus, the toolbar menus and any dropdown on the other pages) opens
+  inside the visible part of the window, flipping above or beside its
+  button, or scrolling itself into view, when there is no room below; a
+  test opens each menu in a short window and checks that the whole menu
+  is on screen. Bugfixes lane 1, after its current work (the
+  progress-bar chain and UX.84). Open question for Boss (default as
+  written; the Galaxy Map first, then the same shared menu code for the
+  rest): other?
+  Prerequisites: none. Related: UX.86.
+
+- [ ] **UX.86 The Galaxy Map controls take too much room: buttons too large and filters one character wide (bug)**
+  Boss (2026-10-10 00:01Z): "button menus should open where they can be
+  seen, I keep having to scroll down to see the menu. In addition,
+  buttons need to be smaller or we need to use submenus, it's just too
+  big the way it is and most of the verticle space is taken by the
+  filters that are only 1 character wide, so we should revamp that so
+  that we make the most use of the space as possible." Done: the
+  controls are redesigned to leave the most room for the map: smaller
+  buttons, related actions grouped under submenus, and filters laid out
+  in the width they need instead of a column one character wide that
+  uses most of the vertical space; checked at desktop and phone widths
+  with a before and after screenshot in the PR. Applies to the same
+  shared control code on the other map pages. Bugfixes lane 1 after
+  UX.85. Open question for Boss (default: start with the Galaxy Map,
+  then the sector and system maps use the same controls): other?
+  Prerequisites: UX.85. Related: UX.85, MAP.131, MAP.122.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
