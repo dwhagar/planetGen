@@ -1263,21 +1263,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisite: DB.24. Related: MAP.131, MAP.151.
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
-- [ ] **MAP.175 The dark-family nebula fill is invisible on the dark theme (bug)**
-  Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
-  by colour or by combined regions; Phase 2 for the feature, foundations
-  in Phase 1. From the research (docs/design/nebula-map-visibility.md
-  section 9, PR #1180; report
-  /mnt/project-files/research/nebula-map-visibility/report.md): the
-  dark-family nebula fill (#1c1c24 at 0.91 opacity) has a contrast of
-  1.17:1 on the dark theme, so those nebulae cannot be seen. Done:
-  per-theme colour tokens and a test that every nebula family reaches at
-  least 3:1 against the map background on both themes (the part of
-  MAP.142 that needs no shape work). Owner: Foundations lane 2. The
-  final dust colour is MAP.181.
-  Prerequisites: none. Related: MAP.142, MAP.181.
-  Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
-
 - [ ] **MAP.176 Nebula regions on the Galaxy Map: grouped soft sprites in the dominant family colour**
   Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
   by colour or by combined regions; Phase 2 for the feature, foundations
@@ -1295,7 +1280,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   volume; the region counts stay above the 600 budget from 8 kpc to 1
   kpc even after the density cut, so tile size is set by the budget, not
   by density.
-  Prerequisites: MAP.173, MAP.175. Related: MAP.142, MAP.123, MAP.153.
+  Prerequisite: MAP.173. Related: MAP.142, MAP.123, MAP.153.
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
 - [ ] **MAP.177 Color by "Nebula cover" on the Galaxy Map**
@@ -4748,6 +4733,18 @@ clears each one.
   the neighborhood path) and the test is made reliable without loosening
   it. Owner: Bugfixes lane 2, after TEST.128.
   Prerequisites: none. Related: TEST.111, TEST.128, TEST.132.
+
+- [ ] **TEST.138 test_open_map_menus_hold_no_overlap[web.galaxy-1280] fails once in a full parallel run (bug)**
+  Reported by Foundations lane 2 (2026-10-10 23:33Z):
+  tests/test_web_browser_controls.py::test_open_map_menus_hold_no_overlap[web.galaxy-1280]
+  failed in a full suite run (-n 4, 15,485 passed and 7 failed, 74 min,
+  load average up to 14) and passed when re-run alone with 3 others (10
+  min); not checked on main. Same load-timeout family as TEST.126. Done:
+  the next failure's traceback is captured, the cause is found (a load
+  timeout in the page wait, or a real overlap that appears only at that
+  moment) and the test is made reliable without loosening it. Owner:
+  Bugfixes lane 2, with TEST.126.
+  Prerequisites: none. Related: TEST.126, TEST.128, TEST.137.
 
 ## USR: User accounts
 

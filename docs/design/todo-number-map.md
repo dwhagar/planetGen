@@ -22,7 +22,7 @@ release is stamped.
 | API | API.25 |
 | ADM | ADM.51 |
 | SEC | SEC.33 |
-| TEST | TEST.138 |
+| TEST | TEST.139 |
 | USR | USR.10 |
 | OPS | OPS.42 |
 | DOC | DOC.18 |
@@ -883,7 +883,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.172 | Nebula cell aggregates in the region pyramid | none | open |
 | MAP.173 | The Galaxy Map tile carries a nebula layer: regions and singles, nested like the star lists | none | open |
 | MAP.174 | Nebula cover in the stage-view cell statistics, for filled and unfilled cells | none | open |
-| MAP.175 | The dark-family nebula fill is invisible on the dark theme (bug) | none | open |
+| MAP.175 | The dark-family nebula fill is invisible on the dark theme (bug) | none | done, PR #1203 |
 | MAP.176 | Nebula regions on the Galaxy Map: grouped soft sprites in the dominant family colour | none | open |
 | MAP.177 | Color by "Nebula cover" on the Galaxy Map | none | open |
 | MAP.178 | Field nebula clouds drawn one by one from the nebula table | none | open |
@@ -1457,6 +1457,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.135 | Big-galaxy query-budget test for the nebula reads | none | open |
 | TEST.136 | A nebula-rate audit test: the nebula counts and fillings stay inside the observed bands | none | open |
 | TEST.137 | test_a_neighborhood_from_the_generate_page[core] fails once under load (bug) | none | open |
+| TEST.138 | test_open_map_menus_hold_no_overlap[web.galaxy-1280] fails once in a full parallel run (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
