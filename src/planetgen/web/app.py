@@ -22,10 +22,11 @@ from planetgen.api.auth import bp as auth_bp
 from planetgen.api.common import ApiError, close_control_db
 from planetgen.api.config import Config
 from planetgen.api.edits import bp as edits_bp
-from planetgen.api import naming
+from planetgen.api import ids, naming
 from planetgen.api.limiter import limiter
 from planetgen.api.population import bp as population_bp
 from planetgen.api.routes import bp, close_db
+from planetgen.api.version import API_VERSION, API_VERSION_HEADER
 from planetgen.api.workqueue import bp as workqueue_bp
 
 
@@ -52,6 +53,7 @@ def create_app(config_object=Config):
     naming.install(app)
     app.before_request(_reject_undecodable_query_string)
     app.before_request(_reject_oversized_body)
+    ids.install(app)
     # Registered before the limiter, so it runs after the limiter's own after_request hook (API.21).
     app.after_request(_drop_retry_after_unless_limited)
     limiter.init_app(app)
@@ -194,6 +196,13 @@ def _register_security_headers(app):
     `web.STRICT_TRANSPORT_SECURITY`.
     """
     from planetgen.web import CONTENT_SECURITY_POLICY, SECURITY_HEADERS, STRICT_TRANSPORT_SECURITY
+
+    @app.after_request
+    def _add_api_version(response):
+        """API.22: every `/api` answer (an error or a 404 too) says which API version it came from."""
+        if request.path.startswith("/api/"):
+            response.headers[API_VERSION_HEADER] = str(API_VERSION)
+        return response
 
     @app.after_request
     def _add_headers(response):

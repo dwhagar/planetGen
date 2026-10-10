@@ -6,7 +6,7 @@ these:
 
     from planetgen.web.helpers import crumb, db_name, page_url, render_page, trusted_html
 
-    @bp.route("/sector/<int:sector_id>")
+    @bp.route("/sector/<uid:sector_id>")
     def sector(sector_id):
         detail = apiclient.get_sector(db_name(), sector_id)
         return render_page(

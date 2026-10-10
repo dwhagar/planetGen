@@ -25,6 +25,7 @@ from planetgen.population import model
 from tests.test_population import _set_age, galaxy  # noqa: E402,F401
 from tests.test_web_facilities import _planet as _facility_planet  # noqa: E402
 from tests.test_web_system_phen import app, client, fake  # noqa: E402,F401
+from tests.publicids import pid, pids
 
 SPECIES = {
     "id": 3, "name": "Vel<ar>", "homeworld_planet_id": 11, "homeworld_name": "Home", "star_system_id": 5,
@@ -274,5 +275,5 @@ def test_real_population(mysql_config, galaxy, real_client):  # noqa: F811
     # The page escapes the name; some draws have an apostrophe ("Epteyn'Ska").
     assert 'href="/species"' in _nav(listing) and str(markupsafe.escape(name)) in listing
     assert real_client.get("/polities").status_code == 200
-    system = real_client.get(f"/system/{galaxy['a']}").get_data(as_text=True)
+    system = real_client.get(f"/system/{pid('system', galaxy['a'])}").get_data(as_text=True)
     assert "Dominant species:" in system and "Territory of" in system

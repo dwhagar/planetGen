@@ -103,6 +103,8 @@ def test_stats_reports_health_and_database_numbers(admin_client, colliding_names
     body = response.get_json()
 
     assert body["api"]["version"]
+    from planetgen.api.version import API_VERSION
+    assert body["api"]["api_version"] == API_VERSION
     assert body["api"]["uptime_seconds"] >= 0
     assert body["api"]["python_prefix"]
     # The directory Flask is imported from, i.e. the one that holds flask/.

@@ -628,7 +628,7 @@ def get_system_owner(db, system_id):
     `owner`: `polity_id`, `polity_name`, `color`, `distance_ly`), or
     `None` when no polity does."""
     _require_db(db)
-    return _request(f"/systems/{int(system_id)}/owner", {"db": db})["owner"]
+    return _request(f"/systems/{system_id}/owner", {"db": db})["owner"]
 
 
 POPULATION_NONE = {"generated": False, "species": False, "polities": False, "territories": False}
@@ -667,14 +667,14 @@ def get_nebula_shape(db, nebula_id, lod="low"):
     (`vertices` in nebula-radius units from its center, `faces`), at the
     `"low"` or `"full"` level of detail (GEN.75)."""
     _require_db(db)
-    return _request(f"/nebulae/{int(nebula_id)}/shape", {"db": db, "lod": lod})
+    return _request(f"/nebulae/{nebula_id}/shape", {"db": db, "lod": lod})
 
 
 def get_nebula_surroundings(db, nebula_id):
     """Returns `GET /api/nebulae/<id>/surroundings`' payload: the brightest
     stars round one nebula, for its page's 3D view (MAP.105)."""
     _require_db(db)
-    return _request(f"/nebulae/{int(nebula_id)}/surroundings", {"db": db})
+    return _request(f"/nebulae/{nebula_id}/surroundings", {"db": db})
 
 
 def get_galaxy_changes(db, since=None):

@@ -60,7 +60,7 @@ def _stats(reachable=True):
     if not reachable:
         database = {"name": DB, "reachable": False, "detail": "connection <refused>"}
     return {
-        "api": {"version": "5.53.1", "uptime_seconds": 3700, "python_version": "3.12.1",
+        "api": {"version": "5.53.1", "api_version": 1, "uptime_seconds": 3700, "python_version": "3.12.1",
                 "memory": {"available_bytes": 2 ** 30, "total_bytes": 2 ** 32}, "load_average": [0.1, 0.2, 0.3]},
         "mysql": {"version": "10.11", "uptime_seconds": 90000, "threads_connected": 4},
         "query_ms": 3.2,

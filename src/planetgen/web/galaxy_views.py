@@ -390,7 +390,7 @@ def galaxy_uncharted_scene(ring, layer, slot):
 galaxy_uncharted_scene.json_only = True  # not a page: tests/test_web_a11y.py skips it
 
 
-@bp.route("/galaxy/nebula/<int:nebula_id>/shape")
+@bp.route("/galaxy/nebula/<uid:nebula_id>/shape")
 @page_limit("galaxy_tiles")
 def galaxy_nebula_shape(nebula_id):
     """
@@ -415,7 +415,7 @@ def galaxy_nebula_shape(nebula_id):
 galaxy_nebula_shape.json_only = True  # not a page: tests/test_web_a11y.py skips it
 
 
-@bp.route("/galaxy/nebula/<int:nebula_id>/surroundings")
+@bp.route("/galaxy/nebula/<uid:nebula_id>/surroundings")
 @page_limit("galaxy_tiles")
 def galaxy_nebula_surroundings(nebula_id):
     """

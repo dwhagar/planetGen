@@ -11,6 +11,8 @@ without them.
 
 import pytest
 
+from tests.publicids import pid
+
 from planetgen.names import naming_key
 from tests.test_login_backoff import _admin_client, real_app  # noqa: F401 -- the fixture
 
@@ -146,7 +148,7 @@ def test_the_api_shows_the_codec_name_and_a_key_change_renames_it(real_app, mysq
     stored, row_id = _rogue_planet_with_id(mysql_config)
     assert len(stored) == 19
     admin = _admin_client(real_app)
-    detail = f"/api/phenomena/rogue_planet/{row_id}"
+    detail = f"/api/phenomena/rogue_planet/{pid('rogue_planet', row_id)}"
     # No key drawn yet: the ID is the name.
     assert admin.get(detail).get_json()["name"] == stored
 

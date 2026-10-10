@@ -20,6 +20,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.nebula import Nebula
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.system import StarSystem
+from tests.publicids import pid, pids
 
 
 @pytest.fixture
@@ -223,7 +224,7 @@ def _saved_nebula(mysql_config):
 def test_regenerate_phenomenon_keeps_id_name_and_place(admin, mysql_config):
     _sector_id, nebula_id = _saved_nebula(mysql_config)
     before = _rows(mysql_config, "SELECT * FROM nebulae WHERE id = ?", (nebula_id,))[0]
-    response = admin.post(f"/api/phenomena/nebula/{nebula_id}/regenerate")
+    response = admin.post(f"/api/phenomena/nebula/{pid('nebula', nebula_id, mysql_config)}/regenerate")
     assert response.status_code == 200, response.get_json()
     rows = _rows(mysql_config, "SELECT * FROM nebulae")
     assert len(rows) == 1
@@ -235,25 +236,26 @@ def test_regenerate_phenomenon_keeps_id_name_and_place(admin, mysql_config):
 
 def test_delete_phenomenon(admin, mysql_config):
     _sector_id, nebula_id = _saved_nebula(mysql_config)
-    assert admin.delete(f"/api/phenomena/nebula/{nebula_id}").status_code == 200
+    printed = pid("nebula", nebula_id, mysql_config)
+    assert admin.delete(f"/api/phenomena/nebula/{printed}").status_code == 200
     assert _rows(mysql_config, "SELECT id FROM nebulae") == []
-    assert admin.delete(f"/api/phenomena/nebula/{nebula_id}").status_code == 404
+    assert admin.delete(f"/api/phenomena/nebula/{printed}").status_code == 404
     assert admin.delete("/api/phenomena/teapot/1").status_code == 404
 
 
 def test_delete_sector_with_contents(admin, mysql_config):
     sector_id, system_id = _saved_system(mysql_config)
-    response = admin.delete(f"/api/sectors/{sector_id}/contents")
+    response = admin.delete(f"/api/sectors/{pid('sector', sector_id)}/contents")
     assert response.status_code == 200, response.get_json()
     assert response.get_json()["systems"] == 1
     assert _rows(mysql_config, "SELECT id FROM star_systems WHERE id = ?", (system_id,)) == []
     assert _rows(mysql_config, "SELECT id FROM sectors WHERE id = ?", (sector_id,)) == []
-    assert admin.delete(f"/api/sectors/{sector_id}/contents").status_code == 404
+    assert admin.delete(f"/api/sectors/{pid('sector', sector_id)}/contents").status_code == 404
 
 
 def test_regenerate_sector_off_the_grid_is_refused(admin, mysql_config):
     sector_id, system_id = _saved_system(mysql_config)
-    assert admin.post(f"/api/sectors/{sector_id}/regenerate").status_code == 409
+    assert admin.post(f"/api/sectors/{pid('sector', sector_id)}/regenerate").status_code == 409
     assert _rows(mysql_config, "SELECT id FROM star_systems WHERE id = ?", (system_id,))
 
 
@@ -266,7 +268,7 @@ def test_regenerate_sector_is_queued(admin, mysql_config, monkeypatch):
     monkeypatch.setattr(store, "get_galaxy_shape", lambda conn: object())
     queued = []
     monkeypatch.setattr(api_jobs, "submit", lambda function, *args: queued.append((function, args)) or "cd" * 8)
-    response = admin.post(f"/api/sectors/{sector_id}/regenerate")
+    response = admin.post(f"/api/sectors/{pid('sector', sector_id)}/regenerate")
     assert response.status_code == 202, response.get_json()
     assert response.get_json()["job_id"] == "cd" * 8
     assert queued == [(api_jobs.regenerate_sector, (sector_id, queued[0][1][1]))]
@@ -324,11 +326,11 @@ def _edit(app, client, url, action, target, **extra):
 
 def test_edit_panel_shows_only_for_an_admin(web_app, mysql_config):
     _sector_id, system_id = _saved_system(mysql_config)
-    assert 'id="admin-menu"' not in web_app.test_client().get(f"/system/{system_id}").get_data(as_text=True)
+    assert 'id="admin-menu"' not in web_app.test_client().get(f"/system/{pid('system', system_id)}").get_data(as_text=True)
     client = _web_admin(web_app, mysql_config)
-    html = client.get(f"/system/{system_id}").get_data(as_text=True)
+    html = client.get(f"/system/{pid('system', system_id)}").get_data(as_text=True)
     assert 'id="admin-menu"' in html
-    assert f'value="system:{system_id}"' in html
+    assert f'value="system:{pid("system", system_id)}"' in html
 
 
 def test_system_page_regenerates_a_planet(web_app, mysql_config):
@@ -348,7 +350,7 @@ def test_system_page_regenerates_a_planet(web_app, mysql_config):
                   if p.body_type != 'a' and p.db_id == planet.db_id)
     assert planet.name == "Ilq'Ot"
     client = _web_admin(web_app, mysql_config)
-    response = _edit(web_app, client, f"/system/{system_id}", "regenerate", f"planet:{planet.db_id}")
+    response = _edit(web_app, client, f"/system/{pid('system', system_id)}", "regenerate", f"planet:{planet.db_id}")
     assert response.status_code == 303
     page = client.get(response.headers["Location"]).get_data(as_text=True)
     assert f"Regenerated {escape(planet.name)}" in page
@@ -357,7 +359,7 @@ def test_system_page_regenerates_a_planet(web_app, mysql_config):
 def test_system_page_refuses_a_body_from_another_system(web_app, mysql_config):
     _sector_id, system_id = _saved_system(mysql_config)
     client = _web_admin(web_app, mysql_config)
-    response = _edit(web_app, client, f"/system/{system_id}", "delete", "planet:999999")
+    response = _edit(web_app, client, f"/system/{pid('system', system_id)}", "delete", "planet:999999")
     page = client.get(response.headers["Location"]).get_data(as_text=True)
     assert "isn&#39;t something on this page" in page or "isn't something on this page" in page
 
@@ -365,17 +367,17 @@ def test_system_page_refuses_a_body_from_another_system(web_app, mysql_config):
 def test_deleting_the_system_goes_back_to_its_sector(web_app, mysql_config):
     sector_id, system_id = _saved_system(mysql_config)
     client = _web_admin(web_app, mysql_config)
-    response = _edit(web_app, client, f"/system/{system_id}", "delete", f"system:{system_id}")
+    response = _edit(web_app, client, f"/system/{pid('system', system_id)}", "delete", f"system:{pid('system', system_id)}")
     assert response.status_code == 303
-    assert response.headers["Location"].endswith(f"/sector/{sector_id}")
+    assert response.headers["Location"].endswith(f"/sector/{pid('sector', sector_id)}")
     assert "System deleted." in client.get(response.headers["Location"]).get_data(as_text=True)
 
 
 def test_sector_page_deletes_the_sector(web_app, mysql_config):
     sector_id, _system_id = _saved_system(mysql_config)
     client = _web_admin(web_app, mysql_config)
-    assert 'id="admin-menu"' in client.get(f"/sector/{sector_id}").get_data(as_text=True)
-    response = _edit(web_app, client, f"/sector/{sector_id}", "delete", f"sector:{sector_id}")
+    assert 'id="admin-menu"' in client.get(f"/sector/{pid('sector', sector_id)}").get_data(as_text=True)
+    response = _edit(web_app, client, f"/sector/{pid('sector', sector_id)}", "delete", f"sector:{pid('sector', sector_id)}")
     assert response.status_code == 303
     assert response.headers["Location"].endswith("/sectors")
     assert "Sector deleted" in client.get(response.headers["Location"]).get_data(as_text=True)
@@ -384,11 +386,12 @@ def test_sector_page_deletes_the_sector(web_app, mysql_config):
 def test_phenomenon_page_regenerates_and_deletes(web_app, mysql_config):
     _sector_id, nebula_id = _saved_nebula(mysql_config)
     client = _web_admin(web_app, mysql_config)
-    url = f"/phenomenon/nebula/{nebula_id}"
+    nebula_pid = pid("nebula", nebula_id, mysql_config)
+    url = f"/phenomenon/nebula/{nebula_pid}"
     assert 'id="admin-menu"' in client.get(url).get_data(as_text=True)
-    response = _edit(web_app, client, url, "regenerate", f"nebula:{nebula_id}")
+    response = _edit(web_app, client, url, "regenerate", f"nebula:{nebula_pid}")
     assert "Regenerated Test Veil." in client.get(response.headers["Location"]).get_data(as_text=True)
-    response = _edit(web_app, client, url, "delete", f"nebula:{nebula_id}")
+    response = _edit(web_app, client, url, "delete", f"nebula:{nebula_pid}")
     assert response.headers["Location"].endswith("/phenomena")
 
 
@@ -417,7 +420,7 @@ def _with_reclassable_planet(system):
 def test_class_options_lists_recommended_classes(admin, mysql_config):
     _sector_id, system_id = _saved_system(mysql_config, _with_planet)
     system = _load(mysql_config, system_id)
-    response = admin.get(f"/api/systems/{system_id}/class-options")
+    response = admin.get(f"/api/systems/{pid('system', system_id)}/class-options")
     assert response.status_code == 200
     body = response.get_json()
     planet = _first_planet(system)
@@ -522,7 +525,7 @@ def test_class_change_the_mass_cant_fit_is_refused_and_changes_nothing():
 def test_change_star_keeps_classes_and_saves_the_type(admin, mysql_config):
     _sector_id, system_id = _saved_system(mysql_config, _with_planet)
     before = _load(mysql_config, system_id)
-    response = admin.post(f"/api/systems/{system_id}/star", json={"star_type": "K2V", "drop_facilities": True})
+    response = admin.post(f"/api/systems/{pid('system', system_id)}/star", json={"star_type": "K2V", "drop_facilities": True})
     assert response.status_code == 200, response.get_json()
     body = response.get_json()
     assert body["star_type"] == "K2V"
@@ -538,8 +541,8 @@ def test_change_star_keeps_classes_and_saves_the_type(admin, mysql_config):
 
 def test_change_star_refuses_bad_types(admin, mysql_config):
     _sector_id, system_id = _saved_system(mysql_config)
-    assert admin.post(f"/api/systems/{system_id}/star", json={"star_type": "G10V"}).status_code == 400
-    assert admin.post(f"/api/systems/{system_id}/star", json={"star": "G2V"}).status_code == 400
+    assert admin.post(f"/api/systems/{pid('system', system_id)}/star", json={"star_type": "G10V"}).status_code == 400
+    assert admin.post(f"/api/systems/{pid('system', system_id)}/star", json={"star": "G2V"}).status_code == 400
     assert admin.post("/api/systems/999999/star", json={"star_type": "G2V"}).status_code == 404
 
 
@@ -560,16 +563,16 @@ def test_system_page_changes_a_class(web_app, mysql_config):
     _sector_id, system_id = _saved_system(mysql_config, _with_reclassable_planet)
     planet = _first_planet(_load(mysql_config, system_id))
     client = _web_admin(web_app, mysql_config)
-    html = client.get(f"/system/{system_id}").get_data(as_text=True)
+    html = client.get(f"/system/{pid('system', system_id)}").get_data(as_text=True)
     assert "Change class" in html and "Change star" in html
     other = next(c for c in sorted(tuning.PLANET_CLASSES)
                  if c != planet.planet_class and adminEdits.class_fits_mass(c, planet.mass))
-    response = _edit(web_app, client, f"/system/{system_id}", "class", f"planet:{planet.db_id}",
+    response = _edit(web_app, client, f"/system/{pid('system', system_id)}", "class", f"planet:{planet.db_id}",
                      planet_class=f"force:{other}")
     assert response.status_code == 303
     page = client.get(response.headers["Location"]).get_data(as_text=True)
     assert f"to class {other}" in page
-    response = _edit(web_app, client, f"/system/{system_id}", "class", f"system:{system_id}", planet_class="J")
+    response = _edit(web_app, client, f"/system/{pid('system', system_id)}", "class", f"system:{system_id}", planet_class="J")
     page = client.get(response.headers["Location"]).get_data(as_text=True)
     assert "something on this page" in page
 
@@ -577,7 +580,7 @@ def test_system_page_changes_a_class(web_app, mysql_config):
 def test_system_page_changes_the_star(web_app, mysql_config):
     _sector_id, system_id = _saved_system(mysql_config)
     client = _web_admin(web_app, mysql_config)
-    response = _edit(web_app, client, f"/system/{system_id}", "star", f"system:{system_id}", star_type="k2v",
+    response = _edit(web_app, client, f"/system/{pid('system', system_id)}", "star", f"system:{pid('system', system_id)}", star_type="k2v",
                      drop_facilities="1")
     assert response.status_code == 303
     client.get(response.headers["Location"])

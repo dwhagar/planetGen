@@ -18,6 +18,7 @@ from planetgen.physics.units import ly_to_pc, mpc_to_pc
 from planetgen.web.app import create_app
 from planetgen import tuning
 from planetgen.galaxy.density import build_galaxy_shape
+from tests.publicids import pid, pids
 
 EDGE_PC = ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)
 SHAPE = build_galaxy_shape(
@@ -222,10 +223,10 @@ def test_api_near_answers_and_refuses(client, galaxy):
         system_id = next(iter(_systems(conn)))
     finally:
         conn.close()
-    response = client.get(f"/api/near?from=system:{system_id}&distance=8&kinds=system,planet&limit=5")
+    response = client.get(f"/api/near?from=system:{pid('system', system_id)}&distance=8&kinds=system,planet&limit=5")
     assert response.status_code == 200
     body = response.get_json()
-    assert body["place"]["ref"] == f"system:{system_id}" and len(body["rows"]) <= 5
+    assert body["place"]["ref"] == f"system:{pid('system', system_id)}" and len(body["rows"]) <= 5
     assert body["total"] >= len(body["rows"])
     assert {row["kind"] for row in body["rows"]} <= {"system", "planet"}
 

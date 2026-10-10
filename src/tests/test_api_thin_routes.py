@@ -29,6 +29,7 @@ from tests.test_api import (  # noqa: F401
     _place_sector, _save_wide_binary_with_moons, admin_client, client, default_admin_client,
     first_admin_password, seeded_sector,
 )
+from tests.publicids import pid, pids
 
 HUGE_ID = 10 ** 25
 """int: Past `BIGINT UNSIGNED`'s range; the URL's `<int:...>` converter
@@ -338,10 +339,10 @@ def test_species_listing_paging_limits(client, mysql_config):
 def test_system_owner_unknown_unowned_and_deleted(admin_client, seeded_sector):
     _config, _sector_id, system_ids = seeded_sector
     for system_id in (0, 999999999, HUGE_ID):
-        _assert_json_error(admin_client.get(f"/api/systems/{system_id}/owner"), 404)
-    assert admin_client.get(f"/api/systems/{system_ids[0]}/owner").get_json() == {"owner": None}
-    assert admin_client.delete(f"/api/systems/{system_ids[0]}").status_code == 200
-    _assert_json_error(admin_client.get(f"/api/systems/{system_ids[0]}/owner"), 404)
+        _assert_json_error(admin_client.get(f"/api/systems/{pid('system', system_id)}/owner"), 404)
+    assert admin_client.get(f"/api/systems/{pid('system', system_ids[0])}/owner").get_json() == {"owner": None}
+    assert admin_client.delete(f"/api/systems/{pid('system', system_ids[0])}").status_code == 200
+    _assert_json_error(admin_client.get(f"/api/systems/{pid('system', system_ids[0])}/owner"), 404)
 
 
 # --- Deleting a sector with facilities and wiki links ---------------------------------
@@ -368,7 +369,7 @@ def test_deleting_a_sector_with_facilities_and_wiki_links(admin_client, mysql_co
     assert orbital.status_code == 201, orbital.get_json()
     orbital_id = orbital.get_json()["id"]
 
-    assert admin_client.patch(f"/api/sectors/{sector_id}",
+    assert admin_client.patch(f"/api/sectors/{pid('sector', sector_id)}",
                               json={"wiki_url": "https://wiki.example.com/Doomed"}).status_code == 200
     conn = store.get_connection(mysql_config)
     try:
@@ -377,26 +378,26 @@ def test_deleting_a_sector_with_facilities_and_wiki_links(admin_client, mysql_co
                          ("https://wiki.example.com/Doomed/System", system_id))
     finally:
         conn.close()
-    assert [f["id"] for f in admin_client.get(f"/api/sectors/{sector_id}/facilities").get_json()["items"]] == [
+    assert [f["id"] for f in admin_client.get(f"/api/sectors/{pid('sector', sector_id)}/facilities").get_json()["items"]] == [
         standalone_id]
 
-    assert admin_client.delete(f"/api/sectors/{sector_id}").status_code == 200
+    assert admin_client.delete(f"/api/sectors/{pid('sector', sector_id)}").status_code == 200
 
-    _assert_json_error(admin_client.get(f"/api/sectors/{sector_id}"), 404)
-    _assert_json_error(admin_client.get(f"/api/sectors/{sector_id}/facilities"), 404)
-    _assert_json_error(admin_client.delete(f"/api/sectors/{sector_id}"), 404)
-    _assert_json_error(admin_client.patch(f"/api/sectors/{sector_id}", json={"wiki_url": None}), 404)
+    _assert_json_error(admin_client.get(f"/api/sectors/{pid('sector', sector_id)}"), 404)
+    _assert_json_error(admin_client.get(f"/api/sectors/{pid('sector', sector_id)}/facilities"), 404)
+    _assert_json_error(admin_client.delete(f"/api/sectors/{pid('sector', sector_id)}"), 404)
+    _assert_json_error(admin_client.patch(f"/api/sectors/{pid('sector', sector_id)}", json={"wiki_url": None}), 404)
 
     _assert_json_error(admin_client.get(f"/api/facilities/{standalone_id}"), 404)
     assert _one(mysql_config, "SELECT COUNT(*) AS n FROM facilities WHERE sector_id = ?", (sector_id,))["n"] == 0
 
-    system = admin_client.get(f"/api/systems/{system_id}").get_json()
+    system = admin_client.get(f"/api/systems/{pid('system', system_id)}").get_json()
     assert system["sector_id"] is None
     assert system["wikijs_url"] == "https://wiki.example.com/Doomed/System"
     assert admin_client.get(f"/api/facilities/{orbital_id}").get_json()["name"] == "Sun Watch"
-    assert [f["id"] for f in admin_client.get(f"/api/systems/{system_id}/facilities").get_json()["items"]] == [
+    assert [f["id"] for f in admin_client.get(f"/api/systems/{pid('system', system_id)}/facilities").get_json()["items"]] == [
         orbital_id]
-    assert admin_client.get(f"/api/systems/{system_id}/owner").get_json() == {"owner": None}
+    assert admin_client.get(f"/api/systems/{pid('system', system_id)}/owner").get_json() == {"owner": None}
     assert all(s["id"] != sector_id for s in admin_client.get("/api/galaxy/sectors").get_json()["items"])
 
 

@@ -34,6 +34,7 @@ from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.system import StarSystem
 
 from tests.conftest import _test_server_kwargs
+from tests.publicids import pid, pids
 
 
 def _system(name):
@@ -275,5 +276,5 @@ def test_a_database_with_another_default_collation_reads_and_writes(odd_collatio
     assert page.status_code == 200
     body = page.get_data(as_text=True)
     assert "Alpha Vega" in body and "Beta Véga" in body
-    for path in ("/", "/sectors", "/systems", f"/sector/{sector_id}", "/phenomena", "/api/search?system_q=VEGA"):
+    for path in ("/", "/sectors", "/systems", f"/sector/{pid('sector', sector_id, config)}", "/phenomena", "/api/search?system_q=VEGA"):
         assert client.get(path).status_code == 200, path

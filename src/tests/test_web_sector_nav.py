@@ -33,6 +33,7 @@ from planetgen.generation.system import StarSystem  # noqa: E402
 from planetgen.web import csrf, generate_page, jobs, sector_page  # noqa: E402
 from planetgen.web.helpers import page_url  # noqa: E402
 from planetgen.web.nav_page import endpoint, nav_url  # noqa: E402
+from tests.publicids import pid, pids
 
 
 DB = "planetgen_web_test"
@@ -192,14 +193,14 @@ class FakeData:
         self.calls.append(("upload", db, sector_id, backend, path))
         if self.action_error:
             raise self.action_error
-        self.sectors[sector_id]["wiki_url"] = "https://wiki.example/sectors/fake"
+        self.sectors[int(sector_id)]["wiki_url"] = "https://wiki.example/sectors/fake"
         return {"url": "https://wiki.example/sectors/fake"}
 
     def admin_set_sector_wiki_url(self, cookie_header, db, sector_id, wiki_url):
         self.calls.append(("set_wiki_url", db, sector_id, wiki_url))
         if self.action_error:
             raise self.action_error
-        self.sectors[sector_id]["wiki_url"] = wiki_url
+        self.sectors[int(sector_id)]["wiki_url"] = wiki_url
 
     estimate = {"sectors": 4, "summary": "About 280 KB and 3 s for 4 sectors.", "refused": False, "refusal": None}
 
@@ -469,7 +470,7 @@ def test_generate_neighborhood_shows_the_estimate_first(app, client, fake):
     resp = client.post("/sector/5", data={"action": "generate_neighborhood", csrf.FIELD_NAME: _csrf(app, client)})
     html = resp.get_data(as_text=True)
     assert resp.status_code == 200
-    assert ("estimate", 5) in fake.calls and ("generate", 5) not in fake.calls
+    assert ("estimate", "5") in fake.calls and ("generate", "5") not in fake.calls
     assert "About 280 KB and 3 s for 4 sectors." in html
     assert 'name="estimate_ok" value="1"' in html and "Generate these 4 sectors" in html
 
@@ -538,7 +539,7 @@ def test_wiki_upload_posts_then_redirects_to_get(app, client, fake):
     resp = client.post("/sector/5", data={
         "action": "upload_wiki", "backend": "wikijs", "path": " sectors/fake ", csrf.FIELD_NAME: token})
     assert resp.status_code == 303 and resp.headers["Location"] == "/sector/5"
-    assert ("upload", DB, 5, "wikijs", "sectors/fake") in fake.calls
+    assert ("upload", DB, "5", "wikijs", "sectors/fake") in fake.calls
     html = client.get("/sector/5").get_data(as_text=True)
     assert "Uploaded to the wiki: https://wiki.example/sectors/fake" in html
     assert "View on Wiki" in html and 'value="upload_wiki"' not in html
@@ -550,12 +551,12 @@ def test_set_wiki_link_posts_then_redirects_and_clears(app, client, fake):
     resp = client.post("/sector/5", data={"action": "set_wiki_url", "wiki_url": " https://wiki.example/S5 ",
                                           csrf.FIELD_NAME: _csrf(app, client)})
     assert resp.status_code == 303 and resp.headers["Location"] == "/sector/5"
-    assert ("set_wiki_url", DB, 5, "https://wiki.example/S5") in fake.calls
+    assert ("set_wiki_url", DB, "5", "https://wiki.example/S5") in fake.calls
     html = client.get("/sector/5").get_data(as_text=True)
     assert "Wiki link set to https://wiki.example/S5." in html
     assert 'value="https://wiki.example/S5"' in html  # the dialog starts from the current link
     client.post("/sector/5", data={"action": "set_wiki_url", "wiki_url": "", csrf.FIELD_NAME: _csrf(app, client)})
-    assert ("set_wiki_url", DB, 5, None) in fake.calls
+    assert ("set_wiki_url", DB, "5", None) in fake.calls
     assert "Wiki link cleared." in client.get("/sector/5").get_data(as_text=True)
 
 
@@ -765,18 +766,11 @@ def test_nav_bad_parameters_are_404(client, fake, query):
     assert "Traceback" not in resp.get_data(as_text=True)
 
 
-def test_nav_bare_number_means_a_system(client, fake):
-    html = client.get("/nav?from=1001&to=1002").get_data(as_text=True)
-    assert ("get_nav", DB, "system:1001", "system:1002") in fake.calls
-    assert "Reverse course" in html
-
-
 @pytest.mark.parametrize("query,location", [
-    ("from_id=1001", "/nav?from=system:1001"),
-    ("from_id=1001&to_id=1002", "/nav?from=system:1001&to=system:1002"),
-    ("from=3&from_kind=phenomenon&from_type=nebula&to=1002&to_kind=system",
-     "/nav?from=nebula:3&to=system:1002"),
-    ("to=3&to_kind=phenomenon&to_type=black_hole&from_sector=5", "/nav?to=black_hole:3&from_sector=5"),
+    ("from_id=1001", "/nav"),
+    ("from_id=1001&to_id=1002", "/nav"),
+    ("from=3&from_kind=phenomenon&from_type=nebula&to=1002&to_kind=system", "/nav"),
+    ("to=3&to_kind=phenomenon&to_type=black_hole&from_sector=5", "/nav?from_sector=5"),
 ])
 def test_nav_old_parameter_style_redirects(client, fake, query, location):
     resp = client.get(f"/nav?{query}")
@@ -798,7 +792,7 @@ def test_nav_url_helpers(app):
 def test_old_sector_url_redirects(client):
     result = client.get("/sector.py?db=x&id=5&contents_page=2")
     assert result.status_code == 301
-    assert result.headers["Location"] == "/sector/5?contents_page=2"
+    assert result.headers["Location"] == "/sectors"
 
 
 @pytest.mark.parametrize("sector_id", ["", "abc", "0"])
@@ -810,11 +804,10 @@ def test_old_sector_url_without_valid_id_goes_to_sectors(client, sector_id):
 
 @pytest.mark.parametrize("params,location", [
     ({"db": "x"}, "/nav"),
-    ({"db": "x", "from": "12"}, "/nav?from=system:12"),
-    ({"db": "x", "from": "12", "to": "3", "to_kind": "phenomenon", "to_type": "neutron_star"},
-     "/nav?from=system:12&to=neutron_star:3"),
-    ({"db": "x", "to": "4", "from_sector": "9"}, "/nav?to=system:4&from_sector=9"),
-    ({"db": "x", "from": "12", "to_sector": "9"}, "/nav?from=system:12&to_sector=9"),
+    ({"db": "x", "from": "12"}, "/nav"),
+    ({"db": "x", "from": "12", "to": "3", "to_kind": "phenomenon", "to_type": "neutron_star"}, "/nav"),
+    ({"db": "x", "to": "4", "from_sector": "9"}, "/nav"),
+    ({"db": "x", "from": "12", "to_sector": "9"}, "/nav"),
     ({"db": "x", "from": "junk", "from_sector": "<x>"}, "/nav"),
 ])
 def test_old_nav_url_translates_parameters(client, params, location):
@@ -873,20 +866,20 @@ def test_real_sector_page_and_nav(db_client, mysql_config, monkeypatch):
     monkeypatch.setattr(apiclient, "_http_transport", no_http)
     sector_id, systems = _two_system_sector(mysql_config)
 
-    resp = db_client.get(f"/sector/{sector_id}")
+    resp = db_client.get(f"/sector/{pid('sector', sector_id)}")
     html = resp.get_data(as_text=True)
     assert resp.status_code == 200
     for row in systems:
         assert escape(row["name"]) in html
-    assert len(_scene(db_client, f"/sector/{sector_id}")["stars"]) == 2
+    assert len(_scene(db_client, f"/sector/{pid('sector', sector_id)}")["stars"]) == 2
 
     html = db_client.get("/nav").get_data(as_text=True)
-    assert f'<option value="{sector_id}">Test Sector</option>' in html
-    html = db_client.get(f"/nav?from_sector={sector_id}").get_data(as_text=True)
-    assert f'value="system:{systems[0]["id"]}"' in html
+    assert f'<option value="{pid("sector", sector_id)}">Test Sector</option>' in html
+    html = db_client.get(f"/nav?from_sector={pid('sector', sector_id)}").get_data(as_text=True)
+    assert f'value="system:{pid("system", systems[0]["id"])}"' in html
 
     origin, destination = systems[0]["id"], systems[1]["id"]
-    resp = db_client.get(f"/nav?from=system:{origin}&to=system:{destination}")
+    resp = db_client.get(f"/nav?from=system:{pid('system', origin)}&to=system:{pid('system', destination)}")
     html = resp.get_data(as_text=True)
     assert resp.status_code == 200
     assert "Direct Course" in html and "Same sector" in html and "NAV Map" in html
@@ -917,9 +910,9 @@ def test_real_sector_page_with_galaxy_placement_renders_neighbor_indicators(db_c
     finally:
         conn.close()
 
-    resp = db_client.get(f"/sector/{sector_id}")
+    resp = db_client.get(f"/sector/{pid('sector', sector_id)}")
     assert resp.status_code == 200
-    scene = _scene(db_client, f"/sector/{sector_id}")
+    scene = _scene(db_client, f"/sector/{pid('sector', sector_id)}")
     assert len(scene["neighbors"]) > 0
     for entry in scene["neighbors"]:
         assert entry["exists"] is False  # nothing else was ever placed
@@ -948,7 +941,7 @@ def test_real_sector_page_lists_and_maps_every_phenomenon_type(db_client, mysql_
         "galactic_radius_pc": (500.0 ** 2 + 200.0 ** 2 + 10.0 ** 2) ** 0.5,
     })
 
-    html = db_client.get(f"/sector/{sector_id}").get_data(as_text=True)
+    html = db_client.get(f"/sector/{pid('sector', sector_id)}").get_data(as_text=True)
     contents = html.split('id="contents-heading">Contents</h2>', 1)[1].split("</section>", 1)[0]
     conn = store.get_connection(mysql_config)
     try:
@@ -960,7 +953,7 @@ def test_real_sector_page_lists_and_maps_every_phenomenon_type(db_client, mysql_
         assert escape(name) in contents
     for label in ("Supernova Remnant", "Rogue Planet", "Interstellar Comet", "Star System"):
         assert label in contents
-    kinds = {cloud["kind"] for cloud in _scene(db_client, f"/sector/{sector_id}")["clouds"]}
+    kinds = {cloud["kind"] for cloud in _scene(db_client, f"/sector/{pid('sector', sector_id)}")["clouds"]}
     assert {"supernovaRemnant", "roguePlanet", "interstellarComet"} <= kinds
 
 
@@ -969,7 +962,7 @@ def test_real_sector_page_escapes_its_name(db_client, mysql_config):
     cfg = _system_config("G2V")
     sector.add_system(StarSystem(system_config=cfg), position=(0.0, 0.0, 0.0), system_config=cfg)
     sector_id = store.save_sector(sector, config=mysql_config)
-    resp = db_client.get(f"/sector/{sector_id}")
+    resp = db_client.get(f"/sector/{pid('sector', sector_id)}")
     assert resp.status_code == 200
     assert "<img src=x onerror=alert(1)>" not in resp.get_data(as_text=True)
 
@@ -988,10 +981,10 @@ def test_real_admin_action_error_shows_on_the_page(db_client, mysql_config):
         "new_username": "sector-admin", "new_password": "a-strong-test-password-123"})
     assert resp.status_code == 200
 
-    html = db_client.get(f"/sector/{sector_id}").get_data(as_text=True)
+    html = db_client.get(f"/sector/{pid('sector', sector_id)}").get_data(as_text=True)
     assert "never been placed in a galaxy" in html  # no generate form for an unplaced sector
     token_value = _csrf(db_client.application, db_client)
-    resp = db_client.post(f"/sector/{sector_id}",
+    resp = db_client.post(f"/sector/{pid('sector', sector_id)}",
                           data={"action": "generate_neighborhood", csrf.FIELD_NAME: token_value})
     html = resp.get_data(as_text=True)
     assert resp.status_code == 200

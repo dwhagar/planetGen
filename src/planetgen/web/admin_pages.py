@@ -596,7 +596,8 @@ def _health(stats, api_ms, cache):
         "status": status,
         "rows": [
             ("API response", f"{api_ms:.0f} ms (queries took {stats.get('query_ms', 0):.0f} ms)"),
-            ("API version", api["version"]),
+            ("API version", api["api_version"]),
+            ("Release", api["version"]),
             ("API uptime", format_duration(api["uptime_seconds"])),
             ("Python", f"{api['python_version']} ({api['python_prefix']})"
              if api.get("python_prefix") else api["python_version"]),

@@ -11,6 +11,16 @@ sector nobody has generated has its ID already; `sector_uid` is the integer,
 from planetgen.galaxy.geometry import parse_sector_designation, provisional_sector_designation
 
 
+UNPLACED_SECTOR_BASE = 1 << 40
+"""int: A sector with no grid address has no designation. Its ID is this plus its row id, above any real
+designation (which fits 40 bits), written once when the sector is saved and never changed."""
+
+
+def unplaced_sector_uid(sector_row_id):
+    """The ID of a sector that has no grid address."""
+    return UNPLACED_SECTOR_BASE + int(sector_row_id)
+
+
 def sector_uid(ring_index, layer_index, slot_index):
     """A sector's ID: its designation as an integer. Raises `ValueError`
     like `provisional_sector_designation` for an address outside the grid."""

@@ -18,6 +18,7 @@ from planetgen.galaxy.geometry import sector_position_pc
 from planetgen.generation import run_galaxy
 from planetgen.physics.units import ly_to_pc
 from planetgen.web.app import create_app
+from tests.publicids import pid, pids
 
 EDGE_PC = ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)
 SHAPE = build_galaxy_shape(
@@ -52,7 +53,10 @@ def client(mysql_config):
 def _first_system(mysql_config):
     conn = store.get_connection(mysql_config)
     try:
-        return conn.execute("SELECT id, name, sector_id FROM star_systems ORDER BY id LIMIT 1").fetchone()
+        row = dict(conn.execute("SELECT id, name, sector_id FROM star_systems ORDER BY id LIMIT 1").fetchone())
+        row["pid"] = pid("system", row["id"], conn)
+        row["sector_pid"] = pid("sector", row["sector_id"], conn)
+        return row
     finally:
         conn.close()
 
@@ -60,20 +64,20 @@ def _first_system(mysql_config):
 def test_the_page_walks_from_a_sector_to_a_system_to_a_distance(client, mysql_config):
     system = _first_system(mysql_config)
     html = client.get("/nearby").get_data(as_text=True)
-    assert f'<option value="{system["sector_id"]}">' in html and "Or a point in space" in html
-    html = client.get(f"/nearby?sector={system['sector_id']}").get_data(as_text=True)
-    assert f'value="system:{system["id"]}"' in html
-    html = client.get(f"/nearby?place=system:{system['id']}").get_data(as_text=True)
+    assert f'<option value="{system["sector_pid"]}">' in html and "Or a point in space" in html
+    html = client.get(f"/nearby?sector={system['sector_pid']}").get_data(as_text=True)
+    assert f'value="system:{system["pid"]}"' in html
+    html = client.get(f"/nearby?place=system:{system['pid']}").get_data(as_text=True)
     assert 'name="distance"' in html and 'name="kinds"' in html
 
 
 def test_the_list_shows_what_is_near_with_links_and_the_ungenerated_count(client, mysql_config):
     system = _first_system(mysql_config)
-    response = client.get(f"/nearby?place=system:{system['id']}&distance=12")
+    response = client.get(f"/nearby?place=system:{system['pid']}&distance=12")
     html = response.get_data(as_text=True)
     assert response.status_code == 200
     assert "Within 12 pc of" in html and system["name"] in html
-    assert re.search(r'href="/system/\d+"', html)
+    assert re.search(r'href="/system/[0-9A-F-]+"', html)
     assert "are uncharted" in html or "is uncharted" in html
     assert 'id="nearby-results"' in html
 
@@ -86,7 +90,7 @@ def test_a_kind_filter_and_a_point_place(client, mysql_config):
 
 def test_a_bad_distance_is_a_message_not_an_error_page(client, mysql_config):
     system = _first_system(mysql_config)
-    response = client.get(f"/nearby?place=system:{system['id']}&distance=500")
+    response = client.get(f"/nearby?place=system:{system['pid']}&distance=500")
     assert response.status_code == 200
     assert "the largest distance is 50 pc" in response.get_data(as_text=True)
 
@@ -97,7 +101,7 @@ def test_an_unknown_place_is_a_404(client, mysql_config):
 
 def test_system_sector_and_phenomenon_pages_link_here(client, mysql_config):
     system = _first_system(mysql_config)
-    assert f"/nearby?place=system:{system['id']}" in client.get(f"/system/{system['id']}").get_data(as_text=True)
-    assert f"/nearby?place=sector:{system['sector_id']}" in client.get(
-        f"/sector/{system['sector_id']}").get_data(as_text=True)
+    assert f"/nearby?place=system:{system['pid']}" in client.get(f"/system/{pid('system', system['id'])}").get_data(as_text=True)
+    assert f"/nearby?place=sector:{system['sector_pid']}" in client.get(
+        f"/sector/{pid('sector', system['sector_id'])}").get_data(as_text=True)
     assert 'href="/nearby"' in client.get("/").get_data(as_text=True)

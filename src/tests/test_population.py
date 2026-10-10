@@ -20,6 +20,7 @@ from planetgen.physics.units import ly_to_pc
 
 from planetgen.cli import generate as generate_cli
 from planetgen.generation import run_population
+from tests.publicids import pid, pids
 
 
 # ---------------------------------------------------------------------------
@@ -361,7 +362,7 @@ def test_api(mysql_config, galaxy, client):
     assert polity["systems"] and polity["systems"][0]["distance_ly"] == 0.0
     assert client.get("/api/polities/999999999").status_code == 404
 
-    owner = client.get(f"/api/systems/{galaxy['a']}/owner").get_json()["owner"]
+    owner = client.get(f"/api/systems/{pid('system', galaxy['a'])}/owner").get_json()["owner"]
     assert owner is not None and owner["distance_ly"] == 0.0
     territories = client.get("/api/territories").get_json()
     assert territories["points"] and territories["polities"]

@@ -854,7 +854,7 @@ def _star_data(link_url, system, star, x_px, y_px, z_px, max_r=None):
         "href": link_url("system", system_id=system["id"]),
         # The system's NAV endpoint (`nav_page.endpoint`), what its ☆
         # Bookmark saves (`static/mappick.js`).
-        "endpoint": f'system:{int(system["id"])}',
+        "endpoint": f'system:{system["id"]}',
     }
 
 

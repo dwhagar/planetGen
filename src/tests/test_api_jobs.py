@@ -68,13 +68,19 @@ def test_the_status_route_is_503_without_redis(admin_client, monkeypatch):
     assert admin_client.get("/api/jobs/" + "0" * 16).status_code == 503
 
 
+def _a_sector(admin_client):
+    """The printed ID of a new sector (the first row of a fresh database: row id 1)."""
+    return admin_client.post("/api/sectors", json={"name": "Hood", "edge_ly": 10.0}).get_json()["id"]
+
+
 def test_the_neighborhood_route_queues_the_run(admin_client, monkeypatch):
     from planetgen.generation import run_galaxy
     queued = []
     monkeypatch.setattr(run_galaxy, "generate_sector_neighborhood",
                         lambda *a, **k: {"generated": 0, "estimate": {"refusal": None}})
     monkeypatch.setattr(api_jobs, "submit", lambda function, *args: queued.append((function, args)) or "ab" * 8)
-    response = admin_client.post("/api/sectors/1/generate-neighborhood", json={"radius_ly": 20})
+    sector = _a_sector(admin_client)
+    response = admin_client.post(f"/api/sectors/{sector}/generate-neighborhood", json={"radius_ly": 20})
     assert response.status_code == 202
     assert response.get_json() == {"status": "accepted", "job_id": "ab" * 8, "status_url": "/api/jobs/" + "ab" * 8}
     assert response.headers["Location"] == "/api/jobs/" + "ab" * 8
@@ -86,7 +92,7 @@ def test_the_neighborhood_route_refuses_a_run_the_disk_cannot_hold_before_queuei
     monkeypatch.setattr(run_galaxy, "generate_sector_neighborhood",
                         lambda *a, **k: {"generated": 0, "estimate": {"refusal": "not enough disk"}})
     monkeypatch.setattr(api_jobs, "submit", lambda *a: pytest.fail("queued a refused run"))
-    response = admin_client.post("/api/sectors/1/generate-neighborhood", json={})
+    response = admin_client.post(f"/api/sectors/{_a_sector(admin_client)}/generate-neighborhood", json={})
     assert response.status_code == 507
 
 
@@ -99,7 +105,8 @@ def test_the_neighborhood_route_is_503_without_redis(admin_client, monkeypatch):
         raise api_jobs.NoQueue("no Redis server answers")
 
     monkeypatch.setattr(api_jobs, "submit", down)
-    assert admin_client.post("/api/sectors/1/generate-neighborhood", json={}).status_code == 503
+    sector = _a_sector(admin_client)
+    assert admin_client.post(f"/api/sectors/{sector}/generate-neighborhood", json={}).status_code == 503
 
 
 def _refuse(status):
@@ -123,7 +130,7 @@ def test_a_slow_edit_answers_202_with_the_job_id(admin_client, redis_server, mon
 
 def test_a_quick_edit_answers_in_the_same_response(admin_client, redis_server):
     response = admin_client.post("/api/systems", json={})
-    assert response.status_code == 201 and response.get_json()["id"] > 0
+    assert response.status_code == 201 and response.get_json()["id"]
 
 
 def test_an_edit_is_503_without_redis(admin_client, monkeypatch):
@@ -161,7 +168,7 @@ def test_a_command_runs_here_without_redis(monkeypatch):
 def test_a_deeply_nested_json_body_is_a_400_not_a_500(admin_client):
     """API.20: a 100,000-deep body, well under MAX_CONTENT_LENGTH, used to escape as a RecursionError."""
     deep = "[" * 100_000 + "]" * 100_000
-    for path in ("/api/sectors/1/generate-neighborhood", "/api/sectors"):
+    for path in (f"/api/sectors/{_a_sector(admin_client)}/generate-neighborhood", "/api/sectors"):
         response = admin_client.post(path, data=deep, content_type="application/json")
         assert response.status_code == 400, path
         assert "nested too deeply" in response.get_json()["error"]

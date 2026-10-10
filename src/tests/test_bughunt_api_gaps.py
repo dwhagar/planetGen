@@ -31,6 +31,7 @@ from planetgen.generation.phenomena.rogue import InterstellarComet, RoguePlanet
 from tests.test_api import (  # noqa: F401
     admin_client, client, default_admin_client, first_admin_password, seeded_sector,
 )
+from tests.publicids import pid, pids
 
 
 def _save_nebula(mysql_config, sector_id=None):
@@ -64,7 +65,7 @@ def test_phenomena_listing_returns_saved_phenomenon(client, mysql_config):
     assert "items" in body and "total" in body and "limit" in body and "offset" in body
     assert body["total"] >= 1
     ids = [item["id"] for item in body["items"] if item.get("type") == "nebula"]
-    assert phenomenon_id in ids
+    assert pid("nebula", phenomenon_id) in ids
 
 
 def test_phenomena_listing_respects_pagination_params(client, mysql_config):
@@ -111,10 +112,10 @@ def test_phenomena_listing_on_never_initialized_database_fails_cleanly(client, m
 
 def test_phenomenon_detail_returns_saved_nebula(client, mysql_config):
     phenomenon_id, nebula = _save_nebula(mysql_config)
-    response = client.get(f"/api/phenomena/nebula/{phenomenon_id}")
+    response = client.get(f"/api/phenomena/nebula/{pid('nebula', phenomenon_id)}")
     assert response.status_code == 200
     body = response.get_json()
-    assert body["id"] == phenomenon_id
+    assert body["id"] == pid('nebula', phenomenon_id)
 
 
 def test_phenomenon_detail_unknown_id_is_404(client, mysql_config):
@@ -141,19 +142,19 @@ def test_phenomenon_detail_returns_saved_rogue_planet(client, mysql_config):
     excludes them from the galaxy-placement-only helpers, never from this
     detail route."""
     phenomenon_id, rogue_planet = _save_rogue_planet(mysql_config)
-    response = client.get(f"/api/phenomena/rogue_planet/{phenomenon_id}")
+    response = client.get(f"/api/phenomena/rogue_planet/{pid('rogue_planet', phenomenon_id)}")
     assert response.status_code == 200
     body = response.get_json()
-    assert body["id"] == phenomenon_id
+    assert body["id"] == pid('rogue_planet', phenomenon_id)
     assert body["name"] == rogue_planet.name
 
 
 def test_phenomenon_detail_returns_saved_interstellar_comet(client, mysql_config):
     phenomenon_id, comet = _save_interstellar_comet(mysql_config)
-    response = client.get(f"/api/phenomena/interstellar_comet/{phenomenon_id}")
+    response = client.get(f"/api/phenomena/interstellar_comet/{pid('interstellar_comet', phenomenon_id)}")
     assert response.status_code == 200
     body = response.get_json()
-    assert body["id"] == phenomenon_id
+    assert body["id"] == pid('interstellar_comet', phenomenon_id)
     assert body["name"] == comet.name
 
 
@@ -186,7 +187,7 @@ def test_galaxy_phenomena_returns_empty_list_once_schema_exists(client, mysql_co
 
 def test_generate_neighborhood_requires_auth(seeded_sector, client):
     _config, sector_id, _system_ids = seeded_sector
-    response = client.post(f"/api/sectors/{sector_id}/generate-neighborhood", json={})
+    response = client.post(f"/api/sectors/{pid('sector', sector_id)}/generate-neighborhood", json={})
     assert response.status_code == 401
 
 
@@ -201,7 +202,7 @@ def test_generate_neighborhood_never_galaxy_placed_sector_is_404(seeded_sector, 
     -> 404 per the route's own mapping), not a 500 deep in the galaxy-
     geometry math."""
     _config, sector_id, _system_ids = seeded_sector
-    response = admin_client.post(f"/api/sectors/{sector_id}/generate-neighborhood", json={})
+    response = admin_client.post(f"/api/sectors/{pid('sector', sector_id)}/generate-neighborhood", json={})
     assert response.status_code == 404
 
 
@@ -209,7 +210,7 @@ def test_generate_neighborhood_invalid_radius_is_400(seeded_sector, admin_client
     _config, sector_id, _system_ids = seeded_sector
     for bad_radius in [-1, 0, "not-a-number", True, limits.MAX_GENERATE_RADIUS_LY * 1.01, 1e300]:
         response = admin_client.post(
-            f"/api/sectors/{sector_id}/generate-neighborhood", json={"radius_ly": bad_radius}
+            f"/api/sectors/{pid('sector', sector_id)}/generate-neighborhood", json={"radius_ly": bad_radius}
         )
         assert response.status_code == 400, f"radius_ly={bad_radius!r} should be rejected"
 
@@ -217,7 +218,7 @@ def test_generate_neighborhood_invalid_radius_is_400(seeded_sector, admin_client
 def test_generate_neighborhood_invalid_estimate_only_is_400(seeded_sector, admin_client):
     _config, sector_id, _system_ids = seeded_sector
     for bad in ["yes", 1, None]:
-        response = admin_client.post(f"/api/sectors/{sector_id}/generate-neighborhood", json={"estimate_only": bad})
+        response = admin_client.post(f"/api/sectors/{pid('sector', sector_id)}/generate-neighborhood", json={"estimate_only": bad})
         assert response.status_code == 400, f"estimate_only={bad!r} should be rejected"
 
 

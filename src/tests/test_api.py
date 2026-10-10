@@ -36,6 +36,8 @@ from planetgen.generation.system import StarSystem
 from planetgen.wiki import WikiClientPageExistsError, WikiPage
 from planetgen.db import query
 
+from tests.publicids import pid, pids
+
 TEST_ADMIN_PASSWORD = "a-strong-test-password-123"
 
 
@@ -341,7 +343,7 @@ def test_sectors_lists_seeded_sector(client, seeded_sector):
     assert body["limit"] == 100
     assert body["offset"] == 0
     ids = {entry["id"] for entry in body["items"]}
-    assert sector_id in ids
+    assert pid('sector', sector_id) in ids
 
 
 def test_sectors_pagination(client, seeded_sector):
@@ -362,12 +364,12 @@ def test_sectors_rejects_invalid_limit(client):
 def test_sector_detail_found_and_not_found(client, seeded_sector):
     _config, sector_id, system_ids = seeded_sector
 
-    response = client.get(f"/api/sectors/{sector_id}")
+    response = client.get(f"/api/sectors/{pid('sector', sector_id)}")
     assert response.status_code == 200
     body = response.get_json()
     assert body["name"] == "Test Sector"
     assert body["system_count"] == len(system_ids)
-    assert {s["id"] for s in body["systems"]} == set(system_ids)
+    assert {s["id"] for s in body["systems"]} == set(pids("system", system_ids))
     assert body["systems"][0]["stars"]
 
     response = client.get("/api/sectors/999999999")
@@ -378,12 +380,12 @@ def test_sector_detail_found_and_not_found(client, seeded_sector):
 def test_systems_filters_by_star_type_and_sector(client, seeded_sector):
     _config, sector_id, system_ids = seeded_sector
 
-    response = client.get(f"/api/systems?sector_id={sector_id}")
+    response = client.get(f"/api/systems?sector_id={pid('sector', sector_id)}")
     assert response.status_code == 200
     body = response.get_json()
     assert body["total"] == len(system_ids)
 
-    response = client.get(f"/api/systems?sector_id={sector_id}&star_type=G")
+    response = client.get(f"/api/systems?sector_id={pid('sector', sector_id)}&star_type=G")
     assert response.status_code == 200
     body = response.get_json()
     assert body["total"] == 1
@@ -396,7 +398,7 @@ def test_systems_star_type_wildcards_match_only_themselves(client, seeded_sector
     # `%`/`_` in ?star_type= are literal characters, not LIKE wildcards:
     # no star type contains them, so nothing matches.
     _config, sector_id, _system_ids = seeded_sector
-    response = client.get("/api/systems", query_string={"sector_id": sector_id, "star_type": star_type})
+    response = client.get("/api/systems", query_string={"sector_id": pid('sector', sector_id), "star_type": star_type})
     assert response.status_code == 200
     assert response.get_json()["total"] == 0
 
@@ -419,21 +421,21 @@ def test_systems_sector_id_none_matches_standalone_systems(client, seeded_sector
 def test_system_detail_found_and_not_found(client, seeded_sector):
     _config, sector_id, system_ids = seeded_sector
 
-    response = client.get(f"/api/systems/{system_ids[0]}")
+    response = client.get(f"/api/systems/{pid('system', system_ids[0])}")
     assert response.status_code == 200
     body = response.get_json()
-    assert body["id"] == system_ids[0]
-    assert body["sector_id"] == sector_id
+    assert body["id"] == pid("system", system_ids[0])
+    assert body["sector_id"] == pid("sector", sector_id)
     assert "stars" in body and body["stars"]
     # No stored page text since schema v28 -- see /text and /sections.
     assert "markdown_content" not in body and "wikitext_content" not in body
-    assert {s["id"] for s in body["sector_siblings"]} == set(system_ids)
+    assert {s["id"] for s in body["sector_siblings"]} == set(pids("system", system_ids))
     # Nearest same-sector systems come from live rows (ids, current
     # names), never the system itself, nearest first.
     neighbors = body["nearest_neighbors"]
     assert 0 < len(neighbors) <= min(3, len(system_ids) - 1)
-    assert system_ids[0] not in {n["id"] for n in neighbors}
-    assert {n["id"] for n in neighbors} <= set(system_ids)
+    assert pid("system", system_ids[0]) not in {n["id"] for n in neighbors}
+    assert {n["id"] for n in neighbors} <= set(pids("system", system_ids))
     distances = [n["distance_ly"] for n in neighbors]
     assert distances == sorted(distances)
     # The fixture's two systems sit at (1, 1, 1) and (-2, 0.5, 3) ly.
@@ -445,26 +447,26 @@ def test_system_detail_found_and_not_found(client, seeded_sector):
 
 def test_system_text_renders_both_formats_from_the_database(client, seeded_sector):
     _config, _sector_id, system_ids = seeded_sector
-    name = client.get(f"/api/systems/{system_ids[0]}").get_json()["name"]
+    name = client.get(f"/api/systems/{pid('system', system_ids[0])}").get_json()["name"]
 
-    wikitext = client.get(f"/api/systems/{system_ids[0]}/text").get_json()
+    wikitext = client.get(f"/api/systems/{pid('system', system_ids[0])}/text").get_json()
     assert wikitext["format"] == "wikitext"
     assert wikitext["content"].startswith(f"= {name} =")
     assert "[[Category:Star Systems]]" in wikitext["content"]
 
-    markdown = client.get(f"/api/systems/{system_ids[0]}/text?format=markdown").get_json()
+    markdown = client.get(f"/api/systems/{pid('system', system_ids[0])}/text?format=markdown").get_json()
     assert markdown["content"].startswith(f"# {name}")
 
-    assert client.get(f"/api/systems/{system_ids[0]}/text?format=html").status_code == 400
+    assert client.get(f"/api/systems/{pid('system', system_ids[0])}/text?format=html").status_code == 400
     assert client.get("/api/systems/999999999/text").status_code == 404
 
 
 def test_system_text_follows_a_rename(admin_client, seeded_sector):
     _config, _sector_id, system_ids = seeded_sector
-    response = admin_client.patch(f"/api/systems/{system_ids[0]}", json={"name": "Renamed After Generation"})
+    response = admin_client.patch(f"/api/systems/{pid('system', system_ids[0])}", json={"name": "Renamed After Generation"})
     assert response.status_code == 200
 
-    content = admin_client.get(f"/api/systems/{system_ids[0]}/text?format=markdown").get_json()["content"]
+    content = admin_client.get(f"/api/systems/{pid('system', system_ids[0])}/text?format=markdown").get_json()["content"]
     assert content.startswith("# Renamed After Generation")
 
 
@@ -485,8 +487,8 @@ def test_system_sections_cover_every_body(client, mysql_config):
             break
     system_id = _db.save_system(system, cfg, config=mysql_config)
 
-    detail = client.get(f"/api/systems/{system_id}").get_json()
-    sections = client.get(f"/api/systems/{system_id}/sections").get_json()
+    detail = client.get(f"/api/systems/{pid('system', system_id)}").get_json()
+    sections = client.get(f"/api/systems/{pid('system', system_id)}/sections").get_json()
     assert any(p["moons"] for p in detail["planets"]) and detail["belts"] and detail["comets"]
 
     assert "This system contains" in sections["overview"] or "no stellar objects" in sections["overview"]
@@ -506,7 +508,7 @@ def test_system_sections_cover_every_body(client, mysql_config):
 def test_nav_returns_direct_course_and_route_for_same_sector(client, seeded_sector):
     _config, _sector_id, system_ids = seeded_sector
 
-    response = client.get(f"/api/nav?from={system_ids[0]}&to={system_ids[1]}")
+    response = client.get(f"/api/nav?from={pid('system', system_ids[0])}&to={pid('system', system_ids[1])}")
     assert response.status_code == 200
     body = response.get_json()
     assert body["scope"] == "sector"
@@ -515,19 +517,19 @@ def test_nav_returns_direct_course_and_route_for_same_sector(client, seeded_sect
     assert body["direct"]["frame"] == "sector"
     assert [leg["warp_factor"] for leg in body["warp_times"]] == [1, 2, 4, 8, 9, 9.5, 9.9, 9.995]
     assert [leg["fold_factor"] for leg in body["fold_times"]] == [4, 5, 6, 6.5, 7, 7.5, 8, 8.5]
-    assert body["route"]["path"] == [system_ids[0], system_ids[1]]
+    assert body["route"]["path"] == pids("system", [system_ids[0], system_ids[1]])
     assert len(body["origin_position"]) == 3
     assert len(body["destination_position"]) == 3
-    assert set(body["route"]["positions"]) == {str(system_ids[0]), str(system_ids[1])}
+    assert set(body["route"]["positions"]) == set(pids("system", [system_ids[0], system_ids[1]]))
     assert [(hop["from"], hop["to"], hop["unknown_space"]) for hop in body["route"]["hops"]] == [
-        (system_ids[0], system_ids[1], False)]
+        (pid('system', system_ids[0]), pid('system', system_ids[1]), False)]
     assert body["route"]["longest_hop_ly"] == pytest.approx(body["route"]["hops"][0]["distance_ly"])
 
 
 def test_nav_route_has_hop_and_total_times_and_a_stay(client, seeded_sector):
     """NAV.11: each hop and the route have warp and fold times; `stay` adds time at each stop between the ends."""
     _config, _sector_id, system_ids = seeded_sector
-    body = client.get(f"/api/nav?from={system_ids[0]}&to={system_ids[1]}&stay=90").get_json()
+    body = client.get(f"/api/nav?from={pid('system', system_ids[0])}&to={pid('system', system_ids[1])}&stay=90").get_json()
     route = body["route"]
     assert route["stay_minutes"] == 90.0 and route["stops"] == 0
     hop = route["hops"][0]
@@ -535,28 +537,28 @@ def test_nav_route_has_hop_and_total_times_and_a_stay(client, seeded_sector):
     # A single hop has no stop to stay at, so the route's time is the hop's.
     assert [leg["years"] for leg in route["warp_times"]] == pytest.approx([leg["years"] for leg in hop["warp_times"]])
     assert [leg["fold_factor"] for leg in route["fold_times"]] == [4, 5, 6, 6.5, 7, 7.5, 8, 8.5]
-    assert client.get(f"/api/nav?from={system_ids[0]}&to={system_ids[1]}").get_json()["route"]["stay_minutes"] == 0.0
+    assert client.get(f"/api/nav?from={pid('system', system_ids[0])}&to={pid('system', system_ids[1])}").get_json()["route"]["stay_minutes"] == 0.0
     for bad in ("-1", "abc", "1e12"):
-        assert client.get(f"/api/nav?from={system_ids[0]}&to={system_ids[1]}&stay={bad}").status_code == 400
+        assert client.get(f"/api/nav?from={pid('system', system_ids[0])}&to={pid('system', system_ids[1])}&stay={bad}").status_code == 400
 
 
 def test_nav_requires_from_and_to(client, seeded_sector):
     _config, _sector_id, system_ids = seeded_sector
 
-    response = client.get(f"/api/nav?to={system_ids[0]}")
+    response = client.get(f"/api/nav?to={pid('system', system_ids[0])}")
     assert response.status_code == 400
 
-    response = client.get(f"/api/nav?from={system_ids[0]}")
+    response = client.get(f"/api/nav?from={pid('system', system_ids[0])}")
     assert response.status_code == 400
 
-    response = client.get(f"/api/nav?from=not-an-int&to={system_ids[0]}")
+    response = client.get(f"/api/nav?from=not-an-int&to={pid('system', system_ids[0])}")
     assert response.status_code == 400
 
 
 def test_nav_returns_404_for_unknown_system(client, seeded_sector):
     _config, _sector_id, system_ids = seeded_sector
 
-    response = client.get(f"/api/nav?from={system_ids[0]}&to=999999999")
+    response = client.get(f"/api/nav?from={pid('system', system_ids[0])}&to=system:FFFFFFFFFF-FFFFFFF-000")
     assert response.status_code == 404
     assert "error" in response.get_json()
 
@@ -600,16 +602,16 @@ def test_nav_returns_direct_course_for_system_to_phenomenon(client, mysql_config
         conn.close()
 
     response = client.get(
-        f"/api/nav?from=system:{system_id}&to=nebula:{nebula_id}"
+        f"/api/nav?from=system:{pid('system', system_id)}&to=nebula:{pid('nebula', nebula_id)}"
     )
     assert response.status_code == 200
     body = response.get_json()
     assert body["scope"] == "galaxy"
     assert body["route"] is not None
-    phenomenon_key = f"phenomenon:nebula:{nebula_id}"
+    phenomenon_key = f"phenomenon:nebula:{pid('nebula', nebula_id)}"
     assert body["route"]["path"][-1] == phenomenon_key
     assert phenomenon_key in body["route"]["positions"]
-    assert str(system_id) in body["route"]["positions"]
+    assert pid("system", system_id) in body["route"]["positions"]
 
 
 def test_nav_returns_400_when_system_has_no_sector(client, mysql_config):
@@ -631,7 +633,7 @@ def test_nav_returns_400_when_system_has_no_sector(client, mysql_config):
     finally:
         conn.close()
 
-    response = client.get(f"/api/nav?from={origin_id}&to={destination_id}")
+    response = client.get(f"/api/nav?from={pid('system', origin_id)}&to={pid('system', destination_id)}")
     assert response.status_code == 400
     assert "error" in response.get_json()
 
@@ -717,7 +719,7 @@ def test_db_query_param_selects_a_different_database(client, mysql_config):
         sector.add_system(system, position=(0.0, 0.0, 0.0), system_config=cfg)
         other_sector_id = _db.save_sector(sector, config=other_config)
 
-        response = client.get(f"/api/sectors/{other_sector_id}?db={other_name}")
+        response = client.get(f"/api/sectors/{pid('sector', other_sector_id, other_config)}?db={other_name}")
         assert response.status_code == 200
         assert response.get_json()["name"] == "Other DB Sector"
 
@@ -729,7 +731,7 @@ def test_db_query_param_selects_a_different_database(client, mysql_config):
         # call, which this test doesn't use) so the "not found there"
         # case below is a clean 404, not a missing-table error.
         _db.get_connection(mysql_config).close()
-        response = client.get(f"/api/sectors/{other_sector_id}")
+        response = client.get(f"/api/sectors/{pid('sector', other_sector_id, other_config)}")
         assert response.status_code == 404
     finally:
         admin_conn.execute(f"DROP DATABASE IF EXISTS `{other_name}`")
@@ -1482,7 +1484,7 @@ def test_galaxy_locate_finds_sectors_and_systems_by_name(client, mysql_config):
     assert {m["name"] for m in matches} == {"Belcana", "Belcana Reach"}
     first = matches[0]
     assert (first["ring"], first["layer"], first["slot"]) == address
-    assert first["sector_id"] == sector_id
+    assert first["sector_id"] == pid("sector", sector_id)
     system = matches[1]
     assert (system["ring"], system["layer"], system["slot"]) == address
     assert system["sector_name"] == "Belcana"
@@ -1606,7 +1608,7 @@ def test_galaxy_changes_lists_the_tiles_of_a_sector_that_lost_a_system(admin_cli
         conn.close()
     before = admin_client.get("/api/galaxy/stamp").get_json()
     time.sleep(0.01)
-    assert admin_client.delete(f"/api/systems/{system_id}").status_code == 200
+    assert admin_client.delete(f"/api/systems/{pid('system', system_id)}").status_code == 200
     changes = _galaxy_changes(admin_client, before["state"])
     assert changes["full"] is False
     assert changes["tiles"] == sorted(tile_keys_containing((100.0, 200.0, 300.0)))
@@ -1617,7 +1619,7 @@ def test_galaxy_changes_is_full_after_a_deletion_or_a_bad_since(admin_client, my
     sector_id = _place_sector(mysql_config, "Doomed", (5.0, 5.0, 5.0))
     _place_sector(mysql_config, "Survivor", (50.0, 5.0, 5.0))
     before = admin_client.get("/api/galaxy/stamp").get_json()
-    assert admin_client.delete(f"/api/sectors/{sector_id}").status_code == 200
+    assert admin_client.delete(f"/api/sectors/{pid('sector', sector_id)}").status_code == 200
     changes = _galaxy_changes(admin_client, before["state"])
     assert changes["full"] is True and changes["tiles"] == []
 
@@ -1641,7 +1643,7 @@ def test_search_returns_facets_and_matches_a_class_tag(client, seeded_sector):
     assert response.status_code == 200
     body = response.get_json()
     assert body["results"]["stars"] is not None
-    assert all(row["star_system_id"] in system_ids for row in body["results"]["stars"]["rows"])
+    assert all(row["star_system_id"] in pids("system", system_ids) for row in body["results"]["stars"]["rows"])
 
 
 def test_search_text_queries(client, seeded_sector):
@@ -1911,10 +1913,10 @@ def test_create_sector_validates_request_body(admin_client):
 def test_delete_sector_detaches_rather_than_deletes_its_systems(admin_client, seeded_sector):
     _config, sector_id, system_ids = seeded_sector
 
-    response = admin_client.delete(f"/api/sectors/{sector_id}")
+    response = admin_client.delete(f"/api/sectors/{pid('sector', sector_id)}")
     assert response.status_code == 200
 
-    response = admin_client.get(f"/api/systems/{system_ids[0]}")
+    response = admin_client.get(f"/api/systems/{pid('system', system_ids[0])}")
     assert response.status_code == 200
     assert response.get_json()["sector_id"] is None
 
@@ -1933,7 +1935,7 @@ def test_delete_system_bumps_its_sectors_modified_at(admin_client, seeded_sector
 
     before = sector_modified_at()
     time.sleep(0.05)
-    response = admin_client.delete(f"/api/systems/{system_ids[0]}")
+    response = admin_client.delete(f"/api/systems/{pid('system', system_ids[0])}")
     assert response.status_code == 200
     assert sector_modified_at() > before
 
@@ -1943,7 +1945,7 @@ def test_create_system_generates_and_persists_a_standalone_system(admin_client):
     assert response.status_code == 201
     system_id = response.get_json()["id"]
 
-    response = admin_client.get(f"/api/systems/{system_id}")
+    response = admin_client.get(f"/api/systems/{pid('system', system_id)}")
     assert response.status_code == 200
     body = response.get_json()
     assert body["sector_id"] is None
@@ -1951,13 +1953,13 @@ def test_create_system_generates_and_persists_a_standalone_system(admin_client):
 
 
 def test_create_system_rejects_unrecognized_and_invalid_fields(admin_client):
-    response = admin_client.post("/api/systems", json={"sector_id": "1"})
+    response = admin_client.post("/api/systems", json={"sector_id": "xyz"})
     assert response.status_code == 400
 
     response = admin_client.post("/api/systems", json={"position": [0, 0, 0]})
     assert response.status_code == 400  # a position needs a sector
 
-    response = admin_client.post("/api/systems", json={"sector_id": 999999})
+    response = admin_client.post("/api/systems", json={"sector_id": "FFFFFFFFFF"})
     assert response.status_code == 404
 
     response = admin_client.post("/api/systems", json={"age": "ancient"})
@@ -1969,16 +1971,16 @@ def test_create_system_rejects_unrecognized_and_invalid_fields(admin_client):
 
 def test_create_system_inside_a_sector_keeps_clear_of_its_systems(seeded_sector, admin_client):
     config, sector_id, system_ids = seeded_sector
-    response = admin_client.post("/api/systems", json={"sector_id": sector_id, "star_type": "K2V", "planets": False,
+    response = admin_client.post("/api/systems", json={"sector_id": pid('sector', sector_id), "star_type": "K2V", "planets": False,
                                                         "binary_system": False})
     assert response.status_code == 201, response.get_json()
     body = response.get_json()
-    assert body["sector_id"] == sector_id
+    assert body["sector_id"] == pid("sector", sector_id)
     placed = body["position"]
     assert all(abs(c) <= 5.0 for c in placed)
 
     detail = admin_client.get(f"/api/systems/{body['id']}").get_json()
-    assert detail["sector_id"] == sector_id
+    assert detail["sector_id"] == pid("sector", sector_id)
     assert detail["location"]
 
     conn = _db.get_connection(config)
@@ -1995,27 +1997,27 @@ def test_create_system_inside_a_sector_keeps_clear_of_its_systems(seeded_sector,
 
 def test_create_system_at_an_explicit_position_inside_the_sector(seeded_sector, admin_client):
     _config, sector_id, _ids = seeded_sector
-    response = admin_client.post("/api/systems", json={"sector_id": sector_id, "position": [4.0, -4.0, 2.5],
+    response = admin_client.post("/api/systems", json={"sector_id": pid('sector', sector_id), "position": [4.0, -4.0, 2.5],
                                                         "planets": False})
     assert response.status_code == 201
     assert response.get_json()["position"] == pytest.approx([4.0, -4.0, 2.5], abs=1e-3)
 
-    response = admin_client.post("/api/systems", json={"sector_id": sector_id, "position": [40.0, 0, 0]})
+    response = admin_client.post("/api/systems", json={"sector_id": pid('sector', sector_id), "position": [40.0, 0, 0]})
     assert response.status_code == 400  # outside the sector
 
 
 def test_regenerate_keeps_the_system_but_replaces_its_bodies(seeded_sector, admin_client):
     config, sector_id, system_ids = seeded_sector
     system_id = system_ids[0]
-    before = admin_client.get(f"/api/systems/{system_id}").get_json()
+    before = admin_client.get(f"/api/systems/{pid('system', system_id)}").get_json()
     old_star_ids = {star["id"] for star in before["stars"]}
 
-    response = admin_client.patch(f"/api/systems/{system_id}", json={
+    response = admin_client.patch(f"/api/systems/{pid('system', system_id)}", json={
         "regenerate": {"star_type": "K1V", "planets": True, "binary_system": False}})
     assert response.status_code == 200, response.get_json()
     assert response.get_json()["regenerated"] is True
 
-    after = admin_client.get(f"/api/systems/{system_id}").get_json()
+    after = admin_client.get(f"/api/systems/{pid('system', system_id)}").get_json()
     assert (after["name"], after["sector_id"], after["location"]) == (before["name"], before["sector_id"],
                                                                        before["location"])
     assert after["stars"][0]["star_type"].startswith("K1V")
@@ -2035,26 +2037,26 @@ def test_regenerate_keeps_the_system_but_replaces_its_bodies(seeded_sector, admi
 def test_regenerate_refuses_to_drop_facilities_unless_told(seeded_sector, admin_client):
     config, sector_id, system_ids = seeded_sector
     system_id = system_ids[1]
-    star_id = admin_client.get(f"/api/systems/{system_id}").get_json()["stars"][0]["id"]
+    star_id = admin_client.get(f"/api/systems/{pid('system', system_id)}").get_json()["stars"][0]["id"]
     response = admin_client.post("/api/facilities", json={
         "name": "Relay One", "kind": "station", "placement": "orbital", "host_type": "star", "host_id": star_id})
     assert response.status_code == 201, response.get_json()
 
-    response = admin_client.patch(f"/api/systems/{system_id}", json={"regenerate": {"planets": False}})
+    response = admin_client.patch(f"/api/systems/{pid('system', system_id)}", json={"regenerate": {"planets": False}})
     assert response.status_code == 409
-    response = admin_client.patch(f"/api/systems/{system_id}", json={"regenerate": {"planets": False},
+    response = admin_client.patch(f"/api/systems/{pid('system', system_id)}", json={"regenerate": {"planets": False},
                                                                       "drop_facilities": True})
     assert response.status_code == 200
-    assert admin_client.get(f"/api/systems/{system_id}/facilities").get_json()["items"] == []
+    assert admin_client.get(f"/api/systems/{pid('system', system_id)}/facilities").get_json()["items"] == []
 
 
 def test_regenerate_rejects_bad_bodies(admin_client):
     system_id = admin_client.post("/api/systems", json={"planets": False}).get_json()["id"]
-    assert admin_client.patch(f"/api/systems/{system_id}", json={}).status_code == 400
-    assert admin_client.patch(f"/api/systems/{system_id}", json={"regenerate": []}).status_code == 400
-    assert admin_client.patch(f"/api/systems/{system_id}", json={"regenerate": {"age": "ancient"}}).status_code == 400
-    assert admin_client.patch(f"/api/systems/{system_id}", json={"regenerate": {"name": "X"}}).status_code == 400
-    assert admin_client.patch(f"/api/systems/{system_id}", json={"regenerate": {}, "drop_facilities": 1}
+    assert admin_client.patch(f"/api/systems/{pid('system', system_id)}", json={}).status_code == 400
+    assert admin_client.patch(f"/api/systems/{pid('system', system_id)}", json={"regenerate": []}).status_code == 400
+    assert admin_client.patch(f"/api/systems/{pid('system', system_id)}", json={"regenerate": {"age": "ancient"}}).status_code == 400
+    assert admin_client.patch(f"/api/systems/{pid('system', system_id)}", json={"regenerate": {"name": "X"}}).status_code == 400
+    assert admin_client.patch(f"/api/systems/{pid('system', system_id)}", json={"regenerate": {}, "drop_facilities": 1}
                               ).status_code == 400
     assert admin_client.patch("/api/systems/999999", json={"regenerate": {}}).status_code == 404
 
@@ -2063,16 +2065,16 @@ def test_update_and_delete_system(admin_client):
     response = admin_client.post("/api/systems", json={"star_type": "M5V", "planets": False})
     system_id = response.get_json()["id"]
 
-    response = admin_client.patch(f"/api/systems/{system_id}", json={"name": "Renamed World"})
+    response = admin_client.patch(f"/api/systems/{pid('system', system_id)}", json={"name": "Renamed World"})
     assert response.status_code == 200
-    assert admin_client.get(f"/api/systems/{system_id}").get_json()["name"] == "Renamed World"
+    assert admin_client.get(f"/api/systems/{pid('system', system_id)}").get_json()["name"] == "Renamed World"
 
-    response = admin_client.patch(f"/api/systems/{system_id}", json={"star_type": "G2V"})
+    response = admin_client.patch(f"/api/systems/{pid('system', system_id)}", json={"star_type": "G2V"})
     assert response.status_code == 400  # unrecognized field for PATCH
 
-    response = admin_client.delete(f"/api/systems/{system_id}")
+    response = admin_client.delete(f"/api/systems/{pid('system', system_id)}")
     assert response.status_code == 200
-    assert admin_client.get(f"/api/systems/{system_id}").status_code == 404
+    assert admin_client.get(f"/api/systems/{pid('system', system_id)}").status_code == 404
 
 
 def _save_wide_binary_with_moons(mysql_config):
@@ -2101,10 +2103,10 @@ def _names(mysql_config, table, system_id):
 
 def test_rename_system_carries_its_stars_planets_and_moons(admin_client, mysql_config):
     system_id = _save_wide_binary_with_moons(mysql_config)
-    old = admin_client.get(f"/api/systems/{system_id}").get_json()["name"]
+    old = admin_client.get(f"/api/systems/{pid('system', system_id)}").get_json()["name"]
 
     old_first = old.split()[0]
-    response = admin_client.patch(f"/api/systems/{system_id}", json={"name": "  Castor   Major "})
+    response = admin_client.patch(f"/api/systems/{pid('system', system_id)}", json={"name": "  Castor   Major "})
     assert response.status_code == 200
     assert response.get_json()["name"] == "Castor Major"
     # A wide pair's stars and its primary's planets carry the system name's
@@ -2174,15 +2176,15 @@ def test_rename_a_single_star_renames_its_system(admin_client, seeded_sector, my
 
     response = admin_client.patch(f"/api/stars/{star_id}", json={"name": "Sirius"})
     assert response.status_code == 200
-    assert admin_client.get(f"/api/systems/{system_ids[0]}").get_json()["name"] == "Sirius"
+    assert admin_client.get(f"/api/systems/{pid('system', system_ids[0])}").get_json()["name"] == "Sirius"
     assert _names(mysql_config, "stars", system_ids[0])[star_id] == "Sirius"
 
     # Renaming to its current name isn't a clash with itself...
-    assert admin_client.patch(f"/api/systems/{system_ids[0]}", json={"name": "Sirius"}).status_code == 200
+    assert admin_client.patch(f"/api/systems/{pid('system', system_ids[0])}", json={"name": "Sirius"}).status_code == 200
     # ...but another system's name is.
-    response = admin_client.patch(f"/api/systems/{system_ids[1]}", json={"name": "Sirius"})
+    response = admin_client.patch(f"/api/systems/{pid('system', system_ids[1])}", json={"name": "Sirius"})
     assert response.status_code == 409
-    response = admin_client.patch(f"/api/systems/{system_ids[1]}", json={"name": "Test Sector"})
+    response = admin_client.patch(f"/api/systems/{pid('system', system_ids[1])}", json={"name": "Test Sector"})
     assert response.status_code == 409  # the sector's name
 
 
@@ -2237,13 +2239,13 @@ def test_wiki_config_reports_configured_backends(client_with_wiki):
 
 def test_upload_system_wiki_requires_auth(seeded_sector, client):
     _config, _sector_id, system_ids = seeded_sector
-    response = client.post(f"/api/systems/{system_ids[0]}/wiki", json={"backend": "wikijs", "path": "x"})
+    response = client.post(f"/api/systems/{pid('system', system_ids[0])}/wiki", json={"backend": "wikijs", "path": "x"})
     assert response.status_code == 401
 
 
 def test_upload_system_wiki_returns_501_when_backend_not_configured(admin_client, seeded_sector):
     _config, _sector_id, system_ids = seeded_sector
-    response = admin_client.post(f"/api/systems/{system_ids[0]}/wiki", json={"backend": "wikijs", "path": "x"})
+    response = admin_client.post(f"/api/systems/{pid('system', system_ids[0])}/wiki", json={"backend": "wikijs", "path": "x"})
     assert response.status_code == 501
 
 
@@ -2251,15 +2253,15 @@ def test_upload_system_wiki_rejects_invalid_body(admin_client_with_wiki, seeded_
     _config, _sector_id, system_ids = seeded_sector
     system_id = system_ids[0]
 
-    response = admin_client_with_wiki.post(f"/api/systems/{system_id}/wiki", json={"backend": "confluence"})
+    response = admin_client_with_wiki.post(f"/api/systems/{pid('system', system_id)}/wiki", json={"backend": "confluence"})
     assert response.status_code == 400
 
     # wikijs requires a path (it addresses a page separately from its title)
-    response = admin_client_with_wiki.post(f"/api/systems/{system_id}/wiki", json={"backend": "wikijs"})
+    response = admin_client_with_wiki.post(f"/api/systems/{pid('system', system_id)}/wiki", json={"backend": "wikijs"})
     assert response.status_code == 400
 
     response = admin_client_with_wiki.post(
-        f"/api/systems/{system_id}/wiki", json={"backend": "wikijs", "path": "x", "bogus": 1}
+        f"/api/systems/{pid('system', system_id)}/wiki", json={"backend": "wikijs", "path": "x", "bogus": 1}
     )
     assert response.status_code == 400
 
@@ -2271,7 +2273,7 @@ def test_upload_system_wiki_wikijs_persists_url_on_the_matching_column(
     system_id = system_ids[0]
 
     response = admin_client_with_wiki.post(
-        f"/api/systems/{system_id}/wiki", json={"backend": "wikijs", "path": "systems/test-system"},
+        f"/api/systems/{pid('system', system_id)}/wiki", json={"backend": "wikijs", "path": "systems/test-system"},
     )
     assert response.status_code == 201
     page = response.get_json()
@@ -2281,11 +2283,11 @@ def test_upload_system_wiki_wikijs_persists_url_on_the_matching_column(
     assert call["backend"] == "wikijs"
     assert call["path"] == "systems/test-system"
 
-    detail = admin_client_with_wiki.get(f"/api/systems/{system_id}").get_json()
+    detail = admin_client_with_wiki.get(f"/api/systems/{pid('system', system_id)}").get_json()
     assert detail["wikijs_url"] == page["url"]
     assert detail["mediawiki_url"] is None
     # Markdown, not wikitext, is what wikijs got -- rendered fresh
-    markdown = admin_client_with_wiki.get(f"/api/systems/{system_id}/text?format=markdown").get_json()
+    markdown = admin_client_with_wiki.get(f"/api/systems/{pid('system', system_id)}/text?format=markdown").get_json()
     assert call["content"] == markdown["content"]
 
 
@@ -2294,19 +2296,19 @@ def test_upload_system_wiki_mediawiki_uses_the_system_name_as_the_page_path(
 ):
     _config, _sector_id, system_ids = seeded_sector
     system_id = system_ids[0]
-    name = admin_client_with_wiki.get(f"/api/systems/{system_id}").get_json()["name"]
+    name = admin_client_with_wiki.get(f"/api/systems/{pid('system', system_id)}").get_json()["name"]
 
-    response = admin_client_with_wiki.post(f"/api/systems/{system_id}/wiki", json={"backend": "mediawiki"})
+    response = admin_client_with_wiki.post(f"/api/systems/{pid('system', system_id)}/wiki", json={"backend": "mediawiki"})
     assert response.status_code == 201
 
     call = fake_wiki_client.calls[0]
     assert call["backend"] == "mediawiki"
     assert call["path"] == name  # no path given -- mediawiki addresses by title/name, not a separate path
 
-    detail = admin_client_with_wiki.get(f"/api/systems/{system_id}").get_json()
+    detail = admin_client_with_wiki.get(f"/api/systems/{pid('system', system_id)}").get_json()
     assert detail["mediawiki_url"] is not None
     assert detail["wikijs_url"] is None
-    wikitext = admin_client_with_wiki.get(f"/api/systems/{system_id}/text?format=wikitext").get_json()
+    wikitext = admin_client_with_wiki.get(f"/api/systems/{pid('system', system_id)}/text?format=wikitext").get_json()
     assert call["content"] == wikitext["content"]
 
 
@@ -2323,7 +2325,7 @@ def test_upload_system_wiki_page_exists_maps_to_409(admin_client_with_wiki, seed
     _config, _sector_id, system_ids = seeded_sector
 
     response = admin_client_with_wiki.post(
-        f"/api/systems/{system_ids[0]}/wiki", json={"backend": "wikijs", "path": "x"},
+        f"/api/systems/{pid('system', system_ids[0])}/wiki", json={"backend": "wikijs", "path": "x"},
     )
     assert response.status_code == 409
 
@@ -2341,7 +2343,7 @@ def test_upload_sector_wiki_persists_url_and_uses_generated_content(
 ):
     _config, sector_id, _system_ids = seeded_sector
 
-    response = admin_client_with_wiki.post(f"/api/sectors/{sector_id}/wiki", json={"backend": "mediawiki"})
+    response = admin_client_with_wiki.post(f"/api/sectors/{pid('sector', sector_id)}/wiki", json={"backend": "mediawiki"})
     assert response.status_code == 201
     page = response.get_json()
 
@@ -2349,7 +2351,7 @@ def test_upload_sector_wiki_persists_url_and_uses_generated_content(
     assert call["backend"] == "mediawiki"
     assert "Test Sector" in call["content"]  # seeded_sector's own sector name
 
-    detail = admin_client_with_wiki.get(f"/api/sectors/{sector_id}").get_json()
+    detail = admin_client_with_wiki.get(f"/api/sectors/{pid('sector', sector_id)}").get_json()
     assert detail["wiki_url"] == page["url"]
 
 
@@ -2358,13 +2360,13 @@ def test_update_sector_wiki_url_manually_sets_and_clears(admin_client, seeded_se
     -- no upload, no wiki reachability required at all."""
     _config, sector_id, _system_ids = seeded_sector
 
-    response = admin_client.patch(f"/api/sectors/{sector_id}", json={"wiki_url": "https://wiki.example.com/Sector"})
+    response = admin_client.patch(f"/api/sectors/{pid('sector', sector_id)}", json={"wiki_url": "https://wiki.example.com/Sector"})
     assert response.status_code == 200
-    assert admin_client.get(f"/api/sectors/{sector_id}").get_json()["wiki_url"] == "https://wiki.example.com/Sector"
+    assert admin_client.get(f"/api/sectors/{pid('sector', sector_id)}").get_json()["wiki_url"] == "https://wiki.example.com/Sector"
 
-    response = admin_client.patch(f"/api/sectors/{sector_id}", json={"wiki_url": None})
+    response = admin_client.patch(f"/api/sectors/{pid('sector', sector_id)}", json={"wiki_url": None})
     assert response.status_code == 200
-    assert admin_client.get(f"/api/sectors/{sector_id}").get_json()["wiki_url"] is None
+    assert admin_client.get(f"/api/sectors/{pid('sector', sector_id)}").get_json()["wiki_url"] is None
 
 
 @pytest.mark.parametrize("wiki_url", [
@@ -2376,10 +2378,10 @@ def test_update_sector_refuses_a_wiki_url_that_is_not_http(admin_client, seeded_
     host is stored; the /admin form's manual link goes through this same
     PATCH, so it's refused there too."""
     _config, sector_id, _system_ids = seeded_sector
-    response = admin_client.patch(f"/api/sectors/{sector_id}", json={"wiki_url": wiki_url})
+    response = admin_client.patch(f"/api/sectors/{pid('sector', sector_id)}", json={"wiki_url": wiki_url})
     assert response.status_code == 400
     assert "wiki_url" in response.get_json()["error"]
-    assert admin_client.get(f"/api/sectors/{sector_id}").get_json()["wiki_url"] is None
+    assert admin_client.get(f"/api/sectors/{pid('sector', sector_id)}").get_json()["wiki_url"] is None
 
 
 def test_create_sector_rejects_wiki_url(admin_client):
@@ -2407,7 +2409,7 @@ def test_galaxy_cell_describes_any_address_or_point(client, mysql_config):
 
     by_address = client.get("/api/galaxy/cell?ring=3&layer=-1&slot=5").get_json()
     assert (by_address["ring_index"], by_address["layer_index"], by_address["ring_slot_index"]) == (3, -1, 5)
-    assert by_address["sector_id"] == sector_id
+    assert by_address["sector_id"] == pid("sector", sector_id)
     assert by_address["cartesian_pc"] == pytest.approx(list(center))
     assert len(by_address["vertices_pc"]) == 8
     assert by_address["mean_arc_length_pc"] == pytest.approx(edge_pc, rel=0.15)
@@ -2448,7 +2450,7 @@ def test_facility_routes(admin_client, mysql_config):
 
     detail = admin_client.get(f"/api/facilities/{facility_id}").get_json()
     assert (detail["name"], detail["host_type"], detail["host_id"]) == ("Moonport", "moon", moon_id)
-    listed = admin_client.get(f"/api/systems/{system_id}/facilities").get_json()["items"]
+    listed = admin_client.get(f"/api/systems/{pid('system', system_id)}/facilities").get_json()["items"]
     assert [f["id"] for f in listed] == [facility_id]
 
     assert admin_client.delete(f"/api/facilities/{facility_id}").status_code == 200
@@ -2468,15 +2470,15 @@ def test_nebula_shape_endpoint_serves_a_mesh(client, mysql_config):
         conn.commit()
     finally:
         conn.close()
-    low = client.get(f"/api/nebulae/{nebula_id}/shape").get_json()
-    full = client.get(f"/api/nebulae/{nebula_id}/shape?lod=full").get_json()
-    assert low["id"] == nebula_id and low["lod"] == "low" and full["lod"] == "full"
+    low = client.get(f"/api/nebulae/{pid('nebula', nebula_id)}/shape").get_json()
+    full = client.get(f"/api/nebulae/{pid('nebula', nebula_id)}/shape?lod=full").get_json()
+    assert low["id"] == pid("nebula", nebula_id) and low["lod"] == "low" and full["lod"] == "full"
     assert low["center_pc"] == [5.0, 1.0, 2.0] and low["radius_ly"] > 0
     assert 0 < len(low["faces"]) < len(full["faces"])
     count = len(full["vertices"])
     assert all(0 <= i < count for face in full["faces"] for i in face)
     assert max(sum(v * v for v in vertex) ** 0.5 for vertex in full["vertices"]) <= 1.0
-    assert client.get(f"/api/nebulae/{nebula_id}/shape?lod=ultra").status_code == 404
+    assert client.get(f"/api/nebulae/{pid('nebula', nebula_id)}/shape?lod=ultra").status_code == 404
     assert client.get("/api/nebulae/999999/shape").status_code == 404
 
 
@@ -2499,11 +2501,11 @@ def test_nebula_surroundings_endpoint_lists_the_bright_stars_round_it(client, my
         conn.commit()
     finally:
         conn.close()
-    body = client.get(f"/api/nebulae/{nebula_id}/surroundings").get_json()
+    body = client.get(f"/api/nebulae/{pid('nebula', nebula_id)}/surroundings").get_json()
     assert body["radius_pc"] > 0 and body["half_width_pc"] >= 30.0
     assert [(star["x"], star["y"], star["z"]) for star in body["stars"]] == [(4.0, 2.0, 1.0)]
     assert body["stars"][0]["luminosity_sol"] == pytest.approx(900.0, rel=1e-3)
-    assert client.get(f"/api/nebulae/{unplaced_id}/surroundings").get_json()["stars"] == []
+    assert client.get(f"/api/nebulae/{pid('nebula', unplaced_id)}/surroundings").get_json()["stars"] == []
     assert client.get("/api/nebulae/999999/surroundings").status_code == 404
 
 
@@ -2589,7 +2591,7 @@ def test_generating_an_uncharted_star_builds_a_standalone_system_and_takes_it_of
     response = admin_client.post(f"/api/uncharted-systems/{ids[0]}/generate")
     assert response.status_code == 201
     system_id = response.get_json()["id"]
-    system = admin_client.get(f"/api/systems/{system_id}").get_json()
+    system = admin_client.get(f"/api/systems/{pid('system', system_id)}").get_json()
     assert system["sector_id"] is None and system["stars"][0]["star_type"].startswith("B2V")
     listed = admin_client.get("/api/uncharted-systems").get_json()
     assert listed["total"] == 2 and ids[0] not in [item["id"] for item in listed["items"]]
