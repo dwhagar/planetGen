@@ -3,6 +3,7 @@
 ## [8.0.866] - 2026-10-10
 
 ### Changed
+- CI: the `linux-update` job's "needs migrating" and "failed migration" steps rebuild the database from the v61 baseline fixture (the oldest schema `update.sh` upgrades from) instead of faking v48, which the code has refused since the Alembic cleanup. The old steps failed with "database is at schema v48, older than v61".
 - **Docs only:** TEST.112 (the 8 s wait for queued API edits, PR #955) is retired from the TODO list and the plans; TEST.111 stays open with a note.
 - TEST.112: tests now wait up to 120 s for a queued API edit instead of 8 s, so a slow worker start in a busy parallel run no longer turns a 200 into a 202 (the cause of the intermittent `test_regenerate_phenomenon_keeps_id_name_and_place` failure). TEST.111's assertions now print the results they checked, so its next failure names the cause.
 - **Docs only:** GEN.185 (the five-pass scatter, PR #953, schema v73) is retired from the TODO list and the plans; the next free Alembic revision is 0074.
