@@ -299,6 +299,16 @@ No decisions are open. (GEN.67, Boss 2026-10-08: stars and sectors keep word sal
 - **MAP.61 and the map bugs**: the engine items moved into phase 0 because the 2026-10-03 map bugs fold into them.
 - **API.6 and USR.2**, **NAV.4 and USR.1**: unchanged (keys and saved courses follow accounts).
 
+## Standing process: sweeping GitHub issues for TODO items
+
+Boss, 2026-10-10 20:37Z: "that's standard procedure, always make those changes when we sweep issues for todo items". Every sweep of the open issues on dwhagar/planetGen does all three:
+
+1. Close each issue whose linked TODO items are all retired (state completed, a comment naming the PR) and remove its "in progress" label.
+2. Comment on each issue that stays open, listing its linked TODO items (ID, short title, open or done with the PR), with the Claude Code footer.
+3. Give each issue that stays open the "in progress" label (setting it on an issue creates the label; keep the issue's other labels, since an update replaces the set).
+
+The mapping from issue to items is in this file (the list of GitHub issues under the 2026-10-07 rebuild) and in the Related and source lines of the items.
+
 ## Judgment calls
 
 - **The engine in phase 0**: MAP.65 to MAP.68, NAV.7, NAV.13 to NAV.15, NAV.29, NAV.33, NAV.32 and MAP.95 moved into phase 0 because the breadcrumb, empty-slab, filter and picker bugs are fixed by them, which is Boss's rule for architecture that takes care of a bug.
