@@ -3261,8 +3261,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   pages. Still open: the command-line overall bar, only if Boss asks;
   and the whole-job layers-per-second stat noted above.
   Lane (2026-10-09): Owner of the remainder (command-line bar, whole-job
-  layers-per-second stat): Bugfixes lane 2, third after TEST.123 and
-  TEST.122 (coordinator, 2026-10-10).
+  layers-per-second stat): Bugfixes lane 2, second after TEST.122
+  (coordinator, 2026-10-10).
 
 - [ ] **PERF.59 Share the ring inputs between the phenomena pass and the backfill rings (top priority)**
   From the scatter study (docs/design/scatter-queue-feasibility.md): the
@@ -3411,7 +3411,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   migration was added. Decide how to fill them in (a one-off command, or
   a revision that changes the schema version) and do it. Owner:
   Foundations lane 1.
-  Prerequisites: API.23.
+  Prerequisite: API.23.
 
 ## API: The JSON API
 
@@ -3934,16 +3934,8 @@ clears each one.
   the GEN.188 run). Find whether it is the container's browser or a real
   regression; if real, fix it; if the container, record what the lane
   needs. Related to the earlier TEST.119 and TEST.120 fixes. Owner:
-  Bugfixes lane 2 (second, after TEST.123; coordinator, 2026-10-10).
+  Bugfixes lane 2 (first; coordinator, 2026-10-10).
   Prerequisites: none. Related: TEST.119, TEST.120.
-
-- [ ] **TEST.123 test_a_loaded_sector_knows_every_objects_cell_and_velocity fails once under full-suite load (bug)**
-  Foundations lane 1 (2026-10-10, relayed, from the GEN.170 run):
-  tests/test_spatial_position_db.py::test_a_loaded_sector_knows_every_objects_cell_and_velocity
-  failed once under full-suite load and passes alone. Find the cause
-  (shared state, ordering or timing) and make the test robust; never
-  skip it. Owner: Bugfixes lane 2 (first; coordinator, 2026-10-10).
-  Prerequisites: none. Related: TEST.111, TEST.116.
 
 ## USR: User accounts
 
