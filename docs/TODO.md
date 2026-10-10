@@ -3485,7 +3485,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   independent object-first draws and a per-sector count dictionary; each
   sector has a capacity from its expected count at the sector centre,
   the smallest of 1, 2, 4, 8 or 16 with P(Poisson(lambda) > capacity)
-  below 1e-4; an object over the capacity is shunted (see below). Drops are 0.02%
+  below 1e-4; an object over the capacity is dropped (Boss considered
+  shunting it to a neighbouring sector and decided it does no real
+  good, 10:09Z). Drops are 0.02%
   at the shipped star floors (every sector is tier 1), 0.13% at 1,000
   Lsun and 0.05% at 100 Lsun, and 0.12% for phenomena (a cap of 1 would
   drop 0.84%, 18.9% and 1.43%). Not a queue where a sector is listed c
@@ -3497,19 +3499,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the numpy majorant is 3.75 s of the run, not the main cost. Boss
   (09:53Z): "Even if the database row writes make things slower, on some
   level, a 35x improvement to the speed, I'll take it."
-  Shunting (Boss 10:07Z, wording from Research lane 3): instead of
-  dropping an object that exceeds its sector's tier capacity, it moves
-  in one hop to a random face-adjacent sector (same ring slot plus or
-  minus 1, ring plus or minus 1, layer plus or minus 1) that is not
-  filled, not mass-marked and below its own capacity; if none has room
-  it is dropped. Only capacity overflow is shunted; objects that land in
-  filled or mass-marked sectors are still dropped (moving them would
-  double-count density next to charted space). The new point is drawn
-  uniformly inside the receiving cell. Overflow is tiny (0.02% of
-  star-pass objects at the shipped floors, 0.05% to 0.13% elsewhere), so
-  the cost is negligible and total counts are preserved to within that.
-  A test shows overflow objects land in neighbours with room and that
-  the total count is unchanged.
   Done: the mass pass and the luminosity pass use the sampler; the
   density majorant is certified, and a check mode asserts true density
   never exceeds it; objects dropped in filled or mass-marked sectors are
