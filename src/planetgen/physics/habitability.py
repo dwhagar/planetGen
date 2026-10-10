@@ -371,7 +371,7 @@ def phi4(world):
 
 
 def equipment(world):
-    """The kit a human visitor needs: "shirtsleeve", "breathing mask", "mask
+    """The kit a human visitor needs: "ideal", "breathing mask", "mask
     with scrubber", "sealed suit" (a pressure suit, or a sealed suit
     against a Red temperature or chemistry) or "full life support with
     radiation hardening", from the worst of the four domains and what made
@@ -387,7 +387,7 @@ def equipment(world):
         return "mask with scrubber"
     if gases["O2"] < 1.0 or scores["Pressure"] < 1.0:
         return "breathing mask"
-    return "shirtsleeve"
+    return "ideal"
 
 
 # --- PHI_bio, PHI_cpx, Phi_tech ------------------------------------------------------------

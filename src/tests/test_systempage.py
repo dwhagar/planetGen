@@ -8,7 +8,7 @@ axis. Plain dicts in the `queryDb.system_detail` shape; no database.
 """
 
 
-from planetgen.web.lib.systempage import comet_orbit_key_km, system_list_html  # noqa: E402
+from planetgen.web.lib.systempage import _planet_row_html, comet_orbit_key_km, system_list_html  # noqa: E402
 
 AU_KM = 149_597_870.7
 _SECTIONS = {"overview": "", "stars": {}, "planets": {}, "moons": {}, "belts": {}, "comets": {}}
@@ -101,3 +101,14 @@ def test_comets_sort_in_by_semi_major_axis():
 def test_comet_orbit_key():
     assert comet_orbit_key_km(_comet(1, "a", 1.0, 0.5)) == (0, 2.0 * AU_KM)
     assert comet_orbit_key_km(_comet(1, "b", 1.0, 1.0, orbit_type="parabolic")) == (1, AU_KM)
+
+
+def test_a_scored_body_shows_each_phi4_factor_and_the_three_scores():
+    """UX.90: the four factor colours and the stored scores are visible text."""
+    body = _body(1, "Rocky", 1.0)
+    body.update(equipment_tier=1, phi4=0.8, tier_pressure=0, tier_temperature=1, tier_chemistry=2,
+                tier_radiation=3, phi_bio=0.5, phi_cpx=0.25, phi_tech=0.75)
+    html = _planet_row_html(body, {"planets": {}, "moons": {}})
+    for text in ("Pressure: Blue", "Temperature: Green", "Chemistry: Yellow", "Radiation: Red",
+                 "Microbial 0.50", "Complex life 0.25", "Human operability 0.75"):
+        assert text in html
