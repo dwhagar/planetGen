@@ -3357,6 +3357,33 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   when the sorted page reads more than a page needs.
   Prerequisites: none. Related: PERF.64, PERF.34, PERF.36.
 
+- [ ] **PERF.71 Research how to keep slow database calls on large data sets from timing out: queue, split, or answer in parts**
+  Boss (2026-10-10 20:50Z): 'is there a TODO item to maybe batch or give
+  partial responses to queries that take too long? ... research how to
+  optimize DB calls to large data sets to avoid timeouts and give
+  systems a chance to respond. We could put recall passes into the queue
+  too if they take longer than 10 seconds, then keep the query open
+  until it finishes? Or split it up? I'm not sure, we need research.' No
+  existing item covers this (PERF.19 and PERF.24 queue jobs, with
+  PERF.24's 8 s wait then 202 for API edits; PERF.64 fixed the Systems
+  list with stored counts). Done: a design note under docs/design
+  weighs, with measurements on a database of millions of systems: (1)
+  move a read that passes 10 s onto the RQ queue and keep the request
+  open or let the page poll GET /api/jobs/<id> until it finishes; (2)
+  split one query into pages or key ranges the page asks for in turn
+  (keyset paging, tile pieces); (3) partial or streamed answers, with
+  the rest filled in as it arrives; (4) stored counts, summary tables
+  and indexes, as PERF.64 did for the Systems list; and says which
+  applies to which page (Systems, Sectors, Planets, Moons, Phenomena
+  lists, Galaxy Map tiles, search, API reads), what the user sees while
+  it waits, how the statement limit and the busy page (PERF.64) change,
+  and how it behaves while a fill is running. Ends with items filed for
+  the chosen builds. Folds in no existing item; PERF.68, PERF.69 and
+  PERF.70 are the concrete leftovers it generalizes. Owner: Foundations
+  lane 1 (research first, after PERF.68 to PERF.70).
+  Prerequisites: none. Related: PERF.19, PERF.24, PERF.34, PERF.36,
+  PERF.64, PERF.68, PERF.69, PERF.70.
+
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
