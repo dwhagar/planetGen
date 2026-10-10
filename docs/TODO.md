@@ -3531,31 +3531,49 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   every scatter action also store the number of layers modified, kept in
   separate rows per mass floor and per luminosity floor used (a run at 8
   Msun and one at 14 Msun, or at 5,000 and 9,000 Lsun, are different
-  rows). With the early stop of PERF.57 the row records layers visited
+  rows). With the grouped layers of PERF.57 the row records group sizes, layers visited
   and layers modified.
 
-- [ ] **PERF.57 Stop a layer-walking scatter early once the last 100 layers produced no stars**
-  Boss (2026-10-10 08:32Z, via the coordinator): this will make
-  generation faster; if the last 100 layers had 0 stars, stop looking
-  and move on to the next phase. Done: every scatter pass that walks
-  layer by layer (the mass pass, the luminosity pass, the phenomena pass
-  if it walks layers, and the bright-star back scatter of GEN.187 when
-  it lands) stops after 100 consecutive empty layers; the 100 is a named
-  constant in tuning.py, not a magic number; the stop is logged as a
-  stage result ("stopped early after 100 empty layers at layer N") that
-  feeds the stage list of UX.89 and the stage stats of PERF.56; the stop
-  never skips the galactic nucleus guarantee (GEN.195); a test shows a
-  run with the early stop produces the same rows as a full walk on a
-  small galaxy. The change is in the scatter code in run_plan.py. Owner:
-  Bugfixes lane 1, after UX.89 and PERF.56.
+- [ ] **PERF.57 Skip empty stretches in a galactic scatter by combining layers into growing groups**
+  Boss (2026-10-10 09:17Z, via the coordinator; replaces his 08:32Z
+  rule of stopping after 100 empty layers): in any galactic scatter
+  operation, once 5 contiguous layers have placed nothing, combine the
+  next 10 layers into one group. Calculate the expected count exactly as
+  for a single layer, summed over the sectors available in the group,
+  and draw how many sectors would likely hold an object. Place one
+  object per draw: pick the sector weighted by its own density score (a
+  denser sector is more likely to be chosen), then a random position in
+  that sector. If the 10-layer group places nothing, try 20, then 40,
+  doubling each time until something is placed or the galaxy runs out of
+  room, at which point the pass ends. Done:
+  - Applies to every galactic scatter pass: the mass pass, the
+    luminosity pass, the phenomena pass and the bright-star back scatter
+    of GEN.187 when it lands.
+  - Scaling back (Boss 09:19Z): grouping starts only after 5 contiguous
+    layers placed nothing. In group mode a group that places nothing
+    doubles the next group (10, 20, 40, ...); a group that places
+    something makes the next group half the size (a 40 that places is
+    followed by a 20, then a 10); when a group of 10 places something
+    the pass is back on single layers, and grouping needs 5 empty
+    layers in a row again. An empty group at a reduced size doubles
+    again.
+  - Defaults chosen where Boss did not say: the 5 and the 10 are named
+    constants in tuning.py; the same seed gives the same galaxy (each
+    group draw is seeded from the group's first address, GEN.56); the
+    galactic nucleus guarantee (GEN.195) is untouched.
+  - The stage result and the PERF.56 stats record the group sizes used,
+    layers visited and layers modified (see the PERF.56 note).
+  - A statistical test shows grouped placement matches the per-layer
+    expected counts on a small galaxy.
+  The change is in the scatter code in run_plan.py. Owner: Bugfixes lane
+  1, after UX.89 and PERF.56.
   Prerequisites: none. Related: UX.89, PERF.56, GEN.185, GEN.187,
   GEN.195.
-  Clarification (2026-10-09): Boss clarification (2026-10-10 08:32Z):
-  the test is "the last 100 layers produced 0 stars OR 0 phenomena". The
-  star passes count stars; the phenomena pass counts phenomena.
-  Stats (2026-10-09): Boss addition (2026-10-10 08:34Z): layers visited
-  versus layers modified is recorded per scatter action and per floor by
-  PERF.56 (see its note).
+  Revised (2026-10-10 09:19Z): after a placement the next group is half
+  the size instead of returning to single layers.
+  Replaced (2026-10-10): the 08:32Z "stop after 100 empty layers" rule is
+  gone; Boss's 08:32Z clarification (0 stars or 0 phenomena) no longer
+  applies.
 
 ## DB: Database and schema
 
