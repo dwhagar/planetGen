@@ -384,7 +384,7 @@ def get_sector(db, sector_id):
 
 
 def get_systems(db, star_type=None, sector_id=None, limit=None, offset=None, sort=None, descending=False,
-                binary=None, placement=None, octants=(), facets=False):
+                binary=None, placement=None, octants=(), facets=False, after=None):
     """
     Returns `GET /api/systems`'s full paginated envelope.
 
@@ -395,10 +395,12 @@ def get_systems(db, star_type=None, sector_id=None, limit=None, offset=None, sor
         sort, descending, binary (True/False), placement (`"sector"` or
             `"standalone"`), octants, facets: the Systems tables' sort and
             filters (UX.41).
+        after: The system ID the previous page ended on (PERF.75); with the name sort the page starts after
+            it and `offset` is ignored.
     """
     _require_db(db)
     params = [("db", db), ("star_type", star_type), ("sector_id", sector_id), ("limit", limit),
-              ("offset", offset), ("sort", sort), ("order", "desc" if descending else None),
+              ("offset", offset), ("after", after), ("sort", sort), ("order", "desc" if descending else None),
               ("binary", None if binary is None else ("yes" if binary else "no")), ("placement", placement)]
     params += [("octant", value) for value in octants] + [("facets", "1" if facets else None)]
     return _request("/systems", [(key, value) for key, value in params if value is not None])
