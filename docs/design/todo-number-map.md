@@ -661,7 +661,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.162 | Planet cull and blue stragglers in clusters | none | open |
 | GEN.163 | Type-B pulsar planets in globular clusters (GEN.130 follow-on) | none | open |
 | GEN.164 | Synthetic globular-cluster systems for generated galaxies | none | open |
-| GEN.165 | A comet's time-0 scene position disagrees with its stored position in a rare random system (bug) | none | open |
+| GEN.165 | A comet's time-0 scene position disagrees with its stored position in a rare random system (bug) | none | done, PR #948 |
 | GEN.166 | A mass_range argument on NeutronStar and BlackHole, and intermediate-mass black holes as their own kind | none | done, PR #866 |
 | GEN.167 | A lowest-mass option for the phenomenon scatter: --phenomenon-min-mass, default 20 solar masses | none | done, PR #866 |
 | GEN.168 | The sector fill draws the phenomena below the scatter cut | none | done, PR #866 |
