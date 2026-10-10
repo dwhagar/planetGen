@@ -67,7 +67,7 @@ def _phenomenon_row(i, kind="nebula", sector_id=None):
     return {
         "id": i, "type": kind, "name": f"Phenomenon {i:03d}", "descriptor": "emission_nebula",
         "radius_ly": 12.5 if kind == "nebula" else None, "sector_id": sector_id,
-        "sector_name": "Home <Sector>" if sector_id else None, "placed": i % 2,
+        "sector_name": "Home <Sector>" if sector_id else None, "placed": i % 2, "scattered": False,
     }
 
 

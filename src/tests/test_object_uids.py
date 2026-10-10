@@ -1,57 +1,26 @@
 # tests/test_object_uids.py
 
 """
-Unique IDs for every object (GEN.69, `galaxy/uid.py`, `store.assign_uids`):
-the pure functions, then a saved sector's rows checked against them.
+Object IDs in the database (GEN.69, DB.20, GEN.171, `galaxy/uid.py`,
+`galaxy/object_uid.py`, `store.assign_uids`): a saved sector's rows checked
+against the layout, the run-time counters and the migration's numbering.
 """
 
 import pytest
 
 from planetgen.db import store
-from planetgen.galaxy import uid as galaxy_uid
+from planetgen.galaxy import object_uid as ids, uid as galaxy_uid
 from planetgen.galaxy.geometry import provisional_sector_designation
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.rogue import RoguePlanet
 from planetgen.generation.system import StarSystem
-from planetgen.names import object_id
-
-SEED = bytes(range(16))
 
 
 def test_a_sector_id_is_its_designation_and_needs_no_row():
     uid = galaxy_uid.sector_uid(12, 3, 7)
     assert galaxy_uid.format_sector_uid(uid) == provisional_sector_designation(12, 3, 7)
     assert galaxy_uid.sector_address(uid) == (12, 3, 7)
-
-
-@pytest.mark.parametrize("bits", [galaxy_uid.GALAXY_BITS, galaxy_uid.LOCAL_BITS])
-def test_a_derived_id_is_fixed_by_seed_kind_parent_and_index(bits):
-    uid = galaxy_uid.derived_uid(SEED, "planet", "ABC", 2, bits)
-    assert uid == galaxy_uid.derived_uid(SEED, "planet", "ABC", 2, bits)
-    assert 0 <= uid < (1 << bits)
-    for other in (galaxy_uid.derived_uid(bytes(16), "planet", "ABC", 2, bits),
-                  galaxy_uid.derived_uid(SEED, "moon", "ABC", 2, bits),
-                  galaxy_uid.derived_uid(SEED, "planet", "ABD", 2, bits),
-                  galaxy_uid.derived_uid(SEED, "planet", "ABC", 3, bits)):
-        assert other != uid
-
-
-def test_a_galaxy_wide_id_can_never_equal_a_position_id():
-    assert all(galaxy_uid.derived_uid(SEED, "system", "S", n) >> 95 == 1 for n in range(50))
-    assert (1 << object_id.ID_BITS) <= (1 << 95), "a position ID has its top 20 bits clear"
-
-
-def test_no_seed_draws_from_the_zero_seed():
-    assert galaxy_uid.derived_uid(None, "system", "S", 0) == galaxy_uid.derived_uid(galaxy_uid.NO_SEED, "system", "S", 0)
-
-
-def test_ids_round_trip_through_bytes_and_hex():
-    uid = galaxy_uid.derived_uid(SEED, "system", "S", 1)
-    assert galaxy_uid.uid_from_bytes(galaxy_uid.uid_bytes(uid)) == uid
-    assert len(galaxy_uid.format_uid(uid)) == 24
-    local = galaxy_uid.derived_uid(SEED, "star", "S", 0, galaxy_uid.LOCAL_BITS)
-    assert len(galaxy_uid.format_uid(local, galaxy_uid.LOCAL_BITS)) == 16
 
 
 def _sector(name, count, rogue):
@@ -79,116 +48,173 @@ def _rows(config, sql):
         conn.close()
 
 
+def _decoded(row):
+    return ids.unpack(ids.from_bytes(row["uid"]))
+
+
 def test_a_saved_sector_gives_every_object_its_id(mysql_config):
     store.save_sector(_sector("Uid One", 3, "Uid Wanderer"), config=mysql_config, galaxy_position=PLACE)
 
     [sector] = _rows(mysql_config, "SELECT uid FROM sectors")
     assert sector["uid"] == galaxy_uid.sector_uid(250, 0, 5)
 
-    parent = galaxy_uid.format_sector_uid(sector["uid"])
     systems = _rows(mysql_config, "SELECT id, uid FROM star_systems ORDER BY id")
-    assert [galaxy_uid.uid_from_bytes(row["uid"]) for row in systems] == [
-        galaxy_uid.derived_uid(None, "system", parent, rank) for rank in range(3)]
+    decoded = [_decoded(row) for row in systems]
+    assert [d[:3] for d in decoded] == [(250, 0, 5)] * 3        # born in this sector
+    assert [(d.serial_kind, d.serial, d.body) for d in decoded] == [(ids.SERIAL_GENERATED, n, 0) for n in range(3)]
 
-    texts = {row["id"]: galaxy_uid.format_uid(galaxy_uid.uid_from_bytes(row["uid"])) for row in systems}
-    for table, kind in (("stars", "star"), ("planets", "planet"), ("asteroid_belts", "belt")):
-        for row in _rows(mysql_config, f"SELECT star_system_id, uid FROM {table}"):
-            assert row["uid"] is not None, table
-    planets = _rows(mysql_config, "SELECT id, star_system_id, uid FROM planets ORDER BY id")
-    assert planets
+    [rogue] = _rows(mysql_config, "SELECT uid FROM rogue_planets")   # the phenomenon follows the systems
+    assert (_decoded(rogue).serial, _decoded(rogue).body) == (3, 0)
+
+    by_system = {row["id"]: ids.from_bytes(row["uid"]) for row in systems}
     seen = {}
-    for row in planets:
-        rank = seen[row["star_system_id"]] = seen.get(row["star_system_id"], -1) + 1
-        assert row["uid"] == galaxy_uid.derived_uid(None, "planet", texts[row["star_system_id"]], rank,
-                                                    galaxy_uid.LOCAL_BITS)
-    assert all(row["uid"] is not None for row in _rows(mysql_config, "SELECT uid FROM moons"))
-
-    # A phenomenon named by hand takes a derived ID.
-    [rogue] = _rows(mysql_config, "SELECT name, uid FROM rogue_planets")
-    assert galaxy_uid.uid_from_bytes(rogue["uid"]) == galaxy_uid.derived_uid(None, "rogue_planets", parent, 0)
-
-
-def test_an_interstellar_object_keeps_the_position_id_it_is_named_by(mysql_config):
-    sector = _sector("Uid Pos", 1, "Placeholder")
-    sector.phenomena[0].phenomenon.name_given = False
-    store.save_sector(sector, config=mysql_config, galaxy_position=PLACE)
-    [rogue] = _rows(mysql_config, "SELECT name, uid FROM rogue_planets")
-    assert object_id.is_object_id(rogue["name"])
-    assert galaxy_uid.uid_from_bytes(rogue["uid"]) == int(rogue["name"], 16)
-
-
-def test_a_bright_sweep_system_is_named_by_the_registry_and_keeps_its_position_id(mysql_config):
-    """GEN.72: once its sector is generated the system gets a word-salad name
-    and keeps the position ID it was known by as its unique ID."""
-    uids = []
-    for slot in (5, 6):
-        sector = _sector(f"Uid Bright {slot}", 1, "Placeholder")
-        sector.entries[0].bright_star_id = 900 + slot
-        # Both sectors put their system at the same galactic point.
-        place = dict(PLACE, ring_slot_index=slot)
-        expected = object_id.pack("bright-star", store._placement_center(
-            store._galaxy_placement_from_sector_offset(place, sector.entries[0].position)))
-        store.save_sector(sector, config=mysql_config, galaxy_position=place)
-        uids.append((expected, sector.entries[0].star_system.name))
-    rows = _rows(mysql_config, "SELECT name, uid FROM star_systems ORDER BY id")
-    assert [row["name"] for row in rows] == [name for _expected, name in uids]
-    assert not any(object_id.is_object_id(row["name"]) for row in rows)
-    first = galaxy_uid.uid_from_bytes(rows[0]["uid"])
-    assert first == uids[0][0]
-    # The same point twice: the second is bumped past the stored ID.
-    second = galaxy_uid.uid_from_bytes(rows[1]["uid"])
-    assert uids[0][0] == uids[1][0] and second == object_id.bump(first)
+    for table in store.BODY_UID_TABLES:
+        for row in _rows(mysql_config, f"SELECT id, star_system_id, uid FROM {table} ORDER BY id"):
+            assert row["uid"] is not None, table
+            value = ids.from_bytes(row["uid"])
+            assert ids.with_body(value, 0) == by_system[row["star_system_id"]]   # same birth, same serial
+            seen.setdefault(row["star_system_id"], []).append(ids.body_of(value))
+    assert seen and all(sorted(numbers) == list(range(1, len(numbers) + 1)) for numbers in seen.values())
 
 
 def test_saving_the_same_sector_again_gives_the_same_ids(mysql_config):
     from tests.db_schema_support import scratch_database
 
-    ids = []
-    for config in (mysql_config, None):
-        if config is None:
-            with scratch_database(mysql_config) as other:
-                store.save_sector(_sector("Uid Two", 2, "Uid Wanderer"), config=other, galaxy_position=PLACE)
-                ids.append(_rows(other, "SELECT uid FROM sectors") and
-                           [galaxy_uid.uid_from_bytes(r["uid"]) for r in _rows(other, "SELECT uid FROM star_systems ORDER BY id")])
-        else:
-            store.save_sector(_sector("Uid Two", 2, "Uid Wanderer"), config=config, galaxy_position=PLACE)
-            ids.append([galaxy_uid.uid_from_bytes(r["uid"]) for r in _rows(config, "SELECT uid FROM star_systems ORDER BY id")])
-    assert ids[0] == ids[1] and len(ids[0]) == 2
+    def saved(config):
+        store.save_sector(_sector("Uid Two", 2, "Uid Wanderer"), config=config, galaxy_position=PLACE)
+        return [bytes(r["uid"]) for r in _rows(config, "SELECT uid FROM star_systems ORDER BY id")]
+
+    first = saved(mysql_config)
+    with scratch_database(mysql_config) as other:
+        assert saved(other) == first and len(first) == 2
 
 
-def test_a_system_saved_on_its_own_gets_ids(mysql_config):
-    cfg = SystemConfig()
-    cfg.STAR_TYPE = "G2V"
-    cfg.BINARY_SYSTEM = False
-    system = StarSystem(system_config=cfg)
-    system.name = "Uidsolo One"
-    system_id = store.save_system(system, cfg, config=mysql_config)
-    [row] = _rows(mysql_config, f"SELECT uid FROM star_systems WHERE id = {system_id}")
-    assert row["uid"] is not None
-    assert all(r["uid"] is not None for r in _rows(mysql_config, f"SELECT uid FROM stars WHERE star_system_id = {system_id}"))
+def test_a_system_saved_on_its_own_gets_run_time_ids(mysql_config):
+    for name in ("Uidsolo One", "Uidsolo Two"):
+        cfg = SystemConfig()
+        cfg.STAR_TYPE = "G2V"
+        cfg.BINARY_SYSTEM = False
+        system = StarSystem(system_config=cfg)
+        system.name = name
+        store.save_system(system, cfg, config=mysql_config)
+    rows = _rows(mysql_config, "SELECT uid FROM star_systems ORDER BY id")
+    decoded = [_decoded(row) for row in rows]
+    assert [d[:3] for d in decoded] == [store.NO_BIRTH_SECTOR] * 2
+    assert [(d.serial_kind, d.serial) for d in decoded] == [(ids.SERIAL_RUNTIME, 0), (ids.SERIAL_RUNTIME, 1)]
+    assert all(r["uid"] is not None for r in _rows(mysql_config, "SELECT uid FROM stars"))
 
 
-def test_ids_issued_as_rows_are_inserted_match_the_ones_assigned_afterwards(mysql_config):
-    """PERF.44: a save gives rows their ID in the INSERT; clearing them all and running `assign_uids` finds the same."""
-    store.save_sector(_sector("Uid Issued", 3, "Uid Wanderer"), config=mysql_config, galaxy_position=PLACE)
-    tables = ("star_systems", "stars", "planets", "moons", "asteroid_belts", "comets", *store.PHENOMENON_UID_TABLES)
-    issued = {table: _rows(mysql_config, f"SELECT id, uid FROM {table} ORDER BY id") for table in tables}
-    assert sum(len(rows) for rows in issued.values()) > 10
+def test_the_assigning_pass_gives_run_time_births_and_never_reuses_a_number(mysql_config):
+    """DB.20: a row with none takes the next serial of its sector's counter, a body the next number of its
+    system's; a deleted object's number is not given again."""
+    store.save_sector(_sector("Uid Issued", 2, "Uid Wanderer"), config=mysql_config, galaxy_position=PLACE)
+    conn = store.get_connection(mysql_config)
+    try:
+        [sector] = conn.execute("SELECT id FROM sectors").fetchall()
+        conn.execute("UPDATE rogue_planets SET uid = NULL")
+        [system] = conn.execute("SELECT id, uid FROM star_systems ORDER BY id LIMIT 1").fetchall()
+        stars = conn.execute("SELECT id, uid FROM stars WHERE star_system_id = ? ORDER BY id", (system["id"],)).fetchall()
+        last = ids.body_of(ids.from_bytes(stars[-1]["uid"]))
+        store._next_body_numbers(conn, system["uid"], system["id"], 1)      # the system now has a counter row
+        conn.execute("UPDATE stars SET uid = NULL WHERE id = ?", (stars[-1]["id"],))
+        store.assign_uids(conn, sector_id=sector["id"])
+        conn.commit()
+        [rogue] = conn.execute("SELECT uid FROM rogue_planets").fetchall()
+        [star] = conn.execute("SELECT uid FROM stars WHERE id = ?", (stars[-1]["id"],)).fetchall()
+    finally:
+        conn.close()
+    value = _decoded(rogue)
+    assert (value.serial_kind, value.serial) == (ids.SERIAL_RUNTIME, 0) and value[:3] == (250, 0, 5)
+    assert ids.body_of(ids.from_bytes(star["uid"])) > last + 1      # past the number the counter handed out
+
+
+def test_the_body_counter_starts_past_the_bodies_a_system_holds(mysql_config):
+    store.save_sector(_sector("Uid Bodies", 1, "Uid Wanderer"), config=mysql_config, galaxy_position=PLACE)
+    conn = store.get_connection(mysql_config)
+    try:
+        [system] = conn.execute("SELECT id, uid FROM star_systems").fetchall()
+        held = [ids.body_of(ids.from_bytes(r["uid"])) for table in store.BODY_UID_TABLES
+                for r in conn.execute(f"SELECT uid FROM {table} WHERE star_system_id = ?", (system["id"],)).fetchall()]
+        first = store._next_body_numbers(conn, system["uid"], system["id"], 2)
+        again = store._next_body_numbers(conn, system["uid"], system["id"], 1)
+    finally:
+        conn.close()
+    assert first == max(held) + 1 and again == first + 2
+
+
+def test_run_time_serials_come_from_the_sector_counter(mysql_config):
+    conn = store.get_connection(mysql_config)
+    try:
+        one = store._runtime_uids(conn, (3, 0, 9), 2)
+        two = store._runtime_uids(conn, (3, 0, 9), 1)
+        other = store._runtime_uids(conn, (3, 0, 10), 1)
+    finally:
+        conn.close()
+    serials = [ids.unpack(ids.from_bytes(raw)) for raw in one + two + other]
+    assert [(d.serial_kind, d.serial) for d in serials] == [(ids.SERIAL_RUNTIME, n) for n in (0, 1, 2, 0)]
+    assert [d[:3] for d in serials] == [(3, 0, 9)] * 3 + [(3, 0, 10)]
+
+
+def test_a_row_under_a_parent_the_issuer_never_saw_is_left_for_the_assigning_pass():
+    issuer = store._UidIssuer(1, (250, 0, 5))
+    assert issuer.issue("stars", ["star_system_id"], (99,)) is None
+    assert not issuer.complete
+
+
+def test_the_issuer_numbers_systems_then_bodies():
+    issuer = store._UidIssuer(1, (250, 0, 5))
+    system = issuer.issue("star_systems", ["id", "sector_id"], (10, 1))
+    star = issuer.issue("stars", ["star_system_id"], (10,))
+    planet = issuer.issue("planets", ["star_system_id"], (10,))
+    foreign = issuer.issue("star_systems", ["id", "sector_id"], (11, 2))
+    assert [ids.unpack(ids.from_bytes(raw)).body for raw in (system, star, planet)] == [0, 1, 2]
+    assert foreign is None and issuer.complete
+
+
+def test_the_migration_numbers_existing_rows_by_row_order(mysql_config):
+    import importlib
+
+    migration = importlib.import_module("planetgen.db.migrations.versions.0077_object_ids")
+    from planetgen.db import alembic_runner
+
+    store.save_sector(_sector("Uid Migrated", 3, "Uid Wanderer"), config=mysql_config, galaxy_position=PLACE)
+    tables = ("star_systems", *store.BODY_UID_TABLES, *store.PHENOMENON_UID_TABLES)
     conn = store.get_connection(mysql_config)
     try:
         for table in tables:
             conn.execute(f"UPDATE {table} SET uid = NULL")
-        [sector] = conn.execute("SELECT id FROM sectors").fetchall()
-        store.assign_uids(conn, sector_id=sector["id"])
         conn.commit()
     finally:
         conn.close()
-    for table in tables:
-        again = _rows(mysql_config, f"SELECT id, uid FROM {table} ORDER BY id")
-        assert [(r["id"], r["uid"]) for r in again] == [(r["id"], r["uid"]) for r in issued[table]], table
+    with alembic_runner._engine(mysql_config).begin() as connection:
+        migration._number_bodies(connection, migration._number_top_level(connection))
+
+    systems = _rows(mysql_config, "SELECT id, uid FROM star_systems ORDER BY id")
+    assert [(_decoded(r).serial_kind, _decoded(r).serial, _decoded(r).body) for r in systems] == [
+        (ids.SERIAL_GENERATED, n, 0) for n in range(3)]
+    [rogue] = _rows(mysql_config, "SELECT uid FROM rogue_planets")
+    assert _decoded(rogue).serial == 3
+    by_system = {}
+    for table in store.BODY_UID_TABLES:
+        for row in _rows(mysql_config, f"SELECT star_system_id, uid FROM {table} ORDER BY id"):
+            by_system.setdefault(row["star_system_id"], []).append(ids.body_of(ids.from_bytes(row["uid"])))
+    assert all(sorted(numbers) == list(range(1, len(numbers) + 1)) for numbers in by_system.values())
+    assert [numbers[0] for numbers in by_system.values()] == [1] * len(by_system)
 
 
-def test_a_row_under_a_parent_the_issuer_never_saw_is_left_for_the_assigning_pass():
-    issuer = store._UidIssuer(None, 1, "row1")
-    assert issuer.issue("stars", ["star_system_id"], (99,)) is None
-    assert not issuer.complete
+def test_a_body_deleted_through_an_edit_keeps_its_number_used(mysql_config):
+    from planetgen.db import edits
+
+    store.save_sector(_sector("Uid Edit", 1, "Uid Wanderer"), config=mysql_config, galaxy_position=PLACE)
+    conn = store.get_connection(mysql_config)
+    try:
+        [system] = conn.execute("SELECT id, uid FROM star_systems").fetchall()
+        held = [ids.body_of(ids.from_bytes(r["uid"])) for table in store.BODY_UID_TABLES
+                for r in conn.execute(f"SELECT uid FROM {table} WHERE star_system_id = ?", (system["id"],)).fetchall()]
+        store.keep_body_numbers(conn, system["id"])
+        conn.execute("DELETE FROM comets WHERE star_system_id = ?", (system["id"],))
+        conn.execute("DELETE FROM planets WHERE star_system_id = ?", (system["id"],))
+        first = store._next_body_numbers(conn, system["uid"], system["id"], 1)
+    finally:
+        conn.close()
+    assert first == max(held) + 1

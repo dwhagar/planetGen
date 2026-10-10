@@ -145,6 +145,29 @@ def pack(ring, layer, slot, serial_kind, serial, body=0, layout=DEFAULT_LAYOUT):
     return (((sector << layout.serial_bits) | number) << layout.body_bits) | body
 
 
+def sector_bytes(ring, layer, slot, layout=DEFAULT_LAYOUT):
+    """The birth sector's address on its own, as the big-endian bytes the
+    sector part of an ID holds (the key of a sector's run-time counter)."""
+    return (pack(ring, layer, slot, SERIAL_GENERATED, 0, 0, layout) >> (layout.serial_bits + layout.body_bits)
+            ).to_bytes(layout.sector_bits // 8, "big")
+
+
+def max_body(layout=DEFAULT_LAYOUT):
+    """The highest body number a system can hold."""
+    return (1 << layout.body_bits) - 1
+
+
+def body_of(value, layout=DEFAULT_LAYOUT):
+    """The body number of an ID (0 for the top-level object itself)."""
+    return value & max_body(layout)
+
+
+def with_body(value, body, layout=DEFAULT_LAYOUT):
+    """The ID of body `body` of the system whose ID is `value` (any body of it)."""
+    _check("body", body, layout.body_bits)
+    return (value & ~max_body(layout)) | body
+
+
 def unpack(value, layout=DEFAULT_LAYOUT):
     """The `ObjectId` an integer from `pack` holds.
 

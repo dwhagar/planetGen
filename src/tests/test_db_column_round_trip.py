@@ -19,7 +19,7 @@ from tests.rich_galaxy_support import rich_galaxy  # noqa: F401  (fixture)
 pytestmark = pytest.mark.db
 
 BOOKKEEPING_TABLES = {
-    "schema_migrations", "alembic_version", "generation_run_arguments", "phenomenon_scatter", "id_blocks", "system_name_registry", "sector_name_registry", "population_state",
+    "schema_migrations", "alembic_version", "generation_run_arguments", "phenomenon_scatter", "id_blocks", "id_counters", "system_name_registry", "sector_name_registry", "population_state",
     "orbit_simulation_state", "galaxy_column", "galaxy_layer", "sector_stats", "bright_stars",
     "nearest_systems", "sector_paths", "sector_path_knots",
 }
@@ -81,6 +81,7 @@ NEVER_READ = {
     # looked up by it from GEN.72 on; nothing reads it back yet.
     ("star_systems", "uid"): "looked up by ID from GEN.72",
     ("stars", "uid"): "looked up by ID from GEN.72",
+    ("facilities", "uid"): "looked up by ID from API.23",
     # Row order in a child table: the loaders read them ORDER BY position.
     **{(table, "position"): "sort key" for table in (
         "asteroid_belt_composition", "asteroid_field_composition", "comet_composition",

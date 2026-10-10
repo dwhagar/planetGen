@@ -28,3 +28,4 @@ Commit each file came from:
 - v73: 7c06976 (GEN.185 star scatter mass limit, before GEN.88)
 - v74: ea2e00e (GEN.88 hydrosphere, before GEN.87)
 - v75: 62f3842 (GEN.87 surface radiation, before GEN.89)
+- v76: 3668b58b (GEN.89 habitability score, before DB.20)

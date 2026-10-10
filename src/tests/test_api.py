@@ -1084,7 +1084,7 @@ def _add_stars_to_sector(mysql_config, sector_id, luminosities):
             conn.execute(
                 f"INSERT INTO stars (name, luminosity_w, role, uid, {names}) SELECT ?, ?, 'secondary', ?, {names} "
                 "FROM stars WHERE star_system_id = ? ORDER BY id LIMIT 1",
-                (f"Extra {sector_id}-{n}", lum * constants.SOLAR_LUMINOSITY, 1 << (40 + n), system_id),
+                (f"Extra {sector_id}-{n}", lum * constants.SOLAR_LUMINOSITY, (1 << (40 + n)).to_bytes(10, "big"), system_id),
             )
         conn.commit()
     finally:

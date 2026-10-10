@@ -51,7 +51,7 @@ from planetgen.galaxy.geometry import (
 )
 from planetgen.galaxy import keepout
 from planetgen.galaxy import objectref as object_ref
-from planetgen.galaxy import uid as galaxy_uid
+from planetgen.galaxy import object_uid
 from planetgen.names import naming_key
 from planetgen.galaxy.sector import classify_octant
 from planetgen.galaxy.viewport import (
@@ -2073,11 +2073,11 @@ def nebula_surroundings(conn, nebula_id):
 
 
 def _with_printed_uid(row):
-    """A copy of a table row as a dict with its `uid` (a BINARY column, GEN.69) as
-    the hex text the site prints, so the row can be written as JSON."""
+    """A copy of a table row as a dict with its `uid` (a BINARY(10) column, GEN.170) as
+    the text the site prints, so the row can be written as JSON."""
     out = dict(row)
     if isinstance(out.get("uid"), (bytes, bytearray)):
-        out["uid"] = galaxy_uid.format_uid(galaxy_uid.uid_from_bytes(out["uid"]))
+        out["uid"] = object_uid.format_id(object_uid.from_bytes(out["uid"]))
     return out
 
 
@@ -2440,12 +2440,12 @@ def system_detail(conn, system_id):
         moons_by_planet.setdefault(moon["planet_id"], []).append(moon)
     planets = []
     for planet in planet_rows:
-        planet_dict = _with_life_fields(dict(planet), planet_stages, colonized["planets"])
-        planet_dict["moons"] = [_with_life_fields(dict(m), moon_stages, colonized["moons"])
+        planet_dict = _with_life_fields(_with_printed_uid(planet), planet_stages, colonized["planets"])
+        planet_dict["moons"] = [_with_life_fields(_with_printed_uid(m), moon_stages, colonized["moons"])
                                 for m in moons_by_planet.get(planet["id"], [])]
         planets.append(planet_dict)
 
-    belts = [dict(b) for b in conn.execute(
+    belts = [_with_printed_uid(b) for b in conn.execute(
         "SELECT * FROM asteroid_belts WHERE star_system_id = ? ORDER BY orbital_index", (system_id,)
     ).fetchall()]
     belt_composition = {}
@@ -2497,7 +2497,7 @@ def system_detail(conn, system_id):
         "stars": [dict(s) for s in stars],
         "planets": planets,
         "belts": belts,
-        "comets": [dict(c) for c in comets],
+        "comets": [_with_printed_uid(c) for c in comets],
         "sector_siblings": sector_siblings,
         "nearest_neighbors": nearest_neighbors,
         "inside": cloud,
