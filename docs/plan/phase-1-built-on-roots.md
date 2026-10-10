@@ -86,8 +86,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.148 | Habitability index follow-ups from the research (GEN.84 built) |  | Research follow-up to GEN.84 (built). |
 | GEN.178 | Magnetic fields: the induced field of an ocean moon |  | Left over from GEN.86 (PR #908); waits on the hydrosphere model. |
 | GEN.177 | Planetary magnetic fields: a stagnant-lid factor |  | Left over from GEN.86 (PR #908). |
-| GEN.89 | The habitability score for every planet and moon |  |  |
-| GEN.83 | A planetary habitability index (PHI) | GEN.89 | Parent; the class refactor (GEN item GEN.90) follows it. |
 
 ### Tech levels and facilities
 
