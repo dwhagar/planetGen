@@ -751,7 +751,11 @@ def test_admin_stats_shows_generation_speed(client, fake):
                                     "systems_per_task": 23.8, "stars_per_system": 1.3, "max_density": 3.0}]}
     html = client.get("/admin/stats").get_data(as_text=True)
     assert "60.5 KB per star system (1,200 systems, 71.0 MB)" in html
-    assert "<td>Sector fill</td><td class=\"num\">2</td><td>1 to 3.16</td>" in html and "1.27 s" in html and "55.1 ms" in html
+    assert "<td>Sector fill</td><td class=\"num\">2</td><td>1 to 3.16</td>" in html and "1.27 s per sector" in html and "55.1 ms per system" in html
+    assert "23.8 systems per sector" in html
+    fake.generation["buckets"].append(dict(fake.generation["buckets"][0], kind="scatter", systems_per_task=1262.2))
+    html = client.get("/admin/stats").get_data(as_text=True)
+    assert "1,262.2 stars per layer" in html and "per layer" in html   # GEN.185: a layer counts stars, not systems
     fake.generation = {"available": False, "sizes": {}, "buckets": []}
     assert "run <code>update.sh</code>" in client.get("/admin/stats").get_data(as_text=True)
 

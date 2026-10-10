@@ -382,6 +382,11 @@ def add_shared_generation_options(parser):
                         help="How much more or less often every system gets FEATURE than by chance, as a "
                              "percentage: comets=+50 is 1.5 times as often, comets=-100 never. Repeat "
                              "for more features: " + ", ".join(prevalence.FEATURES) + ".")
+    parser.add_argument('--star-mix', type=finite_float, nargs=3, default=None,
+                        metavar=('SINGLE', 'CLOSE', 'WIDE'),
+                        help="The share of systems, in percent, with one star, a close binary and a wide "
+                             "pair. The three must total 100. Replaces --prevalence for binary_system and "
+                             "wide_binary, which it cannot be combined with.")
     parser.add_argument('--workers', type=int, default=None,
                         help="How many sectors to generate at once, each in its own low-priority worker "
                              "process. Default: 80%% of this machine's cores (one fewer when MySQL runs "
@@ -409,6 +414,16 @@ def validate_shared_generation_args(args, parser):
                                           through (so the caller's own
                                           `--help`/usage text is shown).
     """
+    star_mix = getattr(args, "star_mix", None)
+    if star_mix is not None:
+        given = {feature for feature, _ in (args.prevalence or ())}
+        if given & {"binary_system", "wide_binary"}:
+            parser.error("--star-mix sets binary_system and wide_binary; don't also give them to --prevalence")
+        try:
+            mix = prevalence.star_mix_prevalences(*star_mix)
+        except ValueError as exc:
+            parser.error(f"--star-mix: {exc}")
+        args.prevalence = [*(args.prevalence or ()), *mix.items()]
     if args.density is not None and args.num_systems is not None:
         parser.error("--density cannot be combined with --num-systems.")
     if args.workers is not None and args.workers < 0:

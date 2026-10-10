@@ -1251,7 +1251,7 @@ def test_galaxy_shape_reports_the_bright_star_scatter(client, mysql_config):
     conn = _db.get_connection(mysql_config)
     try:
         body = client.get("/api/galaxy/shape").get_json()
-        assert body["shape"] is None
+        assert body["shape"] is None and body["layers"] is None
         assert body["bright_stars"] == {"scattered": False, "min_luminosity_sol": None, "seed": None,
                                         "default_min_luminosity_sol": 5000.0}
         with conn:
@@ -1261,10 +1261,18 @@ def test_galaxy_shape_reports_the_bright_star_scatter(client, mysql_config):
                          " expected_system_count_at_density_1, outer_ring_index)"
                          " VALUES (1, 1, 1, 1, 1, 2, 0.2, 0.3, 1, 0, 1, 4, 10, 5)")
             _db.record_bright_star_scatter(conn, 500.0, 1234)
+            conn.executemany("INSERT INTO galaxy_layer (layer_index, outer_ring_index) VALUES (?, ?)",
+                             [(1, 3), (0, 5), (-1, 3)])
     finally:
         conn.close()
     body = client.get("/api/galaxy/shape").get_json()
     assert body["shape"]["edge_pc"] == 4
+    layers = body["layers"]
+    # ADM.28: three layers of one edge each, the widest reaching the outer edge of ring 5.
+    assert (layers["count"], layers["lowest"], layers["highest"]) == (3, -1, 1)
+    assert (layers["height_pc"], layers["thickness_pc"], layers["radius_pc"], layers["charted"]) == (4, 12, 24.0, 0)
+    assert [row["layer"] for row in layers["rows"]] == [1, 0, -1] and not layers["sampled"]
+    assert layers["rows"][1]["bottom_pc"] == -2.0 and layers["rows"][1]["top_pc"] == 2.0
     assert body["bright_stars"] == {"scattered": True, "min_luminosity_sol": 500.0, "seed": 1234,
                                     "default_min_luminosity_sol": 5000.0}
 
@@ -2442,3 +2450,19 @@ def test_nebula_surroundings_endpoint_lists_the_bright_stars_round_it(client, my
     assert body["stars"][0]["luminosity_sol"] == pytest.approx(900.0, rel=1e-3)
     assert client.get(f"/api/nebulae/{unplaced_id}/surroundings").get_json()["stars"] == []
     assert client.get("/api/nebulae/999999/surroundings").status_code == 404
+
+
+def test_layer_specs_sample_a_galaxy_with_many_layers(mysql_config):
+    # ADM.28: past 41 layers the page gets an even sample with both ends and layer 0.
+    from planetgen.db import query
+    conn = _db.get_connection(mysql_config)
+    try:
+        with conn:
+            conn.executemany("INSERT INTO galaxy_layer (layer_index, outer_ring_index) VALUES (?, ?)",
+                             [(layer, 10) for layer in range(-100, 101)])
+        specs = query.galaxy_layer_specs(conn, 4.0)
+    finally:
+        conn.close()
+    layers = [row["layer"] for row in specs["rows"]]
+    assert specs["count"] == 201 and specs["sampled"] and 41 <= len(layers) <= 42
+    assert layers == sorted(layers, reverse=True) and layers[0] == 100 and layers[-1] == -100 and 0 in layers

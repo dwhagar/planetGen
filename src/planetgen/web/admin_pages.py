@@ -794,6 +794,19 @@ GENERATION_KINDS = steps.STEP_KINDS
 """dict: What the Stats page calls each kind of recorded rate (PERF.32)."""
 
 
+GENERATION_UNITS = {
+    "sector": ("sector", "system"),
+    "scatter": ("layer", "star"),
+    "phenomena": ("layer", "object"),
+    "backfill": ("run", "sector"),
+    "migrate": ("run", "migration"),
+    "warm-map": ("run", "tile"),
+}
+"""dict: What a task and a unit are for each recorded kind (the stats count
+a sector's systems, a scatter layer's stars, a step's own units); kinds not
+listed read "task" and "unit"."""
+
+
 def _generation_panel(cookie_header, db):
     """PERF.10: this server's measured generation speed per density
     bucket, and this galaxy's size per star system."""
@@ -811,12 +824,14 @@ def _generation_panel(cookie_header, db):
         ),
         "rows": [{
             "what": GENERATION_KINDS.get(row["kind"], row["kind"]),
+            "task": GENERATION_UNITS.get(row["kind"], ("task", "unit"))[0],
+            "unit": GENERATION_UNITS.get(row["kind"], ("task", "unit"))[1],
             "workers": format_count(row["workers"]),
             "density": f"{row['density_low']:.3g} to {row['density_high']:.3g}",
             "samples": format_count(row["samples"]),
             "per_task": f"{row['seconds_per_task']:.2f} s",
             "per_system": f"{row['seconds_per_system'] * 1000:.1f} ms",
-            "systems": f"{row['systems_per_task']:.1f}",
+            "systems": f"{row['systems_per_task']:,.1f}",
         } for row in body["buckets"]],
     }
 
