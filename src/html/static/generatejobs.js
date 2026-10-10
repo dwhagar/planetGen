@@ -37,7 +37,20 @@ function render(job) {
     status.textContent = job.status;
     status.className = `badge job-${job.status}`;
   }
-  setText("[data-job-step]", job.step_label ? `Step ${job.step} of ${job.steps.length}: ${job.step_label}` : "");
+  setText("[data-job-step]", job.stage_text || (job.step_label ? `Step ${job.step} of ${job.steps.length}: ${job.step_label}` : ""));
+  const stageList = panel.querySelector("[data-job-stages]");
+  if (stageList && job.stage_list) {
+    stageList.replaceChildren(...job.stage_list.map((stage) => {
+      const item = document.createElement("li");
+      item.className = `job-stage-${stage.state}`;
+      item.append(`${stage.label} `);
+      const note = document.createElement("span");
+      note.className = "hint";
+      note.textContent = stage.state + (stage.reason ? `: ${stage.reason}` : "");
+      item.append(note);
+      return item;
+    }));
+  }
 
   const overallRow = panel.querySelector("[data-job-overall-row]");
   if (overallRow) {

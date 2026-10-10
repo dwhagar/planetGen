@@ -36,6 +36,8 @@ MIN_INTERVAL_SECONDS = 0.5
 """float: Least time between two writes, unless `force` is given."""
 
 _last_write = 0.0
+_stage = None
+"""dict | None: The stage the run is in (`set_stage`), written into every report."""
 
 
 def report(completed, total=None, description=None, force=False, rate=None, eta_s=None, detail=None, percent=False):
@@ -78,6 +80,7 @@ def report(completed, total=None, description=None, force=False, rate=None, eta_
         "eta_s": _finite_or_none(eta_s),
         "detail": detail,
         "percent": bool(percent),
+        "stage": _stage,
         "updated_at": now,
     }
     try:
@@ -104,6 +107,32 @@ def report(completed, total=None, description=None, force=False, rate=None, eta_
                 os.unlink(tmp)
             except OSError:
                 pass
+
+
+def set_stage(index, total, label, skipped=None):
+    """Records the stage the run is in (UX.89: `index` of `total`, 1-based; `skipped` is the reason a stage that
+    did not run was skipped) and writes it at once, keeping the last bar's fields."""
+    global _stage
+    _stage = {"index": index, "total": total, "label": label, "skipped": skipped}
+    path = os.environ.get(ENV_VAR)
+    if not path:
+        return
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            body = json.load(f)
+    except (OSError, ValueError):
+        body = {"description": None, "completed": 0, "total": None, "rate": None, "eta_s": None, "detail": None,
+                "percent": False}
+    body["stage"] = _stage
+    body["updated_at"] = time.time()
+    try:
+        directory = os.path.dirname(os.path.abspath(path))
+        fd, tmp = tempfile.mkstemp(prefix=".progress-", dir=directory)
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            f.write(json.dumps(body, allow_nan=False))
+        os.replace(tmp, path)
+    except (OSError, ValueError, TypeError):
+        pass
 
 
 def _finite_or_none(value):

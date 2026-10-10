@@ -35,7 +35,7 @@ from planetgen.galaxy.skeleton import (
     build_layer_extents, candidate_sector_count, expected_system_count_at_density_1,
 )
 from planetgen.generation import run_common
-from planetgen.generation import steps
+from planetgen.generation import stages, steps
 
 
 BACKFILL_CHUNK_SECTORS = 200
@@ -313,6 +313,7 @@ def scatter_bright_stars(args):
         store.clear_bright_stars(conn)
 
         t0 = time.perf_counter()
+        stages.enter("mass")
         counts = _scatter_layers(args, mysql_config, skeleton, extents, filled,
                                  starPopulation.MASS_PASS_MIN_LUMINOSITY_SOL, mass_seed, "Massive stars",
                                  mass_range=(mass_limit, None))
@@ -320,6 +321,7 @@ def scatter_bright_stars(args):
         marked = store.bright_star_marked_addresses(conn, mass_limit, min_luminosity_sol * constants.SOLAR_LUMINOSITY)
         log.normal(f"{len(marked):,} sectors hold a star born at {mass_limit:g} solar masses or more and at least "
                    f"{min_luminosity_sol:g} L_sun bright; the luminosity pass skips them.")
+        stages.enter("luminosity")
         light = _scatter_layers(args, mysql_config, skeleton, extents, set(filled) | marked, min_luminosity_sol, seed,
                                 "Bright stars", mass_range=(None, mass_limit))
         for population, count in light.items():
@@ -851,6 +853,7 @@ def scatter_phenomena(args):
                 log.reset_console()
 
         t0 = time.perf_counter()
+        stages.enter("phenomena")
         counts = {}
         e_value = skeleton.expected_system_count_at_density_1
         layers = sorted(extents, key=lambda extent: (abs(extent[0]), extent[0]))
@@ -972,18 +975,24 @@ def run_plan(args):
         args (argparse.Namespace): Validated arguments (`command ==
             "plan"`).
     """
+    stages.begin(stages.plan_stages(args))
     if getattr(args, "bright_stars_down_to", None) is not None:
+        stages.enter("band")
         with workQueue.job_node("bright-stars", f"Bright stars down to {args.bright_stars_down_to:g} L_sun"):
             add_bright_star_band(args)
+        stages.finish()
         return
     if getattr(args, "phenomena_only", False):
         with workQueue.job_node("phenomena", "Phenomena"):
             scatter_phenomena(args)
+        stages.finish()
         return
     if getattr(args, "bright_stars_only", False):
         with workQueue.job_node("bright-stars", "Bright stars"):
             scatter_bright_stars(args)
+        stages.finish()
         return
+    stages.enter("skeleton")
     with workQueue.job_node("skeleton", "Galaxy skeleton"):
         summary = build_skeleton(args)
     if summary["layer_count"]:
@@ -1005,3 +1014,4 @@ def run_plan(args):
             scatter_phenomena(args)
         with workQueue.job_node("bright-stars", "Bright stars"):
             scatter_bright_stars(args)
+    stages.finish("the galaxy has no layers" if not summary["layer_count"] else None)

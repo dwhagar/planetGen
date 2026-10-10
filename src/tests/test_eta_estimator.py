@@ -189,7 +189,7 @@ def test_a_one_step_job_has_no_overall_bar():
 
 def test_the_overall_bar_adds_the_later_steps_to_the_running_ones_time_left():
     view = generate_page.overall_view(_job(), 30.0, now=1050.0)
-    assert view["overall_shown"] and view["overall_text"] == "Whole job, step 1 of 3"
+    assert view["overall_shown"] and view["overall_text"] == "Whole job"
     # 30 s left on this step + 60 + 40 for the next two; 50 s already gone.
     assert view["overall_value"] == pytest.approx(50.0 / 180.0)
     assert view["overall_remaining_label"] == generate_page.remaining_label(130.0)
