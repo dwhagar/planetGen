@@ -4088,6 +4088,39 @@ clears each one.
   items.
   Prerequisites: none. Related: TEST.111, TEST.123.
 
+- [ ] **TEST.129 Two orbit-update tests fail on the MySQL 8.4 leg: the stored last_updated_at rounds up (bug)**
+  Reported by Foundations lane 1 (2026-10-10 20:55Z), from the manual CI
+  run on main after PR #1161 (MySQL 8.4 leg; not caused by PERF.64):
+  test_admin_script_cli.py::test_update_orbits_never_moves_backwards_when_the_clock_goes_back
+  and
+  test_edge_admin_scripts.py::test_update_orbits_first_run_sets_a_starting_point_then_advances.
+  On MySQL 8.4 the stored last_updated_at rounds up, so it reads
+  '0.000000 years in the future' and the elapsed time is -1 s; the
+  second test expects 'years elapsed' and gets the clock-moved-back
+  message. Likely cause: fractional-second rounding of NOW() in the
+  orbit update (MariaDB truncates, MySQL 8.4 rounds). Done: the orbit
+  update stores and compares a time that both servers treat the same way
+  (truncate to the column's precision before comparing, or use the same
+  clock on both sides), checked on MySQL 8.4 and MariaDB; a product bug
+  if a real run could see a negative elapsed time. Owner: Bugfixes lane
+  1, after its current items.
+  Prerequisites: none. Related: TEST.116, TEST.126.
+
+- [ ] **TEST.130 test_the_scene_positions_at_the_epoch_match_the_stored_ones fails when a random system has comets (bug)**
+  Reported by Foundations lane 1 (2026-10-10 20:55Z), from the manual CI
+  run on main after PR #1161:
+  tests/test_body_positions.py::test_the_scene_positions_at_the_epoch_match_the_stored_ones
+  fails because a comet's position at its epoch differs from the stored
+  one by about 1e10 km, for a random system that has comets. It is
+  intermittent because the system is random. Likely a real disagreement
+  between the comet path in positions_at and the position stored for the
+  comet. Done: the cause is found (the stored position or the scene path
+  is wrong for comets, or the test compares different epochs or frames),
+  the product or test is fixed so scene and stored positions agree for
+  comets, and the test draws a system with a comet every time so it
+  cannot pass by luck. Owner: Bugfixes lane 1, after its current items.
+  Prerequisites: none. Related: TEST.123, GEN.122.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
