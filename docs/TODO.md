@@ -3589,7 +3589,8 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
 - [ ] **DB.17 Repair by regenerating a damaged sector from its seed when parity cannot rebuild it**
   The second half of DB.9: when the parity file cannot rebuild a sector,
   regenerate it from the galaxy seed, the sector's stored directives and
-  the settings file (ADM.18), then replay its edits from the edit log.
+  the current galaxy's internal record (ADM.50), then replay its edits
+  from the edit log.
   (Boss, 2026-10-09 20:42Z, dropped the pending-delta JSON and daily
   merge this item used to read; the seed is still used internally for
   repair. Boss, 2026-10-09 20:52Z: keep the repair from the seed, replaying
@@ -4080,37 +4081,49 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   are `noindex,follow`, top pages only in the sitemap, switchable with
   `seo.detail_pages`.
 
-- [ ] **ADM.50 Remove the galaxy settings files (the seed JSON files of ADM.18) entirely**
+- [ ] **ADM.50 Remove the galaxy settings files and everything around them; keep only an internal record of the current galaxy**
   Boss (2026-10-10 21:14Z): 'remove the galaxy seed JSON files
-  entirely.' Boss asked for the item; the removal is this item's work.
+  entirely.' Boss (21:17Z): 'I only want to store the current galaxy
+  things that I need to store, I don't care about past galaxies, so it
+  can go in a JSON but we don't need to expose it to the user at all
+  unless it's admin but even then, there's no real reason for someone to
+  have that file since we're removing importing/exporting settings.'
   What exists: `planetgen plan` writes `<32-hex seed>-<22-hex version
   key>-<YYYYMMDD>-<HHMMSS>Z.json` into `galaxy-settings` in the jobs
-  directory (`PLANETGEN_SETTINGS_DIR`), holding the plan options, seed,
-  version key, naming key, the requirements.lock hash and both word
-  lists. What reads or writes it: planetgen/galaxy/settings_file.py
-  (write, list_files, current_file, build); generation/run_plan.py
-  (`_write_settings_file`, called at the end of the plan);
-  galaxy/version_check.py (compares the running code with the file's
-  settings and warns); api/admin.py (`GET
+  directory (`PLANETGEN_SETTINGS_DIR`), one dated file per plan, old ones
+  kept as backups, holding the plan options, seed, version key, naming
+  key, the requirements.lock hash and both word lists. What reads or
+  writes it: planetgen/galaxy/settings_file.py (write, list_files,
+  current_file, build); generation/run_plan.py (`_write_settings_file`,
+  called at the end of the plan); galaxy/version_check.py (compares the
+  running code with the file's settings and warns); api/admin.py (`GET
   /api/admin/galaxy-settings[/<name>]`); web/lib/apiclient.py and
   web/admin_pages.py (the download); web/templates/admin_stats.html (the
   'Galaxy settings' panel); tests test_settings_file.py,
   test_sector_versions.py, test_web_admin.py and test_settings.py;
   docs/design/reproducible-galaxies.md section 7 ('As built (ADM.18)').
-  Done: all of that is deleted, with no shim, wrapper or compatibility
-  stub (Boss, 2026-10-07: no backward compatibility): the module, the
-  plan step, the two API routes and their clients, the Admin panel, the
-  version check against the file (the check keeps comparing sector
-  versions, and compares the code against the seed and version key
-  stored in the database), the tests and the design section. The seed,
-  version key and naming key already live in the database's control
-  tables; the requirements.lock hash and the word lists existed only in
-  the file, so decide with OPS.28, OPS.37 and DB.16 whether they are
-  dropped or moved into the database, and say which in the PR. update.sh
-  removes any old `galaxy-settings` directory once. No schema change is
-  needed. Docs and README text that mention the file are updated, and
-  the 8.x changelog entry says the files are gone.
-  Prerequisites: none. Related: ADM.18, OPS.28, OPS.37, DB.16, GEN.135.
+  Done: (1) the whole outward surface is gone, with no shim, wrapper or
+  compatibility stub (Boss, 2026-10-07): the two API routes and their
+  clients, the download, the Admin panel and its text, the dated files,
+  the backups and the history, and the plan step that wrote them; there
+  is no import or export of settings anywhere (no item plans one; ADM.42
+  to ADM.44's `settings.json` overlay is a different thing and stays).
+  (2) Only what the current galaxy needs is kept, as one internal record
+  that nobody can see or download (a row in the database's control
+  tables, or a file under the data directory that the site never serves;
+  decide in the PR and say which): the seed, which already lives in
+  `galaxy_shape`, the naming key, which already lives in `galaxy_naming`,
+  and the generator epoch and `fp_spec` when OPS.28 and OPS.37 land; the
+  requirements.lock hash and the word lists existed only in the file, so
+  keep them in that record only if OPS.28 still needs them, else drop
+  them. A new plan overwrites the record; nothing older is kept. (3)
+  The version check keeps comparing sector versions and compares the
+  running code with that record. (4) The tests and the design section
+  are deleted or rewritten, README and docs text that mention the files
+  are updated, update.sh removes any old `galaxy-settings` directory
+  once, and the changelog entry says the files are gone.
+  Prerequisites: none. Related: ADM.18, OPS.28, OPS.37, DB.16, DB.17,
+  DOC.14, GEN.135.
 
 ## SEC: Security
 
@@ -4540,8 +4553,9 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   The OPS.13 history row also holds the epoch, the battery digest, the
   lock hash and an environment JSON (libc, numpy, astropy, scipy,
   scikit-image versions), the last 10 per galaxy as already specified;
-  the seed itself is not changed. ADM.18's settings file records the
-  epoch and `fp_spec`, and is written with LF only. Decided (Boss,
+  the seed itself is not changed. The current galaxy's internal record
+  (ADM.50, replacing ADM.18's settings file) keeps the epoch and
+  `fp_spec`. Decided (Boss,
   2026-10-10 18:44Z, defaults approved; defaults taken): (1) is the same
   galaxy on Linux, macOS and
   Windows a goal, exact for integers, strings and structure and equal to
@@ -4609,7 +4623,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   name Boss asked for, so there is one counter, not two: bumped by the
   same PR rule (a change that alters generated output for the same seed
   bumps it), stored with each galaxy's history row (OPS.13), per sector
-  (DB.16) and in the settings file (ADM.18), shown on the admin status
+  (DB.16) and in the current galaxy's internal record (ADM.50), shown on the admin status
   page beside the DB schema number, and returned by the API status
   response. The release version (MAJOR.REVISION.BUILD) stays as it is.
   Decided (Boss, 2026-10-09 21:02Z): the generator version and OPS.28's
@@ -4801,7 +4815,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Boss (2026-10-09 23:53Z): "Add to-do items to build static
   documentation pages for all features accessible through the web
   interface." Done: /admin, /admin/queue and its tree, confirm and
-  action pages, /admin/stats (galaxy settings, naming key, lockouts),
+  action pages, /admin/stats (naming key, lockouts; the galaxy settings panel goes with ADM.50),
   the worker count and the performance statistics (PERF.32), and which
   actions cannot be undone. The page is a Markdown file in docs/help/
   built into the Help section, linked from each page it describes, and
