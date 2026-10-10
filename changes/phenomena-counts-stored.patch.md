@@ -1,0 +1,2 @@
+### Changed
+- **The Phenomena table's total and filter-menu counts are stored like the Systems and Sectors counts (PERF.69).** They counted the whole phenomena views in the request, so a big galaxy could reach the "Took too long" page. They now go through the stored-count cache (the last count while a new one is made, a count capped at 10,000 before the first). The Planets and Moons have no table page, so nothing else counts a whole table in a request.

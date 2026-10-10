@@ -466,7 +466,7 @@ def _phenomena_load(state, limit, offset, want_facets):
             "descriptor": [{"value": option["value"], "label": _title_case(option["value"]),
                             "count": option["count"]} for option in envelope["facets"]["descriptor"]],
         }
-    return Result(rows, envelope["total"], facets)
+    return Result(rows, envelope["total"], facets, envelope.get("total_capped", False))
 
 
 PHENOMENA_TABLE = tables.register(Table(

@@ -171,3 +171,18 @@ def test_the_systems_route_pages_by_key(client, galaxy):
     keyed = client.get(f"/api/systems?limit=4&offset=999&after={first[-1]['id']}").get_json()["items"]
     assert [item["id"] for item in keyed] == [item["id"] for item in second]
     assert client.get("/api/systems?after=not-an-id").status_code == 400
+
+
+# --- PERF.69: the Phenomena table's counts are stored like the others' --------------------------------------
+
+def test_the_phenomena_counts_go_through_the_stored_count_cache(galaxy, monkeypatch):
+    asked = []
+
+    def counted(conn, key, compute, fallback):
+        asked.append(key[0])
+        return fallback(conn)
+
+    monkeypatch.setattr(queryDb, "_counted", counted)
+    assert queryDb.count_phenomena(galaxy) >= 0
+    assert queryDb.phenomena_facets(galaxy) == {"type": [], "descriptor": []}
+    assert asked == ["count_phenomena", "phenomena_facets"]
