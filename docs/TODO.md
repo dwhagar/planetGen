@@ -504,6 +504,18 @@ with `clamp()`.
   GEN.88.
   Design: [docs/design/habitability-index.md](design/habitability-index.md)
 
+- [ ] **UX.91 Planet and moon description carries a full PHI-4 explanation, each colour factor and why**
+  Boss (2026-10-10 08:49Z, via the coordinator): PHI-4 should have a
+  full explanation in the planet or moon description, each colour factor
+  and why. Done: the planet and moon description on the system page
+  lists, for each of the four PHI-4 domains behind the chip colour, the
+  value for this world and why (the inputs that drove it), not just the
+  chip; the wording matches the Classes explanation page of UX.90 and
+  the chip names (Ideal, formerly Shirtsleeve); the text comes from the
+  same calculation as the chip, so the two cannot disagree. Owner:
+  Bugfixes lane 2, after GEN.196 (it built UX.90).
+  Prerequisites: none. Related: UX.90, GEN.89.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -1175,6 +1187,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   mass and brightness, and a test checks the size ordering. Owner:
   unassigned.
   Prerequisites: none. Related: MAP.164, GEN.185, MAP.148, MAP.153.
+
+- [ ] **MAP.166 Galaxy Map "Dimmest star shown" says "every star" only when the view is complete**
+  Boss (2026-10-10 08:11Z, via Bugfixes lane 2): the slider label
+  "Dimmest star shown" may say "every star" only when the view is
+  complete, meaning no tile cap, luminosity floor or missing tile hides
+  a star; otherwise it shows the real dimmest luminosity the view
+  carries. Follow-up to MAP.163. Done: the label follows that rule at
+  every zoom, and a test covers a complete view and a capped view.
+  Owner: Bugfixes lane 2 (next).
+  Prerequisites: none. Related: MAP.163, MAP.148.
 
 ## NAV: Navigation and courses
 
@@ -3131,6 +3153,66 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   cover the defaults. Owner: Bugfixes lane 1, first in its order.
   Prerequisites: none. Related: GEN.183, GEN.184, GEN.188.
 
+- [ ] **GEN.195 A separate mass limit for neutron stars and black holes, and the central black hole or quasar always created**
+  Boss (2026-10-10 08:28Z, via the coordinator): control the stellar
+  masses with one setting and the neutron star and black hole creation
+  with another. The stellar mass limit (8 to 20 solar masses, default 14
+  by GEN.194) now applies to stars only. A new compact-object mass limit
+  for neutron stars and black holes has presets of 1, 2, 4 and 6 solar
+  masses and a "use the star mass setting" option, which is the default
+  and works as the single mass limit does today. Both appear in Plan the
+  galaxy, New galaxy and the CLI, are stored with the scatter settings,
+  and are used by the scatter passes of GEN.185 (and GEN.187). Hard
+  requirement: whatever either setting says, the central supermassive
+  black hole or quasar at the centre of the galaxy is always created.
+  Done: the setting exists in the form, the CLI and the plan; the
+  scatter honours the two limits; a test covers every combination of the
+  two settings and finds the central black hole or quasar each time; the
+  scatter design note (docs/design/phenomenon-scatter-mass-cut.md)
+  describes the split. Owner: Bugfixes lane 2 (coordinator, 2026-10-10
+  08:29Z).
+  Prerequisites: none. Related: GEN.183, GEN.185, GEN.187, GEN.194,
+  PERF.56.
+  Bugfixes lane 2 (2026-10-09): Details from Bugfixes lane 2 (2026-10-10
+  08:29Z): the compact-object control sits side by side with the stellar
+  controls in Plan the galaxy and New galaxy; CLI option
+  --compact-min-mass (1, 2, 4, 6 or star); stored with the plan and
+  shown in the stage stats settings (PERF.56); a storage warning sits
+  next to it (1 Msun about 1.17e9 rows, 161 GB; 2 Msun about 3.9e8 rows,
+  54 GB; 4 Msun about 2.2e8 rows, 30 GB; 6 Msun about 2.0e8 rows, 28
+  GB).
+  Bugfixes lane 2 (2026-10-09): Added (Bugfixes lane 2, 2026-10-10
+  08:30Z): the limits apply on every path that scatters: New galaxy,
+  Plan, Rebuild the bright stars, plan --phenomena-only,
+  --bright-stars-only and --then-scatter, and the below-cut draws of
+  sector fill. GEN.196 (the Redo scatters box) builds on this.
+
+- [ ] **GEN.196 One "Redo scatters" box on Generate: choose which scatters to redo, with new settings for each**
+  Boss (2026-10-10 08:30Z, via the coordinator): make sure the stellar
+  and compact-object mass limits (GEN.195) apply everywhere a scatter (a
+  "sweep") happens, and give Generate one box where the admin ticks
+  which scatters to redo with new settings, so the scatters can be
+  redone from one place. Done: every place that runs a scatter (New
+  galaxy, Plan, Rebuild the bright stars, the CLI, on-demand and queued
+  jobs) takes the stellar limit, the compact-object limit and the
+  luminosity floor from the stored plan or from the form; the Generate
+  page has a single Redo scatters box with a checkbox for each scatter
+  pass of GEN.185 (the mass pass for stars, the luminosity-floor pass
+  for stars, and the phenomena pass with the compact-object limit) and
+  the settings for each pass; the ticked passes run as one job with a
+  stage list in which the unticked stages are shown as skipped with the
+  reason (UX.89); the new settings are stored with the plan and the
+  stage timings of PERF.56 record them; tests cover redoing each pass
+  alone and all together. Owner: Bugfixes lane 2, after GEN.195.
+  Prerequisites: GEN.195. Related: GEN.185, GEN.187, GEN.194, GEN.195,
+  UX.89, PERF.56.
+  Bugfixes lane 2 (2026-10-09): Details from Bugfixes lane 2 (2026-10-10
+  08:30Z): each ticked pass has its own settings fields in the same box
+  (stellar mass limit, luminosity floor, compact-object limit); the
+  stage list builds on UX.89's structure; a redo clears and rewrites
+  only that scatter's rows and keeps the central black hole or quasar
+  guarantee.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.18 Run the GEN.30 bright-star backfill in parallel on the work queue**
@@ -3472,6 +3554,35 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   can read it. Owner: Bugfixes lane 1, after the stage-count bug (UX.89).
   Prerequisites: none. Related: PERF.32, PERF.33, PERF.52, PERF.54,
   PERF.55.
+  Layers modified (2026-10-09): Boss addition (2026-10-10 08:34Z): for
+  every scatter action also store the number of layers modified, kept in
+  separate rows per mass floor and per luminosity floor used (a run at 8
+  Msun and one at 14 Msun, or at 5,000 and 9,000 Lsun, are different
+  rows). With the early stop of PERF.57 the row records layers visited
+  and layers modified.
+
+- [ ] **PERF.57 Stop a layer-walking scatter early once the last 100 layers produced no stars**
+  Boss (2026-10-10 08:32Z, via the coordinator): this will make
+  generation faster; if the last 100 layers had 0 stars, stop looking
+  and move on to the next phase. Done: every scatter pass that walks
+  layer by layer (the mass pass, the luminosity pass, the phenomena pass
+  if it walks layers, and the bright-star back scatter of GEN.187 when
+  it lands) stops after 100 consecutive empty layers; the 100 is a named
+  constant in tuning.py, not a magic number; the stop is logged as a
+  stage result ("stopped early after 100 empty layers at layer N") that
+  feeds the stage list of UX.89 and the stage stats of PERF.56; the stop
+  never skips the galactic nucleus guarantee (GEN.195); a test shows a
+  run with the early stop produces the same rows as a full walk on a
+  small galaxy. The change is in the scatter code in run_plan.py. Owner:
+  Bugfixes lane 1, after UX.89, PERF.56 and UX.88.
+  Prerequisites: none. Related: UX.89, PERF.56, GEN.185, GEN.187,
+  GEN.195.
+  Clarification (2026-10-09): Boss clarification (2026-10-10 08:32Z):
+  the test is "the last 100 layers produced 0 stars OR 0 phenomena". The
+  star passes count stars; the phenomena pass counts phenomena.
+  Stats (2026-10-09): Boss addition (2026-10-10 08:34Z): layers visited
+  versus layers modified is recorded per scatter action and per floor by
+  PERF.56 (see its note).
 
 ## DB: Database and schema
 
