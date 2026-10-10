@@ -190,7 +190,8 @@ with `clamp()`.
   visitor, signed in or not, saying the galaxy is being changed and
   when it should finish, as an ETA rounded up to the next whole hour
   (from `progress.json`, and from PERF.3's measured stars-per-second
-  rate). Open questions: a banner at the top of every page, or only on
+  rate). Question (decided below): a banner at the top of every page, or
+  only on
   the map and list pages? Does it also cover `generate.py` runs started
   from the command line, which don't take the web jobs lock today
   (they would need to write the same lock and progress file)? What does
@@ -208,6 +209,10 @@ with `clamp()`.
   it (upward jumps of 9 to 18 per 10 h run fall to about 0; the
   under-promise share of 15 to 25% falls to under 1%, except 9% on
   two-cost-class runs).
+  Decided (2026-10-10): Boss (19:04-19:12Z cards, recommended option):
+  the banner shows on every page, and it also covers command-line runs,
+  so `generate.py` and the CLI must write the same lock and publish
+  progress.
 
 - [ ] **UX.22 Meaningful units for every measurement**
   Boss (2026-10-01 15:10Z): "standardize ALL measurements into trees
@@ -228,7 +233,8 @@ with `clamp()`.
   pressure and the other surface conditions show a customary unit
   (such as atm, psi or g) beside the metric value. Surface
   temperature (K, °C, °F) and pressure (kPa, atm, psi) shipped in PR
-  #234; this item covers the rest. Open questions: the ladder and switch
+  #234; this item covers the rest. Question (decided below): the ladder
+  and switch
   points for each quantity; which customary unit goes with each surface
   condition; whether the secondary unit shows in tables or only in
   detail panels.
@@ -269,6 +275,9 @@ with `clamp()`.
     to "Done". The text names `stellarObjects/utils.py` and
     `html/lib/fmt.py`; the files are now `src/planetgen/util/format.py`
     and `src/planetgen/web/lib/fmt.py`.
+  Decided (2026-10-10): Boss (19:12Z): accept the research unit table in
+  units-and-number-formatting.md (ladders, switch points, customary
+  pairings).
 
 - [ ] **UX.30 Planet information without the Markdown render**
   Boss (2026-10-01 23:53Z): "Rework planet information displays to pull
@@ -283,10 +292,13 @@ with `clamp()`.
   both themes and every size class, using the unit ladders (UX.22);
   `mdconvert` is no longer used for them. The wikitext and Markdown
   views (the Wikitext/Markdown toggle and wiki upload) keep using the
-  text render. Open question: does the overview text stay as prose?
+  text render. Question (decided below): does the overview text stay as
+  prose?
   Research (2026-10-09, units-and-number-formatting.md): prerequisite
   UX.23 step 0, so the new property grids emit `<span class="qty" data-q
   data-si>` from the start.
+  Decided (2026-10-10): Boss (19:12Z): the system overview stays as
+  prose.
   Prerequisite: UX.23.
 
 - [ ] **UX.32 Planet rows show the class only, without the type and moon labels**
@@ -299,7 +311,9 @@ with `clamp()`.
   "N moons of X" group under the row. Done: the row shows the class
   (linked to its reference page) and no Terrestrial/Gas Giant chip or
   moon label; the moons stay reachable from a small count on the row.
-  Open question: does "Habitable" stay as a chip?
+  Question (decided below): does "Habitable" stay as a chip?
+  Decided (2026-10-10): Boss (19:12Z): keep the Habitable chip; revisit
+  with a habitable-class-only chip later.
 
 - [ ] **UX.49 Form fields as Shoelace components (sl-input, sl-select, sl-checkbox) across the site**
   UX.40 (done, PRs #528, #533, #539, #544) moved the buttons, menus and
@@ -1034,6 +1048,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   s idle, is off on saveData or 3G and slower, and takes at most 1.5 MB
   per page visit. The interim localStorage LRU was skipped (IndexedDB
   replaces it).
+  Decided (2026-10-10): Boss (19:12Z): leave brotli as is; no new
+  dependency, Apache compresses.
   Design: [docs/design/galaxy-map-wire-format.md](design/galaxy-map-wire-format.md)
 
 - [ ] **MAP.160 Quantise the Galaxy Map GPU buffers (deferred)**
@@ -1068,8 +1084,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   - the system-to-system route (the chain of systems it hops through).
   The user can list, open, rename and delete their saved courses. The
   saved course shows whichever form the user views, and they can switch
-  between the two. Needs user accounts (USR.1) and their storage. Open
-  question: until user accounts exist, should saving be admin-only, or
+  between the two. Needs user accounts (USR.1) and their storage.
+  Question (decided below): until user accounts exist, should saving be
+  admin-only, or
   per browser like bookmarks?
   Default taken for the open question (pre-planning thread): Default for
   the open question: per browser now (the same storage and menu as
@@ -1095,6 +1112,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     Done: a `user_courses` table in the control database, owned by an
     account; courses saved per browser can be imported into the account
     once; the API lists and edits a user's own courses only.
+  Decided (2026-10-10): Boss (19:12Z): save courses per browser until
+  accounts exist (as the default taken).
 
 - [ ] **NAV.5 Show a course on the Galaxy Map**
   Boss (2026-10-01 20:55Z): "In the navigation screen I want to be able
@@ -3534,7 +3553,8 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   changed, and which client versions (`generate.py` remote mode,
   API.3, and the web pages' `lib/apiclient.py`) can talk to which
   server versions. The table is updated in the same PR as any API
-  change. Open question: is the API version bumped by hand, or by a
+  change. Question (decided below): is the API version bumped by hand,
+  or by a
   release note kind like `changes/<name>.api.md`?
   Research (2026-10-09, api-design-standards.md): answer the open
   question: the version is bumped by hand against a CI rule. A committed
@@ -3547,6 +3567,8 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   the remote-client routes only. The table is generated from
   `planetgen/api/version.py` history, and the stamp job fills in the
   release number.
+  Decided (2026-10-10): Boss (19:12Z): the API version is bumped by
+  hand, with a CI check against the OpenAPI file.
 
 - [ ] **API.5 API version and compatibility checking**
   Boss (2026-10-01 19:28Z): "Another TODO item will be API version /
@@ -3558,8 +3580,8 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   to install, and, inside the range, reads older clients' payloads
   through converters so it knows how to take data from each supported
   version. `generate.py`'s remote mode (API.3) checks before it starts
-  generating, not after. Built on API.4's compatibility data. Open
-  question: how many older versions the server keeps accepting.
+  generating, not after. Built on API.4's compatibility data. Question
+  (decided below): how many older versions the server keeps accepting.
   Research (2026-10-09, api-design-standards.md): answer "how many older
   versions": the current major, plus the previous major for one release
   cycle after a major bump, for upload payloads only (no read
@@ -3574,6 +3596,8 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   client may differ in release within the accepted range, with a
   warning; a version-key mismatch (OS, architecture, Python) warns and
   does not refuse.
+  Decided (2026-10-10): Boss (19:12Z): keep the current major plus the
+  previous major for one release cycle (upload payloads only).
 
 - [ ] **API.6 User-level API keys, owned by the account that created them, that can read but not upload**
   Boss (2026-10-01 19:32Z): "Only admin can upload, and Admin can
