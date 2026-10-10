@@ -2290,3 +2290,84 @@ def test_galaxy_map_star_filters_apply_to_the_stars_drawn_at_galaxy_scale(page, 
     for button in page.locator("#galaxymap3d-kinds [data-star-class]").all():
         button.click()
     assert page.evaluate(count) < before
+
+
+# --- MAP.158: tiles kept in IndexedDB, a gentler prefetch ---------------------------------
+
+STORED_TILES = """() => new Promise(resolve => {
+    const open = indexedDB.open("planetgen-tiles");
+    open.onerror = () => resolve(-1);
+    open.onsuccess = () => {
+        const count = open.result.transaction("tiles").objectStore("tiles").count();
+        count.onsuccess = () => resolve(count.result);
+        count.onerror = () => resolve(-1);
+    };
+})"""
+
+
+def _tile_requests(page):
+    """A list that fills with (seconds since now, [tile keys]) for each /galaxy/tiles request."""
+    import time
+    began = time.monotonic()
+    found = []
+
+    def note(request):
+        if "/galaxy/tiles" in request.url:
+            keys = parse_qs(urlparse(request.url).query)["tiles"][0].split(",")
+            found.append((time.monotonic() - began, keys))
+    page.on("request", note)
+    return found
+
+
+def test_galaxy_map_keeps_its_tiles_in_indexeddb_for_a_revisit(page, map_site):
+    """MAP.158: the tiles fetched on a visit are stored in IndexedDB (not
+    localStorage), so a reload finds them and asks the server for none of them."""
+    first = _tile_requests(page)
+    _open_galaxy(page, map_site, "?sector=100000001")
+    page.wait_for_timeout(2500)
+    asked = {key for _at, keys in first for key in keys}
+    assert asked, "the first visit fetched tiles"
+    assert page.evaluate(STORED_TILES) >= len(asked)
+    assert not page.evaluate("Object.keys(localStorage).filter(k => k.startsWith('planetgen:tile:') && !k.endsWith('@stamp'))"), \
+        "no tile is kept in localStorage any more"
+
+    again = _tile_requests(page)
+    page.reload(wait_until="load")
+    page.wait_for_selector(GALAXY_CANVAS, state="attached")
+    _settle(page)
+    page.wait_for_timeout(2500)
+    assert not asked & {key for _at, keys in again for key in keys}, "a revisit found the tiles it kept"
+
+
+def test_galaxy_map_prefetches_only_the_way_in_and_only_when_still(page, map_site):
+    """MAP.158: after the view's own tiles are in and the camera has been still
+    a moment, the tiles one zoom step IN are fetched; nothing for the way out."""
+    requests = _tile_requests(page)
+    _open_galaxy(page, map_site, "?sector=100000001")
+    view = next(keys for _at, keys in requests if any(key.startswith("10/") for key in keys))
+    page.wait_for_timeout(3500)
+    levels = {int(key.split("/")[0]) for _at, keys in requests for key in keys}
+    assert min(levels) >= 10, f"no zoom-out prefetch (the view is level 10): {sorted(levels)}"
+    assert view
+
+
+def test_galaxy_map_does_not_prefetch_on_a_data_saving_connection(page, map_site):
+    """MAP.158: `navigator.connection.saveData` turns the prefetch off: the same
+    visit asks for fewer tiles than it does without it."""
+    def visit(save_data):
+        context = page.context.browser.new_context(viewport=VIEWPORT, device_scale_factor=1, reduced_motion="reduce")
+        try:
+            tab = context.new_page()
+            if save_data:
+                tab.add_init_script(
+                    "Object.defineProperty(navigator, 'connection', {value: {saveData: true}, configurable: true})")
+            requests = _tile_requests(tab)
+            _open(tab, f"{map_site}/galaxy", GALAXY_CANVAS)
+            tab.wait_for_timeout(4000)
+            return {key for _at, keys in requests for key in keys}
+        finally:
+            context.close()
+
+    normal = visit(False)
+    saving = visit(True)
+    assert saving < normal, f"saving: {sorted(saving)}, normal: {sorted(normal)}"
