@@ -3,6 +3,7 @@
 ## [8.0.911] - 2026-10-10
 
 ### Changed
+- TODO list: PERF.57 recorded as built (PR #1101, replaces PERF.62); PERF.58 and PERF.61 note the grouping code they replace.
 - TODO list: NAV.11 retired (merged, PR #1099).
 - TODO list: UX.87 retired (merged, PR #1097).
 - TODO list: NAV.8 retired (merged, PR #1095); UX.92 filed (Bookmark button for bodies); NAV.9 gains body hits for the locate box.
