@@ -460,7 +460,7 @@ with `clamp()`.
   chip; the wording matches the Classes explanation page (UX.90, merged) and
   the chip names (Ideal, formerly Shirtsleeve); the text comes from the
   same calculation as the chip, so the two cannot disagree. Owner:
-  Bugfixes lane 2, after GEN.196 (it built UX.90).
+  Bugfixes lane 2 (it built UX.90 and GEN.196).
   Built so far (2026-10-09): UX.90 (PR #1065) already gives planet and
   moon rows per-factor colours and phi_bio, phi_cpx and phi_tech values,
   and the page /classes/habitability; build the description on those.
@@ -2978,31 +2978,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   planet near a burst-prone region gets the flag more often. Low
   priority.
   Prerequisites: none. Related: GEN.87, GEN.89.
-
-- [ ] **GEN.196 One "Redo scatters" box on Generate: choose which scatters to redo, with new settings for each**
-  Boss (2026-10-10 08:30Z, via the coordinator): make sure the stellar
-  and compact-object mass limits (GEN.195) apply everywhere a scatter (a
-  "sweep") happens, and give Generate one box where the admin ticks
-  which scatters to redo with new settings, so the scatters can be
-  redone from one place. Done: every place that runs a scatter (New
-  galaxy, Plan, Rebuild the bright stars, the CLI, on-demand and queued
-  jobs) takes the stellar limit, the compact-object limit and the
-  luminosity floor from the stored plan or from the form; the Generate
-  page has a single Redo scatters box with a checkbox for each scatter
-  pass of GEN.185 (the mass pass for stars, the luminosity-floor pass
-  for stars, and the phenomena pass with the compact-object limit) and
-  the settings for each pass; the ticked passes run as one job with a
-  stage list in which the unticked stages are shown as skipped with the
-  reason (UX.89); the new settings are stored with the plan and the
-  stage timings of PERF.56 record them; tests cover redoing each pass
-  alone and all together. Owner: Bugfixes lane 2 (GEN.195 has merged).
-  Related: GEN.185, GEN.187, GEN.195, UX.89, PERF.56.
-  Bugfixes lane 2 (2026-10-09): Details from Bugfixes lane 2 (2026-10-10
-  08:30Z): each ticked pass has its own settings fields in the same box
-  (stellar mass limit, luminosity floor, compact-object limit); the
-  stage list builds on UX.89's structure; a redo clears and rewrites
-  only that scatter's rows and keeps the central black hole or quasar
-  guarantee.
 
 - [ ] **GEN.197 Object IDs on ejection, merger and split events**
   Source: docs/design/object-id-options.md section 0 (Boss decided

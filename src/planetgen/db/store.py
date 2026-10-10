@@ -5315,6 +5315,30 @@ def clear_bright_stars(conn):
     conn.commit()
 
 
+def clear_bright_star_pass(conn, part, mass_limit_sol):
+    """
+    Deletes one pass of the star scatter and leaves the other (GEN.196):
+    `part` "mass" removes the stars born at `mass_limit_sol` or more (the mass
+    pass's), "luminosity" the lighter ones (the luminosity pass's). The
+    sectors' own bright-star levels go back to untouched, as
+    `clear_bright_stars` does, and what the removed pass recorded is
+    forgotten: the mass limit for "mass", the floor and seed for "luminosity".
+    """
+    if part == "mass":
+        conn.execute("DELETE FROM bright_stars WHERE initial_mass_sol >= ?", (mass_limit_sol,))
+        forget = "bright_star_mass_limit_sol = NULL"
+    elif part == "luminosity":
+        conn.execute("DELETE FROM bright_stars WHERE initial_mass_sol < ?", (mass_limit_sol,))
+        forget = "bright_star_min_luminosity_sol = NULL, bright_star_seed = NULL"
+    else:
+        raise ValueError(f"part must be 'mass' or 'luminosity', not {part!r}")
+    conn.execute("UPDATE sector_stats SET bright_level_sol = -1 WHERE bright_level_sol > 0")
+    conn.execute("UPDATE sector_stats SET level_before_fill_sol = -1 WHERE level_before_fill_sol > 0")
+    conn.execute("UPDATE sector_stats SET bright_mass_sol = NULL WHERE bright_mass_sol IS NOT NULL")
+    conn.execute(f"UPDATE galaxy_shape SET {forget}")
+    conn.commit()
+
+
 def record_bright_star_scatter(conn, min_luminosity_sol, seed, mass_limit_sol=None):
     """Stores the threshold and seed a finished scatter used, so a fill
     reads them rather than today's constant, and the mass limit its mass

@@ -360,7 +360,7 @@ unchanged. Every system's age comes from the stellar population mix where
 its sector sits (young stars crowd the arms near the plane; the bulge is
 old). `--bright-star-min-luminosity` changes the threshold (100 or more),
 `--no-bright-stars` skips the step, and `--bright-stars-only` re-scatters
-on the stored outline. The scatter refuses a galaxy whose sectors are
+on the stored outline. `--redo-scatters mass luminosity phenomena` (GEN.196) redoes only the scatters named, each with this run's settings: `mass` clears and rewrites the stars born at the mass limit or more (`--phenomenon-min-mass`), `luminosity` the lighter stars at `--bright-star-min-luminosity`, and `phenomena` the neutron stars, black holes and the rest (`--compact-min-mass`). A new mass limit redoes both star passes. The scatter refuses a galaxy whose sectors are
 already filled (they would never get their bright stars) unless `--force`
 is given, which leaves those sectors out.
 
