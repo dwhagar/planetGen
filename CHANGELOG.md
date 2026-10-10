@@ -3,6 +3,9 @@
 ## [8.0.866] - 2026-10-10
 
 ### Changed
+- Parallel generation workers no longer queue for the system-name registry: each save claims its names in a short transaction of its own instead of holding the registry's row locks until the whole sector commits. In a dense core, 8 sectors on 4 workers took 54 s instead of about 90 s. A claim is given back if the save fails, and a first holder that a later save wanted to rename renames itself when it commits (PERF.49). Names, bodies and registry rows are the same as before on a seeded run.
+- Name reservation looks a name's candidates up by key instead of scanning the whole sector for each name, and the offensive-word check is one compiled pattern (PERF.49).
+- The database connection pool allows 10 connections plus 10 overflow, since a save now uses two.
 - Retired API.20, API.21, GEN.138, GEN.147, MAP.144, OPS.32, PERF.37 (PR #865) and OPS.36 (PR #868).
 - Retired GEN.166, GEN.167 and GEN.168 (PR #866); DB.19 is now conditional on lowering the mass cut to 10 solar masses or less.
 - The phenomenon scatter places only the neutron stars and black holes of at least 20 solar masses (GEN.166 to GEN.168), so `planetgen plan` writes about 2.7e5 phenomenon rows instead of about 1.17e9. A sector draws the lighter ones itself when it is filled, from its own stream, so the galaxy holds the same number of each. `--phenomenon-min-mass` sets the cut and `--phenomena-only` re-scatters at a new one; the cut is stored with the scatter (schema v71) and in the settings file. Stellar-mass and intermediate-mass black holes are now drawn as separate kinds. This is the second half of the one-time reseed that began with lazy names (PERF.43): the same seed now gives a different galaxy than before both changes.
