@@ -3558,10 +3558,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   follow the study recommendations, top priority. Done: a prototype with
   per-kind density majorants is measured against today's code (counts,
   spatial distribution, time, reseed) before it replaces the pass; the
-  one-object-per-sector cap is kept only where two objects in a sector
-  is very unlikely (the study found it would lose 1.4% of phenomena at
-  the shipped cut, so the sampler draws the number per sector from a
-  Poisson instead where lambda is not small); stats record layers
+  sectors take several objects by the capacity tiers of PERF.58 (1, 2, 4,
+  8 or 16, dropping 0.12% of phenomena where a cap of 1 would drop 1.4%); stats record layers
   visited and layers modified, per kind (PERF.56); a reseed is needed.
   Owner: Bugfixes lane 1, after PERF.58.
   Prerequisites: PERF.58, PERF.60. Related: PERF.58, PERF.59, PERF.60,
