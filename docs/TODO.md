@@ -3661,18 +3661,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: PERF.32, PERF.33, PERF.55, PERF.56,
   PERF.66.
 
-- [ ] **PERF.69 Store the Planets, Moons and Phenomena table counts like the Systems and Sectors counts (bug)**
-  Left over from PERF.64 (PR #1161): the Systems and Sectors tables show
-  stored totals and filter-menu counts from db/countcache.py (setting
-  page_cache.stored_counts, PLANETGEN_COUNT_CACHE), but the Planets,
-  Moons and Phenomena tables still count their whole tables in the
-  request, so they can hit the same 'Took too long' page on a big
-  galaxy. Done: their totals and facet counts go through the same
-  stored-count cache (last value served while a new one is made, an
-  estimate before the first), and a test fails when a table page counts
-  a whole table in the request.
-  Prerequisites: none. Related: PERF.64, PERF.34, PERF.36.
-
 - [ ] **PERF.72 Research the cost of a sector's gravity grid and where to cut between exact and aggregated sources**
   Done: a note (docs/design/gravity-map.md, section 'How it is
   computed', extended with measurements) says what a grid of 16 zones
@@ -3738,31 +3726,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Foundations lane 1.
   Prerequisites: none. Related: PERF.19, PERF.24, DB.21, PERF.71.
   Design: [docs/design/slow-reads-and-timeouts.md](design/slow-reads-and-timeouts.md)
-
-- [ ] **PERF.79 Two workers make the plan scatter about 12 times slower than one (bug)**
-  From the PERF.31 benchmark (Foundations lane 1, PR #1179;
-  docs/design/generation-benchmark-report.md; `python -m
-  planetgen.cli.generate benchmark --workers 1,2 --profile`, 4 cores,
-  MariaDB 10.11, plan to ring 12 with 2,041 layers then 2 sectors): with
-  2 workers the plan takes 594 s against 47 s (bright stars 8 s to 282
-  s, massive stars 11 s to 206 s, phenomena 24 s to 101 s) while the
-  database answers 542,000 statements against 135,000; the cost is queue
-  and database round trips for 2,041 tiny layers, not computation (the
-  fill itself speeds up, 48 s to 30 s). The scatter stages also scale
-  with layers, not objects: the bright-star scatter visits 2,041 layers
-  and places 0 objects (8 s). Done: the cause is isolated (the poll
-  constants in queue/work.py and one task per layer are the first places
-  to look), the scatter batches its layers so that 2 or more workers are
-  not slower than 1 on the same plan, and the benchmark shows it; the
-  rows stay identical. Owner: Foundations lane 1.
-  Decided (Boss, 2026-10-10 22:00Z): if more workers do not let the
-  scatter scale, the scatter still runs as one single-process job on the
-  Redis queue (RQ), one job and not a collection of jobs. It always goes
-  through RQ and never bypasses the queue; parallelism is used only
-  where it measurably helps.
-  Prerequisites: none. Related: PERF.19, PERF.24, PERF.31, PERF.47,
-  PERF.73, PERF.58, GEN.185.
-  Design: [docs/design/generation-benchmark-report.md](design/generation-benchmark-report.md)
 
 - [ ] **PERF.80 "Save the sector paths" takes 24% of a small run and does not speed up with workers**
   From the PERF.31 benchmark (Foundations lane 1, PR #1179;

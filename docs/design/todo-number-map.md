@@ -1060,7 +1060,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.66 | The whole-job progress bar should track total elapsed time and estimate a stage with no performance data from the earlier stages (bug) | none | done, PR #1197 |
 | PERF.67 | Record how long every operation takes, from each stage up to the whole job, and use the records for ETAs | none | open |
 | PERF.68 | Measure the Galaxy Map tile queries on a big galaxy and make them fit the time limit (bug) | none | done, PR #1193 |
-| PERF.69 | Store the Planets, Moons and Phenomena table counts like the Systems and Sectors counts (bug) | none | open |
+| PERF.69 | Store the Planets, Moons and Phenomena table counts like the Systems and Sectors counts (bug) | none | done, PR #1206 |
 | PERF.70 | Sorting the Systems list by Sector or Octant on millions of rows must not sort them all (bug) | none | done, PR #1193 (built as a group-by-group read: no stored sector-name column, exact and needs no upkeep) |
 | PERF.71 | Research how to keep slow database calls on large data sets from timing out: queue, split, or answer in parts | none | done, PR #1175 |
 | PERF.72 | Research the cost of a sector's gravity grid and where to cut between exact and aggregated sources | none | open |
@@ -1070,7 +1070,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.76 | Give each Galaxy Map tile piece its own time budget and serve an "incomplete" tile | none | done, PR #1199 |
 | PERF.77 | Capped counts: "10,000 or more" where no stored count exists for a filter | none | done, PR #1199 |
 | PERF.78 | A reserved warm worker for long admin operations, and the poll pattern for them | none | open |
-| PERF.79 | Two workers make the plan scatter about 12 times slower than one (bug) | none | open |
+| PERF.79 | Two workers make the plan scatter about 12 times slower than one (bug) | none | done, PR #1206 |
 | PERF.80 | "Save the sector paths" takes 24% of a small run and does not speed up with workers | none | open |
 | PERF.81 | Nearest-neighbour search in sector generation: a spatial grid instead of 1.8 million distance calls | none | open |
 | PERF.82 | Cut the cost of inserting a sector (about 17% of the fill) | none | open |
