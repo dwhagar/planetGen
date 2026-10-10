@@ -2,12 +2,8 @@
 
 ## [8.0.911] - 2026-10-10
 
-### Added
-- **Surface radiation dose, UV and galactic hazards (GEN.87).** Every rocky planet and moon now stores its yearly surface dose in mSv (cosmic rays through the air and any dipole, stellar particles, crust and radon, and a cosmic-ray boost while a nebula or remnant presses on its star), a DNA-weighted UV index after the ozone layer, and an ozone-loss flag. Each star stores how many lethal supernovae per Gyr its place in the galaxy brings. Schema v75. Seeded output differs from earlier versions (the crust draws one more value per rocky body).
-- The mass limit (GEN.183) is now picked from the presets 8, 10, 12, 14, 16, 18 and 20 solar masses, 20 by default: a slider in the Generate page's new galaxy and plan forms, and `--phenomenon-min-mass` on the command line, which refuses any other value. Every star, neutron star and black hole at or above it is placed across the whole galaxy; lighter ones are drawn when their sector is made.
-- Every rocky planet and moon now has a hydrosphere (GEN.88): its water share of its mass, where the water is (dry, in the air, frozen, under ice, open ocean, or a hycean ocean under hydrogen), how much of the surface is ocean and land, the ocean's depth, any ice lid and high-pressure ice beneath, and the ocean's chemistry class (ice-sealed, chloride brine, acid sulfate, soda or neutral) with its pH, water activity and phosphorus supply. Schema v74.
-
 ### Changed
+- **Docs only:** GEN.87 (surface radiation dose, PR #985) is retired from the TODO list and the plans.
 - **Docs only:** Foundations lane 1 queue notes (ADM.28 and ADM.45 first, then the object-ID block and API.9); ADM.45 star mix decision.
 - **Docs only:** the lane queue puts GEN.170, API.9 (moved to Foundations lane 1) and MAP.153 first.
 - **Docs only:** OPS.39 (Windows support removed, PR #981), TEST.115, OPS.34 (superseded) and TEST.118 (PR #975) are retired.
@@ -29,6 +25,11 @@
 - **Docs only:** GEN.88 (hydrosphere and ocean chemistry, PR #963, schema v74) is retired from the TODO list and the plans; OPS.38 (committed Redis dump files) and TEST.117 (generatejobs.test.mjs failing since PERF.33) are filed.
 - Rogue planet oceans now stop at the depth where high-pressure ice forms (the rest is stored as high-pressure ice), their ice lid is compared with the water in matching units and melts lower under its own weight, and an ocean under a hydrogen envelope is shown as a hycean ocean. New seeded output differs from earlier versions.
 - **Docs only:** Boss confirmed the defaults on GEN.183, GEN.184, GEN.187 and UX.87; their open questions are now decisions.
+
+### Added
+- **Surface radiation dose, UV and galactic hazards (GEN.87).** Every rocky planet and moon now stores its yearly surface dose in mSv (cosmic rays through the air and any dipole, stellar particles, crust and radon, and a cosmic-ray boost while a nebula or remnant presses on its star), a DNA-weighted UV index after the ozone layer, and an ozone-loss flag. Each star stores how many lethal supernovae per Gyr its place in the galaxy brings. Schema v75. Seeded output differs from earlier versions (the crust draws one more value per rocky body).
+- The mass limit (GEN.183) is now picked from the presets 8, 10, 12, 14, 16, 18 and 20 solar masses, 20 by default: a slider in the Generate page's new galaxy and plan forms, and `--phenomenon-min-mass` on the command line, which refuses any other value. Every star, neutron star and black hole at or above it is placed across the whole galaxy; lighter ones are drawn when their sector is made.
+- Every rocky planet and moon now has a hydrosphere (GEN.88): its water share of its mass, where the water is (dry, in the air, frozen, under ice, open ocean, or a hycean ocean under hydrogen), how much of the surface is ocean and land, the ocean's depth, any ice lid and high-pressure ice beneath, and the ocean's chemistry class (ice-sealed, chloride brine, acid sulfate, soda or neutral) with its pH, water activity and phosphorus supply. Schema v74.
 
 ### Removed
 - Windows support (OPS.39). `install.ps1`, `update.ps1`, `scripts/deploy-common.ps1`, `examples/maintenance/install-maintenance-task.ps1`, `examples/windows/` and `docs/deployment/windows.md` are gone, as are the Windows CI jobs (`windows-jobs`, `windows-installers`), the Windows branches in the code (the detached-process, `taskkill` and `OpenProcess` handling of Generate page jobs and the no-Redis fallback to run a job directly, the CPU-percent load reading on the admin queue page, `SpawnWorker`, the below-normal worker priority class, the checkout-relative log and settings folders, drive-letter disk measuring) and the Windows-only tests. The admin Generate page's jobs now always run on Redis, and the queue page shows only the load average. `waitress` leaves the `server` extra and `requirements-server.lock`.
