@@ -121,12 +121,18 @@ def test_a_check_that_cannot_run_is_not_called_damage(saved, monkeypatch):
     assert report.results[0].status == check.ERROR
 
 
+def _row_counts(config):
+    """Exact row counts: `information_schema.tables.table_rows` is an InnoDB estimate that the server
+    refreshes in the background, so it moves under load without anything writing."""
+    names = [row["table_name"] for row in _rows(config, "SELECT table_name FROM information_schema.tables WHERE table_schema = DATABASE() ORDER BY table_name")]
+    return [(name, _rows(config, f"SELECT COUNT(*) AS n FROM `{name}`")[0]["n"]) for name in names]
+
+
 def test_the_check_writes_nothing(saved):
     _heal_key(saved)
-    before = [(row["table_name"], row["table_rows"]) for row in _rows(saved, "SELECT table_name, table_rows FROM information_schema.tables WHERE table_schema = DATABASE()")]
+    before = _row_counts(saved)
     _run(saved)
-    after = [(row["table_name"], row["table_rows"]) for row in _rows(saved, "SELECT table_name, table_rows FROM information_schema.tables WHERE table_schema = DATABASE()")]
-    assert before == after
+    assert before == _row_counts(saved)
 
 
 def _rows(config, sql):
