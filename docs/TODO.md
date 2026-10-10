@@ -3462,6 +3462,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   1, first in its queue after TEST.124.
   Prerequisite: PERF.60. Related: PERF.56, PERF.59, PERF.60, PERF.61,
   GEN.185, GEN.195.
+  Early stop (2026-10-09): The interim 100-empty-layer early stop
+  (PERF.62) works in the current layer walk only. This sampler replaces
+  that walk, so remove the early stop and its constant when this lands.
 
 - [ ] **PERF.59 Share the ring inputs across the three scatter passes (top priority)**
   From the scatter study (docs/design/scatter-queue-feasibility.md): the
@@ -3501,6 +3504,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Bugfixes lane 1, after PERF.58.
   Prerequisites: PERF.58, PERF.60. Related: PERF.58, PERF.59, PERF.60,
   GEN.185.
+  Early stop (2026-10-09): The interim early stop of PERF.62 (0
+  phenomena in 100 layers) works in the current layer walk only; remove
+  it with that walk.
+
+- [ ] **PERF.62 Interim early stop in the current layer-walking scatters: 100 empty layers in a row (superseded by PERF.58)**
+  Boss (2026-10-10 08:32Z): if the last 100 layers had 0 stars, stop
+  looking and move on to the next phase; clarified at 08:32Z as 0 stars
+  (star passes) or 0 phenomena (phenomena pass). Boss replaced this rule
+  at 09:17Z with layer grouping (PERF.57), then dropped grouping at
+  10:00Z in favour of the object-first sampler (PERF.58). Bugfixes lane
+  1 had already built the 100-layer stop, so it is filed here as an
+  interim item: the stop is a named constant in tuning.py, it ends the
+  pass after 100 consecutive layers that placed nothing, it logs the
+  stop as a stage result, and it never skips the central black hole or
+  quasar. It works in the current layer walk only: PERF.58 and PERF.61
+  replace that walk, and the stop goes away with it (PERF.58 makes an
+  empty layer cost only its majorant). Owner: Bugfixes lane 1 (built).
+  Prerequisites: none. Related: PERF.58, PERF.61, GEN.185.
 
 ## DB: Database and schema
 
