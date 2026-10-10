@@ -3,6 +3,7 @@
 ## [8.0.866] - 2026-10-10
 
 ### Changed
+- TODO: UX.83 lists the generation steps found without a progress bar.
 - TODO: filed the missing progress bars for neighbour linking, the phenomenon scatter and other long generation steps as a bug.
 - TODO: recorded that the rank fade (MAP.153) is stage 1 and the magnitude law (MAP.148) the end state, as decided by Boss.
 - TODO: recorded Boss's answers on the zoom star visibility defaults (MAP.153, MAP.155).
