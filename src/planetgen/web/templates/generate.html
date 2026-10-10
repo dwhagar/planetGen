@@ -13,11 +13,26 @@
   {%- if hint %}<span class="field-hint">{{ hint }}</span>{% endif %}
 </label>
 {%- endmacro -%}
-{%- macro plan_inputs() -%}
+{#- GEN.183: the mass limit, one of a few presets on a slider. Every star, neutron star and black hole at or
+    above it is placed galaxy-wide; lighter ones are drawn when their sector is made. -#}
+{%- macro mass_slider(id) -%}
+{%- set chosen = (form.get("phenomenon_min_mass") if form else none) or mass_limit_default -%}
+<label class="search-field generate-slider">{{ mass_limit_label }}
+  <input type="range" id="{{ id }}" name="phenomenon_min_mass" list="{{ id }}-ticks" data-range-output="{{ id }}-value"
+    min="{{ mass_limit_presets[0]|int }}" max="{{ mass_limit_presets[-1]|int }}" step="{{ (mass_limit_presets[1] - mass_limit_presets[0])|int }}"
+    value="{{ chosen|int }}">
+  <datalist id="{{ id }}-ticks">{% for preset in mass_limit_presets %}<option value="{{ preset|int }}"></option>{% endfor %}</datalist>
+  <span class="field-hint"><output id="{{ id }}-value" for="{{ id }}">{{ chosen|int }}</output> solar masses. Every star,
+  neutron star and black hole at least this heavy is placed across the whole galaxy; lighter ones are drawn when their
+  sector is made. Presets: {{ mass_limit_presets|map("int")|join(", ") }}. Lower limits place more and take longer.</span>
+</label>
+{%- endmacro -%}
+{%- macro plan_inputs(id="mass-limit") -%}
 <div class="search-fields">
   {%- for name, flag, label, kind, default, minimum, maximum in plan_fields %}
   {{ field(name, label, value=default, step="1" if kind is sameas int else "any", min=minimum) }}
   {%- endfor %}
+  {{ mass_slider(id) }}
 </div>
 {%- endmacro -%}
 {#- ADM.16: the share of each feature a sector or galaxy run should
@@ -85,6 +100,7 @@
 {% block head %}
 <script type="module" src="{{ static_url('generatejobs.js') }}"></script>
 <script type="module" src="{{ static_url('generatefolds.js') }}"></script>
+<script type="module" src="{{ static_url('generateranges.js') }}"></script>
 {% endblock %}
 {% block subhead %}
 <p class="badges">
@@ -177,7 +193,7 @@
     <input type="hidden" name="action" value="new_galaxy">
     <details class="search-more">
       <summary>Galaxy shape</summary>
-      {{ plan_inputs() }}
+      {{ plan_inputs("new-galaxy-mass-limit") }}
     </details>
     {{ prevalence_inputs() }}
     <div class="search-fields">
@@ -313,7 +329,7 @@
   <form method="post" action="{{ url_for('web.generate') }}" class="search-form">
     {{ csrf_field() }}
     <input type="hidden" name="action" value="plan">
-    {{ plan_inputs() }}
+    {{ plan_inputs("plan-mass-limit") }}
     <div class="search-fields">
       {{ scatter_threshold() }}
       {{ skip_scatter("plan-skip-bright") }}
@@ -326,7 +342,7 @@
 
 {% call fold("bright-stars", "Rebuild the bright stars") %}
   <p class="hint">Scatters the bright stars again on the current plan, replacing the ones placed before.
-  Sectors already generated are always left out. Needs a plan.</p>
+  Sectors already generated are always left out. Needs a plan. It keeps the plan's mass limit.</p>
   {%- if summary.bright %}
   <p class="hint">{% if summary.bright.scattered %}Now: every star of {{ num(summary.bright.min_luminosity_sol, ",.0f") }}
   solar luminosities or more is placed (seed {{ summary.bright.seed }}).{% else %}No scatter has run on this plan yet.{% endif %}

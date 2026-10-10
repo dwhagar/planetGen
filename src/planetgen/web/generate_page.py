@@ -94,6 +94,10 @@ PLAN_FIELDS = (
 """tuple: The `plan` options the page offers, with `planetgen`'s own
 defaults (a test checks they still match `planetgen plan`'s parser)."""
 
+MASS_LIMIT_LABEL = "Mass limit (solar masses)"
+"""str: The mass-limit slider's label (GEN.183)."""
+
+
 def _backfill_text():
     """The backfill tiers in words ("down to 100 solar luminosities within
     10 ly, 250 within 25 ly, ... and 750 out to 100 ly")."""
@@ -295,10 +299,28 @@ def _number(form, name, label, kind, required=False, minimum=None, maximum=None,
         return None
 
 
+def mass_limit_argv(form):
+    """`--phenomenon-min-mass` from the form's mass-limit slider (GEN.183:
+    one of `tuning.PHENOMENON_MIN_MASS_PRESETS`; blank leaves the galaxy's
+    stored limit, else 20).
+
+    Raises:
+        FormError: A value that isn't one of the presets.
+    """
+    value = _number(form, "phenomenon_min_mass", MASS_LIMIT_LABEL, float)
+    if value is None:
+        return []
+    if not any(abs(value - preset) < 1e-9 for preset in tuning.PHENOMENON_MIN_MASS_PRESETS):
+        _problem(f"{MASS_LIMIT_LABEL} must be one of "
+                 + ", ".join(f"{preset:g}" for preset in tuning.PHENOMENON_MIN_MASS_PRESETS) + ".")
+        return []
+    return ["--phenomenon-min-mass", f"{value:g}"]
+
+
 def plan_argv(form):
     """`planetgen plan` arguments from the Plan fields (blank means
-    the default)."""
-    argv = []
+    the default), and the mass limit."""
+    argv = mass_limit_argv(form)
     for name, flag, label, kind, _default, minimum, maximum in PLAN_FIELDS:
         value = _number(form, name, label, kind, minimum=minimum, maximum=maximum, exclusive_max=True)
         if value is not None:
@@ -512,17 +534,19 @@ def span_argv(form):
     return argv, f"in {span.describe()}"
 
 
-def scatter_argv(form):
+def scatter_argv(form, with_mass_limit=True):
     """
     `planetgen plan --bright-stars-only` plus the form's galaxy-wide
     threshold (GEN.30: `--bright-star-min-luminosity`; blank means
-    `tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL`).
+    `tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL`) and, unless `with_mass_limit`
+    is false (`galaxy --then-scatter` takes the plan's stored limit), the
+    mass limit.
 
     Raises:
         FormError: A threshold that isn't a number between the lowest and
             highest luminosity floor (GEN.184).
     """
-    argv = ["plan", "--bright-stars-only"]
+    argv = ["plan", "--bright-stars-only"] + (mass_limit_argv(form) if with_mass_limit else [])
     threshold = _number(form, "bright_min_luminosity", BRIGHT_THRESHOLD_LABEL, float,
                         minimum=tuning.BRIGHT_STAR_FLOOR_MIN_SOL, maximum=tuning.BRIGHT_STAR_FLOOR_MAX_SOL)
     if threshold is not None:
@@ -656,7 +680,7 @@ def _build_job_steps(action, form, edge_pc=None):
         argv = generate + ["galaxy"] + random_start_argv(form) + prevalence_argv(form)
         label = "Generate sectors around a random start"
         if not form.get("skip_bright_stars"):
-            argv += ["--then-scatter"] + scatter_argv(form)[2:]
+            argv += ["--then-scatter"] + scatter_argv(form, with_mass_limit=False)[2:]
             label = NEW_GALAXY_SCATTER_LABEL
         return "new_galaxy", "New galaxy", [reset_step, plan, {"label": label, "argv": argv}]
     if action == "plan":
@@ -882,6 +906,9 @@ def _page(admin, error=None, status=200, form=None, estimate=None, estimate_titl
         bright_min_luminosity=tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL,
         bright_floor_presets=luminosity_floor.PRESETS,
         bright_threshold_label=BRIGHT_THRESHOLD_LABEL,
+        mass_limit_label=MASS_LIMIT_LABEL,
+        mass_limit_presets=tuning.PHENOMENON_MIN_MASS_PRESETS,
+        mass_limit_default=tuning.PHENOMENON_MIN_MASS_SOLAR,
         backfill_text=BACKFILL_TEXT,
         galaxy_modes=GALAXY_MODES,
         max_radius_pc=MAX_GENERATE_RADIUS_PC,
