@@ -3,6 +3,7 @@
 ## [8.0.911] - 2026-10-10
 
 ### Changed
+- **Docs only:** PERF.33 (job ETA adds unstarted steps, PR #1021) and PERF.55 (overall bar on the web pages, PR #1023) noted as partly built.
 - **Docs only:** UX.88 (say "uncharted" for anything not yet generated, outside Generate and admin) filed; the wording rule is in docs/html-interface.md.
 - A multi-step job's time left on the Queue page now includes every step that has not started yet, using how long earlier runs of that step took; a step with no earlier run marks the estimate as partial.
 - **Docs only:** GEN.193 (Phenomena table empty after the scatter) filed and retired with PR #1019.
