@@ -1059,13 +1059,13 @@ Parents marked "new parent" had no old number of their own.
 | PERF.65 | The text output of a multi-step job counts its steps, not its tasks: "Step 1 of 4" when the job has 12 (bug) | none | open |
 | PERF.66 | The whole-job progress bar should track total elapsed time and estimate a stage with no performance data from the earlier stages (bug) | none | open |
 | PERF.67 | Record how long every operation takes, from each stage up to the whole job, and use the records for ETAs | none | open |
-| PERF.68 | Measure the Galaxy Map tile queries on a big galaxy and make them fit the time limit (bug) | none | open |
+| PERF.68 | Measure the Galaxy Map tile queries on a big galaxy and make them fit the time limit (bug) | none | done, PR #1193 |
 | PERF.69 | Store the Planets, Moons and Phenomena table counts like the Systems and Sectors counts (bug) | none | open |
-| PERF.70 | Sorting the Systems list by Sector or Octant on millions of rows must not sort them all (bug) | none | open |
+| PERF.70 | Sorting the Systems list by Sector or Octant on millions of rows must not sort them all (bug) | none | done, PR #1193 (built as a group-by-group read: no stored sector-name column, exact and needs no upkeep) |
 | PERF.71 | Research how to keep slow database calls on large data sets from timing out: queue, split, or answer in parts | none | done, PR #1175 |
 | PERF.72 | Research the cost of a sector's gravity grid and where to cut between exact and aggregated sources | none | open |
 | PERF.73 | Cut the cost of writing the phenomenon rows to the database (now the biggest part of a scatter run) | none | open |
-| PERF.74 | Store a per-sector system count so the Sectors list does not count every system on each request | none | open |
+| PERF.74 | Store a per-sector system count so the Sectors list does not count every system on each request | none | done, PR #1193 |
 | PERF.75 | Keyset paging for the data tables: page forward by key, jump by value | none | open |
 | PERF.76 | Give each Galaxy Map tile piece its own time budget and serve an "incomplete" tile | none | open |
 | PERF.77 | Capped counts: "10,000 or more" where no stored count exists for a filter | none | open |

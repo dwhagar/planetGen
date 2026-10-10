@@ -3364,7 +3364,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   de-duplicated by object id, using the scatter index that PERF.68 adds.
   Done: one query gives every nebula kind in a box with no object twice,
   and a test shows it. Owner: Foundations lane 1.
-  Prerequisites: DB.24, PERF.68. Related: GEN.176, PERF.71.
+  Prerequisite: DB.24. Related: GEN.176, PERF.71.
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
 - [ ] **GEN.203 Supernova-remnant and planetary-nebula scatter densities set to the catalogued counts**
@@ -3742,29 +3742,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: PERF.32, PERF.33, PERF.55, PERF.56,
   PERF.66.
 
-- [ ] **PERF.68 Measure the Galaxy Map tile queries on a big galaxy and make them fit the time limit (bug)**
-  Left over from PERF.64 (PR #1161, Foundations lane 1, 2026-10-10
-  20:47Z): the Galaxy Map's tile queries were not measured on a big
-  galaxy, only the Systems list and the busy behaviour were fixed. Boss
-  saw the Galaxy Map hit the 'Took too long' page. Done: the tile
-  queries are run with EXPLAIN and timed on a database of millions of
-  systems (a synthetic one is fine), the slow ones get an index, a
-  narrower read or a cache until each answers well inside the statement
-  limit while a fill is running, and a test fails when a tile query
-  reads more rows than a tile needs.
-  Note (2026-10-10, PERF.71 research): the research found the cause of
-  the worst tile: the scattered-points query reads 8.6 million rows
-  (range on `idx_phenomenon_scatter_address` plus a filesort), 33 s at
-  level 2 and 5. Fix by index: `phenomenon_scatter (kind, subtype,
-  mass_solar)` for the coarse points (31.7 s to 0.28 s on the scratch
-  galaxy; 29 s and about 0.6 GB to build on 17.8 million rows), through
-  an Alembic migration that goes through the migration runner's batch
-  and progress reporting, and a second look at the neutron-star and
-  non-coarse path on a current galaxy. This item is the tile index; the
-  per-piece budgets are PERF.76, and the reusable test is TEST.133.
-  Queued first, with PERF.74.
-  Prerequisites: none. Related: PERF.64, PERF.34, PERF.36.
-
 - [ ] **PERF.69 Store the Planets, Moons and Phenomena table counts like the Systems and Sectors counts (bug)**
   Left over from PERF.64 (PR #1161): the Systems and Sectors tables show
   stored totals and filter-menu counts from db/countcache.py (setting
@@ -3775,27 +3752,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stored-count cache (last value served while a new one is made, an
   estimate before the first), and a test fails when a table page counts
   a whole table in the request.
-  Prerequisites: none. Related: PERF.64, PERF.34, PERF.36.
-
-- [ ] **PERF.70 Sorting the Systems list by Sector or Octant on millions of rows must not sort them all (bug)**
-  Left over from PERF.64 (PR #1161): sorting the Systems list by Sector
-  or Octant on millions of rows still sorts every row before the page is
-  cut, which can pass the statement limit. Done: the sort is served by
-  an index (or a stored sort key) so a page reads only the rows it
-  shows, measured on a database of millions of systems, and a test fails
-  when the sorted page reads more than a page needs.
-  Note (2026-10-10): Foundations lane 1 reports (PR #1161)
-  that sorting by Sector, Octant or Binary took about 50 s on 3
-  million rows under load, so the fix covers all three sorts (a
-  composite index or a sort limit).
-  Note (2026-10-10, PERF.71 research): the research measured both sorts:
-  sorting by Sector 4.8 s idle (6.3 s under a fill), by Octant 0.9 to
-  4.1 s. Fix: an index `(quadrant, name, id)` with the `ORDER BY`
-  written to match it (the `quadrant IS NULL` form defeats the index),
-  and a stored sector-name sort column with an index `(sector_sort,
-  name, id)`, filled in batches by a migration (202 s for 2,000,000
-  systems) and kept in step on sector rename. 4.8 s to 0 s. Needs an
-  Alembic migration (Foundations lane 1); queued first, with PERF.68.
   Prerequisites: none. Related: PERF.64, PERF.34, PERF.36.
 
 - [ ] **PERF.72 Research the cost of a sector's gravity grid and where to cut between exact and aggregated sources**
@@ -3825,23 +3781,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generation-time notes. Owner: Foundations lane 1, after PERF.68-70.
   Prerequisites: none. Related: PERF.31, PERF.47, PERF.54, PERF.58,
   GEN.185.
-
-- [ ] **PERF.74 Store a per-sector system count so the Sectors list does not count every system on each request**
-  From the PERF.71 research (docs/design/slow-reads-and-timeouts.md, PR
-  #1175; Boss's ask of 2026-10-10 20:50Z; measured on 2,000,000
-  synthetic systems, MariaDB 10.11): the Sectors list counts all
-  2,000,000 systems per request to give each sector its count and then
-  sorts (17.2 s idle, 29.0 s under a fill, past the 10 s limit). Done: a
-  summary table (sector id, system count, index on the count) is
-  refreshed in the background like the count cache of PERF.64, no sooner
-  than every 30 s and one GROUP BY on the sector index (0.4 to 0.8 s for
-  2,000,000 systems), and the Sectors list, its sort by systems and its
-  density sort read it; the page answers in about 1 ms by name and 0.23
-  s by systems. Needs an Alembic migration (Foundations lane 1 only).
-  Queued first in this group, with PERF.68, because it fixes timeouts
-  Boss sees. Owner: Foundations lane 1, right after PERF.68-70.
-  Prerequisites: none. Related: PERF.64, PERF.69, PERF.70, PERF.71.
-  Design: [docs/design/slow-reads-and-timeouts.md](design/slow-reads-and-timeouts.md)
 
 - [ ] **PERF.75 Keyset paging for the data tables: page forward by key, jump by value**
   From the PERF.71 research (docs/design/slow-reads-and-timeouts.md, PR
@@ -4891,7 +4830,7 @@ clears each one.
   per O star 0.1 to 0.5; classes P and Q 5e4 to 4e5. It also reads
   `GMC_ARM_FILLING_FACTOR`, which nothing reads today. Owner:
   Foundations lane 1.
-  Prerequisites: GEN.152. Related: GEN.203, GEN.204.
+  Prerequisite: GEN.152. Related: GEN.203, GEN.204.
   Design: [docs/design/nebula-density-vs-reality.md](design/nebula-density-vs-reality.md)
 
 ## USR: User accounts
