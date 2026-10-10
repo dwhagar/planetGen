@@ -1,5 +1,206 @@
 # Changelog
 
+## [10.0.911] - 2026-10-10
+
+### Changed
+- TODO list: PERF.55 retired (merged, PR #1131).
+- TODO list: MAP.161 retired (merged, PR #1129).
+- The Galaxy Map and Sector pages load their scripts faster on a first visit (MAP.161): each page names the map's whole module tree in `modulepreload` hints, so the browser fetches the ~30 files in parallel instead of one after another, and the example Apache config explains how to turn on HTTP/2.
+- TODO list: DB.22 retired (closed in PR #1127); API.23 stage 2 of 3 done.
+- **Stars, planets, moons, asteroid belts, comets and facilities are named by their object ID everywhere (API.23, stage 2).** The system page's anchors and forms, the Nav and Nearby links, the API's `id`/`planet_id`/`moon_id`/`host_id` fields, `<kind>:<ID>` references and the body URLs (`/api/planets/<id>`, `/api/facilities/<id>`, ...) carry the printed ID instead of the row number, and a row number is refused. API version 3. A hand-made sector with no grid address that was saved before IDs is now found by its `(1 << 40) + id` ID without a schema change.
+
+### Added
+- `planetgen galaxy` and `planetgen plan` draw one "Whole job (stage N of M)" bar on the command line, with the time elapsed and the time left across all their stages, from the stored stage times (PERF.55). A finished run also stores its whole-job layers per second, counting every layer the scatter stages visited, even those that placed nothing.
+
+## [9.0.911] - 2026-10-10
+
+### Changed
+- TODO list: TEST.122 retired (merged, PR #1125); API.23 notes the sector-page test failure that stage 3 fixes.
+- TODO list: MAP.158 retired (merged, PR #1123).
+- The Galaxy Map keeps the tiles it has fetched in the browser's IndexedDB instead of localStorage (MAP.158), so a revisit or reload finds them (localStorage filled up after one sector link). The prefetch is gentler: only the tiles one zoom step in, only after the camera has been still for a moment, not with the browser's data saver on or on a slow connection, and no more than about 1.5 MB per page visit. Tiles an earlier version left in localStorage are removed.
+- TODO list: TEST.123 retired (merged, PR #1121).
+- TODO list: API.22 retired (merged, PR #1119); API.23 stage 1 of 3 done; DB.22 filed.
+- **Sectors, systems and phenomena are named by their object ID everywhere (API.23, stage 1).** Pages, URLs, the API's `id`/`sector_id`/`ref` fields, the `from`/`to`/`course` references and the Nearby, Nav and Galaxy Map links carry the printed 80-bit ID (`0008000000-4000000-000`) in place of the database row number; a row number is refused with a 404, and the old `/sector.py`, `/system.py`, `/phenomenon.py` and `/nav.py` links with ids go to the list page. This breaks the API (version 2, header `X-PlanetGen-API-Version`, shown on the admin page). Sectors made by hand with no grid address get an ID at creation. Bodies and facilities follow in the next stages.
+
+### Fixed
+- Bookmarks work with object IDs again (TEST.122): the NAV page's "use a bookmark as start or destination" list and the sector picker had stopped listing any bookmark since systems, sectors and phenomena were named by their printed ID instead of a row number.
+- The test that a loaded sector knows every object's cell and velocity no longer fails about one run in 300: it drew a system whose only planet had no place in the galaxy, and now draws again until one has (TEST.123).
+
+## [8.0.911] - 2026-10-10
+
+### Changed
+- TODO list: TEST.123, TEST.122 and the PERF.55 remainder assigned to Bugfixes lane 2.
+- TODO list: ADM.49 retired (merged, PR #1116; schema v81).
+- `planetgen plan --arm-amplitude` is replaced by `--arm-density` and `--interarm-density` (the usual 1.4 and 0.6 are the old 0.4). Galaxy settings files saved with the old option name must be saved again.
+- TODO list: MAP.157 retired (merged, PR #1112); MAP.159 notes the brotli copy that was not built.
+- TODO list: PERF.61 retired (measured, no gain, PR #1113); PERF.63 filed (numpy follow-up, Boss's call); PERF.59 stands and carries the benchmark note.
+- The Galaxy Map's tile data is smaller and quicker to serve (MAP.157): tiles no longer carry the `placed`, `planned` and `filled` sections or the star fields the page never reads, `star_type` is its class letter and numbers are rounded to what the screen can show (about 114 bytes a star instead of 284). The tile cache stores the finished bytes, so a request joins stored bytes instead of parsing and writing the JSON again. The example Apache config also compresses with Brotli when `mod_brotli` is enabled (10 to 29% smaller than gzip). The tile cache restarts empty at the next release.
+- The star scatter checks that a kept candidate stayed in its sector after rounding only once it has passed the density test, which saves about a fifth of its time.
+- TODO list: MAP.165 retired (merged, PR #1110; schema v80).
+- TODO list: PERF.58 retired (merged, PR #1108); PERF.57 and PERF.62 recorded as removed; PERF.59 re-scoped to the phenomena pass and backfill rings; PERF.61 carries the default-scale benchmark note.
+- The mass and luminosity scatters place stars object first: each layer draws one Poisson count from a certified density bound, gives each candidate a ring, slot and point, and keeps it with probability true density over bound. The scatter is far faster (an empty layer costs only its bound), the counts and positions follow the density, and a sector can hold several stars up to a capacity that follows its expected count. A new random sequence: run `planetgen plan` again to reseed. The layer grouping and the 100-empty-layer stop are removed (PERF.58, replacing PERF.57 and PERF.62).
+- TODO list: PERF.60 retired (merged, PR #1106).
+- TODO list: UX.91 retired (merged, PR #1104); MAP.165 then ADM.49 assigned to Bugfixes lane 2.
+- TODO list: TEST.124 retired (fixed in PR #1077).
+- TODO list: PERF.57 recorded as built (PR #1101, replaces PERF.62); PERF.58 and PERF.61 note the grouping code they replace.
+- TODO list: NAV.11 retired (merged, PR #1099).
+- TODO list: UX.87 retired (merged, PR #1097).
+- TODO list: NAV.8 retired (merged, PR #1095); UX.92 filed (Bookmark button for bodies); NAV.9 gains body hits for the locate box.
+- TODO list: GEN.196 retired (merged, PR #1093).
+- The "Rebuild the bright stars" action is gone from the Generate page; Redo scatters replaces it.
+- TODO list: PERF.33 records the audit gaps in the ETA estimates (scatter floors, backfill count, command line, job tree).
+- The Generate page's whole-job bar now estimates a `galaxy` or `plan` step from the stored time of each stage it will run, looked up by the settings that stage runs with (mass limit, luminosity floor, workers); a step with a stage not yet recorded still uses what the step took before.
+- TODO list: GEN.186 retired (merged, PR #1088).
+- TODO list: PERF.62 recorded as built (PR #1087); PERF.58 and PERF.61 note the early stop.
+- TODO list: MAP.162 retired (merged, PR #1085).
+- TODO list: DB.21 retired (merged, PR #1082).
+- TODO list: GEN.195 retired (merged, PR #1081).
+- The stellar mass limit (`--phenomenon-min-mass`) now governs stars only.
+- TODO list: PERF.62 (interim early stop) dropped, superseded by PERF.58.
+- Filed PERF.62 (interim 100-empty-layer early stop, already built by lane 1, superseded by PERF.58) and noted on PERF.58 and PERF.61 that it goes away with the old walk.
+- Retired PERF.56 (stage timings stored with their settings, PR #1077).
+- Each stage of a galaxy or plan run is now stored with how long it took and the settings it ran with (mass limit, luminosity floor, workers, radius ...) and what it did (layers visited and changed, objects placed); skipped stages are stored with their reason. The admin Stats page lists the latest stage times, and the estimate helper `stage_seconds` reads the runs with matching settings (PERF.56, control schema v14).
+- Retired GEN.172, GEN.176, TEST.110 and DOC.5 (object IDs for run-time births, nebula birth sector, ID tests and docs, PR #1075). Filed the leftovers as GEN.197 (ID rules on ejection, merger and split) and DOC.17 (api.md object ID, after API.23).
+- PERF.58: the shunting amendment is withdrawn; objects over a sector's capacity are dropped (Boss 10:09Z).
+- PERF.58: objects over a sector's capacity are shunted to a face-adjacent sector with room instead of dropped (Boss 10:07Z).
+- PERF.58: Boss dropped the stack-of-layers rule; the sampler runs per layer only.
+- Retired MAP.166 (honest Dimmest star shown label, PR #1070).
+- PERF.58: final stack rule (no layer grouping; per-layer sampler) and several objects per sector by capacity tiers, from Research lane 3 (PR #1068); PERF.61 follows the same tiers.
+- Filed PERF.58 to PERF.61 (object-first scatter sampler, shared ring inputs, large-mean Poisson helper, phenomena sampler; top priority) from the scatter study; PERF.57 is superseded by PERF.58.
+- Retired UX.90 (habitability explanation page and Ideal rename, PR #1065).
+- The lowest PHI-4 equipment level is now called "Ideal" instead of "Shirtsleeve", on the system page, in the search tags and column and in the docs. The stored tier numbers are unchanged.
+- PERF.56: GEN.187 needs no new stage entry; the existing backfill stage is relabelled (PR #1062).
+- **The backfill stage is named for what it does now (GEN.187).** On a galaxy run's numbered stage list, "Backfill the bright stars" becomes "Scatter the massive stars from the neighborhood", the four mass rings around the generated sectors. It is still shown as skipped, with its reason, when `--backfill-from none` is used or the run generated no sector, and its timing and per-layer counts are logged as before.
+- TEST.124 is first in Bugfixes lane 1 (priority: main is red).
+- Retired GEN.187 (bright-star back scatter, PR #1059). Filed TEST.124 (Phenomena page tests fail with KeyError scattered, a bug).
+- **The bright-star backfill goes by mass, in four rings (GEN.187).** Around the sectors a run generates, the sectors a face away (no diagonals) now get every star born with at least 1 solar mass, the next ring out 2, then 5, then 8; each ring counts from the previous ring's outer edge, and past the fourth ring only the scatter's own mass limit applies. The old luminosity tiers (100 to 750 L_sun out to 10, 25, 50 and 100 ly) are gone, as is the `--backfill-from` radius wording. A sector filled later builds its own stars only below the mass and luminosity already placed, a staged scatter tops backfilled sectors up with the lighter stars they lack, and white dwarfs born at 1 solar mass or more are placed too (stored with a `NULL` lifespan). Schema v79 (`sector_stats.bright_mass_sol`). Design: `docs/design/mass-backfill.md`.
+- Retired UX.89 (stage lists and numbering, PR #1057); noted the stage entry GEN.187 must add.
+- Every staged job now numbers its stages across the whole job (a New galaxy shows "Stage 7 of 12", not "Step 4 of 4") and lists them; stages a run will not do are listed as skipped with the reason (UX.89). The galaxy and plan commands print "Stage N of M" lines and record the stage in the progress file.
+- Retired DB.20 and GEN.171 (object IDs in the schema and the sector fill, PR #1055); noted what is already built for GEN.172.
+- PERF.57: after a group places something the next group is half the size (Boss 09:19Z).
+- Rewrote PERF.57 to Boss's layer-grouping rule for galactic scatters (replaces the 100-empty-layer stop).
+- Retired GEN.194 (defaults 14 Msun and 9,000 Lsun, PR #1051).
+- The default mass limit is now 14 solar masses (was 8) and the default luminosity floor for the brightest stars is 9,000 solar luminosities (was 5,000); both are presets on their lists.
+- Retired UX.88 (the "uncharted" wording sweep, PR #1049).
+- Text shown to visitors says "uncharted" instead of "unbuilt" or "not generated" (the Phenomena table's rows, the nearby search and route notes, the Sector Map and Galaxy Map labels and hovers, the command-line query note); the Generate system and admin panels keep the technical words (UX.88).
+- Filed UX.91 (full PHI-4 explanation in the planet and moon description) from Boss's request.
+- Added Boss's layers-modified statistic to PERF.56 and a pointer on PERF.57.
+- Added Boss's clarification to PERF.57: star passes count stars, the phenomena pass counts phenomena.
+- Filed PERF.57 (stop a layer-walking scatter early after 100 empty layers) from Boss's request.
+- **Docs only:** GEN.195 and GEN.196 gain details from Bugfixes lane 2 (every scatter path, redo scope).
+- **Docs only:** GEN.196 (one Redo scatters box on Generate) filed for Bugfixes lane 2.
+- **Docs only:** MAP.166 (honest "Dimmest star shown" label) filed; GEN.195 gains the CLI option and storage figures.
+- **Docs only:** GEN.195 (separate compact-object mass limit; central black hole or quasar always created) filed for Bugfixes lane 2.
+- The phenomena scatter's final line lists only the kinds it created, like the star scatter's, with no zero counts.
+- **Docs only:** the plan notes schema v77 (Phenomena table class totals, PR #1038) and next Alembic revision 0078.
+- The Phenomena table counts and pages the scattered, unbuilt phenomena from stored per-class totals (schema v77), after the built ones, so it stays fast with hundreds of millions of scatter rows.
+- **Docs only:** UX.90 now covers the Shirtsleeve to Ideal rename and an explanation page under Classes, owner Bugfixes lane 2; docs use "Ideal".
+- **Docs only:** MAP.148 notes the follow-ups to MAP.163 and MAP.164 (PRs #1032, #1035).
+- **Docs only:** API.9 (key scopes, expiry, prefix, per-key rate bucket) retired; control schema is v13.
+- **Docs only:** UX.90 (explain the habitability chips in the web interface) filed as an unassigned Phase 1 item; docs/html-interface.md notes the chips.
+- **Docs only:** MAP.163 and MAP.164 retired; MAP.165 (store a mass for scattered phenomena) filed; MAP.148 notes the 400-star tile cap.
+- Galaxy Map: black holes are drawn purple and neutron stars dark blue (MAP.164), at the top of the star scale with full core brightness so they out-shine brighter stars. Scattered black holes and neutron stars that no sector has built yet are now listed in the map tiles too, sized by mass class, and the biggest classes (the nucleus and intermediate-mass black holes) show from the whole-galaxy view.
+- Galaxy Map: the "Dimmest star shown" slider now runs from the dimmest to the brightest star at the current zoom (an open sector's stars, else the loaded tiles', down to 2,500 solar luminosities at galaxy scale), 0 still showing every star (MAP.163).
+- **Docs only:** GEN.194 (defaults 14 Msun and 9,000 Lsun), UX.89 (stage counts bug) and PERF.56 (per-stage timing with settings) filed for Bugfixes lane 1.
+- **Docs only:** GEN.89 and its umbrella GEN.83 (habitability index) retired; schema is v76.
+- **Docs only:** UX.88 moves to Bugfixes lane 1.
+- A Generate-page job with several steps now shows one overall bar above the step bar, with the time left across all steps: the running step's own estimate plus what earlier runs of each later step took ("at least" when a later step has no record yet).
+- **Docs only:** PERF.33 (job ETA adds unstarted steps, PR #1021) and PERF.55 (overall bar on the web pages, PR #1023) noted as partly built.
+- **Docs only:** UX.88 (say "uncharted" for anything not yet generated, outside Generate and admin) filed; the wording rule is in docs/html-interface.md.
+- A multi-step job's time left on the Queue page now includes every step that has not started yet, using how long earlier runs of that step took; a step with no earlier run marks the estimate as partial.
+- **Docs only:** GEN.193 (Phenomena table empty after the scatter) filed and retired with PR #1019.
+- The Phenomena table now lists every phenomenon the scatter has placed but no sector has built yet (black holes, neutron stars, nebulae, remnants, hypervelocity stars), as greyed "Uncharted ..." rows without a page. Before, a fresh scatter left the table empty until sectors were filled.
+- **Docs only:** GEN.170 retired; TEST.123 (a flaky spatial-position test) filed.
+- **Docs only:** PERF.53 retired; PERF.55 notes the missing whole-job layers-per-second stat.
+- The generation-speed stats no longer count a sector, bright-star layer or phenomena layer that produced nothing, so empty ones stop skewing the per-sector, per-layer and per-unit times (the progress bar still counts every layer of the job).
+- **Docs only:** GEN.192 retired (phenomena scatter in Generate-page jobs and its log output, PRs #1008, #1012, #1013).
+- The phenomena scatter's output now matches the star scatter's: black holes are split into stellar, intermediate and supermassive, a "landed in N of M layers" (or "none landed") line, the sectors already filled that it leaves out, and a summary that lists every class including the ones that drew none.
+- The phenomena scatter logs each layer's phenomena by kind as it finishes ("Phenomena, layer 3: placed 120: 90 neutron_star, ..."), and the special ones (nucleus, hypervelocity stars) on one line, as the star scatter does; before, only the final total was listed.
+- **Docs only:** GEN.192 (phenomena scatter log and Phenomena table check, remainder of GEN.190) filed for Bugfixes lane 1.
+- **Docs only:** GEN.190 and GEN.191 (Generate-page phenomena scatter, New galaxy mass limit) retired.
+- **Docs only:** OPS.40 and GEN.188 retired; TEST.122 (browser map tests fail on plain main in one container) filed; MAP.163 notes the 400-star tile cap; the scatter design note now says the defaults are 8 solar masses and 5,000 L_sun.
+- The Generate page's New galaxy, Plan and Rebuild the bright stars jobs now scatter the phenomena too (black holes, neutron stars, nebulae and the rest) after the stars; they ran only the star scatter, so a new galaxy had no phenomena scatter at all. New galaxy also passes the form's mass limit to its scatters (it used 20 whatever was chosen).
+- On the Generate page, the mass limit slider and the luminosity floor dropdown now sit side by side, in Plan the galaxy and in the New galaxy section (GEN.188). The defaults are 8 solar masses and 5,000 solar luminosities.
+- **Docs only:** GEN.191 (New galaxy ignores the mass limit slider, bug) is filed for Bugfixes lane 1; GEN.190 gets the cause found.
+- **Docs only:** PERF.55 (one global progress bar with an ETA across the phases of a generation job) is filed as an unassigned Phase 1 item.
+- **Docs only:** GEN.190 (Phenomena table empty after a web-generated galaxy, bug) and MAP.164 (Galaxy Map phenomena colors and visibility) are filed, both ASAP.
+- **Docs only:** TEST.121 (PR #1002) and TEST.120 (fixed by PR #975) are retired; PERF.54 files separate stats rows for the star scatter passes as a Phase 2 item.
+- test_open_map_menus_hold_no_overlap closes each menu in the page instead of clicking its button, so a busy machine no longer fails it on the closing click.
+- A map Menu whose content arrives after it opens (the Galaxy Map's kinds and star filters) is placed again when it grows, so it no longer hangs over its own button. Menus opened above their button covered the button when the content was late.
+- The default luminosity floor (GEN.184) is now 5,000 solar luminosities (was 3,000) and the default mass limit for massive stars and phenomena (GEN.183) is now 8 solar masses (was 20, the bottom preset). Both are still on their preset lists and the ranges are unchanged. A galaxy already scattered keeps the levels it was scattered at.
+- **Docs only:** PERF.53 (timing stats skewed by empty layers and sectors) is filed.
+- **Docs only:** MAP.153 (rank birth-radius fade, PR #998) is retired; GEN.189 files gamma-ray burst and AGN ozone loss as a Phase 2 item.
+- The Galaxy Map's stars now fade in with the zoom (MAP.153). Each star gets a birth radius from its place in its tile's list (most luminous first), and its opacity rises smoothly over one halving of the camera distance, cross-fading from the coarser tile's rank across the octave a tile level serves. Zooming in adds stars a few percent at a time instead of up to eight times as many in one frame at a tile level change, zooming out removes them as smoothly, a late tile changes nothing visible, and a bookmarked view always draws the same picture. A dense sector now shows its dimmest stars only near sector zoom, brightest first. No server or database change.
+- **Docs only:** ADM.49 (user-set density of spiral arms, inter-arm space, core and bulge) is filed as an unassigned Phase 1 item.
+- **Docs only:** MAP.163 (Galaxy Map brightness scale) is filed; GEN.188 and MAP.163 are one-offs on Bugfixes lane 2; TEST.120 is owned by Bugfixes lane 1.
+- **Docs only:** TEST.119 (PR #993) and PERF.52 (PR #994) are retired; TEST.121 files a load-dependent browser test failure.
+- The Stats page's generation-speed table says what each row counts: a sector fill is seconds per sector and systems per sector, a bright-star or phenomena layer is seconds per layer and stars (objects) per layer, and so on. Layers showed "1,262 systems per sector" in a galaxy of 7,663 systems; they were stars per layer all along.
+- A reload keeps a highlighted kind when a hidden-by-default kind (rogue planets) is also shown; taking the hidden kinds up rewrote the address before the highlight was read, and dropped it. The browser tests for the grouped Galaxy Map Menu (UX.86) find its button again and show rogue planets before checking a highlight.
+- **Docs only:** ADM.28 (simpler Generate page, closes issue #736) and ADM.45 (star mix, PR #991) are retired.
+- The Generate page's binary-system and wide-pair prevalence boxes become a star mix (ADM.45): the share of systems with one star, a close binary and a wide pair, which must total exactly 100%. The page keeps a running total and says which way to move; the server refuses any other total. The command line has `--star-mix SINGLE CLOSE WIDE` with the same rule (it replaces `--prevalence` for `binary_system` and `wide_binary`).
+- The Generate page keeps its common actions on the page and moves the less common settings into a Customize window with one tab each (ADM.28): prevalence and override for Generate sectors; galaxy shape, prevalence and bright stars for a new galaxy. Without JavaScript the groups stack in the form as before.
+- **Docs only:** PERF.52 (admin generation-stats table is wrong) is filed.
+- **Docs only:** GEN.173 and GEN.174 (PR #987) are retired; TEST.119 and TEST.120 file two test failures on main.
+- GEN.173, GEN.174: a planet, moon or belt added by an admin edit now gets a uid (it was saved with none), and after a delete the new body's uid skips ones its siblings already carry (it failed with IntegrityError 1062 on `uq_planets_uid`).
+- **Docs only:** GEN.87 (surface radiation dose, PR #985) is retired from the TODO list and the plans.
+- **Docs only:** Foundations lane 1 queue notes (ADM.28 and ADM.45 first, then the object-ID block and API.9); ADM.45 star mix decision.
+- **Docs only:** the lane queue puts GEN.170, API.9 (moved to Foundations lane 1) and MAP.153 first.
+- **Docs only:** OPS.39 (Windows support removed, PR #981), TEST.115, OPS.34 (superseded) and TEST.118 (PR #975) are retired.
+- **Docs only:** OPS.40 (update.sh step 8 bug) is filed.
+- **Docs only:** GEN.188 is owned by Foundations lane 2.
+- **Docs only:** GEN.188 (mass limit default 8; mass slider and luminosity dropdown side by side on Generate and New galaxy) is filed, and the mass-cut design note records the new default.
+- **Docs only:** ADM.31 (every generate action offers the Galaxy Map, PR #976) is retired from the TODO list and the plans.
+- `GET /api/jobs/<id>` now gives `made_url` for a finished neighborhood or regenerate job: the Galaxy Map fitted to the sectors it made (ADM.31). The map menus' Generate buttons already reach the Generate page's job, which offers the same link.
+- **Docs only:** OPS.39 (remove Windows support) is assigned to Foundations lane 3.
+- **Docs only:** OPS.39 (remove Windows support, keep only docs/WINDOWS.md) is filed; TEST.115 and OPS.34 are marked superseded by it.
+- TEST.116: when test_bughunt_end_to_end finds a star type other than K2V, the message lists every star of the system with its role and type, so a rare failure names its cause.
+- TEST.115: the Windows CI job keeps Redis in WSL alive (it ran in the foreground of a wsl.exe it holds open), waits until Windows can connect and passes the working URL on to the tests. A job's lock is removed with a few retries, and three Windows-only test failures now say what state they saw.
+- **Docs only:** GEN.183 (mass limit presets, PR #969) is retired from the TODO list and the plans; TEST.118 files two test failures that follow GEN.184's luminosity floor.
+- A scatter or a phenomena-only re-scatter run without `--phenomenon-min-mass` now keeps the mass limit already stored with the galaxy instead of going back to 20.
+- **Docs only:** OPS.38 (committed Redis dumps, PR #967), TEST.117 (already fixed by TEST.113, PR #920) and GEN.175 (regenerate keeps the uid, PR #960) are retired from the TODO list and the plans.
+- Removed the Redis `dump.rdb` snapshots that had been committed (root and `src/`) and ignore `*.rdb`.
+- **Docs only:** GEN.184 (luminosity floor presets, PR #965) is retired from the TODO list and the plans.
+- The bright-star luminosity floor (GEN.184) is now chosen from presets: 2,500 to 4,000,000 solar luminosities on an exponential ladder (steps of 100 near 2,500, about 400,000 near the top), default 3,000 (was 1,000). Nothing below 2,500 is accepted by `--bright-star-min-luminosity` or the Generate page, which offers the presets in a list. A galaxy already scattered keeps the level it was scattered at.
+- **Docs only:** GEN.88 (hydrosphere and ocean chemistry, PR #963, schema v74) is retired from the TODO list and the plans; OPS.38 (committed Redis dump files) and TEST.117 (generatejobs.test.mjs failing since PERF.33) are filed.
+- Rogue planet oceans now stop at the depth where high-pressure ice forms (the rest is stored as high-pressure ice), their ice lid is compared with the water in matching units and melts lower under its own weight, and an ocean under a hydrogen envelope is shown as a hycean ocean. New seeded output differs from earlier versions.
+- **Docs only:** Boss confirmed the defaults on GEN.183, GEN.184, GEN.187 and UX.87; their open questions are now decisions.
+
+### Added
+- The galaxy shape settings (Generate page, New galaxy and Customize's Galaxy shape tab, and `planetgen plan`) now take the density on a spiral arm crest, the density between arms and a core density, with limits and the usual values (1.4, 0.6 and 0 for no core) filled in (ADM.49). The core is extra density at the very centre of the galaxy, on top of the bulge. The bulge amplitude is labelled Bulge density. The Galaxy Map's density model reads the new settings too, and an existing galaxy keeps its density.
+- Scattered black holes and neutron stars store their mass (MAP.165, schema v80), the sector build gives the object that same mass, and the Galaxy Map sizes each point by it, so a 20 solar mass black hole is drawn bigger than a 5 solar mass one and a neutron star smaller than either. The point's tooltip shows the mass. Rows scattered before v80 keep sizing by mass class until the scatter is redone.
+- A Poisson helper that draws a count for any mean in constant time: Knuth below `tuning.POISSON_REJECTION_MEAN` (10), transformed rejection above it, from the project draw wrapper (PERF.60). The object-first scatter uses it.
+- Every rocky planet and moon description now explains its PHI-4 habitability in full (UX.91): the score and the equipment a human needs, then each of the four colour factors (pressure, temperature, chemistry, radiation) with its colour, this world's input values and the input that sets the colour. The wording matches the Habitability levels page, and the colours always agree with the chip on the system list. Wiki pages carry the same paragraphs.
+- A route between systems now shows travel times for each hop and for the whole trip at every warp and fold factor, with a stop at every system between the ends. Each hop is timed from rest to rest at the factor's constant speed. The stay per stop defaults to 0 minutes and can be changed on the NAV page ("Stay at each stop") or with `stay=` on `GET /api/nav`; the response adds `warp_times` and `fold_times` to each hop and to the route, plus `route.stops` and `route.stay_minutes`. (NAV.11)
+- The Systems page lists the uncharted stars (UX.87): every star the brightness scatter placed that has no system yet, brightest first, with its sector address, ring, layer and slot, galaxy and in-sector coordinates and its own data. An admin can generate one such system by itself with its Generate button (the page recommends generating the whole sector); the sector's other contents stay uncharted. New API: `GET /api/uncharted-systems` and `POST /api/uncharted-systems/<id>/generate`.
+- A star, planet, moon, belt or comet link now opens its system page at that body: `/system/<id>#planet-12` (and `#moon-`, `#belt-`, `#comet-`, `#star-`) opens the body's row, highlights it, scrolls to it and selects the body on the System Map. `/object/<reference>` (for example `/object/planet:12`) redirects any object reference to the right page or row, and the search results link their bodies this way. Only stars (as their system's page) get pages; planets and moons are anchors. (NAV.8)
+- Generate has one "Redo scatters" box in place of "Rebuild the bright stars" (GEN.196). Tick the scatters to redo (the massive stars, the bright stars, the phenomena), set each one's new limit, and they run as one job with every stage listed and the unticked ones shown as skipped. A scatter clears and rewrites only its own rows, and the central black hole or quasar is always rebuilt. `planetgen plan --redo-scatters mass luminosity phenomena` does the same from the command line.
+- Random neighborhoods have a "Keep away from filled space" option (`planetgen galaxy --avoid-filled-space`, random-start mode, and a checkbox on the Generate page). A start whose neighborhood touches a sector that is already generated is dropped, so each neighborhood grows in empty space, and the run says how many candidate centres qualified. (GEN.186)
+- **A sector that nothing was generated in opens if a scatter placed something there, marked uncharted (MAP.162).** On the Galaxy Map, clicking a sector that is not generated yet, or opening its address (`?sector=<designation>&open=1`), now flies to it and shows the stars, black holes, neutron stars, quasars, nebulae, remnants and hypervelocity stars the scatters left in it, each in the colour the map gives its kind and each saying in its info panel that its sector is uncharted. The sector carries the mark in three places: its crumb in the title reads "(uncharted)", its info panel is headed "Uncharted sector" with the count of stars and other objects waiting, and a dashed "Uncharted sector ..." tag sits in the corner of the map. Generating the sector replaces all of it with the normal sector view. An empty ungenerated sector is selected as before.
+- **`GET /api/galaxy/uncharted?ring=&layer=&slot=`.** One cell's place (designation, centre, edge) and what the scatters left in it (the waiting bright stars and the unbuilt scattered phenomena), with `sector_id` when the cell has been generated; the web server's `/galaxy/uncharted/<ring>/<layer>/<slot>/scene` turns it into the map's scene.
+- `planetgen check-db --deep` now also loads and validates every star system. It prints how long it expects to take (from the speed this server recorded, or a rough guess it says so about), asks for a yes unless `--yes` is given, shows a progress bar, and lists each failing system. `--estimate-only` prints just the estimate. The Generate page's "Check the database" section has a "Deep check" option that shows the time and asks you to confirm. (DB.21)
+- Neutron stars and black holes get their own mass limit (GEN.195): `--compact-min-mass` (1, 2, 4 or 6 solar masses, or `star` to use the stellar mass limit, the default) and a control beside the stellar mass limit in Plan and New galaxy, with the database cost shown. The central black hole or quasar is always created.
+- A molecular cloud of the galaxy's cloud field (GEN.176) is born in the sector holding the centre of the space it fills, with a field-drawn serial worked out from the galaxy seed alone, so its object ID no longer depends on which sector is saved first. Run-time births (GEN.172) have tests for every path that exists today: a system added to a sector, a phenomenon or system saved on its own, a facility, and a body added by an edit; a number is never given again after its object is deleted.
+- A "Habitability levels" page under Classes (`/classes/habitability`, UX.90) explains the five equipment levels, the four PHI-4 domains with their Blue, Green, Yellow and Red thresholds, the pulsar, neutron star and black hole host rule, and the Habitable, Habitable moon and Inhabited chips. It is linked from the Classes list, from a visible line above a system's body list and from the Equipment tags on the search page.
+- Object IDs in the database (DB.20, GEN.171): `uid` is now the 80-bit birth-location ID (`BINARY(10)`, unique on its own) on every object table, and `facilities` gains the column. The sector fill gives a sector's systems and phenomena their generated serials and a system's bodies their body numbers as the rows are inserted; rows saved later take run-time serials and body numbers from the new `id_counters` table, whose numbers are never given twice. The schema is v78; existing rows are numbered by row order. The hashed IDs, the bright-sweep systems' position-ID `uid` and the per-system uniqueness are gone.
+- API keys have scopes (API.9): `read`, `generate`, `upload` and `admin` (admin implies all; generate and upload imply read), an optional expiry, and a visible prefix. Existing keys become admin keys. A key short of a route's scope gets `403` with `required_scope`; every key has its own rate limit bucket and skips the per-address defaults; `last_used_at` is written at most once a minute. The admin page's new-key form takes scopes and a lifetime. Control schema v13.
+- **The habitability score of every planet and moon (GEN.89).** Each rocky body now stores the PHI-4 display (Pressure, Temperature, Chemistry and Radiation, each a 0 to 1 score and a Blue, Green, Yellow or Red tier, and their overall mean), the microbial-life, complex-life and human-operability numbers behind them, and the equipment a human needs: shirtsleeve, mask, mask and scrubber, sealed suit or full life support. A pulsar's or neutron star's planet always needs full life support. The system page shows the equipment as a coloured chip on every planet and moon row (the tooltip gives the score and what limits it), and the search page has Equipment a Human Needs filters for planets and moons, with the equipment in their result tables. A cosmic-ray change from a nebula or remnant re-scores the body. Schema v76; no new random draws, so seeded output keeps its earlier values and gains these.
+- The object ID layout (GEN.170): `galaxy/object_uid.py` packs, unpacks, prints and parses the 80-bit ID of birth sector, serial and body number (20 hex digits, `BINARY(10)`), and picks a longer layout (96 or 128 bits) for a galaxy whose bounds do not fit. Nothing uses it yet; the schema (DB.20) and the fill (GEN.171) come next.
+- The Generate page shows the galaxy's layer specs (ADM.28): how many layers, how tall each is, how far the widest reaches, how many sectors are charted, and a row per layer (an even sample past 41). `GET /api/galaxy/shape` gives the same as `layers`.
+- **Surface radiation dose, UV and galactic hazards (GEN.87).** Every rocky planet and moon now stores its yearly surface dose in mSv (cosmic rays through the air and any dipole, stellar particles, crust and radon, and a cosmic-ray boost while a nebula or remnant presses on its star), a DNA-weighted UV index after the ozone layer, and an ozone-loss flag. Each star stores how many lethal supernovae per Gyr its place in the galaxy brings. Schema v75. Seeded output differs from earlier versions (the crust draws one more value per rocky body).
+- The mass limit (GEN.183) is now picked from the presets 8, 10, 12, 14, 16, 18 and 20 solar masses, 20 by default: a slider in the Generate page's new galaxy and plan forms, and `--phenomenon-min-mass` on the command line, which refuses any other value. Every star, neutron star and black hole at or above it is placed across the whole galaxy; lighter ones are drawn when their sector is made.
+- Every rocky planet and moon now has a hydrosphere (GEN.88): its water share of its mass, where the water is (dry, in the air, frozen, under ice, open ocean, or a hycean ocean under hydrogen), how much of the surface is ocean and land, the ocean's depth, any ice lid and high-pressure ice beneath, and the ocean's chemistry class (ice-sealed, chloride brine, acid sulfate, soda or neutral) with its pH, water activity and phosphorus supply. Schema v74.
+
+### Fixed
+- The Galaxy Map's "Dimmest star shown" slider says "every star" only when the view holds every star there is (an open sector). At galaxy scale, where tiles are capped and some sectors are uncharted, it names the dimmest star the view actually carries (MAP.166).
+- Galaxy Map: the "Dimmest star shown" slider now runs from the dimmest to the brightest star the current view's tiles actually carry, at galaxy scale too, instead of stopping at a fixed 2,500 solar luminosities (MAP.163 follow-up). 0 still shows every star.
+- Galaxy Map: the galactic nucleus now shows from the whole-galaxy view whether it is a quasar or a supermassive black hole, and stays there once its sector is filled (MAP.164 follow-up). The nucleus quasar was missing from the scattered objects the map lists.
+- `./update.sh` step 8 ("Checking the cache, jobs and debug log locations") no longer fails with `FileNotFoundError` on `util/appconfig.py`; `setup-debug-log.sh` now loads the log paths from `util/logpaths.py`, so the logs and their rotation are set up again. Two new tests (the log-location check runs against the checkout; deploy scripts only name repo paths that exist) fail on the old script.
+- The star scatter pass tests use a luminosity floor the toy galaxy can fill with lighter stars, since the real floor now starts at 2,500 solar luminosities (GEN.184).
+
+### Removed
+- Windows support (OPS.39). `install.ps1`, `update.ps1`, `scripts/deploy-common.ps1`, `examples/maintenance/install-maintenance-task.ps1`, `examples/windows/` and `docs/deployment/windows.md` are gone, as are the Windows CI jobs (`windows-jobs`, `windows-installers`), the Windows branches in the code (the detached-process, `taskkill` and `OpenProcess` handling of Generate page jobs and the no-Redis fallback to run a job directly, the CPU-percent load reading on the admin queue page, `SpawnWorker`, the below-normal worker priority class, the checkout-relative log and settings folders, drive-letter disk measuring) and the Windows-only tests. The admin Generate page's jobs now always run on Redis, and the queue page shows only the load average. `waitress` leaves the `server` extra and `requirements-server.lock`.
+- `docs/WINDOWS.md` gives basic instructions for a typical Windows setup (WSL2 and the Linux guides); anyone who wants native Windows does that work themselves.
+
 ## [8.0.866] - 2026-10-10
 
 ### Changed

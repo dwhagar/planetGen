@@ -112,7 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.9, DB.9, PERF.29, PERF.30, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, POP.8, POP.9, POP.7, POP.10, NAV.42, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, GEN.57, TEST.77, UX.49, PERF.31, GEN.128 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | DB.9, PERF.29, PERF.30, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, POP.8, POP.9, POP.7, POP.10, NAV.42, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, GEN.57, TEST.77, UX.49, PERF.31, GEN.128 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.17, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18, PERF.33, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, ADM.43, ADM.44 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, and the anomalies chosen in phase 2. | NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, GEN.114, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies. | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, GEN.55 |
@@ -190,7 +190,8 @@ with `clamp()`.
   visitor, signed in or not, saying the galaxy is being changed and
   when it should finish, as an ETA rounded up to the next whole hour
   (from `progress.json`, and from PERF.3's measured stars-per-second
-  rate). Open questions: a banner at the top of every page, or only on
+  rate). Question (decided below): a banner at the top of every page, or
+  only on
   the map and list pages? Does it also cover `generate.py` runs started
   from the command line, which don't take the web jobs lock today
   (they would need to write the same lock and progress file)? What does
@@ -208,6 +209,10 @@ with `clamp()`.
   it (upward jumps of 9 to 18 per 10 h run fall to about 0; the
   under-promise share of 15 to 25% falls to under 1%, except 9% on
   two-cost-class runs).
+  Decided (2026-10-10): Boss (19:04-19:12Z cards, recommended option):
+  the banner shows on every page, and it also covers command-line runs,
+  so `generate.py` and the CLI must write the same lock and publish
+  progress.
 
 - [ ] **UX.22 Meaningful units for every measurement**
   Boss (2026-10-01 15:10Z): "standardize ALL measurements into trees
@@ -228,7 +233,8 @@ with `clamp()`.
   pressure and the other surface conditions show a customary unit
   (such as atm, psi or g) beside the metric value. Surface
   temperature (K, °C, °F) and pressure (kPa, atm, psi) shipped in PR
-  #234; this item covers the rest. Open questions: the ladder and switch
+  #234; this item covers the rest. Question (decided below): the ladder
+  and switch
   points for each quantity; which customary unit goes with each surface
   condition; whether the secondary unit shows in tables or only in
   detail panels.
@@ -240,8 +246,9 @@ with `clamp()`.
   property grids and generator text; table rows and chips show the
   primary unit with the secondary in a tooltip. The rogue-planet page
   (`web/system_pages.py` `_temperature_text`, `_pressure_text`) still
-  bypasses the shipped K/°C/°F and pressure formatters. Open questions
-  for Boss (defaults taken): lunar-mass rung wanted (0.01 lunar mass to
+  bypasses the shipped K/°C/°F and pressure formatters. Decided (Boss,
+  2026-10-10 18:44Z, defaults approved; defaults taken): lunar-mass rung
+  wanted (0.01 lunar mass to
   0.1 Earth mass; Jupiter masses from 0.1 M_J; solar masses from 0.075
   M☉); keep "AU" and accept "au" on input; no fourth in-universe unit
   set.
@@ -268,6 +275,9 @@ with `clamp()`.
     to "Done". The text names `stellarObjects/utils.py` and
     `html/lib/fmt.py`; the files are now `src/planetgen/util/format.py`
     and `src/planetgen/web/lib/fmt.py`.
+  Decided (2026-10-10): Boss (19:12Z): accept the research unit table in
+  units-and-number-formatting.md (ladders, switch points, customary
+  pairings).
 
 - [ ] **UX.30 Planet information without the Markdown render**
   Boss (2026-10-01 23:53Z): "Rework planet information displays to pull
@@ -282,10 +292,13 @@ with `clamp()`.
   both themes and every size class, using the unit ladders (UX.22);
   `mdconvert` is no longer used for them. The wikitext and Markdown
   views (the Wikitext/Markdown toggle and wiki upload) keep using the
-  text render. Open question: does the overview text stay as prose?
+  text render. Question (decided below): does the overview text stay as
+  prose?
   Research (2026-10-09, units-and-number-formatting.md): prerequisite
   UX.23 step 0, so the new property grids emit `<span class="qty" data-q
   data-si>` from the start.
+  Decided (2026-10-10): Boss (19:12Z): the system overview stays as
+  prose.
   Prerequisite: UX.23.
 
 - [ ] **UX.32 Planet rows show the class only, without the type and moon labels**
@@ -298,7 +311,9 @@ with `clamp()`.
   "N moons of X" group under the row. Done: the row shows the class
   (linked to its reference page) and no Terrestrial/Gas Giant chip or
   moon label; the moons stay reachable from a small count on the row.
-  Open question: does "Habitable" stay as a chip?
+  Question (decided below): does "Habitable" stay as a chip?
+  Decided (2026-10-10): Boss (19:12Z): keep the Habitable chip; revisit
+  with a habitable-class-only chip later.
 
 - [ ] **UX.49 Form fields as Shoelace components (sl-input, sl-select, sl-checkbox) across the site**
   UX.40 (done, PRs #528, #533, #539, #544) moved the buttons, menus and
@@ -318,8 +333,9 @@ with `clamp()`.
   password and one-time-code fields stay native". Done criteria:
   `--sl-input-border-color` set from the new `--line` token (3:1),
   server validation errors shown on the right field (ADM.21 errors), a
-  no-JS check that each form still posts. Open question for Boss
-  (default): Shoelace for select, checkbox, switch and the Generate and
+  no-JS check that each form still posts. Decided (Boss, 2026-10-10
+  18:44Z, defaults approved; default): Shoelace for select, checkbox,
+  switch and the Generate and
   admin forms; native for sign-in, account, 2FA code, hidden and submit
   fields.
   Prerequisites: none.
@@ -404,8 +420,9 @@ with `clamp()`.
 - [ ] **UX.78 Unit preference: Automatic, Metric only or Customary**
   Stored in `localStorage` key `planetgen.units` and applied by
   re-rendering `.qty` spans from `data-si`; a header menu on
-  `sl-dropdown`. UX.42 is wording only; do not fold units into it. Open
-  question for Boss (default: the three presets, per browser).
+  `sl-dropdown`. UX.42 is wording only; do not fold units into it.
+  Decided (Boss, 2026-10-10 18:44Z, defaults approved; default: the
+  three presets, per browser).
   Prerequisite: UX.23.
   Design: [docs/design/units-and-number-formatting.md](design/units-and-number-formatting.md)
 
@@ -414,8 +431,9 @@ with `clamp()`.
   `format_age_string`, `period.js`, tests). Start the AU rung at
   1,000,000 km (0.0067 AU) so inner-system distances never print as
   "5.79 × 10⁷ km", and use scientific text below mantissa 1e-3 for every
-  rung (pressure prints "0.00000000000025 Pa" today). Open questions for
-  Boss (defaults yes): the rename and the AU start. Also pass
+  rung (pressure prints "0.00000000000025 Pa" today). Decided (Boss,
+  2026-10-10 18:44Z, defaults approved; defaults yes): the rename and
+  the AU start. Also pass
   `aria-valuetext` the unit name, not the symbol, in `facilityform.js`,
   and route direct `toFixed`/`toPrecision` calls in `systemview3d.js`,
   `galaxysystem.js`, `galaxymap3d.js`, `galaxystages.js` and
@@ -442,7 +460,7 @@ with `clamp()`.
   be bookmarked and listed in the bookmark manager (UX.47) with its
   kind; a test covers it. Small. Phase 2 unless Foundations lane 1 says
   otherwise.
-  Prerequisite: UX.45. Related: ('NAV.9', 'UX.47').
+  Prerequisite: UX.45. Related: UX.47.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -769,20 +787,23 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   MAP.154 and MAP.151's tile keys, on one cache stamp bump; (3) MAP.160
   defers quantising the GPU buffers. This item stays open as the record of
   the investigation until MAP.157 to MAP.159 are done.
-  Open question for Boss (default each sub-item goes ahead as written;
+  Decided (Boss, 2026-10-10 18:44Z, defaults approved; default each
+  sub-item goes ahead as written;
   MAP.160 is deferred): other?
   Prerequisite: MAP.159.
   Linked (2026-10-09, fly-through-view-distance.md): the tile and stage
   cache keys follow MAP.151 (the region data layer), so decide the wire
   format and those keys together; the star visibility law (MAP.148) sets
   how many stars a view needs.
+  Lane (2026-10-09): Owner: Foundations lane 2 (coordinator,
+  2026-10-10); closes after MAP.159, MAP.151 and MAP.148.
   Design: [docs/design/map-ui-and-frontend-libraries.md](design/map-ui-and-frontend-libraries.md)
 
 - [ ] **MAP.148 The star visibility law: apparent-magnitude opacity, flux-based brightness and an on-screen limit from a histogram**
   Source: docs/design/fly-through-view-distance.md (section 7 and 8),
-  written at Boss's request of 2026-10-09 22:56Z. Open questions are for
-  Boss; defaults stand until he answers. Nothing is built until he
-  decides.
+  written at Boss's request of 2026-10-09 22:56Z. Boss approved the
+  defaults
+  (2026-10-10 18:44Z).
   Done: a star's opacity follows its apparent magnitude from the camera,
   against a limit chosen so about 20,000 stars are on screen, found from
   a histogram of the stars in view. Brightness is by flux. This replaces
@@ -790,7 +811,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   MAP.116's budget table into it. First on the tiles already fetched
   (client side, no schema change), then tiles chosen by distance (with
   MAP.152).
-  Open question for Boss (default 20,000 stars on screen, 8,000 on a
+  Decided (Boss, 2026-10-10 18:44Z, defaults approved; default 20,000
+  stars on screen, 8,000 on a
   phone, with a 1.5 magnitude ramp, tuned after a first build): other
   numbers?
   Overlap (2026-10-09, zoom-star-visibility.md): MAP.153 is the first
@@ -823,9 +845,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
 
 - [ ] **MAP.149 The near field: depth fade, a see-through focus tube, drawing from inside a container, and picking that matches what is drawn**
   Source: docs/design/fly-through-view-distance.md (section 7 and 8),
-  written at Boss's request of 2026-10-09 22:56Z. Open questions are for
-  Boss; defaults stand until he answers. Nothing is built until he
-  decides.
+  written at Boss's request of 2026-10-09 22:56Z. Boss approved the
+  defaults
+  (2026-10-10 18:44Z).
   Done: things nearer the camera than a fraction of the focus distance
   dissolve; a soft see-through tube thins what stands between the camera
   and the focus; the container the camera is in is drawn from the
@@ -835,16 +857,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   strength and the rest faintly. Folds in MAP.121's blocker fade and
   MAP.141's faint context. First client-side, no schema change; it
   improves today's map.
-  Open question for Boss (default: context regions at opacity 0.08 to
+  Decided (Boss, 2026-10-10 18:44Z, defaults approved; default: context
+  regions at opacity 0.08 to
   0.3 and 2.5 magnitudes shallower than the focus): other strengths?
   Prerequisites: none. Related: MAP.121, MAP.141, MAP.146.
   Design: [docs/design/fly-through-view-distance.md](design/fly-through-view-distance.md)
 
 - [ ] **MAP.150 The free camera: wheel zoom to the cursor, double-click flight, and the observer inside, with the container named from position**
   Source: docs/design/fly-through-view-distance.md (section 7 and 8),
-  written at Boss's request of 2026-10-09 22:56Z. Open questions are for
-  Boss; defaults stand until he answers. Nothing is built until he
-  decides.
+  written at Boss's request of 2026-10-09 22:56Z. Boss approved the
+  defaults
+  (2026-10-10 18:44Z).
   Done: one free camera from the whole galaxy to a star system. The
   wheel zooms toward the point under the cursor with clearance from what
   is in front; double-click flies to the thing clicked (MAP.140's go-to
@@ -854,9 +877,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   arc, slab and segment picks (MAP.85, MAP.56 and MAP.17 flow) stop
   being the way to move, and old stage URLs stop working (no backward
   compatibility).
-  Open question for Boss (default yes): retire the arc, slab and segment
+  Decided (Boss, 2026-10-10 18:44Z, defaults approved; default yes):
+  retire the arc, slab and segment
   picks as the navigation flow?
-  Open question for Boss (default: keep the slab strip as an optional
+  Decided (Boss, 2026-10-10 18:44Z, defaults approved; default: keep the
+  slab strip as an optional
   section plane, not a stage): or drop it?
   Prerequisite: MAP.149. Related: MAP.140, MAP.85, MAP.59, NAV.13,
   NAV.14, MAP.146.
@@ -869,9 +894,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
 
 - [ ] **MAP.151 The region data layer: exact-centred frame, aligned cells, per-level aggregates and slot-wrap ranges**
   Source: docs/design/fly-through-view-distance.md (section 7 and 8),
-  written at Boss's request of 2026-10-09 22:56Z. Open questions are for
-  Boss; defaults stand until he answers. Nothing is built until he
-  decides.
+  written at Boss's request of 2026-10-09 22:56Z. Boss approved the
+  defaults
+  (2026-10-10 18:44Z).
   Done: region data is read in aligned cells with an exact-centred
   frame, with per-level aggregates, and a region is described as layer,
   ring and slot-arc ranges (with slot wrap) that stats, ADM.29 and
@@ -884,7 +909,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   colouring (MAP.131), the Galaxy Map opening view (MAP.134) and the
   settle step (GEN.126), and `galaxy/drill.py` and `galaxyprisms.js` are
   replaced, not kept beside it.
-  Open question for Boss (default: a 3-ary pyramid accepting cells 0.84
+  Decided (Boss, 2026-10-10 18:44Z, defaults approved; default: a 3-ary
+  pyramid accepting cells 0.84
   to 1.25 of an edge across): or keep 9-ary and accept a 2.45x gap in
   sizes?
   Prerequisite: ADM.29. Related: MAP.120, MAP.147, ADM.30, GEN.101,
@@ -908,9 +934,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
 
 - [ ] **MAP.152 Scale hand-offs: galaxy, sector and system cross-fade with hysteresis, and per-tile camera-relative origins**
   Source: docs/design/fly-through-view-distance.md (section 7 and 8),
-  written at Boss's request of 2026-10-09 22:56Z. Open questions are for
-  Boss; defaults stand until he answers. Nothing is built until he
-  decides.
+  written at Boss's request of 2026-10-09 22:56Z. Boss approved the
+  defaults
+  (2026-10-10 18:44Z).
   Done: the galaxy, sector and system scales cross-fade with hysteresis
   so the camera never flickers between them, and each tile has its own
   camera-relative origin below about 100 pc so stars stay precise at
@@ -932,8 +958,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   is exact instead of degrading gracefully. This changes the tile cache
   stamp. The key and list shapes are decided together with MAP.147 (wire
   format) and MAP.151 (region data layer), and with MAP.148 if the
-  magnitude law changes what a tile lists. Open question for Boss
-  (default build it only after MAP.153 is seen working): go ahead?
+  magnitude law changes what a tile lists. Decided (Boss, 2026-10-10
+  18:44Z, defaults approved; default build it only after MAP.153 is seen
+  working): go ahead?
   Wire format (2026-10-09, galaxy-map-wire-format.md): MAP.147's
   investigation is done (docs/design/galaxy-map-wire-format.md): the
   packed binary tile format ships with these nested lists as MAP.159, on
@@ -988,8 +1015,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   fade of MAP.153 reads it directly, and a finer tile omits the stars a
   coarser tile already sent (31 to 43% of bright records at levels 3 to
   6, all at 7 to 12). It ships together with MAP.154 (the nested lists)
-  and MAP.151's tile keys so the cache is invalidated once. Open
-  question for Boss (default yes, with MAP.154 and MAP.151 on one bump):
+  and MAP.151's tile keys so the cache is invalidated once. Decided
+  (Boss, 2026-10-10 18:44Z, defaults approved; default yes, with MAP.154
+  and MAP.151 on one bump):
   go ahead?
   Prerequisite: MAP.154. Related: MAP.147, MAP.154, MAP.151,
   MAP.153, MAP.157.
@@ -1010,7 +1038,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Chromium (it decodes only the first member). Instead the tile cache
   stores the trimmed JSON bytes and joins them without parsing (a warm
   hit no longer re-serialises), and Apache compresses (examples/apache
-  now also loads mod_brotli). Open question for Boss (default: leave as
+  now also loads mod_brotli). Decided (Boss, 2026-10-10 18:44Z, defaults
+  approved; default: leave as
   is): add the brotli package as a dependency so tiles can be served
   from precompressed copies.
   Built (2026-10-10): MAP.158 as built (PR #1123): tiles live in
@@ -1019,6 +1048,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   s idle, is off on saveData or 3G and slower, and takes at most 1.5 MB
   per page visit. The interim localStorage LRU was skipped (IndexedDB
   replaces it).
+  Decided (2026-10-10): Boss (19:12Z): leave brotli as is; no new
+  dependency, Apache compresses.
   Design: [docs/design/galaxy-map-wire-format.md](design/galaxy-map-wire-format.md)
 
 - [ ] **MAP.160 Quantise the Galaxy Map GPU buffers (deferred)**
@@ -1029,7 +1060,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   arrival, not network bytes; not measured on a real GPU. Done: colour,
   scalars and flags in `setStars` are byte-quantised, and a client that
   appends the new tile's stars instead of rebuilding every star is
-  considered with it. Open question for Boss (default defer until a real
+  considered with it. Decided (Boss, 2026-10-10 18:44Z, defaults
+  approved; default defer until a real
   phone or GPU measurement shows the upload matters): build it?
   Detail (2026-10-09, galaxy-map-wire-format.md): also considered here:
   the client appends the new tile's stars instead of rebuilding and
@@ -1052,8 +1084,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   - the system-to-system route (the chain of systems it hops through).
   The user can list, open, rename and delete their saved courses. The
   saved course shows whichever form the user views, and they can switch
-  between the two. Needs user accounts (USR.1) and their storage. Open
-  question: until user accounts exist, should saving be admin-only, or
+  between the two. Needs user accounts (USR.1) and their storage.
+  Question (decided below): until user accounts exist, should saving be
+  admin-only, or
   per browser like bookmarks?
   Default taken for the open question (pre-planning thread): Default for
   the open question: per browser now (the same storage and menu as
@@ -1079,6 +1112,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     Done: a `user_courses` table in the control database, owned by an
     account; courses saved per browser can be imported into the account
     once; the API lists and edits a user's own courses only.
+  Decided (2026-10-10): Boss (19:12Z): save courses per browser until
+  accounts exist (as the default taken).
 
 - [ ] **NAV.5 Show a course on the Galaxy Map**
   Boss (2026-10-01 20:55Z): "In the navigation screen I want to be able
@@ -1144,7 +1179,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   - inside a star system (planets and moons, around the star).
   The adjusted path, its extra length and its time at each speed (NAV.2)
   are shown with the course, and the straight line stays available for
-  comparison. Open questions: a Hill sphere needs an orbit around a
+  comparison. Question (decided below): a Hill sphere needs an orbit
+  around a
   heavier body, so what radius applies to a star or a lone object? And
   does the system level need the bodies' positions at a given time?
   Pre-planning (default taken for the first open question): The data is
@@ -1246,19 +1282,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     times the belt's density to threaten a ship. Collision risk stays
     keep-out only, with expected hits (about 1e-11 per AU in the main
     belt for bodies over 1 km) as an optional note on the course.
+  Decided (2026-10-10): Boss (19:16Z, Accept all): the answers recorded
+  here stand: a lone star or object uses the galactic Hill radius;
+  inside a system a star uses the radiation radius.
     Prerequisites: NAV.25, NAV.26.
-
-- [ ] **NAV.9 Search and locate return references for every kind**
-  `/api/search` and `/galaxy/locate` (`queryDb.galaxy_locate`) return
-  each hit's reference and parent chain, so any picker can jump to a
-  star, planet or moon by name.
-  Research (2026-10-09, course-routing.md): build `ref` and the parent
-  chain from each panel's own JOIN, not `resolve_object` per row.
-  Foundations lane 1 (2026-10-09): Foundations lane 1 (2026-10-10, after
-  NAV.8, PR #1095): the Galaxy Map locate box (`/galaxy/locate`) returns
-  only sectors and systems today. It must also return body hits
-  (planets, moons, belts), each linking through /object/<ref>, which
-  redirects to the system page and the body's anchor. Rides this item.
 
 - [ ] **NAV.42 Each route stop shows the course and distance to the next stop**
   Boss (2026-10-02 04:19Z, with NAV.41): "each stop has the course and
@@ -1282,6 +1309,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   text of course-routing.md section 2: per-stop sector_id and local
   position (this item needs them), the packed filled-set cache, and the
   adjacent-cell shortcut.
+  Lane (2026-10-09): Owner: Bugfixes lane 2 (moved from Foundations lane
+  1 by the coordinator, 2026-10-10).
   Design: [docs/design/navigation-frames.md](design/navigation-frames.md)
 
 - [ ] **NAV.36 Unknown-space jumps drawn red and glowing**
@@ -1317,7 +1346,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   NAV.43 (built) filters by exact distance after asking for `radius +
   one edge`, with a keyset cursor `(distance, kind, id)`; it should also
   count the pre-placed bright stars, black holes and neutron stars of
-  unfilled cells. Open question for Boss (default yes): list those as
+  unfilled cells. Decided (Boss, 2026-10-10 18:44Z, defaults approved;
+  default yes): list those as
   "not generated yet" rows.
 
 - [ ] **NAV.47 Unknown-space jumps stop at scattered stars, black holes, neutron stars and quasars**
@@ -1335,9 +1365,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   define "position at the time" once (`p0 + v (t - t_plan)`) and add
   `galaxy_shape.phenomenon_scatter_at`; add a sub-item for the `kind`
   lookup (a small `phenomenon_scatter_special` side table, preferred
-  over a `kind` index on about 5e8 rows). Open question for Boss
-  (default: no): do planetary nebulae and supernova remnants count as
+  over a `kind` index on about 5e8 rows). Decided (Boss, 2026-10-10
+  18:44Z, defaults approved; default: no): do planetary nebulae and
+  supernova remnants count as
   stops? Needs the galactic-motion bug below fixed first.
+  Lane (2026-10-09): Owner: Bugfixes lane 2 (moved from Foundations lane
+  1 by the coordinator, 2026-10-10).
   Design: [docs/design/course-routing.md](design/course-routing.md)
 
 - [ ] **NAV.48 Offer to generate the uncharted sectors that block a course**
@@ -1354,10 +1387,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (not a fixed figure; PERF.3's default is 0.2 s per system while the
   research costed charting at about 1 s per system), the confirmation at
   the existing 5,000-sector threshold, and a call to the bright-star
-  backfill (GEN.30) per block. Open question for Boss (default: the
+  backfill (GEN.30) per block. Decided (Boss, 2026-10-10 18:44Z,
+  defaults approved; default: the
   unknown hops only, then re-plot): or every cell on the straight line?
   And how long may a charting job be before the page refuses (default:
   the 5,000-sector confirmation plus the PERF.3 disk refusal)?
+  Lane (2026-10-09): Owner: Bugfixes lane 2 (moved from Foundations lane
+  1 by the coordinator, 2026-10-10).
   Design: [docs/design/course-routing.md](design/course-routing.md)
 
 - [ ] **NAV.49 Waypoints: pick objects in Star select mode and plot a course through them, kept on the map until cleared**
@@ -1380,6 +1416,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   performance cliff, not a correctness bug; NAV.10 shipped on the old
   code. Avoid `np.unique` on very large arrays in new code (9.4 s on 6e6
   int64 against 0.11 s for sort-plus-diff).
+  Lane (2026-10-09): Owner: Bugfixes lane 2 (moved from Foundations lane
+  1 by the coordinator, 2026-10-10).
   Prerequisites: none.
   Design: [docs/design/course-routing.md](design/course-routing.md)
 
@@ -1394,8 +1432,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (c) a moon keeps out its Hill radius against the planet's mass; (d)
   the pass-through note for nebulae and remnants ("No mass is stored for
   it...") gives the wrong reason: the drawn shape fills 13% of its
-  bounding sphere and the gas is thin. A test for each. Open questions
-  for Boss (defaults taken): nebulae and remnants pass through with a
+  bounding sphere and the gas is thin. A test for each. Decided (Boss,
+  2026-10-10 18:44Z, defaults approved; defaults taken): nebulae and
+  remnants pass through with a
   note (chord length, column density, extinction) and no hard keep-out,
   with an optional soft cost later; a star inside its own system keeps
   out its radiation radius `max(10 R_star, sqrt(L / (4 pi F_lim)))`,
@@ -1444,7 +1483,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   skeleton, sectors and systems. It says what each stage needs in the
   schema (a galaxy id on which tables), the frames and coordinates
   between galaxies, the URLs and pages, generation and the Galaxy Map,
-  and how an existing single-galaxy database migrates. Open questions
+  and how an existing single-galaxy database migrates. Question (decided
+  below)
   for the plan: are neighboring galaxies real (the Local Group's
   catalogued galaxies) or generated? Does every row get a galaxy id, or
   only the top-level ones (sectors, the skeleton)? Is a second galaxy
@@ -1455,8 +1495,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   chosen by `?db=`, not at login. Stage 1 (`neighbor_galaxies` table,
   the data file, the `planetgen plan` step) is separate from stage 2
   (`linked_database`, the Intergalactic Frame, `/galaxies`), which costs
-  a galaxy switch in the UI and a `galaxy_links` control table. Open
-  questions for Boss (defaults taken): real neighbours (about 25 rows, a
+  a galaxy switch in the UI and a `galaxy_links` control table. Decided
+  (Boss, 2026-10-10 18:44Z, defaults approved; defaults taken): real
+  neighbours (about 25 rows, a
   hand-built data file) with a per-plan option for generated ones; the
   proper embedding (see the handedness item); database per galaxy with
   the host's frame as the intergalactic origin; no second fully
@@ -1464,6 +1505,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   not from a page.
   Research (2026-10-09, globular-clusters.md): the globular-cluster
   system for generated galaxies is GEN.164.
+  Decided (2026-10-10): Boss (19:16Z, Accept all): the answers recorded
+  here stand: real Local Group neighbours, no galaxy id on every row, a
+  separate database per galaxy.
 
 - [ ] **GEN.24 Generate the galactic core on layer 0**
   Boss (2026-10-01): "Add a new TODO item to TODO.md (don't start
@@ -1502,7 +1546,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   200 pc as a typed value. Name the ring serpentine as the fill order.
   The model has no central cusp (the core sector holds about 1,000
   systems, 5 to 15 times below the real nuclear disc, 1,000 times or
-  more below the Sgr A* sector). Open question for Boss (default 50 pc;
+  more below the Sgr A* sector). Decided (Boss, 2026-10-10 18:44Z,
+  defaults approved; default 50 pc;
   leave the model alone).
 
 - [ ] **GEN.27 Class P (glaciated world) only in the habitable zone, and fitting there**
@@ -1569,8 +1614,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (rocky if R <= 1.12 M^0.27); add the Hycean window (M 1 to 10, R 1.4
   to 2.6, T_eq 150 to 500 K, density 1.5 to 3); X goes to 500 to 11,500
   km; W is moon-only (not a rogue); Y needs shoreline ratio under 0.7; Z
-  has M-dwarf and G/K sub-types (design doc 5.1). Open question for Boss
-  (default R): rocky rogues of 10 to 16 Earth masses become class R
+  has M-dwarf and G/K sub-types (design doc 5.1). Decided (Boss,
+  2026-10-10 18:44Z, defaults approved; default R): rocky rogues of 10
+  to 16 Earth masses become class R
   rather than a widened S (cap S at 13,500 km); a 1-bar "dune world" is
   a 10 percent variant of N.
 
@@ -1789,8 +1835,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     `jobs.active_job()`; exit 75 when skipped; alert after N skipped
     days. Treat Redis as optional. Iterate every galaxy database. Run
     orbits in-process or as `planetgen.cli.orbits` (this item's text
-    says `updateOrbits.py`, which no longer exists). Open question for
-    Boss (default: skip the day while a Generate job runs, exit 75,
+    says `updateOrbits.py`, which no longer exists). Decided (Boss,
+    2026-10-10 18:44Z, defaults approved; default: skip the day while a
+    Generate job runs, exit 75,
     alert after 3 skipped days).
     Note (2026-10-09): The Windows parts are dropped by OPS.39 (Boss,
     2026-10-10 04:25Z).
@@ -1899,7 +1946,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     zones" is mostly S itself with air plus a re-scoped N (hot) and an
     extended X or an R Hycean flag (cold). Letters: none are free after
     R, U, W, X, Y, Z; Q must not be reused until the database is checked
-    for Q rows. Open question for Boss (default Option A): re-scope N,
+    for Q rows. Decided (Boss, 2026-10-10 18:44Z, defaults approved;
+    default Option A): re-scope N,
     extend X, Hycean as an R flag and retire T, or two-character class
     codes.
     Prerequisite: GEN.33.
@@ -1917,7 +1965,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     which `stellar_evolution.py` lacks); flag the `fast` and `slow`
     scales as fiction (open question for Boss, default: keep them and
     cap `fast` at stage 3); add planetary tidal locking (needs GEN.104).
-    Open question for Boss (default yes): dose above 0.1 Sv/yr forces
+    Decided (Boss, 2026-10-10 18:44Z, defaults approved; default yes):
+    dose above 0.1 Sv/yr forces
     equipment tier 3 and above 1 Sv/yr tier 4.
     Prerequisite: GEN.28.
     Design: [docs/design/habitability-index.md](design/habitability-index.md)
@@ -1951,8 +2000,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     central star is a close binary, never planets; (3) an engulfed giant
     of over 5 Jupiter masses sets a "swallowed giant" flag (a flag only,
     for the red-nova anomaly); (4) surviving planets near the engulfment
-    radius get an eccentricity draw (up to about 0.3). Open question for
-    Boss (default yes): the swallowed-giant flag.
+    radius get an eccentricity draw (up to about 0.3). Decided (Boss,
+    2026-10-10 18:44Z, defaults approved; default yes): the
+    swallowed-giant flag.
     Decided (2026-10-09): Boss (2026-10-09 18:37Z): the defaults are
     accepted, including the swallowed-giant flag. The orbit-expansion
     law for adiabatic mass loss is verified: a (M_star + M_planet) =
@@ -1986,8 +2036,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   mark-only skewing (keep each cell's count, tilt the type law; a weight
   of about 40 to 50 gives about 80% O/B from the natural 8%) and
   conditional redraw on luminosity keyed by (star seed, nebula id);
-  leave the star alone when no compatible type exists. Open questions
-  for Boss (defaults taken): backfill down to 750 Lsun only inside the
+  leave the star alone when no compatible type exists. Decided (Boss,
+  2026-10-10 18:44Z, defaults approved; defaults taken): backfill down
+  to 750 Lsun only inside the
   nebula; only 750+ stars plus normal field density, not the realistic
   crowd of low-mass stars.
   Design: [docs/design/nebula-and-asteroid-field-classes.md](design/nebula-and-asteroid-field-classes.md)
@@ -2030,8 +2081,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   power of two. Fix `_neighborhood_batch` in `run_galaxy.py` (its
   docstring says nearest first as enumerated; the enumeration is
   ring-major, and off the axis the first 10% of the list holds none of
-  the nearest 10%): sort before applying a limit. Open question for Boss
-  (default as written): keep Hilbert as approved, using the
+  the nearest 10%): sort before applying a limit. Decided (Boss,
+  2026-10-10 18:44Z, defaults approved; default as written): keep
+  Hilbert as approved, using the
   4-voxel-block variant so the first sector is the centre, or take the
   serpentine and greedy walk?
 
@@ -2049,7 +2101,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   days on one worker for density below 0.1, about 5 years for expected
   systems below 1; the fixed cost per sector is the lever (the timing
   report's three levers could roughly halve the 40 ms). Recommendation:
-  do not pre-fill; keep lazy fill. Open question for Boss (default no):
+  do not pre-fill; keep lazy fill. Decided (Boss, 2026-10-10 18:44Z,
+  defaults approved; default no):
   do you still want the sparse rim filled?
 
 - [ ] **GEN.103 Research where each star type and phenomenon belongs in the galaxy's structure**
@@ -2141,8 +2194,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     step cap with a flag); seeding uses Jeans asymmetric drift and a
     dispersion table from the potential; these could become sub-items. A
     facility has no dispersion and uses the same circular speed
-    (integrated in the potential once it has a vertical offset). Open
-    questions for Boss (defaults taken): constant 229.3 km/s whatever
+    (integrated in the potential once it has a vertical offset). Decided
+    (Boss, 2026-10-10 18:44Z, defaults approved; defaults taken):
+    constant 229.3 km/s whatever
     the galaxy's size; Sun distance 8.128 kpc as the test radius and 8.2
     kpc for placing the Sun in the density model (change
     `GALACTIC_CENTER_DISTANCE_LY` from 25,800 ly); NFW only for now.
@@ -2208,7 +2262,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     force and `cKDTree`, the exact pairwise Hill criterion, a negative
     control without the margin, a cap test, a seed-reproducibility
     test); a lone rogue has an empty set, a rogue within 1 pc of a star
-    sees that star. Open questions for Boss (defaults taken): full Hill
+    sees that star. Decided (Boss, 2026-10-10 18:44Z, defaults approved;
+    defaults taken): full Hill
     spheres with cover lists rather than clipping to the sector stencil;
     a star cluster counts as its members; no warnings for unbound flybys
     or hierarchical members.
@@ -2244,8 +2299,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     at 1 to 3 km/s, may fall below the 0.001 ly minimum (store the real
     value, display "<63 AU") and is class U (collisional family). Let
     the star generator accept 0.075 to 0.08 Msun (the IMF floor
-    `IMF_BREAKS_SOL[0]` is 0.08) or clamp merger stars to 0.08. Open
-    questions for Boss (defaults taken): the physical table, with an
+    `IMF_BREAKS_SOL[0]` is 0.08) or clamp merger stars to 0.08. Decided
+    (Boss, 2026-10-10 18:44Z, defaults approved; defaults taken): the
+    physical table, with an
     `ALWAYS_DESTROY_TERRESTRIAL` setting for the literal rule (about a
     quarter of Earth-Earth hits at galactic speeds destroy both);
     hit-and-run keeps both bodies, eroded; the fusion check covers brown
@@ -2284,7 +2340,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   to the `uid` (`systemview3d.js` seeds from the database id, which
   changes when the database is rebuilt), and `phenomenonrender.py`'s
   `_NO_VIEW = {"asteroid_field"}` leaves a field page without a 3D view.
-  Open questions for Boss: render exaggerated body sizes with a stated
+  Decided (Boss, 2026-10-10 18:44Z, default approved): render
+  exaggerated body sizes with a stated
   factor (default) or true to scale.
   Design: [docs/design/nebula-and-asteroid-field-classes.md](design/nebula-and-asteroid-field-classes.md)
 
@@ -2307,7 +2364,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   extended objects equal the filling factor). Record the document errors
   found (6 to 10 systems per sector, the black hole "0.08%" (it is 80%,
   3.3% per 20 ly sector), G mu 7.4e-10 already excluded, deficit-angle
-  shear, ergosphere shear). Open question for Boss (default no): are the
+  shear, ergosphere shear). Decided (Boss, 2026-10-10 18:44Z, defaults
+  approved; default no): are the
   subspace and other fiction anomalies wanted? Tier 3 only through a
   default-off `lore-anomaly` kind with `K_lore` 0.
 
@@ -2366,8 +2424,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   zones and flux sums (design 5.6, 6.5). Raise the B and A binary
   probabilities in `BINARY_SYSTEM_PROBABILITY_BY_SPECTRAL_CLASS` (0.65,
   0.55) to about 0.75 and 0.60 when the N table replaces the binary
-  yes/no; the table's mean is 1.38 stars per system. Open questions for
-  Boss (defaults taken): faithful rarity (about 1 in 33,000 systems have
+  yes/no; the table's mean is 1.38 stars per system. Decided (Boss,
+  2026-10-10 18:44Z, defaults approved; defaults taken): faithful rarity
+  (about 1 in 33,000 systems have
   seven stars) with a directive to force N and a prevalence knob; the
   path-code naming; REBOUND stays out (dev script outside the package,
   leapfrog or `DOP853` regression in the suite).
@@ -2428,8 +2487,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   hole debris disks are out of scope. Compact-object habitability: the
   lowest tier for every pulsar, black hole and X-ray-binary planet, a
   normal score for cool white dwarf planets in the narrow zone (open
-  question for Boss, default as stated). Open question for Boss
-  (default: only through GEN.100's scatter, which promotes a scattered
+  question for Boss, default as stated). Decided (Boss, 2026-10-10
+  18:44Z, defaults approved; default: only through GEN.100's scatter,
+  which promotes a scattered
   remnant to a system when it draws a bound companion or planets, at the
   design 7.3 fractions): do neutron star and black hole systems appear
   in normal fills at their real rate?
@@ -2444,8 +2504,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   eccentricity is shorter than the system's age; allow a bound companion
   beyond about 1,000 AU around a black hole or neutron star only for
   direct-collapse black holes. Slices (a) to (c) as in
-  multistar-and-compact-systems.md section 8. Open questions for Boss
-  (defaults taken): a globular-cluster model does not exist, so the
+  multistar-and-compact-systems.md section 8. Decided (Boss, 2026-10-10
+  18:44Z, defaults approved; defaults taken): a globular-cluster model
+  does not exist, so the
   captured-giant type is left out until clusters are modelled; the 0.7%
   rate for millisecond pulsars is accepted.
   Decided (2026-10-09): Boss (2026-10-09 18:37Z): the defaults are
@@ -2496,8 +2557,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   own storage checksum); a (ring, layer) node table; ring and galaxy
   roots on demand; a region digest that includes the sector count;
   separate structural and float digests over named sections. Replaces
-  the `tests/galaxy_fingerprint.py` stand-in. Open question for Boss
-  (default: round to 9 digits): keep exact float hashing as built, or
+  the `tests/galaxy_fingerprint.py` stand-in. Decided (Boss, 2026-10-10
+  18:44Z, defaults approved; default: round to 9 digits): keep exact
+  float hashing as built, or
   round?
   Prerequisite: GEN.135.
   Design: [docs/design/generation-determinism.md](design/generation-determinism.md)
@@ -2512,8 +2574,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   only; `next_update_due` can use the current speed; (d) use
   orbital-solvers-and-integrators.md section 5 as the justification; (e)
   "visible" could mean half a pixel at the deepest zoom where the object
-  type is drawn (needs a map-scale value). Open questions for Boss
-  (defaults taken): stars follow their analytic orbit and are rewritten
+  type is drawn (needs a map-scale value). Decided (Boss, 2026-10-10
+  18:44Z, defaults approved; defaults taken): stars follow their
+  analytic orbit and are rewritten
   at sector exit or when the influence set changes, planets and moons
   are computed from phase on read with thresholds only scheduling
   perturbation re-fits; the deepest star zoom is the 4 pc sector view.
@@ -2551,7 +2614,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   thick disc (60, 40, 35), bulge isotropic about 110 km/s). Rogue
   positions are absolute float64 parsec values good to about 14 km at 8
   kpc, unusable for small-body collision tests; compute differences from
-  sector-relative values. Open question for Boss (default yes).
+  sector-relative values. Decided (Boss, 2026-10-10 18:44Z, defaults
+  approved; default yes).
   Prerequisites: none.
   Design: [docs/design/collisions-and-mergers.md](design/collisions-and-mergers.md)
 
@@ -2614,7 +2678,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   number (0 to 1, default 0.5, no effect until it exists) for the tech
   draw and facility rating suggestions. The dose ladder cannot lean on
   astropy on Python 3.9 (6.0.1 has no `Gy` or `Sv`); keep Gy/yr and
-  mSv/yr as two quantities. Open question for Boss (default: 20 mSv/yr
+  mSv/yr as two quantities. Decided (Boss, 2026-10-10 18:44Z, defaults
+  approved; default: 20 mSv/yr
   for the Blue tier, 50 as the single-year limit).
   Design: [docs/design/habitability-index.md](design/habitability-index.md)
 
@@ -2653,15 +2718,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.47's cloud field fills 3% to 46% of volume against 0.5% to 1%
   observed. Recommended about 1e-7 pc^-3 for class M with small dark
   clouds as separate rows; `GMC_ARM_FILLING_FACTOR` is still read by
-  nothing. Open question for Boss (default: lower it to about 1%).
+  nothing. Decided (Boss, 2026-10-10 18:44Z, defaults approved; default:
+  lower it to about 1%).
   Prerequisites: none.
   Design: [docs/design/anomalies.md](design/anomalies.md)
 
 - [ ] **GEN.153 Magnetar subtype of neutron star, and an age-dependent pulsar fraction**
   `NEUTRON_STAR_PULSAR_CHANCE` is 0.7 against about 1e-4 to 1e-3 real.
   Done: a magnetar subtype and a pulsar fraction that follows age, with
-  a `PHENOMENON_RATE_SCALE`-style override. Open question for Boss
-  (default physical): keep 70% as a gameplay choice?
+  a `PHENOMENON_RATE_SCALE`-style override. Decided (Boss, 2026-10-10
+  18:44Z, defaults approved; default physical): keep 70% as a gameplay
+  choice?
   Prerequisites: none.
   Design: [docs/design/anomalies.md](design/anomalies.md)
 
@@ -2673,7 +2740,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
 
 - [ ] **GEN.155 A nuclear-cluster object for the Sgr A* sector (optional)**
   If Boss wants the real galactic centre: a nuclear-cluster object for
-  the Sgr A* sector. Open question for Boss (default: leave the model
+  the Sgr A* sector. Decided (Boss, 2026-10-10 18:44Z, defaults
+  approved; default: leave the model
   alone and note it).
   Prerequisites: none.
   Design: [docs/design/fill-order-curves-and-core.md](design/fill-order-curves-and-core.md)
@@ -2764,7 +2832,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   hard cut: drop planets with a > a_h = G M_host / sigma(r)^2 (2 AU at
   15 km/s, 4.4 at 10, 18 at 5, 440 at 1), with sigma(r) from the King
   model. Blue straggler count N_BSS ~ M_core^0.4 (main-sequence stars of
-  1 to 1.7 Msun in the core). Decided by Boss (2026-10-09 19:02Z, default taken): a hard cut at a_h rather than a smooth exponential. Open question for Boss (default taken): blue stragglers
+  1 to 1.7 Msun in the core). Decided by Boss (2026-10-09 19:02Z,
+  default taken): a hard cut at a_h rather than a smooth exponential.
+  Decided (Boss, 2026-10-10 18:44Z, defaults approved; default taken):
+  blue stragglers
   scale as M_core^0.4 while millisecond pulsars and X-ray binaries scale
   with the encounter rate (his text says linearly with Gamma for both).
   Prerequisites: GEN.158, GEN.160.
@@ -2793,8 +2864,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   truncated to 1e4 to 3e6; [Fe/H] a two-Gaussian mixture (-1.5 and -0.5,
   width 0.3, recalled) truncated near [-2.4, 0.0]; metal-rich positions
   drawn from the bulge plus thick-disc density, metal-poor from a
-  spherical r^-3.5 profile with a core of a few kpc. Open question for
-  Boss (default: 0.5 dex and the S_N ranges above): the mass-function
+  spherical r^-3.5 profile with a core of a few kpc. Decided (Boss,
+  2026-10-10 18:44Z, defaults approved; default: 0.5 dex and the S_N
+  ranges above): the mass-function
   width and S_N ranges.
   Prerequisites: GEN.9, GEN.158, GEN.159.
   Design: [docs/design/globular-clusters.md](design/globular-clusters.md)
@@ -2804,7 +2876,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   in /mnt/project-files/research/handoff/phenomenon-mass-cut.md): Boss
   decided at 19:54Z that the GEN.100 scatter keeps only objects above a
   lowest mass and the sector fill draws the rest below it, like the
-  bright stars. Open question for Boss (default: keep both as they are):
+  bright stars. Decided (Boss, 2026-10-10 18:44Z, defaults approved;
+  default: keep both as they are):
   the regional factors give neutron stars 0.80 times and black holes
   1.49 times their nominal numbers (his retune said 1e9 neutron stars
   and 1e8 black holes; the scatter gives 9.5e8 and 2.2e8). Renormalise
@@ -2884,7 +2957,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   fragment a new run-time serial; a deleted ID is never reused. The
   allocators already exist (store._runtime_uids and
   store._next_body_numbers). A test shows an ejected planet keeps its
-  ID. Open question for Boss (default yes): an ejected planet keeps its
+  ID. Decided (Boss, 2026-10-10 18:44Z, defaults approved; default yes):
+  an ejected planet keeps its
   ID? Built with the orbital-update items that create these events (no
   ejection, merger or split code exists yet).
   Prerequisite: GEN.143. Related: GEN.105, GEN.143, GEN.170.
@@ -3135,7 +3209,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   single transactions; `cancel()` alone leaves a running job running);
   keep the interval-less `Retry(max=1)` and add no retry intervals
   without a scheduler (a retry with an interval stayed `scheduled` on a
-  burst worker). Open question for Boss (default yes): a reserved
+  burst worker). Decided (Boss, 2026-10-10 18:44Z, defaults approved;
+  default yes): a reserved
   interactive worker costs one process (about 195 MB) while any bulk run
   is active; start it on demand and exit when its queue is empty.
   Prerequisite: PERF.39.
@@ -3145,7 +3220,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   A `TILE_FORMAT` constant in the stamp base in place of `__version__`,
   with a golden test that fails when the tile or page structure changes
   without a bump. Releases are 26 to 123 a day, so a development server
-  never keeps a cache. Open question for Boss (default): decide after
+  never keeps a cache. Decided (Boss, 2026-10-10 18:44Z, defaults
+  approved; default): decide after
   PERF.31 shows the cold rebuild cost; switch if a full rebuild takes
   more than a minute.
   Prerequisite: PERF.31.
@@ -3159,7 +3235,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   point): `SpatialPosition3D._sync` was called 83,000 times for 4
   sectors. Set a planet's or moon's position once per body. Optional:
   skip `util/checks.finite_domain` in bulk fills (3 to 4%, but it loses
-  a safety net). Open question for Boss (default: keep the check):
+  a safety net). Decided (Boss, 2026-10-10 18:44Z, defaults approved;
+  default: keep the check):
   accept skipping it in bulk fills?
   Boss (2026-10-09, generation-performance-study.md): Boss (2026-10-09
   20:02Z) approved the position-once saving. The `finite_domain` half
@@ -3291,7 +3368,9 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   `db/edits.py`) and cleared after the parity update; listing those
   writers is part of the item. Before DB.19's mass cut `phenomenon_scatter`
   would be 1.17e9 rows and about 161 GB (the earlier 1.6e8 rows and 21 GB
-  was an unverified estimate); after the cut it is about 2.7e5 rows. Open questions for Boss (defaults taken): after a repair
+  was an unverified estimate); after the cut it is about 2.7e5 rows.
+  Decided (Boss, 2026-10-10 18:44Z, defaults approved; defaults taken):
+  after a repair
   the orbit-updated columns come back as generated and the next orbit
   update carries on (a small daily snapshot of ids, phases and sector
   only if exact positions matter); G = 32, m = 2; repairing a bad
@@ -3305,7 +3384,8 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   every sector; at 12 billion sectors those strings repeat. Store
   `generator_epoch` (SMALLINT) and `run_id` (foreign key to the existing
   `generation_runs`) instead, with the key text looked up from the run.
-  Open question for Boss (default: epoch plus run id): or keep the full
+  Decided (Boss, 2026-10-10 18:44Z, defaults approved; default: epoch
+  plus run id): or keep the full
   key text per sector as DB.7 shipped. ALGORITHM=INSTANT, idempotent
   migration, per db-check-and-parity-repair.md.
   Prerequisite: OPS.28.
@@ -3318,7 +3398,8 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   (Boss, 2026-10-09 20:42Z, dropped the pending-delta JSON and daily
   merge this item used to read; the seed is still used internally for
   repair. Boss, 2026-10-09 20:52Z: keep the repair from the seed, replaying
-  the edit log.) Compare the result with the stored leaf digest. Open question for Boss (default
+  the edit log.) Compare the result with the stored leaf digest. Decided
+  (Boss, 2026-10-10 18:44Z, defaults approved; default
   yes): ship the parity half first, without GEN.57, GEN.58 and OPS.14.
   Note (2026-10-09): admin regenerate of a planet, moon or belt
   (`admin/edits.py`) draws from the process stream, so an edited sector
@@ -3416,8 +3497,9 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
     "staging storage (a galaxy schema migration)" to upload bookkeeping
     tables in the control database plus a disk spool (`uploads.dir`),
     unless Boss specifically wants rows staged in the galaxy schema
-    (about 30 content tables, 65 migrations). Open question for Boss
-    (default: spool plus bookkeeping). Verify and finalize of a sealed
+    (about 30 content tables, 65 migrations). Decided (Boss, 2026-10-10
+    18:44Z, defaults approved; default: spool plus bookkeeping). Verify
+    and finalize of a sealed
     unit run as an RQ job (200 if done within the short wait, else 202
     with a job id; default yes).
 
@@ -3465,7 +3547,8 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   changed, and which client versions (`generate.py` remote mode,
   API.3, and the web pages' `lib/apiclient.py`) can talk to which
   server versions. The table is updated in the same PR as any API
-  change. Open question: is the API version bumped by hand, or by a
+  change. Question (decided below): is the API version bumped by hand,
+  or by a
   release note kind like `changes/<name>.api.md`?
   Research (2026-10-09, api-design-standards.md): answer the open
   question: the version is bumped by hand against a CI rule. A committed
@@ -3478,6 +3561,8 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   the remote-client routes only. The table is generated from
   `planetgen/api/version.py` history, and the stamp job fills in the
   release number.
+  Decided (2026-10-10): Boss (19:12Z): the API version is bumped by
+  hand, with a CI check against the OpenAPI file.
 
 - [ ] **API.5 API version and compatibility checking**
   Boss (2026-10-01 19:28Z): "Another TODO item will be API version /
@@ -3489,8 +3574,8 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   to install, and, inside the range, reads older clients' payloads
   through converters so it knows how to take data from each supported
   version. `generate.py`'s remote mode (API.3) checks before it starts
-  generating, not after. Built on API.4's compatibility data. Open
-  question: how many older versions the server keeps accepting.
+  generating, not after. Built on API.4's compatibility data. Question
+  (decided below): how many older versions the server keeps accepting.
   Research (2026-10-09, api-design-standards.md): answer "how many older
   versions": the current major, plus the previous major for one release
   cycle after a major bump, for upload payloads only (no read
@@ -3500,10 +3585,13 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   `generate.py --remote` checks before reading config. A refusal is `400
   api_version_unsupported` (or `410` past a sunset), not `426`; the
   check does not depend on `/api/health`. Add the version-key comparison
-  (design doc 4.5). Open questions for Boss (defaults taken): a remote
+  (design doc 4.5). Decided (Boss, 2026-10-10 18:44Z, defaults approved;
+  defaults taken): a remote
   client may differ in release within the accepted range, with a
   warning; a version-key mismatch (OS, architecture, Python) warns and
   does not refuse.
+  Decided (2026-10-10): Boss (19:12Z): keep the current major plus the
+  previous major for one release cycle (upload payloads only).
 
 - [ ] **API.6 User-level API keys, owned by the account that created them, that can read but not upload**
   Boss (2026-10-01 19:32Z): "Only admin can upload, and Admin can
@@ -3570,8 +3658,8 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   (`api/limiter.py`). The plan only; building the limits is a later
   item.
   Research (2026-10-09, api-design-standards.md): adopt the numbers in
-  design doc 6.6 for Boss's agreement; API.7 can then close. Open
-  question for Boss (default as written).
+  design doc 6.6 for Boss's agreement; API.7 can then close. Decided
+  (Boss, 2026-10-10 18:44Z, defaults approved; default as written).
 
 - [ ] **API.8 Verify uploaded data before it is finalized**
   Boss (2026-10-01 19:32Z): "the API will have to have a reliable method
@@ -3586,13 +3674,17 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   server finalizes a unit in one transaction or rejects it with the
   reasons, and may correct what it can (renaming a clashing name,
   re-running derived values) rather than trusting the client's copy.
-  Open question: which corrections the server makes on its own, and
+  Question (decided below): which corrections the server makes on its
+  own, and
   which reject the unit so the client regenerates it.
   Research (2026-10-09, api-design-standards.md): adopt the auto-correct
   versus reject rule (design doc 7.4) as the default answer: correct
   only a clashing name and pure derived columns; reject everything else;
   the server returns a rename map; a rejection does not release the
   claim.
+  Decided (2026-10-10): Boss (19:16Z, Accept all): the server auto-fixes
+  only a clashing name and purely derived columns, and rejects
+  everything else so the client regenerates it.
 
 - [ ] **API.18 Generate by recipe: JSON for sectors, systems, planets, moons and phenomena**
   Boss (2026-10-07 11:47Z): "API should contain a 'generate recipe'
@@ -3634,29 +3726,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   region per request.
   Prerequisite: API.18.
 
-- [ ] **API.23 The object ID as the public reference: pages, URLs, the API, wiki links and objectref use it in place of row ids**
-  Source: docs/design/object-id-options.md section 0 (Boss decided
-  2026-10-09 22:39Z: birth location plus serial, galaxy-wide; the same
-  length for every object; always identifies that one object; up to 128
-  bits but shorter preferred; fix the deficits; no backward
-  compatibility). Filed from the object-ID research thread. Nothing is
-  built until Boss asks.
-  Done: pages, URLs, API routes and payloads, wiki links and `objectref`
-  use the object ID in place of row ids (lookup probes the object tables
-  by `uid`; a kind prefix such as planet:ID is only a hint). Row ids
-  stay internal. No compatibility shim. This is a breaking API change,
-  so it bumps the API version number (API.22, built).
-  Decided (Boss, 2026-10-10 02:48Z, via Foundations lane 1): yes, the 80-bit object ID replaces row ids in pages, URLs and the API, and Boss accepts the API break. Cleared to build once API.22, GEN.171 and GEN.172 are in.
-  Stages 1 and 2 of 3 done (PRs #1119 and #1127): sectors, systems,
-  phenomena, stars, planets, moons, belts, comets and facilities use
-  printed IDs (API version 3). Stage 3 = edit endpoints, wiki, NAV,
-  objectref.js and the galaxy JS.
-  Known failure (2026-10-09): Open after stage 1 (Bugfixes lane 2,
-  2026-10-10): tests/test_web_a11y.py, the sector page at phone width,
-  fails on main because the galaxy JS still requests /sector/<row
-  id>/scene and gets 404. Stage 3 (galaxy JS) fixes it.
-  Design: [docs/design/object-id-options.md](design/object-id-options.md)
-
 ## ADM: Admin tools
 
 - [ ] **ADM.13 Incomplete uploads page**
@@ -3669,12 +3738,15 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Clearing one, confirmed and written to the admin activity log, throws
   away its staged data and releases its sectors and id blocks; until
   then nothing else (a server-side run, another upload) may use them.
-  Part of, or linked from, the job page (ADM.10, PR #294). Open question: should
+  Part of, or linked from, the job page (ADM.10, PR #294). Question
+  (decided below): should
   an upload with no contact for a long time be flagged as stale on the
   page?
   Research (2026-10-09, api-design-standards.md): the stale flag
   defaults to 3 days without contact and only flags; the page reads
   `upload_runs`, `upload_units` and `upload_claims`.
+  Decided (2026-10-10): Boss (19:16Z, Accept all): flag an upload that
+  has been silent for 3 days; flag only, never auto-clear.
 
 - [ ] **ADM.15 Change the worker count from the Queue page, with a "Ludicrous Speed" mode**
   Boss (2026-10-01 22:11Z): "have admin in the queue menu able to
@@ -3769,8 +3841,9 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   timestamped backups with restore, audit rows, per-field errors, a
   pending-restart banner from a startup snapshot, import and export, a
   recent-password prompt for the Owner tier. `set-permissions.sh` and
-  the installers must create the settings folder for the web user. Open
-  question for Boss (default): show everything, edit in the browser only
+  the installers must create the settings folder for the web user.
+  Decided (Boss, 2026-10-10 18:44Z, defaults approved; default): show
+  everything, edit in the browser only
   for the admin and Owner tiers.
   Read side built with ADM.42 (PR #912): the `settings.json` overlay
   is read, nothing writes it yet; options marked `x-editable` false are
@@ -3795,7 +3868,8 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   tag block, upload of icons and the default OG image, and the pluggable
   card renderer (`render_card(kind, object_id) -> bytes`,
   `og.generated_cards` off by default). It does not depend on VIEW.3.
-  Open question for Boss (default): generated system and sector pages
+  Decided (Boss, 2026-10-10 18:44Z, defaults approved; default):
+  generated system and sector pages
   are `noindex,follow`, top pages only in the sitemap, switchable with
   `seo.detail_pages`.
 
@@ -3816,8 +3890,9 @@ Design: [docs/design/login-brute-force-protection.md](design/login-brute-force-p
   password length of 1,024 (none exists in `admin/auth.py`
   `validate_password_policy`; only the 2 MB body limit bounds it); cost
   parameters in the settings model; the `__Host-` session cookie prefix
-  when Secure. Ideally before USR.2 so new accounts start on it. Open
-  question for Boss (default yes): move from PBKDF2-600k to Argon2id (a
+  when Secure. Ideally before USR.2 so new accounts start on it. Decided
+  (Boss, 2026-10-10 18:44Z, defaults approved; default yes): move from
+  PBKDF2-600k to Argon2id (a
   new dependency); minimum length 12 with the blocklist, 15 only if
   NIST's password-only guidance is wanted.
   Prerequisites: none.
@@ -3855,9 +3930,21 @@ clears each one.
   did not reproduce on current main in 83 local runs. Done: the cause is
   found (a seed or ordering dependence in the test, or a real bug in
   star-type selection) and the test is made robust without loosening it,
-  or the product bug is fixed. Open question for Boss (default: leave
+  or the product bug is fixed. Decided (Boss, 2026-10-10 18:44Z,
+  defaults approved; default: leave
   open until it recurs, then investigate with the failing run's data).
   Prerequisites: none. Related: TEST.111, TEST.71.
+
+- [ ] **TEST.125 Three browser-map tests fail on main with "no generated system has a moon" (bug)**
+  Bugfixes lane 2 (2026-10-10, found in NAV.9's full suite):
+  test_selection_drill, test_3d_view_draws and test_body_link_opens in
+  tests/test_web_browser_maps.py fail on main with "no generated system
+  has a moon". The fixture galaxy has no system with a moon, so it looks
+  like a fixture problem, not a product bug. Find out whether a seed
+  change (the scatter or object-first sampler work) removed the moons,
+  and fix the fixture so the tests do not depend on luck; never skip
+  them. Owner: Bugfixes lane 2.
+  Prerequisites: none. Related: TEST.111, TEST.122.
 
 ## USR: User accounts
 
@@ -3899,7 +3986,8 @@ clears each one.
     promote a user to admin or demote an admin to user, refused for the
     Owner; sessions and API keys that work for every role while the
     admin-only pages and API routes stay admin-only; each role change
-    written to the audit log. Open questions: does `admin_users` become
+    written to the audit log. Question (decided below): does
+    `admin_users` become
     this table (renamed, with a role column) or do users get their own
     table? Which existing account becomes Owner on a server that already
     has several admins (the lowest id?)? Can an admin demote themselves,
@@ -3915,6 +4003,9 @@ clears each one.
     first. Add the console CLI `planetgen.cli.accounts
     --set-owner/--reset-password`. The control schema is the next
     Alembic revision after the current one.
+    Decided (2026-10-10): Boss (19:16Z, Accept all): one accounts table
+    with a role column (add the columns now, rename later); the lowest
+    id is the Owner.
 
   - [ ] **USR.3 SMTP settings in the admin config**
     Boss: "We'll use SMTP for
@@ -3923,7 +4014,8 @@ clears each one.
     set from an admin page (and the config file/installer), with a "send
     test email" button; one small mail module that every flow in USR.4
     to USR.6 uses, which logs failures and never shows the SMTP
-    password. Open questions: is the SMTP password kept in the config
+    password. Question (decided below): is the SMTP password kept in the
+    config
     file (like the database password) or in the control database, and is
     it encrypted there? Who can change SMTP settings: any admin, or only
     the Owner? What do invites and resets do when SMTP isn't configured
@@ -3932,6 +4024,8 @@ clears each one.
     B9: stdlib smtplib, Owner-only (SMTP, `base_url`, From address; open
     question for Boss, default yes), password in the web-owned 0600
     file, no SMTP means invites show the link only; sent from an RQ job.
+    Decided (2026-10-10): Boss (19:16Z, Accept all): SMTP settings are
+    Owner-only; the password lives in a 0600 file, not the database.
 
   - [ ] **USR.4 Invite-only sign-up by unique link**
     Boss: "only an admin can
@@ -3947,13 +4041,16 @@ clears each one.
     with uses left, expiry and who made them, and a way to revoke one;
     opening a valid link lets someone register (username, email), then
     USR.5's email loop sets their password; the account is a user, not
-    an admin. Open questions: does an admin optionally type the invitee's
+    an admin. Question (decided below): does an admin optionally type
+    the invitee's
     email so the link is sent for them, or only copy the link? Is the
     invite page rate-limited, and is there a cap on open invites? Does
     a multi-use link record who used it?
     Research (2026-10-09, settings-seo-and-accounts.md): add the
     `invite_uses` table, atomic redeem, an open-invite cap of 50 and
     rate limits (B5).
+    Decided (2026-10-10): Boss (19:16Z, Accept all): invites capped at
+    50 open at once; the invitee email is optional.
 
   - [ ] **USR.5 Email loop for setting and resetting passwords**
     Boss: "an
@@ -3963,7 +4060,8 @@ clears each one.
     (stored hashed) and end the account's other sessions once used; the
     page never says whether an email address has an account; resets are
     rate-limited per address and per IP alongside the existing login
-    backoff and SEC.1. Open questions: how long a reset link lasts
+    backoff and SEC.1. Question (decided below): how long a reset link
+    lasts
     (30 minutes? 1 hour?); does changing the email address also need an
     email confirmation to the old and new addresses; does the Owner's
     reset need anything extra?
@@ -3971,6 +4069,9 @@ clears each one.
     reset 30 minutes, first-password 24 hours, email change 1 hour; a
     notification email on password and email change; an Owner reset asks
     for the TOTP code when enrolled.
+    Decided (2026-10-10): Boss (19:16Z, Accept all): reset links last 30
+    minutes, a first password link 24 hours, an email change 1 hour with
+    confirmation.
 
   - [ ] **USR.6 Owner transfer**
     Boss: "The owner CAN (with specific approval
@@ -3980,7 +4081,8 @@ clears each one.
     confirm the choice explicitly, enter their password twice, and then
     confirm from an email link; the chosen account then gets an email and
     must accept from its own link; only when both are done does Owner
-    move; every step goes to the audit log. Open questions: what the old
+    move; every step goes to the audit log. Question (decided below):
+    what the old
     Owner becomes (admin?); does the new Owner have to be an admin
     already; how long the pending transfer lasts and whether the Owner
     can cancel it; what happens if the Owner loses their email or
@@ -3990,6 +4092,9 @@ clears each one.
     admin with TOTP; it expires after 48 hours; the Owner can cancel;
     the confirm link lands on a neutral page because of
     `SameSite=Strict`.
+    Decided (2026-10-10): Boss (19:16Z, Accept all): the old Owner
+    becomes an admin; the target must be an admin with 2FA; a pending
+    transfer expires in 48 hours.
 
   - [ ] **USR.7 A user-level interface with bookmarks**
     Boss: "a full user
@@ -3997,7 +4102,8 @@ clears each one.
     (any role) get an account page and can bookmark sectors, systems,
     planets, phenomena and NAV courses, see them in a list, name them and
     remove them; bookmarks are stored per account in the control
-    database. Open questions: which objects can be bookmarked, and can
+    database. Question (decided below): which objects can be bookmarked,
+    and can
     users also add notes? What else a user can do that an anonymous
     visitor can't (is the site still public to read, or sign-in only?)?
     Do bookmarks survive a galaxy regenerate (object ids change), and if
@@ -4007,6 +4113,8 @@ clears each one.
     migration.
     Research (2026-10-09, settings-seo-and-accounts.md): nothing new
     beyond B11 (forced sign-in would force `seo.indexing=off`).
+    Decided (2026-10-10): Boss (19:16Z, Accept all): the site stays
+    public to read; bookmarks are for signed-in users; notes come later.
 
   - [ ] **USR.8 Every signed-in user can generate a one-off system**
     Boss (2026-10-02 05:16Z): "TODO Item, all users can generate a
@@ -4022,7 +4130,7 @@ clears each one.
     redirecting), with the same options and output; it still never saves
     to the database; anonymous visitors are sent to sign in; the rest of
     `/admin/generate` stays admin-only; a test covers anonymous, user
-    and admin. Open question for Boss, with the default taken: a
+    and admin. Decided (Boss, 2026-10-10 18:44Z, default approved): a
     per-user limit, since each system runs the generator in a separate
     process for about a second (default: 30 one-off systems per hour per
     user account, admins and the Owner unlimited, a clear message when
@@ -4033,8 +4141,9 @@ clears each one.
     both numbers settings (`limits.one_off_per_hour` 30,
     `limits.one_off_concurrent` 3). The text names
     `html/web/system_page.py`; the file is
-    `src/planetgen/web/system_page.py`. Open question for Boss
-    (default): user sessions last 30 days while admins stay at 12 hours.
+    `src/planetgen/web/system_page.py`. Decided (Boss, 2026-10-10
+    18:44Z, defaults approved; default): user sessions last 30 days
+    while admins stay at 12 hours.
     Prerequisite: USR.2.
 
 - [ ] **USR.9 `seo.privacy_note` text, "download my data" and "delete my account" on the account page**
@@ -4060,8 +4169,9 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   lock hash and an environment JSON (libc, numpy, astropy, scipy,
   scikit-image versions), the last 10 per galaxy as already specified;
   the seed itself is not changed. ADM.18's settings file records the
-  epoch and `fp_spec`, and is written with LF only. Open questions for
-  Boss (defaults taken): (1) is the same galaxy on Linux, macOS and
+  epoch and `fp_spec`, and is written with LF only. Decided (Boss,
+  2026-10-10 18:44Z, defaults approved; defaults taken): (1) is the same
+  galaxy on Linux, macOS and
   Windows a goal, exact for integers, strings and structure and equal to
   9 significant digits for floats? Default yes; if not, drop the Windows
   and macOS CI additions and keep the epoch. (2) Is an integer epoch in
@@ -4087,7 +4197,8 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   22, 29, 164), the `docs/server-checklist.md` "reload the app" row and
   the closing text of `update.sh` and `install.sh`; `update.sh` prints
   "restart" after `a2enmod` though a graceful reload loads new modules.
-  Open question for Boss (default: print the manual command and end
+  Decided (Boss, 2026-10-10 18:44Z, defaults approved; default: print
+  the manual command and end
   non-zero on a failed reload).
   Prerequisites: none.
   Design: [docs/design/ops-scheduling-and-rotation.md](design/ops-scheduling-and-rotation.md)
@@ -4210,8 +4321,9 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   into HTML by the update script, so they can be edited without touching
   code. A test lists every user-facing route and fails when a route has
   no help page or a help page has no route, and a second test checks
-  that every link inside the help section resolves. Open question for
-  Boss (default: Phase 2, after the features they describe have settled;
+  that every link inside the help section resolves. Decided (Boss,
+  2026-10-10 18:44Z, defaults approved; default: Phase 2, after the
+  features they describe have settled;
   Markdown source in docs/help/, built at update time, served at /help):
   other?
   Prerequisites: none. Related: DOC.7, DOC.8, DOC.9, DOC.10, DOC.11,
@@ -4339,13 +4451,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   help text is).
   Prerequisite: DOC.6. Related: DOC.6.
 
-- [ ] **DOC.17 Describe the object ID in api.md**
-  Left over from DOC.5 when Foundations lane 1 merged the rest (PR
-  #1075). Done: docs/api.md describes the object ID as the public
-  reference in pages, URLs and the API, once API.23 has made it so.
-  Prerequisite: API.23.
-  Prerequisite: API.23. Related: DOC.5, API.23.
-
 ## VIEW: The view from a planet
 
 - [ ] **VIEW.1 View from a planet**
@@ -4400,8 +4505,9 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
     supernova-remnant visibility; add the vectorised first-order
     `sky_vectors` (sky-view.md 2.2) beside VIEW.5's per-body
     `apparent_position`. GEN.104 is a prerequisite for horizon views and
-    time of day (a whole-sky chart does not need it). Open questions for
-    Boss (defaults taken): exact stars for V <= 6.5 with tiers built by
+    time of day (a whole-sky chart does not need it). Decided (Boss,
+    2026-10-10 18:44Z, defaults approved; defaults taken): exact stars
+    for V <= 6.5 with tiers built by
     an angle-bin scatter and a background glow for the rest, the
     planet's page saying "sky incomplete" until its tiers ran; limiting
     magnitude 6.5 for every planet with horizon extinction and twilight
@@ -4418,7 +4524,8 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
     projection, star size and colour by apparent brightness), and the
     brighter stars are grouped into constellations with lines and names
     from VIEW.4, stored so a planet keeps the same constellations each
-    time. Blocked on VIEW.2's research pass. Open questions: whole-sky
+    time. Blocked on VIEW.2's research pass. Question (decided below):
+    whole-sky
     or a horizon view from a point on the surface? How are constellations
     chosen (bright-star patterns, by clustering, a set number per sky)?
     Are the PNGs cached on disk and served by the web interface, or made
@@ -4433,6 +4540,9 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
     with numpy and `zlib`; constellation lines and names as an SVG
     overlay. Neighbour galaxies are extended sprites in a planet's sky
     (sky-view.md 2.10).
+    Decided (2026-10-10): Boss (19:16Z, Accept all): the whole-sky PNG
+    comes first; seeded constellations are stored per system; the PNGs
+    are cached.
 
   - [ ] **VIEW.4 Constellation names in the name generator**
     Boss: "add to our
@@ -4445,7 +4555,8 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
     recombines them into new names the same way stars, planets and
     sectors are named (`split_into_syllables` in `utils.py`, the
     prefix/suffix lists, the `offensive_words.txt` filter). Used by
-    VIEW.3. Open questions: what counts as a source list (licensing of
+    VIEW.3. Question (decided below): what counts as a source list
+    (licensing of
     sky culture data such as Stellarium's), transliteration of non-Latin
     scripts, and whether names are unique per planet or galaxy-wide.
     Plan (2026-10-07): Constellation names come from the codec under the
@@ -4462,11 +4573,15 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
     CC BY-SA 4.0) as moot; the open questions on licensing,
     transliteration and per-planet uniqueness are moot under the codec
     plan.
+    Decided (2026-10-10): Boss (19:16Z, Accept all): constellation names
+    use the name codec (the 2026-10-07 plan stands); the licensing,
+    transliteration and uniqueness questions are moot.
 
 - [ ] **VIEW.6 Settle the handedness of the generated galaxy before mapping real sky coordinates**
   The generated galaxy rotates counterclockwise about +Z and the real
   one clockwise about the north pole. Settle which frame sky charts and
-  the neighbour galaxies use. Open question for Boss (default): keep the
+  the neighbour galaxies use. Decided (Boss, 2026-10-10 18:44Z, defaults
+  approved; default): keep the
   project's rotation; for neighbour galaxies use the proper embedding of
   multiple-galaxies.md 2.2 (longitude 90 along the rotation, b flipped);
   a sky chart's own l and b are measured in the generated frame and
@@ -4530,8 +4645,9 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
     3.0, I 3.4, Me 3.2, P 3.0, D 3.2, a judgment for Boss to review).
     The parameter table, band names and limiting-domain decision are in
     the design doc, so the written-into-population-and-politics.md
-    clause is met once Boss accepts them. Open questions for Boss
-    (defaults taken): age zero is the industrial transition; old
+    clause is met once Boss accepts them. Decided (Boss, 2026-10-10
+    18:44Z, defaults approved; defaults taken): age zero is the
+    industrial transition; old
     civilizations are not all near the top (the oldest median is about
     6.1); the weighted sum is the only stored TL, with the limiting
     domain and a lopsided flag shown; label "Tech band" and "Era" on the
@@ -4572,8 +4688,9 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   allowlist, (d) optional "suggest ratings". The rating chip shows an
   icon and the word, not colour alone (palette in the design doc). The
   icon allowlist and vendoring (60 to 100 Bootstrap Icons, MIT licence
-  file kept) is a small separate task under UX.43 or UX.49. Open
-  questions for Boss (defaults taken): facility types refine the five
+  file kept) is a small separate task under UX.43 or UX.49. Decided
+  (Boss, 2026-10-10 18:44Z, defaults approved; defaults taken): facility
+  types refine the five
   existing kinds rather than replace them; ship the mechanism plus one
   example type.
   Design: [docs/design/population-and-politics.md](design/population-and-politics.md)

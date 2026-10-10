@@ -201,12 +201,12 @@ def test_galaxy_map_and_tiles_show_sectors_the_cli_placed(site, mysql_config):
     warm = site.get(tiles_url).get_json()
     assert "placed" not in warm["tiles"][WHOLE_GALAXY_TILE], "MAP.157: the web tile carries only what the page reads"
     assert site.get(tiles_url).get_json()["cached"] == 1
-    assert _placed_ids(site.get(api_tiles_url).get_json()["tiles"][WHOLE_GALAXY_TILE]) == [first["id"]]
+    assert _placed_ids(site.get(api_tiles_url).get_json()["tiles"][WHOLE_GALAXY_TILE]) == [pid("sector", first["id"], mysql_config)]
 
     _generate(mysql_config, "galaxy", "--ring", "0", "--num-systems", "1", "--backfill-from", "none")
     sectors = _sectors(mysql_config)
     assert len(sectors) == 3
-    all_ids = sorted(row["id"] for row in sectors)
+    all_ids = sorted(pid("sector", row["id"], mysql_config) for row in sectors)
 
     # The API itself caches nothing: fresh at once.
     assert _placed_ids(site.get(api_tiles_url).get_json()["tiles"][WHOLE_GALAXY_TILE]) == all_ids

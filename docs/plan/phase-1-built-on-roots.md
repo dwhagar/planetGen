@@ -26,7 +26,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| NAV.9 | Search and locate return references for every kind |  | queryDb search and galaxy_locate. |
 
 ### Picker
 
@@ -172,8 +171,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | API.15 | Log every API call with its user, how it came in, and its HTTP response code |  | Needs no user accounts (Boss 01:31Z). |
 | API.4 | API compatibility data in the docs |  | Docs and version number. |
-| API.23 | The object ID as the public reference: pages, URLs, the API, wiki links and objectref use it in place of row ids |  | Object-ID research. Breaking: bumps the API version (API.22). |
-| DOC.17 | Describe the object ID in api.md | API.23 |  |
 | API.7 | Investigate and plan upload limits |  | Plan only. |
 
 ### Reproducible galaxies
@@ -194,6 +191,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | TEST.111 | test_ensure_sector_generated_creates_then_reuses_the_same_sector fails in a busy parallel run (bug) |  | Test flake reported 2026-10-09; Bugfixes lane 1. |
+| TEST.125 | Three browser-map tests fail on main with "no generated system has a moon" (bug) |  |  |
 | TEST.116 | test_bughunt_end_to_end stores M2V or M6V where it expects K2V on the MySQL 8.4 and MariaDB legs once (bug) |  | Bugfixes lane 1 report 03:57Z. |
 
 ### Foundations for the issue features

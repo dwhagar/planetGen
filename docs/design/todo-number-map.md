@@ -22,7 +22,7 @@ release is stamped.
 | API | API.24 |
 | ADM | ADM.50 |
 | SEC | SEC.33 |
-| TEST | TEST.125 |
+| TEST | TEST.126 |
 | USR | USR.10 |
 | OPS | OPS.41 |
 | DOC | DOC.18 |
@@ -460,7 +460,7 @@ Parents marked "new parent" had no old number of their own.
 | API.20 | `require_json_body` returns 500 for a deeply nested JSON body (bug) | none | done, PR #865 |
 | API.21 | Flask-Limiter puts `Retry-After` on successful responses (bug) | none | done, PR #865 |
 | API.22 | An API version number: one sequential integer, shown in admin and in the status response | none | done, PR #1119 |
-| API.23 | The object ID as the public reference: pages, URLs, the API, wiki links and objectref use it in place of row ids | none | open |
+| API.23 | The object ID as the public reference: pages, URLs, the API, wiki links and objectref use it in place of row ids | none | done, PR #1133 |
 | DB.1 | Starbases, colonies and outposts in the database | 30 (2026-09-30 18:14Z); 35 (2026-09-30 18:39Z to 2026-10-01 02:24Z) | done in 7.35.0, PR #152 |
 | DB.2 | Asteroid field and comet composition rows are written but never read (bug) | none | done, PR #347 |
 | DB.3 | resetDb while another process holds id blocks can duplicate primary keys (bug) | none | done, PR #347 |
@@ -499,7 +499,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.14 | The admin help pages: the queue, the stats page, settings, lockouts and the naming key | none | open |
 | DOC.15 | A glossary and units help page: coordinates, scales, sector paths, object IDs, time and the in-universe wording | none | open |
 | DOC.16 | The API help page for visitors: what the API is, how to get a key, and where the reference lives | none | open |
-| DOC.17 | Describe the object ID in api.md | none | open |
+| DOC.17 | Describe the object ID in api.md | none | done, PR #1133 |
 | GEN.1 | Real-world rates for interstellar objects | 5 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.2 | Rogue planet mass bins | 6 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.3 | A supermassive black hole in every galaxy | 7 (2026-09-30 18:14Z to 22:54Z) | done in 7.15.0, PR #132 |
@@ -871,7 +871,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.6 | Courses that steer clear of gravity wells | none | open |
 | NAV.7 | One reference for every object, with its parents | none | done, PR #688 |
 | NAV.8 | Pages and anchors for stars, planets, moons and belts | none | done, PR #1095 |
-| NAV.9 | Search and locate return references for every kind | none | open |
+| NAV.9 | Search and locate return references for every kind | none | done, PR #1139 |
 | NAV.10 | Routing that scales past a few thousand systems | none | done, PR #814 |
 | NAV.11 | Travel times for the system-to-system route too | none | done, PR #1099 |
 | NAV.12 | No maximum hop length: a route always reaches the nearest star it can, across any number of sectors | none | done, PR #841 |
@@ -1388,6 +1388,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.122 | Browser map tests fail on plain main in Bugfixes lane 2's container (fixture maps, controls, system-page maps) (bug) | none | done, PR #1125 |
 | TEST.123 | test_a_loaded_sector_knows_every_objects_cell_and_velocity fails once under full-suite load (bug) | none | done, PR #1121 |
 | TEST.124 | Phenomena page tests fail with KeyError scattered in system_pages._phenomena_load (bug) | none | done, PR #1077 |
+| TEST.125 | Three browser-map tests fail on main with "no generated system has a moon" (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

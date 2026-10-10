@@ -21,7 +21,7 @@ function whenMapReady(callback) {
 }
 
 function selectOnMap(row) {
-  var match = /^(planet|moon|star|belt|comet)-(\d+)$/.exec(row.id);
+  var match = /^(planet|moon|star|belt|comet)-(.+)$/.exec(row.id);
   if (!match) return;
   var markers = document.querySelectorAll(".sysmap-body[data-kind='" + match[1] + "'][data-id='" + match[2] + "']");
   var marker = markers[0];

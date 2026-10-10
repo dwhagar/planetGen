@@ -1,2 +1,0 @@
-### Added
-- Every rocky planet and moon description now explains its PHI-4 habitability in full (UX.91): the score and the equipment a human needs, then each of the four colour factors (pressure, temperature, chemistry, radiation) with its colour, this world's input values and the input that sets the colour. The wording matches the Habitability levels page, and the colours always agree with the chip on the system list. Wiki pages carry the same paragraphs.

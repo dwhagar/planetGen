@@ -1,2 +1,0 @@
-### Changed
-- Each stage of a galaxy or plan run is now stored with how long it took and the settings it ran with (mass limit, luminosity floor, workers, radius ...) and what it did (layers visited and changed, objects placed); skipped stages are stored with their reason. The admin Stats page lists the latest stage times, and the estimate helper `stage_seconds` reads the runs with matching settings (PERF.56, control schema v14).

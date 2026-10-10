@@ -16,6 +16,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.generation.phenomena.rogue import RoguePlanet
 from planetgen.web.app import create_app
+from tests.publicids import pid
 
 PRINTED = re.compile(r"^[0-9A-F]+(-[0-9A-F]+){0,2}$")
 
@@ -158,3 +159,90 @@ def test_a_hand_made_sector_with_no_stored_id_is_found_by_its_unplaced_id(bodies
     printed = format(sector_uid.unplaced_sector_uid(row["id"]), "X")
     found = api.get(f"/api/sectors/{printed}")
     assert found.status_code == 200 and found.get_json()["name"] == "By Hand"
+
+
+_ROW_LINK = re.compile(r'(?:/(?:system|sector|object)/|/phenomenon/[a-z_]+/|\b(?:system|sector|star|planet|moon|belt|comet|'
+                       r'facility|nebula|black_hole|rogue_planet):)(\d+)\b')
+
+
+def test_pages_link_to_objects_by_id_and_never_by_row_number(bodies):
+    web, _config = bodies
+    sector = web.get("/api/sectors").get_json()["items"][0]["id"]
+    system = web.get("/api/systems").get_json()["items"][0]["id"]
+    paths = ["/sectors", "/systems", "/phenomena", "/nav", "/nearby", f"/sector/{sector}", f"/system/{system}",
+             f"/system/{system}/scene", f"/nav?from=system:{system}", f"/nearby?place=system:{system}&distance=10",
+             f"/galaxy?course=system:{system}"]
+    for path in paths:
+        response = web.get(path)
+        assert response.status_code in (200, 302, 404), path
+        found = [m.group(0) for m in _ROW_LINK.finditer(response.get_data(as_text=True)) if len(m.group(1)) < 9]
+        assert found == [], (path, found[:5])
+
+
+def test_the_galaxy_stage_and_tiles_carry_sector_ids_the_map_can_open(mysql_config):
+    """The Galaxy Map opens `/sector/<id>/scene` with the ids from the stage payload and the tiles."""
+    from planetgen.galaxy.viewport import tiles_intersecting_sphere
+    from tests.test_api import _generated_sectors
+
+    _generated_sectors(mysql_config, [0.5, 5.0, 40.0])
+
+    class TestConfig(Config):
+        MYSQL_CONFIG = mysql_config
+        WRITE_MYSQL_CONFIG = mysql_config
+        CONTROL_MYSQL_CONFIG = mysql_config
+
+    app = create_app(TestConfig)
+    app.testing = True
+    client = app.test_client()
+    keys = tiles_intersecting_sphere(9, (60.0, 60.0, 60.0), 130.0)
+    tiles = client.get("/api/galaxy/tiles?tiles=" + ",".join(keys)).get_json()["tiles"]
+    placed = [row for tile in tiles.values() for row in tile["placed"]]
+    assert placed and all(isinstance(row["id"], str) for row in placed)
+    assert client.get(f"/sector/{placed[0]['id']}/scene").status_code == 200
+
+    at = None
+    for _ in range(6):
+        stage = client.get("/api/galaxy/stage" + (f"?at={at}" if at else "")).get_json()
+        if stage.get("sectors"):
+            break
+        child = next((c for c in stage["children"] if c.get("generated")), None)
+        if child is None:
+            break
+        at = f"{stage['child_m']}.{child['ring']}.{child['wedge']}.{child['slab']}"
+    assert stage.get("sectors"), "no stage with sectors reached"
+    assert all(isinstance(row["id"], str) for row in stage["sectors"])
+    assert client.get(f"/sector/{stage['sectors'][0]['id']}/scene").status_code == 200
+
+
+def test_a_rogue_planet_inside_a_nebula_names_the_nebula_by_id(mysql_config):
+    from planetgen.generation.phenomena.nebula import Nebula
+
+    sector = SpaceSector("Cloud Sector", edge_ly=20.0)
+    sector.add_phenomenon(RoguePlanet(SystemConfig()), "rogue-planet")
+    sector_row = store.save_sector(sector, config=mysql_config)
+    conn = store.get_connection(mysql_config)
+    try:
+        with conn:
+            nebula = store.insert_nebula(conn, Nebula(SystemConfig(), name="Test Veil"), sector_id=sector_row,
+                                         placement={"center_x_pc": 1.0, "center_y_pc": 2.0, "center_z_pc": 3.0,
+                                                    "galactic_radius_pc": 3.7})
+            store.assign_uids(conn, phenomenon=("nebulae", nebula))
+            conn.execute("UPDATE rogue_planets SET inside_nebula_id = ?", (nebula,))
+        nebula_printed = pid("nebula", nebula, conn)
+    finally:
+        conn.close()
+
+    class TestConfig(Config):
+        MYSQL_CONFIG = mysql_config
+        WRITE_MYSQL_CONFIG = mysql_config
+        CONTROL_MYSQL_CONFIG = mysql_config
+
+    app = create_app(TestConfig)
+    app.testing = True
+    client = app.test_client()
+    rogue = next(row for row in client.get("/api/phenomena").get_json()["items"] if row["type"] == "rogue_planet")
+    detail = client.get(f"/api/phenomena/rogue_planet/{rogue['id']}").get_json()
+    assert detail["inside_nebula_id"] == nebula_printed
+    page = client.get(f"/phenomenon/rogue_planet/{rogue['id']}")
+    assert page.status_code == 200
+    assert f"/phenomenon/nebula/{nebula_printed}" in page.get_data(as_text=True)

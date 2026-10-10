@@ -9,6 +9,7 @@ import math
 import re
 
 import pytest
+from markupsafe import escape
 
 from planetgen import tuning
 from planetgen.api.config import Config
@@ -76,7 +77,7 @@ def test_the_list_shows_what_is_near_with_links_and_the_ungenerated_count(client
     response = client.get(f"/nearby?place=system:{system['pid']}&distance=12")
     html = response.get_data(as_text=True)
     assert response.status_code == 200
-    assert "Within 12 pc of" in html and system["name"] in html
+    assert "Within 12 pc of" in html and escape(system["name"]) in html
     assert re.search(r'href="/system/[0-9A-F-]+"', html)
     assert "are uncharted" in html or "is uncharted" in html
     assert 'id="nearby-results"' in html

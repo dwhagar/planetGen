@@ -2707,7 +2707,28 @@ export function createStageView(host) {
     }
   }
 
-  // The name lookup's matches, as buttons that fly to each one's sector.
+  // A planet or moon hit is a body inside a system (NAV.9): it opens through
+  // /object/<ref>, which lands on its row on the system page.
+  function isBody(match) {
+    return match.kind === "planet" || match.kind === "moon";
+  }
+
+  function bodyUrl(match) {
+    return "/object/" + encodeURIComponent(match.ref);
+  }
+
+  function matchLabel(match) {
+    if (match.kind === "system") return match.name + " (system in " + (match.sector_name || "sector " + match.sector_id) + ")";
+    if (isBody(match)) {
+      const chain = (match.parents || []).filter(function (p) { return p.kind === "planet" || p.kind === "system"; })
+        .reverse().map(function (p) { return p.name; }).filter(Boolean).join(", ");
+      return match.name + " (" + match.kind + (chain ? " of " + chain : "") + ")";
+    }
+    return match.name + " (sector)";
+  }
+
+  // The name lookup's matches: sectors and systems as buttons that fly to the
+  // sector, planets and moons as links to their row on the system page.
   function showMatches(matches) {
     const box = els.matches;
     if (!box) return;
@@ -2715,16 +2736,21 @@ export function createStageView(host) {
     const list = document.createElement("ul");
     matches.forEach(function (match) {
       const item = document.createElement("li");
-      const button = document.createElement("button");
-      button.type = "button";
-      button.textContent = match.kind === "system"
-        ? match.name + " (system in " + (match.sector_name || "sector " + match.sector_id) + ")"
-        : match.name + " (sector)";
-      button.addEventListener("click", function () {
-        clearMatches();
-        locate(match);
-      });
-      item.appendChild(button);
+      if (isBody(match)) {
+        const link = document.createElement("a");
+        link.href = bodyUrl(match);
+        link.textContent = matchLabel(match);
+        item.appendChild(link);
+      } else {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.textContent = matchLabel(match);
+        button.addEventListener("click", function () {
+          clearMatches();
+          locate(match);
+        });
+        item.appendChild(button);
+      }
       list.appendChild(item);
     });
     box.appendChild(list);
@@ -2754,7 +2780,12 @@ export function createStageView(host) {
       const sectors = new Set((exact.length ? exact : matches).map(function (m) { return m.sector_id; }));
       if (matches.length === 1 || (exact.length && sectors.size === 1)) {
         notice("");
-        locate(exact[0] || matches[0]);
+        const only = exact[0] || matches[0];
+        if (isBody(only)) {
+          window.location.assign(bodyUrl(only));
+          return;
+        }
+        locate(only);
         return;
       }
       notice(matches.length + " names match; pick one.");

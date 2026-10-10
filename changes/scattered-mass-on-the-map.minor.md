@@ -1,2 +1,0 @@
-### Added
-- Scattered black holes and neutron stars store their mass (MAP.165, schema v80), the sector build gives the object that same mass, and the Galaxy Map sizes each point by it, so a 20 solar mass black hole is drawn bigger than a 5 solar mass one and a neutron star smaller than either. The point's tooltip shows the mass. Rows scattered before v80 keep sizing by mass class until the scatter is redone.

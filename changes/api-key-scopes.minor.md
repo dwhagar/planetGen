@@ -1,2 +1,0 @@
-### Added
-- API keys have scopes (API.9): `read`, `generate`, `upload` and `admin` (admin implies all; generate and upload imply read), an optional expiry, and a visible prefix. Existing keys become admin keys. A key short of a route's scope gets `403` with `required_scope`; every key has its own rate limit bucket and skips the per-address defaults; `last_used_at` is written at most once a minute. The admin page's new-key form takes scopes and a lifetime. Control schema v13.
