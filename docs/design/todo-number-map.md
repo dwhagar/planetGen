@@ -580,13 +580,13 @@ Parents marked "new parent" had no old number of their own.
 | GEN.80 | Population and species generation runs on worlds without a technological civilization (bug) | none | done, PR #448 |
 | GEN.81 | The console refuses runs instead of warning and doing what was asked (bug) | none | done, PR #467 |
 | GEN.82 | Black holes show a Hawking temperature and luminosity of zero (bug) | none | done, PR #448 |
-| GEN.83 | A planetary habitability index (PHI) | none | open |
+| GEN.83 | A planetary habitability index (PHI) | none | done, PR #1025 |
 | GEN.84 | Habitability design: one score structure and reconciled thresholds | none | done, PR #803 |
 | GEN.85 | Atmosphere species, partial pressures and mantle redox for every planet | none | done, PR #848 |
 | GEN.86 | Stellar activity (XUV, flares) and planetary magnetic fields | none | done, PR #908 |
 | GEN.87 | Surface radiation dose | none | done, PR #985 |
 | GEN.88 | Hydrosphere and ocean chemistry | none | done, PR #963 |
-| GEN.89 | The habitability score for every planet and moon | none | open |
+| GEN.89 | The habitability score for every planet and moon | none | done, PR #1025 |
 | GEN.90 | Refactor the planet classes around the habitability index | none | open |
 | GEN.91 | Classes like S and V in the hot and cold zones | none | open |
 | GEN.92 | Life and its highest stage follow the habitability score | none | open |
