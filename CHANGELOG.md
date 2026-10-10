@@ -3,6 +3,7 @@
 ## [8.0.866] - 2026-10-10
 
 ### Changed
+- **Docs only:** filed TEST.115 (Windows CI leg failures: Redis in WSL unreachable) and TEST.116 (a one-off K2V failure in test_bughunt_end_to_end) from the Bugfixes lane 1 CI findings.
 - GitHub CI (`ci.yml`, every test leg) now runs only by hand: Actions > CI > Run workflow. It no longer runs on a push or a pull request. `stamp-version.yml` and `release-note.yml` are unchanged.
 - CI: the `linux-update` job's "needs migrating" and "failed migration" steps rebuild the database from the v61 baseline fixture (the oldest schema `update.sh` upgrades from) instead of faking v48, which the code has refused since the Alembic cleanup. The old steps failed with "database is at schema v48, older than v61".
 - **Docs only:** TEST.112 (the 8 s wait for queued API edits, PR #955) is retired from the TODO list and the plans; TEST.111 stays open with a note.
