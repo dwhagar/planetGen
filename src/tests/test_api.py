@@ -34,6 +34,7 @@ from planetgen.galaxy.viewport import tile_keys_containing, tiles_intersecting_s
 from planetgen.galaxy.sector import SpaceSector
 from planetgen.generation.system import StarSystem
 from planetgen.wiki import WikiClientPageExistsError, WikiPage
+from planetgen.db import edits as db_edits
 from planetgen.db import query
 
 from tests.publicids import pid, pids
@@ -1695,6 +1696,29 @@ def test_galaxy_changes_is_full_after_a_deletion_or_a_bad_since(admin_client, my
 
     for since in ("", "nonsense", "0123456789abcdef.1.2.3.4"):
         assert _galaxy_changes(admin_client, since)["full"] is True
+
+
+def test_the_deletion_epoch_moves_with_every_deleted_sector(admin_client, mysql_config):
+    """PERF.38: the stamp reads one counter where it used to count every placed sector."""
+    first = _place_sector(mysql_config, "Epoch one", (5.0, 5.0, 5.0))
+    second = _place_sector(mysql_config, "Epoch two", (50.0, 5.0, 5.0))
+    conn = _db.get_connection(mysql_config)
+    try:
+        start = _db.sector_deletions(conn)
+    finally:
+        conn.close()
+    before = admin_client.get("/api/galaxy/stamp").get_json()
+    assert admin_client.delete(f"/api/sectors/{pid('sector', first)}").status_code == 200
+    conn = _db.get_connection(mysql_config)
+    try:
+        assert _db.sector_deletions(conn) == start + 1
+        with conn:
+            db_edits.delete_sector_with_contents(conn, second)
+        assert _db.sector_deletions(conn) == start + 2
+    finally:
+        conn.close()
+    assert admin_client.get("/api/galaxy/stamp").get_json()["stamp"] != before["stamp"]
+    assert _galaxy_changes(admin_client, before["state"])["full"] is True
 
 
 def test_search_returns_facets_and_matches_a_class_tag(client, seeded_sector):

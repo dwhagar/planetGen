@@ -1894,6 +1894,32 @@ def test_galaxy_map_stars_fade_in_with_the_zoom(page, map_site):
             assert abs(after - before) <= 0.6 * before, sums
 
 
+def test_galaxy_map_near_field_thins_what_stands_between_the_camera_and_the_focus(page, map_site):
+    """MAP.149: the shaders get the camera-to-focus distance; a point on the
+    line of sight, nearer than the focus, is faded to the tube's minimum
+    and one close to the camera to nothing, while the focus itself and a
+    point off to the side stay whole."""
+    problems = []
+    page.on("console", lambda message: problems.append(message.text) if message.type == "error" else None)
+    _open_galaxy(page, map_site)
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyStarFrame().count > 0")
+    page.wait_for_timeout(500)
+    assert not [text for text in problems if "shader" in text.lower() or "WebGLProgram" in text], problems
+    read = "(p) => document.querySelector('#galaxymap3d-canvas').galaxyNearField(...p)"
+    near = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyNearField()")
+    camera, target, distance = near["camera"], near["target"], near["distance"]
+    assert distance > 0, near
+    assert abs(sum((a - b) ** 2 for a, b in zip(camera, target)) ** 0.5 - distance) < 1e-6 * distance, near
+
+    def along(t):
+        return [c + t * (f - c) for c, f in zip(camera, target)]
+
+    assert page.evaluate(read, along(1.0))["share"] > 0.999
+    assert page.evaluate(read, along(1.5))["share"] > 0.999
+    assert page.evaluate(read, along(0.05))["share"] < 1e-6
+    assert abs(page.evaluate(read, along(0.6))["share"] - 0.08) < 0.02
+
+
 def _select_the_nebula(page):
     nebula = next(p for p in PHENOMENA if p["type"] == "nebula")
     # The screen-reader list holds a button for every object.

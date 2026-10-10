@@ -3,10 +3,10 @@
 ## Next free IDs
 
 A new item, subitem or bug takes its category's next free ID, and the
-same PR moves that row up by one. The release scripts read this table:
-each category's counter is its next free number minus one (the highest
-ID ever issued in it, which is also its item count), and the version's
-third number is the sum of the counters (see `changes/README.md`).
+same PR moves that row up by one. Each category's counter is its next free number minus one (the highest
+ID ever issued in it, which is also its item count). The table only
+allocates IDs; since 2026-10-10 it no longer feeds the version (BUILD
+counts stamped releases, see `changes/README.md`).
 `scripts/bump_version.py --check` fails if `docs/TODO.md` uses an ID at
 or past a category's next free one, so a stale row is caught before a
 release is stamped.
@@ -17,12 +17,12 @@ release is stamped.
 | MAP | MAP.167 |
 | NAV | NAV.58 |
 | GEN | GEN.198 |
-| PERF | PERF.64 |
+| PERF | PERF.67 |
 | DB | DB.23 |
 | API | API.24 |
 | ADM | ADM.50 |
 | SEC | SEC.33 |
-| TEST | TEST.125 |
+| TEST | TEST.126 |
 | USR | USR.10 |
 | OPS | OPS.41 |
 | DOC | DOC.18 |
@@ -845,7 +845,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.146 | Fly through the galaxy: scroll-zoom, double-click flight, distance-based visibility and a see-through near field | none | open |
 | MAP.147 | The Galaxy Map wire format: the investigation (done) and the record of what was built from it | none | open |
 | MAP.148 | The star visibility law: apparent-magnitude opacity, flux-based brightness and an on-screen limit from a histogram | none | open |
-| MAP.149 | The near field: depth fade, a see-through focus tube, drawing from inside a container, and picking that matches what is drawn | none | open |
+| MAP.149 | The near field: depth fade, a see-through focus tube, drawing from inside a container, and picking that matches what is drawn | none | done, PR #1141 |
 | MAP.150 | The free camera: wheel zoom to the cursor, double-click flight, and the observer inside, with the container named from position | none | open |
 | MAP.151 | The region data layer: exact-centred frame, aligned cells, per-level aggregates and slot-wrap ranges | none | open |
 | MAP.152 | Scale hand-offs: galaxy, sector and system cross-fade with hysteresis, and per-tile camera-relative origins | none | open |
@@ -871,7 +871,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.6 | Courses that steer clear of gravity wells | none | open |
 | NAV.7 | One reference for every object, with its parents | none | done, PR #688 |
 | NAV.8 | Pages and anchors for stars, planets, moons and belts | none | done, PR #1095 |
-| NAV.9 | Search and locate return references for every kind | none | open |
+| NAV.9 | Search and locate return references for every kind | none | done, PR #1139 |
 | NAV.10 | Routing that scales past a few thousand systems | none | done, PR #814 |
 | NAV.11 | Travel times for the system-to-system route too | none | done, PR #1099 |
 | NAV.12 | No maximum hop length: a route always reaches the nearest star it can, across any number of sectors | none | done, PR #841 |
@@ -997,8 +997,8 @@ Parents marked "new parent" had no old number of their own.
 | PERF.35 | An interval or chunk ledger for untouched sectors once block-first backfill lands | none | open |
 | PERF.36 | Memory and request guard: never list more than about 50,000 candidate cells, and refuse huge enumerations in a web request | none | open |
 | PERF.37 | `DecayingRate` starts from the first single completion, so the ETA is up to twice too long early in a run (bug) | none | done, PR #865 |
-| PERF.38 | Cache fixes for the Galaxy Map under a fill: single-flight tile builds, a busy rule for the page cache, a deletion epoch in place of COUNT(*) | none | open |
-| PERF.39 | Every API job costs 2.4 s and 195 MB: import lazily and cap the burst workers | none | open |
+| PERF.38 | Cache fixes for the Galaxy Map under a fill: single-flight tile builds, a busy rule for the page cache, a deletion epoch in place of COUNT(*) | none | done, PR #1144 |
+| PERF.39 | Every API job costs 2.4 s and 195 MB: import lazily and cap the burst workers | none | done, PR #1151 |
 | PERF.40 | Two shared queues, a reserved interactive worker and a real "cancel now" | none | open |
 | PERF.41 | Stamp the tile and page caches with a TILE_FORMAT constant instead of the version (optional) | none | open |
 | PERF.42 | Warm the RQ worker before the fork: pre-import generation modules and build the bright-star table once | none | done, PR #841 |
@@ -1022,7 +1022,10 @@ Parents marked "new parent" had no old number of their own.
 | PERF.60 | Large-mean Poisson helper for per-layer counts (top priority) | none | done, PR #1106 |
 | PERF.61 | Object-first sampler for the phenomena pass, own prototype first | none | done, PR #1113 (measured, no gain; not merged) |
 | PERF.62 | Interim early stop in the current layer-walking scatters: 100 empty layers in a row (tuning.SCATTER_DRY_LAYERS) | none | done, PR #1087; removed by PERF.58 (PR #1108) |
-| PERF.63 | Vectorise the candidate work of the phenomena scatter with numpy (needs Boss's call) | none | open |
+| PERF.63 | Vectorise the candidate work of the phenomena scatter with numpy | none | open |
+| PERF.64 | The Galaxy Map and the Systems list stop with "Took too long" and the whole site is sluggish (bug) | none | open |
+| PERF.65 | The text output of a multi-step job counts its steps, not its tasks: "Step 1 of 4" when the job has 12 (bug) | none | open |
+| PERF.66 | The whole-job progress bar should track total elapsed time and estimate a stage with no performance data from the earlier stages (bug) | none | open |
 | POP.1 | Government ownership of systems | 12 (2026-09-24 01:32Z to 02:18Z); 9 (2026-09-24 01:57Z to 02:02Z); 7 (2026-09-24 02:25Z to 05:38Z); 6 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 15 (2026-09-30 16:44Z); 16 (2026-09-30 16:49Z); 17 (2026-09-30 16:51Z to 18:09Z); 34 (2026-09-30 18:14Z); 39 (2026-09-30 18:39Z to 18:41Z); 59 (2026-09-30 19:02Z to 19:17Z); 63 (2026-09-30 20:01Z to 20:27Z); 46 (2026-09-30 20:07Z); 50 (2026-09-30 20:08Z to 20:48Z); 51 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 (optional since 7.58.2, PR #180) |
 | POP.2 | Names for dominant species on living worlds | 13 (2026-09-24 01:32Z to 02:18Z); 10 (2026-09-24 01:57Z to 02:02Z); 8 (2026-09-24 02:25Z to 05:38Z); 7 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 16 (2026-09-30 16:44Z); 17 (2026-09-30 16:49Z); 18 (2026-09-30 16:51Z to 18:09Z); 35 (2026-09-30 18:14Z); 40 (2026-09-30 18:39Z to 18:41Z); 60 (2026-09-30 19:02Z to 19:17Z); 64 (2026-09-30 20:01Z to 20:27Z); 47 (2026-09-30 20:07Z); 51 (2026-09-30 20:08Z to 20:48Z); 52 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
 | POP.3 | Database of spacefaring species | 14 (2026-09-24 01:32Z to 02:18Z); 11 (2026-09-24 01:57Z to 02:02Z); 9 (2026-09-24 02:25Z to 05:38Z); 8 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 17 (2026-09-30 16:44Z); 18 (2026-09-30 16:49Z); 19 (2026-09-30 16:51Z to 18:09Z); 36 (2026-09-30 18:14Z); 41 (2026-09-30 18:39Z to 18:41Z); 61 (2026-09-30 19:02Z to 19:17Z); 65 (2026-09-30 20:01Z to 20:27Z); 48 (2026-09-30 20:07Z); 52 (2026-09-30 20:08Z to 20:48Z); 53 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
@@ -1388,6 +1391,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.122 | Browser map tests fail on plain main in Bugfixes lane 2's container (fixture maps, controls, system-page maps) (bug) | none | done, PR #1125 |
 | TEST.123 | test_a_loaded_sector_knows_every_objects_cell_and_velocity fails once under full-suite load (bug) | none | done, PR #1121 |
 | TEST.124 | Phenomena page tests fail with KeyError scattered in system_pages._phenomena_load (bug) | none | done, PR #1077 |
+| TEST.125 | Three browser-map tests fail on main with "no generated system has a moon" (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

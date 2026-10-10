@@ -9,10 +9,11 @@ sector names. GEN.71 replaces it with the phoneme codec.
 """
 
 
+import functools
 import re
 
 from planetgen.names.wordlists import (
-    BAD_CONSONANTS, COMPANION_SUFFIXES, DICTIONARY_WORDS, DIMINUTIVE_PREFIXES, GREEK_LETTERS, NSFW_WORDS, ROMAN_NUMERALS_BY_VALUE, SECTOR_NAMES, SECTOR_PREFIXES, SECTOR_SUFFIXES, STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES, UNIVERSAL_PHONEMES, VOWELS, WORD_SIZE_MEAN,
+    BAD_CONSONANTS, COMPANION_SUFFIXES, DIMINUTIVE_PREFIXES, GREEK_LETTERS, NSFW_WORDS, ROMAN_NUMERALS_BY_VALUE, SECTOR_NAMES, SECTOR_PREFIXES, SECTOR_SUFFIXES, STAR_NAMES, STAR_PREFIXES, STAR_SUFFIXES, UNIVERSAL_PHONEMES, VOWELS, dictionary_words, word_size_mean,
 )
 from planetgen.util import draw
 
@@ -52,8 +53,11 @@ def _any_of(words):
     return re.compile("|".join(re.escape(word) for word in sorted(words, key=len, reverse=True))) if words else None
 
 
-_NSFW_PLAIN = _any_of(_NSFW_PLAIN_WORDS)
-_NSFW_SPACED = _any_of(_NSFW_SPACED_WORDS)
+@functools.lru_cache(maxsize=None)
+def _nsfw_patterns():
+    """`(plain, spaced)`: the two patterns, compiled on the first name checked (PERF.39: compiling them took
+    0.6 s of every import)."""
+    return _any_of(_NSFW_PLAIN_WORDS), _any_of(_NSFW_SPACED_WORDS)
 
 
 def is_name_valid(name):
@@ -81,7 +85,7 @@ def is_name_valid(name):
               otherwise returns `False`.
     """
     name_lower = name.lower()
-    if name_lower in DICTIONARY_WORDS:
+    if name_lower in dictionary_words():
         return False
     if any(token in _DECORATION_WORDS for token in name_lower.split()):
         # A word that is also a nameUniqueness decoration ("Liten",
@@ -95,11 +99,12 @@ def is_name_valid(name):
     # one of those need every variant (keeps this hot check one pass).
     squeezed = name_lower.replace("'", "")
     fully_squeezed = squeezed.replace(" ", "")
-    if _NSFW_PLAIN is not None and _NSFW_PLAIN.search(fully_squeezed):
+    nsfw_plain, nsfw_spaced = _nsfw_patterns()
+    if nsfw_plain is not None and nsfw_plain.search(fully_squeezed):
         return False
-    if _NSFW_SPACED is not None:
+    if nsfw_spaced is not None:
         variants = (name_lower, squeezed, name_lower.replace(" ", ""))
-        if any(_NSFW_SPACED.search(variant) for variant in variants):
+        if any(nsfw_spaced.search(variant) for variant in variants):
             return False
     
     vowel_count = 0
@@ -157,7 +162,7 @@ def split_long_word(name):
              long enough (or if avoiding an apostrophe boundary leaves no
              valid split point).
     """
-    if len(name) > WORD_SIZE_MEAN:
+    if len(name) > word_size_mean():
         if " " in name:
             # Already more than one word (a base name like "El Nath");
             # splitting again could put a second space beside the first.

@@ -112,7 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.9, DB.9, PERF.29, PERF.30, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, POP.8, POP.9, POP.7, POP.10, NAV.42, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, GEN.57, TEST.77, UX.49, PERF.31, GEN.128 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | DB.9, PERF.29, PERF.30, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, POP.8, POP.9, POP.7, POP.10, NAV.42, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, GEN.57, TEST.77, UX.49, PERF.31, GEN.128, PERF.63 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.17, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18, PERF.33, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, ADM.43, ADM.44 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, and the anomalies chosen in phase 2. | NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, GEN.114, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies. | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, GEN.55 |
@@ -460,7 +460,7 @@ with `clamp()`.
   be bookmarked and listed in the bookmark manager (UX.47) with its
   kind; a test covers it. Small. Phase 2 unless Foundations lane 1 says
   otherwise.
-  Prerequisite: UX.45. Related: ('NAV.9', 'UX.47').
+  Prerequisite: UX.45. Related: UX.47.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -595,6 +595,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Folded (2026-10-09, fly-through-view-distance.md): the blocker fade
   and the faint context around the focus are folded into MAP.149 (the
   near field), which is built as part of the fly-through (MAP.146).
+  Built in part (2026-10-09): The blocker fade rule is built as part of
+  MAP.149 (PR #1141, static/nearfield.js). Nothing draws or steps to
+  neighbouring regions yet, so this item stays open for the drawing, the
+  arrow buttons and keys, and the browser test. Lane 2 builds it with
+  MAP.150, MAP.148 and MAP.155.
 
 - [ ] **MAP.122 A Select mode on every galaxy view: Galaxy (blocks and sectors) or Star**
   Boss (2026-10-07 11:47Z): "Button in Galaxy display to allow selecting
@@ -673,6 +678,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Folded (2026-10-09, fly-through-view-distance.md): the faint context
   around the selection is folded into MAP.149 (the near field), built as
   part of the fly-through (MAP.146).
+  Built in part (2026-10-09): The faint-context rule is built as part of
+  MAP.149 (PR #1141, static/nearfield.js). Nothing draws the faint
+  neighbours or the sectors above and below yet, so this item stays open
+  for the drawing and the selection of the sector below. Lane 2 builds
+  it with MAP.150, MAP.148 and MAP.155.
 
 - [ ] **MAP.142 Nebulae have fuzzy, fading boundaries**
   Boss (GitHub issue [#713](https://github.com/dwhagar/planetGen/issues/713), 2026-10-09 00:25Z): "Can we make the nebula
@@ -752,7 +762,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and MAP.158; one cache stamp bump with MAP.154 and MAP.151's tile
   keys), MAP.151 (needs ADM.29 from Foundations lane 1) and MAP.152 (needs MAP.148,
   MAP.150 and MAP.154); this umbrella closes last.
-  Prerequisites: MAP.148, MAP.149, MAP.150, MAP.151, MAP.152, MAP.153,
+  Prerequisites: MAP.148, MAP.150, MAP.151, MAP.152, MAP.153,
   MAP.154, MAP.155, MAP.157, MAP.159. Related:
   MAP.120, MAP.121, MAP.141, MAP.140, MAP.59, MAP.116, MAP.122, MAP.125,
   MAP.131, MAP.134, MAP.147, ADM.29, ADM.30, GEN.101, GEN.126, NAV.13,
@@ -843,26 +853,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisite: MAP.153. Related: MAP.116, MAP.146, MAP.147.
   Design: [docs/design/fly-through-view-distance.md](design/fly-through-view-distance.md)
 
-- [ ] **MAP.149 The near field: depth fade, a see-through focus tube, drawing from inside a container, and picking that matches what is drawn**
-  Source: docs/design/fly-through-view-distance.md (section 7 and 8),
-  written at Boss's request of 2026-10-09 22:56Z. Boss approved the
-  defaults
-  (2026-10-10 18:44Z).
-  Done: things nearer the camera than a fraction of the focus distance
-  dissolve; a soft see-through tube thins what stands between the camera
-  and the focus; the container the camera is in is drawn from the
-  inside; only what is visible enough can be picked, so picking agrees
-  with drawing. One shared function does the fade for drawing and
-  picking. The region looked at and the container are drawn at full
-  strength and the rest faintly. Folds in MAP.121's blocker fade and
-  MAP.141's faint context. First client-side, no schema change; it
-  improves today's map.
-  Decided (Boss, 2026-10-10 18:44Z, defaults approved; default: context
-  regions at opacity 0.08 to
-  0.3 and 2.5 magnitudes shallower than the focus): other strengths?
-  Prerequisites: none. Related: MAP.121, MAP.141, MAP.146.
-  Design: [docs/design/fly-through-view-distance.md](design/fly-through-view-distance.md)
-
 - [ ] **MAP.150 The free camera: wheel zoom to the cursor, double-click flight, and the observer inside, with the container named from position**
   Source: docs/design/fly-through-view-distance.md (section 7 and 8),
   written at Boss's request of 2026-10-09 22:56Z. Boss approved the
@@ -883,13 +873,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Decided (Boss, 2026-10-10 18:44Z, defaults approved; default: keep the
   slab strip as an optional
   section plane, not a stage): or drop it?
-  Prerequisite: MAP.149. Related: MAP.140, MAP.85, MAP.59, NAV.13,
+  Prerequisites: none. Related: MAP.140, MAP.85, MAP.59, NAV.13,
   NAV.14, MAP.146.
   Dependency (2026-10-09, fly-through-view-distance.md): If the camera
   radius R used by MAP.153's rank rule is redefined for a free camera
   (for example distance to the nearest sector instead of to the target),
   keep it continuous in the camera position: a jump in R is a pop for
   every star at once.
+  Built (2026-10-09): MAP.149 is built (PR #1141): the near-field rules
+  (depth fade, see-through tube, pick rule on the near-field share,
+  blocker fade from MAP.121 and the faint-context rule from MAP.141) are
+  in static/nearfield.js and tested; nothing draws neighbouring regions
+  yet, so MAP.150, MAP.148 and MAP.155 use them. MAP.121 and MAP.141
+  stay open for the drawing and stepping parts.
+  Built (2026-10-09): MAP.149 deviations from the design (recorded in
+  docs/design/fly-through-view-distance.md section 4.6): the tube eases
+  in with a smooth ramp; the 0.35 pick rule applies to the near-field
+  share, not the fill alpha; there is no dithered discard (blocks are
+  sorted at build time).
   Design: [docs/design/fly-through-view-distance.md](design/fly-through-view-distance.md)
 
 - [ ] **MAP.151 The region data layer: exact-centred frame, aligned cells, per-level aggregates and slot-wrap ranges**
@@ -1286,20 +1287,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   here stand: a lone star or object uses the galactic Hill radius;
   inside a system a star uses the radiation radius.
     Prerequisites: NAV.25, NAV.26.
-
-- [ ] **NAV.9 Search and locate return references for every kind**
-  `/api/search` and `/galaxy/locate` (`queryDb.galaxy_locate`) return
-  each hit's reference and parent chain, so any picker can jump to a
-  star, planet or moon by name.
-  Research (2026-10-09, course-routing.md): build `ref` and the parent
-  chain from each panel's own JOIN, not `resolve_object` per row.
-  Foundations lane 1 (2026-10-09): Foundations lane 1 (2026-10-10, after
-  NAV.8, PR #1095): the Galaxy Map locate box (`/galaxy/locate`) returns
-  only sectors and systems today. It must also return body hits
-  (planets, moons, belts), each linking through /object/<ref>, which
-  redirects to the system page and the body's anchor. Rides this item.
-  Lane (2026-10-09): Owner: Bugfixes lane 2 (moved from Foundations lane
-  1 by the coordinator, 2026-10-10).
 
 - [ ] **NAV.42 Each route stop shows the course and distance to the next stop**
   Boss (2026-10-02 04:19Z, with NAV.41): "each stop has the course and
@@ -3185,37 +3172,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none.
   Design: [docs/design/fill-order-curves-and-core.md](design/fill-order-curves-and-core.md)
 
-- [ ] **PERF.38 Cache fixes for the Galaxy Map under a fill: single-flight tile builds, a busy rule for the page cache, a deletion epoch in place of COUNT(*)**
-  PERF.34 is built; the research reorders its suspects by evidence
-  (design doc 5.4): no single-flight on tile builds; the page cache is
-  emptied at every stamp check during a fill; the stamp's linear
-  `COUNT(*)` in `db/query.py` `galaxy_content_state` (0.13 s per million
-  placed sectors, 2.7 s at 20 million, per web process per database
-  every 15 to 60 s); five API threads held 2.4 s or more by queued
-  waits. Done: `busy` handling in `pagecache.py` like `tilecache.py`; a
-  Redis `SET NX EX` single-flight around tile and stage builds; a
-  deletion epoch counter in place of the `COUNT(*)`. The first four can
-  be fixed before the benchmark. Re-run PERF.34's page-time test under
-  Ludicrous Speed. The `"""int: How long a database's stamp is trusted
-  ..."""` docstring in `web/lib/tilecache.py` sits after
-  `FAILED_CHECK_RETRY_SECONDS` instead of under `STAMP_TTL_SECONDS`.
-  Prerequisites: none.
-  Design: [docs/design/performance-eta-queue-and-caching.md](design/performance-eta-queue-and-caching.md)
-
-- [ ] **PERF.39 Every API job costs 2.4 s and 195 MB: import lazily and cap the burst workers**
-  `queue/api_jobs.py` `execute` imports `planetgen.api.common` (2.3 s)
-  before running anything, and `submit` starts one uncapped burst worker
-  per job. Fix: catch refusals via a light `Refused` base class or a
-  lazy lookup; import `nltk` and `scipy.stats` lazily; start a worker
-  only when fewer than `worker_count()` are alive, on shared queues.
-  Required before Boss's batch wiki uploads. Reuse one Redis connection
-  in `api_jobs.status` and `wait`.
-  Research (2026-10-09, generation-performance-study.md): the same fix
-  as PERF.42 (warm the worker before the fork) removes about 2 to 3 s
-  per queue job.
-  Prerequisites: none.
-  Design: [docs/design/performance-eta-queue-and-caching.md](design/performance-eta-queue-and-caching.md)
-
 - [ ] **PERF.40 Two shared queues, a reserved interactive worker and a real "cancel now"**
   `planetgen-interactive` (one reserved worker) and `planetgen-bulk`
   (workers serve `[interactive, bulk]`); "cancel now" for running tasks
@@ -3227,7 +3183,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   default yes): a reserved
   interactive worker costs one process (about 195 MB) while any bulk run
   is active; start it on demand and exit when its queue is empty.
-  Prerequisite: PERF.39.
   Design: [docs/design/performance-eta-queue-and-caching.md](design/performance-eta-queue-and-caching.md)
 
 - [ ] **PERF.41 Stamp the tile and page caches with a TILE_FORMAT constant instead of the version (optional)**
@@ -3316,7 +3271,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   true density. PERF.61 side result (PR #1113): the star scatter checks
   the cell address only after the density test, about 20% faster.
 
-- [ ] **PERF.63 Vectorise the candidate work of the phenomena scatter with numpy (needs Boss's call)**
+- [ ] **PERF.63 Vectorise the candidate work of the phenomena scatter with numpy**
   Bugfixes lane 1 (2026-10-10, PERF.61, PR #1113): the object-first
   phenomena sampler was built and measured on the default-scale galaxy
   (41 of 2,041 layers, 14 Msun cut, one process): counts match
@@ -3331,10 +3286,66 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   vectorise the per-object candidate work in numpy (own prototype, not
   started). Done: a prototype is measured against today's pass (counts,
   spatial distribution, time, reseed) and merged only if it is clearly
-  faster. Open question for Boss (default: not built; the phenomena pass
-  keeps its ring walk): is a 35 minute phenomena pass at default scale
-  worth a numpy prototype?
-  Prerequisites: none. Related: ('PERF.59', 'GEN.185').
+  faster. Decided (Boss, 2026-10-10 19:27Z): yes, build the numpy
+  prototype. Owner: Bugfixes lane 1 (moved from Phase 2 to Phase 1 by
+  the coordinator).
+  Prerequisites: none. Related: PERF.59, GEN.185.
+
+- [ ] **PERF.64 The Galaxy Map and the Systems list stop with "Took too long" and the whole site is sluggish (bug)**
+  Boss (2026-10-10 19:45Z, with a screenshot): the Galaxy Map and the
+  Systems list show the 504 page "Took too long: This page asked the
+  database for more than it could answer in time, so it was stopped. Try
+  a narrower search or a smaller page.", and the site as a whole feels
+  sluggish; "I've had this happen before, so we need to fix it". The
+  page is the web statement timeout at work
+  (`statement_timeout_seconds`, 10 s, `MAX_EXECUTION_TIME` on the
+  read-only connections), so some query on those pages now runs past 10
+  s on his database. Done: find which statements time out on the Galaxy
+  Map tiles and the Systems list (log the statement and its time, run
+  EXPLAIN on his database size), fix them with an index, a narrower
+  query or a cache, and show the slow pages and the sluggishness no
+  longer happen while the database is busy and idle alike; add a test
+  that fails when a page query reads more than a page needs. Earlier
+  work on the same family: PERF.34 (site responsive during heavy jobs,
+  PR #811), PERF.38 (cache fixes under a fill, PR #1144), PERF.36 (never
+  list more than about 50,000 candidate cells), PERF.39 (API job cost,
+  PR #1151) and PERF.40 (reserved interactive worker). Owner:
+  Foundations lane 1.
+  Prerequisites: none. Related: PERF.34, PERF.36, PERF.38, PERF.39,
+  PERF.40.
+
+- [ ] **PERF.65 The text output of a multi-step job counts its steps, not its tasks: "Step 1 of 4" when the job has 12 (bug)**
+  Boss (2026-10-10 19:54Z, with a Generate-page log): a new-galaxy run
+  prints "=== Step 1 of 4: Check the math ===" up to "Step 4 of 4:
+  Generate sectors ...", but the last step runs nine stages of its own
+  ("9 stages: 1. Generate the starting sector; ..."), so the run really
+  has 12 tasks (1 + 1 + 1 + 9). Each step's own lines also restart at
+  "Stage 1 of 1" or "Stage 1 of 9", so the two counts never agree.
+  "Minor, but needs to be fixed." The step header comes from
+  `web/job_runner.py` (`Step {index} of {len(steps)}`) and the stages
+  from the CLI's whole-job bar (PERF.55). Done: the step header and the
+  stage lines of every process in a multi-step job use one task count
+  that matches the real total (here "Task 1 of 12" through "Task 12 of
+  12", or the step number with the stage count added up front), the CLI
+  run alone prints the same numbers, and a test checks that a multi-step
+  job's printed totals equal the sum of its steps' stage counts. Owner:
+  Bugfixes lane 1, folded into the PERF.33 progress-bar remainders.
+  Prerequisites: none. Related: PERF.33, PERF.55.
+
+- [ ] **PERF.66 The whole-job progress bar should track total elapsed time and estimate a stage with no performance data from the earlier stages (bug)**
+  Boss (2026-10-10 20:00Z): "the whole task progress bar should keep
+  track of total time that has passed and in the absence of performance
+  data the ETA for items on the main progress bar should be calculated
+  by the time it has taken to do the previous stages averaged." Done:
+  the whole-job bar (PERF.55's CLI bar and the job page's) shows the
+  total time elapsed since the job started, counted across every step
+  and stage and not restarted when a step or stage begins; a stage with
+  no measured rate (no performance data yet, PERF.33's ETA gap) takes
+  its estimate from the average time of the stages already finished in
+  the job, so the time left on the main bar is never blank or zero; a
+  test covers a job whose later stages have no data. Owner: Bugfixes
+  lane 1, with PERF.65 and the other PERF.33 remainders.
+  Prerequisites: none. Related: PERF.33, PERF.55, PERF.65.
 
 ## DB: Database and schema
 
@@ -3788,6 +3799,9 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   connection per worker, a cap on total worker connections and the
   reserved interactive worker; re-run PERF.34's page-time test under
   Ludicrous Speed.
+  Foundations lane 1 (2026-10-10, PERF.38, PR #1144): the page-time re-
+  run under Ludicrous Speed moved here from PERF.38; it needs this item
+  built and a real fill.
 
 - [ ] **ADM.32 Add a star system to a sector: at the emptiest spot, at given coordinates, or at random outside every Hill sphere**
   Boss (2026-10-07 11:47Z): "Need a way to add a single star system to a
@@ -3948,6 +3962,17 @@ clears each one.
   defaults approved; default: leave
   open until it recurs, then investigate with the failing run's data).
   Prerequisites: none. Related: TEST.111, TEST.71.
+
+- [ ] **TEST.125 Three browser-map tests fail on main with "no generated system has a moon" (bug)**
+  Bugfixes lane 2 (2026-10-10, found in NAV.9's full suite):
+  test_selection_drill, test_3d_view_draws and test_body_link_opens in
+  tests/test_web_browser_maps.py fail on main with "no generated system
+  has a moon". The fixture galaxy has no system with a moon, so it looks
+  like a fixture problem, not a product bug. Find out whether a seed
+  change (the scatter or object-first sampler work) removed the moons,
+  and fix the fixture so the tests do not depend on luck; never skip
+  them. Owner: Bugfixes lane 2.
+  Prerequisites: none. Related: TEST.111, TEST.122.
 
 ## USR: User accounts
 

@@ -72,7 +72,7 @@ needs_git = pytest.mark.skipif(shutil.which("git") is None, reason="git not inst
 
 
 @pytest.mark.parametrize("level, expected", [
-    ("patch", "1.2.4"), ("minor", "1.3.0"), ("major", "2.0.0"),
+    ("patch", "1.3.4"), ("minor", "1.3.4"), ("major", "2.0.4"),
 ])
 def test_next_version(level, expected):
     assert bump_version.next_version("1.2.3", level) == expected
@@ -82,17 +82,17 @@ def test_stamp_updates_all_three_places_and_removes_the_note(tmp_path):
     root = _make_repo(str(tmp_path))
     _note(root, "thing.patch.md", FIXED_NOTE)
 
-    assert bump_version.stamp(root, date="2026-02-02") == ["1.2.4"]
+    assert bump_version.stamp(root, date="2026-02-02") == ["1.3.4"]
 
-    assert '__version__ = "1.2.4"' in _read(root, bump_version.VERSION_FILE)
-    assert "**Version:** 1.2.4 &middot;" in _read(root, "README.md")
+    assert '__version__ = "1.3.4"' in _read(root, bump_version.VERSION_FILE)
+    assert "**Version:** 1.3.4 &middot;" in _read(root, "README.md")
     changelog = _read(root, "CHANGELOG.md")
     assert changelog.startswith(
-        "# Changelog\n\n## [1.2.4] - 2026-02-02\n\n### Fixed\n- Fixed a thing.\n\n## [1.2.3]")
+        "# Changelog\n\n## [1.3.4] - 2026-02-02\n\n### Fixed\n- Fixed a thing.\n\n## [1.2.3]")
     assert not os.path.exists(os.path.join(root, "changes", "thing.patch.md"))
     assert os.path.exists(os.path.join(root, "changes", "README.md"))
     assert bump_version.current_versions(root) == {
-        bump_version.VERSION_FILE: "1.2.4", "README.md": "1.2.4", "CHANGELOG.md": "1.2.4"}
+        bump_version.VERSION_FILE: "1.3.4", "README.md": "1.3.4", "CHANGELOG.md": "1.3.4"}
 
 
 def test_each_note_gets_its_own_release(tmp_path):
@@ -101,9 +101,9 @@ def test_each_note_gets_its_own_release(tmp_path):
     _note(root, "b-feature.minor.md", ADDED_NOTE)
 
     # No git here, so filename order decides.
-    assert bump_version.stamp(root, date="2026-02-02") == ["1.2.4", "1.3.0"]
+    assert bump_version.stamp(root, date="2026-02-02") == ["1.3.4", "1.4.5"]
     changelog = _read(root, "CHANGELOG.md")
-    assert changelog.index("## [1.3.0]") < changelog.index("## [1.2.4]") < changelog.index("## [1.2.3]")
+    assert changelog.index("## [1.4.5]") < changelog.index("## [1.3.4]") < changelog.index("## [1.2.3]")
 
 
 def test_no_notes_is_a_no_op(tmp_path):
@@ -116,7 +116,7 @@ def test_no_notes_is_a_no_op(tmp_path):
 def test_dry_run_changes_nothing(tmp_path):
     root = _make_repo(str(tmp_path))
     _note(root, "thing.patch.md", FIXED_NOTE)
-    assert bump_version.stamp(root, dry_run=True) == ["1.2.4"]
+    assert bump_version.stamp(root, dry_run=True) == ["1.3.4"]
     assert '__version__ = "1.2.3"' in _read(root, bump_version.VERSION_FILE)
     assert os.path.exists(os.path.join(root, "changes", "thing.patch.md"))
 
@@ -160,11 +160,11 @@ def test_notes_are_released_in_merge_order_and_committed(tmp_path):
     env_date = {**os.environ, "GIT_COMMITTER_DATE": "2030-01-01T00:00:00Z"}
     subprocess.run(["git", "commit", "-q", "-m", "second"], cwd=root, check=True, env=env_date)
 
-    assert bump_version.stamp(root, date="2026-02-02", commit=True) == ["1.2.4", "1.3.0"]
+    assert bump_version.stamp(root, date="2026-02-02", commit=True) == ["1.3.4", "1.4.5"]
 
     log = subprocess.run(["git", "log", "--format=%s", "-2"], cwd=root,
                          check=True, capture_output=True, text=True).stdout.split("\n")
-    assert log[:2] == ["Release 1.3.0 (a-second)", "Release 1.2.4 (z-first)"]
+    assert log[:2] == ["Release 1.4.5 (a-second)", "Release 1.3.4 (z-first)"]
     status = subprocess.run(["git", "status", "--porcelain"], cwd=root,
                             check=True, capture_output=True, text=True).stdout
     assert status == ""
@@ -182,12 +182,25 @@ def test_check_pr_passes_a_pr_that_only_adds_a_note(tmp_path):
 
 
 @needs_git
+def test_check_pr_rejects_a_major_note_while_the_revision_is_on_hold(tmp_path, monkeypatch):
+    monkeypatch.setattr(bump_version, "REVISION_HOLD", True)
+    root = _make_repo(str(tmp_path))
+    _init_git(root)
+    _git(root, "checkout", "-q", "-b", "feature")
+    _note(root, "feature.major.md", ADDED_NOTE)
+    _git(root, "add", "-A")
+    _git(root, "commit", "-q", "-m", "feature")
+    problems = bump_version.check_pr(root, "main")
+    assert any("'major' note" in p and "on hold" in p for p in problems)
+
+
+@needs_git
 def test_check_pr_rejects_a_hand_bumped_version(tmp_path):
     root = _make_repo(str(tmp_path))
     _init_git(root)
     _git(root, "checkout", "-q", "-b", "feature")
     _note(root, "feature.patch.md", FIXED_NOTE)
-    bump_version.apply_release(root, "1.2.4", "2026-02-02", FIXED_NOTE)
+    bump_version.apply_release(root, "1.3.4", "2026-02-02", FIXED_NOTE)
     _git(root, "add", "-A")
     _git(root, "commit", "-q", "-m", "old-style bump")
     problems = bump_version.check_pr(root, "main")
@@ -213,7 +226,7 @@ def test_real_pending_notes_are_valid():
     bump_version.find_fragments(REPO_ROOT)
 
 
-# -- MAJOR.REVISION.BUILD from the TODO counters ------------------------------
+# -- BUILD counts releases; the TODO counters only allocate IDs ------------------------------
 
 def _todo_map(root, next_free, todo_ids=()):
     """A stand-in docs/design/todo-number-map.md (and docs/TODO.md)."""
@@ -231,34 +244,14 @@ def _all_next_free(**overrides):
     return table
 
 
-@pytest.mark.parametrize("level, expected", [
-    ("patch", "1.3.24"), ("minor", "1.3.24"), ("major", "2.0.24"),
-])
-def test_next_version_with_a_build_number(level, expected):
-    assert bump_version.next_version("1.2.3", level, build=24) == expected
-
-
-def test_build_number_is_the_sum_of_the_counters(tmp_path):
-    # Boss's example: UX.4, API.8 and DB.12 add up to 24.
-    root = _make_repo(str(tmp_path))
-    _todo_map(root, _all_next_free(UX=5, API=9, DB=13), ["UX.4", "API.8", "DB.12"])
-    assert bump_version.todo_counters(root)["DB"] == 12
-    assert bump_version.todo_build_number(root) == 24
-
-
-def test_stamp_uses_revision_and_build(tmp_path):
-    root = _make_repo(str(tmp_path))
-    _todo_map(root, _all_next_free(UX=5, API=9, DB=13))
+def test_build_goes_up_by_one_on_every_release_and_never_resets(tmp_path):
+    root = _make_repo(str(tmp_path), version="1.2.3")
+    _todo_map(root, _all_next_free(UX=5, API=9, DB=13))  # the counters no longer matter
     _note(root, "a-fix.patch.md", FIXED_NOTE)
     _note(root, "b-feature.minor.md", ADDED_NOTE)
     _note(root, "c-break.major.md", ADDED_NOTE)
-    assert bump_version.stamp(root, date="2026-02-02") == ["1.3.24", "1.4.24", "2.0.24"]
-    assert '__version__ = "2.0.24"' in _read(root, bump_version.VERSION_FILE)
-
-
-def test_no_todo_map_keeps_plain_semver(tmp_path):
-    root = _make_repo(str(tmp_path))
-    assert bump_version.todo_build_number(root) is None
+    assert bump_version.stamp(root, date="2026-02-02") == ["1.3.4", "1.4.5", "2.0.6"]
+    assert '__version__ = "2.0.6"' in _read(root, bump_version.VERSION_FILE)
 
 
 def test_a_stale_next_free_table_is_rejected(tmp_path):
@@ -266,8 +259,7 @@ def test_a_stale_next_free_table_is_rejected(tmp_path):
     _todo_map(root, _all_next_free(MAP=5), ["MAP.5"])
     _note(root, "thing.patch.md", FIXED_NOTE)
     with pytest.raises(bump_version.BumpError, match="next free MAP ID is MAP.5"):
-        bump_version.stamp(root)
-    assert '__version__ = "1.2.3"' in _read(root, bump_version.VERSION_FILE)
+        bump_version.todo_counters(root)
 
 
 def test_a_missing_category_row_is_rejected(tmp_path):
@@ -276,31 +268,27 @@ def test_a_missing_category_row_is_rejected(tmp_path):
     del table["POP"]
     _todo_map(root, table)
     with pytest.raises(bump_version.BumpError, match="no row for POP"):
-        bump_version.todo_build_number(root)
+        bump_version.todo_counters(root)
 
 
 def test_real_todo_counters_are_consistent():
     """The real 'Next free IDs' table covers every category and is ahead of docs/TODO.md."""
-    assert bump_version.todo_build_number(REPO_ROOT) > 0
+    assert sum(bump_version.todo_counters(REPO_ROOT).values()) > 0
 
 
-def test_revision_hold_keeps_the_revision_and_joins_the_top_entry(tmp_path, monkeypatch):
+def test_revision_hold_keeps_the_revision_and_treats_major_as_minor(tmp_path, monkeypatch):
     monkeypatch.setattr(bump_version, "REVISION_HOLD", True)
-    assert bump_version.next_version("8.0.711", "patch", build=760) == "8.0.760"
-    assert bump_version.next_version("8.0.711", "minor", build=760) == "8.0.760"
-    assert bump_version.next_version("8.0.711", "major", build=760) == "9.0.760"
+    assert bump_version.next_version("8.0.711", "patch") == "8.0.712"
+    assert bump_version.next_version("8.0.711", "minor") == "8.0.712"
+    assert bump_version.next_version("8.0.711", "major") == "8.0.712"
 
     root = _make_repo(str(tmp_path), version="8.0.711")
-    _todo_map(root, _all_next_free(UX=5, API=9, DB=13))
     _note(root, "a-feature.minor.md", ADDED_NOTE)
     _note(root, "b-fix.patch.md", FIXED_NOTE)
-    assert bump_version.stamp(root, date="2026-02-02") == ["8.0.24", "8.0.24"]
+    assert bump_version.stamp(root, date="2026-02-02") == ["8.0.712", "8.0.713"]
     changelog = _read(root, "CHANGELOG.md")
-    assert changelog.count("## [8.0.24]") == 1
-    assert "## [8.0.711]" in changelog
-    entry = changelog.split("## [8.0.24]")[1].split("## [8.0.711]")[0]
-    assert "- Added a thing." in entry and "- Fixed a thing." in entry
-    assert '__version__ = "8.0.24"' in _read(root, bump_version.VERSION_FILE)
+    assert changelog.index("## [8.0.713]") < changelog.index("## [8.0.712]") < changelog.index("## [8.0.711]")
+    assert '__version__ = "8.0.713"' in _read(root, bump_version.VERSION_FILE)
 
 
 def test_merge_bodies_puts_new_bullets_first_in_each_section():

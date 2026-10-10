@@ -199,3 +199,46 @@ def test_the_status_route_links_the_made_sectors(admin_client, monkeypatch):
     got = admin_client.get("/api/jobs/" + "ab" * 8).get_json()
     assert got["made_url"] == "/galaxy?made=100%2C200" or got["made_url"] == "/galaxy?made=100,200"
     assert "made" not in got
+
+
+def test_a_batch_of_jobs_starts_no_more_workers_than_the_cap(redis_server, monkeypatch):
+    """PERF.39: one worker process per job used to be started, each paying the imports again."""
+    started = []
+    monkeypatch.setattr(api_jobs.redisqueue, "start_detached", lambda argv, cwd: started.append(argv))
+    monkeypatch.setattr(api_jobs.work, "worker_count", lambda *a, **k: 2)
+    ids = [api_jobs.submit(math.pow, 2, n) for n in range(6)]
+    assert len(started) == 2
+    assert all(api_jobs.QUEUE_NAME in argv for argv in started)
+    # A job nobody serves is picked up by the next one who asks (a worker that was just exiting): the
+    # workers started a moment ago still count, so asking again starts none.
+    assert api_jobs.status(ids[0])["state"] == "queued" and len(started) == 2
+
+
+def test_a_waiting_job_with_no_worker_gets_one_when_its_status_is_read(redis_server, monkeypatch):
+    started = []
+    monkeypatch.setattr(api_jobs.redisqueue, "start_detached", lambda argv, cwd: started.append(argv))
+    monkeypatch.setattr(api_jobs.work, "worker_count", lambda *a, **k: 1)
+    job_id = api_jobs.submit(math.pow, 2, 2)
+    assert len(started) == 1
+    api_jobs._connection().delete(api_jobs.STARTING_KEY)  # that worker never came up
+    assert api_jobs.status(job_id)["state"] == "queued"
+    assert len(started) == 2
+
+
+def test_running_a_job_does_not_import_the_api():
+    import subprocess
+    import sys
+    code = ("import sys, math; from planetgen.queue import api_jobs; "
+            "assert api_jobs.execute(math.pow, (2, 3)) == {'result': 8.0}; "
+            "assert 'planetgen.api.common' not in sys.modules and 'nltk' not in sys.modules")
+    done = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, timeout=120)
+    assert done.returncode == 0, done.stderr
+
+
+def test_a_failure_that_is_not_a_refusal_is_raised(redis_server):
+    job = _wait(api_jobs.submit(_raise_value_error))
+    assert job["state"] == "failed" and "boom" in job["error"] and job["error_status"] is None
+
+
+def _raise_value_error():
+    raise ValueError("boom")

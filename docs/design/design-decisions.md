@@ -190,9 +190,12 @@ note). A uniquely named note per PR cannot collide.
 **Rejected:** bumping the version inside each PR (the old way).
 
 **Later (2026-10-01, OPS.1):** the version became MAJOR.REVISION.BUILD.
-A `major` note bumps MAJOR, any other note bumps REVISION, and BUILD is the
+A `major` note bumps MAJOR, any other note bumps REVISION, and BUILD was the
 sum of the TODO category counters in `docs/design/todo-number-map.md`
-(Boss: "major feature set.revision.build"). See `changes/README.md`.
+(Boss: "major feature set.revision.build"). **Changed 2026-10-10:** Boss
+wanted BUILD to change on every stamp, so BUILD is now the previous BUILD
+plus one and never resets; the counters only allocate TODO IDs. See
+`changes/README.md`.
 
 ---
 

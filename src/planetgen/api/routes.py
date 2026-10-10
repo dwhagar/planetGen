@@ -1334,6 +1334,8 @@ def delete_sector(sector_id):
             address = conn.execute("SELECT ring_index, layer_index, ring_slot_index FROM sectors WHERE id = ?",
                                    (sector_id,)).fetchone()
             deleted = conn.execute("DELETE FROM sectors WHERE id = ?", (sector_id,)).rowcount > 0
+            if deleted:
+                store.note_sector_deleted(conn)
             if address is not None:
                 # GEN.44: the slot goes back to the bright-star level it had unfilled.
                 store.forget_sector_fill(conn, (address["ring_index"], address["layer_index"],

@@ -364,6 +364,7 @@ def delete_sector_with_contents(conn, sector_id):
     conn.execute("DELETE FROM facilities WHERE sector_id = ?", (sector_id,))
     conn.execute("DELETE FROM nearest_systems WHERE sector_id = ?", (sector_id,))
     conn.execute("DELETE FROM sectors WHERE id = ?", (sector_id,))
+    store.note_sector_deleted(conn)
     # GEN.44: the slot goes back to the bright-star level it had unfilled.
     store.forget_sector_fill(conn, (row["ring_index"], row["layer_index"], row["ring_slot_index"]))
     if row["center_x_pc"] is not None:

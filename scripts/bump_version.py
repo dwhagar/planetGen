@@ -32,20 +32,21 @@ A version is MAJOR.REVISION.BUILD (Boss, 2026-10-01: "major feature
 set.revision.build", the build being "a composite of the change numbers
 for each category added up"):
 
-- MAJOR goes up for a `major` note, and REVISION resets to 0.
+- MAJOR goes up for a `major` note, and REVISION resets to 0. Exception:
+  while `REVISION_HOLD` is on a `major` note is treated like `minor` (Boss,
+  2026-10-10: nobody authorised the accidental 9.0 and 10.0), and the PR
+  check refuses to accept a new `major` note.
 - REVISION goes up by one for every other release (`minor` or `patch`
   note), so each release still gets its own number. Exception: while
   `REVISION_HOLD` is on (Boss: no 8.1 until Phase 1 is complete) it stays
   put, and a release with the same version as the top changelog entry
   joins that entry.
-- BUILD is the sum of every TODO category's counter, read from the "Next
-  free IDs" table in `docs/design/todo-number-map.md` (a counter is the
-  next free number minus one: the highest ID issued in that category,
-  which is also its item count). It never resets, and it only moves when
-  new TODO items are issued.
-
-A checkout with no TODO map (such as the tests' stand-in repos) falls
-back to plain MAJOR.MINOR.PATCH.
+- BUILD counts stamped releases (Boss, 2026-10-10: "I want build to always
+  change"): every note takes the previous BUILD plus one, so it changes on
+  every stamp and never resets, not on a revision or a major bump either.
+  It no longer comes from the TODO counters; the "Next free IDs" table in
+  `docs/design/todo-number-map.md` only allocates TODO IDs, and `--check-pr`
+  still insists that `docs/TODO.md` stays below it.
 
 Deliberately standard-library only, so it runs anywhere without installing
 the package first.
@@ -75,7 +76,8 @@ BUMP_LEVELS = ("patch", "minor", "major")
 # complete". While this is True a `patch` or `minor` note leaves REVISION
 # alone (it still takes the current BUILD), and a release whose version is
 # already the top CHANGELOG entry joins that entry instead of opening a
-# second one. Set it to False when Boss calls Phase 1 complete; the next
+# second one. A `major` note is held back the same way, and the PR check
+# refuses a new one. Set it to False when Boss calls Phase 1 complete; the next
 # note then goes to MAJOR.(REVISION+1).BUILD as usual.
 REVISION_HOLD = True
 
@@ -140,27 +142,19 @@ def parse_version(version):
     return tuple(int(p) for p in parts)
 
 
-def next_version(version, level, build=None):
+def next_version(version, level):
     """
-    The version after `version` for a note of `level`.
-
-    With `build` (the TODO counter sum, see `todo_build_number`) it is
-    MAJOR.REVISION.BUILD: a `major` note bumps MAJOR and resets REVISION,
-    anything else bumps REVISION (unless `REVISION_HOLD`), and BUILD is
-    `build`. Without it, plain semver.
+    The version after `version` for a note of `level`: MAJOR.REVISION.BUILD,
+    where BUILD is the previous BUILD plus one. A `major` note bumps MAJOR
+    and resets REVISION, anything else bumps REVISION (and under
+    `REVISION_HOLD` nothing bumps MAJOR or REVISION, `major` included).
     """
-    major, minor, patch = parse_version(version)
-    if build is not None:
-        if level == "major":
-            return f"{major + 1}.0.{build}"
-        if REVISION_HOLD:
-            return f"{major}.{minor}.{build}"
-        return f"{major}.{minor + 1}.{build}"
-    if level == "major":
-        return f"{major + 1}.0.0"
-    if level == "minor":
-        return f"{major}.{minor + 1}.0"
-    return f"{major}.{minor}.{patch + 1}"
+    major, minor, build = parse_version(version)
+    if level == "major" and not REVISION_HOLD:
+        return f"{major + 1}.0.{build + 1}"
+    if REVISION_HOLD:
+        return f"{major}.{minor}.{build + 1}"
+    return f"{major}.{minor + 1}.{build + 1}"
 
 
 # -- TODO counters -----------------------------------------------------------
@@ -172,7 +166,7 @@ def todo_counters(root):
 
     Returns:
         dict or None: `{category: counter}`, or None when the checkout has
-                      no TODO map (plain semver is used then).
+                      no TODO map.
 
     Raises:
         BumpError: if the table is missing a category, or `docs/TODO.md`
@@ -199,12 +193,6 @@ def todo_counters(root):
     if problems:
         raise BumpError("\n".join(sorted(set(problems))))
     return {cat: table[cat] - 1 for cat in TODO_CATEGORIES}
-
-
-def todo_build_number(root):
-    """The version's BUILD: the sum of the TODO counters (None without a map)."""
-    counters = todo_counters(root)
-    return None if counters is None else sum(counters.values())
 
 
 def version_in(text, pattern, what):
@@ -370,10 +358,9 @@ def stamp(root, date=None, dry_run=False, commit=False, out=sys.stdout):
         raise BumpError(f"the three version places disagree before stamping ({details}); fix that first")
 
     version = versions[VERSION_FILE]
-    build = todo_build_number(root)
     released = []
     for fragment in fragments:
-        version = next_version(version, fragment.level, build)
+        version = next_version(version, fragment.level)
         released.append(version)
         print(f"{CHANGES_DIR}/{fragment.filename} -> {version} ({fragment.level})", file=out)
         if dry_run:
@@ -430,6 +417,15 @@ def check_pr(root, base, allow_no_fragment=False):
     merge_base = _git(root, "merge-base", base, "HEAD").strip()
     added = _git(root, "diff", "--name-only", "--diff-filter=A", merge_base, "HEAD", "--", f"{CHANGES_DIR}/")
     added_notes = [p for p in added.split() if FRAGMENT_RE.match(os.path.basename(p))]
+    if REVISION_HOLD:
+        for note in added_notes:
+            if FRAGMENT_RE.match(os.path.basename(note)).group("level") == "major":
+                problems.append(
+                    f"{note} is a 'major' note, but MAJOR and REVISION are on hold until Boss "
+                    "calls Phase 1 complete (REVISION_HOLD in scripts/bump_version.py). Rename "
+                    "it to '<short-name>.minor.md' or '.patch.md'; only Boss can approve a "
+                    "major release."
+                )
     if not added_notes and not allow_no_fragment:
         problems.append(
             f"This PR adds no release note under {CHANGES_DIR}/. Add one "
@@ -457,10 +453,8 @@ def main(argv=None):
     try:
         if args.check:
             fragments = find_fragments(args.root)
-            build = todo_build_number(args.root)
+            todo_counters(args.root)
             print(f"{len(fragments)} pending release note(s), all valid.")
-            if build is not None:
-                print(f"TODO counters add up to {build} (the next release's build number).")
         elif args.check_pr:
             problems = check_pr(args.root, args.check_pr, args.allow_no_fragment)
             if problems:
