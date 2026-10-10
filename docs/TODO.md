@@ -595,6 +595,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Folded (2026-10-09, fly-through-view-distance.md): the blocker fade
   and the faint context around the focus are folded into MAP.149 (the
   near field), which is built as part of the fly-through (MAP.146).
+  Built in part (2026-10-09): The blocker fade rule is built as part of
+  MAP.149 (PR #1141, static/nearfield.js). Nothing draws or steps to
+  neighbouring regions yet, so this item stays open for the drawing, the
+  arrow buttons and keys, and the browser test. Lane 2 builds it with
+  MAP.150, MAP.148 and MAP.155.
 
 - [ ] **MAP.122 A Select mode on every galaxy view: Galaxy (blocks and sectors) or Star**
   Boss (2026-10-07 11:47Z): "Button in Galaxy display to allow selecting
@@ -673,6 +678,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Folded (2026-10-09, fly-through-view-distance.md): the faint context
   around the selection is folded into MAP.149 (the near field), built as
   part of the fly-through (MAP.146).
+  Built in part (2026-10-09): The faint-context rule is built as part of
+  MAP.149 (PR #1141, static/nearfield.js). Nothing draws the faint
+  neighbours or the sectors above and below yet, so this item stays open
+  for the drawing and the selection of the sector below. Lane 2 builds
+  it with MAP.150, MAP.148 and MAP.155.
 
 - [ ] **MAP.142 Nebulae have fuzzy, fading boundaries**
   Boss (GitHub issue [#713](https://github.com/dwhagar/planetGen/issues/713), 2026-10-09 00:25Z): "Can we make the nebula
@@ -752,7 +762,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and MAP.158; one cache stamp bump with MAP.154 and MAP.151's tile
   keys), MAP.151 (needs ADM.29 from Foundations lane 1) and MAP.152 (needs MAP.148,
   MAP.150 and MAP.154); this umbrella closes last.
-  Prerequisites: MAP.148, MAP.149, MAP.150, MAP.151, MAP.152, MAP.153,
+  Prerequisites: MAP.148, MAP.150, MAP.151, MAP.152, MAP.153,
   MAP.154, MAP.155, MAP.157, MAP.159. Related:
   MAP.120, MAP.121, MAP.141, MAP.140, MAP.59, MAP.116, MAP.122, MAP.125,
   MAP.131, MAP.134, MAP.147, ADM.29, ADM.30, GEN.101, GEN.126, NAV.13,
@@ -843,26 +853,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisite: MAP.153. Related: MAP.116, MAP.146, MAP.147.
   Design: [docs/design/fly-through-view-distance.md](design/fly-through-view-distance.md)
 
-- [ ] **MAP.149 The near field: depth fade, a see-through focus tube, drawing from inside a container, and picking that matches what is drawn**
-  Source: docs/design/fly-through-view-distance.md (section 7 and 8),
-  written at Boss's request of 2026-10-09 22:56Z. Boss approved the
-  defaults
-  (2026-10-10 18:44Z).
-  Done: things nearer the camera than a fraction of the focus distance
-  dissolve; a soft see-through tube thins what stands between the camera
-  and the focus; the container the camera is in is drawn from the
-  inside; only what is visible enough can be picked, so picking agrees
-  with drawing. One shared function does the fade for drawing and
-  picking. The region looked at and the container are drawn at full
-  strength and the rest faintly. Folds in MAP.121's blocker fade and
-  MAP.141's faint context. First client-side, no schema change; it
-  improves today's map.
-  Decided (Boss, 2026-10-10 18:44Z, defaults approved; default: context
-  regions at opacity 0.08 to
-  0.3 and 2.5 magnitudes shallower than the focus): other strengths?
-  Prerequisites: none. Related: MAP.121, MAP.141, MAP.146.
-  Design: [docs/design/fly-through-view-distance.md](design/fly-through-view-distance.md)
-
 - [ ] **MAP.150 The free camera: wheel zoom to the cursor, double-click flight, and the observer inside, with the container named from position**
   Source: docs/design/fly-through-view-distance.md (section 7 and 8),
   written at Boss's request of 2026-10-09 22:56Z. Boss approved the
@@ -883,13 +873,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Decided (Boss, 2026-10-10 18:44Z, defaults approved; default: keep the
   slab strip as an optional
   section plane, not a stage): or drop it?
-  Prerequisite: MAP.149. Related: MAP.140, MAP.85, MAP.59, NAV.13,
+  Prerequisites: none. Related: MAP.140, MAP.85, MAP.59, NAV.13,
   NAV.14, MAP.146.
   Dependency (2026-10-09, fly-through-view-distance.md): If the camera
   radius R used by MAP.153's rank rule is redefined for a free camera
   (for example distance to the nearest sector instead of to the target),
   keep it continuous in the camera position: a jump in R is a pop for
   every star at once.
+  Built (2026-10-09): MAP.149 is built (PR #1141): the near-field rules
+  (depth fade, see-through tube, pick rule on the near-field share,
+  blocker fade from MAP.121 and the faint-context rule from MAP.141) are
+  in static/nearfield.js and tested; nothing draws neighbouring regions
+  yet, so MAP.150, MAP.148 and MAP.155 use them. MAP.121 and MAP.141
+  stay open for the drawing and stepping parts.
+  Built (2026-10-09): MAP.149 deviations from the design (recorded in
+  docs/design/fly-through-view-distance.md section 4.6): the tube eases
+  in with a smooth ramp; the 0.35 pick rule applies to the near-field
+  share, not the fill alpha; there is no dithered discard (blocks are
+  sorted at build time).
   Design: [docs/design/fly-through-view-distance.md](design/fly-through-view-distance.md)
 
 - [ ] **MAP.151 The region data layer: exact-centred frame, aligned cells, per-level aggregates and slot-wrap ranges**
