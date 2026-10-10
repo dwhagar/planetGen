@@ -354,10 +354,15 @@ connectivity to that specific schema rather than the default one.
   key is a 400.
 - `GET /api/galaxy/locate?q=<part of a name>` — the Galaxy Map address
   bar's name lookup (`queryDb.galaxy_locate`): `{"matches": [{"kind"
-  (`"sector"` or `"system"`), "id", "name", "sector_id", "sector_name",
-  "ring", "layer", "slot"}]}`, at most 8, exact names first, then names
-  that start with the term. Sectors with no address and systems outside a
-  sector are left out, since the map can't fly to them.
+  (`"sector"`, `"system"`, `"planet"` or `"moon"`), "ref", "id", "name",
+  "parents" (`[{"ref", "kind", "name"}]`, the sector down to the direct
+  parent), "sector_id", "sector_name", "ring", "layer", "slot"}]}`, at most
+  8, exact names first, then names that start with the term. A planet or
+  moon also has `system_id` and `system_name`; its `ref` opens through
+  `/object/<ref>`. Asteroid belts have no names, so none is found. Sectors
+  with no address and systems outside a sector are left out, since the map
+  can't fly to them. Each `/api/search` row likewise carries `ref` and
+  `parents`.
 - `GET /api/galaxy/stamp` — `{"stamp": "<16 hex characters>", "state":
   "<token>"}` (`queryDb.galaxy_content_stamp`). `stamp` changes whenever
   tile contents could: sectors placed, edited or removed (their
