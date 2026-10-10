@@ -1138,16 +1138,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   unassigned.
   Prerequisites: none. Related: MAP.164, GEN.185, MAP.148, MAP.153.
 
-- [ ] **MAP.166 Galaxy Map "Dimmest star shown" says "every star" only when the view is complete**
-  Boss (2026-10-10 08:11Z, via Bugfixes lane 2): the slider label
-  "Dimmest star shown" may say "every star" only when the view is
-  complete, meaning no tile cap, luminosity floor or missing tile hides
-  a star; otherwise it shows the real dimmest luminosity the view
-  carries. Follow-up to MAP.163. Done: the label follows that rule at
-  every zoom, and a test covers a complete view and a capped view.
-  Owner: Bugfixes lane 2 (next).
-  Prerequisites: none. Related: MAP.163, MAP.148.
-
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
