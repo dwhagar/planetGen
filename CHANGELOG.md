@@ -3,6 +3,7 @@
 ## [8.0.866] - 2026-10-10
 
 ### Added
+- Eight to-do items from the generation performance study (a warmed worker, lazy names, uids in Python, the phenomenon-row size decision, a later pass for links, one position per body, benchmark records and a faster INSERT).
 - A to-do item (generating a neighbourhood from the Generate page shows no per-sector stats).
 - A to-do item (the Generate page shows a progress line and per-layer counts instead of one line per sector).
 
