@@ -3,6 +3,7 @@
 ## [8.0.911] - 2026-10-10
 
 ### Changed
+- The Generate page's New galaxy, Plan and Rebuild the bright stars jobs now scatter the phenomena too (black holes, neutron stars, nebulae and the rest) after the stars; they ran only the star scatter, so a new galaxy had no phenomena scatter at all. New galaxy also passes the form's mass limit to its scatters (it used 20 whatever was chosen).
 - On the Generate page, the mass limit slider and the luminosity floor dropdown now sit side by side, in Plan the galaxy and in the New galaxy section (GEN.188). The defaults are 8 solar masses and 5,000 solar luminosities.
 - **Docs only:** GEN.191 (New galaxy ignores the mass limit slider, bug) is filed for Bugfixes lane 1; GEN.190 gets the cause found.
 - **Docs only:** PERF.55 (one global progress bar with an ETA across the phases of a generation job) is filed as an unassigned Phase 1 item.
