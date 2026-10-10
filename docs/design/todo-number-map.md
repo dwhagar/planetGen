@@ -904,7 +904,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.39 | Saved courses remember their unknown-space jumps and check them again | none | open |
 | NAV.40 | Bookmarks can't be used to find the start or destination once a course pick has begun (bug) | none | done, PR #399 |
 | NAV.41 | The NAV page's course map is too small to read (bug) | none | done, PR #457 |
-| NAV.42 | Each route stop shows the course and distance to the next stop | none | open |
+| NAV.42 | Each route stop shows the course and distance to the next stop | none | done, PR #1153 |
 | NAV.43 | Find everything within a distance of a place: the query and the API | none | done, PR #804 |
 | NAV.44 | A "What's nearby" page: pick a place, enter a distance in parsecs, list what is there | none | done, PR #804 |
 | NAV.45 | "What's within N pc" from the Galaxy Map and Sector Map | none | open |
