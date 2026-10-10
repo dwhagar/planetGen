@@ -490,9 +490,7 @@ with `clamp()`.
   button, or scrolling itself into view, when there is no room below; a
   test opens each menu in a short window and checks that the whole menu
   is on screen. Bugfixes lane 1, after its current work (the
-  progress-bar chain and UX.84). Open question for Boss (default as
-  written; the Galaxy Map first, then the same shared menu code for the
-  rest): other?
+  progress-bar chain and UX.84). Decided (Boss, 2026-10-10 00:02Z): the Galaxy Map first, then the same shared menu code for the rest.
   Prerequisites: none. Related: UX.86.
 
 - [ ] **UX.86 The Galaxy Map controls take too much room: buttons too large and filters one character wide (bug)**
@@ -508,8 +506,7 @@ with `clamp()`.
   uses most of the vertical space; checked at desktop and phone widths
   with a before and after screenshot in the PR. Applies to the same
   shared control code on the other map pages. Bugfixes lane 1 after
-  UX.85. Open question for Boss (default: start with the Galaxy Map,
-  then the sector and system maps use the same controls): other?
+  UX.85. Decided (Boss, 2026-10-10 00:02Z): the Galaxy Map, built on the shared control code.
   Prerequisites: UX.85. Related: UX.85, MAP.131, MAP.122.
 
 ## MAP: Galaxy Map, Sector Map, System Map
