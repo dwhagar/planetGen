@@ -3,6 +3,7 @@
 ## [8.0.911] - 2026-10-10
 
 ### Changed
+- PERF.56: GEN.187 needs no new stage entry; the existing backfill stage is relabelled (PR #1062).
 - **The backfill stage is named for what it does now (GEN.187).** On a galaxy run's numbered stage list, "Backfill the bright stars" becomes "Scatter the massive stars from the neighborhood", the four mass rings around the generated sectors. It is still shown as skipped, with its reason, when `--backfill-from none` is used or the run generated no sector, and its timing and per-layer counts are logged as before.
 - TEST.124 is first in Bugfixes lane 1 (priority: main is red).
 - Retired GEN.187 (bright-star back scatter, PR #1059). Filed TEST.124 (Phenomena page tests fail with KeyError scattered, a bug).
