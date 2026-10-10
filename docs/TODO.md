@@ -3549,30 +3549,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none.
   Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
 
-- [ ] **PERF.50 A progress bar inside one sector's save: workers report their sub-steps to the main process**
-  Left over from UX.83 (Bugfixes lane 1, PR #895; Boss, 2026-10-09
-  23:13Z: "if a sub-step is probably going to take longer than 15
-  seconds give it a progress bar as well"). The phenomenon scatter, the
-  neighbour-linking steps and the population pass now draw their own
-  bars, but the slowest sub-step left, the save of one dense sector
-  inside a worker, shows nothing because a worker has no channel to the
-  main process's bar. Done: workers report their sub-step progress
-  (units done of units expected) to the parent through a progress
-  channel, and the parent draws it as a bar under the sector's step, in
-  the terminal and on the Generate and Queue pages, for any sub-step
-  expected to pass 15 seconds (the expected time comes from the PERF.32
-  rates once they exist). Open question for Boss (default build it with
-  PERF.33's estimator so both share one channel): or separately?
-  Fold (2026-10-09): the first application of PERF.51 (the shared
-  progress mechanism); registered by UX.84.
-  Prerequisite: PERF.51. Related: UX.83, PERF.33, PERF.34, PERF.32.
-  Lane (Boss, 2026-10-09 23:38Z): Bugfixes lane 1, order PERF.32, PERF.33, PERF.51, PERF.50, DB.15, then UX.84.
-  Built with PERF.51 (PR #919): the shared Step progress mechanism
-  (a bar from 15 s predicted, the measured rate recorded back) and the
-  worker-to-parent relay are in place; the sector, link, paths,
-  backfill, top-up, phenomena and stage bars already run on it. What is
-  left here is the bar inside one sector's save, using the relay.
-
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
