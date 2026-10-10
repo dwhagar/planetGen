@@ -1,2 +1,0 @@
-### Changed
-- The Generate page's binary-system and wide-pair prevalence boxes become a star mix (ADM.45): the share of systems with one star, a close binary and a wide pair, which must total exactly 100%. The page keeps a running total and says which way to move; the server refuses any other total. The command line has `--star-mix SINGLE CLOSE WIDE` with the same rule (it replaces `--prevalence` for `binary_system` and `wide_binary`).

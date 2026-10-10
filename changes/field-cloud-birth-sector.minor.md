@@ -1,2 +1,0 @@
-### Added
-- A molecular cloud of the galaxy's cloud field (GEN.176) is born in the sector holding the centre of the space it fills, with a field-drawn serial worked out from the galaxy seed alone, so its object ID no longer depends on which sector is saved first. Run-time births (GEN.172) have tests for every path that exists today: a system added to a sector, a phenomenon or system saved on its own, a facility, and a body added by an edit; a number is never given again after its object is deleted.
