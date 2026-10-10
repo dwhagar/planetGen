@@ -3,6 +3,7 @@
 ## [8.0.866] - 2026-10-10
 
 ### Changed
+- TODO: UX.84 records the corrected survey of which generation steps have progress bars.
 - TODO: the automatic progress bar prediction (PERF.51, UX.84) and the deep check estimate (DB.21) read the recorded generation statistics (generation_stats, PERF.32), with a conservative fallback only for a step with no history.
 - TODO: replaced the hand-picked progress bars with the rule Boss stated (a bar starts by itself on any sub-step predicted over 15 seconds): UX.84 (bug), PERF.51 (the mechanism), PERF.50 reworked as its first application, PERF.33 and DB.15 moved into Phase 1.
 - TODO: filed DB.21, a deep pass for the database check (every star system validated) with the estimated time shown first.
