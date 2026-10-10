@@ -3141,6 +3141,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   priority.
   Prerequisites: none. Related: GEN.87, GEN.89.
 
+- [ ] **GEN.192 Phenomena scatter log is thin and the Phenomena table page needs checking after a run (bug)**
+  Remainder of GEN.190 (coordinator, 2026-10-10 06:56Z; PR #1008 only
+  wired the phenomena pass into the Generate-page flows). Done: the
+  phenomena log shows what the star passes show: per-layer lines, "N of
+  M layers landed", black-hole subtypes, kinds with zero count, a note
+  for filled sectors, and no dangling "Placed 0 phenomena in Ns: ."
+  line; and after a run the Phenomena table page shows rows for every
+  kind placed, tested. Owner: Bugfixes lane 1, ahead of the progress-bar
+  chain.
+  Prerequisites: none. Related: GEN.190, GEN.185, PERF.54.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.18 Run the GEN.30 bright-star backfill in parallel on the work queue**
