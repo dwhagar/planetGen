@@ -6,6 +6,9 @@
 {#- The map uses most of a wide window, past the usual 72rem column. -#}
 {% block main_class %} app-main-wide{% endblock %}
 {% block head %}
+{#- The map's whole module tree named up front, so it loads in parallel (MAP.161). -#}
+{% for name in module_graph('galaxymap3d.js') %}<link rel="modulepreload" href="{{ static_url(name) }}">
+{% endfor -%}
 <script type="module" src="{{ static_url('galaxymap3d.js') }}"></script>
 <script type="module" src="{{ static_url('bookmarks.js') }}"></script>
 <script type="module" src="{{ static_url('datatable.js') }}"></script>
