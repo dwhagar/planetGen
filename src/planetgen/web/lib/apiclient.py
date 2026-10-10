@@ -456,6 +456,16 @@ def get_galaxy_sectors(db):
     return _request("/galaxy/sectors", {"db": db})["items"]
 
 
+def get_galaxy_made(db, since, until=None):
+    """Returns `GET /api/galaxy/made` (`total` and `items`): the sectors
+    created from `since` to `until`, Unix seconds (ADM.31)."""
+    _require_db(db)
+    params = {"db": db, "since": since}
+    if until is not None:
+        params["until"] = until
+    return _request("/galaxy/made", params)
+
+
 def get_galaxy_phenomena(db):
     """Returns `GET /api/galaxy/phenomena`'s `items` list (every
     galaxy-placed nebula/asteroid field) -- see `queryDb.

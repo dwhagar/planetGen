@@ -2071,6 +2071,54 @@ function initGalaxyMap3d(canvasEl, data) {
     });
   }
 
+  // --- Sectors a generate job made (ADM.31) ---------------------------------------
+  //
+  // With ?made=<since>,<until> (the job page's "Show on Galaxy Map") the page
+  // embeds the centres and addresses of the sectors that run made, up to a
+  // cap. They are ringed in one points object, over everything else and never
+  // picked, and the map opens on the smallest stage holding them (the same
+  // fit a NAV course gets), unless the URL names a stage itself.
+  var made = data.made && (data.made.points || []).length ? data.made : null;
+  var MADE_RING_PX = 16;
+  var MADE_FIT_LIMIT = 300;
+  if (made) {
+    var madeGeometry = new THREE.BufferGeometry();
+    madeGeometry.setAttribute("position", new THREE.Float32BufferAttribute(
+      made.points.reduce(function (all, point) { all.push(point.x, point.y, point.z); return all; }, []), 3));
+    var madePoints = new THREE.Points(madeGeometry, new THREE.PointsMaterial({
+      map: highlightTexture, size: MADE_RING_PX, sizeAttenuation: false, transparent: true,
+      depthWrite: false, depthTest: false, alphaTest: 0.05,
+    }));
+    madePoints.renderOrder = 4;
+    madePoints.frustumCulled = false;
+    scene.add(madePoints);
+    // A stage that holds the extremes and an even sample holds them all.
+    var madeFit = made.sectors;
+    if (madeFit.length > MADE_FIT_LIMIT) {
+      var picked = {};
+      [0, 1, 2].forEach(function (axis) {
+        var low = madeFit[0], high = madeFit[0];
+        madeFit.forEach(function (sector) {
+          if (sector[axis] < low[axis]) low = sector;
+          if (sector[axis] > high[axis]) high = sector;
+        });
+        picked[low.join(".")] = low;
+        picked[high.join(".")] = high;
+      });
+      var step = madeFit.length / (MADE_FIT_LIMIT - 6);
+      for (var at = 0; at < madeFit.length; at += step) {
+        var sample = madeFit[Math.floor(at)];
+        picked[sample.join(".")] = sample;
+      }
+      madeFit = Object.keys(picked).map(function (key) { return picked[key]; });
+    }
+    if (!courseSectors.length) {
+      courseSectors = madeFit.map(function (sector) {
+        return { ring: sector[0], layer: sector[1], slot: sector[2] };
+      });
+    }
+  }
+
   // NAV.20: a click on a ringed stop opens its page. Registered ahead of the
   // stage view's own pointer handlers (which come later) and ending the event
   // for them, so a click on a ring never drills into the sector beneath it.

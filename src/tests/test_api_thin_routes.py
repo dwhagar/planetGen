@@ -398,3 +398,17 @@ def test_deleting_a_sector_with_facilities_and_wiki_links(admin_client, mysql_co
         orbital_id]
     assert admin_client.get(f"/api/systems/{system_id}/owner").get_json() == {"owner": None}
     assert all(s["id"] != sector_id for s in admin_client.get("/api/galaxy/sectors").get_json()["items"])
+
+
+def test_galaxy_made_lists_sectors_created_in_a_window(client, mysql_config):
+    """ADM.31: `/api/galaxy/made` returns the placed sectors made between two times."""
+    import time
+    _place_sector(mysql_config, "Made One", (100.0, 0.0, 0.0), address=(30, 0, 0))
+    _place_sector(mysql_config, "Made Two", (-100.0, 0.0, 0.0), address=(30, 0, 5))
+    now = time.time()
+    body = client.get(f"/api/galaxy/made?since={now - 3600}&until={now + 3600}").get_json()
+    assert body["total"] == 2
+    assert {i["name"] for i in body["items"]} == {"Made One", "Made Two"}
+    assert {(i["ring_index"], i["layer_index"], i["ring_slot_index"]) for i in body["items"]} == {(30, 0, 0), (30, 0, 5)}
+    assert client.get(f"/api/galaxy/made?since={now + 3600}").get_json() == {"total": 0, "items": []}
+    assert client.get("/api/galaxy/made?since=soon").status_code == 400

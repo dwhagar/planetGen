@@ -36,6 +36,7 @@ redraws the same parts (a failed job's log stays open until Continue, ADM.24; Co
 <p class="job-links">
   <button type="button" class="btn" data-job-copy hidden>Copy log</button>
   <span class="hint" data-job-copy-note role="status" hidden></span>
+  <a class="btn" data-job-made href="{{ job.made_url or '#' }}"{% if not job.made_url %} hidden{% endif %}>Show on Galaxy Map</a>
   {%- if link %}<a href="{{ job.url }}">Full output</a> {% endif -%}
   <a href="{{ url_for('web.generate_job_log', job_id=job.id) }}" download>Download log</a>
 </p>
