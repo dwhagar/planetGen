@@ -3,6 +3,7 @@
 ## [8.0.911] - 2026-10-10
 
 ### Changed
+- **Docs only:** PERF.53 retired; PERF.55 notes the missing whole-job layers-per-second stat.
 - The generation-speed stats no longer count a sector, bright-star layer or phenomena layer that produced nothing, so empty ones stop skewing the per-sector, per-layer and per-unit times (the progress bar still counts every layer of the job).
 - **Docs only:** GEN.192 retired (phenomena scatter in Generate-page jobs and its log output, PRs #1008, #1012, #1013).
 - The phenomena scatter's output now matches the star scatter's: black holes are split into stellar, intermediate and supermassive, a "landed in N of M layers" (or "none landed") line, the sectors already filled that it leaves out, and a summary that lists every class including the ones that drew none.
