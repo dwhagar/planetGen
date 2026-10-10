@@ -843,6 +843,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   camera radius; it only dims stars much farther than the target, so the
   two rules never thin the same stars twice. The distance-cut tiles it
   leads to also need MAP.154 (nested lists).
+  Bugfixes lane 2 (2026-10-09): Bugfixes lane 2 (2026-10-10, MAP.163, PR
+  #1029): the dimmest stars seen at full zoom-out (about 4,000 L_sun)
+  come from the per-tile cap GALAXY_TILE_MAX_BRIGHT_STARS=400 (the 400
+  brightest stars per tile), not from the scatter floor. The visibility
+  law must reconcile the cap with the floor.
   Prerequisite: MAP.153. Related: MAP.116, MAP.146, MAP.147.
   Design: [docs/design/fly-through-view-distance.md](design/fly-through-view-distance.md)
 
@@ -1131,40 +1136,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generating it removes the mark.
   Prerequisites: none. Related: MAP.122, MAP.120, UX.87, NAV.48.
 
-- [ ] **MAP.163 Galaxy Map brightness scale: floor 2,500 L_sun at full zoom, then min/max scaling per zoom**
-  Boss (2026-10-10, via the coordinator; one-off for Bugfixes lane 2):
-  the Galaxy Map brightness scale starts at the luminosity floor of
-  2,500 L_sun when fully zoomed out, and at each zoom level scales
-  brightness between that view's minimum and maximum visible values
-  instead of a fixed range. Done: the brightness of a star on the Galaxy
-  Map maps min to dimmest and max to brightest for the stars in view at
-  every zoom, the full-zoom floor is 2,500 L_sun, and a test checks the
-  scaling at two zoom levels. Open question for Boss (default: use the
-  same log scale the map uses now, only with the per-zoom range).
-  Bugfixes lane 2 (2026-10-09): Cause found by Bugfixes lane 2
-  (2026-10-10, relayed): the zoomed-out map bottoms out where the 400th
-  brightest star sits, not at the scatter floor, because of the per-tile
-  cap GALAXY_TILE_MAX_BRIGHT_STARS=400 (db/query.py) that keeps only the
-  400 brightest stars per tile. The 2,500 L_sun wish needs that cap and
-  the floor reconciled (a floor-based cut, or a higher cap, with
-  MAP.148's visibility law).
-  Prerequisites: none. Related: MAP.148, MAP.153, GEN.184.
-
-- [ ] **MAP.164 Galaxy Map shows phenomena: black holes purple, neutron stars dark blue, sized by mass, dark colors out-shine brighter stars**
-  Boss (2026-10-10 06:39Z, ASAP): black holes and neutron stars should
-  show on the Galaxy Map by mass relative to similarly massed stars and
-  brightness. Black holes are purple, neutron stars are dark blue, and
-  these dark colors are made to out-shine brighter stars so they do not
-  vanish among them. The largest of them are visible from the full
-  galactic view. Done: the Galaxy Map draws black holes and neutron
-  stars from the Phenomena table in those colors, their size and glow
-  follow mass relative to stars of similar mass, a rule keeps them
-  visible against brighter stars (a halo or boosted contrast), the
-  largest ones show at the widest zoom, and a test checks the colors and
-  that they draw above brighter stars. Needs the Phenomena table filled
-  (see the bug before this). Owner: Bugfixes lane 2, after its defaults
-  PR. Related: MAP.163, MAP.148, MAP.155.
-  Prerequisites: none. Related: MAP.163, MAP.148, MAP.155.
+- [ ] **MAP.165 Scattered phenomena store a mass so the Galaxy Map sizes them exactly**
+  Bugfixes lane 2 (2026-10-10, MAP.164, PR #1029): the scatter rows hold
+  no mass, so the Galaxy Map sizes black holes and neutron stars by mass
+  class only; Boss asked for size by mass (2026-10-10 06:39Z). Done: the
+  phenomenon scatter stores a mass for each scattered black hole and
+  neutron star, the map sizes them by it relative to stars of similar
+  mass and brightness, and a test checks the size ordering. Owner:
+  unassigned.
+  Prerequisites: none. Related: MAP.164, GEN.185, MAP.148, MAP.153.
 
 ## NAV: Navigation and courses
 
