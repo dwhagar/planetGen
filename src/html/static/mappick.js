@@ -14,7 +14,8 @@
 //   pixels across, picked on screen within `reach(entry)` pixels
 //   (mapcore.nearestOnScreen);
 // - meshes: three.js objects, raycast; `entryOf(hit)` says what a hit
-//   means (null: nothing);
+//   means (null: nothing), and the optional `visible(hit, ray)` leaves out
+//   a hit that is drawn too faint or is a back face (MAP.149);
 // - custom: `pick(ctx)` returns {entry, distance} or null itself, given
 //   {clientX, clientY, rect, ray, camera}.
 // A layer marked `occludes` is solid: what sits behind its nearest hit
@@ -71,6 +72,9 @@ export function createPicker(camera, canvasEl) {
     if (layer.meshes) {
       const hits = raycaster.intersectObjects(layer.meshes(), false);
       for (let n = 0; n < hits.length; n++) {
+        // `visible(hit, ray)` leaves out a hit that can't be picked (drawn
+        // too faint, or a back face): what is behind it can.
+        if (layer.visible && !layer.visible(hits[n], ctx.ray)) continue;
         const entry = layer.entryOf ? layer.entryOf(hits[n]) : hits[n].object;
         if (entry != null) return { entry: entry, distance: hits[n].distance, hit: hits[n] };
       }
