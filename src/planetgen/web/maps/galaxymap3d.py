@@ -448,7 +448,7 @@ def _course_readout_html(course):
 def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetch_path="/galaxy/tiles",
                               sector_url=None, generate=None, phenomenon_url=None,
                               system_url=None, stage_path="/galaxy/stage",
-                              locate_path="/galaxy/locate", course=None,
+                              locate_path="/galaxy/locate", course=None, made=None,
                               territory_path="/galaxy/territories", pick=None, nav_url=None, pinned=None,
                               nebula_shape_path="/galaxy/nebula/{id}/shape"):
     """
@@ -536,6 +536,10 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         course (dict or None): A NAV course to draw over the map
             (`web/nav_page.galaxy_course`): `scope`, `points` (galaxy-
             frame parsecs), `sector` and `navUrl`. `None` draws none.
+        made (dict or None): The sectors a generate job made (ADM.31):
+            `total`, `points` (their centres, parsecs) and `sectors`
+            (`[ring, layer, slot]`), up to a cap. The map rings them and
+            opens on the smallest stage holding them. `None` shows none.
 
     Returns:
         str: A complete `<section class="panel">` block.
@@ -551,6 +555,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
         "territoryPath": territory_path,
         "nebulaShapePath": nebula_shape_path,
         "course": course,
+        "made": made,
         "pick": pick["pick"] if pick else None,
         # The NAV pick the page opened with (static/navpick.js carries on
         # from it): the other end already chosen and where Cancel goes.
@@ -630,6 +635,17 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
             + '">back to NAV</a></p>'
         )
 
+    made_hint = ""
+    if made is not None:
+        shown = len(made["points"])
+        made_hint = (
+            '<p class="hint">' + (
+                "That run made no sectors." if not made["total"] else
+                f"Showing the {made['total']:,} sector{'s' if made['total'] != 1 else ''} that run made, ringed on the map"
+                + (f" (the first {shown:,} are ringed)" if shown < made["total"] else "")
+            ) + ' &middot; <a href="/galaxy">Clear</a></p>'
+        )
+
     shape_hint = (
         ""
         if galaxy_shape
@@ -699,7 +715,7 @@ def render_galaxy_map3d_panel(db_name, galaxy_shape, edge_pc, initial_view, fetc
 <div class="panel-header">
   <h2 class="sr-only">{title}</h2>
 </div>
-{pick_banner}{shape_hint}{course_hint}
+{pick_banner}{shape_hint}{course_hint}{made_hint}
 {address_block}<p class="hint galaxy-stage-notice" id="galaxymap3d-notice" role="status" hidden></p>
 {crumbs_block}<div class="starmap-layout">
 <div class="galaxy-map-row">

@@ -70,6 +70,12 @@ function render(job) {
     const cancel = panel.querySelector("[data-job-cancel]");
     if (cancel) cancel.remove();
   }
+  // ADM.31: a finished run that made sectors offers them on the Galaxy Map.
+  const made = panel.querySelector("[data-job-made]");
+  if (made) {
+    made.hidden = !job.made_url;
+    if (job.made_url) made.href = job.made_url;
+  }
 }
 
 // A job that succeeded or was cancelled reloads the page (it is pinned to

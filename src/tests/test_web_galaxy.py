@@ -467,6 +467,22 @@ def test_galaxy_page_without_a_course(client, fake):
     assert _scene(client.get("/galaxy?course=system:1").get_data(as_text=True))["course"] is None
 
 
+def test_galaxy_page_rings_the_sectors_a_job_made(client, fake, monkeypatch):
+    """ADM.31: `?made=<since>,<until>` embeds the sectors a run made and says how many."""
+    asked = []
+    made = {"total": 3, "items": [
+        {"id": n, "name": f"S{n}", "x": 10.0 * n, "y": 0.0, "z": 0.0, "ring_index": 5 + n, "layer_index": 0,
+         "ring_slot_index": n} for n in (1, 2)]}
+    monkeypatch.setattr(apiclient, "get_galaxy_made", lambda db, since, until=None: asked.append((since, until)) or made)
+    html = client.get("/galaxy?made=100,200").get_data(as_text=True)
+    assert asked == [(100.0, 200.0)]
+    scene = _scene(html)["made"]
+    assert scene["total"] == 3 and scene["sectors"] == [[6, 0, 1], [7, 0, 2]] and scene["points"][1]["x"] == 20.0
+    assert "Showing the 3 sectors that run made" in html and "the first 2 are ringed" in html
+    assert _scene(client.get("/galaxy").get_data(as_text=True))["made"] is None
+    assert _scene(client.get("/galaxy?made=soon").get_data(as_text=True))["made"] is None
+
+
 # --- /galaxy/locate ----------------------------------------------------------------------
 
 def test_locate_endpoint_passes_the_name_through(client, fake, monkeypatch):

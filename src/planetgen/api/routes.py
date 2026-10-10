@@ -58,6 +58,7 @@ from planetgen.db.query import (
     galaxy_density_shape,
     galaxy_placed_phenomena,
     galaxy_placed_sectors,
+    sectors_made,
     galaxy_locate,
     galaxy_stage,
     galaxy_tiles,
@@ -721,6 +722,22 @@ def galaxy_sectors():
     not by the addressable galaxy's own astronomical scale.
     """
     return jsonify({"items": galaxy_placed_sectors(get_db())})
+
+
+@bp.route("/galaxy/made")
+def galaxy_made():
+    """
+    The galaxy-placed sectors created in a time window, for the Galaxy
+    Map's "Show on Galaxy Map" after a generate job (ADM.31): `?since=`
+    and optional `&until=` as Unix seconds. Returns `{"total", "items"}`
+    (`queryDb.sectors_made`; at most `MADE_SECTOR_LIMIT` items).
+    """
+    try:
+        since = float(request.args.get("since", ""))
+        until = float(request.args["until"]) if request.args.get("until") else None
+    except ValueError:
+        return jsonify({"error": "since and until must be numbers (Unix seconds)."}), 400
+    return jsonify(sectors_made(get_db(), since, until))
 
 
 @bp.route("/galaxy/phenomena")
