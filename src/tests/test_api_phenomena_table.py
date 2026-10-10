@@ -104,3 +104,24 @@ def test_phenomena_unplaced_sector_sorts_last_both_ways(client, mysql_config):
     _seed(mysql_config)
     # None of these has a sector: they all tie, then fall back to name.
     assert _names(client.get("/api/phenomena?sort=sector")) == _names(client.get("/api/phenomena"))
+
+
+def test_scattered_phenomena_not_yet_built_are_listed_for_every_kind(client, mysql_config):
+    """Boss's empty table: a fresh scatter fills `phenomenon_scatter` and nothing else, so each unbuilt row must be listed."""
+    kinds = [("black-hole", "stellar"), ("black-hole", "supermassive"), ("neutron-star", None),
+             ("planetary-nebula", None), ("supernova-remnant", None), ("hypervelocity-star", None),
+             ("quasar", None)]
+    rows = [(0, 0, slot, kind, subtype, 1000 * slot, 0, 0, None, None, None, slot + 1)
+            for slot, (kind, subtype) in enumerate(kinds)]
+    conn = store.get_connection(mysql_config)
+    store.insert_phenomenon_scatter(conn, rows)
+    conn.execute("UPDATE phenomenon_scatter SET built_at = NOW() WHERE kind = 'quasar'")
+    conn.commit()
+    body = client.get("/api/phenomena?facets=1").get_json()
+    assert body["total"] == len(kinds) - 1
+    assert sorted({item["type"] for item in body["items"]}) == [
+        "black_hole", "hypervelocity_star", "nebula", "neutron_star", "supernova_remnant"]
+    assert all(item["scattered"] and item["placed"] for item in body["items"])
+    assert {f["value"]: f["count"] for f in body["facets"]["type"]}["black_hole"] == 2
+    assert client.get("/api/phenomena?type=neutron_star").get_json()["total"] == 1
+    assert "Unbuilt neutron star 0.0.2" in _names(client.get("/api/phenomena"))

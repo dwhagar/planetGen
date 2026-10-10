@@ -177,6 +177,25 @@ def _rows(mysql_config, where="1 = 1"):
         conn.close()
 
 
+def test_the_scatter_lists_each_layers_phenomena_by_kind_like_the_star_scatter(mysql_config, monkeypatch):
+    """Boss: the star scatter says what each layer got; the phenomena scatter gave only a final total."""
+    from planetgen.util import log
+    _seed_galaxy(mysql_config)
+    messages = []
+    monkeypatch.setattr(log, "normal", lambda message, *args, **kwargs: messages.append(message))
+    summary = run_plan.scatter_phenomena(_plan_args(mysql_config, "--workers", "1"))
+    layer_lines = [m for m in messages if m.startswith("Phenomena, layer ")]
+    assert layer_lines and all(": placed " in m for m in layer_lines)
+    assert any(m.startswith("Special phenomena: ") for m in messages)
+    assert any(m.startswith("Phenomena landed in ") and " layers." in m for m in messages)
+    final = next(m for m in messages if m.startswith("Placed "))
+    for label in scatter.EXPECTED_LABELS:           # every class is listed, the ones that drew none with a 0
+        assert f" {label}" in final, label
+    assert "stellar black-hole" in final and "intermediate black-hole" in final
+    placed = sum(int(m.split(": placed ")[1].split(":")[0].replace(",", "")) for m in layer_lines)
+    assert placed <= summary["total"]
+
+
 def test_a_plan_run_stores_the_scatter_and_its_seed_and_a_rerun_replaces_it(mysql_config):
     _seed_galaxy(mysql_config)
     summary = run_plan.scatter_phenomena(_plan_args(mysql_config))

@@ -872,7 +872,22 @@ def list_roots(conn, limit=50, offset=0):
     return roots, int(total)
 
 
-def load_tree(conn, root_id, max_tasks=200, recorded_task_seconds=None):
+def recorded_step_seconds(conn):
+    """
+    How long each kind of web-job step took in earlier runs (PERF.33): the
+    mean seconds of every finished "step" node, by its title.
+
+    Returns:
+        dict: `{title: mean seconds}`.
+    """
+    rows = conn.execute(
+        "SELECT title, AVG(seconds) AS mean FROM work_jobs WHERE kind = 'step' AND state = 'done'"
+        " AND seconds IS NOT NULL GROUP BY title").fetchall()
+    conn.rollback()
+    return {row["title"]: float(row["mean"]) for row in rows}
+
+
+def load_tree(conn, root_id, max_tasks=200, recorded_task_seconds=None, unstarted_steps=None):
     """
     One whole job tree, every node with its totals added up from its
     children (`_roll_up`).
@@ -937,6 +952,8 @@ def load_tree(conn, root_id, max_tasks=200, recorded_task_seconds=None):
                 for key in ("started_at", "finished_at", "seconds"):
                     task[key] = _float_or_none(task[key])
     conn.rollback()
+    if unstarted_steps is not None and root["live"]:
+        root["unstarted_step_seconds"] = list(unstarted_steps(root))
     _roll_up(root)
     return root
 
@@ -958,6 +975,7 @@ def _roll_up(node):
     planned = max(node["tasks_total"] or 0, recorded)
     totals["queued"] += planned - recorded
     totals["tasks"] = planned
+    unstarted = node.pop("unstarted_step_seconds", None) or []
     eta = None
     if node["live"] and planned:
         remaining = planned - totals["done"] - totals["failed"] - totals["cancelled"]
@@ -985,6 +1003,11 @@ def _roll_up(node):
             child_etas.append(sub["eta_seconds"])
     if child_etas:
         eta = (eta or 0.0) + sum(child_etas)
+    # PERF.33: each step not started yet adds what earlier runs of it took.
+    known = [seconds for seconds in unstarted if seconds is not None]
+    if known:
+        eta = (eta or 0.0) + sum(known)
+    totals["eta_partial"] = len(known) < len(unstarted)
     totals["eta_seconds"] = eta if node["live"] else None
     totals["started_at"] = min(starts) if starts else None
     totals["finished_at"] = max(ends) if ends and not node["live"] else None

@@ -29,6 +29,7 @@ from urllib.parse import urlencode
 
 from flask import g, request, url_for
 
+from planetgen.physics.habitability_world import EQUIPMENT_LABELS
 from planetgen.web.lib import apiclient
 from planetgen.web.lib.datatable import Column, Result, Table
 from planetgen.web.lib.fmt import format_number
@@ -42,8 +43,8 @@ from .sector_page import PHENOMENON_TYPE_LABELS
 # through the API, so it doesn't import planetgen.db.query).
 TAG_FACETS = (
     "type", "spectral", "luminosity",
-    "class", "body", "life",
-    "moon_class", "moon_body", "moon_life",
+    "class", "body", "life", "equipment",
+    "moon_class", "moon_body", "moon_life", "moon_equipment",
     "density",
     "phenomenon", "phenomenon_class",
 )
@@ -55,9 +56,11 @@ FACET_TITLES = {
     "class": "Planet Class",
     "body": "Planet Body Type",
     "life": "Planet Supported Life Chemistry",
+    "equipment": "Planet: Equipment a Human Needs",
     "moon_class": "Moon Class",
     "moon_body": "Moon Body Type",
     "moon_life": "Moon Supported Life Chemistry",
+    "moon_equipment": "Moon: Equipment a Human Needs",
     "density": "Asteroid Belt Density",
     "phenomenon": "Phenomenon",
     "phenomenon_class": "Phenomenon Class",
@@ -69,6 +72,8 @@ _FACET_ALLOWED = {
     "type": {"star", "planet", "moon", "belt"},
     "body": {"t", "g"},
     "moon_body": {"t", "g"},
+    "equipment": {"0", "1", "2", "3", "4"},
+    "moon_equipment": {"0", "1", "2", "3", "4"},
     "phenomenon": {"nebula", "asteroid_field", "black_hole", "neutron_star", "supernova_remnant",
                    "rogue_planet", "interstellar_comet", "quasar"},
 }
@@ -345,8 +350,8 @@ _PANEL_COLUMNS = {
     "sectors": ["Name", "Edge", "Galaxy Map"],
     "systems": ["Name", "Sector", "Binary", "Star type", "Galaxy Map"],
     "stars": ["Name", "Role", "Type", "Radius", "System", "Sector"],
-    "planets": ["Name", "Class", "Body", "Radius", "Life Chemistry", "System", "Sector"],
-    "moons": ["Name", "Class", "Body", "Radius", "Life Chemistry", "Orbits", "System", "Sector"],
+    "planets": ["Name", "Class", "Body", "Radius", "Life Chemistry", "Equipment", "System", "Sector"],
+    "moons": ["Name", "Class", "Body", "Radius", "Life Chemistry", "Equipment", "Orbits", "System", "Sector"],
     "belts": ["Density", "Composition", "System", "Sector"],
     "phenomena": ["Name", "Type", "Class", "Sector"],
 }
@@ -370,7 +375,8 @@ def _cells(panel, row):
                 _link(row["system_name"], row["system_url"]), _sector_link(row)]
     if panel in ("planets", "moons"):
         cells = [{"text": row["name"]}, {"text": row["planet_class"] or "—"}, {"text": row["body"]}, _radius(row),
-                 {"text": row["life_chemical"] or "—"}]
+                 {"text": row["life_chemical"] or "—"},
+                 {"text": EQUIPMENT_LABELS[row["equipment_tier"]] if row.get("equipment_tier") is not None else "—"}]
         if panel == "moons":
             cells.append({"text": row["planet_name"]})
         return cells + [_link(row["system_name"], row["system_url"]), _sector_link(row)]

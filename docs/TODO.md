@@ -112,7 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.9, PERF.29, PERF.30, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, NAV.11, NAV.42, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.57, TEST.77, UX.49, PERF.31, GEN.128 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.9, PERF.29, PERF.30, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, POP.8, POP.9, POP.7, POP.10, NAV.11, NAV.42, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.57, TEST.77, UX.49, PERF.31, GEN.128 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.17, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18, PERF.33, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, ADM.43, ADM.44 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, and the anomalies chosen in phase 2. | NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, GEN.114, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies. | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, GEN.55 |
@@ -450,6 +450,35 @@ with `clamp()`.
   luminosity passes both count; generating one system fills only that
   system and leaves the sector's other contents ungenerated.
   Prerequisites: none. Related: MAP.162, ADM.32, ADM.35, NAV.48, DOC.9.
+
+- [ ] **UX.88 Say "uncharted" instead of "unbuilt" or "not generated" in all user-facing text outside Generate and admin**
+  Boss (2026-10-10 07:26Z, via the coordinator): instead of unbuilt or
+  not generated it should say "uncharted" across the entire project and
+  in all output to the user, except the Generate system and the admin
+  panels and controls. Done: a sweep of the templates, map scripts (for
+  example the sector and block labels in galaxystageview.js and
+  sectorscene.js), nav, the CLI query output, the API texts shown to
+  people, and the docs for the user; the Generate pages and the admin
+  panels keep the technical words; a test fails if a user-facing
+  template outside those areas says unbuilt or not generated. The rule
+  is recorded in docs/html-interface.md (Wording). Owner: Bugfixes lane
+  1 (coordinator, 2026-10-10 07:31Z; it was Bugfixes lane 2).
+  Prerequisites: none. Related: GEN.193, MAP.164.
+
+- [ ] **UX.89 Staged jobs show wrong stage counts and numbers, and skipped stages are not listed (bug)**
+  Boss (2026-10-10 07:54Z, via the coordinator): generating a new galaxy
+  says it has 4 stages, but it runs 9: 1 Math Check, 2 DB Wipe, 3 Plan
+  new Galaxy, 4 Generate initial Sector, 5 Generate neighborhood, 6 Mass
+  Star Scatter from Neighborhood, 7 Mass Star Scatter Galactic, 8 Bright
+  Star Scatter Galactic, 9 Phenomena Scatter. Some stages are optional.
+  Done: every staged action (New galaxy, Plan, Rebuild the bright stars,
+  and every other job with stages) lists all its stages with the right
+  count and numbers; an optional stage that is skipped is still listed,
+  marked skipped, with the reason; the stage numbers on the Generate
+  page, job pages, Queue page and the terminal agree; tests cover each
+  staged job with and without its optional stages. Owner: Bugfixes lane
+  1, after the defaults item (GEN.194) and before UX.88.
+  Prerequisites: none. Related: PERF.33, PERF.55, GEN.185.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -1112,6 +1141,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   every zoom, the full-zoom floor is 2,500 L_sun, and a test checks the
   scaling at two zoom levels. Open question for Boss (default: use the
   same log scale the map uses now, only with the per-zoom range).
+  Bugfixes lane 2 (2026-10-09): Cause found by Bugfixes lane 2
+  (2026-10-10, relayed): the zoomed-out map bottoms out where the 400th
+  brightest star sits, not at the scatter floor, because of the per-tile
+  cap GALAXY_TILE_MAX_BRIGHT_STARS=400 (db/query.py) that keeps only the
+  400 brightest stars per tile. The 2,500 L_sun wish needs that cap and
+  the floor reconciled (a floor-based cut, or a higher cap, with
+  MAP.148's visibility law).
   Prerequisites: none. Related: MAP.148, MAP.153, GEN.184.
 
 - [ ] **MAP.164 Galaxy Map shows phenomena: black holes purple, neutron stars dark blue, sized by mass, dark colors out-shine brighter stars**
@@ -1690,7 +1726,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     U, W, X, Y and Z. Each adds the class to `PLANET_CLASSES`, the
     reference pages, the rogue flag, moon eligibility, and a
     distribution test over 1,000 generated systems.
-    Prerequisite: GEN.89.
     Plan (2026-10-07): Moved to phase 2 under GEN.90 (the class
     refactor), after the habitability score GEN.89.
     Research (2026-10-09, atmospheres-retention-and-classes.md): confirm
@@ -1976,36 +2011,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     advisory.
     Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
-- [ ] **GEN.83 A planetary habitability index (PHI)**
-  Boss (2026-10-03 05:38Z): "Create a habitability index based on the
-  pressure, temperature, composition, etc...  This will use several
-  documents in the design docs folder: Atmospheric Toxicity.md, Chemical
-  Habitability.md, Naturally Occurring Ionizing Radiation.md, Planetary
-  Habitability and Speculative Xenobiology.md, Planetary Habitability
-  Index.md, Speculative Xenobiology Extremes.md, Speculative Xenobiology
-  Examples.md, Mathematical and Algorithmic Implementation of the
-  Planetary Habitability Index.md" Done when the subitems are.
-  Prerequisite: GEN.89.
-  Design: [docs/design/habitability-index.md](design/habitability-index.md)
-
-  - [ ] **GEN.89 The habitability score for every planet and moon**
-    Done: every planet and moon gets the scores GEN.84 defines, with a
-    colour tier and a human equipment profile (shirtsleeve, mask, mask
-    and scrubber, sealed suit, full life support), shown on its page
-    and searchable.
-    Research (2026-10-09, atmospheres-retention-and-classes.md): add an
-    `equipment_tier` column (0 to 4) and the four domain tiers (the five
-    names match this text). Stored per star: `log_lx_lbol`,
-    `lxuv_erg_s`, `xuv_saturated`, `flare_n33_per_yr`, `flare_alpha`;
-    per planet: `xuv_flux_erg_cm2_s`, `xuv_exposure_index`,
-    `magnetic_moment_a_m2`, `magnetopause_rp`, `surface_dose_msv_yr`
-    (plus the GCR, SEP, crust and UV parts), `ozone_loss_flag`,
-    `ocean_class`, `ocean_depth_km`, `hp_ice_km`, `ice_shell_km`,
-    `land_fraction`. It returns the lowest tier, with a reason string,
-    for any pulsar, black hole or X-ray-binary planet. Open question for
-    Boss (default: store the two flare numbers, derive the rest).
-    Design: [docs/design/habitability-index.md](design/habitability-index.md)
-
 - [ ] **GEN.90 Refactor the planet classes around the habitability index**
   Boss (2026-10-03 05:38Z): "Refactor all planetary classes to better
   align with our habitability index system and the research for the
@@ -2061,7 +2066,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     cap `fast` at stage 3); add planetary tidal locking (needs GEN.104).
     Open question for Boss (default yes): dose above 0.1 Sv/yr forces
     equipment tier 3 and above 1 Sv/yr tier 4.
-    Prerequisites: GEN.89, GEN.28.
+    Prerequisite: GEN.28.
     Design: [docs/design/habitability-index.md](design/habitability-index.md)
 
 - [ ] **GEN.93 Nebula conditions in planet generation**
@@ -2104,7 +2109,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     loss uses vis-viva and unbinds an orbit when more than half the mass
     goes; engulfment overrides. Worked example: 1 AU round a 1 Msun star
     that drops to 0.6 Msun moves to 1/0.6 = 1.67 AU.
-    Prerequisite: GEN.89.
     Design: [docs/design/nebula-and-asteroid-field-classes.md](design/nebula-and-asteroid-field-classes.md)
 
 - [ ] **GEN.99 Nebula volume backfill with the star types the nebula needs**
@@ -2961,36 +2965,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none.
   Design: [docs/design/phenomenon-scatter-mass-cut.md](design/phenomenon-scatter-mass-cut.md)
 
-- [ ] **GEN.170 Object ID layout: an 80-bit ID of birth sector, serial and body number, with pack, unpack, format and parse functions**
-  Source: docs/design/object-id-options.md section 0 (Boss decided
-  2026-10-09 22:39Z: birth location plus serial, galaxy-wide; the same
-  length for every object; always identifies that one object; up to 128
-  bits but shorter preferred; fix the deficits; no backward
-  compatibility). Filed from the object-ID research thread. Nothing is
-  built until Boss asks.
-  Done: pure functions that pack, unpack, format and parse the 80-bit ID
-  (20 hex digits, stored as BINARY(10)): a 40-bit birth sector address
-  (ring 12 bits, biased layer 12 bits, slot 16 bits), a 28-bit serial in
-  that sector (top two bits 00 generated rank, 01 added at run time, 10
-  field-drawn) and a 12-bit body number (0 is the top-level object; 1
-  and up number the stars, planets, moons, belts and comets of that
-  system on one counter). The kind is not in the ID. Field widths are
-  chosen at plan time and stored in galaxy_shape; they grow to 96 or 128
-  bits only when a galaxy's bounds do not fit. Replaces the hash in
-  galaxy/uid.py. Tests for fixed length and round trip. As a generator
-  change it bumps the generator version (OPS.37) when it ships.
-  Decided (Boss, 2026-10-09 22:44Z): 80 bits, 20 hex digits, with system
-  and body fields, not a 64-bit flat per-sector counter.
-  Lane (2026-10-09): Queue (Boss, 2026-10-10 05:13Z): Foundations lane 1
-  does this first, then API.9, DB.21, GEN.186, NAV.8, NAV.11. One of the
-  three biggest blockers on the tree.
-  Lane (2026-10-09): Queue update (Foundations lane 1, 2026-10-10
-  05:14Z): lane 1 finishes ADM.28 and ADM.45 (one PR, in flight) first,
-  then the object-ID block (GEN.170 to GEN.176, DB.20, TEST.110, DOC.5),
-  then API.9. DB.21, GEN.186, NAV.8 and NAV.11 follow.
-  Prerequisites: none.
-  Design: [docs/design/object-id-options.md](design/object-id-options.md)
-
 - [ ] **GEN.171 The sector fill gives object IDs by generation rank**
   Source: docs/design/object-id-options.md section 0 (Boss decided
   2026-10-09 22:39Z: birth location plus serial, galaxy-wide; the same
@@ -3121,22 +3095,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none (GEN.184 merged, PR #965). Related: GEN.30, GEN.40, GEN.99, GEN.183,
   GEN.184, MAP.120, PERF.18.
 
-- [ ] **GEN.188 Mass limit default is 8, and the mass slider and luminosity dropdown sit side by side on Generate and New galaxy**
-  Decided (Boss, 2026-10-10 04:38Z, via the coordinator; owner Foundations lane 2): change the
-  Generate-galaxy defaults so the mass limit default is 8 solar masses
-  (GEN.183 shipped 20); put the mass slider and the luminosity floor
-  dropdown (GEN.184, default 3000 L_sun) next to each other on the
-  Generate page, and show both in the New galaxy section as well. Done:
-  a fresh galaxy plan, the CLI default and the stored default use 8, the
-  two controls sit together in both places with the same presets, and
-  tests cover the default and the controls. A galaxy that stored 20
-  keeps its stored limit.
-  Lane (2026-10-09): Update (coordinator, 2026-10-10 06:15Z): the
-  luminosity default moves to 5,000 L_sun together with the mass default
-  of 8 solar masses; GEN.188 is a one-off on Bugfixes lane 2 (not
-  Foundations lane 2).
-  Prerequisites: none. Related: GEN.183, GEN.184, GEN.185.
-
 - [ ] **GEN.189 Gamma-ray burst and AGN ozone loss for the ozone_loss_flag (low priority)**
   Foundations lane 2 (2026-10-10 06:20Z), design 4.5 of
   activity-magnetism-radiation-hydrosphere.md: GEN.87 stores
@@ -3150,36 +3108,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   priority.
   Prerequisites: none. Related: GEN.87, GEN.89.
 
-- [ ] **GEN.190 The Phenomena table is empty after a web-generated galaxy: the phenomena scatter pass never runs (bug)**
-  Boss (2026-10-10 06:39Z, ASAP): neutron stars and nebulae are
-  supposedly being added, but the Phenomena table is empty and there is
-  no way to find them; the system seems to think it is creating them.
-  The phenomena scatter pass never runs in the web generation flow (and
-  with `galaxy --then-scatter`), and its log output is thinner than the
-  star scatter's. Done: a galaxy generated from the web page and with
-  `--then-scatter` fills the Phenomena table (black holes, neutron
-  stars, nebulae and the rest) with the counts the plan says, the log
-  shows each phenomenon pass with counts and timing as the star passes
-  do, and a test generates a small galaxy through the web job path and
-  finds rows in the Phenomena table. Owner: Bugfixes lane 1.
-  Bugfixes lane 1 (2026-10-09): Bugfixes lane 1 (2026-10-10, relayed)
-  pinned the cause: New galaxy runs plan --no-bright-stars (which skips
-  phenomena) then galaxy --then-scatter (stars only), and Plan and
-  Rebuild the bright stars run plan --bright-stars-only (stars only).
-  Fix: every Generate-page job that scatters stars also scatters
-  phenomena, in GEN.185 order (stars, then other phenomena), tested.
-  Shares a PR with GEN.191.
-  Prerequisites: none. Related: GEN.185, GEN.100, PERF.53.
-
-- [ ] **GEN.191 New galaxy ignores the mass limit slider: the plan step does not store the limit, so the scatter uses the default whatever the form says (bug)**
-  Bugfixes lane 1 found it while fixing GEN.190 (2026-10-10, relayed).
-  The New galaxy job's plan step does not store the mass limit, so
-  `galaxy --then-scatter` uses the built-in default (20 solar masses)
-  whatever the form's slider and dropdown say (GEN.183, GEN.188). Done:
-  the form's limit reaches both scatters (stars and other phenomena) in
-  the New galaxy job, and a test sets a non-default limit on the form
-  and finds it used. Owner: Bugfixes lane 1, one PR with GEN.190.
-  Prerequisites: none. Related: GEN.183, GEN.185, GEN.188, GEN.190.
+- [ ] **GEN.194 Default mass limit 14 solar masses and default luminosity floor 9,000 solar luminosities**
+  Boss (2026-10-10 07:49Z, via the coordinator): the default mass limit
+  becomes 14 solar masses, about the middle of the 8 to 20 range, and
+  the default bright-star luminosity floor becomes 9,000 solar
+  luminosities, in the next PR that can carry it. This supersedes the 8
+  and 5,000 of GEN.188. Done: the plan form, the New galaxy form, the
+  CLI default and the stored default use 14 and 9,000; both values exist
+  among the presets; the scatter design note
+  (docs/design/phenomenon-scatter-mass-cut.md) and the TODO text name
+  the new defaults; a galaxy that stored other values keeps them; tests
+  cover the defaults. Owner: Bugfixes lane 1, first in its order.
+  Prerequisites: none. Related: GEN.183, GEN.184, GEN.188.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -3356,6 +3296,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   bar's are weights), so it needs a recorded rate in the bar's own
   units, or it keeps the live rate. The migration bar (DB.15) stays its
   own item.
+  Bugfixes lane 1 (2026-10-09): Part 1 built (2026-10-10, Bugfixes lane
+  1, PR #1021): a multi-step job adds each not-yet-started step's
+  estimate to its ETA. Still open: the scatter-bar recorded rate (after
+  GEN.187) and the UX.3 banner reading the same estimator (the banner is
+  not built yet, so nothing to read from).
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
   Replace the one-`sector_stats`-row-per-visited-cell ledger of
@@ -3469,18 +3414,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none.
   Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
 
-- [ ] **PERF.53 Timing stats are skewed by layers and sectors that generated nothing (bug)**
-  Boss (2026-10-10 06:28Z): when scattering of any kind is done, the
-  timing stats get skewed because they include layers generated or
-  sectors generated that produced nothing. Done: the per-layer,
-  per-sector and per-unit timing stats count a run only when something
-  was actually generated; the total layers-per-second figure keeps
-  counting every layer, including the ones that produced nothing,
-  because it measures the whole job; a test on a small galaxy with empty
-  layers checks both. Related to PERF.52 (the admin generation-stats
-  table).
-  Prerequisites: none. Related: PERF.52, PERF.33, GEN.185.
-
 - [ ] **PERF.54 Separate generation-stats rows for the mass pass and the luminosity pass of the star scatter**
   Reported by Bugfixes lane 1 (2026-10-10 06:36Z), left out of PERF.52
   because it is not a small fix: the admin generation-stats table
@@ -3506,8 +3439,29 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   phases. Unassigned: in no lane's queue. Related: PERF.33 (progress
   bars and ETAs from measured performance), PERF.51 (the progress-bar
   mechanism), PERF.52 and PERF.53 (the generation stats), UX.83, UX.3.
-  Prerequisites: PERF.33. Related: PERF.33, PERF.51, PERF.52, PERF.53,
+  Prerequisite: PERF.33. Related: PERF.33, PERF.51, PERF.52, PERF.53,
   UX.83, UX.3.
+  Bugfixes lane 1 (2026-10-09): Bugfixes lane 1 (2026-10-10, PERF.53, PR
+  #1015): a stored 'layers per second for the whole job' stat (all
+  layers, including ones that generated nothing, per Boss 06:28Z) does
+  not exist yet; the progress bar measures the whole job but nothing is
+  stored. Add it here if wanted.
+  Bugfixes lane 1 (2026-10-09): Web half built (2026-10-10, Bugfixes
+  lane 1, PR #1023): the overall bar with ETA is on the Generate and job
+  pages. Still open: the command-line overall bar, only if Boss asks;
+  and the whole-job layers-per-second stat noted above.
+
+- [ ] **PERF.56 Record how long each stage of a staged job takes, with the settings it ran with**
+  Boss (2026-10-10 07:54Z, via the coordinator): record stats on how
+  long each stage takes with the settings it is given (mass limit,
+  luminosity floor, layers, workers and the rest). Done: each stage of
+  every staged job (see the stage-count bug UX.89) stores its name, number,
+  skipped flag and reason, start and end, and the settings that shaped
+  it; a stats view or the admin stats table shows the history by stage
+  and settings; the estimator of PERF.33 and the overall bar of PERF.55
+  can read it. Owner: Bugfixes lane 1, after the stage-count bug (UX.89).
+  Prerequisites: none. Related: PERF.32, PERF.33, PERF.52, PERF.54,
+  PERF.55.
 
 ## DB: Database and schema
 
@@ -3625,7 +3579,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   has not run yet, in which case the change rides it; nebulae need their
   centroid recomputed (see the nebula item). Boss resets by hand anyway,
   so a fresh galaxy is acceptable. Takes the next free Alembic revision.
-  Prerequisite: GEN.170.
   Design: [docs/design/object-id-options.md](design/object-id-options.md)
 
 - [ ] **DB.21 A deep pass for the database check: validate every star system, with the estimated time shown first**
@@ -4225,6 +4178,25 @@ clears each one.
   open until it recurs, then investigate with the failing run's data).
   Prerequisites: none. Related: TEST.111, TEST.71.
 
+- [ ] **TEST.122 Browser map tests fail on plain main in Bugfixes lane 2's container (fixture maps, controls, system-page maps) (bug)**
+  Bugfixes lane 2 (2026-10-10, relayed):
+  test_web_browser_fixture_maps.py, test_web_browser_controls.py and the
+  system page in test_web_browser_maps.py fail on plain main in its
+  container, not only on a branch (2 system map browser tests failed in
+  the GEN.188 run). Find whether it is the container's browser or a real
+  regression; if real, fix it; if the container, record what the lane
+  needs. Related to the earlier TEST.119 and TEST.120 fixes. Owner:
+  unassigned.
+  Prerequisites: none. Related: TEST.119, TEST.120.
+
+- [ ] **TEST.123 test_a_loaded_sector_knows_every_objects_cell_and_velocity fails once under full-suite load (bug)**
+  Foundations lane 1 (2026-10-10, relayed, from the GEN.170 run):
+  tests/test_spatial_position_db.py::test_a_loaded_sector_knows_every_objects_cell_and_velocity
+  failed once under full-suite load and passes alone. Find the cause
+  (shared state, ordering or timing) and make the test robust; never
+  skip it. Owner: unassigned.
+  Prerequisites: none. Related: TEST.111, TEST.116.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -4500,14 +4472,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   for the same seed.
   Prerequisite: OPS.28.
 
-- [ ] **OPS.40 update.sh step 8 fails: setup-debug-log.sh loads the deleted util/appconfig.py (bug)**
-  Reported by Bugfixes lane 2 (2026-10-10 04:39Z): step 8 of update.sh
-  runs setup-debug-log.sh, which still loads util/appconfig.py after
-  that module was deleted, so the step fails. Done: setup-debug-log.sh
-  uses the current settings loader, update.sh step 8 completes, and a
-  test or check covers the script's import.
-  Prerequisites: none.
-
 ## DOC: Documentation
 
 - [ ] **DOC.4 Correct the stale statements the research found in docs, docstrings and comments**
@@ -4584,7 +4548,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   the ID as the public reference; GEN.72 and GEN.73 and the position-ID
   naming (GEN.64 stays as the name of interstellar objects) are updated
   to match.
-  Prerequisite: GEN.170.
   Design: [docs/design/object-id-options.md](design/object-id-options.md)
 
 - [ ] **DOC.6 A static help section in the web interface: page template, index, per-page help links and a coverage test**

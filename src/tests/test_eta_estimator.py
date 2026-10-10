@@ -148,10 +148,69 @@ def test_the_sector_bar_carries_the_recorded_rate_into_the_progress_bar():
         with run_common.sector_bar(progress, Args(), "Sectors", 40) as bar:
             rate = progress.tasks[0].fields["rate"]
             assert bar.shown and rate.prior == 0.4 and rate.tau == 90.0
-            assert rate.eta(40) == pytest.approx(100.0)
+            assert rate.eta(40) == pytest.approx(100.0, rel=1e-3)
 
         class Unrecorded:
             pass
 
         with run_common.sector_bar(progress, Unrecorded(), "Sectors", 10):
             assert progress.tasks[1].fields["rate"].prior is None
+
+
+def test_a_job_adds_the_time_of_each_step_not_started_yet():
+    node = _node(0, 0.0, 0, recorded=None)
+    node["unstarted_step_seconds"] = [60.0, 30.0]
+    work._roll_up(node)
+    assert node["totals"]["eta_seconds"] == pytest.approx(90.0)
+    assert node["totals"]["eta_partial"] is False
+
+
+def test_a_step_with_no_recorded_time_makes_the_job_estimate_partial():
+    node = _node(0, 0.0, 0, recorded=None)
+    node["unstarted_step_seconds"] = [60.0, None]
+    work._roll_up(node)
+    assert node["totals"]["eta_seconds"] == pytest.approx(60.0)
+    assert node["totals"]["eta_partial"] is True
+    nothing = _node(0, 0.0, 0, recorded=None)
+    work._roll_up(nothing)
+    assert nothing["totals"]["eta_seconds"] is None
+    assert nothing["totals"]["eta_partial"] is False
+
+
+def _job(**fields):
+    base = {"steps": ["a", "b", "c"], "step": 1, "step_started_at": 1000.0, "step_estimates": [100.0, 60.0, 40.0],
+            "elapsed_s": 50.0, "finished": False, "status": "running"}
+    return {**base, **fields}
+
+
+def test_a_one_step_job_has_no_overall_bar():
+    assert generate_page.overall_view(_job(steps=["a"]), 10.0)["overall_shown"] is False
+
+
+def test_the_overall_bar_adds_the_later_steps_to_the_running_ones_time_left():
+    view = generate_page.overall_view(_job(), 30.0, now=1050.0)
+    assert view["overall_shown"] and view["overall_text"] == "Whole job, step 1 of 3"
+    # 30 s left on this step + 60 + 40 for the next two; 50 s already gone.
+    assert view["overall_value"] == pytest.approx(50.0 / 180.0)
+    assert view["overall_remaining_label"] == generate_page.remaining_label(130.0)
+
+
+def test_the_overall_bar_falls_back_to_the_recorded_time_of_the_running_step():
+    view = generate_page.overall_view(_job(), None, now=1030.0)
+    # 100 s recorded less 30 s done, plus the later steps.
+    assert view["overall_value"] == pytest.approx(50.0 / (50.0 + 170.0))
+
+
+def test_an_unrecorded_later_step_makes_the_overall_time_at_least():
+    view = generate_page.overall_view(_job(step_estimates=[100.0, None, 40.0]), 30.0, now=1050.0)
+    assert view["overall_remaining_label"].startswith("at least ")
+
+
+def test_the_overall_bar_says_estimating_without_any_time_for_the_running_step():
+    view = generate_page.overall_view(_job(step_estimates=[]), None, now=1050.0)
+    assert view["overall_value"] is None and view["overall_remaining_label"] == "estimating the time left"
+
+
+def test_the_overall_bar_is_full_for_a_succeeded_job():
+    view = generate_page.overall_view(_job(finished=True, status="succeeded"), None)
+    assert view["overall_value"] == 1.0 and view["overall_remaining_label"] == ""

@@ -877,6 +877,7 @@ def _job_view(job):
     view["remaining_label"] = remaining_label(
         remaining, running=not job.get("finished") and bool(progress.get("description")))
     view["progress_text"] = _progress_text(progress)
+    view.update(overall_view(job, remaining))
     # PERF.4: the second bar (the bright-star layers being drawn while
     # layers are slow), or blank.
     detail = progress.get("detail") if not job.get("finished") else None
@@ -886,6 +887,52 @@ def _job_view(job):
         if detail.get("eta_s") is not None:
             text += f", about {format_elapsed(detail['eta_s'])} left"
         view["progress_detail_text"] = text
+    return view
+
+
+def overall_view(job, step_remaining, now=None):
+    """
+    The one bar across all of a job's steps (PERF.55), for a job with more
+    than one: `overall_shown`, `overall_value` (0 to 1, `None` while the
+    time left is unknown), `overall_text` and `overall_remaining_label`.
+
+    The time left is the running step's own (`step_remaining`, the step
+    bar's ETA counted down) or else what earlier runs of that step took
+    less its time so far, plus what earlier runs of each later step took;
+    a later step with no record makes it "at least". The bar is the job's
+    elapsed time over elapsed plus left, so it moves forward as each
+    step's own bar reports and is corrected when a step runs long.
+    """
+    steps = job.get("steps") or []
+    view = {"overall_shown": len(steps) > 1, "overall_value": None, "overall_text": "",
+            "overall_remaining_label": ""}
+    if len(steps) < 2:
+        return view
+    if job.get("finished"):
+        done = job.get("status") == "succeeded"
+        view["overall_value"] = 1.0 if done else None
+        view["overall_text"] = f"All {len(steps)} steps" if done else ""
+        return view
+    now = time.time() if now is None else now
+    step, estimates = int(job.get("step") or 0), list(job.get("step_estimates") or [])
+    estimates += [None] * (len(steps) - len(estimates))
+    current = step_remaining
+    if current is None and 0 < step <= len(steps) and estimates[step - 1] is not None and job.get("step_started_at"):
+        current = max(0.0, estimates[step - 1] - (now - float(job["step_started_at"])))
+    later = estimates[max(step, 0):]
+    known = sum(seconds for seconds in later if seconds is not None)
+    partial = any(seconds is None for seconds in later)
+    if step == 0:
+        current = 0.0
+    view["overall_text"] = f"Whole job, step {max(step, 1)} of {len(steps)}"
+    if current is None:
+        view["overall_remaining_label"] = "estimating the time left" if step else ""
+        return view
+    remaining = current + known
+    elapsed = job.get("elapsed_s") or 0.0
+    view["overall_value"] = elapsed / (elapsed + remaining) if elapsed + remaining > 0 else None
+    label = remaining_label(remaining)
+    view["overall_remaining_label"] = ("at least " + label.replace("about ", "", 1)) if partial and label else label
     return view
 
 
