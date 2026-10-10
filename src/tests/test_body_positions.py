@@ -137,4 +137,7 @@ def test_the_scene_positions_at_the_epoch_match_the_stored_ones(mysql_config):
         for moon in planet["moons"]:
             assert sub(here[moon["ref"]], here[planet["ref"]]) == pytest.approx(moon["position_km"], rel=1e-6, abs=1e4)
     for comet in scene["comets"]:
-        assert here[comet["ref"]] == pytest.approx(comet["position_km"], rel=1e-5, abs=1e6)
+        # Like a planet's, a comet's stored position is relative to what it goes round (GEN.165: a comet
+        # round the second star of a wide pair was compared against the barycenter and missed by 64 AU).
+        origin = here[comet["orbit"]["around"]] if comet["orbit"]["around"] != "barycenter" else [0.0, 0.0, 0.0]
+        assert sub(here[comet["ref"]], origin) == pytest.approx(comet["position_km"], rel=1e-5, abs=1e6)
