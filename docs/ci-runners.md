@@ -1,7 +1,8 @@
 # Running CI on your own computers (optional)
 
-The CI workflow runs on a push to main and when started by hand (Actions >
-CI > Run workflow, on any branch). When it runs, it uses GitHub's machines by default (`ubuntu-latest`,
+The CI workflow runs on a schedule (main, and every dev-* branch) and when
+started by hand (Actions > CI > Run workflow); never on a push or a pull
+request, and never on a claude/* or claude-* branch. When it runs, it uses GitHub's machines by default (`ubuntu-latest`,
 `macos-latest`), and nothing in this guide is needed for
 it to work. Self-hosted runners are **off by default**. This guide is for
 turning them back on later: it covers what each machine needs, how to

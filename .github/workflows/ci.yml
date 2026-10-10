@@ -1,21 +1,23 @@
 name: CI
 
-# Runs on its own only for a push to main (a merge, and the "Release x.y.z"
-# commit stamp-version.yml pushes right after it). It does not run on a
-# pull request or on a push to any other branch. To test any other branch,
-# start it by hand: Actions > CI > Run workflow (workflow_dispatch), and
-# pick the branch. The jobs are unchanged. stamp-version.yml and
-# release-note.yml still run on their own.
+# No push or pull request ever starts this workflow (Boss, 2026-10-10).
+# It runs in three ways only:
+#   1. On a schedule, on main (the cron below, UTC).
+#   2. The scheduled run also dispatches this workflow (workflow_dispatch)
+#      on every remote branch named dev-* (the trigger-dev-branches job).
+#   3. By hand: Actions > CI > Run workflow, on any branch except claude/*.
+# A branch named claude/* or claude-* never runs the test jobs: they are
+# skipped (the `if:` on the mathcheck job; every other job waits for it).
+# The jobs are unchanged. stamp-version.yml and release-note.yml still run
+# on their own.
 on:
-  push:
-    branches:
-      - main
+  schedule:
+    - cron: "0 7 * * *"
   workflow_dispatch:
 
 # One run per workflow and branch: a newer run on the same ref cancels the
-# older one that is still going (a merge's CI is cancelled by the stamp
-# commit right behind it). Cancelled runs stay in the Actions history; GitHub
-# has no setting to delete them.
+# older one that is still going. Cancelled runs stay in the Actions history;
+# GitHub has no setting to delete them.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -31,6 +33,9 @@ concurrency:
 
 jobs:
   mathcheck:
+    # Not on claude/* or claude-* branches (the agents' working branches).
+    # Every other test job needs this one, so they are skipped with it.
+    if: ${{ !startsWith(github.ref_name, 'claude/') && !startsWith(github.ref_name, 'claude-') }}
     # The math check gate (TEST.67, planetgen/physics/mathcheck.py): known
     # answers from real astronomy, identities and sampler distributions.
     # It runs first, on its own, and every other job waits for it: with
@@ -473,3 +478,29 @@ jobs:
         # requirements.lock is what servers install (scripts/
         # install-python-deps.sh, --require-hashes); same ignore as above.
         run: pip-audit --require-hashes -r requirements.lock --ignore-vuln PYSEC-2026-3740
+
+  trigger-dev-branches:
+    # Scheduled run only: start this workflow on every dev-* branch, so the
+    # branches under work get a nightly run without a push trigger. A manual
+    # run skips it. Dispatched runs are real workflow_dispatch runs (the
+    # GITHUB_TOKEN may start those), and each is its own concurrency group.
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: read
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Trigger CI on the dev-* branches
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # ls-remote lists the branches that exist on GitHub now; a branch
+          # whose copy of ci.yml has no workflow_dispatch fails on its own
+          # and must not stop the others.
+          for branch in $(git ls-remote --heads origin 'refs/heads/dev-*' | sed 's|.*refs/heads/||'); do
+            echo "Triggering CI on $branch..."
+            gh workflow run ci.yml --ref "$branch" || echo "Could not start CI on $branch"
+          done
