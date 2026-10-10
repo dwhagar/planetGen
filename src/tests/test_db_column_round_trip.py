@@ -20,7 +20,7 @@ from tests.publicids import pid, pids
 pytestmark = pytest.mark.db
 
 BOOKKEEPING_TABLES = {
-    "schema_migrations", "alembic_version", "generation_run_arguments", "phenomenon_scatter", "phenomenon_scatter_classes", "id_blocks", "id_counters", "system_name_registry", "sector_name_registry", "population_state",
+    "schema_migrations", "alembic_version", "generation_run_arguments", "phenomenon_scatter", "phenomenon_scatter_classes", "sector_system_counts", "id_blocks", "id_counters", "system_name_registry", "sector_name_registry", "population_state",
     "orbit_simulation_state", "galaxy_column", "galaxy_layer", "sector_stats", "bright_stars",
     "nearest_systems", "sector_paths", "sector_path_knots",
 }
