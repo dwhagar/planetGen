@@ -3,6 +3,7 @@
 ## [8.0.866] - 2026-10-10
 
 ### Changed
+- GEN.175: regenerating a phenomenon keeps its uid; it was set to NULL.
 - **Docs only:** filed GEN.187 (bright-star back scatter by mass, issue #952), MAP.162 (open sectors that hold scattered objects but were never generated, issue #928) and UX.87 (uncharted systems in the system list, issue #929).
 - **Docs only:** filed TEST.115 (Windows CI leg failures: Redis in WSL unreachable) and TEST.116 (a one-off K2V failure in test_bughunt_end_to_end) from the Bugfixes lane 1 CI findings.
 - GitHub CI (`ci.yml`, every test leg) now runs only by hand: Actions > CI > Run workflow. It no longer runs on a push or a pull request. `stamp-version.yml` and `release-note.yml` are unchanged.
