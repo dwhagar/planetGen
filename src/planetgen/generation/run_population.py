@@ -35,7 +35,7 @@ def run_population(args):
     """
     conn = store.get_connection(store.mysql_config_from_args(args))
     try:
-        with StageProgress(model.pass_stage_count(args.territories_only)) as bar:
+        with StageProgress(model.pass_stage_count(args.territories_only), kind="population", args=args) as bar:
             counts = model.run_pass(conn, rescan=args.rescan, territories_only=args.territories_only,
                                     on_stage=bar.stage)
     finally:
@@ -51,7 +51,7 @@ def run_population_after(args):
     conn = store.get_connection(store.mysql_config_from_args(args))
     try:
         with workQueue.job_node("population", "Population pass"):
-            with StageProgress(model.pass_stage_count()) as bar:
+            with StageProgress(model.pass_stage_count(), kind="population", args=args) as bar:
                 counts = model.run_pass(conn, on_stage=bar.stage)
     finally:
         conn.close()

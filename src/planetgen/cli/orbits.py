@@ -208,7 +208,7 @@ def main():
         # A bar over the steps, with the tables (or sectors) of the step
         # under way beneath it; the Generate page's job status draws the
         # same two bars.
-        with StageProgress(len(STAGES)) as bar:
+        with StageProgress(len(STAGES), kind="orbits") as bar:
             bar.stage(_stage_label(0))
             counts = advance_orbital_phases(conn, clock, on_progress=bar.detail)
             # A comet's position needs Kepler's or Barker's equation, so it

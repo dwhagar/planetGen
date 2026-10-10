@@ -34,6 +34,7 @@ from planetgen.galaxy.skeleton import (
     build_layer_extents, candidate_sector_count, expected_system_count_at_density_1,
 )
 from planetgen.generation import run_common
+from planetgen.generation import steps
 
 
 BACKFILL_CHUNK_SECTORS = 200
@@ -627,11 +628,12 @@ def add_bright_star_band(args):
             with run_common._generation_progress() as progress:
                 log.set_console(progress.console)
                 try:
-                    task = progress.add_task("Topping up backfilled sectors", total=len(topped))
-                    topped_layers = {}
-                    _sectors, stars = _draw_sector_bands(conn, skeleton, topped, target, current, first_seed,
-                                                         ceiling_cap=current, counts=counts, layers=topped_layers,
-                                                         on_sector=lambda: progress.advance(task))
+                    with steps.Step("Topping up backfilled sectors", "topup", len(topped), args=args,
+                                    progress=progress) as bar:
+                        topped_layers = {}
+                        _sectors, stars = _draw_sector_bands(conn, skeleton, topped, target, current, first_seed,
+                                                             ceiling_cap=current, counts=counts, layers=topped_layers,
+                                                             on_sector=bar.advance)
                 finally:
                     log.reset_console()
             log_layers("Topping up backfilled sectors", topped_layers)
@@ -721,16 +723,18 @@ def _phenomenon_min_mass(args):
     return float(program_constants.PHENOMENON_MIN_MASS_SOLAR if value is None else value)
 
 
-def _scatter_phenomena_layers(args, progress, task, layers_done, layers, weights, layer_done, mysql_config,
-                              skeleton, e_value, seed, min_mass_solar, filled):
-    """The layers of the phenomenon scatter through the work queue, the bar `task` credited with each
-    layer's expected work as it finishes (UX.83)."""
+def _scatter_phenomena_layers(args, bar, layers, weights, layer_done, mysql_config, skeleton, e_value, seed,
+                              min_mass_solar, filled):
+    """The layers of the phenomenon scatter through the work queue, the step `bar` credited with each
+    layer's expected work as it finishes (UX.83, PERF.51)."""
+    layers_done = [0]
+
     def done_with(layer_index):
         def on_done(layer_counts, seconds, weight):
             layer_done(layer_counts, seconds, weight)
             layers_done[0] += 1
-            progress.update(task, advance=weights[layer_index],
-                            description=f"Phenomena ({layers_done[0]:,} of {len(layers):,} layers)")
+            bar.update(advance=weights[layer_index],
+                       description=f"Phenomena ({layers_done[0]:,} of {len(layers):,} layers)")
         return on_done
 
     with run_common._work_queue(args, "Phenomena") as queue:
@@ -782,22 +786,21 @@ def scatter_phenomena(args):
         log.normal(f"Phenomena: about {round(sum(weights.values())):,} to place in {len(layers):,} layers "
                    f"(neutron stars and black holes from {min_mass_solar:g} solar masses).")
 
-        def layer_done(layer_counts, seconds, _weight):
+        def layer_done(layer_counts, seconds, weight):
             for kind, count in layer_counts.items():
                 counts[kind] = counts.get(kind, 0) + count
-            placed = sum(layer_counts.values())
-            run_common._generation_stats(args).record("phenomena", 0.0, seconds, systems=placed, stars=placed,
+            # Recorded in the bar's own units (the layer's weight), so the next run's bar can start from it.
+            run_common._generation_stats(args).record("phenomena", 0.0, seconds, systems=weight, stars=weight,
                                                       workers=run_common._worker_count(args))
 
         with run_common._generation_progress() as progress:
             log.set_console(progress.console)
-            task = progress.add_task(f"Phenomena (0 of {len(layers):,} layers)", total=max(sum(weights.values()), 1.0),
-                                     percent=True)
-            progress.main_task = task
-            layers_done = [0]
             try:
-                _scatter_phenomena_layers(args, progress, task, layers_done, layers, weights, layer_done,
-                                          mysql_config, skeleton, e_value, seed, min_mass_solar, filled)
+                with steps.Step(f"Phenomena (0 of {len(layers):,} layers)", "phenomena",
+                                max(sum(weights.values()), 1.0), args=args, progress=progress,
+                                workers=run_common._worker_count(args), percent=True, record=False) as bar:
+                    _scatter_phenomena_layers(args, bar, layers, weights, layer_done, mysql_config, skeleton,
+                                              e_value, seed, min_mass_solar, filled)
             finally:
                 log.reset_console()
         special = list(phenomenon_scatter.special_rows(extents, skeleton.edge_pc, seed, filled))

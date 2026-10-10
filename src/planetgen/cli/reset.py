@@ -172,7 +172,7 @@ def reset_database(config, dry_run=False, assume_yes=False):
 
         conn.execute("SET FOREIGN_KEY_CHECKS = 0")
         try:
-            with StageProgress(len(tables)) as bar:
+            with StageProgress(len(tables), kind="reset") as bar:
                 for number, table in enumerate(tables, start=1):
                     bar.stage(f"Wiping {table} (table {number} of {len(tables)})")
                     conn.execute(f"TRUNCATE TABLE {table}")

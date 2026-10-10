@@ -145,13 +145,13 @@ def test_the_sector_bar_carries_the_recorded_rate_into_the_progress_bar():
         _sector_prior = (0.4, 90.0)
 
     with run_common._generation_progress(disable=True) as progress:
-        task = run_common.sector_task(progress, Args(), "Sectors", 40)
-        rate = progress.tasks[0].fields["rate"]
-        assert task == progress.tasks[0].id and rate.prior == 0.4 and rate.tau == 90.0
-        assert rate.eta(40) == pytest.approx(100.0)
+        with run_common.sector_bar(progress, Args(), "Sectors", 40) as bar:
+            rate = progress.tasks[0].fields["rate"]
+            assert bar.shown and rate.prior == 0.4 and rate.tau == 90.0
+            assert rate.eta(40) == pytest.approx(100.0)
 
         class Unrecorded:
             pass
 
-        other = run_common.sector_task(progress, Unrecorded(), "Sectors", 10)
-        assert progress.tasks[1].fields["rate"].prior is None and other == progress.tasks[1].id
+        with run_common.sector_bar(progress, Unrecorded(), "Sectors", 10):
+            assert progress.tasks[1].fields["rate"].prior is None

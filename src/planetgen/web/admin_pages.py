@@ -789,7 +789,11 @@ def download_galaxy_settings(name):
 download_galaxy_settings.json_only = True  # a file download, not a page: tests/test_web_a11y.py skips it
 
 
-GENERATION_KINDS = {"sector": "Sector fill", "scatter": "Bright-star layer", "phenomena": "Phenomena layer"}
+GENERATION_KINDS = {
+    "sector": "Sector fill", "scatter": "Bright-star layer", "phenomena": "Phenomena layer",
+    "link": "Neighbour linking", "paths": "Sector paths", "backfill": "Bright-star backfill",
+    "topup": "Backfill top-up", "population": "Population pass", "stages": "Stages",
+}
 """dict: What the Stats page calls each kind of recorded rate (PERF.32)."""
 
 
