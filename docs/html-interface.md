@@ -37,6 +37,8 @@ The sweep of the existing wording is done (PR #1049).
 
 ## Habitability chips
 
+Each rocky planet's and moon's description also carries the full PHI-4 explanation (UX.91, `physics/habitability_explain.py`): the score and equipment, then one paragraph per colour factor with its colour, this world's input values and the input that sets it.
+
 Planet and moon rows carry habitability chips (GEN.89, design in
 `docs/design/habitability-index.md`): an equipment label (Ideal, formerly Shirtsleeve;
 Mask, Mask and scrubber, Sealed suit, Full life support), a colour chip
