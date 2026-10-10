@@ -82,6 +82,9 @@
       <a class="tag{% if option.active %} active{% endif %}" href="{{ option.url }}"{% if option.tooltip %} title="{{ option.tooltip }}"{% endif %}>{% if option.active %}<span class="sr-only">Selected: </span>{% endif %}{{ option.label }} <span class="tag-count">{{ option.count }}</span></a>
       {%- endfor %}
     </div>
+    {%- if group.help %}
+    <p class="hint"><a href="{{ group.help.url }}">{{ group.help.text }}</a></p>
+    {%- endif %}
   </details>
   {%- else %}
   <p class="hint">Nothing has been generated yet.</p>

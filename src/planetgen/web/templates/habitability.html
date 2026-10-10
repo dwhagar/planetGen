@@ -1,0 +1,55 @@
+{#- What the habitability levels mean (/classes/habitability, web/class_pages.py, UX.90). -#}
+{% extends "base.html" %}
+{% block content %}
+<section class="panel" aria-labelledby="equipment-heading">
+  <div class="panel-header"><h2 id="equipment-heading">Equipment levels</h2></div>
+  <p>The label on a planet or moon says what a human visitor needs to stand on its surface.</p>
+  <div class="table-scroll" tabindex="0"><table>
+    <thead><tr><th scope="col">Level</th><th scope="col">What it means</th></tr></thead>
+    <tbody>
+      {%- for label, meaning in equipment %}
+      <tr><th scope="row">{{ label }}</th><td>{{ meaning }}</td></tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+  <p>{{ equipment_rule }}</p>
+</section>
+
+<section class="panel" aria-labelledby="domains-heading">
+  <div class="panel-header"><h2 id="domains-heading">The four PHI-4 domains</h2></div>
+  <p>The chip's colour is the worst of four domains: pressure, temperature, chemistry and radiation. Each domain is
+  Blue, Green, Yellow or Red.</p>
+  <dl>
+    {%- for colour, meaning in domain_tiers %}
+    <dt>{{ colour }}</dt><dd>{{ meaning }}</dd>
+    {%- endfor %}
+  </dl>
+  <p>{{ score_rule }}</p>
+  {%- for domain, rows in domains %}
+  <h3>{{ domain }}</h3>
+  <div class="table-scroll" tabindex="0"><table>
+    <thead><tr><th scope="col">Variable</th><th scope="col">Blue</th><th scope="col">Green</th><th scope="col">Yellow</th></tr></thead>
+    <tbody>
+      {%- for variable, blue, green, yellow in rows %}
+      <tr><th scope="row">{{ variable }}</th><td>{{ blue }}</td><td>{{ green or "—" }}</td><td>{{ yellow }}</td></tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+  {%- endfor %}
+  <p>Anything beyond the Yellow column is Red.</p>
+</section>
+
+<section class="panel" aria-labelledby="hosts-heading">
+  <div class="panel-header"><h2 id="hosts-heading">Planets of pulsars, neutron stars and black holes</h2></div>
+  <p>{{ compact_host_rule }}</p>
+</section>
+
+<section class="panel" aria-labelledby="chips-heading">
+  <div class="panel-header"><h2 id="chips-heading">The other chips on a planet</h2></div>
+  <dl>
+    {%- for chip, meaning in chips %}
+    <dt>{{ chip }}</dt><dd>{{ meaning }}</dd>
+    {%- endfor %}
+  </dl>
+</section>
+{% endblock %}

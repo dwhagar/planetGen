@@ -17,12 +17,12 @@ release is stamped.
 | MAP | MAP.167 |
 | NAV | NAV.58 |
 | GEN | GEN.197 |
-| PERF | PERF.58 |
+| PERF | PERF.62 |
 | DB | DB.22 |
 | API | API.24 |
 | ADM | ADM.50 |
 | SEC | SEC.33 |
-| TEST | TEST.124 |
+| TEST | TEST.125 |
 | USR | USR.10 |
 | OPS | OPS.41 |
 | DOC | DOC.17 |
@@ -480,7 +480,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.17 | Repair by regenerating a damaged sector from its seed when parity cannot rebuild it | none | open |
 | DB.18 | Migration helpers for slow DDL: online indexes, instant columns and batched updates | none | open |
 | DB.19 | Compact or derive phenomenon rows (needed only if the mass cut is lowered to 10 solar masses or less) | none | closed, not needed at the 20 solar mass cut (PR #866); reopen if the cut is lowered to 10 solar masses or less |
-| DB.20 | Object IDs in the schema: uid becomes BINARY(10), unique on its own, plus an id_counters table | none | open |
+| DB.20 | Object IDs in the schema: uid becomes BINARY(10), unique on its own, plus an id_counters table | none | done, PR #1055 |
 | DB.21 | A deep pass for the database check: validate every star system, with the estimated time shown first | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
@@ -668,7 +668,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.168 | The sector fill draws the phenomena below the scatter cut | none | done, PR #866 |
 | GEN.169 | Decide the phenomenon scatter rates: regional factors and the 0.1% intermediate-mass black holes | none | open |
 | GEN.170 | Object ID layout: an 80-bit ID of birth sector, serial and body number, with pack, unpack, format and parse functions | none | done, PR #1017 |
-| GEN.171 | The sector fill gives object IDs by generation rank | none | open |
+| GEN.171 | The sector fill gives object IDs by generation rank | none | done, PR #1055 |
 | GEN.172 | Run-time births get object IDs from the counters | none | open |
 | GEN.173 | Deleting a body and then adding one fails with IntegrityError 1062 on uq_planets_uid (bug) | none | done, PR #987 |
 | GEN.174 | Bodies an admin adds are saved with a NULL uid (bug) | none | done, PR #987 |
@@ -684,7 +684,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.184 | A luminosity floor the user sets: presets from 2500 to 4 million solar luminosities, default 3000 | none | done, PR #965 |
 | GEN.185 | The scatter in five passes: mass-limit objects, mass-limit stars, brightest-star sector marks, the luminosity pass, then other phenomena | none | done, PR #953 |
 | GEN.186 | Random neighborhoods: an option to keep away from filled space | none | open |
-| GEN.187 | Bright-star back scatter by mass: rings of 1, 2, 5 and 8 solar masses around filled space | none | open |
+| GEN.187 | Bright-star back scatter by mass: rings of 1, 2, 5 and 8 solar masses around filled space | none | done, PR #1059 |
 | GEN.188 | Mass limit default is 8, and the mass slider and luminosity dropdown sit side by side on Generate and New galaxy | none | done, PR #1007 |
 | GEN.189 | Gamma-ray burst and AGN ozone loss for the ozone_loss_flag (low priority) | none | open |
 | GEN.190 | The Phenomena table is empty after a web-generated galaxy: the phenomena scatter pass never runs (bug) | none | done, PR #1008 |
@@ -859,7 +859,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.163 | Galaxy Map brightness scale: floor 2,500 L_sun at full zoom, then min/max scaling per zoom | none | done, PR #1029 |
 | MAP.164 | Galaxy Map shows phenomena: black holes purple, neutron stars dark blue, sized by mass, dark colors out-shine brighter stars | none | done, PR #1029 |
 | MAP.165 | Scattered phenomena store a mass so the Galaxy Map sizes them exactly | none | open |
-| MAP.166 | Galaxy Map "Dimmest star shown" says "every star" only when the view is complete | none | open |
+| MAP.166 | Galaxy Map "Dimmest star shown" says "every star" only when the view is complete | none | done, PR #1070 |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
@@ -1013,7 +1013,11 @@ Parents marked "new parent" had no old number of their own.
 | PERF.54 | Separate generation-stats rows for the mass pass and the luminosity pass of the star scatter | none | open |
 | PERF.55 | One global progress bar for generation jobs that run in phases, with an ETA across all phases | none | open |
 | PERF.56 | Record how long each stage of a staged job takes, with the settings it ran with | none | open |
-| PERF.57 | Skip empty stretches in a galactic scatter by combining layers into growing groups | none | open |
+| PERF.57 | Skip empty stretches in a galactic scatter by combining layers into growing groups | none | superseded by PERF.58 |
+| PERF.58 | Object-first star sampler for the mass and luminosity passes (top priority, replaces PERF.57) | none | open |
+| PERF.59 | Share the ring inputs across the three scatter passes (top priority) | none | open |
+| PERF.60 | Large-mean Poisson helper for per-layer counts (top priority) | none | open |
+| PERF.61 | Object-first sampler for the phenomena pass, own prototype first | none | open |
 | POP.1 | Government ownership of systems | 12 (2026-09-24 01:32Z to 02:18Z); 9 (2026-09-24 01:57Z to 02:02Z); 7 (2026-09-24 02:25Z to 05:38Z); 6 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 15 (2026-09-30 16:44Z); 16 (2026-09-30 16:49Z); 17 (2026-09-30 16:51Z to 18:09Z); 34 (2026-09-30 18:14Z); 39 (2026-09-30 18:39Z to 18:41Z); 59 (2026-09-30 19:02Z to 19:17Z); 63 (2026-09-30 20:01Z to 20:27Z); 46 (2026-09-30 20:07Z); 50 (2026-09-30 20:08Z to 20:48Z); 51 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 (optional since 7.58.2, PR #180) |
 | POP.2 | Names for dominant species on living worlds | 13 (2026-09-24 01:32Z to 02:18Z); 10 (2026-09-24 01:57Z to 02:02Z); 8 (2026-09-24 02:25Z to 05:38Z); 7 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 16 (2026-09-30 16:44Z); 17 (2026-09-30 16:49Z); 18 (2026-09-30 16:51Z to 18:09Z); 35 (2026-09-30 18:14Z); 40 (2026-09-30 18:39Z to 18:41Z); 60 (2026-09-30 19:02Z to 19:17Z); 64 (2026-09-30 20:01Z to 20:27Z); 47 (2026-09-30 20:07Z); 51 (2026-09-30 20:08Z to 20:48Z); 52 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
 | POP.3 | Database of spacefaring species | 14 (2026-09-24 01:32Z to 02:18Z); 11 (2026-09-24 01:57Z to 02:02Z); 9 (2026-09-24 02:25Z to 05:38Z); 8 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 17 (2026-09-30 16:44Z); 18 (2026-09-30 16:49Z); 19 (2026-09-30 16:51Z to 18:09Z); 36 (2026-09-30 18:14Z); 41 (2026-09-30 18:39Z to 18:41Z); 61 (2026-09-30 19:02Z to 19:17Z); 65 (2026-09-30 20:01Z to 20:27Z); 48 (2026-09-30 20:07Z); 52 (2026-09-30 20:08Z to 20:48Z); 53 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
@@ -1154,8 +1158,8 @@ Parents marked "new parent" had no old number of their own.
 | UX.86 | The Galaxy Map controls take too much room: buttons too large and filters one character wide (bug) | none | done, PR #936 |
 | UX.87 | The system list shows uncharted systems: every scattered star, with its location and a way to generate it | none | open |
 | UX.88 | Say "uncharted" instead of "unbuilt" or "not generated" in all user-facing text outside Generate and admin | none | done, PR #1049 |
-| UX.89 | Staged jobs show wrong stage counts and numbers, and skipped stages are not listed (bug) | none | open |
-| UX.90 | Explain the habitability chips in the web interface: a visible legend with the equipment labels, colours, thresholds and scores | none | open |
+| UX.89 | Staged jobs show wrong stage counts and numbers, and skipped stages are not listed (bug) | none | done, PR #1057 |
+| UX.90 | Explain the habitability chips in the web interface: a visible legend with the equipment labels, colours, thresholds and scores | none | done, PR #1065 |
 | UX.91 | Planet and moon description carries a full PHI-4 explanation, each colour factor and why | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
@@ -1377,6 +1381,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.121 | test_open_map_menus_hold_no_overlap fails under load: the Menu panel intercepts the close click (bug) | none | done, PR #1002 |
 | TEST.122 | Browser map tests fail on plain main in Bugfixes lane 2's container (fixture maps, controls, system-page maps) (bug) | none | open |
 | TEST.123 | test_a_loaded_sector_knows_every_objects_cell_and_velocity fails once under full-suite load (bug) | none | open |
+| TEST.124 | Phenomena page tests fail with KeyError scattered in system_pages._phenomena_load (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

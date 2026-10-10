@@ -20,6 +20,8 @@
       {%- endfor %}
     </tbody>
   </table></div>
+  <p class="inline-links"><a href="{{ habitability_url }}">Habitability levels</a>: what the equipment levels and the
+    Blue to Red colours on a planet mean.</p>
   {%- if population %}
   <p class="inline-links">The galaxy's peoples:
     {%- for link in population %} <a href="{{ link.url }}">{{ link.label }}</a>{{ "," if not loop.last }}{% endfor %}</p>

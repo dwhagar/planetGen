@@ -1113,7 +1113,7 @@
 --   score, the geometric mean of the four domains), `phi4_pressure`,
 --   `phi4_temperature`, `phi4_chemistry` and `phi4_radiation` (each 0 to 1) with
 --   `tier_<domain>` (0 Blue, 1 Green, 2 Yellow, 3 Red) and `equipment_tier`
---   (0 shirtsleeve, 1 mask, 2 mask and scrubber, 3 sealed suit, 4 full life
+--   (0 ideal, 1 mask, 2 mask and scrubber, 3 sealed suit, 4 full life
 --   support), then `phi_bio` (microbial life), `phi_cpx` (complex life) and
 --   `phi_tech` (human operability with equipment) and the four likelihoods
 --   behind them (`l_solv`, `l_chem`, `l_ener`, `l_rad`). `hab_note` names the
@@ -1135,6 +1135,17 @@
 --   recomputed. `id_counters` holds the counters of run-time births: per
 --   sector for serials, per system for body numbers. The row `id` stays the
 --   foreign key. Existing rows are numbered by row order.
+--
+-- v79: the mass backfill (GEN.187). `sector_stats.bright_mass_sol`: the
+--   initial mass, in solar masses, down to which a backfill placed every
+--   living star of an unfilled sector (the sectors a face away from the
+--   generated ones: 1, the next ring 2, then 5, then 8); NULL where none
+--   did, so the sector holds the galaxy scatter's mass pass only (stars
+--   born at or above `galaxy_shape.bright_star_mass_limit_sol`). Alongside
+--   it `bright_level_sol` is the luminosity pass's floor, as before. A new
+--   plan scatter clears it. `planetgen/generation/run_galaxy.py`
+--   (`backfill_bright_stars_around`); design
+--   docs/design/mass-backfill.md.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -3095,6 +3106,8 @@ CREATE TABLE IF NOT EXISTS sector_stats (
     ring_slot_index        INT NOT NULL,
     bright_level_sol       DOUBLE NOT NULL DEFAULT -1,
     level_before_fill_sol  DOUBLE,
+    -- v79 (GEN.187): see header comment.
+    bright_mass_sol        DOUBLE,
     relative_density       DOUBLE,
     expected_systems       DOUBLE,
     actual_systems         INT,

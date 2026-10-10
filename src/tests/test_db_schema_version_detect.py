@@ -35,6 +35,7 @@ def _make_older_than_the_baseline(config):
     store.get_connection(config).close()
     conn = store.get_connection(config, ensure_schema=False)
     try:
+        conn.execute("ALTER TABLE sector_stats DROP COLUMN bright_mass_sol")  # v79
         conn.execute("DROP TABLE id_counters")  # v78
         conn.execute("DROP TABLE phenomenon_scatter_classes")  # v77
         conn.execute("ALTER TABLE planets DROP COLUMN equipment_tier")  # v76

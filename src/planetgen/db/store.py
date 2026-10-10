@@ -1420,6 +1420,7 @@ def _table_marker(table):
 
 
 _VERSION_MARKERS = (
+    (79, _column_marker("sector_stats", "bright_mass_sol")),
     (78, _table_marker("id_counters")),
     (77, _table_marker("phenomenon_scatter_classes")),
     (76, _column_marker("planets", "equipment_tier")),
@@ -5308,6 +5309,7 @@ def clear_bright_stars(conn):
     conn.execute("TRUNCATE TABLE bright_stars")
     conn.execute("UPDATE sector_stats SET bright_level_sol = -1 WHERE bright_level_sol > 0")
     conn.execute("UPDATE sector_stats SET level_before_fill_sol = -1 WHERE level_before_fill_sol > 0")
+    conn.execute("UPDATE sector_stats SET bright_mass_sol = NULL WHERE bright_mass_sol IS NOT NULL")
     conn.execute("UPDATE galaxy_shape SET bright_star_min_luminosity_sol = NULL, bright_star_seed = NULL,"
                  " bright_star_mass_limit_sol = NULL")
     conn.commit()
@@ -5524,6 +5526,44 @@ def sector_bright_levels(conn, addresses):
     return levels
 
 
+def sector_bright_masses(conn, addresses, current=False):
+    """
+    The initial mass (solar masses) each of `addresses` was backfilled down
+    to (GEN.187, `sector_stats.bright_mass_sol`), for the sectors that
+    were. `current` reads the latest committed value, not the transaction's
+    snapshot (`FOR UPDATE`), as the draw does once it holds the rows' locks.
+
+    Returns:
+        dict: `(ring, layer, slot)` -> mass, only for those with one.
+    """
+    masses = {}
+    for chunk in _address_chunks(addresses):
+        marks = ", ".join("(?, ?, ?)" for _ in chunk)
+        for row in conn.execute(
+            "SELECT ring_index, layer_index, ring_slot_index, bright_mass_sol FROM sector_stats"
+            f" WHERE bright_mass_sol IS NOT NULL AND (ring_index, layer_index, ring_slot_index) IN ({marks})"
+            + (" FOR UPDATE" if current else ""),
+            tuple(value for key in chunk for value in key),
+        ).fetchall():
+            masses[(row["ring_index"], row["layer_index"], row["ring_slot_index"])] = row["bright_mass_sol"]
+    return masses
+
+
+def set_sector_bright_masses(conn, states):
+    """Records how far down by mass some sectors' stars now go (GEN.187),
+    inside the transaction `lock_sector_stats` started: `(ring, layer,
+    slot) -> (mass_solar, level_sol)`, `level_sol` the luminosity floor to
+    store with it (the galaxy scatter's, so the sector counts as having its
+    own level; `None` leaves the stored level alone)."""
+    for address, (mass, level) in sorted(states.items()):
+        if level is None:
+            conn.execute("UPDATE sector_stats SET bright_mass_sol = ? WHERE ring_index = ? AND layer_index = ?"
+                         " AND ring_slot_index = ?", (mass, *address))
+        else:
+            conn.execute("UPDATE sector_stats SET bright_mass_sol = ?, bright_level_sol = ? WHERE ring_index = ?"
+                         " AND layer_index = ? AND ring_slot_index = ?", (mass, level, *address))
+
+
 def sector_bright_level_keys(conn):
     """
     Every sector a backfill took to its own level (`bright_level_sol` above
@@ -5607,6 +5647,21 @@ def bright_star_fill_level(conn, ring_index, layer_index, ring_slot_index):
             return level
     settings = bright_star_scatter_settings(conn)
     return settings[0] if settings else None
+
+
+def bright_star_fill_mass_limit(conn, ring_index, layer_index, ring_slot_index):
+    """
+    The initial mass one sector's pre-placed stars go down to (GEN.187): its
+    own backfill's (`sector_stats.bright_mass_sol`) when it has one, else the
+    galaxy scatter's mass limit, else `None` (no star was placed by mass; a
+    fill caps nothing by mass).
+    """
+    if ring_index is not None and layer_index is not None and ring_slot_index is not None:
+        mass = sector_bright_masses(conn, [(ring_index, layer_index, ring_slot_index)]).get(
+            (ring_index, layer_index, ring_slot_index))
+        if mass is not None:
+            return mass
+    return bright_star_mass_limit(conn)
 
 
 DENSITY_RATIO_WINDOW = 1000

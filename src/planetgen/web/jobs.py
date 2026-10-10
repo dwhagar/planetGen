@@ -267,6 +267,7 @@ def get_job(job_id, root=None):
 
     labels = [step["label"] for step in job.get("steps", [])]
     step = state.get("step") or 0
+    stages = job_stages(job.get("steps", []))
     started = state.get("started_at")
     finished = state.get("finished_at")
     progress = _read_json(os.path.join(path, "progress.json")) if step else None
@@ -285,6 +286,7 @@ def get_job(job_id, root=None):
         "finished": status in FINISHED,
         "step": step,
         "step_label": labels[step - 1] if 0 < step <= len(labels) else None,
+        "stages": stages,
         "step_started_at": state.get("step_started_at"),
         "step_estimates": state.get("step_estimates") or [],
         "started_at": started,
@@ -293,6 +295,20 @@ def get_job(job_id, root=None):
         "error": error,
         "progress": progress,
     }
+
+
+def job_stages(steps):
+    """
+    Every stage of a job, in order (UX.89): `{"n", "step", "label", "skipped"}`
+    for each stage of each step (a step with no stage list is one stage of its
+    own label), `skipped` the reason a stage will not run or `None`.
+    """
+    stages = []
+    for index, step in enumerate(steps, start=1):
+        for stage in step.get("stages") or [{"label": step["label"], "skipped": None}]:
+            stages.append({"n": len(stages) + 1, "step": index, "label": stage["label"],
+                           "skipped": stage.get("skipped")})
+    return stages
 
 
 def _job_names(root):

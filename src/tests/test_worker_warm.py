@@ -8,7 +8,6 @@ import sys
 
 import rq
 
-from planetgen import tuning
 from planetgen.cli import worker
 from planetgen.generation import star_population
 from planetgen.queue import redisqueue
@@ -19,8 +18,7 @@ def test_warm_imports_the_task_modules_and_builds_the_tables():
     worker.warm([redisqueue.GENERATION_QUEUE])
     for name in worker.WARM_MODULES:
         assert name in sys.modules
-    floors = {tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL, *(floor for _, floor in tuning.BRIGHT_STAR_BACKFILL_TIERS)}
-    assert star_population._bright_table.cache_info().currsize == len(floors) * len(star_population.POPULATIONS)
+    assert star_population._bright_table.cache_info().currsize == len(star_population.POPULATIONS)
 
 
 def test_a_queue_that_is_not_generation_gets_no_tables():
