@@ -880,6 +880,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   instant count from prefix sums). This item is unblocked on the ADM.29
   side and reuses `span.py`; the wire-format steps it still waits on
   are in its other notes (MAP.157 to MAP.159).
+  Note (2026-10-09): From ADM.31 (PR #942, 2026-10-10): the 'made' rings
+  on the Galaxy Map cover only the first 2,000 sectors of a run; the
+  region data layer should replace that cap with ranges.
 
 - [ ] **MAP.152 Scale hand-offs: galaxy, sector and system cross-fade with hysteresis, and per-tile camera-relative origins**
   Source: docs/design/fly-through-view-distance.md (section 7 and 8),
@@ -4060,6 +4063,14 @@ Boss (2026-10-07 11:47Z): "Actual specs on layers on the generation
     it made with those sectors highlighted.
     Research (2026-10-09, fill-order-curves-and-core.md): return large
     results as ring/layer/slot-window ranges, not address lists.
+    Note (2026-10-09): Partly built (PR #942, Foundations lane 1,
+    2026-10-10): a finished Generate-page job of the galaxy and
+    new_galaxy kinds shows "Show on Galaxy Map" (GET /api/galaxy/made,
+    /galaxy?made=since,until, rings drawn in galaxymap3d.js). Still
+    open: the same button for the Galaxy Map menus' generate actions and
+    for API-queue jobs, which have no job page with a start and finish
+    window yet; and a run over 2,000 sectors rings only the first 2,000
+    (MAP.151's region data layer is the proper fix).
 
 - [ ] **ADM.32 Add a star system to a sector: at the emptiest spot, at given coordinates, or at random outside every Hill sphere**
   Boss (2026-10-07 11:47Z): "Need a way to add a single star system to a
