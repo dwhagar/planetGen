@@ -2,22 +2,8 @@
 
 ## [8.0.866] - 2026-10-10
 
-### Fixed
-- A moon's Hill sphere (and so its minimum orbit spacing and the facility orbit slider) is measured about its planet, not its star (GEN.138); the Hill sphere uses the pair's total mass.
-- Class N (a Venus analog) no longer carries a life chemical or a life timeline; Class Q is a habitable class capped at microbial life (GEN.147).
-- The progress ETA is a ratio of decayed sums, so the early estimate of a run on several workers is no longer up to twice too long (PERF.37).
-- The phenomenon render uses `THREE.Timer` in place of the deprecated `THREE.Clock` (MAP.144).
-- The macOS update daemon's plist is well-formed XML again (OPS.32).
-- A 100,000-deep nested JSON body is a 400 ("nested too deeply") instead of a 500 (API.20), and `Retry-After` is only sent on a 429, no longer on every response Flask-Limiter counts (API.21).
-- The admin page's creation-settings download answers an anonymous or non-admin caller with a plain 403, like the other file and data views, instead of a redirect (ADM.18).
-- A neighbourhood or single-address run now reports the first sector (the one named outright) with the same stats as every other sector, each summary has a "Totals" line (star systems, stars, planets, phenomena), and a batch says how many sectors it runs with how many workers before the first report (ADM.47).
-- Hypervelocity stars now move in a straight line (position plus velocity times time) when the orbit update runs, keeping their velocity, instead of being turned about the galactic axis like bound objects (GEN.137). `phenomenon_scatter` gains `epoch_unix` (schema v69), the time a scattered star's position holds at, and the built system inherits it.
-- The sector search reached by a radius now covers every cell that touches the sphere, not only cells whose centers lie inside it (`cells_touching_sphere`, NAV.53); the center-based listing's misses are documented.
-- Python and the browser now round half-way numbers the same way (away from zero, on the shortest decimal), so 9.995 reads "10" and 1.005 reads "1.01" in both; Python used to give "9.99" and "1".
-- A negative number that rounds to zero prints "0", not "-0", in both.
-- A checkout with `core.autocrlf=true` no longer changes the bytes of the lock files and the word list, so their hashes agree between Windows and Linux.
-
 ### Changed
+- The phenomenon scatter places only the neutron stars and black holes of at least 20 solar masses (GEN.166 to GEN.168), so `planetgen plan` writes about 2.7e5 phenomenon rows instead of about 1.17e9. A sector draws the lighter ones itself when it is filled, from its own stream, so the galaxy holds the same number of each. `--phenomenon-min-mass` sets the cut and `--phenomena-only` re-scatters at a new one; the cut is stored with the scatter (schema v71) and in the settings file. Stellar-mass and intermediate-mass black holes are now drawn as separate kinds. This is the second half of the one-time reseed that began with lazy names (PERF.43): the same seed now gives a different galaxy than before both changes.
 - Retired PERF.44, PERF.45 and ADM.48 (PR #863); PERF.46 keeps only its finite_domain question.
 - A saved sector's rows now get their unique ID in the INSERT instead of being selected back and updated afterwards, which saves a query pass per sector (PERF.44). The IDs are the same.
 - A `galaxy` run now links its new sectors to their neighbours (containment in nebulae and remnants, nearest systems) once at its end instead of one sector at a time while it saves, so the workers no longer queue for it (PERF.45). The stored links are the same. Sectors made on demand still link as they are saved.
@@ -44,6 +30,21 @@
 - The TODO list files the phenomenon scatter mass cut (GEN.166 to GEN.169) and reworks DB.19 around it: at the recommended 20 solar masses the scatter table falls from 1.17 billion rows (161 GB) to about 2.7e5 rows. The design notes drop the unverified 1.6e8 rows and 21 GB figures.
 - Two systems in one sector are routed by their nearest stars even when those lie in the sector next door.
 - The Generate page progress-line to-do item (ADM.46) was withdrawn at Boss's word.
+
+### Fixed
+- A moon's Hill sphere (and so its minimum orbit spacing and the facility orbit slider) is measured about its planet, not its star (GEN.138); the Hill sphere uses the pair's total mass.
+- Class N (a Venus analog) no longer carries a life chemical or a life timeline; Class Q is a habitable class capped at microbial life (GEN.147).
+- The progress ETA is a ratio of decayed sums, so the early estimate of a run on several workers is no longer up to twice too long (PERF.37).
+- The phenomenon render uses `THREE.Timer` in place of the deprecated `THREE.Clock` (MAP.144).
+- The macOS update daemon's plist is well-formed XML again (OPS.32).
+- A 100,000-deep nested JSON body is a 400 ("nested too deeply") instead of a 500 (API.20), and `Retry-After` is only sent on a 429, no longer on every response Flask-Limiter counts (API.21).
+- The admin page's creation-settings download answers an anonymous or non-admin caller with a plain 403, like the other file and data views, instead of a redirect (ADM.18).
+- A neighbourhood or single-address run now reports the first sector (the one named outright) with the same stats as every other sector, each summary has a "Totals" line (star systems, stars, planets, phenomena), and a batch says how many sectors it runs with how many workers before the first report (ADM.47).
+- Hypervelocity stars now move in a straight line (position plus velocity times time) when the orbit update runs, keeping their velocity, instead of being turned about the galactic axis like bound objects (GEN.137). `phenomenon_scatter` gains `epoch_unix` (schema v69), the time a scattered star's position holds at, and the built system inherits it.
+- The sector search reached by a radius now covers every cell that touches the sphere, not only cells whose centers lie inside it (`cells_touching_sphere`, NAV.53); the center-based listing's misses are documented.
+- Python and the browser now round half-way numbers the same way (away from zero, on the shortest decimal), so 9.995 reads "10" and 1.005 reads "1.01" in both; Python used to give "9.99" and "1".
+- A negative number that rounds to zero prints "0", not "-0", in both.
+- A checkout with `core.autocrlf=true` no longer changes the bytes of the lock files and the word list, so their hashes agree between Windows and Linux.
 
 ### Added
 - Filed OPS.37 (a Generator version number) and API.22 (an API version number), both plain sequential integers due by the end of Phase 1.
