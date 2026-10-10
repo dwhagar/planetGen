@@ -3387,16 +3387,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   tables.
   Design: [docs/design/db-check-and-parity-repair.md](design/db-check-and-parity-repair.md)
 
-- [ ] **DB.22 Sectors saved by hand without a grid address have no stored object ID until they are saved again (bug)**
-  Foundations lane 1 (2026-10-10, from API.23 stage 1, PR #1119):
-  hand-made sectors with no grid address that were saved before the
-  object-ID work have no stored uid until they are saved again. A
-  data-only schema revision is not seen by detect_schema_version, so no
-  migration was added. Decide how to fill them in (a one-off command, or
-  a revision that changes the schema version) and do it. Owner:
-  Foundations lane 1.
-  Prerequisite: API.23.
-
 ## API: The JSON API
 
 - [ ] **API.3 Remote generate: generate on a local machine, upload through the API**
@@ -3703,9 +3693,10 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   stay internal. No compatibility shim. This is a breaking API change,
   so it bumps the API version number (API.22, built).
   Decided (Boss, 2026-10-10 02:48Z, via Foundations lane 1): yes, the 80-bit object ID replaces row ids in pages, URLs and the API, and Boss accepts the API break. Cleared to build once API.22, GEN.171 and GEN.172 are in.
-  Stage 1 of 3 done (PR #1119): sectors, systems and phenomena use
-  printed IDs. Stage 2 = bodies and facilities; stage 3 = edit
-  endpoints, wiki, NAV, objectref.js and the galaxy JS.
+  Stages 1 and 2 of 3 done (PRs #1119 and #1127): sectors, systems,
+  phenomena, stars, planets, moons, belts, comets and facilities use
+  printed IDs (API version 3). Stage 3 = edit endpoints, wiki, NAV,
+  objectref.js and the galaxy JS.
   Known failure (2026-10-09): Open after stage 1 (Bugfixes lane 2,
   2026-10-10): tests/test_web_a11y.py, the sector page at phone width,
   fails on main because the galaxy JS still requests /sector/<row
