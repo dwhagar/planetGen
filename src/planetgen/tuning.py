@@ -628,6 +628,10 @@ MIN_RELATIVE_DENSITY = 1.0e-3
 # of a star being at least the threshold's brightness is tabulated.
 BRIGHT_STAR_MASS_GRID_CELLS = 4000
 
+POISSON_REJECTION_MEAN = 10.0
+"""float: From this mean up `util/poisson.py` draws a Poisson count by transformed rejection (constant time);
+below it, by Knuth's method (PERF.60)."""
+
 # The layer-walking scatter passes (stars and phenomena) walk the layers
 # from the galactic plane outwards. After SCATTER_EMPTY_LAYERS_BEFORE_GROUP
 # layers in a row that took nothing, they draw the next SCATTER_GROUP_LAYERS
