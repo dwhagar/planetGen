@@ -775,7 +775,10 @@ def test_a_slow_runner_still_alive_is_starting_not_interrupted(jobs_root):
         with open(os.path.join(path, "runner.pid"), "w") as f:
             f.write(str(runner.pid))
         _wait_until_exec(runner.pid, path)
-        assert jobs.get_job(job_id)["status"] == "starting"
+        job = jobs.get_job(job_id)
+        assert job["status"] == "starting", (   # TEST.115: what the Windows leg needs to show
+            f"pid {runner.pid} alive={jobs._runner_alive(runner.pid, job_id, body['created_at'])} "
+            f"created_at={body['created_at']} now={time.time()} state={job}")
         assert not jobs.get_job(job_id)["finished"]
         with pytest.raises(jobs.JobBusy):
             jobs.start_job("reset", "Reset", [{"label": "x", "argv": ["true"]}], spawn=False)
@@ -1251,7 +1254,8 @@ def test_without_redis_no_job_starts(jobs_root, monkeypatch):
     monkeypatch.setattr(jobs, "WINDOWS", False)
     with pytest.raises(OSError, match="no Redis server"):
         jobs.start_job("reset", "No Redis", [_step("x", "pass")])
-    assert jobs.active_job(jobs_root) is None
+    lock = os.path.join(jobs_root, jobs.LOCK_NAME)
+    assert jobs.active_job(jobs_root) is None, f"lock left behind: {os.path.exists(lock)} {os.listdir(jobs_root)}"
 
 
 def test_without_redis_windows_runs_the_job_itself(jobs_root, monkeypatch):
@@ -1262,7 +1266,7 @@ def test_without_redis_windows_runs_the_job_itself(jobs_root, monkeypatch):
     job_id = jobs.start_job("reset", "Direct", [_step("x", "print('ran directly')")])
     monkeypatch.setattr(jobs, "WINDOWS", False)   # liveness checks as on this machine
     job = _wait_finished(job_id, jobs_root)
-    assert job["status"] == "succeeded"
+    assert job["status"] == "succeeded", f"{job} log: {jobs.log_tail(job_id, root=jobs_root)}"   # TEST.115
     assert "ran directly" in jobs.log_tail(job_id, root=jobs_root)
 
 
