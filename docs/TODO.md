@@ -4192,17 +4192,11 @@ clears each one.
   sector address or timing under load is the first thing to check) and
   the test is made robust without skipping or loosening it, or the
   product bug it hides is fixed. Related: TEST.71, TEST.73, OPS.19.
+  Note (2026-10-09): Bugfixes lane 1 (PR #955, 2026-10-10): no repro in
+  15 loaded runs; the test's asserts now print the results, so the next
+  failure names the cause. Stays open until it recurs and is fixed, or
+  Boss closes it.
   Prerequisites: none.
-
-- [ ] **TEST.112 test_regenerate_phenomenon_keeps_id_name_and_place fails now and then in the full suite (bug)**
-  Reported by Foundations lane 1 (2026-10-10 00:04Z, PERF.32 merge, PR
-  #905): `test_regenerate_phenomenon_keeps_id_name_and_place` is a known
-  intermittent failure in the full suite. Done: the cause is found
-  (shared state or timing under load, or a real regeneration bug) and
-  the test is made robust without skipping or loosening it, or the
-  product bug it hides is fixed. Bugfixes lane 1 or whichever lane
-  touches regeneration next.
-  Prerequisites: none. Related: TEST.111, TEST.71, TEST.73, OPS.19.
 
 ## USR: User accounts
 
