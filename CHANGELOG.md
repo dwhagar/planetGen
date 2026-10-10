@@ -3,6 +3,7 @@
 ## [8.0.866] - 2026-10-10
 
 ### Changed
+- TODO: moved the fly-through Galaxy Map (MAP.146 and MAP.147 to MAP.155) into Phase 1 as the headline of the 8.1 release; Phase 1 is now complete only when they are done, so the 8.0 hold stays until then. Placed in Foundations lane 2's queue (step 4) in dependency order.
 - TODO: retired UX.35 (PR #879); recorded the dependencies between the zoom visibility items (MAP.148 builds after MAP.153, MAP.152 needs MAP.154, MAP.151 needs MAP.147) and added section 8a to the fly-through design note.
 - TODO: filed MAP.153 to MAP.155 from the zoom star visibility research note (rank birth-radius fade, nested tile lists, other objects fading), and marked them as the first stages of MAP.148's visibility rule.
 - Rewrote MAP.146 as the fly-through umbrella (scroll-zoom, double-click flight, distance-based visibility, see-through near field) and split it into MAP.148 to MAP.152; added the two research reports under docs/design.
