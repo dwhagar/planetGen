@@ -56,7 +56,8 @@ def test_the_status_route_reports_a_job(admin_client, redis_server):
     job_id = api_jobs.submit(math.pow, 3, 2)
     _wait(job_id)
     body = admin_client.get(f"/api/jobs/{job_id}").get_json()
-    assert body == {"id": job_id, "state": "succeeded", "result": 9.0, "error": None, "error_status": None}
+    assert body == {"id": job_id, "state": "succeeded", "result": 9.0, "error": None, "error_status": None,
+                    "made_url": None}
 
 
 def test_the_status_route_is_503_without_redis(admin_client, monkeypatch):
@@ -164,3 +165,30 @@ def test_a_deeply_nested_json_body_is_a_400_not_a_500(admin_client):
         response = admin_client.post(path, data=deep, content_type="application/json")
         assert response.status_code == 400, path
         assert "nested too deeply" in response.get_json()["error"]
+
+
+def _fake_job(function, started, ended):
+    import datetime
+    from types import SimpleNamespace
+    return SimpleNamespace(args=(function, (1,)) if function else (), started_at=started, ended_at=ended)
+
+
+def test_a_finished_sector_job_gives_its_made_window():
+    # ADM.31: only the jobs that generate sectors offer the Galaxy Map.
+    import datetime
+    start = datetime.datetime(2026, 10, 10, 4, 0, 0)
+    end = datetime.datetime(2026, 10, 10, 4, 5, 30)
+    window = api_jobs._made_window(_fake_job(api_jobs.generate_neighborhood, start, end))
+    assert window == {"since": 1791604800, "until": 1791605131}
+    assert api_jobs._made_window(_fake_job(api_jobs.regenerate_sector, start, end))
+    assert api_jobs._made_window(_fake_job(api_jobs.settle_sectors, start, end)) is None
+    assert api_jobs._made_window(_fake_job(api_jobs.generate_neighborhood, start, None)) is None
+
+
+def test_the_status_route_links_the_made_sectors(admin_client, monkeypatch):
+    body = {"id": "ab" * 8, "state": "succeeded", "result": {}, "error": None, "error_status": None,
+            "made": {"since": 100, "until": 200}}
+    monkeypatch.setattr(api_jobs, "status", lambda job_id: dict(body))
+    got = admin_client.get("/api/jobs/" + "ab" * 8).get_json()
+    assert got["made_url"] == "/galaxy?made=100%2C200" or got["made_url"] == "/galaxy?made=100,200"
+    assert "made" not in got
