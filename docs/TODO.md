@@ -3292,32 +3292,38 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   rings still use the ring inputs. Done: those ring inputs are built once
   per run and shared, and cached across runs by the same key as the map
   warm-up where that is safe; results do not change (a test shows the
-  same rows with and without sharing). If PERF.61 removes the phenomena
-  ring walk first, the lane checks what is left and closes this item
-  with a note if nothing is. Owner: Bugfixes lane 1.
-  Prerequisites: none. Related: PERF.58, PERF.61, GEN.185.
-
-- [ ] **PERF.61 Object-first sampler for the phenomena pass, own prototype first**
-  From the scatter study (docs/design/scatter-queue-feasibility.md): the
-  phenomena pass places millions of rows (6.7e7 expected at the 14 Msun
-  cut), so row costs dominate and the gain is smaller than for the star
-  passes, but the ring walk is still 58% of its time. Boss (09:52Z):
-  follow the study recommendations, top priority. Done: a prototype with
-  per-kind density majorants is measured against today's code (counts,
-  spatial distribution, time, reseed) before it replaces the pass; the
-  sectors take several objects by the capacity tiers of PERF.58
-  (generation/object_first.py: 1, 2, 4, 8 or 16, dropping 0.12% of
-  phenomena where a cap of 1 would drop 1.4%); stats record layers
-  visited and layers modified, per kind (PERF.56); a reseed is needed.
-  Owner: Bugfixes lane 1, next after PERF.58 (merged, PR #1108).
-  Prerequisites: none. Related: PERF.58, PERF.59, GEN.185.
+  same rows with and without sharing). The phenomena pass keeps its ring
+  walk (PERF.61 found no gain, PR #1113), so this item stands. Owner:
+  Bugfixes lane 1.
+  Prerequisites: none. Related: PERF.58, PERF.61, PERF.63, GEN.185.
   Benchmark (coordinator, 2026-10-10): once Boss reseeds with the PERF.58
   sampler, read the stage stats of PERF.56 for the mass and luminosity
   passes at default scale and compare with the study's forecast of
   about 35 times faster; Boss times the reseed himself. PERF.58 finding:
   the old ring walk overstated expected counts about 6% on the toy test
   galaxy (density read at bin centres); the new sampler integrates the
-  true density.
+  true density. PERF.61 side result (PR #1113): the star scatter checks
+  the cell address only after the density test, about 20% faster.
+
+- [ ] **PERF.63 Vectorise the candidate work of the phenomena scatter with numpy (needs Boss's call)**
+  Bugfixes lane 1 (2026-10-10, PERF.61, PR #1113): the object-first
+  phenomena sampler was built and measured on the default-scale galaxy
+  (41 of 2,041 layers, 14 Msun cut, one process): counts match
+  (1,380,928 against 1,385,251, -0.3%) but the time is the same (new
+  35.0 min, today 34.8 min for the whole pass, scaled), because layers
+  hold 33,000 to 95,000 phenomena each and per-object work dominates
+  (about 17 us an object today, about 30 us object-first). It wins only
+  on sparse outer layers (layer 700: 0.32 s to 0.08 s) and loses on
+  dense ones (layer 0: 1.4 s to 2.35 s). The prototype is not merged; it
+  lives in research/scatter-queue/scripts/ and the write-up is in
+  docs/design/scatter-queue-feasibility.md. Possible follow-up:
+  vectorise the per-object candidate work in numpy (own prototype, not
+  started). Done: a prototype is measured against today's pass (counts,
+  spatial distribution, time, reseed) and merged only if it is clearly
+  faster. Open question for Boss (default: not built; the phenomena pass
+  keeps its ring walk): is a 35 minute phenomena pass at default scale
+  worth a numpy prototype?
+  Prerequisites: none. Related: ('PERF.59', 'GEN.185').
 
 ## DB: Database and schema
 
