@@ -1134,6 +1134,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generating it removes the mark.
   Prerequisites: none. Related: MAP.122, MAP.120, UX.87, NAV.48.
 
+- [ ] **MAP.163 Galaxy Map brightness scale: floor 2,500 L_sun at full zoom, then min/max scaling per zoom**
+  Boss (2026-10-10, via the coordinator; one-off for Bugfixes lane 2):
+  the Galaxy Map brightness scale starts at the luminosity floor of
+  2,500 L_sun when fully zoomed out, and at each zoom level scales
+  brightness between that view's minimum and maximum visible values
+  instead of a fixed range. Done: the brightness of a star on the Galaxy
+  Map maps min to dimmest and max to brightest for the stars in view at
+  every zoom, the full-zoom floor is 2,500 L_sun, and a test checks the
+  scaling at two zoom levels. Open question for Boss (default: use the
+  same log scale the map uses now, only with the per-zoom range).
+  Prerequisites: none. Related: MAP.148, MAP.153, GEN.184.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
@@ -3135,6 +3147,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   two controls sit together in both places with the same presets, and
   tests cover the default and the controls. A galaxy that stored 20
   keeps its stored limit.
+  Lane (2026-10-09): Update (coordinator, 2026-10-10 06:15Z): the
+  luminosity default moves to 5,000 L_sun together with the mass default
+  of 8 solar masses; GEN.188 is a one-off on Bugfixes lane 2 (not
+  Foundations lane 2).
   Prerequisites: none. Related: GEN.183, GEN.184, GEN.185.
 
 ## PERF: Speed, caching, bulk generation and parallel work
@@ -4133,9 +4149,8 @@ clears each one.
   the scatter test setup against GEN.184's 2500 L_sun floor. Done: the
   cause is found and the test passes on main with the full test file
   green.
-  Owner (2026-10-09): Owner (Bugfixes lane 1, 2026-10-10 06:15Z): left
-  to Foundations lane 3, whose 2500 L_sun floor scatter tests it
-  concerns.
+  Owner (Boss via coordinator, 2026-10-10 06:15Z): Bugfixes lane 1 (not
+  Foundations lane 3, which is retired).
   Prerequisites: none. Related: TEST.118, GEN.184, GEN.185.
 
 - [ ] **TEST.121 test_open_map_menus_hold_no_overlap fails under load: the Menu panel intercepts the close click (bug)**
