@@ -102,7 +102,7 @@ def test_place_one_gives_up_when_every_point_rounds_out_of_its_cell(monkeypatch)
 
 
 def test_a_layer_whose_stars_all_fail_to_place_yields_nothing(monkeypatch):
-    monkeypatch.setattr(brightStars, "_point_in_cell", lambda *args, **kwargs: None)
+    monkeypatch.setattr(brightStars, "_stored_in_cell", lambda *args, **kwargs: False)
     reports = []
     rows = list(brightStars.scatter_layer(SHAPE, 0, 3, EDGE_PC, E_VALUE, THRESHOLD, 9,
                                           on_progress=lambda done, estimate: reports.append((done, estimate))))

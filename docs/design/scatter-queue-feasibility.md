@@ -139,3 +139,19 @@ Suggested TODO items (for the TODO thread to file if Boss agrees): share `_ring_
 ## Sources
 
 Scripts and logs: `research/scatter-queue/scripts/` (`profile_today.py`, `lambda_dist.py`, `bench_literal.py`, `thinned.py`, `bench_thinned.py`, `seeds_thinned.py`, `equiv.py`). Related: [generation-performance-study.md](generation-performance-study.md); TODO items PERF.57, GEN.187, GEN.195.
+
+## Phenomena prototype result (Bugfixes lane 1, 2026-10-10, PERF.61)
+
+The object-first sampler was built for the phenomena pass (per-class Poisson counts from the stellar density bound times a per-kind regional factor bound, acceptance on the true density times the regional factor, tiered sector capacity across classes) and measured against today's `phenomenon_scatter.scatter_layer` on the default-scale galaxy (2,041 layers, outer ring up to 3,763, 14 Msun cut, single process; scripts and log in `research/scatter-queue/scripts/bench_phenomena_object_first.*`, prototype in `phenomenon_scatter_object_first_prototype.py`).
+
+| | Today | Object first |
+|---|---|---|
+| Objects (41 sampled layers) | 1,385,251 | 1,380,928 (-0.3%) |
+| Time (41 sampled layers) | 41.9 s | 42.1 s |
+| Whole pass, single process (scaled) | 34.8 min | 35.0 min |
+
+- **Counts and positions match** (per-layer counts within 0.5%).
+- **No speed gain.** A default-scale layer holds about 33,000 to 95,000 phenomena, so the pass is dominated by per-object work, not by the ring walk: today about 17 us an object (bin weights are precomputed), object first about 30 us (a candidate costs a point draw, a density evaluation and a regional factor, and about half of them are rejected). Only sparse outer layers gain (layer 700: 0.32 s to 0.08 s), and the dense ones lose (layer 0: 1.4 s to 2.35 s).
+- Deferring the sector-address check until after acceptance and using `relative_density` instead of the population split cut the new sampler's time by about 40% (3.9 s to 2.35 s for layer 0), and it still does not beat today's.
+- **Decision:** the phenomena pass keeps today's ring walk; the prototype is not merged. A further gain would need the candidate work vectorised in numpy (points, density, regional factor and acceptance for thousands of candidates at once), a larger change that would need its own prototype; not done.
+- The star passes keep the sampler (PERF.58), where objects are few (267,000 to 318,000) and the ring walk was the whole cost.
