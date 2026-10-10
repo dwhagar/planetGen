@@ -3169,8 +3169,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
 
 - [ ] **GEN.183 A mass cut the user sets: preset values on a slider from 8 to 20 solar masses**
   Boss (2026-10-10 03:01Z): "Add the solar masses pass, user can specify
-  preset values on a slider between 8 and 20." Rush job for Foundations
-  lane 3, as fast as possible. Done: the phenomenon scatter's lowest
+  preset values on a slider between 8 and 20." Rush job, as fast
+  as possible. Done: the phenomenon scatter's lowest
   mass (galaxy_shape.phenomenon_min_mass_solar, --phenomenon-min-mass,
   the settings file and the Generate page) is picked from a slider of
   preset values between 8 and 20 solar masses; 20 stays the default (the
@@ -3178,6 +3178,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   scattered galaxy-wide; everything below is drawn when its sector is
   made, as built in GEN.166 to GEN.168. Open question for Boss (default:
   presets 8, 10, 12, 14, 16, 18 and 20).
+  Lane (Boss, 2026-10-10 03:04Z): Foundations lane 2.
   Prerequisites: none. Related: GEN.169, GEN.166, GEN.167, GEN.168,
   PERF.18.
 
@@ -3195,6 +3196,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   geometric ladder of about 60 presets built from the step rule, rounded
   to 2 significant digits above 10,000, and a database already filled
   below the new floor keeps its stars).
+  Lane (Boss, 2026-10-10 03:04Z): Foundations lane 1.
   Prerequisites: none. Related: GEN.30, PERF.18, GEN.40, MAP.120.
 
 - [ ] **GEN.185 The scatter in five passes: mass-limit objects, mass-limit stars, brightest-star sector marks, the luminosity pass, then other phenomena**
@@ -3216,6 +3218,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (GEN.183). Open question for Boss (default: the mark is each sector's
   brightest scattered star; a step 1 star counts as a step 2 star; a
   reseed of the combined plan is expected).
+  Lane (Boss, 2026-10-10 03:04Z): Foundations lane 3.
   Prerequisites: GEN.183, GEN.184. Related: GEN.100, GEN.166, GEN.167,
   GEN.168, GEN.183, GEN.184, GEN.30, GEN.169, PERF.18.
 
