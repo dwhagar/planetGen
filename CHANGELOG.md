@@ -3,6 +3,7 @@
 ## [8.0.911] - 2026-10-10
 
 ### Changed
+- PERF.57: after a group places something the next group is half the size (Boss 09:19Z).
 - Rewrote PERF.57 to Boss's layer-grouping rule for galactic scatters (replaces the 100-empty-layer stop).
 - Retired GEN.194 (defaults 14 Msun and 9,000 Lsun, PR #1051).
 - The default mass limit is now 14 solar masses (was 8) and the default luminosity floor for the brightest stars is 9,000 solar luminosities (was 5,000); both are presets on their lists.
