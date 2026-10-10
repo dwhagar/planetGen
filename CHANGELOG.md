@@ -2,11 +2,8 @@
 
 ## [8.0.911] - 2026-10-10
 
-### Added
-- The mass limit (GEN.183) is now picked from the presets 8, 10, 12, 14, 16, 18 and 20 solar masses, 20 by default: a slider in the Generate page's new galaxy and plan forms, and `--phenomenon-min-mass` on the command line, which refuses any other value. Every star, neutron star and black hole at or above it is placed across the whole galaxy; lighter ones are drawn when their sector is made.
-- Every rocky planet and moon now has a hydrosphere (GEN.88): its water share of its mass, where the water is (dry, in the air, frozen, under ice, open ocean, or a hycean ocean under hydrogen), how much of the surface is ocean and land, the ocean's depth, any ice lid and high-pressure ice beneath, and the ocean's chemistry class (ice-sealed, chloride brine, acid sulfate, soda or neutral) with its pH, water activity and phosphorus supply. Schema v74.
-
 ### Changed
+- **Docs only:** GEN.183 (mass limit presets, PR #969) is retired from the TODO list and the plans; TEST.118 files two test failures that follow GEN.184's luminosity floor.
 - A scatter or a phenomena-only re-scatter run without `--phenomenon-min-mass` now keeps the mass limit already stored with the galaxy instead of going back to 20.
 - **Docs only:** OPS.38 (committed Redis dumps, PR #967), TEST.117 (already fixed by TEST.113, PR #920) and GEN.175 (regenerate keeps the uid, PR #960) are retired from the TODO list and the plans.
 - Removed the Redis `dump.rdb` snapshots that had been committed (root and `src/`) and ignore `*.rdb`.
@@ -15,6 +12,10 @@
 - **Docs only:** GEN.88 (hydrosphere and ocean chemistry, PR #963, schema v74) is retired from the TODO list and the plans; OPS.38 (committed Redis dump files) and TEST.117 (generatejobs.test.mjs failing since PERF.33) are filed.
 - Rogue planet oceans now stop at the depth where high-pressure ice forms (the rest is stored as high-pressure ice), their ice lid is compared with the water in matching units and melts lower under its own weight, and an ocean under a hydrogen envelope is shown as a hycean ocean. New seeded output differs from earlier versions.
 - **Docs only:** Boss confirmed the defaults on GEN.183, GEN.184, GEN.187 and UX.87; their open questions are now decisions.
+
+### Added
+- The mass limit (GEN.183) is now picked from the presets 8, 10, 12, 14, 16, 18 and 20 solar masses, 20 by default: a slider in the Generate page's new galaxy and plan forms, and `--phenomenon-min-mass` on the command line, which refuses any other value. Every star, neutron star and black hole at or above it is placed across the whole galaxy; lighter ones are drawn when their sector is made.
+- Every rocky planet and moon now has a hydrosphere (GEN.88): its water share of its mass, where the water is (dry, in the air, frozen, under ice, open ocean, or a hycean ocean under hydrogen), how much of the surface is ocean and land, the ocean's depth, any ice lid and high-pressure ice beneath, and the ocean's chemistry class (ice-sealed, chloride brine, acid sulfate, soda or neutral) with its pH, water activity and phosphorus supply. Schema v74.
 
 ## [8.0.866] - 2026-10-10
 
