@@ -22,7 +22,7 @@ release is stamped.
 | API | API.24 |
 | ADM | ADM.50 |
 | SEC | SEC.33 |
-| TEST | TEST.123 |
+| TEST | TEST.124 |
 | USR | USR.10 |
 | OPS | OPS.41 |
 | DOC | DOC.17 |
@@ -667,7 +667,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.167 | A lowest-mass option for the phenomenon scatter: --phenomenon-min-mass, default 20 solar masses | none | done, PR #866 |
 | GEN.168 | The sector fill draws the phenomena below the scatter cut | none | done, PR #866 |
 | GEN.169 | Decide the phenomenon scatter rates: regional factors and the 0.1% intermediate-mass black holes | none | open |
-| GEN.170 | Object ID layout: an 80-bit ID of birth sector, serial and body number, with pack, unpack, format and parse functions | none | open |
+| GEN.170 | Object ID layout: an 80-bit ID of birth sector, serial and body number, with pack, unpack, format and parse functions | none | done, PR #1017 |
 | GEN.171 | The sector fill gives object IDs by generation rank | none | open |
 | GEN.172 | Run-time births get object IDs from the counters | none | open |
 | GEN.173 | Deleting a body and then adding one fails with IntegrityError 1062 on uq_planets_uid (bug) | none | done, PR #987 |
@@ -1364,6 +1364,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.120 | test_sampled_stars_stay_inside_their_mass_range still fails on main after TEST.118 (bug) | none | done, PR #975 |
 | TEST.121 | test_open_map_menus_hold_no_overlap fails under load: the Menu panel intercepts the close click (bug) | none | done, PR #1002 |
 | TEST.122 | Browser map tests fail on plain main in Bugfixes lane 2's container (fixture maps, controls, system-page maps) (bug) | none | open |
+| TEST.123 | test_a_loaded_sector_knows_every_objects_cell_and_velocity fails once under full-suite load (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

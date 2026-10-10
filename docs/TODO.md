@@ -2968,36 +2968,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none.
   Design: [docs/design/phenomenon-scatter-mass-cut.md](design/phenomenon-scatter-mass-cut.md)
 
-- [ ] **GEN.170 Object ID layout: an 80-bit ID of birth sector, serial and body number, with pack, unpack, format and parse functions**
-  Source: docs/design/object-id-options.md section 0 (Boss decided
-  2026-10-09 22:39Z: birth location plus serial, galaxy-wide; the same
-  length for every object; always identifies that one object; up to 128
-  bits but shorter preferred; fix the deficits; no backward
-  compatibility). Filed from the object-ID research thread. Nothing is
-  built until Boss asks.
-  Done: pure functions that pack, unpack, format and parse the 80-bit ID
-  (20 hex digits, stored as BINARY(10)): a 40-bit birth sector address
-  (ring 12 bits, biased layer 12 bits, slot 16 bits), a 28-bit serial in
-  that sector (top two bits 00 generated rank, 01 added at run time, 10
-  field-drawn) and a 12-bit body number (0 is the top-level object; 1
-  and up number the stars, planets, moons, belts and comets of that
-  system on one counter). The kind is not in the ID. Field widths are
-  chosen at plan time and stored in galaxy_shape; they grow to 96 or 128
-  bits only when a galaxy's bounds do not fit. Replaces the hash in
-  galaxy/uid.py. Tests for fixed length and round trip. As a generator
-  change it bumps the generator version (OPS.37) when it ships.
-  Decided (Boss, 2026-10-09 22:44Z): 80 bits, 20 hex digits, with system
-  and body fields, not a 64-bit flat per-sector counter.
-  Lane (2026-10-09): Queue (Boss, 2026-10-10 05:13Z): Foundations lane 1
-  does this first, then API.9, DB.21, GEN.186, NAV.8, NAV.11. One of the
-  three biggest blockers on the tree.
-  Lane (2026-10-09): Queue update (Foundations lane 1, 2026-10-10
-  05:14Z): lane 1 finishes ADM.28 and ADM.45 (one PR, in flight) first,
-  then the object-ID block (GEN.170 to GEN.176, DB.20, TEST.110, DOC.5),
-  then API.9. DB.21, GEN.186, NAV.8 and NAV.11 follow.
-  Prerequisites: none.
-  Design: [docs/design/object-id-options.md](design/object-id-options.md)
-
 - [ ] **GEN.171 The sector fill gives object IDs by generation rank**
   Source: docs/design/object-id-options.md section 0 (Boss decided
   2026-10-09 22:39Z: birth location plus serial, galaxy-wide; the same
@@ -3578,7 +3548,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   has not run yet, in which case the change rides it; nebulae need their
   centroid recomputed (see the nebula item). Boss resets by hand anyway,
   so a fresh galaxy is acceptable. Takes the next free Alembic revision.
-  Prerequisite: GEN.170.
   Design: [docs/design/object-id-options.md](design/object-id-options.md)
 
 - [ ] **DB.21 A deep pass for the database check: validate every star system, with the estimated time shown first**
@@ -4189,6 +4158,14 @@ clears each one.
   unassigned.
   Prerequisites: none. Related: TEST.119, TEST.120.
 
+- [ ] **TEST.123 test_a_loaded_sector_knows_every_objects_cell_and_velocity fails once under full-suite load (bug)**
+  Foundations lane 1 (2026-10-10, relayed, from the GEN.170 run):
+  tests/test_spatial_position_db.py::test_a_loaded_sector_knows_every_objects_cell_and_velocity
+  failed once under full-suite load and passes alone. Find the cause
+  (shared state, ordering or timing) and make the test robust; never
+  skip it. Owner: unassigned.
+  Prerequisites: none. Related: TEST.111, TEST.116.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -4540,7 +4517,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   the ID as the public reference; GEN.72 and GEN.73 and the position-ID
   naming (GEN.64 stays as the name of interstellar objects) are updated
   to match.
-  Prerequisite: GEN.170.
   Design: [docs/design/object-id-options.md](design/object-id-options.md)
 
 - [ ] **DOC.6 A static help section in the web interface: page template, index, per-page help links and a coverage test**
