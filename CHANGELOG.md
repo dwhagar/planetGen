@@ -3,6 +3,7 @@
 ## [8.0.866] - 2026-10-10
 
 ### Changed
+- Retired PERF.44, PERF.45 and ADM.48 (PR #863); PERF.46 keeps only its finite_domain question.
 - A saved sector's rows now get their unique ID in the INSERT instead of being selected back and updated afterwards, which saves a query pass per sector (PERF.44). The IDs are the same.
 - A `galaxy` run now links its new sectors to their neighbours (containment in nebulae and remnants, nearest systems) once at its end instead of one sector at a time while it saves, so the workers no longer queue for it (PERF.45). The stored links are the same. Sectors made on demand still link as they are saved.
 - A planet's or moon's position is worked out once when first read instead of after every move (PERF.46); the values are unchanged.
