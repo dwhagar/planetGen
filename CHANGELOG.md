@@ -1,5 +1,10 @@
 # Changelog
 
+## [10.0.911] - 2026-10-10
+
+### Changed
+- **Stars, planets, moons, asteroid belts, comets and facilities are named by their object ID everywhere (API.23, stage 2).** The system page's anchors and forms, the Nav and Nearby links, the API's `id`/`planet_id`/`moon_id`/`host_id` fields, `<kind>:<ID>` references and the body URLs (`/api/planets/<id>`, `/api/facilities/<id>`, ...) carry the printed ID instead of the row number, and a row number is refused. API version 3. A hand-made sector with no grid address that was saved before IDs is now found by its `(1 << 40) + id` ID without a schema change.
+
 ## [9.0.911] - 2026-10-10
 
 ### Changed
