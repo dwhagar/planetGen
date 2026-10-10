@@ -123,6 +123,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.154 | Nested bright-star lists on the server, so every parent list is a subset of its child's |  | Zoom visibility note stage 2; shares tile keys with MAP.147 and MAP.151. |
 | MAP.159 | Packed binary Galaxy Map tiles (quantised planes) with the nested tile lists, on one cache stamp bump | MAP.154 | MAP.147 recommendation step 2; one stamp bump with MAP.154 and MAP.151. |
 | MAP.155 | Other objects fade in too: point objects from level 8, a size ramp for cloud sprites, and stars that grow from a faint dot |  | Zoom visibility note stage 3. |
+| PERF.63 | Vectorise the candidate work of the phenomena scatter with numpy |  |  |
 | PERF.59 | Share the ring inputs between the phenomena pass and the backfill rings (top priority) |  |  |
 
 ### System Map
