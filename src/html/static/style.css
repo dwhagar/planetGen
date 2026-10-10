@@ -3056,6 +3056,65 @@ body.app {
   font-weight: 400;
 }
 
+/* The Generate page's Customize window (ADM.28, static/generatecustomize.js). */
+.customize-group {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem 0.9rem 0.25rem;
+  margin: 0 0 0.75rem;
+  min-width: 0;
+}
+
+.customize-group > legend {
+  font-weight: 600;
+  padding: 0 0.3rem;
+}
+
+.customize-dialog {
+  width: min(52rem, calc(100vw - 2rem));
+  max-height: calc(100vh - 2rem);
+  overflow: auto;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-elevated);
+  color: inherit;
+}
+
+.customize-dialog::backdrop {
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.customize-dialog .customize-group {
+  border: 0;
+  padding: 0;
+}
+
+.customize-dialog .customize-group > legend {
+  display: none;
+}
+
+.customize-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0 0 0.75rem;
+}
+
+.customize-tab {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.35rem 0.8rem;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.customize-tab.selected {
+  background: var(--accent, var(--border));
+  font-weight: 600;
+}
+
 /* Generate page sections fold (ADM.4): the heading is the toggle. */
 .panel-fold > .fold > summary {
   display: flex;
