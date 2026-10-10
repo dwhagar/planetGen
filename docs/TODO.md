@@ -3390,6 +3390,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   `rate_cost_per_s` columns from the research sketch were not added and
   belong to this estimator; the `bench:` prefix is reserved for PERF.31's
   rows.
+  Partly built (PR #910, Bugfixes lane 1): one `blended_rate`,
+  `time_constant` and `eta_range` in `queue/progress_rate.py` (the
+  recorded rate of PERF.32 blended with the live rate, weight n/(n+15),
+  held back for 5 units or 20 s, tau = max(60, 20 x mean task seconds /
+  workers), a stall hold); the sector and bright-star bars start from
+  the recorded rate; the Generate and Queue pages show a range or
+  "estimating", never dashes; the Queue page ETA blends the recorded
+  task seconds. Remaining in this item: (1) a multi-step job adds each
+  not-yet-started step's estimate, which needs the estimate stored on
+  the step node when the job is planned; (2) the UX.3 banner reads the
+  same `blended_rate`; (3) the phenomenon scatter bar has no recorded
+  rate to start from (its recorded units are placed phenomena, the
+  bar's are weights), so it needs a recorded rate in the bar's own
+  units, or it keeps the live rate. The migration bar (DB.15) stays its
+  own item.
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
   Replace the one-`sector_stats`-row-per-visited-cell ledger of
