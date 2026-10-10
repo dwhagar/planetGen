@@ -16,6 +16,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from planetgen.web.app import create_app
 from planetgen.web.maps.systemscene import build_scene
+from tests.publicids import pid, pids
 
 
 def _system(want_binary):
@@ -106,6 +107,6 @@ def test_the_endpoint_returns_the_scene_and_404s_for_a_missing_system(saved):
     app = create_app(TestConfig)
     app.testing = True
     client = app.test_client()
-    body = client.get(f"/api/systems/{ids[0]}/scene").get_json()
-    assert body["system"]["id"] == ids[0] and body["planets"] and "epoch" in body
+    body = client.get(f"/api/systems/{pid('system', ids[0])}/scene").get_json()
+    assert body["system"]["id"] == pid("system", ids[0]) and body["planets"] and "epoch" in body
     assert client.get("/api/systems/999999999/scene").status_code == 404

@@ -16,6 +16,7 @@ from flask import g, request
 from planetgen.admin import activity_log, auth as adminAuth
 from planetgen.util import log
 
+from . import ids
 from .common import ApiError, get_control_db
 
 SESSION_COOKIE_NAME = "pg_admin_session"
@@ -132,6 +133,7 @@ def require_admin(fresh=False, session_only=False, scope="admin"):
             g.admin_user = admin
             g.api_key_id = admin["api_key_id"] if bearer else None
             log.debug(f"Access to {request.path} granted to admin {admin['username']!r} via {via}")
+            ids.resolve_kwargs(kwargs)  # after the checks above: who may ask comes before what exists
             return view(*args, **kwargs)
         # Read by the route sweep test (tests/test_api_auth_sweep.py) so
         # a new route can't quietly skip the check.

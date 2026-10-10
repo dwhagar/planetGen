@@ -212,7 +212,7 @@ class SystemRecipe(Body):
 class SystemCreate(SystemRecipe):
     """`POST /api/systems`: a recipe, optionally placed in a sector."""
 
-    sector_id: Optional[StrictInt] = Field(default=None, ge=1)
+    sector_id: Optional[StrictStr] = Field(default=None, max_length=40)
     position: Optional[list[Number]] = None
 
     @field_validator("position")

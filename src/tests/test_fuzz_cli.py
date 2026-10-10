@@ -275,7 +275,7 @@ def test_accepted_values_satisfy_every_documented_bound(data, command):
         assert get("radius_pc") is None or 0 < get("radius_pc") <= limits.MAX_GENERATE_RADIUS_PC
         assert get("min_start_density") is None or get("min_start_density") > 0
     if command == "plan":
-        assert 0 <= args.arm_amplitude < 1 and args.max_ring >= 1
+        assert args.arm_density >= args.interarm_density >= 0 and args.max_ring >= 1
 
 
 # Float options whose validators use `x <= 0` / `x < 0 or x >= 1` style
@@ -304,7 +304,7 @@ def test_a_lone_double_dash_value_is_a_usage_error(argv):
 @example(target=("galaxy", "--radius-pc"), token="nan")                 # math.ceil(nan) ValueError
 @example(target=("galaxy", "--radius-pc"), token="inf")                 # math.ceil(-inf) OverflowError
 @example(target=("galaxy", "--min-start-density"), token="nan")         # filter silently off
-@example(target=("plan", "--arm-amplitude"), token="nan")               # NaN reached MySQL
+@example(target=("plan", "--arm-density"), token="nan")                 # NaN reached MySQL
 @example(target=("plan", "--disk-scale-length-pc"), token="nan")        # NaN reached MySQL
 @example(target=("plan", "--calibration-radius-pc"), token="inf")       # math domain error
 def test_non_finite_numbers_are_rejected_by_validation(target, token):
@@ -526,7 +526,9 @@ def plan_argv(draw):
         "--pitch-angle-deg", repr(draw(st.sampled_from([1e-3, 15.0, 89.999, 90.0, -15.0]))),
         # 1.0/-0.1 and --max-ring 0 are the validator's own rejections (exit 2),
         # drawn less often than the accepted values.
-        "--arm-amplitude", repr(draw(st.sampled_from([0.0, 0.4, 0.999999, 0.0, 0.4, 1.0, -0.1]))),
+        "--arm-density", repr(draw(st.sampled_from([1.4, 2.5, 1.4, 2.5, 0.0, -0.1]))),
+        "--interarm-density", repr(draw(st.sampled_from([0.6, 0.0, 0.6, 0.0, 9.0]))),
+        "--core-density", repr(draw(st.sampled_from([0.0, 5.0, 0.0, 5.0, -1.0]))),
         "--max-ring", str(draw(st.sampled_from([1, 5, 200, 1, 5, 200, 0]))),
     ]
     if draw(st.booleans()):
@@ -566,7 +568,7 @@ _PLAN_TRACEBACKS = [
 ])
 def test_plan_degenerate_shape_is_a_usage_error(extra, consequence):
     """Regression: each of these used to die with the listed raw
-    traceback; validate_plan_args only checked --arm-amplitude and
+    traceback; validate_plan_args only checked the arm densities and
     --max-ring. Now every one is a usage error before touching MySQL."""
     assert _parse(["plan", "--quiet"] + extra) == 2
 

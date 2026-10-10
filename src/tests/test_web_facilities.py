@@ -33,6 +33,7 @@ from planetgen.galaxy.sector import SpaceSector  # noqa: E402
 from planetgen.generation.system import StarSystem  # noqa: E402
 from planetgen.web.maps.systemmap import render_system_map_panel  # noqa: E402
 from planetgen.web import csrf  # noqa: E402
+from tests.publicids import pid, pids
 
 DB = "planetgen_web_test"
 AU_KM = constants.AU_TO_KM
@@ -218,7 +219,7 @@ def test_system_page_lists_facilities(client, fake):
     terra_row = terra_row[:terra_row.index("</details>")]
     assert "1 facility" in terra_row and "New Hope" in terra_row and "High" not in terra_row
     assert '<ul class="facility-list" aria-label="Facilities">' in html
-    assert ("get_system_facilities", DB, 5) in fake.calls
+    assert ("get_system_facilities", DB, "5") in fake.calls
 
 
 def test_system_page_without_facilities_shows_no_panel(client, fake):
@@ -493,7 +494,7 @@ def test_real_colony_makes_its_world_inhabited(db_app, mysql_config):
     others = [p for p in detail["planets"] if p["id"] != ids["terrestrial"]]
     assert all(p["inhabited"] == (p["life_stage"] == "technological_civilization") for p in others)
 
-    html = db_app.test_client().get(f"/system/{system_id}").get_data(as_text=True)
+    html = db_app.test_client().get(f"/system/{pid('system', system_id)}").get_data(as_text=True)
     # The page escapes the name: some draws have an apostrophe in it
     # ("Illata Ch'Oba I"), which a raw search missed (TEST.69).
     row = html[html.index(f'<span class="body-name">{escape(planet["name"])}</span>'):]
@@ -526,7 +527,7 @@ def test_real_admin_previews_saves_and_removes(db_app, mysql_config):
     form = {"name": "Sunwatch", "host": f"star:{ids['star']}", "placement": "orbital", "kind": "outpost",
             "orbit_step": str(facility_rules.step_for_distance(0.5 * AU_KM, *limits))}
 
-    resp = client.post(f"/system/{system_id}", data={csrf.FIELD_NAME: _csrf(db_app, client),
+    resp = client.post(f"/system/{pid('system', system_id)}", data={csrf.FIELD_NAME: _csrf(db_app, client),
                                                      "facility_action": "preview", **form})
     html = resp.get_data(as_text=True)
     assert resp.status_code == 200
@@ -540,7 +541,7 @@ def test_real_admin_previews_saves_and_removes(db_app, mysql_config):
     finally:
         conn.close()
 
-    resp = client.post(f"/system/{system_id}", data={csrf.FIELD_NAME: _csrf(db_app, client),
+    resp = client.post(f"/system/{pid('system', system_id)}", data={csrf.FIELD_NAME: _csrf(db_app, client),
                                                      "facility_action": "save", **form})
     assert resp.status_code == 303
     conn = store.get_connection(mysql_config)
@@ -554,7 +555,7 @@ def test_real_admin_previews_saves_and_removes(db_app, mysql_config):
     assert "Facility added." in page and "Sunwatch" in _panel(page)
     assert 'data-kind="facility"' in page
 
-    resp = client.post(f"/system/{system_id}", data={csrf.FIELD_NAME: _csrf(db_app, client),
+    resp = client.post(f"/system/{pid('system', system_id)}", data={csrf.FIELD_NAME: _csrf(db_app, client),
                                                      "facility_action": "remove", "facility_id": str(saved["id"])})
     assert resp.status_code == 303
     assert "Facility removed." in client.get(resp.headers["Location"]).get_data(as_text=True)
@@ -576,7 +577,7 @@ def test_real_sector_page_lists_stand_alone_facilities(db_app, mysql_config):
             store.add_facility(conn, "Waypoint", "station", "standalone", "space", sector_id, offset_ly=(1.0, 2.0, 2.0))
     finally:
         conn.close()
-    html = db_app.test_client().get(f"/sector/{sector_id}").get_data(as_text=True)
+    html = db_app.test_client().get(f"/sector/{pid('sector', sector_id)}").get_data(as_text=True)
     row = re.search(r"<tr[^>]*>\s*<td>Waypoint</td>.*?</tr>", html, re.S).group(0)
     assert "Facility (Station)" in row
     assert "Stand-alone station, parked in open space" in row

@@ -610,6 +610,11 @@ THICK_DISK_LOCAL_DENSITY_RATIO = 0.04
 # `bulge_scale_radius_pc` is x0 (along the bar); these are y0/x0 and z0/x0.
 BULGE_AXIS_RATIO_Y = 620.0 / 1580.0
 BULGE_AXIS_RATIO_Z = 430.0 / 1580.0
+
+CORE_RADIUS_FRACTION = 0.1
+"""float: The galactic core's Gaussian scale radius as a fraction of the
+bulge scale radius (ADM.49). The core is the extra density at the very
+centre, on top of the bulge (`core_amplitude`; 0, the default, is none)."""
 # The bar's long axis leads the Sun-center line by 27 degrees in the
 # direction of rotation (its near end at positive galactic longitude;
 # Wegg & Gerhard 2013, BHG16: 28-33 for the long bar).

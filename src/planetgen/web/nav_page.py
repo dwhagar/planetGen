@@ -68,11 +68,11 @@ _LEGACY_PARAMS = ("from_id", "to_id", "from_kind", "to_kind", "from_type", "to_t
 
 def endpoint(kind, entity_id):
     """
-    The `from`/`to` value for an endpoint: `endpoint("system", 12)` is
-    `"system:12"`, `endpoint("nebula", 3)` is `"nebula:3"` (a phenomenon's
+    The `from`/`to` value for an endpoint: `endpoint("system", "FE81000A2B-0000005-000")` is
+    `"system:FE81000A2B-0000005-000"`, `endpoint("planet", 3)` is `"planet:3"` (a phenomenon's
     kind is its type).
     """
-    return f"{kind}:{int(entity_id)}"
+    return objectref.format_public(kind, entity_id)
 
 
 def nav_url(origin=None, destination=None):
@@ -93,7 +93,7 @@ def parse_endpoint(raw):
             reference (a bad id, the same 404 every page gives one).
     """
     try:
-        kind, entity_id = objectref.parse(raw)
+        kind, entity_id = objectref.parse_public(raw)
     except ValueError:
         kind = None
     if kind in (None, "sector"):
@@ -113,9 +113,8 @@ def _legacy_redirect(args):
         raw = (args.get(f"{prefix}_id") or args.get(prefix) or "").strip()
         if not raw:
             continue
-        if raw.isdecimal():  # not isdigit(): "²" is a digit int() can't read
-            kind = args.get(f"{prefix}_type") if args.get(f"{prefix}_kind") == "phenomenon" else None
-            raw = endpoint(kind or "system", raw)
+        if raw.isdecimal():  # an old row number names nothing since objects have IDs (API.23)
+            continue
         params.append((prefix, raw))
     for name in ("from_sector", "to_sector"):
         if args.get(name):
@@ -124,10 +123,11 @@ def _legacy_redirect(args):
 
 
 def _sector_id(raw):
-    try:
-        return int(raw)
-    except ValueError:
+    """A sector's printed ID from a `from_sector`/`to_sector` value."""
+    text = raw.strip().upper()
+    if not re.fullmatch(r"[0-9A-F]{1,16}", text):
         raise apiclient.NotFoundError(f"No such sector: {raw!r}")
+    return text
 
 
 def _resolve(kind, entity_id):
@@ -152,13 +152,13 @@ def _resolve(kind, entity_id):
     if kind in objectref.BODY_KINDS:
         body = apiclient.get_object(db_name(), endpoint(kind, entity_id))
         parents = {parent["kind"]: parent["ref"] for parent in body["parents"]}
-        system_id = objectref.parse(parents["system"])[1]
+        system_id = objectref.parse_public(parents["system"])[1]
         sector_ref = parents.get("sector")
         return {
             "ref": body["ref"], "kind": kind, "type": None, "id": entity_id, "name": body["name"],
             "url": page_url("system", system_id=system_id), "key": system_id,
             "anchor_kind": "system", "anchor_id": system_id, "system_id": system_id,
-            "sector_id": objectref.parse(sector_ref)[1] if sector_ref else None, "placed": None,
+            "sector_id": objectref.parse_public(sector_ref)[1] if sector_ref else None, "placed": None,
         }
     detail = apiclient.get_phenomenon(db_name(), kind, entity_id)
     return {
@@ -399,7 +399,7 @@ def _leg_rows(legs, origin, destination, names):
             return origin["name"]
         if ref == destination["ref"]:
             return destination["name"]
-        kind, entity_id = objectref.parse(ref)
+        kind, entity_id = objectref.parse_public(ref)
         if kind == "system":
             return names.get(entity_id) or apiclient.get_system(db_name(), entity_id)["name"]
         return ref

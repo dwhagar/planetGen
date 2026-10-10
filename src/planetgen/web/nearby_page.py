@@ -69,7 +69,7 @@ def _row_url(row):
         return page_url("system", system_id=row["system_id"])
     parent = row["parent"]
     if parent and parent["kind"] == "sector":
-        return page_url("sector", sector_id=int(parent["ref"].split(":")[1]))
+        return page_url("sector", sector_id=parent["ref"].split(":")[1])
     return None
 
 
@@ -79,9 +79,9 @@ def _parent_link(row):
         return None
     kind, parent_id = parent["ref"].split(":")
     if kind == "sector":
-        return {"name": parent["name"], "url": page_url("sector", sector_id=int(parent_id))}
+        return {"name": parent["name"], "url": page_url("sector", sector_id=parent_id)}
     if kind == "system":
-        return {"name": parent["name"], "url": page_url("system", system_id=int(parent_id))}
+        return {"name": parent["name"], "url": page_url("system", system_id=parent_id)}
     return {"name": parent["name"], "url": page_url("system", system_id=row["system_id"])}
 
 
@@ -116,7 +116,7 @@ def nearby():
         question = {"point": place_raw}
     else:
         try:
-            kind, entity_id = near_search.object_ref.parse(place_raw)
+            kind, entity_id = near_search.object_ref.parse_public(place_raw)
         except ValueError:
             raise apiclient.NotFoundError(f"No such place: {place_raw!r}")
         place_param = endpoint(kind, entity_id)
@@ -168,9 +168,9 @@ def _place_url(place):
         return None
     kind, object_id = place["ref"].split(":")
     if kind in near_search.object_ref.PHENOMENON_KINDS:
-        return page_url("phenomenon", phenomenon_type=kind, phenomenon_id=int(object_id))
+        return page_url("phenomenon", phenomenon_type=kind, phenomenon_id=object_id)
     if kind == "sector":
-        return page_url("sector", sector_id=int(object_id))
+        return page_url("sector", sector_id=object_id)
     if kind == "system":
-        return page_url("system", system_id=int(object_id))
+        return page_url("system", system_id=object_id)
     return None

@@ -31,6 +31,7 @@ from planetgen._version import __version__
 from .authz import audit, require_admin
 from .common import ApiError, get_control_db, require_json_body
 from .loginguard import with_store
+from .version import API_VERSION
 from .schemas import LockoutLift, NamingKeyChange, parse_body
 from .routes import _paginate, _resolve_requested_db_config, get_db
 
@@ -70,6 +71,7 @@ def _api_process_info():
         load = None
     return {
         "version": __version__,
+        "api_version": API_VERSION,
         "python_version": platform.python_version(),
         "python_prefix": sys.prefix,
         "libraries_dir": _libraries_dir(),

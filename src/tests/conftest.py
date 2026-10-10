@@ -37,6 +37,8 @@ import pytest
 from planetgen.db import store as _db
 from planetgen.db.store import MySQLConfig
 
+from tests import publicids
+
 # The always-on activity log (planetgen/admin/activity_log.py) would
 # otherwise go to /var/log/planetgen/ (or be skipped there); tests write it
 # to a throwaway folder instead. Tests that read it point
@@ -226,9 +228,11 @@ def mysql_config(_mysql_server_available):
         admin_conn.close()
 
     config = MySQLConfig(database=db_name, **kwargs)
+    publicids.use(config)
     try:
         yield config
     finally:
+        publicids.use(None)
         _db.close_pool(config)
         admin_conn = pymysql.connect(**kwargs)
         try:

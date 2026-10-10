@@ -23,6 +23,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.system import StarSystem
 from tests.fuzz_support import deterministic_entropy
 from tests.test_api import admin_client, client, default_admin_client, first_admin_password  # noqa: F401  (fixtures)
+from tests.publicids import pid, pids
 
 pytestmark = pytest.mark.db
 
@@ -107,12 +108,12 @@ def test_api_refuses_a_too_long_system_name(admin_client):
     assert admin_client.post("/api/systems", json={"planets": False, "name": too_long}).status_code == 400
     response = admin_client.post("/api/systems", json={"planets": True, "moons": True})
     system_id = response.get_json()["id"]
-    assert admin_client.patch(f"/api/systems/{system_id}", json={"name": too_long}).status_code == 400
+    assert admin_client.patch(f"/api/systems/{pid('system', system_id)}", json={"name": too_long}).status_code == 400
     longest = "N" * store.SYSTEM_NAME_MAX_LENGTH
-    response = admin_client.patch(f"/api/systems/{system_id}", json={"name": longest})
+    response = admin_client.patch(f"/api/systems/{pid('system', system_id)}", json={"name": longest})
     assert response.status_code == 200, response.get_json()
-    assert admin_client.get(f"/api/systems/{system_id}").get_json()["name"] == longest
-    star_id = admin_client.get(f"/api/systems/{system_id}").get_json()["stars"][0]["id"]
+    assert admin_client.get(f"/api/systems/{pid('system', system_id)}").get_json()["name"] == longest
+    star_id = admin_client.get(f"/api/systems/{pid('system', system_id)}").get_json()["stars"][0]["id"]
     assert admin_client.patch(f"/api/stars/{star_id}", json={"name": too_long}).status_code == 400
 
 
@@ -133,9 +134,9 @@ def test_four_byte_names_round_trip(mysql_config, admin_client, name):
     assert all(planet.name.startswith(name) for planet in loaded.planets if hasattr(planet, "name"))
 
     renamed = f"{name} ⭐"
-    response = admin_client.patch(f"/api/systems/{system_id}", json={"name": renamed})
+    response = admin_client.patch(f"/api/systems/{pid('system', system_id)}", json={"name": renamed})
     assert response.status_code == 200, response.get_json()
-    assert admin_client.get(f"/api/systems/{system_id}").get_json()["name"] == renamed
+    assert admin_client.get(f"/api/systems/{pid('system', system_id)}").get_json()["name"] == renamed
     assert _load(mysql_config, system_id).name == renamed
 
 

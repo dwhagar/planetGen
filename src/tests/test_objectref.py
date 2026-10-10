@@ -18,6 +18,7 @@ from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.nebula import Nebula
 
 # Imported fixtures (see test_bughunt_api_gaps.py for why this works).
+from tests.publicids import pid
 from tests.test_api import (  # noqa: F401
     _place_sector, _save_wide_binary_with_moons, admin_client, client, default_admin_client,
     first_admin_password, seeded_sector,
@@ -33,6 +34,15 @@ CASES = [
     ("interstellar_comet:9", ("interstellar_comet", 9)),
 ]
 BAD = ["", "galaxy", "planet", "planet:", "planet:-1", "planet:x", "ship:3", "moon:1:2", "system:1.5"]
+
+PUBLIC_CASES = [
+    ("system:FE81000A2B-0000005-000", ("system", "FE81000A2B-0000005-000")),
+    ("  moon:fe81000a2b-0000005-003 ", ("moon", "FE81000A2B-0000005-003")),
+    ("FE81000A2B-0000005-000", ("system", "FE81000A2B-0000005-000")),
+    ("sector:100000000", ("sector", "100000000")),
+    ("planet:3", ("planet", "3")),
+]
+PUBLIC_BAD = BAD + ["12", "100000000", "system:", "sector:xyz", "system:1-2-3-4"]
 
 
 @pytest.mark.parametrize("raw, expected", CASES)
@@ -55,23 +65,45 @@ def test_format_round_trips_every_kind():
         objectref.format("moon", -1)
 
 
+@pytest.mark.parametrize("raw, expected", PUBLIC_CASES)
+def test_parse_public_keeps_the_id_as_text(raw, expected):
+    assert objectref.parse_public(raw) == expected
+
+
+@pytest.mark.parametrize("raw", PUBLIC_BAD)
+def test_parse_public_refuses_what_is_not_a_public_reference(raw):
+    with pytest.raises(ValueError):
+        objectref.parse_public(raw)
+
+
+def test_format_public_round_trips_every_kind():
+    for kind in objectref.KINDS:
+        assert objectref.parse_public(objectref.format_public(kind, "fe81000a2b-0000005-003")) == (
+            kind, "FE81000A2B-0000005-003")
+    with pytest.raises(ValueError):
+        objectref.format_public("ship", "1")
+    with pytest.raises(ValueError):
+        objectref.format_public("moon", "-1")
+
+
 @pytest.mark.skipif(shutil.which("node") is None, reason="Node isn't installed")
 def test_browser_copy_matches_python():
     script = (
         "const m = await import(process.argv[1]);"
         "const raws = JSON.parse(process.argv[2]);"
         "console.log(JSON.stringify({parsed: raws.map(r => m.parse(r)), kinds: m.KINDS,"
-        " formatted: m.KINDS.map(k => m.format(k, 7))}));"
+        " formatted: m.KINDS.map(k => m.format(k, 'fe81000a2b-0000005-003'))}));"
     )
     module_url = "file://" + os.path.abspath(os.path.join(_STATIC, "objectref.js"))
-    raws = [raw for raw, _ in CASES] + BAD
+    raws = [raw for raw, _ in PUBLIC_CASES] + PUBLIC_BAD
     out = json.loads(subprocess.run(
         ["node", "--input-type=module", "-e", script, module_url, json.dumps(raws)],
         check=True, capture_output=True, text=True,
     ).stdout)
     assert out["kinds"] == list(objectref.KINDS)
-    assert out["formatted"] == [objectref.format(kind, 7) for kind in objectref.KINDS]
-    expected = [{"kind": kind, "id": object_id} for _, (kind, object_id) in CASES] + [None] * len(BAD)
+    assert out["formatted"] == [objectref.format_public(kind, "FE81000A2B-0000005-003") for kind in objectref.KINDS]
+    expected = ([{"kind": kind, "id": object_id} for _, (kind, object_id) in PUBLIC_CASES]
+                + [None] * len(PUBLIC_BAD))
     assert out["parsed"] == expected
 
 
@@ -85,26 +117,27 @@ def _ids(mysql_config, sql, params=()):
 
 def test_resolve_a_system_and_its_sector(client, seeded_sector):
     config, sector_id, system_ids = seeded_sector
-    body = client.get(f"/api/objects/system:{system_ids[0]}").get_json()
-    assert body["ref"] == f"system:{system_ids[0]}" and body["kind"] == "system"
-    assert [p["ref"] for p in body["parents"]] == ["galaxy", f"sector:{sector_id}"]
-    assert body["siblings"] == [f"system:{system_ids[1]}"]
+    first, second = pid("system", system_ids[0]), pid("system", system_ids[1])
+    body = client.get(f"/api/objects/system:{first}").get_json()
+    assert body["ref"] == f"system:{first}" and body["kind"] == "system"
+    assert [p["ref"] for p in body["parents"]] == ["galaxy", f"sector:{pid('sector', sector_id)}"]
+    assert body["siblings"] == [f"system:{second}"]
     assert body["positions"]["sector_ly"] is not None
     assert body["positions"]["system_km"] == [0.0, 0.0, 0.0]
-    # A bare number is a system.
-    assert client.get(f"/api/objects/{system_ids[0]}").get_json() == body
+    # A bare three-part ID is a system's.
+    assert client.get(f"/api/objects/{first}").get_json() == body
 
-    sector = client.get(f"/api/objects/sector:{sector_id}").get_json()
+    sector = client.get(f"/api/objects/sector:{pid('sector', sector_id)}").get_json()
     assert sector["parents"] == [{"ref": "galaxy", "kind": "galaxy", "name": "Galaxy"}]
     assert sector["positions"]["sector_ly"] == [0.0, 0.0, 0.0]
 
 
 def test_a_placed_sector_gives_galaxy_positions(client, mysql_config):
     sector_id = _place_sector(mysql_config, "Placed", (100.0, 200.0, 5.0))
-    body = client.get(f"/api/objects/sector:{sector_id}").get_json()
+    body = client.get(f"/api/objects/sector:{pid('sector', sector_id)}").get_json()
     assert body["positions"]["galaxy_pc"] == [100.0, 200.0, 5.0]
     system_id = _ids(mysql_config, "SELECT id FROM star_systems WHERE sector_id = ?", (sector_id,))[0]
-    system = client.get(f"/api/objects/system:{system_id}").get_json()
+    system = client.get(f"/api/objects/system:{pid('system', system_id)}").get_json()
     assert system["positions"]["galaxy_pc"] == pytest.approx([100.0, 200.0, 5.0])
 
 
@@ -114,7 +147,7 @@ def test_resolve_bodies_down_to_a_moon(client, mysql_config):
     body = client.get(f"/api/objects/moon:{moon_id}").get_json()
     kinds = [p["kind"] for p in body["parents"]]
     assert kinds[0] == "galaxy" and kinds[-2:] == ["system", "planet"]
-    assert body["parents"][-2]["ref"] == f"system:{system_id}"
+    assert body["parents"][-2]["ref"] == f"system:{pid('system', system_id)}"
     planet = client.get("/api/objects/" + body["parents"][-1]["ref"]).get_json()
     assert planet["kind"] == "planet" and planet["positions"]["system_km"] is not None
     assert body["ref"] not in body["siblings"]
@@ -122,7 +155,7 @@ def test_resolve_bodies_down_to_a_moon(client, mysql_config):
 
     for star_id in _ids(mysql_config, "SELECT id FROM stars WHERE star_system_id = ?", (system_id,)):
         star = client.get(f"/api/objects/star:{star_id}").get_json()
-        assert star["parents"][-1]["ref"] == f"system:{system_id}"
+        assert star["parents"][-1]["ref"] == f"system:{pid('system', system_id)}"
         assert len(star["positions"]["system_km"]) == 3
     # The two stars of a wide pair are apart, so they are each other's siblings.
     assert len(star["siblings"]) == 1
@@ -144,7 +177,7 @@ def test_resolve_a_phenomenon(client, mysql_config):
         conn.commit()
     finally:
         conn.close()
-    body = client.get(f"/api/objects/nebula:{nebula_id}").get_json()
+    body = client.get(f"/api/objects/nebula:{pid('nebula', nebula_id)}").get_json()
     assert body["kind"] == "nebula" and body["parents"][0]["ref"] == "galaxy"
     assert body["positions"] == {"galaxy_pc": [5.0, 1.0, 2.0], "sector_ly": None, "system_km": None}
 
@@ -183,7 +216,7 @@ def test_keep_out_for_bodies_and_systems(client, mysql_config):
     assert planet["basis"] == "hill" and planet["radius_km"] == pytest.approx(hill["hill_radius_km"])
     assert client.get(f"/api/objects/moon:{moon_id}").get_json()["keep_out"]["radius_km"] > 0
 
-    system = client.get(f"/api/objects/system:{system_id}").get_json()["keep_out"]
+    system = client.get(f"/api/objects/system:{pid('system', system_id)}").get_json()["keep_out"]
     assert system["basis"] == "perimeter" and system["radius_km"] >= max(perimeters)
     star_id = _ids(mysql_config, "SELECT id FROM stars WHERE star_system_id = ?", (system_id,))[0]
     assert client.get(f"/api/objects/star:{star_id}").get_json()["keep_out"] == system
@@ -197,7 +230,7 @@ def test_keep_out_of_a_cloud_is_a_pass_through_with_a_note(client, mysql_config)
         conn.commit()
     finally:
         conn.close()
-    keep_out = client.get(f"/api/objects/nebula:{nebula_id}").get_json()["keep_out"]
+    keep_out = client.get(f"/api/objects/nebula:{pid('nebula', nebula_id)}").get_json()["keep_out"]
     assert keep_out["radius_km"] is None and keep_out["basis"] == "none" and "passes through" in keep_out["note"]
 
 
@@ -217,5 +250,5 @@ def test_keep_out_of_compact_objects_and_rogues_uses_the_galactic_hill_radius(cl
     finally:
         conn.close()
     for kind, object_id in ids.items():
-        keep_out = client.get(f"/api/objects/{kind}:{object_id}").get_json()["keep_out"]
+        keep_out = client.get(f"/api/objects/{kind}:{pid(kind, object_id)}").get_json()["keep_out"]
         assert keep_out["basis"] in ("galactic_hill", "radius") and keep_out["radius_km"] > 0, kind

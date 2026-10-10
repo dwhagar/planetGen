@@ -11,6 +11,8 @@ reading the rows.
 
 import pytest
 
+from tests.publicids import pid
+
 from planetgen.db import store
 from planetgen.generation.phenomena.asteroid_field import AsteroidField
 from planetgen.generation.config import SystemConfig
@@ -42,13 +44,13 @@ def _save(mysql_config, kind):
 
 def test_api_returns_asteroid_field_composition_rows(client, mysql_config):  # noqa: F811
     field_id = _save(mysql_config, "asteroid-field")
-    body = client.get(f"/api/phenomena/asteroid_field/{field_id}").get_json()
+    body = client.get(f"/api/phenomena/asteroid_field/{pid('asteroid_field', field_id)}").get_json()
     assert body["composition"] == [{"component": c, "concentration": n} for c, n in _FIELD_COMPOSITION]
 
 
 def test_api_returns_interstellar_comet_composition_rows(client, mysql_config):  # noqa: F811
     comet_id = _save(mysql_config, "comet")
-    body = client.get(f"/api/phenomena/interstellar_comet/{comet_id}").get_json()
+    body = client.get(f"/api/phenomena/interstellar_comet/{pid('interstellar_comet', comet_id)}").get_json()
     assert body["composition"] == _COMET_COMPOSITION
 
 
@@ -59,6 +61,6 @@ def test_api_returns_interstellar_comet_composition_rows(client, mysql_config): 
 ])
 def test_phenomenon_page_shows_the_composition_rows(web_app, mysql_config, kind, page_type, expected):  # noqa: F811
     phenomenon_id = _save(mysql_config, kind)
-    page = web_app.test_client().get(f"/phenomenon/{page_type}/{phenomenon_id}").get_data(as_text=True)
+    page = web_app.test_client().get(f"/phenomenon/{page_type}/{pid(page_type, phenomenon_id)}").get_data(as_text=True)
     assert expected in page
     assert "stale summary" not in page

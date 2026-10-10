@@ -1420,6 +1420,7 @@ def _table_marker(table):
 
 
 _VERSION_MARKERS = (
+    (81, _column_marker("galaxy_shape", "core_amplitude")),
     (80, _column_marker("phenomenon_scatter", "mass_solar")),
     (79, _column_marker("sector_stats", "bright_mass_sol")),
     (78, _table_marker("id_counters")),
@@ -5962,7 +5963,7 @@ def insert_sector(conn, sector: SpaceSector, galaxy_position=None, link_neighbor
     if issuer is None or not issuer.complete:
         assign_uids(conn, sector_id=sector_id)
     else:
-        _set_sector_uid(conn, sector_id)
+        set_sector_uid(conn, sector_id)
     address = None if galaxy_position is None else tuple(
         galaxy_position.get(key) for key in ("ring_index", "layer_index", "ring_slot_index"))
     if address is not None and None not in address:
@@ -6596,10 +6597,10 @@ def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_ring_index,
                 INSERT INTO galaxy_shape (
                     id, disk_scale_length_pc, disk_scale_height_pc,
                     bulge_scale_radius_pc, bulge_amplitude, arm_count,
-                    pitch_angle_rad, arm_amplitude, spiral_reference_radius_pc,
+                    pitch_angle_rad, arm_amplitude, arm_level, core_amplitude, spiral_reference_radius_pc,
                     spiral_reference_angle_rad, k_norm, edge_pc,
                     expected_system_count_at_density_1, outer_ring_index, galaxy_seed
-                ) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                ) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 ON DUPLICATE KEY UPDATE
                     disk_scale_length_pc = VALUES(disk_scale_length_pc),
                     disk_scale_height_pc = VALUES(disk_scale_height_pc),
@@ -6608,6 +6609,8 @@ def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_ring_index,
                     arm_count = VALUES(arm_count),
                     pitch_angle_rad = VALUES(pitch_angle_rad),
                     arm_amplitude = VALUES(arm_amplitude),
+                    arm_level = VALUES(arm_level),
+                    core_amplitude = VALUES(core_amplitude),
                     spiral_reference_radius_pc = VALUES(spiral_reference_radius_pc),
                     spiral_reference_angle_rad = VALUES(spiral_reference_angle_rad),
                     k_norm = VALUES(k_norm),
@@ -6621,7 +6624,8 @@ def save_galaxy_shape(shape: GalaxyShape, edge_pc, outer_ring_index,
                 (
                     shape.disk_scale_length_pc, shape.disk_scale_height_pc,
                     shape.bulge_scale_radius_pc, shape.bulge_amplitude, shape.arm_count,
-                    shape.pitch_angle_rad, shape.arm_amplitude, shape.spiral_reference_radius_pc,
+                    shape.pitch_angle_rad, shape.arm_amplitude, shape.arm_level, shape.core_amplitude,
+                    shape.spiral_reference_radius_pc,
                     shape.spiral_reference_angle_rad, shape.k_norm, edge_pc,
                     expected_system_count_at_density_1, outer_ring_index, bytes(galaxy_seed), bytes(galaxy_seed),
                 ),
@@ -6750,6 +6754,8 @@ def get_galaxy_shape(conn):
         arm_count=row["arm_count"],
         pitch_angle_rad=row["pitch_angle_rad"],
         arm_amplitude=row["arm_amplitude"],
+        arm_level=row["arm_level"],
+        core_amplitude=row["core_amplitude"],
         spiral_reference_radius_pc=row["spiral_reference_radius_pc"],
         spiral_reference_angle_rad=row["spiral_reference_angle_rad"],
         k_norm=row["k_norm"],
@@ -6877,22 +6883,22 @@ def _sector_address_of(galaxy_position):
 
 def _uid_issuer_for_sector(conn, sector_id, galaxy_position):
     """The `_UidIssuer` for a sector just inserted (its `uid` is set by
-    `_set_sector_uid`), or `None` when the sector has no grid address to be
+    `set_sector_uid`), or `None` when the sector has no grid address to be
     born in: its rows then take run-time IDs from `assign_uids`."""
     address = _sector_address_of(galaxy_position)
     return None if address is None else _UidIssuer(sector_id, address)
 
 
-def _set_sector_uid(conn, sector_id):
-    """Writes a grid sector's own `uid` (its designation) when it has none."""
+def set_sector_uid(conn, sector_id):
+    """Writes a sector's own `uid` when it has none: its designation, or for a sector with no grid address
+    `galaxyUid.unplaced_sector_uid` (API.23: every sector has a public ID)."""
     row = conn.execute("SELECT ring_index, layer_index, ring_slot_index, uid FROM sectors WHERE id = ?",
                        (sector_id,)).fetchone()
     if row is None or row["uid"] is not None:
         return
     address = (row["ring_index"], row["layer_index"], row["ring_slot_index"])
-    if None not in address:
-        conn.execute("UPDATE sectors SET uid = ?, modified_at = modified_at WHERE id = ?",
-                     (galaxyUid.sector_uid(*address), sector_id))
+    uid = galaxyUid.sector_uid(*address) if None not in address else galaxyUid.unplaced_sector_uid(sector_id)
+    conn.execute("UPDATE sectors SET uid = ?, modified_at = modified_at WHERE id = ?", (uid, sector_id))
 
 
 _UID_ISSUED_TABLES = frozenset(("star_systems", "stars", "planets", "moons", "asteroid_belts", "comets",
@@ -7072,7 +7078,7 @@ def assign_uids(conn, sector_id=None, system_ids=(), phenomenon=None):
 
 
 def _assign_sector_uids(conn, sector_id):
-    _set_sector_uid(conn, sector_id)
+    set_sector_uid(conn, sector_id)
     ids = [row["id"] for row in conn.execute("SELECT id FROM star_systems WHERE sector_id = ? ORDER BY id",
                                              (sector_id,)).fetchall()]
     for first in range(0, len(ids), _UID_SYSTEM_BATCH):

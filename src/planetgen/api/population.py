@@ -126,7 +126,7 @@ def polity_detail(polity_id):
     return jsonify(found)
 
 
-@bp.route("/systems/<int:system_id>/owner")
+@bp.route("/systems/<uid:system_id>/owner")
 def system_owner(system_id):
     """`GET /api/systems/<id>/owner` -- the polity that owns a system, or
     `{"owner": null}` when none does; 404 for an unknown system."""

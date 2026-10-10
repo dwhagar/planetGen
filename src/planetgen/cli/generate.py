@@ -44,7 +44,7 @@ from planetgen.physics import mathcheck
 from planetgen import tuning as program_constants
 from planetgen.util import log
 from planetgen._version import VersionAction, version_banner
-from planetgen.galaxy.density import build_galaxy_shape
+from planetgen.galaxy.density import arm_terms, build_galaxy_shape
 from planetgen.galaxy.drill import parse_drill_key
 from planetgen.galaxy.skeleton import DEFAULT_MAX_RING
 from planetgen.generation.star import STAR_TYPE_PATTERN
@@ -934,8 +934,16 @@ def add_plan_arguments(parser):
                              help="Number of spiral arms. Default: 2 (grand-design).")
     shape_group.add_argument('--pitch-angle-deg', type=finite_float, default=15.0,
                              help="Spiral arm pitch angle, degrees. Default: 15.")
-    shape_group.add_argument('--arm-amplitude', type=finite_float, default=0.4,
-                             help="Arm/inter-arm density contrast amplitude, in [0, 1). Default: 0.4.")
+    shape_group.add_argument('--arm-density', type=finite_float, default=1.4,
+                             help="The thin disk's density on a spiral arm crest, in the disk's own units "
+                                  "(the usual local disk is 1). At least --interarm-density. Default: 1.4.")
+    shape_group.add_argument('--interarm-density', type=finite_float, default=0.6,
+                             help="The thin disk's density midway between arms, in the same units, 0 or more. "
+                                  "Default: 0.6.")
+    shape_group.add_argument('--core-density', type=finite_float, default=0.0,
+                             help="Extra density at the very centre of the galaxy, on top of the bulge "
+                                  "(a Gaussian a tenth of the bulge scale radius wide), in the same units as "
+                                  "--bulge-amplitude. Default: 0 (no core).")
     shape_group.add_argument('--calibration-radius-pc', type=finite_float, default=None,
                              help="In-plane radius the relative_density=1.0 calibration point sits at. "
                                   "Defaults to build_galaxy_shape's own default (3.15x disk scale length, the Sun's radius).")
@@ -1007,8 +1015,12 @@ def validate_plan_args(args, parser):
         args (argparse.Namespace): Parsed arguments.
         parser (argparse.ArgumentParser): The parser to raise errors through.
     """
-    if args.arm_amplitude < 0 or args.arm_amplitude >= 1:
-        parser.error("--arm-amplitude must be in [0, 1).")
+    try:
+        arm_amplitude, arm_level = arm_terms(args.arm_density, args.interarm_density)
+    except ValueError as exc:
+        parser.error(f"--arm-density and --interarm-density: {exc}.")
+    if args.core_density < 0 or args.bulge_amplitude < 0:
+        parser.error("--core-density and --bulge-amplitude must be 0 or more.")
     if args.workers is not None and args.workers < 0:
         parser.error("--workers must be 0 (automatic) or more.")
     if args.max_ring < 1:
@@ -1032,7 +1044,9 @@ def validate_plan_args(args, parser):
             bulge_amplitude=args.bulge_amplitude,
             arm_count=args.arm_count,
             pitch_angle_rad=math.radians(args.pitch_angle_deg),
-            arm_amplitude=args.arm_amplitude,
+            arm_amplitude=arm_amplitude,
+            arm_level=arm_level,
+            core_amplitude=args.core_density,
             calibration_radius_pc=args.calibration_radius_pc,
         )
     except (ArithmeticError, ValueError) as exc:

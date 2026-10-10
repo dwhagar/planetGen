@@ -64,20 +64,30 @@ function vertical(z, h) {
   return sechSquared(z / (2 * h));
 }
 
-// The boxy bar bulge (galaxyDensity._bulge).
+// The galactic core (galaxyDensity._core): a Gaussian at the centre, rSq the squared distance from it.
+function core(rSq, shape) {
+  if (!shape.core_amplitude) {
+    return 0;
+  }
+  return shape.core_amplitude * Math.exp(-0.5 * rSq / (shape.core_scale_radius_pc * shape.core_scale_radius_pc));
+}
+
+// The boxy bar bulge (galaxyDensity._bulge), plus the core.
 function bulge(x, y, z, shape) {
   var along = (x * shape.bar_cos + y * shape.bar_sin) / shape.bulge_scale_radius_pc;
   var across = (y * shape.bar_cos - x * shape.bar_sin) / shape.bulge_scale_y_pc;
   var up = z / shape.bulge_scale_z_pc;
   var inPlane = along * along + across * across;
-  return shape.bulge_amplitude * Math.exp(-0.5 * Math.sqrt(inPlane * inPlane + up * up * up * up));
+  return shape.bulge_amplitude * Math.exp(-0.5 * Math.sqrt(inPlane * inPlane + up * up * up * up))
+    + core(x * x + y * y + z * z, shape);
 }
 
 // The bulge's maximum over azimuth: along the bar (galaxyDensity.bulge_bound).
 function bulgeBound(r, z, shape) {
   var along = r / shape.bulge_scale_radius_pc;
   var up = z / shape.bulge_scale_z_pc;
-  return shape.bulge_amplitude * Math.exp(-0.5 * Math.sqrt(along * along * along * along + up * up * up * up));
+  return shape.bulge_amplitude * Math.exp(-0.5 * Math.sqrt(along * along * along * along + up * up * up * up))
+    + core(r * r + z * z, shape);
 }
 
 function thickDisk(rCyl, z, shape) {
@@ -92,7 +102,7 @@ function thickDisk(rCyl, z, shape) {
 function densityParts(x, y, z, shape) {
   var rCyl = Math.hypot(x, y);
   var rest = bulge(x, y, z, shape) + thickDisk(rCyl, z, shape);
-  var disk = Math.exp(-rCyl / shape.disk_scale_length_pc) * vertical(z, shape.disk_scale_height_pc);
+  var disk = shape.arm_level * Math.exp(-rCyl / shape.disk_scale_length_pc) * vertical(z, shape.disk_scale_height_pc);
   var armFactor = 1;
   if (rCyl > 1e-9) {
     var theta = Math.atan2(y, x);
@@ -107,7 +117,7 @@ function densityParts(x, y, z, shape) {
 // every candidate, so empty space is skipped before it's sampled. Same
 // bound as galaxySkeleton.bound_relative_density_at.
 function densityUpperBound(r0, zMinAbs, shape) {
-  var disk = Math.exp(-r0 / shape.disk_scale_length_pc)
+  var disk = shape.arm_level * Math.exp(-r0 / shape.disk_scale_length_pc)
     * vertical(zMinAbs, shape.disk_scale_height_pc)
     * (1 + Math.abs(shape.arm_amplitude));
   return shape.k_norm * (bulgeBound(r0, zMinAbs, shape) + disk + thickDisk(r0, zMinAbs, shape));

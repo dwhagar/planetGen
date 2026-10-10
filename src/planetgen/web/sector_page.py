@@ -602,7 +602,7 @@ def galaxy_map_url(sector):
     return page_url("galaxy", sector=designation) if designation else None
 
 
-@bp.route("/sector/<int:sector_id>/galaxy")
+@bp.route("/sector/<uid:sector_id>/galaxy")
 def sector_on_galaxy_map(sector_id):
     """Redirects to the sector on the Galaxy Map (for links that know
     only the sector's id, like search results), or to the plain map when
@@ -611,7 +611,7 @@ def sector_on_galaxy_map(sector_id):
     return redirect(url or page_url("galaxy"), code=302)
 
 
-@bp.route("/system/<int:system_id>/galaxy")
+@bp.route("/system/<uid:system_id>/galaxy")
 def system_on_galaxy_map(system_id):
     """Redirects to a system's sector on the Galaxy Map, or to the plain
     map for a system outside any sector."""
@@ -621,7 +621,7 @@ def system_on_galaxy_map(system_id):
     return sector_on_galaxy_map(system["sector_id"])
 
 
-@bp.route("/sector/<int:sector_id>/scene")
+@bp.route("/sector/<uid:sector_id>/scene")
 @page_limit("galaxy_tiles")
 def sector_scene(sector_id):
     """
@@ -651,7 +651,7 @@ def sector_scene(sector_id):
 sector_scene.json_only = True  # not a page: tests/test_web_a11y.py skips it
 
 
-@bp.route("/sector/<int:sector_id>", methods=["GET", "POST"])
+@bp.route("/sector/<uid:sector_id>", methods=["GET", "POST"])
 def sector(sector_id):
     """One sector: badges, Sector Map, Contents (`contents_*` parameters), and
     the admin forms for a logged-in admin."""

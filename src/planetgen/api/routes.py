@@ -100,8 +100,10 @@ from planetgen.physics.units import ly_to_milliparsecs, ly_to_pc, pc_to_ly
 from planetgen.util.format import format_distance_ly
 from planetgen.wiki import WikiClient, WikiClientAuthError, WikiClientPageExistsError, WikiClientRequestError
 
+from . import ids
 from .authz import audit, require_admin
 from .common import ApiError, request_json, require_json_body
+from .version import API_VERSION
 from .schemas import (
     BodyRename, FacilityCreate, NeighborhoodRequest, SectorCreate, SectorUpdate, SystemCreate, SystemPatch,
     SystemRename, WikiUpload, given, parse_body,
@@ -416,6 +418,7 @@ def health():
 
     body = {
         "status": "ok",
+        "api_version": API_VERSION,
         "schema_version": schema_version,
         "schema_current": schema_version == store.SCHEMA_VERSION,
     }
@@ -475,7 +478,7 @@ def sectors():
     return jsonify(body)
 
 
-@bp.route("/sectors/<int:sector_id>")
+@bp.route("/sectors/<uid:sector_id>")
 def sector_detail(sector_id):
     try:
         detail = query_sector_detail(get_db(), sector_id)
@@ -486,22 +489,24 @@ def sector_detail(sector_id):
 
 def _parse_sector_id_filter(raw_sector_id):
     """
-    Parses the `sector_id` query parameter `/api/systems` accepts: an
-    integer (one sector), the literal `"none"` (standalone systems --
+    Parses the `sector_id` query parameter `/api/systems` accepts: a
+    sector's ID (one sector), the literal `"none"` (standalone systems --
     `queryDb.NO_SECTOR`, `html/browse.py`'s own table of systems generated
     with no sector), or absent (no filter).
 
     Raises:
-        ApiError: If present and neither `"none"` nor a valid integer.
+        ApiError: If present and neither `"none"` nor a sector ID.
     """
     if raw_sector_id is None:
         return None
     if raw_sector_id.strip().lower() == "none":
         return NO_SECTOR
     try:
-        return int(raw_sector_id)
-    except ValueError:
-        raise ApiError(f"sector_id must be an integer or 'none', got {raw_sector_id!r}")
+        ids.parse(ids.SECTOR, raw_sector_id)
+    except ids.IdError:
+        raise ApiError(f"sector_id must be a sector ID or 'none', got {raw_sector_id!r}")
+    found = ids.row_id(get_db(), ids.SECTOR, raw_sector_id)
+    return 0 if found is None else found  # a sector that is not there holds no systems
 
 
 @bp.route("/systems")
@@ -541,7 +546,7 @@ def systems():
     return jsonify(body)
 
 
-@bp.route("/systems/<int:system_id>")
+@bp.route("/systems/<uid:system_id>")
 def system_detail(system_id):
     try:
         detail = query_system_detail(get_db(), system_id)
@@ -550,7 +555,7 @@ def system_detail(system_id):
     return jsonify(detail)
 
 
-@bp.route("/systems/<int:system_id>/scene")
+@bp.route("/systems/<uid:system_id>/scene")
 def system_scene(system_id):
     """
     `GET /api/systems/<id>/scene` -- the 3D system view's data (MAP.69):
@@ -564,7 +569,7 @@ def system_scene(system_id):
     return jsonify(scene)
 
 
-@bp.route("/systems/<int:system_id>/text")
+@bp.route("/systems/<uid:system_id>/text")
 def system_text(system_id):
     """
     `GET /api/systems/<id>/text?format=wikitext|markdown` -- the system's
@@ -582,7 +587,7 @@ def system_text(system_id):
     return jsonify({"id": system_id, "format": fmt, "content": content})
 
 
-@bp.route("/systems/<int:system_id>/sections")
+@bp.route("/systems/<uid:system_id>/sections")
 def system_sections(system_id):
     """
     `GET /api/systems/<id>/sections` -- the same page as Markdown, split
@@ -614,7 +619,7 @@ def near():
         raise ApiError("distance query parameter is required")
     try:
         if args.get("from") is not None:
-            place = near_search.place_from_reference(conn, args["from"])
+            place = near_search.place_from_reference(conn, _resolved_ref(args["from"], "from"))
         else:
             place = near_search.place_from_point(args["point"].split(","))
         kinds = [kind for kind in args["kinds"].split(",") if kind] if args.get("kinds") else None
@@ -647,10 +652,22 @@ def _nav_ref_param(query_args, name):
     raw_value = query_args.get(name)
     if raw_value is None:
         raise ApiError(f"{name} query parameter is required")
+    return _resolved_ref(raw_value, name)
+
+
+def _resolved_ref(raw_value, name):
+    """The row-id reference (`system:12`) of a public object reference (`system:FE81000A2B-0000005-000`).
+
+    Raises:
+        ApiError: 400 for text that is not a reference, 404 for one that names nothing.
+    """
     try:
-        return object_ref.format(*object_ref.parse(raw_value))
-    except ValueError:
-        raise ApiError(f"{name} must be an object reference such as system:12, got {raw_value!r}")
+        resolved = ids.resolve_ref(get_db(), raw_value)
+    except ids.IdError:
+        raise ApiError(f"{name} must be an object reference such as system:FE81000A2B-0000005-000, got {raw_value!r}")
+    if resolved is None:
+        raise ApiError(f"{name} names nothing: {raw_value!r}", 404)
+    return resolved
 
 
 NAV_MAX_STAY_MINUTES = 10_000_000.0
@@ -1033,7 +1050,7 @@ def phenomena():
     return jsonify(body)
 
 
-@bp.route("/phenomena/<phenomenon_type>/<int:phenomenon_id>")
+@bp.route("/phenomena/<phenomenon_type>/<uid:phenomenon_id>")
 def phenomenon(phenomenon_type, phenomenon_id):
     """
     One phenomenon's full detail -- `html/phenomenon.py`'s info page.
@@ -1057,13 +1074,16 @@ def object_ref_route(ref):
     `queryDb.resolve_object` and docs/api.md.
     """
     try:
-        kind, object_id = object_ref.parse(ref)
+        resolved = ids.resolve_ref(get_db(), ref)
+        if resolved is None:
+            raise ValueError(f"nothing has the ID {ref}")
+        kind, object_id = object_ref.parse(resolved)
         return jsonify(resolve_object(get_db(), kind, object_id))
-    except ValueError as exc:
+    except ValueError as exc:  # includes ids.IdError
         return jsonify({"error": str(exc)}), 404
 
 
-@bp.route("/nebulae/<int:nebula_id>/shape")
+@bp.route("/nebulae/<uid:nebula_id>/shape")
 def nebula_shape_route(nebula_id):
     """
     One nebula's shape as a triangle mesh (GEN.75): `?lod=low` (the default,
@@ -1090,7 +1110,7 @@ def nebula_shape_route(nebula_id):
     })
 
 
-@bp.route("/nebulae/<int:nebula_id>/surroundings")
+@bp.route("/nebulae/<uid:nebula_id>/surroundings")
 def nebula_surroundings_route(nebula_id):
     """
     The brightest stars round one nebula (MAP.105): `{"radius_pc",
@@ -1220,14 +1240,16 @@ def create_sector():
                 (body["name"], ly_to_milliparsecs(body["edge_ly"])),
             )
             sector_id = cur.lastrowid
+            store.set_sector_uid(conn, sector_id)
+            printed = ids.printed(conn, ids.SECTOR, sector_id)
     finally:
         conn.close()
 
-    audit("sector.create", target=f"sector:{sector_id}", detail=f"name={body['name']!r} edge_ly={body['edge_ly']}")
+    audit("sector.create", target=f"sector:{printed}", detail=f"name={body['name']!r} edge_ly={body['edge_ly']}")
     return jsonify({"id": sector_id, "name": body["name"], "edge_ly": body["edge_ly"]}), 201
 
 
-@bp.route("/sectors/<int:sector_id>", methods=["PATCH"])
+@bp.route("/sectors/<uid:sector_id>", methods=["PATCH"])
 @limiter.limit(WRITE_RATE_LIMIT)
 @require_admin(fresh=True)
 def update_sector(sector_id):
@@ -1269,7 +1291,7 @@ def update_sector(sector_id):
     return jsonify({"status": "ok"})
 
 
-@bp.route("/sectors/<int:sector_id>", methods=["DELETE"])
+@bp.route("/sectors/<uid:sector_id>", methods=["DELETE"])
 @limiter.limit(WRITE_RATE_LIMIT)
 @require_admin(fresh=True)
 def delete_sector(sector_id):
@@ -1296,7 +1318,7 @@ def delete_sector(sector_id):
     return jsonify({"status": "ok"})
 
 
-@bp.route("/sectors/<int:sector_id>/generate-neighborhood", methods=["POST"])
+@bp.route("/sectors/<uid:sector_id>/generate-neighborhood", methods=["POST"])
 @limiter.limit(WRITE_RATE_LIMIT)
 @require_admin(fresh=True)
 def generate_sector_neighborhood_route(sector_id):
@@ -1471,6 +1493,15 @@ def create_system():
     """
     body = given(parse_body(SystemCreate, require_json_body()))
     sector_id, position = body.pop("sector_id", None), body.pop("position", None)
+    if sector_id is not None:
+        try:
+            ids.parse(ids.SECTOR, sector_id)
+        except ids.IdError:
+            raise ApiError(f"sector_id must be a sector ID, got {sector_id!r}")
+        found = ids.row_id(get_db(), ids.SECTOR, sector_id)
+        if found is None:
+            raise ApiError(f"no sector with ID {sector_id}", 404)
+        sector_id = found
     if position is not None:
         position = tuple(position)
 
@@ -1539,7 +1570,7 @@ def _system_rename_exclusions(conn, system_id):
     return exclude
 
 
-@bp.route("/systems/<int:system_id>", methods=["PATCH"])
+@bp.route("/systems/<uid:system_id>", methods=["PATCH"])
 @limiter.limit(WRITE_RATE_LIMIT)
 @require_admin(fresh=True)
 def update_system(system_id):
@@ -1682,7 +1713,7 @@ def rename_moon(moon_id):
     return _rename_planet_or_moon("moons", "moon", moon_id)
 
 
-@bp.route("/systems/<int:system_id>", methods=["DELETE"])
+@bp.route("/systems/<uid:system_id>", methods=["DELETE"])
 @limiter.limit(WRITE_RATE_LIMIT)
 @require_admin(fresh=True)
 def delete_system(system_id):
@@ -1721,7 +1752,7 @@ def facility(facility_id):
     return jsonify(found)
 
 
-@bp.route("/systems/<int:system_id>/facilities")
+@bp.route("/systems/<uid:system_id>/facilities")
 def system_facilities(system_id):
     """`GET /api/systems/<id>/facilities` -- every facility in a system.
     404 for an unknown system."""
@@ -1731,7 +1762,7 @@ def system_facilities(system_id):
     return jsonify({"items": facilities_for_system(db, system_id)})
 
 
-@bp.route("/sectors/<int:sector_id>/facilities")
+@bp.route("/sectors/<uid:sector_id>/facilities")
 def sector_facilities(sector_id):
     """`GET /api/sectors/<id>/facilities` -- stand-alone facilities parked
     in a sector and those on its asteroid fields. 404 for an unknown
@@ -1948,7 +1979,7 @@ def _create_wiki_page(client, path, title, content):
         raise ApiError(str(exc), status_code=502)
 
 
-@bp.route("/systems/<int:system_id>/wiki", methods=["POST"])
+@bp.route("/systems/<uid:system_id>/wiki", methods=["POST"])
 @limiter.limit(WRITE_RATE_LIMIT)
 @require_admin(fresh=True)
 def upload_system_wiki(system_id):
@@ -2068,7 +2099,7 @@ def _sector_wiki_content(sector):
     return markdown_content, wikitext_content
 
 
-@bp.route("/sectors/<int:sector_id>/wiki", methods=["POST"])
+@bp.route("/sectors/<uid:sector_id>/wiki", methods=["POST"])
 @limiter.limit(WRITE_RATE_LIMIT)
 @require_admin(fresh=True)
 def upload_sector_wiki(sector_id):

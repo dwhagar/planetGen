@@ -29,9 +29,10 @@ def _default_shape():
     args = argparse.ArgumentParser()
     add_plan_arguments(args)
     a = args.parse_args([])
+    amplitude, level = density.arm_terms(a.arm_density, a.interarm_density)
     return density.build_galaxy_shape(
         a.disk_scale_length_pc, a.disk_scale_height_pc, a.bulge_scale_radius_pc, a.bulge_amplitude,
-        a.arm_count, math.radians(a.pitch_angle_deg), a.arm_amplitude,
+        a.arm_count, math.radians(a.pitch_angle_deg), amplitude, arm_level=level, core_amplitude=a.core_density,
     )
 
 

@@ -771,7 +771,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the investigation until MAP.157 to MAP.159 are done.
   Open question for Boss (default each sub-item goes ahead as written;
   MAP.160 is deferred): other?
-  Prerequisites: MAP.157, MAP.158, MAP.159.
+  Prerequisites: MAP.158, MAP.159.
   Linked (2026-10-09, fly-through-view-distance.md): the tile and stage
   cache keys follow MAP.151 (the region data layer), so decide the wire
   format and those keys together; the star visibility law (MAP.148) sets
@@ -977,37 +977,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: MAP.146, MAP.150, MAP.141, MAP.122,
   ADM.29.
 
-- [ ] **MAP.157 Trim the Galaxy Map tile JSON and serve it from prebuilt, precompressed bytes**
-  Source: docs/design/galaxy-map-wire-format.md (section 1, steps 1 and
-  2; MAP.147's recommendation). Measured by Research Lane 3
-  (2026-10-09): a star is about 270 bytes of JSON on the wire (45
-  gzipped); the `placed`, `planned` and `filled` sections are 9 to 35%
-  of every tile and the client never reads them. Done: the tile JSON
-  drops the sections and star fields the client never reads, writes
-  `star_type` as its letter code only and rounds the floats; the cache
-  stores the finished bytes (not parsed dicts that are serialised again
-  on every hit) and a brotli copy made at cache-write time, which Apache
-  serves. Measured on 400 real tiles the gzipped size falls 48% (3.52 MB
-  to 1.83 MB) with no change to what the page draws; a warm hit falls
-  from 22-75 ms to about 2 ms. No client change, so it can land at once
-  and does not wait for the fly-through work; it changes the tile cache
-  stamp. Open question for Boss (default yes, do it now and first in the
-  fly-through step): go ahead?
-  Prerequisites: none. Related: MAP.147, MAP.158, MAP.159, PERF.38,
-  PERF.41, MAP.109.
-  Detail (2026-10-09, galaxy-map-wire-format.md): detail from Research
-  Lane 3 (Boss said yes, 2026-10-09 23:26Z): drop `placed`, `planned`
-  and `filled` and the star fields `ring_index`, `layer_index`,
-  `ring_slot_index`, `population`, `yerkes_class` and the generated
-  name; `star_type` to its class letter; round x/y/z to 3 decimals,
-  luminosity to 4 and radius to 3 significant digits, temperature to 10
-  K. Re-grep `static/` for readers before removing any field. Fix the
-  `GALAXY_VIEW_MAX_STARS` docstring (270 bytes a star, not about 114).
-  Serve stored response bytes in `fetch_tiles` and add `mod_brotli` (or
-  serve the `.br` copy) to `examples/apache`. Lands after or with
-  PERF.38.
-  Design: [docs/design/galaxy-map-wire-format.md](design/galaxy-map-wire-format.md)
-
 - [ ] **MAP.158 A gentler tile prefetch and an IndexedDB tile cache instead of localStorage**
   Source: docs/design/galaxy-map-wire-format.md (sections 2.3, 4.4, 1
   step 2 and 5). Measured: the opening view downloads 28 tiles (533 KB
@@ -1055,6 +1024,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   to 65,536 pc; aggregates cost about 10 bytes a cell; block responses
   are tiny, so changing block keys costs nothing on the wire. Depends on
   MAP.157 and MAP.158 and on Boss's yes on the design.
+  Foundations lane 2 (2026-10-09): Foundations lane 2 (2026-10-10,
+  MAP.157, PR #1112): the brotli copy made at cache-write time was NOT
+  built: Python has no stdlib brotli, the project has no brotli
+  dependency, and stored gzip copies joined as one gzip stream failed in
+  Chromium (it decodes only the first member). Instead the tile cache
+  stores the trimmed JSON bytes and joins them without parsing (a warm
+  hit no longer re-serialises), and Apache compresses (examples/apache
+  now also loads mod_brotli). Open question for Boss (default: leave as
+  is): add the brotli package as a dependency so tiles can be served
+  from precompressed copies.
   Design: [docs/design/galaxy-map-wire-format.md](design/galaxy-map-wire-format.md)
 
 - [ ] **MAP.160 Quantise the Galaxy Map GPU buffers (deferred)**
@@ -3281,6 +3260,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   lane 1, PR #1023): the overall bar with ETA is on the Generate and job
   pages. Still open: the command-line overall bar, only if Boss asks;
   and the whole-job layers-per-second stat noted above.
+  Lane (2026-10-09): Owner of the remainder (command-line bar, whole-job
+  layers-per-second stat): Bugfixes lane 2, second after TEST.122
+  (coordinator, 2026-10-10).
 
 - [ ] **PERF.59 Share the ring inputs between the phenomena pass and the backfill rings (top priority)**
   From the scatter study (docs/design/scatter-queue-feasibility.md): the
@@ -3420,6 +3402,16 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   and a per-row INSERT loop: fine today, not a pattern for the 10^8-row
   tables.
   Design: [docs/design/db-check-and-parity-repair.md](design/db-check-and-parity-repair.md)
+
+- [ ] **DB.22 Sectors saved by hand without a grid address have no stored object ID until they are saved again (bug)**
+  Foundations lane 1 (2026-10-10, from API.23 stage 1, PR #1119):
+  hand-made sectors with no grid address that were saved before the
+  object-ID work have no stored uid until they are saved again. A
+  data-only schema revision is not seen by detect_schema_version, so no
+  migration was added. Decide how to fill them in (a one-off command, or
+  a revision that changes the schema version) and do it. Owner:
+  Foundations lane 1.
+  Prerequisite: API.23.
 
 ## API: The JSON API
 
@@ -3714,23 +3706,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   region per request.
   Prerequisite: API.18.
 
-- [ ] **API.22 An API version number: one sequential integer, shown in admin and in the status response**
-  Boss (2026-10-09 20:59Z): "I want ... API version number (same) by the
-  end of phase 1", a plain sequential integer like the DB schema number.
-  Done: `API_VERSION = 1` in one module, bumped by a PR that makes a
-  breaking change to an endpoint (a removed or renamed route or field, a
-  changed meaning or type, a new required parameter); additive changes
-  do not bump it. It is returned by the API status response and every
-  `/api` response header, shown on the admin status page in place of the
-  release string now labelled "API version", and recorded in
-  docs/api.md's change list. A test fails when the route table or
-  response shapes change without the integer moving (a stored schema
-  snapshot). API.4's compatibility data and the remote-run handshake
-  (API.17) compare this integer.
-  Decided (Boss, 2026-10-09 21:02Z): bump on any breaking change to an
-  endpoint; additive changes do not bump.
-  Prerequisites: none. Related: API.4, API.17.
-
 - [ ] **API.23 The object ID as the public reference: pages, URLs, the API, wiki links and objectref use it in place of row ids**
   Source: docs/design/object-id-options.md section 0 (Boss decided
   2026-10-09 22:39Z: birth location plus serial, galaxy-wide; the same
@@ -3742,9 +3717,11 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   use the object ID in place of row ids (lookup probes the object tables
   by `uid`; a kind prefix such as planet:ID is only a hint). Row ids
   stay internal. No compatibility shim. This is a breaking API change,
-  so it bumps API.22's API version number.
+  so it bumps the API version number (API.22, built).
   Decided (Boss, 2026-10-10 02:48Z, via Foundations lane 1): yes, the 80-bit object ID replaces row ids in pages, URLs and the API, and Boss accepts the API break. Cleared to build once API.22, GEN.171 and GEN.172 are in.
-  Prerequisite: API.22.
+  Stage 1 of 3 done (PR #1119): sectors, systems and phenomena use
+  printed IDs. Stage 2 = bodies and facilities; stage 3 = edit
+  endpoints, wiki, NAV, objectref.js and the galaxy JS.
   Design: [docs/design/object-id-options.md](design/object-id-options.md)
 
 ## ADM: Admin tools
@@ -3889,22 +3866,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   are `noindex,follow`, top pages only in the sitemap, switchable with
   `seo.detail_pages`.
 
-- [ ] **ADM.49 Galaxy shape density settings: the user changes the density range of the spiral arms, the inter-arm space, the core and the bulge**
-  Boss (2026-10-10 06:16Z): let the user change the variables that set
-  the density range of the spiral arms, the space between the arms
-  (inter-arm), the core and the bulge. These are the galaxy shape fields
-  of `galaxy/density.py` (`arm_amplitude`, `arm_count`,
-  `pitch_angle_rad`, `bulge_amplitude`, `bulge_scale_radius_pc` and the
-  disk terms), today fixed by the preset. Done: the Customize window's
-  galaxy shape tab and the New galaxy section offer the arm density,
-  inter-arm density, core density and bulge density (and their ranges)
-  with sane limits and presets, they are stored in `galaxy_shape`, the
-  density model uses them, and a test checks that a changed value
-  changes the density at an arm, between arms, in the core and in the
-  bulge. Owner: Bugfixes lane 2 (coordinator, 2026-10-10 12:52Z), now
-  that MAP.165 has merged.
-  Prerequisites: none. Related: GEN.183, GEN.184, GEN.186.
-
 ## SEC: Security
 
 The login protection of 2026-10-01 (SEC.1, SEC.20 to
@@ -3973,16 +3934,8 @@ clears each one.
   the GEN.188 run). Find whether it is the container's browser or a real
   regression; if real, fix it; if the container, record what the lane
   needs. Related to the earlier TEST.119 and TEST.120 fixes. Owner:
-  unassigned.
+  Bugfixes lane 2 (first; coordinator, 2026-10-10).
   Prerequisites: none. Related: TEST.119, TEST.120.
-
-- [ ] **TEST.123 test_a_loaded_sector_knows_every_objects_cell_and_velocity fails once under full-suite load (bug)**
-  Foundations lane 1 (2026-10-10, relayed, from the GEN.170 run):
-  tests/test_spatial_position_db.py::test_a_loaded_sector_knows_every_objects_cell_and_velocity
-  failed once under full-suite load and passes alone. Find the cause
-  (shared state, ordering or timing) and make the test robust; never
-  skip it. Owner: unassigned.
-  Prerequisites: none. Related: TEST.111, TEST.116.
 
 ## USR: User accounts
 

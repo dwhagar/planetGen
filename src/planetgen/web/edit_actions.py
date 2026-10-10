@@ -135,7 +135,7 @@ def handle_post(allowed, here, after_delete=None):
     Runs one edit POST (the CSRF token was already checked app-wide).
 
     Args:
-        allowed (set): The `(kind, id)` targets this page shows buttons
+        allowed (set): The `(kind, printed id)` targets this page shows buttons
             for; anything else is refused.
         here (str): The page's own URL, to redirect back to.
         after_delete (dict, optional): `{kind: url}` to go to instead after
@@ -150,10 +150,7 @@ def handle_post(allowed, here, after_delete=None):
         abort(403)
     action = request.form.get("edit_action")
     kind, _sep, raw_id = (request.form.get("edit_target") or "").partition(":")
-    try:
-        target_id = int(raw_id)
-    except ValueError:
-        target_id = None
+    target_id = raw_id.strip().upper() or None  # an ID as printed (a body's is its number until API.23 stage 2)
     if action not in ACTIONS or (kind, target_id) not in allowed \
             or (action == "class" and kind not in ("planet", "moon")) or (action == "star" and kind != "system"):
         flash("That isn't something on this page.", FLASH_ERROR)

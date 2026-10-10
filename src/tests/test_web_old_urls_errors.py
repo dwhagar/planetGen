@@ -56,7 +56,7 @@ def test_unknown_or_miscased_url_is_the_404_page(app, path):
 
 def _old_urls(ids):
     """`(path, expected target path)` for every old page name, plus the
-    detail pages with real and bad ids."""
+    detail pages, which all go to their list."""
     plain = {
         "web.index": "/", "web.galaxy": "/galaxy", "web.galaxy_tiles": "/galaxy/tiles", "web.sectors": "/sectors",
         "web.systems": "/systems", "web.phenomena": "/phenomena", "web.nav": "/nav", "web.search": "/search",
@@ -65,12 +65,13 @@ def _old_urls(ids):
     }
     urls = [(f"/{name}.py", plain[endpoint]) for name, endpoint in sorted(OLD_PAGES.items())]
     return urls + [
-        (f"/sector.py?id={ids['sector_id']}&db=x", f"/sector/{ids['sector_id']}"),
-        (f"/system.py?id={ids['system_ids'][0]}", f"/system/{ids['system_ids'][0]}"),
-        (f"/phenomenon.py?id={ids['nebula_id']}&type=nebula", f"/phenomenon/nebula/{ids['nebula_id']}"),
+        # Their old row numbers name nothing since objects have IDs (API.23): the bare list page.
+        (f"/sector.py?id={ids['sector_id']}&db=x", "/sectors"),
+        (f"/system.py?id={ids['system_ids'][0]}", "/systems"),
+        (f"/phenomenon.py?id={ids['nebula_id']}&type=nebula", "/phenomena"),
         ("/sector.py?id=abc", "/sectors"), ("/system.py?id=-1", "/systems"), ("/phenomenon.py?id=1", "/phenomena"),
         ("/index.py?db=x&sectors_page=2&standalone_page=", "/"), ("/search.py?q=a&x=", "/search"),
-        (f"/nav.py?from={ids['system_ids'][0]}&to={ids['system_ids'][1]}", "/nav"),
+        (f"/nav.py?from={ids['system_pids'][0]}&to={ids['system_pids'][1]}", "/nav"),
     ]
 
 
@@ -145,7 +146,7 @@ _BODY_IDS = [f"{i}:{ctype[:24]}" for i, (_b, ctype) in enumerate(BAD_BODIES)]
 
 
 def _post_pages(ids):
-    return ["/login", "/login/code", f"/sector/{ids['scratch_sector_id']}", f"/system/{ids['scratch_system_id']}",
+    return ["/login", "/login/code", f"/sector/{ids['scratch_sector_pid']}", f"/system/{ids['scratch_system_pid']}",
             f"/phenomenon/nebula/{ids['nebula_id']}", "/admin", "/account", "/logout", "/search",
             "/admin/stats/lockouts"]
 

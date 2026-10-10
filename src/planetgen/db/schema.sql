@@ -1153,6 +1153,14 @@
 --   NULL for a quasar, hypervelocity star, nebula or remnant, and on a row
 --   scattered before v80 (the map then sizes it by class, the build draws).
 --
+-- v81: galaxy shape density settings (ADM.49). `galaxy_shape.arm_level` (the
+--   thin disk's level, the middle of the arm crest and the inter-arm trough:
+--   the arm factor is `arm_level * (1 + arm_amplitude * cos)`, so the crest is
+--   `arm_level * (1 + arm_amplitude)` and the trough `arm_level * (1 - arm_amplitude)`)
+--   and `core_amplitude` (the galactic core's centre density, a Gaussian of
+--   scale radius `tuning.CORE_RADIUS_FRACTION` of the bulge's, on top of the
+--   bulge; 0 is none). Defaults 1 and 0 are the model before v81.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -1320,6 +1328,8 @@ CREATE TABLE IF NOT EXISTS galaxy_shape (
     arm_count                   INT NOT NULL,
     pitch_angle_rad             DOUBLE NOT NULL,
     arm_amplitude               DOUBLE NOT NULL,
+    arm_level                   DOUBLE NOT NULL DEFAULT 1,  -- v81 (ADM.49): see header comment
+    core_amplitude              DOUBLE NOT NULL DEFAULT 0,  -- v81 (ADM.49): see header comment
     spiral_reference_radius_pc  DOUBLE NOT NULL,
     spiral_reference_angle_rad  DOUBLE NOT NULL,
     k_norm                      DOUBLE NOT NULL,

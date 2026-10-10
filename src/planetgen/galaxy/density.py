@@ -46,7 +46,7 @@ GalaxyShape = namedtuple(
     [
         "disk_scale_length_pc", "disk_scale_height_pc",
         "bulge_scale_radius_pc", "bulge_amplitude",
-        "arm_count", "pitch_angle_rad", "arm_amplitude",
+        "arm_count", "pitch_angle_rad", "arm_amplitude", "arm_level", "core_amplitude",
         "spiral_reference_radius_pc", "spiral_reference_angle_rad",
         "k_norm",
     ],
@@ -108,7 +108,7 @@ def model_terms(shape):
         dict: `thick_disk_amplitude` (raw density at the center, in the
             plane, against the thin disk's 1), `thick_disk_scale_length_pc`,
             `thick_disk_scale_height_pc`, `bulge_scale_y_pc`,
-            `bulge_scale_z_pc`, `bar_angle_rad` (galaxy-frame azimuth of
+            `bulge_scale_z_pc`, `core_scale_radius_pc`, `bar_angle_rad` (galaxy-frame azimuth of
             the bar's near end) with its `bar_cos` and `bar_sin`, and
             `solar_angle_rad` (the Sun's azimuth: the inter-arm minimum
             at the solar radius).
@@ -125,6 +125,7 @@ def model_terms(shape):
         "thick_disk_scale_height_pc": tuning.THICK_DISK_SCALE_HEIGHT_RATIO * shape.disk_scale_height_pc,
         "bulge_scale_y_pc": tuning.BULGE_AXIS_RATIO_Y * shape.bulge_scale_radius_pc,
         "bulge_scale_z_pc": tuning.BULGE_AXIS_RATIO_Z * shape.bulge_scale_radius_pc,
+        "core_scale_radius_pc": tuning.CORE_RADIUS_FRACTION * shape.bulge_scale_radius_pc,
         "bar_angle_rad": bar_angle,
         "bar_cos": math.cos(bar_angle),
         "bar_sin": math.sin(bar_angle),
@@ -147,16 +148,26 @@ def _interarm_angle(radius_pc, shape):
     return theta_arm + math.pi / shape.arm_count
 
 
+def _core(r_sq_pc, shape, terms):
+    """The galactic core (ADM.49): `core_amplitude * exp(-r^2 / 2 s^2)`, a
+    sphere of scale radius `s` (`terms["core_scale_radius_pc"]`) at the
+    centre, `r_sq_pc` the squared distance from it."""
+    if not shape.core_amplitude:
+        return 0.0
+    return shape.core_amplitude * math.exp(-0.5 * r_sq_pc / terms["core_scale_radius_pc"] ** 2)
+
+
 def _bulge(x, y, z, shape, terms):
     """The boxy bar bulge (Dwek et al. 1995 G2; see `tuning.BULGE_*`):
     `bulge_amplitude * exp(-r_s^2 / 2)`, `r_s^4 = ((x'/x0)^2 +
-    (y'/y0)^2)^2 + (z/z0)^4` in the bar's own frame."""
+    (y'/y0)^2)^2 + (z/z0)^4` in the bar's own frame, plus the core."""
     cos_a, sin_a = terms["bar_cos"], terms["bar_sin"]
     along = (x * cos_a + y * sin_a) / shape.bulge_scale_radius_pc
     across = (y * cos_a - x * sin_a) / terms["bulge_scale_y_pc"]
     up = z / terms["bulge_scale_z_pc"]
     in_plane = along * along + across * across
-    return shape.bulge_amplitude * math.exp(-0.5 * math.sqrt(in_plane * in_plane + up ** 4))
+    return (shape.bulge_amplitude * math.exp(-0.5 * math.sqrt(in_plane * in_plane + up ** 4))
+            + _core(x * x + y * y + z * z, shape, terms))
 
 
 def bulge_bound(r_cyl, z, shape):
@@ -165,7 +176,8 @@ def bulge_bound(r_cyl, z, shape):
     terms = model_terms(shape)
     along = r_cyl / shape.bulge_scale_radius_pc
     up = z / terms["bulge_scale_z_pc"]
-    return shape.bulge_amplitude * math.exp(-0.5 * math.sqrt(along ** 4 + up ** 4))
+    return (shape.bulge_amplitude * math.exp(-0.5 * math.sqrt(along ** 4 + up ** 4))
+            + _core(r_cyl * r_cyl + z * z, shape, terms))
 
 
 def _thick_disk(r_cyl, z, shape, terms):
@@ -200,7 +212,7 @@ def _raw_density(position_pc, shape):
               unnormalized (`>= 0`).
     """
     bulge, thin, thick, arm_cos = _components(position_pc, shape)
-    return bulge + thin * (1 + shape.arm_amplitude * arm_cos) + thick
+    return bulge + thin * shape.arm_level * (1 + shape.arm_amplitude * arm_cos) + thick
 
 
 def _arm_cosine(x, y, shape):
@@ -241,7 +253,7 @@ def population_densities(position_pc, shape):
     """
     z = position_pc[2]
     bulge, thin, thick, arm_cos = _components(position_pc, shape)
-    disk = shape.k_norm * thin * (1 + shape.arm_amplitude * arm_cos)
+    disk = shape.k_norm * thin * shape.arm_level * (1 + shape.arm_amplitude * arm_cos)
     model = shape.k_norm * (bulge + thick) + disk
     # The halo floor's share (`tuning.MIN_RELATIVE_DENSITY`, GEN.78): old
     # stars, wherever the model itself falls below it.
@@ -294,6 +306,8 @@ def component_masses(shape, steps=40):
         for w in (z / axes[2] for z in cells[2])
     )
     bulge *= 8.0 * shape.bulge_amplitude * (4.0 / steps) ** 3 * axes[0] * axes[1] * axes[2]
+    # The core's Gaussian integrates in closed form: amplitude * (2 pi)^1.5 * s^3.
+    bulge += shape.core_amplitude * (2.0 * math.pi) ** 1.5 * terms["core_scale_radius_pc"] ** 3
 
     def disk(amplitude, length, height):
         r_max, z_max = 12.0 * length, 12.0 * height
@@ -304,7 +318,7 @@ def component_masses(shape, steps=40):
 
     return {
         "bulge": bulge,
-        "thin_disk": disk(1.0, shape.disk_scale_length_pc, shape.disk_scale_height_pc),
+        "thin_disk": disk(shape.arm_level, shape.disk_scale_length_pc, shape.disk_scale_height_pc),
         "thick_disk": disk(terms["thick_disk_amplitude"], terms["thick_disk_scale_length_pc"],
                            terms["thick_disk_scale_height_pc"]),
     }
@@ -329,6 +343,24 @@ def relative_density(position_pc, shape):
     return max(shape.k_norm * _raw_density(position_pc, shape), tuning.MIN_RELATIVE_DENSITY)
 
 
+def arm_terms(arm_density, interarm_density):
+    """
+    `(arm_amplitude, arm_level)` for a thin disk that is `arm_density` on an
+    arm crest and `interarm_density` midway between arms (ADM.49), in the
+    disk's own units (1.4 and 0.6 are the usual `1 +/- 0.4`): the thin disk's
+    arm factor is `arm_level * (1 + arm_amplitude * cos)`, so the crest is
+    `arm_level * (1 + arm_amplitude)` and the trough `arm_level * (1 - arm_amplitude)`.
+
+    Raises:
+        ValueError: Unless `arm_density >= interarm_density >= 0` and the crest is above 0.
+    """
+    if not (arm_density > 0 and 0 <= interarm_density <= arm_density):
+        raise ValueError("the arm density must be above 0 and at least the inter-arm density, which is 0 or more")
+    # Rounded so the usual 1.4 and 0.6 give exactly the 0.4 and 1 they stand for.
+    return (round((arm_density - interarm_density) / (arm_density + interarm_density), 12),
+            round((arm_density + interarm_density) / 2.0, 12))
+
+
 def build_galaxy_shape(
     disk_scale_length_pc,
     disk_scale_height_pc,
@@ -339,6 +371,8 @@ def build_galaxy_shape(
     arm_amplitude,
     calibration_radius_pc=None,
     spiral_reference_angle_rad=0.0,
+    arm_level=1.0,
+    core_amplitude=0.0,
 ):
     """
     Builds a `GalaxyShape` with `k_norm` computed automatically, rather
@@ -362,6 +396,10 @@ def build_galaxy_shape(
         spiral_reference_angle_rad (float): See `GalaxyShape` -- arbitrary
             fixed orientation, `0.0` unless there's a reason to prefer
             another.
+        arm_level (float): The thin disk's density level, the middle of the
+            arm crest and the inter-arm trough (ADM.49; see `arm_terms`).
+        core_amplitude (float): The core's centre density, on top of the
+            bulge (ADM.49; 0 is no core).
 
     Returns:
         GalaxyShape: With `k_norm` filled in.
@@ -377,6 +415,8 @@ def build_galaxy_shape(
         arm_count=arm_count,
         pitch_angle_rad=pitch_angle_rad,
         arm_amplitude=arm_amplitude,
+        arm_level=arm_level,
+        core_amplitude=core_amplitude,
         spiral_reference_radius_pc=disk_scale_length_pc,
         spiral_reference_angle_rad=spiral_reference_angle_rad,
         k_norm=1.0,

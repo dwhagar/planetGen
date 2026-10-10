@@ -29,7 +29,7 @@ from planetgen.physics import constants
 from planetgen import tuning as program_constants
 from planetgen.util import draw
 from planetgen.util import log
-from planetgen.galaxy.density import build_galaxy_shape, relative_density
+from planetgen.galaxy.density import arm_terms, build_galaxy_shape, relative_density
 from planetgen.galaxy.geometry import ring_sector_count, sector_position_pc
 from planetgen.galaxy.skeleton import (
     build_layer_extents, candidate_sector_count, expected_system_count_at_density_1,
@@ -237,6 +237,7 @@ def build_skeleton(args):
     e_value = expected_system_count_at_density_1(program_constants.DEFAULT_SECTOR_EDGE_LY)
     threshold_rho = 1.0 / e_value
 
+    arm_amplitude, arm_level = arm_terms(args.arm_density, args.interarm_density)
     shape = build_galaxy_shape(
         disk_scale_length_pc=args.disk_scale_length_pc,
         disk_scale_height_pc=args.disk_scale_height_pc,
@@ -244,7 +245,9 @@ def build_skeleton(args):
         bulge_amplitude=args.bulge_amplitude,
         arm_count=args.arm_count,
         pitch_angle_rad=math.radians(args.pitch_angle_deg),
-        arm_amplitude=args.arm_amplitude,
+        arm_amplitude=arm_amplitude,
+        arm_level=arm_level,
+        core_amplitude=args.core_density,
         calibration_radius_pc=args.calibration_radius_pc,
     )
 

@@ -13,6 +13,7 @@ from tests.bughunt_support import mysql_argv, run_cli
 from tests.test_bughunt_end_to_end import _db_get_connection, _web_client
 
 from planetgen.web.maps import starmap  # noqa: E402
+from tests.publicids import pid, pids
 
 
 @pytest.mark.parametrize("star_type", ["G2VII", "K2III", "M1III", "B1IA"])
@@ -28,7 +29,7 @@ def test_white_dwarf_and_giant_systems_render(mysql_config, star_type):
     finally:
         conn.close()
     assert row is not None
-    html = _web_client(mysql_config).get(f"/system/{row['id']}").get_data(as_text=True)
+    html = _web_client(mysql_config).get(f"/system/{pid('system', row['id'])}").get_data(as_text=True)
     assert name in html
     assert row["star_type"] in html
     assert 'class="sysmap-body sysmap-star"' in html

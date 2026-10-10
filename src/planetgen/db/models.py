@@ -347,6 +347,8 @@ galaxy_shape = sa.Table(
     sa.Column('arm_count', mysql.INTEGER(), nullable=False),
     sa.Column('pitch_angle_rad', mysql.DOUBLE(), nullable=False),
     sa.Column('arm_amplitude', mysql.DOUBLE(), nullable=False),
+    sa.Column('arm_level', mysql.DOUBLE(), nullable=False, server_default='1'),
+    sa.Column('core_amplitude', mysql.DOUBLE(), nullable=False, server_default='0'),
     sa.Column('spiral_reference_radius_pc', mysql.DOUBLE(), nullable=False),
     sa.Column('spiral_reference_angle_rad', mysql.DOUBLE(), nullable=False),
     sa.Column('k_norm', mysql.DOUBLE(), nullable=False),
