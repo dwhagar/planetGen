@@ -7,13 +7,13 @@
 # /etc/apache2/sites-available/planetgen.conf, edit ServerName/logging as
 # needed, then enable it:
 #
-#   sudo a2enmod wsgi headers deflate
+#   sudo a2enmod wsgi headers deflate brotli
 #   sudo a2ensite planetgen
 #   sudo systemctl reload apache2
 #
 # `wsgi` (`libapache2-mod-wsgi-py3` on Debian/Ubuntu) runs the app.
 # `headers` is needed for static/'s `Header ...` lines below (cache
-# lifetime and nosniff) and `deflate` for the compression block. Both are
+# lifetime and nosniff) and `deflate` (and `brotli`, if your Apache has it) for the compression block. Both are
 # usually on already in a stock Debian/Ubuntu Apache; a2enmod is a no-op
 # then. No CGI module is needed any more (`a2dismod cgid` if nothing else
 # on the server uses it).
@@ -58,6 +58,12 @@
     # three.js alone drops from about 740 KB to about 190 KB on the wire.
     <IfModule mod_deflate.c>
         AddOutputFilterByType DEFLATE text/html text/plain text/css application/javascript text/javascript application/json image/svg+xml
+    </IfModule>
+    # Brotli, when the module is on (`sudo a2enmod brotli`), is 10 to 29%
+    # smaller than gzip on the Galaxy Map's tile JSON (MAP.157). Browsers
+    # that accept it get it; the rest still get the DEFLATE above.
+    <IfModule mod_brotli.c>
+        AddOutputFilterByType BROTLI_COMPRESS text/html text/plain text/css application/javascript text/javascript application/json image/svg+xml
     </IfModule>
 
     # Settings (MySQL server/account, control schema, tile cache, ...)

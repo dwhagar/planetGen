@@ -620,8 +620,10 @@ def test_real_galaxy_page_and_tiles(db_client, mysql_config, tmp_path):
     assert "1 placed sector" in html
     scene = _scene(html)
     assert scene["fetchPath"] == "/galaxy/tiles"
-    placed = [entry for tile in scene["initial"]["tiles"].values() for entry in tile["placed"]]
-    assert any(entry["id"] == sector_id for entry in placed)
+    assert scene["initial"]["tiles"], "the opening tiles are embedded"
+    assert not any(section in tile for tile in scene["initial"]["tiles"].values()
+                   for section in ("placed", "planned", "filled")), "MAP.157: sections the page never reads"
+    assert sector_id
 
     quadrant = re.search(r'href="/galaxy\?quadrant=(I|II|III|IV)#galaxy-table">Quadrant \1</a></td>\s*<td data-label="Sectors">1<',
                          html).group(1)

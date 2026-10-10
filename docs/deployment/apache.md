@@ -174,7 +174,9 @@ See [`install.sh`](../../install.sh) for the full install script,
   (no CGI module any more). `install.sh` and `update.sh` enable all three
   themselves, installing `libapache2-mod-wsgi-py3` with apt first when
   mod_wsgi is missing, and say when Apache needs a restart to load a
-  newly enabled module.
+  newly enabled module. `a2enmod brotli` is optional: with it, browsers that
+  accept Brotli get the Galaxy Map's tile JSON 10 to 29% smaller than gzip
+  (MAP.157), and the rest still get gzip.
 - **Caching `static/`.** Every page links its CSS/JS/favicon as
   `static/<file>?v=<release version>` (`src/planetgen/web/lib/fmt.py`'s
   `static_url`), and the map modules pass that same `?v=` on to the

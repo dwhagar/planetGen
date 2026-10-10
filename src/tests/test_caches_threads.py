@@ -176,8 +176,8 @@ def _tile(label, count=1500):
     """A big tile (about 100 KB) whose every entry says who wrote it,
     so half of one and half of another can't pass for either."""
     return {
-        "placed": [{"id": n, "name": f"{label}-{n}", "x": n * 0.5, "y": -n * 0.25, "z": 1.0} for n in range(count)],
-        "planned": [], "filled": {"g": 1, "cells": []}, "clouds": [],
+        "clouds": [{"id": n, "name": f"{label}-{n}", "x": n * 0.5, "y": -n * 0.25, "z": 1.0} for n in range(count)],
+        "stars": [], "generated": [], "points": [],
     }
 
 
@@ -276,4 +276,4 @@ def test_two_requests_writing_one_tile_leave_one_whole_tile(monkeypatch, tmp_pat
 
 
 def _tilecache_rounded(tile):
-    return tilecache._round_floats(tile)
+    return tilecache.trim_tile(tile)
