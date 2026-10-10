@@ -160,7 +160,7 @@ def test_the_mass_limit_must_be_a_preset(mysql_config):
             with pytest.raises(SystemExit):
                 generate_cli.validate_plan_args(args, parser)
     assert parser.parse_args([]).phenomenon_min_mass is None
-    assert tuning.PHENOMENON_MIN_MASS_PRESETS[0] == 8.0 and tuning.PHENOMENON_MIN_MASS_SOLAR == 20.0
+    assert tuning.PHENOMENON_MIN_MASS_PRESETS[0] == 8.0 and tuning.PHENOMENON_MIN_MASS_SOLAR == 8.0
 
 
 def _seed_galaxy(mysql_config):

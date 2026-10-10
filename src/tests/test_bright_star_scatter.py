@@ -206,7 +206,7 @@ def test_scatter_always_leaves_filled_sectors_out(mysql_config):
 
 def test_going_down_a_layer_keeps_the_old_stars_and_adds_only_the_band(mysql_config, monkeypatch):
     _seed_galaxy(mysql_config)
-    first = run_plan.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only"))
+    first = run_plan.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only", "--phenomenon-min-mass", "20"))
     # No GEN.23 backfill here: in this small galaxy it would reach every
     # block (the next test covers a band after a backfill).
     monkeypatch.setattr(run_galaxy, "backfill_bright_stars", lambda *_args, **_kwargs: {"sectors": 0, "stars": 0})
@@ -690,7 +690,7 @@ def test_backfill_tiers_default_and_override():
     assert run_galaxy.backfill_tiers(radius_ly=20.0) == ((20.0, 100.0),)
     assert run_galaxy.backfill_tiers(min_luminosity_sol=300.0) == ((100.0, 300.0),)
     assert run_galaxy.backfill_tiers(tiers=((40, 300), (5, 100))) == ((5.0, 100.0), (40.0, 300.0))
-    assert tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL == 3000.0
+    assert tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL == 5000.0
 
 
 @pytest.mark.parametrize("distance_ly, floor", [
