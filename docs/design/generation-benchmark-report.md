@@ -53,7 +53,7 @@ the fill only, not the plan.
 
 Measured by re-saving the paths of the benchmark galaxy's two sectors
 (`sector_paths.settle_sectors`, 17,284 bodies: 1,916 star systems and the
-rogue planets and comets; the sector and its neighbours, 108 sectors) on the
+rogue planets and comets; the two sectors and their neighbours) on the
 kept scratch database, 4 cores, MariaDB 10.11, an otherwise idle machine:
 
 | | Seconds |
