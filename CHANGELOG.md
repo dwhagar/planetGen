@@ -2,15 +2,8 @@
 
 ## [8.0.866] - 2026-10-10
 
-### Added
-- Filed OPS.37 (a Generator version number) and API.22 (an API version number), both plain sequential integers due by the end of Phase 1.
-- Planets and moons store their mantle redox (reduced, intermediate or oxidized, with its offset from the iron-wustite buffer) and the partial pressures of O2, CO2, CO, N2, Ar, H2, H2O, CH4, H2S and SO2 (GEN.85, schema v70). Each class's mix shifts with the redox, and no gas exceeds its vapour pressure at the surface temperature.
-- A route now reports its longest hop and flags each hop whose line crosses sectors that have not been generated as unknown space (NAV.12). `/api/nav` returns `route.hops` and `route.longest_hop_ly`, and the NAV page states the longest hop and the unknown-space jumps.
-- Eight to-do items from the generation performance study (a warmed worker, lazy names, uids in Python, the phenomenon-row size decision, a later pass for links, one position per body, benchmark records and a faster INSERT).
-- A to-do item (generating a neighbourhood from the Generate page shows no per-sector stats).
-- A to-do item (the Generate page shows a progress line and per-layer counts instead of one line per sector).
-
 ### Changed
+- OPS.37 and API.22 record Boss's decision on their defaults.
 - Recorded the decisions on API.17 (keep the fingerprint check), OPS.16 (keep the daily positional update), DB.17 (keep repair from the seed) and the new-galaxy form (no seed field).
 - The TODO list records the seeding requirements for lazy names and the mass cut (PERF.43, GEN.167, GEN.168) and the ordering note on GEN.57.
 - The plan drops the user-facing rebuild of a galaxy from a seed and a version: OPS.12, GEN.59, GEN.61, OPS.18, ADM.17, ADM.19, ADM.20, API.16 and DB.10 are removed, and GEN.55 becomes the internal same-seed umbrella. The seed stays an internal mechanism for parallel workers, fills, backfills and settle.
@@ -30,6 +23,14 @@
 - The TODO list files the phenomenon scatter mass cut (GEN.166 to GEN.169) and reworks DB.19 around it: at the recommended 20 solar masses the scatter table falls from 1.17 billion rows (161 GB) to about 2.7e5 rows. The design notes drop the unverified 1.6e8 rows and 21 GB figures.
 - Two systems in one sector are routed by their nearest stars even when those lie in the sector next door.
 - The Generate page progress-line to-do item (ADM.46) was withdrawn at Boss's word.
+
+### Added
+- Filed OPS.37 (a Generator version number) and API.22 (an API version number), both plain sequential integers due by the end of Phase 1.
+- Planets and moons store their mantle redox (reduced, intermediate or oxidized, with its offset from the iron-wustite buffer) and the partial pressures of O2, CO2, CO, N2, Ar, H2, H2O, CH4, H2S and SO2 (GEN.85, schema v70). Each class's mix shifts with the redox, and no gas exceeds its vapour pressure at the surface temperature.
+- A route now reports its longest hop and flags each hop whose line crosses sectors that have not been generated as unknown space (NAV.12). `/api/nav` returns `route.hops` and `route.longest_hop_ly`, and the NAV page states the longest hop and the unknown-space jumps.
+- Eight to-do items from the generation performance study (a warmed worker, lazy names, uids in Python, the phenomenon-row size decision, a later pass for links, one position per body, benchmark records and a faster INSERT).
+- A to-do item (generating a neighbourhood from the Generate page shows no per-sector stats).
+- A to-do item (the Generate page shows a progress line and per-layer counts instead of one line per sector).
 
 ### Fixed
 - A neighbourhood or single-address run now reports the first sector (the one named outright) with the same stats as every other sector, each summary has a "Totals" line (star systems, stars, planets, phenomena), and a batch says how many sectors it runs with how many workers before the first report (ADM.47).
