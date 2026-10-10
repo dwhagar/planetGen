@@ -13,10 +13,10 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.87 |
-| MAP | MAP.162 |
+| UX | UX.88 |
+| MAP | MAP.163 |
 | NAV | NAV.58 |
-| GEN | GEN.187 |
+| GEN | GEN.188 |
 | PERF | PERF.52 |
 | DB | DB.22 |
 | API | API.24 |
@@ -683,6 +683,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.184 | A luminosity floor the user sets: presets from 2500 to 4 million solar luminosities, default 3000 | none | open |
 | GEN.185 | The scatter in five passes: mass-limit objects, mass-limit stars, brightest-star sector marks, the luminosity pass, then other phenomena | none | done, PR #953 |
 | GEN.186 | Random neighborhoods: an option to keep away from filled space | none | open |
+| GEN.187 | Bright-star back scatter by mass: rings of 1, 2, 5 and 8 solar masses around filled space | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -844,6 +845,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.159 | Packed binary Galaxy Map tiles (quantised planes) with the nested tile lists, on one cache stamp bump | none | open |
 | MAP.160 | Quantise the Galaxy Map GPU buffers (deferred) | none | open |
 | MAP.161 | Load the Galaxy Map faster on a first visit: bundle or preload its scripts | none | open |
+| MAP.162 | A sector holding scattered objects but never generated can still be opened, marked uncharted | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
@@ -1127,6 +1129,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.84 | Every sub-step must show a progress bar that starts by itself when it is predicted to take over 15 seconds (bug) | none | done, PR #930 |
 | UX.85 | Button menus open out of sight and make the user scroll to see them (bug) | none | done, PR #932 |
 | UX.86 | The Galaxy Map controls take too much room: buttons too large and filters one character wide (bug) | none | done, PR #936 |
+| UX.87 | The system list shows uncharted systems: every scattered star, with its location and a way to generate it | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
