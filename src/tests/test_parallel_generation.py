@@ -338,3 +338,28 @@ def test_unplaced_sectors_on_two_workers_are_each_saved_once(galaxy_db, monkeypa
     assert all(row["ring_index"] is None for row in rows)
     assert len({row["name"] for row in rows}) == 5
     assert counts["systems"] == _table_count(galaxy_db, "star_systems")
+
+
+def test_every_object_has_its_object_id_whatever_the_worker_count(make_database, monkeypatch):
+    """TEST.110: none missing (every row of every object table holds a 10-byte ID), none repeated (the unique key
+    would refuse it, and the sets are compared), and the same IDs on one worker and on four."""
+    tables = ("star_systems", "stars", "planets", "moons", "asteroid_belts", "comets", *store.PHENOMENON_UID_TABLES)
+    found = {}
+    for count in (1, 4):
+        config = _seeded_galaxy(make_database)
+        _run("galaxy", ["--ring", "1", "--num-systems", "4", "--workers", str(count)], config, monkeypatch)
+        conn = store.get_connection(config)
+        try:
+            found[count] = {table: sorted(bytes(row["uid"]) if row["uid"] is not None else None
+                                          for row in conn.execute(f"SELECT uid FROM {table}").fetchall())
+                            for table in tables}
+        finally:
+            conn.close()
+    assert found[1]["star_systems"] and found[1]["stars"] and found[1]["planets"]
+    for table, uids in found[1].items():
+        assert None not in uids, table
+        assert all(len(uid) == 10 for uid in uids), table
+        assert len(set(uids)) == len(uids), table
+    assert found[1] == found[4]
+    everything = [uid for uids in found[1].values() for uid in uids]
+    assert len(set(everything)) == len(everything)      # unique across the tables too
