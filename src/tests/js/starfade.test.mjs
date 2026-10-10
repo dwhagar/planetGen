@@ -68,6 +68,35 @@ test("tileRanks counts each list in the order the server sent it", () => {
   assert.equal(ranks.get("s9"), 2);
 });
 
+test("tileRanks also ranks a tile's point objects under the key the page draws them with", () => {
+  const ranks = S.tileRanks({ stars: [{ id: 1 }], points: [{ type: "quasar", id: 5 }, { type: "black_hole", id: 2 }] });
+  assert.equal(ranks.get("quasar5"), 1);
+  assert.equal(ranks.get("black_hole2"), 2);
+  assert.equal(ranks.get("b1"), 1);
+});
+
+test("a cloud sprite fades in between 1 and 4 px of radius", () => {
+  assert.equal(S.cloudSizeShare(0.5), 0);
+  assert.equal(S.cloudSizeShare(1), 0);
+  assert.ok(Math.abs(S.cloudSizeShare(2.5) - 0.5) < 1e-9);
+  assert.equal(S.cloudSizeShare(4), 1);
+  assert.equal(S.cloudSizeShare(40), 1);
+  let last = 0;
+  for (let px = 1; px <= 4; px += 0.25) {
+    const share = S.cloudSizeShare(px);
+    assert.ok(share >= last);
+    last = share;
+  }
+});
+
+test("an arriving star is a 1 px dot that grows to its size", () => {
+  assert.equal(S.arrivingStarSize(9, 0), 1);
+  assert.equal(S.arrivingStarSize(9, 1), 9);
+  assert.equal(S.arrivingStarSize(9, 0.5), 5);
+  assert.equal(S.arrivingStarSize(0.5, 0), 1);
+  assert.equal(S.arrivingStarSize(9, 7), 9);
+});
+
 // --- A synthetic galaxy corner, listed the server's way -------------------
 
 function mulberry32(seed) {
