@@ -128,6 +128,12 @@ until then every release stays on 8.0 (`REVISION_HOLD` in
 `scripts/bump_version.py`), and the TODO thread flips the hold when Boss
 declares phase 1 complete.
 
+Seminal features (Boss, 2026-10-10 20:58Z): 8.0 the orbital update
+system, 8.1 infinite zoom (the fly-through Galaxy Map), 9.0 the
+gravitational map (MAP.167: foundations in phase 2, roll-out in phase
+3). Phase 2, when finished, is 8.5, and its seminal feature is still to
+be chosen (see the card in the TODO thread, 2026-10-10).
+
 Boss's list of 2026-10-01 23:53Z (`new todos.txt`, with research notes;
 the files are in the project's shared files under `todo-tasks/research/`)
 became these items:
@@ -480,6 +486,14 @@ with `clamp()`.
   ... #}`), which stay, and about 130 string literals in the Python code
   to check by hand. Owner: Bugfixes lane 2, after its current items.
   Prerequisites: none.
+
+- [ ] **UX.94 Gravity map wording: the legend, the mode names and the Map help text**
+  Done: the legend names the unit (metric or Customary through the UX.36
+  number formatting), the three modes have plain in-universe names with
+  a one-line explanation each, the Map help dialog explains what the
+  colours mean and what a saddle point is, and no TODO code appears in
+  any of it (UX.93).
+  Prerequisites: MAP.168. Related: MAP.167, UX.93.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -1055,6 +1069,49 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   per generated star. Optional.
   Prerequisites: none. Related: MAP.147, MAP.159, MAP.109.
   Design: [docs/design/galaxy-map-wire-format.md](design/galaxy-map-wire-format.md)
+
+- [ ] **MAP.167 Gravity map: a heat map of the gravitational field inside a sector (the seminal feature of 9.0)**
+  Boss (2026-10-10 20:57Z): 'Since we have point mass vectors to
+  calculate orbits, I would like to be able to show a gravitational map
+  of a sector, probably using colors and calculating it per zone. I
+  would like to be able to show the gravitational gradients of the
+  vector field as kind of a heat map of the inside of the sector.' Boss
+  made it the seminal feature of 9.0 (phase 3 roll-out), with the
+  foundations in phase 2. Umbrella: it is done when a viewer opens a
+  sector, switches on the gravity layer and sees the pull, the well
+  depth or the tidal strength as coloured zones with a legend, and the
+  same layer on the System Map; subitems GEN.198, TEST.131, PERF.72 and
+  GEN.199 (phase 2), then API.24, MAP.168, MAP.169 and UX.94 (phase 3),
+  with MAP.170 (Galaxy Map layer) later.
+  Prerequisites: GEN.199, MAP.168, MAP.169, UX.94, API.24. Related:
+  GEN.105, NAV.6.
+  Design: [docs/design/gravity-map.md](design/gravity-map.md)
+
+- [ ] **MAP.168 The Sector Map gravity layer: coloured zones for pull, well depth and tidal strength**
+  Done: the Sector Map Menu has a Gravity layer with three modes; each
+  zone of the shown slab is a translucent colour on a log scale with a
+  colour-blind-safe ramp (transparency by strength, no fill above 50%
+  opacity as for MAP.131, so stars and routes stay readable); the slab
+  buttons step through the sector, a transparent-volume view shows every
+  slab, Lagrange and saddle points are marked and pickable, and the
+  colour choice is kept in the URL. It uses the one mapping engine and
+  the API.24 grid; a browser test checks the layer draws, switches mode
+  and keeps the URL.
+  Prerequisites: API.24, MAP.125. Related: MAP.167, MAP.131.
+
+- [ ] **MAP.169 The System Map gravity layer: the orbital plane as a heat map with Lagrange points and Hill spheres**
+  Done: the System Map has the same Gravity layer on the system's
+  orbital plane, with the Lagrange points of each pair of bodies marked
+  and each Hill sphere outlined, switching modes and keeping the choice
+  in the URL; a browser test checks it draws.
+  Prerequisites: MAP.168. Related: MAP.167, GEN.109.
+
+- [ ] **MAP.170 The Galaxy Map gravity layer: the galaxy potential and region aggregates, coarse and optional**
+  Later (phase 3+): a coarse gravity layer on the Galaxy Map drawn from
+  the galaxy's smooth potential (GEN.115) and the per-region mass
+  aggregates (MAP.151), so the spiral arms, bulge and halo show as
+  wells; only if the cost study (PERF.72) says it is cheap enough.
+  Prerequisites: MAP.168, MAP.151. Related: MAP.167.
 
 ## NAV: Navigation and courses
 
@@ -2922,6 +2979,33 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   ejection, merger or split code exists yet).
   Prerequisite: GEN.143. Related: GEN.105, GEN.143, GEN.170.
 
+- [ ] **GEN.198 The gravity field evaluator: pull, potential and tidal gradient at any point from the point masses and the galaxy potential**
+  Boss (2026-10-10 20:57Z): the orbits come from point-mass vectors, so
+  the same masses give a gravitational field. Done: one function
+  returns, for any point and time, the acceleration vector, the
+  potential and the tidal tensor (its largest eigenvalue and the size of
+  the gradient) from the point masses in and around a sector (the
+  influence set of GEN.109) plus the galaxy's smooth potential
+  (GEN.115), with Plummer softening; near sources are summed exactly and
+  distant ones as per-region aggregates (PERF.72 sets the split). It is
+  a pure function of the stored vectors, so the same galaxy gives the
+  same field, and course planning (NAV.6) can use it instead of a pull
+  model of its own.
+  Prerequisites: GEN.115, GEN.109. Related: GEN.105, NAV.6, TEST.131,
+  PERF.72, MAP.167.
+
+- [ ] **GEN.199 Per-zone gravity grid for a sector: stored in a cache and rebuilt when the orbits update**
+  Done: for a sector, the field (GEN.198) is sampled at the centre of
+  each zone (16 per edge by default, a setting), giving the pull, the
+  potential and the tidal strength per zone, with Lagrange and saddle
+  points flagged. The grid is derived data held in a cache like the
+  Galaxy Map tiles (not in the galaxy tables, so no galaxy migration),
+  is built on the work queue, is thrown away when the orbital update
+  (GEN.105) moves its sources, and a sector with no neighbours generated
+  yet is marked uncharted-edge. A test builds a small sector and checks
+  the grid against the evaluator zone by zone.
+  Prerequisites: GEN.198, PERF.72. Related: GEN.105, PERF.72, MAP.167.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.18 Run the GEN.30 bright-star backfill in parallel on the work queue**
@@ -3388,6 +3472,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: PERF.19, PERF.24, PERF.34, PERF.36,
   PERF.64, PERF.68, PERF.69, PERF.70.
 
+- [ ] **PERF.72 Research the cost of a sector's gravity grid and where to cut between exact and aggregated sources**
+  Done: a note (docs/design/gravity-map.md, section 'How it is
+  computed', extended with measurements) says what a grid of 16 zones
+  per edge costs for a dense sector (core, bulge and arm) and a sparse
+  one, with numpy and the per-region aggregates of MAP.151, picks the
+  near/far distance and the zone count, gives the error of the aggregate
+  against the exact sum, and says when a grid is recomputed after an
+  orbital update (every step, or only for sectors whose sources moved by
+  a set amount). Ends with the build items filed.
+  Prerequisites: GEN.198. Related: GEN.198, GEN.199, MAP.151.
+  Design: [docs/design/gravity-map.md](design/gravity-map.md)
+
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
@@ -3792,6 +3888,15 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   region per request.
   Prerequisite: API.18.
 
+- [ ] **API.24 GET /api/sectors/<id>/gravity: the per-zone gravity grid as JSON**
+  Done: the endpoint returns a sector's grid (GEN.199) for one mode
+  (pull, well depth or tidal strength), as a compact array with the zone
+  size, the origin, the unit and the Lagrange or saddle points, with the
+  usual API scopes and logging (API.15), queued with the 202 behaviour
+  when the grid has to be built; documented in the API docs and the
+  compatibility data.
+  Prerequisites: GEN.199. Related: MAP.167.
+
 ## ADM: Admin tools
 
 - [ ] **ADM.13 Incomplete uploads page**
@@ -4120,6 +4225,16 @@ clears each one.
   comets, and the test draws a system with a comet every time so it
   cannot pass by luck. Owner: Bugfixes lane 1, after its current items.
   Prerequisites: none. Related: TEST.123, GEN.122.
+
+- [ ] **TEST.131 Tests for the gravity field evaluator: two bodies, Lagrange points, softening and the rotation curve**
+  Done: the evaluator (GEN.198) matches Newton for two bodies to 1e-9
+  relative, puts the Sun-Earth L1 and L2 points where the published
+  distances are (about 1.5 million km) with a saddle in the tidal
+  gradient, stays finite inside a softened source, and reproduces the
+  galaxy potential's rotation curve (229.3 km/s at 8.128 kpc); the
+  near/far split agrees with the exact sum to a stated tolerance on a
+  random sector; the same seed gives the same field twice.
+  Prerequisites: GEN.198. Related: GEN.198, GEN.115.
 
 ## USR: User accounts
 

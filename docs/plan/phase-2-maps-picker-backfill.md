@@ -139,6 +139,10 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.197 | Object IDs on ejection, merger and split events | GEN.143 |  |
 | GEN.142 | Peculiar velocity for rogue planets and asteroid fields |  | Research: prerequisite of GEN.110. |
 | GEN.105 | Orbital updates | GEN.115, GEN.109, GEN.110 | Parent of the orbital update work. |
+| GEN.198 | The gravity field evaluator: pull, potential and tidal gradient at any point from the point masses and the galaxy potential | GEN.115, GEN.109 | Gravity map foundation (Boss 2026-10-10). |
+| TEST.131 | Tests for the gravity field evaluator: two bodies, Lagrange points, softening and the rotation curve | GEN.198 |  |
+| PERF.72 | Research the cost of a sector's gravity grid and where to cut between exact and aggregated sources | GEN.198 | Research. |
+| GEN.199 | Per-zone gravity grid for a sector: stored in a cache and rebuilt when the orbits update | GEN.198, PERF.72 |  |
 | GEN.141 | Faster Kepler solver (Mikkola or Markley) with brentq as fallback |  | Research: optional speed-up. |
 
 ### Nebula planets
