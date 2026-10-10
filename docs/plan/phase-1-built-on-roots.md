@@ -118,10 +118,10 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.150 | The free camera: wheel zoom to the cursor, double-click flight, and the observer inside, with the container named from position |  | Fly-through report item 3; needs the near field. |
 | MAP.151 | The region data layer: exact-centred frame, aligned cells, per-level aggregates and slot-wrap ranges |  | Fly-through report item 4. Decide cache keys with MAP.147. |
 | MAP.152 | Scale hand-offs: galaxy, sector and system cross-fade with hysteresis, and per-tile camera-relative origins | MAP.150, MAP.154 | Fly-through report item 5. |
+| MAP.171 | The Galaxy Map keys a massive phenomenon's visibility to its map luminosity (replaces "always lit") | GEN.200, DB.23, GEN.201, MAP.152 | Boss 2026-10-10 21:38Z. Foundations lane 2 after MAP.152. |
 | MAP.154 | Nested bright-star lists on the server, so every parent list is a subset of its child's |  | Zoom visibility note stage 2; shares tile keys with MAP.147 and MAP.151. |
 | MAP.159 | Packed binary Galaxy Map tiles (quantised planes) with the nested tile lists, on one cache stamp bump | MAP.154 | MAP.147 recommendation step 2; one stamp bump with MAP.154 and MAP.151. |
 | MAP.155 | Other objects fade in too: point objects from level 8, a size ramp for cloud sprites, and stars that grow from a faint dot |  | Zoom visibility note stage 3. |
-| PERF.63 | Vectorise the candidate work of the phenomena scatter with numpy |  |  |
 | PERF.59 | Share the ring inputs between the phenomena pass and the backfill rings (top priority) |  |  |
 
 ### System Map
@@ -211,6 +211,10 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | PERF.41 | Stamp the tile and page caches with a TILE_FORMAT constant instead of the version (optional) | PERF.31 | Research follow-up to PERF.25 (built). |
 | PERF.40 | Two shared queues, a reserved interactive worker and a real "cancel now" |  | Research follow-up to PERF.24 (built). |
 | PERF.70 | Sorting the Systems list by Sector or Octant on millions of rows must not sort them all (bug) |  | Left over from PERF.64; Foundations lane 1 next. |
+| PERF.73 | Cut the cost of writing the phenomenon rows to the database (now the biggest part of a scatter run) |  | Follow-up to PERF.63. Foundations lane 1. |
+| GEN.201 | Fill the map luminosity in the scatter and in existing galaxies | GEN.200, DB.23 | Foundations lane 1. |
+| DB.23 | Store a "map luminosity" for phenomena that are faint but massive (Alembic migration) | GEN.200 | Needs a migration. Foundations lane 1. |
+| GEN.200 | One shared function for the "map luminosity" of a mass: the luminosity a main-sequence star of that mass would have |  | Boss 2026-10-10 21:38Z. Foundations lane 1. |
 | PERF.69 | Store the Planets, Moons and Phenomena table counts like the Systems and Sectors counts (bug) |  | Left over from PERF.64; Foundations lane 1 next. |
 | PERF.68 | Measure the Galaxy Map tile queries on a big galaxy and make them fit the time limit (bug) |  | Left over from PERF.64; Foundations lane 1 next. |
 | PERF.71 | Research how to keep slow database calls on large data sets from timing out: queue, split, or answer in parts |  | Boss 2026-10-10 20:50Z; Research Lane 1 (Boss 2026-10-10 20:50Z); it files the build items. |

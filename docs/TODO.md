@@ -112,7 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | DB.9, PERF.29, PERF.30, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, POP.8, POP.9, POP.7, POP.10, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, GEN.57, TEST.77, UX.49, PERF.31, GEN.128, PERF.63 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | DB.9, PERF.29, PERF.30, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, POP.8, POP.9, POP.7, POP.10, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, GEN.57, TEST.77, UX.49, PERF.31, GEN.128 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.17, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18, PERF.33, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, ADM.43, ADM.44, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.56, NAV.55, NAV.27, NAV.28, NAV.51, NAV.54, NAV.6 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, and the anomalies chosen in phase 2. | API.13, API.14, API.8, ADM.13, API.3, API.17, GEN.114, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies. | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, GEN.55 |
@@ -1120,6 +1120,38 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   aggregates (MAP.151), so the spiral arms, bulge and halo show as
   wells; only if the cost study (PERF.72) says it is cheap enough.
   Prerequisites: MAP.168, MAP.151. Related: MAP.167.
+
+- [ ] **MAP.171 The Galaxy Map keys a massive phenomenon's visibility to its map luminosity (replaces "always lit")**
+  Boss (2026-10-10 21:38Z): "inject into the phenomena part of that, use
+  the following mass/luminosity to allow us to store a 'map visibility'
+  value for phenomena that aren't bright but have large mass. The idea
+  being that a neutron star of say 2 solar masses should be given
+  placement on the map when a star's brightness at 2 solar masses would
+  be visible. Same for black holes, if a super massive black hole has a
+  mass well above the brightest star, then it's visibility on the map
+  should be keyed to that. This allows us to put items on the map that
+  aren't bright enough to be seen but are of importance (major
+  gravitational locations are always important to navigation)." Today
+  the client law (MAP.148, built in PR #1160) gives black holes, neutron
+  stars and quasars a fixed magnitude (PHENOMENON_MAGNITUDE = -40 in
+  starmagnitude.js), so they stay lit at any distance, and the
+  400-per-tile cap and the server floors treat them separately. Done:
+  the tile carries the map luminosity of each phenomenon (in the wire
+  format of MAP.157/158/161 and the packed tiles of MAP.159, as one more
+  plane or field), the client turns it into an apparent magnitude
+  exactly as for a star, so a 2 Msun neutron star appears when a 2 Msun
+  star (about 17 Lsun) would, and a supermassive black hole far above
+  the brightest star stays visible across the galaxy; the server's
+  per-tile choice ranks phenomena and stars together by luminosity or
+  map luminosity, so the 400 cap and the generated_star_floor_sol floors
+  treat them alike. Colours stay as MAP.164 (black holes purple, neutron
+  stars dark blue) and sizes as MAP.165 (by mass). Overlap: MAP.152 owns
+  the distance-cut tile choice, the floor removal and the cap
+  reconciliation in the same query, so this item follows MAP.152 and
+  uses its tile choice. Not a prerequisite of the 8.1 headline
+  (MAP.146). Owner: Foundations lane 2, queued right after MAP.152.
+  Prerequisites: GEN.200, DB.23, GEN.201, MAP.152. Related: MAP.148,
+  MAP.164, MAP.165, MAP.159, MAP.146.
 
 ## NAV: Navigation and courses
 
@@ -3025,6 +3057,61 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the grid against the evaluator zone by zone.
   Prerequisites: GEN.198, PERF.72. Related: GEN.105, PERF.72, MAP.167.
 
+- [ ] **GEN.200 One shared function for the "map luminosity" of a mass: the luminosity a main-sequence star of that mass would have**
+  Boss (2026-10-10 21:38Z): "inject into the phenomena part of that, use
+  the following mass/luminosity to allow us to store a 'map visibility'
+  value for phenomena that aren't bright but have large mass. The idea
+  being that a neutron star of say 2 solar masses should be given
+  placement on the map when a star's brightness at 2 solar masses would
+  be visible. Same for black holes, if a super massive black hole has a
+  mass well above the brightest star, then it's visibility on the map
+  should be keyed to that. This allows us to put items on the map that
+  aren't bright enough to be seen but are of importance (major
+  gravitational locations are always important to navigation)."
+  Piecewise mass-luminosity relation, L in solar luminosities and M in
+  solar masses: M below 0.43: L = 0.23 M^2.3; 0.43 to 2.0: L = M^4; 2.0
+  to 20: L = 1.5 M^3.5; above 20: L proportional to M, fixed by
+  continuity with the band below (about 2,683 M, so 20 Msun gives about
+  53,700 and a 4 million Msun black hole about 1e10). Done: one function
+  in the stellar-physics code, with one set of constants, that every
+  user of it calls (the scatter, the reseed fill and the Galaxy Map tile
+  query); if the star generators already hold a mass-luminosity
+  relation, they share this function or the difference is written down,
+  never two copies. Tests: values at 0.1, 0.43, 1, 2, 20 and 4e6 Msun,
+  monotonic over the whole range, and the size of the steps at the joins
+  (default: use the table's constants as given; the bands then step by
+  about 3% at 0.43 and 6% at 2.0, which does not matter for a visibility
+  rank). Owner: Foundations lane 1, after PERF.70. Sources of the
+  relation (Boss's message): Astronomy Notes (2026, June 14),
+  "Mass-Luminosity Relation Explained - The Sun and Stellar Structure",
+  https://www.astronomynotes.com/starsun/s8.htm; Varsity Tutors (n.d.),
+  "Stellar Mass & Lifetime",
+  https://www.varsitytutors.com/practice/subjects/astronomy/lessons/stellar-mass-and-lifetime.
+  Prerequisites: none. Related: DB.23, GEN.201, MAP.171, MAP.165,
+  GEN.185.
+
+- [ ] **GEN.201 Fill the map luminosity in the scatter and in existing galaxies**
+  Boss (2026-10-10 21:38Z): "inject into the phenomena part of that, use
+  the following mass/luminosity to allow us to store a 'map visibility'
+  value for phenomena that aren't bright but have large mass. The idea
+  being that a neutron star of say 2 solar masses should be given
+  placement on the map when a star's brightness at 2 solar masses would
+  be visible. Same for black holes, if a super massive black hole has a
+  mass well above the brightest star, then it's visibility on the map
+  should be keyed to that. This allows us to put items on the map that
+  aren't bright enough to be seen but are of importance (major
+  gravitational locations are always important to navigation)." Done:
+  the phenomenon scatter writes `map_luminosity_sol` from the mass with
+  the shared function when it inserts a row (every pass, including "Redo
+  scatters", GEN.196), so a reseed fills it; existing galaxies get it
+  from a one-off maintenance command that fills the column in id-range
+  batches with the progress bar and ETA of PERF.66, resumable, no
+  downtime for readers (default: both, since Boss resets by hand and the
+  command saves a full reseed). Check: after a reseed and after the
+  command, the same rows carry the same values (a test on a small
+  galaxy). Owner: Foundations lane 1.
+  Prerequisites: GEN.200, DB.23. Related: MAP.171, GEN.185, GEN.196.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.18 Run the GEN.30 bright-star backfill in parallel on the work queue**
@@ -3307,6 +3394,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   passes). Done: the stats record each pass on its own row, the admin
   table shows them, and the size and time estimates use the right row
   for the plan being estimated. Phase 2.
+  Note (2026-10-10): PERF.63 (PR #1174) cut the phenomena pass from
+  about 37 min to 3.7 min at the default scale (2,041 layers, 68.2M
+  objects), so writing the rows to the database is now the dominant cost of a scatter run; PERF.73
+  measures and cuts it. The per-pass stats rows here should therefore
+  record compute time and write time separately for the phenomena pass.
   Prerequisites: none. Related: PERF.52, PERF.53, GEN.185.
 
 - [ ] **PERF.59 Share the ring inputs between the phenomena pass and the backfill rings (top priority)**
@@ -3331,26 +3423,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   galaxy (density read at bin centres); the new sampler integrates the
   true density. PERF.61 side result (PR #1113): the star scatter checks
   the cell address only after the density test, about 20% faster.
-
-- [ ] **PERF.63 Vectorise the candidate work of the phenomena scatter with numpy**
-  Bugfixes lane 1 (2026-10-10, PERF.61, PR #1113): the object-first
-  phenomena sampler was built and measured on the default-scale galaxy
-  (41 of 2,041 layers, 14 Msun cut, one process): counts match
-  (1,380,928 against 1,385,251, -0.3%) but the time is the same (new
-  35.0 min, today 34.8 min for the whole pass, scaled), because layers
-  hold 33,000 to 95,000 phenomena each and per-object work dominates
-  (about 17 us an object today, about 30 us object-first). It wins only
-  on sparse outer layers (layer 700: 0.32 s to 0.08 s) and loses on
-  dense ones (layer 0: 1.4 s to 2.35 s). The prototype is not merged; it
-  lives in research/scatter-queue/scripts/ and the write-up is in
-  docs/design/scatter-queue-feasibility.md. Possible follow-up:
-  vectorise the per-object candidate work in numpy (own prototype, not
-  started). Done: a prototype is measured against today's pass (counts,
-  spatial distribution, time, reseed) and merged only if it is clearly
-  faster. Decided (Boss, 2026-10-10 19:27Z): yes, build the numpy
-  prototype. Owner: Bugfixes lane 1 (moved from Phase 2 to Phase 1 by
-  the coordinator).
-  Prerequisites: none. Related: PERF.59, GEN.185.
 
 - [ ] **PERF.65 The text output of a multi-step job counts its steps, not its tasks: "Step 1 of 4" when the job has 12 (bug)**
   Boss (2026-10-10 19:54Z, with a Generate-page log): a new-galaxy run
@@ -3503,6 +3575,22 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisite: GEN.198. Related: GEN.198, GEN.199, MAP.151.
   Design: [docs/design/gravity-map.md](design/gravity-map.md)
 
+- [ ] **PERF.73 Cut the cost of writing the phenomenon rows to the database (now the biggest part of a scatter run)**
+  Bugfixes lane 1 (2026-10-10, PERF.63, PR #1174): the numpy phenomena
+  pass takes 3.7 min at the default scale (2,041 layers, 68.2M objects)
+  against about 37 min, so computing the objects is no longer the cost;
+  writing the roughly 68 million rows is. Done: measure the write on the
+  default galaxy (rows a second, time per layer, index and redo-log
+  share) and cut it: batch size, one bulk statement per layer, `LOAD
+  DATA` where the connection allows it, deferring or dropping the
+  secondary index `idx_phenomenon_scatter_address` during the load and
+  rebuilding it after, unique and foreign-key checks off for the load,
+  commit size; keep the rows identical to today's (a test shows the same
+  rows). Report the before and after in the PR and update the
+  generation-time notes. Owner: Foundations lane 1, after PERF.68-70.
+  Prerequisites: none. Related: PERF.31, PERF.47, PERF.54, PERF.58,
+  GEN.185.
+
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
@@ -3603,6 +3691,32 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   and a per-row INSERT loop: fine today, not a pattern for the 10^8-row
   tables.
   Design: [docs/design/db-check-and-parity-repair.md](design/db-check-and-parity-repair.md)
+
+- [ ] **DB.23 Store a "map luminosity" for phenomena that are faint but massive (Alembic migration)**
+  Boss (2026-10-10 21:38Z): "inject into the phenomena part of that, use
+  the following mass/luminosity to allow us to store a 'map visibility'
+  value for phenomena that aren't bright but have large mass. The idea
+  being that a neutron star of say 2 solar masses should be given
+  placement on the map when a star's brightness at 2 solar masses would
+  be visible. Same for black holes, if a super massive black hole has a
+  mass well above the brightest star, then it's visibility on the map
+  should be keyed to that. This allows us to put items on the map that
+  aren't bright enough to be seen but are of importance (major
+  gravitational locations are always important to navigation)." Done: a
+  new column `map_luminosity_sol` (FLOAT, null allowed) on
+  `phenomenon_scatter`, next to `mass_solar` (MAP.165), added by the
+  next Alembic revision (0082 or the next free one) with the
+  previous-version fixture and the models regenerated. Only the kinds
+  that have a mass get a value (black holes, neutron stars and quasars;
+  planetary nebulae and supernova remnants stay null, hypervelocity
+  stars keep their own luminosity). Black holes and neutron stars in
+  generated sectors are few, so they take the value from the shared
+  function (GEN.200) when the map reads them and get no column
+  (default). Decided by default: FLOAT, 4 bytes a row, about 0.27 GB at
+  68 million rows; no index unless the tile query needs one (PERF.68
+  measures that). Owner: Foundations lane 1 (the only lane that adds
+  migrations), after PERF.70.
+  Prerequisites: GEN.200. Related: GEN.201, MAP.171, MAP.165.
 
 ## API: The JSON API
 
