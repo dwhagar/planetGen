@@ -14,15 +14,15 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.98 |
-| MAP | MAP.172 |
+| MAP | MAP.183 |
 | NAV | NAV.60 |
-| GEN | GEN.202 |
+| GEN | GEN.203 |
 | PERF | PERF.83 |
-| DB | DB.24 |
+| DB | DB.25 |
 | API | API.25 |
 | ADM | ADM.51 |
 | SEC | SEC.33 |
-| TEST | TEST.135 |
+| TEST | TEST.136 |
 | USR | USR.10 |
 | OPS | OPS.42 |
 | DOC | DOC.18 |
@@ -486,6 +486,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.21 | A deep pass for the database check: validate every star system, with the estimated time shown first | none | done, PR #1082 |
 | DB.22 | Sectors saved by hand without a grid address have no stored object ID until they are saved again (bug) | none | done, PR #1127 |
 | DB.23 | Store a "map luminosity" for phenomena that are faint but massive (Alembic migration) | none | open |
+| DB.24 | The nebula_field table: one row per field nebula cloud, built at plan time (Alembic migration) | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
@@ -704,6 +705,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.199 | Per-zone gravity grid for a sector: stored in a cache and rebuilt when the orbits update | none | open |
 | GEN.200 | One shared function for the "map luminosity" of a mass: the luminosity a main-sequence star of that mass would have | none | open |
 | GEN.201 | Fill the map luminosity in the scatter and in existing galaxies | none | open |
+| GEN.202 | Scattered nebulae (planetary nebulae and remnants) join the nebula index, deduplicated by object id | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -875,6 +877,17 @@ Parents marked "new parent" had no old number of their own.
 | MAP.169 | The System Map gravity layer: the orbital plane as a heat map with Lagrange points and Hill spheres | none | open |
 | MAP.170 | The Galaxy Map gravity layer: the galaxy potential and region aggregates, coarse and optional | none | open |
 | MAP.171 | The Galaxy Map keys a massive phenomenon's visibility to its map luminosity (replaces "always lit") | none | open |
+| MAP.172 | Nebula cell aggregates in the region pyramid | none | open |
+| MAP.173 | The Galaxy Map tile carries a nebula layer: regions and singles, nested like the star lists | none | open |
+| MAP.174 | Nebula cover in the stage-view cell statistics, for filled and unfilled cells | none | open |
+| MAP.175 | The dark-family nebula fill is invisible on the dark theme (bug) | none | open |
+| MAP.176 | Nebula regions on the Galaxy Map: grouped soft sprites in the dominant family colour | none | open |
+| MAP.177 | Color by "Nebula cover" on the Galaxy Map | none | open |
+| MAP.178 | Field nebula clouds drawn one by one from the nebula table | none | open |
+| MAP.179 | Scattered nebulae as markers from level 8 | none | open |
+| MAP.180 | Picking, hover and fly-to for nebula regions and cover | none | open |
+| MAP.181 | Dust colour for the dark nebula family on both themes | none | open |
+| MAP.182 | Optional, default do not build: hosted H II and reflection nebulae for pre-placed O and B stars, drawn before their sector exists | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
@@ -1437,6 +1450,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.132 | test_a_fill_after_a_layer_failed_mid_scatter_builds_no_leftover_star failed once in a full parallel run (bug) | none | open |
 | TEST.133 | A reusable big-galaxy query budget test: EXPLAIN every page and list query on 2,000,000 systems | none | open |
 | TEST.134 | test_many_processes_starting_at_once_start_one_job fails under a parallel run (bug) | none | open |
+| TEST.135 | Big-galaxy query-budget test for the nebula reads | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
