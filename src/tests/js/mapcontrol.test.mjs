@@ -139,3 +139,20 @@ test("two fingers pinch: the ratio is the first spread over the spread now", () 
   assert.equal(started, 1);
   assert.deepEqual(ratios, [0.5]);
 });
+
+test("zoomAboutAnchor scales the target about the anchor so the anchor holds its place", () => {
+  assert.deepEqual(MC.zoomAboutAnchor([10, 0, 0], [0, 0, 0], 0.5), [5, 0, 0]);
+  assert.deepEqual(MC.zoomAboutAnchor([10, 4, 2], [10, 4, 2], 0.1), [10, 4, 2], "anchored on the target: nothing moves");
+  assert.deepEqual(MC.zoomAboutAnchor([1, 2, 3], [5, 6, 7], 1), [1, 2, 3]);
+});
+
+test("pointOnFocusPlane crosses the plane through the target at right angles to the view", () => {
+  const point = MC.pointOnFocusPlane([0, 0, 10], [0, 0, -1], [0, 0, 0], [0, 0, -1]);
+  assert.deepEqual(point, [0, 0, 0]);
+  // A slanted ray reaches the plane further out along the ray.
+  const slant = Math.SQRT1_2;
+  const off = MC.pointOnFocusPlane([0, 0, 10], [slant, 0, -slant], [0, 0, 0], [0, 0, -1]);
+  assert.ok(Math.abs(off[0] - 10) < 1e-9 && Math.abs(off[2]) < 1e-9, String(off));
+  assert.equal(MC.pointOnFocusPlane([0, 0, 10], [1, 0, 0], [0, 0, 0], [0, 0, -1]), null, "along the plane");
+  assert.equal(MC.pointOnFocusPlane([0, 0, 10], [0, 0, 1], [0, 0, 0], [0, 0, -1]), null, "away from it");
+});
