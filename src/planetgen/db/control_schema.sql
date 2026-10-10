@@ -93,11 +93,29 @@ CREATE TABLE IF NOT EXISTS admin_api_keys (
     created_at       TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_used_at     TIMESTAMP NULL,
     revoked_at       TIMESTAMP NULL,
+    key_prefix       CHAR(8) NULL,
+    expires_at       TIMESTAMP NULL,
 
     CONSTRAINT fk_admin_api_keys_admin_user
         FOREIGN KEY (admin_user_id) REFERENCES admin_users(id) ON DELETE CASCADE,
     UNIQUE (key_hash),
     KEY idx_admin_api_keys_admin_user_id (admin_user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- What each API key may do (API.9, v13): `read`, `generate`, `upload`,
+-- `admin` (docs/design/api-design-standards.md section 5). A row per scope,
+-- not a JSON column or a single scope column, so a key can hold
+-- "upload and generate but not admin". No CHECK on `scope`: a new scope
+-- needs no migration. `key_prefix` (the key's first eight characters) is
+-- shown in the key list and the activity log so a key can be told apart
+-- without the key; `expires_at` makes an expired key behave like a revoked one.
+CREATE TABLE IF NOT EXISTS admin_api_key_scopes (
+    key_id           BIGINT UNSIGNED NOT NULL,
+    scope            VARCHAR(32) NOT NULL,
+
+    PRIMARY KEY (key_id, scope),
+    CONSTRAINT fk_admin_api_key_scopes_key
+        FOREIGN KEY (key_id) REFERENCES admin_api_keys(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Every write/admin action, one row each -- written by the same request

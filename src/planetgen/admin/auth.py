@@ -391,9 +391,63 @@ def end_session(conn, raw_token):
     conn.commit()
 
 
-def create_api_key(conn, admin_user_id, label):
+SCOPES = ("read", "generate", "upload", "admin")
+"""tuple[str]: What an API key may hold (API.9, docs/design/api-design-standards.md
+section 5). `admin` implies all the others; `generate` and `upload` imply `read`."""
+
+SCOPE_IMPLIES = {
+    "read": frozenset({"read"}),
+    "generate": frozenset({"generate", "read"}),
+    "upload": frozenset({"upload", "read"}),
+    "admin": frozenset(SCOPES),
+}
+"""dict: Every scope a held scope gives."""
+
+KEY_PREFIX_LENGTH = 8
+"""int: How many leading characters of a key are kept to tell keys apart."""
+
+LAST_USED_REFRESH_SECONDS = 60
+"""int: A key's `last_used_at` is written at most this often."""
+
+
+def granted_scopes(held):
+    """The scopes `held` give, with what each implies."""
+    out = set()
+    for scope in held:
+        out |= SCOPE_IMPLIES.get(scope, frozenset())
+    return frozenset(out)
+
+
+def scope_allows(held, required):
+    """True when the scopes `held` give `required`."""
+    return required in granted_scopes(held)
+
+
+def check_scopes(scopes):
+    """
+    The scopes for a new key as a sorted tuple.
+
+    Raises:
+        ValueError: None given, or one that isn't in `SCOPES`.
+    """
+    scopes = tuple(dict.fromkeys(scopes or ()))
+    if not scopes:
+        raise ValueError("an API key needs at least one scope")
+    unknown = [scope for scope in scopes if scope not in SCOPES]
+    if unknown:
+        raise ValueError(f"unknown scope {unknown[0]!r}; the scopes are {', '.join(SCOPES)}")
+    return tuple(sorted(scopes, key=SCOPES.index))
+
+
+def create_api_key(conn, admin_user_id, label, scopes=("admin",), expires_days=None):
     """
     Creates a new API key for `admin_user_id`.
+
+    Args:
+        scopes (iterable[str]): What the key may do (`SCOPES`); a key made
+            without saying is an admin key, as every key was before scopes.
+        expires_days (float, optional): The key stops working this long
+            from now; `None` for never.
 
     Returns:
         tuple[int, str]: `(key_id, raw_key)` -- `raw_key` (`pg_<random>`)
@@ -402,39 +456,63 @@ def create_api_key(conn, admin_user_id, label):
             than a caller re-querying "this admin's newest key"
             afterward) avoids a race against a concurrent key creation by
             the same admin picking up the wrong id.
+
+    Raises:
+        ValueError: A bad scope list or expiry.
     """
+    scopes = check_scopes(scopes)
+    if expires_days is not None and not expires_days > 0:
+        raise ValueError("a key's lifetime must be more than 0 days")
     raw_key = f"pg_{_new_token()}"
+    seconds = None if expires_days is None else int(expires_days * 86400)
     cur = conn.execute(
-        "INSERT INTO admin_api_keys (admin_user_id, label, key_hash) VALUES (?, ?, ?)",
-        (admin_user_id, label, _hash_token(raw_key)),
+        "INSERT INTO admin_api_keys (admin_user_id, label, key_hash, key_prefix, expires_at)"
+        " VALUES (?, ?, ?, ?, " + ("NULL" if seconds is None else "CURRENT_TIMESTAMP + INTERVAL ? SECOND") + ")",
+        (admin_user_id, label, _hash_token(raw_key), raw_key[:KEY_PREFIX_LENGTH])
+        + (() if seconds is None else (seconds,)),
     )
+    key_id = cur.lastrowid
+    conn.executemany("INSERT INTO admin_api_key_scopes (key_id, scope) VALUES (?, ?)",
+                     [(key_id, scope) for scope in scopes])
     conn.commit()
-    return cur.lastrowid, raw_key
+    return key_id, raw_key
 
 
 def validate_api_key(conn, raw_key):
     """
-    Looks up the admin owning a still-active (non-revoked) API key.
+    Looks up the admin owning a still-active API key: not revoked and not
+    past its `expires_at`.
 
     Returns:
-        dict or None: The `admin_users` row, or `None` for a missing/
-            unknown/revoked key. Refreshes `last_used_at` on success.
+        dict or None: The `admin_users` row plus `api_key_id`,
+            `api_key_prefix` and `api_scopes` (the scopes the key was made
+            with), or `None` for a missing/unknown/revoked/expired key.
+            Refreshes `last_used_at` on success, but no more than once a
+            `LAST_USED_REFRESH_SECONDS` per key.
     """
     if not raw_key:
         return None
     key_hash = _hash_token(raw_key)
     row = conn.execute(
         """
-        SELECT au.* FROM admin_api_keys k
+        SELECT au.*, k.id AS api_key_id, k.key_prefix AS api_key_prefix FROM admin_api_keys k
         JOIN admin_users au ON au.id = k.admin_user_id
         WHERE k.key_hash = ? AND k.revoked_at IS NULL
+          AND (k.expires_at IS NULL OR k.expires_at > CURRENT_TIMESTAMP)
         """,
         (key_hash,),
     ).fetchone()
     if row is None:
         return None
-    conn.execute("UPDATE admin_api_keys SET last_used_at = CURRENT_TIMESTAMP WHERE key_hash = ?", (key_hash,))
-    conn.commit()
+    row["api_scopes"] = tuple(scope["scope"] for scope in conn.execute(
+        "SELECT scope FROM admin_api_key_scopes WHERE key_id = ? ORDER BY scope", (row["api_key_id"],)).fetchall())
+    cur = conn.execute(
+        "UPDATE admin_api_keys SET last_used_at = CURRENT_TIMESTAMP WHERE key_hash = ?"
+        " AND (last_used_at IS NULL OR last_used_at < CURRENT_TIMESTAMP - INTERVAL ? SECOND)",
+        (key_hash, LAST_USED_REFRESH_SECONDS),
+    )
+    if cur.rowcount:
+        conn.commit()
     return row
 
 
@@ -444,11 +522,19 @@ def list_api_keys(conn, admin_user_id):
     never the key itself or its hash, only display metadata (`GET
     /api/auth/api-keys`'s response shape).
     """
-    return conn.execute(
-        "SELECT id, label, created_at, last_used_at, revoked_at FROM admin_api_keys "
-        "WHERE admin_user_id = ? ORDER BY created_at DESC",
+    rows = conn.execute(
+        "SELECT id, label, created_at, last_used_at, revoked_at, key_prefix, expires_at FROM admin_api_keys "
+        "WHERE admin_user_id = ? ORDER BY created_at DESC, id DESC",
         (admin_user_id,),
     ).fetchall()
+    scopes = {}
+    for scope in conn.execute(
+            "SELECT s.key_id, s.scope FROM admin_api_key_scopes s JOIN admin_api_keys k ON k.id = s.key_id"
+            " WHERE k.admin_user_id = ?", (admin_user_id,)).fetchall():
+        scopes.setdefault(scope["key_id"], []).append(scope["scope"])
+    for row in rows:
+        row["scopes"] = sorted(scopes.get(row["id"], []), key=SCOPES.index)
+    return rows
 
 
 def revoke_api_key(conn, admin_user_id, key_id):

@@ -103,13 +103,13 @@ def test_an_older_control_schema_gains_the_tree_columns(mysql_config):
         _db._ensure_control_schema(conn)  # a second deploy changes nothing
         columns = {row["name"] for row in conn.execute(
             "SELECT COLUMN_NAME AS name FROM information_schema.COLUMNS"
-            " WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME IN ('work_jobs', 'work_lease')").fetchall()}
+            " WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME IN ('work_jobs', 'work_lease', 'admin_api_keys')").fetchall()}
         version = conn.execute("SELECT MAX(version) AS v FROM control_schema_migrations").fetchone()["v"]
     finally:
         conn.close()
     for table, added in _db._CONTROL_COLUMNS.items():
         assert {name for name, _definition in added} <= columns, table
-    assert version == _db.CONTROL_SCHEMA_VERSION == 12
+    assert version == _db.CONTROL_SCHEMA_VERSION == 13
     # The old run is still there, now a root of its own tree.
     tree = _tree(mysql_config, "old-run")
     assert tree["title"] == "Before v7" and tree["kind"] == "queue" and tree["children"] == []

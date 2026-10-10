@@ -864,11 +864,17 @@ def auth_list_api_keys(cookie_header):
     return body["items"]
 
 
-def auth_create_api_key(cookie_header, label):
-    """`POST /api/auth/api-keys` -- returns `{"id", "label", "key"}`; `key`
-    is the raw key, shown this once (see `adminAuth.create_api_key`)."""
+def auth_create_api_key(cookie_header, label, scopes=None, expires_days=None):
+    """`POST /api/auth/api-keys` -- returns `{"id", "label", "scopes",
+    "expires_days", "key"}`; `key` is the raw key, shown this once (see
+    `adminAuth.create_api_key`)."""
+    payload = {"label": label}
+    if scopes:
+        payload["scopes"] = list(scopes)
+    if expires_days is not None:
+        payload["expires_days"] = expires_days
     body, _set_cookie_headers = _auth_request(
-        "POST", "/auth/api-keys", cookie_header=cookie_header, json_body={"label": label},
+        "POST", "/auth/api-keys", cookie_header=cookie_header, json_body=payload,
     )
     return body
 

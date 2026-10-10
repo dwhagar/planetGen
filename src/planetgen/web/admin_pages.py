@@ -417,8 +417,11 @@ def _key_cells(key):
         action = {"text": "", "form": {
             "action": url_for("web.admin"), "button": "Revoke", "label": f"Revoke {key['label']}",
             "fields": [["action", "revoke_key"], ["key_id", key["id"]], [csrf.FIELD_NAME, csrf.csrf_token()]]}}
-    return [{"text": key["label"]}, {"text": time_text(key.get("created_at"))},
+    expires = key.get("expires_at")
+    return [{"text": key["label"]}, {"text": key.get("key_prefix") or ""},
+            {"text": ", ".join(key.get("scopes") or [])}, {"text": time_text(key.get("created_at"))},
             {"text": time_text(key.get("last_used_at")) or "never"},
+            {"text": time_text(expires) if expires else "never"},
             {"text": f"revoked {time_text(revoked)}" if revoked else "active"}, action]
 
 
@@ -429,14 +432,16 @@ def _keys_load(state, limit, offset, want_facets):
         keys, state, limit, offset, want_facets,
         {"label": lambda k, desc: k["label"].casefold(), "created": lambda k, desc: k.get("created_at") or None,
          "last_used": lambda k, desc: k.get("last_used_at") or None,
+         "expires": lambda k, desc: k.get("expires_at") or None,
          "status": lambda k, desc: bool(k.get("revoked_at"))},
         {"keys_status": lambda k: "revoked" if k.get("revoked_at") else "active"}, _key_cells)
 
 
 KEYS_TABLE = tables.register(Table(
     "api-keys", "API keys",
-    [Column("label", "Label"), Column("created", "Created"), Column("last_used", "Last used"),
-     Column("status", "Status"), Column("action", "Action", sortable=False)],
+    [Column("label", "Label"), Column("prefix", "Starts with", sortable=False),
+     Column("scopes", "Scopes", sortable=False), Column("created", "Created"), Column("last_used", "Last used"),
+     Column("expires", "Expires"), Column("status", "Status"), Column("action", "Action", sortable=False)],
     _keys_load, facets=[Facet("keys_status", "Status")], prefix="keys_", noun=("key", "keys"), default_sort="created",
 ))
 
@@ -451,7 +456,13 @@ def _admin_action(cookie_header):
             label = request.form.get("label", "").strip()
             if not label:
                 return {"error": "Label is required."}, "api-keys"
-            new_key = apiclient.auth_create_api_key(cookie_header, label)
+            scopes = [scope for scope in request.form.getlist("scope") if scope]
+            expires_text = request.form.get("expires_days", "").strip()
+            try:
+                expires_days = float(expires_text) if expires_text else None
+            except ValueError:
+                return {"error": "Days until it expires must be a number."}, "api-keys"
+            new_key = apiclient.auth_create_api_key(cookie_header, label, scopes or None, expires_days)
             return {"new_key": {"label": new_key["label"], "key": new_key["key"]}}, "new-key"
         if action == "revoke_key":
             try:

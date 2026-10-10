@@ -46,7 +46,39 @@ def is_in_process_call():
     return bool(request.environ.get(IN_PROCESS_ENVIRON_KEY))
 
 
-limiter = Limiter(key_func=get_remote_address, default_limits_exempt_when=is_in_process_call)
+def limit_key():
+    """
+    What a rate limit counts by: `key:<id>` for a request carrying a valid
+    API key, so every key has a bucket of its own (API.9), else the client's
+    address. Never the raw header, which a client could vary to mint
+    unlimited counters.
+    """
+    from planetgen.api.authz import request_api_key_id
+    try:
+        key_id = request_api_key_id()
+    except Exception:  # noqa: BLE001 -- a control database that doesn't answer limits by address
+        key_id = None
+    return f"key:{key_id}" if key_id is not None else get_remote_address()
+
+
+def exempt_from_default_limits():
+    """
+    True for the requests the *default* per-address limits skip: the
+    Flask-served pages' in-process calls (`is_in_process_call`) and a
+    request carrying a valid API key, which is held to its own route limits
+    instead (API.9: the per-address default must not cap a `read` key at 50
+    calls an hour).
+    """
+    if is_in_process_call():
+        return True
+    try:
+        from planetgen.api.authz import request_api_key_id
+        return request_api_key_id() is not None
+    except Exception:  # noqa: BLE001
+        return False
+
+
+limiter = Limiter(key_func=limit_key, default_limits_exempt_when=exempt_from_default_limits)
 
 
 # ---------------------------------------------------------------------

@@ -181,7 +181,7 @@ def test_every_api_write_route_requires_an_admin(admins):
     # The sweep found the routes it's meant to cover.
     guarded = _sweep(admins.app, True)
     assert len(guarded) > 30
-    assert ("POST", "/api/systems", {"fresh": True, "session_only": False}) in guarded
+    assert ("POST", "/api/systems", {"fresh": True, "session_only": False, "scope": "admin"}) in guarded
 
 
 def test_public_routes_are_reads_or_sign_in(admins):
@@ -595,3 +595,175 @@ def test_a_pending_login_for_another_secret_key_is_refused(admins):
                                              environ_base=_address())
     assert response.status_code == 401
     assert "sign in with your password first" in response.get_json()["error"]
+
+
+# --- API.9: key scopes -----------------------------------------------------------
+
+def _scoped_key(client, scopes, **extra):
+    response = client.post("/api/auth/api-keys", json={"label": "scoped", "scopes": scopes, **extra})
+    assert response.status_code == 201, response.get_json()
+    return response.get_json()
+
+
+def test_every_guarded_route_names_a_known_scope(admins):
+    scopes = {needs["scope"] for _method, _path, needs in _sweep(admins.app, True)}
+    assert scopes <= set(adminAuth.SCOPES) and "admin" in scopes and "read" in scopes
+
+
+def test_a_key_made_without_scopes_is_an_admin_key(admins):
+    created = _new_key(admins.a)
+    assert created["scopes"] == ["admin"]
+    listed = admins.a.get("/api/auth/api-keys").get_json()["items"]
+    row = next(item for item in listed if item["id"] == created["id"])
+    assert row["scopes"] == ["admin"] and row["key_prefix"] == created["key"][:8] and row["expires_at"] is None
+    assert "key" not in row and "key_hash" not in row
+
+
+@pytest.mark.parametrize("scopes,reads,writes", [
+    (["read"], True, False),
+    (["generate"], True, False),
+    (["upload"], True, False),
+    (["generate", "upload"], True, False),
+    (["admin"], True, True),
+])
+def test_a_key_can_only_reach_routes_its_scopes_give(admins, scopes, reads, writes):
+    created = _scoped_key(admins.a, scopes)
+    client = admins.app.test_client(use_cookies=False)
+    headers = _bearer(created["key"])
+    checked = set()
+    for method, path, needs in _sweep(admins.app, True):
+        if needs["session_only"]:
+            continue
+        response = client.open(path, method=method, headers=headers, json={})
+        allowed = adminAuth.scope_allows(scopes, needs["scope"])
+        assert allowed == (needs["scope"] != "admin" or writes), (scopes, needs)
+        if allowed:
+            assert response.status_code not in (401,) and response.get_json().get("required_scope") is None, \
+                (scopes, method, path, response.status_code)
+        else:
+            assert response.status_code == 403, (scopes, method, path, response.status_code)
+            assert response.get_json() == {"error": f"this key lacks the '{needs['scope']}' scope",
+                                           "required_scope": needs["scope"]}
+        checked.add(needs["scope"])
+    assert "read" in checked
+
+
+def test_a_read_key_can_read_who_it_is_and_nothing_else(admins):
+    created = _scoped_key(admins.a, ["read"])
+    client = admins.app.test_client(use_cookies=False)
+    headers = _bearer(created["key"])
+    assert client.get("/api/auth/me", headers=headers).status_code == 200
+    assert client.post("/api/auth/api-keys", headers=headers, json={"label": "x"}).status_code == 403
+    assert client.get("/api/auth/api-keys", headers=headers).status_code == 403
+
+
+@pytest.mark.parametrize("body", [
+    {"scopes": []}, {"scopes": ["root"]}, {"scopes": "admin"}, {"scopes": [1]},
+    {"expires_days": 0}, {"expires_days": -1}, {"expires_days": 99999}, {"expires_days": "soon"},
+])
+def test_a_bad_scope_or_expiry_is_refused(admins, body):
+    response = admins.a.post("/api/auth/api-keys", json={"label": "x", **body})
+    assert response.status_code in (400, 422), (body, response.status_code)
+
+
+def test_an_expired_key_is_treated_like_a_revoked_one(admins):
+    created = _scoped_key(admins.a, ["admin"], expires_days=30)
+    row = next(item for item in admins.a.get("/api/auth/api-keys").get_json()["items"] if item["id"] == created["id"])
+    assert row["expires_at"]
+    client = admins.app.test_client(use_cookies=False)
+    assert client.get("/api/auth/me", headers=_bearer(created["key"])).status_code == 200
+    conn = _control(admins)
+    try:
+        conn.execute("UPDATE admin_api_keys SET expires_at = CURRENT_TIMESTAMP - INTERVAL 1 SECOND WHERE id = ?",
+                     (created["id"],))
+        conn.commit()
+    finally:
+        conn.close()
+    for method, path, _needs in _sweep(admins.app, True):
+        response = client.open(path, method=method, headers=_bearer(created["key"]), json={})
+        assert response.status_code == 401, (method, path, response.status_code)
+
+
+def test_last_used_is_written_at_most_once_a_minute(admins):
+    created = _new_key(admins.a)
+    client = admins.app.test_client(use_cookies=False)
+
+    def last_used():
+        conn = _control(admins)
+        try:
+            return conn.execute("SELECT last_used_at FROM admin_api_keys WHERE id = ?",
+                                (created["id"],)).fetchone()["last_used_at"]
+        finally:
+            conn.close()
+
+    assert last_used() is None
+    client.get("/api/auth/me", headers=_bearer(created["key"]))
+    first = last_used()
+    assert first is not None
+    conn = _control(admins)
+    try:
+        conn.execute("UPDATE admin_api_keys SET last_used_at = CURRENT_TIMESTAMP - INTERVAL 10 SECOND WHERE id = ?",
+                     (created["id"],))
+        conn.commit()
+    finally:
+        conn.close()
+    stale = last_used()
+    client.get("/api/auth/me", headers=_bearer(created["key"]))
+    assert last_used() == stale, "a key used 10 s ago is not written again"
+    conn = _control(admins)
+    try:
+        conn.execute("UPDATE admin_api_keys SET last_used_at = CURRENT_TIMESTAMP - INTERVAL 5 MINUTE WHERE id = ?",
+                     (created["id"],))
+        conn.commit()
+    finally:
+        conn.close()
+    old = last_used()
+    client.get("/api/auth/me", headers=_bearer(created["key"]))
+    assert last_used() > old
+
+
+def test_keys_made_before_scopes_become_admin_keys(admins):
+    conn = _control(admins)
+    try:
+        old_id = conn.execute(
+            "INSERT INTO admin_api_keys (admin_user_id, label, key_hash) VALUES (1, 'old', ?)", ("f" * 64,)).lastrowid
+        conn.execute("DELETE FROM admin_api_key_scopes WHERE key_id = ?", (old_id,))
+        conn.commit()
+        assert conn.execute("SELECT COUNT(*) AS n FROM admin_api_key_scopes WHERE key_id = ?",
+                            (old_id,)).fetchone()["n"] == 0
+        conn.execute("DELETE FROM control_schema_migrations WHERE version >= 13")
+        conn.execute("INSERT INTO control_schema_migrations (version) VALUES (12)")
+        conn.commit()
+        store._ensure_control_schema(conn)
+        scopes = [row["scope"] for row in conn.execute(
+            "SELECT scope FROM admin_api_key_scopes WHERE key_id = ?", (old_id,)).fetchall()]
+        version = conn.execute("SELECT MAX(version) AS v FROM control_schema_migrations").fetchone()["v"]
+    finally:
+        conn.close()
+    assert scopes == ["admin"] and version == store.CONTROL_SCHEMA_VERSION
+
+
+def test_scopes_imply_what_the_design_says():
+    assert adminAuth.granted_scopes(["admin"]) == set(adminAuth.SCOPES)
+    assert adminAuth.granted_scopes(["upload"]) == {"upload", "read"}
+    assert adminAuth.granted_scopes(["generate"]) == {"generate", "read"}
+    assert adminAuth.granted_scopes(["read"]) == {"read"}
+    assert not adminAuth.scope_allows(["upload", "generate"], "admin")
+    with pytest.raises(ValueError):
+        adminAuth.check_scopes([])
+    with pytest.raises(ValueError):
+        adminAuth.check_scopes(["root"])
+    assert adminAuth.check_scopes(["upload", "read", "upload"]) == ("read", "upload")
+
+
+def test_every_key_has_its_own_rate_limit_bucket(admins):
+    # API.9: limits count by key id, not by address, and the per-address defaults skip a valid key.
+    from planetgen.api import limiter as limits
+    first, second = _scoped_key(admins.a, ["read"]), _scoped_key(admins.a, ["upload"])
+    with admins.app.test_request_context("/api/auth/me", headers=_bearer(first["key"])):
+        assert limits.limit_key() == f"key:{first['id']}" and limits.exempt_from_default_limits()
+    with admins.app.test_request_context("/api/auth/me", headers=_bearer(second["key"])):
+        assert limits.limit_key() == f"key:{second['id']}"
+    for headers in ({}, _bearer("pg_not-a-real-key"), _bearer(first["key"] + "x")):
+        with admins.app.test_request_context("/api/auth/me", headers=headers, environ_base={"REMOTE_ADDR": "10.1.2.3"}):
+            assert limits.limit_key() == "10.1.2.3" and not limits.exempt_from_default_limits()
