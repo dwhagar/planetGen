@@ -3252,6 +3252,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   eject one by accident. Bugfixes lane 1, after its current queue (the
   progress-bar chain, the main CI errors, UX.85 and UX.86).
   Prerequisites: none. Related: GEN.109, GEN.105, GEN.104.
+  Boss (2026-10-10 01:17Z): "it could also be a render issue, I'm
+  running it right now on 100 y/s simulation and it hasn't come back
+  around yet, but it might." So the first check compares the stored
+  orbital elements of the comet (bound or unbound, period) with what the
+  system map draws and with how the simulation advances them at high
+  speed (a comet with a period longer than the run so far has simply not
+  returned yet), before the generator and Hill-sphere rules are
+  blamed; the investigation covers the renderer as well.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
