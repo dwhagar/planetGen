@@ -3,6 +3,7 @@
 ## [8.0.911] - 2026-10-10
 
 ### Changed
+- The Phenomena table counts and pages the scattered, unbuilt phenomena from stored per-class totals (schema v77), after the built ones, so it stays fast with hundreds of millions of scatter rows.
 - **Docs only:** UX.90 now covers the Shirtsleeve to Ideal rename and an explanation page under Classes, owner Bugfixes lane 2; docs use "Ideal".
 - **Docs only:** MAP.148 notes the follow-ups to MAP.163 and MAP.164 (PRs #1032, #1035).
 - **Docs only:** API.9 (key scopes, expiry, prefix, per-key rate bucket) retired; control schema is v13.
