@@ -629,10 +629,19 @@ MIN_RELATIVE_DENSITY = 1.0e-3
 BRIGHT_STAR_MASS_GRID_CELLS = 4000
 
 # The layer-walking scatter passes (stars and phenomena) walk the layers
-# from the galactic plane outwards and stop, going on to the next stage,
-# once this many layers in a row (in walk order) produced nothing
-# (`generation/early_stop.py`). 0 walks every layer.
-SCATTER_DRY_LAYERS = 100
+# from the galactic plane outwards. After SCATTER_EMPTY_LAYERS_BEFORE_GROUP
+# layers in a row that took nothing, they draw the next SCATTER_GROUP_LAYERS
+# layers as one group (the expected count over the group's sectors, the
+# objects placed by sector density), double the group while it places
+# nothing, and go back to single layers after a placement
+# (`generation/layer_groups.py`, PERF.57).
+SCATTER_EMPTY_LAYERS_BEFORE_GROUP = 5
+SCATTER_GROUP_LAYERS = 10
+
+# A layer expected to hold at least this many objects is treated as certain
+# to take some (the chance of none is below 1e-13), so the walk can start
+# the layers after it before it has finished.
+SCATTER_CERTAIN_OBJECTS = 30.0
 
 # Binary mass ratio q = M2/M1, uniform (Moe & Di Stefano 2017, ApJS 230:15,
 # find it close to flat); the secondary shares the primary's age.
