@@ -95,6 +95,10 @@ PLAN_FIELDS = (
 defaults (a test checks they still match `planetgen plan`'s parser)."""
 
 MASS_LIMIT_LABEL = "Mass limit (solar masses)"
+COMPACT_LIMIT_LABEL = "Neutron star and black hole limit (solar masses)"
+COMPACT_STORAGE_WARNINGS = ((1.0, "about 1.2 billion rows (161 GB)"), (2.0, "about 390 million rows (54 GB)"),
+                            (4.0, "about 220 million rows (30 GB)"), (6.0, "about 200 million rows (28 GB)"))
+"""tuple: What each compact-object limit costs in the database (GEN.195, Boss 2026-10-10), beside the control."""
 """str: The mass-limit slider's label (GEN.183)."""
 
 
@@ -301,22 +305,43 @@ def _number(form, name, label, kind, required=False, minimum=None, maximum=None,
         return None
 
 
+def compact_limit_argv(form):
+    """`--compact-min-mass` from the form's neutron star and black hole limit
+    (GEN.195): "star" when "Use the star mass setting" is ticked, else one of
+    `tuning.COMPACT_MIN_MASS_PRESETS`; nothing when the form has neither.
+
+    Raises:
+        FormError: A value that isn't one of the presets.
+    """
+    if form.get("compact_use_star"):
+        return ["--compact-min-mass", tuning.COMPACT_MIN_MASS_STAR]
+    value = _number(form, "compact_min_mass", COMPACT_LIMIT_LABEL, float)
+    if value is None:
+        return []
+    if not any(abs(value - preset) < 1e-9 for preset in tuning.COMPACT_MIN_MASS_PRESETS):
+        _problem(f"{COMPACT_LIMIT_LABEL} must be one of "
+                 + ", ".join(f"{preset:g}" for preset in tuning.COMPACT_MIN_MASS_PRESETS) + ".")
+        return []
+    return ["--compact-min-mass", f"{value:g}"]
+
+
 def mass_limit_argv(form):
     """`--phenomenon-min-mass` from the form's mass-limit slider (GEN.183:
     one of `tuning.PHENOMENON_MIN_MASS_PRESETS`; blank leaves the galaxy's
-    stored limit, else 20).
+    stored limit, else 20), then the neutron star and black hole limit
+    (`compact_limit_argv`).
 
     Raises:
         FormError: A value that isn't one of the presets.
     """
     value = _number(form, "phenomenon_min_mass", MASS_LIMIT_LABEL, float)
     if value is None:
-        return []
+        return compact_limit_argv(form)
     if not any(abs(value - preset) < 1e-9 for preset in tuning.PHENOMENON_MIN_MASS_PRESETS):
         _problem(f"{MASS_LIMIT_LABEL} must be one of "
                  + ", ".join(f"{preset:g}" for preset in tuning.PHENOMENON_MIN_MASS_PRESETS) + ".")
         return []
-    return ["--phenomenon-min-mass", f"{value:g}"]
+    return ["--phenomenon-min-mass", f"{value:g}"] + compact_limit_argv(form)
 
 
 def plan_argv(form):
@@ -1080,6 +1105,9 @@ def _page(admin, error=None, status=200, form=None, estimate=None, estimate_titl
         mass_limit_label=MASS_LIMIT_LABEL,
         mass_limit_presets=tuning.PHENOMENON_MIN_MASS_PRESETS,
         mass_limit_default=tuning.PHENOMENON_MIN_MASS_SOLAR,
+        compact_label=COMPACT_LIMIT_LABEL,
+        compact_presets=tuning.COMPACT_MIN_MASS_PRESETS,
+        compact_warnings=COMPACT_STORAGE_WARNINGS,
         backfill_text=BACKFILL_TEXT,
         galaxy_modes=GALAXY_MODES,
         max_radius_pc=MAX_GENERATE_RADIUS_PC,

@@ -544,3 +544,91 @@ def test_every_stage_of_the_phenomenon_scatter_draws_a_bar(mysql_config, tmp_pat
     for stage in ("Clearing the earlier phenomena scatter", "Phenomena (", "Drawing the special phenomena",
                   "Writing the special phenomena", "Stamping the hypervelocity"):
         assert any(text and text.startswith(stage) for text in descriptions), (stage, descriptions)
+
+
+# --- The neutron star and black hole limit (GEN.195) ---
+
+def _compact_args(mysql_config, stellar, compact):
+    args = _plan_args(mysql_config, "--phenomenon-min-mass", "1")
+    args.phenomenon_min_mass = stellar
+    args.compact_min_mass = compact
+    return args
+
+
+def test_the_compact_limit_must_be_a_preset_or_star():
+    parser = argparse.ArgumentParser(prefix_chars='-+')
+    generate_cli.add_plan_arguments(parser)
+    for value, ok in (("1", True), ("2", True), ("4", True), ("6", True), ("star", True), ("3", False),
+                      ("8", False), ("0.5", False)):
+        args = parser.parse_args(["--compact-min-mass", value])
+        if ok:
+            generate_cli.validate_plan_args(args, parser)
+        else:
+            with pytest.raises(SystemExit):
+                generate_cli.validate_plan_args(args, parser)
+    assert parser.parse_args([]).compact_min_mass is None
+    assert parser.parse_args(["--compact-min-mass", "star"]).compact_min_mass == tuning.COMPACT_MIN_MASS_STAR
+
+
+def test_the_galaxy_command_takes_the_compact_limit_too():
+    parser = argparse.ArgumentParser(prefix_chars='-+')
+    generate_cli.add_galaxy_arguments(parser)
+    args = parser.parse_args(["--then-scatter", "--compact-min-mass", "2"])
+    assert args.compact_min_mass == 2.0
+    bad = parser.parse_args(["--then-scatter", "--compact-min-mass", "3"])
+    with pytest.raises(SystemExit):
+        generate_cli.validate_galaxy_args(bad, parser)
+
+
+def test_stars_and_compact_objects_have_their_own_limits(mysql_config):
+    """A compact limit of its own cuts the neutron stars and black holes while the stellar limit stays put."""
+    conn = store.get_connection(mysql_config)
+    try:
+        args = _compact_args(mysql_config, 20.0, None)
+        assert run_plan._stellar_mass_limit(args, conn) == 20.0 and run_plan._compact_mass_limit(args, conn) == 20.0
+        args.compact_min_mass = tuning.COMPACT_MIN_MASS_STAR
+        assert run_plan._compact_mass_limit(args, conn) == 20.0
+        args.compact_min_mass = 2.0
+        assert run_plan._stellar_mass_limit(args, conn) == 20.0 and run_plan._compact_mass_limit(args, conn) == 2.0
+    finally:
+        conn.close()
+
+
+def test_the_compact_limit_alone_decides_the_neutron_stars_and_black_holes_placed(mysql_config):
+    _seed_galaxy(mysql_config)
+    run_plan.scatter_phenomena(_compact_args(mysql_config, 20.0, 1.0))
+    many = _rows(mysql_config, "kind IN ('neutron-star', 'black-hole')")
+    run_plan.scatter_phenomena(_compact_args(mysql_config, 1.0, 6.0))
+    few = _rows(mysql_config, "kind IN ('neutron-star', 'black-hole')")
+    assert len(many) > len(few) > 0
+    conn = store.get_connection(mysql_config)
+    try:
+        assert store.phenomenon_scatter_settings(conn)[1] == 6.0
+    finally:
+        conn.close()
+
+
+def test_a_star_setting_compact_limit_follows_the_stellar_limit(mysql_config):
+    _seed_galaxy(mysql_config)
+    run_plan.scatter_phenomena(_compact_args(mysql_config, 20.0, tuning.COMPACT_MIN_MASS_STAR))
+    conn = store.get_connection(mysql_config)
+    try:
+        assert store.phenomenon_scatter_settings(conn)[1] == 20.0
+    finally:
+        conn.close()
+
+
+@pytest.mark.parametrize("stellar", tuning.PHENOMENON_MIN_MASS_PRESETS)
+@pytest.mark.parametrize("compact", tuning.COMPACT_MIN_MASS_PRESETS + (tuning.COMPACT_MIN_MASS_STAR,))
+def test_the_central_black_hole_or_quasar_exists_whatever_the_limits(mysql_config, stellar, compact):
+    """GEN.195, hard requirement: the nucleus ignores both limits, for every combination of the two."""
+    _seed_galaxy(mysql_config)
+    run_plan.scatter_phenomena(_compact_args(mysql_config, stellar, compact))
+    nuclei = _rows(mysql_config, "(kind = 'quasar') OR (kind = 'black-hole' AND subtype = 'supermassive')")
+    assert len(nuclei) == 1
+    assert (nuclei[0]["ring_index"], nuclei[0]["layer_index"], nuclei[0]["ring_slot_index"]) == scatter.NUCLEUS_ADDRESS
+
+
+def test_the_nucleus_row_does_not_depend_on_any_limit():
+    assert scatter.special_rows(EXTENTS, EDGE_PC, 3)[0] == scatter.nucleus_row(3)
+    assert scatter.nucleus_row(3)[3] in scatter.NUCLEUS_KINDS
