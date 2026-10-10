@@ -1039,23 +1039,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: MAP.147, MAP.159, MAP.109.
   Design: [docs/design/galaxy-map-wire-format.md](design/galaxy-map-wire-format.md)
 
-- [ ] **MAP.161 Load the Galaxy Map faster on a first visit: bundle or preload its scripts**
-  Source: docs/design/galaxy-map-wire-format.md (sections 2.3 and 1).
-  Measured by Research Lane 3: the first star does not wait on a tile
-  (the opening tile is inside the 35 KB gzipped page); it waits on 173
-  static files (543 KB gzipped, 1.8 MB decoded; the map scripts and
-  three.js), which is 7.9 to 8.1 s on a slow 4G link and 1.0 to 1.3 s
-  locally. Production serves `/static` immutable, so repeat visits are
-  fine. Done: the map scripts load faster on a first visit, by bundling
-  them or `modulepreload` hints, and HTTP/2 in the Apache example
-  (`examples/apache/planetgen.conf.example`); this keeps the no-bundler
-  decision (vendored ES modules) unless Boss says otherwise, so the
-  default is `modulepreload` plus HTTP/2. Phase 1 (Boss, 2026-10-09 23:29Z).
-  Open question for Boss
-  (default `modulepreload` and HTTP/2, no bundler): or bundle?
-  Prerequisites: none. Related: MAP.147, MAP.157, MAP.158.
-  Design: [docs/design/galaxy-map-wire-format.md](design/galaxy-map-wire-format.md)
-
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
