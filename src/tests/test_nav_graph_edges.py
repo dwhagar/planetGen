@@ -1,7 +1,7 @@
 # tests/test_nav_graph_edges.py
 
 """
-TEST.39: the NAV adjacency graph's k-d tree (`navGraph._knn_query`,
+TEST.39: the NAV adjacency graph's k-d tree (`nav_graph._Points.nearest`,
 `build_knn_adjacency`) checked against a brute-force nearest-neighbor
 search, plus its edge cases (duplicate coordinates, k = 0, k >= n, NaN
 positions) and the warp/fold travel time table at extreme distances.
@@ -13,7 +13,7 @@ import random
 
 import pytest
 
-from planetgen.galaxy.nav_graph import _build_kdtree, _knn_query, build_knn_adjacency, shortest_path
+from planetgen.galaxy.nav_graph import _Points, build_knn_adjacency, shortest_path
 from planetgen.galaxy.navigation import fold_travel_times, warp_travel_times
 
 
@@ -47,9 +47,9 @@ def _random_positions(rng, n, spread=50.0):
 def test_kd_tree_neighbors_match_brute_force(seed, k):
     rng = random.Random(seed)
     positions = _random_positions(rng, 200)
-    root = _build_kdtree(list(positions.items()))
+    root = _Points(list(positions.items()))
     for system_id in positions:
-        assert _knn_query(root, positions[system_id], k, exclude_id=system_id) == \
+        assert root.nearest(positions[system_id], k, exclude_id=system_id) == \
             _brute_knn(positions, system_id, k)
 
 
@@ -69,20 +69,20 @@ def test_kd_tree_matches_brute_force_on_a_flat_clustered_disk():
         cx, cy = rng.uniform(-100, 100), rng.uniform(-100, 100)
         for n in range(30):
             positions[f"{cluster}-{n}"] = (cx + rng.gauss(0, 1), cy + rng.gauss(0, 1), 0.0)
-    root = _build_kdtree(list(positions.items()))
+    root = _Points(list(positions.items()))
     for system_id in positions:
-        assert _knn_query(root, positions[system_id], 5, exclude_id=system_id) == \
+        assert root.nearest(positions[system_id], 5, exclude_id=system_id) == \
             _brute_knn(positions, system_id, 5)
 
 
 def test_query_points_outside_the_tree_match_brute_force():
     rng = random.Random(11)
     positions = _random_positions(rng, 120, spread=10.0)
-    root = _build_kdtree(list(positions.items()))
+    root = _Points(list(positions.items()))
     for _ in range(50):
         origin = (rng.uniform(-40, 40), rng.uniform(-40, 40), rng.uniform(-40, 40))
         expected = sorted((math.dist(origin, point), system_id) for system_id, point in positions.items())[:6]
-        assert _knn_query(root, origin, 6, exclude_id=None) == expected
+        assert root.nearest(origin, 6, exclude_id=None) == expected
 
 
 # ---------------------------------------------------------------------------
@@ -108,9 +108,9 @@ def test_many_duplicates_give_the_brute_force_distances():
     rng = random.Random(3)
     spots = [(rng.randint(0, 4), rng.randint(0, 4), 0) for _ in range(80)]
     positions = dict(enumerate(spots))
-    root = _build_kdtree(list(positions.items()))
+    root = _Points(list(positions.items()))
     for system_id in positions:
-        found = _knn_query(root, positions[system_id], 6, exclude_id=system_id)
+        found = root.nearest(positions[system_id], 6, exclude_id=system_id)
         assert [d for d, _ in found] == [d for d, _ in _brute_knn(positions, system_id, 6)]
         assert system_id not in [n for _, n in found]
 
@@ -199,3 +199,26 @@ def test_a_factor_outside_the_curve_is_refused(factor):
         warp_travel_times(1.0, warp_factors=(factor,))
     with pytest.raises(ValueError):
         fold_travel_times(1.0, fold_factors=(factor,))
+
+
+def test_join_islands_links_the_closest_pair_of_two_islands():
+    """NAV.52: the cKDTree port joins two islands by exactly the closest pair a brute-force search finds."""
+    from planetgen.galaxy.nav_graph import connected_components, join_islands
+
+    rng = random.Random(21)
+    positions = {}
+    for island, (cx, cy) in enumerate(((0.0, 0.0), (40.0, 5.0))):
+        for n in range(25):
+            positions[(island, n)] = (cx + rng.gauss(0, 3), cy + rng.gauss(0, 3), rng.gauss(0, 1))
+    graph = build_knn_adjacency(positions, 3)
+    assert len(connected_components(graph)) == 2
+    before = {a: dict(edges) for a, edges in graph.items()}
+    join_islands(graph, positions, 1)
+
+    assert len(connected_components(graph)) == 1
+    added = [(a, b) for a in graph for b in graph[a] if b not in before[a] and a[0] == 0]
+    assert len(added) == 1
+    best = min((math.dist(positions[a], positions[b]), a, b)
+               for a in positions if a[0] == 0 for b in positions if b[0] == 1)
+    assert added[0] == (best[1], best[2])
+    assert graph[best[1]][best[2]] == best[0] == graph[best[2]][best[1]]

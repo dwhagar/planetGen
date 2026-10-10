@@ -42,6 +42,9 @@ import heapq
 import itertools
 import math
 
+import numpy as np
+from scipy.spatial import cKDTree
+
 
 def _distance(a, b):
     """
@@ -58,106 +61,45 @@ def _distance(a, b):
     return math.dist(a, b)
 
 
-class _KDNode:
-    """One node of the 3D k-d tree `_build_kdtree`/`_knn_query` use --
-    plain data, no behavior of its own."""
-
-    __slots__ = ("system_id", "point", "axis", "left", "right")
-
-    def __init__(self, system_id, point, axis, left, right):
-        self.system_id = system_id
-        self.point = point
-        self.axis = axis
-        self.left = left
-        self.right = right
-
-
-def _build_kdtree(items, depth=0):
+class _Points:
     """
-    Builds a balanced 3D k-d tree over `items` (`[(id, (x, y, z)), ...]`)
-    -- splitting on the widest-spread-first convention isn't needed here
-    (a plain depth-cycled x/y/z split already keeps the tree balanced
-    enough for this module's purposes, and is simpler), so each level
-    alternates axis `depth % 3` and splits its slice at the median along
-    that axis.
-
-    Args:
-        items (list[tuple]): `(id, (x, y, z))` pairs to build the tree
-                             from.
-        depth (int): The current recursion depth -- picks the split axis.
-
-    Returns:
-        _KDNode or None: The subtree's root, or `None` for an empty slice.
+    A set of `(id, (x, y, z))` points and the `scipy.spatial.cKDTree` over them (NAV.52: the pure-Python k-d tree
+    this replaces was 44 times slower at 10,000 points). Plain data plus the one exact k-nearest query.
     """
-    if not items:
-        return None
-    axis = depth % 3
-    items = sorted(items, key=lambda item: item[1][axis])
-    mid = len(items) // 2
-    system_id, point = items[mid]
-    return _KDNode(
-        system_id, point, axis,
-        _build_kdtree(items[:mid], depth + 1),
-        _build_kdtree(items[mid + 1:], depth + 1),
-    )
 
+    __slots__ = ("ids", "array", "tree")
 
-def _knn_query(root, origin, k, exclude_id):
-    """
-    Finds `origin`'s `k` true nearest neighbors in the k-d tree rooted at
-    `root` (excluding `exclude_id`, the point being queried from) -- the
-    standard k-d tree k-nearest-neighbor search: a bounded max-heap of the
-    best `k` candidates found so far, pruning a subtree entirely whenever
-    its splitting plane is already farther away than the current worst
-    kept candidate (so a subtree that provably can't contain anything
-    closer is never even visited, the whole reason this is faster than
-    checking every point).
+    def __init__(self, items):
+        self.ids = [system_id for system_id, _point in items]
+        self.array = np.array([point for _system_id, point in items], dtype=float).reshape(-1, 3)
+        self.tree = cKDTree(self.array)
 
-    Args:
-        root (_KDNode or None): The tree to search.
-        origin (tuple): The `(x, y, z)` point to find neighbors of.
-        k (int): How many nearest neighbors to find.
-        exclude_id: A point id to never return (the query point's own id,
-                   already present in the tree it's being searched
-                   against).
+    def nearest(self, origin, k, exclude_id=None):
+        """
+        The `k` points nearest `origin` (never `exclude_id`, the query point's own id when it is in the set),
+        exact.
 
-    Returns:
-        list[tuple]: Up to `k` `(distance, id)` pairs, sorted nearest
-                    first.
-    """
-    heap = []  # max-heap of (-distance, id), capped at size k
-
-    def visit(node):
-        if node is None:
-            return
-        if node.system_id != exclude_id:
-            distance = _distance(origin, node.point)
-            if len(heap) < k:
-                heapq.heappush(heap, (-distance, node.system_id))
-            elif distance < -heap[0][0]:
-                heapq.heapreplace(heap, (-distance, node.system_id))
-
-        axis_delta = origin[node.axis] - node.point[node.axis]
-        near, far = (node.left, node.right) if axis_delta < 0 else (node.right, node.left)
-        visit(near)
-        # The far subtree can only hold something closer than our current
-        # worst kept candidate if the splitting plane itself is nearer
-        # than that -- otherwise every point on the far side is
-        # guaranteed at least `abs(axis_delta)` away and skipping it
-        # entirely is exact, not an approximation.
-        if len(heap) < k or abs(axis_delta) < -heap[0][0]:
-            visit(far)
-
-    visit(root)
-    return sorted((-neg_distance, system_id) for neg_distance, system_id in heap)
+        Returns:
+            list[tuple]: Up to `k` `(distance, id)` pairs, nearest first; `distance` is `math.dist`.
+        """
+        count = min(k + (exclude_id is not None), len(self.ids))
+        if count < 1:
+            return []
+        _, indexes = self.tree.query(origin, k=count)
+        found = [int(index) for index in np.atleast_1d(indexes)]
+        if exclude_id is not None:
+            own = next((index for index in found if self.ids[index] == exclude_id), None)
+            found.remove(own if own is not None else found[-1])
+        found = found[:k]
+        return sorted(((math.dist(origin, self.array[index]), self.ids[index]) for index in found),
+                      key=lambda entry: entry[0])
 
 
 def build_knn_adjacency(positions, k):
     """
     Builds a symmetric k-nearest-neighbor adjacency graph over `positions`.
 
-    Runs in O(n log n) via an in-memory 3D k-d tree (`_build_kdtree`/
-    `_knn_query`) rather than the naive O(n^2) "sort every other point's
+    Runs in O(n log n) via a `scipy.spatial.cKDTree` (`_Points`; NAV.52) rather than the naive O(n^2) "sort every other point's
     distance, for every point" approach this replaced -- indistinguishable
     for a single sector's own handful of systems, but this same function
     also backs a *galaxy*-scope NAV route (`queryDb.nav_between`,
@@ -192,12 +134,22 @@ def build_knn_adjacency(positions, k):
     if len(ids) < 2 or k < 1:
         return graph
 
-    root = _build_kdtree([(system_id, positions[system_id]) for system_id in ids])
-
-    for system_id in ids:
+    points = _Points([(system_id, positions[system_id]) for system_id in ids])
+    count = min(k + 1, len(ids))
+    _, indexes = points.tree.query(points.array, k=count)
+    indexes = indexes.reshape(len(ids), count)
+    # Each row holds the point itself (not always first, among duplicates) and its `count - 1` nearest others; a
+    # row where the point's own index was crowded out by ties drops its last entry instead.
+    others = indexes != np.arange(len(ids))[:, None]
+    others[others.all(axis=1), -1] = False
+    neighbors = indexes[others].reshape(len(ids), count - 1)
+    for row, system_id in enumerate(ids):
         origin = positions[system_id]
-        for distance, neighbor_id in _knn_query(root, origin, k, exclude_id=system_id):
-            graph[system_id][neighbor_id] = distance
+        edges = graph[system_id]
+        for column in neighbors[row].tolist():
+            neighbor_id = ids[column]
+            distance = _distance(origin, positions[neighbor_id])
+            edges[neighbor_id] = distance
             graph[neighbor_id][system_id] = distance
 
     return graph
@@ -242,35 +194,25 @@ class _Island:
 
     def __init__(self, ids, positions):
         self.ids = ids
-        points = [positions[system_id] for system_id in ids]
-        self.center = tuple(sum(point[axis] for point in points) / len(points) for axis in range(3))
-        self.radius = max(_distance(self.center, point) for point in points)
-        self.tree = _build_kdtree([(system_id, positions[system_id]) for system_id in ids])
+        self.tree = _Points([(system_id, positions[system_id]) for system_id in ids])
+        self.center = tuple(self.tree.array.mean(axis=0).tolist())
+        self.radius = float(np.linalg.norm(self.tree.array - self.center, axis=1).max())
 
 
 def _closest_pair(island_a, island_b, positions):
     """
     The closest pair of systems between two islands, exact: every system
     of the smaller island asks the larger island's k-d tree for its
-    nearest.
+    nearest, all in one `cKDTree` query.
 
     Returns:
         tuple: `(distance, id_in_a, id_in_b)`.
     """
     small, large = (island_a, island_b) if len(island_a.ids) <= len(island_b.ids) else (island_b, island_a)
-    best = None
-    # Nearest the larger island's center first, so a close pair turns up
-    # early; nothing in that island is nearer than its sphere's surface,
-    # so once that surface is past the best pair, the rest can't beat it.
-    for center_distance, system_id in sorted(
-        ((_distance(positions[system_id], large.center), system_id) for system_id in small.ids),
-        key=lambda entry: entry[0],
-    ):
-        if best is not None and center_distance - large.radius >= best[0]:
-            break
-        (distance, other_id), = _knn_query(large.tree, positions[system_id], 1, exclude_id=None)
-        if best is None or distance < best[0]:
-            best = (distance, system_id, other_id)
+    distances, indexes = large.tree.tree.query(small.tree.array, k=1)
+    row = int(np.argmin(distances))
+    small_id, large_id = small.ids[row], large.ids[int(indexes[row])]
+    best = (_distance(positions[small_id], positions[large_id]), small_id, large_id)
     if small is island_a:
         return best
     return best[0], best[2], best[1]
@@ -317,7 +259,7 @@ def join_islands(graph, positions, links):
 
         joined = set()
         pairs = {}  # (lower index, higher index) -> _closest_pair, each worked out once
-        centers = _build_kdtree([(index, island.center) for index, island in enumerate(islands)])
+        centers = _Points([(index, island.center) for index, island in enumerate(islands)])
         largest_radius = max(island.radius for island in islands)
 
         def island_distance(index, other_index):
@@ -333,7 +275,7 @@ def join_islands(graph, positions, links):
             # ones not fetched yet can't beat the `links` nearest found.
             fetch = min(len(islands) - 1, 2 * links)
             while True:
-                fetched = _knn_query(centers, island.center, fetch, exclude_id=index)
+                fetched = centers.nearest(island.center, fetch, exclude_id=index)
                 nearest = []  # (distance, id_here, id_there, other_index), nearest first
                 for gap, other_index in sorted(
                     (max(0.0, center_distance - island.radius - islands[other_index].radius), other_index)
