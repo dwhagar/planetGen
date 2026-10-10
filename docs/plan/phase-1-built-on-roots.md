@@ -26,7 +26,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| NAV.8 | Pages and anchors for stars, planets, moons and belts |  | System page anchors (system.html). |
 | NAV.9 | Search and locate return references for every kind |  | queryDb search and galaxy_locate. |
 
 ### Picker
@@ -230,7 +229,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 ## Open questions for Boss
 
-- NAV.8: Pages and anchors for stars, planets, moons and belts, see its entry in TODO.md.
 - NAV.11: Travel times for the system-to-system route too, see its entry in TODO.md.
 - UX.22: Meaningful units for every measurement, see its entry in TODO.md.
 - UX.3: Warn every visitor while a background job changes the galaxy, see its entry in TODO.md.

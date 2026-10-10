@@ -121,6 +121,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | UX.48 | Charted regions as bookmarks that frame and outline the region | UX.47 |  |
+| UX.92 | A Bookmark button for planets, moons and belts | UX.45 |  |
 | UX.45 | Bookmark management | UX.46, UX.47, UX.48 | Parent; per browser until accounts (USR.7) move them. |
 
 ### Orbital updates
