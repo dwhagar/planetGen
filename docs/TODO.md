@@ -3403,6 +3403,16 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   tables.
   Design: [docs/design/db-check-and-parity-repair.md](design/db-check-and-parity-repair.md)
 
+- [ ] **DB.22 Sectors saved by hand without a grid address have no stored object ID until they are saved again (bug)**
+  Foundations lane 1 (2026-10-10, from API.23 stage 1, PR #1119):
+  hand-made sectors with no grid address that were saved before the
+  object-ID work have no stored uid until they are saved again. A
+  data-only schema revision is not seen by detect_schema_version, so no
+  migration was added. Decide how to fill them in (a one-off command, or
+  a revision that changes the schema version) and do it. Owner:
+  Foundations lane 1.
+  Prerequisites: API.23.
+
 ## API: The JSON API
 
 - [ ] **API.3 Remote generate: generate on a local machine, upload through the API**
@@ -3696,23 +3706,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   region per request.
   Prerequisite: API.18.
 
-- [ ] **API.22 An API version number: one sequential integer, shown in admin and in the status response**
-  Boss (2026-10-09 20:59Z): "I want ... API version number (same) by the
-  end of phase 1", a plain sequential integer like the DB schema number.
-  Done: `API_VERSION = 1` in one module, bumped by a PR that makes a
-  breaking change to an endpoint (a removed or renamed route or field, a
-  changed meaning or type, a new required parameter); additive changes
-  do not bump it. It is returned by the API status response and every
-  `/api` response header, shown on the admin status page in place of the
-  release string now labelled "API version", and recorded in
-  docs/api.md's change list. A test fails when the route table or
-  response shapes change without the integer moving (a stored schema
-  snapshot). API.4's compatibility data and the remote-run handshake
-  (API.17) compare this integer.
-  Decided (Boss, 2026-10-09 21:02Z): bump on any breaking change to an
-  endpoint; additive changes do not bump.
-  Prerequisites: none. Related: API.4, API.17.
-
 - [ ] **API.23 The object ID as the public reference: pages, URLs, the API, wiki links and objectref use it in place of row ids**
   Source: docs/design/object-id-options.md section 0 (Boss decided
   2026-10-09 22:39Z: birth location plus serial, galaxy-wide; the same
@@ -3724,9 +3717,11 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   use the object ID in place of row ids (lookup probes the object tables
   by `uid`; a kind prefix such as planet:ID is only a hint). Row ids
   stay internal. No compatibility shim. This is a breaking API change,
-  so it bumps API.22's API version number.
+  so it bumps the API version number (API.22, built).
   Decided (Boss, 2026-10-10 02:48Z, via Foundations lane 1): yes, the 80-bit object ID replaces row ids in pages, URLs and the API, and Boss accepts the API break. Cleared to build once API.22, GEN.171 and GEN.172 are in.
-  Prerequisite: API.22.
+  Stage 1 of 3 done (PR #1119): sectors, systems and phenomena use
+  printed IDs. Stage 2 = bodies and facilities; stage 3 = edit
+  endpoints, wiki, NAV, objectref.js and the galaxy JS.
   Design: [docs/design/object-id-options.md](design/object-id-options.md)
 
 ## ADM: Admin tools
