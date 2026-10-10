@@ -3347,8 +3347,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   records first (PERF.66 falls back to the average of the earlier stages
   only when there is no record); the admin pages can show a finished
   job's tree of timings; a test checks that a finished job's record sums
-  from operation to stage to job. Owner: Bugfixes lane 1, after PERF.66
-  (the bar fix does not wait for it).
+  from operation to stage to job. Boss (2026-10-10 20:26Z): "We should
+  also have different stats for mass star scatter and bright star
+  scatter and then a common item scatter that aggregates all of the
+  scatters, and then we need to make sure all points use that
+  information to calculate ETAs." So each scatter kind keeps its own
+  timing records (the mass-limit star scatter, the bright star scatter,
+  the phenomena pass, the backfill rings and any other pass), one common
+  "scatter" record aggregates all of them, and every place that shows or
+  computes an ETA (stage bars, the whole-job bar, the CLI, the job page,
+  the Generate page's forecast) reads these records and none keeps its
+  own estimate. A test checks that the scatter aggregate equals the sum
+  of its kinds and that each ETA display reads the records. Owner:
+  Bugfixes lane 1, after PERF.66 (the bar fix does not wait for it).
   Prerequisites: none. Related: PERF.32, PERF.33, PERF.55, PERF.56,
   PERF.66.
 
