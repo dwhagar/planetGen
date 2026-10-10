@@ -115,7 +115,7 @@ hand). If WebGL runs out, three's own `InstancedMesh`, `BatchedMesh` and
 
 **Chosen:** every page is served by the same Flask app as the API
 (`src/planetgen/web/`, Jinja2 templates, mounted at `/` through mod_wsgi or
-gunicorn/waitress). Old `/<name>.py` URLs answer with a 301 to their
+gunicorn). Old `/<name>.py` URLs answer with a 301 to their
 replacement (`web/old_urls.py`).
 
 **When:**
@@ -203,8 +203,8 @@ system Python. On an externally managed Python (PEP 668: Debian 12+,
 Ubuntu 23.04+), each library comes from apt when apt has it at or above
 `setup.py`'s floor; only what apt lacks or ships too old is pip-installed
 system-wide into `/usr/local`, alongside apt's copy, from the hash-checked
-`requirements.lock`. On macOS and Windows the installers build a venv
-(with gunicorn or waitress).
+`requirements.lock`. On macOS the installer builds a venv
+(with gunicorn).
 
 **When:**
 - 5.58.0 (2026-09-30, PR #99): first support for externally managed Python,
@@ -214,7 +214,7 @@ system-wide into `/usr/local`, alongside apt's copy, from the hash-checked
 - Commit 38a67c5 then moved everything into a dedicated venv at
   `/opt/planetgen/venv`, and commit 498df96, in the same PR, reverted it.
 - 7.7.0: pip installs only locked, hash-checked files.
-- 7.16.0: Windows and macOS installers, with venvs.
+- 7.16.0: macOS installer, with a venv.
 
 **Why:**
 - Boss "asked in words for the system Python with apt first" (commit
@@ -231,8 +231,8 @@ system-wide into `/usr/local`, alongside apt's copy, from the hash-checked
 by mod_wsgi through `python-home` (commit 38a67c5, "the standard deployment
 pattern Boss shared"). It was reverted because "the venv is still an open
 question" to Boss, and the commit is kept in history to restore if Boss
-chooses it (commit 498df96). On macOS and Windows there is no system
-package manager to lean on, so venvs are used there; no further reason is
+chooses it (commit 498df96). On macOS there is no system
+package manager to lean on, so a venv is used there; no further reason is
 recorded.
 
 ---
@@ -244,9 +244,9 @@ their own pass over what is already stored (`generate.py population`,
 `planetgen/population/model.py`), not during system generation. The pass
 is opt-in: `generate.py sector` and `galaxy` run it only with
 `--population`, the admin Generate page never passes that flag, and
-`install.sh` (and `install.ps1`) ask y/N with a
+`install.sh` asks y/N with a
 30-second timeout that defaults to No and skip the question with no
-terminal; `POPULATION=1` (`-Population`) runs it without asking. The pages
+terminal; `POPULATION=1` runs it without asking. The pages
 and the Galaxy Map's Territories button hide themselves when there is no
 population data (`GET /api/population`, a polity count). Details:
 `population-and-politics.md`.

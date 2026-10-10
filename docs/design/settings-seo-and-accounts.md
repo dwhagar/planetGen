@@ -97,7 +97,7 @@ The code already splits this way by accident (from the `load_config` call sites,
 1. `get_settings()` returns an immutable validated object cached on `(mtime_ns, size)` of both files plus a hash of the relevant environment variables. A `stat` costs 1.3 microseconds and validating the full model 8.5 microseconds [C], so per-request checking is free and every live field becomes live with no extra code.
 2. At start store `STARTUP = get_settings()`. The page lists `x-restart` fields whose current value differs from `STARTUP` ("saved but not yet running: `ratelimit.default` running `200 per day`, saved `500 per day`"). No extra state is persisted.
 3. A bad hand-edited file at runtime logs once and keeps the last good settings; at startup it stops the app with per-field messages (the existing `proxy_fix` behaviour, generalized). Add `python -m planetgen.cli.config check`.
-4. Restart. Under Apache and mod_wsgi daemon mode (the documented setup), touching the WSGI script file restarts the daemon on the next request [S: modwsgi.readthedocs.io]; Unix daemon mode only, and the web user must be able to write the script. gunicorn takes SIGHUP [R]; waitress has no reload. Show "Restart now" only when the deployment is detected and permitted, otherwise a copy-paste command (`update.sh` already prints `sudo systemctl reload apache2`), and say that a restart drops in-flight requests for a few seconds.
+4. Restart. Under Apache and mod_wsgi daemon mode (the documented setup), touching the WSGI script file restarts the daemon on the next request [S: modwsgi.readthedocs.io]; Unix daemon mode only, and the web user must be able to write the script. gunicorn takes SIGHUP [R]. Show "Restart now" only when the deployment is detected and permitted, otherwise a copy-paste command (`update.sh` already prints `sudo systemctl reload apache2`), and say that a restart drops in-flight requests for a few seconds.
 5. Never apply a changed `secret_key` live: it invalidates every CSRF token, flash cookie and signed token.
 
 ### A5. Secrets
@@ -111,7 +111,7 @@ Save pipeline [C: 20 saves in 0.6 s with fsyncs, mode 0640 kept, backups pruned]
 1. Parse the form to a nested dict, merge it onto the current web-layer values, validate the whole model; if invalid, re-render and change nothing.
 2. Show a diff (secrets as `changed`); require confirmation for restart-flagged and Owner-tier fields.
 3. Copy the current file to `settings.json.bak-<UTC stamp>` and keep the newest 10.
-4. Write a temp file in the same directory, copy mode and owner, `fsync`, `os.replace` (atomic on POSIX, and on Windows on one volume), `fsync` the directory.
+4. Write a temp file in the same directory, copy mode and owner, `fsync`, `os.replace` (atomic on POSIX), `fsync` the directory.
 5. Write audit rows and bump the cache.
 
 Rollback lists the backups with diffs and a "restore" button that runs the same pipeline, so a restore is itself backed up and audited; one that fails validation under the current model is refused with the reason. Save only `exclude_defaults` values so the file stays short and new defaults reach existing installs.
@@ -227,7 +227,7 @@ OWASP's Forgot Password cheat sheet [S, snippets] asks for the same message whet
 
 ### B4. Sessions, cookies and CSRF
 
-- Keep sessions in the control database: the properties of "sessions in Redis" (opaque id, hash at rest, immediate revoke, end-others on credential change) already exist, Redis has no native Windows build, and a flush would sign everyone out.
+- Keep sessions in the control database: the properties of "sessions in Redis" (opaque id, hash at rest, immediate revoke, end-others on credential change) already exist, and a flush would sign everyone out.
 - Add a fixation test (a made-up cookie that then logs in gets a different cookie) and renew the token after any role or password change. Use the `__Host-` prefix when the cookie is Secure [R].
 - Admins keep 12 hours fixed. For ordinary users propose `security.session_hours_user` default 720 (30 days), with an absolute cap and a sliding refresh limited to 7 days, as bounded settings.
 - `SameSite=Strict` makes a link from a mail client a cross-site navigation with no session cookie. Reset and invite links need no session; USR.6's confirm link and email-change confirmation do, so they land on a neutral page that asks to sign in (carrying `next`) or shows a "continue" button doing a same-site POST. Test in a browser.

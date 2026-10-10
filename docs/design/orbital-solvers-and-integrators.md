@@ -255,7 +255,7 @@ PyPI JSON API, 2026-10-09 [S]:
 | poliastro | 0.17.0 (2022) | MIT | abandoned; fork `hapsira` 0.18.0 (2023) MIT |
 | astropy | 8.0.1 | BSD-3 | needs Python >= 3.11 (6.0.1 is the last for 3.9); not needed |
 | galpy | 1.12.0 | BSD | Milky Way potentials, but needs Python >= 3.10 and is heavy for one formula set |
-| gala | 1.12.0 | MIT | Python >= 3.12 and no Windows wheel |
+| gala | 1.12.0 | MIT | Python >= 3.12 |
 | heyoka 7.13.2, pykep 3.0.1 | | MPL-2.0 | manylinux wheels only; no |
 | pyorb | 0.6.3 | MIT | tiny element converter; `state_vectors.py` already does it |
 | numba | 0.68.0 | BSD | optional speed-up if numpy becomes the bottleneck |

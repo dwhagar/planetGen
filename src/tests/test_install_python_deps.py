@@ -235,48 +235,11 @@ def test_bash_scripts_avoid_bash4_only_features(parts):
             assert not unguarded, (parts, name)
 
 
-def test_powershell_requirements_match_setup_py():
-    """scripts/deploy-common.ps1 checks the same requirements on Windows."""
-    text = _read("scripts", "deploy-common.ps1")
-    block = re.search(r"\$script:Requirements = @\((.*?)\)", text, re.S).group(1)
-    assert set(re.findall(r'"([^"]+)"', block)) == _setup_requirements()
-    server = re.search(r'\$script:ServerRequirement = "([^"]+)"', text).group(1)
-    assert server + '; sys_platform == "win32"' in _read("setup.py")
-
-
-POWERSHELL_SCRIPTS = [("install.ps1",), ("update.ps1",), ("scripts", "deploy-common.ps1"),
-                      ("examples", "maintenance", "install-maintenance-task.ps1")]
-
-
-@pytest.mark.parametrize("parts", POWERSHELL_SCRIPTS, ids=lambda p: "/".join(p))
-def test_powershell_scripts_are_ascii(parts):
-    """Windows PowerShell 5.1 reads a BOM-less script as the ANSI code
-    page, so anything outside ASCII would come out garbled."""
-    _read(*parts).encode("ascii")
-
-
-def test_powershell_installers_share_the_steps():
-    """install.ps1 and update.ps1 do what install.sh and update.sh do,
-    through the shared deploy-common.ps1."""
-    for script in ("install.ps1", "update.ps1"):
-        text = _read(script)
-        assert '. (Join-Path $Root "scripts\\deploy-common.ps1")' in text, script
-        for step in ("Install-PythonDeps", "Install-NltkWords", "Invoke-MigrateOrReset",
-                     "New-RuntimeDirs", "Set-PlanetGenPermissions", "Test-AppImports"):
-            assert step in text, (script, step)
-    assert "Install-PythonDeps -Check" in _read("update.ps1")
-    assert "--force-reinstall" not in _read("update.ps1")
-    common = _read("scripts", "deploy-common.ps1")
-    assert "--require-hashes -r (Join-Path $Root \"requirements-server.lock\")" in common
-    # The same migrate-or-delete question as install.sh: y/N, 30 seconds.
-    assert "[y/N] (default N in 30s): \" 30" in common
-
-
 def test_server_lock_has_the_app_servers():
     lock_pins = _lock_pins()
     pins = lock_pins.read_lock(os.path.join(ROOT, "requirements-server.lock"))
     names = {name for name, _, _, _ in pins}
-    assert {"gunicorn", "waitress"} <= names
+    assert {"gunicorn"} <= names
     for name, version, _, hashes in pins:
         assert hashes, f"{name}=={version}"
 
@@ -334,21 +297,18 @@ def _run_needed(tmp_path, specs, rest_status):
     return calls.read_text().splitlines() if calls.exists() else []
 
 
-@pytest.mark.skipif(sys.platform == "win32", reason="bash")
 def test_a_stack_library_brings_the_whole_stack(tmp_path):
     specs, _names = _numpy_stack()
     calls = _run_needed(tmp_path, ["redis>=5.0.0", "scipy>=1.13.0"], 0)
     assert calls == ["redis>=5.0.0", "--whole " + " ".join(specs)]
 
 
-@pytest.mark.skipif(sys.platform == "win32", reason="bash")
 def test_a_library_that_would_pull_in_numpy_brings_the_whole_stack(tmp_path):
     specs, _names = _numpy_stack()
     calls = _run_needed(tmp_path, ["redis>=5.0.0"], 4)
     assert calls == ["redis>=5.0.0", "--whole " + " ".join(specs)]
 
 
-@pytest.mark.skipif(sys.platform == "win32", reason="bash")
 def test_other_libraries_leave_the_stack_alone(tmp_path):
     assert _run_needed(tmp_path, ["redis>=5.0.0"], 0) == ["redis>=5.0.0"]
 
@@ -381,7 +341,6 @@ def _installed_from_this_checkout():
     return os.path.dirname(os.path.dirname(os.path.realpath(planetgen.__file__))) == src
 
 
-@pytest.mark.skipif(sys.platform == "win32", reason="bash")
 @pytest.mark.skipif(not _installed_from_this_checkout(), reason="needs `pip install -e .` of this checkout")
 def test_install_checkout_leaves_a_current_editable_install_alone(tmp_path):
     """update.sh reinstalls nothing when planetgen already imports from
@@ -394,7 +353,6 @@ def test_install_checkout_leaves_a_current_editable_install_alone(tmp_path):
     assert os.readlink(command) == os.path.join(sysconfig.get_path("scripts"), "planetgen")
 
 
-@pytest.mark.skipif(sys.platform == "win32", reason="bash")
 @pytest.mark.parametrize("mode, flag", [("unmanaged", False), ("managed", True)])
 def test_install_checkout_installs_another_checkout_editable(tmp_path, mode, flag):
     """A checkout planetgen doesn't import from is pip-installed editable,

@@ -214,11 +214,7 @@ def test_two_writers_of_one_tile_file_leave_one_whole_tile(tmp_path, _switch_oft
     assert errors == []
     assert torn == []
     assert len(results[0]) == len(results[1]) == WRITES
-    if os.name != "nt":
-        # (Windows may refuse a rename onto a file another thread has
-        # open; `_write_json` then reports False and the tile is simply
-        # fetched again next time.)
-        assert all(results[0]) and all(results[1])
+    assert all(results[0]) and all(results[1])
     assert _whole_tile(tilecache._read_json(path), tiles)  # None for a torn file
     leftovers = [name for name in os.listdir(os.path.dirname(path)) if name != os.path.basename(path)]
     assert leftovers == []  # no temp file left behind

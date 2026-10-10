@@ -6,20 +6,19 @@ responses, the web server being killed for memory after Galaxy Map
 traffic), and covers the rest of a healthy install too.
 
 Replace `HOST` with your site's hostname, `DB_NAME` with your database,
-and `/var/lib/planetGen` with your checkout if it lives elsewhere
-(`C:\srv\planetGen` in the Windows guide).
+and `/var/lib/planetGen` with your checkout if it lives elsewhere.
 
 ## Commands for your platform
 
 The steps below name these by their row:
 
-| | Apache + mod_wsgi | nginx or Caddy + gunicorn (Linux) | macOS (launchd) | Windows |
-|---|---|---|---|---|
-| **reload the app** | `sudo systemctl reload apache2` | `sudo systemctl reload planetgen-gunicorn` | `sudo launchctl kill SIGHUP system/org.planetgen.gunicorn` | IIS: `Restart-WebAppPool planetgen`; service: `Restart-Service planetgen` |
-| **app error log** | `/var/log/apache2/planetgen_error.log` | `journalctl -u planetgen-gunicorn` | `/usr/local/planetgen/log/gunicorn.log` | `C:\ProgramData\planetgen\logs` |
-| **app processes** | `ps -o rss,cmd -C apache2` | `ps -o rss,cmd -u www-data` | `ps -o rss,command -U _www` | Task Manager, `python.exe` / `waitress-serve.exe` |
-| **web user** | `www-data` | `www-data` | `_www` | the app pool or service account |
-| **request time limit** | `request-timeout=60` in `WSGIDaemonProcess` | nginx `proxy_read_timeout 60s`; Caddy `response_header_timeout 60s` | nginx `proxy_read_timeout 60s` | IIS `requestTimeout`; Caddy as Linux; Apache `ProxyPass ... timeout=60` |
+| | Apache + mod_wsgi | nginx or Caddy + gunicorn (Linux) | macOS (launchd) |
+|---|---|---|---|
+| **reload the app** | `sudo systemctl reload apache2` | `sudo systemctl reload planetgen-gunicorn` | `sudo launchctl kill SIGHUP system/org.planetgen.gunicorn` |
+| **app error log** | `/var/log/apache2/planetgen_error.log` | `journalctl -u planetgen-gunicorn` | `/usr/local/planetgen/log/gunicorn.log` |
+| **app processes** | `ps -o rss,cmd -C apache2` | `ps -o rss,cmd -u www-data` | `ps -o rss,command -U _www` |
+| **web user** | `www-data` | `www-data` | `_www` |
+| **request time limit** | `request-timeout=60` in `WSGIDaemonProcess` | nginx `proxy_read_timeout 60s`; Caddy `response_header_timeout 60s` | nginx `proxy_read_timeout 60s` |
 
 ## 1. Is the new code deployed?
 
@@ -32,8 +31,7 @@ of `README.md` on `main`).
 ## 2. Has the database been migrated?
 
 Reloading or restarting the app does not apply schema migrations. Only
-`planetgen.cli.migrate` (or `update.sh`/`install.sh`, and `update.ps1`/`install.ps1`
-on Windows, which call it) does.
+`planetgen.cli.migrate` (or `update.sh`/`install.sh`, which call it) does.
 
     curl -s https://HOST/api/health
 
@@ -68,7 +66,7 @@ Pass: the 60-second limit is there (compare with your platform's example
 under `examples/`). Without it, one runaway request can hold an app
 thread for a long time.
 
-Behind nginx, Caddy, IIS or Apache's `mod_proxy` (every setup except
+Behind nginx, Caddy or Apache's `mod_proxy` (every setup except
 Apache + mod_wsgi), also check that `config.json` has `proxy_fix` set
 (see [`deployment/README.md`](deployment/README.md#behind-a-reverse-proxy-proxy_fix)):
 
@@ -98,8 +96,8 @@ is `-rw-r----- root www-data` (mode 640: it holds the database password
 and `secret_key`); the debug log, if there is one, is `-rw-rw----` owned
 by the web user and group (mode 660), never world-writable. If not, on
 Linux: `sudo ./update.sh`, or `sudo examples/apache/set-permissions.sh`
-and `sudo examples/apache/setup-debug-log.sh`. On macOS and Windows,
-repeat the permissions step of your guide. Anyone who runs the generator
+and `sudo examples/apache/setup-debug-log.sh`. On macOS,
+repeat the permissions step of the macOS guide. Anyone who runs the generator
 from a shell without `sudo` must be in the web user's group to read
 `config.json` and append to the debug log.
 

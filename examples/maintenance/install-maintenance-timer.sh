@@ -41,9 +41,7 @@
 # database (examples/macos/org.planetgen.orbits.planetgen.plist) and
 # org.planetgen.update.plist (unless --skip-update-timer), with the
 # checkout's path put in. No credentials file there: the orbit update
-# reads config.json. An existing plist is left alone. On Windows,
-# examples/maintenance/install-maintenance-task.ps1 makes Task Scheduler
-# tasks.
+# reads config.json. An existing plist is left alone.
 #
 # install.sh/update.sh don't call this themselves since maintenance runs
 # on its own schedule, not on every deploy.

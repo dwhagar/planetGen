@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 """
 Checks planetGen's Python requirements as this interpreter sees them, for
-scripts/install-python-deps.sh (Linux and macOS) and
-scripts/deploy-common.ps1 (Windows). Standard library only.
+scripts/install-python-deps.sh (Linux and macOS). Standard library only.
 
     probe_requirements.py SPEC ...        (SPEC is name>=floor)
 

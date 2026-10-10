@@ -13,7 +13,6 @@ from collections import namedtuple
 
 import pytest
 
-from planetgen.generation import stats as generationStats
 from planetgen.generation.stats import DiskSpace, Estimate, Unmeasured, check_disk, database_disk
 from planetgen.web.admin_pages import _disk_tile
 
@@ -85,13 +84,6 @@ def test_a_symlinked_data_directory_is_resolved_to_the_mount_it_points_at(tmp_pa
     monkeypatch.setattr(os.path, "ismount", lambda path: str(path) == str(tmp_path / "bigdrive"))
     disk = database_disk(_Conn(str(link)), "localhost", "planetgen_x")
     assert disk.mount == str(tmp_path / "bigdrive")
-
-
-def test_a_windows_drive_letter_is_the_mount(monkeypatch):
-    monkeypatch.setattr(shutil, "disk_usage", lambda path: Usage(2000 * GB, 500 * GB, 1500 * GB))
-    monkeypatch.setattr(os.path, "splitdrive", lambda path: ("D:", path[2:]))
-    disk = database_disk(_Conn("D:\\MySQL\\Data\\"), "localhost", "planetgen_x")
-    assert disk.mount == "D:" + os.sep and disk.free_bytes == 1500 * GB
 
 
 def test_a_remote_server_is_not_measured_at_a_path_that_only_happens_to_exist_here(two_drives, tmp_path):

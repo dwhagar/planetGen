@@ -82,6 +82,6 @@ without either.
 
 ## Other platforms
 
-fail2ban is Linux only. On macOS and Windows, planetGen's own lockout is
+fail2ban is Linux only. On macOS, planetGen's own lockout is
 the protection; the activity log has the same lines for any other tool
 that reads logs.

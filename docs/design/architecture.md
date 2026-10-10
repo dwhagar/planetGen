@@ -60,8 +60,7 @@ planetGen has three layers that share one Python package:
    themselves; they call the API in-process through `planetgen/web/lib/apiclient.py`,
    and the API reads through `planetgen.db.query` and `store.py`.
 
-Around those sit the installers (`install.sh`, `update.sh` and their
-Windows twins), maintenance tools (`planetgen.cli.orbits`,
+Around those sit the installers (`install.sh` and `update.sh`), maintenance tools (`planetgen.cli.orbits`,
 `planetgen.cli.migrate`, ...), the tests, and the release workflows.
 
 ```mermaid
@@ -89,7 +88,6 @@ flowchart LR
 | [`planetgen`](../.planetgen) | The single generation CLI, with six subcommands: `system`, `sector`, `galaxy`, `plan`, `phenomenon` and `population` (the population and politics pass over what is stored). `sector` and `galaxy` also run that pass after saving, but only with `--population`. Also the library functions other code calls: `generate_sector`, `ensure_sector_generated`, `generate_sector_neighborhood`, `build_skeleton`, `scatter_bright_stars`, `backfill_bright_stars`. Installed as the `planetgen` console script (`setup.py`). |
 | [`install.sh`](../../install.sh) | One-shot installer for Linux (Apache with mod_wsgi) and macOS (gunicorn under launchd, nginx in front): Python libraries, NLTK corpus, `planetgen.cli.migrate`, the optional population pass prompt, Apache modules or the gunicorn daemon, permissions, tile cache and jobs directories, debug log. |
 | [`update.sh`](../../update.sh) | `git reset --hard` to the branch tip, then the same checks as `install.sh`, changing only what is missing, but never the population pass (run `planetgen population` by hand). Safe to run on a schedule. |
-| [`install.ps1`](../../install.ps1), [`update.ps1`](../../update.ps1) | The Windows counterparts: a venv with waitress, the same steps, the layout of [deployment/windows.md](../deployment/windows.md). `install.ps1 -Population` runs the population pass without asking. |
 | `setup.py`, `pyproject.toml` | The Python package (`stellarObjects`, `generate`) and its dependency floors and extras (`api`, `test`, `browser`). |
 | `requirements.lock`, `requirements-server.lock` | Hash-pinned dependency locks, written by `scripts/lock-requirements.sh`. |
 | `config.json.example` | Template for the per-deployment `config.json` (gitignored). See [config.md](../config.md). |
@@ -103,9 +101,8 @@ flowchart LR
 | Path | What it holds |
 |---|---|
 | [`scripts/deploy-common.sh`](../../scripts/deploy-common.sh) | Steps shared by `install.sh` and `update.sh` (sourced by both; `offer_population_pass` is the installer's alone): pick the Python, NLTK corpus, Apache modules or gunicorn launchd daemon, mod_wsgi check, import check, and `migrate_or_reset_db` (the y/N "delete the galaxy instead?" prompt), and `offer_population_pass` (the y/N "run the population pass now?" prompt, default No after 30 seconds, skipped with no terminal; `POPULATION=1` runs it without asking). |
-| [`scripts/deploy-common.ps1`](../../scripts/deploy-common.ps1) | The same shared steps for `install.ps1` and `update.ps1` (the population prompt is `Invoke-OptionalPopulation`). |
 | [`scripts/install-python-deps.sh`](../../scripts/install-python-deps.sh) | Makes the libraries importable by the system Python: plain pip, or apt first on an externally managed (PEP 668) Python, or a venv on macOS. `--check` installs only what is missing or too old. |
-| `scripts/probe_requirements.py` | Reports each requirement as ok, missing, old or broken. Used by both installers. Standard library only. |
+| `scripts/probe_requirements.py` | Reports each requirement as ok, missing, old or broken. Used by `install.sh` and `update.sh`. Standard library only. |
 | `scripts/lock_pins.py` | Reads `requirements.lock` for `install-python-deps.sh` (constraints, resolve). Standard library only. |
 | `scripts/lock-requirements.sh` | Rewrites `requirements.lock` with `uv`. Run by a developer after changing a requirement, never on a server. |
 | [`scripts/bump_version.py`](../../scripts/bump_version.py) | Turns `changes/` notes into releases: bumps `_version.py`, the README badge and `CHANGELOG.md` together. Also the PR check (`--check-pr`). |
@@ -118,11 +115,10 @@ Copy-and-edit configuration for each kind of server. The guides in
 | Path | What it holds |
 |---|---|
 | `examples/apache/` | The Apache vhost (`planetgen.conf.example`) and the helpers `install.sh`/`update.sh` call: `set-permissions.sh`, `create-cache-dir.sh` (tile cache and jobs directories, via `deploy-paths.py`), `setup-debug-log.sh`, `apache-identity.sh`. |
-| `examples/nginx/`, `examples/caddy/` | Reverse-proxy configs for gunicorn or waitress behind nginx or Caddy. |
+| `examples/nginx/`, `examples/caddy/` | Reverse-proxy configs for gunicorn behind nginx or Caddy. |
 | `examples/macos/` | launchd plists (gunicorn, orbit update, update) and the Homebrew nginx config. |
 | `examples/systemd/` | The gunicorn service and a drop-in that reloads the web server after an update. |
-| `examples/windows/` | IIS (`web.config`), Caddy, Apache Lounge, waitress service wrapper and the orbit-update task. |
-| `examples/maintenance/` | Scheduled maintenance: systemd timers and units for `planetgen.cli.orbits` (per database) and `update.sh`, `install-maintenance-timer.sh` (also makes launchd daemons on macOS) and the Windows `install-maintenance-task.ps1`. |
+| `examples/maintenance/` | Scheduled maintenance: systemd timers and units for `planetgen.cli.orbits` (per database) and `update.sh`, `install-maintenance-timer.sh` (also makes launchd daemons on macOS). |
 | `examples/systems/` | Sample system files for `planetgen system --system-file` (Solar System, Tatooine, ...). See [example-systems.md](../example-systems.md) and [system-file-format.md](../system-file-format.md). Checked by `test_examples.py`. |
 
 ### src/stellarObjects/
@@ -291,7 +287,7 @@ the browser loads.
 
 | Path | What it holds |
 |---|---|
-| [`src/html/wsgi.py`](../../src/html/wsgi.py) | The WSGI `application` for mod_wsgi, gunicorn and waitress. Puts `src/html` and `src` on `sys.path`, calls `create_app()`, and undoes an older `/api` mount prefix. |
+| [`src/html/wsgi.py`](../../src/html/wsgi.py) | The WSGI `application` for mod_wsgi and gunicorn. Puts `src/html` and `src` on `sys.path`, calls `create_app()`, and undoes an older `/api` mount prefix. |
 
 #### src/planetgen/api/
 
@@ -411,7 +407,7 @@ without it. See [testing.md](../testing.md).
 
 | Path | What it holds |
 |---|---|
-| [`ci.yml`](../../.github/workflows/ci.yml) | On every push and PR: `pytest` on Python 3.9 and 3.12 with MySQL; browser accessibility tests in Chromium; Windows Generate-job tests; macOS installer run under bash 3.2. |
+| [`ci.yml`](../../.github/workflows/ci.yml) | On every push and PR: `pytest` on Python 3.9 and 3.12 with MySQL; browser accessibility tests in Chromium; macOS installer run under bash 3.2. |
 | `deep-fuzz.yml` | Weekly (and on demand): the fuzz tests with the `deep` profile. |
 | `release-note.yml` | On every PR: `bump_version.py --check-pr` requires one valid note in `changes/` (or the `no-release` label). |
 | [`stamp-version.yml`](../../.github/workflows/stamp-version.yml) | After a merge to `main` that touches `changes/`: runs `bump_version.py --commit` and pushes `Release x.y.z`. |
@@ -761,8 +757,8 @@ directory and waits, since a system takes about a second.
 ```mermaid
 flowchart TD
     subgraph Server["On a server"]
-        I["install.sh / install.ps1"] --> DC["scripts/deploy-common.sh / .ps1"]
-        U["update.sh / update.ps1<br/>git reset --hard origin/branch"] --> DC
+        I["install.sh"] --> DC["scripts/deploy-common.sh"]
+        U["update.sh<br/>git reset --hard origin/branch"] --> DC
         I --> PD["scripts/install-python-deps.sh<br/>probe_requirements.py, lock_pins.py"]
         U --> PDC["install-python-deps.sh --check"]
         DC --> NL["NLTK words corpus"]
@@ -786,24 +782,23 @@ flowchart TD
     Out -. "next update.sh pull" .-> U
 ```
 
-**Install.** `install.sh` (Linux and macOS) and `install.ps1` (Windows)
-follow the same numbered steps; a change to one belongs in all three.
-Shared steps live in `scripts/deploy-common.sh` and
-`scripts/deploy-common.ps1`, so install and update cannot drift.
+**Install.** `install.sh` (Linux and macOS) follows numbered steps.
+Shared steps live in `scripts/deploy-common.sh`, so install and update
+cannot drift.
 Libraries come from `scripts/install-python-deps.sh` (pip with
 `--require-hashes` from `requirements.lock`, or apt on an externally
 managed Python). The database step is `planetgen.cli.migrate` (Flow 2).
 After it (in `install.sh`, after the NLTK corpus, which the species names
 need), `offer_population_pass` asks whether to run `planetgen
 population`. The answer defaults to No after 30 seconds, and with no
-terminal the question is skipped. `POPULATION=1` (`-Population` on
-Windows) runs it without asking. The update scripts never ask or run it
+terminal the question is skipped. `POPULATION=1`
+runs it without asking. The update script never asks or runs it
 (OPS.7).
 `install.sh --skip-database` skips both. The
 `examples/apache/` helpers set permissions and create the tile cache, jobs
 directory and debug log.
 
-**Update.** `update.sh` and `update.ps1` force the checkout to the
+**Update.** `update.sh` forces the checkout to the
 branch tip (untracked files such as `config.json` are kept), then run each
 check and change only what is missing. The maintenance timers in
 `examples/maintenance/` can run it, and `planetgen.cli.orbits`, on a schedule.

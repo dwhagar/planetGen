@@ -2,7 +2,7 @@
 
 The CI workflow runs only when started by hand (Actions > CI > Run
 workflow). When it runs, it uses GitHub's machines by default (`ubuntu-latest`,
-`windows-latest`, `macos-latest`), and nothing in this guide is needed for
+`macos-latest`), and nothing in this guide is needed for
 it to work. Self-hosted runners are **off by default**. This guide is for
 turning them back on later: it covers what each machine needs, how to
 register it, and the security settings to apply first.
@@ -25,10 +25,8 @@ self-hosted default in the table.
 | Variable | Jobs | Default when `SELF_HOSTED` is `true` | Needs |
 |---|---|---|---|
 | `RUNNER_LINUX` | tests (3 database engines), browser checks, dependency audit, deep fuzz, release note, version stamp | `["self-hosted", "Linux"]` | Linux with Docker |
-| `RUNNER_WINDOWS` | Generate page jobs on Windows | `["self-hosted", "Windows"]` | Windows 10/11 or Server |
 | `RUNNER_LINUX_INSTALLERS` | `install.sh` and `update.sh` on Linux against a live database | `"ubuntu-latest"` | Linux with Docker; see [The installer jobs](#the-installer-jobs) |
 | `RUNNER_MACOS_INSTALLERS` | `install.sh` on macOS | `"macos-latest"` | see [macOS](#macos) |
-| `RUNNER_WINDOWS_INSTALLERS` | `install.ps1` on Windows | `"windows-latest"` | see [The installer jobs](#the-installer-jobs) |
 
 A job runs on any online runner that has **all** of its labels. You can
 have several Linux runners: jobs spread across them, and a runner takes
@@ -127,54 +125,6 @@ The jobs set up everything else themselves:
   deleted when the job ends.
 - **NLTK's `words` corpus**: downloaded once to `~/nltk_data`.
 
-## Windows runner
-
-Only the Generate page job runs here (`windows-jobs`).
-
-1. **Install** [Git for Windows](https://git-scm.com/download/win) and
-   [PowerShell 7](https://aka.ms/powershell). Then, in an administrator
-   PowerShell, allow long paths:
-
-   ```powershell
-   git config --system core.longpaths true
-   New-ItemProperty -Path HKLM:\SYSTEM\CurrentControlSet\Control\FileSystem -Name LongPathsEnabled -Value 1 -PropertyType DWORD -Force
-   Set-ExecutionPolicy -Scope LocalMachine RemoteSigned -Force
-   ```
-
-   The last line lets PowerShell run scripts. Windows blocks them by
-   default, and `actions/setup-python` installs Python with one.
-
-2. **Register the runner.** In GitHub, go to Settings > Actions > Runners
-   > New self-hosted runner > Windows, and run the commands in an
-   administrator PowerShell, in a folder such as `C:\actions-runner`. When
-   `config.cmd` asks:
-   - labels: press Enter. The defaults are `self-hosted`, `Windows` and
-     `X64`;
-   - run as service: **Y**;
-   - service account: a dedicated local account, or the default
-     `NT AUTHORITY\NETWORK SERVICE`. Avoid running it as your own login
-     (or from `run.cmd` in your own session): every job would then run
-     with access to your files.
-
-3. **Python 3.12, installed for all users.** `actions/setup-python`
-   can only install Python itself when the service account is an
-   administrator. Otherwise the job looks for an all-users Python 3.12
-   (`py -3.12` or `C:\Program Files\Python312`). In an administrator
-   PowerShell:
-
-   ```powershell
-   Invoke-WebRequest https://www.python.org/ftp/python/3.12.10/python-3.12.10-amd64.exe -OutFile $env:TEMP\py312.exe
-   & $env:TEMP\py312.exe /quiet InstallAllUsers=1 PrependPath=1 Include_launcher=1 InstallLauncherAllUsers=1
-   Get-Service actions.runner.* | Restart-Service
-   ```
-
-   The restart lets the service see the new PATH. A Python installed only
-   for your own login (including the one the "Python install manager"
-   sets up) isn't visible to the runner service. If the service runs as a
-   normal user account rather than NETWORK SERVICE, the job can instead
-   install 3.12 for that account by itself, with no administrator rights.
-   The failed setup-python step then shows as a warning, not a red job.
-
 ## macOS
 
 No job needs a Mac by default. The only macOS job, the installer check,
@@ -185,13 +135,12 @@ service containers, so it can't take the Linux test jobs.
 
 ## The installer jobs
 
-`linux-update`, `macos-installers` and `windows-installers` run
-`install.sh`, `update.sh` and `install.ps1` with sudo or administrator
-rights (`linux-update` against a MySQL service container, through a
+`linux-update` and `macos-installers` run
+`install.sh` and `update.sh` with sudo (`linux-update` against a MySQL service container, through a
 fresh install, an update with nothing new, a migration, a database newer
 than the code, an unreachable server and a failed migration). They copy
 planetGen into system folders, install packages, register launchd
-daemons and scheduled tasks, and start a web server on port 8000. On GitHub's machines all of that is thrown away
+daemons, and start a web server on port 8000. On GitHub's machines all of that is thrown away
 after the job. On your own computer it stays, and the next run trips over
 it. Keep their variables unset unless you have a machine you're happy to
 wipe, such as a VM you restore to a snapshot after each run.
@@ -208,7 +157,7 @@ wipe, such as a VM you restore to a snapshot after each run.
   virtualenv and work folder. The test job uses every core (`pytest -n
   auto`), so two test jobs on one machine each run at about half speed.
 - **Different labels**: if a runner has extra or different labels, set
-  `RUNNER_LINUX` or `RUNNER_WINDOWS` to the list of labels to require,
+  `RUNNER_LINUX` to the list of labels to require,
   for example `["self-hosted", "Linux", "X64", "fast"]`.
 
 ## Upkeep
@@ -226,17 +175,13 @@ wipe, such as a VM you restore to a snapshot after each run.
 
 | What you see | Cause and fix |
 |---|---|
-| A job sits in "Queued" forever | No online runner has all of its labels. Compare the job's labels (shown on the job page) with Settings > Actions > Runners. Fix the runner's labels, set the matching `RUNNER_*` variable, or set it to `"ubuntu-latest"` / `"windows-latest"` to use GitHub's machines. |
-| Runner shows Offline | The service isn't running. On Linux: `sudo ./svc.sh status`, then `start`. On Windows: Services > "GitHub Actions Runner (...)" > Start. |
+| A job sits in "Queued" forever | No online runner has all of its labels. Compare the job's labels (shown on the job page) with Settings > Actions > Runners. Fix the runner's labels, set the matching `RUNNER_*` variable, or set it to `"ubuntu-latest"` to use GitHub's machines. |
+| Runner shows Offline | The service isn't running. Run `sudo ./svc.sh status`, then `start`. |
 | `docker: command not found`, or `permission denied` on `/var/run/docker.sock` | Install Docker and add the runner user to the `docker` group, then restart the service (`sudo ./svc.sh stop && sudo ./svc.sh start`). |
 | A service container never becomes healthy | Docker can't pull the image (no internet or a proxy), or the machine is out of memory or disk. Run `docker pull mysql:8.0` by hand as the runner user to see the error. |
 | setup-python can't find 3.9 or 3.12 | Its downloads are built for Ubuntu. On other distributions, install those versions into the runner's tool cache yourself, or run this runner in an Ubuntu VM. |
-| setup-python fails on Windows with "running scripts is disabled on this system" | PowerShell's execution policy is still Restricted. In an administrator PowerShell: `Set-ExecutionPolicy -Scope LocalMachine RemoteSigned -Force`, then re-run the job. |
-| setup-python fails on Windows with "access denied" or "Requested registry access is not allowed" | The service account isn't an administrator. Expected: the next step looks for an all-users Python 3.12. If that step fails with "No Python 3.12 this runner can use", do step 3 under [Windows runner](#windows-runner). |
 | Hundreds of jobs queued, new ones wait for hours | Runs queued before the runners came online are worked through oldest first. Cancel the stale ones: Actions tab > filter "is:queued" > open each run > Cancel workflow run. |
 | Old pull requests' "Release note" check fails saying the PR "changes the version" | A run that waited in the queue was comparing against today's main. Fixed: the check now compares against the base the run started from. Re-run it, or ignore it on merged PRs. |
-| `py -3.12` on your own login says "Unable to create process using ...\actions-runner\_work\_tool\Python\3.12...\python.exe" | A runner that once ran as you registered its Python under your account and the folder is gone. In PowerShell as you: `Remove-Item 'HKCU:\Software\Python\PythonCore\3.12' -Recurse`. |
 | The browser job fails with missing `.so` libraries | Chromium's system libraries aren't installed. See step 4 under [Linux runner](#linux-runner). |
-| "Filename too long" on Windows | Enable long paths (step 1 under [Windows runner](#windows-runner)). |
 | Disk full | Run `docker system prune -af` and empty `_work/_tool` of Python versions you no longer need. |
 | Port 8000 already in use on an installer job | That job ran on your own machine before and its web server is still running. Stop it and keep the installer jobs on GitHub's machines. |

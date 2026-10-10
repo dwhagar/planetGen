@@ -20,7 +20,7 @@ to see:
 
 Where it goes (`logpaths.activity_log_path`): `/var/log/planetgen/
 planetgen.log` on Linux, `/Library/Logs/planetgen/planetgen.log` on
-macOS, and `logs\\planetgen.log` under the checkout on Windows;
+macOS;
 `config.json`'s `"log_dir"` or `PLANETGEN_LOG_DIR` moves it.
 
 Every line has the same shape, documented in `docs/config.md`, so tools
@@ -40,7 +40,7 @@ Rotation (`logpaths.log_rotation_mode`): where install.sh/update.sh
 installed `/etc/logrotate.d/planetgen-log` (Linux) or
 `/etc/newsyslog.d/planetgen-log.conf` (macOS), the file is opened with a
 `WatchedFileHandler`, which reopens it after the system tool moves it.
-Otherwise (Windows, or a setup without root) the program rotates it
+Otherwise (a setup without root) the program rotates it
 itself: 100 MB per file, 30 old copies.
 
 Writing to it never stops the program: if the file can't be opened, one

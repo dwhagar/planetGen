@@ -8,7 +8,6 @@
 # macOS's built-in web server account (docs/deployment/macos.md; Homebrew's
 # httpd and nginx use it too). Sourced by set-permissions.sh,
 # create-cache-dir.sh and setup-debug-log.sh rather than run directly.
-# Windows' counterpart is the -ServiceAccount parameter of install.ps1.
 
 detect_apache_group() {
     if [[ "$(uname -s)" == Darwin ]]; then

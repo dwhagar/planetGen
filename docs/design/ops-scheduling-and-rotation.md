@@ -1,15 +1,15 @@
 # Update-script operations: Apache reload, daily maintenance, locks and backup rotation
 
-How `update.sh` and `update.ps1` reload the web server, how the daily
-maintenance run is scheduled on Linux, macOS and Windows, which lock keeps
-runs from overlapping, how the settings JSON backups are rotated into 18
-slots, and what the Windows Redis-in-WSL setup does and does not give. The
+How `update.sh` reloads the web server, how the daily
+maintenance run is scheduled on Linux and macOS, which lock keeps
+runs from overlapping, and how the settings JSON backups are rotated into 18
+slots. The
 reproducible-galaxy design these items belong to is
 [reproducible-galaxies.md](reproducible-galaxies.md) (sections 6 to 8);
 this note holds the measured behaviour, the commands and the tested code
 the implementer needs.
 
-Informs: OPS.8, OPS.13, OPS.14, OPS.16, OPS.17, OPS.18, ADM.19, ADM.20, OPS.21, OPS.27
+Informs: OPS.8, OPS.13, OPS.14, OPS.16, OPS.17, OPS.18, ADM.19, ADM.20
 
 Status: research, 2026-10-09; decisions marked "Boss" are his, everything else is a recommendation
 
@@ -17,13 +17,13 @@ Evidence tags: [S] seen in a search result or a fetched primary file (URL
 in Sources), [C] computed or measured in the research sandbox, [R]
 recalled and unconfirmed. The research environment could only read
 search-result text and raw files, not whole papers or vendor manuals, and
-had no Windows, no macOS and no PowerShell; every [R] below is on the
+had no macOS; every [R] below is on the
 Evidence notes list for checking when access is allowed.
 
 ## Decisions already taken
 
 - OPS.8 (Boss, 2026-10-01): "it should just automatically reload apache2
-  if it's running as root." macOS (gunicorn) and Windows stay as they are
+  if it's running as root." macOS (gunicorn) stays as it is
   unless Boss asks.
 - OPS.16/OPS.18 (Boss, 2026-10-02 02:28Z): "a JSON file is only changed
   with the deltas at the end of the day. We're going to have to build a
@@ -33,8 +33,6 @@ Evidence notes list for checking when access is allowed.
   following order, 1 year ago, 6 months ago, 4 weeks ago, 7 days ago. A
   total of 18 backup slots."
 - ADM.20 (Boss, 2026-10-02 02:31Z): merge now is Phase 3, low priority.
-- OPS.21/OPS.27 (Boss, 2026-10-07 17:11Z): "Let's say Redis in WSL"
-  (done, PR #475).
 
 The uploaded source documents in this folder contain nothing on
 scheduling, locking or rotation. The one overlap is `Library Migration
@@ -45,8 +43,8 @@ Generate queue.
 
 ## Summary
 
-1. OPS.8 is simpler than written: both update scripts already require
-   root or admin, so the "print the command" branch never runs. The
+1. OPS.8 is simpler than written: the update script already requires
+   root, so the "print the command" branch never runs. The
    closing message becomes a tested `reload_apache` step (section 1).
 2. A graceful reload kills an in-flight mod_wsgi daemon request after about
    4 s; touching the WSGI file does not.
@@ -55,7 +53,6 @@ Generate queue.
 4. Locks are OS-level lock files (`filelock`), created and used by the web
    user, never PID files.
 5. OPS.17 extends the monthly installers that already exist.
-6. The Windows docs' way of keeping Redis alive in WSL does not work.
 
 ## 1. Reloading the web server from the update script (OPS.8)
 
@@ -64,10 +61,7 @@ Generate queue.
 `update.sh` ends by printing `sudo systemctl reload apache2` (`restart`
 when `APACHE_NEEDS_RESTART` was set by `ensure_apache_modules` in
 `scripts/deploy-common.sh`), or on macOS
-`launchctl kill SIGHUP system/org.planetgen.gunicorn`; `update.ps1` ends
-with `Get-RestartHint`. Windows never runs mod_wsgi
-([deployment/windows.md](../deployment/windows.md)), so there the thing to
-restart is the `planetgen` service. Behind nginx or Caddy on Linux the app
+`launchctl kill SIGHUP system/org.planetgen.gunicorn`. Behind nginx or Caddy on Linux the app
 server is `planetgen-gunicorn`, which OPS.8 does not mention;
 `examples/systemd/planetgen-update.service.d/reload-web.conf` already
 reloads it from the timer. One function should cover both.
@@ -79,12 +73,10 @@ reloads it from the timer. One function should cover both.
 | Debian/Ubuntu | `apache2` | `apache2ctl configtest` | `systemctl reload apache2` (`ExecReload=apachectl graceful`) | `systemctl restart apache2` |
 | RHEL/Fedora/Rocky | `httpd` | `httpd -t` | `systemctl reload httpd` (`ExecReload=httpd $OPTIONS -k graceful`) | `systemctl restart httpd` |
 | macOS Homebrew | brew service | `httpd -t` | `apachectl graceful` (unverified) | `brew services restart httpd` |
-| Windows Apache Lounge | `Apache2.4` | `httpd.exe -t` | `httpd.exe -n Apache2.4 -k graceful` (unverified) | `Restart-Service Apache2.4` |
 
 The Debian unit text was read from the installed Ubuntu 24.04 package [C];
-the RHEL form is from third-party `httpd.service` mirrors [S]. The macOS and
-Windows rows were not run and matter little: macOS is nginx plus gunicorn
-and Windows is waitress under WinSW.
+the RHEL form is from third-party `httpd.service` mirrors [S]. The macOS
+row was not run and matters little: macOS is nginx plus gunicorn.
 
 ### Graceful, restart and mod_wsgi daemon mode
 
@@ -176,28 +168,15 @@ migration have already happened when the reload runs, so a failure cannot
 roll back: print the manual command, set `RELOAD_FAILED=1` and end non-zero
 so a scheduled unit shows as failed.
 
-### Windows
-
-Not run (no PowerShell). On Windows the thing to restart is the
-`planetgen` service (waitress under WinSW): `Restart-Service planetgen`,
-or `Restart-WebAppPool planetgen` under IIS. A WinSW restart stops the
-process tree unless configured otherwise [R], taking a running Generate job
-with it, so the same "warn when a job is running" rule applies. Apache
-Lounge is touched only when its config changed: `httpd.exe -t`, then `-n
-Apache2.4 -k graceful`, each through `cmd /c "... >nul 2>&1"` because
-`httpd.exe -t` prints "Syntax OK" to stderr and Windows PowerShell turns a
-native program's stderr into errors (the repo's existing warning in
-`deploy-common.ps1`). Use `Invoke-Checked` and the same return codes.
-
 ## 2. Scheduling the daily maintenance run (OPS.16, OPS.17)
 
 ### What already exists
 
 `examples/maintenance/` has `install-maintenance-timer.sh` (systemd and
-launchd), `install-maintenance-task.ps1` (Windows),
+launchd),
 `planetgen-update.{service,timer}`, `planetgen-orbits@.{service,timer}`
 (one per database) and `examples/macos/org.planetgen.{orbits,update}.plist`.
-All run monthly on the 1st (update 03:00, orbits 03:30) as root or SYSTEM
+All run monthly on the 1st (update 03:00, orbits 03:30) as root
 with catch-up. The installer header says `install.sh` and `update.sh`
 deliberately do not call it. So OPS.17 means: call the existing installers
 from install and update, switch to daily, and retire the monthly orbit
@@ -213,9 +192,8 @@ stays takes the same maintenance lock and waits up to 30 minutes for it.
 | | Default | Catch-up after downtime |
 |---|---|---|
 | Linux with systemd | systemd timer plus `Type=oneshot` service | `Persistent=true` runs once at next start if a trigger was missed |
-| Linux without systemd (containers, WSL1, Alpine) | `/etc/cron.d/planetgen-maintenance` | none; add `@reboot` and `--if-due` |
+| Linux without systemd (containers, Alpine) | `/etc/cron.d/planetgen-maintenance` | none; add `@reboot` and `--if-due` |
 | macOS | launchd daemon, `StartCalendarInterval` | asleep: runs at wake; powered off: skipped; add `RunAtLoad` and `--if-due` |
-| Windows | Task Scheduler task as SYSTEM | `StartWhenAvailable` |
 
 anacron is not the default (whole days only, root only, usually absent on
 servers [S]). In `/etc/cron.d` the file must be root-owned, not group or
@@ -235,9 +213,8 @@ finds the account. The monthly orbit timer runs as root with
 
 Implement the work once in Python as `planetgen.cli.maintenance` (steps,
 lock, `--if-due`, `--dry-run`, `--only STEP`, rotating log, exit codes
-below) and keep `scripts/maintenance.sh` and `.ps1` as thin launchers that
-find the right Python and run it. One tested code path replaces two script
-bodies.
+below) and keep `scripts/maintenance.sh` as a thin launcher that
+finds the right Python and runs it.
 
 ### Linux: systemd timer
 
@@ -288,7 +265,7 @@ WantedBy=timers.target
   is guaranteed.
 - UTC in `OnCalendar` keeps the run's UTC date stable (backup names are
   UTC); a local schedule can put two runs in one UTC date or none across a
-  DST change, which rotation tolerates. Task Scheduler and launchd offer
+  DST change, which rotation tolerates. launchd offers
   local time only.
 - Test: `sudo systemctl start planetgen-maintenance.service`,
   `systemctl list-timers 'planetgen-*'`, `journalctl -u planetgen-maintenance`.
@@ -310,7 +287,7 @@ Idempotent create, leave, refresh, remove:
 - A deleted file cannot be told from a never-installed one, so give an
   off switch that survives updates: `maintenance.schedule` in `config.json`
   (`"auto"` default, `"off"`), read by install and update through
-  `planetgen.util.appconfig`. It works on all three OSes.
+  `planetgen.util.appconfig`. It works on Linux and macOS.
 
 ### Linux without systemd: cron
 
@@ -363,30 +340,6 @@ bootout system/org.planetgen.maintenance` and delete the plist. Test with
 beside the existing debug-log rule. launchd could not be run here; the
 plist parses [C] but is untested on a Mac.
 
-### Windows: Task Scheduler
-
-`schtasks /Create ... /RU SYSTEM` takes no password, and a scheduled-task
-principal runs "regardless of whether that account is logged on" [S]. The
-repo's `Register-MonthlyTask` calls `schtasks.exe` because the cmdlets have
-no monthly trigger; a daily trigger exists, so the new task uses
-`Register-ScheduledTask` (not run here): action = the generated
-`maintenance.cmd`; trigger `New-ScheduledTaskTrigger -Daily -At 03:30`;
-principal `-UserId SYSTEM -LogonType ServiceAccount -RunLevel Highest`;
-settings `-StartWhenAvailable -AllowStartIfOnBatteries
--DontStopIfGoingOnBatteries -MultipleInstances IgnoreNew -ExecutionTimeLimit
-6h`. Create only if `Get-ScheduledTask` finds no task of that name (an
-admin-disabled task counts as present). Remove with
-`Unregister-ScheduledTask`; test with `Start-ScheduledTask` and
-`Get-ScheduledTaskInfo` (`LastTaskResult` 0 = success [R]).
-
-Running as the web app's virtual account `NT SERVICE\planetgen` is probably
-not possible, since Task Scheduler wants a password or a built-in or gMSA
-account [R]. Files SYSTEM creates under `C:\ProgramData\planetgen` should
-inherit the ACL `Set-PlanetGenPermissions` set, so the web service can read
-and delete them [R]; test it. Times are local. Task Scheduler history is
-off by default, and Windows has no logrotate, so the Python entry point
-writes a `RotatingFileHandler` log as well as the `.cmd` redirect.
-
 ### `--if-due` and exit codes
 
 Schedulers differ (Persistent catch-up, `RunAtLoad`, manual starts, merge
@@ -404,7 +357,7 @@ tests).
 | 2 | usage error |
 | 75 | skipped: another maintenance or update run holds the lock, or a Generate job is running (EX_TEMPFAIL) |
 
-Systemd gets `SuccessExitStatus=75`; for Task Scheduler and launchd the
+Systemd gets `SuccessExitStatus=75`; for launchd the
 code is informational. Alert when the run was skipped N days in a row, so a
 multi-day Generate run cannot starve maintenance silently.
 
@@ -415,11 +368,10 @@ multi-day Generate run cannot starve maintenance silently.
 `src/planetgen/web/jobs.py` holds the one-running-Generate-job lock by
 hand: an `active` file created atomically (temp file plus `os.link`,
 fallback `O_EXCL`), stale handling that looks up the named job and checks
-the runner's PID (`/proc/<pid>/cmdline` on Linux, `OpenProcess` and
-`GetProcessTimes` on Windows to catch PID reuse), and a `.clearing` guard
+the runner's PID (`/proc/<pid>/cmdline` on Linux to catch PID reuse), and a `.clearing` guard
 so two admins cannot both clear a stale lock. That shape suits a lock that
 must carry an owner id for the UI. The repo has no `filelock`,
-`portalocker`, `fcntl` or `msvcrt` use outside a test helper
+`portalocker` or `fcntl` use outside a test helper
 (`src/tests/worker_patches.py`). `redis` and `croniter` are already
 dependencies.
 
@@ -427,11 +379,11 @@ dependencies.
 
 | | Stale locks | Python 3.9 | Verdict |
 |---|---|---|---|
-| `fcntl.flock` plus `msvcrt.locking` by hand | none | n/a | about 60 lines, Windows corner cases are yours |
+| `fcntl.flock` by hand | none | n/a | a few lines, but the corner cases are yours |
 | `filelock` 4.0.12 (MIT) | none for the hard locks | needs 3.10+; last 3.9 release 3.19.1 | **recommended**, pin by marker |
 | `portalocker` 4.4.0, `fasteners` 0.20 | none | 3.2.0 / any | alternatives |
-| PID file only | needs a PID check, races with PID reuse | n/a | avoid; `os.kill(pid, 0)` is wrong on Windows |
-| Redis key with TTL | TTL | n/a | avoid: Redis may be down (especially in WSL) exactly when maintenance must run |
+| PID file only | needs a PID check, races with PID reuse | n/a | avoid |
+| Redis key with TTL | TTL | n/a | avoid: Redis may be down exactly when maintenance must run |
 
 Versions read from the PyPI JSON API [C]. `requirements.lock` already uses
 per-Python markers, so `filelock==3.19.1 ; python_full_version < '3.10'`
@@ -449,14 +401,11 @@ and the current release for 3.10+ fit `scripts/lock-requirements.sh`.
 4. `/proc/sys/fs/protected_regular` was 0 here; at 1 or 2, opening a file
    you do not own with `O_CREAT` in a sticky world-writable directory such
    as `/tmp` fails even for root [R]. Keep locks in a `locks/` directory
-   under the data directory (path from `config.json`), on all three OSes.
+   under the data directory (path from `config.json`).
 
-On Windows, 3.19.1 opens the lock file with `O_TRUNC`, locks one byte with
-`msvcrt.locking` and tries to unlink on release (read from
-`filelock/_windows.py`). Never store the holder's PID inside the lock file;
+Never store the holder's PID inside the lock file;
 put diagnostics in a sidecar written atomically (`maintenance.lock.json`:
-pid, started UTC, host, command). Windows could not be tested, so the
-Windows CI leg needs a two-process test. Two lock objects in one process
+pid, started UTC, host, command). Two lock objects in one process
 conflict (`flock` belongs to the open file description), which is good for a
 second merge-now click. Locking over NFS or SMB is unreliable [R]; keep the
 data directory on a local disk.
@@ -465,7 +414,7 @@ data directory on a local disk.
 
 | Lock | Held by | Purpose | If it cannot be taken |
 |---|---|---|---|
-| `locks/maintenance.lock` | `planetgen.cli.maintenance`, `update.sh` and `update.ps1`, merge now (ADM.20) | no two of: daily run, update, merge now | maintenance: exit 75 and log "skipped"; update: wait up to 30 min, then stop with a message; merge now: show "the daily run holds the lock" and do nothing |
+| `locks/maintenance.lock` | `planetgen.cli.maintenance`, `update.sh`, merge now (ADM.20) | no two of: daily run, update, merge now | maintenance: exit 75 and log "skipped"; update: wait up to 30 min, then stop with a message; merge now: show "the daily run holds the lock" and do nothing |
 | `jobs/active` (existing) | Generate page and API | one Generate job | maintenance checks `jobs.active_job()` and exits 75; `start_job` refuses while the maintenance lock is held (try-lock, release) |
 
 No concrete corruption case was found for maintenance beside a Generate
@@ -569,9 +518,7 @@ become "newest" and push the real backups into the weekly and monthly
 slots).
 
 Delete only after the new file is written, fsynced and read back, under the
-maintenance lock, with a `--dry-run` that prints "keep (slot) / delete". On
-Windows a delete can fail with `PermissionError` while the Admin dashboard
-streams that file (ADM.19 download); treat it as "try again next run".
+maintenance lock, with a `--dry-run` that prints "keep (slot) / delete".
 
 ### The pure function
 
@@ -673,10 +620,10 @@ Run on MariaDB 10.11.14 only; MariaDB 11.4 and MySQL 8.4 were not tested [C]:
   installs exist); the step iterates the galaxies in the control database.
 - Line endings change hashes. `.gitattributes` forces LF only for `*.sh` and
   `src/html/**/*.py`. `requirements.lock`, `requirements-server.lock` and
-  `src/planetgen/names/offensive_words.txt` are tracked text; a Windows
+  `src/planetgen/names/offensive_words.txt` are tracked text; a
   checkout with `core.autocrlf=true` gets CRLF and a different SHA-256 for
-  identical content, so OPS.14 would warn "changed" between a Windows and a
-  Linux server for no real reason [C]. Fix with `*.lock text eol=lf` and
+  identical content, so OPS.14 would warn "changed" between two servers
+  for no real reason [C]. Fix with `*.lock text eol=lf` and
   `src/planetgen/names/*.txt text eol=lf`, or hash normalised text (read as
   text, normalise `\r\n`, encode UTF-8) in sorted file order.
 
@@ -685,10 +632,6 @@ Run on MariaDB 10.11.14 only; MariaDB 11.4 and MySQL 8.4 were not tested [C]:
 - POSIX: temp file in the same directory, flush, `fsync`, `os.replace`,
   then `fsync` the directory. A hot reader thread saw 201,721 reads and 0
   partial reads over 2,000 replaces [C].
-- Windows: `os.replace` fails with `PermissionError` if another process
-  holds the destination open; the repo's `job_runner._write_json` retries 40
-  times at 50 ms. Skip the directory `fsync` (a directory cannot be opened
-  with `os.open`).
 - macOS: `os.fsync` does not flush the drive cache; `fcntl.F_FULLFSYNC`
   does [R].
 - The settings JSONs are never replaced: each merge writes a new name, so
@@ -701,46 +644,6 @@ Run on MariaDB 10.11.14 only; MariaDB 11.4 and MySQL 8.4 were not tested [C]:
 - Read the file back and compare before clearing pending rows. Clean
   leftover `.settings-*.tmp` files older than a day at the start of a run.
 
-## 6. Redis in WSL on Windows (OPS.21, OPS.27)
-
-Facts from Microsoft's WSL docs [S: `wsl-config.md`, `networking.md`,
-`systemd.md`, `basic-commands.md`]:
-
-- `localhostForwarding` (default true) makes ports bound inside the WSL2 VM
-  reachable from Windows, so `redis://127.0.0.1:6379/0` works with Ubuntu's
-  default `bind 127.0.0.1`. Use `127.0.0.1`, not `localhost`, in
-  `redis.url` [R].
-- `instanceIdleTimeout` defaults to 15000 ms (an idle distro is shut down)
-  and `vmIdleTimeout` to 60000 ms.
-- "systemd services will NOT keep your WSL instance alive."
-
-The error in [deployment/windows.md](../deployment/windows.md) (Redis,
-step 4): "a scheduled task at logon running `wsl -d Ubuntu` works". With no
-command and no console that starts a shell that exits at once; systemd's
-`redis-server` does not count, and after about 15 s idle the distro and
-Redis stop. Starting the distro is not keeping it running. The doc is right
-that nothing starts WSL at boot with nobody logged on [R].
-
-`Test-Redis` in `scripts/deploy-common.ps1` already pings with the Python
-`redis` client, the right truth check. A remedy step may run only when the
-ping fails, `wsl.exe` exists and the URL host is local: list distros (empty
-under SYSTEM, then warn and stop), run `wsl.exe -u root -e sh -c 'service
-redis-server start || redis-server --daemonize yes'`, start one hidden
-long-lived `wsl.exe -u root -e sleep infinity` if none exists (the
-keep-alive), and re-ping for about 10 s. Not run (no Windows): a sketch to
-test before documenting. A boot-time variant with a stored password is
-unsupported and unverified [R], and a SYSTEM task cannot see the admin's
-distro [R], so from SYSTEM maintenance may only check Redis.
-
-Consequences: the daily maintenance must not depend on Redis and treats an
-unreachable Redis as a warning, so a Windows box whose WSL stopped still
-gets its backups. The work queue and rate limits do depend on it; for an
-unattended Windows server a Linux VM remains the only supported route. If
-unattended Windows Redis is ever wanted: Memurai (commercial), old native
-ports, or Garnet (RQ compatibility untested) [R]. An abrupt Windows crash
-loses queued jobs, acceptable because job history lives in the control
-database [R].
-
 ## Evidence notes
 
 Measured [C] on Ubuntu 24.04, Apache 2.4.58, mod_wsgi 5.0.0, systemd 255
@@ -752,23 +655,16 @@ tests; `filelock` behaviour; the DELETE forms; the plist XML error; the
 
 Still [R], to verify when paper and platform access is allowed: RHEL
 `apachectl` and Red Hat's own `httpd.service`; macOS Apache graceful
-forms; `httpd.exe -n Apache2.4 -k graceful`; the systemd cgroup kill of
+forms; the systemd cgroup kill of
 Generate jobs on `restart`; the systemd stamp path and
-`StandardOutput=append:`; launchd coalescing and `pmset repeat`; Task
-Scheduler result codes, virtual-account limits and ACL inheritance for
-SYSTEM-created files; WinSW stopping the process tree; `wsl.exe` flags not
-on the fetched page, the keep-alive process and start-at-boot tasks;
-`F_FULLFSYNC`; `protected_regular`; NFS and SMB `flock`; no `flock(1)` on
-macOS; MySQL 8.4 matching MariaDB for the DELETE forms; Garnet and Memurai
-statements; the Windows `LockFileEx` rewrite in filelock main.
+`StandardOutput=append:`; launchd coalescing and `pmset repeat`; `F_FULLFSYNC`; `protected_regular`; NFS and SMB `flock`; no `flock(1)` on
+macOS; MySQL 8.4 matching MariaDB for the DELETE forms.
 
 ## Sources
 
 - mod_wsgi: https://modwsgi.readthedocs.io/en/master/user-guides/reloading-source-code.html ; https://modwsgi.readthedocs.io/en/latest/release-notes/version-4.1.0.html
-- Debian bug on `apache2ctl graceful`: https://bugs.edge.launchpad.net/bugs/1832182 ; `httpd.service` mirror: https://gitcode.com/src-openeuler/httpd/blob/master/httpd.service ; Apache Lounge: https://www.apachelounge.com/viewtopic.php?p=40359
+- Debian bug on `apache2ctl graceful`: https://bugs.edge.launchpad.net/bugs/1832182 ; `httpd.service` mirror: https://gitcode.com/src-openeuler/httpd/blob/master/httpd.service
 - systemd.timer: https://manpages.debian.org/buster/systemd/systemd.timer.5 ; Debian cron(8): https://manpages.debian.org/jessie/cron/cron.8.en.html ; anacrontab(5): https://unix.com/man-page/linux/5/anacrontab/
 - Apple, Scheduling Timed Jobs: https://developer.apple.com/library/mac/documentation/MacOSX/Conceptual/BPSystemStartup/Chapters/ScheduledJobs.html
-- schtasks create: https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/schtasks-create ; New-ScheduledTaskPrincipal: https://learn.microsoft.com/en-us/powershell/module/scheduledtasks/new-scheduledtaskprincipal
 - borg: https://borgbackup.readthedocs.io/en/1.4.1/usage/prune.html and `src/borg/archiver.py` on the 1.4-maint branch ; restic: https://restic.readthedocs.io/en/v0.12.0/060_forget.html ; rotate-backups: https://rotate-backups.readthedocs.io/en/latest/readme.html
-- PyPI JSON API for filelock, portalocker, fasteners ; filelock `_windows.py`: https://raw.githubusercontent.com/tox-dev/filelock/main/src/filelock/_windows.py
-- Microsoft WSL docs (raw files in MicrosoftDocs/WSL): `wsl-config.md`, `networking.md`, `systemd.md`, `basic-commands.md`
+- PyPI JSON API for filelock, portalocker, fasteners

@@ -437,7 +437,7 @@ class DiskSpace:
     total_bytes: int
     free_bytes: int
     mount: str = None
-    """str or None: The mount point (a drive letter on Windows) holding `path`."""
+    """str or None: The mount point holding `path`."""
     source: str = "data directory"
     """str: How it was measured: the server's `data directory` seen from here, or `server report`
     (MariaDB's `information_schema.DISKS`, for a database on another machine)."""
@@ -457,11 +457,8 @@ class Unmeasured:
 
 
 def _mount_point(path):
-    """The mount point (or Windows drive) holding `path`, symlinks and bind mounts resolved; `None` if unknown."""
+    """The mount point holding `path`, symlinks and bind mounts resolved; `None` if unknown."""
     try:
-        drive, _rest = os.path.splitdrive(path)
-        if drive:
-            return drive + os.sep
         real = os.path.realpath(path)
         while not os.path.ismount(real):
             parent = os.path.dirname(real)
@@ -480,12 +477,11 @@ def _disk_from_server(conn, datadir):
         rows = conn.execute("SELECT Path AS p, Total AS t, Available AS a FROM information_schema.DISKS").fetchall()
     except Exception:  # noqa: BLE001 -- MySQL, or the plugin is off
         return None
-    wanted = datadir.rstrip("/\\").lower()
+    wanted = datadir.rstrip("/")
     best = None
     for row in rows:
-        path = (row["p"] or "").rstrip("/\\")
-        if (wanted == path.lower() or wanted.startswith(path.lower() + "/") or wanted.startswith(path.lower() + "\\")
-                or path == "") and (best is None or len(path) > len(best[0])):
+        path = (row["p"] or "").rstrip("/")
+        if (wanted == path or wanted.startswith(path + "/") or path == "") and (best is None or len(path) > len(best[0])):
             best = (path, row)
     if best is None:
         return None
@@ -497,8 +493,7 @@ def database_disk(galaxy_conn, mysql_host, database=None):
     """
     The drive holding the MySQL server's data directory, asked of the
     server itself (`SELECT @@datadir`), never the boot drive: the
-    directory is resolved to its mount (symlinks, bind mounts, a Windows
-    drive letter) and measured there. A server on this machine is
+    directory is resolved to its mount (symlinks, bind mounts) and measured there. A server on this machine is
     measured at that path. A server on another machine is measured only if
     that path is really its data directory seen from here (the database's
     own folder is in it) or, failing that, from the server's own report

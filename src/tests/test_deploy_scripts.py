@@ -223,12 +223,8 @@ def test_the_update_never_offers_the_population_pass():
     # it; the installers keep their prompt.
     with open(os.path.join(REPO_DIR, "update.sh"), encoding="utf-8") as f:
         shell = f.read()
-    with open(os.path.join(REPO_DIR, "update.ps1"), encoding="utf-8") as f:
-        powershell = f.read()
     assert "offer_population_pass" not in shell and "POPULATION=" not in shell
-    assert "Invoke-OptionalPopulation" not in powershell and "$Population" not in powershell
     assert "planetgen population" in shell
-    assert "population" in powershell and "planetgen.cli.generate" in powershell
 
 
 # --- log-locations.py (OPS.5), run as the current user -----------------------

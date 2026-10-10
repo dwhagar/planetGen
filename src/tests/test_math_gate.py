@@ -5,7 +5,7 @@ The math check in front of bulk generation (TEST.68): `planetgen
 check-math`, the gate every bulk command and the Sector page's
 neighbourhood generation pass first (refusing, naming the failed checks,
 and writing nothing), the Generate page's first job step, and the warning
-`update.sh`/`update.ps1` give.
+`update.sh` gives.
 """
 
 import os
@@ -161,14 +161,12 @@ def _deploy_common_shell(python, script):
     return subprocess.run(["bash", "-c", code], capture_output=True, text=True, timeout=120)
 
 
-@pytest.mark.skipif(os.name == "nt", reason="bash script")
 def test_update_sh_check_math_passes(tmp_path):
     result = _deploy_common_shell(sys.executable, 'check_math; echo "failed=$MATH_CHECK_FAILED"')
     assert result.returncode == 0, result.stderr
     assert "failed=0" in result.stdout
 
 
-@pytest.mark.skipif(os.name == "nt", reason="bash script")
 def test_update_sh_check_math_failure_only_warns(tmp_path):
     fake = tmp_path / "python"
     fake.write_text("#!/bin/sh\necho 'FAIL bad_check'\nexit 1\n")
@@ -181,10 +179,8 @@ def test_update_sh_check_math_failure_only_warns(tmp_path):
     assert "Skipping the population pass: the math check failed." in result.stdout
 
 
-def test_update_scripts_run_the_math_check():
+def test_update_script_runs_the_math_check():
     with open(os.path.join(REPO, "update.sh"), encoding="utf-8") as handle:
         update_sh = handle.read()
     assert "check_math" in update_sh and "MATH_CHECK_FAILED" in update_sh
-    with open(os.path.join(REPO, "update.ps1"), encoding="utf-8") as handle:
-        update_ps1 = handle.read()
-    assert "Test-MathCheck" in update_ps1 and "$mathOk" in update_ps1
+

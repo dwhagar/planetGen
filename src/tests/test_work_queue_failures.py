@@ -280,7 +280,6 @@ def _sigterm_self():
     time.sleep(1)  # the handler raises before this ends
 
 
-@pytest.mark.skipif(not hasattr(signal, "SIGTERM") or os.name == "nt", reason="POSIX signal")
 @pytest.mark.parametrize("how, raised", [
     ("sigterm", SystemExit),
     ("ctrl-c", KeyboardInterrupt),
@@ -357,7 +356,6 @@ def _sector_counts(config):
 
 
 @pytest.mark.slow
-@pytest.mark.skipif(os.name == "nt", reason="POSIX process groups")
 @pytest.mark.parametrize("sig, group", [
     (signal.SIGINT, True),    # Ctrl+C in a terminal reaches the run and its workers
     (signal.SIGTERM, True),   # Cancel on the Generate page stops the step's whole process group
