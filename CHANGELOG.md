@@ -3,6 +3,7 @@
 ## [8.0.911] - 2026-10-10
 
 ### Changed
+- Every staged job now numbers its stages across the whole job (a New galaxy shows "Stage 7 of 12", not "Step 4 of 4") and lists them; stages a run will not do are listed as skipped with the reason (UX.89). The galaxy and plan commands print "Stage N of M" lines and record the stage in the progress file.
 - Retired DB.20 and GEN.171 (object IDs in the schema and the sector fill, PR #1055); noted what is already built for GEN.172.
 - PERF.57: after a group places something the next group is half the size (Boss 09:19Z).
 - Rewrote PERF.57 to Boss's layer-grouping rule for galactic scatters (replaces the 100-empty-layer stop).
