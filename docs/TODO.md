@@ -1176,6 +1176,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   unassigned.
   Prerequisites: none. Related: MAP.164, GEN.185, MAP.148, MAP.153.
 
+- [ ] **MAP.166 Galaxy Map "Dimmest star shown" says "every star" only when the view is complete**
+  Boss (2026-10-10 08:11Z, via Bugfixes lane 2): the slider label
+  "Dimmest star shown" may say "every star" only when the view is
+  complete, meaning no tile cap, luminosity floor or missing tile hides
+  a star; otherwise it shows the real dimmest luminosity the view
+  carries. Follow-up to MAP.163. Done: the label follows that rule at
+  every zoom, and a test covers a complete view and a capped view.
+  Owner: Bugfixes lane 2 (next).
+  Prerequisites: none. Related: MAP.163, MAP.148.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
@@ -3151,6 +3161,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   08:29Z).
   Prerequisites: none. Related: GEN.183, GEN.185, GEN.187, GEN.194,
   PERF.56.
+  Bugfixes lane 2 (2026-10-09): Details from Bugfixes lane 2 (2026-10-10
+  08:29Z): the compact-object control sits side by side with the stellar
+  controls in Plan the galaxy and New galaxy; CLI option
+  --compact-min-mass (1, 2, 4, 6 or star); stored with the plan and
+  shown in the stage stats settings (PERF.56); a storage warning sits
+  next to it (1 Msun about 1.17e9 rows, 161 GB; 2 Msun about 3.9e8 rows,
+  54 GB; 4 Msun about 2.2e8 rows, 30 GB; 6 Msun about 2.0e8 rows, 28
+  GB).
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
