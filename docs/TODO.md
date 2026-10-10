@@ -3485,8 +3485,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   independent object-first draws and a per-sector count dictionary; each
   sector has a capacity from its expected count at the sector centre,
   the smallest of 1, 2, 4, 8 or 16 with P(Poisson(lambda) > capacity)
-  below 1e-4; an object over the capacity is dropped (Boss considered shunting it to a
-  neighbouring sector and decided it does no real good, 10:09Z). Drops are 0.02%
+  below 1e-4; an object over the capacity is dropped (Boss considered
+  shunting it to a neighbouring sector and decided it does no real
+  good, 10:09Z). Drops are 0.02%
   at the shipped star floors (every sector is tier 1), 0.13% at 1,000
   Lsun and 0.05% at 100 Lsun, and 0.12% for phenomena (a cap of 1 would
   drop 0.84%, 18.9% and 1.43%). Not a queue where a sector is listed c
