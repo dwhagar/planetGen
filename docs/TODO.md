@@ -112,7 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | DB.9, PERF.29, PERF.30, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, POP.8, POP.9, POP.7, POP.10, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, GEN.57, TEST.77, UX.49, GEN.128 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | DB.9, PERF.29, PERF.30, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, POP.8, POP.9, POP.7, POP.10, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, GEN.57, TEST.77, UX.49 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.17, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18, PERF.33, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, ADM.43, ADM.44, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.56, NAV.55, NAV.27, NAV.28, NAV.51, NAV.54, NAV.6 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, and the anomalies chosen in phase 2. | API.13, API.14, API.8, ADM.13, API.3, API.17, GEN.114, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies. | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, GEN.55 |
@@ -1253,7 +1253,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   nebulae and for unfilled cells from the field. Done: the statistic,
   with a test that filled and unfilled cells agree on a seeded galaxy.
   Owner: Foundations lane 2.
-  Prerequisites: DB.24. Related: MAP.131, MAP.151.
+  Prerequisite: DB.24. Related: MAP.131, MAP.151.
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
 - [ ] **MAP.175 The dark-family nebula fill is invisible on the dark theme (bug)**
@@ -1297,7 +1297,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   legend "share of the block inside a nebula", hover shows the
   percentage, works on unfilled cells. Off by default. Done: the choice,
   legend and hover with a browser test. Owner: Foundations lane 2.
-  Prerequisites: MAP.174. Related: MAP.131.
+  Prerequisite: MAP.174. Related: MAP.131.
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
 - [ ] **MAP.178 Field nebula clouds drawn one by one from the nebula table**
@@ -1335,7 +1335,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   click flies to the zoom at which it splits (no page change), with a
   keyboard path. Done: hover, click and keyboard paths with browser
   tests. Owner: Foundations lane 2.
-  Prerequisites: MAP.176. Related: MAP.150.
+  Prerequisite: MAP.176. Related: MAP.150.
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
 - [ ] **MAP.181 Dust colour for the dark nebula family on both themes**
@@ -1348,7 +1348,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   rim on the dark theme, chosen with the contrast checker of MAP.175,
   and a matching light-theme colour. Done: the tokens and the 3:1 test
   pass for the new colours. Owner: Foundations lane 2.
-  Prerequisites: MAP.175. Related: MAP.142.
+  Prerequisite: MAP.175. Related: MAP.142.
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
 - [ ] **MAP.182 Optional, default do not build: hosted H II and reflection nebulae for pre-placed O and B stars, drawn before their sector exists**
@@ -2654,27 +2654,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   to GEN.130 (symbiotic binaries).
   Prerequisite: GEN.113.
 
-- [ ] **GEN.128 Design: multi-star hierarchies and compact-object primaries**
-  Boss (GitHub issues [#777](https://github.com/dwhagar/planetGen/issues/777) and [#778](https://github.com/dwhagar/planetGen/issues/778), 2026-10-09 06:43Z): "scientifically
-  accurate star systems with up to 7 stars, this is going to be complex
-  but that is the highest number of stars we've seen in orbit around
-  each other" and "exotic star systems that have black holes, neutron
-  stars, or similar as the central star for systems, binary systems."
-  Done: a design note in docs/design covers how a hierarchy of up to
-  seven stars is stored (a tree of pairs, each pair's orbit around its
-  barycentre), the stability limits it must satisfy, how it fits
-  GEN.62's naming and the binary code, how often each shape occurs, what
-  a black hole, neutron star or similar primary changes for the planets
-  around it, where such systems sit in the galaxy (GEN.103), and a go or
-  no-go list for GEN.129 and GEN.130.
-  Research (2026-10-09, multistar-and-compact-systems.md): the design
-  note is the deliverable and it exists now. The Done text can keep its
-  list and add the binary period distribution redraw, eccentric pair
-  orbits, the Kozai-Lidov screen and the compact-object slices.
-  `compact_remnant.py` cites a `docs/design/exotic-phenomena.md` that
-  does not exist: do not create it; point the docstring at
-  `docs/design/anomalies.md` and the new note.
-
 - [ ] **GEN.129 Multi-star systems of up to seven stars**
   Boss (GitHub issue [#777](https://github.com/dwhagar/planetGen/issues/777)): "We need to add scientifically accurate star
   systems with up to 7 stars, this is going to be complex but that is
@@ -3148,26 +3127,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.9, GEN.158, GEN.159.
   Design: [docs/design/globular-clusters.md](design/globular-clusters.md)
 
-- [ ] **GEN.169 Decide the phenomenon scatter rates: regional factors and the 0.1% intermediate-mass black holes**
-  Research (2026-10-09, phenomenon-scatter-mass-cut.md, PR #837; handoff
-  in /mnt/project-files/research/handoff/phenomenon-mass-cut.md): Boss
-  decided at 19:54Z that the GEN.100 scatter keeps only objects above a
-  lowest mass and the sector fill draws the rest below it, like the
-  bright stars. Decided (Boss, 2026-10-10 18:44Z, defaults approved;
-  default: keep both as they are):
-  the regional factors give neutron stars 0.80 times and black holes
-  1.49 times their nominal numbers (his retune said 1e9 neutron stars
-  and 1e8 black holes; the scatter gives 9.5e8 and 2.2e8). Renormalise
-  the factors so the totals match his figures? And is the 0.1% share of
-  intermediate-mass black holes intended? They carry 53% of the
-  black-hole mass.
-  Note (2026-10-09): Superseded in part (Boss, 2026-10-10 03:01Z rush
-  job): the mass cut is now a user preset between 8 and 20 solar masses
-  (GEN.183, default 20) and the scatter runs in the five passes of
-  GEN.185; the rates above are still open.
-  Prerequisites: none.
-  Design: [docs/design/phenomenon-scatter-mass-cut.md](design/phenomenon-scatter-mass-cut.md)
-
 - [ ] **GEN.177 Planetary magnetic fields: a stagnant-lid factor**
   Left over from GEN.86 (PR #908, Foundations lane 2): the planetary
   magnetic field model does not yet apply the stagnant-lid factor (a
@@ -3533,28 +3492,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   PERF.31 shows the cold rebuild cost; switch if a full rebuild takes
   more than a minute.
   Design: [docs/design/performance-eta-queue-and-caching.md](design/performance-eta-queue-and-caching.md)
-
-- [ ] **PERF.46 Planets and moons: set the position once per body**
-  Research (2026-10-09, generation-performance-study.md, PR #835;
-  handoff in
-  /mnt/project-files/research/handoff/generation-performance.md; from
-  Boss's requests of 19:08Z and 19:21Z, generation being his slowest
-  point): `SpatialPosition3D._sync` was called 83,000 times for 4
-  sectors. Set a planet's or moon's position once per body. Optional:
-  skip `util/checks.finite_domain` in bulk fills (3 to 4%, but it loses
-  a safety net). Decided (Boss, 2026-10-10 18:44Z, defaults approved;
-  default: keep the check):
-  accept skipping it in bulk fills?
-  Boss (2026-10-09, generation-performance-study.md): Boss (2026-10-09
-  20:02Z) approved the position-once saving. The `finite_domain` half
-  stays open: it costs 2 to 4% of a fill (0.85 microseconds a call,
-  about 535 calls a system) and Research Lane 1 recommended keeping it;
-  Boss's answer is pending, so do not skip the check yet.
-  Built (PR #863, 2026-10-09): the position half; bodies work out their
-  coordinates when first read. Only the `finite_domain` question is
-  open, on Foundations lane 2.
-  Prerequisites: none.
-  Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
 
 - [ ] **PERF.47 The PERF.31 benchmark records the buffer pool, table sizes and worker start-up cost**
   Research (2026-10-09, generation-performance-study.md, PR #835;
