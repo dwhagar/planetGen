@@ -650,3 +650,28 @@ def test_system_page_3d_view_draws_switches_scale_and_keeps_the_diagram(page, ba
     page.goto(f"{base_url}/system/{system_id}", wait_until="load")
     page.wait_for_selector('#sysmap-root[data-ready="true"]')
     assert page.locator("#sysview3d").is_hidden() and page.locator("#sysmap-diagram").is_visible()
+
+
+def _inside_window(page, selector):
+    box = page.evaluate("""(sel) => {
+        const r = document.querySelector(sel).getBoundingClientRect();
+        return {top: r.top, bottom: r.bottom, left: r.left, right: r.right,
+                w: window.innerWidth, h: window.innerHeight};
+    }""", selector)
+    return box, (box["top"] >= -1 and box["left"] >= -1 and box["bottom"] <= box["h"] + 1
+                 and box["right"] <= box["w"] + 1)
+
+
+@pytest.mark.parametrize("size", [{"width": 1280, "height": 420}, {"width": 400, "height": 520}])
+@pytest.mark.parametrize("menu, panel", [("#galaxymap3d-menu", "#galaxymap3d-menu .galaxy-menu-panel"),
+                                         ("#galaxymap3d-steps", "#galaxymap3d-steps .galaxy-steps-panel")])
+def test_galaxy_map_menus_open_inside_the_window(page, base_url, menu, panel, size):
+    """UX.85: a button menu opens where it can be seen, in a short or a narrow window, with the
+    controls scrolled to the bottom edge, where a panel hung below its button ran off the screen."""
+    page.set_viewport_size(size)
+    _open_galaxy(page, base_url)
+    page.evaluate("document.querySelector('#galaxymap3d-controls').scrollIntoView({block: 'end'})")
+    page.click(f"{menu} > summary")
+    page.wait_for_selector(f"{menu}[data-placed]")        # menuplace.js has put the panel where it goes
+    box, inside = _inside_window(page, panel)
+    assert inside, f"{menu} opened out of sight in a {size['width']}x{size['height']} window: {box}"
