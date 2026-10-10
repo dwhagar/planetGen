@@ -3769,8 +3769,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
     column (read, admin, upload)" with four scopes (`read`, `generate`,
     `upload`, `admin`; `admin` implies all, `upload` and `generate`
     imply `read`) in a join table `admin_api_key_scopes`, plus
-    `expires_at` and `key_prefix`; control migration v12 (control v11 is
-    OPS.13's; the text says "v8"); existing keys grandfathered as
+    `expires_at` and `key_prefix`; control migration v13 or later (control v11 is OPS.13's, v12 is PERF.32's; the text says "v8"); existing keys grandfathered as
     `admin`; throttle `last_used_at` writes; per-key rate-limit buckets
     (the 50/hour IP default must not apply to keys). Add the sweep
     checks of design doc 5.4 to the Done text. The scope work is a
@@ -4334,6 +4333,16 @@ clears each one.
   the test is made robust without skipping or loosening it, or the
   product bug it hides is fixed. Related: TEST.71, TEST.73, OPS.19.
   Prerequisites: none.
+
+- [ ] **TEST.112 test_regenerate_phenomenon_keeps_id_name_and_place fails now and then in the full suite (bug)**
+  Reported by Foundations lane 1 (2026-10-10 00:04Z, PERF.32 merge, PR
+  #905): `test_regenerate_phenomenon_keeps_id_name_and_place` is a known
+  intermittent failure in the full suite. Done: the cause is found
+  (shared state or timing under load, or a real regeneration bug) and
+  the test is made robust without skipping or loosening it, or the
+  product bug it hides is fixed. Bugfixes lane 1 or whichever lane
+  touches regeneration next.
+  Prerequisites: none. Related: TEST.111, TEST.71, TEST.73, OPS.19.
 
 ## USR: User accounts
 

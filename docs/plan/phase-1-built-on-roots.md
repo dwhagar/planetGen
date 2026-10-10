@@ -222,6 +222,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | UX.86 | The Galaxy Map controls take too much room: buttons too large and filters one character wide (bug) | UX.85 | Boss 00:01Z; Bugfixes lane 1 after UX.85. |
 | UX.85 | Button menus open out of sight and make the user scroll to see them (bug) |  | Boss 00:01Z; Bugfixes lane 1 after its current work. |
 | TEST.111 | test_ensure_sector_generated_creates_then_reuses_the_same_sector fails in a busy parallel run (bug) |  | Test flake reported 2026-10-09; Bugfixes lane 1. |
+| TEST.112 | test_regenerate_phenomenon_keeps_id_name_and_place fails now and then in the full suite (bug) |  | Foundations lane 1 report 00:04Z. |
 
 ### Foundations for the issue features
 
