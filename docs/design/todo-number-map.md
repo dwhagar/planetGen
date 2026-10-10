@@ -922,7 +922,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.49 | Waypoints: pick objects in Star select mode and plot a course through them, kept on the map until cleared | none | open |
 | NAV.50 | Pick any object down to a moon as a NAV endpoint | none | done, PR #724 |
 | NAV.51 | Courses route around asteroid fields | none | open |
-| NAV.52 | Port `join_islands` and the k-d tree to cKDTree | none | open |
+| NAV.52 | Port `join_islands` and the k-d tree to cKDTree | none | done, PR #1172 |
 | NAV.53 | A `cells_touching_sphere` helper, and pad `store.sectors_reached_by` by one edge (bug) | none | done, PR #843 |
 | NAV.54 | Keep-out radii for asteroid fields, supermassive holes, moons and nebulae (NAV.24 built) | none | open |
 | NAV.55 | A tuning block for the keep-out knobs | none | open |
