@@ -41,6 +41,16 @@ luminosity from the part of the phase's range above the threshold.
 White dwarfs are never pre-placed (`WD_LUMINOSITY_RANGE_SOL` tops out at
 100 Lsun), so the threshold must be at least that range's top, and a
 sector's dim draw keeps every white dwarf whatever the cap.
+
+Mass bands (GEN.187)
+--------------------
+The backfill around generated sectors fills by initial mass, not
+luminosity: `mass_band_fraction` and `sample_mass_band_stars` take every
+living star born in `[low, high)` solar masses (any luminosity, a white
+dwarf included) below an optional luminosity ceiling (what the luminosity
+pass already placed). Their sampling table is the bright table's
+counterpart: each cell is weighted by its IMF share times the longest
+age window a star in it is still alive in.
 """
 
 import bisect
@@ -269,11 +279,12 @@ def bright_star_fraction(min_luminosity_sol, population=None, mass_range=None):
 def massive_star_fraction(min_mass_sol, population=None):
     """
     The share of a population's living stars born with at least
-    `min_mass_sol` solar masses: what the mass pass of the scatter places
-    (`MASS_PASS_MIN_LUMINOSITY_SOL` is below every one of them, so no
-    luminosity cuts any out).
+    `min_mass_sol` solar masses, at any luminosity: what the mass pass of
+    the scatter places (a star born with 8 or more is brighter than
+    `MASS_PASS_MIN_LUMINOSITY_SOL` all its life), and what a mass backfill
+    (GEN.187) takes a sector down to.
     """
-    return bright_star_fraction(MASS_PASS_MIN_LUMINOSITY_SOL, population, (min_mass_sol, None))
+    return _mass_band_table((float(min_mass_sol), None), population)["fraction"]
 
 
 def _sample_one_bright(table, min_luminosity_sol, rng):
@@ -374,15 +385,108 @@ def bright_band_fraction(min_luminosity_sol, max_luminosity_sol=None, population
     return max(fraction, 0.0)
 
 
+@functools.lru_cache(maxsize=None)
+def _mass_band_table(mass_range, population):
+    """
+    The cached sampling table of the stars born in `mass_range` (`(low,
+    high)` initial solar masses, `high` `None` for no limit) that are still
+    alive, at any luminosity: the cells, their running weights (IMF share
+    times the longest age window in the cell), the population's age
+    window and the band's `fraction` of ALL living stars (the same
+    denominator `bright_star_fraction` uses, so the two subtract).
+    """
+    window = population_age_range_gy(population)
+    mass_low, mass_high = mass_range
+    cells, cumulative = [], []
+    running = born = living = 0.0
+    for a, b, alpha, norm in _mass_grid(tuple(edge for edge in mass_range if edge is not None)):
+        count = norm * _power_law_integral(a, b, alpha)
+        points = [_power_law_quantile(a, b, alpha, (j + 0.5) / _FRACTION_POINTS_PER_CELL)
+                  for j in range(_FRACTION_POINTS_PER_CELL)]
+        measure = count * sum(_living_measure(m, window) for m in points) / len(points)
+        living += measure
+        if b <= mass_low or (mass_high is not None and a >= mass_high):
+            continue
+        born += measure
+        bound = _living_measure(a, window)  # falls with mass, and no cell straddles the supergiant mass
+        if bound > 0:
+            running += count * bound
+            cells.append((a, b, alpha, bound))
+            cumulative.append(running)
+    return {"window": window, "cells": cells, "cumulative": cumulative,
+            "fraction": born / living if living > 0 else 0.0}
+
+
+def _check_mass_band(min_mass_sol, max_mass_sol):
+    if min_mass_sol is None or not min_mass_sol > 0:
+        raise ValueError(f"a mass band needs a positive lower mass, got {min_mass_sol!r}")
+    if max_mass_sol is not None and not min_mass_sol < max_mass_sol:
+        raise ValueError(f"empty mass band [{min_mass_sol:g}, {max_mass_sol:g}) solar masses")
+    return (float(min_mass_sol), None if max_mass_sol is None else float(max_mass_sol))
+
+
+def mass_band_fraction(min_mass_sol, max_mass_sol=None, max_luminosity_sol=None, population=None):
+    """
+    The share of a population's living stars born with `min_mass_sol <=
+    mass < max_mass_sol` (`None`: no upper mass) that are dimmer than
+    `max_luminosity_sol` (`None`: any luminosity; a white dwarf is always
+    dimmer): what a mass backfill adds to a sector whose luminosity pass
+    already placed the brighter ones.
+    """
+    band = _check_mass_band(min_mass_sol, max_mass_sol)
+    born = _mass_band_table(band, population)["fraction"]
+    if max_luminosity_sol is not None:
+        born -= bright_star_fraction(max_luminosity_sol, population, band)
+    return max(born, 0.0)
+
+
+def _sample_one_in_mass_band(table, max_luminosity_sol, rng):
+    cells, cumulative, window = table["cells"], table["cumulative"], table["window"]
+    if not cells:
+        raise ValueError(f"no star in population window {window} Gy is alive in this mass band")
+    for _ in range(tuning.STAR_MODEL_MAX_REDRAWS):
+        index = min(bisect.bisect_right(cumulative, rng.random() * cumulative[-1]), len(cells) - 1)
+        a, b, alpha, bound = cells[index]
+        mass = _sample_power_law(a, b, alpha, rng)
+        if rng.random() * bound >= _living_measure(mass, window):
+            continue
+        oldest = window[1]
+        if mass >= tuning.SUPERGIANT_MIN_MASS_SOL:
+            oldest = min(oldest, main_sequence_lifetime_gy(mass) * tuning.GIANT_PHASE_END_MS_FRACTION)
+        age = rng.uniform(window[0], oldest)
+        state = evolve_star(mass, age, rng)
+        if state is None:
+            continue
+        if (max_luminosity_sol is not None and state["yerkes_class"] != "VII"
+                and state["luminosity_sol"] >= max_luminosity_sol):
+            continue
+        return star_params(mass, age, state)
+    raise ValueError(f"no star drawn in {tuning.STAR_MODEL_MAX_REDRAWS} tries")
+
+
+def sample_mass_band_stars(n, min_mass_sol, max_mass_sol=None, population=None, rng=draw, max_luminosity_sol=None):
+    """
+    Draws `n` living stars born with `min_mass_sol <= mass < max_mass_sol`
+    and, when given, dimmer than `max_luminosity_sol` (the bright ones
+    were placed already), as `stellarEvolution.star_params` dicts.
+    """
+    band = _check_mass_band(min_mass_sol, max_mass_sol)
+    table = _mass_band_table(band, population)
+    return [_sample_one_in_mass_band(table, max_luminosity_sol, rng) for _ in range(n)]
+
+
 def placed_star_fraction(min_luminosity_sol, min_mass_sol, population=None):
     """
     The share of a population's living stars the galaxy scatter places in
     advance: those born with at least `min_mass_sol` solar masses (the mass
     pass; `None`: no mass pass) and, of the lighter ones, those at least
-    `min_luminosity_sol` bright. A sector's own draw is the rest.
+    `min_luminosity_sol` bright (`None`: no luminosity pass). A sector's own
+    draw is the rest.
     """
     if min_mass_sol is None:
-        return bright_star_fraction(min_luminosity_sol, population)
+        return 0.0 if min_luminosity_sol is None else bright_star_fraction(min_luminosity_sol, population)
+    if min_luminosity_sol is None:
+        return massive_star_fraction(min_mass_sol, population)
     return (massive_star_fraction(min_mass_sol, population)
             + bright_star_fraction(min_luminosity_sol, population, (None, min_mass_sol)))
 

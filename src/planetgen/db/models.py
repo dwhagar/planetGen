@@ -1175,6 +1175,7 @@ sector_stats = sa.Table(
     sa.Column('ring_slot_index', mysql.INTEGER(), primary_key=True, nullable=False),
     sa.Column('bright_level_sol', mysql.DOUBLE(), server_default=sa.text('-1'), nullable=False),
     sa.Column('level_before_fill_sol', mysql.DOUBLE(), nullable=True),
+    sa.Column('bright_mass_sol', mysql.DOUBLE(), nullable=True),
     sa.Column('relative_density', mysql.DOUBLE(), nullable=True),
     sa.Column('expected_systems', mysql.DOUBLE(), nullable=True),
     sa.Column('actual_systems', mysql.INTEGER(), nullable=True),

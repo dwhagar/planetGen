@@ -91,9 +91,9 @@ def _draw_sector_bands(conn, skeleton, addresses, floors, galaxy_level, seed, ce
     """
     sectors = stars = 0
     e_value = skeleton.expected_system_count_at_density_1
-    # GEN.185: a galaxy whose mass pass placed every heavy star draws the lighter ones here.
+    # GEN.185: a galaxy whose mass pass placed every heavy star draws the lighter ones here
+    # (GEN.187: a sector a mass backfill took lower holds every star from its own mass up).
     mass_limit = store.bright_star_mass_limit(conn)
-    mass_range = None if mass_limit is None else (None, mass_limit)
     for start in range(0, len(addresses), BACKFILL_CHUNK_SECTORS):
         chunk = addresses[start:start + BACKFILL_CHUNK_SECTORS]
         entries = []
@@ -101,6 +101,7 @@ def _draw_sector_bands(conn, skeleton, addresses, floors, galaxy_level, seed, ce
             density = max(relative_density(sector_position_pc(*address, skeleton.edge_pc), skeleton.shape), 0.0)
             entries.append((address, density, density * e_value))
         locked = store.lock_sector_stats(conn, entries)
+        held_masses = store.sector_bright_masses(conn, chunk, current=True)
         filled = store.get_occupied_addresses(conn, {address[0] for address in chunk})
         rows, new_levels = [], {}
         for address in chunk:
@@ -120,8 +121,11 @@ def _draw_sector_bands(conn, skeleton, addresses, floors, galaxy_level, seed, ce
                              " AND ring_slot_index = ? AND star_system_id IS NULL", address)
             if ceiling_cap is not None:
                 ceiling = ceiling_cap if ceiling is None else min(ceiling, ceiling_cap)
+            held = held_masses.get(address)
+            mass_cap = mass_limit if held is None else held if mass_limit is None else min(held, mass_limit)
             rows.extend(brightStars.backfill_cells(skeleton.shape, [address], skeleton.edge_pc, e_value, floor,
-                                                   ceiling, seed, mass_range=mass_range))
+                                                   ceiling, seed,
+                                                   mass_range=None if mass_cap is None else (None, mass_cap)))
             new_levels[address] = floor
             if on_sector is not None:
                 on_sector()
@@ -135,6 +139,73 @@ def _draw_sector_bands(conn, skeleton, addresses, floors, galaxy_level, seed, ce
             for row in rows:
                 layers.setdefault(row[1], collections.Counter())[star_label(row[7], row[8])] += 1
         sectors += len(new_levels)
+        stars += len(rows)
+    return sectors, stars
+
+
+def _draw_sector_masses(conn, skeleton, targets, galaxy_level, mass_limit, seed, on_sector=None, layers=None):
+    """
+    The mass backfill's draw (GEN.187): takes each sector of `targets` (a
+    dict, `(ring, layer, slot)` -> the lightest initial mass to place,
+    solar masses) down to its target, `BACKFILL_CHUNK_SECTORS` at a time,
+    the way `_draw_sector_bands` does for luminosity: locks the chunk's
+    `sector_stats` rows, rechecks each sector under the lock (another run
+    may have got there first, or filled it), writes the stars and the new
+    mass (`store.set_sector_bright_masses`; the galaxy scatter's level too,
+    so the sector counts as having its own state from then on), and
+    commits.
+
+    A sector holds its stars from `held` up: its own backfill's mass, else
+    the galaxy's mass limit (`None`: none placed by mass). The stars drawn
+    are those born in [target, held) that are dimmer than the sector's
+    luminosity level (`_effective_level`): the brighter ones were placed
+    already. A sector at or below its target, or filled, is skipped.
+
+    Returns:
+        tuple: `(sectors drawn, stars written)`.
+    """
+    sectors = stars = 0
+    e_value = skeleton.expected_system_count_at_density_1
+    edges = brightStars.mass_band_edges(mass_limit)
+    addresses = sorted(targets)
+    for start in range(0, len(addresses), BACKFILL_CHUNK_SECTORS):
+        chunk = addresses[start:start + BACKFILL_CHUNK_SECTORS]
+        entries = []
+        for address in chunk:
+            density = max(relative_density(sector_position_pc(*address, skeleton.edge_pc), skeleton.shape), 0.0)
+            entries.append((address, density, density * e_value))
+        locked = store.lock_sector_stats(conn, entries)
+        masses = store.sector_bright_masses(conn, chunk, current=True)
+        filled = store.get_occupied_addresses(conn, {address[0] for address in chunk})
+        rows, states = [], {}
+        for address in chunk:
+            target = targets[address]
+            level = locked.get(address)
+            held = masses.get(address, mass_limit)
+            if address in filled or level == 0 or (held is not None and held <= target):
+                if on_sector is not None:
+                    on_sector()
+                continue
+            ceiling = _effective_level(level, galaxy_level)
+            if ceiling is None and held is None:
+                # Nothing was placed here by any pass: an unbuilt star in this
+                # cell is left over from a run that failed before it recorded
+                # a level (TEST.25, GEN.44), so it is wiped and drawn again.
+                conn.execute("DELETE FROM bright_stars WHERE ring_index = ? AND layer_index = ?"
+                             " AND ring_slot_index = ? AND star_system_id IS NULL", address)
+            rows.extend(brightStars.backfill_mass_cells(skeleton.shape, [address], skeleton.edge_pc, e_value,
+                                                        target, held, ceiling, seed, edges))
+            own = galaxy_level if galaxy_level is not None and (level is None or level < 0) else None
+            states[address] = (target, own)
+            if on_sector is not None:
+                on_sector()
+        store.insert_bright_stars(conn, rows)
+        store.set_sector_bright_masses(conn, states)
+        conn.commit()
+        if layers is not None:
+            for row in rows:
+                layers.setdefault(row[1], collections.Counter())[star_label(row[7], row[8])] += 1
+        sectors += len(states)
         stars += len(rows)
     return sectors, stars
 

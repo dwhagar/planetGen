@@ -2780,7 +2780,7 @@ Generate page's neighborhood) when no radius is given, fill every
 not-yet-generated sector this close to their center. Boss (GEN.23,
 2026-10-01): "about 10 pc, rounded up" -- to the next whole 4 pc sector,
 12 pc. It was 100 ly (about 30.7 pc) before; that sphere now gets only
-its bright stars (`BRIGHT_STAR_BACKFILL_RADIUS_LY`).
+its bright stars (`BRIGHT_STAR_BACKFILL_RING_MASSES_SOL`).
 """
 
 PROGRESS_BAR_SECONDS = 15.0
@@ -2792,28 +2792,19 @@ sub-item if it's predicted to take longer than 15 seconds"), and the moment
 it runs past it if it was not (`planetgen.generation.steps`).
 """
 
-BRIGHT_STAR_BACKFILL_TIERS = ((10.0, 100.0), (25.0, 250.0), (50.0, 500.0), (100.0, 750.0))
+BRIGHT_STAR_BACKFILL_RING_MASSES_SOL = (1.0, 2.0, 5.0, 8.0)
 """
-tuple: The bright-star backfill around a generated sector (GEN.23,
-tiered by GEN.30), as `(out_to_ly, min_luminosity_sol)` pairs, nearest
-first. Every time a galaxy sector is generated, each sector within the
-last tier's distance of it gets every star down to the floor of the first
-tier it falls in: under 10 ly, 100 L_sun; 10 to under 25 ly, 250; 25 to
-under 50 ly, 500; 50 to 100 ly, 750 (Boss, 2026-10-01). A sector keeps
-the dimmest level it has been filled to (`sector_stats`, GEN.44), so a
-sector a nearer one reaches later is topped up with only the band it
-lacks, and no star is drawn twice (`planetgen`'s
-`backfill_bright_stars`).
+tuple: The bright-star backfill around the generated sectors (GEN.187;
+Boss, GitHub issue #952, 2026-10-10), as the initial mass in solar masses
+each ring is filled down to, nearest first. The first ring is every
+unfilled sector a face away (no diagonals) from a sector the run
+generated and gets every living star born with at least 1 solar mass; the
+second, a face past the first, gets 2; the third 5; the fourth 8. Beyond
+the fourth only the scatter's own mass pass (`galaxy_shape`'s mass limit)
+holds. A sector keeps the lightest mass it has been filled to
+(`sector_stats.bright_mass_sol`), so a sector a nearer one reaches later
+is topped up with only the band it lacks.
 """
-
-BRIGHT_STAR_BACKFILL_RADIUS_LY = BRIGHT_STAR_BACKFILL_TIERS[-1][0]
-"""float: How far the bright-star backfill reaches, light-years: the last
-tier of `BRIGHT_STAR_BACKFILL_TIERS` (100 ly)."""
-
-BRIGHT_STAR_BACKFILL_MIN_LUMINOSITY_SOL = BRIGHT_STAR_BACKFILL_TIERS[0][1]
-"""float: The dimmest the bright-star backfill goes, solar luminosities:
-the nearest tier's floor in `BRIGHT_STAR_BACKFILL_TIERS` (100 L_sun), so
-what a sector's own block holds."""
 
 RANDOM_START_MAX_PLACEMENT_ATTEMPTS = 1000
 """
@@ -3003,8 +2994,8 @@ BRIGHT_STAR_MIN_LUMINOSITY_SOL = 9000.0
 and placed galaxy-wide right after `planetgen plan`, before any sector is
 filled (`bright_stars`, schema v43). Its sector is still generated later,
 around it. 500 on 2026-10-01, then 1000 (GEN.30), with the dimmer stars
-filled in near generated sectors by the tiered backfill
-(`BRIGHT_STAR_BACKFILL_TIERS`); 3000 on 2026-10-10 (GEN.184, Boss), then 5000 the same day. The user
+filled in near generated sectors by the backfill (luminosity tiers, then the
+mass rings of GEN.187); 3000 on 2026-10-10 (GEN.184, Boss), then 5000 the same day. The user
 picks it from the ladder in `generation/luminosity_floor.py`, from
 `BRIGHT_STAR_FLOOR_MIN_SOL` to `BRIGHT_STAR_FLOOR_MAX_SOL`. A galaxy
 already scattered keeps the level it was scattered at. The value a scatter

@@ -1136,6 +1136,17 @@
 --   sector for serials, per system for body numbers. The row `id` stays the
 --   foreign key. Existing rows are numbered by row order.
 --
+-- v79: the mass backfill (GEN.187). `sector_stats.bright_mass_sol`: the
+--   initial mass, in solar masses, down to which a backfill placed every
+--   living star of an unfilled sector (the sectors a face away from the
+--   generated ones: 1, the next ring 2, then 5, then 8); NULL where none
+--   did, so the sector holds the galaxy scatter's mass pass only (stars
+--   born at or above `galaxy_shape.bright_star_mass_limit_sol`). Alongside
+--   it `bright_level_sol` is the luminosity pass's floor, as before. A new
+--   plan scatter clears it. `planetgen/generation/run_galaxy.py`
+--   (`backfill_bright_stars_around`); design
+--   docs/design/mass-backfill.md.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -3095,6 +3106,8 @@ CREATE TABLE IF NOT EXISTS sector_stats (
     ring_slot_index        INT NOT NULL,
     bright_level_sol       DOUBLE NOT NULL DEFAULT -1,
     level_before_fill_sol  DOUBLE,
+    -- v79 (GEN.187): see header comment.
+    bright_mass_sol        DOUBLE,
     relative_density       DOUBLE,
     expected_systems       DOUBLE,
     actual_systems         INT,

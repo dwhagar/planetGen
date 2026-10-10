@@ -648,12 +648,11 @@ def add_galaxy_arguments(parser):
     backfill_group = parser.add_argument_group("bright stars after the run (GEN.30)")
     backfill_group.add_argument('--backfill-from', choices=run_galaxy.BACKFILL_FROM_CHOICES, default="edge",
                                 help="Once every sector of the run is generated, backfill the bright stars "
-                                     "out from the run's edge ('edge', the default): 100 ly past the "
-                                     "farthest generated sector in every direction, not a radius around "
-                                     "the starting sector -- or not at all ('none'). The backfill goes "
-                                     "down to 100 L_sun under 10 ly, 250 under 25 ly, 500 under 50 ly "
-                                     "and 750 out to 100 ly, and never adds stars to a sector already "
-                                     "generated.")
+                                     "out from the run's edge ('edge', the default) -- or not at all "
+                                     "('none'). Four rings of sectors (a face apart, no diagonals) "
+                                     "around the generated ones get every star born from 1 solar mass "
+                                     "up in the nearest ring, 2 in the next, then 5, then 8, and the "
+                                     "backfill never adds stars to a sector already generated.")
     backfill_group.add_argument('--then-scatter', action='store_true',
                                 help="After the sectors and before the backfill, scatter the bright stars "
                                      "galaxy-wide (as 'planetgen plan --bright-stars-only'), then the "

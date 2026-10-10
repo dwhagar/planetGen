@@ -245,9 +245,9 @@ def _sector_rows(config):
 
 
 def test_sectors_a_forced_scatter_skipped_fill_correctly_afterwards(mysql_config, monkeypatch):
-    # Smaller backfill tiers (GEN.30) keep the run's backfill quick; they
+    # Heavier backfill rings (GEN.187) keep the run's backfill quick; they
     # still reach the skipped sectors next door.
-    monkeypatch.setattr(tuning, "BRIGHT_STAR_BACKFILL_TIERS", ((10.0, 100.0), (20.0, 250.0)))
+    monkeypatch.setattr(tuning, "BRIGHT_STAR_BACKFILL_RING_MASSES_SOL", (5.0, 8.0))
     _seed_galaxy(mysql_config)
     args = run_galaxy._default_generation_args(config=mysql_config)
     args.num_systems = 1
