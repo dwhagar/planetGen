@@ -34,6 +34,19 @@
   </div>
 </details>
 {%- endmacro -%}
+{#- GEN.96: minimums every generated sector must hold (`--directive`). -#}
+{%- macro directive_inputs() -%}
+<details class="search-more">
+  <summary>Override</summary>
+  <p class="hint">Redraw each sector until it holds at least this much. After 200 draws the closest one is
+  kept and the job log says which minimum it missed. Blank or 0 asks for nothing.</p>
+  <div class="search-fields">
+    {%- for name, label, key in directive_fields %}
+    {{ field(name, label, min=0, max=1000, placeholder="no minimum") }}
+    {%- endfor %}
+  </div>
+</details>
+{%- endmacro -%}
 {%- macro skip_scatter(id) -%}
 <label class="search-field generate-check"><span><input type="checkbox" id="{{ id }}" name="skip_bright_stars" value="1"
   {%- if form and form.get("skip_bright_stars") %} checked{% endif %}> Skip the bright-star scatter</span>
@@ -264,6 +277,7 @@
     </fieldset>
     {%- endfor %}
     {{ prevalence_inputs() }}
+    {{ directive_inputs() }}
     <div class="search-fields">
     </div>
     <div class="search-actions">
