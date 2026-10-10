@@ -3797,6 +3797,7 @@ def galaxy_point_phenomena_in_box(conn, lo, hi, limit=GALAXY_TILE_MAX_POINTS):
 
 
 SCATTERED_POINT_CLASSES = (
+    ("quasar", None, "quasar", 1.0),
     ("black-hole", "supermassive", "black_hole", 1.0),
     ("black-hole", "intermediate", "black_hole", 0.8),
     ("black-hole", "stellar", "black_hole", 0.55),
@@ -3809,10 +3810,10 @@ from its seed when its sector is made), so the share comes from the mass
 class the row does carry: 1 for the nucleus black hole down to 0.35 for a
 neutron star."""
 
-SCATTERED_POINT_COARSE_CLASSES = 2
+SCATTERED_POINT_COARSE_CLASSES = 3
 """int: Tiles coarser than `POINT_PHENOMENON_MIN_LEVEL` list only this many
-of the biggest `SCATTERED_POINT_CLASSES` (the nucleus and intermediate-mass
-black holes), so the largest are visible from the whole-galaxy view."""
+of the biggest `SCATTERED_POINT_CLASSES` (the nucleus, quasar or black hole, and
+intermediate-mass black holes), so the largest are visible from the whole-galaxy view."""
 
 GALAXY_TILE_MAX_SCATTERED_POINTS = 60
 """int: Most scattered points one coarse tile lists."""
@@ -3820,11 +3821,14 @@ GALAXY_TILE_MAX_SCATTERED_POINTS = 60
 
 def galaxy_scattered_points_in_box(conn, lo, hi, edge_pc, limit, coarse):
     """
-    The scattered black holes and neutron stars (`phenomenon_scatter`, not
-    yet built into a sector) whose position lies in the box `[lo, hi)`,
+    The scattered black holes, neutron stars and quasars
+    (`phenomenon_scatter`, not yet built into a sector) whose position lies in the box `[lo, hi)`,
     biggest class first, at most `limit` -- drawn as points like the placed
     ones (MAP.164), so the map shows them before their sector is filled.
-    `coarse` keeps to the `SCATTERED_POINT_COARSE_CLASSES` biggest classes.
+    `coarse` keeps to the `SCATTERED_POINT_COARSE_CLASSES` biggest classes
+    and lists them built or not, since a coarse tile has no placed points
+    of its own and the nucleus must not vanish from the galaxy view when
+    its sector is filled.
 
     Returns:
         list[dict]: Same keys as `galaxy_point_phenomena_in_box`, with
@@ -3846,12 +3850,12 @@ def galaxy_scattered_points_in_box(conn, lo, hi, edge_pc, limit, coarse):
     box_params = [int(math.ceil(v * MPC_PER_PC)) for pair in zip(lo, hi) for v in pair]
     rows = conn.execute(
         f"""
-        SELECT id, kind, subtype, position_x_mpc, position_y_mpc, position_z_mpc
+        SELECT id, kind, subtype, built_at, position_x_mpc, position_y_mpc, position_z_mpc
         FROM phenomenon_scatter
-        WHERE built_at IS NULL AND {where_address} AND ({kinds})
+        WHERE {"" if coarse else "built_at IS NULL AND "}{where_address} AND ({kinds})
           AND position_x_mpc >= ? AND position_x_mpc < ? AND position_y_mpc >= ? AND position_y_mpc < ?
           AND position_z_mpc >= ? AND position_z_mpc < ?
-        ORDER BY (subtype <=> 'supermassive') DESC, (subtype <=> 'intermediate') DESC, (subtype <=> 'stellar') DESC, id
+        ORDER BY (kind = 'quasar') DESC, (subtype <=> 'supermassive') DESC, (subtype <=> 'intermediate') DESC, (subtype <=> 'stellar') DESC, id
         LIMIT ?
         """,
         (*address_params, *kind_params, *box_params, int(limit)),
@@ -3860,9 +3864,9 @@ def galaxy_scattered_points_in_box(conn, lo, hi, edge_pc, limit, coarse):
     points = []
     for row in rows:
         map_type, size = share[(row["kind"], row["subtype"])]
-        label = "Black hole" if map_type == "black_hole" else "Neutron star"
+        label = {"black_hole": "Black hole", "quasar": "Quasar"}.get(map_type, "Neutron star")
         points.append({
-            "type": map_type, "id": f"s{row['id']}", "name": f"{label} (uncharted)",
+            "type": map_type, "id": f"s{row['id']}", "name": f"{label} (uncharted)" if row["built_at"] is None else label,
             "descriptor": row["subtype"] or "scattered", "luminosity_sol": 0.0, "scattered": True, "size": size,
             "x": round(row["position_x_mpc"] / MPC_PER_PC, 3), "y": round(row["position_y_mpc"] / MPC_PER_PC, 3),
             "z": round(row["position_z_mpc"] / MPC_PER_PC, 3),
