@@ -2,7 +2,11 @@
 
 ## [8.0.911] - 2026-10-10
 
+### Added
+- Every rocky planet and moon now has a hydrosphere (GEN.88): its water share of its mass, where the water is (dry, in the air, frozen, under ice, open ocean, or a hycean ocean under hydrogen), how much of the surface is ocean and land, the ocean's depth, any ice lid and high-pressure ice beneath, and the ocean's chemistry class (ice-sealed, chloride brine, acid sulfate, soda or neutral) with its pH, water activity and phosphorus supply. Schema v74.
+
 ### Changed
+- Rogue planet oceans now stop at the depth where high-pressure ice forms (the rest is stored as high-pressure ice), their ice lid is compared with the water in matching units and melts lower under its own weight, and an ocean under a hydrogen envelope is shown as a hycean ocean. New seeded output differs from earlier versions.
 - **Docs only:** Boss confirmed the defaults on GEN.183, GEN.184, GEN.187 and UX.87; their open questions are now decisions.
 
 ## [8.0.866] - 2026-10-10
