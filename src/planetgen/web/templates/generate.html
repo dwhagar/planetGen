@@ -38,8 +38,8 @@
 {#- ADM.16: the share of each feature a sector or galaxy run should
     give, starting at its usual share (GEN.52 `--prevalence`). -#}
 {%- macro prevalence_inputs() -%}
-<details class="search-more">
-  <summary>Prevalence</summary>
+<fieldset class="customize-group" data-customize-tab="Prevalence">
+  <legend>Prevalence</legend>
   <p class="hint">How common each feature is in this run's systems. Every field starts at the share generation
   gives with no changes; type a higher or lower share to change it, 0 for none.</p>
   <div class="search-fields">
@@ -47,12 +47,23 @@
     {{ field(name, label, value=usual, min=0, max=100, hint="Usual: " ~ usual ~ "%") }}
     {%- endfor %}
   </div>
-</details>
+  <fieldset class="generate-mode" data-star-mix>
+    <legend>Star mix</legend>
+    <p class="hint">How many systems have one star, a close binary or a wide pair. These three must total exactly 100%:
+    raise one when you lower another.</p>
+    <div class="search-fields">
+      {%- for name, label, usual in star_mix_fields %}
+      {{ field(name, label, value=usual, min=0, max=100, hint="Usual: " ~ usual ~ "%") }}
+      {%- endfor %}
+    </div>
+    <p class="hint" data-star-mix-total role="status" aria-live="polite"></p>
+  </fieldset>
+</fieldset>
 {%- endmacro -%}
 {#- GEN.96: minimums every generated sector must hold (`--directive`). -#}
 {%- macro directive_inputs() -%}
-<details class="search-more">
-  <summary>Override</summary>
+<fieldset class="customize-group" data-customize-tab="Override">
+  <legend>Override</legend>
   <p class="hint">Redraw each sector until it holds at least this much. After 200 draws the closest one is
   kept and the job log says which minimum it missed. Blank or 0 asks for nothing.</p>
   <div class="search-fields">
@@ -60,7 +71,7 @@
     {{ field(name, label, min=0, max=1000, placeholder="no minimum") }}
     {%- endfor %}
   </div>
-</details>
+</fieldset>
 {%- endmacro -%}
 {%- macro skip_scatter(id) -%}
 <label class="search-field generate-check"><span><input type="checkbox" id="{{ id }}" name="skip_bright_stars" value="1"
@@ -101,6 +112,8 @@
 <script type="module" src="{{ static_url('generatejobs.js') }}"></script>
 <script type="module" src="{{ static_url('generatefolds.js') }}"></script>
 <script type="module" src="{{ static_url('generateranges.js') }}"></script>
+<script type="module" src="{{ static_url('generatecustomize.js') }}"></script>
+<script type="module" src="{{ static_url('generatestarmix.js') }}"></script>
 {% endblock %}
 {% block subhead %}
 <p class="badges">
@@ -179,6 +192,27 @@
 <p class="hint">The forms below unlock when the current job finishes.</p>
 {%- endif %}
 
+{%- if summary.layers %}
+{% call fold("layers", "Galaxy layers") %}
+  {%- set layers = summary.layers %}
+  <dl class="estimate-facts">
+    <dt>Layers</dt><dd>{{ num(layers.count) }} (layer {{ num(layers.lowest) }} to {{ num(layers.highest) }}, layer 0 in the middle)</dd>
+    <dt>Height</dt><dd>{{ num(layers.height_pc, ",.1f") }} pc per layer, {{ num(layers.thickness_pc, ",.0f") }} pc through all of them</dd>
+    <dt>Extent</dt><dd>Out to {{ num(layers.radius_pc, ",.0f") }} pc from the center at the widest layer</dd>
+    <dt>Charted</dt><dd>{{ num(layers.charted) }} sector{{ "" if layers.charted == 1 else "s" }} generated</dd>
+  </dl>
+  <div class="table-scroll"><table>
+    <caption>{% if layers.sampled %}An even sample of the layers, highest first.{% else %}Every layer, highest first.{% endif %}</caption>
+    <thead><tr><th scope="col" class="num">Layer</th><th scope="col" class="num">From z (pc)</th><th scope="col" class="num">To z (pc)</th><th scope="col" class="num">Extent (pc)</th><th scope="col" class="num">Charted</th></tr></thead>
+    <tbody>
+      {%- for row in layers.rows %}
+      <tr><td class="num">{{ num(row.layer) }}</td><td class="num">{{ num(row.bottom_pc, ",.1f") }}</td><td class="num">{{ num(row.top_pc, ",.1f") }}</td><td class="num">{{ num(row.radius_pc, ",.0f") }}</td><td class="num">{{ num(row.charted) }}</td></tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+{% endcall %}
+{%- endif %}
+
 {% call fold("one-off-system", "One-off system") %}
   <p>Generate a single star system with any of the command-line options and get it as Markdown or wikitext,
   without adding it to the database.</p>
@@ -188,20 +222,25 @@
 {% call fold("new-galaxy", "New galaxy") %}
   <p>Deletes every sector, system and phenomenon in <code>{{ database }}</code>, plans a new galaxy,
   then generates a first neighborhood around a random populated spot. Admin logins and API keys are kept.</p>
-  <form method="post" action="{{ url_for('web.generate') }}" class="search-form">
+  <form method="post" action="{{ url_for('web.generate') }}" class="search-form" data-customize>
     {{ csrf_field() }}
     <input type="hidden" name="action" value="new_galaxy">
-    <details class="search-more">
-      <summary>Galaxy shape</summary>
+    <fieldset class="customize-group" data-customize-tab="Galaxy shape">
+      <legend>Galaxy shape</legend>
       {{ plan_inputs("new-galaxy-mass-limit") }}
-    </details>
+    </fieldset>
     {{ prevalence_inputs() }}
+    <fieldset class="customize-group" data-customize-tab="Bright stars">
+      <legend>Bright stars</legend>
+      <div class="search-fields">
+        {{ scatter_threshold() }}
+        {{ skip_scatter("new-galaxy-skip-bright") }}
+      </div>
+    </fieldset>
     <div class="search-fields">
       {{ field("radius_pc", "First neighborhood radius (pc)", placeholder="12 (about 39 ly)", min=0.1, max=max_radius_pc) }}
       {{ field("min_start_density", "Minimum start density", placeholder="any", min=0,
                hint="1.0 is as dense as the Sun's neighborhood.") }}
-      {{ scatter_threshold() }}
-      {{ skip_scatter("new-galaxy-skip-bright") }}
       {{ confirm_field("new-galaxy-confirm") }}
     </div>
     <div class="search-actions">
@@ -211,8 +250,8 @@
 {% endcall %}
 
 {% call fold("generate-sectors", "Generate sectors") %}
-  <p class="hint">Adds sectors to the current galaxy. Plan the galaxy first.</p>
-  <form method="post" action="{{ url_for('web.generate') }}" class="search-form">
+  <p class="hint">Adds sectors to the current galaxy. Plan the galaxy first. Customize holds the prevalence and override settings.</p>
+  <form method="post" action="{{ url_for('web.generate') }}" class="search-form" data-customize>
     {{ csrf_field() }}
     <input type="hidden" name="action" value="galaxy">
     {%- set chosen = form.get("mode", "random") if form else "random" %}

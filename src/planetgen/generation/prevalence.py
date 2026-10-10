@@ -125,3 +125,51 @@ def _undo(decided, attrs):
     """Drops `resolve`'s decisions on `attrs` (those it made)."""
     for attr in attrs:
         decided.pop(attr, None)
+
+
+STAR_MIX = ("single", "close_pair", "wide_pair")
+"""tuple[str]: The kinds of system by stars (ADM.45): one star, a close
+binary, a wide pair. Their shares of systems always total 100%."""
+
+STAR_MIX_TOTAL_TOLERANCE = 0.01
+"""float: How far from 100 (percentage points) a star mix may total, for the
+rounding of a typed share."""
+
+
+def usual_star_mix():
+    """The usual share (0-1) of each `STAR_MIX` kind, from the usual binary
+    share and the usual share of binaries that are wide pairs."""
+    binary = USUAL_SHARES["binary_system"]
+    wide = USUAL_SHARES["wide_binary"]
+    return {"single": 1.0 - binary, "close_pair": binary * (1.0 - wide), "wide_pair": binary * wide}
+
+
+def star_mix_prevalences(single, close_pair, wide_pair):
+    """
+    The prevalences (percent from usual, as `--prevalence` takes them) that
+    give systems the shares of stars asked for (ADM.45): `binary_system` is
+    the close and wide pairs together, `wide_binary` the wide ones' share of
+    those.
+
+    Args:
+        single, close_pair, wide_pair (float): Percent of systems, each at
+            least 0, totalling 100.
+
+    Returns:
+        dict: `binary_system` and `wide_binary` -> percent.
+
+    Raises:
+        ValueError: A negative share, or a total that is not 100.
+    """
+    shares = (single, close_pair, wide_pair)
+    if any(share < 0 for share in shares):
+        raise ValueError("a share of systems can't be below 0%")
+    total = sum(shares)
+    if abs(total - 100.0) > STAR_MIX_TOTAL_TOLERANCE:
+        verb, amount = ("lower", total - 100.0) if total > 100.0 else ("raise", 100.0 - total)
+        raise ValueError(f"the star mix totals {total:.4g}%, not 100%: {verb} one of single, close pair or "
+                         f"wide pair by {amount:.4g} points")
+    binary = (close_pair + wide_pair) / 100.0
+    wide_of_binaries = wide_pair / (close_pair + wide_pair) if binary > 0 else USUAL_SHARES["wide_binary"]
+    return {"binary_system": percent_for_share("binary_system", binary),
+            "wide_binary": percent_for_share("wide_binary", wide_of_binaries)}

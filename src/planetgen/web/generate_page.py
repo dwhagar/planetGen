@@ -576,12 +576,51 @@ def _usual_percent(feature):
     return f"{prevalence.USUAL_SHARES[feature] * 100:.3g}"
 
 
+STAR_MIX_FEATURES = ("binary_system", "wide_binary")
+"""tuple[str]: The features the star mix replaces on the page (ADM.45)."""
+
 PREVALENCE_FIELDS = tuple((f"prevalence_{feature}", PREVALENCE_LABELS[feature], _usual_percent(feature))
-                          for feature in prevalence.FEATURES)
+                          for feature in prevalence.FEATURES if feature not in STAR_MIX_FEATURES)
 """tuple: `(field name, label, usual share in percent)` for each
 prevalence field, in `prevalence.FEATURES` order. Each field starts at
 its feature's usual share (Boss, 2026-10-08: "the page needs to have
 meaningful information at all times")."""
+
+
+STAR_MIX_LABELS = {
+    "single": "Single stars (% of systems)",
+    "close_pair": "Close binaries (% of systems)",
+    "wide_pair": "Wide pairs (% of systems)",
+}
+"""dict: The Generate page's label for each star-mix share."""
+
+STAR_MIX_FIELDS = tuple((f"star_mix_{kind}", STAR_MIX_LABELS[kind], f"{prevalence.usual_star_mix()[kind] * 100:.3g}")
+                        for kind in prevalence.STAR_MIX)
+"""tuple: `(field name, label, usual share in percent)` for the three
+shares of systems by stars (ADM.45), which must total 100%."""
+
+
+def star_mix_argv(form):
+    """
+    `--star-mix SINGLE CLOSE WIDE` when the star mix differs from the usual
+    one (ADM.45). The three shares must total 100%; the error says which to
+    raise or lower and by how much.
+
+    Raises:
+        FormError: A share that isn't a number from 0 to 100, or a total
+            that isn't 100%.
+    """
+    shares = []
+    for name, label, usual in STAR_MIX_FIELDS:
+        share = _number(form, name, label, float, minimum=0, maximum=100)
+        shares.append(float(usual) if share is None else share)
+    if shares == [float(usual) for _, _, usual in STAR_MIX_FIELDS]:
+        return []
+    try:
+        prevalence.star_mix_prevalences(*shares)
+    except ValueError as exc:
+        raise FormError(str(exc)[0].upper() + str(exc)[1:] + ".")
+    return ["--star-mix", *(f"{share:.6g}" for share in shares)]
 
 
 def prevalence_argv(form):
@@ -596,13 +635,14 @@ def prevalence_argv(form):
         FormError: A share that isn't a number from 0 to 100.
     """
     argv = []
-    for (name, label, usual), feature in zip(PREVALENCE_FIELDS, prevalence.FEATURES):
+    for name, label, usual in PREVALENCE_FIELDS:
+        feature = name[len("prevalence_"):]
         share = _number(form, name, label, float, minimum=0, maximum=100)
         if share is None or share == float(usual):
             continue
         percent = prevalence.percent_for_share(feature, share / 100.0)
         argv += ["--prevalence", f"{feature}={percent:.6g}"]
-    return argv
+    return argv + star_mix_argv(form)
 
 
 DIRECTIVE_FIELDS = (
@@ -750,10 +790,12 @@ def _admin_or_403():
 def _galaxy_summary(database):
     """Whether the galaxy is planned and how many sectors it holds.
     Fails open: the page still works when the database doesn't answer."""
-    summary = {"shape": None, "sectors": None, "bright": None, "version_warning": None, "error": None}
+    summary = {"shape": None, "sectors": None, "bright": None, "layers": None, "version_warning": None,
+               "error": None}
     try:
         summary["shape"] = apiclient.get_galaxy_shape(database)
         summary["bright"] = apiclient.get_bright_star_status(database)
+        summary["layers"] = apiclient.get_layer_specs(database)
         summary["version_warning"] = apiclient.get_version_warning(database)
         summary["sectors"] = apiclient.get_sectors(database, limit=1, offset=0)["total"]
     except (apiclient.ApiError, apiclient.NotFoundError) as exc:
@@ -902,6 +944,7 @@ def _page(admin, error=None, status=200, form=None, estimate=None, estimate_titl
         jobs_error=jobs_error,
         plan_fields=PLAN_FIELDS,
         prevalence_fields=PREVALENCE_FIELDS,
+        star_mix_fields=STAR_MIX_FIELDS,
         directive_fields=DIRECTIVE_FIELDS,
         bright_min_luminosity=tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL,
         bright_floor_presets=luminosity_floor.PRESETS,

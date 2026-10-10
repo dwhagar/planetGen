@@ -2603,6 +2603,48 @@ MADE_SECTOR_LIMIT = 2000
 by its first sectors (the response still says the real total)."""
 
 
+LAYER_SPEC_ROWS = 41
+"""int: At most this many layers get a row in `galaxy_layer_specs`; a galaxy
+with more shows an even sample that always includes the two ends and layer 0."""
+
+
+def galaxy_layer_specs(conn, edge_pc):
+    """
+    The galaxy's layers as the Generate page shows them (ADM.28).
+
+    Returns:
+        dict | None: `None` before any layer is stored; else `count`,
+            `lowest`, `highest` (layer indexes), `height_pc` (one layer's),
+            `thickness_pc` (all layers), `radius_pc` (the widest layer's
+            outer edge), `charted` (generated galaxy-placed sectors, all
+            layers), `sampled` (whether `rows` is a sample) and `rows`,
+            highest layer first: `layer`, `bottom_pc`, `top_pc`,
+            `radius_pc` (outer edge) and `charted`.
+    """
+    from planetgen.galaxy.geometry import layer_bounds_pc, ring_bounds_pc
+    layers = conn.execute("SELECT layer_index, outer_ring_index FROM galaxy_layer ORDER BY layer_index DESC").fetchall()
+    if not layers:
+        return None
+    charted = {row["layer_index"]: row["n"] for row in conn.execute(
+        "SELECT layer_index, COUNT(*) AS n FROM sectors WHERE center_x_pc IS NOT NULL GROUP BY layer_index").fetchall()}
+    keep = layers
+    if len(layers) > LAYER_SPEC_ROWS:
+        picks = {round(i * (len(layers) - 1) / (LAYER_SPEC_ROWS - 1)) for i in range(LAYER_SPEC_ROWS)}
+        picks.update(i for i, row in enumerate(layers) if row["layer_index"] == 0)
+        keep = [layers[i] for i in sorted(picks)]
+    rows = []
+    for row in keep:
+        bottom, top = layer_bounds_pc(row["layer_index"], edge_pc)
+        rows.append({"layer": row["layer_index"], "bottom_pc": bottom, "top_pc": top,
+                     "radius_pc": ring_bounds_pc(row["outer_ring_index"], edge_pc)[1],
+                     "charted": charted.get(row["layer_index"], 0)})
+    widest = max(row["outer_ring_index"] for row in layers)
+    return {"count": len(layers), "lowest": layers[-1]["layer_index"], "highest": layers[0]["layer_index"],
+            "height_pc": edge_pc, "thickness_pc": edge_pc * len(layers),
+            "radius_pc": ring_bounds_pc(widest, edge_pc)[1], "charted": sum(charted.values()),
+            "sampled": len(rows) < len(layers), "rows": rows}
+
+
 def sectors_made(conn, since, until=None, limit=MADE_SECTOR_LIMIT):
     """
     The galaxy-placed sectors created from `since` to `until` (Unix
