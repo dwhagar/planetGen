@@ -3542,6 +3542,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   can read it. Owner: Bugfixes lane 1, after the stage-count bug (UX.89).
   Prerequisites: none. Related: PERF.32, PERF.33, PERF.52, PERF.54,
   PERF.55.
+  Layers modified (2026-10-09): Boss addition (2026-10-10 08:34Z): for
+  every scatter action also store the number of layers modified, kept in
+  separate rows per mass floor and per luminosity floor used (a run at 8
+  Msun and one at 14 Msun, or at 5,000 and 9,000 Lsun, are different
+  rows). With the early stop of PERF.57 the row records layers visited
+  and layers modified.
 
 - [ ] **PERF.57 Stop a layer-walking scatter early once the last 100 layers produced no stars**
   Boss (2026-10-10 08:32Z, via the coordinator): this will make
@@ -3562,6 +3568,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Clarification (2026-10-09): Boss clarification (2026-10-10 08:32Z):
   the test is "the last 100 layers produced 0 stars OR 0 phenomena". The
   star passes count stars; the phenomena pass counts phenomena.
+  Stats (2026-10-09): Boss addition (2026-10-10 08:34Z): layers visited
+  versus layers modified is recorded per scatter action and per floor by
+  PERF.56 (see its note).
 
 ## DB: Database and schema
 
