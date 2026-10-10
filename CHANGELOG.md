@@ -3,6 +3,7 @@
 ## [8.0.911] - 2026-10-10
 
 ### Changed
+- The phenomena scatter's output now matches the star scatter's: black holes are split into stellar, intermediate and supermassive, a "landed in N of M layers" (or "none landed") line, the sectors already filled that it leaves out, and a summary that lists every class including the ones that drew none.
 - The phenomena scatter logs each layer's phenomena by kind as it finishes ("Phenomena, layer 3: placed 120: 90 neutron_star, ..."), and the special ones (nucleus, hypervelocity stars) on one line, as the star scatter does; before, only the final total was listed.
 - **Docs only:** GEN.192 (phenomena scatter log and Phenomena table check, remainder of GEN.190) filed for Bugfixes lane 1.
 - **Docs only:** GEN.190 and GEN.191 (Generate-page phenomena scatter, New galaxy mass limit) retired.
