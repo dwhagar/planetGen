@@ -3144,6 +3144,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   scattered galaxy-wide; everything below is drawn when its sector is
   made, as built in GEN.166 to GEN.168. Open question for Boss (default:
   presets 8, 10, 12, 14, 16, 18 and 20).
+  Note (2026-10-10, GEN.185 merged, PR #953): the five passes are built with one mass limit (phenomenon_min_mass_solar) for phenomena and stars, and galaxy_shape.bright_star_mass_limit_sol records it (phenomenon-scatter-mass-cut.md, "The star passes").
   Lane (Boss, 2026-10-10 03:04Z): Foundations lane 2.
   Prerequisites: none. Related: GEN.169, GEN.166, GEN.167, GEN.168,
   PERF.18.
@@ -3162,31 +3163,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   geometric ladder of about 60 presets built from the step rule, rounded
   to 2 significant digits above 10,000, and a database already filled
   below the new floor keeps its stars).
+  Note (2026-10-10, GEN.185 merged, PR #953): the five passes are built with one mass limit (phenomenon_min_mass_solar) for phenomena and stars, and galaxy_shape.bright_star_mass_limit_sol records it (phenomenon-scatter-mass-cut.md, "The star passes").
   Lane (Boss, 2026-10-10 03:04Z): Foundations lane 1.
   Prerequisites: none. Related: GEN.30, PERF.18, GEN.40, MAP.120.
-
-- [ ] **GEN.185 The scatter in five passes: mass-limit objects, mass-limit stars, brightest-star sector marks, the luminosity pass, then other phenomena**
-  Boss (2026-10-10 03:01Z) algorithm: (1) scatter quasars, stars and
-  black holes above the set mass limit; (2) scatter the stars above the
-  mass limit; (3) as each star scatters in step 2, mark its sector with
-  that star's luminosity in solar luminosities; (4) scatter the stars
-  over the luminosity limit, skipping every sector marked in step 3 with
-  a luminosity equal to or above the luminosity setting, because it
-  already holds a bright enough star; (5) scatter the other phenomena as
-  already discussed, with no comets and no rogue planets. Done: the
-  passes run in this order in one plan, the per-sector mark is stored
-  with the scatter (or computed in the pass) so step 4 can skip, and the
-  sector fill draws below the cuts as before. This changes the default
-  luminosity pass (it no longer adds a star to a sector that already has
-  one at or above the floor) and so the bright-star count; GEN.100's
-  scatter is passes 1, 2 and 5 here, and the 20 solar mass phenomenon
-  cut of phenomenon-scatter-mass-cut.md is now only the slider's default
-  (GEN.183). Open question for Boss (default: the mark is each sector's
-  brightest scattered star; a step 1 star counts as a step 2 star; a
-  reseed of the combined plan is expected).
-  Lane (Boss, 2026-10-10 03:04Z): Foundations lane 3.
-  Prerequisites: GEN.183, GEN.184. Related: GEN.100, GEN.166, GEN.167,
-  GEN.168, GEN.183, GEN.184, GEN.30, GEN.169, PERF.18.
 
 - [ ] **GEN.186 Random neighborhoods: an option to keep away from filled space**
   Left over from GEN.97 (merged, PR #950; Foundations lane 1 report,
