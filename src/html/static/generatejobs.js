@@ -39,6 +39,16 @@ function render(job) {
   }
   setText("[data-job-step]", job.step_label ? `Step ${job.step} of ${job.steps.length}: ${job.step_label}` : "");
 
+  const overallRow = panel.querySelector("[data-job-overall-row]");
+  if (overallRow) {
+    overallRow.hidden = !job.overall_shown;
+    const overall = overallRow.querySelector("[data-job-overall]");
+    if (job.overall_value === null || job.overall_value === undefined) overall.removeAttribute("value");
+    else overall.value = job.overall_value;
+    setText("[data-job-overall-text]", job.overall_text || "");
+    setText("[data-job-overall-remaining]", job.overall_remaining_label || "");
+  }
+
   const bar = panel.querySelector("[data-job-progress]");
   if (bar) {
     if (job.progress_total) {

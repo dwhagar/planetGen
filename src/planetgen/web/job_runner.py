@@ -191,6 +191,20 @@ class _JobTree:
         except Exception:  # noqa: BLE001
             return None
 
+    def step_estimates(self, labels):
+        """Seconds each step took in earlier runs (`None` where there is no record), for the overall bar (PERF.55)."""
+        if self.queue is None or not self.root.store.available:
+            return [None] * len(labels)
+        try:
+            conn = self.root.store._connect()
+            try:
+                recorded = self.queue.recorded_step_seconds(conn)
+            finally:
+                conn.close()
+        except Exception:  # noqa: BLE001 -- the bar then estimates from the running step alone
+            return [None] * len(labels)
+        return [recorded.get(label) for label in labels]
+
     def close(self, node, state):
         if self.queue is None or node is None:
             return
@@ -258,6 +272,8 @@ def run(job_dir):
     steps = job["steps"]
     tree = _JobTree(job)
     step_node = None
+    state["step_estimates"] = tree.step_estimates([step["label"] for step in steps])
+    _write_json(state_path, state)
     try:
         with open(os.path.join(job_dir, "output.log"), "ab", buffering=0) as log:
             log.write((_run_line(job) + "\n").encode("utf-8"))
@@ -265,6 +281,7 @@ def run(job_dir):
                 if _cancel_requested():
                     break
                 state["step"] = index
+                state["step_started_at"] = time.time()
                 _write_json(state_path, state)
                 try:
                     os.remove(progress_path)
