@@ -238,8 +238,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.200 | One shared function for the "map luminosity" of a mass: the luminosity a main-sequence star of that mass would have |  | Boss 2026-10-10 21:38Z. Foundations lane 1. |
 | PERF.69 | Store the Planets, Moons and Phenomena table counts like the Systems and Sectors counts (bug) |  | Left over from PERF.64; Foundations lane 1 next. |
 | PERF.33 | Progress bars and ETAs from measured performance |  | GitHub issue [#661](https://github.com/dwhagar/planetGen/issues/661) (the use half). Bugfixes lane 1 (Boss, 23:38Z). |
-| PERF.65 | The text output of a multi-step job counts its steps, not its tasks: "Step 1 of 4" when the job has 12 (bug) |  | Boss 2026-10-10 19:54Z; Bugfixes lane 1. |
-| PERF.66 | The whole-job progress bar should track total elapsed time and estimate a stage with no performance data from the earlier stages (bug) |  | Boss 2026-10-10 20:00Z; Bugfixes lane 1, with PERF.65. |
 | PERF.67 | Record how long every operation takes, from each stage up to the whole job, and use the records for ETAs |  | Boss 2026-10-10 20:25Z; Bugfixes lane 1, after PERF.66. |
 
 ## Open questions for Boss

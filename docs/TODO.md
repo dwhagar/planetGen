@@ -3644,49 +3644,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Bugfixes lane 1, right after PERF.67 (same stats code).
   Prerequisites: none. Related: PERF.52, PERF.53, GEN.185.
 
-- [ ] **PERF.65 The text output of a multi-step job counts its steps, not its tasks: "Step 1 of 4" when the job has 12 (bug)**
-  Boss (2026-10-10 19:54Z, with a Generate-page log): a new-galaxy run
-  prints "=== Step 1 of 4: Check the math ===" up to "Step 4 of 4:
-  Generate sectors ...", but the last step runs nine stages of its own
-  ("9 stages: 1. Generate the starting sector; ..."), so the run really
-  has 12 tasks (1 + 1 + 1 + 9). Each step's own lines also restart at
-  "Stage 1 of 1" or "Stage 1 of 9", so the two counts never agree.
-  "Minor, but needs to be fixed." The step header comes from
-  `web/job_runner.py` (`Step {index} of {len(steps)}`) and the stages
-  from the CLI's whole-job bar (PERF.55). Done: the step header and the
-  stage lines of every process in a multi-step job use one task count
-  that matches the real total (here "Task 1 of 12" through "Task 12 of
-  12", or the step number with the stage count added up front), the CLI
-  run alone prints the same numbers, and a test checks that a multi-step
-  job's printed totals equal the sum of its steps' stage counts. Owner:
-  Bugfixes lane 1, folded into the PERF.33 progress-bar remainders.
-  Prerequisites: none. Related: PERF.33, PERF.55.
-
-- [ ] **PERF.66 The whole-job progress bar should track total elapsed time and estimate a stage with no performance data from the earlier stages (bug)**
-  Boss (2026-10-10 20:00Z): "the whole task progress bar should keep
-  track of total time that has passed and in the absence of performance
-  data the ETA for items on the main progress bar should be calculated
-  by the time it has taken to do the previous stages averaged." Done:
-  the whole-job bar (PERF.55's CLI bar and the job page's) shows the
-  total time elapsed since the job started, counted across every step
-  and stage and not restarted when a step or stage begins; a stage with
-  no measured rate (no performance data yet, PERF.33's ETA gap) takes
-  its estimate from the average time of the stages already finished in
-  the job, so the time left on the main bar is never blank or zero; a
-  test covers a job whose later stages have no data. Boss (2026-10-10
-  20:24Z): "ETA on any staged process when total process time metrics
-  are not available (i.e. we cannot calculate from our performance) the
-  main bar should always assume that if you're on Section 3 that
-  sections 4, 5, 6, etc. are going to take longer, so the ETA between
-  the current task and the overall process should not be the same unless
-  we're running on the last step." So with no total-process metrics the
-  main bar's time left is the current stage's time left plus one
-  estimate (the average of the finished stages) for each stage still to
-  come, and it equals the current stage's time left only on the last
-  stage; a test checks stage 3 of 6 against stage 6 of 6. Owner:
-  Bugfixes lane 1, with PERF.65 and the other PERF.33 remainders.
-  Prerequisites: none. Related: PERF.33, PERF.55, PERF.65, PERF.67.
-
 - [ ] **PERF.67 Record how long every operation takes, from each stage up to the whole job, and use the records for ETAs**
   Boss (2026-10-10 20:25Z): "we should carry stats on how long it takes
   every single operation to finish from each stage to the whole
