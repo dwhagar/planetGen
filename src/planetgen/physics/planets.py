@@ -20,7 +20,7 @@ import math
 import re
 
 from planetgen.physics import constants
-from planetgen.physics import atmosphere, magnetism, spin
+from planetgen.physics import atmosphere, hydrosphere, magnetism, rogue_surface, spin
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -728,6 +728,16 @@ def calculate_atmospheric_conditions(planet, distance_override=None):
     atmosphere.generate_atmosphere(planet)
     # GEN.86: the star's XUV and flares at this distance (no draws).
     magnetism.update_exposure(planet, distance)
+    # GEN.88: water, land, ice and the ocean's chemistry.
+    hydrosphere.generate_hydrosphere(planet, internal_heat_flux_w_m2(planet))
+
+
+def internal_heat_flux_w_m2(planet):
+    """A rocky body's own heat flow, W/m^2: radioactive decay at its star's
+    age plus leftover formation heat in Earth's proportion (the rogue
+    planets' rule, `rogue_surface.radiogenic_flux_w_m2`)."""
+    age_gy = getattr(planet.star, "age", None) or tuning.ROGUE_EARTH_REFERENCE_AGE_GY
+    return rogue_surface.radiogenic_flux_w_m2(planet.mass, planet.radius, age_gy) / tuning.ROGUE_UREY_RATIO
 
 
 def _tidal_locking_timescale_seconds(moon, primary_mass_kg, initial_rotation_period_hours):

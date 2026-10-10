@@ -25,3 +25,4 @@ Commit each file came from:
 - v70: 1dece90 (GEN.85 atmosphere species, before GEN.167)
 - v71: 376d120 (GEN.167 phenomenon mass cut, before GEN.86)
 - v72: df5df13 (GEN.86 activity and magnetism, before GEN.185)
+- v73: 7c06976 (GEN.185 star scatter mass limit, before GEN.88)

@@ -51,6 +51,8 @@ NULL_IN_THIS_GALAXY = {
     ("galaxy_shape", "bright_star_mass_limit_sol"): "no scatter",
     ("galaxy_shape", "phenomenon_scatter_seed"): "no scatter",
     ("galaxy_shape", "phenomenon_min_mass_solar"): "no scatter",
+    # High-pressure ice lies only under the deepest oceans.
+    **{(table, "hp_ice_km"): CHANCE for table in ("planets", "moons", "rogue_planets")},
     # Facilities on stars, moons and asteroid fields, and the field's galaxy position.
     **{("facilities", column): "facility hosts used" for column in
        ("star_id", "moon_id", "asteroid_field_id", "sector_id", "center_x_pc", "center_y_pc", "center_z_pc",

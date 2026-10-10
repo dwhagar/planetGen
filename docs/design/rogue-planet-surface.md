@@ -59,9 +59,12 @@ longer a 40% roll: a rocky rogue is active when its heat flow reaches
 
 ## Simplifications
 
-- The water layer's depth uses liquid water's density and ignores
-  high-pressure ice at the bottom of a deep ocean.
-- The ice lid's base is at 273.15 K whatever the pressure.
+- The water layer's depth uses liquid water's density. Since GEN.88
+  (`physics/hydrosphere.py`) no liquid lies deeper than the liquidus (the
+  rest is `hp_ice_km`), the lid counts as 1.09 km of ice per km of water,
+  and its base melts at 273.15 K less 0.0074 K per bar; salts and ammonia,
+  which lower it further, are ignored. An ocean under a hydrogen envelope
+  with no high-pressure ice beneath is `hycean`.
 - A rocky rogue's leftover heat stays in Earth's proportion to its
   radioactive heat at every age, rather than following its own cooling.
 - A rogue's radius is not changed by its age.

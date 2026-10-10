@@ -25,14 +25,14 @@ a new `RoguePlanet` and back-fills stored rows (`_db._migrate_v47_to_v48`).
 
 import math
 
-from planetgen.physics import constants
+from planetgen.physics import constants, hydrosphere
 from planetgen import tuning
 from planetgen.util.random import log_uniform
 from planetgen.util import draw
 
 SURFACE_REGIMES = (
     "bare-rock", "frozen-atmosphere", "ice-shell-ocean", "ice-world",
-    "hydrogen-envelope", "gas-giant", "brown-dwarf",
+    "hydrogen-envelope", "hycean", "gas-giant", "brown-dwarf",
 )
 """tuple: Every `surface_regime`:
 - `bare-rock`: a small, dry world with no air left, at T_eff.
@@ -44,6 +44,8 @@ SURFACE_REGIMES = (
   of it to stay liquid: ice down to the rock.
 - `hydrogen-envelope`: a thick hydrogen envelope, opaque from collision-
   induced absorption, traps the heat so the ground is warm (Stevenson).
+- `hycean`: such an envelope over a liquid ocean shallow enough to touch
+  rock (no high-pressure ice beneath; GEN.88).
 - `gas-giant` / `brown-dwarf`: no surface; conditions at 1 bar."""
 
 SURFACE_REGIME_LABELS = {
@@ -52,22 +54,18 @@ SURFACE_REGIME_LABELS = {
     "ice-shell-ocean": "Ice shell over a liquid ocean",
     "ice-world": "Frozen solid (ice to the rock)",
     "hydrogen-envelope": "Thick hydrogen envelope",
+    "hycean": "Ocean under a hydrogen envelope",
     "gas-giant": "No solid surface (1 bar level)",
     "brown-dwarf": "No solid surface (1 bar level)",
 }
 """dict: A regime's display label."""
 
-WATER_MELTING_K = 273.15
-WATER_CRITICAL_K = 647.1
-WATER_BOILING_K = 373.15
-WATER_VAPORIZATION_J_MOL = 40.7e3
 NITROGEN_TRIPLE_POINT_K = 63.15
 NITROGEN_TRIPLE_POINT_PA = 12.5e3
 NITROGEN_SUBLIMATION_J_MOL = 6.9e3
 GAS_CONSTANT_J_MOL_K = 8.314
 BAR_TO_PA = 1e5
 HYDROGEN_MOLECULE_KG = 2 * constants.HYDROGEN_ATOM_MASS_KG
-LIQUID_WATER_DENSITY_KG_M3 = 1000.0
 
 
 
@@ -177,32 +175,6 @@ def nitrogen_vapor_pressure_pa(temperature_k):
         -NITROGEN_SUBLIMATION_J_MOL / GAS_CONSTANT_J_MOL_K * (1 / temperature_k - 1 / NITROGEN_TRIPLE_POINT_K))
 
 
-def water_boiling_k(pressure_pa):
-    """Water's boiling point at `pressure_pa` (Clausius-Clapeyron), capped at
-    its critical point: above that there is no liquid, only a supercritical
-    fluid."""
-    if pressure_pa <= 0:
-        return WATER_MELTING_K
-    inverse = 1 / WATER_BOILING_K - GAS_CONSTANT_J_MOL_K * math.log(pressure_pa / 101325.0) / WATER_VAPORIZATION_J_MOL
-    return WATER_CRITICAL_K if inverse <= 0 else min(1 / inverse, WATER_CRITICAL_K)
-
-
-def ice_shell_thickness_km(flux_w_m2, top_temperature_k, base_temperature_k=WATER_MELTING_K):
-    """Step 4's conducting lid: with k = A / T, Fourier's law integrates to
-    D = (A / F) ln(T_base / T_top). 0 when the top is already at melting."""
-    if top_temperature_k >= base_temperature_k:
-        return 0.0
-    return (tuning.ROGUE_ICE_CONDUCTIVITY_A_W_M / flux_w_m2
-            * math.log(base_temperature_k / top_temperature_k) / 1000.0)
-
-
-def water_layer_depth_km(mass_kg, radius_km, water_mass_fraction):
-    """How deep `water_mass_fraction` of the planet's mass would lie spread
-    over its surface, at liquid water's density (ignores compression)."""
-    area_m2 = 4 * math.pi * (radius_km * 1000.0) ** 2
-    return water_mass_fraction * mass_kg / (LIQUID_WATER_DENSITY_KG_M3 * area_m2) / 1000.0
-
-
 def rogue_surface_conditions(mass_kg, radius_km, planet_type, mass_bin, has_moons, rng=draw):
     """
     A rogue planet's surface conditions (the module docstring's four
@@ -228,7 +200,8 @@ def rogue_surface_conditions(mass_kg, radius_km, planet_type, mass_bin, has_moon
     age_gy = rng.uniform(*pc.ROGUE_PLANET_AGE_RANGE_GY)
     gravity = surface_gravity_m_s2(mass_kg, radius_km)
     result = {
-        "age_gy": age_gy, "ice_shell_thickness_km": None, "ocean_depth_km": None, "has_liquid_water": False,
+        "age_gy": age_gy, "ice_shell_thickness_km": None, "ocean_depth_km": None, "hp_ice_km": None,
+        "has_liquid_water": False,
     }
 
     if planet_type == 'g':
@@ -274,17 +247,21 @@ def rogue_surface_conditions(mass_kg, radius_km, planet_type, mass_bin, has_moon
         regime = "frozen-atmosphere" if had_air else "bare-rock"
 
     if water_fraction is not None:
-        depth_km = water_layer_depth_km(mass_kg, radius_km, water_fraction)
-        if surface_k < WATER_MELTING_K:
-            shell_km = ice_shell_thickness_km(flux, surface_k)
-            if shell_km >= depth_km:
-                result["ice_shell_thickness_km"] = depth_km
-            else:
-                result.update({"ice_shell_thickness_km": shell_km, "ocean_depth_km": depth_km - shell_km,
-                               "has_liquid_water": True})
-        elif surface_k < water_boiling_k(pressure_pa):
-            result.update({"ocean_depth_km": depth_km, "has_liquid_water": True})
-        if regime != "hydrogen-envelope":
+        depth_km = hydrosphere.water_layer_depth_km(mass_kg, radius_km, water_fraction)
+        split = None
+        if surface_k < hydrosphere.WATER_MELTING_K:
+            shell_km = hydrosphere.pressure_melted_shell_km(flux, surface_k, gravity)
+            split = hydrosphere.split_column(depth_km, shell_km, hydrosphere.WATER_MELTING_K, gravity)
+        elif surface_k < hydrosphere.water_boiling_k(pressure_pa):
+            split = hydrosphere.split_column(depth_km, 0.0, surface_k, gravity)
+        if split is not None:
+            shell_km, liquid_km, hp_km = split
+            result.update({"ice_shell_thickness_km": shell_km or None, "ocean_depth_km": liquid_km,
+                           "hp_ice_km": hp_km or None, "has_liquid_water": bool(liquid_km)})
+        if regime == "hydrogen-envelope":
+            if result["has_liquid_water"] and not result["hp_ice_km"]:
+                regime = "hycean"
+        else:
             regime = "ice-shell-ocean" if result["has_liquid_water"] else "ice-world"
 
     result.update({
@@ -301,7 +278,7 @@ def rogue_surface_conditions(mass_kg, radius_km, planet_type, mass_bin, has_moon
 ROGUE_SURFACE_FIELDS = (
     "age_gy", "internal_heat_flux_w_m2", "effective_temperature_k", "surface_regime",
     "surface_temperature_k", "surface_pressure_pa", "ice_shell_thickness_km", "ocean_depth_km",
-    "has_liquid_water",
+    "has_liquid_water", "hp_ice_km",
 )
 """tuple: The `rogue_surface_conditions` keys stored on `RoguePlanet` and
 in `rogue_planets` (schema v48); `has_internal_heat` is stored already."""

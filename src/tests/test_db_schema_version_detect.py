@@ -37,6 +37,7 @@ def _make_older_than_the_baseline(config):
     try:
         conn.execute("ALTER TABLE galaxy_shape DROP COLUMN bright_star_mass_limit_sol")  # v73
         conn.execute("ALTER TABLE stars DROP COLUMN l_xuv_w")  # v72
+        conn.execute("ALTER TABLE planets DROP COLUMN ocean_class")  # v73
         conn.execute("ALTER TABLE galaxy_shape DROP COLUMN phenomenon_min_mass_solar")  # v71
         conn.execute("ALTER TABLE planets DROP COLUMN mantle_redox")  # v70
         conn.execute("ALTER TABLE stars DROP COLUMN axial_tilt_deg")  # v68
