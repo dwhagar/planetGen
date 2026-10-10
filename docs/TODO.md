@@ -3317,8 +3317,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   no measured rate (no performance data yet, PERF.33's ETA gap) takes
   its estimate from the average time of the stages already finished in
   the job, so the time left on the main bar is never blank or zero; a
-  test covers a job whose later stages have no data. Owner: Bugfixes
-  lane 1, with PERF.65 and the other PERF.33 remainders.
+  test covers a job whose later stages have no data. Boss (2026-10-10
+  20:24Z): "ETA on any staged process when total process time metrics
+  are not available (i.e. we cannot calculate from our performance) the
+  main bar should always assume that if you're on Section 3 that
+  sections 4, 5, 6, etc. are going to take longer, so the ETA between
+  the current task and the overall process should not be the same unless
+  we're running on the last step." So with no total-process metrics the
+  main bar's time left is the current stage's time left plus one
+  estimate (the average of the finished stages) for each stage still to
+  come, and it equals the current stage's time left only on the last
+  stage; a test checks stage 3 of 6 against stage 6 of 6. Owner:
+  Bugfixes lane 1, with PERF.65 and the other PERF.33 remainders.
   Prerequisites: none. Related: PERF.33, PERF.55, PERF.65.
 
 ## DB: Database and schema
