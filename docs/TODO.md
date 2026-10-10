@@ -433,21 +433,6 @@ with `clamp()`.
   Prerequisites: none.
   Design: [docs/design/map-ui-and-frontend-libraries.md](design/map-ui-and-frontend-libraries.md)
 
-- [ ] **UX.91 Planet and moon description carries a full PHI-4 explanation, each colour factor and why**
-  Boss (2026-10-10 08:49Z, via the coordinator): PHI-4 should have a
-  full explanation in the planet or moon description, each colour factor
-  and why. Done: the planet and moon description on the system page
-  lists, for each of the four PHI-4 domains behind the chip colour, the
-  value for this world and why (the inputs that drove it), not just the
-  chip; the wording matches the Classes explanation page (UX.90, merged) and
-  the chip names (Ideal, formerly Shirtsleeve); the text comes from the
-  same calculation as the chip, so the two cannot disagree. Owner:
-  Bugfixes lane 2 (it built UX.90 and GEN.196).
-  Built so far (2026-10-09): UX.90 (PR #1065) already gives planet and
-  moon rows per-factor colours and phi_bio, phi_cpx and phi_tech values,
-  and the page /classes/habitability; build the description on those.
-  Prerequisites: none. Related: UX.90, GEN.89.
-
 - [ ] **UX.92 A Bookmark button for planets, moons and belts**
   Foundations lane 1 (2026-10-10, after NAV.8, PR #1095): bookmarks
   cover star systems only today. Add a Bookmark button on each body's
@@ -1114,7 +1099,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   phenomenon scatter stores a mass for each scattered black hole and
   neutron star, the map sizes them by it relative to stars of similar
   mass and brightness, and a test checks the size ordering. Owner:
-  unassigned.
+  Bugfixes lane 2 (coordinator, 2026-10-10 12:52Z), first.
   Prerequisites: none. Related: MAP.164, GEN.185, MAP.148, MAP.153.
 
 ## NAV: Navigation and courses
@@ -3993,7 +3978,8 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   with sane limits and presets, they are stored in `galaxy_shape`, the
   density model uses them, and a test checks that a changed value
   changes the density at an arm, between arms, in the core and in the
-  bulge. Unassigned (Boss): not in any lane's queue yet.
+  bulge. Owner: Bugfixes lane 2 (coordinator, 2026-10-10 12:52Z), after
+  MAP.165.
   Prerequisites: none. Related: GEN.183, GEN.184, GEN.186.
 
 ## SEC: Security
