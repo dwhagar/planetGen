@@ -3,6 +3,7 @@
 ## [8.0.866] - 2026-10-10
 
 ### Changed
+- **Docs only:** GEN.185 (the five-pass scatter, PR #953, schema v73) is retired from the TODO list and the plans; the next free Alembic revision is 0074.
 - The star scatter runs in passes (GEN.185). The mass pass places every star born at or above the mass limit (the same 8 to 20 solar mass limit as the phenomenon scatter's, default 20), whatever its luminosity. Each sector holding one at least as bright as the luminosity floor is marked, and the luminosity pass then places the lighter stars at least that bright and skips the marked sectors, which already hold a star that bright. A sector's own draw is lighter than the limit and dimmer than the floor, and the backfill and the staged bands below the floor draw only lighter stars too. This changes the stars a given seed gives: **re-plan the galaxy** (`planetgen plan`) to get the new scatter.
 - `galaxy_shape.bright_star_mass_limit_sol` (schema v73) records the mass limit the star scatter used; a galaxy scattered before it keeps NULL and behaves as before.
 - **Docs only:** GEN.97 (random neighborhoods, PR #950) is retired from the TODO list and the plans; GEN.186 files the leftover "keep away from filled space" option.
