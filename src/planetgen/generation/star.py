@@ -1075,22 +1075,25 @@ class Star(LazySaladName):
             # No companion given.
             habitable_host = self.system_config.HABITABLE_WORLD is True or self.system_config.INTELLIGENT_LIFE is True
             max_luminosity_sol = getattr(self.system_config, "MAX_STAR_LUMINOSITY_SOL", None)
+            max_mass_sol = getattr(self.system_config, "MAX_STAR_MASS_SOL", None)
             try:
                 initial_mass_sol, age, state = sample_living_star(
                     age_bias, self.system_config.LARGE_STAR, habitable_host=habitable_host,
                     population=getattr(self.system_config, "POPULATION", None),
-                    max_luminosity_sol=max_luminosity_sol)
+                    max_luminosity_sol=max_luminosity_sol, max_mass_sol=max_mass_sol)
             except ValueError:
-                if not (self.system_config.LARGE_STAR and max_luminosity_sol is not None):
+                if not (self.system_config.LARGE_STAR and (max_luminosity_sol is not None
+                                                           or max_mass_sol is not None)):
                     raise
                 # A large star a run's prevalence asked for (GEN.52) can be
-                # brighter than a sector whose bright stars were pre-placed
-                # allows; this one stays an ordinary star.
-                log.choice("Large star", "dropped", f"none dimmer than {max_luminosity_sol:g} Lsun")
+                # brighter, or heavier, than a sector whose bright and
+                # massive stars were pre-placed allows; this one stays an
+                # ordinary star.
+                log.choice("Large star", "dropped", "none within the sector's star limits")
                 initial_mass_sol, age, state = sample_living_star(
                     age_bias, None, habitable_host=habitable_host,
                     population=getattr(self.system_config, "POPULATION", None),
-                    max_luminosity_sol=max_luminosity_sol)
+                    max_luminosity_sol=max_luminosity_sol, max_mass_sol=max_mass_sol)
 
         self._apply_params(star_params(initial_mass_sol, age, state))
         log.choice("Star", self.type, f"population model: initial mass {initial_mass_sol:.3g} Msun, "

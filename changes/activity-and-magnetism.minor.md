@@ -1,4 +1,0 @@
-### Added
-
-- Stars store their activity (GEN.86): the coronal X-ray share of their light, their X-ray plus EUV output, whether the corona is still saturated, how often they flare above 1e33 erg and the XUV they have given off over their life. M dwarfs stay saturated for billions of years. Hot stars and white dwarfs add their photosphere's ionizing output. Neutron stars and black holes give off their thermal, spin-down or accretion X-rays.
-- Planets and moons store a magnetic dipole moment from their mass, density, age and rotation, a dipole class (none, weak, earth-like, strong or multipolar), the magnetopause standoff against their star's wind, and the star's XUV flux, lifetime XUV exposure and flare irradiation at their distance (schema v72). These are the inputs of the radiation dose (GEN.87) and the habitability index.

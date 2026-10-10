@@ -112,7 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.9, PERF.29, PERF.30, ADM.31, GEN.97, ADM.28, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, NAV.11, NAV.42, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.57, TEST.77, UX.49, PERF.31, GEN.128 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.9, PERF.29, PERF.30, ADM.31, ADM.28, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, NAV.11, NAV.42, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.57, TEST.77, UX.49, PERF.31, GEN.128 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.17, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18, PERF.33, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, ADM.43, ADM.44 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, and the anomalies chosen in phase 2. | NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, GEN.114, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies. | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, GEN.55 |
@@ -432,6 +432,24 @@ with `clamp()`.
   `a.btn:visited` out-specifying the secondary-button rules.
   Prerequisites: none.
   Design: [docs/design/map-ui-and-frontend-libraries.md](design/map-ui-and-frontend-libraries.md)
+
+- [ ] **UX.87 The system list shows uncharted systems: every scattered star, with its location and a way to generate it**
+  Boss (GitHub issue
+  [#929](https://github.com/dwhagar/planetGen/issues/929), 2026-10-10
+  01:51Z): "Every star that is scattered throughout in the brightness
+  scatter needs to be also listed or able to be listed as 'uncharted' in
+  the star system list. Information about that star and its location is
+  displayed, its coordinates, sector coordinates, and other information
+  including layer, shell, and slot that it occupies. This interface
+  should also allow the user to generate that star system by itself,
+  though the system will recommend generating the entire sector." Done:
+  the system list has an 'uncharted' filter (off by default) that lists
+  scattered stars with their coordinates, sector coordinates, layer,
+  shell and slot and the star's own data; each row has a Generate button
+  for that one system, with a note recommending the whole sector. Decided (Boss, 2026-10-10 04:06Z, "your defaults are confirmed"): scattered stars from the mass-limit and
+  luminosity passes both count; generating one system fills only that
+  system and leaves the sector's other contents ungenerated.
+  Prerequisites: none. Related: MAP.162, ADM.32, ADM.35, NAV.48, DOC.9.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -1097,6 +1115,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (default `modulepreload` and HTTP/2, no bundler): or bundle?
   Prerequisites: none. Related: MAP.147, MAP.157, MAP.158.
   Design: [docs/design/galaxy-map-wire-format.md](design/galaxy-map-wire-format.md)
+
+- [ ] **MAP.162 A sector holding scattered objects but never generated can still be opened, marked uncharted**
+  Boss (GitHub issue
+  [#928](https://github.com/dwhagar/planetGen/issues/928), 2026-10-10
+  01:44Z): "When a scatter places an object inside a sector that is
+  otherwise ungenerated, the user should still be able to select that
+  sector and view it, so they can view the placed item(s) within the
+  sector. But the sector should have some indicator that the sector is
+  uncharted." Done: on the Galaxy Map and the sector view, a sector with
+  scattered stars, black holes or other phenomena but no generated
+  contents opens, shows those objects, and carries a clear uncharted
+  mark (in the title, the info panel and the sector view's frame);
+  generating it removes the mark.
+  Prerequisites: none. Related: MAP.122, MAP.120, UX.87, NAV.48.
 
 ## NAV: Navigation and courses
 
@@ -2110,23 +2142,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     that drops to 0.6 Msun moves to 1/0.6 = 1.67 AU.
     Prerequisite: GEN.89.
     Design: [docs/design/nebula-and-asteroid-field-classes.md](design/nebula-and-asteroid-field-classes.md)
-
-- [ ] **GEN.97 Generate N random neighborhoods**
-  Boss (2026-10-03 05:38Z): "Add the ability to tell the system to
-  produce x number of random neighborhoods in the generation process."
-  Done: the Generate page and `generate.py` take a count and a
-  neighborhood radius and fill that many neighborhoods around random
-  qualifying centres.
-  Research (2026-10-09, sampling-backfill-and-resume.md): state the
-  sampling rule (rejection on (rho / rho_max)^gamma with a cell-volume
-  weight; gamma default 0), the qualifying list (inside the outline,
-  whole neighbourhood inside, density at least 1/E, optionally not near
-  filled space) and dart-throwing separation of 2r; add the
-  neighbourhood cost line to the Generate page estimate (about 24,000
-  systems and 8 minutes per 100 ly neighbourhood at gamma 0, 14 times
-  that at gamma 1). Open questions for Boss (defaults taken): random
-  means uniform by volume with a gamma option; neighbourhoods avoid each
-  other always and filled space only when asked.
 
 - [ ] **GEN.99 Nebula volume backfill with the star types the nebula needs**
   Boss (2026-10-03 05:38Z): "Some Nebulae must have certain stars in
@@ -3159,8 +3174,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   preset values between 8 and 20 solar masses; 20 stays the default (the
   cut Boss accepted on 2026-10-09). Everything above the cut is
   scattered galaxy-wide; everything below is drawn when its sector is
-  made, as built in GEN.166 to GEN.168. Open question for Boss (default:
-  presets 8, 10, 12, 14, 16, 18 and 20).
+  made, as built in GEN.166 to GEN.168. Decided (Boss, 2026-10-10 04:06Z, "your defaults are confirmed"):
+  presets 8, 10, 12, 14, 16, 18 and 20.
+  Note (2026-10-10, GEN.185 merged, PR #953): the five passes are built with one mass limit (phenomenon_min_mass_solar) for phenomena and stars, and galaxy_shape.bright_star_mass_limit_sol records it (phenomenon-scatter-mass-cut.md, "The star passes").
   Lane (Boss, 2026-10-10 03:04Z): Foundations lane 2.
   Prerequisites: none. Related: GEN.169, GEN.166, GEN.167, GEN.168,
   PERF.18.
@@ -3175,35 +3191,43 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   starts at 2500 L_sun with steps of 100, grows exponentially and ends
   at 4,000,000 L_sun with steps near 500,000; the default is 3000 L_sun.
   This replaces the fixed 1000 L_sun floor (GEN.30) as the default and
-  sets 2500 as the lowest allowed. Open question for Boss (default: a
+  sets 2500 as the lowest allowed. Decided (Boss, 2026-10-10 04:06Z, "your defaults are confirmed"): a
   geometric ladder of about 60 presets built from the step rule, rounded
   to 2 significant digits above 10,000, and a database already filled
-  below the new floor keeps its stars).
+  below the new floor keeps its stars.
+  Note (2026-10-10, GEN.185 merged, PR #953): the five passes are built with one mass limit (phenomenon_min_mass_solar) for phenomena and stars, and galaxy_shape.bright_star_mass_limit_sol records it (phenomenon-scatter-mass-cut.md, "The star passes").
   Lane (Boss, 2026-10-10 03:04Z): Foundations lane 1.
   Prerequisites: none. Related: GEN.30, PERF.18, GEN.40, MAP.120.
 
-- [ ] **GEN.185 The scatter in five passes: mass-limit objects, mass-limit stars, brightest-star sector marks, the luminosity pass, then other phenomena**
-  Boss (2026-10-10 03:01Z) algorithm: (1) scatter quasars, stars and
-  black holes above the set mass limit; (2) scatter the stars above the
-  mass limit; (3) as each star scatters in step 2, mark its sector with
-  that star's luminosity in solar luminosities; (4) scatter the stars
-  over the luminosity limit, skipping every sector marked in step 3 with
-  a luminosity equal to or above the luminosity setting, because it
-  already holds a bright enough star; (5) scatter the other phenomena as
-  already discussed, with no comets and no rogue planets. Done: the
-  passes run in this order in one plan, the per-sector mark is stored
-  with the scatter (or computed in the pass) so step 4 can skip, and the
-  sector fill draws below the cuts as before. This changes the default
-  luminosity pass (it no longer adds a star to a sector that already has
-  one at or above the floor) and so the bright-star count; GEN.100's
-  scatter is passes 1, 2 and 5 here, and the 20 solar mass phenomenon
-  cut of phenomenon-scatter-mass-cut.md is now only the slider's default
-  (GEN.183). Open question for Boss (default: the mark is each sector's
-  brightest scattered star; a step 1 star counts as a step 2 star; a
-  reseed of the combined plan is expected).
-  Lane (Boss, 2026-10-10 03:04Z): Foundations lane 3.
-  Prerequisites: GEN.183, GEN.184. Related: GEN.100, GEN.166, GEN.167,
-  GEN.168, GEN.183, GEN.184, GEN.30, GEN.169, PERF.18.
+- [ ] **GEN.186 Random neighborhoods: an option to keep away from filled space**
+  Left over from GEN.97 (merged, PR #950; Foundations lane 1 report,
+  2026-10-10 03:37Z). The research note
+  (sampling-backfill-and-resume.md) made it optional that the qualifying
+  list excludes centres near filled space; neighborhoods already avoid
+  each other always. Done: the Generate page and generate.py take a flag
+  that drops random neighborhood centres whose neighborhood touches
+  sectors that are already filled, with a cost line that says how many
+  centres qualify.
+  Prerequisites: none. Related: GEN.97, ADM.28.
+
+- [ ] **GEN.187 Bright-star back scatter by mass: rings of 1, 2, 5 and 8 solar masses around filled space**
+  Boss (GitHub issue
+  [#952](https://github.com/dwhagar/planetGen/issues/952), 2026-10-10
+  03:43Z): "Back-scatter of bright stars needs to be changed to filtered
+  by mass. Within 1 sector on all sides (orthogonal only, no diagonals)
+  should fill to: 1. 1 Solar Masses (1 Sector around filled region) 2. 2
+  Solar Masses (1 Sector around step 1) 3. 5 Solar Masses (1 Sector
+  around step 2) 4. 8 Solar Masses (1 Sector around step 3)." Done: the
+  back scatter that fills around generated sectors (GEN.30's luminosity
+  tiers) is replaced by four rings, each one sector further out by face
+  adjacency only (no diagonals): the first ring fills stars down to 1
+  solar mass, the second down to 2, the third down to 5 and the fourth
+  down to 8; beyond the fourth ring only the scatter's own mass limit
+  (GEN.183) applies. Decided (Boss, 2026-10-10 04:06Z, "your defaults are confirmed"): the nearest ring
+  takes the lowest mass cut, as above, and each ring is counted from the
+  previous ring's outer edge; the GEN.30 luminosity tiers go away.
+  Prerequisites: GEN.184. Related: GEN.30, GEN.40, GEN.99, GEN.183,
+  GEN.184, MAP.120, PERF.18.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -4030,7 +4054,7 @@ Boss (2026-10-07 11:47Z): "Actual specs on layers on the generation
   many charted), the common actions stay on the page and every other
   setting moves into a Customize dialog, and its subitems are done.
   GitHub issue [#736](https://github.com/dwhagar/planetGen/issues/736) (Boss, 2026-10-09 02:26Z): "Each set of settings should be a tab for the generate screen so the user only sees the ones relevant to what they are looking at." So the Customize dialog groups its settings into tabs, one per kind of generation.
-  Prerequisites: ADM.31, GEN.97.
+  Prerequisite: ADM.31.
 
   - [ ] **ADM.31 Every generate action offers to show what it made on the Galaxy Map**
     Boss (2026-10-03 05:38Z): "Add a button from the generate screen to
@@ -4219,17 +4243,36 @@ clears each one.
   sector address or timing under load is the first thing to check) and
   the test is made robust without skipping or loosening it, or the
   product bug it hides is fixed. Related: TEST.71, TEST.73, OPS.19.
+  Note (2026-10-09): Bugfixes lane 1 (PR #955, 2026-10-10): no repro in
+  15 loaded runs; the test's asserts now print the results, so the next
+  failure names the cause. Stays open until it recurs and is fixed, or
+  Boss closes it.
   Prerequisites: none.
 
-- [ ] **TEST.112 test_regenerate_phenomenon_keeps_id_name_and_place fails now and then in the full suite (bug)**
-  Reported by Foundations lane 1 (2026-10-10 00:04Z, PERF.32 merge, PR
-  #905): `test_regenerate_phenomenon_keeps_id_name_and_place` is a known
-  intermittent failure in the full suite. Done: the cause is found
-  (shared state or timing under load, or a real regeneration bug) and
-  the test is made robust without skipping or loosening it, or the
-  product bug it hides is fixed. Bugfixes lane 1 or whichever lane
-  touches regeneration next.
-  Prerequisites: none. Related: TEST.111, TEST.71, TEST.73, OPS.19.
+- [ ] **TEST.115 Three tests fail on the Windows CI leg in every recent run: Redis in WSL is unreachable (bug)**
+  Reported by Bugfixes lane 1 (2026-10-10 03:57Z, PRs #957 and #958):
+  test_a_slow_runner_still_alive_is_starting_not_interrupted,
+  test_without_redis_no_job_starts and
+  test_without_redis_windows_runs_the_job_itself fail in all 8 recent
+  main runs on the Windows leg, because Redis in WSL is not reachable
+  from the Windows side (127.0.0.1:6379 refused). Done: the Windows leg
+  runs these tests with a reachable Redis or skips the ones that need
+  none with a stated reason, and the tests that test the missing-Redis
+  path set up that state themselves; the Windows leg passes on main. CI
+  now runs only by hand (Actions, CI, Run workflow), so the leg is
+  checked when someone runs it.
+  Prerequisites: none. Related: TEST.111, OPS.19, PERF.24.
+
+- [ ] **TEST.116 test_bughunt_end_to_end stores M2V or M6V where it expects K2V on the MySQL 8.4 and MariaDB legs once (bug)**
+  Reported by Bugfixes lane 1 (2026-10-10 03:57Z): the K2V check in
+  test_bughunt_end_to_end failed once on MySQL 8.4 and once on MariaDB
+  in run 37882710453 (the stored star was M2V or M6V instead of K2V); it
+  did not reproduce on current main in 83 local runs. Done: the cause is
+  found (a seed or ordering dependence in the test, or a real bug in
+  star-type selection) and the test is made robust without loosening it,
+  or the product bug is fixed. Open question for Boss (default: leave
+  open until it recurs, then investigate with the failing run's data).
+  Prerequisites: none. Related: TEST.111, TEST.71.
 
 ## USR: User accounts
 

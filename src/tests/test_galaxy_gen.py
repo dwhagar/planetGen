@@ -645,17 +645,17 @@ def test_ensure_sector_generated_creates_then_reuses_the_same_sector(mysql_confi
     _seed_skeleton(mysql_config, layers=_layers(0, 1))
 
     first = run_galaxy.ensure_sector_generated(0, 0, 0, config=mysql_config)
-    assert first["created"] is True
-    assert first["qualifies"] is True
-    assert first["sector_id"] is not None
-    assert first["sector_name"]
+    assert first["created"] is True, first
+    assert first["qualifies"] is True, first
+    assert first["sector_id"] is not None, first
+    assert first["sector_name"], first
 
     second = run_galaxy.ensure_sector_generated(0, 0, 0, config=mysql_config)
-    assert second["created"] is False
+    assert second["created"] is False, second
     assert second["qualifies"] is True
-    assert second["sector_id"] == first["sector_id"]
+    assert second["sector_id"] == first["sector_id"], (first, second)
 
-    assert len(_all_sectors(mysql_config)) == 1
+    assert len(_all_sectors(mysql_config)) == 1, _all_sectors(mysql_config)
 
 
 def test_ensure_sector_generated_reports_no_content_outside_every_stored_band(mysql_config):

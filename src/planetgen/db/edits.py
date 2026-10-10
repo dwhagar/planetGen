@@ -43,12 +43,12 @@ GENERATOR_TYPES = {
 """dict: The web's phenomenon type -> `generate.generate_phenomenon`'s."""
 
 _KEPT_PHENOMENON_COLUMNS = {
-    "id", "name", "designation", "sector_id", "star_id",
+    "id", "uid", "name", "designation", "sector_id", "star_id",
     "center_x_pc", "center_y_pc", "center_z_pc", "galactic_radius_pc", "quadrant",
     "inside_nebula_id", "inside_remnant_id", "created_at", "modified_at",
 }
 """set: What a regenerated phenomenon keeps of its old row: its identity,
-name, where it is and what it sits in. Everything else is the new roll."""
+name, uid, where it is and what it sits in. Everything else is the new roll."""
 
 
 class EditError(Exception):

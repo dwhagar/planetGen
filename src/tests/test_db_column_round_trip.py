@@ -48,6 +48,7 @@ NULL_IN_THIS_GALAXY = {
        ("compact_remnant_kind", "compact_remnant_black_hole_id", "compact_remnant_neutron_star_id")},
     # `plan --no-bright-stars`: the scatter is slow and tested on its own.
     ("galaxy_shape", "bright_star_min_luminosity_sol"): "no scatter", ("galaxy_shape", "bright_star_seed"): "no scatter",
+    ("galaxy_shape", "bright_star_mass_limit_sol"): "no scatter",
     ("galaxy_shape", "phenomenon_scatter_seed"): "no scatter",
     ("galaxy_shape", "phenomenon_min_mass_solar"): "no scatter",
     # Facilities on stars, moons and asteroid fields, and the field's galaxy position.
@@ -96,6 +97,7 @@ NEVER_READ = {
         ("system_owners", "star_system_id"), ("nebula_shape_balls", "nebula_id"))},
     ("star_systems", "schema_version"): "the version that wrote the row, for diagnosis",
     ("galaxy_shape", "id"): "singleton key", ("galaxy_shape", "bright_star_seed"): "only to repeat a scatter",
+    ("galaxy_shape", "bright_star_mass_limit_sol"): "read by a fill only after a star scatter ran",
     ("galaxy_shape", "phenomenon_scatter_seed"): "only to repeat a scatter",
     ("galaxy_shape", "phenomenon_min_mass_solar"): "read by a sector fill, not a loader",
     ("facilities", "galactic_radius_pc"): "an index column; pages place a facility by its center",

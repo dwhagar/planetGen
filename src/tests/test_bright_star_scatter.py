@@ -19,6 +19,7 @@ from planetgen.generation import run_plan
 from planetgen.util import log
 from planetgen.db import store
 from planetgen.generation import bright_stars as brightStars
+from planetgen.generation.star_population import bright_star_fraction
 from planetgen.physics import constants
 from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.density import build_galaxy_shape, predicted_star_count
@@ -82,7 +83,7 @@ def test_the_count_matches_the_expected_bright_share():
             for densities in bins:
                 if densities:
                     expected += E_VALUE * slots / len(bins) * sum(
-                        density * brightStars.bright_star_fraction(THRESHOLD, population)
+                        density * bright_star_fraction(THRESHOLD, population)
                         for population, density in densities.items())
     assert abs(len(rows) - expected) < 5 * math.sqrt(expected) + 5
 
@@ -98,8 +99,8 @@ def test_a_band_scatter_draws_only_stars_between_its_limits():
     # The band's expected share is the difference of the two fractions.
     for population in brightStars.POPULATIONS:
         band = brightStars.bright_band_fraction(low, THRESHOLD, population)
-        assert band == pytest.approx(brightStars.bright_star_fraction(low, population)
-                                     - brightStars.bright_star_fraction(THRESHOLD, population))
+        assert band == pytest.approx(bright_star_fraction(low, population)
+                                     - bright_star_fraction(THRESHOLD, population))
         assert band > 0
 
 
@@ -286,8 +287,8 @@ def test_band_stars_stay_inside_their_band():
         luminosity = star["luminosity_w"] / constants.SOLAR_LUMINOSITY
         assert FLOOR * 0.99 <= luminosity < THRESHOLD
     assert bright_band_fraction(FLOOR, THRESHOLD, "young") == pytest.approx(
-        brightStars.bright_star_fraction(FLOOR, "young") - brightStars.bright_star_fraction(THRESHOLD, "young"))
-    assert bright_band_fraction(FLOOR, None, "young") == brightStars.bright_star_fraction(FLOOR, "young")
+        bright_star_fraction(FLOOR, "young") - bright_star_fraction(THRESHOLD, "young"))
+    assert bright_band_fraction(FLOOR, None, "young") == bright_star_fraction(FLOOR, "young")
     with pytest.raises(ValueError):
         sample_bright_stars(1, THRESHOLD, max_luminosity_sol=FLOOR)
 
@@ -309,8 +310,8 @@ def test_backfilled_cells_get_band_stars_in_their_own_cell():
         center = sector_position_pc(*address, EDGE_PC)
         if predicted_star_count(center, SHAPE, E_VALUE) >= 1.0:
             expected += E_VALUE * sum(
-                density * (brightStars.bright_star_fraction(FLOOR, population)
-                           - brightStars.bright_star_fraction(THRESHOLD, population))
+                density * (bright_star_fraction(FLOOR, population)
+                           - bright_star_fraction(THRESHOLD, population))
                 for population, density in brightStars._densities(center, SHAPE).items())
     assert abs(len(rows) - expected) < 5 * math.sqrt(expected) + 5
 
@@ -862,7 +863,7 @@ def test_the_scatter_and_the_backfill_log_the_stars_added_to_each_layer_by_type(
     messages = []
     monkeypatch.setattr(log, "normal", lambda message, *args, **kwargs: messages.append(message))
     summary = run_plan.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only", "--workers", "1"))
-    lines = [message for message in messages if message.startswith("Bright stars, layer ")]
+    lines = [message for message in messages if message.startswith(("Bright stars, layer ", "Massive stars, layer "))]
     assert lines and all(": added " in line and "-type" in line or "white dwarf" in line for line in lines)
     added = sum(int(line.split(": added ")[1].split(" stars")[0].replace(",", "")) for line in lines)
     assert added == summary["total"]

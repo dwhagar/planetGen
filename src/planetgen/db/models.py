@@ -353,6 +353,7 @@ galaxy_shape = sa.Table(
     sa.Column('outer_ring_index', mysql.INTEGER(), nullable=False),
     sa.Column('bright_star_min_luminosity_sol', mysql.DOUBLE(), nullable=True),
     sa.Column('bright_star_seed', mysql.BIGINT(unsigned=True), nullable=True),
+    sa.Column('bright_star_mass_limit_sol', mysql.DOUBLE(), nullable=True),
     sa.Column('phenomenon_scatter_seed', mysql.BIGINT(unsigned=True), nullable=True),
     sa.Column('phenomenon_min_mass_solar', mysql.DOUBLE(), nullable=True),
     sa.Column('galaxy_seed', mysql.BINARY(16), nullable=True),

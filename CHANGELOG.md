@@ -1,5 +1,163 @@
 # Changelog
 
+## [8.0.866] - 2026-10-10
+
+### Changed
+- GEN.175: regenerating a phenomenon keeps its uid; it was set to NULL.
+- **Docs only:** filed GEN.187 (bright-star back scatter by mass, issue #952), MAP.162 (open sectors that hold scattered objects but were never generated, issue #928) and UX.87 (uncharted systems in the system list, issue #929).
+- **Docs only:** filed TEST.115 (Windows CI leg failures: Redis in WSL unreachable) and TEST.116 (a one-off K2V failure in test_bughunt_end_to_end) from the Bugfixes lane 1 CI findings.
+- GitHub CI (`ci.yml`, every test leg) now runs only by hand: Actions > CI > Run workflow. It no longer runs on a push or a pull request. `stamp-version.yml` and `release-note.yml` are unchanged.
+- CI: the `linux-update` job's "needs migrating" and "failed migration" steps rebuild the database from the v61 baseline fixture (the oldest schema `update.sh` upgrades from) instead of faking v48, which the code has refused since the Alembic cleanup. The old steps failed with "database is at schema v48, older than v61".
+- **Docs only:** TEST.112 (the 8 s wait for queued API edits, PR #955) is retired from the TODO list and the plans; TEST.111 stays open with a note.
+- TEST.112: tests now wait up to 120 s for a queued API edit instead of 8 s, so a slow worker start in a busy parallel run no longer turns a 200 into a 202 (the cause of the intermittent `test_regenerate_phenomenon_keeps_id_name_and_place` failure). TEST.111's assertions now print the results they checked, so its next failure names the cause.
+- **Docs only:** GEN.185 (the five-pass scatter, PR #953, schema v73) is retired from the TODO list and the plans; the next free Alembic revision is 0074.
+- The star scatter runs in passes (GEN.185). The mass pass places every star born at or above the mass limit (the same 8 to 20 solar mass limit as the phenomenon scatter's, default 20), whatever its luminosity. Each sector holding one at least as bright as the luminosity floor is marked, and the luminosity pass then places the lighter stars at least that bright and skips the marked sectors, which already hold a star that bright. A sector's own draw is lighter than the limit and dimmer than the floor, and the backfill and the staged bands below the floor draw only lighter stars too. This changes the stars a given seed gives: **re-plan the galaxy** (`planetgen plan`) to get the new scatter.
+- `galaxy_shape.bright_star_mass_limit_sol` (schema v73) records the mass limit the star scatter used; a galaxy scattered before it keeps NULL and behaves as before.
+- **Docs only:** GEN.97 (random neighborhoods, PR #950) is retired from the TODO list and the plans; GEN.186 files the leftover "keep away from filled space" option.
+- **Docs only:** GEN.165 (a test bug about a comet round a second star, PR #948) is retired from the TODO list and the plans.
+- GEN.165: the epoch-position test compared a comet round a second star with the barycenter; it now compares against what the comet goes round, like planets, so it no longer fails in some random systems. No product code was wrong.
+- **Docs only:** TEST.114 (exact COUNT(*) in the check test, PR #946) is retired from the TODO list and the plans.
+- TEST.114: the "check writes nothing" test compares exact row counts instead of MySQL's background-refreshed row estimates, so it no longer fails under load.
+- The System Map no longer shows a comet on an open (parabolic) orbit once its pass is over (or before it arrives): beyond the drawn path, 2,000 AU out, it disappears instead of flying on forever. Closed-orbit comets always show.
+- **Docs only:** recorded Boss's answers on NAV.8 (stars only get pages), NAV.11 (stay per stop defaults to 0 minutes, user-changeable) and API.23 (the object ID replaces row ids, API break accepted).
+- **Docs only:** ADM.31 is partly built (PR #942); the remaining half stays open and MAP.151 notes the 2,000-sector cap.
+- **Docs only:** the scatter-preset rush job is split across the Foundations lanes (GEN.183 to lane 2, GEN.184 to lane 1, GEN.185 to lane 3) and Bugfixes lane 1 is running again.
+- **Docs only:** filed GEN.183 (mass cut presets, 8 to 20 solar masses), GEN.184 (luminosity floor presets, 2500 to 4 million L_sun, default 3000) and GEN.185 (the five-pass scatter order) for Foundations lane 3, and noted that Foundations lanes 1 and 2 are paused.
+- **Docs only:** GEN.182 (comet ejection is by design; System Map panel says bound or unbound, PR #938) is retired from the TODO list and the plans.
+- GEN.182: comets that never come back are by design (parabolic, about 30%). The System Map's info panel now says whether a comet's orbit is bound (and its period) or unbound and not returning, with perihelion and eccentricity; a test checks every closed comet orbit stays inside the star's Hill sphere.
+- **Docs only:** UX.86 (compact grouped Galaxy Map Menu, PR #936) is retired from the TODO list and the plans.
+- UX.86: the Galaxy Map's Menu is more compact. The "Show on the map" toggles sit side by side at their natural width in their own collapsible group, the action buttons wrap in a row, and the map's controls use smaller buttons.
+- **Docs only:** ADM.30 (radial fills, PR #934) is retired from the TODO list and the plans, and TEST.114 (a load-sensitive test flake) is filed.
+- **Docs only:** UX.85 (menus open where they can be seen, PR #932) is retired from the TODO list and the plans.
+- TODO: UX.84 retired (PR #930); DB.21 notes the step registry.
+- TODO: ADM.29 retired (PR #926); MAP.151 notes the span module it reuses.
+- TODO: DB.15 retired (PR #924).
+- TODO: PERF.50 retired (PR #922).
+- TODO: PERF.51 and TEST.113 retired (PRs #919, #920); PERF.50 notes the worker relay.
+- Every generation and maintenance step reports its progress through one helper (`planetgen.generation.steps`): a bar is drawn by itself at the start of a step predicted to take longer than 15 seconds from the speeds this server recorded for its kind, nothing is drawn for a shorter one, and a step that runs past 15 seconds gets its bar at that moment. A step with no recorded speed yet is treated as long, so a first run still shows its bar. Finished steps record their speed back, so the next prediction has history; the Stats page lists each kind.
+- The sector bars, neighbour linking, sector paths, bright-star backfill and top-up, the phenomenon scatter (now timed in the bar's own units, so its bar starts from a recorded rate too), the population pass, `reset` and the orbit update draw through it. Steps inside a worker can report to the parent through a channel (`worker_step` and `Relay`).
+- TODO: GEN.182 notes that the comet ejection may be a rendering issue.
+- TODO: bug GEN.182 for comets ejected into space instead of returning.
+- TODO: GEN.96 retired (PR #915); GEN.179 to GEN.181 and bug TEST.113 filed.
+- A rocky planet that no tide has slowed now turns in 8 to 48 hours, drawn log-uniform as giant-impact formation models give (Kokubo and Genda 2010), instead of anywhere from 10 to 1,400 hours. Slow days now come only from tidal locking. Most unlocked rocky planets with a working dynamo now get a dipole field instead of a multipolar one (GEN.86 follow-up, Boss's decision of 2026-10-10). Rogue planets draw the same days. Seeded output changes for planet days and fields.
+- TODO: ADM.42 retired (PR #912); ADM.43 records the read side that exists.
+- A wrong value in `config.json` (a port out of range, a negative proxy count, an unknown `log_rotation`) now stops the program with a message naming the field, instead of being read as given. `PLANETGEN_ADMIN_COOKIE_INSECURE` reads text like `PLANETGEN_DEBUG` does (`false`, `0`, `no`, `off` and empty mean off) instead of only `1`.
+- TODO: PERF.33 records what PR #910 built and what remains.
+- The time left on every progress bar now starts from the rate this server recorded for the same kind of work and worker count (PERF.32), so a bar has an estimate before its first unit finishes, and blends in the live rate as units finish (weight n / (n + 15), held back for the first 5 units and 20 seconds). The decay time constant follows the task length.
+- The Generate and Queue pages show the time left as a range ("about 1 m 28 s to 1 m 54 s left"), "estimating" while there is none, and hold it when nothing has finished for a minute or more; the Queue page's time left blends the recorded task time into the job's own pace.
+- TODO: GEN.86 retired (PR #908); GEN.177 and GEN.178 filed for its two unmodelled parts.
+- TODO: TEST.112 filed for an intermittent phenomenon-regeneration test; API.9 control migration number moved past v12.
+- TODO: PERF.32 retired (PR #905); PERF.33 records what PERF.32 left for it.
+- Recorded rates are deleted by the first run of a new version, since they describe the release, Python and machine that measured them. Control schema v12 replaces the old `generation_stats` table.
+- TODO: UX.85 and UX.86 scope confirmed as the Galaxy Map.
+- TODO: UX.85 and UX.86 for menus opening out of sight and oversized map controls.
+- TODO: items DOC.6 to DOC.16 for a static Help section and one help page per web interface feature area.
+- TODO: the progress-bar chain (PERF.32, PERF.33, PERF.51, PERF.50, DB.15, UX.84) moves to Bugfixes lane 1.
+- TODO: UX.84 records the corrected survey of which generation steps have progress bars.
+- TODO: the automatic progress bar prediction (PERF.51, UX.84) and the deep check estimate (DB.21) read the recorded generation statistics (generation_stats, PERF.32), with a conservative fallback only for a step with no history.
+- TODO: replaced the hand-picked progress bars with the rule Boss stated (a bar starts by itself on any sub-step predicted over 15 seconds): UX.84 (bug), PERF.51 (the mechanism), PERF.50 reworked as its first application, PERF.33 and DB.15 moved into Phase 1.
+- TODO: filed DB.21, a deep pass for the database check (every star system validated) with the estimated time shown first.
+- TODO: retired UX.83 (PR #895); filed PERF.50 (a bar inside one sector save, from the worker-to-parent channel) and TEST.111 (a parallel-run test flake) in Phase 1.
+- Linking new sectors to their neighbours now counts three steps per sector (containment, nearest systems, the neighbours' lists) and names the one under way, so the bar moves during a long batch.
+- The phenomenon scatter has a progress bar of its own, weighted by each layer's expected work, in the terminal and on the Generate and Queue pages.
+- The population pass shows a bar over its steps.
+- TODO: retired DB.8 (PR #893, planetgen check-db and the Generate-page job).
+- TODO: moved MAP.161 (first-visit script load) into Phase 1, on Foundations lane 2 next to MAP.157 and MAP.158.
+- TODO: added the wire format detail from Research Lane 3 and Research Lane 2 to MAP.157 to MAP.160 and filed the first-visit load item MAP.161.
+- TODO: recorded the measured Galaxy Map wire format facts on MAP.147 and split its recommendation into MAP.157 (trim the tile JSON), MAP.158 (gentler prefetch, IndexedDB), MAP.159 (packed binary tiles, with MAP.154) and MAP.160 (deferred GPU buffer quantising); fixed prerequisite lines on MAP.146, MAP.148, MAP.151 and MAP.152.
+- TODO: recorded Boss's approval of the MAP.156 default.
+- TODO: filed the top-down view of one layer or a range of layers as a secondary Galaxy Map option (Phase 2).
+- TODO: UX.83 lists the generation steps found without a progress bar.
+- TODO: filed the missing progress bars for neighbour linking, the phenomenon scatter and other long generation steps as a bug.
+- TODO: recorded that the rank fade (MAP.153) is stage 1 and the magnitude law (MAP.148) the end state, as decided by Boss.
+- TODO: recorded Boss's answers on the zoom star visibility defaults (MAP.153, MAP.155).
+- TODO: moved the fly-through Galaxy Map (MAP.146 and MAP.147 to MAP.155) into Phase 1 as the headline of the 8.1 release; Phase 1 is now complete only when they are done, so the 8.0 hold stays until then. Placed in Foundations lane 2's queue (step 4) in dependency order.
+- TODO: retired UX.35 (PR #879); recorded the dependencies between the zoom visibility items (MAP.148 builds after MAP.153, MAP.152 needs MAP.154, MAP.151 needs MAP.147) and added section 8a to the fly-through design note.
+- TODO: filed MAP.153 to MAP.155 from the zoom star visibility research note (rank birth-radius fade, nested tile lists, other objects fading), and marked them as the first stages of MAP.148's visibility rule.
+- Rewrote MAP.146 as the fly-through umbrella (scroll-zoom, double-click flight, distance-based visibility, see-through near field) and split it into MAP.148 to MAP.152; added the two research reports under docs/design.
+- The NAV page's route now runs left to right with the distance of each hop after its stop, wrapping onto more lines as the panel narrows, and a route of more than nine stops shows its first stop, last three stops, longest hop and every jump through unknown space, with the whole route under "All N stops" (UX.35).
+- Retired OPS.14 (PR #876) and closed DB.19, which the 20 solar mass cut (PR #866) made unnecessary.
+- GEN.170 records Boss's decision: the object ID is 80 bits (20 hex digits).
+- Retired PERF.49 (PR #870) and corrected the measurement note on PERF.31 and in the generation performance study.
+- Parallel generation workers no longer queue for the system-name registry: each save claims its names in a short transaction of its own instead of holding the registry's row locks until the whole sector commits. In a dense core, 8 sectors on 4 workers took 54 s instead of about 90 s. A claim is given back if the save fails, and a first holder that a later save wanted to rename renames itself when it commits (PERF.49). Names, bodies and registry rows are the same as before on a seeded run.
+- Name reservation looks a name's candidates up by key instead of scanning the whole sector for each name, and the offensive-word check is one compiled pattern (PERF.49).
+- The database connection pool allows 10 connections plus 10 overflow, since a save now uses two.
+- Retired API.20, API.21, GEN.138, GEN.147, MAP.144, OPS.32, PERF.37 (PR #865) and OPS.36 (PR #868).
+- Retired GEN.166, GEN.167 and GEN.168 (PR #866); DB.19 is now conditional on lowering the mass cut to 10 solar masses or less.
+- The phenomenon scatter places only the neutron stars and black holes of at least 20 solar masses (GEN.166 to GEN.168), so `planetgen plan` writes about 2.7e5 phenomenon rows instead of about 1.17e9. A sector draws the lighter ones itself when it is filled, from its own stream, so the galaxy holds the same number of each. `--phenomenon-min-mass` sets the cut and `--phenomena-only` re-scatters at a new one; the cut is stored with the scatter (schema v71) and in the settings file. Stellar-mass and intermediate-mass black holes are now drawn as separate kinds. This is the second half of the one-time reseed that began with lazy names (PERF.43): the same seed now gives a different galaxy than before both changes.
+- Retired PERF.44, PERF.45 and ADM.48 (PR #863); PERF.46 keeps only its finite_domain question.
+- A saved sector's rows now get their unique ID in the INSERT instead of being selected back and updated afterwards, which saves a query pass per sector (PERF.44). The IDs are the same.
+- A `galaxy` run now links its new sectors to their neighbours (containment in nebulae and remnants, nearest systems) once at its end instead of one sector at a time while it saves, so the workers no longer queue for it (PERF.45). The stored links are the same. Sectors made on demand still link as they are saved.
+- A planet's or moon's position is worked out once when first read instead of after every move (PERF.46); the values are unchanged.
+- Retired PERF.43 (PR #861) and filed ADM.48, the failing auth-sweep tests for the galaxy-settings download.
+- Stars and phenomena draw their generated name only when it is first read (PERF.43). A placed phenomenon is named by its object ID and never draws one, which saves about 4 percent of a sector fill; building a rogue planet is about four times faster. This is the first half of a one-time reseed: each name now takes one draw at construction instead of many, so the same seed gives a different galaxy. The second half is the 20 solar mass phenomenon cut (GEN.166 to GEN.168).
+- OPS.37 and API.22 record Boss's decision on their defaults.
+- Recorded the decisions on API.17 (keep the fingerprint check), OPS.16 (keep the daily positional update), DB.17 (keep repair from the seed) and the new-galaxy form (no seed field).
+- The TODO list records the seeding requirements for lazy names and the mass cut (PERF.43, GEN.167, GEN.168) and the ordering note on GEN.57.
+- The plan drops the user-facing rebuild of a galaxy from a seed and a version: OPS.12, GEN.59, GEN.61, OPS.18, ADM.17, ADM.19, ADM.20, API.16 and DB.10 are removed, and GEN.55 becomes the internal same-seed umbrella. The seed stays an internal mechanism for parallel workers, fills, backfills and settle.
+- The TODO list and plan record Boss's decision that lazy names (PERF.43) and the 20 solar mass cut (GEN.166 to GEN.168) share one combined reseed.
+- The TODO list corrects the name-reservation timing quoted on PERF.31, PERF.43 and PERF.49 (the 30 s figure was a contaminated measurement; alone it was 1.7 s of a 17.8 s sector), and the execution plan moves PERF.49 behind PERF.44, PERF.45, PERF.47, DB.19 and OPS.14, with a re-measure as its first step.
+- The TODO list files OPS.36, a bug: the size and free-space checks measure the boot drive instead of the drive that holds the database.
+- The execution plan moves the generation speed items to the front of Foundations lane 1 (PERF.44, PERF.45, PERF.49, then PERF.47 and DB.19) and records that Boss approved the PERF.49 plan.
+- The TODO list retires GEN.85 (atmosphere species and mantle redox, PR #848).
+- The TODO list files PERF.49 (batch the system-name reservation: 30 s of an 84 s dense core sector) with the earlier naming-cost findings re-checked against main.
+- A planet's atmosphere text is now written from its gases ("a mix of nitrogen, oxygen, and argon, with traces of water vapor and carbon dioxide"), and its surface pressure drops by any gas too cold to stay in the air.
+- The TODO list retires ADM.47 (PR #846) and records Bugfixes lane 1's measurement that name reservation takes 30 s of a dense sector's 84 s (PERF.31, PERF.43).
+- The TODO list records that Boss accepted the 20 solar mass cut for the phenomenon scatter (DB.19, GEN.166 to GEN.168), and the execution plan moves those items to the front of Foundations lane 2.
+- The TODO list retires GEN.137, NAV.53, OPS.33, UX.79 and UX.80 (PR #843).
+- The TODO list retires NAV.12 (unbounded routes, PR #838) and PERF.42 (warm queue worker, PR #841).
+- The queue worker loads the generation code and the bright-star sampling tables once, before it forks a work horse per job, so each job no longer spends about 2.6 s importing and rebuilding them (PERF.42). A worker also restarts itself when an update changes the release.
+- The TODO list records Boss's decisions on the generation performance items: the nearest-system and containment work moves to its own phase (PERF.45), and skipping the finite-domain check stays open (PERF.46).
+- The TODO list files the phenomenon scatter mass cut (GEN.166 to GEN.169) and reworks DB.19 around it: at the recommended 20 solar masses the scatter table falls from 1.17 billion rows (161 GB) to about 2.7e5 rows. The design notes drop the unverified 1.6e8 rows and 21 GB figures.
+- Two systems in one sector are routed by their nearest stars even when those lie in the sector next door.
+- The Generate page progress-line to-do item (ADM.46) was withdrawn at Boss's word.
+
+### Added
+- Random neighborhoods (GEN.97): `planetgen galaxy --neighborhoods N` (random-start mode) generates N neighborhoods instead of one. Each start is inside the galaxy with its whole neighborhood, and at least twice the radius from every other start, so they never overlap; one estimate covers them all. `--neighborhood-gamma G` biases the starts toward dense space (a start is kept with probability min(1, density) ** G; 0, the default, is uniform by volume). The Generate page's "Around a random start" has Neighborhoods and Density bias fields.
+- A finished galaxy-generating job on the Generate page offers "Show on Galaxy Map" (ADM.31): the map opens fitted to the sectors that run made, each ringed, with a line saying how many (the first 2,000 are ringed on a bigger run). `/galaxy?made=<since>,<until>` and `GET /api/galaxy/made` do the work, by when the sectors were created.
+- Radial fills (ADM.30): `planetgen galaxy --center-sector ID --cylinder-sectors X [--cylinder-layers H]` (or with `--ring --layer --slot`) generates a round disc of radius X + 0.385 sector edges around the centre, through H layers either side (default X). X = 1 is the centre and its in-plane face neighbours. The Generate page's "Around a sector" mode takes a radius in sectors and layers either side as an alternative to the radius in parsecs.
+- Every long step of a generation or maintenance run now draws its own bar by itself when the recorded speeds predict more than 15 seconds (or it has none yet): the phenomenon scatter's clearing, special rows, their insert and the epoch stamp, the containment and nearest-systems refreshes outside a galaxy run, the bright-star scatter's main bar, the Galaxy Map warm-up and the name-dedupe passes. `steps.STEP_KINDS` lists every timed kind (the Stats page uses it for its names), and `tests/test_step_registry.py` fails when a step is built with a kind that isn't registered (UX.84).
+- Span fills (ADM.29): `planetgen galaxy --rings 3:5`, `--layers=-1:1` and `--slots 50:5` (an arc, wrapping through slot 0, inside one ring) generate every missing sector in a range of rings, layers or both, inside the galaxy's outline. Ranges are inclusive, and the sector count comes from prefix sums so the size warning is instant. The Generate page has a "A span of rings, layers or slots" mode. `galaxy/span.py` holds the shape for the Galaxy Map's region data layer to reuse.
+- The migration script shows a bar over its steps and, for a revision that works in batches (`alembic_runner.report_progress`), a second bar for that step, both with the time left; when output is not a terminal it prints a line per step and, for a step in batches, at most one line every 30 seconds and at each 10 percent. Migration statements wait up to an hour for a lock (DB.15).
+- A dense sector's save now has a bar of its own, under the sector bar, in the terminal and on the Generate and Queue pages: a worker reports the systems it has saved to the run, which draws the bar when the recorded save speed predicts more than 15 seconds (PERF.50).
+- Generation directives (GEN.96): `--directive systems>=N`, `habitable>=N` or `type:X>=N` on `sector` and `galaxy` (with `--directive-attempts`, default 200) redraw each sector until it holds at least that much, from a repeatable per-attempt seed. If no draw meets it, the closest is kept and the log says which minimum it missed. The Generate page's "Generate sectors" form has an Override section for the same.
+- One settings model describes every `config.json` option (ADM.42): type, default, help text, unit, secret, restart and editable flags, and the environment variable that overrides it. `python -m planetgen.cli.config check` validates the files (a misspelt option name is an error there) and `config docs` writes the option table in `docs/config.md`, `config.json.example` and `config.schema.json`. A web-owned `settings.json` overlay is read when present, holding only options marked editable from the web. Tests fail when the generated files drift or when code reads a `PLANETGEN_*` variable the model doesn't name.
+- Stars store their activity (GEN.86): the coronal X-ray share of their light, their X-ray plus EUV output, whether the corona is still saturated, how often they flare above 1e33 erg and the XUV they have given off over their life. M dwarfs stay saturated for billions of years. Hot stars and white dwarfs add their photosphere's ionizing output. Neutron stars and black holes give off their thermal, spin-down or accretion X-rays.
+- Planets and moons store a magnetic dipole moment from their mass, density, age and rotation, a dipole class (none, weak, earth-like, strong or multipolar), the magnetopause standoff against their star's wind, and the star's XUV flux, lifetime XUV exposure and flare irradiation at their distance (schema v72). These are the inputs of the radiation dose (GEN.87) and the habitability index.
+- Generation rates are recorded per kind of work and worker count (PERF.32): sector fills, bright-star layers and now phenomenon layers. The Stats page shows the worker count of each rate and has a Reset stats button; the time estimate reads the rate for the run's own worker count, blending the neighbouring counts when it has none.
+- `planetgen check-db` and a "Check the database" section on the Generate page (DB.8): a read-only check of the schema version and models, table health, rows whose parent is gone, ids that would clash, impossible values, sector counts and version keys. It ends with a pass or fail line per check and exits 1 on damage and 2 when a check could not run.
+- A warning when the running code differs from the code the galaxy was planned with (OPS.14): release, Python, platform, version key or a changed `requirements.lock`, read from the galaxy's settings file. It appears with the mixed-sector warning in `planetgen galaxy`, now also in `planetgen fingerprint`, and on the Generate page.
+- Filed the object ID items from Boss's decision of 2026-10-09 22:39Z: GEN.170 to GEN.176 (layout, fill, run-time births, nebula birth sector and three bugs), DB.20 (schema), API.23 (public reference), TEST.110 and DOC.5, all in Phase 1. Added docs/design/object-id-options.md.
+- Filed MAP.147 (the Galaxy Map wire format: measure the payload, compare options) in Phase 2.
+- Filed MAP.146 (zoom drill-down centred on the clicked point) in Phase 2.
+- Filed OPS.37 (a Generator version number) and API.22 (an API version number), both plain sequential integers due by the end of Phase 1.
+- Planets and moons store their mantle redox (reduced, intermediate or oxidized, with its offset from the iron-wustite buffer) and the partial pressures of O2, CO2, CO, N2, Ar, H2, H2O, CH4, H2S and SO2 (GEN.85, schema v70). Each class's mix shifts with the redox, and no gas exceeds its vapour pressure at the surface temperature.
+- A route now reports its longest hop and flags each hop whose line crosses sectors that have not been generated as unknown space (NAV.12). `/api/nav` returns `route.hops` and `route.longest_hop_ly`, and the NAV page states the longest hop and the unknown-space jumps.
+- Eight to-do items from the generation performance study (a warmed worker, lazy names, uids in Python, the phenomenon-row size decision, a later pass for links, one position per body, benchmark records and a faster INSERT).
+- A to-do item (generating a neighbourhood from the Generate page shows no per-sector stats).
+- A to-do item (the Generate page shows a progress line and per-layer counts instead of one line per sector).
+
+### Fixed
+- The Galaxy Map's Menu, its Steps list and the Bookmarks list now open inside the visible window: a panel that would run off the bottom opens above its button when there is more room there, or is capped to the room left and scrolls inside, and one that runs off a side slides back in (UX.85). A browser test opens each in a short and a narrow window.
+- The Generate page's job-status script test used the old `remaining_text` field, so it failed on main since the time-left range text (`remaining_label`) arrived (TEST.113).
+- The disk-space check and the admin Stats tile measure the drive that actually holds the database's data directory (asked of the server with `SELECT @@datadir`, symlinks and mounts resolved), not the boot drive. They show which path and drive were measured, and say "unknown" when a remote server's disk can't be reached.
+- A moon's Hill sphere (and so its minimum orbit spacing and the facility orbit slider) is measured about its planet, not its star (GEN.138); the Hill sphere uses the pair's total mass.
+- Class N (a Venus analog) no longer carries a life chemical or a life timeline; Class Q is a habitable class capped at microbial life (GEN.147).
+- The progress ETA is a ratio of decayed sums, so the early estimate of a run on several workers is no longer up to twice too long (PERF.37).
+- The phenomenon render uses `THREE.Timer` in place of the deprecated `THREE.Clock` (MAP.144).
+- The macOS update daemon's plist is well-formed XML again (OPS.32).
+- A 100,000-deep nested JSON body is a 400 ("nested too deeply") instead of a 500 (API.20), and `Retry-After` is only sent on a 429, no longer on every response Flask-Limiter counts (API.21).
+- The admin page's creation-settings download answers an anonymous or non-admin caller with a plain 403, like the other file and data views, instead of a redirect (ADM.18).
+- A neighbourhood or single-address run now reports the first sector (the one named outright) with the same stats as every other sector, each summary has a "Totals" line (star systems, stars, planets, phenomena), and a batch says how many sectors it runs with how many workers before the first report (ADM.47).
+- Hypervelocity stars now move in a straight line (position plus velocity times time) when the orbit update runs, keeping their velocity, instead of being turned about the galactic axis like bound objects (GEN.137). `phenomenon_scatter` gains `epoch_unix` (schema v69), the time a scattered star's position holds at, and the built system inherits it.
+- The sector search reached by a radius now covers every cell that touches the sphere, not only cells whose centers lie inside it (`cells_touching_sphere`, NAV.53); the center-based listing's misses are documented.
+- Python and the browser now round half-way numbers the same way (away from zero, on the shortest decimal), so 9.995 reads "10" and 1.005 reads "1.01" in both; Python used to give "9.99" and "1".
+- A negative number that rounds to zero prints "0", not "-0", in both.
+- A checkout with `core.autocrlf=true` no longer changes the bytes of the lock files and the word list, so their hashes agree between Windows and Linux.
+
+### Removed
+- `planetgen.util.appconfig`; the log locations moved to `planetgen.util.logpaths` and every other option to `planetgen.util.settings`.
+
 ## [8.0.783] - 2026-10-09
 
 ### Added

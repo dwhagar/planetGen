@@ -313,7 +313,7 @@ def evolve_star(mass_sol, age_gy, rng=draw, min_luminosity_sol=None):
 
 
 def sample_living_star(age_bias=None, large_star=None, rng=draw, habitable_host=False,
-                       population=None, max_luminosity_sol=None):
+                       population=None, max_luminosity_sol=None, max_mass_sol=None):
     """
     Draws `(initial_mass_sol, age_gy, state)` for a random star that hasn't
     collapsed (see `evolve_star`), redrawing mass and age together until it
@@ -328,7 +328,9 @@ def sample_living_star(age_bias=None, large_star=None, rng=draw, habitable_host=
     `population` draws the age from that population's range instead of the
     whole disk's (see `population_age_range_gy`), and `max_luminosity_sol`
     redraws any star but a white dwarf at or above that luminosity (a
-    sector's dim stars, once its bright ones were pre-placed).
+    sector's dim stars, once its bright ones were pre-placed); likewise
+    `max_mass_sol` redraws any star born with at least that mass (the stars
+    the scatter's mass pass placed).
     """
     pc = tuning
     if large_star and population is not None:
@@ -343,6 +345,8 @@ def sample_living_star(age_bias=None, large_star=None, rng=draw, habitable_host=
     for _ in range(pc.STAR_MODEL_MAX_REDRAWS):
         if large_star:
             mass = sample_imf_mass_sol(min_mass_sol=pc.LARGE_STAR_MIN_MASS_SOL, rng=rng)
+            if max_mass_sol is not None and mass >= max_mass_sol:
+                continue
             low, high = population_age_range_gy(population)
             high = min(high, main_sequence_lifetime_gy(mass) * pc.GIANT_PHASE_END_MS_FRACTION)
             if high <= low:
@@ -351,6 +355,8 @@ def sample_living_star(age_bias=None, large_star=None, rng=draw, habitable_host=
         else:
             mass = sample_imf_mass_sol(rng=rng)
             if large_star is False and mass >= pc.LARGE_STAR_MIN_MASS_SOL:
+                continue
+            if max_mass_sol is not None and mass >= max_mass_sol:
                 continue
             age = sample_star_age_gy(age_bias, rng, population)
         if habitable_host and age < pc.LIFE_MIN_STAR_AGE_GY:
