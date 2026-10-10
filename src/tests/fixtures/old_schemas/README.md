@@ -30,3 +30,4 @@ Commit each file came from:
 - v75: 62f3842 (GEN.87 surface radiation, before GEN.89)
 - v76: 3668b58b (GEN.89 habitability score, before GEN.187)
 - v77: 9a023637 (GEN.187 scatter classes, before DB.20)
+- v78: 3d44328c (object IDs, before GEN.187)

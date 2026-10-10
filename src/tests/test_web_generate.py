@@ -682,10 +682,10 @@ def test_page_offers_the_scatter_threshold(site, client):
     assert generate_page.BACKFILL_TEXT in html
 
 
-def test_backfill_text_follows_the_tiers():
+def test_backfill_text_follows_the_rings():
     assert generate_page.BACKFILL_TEXT == (
-        "down to 100 solar luminosities within 10 ly, 250 within 25 ly, 500 within 50 ly "
-        "and 750 out to 100 ly")
+        "down to 1 solar mass in the ring of sectors around the generated ones, 2 in the second, "
+        "5 in the third and 8 in the fourth ring")
 
 
 def test_scatter_uses_the_threshold_field(site, client, no_spawn):

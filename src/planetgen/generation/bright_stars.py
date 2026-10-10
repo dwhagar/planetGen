@@ -15,10 +15,14 @@ population's density. Every cell inside the outline can draw one, however
 sparse (GEN.78): the density never falls below the halo floor
 (`tuning.MIN_RELATIVE_DENSITY`).
 
-The backfill (GEN.23, `backfill_cells`) goes the other way: around each
-generated sector, block by block, it adds the stars between a lower floor
-(by the block's distance, `BRIGHT_STAR_BACKFILL_TIERS`, GEN.30) and
-whatever was already placed there, cell by cell.
+The backfill goes the other way: around the generated sectors it adds the
+stars the scatter left out, sector by sector and by initial mass
+(GEN.187, `backfill_mass_cells`): the sectors a face away from the filled
+region down to 1 solar mass, the next ring down to 2, then 5, then 8
+(`tuning.BRIGHT_STAR_BACKFILL_RING_MASSES_SOL`), each sector keeping the
+stars below the luminosity the scatter already placed. A staged scatter's
+luminosity bands (`backfill_cells`, GEN.44) still top up what a sector
+lacks.
 
 The scatter can go down in stages (`planetgen plan
 --bright-stars-down-to`): a galaxy scattered at 500 Lsun can later add
@@ -59,7 +63,8 @@ from planetgen.galaxy.geometry import (
 )
 from planetgen.galaxy.sector import _sample_poisson_count
 from planetgen.generation.star_population import (
-    bright_band_fraction, pick_population, placed_star_fraction, sample_bright_stars,
+    bright_band_fraction, mass_band_fraction, pick_population, placed_star_fraction, sample_bright_stars,
+    sample_mass_band_stars,
 )
 from planetgen.physics.units import pc_to_ly
 from planetgen.util import draw
@@ -196,6 +201,12 @@ def _point_in_cell(rng, ring_index, layer_index, slot, slots, edge_pc):
     return None
 
 
+def _finite_or_none(value):
+    """A lifespan or phase end as stored: `NULL` for the white dwarf's
+    infinity (a DOUBLE column cannot hold one; `star_params` reads it back)."""
+    return value if value is None or math.isfinite(value) else None
+
+
 def _row(ring_index, layer_index, slot, point, population, params, rng):
     """One star in `_db.BRIGHT_STAR_COLUMNS` order."""
     x, y, z = point
@@ -204,8 +215,8 @@ def _row(ring_index, layer_index, slot, point, population, params, rng):
         x, y, z,
         population, params["type"], params["yerkes_class"], params["mass_kg"],
         params["radius_km"], params["temperature_k"], params["luminosity_w"],
-        params["age_gy"], params["lifespan_gy"], params["initial_mass_sol"],
-        params["phase_end_age_gy"], rng.getrandbits(63),
+        params["age_gy"], _finite_or_none(params["lifespan_gy"]), params["initial_mass_sol"],
+        _finite_or_none(params["phase_end_age_gy"]), rng.getrandbits(63),
     )
 
 
@@ -448,14 +459,120 @@ def backfill_cells(shape, addresses, edge_pc, expected_at_density_1, min_luminos
                             break
 
 
+def mass_band_edges(mass_limit_sol, ring_masses=None):
+    """
+    The fixed mass edges (GEN.187) the mass backfill's bands lie between,
+    ascending: the ring masses (`tuning.BRIGHT_STAR_BACKFILL_RING_MASSES_SOL`)
+    and the galaxy's mass limit (the mass pass placed every star from it up).
+    """
+    edges = set(ring_masses if ring_masses is not None else tuning.BRIGHT_STAR_BACKFILL_RING_MASSES_SOL)
+    if mass_limit_sol is not None:
+        edges.add(float(mass_limit_sol))
+    return sorted(float(edge) for edge in edges)
+
+
+def canonical_mass_bands(target_mass_sol, held_mass_sol, edges):
+    """
+    The fixed mass bands (GEN.187) a draw from `target_mass_sol` up to (not
+    including) `held_mass_sol` (`None`: no limit, no mass pass placed any)
+    is made of, lightest first, as `(low, high)` pairs (`high` `None` for the
+    open top band). Each band is drawn whole from its own stream, so a
+    sector's stars between two masses never depend on the steps taken to get
+    there. `target_mass_sol` and `held_mass_sol` are among `edges`.
+
+    Raises:
+        ValueError: For a target that is not an edge.
+    """
+    if target_mass_sol not in edges:
+        raise ValueError(f"{target_mass_sol:g} solar masses is not a mass edge ({edges})")
+    bands = []
+    for index, low in enumerate(edges):
+        if low < target_mass_sol:
+            continue
+        if held_mass_sol is not None and low >= held_mass_sol:
+            break
+        high = edges[index + 1] if index + 1 < len(edges) else None
+        if held_mass_sol is not None and (high is None or high > held_mass_sol):
+            high = held_mass_sol
+        bands.append((low, high))
+    return bands
+
+
+def backfill_mass_cells(shape, addresses, edge_pc, expected_at_density_1, target_mass_sol, held_mass_sol,
+                        max_luminosity_sol, seed, edges):
+    """
+    Draws and places every star born with `target_mass_sol <= mass <
+    held_mass_sol` for some cells (the sectors a mass backfill reaches,
+    GEN.187, one by one): the stars below what was already placed there,
+    so none is drawn twice.
+
+    Per cell, fixed mass band (`canonical_mass_bands`) and population, a
+    Poisson count with mean `expected_at_density_1 * density * band share`
+    at the cell's center (`mass_band_fraction`: the living stars born in the
+    band that are dimmer than `max_luminosity_sol`, the luminosity pass's
+    floor, since the brighter ones were placed already), each star uniform
+    in the cell. A band draws from its own stream (the seed, the address and
+    the band's lower mass).
+
+    Args:
+        shape (GalaxyShape): The galaxy's shape.
+        addresses (iterable): `(ring, layer, slot)` cells to fill.
+        edge_pc (float): The sector edge.
+        expected_at_density_1 (float): Systems per sector at density 1.
+        target_mass_sol (float): The lightest mass to place.
+        held_mass_sol (float or None): The mass the cells hold stars from
+            already (the galaxy's mass limit, or an earlier backfill's);
+            `None` when no mass pass placed any.
+        max_luminosity_sol (float or None): The luminosity the scatter
+            placed everything above; `None` for no luminosity pass.
+        seed (int): The galaxy's bright-star seed.
+        edges (list): `mass_band_edges`.
+
+    Yields:
+        tuple: One row per star, in `_db.BRIGHT_STAR_COLUMNS` order.
+    """
+    bands = canonical_mass_bands(target_mass_sol, held_mass_sol, edges)
+    shares = {(low, population): mass_band_fraction(low, high, max_luminosity_sol, population)
+              for low, high in bands for population in POPULATIONS}
+    for ring_index, layer_index, slot in addresses:
+        center = sector_position_pc(ring_index, layer_index, slot, edge_pc)
+        densities = _densities(center, shape)
+        slots = ring_sector_count(ring_index)
+        for low, high in bands:
+            means = {population: expected_at_density_1 * densities[population] * shares[(low, population)]
+                     for population in POPULATIONS}
+            if not any(mean > 0.0 for mean in means.values()):
+                continue
+            rng = draw.Stream(f"{seed}:{ring_index}:{layer_index}:{slot}:m{low:g}")
+            for population in POPULATIONS:
+                if means[population] <= 0.0:
+                    continue
+                count = _sample_poisson_count(means[population], rng=rng)
+                if not count:
+                    continue
+                for params in sample_mass_band_stars(count, low, high, population, rng,
+                                                     max_luminosity_sol=max_luminosity_sol):
+                    for _ in range(SLOT_REDRAWS):
+                        point = _point_in_cell(rng, ring_index, layer_index, slot, slots, edge_pc)
+                        if point is not None:
+                            yield _row(ring_index, layer_index, slot, point, population, params, rng)
+                            break
+
+
 def star_params(row):
     """A `bright_stars` row back as the `stellarEvolution.star_params`
-    dict `Star.from_params` takes."""
+    dict `Star.from_params` takes. A white dwarf (a mass backfill places
+    them, GEN.187) stores its infinite lifespan and phase end as `NULL`."""
+    white_dwarf = row["yerkes_class"] == "VII"
+    lifespan, phase_end = row["lifespan_gy"], row["phase_end_age_gy"]
+    if white_dwarf:
+        lifespan = math.inf if lifespan is None else lifespan
+        phase_end = math.inf if phase_end is None else phase_end
     return {
         "type": row["star_type"], "yerkes_class": row["yerkes_class"], "mass_kg": row["mass_kg"],
         "radius_km": row["radius_km"], "temperature_k": row["temperature_k"],
-        "luminosity_w": row["luminosity_w"], "age_gy": row["age_gy"], "lifespan_gy": row["lifespan_gy"],
-        "initial_mass_sol": row["initial_mass_sol"], "phase_end_age_gy": row["phase_end_age_gy"],
+        "luminosity_w": row["luminosity_w"], "age_gy": row["age_gy"], "lifespan_gy": lifespan,
+        "initial_mass_sol": row["initial_mass_sol"], "phase_end_age_gy": phase_end,
     }
 
 
@@ -499,9 +616,10 @@ class FillContext:
         below_cut (BelowCut or None): The scatter's mass cut, when it had
             one (GEN.167): the sector draws the neutron stars and black
             holes below it (GEN.168), and builds its scattered ones above it.
-        star_mass_limit_sol (float or None): The mass limit the star scatter
-            placed every star at or above (its mass pass); the sector draws
-            only lighter stars. `None` when the scatter had no mass pass.
+        star_mass_limit_sol (float or None): The mass every star at or above is
+            already placed from (the scatter's mass pass, or lower where a
+            mass backfill took this sector, GEN.187); the sector draws only
+            lighter stars. `None` when nothing was placed by mass.
     """
 
     def __init__(self, center_pc, shape, bright_rows=(), min_luminosity_sol=None, phenomenon_rows=None,
@@ -520,7 +638,7 @@ class FillContext:
         """The share of this position's stars at or above the threshold
         (0 when no scatter ran): the part of the sector's expected count
         its pre-placed stars already stand for."""
-        if self.min_luminosity_sol is None:
+        if self.min_luminosity_sol is None and self.star_mass_limit_sol is None:
             return 0.0
         total = sum(self.densities.values())
         if total <= 0.0:
@@ -534,5 +652,6 @@ class FillContext:
         system_config.POPULATION = pick_population(self.densities, rng)
         if self.min_luminosity_sol is not None:
             system_config.MAX_STAR_LUMINOSITY_SOL = self.min_luminosity_sol
+        if self.star_mass_limit_sol is not None:
             system_config.MAX_STAR_MASS_SOL = self.star_mass_limit_sol
         return system_config

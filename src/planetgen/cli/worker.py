@@ -39,7 +39,7 @@ def warm(queues=None):
     job would otherwise rebuild in its own process: the generation modules
     (about 2.4 s each job) and, for the generation queue, the bright-star
     sampling tables (`star_population._bright_table`, one per luminosity
-    floor and population) at every floor a scatter or backfill uses. Nothing
+    floor and population) at the scatter's floor. Nothing
     here opens a database or Redis connection, so the horses share it safely.
 
     Args:
@@ -54,11 +54,8 @@ def warm(queues=None):
         return
     from planetgen import tuning
     from planetgen.generation import star_population
-    floors = {tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL,
-              *(floor for _out_to, floor in tuning.BRIGHT_STAR_BACKFILL_TIERS)}
-    for floor in sorted(floors):
-        for population in star_population.POPULATIONS:
-            star_population._bright_table(float(floor), population)
+    for population in star_population.POPULATIONS:
+        star_population._bright_table(float(tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL), population)
 
 
 def code_version_on_disk():
