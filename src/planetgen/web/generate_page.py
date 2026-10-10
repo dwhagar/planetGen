@@ -846,7 +846,10 @@ def _build_job_steps(action, form, edge_pc=None):
     if action == "reset":
         return "reset", "Reset the galaxy", [reset_step]
     if action == "check_db":
-        return "check_db", "Check the database", [{"label": "Check the database", "argv": generate + ["check-db"]}]
+        deep = bool(form.get("deep"))
+        argv = generate + ["check-db"] + (["--deep", "--yes"] if deep else [])
+        title = "Check the database (deep)" if deep else "Check the database"
+        return "check_db", title, [{"label": title, "argv": argv}]
     raise FormError("Unknown action.")
 
 
@@ -1158,7 +1161,8 @@ def generate():
             return _no_store(make_response(jsonify({"error": str(exc)}), 400))
         return _page(admin, error=str(exc), status=400, form=request.form)
     env = jobs.mysql_env(current_app.config["MYSQL_CONFIG"], database)
-    if kind == "galaxy" and not request.form.get(ESTIMATE_CONFIRM_FIELD):
+    if kind in ("galaxy", "check_db") and (kind == "galaxy" or request.form.get("deep")) \
+            and not request.form.get(ESTIMATE_CONFIRM_FIELD):
         # PERF.3: show the size and time first; the admin confirms (or the
         # disk refuses it) before the job starts.
         try:
@@ -1169,7 +1173,7 @@ def generate():
             return _page(admin, error=str(exc), status=400, form=request.form)
         if wants_json:
             return _no_store(make_response(jsonify({
-                "error": estimate["refusal"] or f"Confirm first: {estimate['summary']}",
+                "error": estimate.get("refusal") or f"Confirm first: {estimate.get('summary') or estimate.get('what')}",
                 "estimate": estimate, "confirm_field": ESTIMATE_CONFIRM_FIELD,
                 "generate_anyway_field": GENERATE_ANYWAY_FIELD,
             }), 409))
@@ -1206,8 +1210,10 @@ def generate():
 def _estimate_view(estimate):
     """`run_estimate`'s dict plus the text the page shows."""
     view = dict(estimate)
-    view["size_text"] = stats.format_bytes(estimate.get("bytes"))
     view["time_text"] = stats.format_duration(estimate.get("seconds"))
+    if estimate.get("deep_check"):      # DB.21: a time and a count of systems, no size or disk
+        return view
+    view["size_text"] = stats.format_bytes(estimate.get("bytes"))
     disk = estimate.get("disk")
     view["disk_text"] = (f"{stats.format_bytes(disk['free_bytes'])} free of "
                          f"{stats.format_bytes(disk['total_bytes'])} on {disk.get('where') or disk['path']}") if disk else None
