@@ -14,9 +14,9 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.88 |
-| MAP | MAP.164 |
+| MAP | MAP.165 |
 | NAV | NAV.58 |
-| GEN | GEN.190 |
+| GEN | GEN.191 |
 | PERF | PERF.55 |
 | DB | DB.22 |
 | API | API.24 |
@@ -687,6 +687,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.187 | Bright-star back scatter by mass: rings of 1, 2, 5 and 8 solar masses around filled space | none | open |
 | GEN.188 | Mass limit default is 8, and the mass slider and luminosity dropdown sit side by side on Generate and New galaxy | none | open |
 | GEN.189 | Gamma-ray burst and AGN ozone loss for the ozone_loss_flag (low priority) | none | open |
+| GEN.190 | The Phenomena table is empty after a web-generated galaxy: the phenomena scatter pass never runs (bug) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -850,6 +851,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.161 | Load the Galaxy Map faster on a first visit: bundle or preload its scripts | none | open |
 | MAP.162 | A sector holding scattered objects but never generated can still be opened, marked uncharted | none | open |
 | MAP.163 | Galaxy Map brightness scale: floor 2,500 L_sun at full zoom, then min/max scaling per zoom | none | open |
+| MAP.164 | Galaxy Map shows phenomena: black holes purple, neutron stars dark blue, sized by mass, dark colors out-shine brighter stars | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
