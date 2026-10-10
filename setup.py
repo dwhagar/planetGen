@@ -129,11 +129,9 @@ setup(
         # Chromium itself comes from `python -m playwright install chromium`.
         'browser': ['playwright>=1.49.0'],
         # The standalone app server where Apache's mod_wsgi isn't used:
-        # gunicorn under launchd on macOS, waitress as a Windows service
-        # (docs/deployment/macos.md, windows.md). install.sh on macOS and
-        # install.ps1 install it from requirements-server.lock.
-        'server': ['gunicorn>=23.0.0; sys_platform != "win32"',
-                   'waitress>=3.0.1; sys_platform == "win32"'],
+        # gunicorn under launchd on macOS (docs/deployment/macos.md).
+        # install.sh on macOS installs it from requirements-server.lock.
+        'server': ['gunicorn>=23.0.0'],
     },
     author='David Hagar',
     author_email='david.hagar@gmail.com',

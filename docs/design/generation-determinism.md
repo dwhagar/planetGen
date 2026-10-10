@@ -12,7 +12,7 @@ Evidence tags: [S] seen in a search result, [C] computed by the research run aga
 
 1. **A seed does not give the same galaxy on the project's own CI legs today.** The repo's hash-pinned `requirements.lock` was installed into Python 3.9 to 3.13 environments and `src/tests/reproducible_sector_probe.py`'s logic run over 30 sectors of 40 systems. Python 3.10 to 3.13 agree on all 30; Python 3.9 differs on all 30 [C]. The cause is `math.hypot` and `math.dist`, which Python changed between 3.9 and 3.10. Replacing them with `sqrt(x*x + y*y)` made all five agree, although the lock gives them different numpy and astropy versions [C]. CI has a 3.9 leg, so TEST.77 as written would be red there on day one.
 2. **`util/draw.py` is sound** (GEN.56): identical output on Python 3.9 to 3.14 over a 20,000-round battery [C]. Only `Stream.gauss` depends on the C maths library (`log`, `cos`).
-3. **Floating point across OS and CPU is a small, nonzero risk** (`exp` differs between glibc and musl in 0.07 percent of inputs, `atan2` 17.7 percent, by 1 to 11 ulp [C]); rounding to 9 significant digits before hashing hides it. Windows and macOS were not tested.
+3. **Floating point across OS and CPU is a small, nonzero risk** (`exp` differs between glibc and musl in 0.07 percent of inputs, `atan2` 17.7 percent, by 1 to 11 ulp [C]); rounding to 9 significant digits before hashing hides it. macOS was not tested.
 4. **The version key tracks releases, not output.** Add an integer `generator_epoch` and a battery digest (section 5). The OPS.13 seed is not changed on update (section 5.3).
 5. **Fingerprint:** a 40-line canonical encoder, SHA-256, a leaf digest per sector stored at save time, a two-level tree for regions (section 4). **Net diff:** a custom address-path delta with `was` and `now` pairs (section 6).
 
@@ -52,7 +52,7 @@ CPython's `math.exp`, `log`, `sin`, `cos`, `pow` and `**` call the platform C li
 | sin / cos | 3.0% / 3.2% | 1 | pow (`**`) | 0.13% | 6 |
 | tan | 3.8% | 1 | hypot (libm) | 0.000% | 0 |
 
-Against a correctly rounded reference (mpmath, 200 bits), glibc misrounds `exp` 0.06 percent, `sin` 0.13, `pow` 0.055, but `sinh` 25 percent, `cosh` 23, `expm1` 8.5 and `log1p` 6.8 [C]. Treat `sinh`, `cosh`, `expm1`, `log1p` and `tanh` as least stable and `exp`, `log` and `pow` as most stable. The musl build's `math.sqrt` misrounded 0.09 percent of inputs (glibc 0), cause unknown: "sqrt is exact" is a property of a platform build. Windows (UCRT) and macOS libm are expected to differ from glibc at similar rates [R, medium].
+Against a correctly rounded reference (mpmath, 200 bits), glibc misrounds `exp` 0.06 percent, `sin` 0.13, `pow` 0.055, but `sinh` 25 percent, `cosh` 23, `expm1` 8.5 and `log1p` 6.8 [C]. Treat `sinh`, `cosh`, `expm1`, `log1p` and `tanh` as least stable and `exp`, `log` and `pow` as most stable. The musl build's `math.sqrt` misrounded 0.09 percent of inputs (glibc 0), cause unknown: "sqrt is exact" is a property of a platform build. macOS libm is expected to differ from glibc at similar rates [R, medium].
 
 Rounding hides these differences. Of 58,526 glibc/musl results that differed, the share still different after rounding to N significant digits [C]:
 
@@ -74,8 +74,7 @@ The statement in [reproducible-galaxies.md](reproducible-galaxies.md) section 4 
 | scipy | 1.13.1 | 1.15.3 | 1.17.1 | 1.18.1 |
 
 - **Astropy constants drift.** Comparing every numeric constant in `planetgen.physics.constants` under astropy 6.1.7 and 8.0.1, exactly one differs: `HYDROGEN_ATOM_MASS_KG` (1.67353286206015e-27 against 1.67353286432139e-27, relative 1.35e-9) [C]. It did not affect the probe sector, but a 9-digit fingerprint sits at the edge of that difference. Freeze the constants as literals in `constants.py` and assert the astropy values equal them within tolerance in a test.
-- **BLAS kernels.** numpy's matrix product goes through OpenBLAS, which picks a kernel by CPU. With `OPENBLAS_CORETYPE` set to SANDYBRIDGE or NEHALEM instead of HASWELL, `(100000,3) @ (3,3)` and `(50,3,3) @ (50,3,3)` gave different bits, and a 300x300 product also changed with thread count [C]. `np.sin`, `cos`, `exp`, `log`, `power`, `tanh`, `arctan2`, `sqrt`, `np.sum(axis=)`, `einsum` and `norm` did not change when AVX512, AVX2 and FMA3 were masked [C]; that proves little about other CPUs (Apple Accelerate, Windows builds). The repo uses `@` in `nebula_shape.py` (lines 107 and 163) and `sector_path.py` (line 232). Over 150 nebula shapes under three kernel settings, 6.5 percent of field values differed (max relative 1.6e-11) but all 150 `scale` values and all 450,000 `contains_many` answers were identical [C]: the effect is real and currently absorbed by thresholds. Replacing `@` with elementwise multiplies and adds removes the dependence for about three lines.
-- **Default integer width.** numpy before 2.0 uses a 32-bit default `int` on Windows [R, high]. `nebula_shape.py` passes `dtype=np.int64` where it matters; make that a rule.
+- **BLAS kernels.** numpy's matrix product goes through OpenBLAS, which picks a kernel by CPU. With `OPENBLAS_CORETYPE` set to SANDYBRIDGE or NEHALEM instead of HASWELL, `(100000,3) @ (3,3)` and `(50,3,3) @ (50,3,3)` gave different bits, and a 300x300 product also changed with thread count [C]. `np.sin`, `cos`, `exp`, `log`, `power`, `tanh`, `arctan2`, `sqrt`, `np.sum(axis=)`, `einsum` and `norm` did not change when AVX512, AVX2 and FMA3 were masked [C]; that proves little about other CPUs (Apple Accelerate). The repo uses `@` in `nebula_shape.py` (lines 107 and 163) and `sector_path.py` (line 232). Over 150 nebula shapes under three kernel settings, 6.5 percent of field values differed (max relative 1.6e-11) but all 150 `scale` values and all 450,000 `contains_many` answers were identical [C]: the effect is real and currently absorbed by thresholds. Replacing `@` with elementwise multiplies and adds removes the dependence for about three lines.
 
 ## 3. The deterministic-math rule and its lint
 
@@ -88,8 +87,8 @@ Rules for generation code (the packages `galaxy`, `generation`, `names`, `physic
 5. **Freeze astropy-derived constants as literals.**
 6. **Never iterate a set or dict built from strings or tuples without sorting**, and never `os.listdir` or `glob` unsorted. The scan finds no `list(set(` today.
 7. **Text.** Keep names and word lists ASCII or handle them as bytes: the Unicode database differs from 13.0 (3.9) to 16.0 (3.14), so `.lower()`, `.title()` and `casefold()` can change for non-ASCII letters [R for the effect, C for the versions].
-8. **Files and float text.** Write canonical bytes in binary mode with `\n` only and hash the canonical body, not the file. Float `repr` does not call the platform printf [R, high]; the six Linux versions agree, Windows was not run. No locale-aware formatting.
-9. **Run the no-database battery (section 7, tier A) on the Windows and macOS CI jobs too.** `ci.yml` has `windows-jobs` and `macos-installers` jobs but the test matrix (3.9, 3.12, 3.13) is Linux only. GitHub's `macos-latest` is Apple Silicon [R], a different CPU family and libm, the strongest single cross-check.
+8. **Files and float text.** Write canonical bytes in binary mode with `\n` only and hash the canonical body, not the file. Float `repr` does not call the platform printf [R, high]; the six Linux versions agree. No locale-aware formatting.
+9. **Run the no-database battery (section 7, tier A) on the macOS CI job too.** `ci.yml` has a `macos-installers` job but the test matrix (3.9, 3.12, 3.13) is Linux only. GitHub's `macos-latest` is Apple Silicon [R], a different CPU family and libm, the strongest single cross-check.
 10. **A leg that still differs after rules 2 to 5 is not loosened silently.** The failure report says whether integers and strings or only floats differ; a float-only difference on one platform is a finding to triage, and `epochs.json` can hold a per-platform alternative digest as a last resort.
 
 ## 4. Canonical serialization and fingerprints (GEN.58)
@@ -171,7 +170,7 @@ An OPS.13 row is `(galaxy_seed, version_key, epoch, battery_digest, lock_sha256,
 A pure function `generator_battery_digest()` in the package (not a script), no database and no network, running a fixed canned battery and returning an overall digest plus per-case digests:
 
 - 6 to 8 tiny cases, each a fixed (galaxy seed, address, config) giving one 3-system sector through `generation/run_sector.generate_sector` under `draw.bound(unit_seed(...))`; one rogue planet or phenomenon; one nebula shape (`draw_shape`, `scale`, 50 `contains` points); one bright-star scatter on a tiny region; one population stream; one `unit_seed` known answer. Each is hashed with the section 4 encoder.
-- Cost [C]: eight 3-system sectors take 1.2 s; importing the package costs 2 to 3 s of CPU. So 3 to 5 s per update. `update.sh` and `update.ps1` run it with the new code and compare with the previous history row; ADM.17 and API.16 can show "battery OK" or "differs" by running it at start-up or on demand.
+- Cost [C]: eight 3-system sectors take 1.2 s; importing the package costs 2 to 3 s of CPU. So 3 to 5 s per update. `update.sh` runs it with the new code and compare with the previous history row; ADM.17 and API.16 can show "battery OK" or "differs" by running it at start-up or on demand.
 - It detects an intentional change (the epoch should have been bumped), an accidental one (the golden test should have failed first) and environment drift with the epoch unchanged. It cannot see code paths it does not exercise; grow it as GEN.42, PERF.18, API.12 and API.13 land.
 - The pure part (seed, address, config to sector object) is also what API.17's remote generation needs; keep it free of database reads. The entry points are `generation/run_galaxy.generate_and_save_sector_at` (`galaxySeed.seeded(galaxy_seed, "sector", address)`), `galaxy/nebula_field.py` (`"nebula-cell"`) and `generation/run_sector.generate_sector`.
 
@@ -218,7 +217,7 @@ Rules, which make the GEN.61 merge deterministic and idempotent:
 
 ### 6.3 The settings JSON (ADM.18) in the same style
 
-The same encoder: `seed` as 32 uppercase hex, `version_key` with parts spelled out, `epoch`, `fp_spec`, every creation setting at full float repr (they are generator inputs and must not be quantised), `lock_sha256`, `env`, the naming key and its `CODEC_VERSION` ([object-ids.md](object-ids.md), GEN.70), the filtered word list's SHA-256 with the list itself in gzip and base64 (stars and sectors keep word-salad names per Boss's 2026-10-08 decisions), and `content_sha256`. The file name `<seed>-<key>-<YYYYMMDD>-<HHMMSS>Z.json` has no colons and is valid on Windows.
+The same encoder: `seed` as 32 uppercase hex, `version_key` with parts spelled out, `epoch`, `fp_spec`, every creation setting at full float repr (they are generator inputs and must not be quantised), `lock_sha256`, `env`, the naming key and its `CODEC_VERSION` ([object-ids.md](object-ids.md), GEN.70), the filtered word list's SHA-256 with the list itself in gzip and base64 (stars and sectors keep word-salad names per Boss's 2026-10-08 decisions), and `content_sha256`. The file name `<seed>-<key>-<YYYYMMDD>-<HHMMSS>Z.json` has no colons.
 
 ## 7. Golden-seed test structure (TEST.77)
 
@@ -226,7 +225,7 @@ The same encoder: `seed` as 32 uppercase hex, `version_key` with parts spelled o
 
 Three tiers, cheapest first, so a failure is localised before the expensive test runs.
 
-- **Tier A, no database, every leg including Windows and macOS (3 to 5 s).** The OPS.15 battery. The golden record per case is a `structural_digest` (ints, strings, booleans, counts, names) and a `float_digest` (floats at 9 digits), each over named sections (system, star, planet, moon, belt, comet, phenomenon, population), plus the case's overall digest. On mismatch the report prints a table: case, section, expected, actual, structural or float. A structural mismatch is a code change; a float-only mismatch on one platform is drift.
+- **Tier A, no database, every leg including macOS (3 to 5 s).** The OPS.15 battery. The golden record per case is a `structural_digest` (ints, strings, booleans, counts, names) and a `float_digest` (floats at 9 digits), each over named sections (system, star, planet, moon, belt, comet, phenomenon, population), plus the case's overall digest. On mismatch the report prints a table: case, section, expected, actual, structural or float. A structural mismatch is a code change; a float-only mismatch on one platform is drift.
 - **Tier B, database, 1 against 4 workers.** TEST.77 as written: plan, a few sectors, a scatter and a backfill. Two assertions: 1 worker equals 4 workers (always true, no golden needed), and the per-sector digests equal the golden's. Print differences by address (`S12.3.0: expected 9fa1..., got 02be...`), then the region digest. A few dozen sectors.
 - **Tier C:** the existing hash-seed and locale subprocess probe (`test_a_sector_does_not_depend_on_hash_seed_or_locale`), unchanged.
 
@@ -258,8 +257,8 @@ Computed from scripts in the research run's `exp/` scratchpad. The hypot and sum
 
 - That the Python documentation promises reproducibility only for `random()` (it is what `draw.py`'s docstring says).
 - That 3.12's `sum()` uses compensated summation and that 3.10 changed `math.hypot`: the behaviour was measured; the attribution to those releases' "What's New" is from memory.
-- Windows (UCRT) and macOS (libm, Accelerate) behaviour: nothing was run on them.
-- That `macos-latest` on GitHub is arm64; that numpy before 2.0 defaulted to a 32-bit `int` on Windows; that Python's float `repr` and `format` do not call the platform printf; the MySQL against MariaDB DOUBLE text formatting claim.
+- macOS (libm, Accelerate) behaviour: nothing was run on it.
+- That `macos-latest` on GitHub is arm64; that Python's float `repr` and `format` do not call the platform printf; the MySQL against MariaDB DOUBLE text formatting claim.
 - All prior-art statements in section 5.5; RFC 6962 domain-separation prefixes; RFC 8785's rules (the library's behaviour was tested, the RFC text was not read).
 - The musl `sqrt` misrounding is one build's observation, undiagnosed.
 

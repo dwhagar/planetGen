@@ -35,7 +35,7 @@ Version the remote-client contract only, by hand against a CI rule (4). Upload t
 | Read routes are public, 200/day and 50/hour per IP; writes 10/minute | `api/limiter.py`, `api/routes.py` | A key-holding client needs key-based limits or the 50/hour default ruins it. |
 | Bodies are Pydantic models; failure is `400` with `errors:[{field,message}]` | `api/schemas.py` | Recipes get 422; old routes stay 400 (9.3). |
 | `MAX_CONTENT_LENGTH = 2 MiB`, enforced early by `_reject_oversized_body` | `api/config.py`, `web/app.py` | A per-route override works (6.3). |
-| Proxy body limits: nginx `1m`; Caddy `max_size 1MB`; IIS `maxAllowedContentLength="1048576"`; Apache on Windows `LimitRequestBody 1048576` | `examples/nginx`, `macos`, `caddy`, `windows/*` | Below the app's 2 MiB; upload paths need an exception in every file. |
+| Proxy body limits: nginx `1m`; Caddy `max_size 1MB` | `examples/nginx`, `macos`, `caddy` | Below the app's 2 MiB; upload paths need an exception in every file. |
 | One WSGI process, 5 threads, 60 s request timeout | `examples/apache/planetgen.conf.example` | The concurrency budget is tiny. |
 | Activity log categories `AUTH`, `AUTHZ`, `DB`, `GEN`; other categories are dropped | `admin/activity_log.py` | API.15 must add one. |
 | `StarSystem.to_dict()` and `from_dict()` exist and carry `schema_version` | `generation/system.py` | The natural upload unit. |
@@ -161,7 +161,7 @@ One sample on a slow CPU. zstd 3 and 10 were also run (1,012 KB and 890 KB); zst
 ### 6.3 Request decompression in Flask under mod_wsgi
 
 - Flask and Werkzeug do not decode `Content-Encoding` on requests: a gzip body sent to `/api/auth/login` came back `400 request body must be a JSON object` [C].
-- Apache can inflate with `SetInputFilter DEFLATE` (`DeflateInflateRatioLimit` default 200, burst 3 [S]); nginx, Caddy and IIS do not decompress requests natively [R]. Because deployments differ, decompress in the app so one path works everywhere.
+- Apache can inflate with `SetInputFilter DEFLATE` (`DeflateInflateRatioLimit` default 200, burst 3 [S]); nginx and Caddy do not decompress requests natively [R]. Because deployments differ, decompress in the app so one path works everywhere.
 - Implementation: accept only `Content-Encoding: gzip` (else `415`); require `Content-Length` (else `411`; chunked request bodies under mod_wsgi are unreliable [R]); read `request.stream` in 64 KiB pieces through `zlib.decompressobj(16 + zlib.MAX_WBITS)` with `decompress(chunk, max_length)`; answer `413` the moment the output passes the cap, or exceeds 40 times the input after the first MiB. A 300 MB zero payload (306 KB gzip) was cut at a 64 MiB cap in 0.94 s [C], hence the 32 MiB cap below. gzip cannot exceed about 1,032:1 (measured 1,028:1); zstd reached 32,676:1 and brotli 661,562:1 on zeros [C], so ratio guards matter more if those codecs are added. Tests: a bomb, a truncated stream, trailing garbage, a wrong encoding.
 - Apply the cap per request: setting `request.max_content_length = 4 * 1024 * 1024` inside the upload view or a path-scoped `before_request` raised the limit for that route only (1 and 3 MB passed, 5 MB got 413, a 2 MiB route kept rejecting 3 MB) [C]. `_reject_oversized_body` compares to the app-wide config first, so it must become endpoint-aware or the override must run before it.
 - Verify a `Content-Digest: sha-256=:...:` request header (RFC 9530 [R]) over the compressed bytes; it catches truncation and proxy damage before parsing.
@@ -170,8 +170,7 @@ One sample on a slow CPU. zstd 3 and 10 were also run (1,012 KB and 890 KB); zst
 
 | Layer | Setting | Default | Shipped | Needed for uploads |
 |---|---|---|---|---|
-| Apache | `LimitRequestBody` | 1 GiB since 2.4.54, unlimited before [S] | 1048576 (Windows example) | 5 MiB in `<Location "/api/uploads">` |
-| IIS | `maxAllowedContentLength` | 30,000,000 bytes [R] | 1048576 | `<location path="api/uploads">` with 5242880 |
+| Apache | `LimitRequestBody` | 1 GiB since 2.4.54, unlimited before [S] | none | 5 MiB in `<Location "/api/uploads">` |
 | nginx | `client_max_body_size` | 1m [R] | 1m | `location /api/uploads { client_max_body_size 5m; }` |
 | Caddy | `request_body { max_size }` | none | 1MB | a path matcher with 5MB |
 | Flask | `MAX_CONTENT_LENGTH` | none | 2 MiB | per-request override, 4 MiB |
@@ -335,7 +334,7 @@ The guide ("Web UX and Job Management Guide.md", titled "Single-Server Migration
 
 - RFC 9745 (Deprecation) number, date and format; RFC 8594 (Sunset); the `Link` relations; RFC 9530 `Content-Digest`; RFC 9457 obsoleting 7807; RFC 6648 on `X-`; RFC 9110 section 15.5.21 text for 422 and the 426 semantics.
 - Stripe, GitHub (fine-grained tokens, checksum token format) and Google resumable-upload details; S3 multipart limits (5 MiB parts, 10,000 parts).
-- Defaults: nginx `client_max_body_size 1m`, IIS `maxAllowedContentLength` 30,000,000; whether nginx, Caddy and IIS lack request decompression; chunked request bodies under mod_wsgi.
+- Defaults: nginx `client_max_body_size 1m`; whether nginx and Caddy lack request decompression; chunked request bodies under mod_wsgi.
 - AWS full-jitter backoff, CJEU Breyer C-582/14, any regulator guidance on log retention.
 - oasdiff licence and release channel; schemathesis behaviour on Flask.
 - Flask-Limiter 3.11.0 (the Python 3.9 pin) against 4.1.1 for `cost`, `key_func` and `Retry-After`; only 4.1.1 was tested.

@@ -112,7 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.9, PERF.29, PERF.30, ADM.31, ADM.28, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, GEN.87, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, NAV.11, NAV.42, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.57, TEST.77, UX.49, PERF.31, GEN.128 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.9, PERF.29, PERF.30, ADM.28, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, NAV.11, NAV.42, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.57, TEST.77, UX.49, PERF.31, GEN.128 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.17, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18, PERF.33, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, ADM.43, ADM.44 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, and the anomalies chosen in phase 2. | NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, GEN.114, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies. | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, GEN.55 |
@@ -949,6 +949,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stay as they are.
   Prerequisites: none. Related: MAP.148, MAP.146, MAP.149, MAP.147,
   MAP.116.
+  Lane (2026-10-09): Queue (Boss, 2026-10-10 05:13Z): Foundations lane 2
+  does this right after GEN.87 (in flight), then GEN.188, GEN.89,
+  GEN.83, GEN.187, MAP.162, UX.87 and the wire-format items. One of the
+  three biggest blockers on the tree.
   Design: [docs/design/zoom-star-visibility.md](design/zoom-star-visibility.md)
 
 - [ ] **MAP.154 Nested bright-star lists on the server, so every parent list is a subset of its child's**
@@ -1985,24 +1989,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Index.md, Speculative Xenobiology Extremes.md, Speculative Xenobiology
   Examples.md, Mathematical and Algorithmic Implementation of the
   Planetary Habitability Index.md" Done when the subitems are.
-  Prerequisites: GEN.87, GEN.89.
+  Prerequisite: GEN.89.
   Design: [docs/design/habitability-index.md](design/habitability-index.md)
-
-  - [ ] **GEN.87 Surface radiation dose**
-    Done: each planet stores its surface dose from column mass (P0/g),
-    magnetic field, cosmic rays (more inside a compressed heliosphere,
-    using the nebula containment of GEN.75) and flares, plus an
-    ozone-loss flag, following the radiation doc's tables.
-    Research (2026-10-09, activity-magnetism-radiation-hydrosphere.md):
-    add UV/ozone and the galactic-hazard flag to the done criteria; the
-    SEP term is rate-dependent and uses R0 = 0.2 GV with a polar-cap
-    term; limit the heliosphere multiplier to 2.5x and fade it by X =
-    300 g/cm2; correct the dose table in the radiation document (cosmic
-    0.39 not 2.4 mSv/yr; Mars 0.64 mSv/day dose equivalent). Open
-    question for Boss (default on): the supernova and GRB flag lowers
-    the score only if the flagged event rate exceeds one lethal event
-    per 100 Myr.
-    Design: [docs/design/habitability-index.md](design/habitability-index.md)
 
   - [ ] **GEN.89 The habitability score for every planet and moon**
     Done: every planet and moon gets the scores GEN.84 defines, with a
@@ -2020,7 +2008,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     `land_fraction`. It returns the lowest tier, with a reason string,
     for any pulsar, black hole or X-ray-binary planet. Open question for
     Boss (default: store the two flare numbers, derive the rest).
-    Prerequisite: GEN.87.
     Design: [docs/design/habitability-index.md](design/habitability-index.md)
 
 - [ ] **GEN.90 Refactor the planet classes around the habitability index**
@@ -2998,6 +2985,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   change it bumps the generator version (OPS.37) when it ships.
   Decided (Boss, 2026-10-09 22:44Z): 80 bits, 20 hex digits, with system
   and body fields, not a 64-bit flat per-sector counter.
+  Lane (2026-10-09): Queue (Boss, 2026-10-10 05:13Z): Foundations lane 1
+  does this first, then API.9, DB.21, GEN.186, NAV.8, NAV.11. One of the
+  three biggest blockers on the tree.
+  Lane (2026-10-09): Queue update (Foundations lane 1, 2026-10-10
+  05:14Z): lane 1 finishes ADM.28 and ADM.45 (one PR, in flight) first,
+  then the object-ID block (GEN.170 to GEN.176, DB.20, TEST.110, DOC.5),
+  then API.9. DB.21, GEN.186, NAV.8 and NAV.11 follow.
   Prerequisites: none.
   Design: [docs/design/object-id-options.md](design/object-id-options.md)
 
@@ -3032,34 +3026,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   a deleted ID is never reused.
   Open question for Boss (default yes): an ejected planet keeps its ID?
   Prerequisite: DB.20.
-  Design: [docs/design/object-id-options.md](design/object-id-options.md)
-
-- [ ] **GEN.173 Deleting a body and then adding one fails with IntegrityError 1062 on uq_planets_uid (bug)**
-  Source: docs/design/object-id-options.md section 0 (Boss decided
-  2026-10-09 22:39Z: birth location plus serial, galaxy-wide; the same
-  length for every object; always identifies that one object; up to 128
-  bits but shorter preferred; fix the deficits; no backward
-  compatibility). Filed from the object-ID research thread. Nothing is
-  built until Boss asks.
-  Reproduced on MariaDB with `save_system_edits` plus `assign_uids`: the
-  new row is ranked by position among the current rows and takes a uid
-  already used. `add_system_to_sector` runs the sector-wide pass (by
-  code reading). Fixed by the layout, fill and run-time birth items;
-  keep a regression test.
-  Prerequisites: GEN.171, GEN.172.
-  Design: [docs/design/object-id-options.md](design/object-id-options.md)
-
-- [ ] **GEN.174 Bodies an admin adds are saved with a NULL uid (bug)**
-  Source: docs/design/object-id-options.md section 0 (Boss decided
-  2026-10-09 22:39Z: birth location plus serial, galaxy-wide; the same
-  length for every object; always identifies that one object; up to 128
-  bits but shorter preferred; fix the deficits; no backward
-  compatibility). Filed from the object-ID research thread. Nothing is
-  built until Boss asks.
-  `db/edits.py` `save_system_edits` goes through `store.insert_planet`,
-  `insert_moon` and `insert_belt`, and nothing assigns a uid. Fixed by
-  the run-time birth item.
-  Prerequisite: GEN.172.
   Design: [docs/design/object-id-options.md](design/object-id-options.md)
 
 - [ ] **GEN.176 A nebula or remnant is born in the sector holding the centre of the space it occupies**
@@ -3158,6 +3124,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   previous ring's outer edge; the GEN.30 luminosity tiers go away.
   Prerequisites: none (GEN.184 merged, PR #965). Related: GEN.30, GEN.40, GEN.99, GEN.183,
   GEN.184, MAP.120, PERF.18.
+
+- [ ] **GEN.188 Mass limit default is 8, and the mass slider and luminosity dropdown sit side by side on Generate and New galaxy**
+  Decided (Boss, 2026-10-10 04:38Z, via the coordinator; owner Foundations lane 2): change the
+  Generate-galaxy defaults so the mass limit default is 8 solar masses
+  (GEN.183 shipped 20); put the mass slider and the luminosity floor
+  dropdown (GEN.184, default 3000 L_sun) next to each other on the
+  Generate page, and show both in the New galaxy section as well. Done:
+  a fresh galaxy plan, the CLI default and the stored default use 8, the
+  two controls sit together in both places with the same presets, and
+  tests cover the default and the controls. A galaxy that stored 20
+  keeps its stored limit.
+  Prerequisites: none. Related: GEN.183, GEN.184, GEN.185.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -3447,6 +3425,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none.
   Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
 
+- [ ] **PERF.52 Admin generation-stats table is wrong (bug)**
+  Boss (2026-10-10 05:40Z, via Bugfixes lane 1): "I feel like the stats
+  are all messed up". The admin table "How long this server takes to
+  fill a sector, place a layer of bright stars or phenomena, by star
+  density and number of workers" shows impossible numbers: the
+  bright-star layer rows show 1,262 / 8,987 / 22,554 "systems per
+  sector" in a galaxy of 7,663 systems; per-system times of 3.8 / 1.0 /
+  0.6 ms against per-sector times of 4.55 to 13.86 s; Migration shows a
+  per-sector time and 1,076 ms per system with 2.0 systems per sector;
+  the Galaxy Map warm-up has a per-sector row. Done: each column's
+  meaning is defined, recording matches the GEN.185 five-pass scatter,
+  units are right, the size and time estimates that use the stats are
+  right, and a test on a small galaxy checks the numbers.
+  Prerequisites: none. Related: GEN.185, PERF.33.
+
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
@@ -3656,6 +3649,9 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
     (the 50/hour IP default must not apply to keys). Add the sweep
     checks of design doc 5.4 to the Done text. The scope work is a
     prerequisite for API.15's `key_id` field and for API.18.
+    Lane (2026-10-09): Queue (Boss, 2026-10-10 05:13Z): moves from
+    Foundations lane 2 to Foundations lane 1, second after GEN.170; one
+    of the three biggest blockers on the tree.
 
   - [ ] **API.10 Reservations: claimed sectors and id blocks per run**
     `id_blocks` exists (one next id per table, used by parallel
@@ -3984,26 +3980,6 @@ Boss (2026-10-07 11:47Z): "Actual specs on layers on the generation
   many charted), the common actions stay on the page and every other
   setting moves into a Customize dialog, and its subitems are done.
   GitHub issue [#736](https://github.com/dwhagar/planetGen/issues/736) (Boss, 2026-10-09 02:26Z): "Each set of settings should be a tab for the generate screen so the user only sees the ones relevant to what they are looking at." So the Customize dialog groups its settings into tabs, one per kind of generation.
-  Prerequisite: ADM.31.
-
-  - [ ] **ADM.31 Every generate action offers to show what it made on the Galaxy Map**
-    Boss (2026-10-03 05:38Z): "Add a button from the generate screen to
-    show generated sectors in galaxy view." Boss (2026-10-07 11:47Z):
-    "Generating any space gives you the option to see that space in the
-    galaxy viewer." Done: the Generate page has a "Show charted sectors"
-    button, and every finished generate action (page, map menus, API
-    job) offers "Show on Galaxy Map", which opens the map fitted to what
-    it made with those sectors highlighted.
-    Research (2026-10-09, fill-order-curves-and-core.md): return large
-    results as ring/layer/slot-window ranges, not address lists.
-    Note (2026-10-09): Partly built (PR #942, Foundations lane 1,
-    2026-10-10): a finished Generate-page job of the galaxy and
-    new_galaxy kinds shows "Show on Galaxy Map" (GET /api/galaxy/made,
-    /galaxy?made=since,until, rings drawn in galaxymap3d.js). Still
-    open: the same button for the Galaxy Map menus' generate actions and
-    for API-queue jobs, which have no job page with a start and finish
-    window yet; and a run over 2,000 sectors rings only the first 2,000
-    (MAP.151's region data layer is the proper fix).
 
 - [ ] **ADM.32 Add a star system to a sector: at the emptiest spot, at given coordinates, or at random outside every Hill sphere**
   Boss (2026-10-07 11:47Z): "Need a way to add a single star system to a
@@ -4115,6 +4091,10 @@ Boss (2026-10-07 11:47Z): "Actual specs on layers on the generation
   CLI's `--prevalence` accepts the same shares and rejects a set that is
   not 100%. A share that depends on the local star density is not part
   of this item; the shares stay the same in every sector.
+  Decided (2026-10-09): Decided (Boss, 2026-10-10, via Foundations lane
+  1): the 100% rule applies to a "Star mix" only (single, close and wide
+  shares of systems totalling 100%, option --star-mix); the other
+  prevalence fields stay independent.
 
 ## SEC: Security
 
@@ -4179,23 +4159,6 @@ clears each one.
   Boss closes it.
   Prerequisites: none.
 
-- [ ] **TEST.115 Three tests fail on the Windows CI leg in every recent run: Redis in WSL is unreachable (bug)**
-  Reported by Bugfixes lane 1 (2026-10-10 03:57Z, PRs #957 and #958):
-  test_a_slow_runner_still_alive_is_starting_not_interrupted,
-  test_without_redis_no_job_starts and
-  test_without_redis_windows_runs_the_job_itself fail in all 8 recent
-  main runs on the Windows leg, because Redis in WSL is not reachable
-  from the Windows side (127.0.0.1:6379 refused). Done: the Windows leg
-  runs these tests with a reachable Redis or skips the ones that need
-  none with a stated reason, and the tests that test the missing-Redis
-  path set up that state themselves; the Windows leg passes on main. CI
-  now runs only by hand (Actions, CI, Run workflow), so the leg is
-  checked when someone runs it.
-  Superseded (2026-10-09): Superseded by OPS.39 (Boss, 2026-10-10
-  04:25Z): Windows support is being removed. Do not start; retire with
-  OPS.39.
-  Prerequisites: none. Related: TEST.111, OPS.19, PERF.24.
-
 - [ ] **TEST.116 test_bughunt_end_to_end stores M2V or M6V where it expects K2V on the MySQL 8.4 and MariaDB legs once (bug)**
   Reported by Bugfixes lane 1 (2026-10-10 03:57Z): the K2V check in
   test_bughunt_end_to_end failed once on MySQL 8.4 and once on MariaDB
@@ -4207,14 +4170,24 @@ clears each one.
   open until it recurs, then investigate with the failing run's data).
   Prerequisites: none. Related: TEST.111, TEST.71.
 
-- [ ] **TEST.118 test_star_scatter_passes.py fails twice on main since GEN.184 raised the luminosity floor to 2500 or more (bug)**
-  Reported by Foundations lane 2 (2026-10-10 04:23Z, GEN.183 merge, PR
-  #969): test_sampled_stars_stay_inside_their_mass_range and
-  test_the_scatter_runs_the_mass_pass_then_a_luminosity_pass_that_skips_marked_sectors
-  fail on main since GEN.184's luminosity floors (2500 L_sun at the
-  lowest) met GEN.185's test setup. Done: the tests' setup uses a floor
-  the new ladder allows, and the full test file passes on main.
-  Prerequisites: none. Related: GEN.184, GEN.185, GEN.183.
+- [ ] **TEST.119 15 browser map tests fail on main since the UX.86 menu regrouping (bug)**
+  Reported by Bugfixes lane 1 (2026-10-10 05:31Z):
+  test_web_browser_fixture_maps, test_web_browser_maps and
+  test_web_browser_controls (15 tests in all) fail on main since the
+  UX.86 menu regrouping (PR #936). The locator `#galaxymap3d-menu
+  summary` now also matches the nested group summaries. Done: the
+  locators name the top-level summary only and the 15 tests pass on
+  main. Bugfixes lane 1 is fixing the locators.
+  Prerequisites: none. Related: UX.86.
+
+- [ ] **TEST.120 test_sampled_stars_stay_inside_their_mass_range still fails on main after TEST.118 (bug)**
+  Reported by Bugfixes lane 1 (2026-10-10 05:31Z):
+  test_star_scatter_passes.py::test_sampled_stars_stay_inside_their_mass_range
+  fails on main even after PR #975 (TEST.118). Probably the same family:
+  the scatter test setup against GEN.184's 2500 L_sun floor. Done: the
+  cause is found and the test passes on main with the full test file
+  green.
+  Prerequisites: none. Related: TEST.118, GEN.184, GEN.185.
 
 ## USR: User accounts
 
@@ -4466,21 +4439,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Prerequisites: none.
   Design: [docs/design/ops-scheduling-and-rotation.md](design/ops-scheduling-and-rotation.md)
 
-- [ ] **OPS.34 Windows Redis in WSL: fix the keep-alive advice and add a Start-RedisInWsl remedy**
-  `docs/deployment/windows.md` (Redis, step 4) says a logon task running
-  `wsl -d Ubuntu` keeps Redis alive; it does not (a WSL instance idles
-  out after about 15 s and systemd services do not hold it). Document a
-  hidden keep-alive process (`wsl -e sleep infinity`) started at logon,
-  marked unverified until tested on Windows; add a `Start-RedisInWsl`
-  remedy to `Test-Redis` (only when the account can see a distro); state
-  that unattended Windows servers cannot rely on WSL. Open question for
-  Boss (default: keep telling unattended servers to use a Linux VM).
-  Superseded (2026-10-09): Superseded by OPS.39 (Boss, 2026-10-10
-  04:25Z): Windows support is being removed. Do not start; retire with
-  OPS.39.
-  Prerequisites: none.
-  Design: [docs/design/ops-scheduling-and-rotation.md](design/ops-scheduling-and-rotation.md)
-
 - [ ] **OPS.35 A vendored-version lock file for the static libraries**
   `static/vendor/VENDORED.json` (version, npm `dist.integrity`, SHA-256
   per shipped file, esbuild version, licence) written by the vendor
@@ -4506,26 +4464,13 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   for the same seed.
   Prerequisite: OPS.28.
 
-- [ ] **OPS.39 Remove Windows support; keep only a simple docs/WINDOWS.md**
-  Decided (Boss, 2026-10-10 04:25Z, in the Foundations lane 1 thread):
-  rip out all Windows support. If someone wants it to work on Windows
-  they do that work themselves; the most the project provides is a
-  simple docs/WINDOWS.md with basic instructions for a typical Windows
-  setup. Done: the Windows CI leg, update.ps1, install.ps1, every other
-  .ps1 script and scheduled-task helper, Windows branches in the code,
-  Windows-only tests and test setup, and Windows mentions in the docs
-  are removed; docs/reference/deployment/windows.md (and any
-  docs/deployment/windows.md) is replaced by docs/WINDOWS.md; the README
-  and install docs name Linux (and macOS where it still applies) only; a
-  search for 'windows', 'ps1', 'WSL' and 'win32' finds nothing outside
-  docs/WINDOWS.md and history. This supersedes TEST.115 (Windows-leg
-  Redis failures) and OPS.34 (Windows Redis in WSL): retire both with
-  this item, and drop the Windows halves of OPS.16, OPS.17, OPS.28 and
-  OPS.30 (the epoch question about Windows reproducibility is answered
-  by this). No backward compatibility.
-  Prerequisites: none. Related: TEST.115, OPS.34, OPS.16, OPS.17,
-  OPS.28, OPS.30.
-  Lane (Boss, 2026-10-10 04:26Z): Foundations lane 3 (not lane 1).
+- [ ] **OPS.40 update.sh step 8 fails: setup-debug-log.sh loads the deleted util/appconfig.py (bug)**
+  Reported by Bugfixes lane 2 (2026-10-10 04:39Z): step 8 of update.sh
+  runs setup-debug-log.sh, which still loads util/appconfig.py after
+  that module was deleted, so the step fails. Done: setup-debug-log.sh
+  uses the current settings loader, update.sh step 8 completes, and a
+  test or check covers the script's import.
+  Prerequisites: none.
 
 ## DOC: Documentation
 

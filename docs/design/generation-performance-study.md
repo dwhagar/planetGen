@@ -201,7 +201,7 @@ timer runs differ by a few points.
   pre-imported would keep serving an old release after an update, so before
   it waits for the next job it compares the release in `_version.py` on disk
   with the one it loaded and, when they differ, deregisters and re-executes
-  itself (POSIX; a spawned horse on Windows is a fresh interpreter anyway).
+  itself.
   Measured on this build box, a forked horse's start-up (importing
   `run_plan` and building those tables) went from 2.6 s to under 1 ms; the
   one-off warm-up costs 2.7 s per worker. The tables are the same as a cold

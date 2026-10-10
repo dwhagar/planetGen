@@ -6,7 +6,7 @@
 # src/planetgen/web/lib/tilecache.py), and the admin Generate page's jobs directory
 # (src/planetgen/web/jobs.py), and gives them to Apache's worker user, so the
 # web interface can write to them (on macOS, _www). Runs on Linux and
-# macOS; install.ps1 does the same on Windows. Safe to run again: an
+# macOS. Safe to run again: an
 # existing directory is only re-owned. Called by install.sh, and by update.sh when there's
 # nothing new to install.
 #

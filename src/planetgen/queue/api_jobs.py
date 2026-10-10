@@ -247,8 +247,7 @@ def command_and_wait(argv, env, cwd, timeout, merge_stderr=False):
     """
     Runs a command on the queue and waits for it (the one-off system page
     and the Generate page's estimate, PERF.24). Without a Redis server
-    (Windows without WSL's Redis) the command runs here instead, as the
-    Generate page's jobs do.
+    the command runs here instead.
 
     Returns:
         dict: `run_command`'s.

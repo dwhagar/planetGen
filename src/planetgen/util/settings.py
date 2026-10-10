@@ -42,14 +42,12 @@ Python 3.9: annotations are `Optional[...]`/`List[...]`, never `X | None`.
 import hashlib
 import json
 import os
-import sys
 import threading
 from typing import Any, List, Literal, get_args, get_origin
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError, field_validator
 
 from planetgen.util import logpaths
-from planetgen.util.logpaths import PROJECT_ROOT
 
 CONFIG_VERSION = 1
 """int: The `config_version` this code writes and reads. A file without one
@@ -219,10 +217,10 @@ class Settings(_Section):
     debug: bool = opt(False, "Write a verbose debug log to log_file: every decision the generator makes, every "
                       "random roll, every SQL statement and request. The log grows fast.", env="PLANETGEN_DEBUG",
                       restart=True, editable=False, category="logging")
-    log_file: str = opt(logpaths.DEFAULT_LOG_FILE, "Where the debug log goes (set it explicitly on Windows).",
+    log_file: str = opt(logpaths.DEFAULT_LOG_FILE, "Where the debug log goes.",
                         env="PLANETGEN_LOG_FILE", restart=True, editable=False, category="logging")
     log_dir: str = opt("", "The folder of the always-on activity log; empty means /var/log/planetgen on Linux, "
-                       "/Library/Logs/planetgen on macOS, logs under the checkout on Windows.",
+                       "/Library/Logs/planetgen on macOS.",
                        env="PLANETGEN_LOG_DIR", restart=True, editable=False, category="logging")
     log_rotation: Literal["auto", "system", "app"] = opt(
         logpaths.DEFAULT_LOG_ROTATION, "How the activity log is rotated: system (logrotate or newsyslog), app (the "
@@ -327,13 +325,10 @@ def env_name(path):
 
 def default_web_settings_path():
     """`settings.json`, the web-owned overlay: `PLANETGEN_SETTINGS_FILE`,
-    else `/var/lib/planetGen/settings.json` (the checkout's `settings.json`
-    on Windows)."""
+    else `/var/lib/planetGen/settings.json`."""
     env = os.environ.get("PLANETGEN_SETTINGS_FILE")
     if env:
         return env
-    if sys.platform.startswith("win"):
-        return os.path.join(PROJECT_ROOT, "settings.json")
     return "/var/lib/planetGen/settings.json"
 
 

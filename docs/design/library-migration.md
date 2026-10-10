@@ -70,9 +70,6 @@ so this plan uses **RQ on Redis**:
 Huey and Celery were looked at: Huey would avoid Redis but Boss chose
 Redis; Celery is heavier than a single-host deployment needs.
 
-**Windows**: Redis has no supported native Windows build. The installer
-points at Redis in WSL2 (Boss, 2026-10-07 17:11Z: "Let's say Redis in WSL"; OPS.27).
-
 ## 4. Logs and progress in the browser
 
 A running job's log streams over Server-Sent Events into an Xterm.js
@@ -164,8 +161,8 @@ backward compatibility." So:
 - `stellarObjects`, `src/html/api`, `src/html/web`, `src/html/lib`,
   `src/wikiClient`, `generate.py` and the `src/*.py` scripts are gone
   when the move is done.
-- `src/html/` keeps only `wsgi.py` (the WSGI entry point Apache, gunicorn
-  and waitress load) and `static/`, so the server's Apache config needs
+- `src/html/` keeps only `wsgi.py` (the WSGI entry point Apache and gunicorn
+  load) and `static/`, so the server's Apache config needs
   no change. wsgi.py imports `planetgen.web.app` and nothing else.
 
 A branch open during the move (the Bugfixes lane's) merges main after

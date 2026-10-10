@@ -398,6 +398,31 @@ atmosphere around an active M dwarf with no dipole receives Sv per year.
 - The 10 Gy/yr threshold is Eigen's, about the origin of replicating molecules,
   not the survival of extremophiles, which tolerate 1,000x more acute dose.
 
+### 4.7 As built (GEN.87)
+
+`planetgen/physics/radiation.py` runs at the end of `planets.generate_spin`
+(after the air, water and field exist) and sets `surface_dose_msv_yr` =
+`dose_gcr_msv_yr` x `dose_helio_mult` + `dose_sep_msv_yr` +
+`dose_ground_msv_yr`, `uv_surface_index` and `ozone_loss_flag` on every
+rocky planet and moon (a gas giant has none). Choices the sections above
+leave open:
+
+- `X = P0 / g` of the stored pressure and gravity; the dipole is the
+  moment times `f_dip` (`magnetism.body_dipole_share`).
+- `dose_helio_mult` is 1 at generation. A system's containment is found
+  after generation, so `store.refresh_containment` (and an edit) re-derives
+  it from the cloud's `compressed_heliosphere_radius`, with `compression` =
+  `ln(R_open / R) / ln(R_open)` capped at 1, and rewrites the total.
+- The crust draws `a_rad` log-uniform over
+  `tuning.ROGUE_RADIOGENIC_ABUNDANCE_RANGE` once per body; radon needs 1 kPa
+  of air and some land (`land_fraction`).
+- Ozone: `O3 / O3_Earth = sqrt(pO2 / 21.2 kPa)` (none under 0.02 kPa).
+- `ozone_loss_flag` is set when ozone exists and either the star's
+  `lethal_event_rate_per_gyr` (1.5 x `exp((8 kpc - R) / 1.45 kpc)`, at most 250
+  times that) exceeds 10 (one lethal event per 100 Myr) or particles give
+  100 mSv/yr at the ozone layer (X = 10 g/cm2). Gamma-ray bursts and AGN
+  (section 4.5) are not modelled yet.
+
 ## 5. Hydrosphere and ocean chemistry (GEN.88)
 
 ### 5.1 Inventory, depth and land

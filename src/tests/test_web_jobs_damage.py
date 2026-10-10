@@ -327,7 +327,6 @@ print(job_id, flush=True)
 """
 
 
-@pytest.mark.skipif(jobs.WINDOWS, reason="kills a POSIX process group")
 def test_a_job_outlives_the_server_process_that_started_it(jobs_root, redis_server):
     """The web server process (here a stand-in in its own process group)
     starts a job and is then killed with its whole group, as closing the

@@ -2,10 +2,8 @@
 
 Every option of `planetgen`, the one entry point for every generator.
 For what planetGen is and a short tour, see the [README](../README.md);
-for installing it, [INSTALL.md](../INSTALL.md). On Windows run it with
-the venv's Python (`C:\srv\planetgen-venv\Scripts\python.exe`); on
-Linux and macOS the installer also adds a `planetgen` command that runs
-it. `planetgen <command> --help` prints the same options.
+for installing it, [INSTALL.md](../INSTALL.md). The installer adds a
+`planetgen` command that runs it. `planetgen <command> --help` prints the same options.
 ## Subcommands
 
 `planetgen` is the single command-line entry point for every generator in this project — one command, with a subcommand per generation scale:
@@ -23,7 +21,7 @@ planetgen fingerprint [options] # a digest of the generated content, to compare 
 
 Run `planetgen <command> --help` for that command's own full option list. Every subcommand except `check-math` and `fingerprint` saves what it generates to the database.
 
-**The math check comes first.** `check-math` runs `planetgen/physics/mathcheck.py` (known answers from real astronomy, identities, and sampler distributions; see [testing.md](testing.md#the-math-check-runs-first)) and exits 1 if a check fails; `-v` lists every check. Every bulk run (`galaxy`, `plan`, `population`, and `sector --num-sectors` above 1) runs it first and refuses to start if a check fails, naming the failed checks and writing nothing, not even the activity log line. So do the Generate page's jobs (their first step, "Check the math") and the Sector page's "generate the neighbourhood" button. One system, one sector or one phenomenon is not gated. `update.sh` and `update.ps1` run it after updating and warn (and skip the population pass) if it fails.
+**The math check comes first.** `check-math` runs `planetgen/physics/mathcheck.py` (known answers from real astronomy, identities, and sampler distributions; see [testing.md](testing.md#the-math-check-runs-first)) and exits 1 if a check fails; `-v` lists every check. Every bulk run (`galaxy`, `plan`, `population`, and `sector --num-sectors` above 1) runs it first and refuses to start if a check fails, naming the failed checks and writing nothing, not even the activity log line. So do the Generate page's jobs (their first step, "Check the math") and the Sector page's "generate the neighbourhood" button. One system, one sector or one phenomenon is not gated. `update.sh` runs it after updating and warn (and skip the population pass) if it fails.
 
 To generate a new star system:
 
@@ -201,8 +199,7 @@ The web Generate page and the API check the same bounds
 mode fill several sectors at once, each in its own worker process: by
 default 80% of the machine's cores, one fewer when MySQL runs on the same
 machine (3 workers on 4 cores without a local MySQL, 2 with one). Workers
-run at a lower priority (`nice` 10 on Linux and macOS, below normal on
-Windows), so the web site and anything else on the machine come first.
+run at a lower priority (`nice` 10), so the web site and anything else on the machine come first.
 Each worker generates a whole sector and saves it in one transaction;
 the run prints each sector as it's saved, so sectors can finish out of
 order. `--workers N` sets the count (`PLANETGEN_WORKERS` does the same for
@@ -300,7 +297,7 @@ a quarter of the database disk or leave less than 5 GB free; the
 message says how much it needs. The disk is the one holding MySQL's
 data directory, asked of the server itself (`SELECT @@datadir`) and never
 assumed to be the boot drive; the estimate names the path and the mount
-(or Windows drive) measured, with symlinks and bind mounts resolved. A
+measured, with symlinks and bind mounts resolved. A
 server on another machine is measured only if that directory is visible
 here or the server reports its own disks (MariaDB); otherwise the disk
 shows as "unknown" with the reason and nothing is refused for space. `--yes` never overrides a refusal;
@@ -468,7 +465,7 @@ Not built yet. Each names its TODO item and phase; the design is in
 | Command or option | Item | Phase | What it will do |
 |---|---|---|---|
 | `planetgen check-db [--sector S] [--region R]` | DB.8 | 0 | Check the galaxy and control databases without changing anything (schema, orphans, ids, names, values, counts) and exit non-zero when damage is found; also a button on the Admin dashboard. |
-| Version-key history listing | OPS.13 | 1 | List the last 10 version keys recorded for a galaxy by `update.sh` / `update.ps1`. |
+| Version-key history listing | OPS.13 | 1 | List the last 10 version keys recorded for a galaxy by `update.sh`. |
 | `planetgen repair-db` | DB.9 | 1 | Rebuild damaged sectors from the parity file, or regenerate them from their seed when the version key matches, then check again. |
 | `--strict` | GEN.81 | 0 | Today's refusals (density, qualify, size, no room) become warnings and the run goes ahead; `--strict` keeps the old stop for scripts. |
 | `--resume` | PERF.30 | 1 | Finish the runs an interrupted fill left, from the step each reached. |
@@ -477,8 +474,7 @@ Not built yet. Each names its TODO item and phase; the design is in
 
 Work runs as RQ jobs on Redis from phase 0 (PERF.24), so `--workers` sets the RQ worker count.
 
-Phase 2 also adds a daily maintenance run, `scripts/maintenance.sh`
-(Linux and macOS) and `scripts/maintenance.ps1` (Windows), set up as a
+Phase 2 also adds a daily maintenance run, `scripts/maintenance.sh`, set up as a
 scheduled job by install and update (OPS.16, OPS.17): the positional
 update (`planetgen.cli.orbits`). (The daily settings-file merge and the
 18 backup slots, GEN.61 and OPS.18, were dropped on 2026-10-09.)

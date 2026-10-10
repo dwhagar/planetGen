@@ -15,10 +15,6 @@ full steps for its platform.
 | Linux (Debian, Ubuntu) | [Apache](apache.md) | Apache2 | mod_wsgi (daemon mode) | `install.sh`, `update.sh` do everything but the vhost | Works | certbot `--apache` | The reference setup; least manual work |
 | Linux | [nginx](nginx.md) | nginx | gunicorn under systemd | `install.sh`, `update.sh`, plus a systemd unit and a site file | Works | certbot `--nginx` | Servers that already run nginx |
 | Linux | [Caddy](caddy.md) | Caddy | gunicorn under systemd | As for nginx | Works | Automatic | The shortest web server config |
-| Windows | [IIS](windows.md#option-1-iis--httpplatformhandler) | IIS + HttpPlatformHandler | waitress, started by IIS | `install.ps1` | Works | IIS bindings | Windows Server shops already on IIS |
-| Windows | [Caddy](windows.md#option-2-caddy--waitress-as-a-service) | Caddy | waitress as a Windows service | `install.ps1` | Works | Automatic | The simplest native Windows setup |
-| Windows | [Apache Lounge](windows.md#option-3-apache-apache-lounge--waitress-as-a-service) | Apache httpd for Windows | waitress as a Windows service | `install.ps1` | Works | Certificate files | People who know the Linux Apache setup |
-| Windows | [WSL2](windows.md#wsl2-the-linux-guides-on-windows) | Any Linux option | Any Linux option | As on Linux | Works | As on Linux | Windows desktops that would rather run the Linux setup |
 | macOS | [macOS](macos.md) | Homebrew nginx | gunicorn under launchd | `install.sh` | Works | certbot or your own certificate | A Mac you already have. macOS Server is discontinued |
 | A rented server | [VPS and PaaS](paas.md) | Any Linux option | Any Linux option | As on Linux | Works | As on Linux | Hosting you don't run at home |
 
@@ -28,8 +24,7 @@ addresses that keep guessing admin passwords.
 ## What every setup has in common
 
 - **One process, five threads.** Apache's `WSGIDaemonProcess
-  processes=1 threads=5`, gunicorn `--workers 1 --threads 5`, waitress
-  `--threads=5`. The rate limits and login lockouts count on
+  processes=1 threads=5`, gunicorn `--workers 1 --threads 5`. The rate limits and login lockouts count on
   Redis (`ratelimit.storage_uri` empty = the server in `redis.url`), so
   more processes share them; `memory://` is only right with one process
   ([`api.md`](../api.md#rate-limiting)).
@@ -44,8 +39,7 @@ addresses that keep guessing admin passwords.
   nginx).
 - **The same entry point.** Every app server loads `src/html/wsgi.py`
   and its `application` object. gunicorn: `--pythonpath
-  <checkout>/src/html wsgi:application`. waitress: `wsgi:application`
-  with `src/html` as the working directory or on `PYTHONPATH`.
+  <checkout>/src/html wsgi:application`.
 - **Static files from the web server.** `/static/` maps to
   `src/html/static/`, with `X-Content-Type-Options: nosniff`. A URL with
   `?v=` (every page adds the release version) is cached for a year
@@ -74,8 +68,8 @@ addresses that keep guessing admin passwords.
   group, mode 640: it holds the database password and `secret_key`. The
   debug log, when `debug` is on, belongs to the app's account, mode 0660.
   On Linux `install.sh` and `update.sh` set all of this
-  (`set-permissions.sh`, `setup-debug-log.sh`); the Windows and macOS
-  guides give the manual equivalent.
+  (`set-permissions.sh`, `setup-debug-log.sh`); the macOS
+  guide gives the manual equivalent.
 - **The NLTK `words` corpus** somewhere the app's account can read:
   `/usr/local/share/nltk_data` on Linux and macOS, or a folder named by
   `NLTK_DATA`.
@@ -83,15 +77,15 @@ addresses that keep guessing admin passwords.
   and update scripts ask whether to run `planetgen population`
   (species, civilizations, territories): y/N, default N after 30
   seconds, and skipped when there is no terminal or console to ask on.
-  `POPULATION=1` (`-Population` on Windows) runs it without asking. It
+  `POPULATION=1` runs it without asking. It
   can be run by hand any time.
 
 ## Behind a reverse proxy: `proxy_fix`
 
 With Apache and mod_wsgi, Apache owns the client's connection, so the app
 sees the client's real address and whether the request came over HTTPS.
-With nginx, Caddy, IIS or Apache's `mod_proxy` in front of gunicorn or
-waitress, the app only sees the proxy. Then:
+With nginx, Caddy or Apache's `mod_proxy` in front of gunicorn,
+the app only sees the proxy. Then:
 
 - every visitor has the proxy's address, so they all share one
   rate-limit budget, and a few visitors can get everyone a 429;
@@ -120,14 +114,9 @@ Rules:
 - Only turn it on when the app server can be reached **only** through
   that proxy: a Unix socket, or `127.0.0.1`. Anyone who can reach the app
   server directly can set these headers and choose their own address.
-- The proxy must set or append the headers. nginx, Caddy, Apache's
-  `mod_proxy` and IIS ARR do, as configured in the examples. Whether IIS
-  HttpPlatformHandler does is not verified; the Windows guide says how to
-  check.
+- The proxy must set or append the headers. nginx, Caddy and Apache's
+  `mod_proxy` do, as configured in the examples.
 - Leave it at 0 under Apache + mod_wsgi.
-- waitress deletes `X-Forwarded-*` headers by default. The waitress
-  examples pass `--no-clear-untrusted-proxy-headers` so the app can read
-  them.
 
 Check it: request a page over HTTPS and look for
 `Strict-Transport-Security` in the response. With `debug` on, the debug

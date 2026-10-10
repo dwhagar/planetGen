@@ -130,16 +130,14 @@ rotation leaves the file to the system tool."""
 def default_log_dir(platform=None):
     """
     The platform's standard folder for the activity log: `/var/log/
-    planetgen` on Linux (and other Unix systems), `/Library/Logs/planetgen`
-    on macOS, and `logs` under the checkout on Windows.
+    planetgen` on Linux (and other Unix systems) and `/Library/Logs/planetgen`
+    on macOS.
 
     Args:
         platform (str, optional): A `sys.platform` value (default this
             one's).
     """
     platform = platform or sys.platform
-    if platform.startswith("win"):
-        return os.path.join(PROJECT_ROOT, "logs")
     if platform == "darwin":
         return "/Library/Logs/planetgen"
     return "/var/log/planetgen"
@@ -182,7 +180,7 @@ def log_rotation_mode(config=None):
     moves the file; the program reopens it) or `"app"` (the program
     rotates it itself). `config.json`'s `"log_rotation"` picks one;
     `"auto"` (the default) means `"system"` where one of
-    `SYSTEM_ROTATION_FILES` exists, else `"app"` (always on Windows).
+    `SYSTEM_ROTATION_FILES` exists, else `"app"`.
     """
     if config is None:
         config = read_config_file()
@@ -190,6 +188,4 @@ def log_rotation_mode(config=None):
     value = value.strip().lower() if isinstance(value, str) else "auto"
     if value in ("system", "app"):
         return value
-    if sys.platform.startswith("win"):
-        return "app"
     return "system" if any(os.path.exists(p) for p in SYSTEM_ROTATION_FILES) else "app"

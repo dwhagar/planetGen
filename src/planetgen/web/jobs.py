@@ -22,14 +22,11 @@ A job is a directory under the jobs directory (`jobs_dir()`):
 `planetgen.web.job_runner.run(<job dir>)` as an RQ job on Redis, on a
 queue of the job's own (PERF.24 step 3). It then starts one burst worker
 for that queue (`planetgen.cli.worker`), named after the job, in its own
-session (on Windows, a detached process in its own process group),
-detached from the web server, so a mod_wsgi request timeout or a
+session, detached from the web server, so a mod_wsgi request timeout or a
 graceful Apache reload doesn't stop it. The worker exits once the job is
 done. The page then only ever reads these files, so it works the same
 whichever server process answers the next request. Without a Redis
-server at `redis.url`, no job starts, except on Windows (where Redis
-runs in WSL, which a machine may not have): there the job runs in
-`python -m planetgen.web.job_runner <job dir>`, started the same way.
+server at `redis.url`, no job starts.
 
 Only one job runs at a time: generation, planning and reset all write the
 same database. A lock whose runner has died (the server was rebooted mid
@@ -46,7 +43,6 @@ import os
 import re
 import secrets
 import shutil
-import subprocess
 import sys
 import tempfile
 import time
@@ -82,8 +78,6 @@ CANCEL_NAME = "cancel"
 QUEUE_PREFIX = "planetgen-web-"
 """str: A job's RQ queue and its worker are this plus the job's id."""
 
-WINDOWS = os.name == "nt"
-
 STARTING_GRACE_SECONDS = 15
 """int: How long a just-spawned job may go without a `state.json` before
 it counts as interrupted (the runner writes one as its first act)."""
@@ -91,8 +85,7 @@ it counts as interrupted (the runner writes one as its first act)."""
 RUNNER_START_LIMIT_SECONDS = 300
 """int: How long a job whose runner is still alive may go without a
 `state.json` (a slow start on a busy server) before it counts as
-interrupted anyway: where only the pid can be checked (no `/proc`, not
-Windows), a reused pid can't block jobs for longer than this."""
+interrupted anyway: where only the pid can be checked (no `/proc`), a reused pid can't block jobs for longer than this."""
 
 JOB_ID_RE = re.compile(r"^\d{8}-\d{6}-[0-9a-f]{4}$")
 """re.Pattern: A job id: `YYYYMMDD-HHMMSS-xxxx`. Checked before any id
@@ -201,56 +194,11 @@ def _job_dir(root, job_id):
     return os.path.join(root, job_id)
 
 
-def _windows_process_alive(pid, created_by=None):
-    """
-    Whether process `pid` is running, on Windows (`os.kill(pid, 0)` there
-    sends CTRL_C_EVENT instead of checking). With `created_by` (a Unix
-    time), a process created after it doesn't count: that pid was reused.
-    """
-    import ctypes
-    from ctypes import wintypes
-
-    kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
-    kernel32.OpenProcess.restype = wintypes.HANDLE
-    kernel32.OpenProcess.argtypes = [wintypes.DWORD, wintypes.BOOL, wintypes.DWORD]
-    kernel32.GetExitCodeProcess.argtypes = [wintypes.HANDLE, ctypes.POINTER(wintypes.DWORD)]
-    kernel32.GetProcessTimes.argtypes = [wintypes.HANDLE] + [ctypes.POINTER(wintypes.FILETIME)] * 4
-    kernel32.CloseHandle.argtypes = [wintypes.HANDLE]
-    process_query_limited_information = 0x1000
-    still_active = 259
-    handle = kernel32.OpenProcess(process_query_limited_information, False, int(pid))
-    if not handle:
-        return False
-    try:
-        code = wintypes.DWORD()
-        if not kernel32.GetExitCodeProcess(handle, ctypes.byref(code)) or code.value != still_active:
-            return False
-        if created_by is not None:
-            times = [wintypes.FILETIME() for _ in range(4)]
-            if kernel32.GetProcessTimes(handle, *(ctypes.byref(t) for t in times)):
-                ticks = (times[0].dwHighDateTime << 32) | times[0].dwLowDateTime
-                created = ticks / 1e7 - 11644473600  # 100 ns ticks since 1601 -> Unix time
-                if created > created_by:
-                    return False
-        return True
-    finally:
-        kernel32.CloseHandle(handle)
-
-
-def _runner_alive(pid, job_id, created_at=None):
+def _runner_alive(pid, job_id):
     """Whether `pid` is still this job's runner. Reads the process's
-    command line where `/proc` exists, and on Windows checks it was
-    created within `RUNNER_START_LIMIT_SECONDS` of the job (`created_at`),
-    so a reused pid doesn't count. (The start limit, not the shorter
-    grace period: a runner that is slow to start is still this job's.)"""
+    command line where `/proc` exists."""
     if not pid:
         return False
-    if WINDOWS:
-        try:
-            created_by = created_at + RUNNER_START_LIMIT_SECONDS if created_at else None
-            return _windows_process_alive(int(pid), created_by)
-        except (OSError, ValueError):
-            return False
     cmdline = f"/proc/{int(pid)}/cmdline"
     if os.path.isdir("/proc/self"):
         try:
@@ -309,11 +257,11 @@ def get_job(job_id, root=None):
         age = now - job.get("created_at", 0)
         if age < STARTING_GRACE_SECONDS:
             status = "starting"
-        elif pid is not None and age < RUNNER_START_LIMIT_SECONDS and _runner_alive(pid, job_id, job.get("created_at")):
+        elif pid is not None and age < RUNNER_START_LIMIT_SECONDS and _runner_alive(pid, job_id):
             status = "starting"
         else:
             status = "interrupted"
-    elif status == "running" and not _runner_alive(state.get("pid"), job_id, job.get("created_at")):
+    elif status == "running" and not _runner_alive(state.get("pid"), job_id):
         status = "interrupted"
 
     labels = [step["label"] for step in job.get("steps", [])]
@@ -611,20 +559,12 @@ def _release_lock(root, job_id):
         return
     if holder != job_id:
         return
-    # Removed once closed (Windows can't delete an open file), and tried
-    # again briefly: a scanner or indexer may hold the new file for a moment
-    # there, and a lock left behind blocks every later job (TEST.115).
-    for attempt in range(5):
-        try:
-            os.remove(lock)
-            return
-        except FileNotFoundError:
-            return
-        except OSError as exc:
-            if attempt == 4:
-                log.warning("jobs: could not remove the lock for job %s: %s", job_id, exc)
-            else:
-                time.sleep(0.1)
+    try:
+        os.remove(lock)
+    except FileNotFoundError:
+        return
+    except OSError as exc:
+        log.warning("jobs: could not remove the lock for job %s: %s", job_id, exc)
 
 
 def _prune(root, keep):
@@ -710,14 +650,10 @@ def start_job(kind, title, steps, env=None, admin=None, database=None, root=None
 
 
 def _spawn(path):
-    """Queues the job in `path` on Redis and starts its burst worker. On
-    Windows without a Redis server (Redis there runs in WSL, which a
-    machine may not have), runs `planetgen.web.job_runner` for it
-    directly instead; elsewhere no job starts without Redis.
+    """Queues the job in `path` on Redis and starts its burst worker.
 
     Raises:
-        OSError: No Redis server (not on Windows), or the process can't
-            start.
+        OSError: No Redis server, or the process can't start.
     """
     job_id = os.path.basename(path)
     url = redisqueue.redis_url()
@@ -725,12 +661,8 @@ def _spawn(path):
     try:
         connection.ping()
     except Exception as exc:  # noqa: BLE001 -- any connection failure
-        if not WINDOWS:
-            raise OSError(f"no Redis server answers at {url} (config.json's redis.url); "
-                          f"start Redis to run jobs: {exc}") from exc
-        log.debug("jobs: no Redis at %s (%s); running job %s without the queue", url, exc, job_id)
-        _start_detached(path, [python_executable(), "-m", "planetgen.web.job_runner", path])
-        return
+        raise OSError(f"no Redis server answers at {url} (config.json's redis.url); "
+                      f"start Redis to run jobs: {exc}") from exc
     name = QUEUE_PREFIX + job_id
     redisqueue.queue(name, connection).enqueue(
         "planetgen.web.job_runner.run", path, job_id=name, job_timeout=-1,
@@ -752,9 +684,8 @@ def cancel_job(job_id, root=None):
     Asks a running job to stop: writes a `cancel` file into its
     directory, which the runner checks for while a step runs. It then
     stops the step and everything the step started, and marks the job
-    cancelled. (A file rather than a signal: on Windows `os.kill` is
-    TerminateProcess, which would kill the runner and leave its step
-    running and the lock taken.)
+    cancelled. (A file rather than a signal, so the runner stops the step
+    and releases the lock itself.)
 
     Returns:
         bool: Whether a running job was asked to stop.
@@ -765,7 +696,7 @@ def cancel_job(job_id, root=None):
         return False
     path = _job_dir(root, job_id)
     pid = _runner_pid(path, _read_json(os.path.join(path, "state.json")))
-    if not _runner_alive(pid, job_id, job.get("created_at")):
+    if not _runner_alive(pid, job_id):
         return False
     try:
         with open(os.path.join(path, CANCEL_NAME), "w", encoding="utf-8") as f:

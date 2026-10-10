@@ -5,8 +5,7 @@ Runs one background job the web interface's admin Generate page started,
 as an RQ job (PERF.24 step 3): `planetgen.web.jobs.start_job` queues
 `run(<job dir>)` on a queue of the job's own and starts a burst worker
 (`planetgen.cli.worker`) for it, detached from the web server, then
-returns right away. On Windows without a Redis server it starts
-`python -m planetgen.web.job_runner <job dir>` instead.
+returns right away.
 
 A job is a list of steps, each one command line (`planetgen.cli.reset`, then
 `planetgen plan`, then `planetgen galaxy ...`). This runs them in
@@ -66,44 +65,24 @@ page (must match `work.CANCELLED_EXIT_CODE`)."""
 POLL_SECONDS = 0.25
 """float: How often a running step is checked for a cancel request."""
 
-WINDOWS = os.name == "nt"
-
 
 def _write_json(path, body):
     directory = os.path.dirname(path)
     fd, tmp = tempfile.mkstemp(prefix=".state-", dir=directory)
     with os.fdopen(fd, "w", encoding="utf-8") as f:
         json.dump(body, f)
-    # On Windows, replacing a file another process has open (the page
-    # reading state.json) fails with PermissionError until it's closed,
-    # which is a moment later.
-    for attempt in range(40):
-        try:
-            os.replace(tmp, path)
-            return
-        except PermissionError:
-            if attempt == 39:
-                os.remove(tmp)
-                raise
-            time.sleep(0.05)
+    os.replace(tmp, path)
 
 
 def _step_process_options():
     """Popen options that give a step its own process group, so stopping
     it can stop the worker processes it starts (`plan`'s pool) too."""
-    if WINDOWS:
-        return {"creationflags": subprocess.CREATE_NEW_PROCESS_GROUP | subprocess.CREATE_NO_WINDOW}
     return {"start_new_session": True}
 
 
 def _stop_tree(proc):
     """Stops a step and every process it started."""
     if proc is None or proc.poll() is not None:
-        return
-    if WINDOWS:
-        subprocess.run(["taskkill", "/T", "/F", "/PID", str(proc.pid)],
-                       stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-                       creationflags=subprocess.CREATE_NO_WINDOW, check=False)
         return
     try:
         os.killpg(proc.pid, signal.SIGTERM)

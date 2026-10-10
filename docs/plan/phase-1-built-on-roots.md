@@ -42,8 +42,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | DOC.5 | Rewrite the object ID docs: object-ids.md, database-schema.md and api.md | GEN.170 | Object-ID research. |
 | TEST.110 | Object ID tests: identical IDs on 1 and 4 workers, none reused, none missing | GEN.171, GEN.172, GEN.176 | Object-ID research. |
 | GEN.176 | A nebula or remnant is born in the sector holding the centre of the space it occupies | DB.20 | Object-ID research. |
-| GEN.174 | Bodies an admin adds are saved with a NULL uid (bug) | GEN.172 | Object-ID research. Closed by the run-time birth item. |
-| GEN.173 | Deleting a body and then adding one fails with IntegrityError 1062 on uq_planets_uid (bug) | GEN.171, GEN.172 | Object-ID research. Closed by the fill and run-time birth items. |
 | GEN.172 | Run-time births get object IDs from the counters | DB.20 | Object-ID research. |
 | GEN.171 | The sector fill gives object IDs by generation rank | DB.20 | Object-ID research. |
 | DB.20 | Object IDs in the schema: uid becomes BINARY(10), unique on its own, plus an id_counters table | GEN.170 | Object-ID research. |
@@ -63,13 +61,11 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| ADM.31 | Every generate action offers to show what it made on the Galaxy Map |  | Merges two asks: the 2026-10-03 button and the 2026-10-07 "see that space". |
-| OPS.39 | Remove Windows support; keep only a simple docs/WINDOWS.md |  | Boss 04:25Z via coordinator; Foundations lane 1. |
 | GEN.181 | Directives: refuse impossible requests up front from the compound-Poisson tables |  | Left over from GEN.96. |
 | GEN.180 | Directives: a forced fill (met_forced) after K failed draws |  | Left over from GEN.96. |
 | GEN.179 | Store each sector's generation directive and attempt record with the sector |  | Left over from GEN.96. |
 | ADM.45 | Prevalence fields take the override share directly and must total 100% |  | Boss 2026-10-09 07:48Z; follows ADM.37. |
-| ADM.28 | A simpler Generate page: layer specs, a Customize window and plain controls | ADM.31 | Parent of the Generate page items; after the web components land. |
+| ADM.28 | A simpler Generate page: layer specs, a Customize window and plain controls |  | Parent of the Generate page items; after the web components land. |
 | GEN.186 | Random neighborhoods: an option to keep away from filled space |  | Left over from GEN.97 (merged, PR #950). |
 
 ### Galaxy gen
@@ -89,11 +85,10 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.148 | Habitability index follow-ups from the research (GEN.84 built) |  | Research follow-up to GEN.84 (built). |
-| GEN.87 | Surface radiation dose |  |  |
 | GEN.178 | Magnetic fields: the induced field of an ocean moon |  | Left over from GEN.86 (PR #908); waits on the hydrosphere model. |
 | GEN.177 | Planetary magnetic fields: a stagnant-lid factor |  | Left over from GEN.86 (PR #908). |
-| GEN.89 | The habitability score for every planet and moon | GEN.87 |  |
-| GEN.83 | A planetary habitability index (PHI) | GEN.87, GEN.89 | Parent; the class refactor (GEN item GEN.90) follows it. |
+| GEN.89 | The habitability score for every planet and moon |  |  |
+| GEN.83 | A planetary habitability index (PHI) | GEN.89 | Parent; the class refactor (GEN item GEN.90) follows it. |
 
 ### Tech levels and facilities
 
@@ -220,9 +215,11 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | TEST.111 | test_ensure_sector_generated_creates_then_reuses_the_same_sector fails in a busy parallel run (bug) |  | Test flake reported 2026-10-09; Bugfixes lane 1. |
-| TEST.118 | test_star_scatter_passes.py fails twice on main since GEN.184 raised the luminosity floor to 2500 or more (bug) |  | Foundations lane 2 report 04:23Z. |
+| PERF.52 | Admin generation-stats table is wrong (bug) |  | Boss 05:40Z via Bugfixes lane 1. |
+| TEST.120 | test_sampled_stars_stay_inside_their_mass_range still fails on main after TEST.118 (bug) |  | Bugfixes lane 1 report 05:31Z. |
+| TEST.119 | 15 browser map tests fail on main since the UX.86 menu regrouping (bug) |  | Bugfixes lane 1 report 05:31Z. |
+| OPS.40 | update.sh step 8 fails: setup-debug-log.sh loads the deleted util/appconfig.py (bug) |  | Bugfixes lane 2 report 04:39Z. |
 | TEST.116 | test_bughunt_end_to_end stores M2V or M6V where it expects K2V on the MySQL 8.4 and MariaDB legs once (bug) |  | Bugfixes lane 1 report 03:57Z. |
-| TEST.115 | Three tests fail on the Windows CI leg in every recent run: Redis in WSL is unreachable (bug) |  | Bugfixes lane 1 report 03:57Z. |
 
 ### Foundations for the issue features
 
@@ -233,6 +230,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | PERF.46 | Planets and moons: set the position once per body |  | Generation performance study. |
 | GEN.169 | Decide the phenomenon scatter rates: regional factors and the 0.1% intermediate-mass black holes |  | Needs Boss to decide. |
 | GEN.187 | Bright-star back scatter by mass: rings of 1, 2, 5 and 8 solar masses around filled space |  | Boss issue #952, 03:43Z. |
+| GEN.188 | Mass limit default is 8, and the mass slider and luminosity dropdown sit side by side on Generate and New galaxy |  | Boss 04:38Z via coordinator; Bugfixes lane 2. |
 | PERF.41 | Stamp the tile and page caches with a TILE_FORMAT constant instead of the version (optional) | PERF.31 | Research follow-up to PERF.25 (built). |
 | PERF.40 | Two shared queues, a reserved interactive worker and a real "cancel now" | PERF.39 | Research follow-up to PERF.24 (built). |
 | PERF.39 | Every API job costs 2.4 s and 195 MB: import lazily and cap the burst workers |  | Research follow-up to PERF.24 (built); before batch wiki uploads. |

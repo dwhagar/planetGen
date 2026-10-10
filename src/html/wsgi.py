@@ -5,17 +5,15 @@ WSGI entry point for the planetGen Flask app: the JSON API under `/api`
 and the HTML pages (`planetgen.web`, served at `/`, `/sectors`, ...).
 
 Apache's `WSGIScriptAlias` points at this file's `application` object;
-gunicorn (`gunicorn --pythonpath .../src/html wsgi:application`) and
-waitress (`waitress-serve wsgi:application` run from `src/html`) load it
-the same way. Behind a separate reverse proxy (nginx, Caddy, IIS), set
+gunicorn (`gunicorn --pythonpath .../src/html wsgi:application`) loads it
+the same way. Behind a separate reverse proxy (nginx, Caddy), set
 `config.json`'s `proxy_fix` so the app sees the client's address and
-scheme (`planetgen/web/app.py`'s `_apply_proxy_fix`). See `docs/deployment/` for
-every platform. Also runnable directly (`python src/html/wsgi.py`) to
+scheme (`planetgen/web/app.py`'s `_apply_proxy_fix`). See `docs/deployment/`. Also runnable directly (`python src/html/wsgi.py`) to
 start Flask's own dev server locally.
 
 The planetgen package is installed into the server's Python as an
-editable install of this checkout (`pip install -e .`, which install.sh,
-update.sh and their Windows twins run), so it imports from here with
+editable install of this checkout (`pip install -e .`, which install.sh
+and update.sh run), so it imports from here with
 nothing added to `sys.path`, and a `git pull` takes effect on the next
 restart.
 """

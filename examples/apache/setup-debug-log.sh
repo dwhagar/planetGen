@@ -43,14 +43,12 @@
 #      /etc/logrotate.d/planetgen-log (daily or past 100 MB, 30 kept) on
 #      Linux, /etc/newsyslog.d/planetgen-log.conf (daily or past 100 MB,
 #      30 kept) on macOS. While that file exists the program leaves
-#      rotation to the system (appconfig.log_rotation_mode).
+#      rotation to the system (logpaths.log_rotation_mode).
 #
 # Rotation files that can't be written only warn too. Exits 0 whatever
 # happens to the logs; only running it without root is an error.
 #
-# Runs on Linux and macOS. Windows has no rotation for it; install.ps1
-# and update.ps1 check the log folders themselves
-# (Test-LogLocations in scripts/deploy-common.ps1).
+# Runs on Linux and macOS.
 #
 # Usage:
 #   sudo examples/apache/setup-debug-log.sh
@@ -73,11 +71,11 @@ if [[ -z "$PYTHON" ]]; then
 fi
 
 # Prints "<debug on: 1|0> <log file path>", read the same way the program
-# itself reads them (planetgen/util/appconfig.py). appconfig is loaded
+# itself reads them (planetgen/util/logpaths.py). logpaths is loaded
 # straight from its file, not through the planetgen package, so this
 # works before the package's own dependencies are installed. This runs as
 # root, so -I keeps the current directory, user site-packages and PYTHON*
-# variables off sys.path (appconfig.py itself lives outside src/html, in
+# variables off sys.path (logpaths.py itself lives outside src/html, in
 # the root-owned part of the checkout).
 # (Through a temp file: bash 3.2, macOS's, can't parse a heredoc inside
 # a process substitution.)
@@ -87,13 +85,13 @@ import importlib.util
 import os
 import sys
 
-path = os.path.join(sys.argv[1], "src", "planetgen", "util", "appconfig.py")
-spec = importlib.util.spec_from_file_location("planetgen_appconfig", path)
-appconfig = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(appconfig)
-config = appconfig.load_config()
-print(1 if appconfig.debug_enabled(config) else 0, appconfig.log_file_path(config))
-print(appconfig.activity_log_path(config))
+path = os.path.join(sys.argv[1], "src", "planetgen", "util", "logpaths.py")
+spec = importlib.util.spec_from_file_location("planetgen_logpaths", path)
+logpaths = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(logpaths)
+config = logpaths.read_config_file()
+print(1 if logpaths.debug_enabled(config) else 0, logpaths.log_file_path(config))
+print(logpaths.activity_log_path(config))
 PY
 then
     rm -f "$SETTINGS"

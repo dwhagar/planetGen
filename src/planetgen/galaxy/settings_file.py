@@ -9,8 +9,7 @@ written: every plan option (defaults included), the 128-bit seed, the version
 key with its parts spelled out, the naming key (GEN.70), the SHA-256 of
 `requirements.lock`, and the word lists the name generator checks against
 (gzip-compressed and base64-encoded, each with its SHA-256). It is named
-`<32-hex seed>-<22-hex version key>-<YYYYMMDD>-<HHMMSS>Z.json` in UTC, so it is
-valid on Windows, and lives in `galaxy-settings` inside the Generate page's jobs
+`<32-hex seed>-<22-hex version key>-<YYYYMMDD>-<HHMMSS>Z.json` in UTC, and lives in `galaxy-settings` inside the Generate page's jobs
 directory (`jobs.dir` in `config.json`, or `PLANETGEN_SETTINGS_DIR`).
 
 The file is written once for a plan. Planning again with other settings

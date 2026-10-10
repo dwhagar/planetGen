@@ -50,11 +50,6 @@ def test_redis_url_prefers_the_environment(monkeypatch):
     assert redisqueue.redis_url() == settings.get_settings().redis.url
 
 
-def test_worker_class_forks_where_it_can():
-    import rq
-    assert redisqueue.worker_class() is (rq.Worker if hasattr(os, "fork") else rq.SpawnWorker)
-
-
 def test_worker_argv_names_the_worker():
     argv = redisqueue.worker_argv(["q"], "redis://h:1/0", "q-1")
     assert argv[1:] == ["-m", "planetgen.cli.worker", "--burst", "--url", "redis://h:1/0", "--name", "q-1", "q"]

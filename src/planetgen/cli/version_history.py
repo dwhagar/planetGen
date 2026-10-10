@@ -5,7 +5,7 @@
 Records the version key every galaxy database was updated under (OPS.13),
 or lists what was recorded.
 
-`update.sh` and `update.ps1` run it after the code and databases are
+`update.sh` runs it after the code and databases are
 current. With no option it adds one history row per galaxy database that has
 a seed (`planetgen.galaxy.version_history`); `--list` prints each database's
 rows, newest first, and records nothing. `planetgen versions` is the same

@@ -295,7 +295,7 @@ full key text living on the `generation_runs` row. Detail:
   `generator_epoch`, one digest for all legs, not per release with the
   version it was made on (REVISION moves every release, and per-leg
   goldens would hide cross-version drift); a database-free tier A (the
-  OPS.15 battery, 3 to 5 s) also runs on the Windows and macOS CI jobs,
+  OPS.15 battery, 3 to 5 s) also runs on the macOS CI job,
   tier B is the 1 against 4 workers galaxy, tier C the hash-seed and
   locale probe; one small sector is stored as full text so a failure can
   be read as a diff; a `golden_update` tool rewrites the goldens and bumps
@@ -319,7 +319,7 @@ full key text living on the `generation_runs` row. Detail:
 ## 6. Updates and the version history (phase 1, then 2)
 
 - **History (OPS.13, built).** After the databases are migrated,
-  `update.sh` and `update.ps1` run `planetgen.cli.version_history`, which
+  `update.sh` runs `planetgen.cli.version_history`, which
   adds one row per planned galaxy to the control database's
   `version_key_history` (control schema v11): the galaxy seed (unchanged by
   an update), the key, the release, the SHA-256 of `requirements.lock` and
@@ -333,7 +333,7 @@ full key text living on the `generation_runs` row. Detail:
   changes nothing only refreshes that row's last-seen date), so repeated
   "already up to date" runs do not push the older distinct versions out.
   The lock file is pinned to LF in `.gitattributes` (or hashed as
-  normalised text) so a Windows checkout hashes the same as a Linux one.
+  normalised text) so a checkout hashes the same on any machine.
   *The seed question.* Boss's wording (2026-10-02 02:08Z) was that each
   update makes "a sweet to recalculate the seed value based on the current
   code version". The seed is not changed: it identifies the galaxy whose
@@ -393,7 +393,7 @@ JSON file is written holding only what reproduction needs:
 - the admin changes and the positional-update epoch (below).
 
 The name is `<32-hex seed>-<22-hex key>-<YYYYMMDD>-<HHMMSS>Z.json` in UTC,
-with no colons so it is valid on Windows, for example
+with no colons, for example
 `9F3A07C2E81B44D5A1C06E7B3D2F9081-0007007F000160030C0300-20261002-022133Z.json`.
 It lives in the site's data directory (path in `config.json`). The Admin
 dashboard offers the current file as a download at any time, with the
@@ -483,8 +483,7 @@ ownership). Needs OPS.16, GEN.61 and OPS.18.
 ## 8. The daily maintenance run (phase 2)
 
 - **The script (OPS.16).** The logic lives once, in
-  `planetgen.cli.maintenance`; `scripts/maintenance.sh` (Linux and macOS)
-  and `scripts/maintenance.ps1` (Windows) are thin launchers that run it as
+  `planetgen.cli.maintenance`; `scripts/maintenance.sh` is a thin launcher that runs it as
   the web user. It runs once a day: the positional update
   (`planetgen.cli.orbits`, for every galaxy database), then the delta
   merge (GEN.61), then the backup rotation (OPS.18). A lock file stops two
@@ -496,8 +495,7 @@ ownership). Needs OPS.16, GEN.61 and OPS.18.
   it runs OPS.15's fingerprint check too.
 - **The schedule (OPS.17).** Install and update set it up by calling the
   installers that already exist in `examples/maintenance/`: a systemd
-  timer (cron.d where there is no systemd) on Linux, launchd on macOS, Task
-  Scheduler on Windows. The daily run replaces the monthly orbit timers,
+  timer (cron.d where there is no systemd) on Linux, launchd on macOS. The daily run replaces the monthly orbit timers,
   tasks and plists (`planetgen-orbits@`, `org.planetgen.orbits.*`), which
   are removed when it is installed, since it runs orbits itself. Update
   keeps an existing schedule and adds a missing one; a

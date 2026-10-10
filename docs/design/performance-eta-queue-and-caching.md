@@ -354,7 +354,7 @@ database-bound run (1.87 times at 4); the cheap gain is fewer round trips per se
 |---|---|---|---|
 | `cProfile` | standard library | all | exact call counts; heavy on small functions; per process, so wrap a task |
 | `pyinstrument` | 5.1.3, 2026-07-29, BSD, wheels cp39 to cp314 [S, PyPI] | 3.8+ | readable call tree for one command; signal mode samples the main thread only, so profile a task function inside the worker |
-| `py-spy` | 0.4.2, 2026-04-24, MIT, `py2.py3-none` wheels for Linux, macOS, Windows x64 [S, PyPI] | any | launches or attaches from outside; `--subprocesses` follows forked RQ work horses; worked here in launch mode [C]; may need elevated rights on macOS and hardened Linux [R] |
+| `py-spy` | 0.4.2, 2026-04-24, MIT, `py2.py3-none` wheels for Linux and macOS [S, PyPI] | any | launches or attaches from outside; `--subprocesses` follows forked RQ work horses; worked here in launch mode [C]; may need elevated rights on macOS and hardened Linux [R] |
 | `memray` 1.20.0 | PyPI | 3.9+ | only if memory (195 MB per worker) becomes the question |
 | `sys.monitoring` | standard library | 3.12+, not 3.9 | cannot be the project's method while 3.9 is supported |
 
@@ -440,8 +440,7 @@ deterministic by seed): `eta_sim.py`, `eta_band.py`, `dr_check.py`, `tau_test.py
 `prof_bench.py`, `prof_share.py`, `checks_bench.py`, `scale_bench.py`. The simulated
 runs assume a cost model (prediction noise 0.25, real-cost noise 0.45); measure the
 real prediction error from PERF.32's data and re-fit the band factors of 2.4. The 2.3 s
-import and 195 MB figures are warm-cache values; a cold server pays more, and Windows
-`SpawnWorker` re-imports in a fresh interpreter, so its fixed cost is probably higher.
+import and 195 MB figures are warm-cache values; a cold server pays more.
 Release counts per day come from the `CHANGELOG.md` headings.
 
 Recalled [R], to verify when access is allowed: that rich's speed estimate is a 30 s
@@ -450,7 +449,7 @@ requirements on macOS and hardened Linux; the roughly 10% figure of Harrison et 
 (press reports only); Myers' preference finding (abstract only).
 
 Not measured: the production server; page times under a fill with the cache changes;
-the effect of the import fix; Windows and macOS start-up; connection exhaustion under
+the effect of the import fix; macOS start-up; connection exhaustion under
 a fill.
 
 ## Sources

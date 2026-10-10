@@ -16,15 +16,15 @@ release is stamped.
 | UX | UX.88 |
 | MAP | MAP.163 |
 | NAV | NAV.58 |
-| GEN | GEN.188 |
-| PERF | PERF.52 |
+| GEN | GEN.189 |
+| PERF | PERF.53 |
 | DB | DB.22 |
 | API | API.24 |
 | ADM | ADM.49 |
 | SEC | SEC.33 |
-| TEST | TEST.119 |
+| TEST | TEST.121 |
 | USR | USR.10 |
-| OPS | OPS.40 |
+| OPS | OPS.41 |
 | DOC | DOC.17 |
 | VIEW | VIEW.11 |
 | POP | POP.11 |
@@ -419,7 +419,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.28 | A simpler Generate page: layer specs, a Customize window and plain controls | none | open |
 | ADM.29 | Fill a span of layers, rings or columns | none | done, PR #926 |
 | ADM.30 | Radial generation: a cylinder of N sectors around a point | none | done, PR #934 |
-| ADM.31 | Every generate action offers to show what it made on the Galaxy Map | none | open |
+| ADM.31 | Every generate action offers to show what it made on the Galaxy Map | none | done, PR #976 |
 | ADM.32 | Add a star system to a sector: at the emptiest spot, at given coordinates, or at random outside every Hill sphere | none | open |
 | ADM.33 | The owner can override "no room" warnings and generate anyway | none | done, PR #476 |
 | ADM.34 | One admin menu per screen, holding only that screen's actions | none | done, PR #562 |
@@ -583,7 +583,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.84 | Habitability design: one score structure and reconciled thresholds | none | done, PR #803 |
 | GEN.85 | Atmosphere species, partial pressures and mantle redox for every planet | none | done, PR #848 |
 | GEN.86 | Stellar activity (XUV, flares) and planetary magnetic fields | none | done, PR #908 |
-| GEN.87 | Surface radiation dose | none | open |
+| GEN.87 | Surface radiation dose | none | done, PR #985 |
 | GEN.88 | Hydrosphere and ocean chemistry | none | done, PR #963 |
 | GEN.89 | The habitability score for every planet and moon | none | open |
 | GEN.90 | Refactor the planet classes around the habitability index | none | open |
@@ -669,8 +669,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.170 | Object ID layout: an 80-bit ID of birth sector, serial and body number, with pack, unpack, format and parse functions | none | open |
 | GEN.171 | The sector fill gives object IDs by generation rank | none | open |
 | GEN.172 | Run-time births get object IDs from the counters | none | open |
-| GEN.173 | Deleting a body and then adding one fails with IntegrityError 1062 on uq_planets_uid (bug) | none | open |
-| GEN.174 | Bodies an admin adds are saved with a NULL uid (bug) | none | open |
+| GEN.173 | Deleting a body and then adding one fails with IntegrityError 1062 on uq_planets_uid (bug) | none | done, PR #987 |
+| GEN.174 | Bodies an admin adds are saved with a NULL uid (bug) | none | done, PR #987 |
 | GEN.175 | Regenerating a phenomenon sets its uid to NULL (bug) | none | done, PR #960 |
 | GEN.176 | A nebula or remnant is born in the sector holding the centre of the space it occupies | none | open |
 | GEN.177 | Planetary magnetic fields: a stagnant-lid factor | none | open |
@@ -684,6 +684,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.185 | The scatter in five passes: mass-limit objects, mass-limit stars, brightest-star sector marks, the luminosity pass, then other phenomena | none | done, PR #953 |
 | GEN.186 | Random neighborhoods: an option to keep away from filled space | none | open |
 | GEN.187 | Bright-star back scatter by mass: rings of 1, 2, 5 and 8 solar masses around filled space | none | open |
+| GEN.188 | Mass limit default is 8, and the mass slider and luminosity dropdown sit side by side on Generate and New galaxy | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -936,12 +937,13 @@ Parents marked "new parent" had no old number of their own.
 | OPS.31 | Lint every example plist, XML and service file in CI | none | open |
 | OPS.32 | `examples/macos/org.planetgen.update.plist` is not well-formed XML, so the update daemon silently fails to install (bug) | none | done, PR #865 |
 | OPS.33 | `.gitattributes` has no LF pins for the lock files and word list, so hashes differ between a Windows and a Linux checkout (bug) | none | done, PR #843 |
-| OPS.34 | Windows Redis in WSL: fix the keep-alive advice and add a Start-RedisInWsl remedy | none | open |
+| OPS.34 | Windows Redis in WSL: fix the keep-alive advice and add a Start-RedisInWsl remedy | none | done, PR #981 |
 | OPS.35 | A vendored-version lock file for the static libraries | none | open |
 | OPS.36 | Space and size checks measure the boot drive, not the drive holding the database (bug) | none | done, PR #868 |
 | OPS.37 | A Generator version number: one sequential integer, shown in admin and the API | none | open |
 | OPS.38 | Two Redis dump files (dump.rdb and src/dump.rdb) are committed to main and should be removed and git-ignored (bug) | none | done, PR #967 |
-| OPS.39 | Remove Windows support; keep only a simple docs/WINDOWS.md | none | open |
+| OPS.39 | Remove Windows support; keep only a simple docs/WINDOWS.md | none | done, PR #981 |
+| OPS.40 | update.sh step 8 fails: setup-debug-log.sh loads the deleted util/appconfig.py (bug) | none | open |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
 | PERF.3 | Estimate size and time before bulk generation | 86 (2026-10-01 03:15Z to 05:29Z) | done, PR #238 (stats in control schema v6) |
@@ -993,6 +995,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.49 | Batch system-name reservation: remove the quadratic scan and the long-held registry locks (re-measure first) | none | done, PR #870 |
 | PERF.50 | A progress bar inside one sector's save: workers report their sub-steps to the main process | none | done, PR #922 |
 | PERF.51 | One progress mechanism for every sub-step: a bar starts by itself when a step is predicted to take over 15 seconds | none | done, PR #919 |
+| PERF.52 | Admin generation-stats table is wrong (bug) | none | open |
 | POP.1 | Government ownership of systems | 12 (2026-09-24 01:32Z to 02:18Z); 9 (2026-09-24 01:57Z to 02:02Z); 7 (2026-09-24 02:25Z to 05:38Z); 6 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 15 (2026-09-30 16:44Z); 16 (2026-09-30 16:49Z); 17 (2026-09-30 16:51Z to 18:09Z); 34 (2026-09-30 18:14Z); 39 (2026-09-30 18:39Z to 18:41Z); 59 (2026-09-30 19:02Z to 19:17Z); 63 (2026-09-30 20:01Z to 20:27Z); 46 (2026-09-30 20:07Z); 50 (2026-09-30 20:08Z to 20:48Z); 51 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 (optional since 7.58.2, PR #180) |
 | POP.2 | Names for dominant species on living worlds | 13 (2026-09-24 01:32Z to 02:18Z); 10 (2026-09-24 01:57Z to 02:02Z); 8 (2026-09-24 02:25Z to 05:38Z); 7 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 16 (2026-09-30 16:44Z); 17 (2026-09-30 16:49Z); 18 (2026-09-30 16:51Z to 18:09Z); 35 (2026-09-30 18:14Z); 40 (2026-09-30 18:39Z to 18:41Z); 60 (2026-09-30 19:02Z to 19:17Z); 64 (2026-09-30 20:01Z to 20:27Z); 47 (2026-09-30 20:07Z); 51 (2026-09-30 20:08Z to 20:48Z); 52 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
 | POP.3 | Database of spacefaring species | 14 (2026-09-24 01:32Z to 02:18Z); 11 (2026-09-24 01:57Z to 02:02Z); 9 (2026-09-24 02:25Z to 05:38Z); 8 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 17 (2026-09-30 16:44Z); 18 (2026-09-30 16:49Z); 19 (2026-09-30 16:51Z to 18:09Z); 36 (2026-09-30 18:14Z); 41 (2026-09-30 18:39Z to 18:41Z); 61 (2026-09-30 19:02Z to 19:17Z); 65 (2026-09-30 20:01Z to 20:27Z); 48 (2026-09-30 20:07Z); 52 (2026-09-30 20:08Z to 20:48Z); 53 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
@@ -1343,10 +1346,12 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.112 | test_regenerate_phenomenon_keeps_id_name_and_place fails now and then in the full suite (bug) | none | done, PR #955 |
 | TEST.113 | tests/js/generatejobs.test.mjs fails on main: "asks for the job's status two seconds in" (bug) | none | done, PR #920 |
 | TEST.114 | test_the_check_writes_nothing fails now and then in a parallel full run (bug) | none | done, PR #946 |
-| TEST.115 | Three tests fail on the Windows CI leg in every recent run: Redis in WSL is unreachable (bug) | none | open |
+| TEST.115 | Three tests fail on the Windows CI leg in every recent run: Redis in WSL is unreachable (bug) | none | done, PR #981 |
 | TEST.116 | test_bughunt_end_to_end stores M2V or M6V where it expects K2V on the MySQL 8.4 and MariaDB legs once (bug) | none | open |
 | TEST.117 | generatejobs.test.mjs fails on main since PERF.33 (PR #910) (bug) | none | done, PR #920 |
-| TEST.118 | test_star_scatter_passes.py fails twice on main since GEN.184 raised the luminosity floor to 2500 or more (bug) | none | open |
+| TEST.118 | test_star_scatter_passes.py fails twice on main since GEN.184 raised the luminosity floor to 2500 or more (bug) | none | done, PR #975 |
+| TEST.119 | 15 browser map tests fail on main since the UX.86 menu regrouping (bug) | none | open |
+| TEST.120 | test_sampled_stars_stay_inside_their_mass_range still fails on main after TEST.118 (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

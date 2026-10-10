@@ -1,0 +1,2 @@
+### Fixed
+- `./update.sh` step 8 ("Checking the cache, jobs and debug log locations") no longer fails with `FileNotFoundError` on `util/appconfig.py`; `setup-debug-log.sh` now loads the log paths from `util/logpaths.py`, so the logs and their rotation are set up again. Two new tests (the log-location check runs against the checkout; deploy scripts only name repo paths that exist) fail on the old script.

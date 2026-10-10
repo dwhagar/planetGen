@@ -11,7 +11,7 @@
 # version, never reaches a server by surprise. apt-installed libraries
 # aren't covered: apt checks its own signatures.
 #
-# The lock is universal: one file for Linux, macOS and Windows and every
+# The lock is universal: one file for Linux and macOS and every
 # Python from setup.py's python_requires (3.9) up. Where the newest
 # release of a library needs a newer Python, the lock holds one pin per
 # Python range, each with an environment marker.
