@@ -214,6 +214,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | TEST.111 | test_ensure_sector_generated_creates_then_reuses_the_same_sector fails in a busy parallel run (bug) |  | Test flake reported 2026-10-09; Bugfixes lane 1. |
+| PERF.53 | Timing stats are skewed by layers and sectors that generated nothing (bug) |  | Boss 06:28Z via coordinator; Bugfixes lane 1, after its current items. |
 | TEST.121 | test_open_map_menus_hold_no_overlap fails under load: the Menu panel intercepts the close click (bug) |  | Bugfixes lane 1 report 06:15Z. |
 | TEST.120 | test_sampled_stars_stay_inside_their_mass_range still fails on main after TEST.118 (bug) |  | Bugfixes lane 1 report 05:31Z. |
 | OPS.40 | update.sh step 8 fails: setup-debug-log.sh loads the deleted util/appconfig.py (bug) |  | Bugfixes lane 2 report 04:39Z. |
