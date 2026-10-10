@@ -3327,8 +3327,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   cancels the saving), and Boss then dropped it (2026-10-10 10:00Z,
   "now we're going so much faster"). The sampler runs per layer only: no
   stack rule and no stack-size tuning value. An empty layer already
-  costs only its majorant (about 1.2 us per ring). PERF.57's grouping is
-  not built.
+  costs only its majorant (about 1.2 us per ring). PERF.57's grouping
+  was built in PR #1101 before this drop reached the lane; this item
+  replaces it.
   Several objects per sector (Boss 09:32Z, tiers by density rating):
   independent object-first draws and a per-sector count dictionary; each
   sector has a capacity from its expected count at the sector centre,
@@ -3360,10 +3361,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   1, first in its queue after TEST.124.
   Prerequisite: PERF.60. Related: PERF.56, PERF.59, PERF.60, PERF.61,
   GEN.185, GEN.195.
-  Early stop (PERF.62, built in PR #1087): tuning.SCATTER_DRY_LAYERS stops
-  the current layer walk after 100 layers in a row with 0 stars or 0
-  phenomena. This sampler replaces that walk, so it keeps or replaces
-  the early stop and removes the constant if it is no longer needed.
+  Grouped empty layers (PERF.57, PR #1101, Bugfixes lane 1; replaced
+  the 100-dry-layer stop of PERF.62, PR #1087): after
+  tuning.SCATTER_EMPTY_LAYERS_BEFORE_GROUP = 5 empty layers in a row the
+  walk (layer_groups.Walk, bright_stars.scatter_group) combines
+  SCATTER_GROUP_LAYERS = 10 layers, doubling; groups follow walk order,
+  so a 10-layer group is 5 above and 5 below the plane; the expected
+  count is a sampled estimate (48 rings x 8 bins) with exact placement;
+  SCATTER_CERTAIN_OBJECTS = 30; stage metrics layers_walked,
+  layers_grouped, group_sizes and layers_modified; the same seed gives
+  the same stars on 1 and 2 workers. Not covered: the mass backfill
+  rings. This sampler replaces that walk, so remove the grouping code,
+  its constants (and the SCATTER_DRY_LAYERS constants of PERF.62, if any
+  remain) and the metrics that no longer apply when it lands.
 
 - [ ] **PERF.59 Share the ring inputs across the three scatter passes (top priority)**
   From the scatter study (docs/design/scatter-queue-feasibility.md): the
@@ -3403,9 +3413,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Bugfixes lane 1, after PERF.58.
   Prerequisites: PERF.58, PERF.60. Related: PERF.58, PERF.59, PERF.60,
   GEN.185.
-  Early stop (PERF.62, built in PR #1087): the 100-dry-layer stop of
-  the current phenomena walk (0 phenomena) is kept or replaced by this
-  sampler, like PERF.58.
+  Grouped empty layers (PERF.57, PR #1101):
+  phenomenon_scatter.scatter_group groups empty layers in the current
+  walk; this sampler replaces it, like PERF.58.
 
 ## DB: Database and schema
 
