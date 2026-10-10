@@ -58,7 +58,9 @@ from planetgen.galaxy.geometry import (
     sector_position_pc,
 )
 from planetgen.galaxy.sector import _sample_poisson_count
-from planetgen.generation.star_population import bright_band_fraction, bright_star_fraction, pick_population, sample_bright_stars
+from planetgen.generation.star_population import (
+    bright_band_fraction, pick_population, placed_star_fraction, sample_bright_stars,
+)
 from planetgen.physics.units import pc_to_ly
 from planetgen.util import draw
 
@@ -208,7 +210,7 @@ def _row(ring_index, layer_index, slot, point, population, params, rng):
 
 
 def scatter(shape, extents, edge_pc, expected_at_density_1, min_luminosity_sol, seed,
-            skip_addresses=None, on_layer=None, max_luminosity_sol=None):
+            skip_addresses=None, on_layer=None, max_luminosity_sol=None, mass_range=None):
     """
     Draws and places every bright star in the galaxy's outline, one
     layer after another (`scatter_layer`), or, with `max_luminosity_sol`,
@@ -231,21 +233,26 @@ def scatter(shape, extents, edge_pc, expected_at_density_1, min_luminosity_sol, 
         max_luminosity_sol (float, optional): The band's upper limit
             (exclusive), the level already scattered; `None` for every
             star at or above the threshold.
+        mass_range (tuple, optional): Only stars born in this `(low, high)`
+            range of solar masses (an end `None` for no limit): the mass
+            pass takes `(mass limit, None)`, the luminosity pass under it
+            `(None, mass limit)`.
 
     Yields:
         tuple: One row per star, in `_db.BRIGHT_STAR_COLUMNS` order.
     """
     for done, (layer_index, outer_ring) in enumerate(extents, start=1):
         yield from scatter_layer(shape, layer_index, outer_ring, edge_pc, expected_at_density_1,
-                                 min_luminosity_sol, seed, skip_addresses, max_luminosity_sol=max_luminosity_sol)
+                                 min_luminosity_sol, seed, skip_addresses, max_luminosity_sol=max_luminosity_sol,
+                                 mass_range=mass_range)
         if on_layer is not None:
             on_layer(done, len(extents))
 
 
-def band_fractions(min_luminosity_sol, max_luminosity_sol=None):
+def band_fractions(min_luminosity_sol, max_luminosity_sol=None, mass_range=None):
     """Per population, the share of its stars in the scatter's band
     (`bright_band_fraction`)."""
-    return {population: bright_band_fraction(min_luminosity_sol, max_luminosity_sol, population)
+    return {population: bright_band_fraction(min_luminosity_sol, max_luminosity_sol, population, mass_range)
             for population in POPULATIONS}
 
 
@@ -315,7 +322,7 @@ def layer_weight(shape, layer_index, outer_ring, edge_pc, expected_at_density_1,
 
 
 def scatter_layer(shape, layer_index, outer_ring, edge_pc, expected_at_density_1, min_luminosity_sol, seed,
-                  skip_addresses=None, max_luminosity_sol=None, on_progress=None):
+                  skip_addresses=None, max_luminosity_sol=None, on_progress=None, mass_range=None):
     """
     One layer of `scatter`: every bright star from ring 0 out to
     `outer_ring` at `layer_index`. Each layer draws from its own random
@@ -339,7 +346,7 @@ def scatter_layer(shape, layer_index, outer_ring, edge_pc, expected_at_density_1
     """
     rng = draw.Stream(f"{seed}:{layer_index}")
     skip_addresses = skip_addresses or set()
-    fractions = band_fractions(min_luminosity_sol, max_luminosity_sol)
+    fractions = band_fractions(min_luminosity_sol, max_luminosity_sol, mass_range)
     placed = {population: [] for population in POPULATIONS}
     rings = []
     expected_left = 0.0
@@ -372,7 +379,7 @@ def scatter_layer(shape, layer_index, outer_ring, edge_pc, expected_at_density_1
         if not spots:
             continue
         stars = sample_bright_stars(len(spots), min_luminosity_sol, population, rng,
-                                    max_luminosity_sol=max_luminosity_sol)
+                                    max_luminosity_sol=max_luminosity_sol, mass_range=mass_range)
         for (ring_index, slot, point), params in zip(spots, stars):
             drawn += 1
             if on_progress is not None:
@@ -380,7 +387,8 @@ def scatter_layer(shape, layer_index, outer_ring, edge_pc, expected_at_density_1
             yield _row(ring_index, layer_index, slot, point, population, params, rng)
 
 
-def backfill_cells(shape, addresses, edge_pc, expected_at_density_1, min_luminosity_sol, max_luminosity_sol, seed):
+def backfill_cells(shape, addresses, edge_pc, expected_at_density_1, min_luminosity_sol, max_luminosity_sol, seed,
+                   mass_range=None):
     """
     Draws and places every star in a luminosity band for a few cells (the
     sectors a backfill reaches, GEN.23, one by one since GEN.44): the band
@@ -403,12 +411,15 @@ def backfill_cells(shape, addresses, edge_pc, expected_at_density_1, min_luminos
         max_luminosity_sol (float or None): Its ceiling, the level the
             cells were already filled to; `None` when nothing was placed.
         seed (int): The galaxy's bright-star seed.
+        mass_range (tuple, optional): As in `scatter`: a galaxy whose mass
+            pass placed every heavy star draws the lighter ones only,
+            `(None, mass limit)`.
 
     Yields:
         tuple: One row per star, in `_db.BRIGHT_STAR_COLUMNS` order.
     """
     bands = canonical_bands(min_luminosity_sol, max_luminosity_sol)
-    shares = {(k, population): bright_band_fraction(low, high, population)
+    shares = {(k, population): bright_band_fraction(low, high, population, mass_range)
               for k, low, high in bands for population in POPULATIONS}
     for ring_index, layer_index, slot in addresses:
         center = sector_position_pc(ring_index, layer_index, slot, edge_pc)
@@ -426,7 +437,8 @@ def backfill_cells(shape, addresses, edge_pc, expected_at_density_1, min_luminos
                 count = _sample_poisson_count(means[population], rng=rng)
                 if not count:
                     continue
-                for params in sample_bright_stars(count, low, population, rng, max_luminosity_sol=high):
+                for params in sample_bright_stars(count, low, population, rng, max_luminosity_sol=high,
+                                                mass_range=mass_range):
                     for _ in range(SLOT_REDRAWS):
                         point = _point_in_cell(rng, ring_index, layer_index, slot, slots, edge_pc)
                         if point is not None:
@@ -487,10 +499,14 @@ class FillContext:
         below_cut (BelowCut or None): The scatter's mass cut, when it had
             one (GEN.167): the sector draws the neutron stars and black
             holes below it (GEN.168), and builds its scattered ones above it.
+        star_mass_limit_sol (float or None): The mass limit the star scatter
+            placed every star at or above (its mass pass); the sector draws
+            only lighter stars. `None` when the scatter had no mass pass.
     """
 
     def __init__(self, center_pc, shape, bright_rows=(), min_luminosity_sol=None, phenomenon_rows=None,
-                 below_cut=None):
+                 below_cut=None, star_mass_limit_sol=None):
+        self.star_mass_limit_sol = star_mass_limit_sol
         self.center_pc = center_pc
         self.shape = shape
         self.densities = _densities(center_pc, shape)
@@ -509,7 +525,7 @@ class FillContext:
         total = sum(self.densities.values())
         if total <= 0.0:
             return 0.0
-        return sum(density * bright_star_fraction(self.min_luminosity_sol, population)
+        return sum(density * placed_star_fraction(self.min_luminosity_sol, self.star_mass_limit_sol, population)
                    for population, density in self.densities.items()) / total
 
     def apply(self, system_config, rng=draw):
@@ -518,4 +534,5 @@ class FillContext:
         system_config.POPULATION = pick_population(self.densities, rng)
         if self.min_luminosity_sol is not None:
             system_config.MAX_STAR_LUMINOSITY_SOL = self.min_luminosity_sol
+            system_config.MAX_STAR_MASS_SOL = self.star_mass_limit_sol
         return system_config

@@ -174,10 +174,11 @@ def _fill_context(args, address, position_pc):
             return brightStars.FillContext(position_pc, skeleton.shape, phenomenon_rows=phenomena,
                                            below_cut=below_cut)
         rows = store.bright_stars_for_sector(conn, *address)
+        mass_limit = store.bright_star_mass_limit(conn)
     finally:
         conn.close()
     return brightStars.FillContext(position_pc, skeleton.shape, rows, min_luminosity_sol=level,
-                                   phenomenon_rows=phenomena, below_cut=below_cut)
+                                   phenomenon_rows=phenomena, below_cut=below_cut, star_mass_limit_sol=mass_limit)
 
 
 def backfill_tiers(radius_ly=None, min_luminosity_sol=None, tiers=None):

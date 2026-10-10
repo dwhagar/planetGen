@@ -152,16 +152,19 @@ def _bright_measure_bound(low_mass, high_mass, min_luminosity_sol, window):
     return bound
 
 
-def _mass_grid():
+@functools.lru_cache(maxsize=None)
+def _mass_grid(extra_edges=()):
     """Log-spaced cell edges over the IMF's range, with every mass where
-    the IMF slope or a phase rule changes added as an edge, and each
-    cell's IMF slope and continuity factor."""
+    the IMF slope or a phase rule changes added as an edge (and
+    `extra_edges`, a mass cut a draw splits at), and each cell's IMF slope
+    and continuity factor."""
     pc = tuning
     low, high = pc.IMF_BREAKS_SOL[0], pc.IMF_BREAKS_SOL[-1]
     cells = pc.BRIGHT_STAR_MASS_GRID_CELLS
     edges = {low * (high / low) ** (i / cells) for i in range(cells + 1)}
     edges.update(pc.IMF_BREAKS_SOL)
     edges.update((pc.BRIGHT_GIANT_MIN_MASS_SOL, pc.SUPERGIANT_MIN_MASS_SOL))
+    edges.update(extra_edges)
     edges = sorted(edge for edge in edges if low <= edge <= high)
 
     norms = [1.0]
@@ -187,24 +190,44 @@ def _check_threshold(min_luminosity_sol):
 _FRACTION_POINTS_PER_CELL = 4
 
 
+def _check_mass_range(mass_range):
+    """A mass range as the `(low, high)` pair of solar masses `_bright_table`
+    caches (a missing end `None`), or `None` for every mass."""
+    if mass_range is None:
+        return None
+    low, high = mass_range
+    if low is not None and high is not None and not low < high:
+        raise ValueError(f"empty mass range [{low:g}, {high:g}) solar masses")
+    if low is None and high is None:
+        return None
+    return (None if low is None else float(low), None if high is None else float(high))
+
+
 @functools.lru_cache(maxsize=None)
-def _bright_table(min_luminosity_sol, population):
+def _bright_table(min_luminosity_sol, population, mass_range=None):
     """
-    The cached per-(threshold, population) sampling table: cell edges,
-    slopes and continuity factors, each cell's measure bound, the running
-    total of cell weights (IMF share times bound), and the bright fraction.
+    The cached per-(threshold, population, mass range) sampling table: cell
+    edges, slopes and continuity factors, each cell's measure bound, the
+    running total of cell weights (IMF share times bound), and the bright
+    fraction. `mass_range` (`(low, high)` initial masses in solar masses,
+    either end `None`) keeps only the stars born in it: the fraction is
+    still the share of ALL living stars, so a mass pass and a luminosity
+    pass below it add up to the share that one threshold gives.
     """
     _check_threshold(min_luminosity_sol)
     window = population_age_range_gy(population)
     cells, cumulative = [], []
     running = bright = living = 0.0
-    for a, b, alpha, norm in _mass_grid():
+    mass_low, mass_high = mass_range if mass_range is not None else (None, None)
+    for a, b, alpha, norm in _mass_grid(tuple(edge for edge in (mass_low, mass_high) if edge is not None)):
         count = norm * _power_law_integral(a, b, alpha)
         # E[measure] over the cell by stratified IMF quantiles.
         points = [_power_law_quantile(a, b, alpha, (j + 0.5) / _FRACTION_POINTS_PER_CELL)
                   for j in range(_FRACTION_POINTS_PER_CELL)]
-        bright += count * sum(_bright_measure(m, min_luminosity_sol, window) for m in points) / len(points)
         living += count * sum(_living_measure(m, window) for m in points) / len(points)
+        if (mass_low is not None and b <= mass_low) or (mass_high is not None and a >= mass_high):
+            continue
+        bright += count * sum(_bright_measure(m, min_luminosity_sol, window) for m in points) / len(points)
         bound = _bright_measure_bound(a, b, min_luminosity_sol, window)
         if bound > 0:
             running += count * bound
@@ -222,22 +245,35 @@ def _power_law_quantile(a, b, alpha, u):
     return (a ** p + u * (b ** p - a ** p)) ** (1 / p)
 
 
-def bright_star_fraction(min_luminosity_sol, population=None):
+def bright_star_fraction(min_luminosity_sol, population=None, mass_range=None):
     """
     The share of a population's living stars (those `sample_living_star`
-    draws) whose luminosity is at least `min_luminosity_sol`. Computed once
-    per threshold and population, then cached.
+    draws) whose luminosity is at least `min_luminosity_sol`, among those
+    born in `mass_range` (initial masses `(low, high)` in solar masses, an
+    end `None` for no limit; every mass by default). Computed once per
+    threshold, population and range, then cached.
 
     Args:
         min_luminosity_sol (float): The threshold (Lsun), above the
             brightest white dwarf.
         population (str or None): "young", "intermediate", "old", "bulge",
             or None for the whole disk.
+        mass_range (tuple, optional): As above.
 
     Returns:
         float: The fraction, in `[0, 1]`.
     """
-    return _bright_table(float(min_luminosity_sol), population)["fraction"]
+    return _bright_table(float(min_luminosity_sol), population, _check_mass_range(mass_range))["fraction"]
+
+
+def massive_star_fraction(min_mass_sol, population=None):
+    """
+    The share of a population's living stars born with at least
+    `min_mass_sol` solar masses: what the mass pass of the scatter places
+    (`MASS_PASS_MIN_LUMINOSITY_SOL` is below every one of them, so no
+    luminosity cuts any out).
+    """
+    return bright_star_fraction(MASS_PASS_MIN_LUMINOSITY_SOL, population, (min_mass_sol, None))
 
 
 def _sample_one_bright(table, min_luminosity_sol, rng):
@@ -274,6 +310,13 @@ limit before giving up on one landing below its upper limit (a band so
 thin almost every star overshoots it)."""
 
 
+MASS_PASS_MIN_LUMINOSITY_SOL = tuning.WD_LUMINOSITY_RANGE_SOL[1]
+"""float: The luminosity floor of the mass pass: the lowest `_check_threshold`
+allows (the brightest white dwarf). A star born with 8 solar masses or more
+is brighter than that through all of its life, so the floor cuts none of
+them."""
+
+
 def _sample_one_in_band(table, min_luminosity_sol, max_luminosity_sol, rng):
     """One star with `min <= luminosity < max`: a star drawn above `min`,
     redrawn while it reaches `max` (the brighter band already placed)."""
@@ -286,11 +329,14 @@ def _sample_one_in_band(table, min_luminosity_sol, max_luminosity_sol, rng):
                      f"in {BAND_REDRAWS} tries")
 
 
-def sample_bright_stars(n, min_luminosity_sol, population=None, rng=draw, max_luminosity_sol=None):
+def sample_bright_stars(n, min_luminosity_sol, population=None, rng=draw, max_luminosity_sol=None,
+                        mass_range=None):
     """
     Draws `n` stars from the population model conditional on luminosity
     `>= min_luminosity_sol` (see the module docstring for how), and below
-    `max_luminosity_sol` when given (one band of a staged scatter).
+    `max_luminosity_sol` when given (one band of a staged scatter), and
+    born in `mass_range` (`(low, high)` initial solar masses, an end
+    `None` for no limit) when given.
 
     Args:
         n (int): How many to draw.
@@ -301,6 +347,7 @@ def sample_bright_stars(n, min_luminosity_sol, population=None, rng=draw, max_lu
             default); a seeded one gives the same stars every time.
         max_luminosity_sol (float, optional): The band's upper limit
             (Lsun, exclusive); `None` for no limit.
+        mass_range (tuple, optional): As in `bright_star_fraction`.
 
     Returns:
         list: `n` dicts from `stellarEvolution.star_params` (type, Yerkes
@@ -309,25 +356,38 @@ def sample_bright_stars(n, min_luminosity_sol, population=None, rng=draw, max_lu
     """
     if max_luminosity_sol is not None and max_luminosity_sol <= min_luminosity_sol:
         raise ValueError(f"empty luminosity band [{min_luminosity_sol:g}, {max_luminosity_sol:g}) Lsun")
-    table = _bright_table(float(min_luminosity_sol), population)
+    table = _bright_table(float(min_luminosity_sol), population, _check_mass_range(mass_range))
     if max_luminosity_sol is None:
         return [_sample_one_bright(table, min_luminosity_sol, rng) for _ in range(n)]
     return [_sample_one_in_band(table, min_luminosity_sol, max_luminosity_sol, rng) for _ in range(n)]
 
 
-def bright_band_fraction(min_luminosity_sol, max_luminosity_sol=None, population=None):
+def bright_band_fraction(min_luminosity_sol, max_luminosity_sol=None, population=None, mass_range=None):
     """
     The share of a population's living stars with `min <= luminosity <
-    max` (`bright_star_fraction(min)` when `max` is `None`): what a staged
-    scatter's new band adds.
+    max` (`bright_star_fraction(min)` when `max` is `None`) among those
+    born in `mass_range`: what a staged scatter's new band adds.
     """
-    fraction = bright_star_fraction(min_luminosity_sol, population)
+    fraction = bright_star_fraction(min_luminosity_sol, population, mass_range)
     if max_luminosity_sol is not None:
-        fraction -= bright_star_fraction(max_luminosity_sol, population)
+        fraction -= bright_star_fraction(max_luminosity_sol, population, mass_range)
     return max(fraction, 0.0)
 
 
-def sample_dim_star(max_luminosity_sol, population=None, rng=draw):
+def placed_star_fraction(min_luminosity_sol, min_mass_sol, population=None):
+    """
+    The share of a population's living stars the galaxy scatter places in
+    advance: those born with at least `min_mass_sol` solar masses (the mass
+    pass; `None`: no mass pass) and, of the lighter ones, those at least
+    `min_luminosity_sol` bright. A sector's own draw is the rest.
+    """
+    if min_mass_sol is None:
+        return bright_star_fraction(min_luminosity_sol, population)
+    return (massive_star_fraction(min_mass_sol, population)
+            + bright_star_fraction(min_luminosity_sol, population, (None, min_mass_sol)))
+
+
+def sample_dim_star(max_luminosity_sol, population=None, rng=draw, max_mass_sol=None):
     """
     Draws one star from the population model conditional on luminosity
     `< max_luminosity_sol` (a sector's own stars once its bright ones were
@@ -337,7 +397,8 @@ def sample_dim_star(max_luminosity_sol, population=None, rng=draw):
     Returns:
         dict: As one of `sample_bright_stars`'s.
     """
-    mass, age, state = sample_living_star(rng=rng, population=population, max_luminosity_sol=max_luminosity_sol)
+    mass, age, state = sample_living_star(rng=rng, population=population, max_luminosity_sol=max_luminosity_sol,
+                                          max_mass_sol=max_mass_sol)
     return star_params(mass, age, state)
 
 
