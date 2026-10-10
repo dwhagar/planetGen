@@ -27,14 +27,22 @@ from planetgen.util import log
 
 SECTOR_MODES = ("block", "span", "column", "shell", "slot", "ring", "center_sector")
 
+STAGE_OFFSET_ENV = "PLANETGEN_STAGE_OFFSET"
+"""str: Set by a web job's runner to the number of stages the job's earlier steps hold, so this run's stages
+are numbered across the whole job ("Stage 4 of 12") instead of from 1."""
+
+STAGE_TOTAL_ENV = "PLANETGEN_STAGE_TOTAL"
+"""str: Set with `STAGE_OFFSET_ENV` to the number of stages in the whole job."""
+
 JOB_KEY = "job"
 """str: The `stage_key` the whole-job row is stored under (`finish`)."""
 
 _state = {"stages": [], "next": 0, "args": None, "command": None, "open": None,
-          "job_layers": 0, "job_seconds": 0.0, "overall": None}
+          "job_layers": 0, "job_seconds": 0.0, "overall": None, "ran": 0}
 """The run's stage list, the next one to enter, its arguments (for the settings each stage is recorded
 with), its command, the stage open now (`_open`), the layers and seconds of the stages finished so far (the
-whole-job stat) and the command-line overall bar's clock and estimate (`overall`)."""
+whole-job stat), the command-line overall bar's clock and estimate (`overall`) and how many stages have
+finished running (`ran`, skipped ones not counted)."""
 
 
 class Stage:
@@ -191,6 +199,7 @@ def _close_open():
     record = _state["open"]
     _state["open"] = None
     if record is not None:
+        _state["ran"] += 1
         record["seconds"] = time.perf_counter() - record["t0"]
         _state["job_seconds"] += record["seconds"]
         _state["job_layers"] += int(record["metrics"].get("layers") or 0)
@@ -254,10 +263,28 @@ def overall_progress(now=None):
         return None
     elapsed = (time.perf_counter() if now is None else now) - overall["t0"]
     description = f"Whole job (stage {min(max(_state['next'], 1), len(_state['stages']))} of {len(_state['stages'])})"
-    if overall["estimate"] is None:
+    estimate = overall["estimate"]
+    if estimate is None:
+        estimate = _average_estimate(elapsed)
+    if estimate is None:
         return description, elapsed, None
-    total = max(overall["estimate"], elapsed * OVERALL_MARGIN)
-    return description, elapsed, total
+    return description, elapsed, max(estimate, elapsed * OVERALL_MARGIN)
+
+
+def _average_estimate(elapsed):
+    """
+    The whole run's seconds when no stored time covers every stage: the stages finished so far took
+    `job_seconds` between them, so each stage still to run is taken to need their average, and the stage running
+    now at least that (or what it has taken, if longer). So the bar's time left is longer than the running
+    stage's own except in the last stage. `None` before any stage has finished.
+    """
+    ran = _state["ran"]
+    if ran < 1:
+        return None
+    to_run = sum(1 for stage in _state["stages"] if not stage.skip)
+    average = _state["job_seconds"] / ran
+    current = max(elapsed - _state["job_seconds"], 0.0)
+    return _state["job_seconds"] + max(average, current) + average * max(to_run - ran - 1, 0)
 
 
 def attach_overall(progress):
@@ -285,15 +312,30 @@ def attach_overall(progress):
     return task
 
 
+def _numbering():
+    """`(offset, total)` the log numbers this run's stages by: a web job's runner sets both, so a step's stages
+    carry on from its earlier steps' and the total is the whole job's; a run on its own counts from 1 to its own
+    last stage."""
+    try:
+        offset = int(os.environ.get(STAGE_OFFSET_ENV, ""))
+        total = int(os.environ.get(STAGE_TOTAL_ENV, ""))
+    except ValueError:
+        return 0, len(_state["stages"])
+    return (offset, total) if offset >= 0 and total >= offset + len(_state["stages"]) else (0, len(_state["stages"]))
+
+
 def begin(stages, args=None, command=None):
     """Starts a run's stage list and logs it (skipped ones with their reasons). With `args`, each stage's time
     is stored with the settings it ran with (PERF.56)."""
     _state.update(stages=list(stages), next=0, args=args, command=command, open=None, job_layers=0,
-                  job_seconds=0.0, overall=_start_overall(stages, args, command))
+                  job_seconds=0.0, overall=_start_overall(stages, args, command), ran=0)
     if not stages:
         return
-    parts = [f"{n}. {s.label}" + (f" (skipped: {s.skip})" if s.skip else "") for n, s in enumerate(stages, start=1)]
-    log.normal(f"{len(stages)} stage{'s' if len(stages) != 1 else ''}: " + "; ".join(parts) + ".")
+    offset, total = _numbering()
+    parts = [f"{n}. {s.label}" + (f" (skipped: {s.skip})" if s.skip else "")
+             for n, s in enumerate(stages, start=offset + 1)]
+    where = f" (stages {offset + 1} to {offset + len(stages)} of {total})" if total != len(stages) else ""
+    log.normal(f"{len(stages)} stage{'s' if len(stages) != 1 else ''}{where}: " + "; ".join(parts) + ".")
 
 
 def _announce(index, skipped=None):
@@ -308,10 +350,11 @@ def _announce(index, skipped=None):
         _write(record)
     else:
         _state["open"] = record
+    offset, job_total = _numbering()
     if skipped:
-        log.normal(f"Stage {index + 1} of {total}: {stage.label} -- skipped: {skipped}.")
+        log.normal(f"Stage {offset + index + 1} of {job_total}: {stage.label} -- skipped: {skipped}.")
     else:
-        log.normal(f"Stage {index + 1} of {total}: {stage.label}.")
+        log.normal(f"Stage {offset + index + 1} of {job_total}: {stage.label}.")
     progress_file.set_stage(index + 1, total, stage.label, skipped)
 
 
@@ -350,29 +393,28 @@ def finish(reason=None):
     _close_open()
     _write_job()
     _state.update(stages=[], next=0, args=None, command=None, open=None, job_layers=0, job_seconds=0.0,
-                  overall=None)
+                  overall=None, ran=0)
+
+
+def stage_estimates(conn, command, args):
+    """
+    The expected seconds of each stage of a `galaxy` or `plan` run with `args`, in the stages' order: the stored
+    time of the stage run with the settings it runs with (`stage_settings`, `generation.stats.stage_seconds`,
+    PERF.56), `0.0` for a stage that will be skipped, `None` for one with no stored time. `[]` for any other
+    command.
+    """
+    from planetgen.generation import stats
+
+    return [0.0 if stage.skip else stats.stage_seconds(conn, stage.key, stage_settings(stage.key, args))
+            for stage in for_command(command, args)]
 
 
 def estimate_seconds(conn, command, args):
     """
-    How long a `galaxy` or `plan` run with `args` is expected to take: the
-    stored time of each of its stages that will run, looked up by the settings
-    that stage runs with (`stage_settings`, `generation.stats.stage_seconds`,
-    PERF.56), skipped stages counting nothing. `None` unless every stage that
-    will run has a stored time, so the overall bar says "at least" rather than
-    quoting a guess.
+    How long a `galaxy` or `plan` run with `args` is expected to take: the sum of `stage_estimates`, `None`
+    unless every stage that will run has a stored time, so the overall bar says "about" only when it knows.
     """
-    from planetgen.generation import stats
-
-    total = 0.0
-    found = for_command(command, args)
-    if not found:
+    found = stage_estimates(conn, command, args)
+    if not found or any(seconds is None for seconds in found):
         return None
-    for stage in found:
-        if stage.skip:
-            continue
-        seconds = stats.stage_seconds(conn, stage.key, stage_settings(stage.key, args))
-        if seconds is None:
-            return None
-        total += seconds
-    return total
+    return sum(found)

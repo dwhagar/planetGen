@@ -289,6 +289,8 @@ def get_job(job_id, root=None):
         "stages": stages,
         "step_started_at": state.get("step_started_at"),
         "step_estimates": state.get("step_estimates") or [],
+        "stage_estimates": state.get("stage_estimates") or [],
+        "step_first_stage": next((stage["n"] for stage in stages if stage["step"] == step), step),
         "started_at": started,
         "finished_at": finished,
         "elapsed_s": ((finished or now) - started) if started else None,

@@ -313,3 +313,93 @@ def test_the_generation_display_carries_the_overall_bar_and_stops_updating_it(mo
         stages.finish()
     with run_common._generation_progress() as plain:
         assert plain.tasks == [] and plain.overall_stop is None
+
+
+# --- PERF.65 / PERF.66: one total for steps and stages, and the whole job's time left --------
+
+def test_a_web_jobs_stages_are_numbered_across_the_whole_job(monkeypatch):
+    lines = []
+    monkeypatch.setattr(log, "normal", lambda message, *a, **k: lines.append(message))
+    monkeypatch.setenv(stages.STAGE_OFFSET_ENV, "3")
+    monkeypatch.setenv(stages.STAGE_TOTAL_ENV, "12")
+    stages.begin(stages.galaxy_stages(_galaxy("--then-scatter")))
+    stages.enter("start")
+    stages.enter("settle")
+    stages.finish()
+    text = "\n".join(lines)
+    assert text.startswith("9 stages (stages 4 to 12 of 12): 4. Generate the starting sector;")
+    assert "Stage 4 of 12: Generate the starting sector." in text
+    assert "Stage 5 of 12: Generate the neighborhood -- skipped: not needed." in text
+    assert "Stage 12 of 12: Save the sector paths." in text
+
+
+def test_a_run_on_its_own_counts_its_own_stages(monkeypatch):
+    lines = []
+    monkeypatch.setattr(log, "normal", lambda message, *a, **k: lines.append(message))
+    monkeypatch.delenv(stages.STAGE_OFFSET_ENV, raising=False)
+    monkeypatch.delenv(stages.STAGE_TOTAL_ENV, raising=False)
+    stages.begin(stages.plan_stages(_plan("--phenomena-only")))
+    stages.enter("phenomena")
+    stages.finish()
+    assert lines[0] == "1 stage: 1. Scatter the phenomena." and "Stage 1 of 1:" in lines[1]
+
+
+def test_a_total_too_small_for_the_runs_stages_is_ignored(monkeypatch):
+    monkeypatch.setenv(stages.STAGE_OFFSET_ENV, "8")
+    monkeypatch.setenv(stages.STAGE_TOTAL_ENV, "9")
+    stages.begin(stages.galaxy_stages(_galaxy("--then-scatter")))
+    try:
+        assert stages._numbering() == (0, 9)
+    finally:
+        stages.finish()
+
+
+def test_the_runner_and_the_stages_agree_on_the_variables_that_number_a_jobs_stages():
+    from planetgen.web import job_runner
+    assert (job_runner.STAGE_OFFSET_ENV, job_runner.STAGE_TOTAL_ENV) == (stages.STAGE_OFFSET_ENV, stages.STAGE_TOTAL_ENV)
+
+
+def test_the_new_galaxy_log_counts_twelve_tasks_not_four(tmp_path):
+    """Boss's sample: a New galaxy job printed "Step 1 of 4" for a job of 12 stages."""
+    import sys
+    from planetgen.web import job_runner
+    steps = _steps("new_galaxy", {"confirm": "db"})
+    shown = [{"label": step["label"], "stages": step["stages"],
+              "argv": [sys.executable, "-c", "import os; print(os.environ['PLANETGEN_STAGE_OFFSET'], os.environ['PLANETGEN_STAGE_TOTAL'])"]}
+             for step in steps]
+    counts = job_runner._step_stage_counts(shown)
+    assert counts == [1, 1, 1, 9] and sum(counts) == 12
+    headings = [job_runner._step_heading(sum(counts[:i]) + 1, count, sum(counts)) for i, count in enumerate(counts)]
+    assert headings == ["Step 1 of 12", "Step 2 of 12", "Step 3 of 12", "Steps 4 to 12 of 12"]
+    job_dir = tmp_path / "jobs" / "20261010-120000-abcd"
+    job_dir.mkdir(parents=True)
+    (job_dir / "job.json").write_text(json.dumps({
+        "id": job_dir.name, "kind": "new_galaxy", "title": "New galaxy", "database": "db", "created_at": 0,
+        "cwd": str(tmp_path), "env": {}, "steps": shown}))
+    assert job_runner.run(str(job_dir)) == 0
+    log_text = (job_dir / "output.log").read_text()
+    assert "=== Step 1 of 12: " in log_text and "=== Step 3 of 12: " in log_text
+    assert "=== Steps 4 to 12 of 12: " in log_text and "of 4" not in log_text
+    assert "=== Steps 4 to 12 exited with status 0" in log_text
+    assert "\n3 12\n" in log_text      # the last step's process was told its stages start at 4 of 12
+
+
+def test_the_command_line_bar_never_shows_the_running_stages_time_as_the_whole_jobs_until_the_last(monkeypatch):
+    monkeypatch.delenv(progress_file.ENV_VAR, raising=False)
+    stages.begin(stages.plan_stages(_plan()))
+    try:
+        clock = stages._state["overall"]["t0"]
+        assert stages.overall_progress(clock + 30.0)[2] is None          # nothing finished, nothing to average
+        stages.enter("skeleton")
+        stages.enter("phenomena")
+        stages._state["job_seconds"], stages._state["ran"] = 20.0, 1       # one stage took 20 s
+        # Stage 2 of 4 is 25 s old: the time left counts 2 more stages at the 20 s average.
+        total = stages.overall_progress(clock + 45.0)[2]
+        assert total == pytest.approx(20.0 + 25.0 + 2 * 20.0)
+        stages.enter("luminosity")
+        stages._state["job_seconds"], stages._state["ran"] = 60.0, 3
+        # The last stage, 10 s in: nothing after it, so the time left is its own.
+        total = stages.overall_progress(clock + 70.0)[2]
+        assert total == pytest.approx(max(60.0 + max(20.0, 10.0), 70.0 * stages.OVERALL_MARGIN))
+    finally:
+        stages.finish()
