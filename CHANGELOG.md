@@ -3,6 +3,7 @@
 ## [8.0.866] - 2026-10-10
 
 ### Changed
+- The TODO list records that Boss accepted the 20 solar mass cut for the phenomenon scatter (DB.19, GEN.166 to GEN.168), and the execution plan moves those items to the front of Foundations lane 2.
 - The TODO list retires GEN.137, NAV.53, OPS.33, UX.79 and UX.80 (PR #843).
 - The TODO list retires NAV.12 (unbounded routes, PR #838) and PERF.42 (warm queue worker, PR #841).
 - The queue worker loads the generation code and the bright-star sampling tables once, before it forks a work horse per job, so each job no longer spends about 2.6 s importing and rebuilding them (PERF.42). A worker also restarts itself when an update changes the release.
