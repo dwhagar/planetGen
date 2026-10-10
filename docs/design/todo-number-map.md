@@ -460,7 +460,7 @@ Parents marked "new parent" had no old number of their own.
 | API.20 | `require_json_body` returns 500 for a deeply nested JSON body (bug) | none | done, PR #865 |
 | API.21 | Flask-Limiter puts `Retry-After` on successful responses (bug) | none | done, PR #865 |
 | API.22 | An API version number: one sequential integer, shown in admin and in the status response | none | done, PR #1119 |
-| API.23 | The object ID as the public reference: pages, URLs, the API, wiki links and objectref use it in place of row ids | none | open |
+| API.23 | The object ID as the public reference: pages, URLs, the API, wiki links and objectref use it in place of row ids | none | done, PR #1133 |
 | DB.1 | Starbases, colonies and outposts in the database | 30 (2026-09-30 18:14Z); 35 (2026-09-30 18:39Z to 2026-10-01 02:24Z) | done in 7.35.0, PR #152 |
 | DB.2 | Asteroid field and comet composition rows are written but never read (bug) | none | done, PR #347 |
 | DB.3 | resetDb while another process holds id blocks can duplicate primary keys (bug) | none | done, PR #347 |
@@ -499,7 +499,7 @@ Parents marked "new parent" had no old number of their own.
 | DOC.14 | The admin help pages: the queue, the stats page, settings, lockouts and the naming key | none | open |
 | DOC.15 | A glossary and units help page: coordinates, scales, sector paths, object IDs, time and the in-universe wording | none | open |
 | DOC.16 | The API help page for visitors: what the API is, how to get a key, and where the reference lives | none | open |
-| DOC.17 | Describe the object ID in api.md | none | open |
+| DOC.17 | Describe the object ID in api.md | none | done, PR #1133 |
 | GEN.1 | Real-world rates for interstellar objects | 5 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.2 | Rogue planet mass bins | 6 (2026-09-30 18:14Z to 23:21Z) | done in 7.18.0, PR #136 |
 | GEN.3 | A supermassive black hole in every galaxy | 7 (2026-09-30 18:14Z to 22:54Z) | done in 7.15.0, PR #132 |

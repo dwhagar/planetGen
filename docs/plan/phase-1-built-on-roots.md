@@ -172,8 +172,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | API.15 | Log every API call with its user, how it came in, and its HTTP response code |  | Needs no user accounts (Boss 01:31Z). |
 | API.4 | API compatibility data in the docs |  | Docs and version number. |
-| API.23 | The object ID as the public reference: pages, URLs, the API, wiki links and objectref use it in place of row ids |  | Object-ID research. Breaking: bumps the API version (API.22). |
-| DOC.17 | Describe the object ID in api.md | API.23 |  |
 | API.7 | Investigate and plan upload limits |  | Plan only. |
 
 ### Reproducible galaxies
