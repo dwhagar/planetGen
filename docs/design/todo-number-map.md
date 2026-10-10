@@ -16,13 +16,13 @@ release is stamped.
 | UX | UX.87 |
 | MAP | MAP.162 |
 | NAV | NAV.58 |
-| GEN | GEN.179 |
+| GEN | GEN.182 |
 | PERF | PERF.52 |
 | DB | DB.22 |
 | API | API.24 |
 | ADM | ADM.49 |
 | SEC | SEC.33 |
-| TEST | TEST.113 |
+| TEST | TEST.114 |
 | USR | USR.10 |
 | OPS | OPS.38 |
 | DOC | DOC.17 |
@@ -592,7 +592,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.93 | Nebula conditions in planet generation | none | open |
 | GEN.94 | Feasibility study: can planets form in each nebula class, and what changes | none | done, PR #823 |
 | GEN.95 | Nebula conditions applied when planets and surfaces are generated | none | open |
-| GEN.96 | Generation directives for a sector (an override button) | none | open |
+| GEN.96 | Generation directives for a sector (an override button) | none | done, PR #915 |
 | GEN.97 | Generate N random neighborhoods | none | open |
 | GEN.98 | Bright-star backfill from the farthest generated boundary outward | none | done, PR #795 |
 | GEN.99 | Nebula volume backfill with the star types the nebula needs | none | open |
@@ -675,6 +675,9 @@ Parents marked "new parent" had no old number of their own.
 | GEN.176 | A nebula or remnant is born in the sector holding the centre of the space it occupies | none | open |
 | GEN.177 | Planetary magnetic fields: a stagnant-lid factor | none | open |
 | GEN.178 | Magnetic fields: the induced field of an ocean moon | none | open |
+| GEN.179 | Store each sector's generation directive and attempt record with the sector | none | open |
+| GEN.180 | Directives: a forced fill (met_forced) after K failed draws | none | open |
+| GEN.181 | Directives: refuse impossible requests up front from the compound-Poisson tables | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -1328,6 +1331,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.110 | Object ID tests: identical IDs on 1 and 4 workers, none reused, none missing | none | open |
 | TEST.111 | test_ensure_sector_generated_creates_then_reuses_the_same_sector fails in a busy parallel run (bug) | none | open |
 | TEST.112 | test_regenerate_phenomenon_keeps_id_name_and_place fails now and then in the full suite (bug) | none | open |
+| TEST.113 | tests/js/generatejobs.test.mjs fails on main: "asks for the job's status two seconds in" (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

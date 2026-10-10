@@ -112,7 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, NAV.11, NAV.42, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.57, TEST.77, UX.49, PERF.31, GEN.128 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.97, ADM.28, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, NAV.11, NAV.42, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.57, TEST.77, UX.49, PERF.31, GEN.128 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.17, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18, PERF.33, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, DB.15, ADM.43, ADM.44 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, and the anomalies chosen in phase 2. | NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, GEN.114, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies. | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, GEN.55 |
@@ -2182,25 +2182,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     Prerequisite: GEN.89.
     Design: [docs/design/nebula-and-asteroid-field-classes.md](design/nebula-and-asteroid-field-classes.md)
 
-- [ ] **GEN.96 Generation directives for a sector (an override button)**
-  Boss (2026-10-03 05:38Z): "When generating a sector should have the
-  ability to click an override button and give directive (must have a
-  certain density, must have at least x types of x stars, needs to have
-  at least x habitable worlds within the sector, etc etc)." Done: an
-  Override button on sector generation opens directives (density, at
-  least N stars of a type, at least N habitable worlds and the like);
-  the run draws until they hold or reports which it couldn't meet;
-  `generate.py` takes the same as `--directive`.
-  Research (2026-10-09, sampling-backfill-and-resume.md): attempt number
-  and directive digest in the seed key (attempt 0 is the plain sector);
-  a stored record per directive sector for DB.17's repair; an up-front
-  impossibility check from the compound-Poisson table; the exact
-  truncated-Poisson route for star-count and star-type directives; a
-  `--directive` result status enum (`met_naturally`,
-  `met_after_k_attempts`, `met_forced`, `unmet`); generate attempts in
-  memory and save once. Open question for Boss (default): after K = 200
-  attempts save the best and report `unmet`; `--strict` saves nothing.
-
 - [ ] **GEN.97 Generate N random neighborhoods**
   Boss (2026-10-03 05:38Z): "Add the ability to tell the system to
   produce x number of random neighborhoods in the generation process."
@@ -3230,6 +3211,29 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Europa-like moon of a gas giant).
   Prerequisite: GEN.88. Related: GEN.86.
 
+- [ ] **GEN.179 Store each sector's generation directive and attempt record with the sector**
+  Left over from GEN.96 (PR #915, Foundations lane 1). Done: the
+  directive a sector was generated under and the record of its attempts
+  are saved with the sector (a schema migration, numbered after the
+  migrations already in flight), so the sector page and the check can
+  show what was asked and what was drawn.
+  Prerequisites: none. Related: GEN.96, GEN.97.
+
+- [ ] **GEN.180 Directives: a forced fill (met_forced) after K failed draws**
+  Left over from GEN.96 (PR #915, Foundations lane 1). Done: when a
+  directive is not met after K draws (K set in tuning.py), the generator
+  takes the fallback fill marked `met_forced` instead of failing or
+  looping, and the result says it was forced; a test covers a directive
+  that cannot be met by drawing.
+  Prerequisites: none. Related: GEN.96.
+
+- [ ] **GEN.181 Directives: refuse impossible requests up front from the compound-Poisson tables**
+  Left over from GEN.96 (PR #915, Foundations lane 1). Done: before any
+  drawing, a directive whose requested mix cannot occur in the sector
+  (judged from the compound-Poisson tables) is refused with the reason,
+  in the Generate page and the CLI.
+  Prerequisites: none. Related: GEN.96, GEN.180.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.18 Run the GEN.30 bright-star backfill in parallel on the work queue**
@@ -4015,7 +4019,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   `seed_used` rule. Existing routes keep 400 (open question for Boss,
   default: only recipes and uploads move to 422). The
   `require_json_body` depth fix is a prerequisite.
-  Prerequisites: GEN.96, API.9.
+  Prerequisite: API.9.
 
 - [ ] **API.19 Galaxy-scale recipes: build a whole galaxy, piece by piece, from JSON**
   Boss (2026-10-07 11:47Z): "The idea is that one could go so far as to
@@ -4339,6 +4343,16 @@ clears each one.
   product bug it hides is fixed. Bugfixes lane 1 or whichever lane
   touches regeneration next.
   Prerequisites: none. Related: TEST.111, TEST.71, TEST.73, OPS.19.
+
+- [ ] **TEST.113 tests/js/generatejobs.test.mjs fails on main: "asks for the job's status two seconds in" (bug)**
+  Reported by Foundations lane 1 (2026-10-10 00:58Z), unrelated to PR
+  #915: the case "asks for the job's status two seconds in" expects
+  "about 36 s left" and gets an empty string. Likely from the new ETA
+  range text of PERF.33 (PR #910), which shows "estimating" early in a
+  job. Done: the cause is found and the test or the page is fixed so
+  main's CI passes, without skipping or loosening the test. Bugfixes
+  lane 1, with the main CI errors Boss asked it to fix after PERF.51.
+  Prerequisites: none. Related: PERF.33, TEST.111.
 
 ## USR: User accounts
 
