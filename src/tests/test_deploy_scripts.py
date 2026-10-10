@@ -522,3 +522,53 @@ def test_every_macos_plist_is_well_formed_xml():
     for path in plists:
         with open(path, "rb") as handle:
             assert isinstance(plistlib.load(handle), dict), path
+
+
+# --- scripts only reach for files that exist --------------------------------
+
+def test_the_log_location_check_runs_against_this_checkout(tmp_path):
+    """The inline Python in setup-debug-log.sh, run exactly as the script runs it
+    (isolated, from `/`, loading the settings code by its path): it loaded the
+    deleted util/appconfig.py and every update printed "couldn't work out where
+    the logs go" while nothing in the suite noticed."""
+    text = _read("setup-debug-log.sh")
+    code = text.split("<<'PY'\n", 1)[1].split("\nPY\n", 1)[0]
+    env = {k: v for k, v in os.environ.items() if not k.startswith("PLANETGEN_")}
+    result = subprocess.run([sys.executable, "-I", "-", REPO_DIR], input=code, cwd="/", env=env,
+                            capture_output=True, text=True, check=False)
+    assert result.returncode == 0, result.stderr
+    first, second = result.stdout.splitlines()
+    assert first.split(" ", 1)[0] in ("0", "1")
+    assert first.split(" ", 1)[1].endswith(".log") and second.endswith(".log")
+
+
+def _tracked_scripts():
+    tracked = subprocess.run(["git", "ls-files", "*.sh", "*.py"], cwd=REPO_DIR, capture_output=True,
+                             text=True, check=False).stdout.split()
+    return [p for p in tracked if p in ("install.sh", "update.sh") or p.startswith(("scripts/", "examples/"))]
+
+
+def test_scripts_only_name_repo_paths_that_exist():
+    """Any `src/...`, `scripts/...`, `examples/...`, `db/...` file a deploy script names, and any
+    os.path.join(..., "src", "planetgen", ...) it builds, must exist in the checkout (a moved or
+    deleted module left setup-debug-log.sh pointing at nothing)."""
+    import re
+
+    scripts = _tracked_scripts()
+    if not scripts:
+        pytest.skip("not a git checkout")
+    literal = re.compile(r"""(?<![\w./-])((?:src|scripts|examples|db)/[\w./-]*\.(?:py|sh|sql|json|conf|plist|service|timer)(?:\.example)?)(?![\w-])""")
+    joined = re.compile(r'"src"((?:,\s*"[\w.-]+")+)')
+    missing = []
+    for rel in scripts:
+        with open(os.path.join(REPO_DIR, rel), encoding="utf-8") as f:
+            text = f.read()
+        for m in literal.finditer(text):
+            if "*" not in m.group(1) and not os.path.exists(os.path.join(REPO_DIR, m.group(1))):
+                missing.append(f"{rel}: {m.group(1)}")
+        for m in joined.finditer(text):
+            parts = re.findall(r'"([\w.-]+)"', m.group(1))
+            path = os.path.join("src", *parts)
+            if not os.path.exists(os.path.join(REPO_DIR, path)):
+                missing.append(f"{rel}: {path}")
+    assert not missing, "\n".join(missing)
