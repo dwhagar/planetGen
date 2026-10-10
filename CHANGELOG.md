@@ -3,6 +3,7 @@
 ## [8.0.911] - 2026-10-10
 
 ### Changed
+- A map Menu whose content arrives after it opens (the Galaxy Map's kinds and star filters) is placed again when it grows, so it no longer hangs over its own button. Menus opened above their button covered the button when the content was late.
 - The default luminosity floor (GEN.184) is now 5,000 solar luminosities (was 3,000) and the default mass limit for massive stars and phenomena (GEN.183) is now 8 solar masses (was 20, the bottom preset). Both are still on their preset lists and the ranges are unchanged. A galaxy already scattered keeps the levels it was scattered at.
 - **Docs only:** PERF.53 (timing stats skewed by empty layers and sectors) is filed.
 - **Docs only:** MAP.153 (rank birth-radius fade, PR #998) is retired; GEN.189 files gamma-ray burst and AGN ozone loss as a Phase 2 item.
