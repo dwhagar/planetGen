@@ -801,7 +801,15 @@ v7 adds columns, see below):
   `expires_at`, a fixed lifetime set at creation, no sliding renewal).
 - **`admin_api_keys`** — API keys for programmatic callers (`key_hash`,
   same "hash only, never the raw key" treatment; `revoked_at` rather than
-  a hard delete, so a revoked key's history stays visible).
+  a hard delete, so a revoked key's history stays visible; `key_prefix`,
+  its first eight characters, tells keys apart without the key;
+  `expires_at` makes a key stop working, like a revoked one — control
+  schema v13, API.9).
+- **`admin_api_key_scopes`** — what each key may do: one row per
+  `(key_id, scope)` with `scope` one of `read`, `generate`, `upload`,
+  `admin` (`admin` implies all; `generate` and `upload` imply `read`).
+  Rows go with their key (`ON DELETE CASCADE`); keys made before v13 were
+  given `admin`. No CHECK on `scope`, so a new scope needs no migration.
 - **`admin_audit_log`** — one row per write/admin action (`admin_user_id`
   + a denormalized `admin_username` snapshot, `action`, `target`,
   `detail`, `created_at`) — written by `planetgen/api/routes.py`'s write
@@ -966,7 +974,6 @@ Control schema:
 | API.15 | 0 | Every API call logged: time, route, account (the key's owner, the signed-in admin, or "god" for the console), how it came in (API key, web session or console) and the HTTP response code. Where the rows are kept is settled when it is built. |
 | GEN.70 | 0 | The galaxy's naming key, drawn at creation and changeable by an admin. |
 | OPS.13 | 1 | A version-key history table: one row per galaxy per update with the galaxy seed, the version key, SHA-256 hashes of the lock files, and the date (the nltk corpus and name-list hashes are dropped with GEN.71); only the last 10 rows per galaxy are kept. OPS.15 (phase 2) adds the fingerprint of a small fixed region to each row. |
-| API.9 | 1 | `admin_api_keys` gains a scope column (read, admin, upload). |
 | USR.2, USR.4, USR.7, NAV.19 | 3+ | Accounts with roles, invite links, per-account bookmarks and `user_courses`. |
 
 ## Tables

@@ -249,6 +249,8 @@ def _register_error_handlers(app):
         body = {"error": exc.message}
         if exc.errors:
             body["errors"] = exc.errors
+        if exc.extra:
+            body.update(exc.extra)
         return jsonify(body), exc.status_code
 
     from planetgen.web.errors import TIMEOUT_MESSAGE, render_error, unexpected_error_message

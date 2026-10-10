@@ -23,6 +23,31 @@ SESSION_COOKIE_NAME = "pg_admin_session"
 _BEARER_PREFIX = "Bearer "
 
 
+def api_key_admin(raw_key):
+    """
+    `adminAuth.validate_api_key` for `raw_key`, looked up once per request:
+    the rate limiter asks before `require_admin` does, and both get the
+    same answer (API.9).
+    """
+    cached = getattr(g, "_api_key_lookup", None)
+    if cached is not None and cached[0] == raw_key:
+        return cached[1]
+    admin = adminAuth.validate_api_key(get_control_db(), raw_key)
+    g._api_key_lookup = (raw_key, admin)
+    return admin
+
+
+def request_api_key_id():
+    """The id of the valid API key this request carries, else `None`
+    (no `Authorization: Bearer` header, or a key that doesn't work). Used
+    by the rate limiter, which runs before `require_admin`."""
+    header = request.headers.get("Authorization", "")
+    if not header.startswith(_BEARER_PREFIX):
+        return None
+    admin = api_key_admin(header[len(_BEARER_PREFIX):].strip())
+    return admin["api_key_id"] if admin else None
+
+
 def _current_admin():
     """
     Resolves the calling admin, if any: an `Authorization: Bearer <key>`
@@ -37,12 +62,11 @@ def _current_admin():
     conn = get_control_db()
     auth_header = request.headers.get("Authorization", "")
     if auth_header.startswith(_BEARER_PREFIX):
-        raw_key = auth_header[len(_BEARER_PREFIX):].strip()
-        return adminAuth.validate_api_key(conn, raw_key)
+        return api_key_admin(auth_header[len(_BEARER_PREFIX):].strip())
     return adminAuth.validate_session(conn, request.cookies.get(SESSION_COOKIE_NAME))
 
 
-def require_admin(fresh=False, session_only=False):
+def require_admin(fresh=False, session_only=False, scope="admin"):
     """
     Route decorator: requires a valid session cookie or API key, storing
     the resolved admin on `g.admin_user` for the view (and for `audit`
@@ -63,10 +87,14 @@ def require_admin(fresh=False, session_only=False):
             two-factor sign-in, logging out), so it needs a signed-in
             browser session (TEST.44). Otherwise a leaked key could mint
             a fresh key and outlive its own revocation.
+        scope (str): The scope an API key must hold (API.9; `adminAuth.SCOPES`,
+            where `admin` implies all and `generate` and `upload` imply
+            `read`). A signed-in admin has every scope. Every route that
+            changes anything needs `admin` unless it says otherwise.
 
     Raises (at request time, via `ApiError`):
         401: No valid session/API key.
-        403: `fresh=True` and the admin still has the default,
+        403: The key lacks `scope`; `fresh=True` and the admin still has the default,
             never-rotated credentials; or `session_only=True` and the
             caller used an API key.
     """
@@ -85,6 +113,13 @@ def require_admin(fresh=False, session_only=False):
                           f"the account (403)")
                 activity_log.event("AUTHZ", "apikey.refused", user=admin["username"], path=request.path)
                 raise ApiError("an API key can't do this; sign in with your password instead", status_code=403)
+            if bearer and not adminAuth.scope_allows(admin["api_scopes"], scope):
+                log.debug(f"Access to {request.path} denied for {admin['username']!r}: the key lacks the "
+                          f"{scope!r} scope (403)")
+                activity_log.event("AUTHZ", "apikey.scope", user=admin["username"], path=request.path,
+                                   key_id=admin["api_key_id"], key_prefix=admin["api_key_prefix"], required=scope)
+                raise ApiError(f"this key lacks the '{scope}' scope", status_code=403,
+                               extra={"required_scope": scope})
             if fresh and admin["must_change_credentials"]:
                 log.debug(f"Access to {request.path} denied for {admin['username']!r}: default credentials "
                           f"not changed yet (403)")
@@ -95,11 +130,12 @@ def require_admin(fresh=False, session_only=False):
                     status_code=403,
                 )
             g.admin_user = admin
+            g.api_key_id = admin["api_key_id"] if bearer else None
             log.debug(f"Access to {request.path} granted to admin {admin['username']!r} via {via}")
             return view(*args, **kwargs)
         # Read by the route sweep test (tests/test_api_auth_sweep.py) so
         # a new route can't quietly skip the check.
-        wrapped.admin_required = {"fresh": fresh, "session_only": session_only}
+        wrapped.admin_required = {"fresh": fresh, "session_only": session_only, "scope": scope}
         return wrapped
     return decorator
 

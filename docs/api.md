@@ -727,16 +727,31 @@ forced credential change. They back the admin stats page
   the route is limited to 10/minute/IP like login. On success every one of that
   admin's sessions ends (other browsers are logged out) and the caller
   gets a fresh session cookie; API keys keep working.
-- `GET /api/auth/api-keys` — the calling admin's own API keys (label/
-  timestamps only, never the key or its hash).
-- `POST /api/auth/api-keys` `{"label"}` — creates a key, returning
-  `{"id", "label", "key"}`. `key` is the raw value, shown exactly once.
+- `GET /api/auth/api-keys` — the calling admin's own API keys (label,
+  `key_prefix` (its first eight characters), `scopes`, timestamps and
+  `expires_at`; never the key or its hash).
+- `POST /api/auth/api-keys` `{"label", "scopes"?, "expires_days"?}` —
+  creates a key, returning `{"id", "label", "scopes", "expires_days",
+  "key"}`. `key` is the raw value, shown exactly once. `scopes` are from
+  `read`, `generate`, `upload` and `admin` and default to `["admin"]`;
+  `expires_days` (more than 0, at most 3650) defaults to never, and an
+  expired key answers `401` like a revoked one.
 - `DELETE /api/auth/api-keys/<id>` — revokes one of the calling admin's
   own keys.
 
 Authenticate either with the session cookie (set by `/api/auth/login`,
 used by the `../src/html/` admin pages) or an API key, sent as
 `Authorization: Bearer <key>`, for programmatic callers.
+A key holds scopes (API.9): `admin` does everything below except the
+account routes, `generate` and `upload` each include `read`, and `read`
+reads who the key is (`/api/auth/me`) and a queued job's state
+(`/api/jobs/<id>`). A route the key's scopes don't reach answers `403
+{"error": "this key lacks the 'admin' scope", "required_scope":
+"admin"}`. Every route that changes anything needs `admin` until the
+upload and generate routes (API.18, API.12) exist. Each key has a rate
+limit bucket of its own, and the per-address defaults do not apply to a
+valid key.
+
 An API key can do anything a signed-in admin can except manage the
 account: making API keys, changing credentials, setting up, confirming
 or turning off two-factor sign-in and logging out answer `403` to a key
@@ -1412,8 +1427,6 @@ items and their full text are in `docs/TODO.md`, and the phases in
   carries a flag saying whether its line crosses unfilled (unknown)
   sectors. Travel times per hop and for the route follow (NAV.11). See
   [`design/course-routing.md`](design/course-routing.md).
-- **Key scopes (API.9, phase 1).** API keys get a scope: read, admin or
-  upload.
 - **Remote generation (API.3 and its parts, phases 2 and 3).** The
   download of the seed, skeleton and naming key (API.12), run
   reservations (API.10), staging tables (API.11), compressed batch

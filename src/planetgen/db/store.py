@@ -188,7 +188,7 @@ collision renames an existing system, which the holder's nearest-neighbor
 rows then reference) neither would move until InnoDB's own 50 s timeout.
 Giving up early breaks that wait at once."""
 
-CONTROL_SCHEMA_VERSION = 12
+CONTROL_SCHEMA_VERSION = 13
 """int: Version counter for `control_schema.sql`, independent of
 `SCHEMA_VERSION` above -- see that file's header comment for why the
 control plane (admin identities/sessions/API keys/audit log) is a
@@ -213,6 +213,10 @@ _CONTROL_COLUMNS = {
         ("web_job_id", "VARCHAR(32) NULL"),
         ("database_name", "VARCHAR(64) NULL"),
         ("control", "VARCHAR(16) NULL"),
+    ],
+    "admin_api_keys": [
+        ("key_prefix", "CHAR(8) NULL"),
+        ("expires_at", "TIMESTAMP NULL"),
     ],
     "work_lease": [
         ("paused", "TINYINT(1) NOT NULL DEFAULT 0"),
@@ -1575,12 +1579,23 @@ def _apply_control_schema(conn):
     _retire_control_json_columns(conn)
 
     row = conn.execute("SELECT MAX(version) AS v FROM control_schema_migrations").fetchone()
+    if row["v"] is not None and row["v"] < 13:
+        _grandfather_api_key_scopes(conn)
     if row["v"] is None or row["v"] < CONTROL_SCHEMA_VERSION:
         conn.execute("INSERT INTO control_schema_migrations (version) VALUES (?)", (CONTROL_SCHEMA_VERSION,))
         conn.commit()
         if row["v"] is not None:
             activity_log.event("DB", "migrate", db=configured_control_database(), from_version=row["v"],
                               to_version=CONTROL_SCHEMA_VERSION)
+
+
+def _grandfather_api_key_scopes(conn):
+    """
+    v13 (API.9): every API key made before scopes existed was an admin key,
+    so each gets the `admin` scope (which implies all the others).
+    """
+    conn.execute("INSERT IGNORE INTO admin_api_key_scopes (key_id, scope) SELECT id, 'admin' FROM admin_api_keys")
+    conn.commit()
 
 
 def _drop_old_generation_stats(conn):

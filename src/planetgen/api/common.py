@@ -29,13 +29,16 @@ class ApiError(Exception):
     same way.
     """
 
-    def __init__(self, message, status_code=400, errors=None):
+    def __init__(self, message, status_code=400, errors=None, extra=None):
         super().__init__(message)
         self.message = message
         self.status_code = status_code
         self.errors = errors
         """list of dict, optional: One `{"field", "message"}` per problem
         when a request body failed several checks at once (ADM.21)."""
+        self.extra = extra
+        """dict, optional: More keys for the error body (the scope a key
+        lacked, API.9)."""
 
 
 def request_json():

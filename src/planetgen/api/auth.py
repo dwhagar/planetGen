@@ -259,7 +259,7 @@ def logout():
 
 
 @bp.route("/me")
-@require_admin()
+@require_admin(scope="read")
 def me():
     """`GET /api/auth/me` -- the calling admin's identity, for the web UI
     (and any API-key caller) to check who's logged in and whether
@@ -433,6 +433,9 @@ def list_api_keys():
             "created_at": row["created_at"].isoformat() + "Z" if row["created_at"] else None,
             "last_used_at": row["last_used_at"].isoformat() + "Z" if row["last_used_at"] else None,
             "revoked_at": row["revoked_at"].isoformat() + "Z" if row["revoked_at"] else None,
+            "key_prefix": row["key_prefix"],
+            "scopes": row["scopes"],
+            "expires_at": row["expires_at"].isoformat() + "Z" if row["expires_at"] else None,
         }
         for row in rows
     ]})
@@ -442,16 +445,23 @@ def list_api_keys():
 @require_admin(fresh=True, session_only=True)
 def create_api_key():
     """
-    `POST /api/auth/api-keys` `{"label": str}` -> `{"id", "label", "key"}`.
-    `key` is the raw API key, returned exactly this once -- only its hash
+    `POST /api/auth/api-keys` `{"label": str, "scopes": [...]?, "expires_days": n?}`
+    -> `{"id", "label", "scopes", "expires_days", "key"}`. `scopes` are from
+    `adminAuth.SCOPES` and default to `["admin"]`; `expires_days` defaults to
+    never. `key` is the raw API key, returned exactly this once -- only its hash
     is ever persisted (see `adminAuth.create_api_key`), so a caller that
     loses it has no way to recover it and must revoke and create another.
     """
-    label = parse_body(ApiKeyCreate, require_json_body()).label
+    body = parse_body(ApiKeyCreate, require_json_body())
+    label = body.label
+    scopes = tuple(body.scopes or ("admin",))
 
-    key_id, raw_key = adminAuth.create_api_key(get_control_db(), g.admin_user["id"], label)
-    activity_log.event("AUTH", "apikey.create", user=g.admin_user["username"], key_id=key_id, label=label)
-    return jsonify({"id": key_id, "label": label, "key": raw_key}), 201
+    key_id, raw_key = adminAuth.create_api_key(get_control_db(), g.admin_user["id"], label, scopes=scopes,
+                                               expires_days=body.expires_days)
+    activity_log.event("AUTH", "apikey.create", user=g.admin_user["username"], key_id=key_id, label=label,
+                       scopes=",".join(scopes), expires_days=body.expires_days)
+    return jsonify({"id": key_id, "label": label, "scopes": list(scopes), "expires_days": body.expires_days,
+                    "key": raw_key}), 201
 
 
 @bp.route("/api-keys/<int:key_id>", methods=["DELETE"])

@@ -39,7 +39,21 @@
       <label class="search-field">Label
         <input type="text" name="label" placeholder="e.g. galaxy-gen script" required maxlength="200">
       </label>
+      <label class="search-field">Days until it expires
+        <input type="number" name="expires_days" min="1" max="3650" step="any" placeholder="never">
+      </label>
     </div>
+    <fieldset class="generate-mode">
+      <legend>What the key may do</legend>
+      <p class="hint">Admin does everything a signed-in admin can except manage the account. Upload and generate
+      each include read. Pick the least a script needs.</p>
+      <div class="search-fields">
+        <label class="search-field generate-check"><span><input type="checkbox" name="scope" value="read"> Read</span></label>
+        <label class="search-field generate-check"><span><input type="checkbox" name="scope" value="generate"> Generate</span></label>
+        <label class="search-field generate-check"><span><input type="checkbox" name="scope" value="upload"> Upload</span></label>
+        <label class="search-field generate-check"><span><input type="checkbox" name="scope" value="admin" checked> Admin</span></label>
+      </div>
+    </fieldset>
     <div class="search-actions">
       <button type="submit" class="btn">Create key</button>
     </div>
