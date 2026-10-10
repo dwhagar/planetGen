@@ -26,6 +26,7 @@ disclosure button would be a control nested in a control); it opens the
 row's detail instead.
 """
 
+from planetgen.physics.habitability_world import DOMAINS, EQUIPMENT_LABELS
 from planetgen.web.lib.classref import PARABOLIC_COMET_CLASS, class_entry, star_type_classes
 from planetgen.web.lib.fmt import esc, format_distance_km, format_number, format_speed_kms
 from planetgen.web.lib.mdrender import markdown_to_html
@@ -263,6 +264,19 @@ def _stat(text):
     return f'<span class="stat">{text}</span>' if text else ""
 
 
+def _habitability_chip(body):
+    """GEN.89: the equipment a human needs on this body, coloured by its
+    worst PHI-4 domain (Blue to Red), with the score and what limits it in
+    its tooltip; empty for a gas giant or a body saved before v76."""
+    tier = body.get("equipment_tier")
+    if tier is None:
+        return ""
+    worst = max(body.get(f"tier_{domain}") or 0 for domain in DOMAINS)
+    title = f'PHI-4 {body["phi4"]:.2f}. {body.get("hab_note") or ""}'.strip()
+    return (f'<span class="flag flag-tier flag-tier-{worst}" title="{esc(title)}">'
+            f'{esc(EQUIPMENT_LABELS[tier])}</span>')
+
+
 def _gravity_text(gravity_g):
     return f"{round(gravity_g, 3)} g" if gravity_g is not None else ""
 
@@ -289,6 +303,7 @@ def _planet_row_html(body, sections, is_moon=False, class_url=None, by_host=None
         _stat(format_body_distance(body["distance_km"], is_moon)),
         _stat(format_period(body["period_years"]) if body.get("period_years") is not None else ""),
         _stat(_gravity_text(body.get("gravity_g"))),
+        _habitability_chip(body),
     ]
     section = sections["moons" if is_moon else "planets"]
     after_html = ""

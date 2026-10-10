@@ -352,3 +352,43 @@ search-result text): NIOSH and OSHA CO2 and CO values; La Rinconada's pO2; the
 atmospheric-diving-suit depth rating; the 160 kPa CNS limit; the diving lower
 O2 limit (secondary source); Ball and Hallsworth's 73.8 kJ/kg. Source lists for
 the numbers in the two further notes are in those notes.
+
+## 8. The score of every planet and moon (GEN.89, built)
+
+`planetgen/physics/habitability_world.py` turns a rocky body's stored values
+into the `World` that section 2's maths reads and stores 19 columns on
+`planets` and `moons` (schema v76; a gas giant has none). It runs last in a
+body's generation and again when `refresh_containment` changes the dose, from
+the row alone. Every rule below is a planetGen default, not a source's number.
+
+| Input | Rule |
+|---|---|
+| Pressure, temperature, gravity | As stored (`atmospheric_pressure_pa`, `surface_temperature_k`, `gravity_g`). |
+| Gases | Each of O2, CO2, CO, H2S and SO2 as its partial pressure over the total; the balance gas only counts toward the total. |
+| Relative humidity | `p_h2o_kpa` over water's saturation pressure at the surface temperature (Magnus formula, clamped to -45 to 60 C), limited to 5 to 99%. |
+| Solvent | Water for a surface ocean, a Hycean ocean or an ocean under ice; liquid hydrocarbon when CH4 is at 98% of its vapour pressure and the surface is at most 190 K (a Titan); else none, which zeroes `l_solv`. Sulfuric acid is not generated yet. |
+| pH, water activity | The ocean's stored `ocean_ph` and `water_activity`. A chloride brine is chaotropic: 200 kJ/kg per unit of water activity below 1 (70 to 140 kJ/kg across its 0.65 to 0.30), past the 73.8 kJ/kg limit for the saltiest. |
+| Inventories (C, N, H) | Hydrogen is the water, `water_mass_fraction` x mass over Earth's 1.4e21 kg of ocean. Carbon and nitrogen are at least as much (volatiles arrive with water) or the air's own carbon (CO2 + CO + CH4, against Earth's 7.5e19 kg) or nitrogen (N2, against 4.0e18 kg) when more. |
+| Phosphate | The ocean's `phosphorus` class: high 1000, limited 2.3 (Earth's), starved 0.01 umol/L; a methane sea takes 2.3 (the term has no non-aqueous model); no liquid, 0. |
+| Energy | A surface liquid: the greater of 6% of the starlight (1361 W/m2 gives Earth's 80 of usable light) and 1% of the body's heat flow (Earth's 0.09 W/m2 gives 9e-4, inside the radiolytic 1e-4 to 1e-3). An ocean under ice: the heat flow's 1% only. Tides are not counted. Stored as `energy_flux_w_m2`. |
+| Dose | `surface_dose_msv_yr` in Sv/yr; an ocean under ice sees only `dose_ground_msv_yr`. |
+| Water source for a base | Liquid at a surface ocean, ice for an icy surface or ice lid, vapour for a steam world, hydrated minerals for a dry body with 1e-5 or more water by mass, else vapour in the air, else none. |
+
+**Equipment.** `equipment_tier` is `habitability.equipment` numbered 0 to 4:
+shirtsleeve, breathing mask, mask with scrubber, sealed suit, full life
+support with radiation hardening (section 7.3's table is the alternative,
+not built). Each domain stores its score (`phi4_<domain>`) and its colour
+(`tier_<domain>`: 0 Blue to 3 Red); `hab_note` lists the domains short of
+Blue.
+
+**Compact hosts.** A planet of a pulsar, a non-pulsing neutron star or a black
+hole is rated as if its surface took 1000 Sv/yr, the outer Red edge of the
+radiation domain: Red radiation, `equipment_tier` 4, microbial and complex life
+0, and a `hab_note` naming the host. The rule is by the host's class, so an
+X-ray binary (a normal star with a compact companion; none is generated yet)
+will need its companion's class tested where `generate` and the dose refresh
+find the host. The dose refresh leaves such a system's scores alone.
+
+**Open question for Boss (default stands).** GEN.89's note asks whether to
+store the two flare numbers or derive the rest; GEN.86 already stores them on
+the star, and everything else the note lists is stored per planet.

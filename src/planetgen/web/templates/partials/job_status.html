@@ -9,6 +9,13 @@ redraws the same parts (a failed job's log stays open until Continue, ADM.24; Co
 <p data-job-step>
   {%- if job.step_label %}Step {{ job.step }} of {{ job.steps|length }}: {{ job.step_label }}{% endif -%}
 </p>
+<p class="job-progress" data-job-overall-row{% if not job.overall_shown %} hidden{% endif %}>
+  <progress data-job-overall max="1"
+    {%- if job.overall_value is not none %} value="{{ job.overall_value }}"{% endif %}
+    aria-labelledby="job-overall-text"></progress>
+  <span id="job-overall-text" data-job-overall-text>{{ job.overall_text }}</span>
+  <span class="hint" data-job-overall-remaining>{{ job.overall_remaining_label }}</span>
+</p>
 <p class="job-progress">
   <progress data-job-progress max="{{ job.progress_total or 1 }}"
     {%- if job.progress_total %} value="{{ job.progress_completed or 0 }}"{% elif job.finished %} value="1"{% endif %}

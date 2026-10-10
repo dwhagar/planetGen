@@ -1108,6 +1108,22 @@
 --   (`planetgen/physics/radiation.py`); design
 --   docs/design/activity-magnetism-radiation-hydrosphere.md section 4.
 --
+-- v76: the habitability score of every planet and moon (GEN.89).
+--   `planets` and `moons` (NULL for a gas giant): `phi4` (the PHI-4 display
+--   score, the geometric mean of the four domains), `phi4_pressure`,
+--   `phi4_temperature`, `phi4_chemistry` and `phi4_radiation` (each 0 to 1) with
+--   `tier_<domain>` (0 Blue, 1 Green, 2 Yellow, 3 Red) and `equipment_tier`
+--   (0 shirtsleeve, 1 mask, 2 mask and scrubber, 3 sealed suit, 4 full life
+--   support), then `phi_bio` (microbial life), `phi_cpx` (complex life) and
+--   `phi_tech` (human operability with equipment) and the four likelihoods
+--   behind them (`l_solv`, `l_chem`, `l_ener`, `l_rad`). `hab_note` names the
+--   domains short of Blue, or a compact host (pulsar, neutron star, black
+--   hole) whose planet is rated at a lethal dose; `energy_flux_w_m2` is the
+--   light or chemical power life can use. Re-scored by `refresh_containment`
+--   when the dose changes. NULL on a row generated before v76.
+--   `planetgen/physics/habitability_world.py`; design
+--   docs/design/habitability-index.md section 8.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -1757,6 +1773,26 @@ CREATE TABLE IF NOT EXISTS planets (
     dose_helio_mult             DOUBLE,
     uv_surface_index            DOUBLE,
     ozone_loss_flag             BOOLEAN,
+    -- v76 (GEN.89): the habitability score, see header comment.
+    phi4                        DOUBLE,
+    phi4_pressure               DOUBLE,
+    phi4_temperature            DOUBLE,
+    phi4_chemistry              DOUBLE,
+    phi4_radiation              DOUBLE,
+    tier_pressure               TINYINT,
+    tier_temperature            TINYINT,
+    tier_chemistry              TINYINT,
+    tier_radiation              TINYINT,
+    phi_bio                     DOUBLE,
+    phi_cpx                     DOUBLE,
+    phi_tech                    DOUBLE,
+    l_solv                      DOUBLE,
+    l_chem                      DOUBLE,
+    l_ener                      DOUBLE,
+    l_rad                       DOUBLE,
+    equipment_tier              TINYINT,
+    hab_note                    VARCHAR(255),
+    energy_flux_w_m2            DOUBLE,
     -- v20 (see header comment): this planet's own reflex-offset "wobble"
     -- from the combined pull of its own moons -- NULL/0 with no moons.
     reflex_offset_x_km       DOUBLE,
@@ -1922,6 +1958,26 @@ CREATE TABLE IF NOT EXISTS moons (
     dose_helio_mult             DOUBLE,
     uv_surface_index            DOUBLE,
     ozone_loss_flag             BOOLEAN,
+    -- v76 (GEN.89): the habitability score, see header comment.
+    phi4                        DOUBLE,
+    phi4_pressure               DOUBLE,
+    phi4_temperature            DOUBLE,
+    phi4_chemistry              DOUBLE,
+    phi4_radiation              DOUBLE,
+    tier_pressure               TINYINT,
+    tier_temperature            TINYINT,
+    tier_chemistry              TINYINT,
+    tier_radiation              TINYINT,
+    phi_bio                     DOUBLE,
+    phi_cpx                     DOUBLE,
+    phi_tech                    DOUBLE,
+    l_solv                      DOUBLE,
+    l_chem                      DOUBLE,
+    l_ener                      DOUBLE,
+    l_rad                       DOUBLE,
+    equipment_tier              TINYINT,
+    hab_note                    VARCHAR(255),
+    energy_flux_w_m2            DOUBLE,
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
     uid                   BIGINT UNSIGNED,
 

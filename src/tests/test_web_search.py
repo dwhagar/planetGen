@@ -28,8 +28,8 @@ _FACETS = {
         {"value": "G", "label": "G", "count": 2, "tooltip": "Yellow <dwarf>"},
         {"value": "K", "label": "K", "count": 1, "tooltip": None},
     ],
-    "luminosity": [], "class": [], "body": [], "life": [],
-    "moon_class": [], "moon_body": [], "moon_life": [], "density": [],
+    "luminosity": [], "class": [], "body": [], "life": [], "equipment": [],
+    "moon_class": [], "moon_body": [], "moon_life": [], "moon_equipment": [], "density": [],
 }
 
 

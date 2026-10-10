@@ -69,7 +69,7 @@ from planetgen.admin import activity_log
 from planetgen.db import alembic_runner
 from planetgen.names import object_id as objectId
 from planetgen.galaxy import seed as galaxySeed, uid as galaxyUid, version_key as versionKey
-from planetgen.physics import activity, atmosphere, constants as physical_constants, hydrosphere, kepler, magnetism, radiation, spin
+from planetgen.physics import activity, atmosphere, constants as physical_constants, habitability_world, hydrosphere, kepler, magnetism, radiation, spin
 from planetgen.util import log
 from planetgen.util.settings import env_name, get_settings
 from planetgen.generation import steps
@@ -1419,6 +1419,7 @@ def _table_marker(table):
 
 
 _VERSION_MARKERS = (
+    (76, _column_marker("planets", "equipment_tier")),
     (75, _column_marker("planets", "surface_dose_msv_yr")),
     (74, _column_marker("planets", "ocean_class")),
     (73, _column_marker("galaxy_shape", "bright_star_mass_limit_sol")),
@@ -2689,6 +2690,7 @@ _BODY_COLUMNS = (
     *magnetism.BODY_FIELDS,
     *hydrosphere.HYDROSPHERE_FIELDS,
     *radiation.BODY_FIELDS,
+    *habitability_world.BODY_FIELDS,
 )
 """tuple: The generated-content columns `planets` and `moons` share, in
 `body_row_values` order."""
@@ -2736,6 +2738,7 @@ def body_row_values(body):
         *(getattr(body, name, None) for name in magnetism.BODY_FIELDS),
         *(getattr(body, name, None) for name in hydrosphere.HYDROSPHERE_FIELDS),
         *(getattr(body, name, None) for name in radiation.BODY_FIELDS),
+        *(getattr(body, name, None) for name in habitability_world.BODY_FIELDS),
     ]
     if not body.is_moon:
         values += [
@@ -4279,19 +4282,33 @@ def _refresh_cloud_doses(conn, system_changes):
                 open_au = open_km / physical_constants.AU_TO_KM
                 squeezed = compressed_heliosphere_radius(open_au, cloud["density_cm3"], cloud["temperature_k"])
                 compression = radiation.heliosphere_compression(open_au, squeezed)
+        compact = conn.execute(
+            "SELECT 1 FROM stars WHERE star_system_id = ? AND yerkes_class IN ('NS', 'BH') LIMIT 1",
+            (system_id,)).fetchone() is not None
         for table in ("planets", "moons"):
             rows = []
             for row in conn.execute(
-                f"SELECT id, dose_gcr_msv_yr, dose_sep_msv_yr, dose_ground_msv_yr, atmospheric_pressure_pa, gravity_g"
-                f" FROM {table} WHERE star_system_id = ? AND dose_gcr_msv_yr IS NOT NULL", (system_id,)
+                f"SELECT * FROM {table} WHERE star_system_id = ? AND dose_gcr_msv_yr IS NOT NULL", (system_id,)
             ).fetchall():
                 column = radiation.column_g_cm2(row["atmospheric_pressure_pa"], row["gravity_g"])
                 multiplier = radiation.helio_multiplier(column, compression)
                 total = radiation.total_dose_msv_yr(
                     row["dose_gcr_msv_yr"], multiplier, row["dose_sep_msv_yr"], row["dose_ground_msv_yr"])
-                rows.append((row["id"], multiplier, total))
+                scored = ()
+                if not compact and row["energy_flux_w_m2"] is not None:
+                    # GEN.89: the dose is one of the score's inputs. (A compact host's planet is
+                    # rated at a lethal dose whatever the cosmic rays do.)
+                    scores = habitability_world.compute({**dict(row), "surface_dose_msv_yr": total})
+                    scored = tuple(scores[name] for name in habitability_world.SCORE_FIELDS)
+                rows.append((row["id"], multiplier, total, *scored))
             if rows:
-                _update_by_id(conn, table, ("dose_helio_mult", "surface_dose_msv_yr"), rows, touch=True)
+                columns = ("dose_helio_mult", "surface_dose_msv_yr")
+                updates = [r for r in rows if len(r) == 3]
+                scored_updates = [r for r in rows if len(r) > 3]
+                if updates:
+                    _update_by_id(conn, table, columns, updates, touch=True)
+                if scored_updates:
+                    _update_by_id(conn, table, columns + habitability_world.SCORE_FIELDS, scored_updates, touch=True)
 
 
 PLACED_PHENOMENON_TABLES = (
@@ -7595,6 +7612,7 @@ def _planet_or_moon_row_to_dict(conn, row, is_moon):
         **{name: row[name] for name in magnetism.BODY_FIELDS},
         **{name: row[name] for name in hydrosphere.HYDROSPHERE_FIELDS},
         **{name: row[name] for name in radiation.BODY_FIELDS},
+        **{name: row[name] for name in habitability_world.BODY_FIELDS},
         "ozone_loss_flag": _tristate_from_db(row["ozone_loss_flag"]),
         # v20: only the `planets` table has these columns (a planet's own
         # wobble from its moons) -- `moons` has no such column at all

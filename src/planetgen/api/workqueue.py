@@ -69,8 +69,10 @@ def work():
     roots, total = workQueue.list_roots(conn, limit=limit, offset=offset)
     items = []
     recorded = _recorded_task_seconds(conn)
+    unstarted = _unstarted_steps(conn)
     for root in roots:
-        tree = workQueue.load_tree(conn, root["id"], max_tasks=0, recorded_task_seconds=recorded)
+        tree = workQueue.load_tree(conn, root["id"], max_tasks=0, recorded_task_seconds=recorded,
+                                   unstarted_steps=unstarted)
         items.append(_summary(tree if tree is not None else root))
     return jsonify({"available": True, "status": status, "items": items, "total": total,
                     "limit": limit, "offset": offset})
@@ -90,6 +92,21 @@ def _recorded_task_seconds(conn):
     return lambda kind, workers: stats.seconds_per_task(STATS_KIND[kind], workers) if kind in STATS_KIND else None
 
 
+def _unstarted_steps(conn):
+    """`(root) -> [seconds or None]` for each step of a web job that has not started (PERF.33): what earlier
+    runs of that step took."""
+    recorded = workQueue.recorded_step_seconds(conn)
+
+    def unstarted(root):
+        from planetgen.web import jobs    # the jobs directory is the web layer's
+        job = jobs.get_job(root["web_job_id"]) if root.get("web_job_id") else None
+        if job is None:
+            return []
+        started = sum(1 for child in root["children"] if child["kind"] == "step")
+        return [recorded.get(label) for label in job["steps"][started:]]
+    return unstarted
+
+
 @bp.route("/<node_id>")
 @require_admin(fresh=True)
 def tree(node_id):
@@ -100,7 +117,8 @@ def tree(node_id):
     if node is None:
         raise ApiError("No such job.", 404)
     return jsonify({"tree": workQueue.load_tree(conn, node["root_id"],
-                                                recorded_task_seconds=_recorded_task_seconds(conn)),
+                                                recorded_task_seconds=_recorded_task_seconds(conn),
+                                                unstarted_steps=_unstarted_steps(conn)),
                     "node_id": node_id})
 
 

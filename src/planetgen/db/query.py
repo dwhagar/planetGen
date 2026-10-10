@@ -39,6 +39,7 @@ import pymysql
 
 from planetgen.db.store import escape_like, get_connection, get_galaxy_bounds, get_galaxy_shape, surrounding_cloud
 from planetgen.physics import constants
+from planetgen.physics.habitability_world import EQUIPMENT_LABELS, EQUIPMENT_NAMES
 from planetgen import tuning
 from planetgen.generation.star import compressed_heliosphere_radius
 from planetgen.generation.bright_stars import MPC_PER_PC, POPULATIONS as BRIGHT_STAR_POPULATIONS
@@ -1594,10 +1595,20 @@ PHENOMENON_SORTS = {
 keys) -> the column of the union they order by."""
 
 
+_SCATTER_TYPE_SQL = (
+    "(CASE ps.kind WHEN 'black-hole' THEN 'black_hole' WHEN 'neutron-star' THEN 'neutron_star' "
+    "WHEN 'planetary-nebula' THEN 'nebula' WHEN 'supernova-remnant' THEN 'supernova_remnant' "
+    "WHEN 'hypervelocity-star' THEN 'hypervelocity_star' ELSE ps.kind END)")
+"""str: The Phenomena type of a `phenomenon_scatter` row, from its `kind`."""
+
+
 def _phenomena_union():
     """The `SELECT` that stacks every `_PHENOMENON_TABLES` table into one
     shape (`type`, `id`, `name`, `descriptor`, `radius_ly`, `sector_id`,
-    `sector_name`, `placed`). A `black_holes`/`neutron_stars` row with
+    `sector_name`, `placed`, `scattered`). Scatter rows no sector has built
+    yet (`phenomenon_scatter.built_at` NULL) are stacked in too, flagged
+    `scattered`: they are placed on the galaxy but have no page of their own
+    until their sector is filled. A `black_holes`/`neutron_stars` row with
     `star_id` set is a normal system's own compact-remnant star, already on
     that system's page, so it is left out; every other table is always
     standalone."""
@@ -1606,13 +1617,21 @@ def _phenomena_union():
         SELECT '{type_label}' AS type, t.id AS id, t.name AS name,
                {descriptor_expr} AS descriptor, {radius_expr} AS radius_ly,
                t.sector_id AS sector_id, sec.name AS sector_name,
-               (t.center_x_pc IS NOT NULL) AS placed
+               (t.center_x_pc IS NOT NULL) AS placed, 0 AS scattered
         FROM {table} t
         LEFT JOIN sectors sec ON sec.id = t.sector_id
         {"WHERE t.star_id IS NULL" if table in ("black_holes", "neutron_stars") else ""}
         """
         for table, type_label, descriptor_expr, radius_expr in _PHENOMENON_TABLES
-    )
+    ) + f""" UNION ALL
+        SELECT {_SCATTER_TYPE_SQL} AS type, ps.id AS id,
+               CONCAT('Unbuilt ', REPLACE(ps.kind, '-', ' '), ' ', ps.ring_index, '.', ps.layer_index, '.',
+                      ps.ring_slot_index) AS name,
+               COALESCE(ps.subtype, 'scattered') AS descriptor, 0 AS radius_ly,
+               NULL AS sector_id, NULL AS sector_name, 1 AS placed, 1 AS scattered
+        FROM phenomenon_scatter ps
+        WHERE ps.built_at IS NULL
+        """
 
 
 def _phenomena_where(types=(), descriptors=(), placed=None):
@@ -1666,8 +1685,11 @@ def list_phenomena(conn, limit=None, offset=None, sort="name", descending=False,
             `"interstellar_comet"` or `"quasar"`), `name`, `descriptor`,
             `radius_ly`, `sector_id`/`sector_name` (both `None` if this
             phenomenon has never been linked to a sector -- see
-            `schema.sql`'s "v18" header note), and `placed` (bool --
-            whether it has a galaxy position at all).
+            `schema.sql`'s "v18" header note), `placed` (bool --
+            whether it has a galaxy position at all) and `scattered` (bool
+            -- placed by the scatter but not yet built, so `id` is its
+            `phenomenon_scatter` row, with no page; its `type` can also be
+            `"hypervelocity_star"`).
     """
     if sort not in PHENOMENON_SORTS:
         raise ValueError(f"unknown phenomenon sort {sort!r}")
@@ -1684,7 +1706,7 @@ def list_phenomena(conn, limit=None, offset=None, sort="name", descending=False,
             "id": row["id"], "type": row["type"], "name": row["name"],
             "descriptor": row["descriptor"], "radius_ly": row["radius_ly"],
             "sector_id": row["sector_id"], "sector_name": row["sector_name"],
-            "placed": bool(row["placed"]),
+            "placed": bool(row["placed"]), "scattered": bool(row["scattered"]),
         }
         for row in conn.execute(query, params).fetchall()
     ]
@@ -3774,6 +3796,81 @@ def galaxy_point_phenomena_in_box(conn, lo, hi, limit=GALAXY_TILE_MAX_POINTS):
     return found[:limit]
 
 
+SCATTERED_POINT_CLASSES = (
+    ("black-hole", "supermassive", "black_hole", 1.0),
+    ("black-hole", "intermediate", "black_hole", 0.8),
+    ("black-hole", "stellar", "black_hole", 0.55),
+    ("neutron-star", None, "neutron_star", 0.35),
+)
+"""tuple: `(scatter kind, subtype, map type, size share)` for the scattered
+objects the Galaxy Map draws as points before their sector is filled
+(MAP.164), biggest first. A scatter row stores no mass (the object is built
+from its seed when its sector is made), so the share comes from the mass
+class the row does carry: 1 for the nucleus black hole down to 0.35 for a
+neutron star."""
+
+SCATTERED_POINT_COARSE_CLASSES = 2
+"""int: Tiles coarser than `POINT_PHENOMENON_MIN_LEVEL` list only this many
+of the biggest `SCATTERED_POINT_CLASSES` (the nucleus and intermediate-mass
+black holes), so the largest are visible from the whole-galaxy view."""
+
+GALAXY_TILE_MAX_SCATTERED_POINTS = 60
+"""int: Most scattered points one coarse tile lists."""
+
+
+def galaxy_scattered_points_in_box(conn, lo, hi, edge_pc, limit, coarse):
+    """
+    The scattered black holes and neutron stars (`phenomenon_scatter`, not
+    yet built into a sector) whose position lies in the box `[lo, hi)`,
+    biggest class first, at most `limit` -- drawn as points like the placed
+    ones (MAP.164), so the map shows them before their sector is filled.
+    `coarse` keeps to the `SCATTERED_POINT_COARSE_CLASSES` biggest classes.
+
+    Returns:
+        list[dict]: Same keys as `galaxy_point_phenomena_in_box`, with
+            `scattered` (True), `size` (0..1, the class's size share) and
+            an `id` that is the scatter row's id as text.
+    """
+    classes = SCATTERED_POINT_CLASSES[:SCATTERED_POINT_COARSE_CLASSES] if coarse else SCATTERED_POINT_CLASSES
+    bands = _bright_star_bands(conn, lo, hi, edge_pc)
+    if not bands:
+        return []
+    if len(bands) > 64:
+        where_address = "ring_index BETWEEN ? AND ?"
+        address_params = [bands[0][0], bands[-1][0]]
+    else:
+        where_address = "(" + " OR ".join("(ring_index = ? AND layer_index BETWEEN ? AND ?)" for _ in bands) + ")"
+        address_params = [v for band in bands for v in band]
+    kinds = " OR ".join("(kind = ? AND subtype <=> ?)" for _ in classes)
+    kind_params = [v for cls in classes for v in cls[:2]]
+    box_params = [int(math.ceil(v * MPC_PER_PC)) for pair in zip(lo, hi) for v in pair]
+    rows = conn.execute(
+        f"""
+        SELECT id, kind, subtype, position_x_mpc, position_y_mpc, position_z_mpc
+        FROM phenomenon_scatter
+        WHERE built_at IS NULL AND {where_address} AND ({kinds})
+          AND position_x_mpc >= ? AND position_x_mpc < ? AND position_y_mpc >= ? AND position_y_mpc < ?
+          AND position_z_mpc >= ? AND position_z_mpc < ?
+        ORDER BY (subtype <=> 'supermassive') DESC, (subtype <=> 'intermediate') DESC, (subtype <=> 'stellar') DESC, id
+        LIMIT ?
+        """,
+        (*address_params, *kind_params, *box_params, int(limit)),
+    ).fetchall()
+    share = {(kind, subtype): (map_type, size) for kind, subtype, map_type, size in classes}
+    points = []
+    for row in rows:
+        map_type, size = share[(row["kind"], row["subtype"])]
+        label = "Black hole" if map_type == "black_hole" else "Neutron star"
+        points.append({
+            "type": map_type, "id": f"s{row['id']}", "name": f"{label} (uncharted)",
+            "descriptor": row["subtype"] or "scattered", "luminosity_sol": 0.0, "scattered": True, "size": size,
+            "x": round(row["position_x_mpc"] / MPC_PER_PC, 3), "y": round(row["position_y_mpc"] / MPC_PER_PC, 3),
+            "z": round(row["position_z_mpc"] / MPC_PER_PC, 3),
+        })
+    points.sort(key=lambda point: (-point["size"], point["id"]))
+    return points[:limit]
+
+
 def galaxy_tiles(conn, tile_keys):
     """
     The contents of each requested cube tile -- the interactive 3D Galaxy
@@ -3851,6 +3948,13 @@ def galaxy_tiles(conn, tile_keys):
         points = (galaxy_point_phenomena_in_box(
             conn, lo, hi, limit=GALAXY_TILE_POINT_BUDGET.get(level, GALAXY_TILE_MAX_POINTS))
             if level >= POINT_PHENOMENON_MIN_LEVEL else [])
+        # MAP.164: scattered ones not yet built into a sector, the biggest
+        # classes at every level so the largest show from the whole galaxy.
+        coarse_scatter = level < POINT_PHENOMENON_MIN_LEVEL
+        points = points + galaxy_scattered_points_in_box(
+            conn, lo, hi, edge_pc,
+            GALAXY_TILE_MAX_SCATTERED_POINTS if coarse_scatter else GALAXY_TILE_POINT_BUDGET.get(level, GALAXY_TILE_MAX_POINTS),
+            coarse_scatter)
         tiles[key] = {
             "placed": placed, "planned": planned, "filled": filled, "clouds": clouds, "stars": stars,
             "generated": generated, "points": points,
@@ -4345,8 +4449,8 @@ SEARCH_AUTOCOMPLETE_LIMIT = 500
 
 SEARCH_TAG_FACETS = (
     "type", "spectral", "luminosity",
-    "class", "body", "life",
-    "moon_class", "moon_body", "moon_life",
+    "class", "body", "life", "equipment",
+    "moon_class", "moon_body", "moon_life", "moon_equipment",
     "density",
     "phenomenon", "phenomenon_class",
 )
@@ -4579,6 +4683,32 @@ def _search_facet_life(conn):
     return [{"value": row["v"], "label": row["v"], "count": row["c"], "tooltip": None} for row in rows]
 
 
+def _search_equipment_options(conn, table):
+    """GEN.89: the five equipment tiers a human needs (value "0" to "4"),
+    with how many bodies of `table` need each; the ones none need are left out."""
+    rows = conn.execute(
+        f"SELECT equipment_tier AS v, COUNT(*) AS c FROM {table} WHERE equipment_tier IS NOT NULL"
+        " GROUP BY v ORDER BY v").fetchall()
+    return [{"value": str(row["v"]), "label": EQUIPMENT_LABELS[row["v"]], "count": row["c"],
+             "tooltip": f"A human needs {EQUIPMENT_NAMES[row['v']]} here"} for row in rows]
+
+
+def _search_facet_equipment(conn):
+    return _search_equipment_options(conn, "planets")
+
+
+def _search_facet_moon_equipment(conn):
+    return _search_equipment_options(conn, "moons")
+
+
+def _equipment_clause(alias, tags, clauses, params):
+    """Adds `equipment_tier IN (...)` for the tags that are tiers (a stray value is dropped)."""
+    tiers = sorted({int(tag) for tag in tags if tag in {str(i) for i in range(len(EQUIPMENT_NAMES))}})
+    if tags:
+        clauses.append(f"{alias}.equipment_tier IN ({','.join('?' * len(tiers))})" if tiers else "1 = 0")
+        params.extend(tiers)
+
+
 def _search_facet_moon_class(conn):
     rows = conn.execute(
         "SELECT planet_class AS v, COUNT(*) AS c FROM moons WHERE planet_class IS NOT NULL GROUP BY v ORDER BY v"
@@ -4783,8 +4913,10 @@ def _search_result_stars(conn, spectral_tags, luminosity_tags, term, limit, offs
     return {"rows": [dict(r) for r in rows], **page}
 
 
-def _search_result_planets(conn, class_tags, body_tags, life_tags, term, limit, offset, size_range=None):
+def _search_result_planets(conn, class_tags, body_tags, life_tags, term, limit, offset, size_range=None,
+                           equipment_tags=()):
     clauses, params = [], []
+    _equipment_clause("p", equipment_tags, clauses, params)
     if class_tags:
         clauses.append(f"p.planet_class IN ({','.join('?' * len(class_tags))})")
         params.extend(sorted(class_tags))
@@ -4803,7 +4935,7 @@ def _search_result_planets(conn, class_tags, body_tags, life_tags, term, limit, 
     rows, page = _search_page(
         conn,
         """
-        SELECT p.name, p.planet_class, p.body_type, p.life_chemical, p.radius_km,
+        SELECT p.name, p.planet_class, p.body_type, p.life_chemical, p.equipment_tier, p.radius_km,
                p.star_system_id, ss.name AS system_name, ss.sector_id
         """,
         f"FROM planets p JOIN star_systems ss ON ss.id = p.star_system_id WHERE 1=1{where}",
@@ -4813,8 +4945,10 @@ def _search_result_planets(conn, class_tags, body_tags, life_tags, term, limit, 
     return {"rows": [dict(r) for r in rows], **page}
 
 
-def _search_result_moons(conn, class_tags, body_tags, life_tags, term, limit, offset, size_range=None):
+def _search_result_moons(conn, class_tags, body_tags, life_tags, term, limit, offset, size_range=None,
+                         equipment_tags=()):
     clauses, params = [], []
+    _equipment_clause("m", equipment_tags, clauses, params)
     if class_tags:
         clauses.append(f"m.planet_class IN ({','.join('?' * len(class_tags))})")
         params.extend(sorted(class_tags))
@@ -4833,7 +4967,7 @@ def _search_result_moons(conn, class_tags, body_tags, life_tags, term, limit, of
     rows, page = _search_page(
         conn,
         """
-        SELECT m.name, m.planet_class, m.body_type, m.life_chemical, m.radius_km, p.name AS planet_name,
+        SELECT m.name, m.planet_class, m.body_type, m.life_chemical, m.equipment_tier, m.radius_km, p.name AS planet_name,
                m.star_system_id, ss.name AS system_name, ss.sector_id
         """,
         f"""
@@ -4911,9 +5045,11 @@ def _search_facets_cached(conn):
         ("class", _search_facet_class(conn)),
         ("body", _search_facet_body(conn)),
         ("life", _search_facet_life(conn)),
+        ("equipment", _search_facet_equipment(conn)),
         ("moon_class", _search_facet_moon_class(conn)),
         ("moon_body", _search_facet_moon_body(conn)),
         ("moon_life", _search_facet_moon_life(conn)),
+        ("moon_equipment", _search_facet_moon_equipment(conn)),
         ("density", _search_facet_density(conn)),
         ("phenomenon", _search_facet_phenomenon(conn)),
         ("phenomenon_class", _search_facet_phenomenon_class(conn)),
@@ -4984,6 +5120,7 @@ def search(conn, texts, tags, sizes=None, limit=SEARCH_RESULT_LIMIT, offsets=Non
     class_tags, body_tags, life_tags = tags.get("class", set()), tags.get("body", set()), tags.get("life", set())
     moon_class_tags, moon_body_tags = tags.get("moon_class", set()), tags.get("moon_body", set())
     moon_life_tags = tags.get("moon_life", set())
+    equipment_tags, moon_equipment_tags = tags.get("equipment", set()), tags.get("moon_equipment", set())
     density_tags = tags.get("density", set())
     type_tags = tags.get("type", set())
 
@@ -4995,8 +5132,8 @@ def search(conn, texts, tags, sizes=None, limit=SEARCH_RESULT_LIMIT, offsets=Non
     }
 
     star_has_reason = bool(spectral_tags or luminosity_tags or texts.get("star_q") or star_size)
-    planet_has_reason = bool(class_tags or body_tags or life_tags or texts.get("planet_q") or planet_size)
-    moon_has_reason = bool(moon_class_tags or moon_body_tags or moon_life_tags or texts.get("moon_q") or moon_size)
+    planet_has_reason = bool(class_tags or body_tags or life_tags or equipment_tags or texts.get("planet_q") or planet_size)
+    moon_has_reason = bool(moon_class_tags or moon_body_tags or moon_life_tags or moon_equipment_tags or texts.get("moon_q") or moon_size)
     belt_has_reason = bool(density_tags)
 
     if type_tags:
@@ -5028,12 +5165,12 @@ def search(conn, texts, tags, sizes=None, limit=SEARCH_RESULT_LIMIT, offsets=Non
     if planets_included and "planets" in wanted:
         results["planets"] = _search_result_planets(
             conn, class_tags, body_tags, life_tags, texts.get("planet_q", ""), *_page("planets"),
-            size_range=planet_size,
+            size_range=planet_size, equipment_tags=equipment_tags,
         )
     if moons_included and "moons" in wanted:
         results["moons"] = _search_result_moons(
             conn, moon_class_tags, moon_body_tags, moon_life_tags, texts.get("moon_q", ""), *_page("moons"),
-            size_range=moon_size,
+            size_range=moon_size, equipment_tags=moon_equipment_tags,
         )
     if belts_included and "belts" in wanted:
         results["belts"] = _search_result_belts(conn, density_tags, *_page("belts"))

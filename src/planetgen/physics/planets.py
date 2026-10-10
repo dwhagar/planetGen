@@ -20,7 +20,7 @@ import math
 import re
 
 from planetgen.physics import constants
-from planetgen.physics import atmosphere, hydrosphere, magnetism, radiation, rogue_surface, spin
+from planetgen.physics import atmosphere, habitability_world, hydrosphere, magnetism, radiation, rogue_surface, spin
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -889,6 +889,8 @@ def generate_spin(planet, primary_mass_kg):
     magnetism.generate_field(planet)
     # GEN.87: the surface dose, from the air, water and field above.
     radiation.generate_dose(planet)
+    # GEN.89: the habitability score, from all of the above.
+    habitability_world.generate(planet, internal_heat_flux_w_m2(planet))
 
 
 

@@ -233,7 +233,8 @@ def get_job(job_id, root=None):
             labels, `created_at`, `admin`, `database`) plus `status`
             (`starting`, `running`, `succeeded`, `failed`, `cancelled`,
             `interrupted`), `step` (1-based, 0 before the first),
-            `step_label`, `started_at`, `finished_at`, `elapsed_s`,
+            `step_label`, `step_started_at`, `step_estimates` (seconds per step in earlier
+            runs, `None` where unknown; PERF.55), `started_at`, `finished_at`, `elapsed_s`,
             `error`, and `progress` (`progressFile`'s dict or `None`).
     """
     root = root or jobs_dir()
@@ -284,6 +285,8 @@ def get_job(job_id, root=None):
         "finished": status in FINISHED,
         "step": step,
         "step_label": labels[step - 1] if 0 < step <= len(labels) else None,
+        "step_started_at": state.get("step_started_at"),
+        "step_estimates": state.get("step_estimates") or [],
         "started_at": started,
         "finished_at": finished,
         "elapsed_s": ((finished or now) - started) if started else None,

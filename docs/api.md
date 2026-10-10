@@ -416,7 +416,8 @@ connectivity to that specific schema rather than the default one.
 - `GET /api/search?sector_q=&system_q=&star_q=&planet_q=&moon_q=&<facet>=<value>...` —
   the faceted search behind the `/search` page: click-to-filter tags
   (object type; star spectral/luminosity class; planet/moon class, body
-  type, supported life chemistry; asteroid belt density; phenomenon type
+  type, supported life chemistry, the equipment a human needs
+  (`equipment`/`moon_equipment`, tier 0 to 4); asteroid belt density; phenomenon type
   and phenomenon class, the class tag written `<type>:<class>` such as
   `phenomenon_class=nebula:D` — repeat a facet
   name for multiple active values, e.g. `class=M&class=K`), a per-entity
