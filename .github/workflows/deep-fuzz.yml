@@ -1,6 +1,6 @@
 name: Deep fuzz
 
-# The brute-force tests (src/tests/test_fuzz_*.py) run on every push with
+# The brute-force tests (src/tests/test_fuzz_*.py) run in the manual CI with
 # the bounded, repeatable `ci` profile. This runs them again with the
 # `deep` profile: thousands of fresh random examples per test, a new seed
 # each time, hunting for inputs the everyday run never reaches. A failure
