@@ -1,0 +1,3 @@
+### Changed
+
+- The Galaxy Map's stars now fade in with the zoom (MAP.153). Each star gets a birth radius from its place in its tile's list (most luminous first), and its opacity rises smoothly over one halving of the camera distance, cross-fading from the coarser tile's rank across the octave a tile level serves. Zooming in adds stars a few percent at a time instead of up to eight times as many in one frame at a tile level change, zooming out removes them as smoothly, a late tile changes nothing visible, and a bookmarked view always draws the same picture. A dense sector now shows its dimmest stars only near sector zoom, brightest first. No server or database change.

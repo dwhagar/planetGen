@@ -17,7 +17,7 @@ there. A kind's mean is its rate per star
 
 The mass cut (GEN.167, docs/design/phenomenon-scatter-mass-cut.md): only
 the neutron stars and black holes at or above `--phenomenon-min-mass`
-(`tuning.PHENOMENON_MIN_MASS_SOLAR`, 20 solar masses) are scattered, each
+(`tuning.PHENOMENON_MIN_MASS_SOLAR`, 8 solar masses) are scattered, each
 kind's mean times its share above the cut (`share_above`), and each built
 with its mass drawn above the cut. A sector draws the share below it when
 it is filled (`below_cut_draws`, GEN.168), from its own stream, so the two
@@ -90,6 +90,16 @@ def _row(ring_index, layer_index, slot, kind, point, rng, subtype=None, velocity
     """One object in `PHENOMENON_SCATTER_COLUMNS` order."""
     return (ring_index, layer_index, slot, kind, subtype, point[0], point[1], point[2],
             velocity[0], velocity[1], velocity[2], rng.getrandbits(63))
+
+
+def class_label(kind, subtype):
+    """What a log line calls a class: a black hole's mass class in front ("stellar black-hole"), else its kind."""
+    return f"{subtype} {kind}" if subtype else kind
+
+
+EXPECTED_LABELS = tuple(class_label(kind, subtype) for kind, subtype in SCATTER_CLASSES) + (
+    HYPERVELOCITY_KIND, class_label("black-hole", NUCLEUS_SUBTYPE), "quasar")
+"""tuple: Every class a phenomena scatter can place, so a summary lists the ones that drew none too."""
 
 
 def mass_law(kind, subtype):

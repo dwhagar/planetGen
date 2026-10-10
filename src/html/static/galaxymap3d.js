@@ -61,6 +61,9 @@ const { formatDistancePc, LIGHTYEAR_M, PARSEC_M } = await import(`./distance.js$
 const { formatNumber } = await import(`./numberformat.js${VERSION_QUERY}`);
 const { boostLight, starLightBoost } = await import(`./starlight.js${VERSION_QUERY}`);
 const {
+  FADE_OCTAVES, POINT_FADE, birthRadius, opacitySum, tileRanks,
+} = await import(`./starfade.js${VERSION_QUERY}`);
+const {
   cssVar, fitRendererToCanvas, formatAddress, isLightBackground, makeRingTexture,
   niceScaleValue, readSceneData, watchResize, worldUnitsPerPixel,
 } = await import(`./mapcore.js${VERSION_QUERY}`);
@@ -930,10 +933,12 @@ function initGalaxyMap3d(canvasEl, data) {
     var viewRadius = viewRadiusFor(radius || orbit.radius);
     var level = tileLevelForRadius(viewRadius);
     var keys = tilesIntersectingSphere(level, target, viewRadius);
+    var detail = [];
     if (level < TILE_MAX_LEVEL && viewRadius <= DETAIL_VIEW_RADIUS_PC) {
-      keys = tilesIntersectingSphere(TILE_MAX_LEVEL, target, Math.min(viewRadius, DETAIL_RADIUS_PC)).concat(keys);
+      detail = tilesIntersectingSphere(TILE_MAX_LEVEL, target, Math.min(viewRadius, DETAIL_RADIUS_PC));
+      keys = detail.concat(keys);
     }
-    return { keys: keys, viewRadius: viewRadius };
+    return { keys: keys, detail: new Set(detail), viewRadius: viewRadius };
   }
 
   // --- Tile caches ---------------------------------------------------------
@@ -1378,6 +1383,7 @@ function initGalaxyMap3d(canvasEl, data) {
       pixelRatio: { value: renderer.getPixelRatio() }, now: { value: 0 },
       fadeIn: { value: Math.max(STAR_FADE_IN_MS, 1) / 1000 },
       chartedOnly: { value: 0 }, unchartedDim: { value: UNCHARTED_STAR_DIM },
+      camRadius: { value: 1 }, radiusFactor: { value: FETCH_RADIUS_FACTOR }, zoomFadeOn: { value: 1 },
     },
     vertexShader: [
       "#include <common>",
@@ -1385,6 +1391,20 @@ function initGalaxyMap3d(canvasEl, data) {
       "attribute float starBorn;",
       "uniform float now;",
       "uniform float fadeIn;",
+      // MAP.153: the zoom fade (static/starfade.js's twin): [own birth
+      // radius, parent birth radius, tile edge, detail], and the camera's
+      // orbit radius.
+      "attribute vec4 starFade;",
+      "uniform float camRadius;",
+      "uniform float radiusFactor;",
+      "uniform float zoomFadeOn;",
+      "float ease01(float x) {",
+      "  float t = clamp(x, 0.0, 1.0);",
+      "  return t * t * (3.0 - 2.0 * t);",
+      "}",
+      "float zoomShare(float birth, float radius) {",
+      "  return birth > 0.0 ? ease01(log2(birth / radius) / " + FADE_OCTAVES.toFixed(1) + ") : 0.0;",
+      "}",
       "varying float vShown;",
       "attribute float starSize;",
       "attribute float starCore;",
@@ -1405,7 +1425,11 @@ function initGalaxyMap3d(canvasEl, data) {
       "  vBright = starBright;",
       "  vCore = starCore / starSize;",
       "  vGlow = starGlow;",
-      "  vShown = clamp((now - starBorn) / fadeIn, 0.0, 1.0);",
+      "  float ownShare = zoomShare(starFade.x, camRadius);",
+      "  float far = starFade.z / radiusFactor;",
+      "  float glide = ease01((far - camRadius) / (far * 0.5));",
+      "  float zoomShown = starFade.w > 0.5 ? ownShare : (1.0 - glide) * zoomShare(starFade.y, camRadius) + glide * ownShare;",
+      "  vShown = clamp((now - starBorn) / fadeIn, 0.0, 1.0) * mix(1.0, zoomShown, zoomFadeOn);",
       // "Charted only" (MAP.111): a star outside charted space dimmed.
       "  vShown *= mix(1.0, unchartedDim, chartedOnly * starUncharted);",
       "  gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);",
@@ -1467,9 +1491,20 @@ function initGalaxyMap3d(canvasEl, data) {
     return THREE.MathUtils.clamp((Math.log10(Math.max(value, 1e-12)) - range[0]) / (range[1] - range[0]), 0, 1);
   }
 
-  // Draws exactly `stars` (one entry per starKey).
-  function setStars(stars) {
+  // The zoom fade (static/starfade.js) of each drawn star by starKey, as
+  // [own birth radius, parent birth radius, tile edge, detail] (MAP.153),
+  // and the same for the stars drawn now, in the order of starList.
+  var starFades = new Map();
+  var starFadeList = [];
+
+  // Draws exactly `stars` (one entry per starKey), each fading in with the
+  // zoom as `fades` (by starKey) says.
+  function setStars(stars, fades) {
     starList = stars;
+    starFades = fades;
+    starFadeList = stars.map(function (star) {
+      return fades.get(starKey(star)) || POINT_FADE;
+    });
     var n = stars.length;
     var now = starClock();
     var born = new Float32Array(n);
@@ -1494,6 +1529,10 @@ function initGalaxyMap3d(canvasEl, data) {
     var glows = new Float32Array(n);
     var brights = new Float32Array(n);
     var uncharted = new Float32Array(n);
+    var zoomFades = new Float32Array(4 * n);
+    starFadeList.forEach(function (fade, i) {
+      zoomFades.set(fade, 4 * i);
+    });
     stars.forEach(function (star, i) {
       uncharted[i] = star.generated || star.phenomenon || star.system_id != null ? 0 : 1;
       var look = star.phenomenon ? POINT_LOOKS[star.type] || DEFAULT_POINT_LOOK : null;
@@ -1522,12 +1561,32 @@ function initGalaxyMap3d(canvasEl, data) {
     geometry.setAttribute("starBorn", new THREE.BufferAttribute(born, 1));
     geometry.setAttribute("starClipped", new THREE.BufferAttribute(new Float32Array(n), 1));
     geometry.setAttribute("starUncharted", new THREE.BufferAttribute(uncharted, 1));
+    geometry.setAttribute("starFade", new THREE.BufferAttribute(zoomFades, 4));
     starPoints.geometry.dispose();
     starPoints.geometry = geometry;
     starPoints.position.set(frame[0], frame[1], frame[2]);
     starPoints.updateMatrixWorld();
     markClippedStars();
   }
+
+  // For tests (MAP.153): the sum of the drawn stars' zoom opacities if the
+  // camera orbited at `radius` pc (the same arithmetic as the shader's),
+  // and how many of them show more than half, so a test bounds the change
+  // in the picture over a small zoom step without reading pixels.
+  canvasEl.galaxyStarOpacity = function (radius) {
+    var fade = starFadeList;
+    var shown = 0;
+    fade.forEach(function (f) {
+      if (opacitySum([f], radius, FETCH_RADIUS_FACTOR) > 0.5) shown++;
+    });
+    return { sum: opacitySum(fade, radius, FETCH_RADIUS_FACTOR), shown: shown, count: fade.length, camera: orbit.radius };
+  };
+
+  // For tests: switches the zoom fade off (every star at full opacity, as
+  // before MAP.153) so a pixel test of picking can find stars at any zoom.
+  canvasEl.galaxyStarZoomFade = function (on) {
+    starMaterial.uniforms.zoomFadeOn.value = on ? 1 : 0;
+  };
 
   // For tests: the frame the stars are drawn from and the farthest star
   // from it, in the points' own (offset) coordinates.
@@ -1579,34 +1638,80 @@ function initGalaxyMap3d(canvasEl, data) {
       && star.z >= box[0][2] && star.z < box[1][2];
   }
 
-  // The nearest cached tile holding `key`'s box (a coarser level), or
-  // undefined. Looks in memory only, without touching its LRU order.
+  // The nearest cached tile holding `key`'s box (a coarser level), as
+  // { key, tile }, or undefined. Looks in memory only, without touching its
+  // LRU order.
   function cachedAncestor(key) {
     var parts = key.split("/").map(Number);
     for (var level = parts[0] - 1; level >= 0; level--) {
       var shift = Math.pow(2, parts[0] - level);
-      var tile = tileMemory.get(level + "/" + Math.floor(parts[1] / shift) + "/" + Math.floor(parts[2] / shift)
-        + "/" + Math.floor(parts[3] / shift));
+      var ancestorKey = level + "/" + Math.floor(parts[1] / shift) + "/" + Math.floor(parts[2] / shift)
+        + "/" + Math.floor(parts[3] / shift);
+      var tile = tileMemory.get(ancestorKey);
       if (tile !== undefined) {
-        return tile;
+        return { key: ancestorKey, tile: tile };
       }
     }
     return undefined;
   }
 
+  // The tile one level coarser than `key`, if it is cached in memory.
+  function cachedParent(key) {
+    var parts = key.split("/").map(Number);
+    if (parts[0] <= 0) {
+      return undefined;
+    }
+    var parentKey = (parts[0] - 1) + "/" + (parts[1] >> 1) + "/" + (parts[2] >> 1) + "/" + (parts[3] >> 1);
+    var tile = tileMemory.get(parentKey);
+    return tile === undefined ? undefined : { key: parentKey, tile: tile };
+  }
+
+  // A tile's ranks (static/starfade.js tileRanks), worked out once.
+  function ranksOf(tile) {
+    if (!tile.fadeRanks) {
+      Object.defineProperty(tile, "fadeRanks", { value: tileRanks(tile) });
+    }
+    return tile.fadeRanks;
+  }
+
+  // The zoom fade of a star ranked in a tile of `level` (MAP.153):
+  // [own birth radius, parent birth radius, tile edge, detail]. `parentRank`
+  // is its rank in the parent tile's list, 0 when that is not cached or
+  // does not list it.
+  function fadeFor(level, rank, parentRank, detail) {
+    var edge = tileEdge(level);
+    return [
+      rank ? birthRadius(edge, rank, FETCH_RADIUS_FACTOR) : 0,
+      parentRank ? birthRadius(edge * 2, parentRank, FETCH_RADIUS_FACTOR) : 0,
+      edge, detail ? 1 : 0,
+    ];
+  }
+
   // Stars to show in a tile that hasn't arrived yet (MAP.48): the ones
   // already drawn there, and a cached coarser tile's there, so a zoom
   // keeps what was on screen instead of blanking until the new tiles come.
-  function carriedStars(key, into) {
+  // Each keeps the zoom fade it had; a coarser tile's stars fade as that
+  // tile's level would.
+  function carriedStars(key, into, fades) {
     var box = tileBox(key);
     starList.forEach(function (star) {
-      if (!into.has(starKey(star)) && inBox(box, star)) {
-        into.set(starKey(star), star);
+      var id = starKey(star);
+      if (!into.has(id) && inBox(box, star)) {
+        into.set(id, star);
+        fades.set(id, starFades.get(id) || POINT_FADE);
       }
     });
-    tileStars(cachedAncestor(key)).forEach(function (star) {
-      if (!into.has(starKey(star)) && inBox(box, star)) {
-        into.set(starKey(star), star);
+    var ancestor = cachedAncestor(key);
+    if (!ancestor) {
+      return;
+    }
+    var level = Number(ancestor.key.split("/")[0]);
+    var ranks = ranksOf(ancestor.tile);
+    tileStars(ancestor.tile).forEach(function (star) {
+      var id = starKey(star);
+      if (!into.has(id) && inBox(box, star)) {
+        into.set(id, star);
+        fades.set(id, star.phenomenon ? POINT_FADE : fadeFor(level, ranks.get(id), 0, false));
       }
     });
   }
@@ -1661,6 +1766,9 @@ function initGalaxyMap3d(canvasEl, data) {
     var missing = [];
     var clouds = new Map();
     var stars = new Map();
+    var fades = new Map();
+    var parents = [];
+    var drawn = [];
     need.keys.forEach(function (key) {
       var tile = getTile(key);
       if (tile === undefined) {
@@ -1670,17 +1778,47 @@ function initGalaxyMap3d(canvasEl, data) {
       (tile.clouds || []).forEach(function (cloud) {
         clouds.set(cloudKey(cloud), cloud);
       });
+      // MAP.153: the star's rank in this tile's list and in its parent's
+      // set when it joins and how fast it fades in.
+      var detail = need.detail && need.detail.has(key);
+      var level = Number(key.split("/")[0]);
+      var ranks = ranksOf(tile);
+      var parent = detail ? undefined : cachedParent(key);
+      var parentRanks = parent ? ranksOf(parent.tile) : null;
+      drawn.push(key + (detail ? "d" : "") + (parent ? "p" : ""));
       tileStars(tile).forEach(function (star) {
-        if (starShown(star)) stars.set(starKey(star), star);
+        if (!starShown(star)) return;
+        var id = starKey(star);
+        stars.set(id, star);
+        fades.set(id, star.phenomenon ? POINT_FADE
+          : fadeFor(level, ranks.get(id), parentRanks ? parentRanks.get(id) : 0, detail));
+      });
+      if (parent) {
+        parents.push({ key: key, level: level, ranks: ranks, parent: parent, parentRanks: parentRanks });
+      }
+    });
+    // A star the parent tile listed inside this tile's box that this tile's
+    // list left out still counts, fading out over the octave as the glide
+    // runs (the lists are not strictly nested yet, MAP.154).
+    parents.forEach(function (entry) {
+      var box = tileBox(entry.key);
+      tileStars(entry.parent.tile).forEach(function (star) {
+        if (star.phenomenon || !starShown(star)) return;
+        var id = starKey(star);
+        if (!stars.has(id) && inBox(box, star)) {
+          stars.set(id, star);
+          fades.set(id, fadeFor(entry.level, 0, entry.parentRanks.get(id), false));
+        }
       });
     });
     missing.forEach(function (key) {
-      carriedStars(key, stars);
+      carriedStars(key, stars, fades);
     });
-    var starKeys = currentStamp + "|" + filterStamp() + "|" + Array.from(stars.keys()).sort().join(",");
+    var starKeys = currentStamp + "|" + filterStamp() + "|" + drawn.join(";") + "|"
+      + Array.from(stars.keys()).sort().join(",");
     if (starKeys !== starSignature) {
       starSignature = starKeys;
-      setStars(Array.from(stars.values()));
+      setStars(Array.from(stars.values()), fades);
     }
     var cloudKeys = Array.from(clouds.keys()).sort().join(",");
     if (cloudKeys !== cloudSignature) {
@@ -2697,6 +2835,7 @@ function initGalaxyMap3d(canvasEl, data) {
       }
     }
     starMaterial.uniforms.now.value = starClock();
+    starMaterial.uniforms.camRadius.value = Math.max(orbit.radius, 1e-6);
     updateClouds();
     selectionRing.update();
     hoverRing.update();

@@ -569,8 +569,9 @@ def _scatter_layers(args, mysql_config, skeleton, extents, filled, min_luminosit
                         drew.add(layer_index)
                     slots = _layer_slots(outer_rings[layer_index])
                     density = expected[layer_index] / (e_value * band_share * slots) if band_share and slots else 0.0
-                    run_common._generation_stats(args).record("scatter", density, seconds, systems=stars, stars=stars,
-                                                                 workers=run_common._worker_count(args))
+                    if stars:   # PERF.53: a layer that drew nothing says nothing about how long a star takes
+                        run_common._generation_stats(args).record("scatter", density, seconds, systems=stars,
+                                                                     stars=stars, workers=run_common._worker_count(args))
                 return layer_done
 
             stop = threading.Event()
@@ -779,6 +780,15 @@ def _phenomenon_min_mass(args, conn):
     return float(program_constants.PHENOMENON_MIN_MASS_SOLAR if value is None else value)
 
 
+def _log_phenomena_layer(layer_index, counts):
+    """One line saying how many phenomena a layer was given, by kind, as `_log_layer` does for stars;
+    nothing for a layer that drew none."""
+    total = sum(counts.values())
+    if total:
+        log.normal(f"Phenomena, layer {layer_index}: placed {total:,}: "
+                   + ", ".join(f"{count:,} {kind}" for kind, count in sorted(counts.items())) + ".")
+
+
 def _scatter_phenomena_layers(args, bar, layers, weights, layer_done, mysql_config, skeleton, e_value, seed,
                               min_mass_solar, filled):
     """The layers of the phenomenon scatter through the work queue, the step `bar` credited with each
@@ -788,6 +798,7 @@ def _scatter_phenomena_layers(args, bar, layers, weights, layer_done, mysql_conf
     def done_with(layer_index):
         def on_done(layer_counts, seconds, weight):
             layer_done(layer_counts, seconds, weight)
+            _log_phenomena_layer(layer_index, layer_counts)
             layers_done[0] += 1
             bar.update(advance=weights[layer_index],
                        description=f"Phenomena ({layers_done[0]:,} of {len(layers):,} layers)")
@@ -849,13 +860,20 @@ def scatter_phenomena(args):
                    for layer_index, outer_ring in layers}
         log.normal(f"Phenomena: about {round(sum(weights.values())):,} to place in {len(layers):,} layers "
                    f"(neutron stars and black holes from {min_mass_solar:g} solar masses).")
+        if filled:
+            log.normal(f"Leaving out the {len(filled):,} sectors already filled.")
+        landed = [0]
 
         def layer_done(layer_counts, seconds, weight):
             for kind, count in layer_counts.items():
                 counts[kind] = counts.get(kind, 0) + count
-            # Recorded in the bar's own units (the layer's weight), so the next run's bar can start from it.
-            run_common._generation_stats(args).record("phenomena", 0.0, seconds, systems=weight, stars=weight,
-                                                      workers=run_common._worker_count(args))
+            if sum(layer_counts.values()):
+                landed[0] += 1
+            # Recorded in the bar's own units (the layer's weight), so the next run's bar can start from it;
+            # not for a layer that placed nothing (PERF.53).
+            if sum(layer_counts.values()):
+                run_common._generation_stats(args).record("phenomena", 0.0, seconds, systems=weight, stars=weight,
+                                                          workers=run_common._worker_count(args))
 
         with run_common._generation_progress() as progress:
             log.set_console(progress.console)
@@ -882,16 +900,27 @@ def scatter_phenomena(args):
                     store.stamp_phenomenon_scatter_epoch(conn)
             finally:
                 log.reset_console()
+        special_counts = {}
         for row in special:
-            counts[row[3]] = counts.get(row[3], 0) + 1
+            label = phenomenon_scatter.class_label(row[3], row[4])
+            special_counts[label] = special_counts.get(label, 0) + 1
+        for kind, count in special_counts.items():
+            counts[kind] = counts.get(kind, 0) + count
+        if special_counts:
+            log.normal("Special phenomena: " + ", ".join(f"{count:,} {kind}" for kind, count in sorted(special_counts.items())) + ".")
         store.record_phenomenon_scatter(conn, seed, min_mass_solar)
         conn.commit()
     finally:
         conn.close()
     elapsed = time.perf_counter() - t0
     total = sum(counts.values())
+    if landed[0]:
+        log.normal(f"Phenomena landed in {landed[0]:,} of {len(layers):,} layers.")
+    else:
+        log.normal(f"No phenomena landed in any of the {len(layers):,} layers.")
+    labels = list(phenomenon_scatter.EXPECTED_LABELS) + sorted(set(counts) - set(phenomenon_scatter.EXPECTED_LABELS))
     log.normal(f"Placed {total:,} phenomena in {elapsed:.1f}s: "
-               + ", ".join(f"{count:,} {kind}" for kind, count in sorted(counts.items())) + ".")
+               + ", ".join(f"{counts.get(label, 0):,} {label}" for label in labels) + ".")
     return {"counts": counts, "total": total, "elapsed_s": elapsed}
 
 
@@ -913,7 +942,8 @@ def _phenomenon_layer_task(payload):
             payload["expected"], payload["seed"], skip_addresses=payload["skip"],
             min_mass_solar=payload["min_mass_solar"],
         ):
-            counts[row[3]] = counts.get(row[3], 0) + 1
+            label = phenomenon_scatter.class_label(row[3], row[4])
+            counts[label] = counts.get(label, 0) + 1
             batch.append(row)
             if len(batch) >= 10000:
                 store.insert_phenomenon_scatter(conn, batch)

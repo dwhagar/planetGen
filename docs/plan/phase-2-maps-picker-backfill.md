@@ -169,6 +169,8 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | MAP.121 | Every map shows and steps to its neighbouring regions, on one map engine |  | Folds MAP.127, the Galaxy Map's neighbouring blocks and slabs (Boss 2026-10-07 16:27Z: one map engine for all maps). |
 | MAP.156 | View one layer or a range of layers top-down from the galaxy view, as a secondary option |  | Boss 2026-10-09 23:17Z; secondary option, not a main control. |
+| PERF.54 | Separate generation-stats rows for the mass pass and the luminosity pass of the star scatter |  | Bugfixes lane 1 report 06:36Z. |
+| GEN.189 | Gamma-ray burst and AGN ozone loss for the ozone_loss_flag (low priority) |  | Foundations lane 2 report 06:20Z. |
 | DOC.16 | The API help page for visitors: what the API is, how to get a key, and where the reference lives | DOC.6 | Boss 23:53Z; Phase 2. |
 | DOC.15 | A glossary and units help page: coordinates, scales, sector paths, object IDs, time and the in-universe wording | DOC.6 | Boss 23:53Z; Phase 2. |
 | DOC.14 | The admin help pages: the queue, the stats page, settings, lockouts and the naming key | DOC.6 | Boss 23:53Z; Phase 2. |

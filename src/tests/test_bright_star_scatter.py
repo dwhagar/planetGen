@@ -206,7 +206,7 @@ def test_scatter_always_leaves_filled_sectors_out(mysql_config):
 
 def test_going_down_a_layer_keeps_the_old_stars_and_adds_only_the_band(mysql_config, monkeypatch):
     _seed_galaxy(mysql_config)
-    first = run_plan.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only"))
+    first = run_plan.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only", "--phenomenon-min-mass", "20"))
     # No GEN.23 backfill here: in this small galaxy it would reach every
     # block (the next test covers a band after a backfill).
     monkeypatch.setattr(run_galaxy, "backfill_bright_stars", lambda *_args, **_kwargs: {"sectors": 0, "stars": 0})
@@ -690,7 +690,7 @@ def test_backfill_tiers_default_and_override():
     assert run_galaxy.backfill_tiers(radius_ly=20.0) == ((20.0, 100.0),)
     assert run_galaxy.backfill_tiers(min_luminosity_sol=300.0) == ((100.0, 300.0),)
     assert run_galaxy.backfill_tiers(tiers=((40, 300), (5, 100))) == ((5.0, 100.0), (40.0, 300.0))
-    assert tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL == 3000.0
+    assert tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL == 5000.0
 
 
 @pytest.mark.parametrize("distance_ly, floor", [
@@ -879,3 +879,24 @@ def test_the_scatter_and_the_backfill_log_the_stars_added_to_each_layer_by_type(
     lines = [message for message in messages if message.startswith("Bright-star backfill, layer ")]
     assert result["stars"] > 0 and lines
     assert sum(int(line.split(": added ")[1].split(" stars")[0].replace(",", "")) for line in lines) == result["stars"]
+
+
+def test_a_galaxy_run_scatters_the_stars_then_the_phenomena(mysql_config, monkeypatch):
+    """The Generate page's new galaxy ran only the star scatter, so no phenomena were ever placed: `galaxy
+    --then-scatter` follows the stars with the phenomena (GEN.185's last pass), at the limit it was given."""
+    _seed_galaxy(mysql_config)
+    monkeypatch.setattr(run_common, "_edge_pc", lambda: EDGE_PC)
+    for name in ("_run_galaxy_mode", "link_after_run", "backfill_after_run", "settle_after_run"):
+        monkeypatch.setattr(run_galaxy, name, lambda *args, **kwargs: None)
+    monkeypatch.setattr(run_galaxy.run_population, "run_population_after", lambda *args, **kwargs: None)
+    monkeypatch.setattr(run_galaxy.run_common, "_finish_stats", lambda *args, **kwargs: None)
+    calls = []
+    for name in ("scatter_bright_stars", "scatter_phenomena"):
+        monkeypatch.setattr(run_plan, name, lambda args, name=name: calls.append((name, args.phenomenon_min_mass)))
+    _parser, parsers = generate_cli.build_parser()
+    args = parsers["galaxy"].parse_args([
+        "--then-scatter", "--phenomenon-min-mass", "8", "--mysql-host", mysql_config.host,
+        "--mysql-port", str(mysql_config.port), "--mysql-user", mysql_config.user,
+        "--mysql-password", mysql_config.password, "--mysql-database", mysql_config.database])
+    run_galaxy.run_galaxy(args)
+    assert calls == [("scatter_bright_stars", 8.0), ("scatter_phenomena", 8.0)]

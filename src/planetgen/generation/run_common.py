@@ -368,7 +368,10 @@ def _expected_systems(sector_args):
 
 
 def _record_sector(args, result, seconds):
-    """Adds one filled sector to its density's speed bucket."""
+    """Adds one filled sector to its density's speed bucket (PERF.53: not one that made no systems, which
+    would pull the per-sector and per-system averages toward nothing)."""
+    if not result.get("systems"):
+        return
     _generation_stats(args).record("sector", result.get("density"), seconds,
                                    systems=result.get("systems", 0), stars=result.get("stars", 0),
                                    workers=_worker_count(args))

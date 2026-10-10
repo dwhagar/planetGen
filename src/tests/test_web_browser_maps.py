@@ -435,7 +435,7 @@ def test_galaxy_map_free_camera_from_an_arc_down(page, base_url):
     page.mouse.up(button="right")
     assert _shot(page, canvas) != turned, "right-drag didn't move the view"
 
-    page.click("#galaxymap3d-menu summary")
+    page.click("#galaxymap3d-menu > summary")
     reset_view.click()
     _wait_settled(page)
     assert _scale_text(page) == scale, "Reset view is back at the stage's own zoom"
@@ -450,7 +450,7 @@ def test_galaxy_map_buttons(page, base_url):
     for action in ("back", "forward", "current", "up"):
         assert page.locator(f'#galaxymap3d-controls [data-action="{action}"]').is_disabled(), f"{action} at the galaxy"
     assert "wedges" not in actions, "no Wedges button (MAP.85)"
-    page.click("#galaxymap3d-menu summary")
+    page.click("#galaxymap3d-menu > summary")
 
     if "charted-only" in actions:
         only = controls.locator('[data-action="charted-only"]')
@@ -472,7 +472,7 @@ def test_galaxy_map_buttons(page, base_url):
 
     # One step down: Back and Up work; Back then enables Forward. (The Menu's
     # star filters make it tall enough to cover the map, so it is closed.)
-    page.click("#galaxymap3d-menu summary")
+    page.click("#galaxymap3d-menu > summary")
     _click_choice(page)
     for action in ("back", "up"):
         assert not controls.locator(f'[data-action="{action}"]').is_disabled()

@@ -2770,8 +2770,10 @@ export function createStageView(host) {
     mapIndex = state && state.mapIndex != null ? state.mapIndex : 0;
     maxIndex = Math.max(mapIndex, state && state.maxIndex != null ? state.maxIndex : mapIndex);
     if (!pinned) history.replaceState({ galaxyStage: true, mapIndex: mapIndex, maxIndex: maxIndex }, "");
-    sectorStage.setHiddenKinds(hiddenFromLocation());
+    // The marks, star classes and floor first: taking the hidden kinds up rewrites the URL
+    // from what is set so far, and would drop a `mark` that wasn't set yet.
     applyStarFiltersFromLocation();
+    sectorStage.setHiddenKinds(hiddenFromLocation());
     setColorFromLocation();
     const asked = stageFromLocation(true);
     let r = resolve(asked.stage);
@@ -2797,8 +2799,10 @@ export function createStageView(host) {
     // Remembered on this entry too, so a reload here still knows how far
     // Forward goes.
     if (state) history.replaceState({ galaxyStage: true, mapIndex: mapIndex, maxIndex: maxIndex }, "");
-    sectorStage.setHiddenKinds(hiddenFromLocation());
+    // The marks, star classes and floor first: taking the hidden kinds up rewrites the URL
+    // from what is set so far, and would drop a `mark` that wasn't set yet.
     applyStarFiltersFromLocation();
+    sectorStage.setHiddenKinds(hiddenFromLocation());
     setColorFromLocation();
     const asked = stageFromLocation(false);
     if (asked.problem) {

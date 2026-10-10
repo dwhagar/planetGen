@@ -4,7 +4,7 @@ How stars (and the other objects drawn as points) come and go as the camera zoom
 
 Informs: MAP.147 (the wire format; nothing here depends on its answer), MAP.146 (it changes the tile keys; the rule below is written against "a list of stars per tile, most luminous first", whatever the tile shapes are). Builds on MAP.48, MAP.51, MAP.80, MAP.87, MAP.109, MAP.116 and MAP.123 (all done).
 
-Status: research, 2026-10-09; the recommendation is mine, nothing is built. Evidence tags: [S] seen in the repo's code or data, [C] computed in this research, [R] recalled and not confirmed (listed at the end).
+Status: research, 2026-10-09; the recommendation is mine. Stage 1 (section 5, MAP.153) is built: `static/starfade.js` holds the arithmetic, `galaxymap3d.js` ranks each tile's stars and the star shader applies the fade; stages 2 and 3 are not. Evidence tags: [S] seen in the repo's code or data, [C] computed in this research, [R] recalled and not confirmed (listed at the end).
 
 ## Summary
 
@@ -161,3 +161,13 @@ What D shows: at 33 pc the dense sector draws about 135 stars instead of 714, an
 - [C] The "screen" is a sphere of radius `R` tan 25 deg around the target; the real frustum is a cone, so counts are an upper bound and the steps are the same.
 - A side-by-side demo (synthetic field, same tile rules, both schemes, a stars-on-screen chart): `/mnt/project-files/research/zoomlod-demo/index.html`. In its chart the rank rule's worst step per 3.3% of zoom is +18%, against 5.7 times (dense) and 4.3 times (thin) today [C].
 - Scripts: `/mnt/project-files/research/scripts/zoomlod/` (`steps_now.py`, `pops_now.py`, `pops_smooth.py`, `pops_rank.py`); results `/mnt/project-files/research/genperf-results/zoomlod_*.json`.
+
+## 9. Stage 1 as built (MAP.153)
+
+- `static/starfade.js`: `birthRadius`, `zoomShare`, `levelGlide`, `starZoomOpacity` (W = 1, N0 = 400, a constant for every level). The star shader repeats `zoomShare` and the glide in GLSL; the unit test (`tests/js/starfade.test.mjs`) works on the module, the browser test on the page's hook.
+- `renderFromCache` gives every drawn star a vec4 `starFade` = (own birth radius, parent birth radius, tile edge, detail). The bright and generated lists are ranked separately, in the order the server sends them. A tile's parent counts only when it is cached in memory; the signature includes that, so the picture is rebuilt when a parent arrives.
+- A star the parent tile listed inside a child's box that the child left out stays drawn (own radius 0) and fades out across the octave, so the lists need not be nested yet (stage 2, MAP.154, makes them so).
+- Detail tiles (view radius 160 pc or less, 8 pc around the target) use their own rank alone with the level-12 edge; a star that is in both a detail tile and the regular tile takes the regular tile's fade. Stars carried over while a tile loads keep the fade they had; a coarser tile's stars carry its level's.
+- Black holes, neutron stars and quasars are never ranked: their birth radius is past any camera radius (stage 3 ranks them).
+- `STAR_FADE_IN_MS` still fades a star that newly joins the drawn set; since it also starts at zero opacity from zoom, the zoom fade leads.
+- Test hook: `canvas.galaxyStarOpacity(radius)` returns the sum of the drawn stars' zoom opacities as if the camera orbited at `radius`, the count and the number shown, and the real camera radius.

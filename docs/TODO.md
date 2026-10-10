@@ -112,7 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.9, PERF.29, PERF.30, ADM.28, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, NAV.11, NAV.42, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.57, TEST.77, UX.49, PERF.31, GEN.128 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.9, PERF.29, PERF.30, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, NAV.11, NAV.42, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.57, TEST.77, UX.49, PERF.31, GEN.128 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.17, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18, PERF.33, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, ADM.43, ADM.44 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, and the anomalies chosen in phase 2. | NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, GEN.114, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies. | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, GEN.55 |
@@ -919,42 +919,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   MAP.146.
   Design: [docs/design/fly-through-view-distance.md](design/fly-through-view-distance.md)
 
-- [ ] **MAP.153 Stars fade in with the zoom: a birth radius from each star's rank in its tile list (first client stage)**
-  Source: docs/design/zoom-star-visibility.md (section 3.1 and 5, stage
-  1), written at Boss's request of 2026-10-09 22:30Z: "I want a very
-  smooth transition where stars and objects are slowly added as one
-  zooms in." Today the drawn set is frozen between 11 tile-level radii
-  and then up to 8.8 times as many stars appear in one frame. Done: in
-  `galaxymap3d.js` every star gets a birth radius from its rank in its
-  tile's list (most luminous first, as the server already sorts it), R_b
-  = R* 2^W (N0/r)^(1/3), and its opacity is a smoothstep of the camera
-  radius, cross-faded from the parent tile's rank across the tile
-  level's octave; zooming out removes stars as smoothly as zooming in
-  adds them, a late tile changes nothing visible, and a browser-test
-  hook returns the opacity sum at a given radius so a test bounds the
-  step. Measured on the same tile data the worst single 9% step falls
-  from +883% to +59% (dense) and from +775% to +74% (thin). No server or
-  schema change. This is the FIRST STAGE of the visibility rule that
-  MAP.148 ends with: both decide when a star shows while zooming, so
-  they are not two rules. Until MAP.148 lands, the rank rule leads;
-  MAP.148 then replaces the rank with apparent magnitude (rank stays as
-  the cap and tiebreak).
-  Decided (Boss, 2026-10-09 23:11Z, "default options are approved"):
-  the rank birth-radius fade is stage 1 and the apparent-magnitude law
-  of MAP.148 is the end state.
-  Decided (Boss, 2026-10-09 23:11Z, "default options are approved"): each
-  star fades over one halving of the camera radius (W = 1); a dense
-  sector's stars arrive in rank order between about 35 pc and 8 pc of
-  view radius, so they wait for sector zoom; the GEN.30 backfill shells
-  stay as they are.
-  Prerequisites: none. Related: MAP.148, MAP.146, MAP.149, MAP.147,
-  MAP.116.
-  Lane (2026-10-09): Queue (Boss, 2026-10-10 05:13Z): Foundations lane 2
-  does this right after GEN.87 (in flight), then GEN.188, GEN.89,
-  GEN.83, GEN.187, MAP.162, UX.87 and the wire-format items. One of the
-  three biggest blockers on the tree.
-  Design: [docs/design/zoom-star-visibility.md](design/zoom-star-visibility.md)
-
 - [ ] **MAP.154 Nested bright-star lists on the server, so every parent list is a subset of its child's**
   Source: docs/design/zoom-star-visibility.md (3 scheme J, section 5
   stage 2). Done: the bright lists use one key for every tile level (a
@@ -985,6 +949,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   from the object id). Sector blocks and fills keep their own
   level-of-detail question (the mega-block plan). Decided (Boss, 2026-10-09 23:11Z, "default options are
   approved"): point objects are listed from level 8.
+  Note (2026-10-09): Note (Foundations lane 2, 2026-10-10 06:20Z): point
+  objects (black holes, neutron stars, quasars) are not ranked yet and
+  use POINT_FADE (always whole); MAP.154's nested lists make the
+  parent-only fade-out unnecessary.
   Prerequisite: MAP.153. Related: MAP.153, MAP.148, MAP.149.
   Design: [docs/design/zoom-star-visibility.md](design/zoom-star-visibility.md)
 
@@ -1133,6 +1101,41 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   mark (in the title, the info panel and the sector view's frame);
   generating it removes the mark.
   Prerequisites: none. Related: MAP.122, MAP.120, UX.87, NAV.48.
+
+- [ ] **MAP.163 Galaxy Map brightness scale: floor 2,500 L_sun at full zoom, then min/max scaling per zoom**
+  Boss (2026-10-10, via the coordinator; one-off for Bugfixes lane 2):
+  the Galaxy Map brightness scale starts at the luminosity floor of
+  2,500 L_sun when fully zoomed out, and at each zoom level scales
+  brightness between that view's minimum and maximum visible values
+  instead of a fixed range. Done: the brightness of a star on the Galaxy
+  Map maps min to dimmest and max to brightest for the stars in view at
+  every zoom, the full-zoom floor is 2,500 L_sun, and a test checks the
+  scaling at two zoom levels. Open question for Boss (default: use the
+  same log scale the map uses now, only with the per-zoom range).
+  Bugfixes lane 2 (2026-10-09): Cause found by Bugfixes lane 2
+  (2026-10-10, relayed): the zoomed-out map bottoms out where the 400th
+  brightest star sits, not at the scatter floor, because of the per-tile
+  cap GALAXY_TILE_MAX_BRIGHT_STARS=400 (db/query.py) that keeps only the
+  400 brightest stars per tile. The 2,500 L_sun wish needs that cap and
+  the floor reconciled (a floor-based cut, or a higher cap, with
+  MAP.148's visibility law).
+  Prerequisites: none. Related: MAP.148, MAP.153, GEN.184.
+
+- [ ] **MAP.164 Galaxy Map shows phenomena: black holes purple, neutron stars dark blue, sized by mass, dark colors out-shine brighter stars**
+  Boss (2026-10-10 06:39Z, ASAP): black holes and neutron stars should
+  show on the Galaxy Map by mass relative to similarly massed stars and
+  brightness. Black holes are purple, neutron stars are dark blue, and
+  these dark colors are made to out-shine brighter stars so they do not
+  vanish among them. The largest of them are visible from the full
+  galactic view. Done: the Galaxy Map draws black holes and neutron
+  stars from the Phenomena table in those colors, their size and glow
+  follow mass relative to stars of similar mass, a rule keeps them
+  visible against brighter stars (a halo or boosted contrast), the
+  largest ones show at the widest zoom, and a test checks the colors and
+  that they draw above brighter stars. Needs the Phenomena table filled
+  (see the bug before this). Owner: Bugfixes lane 2, after its defaults
+  PR. Related: MAP.163, MAP.148, MAP.155.
+  Prerequisites: none. Related: MAP.163, MAP.148, MAP.155.
 
 ## NAV: Navigation and courses
 
@@ -3125,17 +3128,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none (GEN.184 merged, PR #965). Related: GEN.30, GEN.40, GEN.99, GEN.183,
   GEN.184, MAP.120, PERF.18.
 
-- [ ] **GEN.188 Mass limit default is 8, and the mass slider and luminosity dropdown sit side by side on Generate and New galaxy**
-  Decided (Boss, 2026-10-10 04:38Z, via the coordinator; owner Foundations lane 2): change the
-  Generate-galaxy defaults so the mass limit default is 8 solar masses
-  (GEN.183 shipped 20); put the mass slider and the luminosity floor
-  dropdown (GEN.184, default 3000 L_sun) next to each other on the
-  Generate page, and show both in the New galaxy section as well. Done:
-  a fresh galaxy plan, the CLI default and the stored default use 8, the
-  two controls sit together in both places with the same presets, and
-  tests cover the default and the controls. A galaxy that stored 20
-  keeps its stored limit.
-  Prerequisites: none. Related: GEN.183, GEN.184, GEN.185.
+- [ ] **GEN.189 Gamma-ray burst and AGN ozone loss for the ozone_loss_flag (low priority)**
+  Foundations lane 2 (2026-10-10 06:20Z), design 4.5 of
+  activity-magnetism-radiation-hydrosphere.md: GEN.87 stores
+  `ozone_loss_flag` but does not model gamma-ray bursts or AGN/quasar
+  ozone loss. Add a gamma-ray burst event rate with a fluence of 30 to
+  100 kJ/m2 or more within about 2 kpc of a planet as an ozone-loss
+  event, and an AGN/quasar term (no source found yet, so research
+  first). Done: both causes feed `ozone_loss_flag` with documented
+  rates, the design note records the sources, and a test checks that a
+  planet near a burst-prone region gets the flag more often. Low
+  priority.
+  Prerequisites: none. Related: GEN.87, GEN.89.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -3425,20 +3429,38 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none.
   Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
 
-- [ ] **PERF.52 Admin generation-stats table is wrong (bug)**
-  Boss (2026-10-10 05:40Z, via Bugfixes lane 1): "I feel like the stats
-  are all messed up". The admin table "How long this server takes to
-  fill a sector, place a layer of bright stars or phenomena, by star
-  density and number of workers" shows impossible numbers: the
-  bright-star layer rows show 1,262 / 8,987 / 22,554 "systems per
-  sector" in a galaxy of 7,663 systems; per-system times of 3.8 / 1.0 /
-  0.6 ms against per-sector times of 4.55 to 13.86 s; Migration shows a
-  per-sector time and 1,076 ms per system with 2.0 systems per sector;
-  the Galaxy Map warm-up has a per-sector row. Done: each column's
-  meaning is defined, recording matches the GEN.185 five-pass scatter,
-  units are right, the size and time estimates that use the stats are
-  right, and a test on a small galaxy checks the numbers.
-  Prerequisites: none. Related: GEN.185, PERF.33.
+- [ ] **PERF.54 Separate generation-stats rows for the mass pass and the luminosity pass of the star scatter**
+  Reported by Bugfixes lane 1 (2026-10-10 06:36Z), left out of PERF.52
+  because it is not a small fix: the admin generation-stats table
+  records the GEN.185 star scatter as one layer, but the scatter now has
+  separate mass-limit and luminosity-limit passes (and the phenomenon
+  passes). Done: the stats record each pass on its own row, the admin
+  table shows them, and the size and time estimates use the right row
+  for the plan being estimated. Phase 2.
+  Prerequisites: none. Related: PERF.52, PERF.53, GEN.185.
+
+- [ ] **PERF.55 One global progress bar for generation jobs that run in phases, with an ETA across all phases**
+  Boss (2026-10-10 06:44Z): a generation process that runs in phases
+  gets one global progress bar that tracks the ETA across all phases,
+  fed by the incremental updates of the phase bars below it, so there is
+  a constant view of elapsed time and how long the whole process should
+  have left. Done: the Generate page, the job page and the command line
+  show one overall bar for a phased job (the star passes, the phenomena
+  passes, settling, the Galaxy Map warm-up and the rest) with elapsed
+  time and time remaining; the estimate is the sum of the finished
+  phases' real times and the remaining phases' estimates from the
+  generation stats, and it is corrected as each phase bar reports; a
+  test checks the total and the ETA on a small galaxy with several
+  phases. Unassigned: in no lane's queue. Related: PERF.33 (progress
+  bars and ETAs from measured performance), PERF.51 (the progress-bar
+  mechanism), PERF.52 and PERF.53 (the generation stats), UX.83, UX.3.
+  Prerequisite: PERF.33. Related: PERF.33, PERF.51, PERF.52, PERF.53,
+  UX.83, UX.3.
+  Bugfixes lane 1 (2026-10-09): Bugfixes lane 1 (2026-10-10, PERF.53, PR
+  #1015): a stored 'layers per second for the whole job' stat (all
+  layers, including ones that generated nothing, per Boss 06:28Z) does
+  not exist yet; the progress bar measures the whole job but nothing is
+  stored. Add it here if wanted.
 
 ## DB: Database and schema
 
@@ -3971,16 +3993,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   reserved interactive worker; re-run PERF.34's page-time test under
   Ludicrous Speed.
 
-- [ ] **ADM.28 A simpler Generate page: layer specs, a Customize window and plain controls**
-Boss (2026-10-07 11:47Z): "Actual specs on layers on the generation
-  screen.  Let's also have a customize button that brings up a special
-  window with all the settings, the generate screen is getting a bit
-  complex, we need to do a full rework to make it easier to use." Done:
-  the page shows the galaxy's layer specs (count, height, extent, how
-  many charted), the common actions stay on the page and every other
-  setting moves into a Customize dialog, and its subitems are done.
-  GitHub issue [#736](https://github.com/dwhagar/planetGen/issues/736) (Boss, 2026-10-09 02:26Z): "Each set of settings should be a tab for the generate screen so the user only sees the ones relevant to what they are looking at." So the Customize dialog groups its settings into tabs, one per kind of generation.
-
 - [ ] **ADM.32 Add a star system to a sector: at the emptiest spot, at given coordinates, or at random outside every Hill sphere**
   Boss (2026-10-07 11:47Z): "Need a way to add a single star system to a
   sector, the computer will place in the area of lowest density if it
@@ -4077,24 +4089,20 @@ Boss (2026-10-07 11:47Z): "Actual specs on layers on the generation
   are `noindex,follow`, top pages only in the sitemap, switchable with
   `seo.detail_pages`.
 
-- [ ] **ADM.45 Prevalence fields take the override share directly and must total 100%**
-  Boss (2026-10-09 07:48Z): "Prevalence fields instead of being +/- % they will be just type in the override % number, the form should force the user to make sure the whole thing =100% and should make it clear what to do so it isn't confusing. I don't think we need a density dependent share."
-  Follows ADM.37 (PR #514), which made the Generate page show each
-  feature's real default share. Done: every prevalence field on the
-  Generate page is a plain number box holding the share, in percent,
-  that the feature should have, starting at its real default; the user
-  types the override instead of a plus or minus change. The page shows a
-  running total of the shares that belong together, says in words what
-  to do when it is not 100% (which fields to raise or lower and by how
-  much), and will not start the run until the set adds up to exactly
-  100%. A test submits sets that add up and sets that do not, and the
-  CLI's `--prevalence` accepts the same shares and rejects a set that is
-  not 100%. A share that depends on the local star density is not part
-  of this item; the shares stay the same in every sector.
-  Decided (2026-10-09): Decided (Boss, 2026-10-10, via Foundations lane
-  1): the 100% rule applies to a "Star mix" only (single, close and wide
-  shares of systems totalling 100%, option --star-mix); the other
-  prevalence fields stay independent.
+- [ ] **ADM.49 Galaxy shape density settings: the user changes the density range of the spiral arms, the inter-arm space, the core and the bulge**
+  Boss (2026-10-10 06:16Z): let the user change the variables that set
+  the density range of the spiral arms, the space between the arms
+  (inter-arm), the core and the bulge. These are the galaxy shape fields
+  of `galaxy/density.py` (`arm_amplitude`, `arm_count`,
+  `pitch_angle_rad`, `bulge_amplitude`, `bulge_scale_radius_pc` and the
+  disk terms), today fixed by the preset. Done: the Customize window's
+  galaxy shape tab and the New galaxy section offer the arm density,
+  inter-arm density, core density and bulge density (and their ranges)
+  with sane limits and presets, they are stored in `galaxy_shape`, the
+  density model uses them, and a test checks that a changed value
+  changes the density at an arm, between arms, in the core and in the
+  bulge. Unassigned (Boss): not in any lane's queue yet.
+  Prerequisites: none. Related: GEN.183, GEN.184, GEN.186.
 
 ## SEC: Security
 
@@ -4170,24 +4178,16 @@ clears each one.
   open until it recurs, then investigate with the failing run's data).
   Prerequisites: none. Related: TEST.111, TEST.71.
 
-- [ ] **TEST.119 15 browser map tests fail on main since the UX.86 menu regrouping (bug)**
-  Reported by Bugfixes lane 1 (2026-10-10 05:31Z):
-  test_web_browser_fixture_maps, test_web_browser_maps and
-  test_web_browser_controls (15 tests in all) fail on main since the
-  UX.86 menu regrouping (PR #936). The locator `#galaxymap3d-menu
-  summary` now also matches the nested group summaries. Done: the
-  locators name the top-level summary only and the 15 tests pass on
-  main. Bugfixes lane 1 is fixing the locators.
-  Prerequisites: none. Related: UX.86.
-
-- [ ] **TEST.120 test_sampled_stars_stay_inside_their_mass_range still fails on main after TEST.118 (bug)**
-  Reported by Bugfixes lane 1 (2026-10-10 05:31Z):
-  test_star_scatter_passes.py::test_sampled_stars_stay_inside_their_mass_range
-  fails on main even after PR #975 (TEST.118). Probably the same family:
-  the scatter test setup against GEN.184's 2500 L_sun floor. Done: the
-  cause is found and the test passes on main with the full test file
-  green.
-  Prerequisites: none. Related: TEST.118, GEN.184, GEN.185.
+- [ ] **TEST.122 Browser map tests fail on plain main in Bugfixes lane 2's container (fixture maps, controls, system-page maps) (bug)**
+  Bugfixes lane 2 (2026-10-10, relayed):
+  test_web_browser_fixture_maps.py, test_web_browser_controls.py and the
+  system page in test_web_browser_maps.py fail on plain main in its
+  container, not only on a branch (2 system map browser tests failed in
+  the GEN.188 run). Find whether it is the container's browser or a real
+  regression; if real, fix it; if the container, record what the lane
+  needs. Related to the earlier TEST.119 and TEST.120 fixes. Owner:
+  unassigned.
+  Prerequisites: none. Related: TEST.119, TEST.120.
 
 ## USR: User accounts
 
@@ -4463,14 +4463,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   `generator_epoch` are the same number, bumped only when output changes
   for the same seed.
   Prerequisite: OPS.28.
-
-- [ ] **OPS.40 update.sh step 8 fails: setup-debug-log.sh loads the deleted util/appconfig.py (bug)**
-  Reported by Bugfixes lane 2 (2026-10-10 04:39Z): step 8 of update.sh
-  runs setup-debug-log.sh, which still loads util/appconfig.py after
-  that module was deleted, so the step fails. Done: setup-debug-log.sh
-  uses the current settings loader, update.sh step 8 completes, and a
-  test or check covers the script's import.
-  Prerequisites: none.
 
 ## DOC: Documentation
 
