@@ -108,7 +108,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | OPS.16 | A daily maintenance script for Linux, macOS and Windows |  | scripts/maintenance.sh and .ps1: positional update, delta merge, rotation; lock; optional OPS.15 check. |
 | OPS.30 | A lock helper for the maintenance run |  | Research: used by OPS.16 (ADM.20's admin merge was dropped). |
 | OPS.17 | Install and update set up the daily maintenance schedule | OPS.16 | Same scripts as OPS.7/OPS.8/OPS.13 (install/update, deploy-common), after them. |
-| OPS.34 | Windows Redis in WSL: fix the keep-alive advice and add a Start-RedisInWsl remedy |  | Research: corrects OPS.21 and OPS.27 (built). |
 | OPS.31 | Lint every example plist, XML and service file in CI |  | Research: found with the macOS plist bug. |
 
 ### Picker

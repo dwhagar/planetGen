@@ -4171,23 +4171,6 @@ clears each one.
   Boss closes it.
   Prerequisites: none.
 
-- [ ] **TEST.115 Three tests fail on the Windows CI leg in every recent run: Redis in WSL is unreachable (bug)**
-  Reported by Bugfixes lane 1 (2026-10-10 03:57Z, PRs #957 and #958):
-  test_a_slow_runner_still_alive_is_starting_not_interrupted,
-  test_without_redis_no_job_starts and
-  test_without_redis_windows_runs_the_job_itself fail in all 8 recent
-  main runs on the Windows leg, because Redis in WSL is not reachable
-  from the Windows side (127.0.0.1:6379 refused). Done: the Windows leg
-  runs these tests with a reachable Redis or skips the ones that need
-  none with a stated reason, and the tests that test the missing-Redis
-  path set up that state themselves; the Windows leg passes on main. CI
-  now runs only by hand (Actions, CI, Run workflow), so the leg is
-  checked when someone runs it.
-  Superseded (2026-10-09): Superseded by OPS.39 (Boss, 2026-10-10
-  04:25Z): Windows support is being removed. Do not start; retire with
-  OPS.39.
-  Prerequisites: none. Related: TEST.111, OPS.19, PERF.24.
-
 - [ ] **TEST.116 test_bughunt_end_to_end stores M2V or M6V where it expects K2V on the MySQL 8.4 and MariaDB legs once (bug)**
   Reported by Bugfixes lane 1 (2026-10-10 03:57Z): the K2V check in
   test_bughunt_end_to_end failed once on MySQL 8.4 and once on MariaDB
@@ -4198,15 +4181,6 @@ clears each one.
   or the product bug is fixed. Open question for Boss (default: leave
   open until it recurs, then investigate with the failing run's data).
   Prerequisites: none. Related: TEST.111, TEST.71.
-
-- [ ] **TEST.118 test_star_scatter_passes.py fails twice on main since GEN.184 raised the luminosity floor to 2500 or more (bug)**
-  Reported by Foundations lane 2 (2026-10-10 04:23Z, GEN.183 merge, PR
-  #969): test_sampled_stars_stay_inside_their_mass_range and
-  test_the_scatter_runs_the_mass_pass_then_a_luminosity_pass_that_skips_marked_sectors
-  fail on main since GEN.184's luminosity floors (2500 L_sun at the
-  lowest) met GEN.185's test setup. Done: the tests' setup uses a floor
-  the new ladder allows, and the full test file passes on main.
-  Prerequisites: none. Related: GEN.184, GEN.185, GEN.183.
 
 ## USR: User accounts
 
@@ -4458,21 +4432,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Prerequisites: none.
   Design: [docs/design/ops-scheduling-and-rotation.md](design/ops-scheduling-and-rotation.md)
 
-- [ ] **OPS.34 Windows Redis in WSL: fix the keep-alive advice and add a Start-RedisInWsl remedy**
-  `docs/deployment/windows.md` (Redis, step 4) says a logon task running
-  `wsl -d Ubuntu` keeps Redis alive; it does not (a WSL instance idles
-  out after about 15 s and systemd services do not hold it). Document a
-  hidden keep-alive process (`wsl -e sleep infinity`) started at logon,
-  marked unverified until tested on Windows; add a `Start-RedisInWsl`
-  remedy to `Test-Redis` (only when the account can see a distro); state
-  that unattended Windows servers cannot rely on WSL. Open question for
-  Boss (default: keep telling unattended servers to use a Linux VM).
-  Superseded (2026-10-09): Superseded by OPS.39 (Boss, 2026-10-10
-  04:25Z): Windows support is being removed. Do not start; retire with
-  OPS.39.
-  Prerequisites: none.
-  Design: [docs/design/ops-scheduling-and-rotation.md](design/ops-scheduling-and-rotation.md)
-
 - [ ] **OPS.35 A vendored-version lock file for the static libraries**
   `static/vendor/VENDORED.json` (version, npm `dist.integrity`, SHA-256
   per shipped file, esbuild version, licence) written by the vendor
@@ -4497,27 +4456,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   `generator_epoch` are the same number, bumped only when output changes
   for the same seed.
   Prerequisite: OPS.28.
-
-- [ ] **OPS.39 Remove Windows support; keep only a simple docs/WINDOWS.md**
-  Decided (Boss, 2026-10-10 04:25Z, in the Foundations lane 1 thread):
-  rip out all Windows support. If someone wants it to work on Windows
-  they do that work themselves; the most the project provides is a
-  simple docs/WINDOWS.md with basic instructions for a typical Windows
-  setup. Done: the Windows CI leg, update.ps1, install.ps1, every other
-  .ps1 script and scheduled-task helper, Windows branches in the code,
-  Windows-only tests and test setup, and Windows mentions in the docs
-  are removed; docs/reference/deployment/windows.md (and any
-  docs/deployment/windows.md) is replaced by docs/WINDOWS.md; the README
-  and install docs name Linux (and macOS where it still applies) only; a
-  search for 'windows', 'ps1', 'WSL' and 'win32' finds nothing outside
-  docs/WINDOWS.md and history. This supersedes TEST.115 (Windows-leg
-  Redis failures) and OPS.34 (Windows Redis in WSL): retire both with
-  this item, and drop the Windows halves of OPS.16, OPS.17, OPS.28 and
-  OPS.30 (the epoch question about Windows reproducibility is answered
-  by this). No backward compatibility.
-  Prerequisites: none. Related: TEST.115, OPS.34, OPS.16, OPS.17,
-  OPS.28, OPS.30.
-  Lane (Boss, 2026-10-10 04:26Z): Foundations lane 3 (not lane 1).
 
 - [ ] **OPS.40 update.sh step 8 fails: setup-debug-log.sh loads the deleted util/appconfig.py (bug)**
   Reported by Bugfixes lane 2 (2026-10-10 04:39Z): step 8 of update.sh
