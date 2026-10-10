@@ -118,7 +118,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | MAP.119 | Expected star density editable by admins on the Galaxy Map |  |  |
 | MAP.122 | A Select mode on every galaxy view: Galaxy (blocks and sectors) or Star |  | Merges the 2026-10-07 "button to select a star" ask; MAP.101 (PR #431) made stars unpickable by default. |
-| UX.87 | The system list shows uncharted systems: every scattered star, with its location and a way to generate it |  | Boss issue #929, 01:51Z. |
 | MAP.146 | Fly through the galaxy: scroll-zoom, double-click flight, distance-based visibility and a see-through near field | MAP.148, MAP.149, MAP.150, MAP.151, MAP.152, MAP.154, MAP.155, MAP.157, MAP.158, MAP.159 | Boss 2026-10-09 22:24Z and 22:56Z. Umbrella for MAP.148 to MAP.152; replaces the fixed ladder in galaxy/drill.py and galaxyprisms.js. |
 | MAP.147 | The Galaxy Map wire format: the investigation (done) and the record of what was built from it | MAP.157, MAP.158, MAP.159 | Research Lane 3 report in docs/design/galaxy-map-wire-format.md; record until the build items are done. |
 | MAP.157 | Trim the Galaxy Map tile JSON and serve it from prebuilt, precompressed bytes |  | MAP.147 recommendation step 1; no client change. |

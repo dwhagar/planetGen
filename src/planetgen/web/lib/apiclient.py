@@ -404,6 +404,16 @@ def get_systems(db, star_type=None, sector_id=None, limit=None, offset=None, sor
     return _request("/systems", [(key, value) for key, value in params if value is not None])
 
 
+def get_uncharted_systems(db, limit=None, offset=None, sort=None, descending=False):
+    """Returns `GET /api/uncharted-systems`'s envelope (UX.87): a page of
+    the scattered stars no system was built around yet, with the `total`
+    waiting. `sort` is one of `queryDb.UNCHARTED_SYSTEM_SORTS`."""
+    _require_db(db)
+    params = [("db", db), ("limit", limit), ("offset", offset), ("sort", sort),
+              ("order", "desc" if descending else "asc" if sort else None)]
+    return _request("/uncharted-systems", [(key, value) for key, value in params if value is not None])
+
+
 def get_system(db, system_id):
     """Returns `GET /api/systems/<id>`'s detail dict -- see
     `queryDb.system_detail`'s docstring for the shape."""

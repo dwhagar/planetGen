@@ -139,6 +139,16 @@ connectivity to that specific schema rather than the default one.
   (each `[{"value", "count"}]`; every menu's counts apply the other filters
   but not its own). `total` counts the systems that pass the filters; a bad
   `sort`, `order`, `binary` or `placement` is a 400.
+- `GET /api/uncharted-systems?sort=<luminosity|temperature|type|sector|age>&order=asc|desc&limit=<n>&offset=<n>` —
+  the stars the brightness scatter placed that have no system yet (UX.87:
+  `bright_stars` rows with a NULL `star_system_id`, so both the mass-limit
+  and luminosity passes count). Each item has `id`, `designation`,
+  `ring_index`, `layer_index`, `ring_slot_index`, galaxy-frame `x`, `y`, `z`
+  and in-sector `local_x`, `local_y`, `local_z` (parsecs), and the star's
+  own data (`star_type`, `population`, `mass_solar`, `radius_solar`,
+  `temperature_k`, `luminosity_sol`, `age_gy`, `galactic_radius_pc`).
+  Brightest first unless `sort`/`order` say otherwise; a bad `sort` or
+  `order` is a 400.
 - `GET /api/systems/<id>` — one system's full display detail: `id`,
   `name`, `sector_id`, `quadrant`, `location`, `is_binary`, `binary_type`,
   `binary_configuration` (`"close"`/`"wide"`/`null`),
@@ -544,6 +554,11 @@ connectivity to that specific schema rather than the default one.
   `estimate`, then starts the real run as a Generate page job.
 - `POST /api/systems` — generate and create a system, standalone or in
   an existing sector.
+- `POST /api/uncharted-systems/<bright_star_id>/generate` — admin only
+  (UX.87): generate that one scattered star's system by itself (standalone;
+  the sector's other contents stay uncharted) and link the star to it.
+  Answers `201` with `{"id": <system id>}` (or `202` with a job id when the
+  queue is slow); `404` for an unknown star, `409` if it already has a system.
 - `PATCH /api/systems/<id>` — rename a system (its stars, planets and
   moons follow; see "Renaming" below), and/or regenerate its contents
   in place (see "Regenerating a system" below).
