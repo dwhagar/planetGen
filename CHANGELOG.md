@@ -2,6 +2,11 @@
 
 ## [8.0.866] - 2026-10-10
 
+### Fixed
+- Python and the browser now round half-way numbers the same way (away from zero, on the shortest decimal), so 9.995 reads "10" and 1.005 reads "1.01" in both; Python used to give "9.99" and "1".
+- A negative number that rounds to zero prints "0", not "-0", in both.
+- A checkout with `core.autocrlf=true` no longer changes the bytes of the lock files and the word list, so their hashes agree between Windows and Linux.
+
 ### Changed
 - The TODO list retires NAV.12 (unbounded routes, PR #838) and PERF.42 (warm queue worker, PR #841).
 - The queue worker loads the generation code and the bright-star sampling tables once, before it forks a work horse per job, so each job no longer spends about 2.6 s importing and rebuilding them (PERF.42). A worker also restarts itself when an update changes the release.
