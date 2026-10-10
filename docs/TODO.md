@@ -451,6 +451,20 @@ with `clamp()`.
   system and leaves the sector's other contents ungenerated.
   Prerequisites: none. Related: MAP.162, ADM.32, ADM.35, NAV.48, DOC.9.
 
+- [ ] **UX.88 Say "uncharted" instead of "unbuilt" or "not generated" in all user-facing text outside Generate and admin**
+  Boss (2026-10-10 07:26Z, via the coordinator): instead of unbuilt or
+  not generated it should say "uncharted" across the entire project and
+  in all output to the user, except the Generate system and the admin
+  panels and controls. Done: a sweep of the templates, map scripts (for
+  example the sector and block labels in galaxystageview.js and
+  sectorscene.js), nav, the CLI query output, the API texts shown to
+  people, and the docs for the user; the Generate pages and the admin
+  panels keep the technical words; a test fails if a user-facing
+  template outside those areas says unbuilt or not generated. The rule
+  is recorded in docs/html-interface.md (Wording). Owner: Bugfixes lane
+  2, after MAP.163 and MAP.164.
+  Prerequisites: none. Related: GEN.193, MAP.164.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
