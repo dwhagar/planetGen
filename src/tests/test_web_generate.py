@@ -1406,3 +1406,50 @@ def test_the_page_has_the_star_mix_and_no_separate_binary_fields(site, client):
         assert f'name="star_mix_{kind}"' in html
     assert 'name="prevalence_binary_system"' not in html and 'name="prevalence_wide_binary"' not in html
     assert "generatestarmix.js" in html
+
+
+# --- Neutron star and black hole limit (GEN.195) ----------------------------------
+
+def test_both_plan_forms_offer_the_compact_object_limit(site, client):
+    html = client.get("/admin/generate").get_data(as_text=True)
+    assert html.count('name="compact_use_star"') == 2
+    assert html.count('name="compact_min_mass"') == 2
+    assert re.search(r'name="compact_use_star" value="1" id="plan-mass-limit-compact-star" checked', html)
+    for preset in ("1", "2", "4", "6"):
+        assert f'<option value="{preset}"' in html
+    assert "1 solar mass is about 1.2 billion rows (161 GB)" in html
+    assert "6 solar masses is about 200 million rows (28 GB)" in html
+    pairs = re.findall(r'<div class="search-fields scatter-limits">(.*?)</fieldset>', html, re.S)
+    assert len(pairs) == 2 and all('name="compact_min_mass"' in pair for pair in pairs)
+
+
+def test_the_compact_limit_follows_the_star_setting_by_default(site, client, no_spawn):
+    assert _post(client, action="plan", phenomenon_min_mass="12", compact_use_star="1").status_code == 303
+    (job,) = no_spawn
+    plan, scatter, phenomena = _work_steps(job)
+    assert _argv(plan) == ["plan", "--phenomenon-min-mass", "12", "--compact-min-mass", "star", "--no-bright-stars"]
+    assert _argv(phenomena) == ["plan", "--phenomena-only", "--phenomenon-min-mass", "12",
+                                "--compact-min-mass", "star"]
+
+
+def test_an_unticked_compact_limit_reaches_every_scatter_step(site, client, no_spawn):
+    assert _post(client, action="new_galaxy", confirm=DB, phenomenon_min_mass="14", compact_min_mass="2").status_code == 303
+    (job,) = no_spawn
+    _reset, plan, galaxy = _work_steps(job)
+    assert _argv(plan)[:5] == ["plan", "--phenomenon-min-mass", "14", "--compact-min-mass", "2"]
+    assert _argv(galaxy)[:6] == ["galaxy", "--then-scatter", "--phenomenon-min-mass", "14",
+                                 "--compact-min-mass", "2"]
+
+
+def test_the_rebuild_passes_the_compact_limit_to_the_phenomena(site, client, no_spawn):
+    assert _post(client, action="bright_stars", phenomenon_min_mass="14", compact_min_mass="4").status_code == 303
+    _scatter, phenomena = _work_steps(no_spawn[-1])
+    assert _argv(phenomena) == ["plan", "--phenomena-only", "--phenomenon-min-mass", "14", "--compact-min-mass", "4"]
+
+
+@pytest.mark.parametrize("value", ["3", "0.5", "8"])
+def test_the_compact_limit_must_be_a_preset(site, client, no_spawn, value):
+    resp = _post(client, action="plan", compact_min_mass=value)
+    assert resp.status_code == 400
+    assert "must be one of 1, 2, 4, 6." in resp.get_data(as_text=True)
+    assert no_spawn == []

@@ -367,3 +367,32 @@ CREATE TABLE IF NOT EXISTS version_key_history (
     recorded_at          DATETIME(6) NOT NULL,
     INDEX idx_version_key_history_database (database_name, id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- v14 (PERF.56): how long each stage of a generation run took, with the
+-- settings it ran with (`planetgen/generation/stages.py` writes a row as a
+-- stage ends). A stage a run skipped gets a row too, with `skipped` set and
+-- its reason and no time. `settings` holds the arguments that shape the
+-- stage (mass limit, luminosity floor, workers, radius ...) and `metrics`
+-- what it did (layers visited, layers that placed something, objects), both
+-- as JSON text, so a later estimate can pick the rows run with the same
+-- settings. Rows of another `version_key` are not used for estimates.
+CREATE TABLE IF NOT EXISTS generation_stage_runs (
+    id                   BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    database_name        VARCHAR(64) NOT NULL,
+    command              VARCHAR(16) NOT NULL,     -- galaxy, plan
+    stage_key            VARCHAR(24) NOT NULL,
+    stage_n              SMALLINT UNSIGNED NOT NULL,
+    stage_total          SMALLINT UNSIGNED NOT NULL,
+    label                VARCHAR(80) NOT NULL,
+    skipped              TINYINT(1) NOT NULL DEFAULT 0,
+    skip_reason          VARCHAR(200) NULL,
+    started_at           DATETIME(6) NOT NULL,
+    finished_at          DATETIME(6) NOT NULL,
+    seconds              DOUBLE NOT NULL DEFAULT 0,
+    workers              INT NOT NULL DEFAULT 1,
+    settings             TEXT NOT NULL,
+    metrics              TEXT NOT NULL,
+    version_key          CHAR(22) NOT NULL DEFAULT '',
+    INDEX idx_generation_stage_runs_key (stage_key, skipped, id),
+    INDEX idx_generation_stage_runs_database (database_name, id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

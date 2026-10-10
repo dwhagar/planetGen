@@ -103,6 +103,34 @@ def prevalence_setting(text):
     return feature, percent
 
 
+def compact_mass_limit(text):
+    """`argparse` type of `--compact-min-mass` (GEN.195): "star" (use the stellar mass limit) or a number."""
+    if text.strip().lower() == program_constants.COMPACT_MIN_MASS_STAR:
+        return program_constants.COMPACT_MIN_MASS_STAR
+    return finite_float(text)
+
+
+def check_compact_mass_limit(args, parser):
+    """Errors unless `--compact-min-mass` is one of `tuning.COMPACT_MIN_MASS_PRESETS` or "star"."""
+    value = getattr(args, "compact_min_mass", None)
+    if value is None or value == program_constants.COMPACT_MIN_MASS_STAR:
+        return
+    if not any(math.isclose(value, preset) for preset in program_constants.COMPACT_MIN_MASS_PRESETS):
+        parser.error("--compact-min-mass must be one of "
+                     + ", ".join(f"{preset:g}" for preset in program_constants.COMPACT_MIN_MASS_PRESETS)
+                     + f", or {program_constants.COMPACT_MIN_MASS_STAR}.")
+
+
+COMPACT_MIN_MASS_HELP = (
+    "The lowest mass (solar masses) of a neutron star or black hole placed galaxy-wide (GEN.195): one of "
+    + ", ".join(f"{preset:g}" for preset in program_constants.COMPACT_MIN_MASS_PRESETS)
+    + ", or 'star' to use the stellar mass limit (--phenomenon-min-mass), which is also the default "
+      "when this is left out. Lighter ones are drawn when their sector is filled. A lower limit places "
+      "far more rows: 1 solar mass is about 1.2 billion rows (161 GB), 2 about 390 million (54 GB), "
+      "4 about 220 million (30 GB), 6 about 200 million (28 GB). The central supermassive black hole "
+      "or quasar is always created.")
+
+
 def finite_float(text):
     """
     `argparse` type for every float option: a plain `float`, but NaN and
@@ -665,9 +693,11 @@ def add_galaxy_arguments(parser):
                                 help="With --then-scatter: the scatter's threshold, solar luminosities. "
                                      f"Default: {program_constants.BRIGHT_STAR_MIN_LUMINOSITY_SOL:g}.")
     backfill_group.add_argument('--phenomenon-min-mass', type=finite_float, default=None, metavar='M_SUN',
-                                help="With --then-scatter: the mass limit of the scatters (GEN.183), solar "
+                                help="With --then-scatter: the stellar mass limit of the scatters (GEN.183), solar "
                                      "masses; blank keeps the one already stored, else "
                                      f"{program_constants.PHENOMENON_MIN_MASS_SOLAR:g}.")
+    backfill_group.add_argument('--compact-min-mass', type=compact_mass_limit, default=None, metavar='M_SUN',
+                                help="With --then-scatter: " + COMPACT_MIN_MASS_HELP)
     store.add_mysql_connection_args(parser)
 
 
@@ -685,6 +715,7 @@ def validate_galaxy_args(args, parser):
                                           through (so the caller's own
                                           `--help`/usage text is shown).
     """
+    check_compact_mass_limit(args, parser)
     if args.then_scatter:
         try:
             args.bright_star_min_luminosity = luminosity_floor.check(args.bright_star_min_luminosity)
@@ -938,10 +969,12 @@ def add_plan_arguments(parser):
     phenomena_group = parser.add_argument_group("phenomenon scatter (planetgen.generation.phenomenon_scatter)")
     presets = ", ".join(f"{value:g}" for value in program_constants.PHENOMENON_MIN_MASS_PRESETS)
     phenomena_group.add_argument('--phenomenon-min-mass', type=finite_float, default=None, metavar='M_SUN',
-                                 help="The mass limit (solar masses) from which every star, neutron star and black "
-                                      "hole is placed galaxy-wide after the plan; a sector draws the lighter ones "
+                                 help="The stellar mass limit (solar masses) from which every star is placed "
+                                      "galaxy-wide after the plan; a sector draws the lighter ones "
                                       f"when it is filled. One of {presets}. Default: the galaxy's stored limit, "
                                       f"else {program_constants.PHENOMENON_MIN_MASS_SOLAR:g}.")
+    phenomena_group.add_argument('--compact-min-mass', type=compact_mass_limit, default=None, metavar='M_SUN',
+                                 help=COMPACT_MIN_MASS_HELP)
     phenomena_group.add_argument('--phenomena-only', action='store_true',
                                  help="Re-scatter the phenomena on the stored plan without rebuilding it or the "
                                       "bright stars (to change --phenomenon-min-mass). Filled sectors are left out.")
@@ -996,6 +1029,7 @@ def validate_plan_args(args, parser):
             math.isclose(args.phenomenon_min_mass, preset) for preset in program_constants.PHENOMENON_MIN_MASS_PRESETS):
         parser.error("--phenomenon-min-mass must be one of "
                      + ", ".join(f"{value:g}" for value in program_constants.PHENOMENON_MIN_MASS_PRESETS) + ".")
+    check_compact_mass_limit(args, parser)
     if args.phenomena_only and (args.bright_stars_only or args.bright_stars_down_to is not None):
         parser.error("--phenomena-only can't be combined with --bright-stars-only or --bright-stars-down-to.")
     if args.bright_stars_down_to is not None:

@@ -769,7 +769,7 @@ test("on touch, the first tap highlights and the second takes it", async () => {
   assert.equal(m.view.stage().picks.length, 1);
 });
 
-test("a generated sector opens in place; one not generated is selected", async () => {
+test("a generated sector opens in place; one uncharted is selected", async () => {
   let known = null;
   const server = (query) => {
     if (!known) return { children: [], sectors: [] };

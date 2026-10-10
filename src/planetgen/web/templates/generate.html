@@ -27,6 +27,26 @@
   sector is made. Presets: {{ mass_limit_presets|map("int")|join(", ") }}. Lower limits place more and take longer.</span>
 </label>
 {%- endmacro -%}
+{#- GEN.195: the neutron star and black hole limit, apart from the stellar mass limit above. Ticked, it
+    follows the star setting; unticked, the dropdown's mass applies. Lower limits fill the database fast. -#}
+{%- macro compact_limit(id) -%}
+{%- set use_star = (not form) or form.get("compact_use_star") -%}
+{%- set chosen = (form.get("compact_min_mass") if form else none) or compact_presets[-1] -%}
+<fieldset class="generate-compact" data-compact-limit>
+  <legend>{{ compact_label }}</legend>
+  <label class="generate-compact-star"><input type="checkbox" name="compact_use_star" value="1" id="{{ id }}-star"
+    {%- if use_star %} checked{% endif %}> Use the star mass setting</label>
+  <label for="{{ id }}">Or neutron stars and black holes from
+    <select id="{{ id }}" name="compact_min_mass">
+      {%- for preset in compact_presets %}
+      <option value="{{ preset|int }}"{% if preset|int == chosen|float|int %} selected{% endif %}>{{ preset|int }}</option>
+      {%- endfor %}
+    </select> solar masses</label>
+  <span class="field-hint">Every neutron star and black hole at least this heavy is placed across the whole galaxy;
+  lighter ones are drawn when their sector is made. The central black hole or quasar is always created. Lower
+  limits fill the database: {% for preset, cost in compact_warnings %}{{ preset|int }} solar mass{{ "es" if preset > 1 }} is {{ cost }}{{ "; " if not loop.last else "." }}{% endfor %}</span>
+</fieldset>
+{%- endmacro -%}
 {%- macro plan_inputs() -%}
 <div class="search-fields">
   {%- for name, flag, label, kind, default, minimum, maximum in plan_fields %}
@@ -40,6 +60,7 @@
 <div class="search-fields scatter-limits">
   {{ mass_slider(id) }}
   {{ scatter_threshold() }}
+  {{ compact_limit(id ~ "-compact") }}
 </div>
 {%- endmacro -%}
 {#- ADM.16: the share of each feature a sector or galaxy run should

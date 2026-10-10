@@ -34,6 +34,7 @@ PROSE_TEXT_COLUMNS = {
     ("rogue_planets", "composition"), ("nebulae", "composition"), ("nebulae", "formation_cause"),
     # Control schema: an error message and the audit log's note.
     ("work_tasks", "error"), ("admin_audit_log", "detail"),
+    ("generation_stage_runs", "settings"), ("generation_stage_runs", "metrics"),
 }
 BLOB_TYPES = ("tinytext", "text", "mediumtext", "longtext", "json", "tinyblob", "blob", "mediumblob", "longblob")
 
