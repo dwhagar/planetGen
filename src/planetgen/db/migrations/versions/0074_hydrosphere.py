@@ -1,17 +1,17 @@
 """Hydrosphere and ocean chemistry (GEN.88).
 
-Schema v73. `planets` and `moons` gain `water_mass_fraction`,
+Schema v74. `planets` and `moons` gain `water_mass_fraction`,
 `hydrosphere`, `ocean_fraction`, `land_fraction`, `ocean_depth_km`,
 `ice_shell_km`, `hp_ice_km`, `ocean_class`, `ocean_ph`, `water_activity`
 and `phosphorus`; `rogue_planets` gains `hp_ice_km`. All NULL here: rows
-generated before v73 have none (see `schema.sql`'s "v73" note).
+generated before v74 have none (see `schema.sql`'s "v74" note).
 """
 
 import sqlalchemy as sa
 from alembic import op
 
-revision = "0073"
-down_revision = "0072"
+revision = "0074"
+down_revision = "0073"
 branch_labels = None
 depends_on = None
 

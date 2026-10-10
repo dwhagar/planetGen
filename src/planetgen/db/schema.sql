@@ -1077,7 +1077,7 @@
 --   bright. A sector's own draw is lighter than the limit and dimmer than
 --   the floor. NULL on a scatter drawn before v73, which had no mass pass.
 --
--- v73: hydrosphere and ocean chemistry (GEN.88). `planets` and `moons`:
+-- v74: hydrosphere and ocean chemistry (GEN.88). `planets` and `moons`:
 --   `water_mass_fraction`, `hydrosphere` ('dry', 'vapour', 'ice',
 --   'ice-covered ocean', 'surface ocean', 'hycean'), `ocean_fraction` and
 --   `land_fraction` (shares of the surface; water counts liquid or
@@ -1088,7 +1088,7 @@
 --   `water_activity` and `phosphorus` ('high', 'limited', 'starved'). All
 --   NULL for a gas giant; the ocean fields NULL without liquid water.
 --   `rogue_planets` gains `hp_ice_km`, and its `surface_regime` may be
---   'hycean'. NULL on a row generated before v73. Draws:
+--   'hycean'. NULL on a row generated before v74. Draws:
 --   `planetgen/physics/hydrosphere.py`; design
 --   docs/design/activity-magnetism-radiation-hydrosphere.md section 5.
 --
@@ -1719,7 +1719,7 @@ CREATE TABLE IF NOT EXISTS planets (
     xuv_flux_earth              DOUBLE,
     xuv_exposure_index          DOUBLE,
     flare_irradiation_index     DOUBLE,
-    -- v73 (GEN.88): water, land, ice and the ocean's chemistry, see header comment.
+    -- v74 (GEN.88): water, land, ice and the ocean's chemistry, see header comment.
     water_mass_fraction         DOUBLE,
     hydrosphere                 VARCHAR(20) CHECK (hydrosphere IN ('dry', 'vapour', 'ice', 'ice-covered ocean', 'surface ocean', 'hycean')),
     ocean_fraction              DOUBLE,
@@ -1876,7 +1876,7 @@ CREATE TABLE IF NOT EXISTS moons (
     xuv_flux_earth              DOUBLE,
     xuv_exposure_index          DOUBLE,
     flare_irradiation_index     DOUBLE,
-    -- v73 (GEN.88): water, land, ice and the ocean's chemistry, see header comment.
+    -- v74 (GEN.88): water, land, ice and the ocean's chemistry, see header comment.
     water_mass_fraction         DOUBLE,
     hydrosphere                 VARCHAR(20) CHECK (hydrosphere IN ('dry', 'vapour', 'ice', 'ice-covered ocean', 'surface ocean', 'hycean')),
     ocean_fraction              DOUBLE,
@@ -2526,7 +2526,7 @@ CREATE TABLE IF NOT EXISTS rogue_planets (
     ice_shell_thickness_km   DOUBLE,
     ocean_depth_km           DOUBLE,
     has_liquid_water         TINYINT(1),
-    hp_ice_km                DOUBLE,  -- v73 (GEN.88)
+    hp_ice_km                DOUBLE,  -- v74 (GEN.88)
     -- v17: always populated (a rogue planet is always standalone).
     galactic_orbital_speed_kms           DOUBLE NOT NULL,
     galactic_orbital_period_gy           DOUBLE NOT NULL,
