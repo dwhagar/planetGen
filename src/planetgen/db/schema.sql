@@ -1050,7 +1050,7 @@
 --   before v70. Draws: `planetgen/physics/atmosphere.py`.
 -- v71: `galaxy_shape.phenomenon_min_mass_solar` (GEN.167): the lowest mass
 --   of the neutron stars and black holes the phenomenon scatter placed
---   (`planetgen plan --phenomenon-min-mass`, default 20 solar masses). A
+--   (`planetgen plan --phenomenon-min-mass`, default 8 solar masses). A
 --   sector fill draws those below it itself, from its own stream (GEN.168).
 --   NULL on a scatter drawn before v71, which placed every mass.
 -- v72: stellar activity and planetary magnetic fields (GEN.86). `stars`:

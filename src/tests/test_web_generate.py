@@ -628,7 +628,7 @@ def test_page_offers_the_scatter_threshold(site, client):
     html = client.get("/admin/generate").get_data(as_text=True)
     assert html.count('name="bright_min_luminosity"') == 3  # New galaxy, Plan, Rebuild
     assert generate_page.BRIGHT_THRESHOLD_LABEL in html
-    assert '<option value="3000" selected>3,000 (default)</option>' in html  # GEN.184
+    assert '<option value="5000" selected>5,000 (default)</option>' in html  # GEN.184
     assert '<option value="2500">2,500</option>' in html and '<option value="4000000">4.00 × 10⁶</option>' in html
     assert generate_page.BACKFILL_TEXT in html
 
@@ -1278,7 +1278,7 @@ def test_the_plan_forms_offer_the_mass_limit_slider(site, client):
     html = client.get("/admin/generate").get_data(as_text=True)
     for slider in ("new-galaxy-mass-limit", "plan-mass-limit"):
         assert re.search(rf'<input type="range" id="{slider}" name="phenomenon_min_mass"[^>]*min="8" max="20" step="2"'
-                         r'[^>]*value="20"', html, re.S)
+                         r'[^>]*value="8"', html, re.S)
     assert html.count('name="phenomenon_min_mass"') == 2
     assert re.search(r'<script type="module" src="/static/generateranges.js\?v=[^"]+"></script>', html)
 

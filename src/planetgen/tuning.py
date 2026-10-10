@@ -2740,7 +2740,7 @@ PHENOMENON_MIN_MASS_PRESETS = (8.0, 10.0, 12.0, 14.0, 16.0, 18.0, 20.0)
 """tuple: The mass limits the user may pick (GEN.183, Boss 2026-10-10): the
 Generate page's slider and `--phenomenon-min-mass` accept only these."""
 
-PHENOMENON_MIN_MASS_SOLAR = 20.0
+PHENOMENON_MIN_MASS_SOLAR = 8.0
 """float: The phenomenon scatter's lowest mass, the default of
 `PHENOMENON_MIN_MASS_PRESETS` (GEN.167, `planetgen plan
 --phenomenon-min-mass`; docs/design/phenomenon-scatter-mass-cut.md, Boss
@@ -2748,9 +2748,9 @@ PHENOMENON_MIN_MASS_SOLAR = 20.0
 or above it; a sector draws the rest when it is filled (GEN.168). An
 object's tidal sphere (1.44 pc per cube root of a solar mass) reaches one
 4 pc sector edge at about 21 solar masses, so below the cut an object's
-pull stays within its own and the neighbouring sectors. At 20 only the
-intermediate-mass black holes are scattered: about 2.7e5 rows instead of
-1.17e9."""
+pull stays within its own and the neighbouring sectors. 20 first (only the
+intermediate-mass black holes scattered: about 2.7e5 rows instead of
+1.17e9); 8 on 2026-10-10 (Boss, the bottom preset)."""
 
 
 def phenomenon_rate_per_star(kind):
@@ -2998,13 +2998,13 @@ is the same factor of distance (`facilities.distance_from_step`)."""
 
 # --- Galaxy pre-placement (schema v43) ---
 
-BRIGHT_STAR_MIN_LUMINOSITY_SOL = 3000.0
+BRIGHT_STAR_MIN_LUMINOSITY_SOL = 5000.0
 """float: Every star at least this bright (solar luminosities) is generated
 and placed galaxy-wide right after `planetgen plan`, before any sector is
 filled (`bright_stars`, schema v43). Its sector is still generated later,
 around it. 500 on 2026-10-01, then 1000 (GEN.30), with the dimmer stars
 filled in near generated sectors by the tiered backfill
-(`BRIGHT_STAR_BACKFILL_TIERS`); 3000 on 2026-10-10 (GEN.184, Boss). The user
+(`BRIGHT_STAR_BACKFILL_TIERS`); 3000 on 2026-10-10 (GEN.184, Boss), then 5000 the same day. The user
 picks it from the ladder in `generation/luminosity_floor.py`, from
 `BRIGHT_STAR_FLOOR_MIN_SOL` to `BRIGHT_STAR_FLOOR_MAX_SOL`. A galaxy
 already scattered keeps the level it was scattered at. The value a scatter

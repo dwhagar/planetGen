@@ -1,7 +1,7 @@
 """
 The luminosity floor presets (GEN.184): the brightness above which every
 star is scattered galaxy-wide. Boss (2026-10-10 03:01Z): the user picks from
-presets, default 3,000 solar luminosities, nothing below 2,500, rising on an
+presets, default 5,000 solar luminosities (3,000 first, then raised), nothing below 2,500, rising on an
 exponential scale to 4 million, with steps of 100 near 2,500 and about
 500,000 near the top.
 

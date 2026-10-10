@@ -520,7 +520,7 @@ def test_re_running_an_interrupted_band_holds_the_band_once(mysql_config, monkey
     # run finished don't hold it twice.
     _seed_galaxy(mysql_config)
     seed = _scatter_seed(mysql_config)
-    run_plan.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only"))
+    run_plan.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only", "--phenomenon-min-mass", "20"))
     first = _count(mysql_config)
     first_rows = _stored_rows(mysql_config)
     undo = worker_patches.patch_everywhere(monkeypatch, brightStars, "scatter_layer",
@@ -537,7 +537,7 @@ def test_re_running_an_interrupted_band_holds_the_band_once(mysql_config, monkey
     band_seed = _scatter_seed(mysql_config, f"band/{BAND_FLOOR:g}-{THRESHOLD:g}")
     expected = list(brightStars.scatter(SHAPE, EXTENTS, EDGE_PC, E_VALUE, BAND_FLOOR, band_seed,
                                         max_luminosity_sol=THRESHOLD,
-                                        mass_range=(None, tuning.PHENOMENON_MIN_MASS_SOLAR)))
+                                        mass_range=(None, 20.0)))
     stored = _stored_rows(mysql_config)
     assert len(stored) == first + len(expected)
     # The first scatter's stars and the band's, each once.
