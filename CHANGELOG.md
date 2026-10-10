@@ -2,20 +2,21 @@
 
 ## [8.0.866] - 2026-10-10
 
-### Fixed
-- Hypervelocity stars now move in a straight line (position plus velocity times time) when the orbit update runs, keeping their velocity, instead of being turned about the galactic axis like bound objects (GEN.137). `phenomenon_scatter` gains `epoch_unix` (schema v69), the time a scattered star's position holds at, and the built system inherits it.
-- The sector search reached by a radius now covers every cell that touches the sphere, not only cells whose centers lie inside it (`cells_touching_sphere`, NAV.53); the center-based listing's misses are documented.
-- Python and the browser now round half-way numbers the same way (away from zero, on the shortest decimal), so 9.995 reads "10" and 1.005 reads "1.01" in both; Python used to give "9.99" and "1".
-- A negative number that rounds to zero prints "0", not "-0", in both.
-- A checkout with `core.autocrlf=true` no longer changes the bytes of the lock files and the word list, so their hashes agree between Windows and Linux.
-
 ### Changed
+- The TODO list retires GEN.137, NAV.53, OPS.33, UX.79 and UX.80 (PR #843).
 - The TODO list retires NAV.12 (unbounded routes, PR #838) and PERF.42 (warm queue worker, PR #841).
 - The queue worker loads the generation code and the bright-star sampling tables once, before it forks a work horse per job, so each job no longer spends about 2.6 s importing and rebuilding them (PERF.42). A worker also restarts itself when an update changes the release.
 - The TODO list records Boss's decisions on the generation performance items: the nearest-system and containment work moves to its own phase (PERF.45), and skipping the finite-domain check stays open (PERF.46).
 - The TODO list files the phenomenon scatter mass cut (GEN.166 to GEN.169) and reworks DB.19 around it: at the recommended 20 solar masses the scatter table falls from 1.17 billion rows (161 GB) to about 2.7e5 rows. The design notes drop the unverified 1.6e8 rows and 21 GB figures.
 - Two systems in one sector are routed by their nearest stars even when those lie in the sector next door.
 - The Generate page progress-line to-do item (ADM.46) was withdrawn at Boss's word.
+
+### Fixed
+- Hypervelocity stars now move in a straight line (position plus velocity times time) when the orbit update runs, keeping their velocity, instead of being turned about the galactic axis like bound objects (GEN.137). `phenomenon_scatter` gains `epoch_unix` (schema v69), the time a scattered star's position holds at, and the built system inherits it.
+- The sector search reached by a radius now covers every cell that touches the sphere, not only cells whose centers lie inside it (`cells_touching_sphere`, NAV.53); the center-based listing's misses are documented.
+- Python and the browser now round half-way numbers the same way (away from zero, on the shortest decimal), so 9.995 reads "10" and 1.005 reads "1.01" in both; Python used to give "9.99" and "1".
+- A negative number that rounds to zero prints "0", not "-0", in both.
+- A checkout with `core.autocrlf=true` no longer changes the bytes of the lock files and the word list, so their hashes agree between Windows and Linux.
 
 ### Added
 - A route now reports its longest hop and flags each hop whose line crosses sectors that have not been generated as unknown space (NAV.12). `/api/nav` returns `route.hops` and `route.longest_hop_ly`, and the NAV page states the longest hop and the unknown-space jumps.
