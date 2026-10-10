@@ -184,6 +184,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.135 | Deterministic math helpers for every stored float, with a lint and frozen constants |  | Research: Python 3.9 and 3.10 to 3.13 draw different sectors without it. Blocks TEST.77. |
 | OPS.29 | Update reload: cover the gunicorn units and non-Apache hosts, and say what a reload aborts |  | Research follow-up to OPS.8 (built). |
 | OPS.28 | Generator epoch and battery digest: say whether two checkouts generate the same galaxy | GEN.135 | Research: OPS.13 is built; this is the epoch it records. OPS.14, OPS.15, OPS.12 and TEST.77 read it. |
+| ADM.50 | Remove the galaxy settings files (the seed JSON files of ADM.18) entirely |  | Boss 2026-10-10 21:14Z; Foundations lane 1, before OPS.28. |
 | OPS.37 | A Generator version number: one sequential integer, shown in admin and the API | OPS.28 | Boss 2026-10-09 20:59Z: done by the end of phase 1. Same number as OPS.28's epoch (decided). |
 
 ### Bugs from the GitHub issues

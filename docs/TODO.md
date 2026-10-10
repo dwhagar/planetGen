@@ -4080,6 +4080,38 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   are `noindex,follow`, top pages only in the sitemap, switchable with
   `seo.detail_pages`.
 
+- [ ] **ADM.50 Remove the galaxy settings files (the seed JSON files of ADM.18) entirely**
+  Boss (2026-10-10 21:14Z): 'remove the galaxy seed JSON files
+  entirely.' Boss asked for the item; the removal is this item's work.
+  What exists: `planetgen plan` writes `<32-hex seed>-<22-hex version
+  key>-<YYYYMMDD>-<HHMMSS>Z.json` into `galaxy-settings` in the jobs
+  directory (`PLANETGEN_SETTINGS_DIR`), holding the plan options, seed,
+  version key, naming key, the requirements.lock hash and both word
+  lists. What reads or writes it: planetgen/galaxy/settings_file.py
+  (write, list_files, current_file, build); generation/run_plan.py
+  (`_write_settings_file`, called at the end of the plan);
+  galaxy/version_check.py (compares the running code with the file's
+  settings and warns); api/admin.py (`GET
+  /api/admin/galaxy-settings[/<name>]`); web/lib/apiclient.py and
+  web/admin_pages.py (the download); web/templates/admin_stats.html (the
+  'Galaxy settings' panel); tests test_settings_file.py,
+  test_sector_versions.py, test_web_admin.py and test_settings.py;
+  docs/design/reproducible-galaxies.md section 7 ('As built (ADM.18)').
+  Done: all of that is deleted, with no shim, wrapper or compatibility
+  stub (Boss, 2026-10-07: no backward compatibility): the module, the
+  plan step, the two API routes and their clients, the Admin panel, the
+  version check against the file (the check keeps comparing sector
+  versions, and compares the code against the seed and version key
+  stored in the database), the tests and the design section. The seed,
+  version key and naming key already live in the database's control
+  tables; the requirements.lock hash and the word lists existed only in
+  the file, so decide with OPS.28, OPS.37 and DB.16 whether they are
+  dropped or moved into the database, and say which in the PR. update.sh
+  removes any old `galaxy-settings` directory once. No schema change is
+  needed. Docs and README text that mention the file are updated, and
+  the 8.x changelog entry says the files are gone.
+  Prerequisites: none. Related: ADM.18, OPS.28, OPS.37, DB.16, GEN.135.
+
 ## SEC: Security
 
 The login protection of 2026-10-01 (SEC.1, SEC.20 to
