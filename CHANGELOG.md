@@ -3,6 +3,7 @@
 ## [8.0.866] - 2026-10-10
 
 ### Changed
+- TODO: filed the missing progress bars for neighbour linking, the phenomenon scatter and other long generation steps as a bug.
 - TODO: recorded that the rank fade (MAP.153) is stage 1 and the magnitude law (MAP.148) the end state, as decided by Boss.
 - TODO: recorded Boss's answers on the zoom star visibility defaults (MAP.153, MAP.155).
 - TODO: moved the fly-through Galaxy Map (MAP.146 and MAP.147 to MAP.155) into Phase 1 as the headline of the 8.1 release; Phase 1 is now complete only when they are done, so the 8.0 hold stays until then. Placed in Foundations lane 2's queue (step 4) in dependency order.
