@@ -560,3 +560,20 @@ def test_nav_between_raises_value_error_for_missing_phenomenon(two_sector_galaxy
             nav_between(conn, ids["a"][0], 999999999, to_kind="phenomenon", to_type="nebula")
     finally:
         conn.close()
+
+
+def test_route_times_are_the_hops_rest_to_rest_plus_a_stay_at_every_stop():
+    """NAV.11: a route's total is each hop at the factor's speed plus the stay at each stop between the ends."""
+    from planetgen.galaxy.navigation import (
+        MINUTES_PER_YEAR, route_fold_times, route_warp_times, warp_speed_c, warp_travel_times)
+    hops = [2.0, 3.0, 5.0]
+    totals = route_warp_times(hops, stay_minutes=0.0, warp_factors=(1, 9))
+    for leg, factor in zip(totals, (1, 9)):
+        assert leg.years == pytest.approx(sum(d / warp_speed_c(factor) for d in hops))
+    # Three hops have two stops between the ends.
+    stayed = route_warp_times(hops, stay_minutes=60.0, warp_factors=(1,))
+    assert stayed[0].years == pytest.approx(totals[0].years + 2 * 60.0 / MINUTES_PER_YEAR)
+    # One hop is a direct trip: no stops, so no stay, and it equals the plain table.
+    direct = route_warp_times([7.5], stay_minutes=600.0)
+    assert [leg.years for leg in direct] == pytest.approx([leg.years for leg in warp_travel_times(7.5)])
+    assert [leg.fold_factor for leg in route_fold_times(hops)] == [4, 5, 6, 6.5, 7, 7.5, 8, 8.5]

@@ -524,6 +524,22 @@ def test_nav_returns_direct_course_and_route_for_same_sector(client, seeded_sect
     assert body["route"]["longest_hop_ly"] == pytest.approx(body["route"]["hops"][0]["distance_ly"])
 
 
+def test_nav_route_has_hop_and_total_times_and_a_stay(client, seeded_sector):
+    """NAV.11: each hop and the route have warp and fold times; `stay` adds time at each stop between the ends."""
+    _config, _sector_id, system_ids = seeded_sector
+    body = client.get(f"/api/nav?from={system_ids[0]}&to={system_ids[1]}&stay=90").get_json()
+    route = body["route"]
+    assert route["stay_minutes"] == 90.0 and route["stops"] == 0
+    hop = route["hops"][0]
+    assert [leg["warp_factor"] for leg in hop["warp_times"]] == [1, 2, 4, 8, 9, 9.5, 9.9, 9.995]
+    # A single hop has no stop to stay at, so the route's time is the hop's.
+    assert [leg["years"] for leg in route["warp_times"]] == pytest.approx([leg["years"] for leg in hop["warp_times"]])
+    assert [leg["fold_factor"] for leg in route["fold_times"]] == [4, 5, 6, 6.5, 7, 7.5, 8, 8.5]
+    assert client.get(f"/api/nav?from={system_ids[0]}&to={system_ids[1]}").get_json()["route"]["stay_minutes"] == 0.0
+    for bad in ("-1", "abc", "1e12"):
+        assert client.get(f"/api/nav?from={system_ids[0]}&to={system_ids[1]}&stay={bad}").status_code == 400
+
+
 def test_nav_requires_from_and_to(client, seeded_sector):
     _config, _sector_id, system_ids = seeded_sector
 

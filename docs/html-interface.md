@@ -391,6 +391,7 @@ step can be bookmarked or shared:
 | `/nav?from_sector=5` | Choose a starting system in sector 5. |
 | `/nav?from=system:12` | Destination pickers: the other systems in its sector, and (when that sector is galaxy-placed) a sector-then-system picker for another sector (`&to_sector=9`). |
 | `/nav?from=system:12&to=system:40` | The direct course (distance, "bearing mark mark" and its frame, warp and fold travel times), the NAV Map and the optimal route. |
+| `/nav?from=system:12&to=system:40&stay=30` | NAV.11: the route's panel also shows the travel time of each hop and of the whole route at every warp and fold factor, with a stay of 30 minutes at each stop between the ends (default 0; the "Recalculate" field on the page sets it). |
 | `/nav?from=nebula:3&to=system:40` | The same with a phenomenon endpoint. |
 | `/nav?to=black_hole:3` | "Navigate to here": the origin picker, carrying `to` along. |
 
