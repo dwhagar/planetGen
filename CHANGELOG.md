@@ -3,6 +3,7 @@
 ## [8.0.911] - 2026-10-10
 
 ### Changed
+- **Docs only:** TEST.121 (PR #1002) and TEST.120 (fixed by PR #975) are retired; PERF.54 files separate stats rows for the star scatter passes as a Phase 2 item.
 - test_open_map_menus_hold_no_overlap closes each menu in the page instead of clicking its button, so a busy machine no longer fails it on the closing click.
 - A map Menu whose content arrives after it opens (the Galaxy Map's kinds and star filters) is placed again when it grows, so it no longer hangs over its own button. Menus opened above their button covered the button when the content was late.
 - The default luminosity floor (GEN.184) is now 5,000 solar luminosities (was 3,000) and the default mass limit for massive stars and phenomena (GEN.183) is now 8 solar masses (was 20, the bottom preset). Both are still on their preset lists and the ranges are unchanged. A galaxy already scattered keeps the levels it was scattered at.
