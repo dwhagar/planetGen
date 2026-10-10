@@ -1759,7 +1759,6 @@ function initGalaxyMap3d(canvasEl, data) {
   // The dimmest and brightest luminosity of the stars at this zoom (the
   // needed tiles' stars, whatever the filters), the luminosity slider's
   // ends. Null with none loaded.
-  var GALAXY_LUM_FLOOR = 2500;
   var tileLumRange = null;
   function noteLuminosityRange(need) {
     var lo = Infinity, hi = 0;
@@ -1772,10 +1771,9 @@ function initGalaxyMap3d(canvasEl, data) {
         if (lum > 0) { lo = Math.min(lo, lum); hi = Math.max(hi, lum); }
       });
     });
-    // At galaxy scale nothing below the lowest floor preset is ever drawn, so
-    // the scale ends there (Boss, 2026-10-10) even where the per-tile star
-    // budgets leave only brighter stars in the tiles.
-    tileLumRange = hi > 0 ? [Math.min(lo, GALAXY_LUM_FLOOR), hi] : null;
+    // Whatever the tiles of this view carry: at galaxy scale their per-tile
+    // star caps leave only the brightest stars, and the scale follows that.
+    tileLumRange = hi > 0 ? [lo, hi] : null;
     if (typeof updateLumSlider === "function") updateLumSlider();
   }
   // Draws the stars again after a filter changed.
