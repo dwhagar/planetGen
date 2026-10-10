@@ -64,7 +64,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| ADM.29 | Fill a span of layers, rings or columns |  |  |
 | ADM.30 | Radial generation: a cylinder of N sectors around a point |  |  |
 | ADM.31 | Every generate action offers to show what it made on the Galaxy Map |  | Merges two asks: the 2026-10-03 button and the 2026-10-07 "see that space". |
 | GEN.97 | Generate N random neighborhoods |  |  |
@@ -72,7 +71,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.180 | Directives: a forced fill (met_forced) after K failed draws |  | Left over from GEN.96. |
 | GEN.179 | Store each sector's generation directive and attempt record with the sector |  | Left over from GEN.96. |
 | ADM.45 | Prevalence fields take the override share directly and must total 100% |  | Boss 2026-10-09 07:48Z; follows ADM.37. |
-| ADM.28 | A simpler Generate page: layer specs, a Customize window and plain controls | ADM.29, ADM.30, ADM.31, GEN.97 | Parent of the Generate page items; after the web components land. |
+| ADM.28 | A simpler Generate page: layer specs, a Customize window and plain controls | ADM.30, ADM.31, GEN.97 | Parent of the Generate page items; after the web components land. |
 
 ### Galaxy gen
 
@@ -146,7 +145,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.148 | The star visibility law: apparent-magnitude opacity, flux-based brightness and an on-screen limit from a histogram | MAP.153 | Fly-through report item 1; builds after MAP.153 (its first stage). |
 | MAP.149 | The near field: depth fade, a see-through focus tube, drawing from inside a container, and picking that matches what is drawn |  | Fly-through report item 2; can start now. Folds MAP.121 blocker fade and MAP.141 context. |
 | MAP.150 | The free camera: wheel zoom to the cursor, double-click flight, and the observer inside, with the container named from position | MAP.149 | Fly-through report item 3; needs the near field. |
-| MAP.151 | The region data layer: exact-centred frame, aligned cells, per-level aggregates and slot-wrap ranges | ADM.29 | Fly-through report item 4. Decide cache keys with MAP.147. |
+| MAP.151 | The region data layer: exact-centred frame, aligned cells, per-level aggregates and slot-wrap ranges |  | Fly-through report item 4. Decide cache keys with MAP.147. |
 | MAP.152 | Scale hand-offs: galaxy, sector and system cross-fade with hysteresis, and per-tile camera-relative origins | MAP.148, MAP.150, MAP.154 | Fly-through report item 5. |
 | MAP.153 | Stars fade in with the zoom: a birth radius from each star's rank in its tile list (first client stage) |  | Zoom visibility note stage 1; first stage of MAP.148, same ground. |
 | MAP.154 | Nested bright-star lists on the server, so every parent list is a subset of its child's | MAP.153 | Zoom visibility note stage 2; shares tile keys with MAP.147 and MAP.151. |

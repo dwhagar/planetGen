@@ -417,7 +417,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.26 | The bright-star backfill shows no progress bar on the web (bug) | none | done, PR #560 |
 | ADM.27 | Changing a planet's class doesn't regenerate its surface conditions (bug) | none | done, PR #448 |
 | ADM.28 | A simpler Generate page: layer specs, a Customize window and plain controls | none | open |
-| ADM.29 | Fill a span of layers, rings or columns | none | open |
+| ADM.29 | Fill a span of layers, rings or columns | none | done, PR #926 |
 | ADM.30 | Radial generation: a cylinder of N sectors around a point | none | open |
 | ADM.31 | Every generate action offers to show what it made on the Galaxy Map | none | open |
 | ADM.32 | Add a star system to a sector: at the emptiest spot, at given coordinates, or at random outside every Hill sphere | none | open |
