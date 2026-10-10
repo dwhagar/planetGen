@@ -1121,7 +1121,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.82 | Theme checks after PR #800: SVG currentColor, two Shoelace contrast failures, alpha in --bg-subtle | none | open |
 | UX.83 | Generation steps that run long show no progress bar of their own: linking new sectors to their neighbours, the phenomenon scatter and others (bug) | none | done, PR #895 |
 | UX.84 | Every sub-step must show a progress bar that starts by itself when it is predicted to take over 15 seconds (bug) | none | done, PR #930 |
-| UX.85 | Button menus open out of sight and make the user scroll to see them (bug) | none | open |
+| UX.85 | Button menus open out of sight and make the user scroll to see them (bug) | none | done, PR #932 |
 | UX.86 | The Galaxy Map controls take too much room: buttons too large and filters one character wide (bug) | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
