@@ -133,3 +133,13 @@ def test_compass_uses_the_given_frame_center_and_falls_back_to_plus_x():
     # Origin on the center itself: +X, as navigation.course_between does.
     dx, dy = _compass_tip(render_nav_map_panel(_link, waypoints, has_route=False))
     assert dx > 0 and dy == pytest.approx(0.0, abs=0.1)
+
+
+def test_render_nav_map_panel_tooltips_name_the_course_to_the_next_stop():
+    """NAV.42: a stop's tooltip carries its course to the next stop; the last stop has none."""
+    first = _waypoint(1, "Alpha", (0.0, 0.0, 0.0), "origin")
+    first["course"] = "045 mark 012"
+    last = _waypoint(2, "Omega", (3.0, 4.0, 0.0), "destination")
+    html = render_nav_map_panel(_link, [first, last], has_route=True)
+    assert "<title>Alpha (next stop: 045 mark 012)</title>" in html
+    assert "<title>Omega</title>" in html

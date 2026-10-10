@@ -525,6 +525,14 @@ def test_nav_returns_direct_course_and_route_for_same_sector(client, seeded_sect
     assert [(hop["from"], hop["to"], hop["unknown_space"]) for hop in body["route"]["hops"]] == [
         (pid('system', system_ids[0]), pid('system', system_ids[1]), False)]
     assert body["route"]["longest_hop_ly"] == pytest.approx(body["route"]["hops"][0]["distance_ly"])
+    # NAV.42: a hop carries its own course (here the whole route is one hop, so it is the direct course), and
+    # each stop its sector and sector-local position.
+    hop = body["route"]["hops"][0]
+    for key in ("bearing_deg", "mark_deg", "elevation_deg", "frame"):
+        assert hop[key] == pytest.approx(body["direct"][key]) if key != "frame" else hop[key] == "sector"
+    assert [(place["node"], place["sector_id"]) for place in body["route"]["stop_places"]] == [
+        (pid("system", system_ids[0]), pid("sector", _sector_id)), (pid("system", system_ids[1]), pid("sector", _sector_id))]
+    assert body["route"]["stop_places"][0]["sector_position_ly"] == pytest.approx(body["origin_position"])
 
 
 def test_nav_route_has_hop_and_total_times_and_a_stay(client, seeded_sector):

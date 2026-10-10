@@ -867,6 +867,14 @@ is the longest. `unknown_space` is true when the hop's straight line crosses a
 sector that has not been generated (`galaxyGeometry.sectors_along_segment`,
 NAV.38). A route in a sector with no galaxy placement has the flag false.
 
+**Courses along the route (NAV.42).** Each `route.hops` entry also has the
+course from its stop to the next: `bearing_deg`, `mark_deg`, `elevation_deg`
+and `frame`, worked out in the Sector Local Frame when both stops are systems
+of one sector and in the Galactic Frame otherwise
+(`docs/design/navigation-frames.md`). `route.stop_places` has one
+`{node, sector_id, sector_position_ly}` per id in `path` (both `null` for a
+phenomenon end). The NAV page shows each course as `045 mark 012, 3.2 ly`.
+
 **Travel times for the route (NAV.11).** Each `route.hops` entry also has
 `warp_times` and `fold_times` for that hop alone (the same factors as the
 top-level lists), and the route has `warp_times` and `fold_times` for the

@@ -868,6 +868,48 @@ def _galaxy_route(conn, origin_position, destination_position, from_key, to_key,
         half_width = min(half_width * 2.0, NAV_CORRIDOR_MAX_LY)
 
 
+def _route_places(conn, path):
+    """
+    NAV.42: where each stop of a route sits in its sector. `{node: {"sector_id", "sector_position_ly"}}`, the
+    position the system's sector-local `(x, y, z)` in light-years; both `None` for a phenomenon end and for a system
+    with no sector or no position.
+    """
+    places = {node: {"sector_id": None, "sector_position_ly": None} for node in path}
+    system_ids = [node for node in path if not isinstance(node, str)]
+    if system_ids:
+        marks = ",".join("?" * len(system_ids))
+        for row in conn.execute(
+                "SELECT id, sector_id, position_x_mpc, position_y_mpc, position_z_mpc FROM star_systems "
+                f"WHERE id IN ({marks})", system_ids).fetchall():
+            places[row["id"]]["sector_id"] = row["sector_id"]
+            if row["position_x_mpc"] is not None:
+                places[row["id"]]["sector_position_ly"] = (
+                    milliparsecs_to_ly(row["position_x_mpc"]), milliparsecs_to_ly(row["position_y_mpc"]),
+                    milliparsecs_to_ly(row["position_z_mpc"]))
+    return places
+
+
+def _hop_course(hop, places, galaxy_frame, local_positions):
+    """
+    NAV.42: the course from one stop of a route to the next, in the frame NAV uses for that pair -- the Sector
+    Local Frame when both stops are systems of one sector, the Galactic Frame otherwise
+    (docs/design/navigation-frames.md).
+
+    Returns:
+        dict: `bearing_deg`, `mark_deg`, `elevation_deg` and `frame`.
+    """
+    a, b = places[hop["from"]], places[hop["to"]]
+    if (a["sector_id"] is not None and a["sector_id"] == b["sector_id"]
+            and a["sector_position_ly"] is not None and b["sector_position_ly"] is not None):
+        course = course_between(a["sector_position_ly"], b["sector_position_ly"], frame=FRAME_SECTOR)
+    elif galaxy_frame is not None:
+        course = course_between(galaxy_frame[hop["from"]], galaxy_frame[hop["to"]], frame=FRAME_GALACTIC)
+    else:  # an in-sector search over sector-local positions
+        course = course_between(local_positions[hop["from"]], local_positions[hop["to"]], frame=FRAME_SECTOR)
+    return {"bearing_deg": course.bearing_deg, "mark_deg": course.mark_deg, "elevation_deg": course.elevation_deg,
+            "frame": course.frame}
+
+
 def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
                  from_kind="system", to_kind="system", from_type=None, to_type=None, stay_minutes=0.0):
     """
@@ -925,7 +967,9 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
             to the same node (the joined graph always has a path
             otherwise), else `{"path": [...node ids...], "distance_ly": float,
             "positions": {node_id: (x, y, z), ...}, "hops": [{"from", "to",
-            "distance_ly", "unknown_space", "warp_times", "fold_times"}],
+            "distance_ly", "unknown_space", "bearing_deg", "mark_deg", "elevation_deg", "frame" (NAV.42: the
+            hop's course), "warp_times", "fold_times"}], "stop_places": [{"node", "sector_id",
+            "sector_position_ly"}] (NAV.42: one per id in `path`),
             "longest_hop_ly": float, "stops": int, "stay_minutes": float,
             "warp_times", "fold_times"}` (NAV.11: a hop's lists are
             `WarpLeg`/`FoldLeg` dicts for that hop alone; the route's are
@@ -1013,7 +1057,9 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
             route_positions = {node_id: positions[node_id] for node_id in path}
             hops = [{"from": a, "to": b, "distance_ly": math.dist(positions[a], positions[b]),
                      "unknown_space": False} for a, b in zip(path, path[1:])]
+            places = _route_places(conn, path)
             for hop in hops:
+                hop.update(_hop_course(hop, places, galaxy_frame, positions))
                 hop["warp_times"] = [leg._asdict() for leg in warp_travel_times(hop["distance_ly"])]
                 hop["fold_times"] = [leg._asdict() for leg in fold_travel_times(hop["distance_ly"])]
             if galaxy_frame is not None:
@@ -1027,6 +1073,7 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
                 "path": path,
                 "distance_ly": distance_ly,
                 "positions": route_positions,
+                "stop_places": [{"node": node_id, **places[node_id]} for node_id in path],
                 "hops": hops,
                 "longest_hop_ly": max((hop["distance_ly"] for hop in hops), default=0.0),
                 "stops": max(len(hops) - 1, 0),
