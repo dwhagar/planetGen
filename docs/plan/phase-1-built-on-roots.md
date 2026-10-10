@@ -39,13 +39,12 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | DB.16 | Store the generator epoch and run id on each sector instead of four version text columns | OPS.28 | Research follow-up to DB.7 (built). |
-| DOC.5 | Rewrite the object ID docs: object-ids.md, database-schema.md and api.md | GEN.170 | Object-ID research. |
+| DOC.5 | Rewrite the object ID docs: object-ids.md, database-schema.md and api.md |  | Object-ID research. |
 | TEST.110 | Object ID tests: identical IDs on 1 and 4 workers, none reused, none missing | GEN.171, GEN.172, GEN.176 | Object-ID research. |
 | GEN.176 | A nebula or remnant is born in the sector holding the centre of the space it occupies | DB.20 | Object-ID research. |
 | GEN.172 | Run-time births get object IDs from the counters | DB.20 | Object-ID research. |
 | GEN.171 | The sector fill gives object IDs by generation rank | DB.20 | Object-ID research. |
-| DB.20 | Object IDs in the schema: uid becomes BINARY(10), unique on its own, plus an id_counters table | GEN.170 | Object-ID research. |
-| GEN.170 | Object ID layout: an 80-bit ID of birth sector, serial and body number, with pack, unpack, format and parse functions |  | Object-ID research. First of the object-ID items; 80 bits decided (Boss, 2026-10-09 22:44Z); nothing built until Boss asks. |
+| DB.20 | Object IDs in the schema: uid becomes BINARY(10), unique on its own, plus an id_counters table |  | Object-ID research. |
 | DB.9 | Repair a damaged galaxy database from a parity file | GEN.57 | Boss 02:13Z: phase 1. Reed-Solomon parity over groups of sector exports; seed regeneration as fallback. |
 | DB.21 | A deep pass for the database check: validate every star system, with the estimated time shown first | PERF.33 | Boss 23:32Z; Foundations lane 1, small, near the end of its list. |
 | DB.17 | Repair by regenerating a damaged sector from its seed when parity cannot rebuild it | DB.9, GEN.57 | Research split of DB.9: the regenerate-from-seed fallback. |
@@ -216,6 +215,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | TEST.111 | test_ensure_sector_generated_creates_then_reuses_the_same_sector fails in a busy parallel run (bug) |  | Test flake reported 2026-10-09; Bugfixes lane 1. |
+| TEST.123 | test_a_loaded_sector_knows_every_objects_cell_and_velocity fails once under full-suite load (bug) |  |  |
 | TEST.116 | test_bughunt_end_to_end stores M2V or M6V where it expects K2V on the MySQL 8.4 and MariaDB legs once (bug) |  | Bugfixes lane 1 report 03:57Z. |
 
 ### Foundations for the issue features
