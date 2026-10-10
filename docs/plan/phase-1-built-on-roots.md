@@ -134,7 +134,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.159 | Packed binary Galaxy Map tiles (quantised planes) with the nested tile lists, on one cache stamp bump | MAP.154, MAP.158 | MAP.147 recommendation step 2; one stamp bump with MAP.154 and MAP.151. |
 | MAP.155 | Other objects fade in too: point objects from level 8, a size ramp for cloud sprites, and stars that grow from a faint dot |  | Zoom visibility note stage 3. |
 | UX.91 | Planet and moon description carries a full PHI-4 explanation, each colour factor and why |  |  |
-| GEN.196 | One "Redo scatters" box on Generate: choose which scatters to redo, with new settings for each |  |  |
 | MAP.165 | Scattered phenomena store a mass so the Galaxy Map sizes them exactly |  |  |
 | PERF.61 | Object-first sampler for the phenomena pass, own prototype first | PERF.58, PERF.60 |  |
 | PERF.60 | Large-mean Poisson helper for per-layer counts (top priority) |  |  |
