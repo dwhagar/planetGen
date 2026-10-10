@@ -433,22 +433,6 @@ with `clamp()`.
   Prerequisites: none.
   Design: [docs/design/map-ui-and-frontend-libraries.md](design/map-ui-and-frontend-libraries.md)
 
-- [ ] **UX.86 The Galaxy Map controls take too much room: buttons too large and filters one character wide (bug)**
-  Boss (2026-10-10 00:01Z): "button menus should open where they can be
-  seen, I keep having to scroll down to see the menu. In addition,
-  buttons need to be smaller or we need to use submenus, it's just too
-  big the way it is and most of the verticle space is taken by the
-  filters that are only 1 character wide, so we should revamp that so
-  that we make the most use of the space as possible." Done: the
-  controls are redesigned to leave the most room for the map: smaller
-  buttons, related actions grouped under submenus, and filters laid out
-  in the width they need instead of a column one character wide that
-  uses most of the vertical space; checked at desktop and phone widths
-  with a before and after screenshot in the PR. Applies to the same
-  shared control code on the other map pages. Bugfixes lane 1 after
-  UX.85. Decided (Boss, 2026-10-10 00:02Z): the Galaxy Map, built on the shared control code.
-  Prerequisite: UX.85. Related: UX.85, MAP.131, MAP.122.
-
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
