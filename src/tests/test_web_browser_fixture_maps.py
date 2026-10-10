@@ -942,6 +942,9 @@ def test_galaxy_map_stars_never_take_the_click(page, map_site):
     _open_galaxy(page, map_site, "?at=3.250.0.0")
     page.wait_for_timeout(1000)
     assert "p" not in parse_qs(_query(page))
+    # MAP.153 fades the block's dimmer stars in near sector zoom; this test
+    # is about picking, so it draws them all.
+    page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyStarZoomFade(false)")
     first = _click_galaxy_stars(page, count=1)
     slab = parse_qs(_query(page)).get("p", [""])[0]
     assert slab.startswith("L"), f"the click on a star picked its slab, not {first}"
@@ -1820,6 +1823,28 @@ def test_galaxy_map_stars_are_drawn_camera_relative(page, map_site):
     assert all(float(v).is_integer() for v in drawn["frame"]), drawn
     # Measured from the frame, no star is as far out as the galaxy's edge.
     assert drawn["far"] < 20000, drawn
+
+
+def test_galaxy_map_stars_fade_in_with_the_zoom(page, map_site):
+    """MAP.153: each star has a birth radius from its rank in its tile's
+    list, so the opacity on screen changes by a small share over a 9% zoom
+    step instead of the whole set arriving at once."""
+    problems = []
+    page.on("console", lambda message: problems.append(message.text) if message.type == "error" else None)
+    _open_galaxy(page, map_site)
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyStarFrame().count > 0")
+    page.wait_for_timeout(500)
+    assert not [text for text in problems if "shader" in text.lower() or "WebGLProgram" in text], problems
+    opacity = "(r) => document.querySelector('#galaxymap3d-canvas').galaxyStarOpacity(r)"
+    here = page.evaluate(opacity, 1.0)
+    camera = here["camera"]
+    assert here["count"] > 0 and here["camera"] > 0, here
+    steps = [camera * 2 ** (k / 8) for k in range(-8, 9)]
+    sums = [page.evaluate(opacity, r)["sum"] for r in steps]
+    assert all(0 <= s <= here["count"] + 1e-6 for s in sums), sums
+    for before, after in zip(sums, sums[1:]):
+        if before >= 5:
+            assert abs(after - before) <= 0.6 * before, sums
 
 
 def _select_the_nebula(page):
