@@ -3413,7 +3413,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   1, first in its queue after TEST.124.
   Prerequisite: PERF.60. Related: PERF.56, PERF.59, PERF.60, PERF.61,
   GEN.185, GEN.195.
-  The interim early stop (PERF.62) was dropped: not built.
+  Early stop (PERF.62, built in PR #1087): tuning.SCATTER_DRY_LAYERS stops
+  the current layer walk after 100 layers in a row with 0 stars or 0
+  phenomena. This sampler replaces that walk, so it keeps or replaces
+  the early stop and removes the constant if it is no longer needed.
 
 - [ ] **PERF.59 Share the ring inputs across the three scatter passes (top priority)**
   From the scatter study (docs/design/scatter-queue-feasibility.md): the
@@ -3453,6 +3456,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Bugfixes lane 1, after PERF.58.
   Prerequisites: PERF.58, PERF.60. Related: PERF.58, PERF.59, PERF.60,
   GEN.185.
+  Early stop (PERF.62, built in PR #1087): the 100-dry-layer stop of
+  the current phenomena walk (0 phenomena) is kept or replaced by this
+  sampler, like PERF.58.
 
 ## DB: Database and schema
 
