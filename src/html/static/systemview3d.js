@@ -28,7 +28,7 @@ const { createPointerControl, orbitByDrag, orbitByKey, panInScreenPlane, wheelPi
 const { fitRendererToCanvas, watchResize } = await import(`./mapcore.js${VERSION_QUERY}`);
 const { createPicker, createTooltip, infoPanelOf } = await import(`./mappick.js${VERSION_QUERY}`);
 const { navActions } = await import(`./systemnav.js${VERSION_QUERY}`);
-const { orbitPath, relativeAt } = await import(`./orbitpositions.js${VERSION_QUERY}`);
+const { orbitPath, relativeAt, cometOrbitFields } = await import(`./orbitpositions.js${VERSION_QUERY}`);
 const { createLayout, layoutPositions, MODE_COMPRESSED } = await import(`./systemscale.js${VERSION_QUERY}`);
 
 const AU_KM = 149597870.7;
@@ -405,6 +405,7 @@ export function createSystemView(options) {
       fields.push(["Orbit", (body.orbit.distance_km / AU_KM).toPrecision(3) + " AU"]);
       if (body.orbit.period_years) fields.push(["Period", body.orbit.period_years.toPrecision(3) + " years"]);
     }
+    if (entry.kind === "comet" && body.orbit && body.orbit.kepler) fields.push(...cometOrbitFields(body.orbit));
     return {
       title: entry.name,
       fields: fields,

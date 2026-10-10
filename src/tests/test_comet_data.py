@@ -138,3 +138,24 @@ def test_parabolic_paragraph_mentions_it_will_not_return():
     comet = Comet(make_config(), primary_mass_solar=1.0, orbit_type="parabolic")
     description = comet.to_paragraph_list()[1]
     assert "will not return" in description
+
+
+def test_every_elliptical_comet_is_bound_and_stays_inside_the_stars_hill_sphere():
+    """GEN.182: a comet on a closed orbit never leaves its star. Ejection happens only for the
+    deliberate parabolic ones, and their paragraph says so."""
+    from planetgen.galaxy.keepout import galactic_hill_radius_km
+    au_km = constants.AU_TO_KM
+    for mass in (0.08, 1.0, 20.0):
+        # The Hill sphere at the galaxy's inner edge is the tightest one the generator uses.
+        hill_au = galactic_hill_radius_km(mass * constants.SOLAR_MASS_TO_KG, 2000.0) / au_km
+        for _ in range(300):
+            comet = Comet(make_config(), primary_mass_solar=mass, orbit_type="elliptical")
+            assert comet.eccentricity < 1
+            aphelion = comet.perihelion_distance_au * (1 + comet.eccentricity) / (1 - comet.eccentricity)
+            assert aphelion < hill_au, (mass, comet.eccentricity, aphelion, hill_au)
+
+
+def test_only_parabolic_comets_are_unbound_and_they_say_they_do_not_return():
+    comet = Comet(make_config(), primary_mass_solar=1.0, orbit_type="parabolic")
+    assert comet.orbital_period_years is None
+    assert "will not return" in " ".join(comet.to_paragraph_list())
