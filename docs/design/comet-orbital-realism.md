@@ -139,3 +139,16 @@ The earlier version of this file was the pre-build plan. It named
 in 5.35.0; it cited line numbers in `roguePlanetData.py`, `schema.sql` and
 `store.py` that no longer match; and it described a "time of perihelion
 passage" field, where the code stores a mean anomaly instead.
+
+## Ejected comets are by design (GEN.182)
+
+Boss saw comets on the System Map that never came back. Checked: about 30%
+of star-bound comets are parabolic on purpose (single apparition, see
+above), and the 3D map draws them as an open path and moves them correctly at
+any speed (`orbitpositions.js`, Barker's equation). Every elliptical comet is
+bound: the widest is `q / (1 - e)` with `q <= 5 AU` and `e <= 0.999`, an
+aphelion under 10,000 AU, well inside the star's Hill sphere; a test draws
+many and checks it. A long-period comet's orbit can also simply be longer than
+the run so far (a period of thousands of years at 100 years per second).
+The info panel now says "Bound, returns every N years" or "Unbound: passes
+the star once and does not return", with the perihelion and eccentricity.

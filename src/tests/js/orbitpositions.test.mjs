@@ -68,3 +68,13 @@ test("pause freezes the clock and now jumps back to the present", () => {
   assert.equal(clock.rateIndex(), 0);
   assert.equal(clock.playing(), true);
 });
+
+test("a comet's orbit is described as bound with its period, or unbound and not returning (GEN.182)", () => {
+  const kepler = { perihelion_distance_km: 2 * AU_KM, eccentricity: 0.5, period_years: 12.3456 };
+  const closed = Object.fromEntries(P.cometOrbitFields({ type: "elliptical", kepler }));
+  assert.equal(closed.Orbit, "Bound, returns every 12.3 years");
+  assert.equal(closed.Perihelion, "2.00 AU");
+  const open = Object.fromEntries(P.cometOrbitFields({ type: "parabolic", kepler: { ...kepler, eccentricity: 0.9987, period_years: null } }));
+  assert.match(open.Orbit, /^Unbound.*does not return/);
+  assert.equal(open.Eccentricity, "0.9987");
+});

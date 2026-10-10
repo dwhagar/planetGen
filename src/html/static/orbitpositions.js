@@ -171,3 +171,21 @@ export function orbitPath(orbit, samples = 128, maxAu = 2000) {
   }
   return out;
 }
+
+// What the info panel says about a comet's orbit (GEN.182): a closed orbit
+// returns every period; a parabolic one is unbound, passes the star once and
+// does not come back, so its drawn path is open at both ends. `orbit` is a
+// comet's scene `orbit`; returns [label, text] pairs.
+export function cometOrbitFields(orbit) {
+  const k = orbit.kepler;
+  const fields = [];
+  if (orbit.type === "elliptical") {
+    const period = k.period_years;
+    fields.push(["Orbit", "Bound, returns every " + (period >= 1000 ? Math.round(period).toLocaleString("en-US") : period.toPrecision(3)) + " years"]);
+  } else {
+    fields.push(["Orbit", "Unbound: passes the star once and does not return"]);
+  }
+  fields.push(["Perihelion", (k.perihelion_distance_km / AU_KM).toPrecision(3) + " AU"]);
+  fields.push(["Eccentricity", k.eccentricity.toFixed(orbit.type === "elliptical" ? 3 : 4)]);
+  return fields;
+}
