@@ -3,6 +3,7 @@
 ## [8.0.911] - 2026-10-10
 
 ### Changed
+- A Generate-page job with several steps now shows one overall bar above the step bar, with the time left across all steps: the running step's own estimate plus what earlier runs of each later step took ("at least" when a later step has no record yet).
 - **Docs only:** PERF.33 (job ETA adds unstarted steps, PR #1021) and PERF.55 (overall bar on the web pages, PR #1023) noted as partly built.
 - **Docs only:** UX.88 (say "uncharted" for anything not yet generated, outside Generate and admin) filed; the wording rule is in docs/html-interface.md.
 - A multi-step job's time left on the Queue page now includes every step that has not started yet, using how long earlier runs of that step took; a step with no earlier run marks the estimate as partial.
