@@ -34,6 +34,8 @@ with steps.step("Neighbours", "link", total, args=args) as bar:
 """
 
 import queue as queue_module
+import contextlib
+import sys
 import threading
 import time
 
@@ -71,6 +73,37 @@ def _active_progress():
     from planetgen.generation import run_common
 
     return run_common.active_progress()
+
+
+STEP_KINDS = {
+    "sector": "Sector fill",
+    "scatter": "Bright-star layer",
+    "phenomena": "Phenomena layer",
+    "phenomena-clear": "Phenomena scatter: clearing",
+    "phenomena-special": "Phenomena scatter: special rows",
+    "phenomena-insert": "Phenomena scatter: writing the special rows",
+    "phenomena-stamp": "Phenomena scatter: epoch stamp",
+    "link": "Neighbour linking",
+    "paths": "Sector paths",
+    "backfill": "Bright-star backfill",
+    "topup": "Backfill top-up",
+    "save": "Sector save",
+    "population": "Population pass",
+    "reset": "Reset",
+    "orbits": "Orbit update",
+    "migrate": "Migration",
+    "stages": "Stages",
+    "containment": "Containment refresh",
+    "nearest": "Nearest-systems refresh",
+    "warm-map": "Galaxy Map warm-up",
+    "dedupe-sectors": "Sector name pass",
+    "dedupe-systems": "System name pass",
+}
+"""dict: Every kind of step the program times (UX.84): the `generation_stats`
+kind and what the Stats page calls it. A step built with a kind that is not
+here fails `tests/test_step_registry.py`, so a new long step is registered
+(and gets a bar) when it is written. A kind may carry a `:label` suffix for
+a detail bar under its step."""
 
 
 class Step:
@@ -185,7 +218,7 @@ class Step:
             if progress is None and self.own:
                 from planetgen.generation import run_common
 
-                progress = self._own = run_common._generation_progress()
+                progress = self._own = run_common._generation_progress(disable=not sys.stdout.isatty())
                 progress.start()
                 log.set_console(progress.console)
             if progress is None:
@@ -258,6 +291,28 @@ class Step:
 
     def advance(self, amount=1):
         self.update(advance=amount)
+
+
+@contextlib.contextmanager
+def hooked(on_progress, name, kind, total=None, **kwargs):
+    """
+    For a function that reports `on_progress(label, done, total)` to its
+    caller: yields `on_progress` itself when the caller gave one (the caller
+    draws it), and otherwise a callback of the same shape that moves a
+    `Step(name, kind, total)` on the open display, so the work has a bar
+    whoever calls it (UX.84). Nothing is drawn when there is no display.
+    """
+    if on_progress is not None:
+        yield on_progress
+        return
+    if kwargs.get("progress", UNSET) is UNSET and not kwargs.get("own") and _active_progress() is None:
+        yield lambda _label, _done, _size: None        # nobody is drawing: not even a timer
+        return
+    with Step(name, kind, total, **kwargs) as bar:
+        def report(_label, done, size):
+            bar.update(completed=done, total=size)
+
+        yield report
 
 
 def step(name, kind=None, total=None, **kwargs):

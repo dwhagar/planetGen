@@ -45,6 +45,7 @@ from urllib.parse import urlsplit
 from flask import Response, abort, current_app, make_response, redirect, request, url_for
 from itsdangerous import BadSignature, URLSafeTimedSerializer
 
+from planetgen.generation import steps
 from planetgen.web.lib import apiclient
 from planetgen.web.lib.fmt import format_duration_seconds, format_number, utc_time_html
 from planetgen.web.lib import tilecache
@@ -789,11 +790,7 @@ def download_galaxy_settings(name):
 download_galaxy_settings.json_only = True  # a file download, not a page: tests/test_web_a11y.py skips it
 
 
-GENERATION_KINDS = {
-    "sector": "Sector fill", "scatter": "Bright-star layer", "phenomena": "Phenomena layer",
-    "link": "Neighbour linking", "paths": "Sector paths", "backfill": "Bright-star backfill",
-    "topup": "Backfill top-up", "population": "Population pass", "stages": "Stages",
-}
+GENERATION_KINDS = steps.STEP_KINDS
 """dict: What the Stats page calls each kind of recorded rate (PERF.32)."""
 
 

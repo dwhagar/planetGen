@@ -49,6 +49,7 @@ from collections import defaultdict
 import pymysql
 
 from planetgen.db import store
+from planetgen.generation import steps
 from planetgen.names.uniqueness import strip_decoration
 
 
@@ -74,7 +75,12 @@ def _already_resolved_count(conn, registry_table, base_name):
     return row["occurrence_count"] if row else 0
 
 
-def _dedupe_sectors(conn):
+def _display(show):
+    """`steps.UNSET` (the open display, if any) for a command-line run, `None` (draw nothing) otherwise."""
+    return steps.UNSET if show else None
+
+
+def _dedupe_sectors(conn, show=False):
     """Resolves every sector-vs-sector duplicate, and (via `reserve_sector_name`'s
     own cross-level check) retroactively decorates any already-existing
     system that happens to share a sector's base name. Must run before
@@ -85,17 +91,20 @@ def _dedupe_sectors(conn):
     """
     rows = conn.execute("SELECT id, name FROM sectors ORDER BY id").fetchall()
     renamed = 0
-    for base, group in _group_by_base(rows).items():
-        already_done = _already_resolved_count(conn, "sector_name_registry", base)
-        for row in group[already_done:]:
-            new_name, _name_base = store.reserve_sector_name(conn, base, row["id"])
-            if new_name != row["name"]:
-                conn.execute("UPDATE sectors SET name = ? WHERE id = ?", (new_name, row["id"]))
-                renamed += 1
+    groups = _group_by_base(rows)
+    with steps.Step("Sector names", "dedupe-sectors", max(len(groups), 1), own=show, progress=_display(show)) as bar:
+        for base, group in groups.items():
+            already_done = _already_resolved_count(conn, "sector_name_registry", base)
+            for row in group[already_done:]:
+                new_name, _name_base = store.reserve_sector_name(conn, base, row["id"])
+                if new_name != row["name"]:
+                    conn.execute("UPDATE sectors SET name = ? WHERE id = ?", (new_name, row["id"]))
+                    renamed += 1
+            bar.advance()
     return renamed
 
 
-def _dedupe_systems(conn):
+def _dedupe_systems(conn, show=False):
     """Resolves every system-vs-system duplicate and every system-vs-sector
     collision (diminutive prefix, system side only). Must run after
     `_dedupe_sectors`.
@@ -105,18 +114,21 @@ def _dedupe_systems(conn):
     """
     rows = conn.execute("SELECT id, name FROM star_systems ORDER BY id").fetchall()
     renamed = 0
-    for base, group in _group_by_base(rows).items():
-        already_done = _already_resolved_count(conn, "system_name_registry", base)
-        for row in group[already_done:]:
-            new_name, name_base, diminutive_index = store.reserve_system_name(conn, base)
-            if new_name != row["name"]:
-                store.rename_star_system(conn, row["id"], new_name)
-                renamed += 1
-            store.confirm_system_name(conn, name_base, row["id"], diminutive_index)
+    groups = _group_by_base(rows)
+    with steps.Step("System names", "dedupe-systems", max(len(groups), 1), own=show, progress=_display(show)) as bar:
+        for base, group in groups.items():
+            already_done = _already_resolved_count(conn, "system_name_registry", base)
+            for row in group[already_done:]:
+                new_name, name_base, diminutive_index = store.reserve_system_name(conn, base)
+                if new_name != row["name"]:
+                    store.rename_star_system(conn, row["id"], new_name)
+                    renamed += 1
+                store.confirm_system_name(conn, name_base, row["id"], diminutive_index)
+            bar.advance()
     return renamed
 
 
-def dedupe_names(config=None):
+def dedupe_names(config=None, show=False):
     """
     Runs the full sector -> system dedup pass, in one
     transaction (commits only if every step succeeds).
@@ -124,6 +136,8 @@ def dedupe_names(config=None):
     Args:
         config (MySQLConfig, optional): Connection parameters. Defaults
                                         to `DEFAULT_MYSQL_CONFIG`.
+        show (bool): Draw a bar per level when it is long (the command
+            line; `planetgen.generation.steps`, UX.84).
 
     Returns:
         dict: `sectors`/`star_systems`, each the
@@ -133,8 +147,8 @@ def dedupe_names(config=None):
     conn = store.get_connection(config)
     try:
         with conn:
-            sectors_renamed = _dedupe_sectors(conn)
-            systems_renamed = _dedupe_systems(conn)
+            sectors_renamed = _dedupe_sectors(conn, show)
+            systems_renamed = _dedupe_systems(conn, show)
         return {
             "sectors": sectors_renamed,
             "star_systems": systems_renamed,
@@ -155,7 +169,7 @@ def main():
 
     config = store.mysql_config_from_args(args)
     try:
-        counts = dedupe_names(config)
+        counts = dedupe_names(config, show=True)
     except (pymysql.MySQLError, store.SchemaTooNewError) as exc:
         print(f"error: {exc}", file=sys.stderr)
         sys.exit(1)

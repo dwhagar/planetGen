@@ -72,6 +72,7 @@ from planetgen.galaxy import seed as galaxySeed, uid as galaxyUid, version_key a
 from planetgen.physics import activity, atmosphere, constants as physical_constants, kepler, magnetism, spin
 from planetgen.util import log
 from planetgen.util.settings import env_name, get_settings
+from planetgen.generation import steps
 from planetgen.generation.belt import AsteroidBelt
 from planetgen.generation.phenomena.asteroid_field import AsteroidField, asteroid_field_designation
 from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
@@ -4141,9 +4142,10 @@ def refresh_containment(conn, sector_ids, on_progress=None):
     """
     counts = dict.fromkeys(CONTAINMENT_COUNTS, 0)
     sector_ids = sorted(set(sector_ids))
-    for start in range(0, len(sector_ids), 500):
-        _refresh_containment_batch(conn, sector_ids[start:start + 500], counts)
-        _report(on_progress, "Sectors", min(start + 500, len(sector_ids)), len(sector_ids))
+    with steps.hooked(on_progress, "Containment: sectors", "containment", len(sector_ids)) as report:
+        for start in range(0, len(sector_ids), 500):
+            _refresh_containment_batch(conn, sector_ids[start:start + 500], counts)
+            _report(report, "Sectors", min(start + 500, len(sector_ids)), len(sector_ids))
     return counts
 
 
@@ -4484,27 +4486,28 @@ def refresh_nearest_systems(conn, sector_ids, on_progress=None):
     sector_ids = sorted(set(sector_ids))
     half_diagonal = _edge_pc(conn) * math.sqrt(3) / 2
     all_changed = set()
-    for start in range(0, len(sector_ids), 200):
-        centers = _sector_centers(conn, sector_ids[start:start + 200])
-        _report(on_progress, "Sectors", start, len(sector_ids))
-        if not centers:
-            continue
-        near = _sectors_near(conn, centers, 2 * half_diagonal + NEAREST_SYSTEMS_SEARCH_PC)
-        grid = _SystemGrid((system_id, point) for system_id, _sector, point in _placed_systems(conn, near))
-        objects = _placed_objects(conn, centers)
-        _octant_updates(conn, objects, centers)
-        stored = _stored_nearest(conn, centers)
-        changed, sectors = {}, {}
-        for table, object_id, sector_id, point in objects:
-            exclude = object_id if table == "star_systems" else None
-            neighbors = grid.nearest(point, exclude=exclude)
-            key = (table, object_id)
-            if not _same_neighbors(stored.get(key, []), neighbors):
-                changed[key] = neighbors
-                sectors[key] = sector_id
-        _write_nearest(conn, changed, sectors)
-        all_changed.update(changed)
-    _report(on_progress, "Sectors", len(sector_ids), len(sector_ids))
+    with steps.hooked(on_progress, "Nearest systems: sectors", "nearest", len(sector_ids)) as report:
+        for start in range(0, len(sector_ids), 200):
+            centers = _sector_centers(conn, sector_ids[start:start + 200])
+            _report(report, "Sectors", start, len(sector_ids))
+            if not centers:
+                continue
+            near = _sectors_near(conn, centers, 2 * half_diagonal + NEAREST_SYSTEMS_SEARCH_PC)
+            grid = _SystemGrid((system_id, point) for system_id, _sector, point in _placed_systems(conn, near))
+            objects = _placed_objects(conn, centers)
+            _octant_updates(conn, objects, centers)
+            stored = _stored_nearest(conn, centers)
+            changed, sectors = {}, {}
+            for table, object_id, sector_id, point in objects:
+                exclude = object_id if table == "star_systems" else None
+                neighbors = grid.nearest(point, exclude=exclude)
+                key = (table, object_id)
+                if not _same_neighbors(stored.get(key, []), neighbors):
+                    changed[key] = neighbors
+                    sectors[key] = sector_id
+            _write_nearest(conn, changed, sectors)
+            all_changed.update(changed)
+        _report(report, "Sectors", len(sector_ids), len(sector_ids))
     return all_changed
 
 
@@ -5242,6 +5245,16 @@ def stamp_phenomenon_scatter_epoch(conn):
     when no orbit update has run yet."""
     conn.execute("UPDATE phenomenon_scatter SET epoch_unix = ? WHERE kind = 'hypervelocity-star'",
                  (get_orbit_epoch_unix(conn),))
+
+
+def estimated_rows(conn, table):
+    """About how many rows `table` holds, from the server's own estimate (no
+    count: that scans a table of millions). Used to predict the time of a
+    statement that can't report progress (UX.84)."""
+    row = conn.execute(
+        "SELECT TABLE_ROWS AS n FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?",
+        (table,)).fetchone()
+    return int(row["n"] or 0) if row else 0
 
 
 def clear_phenomenon_scatter(conn):
