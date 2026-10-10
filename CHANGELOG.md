@@ -3,6 +3,7 @@
 ## [8.0.911] - 2026-10-10
 
 ### Changed
+- Added Boss's clarification to PERF.57: star passes count stars, the phenomena pass counts phenomena.
 - Filed PERF.57 (stop a layer-walking scatter early after 100 empty layers) from Boss's request.
 - **Docs only:** GEN.195 and GEN.196 gain details from Bugfixes lane 2 (every scatter path, redo scope).
 - **Docs only:** GEN.196 (one Redo scatters box on Generate) filed for Bugfixes lane 2.
