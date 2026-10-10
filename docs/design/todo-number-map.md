@@ -419,7 +419,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.28 | A simpler Generate page: layer specs, a Customize window and plain controls | none | open |
 | ADM.29 | Fill a span of layers, rings or columns | none | done, PR #926 |
 | ADM.30 | Radial generation: a cylinder of N sectors around a point | none | done, PR #934 |
-| ADM.31 | Every generate action offers to show what it made on the Galaxy Map | none | open |
+| ADM.31 | Every generate action offers to show what it made on the Galaxy Map | none | done, PR #976 |
 | ADM.32 | Add a star system to a sector: at the emptiest spot, at given coordinates, or at random outside every Hill sphere | none | open |
 | ADM.33 | The owner can override "no room" warnings and generate anyway | none | done, PR #476 |
 | ADM.34 | One admin menu per screen, holding only that screen's actions | none | done, PR #562 |

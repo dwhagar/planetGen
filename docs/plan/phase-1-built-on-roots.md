@@ -63,13 +63,12 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| ADM.31 | Every generate action offers to show what it made on the Galaxy Map |  | Merges two asks: the 2026-10-03 button and the 2026-10-07 "see that space". |
 | OPS.39 | Remove Windows support; keep only a simple docs/WINDOWS.md |  | Boss 04:25Z via coordinator; Foundations lane 1. |
 | GEN.181 | Directives: refuse impossible requests up front from the compound-Poisson tables |  | Left over from GEN.96. |
 | GEN.180 | Directives: a forced fill (met_forced) after K failed draws |  | Left over from GEN.96. |
 | GEN.179 | Store each sector's generation directive and attempt record with the sector |  | Left over from GEN.96. |
 | ADM.45 | Prevalence fields take the override share directly and must total 100% |  | Boss 2026-10-09 07:48Z; follows ADM.37. |
-| ADM.28 | A simpler Generate page: layer specs, a Customize window and plain controls | ADM.31 | Parent of the Generate page items; after the web components land. |
+| ADM.28 | A simpler Generate page: layer specs, a Customize window and plain controls |  | Parent of the Generate page items; after the web components land. |
 | GEN.186 | Random neighborhoods: an option to keep away from filled space |  | Left over from GEN.97 (merged, PR #950). |
 
 ### Galaxy gen
