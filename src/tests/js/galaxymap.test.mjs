@@ -587,6 +587,39 @@ test("the wheel zooms a free stage, within 1/8 to 2.5 times its fit", async () =
   assert.ok(Math.abs(lastCamera(m).dist - fit * SV.MIN_ZOOM) < 1e-6 * fit);
 });
 
+test("the wheel zooms toward the cursor: the point under it stays under it (MAP.150)", async () => {
+  const m = await freeStage();
+  const camera = m.host.camera;
+  const pixelOf = (point) => {
+    const p = new THREE.Vector3(point[0], point[1], point[2]).project(camera);
+    return [((p.x + 1) / 2) * WIDTH, ((1 - p.y) / 2) * HEIGHT];
+  };
+  for (const [x, y] of [[560, 210], [260, 380]]) {
+    const anchor = m.view.anchorUnder(x, y);
+    assert.ok(anchor, "something is under the pointer");
+    const [x0, y0] = pixelOf(anchor);
+    assert.ok(Math.abs(x0 - x) < 1 && Math.abs(y0 - y) < 1, `anchor starts under the pointer: ${x0},${y0}`);
+    const before = lastCamera(m);
+    m.view.onWheel(new FakeEvent("wheel", { deltaY: -120, clientX: x, clientY: y }));
+    const after = lastCamera(m);
+    assert.ok(after.dist < before.dist, "closer");
+    const [x1, y1] = pixelOf(anchor);
+    assert.ok(Math.abs(x1 - x) < 1 && Math.abs(y1 - y) < 1, `the anchor stays under the pointer: ${x1},${y1} vs ${x},${y}`);
+    assert.notDeepEqual(after.target, before.target, "the view's middle moved toward it");
+    // And back out: the point still stays put.
+    m.view.onWheel(new FakeEvent("wheel", { deltaY: 120, clientX: x, clientY: y }));
+    const [x2, y2] = pixelOf(anchor);
+    assert.ok(Math.abs(x2 - x) < 1 && Math.abs(y2 - y) < 1, `and zooming out: ${x2},${y2}`);
+  }
+});
+
+test("a wheel without a position zooms about the view's middle, as before", async () => {
+  const m = await freeStage();
+  const before = lastCamera(m);
+  m.view.onWheel(new FakeEvent("wheel", { deltaY: -120 }));
+  assert.deepEqual(lastCamera(m).target, before.target);
+});
+
 test("dragging turns a free stage any way, past edge-on and under the plane (MAP.96)", async () => {
   const m = await freeStage();
   const before = lastCamera(m);

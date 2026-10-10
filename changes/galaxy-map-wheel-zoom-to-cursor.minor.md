@@ -1,0 +1,2 @@
+### Changed
+- On the Galaxy Map the wheel now zooms toward the point under the cursor (MAP.150, first stage): whatever is under the pointer stays under it as you zoom in or out, and the camera closes on it by the same share each step, so it never runs into it. Without a pointer position (keys, buttons, a pinch) the zoom is about the middle of the view, as before. Wheel zoom inside an opened system is still about the middle.
