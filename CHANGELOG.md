@@ -3,6 +3,7 @@
 ## [8.0.911] - 2026-10-10
 
 ### Changed
+- **Docs only:** GEN.195 (separate compact-object mass limit; central black hole or quasar always created) filed for Bugfixes lane 2.
 - The phenomena scatter's final line lists only the kinds it created, like the star scatter's, with no zero counts.
 - **Docs only:** the plan notes schema v77 (Phenomena table class totals, PR #1038) and next Alembic revision 0078.
 - The Phenomena table counts and pages the scattered, unbuilt phenomena from stored per-class totals (schema v77), after the built ones, so it stays fast with hundreds of millions of scatter rows.
