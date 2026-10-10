@@ -64,14 +64,13 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| ADM.30 | Radial generation: a cylinder of N sectors around a point |  |  |
 | ADM.31 | Every generate action offers to show what it made on the Galaxy Map |  | Merges two asks: the 2026-10-03 button and the 2026-10-07 "see that space". |
 | GEN.97 | Generate N random neighborhoods |  |  |
 | GEN.181 | Directives: refuse impossible requests up front from the compound-Poisson tables |  | Left over from GEN.96. |
 | GEN.180 | Directives: a forced fill (met_forced) after K failed draws |  | Left over from GEN.96. |
 | GEN.179 | Store each sector's generation directive and attempt record with the sector |  | Left over from GEN.96. |
 | ADM.45 | Prevalence fields take the override share directly and must total 100% |  | Boss 2026-10-09 07:48Z; follows ADM.37. |
-| ADM.28 | A simpler Generate page: layer specs, a Customize window and plain controls | ADM.30, ADM.31, GEN.97 | Parent of the Generate page items; after the web components land. |
+| ADM.28 | A simpler Generate page: layer specs, a Customize window and plain controls | ADM.31, GEN.97 | Parent of the Generate page items; after the web components land. |
 
 ### Galaxy gen
 
@@ -223,6 +222,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | TEST.111 | test_ensure_sector_generated_creates_then_reuses_the_same_sector fails in a busy parallel run (bug) |  | Test flake reported 2026-10-09; Bugfixes lane 1. |
 | GEN.182 | Some comets' orbits do not bring them back: they are ejected into space (bug) |  | Boss 01:12Z; Bugfixes lane 1. |
 | TEST.112 | test_regenerate_phenomenon_keeps_id_name_and_place fails now and then in the full suite (bug) |  | Foundations lane 1 report 00:04Z. |
+| TEST.114 | test_the_check_writes_nothing fails now and then in a parallel full run (bug) |  |  |
 
 ### Foundations for the issue features
 
