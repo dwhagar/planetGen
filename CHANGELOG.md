@@ -3,6 +3,7 @@
 ## [8.0.911] - 2026-10-10
 
 ### Changed
+- TEST.115: the Windows CI job keeps Redis in WSL alive (it ran in the foreground of a wsl.exe it holds open), waits until Windows can connect and passes the working URL on to the tests. A job's lock is removed with a few retries, and three Windows-only test failures now say what state they saw.
 - **Docs only:** GEN.183 (mass limit presets, PR #969) is retired from the TODO list and the plans; TEST.118 files two test failures that follow GEN.184's luminosity floor.
 - A scatter or a phenomena-only re-scatter run without `--phenomenon-min-mass` now keeps the mass limit already stored with the galaxy instead of going back to 20.
 - **Docs only:** OPS.38 (committed Redis dumps, PR #967), TEST.117 (already fixed by TEST.113, PR #920) and GEN.175 (regenerate keeps the uid, PR #960) are retired from the TODO list and the plans.
