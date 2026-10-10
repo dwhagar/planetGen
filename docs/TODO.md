@@ -3005,6 +3005,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Lane (2026-10-09): Queue (Boss, 2026-10-10 05:13Z): Foundations lane 1
   does this first, then API.9, DB.21, GEN.186, NAV.8, NAV.11. One of the
   three biggest blockers on the tree.
+  Lane (2026-10-09): Queue update (Foundations lane 1, 2026-10-10
+  05:14Z): lane 1 finishes ADM.28 and ADM.45 (one PR, in flight) first,
+  then the object-ID block (GEN.170 to GEN.176, DB.20, TEST.110, DOC.5),
+  then API.9. DB.21, GEN.186, NAV.8 and NAV.11 follow.
   Prerequisites: none.
   Design: [docs/design/object-id-options.md](design/object-id-options.md)
 
@@ -4117,6 +4121,10 @@ Boss (2026-10-07 11:47Z): "Actual specs on layers on the generation
   CLI's `--prevalence` accepts the same shares and rejects a set that is
   not 100%. A share that depends on the local star density is not part
   of this item; the shares stay the same in every sector.
+  Decided (2026-10-09): Decided (Boss, 2026-10-10, via Foundations lane
+  1): the 100% rule applies to a "Star mix" only (single, close and wide
+  shares of systems totalling 100%, option --star-mix); the other
+  prevalence fields stay independent.
 
 ## SEC: Security
 
