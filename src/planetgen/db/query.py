@@ -3985,10 +3985,27 @@ SCATTERED_POINT_CLASSES = (
 )
 """tuple: `(scatter kind, subtype, map type, size share)` for the scattered
 objects the Galaxy Map draws as points before their sector is filled
-(MAP.164), biggest first. A scatter row stores no mass (the object is built
-from its seed when its sector is made), so the share comes from the mass
-class the row does carry: 1 for the nucleus black hole down to 0.35 for a
-neutron star."""
+(MAP.164), biggest first. The share is the size of a row with no stored
+mass (one scattered before v80), from its mass class: 1 for the nucleus
+black hole down to 0.35 for a neutron star. A row with a mass is sized by
+`scattered_point_size`."""
+
+SCATTERED_SIZE_MASS_DECADES = 8.0
+"""float: The mass, as powers of ten of a solar mass, at which a scattered
+point reaches full size (MAP.165); a solar mass is the smallest."""
+
+SCATTERED_SIZE_MIN = 0.2
+"""float: The size share of a solar mass."""
+
+
+def scattered_point_size(mass_solar):
+    """The 0..1 size share of a scattered black hole or neutron star of
+    `mass_solar` (MAP.165): a straight line in the logarithm of the mass from
+    `SCATTERED_SIZE_MIN` at one solar mass to 1 at 10^`SCATTERED_SIZE_MASS_DECADES`,
+    so a heavier object is never drawn smaller and every class keeps its place
+    (neutron stars, stellar, intermediate and supermassive black holes)."""
+    decades = max(0.0, min(SCATTERED_SIZE_MASS_DECADES, math.log10(max(mass_solar, 1.0))))
+    return round(SCATTERED_SIZE_MIN + (1.0 - SCATTERED_SIZE_MIN) * decades / SCATTERED_SIZE_MASS_DECADES, 4)
 
 SCATTERED_POINT_COARSE_CLASSES = 3
 """int: Tiles coarser than `POINT_PHENOMENON_MIN_LEVEL` list only this many
@@ -4012,7 +4029,7 @@ def galaxy_scattered_points_in_box(conn, lo, hi, edge_pc, limit, coarse):
 
     Returns:
         list[dict]: Same keys as `galaxy_point_phenomena_in_box`, with
-            `scattered` (True), `size` (0..1, the class's size share) and
+            `scattered` (True), `size` (0..1, from the stored mass, else the class's share), `mass_solar` and
             an `id` that is the scatter row's id as text.
     """
     classes = SCATTERED_POINT_CLASSES[:SCATTERED_POINT_COARSE_CLASSES] if coarse else SCATTERED_POINT_CLASSES
@@ -4030,12 +4047,12 @@ def galaxy_scattered_points_in_box(conn, lo, hi, edge_pc, limit, coarse):
     box_params = [int(math.ceil(v * MPC_PER_PC)) for pair in zip(lo, hi) for v in pair]
     rows = conn.execute(
         f"""
-        SELECT id, kind, subtype, built_at, position_x_mpc, position_y_mpc, position_z_mpc
+        SELECT id, kind, subtype, built_at, mass_solar, position_x_mpc, position_y_mpc, position_z_mpc
         FROM phenomenon_scatter
         WHERE {"" if coarse else "built_at IS NULL AND "}{where_address} AND ({kinds})
           AND position_x_mpc >= ? AND position_x_mpc < ? AND position_y_mpc >= ? AND position_y_mpc < ?
           AND position_z_mpc >= ? AND position_z_mpc < ?
-        ORDER BY (kind = 'quasar') DESC, (subtype <=> 'supermassive') DESC, (subtype <=> 'intermediate') DESC, (subtype <=> 'stellar') DESC, id
+        ORDER BY (kind = 'quasar') DESC, (subtype <=> 'supermassive') DESC, (subtype <=> 'intermediate') DESC, (subtype <=> 'stellar') DESC, mass_solar DESC, id
         LIMIT ?
         """,
         (*address_params, *kind_params, *box_params, int(limit)),
@@ -4044,10 +4061,13 @@ def galaxy_scattered_points_in_box(conn, lo, hi, edge_pc, limit, coarse):
     points = []
     for row in rows:
         map_type, size = share[(row["kind"], row["subtype"])]
+        if row["mass_solar"] is not None:
+            size = scattered_point_size(row["mass_solar"])
         label = {"black_hole": "Black hole", "quasar": "Quasar"}.get(map_type, "Neutron star")
         points.append({
             "type": map_type, "id": f"s{row['id']}", "name": f"{label} (uncharted)" if row["built_at"] is None else label,
             "descriptor": row["subtype"] or "scattered", "luminosity_sol": 0.0, "scattered": True, "size": size,
+            "mass_solar": None if row["mass_solar"] is None else float("%.4g" % row["mass_solar"]),
             "x": round(row["position_x_mpc"] / MPC_PER_PC, 3), "y": round(row["position_y_mpc"] / MPC_PER_PC, 3),
             "z": round(row["position_z_mpc"] / MPC_PER_PC, 3),
         })

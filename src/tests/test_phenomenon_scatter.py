@@ -419,7 +419,7 @@ def test_the_sector_draws_what_the_scatter_left_below_the_cut():
 
 def test_a_scattered_black_hole_is_built_above_the_cut(mysql_config):
     from planetgen.galaxy.sector import SpaceSector
-    row = {"kind": "black-hole", "subtype": "stellar", "seed": 99}
+    row = {"kind": "black-hole", "subtype": "stellar", "seed": 99, "mass_solar": None}
     args = run_galaxy._default_generation_args(config=mysql_config)
     for seed in range(20):
         row["seed"] = seed
@@ -632,3 +632,71 @@ def test_the_central_black_hole_or_quasar_exists_whatever_the_limits(mysql_confi
 def test_the_nucleus_row_does_not_depend_on_any_limit():
     assert scatter.special_rows(EXTENTS, EDGE_PC, 3)[0] == scatter.nucleus_row(3)
     assert scatter.nucleus_row(3)[3] in scatter.NUCLEUS_KINDS
+
+
+def test_every_scattered_black_hole_and_neutron_star_stores_a_mass_inside_its_class_range():
+    rows = [_as_dict(row) for row in _layer(0) + _layer(1)] + [_as_dict(scatter.nucleus_row(5))]
+    ranges = {("neutron-star", None): tuning.NEUTRON_STAR_MASS_RANGE_SOLAR,
+              ("black-hole", "stellar"): tuning.BLACK_HOLE_MASS_RANGE_SOLAR,
+              ("black-hole", "intermediate"): tuning.BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR,
+              ("black-hole", "supermassive"): tuning.BLACK_HOLE_SUPERMASSIVE_MASS_RANGE_SOLAR}
+    seen = set()
+    for row in rows:
+        key = (row["kind"], row["subtype"])
+        if key in ranges:
+            low, high = ranges[key]
+            assert low <= row["mass_solar"] <= high, key
+            seen.add(key)
+        else:
+            assert row["mass_solar"] is None, key
+    assert ("neutron-star", None) in seen and ("black-hole", "stellar") in seen
+
+
+def test_the_mass_respects_the_cut_and_repeats_with_the_seed():
+    rows = [_as_dict(row) for row in _layer(0, min_mass_solar=12.0)]
+    assert all(row["mass_solar"] >= 12.0 for row in rows if row["mass_solar"] is not None)
+    assert _layer(0, seed=8) == _layer(0, seed=8)
+
+
+def test_a_built_scattered_object_has_the_stored_mass(mysql_config):
+    from planetgen.galaxy.sector import SpaceSector
+    args = run_galaxy._default_generation_args(config=mysql_config)
+    for kind, subtype, mass in (("black-hole", "stellar", 13.5), ("black-hole", "intermediate", 4321.0),
+                                ("black-hole", "supermassive", 3e6), ("neutron-star", None, 1.77)):
+        row = {"kind": kind, "subtype": subtype, "seed": 3, "mass_solar": mass}
+        entry = run_sector._seeded_build(3, lambda: run_sector._build_scattered(
+            SpaceSector(name="Probe"), args, row, (0.0, 0.0, 0.0), 1000.0))
+        assert entry.phenomenon.mass_solar == mass
+
+
+def test_the_map_sizes_scattered_points_by_their_stored_mass(mysql_config):
+    from planetgen.db import query
+    sizes = [query.scattered_point_size(mass) for mass in (1.4, 2.2, 5.0, 20.0, 100.0, 1e5, 1e6, 1e8)]
+    assert sizes == sorted(sizes) and len(set(sizes)) == len(sizes)
+    assert sizes[0] >= query.SCATTERED_SIZE_MIN and sizes[-1] == 1.0
+    # A heavier object is bigger across the class edges: the heaviest neutron star under the lightest black hole.
+    assert query.scattered_point_size(tuning.NEUTRON_STAR_MASS_RANGE_SOLAR[1]) \
+        < query.scattered_point_size(tuning.BLACK_HOLE_MASS_RANGE_SOLAR[0])
+    assert query.scattered_point_size(tuning.BLACK_HOLE_MASS_RANGE_SOLAR[1]) \
+        < query.scattered_point_size(tuning.BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR[0])
+    assert query.scattered_point_size(tuning.BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR[1]) \
+        < query.scattered_point_size(tuning.BLACK_HOLE_SUPERMASSIVE_MASS_RANGE_SOLAR[0])
+
+    conn = store.get_connection(mysql_config)
+    try:
+        conn.execute("DELETE FROM phenomenon_scatter")
+        rows = [("neutron-star", None, 1.5), ("black-hole", "stellar", 10.0), ("black-hole", "stellar", 18.0),
+                ("black-hole", "intermediate", 5000.0), ("black-hole", "stellar", None)]
+        for index, (kind, subtype, mass) in enumerate(rows):
+            conn.execute(
+                "INSERT INTO phenomenon_scatter (ring_index, layer_index, ring_slot_index, kind, subtype, "
+                "position_x_mpc, position_y_mpc, position_z_mpc, seed, mass_solar) VALUES (0, 0, ?, ?, ?, ?, 0, 0, 1, ?)",
+                (index, kind, subtype, 1000 * index, mass))
+        conn.commit()
+        points = query.galaxy_scattered_points_in_box(conn, (-10, -10, -10), (10, 10, 10), EDGE_PC, 50, False)
+    finally:
+        conn.close()
+    by_mass = {point["mass_solar"]: point["size"] for point in points}
+    assert by_mass[1.5] < by_mass[10.0] < by_mass[18.0] < by_mass[5000.0]
+    unstored = [point for point in points if point["mass_solar"] is None]
+    assert unstored and unstored[0]["size"] == 0.55
