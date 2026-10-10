@@ -2963,23 +2963,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.9, GEN.158, GEN.159.
   Design: [docs/design/globular-clusters.md](design/globular-clusters.md)
 
-- [ ] **GEN.165 A comet's time-0 scene position disagrees with its stored position in a rare random system (bug)**
-  Reported by Bugfixes lane 1 (2026-10-09 19:04Z):
-  `tests/test_body_positions.py::test_the_scene_positions_at_the_epoch_match_the_stored_ones`
-  failed once in a full non-browser run. The comet check (about line
-  140) found `positions_at(scene, 0.0)[comet]` at about -9.56e9 km on
-  one axis against the stored `position_km` (tolerance rel 1e-5, abs 1e6
-  km). It passed 25 of 25 reruns alone and the file passes 7 of 7
-  repeatedly. The test builds a random system (up to 400 draws until it
-  has moons, comets and more than one star), so the likely cause is a
-  rare draw, perhaps an extreme-eccentricity or near-parabolic comet,
-  where the scene's time-0 position and the stored position disagree.
-  Not caused by Bugfixes lane 1's branch. Done: reproduce by seeding the
-  draw (find the failing seed by looping the draw), fix the comet epoch
-  position code or the scene's, and make the test seeded so it cannot
-  flake. Not a Phase 1 blocker.
-  Prerequisites: none.
-
 - [ ] **GEN.169 Decide the phenomenon scatter rates: regional factors and the 0.1% intermediate-mass black holes**
   Research (2026-10-09, phenomenon-scatter-mass-cut.md, PR #837; handoff
   in /mnt/project-files/research/handoff/phenomenon-mass-cut.md): Boss
