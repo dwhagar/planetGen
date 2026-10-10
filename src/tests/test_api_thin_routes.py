@@ -110,22 +110,27 @@ def test_bright_stars_out_of_range_address_is_an_empty_list(client, mysql_config
 
 @pytest.mark.parametrize("kind", ["stars", "planets", "moons"])
 def test_rename_unknown_ids_are_404(admin_client, kind):
-    for body_id in (0, HUGE_ID):
+    for body_id in ("0000000000-0000000-000", "FFFFFFFFFF-FFFFFFF-FFF"):
         _assert_json_error(admin_client.patch(f"/api/{kind}/{body_id}", json={"name": "Nowhere"}), 404)
-    # A negative or non-numeric id never matches the route at all.
-    for raw in ("-1", "abc"):
+    # A negative or non-hex id never matches the route at all.
+    for raw in ("-1", "zz"):
         response = admin_client.patch(f"/api/{kind}/{raw}", json={"name": "Nowhere"})
         assert response.status_code == 404
         assert response.get_json() == {"error": "not found"}
 
 
 @pytest.mark.parametrize("kind", ["stars", "planets", "moons"])
-def test_rename_bad_bodies_are_400(admin_client, kind):
-    """Checked before the row is looked up, so an id that exists or not
-    makes no difference."""
+def test_rename_bad_bodies_are_400(admin_client, mysql_config, kind):
+    """The body is checked before anything is renamed; the ID must name a row (an admin's request for an ID that
+    names nothing is a 404 first)."""
+    system_id = _save_wide_binary_with_moons(mysql_config)
+    table = {"stars": "stars", "planets": "planets", "moons": "moons"}[kind]
+    row_id = _one(mysql_config, f"SELECT id FROM {table} WHERE star_system_id = ? ORDER BY id LIMIT 1",
+                  (system_id,))["id"]
+    printed = pid(kind[:-1], row_id)
     for kwargs in ({"data": "name=x"}, {"json": ["name"]}, {"json": {}}, {"json": {"name": None}},
                    {"data": "{not json", "content_type": "application/json"}):
-        _assert_json_error(admin_client.patch(f"/api/{kind}/1", **kwargs), 400)
+        _assert_json_error(admin_client.patch(f"/api/{kind}/{printed}", **kwargs), 400)
 
 
 def test_rename_with_the_wrong_kind_of_id(admin_client, mysql_config):
@@ -138,11 +143,11 @@ def test_rename_with_the_wrong_kind_of_id(admin_client, mysql_config):
     top_planet = _one(mysql_config, "SELECT MAX(id) AS top FROM planets")["top"]
     top_star = _one(mysql_config, "SELECT MAX(id) AS top FROM stars")["top"]
 
-    wrong_id = max(moon["id"], top_planet, top_star) + 1000
-    _assert_json_error(admin_client.patch(f"/api/planets/{wrong_id}", json={"name": "Misfiled"}), 404)
-    _assert_json_error(admin_client.patch(f"/api/stars/{wrong_id}", json={"name": "Misfiled"}), 404)
-    if moon["id"] > top_planet:
-        _assert_json_error(admin_client.patch(f"/api/planets/{moon['id']}", json={"name": "Misfiled"}), 404)
+    nowhere = "FFFFFFFFFF-FFFFFFF-FFF"
+    _assert_json_error(admin_client.patch(f"/api/planets/{nowhere}", json={"name": "Misfiled"}), 404)
+    _assert_json_error(admin_client.patch(f"/api/stars/{nowhere}", json={"name": "Misfiled"}), 404)
+    # A moon's own ID sent to the planet route names no planet: IDs are unique across kinds.
+    _assert_json_error(admin_client.patch(f"/api/planets/{pid('moon', moon['id'])}", json={"name": "Misfiled"}), 404)
     assert _one(mysql_config, "SELECT name FROM moons WHERE id = ?", (moon["id"],))["name"] == moon["name"]
 
 
@@ -204,7 +209,7 @@ def test_create_facility_non_object_bodies_are_400(admin_client):
     ("space", "standalone", "station"),
 ])
 def test_create_facility_unknown_host_is_404(admin_client, host_type, placement, kind):
-    body = _facility(host_type=host_type, placement=placement, kind=kind, host_id=999999999)
+    body = _facility(host_type=host_type, placement=placement, kind=kind, host_id=("FFFFFFFFFF" if host_type == "space" else "FFFFFFFFFF-FFFFFFF-FFF"))
     _assert_json_error(admin_client.post("/api/facilities", json=body), 404)
 
 
@@ -214,16 +219,16 @@ def test_create_facility_wrong_placement_for_its_host(admin_client, mysql_config
     _config, sector_id, _system_ids = seeded_sector
     _system_id, star_id, moon_id = _star_and_moon(mysql_config)
     refused = [
-        _facility(placement="terrestrial", kind="colony", host_type="star", host_id=star_id),
-        _facility(placement="orbital", kind="colony", host_type="moon", host_id=moon_id),
-        _facility(placement="standalone", host_type="star", host_id=star_id),
+        _facility(placement="terrestrial", kind="colony", host_type="star", host_id=pid('star', star_id)),
+        _facility(placement="orbital", kind="colony", host_type="moon", host_id=pid('moon', moon_id)),
+        _facility(placement="standalone", host_type="star", host_id=pid('star', star_id)),
         # An orbit past the host's sphere of influence.
-        _facility(host_type="moon", host_id=moon_id, distance_km=1e15),
+        _facility(host_type="moon", host_id=pid('moon', moon_id), distance_km=1e15),
         # A stand-alone position on an orbital facility, and an orbit on a surface one.
-        _facility(host_type="star", host_id=star_id, offset_ly=[0, 0, 0]),
-        _facility(placement="terrestrial", kind="outpost", host_type="moon", host_id=moon_id, phase_deg=10),
+        _facility(host_type="star", host_id=pid('star', star_id), offset_ly=[0, 0, 0]),
+        _facility(placement="terrestrial", kind="outpost", host_type="moon", host_id=pid('moon', moon_id), phase_deg=10),
         # seeded_sector's sector was never placed in the galaxy.
-        _facility(placement="standalone", host_type="space", host_id=sector_id),
+        _facility(placement="standalone", host_type="space", host_id=pid('sector', sector_id)),
     ]
     for body in refused:
         _assert_json_error(admin_client.post("/api/facilities", json=body), 400)
@@ -233,34 +238,34 @@ def test_create_facility_wrong_placement_for_its_host(admin_client, mysql_config
 def test_standalone_facility_offset_outside_its_sector_is_400(admin_client, mysql_config):
     sector_id = _place_sector(mysql_config, "Dock Sector", (40.0, 0.0, 0.0), edge_ly=10.0, address=(12, 0, 0))
     for offset in ([5.01, 0, 0], [0, 0, -1e300], [0, 1e308, 0]):
-        body = _facility(placement="standalone", host_type="space", host_id=sector_id, offset_ly=offset)
+        body = _facility(placement="standalone", host_type="space", host_id=pid('sector', sector_id), offset_ly=offset)
         _assert_json_error(admin_client.post("/api/facilities", json=body), 400)
-    body = _facility(placement="standalone", host_type="space", host_id=sector_id, offset_ly=[4.9, 0, 0])
+    body = _facility(placement="standalone", host_type="space", host_id=pid('sector', sector_id), offset_ly=[4.9, 0, 0])
     assert admin_client.post("/api/facilities", json=body).status_code == 201
 
 
 def test_facility_has_no_patch_and_delete_is_404_once_gone(admin_client, mysql_config):
     _system_id, star_id, _moon_id = _star_and_moon(mysql_config)
-    response = admin_client.post("/api/facilities", json=_facility(host_id=star_id))
+    response = admin_client.post("/api/facilities", json=_facility(host_id=pid('star', star_id)))
     assert response.status_code == 201
     facility_id = response.get_json()["id"]
 
     # There is no facility PATCH: a clean 405, and the facility is untouched.
-    response = admin_client.patch(f"/api/facilities/{facility_id}", json={"name": "Renamed"})
+    response = admin_client.patch(f"/api/facilities/{pid('facility', facility_id)}", json={"name": "Renamed"})
     assert response.status_code == 405
     assert response.get_json() == {"error": "method not allowed"}
-    assert admin_client.get(f"/api/facilities/{facility_id}").get_json()["name"] == "Relay"
+    assert admin_client.get(f"/api/facilities/{pid('facility', facility_id)}").get_json()["name"] == "Relay"
     assert admin_client.delete("/api/facilities").status_code == 405
 
-    assert admin_client.delete(f"/api/facilities/{facility_id}").status_code == 200
-    _assert_json_error(admin_client.delete(f"/api/facilities/{facility_id}"), 404)
-    _assert_json_error(admin_client.delete(f"/api/facilities/{HUGE_ID}"), 404)
-    _assert_json_error(admin_client.get(f"/api/facilities/{facility_id}"), 404)
+    assert admin_client.delete(f"/api/facilities/{pid('facility', facility_id)}").status_code == 200
+    _assert_json_error(admin_client.delete(f"/api/facilities/{pid('facility', facility_id)}"), 404)
+    _assert_json_error(admin_client.delete(f"/api/facilities/{pid('facility', HUGE_ID)}"), 404)
+    _assert_json_error(admin_client.get(f"/api/facilities/{pid('facility', facility_id)}"), 404)
 
 
 def test_facility_reads_for_unknown_ids(client, mysql_config):
     _schema(mysql_config)
-    for path in ("/api/facilities/0", f"/api/facilities/{HUGE_ID}", "/api/systems/999999999/facilities",
+    for path in ("/api/facilities/0", f"/api/facilities/{pid('facility', HUGE_ID)}", "/api/systems/999999999/facilities",
                  "/api/sectors/999999999/facilities"):
         _assert_json_error(client.get(path), 404)
 
@@ -362,10 +367,10 @@ def test_deleting_a_sector_with_facilities_and_wiki_links(admin_client, mysql_co
     star_id = _one(mysql_config, "SELECT id FROM stars WHERE star_system_id = ?", (system_id,))["id"]
 
     standalone = admin_client.post("/api/facilities", json=_facility(
-        name="Drift Dock", placement="standalone", host_type="space", host_id=sector_id))
+        name="Drift Dock", placement="standalone", host_type="space", host_id=pid('sector', sector_id)))
     assert standalone.status_code == 201, standalone.get_json()
     standalone_id = standalone.get_json()["id"]
-    orbital = admin_client.post("/api/facilities", json=_facility(name="Sun Watch", host_id=star_id))
+    orbital = admin_client.post("/api/facilities", json=_facility(name="Sun Watch", host_id=pid('star', star_id)))
     assert orbital.status_code == 201, orbital.get_json()
     orbital_id = orbital.get_json()["id"]
 
@@ -388,13 +393,13 @@ def test_deleting_a_sector_with_facilities_and_wiki_links(admin_client, mysql_co
     _assert_json_error(admin_client.delete(f"/api/sectors/{pid('sector', sector_id)}"), 404)
     _assert_json_error(admin_client.patch(f"/api/sectors/{pid('sector', sector_id)}", json={"wiki_url": None}), 404)
 
-    _assert_json_error(admin_client.get(f"/api/facilities/{standalone_id}"), 404)
+    _assert_json_error(admin_client.get(f"/api/facilities/{pid('facility', standalone_id)}"), 404)
     assert _one(mysql_config, "SELECT COUNT(*) AS n FROM facilities WHERE sector_id = ?", (sector_id,))["n"] == 0
 
     system = admin_client.get(f"/api/systems/{pid('system', system_id)}").get_json()
     assert system["sector_id"] is None
     assert system["wikijs_url"] == "https://wiki.example.com/Doomed/System"
-    assert admin_client.get(f"/api/facilities/{orbital_id}").get_json()["name"] == "Sun Watch"
+    assert admin_client.get(f"/api/facilities/{pid('facility', orbital_id)}").get_json()["name"] == "Sun Watch"
     assert [f["id"] for f in admin_client.get(f"/api/systems/{pid('system', system_id)}/facilities").get_json()["items"]] == [
         orbital_id]
     assert admin_client.get(f"/api/systems/{pid('system', system_id)}/owner").get_json() == {"owner": None}
