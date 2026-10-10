@@ -1,0 +1,2 @@
+### Changed
+- **The backfill stage is named for what it does now (GEN.187).** On a galaxy run's numbered stage list, "Backfill the bright stars" becomes "Scatter the massive stars from the neighborhood", the four mass rings around the generated sectors. It is still shown as skipped, with its reason, when `--backfill-from none` is used or the run generated no sector, and its timing and per-layer counts are logged as before.

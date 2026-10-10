@@ -178,7 +178,8 @@ def density_stats(conn):
     try:
         row = conn.execute(
             "SELECT COALESCE(SUM(actual_systems IS NOT NULL), 0) AS measured,"
-            " COALESCE(SUM(bright_level_sol > 0), 0) AS backfilled FROM sector_stats").fetchone()
+            " COALESCE(SUM(bright_level_sol > 0 OR (bright_level_sol <> 0 AND bright_mass_sol IS NOT NULL)), 0)"
+            " AS backfilled FROM sector_stats").fetchone()
         ratio, fills = store.galaxy_density_ratio(conn)
     except Exception:
         return None

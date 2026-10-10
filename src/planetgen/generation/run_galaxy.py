@@ -34,8 +34,8 @@ from planetgen.galaxy.drill import (
     DRILL_LEVELS, drill_block_sectors, drill_children, drill_slabs, format_drill_key,
 )
 from planetgen.galaxy.geometry import (
-    SectorCell, enumerate_sectors_within_radius, galactic_radius_pc, provisional_sector_designation,
-    ring_sector_count, sector_address_at, sector_position_pc,
+    SectorCell, enumerate_sectors_within_radius, galactic_radius_pc, neighbor_addresses,
+    provisional_sector_designation, ring_sector_count, sector_address_at, sector_position_pc,
 )
 from planetgen.physics.units import ly_to_pc, pc_to_ly
 from planetgen.generation import run_common
@@ -148,9 +148,9 @@ class _BatchDensity:
 
 def _fill_context(args, address, position_pc):
     """The `brightStars.FillContext` for one galaxy sector: its population
-    mix, its unfilled pre-placed bright stars down to its own level
-    (`store.bright_star_fill_level`: its backfill's, GEN.44, else the galaxy
-    scatter's), and its unbuilt scattered phenomena when the galaxy's
+    mix, its unfilled pre-placed bright stars down to its own level and
+    mass (`store.bright_star_fill_level`, `store.bright_star_fill_mass_limit`:
+    its backfill's, GEN.44, GEN.187, else the galaxy scatter's), and its unbuilt scattered phenomena when the galaxy's
     phenomenon scatter ran (GEN.100). `None` without a stored skeleton
     (nothing to take the mix from)."""
     conn = store.get_connection(store.mysql_config_from_args(args))
@@ -170,102 +170,93 @@ def _fill_context(args, address, position_pc):
                             * skeleton.expected_system_count_at_density_1)
                 below_cut = brightStars.BelowCut(tuple(address), min_mass_solar, seed, expected)
         level = store.bright_star_fill_level(conn, *address)
-        if level is None:
+        mass_limit = store.bright_star_fill_mass_limit(conn, *address)
+        if level is None and mass_limit is None:
             return brightStars.FillContext(position_pc, skeleton.shape, phenomenon_rows=phenomena,
                                            below_cut=below_cut)
         rows = store.bright_stars_for_sector(conn, *address)
-        mass_limit = store.bright_star_mass_limit(conn)
     finally:
         conn.close()
     return brightStars.FillContext(position_pc, skeleton.shape, rows, min_luminosity_sol=level,
                                    phenomenon_rows=phenomena, below_cut=below_cut, star_mass_limit_sol=mass_limit)
 
 
-def backfill_tiers(radius_ly=None, min_luminosity_sol=None, tiers=None):
+def backfill_ring_targets(addresses, bounds, ring_masses=None):
     """
-    The backfill's distance tiers (GEN.30), as `(out_to_ly,
-    min_luminosity_sol)` pairs, nearest first: `tiers` when given, else
-    one tier when either `radius_ly` or `min_luminosity_sol` is (a single
-    floor out to a single distance, GEN.23's original form; the other
-    defaults to the nearest tier's floor or the farthest tier's
-    distance), else `program_constants.BRIGHT_STAR_BACKFILL_TIERS`.
+    The mass backfill's rings (GEN.187) around some sectors: ring 1 is the
+    sectors a face away from `addresses` (no diagonals,
+    `geometry.neighbor_addresses`), ring 2 the ones a face away from ring 1,
+    and so on, each counted from the previous ring's outer edge, one ring per
+    entry of `ring_masses` (default
+    `program_constants.BRIGHT_STAR_BACKFILL_RING_MASSES_SOL`). Cells outside the
+    galaxy's outline (`bounds`) are left out.
 
     Returns:
-        tuple: `(out_to_ly, min_luminosity_sol)` float pairs, sorted by
-            distance.
+        dict: `(ring, layer, slot)` -> the lightest initial mass (solar
+            masses) its ring takes stars down to; the nearest ring has the
+            lowest. `addresses` themselves are not in it.
     """
-    default = program_constants.BRIGHT_STAR_BACKFILL_TIERS
-    if tiers is None and (radius_ly is not None or min_luminosity_sol is not None):
-        tiers = ((default[-1][0] if radius_ly is None else radius_ly,
-                  default[0][1] if min_luminosity_sol is None else min_luminosity_sol),)
-    return tuple(sorted((float(out_to), float(floor)) for out_to, floor in (tiers or default)))
+    masses = program_constants.BRIGHT_STAR_BACKFILL_RING_MASSES_SOL if ring_masses is None else ring_masses
+    seen = set(addresses)
+    frontier = sorted(seen)
+    targets = {}
+    for mass in masses:
+        following = set()
+        for address in frontier:
+            for neighbor in neighbor_addresses(*address):
+                if neighbor in seen or not bounds.contains(neighbor[0], neighbor[1]):
+                    continue
+                seen.add(neighbor)
+                following.add(neighbor)
+        for address in following:
+            targets[address] = float(mass)
+        frontier = sorted(following)
+        if not frontier:
+            break
+    return targets
 
 
-def format_backfill_tiers(tiers):
-    """`tiers` as text for the log ("10:100,25:250,...", ly:L_sun)."""
-    return ",".join(f"{out_to:g}:{floor:g}" for out_to, floor in tiers)
-
-
-def _tier_floor(tiers, distance_ly):
-    """The floor of the first tier reaching `distance_ly`, or None past the last."""
-    for out_to, floor in tiers:
-        if distance_ly < out_to or (out_to, floor) == tiers[-1] and distance_ly <= out_to:
-            return floor
-    return None
-
-
-def backfill_bright_stars(config, center_pc, radius_ly=None, min_luminosity_sol=None, tiers=None):
+def backfill_bright_stars(config, center_pc):
     """`backfill_bright_stars_around` one center (see there)."""
-    return backfill_bright_stars_around(config, [center_pc], radius_ly, min_luminosity_sol, tiers)
+    return backfill_bright_stars_around(config, [center_pc])
 
 
-def backfill_bright_stars_around(config, centers_pc, radius_ly=None, min_luminosity_sol=None, tiers=None,
-                                 progress=None):
+def backfill_bright_stars_around(config, centers_pc, progress=None):
     """
-    The bright-star backfill around generated sectors (GEN.23, tiered by
-    GEN.30, per sector since GEN.44): every unfilled sector within the
-    farthest tier of any of `centers_pc` gets every star from its tier's
-    floor (by its own distance from the nearest center) up to the level it
-    already holds: its own `sector_stats` level, else the galaxy scatter's
-    threshold, else no ceiling when no scatter ran. A sector at level 0
-    (generated) or already that deep is skipped (one query for the whole
-    sphere), and one a nearer sector reaches later is topped up with only
-    the band it lacks, so no star is ever drawn twice. A sector with no
-    level anywhere that still holds stars is left over from a run that
-    failed part way: they are wiped and it is drawn whole.
+    The bright-star backfill around generated sectors (GEN.23; by initial
+    mass in rings since GEN.187, per sector since GEN.44): the sectors a face
+    away from `centers_pc`' sectors get every star born from 1 solar mass
+    up, the ring after that from 2, then 5, then 8
+    (`backfill_ring_targets`); past the fourth ring the scatter's own mass
+    limit stands. A sector filled, or already taken that deep (by an earlier
+    backfill, or by the scatter's mass pass), is skipped, and one a nearer
+    sector reaches later is topped up with only the masses it lacks, so no
+    star is ever drawn twice. A sector with no level anywhere that still
+    holds stars is left over from a run that failed part way: they are wiped
+    and it is drawn whole.
 
     Sectors are drawn a few hundred at a time, under their rows' locks,
-    and each one's new level is written in the transaction that writes
-    its stars. A sector's draw is seeded from the galaxy's scatter seed,
-    its address and fixed luminosity bands (`brightStars.backfill_cells`),
-    so it is the same whichever sector reached it first, and whatever
-    steps took it there.
+    and each one's new mass is written in the transaction that writes its
+    stars. A sector's draw is seeded from the galaxy's scatter seed, its
+    address and fixed mass bands (`brightStars.backfill_mass_cells`), so it
+    is the same whichever sector reached it first, and whatever steps took
+    it there.
 
     Args:
         config (MySQLConfig): Connection parameters.
         centers_pc (list): Generated sectors' `(x, y, z)` centers,
             galaxy-frame parsecs.
-        radius_ly (float, optional): With `min_luminosity_sol`, one tier
-            instead of the defaults (`backfill_tiers`).
-        min_luminosity_sol (float, optional): See `radius_ly`.
-        tiers (tuple, optional): `(out_to_ly, min_luminosity_sol)` pairs;
-            defaults to `program_constants.BRIGHT_STAR_BACKFILL_TIERS`
-            (100 L_sun under 10 ly, 250 to 25 ly, 500 to 50 ly, 750 to
-            100 ly).
         progress (Progress, optional): A live `_generation_progress`
             display: the backfill adds its own bar, counting the sectors
             it visits, with its ETA (PERF.28).
 
     Returns:
         dict: `sectors` (drawn now) and `stars` (placed now), both int;
-            zeros without a stored skeleton or when the galaxy scatter
-            already went that deep.
+            zeros without a stored skeleton.
     """
-    tiers = backfill_tiers(radius_ly, min_luminosity_sol, tiers)
-    radius_pc = ly_to_pc(tiers[-1][0])
     summary = {"sectors": 0, "stars": 0}
     layers = {}
-    # Finding the sectors to draw can take a while on a large radius; the
+    # Finding the sectors to draw can take a while on a large run; the
     # bar is there from the start (ADM.26), unmeasured until the count is known.
     bar = steps.Step("Bright-star backfill (finding sectors)", "backfill", None, progress=progress,
                      stats=run_common._stats_for_config(config)).__enter__()
@@ -276,32 +267,24 @@ def backfill_bright_stars_around(config, centers_pc, radius_ly=None, min_luminos
         if skeleton is None:
             return summary
         galaxy_level, seed = run_plan._scatter_level_and_seed(conn, skeleton)
-        if galaxy_level is not None and galaxy_level <= min(floor for _out_to, floor in tiers):
-            return summary
+        mass_limit = store.bright_star_mass_limit(conn)
         bounds = store.get_galaxy_bounds(conn)
-        floors = {}
-        for center_pc in centers_pc:
-            for ring, layer, slot, *_xyz, distance_pc in enumerate_sectors_within_radius(
-                    center_pc, radius_pc, skeleton.edge_pc):
-                if not bounds.contains(ring, layer):
-                    continue
-                floor = _tier_floor(tiers, pc_to_ly(distance_pc))
-                if floor is not None:
-                    floors[(ring, layer, slot)] = min(floor, floors.get((ring, layer, slot), math.inf))
-        if galaxy_level is not None:
-            floors = {address: floor for address, floor in floors.items() if floor < galaxy_level}
-        levels = store.sector_bright_levels(conn, floors)
-        filled = store.get_occupied_addresses(conn, {address[0] for address in floors})
-        todo = sorted(address for address, floor in floors.items()
-                      if address not in filled and run_plan._needs_band(levels.get(address), galaxy_level, floor))
+        centers = {sector_address_at(center, skeleton.edge_pc) for center in centers_pc}
+        targets = backfill_ring_targets(centers, bounds)
+        if mass_limit is not None:
+            targets = {address: mass for address, mass in targets.items() if mass < mass_limit}
+        held = store.sector_bright_masses(conn, targets)
+        filled = store.get_occupied_addresses(conn, {address[0] for address in targets})
+        todo = {address: mass for address, mass in targets.items()
+                if address not in filled and mass < held.get(address, math.inf)}
         on_sector = None
         if todo:
             bar.update(description="Bright-star backfill (sectors)", total=len(todo))
 
             def on_sector():
                 bar.update(advance=1)
-        drawn = run_plan._draw_sector_bands(conn, skeleton, todo, floors, galaxy_level, seed, on_sector=on_sector,
-                                            layers=layers)
+        drawn = run_plan._draw_sector_masses(conn, skeleton, todo, galaxy_level, mass_limit, seed,
+                                             on_sector=on_sector, layers=layers)
         summary["sectors"], summary["stars"] = drawn
         failed = False
     except BaseException:
@@ -312,8 +295,8 @@ def backfill_bright_stars_around(config, centers_pc, radius_ly=None, min_luminos
         bar.close(success=not failed)     # nothing to draw: no bar left unmeasured
     run_plan.log_layers("Bright-star backfill", layers)
     if summary["sectors"]:
-        log.debug(f"bright-star backfill: {summary['stars']} stars in {summary['sectors']} sector(s), tiers "
-                  f"{format_backfill_tiers(tiers)}")
+        log.debug(f"bright-star backfill: {summary['stars']} stars in {summary['sectors']} sector(s), masses "
+                  f"{','.join(f'{mass:g}' for mass in program_constants.BRIGHT_STAR_BACKFILL_RING_MASSES_SOL)} Msun")
     return summary
 
 

@@ -22,7 +22,7 @@ release is stamped.
 | API | API.24 |
 | ADM | ADM.50 |
 | SEC | SEC.33 |
-| TEST | TEST.124 |
+| TEST | TEST.125 |
 | USR | USR.10 |
 | OPS | OPS.41 |
 | DOC | DOC.17 |
@@ -684,7 +684,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.184 | A luminosity floor the user sets: presets from 2500 to 4 million solar luminosities, default 3000 | none | done, PR #965 |
 | GEN.185 | The scatter in five passes: mass-limit objects, mass-limit stars, brightest-star sector marks, the luminosity pass, then other phenomena | none | done, PR #953 |
 | GEN.186 | Random neighborhoods: an option to keep away from filled space | none | open |
-| GEN.187 | Bright-star back scatter by mass: rings of 1, 2, 5 and 8 solar masses around filled space | none | open |
+| GEN.187 | Bright-star back scatter by mass: rings of 1, 2, 5 and 8 solar masses around filled space | none | done, PR #1059 |
 | GEN.188 | Mass limit default is 8, and the mass slider and luminosity dropdown sit side by side on Generate and New galaxy | none | done, PR #1007 |
 | GEN.189 | Gamma-ray burst and AGN ozone loss for the ozone_loss_flag (low priority) | none | open |
 | GEN.190 | The Phenomena table is empty after a web-generated galaxy: the phenomena scatter pass never runs (bug) | none | done, PR #1008 |
@@ -1154,7 +1154,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.86 | The Galaxy Map controls take too much room: buttons too large and filters one character wide (bug) | none | done, PR #936 |
 | UX.87 | The system list shows uncharted systems: every scattered star, with its location and a way to generate it | none | open |
 | UX.88 | Say "uncharted" instead of "unbuilt" or "not generated" in all user-facing text outside Generate and admin | none | done, PR #1049 |
-| UX.89 | Staged jobs show wrong stage counts and numbers, and skipped stages are not listed (bug) | none | open |
+| UX.89 | Staged jobs show wrong stage counts and numbers, and skipped stages are not listed (bug) | none | done, PR #1057 |
 | UX.90 | Explain the habitability chips in the web interface: a visible legend with the equipment labels, colours, thresholds and scores | none | open |
 | UX.91 | Planet and moon description carries a full PHI-4 explanation, each colour factor and why | none | open |
 | VIEW.1 | View from a planet | none | open |
@@ -1377,6 +1377,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.121 | test_open_map_menus_hold_no_overlap fails under load: the Menu panel intercepts the close click (bug) | none | done, PR #1002 |
 | TEST.122 | Browser map tests fail on plain main in Bugfixes lane 2's container (fixture maps, controls, system-page maps) (bug) | none | open |
 | TEST.123 | test_a_loaded_sector_knows_every_objects_cell_and_velocity fails once under full-suite load (bug) | none | open |
+| TEST.124 | Phenomena page tests fail with KeyError scattered in system_pages._phenomena_load (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

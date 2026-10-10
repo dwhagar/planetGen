@@ -1323,7 +1323,7 @@ def _sector_generation_context(conn, sector_id, system_config):
     """For a galaxy-placed sector: the system's distance from the galactic
     center in light-years, after giving `system_config` the sector's
     stellar population and (once a bright-star scatter ran) its dim-star
-    cap (its own backfill level, GEN.44), as a sector fill would
+    cap (its own backfill level and mass, GEN.44, GEN.187), as a sector fill would
     (`brightStars.FillContext`). `None` for a
     sector outside the galaxy. 404 when the sector doesn't exist."""
     try:
@@ -1334,10 +1334,12 @@ def _sector_generation_context(conn, sector_id, system_config):
         return None
     skeleton = get_galaxy_shape(conn)
     if skeleton is not None:
-        level = store.bright_star_fill_level(conn, placement["ring_index"], placement["layer_index"],
-                                           placement["ring_slot_index"])
+        address = (placement["ring_index"], placement["layer_index"], placement["ring_slot_index"])
+        level = store.bright_star_fill_level(conn, *address)
+        mass_limit = store.bright_star_fill_mass_limit(conn, *address)
         center = (placement["center_x_pc"], placement["center_y_pc"], placement["center_z_pc"])
-        brightStars.FillContext(center, skeleton.shape, min_luminosity_sol=level).apply(system_config)
+        brightStars.FillContext(center, skeleton.shape, min_luminosity_sol=level,
+                                star_mass_limit_sol=mass_limit).apply(system_config)
     return pc_to_ly(placement["galactic_radius_pc"])
 
 

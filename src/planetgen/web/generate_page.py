@@ -99,26 +99,25 @@ MASS_LIMIT_LABEL = "Mass limit (solar masses)"
 
 
 def _backfill_text():
-    """The backfill tiers in words ("down to 100 solar luminosities within
-    10 ly, 250 within 25 ly, ... and 750 out to 100 ly")."""
-    tiers = tuning.BRIGHT_STAR_BACKFILL_TIERS
-    parts = [f"{floor:,.0f} within {out_to:g} ly" for out_to, floor in tiers[:-1]]
-    last = f"{tiers[-1][1]:,.0f} out to {tiers[-1][0]:g} ly"
-    if parts:
-        parts[0] = parts[0].replace(" within", " solar luminosities within", 1)
-        return "down to " + ", ".join(parts) + " and " + last
-    return f"down to {tiers[-1][1]:,.0f} solar luminosities out to {tiers[-1][0]:g} ly"
+    """The backfill rings in words ("down to 1 solar mass in the ring of
+    sectors around the generated ones, 2 in the next, ... and 8 in the
+    fourth")."""
+    masses = tuning.BRIGHT_STAR_BACKFILL_RING_MASSES_SOL
+    ordinals = ("first", "second", "third", "fourth", "fifth", "sixth")
+    parts = [f"{mass:g} in the {ordinals[index]}" for index, mass in enumerate(masses[1:], start=1)]
+    first = f"down to {masses[0]:g} solar mass{'' if masses[0] == 1 else 'es'} in the ring of sectors around the generated ones"
+    return ", ".join([first, *parts[:-1]]) + (f" and {parts[-1]} ring" if parts else "")
 
 
 BACKFILL_TEXT = _backfill_text()
-"""str: How far down the bright-star backfill around a generated sector
-goes, by distance (GEN.30, `tuning.BRIGHT_STAR_BACKFILL_TIERS`)."""
+"""str: How far down the bright-star backfill around the generated sectors
+goes, ring by ring (GEN.187, `tuning.BRIGHT_STAR_BACKFILL_RING_MASSES_SOL`)."""
 
 GALAXY_MODES = (
     ("random", "Around a random start",
      "Picks a random populated spot and generates the sectors within a radius of it "
-     "(12 pc, about 39 ly, when the radius is left blank; the 100 ly around every generated "
-     f"sector gets its bright stars either way, {BACKFILL_TEXT})."),
+     "(12 pc, about 39 ly, when the radius is left blank; the four rings of sectors around every "
+     f"generated one get their heavier stars either way, {BACKFILL_TEXT})."),
     ("ring", "A whole ring",
      "Every not-yet-generated sector in one ring at one height layer (0 is the galactic plane), "
      "or only the first few with a limit."),

@@ -145,14 +145,14 @@ it. A random start draws a uniformly random sector from inside the outline
 star at or above `BRIGHT_STAR_MIN_LUMINOSITY_SOL` at a fixed point in its
 sector, in `bright_stars`, before any sector is filled. The default is
 1,000 L_sun (raised from 500 by GEN.30 on 2026-10-01, with the dimmer stars
-filled in near generated sectors by `BRIGHT_STAR_BACKFILL_TIERS`; the default
+filled in near generated sectors by the mass rings of GEN.187, `BRIGHT_STAR_BACKFILL_RING_MASSES_SOL`; the default
 shape drew 26.9 million of them in the 2026-10-08 timing run). Filling the
 sector later builds a full system around each of them. Since 7.40.1,
 `planetgen plan --bright-star-min-luminosity` accepts down to 100 (about 220
 million stars and 35 GB in a Milky Way, against about 60 million and 10 GB
 at the old 500); white dwarfs are never pre-placed. The Galaxy Map draws
 them from 7.42.0, so the arms show before any sector is filled. How much of
-a planet's naked-eye sky these stars and the 100 ly backfill cover is in
+a planet's naked-eye sky these stars and the mass-ring backfill cover is in
 [sky-view.md](sky-view.md) section 3.
 
 **Adding a system to a stored sector (7.43.0).** `POST /api/systems` with
