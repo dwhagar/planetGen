@@ -3,6 +3,7 @@
 ## [8.0.866] - 2026-10-10
 
 ### Changed
+- UX.86: the Galaxy Map's Menu is more compact. The "Show on the map" toggles sit side by side at their natural width in their own collapsible group, the action buttons wrap in a row, and the map's controls use smaller buttons.
 - **Docs only:** ADM.30 (radial fills, PR #934) is retired from the TODO list and the plans, and TEST.114 (a load-sensitive test flake) is filed.
 - **Docs only:** UX.85 (menus open where they can be seen, PR #932) is retired from the TODO list and the plans.
 - TODO: UX.84 retired (PR #930); DB.21 notes the step registry.
