@@ -1320,6 +1320,17 @@ def test_the_plan_forms_offer_the_mass_limit_slider(site, client):
     assert re.search(r'<script type="module" src="/static/generateranges.js\?v=[^"]+"></script>', html)
 
 
+def test_the_mass_slider_and_luminosity_dropdown_sit_together_in_both_forms(site, client):
+    """GEN.188: one container holds the mass limit slider and the luminosity floor dropdown, in Plan and in New galaxy."""
+    html = client.get("/admin/generate").get_data(as_text=True)
+    pairs = re.findall(r'<div class="search-fields scatter-limits">(.*?)</div>\s*(?:<div|</fieldset|<div class="search-actions)',
+                       html, re.S)
+    assert len(pairs) == 2
+    for pair in pairs:
+        assert 'name="phenomenon_min_mass"' in pair and 'name="bright_min_luminosity"' in pair
+    assert 'option value="5000" selected>5,000 (default)' in html
+
+
 def test_the_mass_limit_reaches_the_plan_and_the_scatter(site, client, no_spawn):
     assert _post(client, action="plan", phenomenon_min_mass="12").status_code == 303
     (job,) = no_spawn
