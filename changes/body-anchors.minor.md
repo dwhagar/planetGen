@@ -1,0 +1,2 @@
+### Added
+- A star, planet, moon, belt or comet link now opens its system page at that body: `/system/<id>#planet-12` (and `#moon-`, `#belt-`, `#comet-`, `#star-`) opens the body's row, highlights it, scrolls to it and selects the body on the System Map. `/object/<reference>` (for example `/object/planet:12`) redirects any object reference to the right page or row, and the search results link their bodies this way. Only stars (as their system's page) get pages; planets and moons are anchors. (NAV.8)

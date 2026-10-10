@@ -52,7 +52,7 @@ class SearchFake(FakeData):
             "sectors": _result([{"id": 5, "name": "Kepler <Reach>", "edge_mpc": 3.07}]) if texts.get("sector_q") else None,
             "systems": _result([{"id": 7, "name": "Kepler-42", "sector_id": None, "is_binary": 0,
                                  "star_summary": "M5V"}]) if texts.get("system_q") else None,
-            "stars": _result([{"name": "Kepler-42 A", "role": "primary", "star_type": "M5V", "radius_km": 118000.4,
+            "stars": _result([{"id": 3, "name": "Kepler-42 A", "role": "primary", "star_type": "M5V", "radius_km": 118000.4,
                                "star_system_id": 7, "system_name": "Kepler-42", "sector_id": 5}])
             if texts.get("star_q") or tags.get("spectral") else None,
             "planets": None, "moons": None, "belts": None,
@@ -333,3 +333,9 @@ def test_groups_with_no_matches_are_left_out(client, fake):
     html = client.get("/search?q=zzz").get_data(as_text=True)
     assert 'id="search-sectors"' not in html and 'id="search-stars"' not in html
     assert "No sectors, systems, stars, planets or moons match." in html
+
+
+def test_a_star_result_links_to_its_row_on_the_system_page(client, fake):
+    """NAV.8: a body result opens its system page at that body's row."""
+    html = client.get("/search?star_q=Kepler").get_data(as_text=True)
+    assert 'href="/system/7#star-3"' in html

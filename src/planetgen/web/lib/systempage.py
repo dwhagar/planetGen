@@ -206,7 +206,14 @@ def _row_admin_html(admin_rows, kind, body_id):
             f'<sl-menu aria-label="Admin actions for {esc(row["label"])}">{items}</sl-menu></sl-dropdown>')
 
 
-def _row_html(title, stats, markdown, children_html="", children_visible=False, links=(), facilities=(), admin=""):
+def body_anchor(kind, body_id):
+    """The fragment (without `#`) of a body's row on the system page (NAV.8): `planet-12`, `moon-7`,
+    `star-3`, `belt-2`, `comet-9`. `static/bodyanchor.js` opens and highlights the row it names."""
+    return f"{kind}-{int(body_id)}"
+
+
+def _row_html(title, stats, markdown, children_html="", children_visible=False, links=(), facilities=(), admin="",
+              anchor=None):
     """
     One clickable row of the system list: a native `<details>` whose
     summary line is the body's name plus its compact stats, opening onto
@@ -220,7 +227,7 @@ def _row_html(title, stats, markdown, children_html="", children_visible=False, 
     `links` (the body's class links, HTML) open the detail, above the
     description; the body's `facilities` are counted in the summary and
     listed under the links; `admin` (an Admin menu, `_row_admin_html`) sits
-    at the row's right end.
+    at the row's right end. `anchor` (`body_anchor`) is the row's `id`.
     """
     stats_html = "".join(stats) + _facility_stat(facilities)
     description = _facilities_html(facilities) + (markdown_to_html(markdown) if markdown else "")
@@ -229,7 +236,7 @@ def _row_html(title, stats, markdown, children_html="", children_visible=False, 
         description = f'<p class="class-links">{" &middot; ".join(links)}</p>{description}'
     inside, after = ("", children_html) if children_visible else (children_html, "")
     return f"""
-<li{' class="has-admin"' if admin else ""}><details class="body-row">
+<li{f' id="{anchor}"' if anchor else ""}{' class="has-admin"' if admin else ""}><details class="body-row">
 <summary><span class="body-name">{title}</span><span class="body-stats">{stats_html}</span></summary>
 <div class="body-detail prose">{description}</div>
 {inside}
@@ -248,7 +255,7 @@ def _star_row_html(star, sections, children_html="", class_url=None, by_host=Non
                  _link(luminosity_url, f"Luminosity class {esc(classes[1])}") if luminosity_url else ""]
     return _row_html(
         esc(star["name"]), stats, sections["stars"].get(str(star["id"])), children_html, children_visible=True,
-        links=links, facilities=(by_host or {}).get(("star", star["id"])),
+        links=links, facilities=(by_host or {}).get(("star", star["id"])), anchor=body_anchor("star", star["id"]),
     )
 
 
@@ -348,7 +355,8 @@ def _planet_row_html(body, sections, is_moon=False, class_url=None, by_host=None
         species_link = f'Dominant species: {_link(dominant["url"], esc(dominant["name"]))}'
     return _row_html(esc(body["name"]), stats, section.get(str(body["id"])), after_html, children_visible=True,
                      links=[class_link, species_link], facilities=(by_host or {}).get(("moon" if is_moon else "planet", body["id"])),
-                     admin=_row_admin_html(admin_rows, "moon" if is_moon else "planet", body["id"]))
+                     admin=_row_admin_html(admin_rows, "moon" if is_moon else "planet", body["id"]),
+                     anchor=body_anchor("moon" if is_moon else "planet", body["id"]))
 
 
 BELT_TOP_MINERALS = 3
@@ -377,7 +385,7 @@ def _belt_row_html(belt, sections, by_host=None, admin_rows=None):
     ]
     return _row_html("Asteroid Belt", stats, sections["belts"].get(str(belt["id"])),
                      facilities=(by_host or {}).get(("asteroid_belt", belt["id"])),
-                     admin=_row_admin_html(admin_rows, "belt", belt["id"]))
+                     admin=_row_admin_html(admin_rows, "belt", belt["id"]), anchor=body_anchor("belt", belt["id"]))
 
 
 def comet_orbit_key_km(comet):
@@ -411,7 +419,8 @@ def _comet_row_html(comet, sections, class_url=None):
     code = comet.get("period_class") if comet["orbit_type"] == "elliptical" else PARABOLIC_COMET_CLASS
     period_url = class_url("comet", code) if class_url and code else None
     links = [_link(period_url, esc(class_entry("comet", code)["name"]))] if period_url else []
-    return _row_html(esc(comet["name"]), stats, sections["comets"].get(str(comet["id"])), links=links)
+    return _row_html(esc(comet["name"]), stats, sections["comets"].get(str(comet["id"])), links=links,
+                     anchor=body_anchor("comet", comet["id"]))
 
 
 def _orbiting_rows_html(planets, belts, comets, sections, class_url=None, by_host=None, species=None, admin_rows=None):

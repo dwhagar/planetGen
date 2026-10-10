@@ -19,6 +19,7 @@ every link is a plain GET link (`page_url`).
 """
 
 from flask import abort, jsonify, redirect, request
+from planetgen.galaxy import objectref
 from planetgen.web.lib import apiclient
 from planetgen.web.lib.fmt import (
     format_duration_seconds, format_number, format_period_years, format_speed_kms, runaway_text,
@@ -29,7 +30,7 @@ from planetgen.web.lib.datatable import Column, Facet, Result, Table
 from planetgen.web.maps.phenomenonmap import render_phenomenon_map_panel
 from planetgen.web.maps.phenomenonrender import render_nebula_view_panel, render_phenomenon_view_panel, view_kind
 from planetgen.web.maps.systemmap import render_system_map_panel
-from planetgen.web.lib.systempage import star_notes_html, stars_html, system_list_html
+from planetgen.web.lib.systempage import body_anchor, star_notes_html, stars_html, system_list_html
 from planetgen.web.lib.tabledisplay import format_star_radius, to_plain_text
 
 from planetgen.web.lib.classref import ROGUE_MASS_CLASS_NAMES
@@ -713,6 +714,48 @@ def phenomenon_fields(phenomenon_type, detail):
             url = class_url(CLASS_COLUMNS[column], raw) if column in CLASS_COLUMNS else None
             fields.append((label, text, url))
     return fields
+
+
+BODY_REF_KINDS = ("star", "planet", "moon", "belt", "comet")
+"""tuple: The reference kinds `/object/<ref>` sends to a row on the system page (NAV.8)."""
+
+
+def object_url(kind, object_id, system_id=None):
+    """
+    Where an object reference opens (NAV.8): a system or sector on its own
+    page, a phenomenon on its page, and a star, planet, moon, belt or comet
+    on its system's page at that body's row (`/system/<id>#planet-12`),
+    which `static/bodyanchor.js` opens, highlights and selects on the
+    System Map. Only stars (as their system's page) get a page; planets,
+    moons, belts and comets are anchors. `system_id` is needed for a body.
+    """
+    if kind == "sector":
+        return page_url("sector", sector_id=object_id)
+    if kind == "system":
+        return page_url("system", system_id=object_id)
+    if kind in BODY_REF_KINDS:
+        return page_url("system", _anchor=body_anchor(kind, object_id), system_id=system_id)
+    return page_url("phenomenon", phenomenon_type=kind, phenomenon_id=object_id)
+
+
+@bp.route("/object/<ref>")
+def object_page(ref):
+    """Any object reference (`planet:12`, `nebula:3`, a bare number is a
+    system) redirected to the page or row that shows it (NAV.8)."""
+    try:
+        kind, object_id = objectref.parse(ref)
+    except ValueError:
+        abort(404)
+    system_id = None
+    if kind in BODY_REF_KINDS:
+        found = apiclient.get_object(db_name(), objectref.format(kind, object_id))
+        system_id = next((int(p["ref"].split(":")[1]) for p in found["parents"] if p["kind"] == "system"), None)
+        if system_id is None:
+            abort(404)
+    return redirect(object_url(kind, object_id, system_id), code=302)
+
+
+object_page.json_only = True  # a redirect, not a page: tests/test_web_a11y.py skips it
 
 
 @bp.route("/phenomenon/<phenomenon_type>/<int:phenomenon_id>", methods=["GET", "POST"])

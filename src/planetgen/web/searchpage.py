@@ -38,6 +38,7 @@ from planetgen.web.lib.pagination import PAGE_SIZE, page_offset, parse_page
 from . import tables
 from .helpers import db_name, page_url
 from .sector_page import PHENOMENON_TYPE_LABELS
+from .system_pages import object_url
 
 # Mirrors queryDb.SEARCH_TAG_FACETS (this layer talks to the database only
 # through the API, so it doesn't import planetgen.db.query).
@@ -322,6 +323,8 @@ def _rows(panel, rows):
                 item["galaxy_url"] = page_url("sector_on_galaxy_map", sector_id=row["sector_id"])
         else:
             item["system_url"] = page_url("system", system_id=row["star_system_id"])
+            # NAV.8: the body itself opens its row on the system page.
+            item["url"] = object_url(_PANEL_NOUNS[panel][0].split()[-1], row["id"], row["star_system_id"])
             item["sector_url"] = _sector_cell(row["sector_id"])
         if "radius_km" in row:
             item["radius"] = _km(row["radius_km"]) if row["radius_km"] is not None else None
@@ -373,10 +376,10 @@ def _cells(panel, row):
         return [_link(row["name"], row["url"]), _sector_link(row), {"text": "Yes" if row["is_binary"] else "No"},
                 {"text": row["star_summary"]}, _show_on_map(row)]
     if panel == "stars":
-        return [{"text": row["name"]}, {"text": row["role"]}, {"text": row["star_type"]}, _radius(row),
+        return [_link(row["name"], row["url"]), {"text": row["role"]}, {"text": row["star_type"]}, _radius(row),
                 _link(row["system_name"], row["system_url"]), _sector_link(row)]
     if panel in ("planets", "moons"):
-        cells = [{"text": row["name"]}, {"text": row["planet_class"] or "—"}, {"text": row["body"]}, _radius(row),
+        cells = [_link(row["name"], row["url"]), {"text": row["planet_class"] or "—"}, {"text": row["body"]}, _radius(row),
                  {"text": row["life_chemical"] or "—"},
                  {"text": EQUIPMENT_LABELS[row["equipment_tier"]] if row.get("equipment_tier") is not None else "—"}]
         if panel == "moons":
@@ -385,7 +388,7 @@ def _cells(panel, row):
     if panel == "phenomena":
         return [_link(row["name"], row["url"]), {"text": row["type_label"]},
                 {"text": row["phenomenon_class"] or "—"}, _sector_link(row)]
-    return [{"text": row["density"].capitalize()}, {"text": row["composition_summary"]},
+    return [_link(row["density"].capitalize(), row["url"]), {"text": row["composition_summary"]},
             _link(row["system_name"], row["system_url"]), _sector_link(row)]
 
 
