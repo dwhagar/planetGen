@@ -1154,7 +1154,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.86 | The Galaxy Map controls take too much room: buttons too large and filters one character wide (bug) | none | done, PR #936 |
 | UX.87 | The system list shows uncharted systems: every scattered star, with its location and a way to generate it | none | open |
 | UX.88 | Say "uncharted" instead of "unbuilt" or "not generated" in all user-facing text outside Generate and admin | none | done, PR #1049 |
-| UX.89 | Staged jobs show wrong stage counts and numbers, and skipped stages are not listed (bug) | none | open |
+| UX.89 | Staged jobs show wrong stage counts and numbers, and skipped stages are not listed (bug) | none | done, PR #1057 |
 | UX.90 | Explain the habitability chips in the web interface: a visible legend with the equipment labels, colours, thresholds and scores | none | open |
 | UX.91 | Planet and moon description carries a full PHI-4 explanation, each colour factor and why | none | open |
 | VIEW.1 | View from a planet | none | open |

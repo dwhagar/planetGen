@@ -451,21 +451,6 @@ with `clamp()`.
   system and leaves the sector's other contents ungenerated.
   Prerequisites: none. Related: MAP.162, ADM.32, ADM.35, NAV.48, DOC.9.
 
-- [ ] **UX.89 Staged jobs show wrong stage counts and numbers, and skipped stages are not listed (bug)**
-  Boss (2026-10-10 07:54Z, via the coordinator): generating a new galaxy
-  says it has 4 stages, but it runs 9: 1 Math Check, 2 DB Wipe, 3 Plan
-  new Galaxy, 4 Generate initial Sector, 5 Generate neighborhood, 6 Mass
-  Star Scatter from Neighborhood, 7 Mass Star Scatter Galactic, 8 Bright
-  Star Scatter Galactic, 9 Phenomena Scatter. Some stages are optional.
-  Done: every staged action (New galaxy, Plan, Rebuild the bright stars,
-  and every other job with stages) lists all its stages with the right
-  count and numbers; an optional stage that is skipped is still listed,
-  marked skipped, with the reason; the stage numbers on the Generate
-  page, job pages, Queue page and the terminal agree; tests cover each
-  staged job with and without its optional stages. Owner: Bugfixes lane
-  1, after the defaults change (merged, PR #1051).
-  Prerequisites: none. Related: PERF.33, PERF.55, GEN.185.
-
 - [ ] **UX.90 Explain the habitability chips in the web interface: a visible legend with the equipment labels, colours, thresholds and scores**
   Boss (2026-10-10 08:00Z, via the coordinator): what are the
   habitability chips on planets, and are they explained anywhere in the
@@ -3098,6 +3083,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   previous ring's outer edge; the GEN.30 luminosity tiers go away.
   Prerequisites: none (GEN.184 merged, PR #965). Related: GEN.30, GEN.40, GEN.99, GEN.183,
   GEN.184, MAP.120, PERF.18.
+  Stage list (2026-10-09): Bugfixes lane 1 (2026-10-10, PR #1057): the
+  stage list lives in generation/stages.py. When this item lands, add
+  one galaxy_stages entry for Mass Star Scatter from Neighborhood.
 
 - [ ] **GEN.189 Gamma-ray burst and AGN ozone loss for the ozone_loss_flag (low priority)**
   Foundations lane 2 (2026-10-10 06:20Z), design 4.5 of
@@ -3510,7 +3498,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   skipped flag and reason, start and end, and the settings that shaped
   it; a stats view or the admin stats table shows the history by stage
   and settings; the estimator of PERF.33 and the overall bar of PERF.55
-  can read it. Owner: Bugfixes lane 1, after the stage-count bug (UX.89).
+  can read it. Owner: Bugfixes lane 1, after the stage-count fix (UX.89, merged in PR #1057).
   Prerequisites: none. Related: PERF.32, PERF.33, PERF.52, PERF.54,
   PERF.55.
   Layers modified (2026-10-09): Boss addition (2026-10-10 08:34Z): for
@@ -3552,7 +3540,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   - A statistical test shows grouped placement matches the per-layer
     expected counts on a small galaxy.
   The change is in the scatter code in run_plan.py. Owner: Bugfixes lane
-  1, after UX.89 and PERF.56.
+  1, after PERF.56.
   Prerequisites: none. Related: UX.89, PERF.56, GEN.185, GEN.187,
   GEN.195.
   Revised (2026-10-10 09:19Z): after a placement the next group is half
