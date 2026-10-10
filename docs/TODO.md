@@ -3199,6 +3199,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   estimate to its ETA. Still open: the scatter-bar recorded rate (GEN.187
   has landed) and the UX.3 banner reading the same estimator (the banner is
   not built yet, so nothing to read from).
+  Bugfixes lane 1 (2026-10-09): Audit gaps (Bugfixes lane 1, 2026-10-10,
+  PR #1091 built the Generate page whole-job bar from stage times by
+  settings; answers Boss 08:36Z question on whether every ETA uses
+  stored stats): not yet fixed: (1) scatter and other step bars start
+  from the pool rate by kind and workers only, not matched on the mass
+  or luminosity floor (the stored stage seconds by settings should seed
+  the rate and decide whether a sub-bar is drawn); (2) the backfill step
+  has an unknown count at start; (3) the command-line whole-job bar (the
+  PERF.55 remainder) is not built; (4) job-page tree estimates are by
+  step label, not by settings. Folded here; (3) is also in PERF.55.
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
   Replace the one-`sector_stats`-row-per-visited-cell ledger of
