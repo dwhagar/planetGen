@@ -257,11 +257,16 @@ prints it, together with a `@reproduce_failure(...)` line. To fix it:
 
 `.github/workflows/ci.yml` (every test leg: math check, MySQL 8.4, MariaDB
 11.4, Python 3.9, browser and accessibility, the JS tests, the
-installer checks) runs on its own only for a push to **main**. It does not
-run on a pull request or on a push to any other branch. To test another
-branch, use **Actions > CI > Run workflow** and pick the branch. A newer run
-on the same branch cancels the older one that is still going (a merge's run
-is usually cancelled by the "Release x.y.z" commit pushed right after it);
+installer checks) never runs on a push or a pull request. It runs:
+
+- **On a schedule**, on main (every day at 07:00 UTC; the `cron` line in
+  the file). The same scheduled run starts CI on every remote branch named
+  `dev-*` (the `trigger-dev-branches` job).
+- **By hand**: **Actions > CI > Run workflow**, on any branch except
+  `claude/*` and `claude-*`. Those branches never run the test jobs: the
+  run is created and every job is skipped.
+
+A newer run on the same branch cancels the older one that is still going;
 cancelled runs stay in the Actions history. The post-merge
 `stamp-version.yml` and the PR check `release-note.yml` still run on their
 own. Run the suite locally before merging (see above).
