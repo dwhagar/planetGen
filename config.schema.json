@@ -246,6 +246,18 @@
           "x-restart": true,
           "x-secret": false,
           "x-unit": "seconds"
+        },
+        "stored_counts": {
+          "default": true,
+          "description": "Table pages show stored totals and filter-menu counts, refreshed in the background, instead of counting whole tables in the request (off: exact counts at any price).",
+          "title": "Stored Counts",
+          "type": "boolean",
+          "x-category": "cache",
+          "x-editable": true,
+          "x-env": "PLANETGEN_COUNT_CACHE",
+          "x-min_role": "admin",
+          "x-restart": false,
+          "x-secret": false
         }
       },
       "title": "PageCache",
@@ -654,7 +666,8 @@
         "max_age_seconds": 300.0,
         "max_entries": 2000,
         "max_mb": 64.0,
-        "stamp_seconds": 15.0
+        "stamp_seconds": 15.0,
+        "stored_counts": true
       }
     },
     "proxy_fix": {

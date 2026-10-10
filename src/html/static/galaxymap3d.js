@@ -2154,6 +2154,7 @@ function initGalaxyMap3d(canvasEl, data) {
         if (activeAbort === controller) {
           activeAbort = null;
         }
+        fetchFailures = 0;
         var stampChanged = absorb(payload);
         var stillMissing = renderFromCache(neededTiles());
         // A new stamp dropped changed (or all) cached tiles, and a view
@@ -2170,12 +2171,22 @@ function initGalaxyMap3d(canvasEl, data) {
         if (err && err.name === "AbortError") {
           return;
         }
-        // A transient fetch failure just leaves the currently-drawn
-        // content in place -- the next camera move retries automatically,
-        // and there's no useful place to surface a network error inside
-        // this canvas.
+        // A failed fetch leaves the currently-drawn content in place. A
+        // database busy with a fill answers 5xx for a while (PERF.64), so
+        // ask again after a growing pause (2 s, 4 s ... 30 s) instead of
+        // waiting for the next camera move; a move still fetches at once.
+        if (activeAbort === controller) {
+          activeAbort = null;
+        }
+        fetchFailures += 1;
+        var pause = Math.min(30000, 2000 * Math.pow(2, Math.min(fetchFailures, 5) - 1));
+        if (fetchTimer) {
+          clearTimeout(fetchTimer);
+        }
+        fetchTimer = setTimeout(doFetch, pause);
       });
   }
+  var fetchFailures = 0;
 
   // The tiles one pick in (about PREFETCH_ZOOM times closer), fetched at low
   // priority once the view's own are in and the camera has been still for

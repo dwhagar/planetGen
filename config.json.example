@@ -48,7 +48,8 @@
     "max_entries": 2000,
     "max_mb": 64.0,
     "stamp_seconds": 15.0,
-    "max_age_seconds": 300.0
+    "max_age_seconds": 300.0,
+    "stored_counts": true
   },
   "jobs": {
     "dir": "",
