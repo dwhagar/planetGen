@@ -49,7 +49,7 @@ and black holes follow a host rule. The Equipment search has a facet for
 the labels. The explanation page is /classes/habitability under Classes (UX.90, PR
 #1065), linked from the chips and the Equipment filter; planet and moon
 rows carry the per-domain colours and the stored microbial, complex-life
-and human-operability scores. UX.91 adds the full per-factor explanation
+and human-operability scores. UX.91 added the full per-factor explanation
 to the planet and moon description.
 
 ## How it works
