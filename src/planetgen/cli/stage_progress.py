@@ -25,12 +25,14 @@ class StageProgress:
         disable (bool): Draw nothing (the progress file is still written).
         kind (str): What the steps' speed is recorded under (`generation_stats`).
         args (argparse.Namespace, optional): The run's arguments, for its stored speeds.
+        stats (GenerationStats, optional): The stored speeds, when there are no `args` to read them from.
     """
 
-    def __init__(self, total, disable=False, kind="stages", args=None):
+    def __init__(self, total, disable=False, kind="stages", args=None, stats=None):
         self.total = total
         self.kind = kind
         self.args = args
+        self.stats = stats
         self.progress = run_common._generation_progress(disable=disable)
         self.bar = None
         self.detail_bar = None
@@ -39,7 +41,8 @@ class StageProgress:
 
     def __enter__(self):
         self.progress.start()
-        self.bar = steps.Step("", self.kind, self.total, args=self.args, progress=self.progress).__enter__()
+        self.bar = steps.Step("", self.kind, self.total, args=self.args, stats=self.stats,
+                              progress=self.progress).__enter__()
         return self
 
     def __exit__(self, exc_type, exc, tb):
@@ -64,7 +67,7 @@ class StageProgress:
         if self.detail_bar is None or self.detail_label != label:
             self._clear_detail()
             self.detail_bar = steps.Step(text, f"{self.kind}:{label}", max(total, 1), args=self.args,
-                                         progress=self.progress).__enter__()
+                                         stats=self.stats, progress=self.progress).__enter__()
             self.detail_label = label
         self.detail_bar.update(completed=done, total=max(total, 1), description=text)
 
