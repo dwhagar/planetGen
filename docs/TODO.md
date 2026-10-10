@@ -463,7 +463,7 @@ with `clamp()`.
   marked skipped, with the reason; the stage numbers on the Generate
   page, job pages, Queue page and the terminal agree; tests cover each
   staged job with and without its optional stages. Owner: Bugfixes lane
-  1, after the defaults item (GEN.194).
+  1, after the defaults change (merged, PR #1051).
   Prerequisites: none. Related: PERF.33, PERF.55, GEN.185.
 
 - [ ] **UX.90 Explain the habitability chips in the web interface: a visible legend with the equipment labels, colours, thresholds and scores**
@@ -3126,24 +3126,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   priority.
   Prerequisites: none. Related: GEN.87, GEN.89.
 
-- [ ] **GEN.194 Default mass limit 14 solar masses and default luminosity floor 9,000 solar luminosities**
-  Boss (2026-10-10 07:49Z, via the coordinator): the default mass limit
-  becomes 14 solar masses, about the middle of the 8 to 20 range, and
-  the default bright-star luminosity floor becomes 9,000 solar
-  luminosities, in the next PR that can carry it. This supersedes the 8
-  and 5,000 of GEN.188. Done: the plan form, the New galaxy form, the
-  CLI default and the stored default use 14 and 9,000; both values exist
-  among the presets; the scatter design note
-  (docs/design/phenomenon-scatter-mass-cut.md) and the TODO text name
-  the new defaults; a galaxy that stored other values keeps them; tests
-  cover the defaults. Owner: Bugfixes lane 1, first in its order.
-  Prerequisites: none. Related: GEN.183, GEN.184, GEN.188.
-
 - [ ] **GEN.195 A separate mass limit for neutron stars and black holes, and the central black hole or quasar always created**
   Boss (2026-10-10 08:28Z, via the coordinator): control the stellar
   masses with one setting and the neutron star and black hole creation
-  with another. The stellar mass limit (8 to 20 solar masses, default 14
-  by GEN.194) now applies to stars only. A new compact-object mass limit
+  with another. The stellar mass limit (8 to 20 solar masses, default 14)
+  now applies to stars only. A new compact-object mass limit
   for neutron stars and black holes has presets of 1, 2, 4 and 6 solar
   masses and a "use the star mass setting" option, which is the default
   and works as the single mass limit does today. Both appear in Plan the
@@ -3157,7 +3144,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   scatter design note (docs/design/phenomenon-scatter-mass-cut.md)
   describes the split. Owner: Bugfixes lane 2 (coordinator, 2026-10-10
   08:29Z).
-  Prerequisites: none. Related: GEN.183, GEN.185, GEN.187, GEN.194,
+  Prerequisites: none. Related: GEN.183, GEN.185, GEN.187,
   PERF.56.
   Bugfixes lane 2 (2026-10-09): Details from Bugfixes lane 2 (2026-10-10
   08:29Z): the compact-object control sits side by side with the stellar
@@ -3190,7 +3177,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   reason (UX.89); the new settings are stored with the plan and the
   stage timings of PERF.56 record them; tests cover redoing each pass
   alone and all together. Owner: Bugfixes lane 2, after GEN.195.
-  Prerequisite: GEN.195. Related: GEN.185, GEN.187, GEN.194, GEN.195,
+  Prerequisite: GEN.195. Related: GEN.185, GEN.187, GEN.195,
   UX.89, PERF.56.
   Bugfixes lane 2 (2026-10-09): Details from Bugfixes lane 2 (2026-10-10
   08:30Z): each ticked pass has its own settings fields in the same box
