@@ -118,6 +118,13 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.150 | The free camera: wheel zoom to the cursor, double-click flight, and the observer inside, with the container named from position |  | Fly-through report item 3; needs the near field. |
 | MAP.151 | The region data layer: exact-centred frame, aligned cells, per-level aggregates and slot-wrap ranges |  | Fly-through report item 4. Decide cache keys with MAP.147. |
 | MAP.152 | Scale hand-offs: galaxy, sector and system cross-fade with hysteresis, and per-tile camera-relative origins | MAP.150, MAP.154 | Fly-through report item 5. |
+| TEST.135 | Big-galaxy query-budget test for the nebula reads | TEST.133, DB.24 | Foundations lane 1. |
+| MAP.175 | The dark-family nebula fill is invisible on the dark theme (bug) |  | Foundations lane 2. |
+| GEN.202 | Scattered nebulae (planetary nebulae and remnants) join the nebula index, deduplicated by object id | DB.24, PERF.68 | Foundations lane 1. |
+| MAP.174 | Nebula cover in the stage-view cell statistics, for filled and unfilled cells | DB.24 | Foundations lane 2. |
+| MAP.173 | The Galaxy Map tile carries a nebula layer: regions and singles, nested like the star lists | DB.24, MAP.172, MAP.154 | Foundations lane 2. |
+| MAP.172 | Nebula cell aggregates in the region pyramid | MAP.151, DB.24 | Foundations lane 1. |
+| DB.24 | The nebula_field table: one row per field nebula cloud, built at plan time (Alembic migration) |  | Migration. Foundations lane 1. |
 | MAP.171 | The Galaxy Map keys a massive phenomenon's visibility to its map luminosity (replaces "always lit") | GEN.200, DB.23, GEN.201, MAP.152 | Boss 2026-10-10 21:38Z. Foundations lane 2 after MAP.152. |
 | MAP.154 | Nested bright-star lists on the server, so every parent list is a subset of its child's |  | Zoom visibility note stage 2; shares tile keys with MAP.147 and MAP.151. |
 | MAP.159 | Packed binary Galaxy Map tiles (quantised planes) with the nested tile lists, on one cache stamp bump | MAP.154 | MAP.147 recommendation step 2; one stamp bump with MAP.154 and MAP.151. |
