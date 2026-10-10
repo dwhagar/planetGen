@@ -2,7 +2,25 @@
 
 ## [8.0.866] - 2026-10-10
 
+### Added
+- One settings model describes every `config.json` option (ADM.42): type, default, help text, unit, secret, restart and editable flags, and the environment variable that overrides it. `python -m planetgen.cli.config check` validates the files (a misspelt option name is an error there) and `config docs` writes the option table in `docs/config.md`, `config.json.example` and `config.schema.json`. A web-owned `settings.json` overlay is read when present, holding only options marked editable from the web. Tests fail when the generated files drift or when code reads a `PLANETGEN_*` variable the model doesn't name.
+- Stars store their activity (GEN.86): the coronal X-ray share of their light, their X-ray plus EUV output, whether the corona is still saturated, how often they flare above 1e33 erg and the XUV they have given off over their life. M dwarfs stay saturated for billions of years. Hot stars and white dwarfs add their photosphere's ionizing output. Neutron stars and black holes give off their thermal, spin-down or accretion X-rays.
+- Planets and moons store a magnetic dipole moment from their mass, density, age and rotation, a dipole class (none, weak, earth-like, strong or multipolar), the magnetopause standoff against their star's wind, and the star's XUV flux, lifetime XUV exposure and flare irradiation at their distance (schema v72). These are the inputs of the radiation dose (GEN.87) and the habitability index.
+- Generation rates are recorded per kind of work and worker count (PERF.32): sector fills, bright-star layers and now phenomenon layers. The Stats page shows the worker count of each rate and has a Reset stats button; the time estimate reads the rate for the run's own worker count, blending the neighbouring counts when it has none.
+- `planetgen check-db` and a "Check the database" section on the Generate page (DB.8): a read-only check of the schema version and models, table health, rows whose parent is gone, ids that would clash, impossible values, sector counts and version keys. It ends with a pass or fail line per check and exits 1 on damage and 2 when a check could not run.
+- A warning when the running code differs from the code the galaxy was planned with (OPS.14): release, Python, platform, version key or a changed `requirements.lock`, read from the galaxy's settings file. It appears with the mixed-sector warning in `planetgen galaxy`, now also in `planetgen fingerprint`, and on the Generate page.
+- Filed the object ID items from Boss's decision of 2026-10-09 22:39Z: GEN.170 to GEN.176 (layout, fill, run-time births, nebula birth sector and three bugs), DB.20 (schema), API.23 (public reference), TEST.110 and DOC.5, all in Phase 1. Added docs/design/object-id-options.md.
+- Filed MAP.147 (the Galaxy Map wire format: measure the payload, compare options) in Phase 2.
+- Filed MAP.146 (zoom drill-down centred on the clicked point) in Phase 2.
+- Filed OPS.37 (a Generator version number) and API.22 (an API version number), both plain sequential integers due by the end of Phase 1.
+- Planets and moons store their mantle redox (reduced, intermediate or oxidized, with its offset from the iron-wustite buffer) and the partial pressures of O2, CO2, CO, N2, Ar, H2, H2O, CH4, H2S and SO2 (GEN.85, schema v70). Each class's mix shifts with the redox, and no gas exceeds its vapour pressure at the surface temperature.
+- A route now reports its longest hop and flags each hop whose line crosses sectors that have not been generated as unknown space (NAV.12). `/api/nav` returns `route.hops` and `route.longest_hop_ly`, and the NAV page states the longest hop and the unknown-space jumps.
+- Eight to-do items from the generation performance study (a warmed worker, lazy names, uids in Python, the phenomenon-row size decision, a later pass for links, one position per body, benchmark records and a faster INSERT).
+- A to-do item (generating a neighbourhood from the Generate page shows no per-sector stats).
+- A to-do item (the Generate page shows a progress line and per-layer counts instead of one line per sector).
+
 ### Changed
+- A wrong value in `config.json` (a port out of range, a negative proxy count, an unknown `log_rotation`) now stops the program with a message naming the field, instead of being read as given. `PLANETGEN_ADMIN_COOKIE_INSECURE` reads text like `PLANETGEN_DEBUG` does (`false`, `0`, `no`, `off` and empty mean off) instead of only `1`.
 - TODO: PERF.33 records what PR #910 built and what remains.
 - The time left on every progress bar now starts from the rate this server recorded for the same kind of work and worker count (PERF.32), so a bar has an estimate before its first unit finishes, and blends in the live rate as units finish (weight n / (n + 15), held back for the first 5 units and 20 seconds). The decay time constant follows the task length.
 - The Generate and Queue pages show the time left as a range ("about 1 m 28 s to 1 m 54 s left"), "estimating" while there is none, and hold it when nothing has finished for a minute or more; the Queue page's time left blends the recorded task time into the job's own pace.
@@ -73,21 +91,8 @@
 - Two systems in one sector are routed by their nearest stars even when those lie in the sector next door.
 - The Generate page progress-line to-do item (ADM.46) was withdrawn at Boss's word.
 
-### Added
-- Stars store their activity (GEN.86): the coronal X-ray share of their light, their X-ray plus EUV output, whether the corona is still saturated, how often they flare above 1e33 erg and the XUV they have given off over their life. M dwarfs stay saturated for billions of years. Hot stars and white dwarfs add their photosphere's ionizing output. Neutron stars and black holes give off their thermal, spin-down or accretion X-rays.
-- Planets and moons store a magnetic dipole moment from their mass, density, age and rotation, a dipole class (none, weak, earth-like, strong or multipolar), the magnetopause standoff against their star's wind, and the star's XUV flux, lifetime XUV exposure and flare irradiation at their distance (schema v72). These are the inputs of the radiation dose (GEN.87) and the habitability index.
-- Generation rates are recorded per kind of work and worker count (PERF.32): sector fills, bright-star layers and now phenomenon layers. The Stats page shows the worker count of each rate and has a Reset stats button; the time estimate reads the rate for the run's own worker count, blending the neighbouring counts when it has none.
-- `planetgen check-db` and a "Check the database" section on the Generate page (DB.8): a read-only check of the schema version and models, table health, rows whose parent is gone, ids that would clash, impossible values, sector counts and version keys. It ends with a pass or fail line per check and exits 1 on damage and 2 when a check could not run.
-- A warning when the running code differs from the code the galaxy was planned with (OPS.14): release, Python, platform, version key or a changed `requirements.lock`, read from the galaxy's settings file. It appears with the mixed-sector warning in `planetgen galaxy`, now also in `planetgen fingerprint`, and on the Generate page.
-- Filed the object ID items from Boss's decision of 2026-10-09 22:39Z: GEN.170 to GEN.176 (layout, fill, run-time births, nebula birth sector and three bugs), DB.20 (schema), API.23 (public reference), TEST.110 and DOC.5, all in Phase 1. Added docs/design/object-id-options.md.
-- Filed MAP.147 (the Galaxy Map wire format: measure the payload, compare options) in Phase 2.
-- Filed MAP.146 (zoom drill-down centred on the clicked point) in Phase 2.
-- Filed OPS.37 (a Generator version number) and API.22 (an API version number), both plain sequential integers due by the end of Phase 1.
-- Planets and moons store their mantle redox (reduced, intermediate or oxidized, with its offset from the iron-wustite buffer) and the partial pressures of O2, CO2, CO, N2, Ar, H2, H2O, CH4, H2S and SO2 (GEN.85, schema v70). Each class's mix shifts with the redox, and no gas exceeds its vapour pressure at the surface temperature.
-- A route now reports its longest hop and flags each hop whose line crosses sectors that have not been generated as unknown space (NAV.12). `/api/nav` returns `route.hops` and `route.longest_hop_ly`, and the NAV page states the longest hop and the unknown-space jumps.
-- Eight to-do items from the generation performance study (a warmed worker, lazy names, uids in Python, the phenomenon-row size decision, a later pass for links, one position per body, benchmark records and a faster INSERT).
-- A to-do item (generating a neighbourhood from the Generate page shows no per-sector stats).
-- A to-do item (the Generate page shows a progress line and per-layer counts instead of one line per sector).
+### Removed
+- `planetgen.util.appconfig`; the log locations moved to `planetgen.util.logpaths` and every other option to `planetgen.util.settings`.
 
 ### Fixed
 - The disk-space check and the admin Stats tile measure the drive that actually holds the database's data directory (asked of the server with `SELECT @@datadir`, symlinks and mounts resolved), not the boot drive. They show which path and drive were measured, and say "unknown" when a remote server's disk can't be reached.
