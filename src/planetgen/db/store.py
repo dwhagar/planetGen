@@ -68,7 +68,8 @@ import sqlalchemy.pool
 from planetgen.admin import activity_log
 from planetgen.db import alembic_runner
 from planetgen.names import object_id as objectId
-from planetgen.galaxy import object_uid as objectUid, seed as galaxySeed, uid as galaxyUid, version_key as versionKey
+from planetgen import tuning
+from planetgen.galaxy import nebula_field as nebulaField, object_uid as objectUid, seed as galaxySeed, uid as galaxyUid, version_key as versionKey
 from planetgen.physics import activity, atmosphere, constants as physical_constants, habitability_world, hydrosphere, kepler, magnetism, radiation, spin
 from planetgen.util import log
 from planetgen.util.settings import env_name, get_settings
@@ -188,7 +189,7 @@ collision renames an existing system, which the holder's nearest-neighbor
 rows then reference) neither would move until InnoDB's own 50 s timeout.
 Giving up early breaks that wait at once."""
 
-CONTROL_SCHEMA_VERSION = 13
+CONTROL_SCHEMA_VERSION = 14
 """int: Version counter for `control_schema.sql`, independent of
 `SCHEMA_VERSION` above -- see that file's header comment for why the
 control plane (admin identities/sessions/API keys/audit log) is a
@@ -6100,6 +6101,8 @@ def _insert_field_nebulae(conn, sector, sector_id):
     the same cloud. `insert_nebula` names each by its object ID and
     refreshes containment in every sector it reaches.
     """
+    cloud_field = getattr(sector, "cloud_field", None)
+    births = {}
     for nebula, center in getattr(sector, "field_nebulae", None) or ():
         x, y, z = center
         pad = FIELD_NEBULA_MATCH_PC
@@ -6112,7 +6115,15 @@ def _insert_field_nebulae(conn, sector, sector_id):
             continue
         placement = {"center_x_pc": x, "center_y_pc": y, "center_z_pc": z,
                      "galactic_radius_pc": math.sqrt(x * x + y * y + z * z)}
+        if conn.uid_issuer is not None and cloud_field is not None:
+            # GEN.176: born in the sector holding its centroid, with a serial worked out from the seed alone, so the
+            # ID does not depend on which sector reached the cloud first.
+            edge_pc = sector.sector_edge_pc or tuning.DEFAULT_SECTOR_EDGE_PC
+            conn.uid_issuer.given_nebula_uid = objectUid.to_bytes(nebulaField.cloud_object_id(
+                cloud_field[0], cloud_field[1], nebula, center, edge_pc, births))
         insert_nebula(conn, nebula, sector_id=sector_id, placement=placement)
+        if conn.uid_issuer is not None:
+            conn.uid_issuer.given_nebula_uid = None
 
 
 def _sector_object_ids(sector, galaxy_position):
@@ -6896,6 +6907,8 @@ class _UidIssuer:
         self.address = tuple(address)
         self.complete = True
         self._next_serial = 0
+        self.given_nebula_uid = None
+        """bytes or `None`: The next nebula's own ID, when it is a field cloud born in another sector (GEN.176)."""
         self._system_uid = {}
         self._body_count = {}
 
@@ -6911,6 +6924,9 @@ class _UidIssuer:
         """The `uid` bytes for a row about to be inserted, or `None` when
         the row gets none here."""
         row = dict(zip(columns, params))
+        if table == "nebulae" and self.given_nebula_uid is not None:
+            uid, self.given_nebula_uid = self.given_nebula_uid, None
+            return uid
         if table == "star_systems" or table in PHENOMENON_UID_TABLES:
             if row.get("sector_id") != self.sector_id:
                 return None

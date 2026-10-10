@@ -179,6 +179,22 @@ class NebulaShape:
         # One grid step of slack: the grid only samples the surface.
         return float(reach + 2 * _GRID_HALF_WIDTH / (_FIT_GRID - 1))
 
+    def interior_centroid(self):
+        """
+        The centre of the space the nebula fills (GEN.176), in nebula-radius
+        units from its centre: the mean of the fit grid's points that are
+        inside. The mean is taken on the grid's integer indices, so only the
+        inside test can differ between platforms, never the sum.
+        """
+        axis = np.linspace(-_GRID_HALF_WIDTH, _GRID_HALF_WIDTH, _FIT_GRID)
+        grid = np.stack(np.meshgrid(axis, axis, axis, indexing="ij"), axis=-1)
+        inside = np.argwhere(self.field(grid) >= self.iso).astype(np.int64)
+        if not len(inside):
+            return (0.0, 0.0, 0.0)
+        step = 2 * _GRID_HALF_WIDTH / (_FIT_GRID - 1)
+        sums = inside.sum(axis=0)
+        return tuple(float((-_GRID_HALF_WIDTH + int(total) / len(inside) * step) / self.scale) for total in sums)
+
     # --- in nebula-radius units ---------------------------------------------
 
     def contains(self, point):

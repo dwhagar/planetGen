@@ -769,7 +769,7 @@ test("on touch, the first tap highlights and the second takes it", async () => {
   assert.equal(m.view.stage().picks.length, 1);
 });
 
-test("a generated sector opens in place; one not generated is selected", async () => {
+test("a generated sector opens in place; one uncharted is selected", async () => {
   let known = null;
   const server = (query) => {
     if (!known) return { children: [], sectors: [] };
@@ -786,7 +786,7 @@ test("a generated sector opens in place; one not generated is selected", async (
   for (let n = 0; n < 3; n++) await drillOnce(m);
   key(m, "ArrowRight");
   const tip = m.els.tooltip.textContent;
-  const match = /^Sector ([\d,]+)·(-?\d+)·([\d,]+),.*not generated$/.exec(tip);
+  const match = /^Sector ([\d,]+)·(-?\d+)·([\d,]+),.*uncharted$/.exec(tip);
   assert.ok(match, "the tooltip names a sector: " + tip);
   const sector = { ring: Number(match[1].replace(/,/g, "")), layer: Number(match[2]), slot: Number(match[3].replace(/,/g, "")) };
 

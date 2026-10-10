@@ -202,18 +202,26 @@ def generation_stats():
     and how big a galaxy gets (PERF.10, `planetgen/generation/stats.py`):
     `{"buckets": [{"kind", "workers", "bucket", "density_low", "density_high",
     "samples", "seconds_per_task", "seconds_per_system",
-    "systems_per_task", "stars_per_system", "max_density"}], "sizes":
+    "systems_per_task", "stars_per_system", "max_density"}], "stages": the
+    last 100 stage runs (PERF.56: `stage_key`, `label`, `skipped`,
+    `skip_reason`, `seconds`, `settings`, `metrics`, `finished_at` ...), "sizes":
     {database: {"bytes_per_system", "systems", "total_bytes"}},
     "available": bool}`. `available` is false (and both empty) when the
     control schema is older than v6.
     """
     stats = generationStats.GenerationStats()
+    stages = []
     try:
         stats.read(get_control_db())
         available = True
     except Exception:  # noqa: BLE001 -- update.sh not run yet
         available = False
-    return jsonify({"buckets": stats.rows(), "sizes": stats.sizes, "available": available})
+    if available:
+        try:
+            stages = generationStats.stage_history(get_control_db(), limit=100)
+        except Exception:  # noqa: BLE001 -- the control schema is older than v14
+            stages = []
+    return jsonify({"buckets": stats.rows(), "sizes": stats.sizes, "available": available, "stages": stages})
 
 
 @bp.route("/generation-stats/reset", methods=["POST"])

@@ -39,10 +39,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | DB.16 | Store the generator epoch and run id on each sector instead of four version text columns | OPS.28 | Research follow-up to DB.7 (built). |
-| DOC.5 | Rewrite the object ID docs: object-ids.md, database-schema.md and api.md |  | Object-ID research. |
-| TEST.110 | Object ID tests: identical IDs on 1 and 4 workers, none reused, none missing | GEN.172, GEN.176 | Object-ID research. |
-| GEN.176 | A nebula or remnant is born in the sector holding the centre of the space it occupies |  | Object-ID research. |
-| GEN.172 | Run-time births get object IDs from the counters |  | Object-ID research. |
 | DB.9 | Repair a damaged galaxy database from a parity file | GEN.57 | Boss 02:13Z: phase 1. Reed-Solomon parity over groups of sector exports; seed regeneration as fallback. |
 | DB.21 | A deep pass for the database check: validate every star system, with the estimated time shown first | PERF.33 | Boss 23:32Z; Foundations lane 1, small, near the end of its list. |
 | DB.17 | Repair by regenerating a damaged sector from its seed when parity cannot rebuild it | DB.9, GEN.57 | Research split of DB.9: the regenerate-from-seed fallback. |
@@ -142,12 +138,10 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.155 | Other objects fade in too: point objects from level 8, a size ramp for cloud sprites, and stars that grow from a faint dot |  | Zoom visibility note stage 3. |
 | UX.91 | Planet and moon description carries a full PHI-4 explanation, each colour factor and why |  |  |
 | GEN.196 | One "Redo scatters" box on Generate: choose which scatters to redo, with new settings for each | GEN.195 |  |
-| MAP.166 | Galaxy Map "Dimmest star shown" says "every star" only when the view is complete |  |  |
 | GEN.195 | A separate mass limit for neutron stars and black holes, and the central black hole or quasar always created |  |  |
 | MAP.165 | Scattered phenomena store a mass so the Galaxy Map sizes them exactly |  |  |
-| PERF.56 | Record how long each stage of a staged job takes, with the settings it ran with |  |  |
 | PERF.61 | Object-first sampler for the phenomena pass, own prototype first | PERF.58, PERF.60 |  |
-| PERF.60 | Large-mean Poisson helper for per-layer and per-stack counts (top priority) |  |  |
+| PERF.60 | Large-mean Poisson helper for per-layer counts (top priority) |  |  |
 | PERF.59 | Share the ring inputs across the three scatter passes (top priority) |  |  |
 | PERF.58 | Object-first star sampler for the mass and luminosity passes (top priority, replaces PERF.57) | PERF.60 |  |
 | TEST.124 | Phenomena page tests fail with KeyError scattered in system_pages._phenomena_load (bug) |  |  |
@@ -198,7 +192,8 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | API.15 | Log every API call with its user, how it came in, and its HTTP response code |  | Needs no user accounts (Boss 01:31Z). |
 | API.4 | API compatibility data in the docs |  | Docs and version number. |
 | API.22 | An API version number: one sequential integer, shown in admin and in the status response |  | Boss 2026-10-09 20:59Z: done by the end of phase 1; do it early so later API changes bump it. |
-| API.23 | The object ID as the public reference: pages, URLs, the API, wiki links and objectref use it in place of row ids | API.22, GEN.172 | Object-ID research. Breaking: bumps the API version (API.22). |
+| API.23 | The object ID as the public reference: pages, URLs, the API, wiki links and objectref use it in place of row ids | API.22 | Object-ID research. Breaking: bumps the API version (API.22). |
+| DOC.17 | Describe the object ID in api.md | API.23 |  |
 | API.7 | Investigate and plan upload limits |  | Plan only. |
 
 ### Reproducible galaxies

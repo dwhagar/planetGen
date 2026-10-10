@@ -239,7 +239,8 @@ Modules the older tables above do not list (the layout moved to `src/planetgen/`
 | [`nebula_shape.py`](../../src/planetgen/galaxy/nebula_shape.py) | A nebula's irregular shape and its containment test (GEN.75). |
 | [`objectref.py`](../../src/planetgen/galaxy/objectref.py) | One reference form for every object, `<kind>:<id>` (NAV.7). |
 | [`system_position.py`](../../src/planetgen/galaxy/system_position.py) | Where everything in a star system is in the galaxy (GEN.74). |
-| [`uid.py`](../../src/planetgen/galaxy/uid.py) | A unique ID for every object in the galaxy (GEN.68, GEN.69). |
+| [`object_uid.py`](../../src/planetgen/galaxy/object_uid.py) | The 80-bit birth-location ID of every object: pack, unpack, print, parse, layout choice (GEN.170). |
+| [`uid.py`](../../src/planetgen/galaxy/uid.py) | A sector's ID, its designation as an integer (GEN.69). |
 | [`prevalence.py`](../../src/planetgen/generation/prevalence.py) | Prevalence: how much more or less often a run's systems get a feature than by chance (GEN.48). |
 | [`naming_key.py`](../../src/planetgen/names/naming_key.py) | The galaxy's naming key that turns an ID into a name (GEN.70). |
 | [`body_positions.py`](../../src/planetgen/physics/body_positions.py) | Where every body of a system is at any time (MAP.70). |
