@@ -3,6 +3,7 @@
 ## [8.0.866] - 2026-10-10
 
 ### Changed
+- **Docs only:** filed GEN.183 (mass cut presets, 8 to 20 solar masses), GEN.184 (luminosity floor presets, 2500 to 4 million L_sun, default 3000) and GEN.185 (the five-pass scatter order) for Foundations lane 3, and noted that Foundations lanes 1 and 2 are paused.
 - **Docs only:** GEN.182 (comet ejection is by design; System Map panel says bound or unbound, PR #938) is retired from the TODO list and the plans.
 - GEN.182: comets that never come back are by design (parabolic, about 30%). The System Map's info panel now says whether a comet's orbit is bound (and its period) or unbound and not returning, with perihelion and eccentricity; a test checks every closed comet orbit stays inside the star's Hill sphere.
 - **Docs only:** UX.86 (compact grouped Galaxy Map Menu, PR #936) is retired from the TODO list and the plans.
