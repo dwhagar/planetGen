@@ -3,6 +3,7 @@
 ## [9.0.911] - 2026-10-10
 
 ### Changed
+- TODO list: MAP.158 retired (merged, PR #1123).
 - The Galaxy Map keeps the tiles it has fetched in the browser's IndexedDB instead of localStorage (MAP.158), so a revisit or reload finds them (localStorage filled up after one sector link). The prefetch is gentler: only the tiles one zoom step in, only after the camera has been still for a moment, not with the browser's data saver on or on a slow connection, and no more than about 1.5 MB per page visit. Tiles an earlier version left in localStorage are removed.
 - TODO list: TEST.123 retired (merged, PR #1121).
 - TODO list: API.22 retired (merged, PR #1119); API.23 stage 1 of 3 done; DB.22 filed.
