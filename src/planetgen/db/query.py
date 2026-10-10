@@ -1594,10 +1594,20 @@ PHENOMENON_SORTS = {
 keys) -> the column of the union they order by."""
 
 
+_SCATTER_TYPE_SQL = (
+    "(CASE ps.kind WHEN 'black-hole' THEN 'black_hole' WHEN 'neutron-star' THEN 'neutron_star' "
+    "WHEN 'planetary-nebula' THEN 'nebula' WHEN 'supernova-remnant' THEN 'supernova_remnant' "
+    "WHEN 'hypervelocity-star' THEN 'hypervelocity_star' ELSE ps.kind END)")
+"""str: The Phenomena type of a `phenomenon_scatter` row, from its `kind`."""
+
+
 def _phenomena_union():
     """The `SELECT` that stacks every `_PHENOMENON_TABLES` table into one
     shape (`type`, `id`, `name`, `descriptor`, `radius_ly`, `sector_id`,
-    `sector_name`, `placed`). A `black_holes`/`neutron_stars` row with
+    `sector_name`, `placed`, `scattered`). Scatter rows no sector has built
+    yet (`phenomenon_scatter.built_at` NULL) are stacked in too, flagged
+    `scattered`: they are placed on the galaxy but have no page of their own
+    until their sector is filled. A `black_holes`/`neutron_stars` row with
     `star_id` set is a normal system's own compact-remnant star, already on
     that system's page, so it is left out; every other table is always
     standalone."""
@@ -1606,13 +1616,21 @@ def _phenomena_union():
         SELECT '{type_label}' AS type, t.id AS id, t.name AS name,
                {descriptor_expr} AS descriptor, {radius_expr} AS radius_ly,
                t.sector_id AS sector_id, sec.name AS sector_name,
-               (t.center_x_pc IS NOT NULL) AS placed
+               (t.center_x_pc IS NOT NULL) AS placed, 0 AS scattered
         FROM {table} t
         LEFT JOIN sectors sec ON sec.id = t.sector_id
         {"WHERE t.star_id IS NULL" if table in ("black_holes", "neutron_stars") else ""}
         """
         for table, type_label, descriptor_expr, radius_expr in _PHENOMENON_TABLES
-    )
+    ) + f""" UNION ALL
+        SELECT {_SCATTER_TYPE_SQL} AS type, ps.id AS id,
+               CONCAT('Unbuilt ', REPLACE(ps.kind, '-', ' '), ' ', ps.ring_index, '.', ps.layer_index, '.',
+                      ps.ring_slot_index) AS name,
+               COALESCE(ps.subtype, 'scattered') AS descriptor, 0 AS radius_ly,
+               NULL AS sector_id, NULL AS sector_name, 1 AS placed, 1 AS scattered
+        FROM phenomenon_scatter ps
+        WHERE ps.built_at IS NULL
+        """
 
 
 def _phenomena_where(types=(), descriptors=(), placed=None):
@@ -1666,8 +1684,11 @@ def list_phenomena(conn, limit=None, offset=None, sort="name", descending=False,
             `"interstellar_comet"` or `"quasar"`), `name`, `descriptor`,
             `radius_ly`, `sector_id`/`sector_name` (both `None` if this
             phenomenon has never been linked to a sector -- see
-            `schema.sql`'s "v18" header note), and `placed` (bool --
-            whether it has a galaxy position at all).
+            `schema.sql`'s "v18" header note), `placed` (bool --
+            whether it has a galaxy position at all) and `scattered` (bool
+            -- placed by the scatter but not yet built, so `id` is its
+            `phenomenon_scatter` row, with no page; its `type` can also be
+            `"hypervelocity_star"`).
     """
     if sort not in PHENOMENON_SORTS:
         raise ValueError(f"unknown phenomenon sort {sort!r}")
@@ -1684,7 +1705,7 @@ def list_phenomena(conn, limit=None, offset=None, sort="name", descending=False,
             "id": row["id"], "type": row["type"], "name": row["name"],
             "descriptor": row["descriptor"], "radius_ly": row["radius_ly"],
             "sector_id": row["sector_id"], "sector_name": row["sector_name"],
-            "placed": bool(row["placed"]),
+            "placed": bool(row["placed"]), "scattered": bool(row["scattered"]),
         }
         for row in conn.execute(query, params).fetchall()
     ]

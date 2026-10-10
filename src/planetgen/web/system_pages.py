@@ -431,7 +431,7 @@ TYPE_LABELS = {
     "black_hole": "Black Hole", "neutron_star": "Neutron Star",
     "supernova_remnant": "Supernova Remnant",
     "rogue_planet": "Rogue Planet", "interstellar_comet": "Interstellar Comet",
-    "quasar": "Quasar",
+    "quasar": "Quasar", "hypervelocity_star": "Hypervelocity Star",
 }
 """dict: Every phenomenon type (`queryDb._PHENOMENON_TABLES`) and its label."""
 
@@ -447,6 +447,7 @@ def _phenomena_load(state, limit, offset, want_facets):
         db_name(), limit=limit, offset=offset, sort=state.sort, descending=state.descending,
         facets=want_facets, **filters)
     rows = [[
+        {"text": row["name"], "muted": True} if row["scattered"] else
         {"text": row["name"], "href": page_url("phenomenon", phenomenon_type=row["type"], phenomenon_id=row["id"])},
         {"text": TYPE_LABELS.get(row["type"], row["type"])},
         {"text": _title_case(row["descriptor"])},
