@@ -2,18 +2,8 @@
 
 ## [8.0.866] - 2026-10-10
 
-### Added
-- Filed the object ID items from Boss's decision of 2026-10-09 22:39Z: GEN.170 to GEN.176 (layout, fill, run-time births, nebula birth sector and three bugs), DB.20 (schema), API.23 (public reference), TEST.110 and DOC.5, all in Phase 1. Added docs/design/object-id-options.md.
-- Filed MAP.147 (the Galaxy Map wire format: measure the payload, compare options) in Phase 2.
-- Filed MAP.146 (zoom drill-down centred on the clicked point) in Phase 2.
-- Filed OPS.37 (a Generator version number) and API.22 (an API version number), both plain sequential integers due by the end of Phase 1.
-- Planets and moons store their mantle redox (reduced, intermediate or oxidized, with its offset from the iron-wustite buffer) and the partial pressures of O2, CO2, CO, N2, Ar, H2, H2O, CH4, H2S and SO2 (GEN.85, schema v70). Each class's mix shifts with the redox, and no gas exceeds its vapour pressure at the surface temperature.
-- A route now reports its longest hop and flags each hop whose line crosses sectors that have not been generated as unknown space (NAV.12). `/api/nav` returns `route.hops` and `route.longest_hop_ly`, and the NAV page states the longest hop and the unknown-space jumps.
-- Eight to-do items from the generation performance study (a warmed worker, lazy names, uids in Python, the phenomenon-row size decision, a later pass for links, one position per body, benchmark records and a faster INSERT).
-- A to-do item (generating a neighbourhood from the Generate page shows no per-sector stats).
-- A to-do item (the Generate page shows a progress line and per-layer counts instead of one line per sector).
-
 ### Changed
+- GEN.170 records Boss's decision: the object ID is 80 bits (20 hex digits).
 - Retired PERF.49 (PR #870) and corrected the measurement note on PERF.31 and in the generation performance study.
 - Parallel generation workers no longer queue for the system-name registry: each save claims its names in a short transaction of its own instead of holding the registry's row locks until the whole sector commits. In a dense core, 8 sectors on 4 workers took 54 s instead of about 90 s. A claim is given back if the save fails, and a first holder that a later save wanted to rename renames itself when it commits (PERF.49). Names, bodies and registry rows are the same as before on a seeded run.
 - Name reservation looks a name's candidates up by key instead of scanning the whole sector for each name, and the offensive-word check is one compiled pattern (PERF.49).
@@ -47,6 +37,17 @@
 - The TODO list files the phenomenon scatter mass cut (GEN.166 to GEN.169) and reworks DB.19 around it: at the recommended 20 solar masses the scatter table falls from 1.17 billion rows (161 GB) to about 2.7e5 rows. The design notes drop the unverified 1.6e8 rows and 21 GB figures.
 - Two systems in one sector are routed by their nearest stars even when those lie in the sector next door.
 - The Generate page progress-line to-do item (ADM.46) was withdrawn at Boss's word.
+
+### Added
+- Filed the object ID items from Boss's decision of 2026-10-09 22:39Z: GEN.170 to GEN.176 (layout, fill, run-time births, nebula birth sector and three bugs), DB.20 (schema), API.23 (public reference), TEST.110 and DOC.5, all in Phase 1. Added docs/design/object-id-options.md.
+- Filed MAP.147 (the Galaxy Map wire format: measure the payload, compare options) in Phase 2.
+- Filed MAP.146 (zoom drill-down centred on the clicked point) in Phase 2.
+- Filed OPS.37 (a Generator version number) and API.22 (an API version number), both plain sequential integers due by the end of Phase 1.
+- Planets and moons store their mantle redox (reduced, intermediate or oxidized, with its offset from the iron-wustite buffer) and the partial pressures of O2, CO2, CO, N2, Ar, H2, H2O, CH4, H2S and SO2 (GEN.85, schema v70). Each class's mix shifts with the redox, and no gas exceeds its vapour pressure at the surface temperature.
+- A route now reports its longest hop and flags each hop whose line crosses sectors that have not been generated as unknown space (NAV.12). `/api/nav` returns `route.hops` and `route.longest_hop_ly`, and the NAV page states the longest hop and the unknown-space jumps.
+- Eight to-do items from the generation performance study (a warmed worker, lazy names, uids in Python, the phenomenon-row size decision, a later pass for links, one position per body, benchmark records and a faster INSERT).
+- A to-do item (generating a neighbourhood from the Generate page shows no per-sector stats).
+- A to-do item (the Generate page shows a progress line and per-layer counts instead of one line per sector).
 
 ### Fixed
 - The disk-space check and the admin Stats tile measure the drive that actually holds the database's data directory (asked of the server with `SELECT @@datadir`, symlinks and mounts resolved), not the boot drive. They show which path and drive were measured, and say "unknown" when a remote server's disk can't be reached.
