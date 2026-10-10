@@ -1069,6 +1069,13 @@
 --   squared, AU). NULL on a row generated before v72. Draws:
 --   `planetgen/physics/activity.py` and `magnetism.py`; design
 --   docs/design/activity-magnetism-radiation-hydrosphere.md sections 2 and 3.
+-- v73: `galaxy_shape.bright_star_mass_limit_sol` (GEN.185): the star scatter
+--   places in advance every star born with at least this mass (its mass
+--   pass, the same mass limit as the phenomenon scatter's), then the
+--   lighter stars at least `bright_star_min_luminosity_sol` bright (its
+--   luminosity pass), skipping any sector the mass pass gave a star that
+--   bright. A sector's own draw is lighter than the limit and dimmer than
+--   the floor. NULL on a scatter drawn before v73, which had no mass pass.
 --
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
@@ -1263,6 +1270,11 @@ CREATE TABLE IF NOT EXISTS galaxy_shape (
     -- this, not `program_constants.BRIGHT_STAR_MIN_LUMINOSITY_SOL`.
     bright_star_min_luminosity_sol  DOUBLE,
     bright_star_seed                BIGINT UNSIGNED,
+    -- v73 (GEN.185): the mass limit (solar masses) of the star scatter's mass
+    -- pass: every star born at or above it is placed, so a fill and the
+    -- luminosity pass draw only lighter ones. NULL when the scatter had no
+    -- mass pass (a scatter drawn before v73).
+    bright_star_mass_limit_sol      DOUBLE,
 
     -- v64 (GEN.100): the seed the phenomenon scatter (`phenomenon_scatter`)
     -- used; NULL when none has run (a sector's fill then rolls its own

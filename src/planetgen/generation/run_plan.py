@@ -21,6 +21,7 @@ from planetgen.queue import progress_rate, redisqueue, work as workQueue
 from planetgen.db import store
 from planetgen.generation import bright_stars as brightStars
 from planetgen.generation import phenomenon_scatter
+from planetgen.generation import star_population as starPopulation
 from planetgen.generation.star_labels import describe_types, star_label
 from planetgen.galaxy import seed as galaxySeed, settings_file
 from planetgen.names import naming_key
@@ -90,6 +91,9 @@ def _draw_sector_bands(conn, skeleton, addresses, floors, galaxy_level, seed, ce
     """
     sectors = stars = 0
     e_value = skeleton.expected_system_count_at_density_1
+    # GEN.185: a galaxy whose mass pass placed every heavy star draws the lighter ones here.
+    mass_limit = store.bright_star_mass_limit(conn)
+    mass_range = None if mass_limit is None else (None, mass_limit)
     for start in range(0, len(addresses), BACKFILL_CHUNK_SECTORS):
         chunk = addresses[start:start + BACKFILL_CHUNK_SECTORS]
         entries = []
@@ -117,7 +121,7 @@ def _draw_sector_bands(conn, skeleton, addresses, floors, galaxy_level, seed, ce
             if ceiling_cap is not None:
                 ceiling = ceiling_cap if ceiling is None else min(ceiling, ceiling_cap)
             rows.extend(brightStars.backfill_cells(skeleton.shape, [address], skeleton.edge_pc, e_value, floor,
-                                                   ceiling, seed))
+                                                   ceiling, seed, mass_range=mass_range))
             new_levels[address] = floor
             if on_sector is not None:
                 on_sector()
@@ -271,13 +275,23 @@ def _write_settings_file(args, galaxy_seed, naming_key_value, edge_pc, outer_rin
 
 def scatter_bright_stars(args):
     """
-    Pre-places every bright star on the stored plan (`brightStars.scatter`)
-    into `bright_stars`, replacing any earlier scatter, one layer per
-    commit, with a progress bar.
+    Pre-places the galaxy's bright stars on the stored plan into
+    `bright_stars`, replacing any earlier scatter, in the three star passes
+    of GEN.185 (pass 1, the phenomena above the mass limit, and pass 5, the
+    other phenomena, are `scatter_phenomena`'s):
 
-    Sectors already filled are always left out (GEN.30): the scatter never
-    adds stars to a generated sector. `--force` is still accepted and
-    does nothing more.
+    2. the mass pass: every star born at or above the mass limit
+       (`--phenomenon-min-mass`, 8 to 20 solar masses), whatever its
+       luminosity (`brightStars.scatter` with `mass_range=(limit, None)`);
+    3. the marks: each sector holding a pass 2 star at least as bright as
+       the luminosity floor is marked (`store.bright_star_marked_addresses`);
+    4. the luminosity pass: every star born lighter than the mass limit
+       and at least `--bright-star-min-luminosity` bright, skipping the
+       marked sectors, which already hold a star that bright.
+
+    Each layer is one task per pass, with a progress bar. Sectors already
+    filled are always left out (GEN.30): the scatter never adds stars to a
+    generated sector. `--force` is still accepted and does nothing more.
 
     Returns:
         dict: `counts` (per population), `total` and `elapsed_s`.
@@ -293,23 +307,36 @@ def scatter_bright_stars(args):
         if filled:
             log.normal(f"Leaving out the {len(filled):,} sectors already filled.")
         min_luminosity_sol = float(args.bright_star_min_luminosity)
+        mass_limit = _phenomenon_min_mass(args)
         seed = _bright_star_seed(skeleton, "scatter")
+        mass_seed = _bright_star_seed(skeleton, "mass-scatter")
         store.clear_bright_stars(conn)
 
         t0 = time.perf_counter()
-        counts = _scatter_layers(args, mysql_config, skeleton, extents, filled, min_luminosity_sol, seed,
-                                 "Bright stars")
-        store.record_bright_star_scatter(conn, min_luminosity_sol, seed)
+        counts = _scatter_layers(args, mysql_config, skeleton, extents, filled,
+                                 starPopulation.MASS_PASS_MIN_LUMINOSITY_SOL, mass_seed, "Massive stars",
+                                 mass_range=(mass_limit, None))
+        massive = sum(counts.values())
+        marked = store.bright_star_marked_addresses(conn, mass_limit, min_luminosity_sol * constants.SOLAR_LUMINOSITY)
+        log.normal(f"{len(marked):,} sectors hold a star born at {mass_limit:g} solar masses or more and at least "
+                   f"{min_luminosity_sol:g} L_sun bright; the luminosity pass skips them.")
+        light = _scatter_layers(args, mysql_config, skeleton, extents, set(filled) | marked, min_luminosity_sol, seed,
+                                "Bright stars", mass_range=(None, mass_limit))
+        for population, count in light.items():
+            counts[population] += count
+        store.record_bright_star_scatter(conn, min_luminosity_sol, seed, mass_limit)
         conn.commit()
     finally:
         conn.close()
     elapsed = time.perf_counter() - t0
     total = sum(counts.values())
     log.normal(
-        f"Placed {total:,} bright stars (at least {min_luminosity_sol:g} L_sun) in {elapsed:.1f}s: "
+        f"Placed {total:,} bright stars ({massive:,} born at {mass_limit:g} solar masses or more, the rest at least "
+        f"{min_luminosity_sol:g} L_sun bright) in {elapsed:.1f}s: "
         + ", ".join(f"{count:,} {population}" for population, count in counts.items()) + "."
     )
-    log.debug(f"bright-star scatter: {total} stars, seed {seed}, threshold {min_luminosity_sol:g} L_sun")
+    log.debug(f"bright-star scatter: {total} stars, seed {seed}, threshold {min_luminosity_sol:g} L_sun, "
+              f"mass limit {mass_limit:g} solar masses")
     return {"counts": counts, "total": total, "elapsed_s": elapsed}
 
 
@@ -481,12 +508,15 @@ def _log_layer(label, layer_index, types):
 
 
 def _scatter_layers(args, mysql_config, skeleton, extents, filled, min_luminosity_sol, seed, label,
-                    max_luminosity_sol=None):
+                    max_luminosity_sol=None, mass_range=None):
     """
     Draws and writes the bright stars of every layer through the work
     queue, one task per layer, with a progress bar: every star at or
     above `min_luminosity_sol`, or only those below `max_luminosity_sol`
-    too (one band of a staged scatter). Cells in `filled` are left out.
+    too (one band of a staged scatter), and born in `mass_range` (initial
+    solar masses `(low, high)`, an end `None` for no limit; GEN.185). Cells
+    in `filled` (the sectors already filled, and the ones the mass pass
+    marked) are left out.
 
     The bar counts each layer's expected work (PERF.9,
     `brightStars.layer_weight`, worked out first in a second or two),
@@ -502,8 +532,11 @@ def _scatter_layers(args, mysql_config, skeleton, extents, filled, min_luminosit
     # Densest layers (nearest the plane) first, so no worker is left
     # with a big one at the end while the others sit idle.
     layers = sorted(extents, key=lambda extent: (abs(extent[0]), extent[0]))
-    fractions = brightStars.band_fractions(min_luminosity_sol, max_luminosity_sol)
+    fractions = brightStars.band_fractions(min_luminosity_sol, max_luminosity_sol, mass_range)
     e_value = skeleton.expected_system_count_at_density_1
+    skip_by_layer = collections.defaultdict(set)
+    for address in filled:
+        skip_by_layer[address[1]].add(address)
     weights, expected = {}, {}
     for layer_index, outer_ring in layers:
         weights[layer_index], expected[layer_index] = brightStars.layer_weight(
@@ -557,7 +590,7 @@ def _scatter_layers(args, mysql_config, skeleton, extents, filled, min_luminosit
                             "mysql_config": mysql_config, "shape": skeleton.shape, "layer_index": layer_index,
                             "outer_ring": outer_ring, "edge_pc": skeleton.edge_pc, "expected": e_value,
                             "min_luminosity_sol": min_luminosity_sol, "max_luminosity_sol": max_luminosity_sol,
-                            "seed": seed, "skip": {address for address in filled if address[1] == layer_index},
+                            "seed": seed, "skip": skip_by_layer.get(layer_index, set()), "mass_range": mass_range,
                             "channel": channel,
                         }
                         queue.submit("bright-stars", f"layer {layer_index}", _scatter_layer_task, payload,
@@ -606,6 +639,8 @@ def add_bright_star_band(args):
         if skeleton is None:
             raise RuntimeError("The galaxy's skeleton has never been built -- run 'planetgen plan' first.")
         settings = store.bright_star_scatter_settings(conn)
+        mass_limit = store.bright_star_mass_limit(conn)
+        mass_range = None if mass_limit is None else (None, mass_limit)
         if settings is None:
             log.normal("No bright stars are scattered yet, so there is no layer to go below. Run "
                        f"'planetgen plan --bright-stars-only --bright-star-min-luminosity {target:g}' instead.")
@@ -635,7 +670,8 @@ def add_bright_star_band(args):
                    + (f" and {len(own):,} backfilled sectors" if own else "") + ".")
         t0 = time.perf_counter()
         counts = _scatter_layers(args, mysql_config, skeleton, extents, skip, target, seed,
-                                 f"Bright stars {target:g}-{current:g} L_sun", max_luminosity_sol=current)
+                                 f"Bright stars {target:g}-{current:g} L_sun", max_luminosity_sol=current,
+                                 mass_range=mass_range)
         topped = sorted(address for address, level in own.items() if address not in filled and level > target)
         if topped:
             # Its own bar and ETA, like the backfill's (ADM.26): the web
@@ -703,6 +739,7 @@ def _scatter_layer_task(payload):
             payload["shape"], layer_index, payload["outer_ring"], payload["edge_pc"],
             payload["expected"], payload["min_luminosity_sol"], payload["seed"], skip_addresses=payload["skip"],
             max_luminosity_sol=payload.get("max_luminosity_sol"), on_progress=report,
+            mass_range=payload.get("mass_range"),
         ):
             counts[row[6]] += 1
             types[star_label(row[7], row[8])] += 1

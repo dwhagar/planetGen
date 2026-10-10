@@ -211,6 +211,15 @@ class SystemConfig:
         the config.
         """
 
+        self.MAX_STAR_MASS_SOL = None
+        """
+        float or None: A random primary star is redrawn until it was born
+        lighter than this (solar masses): a sector of a galaxy whose
+        scatter placed every star at or above its mass limit in advance
+        draws the lighter ones only. None for no limit. Not saved with the
+        config.
+        """
+
     def to_dict(self):
         """
         Returns a JSON-serializable dict of this config's settings, in the

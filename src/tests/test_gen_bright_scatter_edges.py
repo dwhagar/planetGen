@@ -272,6 +272,21 @@ def _comparable(rows):
     return sorted(tuple(float(value) if isinstance(value, float) else value for value in row) for row in rows)
 
 
+def _expected_scatter(mysql_config, seed):
+    """What the scatter's passes give (GEN.185): the mass pass, then the lighter stars at least `THRESHOLD`
+    bright, skipping the sectors the mass pass marked."""
+    from planetgen.generation import star_population
+    from planetgen.physics import constants
+    limit = tuning.PHENOMENON_MIN_MASS_SOLAR
+    mass_seed = _scatter_seed(mysql_config, "mass-scatter")
+    heavy = list(brightStars.scatter(SHAPE, EXTENTS, EDGE_PC, E_VALUE, star_population.MASS_PASS_MIN_LUMINOSITY_SOL,
+                                     mass_seed, mass_range=(limit, None)))
+    marked = {row[:3] for row in heavy if row[12] >= THRESHOLD * constants.SOLAR_LUMINOSITY}
+    light = list(brightStars.scatter(SHAPE, EXTENTS, EDGE_PC, E_VALUE, THRESHOLD, seed, skip_addresses=marked,
+                                     mass_range=(None, limit)))
+    return heavy + light
+
+
 ROWS_BEFORE_FAILURE = 25_000
 """Rows the failing layer yields: two 10,000-row commits, then 5,000 lost."""
 
@@ -347,7 +362,7 @@ def test_a_re_plan_after_an_interrupted_scatter_holds_exactly_one_scatter(mysql_
     summary = run_plan.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only"))
 
     seed = _scatter_seed(mysql_config)
-    expected = list(brightStars.scatter(SHAPE, EXTENTS, EDGE_PC, E_VALUE, THRESHOLD, seed))
+    expected = _expected_scatter(mysql_config, seed)
     stored = _stored_rows(mysql_config)
     assert summary["total"] == len(expected) == len(stored)
     assert _comparable(stored) == _comparable(expected)
@@ -521,7 +536,8 @@ def test_re_running_an_interrupted_band_holds_the_band_once(mysql_config, monkey
     assert _settings(mysql_config) == (BAND_FLOOR, seed)
     band_seed = _scatter_seed(mysql_config, f"band/{BAND_FLOOR:g}-{THRESHOLD:g}")
     expected = list(brightStars.scatter(SHAPE, EXTENTS, EDGE_PC, E_VALUE, BAND_FLOOR, band_seed,
-                                        max_luminosity_sol=THRESHOLD))
+                                        max_luminosity_sol=THRESHOLD,
+                                        mass_range=(None, tuning.PHENOMENON_MIN_MASS_SOLAR)))
     stored = _stored_rows(mysql_config)
     assert len(stored) == first + len(expected)
     # The first scatter's stars and the band's, each once.

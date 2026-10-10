@@ -1415,6 +1415,7 @@ def _table_marker(table):
 
 
 _VERSION_MARKERS = (
+    (73, _column_marker("galaxy_shape", "bright_star_mass_limit_sol")),
     (72, _column_marker("stars", "l_xuv_w")),
     (71, _column_marker("galaxy_shape", "phenomenon_min_mass_solar")),
     (70, _column_marker("planets", "mantle_redox")),
@@ -5218,15 +5219,31 @@ def clear_bright_stars(conn):
     conn.execute("TRUNCATE TABLE bright_stars")
     conn.execute("UPDATE sector_stats SET bright_level_sol = -1 WHERE bright_level_sol > 0")
     conn.execute("UPDATE sector_stats SET level_before_fill_sol = -1 WHERE level_before_fill_sol > 0")
-    conn.execute("UPDATE galaxy_shape SET bright_star_min_luminosity_sol = NULL, bright_star_seed = NULL")
+    conn.execute("UPDATE galaxy_shape SET bright_star_min_luminosity_sol = NULL, bright_star_seed = NULL,"
+                 " bright_star_mass_limit_sol = NULL")
     conn.commit()
 
 
-def record_bright_star_scatter(conn, min_luminosity_sol, seed):
+def record_bright_star_scatter(conn, min_luminosity_sol, seed, mass_limit_sol=None):
     """Stores the threshold and seed a finished scatter used, so a fill
-    reads them rather than today's constant."""
-    conn.execute("UPDATE galaxy_shape SET bright_star_min_luminosity_sol = ?, bright_star_seed = ? WHERE id = 1",
-                 (min_luminosity_sol, seed))
+    reads them rather than today's constant, and the mass limit its mass
+    pass placed every star from (GEN.185; `None` keeps the one already
+    stored, as a staged band below the floor does)."""
+    if mass_limit_sol is None:
+        conn.execute("UPDATE galaxy_shape SET bright_star_min_luminosity_sol = ?, bright_star_seed = ? WHERE id = 1",
+                     (min_luminosity_sol, seed))
+        return
+    conn.execute("UPDATE galaxy_shape SET bright_star_min_luminosity_sol = ?, bright_star_seed = ?,"
+                 " bright_star_mass_limit_sol = ? WHERE id = 1", (min_luminosity_sol, seed, mass_limit_sol))
+
+
+def bright_star_mass_limit(conn):
+    """The mass limit (solar masses) the galaxy's star scatter placed every
+    star from, or `None` when it had no mass pass (or none has run)."""
+    row = conn.execute("SELECT bright_star_mass_limit_sol FROM galaxy_shape WHERE id = 1").fetchone()
+    if row is None or row["bright_star_mass_limit_sol"] is None:
+        return None
+    return float(row["bright_star_mass_limit_sol"])
 
 
 def bright_star_scatter_settings(conn):
@@ -5237,6 +5254,21 @@ def bright_star_scatter_settings(conn):
     if row is None or row["bright_star_min_luminosity_sol"] is None:
         return None
     return row["bright_star_min_luminosity_sol"], row["bright_star_seed"]
+
+
+def bright_star_marked_addresses(conn, min_mass_sol, min_luminosity_w):
+    """
+    The sectors the star scatter's mass pass marked (GEN.185): the
+    `(ring, layer, slot)` addresses holding a star born at `min_mass_sol`
+    solar masses or more that shines at `min_luminosity_w` watts or more.
+    The luminosity pass skips them, since they already hold a star that
+    bright. Read between the passes, when the table holds only the mass
+    pass's stars.
+    """
+    rows = conn.execute(
+        "SELECT DISTINCT ring_index, layer_index, ring_slot_index FROM bright_stars"
+        " WHERE initial_mass_sol >= ? AND luminosity_w >= ?", (min_mass_sol, min_luminosity_w)).fetchall()
+    return {(row["ring_index"], row["layer_index"], row["ring_slot_index"]) for row in rows}
 
 
 def stamp_phenomenon_scatter_epoch(conn):

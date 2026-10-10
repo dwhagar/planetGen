@@ -12,7 +12,7 @@ potential of [galactic-potential.md](galactic-potential.md).
 
 Informs: DB.19, GEN.100, GEN.104, GEN.109, GEN.115, PERF.31
 
-Status: built, 2026-10-09 (GEN.166 to GEN.168, schema v71); Boss accepted the 20 solar mass cut on a decision card (2026-10-09).
+Status: built, 2026-10-09 (GEN.166 to GEN.168, schema v71); extended 2026-10-10 by the star passes of GEN.185 (below); Boss accepted the 20 solar mass cut on a decision card (2026-10-09).
 
 Update (Boss, 2026-10-10 03:01Z): the cut becomes a user setting with preset values between 8 and 20 solar masses (GEN.183; 20 stays the default), the bright-star luminosity floor becomes a preset from 2500 to 4,000,000 L_sun with a default of 3000 (GEN.184), and the scatter runs in five passes (GEN.185). The fixed 20 solar mass cut and the 1000 L_sun default below are superseded as defaults.
 
@@ -221,3 +221,32 @@ quarter-scale run of the performance study (14.8M neutron stars, 3.43M black hol
 220 km/s curve are from `galactic-potential.md`; the 1.44 pc tidal radius is computed here and agrees with
 the 1.4 pc of `orbital-updates.md`. The local remnant mass densities use the rates at the solar
 neighbourhood (`PHENOMENON_DENSITY_PC3`), not the scatter's regional factors.
+
+
+## The star passes (GEN.185, 2026-10-10)
+
+Boss (2026-10-10 03:01Z) set the order of the whole scatter: (1) quasars, black holes and the other objects above the mass
+limit, (2) the stars above the mass limit, (3) mark each sector with the luminosity of the star scattered in it, (4) the stars
+above the luminosity limit, skipping every sector marked at or above that limit, (5) the other phenomena (no comets, no rogue
+planets). How it is read and built:
+
+- **One mass limit.** The cut of this note (`galaxy_shape.phenomenon_min_mass_solar`, `--phenomenon-min-mass`, 8 to 20 solar
+  masses, default 20) now also divides the stars. Passes 1 and 5 are the phenomenon scatter, which draws nothing from the stars,
+  so the order between them and the star passes cannot show; `planetgen plan` runs it first, then the star passes.
+- **Pass 2, the mass pass** (`bright_stars.scatter` with `mass_range=(limit, None)`, luminosity floor at the brightest white
+  dwarf): every star born with at least the limit, bright or not. At 8 solar masses a main-sequence star shines at about 2,000
+  solar luminosities, so below a 3,000 floor the mass pass still places the stars the luminosity pass alone would have missed.
+- **Pass 3, the marks** are not stored: `store.bright_star_marked_addresses` reads them from the mass pass's own rows (a star
+  born at or above the limit and at least as bright as the floor) between the passes. Each sector keeps the brightest star it
+  was given, so "equal to or above the setting" is simply "holds one".
+- **Pass 4, the luminosity pass** draws the stars born lighter than the limit and at least the floor bright
+  (`mass_range=(None, limit)`), in the unmarked sectors only. A marked sector therefore gets no second bright star; this thins the
+  bright-star count a little where the heaviest stars sit (their sectors), which is the intent of the rule.
+- **The sector's own draw** is lighter than the limit and dimmer than the floor (`MAX_STAR_MASS_SOL`,
+  `MAX_STAR_LUMINOSITY_SOL`), its expected count is cut by `placed_star_fraction` (the mass pass's share plus the lighter bright
+  share), and the backfill and the staged bands below the floor draw only lighter stars. `galaxy_shape.bright_star_mass_limit_sol`
+  (schema v73) records the limit, so a galaxy scattered before it behaves as it did.
+- **Cost:** the mass pass places about 2 million stars at 8 solar masses and 69,000 at 20 (the Research Lane 1 numbers),
+  against 26 million for the old 1,000 L_sun floor; at the new 3,000 floor the whole star scatter is a fraction of the old one.
+- The partition is exact: the luminosity fraction of the stars lighter than a mass plus that of the heavier ones is the whole
+  fraction (`tests/test_star_scatter_passes.py`).
