@@ -3543,6 +3543,23 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: PERF.32, PERF.33, PERF.52, PERF.54,
   PERF.55.
 
+- [ ] **PERF.57 Stop a layer-walking scatter early once the last 100 layers produced no stars**
+  Boss (2026-10-10 08:32Z, via the coordinator): this will make
+  generation faster; if the last 100 layers had 0 stars, stop looking
+  and move on to the next phase. Done: every scatter pass that walks
+  layer by layer (the mass pass, the luminosity pass, the phenomena pass
+  if it walks layers, and the bright-star back scatter of GEN.187 when
+  it lands) stops after 100 consecutive empty layers; the 100 is a named
+  constant in tuning.py, not a magic number; the stop is logged as a
+  stage result ("stopped early after 100 empty layers at layer N") that
+  feeds the stage list of UX.89 and the stage stats of PERF.56; the stop
+  never skips the galactic nucleus guarantee (GEN.195); a test shows a
+  run with the early stop produces the same rows as a full walk on a
+  small galaxy. The change is in the scatter code in run_plan.py. Owner:
+  Bugfixes lane 1, after UX.89, PERF.56 and UX.88.
+  Prerequisites: none. Related: UX.89, PERF.56, GEN.185, GEN.187,
+  GEN.195.
+
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
