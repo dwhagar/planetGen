@@ -135,6 +135,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ADM.36 | Change an object's trajectory vector | GEN.109 |  |
 | GEN.110 | Rogue planet collisions: asteroid fields, merged giants and new stars | GEN.109, GEN.142 |  |
 | GEN.143 | A collision_events table, an admin report and a test that runs the whole collision path | GEN.110 | Research: makes the collision code testable. |
+| GEN.197 | Object IDs on ejection, merger and split events | GEN.143 |  |
 | GEN.142 | Peculiar velocity for rogue planets and asteroid fields |  | Research: prerequisite of GEN.110. |
 | GEN.105 | Orbital updates | GEN.115, GEN.109, GEN.110 | Parent of the orbital update work. |
 | GEN.141 | Faster Kepler solver (Mikkola or Markley) with brentq as fallback |  | Research: optional speed-up. |
