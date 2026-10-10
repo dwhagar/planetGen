@@ -3,6 +3,7 @@
 ## [8.0.911] - 2026-10-10
 
 ### Changed
+- PERF.58: objects over a sector's capacity are shunted to a face-adjacent sector with room instead of dropped (Boss 10:07Z).
 - PERF.58: Boss dropped the stack-of-layers rule; the sampler runs per layer only.
 - Retired MAP.166 (honest Dimmest star shown label, PR #1070).
 - PERF.58: final stack rule (no layer grouping; per-layer sampler) and several objects per sector by capacity tiers, from Research lane 3 (PR #1068); PERF.61 follows the same tiers.
