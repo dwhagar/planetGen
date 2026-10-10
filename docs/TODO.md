@@ -1179,7 +1179,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   - inside a star system (planets and moons, around the star).
   The adjusted path, its extra length and its time at each speed (NAV.2)
   are shown with the course, and the straight line stays available for
-  comparison. Open questions: a Hill sphere needs an orbit around a
+  comparison. Question (decided below): a Hill sphere needs an orbit
+  around a
   heavier body, so what radius applies to a star or a lone object? And
   does the system level need the bodies' positions at a given time?
   Pre-planning (default taken for the first open question): The data is
@@ -1281,6 +1282,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     times the belt's density to threaten a ship. Collision risk stays
     keep-out only, with expected hits (about 1e-11 per AU in the main
     belt for bodies over 1 km) as an optional note on the course.
+  Decided (2026-10-10): Boss (19:16Z, Accept all): the answers recorded
+  here stand: a lone star or object uses the galactic Hill radius;
+  inside a system a star uses the radiation radius.
     Prerequisites: NAV.25, NAV.26.
 
 - [ ] **NAV.9 Search and locate return references for every kind**
@@ -1493,7 +1497,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   skeleton, sectors and systems. It says what each stage needs in the
   schema (a galaxy id on which tables), the frames and coordinates
   between galaxies, the URLs and pages, generation and the Galaxy Map,
-  and how an existing single-galaxy database migrates. Open questions
+  and how an existing single-galaxy database migrates. Question (decided
+  below)
   for the plan: are neighboring galaxies real (the Local Group's
   catalogued galaxies) or generated? Does every row get a galaxy id, or
   only the top-level ones (sectors, the skeleton)? Is a second galaxy
@@ -1514,6 +1519,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   not from a page.
   Research (2026-10-09, globular-clusters.md): the globular-cluster
   system for generated galaxies is GEN.164.
+  Decided (2026-10-10): Boss (19:16Z, Accept all): the answers recorded
+  here stand: real Local Group neighbours, no galaxy id on every row, a
+  separate database per galaxy.
 
 - [ ] **GEN.24 Generate the galactic core on layer 0**
   Boss (2026-10-01): "Add a new TODO item to TODO.md (don't start
@@ -3680,13 +3688,17 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   server finalizes a unit in one transaction or rejects it with the
   reasons, and may correct what it can (renaming a clashing name,
   re-running derived values) rather than trusting the client's copy.
-  Open question: which corrections the server makes on its own, and
+  Question (decided below): which corrections the server makes on its
+  own, and
   which reject the unit so the client regenerates it.
   Research (2026-10-09, api-design-standards.md): adopt the auto-correct
   versus reject rule (design doc 7.4) as the default answer: correct
   only a clashing name and pure derived columns; reject everything else;
   the server returns a rename map; a rejection does not release the
   claim.
+  Decided (2026-10-10): Boss (19:16Z, Accept all): the server auto-fixes
+  only a clashing name and purely derived columns, and rejects
+  everything else so the client regenerates it.
 
 - [ ] **API.18 Generate by recipe: JSON for sectors, systems, planets, moons and phenomena**
   Boss (2026-10-07 11:47Z): "API should contain a 'generate recipe'
@@ -3740,12 +3752,15 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Clearing one, confirmed and written to the admin activity log, throws
   away its staged data and releases its sectors and id blocks; until
   then nothing else (a server-side run, another upload) may use them.
-  Part of, or linked from, the job page (ADM.10, PR #294). Open question: should
+  Part of, or linked from, the job page (ADM.10, PR #294). Question
+  (decided below): should
   an upload with no contact for a long time be flagged as stale on the
   page?
   Research (2026-10-09, api-design-standards.md): the stale flag
   defaults to 3 days without contact and only flags; the page reads
   `upload_runs`, `upload_units` and `upload_claims`.
+  Decided (2026-10-10): Boss (19:16Z, Accept all): flag an upload that
+  has been silent for 3 days; flag only, never auto-clear.
 
 - [ ] **ADM.15 Change the worker count from the Queue page, with a "Ludicrous Speed" mode**
   Boss (2026-10-01 22:11Z): "have admin in the queue menu able to
@@ -3974,7 +3989,8 @@ clears each one.
     promote a user to admin or demote an admin to user, refused for the
     Owner; sessions and API keys that work for every role while the
     admin-only pages and API routes stay admin-only; each role change
-    written to the audit log. Open questions: does `admin_users` become
+    written to the audit log. Question (decided below): does
+    `admin_users` become
     this table (renamed, with a role column) or do users get their own
     table? Which existing account becomes Owner on a server that already
     has several admins (the lowest id?)? Can an admin demote themselves,
@@ -3990,6 +4006,9 @@ clears each one.
     first. Add the console CLI `planetgen.cli.accounts
     --set-owner/--reset-password`. The control schema is the next
     Alembic revision after the current one.
+    Decided (2026-10-10): Boss (19:16Z, Accept all): one accounts table
+    with a role column (add the columns now, rename later); the lowest
+    id is the Owner.
 
   - [ ] **USR.3 SMTP settings in the admin config**
     Boss: "We'll use SMTP for
@@ -3998,7 +4017,8 @@ clears each one.
     set from an admin page (and the config file/installer), with a "send
     test email" button; one small mail module that every flow in USR.4
     to USR.6 uses, which logs failures and never shows the SMTP
-    password. Open questions: is the SMTP password kept in the config
+    password. Question (decided below): is the SMTP password kept in the
+    config
     file (like the database password) or in the control database, and is
     it encrypted there? Who can change SMTP settings: any admin, or only
     the Owner? What do invites and resets do when SMTP isn't configured
@@ -4007,6 +4027,8 @@ clears each one.
     B9: stdlib smtplib, Owner-only (SMTP, `base_url`, From address; open
     question for Boss, default yes), password in the web-owned 0600
     file, no SMTP means invites show the link only; sent from an RQ job.
+    Decided (2026-10-10): Boss (19:16Z, Accept all): SMTP settings are
+    Owner-only; the password lives in a 0600 file, not the database.
 
   - [ ] **USR.4 Invite-only sign-up by unique link**
     Boss: "only an admin can
@@ -4022,13 +4044,16 @@ clears each one.
     with uses left, expiry and who made them, and a way to revoke one;
     opening a valid link lets someone register (username, email), then
     USR.5's email loop sets their password; the account is a user, not
-    an admin. Open questions: does an admin optionally type the invitee's
+    an admin. Question (decided below): does an admin optionally type
+    the invitee's
     email so the link is sent for them, or only copy the link? Is the
     invite page rate-limited, and is there a cap on open invites? Does
     a multi-use link record who used it?
     Research (2026-10-09, settings-seo-and-accounts.md): add the
     `invite_uses` table, atomic redeem, an open-invite cap of 50 and
     rate limits (B5).
+    Decided (2026-10-10): Boss (19:16Z, Accept all): invites capped at
+    50 open at once; the invitee email is optional.
 
   - [ ] **USR.5 Email loop for setting and resetting passwords**
     Boss: "an
@@ -4038,7 +4063,8 @@ clears each one.
     (stored hashed) and end the account's other sessions once used; the
     page never says whether an email address has an account; resets are
     rate-limited per address and per IP alongside the existing login
-    backoff and SEC.1. Open questions: how long a reset link lasts
+    backoff and SEC.1. Question (decided below): how long a reset link
+    lasts
     (30 minutes? 1 hour?); does changing the email address also need an
     email confirmation to the old and new addresses; does the Owner's
     reset need anything extra?
@@ -4046,6 +4072,9 @@ clears each one.
     reset 30 minutes, first-password 24 hours, email change 1 hour; a
     notification email on password and email change; an Owner reset asks
     for the TOTP code when enrolled.
+    Decided (2026-10-10): Boss (19:16Z, Accept all): reset links last 30
+    minutes, a first password link 24 hours, an email change 1 hour with
+    confirmation.
 
   - [ ] **USR.6 Owner transfer**
     Boss: "The owner CAN (with specific approval
@@ -4055,7 +4084,8 @@ clears each one.
     confirm the choice explicitly, enter their password twice, and then
     confirm from an email link; the chosen account then gets an email and
     must accept from its own link; only when both are done does Owner
-    move; every step goes to the audit log. Open questions: what the old
+    move; every step goes to the audit log. Question (decided below):
+    what the old
     Owner becomes (admin?); does the new Owner have to be an admin
     already; how long the pending transfer lasts and whether the Owner
     can cancel it; what happens if the Owner loses their email or
@@ -4065,6 +4095,9 @@ clears each one.
     admin with TOTP; it expires after 48 hours; the Owner can cancel;
     the confirm link lands on a neutral page because of
     `SameSite=Strict`.
+    Decided (2026-10-10): Boss (19:16Z, Accept all): the old Owner
+    becomes an admin; the target must be an admin with 2FA; a pending
+    transfer expires in 48 hours.
 
   - [ ] **USR.7 A user-level interface with bookmarks**
     Boss: "a full user
@@ -4072,7 +4105,8 @@ clears each one.
     (any role) get an account page and can bookmark sectors, systems,
     planets, phenomena and NAV courses, see them in a list, name them and
     remove them; bookmarks are stored per account in the control
-    database. Open questions: which objects can be bookmarked, and can
+    database. Question (decided below): which objects can be bookmarked,
+    and can
     users also add notes? What else a user can do that an anonymous
     visitor can't (is the site still public to read, or sign-in only?)?
     Do bookmarks survive a galaxy regenerate (object ids change), and if
@@ -4082,6 +4116,8 @@ clears each one.
     migration.
     Research (2026-10-09, settings-seo-and-accounts.md): nothing new
     beyond B11 (forced sign-in would force `seo.indexing=off`).
+    Decided (2026-10-10): Boss (19:16Z, Accept all): the site stays
+    public to read; bookmarks are for signed-in users; notes come later.
 
   - [ ] **USR.8 Every signed-in user can generate a one-off system**
     Boss (2026-10-02 05:16Z): "TODO Item, all users can generate a
@@ -4491,7 +4527,8 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
     projection, star size and colour by apparent brightness), and the
     brighter stars are grouped into constellations with lines and names
     from VIEW.4, stored so a planet keeps the same constellations each
-    time. Blocked on VIEW.2's research pass. Open questions: whole-sky
+    time. Blocked on VIEW.2's research pass. Question (decided below):
+    whole-sky
     or a horizon view from a point on the surface? How are constellations
     chosen (bright-star patterns, by clustering, a set number per sky)?
     Are the PNGs cached on disk and served by the web interface, or made
@@ -4506,6 +4543,9 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
     with numpy and `zlib`; constellation lines and names as an SVG
     overlay. Neighbour galaxies are extended sprites in a planet's sky
     (sky-view.md 2.10).
+    Decided (2026-10-10): Boss (19:16Z, Accept all): the whole-sky PNG
+    comes first; seeded constellations are stored per system; the PNGs
+    are cached.
 
   - [ ] **VIEW.4 Constellation names in the name generator**
     Boss: "add to our
@@ -4518,7 +4558,8 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
     recombines them into new names the same way stars, planets and
     sectors are named (`split_into_syllables` in `utils.py`, the
     prefix/suffix lists, the `offensive_words.txt` filter). Used by
-    VIEW.3. Open questions: what counts as a source list (licensing of
+    VIEW.3. Question (decided below): what counts as a source list
+    (licensing of
     sky culture data such as Stellarium's), transliteration of non-Latin
     scripts, and whether names are unique per planet or galaxy-wide.
     Plan (2026-10-07): Constellation names come from the codec under the
@@ -4535,6 +4576,9 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
     CC BY-SA 4.0) as moot; the open questions on licensing,
     transliteration and per-planet uniqueness are moot under the codec
     plan.
+    Decided (2026-10-10): Boss (19:16Z, Accept all): constellation names
+    use the name codec (the 2026-10-07 plan stands); the licensing,
+    transliteration and uniqueness questions are moot.
 
 - [ ] **VIEW.6 Settle the handedness of the generated galaxy before mapping real sky coordinates**
   The generated galaxy rotates counterclockwise about +Z and the real
