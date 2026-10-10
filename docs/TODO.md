@@ -3462,53 +3462,90 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   every scatter action also store the number of layers modified, kept in
   separate rows per mass floor and per luminosity floor used (a run at 8
   Msun and one at 14 Msun, or at 5,000 and 9,000 Lsun, are different
-  rows). With the grouped layers of PERF.57 the row records group sizes, layers visited
+  rows). With the object-first sampler (PERF.58) the row records stack sizes, layers visited
   and layers modified.
   GEN.187 stage (2026-10-10): no new stage needed. The existing backfill
   stage is now labelled "Scatter the massive stars from the neighborhood"
   (PR #1062); PERF.56 records its timing and layers like the other
   scatters.
 
-- [ ] **PERF.57 Skip empty stretches in a galactic scatter by combining layers into growing groups**
-  Boss (2026-10-10 09:17Z, via the coordinator; replaces his 08:32Z
-  rule of stopping after 100 empty layers): in any galactic scatter
-  operation, once 5 contiguous layers have placed nothing, combine the
-  next 10 layers into one group. Calculate the expected count exactly as
-  for a single layer, summed over the sectors available in the group,
-  and draw how many sectors would likely hold an object. Place one
-  object per draw: pick the sector weighted by its own density score (a
-  denser sector is more likely to be chosen), then a random position in
-  that sector. If the 10-layer group places nothing, try 20, then 40,
-  doubling each time until something is placed or the galaxy runs out of
-  room, at which point the pass ends. Done:
-  - Applies to every galactic scatter pass: the mass pass, the
-    luminosity pass, the phenomena pass and the bright-star back scatter
-    of GEN.187 (landed, PR #1059).
-  - Scaling back (Boss 09:19Z): grouping starts only after 5 contiguous
-    layers placed nothing. In group mode a group that places nothing
-    doubles the next group (10, 20, 40, ...); a group that places
-    something makes the next group half the size (a 40 that places is
-    followed by a 20, then a 10); when a group of 10 places something
-    the pass is back on single layers, and grouping needs 5 empty
-    layers in a row again. An empty group at a reduced size doubles
-    again.
-  - Defaults chosen where Boss did not say: the 5 and the 10 are named
-    constants in tuning.py; the same seed gives the same galaxy (each
-    group draw is seeded from the group's first address, GEN.56); the
-    galactic nucleus guarantee (GEN.195) is untouched.
-  - The stage result and the PERF.56 stats record the group sizes used,
-    layers visited and layers modified (see the PERF.56 note).
-  - A statistical test shows grouped placement matches the per-layer
-    expected counts on a small galaxy.
-  The change is in the scatter code in run_plan.py. Owner: Bugfixes lane
-  1, after PERF.56.
-  Prerequisites: none. Related: UX.89, PERF.56, GEN.185, GEN.187,
-  GEN.195.
-  Revised (2026-10-10 09:19Z): after a placement the next group is half
-  the size instead of returning to single layers.
-  Replaced (2026-10-10): the 08:32Z "stop after 100 empty layers" rule is
-  gone; Boss's 08:32Z clarification (0 stars or 0 phenomena) no longer
-  applies.
+- [ ] **PERF.58 Object-first star sampler for the mass and luminosity passes (top priority, replaces PERF.57)**
+  Boss (2026-10-10 09:52Z, via the coordinator and Research lane 3):
+  follow the recommendations of the scatter study
+  (docs/design/scatter-queue-feasibility.md, PR #1064) and build it as
+  soon as possible; TOP PRIORITY. The shuffled sector list is not built
+  (190 to 270 times more density evaluations). Instead each star pass
+  decides how many objects there are, then where: per layer draw N from
+  a Poisson with the mean summed over the layer's rings times a
+  certified density majorant, pick the ring from a cumulative table,
+  pick the slot and point as today, accept with probability true density
+  over majorant, and skip filled or mass-marked sectors. The prototype
+  ran about 35 times faster at default scale (12.7 minutes to about 20 s
+  per pass) and 78 times at quarter scale, with counts and spatial
+  distribution matching today's code (chi-square per degree of freedom
+  0.93 to 1.07). Boss also asked that his sparse method for stacks of
+  empty layers use the same fast method: a stack of layers is handled as
+  one draw (one Poisson count over the whole stack's majorant, then pick
+  the layer within the stack by its share), so empty stretches cost one
+  draw, not one visit per layer. The final wording of that stack rule
+  comes from Research lane 3 (it will send it to this thread; until then
+  build the per-layer sampler first). Done: the mass pass and the
+  luminosity pass use the sampler; the density majorant is certified,
+  and a check mode asserts true density never exceeds it; objects
+  dropped in filled or mass-marked sectors are thinned, not
+  renormalised; the one-object-per-sector cap applies only to the star
+  passes at the shipped floors (lambda about 0.004 at most) and not at
+  low luminosity floors; stats record layers visited and layers
+  modified, and stack sizes (PERF.56); the central black hole or quasar
+  is untouched; the new sampler is a different random sequence, so a
+  reseed (planetgen plan) is needed after the update; a statistical test
+  compares it with the per-layer expected counts on a small galaxy. This
+  replaces PERF.57, which is retired as superseded. Owner: Bugfixes lane
+  1, first in its queue after TEST.124 and ahead of PERF.56.
+  Prerequisite: PERF.60. Related: PERF.56, PERF.59, PERF.60, PERF.61,
+  GEN.185, GEN.195.
+
+- [ ] **PERF.59 Share the ring inputs across the three scatter passes (top priority)**
+  From the scatter study (docs/design/scatter-queue-feasibility.md): the
+  mass, luminosity and phenomena passes recompute identical _ring_bins
+  inputs, about 87 of 168 s at quarter scale. Boss (09:52Z): follow the
+  study recommendations, top priority. Done: the ring inputs are built
+  once per run and shared by every scatter pass, and cached across runs
+  by the same key as the map warm-up where that is safe; results do not
+  change (a test shows the same rows with and without sharing). Owner:
+  Bugfixes lane 1, with PERF.58.
+  Prerequisites: none. Related: PERF.58, PERF.61, GEN.185.
+
+- [ ] **PERF.60 Large-mean Poisson helper for per-layer and per-stack counts (top priority)**
+  From the scatter study (docs/design/scatter-queue-feasibility.md):
+  _sample_poisson_count is Knuth's O(mean) algorithm, fine per ring, but
+  the object-first sampler (PERF.58) draws one count per layer or per
+  stack of layers, with means in the thousands or millions. Done: a
+  helper draws Poisson counts for any mean in constant time (a
+  transformed-rejection or normal-approximation method above a named
+  threshold in tuning.py, Knuth below it), uses the one random wrapper
+  of GEN.56 so the same seed gives the same galaxy, and has a
+  statistical test of mean and variance across small and large means.
+  Owner: Bugfixes lane 1, first of the sampler items because PERF.58
+  needs it. Boss (09:52Z): top priority.
+  Prerequisites: none. Related: PERF.58, PERF.61, GEN.56.
+
+- [ ] **PERF.61 Object-first sampler for the phenomena pass, own prototype first**
+  From the scatter study (docs/design/scatter-queue-feasibility.md): the
+  phenomena pass places millions of rows (6.7e7 expected at the 14 Msun
+  cut), so row costs dominate and the gain is smaller than for the star
+  passes, but the ring walk is still 58% of its time. Boss (09:52Z):
+  follow the study recommendations, top priority. Done: a prototype with
+  per-kind density majorants is measured against today's code (counts,
+  spatial distribution, time, reseed) before it replaces the pass; the
+  one-object-per-sector cap is kept only where two objects in a sector
+  is very unlikely (the study found it would lose 1.4% of phenomena at
+  the shipped cut, so the sampler draws the number per sector from a
+  Poisson instead where lambda is not small); stats record layers
+  visited and layers modified, per kind (PERF.56); a reseed is needed.
+  Owner: Bugfixes lane 1, after PERF.58.
+  Prerequisites: PERF.58, PERF.60. Related: PERF.58, PERF.59, PERF.60,
+  GEN.185.
 
 ## DB: Database and schema
 
