@@ -3306,6 +3306,29 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the coordinator).
   Prerequisites: none. Related: PERF.59, GEN.185.
 
+- [ ] **PERF.64 The Galaxy Map and the Systems list stop with "Took too long" and the whole site is sluggish (bug)**
+  Boss (2026-10-10 19:45Z, with a screenshot): the Galaxy Map and the
+  Systems list show the 504 page "Took too long: This page asked the
+  database for more than it could answer in time, so it was stopped. Try
+  a narrower search or a smaller page.", and the site as a whole feels
+  sluggish; "I've had this happen before, so we need to fix it". The
+  page is the web statement timeout at work
+  (`statement_timeout_seconds`, 10 s, `MAX_EXECUTION_TIME` on the
+  read-only connections), so some query on those pages now runs past 10
+  s on his database. Done: find which statements time out on the Galaxy
+  Map tiles and the Systems list (log the statement and its time, run
+  EXPLAIN on his database size), fix them with an index, a narrower
+  query or a cache, and show the slow pages and the sluggishness no
+  longer happen while the database is busy and idle alike; add a test
+  that fails when a page query reads more than a page needs. Earlier
+  work on the same family: PERF.34 (site responsive during heavy jobs,
+  PR #811), PERF.38 (cache fixes under a fill, PR #1144), PERF.36 (never
+  list more than about 50,000 candidate cells), PERF.39 and PERF.40 (API
+  job cost, reserved interactive worker). Owner: Foundations lane 1,
+  taking it ahead of PERF.39.
+  Prerequisites: none. Related: PERF.34, PERF.36, PERF.38, PERF.39,
+  PERF.40.
+
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
