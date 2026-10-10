@@ -460,7 +460,7 @@ def check_systems(ctx):
     ids = _system_ids(ctx.conn, ctx.scope)
     failing = []
     stats = run_common._stats_for_config(ctx.config)
-    with steps.step("Validating star systems", DEEP_STATS_KIND, len(ids), stats=stats, own=True) as bar:
+    with steps.step("Validating star systems", "db-check", len(ids), stats=stats, own=True) as bar:
         for system_id in ids:
             try:
                 system = store.load_star_system(ctx.conn, system_id)
