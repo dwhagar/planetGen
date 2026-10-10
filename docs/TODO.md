@@ -3169,6 +3169,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   next to it (1 Msun about 1.17e9 rows, 161 GB; 2 Msun about 3.9e8 rows,
   54 GB; 4 Msun about 2.2e8 rows, 30 GB; 6 Msun about 2.0e8 rows, 28
   GB).
+  Bugfixes lane 2 (2026-10-09): Added (Bugfixes lane 2, 2026-10-10
+  08:30Z): the limits apply on every path that scatters: New galaxy,
+  Plan, Rebuild the bright stars, plan --phenomena-only,
+  --bright-stars-only and --then-scatter, and the below-cut draws of
+  sector fill. GEN.196 (the Redo scatters box) builds on this.
 
 - [ ] **GEN.196 One "Redo scatters" box on Generate: choose which scatters to redo, with new settings for each**
   Boss (2026-10-10 08:30Z, via the coordinator): make sure the stellar
@@ -3189,6 +3194,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   alone and all together. Owner: Bugfixes lane 2, after GEN.195.
   Prerequisites: GEN.195. Related: GEN.185, GEN.187, GEN.194, GEN.195,
   UX.89, PERF.56.
+  Bugfixes lane 2 (2026-10-09): Details from Bugfixes lane 2 (2026-10-10
+  08:30Z): each ticked pass has its own settings fields in the same box
+  (stellar mass limit, luminosity floor, compact-object limit); the
+  stage list builds on UX.89's structure; a redo clears and rewrites
+  only that scatter's rows and keeps the central black hole or quasar
+  guarantee.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
