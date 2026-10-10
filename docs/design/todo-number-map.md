@@ -22,9 +22,9 @@ release is stamped.
 | API | API.24 |
 | ADM | ADM.49 |
 | SEC | SEC.33 |
-| TEST | TEST.117 |
+| TEST | TEST.118 |
 | USR | USR.10 |
-| OPS | OPS.38 |
+| OPS | OPS.39 |
 | DOC | DOC.17 |
 | VIEW | VIEW.11 |
 | POP | POP.11 |
@@ -584,7 +584,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.85 | Atmosphere species, partial pressures and mantle redox for every planet | none | done, PR #848 |
 | GEN.86 | Stellar activity (XUV, flares) and planetary magnetic fields | none | done, PR #908 |
 | GEN.87 | Surface radiation dose | none | open |
-| GEN.88 | Hydrosphere and ocean chemistry | none | open |
+| GEN.88 | Hydrosphere and ocean chemistry | none | done, PR #963 |
 | GEN.89 | The habitability score for every planet and moon | none | open |
 | GEN.90 | Refactor the planet classes around the habitability index | none | open |
 | GEN.91 | Classes like S and V in the hot and cold zones | none | open |
@@ -940,6 +940,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.35 | A vendored-version lock file for the static libraries | none | open |
 | OPS.36 | Space and size checks measure the boot drive, not the drive holding the database (bug) | none | done, PR #868 |
 | OPS.37 | A Generator version number: one sequential integer, shown in admin and the API | none | open |
+| OPS.38 | Two Redis dump files (dump.rdb and src/dump.rdb) are committed to main and should be removed and git-ignored (bug) | none | open |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
 | PERF.3 | Estimate size and time before bulk generation | 86 (2026-10-01 03:15Z to 05:29Z) | done, PR #238 (stats in control schema v6) |
@@ -1343,6 +1344,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.114 | test_the_check_writes_nothing fails now and then in a parallel full run (bug) | none | done, PR #946 |
 | TEST.115 | Three tests fail on the Windows CI leg in every recent run: Redis in WSL is unreachable (bug) | none | open |
 | TEST.116 | test_bughunt_end_to_end stores M2V or M6V where it expects K2V on the MySQL 8.4 and MariaDB legs once (bug) | none | open |
+| TEST.117 | generatejobs.test.mjs fails on main since PERF.33 (PR #910) (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

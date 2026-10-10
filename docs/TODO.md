@@ -112,7 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.9, PERF.29, PERF.30, ADM.31, ADM.28, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, NAV.11, NAV.42, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.57, TEST.77, UX.49, PERF.31, GEN.128 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.9, PERF.29, PERF.30, ADM.31, ADM.28, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, GEN.87, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, NAV.11, NAV.42, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.57, TEST.77, UX.49, PERF.31, GEN.128 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.17, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18, PERF.33, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, ADM.43, ADM.44 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, and the anomalies chosen in phase 2. | NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, GEN.114, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies. | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, GEN.55 |
@@ -1981,7 +1981,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Index.md, Speculative Xenobiology Extremes.md, Speculative Xenobiology
   Examples.md, Mathematical and Algorithmic Implementation of the
   Planetary Habitability Index.md" Done when the subitems are.
-  Prerequisites: GEN.87, GEN.88, GEN.89.
+  Prerequisites: GEN.87, GEN.89.
   Design: [docs/design/habitability-index.md](design/habitability-index.md)
 
   - [ ] **GEN.87 Surface radiation dose**
@@ -2000,29 +2000,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     per 100 Myr.
     Design: [docs/design/habitability-index.md](design/habitability-index.md)
 
-  - [ ] **GEN.88 Hydrosphere and ocean chemistry**
-    Done: each planet stores water fraction, ocean and land fraction,
-    ocean depth or ice shell, and an ocean class (acid sulfate, neutral,
-    soda, chloride brine, ice-sealed) with pH, water activity and
-    phosphorus flags.
-    Research (2026-10-09, activity-magnetism-radiation-hydrosphere.md):
-    list the four function fixes (design doc 5.3) as part of the item;
-    add the high-pressure-ice cap (`hp_ice_km`) and the Hycean regime;
-    move the ice-shell, boiling and water-depth functions into a shared
-    module (for example `physics/hydrosphere.py`) that both
-    `rogue_surface` and star-system planets import; add a land-fraction
-    function (5.1) and a tidal-heating function (5.3). Acid-sulfate pH
-    1.0 to 4.5. `rogue_surface.rogue_surface_conditions` gives
-    `ocean_depth_km` up to 855 km at 10 percent water, but high-pressure
-    ice forms below 70 to 200 km at Earth gravity, and it compares
-    `ice_shell_thickness_km` (ice, 917 kg/m3) with
-    `water_layer_depth_km` (water, 1,000 kg/m3) without a density
-    correction (the ocean is overstated by about 9 percent; base
-    temperature fixed at 273.15 K). Open question for Boss (default
-    yes): the cap is a hard limit and changes saved data on regeneration
-    only.
-    Design: [docs/design/habitability-index.md](design/habitability-index.md)
-
   - [ ] **GEN.89 The habitability score for every planet and moon**
     Done: every planet and moon gets the scores GEN.84 defines, with a
     colour tier and a human equipment profile (shirtsleeve, mask, mask
@@ -2039,7 +2016,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     `land_fraction`. It returns the lowest tier, with a reason string,
     for any pulsar, black hole or X-ray-binary planet. Open question for
     Boss (default: store the two flare numbers, derive the rest).
-    Prerequisites: GEN.87, GEN.88.
+    Prerequisite: GEN.87.
     Design: [docs/design/habitability-index.md](design/habitability-index.md)
 
 - [ ] **GEN.90 Refactor the planet classes around the habitability index**
@@ -3140,7 +3117,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   modelled. Done: the induced field is computed for ocean moons and
   stored beside the intrinsic field, with a test on a known case (a
   Europa-like moon of a gas giant).
-  Prerequisite: GEN.88. Related: GEN.86.
+  Prerequisites: none (GEN.88 merged, PR #963). Related: GEN.86.
 
 - [ ] **GEN.179 Store each sector's generation directive and attempt record with the sector**
   Left over from GEN.96 (PR #915, Foundations lane 1). Done: the
@@ -3226,7 +3203,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (GEN.183) applies. Decided (Boss, 2026-10-10 04:06Z, "your defaults are confirmed"): the nearest ring
   takes the lowest mass cut, as above, and each ring is counted from the
   previous ring's outer edge; the GEN.30 luminosity tiers go away.
-  Prerequisites: GEN.184. Related: GEN.30, GEN.40, GEN.99, GEN.183,
+  Prerequisite: GEN.184. Related: GEN.30, GEN.40, GEN.99, GEN.183,
   GEN.184, MAP.120, PERF.18.
 
 ## PERF: Speed, caching, bulk generation and parallel work
@@ -4274,6 +4251,14 @@ clears each one.
   open until it recurs, then investigate with the failing run's data).
   Prerequisites: none. Related: TEST.111, TEST.71.
 
+- [ ] **TEST.117 generatejobs.test.mjs fails on main since PERF.33 (PR #910) (bug)**
+  Reported by Foundations lane 2 (2026-10-10 04:09Z):
+  src/tests/js/generatejobs.test.mjs fails on main since PERF.33 (PR
+  #910) changed the Generate page's job display. Done: the test (or the
+  page) is corrected so the JS suite passes on main, and the Windows and
+  Linux JS test runs both pass.
+  Prerequisites: none. Related: PERF.33, TEST.111.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -4556,6 +4541,14 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   `generator_epoch` are the same number, bumped only when output changes
   for the same seed.
   Prerequisite: OPS.28.
+
+- [ ] **OPS.38 Two Redis dump files (dump.rdb and src/dump.rdb) are committed to main and should be removed and git-ignored (bug)**
+  Reported by Foundations lane 2 (2026-10-10 04:09Z, GEN.88 merge, PR
+  #963): dump.rdb, a Redis dump, was committed to main by PR #953, and
+  src/dump.rdb is tracked too. Done: both files are removed from the
+  repository, *.rdb is added to .gitignore, and the test and dev Redis
+  configuration writes its dump outside the working tree or not at all.
+  Prerequisites: none. Related: PERF.24, OPS.19.
 
 ## DOC: Documentation
 

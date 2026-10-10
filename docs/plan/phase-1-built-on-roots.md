@@ -90,11 +90,10 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | GEN.148 | Habitability index follow-ups from the research (GEN.84 built) |  | Research follow-up to GEN.84 (built). |
 | GEN.87 | Surface radiation dose |  |  |
-| GEN.88 | Hydrosphere and ocean chemistry |  | Reuses rogueSurface's ice-shell and ocean functions. |
-| GEN.178 | Magnetic fields: the induced field of an ocean moon | GEN.88 | Left over from GEN.86 (PR #908); waits on the hydrosphere model. |
+| GEN.178 | Magnetic fields: the induced field of an ocean moon |  | Left over from GEN.86 (PR #908); waits on the hydrosphere model. |
 | GEN.177 | Planetary magnetic fields: a stagnant-lid factor |  | Left over from GEN.86 (PR #908). |
-| GEN.89 | The habitability score for every planet and moon | GEN.87, GEN.88 |  |
-| GEN.83 | A planetary habitability index (PHI) | GEN.87, GEN.88, GEN.89 | Parent; the class refactor (GEN item GEN.90) follows it. |
+| GEN.89 | The habitability score for every planet and moon | GEN.87 |  |
+| GEN.83 | A planetary habitability index (PHI) | GEN.87, GEN.89 | Parent; the class refactor (GEN item GEN.90) follows it. |
 
 ### Tech levels and facilities
 
@@ -221,6 +220,8 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | TEST.111 | test_ensure_sector_generated_creates_then_reuses_the_same_sector fails in a busy parallel run (bug) |  | Test flake reported 2026-10-09; Bugfixes lane 1. |
+| TEST.117 | generatejobs.test.mjs fails on main since PERF.33 (PR #910) (bug) |  | Foundations lane 2 report 04:09Z. |
+| OPS.38 | Two Redis dump files (dump.rdb and src/dump.rdb) are committed to main and should be removed and git-ignored (bug) |  | Foundations lane 2 report 04:09Z. |
 | TEST.116 | test_bughunt_end_to_end stores M2V or M6V where it expects K2V on the MySQL 8.4 and MariaDB legs once (bug) |  | Bugfixes lane 1 report 03:57Z. |
 | TEST.115 | Three tests fail on the Windows CI leg in every recent run: Redis in WSL is unreachable (bug) |  | Bugfixes lane 1 report 03:57Z. |
 
