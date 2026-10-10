@@ -3522,11 +3522,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Bugfixes lane 1, with PERF.58.
   Prerequisites: none. Related: PERF.58, PERF.61, GEN.185.
 
-- [ ] **PERF.60 Large-mean Poisson helper for per-layer and per-stack counts (top priority)**
+- [ ] **PERF.60 Large-mean Poisson helper for per-layer counts (top priority)**
   From the scatter study (docs/design/scatter-queue-feasibility.md):
   _sample_poisson_count is Knuth's O(mean) algorithm, fine per ring, but
-  the object-first sampler (PERF.58) draws one count per layer or per
-  stack of layers, with means in the thousands or millions. Done: a
+  the object-first sampler (PERF.58) draws one count per layer, with means in the thousands or millions. Done: a
   helper draws Poisson counts for any mean in constant time (a
   transformed-rejection or normal-approximation method above a named
   threshold in tuning.py, Knuth below it), uses the one random wrapper
