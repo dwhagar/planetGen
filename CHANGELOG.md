@@ -3,6 +3,7 @@
 ## [8.0.866] - 2026-10-10
 
 ### Changed
+- GEN.182: comets that never come back are by design (parabolic, about 30%). The System Map's info panel now says whether a comet's orbit is bound (and its period) or unbound and not returning, with perihelion and eccentricity; a test checks every closed comet orbit stays inside the star's Hill sphere.
 - **Docs only:** UX.86 (compact grouped Galaxy Map Menu, PR #936) is retired from the TODO list and the plans.
 - UX.86: the Galaxy Map's Menu is more compact. The "Show on the map" toggles sit side by side at their natural width in their own collapsible group, the action buttons wrap in a row, and the map's controls use smaller buttons.
 - **Docs only:** ADM.30 (radial fills, PR #934) is retired from the TODO list and the plans, and TEST.114 (a load-sensitive test flake) is filed.
