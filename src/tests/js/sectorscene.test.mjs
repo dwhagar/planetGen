@@ -129,3 +129,18 @@ test("a hidden rogue planet loses its ring and a marked one comes back marked (M
   assert.equal(ring.visible, true);
   assert.equal(points.geometry.getAttribute("pointSize").array[index], rogue.markedLight.sizePx, "still marked");
 });
+
+test("an object left in an uncharted sector says so and has no page, bookmark or course buttons (MAP.162)", () => {
+  const star = { name: "B star (uncharted)", starType: "B", temp: "20000 K", uncharted: true };
+  const cloud = { name: "Black hole (uncharted)", kind: "blackHoleQuiescent", typeLabel: "Black Hole (Stellar)",
+    distanceText: "1 ly from sector center", key: "black_hole:s5", uncharted: true };
+  const nav = { active: () => false, actionsFor: () => [{ label: "Start here" }] };
+  [star, cloud].forEach((entry) => {
+    const spec = SS.infoSpec(entry, {}, nav);
+    assert.equal(spec.title, entry.name);
+    assert.deepEqual(spec.links, []);
+    assert.deepEqual(spec.nav, []);
+    assert.ok(!spec.bookmark);
+    assert.ok(spec.fields.some((field) => field[0] === "Status" && /Uncharted/.test(field[1])));
+  });
+});

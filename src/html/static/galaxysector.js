@@ -13,6 +13,10 @@
 // - THREE, scene, camera, canvasEl, picker (the map's);
 // - accentColor, lightBackground, pixelRatio();
 // - fetchScene(id): a Promise of GET /sector/<id>/scene's JSON;
+// - fetchUnchartedScene(at) (optional): a Promise of the scene JSON of the
+//   cell `at` ({ring, layer, slot}) nothing was generated in, which holds
+//   what the scatters left there (MAP.162); without it such a cell can't
+//   be opened;
 // - showInfo(spec): the info panel (mappick.js's spec);
 // - closeness(): how near the view is to the sector's fit (1 at the fit,
 //   2.5 at the closest), which grows the points a little (default 1);
@@ -127,6 +131,7 @@ export function createSectorStage(host) {
     if (!open) return;
     open.layers.forEach(host.picker.removeLayer);
     if (open.list && open.list.parentNode) open.list.parentNode.removeChild(open.list);
+    if (open.badge && open.badge.parentNode) open.badge.parentNode.removeChild(open.badge);
     open.sector.dispose();
     selectionRing.hide();
     hoverRing.hide();
@@ -242,10 +247,16 @@ export function createSectorStage(host) {
   // galaxystages.js's blocks have it) and puts it in the scene: resolves with
   // {center, halfEdge, fitPoints} (the galaxy's frame, parsecs), or
   // null when it is replaced meanwhile, can't be placed, or fails.
-  function openSector(id, bounds) {
+  //
+  // `at` ({ring, layer, slot}) opens the cell nothing was generated in
+  // instead (MAP.162, `id` is then null): it opens only when the scatters
+  // left something in it, and carries an "Uncharted" badge in its frame.
+  function openSector(id, bounds, at) {
     const mine = ++token;
-    return host.fetchScene(id).then(function (data) {
+    const fetched = at ? host.fetchUnchartedScene(at) : host.fetchScene(id);
+    return fetched.then(function (data) {
       if (mine !== token || !data || !data.centerPc || !(data.halfEdgePc > 0)) return null;
+      if (data.uncharted && !(data.stars.length || data.clouds.length)) return null;
       if (open) {
         const keep = token;
         close();
@@ -256,7 +267,7 @@ export function createSectorStage(host) {
       data.outline = null;
       data.compass = null;
       const half = data.sceneHalfPx || 160;
-      const state = { id: id, data: data, selected: null, hovered: null };
+      const state = { id: id, data: data, selected: null, hovered: null, uncharted: !!data.uncharted };
       state.center = data.centerPc;
       state.halfEdge = data.halfEdgePc;
       state.sector = buildSectorScene(data, {
@@ -276,11 +287,26 @@ export function createSectorStage(host) {
       state.list = entryList(state.sector.entries);
       state.listed = state.list ? state.list.listed : null;
       open = state;
+      if (state.uncharted) state.badge = unchartedBadge(data);
       showListed();
       host.hideCell(bounds || null);
       if (host.opened) host.opened();
       return { center: state.center, halfEdge: state.halfEdge, fitPoints: cubeCorners(state.center, state.halfEdge) };
     });
+  }
+
+  // The "Uncharted" mark on the open sector's frame (the map's viewport),
+  // naming the sector and what was left in it.
+  function unchartedBadge(data) {
+    if (!host.viewport) return null;
+    const badge = document.createElement("div");
+    badge.className = "sector-uncharted-badge";
+    badge.setAttribute("role", "note");
+    const count = data.stars.length + data.clouds.length;
+    badge.textContent = "Uncharted sector " + (data.designation || "") + ": not generated yet, "
+      + count + (count === 1 ? " object" : " objects") + " placed";
+    host.viewport.appendChild(badge);
+    return badge;
   }
 
   // Every frame: the points' growth and the rings' size.
@@ -301,6 +327,14 @@ export function createSectorStage(host) {
     update: update,
     isOpen: function () { return !!open; },
     sectorId: function () { return open ? open.id : null; },
+    // Whether the open sector is one nothing was generated in (MAP.162), and
+    // what the scatters left in it: {stars, objects, designation}.
+    isUncharted: function () { return !!(open && open.uncharted); },
+    unchartedSummary: function () {
+      return open && open.uncharted
+        ? { stars: open.data.stars.length, objects: open.data.clouds.length, designation: open.data.designation }
+        : null;
+    },
     select: selectEntry,
     deselect: deselect,
     // The open sector's entry with this key ("rogue_planet:12"), or null.

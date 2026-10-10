@@ -200,6 +200,10 @@ def sector_detail(sector_id=SECTOR_ID):
     }
 
 
+UNCHARTED_CELL = (0, 0, 0)
+"""A cell of the core no sector was generated in, where the fixture's scatters left a bright star, a black
+hole and a nebula (MAP.162)."""
+
 SECTOR_STATS = {
     SECTOR_ID: (900, 1200, 4.5, 3000.0),
     8: (40, 60, 0.5, 900.0),
@@ -358,10 +362,32 @@ class FixtureApi:
     def get_bright_stars_in_cell(self, db, ring_index, layer_index, ring_slot_index):
         return []
 
+    def get_uncharted_sector(self, db, ring_index, layer_index, ring_slot_index):
+        """`GET /api/galaxy/uncharted`: `UNCHARTED_CELL` holds a bright star and a black hole and a
+        nebula that no sector was made for; every other cell is empty (MAP.162)."""
+        from planetgen.galaxy.geometry import provisional_sector_designation
+
+        address = (ring_index, layer_index, ring_slot_index)
+        cx, cy, cz = _sector_center_pc(*address)
+        generated = next((s[0] for s in SECTORS if s[1:4] == address), None)
+        cell = {"ring_index": ring_index, "layer_index": layer_index, "ring_slot_index": ring_slot_index,
+                "designation": provisional_sector_designation(*address), "center_pc": [cx, cy, cz],
+                "edge_pc": EDGE_PC, "sector_id": generated, "stars": [], "scattered": []}
+        if address == UNCHARTED_CELL:
+            cell["stars"] = [{"id": 1, "x": cx + 0.5, "y": cy + 0.4, "z": cz, "luminosity_sol": 9000.0,
+                              "temperature_k": 22000.0, "radius_sol": 6.0, "star_type": "B2V"}]
+            cell["scattered"] = [
+                {"id": 1, "kind": "black-hole", "subtype": "stellar", "type": "black_hole",
+                 "x": cx - 0.6, "y": cy, "z": cz + 0.3},
+                {"id": 2, "kind": "planetary-nebula", "subtype": None, "type": "nebula",
+                 "x": cx, "y": cy - 0.7, "z": cz - 0.2},
+            ]
+        return cell
+
 
 _APICLIENT = ("get_galaxy_sectors", "get_galaxy_shape", "get_polities", "auth_me", "get_galaxy_locate",
               "get_sector", "get_sector_facilities", "get_bright_stars_in_cell", "get_population_status",
-              "get_galaxy_changes", "get_nebula_shape", "get_system_scene")
+              "get_galaxy_changes", "get_nebula_shape", "get_system_scene", "get_uncharted_sector")
 _TILECACHE = ("get_galaxy_changes", "get_galaxy_tiles", "get_galaxy_stage")
 
 
@@ -399,4 +425,4 @@ def map_site(tmp_path_factory):
         patch.undo()
 
 
-__all__ = ["map_site", "DrillBlock", "SECTOR_ID", "SYSTEMS", "PHENOMENA", "SECTORS"]
+__all__ = ["map_site", "DrillBlock", "SECTOR_ID", "SYSTEMS", "PHENOMENA", "SECTORS", "UNCHARTED_CELL"]
