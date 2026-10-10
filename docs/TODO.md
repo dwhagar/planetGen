@@ -1092,16 +1092,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: MAP.147, MAP.157, MAP.158.
   Design: [docs/design/galaxy-map-wire-format.md](design/galaxy-map-wire-format.md)
 
-- [ ] **MAP.165 Scattered phenomena store a mass so the Galaxy Map sizes them exactly**
-  Bugfixes lane 2 (2026-10-10, MAP.164, PR #1029): the scatter rows hold
-  no mass, so the Galaxy Map sizes black holes and neutron stars by mass
-  class only; Boss asked for size by mass (2026-10-10 06:39Z). Done: the
-  phenomenon scatter stores a mass for each scattered black hole and
-  neutron star, the map sizes them by it relative to stars of similar
-  mass and brightness, and a test checks the size ordering. Owner:
-  Bugfixes lane 2 (coordinator, 2026-10-10 12:52Z), first.
-  Prerequisites: none. Related: MAP.164, GEN.185, MAP.148, MAP.153.
-
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
@@ -3905,8 +3895,8 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   with sane limits and presets, they are stored in `galaxy_shape`, the
   density model uses them, and a test checks that a changed value
   changes the density at an arm, between arms, in the core and in the
-  bulge. Owner: Bugfixes lane 2 (coordinator, 2026-10-10 12:52Z), after
-  MAP.165.
+  bulge. Owner: Bugfixes lane 2 (coordinator, 2026-10-10 12:52Z), now
+  that MAP.165 has merged.
   Prerequisites: none. Related: GEN.183, GEN.184, GEN.186.
 
 ## SEC: Security
