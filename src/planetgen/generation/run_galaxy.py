@@ -1166,7 +1166,14 @@ def _whole_neighborhood_inside(bounds, position_pc, radius_pc, edge_pc):
     return True
 
 
-def _pick_random_start(args, edge_pc, batch_density, conn, radius_pc, taken):
+def _touches_filled_space(args, position_pc, radius_pc, edge_pc, batch_density):
+    """Whether any sector within `radius_pc` of `position_pc` is already generated (GEN.186)."""
+    candidates, occupied, _outside = _neighborhood_candidates(
+        position_pc, radius_pc, edge_pc, store.mysql_config_from_args(args), batch_density.bounds)
+    return bool(occupied)
+
+
+def _pick_random_start(args, edge_pc, batch_density, conn, radius_pc, taken, drawn=None):
     """
     One random start for random-start mode: an unoccupied address drawn
     inside the outline by volume (`GalaxyBounds.random_address`), retried up
@@ -1176,6 +1183,10 @@ def _pick_random_start(args, edge_pc, batch_density, conn, radius_pc, taken):
     radius from every start in `taken`, and it passes the
     `--neighborhood-gamma` draw (accepted with probability
     `min(1, density) ** gamma`; gamma 0, the default, accepts every one).
+    With `--avoid-filled-space` (GEN.186) a centre whose neighborhood
+    touches an already generated sector is retried too; `drawn`, when
+    given, is a dict that gets `centres` (examined) and `filled` (dropped
+    for touching filled space) counted up.
 
     Returns:
         tuple or None: `(address, position_pc, sector_args)`; `None` when
@@ -1192,6 +1203,13 @@ def _pick_random_start(args, edge_pc, batch_density, conn, radius_pc, taken):
                 any(math.dist(position_pc, other) < 2 * radius_pc for other in taken)
                 or not _whole_neighborhood_inside(batch_density.bounds, position_pc, radius_pc, edge_pc)):
             continue
+        if args.avoid_filled_space:
+            if drawn is not None:
+                drawn["centres"] = drawn.get("centres", 0) + 1
+            if _touches_filled_space(args, position_pc, radius_pc, edge_pc, batch_density):
+                if drawn is not None:
+                    drawn["filled"] = drawn.get("filled", 0) + 1
+                continue
         sector_args = batch_density.resolve(args, address, position_pc)
         if sector_args is None:
             continue
@@ -1235,15 +1253,20 @@ def run_random_start(args, edge_pc, progress):
     batch_density = _BatchDensity(mysql_config)
     conn = store.get_connection(mysql_config)
     starts = []
+    drawn = {}
     try:
         for _ in range(args.neighborhoods):
             start = _pick_random_start(args, edge_pc, batch_density, conn, radius_pc,
-                                       [position for _address, position, _args in starts])
+                                       [position for _address, position, _args in starts], drawn)
             if start is None:
                 break
             starts.append(start)
     finally:
         conn.close()
+    if args.avoid_filled_space:
+        log.normal(f"Keeping away from filled space: {drawn.get('filled', 0):,} of {drawn.get('centres', 0):,} "
+                   f"candidate centres touched sectors that are already generated and were dropped, "
+                   f"{drawn.get('centres', 0) - drawn.get('filled', 0):,} qualified.")
     if not starts:
         density_note = (
             f", meeting --min-start-density {args.min_start_density} (try lowering it or --max-ring "

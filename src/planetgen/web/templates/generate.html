@@ -304,6 +304,7 @@
                  hint="More than one makes that many, each whole inside the galaxy and at least twice the radius from the others.") }}
         {{ field("neighborhood_gamma", "Density bias", placeholder="0", min=0, max=10,
                  hint="0 picks starts evenly by volume; higher favors denser space.") }}
+        <label class="search-field generate-check"><span><input type="checkbox" name="avoid_filled_space" value="1"{% if form and form.get("avoid_filled_space") %} checked{% endif %}> Keep away from filled space: drop any start whose neighborhood touches sectors already generated</span></label>
       {%- elif mode == "ring" %}
         {{ field("ring", "Ring", step="1", min=0, max=max_ring) }}
         {{ field("layer", "Layer", placeholder="0", step="1") }}

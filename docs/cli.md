@@ -469,7 +469,7 @@ Not built yet. Each names its TODO item and phase; the design is in
 | `planetgen repair-db` | DB.9 | 1 | Rebuild damaged sectors from the parity file, or regenerate them from their seed when the version key matches, then check again. |
 | `--strict` | GEN.81 | 0 | Today's refusals (density, qualify, size, no room) become warnings and the run goes ahead; `--strict` keeps the old stop for scripts. |
 | `--resume` | PERF.30 | 1 | Finish the runs an interrupted fill left, from the step each reached. |
-| Layer, ring and column ranges; a radial cylinder; N random neighborhoods | ADM.29, ADM.30, GEN.97 | 1 | New fill shapes, also on the Generate page. |
+| Layer, ring and column ranges; a radial cylinder; N random neighborhoods, optionally kept away from filled space (`--avoid-filled-space`) | ADM.29, ADM.30, GEN.97, GEN.186 | 1 | New fill shapes, also on the Generate page. |
 | `--directive` | GEN.96 | 1 | Generation directives for a sector (density, at least N stars of a type, at least N habitable worlds). |
 
 Work runs as RQ jobs on Redis from phase 0 (PERF.24), so `--workers` sets the RQ worker count.

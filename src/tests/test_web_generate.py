@@ -1336,6 +1336,7 @@ def test_random_start_argv_carries_the_neighborhood_count():
     assert generate_page.random_start_argv({"neighborhoods": "1", "neighborhood_gamma": "2"}) == []
     with pytest.raises(generate_page.FormError):
         generate_page.random_start_argv({"neighborhoods": "101"})
+    assert generate_page.random_start_argv({"avoid_filled_space": "1"}) == ["--avoid-filled-space"]
 
 
 # --- Mass limit slider (GEN.183) --------------------------------------------------

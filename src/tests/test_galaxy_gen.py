@@ -1089,6 +1089,33 @@ def test_random_neighborhoods_are_separate_and_whole(mysql_config, capsys):
     assert len(seeds) == len(sectors)
 
 
+def test_avoid_filled_space_starts_in_empty_space_and_says_how_many_qualified(mysql_config, capsys):
+    """GEN.186: with the flag, no start's neighborhood touches a sector that was already generated."""
+    import math
+    _plan_wide_galaxy(mysql_config)
+    radius_pc = 4.0
+    base = ["--max-ring", "60", "--radius-pc", str(radius_pc), "--num-systems", "1"] + _mysql_argv(mysql_config)
+    _run_cli(["--neighborhoods", "2"] + base)
+    before = _all_sectors(mysql_config)
+    capsys.readouterr()
+    _run_cli(["--avoid-filled-space"] + base)
+    output = capsys.readouterr()
+    text = output.out + output.err
+    assert "Keeping away from filled space:" in text and "qualified" in text
+    new = [r for r in _all_sectors(mysql_config) if r["id"] not in {b["id"] for b in before}]
+    assert new
+    old_centres = [(r["center_x_pc"], r["center_y_pc"], r["center_z_pc"]) for r in before]
+    # The new sectors are a whole neighborhood of their own; none of them touches an old sector.
+    for r in new:
+        centre = (r["center_x_pc"], r["center_y_pc"], r["center_z_pc"])
+        assert all(math.dist(centre, old) > 0 for old in old_centres)
+
+
+def test_avoid_filled_space_needs_random_start_mode():
+    with pytest.raises(SystemExit):
+        _run_cli(["--avoid-filled-space", "--ring", "3"] + _DUMMY_MYSQL_ARGV)
+
+
 @pytest.mark.parametrize("argv", [
     ["--neighborhoods", "0"], ["--neighborhoods", "101"], ["--neighborhood-gamma", "-1"],
     ["--neighborhoods", "2", "--ring", "3"], ["--neighborhood-gamma", "1", "--center-sector", "1", "--radius-pc", "4"],
