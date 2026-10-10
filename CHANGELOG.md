@@ -3,6 +3,7 @@
 ## [8.0.866] - 2026-10-10
 
 ### Changed
+- The TODO list retires GEN.85 (atmosphere species and mantle redox, PR #848).
 - The TODO list files PERF.49 (batch the system-name reservation: 30 s of an 84 s dense core sector) with the earlier naming-cost findings re-checked against main.
 - A planet's atmosphere text is now written from its gases ("a mix of nitrogen, oxygen, and argon, with traces of water vapor and carbon dioxide"), and its surface pressure drops by any gas too cold to stay in the air.
 - The TODO list retires ADM.47 (PR #846) and records Bugfixes lane 1's measurement that name reservation takes 30 s of a dense sector's 84 s (PERF.31, PERF.43).
