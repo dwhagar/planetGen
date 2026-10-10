@@ -65,9 +65,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.180 | Directives: a forced fill (met_forced) after K failed draws |  | Left over from GEN.96. |
 | GEN.179 | Store each sector's generation directive and attempt record with the sector |  | Left over from GEN.96. |
 | GEN.186 | Random neighborhoods: an option to keep away from filled space |  | Left over from GEN.97 (merged, PR #950). |
-| GEN.190 | The Phenomena table is empty after a web-generated galaxy: the phenomena scatter pass never runs (bug) |  | Boss 06:39Z via coordinator, ASAP; Bugfixes lane 1. |
 | TEST.122 | Browser map tests fail on plain main in Bugfixes lane 2's container (fixture maps, controls, system-page maps) (bug) |  |  |
-| GEN.191 | New galaxy ignores the mass limit slider: the plan step does not store the limit, so the scatter uses the default whatever the form says (bug) |  |  |
 | ADM.49 | Galaxy shape density settings: the user changes the density range of the spiral arms, the inter-arm space, the core and the bulge |  | Boss 06:16Z via coordinator; unassigned. |
 
 ### Galaxy gen
