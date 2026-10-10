@@ -3,6 +3,7 @@
 ## [8.0.911] - 2026-10-10
 
 ### Changed
+- **Docs only:** TEST.119 (PR #993) and PERF.52 (PR #994) are retired; TEST.121 files a load-dependent browser test failure.
 - The Stats page's generation-speed table says what each row counts: a sector fill is seconds per sector and systems per sector, a bright-star or phenomena layer is seconds per layer and stars (objects) per layer, and so on. Layers showed "1,262 systems per sector" in a galaxy of 7,663 systems; they were stars per layer all along.
 - A reload keeps a highlighted kind when a hidden-by-default kind (rogue planets) is also shown; taking the hidden kinds up rewrote the address before the highlight was read, and dropped it. The browser tests for the grouped Galaxy Map Menu (UX.86) find its button again and show rogue planets before checking a highlight.
 - **Docs only:** ADM.28 (simpler Generate page, closes issue #736) and ADM.45 (star mix, PR #991) are retired.
