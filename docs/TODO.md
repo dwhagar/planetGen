@@ -4631,7 +4631,7 @@ clears each one.
   Prerequisites: none. Related: TEST.111, TEST.123.
 
 - [ ] **TEST.129 Two orbit-update tests fail on the MySQL 8.4 leg: the stored last_updated_at rounds up (bug)**
-  Reported by Foundations lane 1 (2026-10-10 20:55Z), from the manual CI
+  Reported by Foundations lane 1 (2026-10-10 20:55Z), from the CI
   run on main after PR #1161 (MySQL 8.4 leg; not caused by PERF.64):
   test_admin_script_cli.py::test_update_orbits_never_moves_backwards_when_the_clock_goes_back
   and
@@ -4649,7 +4649,7 @@ clears each one.
   Prerequisites: none. Related: TEST.116, TEST.126.
 
 - [ ] **TEST.130 test_the_scene_positions_at_the_epoch_match_the_stored_ones fails when a random system has comets (bug)**
-  Reported by Foundations lane 1 (2026-10-10 20:55Z), from the manual CI
+  Reported by Foundations lane 1 (2026-10-10 20:55Z), from the CI
   run on main after PR #1161:
   tests/test_body_positions.py::test_the_scene_positions_at_the_epoch_match_the_stored_ones
   fails because a comet's position at its epoch differs from the stored
