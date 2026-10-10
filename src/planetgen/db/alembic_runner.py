@@ -36,12 +36,31 @@ def revision_id(version):
     return f"{version:04d}"
 
 
-def _config(scripts_dir=None, connection=None):
+DDL_LOCK_WAIT_S = 3600
+"""int: How long a migration's statements wait for a lock (`lock_wait_timeout`,
+metadata locks on a busy table) before failing, instead of MySQL's one year
+default or a server's short one (DB.15)."""
+
+
+def _config(scripts_dir=None, connection=None, on_progress=None):
     cfg = Config()
     cfg.set_main_option("script_location", scripts_dir or MIGRATIONS_DIR)
     if connection is not None:
         cfg.attributes["connection"] = connection
+    if on_progress is not None:
+        cfg.attributes["on_progress"] = on_progress
     return cfg
+
+
+def report_progress(label, done, total):
+    """Called from inside a revision's `upgrade()` that works in batches:
+    `done` of `total` units of `label` (rows, tables) are finished. Does
+    nothing when the migration is run without a progress display (DB.15)."""
+    from alembic import context
+
+    callback = context.config.attributes.get("on_progress") if context.config is not None else None
+    if callback is not None:
+        callback(label, done, total)
 
 
 def revisions(scripts_dir=None):
@@ -81,13 +100,14 @@ def _engine(config):
         creator=lambda: pymysql.connect(
             host=config.host, port=config.port, user=config.user, password=config.password,
             database=config.database, charset="utf8mb4", autocommit=False,
-            init_command="SET time_zone = '+00:00'",
+            init_command=f"SET time_zone = '+00:00', SESSION lock_wait_timeout = {DDL_LOCK_WAIT_S}",
         ),
         poolclass=sqlalchemy.pool.NullPool,
     )
 
 
-def upgrade(config, from_version, record, on_step=None, step_offset=0, total=None, scripts_dir=None):
+def upgrade(config, from_version, record, on_step=None, step_offset=0, total=None, scripts_dir=None,
+            on_progress=None):
     """
     Records the database as being at `from_version` in Alembic's own
     `alembic_version` table (a database that has only run the legacy steps
@@ -104,6 +124,9 @@ def upgrade(config, from_version, record, on_step=None, step_offset=0, total=Non
             counting from `step_offset + 1`.
         total (int, optional): The step count `on_step` reports; defaults
             to the revisions pending here.
+        on_progress (callable, optional): Called as `on_progress(label,
+            done, total)` by a revision that works in batches
+            (`report_progress`), so a long step shows its own bar.
 
     Returns:
         int: The schema version the database is at now.
@@ -114,7 +137,7 @@ def upgrade(config, from_version, record, on_step=None, step_offset=0, total=Non
     engine = _engine(config)
     try:
         with engine.connect() as connection:
-            cfg = _config(scripts_dir, connection)
+            cfg = _config(scripts_dir, connection, on_progress)
             current = MigrationContext.configure(connection).get_current_revision()
             if current != revision_id(from_version):
                 command.stamp(cfg, revision_id(from_version), purge=current is not None)

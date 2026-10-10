@@ -7865,7 +7865,7 @@ def schema_status(config=None):
         conn.close()
 
 
-def migrate_database(config=None, on_step=None):
+def migrate_database(config=None, on_step=None, on_progress=None):
     """
     Brings a database's `schema_migrations` bookkeeping up to
     `SCHEMA_VERSION`, applying any migration step in between.
@@ -7886,6 +7886,9 @@ def migrate_database(config=None, on_step=None):
             from_version, to_version)` just before each pending step
             runs (`number` counts from 1 to `total`), so a caller can
             show progress (`planetgen.cli.migrate`'s progress bar).
+        on_progress (callable, optional): Called as `on_progress(label,
+            done, total)` by a revision that works in batches, for the
+            bar of that one step (DB.15).
 
     Returns:
         int: The database's `schema_migrations` version (always
@@ -7920,7 +7923,8 @@ def migrate_database(config=None, on_step=None):
                                   from_version=version, to_version=reached)
                 version = reached
 
-            version = alembic_runner.upgrade(config or DEFAULT_MYSQL_CONFIG, version, record, on_step=on_step)
+            version = alembic_runner.upgrade(config or DEFAULT_MYSQL_CONFIG, version, record, on_step=on_step,
+                                             on_progress=on_progress)
         return version
     finally:
         conn.close()
