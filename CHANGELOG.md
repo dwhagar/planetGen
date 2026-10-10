@@ -3,6 +3,8 @@
 ## [8.0.866] - 2026-10-10
 
 ### Changed
+- A `galaxy` run now links its new sectors to their neighbours (containment in nebulae and remnants, nearest systems) once at its end instead of one sector at a time while it saves, so the workers no longer queue for it (PERF.45). The stored links are the same. Sectors made on demand still link as they are saved.
+- A planet's or moon's position is worked out once when first read instead of after every move (PERF.46); the values are unchanged.
 - Retired PERF.43 (PR #861) and filed ADM.48, the failing auth-sweep tests for the galaxy-settings download.
 - Stars and phenomena draw their generated name only when it is first read (PERF.43). A placed phenomenon is named by its object ID and never draws one, which saves about 4 percent of a sector fill; building a rogue planet is about four times faster. This is the first half of a one-time reseed: each name now takes one draw at construction instead of many, so the same seed gives a different galaxy. The second half is the 20 solar mass phenomenon cut (GEN.166 to GEN.168).
 - OPS.37 and API.22 record Boss's decision on their defaults.
