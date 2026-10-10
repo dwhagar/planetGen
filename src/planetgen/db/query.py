@@ -5005,7 +5005,7 @@ def _search_result_stars(conn, spectral_tags, luminosity_tags, term, limit, offs
     where = (" AND " + " AND ".join(clauses)) if clauses else ""
     rows, page = _search_page(
         conn,
-        "SELECT s.name, s.role, s.star_type, s.radius_km, s.star_system_id, ss.name AS system_name, ss.sector_id",
+        "SELECT s.id, s.name, s.role, s.star_type, s.radius_km, s.star_system_id, ss.name AS system_name, ss.sector_id",
         f"FROM stars s JOIN star_systems ss ON ss.id = s.star_system_id WHERE 1=1{where}",
         "ss.name, s.name, s.id",
         params, limit, offset,
@@ -5035,7 +5035,7 @@ def _search_result_planets(conn, class_tags, body_tags, life_tags, term, limit, 
     rows, page = _search_page(
         conn,
         """
-        SELECT p.name, p.planet_class, p.body_type, p.life_chemical, p.equipment_tier, p.radius_km,
+        SELECT p.id, p.name, p.planet_class, p.body_type, p.life_chemical, p.equipment_tier, p.radius_km,
                p.star_system_id, ss.name AS system_name, ss.sector_id
         """,
         f"FROM planets p JOIN star_systems ss ON ss.id = p.star_system_id WHERE 1=1{where}",
@@ -5067,7 +5067,7 @@ def _search_result_moons(conn, class_tags, body_tags, life_tags, term, limit, of
     rows, page = _search_page(
         conn,
         """
-        SELECT m.name, m.planet_class, m.body_type, m.life_chemical, m.equipment_tier, m.radius_km, p.name AS planet_name,
+        SELECT m.id, m.name, m.planet_class, m.body_type, m.life_chemical, m.equipment_tier, m.radius_km, p.name AS planet_name,
                m.star_system_id, ss.name AS system_name, ss.sector_id
         """,
         f"""
@@ -5090,7 +5090,7 @@ def _search_result_belts(conn, density_tags, limit, offset):
     where = (" AND " + " AND ".join(clauses)) if clauses else ""
     rows, page = _search_page(
         conn,
-        "SELECT ab.density, ab.composition_summary, ab.star_system_id, ss.name AS system_name, ss.sector_id",
+        "SELECT ab.id, ab.density, ab.composition_summary, ab.star_system_id, ss.name AS system_name, ss.sector_id",
         f"FROM asteroid_belts ab JOIN star_systems ss ON ss.id = ab.star_system_id WHERE 1=1{where}",
         "ss.name, ss.id, ab.orbital_index, ab.id",
         params, limit, offset,
