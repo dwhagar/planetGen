@@ -20,7 +20,7 @@ import math
 import re
 
 from planetgen.physics import constants
-from planetgen.physics import atmosphere, spin
+from planetgen.physics import atmosphere, magnetism, spin
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -726,6 +726,8 @@ def calculate_atmospheric_conditions(planet, distance_override=None):
     # GEN.85: the mantle redox and the ten gases' partial pressures, which
     # write the atmosphere text and freeze out what the cold side can't hold.
     atmosphere.generate_atmosphere(planet)
+    # GEN.86: the star's XUV and flares at this distance (no draws).
+    magnetism.update_exposure(planet, distance)
 
 
 def _tidal_locking_timescale_seconds(moon, primary_mass_kg, initial_rotation_period_hours):
@@ -874,6 +876,8 @@ def generate_spin(planet, primary_mass_kg):
         tilt = spin.rayleigh_tilt_deg()
     spin.set_spin(planet, spin.orbit_normal(planet.orbital_inclination_deg,
                                             planet.orbital_ascending_node_deg), tilt)
+    # GEN.86: the field depends on the rotation just set.
+    magnetism.generate_field(planet)
 
 
 
