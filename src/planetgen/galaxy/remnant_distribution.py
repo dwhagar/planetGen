@@ -22,6 +22,8 @@ the sources give shapes, not percentages.
 
 import math
 
+import numpy as np
+
 from planetgen import tuning
 
 
@@ -63,6 +65,14 @@ def placement_factor(kind, point_pc, thin_height_pc):
     """Both factors for a galaxy-frame point `(x, y, z)` in parsecs."""
     radius = math.hypot(point_pc[0], point_pc[1])
     return vertical_factor(kind, point_pc[2], thin_height_pc) * radial_factor(kind, radius)
+
+
+def radial_factor_array(kind, radius_pc):
+    """`radial_factor` for an array of radii (the phenomena scatter's whole layer at once, PERF.63)."""
+    radius_pc = np.asarray(radius_pc, dtype=float)
+    if kind != "black-hole":
+        return np.ones_like(radius_pc)
+    return 1.0 + tuning.BLACK_HOLE_CORE_EXCESS * np.exp(-radius_pc / tuning.BLACK_HOLE_CORE_SCALE_PC)
 
 
 def pulsar_radial_factor(radius_pc):

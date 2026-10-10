@@ -13,16 +13,16 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.95 |
-| MAP | MAP.171 |
+| UX | UX.98 |
+| MAP | MAP.184 |
 | NAV | NAV.60 |
-| GEN | GEN.200 |
-| PERF | PERF.73 |
-| DB | DB.23 |
+| GEN | GEN.206 |
+| PERF | PERF.83 |
+| DB | DB.25 |
 | API | API.25 |
 | ADM | ADM.51 |
 | SEC | SEC.33 |
-| TEST | TEST.133 |
+| TEST | TEST.137 |
 | USR | USR.10 |
 | OPS | OPS.42 |
 | DOC | DOC.18 |
@@ -485,6 +485,8 @@ Parents marked "new parent" had no old number of their own.
 | DB.20 | Object IDs in the schema: uid becomes BINARY(10), unique on its own, plus an id_counters table | none | done, PR #1055 |
 | DB.21 | A deep pass for the database check: validate every star system, with the estimated time shown first | none | done, PR #1082 |
 | DB.22 | Sectors saved by hand without a grid address have no stored object ID until they are saved again (bug) | none | done, PR #1127 |
+| DB.23 | Store a "map luminosity" for phenomena that are faint but massive (Alembic migration) | none | open |
+| DB.24 | The nebula_field table: one row per field nebula cloud, built at plan time (Alembic migration) | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
@@ -629,7 +631,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.125 | Stand-alone facilities store a velocity | none | done, PR #782 |
 | GEN.126 | Run an orbital update as the last step of a generation run | none | done, PR #771 |
 | GEN.127 | A sector generated around a backfilled bright star gives that star a planetary system (bug) | none | done, PR #805 |
-| GEN.128 | Design: multi-star hierarchies and compact-object primaries | none | open |
+| GEN.128 | Design: multi-star hierarchies and compact-object primaries | none | done, PR #1186 |
 | GEN.129 | Multi-star systems of up to seven stars | none | open |
 | GEN.130 | Exotic star systems: a black hole, neutron star or similar at the center | none | open |
 | GEN.131 | Bright-star scatter logs how many stars it added to each layer, by type | none | done, PR #805 |
@@ -670,7 +672,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.166 | A mass_range argument on NeutronStar and BlackHole, and intermediate-mass black holes as their own kind | none | done, PR #866 |
 | GEN.167 | A lowest-mass option for the phenomenon scatter: --phenomenon-min-mass, default 20 solar masses | none | done, PR #866 |
 | GEN.168 | The sector fill draws the phenomena below the scatter cut | none | done, PR #866 |
-| GEN.169 | Decide the phenomenon scatter rates: regional factors and the 0.1% intermediate-mass black holes | none | open |
+| GEN.169 | Decide the phenomenon scatter rates: regional factors and the 0.1% intermediate-mass black holes | none | done, PR #1186 |
 | GEN.170 | Object ID layout: an 80-bit ID of birth sector, serial and body number, with pack, unpack, format and parse functions | none | done, PR #1017 |
 | GEN.171 | The sector fill gives object IDs by generation rank | none | done, PR #1055 |
 | GEN.172 | Run-time births get object IDs from the counters | none | done, PR #1075 |
@@ -701,6 +703,12 @@ Parents marked "new parent" had no old number of their own.
 | GEN.197 | Object IDs on ejection, merger and split events | none | open |
 | GEN.198 | The gravity field evaluator: pull, potential and tidal gradient at any point from the point masses and the galaxy potential | none | open |
 | GEN.199 | Per-zone gravity grid for a sector: stored in a cache and rebuilt when the orbits update | none | open |
+| GEN.200 | One shared function for the "map luminosity" of a mass: the luminosity a main-sequence star of that mass would have | none | open |
+| GEN.201 | Fill the map luminosity in the scatter and in existing galaxies | none | open |
+| GEN.202 | Scattered nebulae (planetary nebulae and remnants) join the nebula index, deduplicated by object id | none | open |
+| GEN.203 | Supernova-remnant and planetary-nebula scatter densities set to the catalogued counts | none | open |
+| GEN.204 | Nebula host chance per O and B star lowered to the catalogued one-per-few-O-stars | none | open |
+| GEN.205 | `planetgen plan --redo-nebula-field`: apply the new nebula rate to an existing galaxy | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -871,6 +879,19 @@ Parents marked "new parent" had no old number of their own.
 | MAP.168 | The Sector Map gravity layer: coloured zones for pull, well depth and tidal strength | none | open |
 | MAP.169 | The System Map gravity layer: the orbital plane as a heat map with Lagrange points and Hill spheres | none | open |
 | MAP.170 | The Galaxy Map gravity layer: the galaxy potential and region aggregates, coarse and optional | none | open |
+| MAP.171 | The Galaxy Map keys a massive phenomenon's visibility to its map luminosity (replaces "always lit") | none | open |
+| MAP.172 | Nebula cell aggregates in the region pyramid | none | open |
+| MAP.173 | The Galaxy Map tile carries a nebula layer: regions and singles, nested like the star lists | none | open |
+| MAP.174 | Nebula cover in the stage-view cell statistics, for filled and unfilled cells | none | open |
+| MAP.175 | The dark-family nebula fill is invisible on the dark theme (bug) | none | open |
+| MAP.176 | Nebula regions on the Galaxy Map: grouped soft sprites in the dominant family colour | none | open |
+| MAP.177 | Color by "Nebula cover" on the Galaxy Map | none | open |
+| MAP.178 | Field nebula clouds drawn one by one from the nebula table | none | open |
+| MAP.179 | Scattered nebulae as markers from level 8 | none | open |
+| MAP.180 | Picking, hover and fly-to for nebula regions and cover | none | open |
+| MAP.181 | Dust colour for the dark nebula family on both themes | none | open |
+| MAP.182 | Optional, default do not build: hosted H II and reflection nebulae for pre-placed O and B stars, drawn before their sector exists | none | open |
+| MAP.183 | Optional, default not built for the first release: near-view P and Q nebulae from the seeded field below about 250 pc | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
@@ -922,7 +943,7 @@ Parents marked "new parent" had no old number of their own.
 | NAV.49 | Waypoints: pick objects in Star select mode and plot a course through them, kept on the map until cleared | none | open |
 | NAV.50 | Pick any object down to a moon as a NAV endpoint | none | done, PR #724 |
 | NAV.51 | Courses route around asteroid fields | none | open |
-| NAV.52 | Port `join_islands` and the k-d tree to cKDTree | none | open |
+| NAV.52 | Port `join_islands` and the k-d tree to cKDTree | none | done, PR #1172 |
 | NAV.53 | A `cells_touching_sphere` helper, and pad `store.sectors_reached_by` by one edge (bug) | none | done, PR #843 |
 | NAV.54 | Keep-out radii for asteroid fields, supermassive holes, moons and nebulae (NAV.24 built) | none | open |
 | NAV.55 | A tuning block for the keep-out knobs | none | open |
@@ -1002,7 +1023,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.29 | Record which runs a partly filled sector still needs | none | open |
 | PERF.30 | Finish an interrupted block or sector run on the next start | none | open |
 | PERF.34 | The site stays responsive during heavy generation jobs (bug) | none | done, PR #811 |
-| PERF.31 | Investigate: where generation spends its time, from the plan to a finished galaxy | none | open |
+| PERF.31 | Investigate: where generation spends its time, from the plan to a finished galaxy | none | done, PR #1179 |
 | PERF.32 | Generation performance stats: rates recorded per run, deleted on every new version | none | done, PR #905 |
 | PERF.33 | Progress bars and ETAs from measured performance | none | open |
 | PERF.35 | An interval or chunk ledger for untouched sectors once block-first backfill lands | none | open |
@@ -1016,7 +1037,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.43 | Lazy word-salad names for phenomena named by object ID | none | done, PR #861 |
 | PERF.44 | Compute object uids in Python and write them with the row | none | done, PR #863 |
 | PERF.45 | Nearest-system links and containment as one later pass | none | done, PR #863 |
-| PERF.46 | Planets and moons: set the position once per body | none | open |
+| PERF.46 | Planets and moons: set the position once per body | none | done, PR #1186 |
 | PERF.47 | The PERF.31 benchmark records the buffer pool, table sizes and worker start-up cost | none | open |
 | PERF.48 | Low priority: a numeric-only INSERT formatter or C driver for bright_stars and phenomenon_scatter | none | open |
 | PERF.49 | Batch system-name reservation: remove the quadratic scan and the long-held registry locks (re-measure first) | none | done, PR #870 |
@@ -1029,20 +1050,30 @@ Parents marked "new parent" had no old number of their own.
 | PERF.56 | Record how long each stage of a staged job takes, with the settings it ran with | none | done, PR #1077 |
 | PERF.57 | Skip empty stretches in a galactic scatter by combining layers into growing groups | none | done, PR #1101; removed by PERF.58 (PR #1108) |
 | PERF.58 | Object-first star sampler for the mass and luminosity passes (top priority, replaces PERF.57) | none | done, PR #1108 |
-| PERF.59 | Share the ring inputs between the phenomena pass and the backfill rings (top priority) | none | open |
+| PERF.59 | Share the ring inputs between the phenomena pass and the backfill rings (top priority) | none | closed as superseded by PERF.58, PERF.61 and PERF.63 (no PR) |
 | PERF.60 | Large-mean Poisson helper for per-layer counts (top priority) | none | done, PR #1106 |
 | PERF.61 | Object-first sampler for the phenomena pass, own prototype first | none | done, PR #1113 (measured, no gain; not merged) |
 | PERF.62 | Interim early stop in the current layer-walking scatters: 100 empty layers in a row (tuning.SCATTER_DRY_LAYERS) | none | done, PR #1087; removed by PERF.58 (PR #1108) |
-| PERF.63 | Vectorise the candidate work of the phenomena scatter with numpy | none | open |
+| PERF.63 | Vectorise the candidate work of the phenomena scatter with numpy | none | done, PR #1174 |
 | PERF.64 | The Galaxy Map and the Systems list stop with "Took too long" and the whole site is sluggish (bug) | none | done, PR #1161 |
 | PERF.65 | The text output of a multi-step job counts its steps, not its tasks: "Step 1 of 4" when the job has 12 (bug) | none | open |
 | PERF.66 | The whole-job progress bar should track total elapsed time and estimate a stage with no performance data from the earlier stages (bug) | none | open |
 | PERF.67 | Record how long every operation takes, from each stage up to the whole job, and use the records for ETAs | none | open |
-| PERF.68 | Measure the Galaxy Map tile queries on a big galaxy and make them fit the time limit (bug) | none | open |
+| PERF.68 | Measure the Galaxy Map tile queries on a big galaxy and make them fit the time limit (bug) | none | done, PR #1193 |
 | PERF.69 | Store the Planets, Moons and Phenomena table counts like the Systems and Sectors counts (bug) | none | open |
-| PERF.70 | Sorting the Systems list by Sector or Octant on millions of rows must not sort them all (bug) | none | open |
-| PERF.71 | Research how to keep slow database calls on large data sets from timing out: queue, split, or answer in parts | none | open |
+| PERF.70 | Sorting the Systems list by Sector or Octant on millions of rows must not sort them all (bug) | none | done, PR #1193 (built as a group-by-group read: no stored sector-name column, exact and needs no upkeep) |
+| PERF.71 | Research how to keep slow database calls on large data sets from timing out: queue, split, or answer in parts | none | done, PR #1175 |
 | PERF.72 | Research the cost of a sector's gravity grid and where to cut between exact and aggregated sources | none | open |
+| PERF.73 | Cut the cost of writing the phenomenon rows to the database (now the biggest part of a scatter run) | none | open |
+| PERF.74 | Store a per-sector system count so the Sectors list does not count every system on each request | none | done, PR #1193 |
+| PERF.75 | Keyset paging for the data tables: page forward by key, jump by value | none | open |
+| PERF.76 | Give each Galaxy Map tile piece its own time budget and serve an "incomplete" tile | none | open |
+| PERF.77 | Capped counts: "10,000 or more" where no stored count exists for a filter | none | open |
+| PERF.78 | A reserved warm worker for long admin operations, and the poll pattern for them | none | open |
+| PERF.79 | Two workers make the plan scatter about 12 times slower than one (bug) | none | open |
+| PERF.80 | "Save the sector paths" takes 24% of a small run and does not speed up with workers | none | open |
+| PERF.81 | Nearest-neighbour search in sector generation: a spatial grid instead of 1.8 million distance calls | none | open |
+| PERF.82 | Cut the cost of inserting a sector (about 17% of the fill) | none | open |
 | POP.1 | Government ownership of systems | 12 (2026-09-24 01:32Z to 02:18Z); 9 (2026-09-24 01:57Z to 02:02Z); 7 (2026-09-24 02:25Z to 05:38Z); 6 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 15 (2026-09-30 16:44Z); 16 (2026-09-30 16:49Z); 17 (2026-09-30 16:51Z to 18:09Z); 34 (2026-09-30 18:14Z); 39 (2026-09-30 18:39Z to 18:41Z); 59 (2026-09-30 19:02Z to 19:17Z); 63 (2026-09-30 20:01Z to 20:27Z); 46 (2026-09-30 20:07Z); 50 (2026-09-30 20:08Z to 20:48Z); 51 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 (optional since 7.58.2, PR #180) |
 | POP.2 | Names for dominant species on living worlds | 13 (2026-09-24 01:32Z to 02:18Z); 10 (2026-09-24 01:57Z to 02:02Z); 8 (2026-09-24 02:25Z to 05:38Z); 7 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 16 (2026-09-30 16:44Z); 17 (2026-09-30 16:49Z); 18 (2026-09-30 16:51Z to 18:09Z); 35 (2026-09-30 18:14Z); 40 (2026-09-30 18:39Z to 18:41Z); 60 (2026-09-30 19:02Z to 19:17Z); 64 (2026-09-30 20:01Z to 20:27Z); 47 (2026-09-30 20:07Z); 51 (2026-09-30 20:08Z to 20:48Z); 52 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
 | POP.3 | Database of spacefaring species | 14 (2026-09-24 01:32Z to 02:18Z); 11 (2026-09-24 01:57Z to 02:02Z); 9 (2026-09-24 02:25Z to 05:38Z); 8 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 17 (2026-09-30 16:44Z); 18 (2026-09-30 16:49Z); 19 (2026-09-30 16:51Z to 18:09Z); 36 (2026-09-30 18:14Z); 41 (2026-09-30 18:39Z to 18:41Z); 61 (2026-09-30 19:02Z to 19:17Z); 65 (2026-09-30 20:01Z to 20:27Z); 48 (2026-09-30 20:07Z); 52 (2026-09-30 20:08Z to 20:48Z); 53 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
@@ -1189,6 +1220,9 @@ Parents marked "new parent" had no old number of their own.
 | UX.92 | A Bookmark button for planets, moons and belts | UX.45 | open |
 | UX.93 | No TODO code (like PERF.67 or NAV.42) appears anywhere a user can see it, with a test that fails if one does | none | open |
 | UX.94 | Gravity map wording: the legend, the mode names and the Map help text | none | open |
+| UX.95 | Tables show their rows first and fill the filter-menu counts a moment later | none | open |
+| UX.96 | A table that hits the statement limit says the database is busy and retries, instead of failing with a 502 | none | open |
+| UX.97 | Search results: each panel runs under its own time limit and is fetched on its own | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
@@ -1418,6 +1452,10 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.130 | test_the_scene_positions_at_the_epoch_match_the_stored_ones fails when a random system has comets (bug) | none | open |
 | TEST.131 | Tests for the gravity field evaluator: two bodies, Lagrange points, softening and the rotation curve | none | open |
 | TEST.132 | test_a_fill_after_a_layer_failed_mid_scatter_builds_no_leftover_star failed once in a full parallel run (bug) | none | open |
+| TEST.133 | A reusable big-galaxy query budget test: EXPLAIN every page and list query on 2,000,000 systems | none | open |
+| TEST.134 | test_many_processes_starting_at_once_start_one_job fails under a parallel run (bug) | none | open |
+| TEST.135 | Big-galaxy query-budget test for the nebula reads | none | open |
+| TEST.136 | A nebula-rate audit test: the nebula counts and fillings stay inside the observed bands | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

@@ -33,3 +33,4 @@ Commit each file came from:
 - v78: 3d44328c (object IDs, before GEN.187)
 - v79: 5f09bea2 (GEN.187 mass backfill, before MAP.165)
 - v80: dc510bb4 (MAP.165 scatter mass, before ADM.49)
+- v81: ff1be90c (ADM.49 shape density, before PERF.68/70/74)

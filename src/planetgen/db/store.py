@@ -1424,6 +1424,7 @@ def _table_marker(table):
 
 
 _VERSION_MARKERS = (
+    (82, _table_marker("sector_system_counts")),
     (81, _column_marker("galaxy_shape", "core_amplitude")),
     (80, _column_marker("phenomenon_scatter", "mass_solar")),
     (79, _column_marker("sector_stats", "bright_mass_sol")),

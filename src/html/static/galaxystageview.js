@@ -1860,10 +1860,38 @@ export function createStageView(host) {
     applyView();
   }
 
-  function zoomBy(factor) {
+  // MAP.150: the world point under a screen point: the nearest thing the
+  // picker finds there, else the point on the plane through the view's
+  // middle (the focus) at right angles to the way the camera looks.
+  function anchorUnder(clientX, clientY) {
+    const rect = canvasEl.getBoundingClientRect();
+    if (!view || !rect.width || !rect.height) return null;
+    const ray = new THREE.Raycaster();
+    ray.setFromCamera(new THREE.Vector2(((clientX - rect.left) / rect.width) * 2 - 1, -((clientY - rect.top) / rect.height) * 2 + 1), camera);
+    const origin = ray.ray.origin;
+    const direction = ray.ray.direction;
+    const found = picker.pick(clientX, clientY);
+    if (found && found.distance > 0) {
+      return [origin.x + direction.x * found.distance, origin.y + direction.y * found.distance, origin.z + direction.z * found.distance];
+    }
+    const forward = new THREE.Vector3(view.target[0], view.target[1], view.target[2]).sub(origin).normalize();
+    return MC.pointOnFocusPlane(origin.toArray(), direction.toArray(), view.target, forward.toArray());
+  }
+
+  // Zooms by `factor` (under 1 comes closer). With an `anchor` (a world
+  // point) the view's middle moves with the zoom so the anchor stays under
+  // the same pixel, and the camera closes on it by the same share each
+  // step, so it never reaches it (MAP.150); inside a system the zoom is
+  // about the middle.
+  function zoomBy(factor, anchor) {
     if (!view || animation || !MC.canZoom(zoomPolicyFor(resolved))) return;
+    const before = view.dist;
     view.zoom = MC.clampDistance(zoomPolicyFor(resolved), view.zoom * factor, 1);
     reframe();
+    if (anchor && view.fit && !enteredSystem && before > 0 && view.dist !== before) {
+      view.target = MC.zoomAboutAnchor(view.target, anchor, view.dist / before);
+      clampPan(view.target, view.fit.target, PAN_REACH * view.fit.dist * Math.tan(fovHalf()));
+    }
     applyView();
   }
 
@@ -1872,7 +1900,10 @@ export function createStageView(host) {
   function onWheel(event) {
     if (!MC.canZoom(zoomPolicyFor(resolved)) || !view) return false;
     const deltaPx = MC.wheelPixels(event, canvasEl.clientHeight, 200);
-    if (deltaPx && !zoomAcross(deltaPx)) zoomBy(Math.exp(deltaPx * WHEEL_ZOOM_PER_PX));
+    if (deltaPx && !zoomAcross(deltaPx)) {
+      const anchor = typeof event.clientX === "number" && typeof event.clientY === "number" ? anchorUnder(event.clientX, event.clientY) : null;
+      zoomBy(Math.exp(deltaPx * WHEEL_ZOOM_PER_PX), anchor);
+    }
     return true;
   }
 
@@ -2966,6 +2997,8 @@ export function createStageView(host) {
     stage: function () { return stage; },
     // The opened sector's entries (MAP.68): "Show on map" buttons select
     // one by key, and "Mark rogue planets" rings the rogue planets.
+    // The world point under a screen point (MAP.150); read by the tests.
+    anchorUnder: anchorUnder,
     zoomIn: function () { zoomBy(1 / BUTTON_ZOOM); },
     zoomOut: function () { zoomBy(BUTTON_ZOOM); },
     kinds: sectorStage.kinds,

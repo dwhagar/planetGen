@@ -33,6 +33,7 @@ import sys
 import time
 
 import pymysql
+from planetgen.cli import benchmark
 
 from planetgen.queue import work as workQueue
 from planetgen.db import check as db_check, fingerprint, store
@@ -1346,7 +1347,17 @@ def build_parser():
         help="Name species, date civilizations and draw territories from what is stored.")
     add_population_arguments(population_parser)
 
+    benchmark_parser = subparsers.add_parser(
+        'benchmark',
+        description="Times a small galaxy from the plan to the finished fill in scratch databases and prints "
+                    "the time and database work of every stage, at each worker count asked, with an optional "
+                    "profile of the fill (PERF.31).",
+        help="Time where generation spends its time.")
+    benchmark.add_benchmark_arguments(benchmark_parser)
+    add_logging_arguments(benchmark_parser)
+
     return parser, {
+        'benchmark': benchmark_parser,
         'system': system_parser,
         'sector': sector_parser,
         'galaxy': galaxy_parser,
@@ -1487,7 +1498,7 @@ def run_versions(args):
     log.normal(version_history.format_history(store.mysql_config_from_args(args)))
 
 
-READ_ONLY_COMMANDS = ("check-db", "check-math", "fingerprint", "versions")
+READ_ONLY_COMMANDS = ("check-db", "check-math", "fingerprint", "versions", "benchmark")
 """tuple: Subcommands that write nothing, so they aren't logged as runs
 (no activity log lines, job tree node or run history)."""
 
@@ -1506,6 +1517,7 @@ def is_bulk_run(args):
 
 
 _COMMAND_HANDLERS = {
+    'benchmark': benchmark.run_benchmark,
     'check-math': run_check_math,
     'versions': run_versions,
     'check-db': run_check_db,

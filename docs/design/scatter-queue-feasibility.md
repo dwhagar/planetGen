@@ -155,3 +155,19 @@ The object-first sampler was built for the phenomena pass (per-class Poisson cou
 - Deferring the sector-address check until after acceptance and using `relative_density` instead of the population split cut the new sampler's time by about 40% (3.9 s to 2.35 s for layer 0), and it still does not beat today's.
 - **Decision:** the phenomena pass keeps today's ring walk; the prototype is not merged. A further gain would need the candidate work vectorised in numpy (points, density, regional factor and acceptance for thousands of candidates at once), a larger change that would need its own prototype; not done.
 - The star passes keep the sampler (PERF.58), where objects are few (267,000 to 318,000) and the ring walk was the whole cost.
+
+## Phenomena numpy result (Bugfixes lane 1, 2026-10-10, PERF.63)
+
+The object-first prototype showed that per-object Python work, not the ring walk, sets the phenomena pass's cost. PERF.63 vectorises that work and keeps the ring walk's model unchanged: per ring and class the same Poisson count (mean `rate * e * slots_per_bin * sum(bin weights)`), then for the whole layer at once the angle bin (one `searchsorted` over the rings' cumulative shares), the slot under the bin's angle, the uniform point in the slot, the mass and the stored-in-cell check, as numpy arrays. The random numbers still come from the layer's `draw.Stream` in bulk (`random()` calls), so GEN.56's single random wrapper holds and a layer repeats from its seed. The first rings (fewer slots than angle bins) keep the scalar walk.
+
+| | Ring walk (before) | Numpy |
+|---|---|---|
+| Objects (41 sampled layers) | 1,439,029 | 1,439,919 (+0.06%) |
+| Time (41 sampled layers) | 46.4 s | 5.0 s |
+| Whole pass, single process | about 37.6 min (scaled) | 3.69 min (all 2,041 layers, 68,236,244 objects, measured) |
+| Layer 0 (95,000 objects) | 2.9 s | 0.33 s |
+
+- **Distribution matches.** On layers 0 and 255, four seeds each, two-sample chi-square against the old walk: radius 27.9 and 27.6 (29 degrees of freedom), angle 38.2 and 16.2 (35), height 9.2 and 7.6 (9); the mass means agree (stellar black holes 17.00 against 17.00). Counts per class and per ring group are tested against the walk's Poisson means in `tests/test_phenomenon_vector.py`.
+- **What changes:** the streams differ (same seed, different draws), so a galaxy needs a reseed; a point that rounding carries out of its cell is dropped instead of redrawn (a chance of about one in a million).
+- **Floor:** generation is now about 3.7 minutes; writing 68 million rows to the database will take longer than that, so the pass is bound by the inserts from here on.
+- Prototype, benchmark and distribution scripts and logs: `research/scatter-queue/scripts/` (`phenomenon_numpy.py`, `bench.py`, `dist.py`, `full.py`, `bench_phenomena_numpy.log`, `full_pass_phenomena_numpy.log`).

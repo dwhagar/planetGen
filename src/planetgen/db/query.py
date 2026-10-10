@@ -112,7 +112,7 @@ def open_readonly(config=None, statement_timeout_s=None):
 
 
 SECTOR_SORTS = {
-    "name": "sec.name", "systems": "system_count", "density": "(COUNT(ss.id) / POW(sec.edge_mpc, 3))",
+    "name": "sec.name", "systems": "system_count", "density": "(COALESCE(c.system_count, 0) / POW(sec.edge_mpc, 3))",
     "position": "quadrant", "distance": "sec.galactic_radius_pc",
 }
 """dict: The sort keys `list_sectors` accepts (the Sectors table's column
@@ -139,10 +139,27 @@ def _sector_quadrant_filter(quadrants):
     return f" WHERE {_SECTOR_QUADRANT_SQL} IN ({', '.join('?' for _ in quadrants)})", list(quadrants)
 
 
+def refresh_sector_system_counts(conn):
+    """
+    Makes `sector_system_counts` match the systems now (PERF.74): one `GROUP BY` on the sector index, in one
+    transaction so a reader sees the old counts or the new ones. `list_sectors` asks for it through `countcache`,
+    which runs it in the background and not more often than every 30 seconds.
+
+    Returns:
+        int: The sectors that hold at least one system.
+    """
+    conn.execute("DELETE FROM sector_system_counts")
+    cur = conn.execute("INSERT INTO sector_system_counts (sector_id, system_count) "
+                       "SELECT sector_id, COUNT(*) FROM star_systems WHERE sector_id IS NOT NULL GROUP BY sector_id")
+    conn.commit()
+    return cur.rowcount
+
+
 def list_sectors(conn, limit=None, offset=None, sort=None, descending=False, quadrants=()):
     """
     Returns every sector, with its edge length (converted to light-years)
-    and how many systems it contains, nearest the galactic core first
+    and how many systems it contains (as of the last refresh of
+    `sector_system_counts`, `refresh_sector_system_counts`), nearest the galactic core first
     (`galactic_radius_pc`); sectors never placed in a galaxy have no
     distance and come last, by name.
 
@@ -174,16 +191,13 @@ def list_sectors(conn, limit=None, offset=None, sort=None, descending=False, qua
         column = SECTOR_SORTS[sort]
         unplaced_last = "sec.center_x_pc IS NULL, " if sort in ("density", "distance", "position") else ""
         order = f"{unplaced_last}{column} {'DESC' if descending else 'ASC'}, " + order
+    _counted(conn, ["sector_system_counts"], refresh_sector_system_counts, lambda c: 0)
     query = f"""
         SELECT sec.id, sec.name, sec.edge_mpc, sec.center_x_pc, sec.center_y_pc, sec.center_z_pc,
                sec.galactic_radius_pc, sec.ring_index, sec.layer_index, sec.ring_slot_index,
-               COUNT(ss.id) AS system_count, {_SECTOR_QUADRANT_SQL} AS quadrant
+               COALESCE(c.system_count, 0) AS system_count, {_SECTOR_QUADRANT_SQL} AS quadrant
         FROM sectors sec
-        LEFT JOIN star_systems ss ON ss.sector_id = sec.id{where}
-        -- Every selected column, not just the key: MariaDB's
-        -- ONLY_FULL_GROUP_BY doesn't see columns that depend on sec.id.
-        GROUP BY sec.id, sec.name, sec.edge_mpc, sec.center_x_pc, sec.center_y_pc, sec.center_z_pc,
-                 sec.galactic_radius_pc, sec.ring_index, sec.layer_index, sec.ring_slot_index
+        LEFT JOIN sector_system_counts c ON c.sector_id = sec.id{where}
         ORDER BY {order}
         """
     if limit is not None:
@@ -377,6 +391,10 @@ def list_systems(conn, star_type_prefix=None, sector_id=None, limit=None, offset
     join_sql, where_sql, params = _systems_filter_clause(star_type_prefix, sector_id, binary, octants, in_sector)
     column = SYSTEM_SORTS[sort]
     direction = "DESC" if descending else "ASC"
+    if (limit is not None and not join_sql and sector_id is None and in_sector is None
+            and sort in _GROUP_WALK_SORTS):
+        rows = _systems_by_group(conn, sort, descending, where_sql, params, limit, offset or 0)
+        return _system_rows(conn, rows)
     nulls_last = f"{column} IS NULL, " if sort in ("sector", "octant") else ""
     # DISTINCT only matters when the star join can repeat a system; without it the sort can stop at the page (PERF.64).
     distinct = "DISTINCT " if join_sql else ""
@@ -391,7 +409,12 @@ def list_systems(conn, star_type_prefix=None, sector_id=None, limit=None, offset
         query += " LIMIT ? OFFSET ?"
         params = params + [limit, offset or 0]
 
-    rows = _with_star_types(conn, conn.execute(query, params).fetchall(), with_sector_name=True)
+    return _system_rows(conn, conn.execute(query, params).fetchall())
+
+
+def _system_rows(conn, rows):
+    """`list_systems`' dicts for `rows` (`star_systems` rows)."""
+    rows = _with_star_types(conn, rows, with_sector_name=True)
     return [
         {
             "id": r["id"], "name": r["name"], "sector_id": r["sector_id"], "sector_name": r["sector_name"],
@@ -399,6 +422,90 @@ def list_systems(conn, star_type_prefix=None, sector_id=None, limit=None, offset
         }
         for r in rows
     ]
+
+
+_GROUP_WALK_SORTS = ("sector", "octant", "binary")
+"""tuple[str]: The `list_systems` sorts served a group at a time by `_systems_by_group`."""
+
+_GROUP_WALK_COLUMNS = ("ss.id, ss.name, ss.sector_id, ss.quadrant, ss.is_binary, ss.binary_configuration, "
+                       "ss.binary_type")
+
+
+def _and_where(where_sql, condition):
+    """`where_sql` (empty or ` WHERE a AND b`) with `condition` added."""
+    return f"{where_sql} AND {condition}" if where_sql else f" WHERE {condition}"
+
+
+def _simple_groups(sort, descending):
+    """The groups of an octant or binary sort in order: `(condition_sql, params)`, the systems with none last."""
+    if sort == "binary":
+        return [("ss.is_binary = ?", [value]) for value in ((1, 0) if descending else (0, 1))]
+    labels = (("VIII", "VII", "VI", "V", "IV", "III", "II", "I") if descending else
+              ("I", "II", "III", "IV", "V", "VI", "VII", "VIII"))
+    return [("ss.quadrant = ?", [label]) for label in labels] + [("ss.quadrant IS NULL", [])]
+
+
+def _read_group(conn, where_sql, params, condition, group_params, need, offset):
+    return conn.execute(
+        f"SELECT {_GROUP_WALK_COLUMNS} FROM star_systems ss{_and_where(where_sql, condition)} "
+        f"ORDER BY ss.name, ss.id LIMIT ? OFFSET ?", list(params) + group_params + [need, offset]).fetchall()
+
+
+def _systems_by_group(conn, sort, descending, where_sql, params, limit, offset):
+    """
+    One page of `list_systems` sorted by sector, octant or binary, without sorting the table (PERF.70): the
+    sort is `<group>, name, id` with the systems that have no sector or octant last, so the page is found by
+    counting group after group (an index range each: `idx_star_systems_sector_id`, `idx_star_systems_quadrant`,
+    `idx_star_systems_binary_name`) until `offset` is used up, then reading the rows from the group it lands in
+    and the groups after it. The sectors are taken in chunks, counted by one query per chunk.
+
+    Returns:
+        list: `star_systems` rows, `limit` at most.
+    """
+    rows = []
+
+    def take(condition, group_params):
+        nonlocal offset
+        rows.extend(_read_group(conn, where_sql, params, condition, group_params, limit - len(rows), offset))
+        offset = 0
+        return len(rows) >= limit
+
+    if sort != "sector":
+        for condition, group_params in _simple_groups(sort, descending):
+            if offset:
+                n = conn.execute(f"SELECT COUNT(*) AS n FROM star_systems ss{_and_where(where_sql, condition)}",
+                                 list(params) + group_params).fetchone()["n"]
+                if n <= offset:
+                    offset -= n
+                    continue
+            if take(condition, group_params):
+                break
+        return rows
+
+    direction = "DESC" if descending else "ASC"
+    start, size = 0, 20
+    while True:
+        ids = [r["id"] for r in conn.execute(
+            f"SELECT id FROM sectors ORDER BY name {direction}, id {direction} LIMIT ? OFFSET ?",
+            (size, start)).fetchall()]
+        if not ids:
+            break
+        marks = ", ".join("?" for _ in ids)
+        counted = {r["sector_id"]: r["n"] for r in conn.execute(
+            f"SELECT ss.sector_id, COUNT(*) AS n FROM star_systems ss{_and_where(where_sql, f'ss.sector_id IN ({marks})')} "
+            f"GROUP BY ss.sector_id", list(params) + ids).fetchall()}
+        for sector in ids:
+            n = counted.get(sector, 0)
+            if n <= offset:
+                offset -= n
+                continue
+            if take("ss.sector_id = ?", [sector]):
+                return rows
+        start += len(ids)
+        size = min(size * 2, 500)
+    take("ss.sector_id IS NULL", [])
+    return rows
+    return rows
 
 
 _STAR_TYPE_COLUMNS = {"single": "single_star_type", "primary": "primary_star_type",

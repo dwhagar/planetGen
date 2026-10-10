@@ -346,6 +346,9 @@ galaxy fits and the per-star fill cost (46.6 ms, of which 2.6 ms is generation) 
 4. Decide the phenomenon rows: derive on demand or compact (E); needs Boss's choice.
 5. Nearest-system and containment as one later pass (F).
 6. Orbital position updates once per body; optional `finite_domain` skip in bulk fills (G).
+   Decided (Boss, 2026-10-09 20:02Z and 2026-10-10 18:44Z): the position half was approved and is built (PR #863,
+   bodies work out their coordinates when first read, PERF.46); the `finite_domain` check **stays on** in bulk
+   fills (the 2 to 4% it costs buys a safety net; Research Lane 1 agreed), so nothing further is built for it.
 7. Numeric-only INSERT formatter or C driver for bulk tables (D), low priority.
 8. PERF.31 benchmark to include the three phases above and the worker start-up cost, and to
    record `innodb_buffer_pool_size` and the table sizes with each run so the quarter-scale
