@@ -2239,6 +2239,10 @@ def test_galaxy_map_star_filters_apply_to_the_stars_drawn_at_galaxy_scale(page, 
     page.evaluate("""() => { const s = document.getElementById('galaxymap3d-lum'); s.value = 0;
                               s.dispatchEvent(new Event('input', {bubbles: true})); }""")
     assert page.evaluate(count) == before
+    # MAP.166: the galaxy view is never complete, so floor 0 names the dimmest
+    # star it carries rather than "every star".
+    label = page.locator("label.galaxy-lum span").inner_text()
+    assert "every star" not in label and "and up" in label, label
     for button in page.locator("#galaxymap3d-kinds [data-star-class]").all():
         button.click()
     assert page.evaluate(count) < before
