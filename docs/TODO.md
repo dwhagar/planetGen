@@ -3021,6 +3021,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   object IDs; the result is about 454,000 clouds (from 700,000), the
   sample-box filling falls from 11.0% to 1.7% and the filling at the four
   gas levels becomes 0.2, 1.1, 2.8 and 3.6%. Owner: Foundations lane 1.
+  Decided (Boss, 2026-10-10, "Apply all" on the nebula rates card): the
+  lower rates of docs/design/nebula-density-vs-reality.md apply to newly
+  generated galaxies (giant clouds 9.5%, dark clouds half, supernova
+  remnants about 3,000, H II regions 1 in 4 for O stars, classes P and Q
+  unchanged and kept out of the map index). Owner: Foundations lane 1,
+  with the GEN items. This item is the keep table.
   Prerequisites: none. Related: DB.24, TEST.136, GEN.203, GEN.204,
   GEN.205.
   Design: [docs/design/anomalies.md](design/anomalies.md)
@@ -3372,6 +3378,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the next plan or "Redo scatters" (GEN.196). Changes what a new galaxy
   generates; the same kind of rate change as GEN.152, whose approved
   default covers it. Owner: Foundations lane 1.
+  Decided (Boss, 2026-10-10, "Apply all" on the nebula rates card): the
+  lower rates of docs/design/nebula-density-vs-reality.md apply to newly
+  generated galaxies (giant clouds 9.5%, dark clouds half, supernova
+  remnants about 3,000, H II regions 1 in 4 for O stars, classes P and Q
+  unchanged and kept out of the map index). Owner: Foundations lane 1,
+  with the GEN items. This item is the remnant density.
   Prerequisites: none. Related: GEN.152, GEN.196, GEN.185.
   Design: [docs/design/nebula-density-vs-reality.md](design/nebula-density-vs-reality.md)
 
@@ -3388,6 +3400,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   a test of the hosted-per-O-star ratio. Changes what a new galaxy
   generates; covered by GEN.152's approved default. Owner: Foundations
   lane 1.
+  Decided (Boss, 2026-10-10, "Apply all" on the nebula rates card): the
+  lower rates of docs/design/nebula-density-vs-reality.md apply to newly
+  generated galaxies (giant clouds 9.5%, dark clouds half, supernova
+  remnants about 3,000, H II regions 1 in 4 for O stars, classes P and Q
+  unchanged and kept out of the map index). Owner: Foundations lane 1,
+  with the GEN items. This item is the host chance.
   Prerequisites: none. Related: GEN.152, GEN.150, GEN.99.
   Design: [docs/design/nebula-density-vs-reality.md](design/nebula-density-vs-reality.md)
 
@@ -3402,6 +3420,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   of their own, clear `inside_nebula_id` and refresh containment.
   Default for a test galaxy is just a new plan. Owner: Foundations lane
   1.
+  Decided (Boss, 2026-10-10, "Apply all" on the nebula rates card): the
+  lower rates of docs/design/nebula-density-vs-reality.md apply to newly
+  generated galaxies (giant clouds 9.5%, dark clouds half, supernova
+  remnants about 3,000, H II regions 1 in 4 for O stars, classes P and Q
+  unchanged and kept out of the map index). Owner: Foundations lane 1,
+  with the GEN items. This item is the cleanup of an existing galaxy; it
+  always runs a dry run first.
   Prerequisites: GEN.152, DB.24. Related: GEN.196, GEN.176.
   Design: [docs/design/nebula-density-vs-reality.md](design/nebula-density-vs-reality.md)
 
