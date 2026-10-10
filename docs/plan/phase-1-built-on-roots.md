@@ -197,7 +197,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | API.22 | An API version number: one sequential integer, shown in admin and in the status response |  | Boss 2026-10-09 20:59Z: done by the end of phase 1; do it early so later API changes bump it. |
 | API.23 | The object ID as the public reference: pages, URLs, the API, wiki links and objectref use it in place of row ids | API.22, GEN.171, GEN.172 | Object-ID research. Breaking: bumps the API version (API.22). |
 | API.7 | Investigate and plan upload limits |  | Plan only. |
-| API.9 | Key scopes |  | Control schema migration (v8). Decided: user keys belong to accounts, so API.6 waits for USR.2 (phase 3+); API.9's scopes don't. |
 
 ### Reproducible galaxies
 

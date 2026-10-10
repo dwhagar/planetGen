@@ -446,7 +446,7 @@ Parents marked "new parent" had no old number of their own.
 | API.6 | User-level API keys, owned by the account that created them, that can read but not upload | none | open |
 | API.7 | Investigate and plan upload limits | none | open |
 | API.8 | Verify uploaded data before it is finalized | none | open |
-| API.9 | Key scopes | none | open |
+| API.9 | Key scopes | none | done, PR #1033 |
 | API.10 | Reservations: claimed sectors and id blocks per run | none | open |
 | API.11 | Staging tables | none | open |
 | API.12 | The download: seed, skeleton and name state | none | open |
