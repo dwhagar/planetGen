@@ -1,2 +1,0 @@
-### Added
-- Generation directives (GEN.96): `--directive systems>=N`, `habitable>=N` or `type:X>=N` on `sector` and `galaxy` (with `--directive-attempts`, default 200) redraw each sector until it holds at least that much, from a repeatable per-attempt seed. If no draw meets it, the closest is kept and the log says which minimum it missed. The Generate page's "Generate sectors" form has an Override section for the same.
