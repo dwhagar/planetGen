@@ -89,8 +89,8 @@ def test_offensive_word_list_is_usable_by_the_lowercase_substring_filter():
 
 
 def test_filter_word_lists_are_sane():
-    assert wordlists.DICTIONARY_WORDS
-    assert isinstance(wordlists.WORD_SIZE_MEAN, int) and 1 <= wordlists.WORD_SIZE_MEAN <= 30
+    assert wordlists.dictionary_words()
+    assert isinstance(wordlists.word_size_mean(), int) and 1 <= wordlists.word_size_mean() <= 30
     assert set(wordlists.VOWELS) == set("aeiou")
     for cluster in wordlists.BAD_CONSONANTS:
         assert cluster and cluster == cluster.lower() and not set(cluster) & set(wordlists.VOWELS), cluster
@@ -318,7 +318,7 @@ def test_is_name_valid_never_raises_and_rejects_every_offensive_substring(name):
     result = wordsalad.is_name_valid(name)
     assert isinstance(result, bool)
     lower = name.lower()
-    if lower in wordlists.DICTIONARY_WORDS or any(w in lower for w in wordlists.NSFW_WORDS):
+    if lower in wordlists.dictionary_words() or any(w in lower for w in wordlists.NSFW_WORDS):
         assert result is False
 
 
@@ -351,7 +351,7 @@ def test_is_name_valid_sees_through_embedded_apostrophes(prefix, word, cut, suff
 @given(name=st.text(alphabet=string.ascii_lowercase + "'", min_size=0, max_size=40))
 def test_split_long_word_properties(name):
     out = wordsalad.split_long_word(name)
-    if len(name) <= wordlists.WORD_SIZE_MEAN or out == name:
+    if len(name) <= wordlists.word_size_mean() or out == name:
         assert out == name
         return
     assert out.count(" ") == 1

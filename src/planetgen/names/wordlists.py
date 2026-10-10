@@ -11,10 +11,8 @@ creating unique and plausible-sounding names for stars, planets, moons, and
 sectors.
 """
 
+import functools
 import os
-
-import nltk
-from nltk.corpus import words
 
 # --- Phonetic and Syllable Constants ---
 
@@ -121,7 +119,9 @@ a planet.
 
 # --- Word Dictionaries and Validation ---
 
-# Load the NLTK words corpus. Check via `nltk.data.find` (which searches
+# The NLTK words corpus is loaded on first use (PERF.39): importing nltk costs
+# about a second, which every web request and queue job that only needs a
+# name list used to pay. Load it. Check via `nltk.data.find` (which searches
 # every directory in `nltk.data.path`, including shared system locations
 # like `/usr/local/share/nltk_data` -- see `install.sh`) before ever
 # calling `download()`. This matters because `download()` always targets
@@ -132,23 +132,35 @@ a planet.
 # Apache's `www-data` running this module via the `html/` CGI scripts
 # (see `TODO.md`'s "Deployment bugs found in production" section for the
 # incident this fixes).
-try:
-    nltk.data.find('corpora/words')
-except LookupError:
-    nltk.download('words', quiet=True)
-DICTIONARY_WORDS = set(words.words())
-"""
-A set of common English words from the NLTK corpus. This is used to validate
-generated names and ensure they are not actual words, which helps in creating
-unique and fictional-sounding names.
-"""
 
-WORD_SIZE_MEAN = round(sum(len(word) for word in DICTIONARY_WORDS) / len(DICTIONARY_WORDS))
-"""
-The calculated mean (average) length of words in the `DICTIONARY_WORDS` set.
-This value is used to determine if a generated name is long enough to be split
-into two parts for better readability.
-"""
+@functools.lru_cache(maxsize=None)
+def dictionary_words():
+    """
+    A set of common English words from the NLTK corpus (downloaded when
+    missing, see above), read on the first call. This is used to validate
+    generated names and ensure they are not actual words, which helps in
+    creating unique and fictional-sounding names.
+    """
+    import nltk
+    from nltk.corpus import words
+
+    try:
+        nltk.data.find('corpora/words')
+    except LookupError:
+        nltk.download('words', quiet=True)
+    return set(words.words())
+
+
+@functools.lru_cache(maxsize=None)
+def word_size_mean():
+    """
+    The calculated mean (average) length of words in `dictionary_words()`.
+    This value is used to determine if a generated name is long enough to be
+    split into two parts for better readability.
+    """
+    dictionary = dictionary_words()
+    return round(sum(len(word) for word in dictionary) / len(dictionary))
+
 
 with open(os.path.join(os.path.dirname(__file__), 'offensive_words.txt'), 'r', encoding='utf-8') as f:
     NSFW_WORDS = {line.strip() for line in f}
