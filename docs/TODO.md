@@ -2937,49 +2937,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none.
   Design: [docs/design/phenomenon-scatter-mass-cut.md](design/phenomenon-scatter-mass-cut.md)
 
-- [ ] **GEN.172 Run-time births get object IDs from the counters**
-  Source: docs/design/object-id-options.md section 0 (Boss decided
-  2026-10-09 22:39Z: birth location plus serial, galaxy-wide; the same
-  length for every object; always identifies that one object; up to 128
-  bits but shorter preferred; fix the deficits; no backward
-  compatibility). Filed from the object-ID research thread. Nothing is
-  built until Boss asks.
-  Done: an admin-added body or system, an ejected object, a merger
-  remnant, split fragments and a stand-alone facility take their IDs
-  from the `id_counters` allocator. An ejected planet keeps its ID and
-  becomes a rogue-planet row; a merge keeps the heavier body's ID and
-  retires the other; a split gives each fragment a new run-time serial;
-  a deleted ID is never reused.
-  Open question for Boss (default yes): an ejected planet keeps its ID?
-  Built so far (2026-10-09): Lane 1 (2026-10-10, PR #1055): facilities
-  already take a run-time ID in add_facility, and
-  store.keep_body_numbers and _runtime_uids exist. The rest of GEN.172
-  (ejection, merger, split, admin-added system) is still open.
-  Design: [docs/design/object-id-options.md](design/object-id-options.md)
-
-- [ ] **GEN.176 A nebula or remnant is born in the sector holding the centre of the space it occupies**
-  Source: docs/design/object-id-options.md section 0 (Boss decided
-  2026-10-09 22:39Z: birth location plus serial, galaxy-wide; the same
-  length for every object; always identifies that one object; up to 128
-  bits but shorter preferred; fix the deficits; no backward
-  compatibility). Filed from the object-ID research thread. Nothing is
-  built until Boss asks.
-  Done: the birth sector of a nebula or supernova remnant is the sector
-  holding the geometric centre of the space it occupies: the centroid of
-  the interior of its metaball field on the fixed 24-cell grid, in
-  integer arithmetic, rounded to 1 mpc before the sector is taken (for a
-  remnant, the centre of the shell), not the shape origin. Replaces
-  "first sector saved that the cloud reaches" in
-  `_insert_field_nebulae`, so the home sector no longer depends on save
-  order. The field-drawn serial is the cloud's rank among the clouds of
-  its field cell (`nebula_field.cell_clouds`) whose centroid is in that
-  sector, so no shared counter is needed and the centre sector need not
-  exist yet. Test the sector-face tie case. The same rule holds for any
-  object stored by a sector other than its own.
-  Open question for Boss (default 1 mpc): the rounding used before the
-  birth sector is taken from the centroid?
-  Design: [docs/design/object-id-options.md](design/object-id-options.md)
-
 - [ ] **GEN.177 Planetary magnetic fields: a stagnant-lid factor**
   Left over from GEN.86 (PR #908, Foundations lane 2): the planetary
   magnetic field model does not yet apply the stagnant-lid factor (a
@@ -3106,6 +3063,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stage list builds on UX.89's structure; a redo clears and rewrites
   only that scatter's rows and keeps the central black hole or quasar
   guarantee.
+
+- [ ] **GEN.197 Object IDs on ejection, merger and split events**
+  Source: docs/design/object-id-options.md section 0 (Boss decided
+  2026-10-09 22:39Z: 80-bit birth-location ID). Left over from GEN.172
+  and TEST.110 when Foundations lane 1 merged them (PR #1075). Done: the
+  orbital-update events that create these cases apply the ID rules: an
+  ejected planet keeps its ID and becomes a rogue-planet row; a merge
+  keeps the heavier body's ID and retires the other; a split gives each
+  fragment a new run-time serial; a deleted ID is never reused. The
+  allocators already exist (store._runtime_uids and
+  store._next_body_numbers). A test shows an ejected planet keeps its
+  ID. Open question for Boss (default yes): an ejected planet keeps its
+  ID? Built with the orbital-update items that create these events (no
+  ejection, merger or split code exists yet).
+  Prerequisite: GEN.143. Related: GEN.105, GEN.143, GEN.170.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -3993,7 +3965,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   stay internal. No compatibility shim. This is a breaking API change,
   so it bumps API.22's API version number.
   Decided (Boss, 2026-10-10 02:48Z, via Foundations lane 1): yes, the 80-bit object ID replaces row ids in pages, URLs and the API, and Boss accepts the API break. Cleared to build once API.22, GEN.171 and GEN.172 are in.
-  Prerequisites: API.22, GEN.172.
+  Prerequisite: API.22.
   Design: [docs/design/object-id-options.md](design/object-id-options.md)
 
 ## ADM: Admin tools
@@ -4187,20 +4159,6 @@ means read from the code, not reproduced yet; the bug hunt confirms or
 clears each one.
 
 ### Infrastructure and CI
-
-- [ ] **TEST.110 Object ID tests: identical IDs on 1 and 4 workers, none reused, none missing**
-  Source: docs/design/object-id-options.md section 0 (Boss decided
-  2026-10-09 22:39Z: birth location plus serial, galaxy-wide; the same
-  length for every object; always identifies that one object; up to 128
-  bits but shorter preferred; fix the deficits; no backward
-  compatibility). Filed from the object-ID research thread. Nothing is
-  built until Boss asks.
-  Done: tests that 1 worker and 4 workers give identical IDs; no ID is
-  reused after a delete; an ejected planet keeps its ID; every object in
-  a saved sector has a 20-digit ID; the golden fill digests (TEST.77)
-  use the new IDs.
-  Prerequisites: GEN.172, GEN.176.
-  Design: [docs/design/object-id-options.md](design/object-id-options.md)
 
 - [ ] **TEST.111 test_ensure_sector_generated_creates_then_reuses_the_same_sector fails in a busy parallel run (bug)**
   Reported by Bugfixes lane 1 (2026-10-09 23:32Z):
@@ -4598,21 +4556,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   touch as they are made.
   Prerequisites: none.
 
-- [ ] **DOC.5 Rewrite the object ID docs: object-ids.md, database-schema.md and api.md**
-  Source: docs/design/object-id-options.md section 0 (Boss decided
-  2026-10-09 22:39Z: birth location plus serial, galaxy-wide; the same
-  length for every object; always identifies that one object; up to 128
-  bits but shorter preferred; fix the deficits; no backward
-  compatibility). Filed from the object-ID research thread. Nothing is
-  built until Boss asks.
-  Done: docs/design/object-ids.md (the GEN.68 and GEN.69 section) is
-  rewritten for the 80-bit ID; GEN.69's hash scheme is marked
-  superseded; database-schema.md and api.md describe the new column and
-  the ID as the public reference; GEN.72 and GEN.73 and the position-ID
-  naming (GEN.64 stays as the name of interstellar objects) are updated
-  to match.
-  Design: [docs/design/object-id-options.md](design/object-id-options.md)
-
 - [ ] **DOC.6 A static help section in the web interface: page template, index, per-page help links and a coverage test**
   Boss (2026-10-09 23:53Z): "Add to-do items to build static
   documentation pages for all features accessible through the web
@@ -4754,6 +4697,13 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   later change to those features (a feature item is not done until its
   help text is).
   Prerequisite: DOC.6. Related: DOC.6.
+
+- [ ] **DOC.17 Describe the object ID in api.md**
+  Left over from DOC.5 when Foundations lane 1 merged the rest (PR
+  #1075). Done: docs/api.md describes the object ID as the public
+  reference in pages, URLs and the API, once API.23 has made it so.
+  Prerequisite: API.23.
+  Prerequisite: API.23. Related: DOC.5, API.23.
 
 ## VIEW: The view from a planet
 
