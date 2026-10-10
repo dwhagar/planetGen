@@ -40,11 +40,9 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | DB.16 | Store the generator epoch and run id on each sector instead of four version text columns | OPS.28 | Research follow-up to DB.7 (built). |
 | DOC.5 | Rewrite the object ID docs: object-ids.md, database-schema.md and api.md |  | Object-ID research. |
-| TEST.110 | Object ID tests: identical IDs on 1 and 4 workers, none reused, none missing | GEN.171, GEN.172, GEN.176 | Object-ID research. |
-| GEN.176 | A nebula or remnant is born in the sector holding the centre of the space it occupies | DB.20 | Object-ID research. |
-| GEN.172 | Run-time births get object IDs from the counters | DB.20 | Object-ID research. |
-| GEN.171 | The sector fill gives object IDs by generation rank | DB.20 | Object-ID research. |
-| DB.20 | Object IDs in the schema: uid becomes BINARY(10), unique on its own, plus an id_counters table |  | Object-ID research. |
+| TEST.110 | Object ID tests: identical IDs on 1 and 4 workers, none reused, none missing | GEN.172, GEN.176 | Object-ID research. |
+| GEN.176 | A nebula or remnant is born in the sector holding the centre of the space it occupies |  | Object-ID research. |
+| GEN.172 | Run-time births get object IDs from the counters |  | Object-ID research. |
 | DB.9 | Repair a damaged galaxy database from a parity file | GEN.57 | Boss 02:13Z: phase 1. Reed-Solomon parity over groups of sector exports; seed regeneration as fallback. |
 | DB.21 | A deep pass for the database check: validate every star system, with the estimated time shown first | PERF.33 | Boss 23:32Z; Foundations lane 1, small, near the end of its list. |
 | DB.17 | Repair by regenerating a damaged sector from its seed when parity cannot rebuild it | DB.9, GEN.57 | Research split of DB.9: the regenerate-from-seed fallback. |
@@ -198,7 +196,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | API.15 | Log every API call with its user, how it came in, and its HTTP response code |  | Needs no user accounts (Boss 01:31Z). |
 | API.4 | API compatibility data in the docs |  | Docs and version number. |
 | API.22 | An API version number: one sequential integer, shown in admin and in the status response |  | Boss 2026-10-09 20:59Z: done by the end of phase 1; do it early so later API changes bump it. |
-| API.23 | The object ID as the public reference: pages, URLs, the API, wiki links and objectref use it in place of row ids | API.22, GEN.171, GEN.172 | Object-ID research. Breaking: bumps the API version (API.22). |
+| API.23 | The object ID as the public reference: pages, URLs, the API, wiki links and objectref use it in place of row ids | API.22, GEN.172 | Object-ID research. Breaking: bumps the API version (API.22). |
 | API.7 | Investigate and plan upload limits |  | Plan only. |
 
 ### Reproducible galaxies
