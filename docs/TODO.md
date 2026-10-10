@@ -3474,6 +3474,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   for the plan being estimated. Phase 2.
   Prerequisites: none. Related: PERF.52, PERF.53, GEN.185.
 
+- [ ] **PERF.55 One global progress bar for generation jobs that run in phases, with an ETA across all phases**
+  Boss (2026-10-10 06:44Z): a generation process that runs in phases
+  gets one global progress bar that tracks the ETA across all phases,
+  fed by the incremental updates of the phase bars below it, so there is
+  a constant view of elapsed time and how long the whole process should
+  have left. Done: the Generate page, the job page and the command line
+  show one overall bar for a phased job (the star passes, the phenomena
+  passes, settling, the Galaxy Map warm-up and the rest) with elapsed
+  time and time remaining; the estimate is the sum of the finished
+  phases' real times and the remaining phases' estimates from the
+  generation stats, and it is corrected as each phase bar reports; a
+  test checks the total and the ETA on a small galaxy with several
+  phases. Unassigned: in no lane's queue. Related: PERF.33 (progress
+  bars and ETAs from measured performance), PERF.51 (the progress-bar
+  mechanism), PERF.52 and PERF.53 (the generation stats), UX.83, UX.3.
+  Prerequisites: PERF.33. Related: PERF.33, PERF.51, PERF.52, PERF.53,
+  UX.83, UX.3.
+
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
