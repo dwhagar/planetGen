@@ -960,7 +960,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.30 | Finish an interrupted block or sector run on the next start | none | open |
 | PERF.34 | The site stays responsive during heavy generation jobs (bug) | none | done, PR #811 |
 | PERF.31 | Investigate: where generation spends its time, from the plan to a finished galaxy | none | open |
-| PERF.32 | Generation performance stats: rates recorded per run, deleted on every new version | none | open |
+| PERF.32 | Generation performance stats: rates recorded per run, deleted on every new version | none | done, PR #905 |
 | PERF.33 | Progress bars and ETAs from measured performance | none | open |
 | PERF.35 | An interval or chunk ledger for untouched sectors once block-first backfill lands | none | open |
 | PERF.36 | Memory and request guard: never list more than about 50,000 candidate cells, and refuse huge enumerations in a web request | none | open |
