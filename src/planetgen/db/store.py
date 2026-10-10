@@ -5770,6 +5770,33 @@ def forget_sector_fill(conn, address):
     )
 
 
+SECTOR_DELETIONS_COUNTER = "sdel"
+"""str: The `id_counters.kind` of the galaxy's deletion epoch (PERF.38): one row, scope empty, whose number goes up by
+one with every sector deleted. `query.galaxy_content_state` reads it where it used to count the placed sectors."""
+
+
+def note_sector_deleted(conn):
+    """
+    PERF.38: a sector was deleted. Moves the deletion epoch up in the
+    deleting transaction, so a cache that remembers the epoch knows a tile
+    may have lost a sector (a deletion leaves no row to find) without a
+    linear count of the placed sectors on every check. The row survives a
+    `planetgen reset`, like every `id_counters` row, so it only goes up.
+    """
+    conn.execute(
+        "INSERT INTO id_counters (kind, scope, next_value) VALUES (?, ?, 1)"
+        " ON DUPLICATE KEY UPDATE next_value = next_value + 1",
+        (SECTOR_DELETIONS_COUNTER, b""),
+    )
+
+
+def sector_deletions(conn):
+    """The deletion epoch (`note_sector_deleted`): 0 before any sector was deleted."""
+    row = conn.execute("SELECT next_value FROM id_counters WHERE kind = ? AND scope = ?",
+                       (SECTOR_DELETIONS_COUNTER, b"")).fetchone()
+    return int(row["next_value"]) if row else 0
+
+
 def get_sector_stats(conn, ring_index, layer_index, ring_slot_index):
     """One sector's `sector_stats` row as a dict (PERF.11), or `None`."""
     return conn.execute(

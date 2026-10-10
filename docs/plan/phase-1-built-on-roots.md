@@ -99,9 +99,9 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | NAV.52 | Port `join_islands` and the k-d tree to cKDTree |  | Research: performance cliff in the built router. |
-| NAV.42 | Each route stop shows the course and distance to the next stop |  | Boss 04:19Z. format_course per hop, frame per pair. |
 | NAV.47 | Unknown-space jumps stop at scattered stars, black holes, neutron stars and quasars |  |  |
 | NAV.48 | Offer to generate the uncharted sectors that block a course |  |  |
+| UX.93 | No TODO code (like PERF.67 or NAV.42) appears anywhere a user can see it, with a test that fails if one does |  | Boss 2026-10-10 20:28Z; Bugfixes lane 2 after its current items. |
 
 ### Nearby search
 
@@ -123,6 +123,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.154 | Nested bright-star lists on the server, so every parent list is a subset of its child's |  | Zoom visibility note stage 2; shares tile keys with MAP.147 and MAP.151. |
 | MAP.159 | Packed binary Galaxy Map tiles (quantised planes) with the nested tile lists, on one cache stamp bump | MAP.154 | MAP.147 recommendation step 2; one stamp bump with MAP.154 and MAP.151. |
 | MAP.155 | Other objects fade in too: point objects from level 8, a size ramp for cloud sprites, and stars that grow from a faint dot |  | Zoom visibility note stage 3. |
+| PERF.63 | Vectorise the candidate work of the phenomena scatter with numpy |  |  |
 | PERF.59 | Share the ring inputs between the phenomena pass and the backfill rings (top priority) |  |  |
 
 ### System Map
@@ -202,10 +203,12 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | PERF.46 | Planets and moons: set the position once per body |  | Generation performance study. |
 | GEN.169 | Decide the phenomenon scatter rates: regional factors and the 0.1% intermediate-mass black holes |  | Needs Boss to decide. |
 | PERF.41 | Stamp the tile and page caches with a TILE_FORMAT constant instead of the version (optional) | PERF.31 | Research follow-up to PERF.25 (built). |
-| PERF.40 | Two shared queues, a reserved interactive worker and a real "cancel now" | PERF.39 | Research follow-up to PERF.24 (built). |
-| PERF.39 | Every API job costs 2.4 s and 195 MB: import lazily and cap the burst workers |  | Research follow-up to PERF.24 (built); before batch wiki uploads. |
-| PERF.38 | Cache fixes for the Galaxy Map under a fill: single-flight tile builds, a busy rule for the page cache, a deletion epoch in place of COUNT(*) |  | Research follow-up to PERF.34 (built). |
+| PERF.40 | Two shared queues, a reserved interactive worker and a real "cancel now" |  | Research follow-up to PERF.24 (built). |
+| PERF.64 | The Galaxy Map and the Systems list stop with "Took too long" and the whole site is sluggish (bug) |  | Boss 2026-10-10 19:45Z; Foundations lane 1 first. |
 | PERF.33 | Progress bars and ETAs from measured performance |  | GitHub issue [#661](https://github.com/dwhagar/planetGen/issues/661) (the use half). Bugfixes lane 1 (Boss, 23:38Z). |
+| PERF.65 | The text output of a multi-step job counts its steps, not its tasks: "Step 1 of 4" when the job has 12 (bug) |  | Boss 2026-10-10 19:54Z; Bugfixes lane 1. |
+| PERF.66 | The whole-job progress bar should track total elapsed time and estimate a stage with no performance data from the earlier stages (bug) |  | Boss 2026-10-10 20:00Z; Bugfixes lane 1, with PERF.65. |
+| PERF.67 | Record how long every operation takes, from each stage up to the whole job, and use the records for ETAs |  | Boss 2026-10-10 20:25Z; Bugfixes lane 1, after PERF.66. |
 | GEN.128 | Design: multi-star hierarchies and compact-object primaries |  | GitHub issues [#777](https://github.com/dwhagar/planetGen/issues/777) and [#778](https://github.com/dwhagar/planetGen/issues/778): the research both builds wait on. |
 
 ## Open questions for Boss

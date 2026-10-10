@@ -376,6 +376,18 @@ def _settle_jobs_run_inline(monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def _api_jobs_queue_of_its_own(monkeypatch):
+    """The API jobs share one queue and its workers in production (PERF.39); a test, running beside others
+    on one Redis server, gets a queue of its own, so its job is never picked up by another test's worker
+    (which has that test's environment)."""
+    import uuid
+    from planetgen.queue import api_jobs
+    monkeypatch.setattr(api_jobs, "QUEUE_NAME", f"planetgen-api-test-{uuid.uuid4().hex[:12]}")
+    monkeypatch.setattr(api_jobs, "STARTING_KEY", f"planetgen-api-test-starting-{uuid.uuid4().hex[:12]}")
+    yield
+
+
+@pytest.fixture(autouse=True)
 def _api_jobs_wait_patiently(monkeypatch):
     """A queued API edit (`run_queued`) starts a burst worker process and waits `SHORT_WAIT_SECONDS` for
     it; in a busy parallel run the worker can take longer than that to start, and the route answers

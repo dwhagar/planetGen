@@ -18,9 +18,9 @@ import re
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 
-# The categories scripts/bump_version.py counts for the build number, so a
-# new category (TEST was added after this list was first written) only has
-# to be added in one place.
+# The categories scripts/bump_version.py validates against the "Next free IDs"
+# table, so a new category (TEST was added after this list was first written)
+# only has to be added in one place.
 _spec = importlib.util.spec_from_file_location("bump_version", os.path.join(ROOT, "scripts", "bump_version.py"))
 _bump_version = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(_bump_version)

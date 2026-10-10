@@ -112,7 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | DB.9, PERF.29, PERF.30, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, POP.8, POP.9, POP.7, POP.10, NAV.42, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, GEN.57, TEST.77, UX.49, PERF.31, GEN.128 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | DB.9, PERF.29, PERF.30, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, POP.8, POP.9, POP.7, POP.10, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, GEN.57, TEST.77, UX.49, PERF.31, GEN.128, PERF.63 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.17, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18, PERF.33, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, ADM.43, ADM.44 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, and the anomalies chosen in phase 2. | NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, GEN.114, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies. | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, GEN.55 |
@@ -461,6 +461,25 @@ with `clamp()`.
   kind; a test covers it. Small. Phase 2 unless Foundations lane 1 says
   otherwise.
   Prerequisite: UX.45. Related: UX.47.
+
+- [ ] **UX.93 No TODO code (like PERF.67 or NAV.42) appears anywhere a user can see it, with a test that fails if one does**
+  Boss (2026-10-10 20:28Z): "TODO codes should never appear in the
+  finished product, so add a TODO item to scrub output lines with things
+  like PERF.67 etc etc etc". Done: every user-facing line is scrubbed of
+  TODO IDs (a category from the TODO table, a dot and a number, such as
+  PERF.67 or NAV.42): page and template text, tooltips, error and
+  refusal messages, CLI and job-log lines, API error and help text,
+  setting descriptions, the in-app help and any docs shown to users of
+  the site. Code comments, docstrings, TODO.md, `changes/` notes, the
+  changelog and the design docs may keep them. A pytest scans the
+  templates, the static files and the string literals the code shows to
+  users (settings descriptions, messages, CLI output) and fails on a
+  TODO-ID pattern there, with a short allowlist for the places where an
+  ID is wanted (none expected). The first pass found about 44 hits in
+  the templates and static files, most of them in template comments (`{#
+  ... #}`), which stay, and about 130 string literals in the Python code
+  to check by hand. Owner: Bugfixes lane 2, after its current items.
+  Prerequisites: none.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -1287,32 +1306,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   here stand: a lone star or object uses the galactic Hill radius;
   inside a system a star uses the radiation radius.
     Prerequisites: NAV.25, NAV.26.
-
-- [ ] **NAV.42 Each route stop shows the course and distance to the next stop**
-  Boss (2026-10-02 04:19Z, with NAV.41): "each stop has the course and
-  distance to the next stop in xxx mark yyy zzz distance". Done: every
-  stop in the route (UX.35's strip, and the course map's tooltip)
-  shows the course to the next stop in the existing notation from
-  `navigation.format_course`, three-digit bearing, "mark", three-digit
-  mark, then the hop's distance on the site's distance ladder, for
-  example `045 mark 012, 3.2 ly`; each hop's course is worked out with
-  `course_between` in the frame NAV uses for that pair (the Sector
-  Local Frame when both stops share a sector, the Galactic Frame
-  otherwise, as `navigation-frames.md` sets out), and the last stop
-  shows none. Unknown-space jumps (NAV.36) show theirs the same way.
-  A test checks the bearing, mark and distance of a known hop.
-  Research (2026-10-09, course-routing.md): add per-stop sector id and
-  sector-local position to the route data; a stone stop in an unfilled
-  sector uses the Galactic frame. For an adjusted course (NAV.28) the
-  readout bearing and mark are the first leg's, not the direct line's.
-  Built (2026-10-09, course-routing.md): NAV.12 (PR #838) built the
-  unbounded route but left three things out, all already in the design
-  text of course-routing.md section 2: per-stop sector_id and local
-  position (this item needs them), the packed filled-set cache, and the
-  adjacent-cell shortcut.
-  Lane (2026-10-09): Owner: Bugfixes lane 2 (moved from Foundations lane
-  1 by the coordinator, 2026-10-10).
-  Design: [docs/design/navigation-frames.md](design/navigation-frames.md)
 
 - [ ] **NAV.36 Unknown-space jumps drawn red and glowing**
   Boss (2026-10-02 01:53Z): "a jump through unknown space is marked in
@@ -3172,37 +3165,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none.
   Design: [docs/design/fill-order-curves-and-core.md](design/fill-order-curves-and-core.md)
 
-- [ ] **PERF.38 Cache fixes for the Galaxy Map under a fill: single-flight tile builds, a busy rule for the page cache, a deletion epoch in place of COUNT(*)**
-  PERF.34 is built; the research reorders its suspects by evidence
-  (design doc 5.4): no single-flight on tile builds; the page cache is
-  emptied at every stamp check during a fill; the stamp's linear
-  `COUNT(*)` in `db/query.py` `galaxy_content_state` (0.13 s per million
-  placed sectors, 2.7 s at 20 million, per web process per database
-  every 15 to 60 s); five API threads held 2.4 s or more by queued
-  waits. Done: `busy` handling in `pagecache.py` like `tilecache.py`; a
-  Redis `SET NX EX` single-flight around tile and stage builds; a
-  deletion epoch counter in place of the `COUNT(*)`. The first four can
-  be fixed before the benchmark. Re-run PERF.34's page-time test under
-  Ludicrous Speed. The `"""int: How long a database's stamp is trusted
-  ..."""` docstring in `web/lib/tilecache.py` sits after
-  `FAILED_CHECK_RETRY_SECONDS` instead of under `STAMP_TTL_SECONDS`.
-  Prerequisites: none.
-  Design: [docs/design/performance-eta-queue-and-caching.md](design/performance-eta-queue-and-caching.md)
-
-- [ ] **PERF.39 Every API job costs 2.4 s and 195 MB: import lazily and cap the burst workers**
-  `queue/api_jobs.py` `execute` imports `planetgen.api.common` (2.3 s)
-  before running anything, and `submit` starts one uncapped burst worker
-  per job. Fix: catch refusals via a light `Refused` base class or a
-  lazy lookup; import `nltk` and `scipy.stats` lazily; start a worker
-  only when fewer than `worker_count()` are alive, on shared queues.
-  Required before Boss's batch wiki uploads. Reuse one Redis connection
-  in `api_jobs.status` and `wait`.
-  Research (2026-10-09, generation-performance-study.md): the same fix
-  as PERF.42 (warm the worker before the fork) removes about 2 to 3 s
-  per queue job.
-  Prerequisites: none.
-  Design: [docs/design/performance-eta-queue-and-caching.md](design/performance-eta-queue-and-caching.md)
-
 - [ ] **PERF.40 Two shared queues, a reserved interactive worker and a real "cancel now"**
   `planetgen-interactive` (one reserved worker) and `planetgen-bulk`
   (workers serve `[interactive, bulk]`); "cancel now" for running tasks
@@ -3214,7 +3176,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   default yes): a reserved
   interactive worker costs one process (about 195 MB) while any bulk run
   is active; start it on demand and exit when its queue is empty.
-  Prerequisite: PERF.39.
   Design: [docs/design/performance-eta-queue-and-caching.md](design/performance-eta-queue-and-caching.md)
 
 - [ ] **PERF.41 Stamp the tile and page caches with a TILE_FORMAT constant instead of the version (optional)**
@@ -3303,7 +3264,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   true density. PERF.61 side result (PR #1113): the star scatter checks
   the cell address only after the density test, about 20% faster.
 
-- [ ] **PERF.63 Vectorise the candidate work of the phenomena scatter with numpy (needs Boss's call)**
+- [ ] **PERF.63 Vectorise the candidate work of the phenomena scatter with numpy**
   Bugfixes lane 1 (2026-10-10, PERF.61, PR #1113): the object-first
   phenomena sampler was built and measured on the default-scale galaxy
   (41 of 2,041 layers, 14 Msun cut, one process): counts match
@@ -3318,10 +3279,108 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   vectorise the per-object candidate work in numpy (own prototype, not
   started). Done: a prototype is measured against today's pass (counts,
   spatial distribution, time, reseed) and merged only if it is clearly
-  faster. Open question for Boss (default: not built; the phenomena pass
-  keeps its ring walk): is a 35 minute phenomena pass at default scale
-  worth a numpy prototype?
-  Prerequisites: none. Related: ('PERF.59', 'GEN.185').
+  faster. Decided (Boss, 2026-10-10 19:27Z): yes, build the numpy
+  prototype. Owner: Bugfixes lane 1 (moved from Phase 2 to Phase 1 by
+  the coordinator).
+  Prerequisites: none. Related: PERF.59, GEN.185.
+
+- [ ] **PERF.64 The Galaxy Map and the Systems list stop with "Took too long" and the whole site is sluggish (bug)**
+  Boss (2026-10-10 19:45Z, with a screenshot): the Galaxy Map and the
+  Systems list show the 504 page "Took too long: This page asked the
+  database for more than it could answer in time, so it was stopped. Try
+  a narrower search or a smaller page.", and the site as a whole feels
+  sluggish; "I've had this happen before, so we need to fix it". The
+  page is the web statement timeout at work
+  (`statement_timeout_seconds`, 10 s, `MAX_EXECUTION_TIME` on the
+  read-only connections), so some query on those pages now runs past 10
+  s on his database. Done: find which statements time out on the Galaxy
+  Map tiles and the Systems list (log the statement and its time, run
+  EXPLAIN on his database size), fix them with an index, a narrower
+  query or a cache, and show the slow pages and the sluggishness no
+  longer happen while the database is busy and idle alike; add a test
+  that fails when a page query reads more than a page needs. Earlier
+  work on the same family: PERF.34 (site responsive during heavy jobs,
+  PR #811), PERF.38 (cache fixes under a fill, PR #1144), PERF.36 (never
+  list more than about 50,000 candidate cells), PERF.39 (API job cost,
+  PR #1151) and PERF.40 (reserved interactive worker). Owner:
+  Foundations lane 1.
+  Prerequisites: none. Related: PERF.34, PERF.36, PERF.38, PERF.39,
+  PERF.40.
+
+- [ ] **PERF.65 The text output of a multi-step job counts its steps, not its tasks: "Step 1 of 4" when the job has 12 (bug)**
+  Boss (2026-10-10 19:54Z, with a Generate-page log): a new-galaxy run
+  prints "=== Step 1 of 4: Check the math ===" up to "Step 4 of 4:
+  Generate sectors ...", but the last step runs nine stages of its own
+  ("9 stages: 1. Generate the starting sector; ..."), so the run really
+  has 12 tasks (1 + 1 + 1 + 9). Each step's own lines also restart at
+  "Stage 1 of 1" or "Stage 1 of 9", so the two counts never agree.
+  "Minor, but needs to be fixed." The step header comes from
+  `web/job_runner.py` (`Step {index} of {len(steps)}`) and the stages
+  from the CLI's whole-job bar (PERF.55). Done: the step header and the
+  stage lines of every process in a multi-step job use one task count
+  that matches the real total (here "Task 1 of 12" through "Task 12 of
+  12", or the step number with the stage count added up front), the CLI
+  run alone prints the same numbers, and a test checks that a multi-step
+  job's printed totals equal the sum of its steps' stage counts. Owner:
+  Bugfixes lane 1, folded into the PERF.33 progress-bar remainders.
+  Prerequisites: none. Related: PERF.33, PERF.55.
+
+- [ ] **PERF.66 The whole-job progress bar should track total elapsed time and estimate a stage with no performance data from the earlier stages (bug)**
+  Boss (2026-10-10 20:00Z): "the whole task progress bar should keep
+  track of total time that has passed and in the absence of performance
+  data the ETA for items on the main progress bar should be calculated
+  by the time it has taken to do the previous stages averaged." Done:
+  the whole-job bar (PERF.55's CLI bar and the job page's) shows the
+  total time elapsed since the job started, counted across every step
+  and stage and not restarted when a step or stage begins; a stage with
+  no measured rate (no performance data yet, PERF.33's ETA gap) takes
+  its estimate from the average time of the stages already finished in
+  the job, so the time left on the main bar is never blank or zero; a
+  test covers a job whose later stages have no data. Boss (2026-10-10
+  20:24Z): "ETA on any staged process when total process time metrics
+  are not available (i.e. we cannot calculate from our performance) the
+  main bar should always assume that if you're on Section 3 that
+  sections 4, 5, 6, etc. are going to take longer, so the ETA between
+  the current task and the overall process should not be the same unless
+  we're running on the last step." So with no total-process metrics the
+  main bar's time left is the current stage's time left plus one
+  estimate (the average of the finished stages) for each stage still to
+  come, and it equals the current stage's time left only on the last
+  stage; a test checks stage 3 of 6 against stage 6 of 6. Owner:
+  Bugfixes lane 1, with PERF.65 and the other PERF.33 remainders.
+  Prerequisites: none. Related: PERF.33, PERF.55, PERF.65, PERF.67.
+
+- [ ] **PERF.67 Record how long every operation takes, from each stage up to the whole job, and use the records for ETAs**
+  Boss (2026-10-10 20:25Z): "we should carry stats on how long it takes
+  every single operation to finish from each stage to the whole
+  process". PERF.32 records rates per run, PERF.56 records each stage's
+  seconds with its settings, and PERF.55 draws the whole-job bar, but
+  the whole job and its steps (check the math, reset, plan, each galaxy
+  stage and its sub-operations) are not all recorded as one nested set
+  of timings. Done: every operation in a job (each step, each stage,
+  each sub-operation a stage reports) writes its start, finish and
+  seconds, with the settings it ran with, into one nested record from
+  the operation up through the stage and step to the whole job; the
+  record is kept per version like PERF.32's rates and deleted with them;
+  the estimates for the stage bars and the whole-job bar read these
+  records first (PERF.66 falls back to the average of the earlier stages
+  only when there is no record); the admin pages can show a finished
+  job's tree of timings; a test checks that a finished job's record sums
+  from operation to stage to job. Boss (2026-10-10 20:26Z): "We should
+  also have different stats for mass star scatter and bright star
+  scatter and then a common item scatter that aggregates all of the
+  scatters, and then we need to make sure all points use that
+  information to calculate ETAs." So each scatter kind keeps its own
+  timing records (the mass-limit star scatter, the bright star scatter,
+  the phenomena pass, the backfill rings and any other pass), one common
+  "scatter" record aggregates all of them, and every place that shows or
+  computes an ETA (stage bars, the whole-job bar, the CLI, the job page,
+  the Generate page's forecast) reads these records and none keeps its
+  own estimate. A test checks that the scatter aggregate equals the sum
+  of its kinds and that each ETA display reads the records. Owner:
+  Bugfixes lane 1, after PERF.66 (the bar fix does not wait for it).
+  Prerequisites: none. Related: PERF.32, PERF.33, PERF.55, PERF.56,
+  PERF.66.
 
 ## DB: Database and schema
 
@@ -3775,6 +3834,9 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   connection per worker, a cap on total worker connections and the
   reserved interactive worker; re-run PERF.34's page-time test under
   Ludicrous Speed.
+  Foundations lane 1 (2026-10-10, PERF.38, PR #1144): the page-time re-
+  run under Ludicrous Speed moved here from PERF.38; it needs this item
+  built and a real fill.
 
 - [ ] **ADM.32 Add a star system to a sector: at the emptiest spot, at given coordinates, or at random outside every Hill sphere**
   Boss (2026-10-07 11:47Z): "Need a way to add a single star system to a

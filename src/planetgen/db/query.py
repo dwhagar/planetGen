@@ -37,7 +37,9 @@ import time
 
 import pymysql
 
-from planetgen.db.store import escape_like, get_connection, get_galaxy_bounds, get_galaxy_shape, surrounding_cloud
+from planetgen.db.store import (
+    escape_like, get_connection, get_galaxy_bounds, get_galaxy_shape, sector_deletions, surrounding_cloud,
+)
 from planetgen.physics import constants
 from planetgen.physics.habitability_world import EQUIPMENT_LABELS, EQUIPMENT_NAMES
 from planetgen import tuning
@@ -814,6 +816,48 @@ def _galaxy_route(conn, origin_position, destination_position, from_key, to_key,
         half_width = min(half_width * 2.0, NAV_CORRIDOR_MAX_LY)
 
 
+def _route_places(conn, path):
+    """
+    NAV.42: where each stop of a route sits in its sector. `{node: {"sector_id", "sector_position_ly"}}`, the
+    position the system's sector-local `(x, y, z)` in light-years; both `None` for a phenomenon end and for a system
+    with no sector or no position.
+    """
+    places = {node: {"sector_id": None, "sector_position_ly": None} for node in path}
+    system_ids = [node for node in path if not isinstance(node, str)]
+    if system_ids:
+        marks = ",".join("?" * len(system_ids))
+        for row in conn.execute(
+                "SELECT id, sector_id, position_x_mpc, position_y_mpc, position_z_mpc FROM star_systems "
+                f"WHERE id IN ({marks})", system_ids).fetchall():
+            places[row["id"]]["sector_id"] = row["sector_id"]
+            if row["position_x_mpc"] is not None:
+                places[row["id"]]["sector_position_ly"] = (
+                    milliparsecs_to_ly(row["position_x_mpc"]), milliparsecs_to_ly(row["position_y_mpc"]),
+                    milliparsecs_to_ly(row["position_z_mpc"]))
+    return places
+
+
+def _hop_course(hop, places, galaxy_frame, local_positions):
+    """
+    NAV.42: the course from one stop of a route to the next, in the frame NAV uses for that pair -- the Sector
+    Local Frame when both stops are systems of one sector, the Galactic Frame otherwise
+    (docs/design/navigation-frames.md).
+
+    Returns:
+        dict: `bearing_deg`, `mark_deg`, `elevation_deg` and `frame`.
+    """
+    a, b = places[hop["from"]], places[hop["to"]]
+    if (a["sector_id"] is not None and a["sector_id"] == b["sector_id"]
+            and a["sector_position_ly"] is not None and b["sector_position_ly"] is not None):
+        course = course_between(a["sector_position_ly"], b["sector_position_ly"], frame=FRAME_SECTOR)
+    elif galaxy_frame is not None:
+        course = course_between(galaxy_frame[hop["from"]], galaxy_frame[hop["to"]], frame=FRAME_GALACTIC)
+    else:  # an in-sector search over sector-local positions
+        course = course_between(local_positions[hop["from"]], local_positions[hop["to"]], frame=FRAME_SECTOR)
+    return {"bearing_deg": course.bearing_deg, "mark_deg": course.mark_deg, "elevation_deg": course.elevation_deg,
+            "frame": course.frame}
+
+
 def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
                  from_kind="system", to_kind="system", from_type=None, to_type=None, stay_minutes=0.0):
     """
@@ -871,7 +915,9 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
             to the same node (the joined graph always has a path
             otherwise), else `{"path": [...node ids...], "distance_ly": float,
             "positions": {node_id: (x, y, z), ...}, "hops": [{"from", "to",
-            "distance_ly", "unknown_space", "warp_times", "fold_times"}],
+            "distance_ly", "unknown_space", "bearing_deg", "mark_deg", "elevation_deg", "frame" (NAV.42: the
+            hop's course), "warp_times", "fold_times"}], "stop_places": [{"node", "sector_id",
+            "sector_position_ly"}] (NAV.42: one per id in `path`),
             "longest_hop_ly": float, "stops": int, "stay_minutes": float,
             "warp_times", "fold_times"}` (NAV.11: a hop's lists are
             `WarpLeg`/`FoldLeg` dicts for that hop alone; the route's are
@@ -959,7 +1005,9 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
             route_positions = {node_id: positions[node_id] for node_id in path}
             hops = [{"from": a, "to": b, "distance_ly": math.dist(positions[a], positions[b]),
                      "unknown_space": False} for a, b in zip(path, path[1:])]
+            places = _route_places(conn, path)
             for hop in hops:
+                hop.update(_hop_course(hop, places, galaxy_frame, positions))
                 hop["warp_times"] = [leg._asdict() for leg in warp_travel_times(hop["distance_ly"])]
                 hop["fold_times"] = [leg._asdict() for leg in fold_travel_times(hop["distance_ly"])]
             if galaxy_frame is not None:
@@ -973,6 +1021,7 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
                 "path": path,
                 "distance_ly": distance_ly,
                 "positions": route_positions,
+                "stop_places": [{"node": node_id, **places[node_id]} for node_id in path],
                 "hops": hops,
                 "longest_hop_ly": max((hop["distance_ly"] for hop in hops), default=0.0),
                 "stops": max(len(hops) - 1, 0),
@@ -4487,7 +4536,7 @@ _STATE_TOKEN_RE = re.compile(r"^([0-9a-f]{16})\.(\d+)\.(\d+)\.(\d{17}|0)\.(\d+)\
 def _state_token(state):
     """`galaxy_content_state`'s dict as the opaque string the API hands
     out and `galaxy_changes` reads back."""
-    return "{base}.{sectors}.{sector_max_id}.{sector_modified}.{system_max_id}.{bright_max_id}".format(**state)
+    return "{base}.{deletions}.{sector_max_id}.{sector_modified}.{system_max_id}.{bright_max_id}".format(**state)
 
 
 def _parse_state_token(token):
@@ -4495,9 +4544,9 @@ def _parse_state_token(token):
     match = _STATE_TOKEN_RE.match(str(token or ""))
     if not match:
         return None
-    base, sectors, sector_max_id, sector_modified, system_max_id, bright_max_id = match.groups()
+    base, deletions, sector_max_id, sector_modified, system_max_id, bright_max_id = match.groups()
     return {
-        "base": base, "sectors": int(sectors), "sector_max_id": int(sector_max_id),
+        "base": base, "deletions": int(deletions), "sector_max_id": int(sector_max_id),
         "sector_modified": sector_modified, "system_max_id": int(system_max_id),
         "bright_max_id": int(bright_max_id),
     }
@@ -4533,9 +4582,11 @@ def galaxy_content_state(conn):
       depend on the shape, every tile's `stars` on the scatter, and a
       release may change the tile format, so a new `base` means every
       tile is stale.
-    - `sectors`/`sector_max_id`: how many sectors are placed, and the
-      highest sector id. Together they tell a new sector (higher id) from
-      a deleted one (the count drops).
+    - `deletions`/`sector_max_id`: the deletion epoch (`store.
+      note_sector_deleted`, PERF.38: it goes up with every sector deleted,
+      where a count of the placed sectors cost 0.13 s per million of them
+      on every check), and the highest sector id. Together they tell a new
+      sector (higher id) from a deleted one (a new epoch).
     - `sector_modified`: the newest `sectors.modified_at` (v27). A
       sector's own edit (a rename, say) bumps it, and so does deleting one
       of its systems (`_db.touch_sector`).
@@ -4546,15 +4597,12 @@ def galaxy_content_state(conn):
       its sector's system count. System edits don't touch a tile (tiles
       only show the count), so `star_systems.modified_at` isn't used.
 
-    Cheap by design -- one indexed count and four index-only maxima --
+    Cheap by design -- one primary-key read and four index-only maxima --
     since the web layer checks it about once a minute per database.
 
     Returns:
         dict: The keys above; `sector_modified` as `_timestamp_digits`.
     """
-    sector_row = conn.execute(
-        "SELECT COUNT(*) AS n FROM sectors WHERE center_x_pc IS NOT NULL"
-    ).fetchone()
     maxima = conn.execute(
         "SELECT (SELECT COALESCE(MAX(id), 0) FROM sectors) AS sector_max_id, "
         "(SELECT MAX(modified_at) FROM sectors) AS sector_modified, "
@@ -4572,7 +4620,7 @@ def galaxy_content_state(conn):
     ).encode("utf-8")).hexdigest()[:16]
     return {
         "base": base,
-        "sectors": int(sector_row["n"]),
+        "deletions": sector_deletions(conn),
         "sector_max_id": int(maxima["sector_max_id"]),
         "sector_modified": _timestamp_digits(maxima["sector_modified"]),
         "system_max_id": int(maxima["system_max_id"]),
@@ -4611,7 +4659,7 @@ def galaxy_changes(conn, since=None):
     never moves once placed, so its center is where it was before too.
 
     Deletions leave no row behind, so a deleted sector can't be located;
-    the placed count drops, and the answer is `full` instead. So is a new
+    the deletion epoch moves, and the answer is `full` instead. So is a new
     shape or release (`base`), an unreadable `since`, or more than
     `GALAXY_CHANGES_MAX_SECTORS` changed sectors.
 
@@ -4649,11 +4697,7 @@ def galaxy_changes(conn, since=None):
         result["full"] = result["busy"] = True
         return result
 
-    new_placed = conn.execute(
-        "SELECT COUNT(*) AS n FROM sectors WHERE id > ? AND center_x_pc IS NOT NULL",
-        (previous["sector_max_id"],),
-    ).fetchone()["n"]
-    if previous["sectors"] + int(new_placed) != state["sectors"]:
+    if previous["deletions"] != state["deletions"]:
         result["full"] = True
         return result
 

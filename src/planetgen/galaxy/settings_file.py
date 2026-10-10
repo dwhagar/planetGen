@@ -109,7 +109,7 @@ def build(settings, seed, naming_key=None, shape=None, words=None):
     """
     if words is None:
         from planetgen.names import wordlists
-        words = {"dictionary": wordlists.DICTIONARY_WORDS, "offensive": wordlists.NSFW_WORDS}
+        words = {"dictionary": wordlists.dictionary_words(), "offensive": wordlists.NSFW_WORDS}
     return {
         "format": FORMAT,
         "seed": galaxy_seed.format_seed(seed),

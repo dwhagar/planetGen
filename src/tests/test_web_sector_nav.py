@@ -173,8 +173,10 @@ class FakeData:
                       "warp_times": [{"warp_factor": 1, "velocity_multiple_of_c": 1.0, "formatted": "3 years, 2 days"}],
                       "fold_times": [{"fold_factor": 4, "velocity_multiple_of_c": 256.0, "formatted": "5 days"}],
                       "hops": [{"from": 0, "to": 1, "distance_ly": 1.25, "unknown_space": False,
+                                "bearing_deg": 44.6, "mark_deg": 11.6, "elevation_deg": 11.6, "frame": "sector",
                                 "warp_times": [{"warp_factor": 1, "velocity_multiple_of_c": 1.0, "formatted": "1 year"}]},
                                {"from": 1, "to": 2, "distance_ly": 2.25, "unknown_space": self.nav_unknown_space,
+                                "bearing_deg": 359.6, "mark_deg": 350.0, "elevation_deg": -10.0, "frame": "galactic",
                                 "warp_times": [{"warp_factor": 1, "velocity_multiple_of_c": 1.0, "formatted": "2 years"}]}]},
             "legs": ([{"kind": "out", "from": from_ref, "to": "system:1001", "direct": direct}]
                      if kind in objectref.BODY_KINDS else []) + [
@@ -1275,6 +1277,8 @@ def test_nav_route_runs_left_to_right_with_the_hop_after_each_stop(client, fake)
     assert 'role="list"' in route
     assert re.findall(r'class="nav-hop[^"]*"', route) == ['class="nav-hop"', 'class="nav-hop"']
     assert "1.25 ly" in route and "2.25 ly" in route
+    # NAV.42: each hop leads with its course to the next stop; the last stop has none.
+    assert "045 mark 012, 1.25 ly" in route and "000 mark 350, 2.25 ly" in route
     assert route.index("Alpha") < route.index("1.25 ly") < route.index("Waypoint") < route.index("2.25 ly") < route.index("Other")
     assert "nav-all-stops" not in html.split('id="route-heading"')[1].split("</section>")[0]  # three stops: no collapse
     fake.nav_unknown_space = True
