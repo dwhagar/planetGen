@@ -1092,6 +1092,22 @@
 --   `planetgen/physics/hydrosphere.py`; design
 --   docs/design/activity-magnetism-radiation-hydrosphere.md section 5.
 --
+-- v75: surface radiation dose, UV and the galactic hazard (GEN.87).
+--   `planets` and `moons` (NULL for a gas giant): `surface_dose_msv_yr`
+--   (the yearly dose at the surface, mSv, = `dose_gcr_msv_yr` x
+--   `dose_helio_mult` + `dose_sep_msv_yr` + `dose_ground_msv_yr`: cosmic
+--   rays after the air and any dipole, the compressed-heliosphere
+--   multiplier 1 to 2.5 that `refresh_containment` updates when a nebula or
+--   remnant presses on the star, stellar particles, and crust plus radon),
+--   `uv_surface_index` (DNA-weighted UV against Earth's 1, after the ozone
+--   layer) and `ozone_loss_flag` (ozone present but a galactic event rate
+--   over 1 per 100 Myr, or a stellar-particle dose of 100 mSv/yr at the
+--   ozone layer). `stars` gains `lethal_event_rate_per_gyr` (supernovae
+--   within 8 pc per Gyr, from the distance to the galactic centre). NULL
+--   on a row generated before v75. Draws: the crust abundance
+--   (`planetgen/physics/radiation.py`); design
+--   docs/design/activity-magnetism-radiation-hydrosphere.md section 4.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -1604,6 +1620,8 @@ CREATE TABLE IF NOT EXISTS stars (
     flare_n33_per_yr            DOUBLE,
     flare_alpha                 DOUBLE,
     xuv_fluence_j               DOUBLE,
+    -- v75 (GEN.87): supernovae within 8 pc per Gyr here, see header comment.
+    lethal_event_rate_per_gyr   DOUBLE,
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
     uid                   BIGINT UNSIGNED,
 
@@ -1731,6 +1749,14 @@ CREATE TABLE IF NOT EXISTS planets (
     ocean_ph                    DOUBLE,
     water_activity              DOUBLE,
     phosphorus                  VARCHAR(8) CHECK (phosphorus IN ('high', 'limited', 'starved')),
+    -- v75 (GEN.87): surface dose, UV and ozone, see header comment.
+    surface_dose_msv_yr         DOUBLE,
+    dose_gcr_msv_yr             DOUBLE,
+    dose_sep_msv_yr             DOUBLE,
+    dose_ground_msv_yr          DOUBLE,
+    dose_helio_mult             DOUBLE,
+    uv_surface_index            DOUBLE,
+    ozone_loss_flag             BOOLEAN,
     -- v20 (see header comment): this planet's own reflex-offset "wobble"
     -- from the combined pull of its own moons -- NULL/0 with no moons.
     reflex_offset_x_km       DOUBLE,
@@ -1888,6 +1914,14 @@ CREATE TABLE IF NOT EXISTS moons (
     ocean_ph                    DOUBLE,
     water_activity              DOUBLE,
     phosphorus                  VARCHAR(8) CHECK (phosphorus IN ('high', 'limited', 'starved')),
+    -- v75 (GEN.87): surface dose, UV and ozone, see header comment.
+    surface_dose_msv_yr         DOUBLE,
+    dose_gcr_msv_yr             DOUBLE,
+    dose_sep_msv_yr             DOUBLE,
+    dose_ground_msv_yr          DOUBLE,
+    dose_helio_mult             DOUBLE,
+    uv_surface_index            DOUBLE,
+    ozone_loss_flag             BOOLEAN,
     -- v58: this object's unique ID, see the header comment's "v58" note. NULL for a row saved before v58.
     uid                   BIGINT UNSIGNED,
 

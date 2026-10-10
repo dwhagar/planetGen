@@ -93,7 +93,7 @@ def dipole_share(rotation_period_hours):
     return 0.15 + 0.85 / (1.0 + (rossby / 0.12) ** 4)
 
 
-def _share(body):
+def body_dipole_share(body):
     """`dipole_share` for a rocky planet; giants and moons keep a dipole."""
     if body.body_type == "g" or body.is_moon:
         return 1.0
@@ -143,7 +143,7 @@ def generate_field(body):
         moment = GANYMEDE_MOMENT_A_M2 * _log_normal(0.7) if ganymede else 0.0
     else:
         moment = _rocky_moment(body, mass_earth, age_gy)
-    share = _share(body)
+    share = body_dipole_share(body)
     body.magnetic_moment_a_m2 = moment
     if moment <= 0.0:
         body.dipole_class = "none"
@@ -177,7 +177,7 @@ def magnetopause_rp(body, star_distance_au):
     moment = getattr(body, "magnetic_moment_a_m2", None)
     if not moment:
         return None
-    share = _share(body)
+    share = body_dipole_share(body)
     pressure = wind_pressure_pa(body.star, star_distance_au)
     return (EARTH_STANDOFF_RP * (moment * share / EARTH_MOMENT_A_M2) ** (1 / 3)
             * (pressure / EARTH_WIND_PA) ** (-1 / 6))

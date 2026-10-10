@@ -69,7 +69,7 @@ from planetgen.admin import activity_log
 from planetgen.db import alembic_runner
 from planetgen.names import object_id as objectId
 from planetgen.galaxy import seed as galaxySeed, uid as galaxyUid, version_key as versionKey
-from planetgen.physics import activity, atmosphere, constants as physical_constants, hydrosphere, kepler, magnetism, spin
+from planetgen.physics import activity, atmosphere, constants as physical_constants, hydrosphere, kepler, magnetism, radiation, spin
 from planetgen.util import log
 from planetgen.util.settings import env_name, get_settings
 from planetgen.generation import steps
@@ -97,7 +97,7 @@ from planetgen.physics.position import MAX_UPDATE_INTERVAL_S, THRESHOLDS_M, upda
 from planetgen.physics.rogue_surface import ROGUE_SURFACE_FIELDS
 from planetgen.generation.phenomena.rogue import InterstellarComet, RoguePlanet, interstellar_comet_designation
 from planetgen.galaxy.sector import SectorSystemEntry, SpaceSector, classify_octant, distance_between
-from planetgen.generation.star import Star
+from planetgen.generation.star import Star, compressed_heliosphere_radius
 from planetgen.generation.phenomena.quasar import Quasar
 from planetgen.generation.phenomena.supernova_remnant import SupernovaRemnant
 from planetgen.generation.system import StarSystem
@@ -1415,6 +1415,7 @@ def _table_marker(table):
 
 
 _VERSION_MARKERS = (
+    (75, _column_marker("planets", "surface_dose_msv_yr")),
     (74, _column_marker("planets", "ocean_class")),
     (73, _column_marker("galaxy_shape", "bright_star_mass_limit_sol")),
     (72, _column_marker("stars", "l_xuv_w")),
@@ -2604,9 +2605,10 @@ def insert_star(conn, star, star_system_id, role) -> int:
             wide_binary_a_crit_km,
             reflex_offset_x_km, reflex_offset_y_km, reflex_offset_z_km,
             rotation_period_hours, spin_axis_x, spin_axis_y, spin_axis_z, axial_tilt_deg,
-            log_lx_lbol, l_xuv_w, xuv_saturated, flare_n33_per_yr, flare_alpha, xuv_fluence_j
+            log_lx_lbol, l_xuv_w, xuv_saturated, flare_n33_per_yr, flare_alpha, xuv_fluence_j,
+            lethal_event_rate_per_gyr
         ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
-                  ?, ?, ?, ?, ?, ?)
+                  ?, ?, ?, ?, ?, ?, ?)
         """,
         (
             star_system_id, role, star.name, star.type, star.yerkes_class,
@@ -2671,6 +2673,7 @@ _BODY_COLUMNS = (
     *atmosphere.ATMOSPHERE_FIELDS,
     *magnetism.BODY_FIELDS,
     *hydrosphere.HYDROSPHERE_FIELDS,
+    *radiation.BODY_FIELDS,
 )
 """tuple: The generated-content columns `planets` and `moons` share, in
 `body_row_values` order."""
@@ -2717,6 +2720,7 @@ def body_row_values(body):
         *(getattr(body, name, None) for name in atmosphere.ATMOSPHERE_FIELDS),
         *(getattr(body, name, None) for name in magnetism.BODY_FIELDS),
         *(getattr(body, name, None) for name in hydrosphere.HYDROSPHERE_FIELDS),
+        *(getattr(body, name, None) for name in radiation.BODY_FIELDS),
     ]
     if not body.is_moon:
         values += [
@@ -4222,6 +4226,57 @@ def _refresh_containment_batch(conn, sector_ids, counts):
 
     for table, rows in changes.items():
         _update_by_id(conn, table, ("inside_nebula_id", "inside_remnant_id"), rows)
+    _refresh_cloud_doses(conn, changes.get("star_systems", ()))
+
+
+def refresh_system_dose(conn, system_id):
+    """Re-derives one system's cloud-dependent doses (`_refresh_cloud_doses`)
+    from the container it is stored inside: after an edit rewrote its
+    bodies with the open-space multiplier."""
+    row = conn.execute("SELECT inside_nebula_id, inside_remnant_id FROM star_systems WHERE id = ?",
+                       (system_id,)).fetchone()
+    if row is not None:
+        _refresh_cloud_doses(conn, [(system_id, row["inside_nebula_id"], row["inside_remnant_id"])])
+
+
+def _refresh_cloud_doses(conn, system_changes):
+    """
+    GEN.87: re-derives the cosmic-ray multiplier (`dose_helio_mult`) and the
+    surface dose of every rocky world in each system whose container
+    changed. A nebula or remnant presses the star's heliosphere in and the
+    star's wind stops shielding the system (`radiation.heliosphere_compression`);
+    leaving it restores 1.
+
+    Args:
+        conn (Connection): Part of the caller's transaction.
+        system_changes (iterable): `(star_system_id, inside_nebula_id,
+            inside_remnant_id)` for each system that changed container.
+    """
+    for system_id, nebula_id, remnant_id in system_changes:
+        compression = 0.0
+        cloud = surrounding_cloud(conn, {"inside_nebula_id": nebula_id, "inside_remnant_id": remnant_id})
+        if cloud is not None:
+            open_km = conn.execute(
+                "SELECT COALESCE(s.binary_heliosphere_radius_km, (SELECT MAX(heliosphere_radius_km) FROM stars"
+                " WHERE star_system_id = s.id)) AS radius_km FROM star_systems s WHERE s.id = ?",
+                (system_id,)).fetchone()["radius_km"]
+            if open_km:
+                open_au = open_km / physical_constants.AU_TO_KM
+                squeezed = compressed_heliosphere_radius(open_au, cloud["density_cm3"], cloud["temperature_k"])
+                compression = radiation.heliosphere_compression(open_au, squeezed)
+        for table in ("planets", "moons"):
+            rows = []
+            for row in conn.execute(
+                f"SELECT id, dose_gcr_msv_yr, dose_sep_msv_yr, dose_ground_msv_yr, atmospheric_pressure_pa, gravity_g"
+                f" FROM {table} WHERE star_system_id = ? AND dose_gcr_msv_yr IS NOT NULL", (system_id,)
+            ).fetchall():
+                column = radiation.column_g_cm2(row["atmospheric_pressure_pa"], row["gravity_g"])
+                multiplier = radiation.helio_multiplier(column, compression)
+                total = radiation.total_dose_msv_yr(
+                    row["dose_gcr_msv_yr"], multiplier, row["dose_sep_msv_yr"], row["dose_ground_msv_yr"])
+                rows.append((row["id"], multiplier, total))
+            if rows:
+                _update_by_id(conn, table, ("dose_helio_mult", "surface_dose_msv_yr"), rows, touch=True)
 
 
 PLACED_PHENOMENON_TABLES = (
@@ -7504,6 +7559,8 @@ def _planet_or_moon_row_to_dict(conn, row, is_moon):
         **{name: row[name] for name in atmosphere.ATMOSPHERE_FIELDS},
         **{name: row[name] for name in magnetism.BODY_FIELDS},
         **{name: row[name] for name in hydrosphere.HYDROSPHERE_FIELDS},
+        **{name: row[name] for name in radiation.BODY_FIELDS},
+        "ozone_loss_flag": _tristate_from_db(row["ozone_loss_flag"]),
         # v20: only the `planets` table has these columns (a planet's own
         # wobble from its moons) -- `moons` has no such column at all
         # (moons never host their own moons), so a moon always gets the
