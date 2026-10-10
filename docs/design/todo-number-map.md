@@ -18,7 +18,7 @@ release is stamped.
 | NAV | NAV.58 |
 | GEN | GEN.198 |
 | PERF | PERF.64 |
-| DB | DB.22 |
+| DB | DB.23 |
 | API | API.24 |
 | ADM | ADM.50 |
 | SEC | SEC.33 |
@@ -459,7 +459,7 @@ Parents marked "new parent" had no old number of their own.
 | API.19 | Galaxy-scale recipes: build a whole galaxy, piece by piece, from JSON | none | open |
 | API.20 | `require_json_body` returns 500 for a deeply nested JSON body (bug) | none | done, PR #865 |
 | API.21 | Flask-Limiter puts `Retry-After` on successful responses (bug) | none | done, PR #865 |
-| API.22 | An API version number: one sequential integer, shown in admin and in the status response | none | open |
+| API.22 | An API version number: one sequential integer, shown in admin and in the status response | none | done, PR #1119 |
 | API.23 | The object ID as the public reference: pages, URLs, the API, wiki links and objectref use it in place of row ids | none | open |
 | DB.1 | Starbases, colonies and outposts in the database | 30 (2026-09-30 18:14Z); 35 (2026-09-30 18:39Z to 2026-10-01 02:24Z) | done in 7.35.0, PR #152 |
 | DB.2 | Asteroid field and comet composition rows are written but never read (bug) | none | done, PR #347 |
@@ -482,6 +482,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.19 | Compact or derive phenomenon rows (needed only if the mass cut is lowered to 10 solar masses or less) | none | closed, not needed at the 20 solar mass cut (PR #866); reopen if the cut is lowered to 10 solar masses or less |
 | DB.20 | Object IDs in the schema: uid becomes BINARY(10), unique on its own, plus an id_counters table | none | done, PR #1055 |
 | DB.21 | A deep pass for the database check: validate every star system, with the estimated time shown first | none | done, PR #1082 |
+| DB.22 | Sectors saved by hand without a grid address have no stored object ID until they are saved again (bug) | none | open |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
