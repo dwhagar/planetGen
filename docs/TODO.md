@@ -1963,6 +1963,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   S reaches 17,600 km (recommend class R at 10 to 16 Me, or cap S at
   13,500 km); K, L and P fail the Armstrong and 20 kPa limits (P needs
   the stage cap from GEN.92).
+  Checked 2026-10-10 22:19Z for Boss's generation-first priority: this
+  waits on GEN.27 and GEN.28 (the new planet classes) and sits under the
+  GEN.90 refactor, so it cannot move up yet; it starts when they land.
 
 - [ ] **GEN.40 Weed out sectors by star density before the bright-star backfill**
   Boss (2026-10-01 22:22Z): "see if we can cut down the number of
@@ -3319,7 +3322,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   monotonic over the whole range, and the size of the steps at the joins
   (default: use the table's constants as given; the bands then step by
   about 3% at 0.43 and 6% at 2.0, which does not matter for a visibility
-  rank). Owner: Foundations lane 1, after PERF.70. Sources of the
+  rank). Owner: Foundations lane 2 (moved 2026-10-10 for Boss's generation-first priority), right after PERF.80; Foundations lane 1 uses it in GEN.201. Sources of the
   relation (Boss's message): Astronomy Notes (2026, June 14),
   "Mass-Luminosity Relation Explained - The Sun and Stellar Structure",
   https://www.astronomynotes.com/starsun/s8.htm; Varsity Tutors (n.d.),
@@ -3660,6 +3663,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   objects), so writing the rows to the database is now the dominant cost of a scatter run; PERF.73
   measures and cuts it. The per-pass stats rows here should therefore
   record compute time and write time separately for the phenomena pass.
+  Moved to Phase 1 (Boss, 2026-10-10 22:19Z, generation-first priority).
+  Owner: Bugfixes lane 1, right after PERF.67 (same stats code).
   Prerequisites: none. Related: PERF.52, PERF.53, GEN.185.
 
 - [ ] **PERF.65 The text output of a multi-step job counts its steps, not its tasks: "Step 1 of 4" when the job has 12 (bug)**
@@ -3940,7 +3945,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   does less integration work per sector (batch or cache the path
   integration, skip unchanged sectors) or runs in the workers, measured
   with the benchmark, and the saved paths do not change. Owner:
-  Foundations lane 1.
+  Foundations lane 2 (physics; moved 2026-10-10), first after its current
+  task.
   Prerequisites: none. Related: GEN.126, PERF.31.
   Design: [docs/design/generation-benchmark-report.md](design/generation-benchmark-report.md)
 
@@ -3953,8 +3959,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   systems (41 s of 227 s in the profile). Done: a spatial grid (or
   cKDTree, as NAV.52 did for join_islands) gives the same neighbours
   with far fewer distance calls, a test shows identical results on a
-  fixed sector, and the benchmark shows the saving. Owner: Foundations
-  lane 1.
+  fixed sector, and the benchmark shows the saving. Owner: Bugfixes
+  lane 2 (moved 2026-10-10), first after its current task.
   Prerequisites: none. Related: PERF.31, NAV.52.
   Design: [docs/design/generation-benchmark-report.md](design/generation-benchmark-report.md)
 
@@ -3966,7 +3972,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   `insert_sector` is 40 s of the 227 s profile. Done: the insert is
   measured by statement (batching, executemany, fewer round trips) and
   cut, with the rows identical. Related to the uid work in PERF.31's
-  study items and the write cost of PERF.73. Owner: Foundations lane 1.
+  study items and the write cost of PERF.73. Owner: Bugfixes lane 1 (moved 2026-10-10),
+  after PERF.67 and PERF.54.
   Prerequisites: none. Related: PERF.31, PERF.73.
   Design: [docs/design/generation-benchmark-report.md](design/generation-benchmark-report.md)
 
