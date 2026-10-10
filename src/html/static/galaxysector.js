@@ -333,6 +333,7 @@ export function createSectorStage(host) {
     starClassHidden: function (c) { return hiddenClasses.has(c); },
     hiddenClasses: function () { return Array.from(hiddenClasses); },
     starClasses: function () { return open ? open.sector.starClasses() : []; },
+    luminosityRange: function () { return open ? open.sector.luminosityRange() : null; },
     // The classes named by a URL's `stars` (unknown names ignored), before any sector opens.
     setHiddenClasses: function (classes) {
       let changed = false;

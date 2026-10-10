@@ -1021,6 +1021,17 @@ export function buildSectorScene(data, options) {
     });
   }
 
+  // The dimmest and brightest luminosity (L\u2609) of the stars in this
+  // sector, or null with none: the luminosity slider's ends.
+  function luminosityRange() {
+    var lo = Infinity, hi = 0;
+    stars.forEach(function (entry) {
+      var lum = entry.luminositySol;
+      if (lum > 0) { lo = Math.min(lo, lum); hi = Math.max(hi, lum); }
+    });
+    return hi > 0 ? [lo, hi] : null;
+  }
+
   function update() {
     if (pointsOfLight) {
       pointsOfLight.material.uniforms.sizeScale.value = sizeScale();
@@ -1056,6 +1067,7 @@ export function buildSectorScene(data, options) {
     setStarClassHidden: setStarClassHidden,
     starClassHidden: function (starClass) { return hiddenClasses.has(starClass); },
     starClasses: starClasses,
+    luminosityRange: luminosityRange,
     setMinLuminosity: setMinLuminosity,
     minLuminosity: function () { return minLuminosity; },
     // Whether an entry is left off the map by a hidden kind, class or the floor.

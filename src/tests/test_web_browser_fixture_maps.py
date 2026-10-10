@@ -1715,7 +1715,7 @@ def test_galaxy_map_fetches_the_finest_tiles_around_a_sector_it_shows(page, map_
     assert view[0] == 12 and set(view) == {10, 12}, requests
 
 
-def _point_colored_spots(page, selector, limit=30):
+def _point_colored_spots(page, selector, limit=80):
     """Screen points of the spots no star could be: colors off the
     blackbody line (a star's red, green and blue always run in order), as
     the black holes, neutron stars and quasars are drawn (MAP.80)."""
@@ -1730,6 +1730,9 @@ def _point_colored_spots(page, selector, limit=30):
             off = max(g - max(r, b), min(r, b) - g)  # green above or below both others
             if off > 20 and max(r, g, b) > 150:
                 spots.append((off, x, y))
+            elif b > 200 and r < 110 and g < 110:
+                # MAP.164: a neutron star's deep blue, darker than any star's blue-white.
+                spots.append((b - r - g, x, y))
     spots.sort(reverse=True)
     kept = []
     for _off, x, y in spots:

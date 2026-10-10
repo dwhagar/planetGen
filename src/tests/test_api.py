@@ -1247,6 +1247,38 @@ def test_galaxy_tiles_list_every_star_and_point_phenomenon_at_sector_zoom(client
     assert tiles[coarse]["points"] == []
 
 
+def test_galaxy_tiles_list_the_scattered_black_holes_and_neutron_stars_before_their_sector_is_filled(
+        client, mysql_config):
+    """MAP.164: a scatter row not yet built into a sector comes back as a point with its class's size, the
+    biggest classes at every level (so the largest show from the whole galaxy) and the rest from sector zoom."""
+    positions = {"supermassive": (0, 0, 0), "intermediate": (40_000, 30_000, 0), "stellar": (50_000, 20_000, 0),
+                 None: (60_000, 10_000, 0)}
+    conn = _db.get_connection(mysql_config)
+    try:
+        with conn:
+            for subtype, (x, y, z) in positions.items():
+                kind = "neutron-star" if subtype is None else "black-hole"
+                conn.execute("INSERT INTO phenomenon_scatter (ring_index, layer_index, ring_slot_index, kind, subtype,"
+                             " position_x_mpc, position_y_mpc, position_z_mpc, seed) VALUES (0, 0, 0, ?, ?, ?, ?, ?, 1)",
+                             (kind, subtype, x, y, z))
+            conn.execute("INSERT INTO phenomenon_scatter (ring_index, layer_index, ring_slot_index, kind, subtype,"
+                         " position_x_mpc, position_y_mpc, position_z_mpc, seed, built_at)"
+                         " VALUES (0, 0, 0, 'black-hole', 'stellar', 1, 1, 1, 2, NOW())")
+    finally:
+        conn.close()
+
+    near = (0.04, 0.03, 0.0)
+    fine = tiles_intersecting_sphere(query.POINT_PHENOMENON_MIN_LEVEL, near, 0.0)[0]
+    coarse = tiles_intersecting_sphere(3, near, 0.0)[0]
+    tiles = client.get(f"/api/galaxy/tiles?tiles={fine},{coarse}").get_json()["tiles"]
+    fine_points = tiles[fine]["points"]
+    assert [(p["type"], p["descriptor"], p["size"]) for p in fine_points] == [
+        ("black_hole", "supermassive", 1.0), ("black_hole", "intermediate", 0.8),
+        ("black_hole", "stellar", 0.55), ("neutron_star", "scattered", 0.35)]
+    assert all(p["scattered"] for p in fine_points)
+    assert [p["descriptor"] for p in tiles[coarse]["points"]] == ["supermassive", "intermediate"]
+
+
 def test_galaxy_shape_reports_the_bright_star_scatter(client, mysql_config):
     conn = _db.get_connection(mysql_config)
     try:
