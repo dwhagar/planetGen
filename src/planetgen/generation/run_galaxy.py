@@ -358,6 +358,7 @@ def backfill_after_run(args, edge_pc, started_at):
             summary = backfill_bright_stars_around(config, centers, progress=progress)
         finally:
             log.reset_console()
+    stages.note(sectors=summary["sectors"], objects=summary["stars"])
     log.normal(f"Backfilled {summary['stars']:,} bright stars in {summary['sectors']:,} sectors.")
     return summary
 
@@ -393,6 +394,7 @@ def link_after_run(args, started_at):
             stages.skip("link", "the run created no sectors")
             return 0
         stages.enter("link")
+        stages.note(sectors=len(created))
         log.normal("Linking the new sectors to their neighbours...")
         with run_common._generation_progress() as progress:
             log.set_console(progress.console)
@@ -437,6 +439,7 @@ def settle_after_run(args, started_at):
             stages.skip("settle", "the run created no sectors")
             return 0
         stages.enter("settle")
+        stages.note(sectors=len(created))
         log.normal("Saving the sector paths...")
         with run_common._generation_progress() as progress:
             log.set_console(progress.console)
@@ -1604,7 +1607,7 @@ def run_galaxy(args):
 
     estimate_only = getattr(args, "estimate_only", False)
     if not estimate_only:
-        stages.begin(stages.galaxy_stages(args))
+        stages.begin(stages.galaxy_stages(args), args, "galaxy")
     args.link_later = not estimate_only
     conn = store.get_connection(store.mysql_config_from_args(args))
     try:

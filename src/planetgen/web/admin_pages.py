@@ -844,7 +844,20 @@ def _generation_panel(cookie_header, db):
             "per_system": f"{row['seconds_per_system'] * 1000:.1f} ms",
             "systems": f"{row['systems_per_task']:,.1f}",
         } for row in body["buckets"]],
+        "stages": [{
+            "stage": f"{row['stage_n']} of {row['stage_total']}: {row['label']}",
+            "settings": _settings_text(row["settings"]),
+            "metrics": _settings_text(row["metrics"]),
+            "time": f"skipped: {row['skip_reason']}" if row["skipped"] else format_duration(row["seconds"]),
+            "when": row["finished_at"],
+        } for row in body.get("stages", [])],
     }
+
+
+def _settings_text(values):
+    """`{"mass_limit_sol": 14.0, "workers": 2}` as "mass limit sol 14, workers 2"."""
+    return ", ".join(f"{name.replace('_', ' ')} {value:g}" if isinstance(value, (int, float)) and not isinstance(value, bool)
+                     else f"{name.replace('_', ' ')} {value}" for name, value in sorted(values.items())) or "-"
 
 
 @bp.route("/admin/stats/generation-reset", methods=["POST"])

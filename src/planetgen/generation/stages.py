@@ -18,12 +18,18 @@ running anything, so the Generate page can number every stage of a job before
 it starts.
 """
 
+import json
+import os
+import time
+
 from planetgen.queue import progress_file
 from planetgen.util import log
 
 SECTOR_MODES = ("block", "span", "column", "shell", "slot", "ring", "center_sector")
 
-_state = {"stages": [], "next": 0}
+_state = {"stages": [], "next": 0, "args": None, "command": None, "open": None}
+"""The run's stage list, the next one to enter, its arguments (for the settings each stage is recorded
+with), its command, and the stage open now (`_open`)."""
 
 
 class Stage:
@@ -87,9 +93,94 @@ def for_command(command, args):
     return []
 
 
-def begin(stages):
-    """Starts a run's stage list and logs it (skipped ones with their reasons)."""
-    _state["stages"], _state["next"] = list(stages), 0
+def stage_settings(key, args):
+    """
+    The arguments that shape stage `key` of a run with `args` (PERF.56), a
+    flat dict of numbers, strings and booleans: what a later estimate matches
+    runs on. Defaults are resolved (`--phenomenon-min-mass` unset is the
+    default mass limit), so runs at the default and at the same explicit value
+    match.
+    """
+    from planetgen import tuning
+    workers = getattr(args, "workers", None) or 1
+    mass = getattr(args, "phenomenon_min_mass", None)
+    mass = tuning.PHENOMENON_MIN_MASS_SOLAR if mass is None else float(mass)
+    floor = getattr(args, "bright_star_min_luminosity", None)
+    floor = tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL if floor is None else float(floor)
+    settings = {"workers": int(workers)}
+    if key in ("start", "neighborhood", "sectors"):
+        for name in ("radius_pc", "neighborhoods", "max_ring", "min_start_density"):
+            value = getattr(args, name, None)
+            if value is not None:
+                settings[name] = value
+    elif key == "mass":
+        settings["mass_limit_sol"] = mass
+    elif key == "luminosity":
+        settings["mass_limit_sol"], settings["luminosity_floor_sol"] = mass, floor
+    elif key == "phenomena":
+        settings["mass_limit_sol"] = mass
+    elif key == "backfill":
+        settings["backfill_from"] = getattr(args, "backfill_from", "edge") or "edge"
+    elif key == "skeleton":
+        for name in ("max_ring", "seed"):
+            value = getattr(args, name, None)
+            if value is not None:
+                settings[name] = str(value) if name == "seed" else value
+    return settings
+
+
+def note(**metrics):
+    """Adds what the stage open now did (layers visited, layers that placed something, objects ...)."""
+    if _state["open"] is not None:
+        _state["open"]["metrics"].update(metrics)
+
+
+def _recording_on():
+    from planetgen.generation import stats as generation_stats
+    return (_state["args"] is not None and
+            os.environ.get(generation_stats.STATS_ENV_VAR, "1").strip().lower() not in ("0", "off", "no", "false"))
+
+
+def _write(record):
+    """Stores one stage's row in the control database; a failure only warns in the debug log."""
+    if not _recording_on():
+        return
+    try:
+        from planetgen.db import store
+        from planetgen.galaxy.version_key import version_key
+        config = store.mysql_config_from_args(_state["args"])
+        conn = store.get_control_connection(store.control_mysql_config(config))
+        try:
+            conn.execute(
+                "INSERT INTO generation_stage_runs (database_name, command, stage_key, stage_n, stage_total, label,"
+                " skipped, skip_reason, started_at, finished_at, seconds, workers, settings, metrics, version_key)"
+                " VALUES (?, ?, ?, ?, ?, ?, ?, ?, DATE_SUB(NOW(6), INTERVAL ? MICROSECOND), NOW(6), ?, ?, ?, ?, ?)",
+                (config.database, _state["command"] or "", record["key"], record["n"], record["total"],
+                 record["label"][:80], 1 if record["skipped"] else 0,
+                 (record["skipped"] or None) and record["skipped"][:200],
+                 int(record["seconds"] * 1e6), record["seconds"], record["settings"].get("workers", 1),
+                 json.dumps(record["settings"], sort_keys=True), json.dumps(record["metrics"], sort_keys=True),
+                 version_key()))
+            conn.commit()
+        finally:
+            conn.close()
+    except Exception as exc:  # noqa: BLE001 -- statistics are a nicety, never a reason to fail a run
+        log.debug(f"Stage statistics: not recorded ({exc}).")
+
+
+def _close_open():
+    """Records the stage open now, with the time it took."""
+    record = _state["open"]
+    _state["open"] = None
+    if record is not None:
+        record["seconds"] = time.perf_counter() - record["t0"]
+        _write(record)
+
+
+def begin(stages, args=None, command=None):
+    """Starts a run's stage list and logs it (skipped ones with their reasons). With `args`, each stage's time
+    is stored with the settings it ran with (PERF.56)."""
+    _state.update(stages=list(stages), next=0, args=args, command=command, open=None)
     if not stages:
         return
     parts = [f"{n}. {s.label}" + (f" (skipped: {s.skip})" if s.skip else "") for n, s in enumerate(stages, start=1)]
@@ -97,8 +188,17 @@ def begin(stages):
 
 
 def _announce(index, skipped=None):
+    _close_open()
     stage = _state["stages"][index]
     total = len(_state["stages"])
+    record = {"key": stage.key, "n": index + 1, "total": total, "label": stage.label, "skipped": skipped,
+              "settings": stage_settings(stage.key, _state["args"]) if _state["args"] is not None else {},
+              "metrics": {}, "t0": time.perf_counter()}
+    if skipped:
+        record["seconds"] = 0.0
+        _write(record)
+    else:
+        _state["open"] = record
     if skipped:
         log.normal(f"Stage {index + 1} of {total}: {stage.label} -- skipped: {skipped}.")
     else:
@@ -138,4 +238,5 @@ def finish(reason=None):
     """Announces every stage the run never entered as skipped (`reason`, else its own), and ends the list."""
     for index in range(_state["next"], len(_state["stages"])):
         _announce(index, _state["stages"][index].skip or reason or "not needed")
-    _state["stages"], _state["next"] = [], 0
+    _close_open()
+    _state.update(stages=[], next=0, args=None, command=None, open=None)

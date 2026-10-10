@@ -157,6 +157,18 @@
     {{ csrf_field() }}<button type="submit">Reset stats</button>
   </form>
   {%- endif %}
+  {%- if generation.stages %}
+  <h3 id="stage-times-heading">Stage times</h3>
+  <p class="hint">How long each stage of the latest runs took, with the settings it ran with and what it did (PERF.56). Skipped stages are listed with their reason.</p>
+  <div class="table-scroll" tabindex="0"><table aria-labelledby="stage-times-heading">
+    <thead><tr><th scope="col">Stage</th><th scope="col">Settings</th><th scope="col">What it did</th><th scope="col" class="num">Time</th><th scope="col">Finished</th></tr></thead>
+    <tbody>
+      {%- for row in generation.stages %}
+      <tr><td>{{ row.stage }}</td><td>{{ row.settings }}</td><td>{{ row.metrics }}</td><td class="num">{{ row.time }}</td><td>{{ utc_time(row.when) }}</td></tr>
+      {%- endfor %}
+    </tbody>
+  </table></div>
+  {%- endif %}
   {%- endif %}
 </section>
 {%- if database.reachable %}

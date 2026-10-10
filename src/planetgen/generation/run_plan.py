@@ -617,6 +617,7 @@ def _scatter_layers(args, mysql_config, skeleton, extents, filled, min_luminosit
                    f"(layers {min(drew)} to {max(drew)}).")
     else:
         log.normal(f"{label}: no stars landed in any of the {len(layers):,} layers.")
+    stages.note(layers=len(layers), layers_modified=len(drew), objects=sum(counts.values()))
     return counts
 
 
@@ -919,6 +920,7 @@ def scatter_phenomena(args):
         conn.close()
     elapsed = time.perf_counter() - t0
     total = sum(counts.values())
+    stages.note(layers=len(layers), layers_modified=landed[0], objects=total)
     if landed[0]:
         log.normal(f"Phenomena landed in {landed[0]:,} of {len(layers):,} layers.")
     else:
@@ -975,7 +977,7 @@ def run_plan(args):
         args (argparse.Namespace): Validated arguments (`command ==
             "plan"`).
     """
-    stages.begin(stages.plan_stages(args))
+    stages.begin(stages.plan_stages(args), args, "plan")
     if getattr(args, "bright_stars_down_to", None) is not None:
         stages.enter("band")
         with workQueue.job_node("bright-stars", f"Bright stars down to {args.bright_stars_down_to:g} L_sun"):

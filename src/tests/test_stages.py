@@ -120,3 +120,69 @@ def test_the_stage_view_names_the_running_stage_by_its_place_in_the_whole_job():
     states = [s["state"] for s in view["stage_list"]]
     assert states[:6] == ["done"] * 6 and states[6] == "running" and "waiting" in states
     assert [s["state"] for s in view["stage_list"] if s["state"] == "skipped"] == ["skipped"]
+
+
+# --- PERF.56: each stage's time, stored with the settings it ran with ---------------------
+
+@pytest.fixture
+def control_config(mysql_config, monkeypatch):
+    """The test database doubling as the control database (as `test_job_tree.py` does)."""
+    from planetgen.db import store
+    store.get_control_connection(mysql_config, ensure_schema=True).close()
+    monkeypatch.setenv(store.CONTROL_DB_ENV_VAR, mysql_config.database)
+    return mysql_config
+
+
+def _control(mysql_config):
+    from planetgen.db import store
+    return store.get_control_connection(mysql_config)
+
+
+def test_each_stage_is_stored_with_its_time_settings_and_what_it_did(control_config, monkeypatch):
+    mysql_config = control_config
+    from planetgen.db import store
+    from planetgen.generation import stats as generation_stats
+    monkeypatch.setenv(generation_stats.STATS_ENV_VAR, "1")
+    args = _galaxy("--then-scatter", "--phenomenon-min-mass", "16", "--bright-star-min-luminosity", "9000",
+                   "--workers", "2", "--no-settle", "--mysql-host", mysql_config.host,
+                   "--mysql-port", str(mysql_config.port), "--mysql-user", mysql_config.user,
+                   "--mysql-password", mysql_config.password, "--mysql-database", mysql_config.database)
+    stages.begin(stages.galaxy_stages(args), args, "galaxy")
+    stages.enter("start")
+    stages.enter("mass")
+    stages.note(layers=40, layers_modified=7, objects=120)
+    stages.enter("luminosity")
+    stages.finish()
+    conn = _control(mysql_config)
+    try:
+        history = {run["stage_key"]: run for run in generation_stats.stage_history(conn)}
+    finally:
+        conn.close()
+    assert history["mass"]["settings"] == {"workers": 2, "mass_limit_sol": 16.0}
+    assert history["mass"]["metrics"] == {"layers": 40, "layers_modified": 7, "objects": 120}
+    assert history["luminosity"]["settings"] == {"workers": 2, "mass_limit_sol": 16.0, "luminosity_floor_sol": 9000.0}
+    assert history["mass"]["seconds"] >= 0 and not history["mass"]["skipped"]
+    assert history["population"]["skipped"] and "population pass" in history["population"]["skip_reason"]
+    assert history["settle"]["skipped"] and history["link"]["skipped"] is True
+    assert history["mass"]["stage_n"] == 4 and history["mass"]["stage_total"] == 9
+
+
+def test_an_estimate_prefers_the_runs_with_the_same_settings(control_config, monkeypatch):
+    mysql_config = control_config
+    from planetgen.generation import stats as generation_stats
+    conn = _control(mysql_config)
+    try:
+        for seconds, mass in ((10.0, 8.0), (20.0, 8.0), (100.0, 14.0)):
+            conn.execute(
+                "INSERT INTO generation_stage_runs (database_name, command, stage_key, stage_n, stage_total, label,"
+                " skipped, started_at, finished_at, seconds, workers, settings, metrics, version_key)"
+                " VALUES ('d', 'galaxy', 'mass', 4, 9, 'x', 0, NOW(6), NOW(6), ?, 1, ?, '{}', ?)",
+                (seconds, json.dumps({"workers": 1, "mass_limit_sol": mass}),
+                 generation_stats.current_version_key()))
+        conn.commit()
+        assert generation_stats.stage_seconds(conn, "mass", {"workers": 1, "mass_limit_sol": 8.0}) == 15.0
+        assert generation_stats.stage_seconds(conn, "mass", {"workers": 1, "mass_limit_sol": 14.0}) == 100.0
+        assert generation_stats.stage_seconds(conn, "mass", {"workers": 4, "mass_limit_sol": 20.0}) is not None
+        assert generation_stats.stage_seconds(conn, "settle", {"workers": 1}) is None
+    finally:
+        conn.close()

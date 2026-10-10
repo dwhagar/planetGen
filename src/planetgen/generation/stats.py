@@ -691,3 +691,56 @@ def format_duration(seconds):
     if minutes:
         return f"{minutes} m {secs:02d} s"
     return f"{secs} s"
+
+
+# ---------------------------------------------------------------------
+# Stage times (PERF.56)
+# ---------------------------------------------------------------------
+
+def stage_history(conn, stage_key=None, limit=200):
+    """
+    The recorded stage runs of this release, newest first (`generation_stage_runs`): one dict per run with
+    `id`, `database_name`, `command`, `stage_key`, `stage_n`, `stage_total`, `label`, `skipped`,
+    `skip_reason`, `finished_at`, `seconds`, `workers`, `settings` and `metrics` (both dicts).
+
+    Args:
+        conn: A control database connection.
+        stage_key (str, optional): Only this stage.
+        limit (int): The most rows.
+    """
+    import json
+    where, params = ("WHERE version_key = ?", [current_version_key()])
+    if stage_key:
+        where += " AND stage_key = ?"
+        params.append(stage_key)
+    rows = conn.execute(
+        f"SELECT id, database_name, command, stage_key, stage_n, stage_total, label, skipped, skip_reason,"
+        f" UNIX_TIMESTAMP(finished_at) AS finished_at, seconds, workers, settings, metrics FROM generation_stage_runs {where}"
+        f" ORDER BY id DESC LIMIT ?", (*params, int(limit))).fetchall()
+    conn.rollback()
+    history = []
+    for row in rows:
+        entry = dict(row)
+        entry["skipped"] = bool(entry["skipped"])
+        entry["settings"] = json.loads(entry["settings"] or "{}")
+        entry["metrics"] = json.loads(entry["metrics"] or "{}")
+        history.append(entry)
+    return history
+
+
+def stage_seconds(conn, stage_key, settings, limit=50):
+    """
+    How long a stage is expected to take with `settings` (a dict as
+    `generation.stages.stage_settings` makes): the mean seconds of the runs of
+    that stage whose settings match on every setting named in both, the most
+    specific match first, or the mean over all runs of the stage when none
+    matches, or `None` when it was never recorded. Skipped runs are ignored.
+    """
+    runs = [run for run in stage_history(conn, stage_key, limit) if not run["skipped"] and run["seconds"] > 0]
+    if not runs:
+        return None
+    matching = [run for run in runs if all(run["settings"].get(name) == value
+                                           for name, value in settings.items() if name in run["settings"])]
+    exact = [run for run in runs if run["settings"] == settings]
+    pool = exact or matching or runs
+    return sum(run["seconds"] for run in pool) / len(pool)
