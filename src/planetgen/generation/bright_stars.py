@@ -196,6 +196,13 @@ def _place_one(rng, weights, ring_index, layer_index, slots, edge_pc):
 def _point_in_cell(rng, ring_index, layer_index, slot, slots, edge_pc):
     """A uniform point in one cell in whole milliparsecs, or `None` when
     rounding carried it over the cell's edge."""
+    stored = _draw_point_in_cell(rng, ring_index, layer_index, slot, slots, edge_pc)
+    return stored if _stored_in_cell(stored, ring_index, layer_index, slot, edge_pc) else None
+
+
+def _draw_point_in_cell(rng, ring_index, layer_index, slot, slots, edge_pc):
+    """A uniform point in one cell in whole milliparsecs, not yet checked to have stayed in it after rounding
+    (`_stored_in_cell`): the object-first scatter checks only the candidates it keeps."""
     slot_width = 2 * math.pi / slots
     r_low, r_high = ring_bounds_pc(ring_index, edge_pc)
     z_low, z_high = layer_bounds_pc(layer_index, edge_pc)
@@ -203,10 +210,12 @@ def _point_in_cell(rng, ring_index, layer_index, slot, slots, edge_pc):
     # Uniform over the cell's area, which grows with radius.
     radius = math.sqrt(rng.uniform(r_low * r_low, r_high * r_high))
     point = (radius * math.cos(theta), radius * math.sin(theta), rng.uniform(z_low, z_high))
-    stored = tuple(round(value * MPC_PER_PC) for value in point)
-    if sector_address_at(tuple(value / MPC_PER_PC for value in stored), edge_pc) == (ring_index, layer_index, slot):
-        return stored
-    return None
+    return tuple(round(value * MPC_PER_PC) for value in point)
+
+
+def _stored_in_cell(stored, ring_index, layer_index, slot, edge_pc):
+    """Whether a stored point (whole milliparsecs) is still in the cell after rounding."""
+    return sector_address_at(tuple(value / MPC_PER_PC for value in stored), edge_pc) == (ring_index, layer_index, slot)
 
 
 def _finite_or_none(value):
@@ -383,9 +392,7 @@ def _spots(shape, layer_index, outer_ring, edge_pc, expected_at_density_1, fract
         ring_index = min(bisect.bisect_right(cumulative, rng.random() * total_mean), outer_ring)
         slots = slot_counts[ring_index]
         slot = min(int(rng.random() * slots), slots - 1)
-        point = _point_in_cell(rng, ring_index, layer_index, slot, slots, edge_pc)
-        if point is None:
-            continue
+        point = _draw_point_in_cell(rng, ring_index, layer_index, slot, slots, edge_pc)
         densities = _densities(tuple(value / MPC_PER_PC for value in point), shape)
         weights = [densities[population] * fractions[population] for population in POPULATIONS]
         wanted = sum(weights)
@@ -395,7 +402,7 @@ def _spots(shape, layer_index, outer_ring, edge_pc, expected_at_density_1, fract
         if rng.random() * bounds[ring_index] >= wanted:
             continue
         address = (ring_index, layer_index, slot)
-        if address in skip_addresses:
+        if address in skip_addresses or not _stored_in_cell(point, ring_index, layer_index, slot, edge_pc):
             continue
         held = kept.get(address, 0)
         if held:

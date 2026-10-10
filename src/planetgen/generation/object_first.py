@@ -112,3 +112,4 @@ def sector_capacity(expected_objects):
         if 1.0 - cumulative < tuning.OBJECT_FIRST_TAIL:
             return capacity
     return capacities[-1]
+
