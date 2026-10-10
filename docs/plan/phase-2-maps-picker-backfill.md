@@ -157,6 +157,13 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | TEST.131 | Tests for the gravity field evaluator: two bodies, Lagrange points, softening and the rotation curve | GEN.198 |  |
 | PERF.72 | Research the cost of a sector's gravity grid and where to cut between exact and aggregated sources | GEN.198 | Research. |
 | GEN.199 | Per-zone gravity grid for a sector: stored in a cache and rebuilt when the orbits update | GEN.198, PERF.72 |  |
+| MAP.182 | Optional, default do not build: hosted H II and reflection nebulae for pre-placed O and B stars, drawn before their sector exists |  | Phase 2. Optional, default do not build. |
+| MAP.181 | Dust colour for the dark nebula family on both themes | MAP.175 | Phase 2. Foundations lane 2. |
+| MAP.180 | Picking, hover and fly-to for nebula regions and cover | MAP.176 | Phase 2. Foundations lane 2. |
+| MAP.179 | Scattered nebulae as markers from level 8 | GEN.202, MAP.173 | Phase 2. Foundations lane 2. |
+| MAP.178 | Field nebula clouds drawn one by one from the nebula table | MAP.173, MAP.155 | Phase 2. Foundations lane 2. |
+| MAP.177 | Color by "Nebula cover" on the Galaxy Map | MAP.174 | Phase 2. Foundations lane 2. |
+| MAP.176 | Nebula regions on the Galaxy Map: grouped soft sprites in the dominant family colour | MAP.173, MAP.175 | Phase 2. Foundations lane 2. |
 | GEN.141 | Faster Kepler solver (Mikkola or Markley) with brentq as fallback |  | Research: optional speed-up. |
 
 ### Nebula planets

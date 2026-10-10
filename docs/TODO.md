@@ -712,6 +712,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (magnetar glyph, Wolf-Rayet bubble); keep the per-kind toggle
   (MAP.123) and the MAP.116 budget; nebula markers cover the far zoom,
   sprites under 2 px stay hidden.
+  Note (2026-10-10, nebula research): the nebula part of this item is
+  built by MAP.179 (scattered nebulae as markers from level 8) and
+  MAP.176 (regions); the black-hole and habitable-world markers stay
+  here.
 
 - [ ] **MAP.139 The Galaxy View uses its spare space: an info box with a Details link, and menu items**
   Boss (GitHub issues [#758](https://github.com/dwhagar/planetGen/issues/758) and [#715](https://github.com/dwhagar/planetGen/issues/715)): "there's a lot of wasted space
@@ -778,6 +782,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   50% contour (open question for Boss, default hard extent at today's
   outline); dark nebulae get an outline reaching 3:1 (they composite at
   1.17:1 today); classes are distinguished by a non-colour cue.
+  Note (2026-10-10, nebula research): Boss asked on 2026-10-10 21:46Z
+  that nebulae be visible on the Galaxy Map; the work is split into
+  MAP.172 to MAP.182 (the dark-theme contrast fix is MAP.175, the dust
+  colour MAP.181, the grouped regions MAP.176 and the individual clouds
+  MAP.178). This item keeps the fuzzy-boundary shape work.
 
 - [ ] **MAP.143 Color sectors by their number of habitable locations**
   Boss (GitHub issue [#717](https://github.com/dwhagar/planetGen/issues/717), 2026-10-09 00:44Z): "Coloring option
@@ -929,6 +938,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   in with a smooth ramp; the 0.35 pick rule applies to the near-field
   share, not the fill alpha; there is no dithered discard (blocks are
   sorted at build time).
+  Built in part (Foundations lane 2, 2026-10-10, PR #1182): the wheel
+  zooms toward the cursor. Still open: select-with-click and
+  double-click-to-go (this changes the click-drills-in flow that most
+  Galaxy Map browser tests lean on), the camera in URLs and bookmarks,
+  the breadcrumb from position, and retiring the arc, slab and segment
+  picks. These need MAP.151's region data layer first, because the stage
+  query is the only source of block data today; the lane returns to them
+  after MAP.151.
   Design: [docs/design/fly-through-view-distance.md](design/fly-through-view-distance.md)
 
 - [ ] **MAP.151 The region data layer: exact-centred frame, aligned cells, per-level aggregates and slot-wrap ranges**
@@ -1194,6 +1211,157 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (MAP.146). Owner: Foundations lane 2, queued right after MAP.152.
   Prerequisites: GEN.200, DB.23, GEN.201, MAP.152. Related: MAP.148,
   MAP.164, MAP.165, MAP.159, MAP.146.
+
+- [ ] **MAP.172 Nebula cell aggregates in the region pyramid**
+  Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
+  by colour or by combined regions; Phase 2 for the feature, foundations
+  in Phase 1. From the research (docs/design/nebula-map-visibility.md
+  section 9, PR #1180; report
+  /mnt/project-files/research/nebula-map-visibility/report.md): in the
+  MAP.151 pyramid (1 kpc down to about 8 pc) each cell stores the nebula
+  count, volume, centroid, bounding radius, family shares, dominant
+  class and cover, updated when a nebula is stored. Done: the
+  aggregates, and a Monte Carlo check that the stored cover is within 5%
+  of the true cover. Owner: Foundations lane 1, with MAP.151.
+  Prerequisites: MAP.151, DB.24. Related: MAP.159, MAP.154.
+  Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
+
+- [ ] **MAP.173 The Galaxy Map tile carries a nebula layer: regions and singles, nested like the star lists**
+  Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
+  by colour or by combined regions; Phase 2 for the feature, foundations
+  in Phase 1. From the research (docs/design/nebula-map-visibility.md
+  section 9, PR #1180; report
+  /mnt/project-files/research/nebula-map-visibility/report.md): regions
+  plus single nebulae per tile, nested like MAP.154 so a parent list is
+  a subset of its child, in the JSON tile first and the packed tile
+  (MAP.159) after; budget 600 regions per tile ranked by volume; one
+  cache-stamp bump together with MAP.147 and MAP.151. Done: the layer,
+  the budget and a test on a seeded galaxy. Owner: Foundations lane 2,
+  with MAP.151 and MAP.159.
+  Prerequisites: DB.24, MAP.172, MAP.154. Related: MAP.147, MAP.151,
+  MAP.159.
+  Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
+
+- [ ] **MAP.174 Nebula cover in the stage-view cell statistics, for filled and unfilled cells**
+  Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
+  by colour or by combined regions; Phase 2 for the feature, foundations
+  in Phase 1. From the research (docs/design/nebula-map-visibility.md
+  section 9, PR #1180; report
+  /mnt/project-files/research/nebula-map-visibility/report.md): the cell
+  statistics behind the stage view (and the Color by switch) gain the
+  share of each cell inside a nebula, for filled cells from stored
+  nebulae and for unfilled cells from the field. Done: the statistic,
+  with a test that filled and unfilled cells agree on a seeded galaxy.
+  Owner: Foundations lane 2.
+  Prerequisites: DB.24. Related: MAP.131, MAP.151.
+  Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
+
+- [ ] **MAP.175 The dark-family nebula fill is invisible on the dark theme (bug)**
+  Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
+  by colour or by combined regions; Phase 2 for the feature, foundations
+  in Phase 1. From the research (docs/design/nebula-map-visibility.md
+  section 9, PR #1180; report
+  /mnt/project-files/research/nebula-map-visibility/report.md): the
+  dark-family nebula fill (#1c1c24 at 0.91 opacity) has a contrast of
+  1.17:1 on the dark theme, so those nebulae cannot be seen. Done:
+  per-theme colour tokens and a test that every nebula family reaches at
+  least 3:1 against the map background on both themes (the part of
+  MAP.142 that needs no shape work). Owner: Foundations lane 2. The
+  final dust colour is MAP.181.
+  Prerequisites: none. Related: MAP.142, MAP.181.
+  Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
+
+- [ ] **MAP.176 Nebula regions on the Galaxy Map: grouped soft sprites in the dominant family colour**
+  Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
+  by colour or by combined regions; Phase 2 for the feature, foundations
+  in Phase 1. From the research (docs/design/nebula-map-visibility.md
+  section 9, PR #1180; report
+  /mnt/project-files/research/nebula-map-visibility/report.md): Phase 2,
+  visible feature. fixed-grid groups at 16 px cells drawn as a soft
+  sprite in the dominant family colour with an outline, split by fade
+  (the MAP.153 rule) as the camera zooms in, budget 600, per-kind
+  toggles (MAP.123) and a legend block. Done: the layer, the toggles and
+  the legend, with a browser test on a seeded galaxy. Default: 16 px
+  cells and a 600 budget. Owner: Foundations lane 2.
+  Prerequisites: MAP.173, MAP.175. Related: MAP.142, MAP.123, MAP.153.
+  Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
+
+- [ ] **MAP.177 Color by "Nebula cover" on the Galaxy Map**
+  Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
+  by colour or by combined regions; Phase 2 for the feature, foundations
+  in Phase 1. From the research (docs/design/nebula-map-visibility.md
+  section 9, PR #1180; report
+  /mnt/project-files/research/nebula-map-visibility/report.md): Phase 2,
+  visible feature. a new choice in the MAP.131 Color by switch: a
+  single-hue 5-bin ramp (0, under 5, 5 to 15, 15 to 30 and 30% or more),
+  legend "share of the block inside a nebula", hover shows the
+  percentage, works on unfilled cells. Off by default. Done: the choice,
+  legend and hover with a browser test. Owner: Foundations lane 2.
+  Prerequisites: MAP.174. Related: MAP.131.
+  Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
+
+- [ ] **MAP.178 Field nebula clouds drawn one by one from the nebula table**
+  Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
+  by colour or by combined regions; Phase 2 for the feature, foundations
+  in Phase 1. From the research (docs/design/nebula-map-visibility.md
+  section 9, PR #1180; report
+  /mnt/project-files/research/nebula-map-visibility/report.md): Phase 2,
+  visible feature. individual clouds from `nebula_field` drawn as
+  sprites on the 1 to 4 px ramp of MAP.155, then as meshes,
+  de-duplicated with stored nebulae. Done: a browser test finds one of
+  each family on a seeded galaxy. Owner: Foundations lane 2.
+  Prerequisites: MAP.173, MAP.155. Related: MAP.142.
+  Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
+
+- [ ] **MAP.179 Scattered nebulae as markers from level 8**
+  Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
+  by colour or by combined regions; Phase 2 for the feature, foundations
+  in Phase 1. From the research (docs/design/nebula-map-visibility.md
+  section 9, PR #1180; report
+  /mnt/project-files/research/nebula-map-visibility/report.md): Phase 2,
+  visible feature. planetary nebulae and remnants from the scatter shown
+  as the far-zoom markers of MAP.132 from level 8. Done: the markers,
+  with a browser test. Owner: Foundations lane 2.
+  Prerequisites: GEN.202, MAP.173. Related: MAP.132.
+  Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
+
+- [ ] **MAP.180 Picking, hover and fly-to for nebula regions and cover**
+  Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
+  by colour or by combined regions; Phase 2 for the feature, foundations
+  in Phase 1. From the research (docs/design/nebula-map-visibility.md
+  section 9, PR #1180; report
+  /mnt/project-files/research/nebula-map-visibility/report.md): Phase 2,
+  visible feature. hover and click on a region or on cover: a region
+  click flies to the zoom at which it splits (no page change), with a
+  keyboard path. Done: hover, click and keyboard paths with browser
+  tests. Owner: Foundations lane 2.
+  Prerequisites: MAP.176. Related: MAP.150.
+  Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
+
+- [ ] **MAP.181 Dust colour for the dark nebula family on both themes**
+  Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
+  by colour or by combined regions; Phase 2 for the feature, foundations
+  in Phase 1. From the research (docs/design/nebula-map-visibility.md
+  section 9, PR #1180; report
+  /mnt/project-files/research/nebula-map-visibility/report.md): Phase 2,
+  visible feature. umber (about #a9805a at 0.45 opacity) with a light
+  rim on the dark theme, chosen with the contrast checker of MAP.175,
+  and a matching light-theme colour. Done: the tokens and the 3:1 test
+  pass for the new colours. Owner: Foundations lane 2.
+  Prerequisites: MAP.175. Related: MAP.142.
+  Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
+
+- [ ] **MAP.182 Optional, default do not build: hosted H II and reflection nebulae for pre-placed O and B stars, drawn before their sector exists**
+  Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
+  by colour or by combined regions; Phase 2 for the feature, foundations
+  in Phase 1. From the research (docs/design/nebula-map-visibility.md
+  section 9, PR #1180; report
+  /mnt/project-files/research/nebula-map-visibility/report.md): Phase 2,
+  visible feature. about 590,000 at the default scale; hold until the O
+  and B counts and the H II radii of GEN.150 settle. Default: do not
+  build. Owner: Foundations lane 2 if Boss asks.
+  Prerequisites: none. Related: GEN.150, GEN.99.
+  Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
 ## NAV: Navigation and courses
 
@@ -3154,6 +3322,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   galaxy). Owner: Foundations lane 1.
   Prerequisites: GEN.200, DB.23. Related: MAP.171, GEN.185, GEN.196.
 
+- [ ] **GEN.202 Scattered nebulae (planetary nebulae and remnants) join the nebula index, deduplicated by object id**
+  Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
+  by colour or by combined regions; Phase 2 for the feature, foundations
+  in Phase 1. From the research (docs/design/nebula-map-visibility.md
+  section 9, PR #1180; report
+  /mnt/project-files/research/nebula-map-visibility/report.md):
+  planetary nebulae and supernova remnants from `phenomenon_scatter` go
+  into the same nebula index as the field and stored nebulae,
+  de-duplicated by object id, using the scatter index that PERF.68 adds.
+  Done: one query gives every nebula kind in a box with no object twice,
+  and a test shows it. Owner: Foundations lane 1.
+  Prerequisites: DB.24, PERF.68. Related: GEN.176, PERF.71.
+  Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.18 Run the GEN.30 bright-star backfill in parallel on the work queue**
@@ -3667,8 +3849,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   to look), the scatter batches its layers so that 2 or more workers are
   not slower than 1 on the same plan, and the benchmark shows it; the
   rows stay identical. Owner: Foundations lane 1.
-  Prerequisites: none. Related: PERF.31, PERF.47, PERF.73, PERF.58,
-  GEN.185.
+  Decided (Boss, 2026-10-10 22:00Z): if more workers do not let the
+  scatter scale, the scatter still runs as one single-process job on the
+  Redis queue (RQ), one job and not a collection of jobs. It always goes
+  through RQ and never bypasses the queue; parallelism is used only
+  where it measurably helps.
+  Prerequisites: none. Related: PERF.19, PERF.24, PERF.31, PERF.47,
+  PERF.73, PERF.58, GEN.185.
   Design: [docs/design/generation-benchmark-report.md](design/generation-benchmark-report.md)
 
 - [ ] **PERF.80 "Save the sector paths" takes 24% of a small run and does not speed up with workers**
@@ -3837,6 +4024,27 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   measures that). Owner: Foundations lane 1 (the only lane that adds
   migrations), after PERF.70.
   Prerequisite: GEN.200. Related: GEN.201, MAP.171, MAP.165.
+
+- [ ] **DB.24 The nebula_field table: one row per field nebula cloud, built at plan time (Alembic migration)**
+  Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
+  by colour or by combined regions; Phase 2 for the feature, foundations
+  in Phase 1. From the research (docs/design/nebula-map-visibility.md
+  section 9, PR #1180; report
+  /mnt/project-files/research/nebula-map-visibility/report.md): a
+  seed-fixed table with one row per field cloud (object id, cell,
+  centre, radius, class, stored flag), built at plan time by an RQ job
+  over 50 pc cells (about 700,000 rows and 50 MB at the default scale),
+  so the map can find nebulae that no sector holds yet. Done: the
+  migration and its previous-version fixture; the job; a test that the
+  rows equal `clouds_reaching` and match the stored nebulae by object
+  id. Default: store the field (the alternative is to recompute it per
+  tile). Owner: Foundations lane 1 (the only lane that adds migrations).
+  Note (2026-10-10, nebula research): open dependency, Boss's separate
+  call: the nebula field is probably 10 to 40 times too full (see the
+  GEN.47 note); the design works at either rate, so this table is sized
+  by the rate in force when it is built.
+  Prerequisites: none. Related: MAP.151, MAP.142, GEN.176, GEN.99.
+  Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
 ## API: The JSON API
 
@@ -4572,6 +4780,20 @@ clears each one.
   without skipping, disabling or loosening it away from what it checks.
   Owner: Bugfixes lane 1.
   Prerequisites: none. Related: TEST.126, TEST.127, TEST.128.
+
+- [ ] **TEST.135 Big-galaxy query-budget test for the nebula reads**
+  Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
+  by colour or by combined regions; Phase 2 for the feature, foundations
+  in Phase 1. From the research (docs/design/nebula-map-visibility.md
+  section 9, PR #1180; report
+  /mnt/project-files/research/nebula-map-visibility/report.md): the
+  nebula reads (field table, aggregates, tile layer, scatter join) are
+  added to the big-galaxy query budget test of TEST.133, so none
+  examines more rows than a tile needs. Done: the nebula reads are in
+  the test and it passes on 2,000,000 systems. Owner: Foundations lane
+  1.
+  Prerequisites: TEST.133, DB.24. Related: PERF.68.
+  Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
 ## USR: User accounts
 
