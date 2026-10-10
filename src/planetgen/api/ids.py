@@ -297,6 +297,14 @@ KEY_KINDS = {
     "comet_id": "comet",
     "facility_id": "facility",
     "host_id": "host",
+    "neighbor_system_id": "system",
+    "first_star_system_id": "system",
+    "first_sector_id": "sector",
+    "nebula_id": "nebula",
+    "compact_remnant_neutron_star_id": "neutron_star",
+    "compact_remnant_black_hole_id": "black_hole",
+    "inside_nebula_id": "nebula",
+    "inside_remnant_id": "supernova_remnant",
     "homeworld_planet_id": "planet",
     "asteroid_belt_id": "belt",
     "asteroid_field_id": "asteroid_field",
@@ -354,8 +362,20 @@ def _replacement(kind, value, container, maps, context):
     return text
 
 
+class _Rules(dict):
+    """`rules` plus the patterns of its wildcard paths: a `*` stands for one dotted key (`tiles.*.placed[].id`)."""
+
+    def __init__(self, rules):
+        super().__init__(rules)
+        self.wild = [(re.compile("^" + re.escape(path).replace(r"\*", r"[^.\[\]]+") + "$"), kind)
+                     for path, kind in rules.items() if "*" in path]
+
+
 def _rule(rules, here, key):
-    return rules.get(here) or (KEY_KINDS.get(key) if isinstance(key, str) else None)
+    kind = rules.get(here)
+    if kind is None and getattr(rules, "wild", None):
+        kind = next((found for pattern, found in rules.wild if pattern.match(here)), None)
+    return kind or (KEY_KINDS.get(key) if isinstance(key, str) else None)
 
 
 def _collect(node, path, rules, wanted, context):
@@ -424,6 +444,7 @@ def translate(data, rules, conn, context=None):
     answer stays in row ids.
     """
     context = context or {}
+    rules = _Rules(rules)
     wanted = defaultdict(set)
     _collect(data, "", rules, wanted, context)
     wanted = {kind: ids for kind, ids in wanted.items() if kind in ACTIVE_KINDS and ids}

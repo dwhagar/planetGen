@@ -1212,8 +1212,8 @@ def test_galaxy_tiles_lists_generated_stars_by_tile_level(client, mysql_config):
     finest = tiles_intersecting_sphere(12, (2.0, 2.0, 0.0), 0.0)[0]
     mid = tiles_intersecting_sphere(6, (2.0, 2.0, 0.0), 0.0)[0]
     tiles = client.get(f"/api/galaxy/tiles?tiles={finest},{mid},0/0/0/0").get_json()["tiles"]
-    assert [s["id"] for s in tiles[finest]["generated"]] == [star_ids[1], star_ids[0]]
-    assert [s["id"] for s in tiles[mid]["generated"]] == [star_ids[1]]
+    assert [s["id"] for s in tiles[finest]["generated"]] == pids("star", [star_ids[1], star_ids[0]])
+    assert [s["id"] for s in tiles[mid]["generated"]] == pids("star", [star_ids[1]])
     assert tiles["0/0/0/0"]["generated"] == []
 
 
@@ -1243,6 +1243,8 @@ def test_galaxy_tiles_list_every_star_and_point_phenomenon_at_sector_zoom(client
             quasar = _db.insert_quasar(conn, Quasar(SystemConfig()), sector_id=sector_id, placement=placement(2.5))
             # Bound to a system, so not placed on its own.
             _db.insert_black_hole(conn, BlackHole(SystemConfig()))
+        printed = {"black_hole": pid("black_hole", hole, conn), "neutron_star": pid("neutron_star", pulsar, conn),
+                   "quasar": pid("quasar", quasar, conn)}
     finally:
         conn.close()
 
@@ -1251,10 +1253,10 @@ def test_galaxy_tiles_list_every_star_and_point_phenomenon_at_sector_zoom(client
     coarse = tiles_intersecting_sphere(query.POINT_PHENOMENON_MIN_LEVEL - 1, (2.0, 2.0, 0.0), 0.0)[0]
     monkeypatch.setattr(query, "GALAXY_TILE_STAR_BUDGET", {query.POINT_PHENOMENON_MIN_LEVEL: 1})
     tiles = client.get(f"/api/galaxy/tiles?tiles={finest},{sector_level},{coarse}").get_json()["tiles"]
-    assert [s["id"] for s in tiles[finest]["generated"]] == [star_ids[1], star_ids[2], star_ids[0]]
+    assert [s["id"] for s in tiles[finest]["generated"]] == pids("star", [star_ids[1], star_ids[2], star_ids[0]])
     assert len(tiles[sector_level]["generated"]) == 1
     points = tiles[finest]["points"]
-    assert {(p["type"], p["id"]) for p in points} == {("black_hole", hole), ("neutron_star", pulsar), ("quasar", quasar)}
+    assert {(p["type"], p["id"]) for p in points} == set(printed.items())
     assert [p["luminosity_sol"] for p in points] == sorted((p["luminosity_sol"] for p in points), reverse=True)
     assert points[0]["type"] == "quasar"
     by_type = {p["type"]: p for p in points}
@@ -1393,7 +1395,7 @@ def test_galaxy_stage_counts_generated_sectors_down_the_ladder(client, mysql_con
     stage = client.get(f"/api/galaxy/stage?at={format_drill_key(level3)}").get_json()
     assert stage["child_m"] == 1
     assert sorted((s["ring"], s["layer"], s["slot"]) for s in stage["sectors"]) == sorted(addresses[:3])
-    assert {s["id"] for s in stage["sectors"]} == set(ids[:3])
+    assert {s["id"] for s in stage["sectors"]} == set(pids("sector", ids[:3]))
     assert all(s["system_count"] == 1 for s in stage["sectors"])
     assert len(stage["children"]) == 3 and all(c["generated"] == 1 for c in stage["children"])
 
