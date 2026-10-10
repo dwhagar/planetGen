@@ -161,6 +161,8 @@ def table_site():
         patch.setattr(apiclient, "get_phenomena", _fake_phenomena)
         patch.setattr(apiclient, "get_sectors", _fake_sectors)
         patch.setattr(apiclient, "get_systems", _fake_systems)
+        patch.setattr(apiclient, "get_uncharted_systems",
+                      lambda db, limit=50, offset=0, **kwargs: {"items": [], "total": 0, "limit": limit, "offset": offset})
         patch.setattr(apiclient, "auth_me", lambda cookie_header: None)
         patch.setattr(apiclient, "get_population_status",
                       lambda db: {"generated": True, "species": True, "polities": True, "territories": False})
