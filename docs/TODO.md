@@ -451,20 +451,6 @@ with `clamp()`.
   system and leaves the sector's other contents ungenerated.
   Prerequisites: none. Related: MAP.162, ADM.32, ADM.35, NAV.48, DOC.9.
 
-- [ ] **UX.88 Say "uncharted" instead of "unbuilt" or "not generated" in all user-facing text outside Generate and admin**
-  Boss (2026-10-10 07:26Z, via the coordinator): instead of unbuilt or
-  not generated it should say "uncharted" across the entire project and
-  in all output to the user, except the Generate system and the admin
-  panels and controls. Done: a sweep of the templates, map scripts (for
-  example the sector and block labels in galaxystageview.js and
-  sectorscene.js), nav, the CLI query output, the API texts shown to
-  people, and the docs for the user; the Generate pages and the admin
-  panels keep the technical words; a test fails if a user-facing
-  template outside those areas says unbuilt or not generated. The rule
-  is recorded in docs/html-interface.md (Wording). Owner: Bugfixes lane
-  1 (coordinator, 2026-10-10 07:31Z; it was Bugfixes lane 2).
-  Prerequisites: none. Related: GEN.193, MAP.164.
-
 - [ ] **UX.89 Staged jobs show wrong stage counts and numbers, and skipped stages are not listed (bug)**
   Boss (2026-10-10 07:54Z, via the coordinator): generating a new galaxy
   says it has 4 stages, but it runs 9: 1 Math Check, 2 DB Wipe, 3 Plan
@@ -477,7 +463,7 @@ with `clamp()`.
   marked skipped, with the reason; the stage numbers on the Generate
   page, job pages, Queue page and the terminal agree; tests cover each
   staged job with and without its optional stages. Owner: Bugfixes lane
-  1, after the defaults item (GEN.194) and before UX.88.
+  1, after the defaults item (GEN.194).
   Prerequisites: none. Related: PERF.33, PERF.55, GEN.185.
 
 - [ ] **UX.90 Explain the habitability chips in the web interface: a visible legend with the equipment labels, colours, thresholds and scores**
@@ -3204,7 +3190,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   reason (UX.89); the new settings are stored with the plan and the
   stage timings of PERF.56 record them; tests cover redoing each pass
   alone and all together. Owner: Bugfixes lane 2, after GEN.195.
-  Prerequisites: GEN.195. Related: GEN.185, GEN.187, GEN.194, GEN.195,
+  Prerequisite: GEN.195. Related: GEN.185, GEN.187, GEN.194, GEN.195,
   UX.89, PERF.56.
   Bugfixes lane 2 (2026-10-09): Details from Bugfixes lane 2 (2026-10-10
   08:30Z): each ticked pass has its own settings fields in the same box
@@ -3574,7 +3560,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   never skips the galactic nucleus guarantee (GEN.195); a test shows a
   run with the early stop produces the same rows as a full walk on a
   small galaxy. The change is in the scatter code in run_plan.py. Owner:
-  Bugfixes lane 1, after UX.89, PERF.56 and UX.88.
+  Bugfixes lane 1, after UX.89 and PERF.56.
   Prerequisites: none. Related: UX.89, PERF.56, GEN.185, GEN.187,
   GEN.195.
   Clarification (2026-10-09): Boss clarification (2026-10-10 08:32Z):
