@@ -20,7 +20,7 @@ import time
 from planetgen.queue import progress_rate, redisqueue, work as workQueue
 from planetgen.db import store
 from planetgen.generation import bright_stars as brightStars
-from planetgen.generation import early_stop, phenomenon_scatter
+from planetgen.generation import phenomenon_scatter
 from planetgen.generation import star_population as starPopulation
 from planetgen.generation.star_labels import describe_types, star_label
 from planetgen.galaxy import seed as galaxySeed, settings_file
@@ -669,9 +669,6 @@ def _scatter_layers(args, mysql_config, skeleton, extents, filled, min_luminosit
             skeleton.shape, layer_index, outer_ring, skeleton.edge_pc, e_value, fractions,
         )
     log.normal(f"{label}: about {round(sum(expected.values())):,} stars expected in {len(layers):,} layers.")
-    streak = early_stop.DryStreak(len(layers))
-    walk_position = {layer_index: position for position, (layer_index, _ring) in enumerate(layers)}
-    walked = 0
     band_share = sum(fractions.values())
     with run_common._generation_progress() as progress:
         log.set_console(progress.console)
@@ -694,7 +691,6 @@ def _scatter_layers(args, mysql_config, skeleton, extents, filled, min_luminosit
                         counts[population] += count
                     tracker.layer_done(layer_index)
                     stars = sum(layer_counts.values())
-                    streak.record(walk_position[layer_index], stars)
                     if stars:
                         drew.add(layer_index)
                     slots = _layer_slots(outer_rings[layer_index])
@@ -717,9 +713,6 @@ def _scatter_layers(args, mysql_config, skeleton, extents, filled, min_luminosit
                         channel = _DirectChannel(tracker)
                     queue.expect(len(layers))
                     for layer_index, outer_ring in layers:
-                        if streak.stopped:
-                            break
-                        walked += 1
                         payload = {
                             "mysql_config": mysql_config, "shape": skeleton.shape, "layer_index": layer_index,
                             "outer_ring": outer_ring, "edge_pc": skeleton.edge_pc, "expected": e_value,
@@ -737,22 +730,18 @@ def _scatter_layers(args, mysql_config, skeleton, extents, filled, min_luminosit
                     channel.close()
                 run_common._finish_stats(args)
             finished = True
-            if walked < len(layers):   # the layers never queued are done as far as the bar goes
-                bar.update(advance=sum(weights[layer_index] for layer_index, _ring in layers[walked:]))
         finally:
             if bar is not None:
                 bar.close(success=finished)
             log.reset_console()
-    # Only the layers that drew a star count as holding any (GEN.79).
-    if walked < len(layers):
-        log.normal(streak.message(label, walked))
+    # Every layer is walked, but only the ones that drew a star count as
+    # holding any (GEN.79).
     if drew:
         log.normal(f"{label}: stars landed in {len(drew):,} of {len(layers):,} layers "
                    f"(layers {min(drew)} to {max(drew)}).")
     else:
         log.normal(f"{label}: no stars landed in any of the {len(layers):,} layers.")
-    stages.note(layers=len(layers), layers_walked=walked, layers_modified=len(drew),
-                stopped_early=walked < len(layers), objects=sum(counts.values()))
+    stages.note(layers=len(layers), layers_modified=len(drew), objects=sum(counts.values()))
     return counts
 
 
@@ -945,17 +934,13 @@ def _log_phenomena_layer(layer_index, counts):
 
 
 def _scatter_phenomena_layers(args, bar, layers, weights, layer_done, mysql_config, skeleton, e_value, seed,
-                              min_mass_solar, filled, streak=None):
+                              min_mass_solar, filled):
     """The layers of the phenomenon scatter through the work queue, the step `bar` credited with each
     layer's expected work as it finishes (UX.83, PERF.51)."""
     layers_done = [0]
-    walked = 0
-    streak = streak or early_stop.DryStreak(len(layers))
-    walk_position = {layer_index: position for position, (layer_index, _ring) in enumerate(layers)}
 
     def done_with(layer_index):
         def on_done(layer_counts, seconds, weight):
-            streak.record(walk_position[layer_index], sum(layer_counts.values()))
             layer_done(layer_counts, seconds, weight)
             _log_phenomena_layer(layer_index, layer_counts)
             layers_done[0] += 1
@@ -966,9 +951,6 @@ def _scatter_phenomena_layers(args, bar, layers, weights, layer_done, mysql_conf
     with run_common._work_queue(args, "Phenomena") as queue:
         queue.expect(len(layers))
         for layer_index, outer_ring in layers:
-            if streak.stopped:
-                break
-            walked += 1
             payload = {
                 "mysql_config": mysql_config, "shape": skeleton.shape, "layer_index": layer_index,
                 "outer_ring": outer_ring, "edge_pc": skeleton.edge_pc, "expected": e_value, "seed": seed,
@@ -977,10 +959,6 @@ def _scatter_phenomena_layers(args, bar, layers, weights, layer_done, mysql_conf
             }
             queue.submit("phenomena", f"layer {layer_index}", _phenomenon_layer_task, payload,
                          weight=weights[layer_index], on_done=done_with(layer_index))
-    if walked < len(layers):
-        bar.update(advance=sum(weights[layer_index] for layer_index, _ring in layers[walked:]))
-        log.normal(streak.message("Phenomena", walked))
-    return walked
 
 
 def scatter_phenomena(args):
@@ -1048,8 +1026,8 @@ def scatter_phenomena(args):
                 with steps.Step(f"Phenomena (0 of {len(layers):,} layers)", "phenomena",
                                 max(sum(weights.values()), 1.0), args=args, progress=progress,
                                 workers=run_common._worker_count(args), percent=True, record=False) as bar:
-                    walked = _scatter_phenomena_layers(args, bar, layers, weights, layer_done, mysql_config,
-                                                       skeleton, e_value, seed, min_mass_solar, filled)
+                    _scatter_phenomena_layers(args, bar, layers, weights, layer_done, mysql_config, skeleton,
+                                              e_value, seed, min_mass_solar, filled)
             finally:
                 log.reset_console()
         with run_common._generation_progress() as progress:
@@ -1083,8 +1061,7 @@ def scatter_phenomena(args):
         conn.close()
     elapsed = time.perf_counter() - t0
     total = sum(counts.values())
-    stages.note(layers=len(layers), layers_walked=walked, layers_modified=landed[0],
-                stopped_early=walked < len(layers), objects=total)
+    stages.note(layers=len(layers), layers_modified=landed[0], objects=total)
     if landed[0]:
         log.normal(f"Phenomena landed in {landed[0]:,} of {len(layers):,} layers.")
     else:

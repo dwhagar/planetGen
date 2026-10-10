@@ -21,11 +21,12 @@ The `AsteroidBelt` class, a simpler representation of an asteroid belt, is
 defined separately in `asteroidData`.
 """
 
+import re
 import math
 
 from planetgen.generation import prevalence
 from planetgen.generation.config import SystemConfig
-from planetgen.physics import atmosphere, constants, habitability_world, hydrosphere, magnetism, planets as planetPhysics, radiation
+from planetgen.physics import atmosphere, constants, habitability_explain, habitability_world, hydrosphere, magnetism, planets as planetPhysics, radiation
 from planetgen.physics.position import HoldsOrbitPosition, axis_property, velocity_axis_property
 from planetgen import tuning
 from planetgen.util import draw
@@ -558,6 +559,25 @@ class Planet(HoldsOrbitPosition):
             f"Deep in the interior, a simplified polytrope model estimates core pressure on the order of {format_pressure_pa(core_pressure_gpa * 1e9)}.",
         ]
 
+    def _habitability_paragraphs(self):
+        """
+        The PHI-4 explanation of a scored rocky body (UX.91): its score and the
+        equipment a human needs, and for each of the four colour factors the
+        colour, this world's inputs and which one sets it. None for a gas
+        giant or a body saved without scores. A planet of a pulsar, neutron
+        star or black hole is rated as a lethal dose, as its stored score was.
+        """
+        if self.body_type != "t" or getattr(self, "equipment_tier", None) is None:
+            return []
+        values = habitability_world.values_from_body(self)
+        if values.get("surface_temperature_k") is None:
+            return []
+        host = re.match(r"Planet of an? ([a-z ]+):", getattr(self, "hab_note", None) or "")
+        host = host.group(1) if host else None
+        world = habitability_world.world_from(values, lethal_host=host)
+        bold = (lambda text: f"**{text}**") if self.system_config.MARKDOWN else (lambda text: f"'''{text}'''")
+        return habitability_explain.paragraphs(world, bold, compact_host=host)
+
     def to_paragraph_list(self):
         """
         Generates a list of descriptive paragraphs about the planet or moon,
@@ -612,6 +632,8 @@ class Planet(HoldsOrbitPosition):
 
         # Call the new method to get life and flavor text paragraphs
         output_paragraphs.extend(self._generate_life_and_flavor_paragraphs(object_type_desc, sentences))
+
+        output_paragraphs.extend(self._habitability_paragraphs())
 
         if self.moons:
             for moon in self.moons:

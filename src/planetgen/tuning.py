@@ -628,11 +628,16 @@ MIN_RELATIVE_DENSITY = 1.0e-3
 # of a star being at least the threshold's brightness is tabulated.
 BRIGHT_STAR_MASS_GRID_CELLS = 4000
 
-# The layer-walking scatter passes (stars and phenomena) walk the layers
-# from the galactic plane outwards and stop, going on to the next stage,
-# once this many layers in a row (in walk order) produced nothing
-# (`generation/early_stop.py`). 0 walks every layer.
-SCATTER_DRY_LAYERS = 100
+OBJECT_FIRST_CAPACITIES = (1, 2, 4, 8, 16)
+"""tuple: The object counts a sector can take in the object-first scatter (PERF.58): its capacity is the smallest
+of these that its expected count rarely exceeds (`OBJECT_FIRST_TAIL`); an object past it is dropped."""
+
+OBJECT_FIRST_TAIL = 1.0e-4
+"""float: The chance a sector's Poisson count may exceed its capacity (PERF.58)."""
+
+POISSON_REJECTION_MEAN = 10.0
+"""float: From this mean up `util/poisson.py` draws a Poisson count by transformed rejection (constant time);
+below it, by Knuth's method (PERF.60)."""
 
 # Binary mass ratio q = M2/M1, uniform (Moe & Di Stefano 2017, ApJS 230:15,
 # find it close to flat); the secondary shares the primary's age.

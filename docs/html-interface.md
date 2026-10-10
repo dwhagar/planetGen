@@ -37,6 +37,8 @@ The sweep of the existing wording is done (PR #1049).
 
 ## Habitability chips
 
+Each rocky planet's and moon's description also carries the full PHI-4 explanation (UX.91, `physics/habitability_explain.py`): the score and equipment, then one paragraph per colour factor with its colour, this world's input values and the input that sets it.
+
 Planet and moon rows carry habitability chips (GEN.89, design in
 `docs/design/habitability-index.md`): an equipment label (Ideal, formerly Shirtsleeve;
 Mask, Mask and scrubber, Sealed suit, Full life support), a colour chip
@@ -47,7 +49,7 @@ and black holes follow a host rule. The Equipment search has a facet for
 the labels. The explanation page is /classes/habitability under Classes (UX.90, PR
 #1065), linked from the chips and the Equipment filter; planet and moon
 rows carry the per-domain colours and the stored microbial, complex-life
-and human-operability scores. UX.91 adds the full per-factor explanation
+and human-operability scores. UX.91 added the full per-factor explanation
 to the planet and moon description.
 
 ## How it works
@@ -391,6 +393,7 @@ step can be bookmarked or shared:
 | `/nav?from_sector=5` | Choose a starting system in sector 5. |
 | `/nav?from=system:12` | Destination pickers: the other systems in its sector, and (when that sector is galaxy-placed) a sector-then-system picker for another sector (`&to_sector=9`). |
 | `/nav?from=system:12&to=system:40` | The direct course (distance, "bearing mark mark" and its frame, warp and fold travel times), the NAV Map and the optimal route. |
+| `/nav?from=system:12&to=system:40&stay=30` | NAV.11: the route's panel also shows the travel time of each hop and of the whole route at every warp and fold factor, with a stay of 30 minutes at each stop between the ends (default 0; the "Recalculate" field on the page sets it). |
 | `/nav?from=nebula:3&to=system:40` | The same with a phenomenon endpoint. |
 | `/nav?to=black_hole:3` | "Navigate to here": the origin picker, carrying `to` along. |
 

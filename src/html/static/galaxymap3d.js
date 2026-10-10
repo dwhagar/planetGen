@@ -476,9 +476,10 @@ function showPointInfo(point) {
     fields: [
       ["Type", pointTypeLabel(point)],
       ["Luminosity", formatLuminosity(point.luminosity_sol)],
+    ].concat(point.mass_solar != null ? [["Mass", point.mass_solar.toLocaleString("en-US", { maximumSignificantDigits: 4 }) + " solar masses"]] : [], [
       ["Position x, y, z", [point.x, point.y, point.z].map(function (v) { return v.toFixed(1); }).join(", ") + " pc"],
       ["Distance from core", formatDistancePc(Math.hypot(point.x, point.y, point.z))],
-    ],
+    ]),
   }, phenomenonActions(point)));
 }
 

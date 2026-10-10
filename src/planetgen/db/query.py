@@ -68,7 +68,8 @@ from planetgen.galaxy.drill import (
 from planetgen.db.corridor import positions_near_segment, unknown_space_flags
 from planetgen.galaxy.nav_graph import build_route_graph, shortest_path
 from planetgen.galaxy.navigation import (
-    FRAME_GALACTIC, FRAME_SECTOR, FRAME_SYSTEM, course_between, fold_travel_times, warp_travel_times,
+    FRAME_GALACTIC, FRAME_SECTOR, FRAME_SYSTEM, course_between, fold_travel_times, route_fold_times, route_warp_times,
+    warp_travel_times,
 )
 from planetgen.physics.constants import SPECTRAL_CLASS_COLORS
 from planetgen.generation.evolution import life_stage_from_paragraphs
@@ -814,7 +815,7 @@ def _galaxy_route(conn, origin_position, destination_position, from_key, to_key,
 
 
 def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
-                 from_kind="system", to_kind="system", from_type=None, to_type=None):
+                 from_kind="system", to_kind="system", from_type=None, to_type=None, stay_minutes=0.0):
     """
     Resolves full NAV information between two endpoints -- each either a
     star system or a standalone phenomenon (nebula/asteroid field/black
@@ -854,6 +855,9 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
         from_type (str, optional): Required when `from_kind ==
             "phenomenon"` -- one of `_PHENOMENON_TYPE_TO_TABLE`'s keys.
         to_type (str, optional): Same, for the destination.
+        stay_minutes (float): NAV.11: the time spent at each system the
+            route stops at between the two ends (default 0); only the
+            route's total times use it.
 
     Returns:
         dict: `scope` (`"sector"` or `"galaxy"`), `direct` (a
@@ -867,7 +871,12 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
             to the same node (the joined graph always has a path
             otherwise), else `{"path": [...node ids...], "distance_ly": float,
             "positions": {node_id: (x, y, z), ...}, "hops": [{"from", "to",
-            "distance_ly", "unknown_space"}], "longest_hop_ly": float}` (one entry per id in
+            "distance_ly", "unknown_space", "warp_times", "fold_times"}],
+            "longest_hop_ly": float, "stops": int, "stay_minutes": float,
+            "warp_times", "fold_times"}` (NAV.11: a hop's lists are
+            `WarpLeg`/`FoldLeg` dicts for that hop alone; the route's are
+            `WarpLeg`/`FoldLeg` for the whole route, a stop at every system
+            between the ends for `stay_minutes` each) (one entry per id in
             `path`, same frame as `origin_position`/`destination_position`
             -- for rendering the route, e.g. `planetgen/web/maps/navmap.py`, without
             a second position lookup). A node id is a plain `star_systems.
@@ -950,6 +959,9 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
             route_positions = {node_id: positions[node_id] for node_id in path}
             hops = [{"from": a, "to": b, "distance_ly": math.dist(positions[a], positions[b]),
                      "unknown_space": False} for a, b in zip(path, path[1:])]
+            for hop in hops:
+                hop["warp_times"] = [leg._asdict() for leg in warp_travel_times(hop["distance_ly"])]
+                hop["fold_times"] = [leg._asdict() for leg in fold_travel_times(hop["distance_ly"])]
             if galaxy_frame is not None:
                 flags = unknown_space_flags(conn, [galaxy_frame[node_id] for node_id in path])
                 for hop, flag in zip(hops, flags):
@@ -963,6 +975,10 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
                 "positions": route_positions,
                 "hops": hops,
                 "longest_hop_ly": max((hop["distance_ly"] for hop in hops), default=0.0),
+                "stops": max(len(hops) - 1, 0),
+                "stay_minutes": stay_minutes,
+                "warp_times": route_warp_times([hop["distance_ly"] for hop in hops], stay_minutes),
+                "fold_times": route_fold_times([hop["distance_ly"] for hop in hops], stay_minutes),
             }
 
     return {
@@ -1041,7 +1057,7 @@ def _nav_leg(kind, origin_ref, destination_ref, course):
     }
 
 
-def nav_course(conn, from_ref, to_ref, adjacency_k=NAV_ADJACENCY_K):
+def nav_course(conn, from_ref, to_ref, adjacency_k=NAV_ADJACENCY_K, stay_minutes=0.0):
     """
     NAV between any two objects (NAV.16): `nav_between`'s result plus
     `origin`/`destination` (`{ref, kind, name}`), `legs` and `note`.
@@ -1055,6 +1071,8 @@ def nav_course(conn, from_ref, to_ref, adjacency_k=NAV_ADJACENCY_K):
     `"system"`; positions in light-years from the system's origin, no
     route). Each leg is `{kind, from, to, direct, warp_times, fold_times}`;
     `direct` is a `navigation.Course`.
+
+    `stay_minutes` (NAV.11) is the stay at each stop of the route.
 
     Raises:
         ValueError: For a bad reference or a missing row.
@@ -1084,7 +1102,7 @@ def nav_course(conn, from_ref, to_ref, adjacency_k=NAV_ADJACENCY_K):
     from_id, from_kind, from_type = anchor_args(origin)
     to_id, to_kind, to_type = anchor_args(destination)
     result = nav_between(conn, from_id, to_id, adjacency_k, from_kind=from_kind, to_kind=to_kind,
-                         from_type=from_type, to_type=to_type)
+                         from_type=from_type, to_type=to_type, stay_minutes=stay_minutes)
 
     toward = [d - o for o, d in zip(result["origin_position"], result["destination_position"])]
     length = math.sqrt(sum(v * v for v in toward))
@@ -3968,10 +3986,27 @@ SCATTERED_POINT_CLASSES = (
 )
 """tuple: `(scatter kind, subtype, map type, size share)` for the scattered
 objects the Galaxy Map draws as points before their sector is filled
-(MAP.164), biggest first. A scatter row stores no mass (the object is built
-from its seed when its sector is made), so the share comes from the mass
-class the row does carry: 1 for the nucleus black hole down to 0.35 for a
-neutron star."""
+(MAP.164), biggest first. The share is the size of a row with no stored
+mass (one scattered before v80), from its mass class: 1 for the nucleus
+black hole down to 0.35 for a neutron star. A row with a mass is sized by
+`scattered_point_size`."""
+
+SCATTERED_SIZE_MASS_DECADES = 8.0
+"""float: The mass, as powers of ten of a solar mass, at which a scattered
+point reaches full size (MAP.165); a solar mass is the smallest."""
+
+SCATTERED_SIZE_MIN = 0.2
+"""float: The size share of a solar mass."""
+
+
+def scattered_point_size(mass_solar):
+    """The 0..1 size share of a scattered black hole or neutron star of
+    `mass_solar` (MAP.165): a straight line in the logarithm of the mass from
+    `SCATTERED_SIZE_MIN` at one solar mass to 1 at 10^`SCATTERED_SIZE_MASS_DECADES`,
+    so a heavier object is never drawn smaller and every class keeps its place
+    (neutron stars, stellar, intermediate and supermassive black holes)."""
+    decades = max(0.0, min(SCATTERED_SIZE_MASS_DECADES, math.log10(max(mass_solar, 1.0))))
+    return round(SCATTERED_SIZE_MIN + (1.0 - SCATTERED_SIZE_MIN) * decades / SCATTERED_SIZE_MASS_DECADES, 4)
 
 SCATTERED_POINT_COARSE_CLASSES = 3
 """int: Tiles coarser than `POINT_PHENOMENON_MIN_LEVEL` list only this many
@@ -3995,7 +4030,7 @@ def galaxy_scattered_points_in_box(conn, lo, hi, edge_pc, limit, coarse):
 
     Returns:
         list[dict]: Same keys as `galaxy_point_phenomena_in_box`, with
-            `scattered` (True), `size` (0..1, the class's size share) and
+            `scattered` (True), `size` (0..1, from the stored mass, else the class's share), `mass_solar` and
             an `id` that is the scatter row's id as text.
     """
     classes = SCATTERED_POINT_CLASSES[:SCATTERED_POINT_COARSE_CLASSES] if coarse else SCATTERED_POINT_CLASSES
@@ -4013,12 +4048,12 @@ def galaxy_scattered_points_in_box(conn, lo, hi, edge_pc, limit, coarse):
     box_params = [int(math.ceil(v * MPC_PER_PC)) for pair in zip(lo, hi) for v in pair]
     rows = conn.execute(
         f"""
-        SELECT id, kind, subtype, built_at, position_x_mpc, position_y_mpc, position_z_mpc
+        SELECT id, kind, subtype, built_at, mass_solar, position_x_mpc, position_y_mpc, position_z_mpc
         FROM phenomenon_scatter
         WHERE {"" if coarse else "built_at IS NULL AND "}{where_address} AND ({kinds})
           AND position_x_mpc >= ? AND position_x_mpc < ? AND position_y_mpc >= ? AND position_y_mpc < ?
           AND position_z_mpc >= ? AND position_z_mpc < ?
-        ORDER BY (kind = 'quasar') DESC, (subtype <=> 'supermassive') DESC, (subtype <=> 'intermediate') DESC, (subtype <=> 'stellar') DESC, id
+        ORDER BY (kind = 'quasar') DESC, (subtype <=> 'supermassive') DESC, (subtype <=> 'intermediate') DESC, (subtype <=> 'stellar') DESC, mass_solar DESC, id
         LIMIT ?
         """,
         (*address_params, *kind_params, *box_params, int(limit)),
@@ -4027,10 +4062,13 @@ def galaxy_scattered_points_in_box(conn, lo, hi, edge_pc, limit, coarse):
     points = []
     for row in rows:
         map_type, size = share[(row["kind"], row["subtype"])]
+        if row["mass_solar"] is not None:
+            size = scattered_point_size(row["mass_solar"])
         label = {"black_hole": "Black hole", "quasar": "Quasar"}.get(map_type, "Neutron star")
         points.append({
             "type": map_type, "id": f"s{row['id']}", "name": f"{label} (uncharted)" if row["built_at"] is None else label,
             "descriptor": row["subtype"] or "scattered", "luminosity_sol": 0.0, "scattered": True, "size": size,
+            "mass_solar": None if row["mass_solar"] is None else float("%.4g" % row["mass_solar"]),
             "x": round(row["position_x_mpc"] / MPC_PER_PC, 3), "y": round(row["position_y_mpc"] / MPC_PER_PC, 3),
             "z": round(row["position_z_mpc"] / MPC_PER_PC, 3),
         })

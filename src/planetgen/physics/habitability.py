@@ -320,35 +320,53 @@ def inspired_o2_kpa(world):
     return world.gases.get("O2", 0.0) * max(0.0, world.pressure_kpa - ARMSTRONG_KPA)
 
 
+def gas_inputs(world):
+    """`[(gas, partial kPa, band)]` for the gases the filter rules read (CO2, CO, H2S, SO2): the value
+    and the log band `band_score` scores it in. Shared with the explanation (`habitability_explain`)."""
+    chronic, acute = GAS_LIMITS_KPA["CO2"]
+    inputs = [("CO2", world.partial_kpa("CO2"), (None, None, None, None, chronic, CO2_GREEN_KPA, acute, acute * 10))]
+    for gas in ("CO", "H2S", "SO2"):
+        chronic, acute = GAS_LIMITS_KPA[gas]
+        inputs.append((gas, world.partial_kpa(gas), (None, None, None, None, chronic, chronic,
+                                                     acute * FILTER_FACTOR, acute * FILTER_FACTOR * 10)))
+    return inputs
+
+
+O2_HIGH_BAND = (None, None, None, None, INSPIRED_O2_CHRONIC_KPA, INSPIRED_O2_CHRONIC_KPA,
+                INSPIRED_O2_ACUTE_KPA, INSPIRED_O2_ACUTE_KPA * 10)
+"""tuple: The log band of inspired O2 against too much of it (the low side is a mask, see `_gas_scores`)."""
+
+
 def _gas_scores(world):
     scores = {}
     o2 = inspired_o2_kpa(world)
     # Low O2: a mask fixes it wherever a mask works (Green); where it doesn't,
     # the pressure domain already says so.
     o2_low = 1.0 if o2 >= INSPIRED_O2_MIN_KPA else 0.75
-    o2_high = band_score(o2, (None, None, None, None, INSPIRED_O2_CHRONIC_KPA, INSPIRED_O2_CHRONIC_KPA,
-                              INSPIRED_O2_ACUTE_KPA, INSPIRED_O2_ACUTE_KPA * 10), log=True)
-    scores["O2"] = min(o2_low, o2_high)
-    chronic, acute = GAS_LIMITS_KPA["CO2"]
-    scores["CO2"] = band_score(world.partial_kpa("CO2"),
-                               (None, None, None, None, chronic, CO2_GREEN_KPA, acute, acute * 10), log=True)
-    for gas in ("CO", "H2S", "SO2"):
-        chronic, acute = GAS_LIMITS_KPA[gas]
-        scores[gas] = band_score(world.partial_kpa(gas), (None, None, None, None, chronic, chronic,
-                                                          acute * FILTER_FACTOR, acute * FILTER_FACTOR * 10),
-                                 log=True)
+    scores["O2"] = min(o2_low, band_score(o2, O2_HIGH_BAND, log=True))
+    for gas, kpa, band in gas_inputs(world):
+        scores[gas] = band_score(kpa, band, log=True)
     return scores
 
 
-def _water_score(world):
+def water_inputs(world):
+    """`[(label, value, band)]` for the liquid water's acidity, activity and chaotropicity, `[]` when there
+    is no water to drink. Shared with the explanation (`habitability_explain`)."""
     if world.solvent != "water" or world.ph is None:
+        return []
+    return [("pH", world.ph, (0.0, 1.0, 5.0, 6.0, 8.5, 9.5, 11.5, 14.0)),
+            ("water activity", world.water_activity,
+             (0.5, WATER_ACTIVITY_CRIT, WATER_ACTIVITY_GREEN, 0.90, 1.0, 1.0, 1.0, 1.0)),
+            ("chaotropicity", world.chaotropicity_kj_kg,
+             (None, None, None, None, CHAOTROPICITY_CRIT_KJ_KG, CHAOTROPICITY_CRIT_KJ_KG,
+              CHAOTROPICITY_CRIT_KJ_KG, CHAOTROPICITY_CRIT_KJ_KG * 2))]
+
+
+def _water_score(world):
+    inputs = water_inputs(world)
+    if not inputs:
         return 1.0
-    ph = band_score(world.ph, (0.0, 1.0, 5.0, 6.0, 8.5, 9.5, 11.5, 14.0))
-    aw = band_score(world.water_activity, (0.5, WATER_ACTIVITY_CRIT, WATER_ACTIVITY_GREEN, 0.90, 1.0, 1.0, 1.0, 1.0))
-    chi = band_score(world.chaotropicity_kj_kg, (None, None, None, None, CHAOTROPICITY_CRIT_KJ_KG,
-                                                 CHAOTROPICITY_CRIT_KJ_KG, CHAOTROPICITY_CRIT_KJ_KG,
-                                                 CHAOTROPICITY_CRIT_KJ_KG * 2))
-    return min(ph, aw, chi)
+    return min(band_score(value, band) for _label, value, band in inputs)
 
 
 def chemistry_score(world):

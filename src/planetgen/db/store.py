@@ -1420,6 +1420,7 @@ def _table_marker(table):
 
 
 _VERSION_MARKERS = (
+    (80, _column_marker("phenomenon_scatter", "mass_solar")),
     (79, _column_marker("sector_stats", "bright_mass_sol")),
     (78, _table_marker("id_counters")),
     (77, _table_marker("phenomenon_scatter_classes")),
@@ -5464,7 +5465,7 @@ def phenomenon_scatter_seed(conn):
 
 PHENOMENON_SCATTER_COLUMNS = (
     "ring_index", "layer_index", "ring_slot_index", "kind", "subtype", "position_x_mpc", "position_y_mpc",
-    "position_z_mpc", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms", "seed",
+    "position_z_mpc", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms", "seed", "mass_solar",
 )
 """tuple: The `phenomenon_scatter` columns a scatter writes, in the order
 `insert_phenomenon_scatter` expects each row's values."""

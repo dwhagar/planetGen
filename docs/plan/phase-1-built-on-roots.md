@@ -102,7 +102,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | NAV.52 | Port `join_islands` and the k-d tree to cKDTree |  | Research: performance cliff in the built router. |
-| NAV.11 | Travel times for the system-to-system route too |  | Times per hop, including unknown-space jumps; total assumes a stop at every system (Boss 04:19Z); open question on a stay per stop. |
 | NAV.42 | Each route stop shows the course and distance to the next stop |  | Boss 04:19Z. format_course per hop, frame per pair. |
 | NAV.47 | Unknown-space jumps stop at scattered stars, black holes, neutron stars and quasars |  |  |
 | NAV.48 | Offer to generate the uncharted sectors that block a course |  |  |
@@ -118,7 +117,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | MAP.119 | Expected star density editable by admins on the Galaxy Map |  |  |
 | MAP.122 | A Select mode on every galaxy view: Galaxy (blocks and sectors) or Star |  | Merges the 2026-10-07 "button to select a star" ask; MAP.101 (PR #431) made stars unpickable by default. |
-| UX.87 | The system list shows uncharted systems: every scattered star, with its location and a way to generate it |  | Boss issue #929, 01:51Z. |
 | MAP.146 | Fly through the galaxy: scroll-zoom, double-click flight, distance-based visibility and a see-through near field | MAP.148, MAP.149, MAP.150, MAP.151, MAP.152, MAP.154, MAP.155, MAP.157, MAP.158, MAP.159 | Boss 2026-10-09 22:24Z and 22:56Z. Umbrella for MAP.148 to MAP.152; replaces the fixed ladder in galaxy/drill.py and galaxyprisms.js. |
 | MAP.147 | The Galaxy Map wire format: the investigation (done) and the record of what was built from it | MAP.157, MAP.158, MAP.159 | Research Lane 3 report in docs/design/galaxy-map-wire-format.md; record until the build items are done. |
 | MAP.157 | Trim the Galaxy Map tile JSON and serve it from prebuilt, precompressed bytes |  | MAP.147 recommendation step 1; no client change. |
@@ -132,13 +130,8 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.154 | Nested bright-star lists on the server, so every parent list is a subset of its child's |  | Zoom visibility note stage 2; shares tile keys with MAP.147 and MAP.151. |
 | MAP.159 | Packed binary Galaxy Map tiles (quantised planes) with the nested tile lists, on one cache stamp bump | MAP.154, MAP.158 | MAP.147 recommendation step 2; one stamp bump with MAP.154 and MAP.151. |
 | MAP.155 | Other objects fade in too: point objects from level 8, a size ramp for cloud sprites, and stars that grow from a faint dot |  | Zoom visibility note stage 3. |
-| UX.91 | Planet and moon description carries a full PHI-4 explanation, each colour factor and why |  |  |
-| MAP.165 | Scattered phenomena store a mass so the Galaxy Map sizes them exactly |  |  |
-| PERF.61 | Object-first sampler for the phenomena pass, own prototype first | PERF.58, PERF.60 |  |
-| PERF.60 | Large-mean Poisson helper for per-layer counts (top priority) |  |  |
-| PERF.59 | Share the ring inputs across the three scatter passes (top priority) |  |  |
-| PERF.58 | Object-first star sampler for the mass and luminosity passes (top priority, replaces PERF.57) | PERF.60 |  |
-| TEST.124 | Phenomena page tests fail with KeyError scattered in system_pages._phenomena_load (bug) |  |  |
+| PERF.61 | Object-first sampler for the phenomena pass, own prototype first |  |  |
+| PERF.59 | Share the ring inputs between the phenomena pass and the backfill rings (top priority) |  |  |
 
 ### System Map
 
@@ -229,7 +222,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 ## Open questions for Boss
 
-- NAV.11: Travel times for the system-to-system route too, see its entry in TODO.md.
 - UX.22: Meaningful units for every measurement, see its entry in TODO.md.
 - UX.3: Warn every visitor while a background job changes the galaxy, see its entry in TODO.md.
 - API.4: API compatibility data in the docs, see its entry in TODO.md.

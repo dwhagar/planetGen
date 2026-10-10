@@ -2017,6 +2017,10 @@ relationship.
 
 `phenomenon_scatter.epoch_unix` (DOUBLE, nullable): the orbit epoch a scattered hypervelocity star's position holds at, stamped when the plan draws it (NULL when no orbit update has run yet, meaning the database's orbit epoch). The built star system inherits it as its own `epoch_unix`, so the next orbit update flies it on from there.
 
+### v80 (MAP.165): `phenomenon_scatter.mass_solar`
+
+`phenomenon_scatter.mass_solar` (DOUBLE, nullable): the solar mass a scattered black hole (the central one too) or neutron star was drawn with, inside its class range and above the scatter's cut. The sector build gives the object exactly this mass, and the Galaxy Map sizes the point from it (a straight line in log mass from 0.2 at one solar mass to 1.0 at 1e8), so a heavier object is never drawn smaller. NULL for quasars, hypervelocity stars, nebulae and remnants, and on rows scattered before v80 (the map then sizes those by mass class).
+
 ### v71 (GEN.167): `galaxy_shape.phenomenon_min_mass_solar`
 
 `galaxy_shape.phenomenon_min_mass_solar` (DOUBLE, nullable): the phenomenon scatter's mass cut. The scatter places only the neutron stars and black holes at or above it (with 20, only the intermediate-mass black holes: about 2.7e5 rows instead of 1.17e9); a sector fill draws the share below it on the stream `{seed}:phenomena-fill:{ring}:{layer}:{slot}`, so the two add up to the whole population. `planetgen plan --phenomena-only --phenomenon-min-mass M` re-scatters at a new cut; filled sectors already hold every mass and are left out. See docs/design/phenomenon-scatter-mass-cut.md.

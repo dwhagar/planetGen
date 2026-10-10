@@ -854,6 +854,16 @@ is the longest. `unknown_space` is true when the hop's straight line crosses a
 sector that has not been generated (`galaxyGeometry.sectors_along_segment`,
 NAV.38). A route in a sector with no galaxy placement has the flag false.
 
+**Travel times for the route (NAV.11).** Each `route.hops` entry also has
+`warp_times` and `fold_times` for that hop alone (the same factors as the
+top-level lists), and the route has `warp_times` and `fold_times` for the
+whole trip: every hop timed from rest to rest at the factor's constant speed
+(`warp_speed_c`, `fold_speed_c`; no acceleration model) plus a stay at each
+stop between the two ends, a route of N hops having `route.stops` = N - 1 of
+them. The optional `stay` query parameter is the minutes spent at each stop
+(default 0, at most 10,000,000; anything else is a `400`), echoed as
+`route.stay_minutes`. A one-hop route has no stop, so its total is the hop's.
+
 **Bodies and legs (NAV.16).** `origin` and `destination` echo
 `{ref, kind, name}`. `legs` lists the course's legs, each `{kind, from, to,
 direct, warp_times, fold_times}`: `between` (the system-to-system or
