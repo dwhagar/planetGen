@@ -690,7 +690,7 @@ def test_backfill_tiers_default_and_override():
     assert run_galaxy.backfill_tiers(radius_ly=20.0) == ((20.0, 100.0),)
     assert run_galaxy.backfill_tiers(min_luminosity_sol=300.0) == ((100.0, 300.0),)
     assert run_galaxy.backfill_tiers(tiers=((40, 300), (5, 100))) == ((5.0, 100.0), (40.0, 300.0))
-    assert tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL == 5000.0
+    assert tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL == 9000.0
 
 
 @pytest.mark.parametrize("distance_ly, floor", [
