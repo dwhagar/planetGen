@@ -3065,28 +3065,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   centres qualify.
   Prerequisites: none. Related: GEN.97, ADM.28.
 
-- [ ] **GEN.187 Bright-star back scatter by mass: rings of 1, 2, 5 and 8 solar masses around filled space**
-  Boss (GitHub issue
-  [#952](https://github.com/dwhagar/planetGen/issues/952), 2026-10-10
-  03:43Z): "Back-scatter of bright stars needs to be changed to filtered
-  by mass. Within 1 sector on all sides (orthogonal only, no diagonals)
-  should fill to: 1. 1 Solar Masses (1 Sector around filled region) 2. 2
-  Solar Masses (1 Sector around step 1) 3. 5 Solar Masses (1 Sector
-  around step 2) 4. 8 Solar Masses (1 Sector around step 3)." Done: the
-  back scatter that fills around generated sectors (GEN.30's luminosity
-  tiers) is replaced by four rings, each one sector further out by face
-  adjacency only (no diagonals): the first ring fills stars down to 1
-  solar mass, the second down to 2, the third down to 5 and the fourth
-  down to 8; beyond the fourth ring only the scatter's own mass limit
-  (GEN.183) applies. Decided (Boss, 2026-10-10 04:06Z, "your defaults are confirmed"): the nearest ring
-  takes the lowest mass cut, as above, and each ring is counted from the
-  previous ring's outer edge; the GEN.30 luminosity tiers go away.
-  Prerequisites: none (GEN.184 merged, PR #965). Related: GEN.30, GEN.40, GEN.99, GEN.183,
-  GEN.184, MAP.120, PERF.18.
-  Stage list (2026-10-09): Bugfixes lane 1 (2026-10-10, PR #1057): the
-  stage list lives in generation/stages.py. When this item lands, add
-  one galaxy_stages entry for Mass Star Scatter from Neighborhood.
-
 - [ ] **GEN.189 Gamma-ray burst and AGN ozone loss for the ozone_loss_flag (low priority)**
   Foundations lane 2 (2026-10-10 06:20Z), design 4.5 of
   activity-magnetism-radiation-hydrosphere.md: GEN.87 stores
@@ -3337,8 +3315,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   own item.
   Bugfixes lane 1 (2026-10-09): Part 1 built (2026-10-10, Bugfixes lane
   1, PR #1021): a multi-step job adds each not-yet-started step's
-  estimate to its ETA. Still open: the scatter-bar recorded rate (after
-  GEN.187) and the UX.3 banner reading the same estimator (the banner is
+  estimate to its ETA. Still open: the scatter-bar recorded rate (GEN.187
+  has landed) and the UX.3 banner reading the same estimator (the banner is
   not built yet, so nothing to read from).
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
@@ -3507,6 +3485,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Msun and one at 14 Msun, or at 5,000 and 9,000 Lsun, are different
   rows). With the grouped layers of PERF.57 the row records group sizes, layers visited
   and layers modified.
+  GEN.187 stage (2026-10-09): GEN.187 has landed (PR #1059): add one
+  galaxy_stages entry in generation/stages.py for Mass Star Scatter from
+  Neighborhood, and record its timing and layers like the other
+  scatters.
 
 - [ ] **PERF.57 Skip empty stretches in a galactic scatter by combining layers into growing groups**
   Boss (2026-10-10 09:17Z, via the coordinator; replaces his 08:32Z
@@ -3522,7 +3504,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   room, at which point the pass ends. Done:
   - Applies to every galactic scatter pass: the mass pass, the
     luminosity pass, the phenomena pass and the bright-star back scatter
-    of GEN.187 when it lands.
+    of GEN.187 (landed, PR #1059).
   - Scaling back (Boss 09:19Z): grouping starts only after 5 contiguous
     layers placed nothing. In group mode a group that places nothing
     doubles the next group (10, 20, 40, ...); a group that places
@@ -4242,6 +4224,19 @@ clears each one.
   (shared state, ordering or timing) and make the test robust; never
   skip it. Owner: unassigned.
   Prerequisites: none. Related: TEST.111, TEST.116.
+
+- [ ] **TEST.124 Phenomena page tests fail with KeyError scattered in system_pages._phenomena_load (bug)**
+  Reported by Foundations lane 2 (2026-10-10, PR #1059): on current main
+  15 tests fail with KeyError 'scattered' in
+  system_pages._phenomena_load, in test_web_system_phen.py and
+  test_web_browser_tables.py. They fail on a clean origin/main worktree,
+  so they come from the Phenomena table class-totals work (PR #1038),
+  not from PR #1059. Done: the Phenomena page loads for galaxies with
+  and without the class totals, the 15 tests pass, and the cause is
+  named here. Check first whether the page itself breaks for a real
+  galaxy (GEN.193 still wants confirming that the table shows rows after
+  a real run). Owner: Bugfixes lane 1, next after PERF.56.
+  Prerequisites: none. Related: GEN.193, PERF.56.
 
 ## USR: User accounts
 
