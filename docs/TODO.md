@@ -3160,7 +3160,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   GEN.184, MAP.120, PERF.18.
 
 - [ ] **GEN.188 Mass limit default is 8, and the mass slider and luminosity dropdown sit side by side on Generate and New galaxy**
-  Decided (Boss, 2026-10-10 04:38Z, to Bugfixes lane 2): change the
+  Decided (Boss, 2026-10-10 04:38Z, via the coordinator; owner Foundations lane 2): change the
   Generate-galaxy defaults so the mass limit default is 8 solar masses
   (GEN.183 shipped 20); put the mass slider and the luminosity floor
   dropdown (GEN.184, default 3000 L_sun) next to each other on the
