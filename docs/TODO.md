@@ -3473,18 +3473,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   ran about 35 times faster at default scale (12.7 minutes to about 20 s
   per pass) and 78 times at quarter scale, with counts and spatial
   distribution matching today's code (chi-square per degree of freedom
-  0.93 to 1.07). Boss also asked that his sparse method for stacks of
-  empty layers use the same fast method. Research lane 3 measured it
-  (follow-up in the study, PR #1068): do NOT group layers. At default
-  scale one layer at a time took 49.5 s, stacks of 4 took 46.0 s and
-  stacks of 16 took 49.4 s, and a whole-galaxy stack was 5 times slower
-  at quarter scale, because a bigger stack has a looser majorant and
-  the extra rejected candidates cancel the saving. An empty layer
-  already costs only its majorant (about 1.2 us per ring), so the
-  object-first draw does the sparse method's job by itself. The sampler
-  runs per layer (a stack of one); the stack size is a named tuning
-  value defaulting to 1, so stacks can be tried later. PERF.57's
-  grouping is not built.
+  0.93 to 1.07). Boss first asked for his sparse method for stacks of
+  empty layers on the same fast method; Research lane 3 measured that
+  grouping layers gains nothing (a bigger stack loosens the bound and
+  cancels the saving), and Boss then dropped it (2026-10-10 10:00Z,
+  "now we're going so much faster"). The sampler runs per layer only: no
+  stack rule and no stack-size tuning value. An empty layer already
+  costs only its majorant (about 1.2 us per ring). PERF.57's grouping is
+  not built.
   Several objects per sector (Boss 09:32Z, tiers by density rating):
   independent object-first draws and a per-sector count dictionary; each
   sector has a capacity from its expected count at the sector centre,
@@ -3526,11 +3522,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Bugfixes lane 1, with PERF.58.
   Prerequisites: none. Related: PERF.58, PERF.61, GEN.185.
 
-- [ ] **PERF.60 Large-mean Poisson helper for per-layer and per-stack counts (top priority)**
+- [ ] **PERF.60 Large-mean Poisson helper for per-layer counts (top priority)**
   From the scatter study (docs/design/scatter-queue-feasibility.md):
   _sample_poisson_count is Knuth's O(mean) algorithm, fine per ring, but
-  the object-first sampler (PERF.58) draws one count per layer or per
-  stack of layers, with means in the thousands or millions. Done: a
+  the object-first sampler (PERF.58) draws one count per layer, with means in the thousands or millions. Done: a
   helper draws Poisson counts for any mean in constant time (a
   transformed-rejection or normal-approximation method above a named
   threshold in tuning.py, Knuth below it), uses the one random wrapper
