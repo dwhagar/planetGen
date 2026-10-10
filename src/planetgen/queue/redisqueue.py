@@ -27,7 +27,7 @@ import time
 import redis
 import rq
 
-from planetgen.util.appconfig import load_config
+from planetgen.util.settings import get_settings
 
 GENERATION_QUEUE = "planetgen-generation"
 """str: Sector fills, layer scatters and backfill blocks."""
@@ -38,18 +38,10 @@ WEB_QUEUE = "planetgen-web"
 QUEUES = (GENERATION_QUEUE, WEB_QUEUE)
 """tuple: Every queue, in the order a worker serves them."""
 
-URL_ENV_VAR = "PLANETGEN_REDIS_URL"
-"""str: Overrides `config.json`'s `redis.url`."""
-
-
-def redis_url(config=None):
+def redis_url():
     """The Redis server: `PLANETGEN_REDIS_URL`, else `config.json`'s
-    `redis.url`."""
-    url = os.environ.get(URL_ENV_VAR)
-    if url:
-        return url
-    config = load_config() if config is None else config
-    return config["redis"]["url"]
+    `redis.url` (the settings model applies both)."""
+    return get_settings().redis.url
 
 
 def connect(url=None):

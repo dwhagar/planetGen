@@ -12,11 +12,14 @@ exercise the exact same read path (`planetgen.db.query`/`planetgen.db.store.load
 `load_star_system`) production traffic does.
 """
 
+import json
 import math
 import re
 import time
 
 import pytest
+
+from planetgen.util import logpaths
 
 from planetgen.web.app import create_app
 from planetgen.api.authz import SESSION_COOKIE_NAME
@@ -723,7 +726,7 @@ def test_db_query_param_rejects_unknown_database(client):
     assert "error" in response.get_json()
 
 
-def test_the_control_database_is_never_listed_or_selectable(client, seeded_sector, monkeypatch):
+def test_the_control_database_is_never_listed_or_selectable(client, seeded_sector, monkeypatch, tmp_path):
     """The control schema (admin logins, sessions, API keys) shares the
     `planetgen` prefix by default (`planetgen_control`); it must not show
     up in `/api/databases` or be reachable with `?db=`."""
@@ -738,8 +741,9 @@ def test_the_control_database_is_never_listed_or_selectable(client, seeded_secto
         _db.resolve_database(mysql_config, mysql_config.database)
 
     monkeypatch.delenv(_db.CONTROL_DB_ENV_VAR)
-    real_load_config = _db.load_config
-    monkeypatch.setattr(_db, "load_config", lambda: {**real_load_config(), "control_database": mysql_config.database})
+    config_file = tmp_path / "config.json"
+    config_file.write_text(json.dumps({"control_database": mysql_config.database}))
+    monkeypatch.setattr(logpaths, "CONFIG_PATH", str(config_file))
     assert mysql_config.database not in {entry["name"] for entry in _db.list_databases(mysql_config)}
 
 

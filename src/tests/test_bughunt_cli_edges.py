@@ -9,7 +9,7 @@ entry point (`generate_cli.main()`, via `sys.argv`, same convention
 incompatible combo that stops being rejected, or a numeric boundary that
 starts crashing deep in generation instead of failing cleanly at argument
 -parsing time) is caught at the actual user-facing surface, not just in
-the validator functions' own unit tests (`test_appconfig.py` covers
+the validator functions' own unit tests (`test_settings.py` covers
 `SystemConfig` itself; this file is the CLI layer above it).
 
 Every "should be rejected" case asserts `SystemExit` -- `parser.error()`

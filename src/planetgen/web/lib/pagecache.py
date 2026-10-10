@@ -38,7 +38,7 @@ every use is under the cache's lock.
 
 Settings live under `page_cache` in `config.json` (`enabled`,
 `max_entries`, `max_mb`, `stamp_seconds`, `max_age_seconds`), and
-`PLANETGEN_PAGE_CACHE=off` turns it off.
+`PLANETGEN_PAGE_CACHE=off` turns it off (all in `planetgen.util.settings`).
 """
 
 import os
@@ -47,14 +47,11 @@ import time
 
 import cachetools
 
-DEFAULTS = {
-    "enabled": True,
-    "max_entries": 2000,
-    "max_mb": 64,
-    "stamp_seconds": 15,
-    "max_age_seconds": 300,
-}
-"""dict: The settings used when `config.json` doesn't give them."""
+from planetgen.util.settings import PageCache
+
+DEFAULTS = PageCache().model_dump()
+"""dict: The model's defaults (`settings.PageCache`), the settings a cache
+built without any uses."""
 
 UNCACHED_PREFIXES = ("/galaxy/changes", "/galaxy/tiles", "/galaxy/stage", "/galaxy/stamp", "/auth", "/admin")
 """tuple: Paths never cached here: the stamp itself, the Galaxy Map's tile
@@ -64,17 +61,6 @@ depends on who is asking."""
 MAX_BODY_FRACTION = 0.25
 """float: One body may use at most this share of `max_mb`, so a single
 huge answer can't push everything else out."""
-
-
-def settings_from(config, environ=None):
-    """The cache's settings: `DEFAULTS`, then `config["page_cache"]`,
-    then `PLANETGEN_PAGE_CACHE=off`."""
-    environ = os.environ if environ is None else environ
-    merged = dict(DEFAULTS)
-    merged.update((config or {}).get("page_cache") or {})
-    if str(environ.get("PLANETGEN_PAGE_CACHE", "")).strip().lower() in ("0", "off", "false", "no"):
-        merged["enabled"] = False
-    return merged
 
 
 def is_cacheable(path):
@@ -91,7 +77,7 @@ class ResponseCache:
         stamp_for (callable): `stamp_for(db)` -> the database's current
             content stamp (a short string). Raising anything means "can't
             tell", and that call goes uncached.
-        settings (dict): `settings_from(...)`'s keys.
+        settings (dict): `settings.PageCache`'s fields as a dict.
         clock (callable): Seconds, monotonic; replaceable in tests.
     """
 

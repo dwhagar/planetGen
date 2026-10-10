@@ -12,7 +12,7 @@ import stat
 import pytest
 
 from planetgen.admin import activity_log, auth as adminAuth
-from planetgen.util import appconfig
+from planetgen.util import logpaths
 
 LINE = re.compile(
     r'^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\dZ planetgen\[\d+\]: (?P<cat>[A-Z]+) (?P<action>\S+) '
@@ -30,7 +30,7 @@ date off the front before matching."""
 def log_dir(tmp_path, monkeypatch):
     folder = tmp_path / "logs"
     monkeypatch.setenv("PLANETGEN_LOG_DIR", str(folder))
-    monkeypatch.setattr(appconfig, "SYSTEM_ROTATION_FILES", (str(tmp_path / "no-such-rotation"),))
+    monkeypatch.setattr(logpaths, "SYSTEM_ROTATION_FILES", (str(tmp_path / "no-such-rotation"),))
     activity_log.reset()
     yield folder
     activity_log.reset()
@@ -131,7 +131,7 @@ def test_app_rotation_without_system_rotation(log_dir):
 def test_system_rotation_reopens_the_moved_file(log_dir, tmp_path, monkeypatch):
     marker = tmp_path / "planetgen-log"
     marker.write_text("")
-    monkeypatch.setattr(appconfig, "SYSTEM_ROTATION_FILES", (str(marker),))
+    monkeypatch.setattr(logpaths, "SYSTEM_ROTATION_FILES", (str(marker),))
     activity_log.reset()
     activity_log.event("AUTH", "logout", user="before")
     os.rename(log_dir / "planetgen.log", log_dir / "planetgen.log.1")
@@ -174,38 +174,38 @@ def test_existing_but_unwritable_folder_warns(tmp_path, monkeypatch, capsys):
 # --- configuration ------------------------------------------------------------
 
 def test_default_folders_per_platform():
-    assert appconfig.default_log_dir("linux") == "/var/log/planetgen"
-    assert appconfig.default_log_dir("darwin") == "/Library/Logs/planetgen"
-    assert appconfig.default_log_dir("win32") == os.path.join(
-        os.path.dirname(appconfig.CONFIG_PATH), "logs")
+    assert logpaths.default_log_dir("linux") == "/var/log/planetgen"
+    assert logpaths.default_log_dir("darwin") == "/Library/Logs/planetgen"
+    assert logpaths.default_log_dir("win32") == os.path.join(
+        os.path.dirname(logpaths.CONFIG_PATH), "logs")
 
 
 def test_log_dir_precedence(monkeypatch):
     monkeypatch.delenv("PLANETGEN_LOG_DIR", raising=False)
-    assert appconfig.log_dir_path({"log_dir": ""}) == appconfig.default_log_dir()
-    assert appconfig.log_dir_path({"log_dir": "/srv/logs"}) == "/srv/logs"
+    assert logpaths.log_dir_path({"log_dir": ""}) == logpaths.default_log_dir()
+    assert logpaths.log_dir_path({"log_dir": "/srv/logs"}) == "/srv/logs"
     monkeypatch.setenv("PLANETGEN_LOG_DIR", "/env/logs")
-    assert appconfig.log_dir_path({"log_dir": "/srv/logs"}) == "/env/logs"
+    assert logpaths.log_dir_path({"log_dir": "/srv/logs"}) == "/env/logs"
 
 
 def test_never_shares_the_debug_logs_file(monkeypatch, tmp_path):
     monkeypatch.delenv("PLANETGEN_LOG_DIR", raising=False)
     monkeypatch.delenv("PLANETGEN_LOG_FILE", raising=False)
     config = {"log_dir": str(tmp_path), "log_file": str(tmp_path / "planetgen.log")}
-    assert appconfig.activity_log_path(config) == str(tmp_path / "planetgen-activity.log")
+    assert logpaths.activity_log_path(config) == str(tmp_path / "planetgen-activity.log")
     config["log_file"] = str(tmp_path / "debug.log")
-    assert appconfig.activity_log_path(config) == str(tmp_path / "planetgen.log")
+    assert logpaths.activity_log_path(config) == str(tmp_path / "planetgen.log")
 
 
 def test_rotation_mode(monkeypatch, tmp_path):
     marker = tmp_path / "planetgen-log"
-    monkeypatch.setattr(appconfig, "SYSTEM_ROTATION_FILES", (str(marker),))
-    assert appconfig.log_rotation_mode({"log_rotation": "system"}) == "system"
-    assert appconfig.log_rotation_mode({"log_rotation": " APP "}) == "app"
-    if not appconfig.sys.platform.startswith("win"):
-        assert appconfig.log_rotation_mode({"log_rotation": "auto"}) == "app"
+    monkeypatch.setattr(logpaths, "SYSTEM_ROTATION_FILES", (str(marker),))
+    assert logpaths.log_rotation_mode({"log_rotation": "system"}) == "system"
+    assert logpaths.log_rotation_mode({"log_rotation": " APP "}) == "app"
+    if not logpaths.sys.platform.startswith("win"):
+        assert logpaths.log_rotation_mode({"log_rotation": "auto"}) == "app"
         marker.write_text("")
-        assert appconfig.log_rotation_mode({}) == "system"
+        assert logpaths.log_rotation_mode({}) == "system"
 
 
 def test_debug_log_also_gets_each_line(log_dir, monkeypatch):

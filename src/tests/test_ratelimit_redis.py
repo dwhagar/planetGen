@@ -70,15 +70,17 @@ def test_lockouts_count_in_memory_while_redis_is_down(capsys):
     assert "Redis can't be used for the login lockouts" in capsys.readouterr().err
 
 
-def test_no_configured_storage_means_the_redis_server(monkeypatch):
-    monkeypatch.delenv("PLANETGEN_RATELIMIT_STORAGE_URI", raising=False)
-    monkeypatch.delenv("PLANETGEN_REDIS_URL", raising=False)
+def test_no_configured_storage_means_the_redis_server():
+    from planetgen.util import settings as settings_model
+
+    def uri(config, **environ):
+        return api_config.ratelimit_storage_uri(settings_model.build(config, environ=environ))
+
     config = {"ratelimit": {"storage_uri": ""}, "redis": {"url": "redis://cache.example:6380/3"}}
-    assert api_config.ratelimit_storage_uri(config) == "redis://cache.example:6380/3"
+    assert uri(config) == "redis://cache.example:6380/3"
     config["ratelimit"]["storage_uri"] = "memory://"
-    assert api_config.ratelimit_storage_uri(config) == "memory://"
+    assert uri(config) == "memory://"
     config["ratelimit"]["storage_uri"] = ""
-    monkeypatch.setenv("PLANETGEN_REDIS_URL", "redis://other:6379/1")
-    assert api_config.ratelimit_storage_uri(config) == "redis://other:6379/1"
-    monkeypatch.setenv("PLANETGEN_RATELIMIT_STORAGE_URI", "memory://")
-    assert api_config.ratelimit_storage_uri(config) == "memory://"
+    assert uri(config, PLANETGEN_REDIS_URL="redis://other:6379/1") == "redis://other:6379/1"
+    assert uri(config, PLANETGEN_REDIS_URL="redis://other:6379/1",
+               PLANETGEN_RATELIMIT_STORAGE_URI="memory://") == "memory://"

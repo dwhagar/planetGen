@@ -8,6 +8,7 @@ could have planted it -- a symlink, a directory owned by someone else, or
 one other users can write to.
 """
 
+from planetgen.util import settings as settings_model
 import os
 import stat
 
@@ -87,8 +88,8 @@ def fallback_tmp(tmp_path, monkeypatch):
     monkeypatch.setattr(tilecache.tempfile, "gettempdir", lambda: str(tmp_path))
     monkeypatch.setattr(jobs, "DEFAULT_JOBS_DIR", UNCREATABLE)
     monkeypatch.setattr(tilecache, "DEFAULT_CACHE_DIR", UNCREATABLE)
-    monkeypatch.setattr(jobs, "_config", lambda: {})
-    monkeypatch.setattr(tilecache, "_config", lambda: {})
+    monkeypatch.setattr(jobs, "_config", lambda: settings_model.Jobs())
+    monkeypatch.setattr(tilecache, "_config", lambda: settings_model.TileCache())
     for var in ("PLANETGEN_JOBS_DIR", "PLANETGEN_TILE_CACHE_DIR", "PLANETGEN_TILE_CACHE_MAX_MB"):
         monkeypatch.delenv(var, raising=False)
     return tmp_path

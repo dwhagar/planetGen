@@ -54,7 +54,7 @@ import time
 from planetgen.queue import redisqueue
 from planetgen.web.lib.privatedir import ensure_private_dir
 from planetgen.util import log
-from planetgen.util.appconfig import load_config
+from planetgen.util.settings import get_settings
 
 REPO_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 """str: The planetGen checkout."""
@@ -110,13 +110,13 @@ class JobBusy(Exception):
 
 
 def _config():
-    return load_config().get("jobs") or {}
+    return get_settings().jobs
 
 
 def configured_jobs_dir():
     """`PLANETGEN_JOBS_DIR`, then `jobs.dir`, then `DEFAULT_JOBS_DIR`.
     `examples/apache/create-cache-dir.sh` asks this where to create it."""
-    return os.environ.get("PLANETGEN_JOBS_DIR") or _config().get("dir") or DEFAULT_JOBS_DIR
+    return _config().dir or DEFAULT_JOBS_DIR
 
 
 def jobs_dir():
@@ -150,10 +150,7 @@ def jobs_dir():
 
 
 def keep_count():
-    try:
-        return max(1, int(_config().get("keep") or DEFAULT_KEEP))
-    except (TypeError, ValueError):
-        return DEFAULT_KEEP
+    return _config().keep
 
 
 def python_executable():
@@ -163,7 +160,7 @@ def python_executable():
     can be Apache itself rather than Python, so that case falls back to
     `<sys.prefix>/bin/python3`, then `python3` on the PATH.
     """
-    configured = os.environ.get("PLANETGEN_PYTHON") or _config().get("python")
+    configured = _config().python
     if configured:
         return configured
     if sys.executable and os.path.basename(sys.executable).startswith("python"):

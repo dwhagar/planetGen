@@ -33,11 +33,11 @@ import urllib.parse
 import urllib.request
 
 from planetgen.util import log
-from planetgen.util.appconfig import load_config
+from planetgen.util.settings import get_settings
 
 from planetgen.web.lib import pagecache
 
-API_BASE_URL = os.environ.get("PLANETGEN_API_BASE_URL") or load_config()["api_base_url"]
+API_BASE_URL = get_settings().api_base_url
 """str: Base URL of the planetGen API's `/api` mount point. Defaults to
 the same host (see `examples/apache/planetgen.conf.example`) -- only used
 by the HTTP transport, not by the Flask pages' in-process one --

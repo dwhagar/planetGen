@@ -3,7 +3,7 @@
 """
 Property-based / brute-force tests for the package's plumbing and pure
 math: the helpers split out of the old `utils.py` (unit conversions,
-formatters, orbital helpers, samplers), `appconfig.py` (hostile `config.json` contents),
+formatters, orbital helpers, samplers), `logpaths.py` (hostile `config.json` contents),
 `config.py` (`SystemConfig` round trips), `serialization.py`,
 `progress_file.py`, `log.py`'s credential redaction, and sanity of every
 constant in `physical_constants.py`/`tuning.py`.
@@ -40,7 +40,7 @@ from planetgen.queue import progress_file
 from planetgen.db import store
 from planetgen.physics import constants as physical_constants
 from planetgen import tuning
-from planetgen.util import appconfig, log, serialization
+from planetgen.util import log, logpaths, serialization, settings as settings_model
 from planetgen.generation.config import SERIALIZABLE_FIELDS, SystemConfig
 from tests.fuzz_support import any_float, finite, hostile_text, non_finite, scaled
 
@@ -389,7 +389,7 @@ def test_star_class_helpers_on_fake_stars(letter, yerkes, age, lifespan, proxy):
 
 
 # ---------------------------------------------------------------------------
-# appconfig
+# settings and logpaths
 # ---------------------------------------------------------------------------
 
 json_scalar = st.one_of(st.none(), st.booleans(), st.integers(-2**63, 2**63), st.floats(allow_nan=False),
@@ -398,7 +398,7 @@ json_value = st.recursive(json_scalar, lambda inner: st.one_of(st.lists(inner, m
                                                               st.dictionaries(st.text(max_size=8), inner,
                                                                               max_size=3)),
                           max_leaves=10)
-config_keys = st.sampled_from(sorted(appconfig.DEFAULT_CONFIG) + ["unknown", "mysql", "wiki"])
+config_keys = st.sampled_from(sorted(settings_model.Settings.model_fields) + ["unknown", "mysql", "wiki"])
 config_object = st.dictionaries(config_keys, st.one_of(json_value, st.dictionaries(
     st.sampled_from(["host", "port", "password", "wikijs", "dir", "x"]), json_value, max_size=3)), max_size=6)
 
@@ -407,41 +407,35 @@ def _load_from(tmp_dir, raw_text):
     path = os.path.join(tmp_dir, "config.json")
     with open(path, "w", encoding="utf-8") as handle:
         handle.write(raw_text)
-    with mock.patch.object(appconfig, "CONFIG_PATH", path):
-        return appconfig.load_config()
+    with mock.patch.object(logpaths, "CONFIG_PATH", path), mock.patch.dict(os.environ, {}):
+        settings_model.reset_cache()
+        try:
+            return settings_model.get_settings()
+        finally:
+            settings_model.reset_cache()
 
 
 @settings(max_examples=scaled(60))
 @given(overrides=config_object)
-def test_load_config_merges_any_object_without_touching_defaults(tmp_path_factory, overrides):
-    import copy
-    before = copy.deepcopy(appconfig.DEFAULT_CONFIG)
-    merged = _load_from(str(tmp_path_factory.mktemp("cfg")), json.dumps(overrides))
-    assert appconfig.DEFAULT_CONFIG == before
-    assert set(before) <= set(merged)
-    for key, value in overrides.items():
-        if isinstance(value, dict) and isinstance(before.get(key), dict):
-            for sub in before[key]:
-                assert sub in merged[key]
-        else:
-            assert merged[key] == value
-    # A second load is independent of the first result.
-    merged["mysql"] = "mutated"
-    assert _load_from(str(tmp_path_factory.mktemp("cfg")), json.dumps(overrides)).get("mysql") != "mutated" \
-        or overrides.get("mysql") == "mutated"
+def test_any_json_object_either_loads_whole_or_fails_with_a_settings_error(tmp_path_factory, overrides):
+    try:
+        loaded = _load_from(str(tmp_path_factory.mktemp("cfg")), json.dumps(overrides))
+    except settings_model.SettingsError:
+        return
+    assert set(loaded.model_dump()) == set(settings_model.Settings.model_fields)
 
 
-@pytest.mark.parametrize("raw", ["[]", "null", "1", '"text"', "true", "", "{", "{\"a\": }", "﻿{}",
+@pytest.mark.parametrize("raw", ["[]", "null", "1", '"text"', "true", "", "{", "{\"a\": }", "\ufeff{}",
                                  "NaN"])
-def test_load_config_on_broken_or_non_object_json_fails_loudly_not_silently(tmp_path, raw):
+def test_a_broken_or_non_object_config_fails_loudly_not_silently(tmp_path, raw):
     """A broken config.json must never silently load as something that
-    isn't the full default shape: either raise, or return every key."""
-    with pytest.raises(ValueError):  # json.JSONDecodeError is a ValueError too
+    isn't the full settings shape: it raises."""
+    with pytest.raises(ValueError):  # SettingsError is a ValueError
         _load_from(str(tmp_path), raw)
 
 
 @pytest.mark.parametrize("raw", ["[]", "null", "1", '"text"', "true"])
-def test_load_config_names_the_problem_for_non_object_json(tmp_path, raw):
+def test_the_error_for_non_object_json_names_the_problem(tmp_path, raw):
     with pytest.raises(ValueError, match="must contain a JSON object"):
         _load_from(str(tmp_path), raw)
 
@@ -453,10 +447,10 @@ def _configure_with_config(tmp_path, raw):
         os.environ.pop("PLANETGEN_DEBUG", None)
         os.environ.pop("PLANETGEN_LOG_FILE", None)
         try:
-            with mock.patch.object(appconfig, "CONFIG_PATH", str(path)):
+            with mock.patch.object(logpaths, "CONFIG_PATH", str(path)):
                 log.configure(log.NORMAL)
         finally:
-            with mock.patch.object(appconfig, "CONFIG_PATH", str(tmp_path / "missing.json")):
+            with mock.patch.object(logpaths, "CONFIG_PATH", str(tmp_path / "missing.json")):
                 log.configure(log.NORMAL)
 
 
@@ -481,16 +475,16 @@ def test_configure_survives_a_non_string_log_file(tmp_path_factory, log_file):
        config_debug=json_value)
 def test_debug_enabled_env_wins_and_returns_bool(env, config_debug):
     with mock.patch.dict(os.environ, {"PLANETGEN_DEBUG": env}):
-        result = appconfig.debug_enabled({"debug": config_debug})
-    assert result is (env.strip().lower() not in appconfig._FALSE_STRINGS)
+        result = logpaths.debug_enabled({"debug": config_debug})
+    assert result is (env.strip().lower() not in logpaths._FALSE_STRINGS)
     os.environ.pop("PLANETGEN_DEBUG", None)
     with mock.patch.dict(os.environ, {}):
         os.environ.pop("PLANETGEN_DEBUG", None)
-        assert isinstance(appconfig.debug_enabled({"debug": config_debug}), bool)
-        assert appconfig.debug_enabled({}) is False
+        assert isinstance(logpaths.debug_enabled({"debug": config_debug}), bool)
+        assert logpaths.debug_enabled({}) is False
 
 
-@given(value=st.sampled_from(appconfig._FALSE_STRINGS), case=st.sampled_from([str.upper, str.lower, str.title]),
+@given(value=st.sampled_from(logpaths._FALSE_STRINGS), case=st.sampled_from([str.upper, str.lower, str.title]),
        pad=st.sampled_from(["", " ", "\t", " \n"]))
 @example(value="false", case=str.lower, pad="")   # was True: bool("false")
 @example(value="0", case=str.lower, pad="")
@@ -499,9 +493,9 @@ def test_debug_enabled_env_wins_and_returns_bool(env, config_debug):
 def test_debug_enabled_treats_false_strings_in_config_like_the_env_var(value, case, pad):
     with mock.patch.dict(os.environ, {}):
         os.environ.pop("PLANETGEN_DEBUG", None)
-        assert appconfig.debug_enabled({"debug": pad + case(value) + pad}) is False
-        assert appconfig.debug_enabled({"debug": "yes"}) is True
-        assert appconfig.debug_enabled({"debug": True}) is True
+        assert logpaths.debug_enabled({"debug": pad + case(value) + pad}) is False
+        assert logpaths.debug_enabled({"debug": "yes"}) is True
+        assert logpaths.debug_enabled({"debug": True}) is True
 
 
 @given(env=st.one_of(st.none(), st.just(""), st.text(alphabet="abc/._-", min_size=1, max_size=20)),
@@ -511,13 +505,13 @@ def test_log_file_path_precedence(env, configured):
         os.environ.pop("PLANETGEN_LOG_FILE", None)
         if env is not None:
             os.environ["PLANETGEN_LOG_FILE"] = env
-        out = appconfig.log_file_path({"log_file": configured})
+        out = logpaths.log_file_path({"log_file": configured})
     if env:
         assert out == env
     elif configured:
         assert out == configured
     else:
-        assert out == appconfig.DEFAULT_CONFIG["log_file"]
+        assert out == logpaths.DEFAULT_LOG_FILE
 
 
 # ---------------------------------------------------------------------------

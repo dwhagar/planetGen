@@ -13,7 +13,7 @@ import sys
 import pytest
 
 from planetgen.util import draw
-from planetgen.util import appconfig
+from planetgen.util import logpaths
 from planetgen.util import log
 
 
@@ -40,20 +40,20 @@ def _flush():
 
 def test_debug_enabled_reads_env_then_config(monkeypatch):
     monkeypatch.delenv("PLANETGEN_DEBUG", raising=False)
-    assert appconfig.debug_enabled({"debug": True}) is True
-    assert appconfig.debug_enabled({"debug": False}) is False
-    assert appconfig.debug_enabled({}) is False
+    assert logpaths.debug_enabled({"debug": True}) is True
+    assert logpaths.debug_enabled({"debug": False}) is False
+    assert logpaths.debug_enabled({}) is False
     for value, expected in (("1", True), ("true", True), ("0", False), ("off", False), ("", False)):
         monkeypatch.setenv("PLANETGEN_DEBUG", value)
-        assert appconfig.debug_enabled({"debug": not expected}) is expected
+        assert logpaths.debug_enabled({"debug": not expected}) is expected
 
 
 def test_log_file_path_defaults_to_var_log(monkeypatch):
     monkeypatch.delenv("PLANETGEN_LOG_FILE", raising=False)
-    assert appconfig.log_file_path({}) == "/var/log/planetgen.log"
-    assert appconfig.log_file_path({"log_file": "/tmp/x.log"}) == "/tmp/x.log"
+    assert logpaths.log_file_path({}) == "/var/log/planetgen.log"
+    assert logpaths.log_file_path({"log_file": "/tmp/x.log"}) == "/tmp/x.log"
     monkeypatch.setenv("PLANETGEN_LOG_FILE", "/srv/pg.log")
-    assert appconfig.log_file_path({"log_file": "/tmp/x.log"}) == "/srv/pg.log"
+    assert logpaths.log_file_path({"log_file": "/tmp/x.log"}) == "/srv/pg.log"
 
 
 def test_no_log_file_when_debug_is_off(tmp_path, monkeypatch):

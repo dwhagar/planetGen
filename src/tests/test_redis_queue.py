@@ -18,6 +18,7 @@ import secrets
 import pytest
 
 from planetgen.queue import redisqueue
+from planetgen.util import settings
 
 URL = os.environ.get("PLANETGEN_TEST_REDIS_URL")
 
@@ -43,10 +44,10 @@ def names(connection):
 
 
 def test_redis_url_prefers_the_environment(monkeypatch):
-    monkeypatch.setenv(redisqueue.URL_ENV_VAR, "redis://example:1/2")
-    assert redisqueue.redis_url({"redis": {"url": "redis://config:6379/0"}}) == "redis://example:1/2"
-    monkeypatch.delenv(redisqueue.URL_ENV_VAR)
-    assert redisqueue.redis_url({"redis": {"url": "redis://config:6379/0"}}) == "redis://config:6379/0"
+    monkeypatch.setenv("PLANETGEN_REDIS_URL", "redis://example:1/2")
+    assert redisqueue.redis_url() == "redis://example:1/2"
+    monkeypatch.delenv("PLANETGEN_REDIS_URL")
+    assert redisqueue.redis_url() == settings.get_settings().redis.url
 
 
 def test_worker_class_forks_where_it_can():

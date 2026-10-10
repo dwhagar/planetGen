@@ -45,7 +45,7 @@ import time
 from planetgen.web.lib import apiclient
 from planetgen.web.lib.apiclient import get_galaxy_changes, get_galaxy_stage, get_galaxy_tiles
 from planetgen.web.lib.privatedir import ensure_private_dir
-from planetgen.util.appconfig import load_config
+from planetgen.util.settings import get_settings
 from planetgen.galaxy.drill import format_drill_key, parse_drill_key
 from planetgen.galaxy.viewport import parse_tile_key, tile_key
 
@@ -100,18 +100,12 @@ class TileRequestError(ValueError):
 
 
 def _config():
-    return load_config().get("tile_cache") or {}
+    return get_settings().tile_cache
 
 
 def max_cache_bytes():
     """The cache's size budget, bytes. `0` disables the disk cache."""
-    raw = os.environ.get("PLANETGEN_TILE_CACHE_MAX_MB")
-    if raw is None:
-        raw = _config().get("max_mb", 200)
-    try:
-        return max(0, int(float(raw) * 1024 * 1024))
-    except (TypeError, ValueError):
-        return 200 * 1024 * 1024
+    return max(0, int(_config().max_mb * 1024 * 1024))
 
 
 def configured_cache_dir():
@@ -123,7 +117,7 @@ def configured_cache_dir():
     """
     if max_cache_bytes() == 0:
         return None
-    return os.environ.get("PLANETGEN_TILE_CACHE_DIR") or _config().get("dir") or DEFAULT_CACHE_DIR
+    return _config().dir or DEFAULT_CACHE_DIR
 
 
 def cache_dir():

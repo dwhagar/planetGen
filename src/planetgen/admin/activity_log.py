@@ -18,7 +18,7 @@ to see:
   schema migration, and each generation run or job as one start and one
   finish line (`DB`, `GEN`).
 
-Where it goes (`appconfig.activity_log_path`): `/var/log/planetgen/
+Where it goes (`logpaths.activity_log_path`): `/var/log/planetgen/
 planetgen.log` on Linux, `/Library/Logs/planetgen/planetgen.log` on
 macOS, and `logs\\planetgen.log` under the checkout on Windows;
 `config.json`'s `"log_dir"` or `PLANETGEN_LOG_DIR` moves it.
@@ -36,7 +36,7 @@ always quoted with `"` and `\\` escaped and control characters written
 as `\\xNN`, so a crafted username can't start a new line or fake a
 field. Passwords, tokens and keys are never passed in.
 
-Rotation (`appconfig.log_rotation_mode`): where install.sh/update.sh
+Rotation (`logpaths.log_rotation_mode`): where install.sh/update.sh
 installed `/etc/logrotate.d/planetgen-log` (Linux) or
 `/etc/newsyslog.d/planetgen-log.conf` (macOS), the file is opened with a
 `WatchedFileHandler`, which reopens it after the system tool moves it.
@@ -58,7 +58,7 @@ import sys
 import threading
 import time
 
-from planetgen.util import appconfig
+from planetgen.util import logpaths
 
 ROTATE_MAX_BYTES = 100 * 1024 * 1024
 """int: The size at which the program rotates the file itself (when no
@@ -198,9 +198,9 @@ def _current_handler():
     if _handler is not None:
         return _handler
     try:
-        config = appconfig.load_config()
-        path = appconfig.activity_log_path(config)
-        mode = appconfig.log_rotation_mode(config)
+        config = logpaths.read_config_file()
+        path = logpaths.activity_log_path(config)
+        mode = logpaths.log_rotation_mode(config)
     except Exception as exc:  # noqa: BLE001 -- logging must never stop the program
         _warn_once("config", f"planetgen: activity log disabled, could not read config.json: {exc}")
         return None

@@ -5,12 +5,12 @@ Sets up planetGen's two log files on Linux and macOS (OPS.5), for
 setup-debug-log.sh, which install.sh and update.sh run as root:
 
 - the debug log: `PLANETGEN_LOG_FILE`, else `"log_file"` in config.json,
-  else /var/log/planetgen.log (`appconfig.log_file_path`). Prepared
+  else /var/log/planetgen.log (`logpaths.log_file_path`). Prepared
   whether or not `debug` is on, so turning it on later needs nothing
   else: its folder is made when it's missing, and the file itself is
   created, owned by the web server's user and group, mode 0660.
 - the always-on activity log: `planetgen.log` in `PLANETGEN_LOG_DIR`,
-  else `"log_dir"`, else the platform's folder (`appconfig.
+  else `"log_dir"`, else the platform's folder (`logpaths.
   activity_log_path`). Its folder is owned by root (whoever runs this) and the web server's
   group, mode 2770 (the setgid bit keeps new files, the rotated ones
   among them, in that group), and the file is 0660 like the debug log.
@@ -27,7 +27,7 @@ wrong and the exact commands that fix it, or how to point `log_file` and
 falls back as before when it can't open a log.
 
 Like deploy-paths.py it runs as root, so it is run with `python3 -I` and
-loads appconfig.py straight from its file (standard library only).
+loads logpaths.py straight from its file (standard library only).
 
 Usage:
     python3 -I examples/apache/log-locations.py <repo-dir> <user> <group>
@@ -44,17 +44,17 @@ IS_MACOS = sys.platform == "darwin"
 UPDATE_HINT = "sudo ./update.sh"
 
 
-def load_appconfig(repo_dir):
-    path = os.path.join(repo_dir, "src", "planetgen", "util", "appconfig.py")
-    spec = importlib.util.spec_from_file_location("planetgen_appconfig", path)
+def load_logpaths(repo_dir):
+    path = os.path.join(repo_dir, "src", "planetgen", "util", "logpaths.py")
+    spec = importlib.util.spec_from_file_location("planetgen_logpaths", path)
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     return module
 
 
 def source_of(env_var, config, key, defaults):
-    """Where a log setting came from, for the report (`load_config` fills
-    in `defaults`, so a value equal to its default reads as the default)."""
+    """Where a log setting came from, for the report (a value equal to its
+    default in `defaults` reads as the default)."""
     if os.environ.get(env_var):
         return f"from {env_var}"
     if config.get(key) and config.get(key) != defaults.get(key):
@@ -299,19 +299,19 @@ def main(argv):
         return 2
     repo_dir, user, group = argv[1:]
     try:
-        appconfig = load_appconfig(repo_dir)
-        config = appconfig.load_config()
-        debug_on = appconfig.debug_enabled(config)
-        log_file = appconfig.log_file_path(config)
-        activity = appconfig.activity_log_path(config)
+        logpaths = load_logpaths(repo_dir)
+        config = logpaths.read_config_file(os.path.join(repo_dir, "config.json"))
+        debug_on = logpaths.debug_enabled(config)
+        log_file = logpaths.log_file_path(config)
+        activity = logpaths.activity_log_path(config)
     except Exception as exc:  # a broken config.json: say so, never stop the install
         print(f"warning: couldn't work out where the logs go ({type(exc).__name__}: {exc}).", file=sys.stderr)
         print(f"  Check config.json's \"log_file\" and \"log_dir\" (each a path, or leave them out for the "
               f"defaults), then run {UPDATE_HINT} again.", file=sys.stderr)
         return 0
     setup = LogSetup(user, group)
-    setup.debug_log(log_file, source_of("PLANETGEN_LOG_FILE", config, "log_file", appconfig.DEFAULT_CONFIG), debug_on)
-    setup.activity_log(activity, source_of("PLANETGEN_LOG_DIR", config, "log_dir", appconfig.DEFAULT_CONFIG))
+    setup.debug_log(log_file, source_of("PLANETGEN_LOG_FILE", config, "log_file", logpaths.DEFAULTS), debug_on)
+    setup.activity_log(activity, source_of("PLANETGEN_LOG_DIR", config, "log_dir", logpaths.DEFAULTS))
     return 0
 
 
