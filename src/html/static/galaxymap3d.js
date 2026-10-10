@@ -864,12 +864,14 @@ function initGalaxyMap3d(canvasEl, data) {
   // picks the smallest level whose tiles are at least the view radius
   // across (so at most 27 tiles cover the view). planetgen/web/maps/galaxymap3d.py's
   // initial_tile_request does the same in Python for the first frame.
-  // Once the view's own tiles are in, the tiles one click-zoom step in and
-  // out are fetched too (prefetchTiles), so zooming never waits on them.
+  // Once the view's own tiles are in and the camera has been still a
+  // moment, the tiles one click-zoom step in are fetched too
+  // (prefetchTiles), so zooming in never waits on them; not on a metered
+  // or slow connection.
   //
   // A tile's contents depend only on its key and the database's content
   // stamp, so tiles are cached three ways: in memory here, in this
-  // browser's localStorage (so a revisit or reload doesn't refetch them),
+  // browser's IndexedDB (so a revisit or reload doesn't refetch them),
   // and on the server's disk (planetgen/web/lib/tilecache.py) -- only tiles in none of
   // those reach the API and database. Every response carries the current
   // stamp; when it differs from ours, the response also lists which tiles
@@ -983,9 +985,10 @@ function initGalaxyMap3d(canvasEl, data) {
     }
   }
 
-  // localStorage can be missing, full, or throw on any access (private
-  // browsing, blocked site data) -- every use is wrapped, and the map
-  // works the same without it, just refetching from the server cache.
+  // The small record of where our stored tiles are at lives in localStorage,
+  // which can be missing or throw on any access (private browsing, blocked
+  // site data): every use is wrapped, and the map works the same without
+  // it, just refetching from the server cache.
   function storage() {
     try {
       return window.localStorage || null;
@@ -1016,9 +1019,171 @@ function initGalaxyMap3d(canvasEl, data) {
     }
   }
 
-  // Drops this database's stored tiles, except the current generation's
-  // when keepCurrent is set.
+  // The tiles themselves live in IndexedDB (MAP.158), which holds far more
+  // than localStorage's few megabytes (one sector link fills that). Every
+  // use fails open to "nothing stored". Reads are asynchronous, so the
+  // memory cache stays the one `getTile` reads; a tile missing from it is
+  // looked up here (loadStoredTiles) before the server is asked.
+  var TILE_DB_NAME = "planetgen-tiles";
+  var TILE_DB_STORE = "tiles";
+  // The most tile JSON kept (about, from each tile's text length), oldest
+  // use first out.
+  var TILE_DB_MAX_BYTES = 96 * 1024 * 1024;
+  var TILE_DB_TRIM_MS = 30000;
+  var tileDbPromise = null;
+  var tileDbTrimmedAt = 0;
+
+  function openTileDb() {
+    if (!tileDbPromise) {
+      tileDbPromise = new Promise(function (resolve) {
+        try {
+          if (typeof indexedDB === "undefined" || !indexedDB) {
+            resolve(null);
+            return;
+          }
+          var request = indexedDB.open(TILE_DB_NAME, 1);
+          request.onupgradeneeded = function () {
+            var db = request.result;
+            var tiles = db.createObjectStore(TILE_DB_STORE, { keyPath: "id" });
+            // gen: this database's generation ("db|generation"); at: when
+            // the tile was last stored or read.
+            tiles.createIndex("gen", "gen");
+            tiles.createIndex("scope", "scope");
+            tiles.createIndex("at", "at");
+          };
+          request.onsuccess = function () { resolve(request.result); };
+          request.onerror = function () { resolve(null); };
+          request.onblocked = function () { resolve(null); };
+        } catch (err) {
+          resolve(null);
+        }
+      });
+    }
+    return tileDbPromise;
+  }
+
+  function generationName(generation) {
+    return data.storageKey + "|" + generation;
+  }
+
+  function tileRecordId(generation, key) {
+    return generationName(generation) + "|" + key;
+  }
+
+  // Runs `work(store, done)` in one transaction on the tile store and
+  // resolves with whatever `done` was given (undefined on any failure).
+  function tileDbRun(mode, work) {
+    return openTileDb().then(function (db) {
+      if (!db) {
+        return undefined;
+      }
+      return new Promise(function (resolve) {
+        var result;
+        try {
+          var tx = db.transaction(TILE_DB_STORE, mode);
+          tx.oncomplete = function () { resolve(result); };
+          tx.onerror = function () { resolve(undefined); };
+          tx.onabort = function () { resolve(undefined); };
+          work(tx.objectStore(TILE_DB_STORE), function (value) { result = value; });
+        } catch (err) {
+          resolve(undefined);
+        }
+      });
+    });
+  }
+
+  // The stored tiles among `keys` for `generation`, as a Map key -> tile.
+  function readStoredTiles(generation, keys) {
+    if (!generation || !keys.length) {
+      return Promise.resolve(new Map());
+    }
+    return tileDbRun("readwrite", function (store, done) {
+      var found = new Map();
+      var now = Date.now();
+      keys.forEach(function (key) {
+        var request = store.get(tileRecordId(generation, key));
+        request.onsuccess = function () {
+          var record = request.result;
+          if (record && record.tile) {
+            found.set(key, record.tile);
+            record.at = now;
+            store.put(record);
+          }
+        };
+      });
+      done(found);
+    }).then(function (found) { return found || new Map(); });
+  }
+
+  function writeStoredTiles(generation, tiles) {
+    if (!generation || !tiles.length) {
+      return;
+    }
+    var now = Date.now();
+    tileDbRun("readwrite", function (store) {
+      tiles.forEach(function (entry) {
+        store.put({
+          id: tileRecordId(generation, entry.key), scope: data.storageKey, gen: generationName(generation),
+          key: entry.key, at: now, size: entry.size, tile: entry.tile,
+        });
+      });
+    }).then(trimStoredTiles);
+  }
+
+  function removeStoredTiles(generation, keys) {
+    if (!generation || !keys.length) {
+      return;
+    }
+    tileDbRun("readwrite", function (store) {
+      keys.forEach(function (key) { store.delete(tileRecordId(generation, key)); });
+    });
+  }
+
+  // Drops this database's stored tiles of every other generation (and of
+  // this one too when `keepCurrent` is false).
   function purgeStoredTiles(keepCurrent) {
+    tileDbRun("readwrite", function (store) {
+      var request = store.index("scope").openCursor(IDBKeyRange.only(data.storageKey));
+      request.onsuccess = function () {
+        var cursor = request.result;
+        if (!cursor) {
+          return;
+        }
+        if (!keepCurrent || cursor.value.gen !== generationName(currentGeneration)) {
+          cursor.delete();
+        }
+        cursor.continue();
+      };
+    });
+  }
+
+  // Keeps the store under TILE_DB_MAX_BYTES by dropping the tiles used
+  // longest ago, at most every TILE_DB_TRIM_MS.
+  function trimStoredTiles() {
+    var now = Date.now();
+    if (now - tileDbTrimmedAt < TILE_DB_TRIM_MS) {
+      return;
+    }
+    tileDbTrimmedAt = now;
+    tileDbRun("readwrite", function (store) {
+      var kept = 0;
+      var request = store.index("at").openCursor(null, "prev");
+      request.onsuccess = function () {
+        var cursor = request.result;
+        if (!cursor) {
+          return;
+        }
+        kept += cursor.value.size || 0;
+        if (kept > TILE_DB_MAX_BYTES) {
+          cursor.delete();
+        }
+        cursor.continue();
+      };
+    });
+  }
+
+  // What localStorage held before the tiles moved to IndexedDB.
+  function dropLocalStorageTiles() {
     var store = storage();
     if (!store) {
       return;
@@ -1027,86 +1192,54 @@ function initGalaxyMap3d(canvasEl, data) {
       var doomed = [];
       for (var i = 0; i < store.length; i++) {
         var name = store.key(i);
-        if (name && name.indexOf(STORAGE_PREFIX) === 0 && name !== STAMP_RECORD) {
-          if (!keepCurrent || name.indexOf(STORAGE_PREFIX + currentGeneration + ":") !== 0) {
-            doomed.push(name);
-          }
+        if (name && name.indexOf("planetgen:tile:") === 0 && name !== STAMP_RECORD) {
+          doomed.push(name);
         }
       }
       doomed.forEach(function (name) { store.removeItem(name); });
-    } catch (err) {
-      // Nothing more to do -- storage just stays as it was.
-    }
-  }
-
-  function storageName(key) {
-    return STORAGE_PREFIX + currentGeneration + ":" + key;
-  }
-
-  function removeStoredTile(key) {
-    var store = storage();
-    if (!store || !currentGeneration) {
-      return;
-    }
-    try {
-      store.removeItem(storageName(key));
     } catch (err) {
       // Nothing more to do.
     }
   }
 
-  function storedTile(key) {
-    var store = storage();
-    if (!store || !currentGeneration) {
-      return undefined;
-    }
-    try {
-      var raw = store.getItem(storageName(key));
-      return raw ? JSON.parse(raw) : undefined;
-    } catch (err) {
-      return undefined;
-    }
-  }
-
-  function storeTile(key, tile) {
-    var store = storage();
-    if (!store || !currentGeneration) {
-      return;
-    }
-    var raw = JSON.stringify(tile);
-    try {
-      store.setItem(storageName(key), raw);
-    } catch (err) {
-      // Probably full: drop other stamps' leftovers and try once more,
-      // then drop this database's tiles entirely and try a last time.
-      purgeStoredTiles(true);
-      try {
-        store.setItem(storageName(key), raw);
-      } catch (err2) {
-        purgeStoredTiles(false);
-        try {
-          store.setItem(storageName(key), raw);
-        } catch (err3) {
-          // Leave it memory-only.
-        }
+  // Looks the tiles that are not in memory up in IndexedDB and puts what it
+  // has into memory. Resolves with how many it found; a result for a
+  // generation that has since changed is dropped.
+  function loadStoredTiles(keys) {
+    var generation = currentGeneration;
+    return readStoredTiles(generation, keys).then(function (found) {
+      if (generation !== currentGeneration) {
+        return 0;
       }
-    }
+      found.forEach(function (tile, key) {
+        if (memoryGet(tileMemory, key) === undefined) {
+          memorySet(tileMemory, key, tile, TILE_MEMORY_MAX);
+        }
+      });
+      return found.size;
+    });
   }
 
   function getTile(key) {
-    var tile = memoryGet(tileMemory, key);
-    if (tile === undefined) {
-      tile = storedTile(key);
-      if (tile !== undefined) {
-        memorySet(tileMemory, key, tile, TILE_MEMORY_MAX);
-      }
-    }
-    return tile;
+    return memoryGet(tileMemory, key);
   }
 
-  function putTile(key, tile) {
-    memorySet(tileMemory, key, tile, TILE_MEMORY_MAX);
-    storeTile(key, tile);
+  // Remembers tiles from a response in memory and, once, in IndexedDB.
+  function putTiles(tiles) {
+    var entries = [];
+    Object.keys(tiles).forEach(function (key) {
+      var tile = tiles[key];
+      memorySet(tileMemory, key, tile, TILE_MEMORY_MAX);
+      entries.push({ key: key, tile: tile, size: tileSize(tile) });
+    });
+    writeStoredTiles(currentGeneration, entries);
+  }
+
+  // About how many bytes a tile's JSON is, without writing it out: the
+  // stars dominate.
+  function tileSize(tile) {
+    var count = (tile.stars || []).length + (tile.generated || []).length;
+    return 120 * count + 150 * (tile.points || []).length + 200 * (tile.clouds || []).length + 64;
   }
 
   // The tile keys that changed between fromStamp and toStamp, from a
@@ -1153,8 +1286,8 @@ function initGalaxyMap3d(canvasEl, data) {
     if (stale) {
       stale.forEach(function (key) {
         tileMemory.delete(key);
-        removeStoredTile(key);
       });
+      removeStoredTiles(currentGeneration, stale);
     } else {
       currentGeneration = payload.generation || stamp;
       tileMemory.clear();
@@ -1169,14 +1302,13 @@ function initGalaxyMap3d(canvasEl, data) {
       return false;
     }
     var stampChanged = adoptStamp(payload);
-    Object.keys(payload.tiles || {}).forEach(function (key) {
-      putTile(key, payload.tiles[key]);
-    });
+    putTiles(payload.tiles || {});
     return stampChanged;
   }
 
   absorb(data.initial);
   purgeStoredTiles(true);
+  dropLocalStorageTiles();
 
   // --- Clouds ----------------------------------------------------------------
   //
@@ -1889,6 +2021,8 @@ function initGalaxyMap3d(canvasEl, data) {
     if (fetchTimer) {
       clearTimeout(fetchTimer);
     }
+    // The camera moved: not still, so no prefetch until it has been again.
+    cancelPrefetch();
     var delay = FETCH_DEBOUNCE_MS;
     if (immediate) {
       var now = Date.now();
@@ -1902,14 +2036,35 @@ function initGalaxyMap3d(canvasEl, data) {
     fetchTimer = setTimeout(doFetch, delay);
   }
 
+  // Bumped by every doFetch: a lookup in IndexedDB that finishes after a
+  // newer fetch began lets that one do the work.
+  var fetchRound = 0;
+
   function doFetch() {
     fetchTimer = null;
-    var need = neededTiles();
-    var missing = renderFromCache(need);
+    var missing = renderFromCache(neededTiles());
     if (!missing.length) {
-      prefetchTiles();
+      schedulePrefetch();
       return;
     }
+    var round = ++fetchRound;
+    // What this browser kept from an earlier visit first (MAP.158).
+    loadStoredTiles(missing).then(function (found) {
+      if (round !== fetchRound) {
+        return;
+      }
+      if (found) {
+        missing = renderFromCache(neededTiles());
+      }
+      if (!missing.length) {
+        schedulePrefetch();
+        return;
+      }
+      fetchFromServer(missing);
+    });
+  }
+
+  function fetchFromServer(missing) {
     if (activeAbort) {
       activeAbort.abort();
     }
@@ -1941,7 +2096,7 @@ function initGalaxyMap3d(canvasEl, data) {
         if (stampChanged || stillMissing.length) {
           scheduleFetch(false);
         } else {
-          prefetchTiles();
+          schedulePrefetch();
         }
       })
       .catch(function (err) {
@@ -1955,55 +2110,87 @@ function initGalaxyMap3d(canvasEl, data) {
       });
   }
 
-  // The tiles one pick in and out (each about PREFETCH_ZOOM times closer
-  // or farther), fetched at low priority once
-  // the view's own are in. One prefetch runs at a time and a real fetch
-  // never waits on or cancels it (or the other way round); its tiles just
-  // land in the cache.
+  // The tiles one pick in (about PREFETCH_ZOOM times closer), fetched at low
+  // priority once the view's own are in and the camera has been still for
+  // PREFETCH_IDLE_MS (MAP.158). Zooming out needs a coarser, smaller view
+  // the page mostly holds already, so only the way in is fetched ahead.
+  // Not on a metered or slow connection, and no more than
+  // PREFETCH_MAX_BYTES a page visit. One prefetch runs at a time and a real
+  // fetch never waits on or cancels it (or the other way round); its tiles
+  // just land in the cache.
   var prefetching = false;
+  var prefetchTimer = null;
+  var prefetchedBytes = 0;
   var PREFETCH_ZOOM = 3;
+  var PREFETCH_IDLE_MS = 1500;
+  var PREFETCH_MAX_BYTES = 1536 * 1024;
+  var PREFETCH_MAX_TILES = 12;
 
-  function prefetchTiles() {
-    if (prefetching || activeAbort) {
+  function prefetchAllowed() {
+    var connection = typeof navigator !== "undefined" ? navigator.connection : null;
+    if (connection && (connection.saveData || /^(slow-2g|2g|3g)$/.test(connection.effectiveType || ""))) {
+      return false;
+    }
+    return prefetchedBytes < PREFETCH_MAX_BYTES;
+  }
+
+  function cancelPrefetch() {
+    if (prefetchTimer) {
+      clearTimeout(prefetchTimer);
+      prefetchTimer = null;
+    }
+  }
+
+  function schedulePrefetch() {
+    cancelPrefetch();
+    if (prefetching || activeAbort || !prefetchAllowed()) {
       return;
     }
-    var factor = PREFETCH_ZOOM;
-    var missing = [];
-    [orbit.radius / factor, orbit.radius * factor].forEach(function (radius) {
-      neededTiles(Math.max(MIN_RADIUS, Math.min(MAX_RADIUS, radius))).keys.forEach(function (key) {
-        if (missing.indexOf(key) < 0 && getTile(key) === undefined) {
-          missing.push(key);
-        }
-      });
-    });
+    prefetchTimer = setTimeout(prefetchTiles, PREFETCH_IDLE_MS);
+  }
+
+  function prefetchTiles() {
+    prefetchTimer = null;
+    if (prefetching || activeAbort || !prefetchAllowed()) {
+      return;
+    }
+    var missing = neededTiles(Math.max(MIN_RADIUS, Math.min(MAX_RADIUS, orbit.radius / PREFETCH_ZOOM))).keys
+      .filter(function (key) { return getTile(key) === undefined; });
     if (!missing.length) {
       return;
     }
-    var params = new URLSearchParams({ tiles: missing.slice(0, MAX_TILES_PER_REQUEST).join(",") });
-    if (currentStamp) {
-      params.set("stamp", currentStamp);
-    }
     prefetching = true;
-    fetch(data.fetchPath + "?" + params.toString(), { priority: "low" })
-      .then(function (response) {
-        if (!response.ok) {
-          throw new Error(data.fetchPath + " returned " + response.status);
-        }
-        return response.json();
-      })
-      .then(function (payload) {
+    loadStoredTiles(missing).then(function () {
+      missing = missing.filter(function (key) { return getTile(key) === undefined; });
+      if (!missing.length || fetchTimer || activeAbort) {
         prefetching = false;
-        // A new stamp means the view's own tiles may be stale too.
-        if (absorb(payload)) {
-          scheduleFetch(false);
-        } else if (missing.length > MAX_TILES_PER_REQUEST) {
-          prefetchTiles();
-        }
-      })
-      .catch(function () {
-        // Only a head start: the real fetch gets these when they're needed.
-        prefetching = false;
-      });
+        return undefined;
+      }
+      var params = new URLSearchParams({ tiles: missing.slice(0, PREFETCH_MAX_TILES).join(",") });
+      if (currentStamp) {
+        params.set("stamp", currentStamp);
+      }
+      return fetch(data.fetchPath + "?" + params.toString(), { priority: "low" })
+        .then(function (response) {
+          if (!response.ok) {
+            throw new Error(data.fetchPath + " returned " + response.status);
+          }
+          return response.text();
+        })
+        .then(function (text) {
+          prefetching = false;
+          prefetchedBytes += text.length;
+          // A new stamp means the view's own tiles may be stale too.
+          if (absorb(JSON.parse(text))) {
+            scheduleFetch(false);
+          } else {
+            schedulePrefetch();
+          }
+        });
+    }).catch(function () {
+      // Only a head start: the real fetch gets these when they're needed.
+      prefetching = false;
+    });
   }
 
   // Normally every tile is already cached (the page embeds them), so this

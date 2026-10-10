@@ -30,7 +30,7 @@ the tiles' own gzip copies as the members of one gzip stream was tried and
 dropped: Chromium decodes only the first member.
 
 The browser keeps its own copy of every tile too (`static/galaxymap3d.js`,
-in `localStorage`, keyed by the generation). `stamp.json` remembers the
+in IndexedDB, keyed by the generation, MAP.158). `stamp.json` remembers the
 last few checks' changed tiles (`history`), and `fetch_tiles` hands them
 to the browser whenever its stamp is out of date, so the browser drops
 only those tiles too.
