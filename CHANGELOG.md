@@ -3,6 +3,7 @@
 ## [8.0.911] - 2026-10-10
 
 ### Changed
+- **Docs only:** GEN.196 (one Redo scatters box on Generate) filed for Bugfixes lane 2.
 - **Docs only:** MAP.166 (honest "Dimmest star shown" label) filed; GEN.195 gains the CLI option and storage figures.
 - **Docs only:** GEN.195 (separate compact-object mass limit; central black hole or quasar always created) filed for Bugfixes lane 2.
 - The phenomena scatter's final line lists only the kinds it created, like the star scatter's, with no zero counts.
