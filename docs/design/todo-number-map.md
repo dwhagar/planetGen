@@ -22,7 +22,7 @@ release is stamped.
 | API | API.25 |
 | ADM | ADM.51 |
 | SEC | SEC.33 |
-| TEST | TEST.134 |
+| TEST | TEST.135 |
 | USR | USR.10 |
 | OPS | OPS.42 |
 | DOC | DOC.18 |
@@ -1033,7 +1033,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.56 | Record how long each stage of a staged job takes, with the settings it ran with | none | done, PR #1077 |
 | PERF.57 | Skip empty stretches in a galactic scatter by combining layers into growing groups | none | done, PR #1101; removed by PERF.58 (PR #1108) |
 | PERF.58 | Object-first star sampler for the mass and luminosity passes (top priority, replaces PERF.57) | none | done, PR #1108 |
-| PERF.59 | Share the ring inputs between the phenomena pass and the backfill rings (top priority) | none | open |
+| PERF.59 | Share the ring inputs between the phenomena pass and the backfill rings (top priority) | none | closed as superseded by PERF.58, PERF.61 and PERF.63 (no PR) |
 | PERF.60 | Large-mean Poisson helper for per-layer counts (top priority) | none | done, PR #1106 |
 | PERF.61 | Object-first sampler for the phenomena pass, own prototype first | none | done, PR #1113 (measured, no gain; not merged) |
 | PERF.62 | Interim early stop in the current layer-walking scatters: 100 empty layers in a row (tuning.SCATTER_DRY_LAYERS) | none | done, PR #1087; removed by PERF.58 (PR #1108) |
@@ -1432,6 +1432,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.131 | Tests for the gravity field evaluator: two bodies, Lagrange points, softening and the rotation curve | none | open |
 | TEST.132 | test_a_fill_after_a_layer_failed_mid_scatter_builds_no_leftover_star failed once in a full parallel run (bug) | none | open |
 | TEST.133 | A reusable big-galaxy query budget test: EXPLAIN every page and list query on 2,000,000 systems | none | open |
+| TEST.134 | test_many_processes_starting_at_once_start_one_job fails under a parallel run (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
