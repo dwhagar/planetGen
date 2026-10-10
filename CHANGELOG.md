@@ -3,6 +3,7 @@
 ## [8.0.866] - 2026-10-10
 
 ### Changed
+- The TODO list files OPS.36, a bug: the size and free-space checks measure the boot drive instead of the drive that holds the database.
 - The execution plan moves the generation speed items to the front of Foundations lane 1 (PERF.44, PERF.45, PERF.49, then PERF.47 and DB.19) and records that Boss approved the PERF.49 plan.
 - The TODO list retires GEN.85 (atmosphere species and mantle redox, PR #848).
 - The TODO list files PERF.49 (batch the system-name reservation: 30 s of an 84 s dense core sector) with the earlier naming-cost findings re-checked against main.
