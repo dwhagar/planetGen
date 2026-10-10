@@ -501,6 +501,48 @@ with `clamp()`.
   any of it (UX.93).
   Prerequisite: MAP.168. Related: MAP.167, UX.93.
 
+- [ ] **UX.95 Tables show their rows first and fill the filter-menu counts a moment later**
+  From the PERF.71 research (docs/design/slow-reads-and-timeouts.md, PR
+  #1175; Boss's ask of 2026-10-10 20:50Z; measured on 2,000,000
+  synthetic systems, MariaDB 10.11): the first page of a table asks for
+  the filter-menu counts (`facets=1`) in the same request, so a slow
+  count holds the rows back. Done: `static/datatable.js` fetches the
+  first rows without `facets=1`, paints them at once, then fetches the
+  menus in a second request and shows "..." in place of the counts until
+  they arrive. Owner: Bugfixes lane 2, after what it has queued.
+  Prerequisites: none. Related: PERF.64, PERF.69, PERF.71.
+  Design: [docs/design/slow-reads-and-timeouts.md](design/slow-reads-and-timeouts.md)
+
+- [ ] **UX.96 A table that hits the statement limit says the database is busy and retries, instead of failing with a 502**
+  From the PERF.71 research (docs/design/slow-reads-and-timeouts.md, PR
+  #1175; Boss's ask of 2026-10-10 20:50Z; measured on 2,000,000
+  synthetic systems, MariaDB 10.11): `web/tables.py` turns any API
+  error, a 504 included, into a 502 with no `Retry-After`, and
+  `datatable.js` throws on a non-200 answer without retrying. Done:
+  `/table/<name>` returns 504 with `Retry-After` for a statement
+  timeout, and `datatable.js` keeps the rows already loaded, shows a
+  "database busy, trying again" line and retries with the Galaxy Map's
+  backoff (2, 4, 8 ... 30 s). Decided by default (the three research
+  defaults, 2026-10-10 21:41Z; stands unless Boss objects): a panel or
+  tile that timed out shows partly, with a retry, rather than the full
+  busy page. Owner: Bugfixes lane 2, after what it has queued.
+  Prerequisites: none. Related: PERF.64, PERF.71.
+  Design: [docs/design/slow-reads-and-timeouts.md](design/slow-reads-and-timeouts.md)
+
+- [ ] **UX.97 Search results: each panel runs under its own time limit and is fetched on its own**
+  From the PERF.71 research (docs/design/slow-reads-and-timeouts.md, PR
+  #1175; Boss's ask of 2026-10-10 20:50Z; measured on 2,000,000
+  synthetic systems, MariaDB 10.11): `search()` builds one panel per
+  object type (sector, system, star, planet, moon) and one slow panel
+  times out the whole page; a 2-letter word took 8.4 s on the Systems
+  panel. Done: each panel is fetched separately under its own statement
+  limit, a panel that times out says "This took too long; try again or
+  narrow the search" and the others show, and short words use a prefix
+  match instead of `%x%`. Owner: Bugfixes lane 2, after what it has
+  queued.
+  Prerequisites: none. Related: PERF.64, PERF.71.
+  Design: [docs/design/slow-reads-and-timeouts.md](design/slow-reads-and-timeouts.md)
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -3509,6 +3551,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   narrower read or a cache until each answers well inside the statement
   limit while a fill is running, and a test fails when a tile query
   reads more rows than a tile needs.
+  Note (2026-10-10, PERF.71 research): the research found the cause of
+  the worst tile: the scattered-points query reads 8.6 million rows
+  (range on `idx_phenomenon_scatter_address` plus a filesort), 33 s at
+  level 2 and 5. Fix by index: `phenomenon_scatter (kind, subtype,
+  mass_solar)` for the coarse points (31.7 s to 0.28 s on the scratch
+  galaxy; 29 s and about 0.6 GB to build on 17.8 million rows), through
+  an Alembic migration that goes through the migration runner's batch
+  and progress reporting, and a second look at the neutron-star and
+  non-coarse path on a current galaxy. This item is the tile index; the
+  per-piece budgets are PERF.76, and the reusable test is TEST.133.
+  Queued first, with PERF.74.
   Prerequisites: none. Related: PERF.64, PERF.34, PERF.36.
 
 - [ ] **PERF.69 Store the Planets, Moons and Phenomena table counts like the Systems and Sectors counts (bug)**
@@ -3534,34 +3587,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   that sorting by Sector, Octant or Binary took about 50 s on 3
   million rows under load, so the fix covers all three sorts (a
   composite index or a sort limit).
+  Note (2026-10-10, PERF.71 research): the research measured both sorts:
+  sorting by Sector 4.8 s idle (6.3 s under a fill), by Octant 0.9 to
+  4.1 s. Fix: an index `(quadrant, name, id)` with the `ORDER BY`
+  written to match it (the `quadrant IS NULL` form defeats the index),
+  and a stored sector-name sort column with an index `(sector_sort,
+  name, id)`, filled in batches by a migration (202 s for 2,000,000
+  systems) and kept in step on sector rename. 4.8 s to 0 s. Needs an
+  Alembic migration (Foundations lane 1); queued first, with PERF.68.
   Prerequisites: none. Related: PERF.64, PERF.34, PERF.36.
-
-- [ ] **PERF.71 Research how to keep slow database calls on large data sets from timing out: queue, split, or answer in parts**
-  Boss (2026-10-10 20:50Z): 'is there a TODO item to maybe batch or give
-  partial responses to queries that take too long? ... research how to
-  optimize DB calls to large data sets to avoid timeouts and give
-  systems a chance to respond. We could put recall passes into the queue
-  too if they take longer than 10 seconds, then keep the query open
-  until it finishes? Or split it up? I'm not sure, we need research.' No
-  existing item covers this (PERF.19 and PERF.24 queue jobs, with
-  PERF.24's 8 s wait then 202 for API edits; PERF.64 fixed the Systems
-  list with stored counts). Done: a design note under docs/design
-  weighs, with measurements on a database of millions of systems: (1)
-  move a read that passes 10 s onto the RQ queue and keep the request
-  open or let the page poll GET /api/jobs/<id> until it finishes; (2)
-  split one query into pages or key ranges the page asks for in turn
-  (keyset paging, tile pieces); (3) partial or streamed answers, with
-  the rest filled in as it arrives; (4) stored counts, summary tables
-  and indexes, as PERF.64 did for the Systems list; and says which
-  applies to which page (Systems, Sectors, Planets, Moons, Phenomena
-  lists, Galaxy Map tiles, search, API reads), what the user sees while
-  it waits, how the statement limit and the busy page (PERF.64) change,
-  and how it behaves while a fill is running. Ends with items filed for
-  the chosen builds. Folds in no existing item; PERF.68, PERF.69 and
-  PERF.70 are the concrete leftovers it generalizes. Owner: Research
-  Lane 1 (Boss's ask, 2026-10-10 20:50Z), which files the build items.
-  Prerequisites: none. Related: PERF.19, PERF.24, PERF.34, PERF.36,
-  PERF.64, PERF.68, PERF.69, PERF.70.
 
 - [ ] **PERF.72 Research the cost of a sector's gravity grid and where to cut between exact and aggregated sources**
   Done: a note (docs/design/gravity-map.md, section 'How it is
@@ -3590,6 +3624,90 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   generation-time notes. Owner: Foundations lane 1, after PERF.68-70.
   Prerequisites: none. Related: PERF.31, PERF.47, PERF.54, PERF.58,
   GEN.185.
+
+- [ ] **PERF.74 Store a per-sector system count so the Sectors list does not count every system on each request**
+  From the PERF.71 research (docs/design/slow-reads-and-timeouts.md, PR
+  #1175; Boss's ask of 2026-10-10 20:50Z; measured on 2,000,000
+  synthetic systems, MariaDB 10.11): the Sectors list counts all
+  2,000,000 systems per request to give each sector its count and then
+  sorts (17.2 s idle, 29.0 s under a fill, past the 10 s limit). Done: a
+  summary table (sector id, system count, index on the count) is
+  refreshed in the background like the count cache of PERF.64, no sooner
+  than every 30 s and one GROUP BY on the sector index (0.4 to 0.8 s for
+  2,000,000 systems), and the Sectors list, its sort by systems and its
+  density sort read it; the page answers in about 1 ms by name and 0.23
+  s by systems. Needs an Alembic migration (Foundations lane 1 only).
+  Queued first in this group, with PERF.68, because it fixes timeouts
+  Boss sees. Owner: Foundations lane 1, right after PERF.68-70.
+  Prerequisites: none. Related: PERF.64, PERF.69, PERF.70, PERF.71.
+  Design: [docs/design/slow-reads-and-timeouts.md](design/slow-reads-and-timeouts.md)
+
+- [ ] **PERF.75 Keyset paging for the data tables: page forward by key, jump by value**
+  From the PERF.71 research (docs/design/slow-reads-and-timeouts.md, PR
+  #1175; Boss's ask of 2026-10-10 20:50Z; measured on 2,000,000
+  synthetic systems, MariaDB 10.11): `OFFSET` makes page n cost n times
+  as much (rows 0, 20,000, 500,000 and 1,500,000 take 0.004, 0.13, 5.8
+  and 12.1 s idle); a keyset page costs 2 ms at row 1,500,000 (8.5 s
+  before). Done: the table routes and the API list routes take
+  `after=<sort key, id>` next to `offset=`, `static/datatable.js` pages
+  forward by key and jumps by value (a letter or a sector; the scroll
+  bar position becomes an estimate), the condition is written with `OR`
+  and never as a row constructor (it took 5.0 s on MariaDB 10.11, no
+  index range), and a test checks the plan on MariaDB and MySQL. Decided
+  by default (the three research defaults, 2026-10-10 21:41Z; stands
+  unless Boss objects): jump-by-value is accepted in place of
+  jump-by-row-number on the big tables. Owner: Foundations lane 1.
+  Prerequisites: none. Related: PERF.64, PERF.70, PERF.71.
+  Design: [docs/design/slow-reads-and-timeouts.md](design/slow-reads-and-timeouts.md)
+
+- [ ] **PERF.76 Give each Galaxy Map tile piece its own time budget and serve an "incomplete" tile**
+  From the PERF.71 research (docs/design/slow-reads-and-timeouts.md, PR
+  #1175; Boss's ask of 2026-10-10 20:50Z; measured on 2,000,000
+  synthetic systems, MariaDB 10.11): a tile is eight independent queries
+  (placed sectors, planned slots, filled cells, clouds, bright stars,
+  generated stars, points, scattered points) and one piece holds 31.4 of
+  31.6 s at level 2. Done: each piece runs under its own statement limit
+  (about 3 s), the tile is served with what finished and marked
+  `incomplete` in the tile cache so it is not served as final and is
+  rebuilt after a short wait, and the existing retry fetches the missing
+  piece, so the map shows without its slowest points for a moment
+  instead of the "Took too long" page. Decided by default (the three
+  research defaults, 2026-10-10 21:41Z; stands unless Boss objects): a
+  tile that timed out shows partly with a retry. Owner: Foundations lane
+  1.
+  Prerequisite: PERF.68. Related: PERF.34, PERF.36, PERF.64, MAP.159.
+  Design: [docs/design/slow-reads-and-timeouts.md](design/slow-reads-and-timeouts.md)
+
+- [ ] **PERF.77 Capped counts: "10,000 or more" where no stored count exists for a filter**
+  From the PERF.71 research (docs/design/slow-reads-and-timeouts.md, PR
+  #1175; Boss's ask of 2026-10-10 20:50Z; measured on 2,000,000
+  synthetic systems, MariaDB 10.11): a count with a star-type filter
+  took 6.0 s; counting to 10,001 and stopping took 0.030 s. Done: where
+  no stored count exists for a filter, the table counts to 10,001 and
+  shows "10,000 or more", and the exact figure replaces it once the
+  background count finishes (extends the fallback of PERF.64). Decided
+  by default (the three research defaults, 2026-10-10 21:41Z; stands
+  unless Boss objects): show "10,000 or more" for filtered counts nobody
+  has stored. Owner: Foundations lane 1.
+  Prerequisites: none. Related: PERF.64, PERF.69, PERF.71.
+  Design: [docs/design/slow-reads-and-timeouts.md](design/slow-reads-and-timeouts.md)
+
+- [ ] **PERF.78 A reserved warm worker for long admin operations, and the poll pattern for them**
+  From the PERF.71 research (docs/design/slow-reads-and-timeouts.md, PR
+  #1175; Boss's ask of 2026-10-10 20:50Z; measured on 2,000,000
+  synthetic systems, MariaDB 10.11): queueing a read is not the answer
+  for page reads (it runs the same SQL on the same busy database, holds
+  one of the API daemon's 5 threads while the request waits, needs a
+  public polling route and costs 2.4 s to start a worker), but it is
+  right for work an admin starts and expects to take long. Done: the
+  `planetgen-interactive` queue of
+  docs/design/performance-eta-queue-and-caching.md 3.4 is built for
+  those operations only (Generate estimates, the deep database check
+  DB.21, exports), with a warm worker reserved for it and the admin poll
+  route they already use; no public polling route. Low priority. Owner:
+  Foundations lane 1.
+  Prerequisites: none. Related: PERF.19, PERF.24, DB.21, PERF.71.
+  Design: [docs/design/slow-reads-and-timeouts.md](design/slow-reads-and-timeouts.md)
 
 ## DB: Database and schema
 
@@ -3716,7 +3834,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   68 million rows; no index unless the tile query needs one (PERF.68
   measures that). Owner: Foundations lane 1 (the only lane that adds
   migrations), after PERF.70.
-  Prerequisites: GEN.200. Related: GEN.201, MAP.171, MAP.165.
+  Prerequisite: GEN.200. Related: GEN.201, MAP.171, MAP.165.
 
 ## API: The JSON API
 
@@ -4430,6 +4548,18 @@ clears each one.
   reliable without loosening it. Owner: Bugfixes lane 2, after its
   current items.
   Prerequisites: none. Related: TEST.111, TEST.128.
+
+- [ ] **TEST.133 A reusable big-galaxy query budget test: EXPLAIN every page and list query on 2,000,000 systems**
+  From the PERF.71 research (docs/design/slow-reads-and-timeouts.md, PR
+  #1175; Boss's ask of 2026-10-10 20:50Z; measured on 2,000,000
+  synthetic systems, MariaDB 10.11): move `make_synthetic.py`
+  (research/db-timeouts/scripts/, 2,000,000 systems in about 2 minutes)
+  into the test tools, run EXPLAIN on every page and API list query, and
+  fail when a query examines more rows than its page needs. This is the
+  test that PERF.68 and PERF.70 each ask for, built once. Owner:
+  Foundations lane 1.
+  Prerequisites: none. Related: PERF.68, PERF.69, PERF.70, PERF.71.
+  Design: [docs/design/slow-reads-and-timeouts.md](design/slow-reads-and-timeouts.md)
 
 ## USR: User accounts
 
