@@ -2,6 +2,10 @@
 
 ## [8.0.911] - 2026-10-10
 
+### Removed
+- Windows support (OPS.39). `install.ps1`, `update.ps1`, `scripts/deploy-common.ps1`, `examples/maintenance/install-maintenance-task.ps1`, `examples/windows/` and `docs/deployment/windows.md` are gone, as are the Windows CI jobs (`windows-jobs`, `windows-installers`), the Windows branches in the code (the detached-process, `taskkill` and `OpenProcess` handling of Generate page jobs and the no-Redis fallback to run a job directly, the CPU-percent load reading on the admin queue page, `SpawnWorker`, the below-normal worker priority class, the checkout-relative log and settings folders, drive-letter disk measuring) and the Windows-only tests. The admin Generate page's jobs now always run on Redis, and the queue page shows only the load average. `waitress` leaves the `server` extra and `requirements-server.lock`.
+- `docs/WINDOWS.md` gives basic instructions for a typical Windows setup (WSL2 and the Linux guides); anyone who wants native Windows does that work themselves.
+
 ### Changed
 - **Docs only:** OPS.40 (update.sh step 8 bug) is filed.
 - **Docs only:** GEN.188 is owned by Foundations lane 2.
