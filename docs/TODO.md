@@ -4198,6 +4198,31 @@ clears each one.
   Boss closes it.
   Prerequisites: none.
 
+- [ ] **TEST.115 Three tests fail on the Windows CI leg in every recent run: Redis in WSL is unreachable (bug)**
+  Reported by Bugfixes lane 1 (2026-10-10 03:57Z, PRs #957 and #958):
+  test_a_slow_runner_still_alive_is_starting_not_interrupted,
+  test_without_redis_no_job_starts and
+  test_without_redis_windows_runs_the_job_itself fail in all 8 recent
+  main runs on the Windows leg, because Redis in WSL is not reachable
+  from the Windows side (127.0.0.1:6379 refused). Done: the Windows leg
+  runs these tests with a reachable Redis or skips the ones that need
+  none with a stated reason, and the tests that test the missing-Redis
+  path set up that state themselves; the Windows leg passes on main. CI
+  now runs only by hand (Actions, CI, Run workflow), so the leg is
+  checked when someone runs it.
+  Prerequisites: none. Related: TEST.111, OPS.19, PERF.24.
+
+- [ ] **TEST.116 test_bughunt_end_to_end stores M2V or M6V where it expects K2V on the MySQL 8.4 and MariaDB legs once (bug)**
+  Reported by Bugfixes lane 1 (2026-10-10 03:57Z): the K2V check in
+  test_bughunt_end_to_end failed once on MySQL 8.4 and once on MariaDB
+  in run 37882710453 (the stored star was M2V or M6V instead of K2V); it
+  did not reproduce on current main in 83 local runs. Done: the cause is
+  found (a seed or ordering dependence in the test, or a real bug in
+  star-type selection) and the test is made robust without loosening it,
+  or the product bug is fixed. Open question for Boss (default: leave
+  open until it recurs, then investigate with the failing run's data).
+  Prerequisites: none. Related: TEST.111, TEST.71.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**

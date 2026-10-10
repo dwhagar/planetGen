@@ -22,7 +22,7 @@ release is stamped.
 | API | API.24 |
 | ADM | ADM.49 |
 | SEC | SEC.33 |
-| TEST | TEST.115 |
+| TEST | TEST.117 |
 | USR | USR.10 |
 | OPS | OPS.38 |
 | DOC | DOC.17 |
@@ -1338,6 +1338,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.112 | test_regenerate_phenomenon_keeps_id_name_and_place fails now and then in the full suite (bug) | none | done, PR #955 |
 | TEST.113 | tests/js/generatejobs.test.mjs fails on main: "asks for the job's status two seconds in" (bug) | none | done, PR #920 |
 | TEST.114 | test_the_check_writes_nothing fails now and then in a parallel full run (bug) | none | done, PR #946 |
+| TEST.115 | Three tests fail on the Windows CI leg in every recent run: Redis in WSL is unreachable (bug) | none | open |
+| TEST.116 | test_bughunt_end_to_end stores M2V or M6V where it expects K2V on the MySQL 8.4 and MariaDB legs once (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
