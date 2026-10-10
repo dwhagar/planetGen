@@ -2,6 +2,9 @@
 
 ## [8.0.911] - 2026-10-10
 
+### Fixed
+- The star scatter pass tests use a luminosity floor the toy galaxy can fill with lighter stars, since the real floor now starts at 2,500 solar luminosities (GEN.184).
+
 ### Changed
 - **Docs only:** OPS.39 (remove Windows support) is assigned to Foundations lane 3.
 - **Docs only:** OPS.39 (remove Windows support, keep only docs/WINDOWS.md) is filed; TEST.115 and OPS.34 are marked superseded by it.
