@@ -1667,7 +1667,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   over a `kind` index on about 5e8 rows). Decided (Boss, 2026-10-10
   18:44Z, defaults approved; default: no): do planetary nebulae and
   supernova remnants count as
-  stops? Needs the galactic-motion bug below fixed first.
+  stops?
   Lane (2026-10-09): Owner: Bugfixes lane 2 (moved from Foundations lane
   1 by the coordinator, 2026-10-10).
   Design: [docs/design/course-routing.md](design/course-routing.md)
