@@ -3,10 +3,10 @@
 ## Next free IDs
 
 A new item, subitem or bug takes its category's next free ID, and the
-same PR moves that row up by one. The release scripts read this table:
-each category's counter is its next free number minus one (the highest
-ID ever issued in it, which is also its item count), and the version's
-third number is the sum of the counters (see `changes/README.md`).
+same PR moves that row up by one. Each category's counter is its next free number minus one (the highest
+ID ever issued in it, which is also its item count). The table only
+allocates IDs; since 2026-10-10 it no longer feeds the version (BUILD
+counts stamped releases, see `changes/README.md`).
 `scripts/bump_version.py --check` fails if `docs/TODO.md` uses an ID at
 or past a category's next free one, so a stale row is caught before a
 release is stamped.
