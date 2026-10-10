@@ -1,2 +1,0 @@
-### Added
-- `planetgen check-db --deep` now also loads and validates every star system. It prints how long it expects to take (from the speed this server recorded, or a rough guess it says so about), asks for a yes unless `--yes` is given, shows a progress bar, and lists each failing system. `--estimate-only` prints just the estimate. The Generate page's "Check the database" section has a "Deep check" option that shows the time and asks you to confirm. (DB.21)
