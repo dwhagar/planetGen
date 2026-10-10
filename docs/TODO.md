@@ -776,6 +776,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   cache keys follow MAP.151 (the region data layer), so decide the wire
   format and those keys together; the star visibility law (MAP.148) sets
   how many stars a view needs.
+  Lane (2026-10-09): Owner: Foundations lane 2 (coordinator,
+  2026-10-10); closes after MAP.159, MAP.151 and MAP.148.
   Design: [docs/design/map-ui-and-frontend-libraries.md](design/map-ui-and-frontend-libraries.md)
 
 - [ ] **MAP.148 The star visibility law: apparent-magnitude opacity, flux-based brightness and an on-screen limit from a histogram**
@@ -1259,6 +1261,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   only sectors and systems today. It must also return body hits
   (planets, moons, belts), each linking through /object/<ref>, which
   redirects to the system page and the body's anchor. Rides this item.
+  Lane (2026-10-09): Owner: Bugfixes lane 2 (moved from Foundations lane
+  1 by the coordinator, 2026-10-10).
 
 - [ ] **NAV.42 Each route stop shows the course and distance to the next stop**
   Boss (2026-10-02 04:19Z, with NAV.41): "each stop has the course and
@@ -1282,6 +1286,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   text of course-routing.md section 2: per-stop sector_id and local
   position (this item needs them), the packed filled-set cache, and the
   adjacent-cell shortcut.
+  Lane (2026-10-09): Owner: Bugfixes lane 2 (moved from Foundations lane
+  1 by the coordinator, 2026-10-10).
   Design: [docs/design/navigation-frames.md](design/navigation-frames.md)
 
 - [ ] **NAV.36 Unknown-space jumps drawn red and glowing**
@@ -1338,6 +1344,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   over a `kind` index on about 5e8 rows). Open question for Boss
   (default: no): do planetary nebulae and supernova remnants count as
   stops? Needs the galactic-motion bug below fixed first.
+  Lane (2026-10-09): Owner: Bugfixes lane 2 (moved from Foundations lane
+  1 by the coordinator, 2026-10-10).
   Design: [docs/design/course-routing.md](design/course-routing.md)
 
 - [ ] **NAV.48 Offer to generate the uncharted sectors that block a course**
@@ -1358,6 +1366,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   unknown hops only, then re-plot): or every cell on the straight line?
   And how long may a charting job be before the page refuses (default:
   the 5,000-sector confirmation plus the PERF.3 disk refusal)?
+  Lane (2026-10-09): Owner: Bugfixes lane 2 (moved from Foundations lane
+  1 by the coordinator, 2026-10-10).
   Design: [docs/design/course-routing.md](design/course-routing.md)
 
 - [ ] **NAV.49 Waypoints: pick objects in Star select mode and plot a course through them, kept on the map until cleared**
@@ -1380,6 +1390,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   performance cliff, not a correctness bug; NAV.10 shipped on the old
   code. Avoid `np.unique` on very large arrays in new code (9.4 s on 6e6
   int64 against 0.11 s for sort-plus-diff).
+  Lane (2026-10-09): Owner: Bugfixes lane 2 (moved from Foundations lane
+  1 by the coordinator, 2026-10-10).
   Prerequisites: none.
   Design: [docs/design/course-routing.md](design/course-routing.md)
 
