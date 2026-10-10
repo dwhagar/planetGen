@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.87 |
 | MAP | MAP.162 |
 | NAV | NAV.58 |
-| GEN | GEN.186 |
+| GEN | GEN.187 |
 | PERF | PERF.52 |
 | DB | DB.22 |
 | API | API.24 |
@@ -593,7 +593,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.94 | Feasibility study: can planets form in each nebula class, and what changes | none | done, PR #823 |
 | GEN.95 | Nebula conditions applied when planets and surfaces are generated | none | open |
 | GEN.96 | Generation directives for a sector (an override button) | none | done, PR #915 |
-| GEN.97 | Generate N random neighborhoods | none | open |
+| GEN.97 | Generate N random neighborhoods | none | done, PR #950 |
 | GEN.98 | Bright-star backfill from the farthest generated boundary outward | none | done, PR #795 |
 | GEN.99 | Nebula volume backfill with the star types the nebula needs | none | open |
 | GEN.100 | Phenomena placed galaxy-wide first and kept when sectors fill | none | done, PR #793 |
@@ -682,6 +682,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.183 | A mass cut the user sets: preset values on a slider from 8 to 20 solar masses | none | open |
 | GEN.184 | A luminosity floor the user sets: presets from 2500 to 4 million solar luminosities, default 3000 | none | open |
 | GEN.185 | The scatter in five passes: mass-limit objects, mass-limit stars, brightest-star sector marks, the luminosity pass, then other phenomena | none | open |
+| GEN.186 | Random neighborhoods: an option to keep away from filled space | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
