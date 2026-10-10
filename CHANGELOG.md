@@ -3,6 +3,7 @@
 ## [8.0.866] - 2026-10-10
 
 ### Changed
+- Retired GEN.166, GEN.167 and GEN.168 (PR #866); DB.19 is now conditional on lowering the mass cut to 10 solar masses or less.
 - The phenomenon scatter places only the neutron stars and black holes of at least 20 solar masses (GEN.166 to GEN.168), so `planetgen plan` writes about 2.7e5 phenomenon rows instead of about 1.17e9. A sector draws the lighter ones itself when it is filled, from its own stream, so the galaxy holds the same number of each. `--phenomenon-min-mass` sets the cut and `--phenomena-only` re-scatters at a new one; the cut is stored with the scatter (schema v71) and in the settings file. Stellar-mass and intermediate-mass black holes are now drawn as separate kinds. This is the second half of the one-time reseed that began with lazy names (PERF.43): the same seed now gives a different galaxy than before both changes.
 - Retired PERF.44, PERF.45 and ADM.48 (PR #863); PERF.46 keeps only its finite_domain question.
 - A saved sector's rows now get their unique ID in the INSERT instead of being selected back and updated afterwards, which saves a query pass per sector (PERF.44). The IDs are the same.
