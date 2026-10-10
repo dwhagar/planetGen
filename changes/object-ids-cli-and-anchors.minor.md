@@ -1,0 +1,3 @@
+### Changed
+- **The query command and the system page's body anchors speak object IDs too (API.23, stage 3).** `planetgen.cli.query` lists sectors, systems, planets and moons with their printed IDs, takes IDs for `--sector-id` and `--system-id`, and `near` takes `<kind>:<ID>`. The system page's row anchors (`#planet-<ID>`) still open and highlight the row and its map marker. The Nearby API's errors name the place as it was written. A leak-sweep test checks that no page links an object by row number.
+- **Fixed: the Galaxy Map's stage and tile answers carried sector row numbers** (the Sector page's in-place map asked for `/sector/<number>/scene`, which no longer exists). They now carry the sector IDs, as do the tiles' placed sectors, stars of generated systems and clouds.

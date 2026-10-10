@@ -619,7 +619,11 @@ def near():
         raise ApiError("distance query parameter is required")
     try:
         if args.get("from") is not None:
-            place = near_search.place_from_reference(conn, _resolved_ref(args["from"], "from"))
+            row_ref = _resolved_ref(args["from"], "from")
+            try:
+                place = near_search.place_from_reference(conn, row_ref)
+            except near_search.NearError as exc:
+                raise ApiError(str(exc).replace(row_ref, args["from"].strip()))
         else:
             place = near_search.place_from_point(args["point"].split(","))
         kinds = [kind for kind in args["kinds"].split(",") if kind] if args.get("kinds") else None

@@ -11,6 +11,7 @@ the checkout's `src/`:
 import argparse
 
 from planetgen._version import VersionAction, version_banner
+from planetgen.api import ids
 from planetgen.db.query import list_moons, list_planets, list_sectors, list_systems, open_readonly
 from planetgen.db import near
 from planetgen.db.store import add_mysql_connection_args, mysql_config_from_args
@@ -39,13 +40,13 @@ def process_args():
     systems_parser.add_argument('--star-type', type=str,
                                 help="Only systems with a star whose type starts with this "
                                      "(e.g. 'G' for every G-type system, 'G2V' for an exact match).")
-    systems_parser.add_argument('--sector-id', type=int, help="Only systems in this sector.")
+    systems_parser.add_argument('--sector-id', help="Only systems in this sector.")
 
     near_parser = subparsers.add_parser(
         'near', help="Find everything generated within a distance of a place (NAV.43).",
     )
-    near_parser.add_argument('place', help="An object reference (system:12, planet:7, nebula:3 ...; a bare "
-                                           "number is a system) or a galaxy-frame point 'x,y,z' in parsecs.")
+    near_parser.add_argument('place', help="An object reference (system:<ID>, planet:<ID>, nebula:<ID> ...; a bare "
+                                           "three-part ID is a system) or a galaxy-frame point 'x,y,z' in parsecs.")
     near_parser.add_argument('--distance', type=float, required=True,
                              help=f"Search distance in parsecs, up to {near.MAX_DISTANCE_PC:g}.")
     near_parser.add_argument('--kinds', help="Only these kinds, comma-separated: " + ", ".join(near.SEARCH_KINDS) + ".")
@@ -59,8 +60,8 @@ def process_args():
                                 help="Only planets of this exact class (e.g. 'M').")
     planets_parser.add_argument('--min-radius-km', type=float, help="Only planets at least this large.")
     planets_parser.add_argument('--max-radius-km', type=float, help="Only planets at most this large.")
-    planets_parser.add_argument('--sector-id', type=int, help="Only planets whose system is in this sector.")
-    planets_parser.add_argument('--system-id', type=int, help="Only planets in this one system.")
+    planets_parser.add_argument('--sector-id', help="Only planets whose system is in this sector.")
+    planets_parser.add_argument('--system-id', help="Only planets in this one system.")
 
     moons_parser = subparsers.add_parser(
         'moons', help="List moons, optionally filtered by class, radius, sector, or system.",
@@ -69,10 +70,24 @@ def process_args():
                               help="Only moons of this exact class (e.g. 'M').")
     moons_parser.add_argument('--min-radius-km', type=float, help="Only moons at least this large.")
     moons_parser.add_argument('--max-radius-km', type=float, help="Only moons at most this large.")
-    moons_parser.add_argument('--sector-id', type=int, help="Only moons whose system is in this sector.")
-    moons_parser.add_argument('--system-id', type=int, help="Only moons in this one system.")
+    moons_parser.add_argument('--sector-id', help="Only moons whose system is in this sector.")
+    moons_parser.add_argument('--system-id', help="Only moons in this one system.")
 
     return parser.parse_args()
+
+
+def _row(conn, kind, printed_id):
+    """The row id of the object a printed ID names, or `None` for no filter; an ID that names nothing is an error."""
+    if printed_id is None:
+        return None
+    found = ids.row_id(conn, kind, printed_id)
+    if found is None:
+        raise SystemExit(f"Error: no {kind} has the ID {printed_id}.")
+    return found
+
+
+def _printed(conn, kind, row_id):
+    return ids.printed(conn, kind, row_id)
 
 
 def main():
@@ -89,30 +104,35 @@ def main():
                 print("No sectors stored.")
                 return
             for sector in sectors:
-                print(f"[{sector['id']}] {sector['name']} "
+                print(f"[{_printed(conn, 'sector', sector['id'])}] {sector['name']} "
                       f"(edge {sector['edge_ly']:.2f} ly, {sector['system_count']} systems)")
 
         elif args.command == 'systems':
-            systems = list_systems(conn, star_type_prefix=args.star_type, sector_id=args.sector_id)
+            systems = list_systems(conn, star_type_prefix=args.star_type, sector_id=_row(conn, "sector", args.sector_id))
             if not systems:
                 print("No matching systems.")
                 return
             for system in systems:
                 kind = "binary" if system["is_binary"] else "single"
-                sector_note = f"sector {system['sector_id']}" if system["sector_id"] is not None else "standalone"
-                print(f"[{system['id']}] {system['name']} ({kind}, {sector_note})")
+                sector_note = (f"sector {_printed(conn, 'sector', system['sector_id'])}"
+                               if system["sector_id"] is not None else "standalone")
+                print(f"[{_printed(conn, 'system', system['id'])}] {system['name']} ({kind}, {sector_note})")
 
         elif args.command == 'near':
             try:
                 if "," in args.place:
                     place = near.place_from_point(args.place.split(","))
                 else:
-                    place = near.place_from_reference(conn, args.place)
+                    resolved = ids.resolve_ref(conn, args.place)
+                    if resolved is None:
+                        raise near.NearError(f"{args.place!r} names nothing")
+                    place = near.place_from_reference(conn, resolved)
                 kinds = [kind for kind in args.kinds.split(",") if kind] if args.kinds else None
                 result = near.objects_within(conn, place, args.distance, kinds=kinds,
                                              limit=args.limit, offset=args.offset)
-            except near.NearError as exc:
+            except (near.NearError, ids.IdError) as exc:
                 raise SystemExit(f"Error: {exc}")
+            result = ids.translate(result, {"rows[].id": "by-kind"}, conn)
             if not result["rows"]:
                 print(f"Nothing within {args.distance:g} pc of {place['name']}.")
             for row in result["rows"]:
@@ -124,25 +144,27 @@ def main():
         elif args.command == 'planets':
             planets = list_planets(
                 conn, planet_class=args.planet_class, min_radius_km=args.min_radius_km,
-                max_radius_km=args.max_radius_km, sector_id=args.sector_id, system_id=args.system_id,
+                max_radius_km=args.max_radius_km, sector_id=_row(conn, "sector", args.sector_id),
+                system_id=_row(conn, "system", args.system_id),
             )
             if not planets:
                 print("No matching planets.")
                 return
             for planet in planets:
-                print(f"[{planet['id']}] {planet['name']} (Class {planet['planet_class']}, "
+                print(f"[{_printed(conn, 'planet', planet['id'])}] {planet['name']} (Class {planet['planet_class']}, "
                       f"{planet['radius_km']:.0f} km) -- {planet['system_name']}")
 
         elif args.command == 'moons':
             moons = list_moons(
                 conn, planet_class=args.planet_class, min_radius_km=args.min_radius_km,
-                max_radius_km=args.max_radius_km, sector_id=args.sector_id, system_id=args.system_id,
+                max_radius_km=args.max_radius_km, sector_id=_row(conn, "sector", args.sector_id),
+                system_id=_row(conn, "system", args.system_id),
             )
             if not moons:
                 print("No matching moons.")
                 return
             for moon in moons:
-                print(f"[{moon['id']}] {moon['name']} (Class {moon['planet_class']}, "
+                print(f"[{_printed(conn, 'moon', moon['id'])}] {moon['name']} (Class {moon['planet_class']}, "
                       f"{moon['radius_km']:.0f} km) -- {moon['system_name']} / {moon['planet_name']}")
     finally:
         conn.close()

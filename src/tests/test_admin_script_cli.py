@@ -40,6 +40,7 @@ from planetgen.cli import render_parity
 from planetgen.cli import dedupe
 from planetgen.cli import lockouts as loginLockouts
 from planetgen.cli import query
+from tests.publicids import pid
 from planetgen.cli import reset
 from planetgen.cli import orbits
 from planetgen.db import store
@@ -172,7 +173,7 @@ def test_query_db_lists_sectors_systems_planets_and_moons(seeded, monkeypatch, c
     assert len(systems) == len(names) == 2
     for line in systems:
         assert "standalone" in line
-        assert any(line.startswith(f"[{i}] {name} (") for i, name in names.items())
+        assert any(line.startswith(f"[{pid('system', i, seeded)}] {name} (") for i, name in names.items())
 
     planet_count = len(_query(seeded, "SELECT id FROM planets"))
     assert _run_main(query, argv + ["planets"], monkeypatch) == 0
@@ -184,11 +185,11 @@ def test_query_db_lists_sectors_systems_planets_and_moons(seeded, monkeypatch, c
 
 
 def test_query_db_near_an_unknown_or_unplaced_place(seeded, monkeypatch, capsys):
-    argv = mysql_argv(seeded) + ["near", "system:999999", "--distance", "5"]
+    argv = mysql_argv(seeded) + ["near", "system:FFFFFFFFFF-FFFFFFF-FFF", "--distance", "5"]
     assert _run_main(query, argv, monkeypatch) == 1
-    assert "Error: no star_systems row with id 999999" in capsys.readouterr().err
+    assert "names nothing" in capsys.readouterr().err
     system_id = _query(seeded, "SELECT MIN(id) AS i FROM star_systems")[0]["i"]
-    argv = mysql_argv(seeded) + ["near", str(system_id), "--distance", "5"]
+    argv = mysql_argv(seeded) + ["near", f"system:{pid('system', system_id, seeded)}", "--distance", "5"]
     assert _run_main(query, argv, monkeypatch) == 1
     assert "is not placed in the galaxy" in capsys.readouterr().err
     argv = mysql_argv(seeded) + ["near", "0,0,0", "--distance", "99"]
