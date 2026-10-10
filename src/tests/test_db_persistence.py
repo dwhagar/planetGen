@@ -1587,7 +1587,7 @@ def test_bright_star_web_queries(mysql_config):
         assert stats.bright_star_counts(conn) == {"placed": 0, "filled": 0, "unfilled": 0}
         status = queryDb.bright_star_scatter_status(conn)
         assert status["scattered"] is False and status["min_luminosity_sol"] is None and status["seed"] is None
-        assert status["default_min_luminosity_sol"] == tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL == 1000.0
+        assert status["default_min_luminosity_sol"] == tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL == 3000.0
         assert queryDb.bright_stars_in_sector(conn, 3, 0, 1) == []
         with conn:
             conn.execute("INSERT INTO galaxy_shape (id, disk_scale_length_pc, disk_scale_height_pc,"
@@ -1620,7 +1620,7 @@ def test_bright_star_web_queries(mysql_config):
 
         status = queryDb.bright_star_scatter_status(conn)
         assert status == {"scattered": True, "min_luminosity_sol": 100.0, "seed": 9,
-                          "default_min_luminosity_sol": 1000.0}
+                          "default_min_luminosity_sol": 3000.0}
 
         # A re-scatter empties the table and restarts the ids, so the id
         # span still counts exactly.

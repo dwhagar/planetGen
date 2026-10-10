@@ -1,0 +1,2 @@
+### Changed
+- The bright-star luminosity floor (GEN.184) is now chosen from presets: 2,500 to 4,000,000 solar luminosities on an exponential ladder (steps of 100 near 2,500, about 400,000 near the top), default 3,000 (was 1,000). Nothing below 2,500 is accepted by `--bright-star-min-luminosity` or the Generate page, which offers the presets in a list. A galaxy already scattered keeps the level it was scattered at.

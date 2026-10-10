@@ -609,9 +609,9 @@ def test_scatter_flags_exist_in_generate_py():
     assert args.bright_stars_only is True and args.force is True
     assert plan.parse_args(["--bright-stars-down-to", "100"]).bright_stars_down_to == 100.0
     assert plan.parse_args(["--bright-star-min-luminosity", "2500"]).bright_star_min_luminosity == 2500.0
-    galaxy = parsers["galaxy"].parse_args(["--then-scatter", "--bright-star-min-luminosity", "2000",
+    galaxy = parsers["galaxy"].parse_args(["--then-scatter", "--bright-star-min-luminosity", "20000",
                                            "--backfill-from", "none"])
-    assert galaxy.then_scatter is True and galaxy.bright_star_min_luminosity == 2000.0
+    assert galaxy.then_scatter is True and galaxy.bright_star_min_luminosity == 20000.0
     assert galaxy.backfill_from == "none"
 
 
@@ -628,7 +628,8 @@ def test_page_offers_the_scatter_threshold(site, client):
     html = client.get("/admin/generate").get_data(as_text=True)
     assert html.count('name="bright_min_luminosity"') == 3  # New galaxy, Plan, Rebuild
     assert generate_page.BRIGHT_THRESHOLD_LABEL in html
-    assert 'placeholder="1,000"' in html
+    assert '<option value="3000" selected>3,000 (default)</option>' in html  # GEN.184
+    assert '<option value="2500">2,500</option>' in html and '<option value="4000000">4.00 × 10⁶</option>' in html
     assert generate_page.BACKFILL_TEXT in html
 
 
@@ -639,17 +640,17 @@ def test_backfill_text_follows_the_tiers():
 
 
 def test_scatter_uses_the_threshold_field(site, client, no_spawn):
-    assert _post(client, action="plan", bright_min_luminosity="2000").status_code == 303
+    assert _post(client, action="plan", bright_min_luminosity="20000").status_code == 303
     (job,) = no_spawn
     scatter = next(step for step in job["steps"] if step["label"] == generate_page.SCATTER_LABEL)
-    assert _argv(scatter) == ["plan", "--bright-stars-only", "--bright-star-min-luminosity", "2000"]
+    assert _argv(scatter) == ["plan", "--bright-stars-only", "--bright-star-min-luminosity", "20000"]
 
 
 def test_new_galaxy_scatters_after_its_sectors_at_the_threshold(site, client, no_spawn):
-    assert _post(client, action="new_galaxy", confirm=DB, bright_min_luminosity="2000").status_code == 303
+    assert _post(client, action="new_galaxy", confirm=DB, bright_min_luminosity="20000").status_code == 303
     (job,) = no_spawn
     galaxy = _work_steps(job)[-1]
-    assert _argv(galaxy) == ["galaxy", "--then-scatter", "--bright-star-min-luminosity", "2000"]
+    assert _argv(galaxy) == ["galaxy", "--then-scatter", "--bright-star-min-luminosity", "20000"]
 
 
 def test_the_page_has_no_backfill_checkbox_and_the_run_backfills_from_the_edge(site, client, no_spawn):
@@ -708,8 +709,8 @@ def test_the_generator_accepts_the_prevalence_argv():
     assert set(dict(args.prevalence)) == set(features)
 
 
-@pytest.mark.parametrize("value", ["0.5", "abc", "inf"])
-def test_scatter_threshold_must_be_at_least_one(site, client, no_spawn, value):
+@pytest.mark.parametrize("value", ["0.5", "2499", "5000000", "abc", "inf"])
+def test_scatter_threshold_must_be_a_preset_range(site, client, no_spawn, value):
     resp = _post(client, action="plan", bright_min_luminosity=value)
     assert resp.status_code == 400
     assert no_spawn == []

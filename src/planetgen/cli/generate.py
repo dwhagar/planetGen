@@ -37,7 +37,7 @@ from planetgen.queue import work as workQueue
 from planetgen.db import check as db_check, fingerprint, store
 from planetgen.admin import activity_log
 from planetgen.galaxy.span import Span, SpanError, parse_range
-from planetgen.generation import directives, limits, prevalence
+from planetgen.generation import directives, limits, luminosity_floor, prevalence
 from planetgen.galaxy import seed as galaxySeed, version_check, version_key
 from planetgen.physics import mathcheck
 from planetgen import tuning as program_constants
@@ -665,6 +665,11 @@ def validate_galaxy_args(args, parser):
                                           through (so the caller's own
                                           `--help`/usage text is shown).
     """
+    if args.then_scatter:
+        try:
+            args.bright_star_min_luminosity = luminosity_floor.check(args.bright_star_min_luminosity)
+        except ValueError as exc:
+            parser.error(f"--bright-star-min-luminosity: {exc}")
     block = getattr(args, "block", None)
     block_layer = getattr(args, "block_layer", None)
     if block is not None:
@@ -888,7 +893,10 @@ def add_plan_arguments(parser):
     bright_group.add_argument('--bright-star-min-luminosity', type=finite_float,
                               default=program_constants.BRIGHT_STAR_MIN_LUMINOSITY_SOL,
                               help="Every star at least this bright (solar luminosities) is generated "
-                                   "and placed galaxy-wide after the plan. Default: "
+                                   "and placed galaxy-wide after the plan: from "
+                                   f"{program_constants.BRIGHT_STAR_FLOOR_MIN_SOL:g} to "
+                                   f"{program_constants.BRIGHT_STAR_FLOOR_MAX_SOL:g} (the Generate page offers "
+                                   "presets). Default: "
                                    f"{program_constants.BRIGHT_STAR_MIN_LUMINOSITY_SOL:g}.")
     bright_group.add_argument('--no-bright-stars', action='store_true',
                               help="Build the plan without scattering bright stars.")
@@ -974,6 +982,7 @@ def validate_plan_args(args, parser):
             parser.error(f"--bright-stars-down-to: {exc}")
     if not args.no_bright_stars:
         try:
+            args.bright_star_min_luminosity = luminosity_floor.check(args.bright_star_min_luminosity)
             bright_star_fraction(args.bright_star_min_luminosity)
         except ValueError as exc:
             parser.error(f"--bright-star-min-luminosity: {exc}")

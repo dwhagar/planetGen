@@ -2993,20 +2993,34 @@ is the same factor of distance (`facilities.distance_from_step`)."""
 
 # --- Galaxy pre-placement (schema v43) ---
 
-BRIGHT_STAR_MIN_LUMINOSITY_SOL = 1000.0
+BRIGHT_STAR_MIN_LUMINOSITY_SOL = 3000.0
 """float: Every star at least this bright (solar luminosities) is generated
 and placed galaxy-wide right after `planetgen plan`, before any sector is
 filled (`bright_stars`, schema v43). Its sector is still generated later,
-around it. Boss, 2026-09-30; kept at 500 on 2026-10-01 rather than 100,
-which would add ~35 GB; raised to 1000 the same day (GEN.30), with the
-dimmer stars filled in near generated sectors by the tiered backfill
-(`BRIGHT_STAR_BACKFILL_TIERS`). A galaxy already scattered keeps the level
-it was scattered at. `--bright-star-min-luminosity` lowers it (down to
-the brightest white dwarf, `WD_LUMINOSITY_RANGE_SOL`'s top, 100). The value a
-scatter used is stored in `galaxy_shape.bright_star_min_luminosity_sol`, and
+around it. 500 on 2026-10-01, then 1000 (GEN.30), with the dimmer stars
+filled in near generated sectors by the tiered backfill
+(`BRIGHT_STAR_BACKFILL_TIERS`); 3000 on 2026-10-10 (GEN.184, Boss). The user
+picks it from the ladder in `generation/luminosity_floor.py`, from
+`BRIGHT_STAR_FLOOR_MIN_SOL` to `BRIGHT_STAR_FLOOR_MAX_SOL`. A galaxy
+already scattered keeps the level it was scattered at. The value a scatter
+used is stored in `galaxy_shape.bright_star_min_luminosity_sol`, and
 filling reads that, not this, so retuning it can't make a fill
 double-count or skip stars. See
 /mnt/project-files/galaxy-studies/bright-star-preplacement-plan.md."""
+
+BRIGHT_STAR_FLOOR_MIN_SOL = 2500.0
+"""float: The lowest luminosity floor a user may choose (GEN.184, Boss
+2026-10-10 03:01Z)."""
+
+BRIGHT_STAR_FLOOR_MAX_SOL = 4_000_000.0
+"""float: The highest luminosity floor a user may choose (GEN.184)."""
+
+BRIGHT_STAR_FLOOR_MIN_STEP_SOL = 100.0
+"""float: The gap between presets at the lowest floor, for the best control
+there (GEN.184)."""
+
+BRIGHT_STAR_FLOOR_MAX_STEP_SOL = 500_000.0
+"""float: The gap between presets near the highest floor (GEN.184)."""
 
 # --- Population and politics (schema v44, POP.1 to POP.4) ---
 # See docs/design/population-and-politics.md.

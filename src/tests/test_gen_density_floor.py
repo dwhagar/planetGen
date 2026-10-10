@@ -35,6 +35,8 @@ LARGE_BULGE = build_galaxy_shape(
 )
 EDGE_PC = tuning.DEFAULT_SECTOR_EDGE_PC
 E_VALUE = expected_system_count_at_density_1(tuning.DEFAULT_SECTOR_EDGE_LY)
+LOW_FLOOR = 1000.0
+"""float: The old 1000 Lsun floor; these GEN.79/117 tests need old-giant populations that the 2500 minimum (GEN.184) no longer allows."""
 
 FAR_POINTS = [
     (14000.0, 0.0, 0.0),        # the far edge of the disk
@@ -78,7 +80,7 @@ def _halo_and_edge_cells(shape):
 
 def test_every_cell_at_the_far_edge_and_in_the_halo_can_get_a_bright_star():
     cells = _halo_and_edge_cells(MILKY_WAY)
-    fractions = brightStars.band_fractions(tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL)
+    fractions = brightStars.band_fractions(LOW_FLOOR)
     for address in cells:
         densities = population_densities(sector_position_pc(*address, EDGE_PC), MILKY_WAY)
         mean = E_VALUE * sum(densities[population] * fractions[population] for population in densities)
@@ -101,10 +103,10 @@ def test_the_backfill_draws_stars_in_sparse_cells():
 
 @pytest.mark.parametrize("population", ["old", "bulge"])
 def test_old_and_bulge_stars_reach_the_bright_star_threshold(population):
-    assert bright_star_fraction(tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL, population) > 0.0
+    assert bright_star_fraction(LOW_FLOOR, population) > 0.0
     # Still far rarer than among young stars.
-    assert (bright_star_fraction(tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL, population)
-            < bright_star_fraction(tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL, "young") / 5)
+    assert (bright_star_fraction(LOW_FLOOR, population)
+            < bright_star_fraction(LOW_FLOOR, "young") / 5)
 
 
 @pytest.mark.parametrize("layer_index", [400, -600])
@@ -113,7 +115,7 @@ def test_a_large_bulge_gets_bright_stars_far_above_layer_121(layer_index):
     assert extents[layer_index] > 60
     # Its inner rings, where the bulge is.
     rows = list(brightStars.scatter_layer(LARGE_BULGE, layer_index, 60, EDGE_PC, E_VALUE,
-                                          tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL, 3))
+                                          LOW_FLOOR, 3))
     assert len(rows) > 20
     assert {row[1] for row in rows} == {layer_index}
     assert {row[6] for row in rows} <= {"bulge", "old"}
@@ -127,7 +129,7 @@ INNER_RINGS = 242
 
 def _scatter(layer_index):
     return list(brightStars.scatter_layer(MILKY_WAY, layer_index, INNER_RINGS, EDGE_PC, E_VALUE,
-                                          tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL, 7))
+                                          LOW_FLOOR, 7))
 
 
 @pytest.mark.parametrize("layer_index", [121, -121])

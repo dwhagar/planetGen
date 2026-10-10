@@ -28,7 +28,7 @@ from planetgen.physics.units import ly_to_pc
 from planetgen import tuning
 
 EDGE_PC = ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)
-THRESHOLD = 500.0
+THRESHOLD = 2500.0
 TIERS = tuning.BRIGHT_STAR_BACKFILL_TIERS
 
 # A small toy galaxy (the same one test_galaxy_gen.py seeds), with a high
@@ -690,7 +690,7 @@ def test_backfill_tiers_default_and_override():
     assert run_galaxy.backfill_tiers(radius_ly=20.0) == ((20.0, 100.0),)
     assert run_galaxy.backfill_tiers(min_luminosity_sol=300.0) == ((100.0, 300.0),)
     assert run_galaxy.backfill_tiers(tiers=((40, 300), (5, 100))) == ((5.0, 100.0), (40.0, 300.0))
-    assert tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL == 1000.0
+    assert tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL == 3000.0
 
 
 @pytest.mark.parametrize("distance_ly, floor", [
