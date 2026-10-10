@@ -62,7 +62,7 @@ from planetgen.web.lib import apiclient
 from planetgen.web.lib.fmt import utc_time_html
 from planetgen.web.lib.pagination import PAGE_SIZE, clamp_page, page_offset, parse_page
 from planetgen.admin import activity_log
-from planetgen.generation import prevalence, stats
+from planetgen.generation import luminosity_floor, prevalence, stats
 from planetgen import tuning
 from planetgen.util import log
 from planetgen.galaxy.drill import format_drill_key, parse_drill_key
@@ -519,12 +519,14 @@ def scatter_argv(form):
     `tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL`).
 
     Raises:
-        FormError: A threshold that isn't a number of at least 1.
+        FormError: A threshold that isn't a number between the lowest and
+            highest luminosity floor (GEN.184).
     """
     argv = ["plan", "--bright-stars-only"]
-    threshold = _number(form, "bright_min_luminosity", BRIGHT_THRESHOLD_LABEL, float, minimum=1.0)
+    threshold = _number(form, "bright_min_luminosity", BRIGHT_THRESHOLD_LABEL, float,
+                        minimum=tuning.BRIGHT_STAR_FLOOR_MIN_SOL, maximum=tuning.BRIGHT_STAR_FLOOR_MAX_SOL)
     if threshold is not None:
-        argv += ["--bright-star-min-luminosity", f"{threshold:g}"]
+        argv += ["--bright-star-min-luminosity", f"{threshold:.0f}"]
     return argv
 
 
@@ -878,6 +880,7 @@ def _page(admin, error=None, status=200, form=None, estimate=None, estimate_titl
         prevalence_fields=PREVALENCE_FIELDS,
         directive_fields=DIRECTIVE_FIELDS,
         bright_min_luminosity=tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL,
+        bright_floor_presets=luminosity_floor.PRESETS,
         bright_threshold_label=BRIGHT_THRESHOLD_LABEL,
         backfill_text=BACKFILL_TEXT,
         galaxy_modes=GALAXY_MODES,

@@ -53,8 +53,15 @@
   <span class="field-hint">Every star at least as bright as the threshold is normally placed across the whole galaxy: right after the plan, or on a new galaxy once its first sectors are generated, leaving them out.</span></label>
 {%- endmacro -%}
 {%- macro scatter_threshold() -%}
-{{ field("bright_min_luminosity", bright_threshold_label, placeholder=num(bright_min_luminosity, ",.0f"), min=1,
-         hint="Every star this bright or brighter is placed galaxy-wide. Blank means " ~ num(bright_min_luminosity, ",.0f") ~ ". Around each generated sector, dimmer ones are added later, " ~ backfill_text ~ ".") }}
+<label class="search-field">{{ bright_threshold_label }}
+  <select name="bright_min_luminosity">
+    {%- set chosen_floor = ((form.get("bright_min_luminosity") if form else None) or bright_min_luminosity)|float %}
+    {%- for preset in bright_floor_presets %}
+    <option value="{{ preset|int }}"{% if preset == chosen_floor %} selected{% endif %}>{{ num(preset, ",.0f") }}{% if preset == bright_min_luminosity %} (default){% endif %}</option>
+    {%- endfor %}
+  </select>
+  <span class="field-hint">Every star this bright or brighter is placed galaxy-wide. The steps are fine near the bottom ({{ num(bright_floor_presets[0], ",.0f") }}) and coarse near the top ({{ num(bright_floor_presets[-1], ",.0f") }}). Around each generated sector, dimmer ones are added later, {{ backfill_text }}.</span>
+</label>
 {%- endmacro -%}
 {%- macro confirm_field(id) -%}
 <label class="search-field">Type the database name to confirm
