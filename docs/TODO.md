@@ -433,50 +433,6 @@ with `clamp()`.
   Prerequisites: none.
   Design: [docs/design/map-ui-and-frontend-libraries.md](design/map-ui-and-frontend-libraries.md)
 
-- [ ] **UX.84 Every sub-step must show a progress bar that starts by itself when it is predicted to take over 15 seconds (bug)**
-  Boss (2026-10-09 23:13Z): "linking new sectors to their neighbors
-  should have a progress bar of it's own, as should the phenomena
-  scatter, all generation items should have progress bars, if a sub-step
-  is probably going to take longer than 15 seconds give it a progress
-  bar as well." Corrected (23:34Z): "I believe I said a progress bar on
-  all substeps that automatically activates on the start of that
-  sub-item if it's predicted to take longer than 15 seconds to
-  complete." The first pass (UX.83, PR #895) hand-added bars to the
-  scatter, the neighbour-linking steps and the population pass; that is
-  not the rule. Done: the rule holds for every sub-step of every
-  generation and maintenance operation, through the one mechanism of
-  PERF.51 (a bar starts at the start of a step when its predicted
-  duration exceeds 15 seconds, in the terminal and on the Generate and
-  Queue pages), and every sub-step below is registered with a stats kind and a work count; the prediction reads the recorded generation statistics (`generation_stats`, PERF.32), with a conservative fallback only for a kind that has no history yet. The list to register (from the read of the code on
-  2026-10-09, with the steps the first pass added and the ones not yet
-  checked): the three passes inside each neighbour batch of
-  `link_sector_neighbors` (containment, nearest systems, merge into the
-  neighbours); `refresh_containment` and `refresh_nearest_systems` run
-  outside a galaxy run; the phenomenon scatter's clear, each layer (a
-  bar inside one layer), the special rows, the insert and the stamp; the
-  population pass; the bright-star backfill; topping up backfilled
-  sectors; the sector paths of the settle step; the plan's layer
-  tracker; the name registry passes; the end-of-update map warm-up
-  (`warm_map`); migrations (DB.15); the reset's table wipes and the
-  orbit update's stages (`StageProgress`); the check-db and deep check
-  passes (DB.21); and one sector's save in a dense sector (PERF.50). A
-  test registers each step and fails when a step that is predicted to
-  pass 15 seconds draws no bar. The sub-steps with no timing recorded today (only the work queue's task kinds have timings, and `queue.work.timing_by_kind` has no caller) all need a stats kind added by this work: every item in the list above except the sector, bright-star and phenomenon task kinds. Build order: PERF.33 (the estimator),
-  then PERF.51 (the mechanism), then PERF.50 (the first application),
-  then this item, which registers the rest. Open question for Boss
-  (default the mechanism first, registrations after, as written): other?
-  Correction from Bugfixes lane 1 (PR #895 survey): before UX.83 the
-  phenomenon scatter had no bar (only the bright-star scatter did); it
-  now has one over layers, neighbour linking reports 3 named steps per
-  sector, and the population pass has a bar. Still without one, all in
-  the list above: inside one scatter layer, `clear_phenomenon_scatter`
-  and the closing special rows and insert; one sector's save (PERF.50,
-  needs a worker-to-parent channel); `cli/warm_map.py` (prints a line,
-  no bar); the migration (DB.15) and the name registry passes.
-  Prerequisite: PERF.50. Related: UX.83, PERF.33, PERF.34,
-  PERF.32, DB.15, DB.21.
-  Lane (Boss, 2026-10-09 23:38Z): Bugfixes lane 1, order PERF.32, PERF.33, PERF.51, PERF.50, DB.15, then UX.84.
-
 - [ ] **UX.85 Button menus open out of sight and make the user scroll to see them (bug)**
   Boss (2026-10-10 00:01Z): "button menus should open where they can be
   seen, I keep having to scroll down to see the menu. In addition,
@@ -3691,6 +3647,9 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   (default `--deep` flag and a "Deep check" option with the estimate and
   a confirmation, as written): other?
   Prerequisite: PERF.33. Related: DB.9, PERF.33, PERF.32, PERF.50.
+  From UX.84 (PR #930): the deep check's passes register on the shared
+  mechanism: use `steps.Step` with a `STEP_KINDS` entry (a test in
+  `tests/test_step_registry.py` fails on an unregistered kind).
 
 ## API: The JSON API
 
