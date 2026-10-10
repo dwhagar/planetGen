@@ -27,9 +27,14 @@ from planetgen.util import log
 
 SECTOR_MODES = ("block", "span", "column", "shell", "slot", "ring", "center_sector")
 
-_state = {"stages": [], "next": 0, "args": None, "command": None, "open": None}
+JOB_KEY = "job"
+"""str: The `stage_key` the whole-job row is stored under (`finish`)."""
+
+_state = {"stages": [], "next": 0, "args": None, "command": None, "open": None,
+          "job_layers": 0, "job_seconds": 0.0, "overall": None}
 """The run's stage list, the next one to enter, its arguments (for the settings each stage is recorded
-with), its command, and the stage open now (`_open`)."""
+with), its command, the stage open now (`_open`), the layers and seconds of the stages finished so far (the
+whole-job stat) and the command-line overall bar's clock and estimate (`overall`)."""
 
 
 class Stage:
@@ -123,6 +128,8 @@ def stage_settings(key, args):
             value = getattr(args, name, None)
             if value is not None:
                 settings[name] = value
+    elif key == JOB_KEY:
+        settings["mass_limit_sol"], settings["luminosity_floor_sol"] = mass, floor
     elif key == "mass":
         settings["mass_limit_sol"] = mass
     elif key == "luminosity":
@@ -185,13 +192,104 @@ def _close_open():
     _state["open"] = None
     if record is not None:
         record["seconds"] = time.perf_counter() - record["t0"]
+        _state["job_seconds"] += record["seconds"]
+        _state["job_layers"] += int(record["metrics"].get("layers") or 0)
         _write(record)
+
+
+def _write_job():
+    """
+    Stores the whole job's layers per second (PERF.55): every layer the scatter stages visited, the ones that
+    placed nothing too, over the seconds of all the stages the run did. One row under `JOB_KEY`, with the
+    settings the run had, for `stats.job_layers_per_second`. Nothing when no stage visited a layer.
+    """
+    layers, seconds = _state["job_layers"], _state["job_seconds"]
+    if layers <= 0 or seconds <= 0 or not _state["stages"]:
+        return
+    total = len(_state["stages"])
+    settings = stage_settings(JOB_KEY, _state["args"]) if _state["args"] is not None else {}
+    _write({"key": JOB_KEY, "n": total, "total": total, "label": "Whole job", "skipped": None, "settings": settings,
+            "metrics": {"layers": layers, "layers_per_second": layers / seconds}, "seconds": seconds})
+
+
+# ---------------------------------------------------------------------
+# The command line's overall bar (PERF.55)
+# ---------------------------------------------------------------------
+
+OVERALL_MARGIN = 1.05
+"""float: A run that outlasts its estimate keeps its bar at 1/this (95%) until it ends, so the bar never
+claims to be done early."""
+
+
+def _start_overall(stages, args, command):
+    """The overall bar's clock and estimate for a run that does more than one stage, `None` for any other or
+    for a run the web interface started (its job page draws the overall bar). The estimate is the stored time
+    of each stage that will run (`estimate_seconds`), `None` when one has no record."""
+    running = [stage for stage in stages if not stage.skip]
+    if len(running) < 2 or os.environ.get(progress_file.ENV_VAR):
+        return None
+    estimate = None
+    if args is not None and _recording_on():
+        try:
+            from planetgen.db import store
+            config = store.mysql_config_from_args(args)
+            conn = store.get_control_connection(store.control_mysql_config(config))
+            try:
+                estimate = estimate_seconds(conn, command or "", args)
+            finally:
+                conn.close()
+        except Exception as exc:  # noqa: BLE001 -- an estimate is a nicety
+            log.debug(f"Overall bar: no estimate ({exc}).")
+    return {"t0": time.perf_counter(), "estimate": estimate}
+
+
+def overall_progress(now=None):
+    """
+    `(description, completed, total)` of the command line's overall bar, in seconds: the time since the run's
+    stages began against the stored time of all of them (`total` is `None` without one, and grows to keep the
+    bar under full when the run outlasts its estimate), or `None` when there is no overall bar.
+    """
+    overall = _state["overall"]
+    if overall is None:
+        return None
+    elapsed = (time.perf_counter() if now is None else now) - overall["t0"]
+    description = f"Whole job (stage {min(max(_state['next'], 1), len(_state['stages']))} of {len(_state['stages'])})"
+    if overall["estimate"] is None:
+        return description, elapsed, None
+    total = max(overall["estimate"], elapsed * OVERALL_MARGIN)
+    return description, elapsed, total
+
+
+def attach_overall(progress):
+    """
+    Adds the overall bar to a started generation display (`run_common._ReportingProgress.start`) and keeps it
+    moving once a second until the display stops (`progress.overall_stop`); does nothing without an overall bar
+    or on a display that draws nothing. Returns the task id or `None`.
+    """
+    view = overall_progress()
+    if view is None or getattr(progress, "disable", False):
+        return None
+    import threading
+    description, completed, total = view
+    task = progress.add_task(description, total=total, completed=completed, percent=True, prior=1.0)
+    stop = threading.Event()
+
+    def tick():
+        while not stop.wait(1.0):
+            now = overall_progress()
+            if now is not None:
+                progress.update(task, description=now[0], completed=now[1], total=now[2])
+
+    threading.Thread(target=tick, name="overall-bar", daemon=True).start()
+    progress.overall_stop = stop
+    return task
 
 
 def begin(stages, args=None, command=None):
     """Starts a run's stage list and logs it (skipped ones with their reasons). With `args`, each stage's time
     is stored with the settings it ran with (PERF.56)."""
-    _state.update(stages=list(stages), next=0, args=args, command=command, open=None)
+    _state.update(stages=list(stages), next=0, args=args, command=command, open=None, job_layers=0,
+                  job_seconds=0.0, overall=_start_overall(stages, args, command))
     if not stages:
         return
     parts = [f"{n}. {s.label}" + (f" (skipped: {s.skip})" if s.skip else "") for n, s in enumerate(stages, start=1)]
@@ -250,7 +348,9 @@ def finish(reason=None):
     for index in range(_state["next"], len(_state["stages"])):
         _announce(index, _state["stages"][index].skip or reason or "not needed")
     _close_open()
-    _state.update(stages=[], next=0, args=None, command=None, open=None)
+    _write_job()
+    _state.update(stages=[], next=0, args=None, command=None, open=None, job_layers=0, job_seconds=0.0,
+                  overall=None)
 
 
 def estimate_seconds(conn, command, args):

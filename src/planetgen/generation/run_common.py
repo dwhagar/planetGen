@@ -54,11 +54,18 @@ class _ReportingProgress(Progress):
     main_step = None
     """The `steps.Step` drawing `main_task`, if one does (a step shown while it is set is the second bar)."""
 
+    overall_stop = None
+    """The event that ends the overall bar's updates (`stages.attach_overall`), once the display stops."""
+
     def start(self):
         super().start()
         _ACTIVE_PROGRESS.append(self)
+        from planetgen.generation import stages
+        stages.attach_overall(self)     # PERF.55: the command line's one bar for the whole job
 
     def stop(self):
+        if self.overall_stop is not None:
+            self.overall_stop.set()
         if self in _ACTIVE_PROGRESS:
             _ACTIVE_PROGRESS.remove(self)
         for task_id in list(self._tasks):
