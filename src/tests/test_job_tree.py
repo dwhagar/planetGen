@@ -109,7 +109,7 @@ def test_an_older_control_schema_gains_the_tree_columns(mysql_config):
         conn.close()
     for table, added in _db._CONTROL_COLUMNS.items():
         assert {name for name, _definition in added} <= columns, table
-    assert version == _db.CONTROL_SCHEMA_VERSION == 13
+    assert version == _db.CONTROL_SCHEMA_VERSION == 14
     # The old run is still there, now a root of its own tree.
     tree = _tree(mysql_config, "old-run")
     assert tree["title"] == "Before v7" and tree["kind"] == "queue" and tree["children"] == []

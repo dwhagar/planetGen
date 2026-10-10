@@ -609,9 +609,13 @@ forced credential change. They back the admin stats page
   speed and each galaxy's size: `{"buckets": [{"kind", "bucket",
   "density_low", "density_high", "samples", "seconds_per_task",
   "seconds_per_system", "systems_per_task", "stars_per_system",
-  "max_density"}], "sizes": {database: {"bytes_per_system", "systems",
+  "max_density"}], "stages": [...], "sizes": {database: {"bytes_per_system", "systems",
   "total_bytes"}}, "available"}` (`available` is false until `update.sh`
-  has added control schema v6). Shown on the Stats page.
+  has added control schema v6). `stages` is the last 100 stage runs
+  (PERF.56, control schema v14): `stage_key`, `stage_n`, `stage_total`,
+  `label`, `skipped`, `skip_reason`, `seconds`, `workers`, `settings` (mass
+  limit, luminosity floor, ...), `metrics` (layers visited and modified,
+  objects) and `finished_at`. Shown on the Stats page.
 - `GET /api/admin/naming-key[?db=]` — the galaxy's naming key (GEN.70):
   `{"database", "key", "codec_version", "current_codec_version",
   "drawn_at", "changed_at", "changed_by"}`; `key` is `null` before the

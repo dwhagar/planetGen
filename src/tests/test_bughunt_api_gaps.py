@@ -223,7 +223,7 @@ def test_generate_neighborhood_invalid_estimate_only_is_400(seeded_sector, admin
 
 def test_generation_stats_answers_for_an_admin(admin_client):
     body = admin_client.get("/api/admin/generation-stats").get_json()
-    assert set(body) == {"buckets", "sizes", "available"}
+    assert set(body) == {"buckets", "stages", "sizes", "available"}
 
 
 def test_resetting_the_generation_stats_answers_for_an_admin(admin_client):

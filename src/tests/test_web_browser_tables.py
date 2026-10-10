@@ -33,7 +33,7 @@ KINDS = [("nebula", "emission_nebula"), ("nebula", "dark_nebula"), ("rogue_plane
 ROWS = [
     {"id": i, "type": KINDS[i % len(KINDS)][0], "descriptor": KINDS[i % len(KINDS)][1],
      "name": f"Phenomenon {i:03d}", "radius_ly": 1.5 + i if KINDS[i % len(KINDS)][0] == "nebula" else None,
-     "sector_id": None, "sector_name": None, "placed": bool(i % 2)}
+     "sector_id": None, "sector_name": None, "placed": bool(i % 2), "scattered": False}
     for i in range(TOTAL)
 ]
 
