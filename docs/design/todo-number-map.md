@@ -22,7 +22,7 @@ release is stamped.
 | API | API.24 |
 | ADM | ADM.49 |
 | SEC | SEC.33 |
-| TEST | TEST.119 |
+| TEST | TEST.121 |
 | USR | USR.10 |
 | OPS | OPS.41 |
 | DOC | DOC.17 |
@@ -669,8 +669,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.170 | Object ID layout: an 80-bit ID of birth sector, serial and body number, with pack, unpack, format and parse functions | none | open |
 | GEN.171 | The sector fill gives object IDs by generation rank | none | open |
 | GEN.172 | Run-time births get object IDs from the counters | none | open |
-| GEN.173 | Deleting a body and then adding one fails with IntegrityError 1062 on uq_planets_uid (bug) | none | open |
-| GEN.174 | Bodies an admin adds are saved with a NULL uid (bug) | none | open |
+| GEN.173 | Deleting a body and then adding one fails with IntegrityError 1062 on uq_planets_uid (bug) | none | done, PR #987 |
+| GEN.174 | Bodies an admin adds are saved with a NULL uid (bug) | none | done, PR #987 |
 | GEN.175 | Regenerating a phenomenon sets its uid to NULL (bug) | none | done, PR #960 |
 | GEN.176 | A nebula or remnant is born in the sector holding the centre of the space it occupies | none | open |
 | GEN.177 | Planetary magnetic fields: a stagnant-lid factor | none | open |
@@ -1349,6 +1349,8 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.116 | test_bughunt_end_to_end stores M2V or M6V where it expects K2V on the MySQL 8.4 and MariaDB legs once (bug) | none | open |
 | TEST.117 | generatejobs.test.mjs fails on main since PERF.33 (PR #910) (bug) | none | done, PR #920 |
 | TEST.118 | test_star_scatter_passes.py fails twice on main since GEN.184 raised the luminosity floor to 2500 or more (bug) | none | done, PR #975 |
+| TEST.119 | 15 browser map tests fail on main since the UX.86 menu regrouping (bug) | none | open |
+| TEST.120 | test_sampled_stars_stay_inside_their_mass_range still fails on main after TEST.118 (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

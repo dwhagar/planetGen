@@ -3028,34 +3028,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisite: DB.20.
   Design: [docs/design/object-id-options.md](design/object-id-options.md)
 
-- [ ] **GEN.173 Deleting a body and then adding one fails with IntegrityError 1062 on uq_planets_uid (bug)**
-  Source: docs/design/object-id-options.md section 0 (Boss decided
-  2026-10-09 22:39Z: birth location plus serial, galaxy-wide; the same
-  length for every object; always identifies that one object; up to 128
-  bits but shorter preferred; fix the deficits; no backward
-  compatibility). Filed from the object-ID research thread. Nothing is
-  built until Boss asks.
-  Reproduced on MariaDB with `save_system_edits` plus `assign_uids`: the
-  new row is ranked by position among the current rows and takes a uid
-  already used. `add_system_to_sector` runs the sector-wide pass (by
-  code reading). Fixed by the layout, fill and run-time birth items;
-  keep a regression test.
-  Prerequisites: GEN.171, GEN.172.
-  Design: [docs/design/object-id-options.md](design/object-id-options.md)
-
-- [ ] **GEN.174 Bodies an admin adds are saved with a NULL uid (bug)**
-  Source: docs/design/object-id-options.md section 0 (Boss decided
-  2026-10-09 22:39Z: birth location plus serial, galaxy-wide; the same
-  length for every object; always identifies that one object; up to 128
-  bits but shorter preferred; fix the deficits; no backward
-  compatibility). Filed from the object-ID research thread. Nothing is
-  built until Boss asks.
-  `db/edits.py` `save_system_edits` goes through `store.insert_planet`,
-  `insert_moon` and `insert_belt`, and nothing assigns a uid. Fixed by
-  the run-time birth item.
-  Prerequisite: GEN.172.
-  Design: [docs/design/object-id-options.md](design/object-id-options.md)
-
 - [ ] **GEN.176 A nebula or remnant is born in the sector holding the centre of the space it occupies**
   Source: docs/design/object-id-options.md section 0 (Boss decided
   2026-10-09 22:39Z: birth location plus serial, galaxy-wide; the same
@@ -4182,6 +4154,25 @@ clears each one.
   or the product bug is fixed. Open question for Boss (default: leave
   open until it recurs, then investigate with the failing run's data).
   Prerequisites: none. Related: TEST.111, TEST.71.
+
+- [ ] **TEST.119 15 browser map tests fail on main since the UX.86 menu regrouping (bug)**
+  Reported by Bugfixes lane 1 (2026-10-10 05:31Z):
+  test_web_browser_fixture_maps, test_web_browser_maps and
+  test_web_browser_controls (15 tests in all) fail on main since the
+  UX.86 menu regrouping (PR #936). The locator `#galaxymap3d-menu
+  summary` now also matches the nested group summaries. Done: the
+  locators name the top-level summary only and the 15 tests pass on
+  main. Bugfixes lane 1 is fixing the locators.
+  Prerequisites: none. Related: UX.86.
+
+- [ ] **TEST.120 test_sampled_stars_stay_inside_their_mass_range still fails on main after TEST.118 (bug)**
+  Reported by Bugfixes lane 1 (2026-10-10 05:31Z):
+  test_star_scatter_passes.py::test_sampled_stars_stay_inside_their_mass_range
+  fails on main even after PR #975 (TEST.118). Probably the same family:
+  the scatter test setup against GEN.184's 2500 L_sun floor. Done: the
+  cause is found and the test passes on main with the full test file
+  green.
+  Prerequisites: none. Related: TEST.118, GEN.184, GEN.185.
 
 ## USR: User accounts
 
