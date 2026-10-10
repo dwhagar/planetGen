@@ -909,6 +909,8 @@ def scatter_phenomena(args):
         if special_counts:
             log.normal("Special phenomena: " + ", ".join(f"{count:,} {kind}" for kind, count in sorted(special_counts.items())) + ".")
         store.record_phenomenon_scatter(conn, seed, min_mass_solar)
+        store.record_phenomenon_scatter_classes(
+            conn, {phenomenon_scatter.split_label(label): count for label, count in counts.items()})
         conn.commit()
     finally:
         conn.close()

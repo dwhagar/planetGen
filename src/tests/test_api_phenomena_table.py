@@ -115,7 +115,9 @@ def test_scattered_phenomena_not_yet_built_are_listed_for_every_kind(client, mys
             for slot, (kind, subtype) in enumerate(kinds)]
     conn = store.get_connection(mysql_config)
     store.insert_phenomenon_scatter(conn, rows)
-    conn.execute("UPDATE phenomenon_scatter SET built_at = NOW() WHERE kind = 'quasar'")
+    store.record_phenomenon_scatter_classes(conn, {(kind, subtype or ""): 1 for kind, subtype in kinds})
+    quasar = conn.execute("SELECT id FROM phenomenon_scatter WHERE kind = 'quasar'").fetchone()["id"]
+    store.mark_phenomena_built(conn, [quasar])
     conn.commit()
     body = client.get("/api/phenomena?facets=1").get_json()
     assert body["total"] == len(kinds) - 1
@@ -125,3 +127,26 @@ def test_scattered_phenomena_not_yet_built_are_listed_for_every_kind(client, mys
     assert {f["value"]: f["count"] for f in body["facets"]["type"]}["black_hole"] == 2
     assert client.get("/api/phenomena?type=neutron_star").get_json()["total"] == 1
     assert "Unbuilt neutron star 0.0.2" in _names(client.get("/api/phenomena"))
+
+
+def test_scattered_phenomena_are_paged_after_the_built_ones_without_scanning(client, mysql_config):
+    _seed(mysql_config)
+    conn = store.get_connection(mysql_config)
+    rows = [(0, 0, slot, "neutron-star", None, slot, 0, 0, None, None, None, slot + 1) for slot in range(5)]
+    store.insert_phenomenon_scatter(conn, rows)
+    store.record_phenomenon_scatter_classes(conn, {("neutron-star", ""): 5})
+    conn.commit()
+    everything = client.get("/api/phenomena").get_json()
+    assert everything["total"] == 9
+    assert [i["name"] for i in everything["items"]][4:] == [f"Unbuilt neutron star 0.0.{n}" for n in range(5)]
+    # A page that straddles the built rows and the scattered ones, and one wholly inside the scattered ones.
+    straddle = client.get("/api/phenomena?limit=3&offset=3").get_json()
+    assert [i["name"] for i in straddle["items"]] == ["Zeta Cloud", "Unbuilt neutron star 0.0.0",
+                                                       "Unbuilt neutron star 0.0.1"]
+    deep = client.get("/api/phenomena?limit=2&offset=7").get_json()
+    assert [i["name"] for i in deep["items"]] == ["Unbuilt neutron star 0.0.3", "Unbuilt neutron star 0.0.4"]
+    # Building a scattered phenomenon takes it off the unbuilt count.
+    store.mark_phenomena_built(conn, [conn.execute("SELECT MIN(id) AS i FROM phenomenon_scatter").fetchone()["i"]])
+    conn.commit()
+    assert client.get("/api/phenomena").get_json()["total"] == 8
+    assert client.get("/api/phenomena?type=neutron_star").get_json()["total"] == 4
