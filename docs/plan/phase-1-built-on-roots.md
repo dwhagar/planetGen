@@ -145,7 +145,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.196 | One "Redo scatters" box on Generate: choose which scatters to redo, with new settings for each | GEN.195 |  |
 | MAP.166 | Galaxy Map "Dimmest star shown" says "every star" only when the view is complete |  |  |
 | GEN.195 | A separate mass limit for neutron stars and black holes, and the central black hole or quasar always created |  |  |
-| UX.90 | Explain the habitability chips in the web interface: a visible legend with the equipment labels, colours, thresholds and scores |  |  |
 | MAP.165 | Scattered phenomena store a mass so the Galaxy Map sizes them exactly |  |  |
 | PERF.56 | Record how long each stage of a staged job takes, with the settings it ran with |  |  |
 | TEST.124 | Phenomena page tests fail with KeyError scattered in system_pages._phenomena_load (bug) |  |  |

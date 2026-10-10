@@ -451,40 +451,19 @@ with `clamp()`.
   system and leaves the sector's other contents ungenerated.
   Prerequisites: none. Related: MAP.162, ADM.32, ADM.35, NAV.48, DOC.9.
 
-- [ ] **UX.90 Explain the habitability chips in the web interface: a visible legend with the equipment labels, colours, thresholds and scores**
-  Boss (2026-10-10 08:00Z, via the coordinator): what are the
-  habitability chips on planets, and are they explained anywhere in the
-  web interface? They are not. Done: an explanation page under Classes, linked from the habitability chips on the system page and from the Equipment search filter, in visible text (tooltips
-  alone do not serve touch or screen readers) that explains the five
-  equipment labels (Ideal, Mask, Mask and scrubber, Sealed suit,
-  Full life support) and what each means; the chip colour as the worst
-  of the four PHI-4 domains (pressure, temperature, chemistry,
-  radiation) with what Blue, Green, Yellow and Red mean and their
-  thresholds; the Habitable, Habitable moon and Inhabited chips; and the
-  rule for planets around pulsars, neutron stars and black holes. The
-  per-domain colours and the microbial, complex-life and
-  human-operability scores, stored by GEN.89 but shown nowhere, are
-  shown on the planet and moon rows or detail. docs/html-interface.md
-  (Habitability chips) is rewritten to match. Boss (2026-10-10 08:08Z,
-  via the coordinator): the lowest PHI-4 equipment label "Shirtsleeve"
-  becomes "Ideal", the only label change; this item renames it in the
-  code (physics/habitability.py, habitability_world.py), the pages, the
-  search facet, the tests and the docs, and the explanation is a page
-  under Classes. Owner: Bugfixes lane 2 (coordinator, 2026-10-10 08:08Z).
-  Prerequisites: none. Related: GEN.89, GEN.84, GEN.85, GEN.86, GEN.87,
-  GEN.88.
-  Design: [docs/design/habitability-index.md](design/habitability-index.md)
-
 - [ ] **UX.91 Planet and moon description carries a full PHI-4 explanation, each colour factor and why**
   Boss (2026-10-10 08:49Z, via the coordinator): PHI-4 should have a
   full explanation in the planet or moon description, each colour factor
   and why. Done: the planet and moon description on the system page
   lists, for each of the four PHI-4 domains behind the chip colour, the
   value for this world and why (the inputs that drove it), not just the
-  chip; the wording matches the Classes explanation page of UX.90 and
+  chip; the wording matches the Classes explanation page (UX.90, merged) and
   the chip names (Ideal, formerly Shirtsleeve); the text comes from the
   same calculation as the chip, so the two cannot disagree. Owner:
   Bugfixes lane 2, after GEN.196 (it built UX.90).
+  Built so far (2026-10-09): UX.90 (PR #1065) already gives planet and
+  moon rows per-factor colours and phi_bio, phi_cpx and phi_tech values,
+  and the page /classes/habitability; build the description on those.
   Prerequisites: none. Related: UX.90, GEN.89.
 
 ## MAP: Galaxy Map, Sector Map, System Map
