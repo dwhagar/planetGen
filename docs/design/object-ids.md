@@ -154,6 +154,17 @@ section 0).
   regenerated in place (`replace_system_content`) keeps its own ID.
 - Counters only move up and `planetgen reset` keeps them, so a number is
   never given twice.
+- A field cloud (GEN.47, GEN.176) is stored by whichever sector reaches it
+  first, but is born in the sector holding the centre of the space it
+  fills: the mean of the interior points of its shape on the fixed
+  24-cell grid (`NebulaShape.interior_centroid`), scaled by its radius,
+  added to its centre and rounded to 1 mpc (`nebula_field.centroid_mpc`).
+  Its serial is field-drawn (kind 10): its rank among every field cloud
+  born in that sector, cells in index order and clouds in a cell in draw
+  order (`nebula_field.cloud_object_id`), worked out from the galaxy seed
+  alone, so the ID does not depend on save order and the birth sector
+  need not exist yet. Nebulae and remnants a sector generates itself
+  keep a generated serial in that sector.
 
 ### What the codec guarantees (GEN.120)
 

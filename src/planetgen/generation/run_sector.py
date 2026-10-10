@@ -201,6 +201,7 @@ def generate_sector_phenomena(sector, args, galactic_center_dist_ly=None, cloud_
     for kind, phenomenon_type, factory in SECTOR_PHENOMENON_KINDS:
         if kind == "molecular-cloud" and cloud_field is not None:
             sector.field_nebulae = nebula_field.clouds_reaching(*cloud_field)
+            sector.cloud_field = cloud_field
             continue
         if scattered and kind in phenomenon_scatter.SCATTERED_KINDS:
             continue

@@ -218,3 +218,76 @@ def test_a_body_deleted_through_an_edit_keeps_its_number_used(mysql_config):
     finally:
         conn.close()
     assert first == max(held) + 1
+
+
+def _make_system(name):
+    cfg = SystemConfig()
+    cfg.STAR_TYPE = "G2V"
+    cfg.BINARY_SYSTEM = False
+    system = StarSystem(system_config=cfg)
+    system.name = name
+    return system, cfg
+
+
+def test_a_system_added_to_a_sector_is_a_run_time_birth_there(mysql_config):
+    """GEN.172: an admin-added system takes a run-time serial of the sector it joins, and its bodies body numbers."""
+    store.save_sector(_sector("Uid Added", 1, "Uid Wanderer"), config=mysql_config, galaxy_position=PLACE)
+    conn = store.get_connection(mysql_config)
+    try:
+        [sector] = conn.execute("SELECT id FROM sectors").fetchall()
+        system, cfg = _make_system("Uidadded Late")
+        with conn:
+            system_id, _position = store.add_system_to_sector(conn, sector["id"], system, cfg)
+        [row] = conn.execute("SELECT uid FROM star_systems WHERE id = ?", (system_id,)).fetchall()
+        stars = conn.execute("SELECT uid FROM stars WHERE star_system_id = ?", (system_id,)).fetchall()
+    finally:
+        conn.close()
+    value = _decoded(row)
+    assert value[:3] == (250, 0, 5) and (value.serial_kind, value.serial, value.body) == (ids.SERIAL_RUNTIME, 0, 0)
+    assert [ids.body_of(ids.from_bytes(star["uid"])) for star in stars] == [1]
+
+
+def test_a_phenomenon_saved_on_its_own_is_a_run_time_birth(mysql_config):
+    first = store.save_phenomenon(RoguePlanet(SystemConfig(), name="Uid Loner One"), SystemConfig(), "rogue-planet",
+                                  config=mysql_config)
+    second = store.save_phenomenon(RoguePlanet(SystemConfig(), name="Uid Loner Two"), SystemConfig(), "rogue-planet",
+                                   config=mysql_config)
+    rows = _rows(mysql_config, "SELECT id, uid FROM rogue_planets ORDER BY id")
+    assert [row["id"] for row in rows] == [first, second]
+    assert [(_decoded(row).serial_kind, _decoded(row).serial) for row in rows] == [
+        (ids.SERIAL_RUNTIME, 0), (ids.SERIAL_RUNTIME, 1)]
+
+
+def test_a_run_time_number_is_not_given_again_after_its_object_is_deleted(mysql_config):
+    store.save_sector(_sector("Uid Deleted", 1, "Uid Wanderer"), config=mysql_config, galaxy_position=PLACE)
+    conn = store.get_connection(mysql_config)
+    try:
+        [sector] = conn.execute("SELECT id FROM sectors").fetchall()
+        serials = []
+        for name in ("Uiddel One", "Uiddel Two"):
+            system, cfg = _make_system(name)
+            with conn:
+                system_id, _position = store.add_system_to_sector(conn, sector["id"], system, cfg)
+            [row] = conn.execute("SELECT uid FROM star_systems WHERE id = ?", (system_id,)).fetchall()
+            serials.append(_decoded(row).serial)
+            with conn:
+                conn.execute("DELETE FROM star_systems WHERE id = ?", (system_id,))
+    finally:
+        conn.close()
+    assert serials == [0, 1]
+
+
+def test_a_facility_is_a_run_time_birth_in_its_hosts_sector(mysql_config):
+    sector = SpaceSector("Uid Harbor", edge_ly=13.0)
+    place = dict(PLACE, ring_slot_index=9)
+    sector_id = store.save_sector(sector, config=mysql_config, galaxy_position=place)
+    conn = store.get_connection(mysql_config)
+    try:
+        with conn:
+            facility_id = store.add_facility(conn, "Uid Waypoint", "station", "standalone", "space", sector_id,
+                                             offset_ly=(1.0, 0.0, 0.0))
+        [row] = conn.execute("SELECT uid FROM facilities WHERE id = ?", (facility_id,)).fetchall()
+    finally:
+        conn.close()
+    value = _decoded(row)
+    assert value[:3] == (250, 0, 9) and (value.serial_kind, value.body) == (ids.SERIAL_RUNTIME, 0)

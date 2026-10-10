@@ -162,3 +162,106 @@ def test_a_cloud_reaching_several_sectors_is_stored_once(mysql_config, monkeypat
                 assert (system["inside_nebula_id"] is not None) == inside
     finally:
         conn.close()
+
+
+def _some_clouds(count=12):
+    found = []
+    for step in range(600):
+        for cloud in nebula_field.clouds_reaching(SEED, SHAPE, _on_ring(ARM_ANGLE + step * 0.004), REACH_PC):
+            if all(cloud[1] != other[1] for other in found):
+                found.append(cloud)
+        if len(found) >= count:
+            break
+    return found
+
+
+def test_the_centroid_lies_inside_the_clouds_bounding_sphere():
+    for nebula, _center in _some_clouds(6):
+        centroid = nebula.get_shape().interior_centroid()
+        assert math.dist(centroid, (0.0, 0.0, 0.0)) <= 1.0
+        assert centroid == nebula.get_shape().interior_centroid()
+
+
+def test_a_cloud_is_born_in_the_sector_holding_its_centroid(monkeypatch):
+    """GEN.176: the ID names the sector holding the centre of the space the cloud fills, rounded to 1 mpc."""
+    from planetgen.galaxy import object_uid
+
+    clouds = _some_clouds(8)
+    assert clouds
+    for nebula, center in clouds:
+        value = object_uid.unpack(nebula_field.cloud_object_id(SEED, SHAPE, nebula, center, EDGE_PC))
+        mpc = nebula_field.centroid_mpc(nebula, center)
+        assert value.serial_kind == object_uid.SERIAL_FIELD and value.body == 0
+        assert (value.ring, value.layer, value.slot) == sector_address_at(tuple(v / 1000.0 for v in mpc), EDGE_PC)
+
+
+def test_field_cloud_ids_are_unique_and_do_not_depend_on_the_order_asked():
+    clouds = _some_clouds(12)
+    first = [nebula_field.cloud_object_id(SEED, SHAPE, nebula, center, EDGE_PC) for nebula, center in clouds]
+    cache = {}
+    backwards = [nebula_field.cloud_object_id(SEED, SHAPE, nebula, center, EDGE_PC, cache)
+                 for nebula, center in reversed(clouds)]
+    assert first == list(reversed(backwards))
+    assert len(set(first)) == len(first)
+
+
+def test_two_clouds_born_in_one_sector_take_ranks_in_cell_order(monkeypatch):
+    """The rank counts the clouds born in the sector that come first by field cell and draw order."""
+    from planetgen.galaxy import object_uid
+
+    monkeypatch.setitem(tuning.PHENOMENON_RATE_SCALE, "molecular-cloud", 30.0)   # crowd the cells
+    clouds = _some_clouds(16)
+    by_sector = {}
+    for nebula, center in clouds:
+        value = object_uid.unpack(nebula_field.cloud_object_id(SEED, SHAPE, nebula, center, EDGE_PC))
+        by_sector.setdefault((value.ring, value.layer, value.slot), []).append(value.serial)
+    assert all(len(set(serials)) == len(serials) for serials in by_sector.values())
+
+
+def test_a_stored_cloud_has_the_same_id_whichever_sector_is_saved_first(mysql_config, monkeypatch):
+    """GEN.176: the ID of a cloud reached by several sectors is worked out from the seed, so saving the sectors
+    the other way round gives every cloud the ID it had."""
+    from planetgen.galaxy import object_uid
+    from tests.db_schema_support import scratch_database
+
+    monkeypatch.setitem(tuning.PHENOMENON_RATE_SCALE, "molecular-cloud", 20.0)
+    ring, layer, slot = sector_address_at(_on_ring(ARM_ANGLE), EDGE_PC)
+    addresses = [(ring, layer, slot + step) for step in range(3)]
+
+    def ids_after(config, order):
+        _db.save_galaxy_shape(SHAPE, edge_pc=EDGE_PC, outer_ring_index=3000,
+                              expected_system_count_at_density_1=1.0, config=config, galaxy_seed=SEED)
+        _db.replace_galaxy_layers([(lay, 3000) for lay in range(-2, 3)], config=config)
+        for address in order:
+            _generate_at(config, address)
+        conn = _db.get_connection(config)
+        try:
+            return {(row["center_x_pc"], row["center_y_pc"], row["center_z_pc"]): bytes(row["uid"])
+                    for row in conn.execute("SELECT center_x_pc, center_y_pc, center_z_pc, uid FROM nebulae"
+                                            " WHERE nebula_type = 'dark'").fetchall()}
+        finally:
+            conn.close()
+
+    forward = ids_after(mysql_config, addresses)
+    assert forward, "a raised rate must put a cloud over three arm sectors"
+    with scratch_database(mysql_config) as other:
+        backward = ids_after(other, list(reversed(addresses)))
+    assert forward == backward
+    kinds = {object_uid.unpack(object_uid.from_bytes(uid)).serial_kind for uid in forward.values()}
+    assert kinds == {object_uid.SERIAL_FIELD}
+
+
+def test_a_centroid_is_rounded_to_a_milliparsec_before_its_sector_is_taken():
+    """GEN.176's face case: noise below a milliparsec cannot move a cloud across a sector face."""
+    from types import SimpleNamespace
+
+    face = ly_to_pc(0.0) + EDGE_PC * 100.0       # a point on a layer face, parsecs
+    def cloud_with(offset):
+        shape = SimpleNamespace(interior_centroid=lambda: (0.0, 0.0, offset))
+        return SimpleNamespace(get_shape=lambda: shape, radius_ly=1.0)
+
+    centre = (SOLAR_RADIUS_PC, 0.0, face)
+    quiet = cloud_with(0.0)
+    noisy = cloud_with(1e-9)                      # a billionth of the radius: far below 1 mpc
+    assert nebula_field.centroid_mpc(quiet, centre) == nebula_field.centroid_mpc(noisy, centre)
+    assert nebula_field.birth_sector(quiet, centre, EDGE_PC) == nebula_field.birth_sector(noisy, centre, EDGE_PC)

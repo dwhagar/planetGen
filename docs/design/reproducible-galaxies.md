@@ -431,10 +431,10 @@ what seed + key would not produce, not a history:
 - objects are named by a stable address path (sector ring, layer and
   slot, then system, body and moon by generated index), never by
   database id, since ids change on every rebuild. The index must be a
-  stored generation index that is never renumbered, not a row rank:
-  `store.assign_uids` and `galaxy/uid.py` rank an object among its
-  parent's rows by row id, which can shift when an admin deletes one and
-  the sector is saved again;
+  stored generation index that is never renumbered, not a row rank. The
+  object ID (`galaxy/object_uid.py`, DB.20) is that index: a generated
+  serial in the sector and a body number, given once at birth and never
+  recomputed, so a delete cannot shift it;
 - the positional-update epoch: when `planetgen.cli.orbits` last moved the
   systems, so a rebuild reaches the same positions.
 
