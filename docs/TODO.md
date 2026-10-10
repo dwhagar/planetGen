@@ -1904,6 +1904,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     says `updateOrbits.py`, which no longer exists). Open question for
     Boss (default: skip the day while a Generate job runs, exit 75,
     alert after 3 skipped days).
+    Note (2026-10-09): The Windows parts are dropped by OPS.39 (Boss,
+    2026-10-10 04:25Z).
     Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
   - [ ] **OPS.17 Install and update set up the daily maintenance schedule**
@@ -1929,6 +1931,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     and test `org.planetgen.update.plist`, and correct
     `docs/deployment/macos.md` (an asleep Mac runs at wake; only a
     powered-off Mac skips).
+    Note (2026-10-09): The Windows parts are dropped by OPS.39 (Boss,
+    2026-10-10 04:25Z).
     Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
   - [ ] **TEST.77 A golden-seed regression test**
@@ -4187,6 +4191,9 @@ clears each one.
   path set up that state themselves; the Windows leg passes on main. CI
   now runs only by hand (Actions, CI, Run workflow), so the leg is
   checked when someone runs it.
+  Superseded (2026-10-09): Superseded by OPS.39 (Boss, 2026-10-10
+  04:25Z): Windows support is being removed. Do not start; retire with
+  OPS.39.
   Prerequisites: none. Related: TEST.111, OPS.19, PERF.24.
 
 - [ ] **TEST.116 test_bughunt_end_to_end stores M2V or M6V where it expects K2V on the MySQL 8.4 and MariaDB legs once (bug)**
@@ -4418,6 +4425,8 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   the version record acceptable? Default yes. (3) Does a mismatch refuse
   a remote or rebuild run? Default: refuse on an epoch mismatch, warn on
   a battery-digest mismatch naming the first differing case.
+  Note (2026-10-09): The Windows parts are dropped by OPS.39 (Boss,
+  2026-10-10 04:25Z).
   Prerequisite: GEN.135.
   Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
@@ -4445,6 +4454,8 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Python 3.9, current otherwise), a sidecar info file, `timeout=0`
   helpers and `PermissionError` handling, plus a two-process test that
   runs on the Windows CI leg.
+  Note (2026-10-09): The Windows parts are dropped by OPS.39 (Boss,
+  2026-10-10 04:25Z).
   Prerequisites: none.
   Design: [docs/design/ops-scheduling-and-rotation.md](design/ops-scheduling-and-rotation.md)
 
@@ -4464,6 +4475,9 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   remedy to `Test-Redis` (only when the account can see a distro); state
   that unattended Windows servers cannot rely on WSL. Open question for
   Boss (default: keep telling unattended servers to use a Linux VM).
+  Superseded (2026-10-09): Superseded by OPS.39 (Boss, 2026-10-10
+  04:25Z): Windows support is being removed. Do not start; retire with
+  OPS.39.
   Prerequisites: none.
   Design: [docs/design/ops-scheduling-and-rotation.md](design/ops-scheduling-and-rotation.md)
 
@@ -4491,6 +4505,29 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   `generator_epoch` are the same number, bumped only when output changes
   for the same seed.
   Prerequisite: OPS.28.
+
+- [ ] **OPS.39 Remove Windows support; keep only a simple docs/WINDOWS.md**
+  Decided (Boss, 2026-10-10 04:25Z, in the Foundations lane 1 thread):
+  rip out all Windows support. If someone wants it to work on Windows
+  they do that work themselves; the most the project provides is a
+  simple docs/WINDOWS.md with basic instructions for a typical Windows
+  setup. Done: the Windows CI leg, update.ps1, install.ps1, every other
+  .ps1 script and scheduled-task helper, Windows branches in the code,
+  Windows-only tests and test setup, and Windows mentions in the docs
+  are removed; docs/reference/deployment/windows.md (and any
+  docs/deployment/windows.md) is replaced by docs/WINDOWS.md; the README
+  and install docs name Linux (and macOS where it still applies) only; a
+  search for 'windows', 'ps1', 'WSL' and 'win32' finds nothing outside
+  docs/WINDOWS.md and history. This supersedes TEST.115 (Windows-leg
+  Redis failures) and OPS.34 (Windows Redis in WSL): retire both with
+  this item, and drop the Windows halves of OPS.16, OPS.17, OPS.28 and
+  OPS.30 (the epoch question about Windows reproducibility is answered
+  by this). No backward compatibility.
+  Prerequisites: none. Related: TEST.115, OPS.34, OPS.16, OPS.17,
+  OPS.28, OPS.30.
+  Lane (2026-10-09): Lane not assigned yet (coordinator, 2026-10-10
+  04:26Z): Boss meant it for a thread other than Foundations lane 1; the
+  owner follows.
 
 ## DOC: Documentation
 
