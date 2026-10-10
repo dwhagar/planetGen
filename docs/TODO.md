@@ -3172,23 +3172,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none.
   Design: [docs/design/fill-order-curves-and-core.md](design/fill-order-curves-and-core.md)
 
-- [ ] **PERF.38 Cache fixes for the Galaxy Map under a fill: single-flight tile builds, a busy rule for the page cache, a deletion epoch in place of COUNT(*)**
-  PERF.34 is built; the research reorders its suspects by evidence
-  (design doc 5.4): no single-flight on tile builds; the page cache is
-  emptied at every stamp check during a fill; the stamp's linear
-  `COUNT(*)` in `db/query.py` `galaxy_content_state` (0.13 s per million
-  placed sectors, 2.7 s at 20 million, per web process per database
-  every 15 to 60 s); five API threads held 2.4 s or more by queued
-  waits. Done: `busy` handling in `pagecache.py` like `tilecache.py`; a
-  Redis `SET NX EX` single-flight around tile and stage builds; a
-  deletion epoch counter in place of the `COUNT(*)`. The first four can
-  be fixed before the benchmark. Re-run PERF.34's page-time test under
-  Ludicrous Speed. The `"""int: How long a database's stamp is trusted
-  ..."""` docstring in `web/lib/tilecache.py` sits after
-  `FAILED_CHECK_RETRY_SECONDS` instead of under `STAMP_TTL_SECONDS`.
-  Prerequisites: none.
-  Design: [docs/design/performance-eta-queue-and-caching.md](design/performance-eta-queue-and-caching.md)
-
 - [ ] **PERF.39 Every API job costs 2.4 s and 195 MB: import lazily and cap the burst workers**
   `queue/api_jobs.py` `execute` imports `planetgen.api.common` (2.3 s)
   before running anything, and `submit` starts one uncapped burst worker
@@ -3775,6 +3758,9 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   connection per worker, a cap on total worker connections and the
   reserved interactive worker; re-run PERF.34's page-time test under
   Ludicrous Speed.
+  Foundations lane 1 (2026-10-10, PERF.38, PR #1144): the page-time re-
+  run under Ludicrous Speed moved here from PERF.38; it needs this item
+  built and a real fill.
 
 - [ ] **ADM.32 Add a star system to a sector: at the emptiest spot, at given coordinates, or at random outside every Hill sphere**
   Boss (2026-10-07 11:47Z): "Need a way to add a single star system to a
