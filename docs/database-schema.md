@@ -1043,7 +1043,7 @@ billions of candidates).
 | Column | Type | Null | Notes |
 |---|---|---|---|
 | `id` | BIGINT UNSIGNED | PK, `CHECK (id = 1)` | Pinned to `1` — there is exactly one galaxy. |
-| `disk_scale_length_pc`, `disk_scale_height_pc`, `bulge_scale_radius_pc`, `bulge_amplitude`, `pitch_angle_rad`, `arm_amplitude`, `spiral_reference_radius_pc`, `spiral_reference_angle_rad`, `k_norm` | DOUBLE | NOT NULL | `planetgen.galaxy.density.GalaxyShape`'s own fields, verbatim — see that module for what each means and how `k_norm` is calibrated. |
+| `disk_scale_length_pc`, `disk_scale_height_pc`, `bulge_scale_radius_pc`, `bulge_amplitude`, `pitch_angle_rad`, `arm_amplitude`, `arm_level`, `core_amplitude`, `spiral_reference_radius_pc`, `spiral_reference_angle_rad`, `k_norm` | DOUBLE | NOT NULL | `planetgen.galaxy.density.GalaxyShape`'s own fields, verbatim — see that module for what each means and how `k_norm` is calibrated. |
 | `arm_count` | INT | NOT NULL | Same source. |
 | `edge_pc` | DOUBLE | NOT NULL | The sector edge length this skeleton was built at, parsecs: always the standard `program_constants.DEFAULT_SECTOR_EDGE_PC` (4) since v33. |
 | `expected_system_count_at_density_1` | DOUBLE | NOT NULL | `SpaceSector(edge_ly=...).expected_system_count()` at `relative_density = 1` — cached since every qualification check needs it. |
@@ -2016,6 +2016,10 @@ relationship.
 ### v69 (GEN.137): `phenomenon_scatter.epoch_unix`
 
 `phenomenon_scatter.epoch_unix` (DOUBLE, nullable): the orbit epoch a scattered hypervelocity star's position holds at, stamped when the plan draws it (NULL when no orbit update has run yet, meaning the database's orbit epoch). The built star system inherits it as its own `epoch_unix`, so the next orbit update flies it on from there.
+
+### v81 (ADM.49): `galaxy_shape.arm_level`, `galaxy_shape.core_amplitude`
+
+`galaxy_shape.arm_level` (DOUBLE, NOT NULL, default 1) is the thin disk's level between its arm crest and its inter-arm trough: the arm factor is `arm_level * (1 + arm_amplitude * cos)`, so the crest density is `arm_level * (1 + arm_amplitude)` and the trough `arm_level * (1 - arm_amplitude)`. `galaxy_shape.core_amplitude` (DOUBLE, NOT NULL, default 0) is the galactic core's centre density, a Gaussian of scale radius `tuning.CORE_RADIUS_FRACTION` (a tenth) of the bulge scale radius, added to the bulge. The defaults are the model before v81, so an upgraded galaxy keeps its density. The command line and the Generate page take the arm density, inter-arm density and core density instead (`planetgen plan --arm-density 1.4 --interarm-density 0.6 --core-density 0`), and `galaxy.density.arm_terms` turns the first two into `arm_amplitude` and `arm_level`.
 
 ### v80 (MAP.165): `phenomenon_scatter.mass_solar`
 

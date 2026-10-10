@@ -283,7 +283,7 @@ def initial_tile_request(orbit_radius_pc, center_pc=(0.0, 0.0, 0.0)):
 DENSITY_SHAPE_FIELDS = (
     "disk_scale_length_pc", "disk_scale_height_pc",
     "bulge_scale_radius_pc", "bulge_amplitude",
-    "arm_count", "pitch_angle_rad", "arm_amplitude",
+    "arm_count", "pitch_angle_rad", "arm_amplitude", "arm_level", "core_amplitude",
     "spiral_reference_radius_pc", "spiral_reference_angle_rad",
     "k_norm",
 )
@@ -292,7 +292,7 @@ reads."""
 
 MODEL_TERM_FIELDS = (
     "thick_disk_amplitude", "thick_disk_scale_length_pc", "thick_disk_scale_height_pc",
-    "bulge_scale_y_pc", "bulge_scale_z_pc", "bar_cos", "bar_sin",
+    "bulge_scale_y_pc", "bulge_scale_z_pc", "core_scale_radius_pc", "bar_cos", "bar_sin",
 )
 """The `galaxyDensity.model_terms` it reads too (the thick disk and the
 bar), which `queryDb.galaxy_density_shape` serves alongside the shape."""

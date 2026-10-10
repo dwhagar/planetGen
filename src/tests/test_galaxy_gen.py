@@ -1244,7 +1244,7 @@ def _fake_args_for_direct_generation(mysql_config):
 _PLAN_SHAPE_ARGV = [
     "--disk-scale-length-pc", "40", "--disk-scale-height-pc", "12",
     "--bulge-scale-radius-pc", "10", "--bulge-amplitude", "2.0",
-    "--arm-count", "2", "--pitch-angle-deg", "15", "--arm-amplitude", "0.4",
+    "--arm-count", "2", "--pitch-angle-deg", "15", "--arm-density", "1.4", "--interarm-density", "0.6",
 ]
 """list: The same shape `_SKELETON_SHAPE` above is built from, expressed as
 `planetgen plan` CLI args instead -- a small, fast-to-scan toy galaxy

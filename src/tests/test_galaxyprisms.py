@@ -32,14 +32,14 @@ EDGE_PC = 4.0
 GALAXY_RADIUS_PC = 24000.0
 
 
-def _run(script):
+def _run(script, shape_used=None):
     """Runs `script` as an ES module with the prisms module imported as `P`,
     the block scene module as `B` and the test shape as `shape`; returns
     its JSON output."""
     source = (
         f"import * as P from {json.dumps('file://' + os.path.abspath(MODULE))};\n"
         f"import * as B from {json.dumps('file://' + os.path.abspath(BLOCKS_MODULE))};\n"
-        f"const shape = {json.dumps(shape_with_terms(SHAPE))};\n"
+        f"const shape = {json.dumps(shape_with_terms(shape_used or SHAPE))};\n"
         f"{script}\n"
     )
     result = subprocess.run([NODE, "--input-type=module", "-e", source], capture_output=True, text=True, check=True)
@@ -784,3 +784,14 @@ console.log(JSON.stringify({mixed: B.statsColor(mixed, [0, 0, 0], r), young: B.s
 """)
     assert out["young"][0] < out["mixed"][0] < out["old"][0]
     assert out["mixed"][0] - out["young"][0] < out["old"][0] - out["mixed"][0]
+
+
+def test_density_matches_the_python_model_with_a_core_and_a_denser_arm():
+    from planetgen.galaxy.density import arm_terms, relative_density
+    amplitude, level = arm_terms(2.2, 0.3)
+    shape = build_galaxy_shape(2800.0, 350.0, 200.0, 1.0, 2, math.radians(15.0), amplitude,
+                               arm_level=level, core_amplitude=12.0)
+    points = [(8000.0, 100.0, 50.0), (0.0, 0.0, 0.0), (15.0, -10.0, 3.0), (300.0, -200.0, 10.0), (-12000.0, 4000.0, -600.0)]
+    got = _run(f"console.log(JSON.stringify({json.dumps(points)}.map(p => P.relativeDensity(...p, shape))));", shape)
+    for point, value in zip(points, got):
+        assert value == pytest.approx(relative_density(point, shape), rel=1e-9)

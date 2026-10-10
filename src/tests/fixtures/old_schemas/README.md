@@ -32,3 +32,4 @@ Commit each file came from:
 - v77: 9a023637 (GEN.187 scatter classes, before DB.20)
 - v78: 3d44328c (object IDs, before GEN.187)
 - v79: 5f09bea2 (GEN.187 mass backfill, before MAP.165)
+- v80: dc510bb4 (MAP.165 scatter mass, before ADM.49)

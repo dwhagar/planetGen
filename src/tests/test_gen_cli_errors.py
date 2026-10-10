@@ -210,9 +210,14 @@ def test_workers_zero_is_accepted(monkeypatch):
 # plan, phenomenon, population
 # ---------------------------------------------------------------------------
 
+ARM_DENSITY_ERROR = ("--arm-density and --interarm-density: the arm density must be above 0 and at least "
+                     "the inter-arm density, which is 0 or more.")
+
 PLAN_ERRORS = [
-    (["--arm-amplitude", "1"], "--arm-amplitude must be in [0, 1)."),
-    (["--arm-amplitude", "-0.01"], "--arm-amplitude must be in [0, 1)."),
+    (["--interarm-density", "2"], ARM_DENSITY_ERROR),
+    (["--interarm-density", "-0.01"], ARM_DENSITY_ERROR),
+    (["--arm-density", "0", "--interarm-density", "0"], ARM_DENSITY_ERROR),
+    (["--core-density", "-1"], "--core-density and --bulge-amplitude must be 0 or more."),
     (["--workers", "-1"], "--workers must be 0 (automatic) or more."),
     (["--max-ring", "0"], "--max-ring must be a positive integer."),
     (["--disk-scale-length-pc", "0"], "--disk-scale-length-pc must be a positive number."),
@@ -239,7 +244,7 @@ def test_plan_error_messages(monkeypatch, capsys, argv, message):
 def test_plan_shape_edges_that_are_allowed(monkeypatch):
     """The other side of each shape bound: amplitude 0, a 90 degree
     pitch either way, one arm, one ring."""
-    for argv in (["--arm-amplitude", "0"], ["--pitch-angle-deg", "90"], ["--pitch-angle-deg", "-90"],
+    for argv in (["--arm-density", "1", "--interarm-density", "1"], ["--interarm-density", "0"], ["--pitch-angle-deg", "90"], ["--pitch-angle-deg", "-90"],
                  ["--arm-count", "1"], ["--max-ring", "1"], ["--max-ring", MAX_RING]):
         _parse(monkeypatch, "plan", argv)
 

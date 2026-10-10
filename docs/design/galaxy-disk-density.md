@@ -181,3 +181,7 @@ rejected, and what the backfill and a fill of the sparse outer rim cost, are in
   calibrates at a fixed ratio of the scale length (3.15 since GEN.118).
 - It pointed to `galaxyGen.py`, `galaxyPlan.py`, `sectorGen.py` and SQLite,
   none of which are used now.
+
+## ADM.49: user-set arm, inter-arm, core and bulge densities
+
+The thin disk's arm factor is `arm_level * (1 + arm_amplitude * cos(m (theta - theta_arm)))`. The user sets the density on an arm crest `a` and between arms `i` (the disk's own units, usual 1.4 and 0.6), and `density.arm_terms(a, i)` gives `arm_amplitude = (a - i) / (a + i)` and `arm_level = (a + i) / 2`. The core is a Gaussian `core_amplitude * exp(-r^2 / 2 s^2)` at the centre, `s = tuning.CORE_RADIUS_FRACTION * bulge_scale_radius_pc`, added to the bulge (0 is none, the model before schema v81). The bulge density is `bulge_amplitude`. Everything stays relative to the calibration point (1.0 between arms at the Sun's radius), so a denser arm or core raises those places against that fixed reference. The skeleton and object-first bounds, the stellar populations, the component masses and the Galaxy Map's prisms all read the same terms.

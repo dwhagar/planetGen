@@ -82,7 +82,9 @@ def ring_majorants(shape, layer_index, outer_ring, edge_pc, fractions):
     along = inner / shape.bulge_scale_radius_pc
     up = z_near / terms["bulge_scale_z_pc"]
     bulge = shape.bulge_amplitude * np.exp(-0.5 * np.sqrt(along ** 4 + up ** 4))
-    arm = 1.0 + abs(shape.arm_amplitude)
+    if shape.core_amplitude:
+        bulge = bulge + shape.core_amplitude * np.exp(-0.5 * (inner ** 2 + z_near ** 2) / terms["core_scale_radius_pc"] ** 2)
+    arm = shape.arm_level * (1.0 + abs(shape.arm_amplitude))
     disk_share = _disk_share_bound(shape, z_near, z_far, fractions)
     k = shape.k_norm
     bound = (np.maximum(k * bulge, 0.0) * fractions["bulge"]

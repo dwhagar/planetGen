@@ -512,7 +512,7 @@ def test_sections_fold_with_only_current_job_open(site, client):
     ("galaxy", "generate-sectors"), ("plan", "plan"), ("bright_band", "bright-band"), ("reset", "reset"),
 ])
 def test_a_form_shown_again_keeps_its_section_open(site, client, no_spawn, action, section):
-    resp = _post(client, action=action, mode="ring", arm_amplitude="5", down_to="", confirm="wrong")
+    resp = _post(client, action=action, mode="ring", arm_density="50", down_to="", confirm="wrong")
     assert resp.status_code == 400
     attrs = _fold(resp.get_data(as_text=True), section)
     assert " open" in attrs and "data-fold-keep" in attrs
@@ -552,9 +552,9 @@ def test_sector_list_needs_an_admin(site, client):
 
 
 def test_plan_rejects_out_of_range(site, client, no_spawn):
-    resp = _post(client, action="plan", arm_amplitude="1")
+    resp = _post(client, action="plan", arm_density="10")
     assert resp.status_code == 400
-    assert "Arm contrast (0 to 1) must be less than 1." in resp.get_data(as_text=True)
+    assert "Arm density must be less than 10." in resp.get_data(as_text=True)
 
 
 @pytest.mark.parametrize("action", ["reset", "new_galaxy"])
