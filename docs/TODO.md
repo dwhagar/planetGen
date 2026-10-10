@@ -781,7 +781,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and MAP.158; one cache stamp bump with MAP.154 and MAP.151's tile
   keys), MAP.151 (needs ADM.29 from Foundations lane 1) and MAP.152 (needs MAP.148,
   MAP.150 and MAP.154); this umbrella closes last.
-  Prerequisites: MAP.148, MAP.150, MAP.151, MAP.152, MAP.153,
+  Prerequisites: MAP.150, MAP.151, MAP.152, MAP.153,
   MAP.154, MAP.155, MAP.157, MAP.159. Related:
   MAP.120, MAP.121, MAP.141, MAP.140, MAP.59, MAP.116, MAP.122, MAP.125,
   MAP.131, MAP.134, MAP.147, ADM.29, ADM.30, GEN.101, GEN.126, NAV.13,
@@ -827,50 +827,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Lane (2026-10-09): Owner: Foundations lane 2 (coordinator,
   2026-10-10); closes after MAP.159, MAP.151 and MAP.148.
   Design: [docs/design/map-ui-and-frontend-libraries.md](design/map-ui-and-frontend-libraries.md)
-
-- [ ] **MAP.148 The star visibility law: apparent-magnitude opacity, flux-based brightness and an on-screen limit from a histogram**
-  Source: docs/design/fly-through-view-distance.md (section 7 and 8),
-  written at Boss's request of 2026-10-09 22:56Z. Boss approved the
-  defaults
-  (2026-10-10 18:44Z).
-  Done: a star's opacity follows its apparent magnitude from the camera,
-  against a limit chosen so about 20,000 stars are on screen, found from
-  a histogram of the stars in view. Brightness is by flux. This replaces
-  the step floors in `generated_star_floor_sol` as the rule and folds
-  MAP.116's budget table into it. First on the tiles already fetched
-  (client side, no schema change), then tiles chosen by distance (with
-  MAP.152).
-  Decided (Boss, 2026-10-10 18:44Z, defaults approved; default 20,000
-  stars on screen, 8,000 on a
-  phone, with a 1.5 magnitude ramp, tuned after a first build): other
-  numbers?
-  Overlap (2026-10-09, zoom-star-visibility.md): MAP.153 is the first
-  client stage of this same visibility rule
-  (docs/design/zoom-star-visibility.md, Research Lane 1): a rank birth
-  radius on the tiles as fetched today, with the apparent-magnitude law
-  here as the end state; the two are one rule in two stages, not
-  competitors. MAP.154 and MAP.155 carry the server list nesting and the
-  other objects.
-  Dependency (2026-10-09, fly-through-view-distance.md): The law
-  multiplies MAP.153's rank birth radius in one shader: a = a_rank(R) *
-  a_mag(d) * a_near, built after MAP.153. Calibrate m_lim so the
-  magnitude factor is about 1 for a star at the target distance at any
-  camera radius; it only dims stars much farther than the target, so the
-  two rules never thin the same stars twice. The distance-cut tiles it
-  leads to also need MAP.154 (nested lists).
-  Bugfixes lane 2 (2026-10-09): Bugfixes lane 2 (2026-10-10, MAP.163, PR
-  #1029): the dimmest stars seen at full zoom-out (about 4,000 L_sun)
-  come from the per-tile cap GALAXY_TILE_MAX_BRIGHT_STARS=400 (the 400
-  brightest stars per tile), not from the scatter floor. The visibility
-  law must reconcile the cap with the floor.
-  Bugfixes lane 2 (2026-10-09): Bugfixes lane 2 follow-ups (2026-10-10,
-  PRs #1032, #1035): the nucleus quasar and built nucleus now show from
-  the galaxy view; the Galaxy Map slider bottom now follows the dimmest
-  star the view's tiles carry instead of a fixed 2,500 L_sun floor. The
-  2,500 L_sun floor at full zoom-out is left to this item: about 3
-  million stars qualify, while a view carries about 70,000.
-  Prerequisite: MAP.153. Related: MAP.116, MAP.146, MAP.147.
-  Design: [docs/design/fly-through-view-distance.md](design/fly-through-view-distance.md)
 
 - [ ] **MAP.150 The free camera: wheel zoom to the cursor, double-click flight, and the observer inside, with the container named from position**
   Source: docs/design/fly-through-view-distance.md (section 7 and 8),
@@ -965,8 +921,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Dependency (2026-10-09, fly-through-view-distance.md): Distance-cut
   tiles need MAP.154 (nested server lists: a child tile must contain the
   parent's stars in its box).
-  Prerequisites: MAP.148, MAP.150, MAP.154. Related: MAP.102, MAP.125,
+  Prerequisites: MAP.150, MAP.154. Related: MAP.102, MAP.125,
   MAP.146.
+  Foundations lane 2 (2026-10-10, MAP.148 first
+  stage, PR #1160): MAP.148 is retired as built. The client-side law
+  (apparent-magnitude opacity, flux brightness, the 20,000 and 8,000
+  on-screen limit, static/starmagnitude.js) is in. What stays open and
+  now belongs here (and with MAP.154 for the nested lists): choosing
+  tiles by distance, dropping the server's generated_star_floor_sol
+  floors, and reconciling the per-tile cap
+  (GALAXY_TILE_MAX_BRIGHT_STARS=400) with the floor, which Bugfixes lane
+  2 flagged.
   Design: [docs/design/fly-through-view-distance.md](design/fly-through-view-distance.md)
 
 - [ ] **MAP.154 Nested bright-star lists on the server, so every parent list is a subset of its child's**
