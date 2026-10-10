@@ -3,6 +3,7 @@
 ## [8.0.866] - 2026-10-10
 
 ### Changed
+- A rocky planet that no tide has slowed now turns in 8 to 48 hours, drawn log-uniform as giant-impact formation models give (Kokubo and Genda 2010), instead of anywhere from 10 to 1,400 hours. Slow days now come only from tidal locking. Most unlocked rocky planets with a working dynamo now get a dipole field instead of a multipolar one (GEN.86 follow-up, Boss's decision of 2026-10-10). Rogue planets draw the same days. Seeded output changes for planet days and fields.
 - TODO: ADM.42 retired (PR #912); ADM.43 records the read side that exists.
 - A wrong value in `config.json` (a port out of range, a negative proxy count, an unknown `log_rotation`) now stops the program with a message naming the field, instead of being read as given. `PLANETGEN_ADMIN_COOKIE_INSECURE` reads text like `PLANETGEN_DEBUG` does (`false`, `0`, `no`, `off` and empty mean off) instead of only `1`.
 - TODO: PERF.33 records what PR #910 built and what remains.
