@@ -3774,6 +3774,81 @@ def galaxy_point_phenomena_in_box(conn, lo, hi, limit=GALAXY_TILE_MAX_POINTS):
     return found[:limit]
 
 
+SCATTERED_POINT_CLASSES = (
+    ("black-hole", "supermassive", "black_hole", 1.0),
+    ("black-hole", "intermediate", "black_hole", 0.8),
+    ("black-hole", "stellar", "black_hole", 0.55),
+    ("neutron-star", None, "neutron_star", 0.35),
+)
+"""tuple: `(scatter kind, subtype, map type, size share)` for the scattered
+objects the Galaxy Map draws as points before their sector is filled
+(MAP.164), biggest first. A scatter row stores no mass (the object is built
+from its seed when its sector is made), so the share comes from the mass
+class the row does carry: 1 for the nucleus black hole down to 0.35 for a
+neutron star."""
+
+SCATTERED_POINT_COARSE_CLASSES = 2
+"""int: Tiles coarser than `POINT_PHENOMENON_MIN_LEVEL` list only this many
+of the biggest `SCATTERED_POINT_CLASSES` (the nucleus and intermediate-mass
+black holes), so the largest are visible from the whole-galaxy view."""
+
+GALAXY_TILE_MAX_SCATTERED_POINTS = 60
+"""int: Most scattered points one coarse tile lists."""
+
+
+def galaxy_scattered_points_in_box(conn, lo, hi, edge_pc, limit, coarse):
+    """
+    The scattered black holes and neutron stars (`phenomenon_scatter`, not
+    yet built into a sector) whose position lies in the box `[lo, hi)`,
+    biggest class first, at most `limit` -- drawn as points like the placed
+    ones (MAP.164), so the map shows them before their sector is filled.
+    `coarse` keeps to the `SCATTERED_POINT_COARSE_CLASSES` biggest classes.
+
+    Returns:
+        list[dict]: Same keys as `galaxy_point_phenomena_in_box`, with
+            `scattered` (True), `size` (0..1, the class's size share) and
+            an `id` that is the scatter row's id as text.
+    """
+    classes = SCATTERED_POINT_CLASSES[:SCATTERED_POINT_COARSE_CLASSES] if coarse else SCATTERED_POINT_CLASSES
+    bands = _bright_star_bands(conn, lo, hi, edge_pc)
+    if not bands:
+        return []
+    if len(bands) > 64:
+        where_address = "ring_index BETWEEN ? AND ?"
+        address_params = [bands[0][0], bands[-1][0]]
+    else:
+        where_address = "(" + " OR ".join("(ring_index = ? AND layer_index BETWEEN ? AND ?)" for _ in bands) + ")"
+        address_params = [v for band in bands for v in band]
+    kinds = " OR ".join("(kind = ? AND subtype <=> ?)" for _ in classes)
+    kind_params = [v for cls in classes for v in cls[:2]]
+    box_params = [int(math.ceil(v * MPC_PER_PC)) for pair in zip(lo, hi) for v in pair]
+    rows = conn.execute(
+        f"""
+        SELECT id, kind, subtype, position_x_mpc, position_y_mpc, position_z_mpc
+        FROM phenomenon_scatter
+        WHERE built_at IS NULL AND {where_address} AND ({kinds})
+          AND position_x_mpc >= ? AND position_x_mpc < ? AND position_y_mpc >= ? AND position_y_mpc < ?
+          AND position_z_mpc >= ? AND position_z_mpc < ?
+        ORDER BY (subtype <=> 'supermassive') DESC, (subtype <=> 'intermediate') DESC, (subtype <=> 'stellar') DESC, id
+        LIMIT ?
+        """,
+        (*address_params, *kind_params, *box_params, int(limit)),
+    ).fetchall()
+    share = {(kind, subtype): (map_type, size) for kind, subtype, map_type, size in classes}
+    points = []
+    for row in rows:
+        map_type, size = share[(row["kind"], row["subtype"])]
+        label = "Black hole" if map_type == "black_hole" else "Neutron star"
+        points.append({
+            "type": map_type, "id": f"s{row['id']}", "name": f"{label} (uncharted)",
+            "descriptor": row["subtype"] or "scattered", "luminosity_sol": 0.0, "scattered": True, "size": size,
+            "x": round(row["position_x_mpc"] / MPC_PER_PC, 3), "y": round(row["position_y_mpc"] / MPC_PER_PC, 3),
+            "z": round(row["position_z_mpc"] / MPC_PER_PC, 3),
+        })
+    points.sort(key=lambda point: (-point["size"], point["id"]))
+    return points[:limit]
+
+
 def galaxy_tiles(conn, tile_keys):
     """
     The contents of each requested cube tile -- the interactive 3D Galaxy
@@ -3851,6 +3926,13 @@ def galaxy_tiles(conn, tile_keys):
         points = (galaxy_point_phenomena_in_box(
             conn, lo, hi, limit=GALAXY_TILE_POINT_BUDGET.get(level, GALAXY_TILE_MAX_POINTS))
             if level >= POINT_PHENOMENON_MIN_LEVEL else [])
+        # MAP.164: scattered ones not yet built into a sector, the biggest
+        # classes at every level so the largest show from the whole galaxy.
+        coarse_scatter = level < POINT_PHENOMENON_MIN_LEVEL
+        points = points + galaxy_scattered_points_in_box(
+            conn, lo, hi, edge_pc,
+            GALAXY_TILE_MAX_SCATTERED_POINTS if coarse_scatter else GALAXY_TILE_POINT_BUDGET.get(level, GALAXY_TILE_MAX_POINTS),
+            coarse_scatter)
         tiles[key] = {
             "placed": placed, "planned": planned, "filled": filled, "clouds": clouds, "stars": stars,
             "generated": generated, "points": points,
