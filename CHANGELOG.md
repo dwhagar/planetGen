@@ -3,6 +3,7 @@
 ## [8.0.866] - 2026-10-10
 
 ### Changed
+- A saved sector's rows now get their unique ID in the INSERT instead of being selected back and updated afterwards, which saves a query pass per sector (PERF.44). The IDs are the same.
 - A `galaxy` run now links its new sectors to their neighbours (containment in nebulae and remnants, nearest systems) once at its end instead of one sector at a time while it saves, so the workers no longer queue for it (PERF.45). The stored links are the same. Sectors made on demand still link as they are saved.
 - A planet's or moon's position is worked out once when first read instead of after every move (PERF.46); the values are unchanged.
 - Retired PERF.43 (PR #861) and filed ADM.48, the failing auth-sweep tests for the galaxy-settings download.
@@ -28,6 +29,15 @@
 - Two systems in one sector are routed by their nearest stars even when those lie in the sector next door.
 - The Generate page progress-line to-do item (ADM.46) was withdrawn at Boss's word.
 
+### Fixed
+- The admin page's creation-settings download answers an anonymous or non-admin caller with a plain 403, like the other file and data views, instead of a redirect (ADM.18).
+- A neighbourhood or single-address run now reports the first sector (the one named outright) with the same stats as every other sector, each summary has a "Totals" line (star systems, stars, planets, phenomena), and a batch says how many sectors it runs with how many workers before the first report (ADM.47).
+- Hypervelocity stars now move in a straight line (position plus velocity times time) when the orbit update runs, keeping their velocity, instead of being turned about the galactic axis like bound objects (GEN.137). `phenomenon_scatter` gains `epoch_unix` (schema v69), the time a scattered star's position holds at, and the built system inherits it.
+- The sector search reached by a radius now covers every cell that touches the sphere, not only cells whose centers lie inside it (`cells_touching_sphere`, NAV.53); the center-based listing's misses are documented.
+- Python and the browser now round half-way numbers the same way (away from zero, on the shortest decimal), so 9.995 reads "10" and 1.005 reads "1.01" in both; Python used to give "9.99" and "1".
+- A negative number that rounds to zero prints "0", not "-0", in both.
+- A checkout with `core.autocrlf=true` no longer changes the bytes of the lock files and the word list, so their hashes agree between Windows and Linux.
+
 ### Added
 - Filed OPS.37 (a Generator version number) and API.22 (an API version number), both plain sequential integers due by the end of Phase 1.
 - Planets and moons store their mantle redox (reduced, intermediate or oxidized, with its offset from the iron-wustite buffer) and the partial pressures of O2, CO2, CO, N2, Ar, H2, H2O, CH4, H2S and SO2 (GEN.85, schema v70). Each class's mix shifts with the redox, and no gas exceeds its vapour pressure at the surface temperature.
@@ -35,14 +45,6 @@
 - Eight to-do items from the generation performance study (a warmed worker, lazy names, uids in Python, the phenomenon-row size decision, a later pass for links, one position per body, benchmark records and a faster INSERT).
 - A to-do item (generating a neighbourhood from the Generate page shows no per-sector stats).
 - A to-do item (the Generate page shows a progress line and per-layer counts instead of one line per sector).
-
-### Fixed
-- A neighbourhood or single-address run now reports the first sector (the one named outright) with the same stats as every other sector, each summary has a "Totals" line (star systems, stars, planets, phenomena), and a batch says how many sectors it runs with how many workers before the first report (ADM.47).
-- Hypervelocity stars now move in a straight line (position plus velocity times time) when the orbit update runs, keeping their velocity, instead of being turned about the galactic axis like bound objects (GEN.137). `phenomenon_scatter` gains `epoch_unix` (schema v69), the time a scattered star's position holds at, and the built system inherits it.
-- The sector search reached by a radius now covers every cell that touches the sphere, not only cells whose centers lie inside it (`cells_touching_sphere`, NAV.53); the center-based listing's misses are documented.
-- Python and the browser now round half-way numbers the same way (away from zero, on the shortest decimal), so 9.995 reads "10" and 1.005 reads "1.01" in both; Python used to give "9.99" and "1".
-- A negative number that rounds to zero prints "0", not "-0", in both.
-- A checkout with `core.autocrlf=true` no longer changes the bytes of the lock files and the word list, so their hashes agree between Windows and Linux.
 
 ## [8.0.783] - 2026-10-09
 
