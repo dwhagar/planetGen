@@ -26,7 +26,7 @@ already stored.
 import functools
 import math
 
-from planetgen.galaxy import density as galaxyDensity, seed as galaxySeed
+from planetgen.galaxy import density as galaxyDensity, geometry as galaxyGeometry, object_uid as objectUid, seed as galaxySeed
 from planetgen import tuning
 from planetgen.generation.config import SystemConfig
 from planetgen.generation.phenomena.nebula import Nebula, NEBULA_CLASS_LETTERS
@@ -128,6 +128,75 @@ def cell_clouds(galaxy_seed, shape, index):
             nebula = Nebula(SystemConfig(), nebula_type=FIELD_FAMILY)
             clouds.append((nebula, center))
     return clouds
+
+
+CENTROID_ROUND_MPC = 1
+"""int: A cloud's centroid is rounded to this many milliparsecs before the sector holding it is taken, so a
+platform's last-bit noise cannot move it across a sector face except at a face itself (GEN.176)."""
+
+
+def centroid_mpc(nebula, center_pc):
+    """The centre of the space `nebula` fills, as whole milliparsecs `(x, y, z)` in the galaxy frame (GEN.176)."""
+    offset = nebula.get_shape().interior_centroid()
+    radius_pc = ly_to_pc(nebula.radius_ly)
+    step = CENTROID_ROUND_MPC
+    return tuple(int(round((center_pc[axis] + offset[axis] * radius_pc) * 1000.0 / step)) * step for axis in range(3))
+
+
+def birth_sector(nebula, center_pc, edge_pc):
+    """The `(ring, layer, slot)` of the sector holding the centroid of `nebula`, placed at `center_pc`."""
+    return galaxyGeometry.sector_address_at(tuple(v / 1000.0 for v in centroid_mpc(nebula, center_pc)), edge_pc)
+
+
+def cloud_object_id(galaxy_seed, shape, nebula, center_pc, edge_pc, births=None):
+    """
+    The object ID, as an integer, of the field cloud `nebula` at `center_pc` (GEN.176): born in the sector
+    holding its centroid, with a field-drawn serial that is its rank among every field cloud born in that sector,
+    cells in index order and clouds in a cell in draw order. Every worker works the same rank out from the seed
+    alone, so the ID does not depend on which sector is saved first, and the birth sector need not exist yet.
+
+    Args:
+        births (dict, optional): A cache `(cell index, n) -> birth sector` shared between calls for one galaxy,
+            so each cloud's centroid is worked out once.
+    """
+    births = {} if births is None else births
+
+    def birth_of(index, n, cloud, cloud_center):
+        key = (index, n)
+        if key not in births:
+            births[key] = birth_sector(cloud, cloud_center, edge_pc)
+        return births[key]
+
+    index = cell_index(center_pc)
+    mine = None
+    for n, (cloud, cloud_center) in enumerate(cell_clouds(galaxy_seed, shape, index)):
+        if cloud_center == tuple(center_pc):
+            mine = (n, birth_of(index, n, cloud, cloud_center))
+            break
+    if mine is None:
+        raise ValueError(f"no field cloud at {tuple(center_pc)!r} in cell {index}")
+    n_self, address = mine
+    # Every cloud born here has its centre within a cloud radius of the sector.
+    sector_size = edge_pc * math.sqrt(3.0)
+    reach = MAX_CLOUD_RADIUS_PC + sector_size
+    sector_center = galaxyGeometry.sector_position_pc(*address, edge_pc)
+    low = cell_index(tuple(c - reach for c in sector_center))
+    high = cell_index(tuple(c + reach for c in sector_center))
+    rank = 0
+    for i in range(low[0], high[0] + 1):
+        for j in range(low[1], high[1] + 1):
+            for k in range(low[2], high[2] + 1):
+                other = (i, j, k)
+                for n, (cloud, cloud_center) in enumerate(cell_clouds(galaxy_seed, shape, other)):
+                    if (other, n) == (index, n_self):
+                        return objectUid.pack(*address, objectUid.SERIAL_FIELD, rank)
+                    # A centroid is inside its cloud's bounding sphere, so a cloud further from the sector than its
+                    # radius plus the sector's size cannot be born here (and costs no centroid).
+                    if math.dist(cloud_center, sector_center) > ly_to_pc(cloud.radius_ly) + sector_size:
+                        continue
+                    if birth_of(other, n, cloud, cloud_center) == address:
+                        rank += 1
+    raise ValueError("a field cloud was not found among its own sector's neighbours")
 
 
 def clouds_reaching(galaxy_seed, shape, center_pc, reach_pc):

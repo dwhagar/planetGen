@@ -51,13 +51,13 @@ TIER_INDEX = {"Blue": 0, "Green": 1, "Yellow": 2, "Red": 3}
 """dict: A domain's colour as stored (`tier_<domain>`): 0 is best."""
 
 EQUIPMENT_NAMES = (
-    "shirtsleeve", "breathing mask", "mask with scrubber", "sealed suit",
+    "ideal", "breathing mask", "mask with scrubber", "sealed suit",
     "full life support with radiation hardening",
 )
 """tuple: `equipment_tier` 0 to 4 and the kit it names (`habitability.equipment`)."""
 
 EQUIPMENT_LABELS = (
-    "Shirtsleeve", "Mask", "Mask and scrubber", "Sealed suit", "Full life support",
+    "Ideal", "Mask", "Mask and scrubber", "Sealed suit", "Full life support",
 )
 """tuple: The same tiers as the page and the search show them."""
 

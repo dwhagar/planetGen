@@ -451,40 +451,19 @@ with `clamp()`.
   system and leaves the sector's other contents ungenerated.
   Prerequisites: none. Related: MAP.162, ADM.32, ADM.35, NAV.48, DOC.9.
 
-- [ ] **UX.90 Explain the habitability chips in the web interface: a visible legend with the equipment labels, colours, thresholds and scores**
-  Boss (2026-10-10 08:00Z, via the coordinator): what are the
-  habitability chips on planets, and are they explained anywhere in the
-  web interface? They are not. Done: an explanation page under Classes, linked from the habitability chips on the system page and from the Equipment search filter, in visible text (tooltips
-  alone do not serve touch or screen readers) that explains the five
-  equipment labels (Ideal, Mask, Mask and scrubber, Sealed suit,
-  Full life support) and what each means; the chip colour as the worst
-  of the four PHI-4 domains (pressure, temperature, chemistry,
-  radiation) with what Blue, Green, Yellow and Red mean and their
-  thresholds; the Habitable, Habitable moon and Inhabited chips; and the
-  rule for planets around pulsars, neutron stars and black holes. The
-  per-domain colours and the microbial, complex-life and
-  human-operability scores, stored by GEN.89 but shown nowhere, are
-  shown on the planet and moon rows or detail. docs/html-interface.md
-  (Habitability chips) is rewritten to match. Boss (2026-10-10 08:08Z,
-  via the coordinator): the lowest PHI-4 equipment label "Shirtsleeve"
-  becomes "Ideal", the only label change; this item renames it in the
-  code (physics/habitability.py, habitability_world.py), the pages, the
-  search facet, the tests and the docs, and the explanation is a page
-  under Classes. Owner: Bugfixes lane 2 (coordinator, 2026-10-10 08:08Z).
-  Prerequisites: none. Related: GEN.89, GEN.84, GEN.85, GEN.86, GEN.87,
-  GEN.88.
-  Design: [docs/design/habitability-index.md](design/habitability-index.md)
-
 - [ ] **UX.91 Planet and moon description carries a full PHI-4 explanation, each colour factor and why**
   Boss (2026-10-10 08:49Z, via the coordinator): PHI-4 should have a
   full explanation in the planet or moon description, each colour factor
   and why. Done: the planet and moon description on the system page
   lists, for each of the four PHI-4 domains behind the chip colour, the
   value for this world and why (the inputs that drove it), not just the
-  chip; the wording matches the Classes explanation page of UX.90 and
+  chip; the wording matches the Classes explanation page (UX.90, merged) and
   the chip names (Ideal, formerly Shirtsleeve); the text comes from the
   same calculation as the chip, so the two cannot disagree. Owner:
   Bugfixes lane 2, after GEN.196 (it built UX.90).
+  Built so far (2026-10-09): UX.90 (PR #1065) already gives planet and
+  moon rows per-factor colours and phi_bio, phi_cpx and phi_tech values,
+  and the page /classes/habitability; build the description on those.
   Prerequisites: none. Related: UX.90, GEN.89.
 
 ## MAP: Galaxy Map, Sector Map, System Map
@@ -1158,16 +1137,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   mass and brightness, and a test checks the size ordering. Owner:
   unassigned.
   Prerequisites: none. Related: MAP.164, GEN.185, MAP.148, MAP.153.
-
-- [ ] **MAP.166 Galaxy Map "Dimmest star shown" says "every star" only when the view is complete**
-  Boss (2026-10-10 08:11Z, via Bugfixes lane 2): the slider label
-  "Dimmest star shown" may say "every star" only when the view is
-  complete, meaning no tile cap, luminosity floor or missing tile hides
-  a star; otherwise it shows the real dimmest luminosity the view
-  carries. Follow-up to MAP.163. Done: the label follows that rule at
-  every zoom, and a test covers a complete view and a capped view.
-  Owner: Bugfixes lane 2 (next).
-  Prerequisites: none. Related: MAP.163, MAP.148.
 
 ## NAV: Navigation and courses
 
@@ -2968,49 +2937,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none.
   Design: [docs/design/phenomenon-scatter-mass-cut.md](design/phenomenon-scatter-mass-cut.md)
 
-- [ ] **GEN.172 Run-time births get object IDs from the counters**
-  Source: docs/design/object-id-options.md section 0 (Boss decided
-  2026-10-09 22:39Z: birth location plus serial, galaxy-wide; the same
-  length for every object; always identifies that one object; up to 128
-  bits but shorter preferred; fix the deficits; no backward
-  compatibility). Filed from the object-ID research thread. Nothing is
-  built until Boss asks.
-  Done: an admin-added body or system, an ejected object, a merger
-  remnant, split fragments and a stand-alone facility take their IDs
-  from the `id_counters` allocator. An ejected planet keeps its ID and
-  becomes a rogue-planet row; a merge keeps the heavier body's ID and
-  retires the other; a split gives each fragment a new run-time serial;
-  a deleted ID is never reused.
-  Open question for Boss (default yes): an ejected planet keeps its ID?
-  Built so far (2026-10-09): Lane 1 (2026-10-10, PR #1055): facilities
-  already take a run-time ID in add_facility, and
-  store.keep_body_numbers and _runtime_uids exist. The rest of GEN.172
-  (ejection, merger, split, admin-added system) is still open.
-  Design: [docs/design/object-id-options.md](design/object-id-options.md)
-
-- [ ] **GEN.176 A nebula or remnant is born in the sector holding the centre of the space it occupies**
-  Source: docs/design/object-id-options.md section 0 (Boss decided
-  2026-10-09 22:39Z: birth location plus serial, galaxy-wide; the same
-  length for every object; always identifies that one object; up to 128
-  bits but shorter preferred; fix the deficits; no backward
-  compatibility). Filed from the object-ID research thread. Nothing is
-  built until Boss asks.
-  Done: the birth sector of a nebula or supernova remnant is the sector
-  holding the geometric centre of the space it occupies: the centroid of
-  the interior of its metaball field on the fixed 24-cell grid, in
-  integer arithmetic, rounded to 1 mpc before the sector is taken (for a
-  remnant, the centre of the shell), not the shape origin. Replaces
-  "first sector saved that the cloud reaches" in
-  `_insert_field_nebulae`, so the home sector no longer depends on save
-  order. The field-drawn serial is the cloud's rank among the clouds of
-  its field cell (`nebula_field.cell_clouds`) whose centroid is in that
-  sector, so no shared counter is needed and the centre sector need not
-  exist yet. Test the sector-face tie case. The same rule holds for any
-  object stored by a sector other than its own.
-  Open question for Boss (default 1 mpc): the rounding used before the
-  birth sector is taken from the centroid?
-  Design: [docs/design/object-id-options.md](design/object-id-options.md)
-
 - [ ] **GEN.177 Planetary magnetic fields: a stagnant-lid factor**
   Left over from GEN.86 (PR #908, Foundations lane 2): the planetary
   magnetic field model does not yet apply the stagnant-lid factor (a
@@ -3137,6 +3063,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stage list builds on UX.89's structure; a redo clears and rewrites
   only that scatter's rows and keeps the central black hole or quasar
   guarantee.
+
+- [ ] **GEN.197 Object IDs on ejection, merger and split events**
+  Source: docs/design/object-id-options.md section 0 (Boss decided
+  2026-10-09 22:39Z: 80-bit birth-location ID). Left over from GEN.172
+  and TEST.110 when Foundations lane 1 merged them (PR #1075). Done: the
+  orbital-update events that create these cases apply the ID rules: an
+  ejected planet keeps its ID and becomes a rogue-planet row; a merge
+  keeps the heavier body's ID and retires the other; a split gives each
+  fragment a new run-time serial; a deleted ID is never reused. The
+  allocators already exist (store._runtime_uids and
+  store._next_body_numbers). A test shows an ejected planet keeps its
+  ID. Open question for Boss (default yes): an ejected planet keeps its
+  ID? Built with the orbital-update items that create these events (no
+  ejection, merger or split code exists yet).
+  Prerequisite: GEN.143. Related: GEN.105, GEN.143, GEN.170.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -3483,53 +3424,105 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   every scatter action also store the number of layers modified, kept in
   separate rows per mass floor and per luminosity floor used (a run at 8
   Msun and one at 14 Msun, or at 5,000 and 9,000 Lsun, are different
-  rows). With the grouped layers of PERF.57 the row records group sizes, layers visited
+  rows). With the object-first sampler (PERF.58) the row records layers visited
   and layers modified.
   GEN.187 stage (2026-10-10): no new stage needed. The existing backfill
   stage is now labelled "Scatter the massive stars from the neighborhood"
   (PR #1062); PERF.56 records its timing and layers like the other
   scatters.
 
-- [ ] **PERF.57 Skip empty stretches in a galactic scatter by combining layers into growing groups**
-  Boss (2026-10-10 09:17Z, via the coordinator; replaces his 08:32Z
-  rule of stopping after 100 empty layers): in any galactic scatter
-  operation, once 5 contiguous layers have placed nothing, combine the
-  next 10 layers into one group. Calculate the expected count exactly as
-  for a single layer, summed over the sectors available in the group,
-  and draw how many sectors would likely hold an object. Place one
-  object per draw: pick the sector weighted by its own density score (a
-  denser sector is more likely to be chosen), then a random position in
-  that sector. If the 10-layer group places nothing, try 20, then 40,
-  doubling each time until something is placed or the galaxy runs out of
-  room, at which point the pass ends. Done:
-  - Applies to every galactic scatter pass: the mass pass, the
-    luminosity pass, the phenomena pass and the bright-star back scatter
-    of GEN.187 (landed, PR #1059).
-  - Scaling back (Boss 09:19Z): grouping starts only after 5 contiguous
-    layers placed nothing. In group mode a group that places nothing
-    doubles the next group (10, 20, 40, ...); a group that places
-    something makes the next group half the size (a 40 that places is
-    followed by a 20, then a 10); when a group of 10 places something
-    the pass is back on single layers, and grouping needs 5 empty
-    layers in a row again. An empty group at a reduced size doubles
-    again.
-  - Defaults chosen where Boss did not say: the 5 and the 10 are named
-    constants in tuning.py; the same seed gives the same galaxy (each
-    group draw is seeded from the group's first address, GEN.56); the
-    galactic nucleus guarantee (GEN.195) is untouched.
-  - The stage result and the PERF.56 stats record the group sizes used,
-    layers visited and layers modified (see the PERF.56 note).
-  - A statistical test shows grouped placement matches the per-layer
-    expected counts on a small galaxy.
-  The change is in the scatter code in run_plan.py. Owner: Bugfixes lane
-  1, after PERF.56.
-  Prerequisites: none. Related: UX.89, PERF.56, GEN.185, GEN.187,
-  GEN.195.
-  Revised (2026-10-10 09:19Z): after a placement the next group is half
-  the size instead of returning to single layers.
-  Replaced (2026-10-10): the 08:32Z "stop after 100 empty layers" rule is
-  gone; Boss's 08:32Z clarification (0 stars or 0 phenomena) no longer
-  applies.
+- [ ] **PERF.58 Object-first star sampler for the mass and luminosity passes (top priority, replaces PERF.57)**
+  Boss (2026-10-10 09:52Z, via the coordinator and Research lane 3):
+  follow the recommendations of the scatter study
+  (docs/design/scatter-queue-feasibility.md, PR #1064) and build it as
+  soon as possible; TOP PRIORITY. The shuffled sector list is not built
+  (190 to 270 times more density evaluations). Instead each star pass
+  decides how many objects there are, then where: per layer draw N from
+  a Poisson with the mean summed over the layer's rings times a
+  certified density majorant, pick the ring from a cumulative table,
+  pick the slot and point as today, accept with probability true density
+  over majorant, and skip filled or mass-marked sectors. The prototype
+  ran about 35 times faster at default scale (12.7 minutes to about 20 s
+  per pass) and 78 times at quarter scale, with counts and spatial
+  distribution matching today's code (chi-square per degree of freedom
+  0.93 to 1.07). Boss first asked for his sparse method for stacks of
+  empty layers on the same fast method; Research lane 3 measured that
+  grouping layers gains nothing (a bigger stack loosens the bound and
+  cancels the saving), and Boss then dropped it (2026-10-10 10:00Z,
+  "now we're going so much faster"). The sampler runs per layer only: no
+  stack rule and no stack-size tuning value. An empty layer already
+  costs only its majorant (about 1.2 us per ring). PERF.57's grouping is
+  not built.
+  Several objects per sector (Boss 09:32Z, tiers by density rating):
+  independent object-first draws and a per-sector count dictionary; each
+  sector has a capacity from its expected count at the sector centre,
+  the smallest of 1, 2, 4, 8 or 16 with P(Poisson(lambda) > capacity)
+  below 1e-4; an object over the capacity is dropped (Boss considered
+  shunting it to a neighbouring sector and decided it does no real
+  good, 10:09Z). Drops are 0.02%
+  at the shipped star floors (every sector is tier 1), 0.13% at 1,000
+  Lsun and 0.05% at 100 Lsun, and 0.12% for phenomena (a cap of 1 would
+  drop 0.84%, 18.9% and 1.43%). Not a queue where a sector is listed c
+  times: that makes counts Binomial(c, lambda/c) and the doubles fall
+  from 1.43% to 0.5 to 0.8% on phenomena. Optional: run the sector
+  address check only after the density test passes (saves about 8 us on
+  each of the 41% rejected candidates, about 9% of the run). Cost: a
+  candidate is about 37 us and an object about 62 us at default scale;
+  the numpy majorant is 3.75 s of the run, not the main cost. Boss
+  (09:53Z): "Even if the database row writes make things slower, on some
+  level, a 35x improvement to the speed, I'll take it."
+  Done: the mass pass and the luminosity pass use the sampler; the
+  density majorant is certified, and a check mode asserts true density
+  never exceeds it; objects dropped in filled or mass-marked sectors are
+  thinned, not renormalised; sectors take several objects by the
+  capacity tiers above; stats record layers visited and layers modified
+  (PERF.56); the central black hole or quasar is untouched; the new
+  sampler is a different random sequence, so a reseed (planetgen plan)
+  is needed after the update; a statistical test compares it with the
+  per-layer expected counts on a small galaxy. This replaces PERF.57,
+  which is retired as superseded. Owner: Bugfixes lane
+  1, first in its queue after TEST.124 and ahead of PERF.56.
+  Prerequisite: PERF.60. Related: PERF.56, PERF.59, PERF.60, PERF.61,
+  GEN.185, GEN.195.
+
+- [ ] **PERF.59 Share the ring inputs across the three scatter passes (top priority)**
+  From the scatter study (docs/design/scatter-queue-feasibility.md): the
+  mass, luminosity and phenomena passes recompute identical _ring_bins
+  inputs, about 87 of 168 s at quarter scale. Boss (09:52Z): follow the
+  study recommendations, top priority. Done: the ring inputs are built
+  once per run and shared by every scatter pass, and cached across runs
+  by the same key as the map warm-up where that is safe; results do not
+  change (a test shows the same rows with and without sharing). Owner:
+  Bugfixes lane 1, with PERF.58.
+  Prerequisites: none. Related: PERF.58, PERF.61, GEN.185.
+
+- [ ] **PERF.60 Large-mean Poisson helper for per-layer counts (top priority)**
+  From the scatter study (docs/design/scatter-queue-feasibility.md):
+  _sample_poisson_count is Knuth's O(mean) algorithm, fine per ring, but
+  the object-first sampler (PERF.58) draws one count per layer, with means in the thousands or millions. Done: a
+  helper draws Poisson counts for any mean in constant time (a
+  transformed-rejection or normal-approximation method above a named
+  threshold in tuning.py, Knuth below it), uses the one random wrapper
+  of GEN.56 so the same seed gives the same galaxy, and has a
+  statistical test of mean and variance across small and large means.
+  Owner: Bugfixes lane 1, first of the sampler items because PERF.58
+  needs it. Boss (09:52Z): top priority.
+  Prerequisites: none. Related: PERF.58, PERF.61, GEN.56.
+
+- [ ] **PERF.61 Object-first sampler for the phenomena pass, own prototype first**
+  From the scatter study (docs/design/scatter-queue-feasibility.md): the
+  phenomena pass places millions of rows (6.7e7 expected at the 14 Msun
+  cut), so row costs dominate and the gain is smaller than for the star
+  passes, but the ring walk is still 58% of its time. Boss (09:52Z):
+  follow the study recommendations, top priority. Done: a prototype with
+  per-kind density majorants is measured against today's code (counts,
+  spatial distribution, time, reseed) before it replaces the pass; the
+  sectors take several objects by the capacity tiers of PERF.58 (1, 2, 4,
+  8 or 16, dropping 0.12% of phenomena where a cap of 1 would drop 1.4%); stats record layers
+  visited and layers modified, per kind (PERF.56); a reseed is needed.
+  Owner: Bugfixes lane 1, after PERF.58.
+  Prerequisites: PERF.58, PERF.60. Related: PERF.58, PERF.59, PERF.60,
+  GEN.185.
 
 ## DB: Database and schema
 
@@ -3972,7 +3965,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   stay internal. No compatibility shim. This is a breaking API change,
   so it bumps API.22's API version number.
   Decided (Boss, 2026-10-10 02:48Z, via Foundations lane 1): yes, the 80-bit object ID replaces row ids in pages, URLs and the API, and Boss accepts the API break. Cleared to build once API.22, GEN.171 and GEN.172 are in.
-  Prerequisites: API.22, GEN.172.
+  Prerequisite: API.22.
   Design: [docs/design/object-id-options.md](design/object-id-options.md)
 
 ## ADM: Admin tools
@@ -4166,20 +4159,6 @@ means read from the code, not reproduced yet; the bug hunt confirms or
 clears each one.
 
 ### Infrastructure and CI
-
-- [ ] **TEST.110 Object ID tests: identical IDs on 1 and 4 workers, none reused, none missing**
-  Source: docs/design/object-id-options.md section 0 (Boss decided
-  2026-10-09 22:39Z: birth location plus serial, galaxy-wide; the same
-  length for every object; always identifies that one object; up to 128
-  bits but shorter preferred; fix the deficits; no backward
-  compatibility). Filed from the object-ID research thread. Nothing is
-  built until Boss asks.
-  Done: tests that 1 worker and 4 workers give identical IDs; no ID is
-  reused after a delete; an ejected planet keeps its ID; every object in
-  a saved sector has a 20-digit ID; the golden fill digests (TEST.77)
-  use the new IDs.
-  Prerequisites: GEN.172, GEN.176.
-  Design: [docs/design/object-id-options.md](design/object-id-options.md)
 
 - [ ] **TEST.111 test_ensure_sector_generated_creates_then_reuses_the_same_sector fails in a busy parallel run (bug)**
   Reported by Bugfixes lane 1 (2026-10-09 23:32Z):
@@ -4577,21 +4556,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   touch as they are made.
   Prerequisites: none.
 
-- [ ] **DOC.5 Rewrite the object ID docs: object-ids.md, database-schema.md and api.md**
-  Source: docs/design/object-id-options.md section 0 (Boss decided
-  2026-10-09 22:39Z: birth location plus serial, galaxy-wide; the same
-  length for every object; always identifies that one object; up to 128
-  bits but shorter preferred; fix the deficits; no backward
-  compatibility). Filed from the object-ID research thread. Nothing is
-  built until Boss asks.
-  Done: docs/design/object-ids.md (the GEN.68 and GEN.69 section) is
-  rewritten for the 80-bit ID; GEN.69's hash scheme is marked
-  superseded; database-schema.md and api.md describe the new column and
-  the ID as the public reference; GEN.72 and GEN.73 and the position-ID
-  naming (GEN.64 stays as the name of interstellar objects) are updated
-  to match.
-  Design: [docs/design/object-id-options.md](design/object-id-options.md)
-
 - [ ] **DOC.6 A static help section in the web interface: page template, index, per-page help links and a coverage test**
   Boss (2026-10-09 23:53Z): "Add to-do items to build static
   documentation pages for all features accessible through the web
@@ -4733,6 +4697,13 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   later change to those features (a feature item is not done until its
   help text is).
   Prerequisite: DOC.6. Related: DOC.6.
+
+- [ ] **DOC.17 Describe the object ID in api.md**
+  Left over from DOC.5 when Foundations lane 1 merged the rest (PR
+  #1075). Done: docs/api.md describes the object ID as the public
+  reference in pages, URLs and the API, once API.23 has made it so.
+  Prerequisite: API.23.
+  Prerequisite: API.23. Related: DOC.5, API.23.
 
 ## VIEW: The view from a planet
 

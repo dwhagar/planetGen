@@ -1113,7 +1113,7 @@
 --   score, the geometric mean of the four domains), `phi4_pressure`,
 --   `phi4_temperature`, `phi4_chemistry` and `phi4_radiation` (each 0 to 1) with
 --   `tier_<domain>` (0 Blue, 1 Green, 2 Yellow, 3 Red) and `equipment_tier`
---   (0 shirtsleeve, 1 mask, 2 mask and scrubber, 3 sealed suit, 4 full life
+--   (0 ideal, 1 mask, 2 mask and scrubber, 3 sealed suit, 4 full life
 --   support), then `phi_bio` (microbial life), `phi_cpx` (complex life) and
 --   `phi_tech` (human operability with equipment) and the four likelihoods
 --   behind them (`l_solv`, `l_chem`, `l_ener`, `l_rad`). `hab_note` names the

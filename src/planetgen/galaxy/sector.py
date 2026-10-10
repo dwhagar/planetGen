@@ -750,6 +750,9 @@ class SpaceSector:
         # `nebulaField.clouds_reaching`): `(Nebula, center_pc)` pairs, each
         # stored once by whichever sector it reaches is saved first.
         self.field_nebulae = []
+        self.cloud_field = None
+        """tuple or None: The `(galaxy_seed, shape, center_pc, reach_pc)` the clouds came from; with it the store works
+        out each cloud's object ID from the seed alone (GEN.176)."""
 
     def __len__(self):
         return len(self.entries)
