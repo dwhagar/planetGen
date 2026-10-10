@@ -251,6 +251,33 @@ class BinaryStarProxy(Star):
         """Returns the combined luminosity of the binary system."""
         return self._effective_luminosity
 
+    def _summed(self, field):
+        values = [getattr(star, field, None) for star in self.stars]
+        return None if all(value is None for value in values) else sum(value or 0.0 for value in values)
+
+    @property
+    def l_xuv_w(self):
+        """Both stars' XUV, W (GEN.86): a circumbinary planet gets both."""
+        return self._summed("l_xuv_w")
+
+    @property
+    def xuv_fluence_j(self):
+        """Both stars' XUV over their lives, J (GEN.86)."""
+        return self._summed("xuv_fluence_j")
+
+    @property
+    def flare_n33_per_yr(self):
+        """Both stars' flares above 1e33 erg a year (GEN.86)."""
+        return self._summed("flare_n33_per_yr")
+
+    @property
+    def log_lx_lbol(self):
+        """The pair's combined `L_X/L_bol`, log10 (GEN.86): what drives
+        the wind a circumbinary planet sits in."""
+        l_x = sum(10 ** star.log_lx_lbol * star.luminosity for star in self.stars
+                  if getattr(star, "log_lx_lbol", None) is not None)
+        return math.log10(l_x / self.luminosity) if l_x > 0.0 and self.luminosity else None
+
     @property
     def binary_separation_au(self):
         """Returns the orbital separation between the two stars in AU."""

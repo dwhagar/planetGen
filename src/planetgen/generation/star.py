@@ -22,7 +22,7 @@ import re
 
 from planetgen.generation.config import SystemConfig
 from planetgen.physics import constants
-from planetgen.physics import spin
+from planetgen.physics import activity, spin
 from planetgen import tuning
 from planetgen.util import draw
 from planetgen.util import log
@@ -183,6 +183,7 @@ class Star(LazySaladName):
         "galactic_orbital_phase_deg", "galactic_min_update_interval_years",
         "a_crit_au", "reflex_offset_x", "reflex_offset_y", "reflex_offset_z",
         "rotation_period_hours", "spin_axis_x", "spin_axis_y", "spin_axis_z", "axial_tilt_deg",
+        *activity.STAR_ACTIVITY_FIELDS,
     ]
     """
     Every attribute set by `__init__`/`generate_star`, excluding
@@ -915,6 +916,8 @@ class Star(LazySaladName):
         self.rotation_period_hours = spin.star_rotation_period_hours(
             self.mass, self.radius, self.temperature, self.age, self.yerkes_class)
         spin.set_spin(self, spin.GALACTIC_POLE, spin.rayleigh_tilt_deg())
+        # GEN.86: coronal X-rays, XUV and flares, from mass and age.
+        activity.generate_activity(self)
 
     def get_table_properties(self):
         """
