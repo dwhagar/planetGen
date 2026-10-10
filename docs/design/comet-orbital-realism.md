@@ -152,3 +152,5 @@ many and checks it. A long-period comet's orbit can also simply be longer than
 the run so far (a period of thousands of years at 100 years per second).
 The info panel now says "Bound, returns every N years" or "Unbound: passes
 the star once and does not return", with the perihelion and eccentricity.
+
+Once a parabolic comet is farther than the drawn path (2,000 AU, `COMET_PATH_LIMIT_AU`) the System Map hides it, so at high speed it vanishes when its pass ends.

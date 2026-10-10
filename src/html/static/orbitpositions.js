@@ -92,6 +92,11 @@ function cometRelativeKm(orbit, years) {
   return [p[0] * AU_KM, p[1] * AU_KM, p[2] * AU_KM];
 }
 
+// GEN.182: a comet on an open (parabolic) orbit makes one pass and leaves. The
+// drawn path reaches out to this distance; a comet farther out than that is
+// off its path (not yet arrived, or gone for good) and is not shown.
+export const COMET_PATH_LIMIT_AU = 2000;
+
 const add = (a, b) => [a[0] + b[0], a[1] + b[1], a[2] + b[2]];
 
 // Where every body is, `years` after the scene's epoch, as a position
@@ -123,7 +128,9 @@ export function relativeAt(scene, years) {
     }
   }
   for (const comet of scene.comets) {
-    out[comet.ref] = { around: comet.orbit.around, rel: cometRelativeKm(comet.orbit, years) };
+    const rel = cometRelativeKm(comet.orbit, years);
+    const gone = comet.orbit.type !== "elliptical" && Math.hypot(rel[0], rel[1], rel[2]) > COMET_PATH_LIMIT_AU * AU_KM;
+    out[comet.ref] = { around: comet.orbit.around, rel: rel, gone: gone };
   }
   return out;
 }
@@ -147,7 +154,7 @@ export function positionsAt(scene, years) {
 // circular orbit's circle, a comet's ellipse or the near part of its
 // parabola (out to `maxAu`). `samples` points, the first repeated at the
 // end of a closed path.
-export function orbitPath(orbit, samples = 128, maxAu = 2000) {
+export function orbitPath(orbit, samples = 128, maxAu = COMET_PATH_LIMIT_AU) {
   const out = [];
   if (!orbit.kepler) {
     const r = orbit.distance_km / AU_KM;
