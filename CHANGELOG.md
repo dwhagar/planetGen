@@ -3,6 +3,7 @@
 ## [8.0.911] - 2026-10-10
 
 ### Changed
+- **Docs only:** ADM.49 (user-set density of spiral arms, inter-arm space, core and bulge) is filed as an unassigned Phase 1 item.
 - **Docs only:** MAP.163 (Galaxy Map brightness scale) is filed; GEN.188 and MAP.163 are one-offs on Bugfixes lane 2; TEST.120 is owned by Bugfixes lane 1.
 - **Docs only:** TEST.119 (PR #993) and PERF.52 (PR #994) are retired; TEST.121 files a load-dependent browser test failure.
 - The Stats page's generation-speed table says what each row counts: a sector fill is seconds per sector and systems per sector, a bright-star or phenomena layer is seconds per layer and stars (objects) per layer, and so on. Layers showed "1,262 systems per sector" in a galaxy of 7,663 systems; they were stars per layer all along.
