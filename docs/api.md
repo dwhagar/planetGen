@@ -145,8 +145,12 @@ connectivity to that specific schema rather than the default one.
   `binary=yes|no`, `placement=sector|standalone` and `octant` (repeatable),
   and `facets=1`, which adds `facets: {"placement", "binary", "octant"}`
   (each `[{"value", "count"}]`; every menu's counts apply the other filters
-  but not its own). `total` counts the systems that pass the filters; a bad
-  `sort`, `order`, `binary` or `placement` is a 400.
+  but not its own). `total` counts the systems that pass the filters; where
+  no stored count exists yet it stops at 10,000 and `total_capped` is `true`
+  (the exact figure follows once the background count finishes). `after=<system
+  ID>` starts the page after that system in the name sort and ignores
+  `offset`, so page 40,000 costs what page 1 does (an unknown ID is a 400);
+  a bad `sort`, `order`, `binary` or `placement` is a 400.
 - `GET /api/uncharted-systems?sort=<luminosity|temperature|type|sector|age>&order=asc|desc&limit=<n>&offset=<n>` —
   the stars the brightness scatter placed that have no system yet (UX.87:
   `bright_stars` rows with a NULL `star_system_id`, so both the mass-limit
@@ -874,6 +878,22 @@ of one sector and in the Galactic Frame otherwise
 (`docs/design/navigation-frames.md`). `route.stop_places` has one
 `{node, sector_id, sector_position_ly}` per id in `path` (both `null` for a
 phenomenon end). The NAV page shows each course as `045 mark 012, 3.2 ly`.
+
+**Charting a course (NAV.48).** `GET /api/nav/chart?from=<ref>&to=<ref>[&border=1]`
+works out the uncharted sectors that block a course, without generating
+anything: `unknown_hops` (how many hops of the route cross unknown space),
+`cells` (`[ring, layer, slot]` of the cells those hops cross that hold no
+sector and lie inside the galaxy's outline, in the order the route enters
+them; `border=1` adds the uncharted cells that share a face with them),
+`count`, `outside_galaxy` (uncharted cells past the outline, never offered),
+`route_distance_ly`, `bypass` (`{found, distance_ly, checked}`, `null` when no
+hop is unknown: whether a route through charted space exists; `checked` false
+means the search gave up after `tuning.NAV_BYPASS_MAX_EDGES` hops) and
+`confirm_over` (`tuning.NAV_CHART_CONFIRM_SECTORS`, 5,000: past it charting
+asks for a confirmation). The cells are those of the unknown hops only, not
+every cell on the straight line. Errors are as for `/api/nav`. The NAV chart
+page (`/nav/chart`, admins) starts the job through the Generate page, which
+shows the size and time first and refuses a run the disk cannot hold.
 
 **Travel times for the route (NAV.11).** Each `route.hops` entry also has
 `warp_times` and `fold_times` for that hop alone (the same factors as the

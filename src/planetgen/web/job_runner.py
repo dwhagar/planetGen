@@ -163,10 +163,15 @@ def _run_line(job):
     return version_key.run_line(seed, run)
 
 
-def _stage_estimate(conn, argv):
-    """The summed stage times of a `galaxy` or `plan` command line (`generation.stages.estimate_seconds`), or `None`."""
+STAGE_OFFSET_ENV = "PLANETGEN_STAGE_OFFSET"
+STAGE_TOTAL_ENV = "PLANETGEN_STAGE_TOTAL"
+"""str: The variables a step's process reads to number its stages across the whole job
+(`generation.stages.STAGE_OFFSET_ENV`; the runner does not import planetGen's modules at load)."""
+
+
+def _staged_command(argv):
+    """`(command, args)` of a `galaxy` or `plan` command line, else `None`."""
     from planetgen.cli import generate as generate_cli
-    from planetgen.generation import stages
     from planetgen.web import jobs
 
     start = len(jobs.GENERATE_COMMAND) + 1
@@ -174,10 +179,37 @@ def _stage_estimate(conn, argv):
         return None
     try:
         _parser, parsers = generate_cli.build_parser()
-        args = parsers[argv[start]].parse_args(argv[start + 1:])
-        return stages.estimate_seconds(conn, argv[start], args)
+        return argv[start], parsers[argv[start]].parse_args(argv[start + 1:])
     except (SystemExit, Exception):  # noqa: BLE001 -- the step then uses its recorded time
         return None
+
+
+def _stage_estimates(conn, argv):
+    """The expected seconds of each stage of a `galaxy` or `plan` command line (`generation.stages.stage_estimates`),
+    `[]` for any other."""
+    from planetgen.generation import stages
+
+    parsed = _staged_command(argv)
+    return stages.stage_estimates(conn, *parsed) if parsed else []
+
+
+def _stage_estimate(conn, argv):
+    """The summed stage times of a `galaxy` or `plan` command line (`generation.stages.estimate_seconds`), or `None`."""
+    from planetgen.generation import stages
+
+    parsed = _staged_command(argv)
+    return stages.estimate_seconds(conn, *parsed) if parsed else None
+
+
+def _step_stage_counts(steps):
+    """How many stages each step holds (a step the page gave no stage list is one stage), for numbering a job's steps
+    and stages across the whole job."""
+    return [max(len(step.get("stages") or []), 1) for step in steps]
+
+
+def _step_heading(first, count, total):
+    """`"Step 4 of 12"`, or `"Steps 4 to 12 of 12"` for a step with several stages."""
+    return f"Step {first} of {total}" if count == 1 else f"Steps {first} to {first + count - 1} of {total}"
 
 
 class _JobTree:
@@ -210,25 +242,32 @@ class _JobTree:
 
     def step_estimates(self, steps):
         """
-        Seconds each step is expected to take (`None` where there is no record), for the overall bar (PERF.55):
-        a `galaxy` or `plan` step from the stored time of each of its stages with the settings it runs with
-        (PERF.56), any other step, or one with a stage not yet recorded, from what the step took in earlier runs.
+        `(per step, per stage)`: the seconds each step and each stage of each step is expected to take (`None` where
+        there is no record), for the overall bar (PERF.55): a `galaxy` or `plan` step from the stored time of each
+        of its stages with the settings it runs with (PERF.56), any other step, or one with a stage not yet
+        recorded, from what the step took in earlier runs. The per-stage list holds one entry for each stage of the
+        job, in order (a step with no stage list counts as one).
         """
         labels = [step["label"] for step in steps]
+        counts = _step_stage_counts(steps)
+        nothing = ([None] * len(labels), [None] * sum(counts))
         if self.queue is None or not self.root.store.available:
-            return [None] * len(labels)
+            return nothing
         try:
             conn = self.root.store._connect()
             try:
                 recorded = self.queue.recorded_step_seconds(conn)
-                estimates = []
-                for step in steps:
-                    estimates.append(_stage_estimate(conn, step.get("argv") or []) or recorded.get(step["label"]))
+                per_step, per_stage = [], []
+                for step, count in zip(steps, counts):
+                    argv = step.get("argv") or []
+                    per_step.append(_stage_estimate(conn, argv) or recorded.get(step["label"]))
+                    found = _stage_estimates(conn, argv)
+                    per_stage += found if len(found) == count else [per_step[-1]] + [None] * (count - 1)
             finally:
                 conn.close()
         except Exception:  # noqa: BLE001 -- the bar then estimates from the running step alone
-            return [None] * len(labels)
-        return estimates
+            return nothing
+        return per_step, per_stage
 
     def close(self, node, state):
         if self.queue is None or node is None:
@@ -297,11 +336,13 @@ def run(job_dir):
     steps = job["steps"]
     tree = _JobTree(job)
     step_node = None
-    state["step_estimates"] = tree.step_estimates(steps)
+    state["step_estimates"], state["stage_estimates"] = tree.step_estimates(steps)
     _write_json(state_path, state)
     try:
         with open(os.path.join(job_dir, "output.log"), "ab", buffering=0) as log:
             log.write((_run_line(job) + "\n").encode("utf-8"))
+            counts = _step_stage_counts(steps)
+            total = sum(counts)
             for index, step in enumerate(steps, start=1):
                 if _cancel_requested():
                     break
@@ -312,8 +353,11 @@ def run(job_dir):
                     os.remove(progress_path)
                 except OSError:
                     pass
-                header = f"\n=== Step {index} of {len(steps)}: {step['label']} ===\n"
-                log.write(header.encode("utf-8"))
+                first = sum(counts[:index - 1]) + 1
+                heading = _step_heading(first, counts[index - 1], total)
+                log.write(f"\n=== {heading}: {step['label']} ===\n".encode("utf-8"))
+                env[STAGE_OFFSET_ENV] = str(first - 1)
+                env[STAGE_TOTAL_ENV] = str(total)
                 step_node = tree.open_step(step["label"])
                 if step_node is not None:
                     env[tree.queue.PARENT_ENV_VAR] = step_node.id
@@ -334,7 +378,7 @@ def run(job_dir):
                 tree.close(step_node, "cancelled" if current["cancelled"] or code == CANCELLED_EXIT_CODE
                            else ("done" if code == 0 else "failed"))
                 step_node = None
-                log.write(f"=== Step {index} exited with status {code} after "
+                log.write(f"=== {heading.split(' of ')[0]} exited with status {code} after "
                           f"{time.time() - started:.0f} s ===\n".encode("utf-8"))
                 state["exit_code"] = code
                 if code == CANCELLED_EXIT_CODE and not current["cancelled"]:

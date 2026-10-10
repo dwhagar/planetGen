@@ -607,6 +607,16 @@ def add_galaxy_arguments(parser):
                              "ring I through every layer the outline reaches (a cylindrical shell). Far "
                              "larger than one ring at one layer, so it needs --limit or --yes past "
                              "LARGE_RING_WARNING_THRESHOLD sectors.")
+    course_group = parser.add_argument_group("course mode (NAV.48)")
+    course_group.add_argument('--course', nargs=2, metavar=('FROM', 'TO'),
+                              help="Course mode: generate the uncharted sectors that block the NAV course "
+                                   "between two objects (a star's object ID, or <kind>:<ID> for a body or "
+                                   "phenomenon): the cells of the route's hops through unknown "
+                                   "space, inside the galaxy's outline. Past NAV_CHART_CONFIRM_SECTORS "
+                                   "sectors it needs --yes.")
+    course_group.add_argument('--course-border', action='store_true',
+                              help="With --course: also generate the uncharted cells that share a face "
+                                   "with those on the course.")
     span_group = parser.add_argument_group("span mode (ADM.29)")
     span_group.add_argument('--rings', metavar='FIRST:LAST',
                             help="Span mode: generate every not-yet-generated sector in these rings (N or "
@@ -752,6 +762,13 @@ def validate_galaxy_args(args, parser):
     if block_layer is not None:
         parser.error("--block-layer requires --block.")
 
+    course = getattr(args, "course", None)
+    if course is not None:
+        _validate_course(args, parser)
+        return
+    if getattr(args, "course_border", False):
+        parser.error("--course-border requires --course.")
+
     if any(value is not None for value in (args.rings, args.layers, args.slots)):
         _validate_span(args, parser)
         return
@@ -870,6 +887,20 @@ def validate_galaxy_args(args, parser):
     args.system_file = None
     args.num_orbits = None
     args.name = None
+
+
+def _validate_course(args, parser):
+    """Refuses what can't go with `--course` (NAV.48) and shapes `args` like the other modes."""
+    others = [flag for flag, value in (
+        ("--ring", args.ring), ("--layer", args.layer), ("--slot", args.slot),
+        ("--center-sector", args.center_sector), ("--radius-pc", args.radius_pc),
+        ("--max-ring", args.max_ring), ("--min-start-density", args.min_start_density),
+        ("--cylinder-sectors", args.cylinder_sectors), ("--rings", args.rings), ("--layers", args.layers),
+        ("--slots", args.slots), ("--limit", args.limit),
+    ) if value is not None] + [flag for flag, on in (("--column", args.column), ("--shell", args.shell)) if on]
+    if others:
+        parser.error(f"--course can't be combined with {', '.join(others)}.")
+    args.sector_name = args.system_file = args.num_orbits = args.name = None
 
 
 def _validate_span(args, parser):

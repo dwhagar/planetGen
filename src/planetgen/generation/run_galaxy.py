@@ -1577,6 +1577,76 @@ def run_span(args, edge_pc, progress):
     _generate_addresses(args, list(span.addresses(batch_density.bounds)), what, edge_pc, progress, batch_density)
 
 
+def course_cells(config, from_ref, to_ref, border=False):
+    """
+    The uncharted cells that block the NAV course between two systems (NAV.48), the plan
+    `queryDb.nav_chart_plan` works out from the stored galaxy as it is now.
+
+    Args:
+        config (MySQLConfig): The database.
+        from_ref (str): The first object: a system's object ID, or `<kind>:<ID>`.
+        to_ref (str): The last object, same forms.
+        border (bool): Also the uncharted cells sharing a face with those on the course.
+
+    Returns:
+        dict: `nav_chart_plan`'s answer.
+
+    Raises:
+        ValueError: A system that does not exist, or a course NAV cannot plot.
+    """
+    from planetgen.api import ids
+    from planetgen.db import query
+
+    conn = store.get_connection(config)
+    try:
+        refs = []
+        for text in (from_ref, to_ref):
+            resolved = ids.resolve_ref(conn, text)
+            if resolved is None:
+                raise ValueError(f"nothing has the ID {text}")
+            refs.append(resolved)
+        try:
+            return query.nav_chart_plan(conn, refs[0], refs[1], border=border)
+        except query.NavUnavailable as exc:
+            raise ValueError(str(exc)) from exc
+    finally:
+        conn.close()
+
+
+def run_course(args, edge_pc, progress):
+    """
+    Course mode (NAV.48): every uncharted cell on the hops through unknown space of the NAV course
+    between two objects (`course_cells`), inside the galaxy's outline. Past
+    `program_constants.NAV_CHART_CONFIRM_SECTORS` sectors it needs `--yes`; the size and disk checks are
+    the ones every run has. The bright-star backfill and the settle that follow every run cover the
+    new sectors.
+    """
+    config = store.mysql_config_from_args(args)
+    try:
+        plan = course_cells(config, args.course[0], args.course[1], border=getattr(args, "course_border", False))
+    except ValueError as exc:
+        log.error(str(exc))
+        raise SystemExit(1) from exc
+    cells = plan["cells"]
+    what = f"the uncharted sectors on the course {args.course[0]} to {args.course[1]}"
+    if not cells:
+        why = ("the course crosses no uncharted sector" if not plan["unknown_hops"]
+               else "the uncharted sectors on the course all lie outside the galaxy")
+        log.normal(f"Nothing to chart: {why}.")
+        return
+    bypass = plan.get("bypass")
+    if bypass and bypass["found"]:
+        log.normal(f"Note: a route through charted space exists ({bypass['distance_ly']:,.1f} ly against "
+                   f"{plan['route_distance_ly']:,.1f} ly); charting is optional.")
+    if len(cells) > program_constants.NAV_CHART_CONFIRM_SECTORS and not args.yes:
+        log.error(f"Charting this course takes {len(cells):,} sectors, more than the {program_constants.NAV_CHART_CONFIRM_SECTORS:,} "
+                  f"that need confirming. Run it again with --yes.")
+        raise SystemExit(1)
+    if plan["outside_galaxy"]:
+        log.normal(f"{plan['outside_galaxy']} uncharted cell(s) lie outside the galaxy and are left out.")
+    _generate_addresses(args, cells, what, edge_pc, progress, _BatchDensity(config))
+
+
 def run_galaxy(args):
     """
     Dispatches to block, column, shell, single-address, ring-batch,
@@ -1658,6 +1728,8 @@ def _run_galaxy_mode(args, edge_pc, progress):
         run_block(args, edge_pc, progress)
     elif getattr(args, "span", None) is not None:
         run_span(args, edge_pc, progress)
+    elif getattr(args, "course", None) is not None:
+        run_course(args, edge_pc, progress)
     elif args.column:
         run_column(args, edge_pc, progress)
     elif args.shell:

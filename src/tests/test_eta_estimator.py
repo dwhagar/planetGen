@@ -201,9 +201,37 @@ def test_the_overall_bar_falls_back_to_the_recorded_time_of_the_running_step():
     assert view["overall_value"] == pytest.approx(50.0 / (50.0 + 170.0))
 
 
-def test_an_unrecorded_later_step_makes_the_overall_time_at_least():
-    view = generate_page.overall_view(_job(step_estimates=[100.0, None, 40.0]), 30.0, now=1050.0)
-    assert view["overall_remaining_label"].startswith("at least ")
+def test_an_unrecorded_later_step_is_counted_at_the_average_of_the_finished_ones():
+    # Step 2 of 3 running, 20 s into it; step 1 took 50 - 20 = 30 s; step 3 has no record: 30 s stands in for it.
+    job = _job(step=2, step_started_at=1030.0, elapsed_s=50.0, step_estimates=[30.0, 60.0, None])
+    view = generate_page.overall_view(job, 25.0, now=1050.0)
+    assert view["overall_value"] == pytest.approx(50.0 / (50.0 + 25.0 + 30.0))
+    assert view["overall_remaining_label"] == generate_page.remaining_label(55.0)
+
+
+def test_the_first_step_with_no_records_counts_each_later_step_as_long_as_its_own_total():
+    job = _job(step_estimates=[None, None, None])
+    view = generate_page.overall_view(job, 30.0, now=1050.0)
+    # 50 s done + 30 s left = 80 s for this step, and the same for each of the other two.
+    assert view["overall_value"] == pytest.approx(50.0 / (50.0 + 30.0 + 80.0 + 80.0))
+
+
+def test_the_overall_time_left_only_equals_the_running_ones_on_the_last_step():
+    job = _job(step=2, step_started_at=1030.0, elapsed_s=50.0, step_estimates=[30.0, None, None])
+    middle = generate_page.overall_view(job, 25.0, now=1050.0)
+    assert middle["overall_remaining_label"] != generate_page.remaining_label(25.0)
+    last = generate_page.overall_view({**job, "step": 3}, 25.0, now=1050.0)
+    assert last["overall_remaining_label"] == generate_page.remaining_label(25.0)
+
+
+def test_the_overall_bar_counts_every_stage_of_the_job_not_every_step():
+    stages = [{"n": n, "step": step, "label": f"s{n}", "skipped": reason}
+              for n, (step, reason) in enumerate([(1, None), (2, None), (3, None), (3, None), (3, "not asked"), (3, None)], 1)]
+    job = _job(steps=["a", "b", "c"], stages=stages, step=3, step_started_at=1000.0, elapsed_s=70.0,
+               progress={"stage": {"index": 2, "started_at": 1060.0}}, stage_estimates=[10.0, 10.0, 20.0, 30.0, 0.0, 40.0])
+    view = generate_page.overall_view(job, 5.0, now=1070.0)
+    # Stage 4 of 6 runs (10 s in, 5 s left); stage 5 is skipped, stage 6 is expected at 40 s.
+    assert view["overall_value"] == pytest.approx(70.0 / (70.0 + 5.0 + 40.0))
 
 
 def test_the_overall_bar_says_estimating_without_any_time_for_the_running_step():

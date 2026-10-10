@@ -347,8 +347,8 @@ galaxy_shape = sa.Table(
     sa.Column('arm_count', mysql.INTEGER(), nullable=False),
     sa.Column('pitch_angle_rad', mysql.DOUBLE(), nullable=False),
     sa.Column('arm_amplitude', mysql.DOUBLE(), nullable=False),
-    sa.Column('arm_level', mysql.DOUBLE(), nullable=False, server_default='1'),
-    sa.Column('core_amplitude', mysql.DOUBLE(), nullable=False, server_default='0'),
+    sa.Column('arm_level', mysql.DOUBLE(), server_default=sa.text('1'), nullable=False),
+    sa.Column('core_amplitude', mysql.DOUBLE(), server_default=sa.text('0'), nullable=False),
     sa.Column('spiral_reference_radius_pc', mysql.DOUBLE(), nullable=False),
     sa.Column('spiral_reference_angle_rad', mysql.DOUBLE(), nullable=False),
     sa.Column('k_norm', mysql.DOUBLE(), nullable=False),
@@ -814,6 +814,7 @@ phenomenon_scatter = sa.Table(
     sa.Column('epoch_unix', mysql.DOUBLE(), nullable=True),
     sa.Column('mass_solar', mysql.DOUBLE(), nullable=True),
     sa.Index('idx_phenomenon_scatter_address', 'ring_index', 'layer_index', 'ring_slot_index'),
+    sa.Index('idx_phenomenon_scatter_class', 'kind', 'subtype', 'mass_solar'),
     sa.CheckConstraint("`kind` in ('black-hole','neutron-star','planetary-nebula','supernova-remnant','hypervelocity-star','quasar')", name='chk_phenomenon_scatter_kind'),
     mysql_engine="InnoDB",
 )
@@ -1194,6 +1195,16 @@ sector_stats = sa.Table(
 )
 
 
+sector_system_counts = sa.Table(
+    'sector_system_counts',
+    metadata,
+    sa.Column('sector_id', mysql.BIGINT(unsigned=True), primary_key=True, nullable=False),
+    sa.Column('system_count', mysql.INTEGER(unsigned=True), nullable=False),
+    sa.Index('idx_sector_system_counts_count', 'system_count', 'sector_id'),
+    mysql_engine="InnoDB",
+)
+
+
 sectors = sa.Table(
     'sectors',
     metadata,
@@ -1328,11 +1339,12 @@ star_systems = sa.Table(
     sa.Index('fk_star_systems_inside_nebula', 'inside_nebula_id'),
     sa.Index('fk_star_systems_inside_remnant', 'inside_remnant_id'),
     sa.Index('ft_star_systems_name', 'name', mysql_prefix='FULLTEXT'),
+    sa.Index('idx_star_systems_binary_name', 'is_binary', 'name', 'id'),
     sa.Index('idx_star_systems_binary_next_update_due', 'binary_next_update_due'),
     sa.Index('idx_star_systems_modified_at', 'modified_at'),
     sa.Index('idx_star_systems_name', 'name'),
     sa.Index('idx_star_systems_next_update_due', 'next_update_due'),
-    sa.Index('idx_star_systems_quadrant', 'quadrant'),
+    sa.Index('idx_star_systems_quadrant', 'quadrant', 'name', 'id'),
     sa.Index('idx_star_systems_sector_id', 'sector_id'),
     sa.Index('idx_star_systems_system_config_id', 'system_config_id'),
     sa.Index('uq_star_systems_uid', 'uid', unique=True),

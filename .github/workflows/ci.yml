@@ -1,20 +1,24 @@
 name: CI
 
-# Manual only (Boss, 2026-10-10): the test legs no longer run on a push or a
-# pull request. Start them by hand: Actions > CI > Run workflow (or the API's
-# workflow_dispatch), on main or any branch. The jobs are unchanged, so a
-# manual run behaves as a push run did. stamp-version.yml and
+# Runs on its own only for a push to main (a merge, and the "Release x.y.z"
+# commit stamp-version.yml pushes right after it). It does not run on a
+# pull request or on a push to any other branch. To test any other branch,
+# start it by hand: Actions > CI > Run workflow (workflow_dispatch), and
+# pick the branch. The jobs are unchanged. stamp-version.yml and
 # release-note.yml still run on their own.
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
-# A new push to a PR cancels that PR's still-running CI, so self-hosted
-# runners aren't busy with superseded commits. Runs on main (and runs
-# started by hand) each get a group of their own: they always finish, and
-# one stuck on a runner that went away never holds the next one back.
+# One run per workflow and branch: a newer run on the same ref cancels the
+# older one that is still going (a merge's CI is cancelled by the stamp
+# commit right behind it). Cancelled runs stay in the Actions history; GitHub
+# has no setting to delete them.
 concurrency:
-  group: ci-${{ github.event_name == 'pull_request' && github.ref || github.run_id }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 # Where jobs run: see docs/ci-runners.md. Every job runs on GitHub's
 # machines (ubuntu-latest, macos-latest) unless the

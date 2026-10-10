@@ -38,7 +38,7 @@ import time
 import pymysql
 
 from planetgen.db.store import (
-    escape_like, get_connection, get_galaxy_bounds, get_galaxy_shape, sector_deletions, surrounding_cloud,
+    STATEMENT_TIMEOUT_ERRORS, escape_like, get_connection, get_galaxy_bounds, get_galaxy_shape, sector_deletions, surrounding_cloud,
 )
 from planetgen.db import countcache
 from planetgen.physics import constants
@@ -68,7 +68,9 @@ from planetgen.galaxy.viewport import (
 from planetgen.galaxy.drill import (
     DRILL_TOP, DrillBlock, drill_chain_of, drill_wedge_count, format_drill_key, parse_drill_key,
 )
-from planetgen.db.corridor import positions_near_segment, unknown_space_flags
+from planetgen.db.corridor import (
+    BypassBudgetExceeded, UnknownEdges, generated_cells, positions_near_segment, unknown_cells,
+)
 from planetgen.galaxy.nav_graph import build_route_graph, shortest_path
 from planetgen.galaxy.navigation import (
     FRAME_GALACTIC, FRAME_SECTOR, FRAME_SYSTEM, course_between, fold_travel_times, route_fold_times, route_warp_times,
@@ -78,7 +80,8 @@ from planetgen.physics.constants import SPECTRAL_CLASS_COLORS
 from planetgen.generation.evolution import life_stage_from_paragraphs
 from planetgen.tuning import (
     DEFAULT_SECTOR_EDGE_LY, HABITABLE_PLANET_CLASSES, NAV_ADJACENCY_K, NAV_CORRIDOR_FRACTION, NAV_CORRIDOR_MAX_LY,
-    NAV_CORRIDOR_MAX_SYSTEMS, NAV_CORRIDOR_MIN_LY, NAV_CORRIDOR_START_MAX_LY, NAV_ISLAND_LINKS, PLANET_CLASSES,
+    NAV_BYPASS_MAX_EDGES, NAV_CORRIDOR_MAX_SYSTEMS, NAV_CORRIDOR_MIN_LY, NAV_CORRIDOR_START_MAX_LY,
+    NAV_ISLAND_LINKS, PLANET_CLASSES,
 )
 from planetgen.physics.units import ly_to_pc, milliparsecs_to_ly, mpc_to_pc, pc_to_ly
 
@@ -109,7 +112,7 @@ def open_readonly(config=None, statement_timeout_s=None):
 
 
 SECTOR_SORTS = {
-    "name": "sec.name", "systems": "system_count", "density": "(COUNT(ss.id) / POW(sec.edge_mpc, 3))",
+    "name": "sec.name", "systems": "system_count", "density": "(COALESCE(c.system_count, 0) / POW(sec.edge_mpc, 3))",
     "position": "quadrant", "distance": "sec.galactic_radius_pc",
 }
 """dict: The sort keys `list_sectors` accepts (the Sectors table's column
@@ -136,10 +139,27 @@ def _sector_quadrant_filter(quadrants):
     return f" WHERE {_SECTOR_QUADRANT_SQL} IN ({', '.join('?' for _ in quadrants)})", list(quadrants)
 
 
+def refresh_sector_system_counts(conn):
+    """
+    Makes `sector_system_counts` match the systems now (PERF.74): one `GROUP BY` on the sector index, in one
+    transaction so a reader sees the old counts or the new ones. `list_sectors` asks for it through `countcache`,
+    which runs it in the background and not more often than every 30 seconds.
+
+    Returns:
+        int: The sectors that hold at least one system.
+    """
+    conn.execute("DELETE FROM sector_system_counts")
+    cur = conn.execute("INSERT INTO sector_system_counts (sector_id, system_count) "
+                       "SELECT sector_id, COUNT(*) FROM star_systems WHERE sector_id IS NOT NULL GROUP BY sector_id")
+    conn.commit()
+    return cur.rowcount
+
+
 def list_sectors(conn, limit=None, offset=None, sort=None, descending=False, quadrants=()):
     """
     Returns every sector, with its edge length (converted to light-years)
-    and how many systems it contains, nearest the galactic core first
+    and how many systems it contains (as of the last refresh of
+    `sector_system_counts`, `refresh_sector_system_counts`), nearest the galactic core first
     (`galactic_radius_pc`); sectors never placed in a galaxy have no
     distance and come last, by name.
 
@@ -171,16 +191,13 @@ def list_sectors(conn, limit=None, offset=None, sort=None, descending=False, qua
         column = SECTOR_SORTS[sort]
         unplaced_last = "sec.center_x_pc IS NULL, " if sort in ("density", "distance", "position") else ""
         order = f"{unplaced_last}{column} {'DESC' if descending else 'ASC'}, " + order
+    _counted(conn, ["sector_system_counts"], refresh_sector_system_counts, lambda c: 0)
     query = f"""
         SELECT sec.id, sec.name, sec.edge_mpc, sec.center_x_pc, sec.center_y_pc, sec.center_z_pc,
                sec.galactic_radius_pc, sec.ring_index, sec.layer_index, sec.ring_slot_index,
-               COUNT(ss.id) AS system_count, {_SECTOR_QUADRANT_SQL} AS quadrant
+               COALESCE(c.system_count, 0) AS system_count, {_SECTOR_QUADRANT_SQL} AS quadrant
         FROM sectors sec
-        LEFT JOIN star_systems ss ON ss.sector_id = sec.id{where}
-        -- Every selected column, not just the key: MariaDB's
-        -- ONLY_FULL_GROUP_BY doesn't see columns that depend on sec.id.
-        GROUP BY sec.id, sec.name, sec.edge_mpc, sec.center_x_pc, sec.center_y_pc, sec.center_z_pc,
-                 sec.galactic_radius_pc, sec.ring_index, sec.layer_index, sec.ring_slot_index
+        LEFT JOIN sector_system_counts c ON c.sector_id = sec.id{where}
         ORDER BY {order}
         """
     if limit is not None:
@@ -205,9 +222,26 @@ def list_sectors(conn, limit=None, offset=None, sort=None, descending=False, qua
     ]
 
 
-COUNT_FALLBACK_CAP = 50000
-"""int: The most a request counts itself when the stored count isn't there yet (PERF.64): `count_*` answers with
-at most this many, or with the table's estimated size when nothing filters it."""
+COUNT_FALLBACK_CAP = 10001
+"""int: The most a request counts itself when the stored count isn't there yet (PERF.64, PERF.77): `count_*`
+counts to this many and stops (30 ms where the full count took 6 s), answering `CappedCount(10000)` when it got
+there, or with the table's estimated size when nothing filters it."""
+
+
+class CappedCount(int):
+    """A count that stopped at `COUNT_FALLBACK_CAP`: there are at least this many (shown "10,000+"). The API
+    sends it as `total` with `total_capped: true`; the exact figure replaces it once the stored count is made."""
+
+    capped = True
+
+
+def _capped(n):
+    return CappedCount(COUNT_FALLBACK_CAP - 1) if n >= COUNT_FALLBACK_CAP else n
+
+
+def is_capped(count):
+    """Whether `count` (from a `count_*` function) is a `CappedCount`."""
+    return bool(getattr(count, "capped", False))
 
 
 def _estimated_rows(conn, table):
@@ -245,8 +279,8 @@ def count_sectors(conn, quadrants=()):
     def estimate(c):
         if not where:
             return _estimated_rows(c, "sectors")
-        return c.execute(f"SELECT COUNT(*) AS n FROM (SELECT 1 FROM sectors sec{where} LIMIT ?) c",
-                         list(params) + [COUNT_FALLBACK_CAP]).fetchone()["n"]
+        return _capped(c.execute(f"SELECT COUNT(*) AS n FROM (SELECT 1 FROM sectors sec{where} LIMIT ?) c",
+                                 list(params) + [COUNT_FALLBACK_CAP]).fetchone()["n"])
 
     return _counted(conn, ["count_sectors", list(quadrants)], exact, estimate)
 
@@ -333,7 +367,7 @@ def _systems_filter_clause(star_type_prefix, sector_id, binary=None, octants=(),
 
 
 def list_systems(conn, star_type_prefix=None, sector_id=None, limit=None, offset=None, sort="name",
-                 descending=False, binary=None, octants=(), in_sector=None):
+                 descending=False, binary=None, octants=(), in_sector=None, after=None):
     """
     Returns systems, optionally filtered by star type and/or sector.
 
@@ -359,6 +393,9 @@ def list_systems(conn, star_type_prefix=None, sector_id=None, limit=None, offset
         octants (iterable[str]): Keep only systems in these sector octants.
         in_sector (bool, optional): Keep only systems in a sector (True) or
             standalone ones (False).
+        after (int, optional): A system's row ID: with `sort="name"` the page starts after that system (a
+            keyset page, PERF.75: the rows before it are not read and `offset` is ignored). Other sorts, and a
+            system that is gone, use `offset`.
 
     Returns:
         list[dict]: One row per matching system, with `id`, `name`,
@@ -374,6 +411,17 @@ def list_systems(conn, star_type_prefix=None, sector_id=None, limit=None, offset
     join_sql, where_sql, params = _systems_filter_clause(star_type_prefix, sector_id, binary, octants, in_sector)
     column = SYSTEM_SORTS[sort]
     direction = "DESC" if descending else "ASC"
+    if after is not None and limit is not None and sort == "name":
+        previous = conn.execute("SELECT name FROM star_systems WHERE id = ?", (after,)).fetchone()
+        if previous is not None:
+            comparison = "<" if descending else ">"
+            where_sql = _and_where(where_sql, f"(ss.name {comparison} ? OR (ss.name = ? AND ss.id > ?))")
+            params = params + [previous["name"], previous["name"], after]
+            offset = 0
+    if (limit is not None and not join_sql and sector_id is None and in_sector is None
+            and sort in _GROUP_WALK_SORTS):
+        rows = _systems_by_group(conn, sort, descending, where_sql, params, limit, offset or 0)
+        return _system_rows(conn, rows)
     nulls_last = f"{column} IS NULL, " if sort in ("sector", "octant") else ""
     # DISTINCT only matters when the star join can repeat a system; without it the sort can stop at the page (PERF.64).
     distinct = "DISTINCT " if join_sql else ""
@@ -388,7 +436,12 @@ def list_systems(conn, star_type_prefix=None, sector_id=None, limit=None, offset
         query += " LIMIT ? OFFSET ?"
         params = params + [limit, offset or 0]
 
-    rows = _with_star_types(conn, conn.execute(query, params).fetchall(), with_sector_name=True)
+    return _system_rows(conn, conn.execute(query, params).fetchall())
+
+
+def _system_rows(conn, rows):
+    """`list_systems`' dicts for `rows` (`star_systems` rows)."""
+    rows = _with_star_types(conn, rows, with_sector_name=True)
     return [
         {
             "id": r["id"], "name": r["name"], "sector_id": r["sector_id"], "sector_name": r["sector_name"],
@@ -396,6 +449,90 @@ def list_systems(conn, star_type_prefix=None, sector_id=None, limit=None, offset
         }
         for r in rows
     ]
+
+
+_GROUP_WALK_SORTS = ("sector", "octant", "binary")
+"""tuple[str]: The `list_systems` sorts served a group at a time by `_systems_by_group`."""
+
+_GROUP_WALK_COLUMNS = ("ss.id, ss.name, ss.sector_id, ss.quadrant, ss.is_binary, ss.binary_configuration, "
+                       "ss.binary_type")
+
+
+def _and_where(where_sql, condition):
+    """`where_sql` (empty or ` WHERE a AND b`) with `condition` added."""
+    return f"{where_sql} AND {condition}" if where_sql else f" WHERE {condition}"
+
+
+def _simple_groups(sort, descending):
+    """The groups of an octant or binary sort in order: `(condition_sql, params)`, the systems with none last."""
+    if sort == "binary":
+        return [("ss.is_binary = ?", [value]) for value in ((1, 0) if descending else (0, 1))]
+    labels = (("VIII", "VII", "VI", "V", "IV", "III", "II", "I") if descending else
+              ("I", "II", "III", "IV", "V", "VI", "VII", "VIII"))
+    return [("ss.quadrant = ?", [label]) for label in labels] + [("ss.quadrant IS NULL", [])]
+
+
+def _read_group(conn, where_sql, params, condition, group_params, need, offset):
+    return conn.execute(
+        f"SELECT {_GROUP_WALK_COLUMNS} FROM star_systems ss{_and_where(where_sql, condition)} "
+        f"ORDER BY ss.name, ss.id LIMIT ? OFFSET ?", list(params) + group_params + [need, offset]).fetchall()
+
+
+def _systems_by_group(conn, sort, descending, where_sql, params, limit, offset):
+    """
+    One page of `list_systems` sorted by sector, octant or binary, without sorting the table (PERF.70): the
+    sort is `<group>, name, id` with the systems that have no sector or octant last, so the page is found by
+    counting group after group (an index range each: `idx_star_systems_sector_id`, `idx_star_systems_quadrant`,
+    `idx_star_systems_binary_name`) until `offset` is used up, then reading the rows from the group it lands in
+    and the groups after it. The sectors are taken in chunks, counted by one query per chunk.
+
+    Returns:
+        list: `star_systems` rows, `limit` at most.
+    """
+    rows = []
+
+    def take(condition, group_params):
+        nonlocal offset
+        rows.extend(_read_group(conn, where_sql, params, condition, group_params, limit - len(rows), offset))
+        offset = 0
+        return len(rows) >= limit
+
+    if sort != "sector":
+        for condition, group_params in _simple_groups(sort, descending):
+            if offset:
+                n = conn.execute(f"SELECT COUNT(*) AS n FROM star_systems ss{_and_where(where_sql, condition)}",
+                                 list(params) + group_params).fetchone()["n"]
+                if n <= offset:
+                    offset -= n
+                    continue
+            if take(condition, group_params):
+                break
+        return rows
+
+    direction = "DESC" if descending else "ASC"
+    start, size = 0, 20
+    while True:
+        ids = [r["id"] for r in conn.execute(
+            f"SELECT id FROM sectors ORDER BY name {direction}, id {direction} LIMIT ? OFFSET ?",
+            (size, start)).fetchall()]
+        if not ids:
+            break
+        marks = ", ".join("?" for _ in ids)
+        counted = {r["sector_id"]: r["n"] for r in conn.execute(
+            f"SELECT ss.sector_id, COUNT(*) AS n FROM star_systems ss{_and_where(where_sql, f'ss.sector_id IN ({marks})')} "
+            f"GROUP BY ss.sector_id", list(params) + ids).fetchall()}
+        for sector in ids:
+            n = counted.get(sector, 0)
+            if n <= offset:
+                offset -= n
+                continue
+            if take("ss.sector_id = ?", [sector]):
+                return rows
+        start += len(ids)
+        size = min(size * 2, 500)
+    take("ss.sector_id IS NULL", [])
+    return rows
+    return rows
 
 
 _STAR_TYPE_COLUMNS = {"single": "single_star_type", "primary": "primary_star_type",
@@ -490,8 +627,8 @@ def count_systems(conn, star_type_prefix=None, sector_id=None, binary=None, octa
     def estimate(c):
         if not join_sql and not where_sql:
             return _estimated_rows(c, "star_systems")
-        return c.execute(f"SELECT COUNT(*) AS n FROM (SELECT DISTINCT ss.id FROM star_systems ss{join_sql}{where_sql} "
-                         f"LIMIT ?) c", list(params) + [COUNT_FALLBACK_CAP]).fetchone()["n"]
+        return _capped(c.execute(f"SELECT COUNT(*) AS n FROM (SELECT DISTINCT ss.id FROM star_systems ss{join_sql}{where_sql} "
+                                 f"LIMIT ?) c", list(params) + [COUNT_FALLBACK_CAP]).fetchone()["n"])
 
     return _counted(conn, ["count_systems", star_type_prefix, sector_id, binary, list(octants), in_sector],
                     exact, estimate)
@@ -836,7 +973,7 @@ def _longest_hop(path, positions):
     return max((math.dist(positions[a], positions[b]) for a, b in zip(path, path[1:])), default=0.0)
 
 
-def _galaxy_route(conn, origin_position, destination_position, from_key, to_key, adjacency_k):
+def _galaxy_route(conn, origin_position, destination_position, from_key, to_key, adjacency_k, unknown_edges=None):
     """
     The cross-sector route between two galaxy-frame positions, searched among
     the systems near the straight line between them instead of every placed
@@ -847,6 +984,9 @@ def _galaxy_route(conn, origin_position, destination_position, from_key, to_key,
     the half-width -- a hop that long may be hugging the corridor's edge with
     stepping stones just outside it. A corridor holding more than
     `NAV_CORRIDOR_MAX_SYSTEMS` is not widened. The route is found with A*.
+
+    With `unknown_edges` (`corridor.UnknownEdges`, NAV.48's bypass test) a hop through an uncharted
+    sector may not be used, so the answer is `None` when there is no route through known space.
 
     Returns:
         tuple: `(positions, found)`: the positions the graph was built from
@@ -861,7 +1001,9 @@ def _galaxy_route(conn, origin_position, destination_position, from_key, to_key,
         positions[from_key] = origin_position
         positions[to_key] = destination_position
         graph = build_route_graph(positions, adjacency_k, NAV_ISLAND_LINKS)
-        found = shortest_path(graph, from_key, to_key, positions)
+        found = shortest_path(
+            graph, from_key, to_key, positions,
+            blocked=None if unknown_edges is None else (lambda a, b: unknown_edges(positions[a], positions[b])))
         settled = (found is not None and _longest_hop(found[0], positions) <= half_width / 2.0)
         if settled or half_width >= NAV_CORRIDOR_MAX_LY or len(positions) > NAV_CORRIDOR_MAX_SYSTEMS:
             return positions, found
@@ -910,8 +1052,26 @@ def _hop_course(hop, places, galaxy_frame, local_positions):
             "frame": course.frame}
 
 
+def _bypass_route(conn, origin_position, destination_position, from_key, to_key, adjacency_k):
+    """
+    NAV.48's bypass test: whether a route exists that crosses no uncharted sector, and how long it is.
+
+    Returns:
+        dict: `found` (a route through known space exists), `distance_ly` (its length, else `None`) and
+            `checked` (false when the search gave up after `tuning.NAV_BYPASS_MAX_EDGES` hops: the answer is
+            then unknown and `found` is false).
+    """
+    try:
+        _positions, found = _galaxy_route(conn, origin_position, destination_position, from_key, to_key,
+                                          adjacency_k, unknown_edges=UnknownEdges(conn, NAV_BYPASS_MAX_EDGES))
+    except BypassBudgetExceeded:
+        return {"found": False, "distance_ly": None, "checked": False}
+    return {"found": found is not None, "distance_ly": found[1] if found is not None else None, "checked": True}
+
+
 def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
-                 from_kind="system", to_kind="system", from_type=None, to_type=None, stay_minutes=0.0):
+                 from_kind="system", to_kind="system", from_type=None, to_type=None, stay_minutes=0.0,
+                 chart=False):
     """
     Resolves full NAV information between two endpoints -- each either a
     star system or a standalone phenomenon (nebula/asteroid field/black
@@ -954,6 +1114,10 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
         stay_minutes (float): NAV.11: the time spent at each system the
             route stops at between the two ends (default 0); only the
             route's total times use it.
+        chart (bool): NAV.48: each hop through unknown space also lists its
+            uncharted `unknown_cells`, and a route with such a hop gets a
+            `bypass` entry (`_bypass_route`: whether a route through known
+            space exists). `nav_chart_plan` asks for these.
 
     Returns:
         dict: `scope` (`"sector"` or `"galaxy"`), `direct` (a
@@ -1052,6 +1216,7 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
                                       if sector_offset is not None else (origin_position, destination_position))
             positions, found = _galaxy_route(conn, search_from, search_to, from_key, to_key, adjacency_k)
             galaxy_frame = positions
+            search_ends = (search_from, search_to)
         if found is not None:
             path, distance_ly = found
             route_positions = {node_id: positions[node_id] for node_id in path}
@@ -1062,10 +1227,15 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
                 hop.update(_hop_course(hop, places, galaxy_frame, positions))
                 hop["warp_times"] = [leg._asdict() for leg in warp_travel_times(hop["distance_ly"])]
                 hop["fold_times"] = [leg._asdict() for leg in fold_travel_times(hop["distance_ly"])]
+            bypass = None
             if galaxy_frame is not None:
-                flags = unknown_space_flags(conn, [galaxy_frame[node_id] for node_id in path])
-                for hop, flag in zip(hops, flags):
-                    hop["unknown_space"] = flag
+                cells = unknown_cells(conn, [galaxy_frame[node_id] for node_id in path])
+                for hop, hop_cells in zip(hops, cells):
+                    hop["unknown_space"] = bool(hop_cells)
+                    if chart:
+                        hop["unknown_cells"] = hop_cells
+                if chart and any(cells):
+                    bypass = _bypass_route(conn, *search_ends, from_key, to_key, adjacency_k)
                 if sector_offset is not None:
                     route_positions = {node_id: tuple(c - o for c, o in zip(position, sector_offset))
                                        for node_id, position in route_positions.items()}
@@ -1081,6 +1251,8 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
                 "warp_times": route_warp_times([hop["distance_ly"] for hop in hops], stay_minutes),
                 "fold_times": route_fold_times([hop["distance_ly"] for hop in hops], stay_minutes),
             }
+            if bypass is not None:
+                route["bypass"] = bypass
 
     return {
         "scope": scope,
@@ -1156,6 +1328,49 @@ def _nav_leg(kind, origin_ref, destination_ref, course):
         "kind": kind, "from": origin_ref, "to": destination_ref, "direct": course,
         "warp_times": warp_travel_times(course.distance_ly), "fold_times": fold_travel_times(course.distance_ly),
     }
+
+
+def nav_chart_plan(conn, from_ref, to_ref, border=False, adjacency_k=NAV_ADJACENCY_K):
+    """
+    NAV.48: the uncharted sectors that block a course, to be generated so it can be plotted again.
+
+    The route is the one `nav_course` finds; its hops through unknown space name the cells to chart
+    (the cells of those hops only, not every cell on the straight line), left out where they lie
+    outside the galaxy's outline. `border` adds the cells sharing a face with those that are not
+    charted either.
+
+    Returns:
+        dict: `unknown_hops` (how many), `cells` (`(ring, layer, slot)` to chart, in the order the
+            route enters them), `outside_galaxy` (uncharted cells past the outline, never offered),
+            `route_distance_ly` and `bypass` (`_bypass_route`'s answer, `None` when no hop is unknown).
+
+    Raises:
+        ValueError: For a bad reference or a missing row.
+        NavUnavailable: As `nav_between`, and for a sector endpoint.
+    """
+    origin, destination = _nav_endpoint(conn, from_ref), _nav_endpoint(conn, to_ref)
+    if origin["anchor"] == destination["anchor"] and origin["anchor"][0] == "system":
+        return {"unknown_hops": 0, "cells": [], "outside_galaxy": 0, "route_distance_ly": 0.0, "bypass": None}
+    from_kind, from_id, from_type = origin["anchor"]
+    to_kind, to_id, to_type = destination["anchor"]
+    result = nav_between(conn, from_id, to_id, adjacency_k, from_kind=from_kind, to_kind=to_kind,
+                         from_type=from_type, to_type=to_type, chart=True)
+    route = result["route"]
+    hops = [hop for hop in (route["hops"] if route else []) if hop.get("unknown_space")]
+    bounds = get_galaxy_bounds(conn)
+    cells = list(dict.fromkeys(cell for hop in hops for cell in hop["unknown_cells"]))
+    inside = [cell for cell in cells if bounds.contains(cell[0], cell[1])]
+    outside = len(cells) - len(inside)
+    if border and inside:
+        listed = set(inside)
+        around = dict.fromkeys(
+            near for cell in inside for near in neighbor_addresses(*cell)
+            if bounds.contains(near[0], near[1]) and near not in listed)
+        charted = generated_cells(conn, set(around))
+        inside += [cell for cell in around if cell not in charted]
+    return {"unknown_hops": len(hops), "cells": inside, "outside_galaxy": outside,
+            "route_distance_ly": route["distance_ly"] if route else 0.0,
+            "bypass": route.get("bypass") if route else None}
 
 
 def nav_course(conn, from_ref, to_ref, adjacency_k=NAV_ADJACENCY_K, stay_minutes=0.0):
@@ -4177,6 +4392,25 @@ def galaxy_scattered_points_in_box(conn, lo, hi, edge_pc, limit, coarse):
     return points[:limit]
 
 
+TILE_PIECE_SECONDS = 3.0
+"""float: The statement time limit of each piece of a Galaxy Map tile (PERF.76): placed sectors, filled cells,
+clouds, bright stars, generated stars, points and scattered points. A piece that runs past it is left out of
+the tile, which is served marked `incomplete`."""
+
+
+def _tile_piece(conn, incomplete, name, compute, default):
+    """One piece of a tile under `TILE_PIECE_SECONDS`: its value, or `default` (and `name` added to
+    `incomplete`) when the database stopped it for taking too long."""
+    try:
+        with conn.statement_limit(TILE_PIECE_SECONDS):
+            return compute()
+    except pymysql.err.OperationalError as exc:
+        if exc.args and exc.args[0] in STATEMENT_TIMEOUT_ERRORS:
+            incomplete.append(name)
+            return default
+        raise
+
+
 def galaxy_tiles(conn, tile_keys):
     """
     The contents of each requested cube tile -- the interactive 3D Galaxy
@@ -4234,37 +4468,45 @@ def galaxy_tiles(conn, tile_keys):
     tiles = {}
     for key, (level, ix, iy, iz) in parsed:
         lo, hi = tile_bounds_pc(level, ix, iy, iz)
-        placed = galaxy_sectors_in_box(conn, lo, hi)
+        incomplete = []
+
+        def piece(name, compute, default):
+            return _tile_piece(conn, incomplete, name, compute, default)
+
+        placed = piece("placed", lambda: galaxy_sectors_in_box(conn, lo, hi), [])
         exclude_addresses = {
             address for address in (sector_address(sector) for sector in placed) if address is not None
         }
         planned = planned_slots_in_tile(
             level, ix, iy, iz, edge_pc, shape, expected_system_count, exclude_addresses, bounds,
         )
-        filled = galaxy_filled_in_box(conn, lo, hi, hi[0] - lo[0], edge_pc)
-        clouds = galaxy_clouds_in_box(conn, lo, hi, margins=cloud_margins)
-        stars = galaxy_bright_stars_in_box(conn, lo, hi, edge_pc, brightest=brightest)
+        filled = piece("filled", lambda: galaxy_filled_in_box(conn, lo, hi, hi[0] - lo[0], edge_pc),
+                       {"g": 1, "cells": []})
+        clouds = piece("clouds", lambda: galaxy_clouds_in_box(conn, lo, hi, margins=cloud_margins), [])
+        stars = piece("stars", lambda: galaxy_bright_stars_in_box(conn, lo, hi, edge_pc, brightest=brightest), [])
         floor = generated_star_floor_sol(level)
         generated = []
         if floor is not None:
             sector_count = len(filled["cells"]) if filled["g"] == 1 else sum(cell[3] for cell in filled["cells"])
             limit, per_sector = generated_star_budget(level, sector_count)
-            generated = galaxy_generated_stars_in_box(conn, lo, hi, floor, sector_count, limit=limit,
-                                                      per_sector=per_sector)
-        points = (galaxy_point_phenomena_in_box(
-            conn, lo, hi, limit=GALAXY_TILE_POINT_BUDGET.get(level, GALAXY_TILE_MAX_POINTS))
+            generated = piece("generated", lambda: galaxy_generated_stars_in_box(
+                conn, lo, hi, floor, sector_count, limit=limit, per_sector=per_sector), [])
+        points = (piece("points", lambda: galaxy_point_phenomena_in_box(
+            conn, lo, hi, limit=GALAXY_TILE_POINT_BUDGET.get(level, GALAXY_TILE_MAX_POINTS)), [])
             if level >= POINT_PHENOMENON_MIN_LEVEL else [])
         # MAP.164: scattered ones not yet built into a sector, the biggest
         # classes at every level so the largest show from the whole galaxy.
         coarse_scatter = level < POINT_PHENOMENON_MIN_LEVEL
-        points = points + galaxy_scattered_points_in_box(
+        points = points + piece("scattered", lambda: galaxy_scattered_points_in_box(
             conn, lo, hi, edge_pc,
             GALAXY_TILE_MAX_SCATTERED_POINTS if coarse_scatter else GALAXY_TILE_POINT_BUDGET.get(level, GALAXY_TILE_MAX_POINTS),
-            coarse_scatter)
+            coarse_scatter), [])
         tiles[key] = {
             "placed": placed, "planned": planned, "filled": filled, "clouds": clouds, "stars": stars,
             "generated": generated, "points": points,
         }
+        if incomplete:
+            tiles[key]["incomplete"] = incomplete
 
     return {"tiles": tiles, "edge_pc": edge_pc, "has_shape": shape is not None}
 

@@ -123,3 +123,26 @@ def test_without_a_lock_service_every_request_builds(api, monkeypatch):
     singleflight.release(["a"])  # no error
     assert KEY in tilecache.fetch_tiles("sfdb", [KEY])["tiles"]
     assert api.tile_calls == [[KEY]]
+
+
+def test_an_incomplete_tile_is_served_but_not_kept(monkeypatch, tmp_path):
+    """PERF.76: a tile with a piece the database was too busy to give is built again by the next request."""
+    calls = []
+
+    def changes(db, since=None):
+        return {"stamp": "00000000000000aa", "state": "state", "full": since is None, "tiles": [], "stages": []}
+
+    def tiles(db, keys):
+        calls.append(list(keys))
+        return {"tiles": {key: {"clouds": [], "stars": [], "generated": [], "points": [], "incomplete": ["scattered"]}
+                          for key in keys}, "edge_pc": 3.5, "has_shape": True}
+
+    monkeypatch.setattr(tilecache, "get_galaxy_changes", changes)
+    monkeypatch.setattr(tilecache, "get_galaxy_tiles", tiles)
+    monkeypatch.setattr(tilecache, "PRUNE_PROBABILITY", 0.0)
+    monkeypatch.setenv("PLANETGEN_TILE_CACHE_DIR", str(tmp_path / "tiles"))
+    tilecache.current_stamp("mydb", tilecache.cache_dir())
+    for _ in range(2):
+        got = tilecache.fetch_tiles("mydb", ["12/1/2/3"])
+        assert got["tiles"]["12/1/2/3"]["incomplete"] == ["scattered"] and got["cached"] == 0
+    assert len(calls) == 2
