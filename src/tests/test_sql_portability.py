@@ -44,7 +44,7 @@ VALUES_FUNCTION_ALLOWED = {
     "planetgen/db/store.py": {
         "occurrence_count", "first_object_table", "first_star_system_id", "first_object_id",
         "diminutive_index", "disk_scale_length_pc", "disk_scale_height_pc", "bulge_scale_radius_pc",
-        "bulge_amplitude", "arm_count", "pitch_angle_rad", "arm_amplitude", "spiral_reference_radius_pc",
+        "bulge_amplitude", "arm_count", "pitch_angle_rad", "arm_amplitude", "arm_level", "core_amplitude", "spiral_reference_radius_pc",
         "spiral_reference_angle_rad", "k_norm", "edge_pc", "expected_system_count_at_density_1",
         "outer_ring_index",
     },

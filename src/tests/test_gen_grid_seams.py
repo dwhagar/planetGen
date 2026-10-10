@@ -294,7 +294,9 @@ def test_stored_plan_bounds_match_the_computed_outline(mysql_config):
     _shape_, extents, outer = _plan("toy")
     argv = []
     for key, value in _TOY.items():
-        argv += [f"--{key.replace('_', '-')}", str(value)]
+        if key != "arm_amplitude":
+            argv += [f"--{key.replace('_', '-')}", str(value)]
+    argv += ["--arm-density", "1.4", "--interarm-density", "0.6"]  # the arm amplitude 0.4 in the density terms
     run_cli("plan", argv + ["--no-bright-stars"] + mysql_argv(mysql_config))
 
     conn = store.get_connection(mysql_config)

@@ -24,7 +24,7 @@ exists in the model (it is exponential), so the threshold is the edge.
 `relative_density` is `bulge(x, y, z) + thin(R, z) * arm_factor(R, theta)
 + thick(R, z)` (`galaxyDensity._raw_density`). At a fixed height `z` and
 cylindrical radius `R`, the bar bulge is largest along its long axis and
-`arm_factor` is at most `1 + arm_amplitude`, so
+`arm_factor` is at most `arm_level * (1 + arm_amplitude)`, so
 `bound_relative_density_at` (each term at its own maximum) is an upper
 bound on any slot in that ring and layer -- exact wherever the bulge or
 the arms are negligible, a hair high in the bar's arm-crossing rings. That
@@ -81,7 +81,7 @@ def _bound_raw_density_at(shape, r_cyl, z):
     thin = math.exp(-r_cyl / shape.disk_scale_length_pc) * _vertical(z, shape.disk_scale_height_pc)
     thick = (terms["thick_disk_amplitude"] * math.exp(-r_cyl / terms["thick_disk_scale_length_pc"])
              * _vertical(z, terms["thick_disk_scale_height_pc"]))
-    return bulge_bound(r_cyl, z, shape) + thin * (1.0 + shape.arm_amplitude) + thick
+    return bulge_bound(r_cyl, z, shape) + thin * shape.arm_level * (1.0 + shape.arm_amplitude) + thick
 
 
 def bound_relative_density_at(shape, r_cyl, z):
