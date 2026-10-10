@@ -3485,9 +3485,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Msun and one at 14 Msun, or at 5,000 and 9,000 Lsun, are different
   rows). With the grouped layers of PERF.57 the row records group sizes, layers visited
   and layers modified.
-  GEN.187 stage (2026-10-09): GEN.187 has landed (PR #1059): add one
-  galaxy_stages entry in generation/stages.py for Mass Star Scatter from
-  Neighborhood, and record its timing and layers like the other
+  GEN.187 stage (2026-10-10): no new stage needed. The existing backfill
+  stage is now labelled "Scatter the massive stars from the neighborhood"
+  (PR #1062); PERF.56 records its timing and layers like the other
   scatters.
 
 - [ ] **PERF.57 Skip empty stretches in a galactic scatter by combining layers into growing groups**
