@@ -13,16 +13,16 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.95 |
+| UX | UX.98 |
 | MAP | MAP.172 |
 | NAV | NAV.60 |
 | GEN | GEN.202 |
-| PERF | PERF.74 |
+| PERF | PERF.79 |
 | DB | DB.24 |
 | API | API.25 |
 | ADM | ADM.51 |
 | SEC | SEC.33 |
-| TEST | TEST.133 |
+| TEST | TEST.134 |
 | USR | USR.10 |
 | OPS | OPS.42 |
 | DOC | DOC.18 |
@@ -1045,9 +1045,14 @@ Parents marked "new parent" had no old number of their own.
 | PERF.68 | Measure the Galaxy Map tile queries on a big galaxy and make them fit the time limit (bug) | none | open |
 | PERF.69 | Store the Planets, Moons and Phenomena table counts like the Systems and Sectors counts (bug) | none | open |
 | PERF.70 | Sorting the Systems list by Sector or Octant on millions of rows must not sort them all (bug) | none | open |
-| PERF.71 | Research how to keep slow database calls on large data sets from timing out: queue, split, or answer in parts | none | open |
+| PERF.71 | Research how to keep slow database calls on large data sets from timing out: queue, split, or answer in parts | none | done, PR #1175 |
 | PERF.72 | Research the cost of a sector's gravity grid and where to cut between exact and aggregated sources | none | open |
 | PERF.73 | Cut the cost of writing the phenomenon rows to the database (now the biggest part of a scatter run) | none | open |
+| PERF.74 | Store a per-sector system count so the Sectors list does not count every system on each request | none | open |
+| PERF.75 | Keyset paging for the data tables: page forward by key, jump by value | none | open |
+| PERF.76 | Give each Galaxy Map tile piece its own time budget and serve an "incomplete" tile | none | open |
+| PERF.77 | Capped counts: "10,000 or more" where no stored count exists for a filter | none | open |
+| PERF.78 | A reserved warm worker for long admin operations, and the poll pattern for them | none | open |
 | POP.1 | Government ownership of systems | 12 (2026-09-24 01:32Z to 02:18Z); 9 (2026-09-24 01:57Z to 02:02Z); 7 (2026-09-24 02:25Z to 05:38Z); 6 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 15 (2026-09-30 16:44Z); 16 (2026-09-30 16:49Z); 17 (2026-09-30 16:51Z to 18:09Z); 34 (2026-09-30 18:14Z); 39 (2026-09-30 18:39Z to 18:41Z); 59 (2026-09-30 19:02Z to 19:17Z); 63 (2026-09-30 20:01Z to 20:27Z); 46 (2026-09-30 20:07Z); 50 (2026-09-30 20:08Z to 20:48Z); 51 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 (optional since 7.58.2, PR #180) |
 | POP.2 | Names for dominant species on living worlds | 13 (2026-09-24 01:32Z to 02:18Z); 10 (2026-09-24 01:57Z to 02:02Z); 8 (2026-09-24 02:25Z to 05:38Z); 7 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 16 (2026-09-30 16:44Z); 17 (2026-09-30 16:49Z); 18 (2026-09-30 16:51Z to 18:09Z); 35 (2026-09-30 18:14Z); 40 (2026-09-30 18:39Z to 18:41Z); 60 (2026-09-30 19:02Z to 19:17Z); 64 (2026-09-30 20:01Z to 20:27Z); 47 (2026-09-30 20:07Z); 51 (2026-09-30 20:08Z to 20:48Z); 52 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
 | POP.3 | Database of spacefaring species | 14 (2026-09-24 01:32Z to 02:18Z); 11 (2026-09-24 01:57Z to 02:02Z); 9 (2026-09-24 02:25Z to 05:38Z); 8 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 17 (2026-09-30 16:44Z); 18 (2026-09-30 16:49Z); 19 (2026-09-30 16:51Z to 18:09Z); 36 (2026-09-30 18:14Z); 41 (2026-09-30 18:39Z to 18:41Z); 61 (2026-09-30 19:02Z to 19:17Z); 65 (2026-09-30 20:01Z to 20:27Z); 48 (2026-09-30 20:07Z); 52 (2026-09-30 20:08Z to 20:48Z); 53 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
@@ -1194,6 +1199,9 @@ Parents marked "new parent" had no old number of their own.
 | UX.92 | A Bookmark button for planets, moons and belts | UX.45 | open |
 | UX.93 | No TODO code (like PERF.67 or NAV.42) appears anywhere a user can see it, with a test that fails if one does | none | open |
 | UX.94 | Gravity map wording: the legend, the mode names and the Map help text | none | open |
+| UX.95 | Tables show their rows first and fill the filter-menu counts a moment later | none | open |
+| UX.96 | A table that hits the statement limit says the database is busy and retries, instead of failing with a 502 | none | open |
+| UX.97 | Search results: each panel runs under its own time limit and is fetched on its own | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
@@ -1423,6 +1431,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.130 | test_the_scene_positions_at_the_epoch_match_the_stored_ones fails when a random system has comets (bug) | none | open |
 | TEST.131 | Tests for the gravity field evaluator: two bodies, Lagrange points, softening and the rotation curve | none | open |
 | TEST.132 | test_a_fill_after_a_layer_failed_mid_scatter_builds_no_leftover_star failed once in a full parallel run (bug) | none | open |
+| TEST.133 | A reusable big-galaxy query budget test: EXPLAIN every page and list query on 2,000,000 systems | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
