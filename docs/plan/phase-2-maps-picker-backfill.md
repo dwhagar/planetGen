@@ -231,8 +231,8 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.141 | Context around the selection: faint neighbours, and the sectors above and below |  | GitHub issues [#718](https://github.com/dwhagar/planetGen/issues/718) and [#716](https://github.com/dwhagar/planetGen/issues/716), one context view. The #716 bug label was overruled. |
 | MAP.142 | Nebulae have fuzzy, fading boundaries |  | GitHub issue [#713](https://github.com/dwhagar/planetGen/issues/713). |
 | MAP.143 | Color sectors by their number of habitable locations |  | GitHub issue [#717](https://github.com/dwhagar/planetGen/issues/717). |
-| GEN.129 | Multi-star systems of up to seven stars | GEN.128 | GitHub issue [#777](https://github.com/dwhagar/planetGen/issues/777). Build after the GEN.128 design. |
-| GEN.130 | Exotic star systems: a black hole, neutron star or similar at the center | GEN.128 | GitHub issue [#778](https://github.com/dwhagar/planetGen/issues/778). Build after the GEN.128 design. |
+| GEN.129 | Multi-star systems of up to seven stars |  | GitHub issue [#777](https://github.com/dwhagar/planetGen/issues/777). Build after the GEN.128 design. |
+| GEN.130 | Exotic star systems: a black hole, neutron star or similar at the center |  | GitHub issue [#778](https://github.com/dwhagar/planetGen/issues/778). Build after the GEN.128 design. |
 | DB.18 | Migration helpers for slow DDL: online indexes, instant columns and batched updates |  | Research: slow DDL for the big tables. |
 | ADM.43 | A full configuration page under Admin |  | GitHub issue [#515](https://github.com/dwhagar/planetGen/issues/515). |
 | ADM.44 | Web, Open Graph and SEO settings | ADM.43 | GitHub issue [#743](https://github.com/dwhagar/planetGen/issues/743). |

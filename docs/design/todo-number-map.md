@@ -631,7 +631,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.125 | Stand-alone facilities store a velocity | none | done, PR #782 |
 | GEN.126 | Run an orbital update as the last step of a generation run | none | done, PR #771 |
 | GEN.127 | A sector generated around a backfilled bright star gives that star a planetary system (bug) | none | done, PR #805 |
-| GEN.128 | Design: multi-star hierarchies and compact-object primaries | none | open |
+| GEN.128 | Design: multi-star hierarchies and compact-object primaries | none | done, PR #1186 |
 | GEN.129 | Multi-star systems of up to seven stars | none | open |
 | GEN.130 | Exotic star systems: a black hole, neutron star or similar at the center | none | open |
 | GEN.131 | Bright-star scatter logs how many stars it added to each layer, by type | none | done, PR #805 |
@@ -672,7 +672,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.166 | A mass_range argument on NeutronStar and BlackHole, and intermediate-mass black holes as their own kind | none | done, PR #866 |
 | GEN.167 | A lowest-mass option for the phenomenon scatter: --phenomenon-min-mass, default 20 solar masses | none | done, PR #866 |
 | GEN.168 | The sector fill draws the phenomena below the scatter cut | none | done, PR #866 |
-| GEN.169 | Decide the phenomenon scatter rates: regional factors and the 0.1% intermediate-mass black holes | none | open |
+| GEN.169 | Decide the phenomenon scatter rates: regional factors and the 0.1% intermediate-mass black holes | none | done, PR #1186 |
 | GEN.170 | Object ID layout: an 80-bit ID of birth sector, serial and body number, with pack, unpack, format and parse functions | none | done, PR #1017 |
 | GEN.171 | The sector fill gives object IDs by generation rank | none | done, PR #1055 |
 | GEN.172 | Run-time births get object IDs from the counters | none | done, PR #1075 |
@@ -1033,7 +1033,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.43 | Lazy word-salad names for phenomena named by object ID | none | done, PR #861 |
 | PERF.44 | Compute object uids in Python and write them with the row | none | done, PR #863 |
 | PERF.45 | Nearest-system links and containment as one later pass | none | done, PR #863 |
-| PERF.46 | Planets and moons: set the position once per body | none | open |
+| PERF.46 | Planets and moons: set the position once per body | none | done, PR #1186 |
 | PERF.47 | The PERF.31 benchmark records the buffer pool, table sizes and worker start-up cost | none | open |
 | PERF.48 | Low priority: a numeric-only INSERT formatter or C driver for bright_stars and phenomenon_scatter | none | open |
 | PERF.49 | Batch system-name reservation: remove the quadratic scan and the long-held registry locks (re-measure first) | none | done, PR #870 |
