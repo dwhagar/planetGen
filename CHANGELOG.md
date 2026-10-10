@@ -3,6 +3,7 @@
 ## [8.0.911] - 2026-10-10
 
 ### Changed
+- GEN.173, GEN.174: a planet, moon or belt added by an admin edit now gets a uid (it was saved with none), and after a delete the new body's uid skips ones its siblings already carry (it failed with IntegrityError 1062 on `uq_planets_uid`).
 - **Docs only:** GEN.87 (surface radiation dose, PR #985) is retired from the TODO list and the plans.
 - **Docs only:** Foundations lane 1 queue notes (ADM.28 and ADM.45 first, then the object-ID block and API.9); ADM.45 star mix decision.
 - **Docs only:** the lane queue puts GEN.170, API.9 (moved to Foundations lane 1) and MAP.153 first.
