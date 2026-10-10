@@ -2992,6 +2992,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the factors so the totals match his figures? And is the 0.1% share of
   intermediate-mass black holes intended? They carry 53% of the
   black-hole mass.
+  Note (2026-10-09): Superseded in part (Boss, 2026-10-10 03:01Z rush
+  job): the mass cut is now a user preset between 8 and 20 solar masses
+  (GEN.183, default 20) and the scatter runs in the five passes of
+  GEN.185; the rates above are still open.
   Prerequisites: none.
   Design: [docs/design/phenomenon-scatter-mass-cut.md](design/phenomenon-scatter-mass-cut.md)
 
@@ -3162,6 +3166,58 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (judged from the compound-Poisson tables) is refused with the reason,
   in the Generate page and the CLI.
   Prerequisites: none. Related: GEN.96, GEN.180.
+
+- [ ] **GEN.183 A mass cut the user sets: preset values on a slider from 8 to 20 solar masses**
+  Boss (2026-10-10 03:01Z): "Add the solar masses pass, user can specify
+  preset values on a slider between 8 and 20." Rush job for Foundations
+  lane 3, as fast as possible. Done: the phenomenon scatter's lowest
+  mass (galaxy_shape.phenomenon_min_mass_solar, --phenomenon-min-mass,
+  the settings file and the Generate page) is picked from a slider of
+  preset values between 8 and 20 solar masses; 20 stays the default (the
+  cut Boss accepted on 2026-10-09). Everything above the cut is
+  scattered galaxy-wide; everything below is drawn when its sector is
+  made, as built in GEN.166 to GEN.168. Open question for Boss (default:
+  presets 8, 10, 12, 14, 16, 18 and 20).
+  Prerequisites: none. Related: GEN.169, GEN.166, GEN.167, GEN.168,
+  PERF.18.
+
+- [ ] **GEN.184 A luminosity floor the user sets: presets from 2500 to 4 million solar luminosities, default 3000**
+  Boss (2026-10-10 03:01Z): "Change the luminosity code, the user has
+  preset settings, default is 3000 solar luminosities, user can choose
+  no lower than 2500, but goes up to 4 million in an exponential scale,
+  so the user has the best control (jumps of 100 solar luminosities)
+  near 2500 but ending with 500,000 jumps near the 4 million mark."
+  Done: the bright-star luminosity floor is one of a preset list that
+  starts at 2500 L_sun with steps of 100, grows exponentially and ends
+  at 4,000,000 L_sun with steps near 500,000; the default is 3000 L_sun.
+  This replaces the fixed 1000 L_sun floor (GEN.30) as the default and
+  sets 2500 as the lowest allowed. Open question for Boss (default: a
+  geometric ladder of about 60 presets built from the step rule, rounded
+  to 2 significant digits above 10,000, and a database already filled
+  below the new floor keeps its stars).
+  Prerequisites: none. Related: GEN.30, PERF.18, GEN.40, MAP.120.
+
+- [ ] **GEN.185 The scatter in five passes: mass-limit objects, mass-limit stars, brightest-star sector marks, the luminosity pass, then other phenomena**
+  Boss (2026-10-10 03:01Z) algorithm: (1) scatter quasars, stars and
+  black holes above the set mass limit; (2) scatter the stars above the
+  mass limit; (3) as each star scatters in step 2, mark its sector with
+  that star's luminosity in solar luminosities; (4) scatter the stars
+  over the luminosity limit, skipping every sector marked in step 3 with
+  a luminosity equal to or above the luminosity setting, because it
+  already holds a bright enough star; (5) scatter the other phenomena as
+  already discussed, with no comets and no rogue planets. Done: the
+  passes run in this order in one plan, the per-sector mark is stored
+  with the scatter (or computed in the pass) so step 4 can skip, and the
+  sector fill draws below the cuts as before. This changes the default
+  luminosity pass (it no longer adds a star to a sector that already has
+  one at or above the floor) and so the bright-star count; GEN.100's
+  scatter is passes 1, 2 and 5 here, and the 20 solar mass phenomenon
+  cut of phenomenon-scatter-mass-cut.md is now only the slider's default
+  (GEN.183). Open question for Boss (default: the mark is each sector's
+  brightest scattered star; a step 1 star counts as a step 2 star; a
+  reseed of the combined plan is expected).
+  Prerequisites: GEN.183, GEN.184. Related: GEN.100, GEN.166, GEN.167,
+  GEN.168, GEN.183, GEN.184, GEN.30, GEN.169, PERF.18.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
