@@ -416,7 +416,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.25 | Error tracebacks don't reach the console and the web log window (bug) | none | done, PR #560 |
 | ADM.26 | The bright-star backfill shows no progress bar on the web (bug) | none | done, PR #560 |
 | ADM.27 | Changing a planet's class doesn't regenerate its surface conditions (bug) | none | done, PR #448 |
-| ADM.28 | A simpler Generate page: layer specs, a Customize window and plain controls | none | open |
+| ADM.28 | A simpler Generate page: layer specs, a Customize window and plain controls | none | done, PR #991 |
 | ADM.29 | Fill a span of layers, rings or columns | none | done, PR #926 |
 | ADM.30 | Radial generation: a cylinder of N sectors around a point | none | done, PR #934 |
 | ADM.31 | Every generate action offers to show what it made on the Galaxy Map | none | done, PR #976 |
@@ -433,7 +433,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.42 | One settings model describes every config.json option | none | done, PR #912 |
 | ADM.43 | A full configuration page under Admin | none | open |
 | ADM.44 | Web, Open Graph and SEO settings | none | open |
-| ADM.45 | Prevalence fields take the override share directly and must total 100% | none | open |
+| ADM.45 | Prevalence fields take the override share directly and must total 100% | none | done, PR #991 |
 | ADM.46 | Generate page: a progress line and per-layer counts instead of one line per sector | none | dropped |
 | ADM.47 | Generating a neighbourhood from the Generate page shows no per-sector stats and looks slow or silent (bug) | none | done, PR #846 |
 | ADM.48 | Two test_api_auth_sweep tests fail: /admin/stats/galaxy-settings/<name> answers 302, not 403, to an unauthorised caller (bug) | none | done, PR #863 |
