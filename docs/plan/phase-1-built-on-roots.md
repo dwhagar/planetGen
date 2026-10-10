@@ -138,6 +138,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | UX.47 | A bookmark manager: list, rename, sort, group and delete | UX.46 |  |
 | UX.49 | Form fields as Shoelace components (sl-input, sl-select, sl-checkbox) across the site |  | Follows UX.40 (done): the fields themselves become Shoelace components. |
 | OPS.35 | A vendored-version lock file for the static libraries |  | Research: supply-chain record. |
+| OPS.41 | Put the site in an "updating" state while update.sh runs long database migrations |  | Lane 1 report 2026-10-10. |
 
 ### Admin control
 
@@ -191,6 +192,9 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | TEST.111 | test_ensure_sector_generated_creates_then_reuses_the_same_sector fails in a busy parallel run (bug) |  | Test flake reported 2026-10-09; Bugfixes lane 1. |
 | TEST.125 | Three browser-map tests fail on main with "no generated system has a moon" (bug) |  |  |
+| TEST.128 | test_spatial_position_db and test_web_db_fields fail under a parallel run on one MySQL (bug) |  | Lane 1 report 2026-10-10 20:50Z; Bugfixes lane 2 after its current items. |
+| TEST.127 | test_nebula_shape_endpoint_serves_a_mesh failed once in a full parallel run (bug) |  | Lane 2 report 2026-10-10 20:50Z; Bugfixes lane 2 after its current items. |
+| TEST.126 | The heavy WebGL browser-map tests time out when four workers run them together (bug) |  | Lane 2 report 2026-10-10 20:50Z; Bugfixes lane 2 after its current items. |
 | TEST.116 | test_bughunt_end_to_end stores M2V or M6V where it expects K2V on the MySQL 8.4 and MariaDB legs once (bug) |  | Bugfixes lane 1 report 03:57Z. |
 
 ### Foundations for the issue features
@@ -206,7 +210,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | PERF.70 | Sorting the Systems list by Sector or Octant on millions of rows must not sort them all (bug) |  | Left over from PERF.64; Foundations lane 1 next. |
 | PERF.69 | Store the Planets, Moons and Phenomena table counts like the Systems and Sectors counts (bug) |  | Left over from PERF.64; Foundations lane 1 next. |
 | PERF.68 | Measure the Galaxy Map tile queries on a big galaxy and make them fit the time limit (bug) |  | Left over from PERF.64; Foundations lane 1 next. |
-| PERF.71 | Research how to keep slow database calls on large data sets from timing out: queue, split, or answer in parts |  | Boss 2026-10-10 20:50Z; Foundations lane 1 after PERF.68-70. |
+| PERF.71 | Research how to keep slow database calls on large data sets from timing out: queue, split, or answer in parts |  | Boss 2026-10-10 20:50Z; Research Lane 1 (Boss 2026-10-10 20:50Z); it files the build items. |
 | PERF.33 | Progress bars and ETAs from measured performance |  | GitHub issue [#661](https://github.com/dwhagar/planetGen/issues/661) (the use half). Bugfixes lane 1 (Boss, 23:38Z). |
 | PERF.65 | The text output of a multi-step job counts its steps, not its tasks: "Step 1 of 4" when the job has 12 (bug) |  | Boss 2026-10-10 19:54Z; Bugfixes lane 1. |
 | PERF.66 | The whole-job progress bar should track total elapsed time and estimate a stage with no performance data from the earlier stages (bug) |  | Boss 2026-10-10 20:00Z; Bugfixes lane 1, with PERF.65. |

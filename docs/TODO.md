@@ -3355,6 +3355,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   an index (or a stored sort key) so a page reads only the rows it
   shows, measured on a database of millions of systems, and a test fails
   when the sorted page reads more than a page needs.
+  Note (2026-10-10): Foundations lane 1 reports (PR #1161)
+  that sorting by Sector, Octant or Binary took about 50 s on 3
+  million rows under load, so the fix covers all three sorts (a
+  composite index or a sort limit).
   Prerequisites: none. Related: PERF.64, PERF.34, PERF.36.
 
 - [ ] **PERF.71 Research how to keep slow database calls on large data sets from timing out: queue, split, or answer in parts**
@@ -3379,8 +3383,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   it waits, how the statement limit and the busy page (PERF.64) change,
   and how it behaves while a fill is running. Ends with items filed for
   the chosen builds. Folds in no existing item; PERF.68, PERF.69 and
-  PERF.70 are the concrete leftovers it generalizes. Owner: Foundations
-  lane 1 (research first, after PERF.68 to PERF.70).
+  PERF.70 are the concrete leftovers it generalizes. Owner: Research
+  Lane 1 (Boss's ask, 2026-10-10 20:50Z), which files the build items.
   Prerequisites: none. Related: PERF.19, PERF.24, PERF.34, PERF.36,
   PERF.64, PERF.68, PERF.69, PERF.70.
 
@@ -4009,7 +4013,80 @@ clears each one.
   change (the scatter or object-first sampler work) removed the moons,
   and fix the fixture so the tests do not depend on luck; never skip
   them. Owner: Bugfixes lane 2.
+  Note (2026-10-10): the names that fail on main (Foundations lane 2,
+  20:50Z; they fail on plain main in a clean worktree
+  and also alone, so they are not load flakes):
+  tests/test_web_browser_maps.py::test_system_map_selection_drill_and_measure
+  (assert None ... re.fullmatch('/nav?from=moon:d+', '')),
+  ::test_system_page_3d_view_draws_switches_scale_and_keeps_the_diagram
+  and ::test_a_body_link_opens_highlights_and_selects_it ("no generated
+  system has a moon"). The three names above in the title are the
+  earlier shorthand.
   Prerequisites: none. Related: TEST.111, TEST.122.
+
+- [ ] **TEST.126 The heavy WebGL browser-map tests time out when four workers run them together (bug)**
+  Reported by Foundations lane 2 (2026-10-10 20:50Z): in a full suite
+  under `python3 -m pytest -n 4 -q tests` (about 15,450 tests, 65-69
+  min, 4 cores, MariaDB and Redis local) these pass alone and fail
+  together, a pattern of SwiftShader WebGL tests timing out when four
+  workers run them at once. MAP.148 run:
+  tests/test_web_browser_maps.py::test_galaxy_map_free_camera_from_an_arc_down,
+  ::test_galaxy_map_buttons (a playwright error),
+  ::test_nav_ends_picked_from_bookmarks_on_every_page. MAP.149 run: the
+  same three, plus
+  tests/test_web_browser_fixture_maps.py::test_bookmarks_keep_a_course_pick_on_the_galaxy_map
+  and
+  ::test_galaxy_map_hover_lights_every_choice_while_picking_a_course,
+  and
+  tests/test_web_system_nav_row.py::test_the_navigate_menu_goes_where_the_wide_buttons_go[From
+  here-a.nav-wide >> nth=0] (Bugfixes lane 1 saw the nav-row test the
+  same way). A fixture-maps-only run under -n 4 (22 min) had 12 failures
+  that all passed serially:
+  test_bookmarks_keep_a_course_pick_on_the_galaxy_map,
+  test_galaxy_map_hover_lights_every_choice_while_picking_a_course,
+  test_galaxy_map_bookmark_star_saves_the_stage_and_the_menu_opens_it,
+  test_galaxy_map_does_not_prefetch_on_a_data_saving_connection,
+  test_galaxy_breadcrumb_always_matches_the_view_its_url_names,
+  test_galaxy_map_draws_point_phenomena_that_link_to_their_pages,
+  test_the_map_help_is_a_menu_item_that_opens_a_dialog,
+  test_galaxy_map_point_phenomena_hover_and_offer_nav_links,
+  test_galaxy_map_opens_zoomed_in_on_the_charted_space,
+  test_galaxy_map_pick_mode_clicks_down_through_every_stage,
+  test_the_slab_rail_shows_only_while_the_stage_has_slab_buttons and
+  test_the_map_card_goes_wide_but_the_title_keeps_the_page_edge. Full
+  tracebacks were not kept. Done: the cause is found (a time budget the
+  tests do not scale with load, too many WebGL pages at once per worker,
+  or a real wait that is missing) and the tests are made reliable under
+  -n 4 (a shared limit on concurrent WebGL pages, waits on page state
+  not fixed times, or a serial marker for the heaviest), without
+  skipping or loosening any; a full -n 4 run shows none of them failing.
+  Owner: Bugfixes lane 2, after its current items.
+  Prerequisites: none. Related: TEST.111, TEST.121, TEST.122, TEST.125.
+
+- [ ] **TEST.127 test_nebula_shape_endpoint_serves_a_mesh failed once in a full parallel run (bug)**
+  Reported by Foundations lane 2 (2026-10-10 20:50Z):
+  tests/test_api.py::test_nebula_shape_endpoint_serves_a_mesh failed in
+  a full `-n 4` run (the MAP.148 run, 19:27Z) with an assertion starting
+  'assert 1' (the rest was cut from the log) and passed on a serial
+  rerun; main was not checked. Bugfixes lane 1 has not seen it. Done:
+  the next failure's full traceback is captured (or a loaded run
+  reproduces it), the cause is found (a shared nebula or sector fixture,
+  an id or ordering dependence, or a real mesh bug) and the test is made
+  reliable without loosening it. Owner: Bugfixes lane 2, after its
+  current items.
+  Prerequisites: none. Related: TEST.111, TEST.116.
+
+- [ ] **TEST.128 test_spatial_position_db and test_web_db_fields fail under a parallel run on one MySQL (bug)**
+  Reported by Bugfixes lane 1 (2026-10-10 20:50Z): intermittent failures
+  of test_spatial_position_db and test_web_db_fields (both under tests/)
+  when the suite runs in parallel (`-n 4`) on one MySQL; both pass alone
+  and none fail on a quiet main. The assertion messages were not saved.
+  Done: the next failure's traceback is captured, the cause is found (a
+  shared database name or schema, a leftover row, or timing under load;
+  compare TEST.111 and TEST.123) and the tests are made reliable without
+  skipping or loosening them. Owner: Bugfixes lane 2, after its current
+  items.
+  Prerequisites: none. Related: TEST.111, TEST.123.
 
 ## USR: User accounts
 
@@ -4309,6 +4386,17 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   `generator_epoch` are the same number, bumped only when output changes
   for the same seed.
   Prerequisite: OPS.28.
+
+- [ ] **OPS.41 Put the site in an "updating" state while update.sh runs long database migrations**
+  Reported by Foundations lane 1 (PR #1161, 2026-10-10): the v77 and v78
+  migrations hold the site for a long time while Apache keeps serving,
+  so pages hang or time out during an update. Done: update.sh marks the
+  site as updating before it migrates and clears the mark afterwards,
+  Apache serves a short 'updating, back in a moment' page that reloads
+  itself (not the 504 page), a migration that fails clears the mark with
+  a clear message, and the Admin pages show the state. Owner:
+  Foundations lane 1, near its other update.sh work.
+  Prerequisites: none. Related: OPS.29, OPS.35, PERF.64.
 
 ## DOC: Documentation
 

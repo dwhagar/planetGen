@@ -22,9 +22,9 @@ release is stamped.
 | API | API.24 |
 | ADM | ADM.50 |
 | SEC | SEC.33 |
-| TEST | TEST.126 |
+| TEST | TEST.129 |
 | USR | USR.10 |
-| OPS | OPS.41 |
+| OPS | OPS.42 |
 | DOC | DOC.18 |
 | VIEW | VIEW.11 |
 | POP | POP.11 |
@@ -960,6 +960,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.38 | Two Redis dump files (dump.rdb and src/dump.rdb) are committed to main and should be removed and git-ignored (bug) | none | done, PR #967 |
 | OPS.39 | Remove Windows support; keep only a simple docs/WINDOWS.md | none | done, PR #981 |
 | OPS.40 | update.sh step 8 fails: setup-debug-log.sh loads the deleted util/appconfig.py (bug) | none | done, PR #989 |
+| OPS.41 | Put the site in an "updating" state while update.sh runs long database migrations | none | open |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
 | PERF.3 | Estimate size and time before bulk generation | 86 (2026-10-01 03:15Z to 05:29Z) | done, PR #238 (stats in control schema v6) |
@@ -1398,6 +1399,9 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.123 | test_a_loaded_sector_knows_every_objects_cell_and_velocity fails once under full-suite load (bug) | none | done, PR #1121 |
 | TEST.124 | Phenomena page tests fail with KeyError scattered in system_pages._phenomena_load (bug) | none | done, PR #1077 |
 | TEST.125 | Three browser-map tests fail on main with "no generated system has a moon" (bug) | none | open |
+| TEST.126 | The heavy WebGL browser-map tests time out when four workers run them together (bug) | none | open |
+| TEST.127 | test_nebula_shape_endpoint_serves_a_mesh failed once in a full parallel run (bug) | none | open |
+| TEST.128 | test_spatial_position_db and test_web_db_fields fail under a parallel run on one MySQL (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
