@@ -191,4 +191,16 @@
 #      pages now call it in-process, so the exclusion is no longer needed
 #      (it does no harm if you keep it).
 #
-# Needs `a2enmod ssl rewrite` in addition to the modules enabled above.
+#   3. HTTP/2 (MAP.161): browsers speak it only over TLS, and it lets the
+#      Galaxy Map's ~30 script files and its tiles share one connection
+#      instead of queueing six at a time. Add to the :443 block (or the
+#      server config):
+#
+#        Protocols h2 http/1.1
+#
+#      It needs `a2enmod http2` and Apache's event MPM
+#      (`sudo a2dismod mpm_prefork; sudo a2enmod mpm_event`; mod_wsgi in
+#      daemon mode, as above, works with it). Debian/Ubuntu's apache2
+#      package may already have it on.
+#
+# Needs `a2enmod ssl rewrite http2` in addition to the modules enabled above.

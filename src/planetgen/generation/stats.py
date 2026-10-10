@@ -744,3 +744,20 @@ def stage_seconds(conn, stage_key, settings, limit=50):
     exact = [run for run in runs if run["settings"] == settings]
     pool = exact or matching or runs
     return sum(run["seconds"] for run in pool) / len(pool)
+
+
+def job_layers_per_second(conn, settings=None, limit=50):
+    """
+    How many layers a whole generation job gets through in a second (PERF.55): the mean of the stored
+    whole-job rows (`stages.JOB_KEY`: every layer the scatter stages visited, the ones that placed nothing
+    included, over all the seconds of the run) whose settings match on every setting named in both, else
+    the mean of all of them; `None` when none is stored.
+    """
+    runs = [run for run in stage_history(conn, "job", limit) if run["metrics"].get("layers_per_second")]
+    if not runs:
+        return None
+    settings = settings or {}
+    matching = [run for run in runs if all(run["settings"].get(name) == value
+                                           for name, value in settings.items() if name in run["settings"])]
+    pool = matching or runs
+    return sum(run["metrics"]["layers_per_second"] for run in pool) / len(pool)

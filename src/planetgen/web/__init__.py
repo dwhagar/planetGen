@@ -45,6 +45,7 @@ from planetgen.web.lib import classref  # noqa: E402
 from planetgen.web.lib import pagecache  # noqa: E402
 from planetgen.web.lib.fmt import STATIC_VERSION, format_number, utc_time_html  # noqa: E402
 from planetgen.web.lib.fmt import static_url as fmt_static_url  # noqa: E402
+from planetgen.web.lib.modulegraph import module_graph  # noqa: E402
 from planetgen.api.limiter import page_limit  # noqa: E402
 from planetgen.util.settings import get_settings  # noqa: E402
 
@@ -146,6 +147,7 @@ def _template_globals():
         "site_version": STATIC_VERSION,
         "sections": visible_sections,
         "static_url": static_url,
+        "module_graph": module_graph,
         "icon": icon,
         "page_url": page_url,
         "current_admin": current_admin,
