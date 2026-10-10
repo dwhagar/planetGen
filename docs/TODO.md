@@ -938,6 +938,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   in with a smooth ramp; the 0.35 pick rule applies to the near-field
   share, not the fill alpha; there is no dithered discard (blocks are
   sorted at build time).
+  Built in part (Foundations lane 2, 2026-10-10, PR #1182): the wheel
+  zooms toward the cursor. Still open: select-with-click and
+  double-click-to-go (this changes the click-drills-in flow that most
+  Galaxy Map browser tests lean on), the camera in URLs and bookmarks,
+  the breadcrumb from position, and retiring the arc, slab and segment
+  picks. These need MAP.151's region data layer first, because the stage
+  query is the only source of block data today; the lane returns to them
+  after MAP.151.
   Design: [docs/design/fly-through-view-distance.md](design/fly-through-view-distance.md)
 
 - [ ] **MAP.151 The region data layer: exact-centred frame, aligned cells, per-level aggregates and slot-wrap ranges**
