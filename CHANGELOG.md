@@ -3,6 +3,7 @@
 ## [8.0.911] - 2026-10-10
 
 ### Changed
+- TODO list: DB.21 retired (merged, PR #1082).
 - TODO list: GEN.195 retired (merged, PR #1081).
 - The stellar mass limit (`--phenomenon-min-mass`) now governs stars only.
 - TODO list: PERF.62 (interim early stop) dropped, superseded by PERF.58.
