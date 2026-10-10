@@ -3,6 +3,7 @@
 ## [8.0.911] - 2026-10-10
 
 ### Changed
+- **Docs only:** OPS.39 (remove Windows support, keep only docs/WINDOWS.md) is filed; TEST.115 and OPS.34 are marked superseded by it.
 - TEST.116: when test_bughunt_end_to_end finds a star type other than K2V, the message lists every star of the system with its role and type, so a rare failure names its cause.
 - TEST.115: the Windows CI job keeps Redis in WSL alive (it ran in the foreground of a wsl.exe it holds open), waits until Windows can connect and passes the working URL on to the tests. A job's lock is removed with a few retries, and three Windows-only test failures now say what state they saw.
 - **Docs only:** GEN.183 (mass limit presets, PR #969) is retired from the TODO list and the plans; TEST.118 files two test failures that follow GEN.184's luminosity floor.
