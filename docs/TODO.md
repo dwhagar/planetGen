@@ -735,7 +735,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   keys), MAP.151 (needs ADM.29 from Foundations lane 1) and MAP.152 (needs MAP.148,
   MAP.150 and MAP.154); this umbrella closes last.
   Prerequisites: MAP.148, MAP.149, MAP.150, MAP.151, MAP.152, MAP.153,
-  MAP.154, MAP.155, MAP.157, MAP.158, MAP.159. Related:
+  MAP.154, MAP.155, MAP.157, MAP.159. Related:
   MAP.120, MAP.121, MAP.141, MAP.140, MAP.59, MAP.116, MAP.122, MAP.125,
   MAP.131, MAP.134, MAP.147, ADM.29, ADM.30, GEN.101, GEN.126, NAV.13,
   NAV.14.
@@ -771,7 +771,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the investigation until MAP.157 to MAP.159 are done.
   Open question for Boss (default each sub-item goes ahead as written;
   MAP.160 is deferred): other?
-  Prerequisites: MAP.158, MAP.159.
+  Prerequisite: MAP.159.
   Linked (2026-10-09, fly-through-view-distance.md): the tile and stage
   cache keys follow MAP.151 (the region data layer), so decide the wire
   format and those keys together; the star visibility law (MAP.148) sets
@@ -977,27 +977,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: MAP.146, MAP.150, MAP.141, MAP.122,
   ADM.29.
 
-- [ ] **MAP.158 A gentler tile prefetch and an IndexedDB tile cache instead of localStorage**
-  Source: docs/design/galaxy-map-wire-format.md (sections 2.3, 4.4, 1
-  step 2 and 5). Measured: the opening view downloads 28 tiles (533 KB
-  gzipped) to show one, about 18 times what is on screen; localStorage
-  holds about 5 MB, which one sector link fills (40 tiles), so a revisit
-  mostly misses. Done: the page prefetches only the next zoom step in,
-  only after the view has been idle, and not when the browser asks to
-  save data; tiles are cached in IndexedDB (or by immutable HTTP caching
-  per tile) and a revisit finds them; the old localStorage cache is
-  removed (no compatibility). Open question for Boss (default yes): go
-  ahead?
-  Detail (2026-10-09, galaxy-map-wire-format.md): detail from Research
-  Lane 3: prefetch in the zoom-in direction only, after idle, skipped on
-  `navigator.connection.saveData` or a slow `effectiveType`, with a byte
-  cap (`prefetchTiles` in `galaxymap3d.js`). Interim cheap fix for the
-  cache before IndexedDB: store only the tiles the next view needs and
-  cap by bytes with least-recently-used removal, instead of `storeTile`
-  wiping every stored tile when the quota fails.
-  Prerequisites: none. Related: MAP.147, MAP.157, MAP.109.
-  Design: [docs/design/galaxy-map-wire-format.md](design/galaxy-map-wire-format.md)
-
 - [ ] **MAP.159 Packed binary Galaxy Map tiles (quantised planes) with the nested tile lists, on one cache stamp bump**
   Source: docs/design/galaxy-map-wire-format.md (section 1 step 2, 4.1,
   4.3). Measured: a packed binary tile is 12.9 to 16.7 bytes a star, 78%
@@ -1012,7 +991,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and MAP.151's tile keys so the cache is invalidated once. Open
   question for Boss (default yes, with MAP.154 and MAP.151 on one bump):
   go ahead?
-  Prerequisites: MAP.154, MAP.158. Related: MAP.147, MAP.154, MAP.151,
+  Prerequisite: MAP.154. Related: MAP.147, MAP.154, MAP.151,
   MAP.153, MAP.157.
   Detail (2026-10-09, galaxy-map-wire-format.md): detail from Research
   Lane 3 and Research Lane 2: x/y/z uint16 inside the tile cube, log
@@ -1034,6 +1013,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   now also loads mod_brotli). Open question for Boss (default: leave as
   is): add the brotli package as a dependency so tiles can be served
   from precompressed copies.
+  Built (2026-10-10): MAP.158 as built (PR #1123): tiles live in
+  IndexedDB (96 MB cap, least recently used out); localStorage keeps
+  only the stamp record. The prefetch is zoom-in only, starts after 1.5
+  s idle, is off on saveData or 3G and slower, and takes at most 1.5 MB
+  per page visit. The interim localStorage LRU was skipped (IndexedDB
+  replaces it).
   Design: [docs/design/galaxy-map-wire-format.md](design/galaxy-map-wire-format.md)
 
 - [ ] **MAP.160 Quantise the Galaxy Map GPU buffers (deferred)**
