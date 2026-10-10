@@ -77,7 +77,7 @@ NUCLEUS_SUBTYPE = "supermassive"
 PHENOMENON_SCATTER_COLUMNS = (
     "ring_index", "layer_index", "ring_slot_index", "kind", "subtype",
     "position_x_mpc", "position_y_mpc", "position_z_mpc",
-    "velocity_x_kms", "velocity_y_kms", "velocity_z_kms", "seed",
+    "velocity_x_kms", "velocity_y_kms", "velocity_z_kms", "seed", "mass_solar",
 )
 """tuple: The `phenomenon_scatter` columns a scatter writes, in the order
 every row below carries them."""
@@ -86,10 +86,26 @@ HYPERVELOCITY_STREAM = "hypervelocity"
 NUCLEUS_STREAM = "nucleus"
 
 
-def _row(ring_index, layer_index, slot, kind, point, rng, subtype=None, velocity=(None, None, None)):
+def _row(ring_index, layer_index, slot, kind, point, rng, subtype=None, velocity=(None, None, None),
+         mass_solar=None):
     """One object in `PHENOMENON_SCATTER_COLUMNS` order."""
     return (ring_index, layer_index, slot, kind, subtype, point[0], point[1], point[2],
-            velocity[0], velocity[1], velocity[2], rng.getrandbits(63))
+            velocity[0], velocity[1], velocity[2], rng.getrandbits(63), mass_solar)
+
+
+def draw_mass(kind, subtype, min_mass_solar, rng):
+    """The solar mass (MAP.165) a scattered black hole or neutron star is
+    drawn with, from `rng`, at or above the scatter's cut; `None` for a
+    kind not drawn by mass. The sector build gives the object this mass, so
+    the map and the sector page agree."""
+    bounds = mass_range(kind, subtype, min_mass_solar, True)
+    if bounds is None:
+        return None
+    low, high = bounds
+    if low >= high:
+        return low
+    law = mass_law(kind, subtype)
+    return log_uniform(low, high, rng=rng) if law[1] else rng.uniform(low, high)
 
 
 def class_label(kind, subtype):
@@ -206,7 +222,8 @@ def scatter_layer(shape, layer_index, outer_ring, edge_pc, expected_at_density_1
                 spot = _place_one(rng, weights, ring_index, layer_index, slots, edge_pc)
                 if spot is None or (ring_index, layer_index, spot[0]) in skip_addresses:
                     continue
-                yield _row(ring_index, layer_index, spot[0], kind, spot[1], rng, subtype=subtype)
+                yield _row(ring_index, layer_index, spot[0], kind, spot[1], rng, subtype=subtype,
+                           mass_solar=draw_mass(kind, subtype, min_mass_solar, rng))
 
 
 def group_layer_expected(shape, layer_index, outer_ring, edge_pc, expected_at_density_1, min_mass_solar):
@@ -295,7 +312,8 @@ def scatter_group(shape, layers, edge_pc, expected_at_density_1, seed, skip_addr
         spot = _place_one(rng, weights, ring_index, layer_index, slots, edge_pc)
         if spot is None or (ring_index, layer_index, spot[0]) in skip_addresses:
             continue
-        yield _row(ring_index, layer_index, spot[0], kind, spot[1], rng, subtype=subtype)
+        yield _row(ring_index, layer_index, spot[0], kind, spot[1], rng, subtype=subtype,
+                           mass_solar=draw_mass(kind, subtype, min_mass_solar, rng))
 
 
 def below_cut_draws(address, center_pc, shape, expected_stars, min_mass_solar, seed):
@@ -372,7 +390,8 @@ def nucleus_row(seed):
     rng = draw.Stream(f"{seed}:phenomena:{NUCLEUS_STREAM}")
     if rng.random() < tuning.QUASAR_ACTIVE_NUCLEUS_CHANCE:
         return _row(*NUCLEUS_ADDRESS, "quasar", (0, 0, 0), rng)
-    return _row(*NUCLEUS_ADDRESS, "black-hole", (0, 0, 0), rng, subtype=NUCLEUS_SUBTYPE)
+    return _row(*NUCLEUS_ADDRESS, "black-hole", (0, 0, 0), rng, subtype=NUCLEUS_SUBTYPE,
+                mass_solar=log_uniform(*tuning.BLACK_HOLE_SUPERMASSIVE_MASS_RANGE_SOLAR, rng=rng))
 
 
 def hypervelocity_rows(extents, edge_pc, seed):

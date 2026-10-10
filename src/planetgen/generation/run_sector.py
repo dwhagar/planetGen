@@ -446,10 +446,11 @@ def _build_scattered(sector, args, row, position, dist_ly, min_mass_solar=None):
         return sector.add_phenomenon(Quasar(config), "quasar", position=position)
     if kind == "black-hole":
         black_hole = BlackHole(config, galactic_center_dist_ly=dist_ly, mass_class=row["subtype"],
+                               mass_solar=row["mass_solar"],
                                mass_range=phenomenon_scatter.mass_range(kind, row["subtype"], min_mass_solar, True))
         return sector.add_phenomenon(black_hole, "black-hole", position=position)
     if kind == "neutron-star":
-        neutron_star = NeutronStar(config, galactic_center_dist_ly=dist_ly,
+        neutron_star = NeutronStar(config, galactic_center_dist_ly=dist_ly, mass_solar=row["mass_solar"],
                                    mass_range=phenomenon_scatter.mass_range(kind, None, min_mass_solar, True))
         return sector.add_phenomenon(neutron_star, "neutron-star", position=position)
     if kind == "supernova-remnant":
