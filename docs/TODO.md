@@ -4199,6 +4199,9 @@ clears each one.
   not fixed times, or a serial marker for the heaviest), without
   skipping or loosening any; a full -n 4 run shows none of them failing.
   Owner: Bugfixes lane 2, after its current items.
+  Note (2026-10-10): Bugfixes lane 2 (21:06Z) adds
+  tests/test_web_browser_fixture_maps.py::test_galaxy_map_color_by_switches_the_fill_with_a_legend_and_keeps_it_in_the_url:
+  failed once in the NAV.9 run under load, passed alone.
   Prerequisites: none. Related: TEST.111, TEST.121, TEST.122, TEST.125.
 
 - [ ] **TEST.127 test_nebula_shape_endpoint_serves_a_mesh failed once in a full parallel run (bug)**
@@ -4268,6 +4271,20 @@ clears each one.
   near/far split agrees with the exact sum to a stated tolerance on a
   random sector; the same seed gives the same field twice.
   Prerequisites: GEN.198. Related: GEN.198, GEN.115.
+
+- [ ] **TEST.132 test_a_fill_after_a_layer_failed_mid_scatter_builds_no_leftover_star failed once in a full parallel run (bug)**
+  Reported by Bugfixes lane 2 (2026-10-10 21:06Z):
+  tests/test_gen_bright_scatter_edges.py::test_a_fill_after_a_layer_failed_mid_scatter_builds_no_leftover_star
+  failed once in the NAV.42 full run (`-n 4`, about 4 parallel workers
+  on one box, started 19:21Z) and passed on both of 2 re-runs alone; it
+  was not run on main while failing and the failure message was not
+  kept. Done: the next failure's traceback is captured (or a loaded run
+  reproduces it), the cause is found (a shared scatter table or marker
+  between workers, a draw that sometimes leaves a star, or a real
+  leftover-star bug in the failed-layer path) and the test is made
+  reliable without loosening it. Owner: Bugfixes lane 2, after its
+  current items.
+  Prerequisites: none. Related: TEST.111, TEST.128.
 
 ## USR: User accounts
 

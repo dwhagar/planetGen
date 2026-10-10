@@ -22,7 +22,7 @@ release is stamped.
 | API | API.25 |
 | ADM | ADM.50 |
 | SEC | SEC.33 |
-| TEST | TEST.132 |
+| TEST | TEST.133 |
 | USR | USR.10 |
 | OPS | OPS.42 |
 | DOC | DOC.18 |
@@ -1416,6 +1416,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.129 | Two orbit-update tests fail on the MySQL 8.4 leg: the stored last_updated_at rounds up (bug) | none | open |
 | TEST.130 | test_the_scene_positions_at_the_epoch_match_the_stored_ones fails when a random system has comets (bug) | none | open |
 | TEST.131 | Tests for the gravity field evaluator: two bodies, Lagrange points, softening and the rotation curve | none | open |
+| TEST.132 | test_a_fill_after_a_layer_failed_mid_scatter_builds_no_leftover_star failed once in a full parallel run (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |
