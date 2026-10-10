@@ -649,6 +649,25 @@ def _nav_ref_param(query_args, name):
         raise ApiError(f"{name} must be an object reference such as system:12, got {raw_value!r}")
 
 
+NAV_MAX_STAY_MINUTES = 10_000_000.0
+"""float: The longest stay per stop `?stay=` accepts (about 19 years)."""
+
+
+def _nav_stay_param(query_args):
+    """NAV.11: the optional `stay` query parameter, minutes spent at each
+    stop of a route (default 0)."""
+    raw_value = query_args.get("stay")
+    if raw_value in (None, ""):
+        return 0.0
+    try:
+        minutes = float(raw_value)
+    except ValueError:
+        raise ApiError(f"stay must be a number of minutes, got {raw_value!r}")
+    if not 0.0 <= minutes <= NAV_MAX_STAY_MINUTES:
+        raise ApiError(f"stay must be between 0 and {NAV_MAX_STAY_MINUTES:g} minutes, got {raw_value!r}")
+    return minutes
+
+
 @bp.route("/nav")
 def nav():
     """
@@ -662,8 +681,9 @@ def nav():
     from_ref = _nav_ref_param(request.args, "from")
     to_ref = _nav_ref_param(request.args, "to")
 
+    stay_minutes = _nav_stay_param(request.args)
     try:
-        result = nav_course(get_db(), from_ref, to_ref)
+        result = nav_course(get_db(), from_ref, to_ref, stay_minutes=stay_minutes)
     except ValueError as exc:
         return jsonify({"error": str(exc)}), 404
     except NavUnavailable as exc:
@@ -711,6 +731,10 @@ def _route_for_json(route):
         "positions": {str(node_id): position for node_id, position in route["positions"].items()},
         "hops": route["hops"],
         "longest_hop_ly": route["longest_hop_ly"],
+        "stops": route["stops"],
+        "stay_minutes": route["stay_minutes"],
+        "warp_times": [leg._asdict() for leg in route["warp_times"]],
+        "fold_times": [leg._asdict() for leg in route["fold_times"]],
     }
 
 

@@ -68,7 +68,8 @@ from planetgen.galaxy.drill import (
 from planetgen.db.corridor import positions_near_segment, unknown_space_flags
 from planetgen.galaxy.nav_graph import build_route_graph, shortest_path
 from planetgen.galaxy.navigation import (
-    FRAME_GALACTIC, FRAME_SECTOR, FRAME_SYSTEM, course_between, fold_travel_times, warp_travel_times,
+    FRAME_GALACTIC, FRAME_SECTOR, FRAME_SYSTEM, course_between, fold_travel_times, route_fold_times, route_warp_times,
+    warp_travel_times,
 )
 from planetgen.physics.constants import SPECTRAL_CLASS_COLORS
 from planetgen.generation.evolution import life_stage_from_paragraphs
@@ -814,7 +815,7 @@ def _galaxy_route(conn, origin_position, destination_position, from_key, to_key,
 
 
 def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
-                 from_kind="system", to_kind="system", from_type=None, to_type=None):
+                 from_kind="system", to_kind="system", from_type=None, to_type=None, stay_minutes=0.0):
     """
     Resolves full NAV information between two endpoints -- each either a
     star system or a standalone phenomenon (nebula/asteroid field/black
@@ -854,6 +855,9 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
         from_type (str, optional): Required when `from_kind ==
             "phenomenon"` -- one of `_PHENOMENON_TYPE_TO_TABLE`'s keys.
         to_type (str, optional): Same, for the destination.
+        stay_minutes (float): NAV.11: the time spent at each system the
+            route stops at between the two ends (default 0); only the
+            route's total times use it.
 
     Returns:
         dict: `scope` (`"sector"` or `"galaxy"`), `direct` (a
@@ -867,7 +871,12 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
             to the same node (the joined graph always has a path
             otherwise), else `{"path": [...node ids...], "distance_ly": float,
             "positions": {node_id: (x, y, z), ...}, "hops": [{"from", "to",
-            "distance_ly", "unknown_space"}], "longest_hop_ly": float}` (one entry per id in
+            "distance_ly", "unknown_space", "warp_times", "fold_times"}],
+            "longest_hop_ly": float, "stops": int, "stay_minutes": float,
+            "warp_times", "fold_times"}` (NAV.11: a hop's lists are
+            `WarpLeg`/`FoldLeg` dicts for that hop alone; the route's are
+            `WarpLeg`/`FoldLeg` for the whole route, a stop at every system
+            between the ends for `stay_minutes` each) (one entry per id in
             `path`, same frame as `origin_position`/`destination_position`
             -- for rendering the route, e.g. `planetgen/web/maps/navmap.py`, without
             a second position lookup). A node id is a plain `star_systems.
@@ -950,6 +959,9 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
             route_positions = {node_id: positions[node_id] for node_id in path}
             hops = [{"from": a, "to": b, "distance_ly": math.dist(positions[a], positions[b]),
                      "unknown_space": False} for a, b in zip(path, path[1:])]
+            for hop in hops:
+                hop["warp_times"] = [leg._asdict() for leg in warp_travel_times(hop["distance_ly"])]
+                hop["fold_times"] = [leg._asdict() for leg in fold_travel_times(hop["distance_ly"])]
             if galaxy_frame is not None:
                 flags = unknown_space_flags(conn, [galaxy_frame[node_id] for node_id in path])
                 for hop, flag in zip(hops, flags):
@@ -963,6 +975,10 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
                 "positions": route_positions,
                 "hops": hops,
                 "longest_hop_ly": max((hop["distance_ly"] for hop in hops), default=0.0),
+                "stops": max(len(hops) - 1, 0),
+                "stay_minutes": stay_minutes,
+                "warp_times": route_warp_times([hop["distance_ly"] for hop in hops], stay_minutes),
+                "fold_times": route_fold_times([hop["distance_ly"] for hop in hops], stay_minutes),
             }
 
     return {
@@ -1041,7 +1057,7 @@ def _nav_leg(kind, origin_ref, destination_ref, course):
     }
 
 
-def nav_course(conn, from_ref, to_ref, adjacency_k=NAV_ADJACENCY_K):
+def nav_course(conn, from_ref, to_ref, adjacency_k=NAV_ADJACENCY_K, stay_minutes=0.0):
     """
     NAV between any two objects (NAV.16): `nav_between`'s result plus
     `origin`/`destination` (`{ref, kind, name}`), `legs` and `note`.
@@ -1055,6 +1071,8 @@ def nav_course(conn, from_ref, to_ref, adjacency_k=NAV_ADJACENCY_K):
     `"system"`; positions in light-years from the system's origin, no
     route). Each leg is `{kind, from, to, direct, warp_times, fold_times}`;
     `direct` is a `navigation.Course`.
+
+    `stay_minutes` (NAV.11) is the stay at each stop of the route.
 
     Raises:
         ValueError: For a bad reference or a missing row.
@@ -1084,7 +1102,7 @@ def nav_course(conn, from_ref, to_ref, adjacency_k=NAV_ADJACENCY_K):
     from_id, from_kind, from_type = anchor_args(origin)
     to_id, to_kind, to_type = anchor_args(destination)
     result = nav_between(conn, from_id, to_id, adjacency_k, from_kind=from_kind, to_kind=to_kind,
-                         from_type=from_type, to_type=to_type)
+                         from_type=from_type, to_type=to_type, stay_minutes=stay_minutes)
 
     toward = [d - o for o, d in zip(result["origin_position"], result["destination_position"])]
     length = math.sqrt(sum(v * v for v in toward))
