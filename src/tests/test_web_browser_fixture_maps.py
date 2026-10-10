@@ -1920,6 +1920,31 @@ def test_galaxy_map_near_field_thins_what_stands_between_the_camera_and_the_focu
     assert abs(page.evaluate(read, along(0.6))["share"] - 0.08) < 0.02
 
 
+def test_galaxy_map_stars_follow_the_apparent_magnitude_law(page, map_site):
+    """MAP.148: the stars are drawn against a limiting magnitude the page
+    works out from the stars on screen; the shaders compile, the limit
+    settles on a number, and the stars the map holds show (the fixture has
+    far fewer than the target, so the limit sits past the dimmest star
+    and none is thinned away)."""
+    problems = []
+    page.on("console", lambda message: problems.append(message.text) if message.type == "error" else None)
+    _open_galaxy(page, map_site)
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyStarFrame().count > 0")
+    page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyStarMagnitude().limit < 999")
+    page.wait_for_timeout(800)
+    assert not [text for text in problems if "shader" in text.lower() or "WebGLProgram" in text], problems
+    info = page.evaluate("() => document.querySelector('#galaxymap3d-canvas').galaxyStarMagnitude()")
+    assert info["target"] in (8000, 20000), info["target"]
+    assert info["count"] > 0 and info["onScreen"] <= info["count"], info
+    assert abs(info["limit"] - info["goal"]) < 0.05, "the limit has eased to its goal"
+    assert info["limit"] > -5, info["limit"]
+    shown = [share for magnitude, share in info["stars"] if share > 0]
+    assert shown, "some stars show"
+    assert all(0 <= share <= 1 for _, share in info["stars"])
+    # Fewer stars than the target on screen, so the count thins none of them.
+    assert info["onScreen"] < info["target"]
+
+
 def _select_the_nebula(page):
     nebula = next(p for p in PHENOMENA if p["type"] == "nebula")
     # The screen-reader list holds a button for every object.

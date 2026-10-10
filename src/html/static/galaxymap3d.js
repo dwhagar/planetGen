@@ -64,8 +64,12 @@ const {
   INSIDE_FACE_ALPHA, NEAR_FIELD_GLSL, nearFieldAtWorld, visibleEnough,
 } = await import(`./nearfield.js${VERSION_QUERY}`);
 const {
-  FADE_OCTAVES, POINT_FADE, birthRadius, opacitySum, tileRanks,
+  FADE_OCTAVES, POINT_FADE, birthRadius, opacitySum, starZoomOpacity, tileRanks,
 } = await import(`./starfade.js${VERSION_QUERY}`);
+const {
+  PHENOMENON_MAGNITUDE, STAR_MAGNITUDE_GLSL, TARGET_STARS, TARGET_STARS_PHONE, absoluteMagnitude, apparentMagnitude,
+  approachLimit, calibrationLimit, dimmestShown, histogramLimit, limitingMagnitude, RAMP,
+} = await import(`./starmagnitude.js${VERSION_QUERY}`);
 const {
   cssVar, fitRendererToCanvas, formatAddress, isLightBackground, makeRingTexture,
   niceScaleValue, readSceneData, watchResize, worldUnitsPerPixel,
@@ -1573,6 +1577,7 @@ function initGalaxyMap3d(canvasEl, data) {
       chartedOnly: { value: 0 }, unchartedDim: { value: UNCHARTED_STAR_DIM },
       camRadius: { value: 1 }, radiusFactor: { value: FETCH_RADIUS_FACTOR }, zoomFadeOn: { value: 1 },
       nearD: nearUniforms.nearD, nearR: nearUniforms.nearR,
+      magLimit: { value: 1000 }, magOn: { value: 1 },
     },
     vertexShader: [
       "#include <common>",
@@ -1590,6 +1595,11 @@ function initGalaxyMap3d(canvasEl, data) {
       "uniform float nearD;",
       "uniform float nearR;",
       NEAR_FIELD_GLSL,
+      // MAP.148: the apparent-magnitude law (static/starmagnitude.js's twin).
+      "attribute float starAbsMag;",
+      "uniform float magLimit;",
+      "uniform float magOn;",
+      STAR_MAGNITUDE_GLSL,
       "float ease01(float x) {",
       "  float t = clamp(x, 0.0, 1.0);",
       "  return t * t * (3.0 - 2.0 * t);",
@@ -1628,6 +1638,10 @@ function initGalaxyMap3d(canvasEl, data) {
       // MAP.149: stars close to the camera, or between it and the focus,
       // thin out.
       "  vShown *= nearField(mvPosition.xyz, nearD, nearR);",
+      // MAP.148: opacity and brightness follow the apparent magnitude from the camera.
+      "  float appMag = apparentMagnitude(starAbsMag, length(mvPosition.xyz));",
+      "  vShown *= mix(1.0, magnitudeShare(appMag, magLimit), magOn);",
+      "  vBright *= mix(1.0, fluxGain(appMag, magLimit), magOn);",
       "  gl_Position = projectionMatrix * mvPosition;",
       "  gl_PointSize = starSize * pixelRatio;",
       // Outside the wedge shown (setWedgeClip): dropped.
@@ -1691,11 +1705,14 @@ function initGalaxyMap3d(canvasEl, data) {
   // [own birth radius, parent birth radius, tile edge, detail] (MAP.153),
   // and the same for the stars drawn now, in the order of starList.
   var starFades = new Map();
+  // Counts the star sets drawn, so a new set is noticed by the magnitude limit (MAP.148).
+  var starSetVersion = 0;
   var starFadeList = [];
 
   // Draws exactly `stars` (one entry per starKey), each fading in with the
   // zoom as `fades` (by starKey) says.
   function setStars(stars, fades) {
+    starSetVersion += 1;
     starList = stars;
     starFades = fades;
     starFadeList = stars.map(function (star) {
@@ -1724,6 +1741,7 @@ function initGalaxyMap3d(canvasEl, data) {
     var cores = new Float32Array(n);
     var glows = new Float32Array(n);
     var brights = new Float32Array(n);
+    var absMags = new Float32Array(n);
     var uncharted = new Float32Array(n);
     var zoomFades = new Float32Array(4 * n);
     starFadeList.forEach(function (fade, i) {
@@ -1735,6 +1753,7 @@ function initGalaxyMap3d(canvasEl, data) {
       var t = look ? Math.min(1, look[1] + 0.15 * (star.size || 0)) : logShare(star.luminosity_sol, STAR_LOG_LUMINOSITY);
       // Without a stored radius, guess one from the luminosity.
       var r = look ? Math.min(1, look[2] + 0.2 * (star.size || 0)) : logShare(star.radius_sol != null ? star.radius_sol : Math.pow(star.luminosity_sol, 0.35), STAR_LOG_RADIUS);
+      absMags[i] = look ? PHENOMENON_MAGNITUDE : absoluteMagnitude(star.luminosity_sol);
       positions.set([star.x - frame[0], star.y - frame[1], star.z - frame[2]], 3 * i);
       colors.set(look ? new THREE.Color(look[0]).toArray() : starColor(star.temperature_k), 3 * i);
       cores[i] = THREE.MathUtils.lerp(STAR_CORE_PX[0], STAR_CORE_PX[1], r);
@@ -1754,6 +1773,7 @@ function initGalaxyMap3d(canvasEl, data) {
     geometry.setAttribute("starCore", new THREE.BufferAttribute(cores, 1));
     geometry.setAttribute("starGlow", new THREE.BufferAttribute(glows, 1));
     geometry.setAttribute("starBright", new THREE.BufferAttribute(brights, 1));
+    geometry.setAttribute("starAbsMag", new THREE.BufferAttribute(absMags, 1));
     geometry.setAttribute("starBorn", new THREE.BufferAttribute(born, 1));
     geometry.setAttribute("starClipped", new THREE.BufferAttribute(new Float32Array(n), 1));
     geometry.setAttribute("starUncharted", new THREE.BufferAttribute(uncharted, 1));
@@ -1764,6 +1784,81 @@ function initGalaxyMap3d(canvasEl, data) {
     starPoints.updateMatrixWorld();
     markClippedStars();
   }
+
+  // --- The limiting magnitude (MAP.148, static/starmagnitude.js) ----------------
+  //
+  // Each time the view changes (at most every MAG_RECOMPUTE_MS), the stars on
+  // screen are counted by apparent magnitude, weighted by the zoom opacity
+  // MAP.153 gives them, and the limit is set where the count reaches the
+  // target; the shader eases toward it, so the picture never jumps.
+  var MAG_RECOMPUTE_MS = 150;
+  var MAG_TAU_S = 0.3;
+  var magTarget = window.matchMedia("(max-width: 700px), (pointer: coarse)").matches ? TARGET_STARS_PHONE : TARGET_STARS;
+  var magGoal = 1000;
+  var magSignature = "";
+  var magComputedAt = 0;
+  var magLastFrame = 0;
+  var magOnScreen = 0;
+
+  function updateMagnitudeLimit(now) {
+    var uniforms = starMaterial.uniforms;
+    var seconds = magLastFrame ? (now - magLastFrame) / 1000 : 0;
+    magLastFrame = now;
+    var n = starList.length;
+    var e = camera.matrixWorldInverse.elements;
+    var signature = [starSetVersion, n, e[0], e[1], e[2], e[4], e[5], e[6], e[8], e[9], e[10], e[12], e[13], e[14], canvasEl.clientHeight].join(",");
+    if (n && signature !== magSignature && now - magComputedAt >= MAG_RECOMPUTE_MS) {
+      magSignature = signature;
+      magComputedAt = now;
+      var tanY = Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2) * 1.1;
+      var tanX = tanY * camera.aspect;
+      var clipped = starPoints.geometry.getAttribute("starClipped");
+      var absolute = starPoints.geometry.getAttribute("starAbsMag");
+      var radius = orbit.radius;
+      var magnitudes = new Float64Array(n);
+      var onScreen = new Float64Array(n);
+      var zoomed = new Float64Array(n);
+      var count = 0;
+      for (var i = 0; i < n; i++) {
+        var star = starList[i];
+        var w = starZoomOpacity(starFadeList[i], radius, FETCH_RADIUS_FACTOR);
+        zoomed[i] = w;
+        if (!(w > 0) || (clipped && clipped.array[i] > 0.5)) continue;
+        var vx = e[0] * star.x + e[4] * star.y + e[8] * star.z + e[12];
+        var vy = e[1] * star.x + e[5] * star.y + e[9] * star.z + e[13];
+        var vz = e[2] * star.x + e[6] * star.y + e[10] * star.z + e[14];
+        var depth = -vz;
+        if (depth <= 0 || Math.abs(vx) > depth * tanX || Math.abs(vy) > depth * tanY) continue;
+        magnitudes[i] = apparentMagnitude(absolute.array[i], Math.sqrt(vx * vx + vy * vy + vz * vz));
+        onScreen[i] = w;
+        count += 1;
+      }
+      magOnScreen = count;
+      var focus = nearUniforms.nearD.value;
+      magGoal = limitingMagnitude(
+        histogramLimit(magnitudes, onScreen, magTarget),
+        calibrationLimit(dimmestShown(absolute.array, zoomed), focus));
+      if (!Number.isFinite(magGoal)) magGoal = 1000;
+    }
+    var current = uniforms.magLimit.value;
+    uniforms.magLimit.value = reducedMotion || current >= 999 ? magGoal : approachLimit(current, magGoal, seconds, MAG_TAU_S);
+  }
+
+  // For tests (MAP.148): the limiting magnitude in use and the one the view
+  // asks for, how many stars were counted on screen, the target, and the
+  // apparent magnitude and opacity of every drawn star that is on screen.
+  canvasEl.galaxyStarMagnitude = function () {
+    var absolute = starPoints.geometry.getAttribute("starAbsMag");
+    var limit = starMaterial.uniforms.magLimit.value;
+    var e = camera.matrixWorldInverse.elements;
+    var shares = [];
+    starList.forEach(function (star, i) {
+      var d = Math.sqrt(Math.pow(star.x - camera.position.x, 2) + Math.pow(star.y - camera.position.y, 2) + Math.pow(star.z - camera.position.z, 2));
+      var m = apparentMagnitude(absolute.array[i], d);
+      shares.push([m, Math.min(1, Math.max(0, (limit - m) / RAMP))]);
+    });
+    return { limit: limit, goal: magGoal, target: magTarget, onScreen: magOnScreen, count: starList.length, stars: shares, ramp: RAMP, focus: nearUniforms.nearD.value, e: e[0] };
+  };
 
   // For tests (MAP.149): the near field the shaders were given (the
   // camera-to-focus distance, the focus's radius, the center of the block
@@ -1796,6 +1891,7 @@ function initGalaxyMap3d(canvasEl, data) {
   // before MAP.153) so a pixel test of picking can find stars at any zoom.
   canvasEl.galaxyStarZoomFade = function (on) {
     starMaterial.uniforms.zoomFadeOn.value = on ? 1 : 0;
+    starMaterial.uniforms.magOn.value = on ? 1 : 0;
   };
 
   // For tests: the frame the stars are drawn from and the farthest star
@@ -3183,6 +3279,7 @@ function initGalaxyMap3d(canvasEl, data) {
     }
     starMaterial.uniforms.now.value = starClock();
     starMaterial.uniforms.camRadius.value = Math.max(orbit.radius, 1e-6);
+    updateMagnitudeLimit(now);
     updateClouds();
     selectionRing.update();
     hoverRing.update();
