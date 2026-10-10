@@ -1363,10 +1363,14 @@ function initGalaxyMap3d(canvasEl, data) {
   // stars -- its color, then where its halo and core sit on the stars'
   // luminosity and radius scales (0..1), so each stands out at any
   // luminosity of its own. The colors are off the blackbody line no star
-  // is drawn off (violet, mint green, pink).
+  // is drawn off (purple, deep blue, pink). MAP.164: black holes purple and
+  // neutron stars dark blue, drawn at the top of the star scale (and past it
+  // for the biggest, `point.size`) with full core brightness, so the dark
+  // colors still out-shine brighter stars; the scattered ones not yet built
+  // into a sector come with a size share by mass class.
   var POINT_LOOKS = {
-    black_hole: ["#a070ff", 0.8, 0.7],
-    neutron_star: ["#5dffb0", 0.75, 0.6],
+    black_hole: ["#a43cff", 0.85, 0.8],
+    neutron_star: ["#3200ff", 0.8, 0.7],
     quasar: ["#ff7fd0", 0.95, 0.9],
   };
   var DEFAULT_POINT_LOOK = ["#ffffff", 0.5, 0.5];
@@ -1536,9 +1540,9 @@ function initGalaxyMap3d(canvasEl, data) {
     stars.forEach(function (star, i) {
       uncharted[i] = star.generated || star.phenomenon || star.system_id != null ? 0 : 1;
       var look = star.phenomenon ? POINT_LOOKS[star.type] || DEFAULT_POINT_LOOK : null;
-      var t = look ? look[1] : logShare(star.luminosity_sol, STAR_LOG_LUMINOSITY);
+      var t = look ? Math.min(1, look[1] + 0.15 * (star.size || 0)) : logShare(star.luminosity_sol, STAR_LOG_LUMINOSITY);
       // Without a stored radius, guess one from the luminosity.
-      var r = look ? look[2] : logShare(star.radius_sol != null ? star.radius_sol : Math.pow(star.luminosity_sol, 0.35), STAR_LOG_RADIUS);
+      var r = look ? Math.min(1, look[2] + 0.2 * (star.size || 0)) : logShare(star.radius_sol != null ? star.radius_sol : Math.pow(star.luminosity_sol, 0.35), STAR_LOG_RADIUS);
       positions.set([star.x - frame[0], star.y - frame[1], star.z - frame[2]], 3 * i);
       colors.set(look ? new THREE.Color(look[0]).toArray() : starColor(star.temperature_k), 3 * i);
       cores[i] = THREE.MathUtils.lerp(STAR_CORE_PX[0], STAR_CORE_PX[1], r);
@@ -1549,7 +1553,7 @@ function initGalaxyMap3d(canvasEl, data) {
       }, look ? 1 : starLightBoost(star.luminosity_sol));
       sizes[i] = Math.max(halo.sizePx, 2 * cores[i] + 2);
       glows[i] = halo.glow;
-      brights[i] = THREE.MathUtils.lerp(STAR_CORE_ALPHA[0], STAR_CORE_ALPHA[1], t);
+      brights[i] = look ? STAR_CORE_ALPHA[1] : THREE.MathUtils.lerp(STAR_CORE_ALPHA[0], STAR_CORE_ALPHA[1], t);
     });
     var geometry = new THREE.BufferGeometry();
     geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
@@ -1752,6 +1756,26 @@ function initGalaxyMap3d(canvasEl, data) {
     var floor = stageView.minLuminosity();
     return !(floor > 0) || (star.luminosity_sol || 0) >= floor;
   }
+  // The dimmest and brightest luminosity of the stars at this zoom (the
+  // needed tiles' stars, whatever the filters), the luminosity slider's
+  // ends. Null with none loaded.
+  var tileLumRange = null;
+  function noteLuminosityRange(need) {
+    var lo = Infinity, hi = 0;
+    need.keys.forEach(function (key) {
+      var tile = getTile(key);
+      if (tile === undefined) return;
+      tileStars(tile).forEach(function (star) {
+        if (star.phenomenon) return;
+        var lum = star.luminosity_sol;
+        if (lum > 0) { lo = Math.min(lo, lum); hi = Math.max(hi, lum); }
+      });
+    });
+    // Whatever the tiles of this view carry: at galaxy scale their per-tile
+    // star caps leave only the brightest stars, and the scale follows that.
+    tileLumRange = hi > 0 ? [lo, hi] : null;
+    if (typeof updateLumSlider === "function") updateLumSlider();
+  }
   // Draws the stars again after a filter changed.
   function refreshStarFilters() {
     starSignature = "";
@@ -1814,6 +1838,7 @@ function initGalaxyMap3d(canvasEl, data) {
     missing.forEach(function (key) {
       carriedStars(key, stars, fades);
     });
+    noteLuminosityRange(need);
     var starKeys = currentStamp + "|" + filterStamp() + "|" + drawn.join(";") + "|"
       + Array.from(stars.keys()).sort().join(",");
     if (starKeys !== starSignature) {
@@ -2395,9 +2420,36 @@ function initGalaxyMap3d(canvasEl, data) {
 
   // MAP.123: the star classes shown (a toggle each, all on to begin with) and
   // the dimmest star shown (a slider on a log scale: 0 is every star).
-  var LUM_STEPS = 110;
-  function lumFromStep(step) { return step <= 0 ? 0 : Math.pow(10, -5 + step / 10); }
-  function stepFromLum(lum) { return lum > 0 ? Math.max(1, Math.round((Math.log10(lum) + 5) * 10)) : 0; }
+  // The slider spans the dimmest to the brightest star at the current zoom
+  // (an open sector's stars, else the loaded tiles'), on a log scale:
+  // step 1 is the dimmest star there is, the last step the brightest.
+  var LUM_STEPS = 100;
+  var lumSliderEl = null;
+  var lumTextEl = null;
+  function lumRange() {
+    var range = (typeof stageView !== "undefined" && stageView && stageView.sectorLuminosityRange()) || tileLumRange;
+    return range || [1e-5, 1e6];
+  }
+  function lumFromStep(step) {
+    if (step <= 0) return 0;
+    var range = lumRange();
+    if (step >= LUM_STEPS || !(range[1] > range[0])) return step >= LUM_STEPS ? range[1] : range[0];
+    var share = (step - 1) / (LUM_STEPS - 1);
+    return range[0] * Math.pow(range[1] / range[0], share);
+  }
+  function stepFromLum(lum) {
+    if (!(lum > 0)) return 0;
+    var range = lumRange();
+    if (!(range[1] > range[0])) return 1;
+    var share = Math.log(lum / range[0]) / Math.log(range[1] / range[0]);
+    return Math.max(1, Math.min(LUM_STEPS, 1 + Math.round(share * (LUM_STEPS - 1))));
+  }
+  // Moves the slider to where the chosen floor sits on the new scale.
+  function updateLumSlider() {
+    if (!lumSliderEl || !lumSliderEl.isConnected) return;
+    lumSliderEl.value = String(stepFromLum(stageView.minLuminosity()));
+    if (lumTextEl) lumTextEl.textContent = "Dimmest star shown: " + formatLum(stageView.minLuminosity());
+  }
   function formatLum(lum) {
     if (!(lum > 0)) return "every star";
     return (lum >= 100 || lum < 0.01 ? lum.toExponential(0) : String(Number(lum.toPrecision(2)))) + " L\u2609 and up";
@@ -2436,6 +2488,8 @@ function initGalaxyMap3d(canvasEl, data) {
     slider.step = "1";
     slider.id = "galaxymap3d-lum";
     slider.value = String(stepFromLum(stageView.minLuminosity()));
+    lumSliderEl = slider;
+    lumTextEl = text;
     var show = function () { text.textContent = "Dimmest star shown: " + formatLum(lumFromStep(Number(slider.value))); };
     slider.addEventListener("input", function () {
       show();

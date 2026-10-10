@@ -13,10 +13,10 @@ always had (`routes.MAX_NAME_LENGTH` and the rest).
 """
 
 import math
-from typing import Annotated, Literal, Optional
+from typing import Annotated, List, Literal, Optional, Union
 
 from pydantic import (
-    BaseModel, ConfigDict, Field, StrictBool, StrictInt, StrictStr, ValidationError, field_validator,
+    BaseModel, ConfigDict, Field, StrictBool, StrictFloat, StrictInt, StrictStr, ValidationError, field_validator,
     model_validator,
 )
 
@@ -361,6 +361,9 @@ class Lenient(BaseModel):
     model_config = ConfigDict(extra="ignore", strict=True)
 
 
+MAX_API_KEY_LIFETIME_DAYS = 3650
+"""int: The longest an API key may be made to last (API.9)."""
+
 MAX_API_KEY_LABEL_LENGTH = 128
 """int: The longest label an API key takes."""
 
@@ -432,6 +435,8 @@ class ApiKeyCreate(Lenient):
     """`POST /api/auth/api-keys`."""
 
     label: StrictStr
+    scopes: Optional[List[StrictStr]] = None
+    expires_days: Optional[Union[StrictInt, StrictFloat]] = None
 
     @field_validator("label")
     @classmethod
@@ -441,6 +446,24 @@ class ApiKeyCreate(Lenient):
             raise ValueError("'label' is required")
         if len(value) > MAX_API_KEY_LABEL_LENGTH:
             raise ValueError(f"'label' must be at most {MAX_API_KEY_LABEL_LENGTH} characters")
+        return value
+
+    @field_validator("scopes")
+    @classmethod
+    def _scopes(cls, value):
+        if value is None:
+            return None
+        from planetgen.admin import auth as adminAuth
+        try:
+            return list(adminAuth.check_scopes(value))
+        except ValueError as exc:
+            raise ValueError(f"'scopes': {exc}")
+
+    @field_validator("expires_days")
+    @classmethod
+    def _expires(cls, value):
+        if value is not None and not (0 < value <= MAX_API_KEY_LIFETIME_DAYS):
+            raise ValueError(f"'expires_days' must be more than 0 and at most {MAX_API_KEY_LIFETIME_DAYS}")
         return value
 
 

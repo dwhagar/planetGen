@@ -801,7 +801,15 @@ v7 adds columns, see below):
   `expires_at`, a fixed lifetime set at creation, no sliding renewal).
 - **`admin_api_keys`** — API keys for programmatic callers (`key_hash`,
   same "hash only, never the raw key" treatment; `revoked_at` rather than
-  a hard delete, so a revoked key's history stays visible).
+  a hard delete, so a revoked key's history stays visible; `key_prefix`,
+  its first eight characters, tells keys apart without the key;
+  `expires_at` makes a key stop working, like a revoked one — control
+  schema v13, API.9).
+- **`admin_api_key_scopes`** — what each key may do: one row per
+  `(key_id, scope)` with `scope` one of `read`, `generate`, `upload`,
+  `admin` (`admin` implies all; `generate` and `upload` imply `read`).
+  Rows go with their key (`ON DELETE CASCADE`); keys made before v13 were
+  given `admin`. No CHECK on `scope`, so a new scope needs no migration.
 - **`admin_audit_log`** — one row per write/admin action (`admin_user_id`
   + a denormalized `admin_username` snapshot, `action`, `target`,
   `detail`, `created_at`) — written by `planetgen/api/routes.py`'s write
@@ -966,7 +974,6 @@ Control schema:
 | API.15 | 0 | Every API call logged: time, route, account (the key's owner, the signed-in admin, or "god" for the console), how it came in (API key, web session or console) and the HTTP response code. Where the rows are kept is settled when it is built. |
 | GEN.70 | 0 | The galaxy's naming key, drawn at creation and changeable by an admin. |
 | OPS.13 | 1 | A version-key history table: one row per galaxy per update with the galaxy seed, the version key, SHA-256 hashes of the lock files, and the date (the nltk corpus and name-list hashes are dropped with GEN.71); only the last 10 rows per galaxy are kept. OPS.15 (phase 2) adds the fingerprint of a small fixed region to each row. |
-| API.9 | 1 | `admin_api_keys` gains a scope column (read, admin, upload). |
 | USR.2, USR.4, USR.7, NAV.19 | 3+ | Accounts with roles, invite links, per-account bookmarks and `user_courses`. |
 
 ## Tables
@@ -1359,7 +1366,7 @@ both terrestrial and gas-giant bodies (`body_type`).
 | `uv_surface_index`, `ozone_loss_flag` | DOUBLE, BOOLEAN | nullable | Added in v75 (GEN.87). DNA-weighted surface UV against Earth's 1 (the star's 200 to 300 nm power against the Sun's, floored at 0.1, times its flux, times the ozone shielding (O3 / O3 of Earth)^-1.6 up to 1,000 when there is none), and whether ozone is lost: the layer exists but the star's `lethal_event_rate_per_gyr` is over 10 (one per 100 Myr) or particles give 100 mSv/yr at the ozone layer. NULL for a gas giant, and `uv_surface_index` NULL without a star temperature. |
 | `phi4`, `phi4_pressure`, `phi4_temperature`, `phi4_chemistry`, `phi4_radiation` | DOUBLE | nullable | Added in v76 (GEN.89). The PHI-4 display score for a human visitor: the four domains each 0 to 1 (1 is Blue) and `phi4`, their geometric mean (0 when any domain is 0). NULL for a gas giant and on a row generated before v76. |
 | `tier_pressure`, `tier_temperature`, `tier_chemistry`, `tier_radiation` | TINYINT | nullable | Added in v76 (GEN.89). Each domain's colour: 0 Blue, 1 Green, 2 Yellow, 3 Red. |
-| `equipment_tier` | TINYINT | nullable | Added in v76 (GEN.89). The kit a human needs: 0 shirtsleeve, 1 breathing mask, 2 mask with scrubber, 3 sealed suit, 4 full life support with radiation hardening. A pulsar's, neutron star's or black hole's planet is always 4. |
+| `equipment_tier` | TINYINT | nullable | Added in v76 (GEN.89). The kit a human needs: 0 ideal (named shirtsleeve before 2026-10-10), 1 breathing mask, 2 mask with scrubber, 3 sealed suit, 4 full life support with radiation hardening. A pulsar's, neutron star's or black hole's planet is always 4. |
 | `phi_bio`, `phi_cpx`, `phi_tech`, `l_solv`, `l_chem`, `l_ener`, `l_rad` | DOUBLE | nullable | Added in v76 (GEN.89). The Xenobiology numbers: microbial life (the product of the four likelihoods `l_solv` solvent, `l_chem` chemistry, `l_ener` energy and `l_rad` radiation), complex life (`phi_bio` times the metazoa's gas tolerance) and human operability with equipment (`phi_tech`, the geometric mean of the pressure, temperature, water and radiation mitigation factors). |
 | `hab_note` | VARCHAR(255) | nullable | Added in v76 (GEN.89). The domains short of Blue ("Pressure Red, Radiation Yellow"), "All four domains Blue", or "Planet of a pulsar, neutron star or black hole: lethal radiation, rated as 1,000 Sv/yr at the surface". |
 | `energy_flux_w_m2` | DOUBLE | nullable | Added in v76 (GEN.89). The light or chemical power life can use: 6% of the starlight, or 1% of the body's own heat flow, whichever is more (the heat only, under an ice lid). The one input the score keeps, so the dose refresh can re-score from the row. |

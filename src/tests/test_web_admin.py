@@ -109,8 +109,8 @@ class FakeAuth:
         self.calls.append(("auth_list_api_keys", cookie_header))
         return self.keys
 
-    def auth_create_api_key(self, cookie_header, label):
-        self.calls.append(("auth_create_api_key", cookie_header, label))
+    def auth_create_api_key(self, cookie_header, label, scopes=None, expires_days=None):
+        self.calls.append(("auth_create_api_key", cookie_header, label, scopes, expires_days))
         return {"id": 99, "label": label, "key": "pgk_secret_value_123"}
 
     def auth_revoke_api_key(self, cookie_header, key_id):
@@ -543,10 +543,10 @@ def test_admin_keys_table_route_is_for_admins_only_and_carries_the_csrf_token(cl
     fake.keys = [_key(1), _key(2, revoked=True)]
     data = client.get("/table/api-keys?sort=label&facets=1").get_json()
     assert data["total"] == 2 and data["rows"][0][0]["text"] == "key 001"
-    form = data["rows"][0][4]["form"]
+    form = data["rows"][0][7]["form"]
     assert form["action"] == "/admin" and ["key_id", 1] in form["fields"]
     assert [csrf.FIELD_NAME] == [name for name, _ in form["fields"] if name == csrf.FIELD_NAME]
-    assert "form" not in data["rows"][1][4]
+    assert "form" not in data["rows"][1][7]
     only = client.get("/table/api-keys?keys_status=revoked").get_json()
     assert [row[0]["text"] for row in only["rows"]] == ["key 002"]
 

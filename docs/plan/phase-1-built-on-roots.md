@@ -139,12 +139,15 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.150 | The free camera: wheel zoom to the cursor, double-click flight, and the observer inside, with the container named from position | MAP.149 | Fly-through report item 3; needs the near field. |
 | MAP.151 | The region data layer: exact-centred frame, aligned cells, per-level aggregates and slot-wrap ranges |  | Fly-through report item 4. Decide cache keys with MAP.147. |
 | MAP.152 | Scale hand-offs: galaxy, sector and system cross-fade with hysteresis, and per-tile camera-relative origins | MAP.148, MAP.150, MAP.154 | Fly-through report item 5. |
-| MAP.163 | Galaxy Map brightness scale: floor 2,500 L_sun at full zoom, then min/max scaling per zoom |  | Boss via coordinator 06:15Z; Bugfixes lane 2. |
 | MAP.154 | Nested bright-star lists on the server, so every parent list is a subset of its child's |  | Zoom visibility note stage 2; shares tile keys with MAP.147 and MAP.151. |
 | MAP.159 | Packed binary Galaxy Map tiles (quantised planes) with the nested tile lists, on one cache stamp bump | MAP.154, MAP.158 | MAP.147 recommendation step 2; one stamp bump with MAP.154 and MAP.151. |
 | MAP.155 | Other objects fade in too: point objects from level 8, a size ramp for cloud sprites, and stars that grow from a faint dot |  | Zoom visibility note stage 3. |
-| MAP.164 | Galaxy Map shows phenomena: black holes purple, neutron stars dark blue, sized by mass, dark colors out-shine brighter stars |  | Boss 06:39Z via coordinator, ASAP; Bugfixes lane 2. |
 | UX.88 | Say "uncharted" instead of "unbuilt" or "not generated" in all user-facing text outside Generate and admin |  |  |
+| UX.90 | Explain the habitability chips in the web interface: a visible legend with the equipment labels, colours, thresholds and scores |  |  |
+| MAP.165 | Scattered phenomena store a mass so the Galaxy Map sizes them exactly |  |  |
+| PERF.56 | Record how long each stage of a staged job takes, with the settings it ran with |  |  |
+| UX.89 | Staged jobs show wrong stage counts and numbers, and skipped stages are not listed (bug) |  |  |
+| GEN.194 | Default mass limit 14 solar masses and default luminosity floor 9,000 solar luminosities |  |  |
 
 ### System Map
 
@@ -194,7 +197,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | API.22 | An API version number: one sequential integer, shown in admin and in the status response |  | Boss 2026-10-09 20:59Z: done by the end of phase 1; do it early so later API changes bump it. |
 | API.23 | The object ID as the public reference: pages, URLs, the API, wiki links and objectref use it in place of row ids | API.22, GEN.171, GEN.172 | Object-ID research. Breaking: bumps the API version (API.22). |
 | API.7 | Investigate and plan upload limits |  | Plan only. |
-| API.9 | Key scopes |  | Control schema migration (v8). Decided: user keys belong to accounts, so API.6 waits for USR.2 (phase 3+); API.9's scopes don't. |
 
 ### Reproducible galaxies
 

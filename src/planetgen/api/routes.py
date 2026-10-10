@@ -1300,7 +1300,7 @@ def run_queued(function, *args):
 
 
 @bp.route("/jobs/<job_id>", methods=["GET"])
-@require_admin()
+@require_admin(scope="read")
 def job_status_route(job_id):
     """`GET /api/jobs/<id>` -- where a queued API job stands: `state`
     (`queued`, `running`, `succeeded` or `failed`), its `result` once it
