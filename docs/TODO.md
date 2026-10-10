@@ -3162,7 +3162,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   shows each phenomenon pass with counts and timing as the star passes
   do, and a test generates a small galaxy through the web job path and
   finds rows in the Phenomena table. Owner: Bugfixes lane 1.
+  Bugfixes lane 1 (2026-10-09): Bugfixes lane 1 (2026-10-10, relayed)
+  pinned the cause: New galaxy runs plan --no-bright-stars (which skips
+  phenomena) then galaxy --then-scatter (stars only), and Plan and
+  Rebuild the bright stars run plan --bright-stars-only (stars only).
+  Fix: every Generate-page job that scatters stars also scatters
+  phenomena, in GEN.185 order (stars, then other phenomena), tested.
+  Shares a PR with GEN.191.
   Prerequisites: none. Related: GEN.185, GEN.100, PERF.53.
+
+- [ ] **GEN.191 New galaxy ignores the mass limit slider: the plan step does not store the limit, so the scatter uses the default whatever the form says (bug)**
+  Bugfixes lane 1 found it while fixing GEN.190 (2026-10-10, relayed).
+  The New galaxy job's plan step does not store the mass limit, so
+  `galaxy --then-scatter` uses the built-in default (20 solar masses)
+  whatever the form's slider and dropdown say (GEN.183, GEN.188). Done:
+  the form's limit reaches both scatters (stars and other phenomena) in
+  the New galaxy job, and a test sets a non-default limit on the form
+  and finds it used. Owner: Bugfixes lane 1, one PR with GEN.190.
+  Prerequisites: none. Related: GEN.183, GEN.185, GEN.188, GEN.190.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
