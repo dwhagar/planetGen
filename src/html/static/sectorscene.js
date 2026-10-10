@@ -34,6 +34,9 @@ const { cssVar, formatAddress, makeRingTexture } = await import(`./mapcore.js${V
 const { endpointBookmark } = await import(`./mappick.js${VERSION_QUERY}`);
 const { buildNebulaMesh, createShapeLoader, disposeNebulaMesh } = await import(`./nebulamesh.js${VERSION_QUERY}`);
 
+// What an object in an uncharted sector says of itself (MAP.162).
+const UNCHARTED_NOTE = "Uncharted: its sector is not generated yet";
+
 // A cloud entry carries `kind` (its phenomenon-texture recipe, see
 // `CLOUD_KIND_RECIPES` below); a star entry never does; a neighboring-
 // sector indicator carries `isNeighbor` -- that alone is enough to tell
@@ -47,6 +50,14 @@ export function infoSpec(entry, data, navPick) {
   }
   var picking = !!(navPick && navPick.active());
   var spec = { title: entry.name || "Unknown", nav: [], links: [] };
+  if (entry.uncharted) {
+    // Left by a scatter in a sector nothing was generated in (MAP.162): it has no
+    // page, bookmark or NAV endpoint until the sector is made.
+    spec.fields = entry.kind
+      ? [["Type", entry.typeLabel], ["Distance", entry.distanceText], ["Status", UNCHARTED_NOTE]]
+      : [["Star type", entry.starType], ["Temperature", entry.temp], ["Status", UNCHARTED_NOTE]];
+    return spec;
+  }
   if (entry.kind) {
     spec.fields = [["Type", entry.typeLabel], ["Radius", entry.radiusText], ["Distance", entry.distanceText]];
     spec.bookmark = endpointBookmark(entry.key, entry.name, entry.href);

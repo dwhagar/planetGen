@@ -1114,20 +1114,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: MAP.147, MAP.157, MAP.158.
   Design: [docs/design/galaxy-map-wire-format.md](design/galaxy-map-wire-format.md)
 
-- [ ] **MAP.162 A sector holding scattered objects but never generated can still be opened, marked uncharted**
-  Boss (GitHub issue
-  [#928](https://github.com/dwhagar/planetGen/issues/928), 2026-10-10
-  01:44Z): "When a scatter places an object inside a sector that is
-  otherwise ungenerated, the user should still be able to select that
-  sector and view it, so they can view the placed item(s) within the
-  sector. But the sector should have some indicator that the sector is
-  uncharted." Done: on the Galaxy Map and the sector view, a sector with
-  scattered stars, black holes or other phenomena but no generated
-  contents opens, shows those objects, and carries a clear uncharted
-  mark (in the title, the info panel and the sector view's frame);
-  generating it removes the mark.
-  Prerequisites: none. Related: MAP.122, MAP.120, UX.87, NAV.48.
-
 - [ ] **MAP.165 Scattered phenomena store a mass so the Galaxy Map sizes them exactly**
   Bugfixes lane 2 (2026-10-10, MAP.164, PR #1029): the scatter rows hold
   no mass, so the Galaxy Map sizes black holes and neutron stars by mass

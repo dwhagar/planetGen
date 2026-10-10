@@ -1149,3 +1149,103 @@ def map_scene_data(
         "halfEdgePc": (edge_mpc / 2) / 1000 if edge_mpc else None,
     }
     return scene_data
+
+
+UNCHARTED_LABEL = "Uncharted"
+"""str: The mark an opened sector nothing was generated in carries (MAP.162):
+in its title, its info panel and the Galaxy Map's frame."""
+
+# A scattered black hole is a purple point and a neutron star a dark blue
+# one, both lit so they show before their sector is made (MAP.164); a
+# quasar, a supernova remnant and a planetary nebula keep the looks every
+# map gives them.
+_UNCHARTED_LIGHTS = {
+    "black_hole": {"color": "#a06bff", "corePx": 4.0, "sizePx": 26.0, "glow": 0.7, "bright": 1.0, "whiten": 0.0},
+    "neutron_star": {"color": "#3f63e0", "corePx": 3.0, "sizePx": 22.0, "glow": 0.7, "bright": 1.0, "whiten": 0.0},
+}
+
+# What a scatter row has no size for: its drawn radius, in light years.
+_UNCHARTED_RADIUS_LY = {"nebula": 1.5, "supernova_remnant": 1.0}
+_UNCHARTED_COMPACT_RADIUS_LY = 0.02
+
+# A hypervelocity star is a bright blue-white star ejected from the core.
+_HYPERVELOCITY_STAR = {"star_type": "B", "temperature_k": 15000.0, "luminosity_sol": 2000.0, "radius_sol": 5.0}
+
+_UNCHARTED_LABELS = {
+    "black_hole": "Black hole", "neutron_star": "Neutron star", "nebula": "Planetary nebula",
+    "supernova_remnant": "Supernova remnant", "quasar": "Quasar", "hypervelocity_star": "Hypervelocity star",
+}
+
+
+def _uncharted_position_px(position_pc, center_pc, half_edge_pc):
+    """A galaxy-frame position (parsecs) as scene units about the sector's center."""
+    nx, ny, nz = ((position_pc[i] - center_pc[i]) / half_edge_pc for i in range(3))
+    return nx * _SCENE_HALF_PX, -ny * _SCENE_HALF_PX, nz * _SCENE_HALF_PX
+
+
+def _uncharted_star_entry(star, x_px, y_px, z_px, name):
+    """One waiting star (a `bright_stars` row, or `_HYPERVELOCITY_STAR`) as a scene star
+    entry; it has no system page, so no `href`."""
+    luminosity_w = star["luminosity_sol"] * SOLAR_LUMINOSITY
+    radius_km = star["radius_sol"] * _SUN_RADIUS_KM if star.get("radius_sol") else None
+    temperature_k = star["temperature_k"] or 5778.0
+    fill, stroke = star_color(star["star_type"], temperature_k, luminosity_w)
+    return {
+        "x": x_px, "y": y_px, "z": z_px, "r": _star_dot_radius(radius_km),
+        "light": _star_light(luminosity_w, radius_km, temperature_k),
+        "fill": fill, "stroke": stroke, "name": name, "starType": star["star_type"],
+        "luminositySol": star["luminosity_sol"], "temp": f"{int(temperature_k)} K", "uncharted": True,
+    }
+
+
+def uncharted_scene_data(address, designation, center_pc, edge_pc, contents, generate=None):
+    """
+    The scene JSON of a sector nothing was generated in (MAP.162): what the
+    scatters left in the cell, drawn like a generated sector's contents so
+    the Galaxy Map can open it in place, with `uncharted` (True) and
+    `designation` for the mark it carries. Same keys as `map_scene_data`
+    (no outline or neighbors: the Galaxy Map draws the cell itself).
+
+    Args:
+        address (tuple): The cell's `(ring, layer, slot)`.
+        designation (str): Its galaxy designation.
+        center_pc (sequence): Its center, galaxy-frame parsecs.
+        edge_pc (float): The grid's sector edge.
+        contents (dict): `queryDb.uncharted_sector_contents`: `stars` and `scattered`.
+        generate (dict, optional): `generate_target`, for the Generate buttons.
+    """
+    half_edge_pc = edge_pc / 2.0
+    stars, clouds = [], []
+    for star in contents["stars"]:
+        x_px, y_px, z_px = _uncharted_position_px((star["x"], star["y"], star["z"]), center_pc, half_edge_pc)
+        stars.append(_uncharted_star_entry(
+            star, x_px, y_px, z_px, f'{star["star_type"]} star ({UNCHARTED_LABEL.lower()})'))
+    for row in contents["scattered"]:
+        x_px, y_px, z_px = _uncharted_position_px((row["x"], row["y"], row["z"]), center_pc, half_edge_pc)
+        if row["type"] == "hypervelocity_star":
+            stars.append(_uncharted_star_entry(
+                _HYPERVELOCITY_STAR, x_px, y_px, z_px, f"Hypervelocity star ({UNCHARTED_LABEL.lower()})"))
+            continue
+        kind_label = _UNCHARTED_LABELS.get(row["type"], row["type"].replace("_", " ").capitalize())
+        radius_ly = _UNCHARTED_RADIUS_LY.get(row["type"], _UNCHARTED_COMPACT_RADIUS_LY)
+        distance_pc = math.sqrt(sum((row[axis] - center_pc[i]) ** 2 for i, axis in enumerate("xyz")))
+        phenomenon = {
+            "type": row["type"], "id": f's{row["id"]}', "name": f"{kind_label} ({UNCHARTED_LABEL.lower()})",
+            "descriptor": "planetary" if row["type"] == "nebula" else (row["subtype"] or ""),
+            "radius_ly": radius_ly, "distance_ly": milliparsecs_to_ly(distance_pc * 1000.0),
+        }
+        cloud = _cloud_data(lambda *args, **kwargs: None, phenomenon, x_px, y_px, z_px,
+                            _phenomenon_cloud_radius_px(radius_ly, half_edge_pc * 1000.0))
+        cloud.pop("href", None)
+        cloud.pop("nebulaId", None)        # a scatter row has no mesh to fetch
+        cloud["uncharted"] = True
+        light = _UNCHARTED_LIGHTS.get(row["type"])
+        if light is not None:
+            cloud["light"] = dict(light)
+        clouds.append(cloud)
+    return {
+        "sceneHalfPx": _SCENE_HALF_PX, "defaultZoom": 1.0, "lyPerPxAtZoom1": None, "outline": None, "compass": None,
+        "stars": stars, "clouds": clouds, "nebulaShapePath": NEBULA_SHAPE_PATH, "neighbors": [],
+        "generate": generate, "edgeLy": milliparsecs_to_ly(edge_pc * 1000.0), "centerPc": list(center_pc), "halfEdgePc": half_edge_pc,
+        "uncharted": True, "designation": designation, "address": list(address),
+    }

@@ -515,6 +515,16 @@ def get_bright_stars_in_cell(db, ring_index, layer_index, ring_slot_index):
     })["items"]
 
 
+def get_uncharted_sector(db, ring_index, layer_index, ring_slot_index):
+    """`GET /api/galaxy/uncharted`'s payload (MAP.162): one sector cell's
+    place (`designation`, `center_pc`, `edge_pc`, `sector_id`) and what the
+    scatters left in it (`stars`, `scattered`)."""
+    _require_db(db)
+    return _request("/galaxy/uncharted", {
+        "db": db, "ring": ring_index, "layer": layer_index, "slot": ring_slot_index,
+    })
+
+
 def get_galaxy_tiles(db, tile_keys):
     """
     Returns `GET /api/galaxy/tiles`'s payload (`tiles`/`edge_pc`/

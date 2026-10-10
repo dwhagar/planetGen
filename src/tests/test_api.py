@@ -2505,3 +2505,33 @@ def test_layer_specs_sample_a_galaxy_with_many_layers(mysql_config):
     layers = [row["layer"] for row in specs["rows"]]
     assert specs["count"] == 201 and specs["sampled"] and 41 <= len(layers) <= 42
     assert layers == sorted(layers, reverse=True) and layers[0] == 100 and layers[-1] == -100 and 0 in layers
+
+
+def test_galaxy_uncharted_sector_lists_what_the_scatters_left_in_a_cell(client, mysql_config):
+    """MAP.162: `GET /api/galaxy/uncharted` gives the cell's place plus its waiting bright stars and its
+    unbuilt scattered phenomena (a built row is left out); bad addresses are 400."""
+    _db.get_connection(mysql_config).close()  # the schema
+    empty = client.get("/api/galaxy/uncharted?ring=3&layer=0&slot=1").get_json()
+    assert empty["stars"] == [] and empty["scattered"] == [] and empty["sector_id"] is None
+    assert empty["designation"] and len(empty["center_pc"]) == 3 and empty["edge_pc"] > 0
+    star = (3, 0, 1, 12000, 3000, 0, "young", "B2V", "V", 1.4e31, 3.0e6, 22000.0)
+    conn = _db.get_connection(mysql_config)
+    try:
+        with conn:
+            _db.insert_bright_stars(conn, [star + (800 * 3.828e26, 0.02, 0.03, 7.0, 0.03, 42)])
+            for kind, subtype, built in (("black-hole", "stellar", False), ("planetary-nebula", None, False),
+                                         ("neutron-star", None, True)):
+                conn.execute("INSERT INTO phenomenon_scatter (ring_index, layer_index, ring_slot_index, kind, subtype,"
+                             " position_x_mpc, position_y_mpc, position_z_mpc, seed, built_at)"
+                             " VALUES (3, 0, 1, ?, ?, 4000, 5000, 6000, 1, " + ("NOW()" if built else "NULL") + ")",
+                             (kind, subtype))
+    finally:
+        conn.close()
+    body = client.get("/api/galaxy/uncharted?ring=3&layer=0&slot=1").get_json()
+    assert [item["luminosity_sol"] for item in body["stars"]] == pytest.approx([800], rel=1e-2)
+    assert [(row["type"], row["subtype"]) for row in body["scattered"]] == [("black_hole", "stellar"), ("nebula", None)]
+    assert (body["scattered"][0]["x"], body["scattered"][0]["y"], body["scattered"][0]["z"]) == (4.0, 5.0, 6.0)
+    assert client.get("/api/galaxy/uncharted?ring=3&layer=0&slot=2").get_json()["scattered"] == []
+    assert client.get("/api/galaxy/uncharted?ring=x&layer=0&slot=1").status_code == 400
+    assert client.get("/api/galaxy/uncharted?ring=3").status_code == 400
+    assert client.get("/api/galaxy/uncharted?ring=-1&layer=0&slot=0").status_code == 400
