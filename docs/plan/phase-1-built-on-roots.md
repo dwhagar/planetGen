@@ -215,6 +215,11 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | PERF.41 | Stamp the tile and page caches with a TILE_FORMAT constant instead of the version (optional) |  | Research follow-up to PERF.25 (built). |
 | PERF.40 | Two shared queues, a reserved interactive worker and a real "cancel now" |  | Research follow-up to PERF.24 (built). |
 | PERF.70 | Sorting the Systems list by Sector or Octant on millions of rows must not sort them all (bug) |  | Left over from PERF.64; Foundations lane 1 next. |
+| GEN.152 | Nebula cloud field is 10 to 40 times too full; lower it to the observed filling (GEN.47 rate check) |  | Research: reopens GEN.47 as a rate check. |
+| TEST.136 | A nebula-rate audit test: the nebula counts and fillings stay inside the observed bands | GEN.152 | Foundations lane 1. |
+| GEN.205 | `planetgen plan --redo-nebula-field`: apply the new nebula rate to an existing galaxy | GEN.152, DB.24 | Foundations lane 1. |
+| GEN.204 | Nebula host chance per O and B star lowered to the catalogued one-per-few-O-stars |  | Foundations lane 1. |
+| GEN.203 | Supernova-remnant and planetary-nebula scatter densities set to the catalogued counts |  | Foundations lane 1. |
 | PERF.82 | Cut the cost of inserting a sector (about 17% of the fill) |  | Foundations lane 1. |
 | PERF.81 | Nearest-neighbour search in sector generation: a spatial grid instead of 1.8 million distance calls |  | Foundations lane 1. |
 | PERF.80 | "Save the sector paths" takes 24% of a small run and does not speed up with workers |  | Foundations lane 1. |

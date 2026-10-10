@@ -14,15 +14,15 @@ release is stamped.
 | Category | Next free ID |
 |---|---|
 | UX | UX.98 |
-| MAP | MAP.183 |
+| MAP | MAP.184 |
 | NAV | NAV.60 |
-| GEN | GEN.203 |
+| GEN | GEN.206 |
 | PERF | PERF.83 |
 | DB | DB.25 |
 | API | API.25 |
 | ADM | ADM.51 |
 | SEC | SEC.33 |
-| TEST | TEST.136 |
+| TEST | TEST.137 |
 | USR | USR.10 |
 | OPS | OPS.42 |
 | DOC | DOC.18 |
@@ -706,6 +706,9 @@ Parents marked "new parent" had no old number of their own.
 | GEN.200 | One shared function for the "map luminosity" of a mass: the luminosity a main-sequence star of that mass would have | none | open |
 | GEN.201 | Fill the map luminosity in the scatter and in existing galaxies | none | open |
 | GEN.202 | Scattered nebulae (planetary nebulae and remnants) join the nebula index, deduplicated by object id | none | open |
+| GEN.203 | Supernova-remnant and planetary-nebula scatter densities set to the catalogued counts | none | open |
+| GEN.204 | Nebula host chance per O and B star lowered to the catalogued one-per-few-O-stars | none | open |
+| GEN.205 | `planetgen plan --redo-nebula-field`: apply the new nebula rate to an existing galaxy | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -888,6 +891,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.180 | Picking, hover and fly-to for nebula regions and cover | none | open |
 | MAP.181 | Dust colour for the dark nebula family on both themes | none | open |
 | MAP.182 | Optional, default do not build: hosted H II and reflection nebulae for pre-placed O and B stars, drawn before their sector exists | none | open |
+| MAP.183 | Optional, default not built for the first release: near-view P and Q nebulae from the seeded field below about 250 pc | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
@@ -1451,6 +1455,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.133 | A reusable big-galaxy query budget test: EXPLAIN every page and list query on 2,000,000 systems | none | open |
 | TEST.134 | test_many_processes_starting_at_once_start_one_job fails under a parallel run (bug) | none | open |
 | TEST.135 | Big-galaxy query-budget test for the nebula reads | none | open |
+| TEST.136 | A nebula-rate audit test: the nebula counts and fillings stay inside the observed bands | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

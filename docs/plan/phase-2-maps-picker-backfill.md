@@ -157,6 +157,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | TEST.131 | Tests for the gravity field evaluator: two bodies, Lagrange points, softening and the rotation curve | GEN.198 |  |
 | PERF.72 | Research the cost of a sector's gravity grid and where to cut between exact and aggregated sources | GEN.198 | Research. |
 | GEN.199 | Per-zone gravity grid for a sector: stored in a cache and rebuilt when the orbits update | GEN.198, PERF.72 |  |
+| MAP.183 | Optional, default not built for the first release: near-view P and Q nebulae from the seeded field below about 250 pc |  | Phase 2. Optional, default not built. |
 | MAP.182 | Optional, default do not build: hosted H II and reflection nebulae for pre-placed O and B stars, drawn before their sector exists |  | Phase 2. Optional, default do not build. |
 | MAP.181 | Dust colour for the dark nebula family on both themes | MAP.175 | Phase 2. Foundations lane 2. |
 | MAP.180 | Picking, hover and fly-to for nebula regions and cover | MAP.176 | Phase 2. Foundations lane 2. |
@@ -171,7 +172,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | GEN.95 | Nebula conditions applied when planets and surfaces are generated |  |  |
-| GEN.152 | Nebula cloud field is 10 to 40 times too full; lower it to the observed filling (GEN.47 rate check) |  | Research: reopens GEN.47 as a rate check. |
 | GEN.151 | Supernova remnant sizes from the density-dependent Sedov-Taylor law (GEN.10 follow-up) |  | Research follow-up to GEN.10 (built). |
 | GEN.93 | Nebula conditions in planet generation | GEN.95 | Parent. |
 | GEN.149 | Planetary-nebula central stars: 0.5 to 0.7 Msun, 1e2 to 1e4 Lsun, up to 2e5 K |  | Research: sub-item of GEN.93. |
