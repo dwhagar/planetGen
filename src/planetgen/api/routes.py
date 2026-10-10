@@ -30,7 +30,7 @@ separate, write-capable database account -- see `docs/api.md`'s
 import math
 
 import pymysql
-from flask import Blueprint, current_app, g, jsonify, request
+from flask import Blueprint, current_app, g, jsonify, request, url_for
 
 from planetgen.web.maps.systemscene import build_scene
 from planetgen.generation import run_galaxy
@@ -1299,14 +1299,18 @@ def run_queued(function, *args):
 def job_status_route(job_id):
     """`GET /api/jobs/<id>` -- where a queued API job stands: `state`
     (`queued`, `running`, `succeeded` or `failed`), its `result` once it
-    succeeded and its `error` once it failed (PERF.24). 404 for an
-    unknown or expired id; results are kept for a day."""
+    succeeded, its `error` once it failed (PERF.24). 404 for an
+    unknown or expired id; results are kept for a day. A finished job that
+    generated sectors also gives `made_url`, the Galaxy Map fitted to them
+    (ADM.31), else `null`."""
     try:
         job = api_jobs.status(job_id)
     except api_jobs.NoQueue as exc:
         raise ApiError(str(exc), status_code=503)
     if job is None:
         raise ApiError(f"no such job: {job_id}", status_code=404)
+    made = job.pop("made")
+    job["made_url"] = url_for("web.galaxy", made=f"{made['since']},{made['until']}") if made else None
     return jsonify(job)
 
 

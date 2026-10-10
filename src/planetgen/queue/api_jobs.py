@@ -13,6 +13,7 @@ or a graceful reload of the web server doesn't stop it, and the worker
 exits when the job is done. The result is kept for `RESULT_TTL_SECONDS`.
 """
 
+import calendar
 import os
 import re
 import secrets
@@ -117,8 +118,11 @@ def status(job_id):
         dict | None: `id`, `state` (`queued`, `running`, `succeeded` or
             `failed`), `result` (what the function returned, once it
             succeeded), `error` (the refusal, or the last line of the
-            error text, once it failed) and `error_status` (the HTTP
-            status of a refusal, else `None`). `None` for an unknown or expired id, or a bad one.
+            error text, once it failed), `error_status` (the HTTP
+            status of a refusal, else `None`) and `made` (ADM.31: for a
+            finished job that makes sectors, `{"since", "until"}`, the
+            Unix seconds window the Galaxy Map's `made` view takes, else
+            `None`). `None` for an unknown or expired id, or a bad one.
 
     Raises:
         NoQueue: No Redis server answers.
@@ -133,18 +137,32 @@ def status(job_id):
     if job is None:
         return None
     state = _STATES.get(job.get_status(refresh=True), "failed")
-    body = {"id": job_id, "state": state, "result": None, "error": None, "error_status": None}
+    body = {"id": job_id, "state": state, "result": None, "error": None, "error_status": None, "made": None}
     if state == "succeeded":
         outcome = job.return_value()
         if "refused" in outcome:
             body.update(state="failed", error=outcome["refused"], error_status=outcome["status"])
         else:
             body["result"] = outcome["result"]
+            body["made"] = _made_window(job)
     elif state == "failed":
         latest = job.latest_result()
         text = (latest.exc_string if latest is not None else None) or "the job ended without finishing"
         body["error"] = text.strip().splitlines()[-1]
     return body
+
+
+MAKES_SECTORS = ("generate_neighborhood", "regenerate_sector")
+"""tuple[str]: The queued functions that generate sectors (ADM.31)."""
+
+
+def _made_window(job):
+    """The `made` window of a finished job that generates sectors: from
+    when it started to a second past when it ended; else `None`."""
+    function = job.args[0] if job.args else None
+    if getattr(function, "__name__", None) not in MAKES_SECTORS or job.started_at is None or job.ended_at is None:
+        return None
+    return {"since": calendar.timegm(job.started_at.timetuple()), "until": calendar.timegm(job.ended_at.timetuple()) + 1}
 
 
 def settle_sectors(sector_ids, config):

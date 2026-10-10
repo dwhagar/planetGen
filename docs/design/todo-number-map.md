@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.88 |
 | MAP | MAP.163 |
 | NAV | NAV.58 |
-| GEN | GEN.188 |
+| GEN | GEN.189 |
 | PERF | PERF.52 |
 | DB | DB.22 |
 | API | API.24 |
@@ -24,7 +24,7 @@ release is stamped.
 | SEC | SEC.33 |
 | TEST | TEST.119 |
 | USR | USR.10 |
-| OPS | OPS.40 |
+| OPS | OPS.41 |
 | DOC | DOC.17 |
 | VIEW | VIEW.11 |
 | POP | POP.11 |
@@ -419,7 +419,7 @@ Parents marked "new parent" had no old number of their own.
 | ADM.28 | A simpler Generate page: layer specs, a Customize window and plain controls | none | open |
 | ADM.29 | Fill a span of layers, rings or columns | none | done, PR #926 |
 | ADM.30 | Radial generation: a cylinder of N sectors around a point | none | done, PR #934 |
-| ADM.31 | Every generate action offers to show what it made on the Galaxy Map | none | open |
+| ADM.31 | Every generate action offers to show what it made on the Galaxy Map | none | done, PR #976 |
 | ADM.32 | Add a star system to a sector: at the emptiest spot, at given coordinates, or at random outside every Hill sphere | none | open |
 | ADM.33 | The owner can override "no room" warnings and generate anyway | none | done, PR #476 |
 | ADM.34 | One admin menu per screen, holding only that screen's actions | none | done, PR #562 |
@@ -684,6 +684,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.185 | The scatter in five passes: mass-limit objects, mass-limit stars, brightest-star sector marks, the luminosity pass, then other phenomena | none | done, PR #953 |
 | GEN.186 | Random neighborhoods: an option to keep away from filled space | none | open |
 | GEN.187 | Bright-star back scatter by mass: rings of 1, 2, 5 and 8 solar masses around filled space | none | open |
+| GEN.188 | Mass limit default is 8, and the mass slider and luminosity dropdown sit side by side on Generate and New galaxy | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -942,6 +943,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.37 | A Generator version number: one sequential integer, shown in admin and the API | none | open |
 | OPS.38 | Two Redis dump files (dump.rdb and src/dump.rdb) are committed to main and should be removed and git-ignored (bug) | none | done, PR #967 |
 | OPS.39 | Remove Windows support; keep only a simple docs/WINDOWS.md | none | open |
+| OPS.40 | update.sh step 8 fails: setup-debug-log.sh loads the deleted util/appconfig.py (bug) | none | open |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
 | PERF.3 | Estimate size and time before bulk generation | 86 (2026-10-01 03:15Z to 05:29Z) | done, PR #238 (stats in control schema v6) |
