@@ -83,7 +83,7 @@ from planetgen.generation import bright_stars as brightStars, limits as generati
 from planetgen import tuning
 from planetgen.galaxy import objectref as object_ref, version_check
 from planetgen.db.store import (get_galaxy_bounds, get_galaxy_shape, get_sector_id_at, list_databases, resolve_database)
-from planetgen.util.appconfig import load_config
+from planetgen.util.settings import get_settings
 from planetgen.generation.config import SystemConfig
 from planetgen.galaxy.geometry import describe_sector_cell, sector_address_at
 from planetgen.generation.system import StarSystem
@@ -166,7 +166,7 @@ def _statement_timeout_s():
     `None` when it's 0 or unset."""
     seconds = current_app.config.get("STATEMENT_TIMEOUT_S")
     if seconds is None:
-        seconds = load_config()["mysql"].get("statement_timeout_seconds") or 0
+        seconds = get_settings().mysql.statement_timeout_seconds
     return float(seconds) if seconds and float(seconds) > 0 else None
 
 
@@ -1721,7 +1721,7 @@ def wiki_settings(backend):
     (`config.py`'s `_wiki_config`: environment, then `config.json`), so
     the wiki's token or password never travels through Redis."""
     from planetgen.api.config import _wiki_config
-    settings = _wiki_config(load_config()["wiki"])[backend]
+    settings = _wiki_config(get_settings().wiki)[backend]
     if not settings["configured"]:
         raise ApiError(f"wiki publishing is not configured for {backend!r}", status_code=501)
     return settings

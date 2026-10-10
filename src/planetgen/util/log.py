@@ -63,7 +63,7 @@ import threading
 import time
 from contextlib import contextmanager
 
-from planetgen.util import appconfig, draw
+from planetgen.util import draw, logpaths
 
 SILENT = "silent"
 NORMAL = "normal"
@@ -170,7 +170,7 @@ def configure(level=NORMAL, debug_file=None, console=True):
     additional handler that mirrors everything the console handler shows --
     only meaningful (and only ever passed) when `level == DEBUG`.
 
-    Independently of `level`, when debug mode is on (`appconfig.
+    Independently of `level`, when debug mode is on (`logpaths.
     debug_enabled()`) the debug log (see this module's docstring) is
     attached too, at DEBUG severity; the logger's own threshold is the
     lower of the two, and each handler filters to its own.
@@ -278,9 +278,9 @@ def _configure_debug_log():
     """
     global _debug_log_handler
     try:
-        config = appconfig.load_config()
-        enabled = appconfig.debug_enabled(config)
-        path = appconfig.log_file_path(config)
+        config = logpaths.read_config_file()
+        enabled = logpaths.debug_enabled(config)
+        path = logpaths.log_file_path(config)
         if not isinstance(path, str):
             # A non-string "log_file" in config.json would otherwise raise
             # a TypeError from the file handler below, past the OSError

@@ -21,7 +21,7 @@ from flask import current_app, request
 
 from planetgen.web.lib import apiclient
 from planetgen.util import log
-from planetgen.util.appconfig import debug_enabled
+from planetgen.util.logpaths import debug_enabled
 
 from .helpers import render_page
 

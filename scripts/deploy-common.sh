@@ -114,7 +114,7 @@ ensure_nltk_words() {
 # answer warns rather than stopping the install or update.
 ensure_redis() {
     local url host
-    url="$("$PYTHON" -c "from planetgen.util.appconfig import load_config; print(load_config()['redis']['url'])")" || {
+    url="$("$PYTHON" -c "from planetgen.util.settings import get_settings; print(get_settings().redis.url)")" || {
         echo "warning: couldn't read redis.url from config.json; skipping the Redis check." >&2
         return 0
     }

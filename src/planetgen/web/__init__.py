@@ -46,7 +46,7 @@ from planetgen.web.lib import pagecache  # noqa: E402
 from planetgen.web.lib.fmt import STATIC_VERSION, format_number, utc_time_html  # noqa: E402
 from planetgen.web.lib.fmt import static_url as fmt_static_url  # noqa: E402
 from planetgen.api.limiter import page_limit  # noqa: E402
-from planetgen.util.appconfig import load_config  # noqa: E402
+from planetgen.util.settings import get_settings  # noqa: E402
 
 from . import csrf, errors, transport  # noqa: E402
 from .helpers import current_admin, page_url, visible_sections  # noqa: E402
@@ -142,7 +142,7 @@ def edit_flashes():
 @bp.app_context_processor
 def _template_globals():
     return {
-        "site_name": load_config()["site_name"],
+        "site_name": get_settings().site_name,
         "site_version": STATIC_VERSION,
         "sections": visible_sections,
         "static_url": static_url,
@@ -196,7 +196,7 @@ def _install_page_cache(app):
     `page_cache.enabled` is off, and clears it after every successful
     write under `/api` -- a page's admin form or an API client alike.
     """
-    settings = pagecache.settings_from(load_config())
+    settings = get_settings().page_cache.model_dump()
     if not settings["enabled"]:
         return
     cache = pagecache.ResponseCache(lambda db: apiclient.get_galaxy_changes(db)["stamp"], settings)

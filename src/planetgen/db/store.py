@@ -71,7 +71,7 @@ from planetgen.names import object_id as objectId
 from planetgen.galaxy import seed as galaxySeed, uid as galaxyUid, version_key as versionKey
 from planetgen.physics import atmosphere, constants as physical_constants, kepler, spin
 from planetgen.util import log
-from planetgen.util.appconfig import load_config
+from planetgen.util.settings import env_name, get_settings
 from planetgen.generation.belt import AsteroidBelt
 from planetgen.generation.phenomena.asteroid_field import AsteroidField, asteroid_field_designation
 from planetgen.generation.phenomena.compact_remnant import BlackHole, NeutronStar
@@ -226,16 +226,11 @@ created (v7), as `table -> [(column, definition)]`, in order. Must match
 CONTROL_SCHEMA_PATH = os.path.join(_PACKAGE_DIR, "control_schema.sql")
 """str: Path to the DDL file applied by `_ensure_control_schema`."""
 
-CONTROL_DB_ENV_VAR = "PLANETGEN_CONTROL_DATABASE"
+CONTROL_DB_ENV_VAR = env_name("control_database")
 """str: Env var naming the one MySQL schema the control plane lives in
 (admin identities are global to a deployment, not per-galaxy -- see
-`control_schema.sql`'s header comment). Falls back to `config.json`'s
-`control_database` (see `planetgen.util.appconfig`), then
-`DEFAULT_CONTROL_DATABASE`, when unset."""
-
-DEFAULT_CONTROL_DATABASE = "planetgen_control"
-"""str: Default control-schema name when neither `CONTROL_DB_ENV_VAR` nor
-`config.json`'s `control_database` is set."""
+`control_schema.sql`'s header comment); the settings model's
+`control_database` (`planetgen.util.settings`)."""
 
 
 def _stored_version(conn, table):
@@ -274,17 +269,17 @@ class MySQLConfig:
 
     Precedence for each field left unset here is: the matching
     `PLANETGEN_MYSQL_*` environment variable, then `config.json`'s
-    `mysql` section (see `planetgen.util.appconfig`), then the
+    `mysql` section (see `planetgen.util.settings`), then the
     hardcoded default below.
     """
 
     def __init__(self, host=None, port=None, user=None, password=None, database=None):
-        defaults = load_config()["mysql"]
-        self.host = host if host is not None else os.environ.get("PLANETGEN_MYSQL_HOST", defaults["host"])
-        self.port = int(port if port is not None else os.environ.get("PLANETGEN_MYSQL_PORT", defaults["port"]))
-        self.user = user if user is not None else os.environ.get("PLANETGEN_MYSQL_USER", defaults["user"])
-        self.password = password if password is not None else os.environ.get("PLANETGEN_MYSQL_PASSWORD", defaults["password"])
-        self.database = database if database is not None else os.environ.get("PLANETGEN_MYSQL_DATABASE", defaults["database"])
+        defaults = get_settings().mysql
+        self.host = host if host is not None else defaults.host
+        self.port = int(port if port is not None else defaults.port)
+        self.user = user if user is not None else defaults.user
+        self.password = password if password is not None else defaults.password
+        self.database = database if database is not None else defaults.database
 
     def _key(self):
         """A hashable identity for this config, used to key the pool
@@ -1180,22 +1175,6 @@ def get_connection(config=None, ensure_schema=True, statement_timeout_s=None):
     return conn
 
 
-DB_PREFIX_ENV_VAR = "PLANETGEN_MYSQL_DATABASE_PREFIX"
-"""str: Env var overriding the default schema-name prefix `list_databases`/
-`resolve_database` filter by -- see `MySQLConfig`'s own `database` default.
-Shared by every entry point that offers a choice among several MySQL
-schemas on one server (the `html/` CGI browser's `?db=` picker, and the
-Flask API's own `?db=`/`/api/databases`, both via this one implementation).
-Falls back to `config.json`'s `mysql.database_prefix` (see
-`planetgen.util.appconfig`), then to `DEFAULT_DB_PREFIX`, when unset."""
-
-DEFAULT_DB_PREFIX = "planetgen"
-"""str: Matches `MySQLConfig`'s own default database name -- a deployment
-with just one schema names it `planetgen` and never needs to set
-`DB_PREFIX_ENV_VAR` (or `config.json`'s `mysql.database_prefix`) at all;
-one with several names them `planetgen_<something>` to share the prefix."""
-
-
 def escape_like(value):
     """
     Escapes `\\`, `%` and `_` in `value` so it matches only itself inside
@@ -1209,15 +1188,15 @@ def escape_like(value):
 
 def configured_control_database():
     """The control schema's name: `CONTROL_DB_ENV_VAR`, else
-    `config.json`'s `control_database`, else `DEFAULT_CONTROL_DATABASE`
+    `config.json`'s `control_database`
     (what `control_mysql_config` connects to)."""
-    return os.environ.get(CONTROL_DB_ENV_VAR) or load_config()["control_database"] or DEFAULT_CONTROL_DATABASE
+    return get_settings().control_database
 
 
 def list_databases(base_config=None, prefix=None, with_counts=False):
     """
     Lists every MySQL schema on `base_config`'s server whose name starts
-    with `prefix` (default: `DB_PREFIX_ENV_VAR`, or `DEFAULT_DB_PREFIX`) --
+    with `prefix` (default: `mysql.database_prefix`) --
     "multiple databases" here means multiple MySQL schemas on one
     configured server (e.g. one schema per campaign/galaxy: `planetgen`,
     `planetgen_alpha`, ...), the way both the `html/` CGI browser's
@@ -1251,12 +1230,7 @@ def list_databases(base_config=None, prefix=None, with_counts=False):
                     `"unknown"` when the storage engine doesn't track it).
     """
     base_config = base_config or DEFAULT_MYSQL_CONFIG
-    prefix = (
-        prefix
-        or os.environ.get(DB_PREFIX_ENV_VAR)
-        or load_config()["mysql"]["database_prefix"]
-        or DEFAULT_DB_PREFIX
-    )
+    prefix = prefix or get_settings().mysql.database_prefix
     conn = get_connection(
         MySQLConfig(
             host=base_config.host, port=base_config.port,
@@ -1530,7 +1504,7 @@ def control_mysql_config(base_config=None):
 
     Returns:
         MySQLConfig: `base_config` with `database` replaced by
-            `CONTROL_DB_ENV_VAR` (or `DEFAULT_CONTROL_DATABASE`).
+            `CONTROL_DB_ENV_VAR`.
     """
     base_config = base_config or DEFAULT_MYSQL_CONFIG
     database = configured_control_database()

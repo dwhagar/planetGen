@@ -24,7 +24,8 @@ import pytest
 
 from planetgen.web.app import create_app
 from planetgen.api.common import is_http_url
-from planetgen.api.config import Config, _proxy_fix
+from planetgen.api.config import Config
+from planetgen.util import settings as settings_model
 from planetgen.api.limiter import DEFAULT_PAGE_LIMITS
 from planetgen.api.common import ApiError
 from planetgen.api.routes import DATABASE_UNAVAILABLE
@@ -39,7 +40,6 @@ def _wiki_url_accepted(url):
         return False
     return True
 from planetgen.db.store import MySQLConfig
-from planetgen.util.appconfig import DEFAULT_CONFIG
 
 _UNREACHABLE = MySQLConfig(host="127.0.0.1", port=1, user="secretuser", password="x", database="planetgen_x")
 
@@ -84,7 +84,7 @@ def test_default_page_limits_are_generous_and_configured():
         "search": "30 per minute", "galaxy": "60 per minute", "galaxy_tiles": "600 per minute",
         "health": "60 per minute", "other": "300 per minute",
     }
-    assert Config.RATELIMIT_PAGES == DEFAULT_CONFIG["ratelimit"]["pages"]
+    assert Config.RATELIMIT_PAGES == DEFAULT_PAGE_LIMITS
 
 
 def test_search_is_limited_per_ip_with_a_friendly_html_page():
@@ -198,22 +198,20 @@ def test_proxy_fix_sends_hsts_when_the_proxy_says_https(path):
     assert "Strict-Transport-Security" not in _via_proxy(off, path, "203.0.113.3", "https").headers
 
 
-def test_proxy_fix_config_defaults_env_and_errors(monkeypatch):
-    for name in ("X_FOR", "X_PROTO", "X_HOST"):
-        monkeypatch.delenv(f"PLANETGEN_PROXY_FIX_{name}", raising=False)
-    assert DEFAULT_CONFIG["proxy_fix"] == {"x_for": 0, "x_proto": 0, "x_host": 0}
-    assert _proxy_fix(None) == {"x_for": 0, "x_proto": 0, "x_host": 0}
-    assert _proxy_fix({"x_for": 1, "x_proto": "1"}) == {"x_for": 1, "x_proto": 1, "x_host": 0}
-    # The environment wins over config.json.
-    monkeypatch.setenv("PLANETGEN_PROXY_FIX_X_FOR", "2")
-    monkeypatch.setenv("PLANETGEN_PROXY_FIX_X_HOST", "")
-    assert _proxy_fix({"x_for": 1, "x_host": 1}) == {"x_for": 2, "x_proto": 0, "x_host": 1}
+def test_proxy_fix_config_defaults_env_and_errors():
+    off = {"x_for": 0, "x_proto": 0, "x_host": 0}
+    assert settings_model.Settings().proxy_fix.model_dump() == off
+    assert settings_model.build({"proxy_fix": {"x_for": 1, "x_proto": "1"}}, environ={}).proxy_fix.model_dump() == {
+        "x_for": 1, "x_proto": 1, "x_host": 0}
+    # The environment wins over config.json; an empty variable doesn't count.
+    environ = {"PLANETGEN_PROXY_FIX_X_FOR": "2", "PLANETGEN_PROXY_FIX_X_HOST": ""}
+    assert settings_model.build({"proxy_fix": {"x_for": 1, "x_host": 1}}, environ=environ).proxy_fix.model_dump() == {
+        "x_for": 2, "x_proto": 0, "x_host": 1}
     for bad in ("yes", -1, True, 1.5):
         with pytest.raises(ValueError, match="x_proto"):
-            _proxy_fix({"x_proto": bad})
-    monkeypatch.setenv("PLANETGEN_PROXY_FIX_X_FOR", "one")
-    with pytest.raises(ValueError, match="PLANETGEN_PROXY_FIX_X_FOR"):
-        _proxy_fix({})
+            settings_model.build({"proxy_fix": {"x_proto": bad}}, environ={})
+    with pytest.raises(ValueError, match="x_for"):
+        settings_model.build({}, environ={"PLANETGEN_PROXY_FIX_X_FOR": "one"})
 
 
 # --- Database errors ---------------------------------------------------------

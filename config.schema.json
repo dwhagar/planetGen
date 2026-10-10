@@ -1,0 +1,736 @@
+{
+  "$defs": {
+    "Jobs": {
+      "properties": {
+        "dir": {
+          "default": "",
+          "description": "Where each background job's command lines, status and output are kept; empty means /var/lib/planetGen/jobs.",
+          "title": "Dir",
+          "type": "string",
+          "x-category": "jobs",
+          "x-editable": false,
+          "x-env": "PLANETGEN_JOBS_DIR",
+          "x-min_role": "admin",
+          "x-restart": false,
+          "x-secret": false
+        },
+        "keep": {
+          "default": 20,
+          "description": "How many finished jobs are kept.",
+          "minimum": 1,
+          "title": "Keep",
+          "type": "integer",
+          "x-category": "jobs",
+          "x-editable": true,
+          "x-min_role": "admin",
+          "x-restart": false,
+          "x-secret": false
+        },
+        "python": {
+          "default": "",
+          "description": "The interpreter that runs planetgen and planetgen.cli.reset for the jobs; empty means the web app's own Python. Editing it from the web would be code execution, so it is file-only.",
+          "title": "Python",
+          "type": "string",
+          "x-category": "jobs",
+          "x-editable": false,
+          "x-env": "PLANETGEN_PYTHON",
+          "x-min_role": "admin",
+          "x-restart": false,
+          "x-secret": false
+        }
+      },
+      "title": "Jobs",
+      "type": "object"
+    },
+    "MediaWiki": {
+      "properties": {
+        "base_url": {
+          "default": "",
+          "description": "The MediaWiki API entry point's directory (everything up to, not including, api.php). Empty means it isn't offered as an upload target.",
+          "title": "Base Url",
+          "type": "string",
+          "x-category": "wiki",
+          "x-editable": true,
+          "x-env": "PLANETGEN_MEDIAWIKI_BASE_URL",
+          "x-min_role": "owner",
+          "x-restart": false,
+          "x-secret": false
+        },
+        "password": {
+          "default": "",
+          "description": "That Bot Password.",
+          "title": "Password",
+          "type": "string",
+          "x-category": "wiki",
+          "x-editable": true,
+          "x-env": "PLANETGEN_MEDIAWIKI_PASSWORD",
+          "x-min_role": "owner",
+          "x-restart": false,
+          "x-secret": true
+        },
+        "username": {
+          "default": "",
+          "description": "A Bot Password user name, in User@BotName form.",
+          "title": "Username",
+          "type": "string",
+          "x-category": "wiki",
+          "x-editable": true,
+          "x-env": "PLANETGEN_MEDIAWIKI_USERNAME",
+          "x-min_role": "owner",
+          "x-restart": false,
+          "x-secret": false
+        }
+      },
+      "title": "MediaWiki",
+      "type": "object"
+    },
+    "MySQL": {
+      "properties": {
+        "database": {
+          "default": "planetgen",
+          "description": "The galaxy database the pages show and the generators fill.",
+          "title": "Database",
+          "type": "string",
+          "x-category": "database",
+          "x-editable": false,
+          "x-env": "PLANETGEN_MYSQL_DATABASE",
+          "x-env-empty": true,
+          "x-min_role": "admin",
+          "x-restart": true,
+          "x-secret": false
+        },
+        "database_prefix": {
+          "default": "planetgen",
+          "description": "The schema-name prefix the database picker lists, for a deployment with several galaxies on one server.",
+          "title": "Database Prefix",
+          "type": "string",
+          "x-category": "database",
+          "x-editable": false,
+          "x-env": "PLANETGEN_MYSQL_DATABASE_PREFIX",
+          "x-min_role": "admin",
+          "x-restart": true,
+          "x-secret": false
+        },
+        "host": {
+          "default": "127.0.0.1",
+          "description": "The MySQL or MariaDB server's host name or address.",
+          "title": "Host",
+          "type": "string",
+          "x-category": "database",
+          "x-editable": false,
+          "x-env": "PLANETGEN_MYSQL_HOST",
+          "x-env-empty": true,
+          "x-min_role": "admin",
+          "x-restart": true,
+          "x-secret": false
+        },
+        "password": {
+          "default": "",
+          "description": "That account's password.",
+          "title": "Password",
+          "type": "string",
+          "x-category": "database",
+          "x-editable": false,
+          "x-env": "PLANETGEN_MYSQL_PASSWORD",
+          "x-env-empty": true,
+          "x-min_role": "admin",
+          "x-restart": true,
+          "x-secret": true
+        },
+        "port": {
+          "default": 3306,
+          "description": "The server's port.",
+          "maximum": 65535,
+          "minimum": 1,
+          "title": "Port",
+          "type": "integer",
+          "x-category": "database",
+          "x-editable": false,
+          "x-env": "PLANETGEN_MYSQL_PORT",
+          "x-env-empty": true,
+          "x-min_role": "admin",
+          "x-restart": true,
+          "x-secret": false
+        },
+        "statement_timeout_seconds": {
+          "default": 10,
+          "description": "The longest any statement on the web interface's and API's read-only connections may run (0 turns the limit off). A query it stops gives a 504 page, or a QUERY_TIMEOUT error from the API.",
+          "minimum": 0,
+          "title": "Statement Timeout Seconds",
+          "type": "number",
+          "x-category": "database",
+          "x-editable": true,
+          "x-min_role": "admin",
+          "x-restart": false,
+          "x-secret": false,
+          "x-unit": "seconds"
+        },
+        "user": {
+          "default": "planetgen",
+          "description": "The account every entry point connects with; give it whatever grants the most demanding caller needs.",
+          "title": "User",
+          "type": "string",
+          "x-category": "database",
+          "x-editable": false,
+          "x-env": "PLANETGEN_MYSQL_USER",
+          "x-env-empty": true,
+          "x-min_role": "admin",
+          "x-restart": true,
+          "x-secret": false
+        }
+      },
+      "title": "MySQL",
+      "type": "object"
+    },
+    "PageCache": {
+      "properties": {
+        "enabled": {
+          "default": true,
+          "description": "Keep the API's public answers in memory, per WSGI process.",
+          "title": "Enabled",
+          "type": "boolean",
+          "x-category": "cache",
+          "x-editable": true,
+          "x-env": "PLANETGEN_PAGE_CACHE",
+          "x-min_role": "admin",
+          "x-restart": true,
+          "x-secret": false
+        },
+        "max_age_seconds": {
+          "default": 300,
+          "description": "Nothing is kept longer than this.",
+          "exclusiveMinimum": 0,
+          "title": "Max Age Seconds",
+          "type": "number",
+          "x-category": "cache",
+          "x-editable": true,
+          "x-min_role": "admin",
+          "x-restart": true,
+          "x-secret": false,
+          "x-unit": "seconds"
+        },
+        "max_entries": {
+          "default": 2000,
+          "description": "Most answers kept.",
+          "minimum": 1,
+          "title": "Max Entries",
+          "type": "integer",
+          "x-category": "cache",
+          "x-editable": true,
+          "x-min_role": "admin",
+          "x-restart": true,
+          "x-secret": false
+        },
+        "max_mb": {
+          "default": 64,
+          "description": "Most memory the answers may take.",
+          "exclusiveMinimum": 0,
+          "title": "Max Mb",
+          "type": "number",
+          "x-category": "cache",
+          "x-editable": true,
+          "x-min_role": "admin",
+          "x-restart": true,
+          "x-secret": false,
+          "x-unit": "MB"
+        },
+        "stamp_seconds": {
+          "default": 15,
+          "description": "How often the galaxy's content stamp is checked.",
+          "minimum": 0,
+          "title": "Stamp Seconds",
+          "type": "number",
+          "x-category": "cache",
+          "x-editable": true,
+          "x-min_role": "admin",
+          "x-restart": true,
+          "x-secret": false,
+          "x-unit": "seconds"
+        }
+      },
+      "title": "PageCache",
+      "type": "object"
+    },
+    "ProxyFix": {
+      "properties": {
+        "x_for": {
+          "default": 0,
+          "description": "Reverse proxies to trust for X-Forwarded-For, the client address (0 = off).",
+          "minimum": 0,
+          "title": "X For",
+          "type": "integer",
+          "x-category": "proxy",
+          "x-editable": false,
+          "x-env": "PLANETGEN_PROXY_FIX_X_FOR",
+          "x-min_role": "admin",
+          "x-restart": true,
+          "x-secret": false
+        },
+        "x_host": {
+          "default": 0,
+          "description": "Reverse proxies to trust for X-Forwarded-Host (0 = off).",
+          "minimum": 0,
+          "title": "X Host",
+          "type": "integer",
+          "x-category": "proxy",
+          "x-editable": false,
+          "x-env": "PLANETGEN_PROXY_FIX_X_HOST",
+          "x-min_role": "admin",
+          "x-restart": true,
+          "x-secret": false
+        },
+        "x_proto": {
+          "default": 0,
+          "description": "Reverse proxies to trust for X-Forwarded-Proto, the scheme (0 = off).",
+          "minimum": 0,
+          "title": "X Proto",
+          "type": "integer",
+          "x-category": "proxy",
+          "x-editable": false,
+          "x-env": "PLANETGEN_PROXY_FIX_X_PROTO",
+          "x-min_role": "admin",
+          "x-restart": true,
+          "x-secret": false
+        }
+      },
+      "title": "ProxyFix",
+      "type": "object"
+    },
+    "RateLimit": {
+      "properties": {
+        "default": {
+          "default": "200 per day;50 per hour",
+          "description": "Flask-Limiter's default limit for the API.",
+          "title": "Default",
+          "type": "string",
+          "x-category": "rate limits",
+          "x-editable": true,
+          "x-env": "PLANETGEN_RATELIMIT_DEFAULT",
+          "x-min_role": "admin",
+          "x-restart": true,
+          "x-secret": false
+        },
+        "pages": {
+          "$ref": "#/$defs/RatePages",
+          "default": {
+            "galaxy": "60 per minute",
+            "galaxy_tiles": "600 per minute",
+            "health": "60 per minute",
+            "other": "300 per minute",
+            "search": "30 per minute"
+          }
+        },
+        "storage_uri": {
+          "default": "",
+          "description": "Where limits count; empty means the Redis server in redis.url, memory:// counts per process (right with exactly one worker).",
+          "title": "Storage Uri",
+          "type": "string",
+          "x-category": "rate limits",
+          "x-editable": true,
+          "x-env": "PLANETGEN_RATELIMIT_STORAGE_URI",
+          "x-min_role": "admin",
+          "x-restart": true,
+          "x-secret": false
+        }
+      },
+      "title": "RateLimit",
+      "type": "object"
+    },
+    "RatePages": {
+      "properties": {
+        "galaxy": {
+          "default": "60 per minute",
+          "description": "Limit on /galaxy, the Galaxy Map page. Empty turns it off.",
+          "title": "Galaxy",
+          "type": "string",
+          "x-category": "rate limits",
+          "x-editable": true,
+          "x-min_role": "admin",
+          "x-restart": true,
+          "x-secret": false
+        },
+        "galaxy_tiles": {
+          "default": "600 per minute",
+          "description": "Limit on /galaxy/tiles, /galaxy/stage and /galaxy/territories, fetched as the map's camera moves. Empty turns it off.",
+          "title": "Galaxy Tiles",
+          "type": "string",
+          "x-category": "rate limits",
+          "x-editable": true,
+          "x-min_role": "admin",
+          "x-restart": true,
+          "x-secret": false
+        },
+        "health": {
+          "default": "60 per minute",
+          "description": "Limit on /api/health. Empty turns it off.",
+          "title": "Health",
+          "type": "string",
+          "x-category": "rate limits",
+          "x-editable": true,
+          "x-min_role": "admin",
+          "x-restart": true,
+          "x-secret": false
+        },
+        "other": {
+          "default": "300 per minute",
+          "description": "Limit on every other page, counted together. Empty turns it off.",
+          "title": "Other",
+          "type": "string",
+          "x-category": "rate limits",
+          "x-editable": true,
+          "x-min_role": "admin",
+          "x-restart": true,
+          "x-secret": false
+        },
+        "search": {
+          "default": "30 per minute",
+          "description": "Limit per client address on /search and /galaxy/locate. Empty turns it off.",
+          "title": "Search",
+          "type": "string",
+          "x-category": "rate limits",
+          "x-editable": true,
+          "x-min_role": "admin",
+          "x-restart": true,
+          "x-secret": false
+        }
+      },
+      "title": "RatePages",
+      "type": "object"
+    },
+    "Redis": {
+      "properties": {
+        "url": {
+          "default": "redis://127.0.0.1:6379/0",
+          "description": "The Redis server the work queue, the rate limits and the login lockouts use.",
+          "title": "Url",
+          "type": "string",
+          "x-category": "queue",
+          "x-editable": false,
+          "x-env": "PLANETGEN_REDIS_URL",
+          "x-min_role": "admin",
+          "x-restart": true,
+          "x-secret": false
+        }
+      },
+      "title": "Redis",
+      "type": "object"
+    },
+    "TileCache": {
+      "properties": {
+        "dir": {
+          "default": "",
+          "description": "Where the Galaxy Map's tiles are cached on disk; empty means /var/cache/planetgen/tiles.",
+          "title": "Dir",
+          "type": "string",
+          "x-category": "cache",
+          "x-editable": false,
+          "x-env": "PLANETGEN_TILE_CACHE_DIR",
+          "x-min_role": "admin",
+          "x-restart": false,
+          "x-secret": false
+        },
+        "max_mb": {
+          "default": 200,
+          "description": "Roughly how big the tile cache may grow before its oldest files are pruned (0 turns the disk cache off).",
+          "minimum": 0,
+          "title": "Max Mb",
+          "type": "number",
+          "x-category": "cache",
+          "x-editable": true,
+          "x-env": "PLANETGEN_TILE_CACHE_MAX_MB",
+          "x-min_role": "admin",
+          "x-restart": false,
+          "x-secret": false,
+          "x-unit": "MB"
+        }
+      },
+      "title": "TileCache",
+      "type": "object"
+    },
+    "Wiki": {
+      "properties": {
+        "mediawiki": {
+          "$ref": "#/$defs/MediaWiki",
+          "default": {
+            "base_url": "",
+            "password": "",
+            "username": ""
+          }
+        },
+        "wikijs": {
+          "$ref": "#/$defs/WikiJs",
+          "default": {
+            "api_token": "",
+            "base_url": ""
+          }
+        }
+      },
+      "title": "Wiki",
+      "type": "object"
+    },
+    "WikiJs": {
+      "properties": {
+        "api_token": {
+          "default": "",
+          "description": "A Wiki.js Personal API Token (Admin, API Access).",
+          "title": "Api Token",
+          "type": "string",
+          "x-category": "wiki",
+          "x-editable": true,
+          "x-env": "PLANETGEN_WIKIJS_API_TOKEN",
+          "x-min_role": "owner",
+          "x-restart": false,
+          "x-secret": true
+        },
+        "base_url": {
+          "default": "",
+          "description": "The Wiki.js instance's root URL. Empty means it isn't offered as an upload target.",
+          "title": "Base Url",
+          "type": "string",
+          "x-category": "wiki",
+          "x-editable": true,
+          "x-env": "PLANETGEN_WIKIJS_BASE_URL",
+          "x-min_role": "owner",
+          "x-restart": false,
+          "x-secret": false
+        }
+      },
+      "title": "WikiJs",
+      "type": "object"
+    }
+  },
+  "description": "Every `config.json` option.",
+  "properties": {
+    "admin_cookie_insecure": {
+      "default": false,
+      "description": "Send the admin session cookie over plain HTTP. Only for local development without TLS; a production deployment must never set it.",
+      "title": "Admin Cookie Insecure",
+      "type": "boolean",
+      "x-category": "security",
+      "x-editable": false,
+      "x-env": "PLANETGEN_ADMIN_COOKIE_INSECURE",
+      "x-min_role": "admin",
+      "x-restart": true,
+      "x-secret": false
+    },
+    "api_base_url": {
+      "default": "http://127.0.0.1/api",
+      "description": "Base URL of the Flask API's /api mount point, used by web/lib/apiclient.py only outside the Flask app.",
+      "title": "Api Base Url",
+      "type": "string",
+      "x-category": "site",
+      "x-editable": false,
+      "x-env": "PLANETGEN_API_BASE_URL",
+      "x-min_role": "admin",
+      "x-restart": true,
+      "x-secret": false
+    },
+    "base_url": {
+      "default": "http://localhost/",
+      "description": "The base URL this deployment is served from. Not yet read by any page; reserved for absolute links that a request alone can't give.",
+      "title": "Base Url",
+      "type": "string",
+      "x-category": "site",
+      "x-editable": true,
+      "x-min_role": "owner",
+      "x-restart": false,
+      "x-secret": false
+    },
+    "config_version": {
+      "default": 1,
+      "description": "The settings file format version; a file without one is version 1.",
+      "minimum": 1,
+      "title": "Config Version",
+      "type": "integer",
+      "x-category": "file",
+      "x-editable": false,
+      "x-min_role": "admin",
+      "x-restart": false,
+      "x-secret": false
+    },
+    "control_database": {
+      "default": "planetgen_control",
+      "description": "The MySQL schema holding admin identities, sessions, API keys and the audit log. Never listed or selectable as a galaxy.",
+      "title": "Control Database",
+      "type": "string",
+      "x-category": "database",
+      "x-editable": false,
+      "x-env": "PLANETGEN_CONTROL_DATABASE",
+      "x-min_role": "admin",
+      "x-restart": true,
+      "x-secret": false
+    },
+    "debug": {
+      "default": false,
+      "description": "Write a verbose debug log to log_file: every decision the generator makes, every random roll, every SQL statement and request. The log grows fast.",
+      "title": "Debug",
+      "type": "boolean",
+      "x-category": "logging",
+      "x-editable": false,
+      "x-env": "PLANETGEN_DEBUG",
+      "x-min_role": "admin",
+      "x-restart": true,
+      "x-secret": false
+    },
+    "jobs": {
+      "$ref": "#/$defs/Jobs",
+      "default": {
+        "dir": "",
+        "keep": 20,
+        "python": ""
+      }
+    },
+    "log_dir": {
+      "default": "",
+      "description": "The folder of the always-on activity log; empty means /var/log/planetgen on Linux, /Library/Logs/planetgen on macOS, logs under the checkout on Windows.",
+      "title": "Log Dir",
+      "type": "string",
+      "x-category": "logging",
+      "x-editable": false,
+      "x-env": "PLANETGEN_LOG_DIR",
+      "x-min_role": "admin",
+      "x-restart": true,
+      "x-secret": false
+    },
+    "log_file": {
+      "default": "/var/log/planetgen.log",
+      "description": "Where the debug log goes (set it explicitly on Windows).",
+      "title": "Log File",
+      "type": "string",
+      "x-category": "logging",
+      "x-editable": false,
+      "x-env": "PLANETGEN_LOG_FILE",
+      "x-min_role": "admin",
+      "x-restart": true,
+      "x-secret": false
+    },
+    "log_rotation": {
+      "default": "auto",
+      "description": "How the activity log is rotated: system (logrotate or newsyslog), app (the program, 100 MB per file, 30 old copies) or auto (system where an installed rotation config exists, else app).",
+      "enum": [
+        "auto",
+        "system",
+        "app"
+      ],
+      "title": "Log Rotation",
+      "type": "string",
+      "x-category": "logging",
+      "x-editable": false,
+      "x-min_role": "admin",
+      "x-restart": true,
+      "x-secret": false
+    },
+    "login_allowlist": {
+      "default": [],
+      "description": "Client addresses or networks (CIDR) never locked out after failed logins; loopback never is either. Environment: comma- or space-separated.",
+      "items": {
+        "type": "string"
+      },
+      "title": "Login Allowlist",
+      "type": "array",
+      "x-category": "security",
+      "x-editable": true,
+      "x-env": "PLANETGEN_LOGIN_ALLOWLIST",
+      "x-min_role": "owner",
+      "x-restart": true,
+      "x-secret": false
+    },
+    "mysql": {
+      "$ref": "#/$defs/MySQL",
+      "default": {
+        "database": "planetgen",
+        "database_prefix": "planetgen",
+        "host": "127.0.0.1",
+        "password": "",
+        "port": 3306,
+        "statement_timeout_seconds": 10.0,
+        "user": "planetgen"
+      }
+    },
+    "page_cache": {
+      "$ref": "#/$defs/PageCache",
+      "default": {
+        "enabled": true,
+        "max_age_seconds": 300.0,
+        "max_entries": 2000,
+        "max_mb": 64.0,
+        "stamp_seconds": 15.0
+      }
+    },
+    "proxy_fix": {
+      "$ref": "#/$defs/ProxyFix",
+      "default": {
+        "x_for": 0,
+        "x_host": 0,
+        "x_proto": 0
+      }
+    },
+    "ratelimit": {
+      "$ref": "#/$defs/RateLimit",
+      "default": {
+        "default": "200 per day;50 per hour",
+        "pages": {
+          "galaxy": "60 per minute",
+          "galaxy_tiles": "600 per minute",
+          "health": "60 per minute",
+          "other": "300 per minute",
+          "search": "30 per minute"
+        },
+        "storage_uri": ""
+      }
+    },
+    "redis": {
+      "$ref": "#/$defs/Redis",
+      "default": {
+        "url": "redis://127.0.0.1:6379/0"
+      }
+    },
+    "secret_key": {
+      "default": "",
+      "description": "Signs the CSRF tokens on the pages' forms. Empty makes a random one at startup (a form open across a restart then fails once).",
+      "title": "Secret Key",
+      "type": "string",
+      "x-category": "security",
+      "x-editable": false,
+      "x-env": "PLANETGEN_SECRET_KEY",
+      "x-min_role": "admin",
+      "x-restart": true,
+      "x-secret": true
+    },
+    "site_name": {
+      "default": "planetGen",
+      "description": "Display name for this deployment, shown in the header, the home page heading, every page title and the footer.",
+      "minLength": 1,
+      "title": "Site Name",
+      "type": "string",
+      "x-category": "site",
+      "x-editable": true,
+      "x-min_role": "admin",
+      "x-restart": false,
+      "x-secret": false
+    },
+    "tile_cache": {
+      "$ref": "#/$defs/TileCache",
+      "default": {
+        "dir": "",
+        "max_mb": 200.0
+      }
+    },
+    "wiki": {
+      "$ref": "#/$defs/Wiki",
+      "default": {
+        "mediawiki": {
+          "base_url": "",
+          "password": "",
+          "username": ""
+        },
+        "wikijs": {
+          "api_token": "",
+          "base_url": ""
+        }
+      }
+    }
+  },
+  "title": "Settings",
+  "type": "object"
+}

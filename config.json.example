@@ -1,4 +1,5 @@
 {
+  "config_version": 1,
   "site_name": "planetGen",
   "base_url": "http://localhost/",
   "api_base_url": "http://127.0.0.1/api",
@@ -13,7 +14,7 @@
     "password": "",
     "database": "planetgen",
     "database_prefix": "planetgen",
-    "statement_timeout_seconds": 10
+    "statement_timeout_seconds": 10.0
   },
   "control_database": "planetgen_control",
   "redis": {
@@ -40,7 +41,14 @@
   },
   "tile_cache": {
     "dir": "",
-    "max_mb": 200
+    "max_mb": 200.0
+  },
+  "page_cache": {
+    "enabled": true,
+    "max_entries": 2000,
+    "max_mb": 64.0,
+    "stamp_seconds": 15.0,
+    "max_age_seconds": 300.0
   },
   "jobs": {
     "dir": "",

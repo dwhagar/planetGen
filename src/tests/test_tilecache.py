@@ -7,6 +7,7 @@ are replaced with fakes that count calls, so no API or database is
 needed.
 """
 
+from planetgen.util import settings as settings_model
 import json
 import os
 
@@ -237,10 +238,10 @@ def test_configured_cache_dir_reports_where_the_cache_belongs(monkeypatch, tmp_p
     assert not target.exists()
 
     monkeypatch.delenv("PLANETGEN_TILE_CACHE_DIR")
-    monkeypatch.setattr(tilecache, "_config", lambda: {})
+    monkeypatch.setattr(tilecache, "_config", lambda: settings_model.TileCache())
     assert tilecache.configured_cache_dir() == tilecache.DEFAULT_CACHE_DIR
 
-    monkeypatch.setenv("PLANETGEN_TILE_CACHE_MAX_MB", "0")
+    monkeypatch.setattr(tilecache, "_config", lambda: settings_model.TileCache(max_mb=0))
     assert tilecache.configured_cache_dir() is None
 
 

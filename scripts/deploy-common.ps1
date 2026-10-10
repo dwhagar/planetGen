@@ -336,7 +336,7 @@ function Invoke-OptionalPopulation([switch]$Run) {
 }
 
 # The two logs (OPS.5), worked out the way the program does
-# (planetgen\util\appconfig.py): the debug log is PLANETGEN_LOG_FILE, else
+# (planetgen\util\logpaths.py): the debug log is PLANETGEN_LOG_FILE, else
 # "log_file" in config.json, else its default; the always-on activity log
 # is planetgen.log in PLANETGEN_LOG_DIR, else "log_dir", else logs under
 # the checkout. One object per log: Name, File, Dir and Setting (what to
@@ -349,12 +349,12 @@ function Get-LogLocations {
     $python = Get-VenvPython
     $lines = @(& $python -I -c @"
 import importlib.util, os, sys
-spec = importlib.util.spec_from_file_location('appconfig', os.path.join(sys.argv[1], 'src', 'planetgen', 'util', 'appconfig.py'))
-appconfig = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(appconfig)
-config = appconfig.load_config()
-print(os.path.abspath(appconfig.log_file_path(config)))
-print(appconfig.activity_log_path(config))
+spec = importlib.util.spec_from_file_location('logpaths', os.path.join(sys.argv[1], 'src', 'planetgen', 'util', 'logpaths.py'))
+logpaths = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(logpaths)
+config = logpaths.read_config_file(os.path.join(sys.argv[1], 'config.json'))
+print(os.path.abspath(logpaths.log_file_path(config)))
+print(logpaths.activity_log_path(config))
 "@ $Root)
     if ($LASTEXITCODE -ne 0 -or $lines.Count -lt 2) {
         $script:LogLocations = @()
@@ -554,7 +554,7 @@ function Start-GalaxyMapWarmup {
 
 function Test-Redis {
     $python = Get-VenvPython
-    $url = & $python -c "from planetgen.util.appconfig import load_config; print(load_config()['redis']['url'])"
+    $url = & $python -c "from planetgen.util.settings import get_settings; print(get_settings().redis.url)"
     if ($LASTEXITCODE -ne 0 -or -not $url) {
         Write-Warning "Couldn't read redis.url from config.json; skipping the Redis check."
         return

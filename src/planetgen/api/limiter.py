@@ -22,7 +22,7 @@ from flask import current_app, request
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address
 
-from planetgen.util.appconfig import DEFAULT_CONFIG
+from planetgen.util.settings import RatePages
 
 IN_PROCESS_ENVIRON_KEY = "planetgen.in_process"
 """str: WSGI environ key `web/transport.py` sets on the API requests the
@@ -73,7 +73,7 @@ limiter = Limiter(key_func=get_remote_address, default_limits_exempt_when=is_in_
 # error page for a page, JSON under `/api` and for `/galaxy/tiles`
 # (`app.py`'s 429 handler).
 
-DEFAULT_PAGE_LIMITS = DEFAULT_CONFIG["ratelimit"]["pages"]
+DEFAULT_PAGE_LIMITS = RatePages().model_dump()
 """dict: The built-in values, used for any name missing from the app's
 `RATELIMIT_PAGES` (a test config that doesn't set it at all)."""
 

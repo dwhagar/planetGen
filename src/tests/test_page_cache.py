@@ -112,9 +112,10 @@ def test_least_recently_used_goes_first_and_size_is_bounded():
 
 
 def test_settings():
-    assert pagecache.settings_from({}, environ={}) == pagecache.DEFAULTS
-    assert pagecache.settings_from({"page_cache": {"max_mb": 8}}, environ={})["max_mb"] == 8
-    assert pagecache.settings_from({}, environ={"PLANETGEN_PAGE_CACHE": "off"})["enabled"] is False
+    from planetgen.util import settings as settings_model
+    assert settings_model.build({}, environ={}).page_cache.model_dump() == pagecache.DEFAULTS
+    assert settings_model.build({"page_cache": {"max_mb": 8}}, environ={}).page_cache.max_mb == 8
+    assert settings_model.build({}, environ={"PLANETGEN_PAGE_CACHE": "off"}).page_cache.enabled is False
     assert pagecache.is_cacheable("/sectors/5")
     assert not pagecache.is_cacheable("/galaxy/changes")
     assert not pagecache.is_cacheable("/galaxy/tiles")

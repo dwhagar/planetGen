@@ -99,10 +99,10 @@ def test_deploy_paths_matches_the_web_apps_own_answer(tmp_path, monkeypatch):
     from planetgen.web.lib import tilecache
     from planetgen.web import jobs
 
+    from planetgen.util import logpaths
     config = {"tile_cache": {"dir": "/srv/tiles", "max_mb": 50}, "jobs": {"dir": "/srv/jobs"}}
     (tmp_path / "config.json").write_text(json.dumps(config))
-    monkeypatch.setattr(tilecache, "_config", lambda: config["tile_cache"])
-    monkeypatch.setattr(jobs, "_config", lambda: config["jobs"])
+    monkeypatch.setattr(logpaths, "CONFIG_PATH", str(tmp_path / "config.json"))
     for var in ("PLANETGEN_TILE_CACHE_DIR", "PLANETGEN_TILE_CACHE_MAX_MB", "PLANETGEN_JOBS_DIR"):
         monkeypatch.delenv(var, raising=False)
     assert _deploy_paths(tmp_path) == [tilecache.configured_cache_dir(), jobs.configured_jobs_dir()]
@@ -193,7 +193,7 @@ def test_create_cache_dir_moves_old_jobs_before_making_the_folder():
 def test_root_helpers_run_python_isolated():
     code = _code_lines("create-cache-dir.sh")
     assert '"$PYTHON" -I "$APACHE_DIR/deploy-paths.py"' in code
-    assert "sys.path" not in code and "import tilecache" not in code and "appconfig" not in code
+    assert "sys.path" not in code and "import tilecache" not in code and "logpaths" not in code
     assert '"$PYTHON" -I -' in _code_lines("setup-debug-log.sh")
     assert '"$PYTHON" -I "$APACHE_DIR/log-locations.py"' in _code_lines("setup-debug-log.sh")
 
@@ -242,11 +242,11 @@ def _me():
 
 def _run_log_locations(tmp_path, user=None, group=None, config=None, **env_overrides):
     """Runs log-locations.py against a fake checkout holding the real
-    appconfig.py and, when given, a config.json."""
+    logpaths.py and, when given, a config.json."""
     repo = tmp_path / "repo"
     package = repo / "src" / "planetgen" / "util"
     package.mkdir(parents=True, exist_ok=True)
-    shutil.copy(os.path.join(REPO_DIR, "src", "planetgen", "util", "appconfig.py"), package / "appconfig.py")
+    shutil.copy(os.path.join(REPO_DIR, "src", "planetgen", "util", "logpaths.py"), package / "logpaths.py")
     if config is not None:
         (repo / "config.json").write_text(json.dumps(config))
     me_user, me_group = _me()
