@@ -81,15 +81,19 @@ def test_a_loaded_sector_knows_every_objects_cell_and_velocity(mysql_config):
     address = (1500, 2, 700)
     edge_pc = 11.5 * constants.LIGHTYEAR_M / constants.PARSEC_M
     center_pc = geometry.sector_position_pc(*address, edge_pc)
-    sector = SpaceSector("Addressed Round Trip", edge_ly=11.5)
+    # A planet gets its place only once the sector is placed in the galaxy, and a few systems
+    # have planets without one (about 1 run in 300 drew only those): draw until one has.
     for _ in range(300):
+        sector = SpaceSector("Addressed Round Trip", edge_ly=11.5)
         cfg = SystemConfig()
         cfg.PLANETS = True
+        cfg.MAX_PLANETS = True
         system = StarSystem(system_config=cfg)
-        if system.planets:
+        sector.add_system(system, position=(1.0, -0.5, 0.5), system_config=cfg)
+        sector.place_in_galaxy(tuple(c * constants.PARSEC_M / constants.LIGHTYEAR_M for c in center_pc))
+        if any(getattr(p, "spatial", None) for p in system.planets):
             break
-    sector.add_system(system, position=(1.0, -0.5, 0.5), system_config=cfg)
-    sector.place_in_galaxy(tuple(c * constants.PARSEC_M / constants.LIGHTYEAR_M for c in center_pc))
+    assert any(getattr(p, "spatial", None) for p in system.planets)
     sector_id = store.save_sector(sector, config=mysql_config, galaxy_position={
         "center_x_pc": center_pc[0], "center_y_pc": center_pc[1], "center_z_pc": center_pc[2],
         "galactic_radius_pc": float((center_pc[0] ** 2 + center_pc[1] ** 2 + center_pc[2] ** 2) ** 0.5),
