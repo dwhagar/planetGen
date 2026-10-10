@@ -628,6 +628,13 @@ MIN_RELATIVE_DENSITY = 1.0e-3
 # of a star being at least the threshold's brightness is tabulated.
 BRIGHT_STAR_MASS_GRID_CELLS = 4000
 
+OBJECT_FIRST_CAPACITIES = (1, 2, 4, 8, 16)
+"""tuple: The object counts a sector can take in the object-first scatter (PERF.58): its capacity is the smallest
+of these that its expected count rarely exceeds (`OBJECT_FIRST_TAIL`); an object past it is dropped."""
+
+OBJECT_FIRST_TAIL = 1.0e-4
+"""float: The chance a sector's Poisson count may exceed its capacity (PERF.58)."""
+
 POISSON_REJECTION_MEAN = 10.0
 """float: From this mean up `util/poisson.py` draws a Poisson count by transformed rejection (constant time);
 below it, by Knuth's method (PERF.60)."""

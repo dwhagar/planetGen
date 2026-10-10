@@ -7,12 +7,12 @@ system around each of its pre-placed stars (`fill_context`, used by
 `generate.generate_sector`) and draws the rest of its systems from dimmer
 stars only, so its expected total is unchanged.
 
-The scatter works ring by ring, never sector by sector (a full galaxy
-has billions of cells): each ring's expected count per stellar
-population is averaged over angle bins, drawn as a Poisson count, and
-each star then lands in a slot of a bin picked in proportion to that
-population's density. Every cell inside the outline can draw one, however
-sparse (GEN.78): the density never falls below the halo floor
+The scatter is object first, never sector by sector (a full galaxy has
+billions of cells): a layer draws one Poisson count of candidates from a
+certified density bound, gives each a ring, a slot and a point, and keeps it
+with probability true density over bound (`generation/object_first.py`,
+PERF.58). Every cell inside the outline can hold one, however sparse
+(GEN.78): the density never falls below the halo floor
 (`tuning.MIN_RELATIVE_DENSITY`).
 
 The backfill goes the other way: around the generated sectors it adds the
@@ -45,8 +45,11 @@ about four times the draws (a narrow band is drawn by redrawing the
 stars that overshoot it).
 """
 
+import bisect
 import collections
 import math
+
+import numpy as np
 
 from planetgen.physics import constants
 from planetgen import tuning
@@ -62,12 +65,14 @@ from planetgen.galaxy.geometry import (
     sector_position_pc,
 )
 from planetgen.galaxy.sector import _sample_poisson_count
+from planetgen.generation import object_first
 from planetgen.generation.star_population import (
     bright_band_fraction, mass_band_fraction, pick_population, placed_star_fraction, sample_bright_stars,
     sample_mass_band_stars,
 )
 from planetgen.physics.units import pc_to_ly
 from planetgen.util import draw
+from planetgen.util.poisson import poisson_count
 
 POPULATIONS = ("young", "intermediate", "old", "bulge")
 """tuple: The stellar populations `galaxyDensity.population_densities`
@@ -77,6 +82,9 @@ ANGLE_BINS = 32
 """int: How many angle bins a ring's density is averaged over (fewer when
 the ring has fewer slots). The spiral arms' density varies smoothly over
 a bin this size."""
+
+CANDIDATE_REPORT = 512
+"""int: How many candidates a layer tries between progress reports (PERF.4)."""
 
 SLOT_REDRAWS = 8
 """int: How many points a star tries before giving up when rounding to
@@ -271,7 +279,13 @@ RING_WEIGHT_STARS = 5.0
 """float: What walking one ring of a layer costs, in stars drawn: a
 ring's density bins take about as long as placing and drawing five
 stars (measured 2026-10-01: 0.2 ms a ring against about 40 us a star),
-so an empty edge layer still counts for something (PERF.9)."""
+so an empty edge layer still counts for something (PERF.9). The phenomena
+pass still walks its rings; the star passes do not (`OBJECT_FIRST_RING_WEIGHT_STARS`)."""
+
+OBJECT_FIRST_RING_WEIGHT_STARS = 0.02
+"""float: What one ring of a star layer costs, in stars drawn, with the
+object-first sampler (PERF.58): its density bound, about 1.2 us a ring
+against about 60 us a star."""
 
 WEIGHT_RING_SAMPLES = 48
 """int: Rings sampled per layer by `layer_weight` (evenly spaced)."""
@@ -320,8 +334,8 @@ def layer_expected_stars(shape, layer_index, outer_ring, edge_pc, expected_at_de
 def layer_weight(shape, layer_index, outer_ring, edge_pc, expected_at_density_1, fractions):
     """
     The work one layer of the scatter is expected to take, in stars: its
-    expected stars (`layer_expected_stars`) plus `RING_WEIGHT_STARS` per
-    ring walked. The bright-star progress bar and its ETA count these, so
+    expected stars (`layer_expected_stars`) plus `OBJECT_FIRST_RING_WEIGHT_STARS`
+    per ring bounded. The bright-star progress bar and its ETA count these, so
     the near-empty layers at the top and bottom of the disk no longer
     count as much as the dense ones in the middle (PERF.9).
 
@@ -329,61 +343,116 @@ def layer_weight(shape, layer_index, outer_ring, edge_pc, expected_at_density_1,
         tuple: `(weight, expected_stars)`.
     """
     expected = layer_expected_stars(shape, layer_index, outer_ring, edge_pc, expected_at_density_1, fractions)
-    return expected + RING_WEIGHT_STARS * (outer_ring + 1), expected
+    return expected + OBJECT_FIRST_RING_WEIGHT_STARS * (outer_ring + 1), expected
+
+
+def _spots(shape, layer_index, outer_ring, edge_pc, expected_at_density_1, fractions, rng, skip_addresses,
+           check=False, on_candidates=None):
+    """
+    The stars of one layer, object first (PERF.58, `generation/object_first.py`):
+    one Poisson count of candidates from the layer's density majorant, each
+    given a ring, a slot and a point, and kept with probability true density
+    over majorant. A star in a skipped sector is dropped (thinning); a sector
+    takes up to its capacity (`object_first.sector_capacity`).
+
+    Args:
+        fractions (dict): `band_fractions`: the share of each population's stars in the band drawn.
+        check (bool): Assert that the true density never exceeds the majorant.
+        on_candidates (callable, optional): Called as `on_candidates(done, total, kept)` every few hundred
+            candidates.
+
+    Yields:
+        tuple: `(ring_index, slot, point, population)`, `point` in whole milliparsecs.
+    """
+    if sum(fractions.values()) <= 0.0 or outer_ring < 0:
+        return
+    majorants = object_first.ring_majorants(shape, layer_index, outer_ring, edge_pc, fractions)
+    slot_counts = [ring_sector_count(ring_index) for ring_index in range(outer_ring + 1)]
+    cumulative = np.cumsum(expected_at_density_1 * np.array(slot_counts, dtype=float) * majorants)
+    total_mean = float(cumulative[-1])
+    if not total_mean > 0.0:
+        return
+    bounds = majorants.tolist()
+    cumulative = cumulative.tolist()
+    candidates = poisson_count(total_mean, rng)
+    kept = {}
+    taken = 0
+    for done in range(candidates):
+        if on_candidates is not None and done % CANDIDATE_REPORT == 0:
+            on_candidates(done, candidates, taken)
+        ring_index = min(bisect.bisect_right(cumulative, rng.random() * total_mean), outer_ring)
+        slots = slot_counts[ring_index]
+        slot = min(int(rng.random() * slots), slots - 1)
+        point = _point_in_cell(rng, ring_index, layer_index, slot, slots, edge_pc)
+        if point is None:
+            continue
+        densities = _densities(tuple(value / MPC_PER_PC for value in point), shape)
+        weights = [densities[population] * fractions[population] for population in POPULATIONS]
+        wanted = sum(weights)
+        if check and wanted > bounds[ring_index] * (1.0 + 1e-9):
+            raise AssertionError(f"majorant violated in ring {ring_index} of layer {layer_index}: "
+                                 f"{wanted} > {bounds[ring_index]}")
+        if rng.random() * bounds[ring_index] >= wanted:
+            continue
+        address = (ring_index, layer_index, slot)
+        if address in skip_addresses:
+            continue
+        held = kept.get(address, 0)
+        if held:
+            centre = _densities(sector_position_pc(ring_index, layer_index, slot, edge_pc), shape)
+            expected = expected_at_density_1 * sum(centre[population] * fractions[population]
+                                                    for population in POPULATIONS)
+            if held >= object_first.sector_capacity(expected):
+                continue
+        kept[address] = held + 1
+        taken += 1
+        pick = rng.random() * wanted
+        for population, weight in zip(POPULATIONS, weights):
+            pick -= weight
+            if pick < 0.0:
+                break
+        else:
+            population = max(zip(POPULATIONS, weights), key=lambda item: item[1])[0]
+        yield ring_index, slot, point, population
+    if on_candidates is not None:
+        on_candidates(candidates, candidates, taken)
 
 
 def scatter_layer(shape, layer_index, outer_ring, edge_pc, expected_at_density_1, min_luminosity_sol, seed,
-                  skip_addresses=None, max_luminosity_sol=None, on_progress=None, mass_range=None):
+                  skip_addresses=None, max_luminosity_sol=None, on_progress=None, mass_range=None, check=False):
     """
     One layer of `scatter`: every bright star from ring 0 out to
-    `outer_ring` at `layer_index`. Each layer draws from its own random
-    stream (the scatter's seed and the layer index), so layers can be
-    drawn in any order, or side by side in worker processes (PERF.7),
-    and still give the same stars.
+    `outer_ring` at `layer_index`, placed object first (`_spots`, PERF.58).
+    Each layer draws from its own random stream (the scatter's seed and the
+    layer index), so layers can be drawn in any order, or side by side in
+    worker processes (PERF.7), and still give the same stars.
 
     Args:
-        on_progress (callable, optional): PERF.4: called after every
-            star as `on_progress(done, estimate)`, in stars. Each star is
-            placed while the rings are walked, then drawn (its type and
-            luminosity) at the end, and counts half at each step, so
-            `done` reaches the layer's count when it's finished.
-            `estimate` is the stars placed and still to place in the
-            ring being walked, plus the expected count of the rings not
-            yet walked (exact, from the same per-ring means the draw
-            uses), then the placed total once every ring is walked.
+        on_progress (callable, optional): PERF.4: called as `on_progress(done,
+            estimate)`, in stars. Stars are placed, then drawn (their type and
+            luminosity), and count half at each step, so `done` reaches the
+            layer's count when it is finished. `estimate` is the stars placed
+            so far scaled up by the share of candidates tried, then the placed
+            total once all are.
+        check (bool): Assert that the density never exceeds the majorant (tests).
 
     Yields:
         tuple: One row per star, in `_db.BRIGHT_STAR_COLUMNS` order.
     """
-    rng = draw.Stream(f"{seed}:{layer_index}")
+    rng = draw.Stream(f"{seed}:objects:{layer_index}")
     skip_addresses = skip_addresses or set()
     fractions = band_fractions(min_luminosity_sol, max_luminosity_sol, mass_range)
     placed = {population: [] for population in POPULATIONS}
-    rings = []
-    expected_left = 0.0
-    for ring_index in range(outer_ring + 1):
-        slots, bins = _ring_bins(ring_index, layer_index, shape, expected_at_density_1, edge_pc)
-        slots_per_bin = slots / len(bins)
-        means = {}
-        for population in POPULATIONS:
-            weights = [densities[population] for densities in bins]
-            means[population] = (weights, expected_at_density_1 * slots_per_bin * sum(weights) * fractions[population])
-            expected_left += max(means[population][1], 0.0)
-        rings.append((ring_index, slots, means))
-    for ring_index, slots, means in rings:
-        for population in POPULATIONS:
-            weights, mean = means[population]
-            if mean <= 0.0:
-                continue
-            expected_left -= mean
-            count = _sample_poisson_count(mean, rng=rng)
-            for pending in range(count, 0, -1):
-                spot = _place_one(rng, weights, ring_index, layer_index, slots, edge_pc)
-                if spot is not None and (ring_index, layer_index, spot[0]) not in skip_addresses:
-                    placed[population].append((ring_index, spot[0], spot[1]))
-                if on_progress is not None:
-                    total_placed = sum(len(spots) for spots in placed.values())
-                    on_progress(total_placed / 2, total_placed + (pending - 1) + max(expected_left, 0.0))
+
+    def candidates_done(done, total, taken):
+        if on_progress is not None and total:
+            estimate = taken * total / done if done else float(total)
+            on_progress(taken / 2, max(estimate, float(taken)))
+
+    for ring_index, slot, point, population in _spots(
+            shape, layer_index, outer_ring, edge_pc, expected_at_density_1, fractions, rng, skip_addresses,
+            check=check, on_candidates=candidates_done):
+        placed[population].append((ring_index, slot, point))
     total_placed = sum(len(spots) for spots in placed.values())
     drawn = 0
     for population, spots in placed.items():
