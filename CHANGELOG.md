@@ -3,6 +3,7 @@
 ## [8.0.866] - 2026-10-10
 
 ### Changed
+- GEN.165: the epoch-position test compared a comet round a second star with the barycenter; it now compares against what the comet goes round, like planets, so it no longer fails in some random systems. No product code was wrong.
 - **Docs only:** TEST.114 (exact COUNT(*) in the check test, PR #946) is retired from the TODO list and the plans.
 - TEST.114: the "check writes nothing" test compares exact row counts instead of MySQL's background-refreshed row estimates, so it no longer fails under load.
 - The System Map no longer shows a comet on an open (parabolic) orbit once its pass is over (or before it arrives): beyond the drawn path, 2,000 AU out, it disappears instead of flying on forever. Closed-orbit comets always show.
