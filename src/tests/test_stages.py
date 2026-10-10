@@ -101,7 +101,7 @@ def test_the_new_galaxy_job_counts_every_stage_of_every_step():
 
 def test_ticking_skip_the_scatter_lists_those_stages_as_skipped_with_that_reason():
     found = jobs.job_stages(_steps("new_galaxy", {"confirm": "db", "skip_bright_stars": "on"}))
-    scatter = [s for s in found if s["label"].startswith("Scatter")]
+    scatter = [s for s in found if s["label"].startswith("Scatter") and "neighborhood" not in s["label"]]
     assert len(scatter) == 3 and all("box is ticked" in s["skipped"] for s in scatter)
 
 
@@ -120,3 +120,11 @@ def test_the_stage_view_names_the_running_stage_by_its_place_in_the_whole_job():
     states = [s["state"] for s in view["stage_list"]]
     assert states[:6] == ["done"] * 6 and states[6] == "running" and "waiting" in states
     assert [s["state"] for s in view["stage_list"] if s["state"] == "skipped"] == ["skipped"]
+
+
+def test_the_backfill_stage_is_the_mass_scatter_from_the_neighborhood():
+    # GEN.187: the backfill is now the mass rings around the generated sectors.
+    (found,) = [stage for stage in stages.galaxy_stages(_galaxy("--then-scatter")) if stage.key == "backfill"]
+    assert found.label == "Scatter the massive stars from the neighborhood"
+    (off,) = [stage for stage in stages.galaxy_stages(_galaxy("--backfill-from", "none")) if stage.key == "backfill"]
+    assert off.skip and "--backfill-from none" in off.skip
