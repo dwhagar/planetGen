@@ -1161,6 +1161,55 @@ def generate_sector_neighborhood(center_sector_id, radius_ly=None, config=None, 
     return {"generated": generated, "estimate": estimate.as_dict(), **counts}
 
 
+def _whole_neighborhood_inside(bounds, position_pc, radius_pc, edge_pc):
+    """Whether the centre and the six points `radius_pc` out along the axes
+    all lie inside the outline: a cheap test that the neighborhood is not
+    cut by the galaxy's edge (GEN.97)."""
+    x, y, z = position_pc
+    for dx, dy, dz in ((0, 0, 0), (1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1)):
+        ring, layer, _slot = sector_address_at((x + dx * radius_pc, y + dy * radius_pc, z + dz * radius_pc), edge_pc)
+        if not bounds.contains(ring, layer):
+            return False
+    return True
+
+
+def _pick_random_start(args, edge_pc, batch_density, conn, radius_pc, taken):
+    """
+    One random start for random-start mode: an unoccupied address drawn
+    inside the outline by volume (`GalaxyBounds.random_address`), retried up
+    to `RANDOM_START_MAX_PLACEMENT_ATTEMPTS` times until it meets
+    `--min-start-density`, and, for `--neighborhoods` (GEN.97), until its
+    whole neighborhood lies inside the outline, it is at least twice the
+    radius from every start in `taken`, and it passes the
+    `--neighborhood-gamma` draw (accepted with probability
+    `min(1, density) ** gamma`; gamma 0, the default, accepts every one).
+
+    Returns:
+        tuple or None: `(address, position_pc, sector_args)`; `None` when
+            the attempt budget ran out.
+    """
+    many = args.neighborhoods > 1
+    gamma = args.neighborhood_gamma
+    for _ in range(program_constants.RANDOM_START_MAX_PLACEMENT_ATTEMPTS):
+        address = batch_density.bounds.random_address(draw, max_ring=args.max_ring)
+        if store.get_sector_id_at(conn, *address) is not None:
+            continue
+        position_pc = sector_position_pc(*address, edge_pc)
+        if many and (
+                any(math.dist(position_pc, other) < 2 * radius_pc for other in taken)
+                or not _whole_neighborhood_inside(batch_density.bounds, position_pc, radius_pc, edge_pc)):
+            continue
+        sector_args = batch_density.resolve(args, address, position_pc)
+        if sector_args is None:
+            continue
+        if args.min_start_density is not None and sector_args.density < args.min_start_density:
+            continue
+        if gamma and many and draw.random() >= min(1.0, sector_args.density) ** gamma:
+            continue
+        return address, position_pc, sector_args
+    return None
+
+
 def run_random_start(args, edge_pc, progress):
     """
     Random-start mode (no `--ring`/`--center-sector` given): picks a
@@ -1175,6 +1224,11 @@ def run_random_start(args, edge_pc, progress):
     `run_local_neighborhood`. `--min-start-density` tightens the retry:
     an address below it is retried too.
 
+    With `--neighborhoods N` (GEN.97) it makes N of them: all N starts are
+    chosen first (see `_pick_random_start`), the estimate covers all of
+    them, then each is generated in turn. Too few places for N is a
+    warning when at least one was found.
+
     Raises:
         SystemExit: If no suitable address was found within the attempt
                    budget.
@@ -1187,59 +1241,62 @@ def run_random_start(args, edge_pc, progress):
     mysql_config = store.mysql_config_from_args(args)
     batch_density = _BatchDensity(mysql_config)
     conn = store.get_connection(mysql_config)
+    starts = []
     try:
-        sector_args = None
-        for _ in range(program_constants.RANDOM_START_MAX_PLACEMENT_ATTEMPTS):
-            address = batch_density.bounds.random_address(draw, max_ring=args.max_ring)
-            if store.get_sector_id_at(conn, *address) is not None:
-                continue
-            position_pc = sector_position_pc(*address, edge_pc)
-            sector_args = batch_density.resolve(args, address, position_pc)
-            if sector_args is None:
-                continue
-            if args.min_start_density is not None and sector_args.density < args.min_start_density:
-                continue
-            break
-        else:
-            density_note = (
-                f", meeting --min-start-density {args.min_start_density} (try lowering it or --max-ring "
-                f"-- most volume-weighted draws land in the galaxy's own sparser outskirts)"
-                if args.min_start_density is not None else ""
-            )
-            within = f"within {args.max_ring} rings" if args.max_ring is not None else "in the galaxy"
-            log.error(
-                f"Could not find an unoccupied sector address {within} after {program_constants.RANDOM_START_MAX_PLACEMENT_ATTEMPTS} attempts{density_note} "
-                f"-- this galaxy may already be almost entirely generated within that range, or that range "
-                f"may hold too little real stellar density; try a larger --max-ring."
-            )
-            raise SystemExit(1)
+        for _ in range(args.neighborhoods):
+            start = _pick_random_start(args, edge_pc, batch_density, conn, radius_pc,
+                                       [position for _address, position, _args in starts])
+            if start is None:
+                break
+            starts.append(start)
     finally:
         conn.close()
+    if not starts:
+        density_note = (
+            f", meeting --min-start-density {args.min_start_density} (try lowering it or --max-ring "
+            f"-- most volume-weighted draws land in the galaxy's own sparser outskirts)"
+            if args.min_start_density is not None else ""
+        )
+        within = f"within {args.max_ring} rings" if args.max_ring is not None else "in the galaxy"
+        log.error(
+            f"Could not find an unoccupied sector address {within} after {program_constants.RANDOM_START_MAX_PLACEMENT_ATTEMPTS} attempts{density_note} "
+            f"-- this galaxy may already be almost entirely generated within that range, or that range "
+            f"may hold too little real stellar density; try a larger --max-ring."
+        )
+        raise SystemExit(1)
+    if len(starts) < args.neighborhoods:
+        log.normal(f"Found room for only {len(starts)} of {args.neighborhoods} neighborhoods "
+                   f"(each whole inside the galaxy, at least {2 * radius_pc:g} pc apart).")
 
-    # The estimate covers the start and its whole neighborhood, before
-    # either is written.
-    candidates, occupied, _outside = _neighborhood_candidates(
-        position_pc, radius_pc, edge_pc, mysql_config, batch_density.bounds,
-    )
-    batch, _existed, _skipped = _neighborhood_batch(args, candidates, occupied, batch_density, skip={address})
-    run_common._check_estimate(args, [sector_args] + [item[2] for item in batch],
-                    f"a random start at {_format_address(address)} and the sectors within {radius_pc:g} pc of it",
-                    progress)
+    # The estimate covers every start and its whole neighborhood, before
+    # any is written.
+    estimate_args = []
+    for address, position_pc, sector_args in starts:
+        candidates, occupied, _outside = _neighborhood_candidates(
+            position_pc, radius_pc, edge_pc, mysql_config, batch_density.bounds,
+        )
+        batch, _existed, _skipped = _neighborhood_batch(args, candidates, occupied, batch_density, skip={address})
+        estimate_args += [sector_args] + [item[2] for item in batch]
+    first_address = starts[0][0]
+    what = (f"a random start at {_format_address(first_address)} and the sectors within {radius_pc:g} pc of it"
+            if len(starts) == 1 else f"{len(starts)} random neighborhoods of {radius_pc:g} pc")
+    run_common._check_estimate(args, estimate_args, what, progress)
 
-    started = time.monotonic()
-    sector_id, sector_name, sector = generate_and_save_sector_at(sector_args, address, position_pc, edge_pc)
-    run_common._record_sector(args, {"density": run_common._sector_density(sector_args), "systems": len(sector.entries),
-                          "stars": run_sector.sector_star_count(sector)}, time.monotonic() - started)
-    designation = provisional_sector_designation(*address)
-    log.normal(
-        f"Saved random starting sector '{sector_name}' [{designation}] at {_format_address(address)} "
-        f"(sector_id={sector_id})."
-    )
-    run_sector._log_summary(run_sector.sector_generation_summary_lines(sector, sector_args))
+    for address, position_pc, sector_args in starts:
+        started = time.monotonic()
+        sector_id, sector_name, sector = generate_and_save_sector_at(sector_args, address, position_pc, edge_pc)
+        run_common._record_sector(args, {"density": run_common._sector_density(sector_args), "systems": len(sector.entries),
+                              "stars": run_sector.sector_star_count(sector)}, time.monotonic() - started)
+        designation = provisional_sector_designation(*address)
+        log.normal(
+            f"Saved random starting sector '{sector_name}' [{designation}] at {_format_address(address)} "
+            f"(sector_id={sector_id})."
+        )
+        run_sector._log_summary(run_sector.sector_generation_summary_lines(sector, sector_args))
 
-    args.center_sector = sector_id
-    args.radius_pc = radius_pc
-    run_local_neighborhood(args, edge_pc, progress)
+        args.center_sector = sector_id
+        args.radius_pc = radius_pc
+        run_local_neighborhood(args, edge_pc, progress)
 
 
 def run_single_slot(args, edge_pc, progress):

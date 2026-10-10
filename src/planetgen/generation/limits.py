@@ -36,6 +36,9 @@ MAX_GENERATE_LIMIT = ring_sector_count(MAX_GENERATE_RING)
 """int: The largest `--limit` for a ring batch: no ring up to
 `MAX_GENERATE_RING` holds more slots than this."""
 
+MAX_GENERATE_NEIGHBORHOODS = 100
+"""int: The most random neighborhoods one run may ask for (`--neighborhoods`, GEN.97)."""
+
 MAX_NUM_ORBITS = tuning.ABSOLUTE_MAX_SYSTEM_OBJECTS
 """int: The largest forced orbital slot count (`--num-orbits`, the API's
 `num_orbits`) -- the generator's own ceiling on objects in a system."""
