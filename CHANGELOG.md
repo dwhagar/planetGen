@@ -3,6 +3,7 @@
 ## [8.0.911] - 2026-10-10
 
 ### Changed
+- PERF.58: final stack rule (no layer grouping; per-layer sampler) and several objects per sector by capacity tiers, from Research lane 3 (PR #1068); PERF.61 follows the same tiers.
 - Filed PERF.58 to PERF.61 (object-first scatter sampler, shared ring inputs, large-mean Poisson helper, phenomena sampler; top priority) from the scatter study; PERF.57 is superseded by PERF.58.
 - Retired UX.90 (habitability explanation page and Ideal rename, PR #1065).
 - The lowest PHI-4 equipment level is now called "Ideal" instead of "Shirtsleeve", on the system page, in the search tags and column and in the docs. The stored tier numbers are unchanged.
