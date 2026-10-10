@@ -1,5 +1,10 @@
 # Changelog
 
+## [8.0.911] - 2026-10-10
+
+### Changed
+- **Docs only:** Boss confirmed the defaults on GEN.183, GEN.184, GEN.187 and UX.87; their open questions are now decisions.
+
 ## [8.0.866] - 2026-10-10
 
 ### Changed
