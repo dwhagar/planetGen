@@ -3,6 +3,7 @@
 ## [8.0.911] - 2026-10-10
 
 ### Changed
+- **Docs only:** ADM.28 (simpler Generate page, closes issue #736) and ADM.45 (star mix, PR #991) are retired.
 - The Generate page's binary-system and wide-pair prevalence boxes become a star mix (ADM.45): the share of systems with one star, a close binary and a wide pair, which must total exactly 100%. The page keeps a running total and says which way to move; the server refuses any other total. The command line has `--star-mix SINGLE CLOSE WIDE` with the same rule (it replaces `--prevalence` for `binary_system` and `wide_binary`).
 - The Generate page keeps its common actions on the page and moves the less common settings into a Customize window with one tab each (ADM.28): prevalence and override for Generate sectors; galaxy shape, prevalence and bright stars for a new galaxy. Without JavaScript the groups stack in the form as before.
 - **Docs only:** PERF.52 (admin generation-stats table is wrong) is filed.
