@@ -186,6 +186,7 @@ def save_system_edits(conn, system_id, system, stars=()):
         system (StarSystem): The edited system.
         stars (iterable): Loaded `Star`s (with `db_id`) to update.
     """
+    store.keep_body_numbers(conn, system_id)   # a body deleted below leaves its number used for good (DB.20)
     kept_planets, kept_belts = [], []
     for star_id, planets in _star_ids(conn, system_id, system):
         for index, body in enumerate(planets):

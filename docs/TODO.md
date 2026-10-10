@@ -463,7 +463,7 @@ with `clamp()`.
   marked skipped, with the reason; the stage numbers on the Generate
   page, job pages, Queue page and the terminal agree; tests cover each
   staged job with and without its optional stages. Owner: Bugfixes lane
-  1, after the defaults item (GEN.194).
+  1, after the defaults change (merged, PR #1051).
   Prerequisites: none. Related: PERF.33, PERF.55, GEN.185.
 
 - [ ] **UX.90 Explain the habitability chips in the web interface: a visible legend with the equipment labels, colours, thresholds and scores**
@@ -2983,22 +2983,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none.
   Design: [docs/design/phenomenon-scatter-mass-cut.md](design/phenomenon-scatter-mass-cut.md)
 
-- [ ] **GEN.171 The sector fill gives object IDs by generation rank**
-  Source: docs/design/object-id-options.md section 0 (Boss decided
-  2026-10-09 22:39Z: birth location plus serial, galaxy-wide; the same
-  length for every object; always identifies that one object; up to 128
-  bits but shorter preferred; fix the deficits; no backward
-  compatibility). Filed from the object-ID research thread. Nothing is
-  built until Boss asks.
-  Done: the fill assigns generated serials by generation rank inside the
-  sector (replaces `_UidIssuer` hashing and the `assign_uids` rank
-  recount); one worker owns a sector, so no coordination and no database
-  read. Re-measure the insert rate on the real fill order and on MySQL
-  8.4 and MariaDB 11.4 (research model: 63,000 to 67,000 rows a second
-  against 46,000 for the hash, one run on MariaDB 10.11).
-  Prerequisite: DB.20.
-  Design: [docs/design/object-id-options.md](design/object-id-options.md)
-
 - [ ] **GEN.172 Run-time births get object IDs from the counters**
   Source: docs/design/object-id-options.md section 0 (Boss decided
   2026-10-09 22:39Z: birth location plus serial, galaxy-wide; the same
@@ -3013,7 +2997,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   retires the other; a split gives each fragment a new run-time serial;
   a deleted ID is never reused.
   Open question for Boss (default yes): an ejected planet keeps its ID?
-  Prerequisite: DB.20.
+  Built so far (2026-10-09): Lane 1 (2026-10-10, PR #1055): facilities
+  already take a run-time ID in add_facility, and
+  store.keep_body_numbers and _runtime_uids exist. The rest of GEN.172
+  (ejection, merger, split, admin-added system) is still open.
   Design: [docs/design/object-id-options.md](design/object-id-options.md)
 
 - [ ] **GEN.176 A nebula or remnant is born in the sector holding the centre of the space it occupies**
@@ -3037,7 +3024,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   object stored by a sector other than its own.
   Open question for Boss (default 1 mpc): the rounding used before the
   birth sector is taken from the centroid?
-  Prerequisite: DB.20.
   Design: [docs/design/object-id-options.md](design/object-id-options.md)
 
 - [ ] **GEN.177 Planetary magnetic fields: a stagnant-lid factor**
@@ -3126,24 +3112,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   priority.
   Prerequisites: none. Related: GEN.87, GEN.89.
 
-- [ ] **GEN.194 Default mass limit 14 solar masses and default luminosity floor 9,000 solar luminosities**
-  Boss (2026-10-10 07:49Z, via the coordinator): the default mass limit
-  becomes 14 solar masses, about the middle of the 8 to 20 range, and
-  the default bright-star luminosity floor becomes 9,000 solar
-  luminosities, in the next PR that can carry it. This supersedes the 8
-  and 5,000 of GEN.188. Done: the plan form, the New galaxy form, the
-  CLI default and the stored default use 14 and 9,000; both values exist
-  among the presets; the scatter design note
-  (docs/design/phenomenon-scatter-mass-cut.md) and the TODO text name
-  the new defaults; a galaxy that stored other values keeps them; tests
-  cover the defaults. Owner: Bugfixes lane 1, first in its order.
-  Prerequisites: none. Related: GEN.183, GEN.184, GEN.188.
-
 - [ ] **GEN.195 A separate mass limit for neutron stars and black holes, and the central black hole or quasar always created**
   Boss (2026-10-10 08:28Z, via the coordinator): control the stellar
   masses with one setting and the neutron star and black hole creation
-  with another. The stellar mass limit (8 to 20 solar masses, default 14
-  by GEN.194) now applies to stars only. A new compact-object mass limit
+  with another. The stellar mass limit (8 to 20 solar masses, default 14)
+  now applies to stars only. A new compact-object mass limit
   for neutron stars and black holes has presets of 1, 2, 4 and 6 solar
   masses and a "use the star mass setting" option, which is the default
   and works as the single mass limit does today. Both appear in Plan the
@@ -3157,7 +3130,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   scatter design note (docs/design/phenomenon-scatter-mass-cut.md)
   describes the split. Owner: Bugfixes lane 2 (coordinator, 2026-10-10
   08:29Z).
-  Prerequisites: none. Related: GEN.183, GEN.185, GEN.187, GEN.194,
+  Prerequisites: none. Related: GEN.183, GEN.185, GEN.187,
   PERF.56.
   Bugfixes lane 2 (2026-10-09): Details from Bugfixes lane 2 (2026-10-10
   08:29Z): the compact-object control sits side by side with the stellar
@@ -3190,7 +3163,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   reason (UX.89); the new settings are stored with the plan and the
   stage timings of PERF.56 record them; tests cover redoing each pass
   alone and all together. Owner: Bugfixes lane 2, after GEN.195.
-  Prerequisite: GEN.195. Related: GEN.185, GEN.187, GEN.194, GEN.195,
+  Prerequisite: GEN.195. Related: GEN.185, GEN.187, GEN.195,
   UX.89, PERF.56.
   Bugfixes lane 2 (2026-10-09): Details from Bugfixes lane 2 (2026-10-10
   08:30Z): each ticked pass has its own settings fields in the same box
@@ -3544,31 +3517,49 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   every scatter action also store the number of layers modified, kept in
   separate rows per mass floor and per luminosity floor used (a run at 8
   Msun and one at 14 Msun, or at 5,000 and 9,000 Lsun, are different
-  rows). With the early stop of PERF.57 the row records layers visited
+  rows). With the grouped layers of PERF.57 the row records group sizes, layers visited
   and layers modified.
 
-- [ ] **PERF.57 Stop a layer-walking scatter early once the last 100 layers produced no stars**
-  Boss (2026-10-10 08:32Z, via the coordinator): this will make
-  generation faster; if the last 100 layers had 0 stars, stop looking
-  and move on to the next phase. Done: every scatter pass that walks
-  layer by layer (the mass pass, the luminosity pass, the phenomena pass
-  if it walks layers, and the bright-star back scatter of GEN.187 when
-  it lands) stops after 100 consecutive empty layers; the 100 is a named
-  constant in tuning.py, not a magic number; the stop is logged as a
-  stage result ("stopped early after 100 empty layers at layer N") that
-  feeds the stage list of UX.89 and the stage stats of PERF.56; the stop
-  never skips the galactic nucleus guarantee (GEN.195); a test shows a
-  run with the early stop produces the same rows as a full walk on a
-  small galaxy. The change is in the scatter code in run_plan.py. Owner:
-  Bugfixes lane 1, after UX.89 and PERF.56.
+- [ ] **PERF.57 Skip empty stretches in a galactic scatter by combining layers into growing groups**
+  Boss (2026-10-10 09:17Z, via the coordinator; replaces his 08:32Z
+  rule of stopping after 100 empty layers): in any galactic scatter
+  operation, once 5 contiguous layers have placed nothing, combine the
+  next 10 layers into one group. Calculate the expected count exactly as
+  for a single layer, summed over the sectors available in the group,
+  and draw how many sectors would likely hold an object. Place one
+  object per draw: pick the sector weighted by its own density score (a
+  denser sector is more likely to be chosen), then a random position in
+  that sector. If the 10-layer group places nothing, try 20, then 40,
+  doubling each time until something is placed or the galaxy runs out of
+  room, at which point the pass ends. Done:
+  - Applies to every galactic scatter pass: the mass pass, the
+    luminosity pass, the phenomena pass and the bright-star back scatter
+    of GEN.187 when it lands.
+  - Scaling back (Boss 09:19Z): grouping starts only after 5 contiguous
+    layers placed nothing. In group mode a group that places nothing
+    doubles the next group (10, 20, 40, ...); a group that places
+    something makes the next group half the size (a 40 that places is
+    followed by a 20, then a 10); when a group of 10 places something
+    the pass is back on single layers, and grouping needs 5 empty
+    layers in a row again. An empty group at a reduced size doubles
+    again.
+  - Defaults chosen where Boss did not say: the 5 and the 10 are named
+    constants in tuning.py; the same seed gives the same galaxy (each
+    group draw is seeded from the group's first address, GEN.56); the
+    galactic nucleus guarantee (GEN.195) is untouched.
+  - The stage result and the PERF.56 stats record the group sizes used,
+    layers visited and layers modified (see the PERF.56 note).
+  - A statistical test shows grouped placement matches the per-layer
+    expected counts on a small galaxy.
+  The change is in the scatter code in run_plan.py. Owner: Bugfixes lane
+  1, after UX.89 and PERF.56.
   Prerequisites: none. Related: UX.89, PERF.56, GEN.185, GEN.187,
   GEN.195.
-  Clarification (2026-10-09): Boss clarification (2026-10-10 08:32Z):
-  the test is "the last 100 layers produced 0 stars OR 0 phenomena". The
-  star passes count stars; the phenomena pass counts phenomena.
-  Stats (2026-10-09): Boss addition (2026-10-10 08:34Z): layers visited
-  versus layers modified is recorded per scatter action and per floor by
-  PERF.56 (see its note).
+  Revised (2026-10-10 09:19Z): after a placement the next group is half
+  the size instead of returning to single layers.
+  Replaced (2026-10-10): the 08:32Z "stop after 100 empty layers" rule is
+  gone; Boss's 08:32Z clarification (0 stars or 0 phenomena) no longer
+  applies.
 
 ## DB: Database and schema
 
@@ -3665,28 +3656,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   and a per-row INSERT loop: fine today, not a pattern for the 10^8-row
   tables.
   Design: [docs/design/db-check-and-parity-repair.md](design/db-check-and-parity-repair.md)
-
-- [ ] **DB.20 Object IDs in the schema: uid becomes BINARY(10), unique on its own, plus an id_counters table**
-  Source: docs/design/object-id-options.md section 0 (Boss decided
-  2026-10-09 22:39Z: birth location plus serial, galaxy-wide; the same
-  length for every object; always identifies that one object; up to 128
-  bits but shorter preferred; fix the deficits; no backward
-  compatibility). Filed from the object-ID research thread. Nothing is
-  built until Boss asks.
-  Done: one Alembic revision. `uid` becomes BINARY(10) on the object
-  tables that belong to a sector (star_systems, stars, planets, moons,
-  asteroid_belts, comets, every phenomenon table, facilities) and is
-  UNIQUE on `uid` alone (drops UNIQUE (star_system_id, uid)). A new
-  `id_counters` table (per sector for run-time serials, per system for
-  body numbers) whose counters only grow and survive the deletion of the
-  object or the sector, with an upsert-and-LAST_INSERT_ID allocator like
-  `_reserve_id_block`. The row `id` stays as the foreign key. Existing
-  rows are migrated (rank = row id order within each sector or system,
-  which is how the old ranks were counted) unless the combined reseed
-  has not run yet, in which case the change rides it; nebulae need their
-  centroid recomputed (see the nebula item). Boss resets by hand anyway,
-  so a fresh galaxy is acceptable. Takes the next free Alembic revision.
-  Design: [docs/design/object-id-options.md](design/object-id-options.md)
 
 - [ ] **DB.21 A deep pass for the database check: validate every star system, with the estimated time shown first**
   Boss (2026-10-09 23:32Z): "Yes, add an option for a deep pass but warn
@@ -4033,7 +4002,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   stay internal. No compatibility shim. This is a breaking API change,
   so it bumps API.22's API version number.
   Decided (Boss, 2026-10-10 02:48Z, via Foundations lane 1): yes, the 80-bit object ID replaces row ids in pages, URLs and the API, and Boss accepts the API break. Cleared to build once API.22, GEN.171 and GEN.172 are in.
-  Prerequisites: API.22, GEN.171, GEN.172.
+  Prerequisites: API.22, GEN.172.
   Design: [docs/design/object-id-options.md](design/object-id-options.md)
 
 ## ADM: Admin tools
@@ -4239,7 +4208,7 @@ clears each one.
   reused after a delete; an ejected planet keeps its ID; every object in
   a saved sector has a 20-digit ID; the golden fill digests (TEST.77)
   use the new IDs.
-  Prerequisites: GEN.171, GEN.172, GEN.176.
+  Prerequisites: GEN.172, GEN.176.
   Design: [docs/design/object-id-options.md](design/object-id-options.md)
 
 - [ ] **TEST.111 test_ensure_sector_generated_creates_then_reuses_the_same_sector fails in a busy parallel run (bug)**

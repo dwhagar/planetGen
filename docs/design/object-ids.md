@@ -1,6 +1,6 @@
 # Interstellar object IDs (GEN.64)
 
-**Planned change (Boss, 2026-10-09 22:39Z):** the `uid` column moves to an 80-bit birth-location ID (GEN.170, DB.20, GEN.171, GEN.172, GEN.176, API.23; design in [object-id-options.md](object-id-options.md)). GEN.69's hash scheme is superseded when that ships; GEN.64's position IDs stay as the names of interstellar objects.
+**Built (Boss, 2026-10-09 22:39Z):** the `uid` column is an 80-bit birth-location ID (GEN.170 layout, DB.20 schema v78 with the sector fill giving the IDs; GEN.172, GEN.176 and API.23 follow; design in [object-id-options.md](object-id-options.md)). GEN.69's hash scheme is gone; GEN.64's position IDs are only the names of interstellar objects, and a bright-sweep system no longer keeps its position ID as its `uid`.
 
 Boss, 2026-10-02: every object in sector space that isn't a generated
 star system gets a unique ID built from where it sits, and that ID, in
@@ -8,7 +8,7 @@ hex, is its name. This covers rogue planets, standalone black holes and
 neutron stars, nebulae, supernova remnants and their collapsed cores,
 quasars, interstellar comets and asteroid fields. Star systems keep
 their generated names, including one built around a bright-sweep star,
-which keeps its position ID as its unique ID instead (GEN.72), and the stars, planets and moons inside any system are named from
+which was once known by its position ID (GEN.72) but is named by the registry, and the stars, planets and moons inside any system are named from
 the system as before (`<ID> A`, `<ID> II`).
 
 ## Layout
@@ -54,9 +54,7 @@ distance first.
 - `insert_sector` claims IDs for every phenomenon and remnant core of a
   galaxy-placed sector in one pass, before the name registry sees the
   rest, so these objects never touch `system_name_registry`. A
-  bright-sweep system goes through the registry like any system and gets
-  its position ID as its `uid` (`_claim_bright_system_uids`, GEN.72),
-  bumped past a stored one.
+  bright-sweep system goes through the registry like any system.
 - A standalone save with a galaxy position (`planetgen phenomenon
   --sector-id`) claims its ID the same way.
 - A name given by hand (`--name`) is kept.
@@ -132,33 +130,30 @@ groups the kinds. `naming_key.stored_name_for` turns a typed codec name
 back into its ID for a search that wants it. The wide-pair rule (never
 "A I"; test in `test_body_names.py`) was already in force from GEN.62.
 
-### Unique IDs for every object (GEN.69, schema v58)
+### Unique IDs for every object (GEN.69 and GEN.170, schema v78)
 
-Every object has a `uid` column (NULL for a row saved before v58), by
-GEN.68's plan (`/mnt/project-files/notes/gen68-object-ids.md`, approved by
-Boss 2026-10-08 13:33Z). The functions are `planetgen/galaxy/uid.py`; the
-columns are written by `store.assign_uids` after a sector, a system or a
-phenomenon is saved.
+Every object has a `uid` column. A sector's is its designation as an
+integer (`BIGINT UNSIGNED`, unique; it needs no row: `uid.sector_uid(ring,
+layer, slot)` is the ID of a sector nobody has generated). Every other
+object's is the 80-bit `BINARY(10)` of `planetgen/galaxy/object_uid.py`,
+unique on its own: birth sector 40 bits, serial 28 bits, body number 12
+bits (layout and rules in [object-id-options.md](object-id-options.md)
+section 0).
 
-| Object | `uid` | How |
-|--------|-------|-----|
-| Sector | `BIGINT UNSIGNED`, unique | Its designation as an integer (`geometry.provisional_sector_designation`). It needs no row: `uid.sector_uid(ring, layer, slot)` is the ID of a sector nobody has generated. |
-| Star system, phenomenon | `BINARY(12)` (96 bits), unique per table | The first 96 bits of SHA-256(galaxy seed \|\| `"uid-<kind>:"` parent `/` index), top bit set. An interstellar object or bright-sweep system keeps its 76-bit GEN.64 position ID (the top bit set keeps the two kinds apart). |
-| Star, planet, moon, belt, comet | `BIGINT UNSIGNED` (64 bits), unique with `star_system_id` | The same hash, 64 bits, parent = the system's ID in hex (a moon's: its planet's). |
-
-The `index` is the object's rank among its parent's rows of that kind in
-the order they were written (a system's among its sector's, a planet's
-among its system's), which is generation order, so saving the same sector
-again from the same galaxy seed gives every object the ID it had. Position
-is never an input. The hash is the one the per-unit random seeds use
-(`galaxy/seed.py`). With no planned galaxy the zero seed stands in (a
-one-off system saved on its own, whose index is its row id).
-
-A row that already has a `uid` keeps it, so a system whose content is
-regenerated in place (`replace_system_content`) keeps its own ID and its
-new bodies take the IDs the old ones had. Rows saved before v58 stay NULL
-until their sector or system is saved again (GEN.39 already calls for a
-fresh galaxy). GEN.72 and GEN.73 build on these columns.
+- The sector fill (`store._UidIssuer`) gives a sector's systems, then its
+  phenomena, generated serials 0, 1, 2 ... in insertion order, and a
+  system's stars, planets, moons, belts and comets body numbers 1, 2, 3
+  ... in insertion order. Saving the same sector again from the same
+  galaxy seed gives every object the ID it had; position is never an input.
+- A row saved later (an admin-added body or system, a system saved on its
+  own, a sector with no grid address) is a run-time birth: `store.assign_uids`
+  takes the next serial of the sector's `id_counters` row (kind 01), or for
+  a body the system's next body number. A system with no sector is born at
+  ring 0, layer 0, slot 0.
+- A row that already has a `uid` keeps it, so a system whose content is
+  regenerated in place (`replace_system_content`) keeps its own ID.
+- Counters only move up and `planetgen reset` keeps them, so a number is
+  never given twice.
 
 ### What the codec guarantees (GEN.120)
 
