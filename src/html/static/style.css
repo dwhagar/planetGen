@@ -1430,6 +1430,20 @@ a:focus-visible .navmap-point circle {
   align-items: start;
 }
 
+.scatter-limits .generate-compact {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  margin: 0;
+  padding: 0.4rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
 @media (max-width: 40rem) {
   .scatter-limits {
     grid-template-columns: minmax(0, 1fr);
@@ -4263,4 +4277,9 @@ body.app {
   flex-direction: column;
   gap: 0.2rem;
   font-size: 0.85rem;
+}
+
+/* UX.90: a link inside a hint line is underlined, so it never relies on colour alone. */
+p.hint a {
+  text-decoration: underline;
 }

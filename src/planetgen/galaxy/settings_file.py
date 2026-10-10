@@ -39,7 +39,7 @@ DIR_NAME = "galaxy-settings"
 PLAN_SETTINGS = (
     "disk_scale_length_pc", "disk_scale_height_pc", "bulge_scale_radius_pc", "bulge_amplitude", "arm_count",
     "pitch_angle_deg", "arm_amplitude", "calibration_radius_pc", "max_ring", "bright_star_min_luminosity",
-    "no_bright_stars", "phenomenon_min_mass",
+    "no_bright_stars", "phenomenon_min_mass", "compact_min_mass",
 )
 """tuple: The `planetgen plan` options that shape the galaxy. The prevalence
 options belong to the generate runs that follow (kept in the run history), not
