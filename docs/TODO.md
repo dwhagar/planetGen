@@ -3343,8 +3343,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   is needed after the update; a statistical test compares it with the
   per-layer expected counts on a small galaxy. This replaces PERF.57,
   which was built (PR #1101) and is replaced. Owner: Bugfixes lane
-  1, first in its queue (after PERF.60).
-  Prerequisite: PERF.60. Related: PERF.56, PERF.59, PERF.60, PERF.61,
+  1, first in its queue (PERF.60 merged in PR #1106).
+  Prerequisite: none. Related: PERF.56, PERF.59, PERF.60, PERF.61,
   GEN.185, GEN.195.
   Grouped empty layers (PERF.57, PR #1101, Bugfixes lane 1; replaced
   the 100-dry-layer stop of PERF.62, PR #1087): after
@@ -3371,19 +3371,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Bugfixes lane 1, with PERF.58.
   Prerequisites: none. Related: PERF.58, PERF.61, GEN.185.
 
-- [ ] **PERF.60 Large-mean Poisson helper for per-layer counts (top priority)**
-  From the scatter study (docs/design/scatter-queue-feasibility.md):
-  _sample_poisson_count is Knuth's O(mean) algorithm, fine per ring, but
-  the object-first sampler (PERF.58) draws one count per layer, with means in the thousands or millions. Done: a
-  helper draws Poisson counts for any mean in constant time (a
-  transformed-rejection or normal-approximation method above a named
-  threshold in tuning.py, Knuth below it), uses the one random wrapper
-  of GEN.56 so the same seed gives the same galaxy, and has a
-  statistical test of mean and variance across small and large means.
-  Owner: Bugfixes lane 1, first of the sampler items because PERF.58
-  needs it. Boss (09:52Z): top priority.
-  Prerequisites: none. Related: PERF.58, PERF.61, GEN.56.
-
 - [ ] **PERF.61 Object-first sampler for the phenomena pass, own prototype first**
   From the scatter study (docs/design/scatter-queue-feasibility.md): the
   phenomena pass places millions of rows (6.7e7 expected at the 14 Msun
@@ -3396,7 +3383,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   8 or 16, dropping 0.12% of phenomena where a cap of 1 would drop 1.4%); stats record layers
   visited and layers modified, per kind (PERF.56); a reseed is needed.
   Owner: Bugfixes lane 1, after PERF.58.
-  Prerequisites: PERF.58, PERF.60. Related: PERF.58, PERF.59, PERF.60,
+  Prerequisite: PERF.58. Related: PERF.58, PERF.59, PERF.60,
   GEN.185.
   Grouped empty layers (PERF.57, PR #1101):
   phenomenon_scatter.scatter_group groups empty layers in the current
