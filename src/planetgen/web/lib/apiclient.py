@@ -404,6 +404,16 @@ def get_systems(db, star_type=None, sector_id=None, limit=None, offset=None, sor
     return _request("/systems", [(key, value) for key, value in params if value is not None])
 
 
+def get_uncharted_systems(db, limit=None, offset=None, sort=None, descending=False):
+    """Returns `GET /api/uncharted-systems`'s envelope (UX.87): a page of
+    the scattered stars no system was built around yet, with the `total`
+    waiting. `sort` is one of `queryDb.UNCHARTED_SYSTEM_SORTS`."""
+    _require_db(db)
+    params = [("db", db), ("limit", limit), ("offset", offset), ("sort", sort),
+              ("order", "desc" if descending else "asc" if sort else None)]
+    return _request("/uncharted-systems", [(key, value) for key, value in params if value is not None])
+
+
 def get_system(db, system_id):
     """Returns `GET /api/systems/<id>`'s detail dict -- see
     `queryDb.system_detail`'s docstring for the shape."""
@@ -440,13 +450,17 @@ def get_near(db, params):
     return _request("/near", {"db": db, **params})
 
 
-def get_nav(db, from_ref, to_ref):
+def get_nav(db, from_ref, to_ref, stay=None):
     """Returns `GET /api/nav`'s course/route dict -- see `docs/api.md`'s
     "NAV" section for the full shape. `from_ref`/`to_ref` are object
     references (`planetgen.galaxy.objectref`): a system, a body in one, or
-    a standalone phenomenon."""
+    a standalone phenomenon. `stay` is the minutes spent at each stop of
+    the route (NAV.11; the API's default, 0, when `None`)."""
     _require_db(db)
-    return _request("/nav", {"db": db, "from": from_ref, "to": to_ref})
+    params = {"db": db, "from": from_ref, "to": to_ref}
+    if stay is not None:
+        params["stay"] = stay
+    return _request("/nav", params)
 
 
 def get_galaxy_sectors(db):

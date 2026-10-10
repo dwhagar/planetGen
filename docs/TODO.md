@@ -112,7 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.9, PERF.29, PERF.30, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, POP.8, POP.9, POP.7, POP.10, NAV.11, NAV.42, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, GEN.57, TEST.77, UX.49, PERF.31, GEN.128 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.9, DB.9, PERF.29, PERF.30, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, POP.8, POP.9, POP.7, POP.10, NAV.42, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, GEN.57, TEST.77, UX.49, PERF.31, GEN.128 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.17, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18, PERF.33, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, ADM.43, ADM.44 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, and the anomalies chosen in phase 2. | NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, GEN.114, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies. | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, GEN.55 |
@@ -433,24 +433,6 @@ with `clamp()`.
   Prerequisites: none.
   Design: [docs/design/map-ui-and-frontend-libraries.md](design/map-ui-and-frontend-libraries.md)
 
-- [ ] **UX.87 The system list shows uncharted systems: every scattered star, with its location and a way to generate it**
-  Boss (GitHub issue
-  [#929](https://github.com/dwhagar/planetGen/issues/929), 2026-10-10
-  01:51Z): "Every star that is scattered throughout in the brightness
-  scatter needs to be also listed or able to be listed as 'uncharted' in
-  the star system list. Information about that star and its location is
-  displayed, its coordinates, sector coordinates, and other information
-  including layer, shell, and slot that it occupies. This interface
-  should also allow the user to generate that star system by itself,
-  though the system will recommend generating the entire sector." Done:
-  the system list has an 'uncharted' filter (off by default) that lists
-  scattered stars with their coordinates, sector coordinates, layer,
-  shell and slot and the star's own data; each row has a Generate button
-  for that one system, with a note recommending the whole sector. Decided (Boss, 2026-10-10 04:06Z, "your defaults are confirmed"): scattered stars from the mass-limit and
-  luminosity passes both count; generating one system fills only that
-  system and leaves the sector's other contents ungenerated.
-  Prerequisites: none. Related: MAP.162, ADM.32, ADM.35, NAV.48, DOC.9.
-
 - [ ] **UX.91 Planet and moon description carries a full PHI-4 explanation, each colour factor and why**
   Boss (2026-10-10 08:49Z, via the coordinator): PHI-4 should have a
   full explanation in the planet or moon description, each colour factor
@@ -460,11 +442,22 @@ with `clamp()`.
   chip; the wording matches the Classes explanation page (UX.90, merged) and
   the chip names (Ideal, formerly Shirtsleeve); the text comes from the
   same calculation as the chip, so the two cannot disagree. Owner:
-  Bugfixes lane 2, after GEN.196 (it built UX.90).
+  Bugfixes lane 2 (it built UX.90 and GEN.196).
   Built so far (2026-10-09): UX.90 (PR #1065) already gives planet and
   moon rows per-factor colours and phi_bio, phi_cpx and phi_tech values,
   and the page /classes/habitability; build the description on those.
   Prerequisites: none. Related: UX.90, GEN.89.
+
+- [ ] **UX.92 A Bookmark button for planets, moons and belts**
+  Foundations lane 1 (2026-10-10, after NAV.8, PR #1095): bookmarks
+  cover star systems only today. Add a Bookmark button on each body's
+  anchor on the system page, so a planet, moon or belt can be
+  bookmarked; the bookmark's link target is /object/<ref>, which
+  redirects to the system page and the body's anchor. Done: a body can
+  be bookmarked and listed in the bookmark manager (UX.47) with its
+  kind; a test covers it. Small. Phase 2 unless Foundations lane 1 says
+  otherwise.
+  Prerequisite: UX.45. Related: ('NAV.9', 'UX.47').
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -1333,37 +1326,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     belt for bodies over 1 km) as an optional note on the course.
     Prerequisites: NAV.25, NAV.26.
 
-- [ ] **NAV.8 Pages and anchors for stars, planets, moons and belts**
-  A star, planet, moon, belt or comet reference opens something:
-  by default the system page scrolled to and highlighting that body
-  (`/system/<id>#planet-<id>`), with its own System Map scene
-  selected, rather than a new page per body. Search results, the
-  locate box and bookmarks link this way. Decided (Boss, 2026-10-10 02:48Z, via Foundations lane 1): only stars get pages; planets and moons are anchors on the system page.
-
 - [ ] **NAV.9 Search and locate return references for every kind**
   `/api/search` and `/galaxy/locate` (`queryDb.galaxy_locate`) return
   each hit's reference and parent chain, so any picker can jump to a
   star, planet or moon by name.
   Research (2026-10-09, course-routing.md): build `ref` and the parent
   chain from each panel's own JOIN, not `resolve_object` per row.
-
-- [ ] **NAV.11 Travel times for the system-to-system route too**
-  Today warp and fold times are shown only for the direct distance;
-  the route shows only its length. Boss (2026-10-02 04:19Z, with
-  NAV.41): "it should calculate the travel time using that route
-  assuming each planet gets stopped at." Done: the route gets the
-  same warp and fold tables, per hop and in total, the total being
-  the sum of the hops with a stop at every system on the route (each
-  hop timed from rest to rest at the chosen warp or fold factor, the
-  constant speeds `warp_speed_c` and `fold_speed_c` of
-  `navigation-frames.md`; no acceleration model exists, and no ship
-  range since NAV.37 was dropped). Default taken: no time spent at a
-  stop. Decided (Boss, 2026-10-10 02:48Z, via Foundations lane 1): the stay per stop defaults to 0 minutes but is a user-changeable parameter; stops are the systems on the route, not every planet inside each system.
-  Research (2026-10-09, course-routing.md): stops are the systems on the
-  route; default stay 0; an optional stay per stop; do not model
-  visiting every planet (the research answers the open question this
-  way).
-  Design: [docs/design/course-routing.md](design/course-routing.md)
+  Foundations lane 1 (2026-10-09): Foundations lane 1 (2026-10-10, after
+  NAV.8, PR #1095): the Galaxy Map locate box (`/galaxy/locate`) returns
+  only sectors and systems today. It must also return body hits
+  (planets, moons, belts), each linking through /object/<ref>, which
+  redirects to the system page and the body's anchor. Rides this item.
 
 - [ ] **NAV.42 Each route stop shows the course and distance to the next stop**
   Boss (2026-10-02 04:19Z, with NAV.41): "each stop has the course and
@@ -2979,31 +2952,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   priority.
   Prerequisites: none. Related: GEN.87, GEN.89.
 
-- [ ] **GEN.196 One "Redo scatters" box on Generate: choose which scatters to redo, with new settings for each**
-  Boss (2026-10-10 08:30Z, via the coordinator): make sure the stellar
-  and compact-object mass limits (GEN.195) apply everywhere a scatter (a
-  "sweep") happens, and give Generate one box where the admin ticks
-  which scatters to redo with new settings, so the scatters can be
-  redone from one place. Done: every place that runs a scatter (New
-  galaxy, Plan, Rebuild the bright stars, the CLI, on-demand and queued
-  jobs) takes the stellar limit, the compact-object limit and the
-  luminosity floor from the stored plan or from the form; the Generate
-  page has a single Redo scatters box with a checkbox for each scatter
-  pass of GEN.185 (the mass pass for stars, the luminosity-floor pass
-  for stars, and the phenomena pass with the compact-object limit) and
-  the settings for each pass; the ticked passes run as one job with a
-  stage list in which the unticked stages are shown as skipped with the
-  reason (UX.89); the new settings are stored with the plan and the
-  stage timings of PERF.56 record them; tests cover redoing each pass
-  alone and all together. Owner: Bugfixes lane 2 (GEN.195 has merged).
-  Related: GEN.185, GEN.187, GEN.195, UX.89, PERF.56.
-  Bugfixes lane 2 (2026-10-09): Details from Bugfixes lane 2 (2026-10-10
-  08:30Z): each ticked pass has its own settings fields in the same box
-  (stellar mass limit, luminosity floor, compact-object limit); the
-  stage list builds on UX.89's structure; a redo clears and rewrites
-  only that scatter's rows and keeps the central black hole or quasar
-  guarantee.
-
 - [ ] **GEN.197 Object IDs on ejection, merger and split events**
   Source: docs/design/object-id-options.md section 0 (Boss decided
   2026-10-09 22:39Z: 80-bit birth-location ID). Left over from GEN.172
@@ -3379,8 +3327,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   cancels the saving), and Boss then dropped it (2026-10-10 10:00Z,
   "now we're going so much faster"). The sampler runs per layer only: no
   stack rule and no stack-size tuning value. An empty layer already
-  costs only its majorant (about 1.2 us per ring). PERF.57's grouping is
-  not built.
+  costs only its majorant (about 1.2 us per ring). PERF.57's grouping
+  was built in PR #1101 before this drop reached the lane; this item
+  replaces it.
   Several objects per sector (Boss 09:32Z, tiers by density rating):
   independent object-first draws and a per-sector count dictionary; each
   sector has a capacity from its expected count at the sector centre,
@@ -3408,14 +3357,23 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   sampler is a different random sequence, so a reseed (planetgen plan)
   is needed after the update; a statistical test compares it with the
   per-layer expected counts on a small galaxy. This replaces PERF.57,
-  which is retired as superseded. Owner: Bugfixes lane
-  1, first in its queue after TEST.124.
+  which was built (PR #1101) and is replaced. Owner: Bugfixes lane
+  1, first in its queue (after PERF.60).
   Prerequisite: PERF.60. Related: PERF.56, PERF.59, PERF.60, PERF.61,
   GEN.185, GEN.195.
-  Early stop (PERF.62, built in PR #1087): tuning.SCATTER_DRY_LAYERS stops
-  the current layer walk after 100 layers in a row with 0 stars or 0
-  phenomena. This sampler replaces that walk, so it keeps or replaces
-  the early stop and removes the constant if it is no longer needed.
+  Grouped empty layers (PERF.57, PR #1101, Bugfixes lane 1; replaced
+  the 100-dry-layer stop of PERF.62, PR #1087): after
+  tuning.SCATTER_EMPTY_LAYERS_BEFORE_GROUP = 5 empty layers in a row the
+  walk (layer_groups.Walk, bright_stars.scatter_group) combines
+  SCATTER_GROUP_LAYERS = 10 layers, doubling; groups follow walk order,
+  so a 10-layer group is 5 above and 5 below the plane; the expected
+  count is a sampled estimate (48 rings x 8 bins) with exact placement;
+  SCATTER_CERTAIN_OBJECTS = 30; stage metrics layers_walked,
+  layers_grouped, group_sizes and layers_modified; the same seed gives
+  the same stars on 1 and 2 workers. Not covered: the mass backfill
+  rings. This sampler replaces that walk, so remove the grouping code,
+  its constants (and the SCATTER_DRY_LAYERS constants of PERF.62, if any
+  remain) and the metrics that no longer apply when it lands.
 
 - [ ] **PERF.59 Share the ring inputs across the three scatter passes (top priority)**
   From the scatter study (docs/design/scatter-queue-feasibility.md): the
@@ -3455,9 +3413,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Owner: Bugfixes lane 1, after PERF.58.
   Prerequisites: PERF.58, PERF.60. Related: PERF.58, PERF.59, PERF.60,
   GEN.185.
-  Early stop (PERF.62, built in PR #1087): the 100-dry-layer stop of
-  the current phenomena walk (0 phenomena) is kept or replaced by this
-  sampler, like PERF.58.
+  Grouped empty layers (PERF.57, PR #1101):
+  phenomenon_scatter.scatter_group groups empty layers in the current
+  walk; this sampler replaces it, like PERF.58.
 
 ## DB: Database and schema
 
@@ -4117,20 +4075,6 @@ clears each one.
   skip it. Owner: unassigned.
   Prerequisites: none. Related: TEST.111, TEST.116.
 
-- [ ] **TEST.124 Phenomena page tests fail with KeyError scattered in system_pages._phenomena_load (bug)**
-  Reported by Foundations lane 2 (2026-10-10, PR #1059): on current main
-  15 tests fail with KeyError 'scattered' in
-  system_pages._phenomena_load, in test_web_system_phen.py and
-  test_web_browser_tables.py. They fail on a clean origin/main worktree,
-  so they come from the Phenomena table class-totals work (PR #1038),
-  not from PR #1059. Done: the Phenomena page loads for galaxies with
-  and without the class totals, the 15 tests pass, and the cause is
-  named here. Check first whether the page itself breaks for a real
-  galaxy (GEN.193 still wants confirming that the table shows rows after
-  a real run). Owner: Bugfixes lane 1, FIRST in the lane (priority
-  fix: main is red and the other lanes are merging onto it).
-  Prerequisites: none. Related: GEN.193, PERF.56.
-
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -4532,7 +4476,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   documentation pages for all features accessible through the web
   interface." Done: search (/search), nearby search (/nearby), the nav
   page (/nav), routes between systems and across sectors,
-  within-N-parsec search, travel times (NAV.11 when built), and how
+  within-N-parsec search, travel times (NAV.11, built), and how
   unknown space and asteroid fields affect a course. The page is a
   Markdown file in docs/help/ built into the Help section, linked from
   each page it describes, and updated by any later change to those

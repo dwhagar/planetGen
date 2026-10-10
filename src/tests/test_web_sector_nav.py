@@ -150,8 +150,8 @@ class FakeData:
         except KeyError:
             raise apiclient.NotFoundError("No such phenomenon")
 
-    def get_nav(self, db, from_ref, to_ref):
-        self.calls.append(("get_nav", db, from_ref, to_ref))
+    def get_nav(self, db, from_ref, to_ref, stay=None):
+        self.calls.append(("get_nav", db, from_ref, to_ref) if stay is None else ("get_nav", db, from_ref, to_ref, stay))
         if self.nav_error:
             raise self.nav_error
         hops = [] if getattr(self, "nav_direct_hop", False) else [1500]
@@ -168,9 +168,13 @@ class FakeData:
             "route": {"path": [from_id if kind == "system" else f"phenomenon:{kind}:{from_id}",
                                *hops, to_id],
                       "distance_ly": 3.5, "positions": {"1500": (1.5, 0.5, 0.0)},
-                      "longest_hop_ly": 2.25,
-                      "hops": [{"from": 0, "to": 1, "distance_ly": 1.25, "unknown_space": False},
-                               {"from": 1, "to": 2, "distance_ly": 2.25, "unknown_space": self.nav_unknown_space}]},
+                      "longest_hop_ly": 2.25, "stops": len(hops), "stay_minutes": stay or 0.0,
+                      "warp_times": [{"warp_factor": 1, "velocity_multiple_of_c": 1.0, "formatted": "3 years, 2 days"}],
+                      "fold_times": [{"fold_factor": 4, "velocity_multiple_of_c": 256.0, "formatted": "5 days"}],
+                      "hops": [{"from": 0, "to": 1, "distance_ly": 1.25, "unknown_space": False,
+                                "warp_times": [{"warp_factor": 1, "velocity_multiple_of_c": 1.0, "formatted": "1 year"}]},
+                               {"from": 1, "to": 2, "distance_ly": 2.25, "unknown_space": self.nav_unknown_space,
+                                "warp_times": [{"warp_factor": 1, "velocity_multiple_of_c": 1.0, "formatted": "2 years"}]}]},
             "legs": ([{"kind": "out", "from": from_ref, "to": "system:1001", "direct": direct}]
                      if kind in objectref.BODY_KINDS else []) + [
                 {"kind": "between", "from": from_ref, "to": to_ref, "direct": direct}],
@@ -1237,6 +1241,20 @@ def test_nav_route_shows_the_longest_hop_and_unknown_space_jumps(client, fake):
     assert "1 jump crosses unknown space" in html
 
 
+def test_nav_route_shows_hop_and_total_times_and_takes_a_stay(client, fake):
+    """NAV.11: the route panel lists the time of each hop and of the whole route, and a stay per stop recalculates."""
+    html = client.get("/nav?from=system:1001&to=system:1002").get_data(as_text=True)
+    assert "Warp 1: 1 year" in html and "Warp 1: 2 years" in html          # per hop
+    assert "3 years, 2 days" in html and "Warp travel time by the route" in html   # in total
+    assert 'name="stay"' in html
+    html = client.get("/nav?from=system:1001&to=system:1002&stay=30").get_data(as_text=True)
+    assert ("get_nav", "test_db", "system:1001", "system:1002", 30.0) in fake.calls or \
+        any(call[0] == "get_nav" and call[-1] == 30.0 for call in fake.calls)
+    assert 'value="30"' in html and "30 minutes" in html
+    html = client.get("/nav?from=system:1001&to=system:1002&stay=-5").get_data(as_text=True)
+    assert "must be a number of minutes" in html
+
+
 def test_nav_hides_the_route_when_it_is_the_direct_hop(client, fake):
     """UX.70: Optimal Route would only list the two ends again."""
     fake.nav_direct_hop = True
@@ -1265,7 +1283,7 @@ def test_nav_route_runs_left_to_right_with_the_hop_after_each_stop(client, fake)
     assert re.findall(r'class="nav-hop[^"]*"', route) == ['class="nav-hop"', 'class="nav-hop"']
     assert "1.25 ly" in route and "2.25 ly" in route
     assert route.index("Alpha") < route.index("1.25 ly") < route.index("Waypoint") < route.index("2.25 ly") < route.index("Other")
-    assert "<details" not in html.split('id="route-heading"')[1].split("</section>")[0]  # three stops: no collapse
+    assert "nav-all-stops" not in html.split('id="route-heading"')[1].split("</section>")[0]  # three stops: no collapse
     fake.nav_unknown_space = True
     html = client.get("/nav?from=system:1001&to=system:1002").get_data(as_text=True)
     assert 'class="nav-hop nav-hop-unknown"' in html

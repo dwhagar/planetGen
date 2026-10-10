@@ -200,7 +200,7 @@ def _page_paths(app, ids):
     from the seeded database."""
     values = {
         "sector_id": ids["sector_id"], "system_id": ids["system_ids"][0], "phenomenon_type": "nebula",
-        "phenomenon_id": ids["nebula_id"], "name": "index", "type_slug": "stars", "code": "G",
+        "phenomenon_id": ids["nebula_id"], "ref": f"system:{ids['system_ids'][0]}", "name": "index", "type_slug": "stars", "code": "G",
         "job_id": "0" * 32, "species_id": 1, "polity_id": 1,
         "nebula_id": ids["nebula_id"], "node_id": "20260101-000000-00000000", "action": "queue-pause",
         "ring": 0, "layer": 0, "slot": 0,

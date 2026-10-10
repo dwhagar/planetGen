@@ -265,6 +265,37 @@ def _travel_times(distance_ly, factors, speed_c, make_leg):
     return legs
 
 
+MINUTES_PER_YEAR = 365.25 * 24 * 60
+"""float: Minutes in a Julian year, for turning a stay at a stop into years."""
+
+
+def route_travel_times(hop_distances_ly, stay_minutes, factors, speed_c, make_leg):
+    """
+    NAV.11: one leg per factor for a whole route, the hops timed rest to
+    rest at that factor's speed plus `stay_minutes` at every stop between
+    the two ends (a route of N hops has N - 1 of them).
+    `make_leg(factor, speed, years, formatted)` as `_travel_times`.
+    """
+    stops = max(len(hop_distances_ly) - 1, 0)
+    stay_years = stay_minutes * stops / MINUTES_PER_YEAR
+    legs = []
+    for factor in factors:
+        speed = speed_c(factor)
+        years = sum(distance / speed for distance in hop_distances_ly) + stay_years
+        legs.append(make_leg(factor, speed, years, format_period_years(years)))
+    return legs
+
+
+def route_warp_times(hop_distances_ly, stay_minutes=0.0, warp_factors=tuning.WARP_FACTORS_FOR_NAV):
+    """`route_travel_times` on `warp_speed_c`'s curve: a list of `WarpLeg`."""
+    return route_travel_times(hop_distances_ly, stay_minutes, warp_factors, warp_speed_c, WarpLeg)
+
+
+def route_fold_times(hop_distances_ly, stay_minutes=0.0, fold_factors=tuning.FOLD_FACTORS_FOR_NAV):
+    """`route_travel_times` on `fold_speed_c`'s curve: a list of `FoldLeg`."""
+    return route_travel_times(hop_distances_ly, stay_minutes, fold_factors, fold_speed_c, FoldLeg)
+
+
 def warp_travel_times(distance_ly, warp_factors=tuning.WARP_FACTORS_FOR_NAV):
     """
     Computes travel time across `distance_ly` at each of `warp_factors`,

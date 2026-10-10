@@ -7,13 +7,27 @@
 <p class="badges">
   <span class="badge">{{ num(all_systems.total) }} system{{ "" if all_systems.total == 1 else "s" }}</span>
   <span class="badge"><a href="{{ standalone_url }}">{{ num(standalone_total) }} standalone</a></span>
+  {%- if show_uncharted %}
+  <span class="badge"><a href="{{ systems_url }}">Back to the systems</a></span>
+  {%- else %}
+  <span class="badge"><a href="{{ uncharted_url }}">{{ num(uncharted_total) }} uncharted stars</a></span>
+  {%- endif %}
 </p>
 {% endblock %}
 {% block content %}
 <section class="panel" id="all-systems" aria-labelledby="all-systems-heading">
   <div class="panel-header">
-    <h2 id="all-systems-heading" class="sr-only">All Systems</h2>
+    <h2 id="all-systems-heading" class="sr-only">{{ "Uncharted stars" if show_uncharted else "All Systems" }}</h2>
   </div>
+  {%- for message in messages %}
+  <p class="hint" role="status">{{ message }}</p>
+  {%- endfor %}
+  {%- if show_uncharted %}
+  <p class="hint">These stars were placed by the scatters and have no system yet. Open the sector on the Galaxy Map to
+    see where each one is. {% if can_generate %}Generate builds only that one star's system and leaves the rest of its
+    sector uncharted; generating the whole sector from the Galaxy Map is recommended.{% else %}An admin can generate one
+    by itself, though generating its whole sector is recommended.{% endif %}</p>
+  {%- endif %}
   {{ datatable(all_systems) }}
 </section>
 {% endblock %}

@@ -189,12 +189,43 @@
       {%- if stop.gap_before %}<span class="nav-skip" aria-hidden="true">&hellip;</span>{% endif %}
       <a href="{{ stop.url }}">{{ stop.name }}</a>
       {%- if stop.hop_text and not loop.last and not loop.nextitem.gap_before %}
-      <span class="nav-hop{% if stop.hop_unknown %} nav-hop-unknown{% endif %}"><span aria-hidden="true">&rarr;</span><span class="sr-only"> then </span> {{ stop.hop_text }}{% if stop.hop_unknown %} <span class="nav-unknown">unknown space</span>{% endif %}</span>
+      <span class="nav-hop{% if stop.hop_unknown %} nav-hop-unknown{% endif %}"><span aria-hidden="true">&rarr;</span><span class="sr-only"> then </span> {{ stop.hop_text }}{% if stop.hop_times %} ({{ stop.hop_times|join(", ") }}){% endif %}{% if stop.hop_unknown %} <span class="nav-unknown">unknown space</span>{% endif %}</span>
       {%- endif %}
     </li>
     {%- endfor %}
   </ol>
   {%- endmacro %}
+  <details class="nav-route-times">
+    <summary>Travel time by this route, stopping at every system</summary>
+    <form method="get" action="{{ url_for('web.nav') }}" class="search-form">
+      <input type="hidden" name="from" value="{{ from_param }}">
+      <input type="hidden" name="to" value="{{ to_param }}">
+      <label class="search-field">Stay at each stop (minutes)
+        <input type="number" name="stay" min="0" max="10000000" step="any" value="{{ stay_text }}" placeholder="0">
+      </label>
+      <button type="submit" class="btn btn-small">Recalculate</button>
+    </form>
+    {%- if stay_error %}<p class="hint" role="alert">{{ stay_error }}</p>{% endif %}
+    <p class="hint">Each hop is timed from rest to rest at the factor's speed{% if route.stops %}, with {{ num(stay_minutes, ",.4g") }} minute{{ "" if stay_minutes == 1 else "s" }} at each of the {{ route.stops }} stop{{ "" if route.stops == 1 else "s" }} between the ends{% endif %}.</p>
+    <div class="table-scroll"><table>
+      <caption>Warp travel time by the route</caption>
+      <thead><tr><th scope="col">Warp Factor</th><th scope="col">Speed</th><th scope="col">Total Time</th></tr></thead>
+      <tbody>
+        {%- for leg in route.warp_times %}
+        <tr><td>Warp {{ leg.warp_factor }}</td><td>{{ num(leg.velocity_multiple_of_c, ",.1f") }}&times; c</td><td>{{ leg.formatted }}</td></tr>
+        {%- endfor %}
+      </tbody>
+    </table></div>
+    <div class="table-scroll"><table>
+      <caption>Dimensional Fold travel time by the route</caption>
+      <thead><tr><th scope="col">Fold Factor</th><th scope="col">Speed</th><th scope="col">Total Time</th></tr></thead>
+      <tbody>
+        {%- for leg in route.fold_times %}
+        <tr><td>Fold {{ leg.fold_factor }}</td><td>{{ num(leg.velocity_multiple_of_c, ",.1f") }}&times; c</td><td>{{ leg.formatted }}</td></tr>
+        {%- endfor %}
+      </tbody>
+    </table></div>
+  </details>
   {%- if short_stops %}
   {{ route_list(short_stops, "Main stops of the route") }}
   <details class="nav-all-stops">

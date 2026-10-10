@@ -307,10 +307,35 @@ def _route_stops(route, names):
             url = page_url("system", system_id=node)
         stops.append({"name": names.get(node, str(node)), "url": url})
     for stop, hop in zip(stops, route.get("hops", [])):
-        # UX.35: the hop to the next stop, shown between the two.
+        # UX.35: the hop to the next stop, shown between the two; NAV.11: and how long it takes.
         stop["hop_text"] = format_distance_ly(hop["distance_ly"])
         stop["hop_unknown"] = bool(hop.get("unknown_space"))
+        stop["hop_times"] = [f"Warp {leg['warp_factor']:g}: {leg['formatted']}"
+                             for leg in hop.get("warp_times", []) if leg["warp_factor"] in READOUT_WARP_FACTORS]
     return stops
+
+
+MAX_STAY_MINUTES = 10_000_000.0
+"""float: The longest stay per stop the NAV page asks the API for (`api.routes.NAV_MAX_STAY_MINUTES`)."""
+
+
+def _stay_minutes(args):
+    """
+    NAV.11: the `stay` URL parameter, minutes spent at each stop of a
+    route. Returns `(minutes, text, error)`: `text` is what the field
+    shows, `error` a message when the value was unusable (the stay is then
+    0, the default).
+    """
+    raw = (args.get("stay") or "").strip()
+    if not raw:
+        return 0.0, "", None
+    try:
+        minutes = float(raw)
+    except ValueError:
+        minutes = -1.0
+    if not 0.0 <= minutes <= MAX_STAY_MINUTES:
+        return 0.0, raw, f"The stay per stop must be a number of minutes from 0 to {MAX_STAY_MINUTES:,.0f}; 0 was used."
+    return minutes, raw, None
 
 
 ROUTE_COLLAPSE_AT = 9
@@ -538,8 +563,9 @@ def nav():
 
     to_kind, to_id = parse_endpoint(to_raw)
     destination = _resolve(to_kind, to_id)
+    stay, stay_text, stay_error = _stay_minutes(request.args)
     try:
-        result = apiclient.get_nav(db_name(), origin["ref"], destination["ref"])
+        result = apiclient.get_nav(db_name(), origin["ref"], destination["ref"], stay=stay or None)
     except apiclient.NotFoundError:
         raise
     except apiclient.ApiError as exc:
@@ -571,6 +597,8 @@ def nav():
             result["scope"], "Cross-sector (galaxy)"),
         legs=_leg_rows(result["legs"], origin, destination, names), in_system=in_system, note=result["note"],
         route=route, stops=_route_stops(route, names) if route and route["path"] else [],
+        stay_text=stay_text, stay_error=stay_error, stay_minutes=stay,
+        from_param=_param_of(origin), to_param=_param_of(destination),
         short_stops=_route_short_list(_route_stops(route, names), route) if route and route["path"] else None,
         longest_hop_text=format_distance_ly(route["longest_hop_ly"]) if route and "longest_hop_ly" in route else None,
         unknown_jumps=sum(1 for hop in route.get("hops", []) if hop.get("unknown_space")) if route else 0,

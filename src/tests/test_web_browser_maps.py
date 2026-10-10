@@ -692,3 +692,23 @@ def test_galaxy_map_menu_filters_sit_side_by_side(page, base_url, size):
     assert all(c["w"] < panel / 2 for c in chips), chips
     assert len({c["top"] for c in chips}) < len(chips) / 2, "toggles should share rows"
     assert page.locator("#galaxymap3d-menu .galaxy-sub > summary").is_visible()
+
+
+def test_a_body_link_opens_highlights_and_selects_it(page, base_url, site_app):
+    """NAV.8: /system/<id>#moon-<id> opens the moon's row, highlights it and selects it on the System Map."""
+    client = site_app.test_client()
+    target = moon_id = None
+    for system in client.get("/api/systems?limit=100").get_json()["items"]:
+        html = client.get(f"/system/{system['id']}").get_data(as_text=True)
+        found = re.search(r'<li id="moon-(\d+)"', html)
+        if found:
+            target, moon_id = system["id"], found.group(1)
+            break
+    assert target, "no generated system has a moon"
+    page.add_init_script("try { window.localStorage.setItem('planetgen.systemView', 'diagram'); } catch (e) {}")
+    _open(page, f"{base_url}/system/{target}#moon-{moon_id}", '#sysmap-root[data-ready="true"]')
+    page.wait_for_timeout(300)
+    assert page.locator(f"li#moon-{moon_id}.body-targeted").count() == 1
+    assert page.evaluate(f"document.querySelector('li#moon-{moon_id} > details.body-row').open")
+    assert _active_scene(page).startswith("planet-")
+    assert page.locator("#sysmap-info, .sysmap-info").first.inner_text().strip() != ""
