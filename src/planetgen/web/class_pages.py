@@ -14,6 +14,7 @@ phenomenon and other pages use to link a class label here.
 
 from flask import abort
 
+from planetgen.web.lib import habitability_ref
 from planetgen.web.lib.classref import alphabetical, catalog, class_entry, class_type, class_url_parts
 
 from . import bp
@@ -49,6 +50,7 @@ def classes():
         breadcrumbs=[crumb("Classes")],
         description="Every class of star, planet, nebula and other object this galaxy generator assigns.",
         rows=rows,
+        habitability_url=page_url("habitability_levels"),
         population=_population_links(),
     )
 
@@ -63,6 +65,19 @@ def _population_links():
     if status["polities"]:
         links.append({"label": "Polities", "url": page_url("polities")})
     return links
+
+
+@bp.route("/classes/habitability")
+def habitability_levels():
+    """UX.90: what the equipment levels and PHI-4 colours on the planet pages mean."""
+    return render_page(
+        "habitability.html",
+        title="Habitability Levels",
+        section="classes",
+        breadcrumbs=[crumb("Classes", "classes"), crumb("Habitability Levels")],
+        description="What the equipment levels, the Blue to Red domain colours and the Habitable chips mean.",
+        **habitability_ref.page(),
+    )
 
 
 @bp.route("/classes/<type_slug>")

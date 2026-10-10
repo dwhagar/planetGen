@@ -4694,7 +4694,8 @@ def _search_equipment_options(conn, table):
         f"SELECT equipment_tier AS v, COUNT(*) AS c FROM {table} WHERE equipment_tier IS NOT NULL"
         " GROUP BY v ORDER BY v").fetchall()
     return [{"value": str(row["v"]), "label": EQUIPMENT_LABELS[row["v"]], "count": row["c"],
-             "tooltip": f"A human needs {EQUIPMENT_NAMES[row['v']]} here"} for row in rows]
+             "tooltip": ("Conditions are ideal for a human here" if row["v"] == 0
+                         else f"A human needs {EQUIPMENT_NAMES[row['v']]} here")} for row in rows]
 
 
 def _search_facet_equipment(conn):

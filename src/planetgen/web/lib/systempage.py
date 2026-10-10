@@ -277,6 +277,27 @@ def _habitability_chip(body):
             f'{esc(EQUIPMENT_LABELS[tier])}</span>')
 
 
+TIER_NAMES = ("Blue", "Green", "Yellow", "Red")
+"""tuple: The PHI-4 tier colours, best first."""
+
+HABITABILITY_SCORES = (("phi_bio", "Microbial"), ("phi_cpx", "Complex life"), ("phi_tech", "Human operability"))
+"""tuple: The stored PHI-4 scores and their names (UX.90)."""
+
+
+def _habitability_detail(body):
+    """UX.90: each PHI-4 factor's colour (Blue to Red) and the three stored
+    scores, as visible text under the equipment chip; empty when unscored."""
+    if body.get("equipment_tier") is None:
+        return ""
+    chips = "".join(
+        f'<span class="flag flag-tier flag-tier-{body.get(f"tier_{domain}") or 0}">'
+        f'{domain.capitalize()}: {esc(TIER_NAMES[body.get(f"tier_{domain}") or 0])}</span>'
+        for domain in DOMAINS)
+    scores = " &middot; ".join(f'{label} {body[key]:.2f}' for key, label in HABITABILITY_SCORES
+                               if body.get(key) is not None)
+    return f'<p class="habitability-detail">{chips}{" " + scores if scores else ""}</p>'
+
+
 def _gravity_text(gravity_g):
     return f"{round(gravity_g, 3)} g" if gravity_g is not None else ""
 
@@ -306,13 +327,13 @@ def _planet_row_html(body, sections, is_moon=False, class_url=None, by_host=None
         _habitability_chip(body),
     ]
     section = sections["moons" if is_moon else "planets"]
-    after_html = ""
+    after_html = _habitability_detail(body)
     if moons:
         label = f'{len(moons)} moon{"s" if len(moons) != 1 else ""}'
         moon_rows = "".join(_planet_row_html(moon, sections, is_moon=True, class_url=class_url, by_host=by_host,
                                               admin_rows=admin_rows)
                             for moon in moons)
-        after_html = (
+        after_html += (
             f'<details class="moon-group"><summary>{label} of {esc(body["name"])}</summary>'
             f'<ul class="system-list">{moon_rows}</ul></details>'
         )
@@ -418,7 +439,8 @@ def _orbiting_rows_html(planets, belts, comets, sections, class_url=None, by_hos
     return "".join(rows)
 
 
-def system_list_html(system, sections, class_url=None, facilities=(), species=None, admin_rows=None):
+def system_list_html(system, sections, class_url=None, facilities=(), species=None, admin_rows=None,
+                     habitability_url=None):
     """
     The system rendered natively: the page's overview (a binary pair's
     own data, the system summary, any flavor text) above an expandable
@@ -436,6 +458,8 @@ def system_list_html(system, sections, class_url=None, facilities=(), species=No
     in their host's own row, and `species` (`{planet_id: {"name", "url"}}`)
     names each life world's dominant species in its row. `admin_rows`
     (`_row_admin_html`) gives each planet, moon and belt row its Admin menu.
+    `habitability_url` (UX.90) adds a visible "Habitability levels" link above
+    the list when any body shows an equipment level.
     """
     stars, planets, belts, comets = system["stars"], system["planets"], system["belts"], system["comets"]
     by_host = _facilities_by_host(facilities)
@@ -464,7 +488,11 @@ def system_list_html(system, sections, class_url=None, facilities=(), species=No
         rows_html += _orbiting_rows_html(planets, belts, comets, sections, class_url, by_host, species, admin_rows)
 
     overview_html = markdown_to_html(sections["overview"]) if sections["overview"] else ""
+    scored = any(body.get("equipment_tier") is not None
+                 for planet in planets for body in [planet, *(planet.get("moons") or [])])
+    help_html = (f'<p class="hint"><a href="{esc(habitability_url)}">Habitability levels</a>: what the equipment '
+                 "labels and their colours mean.</p>") if habitability_url and scored else ""
     return f"""
 <div class="prose system-overview">{overview_html}</div>
-<ul class="system-list system-list-root">{rows_html}</ul>
+{help_html}<ul class="system-list system-list-root">{rows_html}</ul>
 """

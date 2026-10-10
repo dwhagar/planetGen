@@ -338,3 +338,44 @@ def test_stars_table_hides_role_for_a_single_star(app):
         assert "<th>Role</th>" not in stars_html(single, class_url)
         pair = [dict(single[0], role="primary"), dict(single[0], role="secondary", name="B")]
         assert "<th>Role</th>" in stars_html(pair, class_url)
+
+
+# --- UX.90: the habitability levels page --------------------------------------------
+
+def test_habitability_levels_page_explains_the_five_levels_and_the_four_domains(client):
+    from planetgen.physics.habitability_world import EQUIPMENT_LABELS
+
+    html = _html(client, "/classes/habitability")
+    for label in EQUIPMENT_LABELS:
+        assert label in html
+    assert EQUIPMENT_LABELS[0] == "Ideal" and "Shirtsleeve" not in html
+    for domain in ("Pressure", "Temperature", "Chemistry", "Radiation"):
+        assert f"<h3>{domain}</h3>" in html
+    for colour in ("Blue", "Green", "Yellow", "Red"):
+        assert f"<dt>{colour}</dt>" in html
+    for chip in ("Habitable", "Habitable moon", "Inhabited"):
+        assert f"<dt>{chip}</dt>" in html
+    assert "pulsar" in html and "1,000 Sv a year" in html
+
+
+def test_the_class_index_and_the_system_list_link_to_the_habitability_levels(client):
+    assert 'href="/classes/habitability"' in _html(client, "/classes")
+    system = _system()
+    system["planets"][0].update({"equipment_tier": 0, "phi4": 1.0, "tier_pressure": 0, "tier_temperature": 0,
+                                 "tier_chemistry": 0, "tier_radiation": 0})
+    html = system_list_html(system, _SECTIONS, habitability_url="/classes/habitability")
+    assert '<a href="/classes/habitability">Habitability levels</a>' in html
+    assert "Habitability levels" not in system_list_html(system, _SECTIONS)
+
+
+def test_the_equipment_search_tags_link_to_the_habitability_levels(app):
+    from planetgen.web import searchpage
+    from planetgen.web.searchpage import SearchState
+
+    options = [{"value": "0", "label": "Ideal", "count": 2}]
+    with app.test_request_context("/search"):
+        state = SearchState()
+        groups = searchpage.tag_groups(state, {"equipment": options, "class": [{"value": "M", "label": "M", "count": 1}]})
+    helped = {group["title"]: group["help"] for group in groups}
+    assert helped["Planet: Equipment a Human Needs"]["url"] == "/classes/habitability"
+    assert helped["Planet Class"] is None

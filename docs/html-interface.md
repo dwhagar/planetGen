@@ -38,7 +38,7 @@ UX.88 carries the sweep of the existing wording.
 ## Habitability chips
 
 Planet and moon rows carry habitability chips (GEN.89, design in
-`docs/design/habitability-index.md`): an equipment label (Shirtsleeve,
+`docs/design/habitability-index.md`): an equipment label (Ideal,
 Mask, Mask and scrubber, Sealed suit, Full life support), a colour chip
 that is the worst of the four PHI-4 domains (pressure, temperature,
 chemistry, radiation; Blue, Green, Yellow, Red), and the Habitable,

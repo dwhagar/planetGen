@@ -99,7 +99,7 @@ CO2 can't be filtered, so its Yellow ends at the acute 5 kPa (scrubbers);
 cell division; 50 mSv/yr is the occupational limit and 10 Sv/yr the
 Eigen threshold.
 
-**Equipment**: shirtsleeve; breathing mask (low O2 or pressure below Blue);
+**Equipment**: ideal; breathing mask (low O2 or pressure below Blue);
 mask with scrubber (a gas above its chronic limit); sealed suit (pressure
 below Green, or any domain Red); full life support with radiation
 hardening (Radiation Red).
@@ -149,13 +149,13 @@ unless given.
 
 | World | Inputs | P / T / C / R | PHI-4 | PHI_bio | PHI_cpx | Phi_tech | Equipment |
 |---|---|---|---|---|---|---|---|
-| Earth | 101.3 kPa, 15 C, N2 78%, O2 21%, CO2 0.04%, pH 8.1, RH 0.7 | Blue / Blue / Blue / Blue | 1.00 | 0.96 | 0.96 | 1.00 | shirtsleeve |
+| Earth | 101.3 kPa, 15 C, N2 78%, O2 21%, CO2 0.04%, pH 8.1, RH 0.7 | Blue / Blue / Blue / Blue | 1.00 | 0.96 | 0.96 | 1.00 | ideal |
 | Dense CO2 | 300 kPa, 40 C, CO2 95%, N2 5%, pH 6.5, RH 0.8, 40 W/m^2 | Green / Yellow / Red / Blue | 0 | 0.96 | 0 | 0.48 | sealed suit |
 | Hycean | 2 MPa, 60 C, H2 90%, He 10%, pH 7, RH 0.99, 20 W/m^2 | Yellow / Yellow / Green / Blue | 0.74 | 0.96 | 0 | 0.02 | sealed suit |
 | Photochemical CO | 100 kPa, 10 C, N2 90%, CO2 5%, CO 5%, pH 7.5 | Blue / Blue / Red / Blue | 0.59 | 0.96 | 0 | 1.00 | sealed suit |
 | Ice-sealed ocean | vacuum, -170 C, g 1.3, pH 8, 1e-3 W/m^2, surface 0.05 Sv/yr, ocean 2 mSv/yr, ice | Red / Red / Green / Blue | 0 | 0.41 | 0 | 0.47 | sealed suit |
 | Mars-analog brine | 0.6 kPa, -60 C, CO2 95%, g 3.71, aw 0.5, chi 90, pH 8, C/N/H 0.05/0.01/0.05, 0.5 umol/L P, 40 W/m^2, ice | Red / Red / Red / Yellow | 0 | 0.00 | 0 | 0.46 | sealed suit |
-| Dune world | 90 kPa, 45 C, N2 78%, O2 21%, RH 0.05, aw 0.7, pH 8, C/N/H 0.5/0.5/0.05, vapour | Blue / Green / Yellow / Blue | 0.83 | 0.54 | 0.54 | 0.80 | shirtsleeve |
+| Dune world | 90 kPa, 45 C, N2 78%, O2 21%, RH 0.05, aw 0.7, pH 8, C/N/H 0.5/0.5/0.05, vapour | Blue / Green / Yellow / Blue | 0.83 | 0.54 | 0.54 | 0.80 | ideal |
 | Europan ocean | vacuum, -160 C, g 1.31, pH 9, 1e-4 W/m^2, surface 2000 Sv/yr, ocean 2 mSv/yr, ice | Red / Red / Green / Red | 0 | 0.27 | 0 | 0.28 | full life support |
 
 ## 3. How the documents' problems were settled
@@ -324,7 +324,7 @@ the worst condition, a pure function of dry ambient values [C].
 
 | Tier | Name | Conditions (all must hold) |
 |---|---|---|
-| 0 | Shirtsleeve | 50 <= P_tot <= 250 kPa; 16 <= pO2 <= 50; pCO2 < 0.5; pCO < 0.005; pH2S < 0.001; pSO2 < 0.0005; T_dry -20 to 45 C and wet-bulb < 31 C (ordinary weather clothing); dose <= 50 mSv/yr |
+| 0 | Ideal | 50 <= P_tot <= 250 kPa; 16 <= pO2 <= 50; pCO2 < 0.5; pCO < 0.005; pH2S < 0.001; pSO2 < 0.0005; T_dry -20 to 45 C and wet-bulb < 31 C (ordinary weather clothing); dose <= 50 mSv/yr |
 | 1 | Mask | Any of: 20 <= P_tot < 50 (O2-enriched mask; pO2 of air too low); 8 <= pO2 < 16; pO2 50 to 160 (diluent mask); pCO2 0.5 to 1; 250 < P_tot <= 400; T 45 to 90 C, or -20 to -50 C with insulation; wet-bulb 31 to 35 C; dose 50 to 100 mSv/yr |
 | 2 | Mask and scrubber | Any of: pCO2 >= 1; pCO >= 0.005 (Hopcalite); H2S or SO2 above the chronic limit; 400 < P_tot <= 1,000 kPa (heliox or trimix rebreather); pO2 < 8 with P_tot >= 20 and a hostile base gas |
 | 3 | Pressure suit | P_tot < 20 kPa (6.3 to 20: gas-pressurised or mechanical-counterpressure suit plus helmet; below 6.3: full suit); P_tot > 1 MPa (atmospheric diving suit); pO2 > 160; T 90 to 120 C (liquid-cooled garment) or -50 to -120 C (heated suit); wet-bulb > 35 C; dose 0.1 to 1 Sv/yr (shielded habitat, limited surface time) |
@@ -334,7 +334,7 @@ The tier is the highest any condition demands. The cold range of -50 to
 -120 C, which PHI-4 leaves unassigned, is tier 3 here. Differences from
 section 2: the dose rows here are stricter than a rule that passes tier 0
 below 1 Sv/yr (which would put Mars at 0.24 Sv/yr and the Moon at 0.52
-at shirtsleeve), and the pressure-suit band here is under 20 kPa where
+at ideal), and the pressure-suit band here is under 20 kPa where
 section 2 uses 14.3.
 
 Sources behind the thresholds: aviation practice (100 percent oxygen holds an
@@ -375,7 +375,7 @@ the row alone. Every rule below is a planetGen default, not a source's number.
 | Water source for a base | Liquid at a surface ocean, ice for an icy surface or ice lid, vapour for a steam world, hydrated minerals for a dry body with 1e-5 or more water by mass, else vapour in the air, else none. |
 
 **Equipment.** `equipment_tier` is `habitability.equipment` numbered 0 to 4:
-shirtsleeve, breathing mask, mask with scrubber, sealed suit, full life
+ideal, breathing mask, mask with scrubber, sealed suit, full life
 support with radiation hardening (section 7.3's table is the alternative,
 not built). Each domain stores its score (`phi4_<domain>`) and its colour
 (`tier_<domain>`: 0 Blue to 3 Red); `hab_note` lists the domains short of

@@ -16,7 +16,7 @@ from planetgen.physics.habitability import World, scores
 EARTH = World(101.3, 15, {"N2": 0.78, "O2": 0.21, "CO2": 0.0004}, ph=8.1, relative_humidity=0.7)
 
 EXAMPLES = {
-    "Earth": (EARTH, ("Blue", "Blue", "Blue", "Blue"), 1.0, 0.958, 0.957, 1.0, "shirtsleeve"),
+    "Earth": (EARTH, ("Blue", "Blue", "Blue", "Blue"), 1.0, 0.958, 0.957, 1.0, "ideal"),
     "Dense CO2": (World(300, 40, {"CO2": 0.95, "N2": 0.05}, ph=6.5, relative_humidity=0.8, energy_flux_w_m2=40),
                   ("Green", "Yellow", "Red", "Blue"), 0.0, 0.958, 0.0, 0.479, "sealed suit"),
     "Hycean": (World(2000, 60, {"H2": 0.9, "He": 0.1}, ph=7, relative_humidity=0.99, energy_flux_w_m2=20),
@@ -33,7 +33,7 @@ EXAMPLES = {
                           ("Red", "Red", "Red", "Yellow"), 0.0, 0.0, 0.0, 0.458, "sealed suit"),
     "Dune world": (World(90, 45, {"N2": 0.78, "O2": 0.21, "CO2": 0.001}, relative_humidity=0.05, water_activity=0.7,
                          ph=8, water_source="vapour", inventories={"C": 0.5, "N": 0.5, "H": 0.05}),
-                   ("Blue", "Green", "Yellow", "Blue"), 0.8289, 0.54, 0.539, 0.795, "shirtsleeve"),
+                   ("Blue", "Green", "Yellow", "Blue"), 0.8289, 0.54, 0.539, 0.795, "ideal"),
     "Europan ocean": (World(1e-9, -160, {}, gravity_ms2=1.31, ph=9, energy_flux_w_m2=1e-4, surface_dose_sv_yr=2000,
                             habitat_dose_sv_yr=0.002, water_source="ice", relative_humidity=0.05),
                       ("Red", "Red", "Green", "Red"), 0.0, 0.274, 0.0, 0.276,
