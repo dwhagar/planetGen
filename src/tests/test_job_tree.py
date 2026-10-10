@@ -344,3 +344,25 @@ def test_a_web_job_is_the_root_of_its_steps_runs(control_config, tmp_path, monke
     inside = tree["children"][0]["children"]
     assert [(node["title"], node["web_job_id"]) for node in inside] == [("Inside the step", None)]
     assert all(node["seconds"] is not None for _depth, node in _walk(tree))
+
+
+def test_a_web_job_adds_the_recorded_time_of_each_step_not_started(control_config):
+    conn = _conn(control_config)
+    try:
+        with conn:
+            conn.execute("INSERT INTO work_jobs (id, root_id, kind, title, holder, state, workers, created_at,"
+                         " started_at, heartbeat_at, web_job_id) VALUES ('wj', 'wj', 'web-job', 'Job', 'h:1',"
+                         " 'running', 0, NOW(6), NOW(6), NOW(6), 'abc')")
+            conn.execute("INSERT INTO work_jobs (id, parent_id, root_id, kind, title, holder, state, workers,"
+                         " created_at, started_at, heartbeat_at) VALUES ('s1', 'wj', 'wj', 'step', 'One', 'h:1',"
+                         " 'running', 0, NOW(6), NOW(6), NOW(6))")
+            conn.execute("INSERT INTO work_jobs (id, root_id, kind, title, holder, state, workers, created_at,"
+                         " finished_at, heartbeat_at, seconds) VALUES ('old', 'old', 'step', 'Two', 'h:1', 'done', 0, NOW(6),"
+                         " NOW(6), NOW(6), 40)")
+        recorded = work.recorded_step_seconds(conn)
+        assert recorded == {"Two": 40.0}
+        tree = work.load_tree(conn, "wj", unstarted_steps=lambda root: [recorded.get(t) for t in ["Two", "Three"]])
+    finally:
+        conn.close()
+    assert tree["totals"]["eta_seconds"] == pytest.approx(40.0)
+    assert tree["totals"]["eta_partial"] is True
