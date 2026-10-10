@@ -19,12 +19,13 @@ survive the move.
 """
 
 
-from flask import jsonify, request, url_for
+from flask import jsonify, redirect, request, url_for
 
 from planetgen.web.lib import apiclient
 from planetgen.web.lib.fmt import format_distance_ly
 from planetgen.web.maps.galaxymap import QUADRANT_LABELS, sector_quadrant, sector_zone, zone_bounds_ly
 from planetgen.web.maps.galaxymap3d import render_galaxy_map3d_panel
+from planetgen.web.maps.starmap import uncharted_scene_data
 from planetgen.web.warmup import opening_request
 from planetgen.web.lib.datatable import Column, Facet, Table, in_memory, plain
 from planetgen.util import log
@@ -49,6 +50,18 @@ def sector_url_template():
     `static/galaxymap3d.js`'s "View sector" link, built with `page_url`.
     """
     return page_url("sector", sector_id=_ID_PLACEHOLDER).replace(str(_ID_PLACEHOLDER), "{id}")
+
+
+def uncharted_scene_url_template():
+    """
+    The URL of an uncharted sector's scene JSON (`galaxy_uncharted_scene`)
+    with `{ring}`, `{layer}` and `{slot}` where the address goes, for the
+    Galaxy Map to open a cell nothing was generated in (MAP.162).
+    """
+    return url_for("web.galaxy_uncharted_scene", ring=_ID_PLACEHOLDER, layer=_ID_PLACEHOLDER + 1,
+                   slot=_ID_PLACEHOLDER + 2).replace(
+        str(_ID_PLACEHOLDER + 1), "{layer}").replace(str(_ID_PLACEHOLDER + 2), "{slot}").replace(
+        str(_ID_PLACEHOLDER), "{ring}")
 
 
 def system_url_template():
@@ -182,6 +195,7 @@ def galaxy():
         phenomenon_url=phenomenon_url_template(),
         system_url=system_url_template(),
         nav_url=page_url("nav"),
+        uncharted_scene_url=uncharted_scene_url_template(),
     )
 
     context = {"quadrant": quadrant, "placed_count": len(sectors), "map_html": trusted_html(map_html)}
@@ -341,6 +355,39 @@ def galaxy_locate():
 
 
 galaxy_locate.json_only = True  # not a page: tests/test_web_a11y.py skips it
+
+
+@bp.route("/galaxy/uncharted/<int:ring>/<int:layer>/<int:slot>/scene")
+@page_limit("galaxy_tiles")
+def galaxy_uncharted_scene(ring, layer, slot):
+    """
+    The scene JSON of a sector cell nothing was generated in
+    (`starmap.uncharted_scene_data`, MAP.162): the waiting bright stars and
+    unbuilt scattered phenomena the scatters left there, for the Galaxy Map
+    to open in place with an "Uncharted" mark. A cell that has been
+    generated redirects to its sector's scene; a cell outside the grid is a
+    404 and an API failure a 502, both as `{"error": ...}` JSON.
+    """
+    try:
+        cell = apiclient.get_uncharted_sector(db_name(), ring, layer, slot)
+    except apiclient.NotFoundError as exc:
+        return _json_error(str(exc) or "Not found.", 404)
+    except apiclient.ApiError as exc:
+        if exc.status_code == 400:  # an address the grid doesn't have
+            return _json_error("There is no such sector cell.", 404)
+        log.exception(f"API error while fetching an uncharted sector's scene: {exc}")
+        return _json_error("The sector could not be loaded. Please try again shortly.", 502)
+    if cell["sector_id"] is not None:
+        return redirect(url_for("web.sector_scene", sector_id=cell["sector_id"]), code=302)
+    scene = uncharted_scene_data(
+        (ring, layer, slot), cell["designation"], cell["center_pc"], cell["edge_pc"],
+        {"stars": cell["stars"], "scattered": cell["scattered"]}, generate=generate_target(current_admin()))
+    response = jsonify(scene)
+    response.headers["Cache-Control"] = "no-store"
+    return response
+
+
+galaxy_uncharted_scene.json_only = True  # not a page: tests/test_web_a11y.py skips it
 
 
 @bp.route("/galaxy/nebula/<int:nebula_id>/shape")

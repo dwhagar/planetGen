@@ -635,3 +635,66 @@ def test_real_galaxy_page_and_tiles(db_client, mysql_config, tmp_path):
     second = db_client.get(query).get_json()
     assert second["cached"] == 2
     assert any(names for _root, _dirs, names in os.walk(tmp_path / "tiles"))
+
+
+# --- /galaxy/uncharted/<ring>/<layer>/<slot>/scene (MAP.162) -----------------------------
+
+def _uncharted_cell(**overrides):
+    cell = {"ring_index": 3, "layer_index": 0, "ring_slot_index": 1, "designation": "ABC", "center_pc": [100.0, 50.0, 0.0],
+            "edge_pc": 4.0, "sector_id": None,
+            "stars": [{"id": 1, "x": 101.0, "y": 50.0, "z": 0.0, "luminosity_sol": 900.0, "temperature_k": 20000.0,
+                       "radius_sol": 5.0, "star_type": "B"}],
+            "scattered": [{"id": 5, "kind": "black-hole", "subtype": "stellar", "type": "black_hole",
+                           "x": 99.0, "y": 50.0, "z": 0.0}]}
+    cell.update(overrides)
+    return cell
+
+
+def test_the_galaxy_page_gives_the_map_the_uncharted_scene_url(client, fake, app):
+    scene = _scene(client.get("/galaxy").get_data(as_text=True))
+    with app.test_request_context("/"):
+        assert scene["unchartedSceneUrl"].replace("{ring}", "3").replace("{layer}", "-2").replace("{slot}", "7") == url_for(
+            "web.galaxy_uncharted_scene", ring=3, layer=-2, slot=7)
+
+
+def test_the_uncharted_scene_endpoint_serves_the_cells_objects_marked_uncharted(client, fake, monkeypatch):
+    calls = []
+
+    def cell(db, ring, layer, slot):
+        calls.append((db, ring, layer, slot))
+        return _uncharted_cell()
+
+    monkeypatch.setattr(apiclient, "get_uncharted_sector", cell)
+    resp = client.get("/galaxy/uncharted/3/0/1/scene")
+    scene = resp.get_json()
+    assert calls == [(DB, 3, 0, 1)]
+    assert scene["uncharted"] is True and scene["designation"] == "ABC" and scene["halfEdgePc"] == 2.0
+    assert len(scene["stars"]) == 1 and len(scene["clouds"]) == 1
+    assert resp.headers["Cache-Control"] == "no-store"
+
+
+def test_the_uncharted_scene_endpoint_sends_a_generated_cell_to_its_sectors_scene(client, fake, monkeypatch):
+    monkeypatch.setattr(apiclient, "get_uncharted_sector", lambda *args: _uncharted_cell(sector_id=42))
+    resp = client.get("/galaxy/uncharted/3/0/1/scene")
+    assert resp.status_code == 302 and resp.headers["Location"].endswith("/sector/42/scene")
+
+
+def test_the_uncharted_scene_endpoint_reports_a_bad_cell_and_an_api_failure(client, fake, monkeypatch):
+    def missing(*args):
+        raise apiclient.NotFoundError("no such cell")
+
+    monkeypatch.setattr(apiclient, "get_uncharted_sector", missing)
+    assert client.get("/galaxy/uncharted/3/0/1/scene").status_code == 404
+
+    def off_the_grid(*args):
+        raise apiclient.ApiError("ring_slot_index 3 out of range", status_code=400)
+
+    monkeypatch.setattr(apiclient, "get_uncharted_sector", off_the_grid)
+    assert client.get("/galaxy/uncharted/0/0/3/scene").status_code == 404
+
+    def fail(*args):
+        raise apiclient.ApiError("down")
+
+    monkeypatch.setattr(apiclient, "get_uncharted_sector", fail)
+    resp = client.get("/galaxy/uncharted/3/0/1/scene")
+    assert resp.status_code == 502 and "error" in resp.get_json()

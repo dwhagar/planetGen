@@ -557,3 +557,59 @@ def test_the_toggle_highlight_follows_aria_pressed_in_the_stylesheet():
     css = open(os.path.join(os.path.dirname(__file__), "..", "html", "static", "style.css"), encoding="utf-8").read()
     rule = re.search(r'\.starmap-toggle\[aria-pressed="true"\]\s*\{([^}]*)\}', css)
     assert rule and "var(--accent)" in rule.group(1)
+
+
+# --- uncharted_scene_data (MAP.162) -------------------------------------------------
+
+def _uncharted_contents():
+    star = {"id": 1, "x": 101.0, "y": 52.0, "z": 3.0, "luminosity_sol": 9000.0, "temperature_k": 22000.0,
+            "radius_sol": 6.0, "star_type": "B2V", "population": "young", "yerkes_class": "V",
+            "ring_index": 3, "layer_index": 0, "ring_slot_index": 1, "system_id": None}
+    rows = [
+        {"id": 10, "kind": "black-hole", "subtype": "stellar", "type": "black_hole", "x": 99.0, "y": 50.0, "z": 0.0},
+        {"id": 11, "kind": "neutron-star", "subtype": None, "type": "neutron_star", "x": 100.5, "y": 50.0, "z": 1.0},
+        {"id": 12, "kind": "planetary-nebula", "subtype": None, "type": "nebula", "x": 98.0, "y": 51.0, "z": 0.0},
+        {"id": 13, "kind": "hypervelocity-star", "subtype": None, "type": "hypervelocity_star",
+         "x": 100.0, "y": 49.0, "z": 0.0},
+        {"id": 14, "kind": "quasar", "subtype": None, "type": "quasar", "x": 100.0, "y": 50.0, "z": -1.5},
+    ]
+    return {"stars": [star], "scattered": rows}
+
+
+def _uncharted_scene(contents=None):
+    from planetgen.web.maps.starmap import uncharted_scene_data
+    return uncharted_scene_data((3, 0, 1), "ABC123", (100.0, 50.0, 0.0), 4.0, contents or _uncharted_contents())
+
+
+def test_an_uncharted_scene_places_its_objects_about_the_cells_center_and_is_marked():
+    scene = _uncharted_scene()
+    assert scene["uncharted"] is True and scene["designation"] == "ABC123"
+    assert scene["centerPc"] == [100.0, 50.0, 0.0] and scene["halfEdgePc"] == 2.0
+    # One star, plus the hypervelocity star; the other four rows are clouds.
+    assert len(scene["stars"]) == 2 and len(scene["clouds"]) == 4
+    star = scene["stars"][0]
+    # 1 pc east, 2 pc north, 3 pc up of a 2 pc half edge, in 160-unit scene space (+y is down on screen).
+    assert (star["x"], star["y"], star["z"]) == pytest.approx((80.0, -160.0, 240.0))
+    assert star["starType"] == "B2V" and star["luminositySol"] == 9000.0 and star["light"]["color"]
+
+
+def test_an_uncharted_object_has_no_page_but_says_it_is_uncharted():
+    scene = _uncharted_scene()
+    for entry in scene["stars"] + scene["clouds"]:
+        assert entry["uncharted"] is True
+        assert "href" not in entry and "endpoint" not in entry
+        assert "uncharted" in entry["name"].lower()
+    nebula = next(c for c in scene["clouds"] if c["kind"] == "nebula")
+    assert "nebulaId" not in nebula, "a scatter row has no mesh to fetch"
+
+
+def test_scattered_black_holes_and_neutron_stars_are_lit_points():
+    clouds = {c["kind"]: c for c in _uncharted_scene()["clouds"]}
+    assert clouds["blackHoleQuiescent"]["light"]["color"] == "#a06bff"
+    assert clouds["neutronStar"]["light"]["color"] == "#3f63e0"
+    assert clouds["quasar"]["light"]["bright"] == 1.0
+
+
+def test_an_empty_uncharted_cell_has_an_empty_scene():
+    scene = _uncharted_scene({"stars": [], "scattered": []})
+    assert scene["stars"] == [] and scene["clouds"] == [] and scene["uncharted"] is True

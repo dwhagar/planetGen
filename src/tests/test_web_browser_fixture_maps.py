@@ -601,6 +601,50 @@ def test_galaxy_map_opens_a_sector_in_place(page, map_site):
     assert any(_bright_spots(page, GALAXY_CANVAS)), "the reloaded sector draws its stars"
 
 
+OPEN_UNCHARTED = "?sector=100000000&open=1"
+"""The fixture's ungenerated ring 0, layer 0, slot 0, where the scatters left objects, opened in place."""
+
+
+def test_galaxy_map_opens_an_uncharted_sector_with_its_scattered_objects_and_marks_it(page, map_site):
+    """MAP.162: a sector nothing was generated in opens in the Galaxy Map from what the scatters left in it,
+    carrying an "uncharted" mark in its crumb, its info panel and a badge in the map's frame; its objects
+    pick (without a page or course buttons) and Up leaves it selected without the mark."""
+    _open_galaxy(page, map_site, OPEN_UNCHARTED)
+    page.wait_for_selector(".sector-uncharted-badge", state="attached")
+    badge = page.locator(".sector-uncharted-badge")
+    assert "Uncharted sector" in badge.inner_text() and "3 objects" in badge.inner_text()
+    assert _crumbs(page)[-1].endswith("(uncharted)"), _crumbs(page)
+    info = page.locator("#galaxymap3d-info")
+    assert info.locator("h3").inner_text() == "Uncharted sector"
+    assert "Uncharted: not generated yet" in info.inner_text()
+    assert _query(page) == OPEN_UNCHARTED[1:]
+    page.wait_for_timeout(500)
+    tip = page.locator("#galaxymap3d-tooltip")
+    picked = None
+    found = _bright_spots(page, GALAXY_CANVAS)
+    tag = badge.bounding_box()  # after the shot, which may scroll
+    # The badge's own lettering shows up as bright spots over the canvas.
+    spots = [(x, y) for x, y in found
+             if not (tag["x"] - 24 <= x <= tag["x"] + tag["width"] + 24 and tag["y"] - 24 <= y <= tag["y"] + tag["height"] + 24)]
+    for x, y in spots:
+        page.mouse.move(x, y)
+        page.wait_for_timeout(120)
+        page.mouse.click(x, y)
+        heading = info.locator("h3").inner_text() if info.locator("h3").count() else None
+        if heading and "(uncharted)" in heading:
+            picked = heading
+            break
+    assert picked, "no click on the uncharted sector picked one of its objects"
+    assert "its sector is not generated yet" in info.inner_text()
+    assert info.locator("a", has_text="View").count() == 0, "an uncharted object has no page to view"
+    assert info.locator("button", has_text="Start Here").count() == 0
+    page.click('#galaxymap3d-controls [data-action="up"]')
+    _settle(page)
+    assert _query(page) == "sector=100000000", _query(page)
+    assert page.locator(".sector-uncharted-badge").count() == 0
+    assert not _crumbs(page)[-1].endswith("(uncharted)")
+
+
 def test_a_binary_picks_as_one_system_in_an_opened_sector(page, map_site):
     """MAP.136: every dot of an opened sector, a binary's companion too,
     picks a system by its own name; a star is never picked on its own."""
