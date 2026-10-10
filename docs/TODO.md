@@ -112,7 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, GEN.86, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, NAV.11, NAV.42, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.57, TEST.77, UX.49, PERF.31, GEN.128, ADM.42 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, NAV.11, NAV.42, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.57, TEST.77, UX.49, PERF.31, GEN.128, ADM.42 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.17, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18, PERF.33, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, DB.15, ADM.43, ADM.44 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, and the anomalies chosen in phase 2. | NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, GEN.114, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies. | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, GEN.55 |
@@ -2020,25 +2020,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Index.md, Speculative Xenobiology Extremes.md, Speculative Xenobiology
   Examples.md, Mathematical and Algorithmic Implementation of the
   Planetary Habitability Index.md" Done when the subitems are.
-  Prerequisites: GEN.86, GEN.87, GEN.88, GEN.89.
+  Prerequisites: GEN.87, GEN.88, GEN.89.
   Design: [docs/design/habitability-index.md](design/habitability-index.md)
-
-  - [ ] **GEN.86 Stellar activity (XUV, flares) and planetary magnetic fields**
-    Done: stars store activity (saturation phase, L_XUV/L_bol, flare and
-    particle-event rates by mass and age), and planets a magnetic field
-    strength from mass, rotation and tidal locking (the spin from GEN
-    item GEN.104 when it lands).
-    Research (2026-10-09, activity-magnetism-radiation-hydrosphere.md):
-    split into two sub-items: "star activity columns" (log L_X/L_bol,
-    L_XUV, saturation flag, flare N33, alpha, flare irradiation index)
-    and "planet dipole moment and magnetopause" (needs GEN.104). Use the
-    design doc's 2.1 and 2.4 tables and the 3.5 rules; state that the
-    rates are design defaults with +/-0.5 dex; the tidal-locking time
-    (formula in 3.3), not a stellar-mass cut, decides spin. Add a
-    compact-remnant branch (spin-down power for pulsars, X-ray
-    luminosity for accreting systems, white dwarf UV/XUV decay with
-    age). The dose ladder cannot lean on astropy on Python 3.9.
-    Design: [docs/design/habitability-index.md](design/habitability-index.md)
 
   - [ ] **GEN.87 Surface radiation dose**
     Done: each planet stores its surface dose from column mass (P0/g),
@@ -2054,7 +2037,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     question for Boss (default on): the supernova and GRB flag lowers
     the score only if the flagged event rate exceeds one lethal event
     per 100 Myr.
-    Prerequisite: GEN.86.
     Design: [docs/design/habitability-index.md](design/habitability-index.md)
 
   - [ ] **GEN.88 Hydrosphere and ocean chemistry**
@@ -2096,7 +2078,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     `land_fraction`. It returns the lowest tier, with a reason string,
     for any pulsar, black hole or X-ray-binary planet. Open question for
     Boss (default: store the two flare numbers, derive the rest).
-    Prerequisites: GEN.86, GEN.87, GEN.88.
+    Prerequisites: GEN.87, GEN.88.
     Design: [docs/design/habitability-index.md](design/habitability-index.md)
 
 - [ ] **GEN.90 Refactor the planet classes around the habitability index**
@@ -3227,6 +3209,26 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   birth sector is taken from the centroid?
   Prerequisite: DB.20.
   Design: [docs/design/object-id-options.md](design/object-id-options.md)
+
+- [ ] **GEN.177 Planetary magnetic fields: a stagnant-lid factor**
+  Left over from GEN.86 (PR #908, Foundations lane 2): the planetary
+  magnetic field model does not yet apply the stagnant-lid factor (a
+  planet with a single rigid lid and no plate tectonics cools its core
+  differently, which changes whether a dynamo runs). Done: the factor is
+  applied where the field strength is computed, with a test on a
+  stagnant-lid and a plate-tectonic planet. Decided with GEN.86 (Boss,
+  decision card, 2026-10-10): unlocked rocky planets draw their day
+  length from 8 to 48 h log-uniform ("Realistic days"), shipped as a
+  small follow-up patch without an item.
+  Prerequisites: none. Related: GEN.86, GEN.88.
+
+- [ ] **GEN.178 Magnetic fields: the induced field of an ocean moon**
+  Left over from GEN.86 (PR #908): the induced magnetic field of a moon
+  with a subsurface ocean in its parent's changing field is not
+  modelled. Done: the induced field is computed for ocean moons and
+  stored beside the intrinsic field, with a test on a known case (a
+  Europa-like moon of a gas giant).
+  Prerequisites: GEN.88. Related: GEN.86.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 

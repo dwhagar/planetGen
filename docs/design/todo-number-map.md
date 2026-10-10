@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.87 |
 | MAP | MAP.162 |
 | NAV | NAV.58 |
-| GEN | GEN.177 |
+| GEN | GEN.179 |
 | PERF | PERF.52 |
 | DB | DB.22 |
 | API | API.24 |
@@ -582,7 +582,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.83 | A planetary habitability index (PHI) | none | open |
 | GEN.84 | Habitability design: one score structure and reconciled thresholds | none | done, PR #803 |
 | GEN.85 | Atmosphere species, partial pressures and mantle redox for every planet | none | done, PR #848 |
-| GEN.86 | Stellar activity (XUV, flares) and planetary magnetic fields | none | open |
+| GEN.86 | Stellar activity (XUV, flares) and planetary magnetic fields | none | done, PR #908 |
 | GEN.87 | Surface radiation dose | none | open |
 | GEN.88 | Hydrosphere and ocean chemistry | none | open |
 | GEN.89 | The habitability score for every planet and moon | none | open |
@@ -673,6 +673,8 @@ Parents marked "new parent" had no old number of their own.
 | GEN.174 | Bodies an admin adds are saved with a NULL uid (bug) | none | open |
 | GEN.175 | Regenerating a phenomenon sets its uid to NULL (bug) | none | open |
 | GEN.176 | A nebula or remnant is born in the sector holding the centre of the space it occupies | none | open |
+| GEN.177 | Planetary magnetic fields: a stagnant-lid factor | none | open |
+| GEN.178 | Magnetic fields: the induced field of an ocean moon | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
