@@ -229,8 +229,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | UX.97 | Search results: each panel runs under its own time limit and is fetched on its own |  | Bugfixes lane 2. |
 | UX.96 | A table that hits the statement limit says the database is busy and retries, instead of failing with a 502 |  | Decided by default. Bugfixes lane 2. |
 | UX.95 | Tables show their rows first and fill the filter-menu counts a moment later |  | Bugfixes lane 2. |
-| PERF.77 | Capped counts: "10,000 or more" where no stored count exists for a filter |  | Decided by default. Foundations lane 1. |
-| PERF.76 | Give each Galaxy Map tile piece its own time budget and serve an "incomplete" tile |  | Decided by default. Foundations lane 1. |
 | PERF.75 | Keyset paging for the data tables: page forward by key, jump by value |  | Decided by default. Foundations lane 1. |
 | PERF.73 | Cut the cost of writing the phenomenon rows to the database (now the biggest part of a scatter run) |  | Follow-up to PERF.63. Foundations lane 1. |
 | GEN.201 | Fill the map luminosity in the scatter and in existing galaxies | GEN.200, DB.23 | Foundations lane 1. |
