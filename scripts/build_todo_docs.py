@@ -51,6 +51,7 @@ OUTPUTS = {
     "todo-tree.template.html": ROOT / "docs" / "plan" / "todo-tree.html",
 }
 ID_RE = re.compile(r"^[A-Z]+\.\d+$")
+HEADLINE_RE = re.compile(r"Headline:\s*(\d+\.\d+)\s*\(([^)]*)\)")
 ITEM_RE = re.compile(r"^(\s*)- \[[ x]\] \*\*([A-Z]+\.\d+) (.*?)\*\*\s*$")
 PHASE_ORDER = ["1", "2", "3", "3+"]
 CATEGORIES = {
@@ -114,6 +115,8 @@ def parse_todo(text: str) -> dict:
         prereq = re.findall(r"Prerequisites?:\s*([^\n]*?)\.(?:\s|$)", it["text"].replace("\n", " "))
         it["prereqs"] = [x for p in prereq for x in split_ids(p)]
         it["design"] = re.findall(r"Design:\s*\[([^\]]+)\]\(([^)]+)\)", it["text"])
+        found = HEADLINE_RE.search(it["text"])
+        it["headline"] = (found.group(1), found.group(2).strip()) if found else None
     return items
 
 
@@ -217,6 +220,7 @@ def build_data(root: Path) -> dict:
             "section": t["section"] if t else "",
             "design": [{"label": a, "href": b} for a, b in (t["design"] if t else [])],
             "deps": deps, "unblocks": [], "children": [],
+            "headline": t["headline"][0] if t and t["headline"] else "",
         }
     for it in items.values():
         for d in it["deps"]:
@@ -231,19 +235,54 @@ def build_data(root: Path) -> dict:
         "id": i, "title": items[i]["title"], "phase": items[i]["phase"], "was": "",
         "bug": items[i]["bug"], "thread": items[i]["thread"], "deps": items[i]["deps"],
         "unblocks": items[i]["unblocks"], "note": items[i]["note"], "text": items[i]["text"],
+        "headline": items[i]["headline"],
     } for i in open_ids}
+    headlines = build_headlines(items, todo)
     summary = (f"{len(open_ids)} open items, {sum(items[i]['bug'] for i in open_ids)} bugs; "
                f"{len(items)} IDs issued in all")
     return {
-        "plan": {"items": plan_items, "phases": phases, "decisions": decisions, "generated": summary},
+        "plan": {"items": plan_items, "phases": phases, "decisions": decisions, "generated": summary,
+                 "headlines": headlines},
         "reference": {"items": items, "phases": [{"key": p["key"], "title": p["title"]} for p in phases],
-                      "categories": CATEGORIES, "summary": summary},
+                      "categories": CATEGORIES, "summary": summary, "headlines": headlines},
     }
+
+
+def build_headlines(items: dict, todo: dict) -> list[dict]:
+    """Each headline feature with every open item it needs, in build order."""
+    out = []
+    for item_id, t in todo.items():
+        if not t["headline"]:
+            continue
+        version, name = t["headline"]
+        closure: dict[str, int] = {}
+
+        def walk(i: str, depth_seen: tuple = ()) -> int:
+            if i in closure:
+                return closure[i]
+            if i in depth_seen:
+                return 0
+            below = [walk(d, depth_seen + (i,)) for d in items[i]["deps"] if d in items]
+            closure[i] = 1 + max(below) if below else 0
+            return closure[i]
+
+        walk(item_id)
+        rows = []
+        for i in sorted(closure, key=lambda x: (closure[x], id_key(x))):
+            it = items[i]
+            rows.append({"id": i, "title": it["title"], "phase": it["phase"], "bug": it["bug"],
+                         "deps": [d for d in it["deps"] if d in closure],
+                         "ready": not [d for d in it["deps"] if d in closure]})
+        out.append({"version": version, "name": name, "id": item_id, "title": t["title"],
+                    "remaining": len(rows), "ready": sum(r["ready"] for r in rows),
+                    "bugs": sum(r["bug"] for r in rows), "items": rows})
+    return sorted(out, key=lambda h: tuple(int(x) for x in h["version"].split(".")))
 
 
 def render(template: str, data: dict) -> str:
     payload = json.dumps(data, ensure_ascii=False, sort_keys=True).replace("</", "<\\/")
-    return template.replace("__DATA__", payload)
+    snippet = (TEMPLATES / "headlines.snippet.html").read_text(encoding="utf-8")
+    return template.replace("__HEADLINES__", snippet).replace("__DATA__", payload)
 
 
 def build(root: Path = ROOT) -> dict[Path, str]:

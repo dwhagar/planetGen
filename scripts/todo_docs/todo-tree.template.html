@@ -94,6 +94,7 @@ details[open]>summary .twist{transform:rotate(90deg)}
   <button class="btn" id="collapse">Collapse all</button>
   <span class="count" id="count"></span>
 </div>
+__HEADLINES__
 <main id="out"></main>
 </div>
 <script type="application/json" id="data">__DATA__</script>
@@ -158,6 +159,7 @@ function nodeFor(i,forceOpen){
   const head=k.length?el('summary'):el('div','leaf');
   head.append(el('span','twist',k.length?'▸':'·'),el('span','id',i),el('span','title',it.title));
   if(it.bug) head.append(el('span','tag bug','bug'));
+  if(it.headline) head.append(el('span','tag n','headline '+it.headline));
   head.append(tagFor(phaseOf(i)));
   if(descendants[i]) head.append(el('span','tag n','unblocks '+descendants[i]));
   const others=(it.deps||[]).filter(d=>d!==parent[i]&&d in items);
