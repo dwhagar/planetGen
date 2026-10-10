@@ -3,6 +3,7 @@
 ## [8.0.911] - 2026-10-10
 
 ### Changed
+- A multi-step job's time left on the Queue page now includes every step that has not started yet, using how long earlier runs of that step took; a step with no earlier run marks the estimate as partial.
 - **Docs only:** GEN.193 (Phenomena table empty after the scatter) filed and retired with PR #1019.
 - The Phenomena table now lists every phenomenon the scatter has placed but no sector has built yet (black holes, neutron stars, nebulae, remnants, hypervelocity stars), as greyed "Uncharted ..." rows without a page. Before, a fresh scatter left the table empty until sectors were filled.
 - **Docs only:** GEN.170 retired; TEST.123 (a flaky spatial-position test) filed.
