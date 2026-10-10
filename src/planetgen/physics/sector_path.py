@@ -198,9 +198,10 @@ def sector_inside(address, edge_pc):
     `edge_pc` (`galaxy.geometry`).
     """
     to_pc = 1.0 / constants.PARSEC_M
+    contains = geometry.sector_cell_test(tuple(address), edge_pc)
 
     def inside(position_m):
-        return geometry.sector_address_at(tuple(c * to_pc for c in position_m), edge_pc) == tuple(address)
+        return contains((position_m[0] * to_pc, position_m[1] * to_pc, position_m[2] * to_pc))
 
     return inside
 
@@ -267,6 +268,18 @@ def _step_size(position, speed, masses, softening_sq, max_step):
     return max(step, max_step * 1.0e-6)
 
 
+def _hermite_position(a, b, t_s):
+    """`hermite(a, b, t_s)[0]` alone, by the same arithmetic (the bisection below asks for nothing else)."""
+    h = b.t_s - a.t_s
+    if h <= 0.0:
+        return a.position
+    s = min(1.0, max(0.0, (t_s - a.t_s) / h))
+    s2, s3 = s * s, s * s * s
+    h00, h10, h01, h11 = 2 * s3 - 3 * s2 + 1, s3 - 2 * s2 + s, -2 * s3 + 3 * s2, s3 - s2
+    return tuple(h00 * pa + h10 * h * va + h01 * pb + h11 * h * vb
+                 for pa, va, pb, vb in zip(a.position, a.velocity, b.position, b.velocity))
+
+
 def _exit_state(inside, t0, p0, v0, t1, p1, v1):
     """Where the step from `(p0, v0)` to `(p1, v1)` leaves the cell, found by
     bisecting the step's own Hermite curve."""
@@ -274,7 +287,7 @@ def _exit_state(inside, t0, p0, v0, t1, p1, v1):
     low, high = t0, t1
     for _ in range(40):
         middle = 0.5 * (low + high)
-        if inside(hermite(a, b, middle)[0]):
+        if inside(_hermite_position(a, b, middle)):
             low = middle
         else:
             high = middle

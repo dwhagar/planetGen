@@ -91,6 +91,44 @@ def test_a_heavy_black_hole_bends_the_path_of_a_slow_neighbour_and_recomputing_r
     assert again == 1 and counts == (1, len(path.knots))
 
 
+def test_saving_a_sector_replaces_the_path_a_moved_body_had_in_another_sector(mysql_config):
+    """PERF.80: the sector's paths go in together; a body's older path in another sector is removed first."""
+    sector_id, _center = _save(mysql_config, with_black_hole=False, systems=2)
+    conn = store.get_connection(mysql_config)
+    try:
+        ids = [row["id"] for row in conn.execute("SELECT id FROM star_systems ORDER BY id").fetchall()]
+        # The sector's own paths, plus a stale one for the first system filed under another sector.
+        other = conn.execute("INSERT INTO sectors (name, edge_mpc) VALUES ('Elsewhere', 1000)").lastrowid
+        conn.execute("INSERT INTO sector_paths (sector_id, object_table, object_id, exited, duration_years)"
+                     " VALUES (?, 'star_systems', ?, 1, 5)", (other, ids[0]))
+        conn.commit()
+        assert sector_paths.compute_sector_paths(conn, sector_id) == 2
+        conn.commit()
+        rows = conn.execute("SELECT sector_id, object_id FROM sector_paths ORDER BY object_id").fetchall()
+        knots = conn.execute("SELECT COUNT(*) AS n FROM sector_path_knots").fetchone()["n"]
+    finally:
+        conn.close()
+    assert [(row["sector_id"], row["object_id"]) for row in rows] == [(sector_id, ids[0]), (sector_id, ids[1])]
+    assert knots == 4  # two straight, two-knot paths
+
+
+def test_settling_in_worker_processes_saves_exactly_the_paths_one_process_does(mysql_config, monkeypatch):
+    """PERF.80: `workers` only moves the integration to other processes; every knot is bit-for-bit the same."""
+    monkeypatch.setattr(sector_paths, "PARALLEL_CHUNK", 1)  # so the three bodies are split into tasks
+    sector_id, _center = _save(mysql_config, systems=3)
+
+    def saved_knots(workers):
+        conn = store.get_connection(mysql_config)
+        try:
+            assert sector_paths.settle_sectors(conn, [sector_id], workers=workers) == 3
+            return sorted((key, [(k.t_s, k.position, k.velocity) for k in path.knots], path.exited)
+                          for key, path in sector_paths.load_sector_paths(conn, sector_id).items())
+        finally:
+            conn.close()
+
+    assert saved_knots(2) == saved_knots(1)
+
+
 def test_the_saved_spline_passes_through_its_knots_and_a_missing_sector_is_an_error(mysql_config):
     sector_id, _center = _save(mysql_config, with_black_hole=False, systems=1)
     conn = store.get_connection(mysql_config)
