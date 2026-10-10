@@ -3,6 +3,7 @@
 ## [8.0.866] - 2026-10-10
 
 ### Changed
+- TODO: UX.85 and UX.86 for menus opening out of sight and oversized map controls.
 - TODO: items DOC.6 to DOC.16 for a static Help section and one help page per web interface feature area.
 - TODO: the progress-bar chain (PERF.32, PERF.33, PERF.51, PERF.50, DB.15, UX.84) moves to Bugfixes lane 1.
 - TODO: UX.84 records the corrected survey of which generation steps have progress bars.
