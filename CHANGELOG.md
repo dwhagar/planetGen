@@ -2,14 +2,8 @@
 
 ## [8.0.866] - 2026-10-10
 
-### Added
-- Planets and moons store their mantle redox (reduced, intermediate or oxidized, with its offset from the iron-wustite buffer) and the partial pressures of O2, CO2, CO, N2, Ar, H2, H2O, CH4, H2S and SO2 (GEN.85, schema v70). Each class's mix shifts with the redox, and no gas exceeds its vapour pressure at the surface temperature.
-- A route now reports its longest hop and flags each hop whose line crosses sectors that have not been generated as unknown space (NAV.12). `/api/nav` returns `route.hops` and `route.longest_hop_ly`, and the NAV page states the longest hop and the unknown-space jumps.
-- Eight to-do items from the generation performance study (a warmed worker, lazy names, uids in Python, the phenomenon-row size decision, a later pass for links, one position per body, benchmark records and a faster INSERT).
-- A to-do item (generating a neighbourhood from the Generate page shows no per-sector stats).
-- A to-do item (the Generate page shows a progress line and per-layer counts instead of one line per sector).
-
 ### Changed
+- The TODO list files PERF.49 (batch the system-name reservation: 30 s of an 84 s dense core sector) with the earlier naming-cost findings re-checked against main.
 - A planet's atmosphere text is now written from its gases ("a mix of nitrogen, oxygen, and argon, with traces of water vapor and carbon dioxide"), and its surface pressure drops by any gas too cold to stay in the air.
 - The TODO list retires ADM.47 (PR #846) and records Bugfixes lane 1's measurement that name reservation takes 30 s of a dense sector's 84 s (PERF.31, PERF.43).
 - The TODO list records that Boss accepted the 20 solar mass cut for the phenomenon scatter (DB.19, GEN.166 to GEN.168), and the execution plan moves those items to the front of Foundations lane 2.
@@ -20,6 +14,13 @@
 - The TODO list files the phenomenon scatter mass cut (GEN.166 to GEN.169) and reworks DB.19 around it: at the recommended 20 solar masses the scatter table falls from 1.17 billion rows (161 GB) to about 2.7e5 rows. The design notes drop the unverified 1.6e8 rows and 21 GB figures.
 - Two systems in one sector are routed by their nearest stars even when those lie in the sector next door.
 - The Generate page progress-line to-do item (ADM.46) was withdrawn at Boss's word.
+
+### Added
+- Planets and moons store their mantle redox (reduced, intermediate or oxidized, with its offset from the iron-wustite buffer) and the partial pressures of O2, CO2, CO, N2, Ar, H2, H2O, CH4, H2S and SO2 (GEN.85, schema v70). Each class's mix shifts with the redox, and no gas exceeds its vapour pressure at the surface temperature.
+- A route now reports its longest hop and flags each hop whose line crosses sectors that have not been generated as unknown space (NAV.12). `/api/nav` returns `route.hops` and `route.longest_hop_ly`, and the NAV page states the longest hop and the unknown-space jumps.
+- Eight to-do items from the generation performance study (a warmed worker, lazy names, uids in Python, the phenomenon-row size decision, a later pass for links, one position per body, benchmark records and a faster INSERT).
+- A to-do item (generating a neighbourhood from the Generate page shows no per-sector stats).
+- A to-do item (the Generate page shows a progress line and per-layer counts instead of one line per sector).
 
 ### Fixed
 - A neighbourhood or single-address run now reports the first sector (the one named outright) with the same stats as every other sector, each summary has a "Totals" line (star systems, stars, planets, phenomena), and a batch says how many sectors it runs with how many workers before the first report (ADM.47).
