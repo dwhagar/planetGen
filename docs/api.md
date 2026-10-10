@@ -1236,7 +1236,10 @@ request. A refusal comes back with its own status (404, 409, 400); `503`
 means no Redis server answered.
 
 - `GET /api/jobs/<id>` (admin) — `{"id", "state", "result", "error",
-  "error_status"}`; `error_status` is the HTTP status of a refusal.
+  "error_status", "made_url"}`; `error_status` is the HTTP status of a
+  refusal; `made_url` is, for a finished job that generated sectors
+  (a neighborhood or a regenerate), the Galaxy Map fitted to them and
+  highlighting them, else `null`.
   `state` is `queued`, `running`, `succeeded` or `failed`; `result` is
   what the work returned once it succeeded; `error` is the last line of
   its error text once it failed. `404` for an unknown or expired id
