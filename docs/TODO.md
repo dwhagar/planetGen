@@ -3159,6 +3159,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none (GEN.184 merged, PR #965). Related: GEN.30, GEN.40, GEN.99, GEN.183,
   GEN.184, MAP.120, PERF.18.
 
+- [ ] **GEN.188 Mass limit default is 8, and the mass slider and luminosity dropdown sit side by side on Generate and New galaxy**
+  Decided (Boss, 2026-10-10 04:38Z, to Bugfixes lane 2): change the
+  Generate-galaxy defaults so the mass limit default is 8 solar masses
+  (GEN.183 shipped 20); put the mass slider and the luminosity floor
+  dropdown (GEN.184, default 3000 L_sun) next to each other on the
+  Generate page, and show both in the New galaxy section as well. Done:
+  a fresh galaxy plan, the CLI default and the stored default use 8, the
+  two controls sit together in both places with the same presets, and
+  tests cover the default and the controls. A galaxy that stored 20
+  keeps its stored limit.
+  Prerequisites: none. Related: GEN.183, GEN.184, GEN.185.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.18 Run the GEN.30 bright-star backfill in parallel on the work queue**
