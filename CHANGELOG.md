@@ -3,6 +3,7 @@
 ## [8.0.911] - 2026-10-10
 
 ### Changed
+- The Generate page keeps its common actions on the page and moves the less common settings into a Customize window with one tab each (ADM.28): prevalence and override for Generate sectors; galaxy shape, prevalence and bright stars for a new galaxy. Without JavaScript the groups stack in the form as before.
 - **Docs only:** PERF.52 (admin generation-stats table is wrong) is filed.
 - **Docs only:** GEN.173 and GEN.174 (PR #987) are retired; TEST.119 and TEST.120 file two test failures on main.
 - GEN.173, GEN.174: a planet, moon or belt added by an admin edit now gets a uid (it was saved with none), and after a delete the new body's uid skips ones its siblings already carry (it failed with IntegrityError 1062 on `uq_planets_uid`).
