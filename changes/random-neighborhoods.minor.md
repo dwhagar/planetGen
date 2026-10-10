@@ -1,2 +1,0 @@
-### Added
-- Random neighborhoods (GEN.97): `planetgen galaxy --neighborhoods N` (random-start mode) generates N neighborhoods instead of one. Each start is inside the galaxy with its whole neighborhood, and at least twice the radius from every other start, so they never overlap; one estimate covers them all. `--neighborhood-gamma G` biases the starts toward dense space (a start is kept with probability min(1, density) ** G; 0, the default, is uniform by volume). The Generate page's "Around a random start" has Neighborhoods and Density bias fields.
