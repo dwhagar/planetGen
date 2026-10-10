@@ -136,6 +136,10 @@ class FakeAuth:
         self.calls.append(("admin_generation_stats",))
         return self.generation
 
+    def admin_reset_generation_stats(self, cookie_header):
+        self.calls.append(("admin_reset_generation_stats",))
+        return 3
+
     naming = {"database": "planetgen", "key": "0A1B2C3D", "codec_version": 1, "current_codec_version": 1,
               "drawn_at": "2026-10-01T10:00:00Z", "changed_at": None, "changed_by": None}
 
@@ -180,7 +184,7 @@ class FakeAuth:
 _FAKED = ("auth_me", "auth_login", "auth_logout", "auth_change_credentials", "auth_list_api_keys",
           "auth_create_api_key", "auth_revoke_api_key", "admin_set_sector_wiki_url", "admin_stats",
           "admin_duplicate_names", "admin_login_failures", "admin_lockouts", "admin_generation_stats",
-          "admin_lift_lockout", "auth_totp_status", "admin_naming_key", "admin_set_naming_key",
+          "admin_reset_generation_stats", "admin_lift_lockout", "auth_totp_status", "admin_naming_key", "admin_set_naming_key",
           "admin_galaxy_settings", "admin_galaxy_settings_file")
 
 
@@ -742,12 +746,12 @@ def test_admin_stats_shows_generation_speed(client, fake):
     assert "Nothing measured yet" in html
     fake.generation = {"available": True, "sizes": {DB: {"bytes_per_system": 62000.0, "systems": 1200,
                                                          "total_bytes": 74_400_000}},
-                       "buckets": [{"kind": "sector", "bucket": 4, "density_low": 1.0, "density_high": 3.1623,
+                       "buckets": [{"kind": "sector", "workers": 2, "bucket": 4, "density_low": 1.0, "density_high": 3.1623,
                                     "samples": 76, "seconds_per_task": 1.269, "seconds_per_system": 0.0551,
                                     "systems_per_task": 23.8, "stars_per_system": 1.3, "max_density": 3.0}]}
     html = client.get("/admin/stats").get_data(as_text=True)
     assert "60.5 KB per star system (1,200 systems, 71.0 MB)" in html
-    assert "<td>Sector fill</td><td>1 to 3.16</td>" in html and "1.27 s" in html and "55.1 ms" in html
+    assert "<td>Sector fill</td><td class=\"num\">2</td><td>1 to 3.16</td>" in html and "1.27 s" in html and "55.1 ms" in html
     fake.generation = {"available": False, "sizes": {}, "buckets": []}
     assert "run <code>update.sh</code>" in client.get("/admin/stats").get_data(as_text=True)
 
@@ -967,6 +971,24 @@ def test_admin_stats_lists_and_lifts_lockouts(client, fake, admin_token):
     assert fake.called("admin_lift_lockout") == [("admin_lift_lockout", "ip", "93.184.216.34", False)]
     client.post("/admin/stats/lockouts", data={csrf.FIELD_NAME: admin_token, "all": "1"})
     assert fake.called("admin_lift_lockout")[-1] == ("admin_lift_lockout", None, None, True)
+
+
+def test_admin_stats_resets_the_generation_stats(client, fake, admin_token):
+    _logged_in(client, fake)
+    fake.generation = {"available": True, "sizes": {}, "buckets": [{
+        "kind": "phenomena", "workers": 4, "bucket": 0, "density_low": 0.01, "density_high": 0.0316, "samples": 5,
+        "seconds_per_task": 2.0, "seconds_per_system": 0.01, "systems_per_task": 200.0}]}
+    html = client.get("/admin/stats").get_data(as_text=True)
+    assert "Phenomena layer" in html and "Reset stats" in html
+    resp = client.post("/admin/stats/generation-reset", data={csrf.FIELD_NAME: admin_token})
+    assert resp.status_code == 303 and resp.headers["Location"] == "/admin/stats#generation-speed"
+    assert fake.called("admin_reset_generation_stats")
+
+
+def test_reset_generation_stats_needs_an_admin(client, fake, token):
+    resp = client.post("/admin/stats/generation-reset", data={csrf.FIELD_NAME: token})
+    assert resp.status_code == 302 and "/login" in resp.headers["Location"]
+    assert not fake.called("admin_reset_generation_stats")
 
 
 def test_admin_stats_shows_and_changes_the_naming_key(client, fake, admin_token):

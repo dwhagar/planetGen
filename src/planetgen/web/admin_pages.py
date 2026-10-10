@@ -789,6 +789,10 @@ def download_galaxy_settings(name):
 download_galaxy_settings.json_only = True  # a file download, not a page: tests/test_web_a11y.py skips it
 
 
+GENERATION_KINDS = {"sector": "Sector fill", "scatter": "Bright-star layer", "phenomena": "Phenomena layer"}
+"""dict: What the Stats page calls each kind of recorded rate (PERF.32)."""
+
+
 def _generation_panel(cookie_header, db):
     """PERF.10: this server's measured generation speed per density
     bucket, and this galaxy's size per star system."""
@@ -805,7 +809,8 @@ def _generation_panel(cookie_header, db):
             f"({format_count(size['systems'])} systems, {format_bytes(size['total_bytes'])})"
         ),
         "rows": [{
-            "what": "Sector fill" if row["kind"] == "sector" else "Bright-star layer",
+            "what": GENERATION_KINDS.get(row["kind"], row["kind"]),
+            "workers": format_count(row["workers"]),
             "density": f"{row['density_low']:.3g} to {row['density_high']:.3g}",
             "samples": format_count(row["samples"]),
             "per_task": f"{row['seconds_per_task']:.2f} s",
@@ -813,6 +818,23 @@ def _generation_panel(cookie_header, db):
             "systems": f"{row['systems_per_task']:.1f}",
         } for row in body["buckets"]],
     }
+
+
+@bp.route("/admin/stats/generation-reset", methods=["POST"])
+def reset_generation_stats():
+    """The Stats page's "Reset stats" button (PERF.32): deletes every
+    recorded generation rate."""
+    _identity, bounce = _require_admin()
+    if bounce is not None:
+        return bounce
+    try:
+        deleted = apiclient.admin_reset_generation_stats(_cookie_header())
+        flash = {"message": f"Generation stats reset ({deleted} rate{'s' if deleted != 1 else ''} deleted)."}
+    except apiclient.ApiError as exc:
+        if exc.status_code is None or exc.status_code >= 500:
+            raise
+        flash = {"error": _api_message(exc)}
+    return _flash(_see_other(url_for("web.admin_stats", _anchor="generation-speed")), **flash)
 
 
 @bp.route("/admin/stats/naming-key", methods=["POST"])

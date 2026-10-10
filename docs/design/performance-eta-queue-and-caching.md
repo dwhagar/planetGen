@@ -408,6 +408,17 @@ Extend `generation_stats` rather than add a table:
 - **Deleted on every new version (Boss).** Delete rows with another `version_key` on the first read or write that sees one, in one transaction, and log how many went. The key includes Python, OS and architecture, so a Python upgrade also resets, which is right. The cost: the first run after each update has no recorded rate, when PERF.33 wants one; on a development server with 26 to 123 releases a day [C] the table never fills. See the first open question in the handoff.
 - The stats page shows the table; an admin reset deletes it; benchmark rows carry a `bench:` kind prefix so they never feed a live ETA. Stored speeds keep surviving a galaxy reset ("they describe the machine, not the galaxy", `stats.py`); only a version change and the admin reset delete.
 
+### Built (PERF.32)
+
+Control schema v12 (`generation_stats`, `control_schema.sql`). As built:
+
+- The key is `(kind, workers, bucket)`; `version_key` is a column, not part of the key, because every row of another key is deleted by the first write of a run (`GenerationStats.flush`, once, logged at debug level) and ignored on read. A table from before v12 is dropped and recreated (`store._drop_old_generation_stats`), as the version change would have deleted its rows anyway.
+- Kinds recorded: `sector` (a sector's fill), `scatter` (a bright-star layer) and `phenomena` (a phenomenon-scatter layer), each with the run's worker count (`run_common._worker_count`). The sums and `rate_cost_per_s` columns of the sketch above are not added: the rows still hold the decayed per-task and per-system seconds, and PERF.33's estimator is where a pool-throughput column belongs.
+- `seconds_per_system(kind, density, workers)` reads the rows for that worker count; with none, it blends the two neighbouring counts by distance, or takes the nearest when only one side exists. `estimate` passes the run's count, so a four-worker run no longer borrows one-worker times.
+- `BENCH_PREFIX` (`bench:`) is reserved for PERF.31's benchmark rows; no live estimate asks for such a kind.
+- The Stats page lists the rows with their worker counts and has a Reset stats button (`POST /api/admin/generation-stats/reset`, audited as `generation_stats.reset`).
+- The first open question stands as Boss defaulted it: delete on every new version, no flagged prior.
+
 ## 7. The uploaded guides, checked against the code
 
 | Statement | Status |

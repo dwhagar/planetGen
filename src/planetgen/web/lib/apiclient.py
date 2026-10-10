@@ -927,6 +927,14 @@ def admin_generation_stats(cookie_header):
     return body
 
 
+def admin_reset_generation_stats(cookie_header):
+    """`POST /api/admin/generation-stats/reset` -- deletes every recorded
+    generation rate (PERF.32). Returns how many rows went."""
+    body, _set_cookie_headers = _auth_request("POST", "/admin/generation-stats/reset", cookie_header=cookie_header,
+                                              json_body={})
+    return body["deleted"]
+
+
 def admin_work(cookie_header, limit=None, offset=None):
     """`GET /api/admin/work?limit=&offset=` -- the work queue's state and
     one page of job trees (ADM.10)."""
