@@ -3,6 +3,7 @@
 ## [8.0.866] - 2026-10-10
 
 ### Changed
+- TODO: recorded Boss's approval of the MAP.156 default.
 - TODO: filed the top-down view of one layer or a range of layers as a secondary Galaxy Map option (Phase 2).
 - TODO: UX.83 lists the generation steps found without a progress bar.
 - TODO: filed the missing progress bars for neighbour linking, the phenomenon scatter and other long generation steps as a bug.
