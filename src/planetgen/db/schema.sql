@@ -1147,6 +1147,12 @@
 --   (`backfill_bright_stars_around`); design
 --   docs/design/mass-backfill.md.
 --
+-- v80: `phenomenon_scatter.mass_solar` (MAP.165): the solar mass each scattered
+--   black hole (the nucleus too) and neutron star was drawn with, so the Galaxy
+--   Map sizes it by mass and the sector build gives the object that same mass;
+--   NULL for a quasar, hypervelocity star, nebula or remnant, and on a row
+--   scattered before v80 (the map then sizes it by class, the build draws).
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -3235,6 +3241,7 @@ CREATE TABLE IF NOT EXISTS phenomenon_scatter (
     seed                 BIGINT UNSIGNED NOT NULL,
     built_at             TIMESTAMP NULL,
     epoch_unix           DOUBLE,  -- v69 (GEN.137): when the position holds, see the header comment
+    mass_solar           DOUBLE,  -- v80 (MAP.165): see header comment
 
     KEY idx_phenomenon_scatter_address (ring_index, layer_index, ring_slot_index),
     CONSTRAINT chk_phenomenon_scatter_kind CHECK (kind IN (

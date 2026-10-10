@@ -111,7 +111,7 @@ def test_scattered_phenomena_not_yet_built_are_listed_for_every_kind(client, mys
     kinds = [("black-hole", "stellar"), ("black-hole", "supermassive"), ("neutron-star", None),
              ("planetary-nebula", None), ("supernova-remnant", None), ("hypervelocity-star", None),
              ("quasar", None)]
-    rows = [(0, 0, slot, kind, subtype, 1000 * slot, 0, 0, None, None, None, slot + 1)
+    rows = [(0, 0, slot, kind, subtype, 1000 * slot, 0, 0, None, None, None, slot + 1, None)
             for slot, (kind, subtype) in enumerate(kinds)]
     conn = store.get_connection(mysql_config)
     store.insert_phenomenon_scatter(conn, rows)
@@ -132,7 +132,7 @@ def test_scattered_phenomena_not_yet_built_are_listed_for_every_kind(client, mys
 def test_scattered_phenomena_are_paged_after_the_built_ones_without_scanning(client, mysql_config):
     _seed(mysql_config)
     conn = store.get_connection(mysql_config)
-    rows = [(0, 0, slot, "neutron-star", None, slot, 0, 0, None, None, None, slot + 1) for slot in range(5)]
+    rows = [(0, 0, slot, "neutron-star", None, slot, 0, 0, None, None, None, slot + 1, None) for slot in range(5)]
     store.insert_phenomenon_scatter(conn, rows)
     store.record_phenomenon_scatter_classes(conn, {("neutron-star", ""): 5})
     conn.commit()

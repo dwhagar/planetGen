@@ -1092,16 +1092,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: MAP.147, MAP.157, MAP.158.
   Design: [docs/design/galaxy-map-wire-format.md](design/galaxy-map-wire-format.md)
 
-- [ ] **MAP.165 Scattered phenomena store a mass so the Galaxy Map sizes them exactly**
-  Bugfixes lane 2 (2026-10-10, MAP.164, PR #1029): the scatter rows hold
-  no mass, so the Galaxy Map sizes black holes and neutron stars by mass
-  class only; Boss asked for size by mass (2026-10-10 06:39Z). Done: the
-  phenomenon scatter stores a mass for each scattered black hole and
-  neutron star, the map sizes them by it relative to stars of similar
-  mass and brightness, and a test checks the size ordering. Owner:
-  Bugfixes lane 2 (coordinator, 2026-10-10 12:52Z), first.
-  Prerequisites: none. Related: MAP.164, GEN.185, MAP.148, MAP.153.
-
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
@@ -3292,83 +3282,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   pages. Still open: the command-line overall bar, only if Boss asks;
   and the whole-job layers-per-second stat noted above.
 
-- [ ] **PERF.58 Object-first star sampler for the mass and luminosity passes (top priority, replaces PERF.57)**
-  Boss (2026-10-10 09:52Z, via the coordinator and Research lane 3):
-  follow the recommendations of the scatter study
-  (docs/design/scatter-queue-feasibility.md, PR #1064) and build it as
-  soon as possible; TOP PRIORITY. The shuffled sector list is not built
-  (190 to 270 times more density evaluations). Instead each star pass
-  decides how many objects there are, then where: per layer draw N from
-  a Poisson with the mean summed over the layer's rings times a
-  certified density majorant, pick the ring from a cumulative table,
-  pick the slot and point as today, accept with probability true density
-  over majorant, and skip filled or mass-marked sectors. The prototype
-  ran about 35 times faster at default scale (12.7 minutes to about 20 s
-  per pass) and 78 times at quarter scale, with counts and spatial
-  distribution matching today's code (chi-square per degree of freedom
-  0.93 to 1.07). Boss first asked for his sparse method for stacks of
-  empty layers on the same fast method; Research lane 3 measured that
-  grouping layers gains nothing (a bigger stack loosens the bound and
-  cancels the saving), and Boss then dropped it (2026-10-10 10:00Z,
-  "now we're going so much faster"). The sampler runs per layer only: no
-  stack rule and no stack-size tuning value. An empty layer already
-  costs only its majorant (about 1.2 us per ring). PERF.57's grouping
-  was built in PR #1101 before this drop reached the lane; this item
-  replaces it.
-  Several objects per sector (Boss 09:32Z, tiers by density rating):
-  independent object-first draws and a per-sector count dictionary; each
-  sector has a capacity from its expected count at the sector centre,
-  the smallest of 1, 2, 4, 8 or 16 with P(Poisson(lambda) > capacity)
-  below 1e-4; an object over the capacity is dropped (Boss considered
-  shunting it to a neighbouring sector and decided it does no real
-  good, 10:09Z). Drops are 0.02%
-  at the shipped star floors (every sector is tier 1), 0.13% at 1,000
-  Lsun and 0.05% at 100 Lsun, and 0.12% for phenomena (a cap of 1 would
-  drop 0.84%, 18.9% and 1.43%). Not a queue where a sector is listed c
-  times: that makes counts Binomial(c, lambda/c) and the doubles fall
-  from 1.43% to 0.5 to 0.8% on phenomena. Optional: run the sector
-  address check only after the density test passes (saves about 8 us on
-  each of the 41% rejected candidates, about 9% of the run). Cost: a
-  candidate is about 37 us and an object about 62 us at default scale;
-  the numpy majorant is 3.75 s of the run, not the main cost. Boss
-  (09:53Z): "Even if the database row writes make things slower, on some
-  level, a 35x improvement to the speed, I'll take it."
-  Done: the mass pass and the luminosity pass use the sampler; the
-  density majorant is certified, and a check mode asserts true density
-  never exceeds it; objects dropped in filled or mass-marked sectors are
-  thinned, not renormalised; sectors take several objects by the
-  capacity tiers above; stats record layers visited and layers modified
-  (PERF.56); the central black hole or quasar is untouched; the new
-  sampler is a different random sequence, so a reseed (planetgen plan)
-  is needed after the update; a statistical test compares it with the
-  per-layer expected counts on a small galaxy. This replaces PERF.57,
-  which was built (PR #1101) and is replaced. Owner: Bugfixes lane
-  1, first in its queue (PERF.60 merged in PR #1106).
-  Prerequisite: none. Related: PERF.56, PERF.59, PERF.60, PERF.61,
-  GEN.185, GEN.195.
-  Grouped empty layers (PERF.57, PR #1101, Bugfixes lane 1; replaced
-  the 100-dry-layer stop of PERF.62, PR #1087): after
-  tuning.SCATTER_EMPTY_LAYERS_BEFORE_GROUP = 5 empty layers in a row the
-  walk (layer_groups.Walk, bright_stars.scatter_group) combines
-  SCATTER_GROUP_LAYERS = 10 layers, doubling; groups follow walk order,
-  so a 10-layer group is 5 above and 5 below the plane; the expected
-  count is a sampled estimate (48 rings x 8 bins) with exact placement;
-  SCATTER_CERTAIN_OBJECTS = 30; stage metrics layers_walked,
-  layers_grouped, group_sizes and layers_modified; the same seed gives
-  the same stars on 1 and 2 workers. Not covered: the mass backfill
-  rings. This sampler replaces that walk, so remove the grouping code,
-  its constants (and the SCATTER_DRY_LAYERS constants of PERF.62, if any
-  remain) and the metrics that no longer apply when it lands.
-
-- [ ] **PERF.59 Share the ring inputs across the three scatter passes (top priority)**
+- [ ] **PERF.59 Share the ring inputs between the phenomena pass and the backfill rings (top priority)**
   From the scatter study (docs/design/scatter-queue-feasibility.md): the
-  mass, luminosity and phenomena passes recompute identical _ring_bins
-  inputs, about 87 of 168 s at quarter scale. Boss (09:52Z): follow the
-  study recommendations, top priority. Done: the ring inputs are built
-  once per run and shared by every scatter pass, and cached across runs
-  by the same key as the map warm-up where that is safe; results do not
-  change (a test shows the same rows with and without sharing). Owner:
-  Bugfixes lane 1, with PERF.58.
+  scatter passes recomputed identical _ring_bins inputs, about 87 of 168
+  s at quarter scale. Boss (09:52Z): follow the study recommendations,
+  top priority. Re-scoped (Bugfixes lane 1, 2026-10-10, after PERF.58,
+  PR #1108): the mass and luminosity passes are object-first now and no
+  longer walk rings, so only the phenomena pass and the mass backfill
+  rings still use the ring inputs. Done: those ring inputs are built once
+  per run and shared, and cached across runs by the same key as the map
+  warm-up where that is safe; results do not change (a test shows the
+  same rows with and without sharing). If PERF.61 removes the phenomena
+  ring walk first, the lane checks what is left and closes this item
+  with a note if nothing is. Owner: Bugfixes lane 1.
   Prerequisites: none. Related: PERF.58, PERF.61, GEN.185.
 
 - [ ] **PERF.61 Object-first sampler for the phenomena pass, own prototype first**
@@ -3379,15 +3305,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   follow the study recommendations, top priority. Done: a prototype with
   per-kind density majorants is measured against today's code (counts,
   spatial distribution, time, reseed) before it replaces the pass; the
-  sectors take several objects by the capacity tiers of PERF.58 (1, 2, 4,
-  8 or 16, dropping 0.12% of phenomena where a cap of 1 would drop 1.4%); stats record layers
+  sectors take several objects by the capacity tiers of PERF.58
+  (generation/object_first.py: 1, 2, 4, 8 or 16, dropping 0.12% of
+  phenomena where a cap of 1 would drop 1.4%); stats record layers
   visited and layers modified, per kind (PERF.56); a reseed is needed.
-  Owner: Bugfixes lane 1, after PERF.58.
-  Prerequisite: PERF.58. Related: PERF.58, PERF.59, PERF.60,
-  GEN.185.
-  Grouped empty layers (PERF.57, PR #1101):
-  phenomenon_scatter.scatter_group groups empty layers in the current
-  walk; this sampler replaces it, like PERF.58.
+  Owner: Bugfixes lane 1, next after PERF.58 (merged, PR #1108).
+  Prerequisites: none. Related: PERF.58, PERF.59, GEN.185.
+  Benchmark (coordinator, 2026-10-10): once Boss reseeds with the PERF.58
+  sampler, read the stage stats of PERF.56 for the mass and luminosity
+  passes at default scale and compare with the study's forecast of
+  about 35 times faster; Boss times the reseed himself. PERF.58 finding:
+  the old ring walk overstated expected counts about 6% on the toy test
+  galaxy (density read at bin centres); the new sampler integrates the
+  true density.
 
 ## DB: Database and schema
 
@@ -3965,8 +3895,8 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   with sane limits and presets, they are stored in `galaxy_shape`, the
   density model uses them, and a test checks that a changed value
   changes the density at an arm, between arms, in the core and in the
-  bulge. Owner: Bugfixes lane 2 (coordinator, 2026-10-10 12:52Z), after
-  MAP.165.
+  bulge. Owner: Bugfixes lane 2 (coordinator, 2026-10-10 12:52Z), now
+  that MAP.165 has merged.
   Prerequisites: none. Related: GEN.183, GEN.184, GEN.186.
 
 ## SEC: Security

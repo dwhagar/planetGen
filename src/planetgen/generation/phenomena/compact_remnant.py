@@ -252,7 +252,7 @@ class BlackHole(CompactRemnant):
     need no special-casing)."""
 
     def __init__(self, system_config: SystemConfig, name=None, galactic_center_dist_ly=None,
-                 galactic_orbital_phase_deg=None, mass_class=None, mass_range=None):
+                 galactic_orbital_phase_deg=None, mass_class=None, mass_range=None, mass_solar=None):
         """
         Args:
             mass_class (str, optional): `"supermassive"` for a galaxy's
@@ -265,6 +265,8 @@ class BlackHole(CompactRemnant):
             mass_range (tuple, optional): `(low, high)` solar masses inside
                 the class's own range: the mass is drawn from the class's
                 law truncated to it (the scatter's mass cut, GEN.166).
+            mass_solar (float, optional): The mass itself, when the phenomenon
+                scatter already drew it (MAP.165); no mass is drawn then.
         """
         super().__init__(system_config, name=name, galactic_center_dist_ly=galactic_center_dist_ly)
         self.name_given = bool(name)  # a given name is kept over an object ID (GEN.64)
@@ -274,7 +276,7 @@ class BlackHole(CompactRemnant):
                              f"got {mass_class!r}")
         if mass_class == "supermassive":
             self.mass_class = "supermassive"
-            self.mass_solar = log_uniform(*tuning.BLACK_HOLE_SUPERMASSIVE_MASS_RANGE_SOLAR)
+            self.mass_solar = mass_solar or log_uniform(*tuning.BLACK_HOLE_SUPERMASSIVE_MASS_RANGE_SOLAR)
         else:
             if mass_class is None:
                 intermediate = draw.random() < tuning.BLACK_HOLE_INTERMEDIATE_MASS_CHANCE
@@ -283,7 +285,9 @@ class BlackHole(CompactRemnant):
                            f"({tuning.BLACK_HOLE_INTERMEDIATE_MASS_CHANCE})")
                 mass_class = "intermediate" if intermediate else "stellar"
             self.mass_class = mass_class
-            if mass_class == "intermediate":
+            if mass_solar:
+                self.mass_solar = mass_solar
+            elif mass_class == "intermediate":
                 self.mass_solar = log_uniform(*_within(tuning.BLACK_HOLE_INTERMEDIATE_MASS_RANGE_SOLAR, mass_range))
             else:
                 self.mass_solar = draw.uniform(*_within(tuning.BLACK_HOLE_MASS_RANGE_SOLAR, mass_range))
@@ -481,14 +485,15 @@ class NeutronStar(CompactRemnant):
         return min(1.0, tuning.NEUTRON_STAR_PULSAR_CHANCE * pulsar_radial_factor(radius_pc))
 
     def __init__(self, system_config: SystemConfig, name=None, galactic_center_dist_ly=None,
-                 galactic_orbital_phase_deg=None, mass_range=None):
+                 galactic_orbital_phase_deg=None, mass_range=None, mass_solar=None):
         """`mass_range` (`(low, high)` solar masses, optional) truncates the
         mass draw to that part of `NEUTRON_STAR_MASS_RANGE_SOLAR` (the
-        scatter's mass cut, GEN.166)."""
+        scatter's mass cut, GEN.166). `mass_solar` is a mass the phenomenon
+        scatter already drew (MAP.165): no mass is drawn then."""
         super().__init__(system_config, name=name, galactic_center_dist_ly=galactic_center_dist_ly)
         self.name_given = bool(name)  # a given name is kept over an object ID (GEN.64)
 
-        self.mass_solar = draw.uniform(*_within(tuning.NEUTRON_STAR_MASS_RANGE_SOLAR, mass_range))
+        self.mass_solar = mass_solar or draw.uniform(*_within(tuning.NEUTRON_STAR_MASS_RANGE_SOLAR, mass_range))
         self.mass = self.mass_solar * constants.SOLAR_MASS_TO_KG
         self.radius = draw.uniform(*tuning.NEUTRON_STAR_RADIUS_RANGE_KM)
         self.surface_temperature_k = draw.uniform(*tuning.NEUTRON_STAR_SURFACE_TEMPERATURE_RANGE_K)
