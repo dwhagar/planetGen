@@ -3,6 +3,7 @@
 ## [8.0.866] - 2026-10-10
 
 ### Changed
+- The TODO list retires NAV.12 (unbounded routes, PR #838) and PERF.42 (warm queue worker, PR #841).
 - The queue worker loads the generation code and the bright-star sampling tables once, before it forks a work horse per job, so each job no longer spends about 2.6 s importing and rebuilding them (PERF.42). A worker also restarts itself when an update changes the release.
 - The TODO list records Boss's decisions on the generation performance items: the nearest-system and containment work moves to its own phase (PERF.45), and skipping the finite-domain check stays open (PERF.46).
 - The TODO list files the phenomenon scatter mass cut (GEN.166 to GEN.169) and reworks DB.19 around it: at the recommended 20 solar masses the scatter table falls from 1.17 billion rows (161 GB) to about 2.7e5 rows. The design notes drop the unverified 1.6e8 rows and 21 GB figures.
