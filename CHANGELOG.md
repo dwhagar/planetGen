@@ -3,6 +3,7 @@
 ## [8.0.911] - 2026-10-10
 
 ### Changed
+- Removed the Redis `dump.rdb` snapshots that had been committed (root and `src/`) and ignore `*.rdb`.
 - **Docs only:** GEN.184 (luminosity floor presets, PR #965) is retired from the TODO list and the plans.
 - The bright-star luminosity floor (GEN.184) is now chosen from presets: 2,500 to 4,000,000 solar luminosities on an exponential ladder (steps of 100 near 2,500, about 400,000 near the top), default 3,000 (was 1,000). Nothing below 2,500 is accepted by `--bright-star-min-luminosity` or the Generate page, which offers the presets in a list. A galaxy already scattered keeps the level it was scattered at.
 - **Docs only:** GEN.88 (hydrosphere and ocean chemistry, PR #963, schema v74) is retired from the TODO list and the plans; OPS.38 (committed Redis dump files) and TEST.117 (generatejobs.test.mjs failing since PERF.33) are filed.
