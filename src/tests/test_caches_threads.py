@@ -88,14 +88,14 @@ def test_page_cache_fills_reads_and_clears_from_many_threads(_switch_often):
     stamp_calls = []
     stamp_lock = threading.Lock()
 
-    def stamp_for(db):
+    def changes_for(db, since):
         # A new stamp every few calls, so entries are dropped by stamp
         # changes too while other threads fill and read.
         with stamp_lock:
             stamp_calls.append(db)
-            return f"{db}-{len(stamp_calls) // 25}"
+            return {"stamp": f"{db}-{len(stamp_calls) // 25}", "state": None}
 
-    cache = pagecache.ResponseCache(stamp_for, dict(pagecache.DEFAULTS, max_entries=50, stamp_seconds=0))
+    cache = pagecache.ResponseCache(changes_for, dict(pagecache.DEFAULTS, max_entries=50, stamp_seconds=0))
     dbs = ("galaxy_a", "galaxy_b", None)
     targets = [f"/sectors/{n}" for n in range(80)]
     served = []
@@ -143,7 +143,7 @@ def test_page_cache_fills_reads_and_clears_from_many_threads(_switch_often):
 def test_page_cache_clear_beats_fills_in_flight_from_many_threads(_switch_often):
     """Answers fetched before a `clear()` (their generation read before
     it) are never stored after it, however the threads interleave."""
-    cache = pagecache.ResponseCache(lambda db: "stamp", dict(pagecache.DEFAULTS, stamp_seconds=1e9))
+    cache = pagecache.ResponseCache(lambda db, since: {"stamp": "stamp", "state": None}, dict(pagecache.DEFAULTS, stamp_seconds=1e9))
     fetched = threading.Barrier(THREADS + 1)
     cleared = threading.Event()
 
@@ -247,6 +247,8 @@ def test_two_requests_writing_one_tile_leave_one_whole_tile(monkeypatch, tmp_pat
     monkeypatch.setattr(tilecache, "get_galaxy_changes", api.get_galaxy_changes)
     monkeypatch.setattr(tilecache, "get_galaxy_tiles", api.get_galaxy_tiles)
     monkeypatch.setattr(tilecache, "PRUNE_PROBABILITY", 0.0)
+    # With no lock service both requests build (the single flight, PERF.38, fails open).
+    monkeypatch.setattr(tilecache.singleflight, "claim", lambda names: (list(names), []))
     monkeypatch.setenv("PLANETGEN_TILE_CACHE_DIR", str(tmp_path / "tiles"))
     monkeypatch.delenv("PLANETGEN_TILE_CACHE_MAX_MB", raising=False)
     key = "12/1/2/3"

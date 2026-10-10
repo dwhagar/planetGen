@@ -58,7 +58,7 @@ import pymysql
 
 from planetgen.cli.stage_progress import StageProgress
 from planetgen.db.store import (
-    SchemaTooNewError, add_mysql_connection_args, forget_id_blocks, get_connection, mysql_config_from_args,
+    SchemaTooNewError, add_mysql_connection_args, forget_id_blocks, get_connection, mysql_config_from_args, note_sector_deleted,
 )
 
 _EXCLUDED_TABLES = {"schema_migrations", "id_blocks", "id_counters"}
@@ -178,6 +178,7 @@ def reset_database(config, dry_run=False, assume_yes=False):
                     conn.execute(f"TRUNCATE TABLE {table}")
         finally:
             conn.execute("SET FOREIGN_KEY_CHECKS = 1")
+        note_sector_deleted(conn)  # PERF.38: every cache of the old galaxy is stale
         conn.commit()
         # This process starts fresh blocks (past every old one, since
         # id_blocks is kept); not needed for safety, just tidy.

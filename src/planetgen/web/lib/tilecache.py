@@ -48,7 +48,7 @@ import re
 import tempfile
 import time
 
-from planetgen.web.lib import apiclient
+from planetgen.web.lib import apiclient, singleflight
 from planetgen.web.lib.apiclient import get_galaxy_changes, get_galaxy_stage, get_galaxy_tiles
 from planetgen.web.lib.privatedir import ensure_private_dir
 from planetgen.util.settings import get_settings
@@ -61,6 +61,9 @@ DEFAULT_CACHE_DIR = "/var/cache/planetgen/tiles"
 folder in the system temp directory when Apache can't create this one."""
 
 STAMP_TTL_SECONDS = 60
+"""int: How long a database's stamp is trusted before asking the API again
+-- the longest a newly generated or edited sector can take to appear on
+an open map."""
 
 BUSY_KEEP_SECONDS = 600
 """int: While the galaxy changes faster than tiles can be refetched (a fill
@@ -76,9 +79,6 @@ this long."""
 
 _failed_checks = {}
 """dict: `db -> time.monotonic()` of that database's last failed check."""
-"""int: How long a database's stamp is trusted before asking the API again
--- the longest a newly generated or edited sector can take to appear on
-an open map."""
 
 HISTORY_MAX_KEYS = 1500
 """int: Most changed-tile keys `stamp.json`'s `history` keeps, across all
@@ -449,6 +449,12 @@ def _tile_filename(prefix, key):
     return f"{prefix}{level}_{ix}_{iy}_{iz}.json"
 
 
+def _flight_name(root, db, generation, kind, key):
+    """The name a tile or stage of `generation` goes by in `singleflight`
+    (the cache directory is in it: two caches don't wait for each other)."""
+    return f"{root}:{db}:{generation}:{kind}:{key}"
+
+
 def _read_bytes(path):
     try:
         with open(path, "rb") as f:
@@ -532,21 +538,55 @@ def _collect_tiles(db, tile_keys, known_stamp):
     missing = [key for key in tile_keys if key not in stored]
 
     if missing or not isinstance(meta, dict):
-        fetched = get_galaxy_tiles(db, missing)
-        meta = {"edge_pc": fetched.get("edge_pc"), "has_shape": bool(fetched.get("has_shape"))}
-        made = {key: _tile_bytes(value) for key, value in (fetched.get("tiles") or {}).items()}
+        # One build of each tile at a time (PERF.38): what another request
+        # is already fetching is waited for, not fetched again.
+        owned, held = singleflight.claim(
+            [_flight_name(root, db, generation, "t", key) for key in missing]) if generation_dir else (None, [])
+        by_name = {_flight_name(root, db, generation, "t", key): key for key in missing}
+        to_fetch = missing if owned is None else [by_name[name] for name in owned]
+        made = {}
+        try:
+            if to_fetch or (not held and not isinstance(meta, dict)):
+                fetched = get_galaxy_tiles(db, to_fetch)
+                meta = {"edge_pc": fetched.get("edge_pc"), "has_shape": bool(fetched.get("has_shape"))}
+                made = {key: _tile_bytes(value) for key, value in (fetched.get("tiles") or {}).items()}
 
-        # Another request may have found changes while this one was
-        # fetching; what it fetched could be from before them.
-        if generation_dir and (_read_remembered(_db_dir(root, db)) or {}).get("stamp") == stamp:
-            _write_json(os.path.join(generation_dir, "meta.json"), meta)
-            for key, raw in made.items():
-                if key in missing:
-                    _write_bytes(os.path.join(generation_dir, _tile_filename("t", key)), raw)
-            if random.random() < PRUNE_PROBABILITY:
-                prune(root)
+                # Another request may have found changes while this one was
+                # fetching; what it fetched could be from before them.
+                if generation_dir and (_read_remembered(_db_dir(root, db)) or {}).get("stamp") == stamp:
+                    _write_json(os.path.join(generation_dir, "meta.json"), meta)
+                    for key, raw in made.items():
+                        if key in missing:
+                            _write_bytes(os.path.join(generation_dir, _tile_filename("t", key)), raw)
+                    if random.random() < PRUNE_PROBABILITY:
+                        prune(root)
+        finally:
+            if owned:
+                singleflight.release(owned)
 
         stored.update(made)
+        if held:
+            def read_tile(name):
+                raw = _read_bytes(os.path.join(generation_dir, _tile_filename("t", by_name[name])))
+                return raw if raw is not None and raw[:1] == b"{" and raw[-1:] == b"}" else None
+
+            for name, raw in singleflight.wait(held, read_tile).items():
+                stored[by_name[name]] = raw
+                cached_count += 1
+            late = [by_name[name] for name in held if by_name[name] not in stored]
+            if late:
+                # The other request never delivered (or its tile belongs to
+                # a generation that has moved on): build them after all.
+                fetched = get_galaxy_tiles(db, late)
+                for key, value in (fetched.get("tiles") or {}).items():
+                    stored[key] = _tile_bytes(value)
+                if not isinstance(meta, dict):
+                    meta = {"edge_pc": fetched.get("edge_pc"), "has_shape": bool(fetched.get("has_shape"))}
+            if not isinstance(meta, dict):
+                meta = _read_json(os.path.join(generation_dir, "meta.json"))
+                if not isinstance(meta, dict):
+                    fetched = get_galaxy_tiles(db, [])
+                    meta = {"edge_pc": fetched.get("edge_pc"), "has_shape": bool(fetched.get("has_shape"))}
 
     header = {
         "stamp": stamp,
@@ -638,9 +678,19 @@ def fetch_stage(db, at=None):
 
     stage = _read_json(path) if path else None
     if not isinstance(stage, dict):
-        stage = get_galaxy_stage(db, None if key == "galaxy" else key)
-        if path and (_read_remembered(_db_dir(root, db)) or {}).get("stamp") == stamp:
-            _write_json(path, stage)
+        name = _flight_name(root, db, generation, "s", key)
+        owned, _held = singleflight.claim([name]) if path else ([name], [])
+        try:
+            if not owned:
+                # Another request is building this stage (PERF.38): wait for its file.
+                stage = singleflight.wait([name], lambda _name: _read_json(path)).get(name)
+            if not isinstance(stage, dict):
+                stage = get_galaxy_stage(db, None if key == "galaxy" else key)
+                if path and (_read_remembered(_db_dir(root, db)) or {}).get("stamp") == stamp:
+                    _write_json(path, stage)
+        finally:
+            if owned and path:
+                singleflight.release(owned)
     return {**stage, "stamp": stamp}
 
 
