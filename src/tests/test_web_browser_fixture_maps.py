@@ -244,7 +244,7 @@ def test_sector_map_scale_line_follows_the_zoom(page, map_site):
     zoom_out.click()
     assert _scale_line(page) == farthest, "zoom out stops at its limit"
 
-    page.locator("#galaxymap3d-menu summary").click()
+    page.locator("#galaxymap3d-menu > summary").click()
     page.locator('#galaxymap3d-controls [data-action="reset-view"]').click()
     page.wait_for_timeout(300)
     assert _scale_line(page) == (label, width), "Reset view goes back to the opening zoom"
@@ -284,7 +284,7 @@ def test_sector_map_rogue_planet_markers_toggle(page, map_site):
 
 def _open_menu(page):
     if not page.locator("#galaxymap3d-menu").evaluate("m => m.open"):
-        page.locator("#galaxymap3d-menu summary").click()
+        page.locator("#galaxymap3d-menu > summary").click()
 
 
 def test_sector_map_kinds_can_be_hidden_one_by_one_and_the_choice_is_kept(page, map_site):
@@ -324,7 +324,7 @@ def test_sector_map_show_on_map_shows_a_hidden_kind_again(page, map_site):
     rogue = next(p for p in PHENOMENA if p["type"] == "rogue_planet")
     toggle = page.locator('#galaxymap3d-kinds button[data-kind="roguePlanet"]')
     assert toggle.get_attribute("aria-pressed") == "false", "rogue planets begin hidden (MAP.137)"
-    page.locator("#galaxymap3d-menu summary").click()  # closed, so its panel isn't over the table
+    page.locator("#galaxymap3d-menu > summary").click()  # closed, so its panel isn't over the table
     button = page.locator(f'[data-map-target="rogue_planet:{rogue["id"]}"]')
     button.click()
     assert _info_title(page) == rogue["name"]
@@ -795,7 +795,7 @@ def test_galaxy_map_scale_line_follows_the_zoom_on_a_free_stage(page, map_site):
     page.mouse.wheel(0, -400)
     _settle(page)
     assert _galaxy_scale(page) != stage_scale, "the wheel zooms and the scale follows"
-    page.click('#galaxymap3d-menu summary')
+    page.click('#galaxymap3d-menu > summary')
     reset_view.click()
     _settle(page)
     assert _galaxy_scale(page) == stage_scale
@@ -1220,7 +1220,7 @@ def test_galaxy_map_charted_only_does_not_stop_picking(page, map_site):
     is lit and taken just as with it off (only choosing a NAV end needs
     something generated)."""
     _open_galaxy(page, map_site)
-    page.click("#galaxymap3d-menu summary")
+    page.click("#galaxymap3d-menu > summary")
     page.click('[data-action="charted-only"]')
     page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyLines().chartedLines >= 0")
     empty = _hover_choice(page, r"(^|[ ,])0 (of .+ )?sectors generated$|not generated$")
@@ -1238,7 +1238,7 @@ def test_galaxy_map_charted_only_works_while_picking_a_course(page, map_site):
     _open_galaxy(page, map_site, "?pick=to&from=system:701")
     only = page.locator('#galaxymap3d-controls [data-action="charted-only"]')
     assert only.is_enabled() and only.get_attribute("aria-pressed") == "false"
-    page.click("#galaxymap3d-menu summary")
+    page.click("#galaxymap3d-menu > summary")
     only.click()
     assert only.get_attribute("aria-pressed") == "true"
     only.click()
@@ -1513,7 +1513,7 @@ def test_galaxy_map_frames_the_whole_stage_at_any_size_and_turn(page, map_site, 
     if not query:
         # The galaxy opens zoomed in on the charted space (MAP.124); Re-center
         # is its whole fit.
-        page.locator("#galaxymap3d-menu summary").click()
+        page.locator("#galaxymap3d-menu > summary").click()
         page.click('#galaxymap3d-controls [data-action="reset-view"]')
         _settle(page)
     small = page.evaluate(FRAME)
@@ -1565,7 +1565,7 @@ def test_galaxy_map_charted_only_outlines_the_charted_blocks(page, map_site):
     _open_galaxy(page, map_site)
     _click_choice(page, GENERATED_CHOICE)
     assert page.evaluate(LINES)["chartedLines"] == 0
-    page.click("#galaxymap3d-menu summary")
+    page.click("#galaxymap3d-menu > summary")
     page.click('[data-action="charted-only"]')
     page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyLines().chartedLines > 0")
     page.click('[data-action="charted-only"]')
@@ -2080,7 +2080,7 @@ def test_galaxy_map_color_by_switches_the_fill_with_a_legend_and_keeps_it_in_the
     _open_galaxy(page, map_site, "?sector=100000001")
     legend = page.locator("#galaxymap3d-legend")
     assert legend.is_hidden()
-    page.locator("#galaxymap3d-menu summary").click()
+    page.locator("#galaxymap3d-menu > summary").click()
     for mode in ("density", "age", "luminosity", "stars"):
         page.select_option("#galaxymap3d-color-by", mode)
         _settle(page)
@@ -2093,7 +2093,7 @@ def test_galaxy_map_color_by_switches_the_fill_with_a_legend_and_keeps_it_in_the
     page.wait_for_selector("#galaxymap3d-steps [data-steps-panel] li", state="attached")
     assert page.input_value("#galaxymap3d-color-by") == "stars"
     assert legend.is_visible()
-    page.locator("#galaxymap3d-menu summary").click()
+    page.locator("#galaxymap3d-menu > summary").click()
     page.select_option("#galaxymap3d-color-by", "default")
     _settle(page)
     assert "color=" not in _query(page)
@@ -2107,7 +2107,7 @@ def test_galaxy_map_opens_zoomed_in_on_the_charted_space(page, map_site):
     _open_galaxy(page, map_site, "")
     zoom = page.evaluate(CAMERA)["zoom"]
     assert 0.5 <= zoom < 1, zoom
-    page.locator("#galaxymap3d-menu summary").click()
+    page.locator("#galaxymap3d-menu > summary").click()
     page.click('#galaxymap3d-controls [data-action="reset-view"]')
     _settle(page)
     assert page.evaluate(CAMERA)["zoom"] == pytest.approx(1)
@@ -2128,7 +2128,7 @@ def test_galaxy_map_star_classes_and_the_luminosity_floor_hide_stars_and_ride_in
             .filter((li) => !li.hidden && li.querySelector('button') && !li.querySelector('button').hidden
                     && !li.hidden).length""")
 
-    page.locator("#galaxymap3d-menu summary").click()
+    page.locator("#galaxymap3d-menu > summary").click()
     classes = page.locator("#galaxymap3d-kinds [data-star-class]")
     assert classes.count() >= 1
     before = listed()
@@ -2157,7 +2157,7 @@ def test_galaxy_map_bookmark_keeps_the_view_filters(page, map_site):
     """MAP.123: a bookmark of a stage view keeps what the map shows (hidden
     kinds, color), so opening it restores them."""
     _open_galaxy(page, map_site)
-    page.locator("#galaxymap3d-menu summary").click()
+    page.locator("#galaxymap3d-menu > summary").click()
     page.select_option("#galaxymap3d-color-by", "age")
     _settle(page)
     page.locator("#galaxymap3d-crumbs .galaxy-bookmark").click()
@@ -2174,11 +2174,17 @@ def test_sector_map_highlight_draws_a_phenomenon_kind_larger_and_keeps_it_in_the
     assert page.locator('#galaxymap3d-kinds [data-highlight-kind="star"]').count() == 0
     toggle = page.locator('#galaxymap3d-kinds [data-highlight-kind="roguePlanet"]')
     assert toggle.get_attribute("aria-pressed") == "false"
+    # MAP.137: rogue planets start hidden, and a hidden kind has nothing to highlight; show them first.
+    page.locator('#galaxymap3d-kinds button[data-kind="roguePlanet"]').click()
     page.locator("#galaxymap3d-info").evaluate("panel => panel.textContent = ''")
+    # The shots are taken with the Menu closed: its panel hangs over the map.
+    page.locator("#galaxymap3d-menu").evaluate("m => { m.open = false; }")
     before = _shot(page, SECTOR_CANVAS)
+    page.locator("#galaxymap3d-menu").evaluate("m => { m.open = true; }")
     toggle.click()
     assert toggle.get_attribute("aria-pressed") == "true"
     assert "mark=roguePlanet" in page.url
+    page.locator("#galaxymap3d-menu").evaluate("m => { m.open = false; }")
     assert _shot(page, SECTOR_CANVAS) != before, "a highlight changes the map"
     page.reload()
     page.wait_for_selector('#galaxymap3d-kinds [data-highlight-kind="roguePlanet"]', state="attached")
@@ -2196,7 +2202,7 @@ def test_galaxy_map_star_filters_apply_to_the_stars_drawn_at_galaxy_scale(page, 
     count = "() => document.querySelector('#galaxymap3d-canvas').galaxyStarFrame().count"
     before = page.evaluate(count)
     assert before > 0
-    page.locator("#galaxymap3d-menu summary").click()
+    page.locator("#galaxymap3d-menu > summary").click()
     page.wait_for_selector("#galaxymap3d-kinds [data-star-class]", state="attached")
     assert page.locator("#galaxymap3d-kinds [data-star-class]").count() == 8
     page.evaluate("""() => { const s = document.getElementById('galaxymap3d-lum'); s.value = s.max;
