@@ -128,16 +128,39 @@ def test_the_special_rows_leave_out_filled_cells():
 
 
 def _plan_args(mysql_config, *extra):
+    """Parsed plan arguments; a `--phenomenon-min-mass` below the presets (1, to keep the tests'
+    scatters small) is set after the parser has checked the rest."""
+    extra = list(extra or ("--phenomenon-min-mass", "1"))
+    mass = None
+    if "--phenomenon-min-mass" in extra:
+        at = extra.index("--phenomenon-min-mass")
+        mass = float(extra[at + 1])
+        del extra[at:at + 2]
     parser = argparse.ArgumentParser(prefix_chars='-+')
     generate_cli.add_plan_arguments(parser)
     args = parser.parse_args([
         "--mysql-host", mysql_config.host, "--mysql-port", str(mysql_config.port),
         "--mysql-user", mysql_config.user, "--mysql-password", mysql_config.password,
         "--mysql-database", mysql_config.database, "--workers", "1",
-        *(extra or ("--phenomenon-min-mass", "1")),
+        *extra,
     ])
     generate_cli.validate_plan_args(args, parser)
+    args.phenomenon_min_mass = mass
     return args
+
+
+def test_the_mass_limit_must_be_a_preset(mysql_config):
+    parser = argparse.ArgumentParser(prefix_chars='-+')
+    generate_cli.add_plan_arguments(parser)
+    for value, ok in (("8", True), ("14", True), ("20", True), ("7", False), ("13", False), ("21", False)):
+        args = parser.parse_args(["--phenomenon-min-mass", value])
+        if ok:
+            generate_cli.validate_plan_args(args, parser)
+        else:
+            with pytest.raises(SystemExit):
+                generate_cli.validate_plan_args(args, parser)
+    assert parser.parse_args([]).phenomenon_min_mass is None
+    assert tuning.PHENOMENON_MIN_MASS_PRESETS[0] == 8.0 and tuning.PHENOMENON_MIN_MASS_SOLAR == 20.0
 
 
 def _seed_galaxy(mysql_config):
@@ -410,6 +433,19 @@ def test_a_plan_records_its_cut_and_a_fill_draws_below_it(mysql_config, monkeypa
     assert neutron and stellar
     assert all(1.1 <= remnant.mass_solar <= 2.2 for remnant in neutron)
     assert all(5.0 <= remnant.mass_solar <= 20.0 for remnant in stellar)
+
+
+def test_a_scatter_without_a_flag_keeps_the_stored_cut(mysql_config):
+    _seed_galaxy(mysql_config)
+    run_plan.scatter_phenomena(_plan_args(mysql_config, "--phenomenon-min-mass", "20"))
+    args = _plan_args(mysql_config, "--phenomena-only")
+    assert args.phenomenon_min_mass is None
+    run_plan.run_plan(args)
+    conn = store.get_connection(mysql_config)
+    try:
+        assert store.phenomenon_scatter_settings(conn)[1] == 20.0
+    finally:
+        conn.close()
 
 
 def test_phenomena_only_rescatters_at_a_new_cut(mysql_config):

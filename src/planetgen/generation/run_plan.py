@@ -281,7 +281,7 @@ def scatter_bright_stars(args):
     other phenomena, are `scatter_phenomena`'s):
 
     2. the mass pass: every star born at or above the mass limit
-       (`--phenomenon-min-mass`, 8 to 20 solar masses), whatever its
+       (`--phenomenon-min-mass`, one of 8 to 20 solar masses), whatever its
        luminosity (`brightStars.scatter` with `mass_range=(limit, None)`);
     3. the marks: each sector holding a pass 2 star at least as bright as
        the luminosity floor is marked (`store.bright_star_marked_addresses`);
@@ -307,7 +307,7 @@ def scatter_bright_stars(args):
         if filled:
             log.normal(f"Leaving out the {len(filled):,} sectors already filled.")
         min_luminosity_sol = float(args.bright_star_min_luminosity)
-        mass_limit = _phenomenon_min_mass(args)
+        mass_limit = _phenomenon_min_mass(args, conn)
         seed = _bright_star_seed(skeleton, "scatter")
         mass_seed = _bright_star_seed(skeleton, "mass-scatter")
         store.clear_bright_stars(conn)
@@ -768,10 +768,14 @@ def _phenomenon_scatter_seed(skeleton):
     return galaxySeed.short_seed(skeleton.galaxy_seed, "phenomenon-scatter", "scatter")
 
 
-def _phenomenon_min_mass(args):
-    """The scatter's mass cut (GEN.167): `--phenomenon-min-mass`, else
+def _phenomenon_min_mass(args, conn):
+    """The mass limit (GEN.167, GEN.183): `--phenomenon-min-mass`, else the
+    one already stored with the galaxy, else
     `tuning.PHENOMENON_MIN_MASS_SOLAR`."""
     value = getattr(args, "phenomenon_min_mass", None)
+    if value is None:
+        stored = store.phenomenon_scatter_settings(conn)
+        value = stored[1] if stored is not None else None
     return float(program_constants.PHENOMENON_MIN_MASS_SOLAR if value is None else value)
 
 
@@ -824,7 +828,7 @@ def scatter_phenomena(args):
         extents = store.get_galaxy_layers(conn)
         filled = store.filled_sector_addresses(conn)
         seed = _phenomenon_scatter_seed(skeleton)
-        min_mass_solar = _phenomenon_min_mass(args)
+        min_mass_solar = _phenomenon_min_mass(args, conn)
         with run_common._generation_progress() as progress:
             log.set_console(progress.console)
             try:

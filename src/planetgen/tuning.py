@@ -2736,8 +2736,13 @@ galaxy-wide"; Brown 2015). Each starts at the central black hole and moves
 outward at `HYPERVELOCITY_STAR_SPEED_RANGE_KMS`."""
 
 
+PHENOMENON_MIN_MASS_PRESETS = (8.0, 10.0, 12.0, 14.0, 16.0, 18.0, 20.0)
+"""tuple: The mass limits the user may pick (GEN.183, Boss 2026-10-10): the
+Generate page's slider and `--phenomenon-min-mass` accept only these."""
+
 PHENOMENON_MIN_MASS_SOLAR = 20.0
-"""float: The phenomenon scatter's lowest mass (GEN.167, `planetgen plan
+"""float: The phenomenon scatter's lowest mass, the default of
+`PHENOMENON_MIN_MASS_PRESETS` (GEN.167, `planetgen plan
 --phenomenon-min-mass`; docs/design/phenomenon-scatter-mass-cut.md, Boss
 2026-10-09). The scatter places only the neutron stars and black holes at
 or above it; a sector draws the rest when it is filled (GEN.168). An

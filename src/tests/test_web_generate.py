@@ -1306,3 +1306,38 @@ def test_random_start_argv_carries_the_neighborhood_count():
     assert generate_page.random_start_argv({"neighborhoods": "1", "neighborhood_gamma": "2"}) == []
     with pytest.raises(generate_page.FormError):
         generate_page.random_start_argv({"neighborhoods": "101"})
+
+
+# --- Mass limit slider (GEN.183) --------------------------------------------------
+
+def test_the_plan_forms_offer_the_mass_limit_slider(site, client):
+    html = client.get("/admin/generate").get_data(as_text=True)
+    for slider in ("new-galaxy-mass-limit", "plan-mass-limit"):
+        assert re.search(rf'<input type="range" id="{slider}" name="phenomenon_min_mass"[^>]*min="8" max="20" step="2"'
+                         r'[^>]*value="20"', html, re.S)
+    assert html.count('name="phenomenon_min_mass"') == 2
+    assert re.search(r'<script type="module" src="/static/generateranges.js\?v=[^"]+"></script>', html)
+
+
+def test_the_mass_limit_reaches_the_plan_and_the_scatter(site, client, no_spawn):
+    assert _post(client, action="plan", phenomenon_min_mass="12").status_code == 303
+    (job,) = no_spawn
+    plan, scatter = _work_steps(job)
+    assert _argv(plan) == ["plan", "--phenomenon-min-mass", "12", "--no-bright-stars"]
+    assert _argv(scatter) == ["plan", "--bright-stars-only", "--phenomenon-min-mass", "12"]
+
+
+def test_a_new_galaxy_scatters_at_the_plans_mass_limit(site, client, no_spawn):
+    assert _post(client, action="new_galaxy", confirm=DB, phenomenon_min_mass="8").status_code == 303
+    (job,) = no_spawn
+    _reset, plan, galaxy = _work_steps(job)
+    assert _argv(plan) == ["plan", "--phenomenon-min-mass", "8", "--no-bright-stars"]
+    assert "--phenomenon-min-mass" not in _argv(galaxy)
+
+
+@pytest.mark.parametrize("value", ["13", "7", "21", "20.5"])
+def test_the_mass_limit_must_be_a_preset(site, client, no_spawn, value):
+    resp = _post(client, action="plan", phenomenon_min_mass=value)
+    assert resp.status_code == 400
+    assert "Mass limit (solar masses) must be one of 8, 10, 12, 14, 16, 18, 20." in resp.get_data(as_text=True)
+    assert no_spawn == []

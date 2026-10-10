@@ -914,11 +914,12 @@ def add_plan_arguments(parser):
                                    "Sectors already filled are left out (their own systems already reach "
                                    "that bright). Does nothing when L_SUN is not below the current level.")
     phenomena_group = parser.add_argument_group("phenomenon scatter (planetgen.generation.phenomenon_scatter)")
-    phenomena_group.add_argument('--phenomenon-min-mass', type=finite_float,
-                                 default=program_constants.PHENOMENON_MIN_MASS_SOLAR, metavar='M_SUN',
-                                 help="The lightest neutron star or black hole placed galaxy-wide after the plan "
-                                      "(solar masses); a sector draws the lighter ones when it is filled. "
-                                      f"Default: {program_constants.PHENOMENON_MIN_MASS_SOLAR:g}.")
+    presets = ", ".join(f"{value:g}" for value in program_constants.PHENOMENON_MIN_MASS_PRESETS)
+    phenomena_group.add_argument('--phenomenon-min-mass', type=finite_float, default=None, metavar='M_SUN',
+                                 help="The mass limit (solar masses) from which every star, neutron star and black "
+                                      "hole is placed galaxy-wide after the plan; a sector draws the lighter ones "
+                                      f"when it is filled. One of {presets}. Default: the galaxy's stored limit, "
+                                      f"else {program_constants.PHENOMENON_MIN_MASS_SOLAR:g}.")
     phenomena_group.add_argument('--phenomena-only', action='store_true',
                                  help="Re-scatter the phenomena on the stored plan without rebuilding it or the "
                                       "bright stars (to change --phenomenon-min-mass). Filled sectors are left out.")
@@ -969,8 +970,10 @@ def validate_plan_args(args, parser):
         parser.error(f"these galaxy shape parameters can't be normalized (k_norm={shape.k_norm!r}).")
     if args.no_bright_stars and args.bright_stars_only:
         parser.error("--no-bright-stars and --bright-stars-only can't be combined.")
-    if not args.phenomenon_min_mass > 0.0:
-        parser.error("--phenomenon-min-mass must be above 0.")
+    if args.phenomenon_min_mass is not None and not any(
+            math.isclose(args.phenomenon_min_mass, preset) for preset in program_constants.PHENOMENON_MIN_MASS_PRESETS):
+        parser.error("--phenomenon-min-mass must be one of "
+                     + ", ".join(f"{value:g}" for value in program_constants.PHENOMENON_MIN_MASS_PRESETS) + ".")
     if args.phenomena_only and (args.bright_stars_only or args.bright_stars_down_to is not None):
         parser.error("--phenomena-only can't be combined with --bright-stars-only or --bright-stars-down-to.")
     if args.bright_stars_down_to is not None:
