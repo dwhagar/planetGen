@@ -779,6 +779,15 @@ def _phenomenon_min_mass(args, conn):
     return float(program_constants.PHENOMENON_MIN_MASS_SOLAR if value is None else value)
 
 
+def _log_phenomena_layer(layer_index, counts):
+    """One line saying how many phenomena a layer was given, by kind, as `_log_layer` does for stars;
+    nothing for a layer that drew none."""
+    total = sum(counts.values())
+    if total:
+        log.normal(f"Phenomena, layer {layer_index}: placed {total:,}: "
+                   + ", ".join(f"{count:,} {kind}" for kind, count in sorted(counts.items())) + ".")
+
+
 def _scatter_phenomena_layers(args, bar, layers, weights, layer_done, mysql_config, skeleton, e_value, seed,
                               min_mass_solar, filled):
     """The layers of the phenomenon scatter through the work queue, the step `bar` credited with each
@@ -788,6 +797,7 @@ def _scatter_phenomena_layers(args, bar, layers, weights, layer_done, mysql_conf
     def done_with(layer_index):
         def on_done(layer_counts, seconds, weight):
             layer_done(layer_counts, seconds, weight)
+            _log_phenomena_layer(layer_index, layer_counts)
             layers_done[0] += 1
             bar.update(advance=weights[layer_index],
                        description=f"Phenomena ({layers_done[0]:,} of {len(layers):,} layers)")
@@ -882,8 +892,13 @@ def scatter_phenomena(args):
                     store.stamp_phenomenon_scatter_epoch(conn)
             finally:
                 log.reset_console()
+        special_counts = {}
         for row in special:
-            counts[row[3]] = counts.get(row[3], 0) + 1
+            special_counts[row[3]] = special_counts.get(row[3], 0) + 1
+        for kind, count in special_counts.items():
+            counts[kind] = counts.get(kind, 0) + count
+        if special_counts:
+            log.normal("Special phenomena: " + ", ".join(f"{count:,} {kind}" for kind, count in sorted(special_counts.items())) + ".")
         store.record_phenomenon_scatter(conn, seed, min_mass_solar)
         conn.commit()
     finally:
