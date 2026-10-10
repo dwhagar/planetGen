@@ -3,6 +3,7 @@
 ## [8.0.911] - 2026-10-10
 
 ### Changed
+- **Docs only:** UX.90 now covers the Shirtsleeve to Ideal rename and an explanation page under Classes, owner Bugfixes lane 2; docs use "Ideal".
 - **Docs only:** MAP.148 notes the follow-ups to MAP.163 and MAP.164 (PRs #1032, #1035).
 - **Docs only:** API.9 (key scopes, expiry, prefix, per-key rate bucket) retired; control schema is v13.
 - **Docs only:** UX.90 (explain the habitability chips in the web interface) filed as an unassigned Phase 1 item; docs/html-interface.md notes the chips.
