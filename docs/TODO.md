@@ -4235,7 +4235,8 @@ clears each one.
   and without the class totals, the 15 tests pass, and the cause is
   named here. Check first whether the page itself breaks for a real
   galaxy (GEN.193 still wants confirming that the table shows rows after
-  a real run). Owner: Bugfixes lane 1, next after PERF.56.
+  a real run). Owner: Bugfixes lane 1, FIRST in the lane, ahead of PERF.56 (priority
+  fix: main is red and the other lanes are merging onto it).
   Prerequisites: none. Related: GEN.193, PERF.56.
 
 ## USR: User accounts
