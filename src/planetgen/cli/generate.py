@@ -663,6 +663,11 @@ def add_galaxy_arguments(parser):
                         help="With --neighborhoods: bias the starts toward dense space. A start is kept with "
                              "probability min(1, relative density) ** G; 0 (the default) keeps every one, "
                              "so starts are uniform by volume.")
+    parser.add_argument('--avoid-filled-space', action='store_true',
+                        help="Random-start mode (GEN.186): drop any random centre whose neighborhood touches a "
+                             "sector that is already generated, so every neighborhood grows in empty space. "
+                             "Logs how many candidate centres qualified. Without it, a neighborhood may "
+                             "overlap filled space (the sectors already there are kept, not redone).")
     parser.add_argument('--cylinder-sectors', type=finite_float, metavar='X',
                         help="Instead of --radius-pc, with --center-sector or --ring --slot: a radial fill "
                              "(ADM.30), a round disc X sectors across the plane (1 is the centre and its "
@@ -838,6 +843,8 @@ def validate_galaxy_args(args, parser):
     if (args.neighborhoods > 1 or args.neighborhood_gamma) and not random_start:
         parser.error("--neighborhoods and --neighborhood-gamma only apply to random-start mode (neither "
                      "--ring nor --center-sector).")
+    if args.avoid_filled_space and not random_start:
+        parser.error("--avoid-filled-space only applies to random-start mode (neither --ring nor --center-sector).")
     if args.max_ring is not None and not random_start:
         parser.error("--max-ring only applies to random-start mode (neither --ring nor --center-sector).")
     if args.max_ring is not None and args.max_ring < 0:

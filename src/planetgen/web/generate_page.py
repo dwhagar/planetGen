@@ -367,6 +367,8 @@ def random_start_argv(form):
     density = _number(form, "min_start_density", "Minimum start density", float, minimum=0.001)
     if density is not None:
         argv += ["--min-start-density", str(density)]
+    if form.get("avoid_filled_space"):
+        argv += ["--avoid-filled-space"]
     count = _number(form, "neighborhoods", "Neighborhoods", int, minimum=1, maximum=MAX_GENERATE_NEIGHBORHOODS)
     if count is not None and count > 1:
         argv += ["--neighborhoods", str(count)]
