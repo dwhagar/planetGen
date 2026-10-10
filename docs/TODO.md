@@ -433,6 +433,25 @@ with `clamp()`.
   Prerequisites: none.
   Design: [docs/design/map-ui-and-frontend-libraries.md](design/map-ui-and-frontend-libraries.md)
 
+- [ ] **UX.87 The system list shows uncharted systems: every scattered star, with its location and a way to generate it**
+  Boss (GitHub issue
+  [#929](https://github.com/dwhagar/planetGen/issues/929), 2026-10-10
+  01:51Z): "Every star that is scattered throughout in the brightness
+  scatter needs to be also listed or able to be listed as 'uncharted' in
+  the star system list. Information about that star and its location is
+  displayed, its coordinates, sector coordinates, and other information
+  including layer, shell, and slot that it occupies. This interface
+  should also allow the user to generate that star system by itself,
+  though the system will recommend generating the entire sector." Done:
+  the system list has an 'uncharted' filter (off by default) that lists
+  scattered stars with their coordinates, sector coordinates, layer,
+  shell and slot and the star's own data; each row has a Generate button
+  for that one system, with a note recommending the whole sector. Open
+  question for Boss (default: scattered stars from the mass-limit and
+  luminosity passes both count; generating one system fills only that
+  system and leaves the sector's other contents ungenerated).
+  Prerequisites: none. Related: MAP.162, ADM.32, ADM.35, NAV.48, DOC.9.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -1097,6 +1116,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (default `modulepreload` and HTTP/2, no bundler): or bundle?
   Prerequisites: none. Related: MAP.147, MAP.157, MAP.158.
   Design: [docs/design/galaxy-map-wire-format.md](design/galaxy-map-wire-format.md)
+
+- [ ] **MAP.162 A sector holding scattered objects but never generated can still be opened, marked uncharted**
+  Boss (GitHub issue
+  [#928](https://github.com/dwhagar/planetGen/issues/928), 2026-10-10
+  01:44Z): "When a scatter places an object inside a sector that is
+  otherwise ungenerated, the user should still be able to select that
+  sector and view it, so they can view the placed item(s) within the
+  sector. But the sector should have some indicator that the sector is
+  uncharted." Done: on the Galaxy Map and the sector view, a sector with
+  scattered stars, black holes or other phenomena but no generated
+  contents opens, shows those objects, and carries a clear uncharted
+  mark (in the title, the info panel and the sector view's frame);
+  generating it removes the mark.
+  Prerequisites: none. Related: MAP.122, MAP.120, UX.87, NAV.48.
 
 ## NAV: Navigation and courses
 
@@ -3177,6 +3210,25 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   sectors that are already filled, with a cost line that says how many
   centres qualify.
   Prerequisites: none. Related: GEN.97, ADM.28.
+
+- [ ] **GEN.187 Bright-star back scatter by mass: rings of 1, 2, 5 and 8 solar masses around filled space**
+  Boss (GitHub issue
+  [#952](https://github.com/dwhagar/planetGen/issues/952), 2026-10-10
+  03:43Z): "Back-scatter of bright stars needs to be changed to filtered
+  by mass. Within 1 sector on all sides (orthogonal only, no diagonals)
+  should fill to: 1. 1 Solar Masses (1 Sector around filled region) 2. 2
+  Solar Masses (1 Sector around step 1) 3. 5 Solar Masses (1 Sector
+  around step 2) 4. 8 Solar Masses (1 Sector around step 3)." Done: the
+  back scatter that fills around generated sectors (GEN.30's luminosity
+  tiers) is replaced by four rings, each one sector further out by face
+  adjacency only (no diagonals): the first ring fills stars down to 1
+  solar mass, the second down to 2, the third down to 5 and the fourth
+  down to 8; beyond the fourth ring only the scatter's own mass limit
+  (GEN.183) applies. Open question for Boss (default: the nearest ring
+  takes the lowest mass cut, as above, and each ring is counted from the
+  previous ring's outer edge; the GEN.30 luminosity tiers go away).
+  Prerequisites: GEN.184. Related: GEN.30, GEN.40, GEN.99, GEN.183,
+  GEN.184, MAP.120, PERF.18.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
