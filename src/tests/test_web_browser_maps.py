@@ -675,3 +675,20 @@ def test_galaxy_map_menus_open_inside_the_window(page, base_url, menu, panel, si
     page.wait_for_selector(f"{menu}[data-placed]")        # menuplace.js has put the panel where it goes
     box, inside = _inside_window(page, panel)
     assert inside, f"{menu} opened out of sight in a {size['width']}x{size['height']} window: {box}"
+
+
+@pytest.mark.parametrize("size", [{"width": 1280, "height": 800}, {"width": 400, "height": 800}])
+def test_galaxy_map_menu_filters_sit_side_by_side(page, base_url, size):
+    """UX.86: the Menu's filters take their natural width and wrap in a row, not one full-width
+    button each, and the Menu's buttons are the smaller size."""
+    page.set_viewport_size(size)
+    _open_galaxy(page, base_url)
+    page.click("#galaxymap3d-menu > summary")
+    page.wait_for_selector("#galaxymap3d-menu[data-placed]")
+    chips = page.evaluate("""() => [...document.querySelectorAll('#galaxymap3d-kinds .starmap-toggle')]
+        .map(b => { const r = b.getBoundingClientRect(); return {w: r.width, top: Math.round(r.top)}; })""")
+    panel = page.evaluate("document.querySelector('#galaxymap3d-menu .galaxy-menu-panel').getBoundingClientRect().width")
+    assert len(chips) >= 7
+    assert all(c["w"] < panel / 2 for c in chips), chips
+    assert len({c["top"] for c in chips}) < len(chips) / 2, "toggles should share rows"
+    assert page.locator("#galaxymap3d-menu .galaxy-sub > summary").is_visible()
