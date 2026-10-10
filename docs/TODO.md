@@ -4248,18 +4248,6 @@ clears each one.
   touches regeneration next.
   Prerequisites: none. Related: TEST.111, TEST.71, TEST.73, OPS.19.
 
-- [ ] **TEST.114 test_the_check_writes_nothing fails now and then in a parallel full run (bug)**
-  Reported by Foundations lane 1 (2026-10-10 02:45Z, ADM.30 merge, PR
-  #934): tests/test_db_check.py::test_the_check_writes_nothing failed
-  once in a parallel full run (system_name_registry count 0 against 4)
-  and passes alone, so it looks load-sensitive. Done: the cause is found
-  (shared state or timing under load, or a real bug in the check) and
-  the test is made robust without skipping or loosening it, or the
-  product bug it hides is fixed. Bugfixes lane 1 or whichever lane
-  touches the database check next.
-  Prerequisites: none. Related: TEST.111, TEST.112, TEST.71, TEST.73,
-  OPS.19.
-
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
