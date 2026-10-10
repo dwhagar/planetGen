@@ -27,12 +27,19 @@
   sector is made. Presets: {{ mass_limit_presets|map("int")|join(", ") }}. Lower limits place more and take longer.</span>
 </label>
 {%- endmacro -%}
-{%- macro plan_inputs(id="mass-limit") -%}
+{%- macro plan_inputs() -%}
 <div class="search-fields">
   {%- for name, flag, label, kind, default, minimum, maximum in plan_fields %}
   {{ field(name, label, value=default, step="1" if kind is sameas int else "any", min=minimum) }}
   {%- endfor %}
+</div>
+{%- endmacro -%}
+{#- GEN.188: the two scatter limits side by side -- the mass limit slider and the luminosity floor
+    dropdown -- wherever the scatter is set up (Plan and New galaxy). -#}
+{%- macro scatter_limits(id) -%}
+<div class="search-fields scatter-limits">
   {{ mass_slider(id) }}
+  {{ scatter_threshold() }}
 </div>
 {%- endmacro -%}
 {#- ADM.16: the share of each feature a sector or galaxy run should
@@ -227,13 +234,13 @@
     <input type="hidden" name="action" value="new_galaxy">
     <fieldset class="customize-group" data-customize-tab="Galaxy shape">
       <legend>Galaxy shape</legend>
-      {{ plan_inputs("new-galaxy-mass-limit") }}
+      {{ plan_inputs() }}
     </fieldset>
     {{ prevalence_inputs() }}
     <fieldset class="customize-group" data-customize-tab="Bright stars">
       <legend>Bright stars</legend>
+      {{ scatter_limits("new-galaxy-mass-limit") }}
       <div class="search-fields">
-        {{ scatter_threshold() }}
         {{ skip_scatter("new-galaxy-skip-bright") }}
       </div>
     </fieldset>
@@ -368,9 +375,9 @@
   <form method="post" action="{{ url_for('web.generate') }}" class="search-form">
     {{ csrf_field() }}
     <input type="hidden" name="action" value="plan">
-    {{ plan_inputs("plan-mass-limit") }}
+    {{ plan_inputs() }}
+    {{ scatter_limits("plan-mass-limit") }}
     <div class="search-fields">
-      {{ scatter_threshold() }}
       {{ skip_scatter("plan-skip-bright") }}
     </div>
     <div class="search-actions">
