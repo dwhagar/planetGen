@@ -1,0 +1,2 @@
+### Changed
+- The phenomena scatter draws a layer's objects as numpy arrays (PERF.63): per ring and class one Poisson count as before, then the angle bins, slots, points, masses and the stored-in-cell check of the whole layer at once, with the random numbers still taken from the layer's stream in bulk. The same model and the same counts, about nine times faster on the default galaxy (a pass of about 37 minutes now takes about 4). A galaxy needs a reseed to use it.

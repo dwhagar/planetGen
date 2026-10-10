@@ -112,9 +112,9 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | DB.9, PERF.29, PERF.30, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, POP.8, POP.9, POP.7, POP.10, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, GEN.57, TEST.77, UX.49, PERF.31, GEN.128, PERF.63 |
-| 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.17, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18, PERF.33, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, ADM.43, ADM.44 |
-| 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, and the anomalies chosen in phase 2. | NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, GEN.114, API.19 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | DB.9, PERF.29, PERF.30, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, POP.8, POP.9, POP.7, POP.10, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, GEN.57, TEST.77, UX.49, GEN.128 |
+| 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.17, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18, PERF.33, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, ADM.43, ADM.44, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.56, NAV.55, NAV.27, NAV.28, NAV.51, NAV.54, NAV.6 |
+| 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, and the anomalies chosen in phase 2. | API.13, API.14, API.8, ADM.13, API.3, API.17, GEN.114, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies. | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, GEN.55 |
 
 Phases overlap: a phase's later threads can start while the next
@@ -127,6 +127,18 @@ earns the 8.1 bump. Phase 1 is complete only when those are done too;
 until then every release stays on 8.0 (`REVISION_HOLD` in
 `scripts/bump_version.py`), and the TODO thread flips the hold when Boss
 declares phase 1 complete.
+
+Seminal features (Boss, 2026-10-10 20:58Z): 8.0 the orbital update
+system, 8.1 infinite zoom (the fly-through Galaxy Map), 9.0 the
+gravitational map (MAP.167: foundations in phase 2, roll-out in phase
+3). Phase 2, when finished, is 8.5, and Boss (21:05Z) chose its
+headline: courses that bend around gravity wells, with waypoints,
+editable and saved courses (NAV.59). A headline feature carries a
+`Headline: VERSION (name).` line in its item; `scripts/build_todo_docs.py`
+reads it and shows, in every plan page, each headline with all the open
+items it needs in build order. Every release in CHANGELOG.md opens with a
+**Headline:** line (Boss, 2026-10-10); the TODO thread adds one to each
+newly stamped release.
 
 Boss's list of 2026-10-01 23:53Z (`new todos.txt`, with research notes;
 the files are in the project's shared files under `todo-tasks/research/`)
@@ -481,6 +493,56 @@ with `clamp()`.
   to check by hand. Owner: Bugfixes lane 2, after its current items.
   Prerequisites: none.
 
+- [ ] **UX.94 Gravity map wording: the legend, the mode names and the Map help text**
+  Done: the legend names the unit (metric or Customary through the UX.36
+  number formatting), the three modes have plain in-universe names with
+  a one-line explanation each, the Map help dialog explains what the
+  colours mean and what a saddle point is, and no TODO code appears in
+  any of it (UX.93).
+  Prerequisite: MAP.168. Related: MAP.167, UX.93.
+
+- [ ] **UX.95 Tables show their rows first and fill the filter-menu counts a moment later**
+  From the PERF.71 research (docs/design/slow-reads-and-timeouts.md, PR
+  #1175; Boss's ask of 2026-10-10 20:50Z; measured on 2,000,000
+  synthetic systems, MariaDB 10.11): the first page of a table asks for
+  the filter-menu counts (`facets=1`) in the same request, so a slow
+  count holds the rows back. Done: `static/datatable.js` fetches the
+  first rows without `facets=1`, paints them at once, then fetches the
+  menus in a second request and shows "..." in place of the counts until
+  they arrive. Owner: Bugfixes lane 2, after what it has queued.
+  Prerequisites: none. Related: PERF.64, PERF.69, PERF.71.
+  Design: [docs/design/slow-reads-and-timeouts.md](design/slow-reads-and-timeouts.md)
+
+- [ ] **UX.96 A table that hits the statement limit says the database is busy and retries, instead of failing with a 502**
+  From the PERF.71 research (docs/design/slow-reads-and-timeouts.md, PR
+  #1175; Boss's ask of 2026-10-10 20:50Z; measured on 2,000,000
+  synthetic systems, MariaDB 10.11): `web/tables.py` turns any API
+  error, a 504 included, into a 502 with no `Retry-After`, and
+  `datatable.js` throws on a non-200 answer without retrying. Done:
+  `/table/<name>` returns 504 with `Retry-After` for a statement
+  timeout, and `datatable.js` keeps the rows already loaded, shows a
+  "database busy, trying again" line and retries with the Galaxy Map's
+  backoff (2, 4, 8 ... 30 s). Decided by default (the three research
+  defaults, 2026-10-10 21:41Z; stands unless Boss objects): a panel or
+  tile that timed out shows partly, with a retry, rather than the full
+  busy page. Owner: Bugfixes lane 2, after what it has queued.
+  Prerequisites: none. Related: PERF.64, PERF.71.
+  Design: [docs/design/slow-reads-and-timeouts.md](design/slow-reads-and-timeouts.md)
+
+- [ ] **UX.97 Search results: each panel runs under its own time limit and is fetched on its own**
+  From the PERF.71 research (docs/design/slow-reads-and-timeouts.md, PR
+  #1175; Boss's ask of 2026-10-10 20:50Z; measured on 2,000,000
+  synthetic systems, MariaDB 10.11): `search()` builds one panel per
+  object type (sector, system, star, planet, moon) and one slow panel
+  times out the whole page; a 2-letter word took 8.4 s on the Systems
+  panel. Done: each panel is fetched separately under its own statement
+  limit, a panel that times out says "This took too long; try again or
+  narrow the search" and the others show, and short words use a prefix
+  match instead of `%x%`. Owner: Bugfixes lane 2, after what it has
+  queued.
+  Prerequisites: none. Related: PERF.64, PERF.71.
+  Design: [docs/design/slow-reads-and-timeouts.md](design/slow-reads-and-timeouts.md)
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -781,7 +843,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and MAP.158; one cache stamp bump with MAP.154 and MAP.151's tile
   keys), MAP.151 (needs ADM.29 from Foundations lane 1) and MAP.152 (needs MAP.148,
   MAP.150 and MAP.154); this umbrella closes last.
-  Prerequisites: MAP.148, MAP.150, MAP.151, MAP.152, MAP.153,
+  Headline: 8.1 (infinite zoom: the fly-through Galaxy Map).
+  Prerequisites: MAP.150, MAP.151, MAP.152, MAP.153,
   MAP.154, MAP.155, MAP.157, MAP.159. Related:
   MAP.120, MAP.121, MAP.141, MAP.140, MAP.59, MAP.116, MAP.122, MAP.125,
   MAP.131, MAP.134, MAP.147, ADM.29, ADM.30, GEN.101, GEN.126, NAV.13,
@@ -827,50 +890,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Lane (2026-10-09): Owner: Foundations lane 2 (coordinator,
   2026-10-10); closes after MAP.159, MAP.151 and MAP.148.
   Design: [docs/design/map-ui-and-frontend-libraries.md](design/map-ui-and-frontend-libraries.md)
-
-- [ ] **MAP.148 The star visibility law: apparent-magnitude opacity, flux-based brightness and an on-screen limit from a histogram**
-  Source: docs/design/fly-through-view-distance.md (section 7 and 8),
-  written at Boss's request of 2026-10-09 22:56Z. Boss approved the
-  defaults
-  (2026-10-10 18:44Z).
-  Done: a star's opacity follows its apparent magnitude from the camera,
-  against a limit chosen so about 20,000 stars are on screen, found from
-  a histogram of the stars in view. Brightness is by flux. This replaces
-  the step floors in `generated_star_floor_sol` as the rule and folds
-  MAP.116's budget table into it. First on the tiles already fetched
-  (client side, no schema change), then tiles chosen by distance (with
-  MAP.152).
-  Decided (Boss, 2026-10-10 18:44Z, defaults approved; default 20,000
-  stars on screen, 8,000 on a
-  phone, with a 1.5 magnitude ramp, tuned after a first build): other
-  numbers?
-  Overlap (2026-10-09, zoom-star-visibility.md): MAP.153 is the first
-  client stage of this same visibility rule
-  (docs/design/zoom-star-visibility.md, Research Lane 1): a rank birth
-  radius on the tiles as fetched today, with the apparent-magnitude law
-  here as the end state; the two are one rule in two stages, not
-  competitors. MAP.154 and MAP.155 carry the server list nesting and the
-  other objects.
-  Dependency (2026-10-09, fly-through-view-distance.md): The law
-  multiplies MAP.153's rank birth radius in one shader: a = a_rank(R) *
-  a_mag(d) * a_near, built after MAP.153. Calibrate m_lim so the
-  magnitude factor is about 1 for a star at the target distance at any
-  camera radius; it only dims stars much farther than the target, so the
-  two rules never thin the same stars twice. The distance-cut tiles it
-  leads to also need MAP.154 (nested lists).
-  Bugfixes lane 2 (2026-10-09): Bugfixes lane 2 (2026-10-10, MAP.163, PR
-  #1029): the dimmest stars seen at full zoom-out (about 4,000 L_sun)
-  come from the per-tile cap GALAXY_TILE_MAX_BRIGHT_STARS=400 (the 400
-  brightest stars per tile), not from the scatter floor. The visibility
-  law must reconcile the cap with the floor.
-  Bugfixes lane 2 (2026-10-09): Bugfixes lane 2 follow-ups (2026-10-10,
-  PRs #1032, #1035): the nucleus quasar and built nucleus now show from
-  the galaxy view; the Galaxy Map slider bottom now follows the dimmest
-  star the view's tiles carry instead of a fixed 2,500 L_sun floor. The
-  2,500 L_sun floor at full zoom-out is left to this item: about 3
-  million stars qualify, while a view carries about 70,000.
-  Prerequisite: MAP.153. Related: MAP.116, MAP.146, MAP.147.
-  Design: [docs/design/fly-through-view-distance.md](design/fly-through-view-distance.md)
 
 - [ ] **MAP.150 The free camera: wheel zoom to the cursor, double-click flight, and the observer inside, with the container named from position**
   Source: docs/design/fly-through-view-distance.md (section 7 and 8),
@@ -965,8 +984,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Dependency (2026-10-09, fly-through-view-distance.md): Distance-cut
   tiles need MAP.154 (nested server lists: a child tile must contain the
   parent's stars in its box).
-  Prerequisites: MAP.148, MAP.150, MAP.154. Related: MAP.102, MAP.125,
+  Prerequisites: MAP.150, MAP.154. Related: MAP.102, MAP.125,
   MAP.146.
+  Foundations lane 2 (2026-10-10, MAP.148 first
+  stage, PR #1160): MAP.148 is retired as built. The client-side law
+  (apparent-magnitude opacity, flux brightness, the 20,000 and 8,000
+  on-screen limit, static/starmagnitude.js) is in. What stays open and
+  now belongs here (and with MAP.154 for the nested lists): choosing
+  tiles by distance, dropping the server's generated_star_floor_sol
+  floors, and reconciling the per-tile cap
+  (GALAXY_TILE_MAX_BRIGHT_STARS=400) with the floor, which Bugfixes lane
+  2 flagged.
   Design: [docs/design/fly-through-view-distance.md](design/fly-through-view-distance.md)
 
 - [ ] **MAP.154 Nested bright-star lists on the server, so every parent list is a subset of its child's**
@@ -1090,6 +1118,82 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   per generated star. Optional.
   Prerequisites: none. Related: MAP.147, MAP.159, MAP.109.
   Design: [docs/design/galaxy-map-wire-format.md](design/galaxy-map-wire-format.md)
+
+- [ ] **MAP.167 Gravity map: a heat map of the gravitational field inside a sector (the seminal feature of 9.0)**
+  Boss (2026-10-10 20:57Z): 'Since we have point mass vectors to
+  calculate orbits, I would like to be able to show a gravitational map
+  of a sector, probably using colors and calculating it per zone. I
+  would like to be able to show the gravitational gradients of the
+  vector field as kind of a heat map of the inside of the sector.' Boss
+  made it the seminal feature of 9.0 (phase 3 roll-out), with the
+  foundations in phase 2. Umbrella: it is done when a viewer opens a
+  sector, switches on the gravity layer and sees the pull, the well
+  depth or the tidal strength as coloured zones with a legend, and the
+  same layer on the System Map; subitems GEN.198, TEST.131, PERF.72 and
+  GEN.199 (phase 2), then API.24, MAP.168, MAP.169 and UX.94 (phase 3),
+  with MAP.170 (Galaxy Map layer) later.
+  Headline: 9.0 (the gravity map).
+  Prerequisites: GEN.199, MAP.168, MAP.169, UX.94, API.24. Related:
+  GEN.105, NAV.6.
+  Design: [docs/design/gravity-map.md](design/gravity-map.md)
+
+- [ ] **MAP.168 The Sector Map gravity layer: coloured zones for pull, well depth and tidal strength**
+  Done: the Sector Map Menu has a Gravity layer with three modes; each
+  zone of the shown slab is a translucent colour on a log scale with a
+  colour-blind-safe ramp (transparency by strength, no fill above 50%
+  opacity as for MAP.131, so stars and routes stay readable); the slab
+  buttons step through the sector, a transparent-volume view shows every
+  slab, Lagrange and saddle points are marked and pickable, and the
+  colour choice is kept in the URL. It uses the one mapping engine and
+  the API.24 grid; a browser test checks the layer draws, switches mode
+  and keeps the URL.
+  Prerequisites: API.24, MAP.125. Related: MAP.167, MAP.131.
+
+- [ ] **MAP.169 The System Map gravity layer: the orbital plane as a heat map with Lagrange points and Hill spheres**
+  Done: the System Map has the same Gravity layer on the system's
+  orbital plane, with the Lagrange points of each pair of bodies marked
+  and each Hill sphere outlined, switching modes and keeping the choice
+  in the URL; a browser test checks it draws.
+  Prerequisite: MAP.168. Related: MAP.167, GEN.109.
+
+- [ ] **MAP.170 The Galaxy Map gravity layer: the galaxy potential and region aggregates, coarse and optional**
+  Later (phase 3+): a coarse gravity layer on the Galaxy Map drawn from
+  the galaxy's smooth potential (GEN.115) and the per-region mass
+  aggregates (MAP.151), so the spiral arms, bulge and halo show as
+  wells; only if the cost study (PERF.72) says it is cheap enough.
+  Prerequisites: MAP.168, MAP.151. Related: MAP.167.
+
+- [ ] **MAP.171 The Galaxy Map keys a massive phenomenon's visibility to its map luminosity (replaces "always lit")**
+  Boss (2026-10-10 21:38Z): "inject into the phenomena part of that, use
+  the following mass/luminosity to allow us to store a 'map visibility'
+  value for phenomena that aren't bright but have large mass. The idea
+  being that a neutron star of say 2 solar masses should be given
+  placement on the map when a star's brightness at 2 solar masses would
+  be visible. Same for black holes, if a super massive black hole has a
+  mass well above the brightest star, then it's visibility on the map
+  should be keyed to that. This allows us to put items on the map that
+  aren't bright enough to be seen but are of importance (major
+  gravitational locations are always important to navigation)." Today
+  the client law (MAP.148, built in PR #1160) gives black holes, neutron
+  stars and quasars a fixed magnitude (PHENOMENON_MAGNITUDE = -40 in
+  starmagnitude.js), so they stay lit at any distance, and the
+  400-per-tile cap and the server floors treat them separately. Done:
+  the tile carries the map luminosity of each phenomenon (in the wire
+  format of MAP.157/158/161 and the packed tiles of MAP.159, as one more
+  plane or field), the client turns it into an apparent magnitude
+  exactly as for a star, so a 2 Msun neutron star appears when a 2 Msun
+  star (about 17 Lsun) would, and a supermassive black hole far above
+  the brightest star stays visible across the galaxy; the server's
+  per-tile choice ranks phenomena and stars together by luminosity or
+  map luminosity, so the 400 cap and the generated_star_floor_sol floors
+  treat them alike. Colours stay as MAP.164 (black holes purple, neutron
+  stars dark blue) and sizes as MAP.165 (by mass). Overlap: MAP.152 owns
+  the distance-cut tile choice, the floor removal and the cap
+  reconciliation in the same query, so this item follows MAP.152 and
+  uses its tile choice. Not a prerequisite of the 8.1 headline
+  (MAP.146). Owner: Foundations lane 2, queued right after MAP.152.
+  Prerequisites: GEN.200, DB.23, GEN.201, MAP.152. Related: MAP.148,
+  MAP.164, MAP.165, MAP.159, MAP.146.
 
 ## NAV: Navigation and courses
 
@@ -1401,20 +1505,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: MAP.122, NAV.17.
   Design: [docs/design/course-routing.md](design/course-routing.md)
 
-- [ ] **NAV.52 Port `join_islands` and the k-d tree to cKDTree**
-  `galaxy/nav_graph.py`'s pure-Python k-d tree is 44 times slower than
-  cKDTree at 10,000 points, and `join_islands` takes 15 to 18 s for
-  10,000 points in 4 islands and 6.9 s for 53,000 points in 394
-  (vectorised: 0.07 s and 0.23 s, identical edges). Done: cKDTree
-  versions with the same edge set, compared on the 106,529-point set. A
-  performance cliff, not a correctness bug; NAV.10 shipped on the old
-  code. Avoid `np.unique` on very large arrays in new code (9.4 s on 6e6
-  int64 against 0.11 s for sort-plus-diff).
-  Lane (2026-10-09): Owner: Bugfixes lane 2 (moved from Foundations lane
-  1 by the coordinator, 2026-10-10).
-  Prerequisites: none.
-  Design: [docs/design/course-routing.md](design/course-routing.md)
-
 - [ ] **NAV.54 Keep-out radii for asteroid fields, supermassive holes, moons and nebulae (NAV.24 built)**
   NAV.24 shipped with these gaps: (a) asteroid fields get a hard
   keep-out of `radius_ly` in km, basis "radius" (NAV.51 asks for this;
@@ -1457,6 +1547,30 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   A frame type and the rule for choosing it (stage 2 of GEN.9).
   Prerequisite: GEN.157.
   Design: [docs/design/multiple-galaxies.md](design/multiple-galaxies.md)
+
+- [ ] **NAV.58 Edit a course: add, remove, reorder and drag its waypoints, then save the edit**
+  Boss (2026-10-10 21:05Z): the 8.5 headline is courses with waypoints
+  that are editable and saved. Waypoints today are picked once and
+  plotted (NAV.49). Done: a course drawn on the map (any display) can be
+  edited in place: add a waypoint by picking an object, remove one,
+  reorder them, or drag a waypoint to another object; the course is
+  re-planned after each edit (bending around gravity wells once NAV.6 is
+  built) and the edit is saved over the saved course or as a new one
+  (NAV.4); a test checks add, remove, reorder and save.
+  Prerequisites: NAV.49, NAV.4. Related: NAV.6, NAV.18, NAV.59.
+
+- [ ] **NAV.59 Headline of 8.5: courses that bend around gravity wells, with waypoints, editable and saved courses**
+  Boss (2026-10-10 21:05Z) chose this as the seminal feature of 8.5 (the
+  end of phase 2). Umbrella: it is done when a viewer plots a course
+  through waypoints, sees it bend around the gravity wells and Hill
+  spheres of the objects it passes (NAV.6 and its subitems), edits the
+  waypoints (NAV.58), saves the course and opens it again on the map
+  (NAV.4, NAV.23). It is the pull model of the gravity map (GEN.198,
+  9.0) seen from the course planner: NAV.6 reuses the evaluator once it
+  exists.
+  Headline: 8.5 (courses that bend around gravity wells).
+  Prerequisites: NAV.6, NAV.49, NAV.58, NAV.4, NAV.23. Related: GEN.198,
+  MAP.167.
 
 ## GEN: Generation and physics
 
@@ -2128,6 +2242,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   its last update (one day of real time is one day of orbit), and an
   option advances it by a stated extra span in one go. Done when its
   subitems are.
+  Headline: 8.0 (the orbital update system).
   Prerequisites: GEN.115, GEN.109, GEN.110.
   Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
   Research (2026-10-09, orbital-solvers-and-integrators.md): the Full
@@ -2957,6 +3072,88 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   ejection, merger or split code exists yet).
   Prerequisite: GEN.143. Related: GEN.105, GEN.143, GEN.170.
 
+- [ ] **GEN.198 The gravity field evaluator: pull, potential and tidal gradient at any point from the point masses and the galaxy potential**
+  Boss (2026-10-10 20:57Z): the orbits come from point-mass vectors, so
+  the same masses give a gravitational field. Done: one function
+  returns, for any point and time, the acceleration vector, the
+  potential and the tidal tensor (its largest eigenvalue and the size of
+  the gradient) from the point masses in and around a sector (the
+  influence set of GEN.109) plus the galaxy's smooth potential
+  (GEN.115), with Plummer softening; near sources are summed exactly and
+  distant ones as per-region aggregates (PERF.72 sets the split). It is
+  a pure function of the stored vectors, so the same galaxy gives the
+  same field, and course planning (NAV.6) can use it instead of a pull
+  model of its own.
+  Prerequisites: GEN.115, GEN.109. Related: GEN.105, NAV.6, TEST.131,
+  PERF.72, MAP.167.
+
+- [ ] **GEN.199 Per-zone gravity grid for a sector: stored in a cache and rebuilt when the orbits update**
+  Done: for a sector, the field (GEN.198) is sampled at the centre of
+  each zone (16 per edge by default, a setting), giving the pull, the
+  potential and the tidal strength per zone, with Lagrange and saddle
+  points flagged. The grid is derived data held in a cache like the
+  Galaxy Map tiles (not in the galaxy tables, so no galaxy migration),
+  is built on the work queue, is thrown away when the orbital update
+  (GEN.105) moves its sources, and a sector with no neighbours generated
+  yet is marked uncharted-edge. A test builds a small sector and checks
+  the grid against the evaluator zone by zone.
+  Prerequisites: GEN.198, PERF.72. Related: GEN.105, PERF.72, MAP.167.
+
+- [ ] **GEN.200 One shared function for the "map luminosity" of a mass: the luminosity a main-sequence star of that mass would have**
+  Boss (2026-10-10 21:38Z): "inject into the phenomena part of that, use
+  the following mass/luminosity to allow us to store a 'map visibility'
+  value for phenomena that aren't bright but have large mass. The idea
+  being that a neutron star of say 2 solar masses should be given
+  placement on the map when a star's brightness at 2 solar masses would
+  be visible. Same for black holes, if a super massive black hole has a
+  mass well above the brightest star, then it's visibility on the map
+  should be keyed to that. This allows us to put items on the map that
+  aren't bright enough to be seen but are of importance (major
+  gravitational locations are always important to navigation)."
+  Piecewise mass-luminosity relation, L in solar luminosities and M in
+  solar masses: M below 0.43: L = 0.23 M^2.3; 0.43 to 2.0: L = M^4; 2.0
+  to 20: L = 1.5 M^3.5; above 20: L proportional to M, fixed by
+  continuity with the band below (about 2,683 M, so 20 Msun gives about
+  53,700 and a 4 million Msun black hole about 1e10). Done: one function
+  in the stellar-physics code, with one set of constants, that every
+  user of it calls (the scatter, the reseed fill and the Galaxy Map tile
+  query); if the star generators already hold a mass-luminosity
+  relation, they share this function or the difference is written down,
+  never two copies. Tests: values at 0.1, 0.43, 1, 2, 20 and 4e6 Msun,
+  monotonic over the whole range, and the size of the steps at the joins
+  (default: use the table's constants as given; the bands then step by
+  about 3% at 0.43 and 6% at 2.0, which does not matter for a visibility
+  rank). Owner: Foundations lane 1, after PERF.70. Sources of the
+  relation (Boss's message): Astronomy Notes (2026, June 14),
+  "Mass-Luminosity Relation Explained - The Sun and Stellar Structure",
+  https://www.astronomynotes.com/starsun/s8.htm; Varsity Tutors (n.d.),
+  "Stellar Mass & Lifetime",
+  https://www.varsitytutors.com/practice/subjects/astronomy/lessons/stellar-mass-and-lifetime.
+  Prerequisites: none. Related: DB.23, GEN.201, MAP.171, MAP.165,
+  GEN.185.
+
+- [ ] **GEN.201 Fill the map luminosity in the scatter and in existing galaxies**
+  Boss (2026-10-10 21:38Z): "inject into the phenomena part of that, use
+  the following mass/luminosity to allow us to store a 'map visibility'
+  value for phenomena that aren't bright but have large mass. The idea
+  being that a neutron star of say 2 solar masses should be given
+  placement on the map when a star's brightness at 2 solar masses would
+  be visible. Same for black holes, if a super massive black hole has a
+  mass well above the brightest star, then it's visibility on the map
+  should be keyed to that. This allows us to put items on the map that
+  aren't bright enough to be seen but are of importance (major
+  gravitational locations are always important to navigation)." Done:
+  the phenomenon scatter writes `map_luminosity_sol` from the mass with
+  the shared function when it inserts a row (every pass, including "Redo
+  scatters", GEN.196), so a reseed fills it; existing galaxies get it
+  from a one-off maintenance command that fills the column in id-range
+  batches with the progress bar and ETA of PERF.66, resumable, no
+  downtime for readers (default: both, since Boss resets by hand and the
+  command saves a full reseed). Check: after a reseed and after the
+  command, the same rows carry the same values (a test on a small
+  galaxy). Owner: Foundations lane 1.
+  Prerequisites: GEN.200, DB.23. Related: MAP.171, GEN.185, GEN.196.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.18 Run the GEN.30 bright-star backfill in parallel on the work queue**
@@ -3050,39 +3247,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   name-registry confirmation (#657) are inside the sector save
   transaction; if not, a crash leaves an orphan reservation.
   Prerequisite: PERF.29.
-
-- [ ] **PERF.31 Investigate: where generation spends its time, from the plan to a finished galaxy**
-  Boss (GitHub issue [#761](https://github.com/dwhagar/planetGen/issues/761), 2026-10-09 04:43Z): "We need to do a timed
-  analysis in full debug from the planning of the galaxy to the galaxy
-  being ready and generation finished. We need to know where the system
-  spends the most time in each phase." and (issue [#750](https://github.com/dwhagar/planetGen/issues/750)) "there should be
-  a method to benchmark." Done: a repeatable benchmark command runs a
-  small galaxy from the plan to the finished fill in full debug and
-  prints the time spent in each phase and sub-phase; a report names the
-  largest costs and what to do about each, and files an item per fix.
-  PERF.34 and PERF.32 build on it.
-  Research (2026-10-09, performance-eta-queue-and-caching.md): specify
-  `planetgen benchmark [--sectors N] [--profile]` as in design doc 5.3
-  (wall-clock `perf.phase()` timers always on, database counters before
-  and after, `pyinstrument` only with `--profile`, runs at 1, 2 and 4
-  workers and with a page-request thread). Tools for Python 3.9:
-  cProfile, pyinstrument 5.1.3 (cp39 wheels), py-spy 0.4.2. In-memory
-  generation is about 5 ms per system, 16.6 ms per system in a filled
-  sector, so the database path (neighbour lock, uid pass, registry
-  upsert) is the target.
-  Research (2026-10-09, generation-performance-study.md): this study
-  answers it for the scatter and fill phases (see PERF.42, PERF.43,
-  PERF.44, PERF.45, PERF.46, PERF.47 and DB.19). Open for Boss: which
-  phase took the 10 hours (the log will say).
-  Measurement (2026-10-09, corrected): Bugfixes lane 1 first reported
-  that one dense core sector took 84 s with 30 s in
-  `reserve_system_names`; that first profile ran while another run was
-  saving into the same database. Foundations lane 1 re-measured (PR #870,
-  PERF.49) with nothing else writing: reservation itself is 0.12 s a
-  sector, but at 4 workers the name registry's row locks, held until the
-  sector commit, made a save wait 6 to 25 s. Names are now claimed in a
-  short transaction of their own; 8 core sectors on 4 workers take 54 s
-  against about 90 s.
 
 - [ ] **PERF.33 Progress bars and ETAs from measured performance**
   Boss (GitHub issue [#661](https://github.com/dwhagar/planetGen/issues/661)): "time remaining on all progress bars should
@@ -3186,7 +3350,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   approved; default): decide after
   PERF.31 shows the cold rebuild cost; switch if a full rebuild takes
   more than a minute.
-  Prerequisite: PERF.31.
   Design: [docs/design/performance-eta-queue-and-caching.md](design/performance-eta-queue-and-caching.md)
 
 - [ ] **PERF.46 Planets and moons: set the position once per body**
@@ -3219,7 +3382,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   point): record `innodb_buffer_pool_size`, the table sizes and the
   worker start-up cost with every benchmark run, so a result can be
   compared with the next.
-  Prerequisite: PERF.31.
   Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
 
 - [ ] **PERF.48 Low priority: a numeric-only INSERT formatter or C driver for bright_stars and phenomenon_scatter**
@@ -3239,73 +3401,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   passes). Done: the stats record each pass on its own row, the admin
   table shows them, and the size and time estimates use the right row
   for the plan being estimated. Phase 2.
+  Note (2026-10-10): PERF.63 (PR #1174) cut the phenomena pass from
+  about 37 min to 3.7 min at the default scale (2,041 layers, 68.2M
+  objects), so writing the rows to the database is now the dominant cost of a scatter run; PERF.73
+  measures and cuts it. The per-pass stats rows here should therefore
+  record compute time and write time separately for the phenomena pass.
   Prerequisites: none. Related: PERF.52, PERF.53, GEN.185.
-
-- [ ] **PERF.59 Share the ring inputs between the phenomena pass and the backfill rings (top priority)**
-  From the scatter study (docs/design/scatter-queue-feasibility.md): the
-  scatter passes recomputed identical _ring_bins inputs, about 87 of 168
-  s at quarter scale. Boss (09:52Z): follow the study recommendations,
-  top priority. Re-scoped (Bugfixes lane 1, 2026-10-10, after PERF.58,
-  PR #1108): the mass and luminosity passes are object-first now and no
-  longer walk rings, so only the phenomena pass and the mass backfill
-  rings still use the ring inputs. Done: those ring inputs are built once
-  per run and shared, and cached across runs by the same key as the map
-  warm-up where that is safe; results do not change (a test shows the
-  same rows with and without sharing). The phenomena pass keeps its ring
-  walk (PERF.61 found no gain, PR #1113), so this item stands. Owner:
-  Bugfixes lane 1.
-  Prerequisites: none. Related: PERF.58, PERF.61, PERF.63, GEN.185.
-  Benchmark (coordinator, 2026-10-10): once Boss reseeds with the PERF.58
-  sampler, read the stage stats of PERF.56 for the mass and luminosity
-  passes at default scale and compare with the study's forecast of
-  about 35 times faster; Boss times the reseed himself. PERF.58 finding:
-  the old ring walk overstated expected counts about 6% on the toy test
-  galaxy (density read at bin centres); the new sampler integrates the
-  true density. PERF.61 side result (PR #1113): the star scatter checks
-  the cell address only after the density test, about 20% faster.
-
-- [ ] **PERF.63 Vectorise the candidate work of the phenomena scatter with numpy**
-  Bugfixes lane 1 (2026-10-10, PERF.61, PR #1113): the object-first
-  phenomena sampler was built and measured on the default-scale galaxy
-  (41 of 2,041 layers, 14 Msun cut, one process): counts match
-  (1,380,928 against 1,385,251, -0.3%) but the time is the same (new
-  35.0 min, today 34.8 min for the whole pass, scaled), because layers
-  hold 33,000 to 95,000 phenomena each and per-object work dominates
-  (about 17 us an object today, about 30 us object-first). It wins only
-  on sparse outer layers (layer 700: 0.32 s to 0.08 s) and loses on
-  dense ones (layer 0: 1.4 s to 2.35 s). The prototype is not merged; it
-  lives in research/scatter-queue/scripts/ and the write-up is in
-  docs/design/scatter-queue-feasibility.md. Possible follow-up:
-  vectorise the per-object candidate work in numpy (own prototype, not
-  started). Done: a prototype is measured against today's pass (counts,
-  spatial distribution, time, reseed) and merged only if it is clearly
-  faster. Decided (Boss, 2026-10-10 19:27Z): yes, build the numpy
-  prototype. Owner: Bugfixes lane 1 (moved from Phase 2 to Phase 1 by
-  the coordinator).
-  Prerequisites: none. Related: PERF.59, GEN.185.
-
-- [ ] **PERF.64 The Galaxy Map and the Systems list stop with "Took too long" and the whole site is sluggish (bug)**
-  Boss (2026-10-10 19:45Z, with a screenshot): the Galaxy Map and the
-  Systems list show the 504 page "Took too long: This page asked the
-  database for more than it could answer in time, so it was stopped. Try
-  a narrower search or a smaller page.", and the site as a whole feels
-  sluggish; "I've had this happen before, so we need to fix it". The
-  page is the web statement timeout at work
-  (`statement_timeout_seconds`, 10 s, `MAX_EXECUTION_TIME` on the
-  read-only connections), so some query on those pages now runs past 10
-  s on his database. Done: find which statements time out on the Galaxy
-  Map tiles and the Systems list (log the statement and its time, run
-  EXPLAIN on his database size), fix them with an index, a narrower
-  query or a cache, and show the slow pages and the sluggishness no
-  longer happen while the database is busy and idle alike; add a test
-  that fails when a page query reads more than a page needs. Earlier
-  work on the same family: PERF.34 (site responsive during heavy jobs,
-  PR #811), PERF.38 (cache fixes under a fill, PR #1144), PERF.36 (never
-  list more than about 50,000 candidate cells), PERF.39 (API job cost,
-  PR #1151) and PERF.40 (reserved interactive worker). Owner:
-  Foundations lane 1.
-  Prerequisites: none. Related: PERF.34, PERF.36, PERF.38, PERF.39,
-  PERF.40.
 
 - [ ] **PERF.65 The text output of a multi-step job counts its steps, not its tasks: "Step 1 of 4" when the job has 12 (bug)**
   Boss (2026-10-10 19:54Z, with a Generate-page log): a new-galaxy run
@@ -3382,6 +3483,234 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: PERF.32, PERF.33, PERF.55, PERF.56,
   PERF.66.
 
+- [ ] **PERF.68 Measure the Galaxy Map tile queries on a big galaxy and make them fit the time limit (bug)**
+  Left over from PERF.64 (PR #1161, Foundations lane 1, 2026-10-10
+  20:47Z): the Galaxy Map's tile queries were not measured on a big
+  galaxy, only the Systems list and the busy behaviour were fixed. Boss
+  saw the Galaxy Map hit the 'Took too long' page. Done: the tile
+  queries are run with EXPLAIN and timed on a database of millions of
+  systems (a synthetic one is fine), the slow ones get an index, a
+  narrower read or a cache until each answers well inside the statement
+  limit while a fill is running, and a test fails when a tile query
+  reads more rows than a tile needs.
+  Note (2026-10-10, PERF.71 research): the research found the cause of
+  the worst tile: the scattered-points query reads 8.6 million rows
+  (range on `idx_phenomenon_scatter_address` plus a filesort), 33 s at
+  level 2 and 5. Fix by index: `phenomenon_scatter (kind, subtype,
+  mass_solar)` for the coarse points (31.7 s to 0.28 s on the scratch
+  galaxy; 29 s and about 0.6 GB to build on 17.8 million rows), through
+  an Alembic migration that goes through the migration runner's batch
+  and progress reporting, and a second look at the neutron-star and
+  non-coarse path on a current galaxy. This item is the tile index; the
+  per-piece budgets are PERF.76, and the reusable test is TEST.133.
+  Queued first, with PERF.74.
+  Prerequisites: none. Related: PERF.64, PERF.34, PERF.36.
+
+- [ ] **PERF.69 Store the Planets, Moons and Phenomena table counts like the Systems and Sectors counts (bug)**
+  Left over from PERF.64 (PR #1161): the Systems and Sectors tables show
+  stored totals and filter-menu counts from db/countcache.py (setting
+  page_cache.stored_counts, PLANETGEN_COUNT_CACHE), but the Planets,
+  Moons and Phenomena tables still count their whole tables in the
+  request, so they can hit the same 'Took too long' page on a big
+  galaxy. Done: their totals and facet counts go through the same
+  stored-count cache (last value served while a new one is made, an
+  estimate before the first), and a test fails when a table page counts
+  a whole table in the request.
+  Prerequisites: none. Related: PERF.64, PERF.34, PERF.36.
+
+- [ ] **PERF.70 Sorting the Systems list by Sector or Octant on millions of rows must not sort them all (bug)**
+  Left over from PERF.64 (PR #1161): sorting the Systems list by Sector
+  or Octant on millions of rows still sorts every row before the page is
+  cut, which can pass the statement limit. Done: the sort is served by
+  an index (or a stored sort key) so a page reads only the rows it
+  shows, measured on a database of millions of systems, and a test fails
+  when the sorted page reads more than a page needs.
+  Note (2026-10-10): Foundations lane 1 reports (PR #1161)
+  that sorting by Sector, Octant or Binary took about 50 s on 3
+  million rows under load, so the fix covers all three sorts (a
+  composite index or a sort limit).
+  Note (2026-10-10, PERF.71 research): the research measured both sorts:
+  sorting by Sector 4.8 s idle (6.3 s under a fill), by Octant 0.9 to
+  4.1 s. Fix: an index `(quadrant, name, id)` with the `ORDER BY`
+  written to match it (the `quadrant IS NULL` form defeats the index),
+  and a stored sector-name sort column with an index `(sector_sort,
+  name, id)`, filled in batches by a migration (202 s for 2,000,000
+  systems) and kept in step on sector rename. 4.8 s to 0 s. Needs an
+  Alembic migration (Foundations lane 1); queued first, with PERF.68.
+  Prerequisites: none. Related: PERF.64, PERF.34, PERF.36.
+
+- [ ] **PERF.72 Research the cost of a sector's gravity grid and where to cut between exact and aggregated sources**
+  Done: a note (docs/design/gravity-map.md, section 'How it is
+  computed', extended with measurements) says what a grid of 16 zones
+  per edge costs for a dense sector (core, bulge and arm) and a sparse
+  one, with numpy and the per-region aggregates of MAP.151, picks the
+  near/far distance and the zone count, gives the error of the aggregate
+  against the exact sum, and says when a grid is recomputed after an
+  orbital update (every step, or only for sectors whose sources moved by
+  a set amount). Ends with the build items filed.
+  Prerequisite: GEN.198. Related: GEN.198, GEN.199, MAP.151.
+  Design: [docs/design/gravity-map.md](design/gravity-map.md)
+
+- [ ] **PERF.73 Cut the cost of writing the phenomenon rows to the database (now the biggest part of a scatter run)**
+  Bugfixes lane 1 (2026-10-10, PERF.63, PR #1174): the numpy phenomena
+  pass takes 3.7 min at the default scale (2,041 layers, 68.2M objects)
+  against about 37 min, so computing the objects is no longer the cost;
+  writing the roughly 68 million rows is. Done: measure the write on the
+  default galaxy (rows a second, time per layer, index and redo-log
+  share) and cut it: batch size, one bulk statement per layer, `LOAD
+  DATA` where the connection allows it, deferring or dropping the
+  secondary index `idx_phenomenon_scatter_address` during the load and
+  rebuilding it after, unique and foreign-key checks off for the load,
+  commit size; keep the rows identical to today's (a test shows the same
+  rows). Report the before and after in the PR and update the
+  generation-time notes. Owner: Foundations lane 1, after PERF.68-70.
+  Prerequisites: none. Related: PERF.31, PERF.47, PERF.54, PERF.58,
+  GEN.185.
+
+- [ ] **PERF.74 Store a per-sector system count so the Sectors list does not count every system on each request**
+  From the PERF.71 research (docs/design/slow-reads-and-timeouts.md, PR
+  #1175; Boss's ask of 2026-10-10 20:50Z; measured on 2,000,000
+  synthetic systems, MariaDB 10.11): the Sectors list counts all
+  2,000,000 systems per request to give each sector its count and then
+  sorts (17.2 s idle, 29.0 s under a fill, past the 10 s limit). Done: a
+  summary table (sector id, system count, index on the count) is
+  refreshed in the background like the count cache of PERF.64, no sooner
+  than every 30 s and one GROUP BY on the sector index (0.4 to 0.8 s for
+  2,000,000 systems), and the Sectors list, its sort by systems and its
+  density sort read it; the page answers in about 1 ms by name and 0.23
+  s by systems. Needs an Alembic migration (Foundations lane 1 only).
+  Queued first in this group, with PERF.68, because it fixes timeouts
+  Boss sees. Owner: Foundations lane 1, right after PERF.68-70.
+  Prerequisites: none. Related: PERF.64, PERF.69, PERF.70, PERF.71.
+  Design: [docs/design/slow-reads-and-timeouts.md](design/slow-reads-and-timeouts.md)
+
+- [ ] **PERF.75 Keyset paging for the data tables: page forward by key, jump by value**
+  From the PERF.71 research (docs/design/slow-reads-and-timeouts.md, PR
+  #1175; Boss's ask of 2026-10-10 20:50Z; measured on 2,000,000
+  synthetic systems, MariaDB 10.11): `OFFSET` makes page n cost n times
+  as much (rows 0, 20,000, 500,000 and 1,500,000 take 0.004, 0.13, 5.8
+  and 12.1 s idle); a keyset page costs 2 ms at row 1,500,000 (8.5 s
+  before). Done: the table routes and the API list routes take
+  `after=<sort key, id>` next to `offset=`, `static/datatable.js` pages
+  forward by key and jumps by value (a letter or a sector; the scroll
+  bar position becomes an estimate), the condition is written with `OR`
+  and never as a row constructor (it took 5.0 s on MariaDB 10.11, no
+  index range), and a test checks the plan on MariaDB and MySQL. Decided
+  by default (the three research defaults, 2026-10-10 21:41Z; stands
+  unless Boss objects): jump-by-value is accepted in place of
+  jump-by-row-number on the big tables. Owner: Foundations lane 1.
+  Prerequisites: none. Related: PERF.64, PERF.70, PERF.71.
+  Design: [docs/design/slow-reads-and-timeouts.md](design/slow-reads-and-timeouts.md)
+
+- [ ] **PERF.76 Give each Galaxy Map tile piece its own time budget and serve an "incomplete" tile**
+  From the PERF.71 research (docs/design/slow-reads-and-timeouts.md, PR
+  #1175; Boss's ask of 2026-10-10 20:50Z; measured on 2,000,000
+  synthetic systems, MariaDB 10.11): a tile is eight independent queries
+  (placed sectors, planned slots, filled cells, clouds, bright stars,
+  generated stars, points, scattered points) and one piece holds 31.4 of
+  31.6 s at level 2. Done: each piece runs under its own statement limit
+  (about 3 s), the tile is served with what finished and marked
+  `incomplete` in the tile cache so it is not served as final and is
+  rebuilt after a short wait, and the existing retry fetches the missing
+  piece, so the map shows without its slowest points for a moment
+  instead of the "Took too long" page. Decided by default (the three
+  research defaults, 2026-10-10 21:41Z; stands unless Boss objects): a
+  tile that timed out shows partly with a retry. Owner: Foundations lane
+  1.
+  Prerequisite: PERF.68. Related: PERF.34, PERF.36, PERF.64, MAP.159.
+  Design: [docs/design/slow-reads-and-timeouts.md](design/slow-reads-and-timeouts.md)
+
+- [ ] **PERF.77 Capped counts: "10,000 or more" where no stored count exists for a filter**
+  From the PERF.71 research (docs/design/slow-reads-and-timeouts.md, PR
+  #1175; Boss's ask of 2026-10-10 20:50Z; measured on 2,000,000
+  synthetic systems, MariaDB 10.11): a count with a star-type filter
+  took 6.0 s; counting to 10,001 and stopping took 0.030 s. Done: where
+  no stored count exists for a filter, the table counts to 10,001 and
+  shows "10,000 or more", and the exact figure replaces it once the
+  background count finishes (extends the fallback of PERF.64). Decided
+  by default (the three research defaults, 2026-10-10 21:41Z; stands
+  unless Boss objects): show "10,000 or more" for filtered counts nobody
+  has stored. Owner: Foundations lane 1.
+  Prerequisites: none. Related: PERF.64, PERF.69, PERF.71.
+  Design: [docs/design/slow-reads-and-timeouts.md](design/slow-reads-and-timeouts.md)
+
+- [ ] **PERF.78 A reserved warm worker for long admin operations, and the poll pattern for them**
+  From the PERF.71 research (docs/design/slow-reads-and-timeouts.md, PR
+  #1175; Boss's ask of 2026-10-10 20:50Z; measured on 2,000,000
+  synthetic systems, MariaDB 10.11): queueing a read is not the answer
+  for page reads (it runs the same SQL on the same busy database, holds
+  one of the API daemon's 5 threads while the request waits, needs a
+  public polling route and costs 2.4 s to start a worker), but it is
+  right for work an admin starts and expects to take long. Done: the
+  `planetgen-interactive` queue of
+  docs/design/performance-eta-queue-and-caching.md 3.4 is built for
+  those operations only (Generate estimates, the deep database check
+  DB.21, exports), with a warm worker reserved for it and the admin poll
+  route they already use; no public polling route. Low priority. Owner:
+  Foundations lane 1.
+  Prerequisites: none. Related: PERF.19, PERF.24, DB.21, PERF.71.
+  Design: [docs/design/slow-reads-and-timeouts.md](design/slow-reads-and-timeouts.md)
+
+- [ ] **PERF.79 Two workers make the plan scatter about 12 times slower than one (bug)**
+  From the PERF.31 benchmark (Foundations lane 1, PR #1179;
+  docs/design/generation-benchmark-report.md; `python -m
+  planetgen.cli.generate benchmark --workers 1,2 --profile`, 4 cores,
+  MariaDB 10.11, plan to ring 12 with 2,041 layers then 2 sectors): with
+  2 workers the plan takes 594 s against 47 s (bright stars 8 s to 282
+  s, massive stars 11 s to 206 s, phenomena 24 s to 101 s) while the
+  database answers 542,000 statements against 135,000; the cost is queue
+  and database round trips for 2,041 tiny layers, not computation (the
+  fill itself speeds up, 48 s to 30 s). The scatter stages also scale
+  with layers, not objects: the bright-star scatter visits 2,041 layers
+  and places 0 objects (8 s). Done: the cause is isolated (the poll
+  constants in queue/work.py and one task per layer are the first places
+  to look), the scatter batches its layers so that 2 or more workers are
+  not slower than 1 on the same plan, and the benchmark shows it; the
+  rows stay identical. Owner: Foundations lane 1.
+  Prerequisites: none. Related: PERF.31, PERF.47, PERF.73, PERF.58,
+  GEN.185.
+  Design: [docs/design/generation-benchmark-report.md](design/generation-benchmark-report.md)
+
+- [ ] **PERF.80 "Save the sector paths" takes 24% of a small run and does not speed up with workers**
+  From the PERF.31 benchmark (Foundations lane 1, PR #1179;
+  docs/design/generation-benchmark-report.md; `python -m
+  planetgen.cli.generate benchmark --workers 1,2 --profile`, 4 cores,
+  MariaDB 10.11, plan to ring 12 with 2,041 layers then 2 sectors): 33 s
+  of a 138 s two-sector run (settle_after_run is 80 s of 227 s in the
+  profile, integrate_path 17,284 calls and 54 s). Done: the settle step
+  does less integration work per sector (batch or cache the path
+  integration, skip unchanged sectors) or runs in the workers, measured
+  with the benchmark, and the saved paths do not change. Owner:
+  Foundations lane 1.
+  Prerequisites: none. Related: GEN.126, PERF.31.
+  Design: [docs/design/generation-benchmark-report.md](design/generation-benchmark-report.md)
+
+- [ ] **PERF.81 Nearest-neighbour search in sector generation: a spatial grid instead of 1.8 million distance calls**
+  From the PERF.31 benchmark (Foundations lane 1, PR #1179;
+  docs/design/generation-benchmark-report.md; `python -m
+  planetgen.cli.generate benchmark --workers 1,2 --profile`, 4 cores,
+  MariaDB 10.11, plan to ring 12 with 2,041 layers then 2 sectors):
+  `nearest_neighbors` makes 1.8 million `distance_to` calls for 1,916
+  systems (41 s of 227 s in the profile). Done: a spatial grid (or
+  cKDTree, as NAV.52 did for join_islands) gives the same neighbours
+  with far fewer distance calls, a test shows identical results on a
+  fixed sector, and the benchmark shows the saving. Owner: Foundations
+  lane 1.
+  Prerequisites: none. Related: PERF.31, NAV.52.
+  Design: [docs/design/generation-benchmark-report.md](design/generation-benchmark-report.md)
+
+- [ ] **PERF.82 Cut the cost of inserting a sector (about 17% of the fill)**
+  From the PERF.31 benchmark (Foundations lane 1, PR #1179;
+  docs/design/generation-benchmark-report.md; `python -m
+  planetgen.cli.generate benchmark --workers 1,2 --profile`, 4 cores,
+  MariaDB 10.11, plan to ring 12 with 2,041 layers then 2 sectors):
+  `insert_sector` is 40 s of the 227 s profile. Done: the insert is
+  measured by statement (batching, executemany, fewer round trips) and
+  cut, with the rows identical. Related to the uid work in PERF.31's
+  study items and the write cost of PERF.73. Owner: Foundations lane 1.
+  Prerequisites: none. Related: PERF.31, PERF.73.
+  Design: [docs/design/generation-benchmark-report.md](design/generation-benchmark-report.md)
+
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
@@ -3454,7 +3783,8 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
 - [ ] **DB.17 Repair by regenerating a damaged sector from its seed when parity cannot rebuild it**
   The second half of DB.9: when the parity file cannot rebuild a sector,
   regenerate it from the galaxy seed, the sector's stored directives and
-  the settings file (ADM.18), then replay its edits from the edit log.
+  the current galaxy's internal record (ADM.50), then replay its edits
+  from the edit log.
   (Boss, 2026-10-09 20:42Z, dropped the pending-delta JSON and daily
   merge this item used to read; the seed is still used internally for
   repair. Boss, 2026-10-09 20:52Z: keep the repair from the seed, replaying
@@ -3481,6 +3811,32 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   and a per-row INSERT loop: fine today, not a pattern for the 10^8-row
   tables.
   Design: [docs/design/db-check-and-parity-repair.md](design/db-check-and-parity-repair.md)
+
+- [ ] **DB.23 Store a "map luminosity" for phenomena that are faint but massive (Alembic migration)**
+  Boss (2026-10-10 21:38Z): "inject into the phenomena part of that, use
+  the following mass/luminosity to allow us to store a 'map visibility'
+  value for phenomena that aren't bright but have large mass. The idea
+  being that a neutron star of say 2 solar masses should be given
+  placement on the map when a star's brightness at 2 solar masses would
+  be visible. Same for black holes, if a super massive black hole has a
+  mass well above the brightest star, then it's visibility on the map
+  should be keyed to that. This allows us to put items on the map that
+  aren't bright enough to be seen but are of importance (major
+  gravitational locations are always important to navigation)." Done: a
+  new column `map_luminosity_sol` (FLOAT, null allowed) on
+  `phenomenon_scatter`, next to `mass_solar` (MAP.165), added by the
+  next Alembic revision (0082 or the next free one) with the
+  previous-version fixture and the models regenerated. Only the kinds
+  that have a mass get a value (black holes, neutron stars and quasars;
+  planetary nebulae and supernova remnants stay null, hypervelocity
+  stars keep their own luminosity). Black holes and neutron stars in
+  generated sectors are few, so they take the value from the shared
+  function (GEN.200) when the map reads them and get no column
+  (default). Decided by default: FLOAT, 4 bytes a row, about 0.27 GB at
+  68 million rows; no index unless the tile query needs one (PERF.68
+  measures that). Owner: Foundations lane 1 (the only lane that adds
+  migrations), after PERF.70.
+  Prerequisite: GEN.200. Related: GEN.201, MAP.171, MAP.165.
 
 ## API: The JSON API
 
@@ -3786,6 +4142,15 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   region per request.
   Prerequisite: API.18.
 
+- [ ] **API.24 GET /api/sectors/<id>/gravity: the per-zone gravity grid as JSON**
+  Done: the endpoint returns a sector's grid (GEN.199) for one mode
+  (pull, well depth or tidal strength), as a compact array with the zone
+  size, the origin, the unit and the Lagrange or saddle points, with the
+  usual API scopes and logging (API.15), queued with the 202 behaviour
+  when the grid has to be built; documented in the API docs and the
+  compatibility data.
+  Prerequisite: GEN.199. Related: MAP.167.
+
 ## ADM: Admin tools
 
 - [ ] **ADM.13 Incomplete uploads page**
@@ -3936,6 +4301,50 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   are `noindex,follow`, top pages only in the sitemap, switchable with
   `seo.detail_pages`.
 
+- [ ] **ADM.50 Remove the galaxy settings files and everything around them; keep only an internal record of the current galaxy**
+  Boss (2026-10-10 21:14Z): 'remove the galaxy seed JSON files
+  entirely.' Boss (21:17Z): 'I only want to store the current galaxy
+  things that I need to store, I don't care about past galaxies, so it
+  can go in a JSON but we don't need to expose it to the user at all
+  unless it's admin but even then, there's no real reason for someone to
+  have that file since we're removing importing/exporting settings.'
+  What exists: `planetgen plan` writes `<32-hex seed>-<22-hex version
+  key>-<YYYYMMDD>-<HHMMSS>Z.json` into `galaxy-settings` in the jobs
+  directory (`PLANETGEN_SETTINGS_DIR`), one dated file per plan, old ones
+  kept as backups, holding the plan options, seed, version key, naming
+  key, the requirements.lock hash and both word lists. What reads or
+  writes it: planetgen/galaxy/settings_file.py (write, list_files,
+  current_file, build); generation/run_plan.py (`_write_settings_file`,
+  called at the end of the plan); galaxy/version_check.py (compares the
+  running code with the file's settings and warns); api/admin.py (`GET
+  /api/admin/galaxy-settings[/<name>]`); web/lib/apiclient.py and
+  web/admin_pages.py (the download); web/templates/admin_stats.html (the
+  'Galaxy settings' panel); tests test_settings_file.py,
+  test_sector_versions.py, test_web_admin.py and test_settings.py;
+  docs/design/reproducible-galaxies.md section 7 ('As built (ADM.18)').
+  Done: (1) the whole outward surface is gone, with no shim, wrapper or
+  compatibility stub (Boss, 2026-10-07): the two API routes and their
+  clients, the download, the Admin panel and its text, the dated files,
+  the backups and the history, and the plan step that wrote them; there
+  is no import or export of settings anywhere (no item plans one; ADM.42
+  to ADM.44's `settings.json` overlay is a different thing and stays).
+  (2) Only what the current galaxy needs is kept, as one internal record
+  that nobody can see or download (a row in the database's control
+  tables, or a file under the data directory that the site never serves;
+  decide in the PR and say which): the seed, which already lives in
+  `galaxy_shape`, the naming key, which already lives in `galaxy_naming`,
+  and the generator epoch and `fp_spec` when OPS.28 and OPS.37 land; the
+  requirements.lock hash and the word lists existed only in the file, so
+  keep them in that record only if OPS.28 still needs them, else drop
+  them. A new plan overwrites the record; nothing older is kept. (3)
+  The version check keeps comparing sector versions and compares the
+  running code with that record. (4) The tests and the design section
+  are deleted or rewritten, README and docs text that mention the files
+  are updated, update.sh removes any old `galaxy-settings` directory
+  once, and the changelog entry says the files are gone.
+  Prerequisites: none. Related: ADM.18, OPS.28, OPS.37, DB.16, DB.17,
+  DOC.14, GEN.135.
+
 ## SEC: Security
 
 The login protection of 2026-10-01 (SEC.1, SEC.20 to
@@ -4007,7 +4416,162 @@ clears each one.
   change (the scatter or object-first sampler work) removed the moons,
   and fix the fixture so the tests do not depend on luck; never skip
   them. Owner: Bugfixes lane 2.
+  Note (2026-10-10): the names that fail on main (Foundations lane 2,
+  20:50Z; they fail on plain main in a clean worktree
+  and also alone, so they are not load flakes):
+  tests/test_web_browser_maps.py::test_system_map_selection_drill_and_measure
+  (assert None ... re.fullmatch('/nav?from=moon:d+', '')),
+  ::test_system_page_3d_view_draws_switches_scale_and_keeps_the_diagram
+  and ::test_a_body_link_opens_highlights_and_selects_it ("no generated
+  system has a moon"). The three names above in the title are the
+  earlier shorthand.
   Prerequisites: none. Related: TEST.111, TEST.122.
+
+- [ ] **TEST.126 The heavy WebGL browser-map tests time out when four workers run them together (bug)**
+  Reported by Foundations lane 2 (2026-10-10 20:50Z): in a full suite
+  under `python3 -m pytest -n 4 -q tests` (about 15,450 tests, 65-69
+  min, 4 cores, MariaDB and Redis local) these pass alone and fail
+  together, a pattern of SwiftShader WebGL tests timing out when four
+  workers run them at once. MAP.148 run:
+  tests/test_web_browser_maps.py::test_galaxy_map_free_camera_from_an_arc_down,
+  ::test_galaxy_map_buttons (a playwright error),
+  ::test_nav_ends_picked_from_bookmarks_on_every_page. MAP.149 run: the
+  same three, plus
+  tests/test_web_browser_fixture_maps.py::test_bookmarks_keep_a_course_pick_on_the_galaxy_map
+  and
+  ::test_galaxy_map_hover_lights_every_choice_while_picking_a_course,
+  and
+  tests/test_web_system_nav_row.py::test_the_navigate_menu_goes_where_the_wide_buttons_go[From
+  here-a.nav-wide >> nth=0] (Bugfixes lane 1 saw the nav-row test the
+  same way). A fixture-maps-only run under -n 4 (22 min) had 12 failures
+  that all passed serially:
+  test_bookmarks_keep_a_course_pick_on_the_galaxy_map,
+  test_galaxy_map_hover_lights_every_choice_while_picking_a_course,
+  test_galaxy_map_bookmark_star_saves_the_stage_and_the_menu_opens_it,
+  test_galaxy_map_does_not_prefetch_on_a_data_saving_connection,
+  test_galaxy_breadcrumb_always_matches_the_view_its_url_names,
+  test_galaxy_map_draws_point_phenomena_that_link_to_their_pages,
+  test_the_map_help_is_a_menu_item_that_opens_a_dialog,
+  test_galaxy_map_point_phenomena_hover_and_offer_nav_links,
+  test_galaxy_map_opens_zoomed_in_on_the_charted_space,
+  test_galaxy_map_pick_mode_clicks_down_through_every_stage,
+  test_the_slab_rail_shows_only_while_the_stage_has_slab_buttons and
+  test_the_map_card_goes_wide_but_the_title_keeps_the_page_edge. Full
+  tracebacks were not kept. Done: the cause is found (a time budget the
+  tests do not scale with load, too many WebGL pages at once per worker,
+  or a real wait that is missing) and the tests are made reliable under
+  -n 4 (a shared limit on concurrent WebGL pages, waits on page state
+  not fixed times, or a serial marker for the heaviest), without
+  skipping or loosening any; a full -n 4 run shows none of them failing.
+  Owner: Bugfixes lane 2, after its current items.
+  Note (2026-10-10): Bugfixes lane 2 (21:06Z) adds
+  tests/test_web_browser_fixture_maps.py::test_galaxy_map_color_by_switches_the_fill_with_a_legend_and_keeps_it_in_the_url:
+  failed once in the NAV.9 run under load, passed alone.
+  Prerequisites: none. Related: TEST.111, TEST.121, TEST.122, TEST.125.
+
+- [ ] **TEST.127 test_nebula_shape_endpoint_serves_a_mesh failed once in a full parallel run (bug)**
+  Reported by Foundations lane 2 (2026-10-10 20:50Z):
+  tests/test_api.py::test_nebula_shape_endpoint_serves_a_mesh failed in
+  a full `-n 4` run (the MAP.148 run, 19:27Z) with an assertion starting
+  'assert 1' (the rest was cut from the log) and passed on a serial
+  rerun; main was not checked. Bugfixes lane 1 has not seen it. Done:
+  the next failure's full traceback is captured (or a loaded run
+  reproduces it), the cause is found (a shared nebula or sector fixture,
+  an id or ordering dependence, or a real mesh bug) and the test is made
+  reliable without loosening it. Owner: Bugfixes lane 2, after its
+  current items.
+  Prerequisites: none. Related: TEST.111, TEST.116.
+
+- [ ] **TEST.128 test_spatial_position_db and test_web_db_fields fail under a parallel run on one MySQL (bug)**
+  Reported by Bugfixes lane 1 (2026-10-10 20:50Z): intermittent failures
+  of test_spatial_position_db and test_web_db_fields (both under tests/)
+  when the suite runs in parallel (`-n 4`) on one MySQL; both pass alone
+  and none fail on a quiet main. The assertion messages were not saved.
+  Done: the next failure's traceback is captured, the cause is found (a
+  shared database name or schema, a leftover row, or timing under load;
+  compare TEST.111 and TEST.123) and the tests are made reliable without
+  skipping or loosening them. Owner: Bugfixes lane 2, after its current
+  items.
+  Prerequisites: none. Related: TEST.111, TEST.123.
+
+- [ ] **TEST.129 Two orbit-update tests fail on the MySQL 8.4 leg: the stored last_updated_at rounds up (bug)**
+  Reported by Foundations lane 1 (2026-10-10 20:55Z), from the manual CI
+  run on main after PR #1161 (MySQL 8.4 leg; not caused by PERF.64):
+  test_admin_script_cli.py::test_update_orbits_never_moves_backwards_when_the_clock_goes_back
+  and
+  test_edge_admin_scripts.py::test_update_orbits_first_run_sets_a_starting_point_then_advances.
+  On MySQL 8.4 the stored last_updated_at rounds up, so it reads
+  '0.000000 years in the future' and the elapsed time is -1 s; the
+  second test expects 'years elapsed' and gets the clock-moved-back
+  message. Likely cause: fractional-second rounding of NOW() in the
+  orbit update (MariaDB truncates, MySQL 8.4 rounds). Done: the orbit
+  update stores and compares a time that both servers treat the same way
+  (truncate to the column's precision before comparing, or use the same
+  clock on both sides), checked on MySQL 8.4 and MariaDB; a product bug
+  if a real run could see a negative elapsed time. Owner: Bugfixes lane
+  1, after its current items.
+  Prerequisites: none. Related: TEST.116, TEST.126.
+
+- [ ] **TEST.130 test_the_scene_positions_at_the_epoch_match_the_stored_ones fails when a random system has comets (bug)**
+  Reported by Foundations lane 1 (2026-10-10 20:55Z), from the manual CI
+  run on main after PR #1161:
+  tests/test_body_positions.py::test_the_scene_positions_at_the_epoch_match_the_stored_ones
+  fails because a comet's position at its epoch differs from the stored
+  one by about 1e10 km, for a random system that has comets. It is
+  intermittent because the system is random. Likely a real disagreement
+  between the comet path in positions_at and the position stored for the
+  comet. Done: the cause is found (the stored position or the scene path
+  is wrong for comets, or the test compares different epochs or frames),
+  the product or test is fixed so scene and stored positions agree for
+  comets, and the test draws a system with a comet every time so it
+  cannot pass by luck. Owner: Bugfixes lane 1, after its current items.
+  Prerequisites: none. Related: TEST.123, GEN.122.
+
+- [ ] **TEST.131 Tests for the gravity field evaluator: two bodies, Lagrange points, softening and the rotation curve**
+  Done: the evaluator (GEN.198) matches Newton for two bodies to 1e-9
+  relative, puts the Sun-Earth L1 and L2 points where the published
+  distances are (about 1.5 million km) with a saddle in the tidal
+  gradient, stays finite inside a softened source, and reproduces the
+  galaxy potential's rotation curve (229.3 km/s at 8.128 kpc); the
+  near/far split agrees with the exact sum to a stated tolerance on a
+  random sector; the same seed gives the same field twice.
+  Prerequisite: GEN.198. Related: GEN.198, GEN.115.
+
+- [ ] **TEST.132 test_a_fill_after_a_layer_failed_mid_scatter_builds_no_leftover_star failed once in a full parallel run (bug)**
+  Reported by Bugfixes lane 2 (2026-10-10 21:06Z):
+  tests/test_gen_bright_scatter_edges.py::test_a_fill_after_a_layer_failed_mid_scatter_builds_no_leftover_star
+  failed once in the NAV.42 full run (`-n 4`, about 4 parallel workers
+  on one box, started 19:21Z) and passed on both of 2 re-runs alone; it
+  was not run on main while failing and the failure message was not
+  kept. Done: the next failure's traceback is captured (or a loaded run
+  reproduces it), the cause is found (a shared scatter table or marker
+  between workers, a draw that sometimes leaves a star, or a real
+  leftover-star bug in the failed-layer path) and the test is made
+  reliable without loosening it. Owner: Bugfixes lane 2, after its
+  current items.
+  Prerequisites: none. Related: TEST.111, TEST.128.
+
+- [ ] **TEST.133 A reusable big-galaxy query budget test: EXPLAIN every page and list query on 2,000,000 systems**
+  From the PERF.71 research (docs/design/slow-reads-and-timeouts.md, PR
+  #1175; Boss's ask of 2026-10-10 20:50Z; measured on 2,000,000
+  synthetic systems, MariaDB 10.11): move `make_synthetic.py`
+  (research/db-timeouts/scripts/, 2,000,000 systems in about 2 minutes)
+  into the test tools, run EXPLAIN on every page and API list query, and
+  fail when a query examines more rows than its page needs. This is the
+  test that PERF.68 and PERF.70 each ask for, built once. Owner:
+  Foundations lane 1.
+  Prerequisites: none. Related: PERF.68, PERF.69, PERF.70, PERF.71.
+  Design: [docs/design/slow-reads-and-timeouts.md](design/slow-reads-and-timeouts.md)
+
+- [ ] **TEST.134 test_many_processes_starting_at_once_start_one_job fails under a parallel run (bug)**
+  Bugfixes lane 1 (2026-10-10, full local suite 19:41Z to 20:54Z, -n 4):
+  src/tests/test_web_jobs_damage.py::test_many_processes_starting_at_once_start_one_job
+  fails when the suite runs in parallel and passes alone. Done: the
+  cause is found (a shared Redis or database state with the other
+  workers, or a timing limit) and the test is made to pass under -n 4
+  without skipping, disabling or loosening it away from what it checks.
+  Owner: Bugfixes lane 1.
+  Prerequisites: none. Related: TEST.126, TEST.127, TEST.128.
 
 ## USR: User accounts
 
@@ -4231,8 +4795,9 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   The OPS.13 history row also holds the epoch, the battery digest, the
   lock hash and an environment JSON (libc, numpy, astropy, scipy,
   scikit-image versions), the last 10 per galaxy as already specified;
-  the seed itself is not changed. ADM.18's settings file records the
-  epoch and `fp_spec`, and is written with LF only. Decided (Boss,
+  the seed itself is not changed. The current galaxy's internal record
+  (ADM.50, replacing ADM.18's settings file) keeps the epoch and
+  `fp_spec`. Decided (Boss,
   2026-10-10 18:44Z, defaults approved; defaults taken): (1) is the same
   galaxy on Linux, macOS and
   Windows a goal, exact for integers, strings and structure and equal to
@@ -4300,13 +4865,24 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   name Boss asked for, so there is one counter, not two: bumped by the
   same PR rule (a change that alters generated output for the same seed
   bumps it), stored with each galaxy's history row (OPS.13), per sector
-  (DB.16) and in the settings file (ADM.18), shown on the admin status
+  (DB.16) and in the current galaxy's internal record (ADM.50), shown on the admin status
   page beside the DB schema number, and returned by the API status
   response. The release version (MAJOR.REVISION.BUILD) stays as it is.
   Decided (Boss, 2026-10-09 21:02Z): the generator version and OPS.28's
   `generator_epoch` are the same number, bumped only when output changes
   for the same seed.
   Prerequisite: OPS.28.
+
+- [ ] **OPS.41 Put the site in an "updating" state while update.sh runs long database migrations**
+  Reported by Foundations lane 1 (PR #1161, 2026-10-10): the v77 and v78
+  migrations hold the site for a long time while Apache keeps serving,
+  so pages hang or time out during an update. Done: update.sh marks the
+  site as updating before it migrates and clears the mark afterwards,
+  Apache serves a short 'updating, back in a moment' page that reloads
+  itself (not the 504 page), a migration that fails clears the mark with
+  a clear message, and the Admin pages show the state. Owner:
+  Foundations lane 1, near its other update.sh work.
+  Prerequisites: none. Related: OPS.29, OPS.35, PERF.64.
 
 ## DOC: Documentation
 
@@ -4481,7 +5057,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Boss (2026-10-09 23:53Z): "Add to-do items to build static
   documentation pages for all features accessible through the web
   interface." Done: /admin, /admin/queue and its tree, confirm and
-  action pages, /admin/stats (galaxy settings, naming key, lockouts),
+  action pages, /admin/stats (naming key, lockouts; the galaxy settings panel goes with ADM.50),
   the worker count and the performance statistics (PERF.32), and which
   actions cannot be undone. The page is a Markdown file in docs/help/
   built into the Help section, linked from each page it describes, and

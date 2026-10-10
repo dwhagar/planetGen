@@ -12,7 +12,48 @@ into the [game's wiki](https://wiki.moltenaether.com).
 
 **To install it, see [INSTALL.md](INSTALL.md).**
 
-## What it does
+## Headline features
+
+Every release in the [changelog](CHANGELOG.md) opens with its one best
+feature. These are the ones that shaped the program, oldest first.
+
+| Release | Date | Headline feature |
+|---|---|---|
+| 1.0.0 | 2024-06-25 | First fully working end-to-end planet generator validated against Earth |
+| 3.0.0 | 2026-07-07 | Binary star systems |
+| 5.0.0 | 2026-09-05 | Space sectors placing star systems in 3D positions with realistic spacing and save/load |
+| 5.2.1 | 2026-09-06 | Web interface for browsing saved databases, with Apache deployment and one-shot installer |
+| 5.4.8 | 2026-09-09 | Galaxy-wide density skeleton with lazy, visit-triggered sector generation |
+| 5.5.0 | 2026-09-09 | MySQL backend replaces SQLite, plus a paginated, validated API |
+| 5.8.0 | 2026-09-10 | NAV feature: course, distance, warp times, and optimal routes between systems |
+| 5.29.0 | 2026-09-12 | Exotic phenomena: black holes, neutron stars, nebulae, supernova remnants, rogue planets, comets |
+| 5.37.0 | 2026-09-18 | Publish systems and sectors to Wiki.js or MediaWiki from the web interface |
+| 5.46.13 | 2026-09-23 | Interactive 3D Galaxy Map with live viewport queries and copyable generate commands |
+| 5.47.0 | 2026-09-24 | Galaxy Map loads space as cached cube tiles, preventing server crashes |
+| 6.1.0 | 2026-09-30 | Generate, plan and reset the galaxy from the web interface |
+| 7.23.0 | 2026-10-01 | Stars drawn from real physics: mass function, age and stellar evolution |
+| 7.44.0 | 2026-10-01 | Galaxy Map drill-down from whole galaxy to single sectors with linkable stages |
+| 7.49.0 | 2026-10-01 | Dominant species, civilizations and polities that claim territories in 3D |
+| 7.143.452 | 2026-10-02 | One 128-bit seed per galaxy gives reproducible generation at any worker count |
+| 7.225.618 | 2026-10-07 | Milky Way galaxy model with thin disk, thick disk and boxy bar bulge |
+| 7.339.675 | 2026-10-08 | 3D system view with orbits, belts, free camera and time control |
+| 8.0.711 | 2026-10-09 | Phase 0 complete: saved sector paths, nearby-object search and re-centerable 3D maps |
+| 8.0.912 | 2026-10-10 | Every planet and moon gets a habitability score and equipment-needed rating |
+
+### Coming next
+
+Each upcoming release has one headline feature, and the project plan
+traces exactly which items each one needs (the plan pages list them in
+build order).
+
+| Release | Headline feature | Status |
+|---|---|---|
+| 8.0 | The orbital update system: the galaxy moves in real time under real gravity | In progress |
+| 8.1 | Infinite zoom: fly from the whole galaxy down to a single moon on one map | Planned |
+| 8.5 | Courses that bend around gravity wells, with waypoints, editable and saved courses | Planned |
+| 9.0 | The gravity map: the pull, depth and tidal strength of a sector as a heat map | Planned |
+
+## What it does today
 
 - **Stars drawn as physics**: a mass from the Kroupa initial mass
   function, an age from the galaxy's star-formation history, then how

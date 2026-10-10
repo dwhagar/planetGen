@@ -39,6 +39,8 @@ import functools
 import math
 from collections import namedtuple
 
+import numpy as np
+
 from planetgen import tuning
 
 GalaxyShape = namedtuple(
@@ -341,6 +343,38 @@ def relative_density(position_pc, shape):
               ones (outer disk, inter-arm, off-plane).
     """
     return max(shape.k_norm * _raw_density(position_pc, shape), tuning.MIN_RELATIVE_DENSITY)
+
+
+def total_density_array(x, y, z, shape):
+    """
+    The sum of `population_densities` (each term counted as none when negative,
+    as `bright_stars._densities` does) at arrays of points `x`, `y` and one
+    height `z`: the weight a ring's angle bin carries in the phenomena scatter,
+    for a whole layer at once (PERF.63). A shape with no negative term gives
+    `relative_density` itself.
+    """
+    terms = model_terms(shape)
+    r_cyl = np.hypot(x, y)
+    thin = np.exp(-r_cyl / shape.disk_scale_length_pc) * _vertical(z, shape.disk_scale_height_pc)
+    thick = (terms["thick_disk_amplitude"] * np.exp(-r_cyl / terms["thick_disk_scale_length_pc"])
+             * _vertical(z, terms["thick_disk_scale_height_pc"]))
+    along = (x * terms["bar_cos"] + y * terms["bar_sin"]) / shape.bulge_scale_radius_pc
+    across = (y * terms["bar_cos"] - x * terms["bar_sin"]) / terms["bulge_scale_y_pc"]
+    up = z / terms["bulge_scale_z_pc"]
+    in_plane = along * along + across * across
+    bulge = shape.bulge_amplitude * np.exp(-0.5 * np.sqrt(in_plane * in_plane + up ** 4))
+    if shape.core_amplitude:
+        bulge = bulge + shape.core_amplitude * np.exp(
+            -0.5 * (x * x + y * y + z * z) / terms["core_scale_radius_pc"] ** 2)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        theta_arm = (shape.spiral_reference_angle_rad
+                     + np.log(r_cyl / shape.spiral_reference_radius_pc) / math.tan(shape.pitch_angle_rad))
+    arm_cos = np.where(r_cyl <= 1e-9, 0.0, np.cos(shape.arm_count * (np.arctan2(y, x) - theta_arm)))
+    disk = shape.k_norm * thin * shape.arm_level * (1 + shape.arm_amplitude * arm_cos)
+    model = shape.k_norm * (bulge + thick) + disk
+    halo = np.maximum(model, tuning.MIN_RELATIVE_DENSITY) - model
+    return (np.maximum(disk, 0.0) + np.maximum(shape.k_norm * thick, 0.0)
+            + np.maximum(halo, 0.0) + np.maximum(shape.k_norm * bulge, 0.0))
 
 
 def arm_terms(arm_density, interarm_density):

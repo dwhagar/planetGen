@@ -132,6 +132,7 @@ The table is generated from the settings model (`src/planetgen/util/settings.py`
 | `page_cache.max_mb` | number (MB) | 64 | after a restart | any admin | none | Most memory the answers may take. |
 | `page_cache.stamp_seconds` | number (seconds) | 15 | after a restart | any admin | none | How often the galaxy's content stamp is checked. |
 | `page_cache.max_age_seconds` | number (seconds) | 300 | after a restart | any admin | none | Nothing is kept longer than this. |
+| `page_cache.stored_counts` | true or false | true | at once | any admin | `PLANETGEN_COUNT_CACHE` | Table pages show stored totals and filter-menu counts, refreshed in the background, instead of counting whole tables in the request (off: exact counts at any price). |
 | `jobs.dir` | text | empty | at once | config.json only | `PLANETGEN_JOBS_DIR` | Where each background job's command lines, status and output are kept; empty means /var/lib/planetGen/jobs. |
 | `jobs.keep` | whole number | 20 | at once | any admin | none | How many finished jobs are kept. |
 | `jobs.python` | text | empty | at once | config.json only | `PLANETGEN_PYTHON` | The interpreter that runs planetgen and planetgen.cli.reset for the jobs; empty means the web app's own Python. Editing it from the web would be code execution, so it is file-only. |

@@ -713,3 +713,15 @@ def test_the_uncharted_scene_endpoint_reports_a_bad_cell_and_an_api_failure(clie
     monkeypatch.setattr(apiclient, "get_uncharted_sector", fail)
     resp = client.get("/galaxy/uncharted/3/0/1/scene")
     assert resp.status_code == 502 and "error" in resp.get_json()
+
+
+def test_a_page_whose_data_timed_out_asks_again_by_itself(client, fake, monkeypatch):
+    """PERF.64: the 504 page of a busy database reloads itself and says when a client may retry."""
+    def timed_out(*args, **kwargs):
+        raise apiclient.ApiError("QUERY_TIMEOUT", status_code=504)
+
+    monkeypatch.setattr(apiclient, "get_galaxy_sectors", timed_out)
+    response = client.get("/galaxy")
+    assert response.status_code == 504 and response.headers["Retry-After"] == "10"
+    html = response.get_data(as_text=True)
+    assert '<meta http-equiv="refresh" content="10">' in html and "database is busy" in html

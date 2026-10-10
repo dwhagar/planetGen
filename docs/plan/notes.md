@@ -309,6 +309,20 @@ Boss, 2026-10-10 20:37Z: "that's standard procedure, always make those changes w
 
 The mapping from issue to items is in this file (the list of GitHub issues under the 2026-10-07 rebuild) and in the Related and source lines of the items.
 
+## Standing process: headline features
+
+Boss (2026-10-10 21:05Z): every release has one headline feature. Past
+releases got theirs from a read of the whole changelog (582 releases,
+each with a 1-5 score; the README lists the score-5 and a few score-4
+ones). Upcoming headlines are tagged in TODO.md with a `Headline:
+VERSION (name).` line (8.0 GEN.105, 8.1 MAP.146, 8.5 NAV.59, 9.0
+MAP.167) and shown with every open item they need on the tier plan, the
+TODO reference, the TODO tree and the execution plan. When the stamp
+Action adds a release, the TODO thread adds its **Headline:** line under
+the heading in CHANGELOG.md in the next docs PR. When a headline's items
+are retired, rebuild the pages (`python scripts/build_todo_docs.py`) and
+refresh the execution plan's headline section.
+
 ## Judgment calls
 
 - **The engine in phase 0**: MAP.65 to MAP.68, NAV.7, NAV.13 to NAV.15, NAV.29, NAV.33, NAV.32 and MAP.95 moved into phase 0 because the breadcrumb, empty-slab, filter and picker bugs are fixed by them, which is Boss's rule for architecture that takes care of a bug.
@@ -365,6 +379,8 @@ items. New notes are listed here when the PR that adds them merges.
 | [generation-performance-study.md](../design/generation-performance-study.md) | Where the scatters and the sector fill spend their time, measured on a quarter-scale galaxy: worker start-up (8 times), phenomenon row volume, the database path, word salad; ranked fixes (PERF.31, PERF.18, PERF.39). |
 | [phenomenon-scatter-mass-cut.md](../design/phenomenon-scatter-mass-cut.md) | A lowest-mass cut for the GEN.100 scatter (recommended 20 solar masses: 1.17e9 rows to 2.7e5), the error it causes, how the sector fill draws below the cut, reproducibility and DB.19; traces the notes' 1.6e8 figure (DB.19, GEN.100). |
 | [zoom-star-visibility.md](../design/zoom-star-visibility.md) | Why stars appear in bursts at 11 camera radii on the Galaxy Map (tile levels, caps, the 160 pc detail tiles, a time fade), measured on tile data, eleven ways to smooth it, and a rank-based fade that cuts the worst step from +883% to +59%; includes a side-by-side demo (MAP.116, MAP.147) |
+| [slow-reads-and-timeouts.md](../design/slow-reads-and-timeouts.md) | Why pages hit the 10 s database limit on a big galaxy, measured on 2,000,000 systems (Sectors list 17 s, Systems offset 1.5M 12 s, map tiles 33 s) and under a fill; queue-and-hold versus keyset paging, stored counts, indexes and partial answers, page by page; eleven build items (PERF.68, PERF.69, PERF.70, PERF.71) |
+| [nebula-map-visibility.md](../design/nebula-map-visibility.md) | Why nebulae cannot be seen on the Galaxy Map (field clouds are derived not stored, sub-2 px at galaxy scale, near-black dark fill, 200-per-tile cap) and a three-scale design: nebula cover as a Color by choice, fixed-grid regions that split on zoom (16 px cells, 600 budget), individual clouds; colour, wire format, picking, cost; fourteen build items split Phase 1 foundations and Phase 2 visible feature |
 
 Most of these notes are the research pass Boss asked for on 2026-10-09 (08:43Z): each gives its sources, marks numbers as seen in a search [S], computed [C] or recalled and still to verify [R], and names the TODO items it informs. The research environment could read search-result text but not the papers themselves, so every [R] needs checking once paper access is allowed.
 

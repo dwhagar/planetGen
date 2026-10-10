@@ -118,8 +118,12 @@ def _reject_undecodable_query_string():
 
 def _drop_retry_after_unless_limited(response):
     """Flask-Limiter 4 puts `Retry-After` on every response it counts; it
-    belongs only on a 429, where it tells the caller when to retry (API.21)."""
-    if response.status_code != 429:
+    belongs only where it tells the caller when to retry: a 429 (API.21) and the 504 of a database too busy to
+    answer in time (PERF.64)."""
+    if response.status_code == 504:
+        from planetgen.web.errors import RETRY_AFTER_SECONDS
+        response.headers["Retry-After"] = str(RETRY_AFTER_SECONDS)
+    elif response.status_code != 429:
         response.headers.pop("Retry-After", None)
     return response
 
@@ -262,7 +266,7 @@ def _register_error_handlers(app):
             body.update(exc.extra)
         return jsonify(body), exc.status_code
 
-    from planetgen.web.errors import TIMEOUT_MESSAGE, render_error, unexpected_error_message
+    from planetgen.web.errors import RETRY_AFTER_SECONDS, render_error, timeout_page, unexpected_error_message
 
     @app.errorhandler(pymysql.err.OperationalError)
     def _handle_statement_timeout(exc):
@@ -273,8 +277,10 @@ def _register_error_handlers(app):
             return _handle_internal_error(exc)
         log.debug(f"Statement time limit hit on {request.method} {request.path}: {exc}")
         if _is_api_request():
-            return jsonify({"error": "QUERY_TIMEOUT: the database took too long to answer"}), 504
-        return render_error(504, TIMEOUT_MESSAGE)
+            response = jsonify({"error": "QUERY_TIMEOUT: the database took too long to answer"})
+            response.headers["Retry-After"] = str(RETRY_AFTER_SECONDS)
+            return response, 504
+        return timeout_page()
 
     @app.errorhandler(400)
     def _handle_bad_request(exc):

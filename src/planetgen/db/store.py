@@ -841,18 +841,22 @@ class Connection:
 
     def _run(self, sql, params):
         cur = self._conn.cursor()
-        if not log.debug_log_active():
-            cur.execute(sql.replace("?", "%s"), params)
-            return _Cursor(cur)
+        traced = log.debug_log_active()
         start = time.perf_counter()
         try:
             cur.execute(sql.replace("?", "%s"), params)
         except Exception as exc:
-            log.trace(f"SQL failed after {(time.perf_counter() - start) * 1000:.2f}ms: {_sql_for_log(sql, params)} "
-                      f"-> {type(exc).__name__}: {exc}", stacklevel=4)
+            if isinstance(exc, pymysql.err.OperationalError) and exc.args and exc.args[0] in STATEMENT_TIMEOUT_ERRORS:
+                # PERF.64: the page only says "took too long"; the log says which statement.
+                activity_log.event("DB", "statement_timeout", db=self._config.database if self._config else "?",
+                                   seconds=f"{time.perf_counter() - start:.1f}", sql=_sql_for_log(sql, params)[:800])
+            if traced:
+                log.trace(f"SQL failed after {(time.perf_counter() - start) * 1000:.2f}ms: "
+                          f"{_sql_for_log(sql, params)} -> {type(exc).__name__}: {exc}", stacklevel=4)
             raise
-        log.trace(f"SQL {(time.perf_counter() - start) * 1000:.2f}ms, {cur.rowcount} row(s): "
-                  f"{_sql_for_log(sql, params)}", stacklevel=4)
+        if traced:
+            log.trace(f"SQL {(time.perf_counter() - start) * 1000:.2f}ms, {cur.rowcount} row(s): "
+                      f"{_sql_for_log(sql, params)}", stacklevel=4)
         return _Cursor(cur)
 
     def execute(self, sql, params=()):

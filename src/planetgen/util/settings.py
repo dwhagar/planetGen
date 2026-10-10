@@ -166,8 +166,11 @@ class PageCache(_Section):
                                category="cache", ge=0)
     max_age_seconds: float = opt(300, "Nothing is kept longer than this.", restart=True, unit="seconds",
                                  category="cache", gt=0)
+    stored_counts: bool = opt(True, "Table pages show stored totals and filter-menu counts, refreshed in the "
+                              "background, instead of counting whole tables in the request (off: exact counts "
+                              "at any price).", env="PLANETGEN_COUNT_CACHE", category="cache")
 
-    _loose = field_validator("enabled", mode="before")(_loose_bool)
+    _loose = field_validator("enabled", "stored_counts", mode="before")(_loose_bool)
 
 
 class Jobs(_Section):

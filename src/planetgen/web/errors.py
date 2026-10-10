@@ -37,9 +37,21 @@ _TITLES = {
     504: "Took too long",
 }
 
-TIMEOUT_MESSAGE = ("This page asked the database for more than it could answer in time, so it was stopped. "
-                   "Try a narrower search or a smaller page.")
+TIMEOUT_MESSAGE = ("The database is busy (a generation run may be using it) and could not answer this page in "
+                   "time, so it was stopped. The page asks again by itself in a few seconds; a narrower search "
+                   "or a smaller page is quicker.")
 """str: What a page whose query hit the statement time limit (PERF.17) says."""
+
+RETRY_AFTER_SECONDS = 10
+"""int: How long a page that timed out waits before asking again (PERF.64), and what `Retry-After` says."""
+
+
+def timeout_page():
+    """The 504 page of a statement that hit the time limit: it reloads itself after `RETRY_AFTER_SECONDS`, so a
+    page opened during a fill fills in once the database has caught up (PERF.64)."""
+    html, status = render_page("error.html", title=_TITLES[504], message=TIMEOUT_MESSAGE, status=504,
+                               retry_after=RETRY_AFTER_SECONDS)
+    return html, status, {"Retry-After": str(RETRY_AFTER_SECONDS)}
 
 
 def render_error(status, message):
@@ -70,7 +82,7 @@ def register(bp):
     def _api_error(exc):
         if exc.status_code == 504:
             log.debug(f"Query time limit on {request.path}: {exc}")
-            return render_error(504, TIMEOUT_MESSAGE)
+            return timeout_page()
         current_app.logger.error(f"API error while building {request.path}: {exc}")
         log.exception(f"API error while building the page: {exc}")
         return render_error(502, "The data for this page could not be loaded. Please try again shortly.")
