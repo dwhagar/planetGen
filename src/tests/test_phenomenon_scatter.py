@@ -466,3 +466,24 @@ def test_the_phenomenon_scatter_has_a_bar_that_ends_full(mysql_config, tmp_path,
     assert bar and bar[0][1] == 0 and bar[0][2] > 0
     assert bar[-1][0].startswith(f"Phenomena ({len(EXTENTS):,} of {len(EXTENTS):,} layers)")
     assert bar[-1][1] == pytest.approx(bar[-1][2])
+
+
+def test_every_stage_of_the_phenomenon_scatter_draws_a_bar(mysql_config, tmp_path, monkeypatch):
+    """UX.84: the clear, the layers, the special rows, their insert and the stamp are each a step with a bar."""
+    from planetgen.queue import progress_file
+
+    monkeypatch.setenv(progress_file.ENV_VAR, str(tmp_path / "progress.json"))
+    monkeypatch.setattr(tuning, "PROGRESS_BAR_SECONDS", 0.0)
+    descriptions = []
+    real = progress_file.report
+
+    def record(completed, total=None, description=None, **kwargs):
+        descriptions.append(description)
+        real(completed, total, description, **kwargs)
+
+    monkeypatch.setattr(progress_file, "report", record)
+    _seed_galaxy(mysql_config)
+    run_plan.scatter_phenomena(_plan_args(mysql_config))
+    for stage in ("Clearing the earlier phenomena scatter", "Phenomena (", "Drawing the special phenomena",
+                  "Writing the special phenomena", "Stamping the hypervelocity"):
+        assert any(text and text.startswith(stage) for text in descriptions), (stage, descriptions)

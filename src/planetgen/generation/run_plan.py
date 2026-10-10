@@ -345,8 +345,9 @@ class _LayerTracker:
     SLOW_LAYER_SECONDS = 30.0
     FAST_LAYER_SECONDS = 20.0
 
-    def __init__(self, progress, label, weights, clock=time.monotonic, prior=None):
+    def __init__(self, progress, label, weights, clock=time.monotonic, prior=None, bar=None):
         self.progress = progress
+        self.bar = bar
         self.label = label
         self.weights = weights
         self.clock = clock
@@ -359,9 +360,13 @@ class _LayerTracker:
         self.layer_rate = progress_rate.DecayingRate(clock=clock)
         self.last_done = clock()
         self.detail = None
-        self.task = progress.add_task(self._description(), total=max(sum(weights.values()), 1.0), percent=True,
-                                      prior=prior)
-        progress.main_task = self.task
+        self.task = None
+        if bar is None:
+            self.task = progress.add_task(self._description(), total=max(sum(weights.values()), 1.0), percent=True,
+                                          prior=prior)
+            progress.main_task = self.task
+        else:
+            bar.update(description=self._description())     # a step (UX.84): it draws itself when it is long
 
     def _description(self):
         return f"{self.label} ({self.done_layers:,} of {len(self.weights):,} layers)"
@@ -406,7 +411,10 @@ class _LayerTracker:
             credit = max(self.credited.get(layer_index, 0.0), share * self.weights[layer_index])
             self.credited[layer_index] = credit
             partial += credit
-        self.progress.update(self.task, completed=self.done_weight + partial, description=self._description())
+        if self.bar is not None:
+            self.bar.update(completed=self.done_weight + partial, description=self._description())
+        else:
+            self.progress.update(self.task, completed=self.done_weight + partial, description=self._description())
         if self.in_flight and self.slow():
             done = sum(item[0] for item in self.in_flight.values())
             estimate = sum(max(item[0], item[1]) for item in self.in_flight.values())
@@ -505,10 +513,14 @@ def _scatter_layers(args, mysql_config, skeleton, extents, filled, min_luminosit
     band_share = sum(fractions.values())
     with run_common._generation_progress() as progress:
         log.set_console(progress.console)
+        bar, finished = None, False
         try:
             # PERF.33: the bar starts from the stars a second this server recorded for this many workers.
             prior = run_common._generation_stats(args).pool_rate("scatter", run_common._worker_count(args))
-            tracker = _LayerTracker(progress, label, weights, prior=prior)
+            bar = steps.Step(label, "scatter", max(sum(weights.values()), 1.0), args=args, progress=progress,
+                             workers=run_common._worker_count(args), percent=True, record=False,
+                             prior=prior).__enter__()
+            tracker = _LayerTracker(progress, label, weights, prior=prior, bar=bar)
             outer_rings = dict(layers)
 
             def on_done_for(layer_index):
@@ -557,7 +569,10 @@ def _scatter_layers(args, mysql_config, skeleton, extents, filled, min_luminosit
                 if isinstance(channel, redisqueue.Channel):
                     channel.close()
                 run_common._finish_stats(args)
+            finished = True
         finally:
+            if bar is not None:
+                bar.close(success=finished)
             log.reset_console()
     # Every layer is walked, but only the ones that drew a star count as
     # holding any (GEN.79).
@@ -773,7 +788,15 @@ def scatter_phenomena(args):
         filled = store.filled_sector_addresses(conn)
         seed = _phenomenon_scatter_seed(skeleton)
         min_mass_solar = _phenomenon_min_mass(args)
-        store.clear_phenomenon_scatter(conn)
+        with run_common._generation_progress() as progress:
+            log.set_console(progress.console)
+            try:
+                with steps.Step("Clearing the earlier phenomena scatter", "phenomena-clear",
+                                max(store.estimated_rows(conn, "phenomenon_scatter"), 1), args=args,
+                                progress=progress):
+                    store.clear_phenomenon_scatter(conn)
+            finally:
+                log.reset_console()
 
         t0 = time.perf_counter()
         counts = {}
@@ -803,9 +826,21 @@ def scatter_phenomena(args):
                                               e_value, seed, min_mass_solar, filled)
             finally:
                 log.reset_console()
-        special = list(phenomenon_scatter.special_rows(extents, skeleton.edge_pc, seed, filled))
-        store.insert_phenomenon_scatter(conn, special)
-        store.stamp_phenomenon_scatter_epoch(conn)
+        with run_common._generation_progress() as progress:
+            log.set_console(progress.console)
+            try:
+                with steps.Step("Drawing the special phenomena", "phenomena-special", max(len(extents), 1), args=args,
+                                progress=progress):
+                    special = list(phenomenon_scatter.special_rows(extents, skeleton.edge_pc, seed, filled))
+                with steps.Step("Writing the special phenomena", "phenomena-insert", max(len(special), 1), args=args,
+                                progress=progress):
+                    store.insert_phenomenon_scatter(conn, special)
+                with steps.Step("Stamping the hypervelocity stars' epoch", "phenomena-stamp",
+                                max(store.estimated_rows(conn, "phenomenon_scatter"), 1), args=args,
+                                progress=progress):
+                    store.stamp_phenomenon_scatter_epoch(conn)
+            finally:
+                log.reset_console()
         for row in special:
             counts[row[3]] = counts.get(row[3], 0) + 1
         store.record_phenomenon_scatter(conn, seed, min_mass_solar)

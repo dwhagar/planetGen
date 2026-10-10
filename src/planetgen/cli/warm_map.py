@@ -19,16 +19,28 @@ not wait for it.
 
 import sys
 
+from planetgen.db import store
+from planetgen.generation import run_common, steps
 from planetgen.web.app import create_app
 from planetgen.web.helpers import db_name
 from planetgen.web.warmup import warm_opening_view
+
+
+def _stats():
+    try:
+        return run_common._stats_for_config(store.DEFAULT_MYSQL_CONFIG)
+    except Exception:  # noqa: BLE001 -- statistics never stop the warm-up
+        return None
 
 
 def main():
     app = create_app()
     with app.test_request_context("/galaxy"):
         try:
-            result = warm_opening_view(db_name())
+            # UX.84: the first run after a release has no recorded speed, so it draws its bar at once.
+            with steps.Step("Building the Galaxy Map's opening view", "warm-map", None, stats=_stats(), own=True) as bar:
+                result = warm_opening_view(db_name())
+                bar.update(completed=result["tiles"], total=result["tiles"])
         except Exception as exc:  # noqa: BLE001 -- a failed warm-up only means the first visit builds the view
             print(f"warning: the Galaxy Map's opening view was not built ({exc}).", file=sys.stderr)
             sys.exit(1)
