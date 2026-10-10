@@ -919,42 +919,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   MAP.146.
   Design: [docs/design/fly-through-view-distance.md](design/fly-through-view-distance.md)
 
-- [ ] **MAP.153 Stars fade in with the zoom: a birth radius from each star's rank in its tile list (first client stage)**
-  Source: docs/design/zoom-star-visibility.md (section 3.1 and 5, stage
-  1), written at Boss's request of 2026-10-09 22:30Z: "I want a very
-  smooth transition where stars and objects are slowly added as one
-  zooms in." Today the drawn set is frozen between 11 tile-level radii
-  and then up to 8.8 times as many stars appear in one frame. Done: in
-  `galaxymap3d.js` every star gets a birth radius from its rank in its
-  tile's list (most luminous first, as the server already sorts it), R_b
-  = R* 2^W (N0/r)^(1/3), and its opacity is a smoothstep of the camera
-  radius, cross-faded from the parent tile's rank across the tile
-  level's octave; zooming out removes stars as smoothly as zooming in
-  adds them, a late tile changes nothing visible, and a browser-test
-  hook returns the opacity sum at a given radius so a test bounds the
-  step. Measured on the same tile data the worst single 9% step falls
-  from +883% to +59% (dense) and from +775% to +74% (thin). No server or
-  schema change. This is the FIRST STAGE of the visibility rule that
-  MAP.148 ends with: both decide when a star shows while zooming, so
-  they are not two rules. Until MAP.148 lands, the rank rule leads;
-  MAP.148 then replaces the rank with apparent magnitude (rank stays as
-  the cap and tiebreak).
-  Decided (Boss, 2026-10-09 23:11Z, "default options are approved"):
-  the rank birth-radius fade is stage 1 and the apparent-magnitude law
-  of MAP.148 is the end state.
-  Decided (Boss, 2026-10-09 23:11Z, "default options are approved"): each
-  star fades over one halving of the camera radius (W = 1); a dense
-  sector's stars arrive in rank order between about 35 pc and 8 pc of
-  view radius, so they wait for sector zoom; the GEN.30 backfill shells
-  stay as they are.
-  Prerequisites: none. Related: MAP.148, MAP.146, MAP.149, MAP.147,
-  MAP.116.
-  Lane (2026-10-09): Queue (Boss, 2026-10-10 05:13Z): Foundations lane 2
-  does this right after GEN.87 (in flight), then GEN.188, GEN.89,
-  GEN.83, GEN.187, MAP.162, UX.87 and the wire-format items. One of the
-  three biggest blockers on the tree.
-  Design: [docs/design/zoom-star-visibility.md](design/zoom-star-visibility.md)
-
 - [ ] **MAP.154 Nested bright-star lists on the server, so every parent list is a subset of its child's**
   Source: docs/design/zoom-star-visibility.md (3 scheme J, section 5
   stage 2). Done: the bright lists use one key for every tile level (a
@@ -985,6 +949,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   from the object id). Sector blocks and fills keep their own
   level-of-detail question (the mega-block plan). Decided (Boss, 2026-10-09 23:11Z, "default options are
   approved"): point objects are listed from level 8.
+  Note (2026-10-09): Note (Foundations lane 2, 2026-10-10 06:20Z): point
+  objects (black holes, neutron stars, quasars) are not ranked yet and
+  use POINT_FADE (always whole); MAP.154's nested lists make the
+  parent-only fade-out unnecessary.
   Prerequisite: MAP.153. Related: MAP.153, MAP.148, MAP.149.
   Design: [docs/design/zoom-star-visibility.md](design/zoom-star-visibility.md)
 
@@ -3152,6 +3120,19 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   of 8 solar masses; GEN.188 is a one-off on Bugfixes lane 2 (not
   Foundations lane 2).
   Prerequisites: none. Related: GEN.183, GEN.184, GEN.185.
+
+- [ ] **GEN.189 Gamma-ray burst and AGN ozone loss for the ozone_loss_flag (low priority)**
+  Foundations lane 2 (2026-10-10 06:20Z), design 4.5 of
+  activity-magnetism-radiation-hydrosphere.md: GEN.87 stores
+  `ozone_loss_flag` but does not model gamma-ray bursts or AGN/quasar
+  ozone loss. Add a gamma-ray burst event rate with a fluence of 30 to
+  100 kJ/m2 or more within about 2 kpc of a planet as an ozone-loss
+  event, and an AGN/quasar term (no source found yet, so research
+  first). Done: both causes feed `ozone_loss_flag` with documented
+  rates, the design note records the sources, and a test checks that a
+  planet near a burst-prone region gets the flag more often. Low
+  priority.
+  Prerequisites: none. Related: GEN.87, GEN.89.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 

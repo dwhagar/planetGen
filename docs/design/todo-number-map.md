@@ -16,7 +16,7 @@ release is stamped.
 | UX | UX.88 |
 | MAP | MAP.164 |
 | NAV | NAV.58 |
-| GEN | GEN.189 |
+| GEN | GEN.190 |
 | PERF | PERF.53 |
 | DB | DB.22 |
 | API | API.24 |
@@ -686,6 +686,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.186 | Random neighborhoods: an option to keep away from filled space | none | open |
 | GEN.187 | Bright-star back scatter by mass: rings of 1, 2, 5 and 8 solar masses around filled space | none | open |
 | GEN.188 | Mass limit default is 8, and the mass slider and luminosity dropdown sit side by side on Generate and New galaxy | none | open |
+| GEN.189 | Gamma-ray burst and AGN ozone loss for the ozone_loss_flag (low priority) | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -838,7 +839,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.150 | The free camera: wheel zoom to the cursor, double-click flight, and the observer inside, with the container named from position | none | open |
 | MAP.151 | The region data layer: exact-centred frame, aligned cells, per-level aggregates and slot-wrap ranges | none | open |
 | MAP.152 | Scale hand-offs: galaxy, sector and system cross-fade with hysteresis, and per-tile camera-relative origins | none | open |
-| MAP.153 | Stars fade in with the zoom: a birth radius from each star's rank in its tile list (first client stage) | none | open |
+| MAP.153 | Stars fade in with the zoom: a birth radius from each star's rank in its tile list (first client stage) | none | done, PR #998 |
 | MAP.154 | Nested bright-star lists on the server, so every parent list is a subset of its child's | none | open |
 | MAP.155 | Other objects fade in too: point objects from level 8, a size ramp for cloud sprites, and stars that grow from a faint dot | none | open |
 | MAP.156 | View one layer or a range of layers top-down from the galaxy view, as a secondary option | none | open |
