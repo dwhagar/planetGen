@@ -3058,23 +3058,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisite: GEN.172.
   Design: [docs/design/object-id-options.md](design/object-id-options.md)
 
-- [ ] **GEN.175 Regenerating a phenomenon sets its uid to NULL (bug)**
-  Source: docs/design/object-id-options.md section 0 (Boss decided
-  2026-10-09 22:39Z: birth location plus serial, galaxy-wide; the same
-  length for every object; always identifies that one object; up to 128
-  bits but shorter preferred; fix the deficits; no backward
-  compatibility). Filed from the object-ID research thread. Nothing is
-  built until Boss asks.
-  `replace_phenomenon_content` in `db/edits.py` copies every column
-  except `_KEPT_PHENOMENON_COLUMNS`, which omits `uid` (reproduced: a
-  rogue planet's uid 0000004986A0FFFE64000000 became NULL). A one-line
-  keep of `uid` in `_KEPT_PHENOMENON_COLUMNS` can go first, in the
-  Bugfixes queue, if Boss prefers. Also make a system content swap keep
-  the system's ID and give new bodies fresh body numbers from the
-  counter, never reusing a deleted body's number.
-  Prerequisites: none.
-  Design: [docs/design/object-id-options.md](design/object-id-options.md)
-
 - [ ] **GEN.176 A nebula or remnant is born in the sector holding the centre of the space it occupies**
   Source: docs/design/object-id-options.md section 0 (Boss decided
   2026-10-09 22:39Z: birth location plus serial, galaxy-wide; the same
@@ -4233,14 +4216,6 @@ clears each one.
   open until it recurs, then investigate with the failing run's data).
   Prerequisites: none. Related: TEST.111, TEST.71.
 
-- [ ] **TEST.117 generatejobs.test.mjs fails on main since PERF.33 (PR #910) (bug)**
-  Reported by Foundations lane 2 (2026-10-10 04:09Z):
-  src/tests/js/generatejobs.test.mjs fails on main since PERF.33 (PR
-  #910) changed the Generate page's job display. Done: the test (or the
-  page) is corrected so the JS suite passes on main, and the Windows and
-  Linux JS test runs both pass.
-  Prerequisites: none. Related: PERF.33, TEST.111.
-
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -4523,14 +4498,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   `generator_epoch` are the same number, bumped only when output changes
   for the same seed.
   Prerequisite: OPS.28.
-
-- [ ] **OPS.38 Two Redis dump files (dump.rdb and src/dump.rdb) are committed to main and should be removed and git-ignored (bug)**
-  Reported by Foundations lane 2 (2026-10-10 04:09Z, GEN.88 merge, PR
-  #963): dump.rdb, a Redis dump, was committed to main by PR #953, and
-  src/dump.rdb is tracked too. Done: both files are removed from the
-  repository, *.rdb is added to .gitignore, and the test and dev Redis
-  configuration writes its dump outside the working tree or not at all.
-  Prerequisites: none. Related: PERF.24, OPS.19.
 
 ## DOC: Documentation
 

@@ -42,7 +42,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | DOC.5 | Rewrite the object ID docs: object-ids.md, database-schema.md and api.md | GEN.170 | Object-ID research. |
 | TEST.110 | Object ID tests: identical IDs on 1 and 4 workers, none reused, none missing | GEN.171, GEN.172, GEN.176 | Object-ID research. |
 | GEN.176 | A nebula or remnant is born in the sector holding the centre of the space it occupies | DB.20 | Object-ID research. |
-| GEN.175 | Regenerating a phenomenon sets its uid to NULL (bug) |  | Object-ID research. The one-line keep can go first. |
 | GEN.174 | Bodies an admin adds are saved with a NULL uid (bug) | GEN.172 | Object-ID research. Closed by the run-time birth item. |
 | GEN.173 | Deleting a body and then adding one fails with IntegrityError 1062 on uq_planets_uid (bug) | GEN.171, GEN.172 | Object-ID research. Closed by the fill and run-time birth items. |
 | GEN.172 | Run-time births get object IDs from the counters | DB.20 | Object-ID research. |
@@ -220,8 +219,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | TEST.111 | test_ensure_sector_generated_creates_then_reuses_the_same_sector fails in a busy parallel run (bug) |  | Test flake reported 2026-10-09; Bugfixes lane 1. |
-| TEST.117 | generatejobs.test.mjs fails on main since PERF.33 (PR #910) (bug) |  | Foundations lane 2 report 04:09Z. |
-| OPS.38 | Two Redis dump files (dump.rdb and src/dump.rdb) are committed to main and should be removed and git-ignored (bug) |  | Foundations lane 2 report 04:09Z. |
 | TEST.116 | test_bughunt_end_to_end stores M2V or M6V where it expects K2V on the MySQL 8.4 and MariaDB legs once (bug) |  | Bugfixes lane 1 report 03:57Z. |
 | TEST.115 | Three tests fail on the Windows CI leg in every recent run: Redis in WSL is unreachable (bug) |  | Bugfixes lane 1 report 03:57Z. |
 
