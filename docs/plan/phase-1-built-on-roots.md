@@ -143,6 +143,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.159 | Packed binary Galaxy Map tiles (quantised planes) with the nested tile lists, on one cache stamp bump | MAP.154, MAP.158 | MAP.147 recommendation step 2; one stamp bump with MAP.154 and MAP.151. |
 | MAP.155 | Other objects fade in too: point objects from level 8, a size ramp for cloud sprites, and stars that grow from a faint dot |  | Zoom visibility note stage 3. |
 | UX.88 | Say "uncharted" instead of "unbuilt" or "not generated" in all user-facing text outside Generate and admin |  |  |
+| UX.90 | Explain the habitability chips in the web interface: a visible legend with the equipment labels, colours, thresholds and scores |  |  |
 | MAP.165 | Scattered phenomena store a mass so the Galaxy Map sizes them exactly |  |  |
 | PERF.56 | Record how long each stage of a staged job takes, with the settings it ran with |  |  |
 | UX.89 | Staged jobs show wrong stage counts and numbers, and skipped stages are not listed (bug) |  |  |

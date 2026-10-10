@@ -480,6 +480,26 @@ with `clamp()`.
   1, after the defaults item (GEN.194) and before UX.88.
   Prerequisites: none. Related: PERF.33, PERF.55, GEN.185.
 
+- [ ] **UX.90 Explain the habitability chips in the web interface: a visible legend with the equipment labels, colours, thresholds and scores**
+  Boss (2026-10-10 08:00Z, via the coordinator): what are the
+  habitability chips on planets, and are they explained anywhere in the
+  web interface? They are not. Done: a legend on the system page, and a
+  link to it from the Equipment search filter, in visible text (tooltips
+  alone do not serve touch or screen readers) that explains the five
+  equipment labels (Shirtsleeve, Mask, Mask and scrubber, Sealed suit,
+  Full life support) and what each means; the chip colour as the worst
+  of the four PHI-4 domains (pressure, temperature, chemistry,
+  radiation) with what Blue, Green, Yellow and Red mean and their
+  thresholds; the Habitable, Habitable moon and Inhabited chips; and the
+  rule for planets around pulsars, neutron stars and black holes. The
+  per-domain colours and the microbial, complex-life and
+  human-operability scores, stored by GEN.89 but shown nowhere, are
+  shown on the planet and moon rows or detail. docs/html-interface.md
+  (Habitability chips) is rewritten to match. Owner: unassigned.
+  Prerequisites: none. Related: GEN.89, GEN.84, GEN.85, GEN.86, GEN.87,
+  GEN.88.
+  Design: [docs/design/habitability-index.md](design/habitability-index.md)
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
