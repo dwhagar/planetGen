@@ -3329,7 +3329,28 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   come, and it equals the current stage's time left only on the last
   stage; a test checks stage 3 of 6 against stage 6 of 6. Owner:
   Bugfixes lane 1, with PERF.65 and the other PERF.33 remainders.
-  Prerequisites: none. Related: PERF.33, PERF.55, PERF.65.
+  Prerequisites: none. Related: PERF.33, PERF.55, PERF.65, PERF.67.
+
+- [ ] **PERF.67 Record how long every operation takes, from each stage up to the whole job, and use the records for ETAs**
+  Boss (2026-10-10 20:25Z): "we should carry stats on how long it takes
+  every single operation to finish from each stage to the whole
+  process". PERF.32 records rates per run, PERF.56 records each stage's
+  seconds with its settings, and PERF.55 draws the whole-job bar, but
+  the whole job and its steps (check the math, reset, plan, each galaxy
+  stage and its sub-operations) are not all recorded as one nested set
+  of timings. Done: every operation in a job (each step, each stage,
+  each sub-operation a stage reports) writes its start, finish and
+  seconds, with the settings it ran with, into one nested record from
+  the operation up through the stage and step to the whole job; the
+  record is kept per version like PERF.32's rates and deleted with them;
+  the estimates for the stage bars and the whole-job bar read these
+  records first (PERF.66 falls back to the average of the earlier stages
+  only when there is no record); the admin pages can show a finished
+  job's tree of timings; a test checks that a finished job's record sums
+  from operation to stage to job. Owner: Bugfixes lane 1, after PERF.66
+  (the bar fix does not wait for it).
+  Prerequisites: none. Related: PERF.32, PERF.33, PERF.55, PERF.56,
+  PERF.66.
 
 ## DB: Database and schema
 
