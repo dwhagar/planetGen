@@ -112,7 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | DB.9, PERF.29, PERF.30, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, POP.8, POP.9, POP.7, POP.10, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, GEN.57, TEST.77, UX.49, PERF.31, GEN.128 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | DB.9, PERF.29, PERF.30, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, POP.8, POP.9, POP.7, POP.10, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, GEN.57, TEST.77, UX.49, GEN.128 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.17, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18, PERF.33, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, ADM.43, ADM.44, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.56, NAV.55, NAV.27, NAV.28, NAV.51, NAV.54, NAV.6 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, and the anomalies chosen in phase 2. | API.13, API.14, API.8, ADM.13, API.3, API.17, GEN.114, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies. | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, GEN.55 |
@@ -3248,39 +3248,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   transaction; if not, a crash leaves an orphan reservation.
   Prerequisite: PERF.29.
 
-- [ ] **PERF.31 Investigate: where generation spends its time, from the plan to a finished galaxy**
-  Boss (GitHub issue [#761](https://github.com/dwhagar/planetGen/issues/761), 2026-10-09 04:43Z): "We need to do a timed
-  analysis in full debug from the planning of the galaxy to the galaxy
-  being ready and generation finished. We need to know where the system
-  spends the most time in each phase." and (issue [#750](https://github.com/dwhagar/planetGen/issues/750)) "there should be
-  a method to benchmark." Done: a repeatable benchmark command runs a
-  small galaxy from the plan to the finished fill in full debug and
-  prints the time spent in each phase and sub-phase; a report names the
-  largest costs and what to do about each, and files an item per fix.
-  PERF.34 and PERF.32 build on it.
-  Research (2026-10-09, performance-eta-queue-and-caching.md): specify
-  `planetgen benchmark [--sectors N] [--profile]` as in design doc 5.3
-  (wall-clock `perf.phase()` timers always on, database counters before
-  and after, `pyinstrument` only with `--profile`, runs at 1, 2 and 4
-  workers and with a page-request thread). Tools for Python 3.9:
-  cProfile, pyinstrument 5.1.3 (cp39 wheels), py-spy 0.4.2. In-memory
-  generation is about 5 ms per system, 16.6 ms per system in a filled
-  sector, so the database path (neighbour lock, uid pass, registry
-  upsert) is the target.
-  Research (2026-10-09, generation-performance-study.md): this study
-  answers it for the scatter and fill phases (see PERF.42, PERF.43,
-  PERF.44, PERF.45, PERF.46, PERF.47 and DB.19). Open for Boss: which
-  phase took the 10 hours (the log will say).
-  Measurement (2026-10-09, corrected): Bugfixes lane 1 first reported
-  that one dense core sector took 84 s with 30 s in
-  `reserve_system_names`; that first profile ran while another run was
-  saving into the same database. Foundations lane 1 re-measured (PR #870,
-  PERF.49) with nothing else writing: reservation itself is 0.12 s a
-  sector, but at 4 workers the name registry's row locks, held until the
-  sector commit, made a save wait 6 to 25 s. Names are now claimed in a
-  short transaction of their own; 8 core sectors on 4 workers take 54 s
-  against about 90 s.
-
 - [ ] **PERF.33 Progress bars and ETAs from measured performance**
   Boss (GitHub issue [#661](https://github.com/dwhagar/planetGen/issues/661)): "time remaining on all progress bars should
   be calculated from this performance metric averaged with the actual
@@ -3383,7 +3350,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   approved; default): decide after
   PERF.31 shows the cold rebuild cost; switch if a full rebuild takes
   more than a minute.
-  Prerequisite: PERF.31.
   Design: [docs/design/performance-eta-queue-and-caching.md](design/performance-eta-queue-and-caching.md)
 
 - [ ] **PERF.46 Planets and moons: set the position once per body**
@@ -3416,7 +3382,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   point): record `innodb_buffer_pool_size`, the table sizes and the
   worker start-up cost with every benchmark run, so a result can be
   compared with the next.
-  Prerequisite: PERF.31.
   Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
 
 - [ ] **PERF.48 Low priority: a numeric-only INSERT formatter or C driver for bright_stars and phenomenon_scatter**
@@ -3685,6 +3650,66 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Foundations lane 1.
   Prerequisites: none. Related: PERF.19, PERF.24, DB.21, PERF.71.
   Design: [docs/design/slow-reads-and-timeouts.md](design/slow-reads-and-timeouts.md)
+
+- [ ] **PERF.79 Two workers make the plan scatter about 12 times slower than one (bug)**
+  From the PERF.31 benchmark (Foundations lane 1, PR #1179;
+  docs/design/generation-benchmark-report.md; `python -m
+  planetgen.cli.generate benchmark --workers 1,2 --profile`, 4 cores,
+  MariaDB 10.11, plan to ring 12 with 2,041 layers then 2 sectors): with
+  2 workers the plan takes 594 s against 47 s (bright stars 8 s to 282
+  s, massive stars 11 s to 206 s, phenomena 24 s to 101 s) while the
+  database answers 542,000 statements against 135,000; the cost is queue
+  and database round trips for 2,041 tiny layers, not computation (the
+  fill itself speeds up, 48 s to 30 s). The scatter stages also scale
+  with layers, not objects: the bright-star scatter visits 2,041 layers
+  and places 0 objects (8 s). Done: the cause is isolated (the poll
+  constants in queue/work.py and one task per layer are the first places
+  to look), the scatter batches its layers so that 2 or more workers are
+  not slower than 1 on the same plan, and the benchmark shows it; the
+  rows stay identical. Owner: Foundations lane 1.
+  Prerequisites: none. Related: PERF.31, PERF.47, PERF.73, PERF.58,
+  GEN.185.
+  Design: [docs/design/generation-benchmark-report.md](design/generation-benchmark-report.md)
+
+- [ ] **PERF.80 "Save the sector paths" takes 24% of a small run and does not speed up with workers**
+  From the PERF.31 benchmark (Foundations lane 1, PR #1179;
+  docs/design/generation-benchmark-report.md; `python -m
+  planetgen.cli.generate benchmark --workers 1,2 --profile`, 4 cores,
+  MariaDB 10.11, plan to ring 12 with 2,041 layers then 2 sectors): 33 s
+  of a 138 s two-sector run (settle_after_run is 80 s of 227 s in the
+  profile, integrate_path 17,284 calls and 54 s). Done: the settle step
+  does less integration work per sector (batch or cache the path
+  integration, skip unchanged sectors) or runs in the workers, measured
+  with the benchmark, and the saved paths do not change. Owner:
+  Foundations lane 1.
+  Prerequisites: none. Related: GEN.126, PERF.31.
+  Design: [docs/design/generation-benchmark-report.md](design/generation-benchmark-report.md)
+
+- [ ] **PERF.81 Nearest-neighbour search in sector generation: a spatial grid instead of 1.8 million distance calls**
+  From the PERF.31 benchmark (Foundations lane 1, PR #1179;
+  docs/design/generation-benchmark-report.md; `python -m
+  planetgen.cli.generate benchmark --workers 1,2 --profile`, 4 cores,
+  MariaDB 10.11, plan to ring 12 with 2,041 layers then 2 sectors):
+  `nearest_neighbors` makes 1.8 million `distance_to` calls for 1,916
+  systems (41 s of 227 s in the profile). Done: a spatial grid (or
+  cKDTree, as NAV.52 did for join_islands) gives the same neighbours
+  with far fewer distance calls, a test shows identical results on a
+  fixed sector, and the benchmark shows the saving. Owner: Foundations
+  lane 1.
+  Prerequisites: none. Related: PERF.31, NAV.52.
+  Design: [docs/design/generation-benchmark-report.md](design/generation-benchmark-report.md)
+
+- [ ] **PERF.82 Cut the cost of inserting a sector (about 17% of the fill)**
+  From the PERF.31 benchmark (Foundations lane 1, PR #1179;
+  docs/design/generation-benchmark-report.md; `python -m
+  planetgen.cli.generate benchmark --workers 1,2 --profile`, 4 cores,
+  MariaDB 10.11, plan to ring 12 with 2,041 layers then 2 sectors):
+  `insert_sector` is 40 s of the 227 s profile. Done: the insert is
+  measured by statement (batching, executemany, fewer round trips) and
+  cut, with the rows identical. Related to the uid work in PERF.31's
+  study items and the write cost of PERF.73. Owner: Foundations lane 1.
+  Prerequisites: none. Related: PERF.31, PERF.73.
+  Design: [docs/design/generation-benchmark-report.md](design/generation-benchmark-report.md)
 
 ## DB: Database and schema
 
