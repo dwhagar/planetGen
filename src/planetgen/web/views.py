@@ -6,18 +6,20 @@ home page (was `index.py`/`browse.py`), `/sectors` and `/systems` (the
 two halves of `browse.py`), and `/search` (was `search.py`).
 """
 
-from flask import redirect, request
+import re
+
+from flask import flash, get_flashed_messages, redirect, request, url_for
 
 from planetgen.web.lib import apiclient
 from planetgen.web.lib.datatable import Column, Facet, Result, Table, plain
-from planetgen.web.lib.fmt import format_density, format_distance_ly
+from planetgen.web.lib.fmt import format_density, format_distance_ly, format_number
 from planetgen.web.maps.galaxymap import sector_quadrant
 
 from planetgen.api.limiter import page_limit
 
-from . import bp, tables
+from . import bp, csrf, tables
 from . import searchpage
-from .helpers import crumb, db_name, page_url, render_page
+from .helpers import crumb, current_admin, db_name, page_url, render_page
 
 
 def _binary_filter(values):
@@ -108,6 +110,57 @@ ALL_SYSTEMS_TABLE = tables.register(Table(
 ))
 
 
+_FLASH_UNCHARTED = "uncharted"
+
+_POPULATION_LABELS = {"young": "Young disk", "intermediate": "Disk", "old": "Old disk", "bulge": "Bulge"}
+
+
+def _uncharted_row(star, can_generate):
+    """One Uncharted stars table row (UX.87): the scattered star's own data, where it is and a
+    Generate button for an admin."""
+    label = f"Uncharted {star['star_type']} star {star['id']}"
+    coords = ", ".join(f"{star[axis]:.2f}" for axis in ("x", "y", "z"))
+    local = ", ".join(f"{star[f'local_{axis}']:.2f}" for axis in ("x", "y", "z"))
+    generate = {"text": ""}
+    if can_generate:
+        generate = {"text": "", "form": {
+            "action": url_for("web.generate_uncharted_system", bright_star_id=star["id"]), "button": "Generate",
+            "label": f"Generate {label} by itself",
+            "fields": [[csrf.FIELD_NAME, csrf.csrf_token()]]}}
+    return [
+        {"text": label},
+        {"text": f"{format_number(star['luminosity_sol'])} L\u2609"},
+        {"text": f"{star['star_type']} ({_POPULATION_LABELS.get(star['population'], star['population'])})"},
+        {"text": f"{format_number(round(star['temperature_k']))} K"},
+        {"text": f"{star['age_gy']:.2f} Gy"},
+        {"text": f"{star['designation']} (ring {star['ring_index']}, layer {star['layer_index']}, "
+                 f"slot {star['ring_slot_index']})",
+         "href": page_url("galaxy", sector=star["designation"], open="1")},
+        {"text": f"{coords} pc"},
+        {"text": f"{local} pc"},
+        generate,
+    ]
+
+
+def _uncharted_load(state, limit, offset, want_facets):
+    # Brightest first is the table's default, so its ascending order is the API's descending one.
+    descending = state.descending if state.sort != "luminosity" else not state.descending
+    envelope = apiclient.get_uncharted_systems(
+        db_name(), limit=limit, offset=offset, sort=state.sort, descending=descending)
+    can_generate = current_admin() is not None
+    return Result([_uncharted_row(star, can_generate) for star in envelope["items"]], envelope["total"], None)
+
+
+UNCHARTED_SYSTEMS_TABLE = tables.register(Table(
+    "uncharted_systems", "Uncharted stars",
+    [Column("name", "Name", sortable=False), Column("luminosity", "Luminosity"), Column("type", "Star"),
+     Column("temperature", "Temperature"), Column("age", "Age"), Column("sector", "Sector and cell"),
+     Column("position", "Galaxy x, y, z", sortable=False), Column("local", "In the sector x, y, z", sortable=False),
+     Column("generate", "Generate", sortable=False)],
+    _uncharted_load, prefix="uncharted_", noun=("uncharted star", "uncharted stars"),
+))
+
+
 def _standalone_url():
     """The Systems list filtered to the standalone systems (UX.55)."""
     placement = ALL_SYSTEMS_TABLE.facets[0].param
@@ -159,17 +212,54 @@ def sectors():
 @bp.route("/systems")
 def systems():
     """Every system with its sector and octant; the standalone ones (generated
-    outside any sector) are a filter on the list (UX.55)."""
+    outside any sector) are a filter on the list (UX.55). `?uncharted=1`
+    lists the scattered stars no system was built around instead (UX.87)."""
+    show_uncharted = request.args.get("uncharted") == "1"
+    if show_uncharted:
+        table = tables.render(UNCHARTED_SYSTEMS_TABLE, request.path, anchor="all-systems", keep=("uncharted",))
+    else:
+        table = tables.render(ALL_SYSTEMS_TABLE, request.path, anchor="all-systems")
     return render_page(
         "systems.html",
-        title="Systems",
+        title="Uncharted stars" if show_uncharted else "Systems",
         section="systems",
-        breadcrumbs=[crumb("Systems")],
+        breadcrumbs=[crumb("Systems", "systems"), crumb("Uncharted stars")] if show_uncharted else [crumb("Systems")],
         description="Every star system in this generated galaxy.",
-        all_systems=tables.render(ALL_SYSTEMS_TABLE, request.path, anchor="all-systems"),
+        all_systems=table,
+        show_uncharted=show_uncharted,
+        uncharted_url=page_url("systems", uncharted="1", _anchor="all-systems"),
+        systems_url=page_url("systems", _anchor="all-systems"),
+        can_generate=current_admin() is not None,
+        messages=get_flashed_messages(category_filter=[_FLASH_UNCHARTED]),
         standalone_url=_standalone_url(),
         standalone_total=_systems_total(sector_id="none"),
+        uncharted_total=apiclient.get_uncharted_systems(db_name(), limit=1, offset=0)["total"],
     )
+
+
+@bp.route("/systems/uncharted/<int:bright_star_id>/generate", methods=["POST"])
+def generate_uncharted_system(bright_star_id):
+    """An admin's Generate button on an uncharted star (UX.87): builds that one system and opens it;
+    the rest of its sector stays ungenerated."""
+    back = redirect(page_url("systems", uncharted="1", _anchor="all-systems"), code=303)
+    admin = current_admin()
+    if admin is None or admin["must_change_credentials"]:
+        return back
+    try:
+        result = apiclient.admin_edit(request.headers.get("Cookie"), db_name(), "POST",
+                                      f"/uncharted-systems/{bright_star_id}/generate")
+    except apiclient.NotFoundError:
+        flash("That star is no longer waiting: it may have been generated already.", _FLASH_UNCHARTED)
+        return back
+    except apiclient.ApiError as exc:
+        if exc.status_code is None or exc.status_code >= 500:
+            raise
+        flash(re.sub(r"^planetGen API error \(\d+\): ", "", str(exc)), _FLASH_UNCHARTED)
+        return back
+    if result.get("id"):
+        return redirect(page_url("system", system_id=result["id"]), code=303)
+    flash("The system is being generated; reload in a moment to see it.", _FLASH_UNCHARTED)
+    return back
 
 
 @bp.route("/search")

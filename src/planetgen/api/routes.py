@@ -35,6 +35,7 @@ from flask import Blueprint, current_app, g, jsonify, request, url_for
 from planetgen.web.maps.systemscene import build_scene
 from planetgen.generation import run_galaxy
 from planetgen.queue import api_jobs
+from planetgen.util import draw
 
 from planetgen.db.query import (
     galaxy_layer_specs,
@@ -45,6 +46,9 @@ from planetgen.db.query import (
     bright_star_scatter_status,
     bright_stars_in_sector,
     uncharted_sector_contents,
+    count_uncharted_systems,
+    list_uncharted_systems,
+    UNCHARTED_SYSTEM_SORTS,
     NavUnavailable,
     SEARCH_RESULT_LIMIT,
     SEARCH_RESULT_PANELS,
@@ -900,6 +904,75 @@ def galaxy_changes_route():
     """
     return jsonify(galaxy_changes(get_db(), request.args.get("since")))
 
+@bp.route("/uncharted-systems")
+def uncharted_systems():
+    """
+    `GET /api/uncharted-systems` -- the scattered stars no system was built
+    around yet (UX.87), brightest first: `queryDb.list_uncharted_systems`'s
+    rows (the star, its coordinates, its sector address, designation and
+    position in the sector). Query parameters: `sort` (`luminosity` -- the
+    default -- `temperature`, `type`, `sector` or `age`) with `order`
+    (`asc` or `desc`; `desc` for luminosity when omitted, else `asc`), `limit`
+    and `offset`. `total` counts every star waiting.
+    """
+    limit, offset = _paginate(request.args)
+    sort, descending = _parse_sort(request.args, UNCHARTED_SYSTEM_SORTS)
+    if "order" not in request.args:
+        descending = sort == "luminosity"
+    db = get_db()
+    return jsonify({
+        "items": list_uncharted_systems(db, limit=limit, offset=offset, sort=sort, descending=descending),
+        "total": count_uncharted_systems(db), "limit": limit, "offset": offset,
+    })
+
+
+@bp.route("/uncharted-systems/<int:bright_star_id>/generate", methods=["POST"])
+@limiter.limit(WRITE_RATE_LIMIT)
+@require_admin(fresh=True)
+def generate_uncharted_system(bright_star_id):
+    """
+    `POST /api/uncharted-systems/<id>/generate` -- builds a system around
+    one scattered star by itself (UX.87): the star's own data, a companion,
+    planets and moons from its stored seed, saved as a standalone system and
+    linked to the scattered star. Nothing else in its sector is generated
+    (generate the whole sector instead to fill it). 404 for an unknown star;
+    409 when a system already exists for it. Runs on the queue and answers
+    `{"id": <system id>}` (201), or `202` with a job when it takes longer.
+    """
+    job_id, made = run_queued(generate_uncharted_system_job, _resolve_requested_write_db_config(), bright_star_id)
+    if made is None:
+        audit("system.generate_uncharted", target=f"job:{job_id}", detail=f"queued bright_star={bright_star_id}")
+        return accepted(job_id)
+    audit("system.generate_uncharted", target=f"system:{made['id']}", detail=f"bright_star={bright_star_id}")
+    return jsonify(made), 201
+
+
+def generate_uncharted_system_job(config, bright_star_id):
+    """The queued body of `POST /api/uncharted-systems/<id>/generate`:
+    builds the scattered star's system and links the two. Returns `{"id"}`."""
+    conn = store.open_write(config)
+    try:
+        with conn:
+            row = conn.execute("SELECT * FROM bright_stars WHERE id = ? FOR UPDATE", (bright_star_id,)).fetchone()
+            if row is None:
+                raise ApiError(f"no such uncharted star: {bright_star_id}", status_code=404)
+            if row["star_system_id"] is not None:
+                raise ApiError(f"star {bright_star_id} already has a system ({row['star_system_id']})",
+                               status_code=409)
+            system_config = SystemConfig()
+            system_config.POPULATION = row["population"]
+            x, y, z = (row[f"position_{axis}_mpc"] / brightStars.MPC_PER_PC for axis in "xyz")
+            with draw.bound(row["seed"]):
+                system = _generate_system(system_config, pc_to_ly(math.sqrt(x * x + y * y + z * z)),
+                                          primary_star_params=brightStars.star_params(row))
+            system_id = store.insert_star_system(conn, system, system_config)
+            store.assign_uids(conn, system_ids=[system_id])
+            store.mark_bright_star_filled(conn, bright_star_id, system_id)
+    finally:
+        conn.close()
+    return {"id": system_id}
+
+
 @bp.route("/phenomena")
 def phenomena():
     """
@@ -1344,11 +1417,12 @@ def _sector_generation_context(conn, sector_id, system_config):
     return pc_to_ly(placement["galactic_radius_pc"])
 
 
-def _generate_system(system_config, galactic_center_dist_ly=None):
-    """Generates a `StarSystem` from a validated recipe; a generation
-    failure is the request's fault, so a 400, not a 500."""
+def _generate_system(system_config, galactic_center_dist_ly=None, **kwargs):
+    """Generates a `StarSystem` from a validated recipe (`kwargs`: the
+    `StarSystem` arguments beyond it); a generation failure is the
+    request's fault, so a 400, not a 500."""
     try:
-        return StarSystem(system_config=system_config, galactic_center_dist_ly=galactic_center_dist_ly)
+        return StarSystem(system_config=system_config, galactic_center_dist_ly=galactic_center_dist_ly, **kwargs)
     except Exception as exc:
         # Generation can reject an internally-inconsistent recipe (e.g. an
         # impossible num_orbits/planet-class combination).

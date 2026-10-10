@@ -1,0 +1,2 @@
+### Added
+- The Systems page lists the uncharted stars (UX.87): every star the brightness scatter placed that has no system yet, brightest first, with its sector address, ring, layer and slot, galaxy and in-sector coordinates and its own data. An admin can generate one such system by itself with its Generate button (the page recommends generating the whole sector); the sector's other contents stay uncharted. New API: `GET /api/uncharted-systems` and `POST /api/uncharted-systems/<id>/generate`.
