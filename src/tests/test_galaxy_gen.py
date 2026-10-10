@@ -416,6 +416,21 @@ def test_shell_mode_generates_every_slot_of_a_ring_through_every_layer(mysql_con
     }
 
 
+def test_span_mode_fills_a_range_of_rings_and_layers(mysql_config):
+    _seed_skeleton(mysql_config, layers=[(1, 5), (0, 5), (-1, 0)])
+    _run_cli(["--rings", "0:1", "--layers=0:1", "--num-systems", "1"] + _mysql_argv(mysql_config))
+    assert {_address(row) for row in _all_sectors(mysql_config)} == {
+        (ring, layer, slot) for ring in (0, 1) for layer in (0, 1) for slot in range(ring_sector_count(ring))
+    }
+
+
+def test_span_mode_fills_a_wrapping_slot_arc(mysql_config):
+    _seed_skeleton(mysql_config, layers=[(0, 5)])
+    last = ring_sector_count(1) - 1
+    _run_cli(["--rings", "1", "--slots", f"{last}:1", "--num-systems", "1"] + _mysql_argv(mysql_config))
+    assert {_address(row) for row in _all_sectors(mysql_config)} == {(1, 0, last), (1, 0, 0), (1, 0, 1)}
+
+
 def test_shell_mode_needs_limit_or_yes_when_large_under_strict(mysql_config):
     _plan_wide_galaxy(mysql_config)
     with pytest.raises(SystemExit):

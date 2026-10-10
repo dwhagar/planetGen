@@ -36,6 +36,7 @@ import pymysql
 from planetgen.queue import work as workQueue
 from planetgen.db import check as db_check, fingerprint, store
 from planetgen.admin import activity_log
+from planetgen.galaxy.span import Span, SpanError, parse_range
 from planetgen.generation import directives, limits, prevalence
 from planetgen.galaxy import seed as galaxySeed, version_check, version_key
 from planetgen.physics import mathcheck
@@ -561,6 +562,18 @@ def add_galaxy_arguments(parser):
                              "ring I through every layer the outline reaches (a cylindrical shell). Far "
                              "larger than one ring at one layer, so it needs --limit or --yes past "
                              "LARGE_RING_WARNING_THRESHOLD sectors.")
+    span_group = parser.add_argument_group("span mode (ADM.29)")
+    span_group.add_argument('--rings', metavar='FIRST:LAST',
+                            help="Span mode: generate every not-yet-generated sector in these rings (N or "
+                                 "FIRST:LAST, inclusive). Default: every ring the outline reaches.")
+    span_group.add_argument('--layers', metavar='FIRST:LAST',
+                            help="Span mode: only these layers (N or FIRST:LAST, inclusive; negative below "
+                                 "the plane, so write --layers=-2:2). Default: every layer in the outline. "
+                                 "Alone it fills those layers out to the galaxy's edge; with --rings, the "
+                                 "columns of those rings through these layers.")
+    span_group.add_argument('--slots', metavar='FIRST:LAST',
+                            help="Span mode, with exactly one ring: only this arc of slots, inclusive; "
+                                 "FIRST past LAST wraps through slot 0 (50:5). Default: the whole ring.")
     parser.add_argument('--block-layer', type=int, metavar='J',
                         help="With --block: only the block's sectors on sector layer J (one layer of a "
                              "size-3 block is about 9 sectors).")
@@ -662,6 +675,9 @@ def validate_galaxy_args(args, parser):
     if block_layer is not None:
         parser.error("--block-layer requires --block.")
 
+    if any(value is not None for value in (args.rings, args.layers, args.slots)):
+        _validate_span(args, parser)
+        return
     random_start = args.ring is None and args.center_sector is None
 
     if args.ring is not None and args.ring < 0:
@@ -748,6 +764,33 @@ def validate_galaxy_args(args, parser):
     args.system_file = None
     args.num_orbits = None
     args.name = None
+
+
+def _validate_span(args, parser):
+    """Turns `--rings/--layers/--slots` into `args.span` (a `Span`) and
+    refuses what can't go with a span (ADM.29)."""
+    others = [flag for flag, value in (
+        ("--ring", args.ring), ("--layer", args.layer), ("--slot", args.slot),
+        ("--center-sector", args.center_sector), ("--radius-pc", args.radius_pc),
+        ("--max-ring", args.max_ring), ("--min-start-density", args.min_start_density),
+    ) if value is not None] + [flag for flag, on in (("--column", args.column), ("--shell", args.shell)) if on]
+    if others:
+        parser.error(f"--rings/--layers/--slots can't be combined with {', '.join(others)}.")
+    if args.slots is not None and args.rings is None:
+        parser.error("--slots requires --rings (one ring).")
+    try:
+        span = Span(
+            rings=parse_range(args.rings, "--rings") if args.rings is not None else None,
+            layers=parse_range(args.layers, "--layers") if args.layers is not None else None,
+            slots=parse_range(args.slots, "--slots") if args.slots is not None else None)
+    except SpanError as exc:
+        parser.error(str(exc))
+    if span.rings is not None and span.rings[1] > limits.MAX_GENERATE_RING:
+        parser.error(f"--rings must stay at or below ring {limits.MAX_GENERATE_RING}.")
+    if args.limit is not None and not 1 <= args.limit <= limits.MAX_GENERATE_LIMIT:
+        parser.error(f"--limit must be between 1 and {limits.MAX_GENERATE_LIMIT}.")
+    args.span = span
+    args.sector_name = args.system_file = args.num_orbits = args.name = None
 
 
 def _galaxy_seed_arg(text):

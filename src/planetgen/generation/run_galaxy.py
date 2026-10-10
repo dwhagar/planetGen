@@ -1437,6 +1437,27 @@ def run_shell(args, edge_pc, progress):
     _generate_addresses(args, addresses, f"the shell at ring {args.ring}", edge_pc, progress, batch_density)
 
 
+def run_span(args, edge_pc, progress):
+    """
+    Span mode (ADM.29): every not-yet-generated sector in `args.span`, a
+    range of rings, layers and slots, inside the galaxy's outline. The
+    count comes from prefix sums, so the size warning is instant. Needs
+    `--limit` or `--yes` when it is more than `LARGE_RING_WARNING_THRESHOLD`
+    sectors.
+    """
+    span = args.span
+    batch_density = _BatchDensity(store.mysql_config_from_args(args))
+    total = span.count(batch_density.bounds)
+    what = span.describe()
+    if total == 0:
+        log.normal(f"{what.capitalize()} holds no sector inside the galaxy's outline: nothing to generate.")
+        return
+    if total > LARGE_RING_WARNING_THRESHOLD and args.limit is None and not args.yes:
+        run_common._refuse_or_warn(args, f"{what.capitalize()} holds {total} sectors, a very large run "
+                                         f"(--limit N generates only the first N).")
+    _generate_addresses(args, list(span.addresses(batch_density.bounds)), what, edge_pc, progress, batch_density)
+
+
 def run_galaxy(args):
     """
     Dispatches to block, column, shell, single-address, ring-batch,
@@ -1505,6 +1526,8 @@ def _run_galaxy_mode(args, edge_pc, progress):
     """`run_galaxy`'s dispatch to the mode its arguments ask for."""
     if getattr(args, "block", None) is not None:
         run_block(args, edge_pc, progress)
+    elif getattr(args, "span", None) is not None:
+        run_span(args, edge_pc, progress)
     elif args.column:
         run_column(args, edge_pc, progress)
     elif args.shell:
