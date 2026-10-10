@@ -3429,18 +3429,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none.
   Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
 
-- [ ] **PERF.53 Timing stats are skewed by layers and sectors that generated nothing (bug)**
-  Boss (2026-10-10 06:28Z): when scattering of any kind is done, the
-  timing stats get skewed because they include layers generated or
-  sectors generated that produced nothing. Done: the per-layer,
-  per-sector and per-unit timing stats count a run only when something
-  was actually generated; the total layers-per-second figure keeps
-  counting every layer, including the ones that produced nothing,
-  because it measures the whole job; a test on a small galaxy with empty
-  layers checks both. Related to PERF.52 (the admin generation-stats
-  table).
-  Prerequisites: none. Related: PERF.52, PERF.33, GEN.185.
-
 - [ ] **PERF.54 Separate generation-stats rows for the mass pass and the luminosity pass of the star scatter**
   Reported by Bugfixes lane 1 (2026-10-10 06:36Z), left out of PERF.52
   because it is not a small fix: the admin generation-stats table
@@ -3468,6 +3456,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   mechanism), PERF.52 and PERF.53 (the generation stats), UX.83, UX.3.
   Prerequisite: PERF.33. Related: PERF.33, PERF.51, PERF.52, PERF.53,
   UX.83, UX.3.
+  Bugfixes lane 1 (2026-10-09): Bugfixes lane 1 (2026-10-10, PERF.53, PR
+  #1015): a stored 'layers per second for the whole job' stat (all
+  layers, including ones that generated nothing, per Boss 06:28Z) does
+  not exist yet; the progress bar measures the whole job but nothing is
+  stored. Add it here if wanted.
 
 ## DB: Database and schema
 
