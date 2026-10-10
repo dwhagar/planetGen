@@ -6,11 +6,14 @@ hold a web worker for minutes queues the work with `submit`, answers
 `202 Accepted` with the job's id at once, and the client reads the
 outcome from `GET /api/jobs/<id>` (`status`).
 
-Each job has a queue of its own and one burst worker started for it,
-detached from the web server (`redisqueue.start_detached`), as the
-admin Generate page's jobs do (`planetgen.web.jobs`): a request timeout
-or a graceful reload of the web server doesn't stop it, and the worker
-exits when the job is done. The result is kept for `RESULT_TTL_SECONDS`.
+The jobs share one queue (`QUEUE_NAME`), served by burst workers started
+detached from the web server (`redisqueue.start_detached`), as the admin
+Generate page's jobs do (`planetgen.web.jobs`): a request timeout or a
+graceful reload of the web server doesn't stop them, and a worker exits
+when the queue is empty. A job starts a worker only while fewer than
+`work.worker_count()` serve the queue, so a batch of uploads doesn't start
+a process (and its imports) per job (PERF.39). The result is kept for
+`RESULT_TTL_SECONDS`.
 """
 
 import calendar
@@ -20,11 +23,21 @@ import secrets
 import sys
 import time
 
-from planetgen.queue import redisqueue
+import rq
+
+from planetgen.queue import redisqueue, work
 from planetgen.util import draw
 
 QUEUE_PREFIX = "planetgen-api-"
-"""str: A job's RQ queue and its worker are this plus its id."""
+"""str: A job's id in RQ is this plus its own id."""
+
+QUEUE_NAME = redisqueue.WEB_QUEUE
+"""str: The queue every job goes on, and its workers serve."""
+
+STARTING_KEY = "planetgen-api-workers-starting"
+STARTING_SECONDS = 15
+"""The Redis counter of workers started but not yet registered with RQ, which expires this long after the last
+start: counted with the registered ones so a burst of jobs doesn't start more than the cap."""
 
 RESULT_TTL_SECONDS = 86400
 """int: How long a finished job's result or error is kept."""
@@ -61,18 +74,61 @@ def execute(function, args):
     What a worker runs for a queued job: `function(*args)`, with a refusal
     the work raises on purpose (an `ApiError`: 404, 409 ...) returned as
     data, so `status` can report the HTTP status it carries.
+
+    `ApiError` is looked up among the loaded modules, not imported: a
+    function that raises one has imported `planetgen.api.common` already,
+    and importing it here would cost every job 2 s (PERF.39).
     """
-    from planetgen.api.common import ApiError
     try:
         return {"result": function(*args)}
-    except ApiError as exc:
-        return {"refused": str(exc), "status": exc.status_code}
+    except Exception as exc:  # noqa: BLE001 -- anything but a refusal is re-raised
+        common = sys.modules.get("planetgen.api.common")
+        if common is not None and isinstance(exc, common.ApiError):
+            return {"refused": str(exc), "status": exc.status_code}
+        raise
+
+
+_connections = {}
+"""dict: `url -> redis.Redis`, one connection (pool) per server for `submit`, `status` and `wait`."""
+
+
+def _connection(url=None):
+    url = url or redisqueue.redis_url()
+    connection = _connections.get(url)
+    if connection is None:
+        connection = _connections[url] = redisqueue.connect(url)
+    return connection
+
+
+def ensure_workers(connection=None, url=None):
+    """
+    Starts burst workers for the waiting jobs, never more than
+    `work.worker_count()` in all (those serving the queue, and those
+    started a moment ago and not registered yet).
+
+    Returns:
+        int: How many were started.
+    """
+    url = url or redisqueue.redis_url()
+    connection = connection or _connection(url)
+    queue = redisqueue.queue(QUEUE_NAME, connection)
+    waiting = queue.count
+    if not waiting:
+        return 0
+    starting = int(connection.get(STARTING_KEY) or 0)
+    wanted = min(waiting, work.worker_count()) - rq.Worker.count(queue=queue) - starting
+    for _ in range(max(0, wanted)):
+        connection.incr(STARTING_KEY)
+        connection.expire(STARTING_KEY, STARTING_SECONDS)
+        redisqueue.start_detached(redisqueue.worker_argv([QUEUE_NAME], url, python=sys.executable), REPO_DIR)
+    return max(0, wanted)
 
 
 def submit(function, *args):
     """
     Queues `function(*args)` (a module-level function; its arguments and
-    return value must pickle) and starts a burst worker for it.
+    return value must pickle) and starts a burst worker for it unless
+    enough are serving the queue already (`ensure_workers`).
 
     Returns:
         str: The job's id, for `status`.
@@ -81,19 +137,18 @@ def submit(function, *args):
         NoQueue: No Redis server answers at `redis.url`.
     """
     url = redisqueue.redis_url()
-    connection = redisqueue.connect(url)
+    connection = _connection(url)
     try:
         connection.ping()
     except Exception as exc:  # noqa: BLE001 -- any connection failure
         raise NoQueue(f"no Redis server answers at {url} (config.json's redis.url); "
                       f"start Redis to run this: {exc}") from exc
     job_id = new_job_id()
-    name = QUEUE_PREFIX + job_id
-    redisqueue.queue(name, connection).enqueue(
-        execute, args=(function, args), job_id=name, job_timeout=-1,
+    redisqueue.queue(QUEUE_NAME, connection).enqueue(
+        execute, args=(function, args), job_id=QUEUE_PREFIX + job_id, job_timeout=-1,
         result_ttl=RESULT_TTL_SECONDS, failure_ttl=RESULT_TTL_SECONDS,
     )
-    redisqueue.start_detached(redisqueue.worker_argv([name], url, name=name, python=sys.executable), REPO_DIR)
+    ensure_workers(connection, url)
     return job_id
 
 
@@ -130,13 +185,19 @@ def status(job_id):
     if not isinstance(job_id, str) or not JOB_ID_RE.match(job_id):
         return None
     try:
-        connection = redisqueue.connect()
+        connection = _connection()
         job = redisqueue.fetch_job(QUEUE_PREFIX + job_id, connection)
     except redisqueue.Unavailable as exc:
         raise NoQueue(str(exc)) from exc
     if job is None:
         return None
     state = _STATES.get(job.get_status(refresh=True), "failed")
+    if state == "queued":
+        # A worker that was about to exit when the job arrived leaves it waiting: whoever asks starts another.
+        try:
+            ensure_workers(connection)
+        except Exception:  # noqa: BLE001 -- a status read does not fail for want of a worker
+            pass
     body = {"id": job_id, "state": state, "result": None, "error": None, "error_status": None, "made": None}
     if state == "succeeded":
         outcome = job.return_value()
