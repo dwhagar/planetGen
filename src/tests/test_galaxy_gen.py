@@ -1063,6 +1063,41 @@ def test_random_start_mode_generates_a_seed_sector_and_its_neighborhood(mysql_co
     assert len(sectors) == len(actual_addresses)
 
 
+def test_random_neighborhoods_are_separate_and_whole(mysql_config, capsys):
+    """GEN.97: `--neighborhoods 3` makes three starts, each at least twice the radius from the others."""
+    import math
+    _plan_wide_galaxy(mysql_config)
+    radius_pc = 4.0
+    _run_cli(["--neighborhoods", "3", "--max-ring", "60", "--radius-pc", str(radius_pc), "--num-systems", "1"]
+             + _mysql_argv(mysql_config))
+    output = capsys.readouterr()
+    starts = [m for m in (output.out + output.err).splitlines() if m.startswith("Saved random starting sector")]
+    assert len(starts) == 3
+    sectors = _all_sectors(mysql_config)
+    seeds = sorted(sectors, key=lambda row: row["id"])
+    centers = [(r["center_x_pc"], r["center_y_pc"], r["center_z_pc"]) for r in sectors]
+    # Every sector belongs to a neighborhood of one of the three starts.
+    start_ids = []
+    for message in starts:
+        start_ids.append(int(message.split("sector_id=")[1].split(")")[0]))
+    by_id = {r["id"]: (r["center_x_pc"], r["center_y_pc"], r["center_z_pc"]) for r in sectors}
+    start_centers = [by_id[i] for i in start_ids]
+    for a in range(3):
+        for b in range(a + 1, 3):
+            assert math.dist(start_centers[a], start_centers[b]) >= 2 * radius_pc
+    assert all(min(math.dist(c, s) for s in start_centers) <= radius_pc + 1e-6 for c in centers)
+    assert len(seeds) == len(sectors)
+
+
+@pytest.mark.parametrize("argv", [
+    ["--neighborhoods", "0"], ["--neighborhoods", "101"], ["--neighborhood-gamma", "-1"],
+    ["--neighborhoods", "2", "--ring", "3"], ["--neighborhood-gamma", "1", "--center-sector", "1", "--radius-pc", "4"],
+])
+def test_neighborhood_options_reject_bad_combinations(argv):
+    with pytest.raises(SystemExit):
+        _run_cli(argv + _DUMMY_MYSQL_ARGV)
+
+
 def _occupy_ring_0_slots(mysql_config, slot_indices):
     for slot_index in slot_indices:
         address = (0, 0, slot_index)

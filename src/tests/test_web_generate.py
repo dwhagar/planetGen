@@ -1296,3 +1296,12 @@ def test_made_url_only_for_a_finished_sector_run(client):
                     {"kind": "plan", "finished": True, "started_at": now},
                     {"kind": "galaxy", "finished": True, "started_at": None}):
             assert generate_page._job_view({"id": "j2", **base, **job})["made_url"] is None
+
+
+def test_random_start_argv_carries_the_neighborhood_count():
+    """GEN.97: more than one neighborhood adds the count and the density bias."""
+    assert generate_page.random_start_argv({"neighborhoods": "4", "neighborhood_gamma": "1.5"}) == [
+        "--neighborhoods", "4", "--neighborhood-gamma", "1.5"]
+    assert generate_page.random_start_argv({"neighborhoods": "1", "neighborhood_gamma": "2"}) == []
+    with pytest.raises(generate_page.FormError):
+        generate_page.random_start_argv({"neighborhoods": "101"})

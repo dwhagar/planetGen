@@ -611,6 +611,14 @@ def add_galaxy_arguments(parser):
                              "address is (see RANDOM_START_MAX_PLACEMENT_ATTEMPTS). Cannot "
                              "be combined with --density/--num-systems (those override every position's "
                              "density uniformly, leaving no per-position value to compare against).")
+    parser.add_argument('--neighborhoods', type=int, default=1, metavar='N',
+                        help="Random-start mode: generate N random neighborhoods (GEN.97) instead of one. Each "
+                             "start is inside the galaxy with its whole neighborhood, and at least twice the "
+                             "radius from every other start, so they never overlap.")
+    parser.add_argument('--neighborhood-gamma', type=finite_float, default=0.0, metavar='G',
+                        help="With --neighborhoods: bias the starts toward dense space. A start is kept with "
+                             "probability min(1, relative density) ** G; 0 (the default) keeps every one, "
+                             "so starts are uniform by volume.")
     parser.add_argument('--cylinder-sectors', type=finite_float, metavar='X',
                         help="Instead of --radius-pc, with --center-sector or --ring --slot: a radial fill "
                              "(ADM.30), a round disc X sectors across the plane (1 is the centre and its "
@@ -767,6 +775,13 @@ def validate_galaxy_args(args, parser):
             parser.error("--limit and --yes don't apply to --column.")
         args.slot = column_slot
 
+    if args.neighborhoods < 1 or args.neighborhoods > limits.MAX_GENERATE_NEIGHBORHOODS:
+        parser.error(f"--neighborhoods must be between 1 and {limits.MAX_GENERATE_NEIGHBORHOODS}.")
+    if args.neighborhood_gamma < 0:
+        parser.error("--neighborhood-gamma must be 0 or more.")
+    if (args.neighborhoods > 1 or args.neighborhood_gamma) and not random_start:
+        parser.error("--neighborhoods and --neighborhood-gamma only apply to random-start mode (neither "
+                     "--ring nor --center-sector).")
     if args.max_ring is not None and not random_start:
         parser.error("--max-ring only applies to random-start mode (neither --ring nor --center-sector).")
     if args.max_ring is not None and args.max_ring < 0:

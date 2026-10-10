@@ -71,7 +71,7 @@ from planetgen.galaxy.span import Span, SpanError, parse_range
 from planetgen.physics.units import ly_to_pc, pc_to_ly
 from planetgen.util.format import format_number
 from planetgen.generation.limits import (
-    MAX_GENERATE_LIMIT, MAX_GENERATE_RADIUS_PC, MAX_GENERATE_RING,
+    MAX_GENERATE_LIMIT, MAX_GENERATE_NEIGHBORHOODS, MAX_GENERATE_RADIUS_PC, MAX_GENERATE_RING,
 )
 
 from . import bp, jobs
@@ -318,6 +318,12 @@ def random_start_argv(form):
     density = _number(form, "min_start_density", "Minimum start density", float, minimum=0.001)
     if density is not None:
         argv += ["--min-start-density", str(density)]
+    count = _number(form, "neighborhoods", "Neighborhoods", int, minimum=1, maximum=MAX_GENERATE_NEIGHBORHOODS)
+    if count is not None and count > 1:
+        argv += ["--neighborhoods", str(count)]
+        gamma = _number(form, "neighborhood_gamma", "Density bias", float, minimum=0, maximum=10)
+        if gamma:
+            argv += ["--neighborhood-gamma", f"{gamma:g}"]
     return argv
 
 
@@ -880,6 +886,7 @@ def _page(admin, error=None, status=200, form=None, estimate=None, estimate_titl
         max_radius_ly=MAX_GENERATE_RADIUS_LY,
         max_ring=MAX_GENERATE_RING,
         max_limit=MAX_GENERATE_LIMIT,
+        max_neighborhoods=MAX_GENERATE_NEIGHBORHOODS,
         center_choices=CENTER_CHOICES,
         kept_section=_kept_section(form),
         error=error,
