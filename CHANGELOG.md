@@ -3,6 +3,7 @@
 ## [8.0.911] - 2026-10-10
 
 ### Changed
+- Text shown to visitors says "uncharted" instead of "unbuilt" or "not generated" (the Phenomena table's rows, the nearby search and route notes, the Sector Map and Galaxy Map labels and hovers, the command-line query note); the Generate system and admin panels keep the technical words (UX.88).
 - Filed UX.91 (full PHI-4 explanation in the planet and moon description) from Boss's request.
 - Added Boss's layers-modified statistic to PERF.56 and a pointer on PERF.57.
 - Added Boss's clarification to PERF.57: star passes count stars, the phenomena pass counts phenomena.
