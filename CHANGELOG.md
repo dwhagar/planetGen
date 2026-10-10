@@ -3,6 +3,7 @@
 ## [8.0.911] - 2026-10-10
 
 ### Changed
+- **The bright-star backfill goes by mass, in four rings (GEN.187).** Around the sectors a run generates, the sectors a face away (no diagonals) now get every star born with at least 1 solar mass, the next ring out 2, then 5, then 8; each ring counts from the previous ring's outer edge, and past the fourth ring only the scatter's own mass limit applies. The old luminosity tiers (100 to 750 L_sun out to 10, 25, 50 and 100 ly) are gone, as is the `--backfill-from` radius wording. A sector filled later builds its own stars only below the mass and luminosity already placed, a staged scatter tops backfilled sectors up with the lighter stars they lack, and white dwarfs born at 1 solar mass or more are placed too (stored with a `NULL` lifespan). Schema v79 (`sector_stats.bright_mass_sol`). Design: `docs/design/mass-backfill.md`.
 - Retired UX.89 (stage lists and numbering, PR #1057); noted the stage entry GEN.187 must add.
 - Every staged job now numbers its stages across the whole job (a New galaxy shows "Stage 7 of 12", not "Step 4 of 4") and lists them; stages a run will not do are listed as skipped with the reason (UX.89). The galaxy and plan commands print "Stage N of M" lines and record the stage in the progress file.
 - Retired DB.20 and GEN.171 (object IDs in the schema and the sector fill, PR #1055); noted what is already built for GEN.172.
