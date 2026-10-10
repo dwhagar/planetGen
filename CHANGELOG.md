@@ -3,11 +3,13 @@
 ## [8.0.866] - 2026-10-10
 
 ### Added
+- A route now reports its longest hop and flags each hop whose line crosses sectors that have not been generated as unknown space (NAV.12). `/api/nav` returns `route.hops` and `route.longest_hop_ly`, and the NAV page states the longest hop and the unknown-space jumps.
 - Eight to-do items from the generation performance study (a warmed worker, lazy names, uids in Python, the phenomenon-row size decision, a later pass for links, one position per body, benchmark records and a faster INSERT).
 - A to-do item (generating a neighbourhood from the Generate page shows no per-sector stats).
 - A to-do item (the Generate page shows a progress line and per-layer counts instead of one line per sector).
 
 ### Changed
+- Two systems in one sector are routed by their nearest stars even when those lie in the sector next door.
 - The Generate page progress-line to-do item (ADM.46) was withdrawn at Boss's word.
 
 ## [8.0.783] - 2026-10-09
