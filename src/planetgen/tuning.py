@@ -2740,7 +2740,7 @@ PHENOMENON_MIN_MASS_PRESETS = (8.0, 10.0, 12.0, 14.0, 16.0, 18.0, 20.0)
 """tuple: The mass limits the user may pick (GEN.183, Boss 2026-10-10): the
 Generate page's slider and `--phenomenon-min-mass` accept only these."""
 
-PHENOMENON_MIN_MASS_SOLAR = 8.0
+PHENOMENON_MIN_MASS_SOLAR = 14.0
 """float: The phenomenon scatter's lowest mass, the default of
 `PHENOMENON_MIN_MASS_PRESETS` (GEN.167, `planetgen plan
 --phenomenon-min-mass`; docs/design/phenomenon-scatter-mass-cut.md, Boss
@@ -2998,7 +2998,7 @@ is the same factor of distance (`facilities.distance_from_step`)."""
 
 # --- Galaxy pre-placement (schema v43) ---
 
-BRIGHT_STAR_MIN_LUMINOSITY_SOL = 5000.0
+BRIGHT_STAR_MIN_LUMINOSITY_SOL = 9000.0
 """float: Every star at least this bright (solar luminosities) is generated
 and placed galaxy-wide right after `planetgen plan`, before any sector is
 filled (`bright_stars`, schema v43). Its sector is still generated later,

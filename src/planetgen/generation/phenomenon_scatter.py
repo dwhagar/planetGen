@@ -17,7 +17,7 @@ there. A kind's mean is its rate per star
 
 The mass cut (GEN.167, docs/design/phenomenon-scatter-mass-cut.md): only
 the neutron stars and black holes at or above `--phenomenon-min-mass`
-(`tuning.PHENOMENON_MIN_MASS_SOLAR`, 8 solar masses) are scattered, each
+(`tuning.PHENOMENON_MIN_MASS_SOLAR`, 14 solar masses) are scattered, each
 kind's mean times its share above the cut (`share_above`), and each built
 with its mass drawn above the cut. A sector draws the share below it when
 it is filled (`below_cut_draws`, GEN.168), from its own stream, so the two
