@@ -2,11 +2,8 @@
 
 ## [8.0.911] - 2026-10-10
 
-### Removed
-- Windows support (OPS.39). `install.ps1`, `update.ps1`, `scripts/deploy-common.ps1`, `examples/maintenance/install-maintenance-task.ps1`, `examples/windows/` and `docs/deployment/windows.md` are gone, as are the Windows CI jobs (`windows-jobs`, `windows-installers`), the Windows branches in the code (the detached-process, `taskkill` and `OpenProcess` handling of Generate page jobs and the no-Redis fallback to run a job directly, the CPU-percent load reading on the admin queue page, `SpawnWorker`, the below-normal worker priority class, the checkout-relative log and settings folders, drive-letter disk measuring) and the Windows-only tests. The admin Generate page's jobs now always run on Redis, and the queue page shows only the load average. `waitress` leaves the `server` extra and `requirements-server.lock`.
-- `docs/WINDOWS.md` gives basic instructions for a typical Windows setup (WSL2 and the Linux guides); anyone who wants native Windows does that work themselves.
-
 ### Changed
+- **Docs only:** OPS.39 (Windows support removed, PR #981), TEST.115, OPS.34 (superseded) and TEST.118 (PR #975) are retired.
 - **Docs only:** OPS.40 (update.sh step 8 bug) is filed.
 - **Docs only:** GEN.188 is owned by Foundations lane 2.
 - **Docs only:** GEN.188 (mass limit default 8; mass slider and luminosity dropdown side by side on Generate and New galaxy) is filed, and the mass-cut design note records the new default.
@@ -25,6 +22,10 @@
 - **Docs only:** GEN.88 (hydrosphere and ocean chemistry, PR #963, schema v74) is retired from the TODO list and the plans; OPS.38 (committed Redis dump files) and TEST.117 (generatejobs.test.mjs failing since PERF.33) are filed.
 - Rogue planet oceans now stop at the depth where high-pressure ice forms (the rest is stored as high-pressure ice), their ice lid is compared with the water in matching units and melts lower under its own weight, and an ocean under a hydrogen envelope is shown as a hycean ocean. New seeded output differs from earlier versions.
 - **Docs only:** Boss confirmed the defaults on GEN.183, GEN.184, GEN.187 and UX.87; their open questions are now decisions.
+
+### Removed
+- Windows support (OPS.39). `install.ps1`, `update.ps1`, `scripts/deploy-common.ps1`, `examples/maintenance/install-maintenance-task.ps1`, `examples/windows/` and `docs/deployment/windows.md` are gone, as are the Windows CI jobs (`windows-jobs`, `windows-installers`), the Windows branches in the code (the detached-process, `taskkill` and `OpenProcess` handling of Generate page jobs and the no-Redis fallback to run a job directly, the CPU-percent load reading on the admin queue page, `SpawnWorker`, the below-normal worker priority class, the checkout-relative log and settings folders, drive-letter disk measuring) and the Windows-only tests. The admin Generate page's jobs now always run on Redis, and the queue page shows only the load average. `waitress` leaves the `server` extra and `requirements-server.lock`.
+- `docs/WINDOWS.md` gives basic instructions for a typical Windows setup (WSL2 and the Linux guides); anyone who wants native Windows does that work themselves.
 
 ### Fixed
 - The star scatter pass tests use a luminosity floor the toy galaxy can fill with lighter stars, since the real floor now starts at 2,500 solar luminosities (GEN.184).
