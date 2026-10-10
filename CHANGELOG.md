@@ -3,6 +3,7 @@
 ## [8.0.911] - 2026-10-10
 
 ### Changed
+- **The backfill stage is named for what it does now (GEN.187).** On a galaxy run's numbered stage list, "Backfill the bright stars" becomes "Scatter the massive stars from the neighborhood", the four mass rings around the generated sectors. It is still shown as skipped, with its reason, when `--backfill-from none` is used or the run generated no sector, and its timing and per-layer counts are logged as before.
 - TEST.124 is first in Bugfixes lane 1 (priority: main is red).
 - Retired GEN.187 (bright-star back scatter, PR #1059). Filed TEST.124 (Phenomena page tests fail with KeyError scattered, a bug).
 - **The bright-star backfill goes by mass, in four rings (GEN.187).** Around the sectors a run generates, the sectors a face away (no diagonals) now get every star born with at least 1 solar mass, the next ring out 2, then 5, then 8; each ring counts from the previous ring's outer edge, and past the fourth ring only the scatter's own mass limit applies. The old luminosity tiers (100 to 750 L_sun out to 10, 25, 50 and 100 ly) are gone, as is the `--backfill-from` radius wording. A sector filled later builds its own stars only below the mass and luminosity already placed, a staged scatter tops backfilled sectors up with the lighter stars they lack, and white dwarfs born at 1 solar mass or more are placed too (stored with a `NULL` lifespan). Schema v79 (`sector_stats.bright_mass_sol`). Design: `docs/design/mass-backfill.md`.
