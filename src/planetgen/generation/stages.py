@@ -53,7 +53,7 @@ def galaxy_stages(args):
         Stage("mass", "Scatter the massive stars", no_scatter),
         Stage("luminosity", "Scatter the bright stars", no_scatter),
         Stage("phenomena", "Scatter the phenomena", no_scatter),
-        Stage("backfill", "Backfill the bright stars",
+        Stage("backfill", "Scatter the massive stars from the neighborhood",
               "backfill was turned off (--backfill-from none)"
               if (getattr(args, "backfill_from", "edge") or "edge") == "none" else None),
         Stage("population", "Run the population pass",
