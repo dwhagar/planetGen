@@ -67,7 +67,7 @@ Three figures disagreed; this fixes them.
   `phenomenon_scatter.layer_expected` gave the earlier note; that estimate is the progress bar's
   weight and runs 10% low [C]. The split is 9.5e8 neutron stars and 2.2e8 black holes.
 
-**One thing for Boss.** Against the nominal rates the neutron stars come out 0.80 times and the black
+**Decided (Boss, 2026-10-10 18:44Z, GEN.169): keep the regional factors and the 0.1% intermediate-mass share as they are.** Against the nominal rates the neutron stars come out 0.80 times and the black
 holes 1.49 times [C], because the regional factors of GEN.132 (`remnant_distribution.placement_factor`,
 vertical scale-height ratios 3.0 and 2.5, the black holes' core excess) multiply the bin weights without
 renormalising. His 2026-10-09 retune said "1e9 neutron stars and 1e8 black holes"; the scatter yields
@@ -210,7 +210,8 @@ holds 0.8 neutron stars and 0.1 black holes on average [C].
 3. The sector fill's below-cut draw: per-sector stream, Poisson thinning from the scatter's expected-star
    count, level recorded per sector, band top-up when the cut is lowered (the bright-star pattern).
 4. DB.19: reword to "implement the cut; derive-on-demand and compact rows only if the cut goes to 10 or below."
-5. Decide for Boss: renormalise the regional factors so each kind's total equals rate times stars (today
+5. Decided (Boss, 2026-10-10 18:44Z, defaults approved; GEN.169): keep both as they are. The regional factors stay
+   unrenormalised and the 0.1% intermediate-mass share stays. The question was: renormalise the regional factors so each kind's total equals rate times stars (today
    neutron stars 0.80 and black holes 1.49 of nominal), and whether 0.1% intermediate-mass black holes
    (53% of black-hole mass) is intended.
 6. Correct `docs/plan/notes.md` and `db-check-and-parity-repair.md`: replace 1.6e8 by the computed counts

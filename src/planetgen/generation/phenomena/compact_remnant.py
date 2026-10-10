@@ -6,7 +6,8 @@ Compact Stellar Remnants
 
 This module defines `BlackHole` and `NeutronStar`, the two real end states
 of a massive star's core collapse (supernova) that can, per
-`docs/design/exotic-phenomena.md`, optionally anchor a full `StarSystem` in
+`docs/design/anomalies.md` and `docs/design/multistar-and-compact-systems.md`
+(section 7), optionally anchor a full `StarSystem` in
 place of an ordinary `Star` -- e.g. a pulsar with a fallback-disk planet
 (real examples exist, PSR B1257+12), or a lone stellar-mass black hole with
 nothing left orbiting it at all.

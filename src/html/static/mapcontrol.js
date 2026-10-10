@@ -88,6 +88,28 @@ export function wheelPixels(event, pageHeightPx, limitPx) {
   return Math.max(-limitPx, Math.min(limitPx, deltaPx));
 }
 
+// Where the orbit target goes so that the point `anchor` stays under the
+// same pixel while the camera's distance from the target changes by
+// `ratio` (new over old) and the view's turn stays: camera and target both
+// scale about the anchor (MAP.150, zooming toward the cursor).
+export function zoomAboutAnchor(target, anchor, ratio) {
+  return target.map(function (t, i) {
+    return anchor[i] + (t - anchor[i]) * ratio;
+  });
+}
+
+// The point where the ray (`origin`, unit `direction`) crosses the plane
+// through `target` at right angles to the unit `forward` axis (the way the
+// camera looks), or null when the ray runs along the plane or away from it.
+export function pointOnFocusPlane(origin, direction, target, forward) {
+  const along = direction[0] * forward[0] + direction[1] * forward[1] + direction[2] * forward[2];
+  if (!(along > 1e-6)) return null;
+  const ahead = (target[0] - origin[0]) * forward[0] + (target[1] - origin[1]) * forward[1] + (target[2] - origin[2]) * forward[2];
+  const t = ahead / along;
+  if (!(t > 0)) return null;
+  return [origin[0] + direction[0] * t, origin[1] + direction[1] * t, origin[2] + direction[2] * t];
+}
+
 // The pointer half of the controller, as handlers for the canvas's
 // pointerdown, pointermove, pointerup (and pointercancel), pointerleave
 // and click events; with `options.attach` it adds them to `canvasEl`
