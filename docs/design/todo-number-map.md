@@ -693,7 +693,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.192 | Phenomena scatter log is thin and the Phenomena table page needs checking after a run (bug) | none | done, PR #1013 |
 | GEN.193 | Phenomena table stays empty after the scatter: scattered unbuilt phenomena are not listed (bug) | none | done, PR #1019 |
 | GEN.194 | Default mass limit 14 solar masses and default luminosity floor 9,000 solar luminosities | none | done, PR #1051 |
-| GEN.195 | A separate mass limit for neutron stars and black holes, and the central black hole or quasar always created | none | open |
+| GEN.195 | A separate mass limit for neutron stars and black holes, and the central black hole or quasar always created | none | done, PR #1081 |
 | GEN.196 | One "Redo scatters" box on Generate: choose which scatters to redo, with new settings for each | none | open |
 | GEN.197 | Object IDs on ejection, merger and split events | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
