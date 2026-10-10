@@ -3,6 +3,7 @@
 ## [8.0.911] - 2026-10-10
 
 ### Changed
+- The bright-star luminosity floor (GEN.184) is now chosen from presets: 2,500 to 4,000,000 solar luminosities on an exponential ladder (steps of 100 near 2,500, about 400,000 near the top), default 3,000 (was 1,000). Nothing below 2,500 is accepted by `--bright-star-min-luminosity` or the Generate page, which offers the presets in a list. A galaxy already scattered keeps the level it was scattered at.
 - **Docs only:** GEN.88 (hydrosphere and ocean chemistry, PR #963, schema v74) is retired from the TODO list and the plans; OPS.38 (committed Redis dump files) and TEST.117 (generatejobs.test.mjs failing since PERF.33) are filed.
 - Rogue planet oceans now stop at the depth where high-pressure ice forms (the rest is stored as high-pressure ice), their ice lid is compared with the water in matching units and melts lower under its own weight, and an ocean under a hydrogen envelope is shown as a hycean ocean. New seeded output differs from earlier versions.
 - **Docs only:** Boss confirmed the defaults on GEN.183, GEN.184, GEN.187 and UX.87; their open questions are now decisions.
