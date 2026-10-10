@@ -206,6 +206,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | PERF.70 | Sorting the Systems list by Sector or Octant on millions of rows must not sort them all (bug) |  | Left over from PERF.64; Foundations lane 1 next. |
 | PERF.69 | Store the Planets, Moons and Phenomena table counts like the Systems and Sectors counts (bug) |  | Left over from PERF.64; Foundations lane 1 next. |
 | PERF.68 | Measure the Galaxy Map tile queries on a big galaxy and make them fit the time limit (bug) |  | Left over from PERF.64; Foundations lane 1 next. |
+| PERF.71 | Research how to keep slow database calls on large data sets from timing out: queue, split, or answer in parts |  | Boss 2026-10-10 20:50Z; Foundations lane 1 after PERF.68-70. |
 | PERF.33 | Progress bars and ETAs from measured performance |  | GitHub issue [#661](https://github.com/dwhagar/planetGen/issues/661) (the use half). Bugfixes lane 1 (Boss, 23:38Z). |
 | PERF.65 | The text output of a multi-step job counts its steps, not its tasks: "Step 1 of 4" when the job has 12 (bug) |  | Boss 2026-10-10 19:54Z; Bugfixes lane 1. |
 | PERF.66 | The whole-job progress bar should track total elapsed time and estimate a stage with no performance data from the earlier stages (bug) |  | Boss 2026-10-10 20:00Z; Bugfixes lane 1, with PERF.65. |
