@@ -3716,7 +3716,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: PERF.31, PERF.47, PERF.54, PERF.58,
   GEN.185.
 
-- [ ] **PERF.75 Keyset paging for the data tables: page forward by key, jump by value**
+- [ ] **PERF.75 Keyset paging for the other data tables and the jump-by-value box (Systems name sort done)**
   From the PERF.71 research (docs/design/slow-reads-and-timeouts.md, PR
   #1175; Boss's ask of 2026-10-10 20:50Z; measured on 2,000,000
   synthetic systems, MariaDB 10.11): `OFFSET` makes page n cost n times
@@ -3730,40 +3730,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   index range), and a test checks the plan on MariaDB and MySQL. Decided
   by default (the three research defaults, 2026-10-10 21:41Z; stands
   unless Boss objects): jump-by-value is accepted in place of
-  jump-by-row-number on the big tables. Owner: Foundations lane 1.
+  jump-by-row-number on the big tables. Built (PR #1199): keyset paging
+  for the Systems name sort only. Still open: the other sorts, tables and
+  API list routes, and the jump-by-value box (a letter or a sector).
+  Owner: Foundations lane 1.
   Prerequisites: none. Related: PERF.64, PERF.70, PERF.71.
-  Design: [docs/design/slow-reads-and-timeouts.md](design/slow-reads-and-timeouts.md)
-
-- [ ] **PERF.76 Give each Galaxy Map tile piece its own time budget and serve an "incomplete" tile**
-  From the PERF.71 research (docs/design/slow-reads-and-timeouts.md, PR
-  #1175; Boss's ask of 2026-10-10 20:50Z; measured on 2,000,000
-  synthetic systems, MariaDB 10.11): a tile is eight independent queries
-  (placed sectors, planned slots, filled cells, clouds, bright stars,
-  generated stars, points, scattered points) and one piece holds 31.4 of
-  31.6 s at level 2. Done: each piece runs under its own statement limit
-  (about 3 s), the tile is served with what finished and marked
-  `incomplete` in the tile cache so it is not served as final and is
-  rebuilt after a short wait, and the existing retry fetches the missing
-  piece, so the map shows without its slowest points for a moment
-  instead of the "Took too long" page. Decided by default (the three
-  research defaults, 2026-10-10 21:41Z; stands unless Boss objects): a
-  tile that timed out shows partly with a retry. Owner: Foundations lane
-  1.
-  Prerequisite: PERF.68. Related: PERF.34, PERF.36, PERF.64, MAP.159.
-  Design: [docs/design/slow-reads-and-timeouts.md](design/slow-reads-and-timeouts.md)
-
-- [ ] **PERF.77 Capped counts: "10,000 or more" where no stored count exists for a filter**
-  From the PERF.71 research (docs/design/slow-reads-and-timeouts.md, PR
-  #1175; Boss's ask of 2026-10-10 20:50Z; measured on 2,000,000
-  synthetic systems, MariaDB 10.11): a count with a star-type filter
-  took 6.0 s; counting to 10,001 and stopping took 0.030 s. Done: where
-  no stored count exists for a filter, the table counts to 10,001 and
-  shows "10,000 or more", and the exact figure replaces it once the
-  background count finishes (extends the fallback of PERF.64). Decided
-  by default (the three research defaults, 2026-10-10 21:41Z; stands
-  unless Boss objects): show "10,000 or more" for filtered counts nobody
-  has stored. Owner: Foundations lane 1.
-  Prerequisites: none. Related: PERF.64, PERF.69, PERF.71.
   Design: [docs/design/slow-reads-and-timeouts.md](design/slow-reads-and-timeouts.md)
 
 - [ ] **PERF.78 A reserved warm worker for long admin operations, and the poll pattern for them**

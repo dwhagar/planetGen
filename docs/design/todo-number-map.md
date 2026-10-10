@@ -1066,9 +1066,9 @@ Parents marked "new parent" had no old number of their own.
 | PERF.72 | Research the cost of a sector's gravity grid and where to cut between exact and aggregated sources | none | open |
 | PERF.73 | Cut the cost of writing the phenomenon rows to the database (now the biggest part of a scatter run) | none | open |
 | PERF.74 | Store a per-sector system count so the Sectors list does not count every system on each request | none | done, PR #1193 |
-| PERF.75 | Keyset paging for the data tables: page forward by key, jump by value | none | open |
-| PERF.76 | Give each Galaxy Map tile piece its own time budget and serve an "incomplete" tile | none | open |
-| PERF.77 | Capped counts: "10,000 or more" where no stored count exists for a filter | none | open |
+| PERF.75 | Keyset paging for the other data tables and the jump-by-value box (Systems name sort done) | none | open |
+| PERF.76 | Give each Galaxy Map tile piece its own time budget and serve an "incomplete" tile | none | done, PR #1199 |
+| PERF.77 | Capped counts: "10,000 or more" where no stored count exists for a filter | none | done, PR #1199 |
 | PERF.78 | A reserved warm worker for long admin operations, and the poll pattern for them | none | open |
 | PERF.79 | Two workers make the plan scatter about 12 times slower than one (bug) | none | open |
 | PERF.80 | "Save the sector paths" takes 24% of a small run and does not speed up with workers | none | open |
