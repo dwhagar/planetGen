@@ -5743,6 +5743,13 @@ def _set_reserved_name(obj, final, rename_bodies=False):
         obj.assign_names(final)
 
 
+def _save_progressed(conn):
+    """One more system or phenomenon of a sector is saved (PERF.50)."""
+    progress = getattr(conn, "save_progress", None)
+    if progress is not None:
+        progress.advance()
+
+
 def _insert_sector_rows(conn, sector, galaxy_position, link_neighbors=True):
     made_by = versionKey.current()  # DB.7: the code generating this sector
     if galaxy_position is not None:
@@ -5821,6 +5828,7 @@ def _insert_sector_rows(conn, sector, galaxy_position, link_neighbors=True):
                 bright_star_links.append((bright_star_id, star_system_id))
             if getattr(entry, "scatter_id", None) is not None:
                 built_scatter_ids.append(entry.scatter_id)
+            _save_progressed(conn)
 
         for entry in sector.phenomena:
             inserter = _PHENOMENON_INSERTERS.get(entry.phenomenon_type)
@@ -5830,6 +5838,7 @@ def _insert_sector_rows(conn, sector, galaxy_position, link_neighbors=True):
             inserter(conn, entry.phenomenon, sector_id=sector_id, placement=placement)
             if getattr(entry, "scatter_id", None) is not None:
                 built_scatter_ids.append(entry.scatter_id)
+            _save_progressed(conn)
 
         healed = confirm_system_names(conn, conn.deferred_name_confirmations)
         if healed:
@@ -6961,7 +6970,7 @@ def _neighbor_lock_name(conn):
     return f"planetgen.neighbors.{database}"[:64]
 
 
-def save_sector(sector: SpaceSector, config=None, galaxy_position=None, link_neighbors=True) -> int:
+def save_sector(sector: SpaceSector, config=None, galaxy_position=None, link_neighbors=True, progress=None) -> int:
     """
     Opens the database and persists a full `SpaceSector` to it in one
     transaction.
@@ -6983,13 +6992,20 @@ def save_sector(sector: SpaceSector, config=None, galaxy_position=None, link_nei
         link_neighbors (bool): Link the sector to its neighbours now
             (containment, nearest systems). `False` leaves that to the
             caller's later `link_sector_neighbors` (a `galaxy` run, PERF.45).
+        progress (optional): A step (`generation.steps`) that is told, as
+            each system and phenomenon is inserted, how far the save has
+            got (PERF.50); it restarts at 0 when a save is retried.
 
     Returns:
         int: The new `sectors.id`.
     """
-    return _save_with_retries(config, _sector_names(sector),
-                              lambda conn: insert_sector(conn, sector, galaxy_position=galaxy_position,
-                                                         link_neighbors=link_neighbors))
+    def insert(conn):
+        conn.save_progress = progress
+        if progress is not None:
+            progress.update(completed=0)
+        return insert_sector(conn, sector, galaxy_position=galaxy_position, link_neighbors=link_neighbors)
+
+    return _save_with_retries(config, _sector_names(sector), insert)
 
 
 _RETRY_JITTER = random.Random()
@@ -7849,7 +7865,7 @@ def schema_status(config=None):
         conn.close()
 
 
-def migrate_database(config=None, on_step=None):
+def migrate_database(config=None, on_step=None, on_progress=None):
     """
     Brings a database's `schema_migrations` bookkeeping up to
     `SCHEMA_VERSION`, applying any migration step in between.
@@ -7870,6 +7886,9 @@ def migrate_database(config=None, on_step=None):
             from_version, to_version)` just before each pending step
             runs (`number` counts from 1 to `total`), so a caller can
             show progress (`planetgen.cli.migrate`'s progress bar).
+        on_progress (callable, optional): Called as `on_progress(label,
+            done, total)` by a revision that works in batches, for the
+            bar of that one step (DB.15).
 
     Returns:
         int: The database's `schema_migrations` version (always
@@ -7904,7 +7923,8 @@ def migrate_database(config=None, on_step=None):
                                   from_version=version, to_version=reached)
                 version = reached
 
-            version = alembic_runner.upgrade(config or DEFAULT_MYSQL_CONFIG, version, record, on_step=on_step)
+            version = alembic_runner.upgrade(config or DEFAULT_MYSQL_CONFIG, version, record, on_step=on_step,
+                                             on_progress=on_progress)
         return version
     finally:
         conn.close()

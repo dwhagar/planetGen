@@ -112,8 +112,8 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.96, GEN.97, ADM.28, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, NAV.11, NAV.42, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.57, TEST.77, UX.49, PERF.31, GEN.128 |
-| 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.17, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18, PERF.33, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, DB.15, ADM.43, ADM.44 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.9, PERF.29, PERF.30, ADM.29, ADM.30, ADM.31, GEN.97, ADM.28, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, GEN.87, GEN.88, GEN.89, GEN.83, POP.8, POP.9, POP.7, POP.10, NAV.11, NAV.42, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.57, TEST.77, UX.49, PERF.31, GEN.128 |
+| 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.17, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18, PERF.33, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, ADM.43, ADM.44 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, and the anomalies chosen in phase 2. | NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, GEN.114, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies. | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, GEN.55 |
 
@@ -473,7 +473,7 @@ with `clamp()`.
   and the closing special rows and insert; one sector's save (PERF.50,
   needs a worker-to-parent channel); `cli/warm_map.py` (prints a line,
   no bar); the migration (DB.15) and the name registry passes.
-  Prerequisites: PERF.51, PERF.50. Related: UX.83, PERF.33, PERF.34,
+  Prerequisite: PERF.50. Related: UX.83, PERF.33, PERF.34,
   PERF.32, DB.15, DB.21.
   Lane (Boss, 2026-10-09 23:38Z): Bugfixes lane 1, order PERF.32, PERF.33, PERF.51, PERF.50, DB.15, then UX.84.
 
@@ -2182,25 +2182,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
     Prerequisite: GEN.89.
     Design: [docs/design/nebula-and-asteroid-field-classes.md](design/nebula-and-asteroid-field-classes.md)
 
-- [ ] **GEN.96 Generation directives for a sector (an override button)**
-  Boss (2026-10-03 05:38Z): "When generating a sector should have the
-  ability to click an override button and give directive (must have a
-  certain density, must have at least x types of x stars, needs to have
-  at least x habitable worlds within the sector, etc etc)." Done: an
-  Override button on sector generation opens directives (density, at
-  least N stars of a type, at least N habitable worlds and the like);
-  the run draws until they hold or reports which it couldn't meet;
-  `generate.py` takes the same as `--directive`.
-  Research (2026-10-09, sampling-backfill-and-resume.md): attempt number
-  and directive digest in the seed key (attempt 0 is the plain sector);
-  a stored record per directive sector for DB.17's repair; an up-front
-  impossibility check from the compound-Poisson table; the exact
-  truncated-Poisson route for star-count and star-type directives; a
-  `--directive` result status enum (`met_naturally`,
-  `met_after_k_attempts`, `met_forced`, `unmet`); generate attempts in
-  memory and save once. Open question for Boss (default): after K = 200
-  attempts save the best and report `unmet`; `--strict` saves nothing.
-
 - [ ] **GEN.97 Generate N random neighborhoods**
   Boss (2026-10-03 05:38Z): "Add the ability to tell the system to
   produce x number of random neighborhoods in the generation process."
@@ -3230,6 +3211,56 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Europa-like moon of a gas giant).
   Prerequisite: GEN.88. Related: GEN.86.
 
+- [ ] **GEN.179 Store each sector's generation directive and attempt record with the sector**
+  Left over from GEN.96 (PR #915, Foundations lane 1). Done: the
+  directive a sector was generated under and the record of its attempts
+  are saved with the sector (a schema migration, numbered after the
+  migrations already in flight), so the sector page and the check can
+  show what was asked and what was drawn.
+  Prerequisites: none. Related: GEN.96, GEN.97.
+
+- [ ] **GEN.180 Directives: a forced fill (met_forced) after K failed draws**
+  Left over from GEN.96 (PR #915, Foundations lane 1). Done: when a
+  directive is not met after K draws (K set in tuning.py), the generator
+  takes the fallback fill marked `met_forced` instead of failing or
+  looping, and the result says it was forced; a test covers a directive
+  that cannot be met by drawing.
+  Prerequisites: none. Related: GEN.96.
+
+- [ ] **GEN.181 Directives: refuse impossible requests up front from the compound-Poisson tables**
+  Left over from GEN.96 (PR #915, Foundations lane 1). Done: before any
+  drawing, a directive whose requested mix cannot occur in the sector
+  (judged from the compound-Poisson tables) is refused with the reason,
+  in the Generate page and the CLI.
+  Prerequisites: none. Related: GEN.96, GEN.180.
+
+- [ ] **GEN.182 Some comets' orbits do not bring them back: they are ejected into space (bug)**
+  Boss (2026-10-10 01:12Z): "in a star system orbital path of some
+  comets doesn't bring them back, it ejects them out into space, if this
+  is intentional, no problem, if not then we need to fix it". Done:
+  first, check whether the ejection is intended by design: read how the
+  generator draws comet orbits (semi-major axis and eccentricity, and
+  whether any can be unbound, e >= 1 or an energy above zero) against
+  the Hill-sphere and stability rules of GEN.109, and say what was found
+  in the PR. If the ejection is intended (for example a hyperbolic
+  interloper), record that on the comet page and in the docs, make the
+  system page say the orbit is unbound instead of drawing an open path
+  as if it returned, and close the item. If it is not intended, fix the
+  generator so every bound comet gets a closed orbit that stays inside
+  the star's Hill sphere, with a test that draws many comets and checks
+  that none is unbound, and make the orbit-update step (GEN.105) never
+  eject one by accident. Bugfixes lane 1, after its current queue (the
+  progress-bar chain, the main CI errors, UX.85 and UX.86).
+  Prerequisites: none. Related: GEN.109, GEN.105, GEN.104.
+  Boss (2026-10-10 01:17Z): "it could also be a render issue, I'm
+  running it right now on 100 y/s simulation and it hasn't come back
+  around yet, but it might." So the first check compares the stored
+  orbital elements of the comet (bound or unbound, period) with what the
+  system map draws and with how the simulation advances them at high
+  speed (a comet with a period longer than the run so far has simply not
+  returned yet), before the generator and Hill-sphere rules are
+  blamed; the investigation covers the renderer as well.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.18 Run the GEN.30 bright-star backfill in parallel on the work queue**
@@ -3518,46 +3549,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none.
   Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
 
-- [ ] **PERF.50 A progress bar inside one sector's save: workers report their sub-steps to the main process**
-  Left over from UX.83 (Bugfixes lane 1, PR #895; Boss, 2026-10-09
-  23:13Z: "if a sub-step is probably going to take longer than 15
-  seconds give it a progress bar as well"). The phenomenon scatter, the
-  neighbour-linking steps and the population pass now draw their own
-  bars, but the slowest sub-step left, the save of one dense sector
-  inside a worker, shows nothing because a worker has no channel to the
-  main process's bar. Done: workers report their sub-step progress
-  (units done of units expected) to the parent through a progress
-  channel, and the parent draws it as a bar under the sector's step, in
-  the terminal and on the Generate and Queue pages, for any sub-step
-  expected to pass 15 seconds (the expected time comes from the PERF.32
-  rates once they exist). Open question for Boss (default build it with
-  PERF.33's estimator so both share one channel): or separately?
-  Fold (2026-10-09): the first application of PERF.51 (the shared
-  progress mechanism); registered by UX.84.
-  Prerequisite: PERF.51. Related: UX.83, PERF.33, PERF.34, PERF.32.
-  Lane (Boss, 2026-10-09 23:38Z): Bugfixes lane 1, order PERF.32, PERF.33, PERF.51, PERF.50, DB.15, then UX.84.
-
-- [ ] **PERF.51 One progress mechanism for every sub-step: a bar starts by itself when a step is predicted to take over 15 seconds**
-  Source: Boss (2026-10-09 23:34Z): "I believe I said a progress bar on
-  all substeps that automatically activates on the start of that
-  sub-item if it's predicted to take longer than 15 seconds to
-  complete." This is the mechanism UX.84 applies. Done: every generation
-  and maintenance step reports its progress through one shared helper (a
-  step with a name, a stats kind and a work count, in the terminal bar,
-  the progress file the Generate and Queue pages read, and the work
-  queue), and the helper starts a visible bar by itself at the start of
-  a step when the predicted duration exceeds 15 seconds, from the step's kind and work count and the recorded generation timing statistics (Boss, 23:35Z: "That's why we are tracking the stats for generation"): the `generation_stats` table of PERF.32, the rate per `(kind, workers)`, read through the PERF.33 estimator, not a hard-coded cost model. Only a step with no recorded history yet (the first run after a version change, or a kind never timed) uses a conservative fallback, and the fallback treats an unknown cost as long, so a first run still shows its bar. Every step the helper runs records its measured rate back into `generation_stats` under its kind, so the next prediction has history; the kinds that are not timed today (everything outside the work queue's kinds: see UX.84's list) are added as part of this item. A step predicted under 15 seconds draws
-  nothing, and a step that runs past its prediction gets its bar the
-  moment it passes 15 seconds. A step can run inside a worker: the
-  helper carries a worker-to-parent progress channel (see PERF.50), so a
-  bar can show progress from inside one task. Replaces the hand-built
-  `add_task` calls in `run_galaxy`, `run_plan`, `StageProgress` and
-  `store` with the one helper (no compatibility wrappers). Open question
-  for Boss (default 15 seconds, fixed in `tuning.py`, and the fallback used only while a kind has no recorded history): other?
-  Prerequisite: PERF.33. Related: UX.84, PERF.50, PERF.33, PERF.32,
-  PERF.34, UX.3.
-  Lane (Boss, 2026-10-09 23:38Z): Bugfixes lane 1, order PERF.32, PERF.33, PERF.51, PERF.50, DB.15, then UX.84.
-
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
@@ -3613,32 +3604,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Prerequisite: GEN.57.
   Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
 
-- [ ] **DB.15 A migration progress bar with the time remaining**
-  Boss (GitHub issue [#727](https://github.com/dwhagar/planetGen/issues/727), 2026-10-09 01:18Z): "I'd like the progress
-  bar to estimate time remaining and progress through a single DB
-  migration." Done: a long migration step reports its progress in
-  batches, and the update script shows a bar with the time remaining for
-  that step (from the rows done so far and, once PERF.32 has data, the
-  recorded rates).
-  Research (2026-10-09, db-check-and-parity-repair.md): build on
-  `StageProgress`, `DecayingRate` and `PLANETGEN_PROGRESS_FILE`; do not
-  write a new estimator, and use PERF.33's with units = batches of rows
-  (no cost model, so the count ratio; the `n >= 5 and 20 s` hold-back
-  applies). Move `cli/migrate.py` from its own rich `Progress` onto
-  `StageProgress`. Pass `on_progress` to revisions through
-  `config.attributes`. Add a plain periodic line reporter for
-  non-terminal output (at most one line every 30 s and at each 10
-  percent), because rich prints one final line there; correct the
-  `run_common._generation_progress` docstring. Index builds show elapsed
-  time plus an estimate, not a row bar. No ETA before 3 batches or 10 s.
-  Add `lock_wait_timeout` and retry for the DDL. Raise or restructure
-  `SCHEMA_LOCK_WAIT_S = 600`, or stop services for update runs with a
-  heavy revision. Open question for Boss (default: raise the wait for
-  the migration process only and have the update script say when a
-  revision is expected to be long).
-  Prerequisite: PERF.51.
-  Lane (Boss, 2026-10-09 23:38Z): Bugfixes lane 1, order PERF.32, PERF.33, PERF.51, PERF.50, DB.15, then UX.84.
-
 - [ ] **DB.16 Store the generator epoch and run id on each sector instead of four version text columns**
   DB.7 stored `version_key`, the version, python and platform as text on
   every sector; at 12 billion sectors those strings repeat. Store
@@ -3678,7 +3643,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Revision 0063 (DB.13) builds five indexes with plain `CREATE INDEX`
   and a per-row INSERT loop: fine today, not a pattern for the 10^8-row
   tables.
-  Prerequisite: DB.15.
   Design: [docs/design/db-check-and-parity-repair.md](design/db-check-and-parity-repair.md)
 
 - [ ] **DB.20 Object IDs in the schema: uid becomes BINARY(10), unique on its own, plus an id_counters table**
@@ -4015,7 +3979,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   `seed_used` rule. Existing routes keep 400 (open question for Boss,
   default: only recipes and uploads move to 422). The
   `require_json_body` depth fix is a prerequisite.
-  Prerequisites: GEN.96, API.9.
+  Prerequisite: API.9.
 
 - [ ] **API.19 Galaxy-scale recipes: build a whole galaxy, piece by piece, from JSON**
   Boss (2026-10-07 11:47Z): "The idea is that one could go so far as to

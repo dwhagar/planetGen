@@ -187,7 +187,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| API.18 | Generate by recipe: JSON for sectors, systems, planets, moons and phenomena | GEN.96, API.9 | Validation through the Pydantic models; 400 for nonsense, 422 for validation failures. |
+| API.18 | Generate by recipe: JSON for sectors, systems, planets, moons and phenomena | API.9 | Validation through the Pydantic models; 400 for nonsense, 422 for validation failures. |
 
 ### View
 
@@ -206,7 +206,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.129 | Multi-star systems of up to seven stars | GEN.128 | GitHub issue [#777](https://github.com/dwhagar/planetGen/issues/777). Build after the GEN.128 design. |
 | GEN.130 | Exotic star systems: a black hole, neutron star or similar at the center | GEN.128 | GitHub issue [#778](https://github.com/dwhagar/planetGen/issues/778). Build after the GEN.128 design. |
 | GEN.165 | A comet's time-0 scene position disagrees with its stored position in a rare random system (bug) |  | Bugfix lane. |
-| DB.18 | Migration helpers for slow DDL: online indexes, instant columns and batched updates | DB.15 | Research: slow DDL for the big tables. |
+| DB.18 | Migration helpers for slow DDL: online indexes, instant columns and batched updates |  | Research: slow DDL for the big tables. |
 | ADM.43 | A full configuration page under Admin |  | GitHub issue [#515](https://github.com/dwhagar/planetGen/issues/515). |
 | ADM.44 | Web, Open Graph and SEO settings | ADM.43 | GitHub issue [#743](https://github.com/dwhagar/planetGen/issues/743). |
 | GEN.134 | Tune the star populations to the observed star-formation profile by galactic radius |  | From GEN.133's four unbuilt proposals (star-types-by-galactic-radius.md); Boss to confirm which he wants. |

@@ -31,7 +31,7 @@ function job(fields) {
   return Object.assign({
     title: "Generate 4 sectors", status: "running", step: 1, steps: [{}, {}], step_label: "Sectors",
     progress_total: 4, progress_completed: 1, progress_text: "1 of 4 sectors", progress_detail_text: "",
-    elapsed_text: "12 s", remaining_text: "36 s", error: null, finished: false,
+    elapsed_text: "12 s", remaining_label: "about 36 s left", error: null, finished: false,
   }, fields || {});
 }
 
@@ -113,7 +113,7 @@ test("a network error also backs off instead of stopping", async () => {
 test("a finished job drops Cancel, fills the bar and reloads the Generate page", async () => {
   const win = installDom("http://localhost/admin/generate");
   win.fetchHandler = () => ({
-    job: job({ status: "succeeded", finished: true, progress_total: 0, remaining_text: "", error: null }), log: "done",
+    job: job({ status: "succeeded", finished: true, progress_total: 0, remaining_label: "", error: null }), log: "done",
   });
   const el = await start(win);
   win.timers.advance(2000);
