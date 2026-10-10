@@ -187,7 +187,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| API.18 | Generate by recipe: JSON for sectors, systems, planets, moons and phenomena | GEN.96, API.9 | Validation through the Pydantic models; 400 for nonsense, 422 for validation failures. |
+| API.18 | Generate by recipe: JSON for sectors, systems, planets, moons and phenomena | API.9 | Validation through the Pydantic models; 400 for nonsense, 422 for validation failures. |
 
 ### View
 
