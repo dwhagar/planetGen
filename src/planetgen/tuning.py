@@ -2782,6 +2782,15 @@ not-yet-generated sector this close to their center. Boss (GEN.23,
 its bright stars (`BRIGHT_STAR_BACKFILL_RADIUS_LY`).
 """
 
+PROGRESS_BAR_SECONDS = 15.0
+"""
+float: A step of a generation or maintenance run draws its own progress bar
+when it is predicted to take longer than this (Boss, 2026-10-09: "a progress
+bar on all substeps that automatically activates on the start of that
+sub-item if it's predicted to take longer than 15 seconds"), and the moment
+it runs past it if it was not (`planetgen.generation.steps`).
+"""
+
 BRIGHT_STAR_BACKFILL_TIERS = ((10.0, 100.0), (25.0, 250.0), (50.0, 500.0), (100.0, 750.0))
 """
 tuple: The bright-star backfill around a generated sector (GEN.23,

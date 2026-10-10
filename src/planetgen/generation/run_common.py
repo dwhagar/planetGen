@@ -29,6 +29,16 @@ from planetgen.galaxy.skeleton import expected_system_count_at_density_1
 
 
 
+_ACTIVE_PROGRESS = []
+"""list: The `_ReportingProgress` displays that are started, innermost last (`active_progress`)."""
+
+
+def active_progress():
+    """The open generation display (`_generation_progress` inside its `with`), or `None`; the steps
+    (`planetgen.generation.steps`) draw on it."""
+    return _ACTIVE_PROGRESS[-1] if _ACTIVE_PROGRESS else None
+
+
 class _ReportingProgress(Progress):
     """
     `rich.progress.Progress` that keeps a `progress_rate.DecayingRate` per
@@ -40,6 +50,20 @@ class _ReportingProgress(Progress):
 
     main_task = None
     """The task the progress file reports when `detail_task` changes."""
+
+    main_step = None
+    """The `steps.Step` drawing `main_task`, if one does (a step shown while it is set is the second bar)."""
+
+    def start(self):
+        super().start()
+        _ACTIVE_PROGRESS.append(self)
+
+    def stop(self):
+        if self in _ACTIVE_PROGRESS:
+            _ACTIVE_PROGRESS.remove(self)
+        for task_id in list(self._tasks):
+            self._report(task_id, force=True)
+        super().stop()
 
     detail_task = None
     """A second bar under `main_task` (PERF.4's slow-layer bar), written
@@ -109,10 +133,6 @@ class _ReportingProgress(Progress):
         if rate is not None:
             rate.add(self._completed(task_id) - before)
 
-    def stop(self):
-        for task_id in list(self._tasks):
-            self._report(task_id, force=True)
-        super().stop()
 
 
 class _DecayingRemainingColumn(ProgressColumn):
@@ -311,12 +331,17 @@ class _EstimateOnly(Exception):
 
 
 def _generation_stats(args):
-    """The stored speeds and sizes (`generationStats.GenerationStats`),
-    loaded once per run; none (defaults only, nothing recorded) when
-    `PLANETGEN_GENERATION_STATS` is `0` (the test suite's setting)."""
+    """The stored speeds and sizes (`generationStats.GenerationStats`), loaded once per run; see
+    `_stats_for_config`."""
+    return _stats_for_config(store.mysql_config_from_args(args))
+
+
+def _stats_for_config(mysql_config):
+    """The stored speeds and sizes of the server `mysql_config` names, loaded once per run; none (defaults
+    only, nothing recorded) when `PLANETGEN_GENERATION_STATS` is `0` (the test suite's setting)."""
     if os.environ.get(generationStats.STATS_ENV_VAR, "1").strip().lower() in ("0", "off", "no", "false"):
         return _RUN_STATS.setdefault(None, generationStats.GenerationStats())
-    control = store.control_mysql_config(store.mysql_config_from_args(args))
+    control = store.control_mysql_config(mysql_config)
     key = (control.host, control.port, control.database)
     if key not in _RUN_STATS:
         _RUN_STATS[key] = generationStats.GenerationStats(control)
@@ -430,6 +455,7 @@ def _check_estimate(args, sector_args_list, what, progress=None):
         raise _EstimateOnly(what, result)
     args._estimate_checked = True
     args._sector_prior = _sector_prior(result)
+    args._sector_estimate = result
     log.normal(f"Estimate for {what}: {result.summary()}")
     if result.refusal:
         _refuse_or_warn(args, result.refusal)
@@ -448,13 +474,26 @@ def _sector_prior(result):
     return (result.sectors / result.seconds, progress_rate.time_constant(mean_task_seconds, result.workers))
 
 
-def sector_task(progress, args, description, total):
-    """Adds the bar that counts the sectors of a run, starting from the rate
-    this server recorded for such sectors (`_check_estimate` worked it out)."""
+def sector_bar(progress, args, description, total):
+    """The step that counts the sectors of a run (PERF.51), predicted and started from the rate this
+    server recorded for such sectors (`_check_estimate` worked it out): drawn at once when the run is
+    expected to take over 15 seconds or has no history, `record=False` because each sector is recorded
+    as it is saved. Use as a context manager."""
+    from planetgen.generation import steps
+
     prior = getattr(args, "_sector_prior", None)
-    if prior is None:
-        return progress.add_task(description, total=total)
-    return progress.add_task(description, total=total, prior=prior[0], tau=prior[1])
+    estimate = getattr(args, "_sector_estimate", None)
+    predicted = estimate.seconds if estimate is not None and estimate.measured else None
+    return steps.Step(description, "sector", total, progress=progress, stats=_stats_or_none(args),
+                      predicted=predicted, prior=prior[0] if prior else None, tau=prior[1] if prior else None,
+                      record=False)
+
+
+def _stats_or_none(args):
+    try:
+        return _generation_stats(args)
+    except Exception:  # noqa: BLE001 -- args without a database (a test's stand-in)
+        return None
 
 
 def _print_estimate(exc):

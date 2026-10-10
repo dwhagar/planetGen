@@ -2,14 +2,16 @@
 
 """
 The progress bar of the maintenance commands (`planetgen.cli.reset`,
-`planetgen.cli.orbits`): one bar over the command's steps and, under it, a
-second bar over the items inside the current step -- the same two-bar shape
-a galaxy run draws (`run_common._generation_progress`), so the terminal and
-the Generate page's job status (`PLANETGEN_PROGRESS_FILE`) show these runs
-the way they show a generation run.
+`planetgen.cli.orbits`, the population pass): one bar over the command's
+steps and, under it, a second bar over the items inside the current step --
+the same two-bar shape a galaxy run draws (`run_common._generation_progress`),
+so the terminal and the Generate page's job status
+(`PLANETGEN_PROGRESS_FILE`) show these runs the way they show a generation
+run. Both are `planetgen.generation.steps` (PERF.51): each draws when it is
+predicted to take over 15 seconds (or has no recorded speed yet).
 """
 
-from planetgen.generation import run_common
+from planetgen.generation import run_common, steps
 
 
 class StageProgress:
@@ -21,25 +23,28 @@ class StageProgress:
     Args:
         total (int): How many steps the run has.
         disable (bool): Draw nothing (the progress file is still written).
+        kind (str): What the steps' speed is recorded under (`generation_stats`).
+        args (argparse.Namespace, optional): The run's arguments, for its stored speeds.
     """
 
-    def __init__(self, total, disable=False):
+    def __init__(self, total, disable=False, kind="stages", args=None):
         self.total = total
+        self.kind = kind
+        self.args = args
         self.progress = run_common._generation_progress(disable=disable)
-        self.task = None
-        self.detail_task = None
+        self.bar = None
+        self.detail_bar = None
+        self.detail_label = None
         self.done = 0
 
     def __enter__(self):
         self.progress.start()
-        self.task = self.progress.add_task("", total=self.total)
-        self.progress.main_task = self.task
+        self.bar = steps.Step("", self.kind, self.total, args=self.args, progress=self.progress).__enter__()
         return self
 
     def __exit__(self, exc_type, exc, tb):
-        if exc_type is None:
-            self._clear_detail()
-            self.progress.update(self.task, completed=self.total, total=self.total)
+        self._clear_detail()
+        self.bar.close(success=exc_type is None)
         self.progress.stop()
         return False
 
@@ -49,20 +54,22 @@ class StageProgress:
         self._clear_detail()
         # A `total` makes the progress file write at once, so a slow step
         # shows its name before its first item finishes.
-        self.progress.update(self.task, completed=self.done, total=self.total, description=description)
+        self.bar.update(completed=self.done, total=self.total, description=description)
         self.done += 1
 
     def detail(self, label, done, total):
         """Shows `done` of `total` items of the current step under the step
         bar (the signature the store's `on_progress` hooks call)."""
-        label = f"  {label}"
-        if self.detail_task is None:
-            self.detail_task = self.progress.add_task(label, total=max(total, 1), completed=done)
-            self.progress.detail_task = self.detail_task
-        self.progress.update(self.detail_task, completed=done, total=max(total, 1), description=label)
+        text = f"  {label}"
+        if self.detail_bar is None or self.detail_label != label:
+            self._clear_detail()
+            self.detail_bar = steps.Step(text, f"{self.kind}:{label}", max(total, 1), args=self.args,
+                                         progress=self.progress).__enter__()
+            self.detail_label = label
+        self.detail_bar.update(completed=done, total=max(total, 1), description=text)
 
     def _clear_detail(self):
-        if self.detail_task is not None:
-            self.progress.remove_task(self.detail_task)
-            self.progress.detail_task = None
-            self.detail_task = None
+        if self.detail_bar is not None:
+            self.detail_bar.close(success=self.detail_bar.done >= (self.detail_bar.total or 0))
+            self.detail_bar = None
+            self.detail_label = None

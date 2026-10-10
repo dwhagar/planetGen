@@ -40,6 +40,7 @@ from planetgen.generation import run_common
 from planetgen.generation import run_plan
 from planetgen.generation import run_population
 from planetgen.generation import run_sector
+from planetgen.generation import steps
 from planetgen.util import draw
 
 
@@ -263,8 +264,9 @@ def backfill_bright_stars_around(config, centers_pc, radius_ly=None, min_luminos
     layers = {}
     # Finding the sectors to draw can take a while on a large radius; the
     # bar is there from the start (ADM.26), unmeasured until the count is known.
-    task = progress.add_task("Bright-star backfill (finding sectors)", total=None) if progress is not None else None
-    counting = progress is not None
+    bar = steps.Step("Bright-star backfill (finding sectors)", "backfill", None, progress=progress,
+                     stats=run_common._stats_for_config(config)).__enter__()
+    failed = True
     conn = store.get_connection(config)
     try:
         skeleton = store.get_galaxy_shape(conn)
@@ -290,22 +292,21 @@ def backfill_bright_stars_around(config, centers_pc, radius_ly=None, min_luminos
         todo = sorted(address for address, floor in floors.items()
                       if address not in filled and run_plan._needs_band(levels.get(address), galaxy_level, floor))
         on_sector = None
-        if progress is not None and todo:
-            progress.update(task, description="Bright-star backfill (sectors)", total=len(todo))
-            counting = False
+        if todo:
+            bar.update(description="Bright-star backfill (sectors)", total=len(todo))
 
             def on_sector():
-                progress.advance(task)
+                bar.update(advance=1)
         drawn = run_plan._draw_sector_bands(conn, skeleton, todo, floors, galaxy_level, seed, on_sector=on_sector,
                                             layers=layers)
         summary["sectors"], summary["stars"] = drawn
+        failed = False
     except BaseException:
         conn.rollback()
         raise
     finally:
         conn.close()
-        if counting:
-            progress.remove_task(task)  # nothing to draw: no bar left unmeasured
+        bar.close(success=not failed)     # nothing to draw: no bar left unmeasured
     run_plan.log_layers("Bright-star backfill", layers)
     if summary["sectors"]:
         log.debug(f"bright-star backfill: {summary['stars']} stars in {summary['sectors']} sector(s), tiers "
@@ -389,15 +390,14 @@ def link_after_run(args, started_at):
         with run_common._generation_progress() as progress:
             log.set_console(progress.console)
             try:
-                task = progress.add_task("Neighbours", total=len(created) * store.LINK_PHASES)
+                with steps.Step("Neighbours", "link", len(created) * store.LINK_PHASES, args=args,
+                                progress=progress) as bar:
+                    def on_progress(done, total, step=""):
+                        # Never back: a batch retried after a deadlock repeats its steps.
+                        bar.update(completed=max(done, bar.done), total=total,
+                                   description="Neighbours" + (f" ({step})" if step else ""))
 
-                def on_progress(done, total, step=""):
-                    # Never back: a batch retried after a deadlock repeats its steps.
-                    completed = max(done, progress.tasks[task].completed)
-                    progress.update(task, total=total, completed=completed,
-                                    description="Neighbours" + (f" ({step})" if step else ""))
-
-                linked = store.link_sector_neighbors(config, created, on_progress)
+                    linked = store.link_sector_neighbors(config, created, on_progress)
             finally:
                 log.reset_console()
     except Exception as exc:  # noqa: BLE001 -- the sectors are saved; the links can be redone
@@ -432,12 +432,11 @@ def settle_after_run(args, started_at):
         with run_common._generation_progress() as progress:
             log.set_console(progress.console)
             try:
-                task = progress.add_task("Sector paths", total=1)
+                with steps.Step("Sector paths", "paths", len(created), args=args, progress=progress) as bar:
+                    def on_progress(done, total):
+                        bar.update(completed=done, total=total)
 
-                def on_progress(done, total):
-                    progress.update(task, total=total, completed=done)
-
-                saved = sector_paths.settle_sectors(conn, created, on_progress)
+                    saved = sector_paths.settle_sectors(conn, created, on_progress)
             finally:
                 log.reset_console()
     finally:
@@ -681,7 +680,7 @@ def _log_saved(saved, address, suffix=""):
     run_sector._log_summary(saved["summary"])
 
 
-def _submit_batch(args, batch, title, edge_pc, progress, task):
+def _submit_batch(args, batch, title, edge_pc, progress, bar):
     """Queues every `(address, position_pc, sector_args, suffix)` of
     `batch` (`_submit_sector`) and waits for them."""
     with run_common._work_queue(args, title) as queue:
@@ -689,7 +688,7 @@ def _submit_batch(args, batch, title, edge_pc, progress, task):
         log.normal(f"Generating {len(batch):,} sector(s) with {queue.workers} worker(s); each is reported below as it "
                    f"is saved, so the first report can take a while in a dense region.")
         for address, position_pc, sector_args, suffix in batch:
-            _submit_sector(queue, sector_args, address, position_pc, edge_pc, progress, task, suffix=suffix)
+            _submit_sector(queue, sector_args, address, position_pc, edge_pc, bar, suffix=suffix)
 
 
 def _fill_sector_task(payload):
@@ -715,9 +714,9 @@ def _fill_sector_task(payload):
     }
 
 
-def _submit_sector(queue, sector_args, address, position_pc, edge_pc, progress, task, suffix=""):
+def _submit_sector(queue, sector_args, address, position_pc, edge_pc, bar, suffix=""):
     """Queues one galaxy sector (`_fill_sector_task`); when it's saved,
-    advances `task`, logs it and adds its time to the speed stats."""
+    advances `bar`, logs it and adds its time to the speed stats."""
     def saved(result, seconds, _weight):
         if queue.parallel:
             # A worker's own RUN_COUNTS die with it; the run's are here.
@@ -725,7 +724,7 @@ def _submit_sector(queue, sector_args, address, position_pc, edge_pc, progress, 
             run_common.RUN_COUNTS["systems"] += result["systems"]
             run_common.RUN_COUNTS["phenomena"] += result["phenomena"]
         run_common._record_sector(sector_args, result, seconds)
-        progress.update(task, advance=1)
+        bar.update(advance=1)
         _log_saved(result, address, suffix=suffix)
 
     payload = {"args": sector_args, "address": address, "position_pc": position_pc, "edge_pc": edge_pc}
@@ -808,8 +807,8 @@ def run_ring_batch(args, edge_pc, progress):
         batch.append((address, position_pc, sector_args, ""))
 
     run_common._check_estimate(args, [item[2] for item in batch], what, progress)
-    outer_task = run_common.sector_task(progress, args, f"Sectors ({what})", len(batch))
-    _submit_batch(args, batch, f"Sectors ({what})", edge_pc, progress, outer_task)
+    with run_common.sector_bar(progress, args, f"Sectors ({what})", len(batch)) as bar:
+        _submit_batch(args, batch, f"Sectors ({what})", edge_pc, progress, bar)
     generated = len(batch)
     skip_note = f", {skipped} skipped (outside the outline)" if skipped else ""
     log.normal(
@@ -931,9 +930,9 @@ def run_local_neighborhood(args, edge_pc, progress):
     )
     run_common._check_estimate(args, [item[2] for item in batch],
                     f"the sectors within {args.radius_pc:g} pc of sector {args.center_sector}", progress)
-    outer_task = run_common.sector_task(progress, args, "Sectors (local neighborhood)", len(batch))
-    _submit_batch(args, batch, f"Sectors (within {args.radius_pc:g} pc of sector {args.center_sector})",
-                  edge_pc, progress, outer_task)
+    with run_common.sector_bar(progress, args, "Sectors (local neighborhood)", len(batch)) as bar:
+        _submit_batch(args, batch, f"Sectors (within {args.radius_pc:g} pc of sector {args.center_sector})",
+                      edge_pc, progress, bar)
     generated = len(batch)
 
     skip_note = f", {skipped} skipped (outside the outline)" if skipped else ""
@@ -1220,12 +1219,12 @@ def run_single_slot(args, edge_pc, progress):
         sectors += [item[2] for item in batch]
         what += f" and the sectors within {args.radius_pc:g} pc of it"
     run_common._check_estimate(args, sectors, what, progress)
-    task = run_common.sector_task(progress, args, f"Sector ({_format_address(address)})", 1)
     # The backfill waits for the end of the run (backfill_after_run), with
     # its own bar, instead of stalling this one at 0 of 1 (PERF.28).
-    result = ensure_sector_generated(*address, config=mysql_config, backfill=False, outside_ok=outside_ok,
-                                     settle=False, link=False)  # the run settles and links at its end
-    progress.update(task, advance=1)
+    with run_common.sector_bar(progress, args, f"Sector ({_format_address(address)})", 1) as bar:
+        result = ensure_sector_generated(*address, config=mysql_config, backfill=False, outside_ok=outside_ok,
+                                         settle=False, link=False)  # the run settles and links at its end
+        bar.update(advance=1)
 
     designation = provisional_sector_designation(*address)
     if result["created"]:
@@ -1280,8 +1279,8 @@ def _generate_addresses(args, addresses, what, edge_pc, progress, batch_density)
         batch.append((address, position_pc, sector_args, ""))
 
     run_common._check_estimate(args, [item[2] for item in batch], what, progress)
-    task = run_common.sector_task(progress, args, f"Sectors ({what})", len(batch))
-    _submit_batch(args, batch, f"Sectors ({what})", edge_pc, progress, task)
+    with run_common.sector_bar(progress, args, f"Sectors ({what})", len(batch)) as bar:
+        _submit_batch(args, batch, f"Sectors ({what})", edge_pc, progress, bar)
     generated = len(batch)
     skip_note = f", {skipped} skipped (outside the outline)" if skipped else ""
     log.normal(
@@ -1471,6 +1470,7 @@ def run_galaxy(args):
     backfill_after_run(args, edge_pc, started_at)
     run_population.run_population_after(args)
     settle_after_run(args, started_at)
+    run_common._finish_stats(args)    # the steps after the sectors recorded their speeds too
 
 
 def _run_galaxy_mode(args, edge_pc, progress):

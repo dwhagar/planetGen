@@ -451,6 +451,7 @@ def test_the_phenomenon_scatter_has_a_bar_that_ends_full(mysql_config, tmp_path,
     from planetgen.queue import progress_file
 
     monkeypatch.setenv(progress_file.ENV_VAR, str(tmp_path / "progress.json"))
+    monkeypatch.setattr(tuning, "PROGRESS_BAR_SECONDS", 0.0)   # whatever stats a neighbouring test left, the bar draws at once
     reports = []
     real = progress_file.report
 

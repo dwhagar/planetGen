@@ -326,21 +326,24 @@ def _cell_stars(conn, address):
                         " AND ring_slot_index = ?", address).fetchone()["n"]
 
 
-def test_the_backfill_has_its_own_bar_whose_eta_counts_down(mysql_config):
+def test_the_backfill_has_its_own_bar_whose_eta_counts_down(mysql_config, monkeypatch):
     """PERF.28: the backfill adds its own bar, ticks it once per sector it
     visits, and the bar's ETA changes as they finish, down to 0."""
+    monkeypatch.setattr(tuning, "PROGRESS_BAR_SECONDS", 0.0)   # the bar draws at once, whatever stats are recorded
     _seed_galaxy(mysql_config)
     run_plan.scatter_bright_stars(_plan_args(mysql_config, "--bright-stars-only"))
     progress = run_common._generation_progress()
     etas = []
-    advance = progress.advance
+    update = progress.update
 
-    def watched_advance(task_id, amount=1):
-        advance(task_id, amount)
+    def watched_update(task_id, **kwargs):
+        before = progress._tasks[task_id].completed
+        update(task_id, **kwargs)
         task = progress._tasks[task_id]
-        etas.append(task.fields["rate"].eta(task.total - task.completed))
+        if task.completed > before:   # the closing update to "full" moves nothing
+            etas.append(task.fields["rate"].eta(task.total - task.completed))
 
-    progress.advance = watched_advance
+    progress.update = watched_update
     summary = run_galaxy.backfill_bright_stars_around(
         mysql_config, [sector_position_pc(4, 0, 5, EDGE_PC)], radius_ly=20.0, progress=progress)
     assert summary["sectors"] > 0
