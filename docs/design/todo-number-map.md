@@ -1056,8 +1056,8 @@ Parents marked "new parent" had no old number of their own.
 | PERF.62 | Interim early stop in the current layer-walking scatters: 100 empty layers in a row (tuning.SCATTER_DRY_LAYERS) | none | done, PR #1087; removed by PERF.58 (PR #1108) |
 | PERF.63 | Vectorise the candidate work of the phenomena scatter with numpy | none | done, PR #1174 |
 | PERF.64 | The Galaxy Map and the Systems list stop with "Took too long" and the whole site is sluggish (bug) | none | done, PR #1161 |
-| PERF.65 | The text output of a multi-step job counts its steps, not its tasks: "Step 1 of 4" when the job has 12 (bug) | none | open |
-| PERF.66 | The whole-job progress bar should track total elapsed time and estimate a stage with no performance data from the earlier stages (bug) | none | open |
+| PERF.65 | The text output of a multi-step job counts its steps, not its tasks: "Step 1 of 4" when the job has 12 (bug) | none | done, PR #1197 |
+| PERF.66 | The whole-job progress bar should track total elapsed time and estimate a stage with no performance data from the earlier stages (bug) | none | done, PR #1197 |
 | PERF.67 | Record how long every operation takes, from each stage up to the whole job, and use the records for ETAs | none | open |
 | PERF.68 | Measure the Galaxy Map tile queries on a big galaxy and make them fit the time limit (bug) | none | done, PR #1193 |
 | PERF.69 | Store the Planets, Moons and Phenomena table counts like the Systems and Sectors counts (bug) | none | open |
