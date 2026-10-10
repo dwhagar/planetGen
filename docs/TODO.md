@@ -1312,8 +1312,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   by default the system page scrolled to and highlighting that body
   (`/system/<id>#planet-<id>`), with its own System Map scene
   selected, rather than a new page per body. Search results, the
-  locate box and bookmarks link this way. Open question: should
-  planets and moons get pages of their own later?
+  locate box and bookmarks link this way. Decided (Boss, 2026-10-10 02:48Z, via Foundations lane 1): only stars get pages; planets and moons are anchors on the system page.
 
 - [ ] **NAV.9 Search and locate return references for every kind**
   `/api/search` and `/galaxy/locate` (`queryDb.galaxy_locate`) return
@@ -1333,9 +1332,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   constant speeds `warp_speed_c` and `fold_speed_c` of
   `navigation-frames.md`; no acceleration model exists, and no ship
   range since NAV.37 was dropped). Default taken: no time spent at a
-  stop. Open question: should each stop add a fixed stay, and does
-  "each planet" mean only the systems on the route (the default) or
-  a visit to every planet inside each system?
+  stop. Decided (Boss, 2026-10-10 02:48Z, via Foundations lane 1): the stay per stop defaults to 0 minutes but is a user-changeable parameter; stops are the systems on the route, not every planet inside each system.
   Research (2026-10-09, course-routing.md): stops are the systems on the
   route; default stay 0; an optional stay per stop; do not model
   visiting every planet (the research answers the open question this
@@ -3991,8 +3988,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   by `uid`; a kind prefix such as planet:ID is only a hint). Row ids
   stay internal. No compatibility shim. This is a breaking API change,
   so it bumps API.22's API version number.
-  Open question for Boss (default yes): the ID replaces row ids as the
-  public reference? Ask before it is built.
+  Decided (Boss, 2026-10-10 02:48Z, via Foundations lane 1): yes, the 80-bit object ID replaces row ids in pages, URLs and the API, and Boss accepts the API break. Cleared to build once API.22, GEN.171 and GEN.172 are in.
   Prerequisites: API.22, GEN.171, GEN.172.
   Design: [docs/design/object-id-options.md](design/object-id-options.md)
 
