@@ -182,6 +182,19 @@ def test_check_pr_passes_a_pr_that_only_adds_a_note(tmp_path):
 
 
 @needs_git
+def test_check_pr_rejects_a_major_note_while_the_revision_is_on_hold(tmp_path, monkeypatch):
+    monkeypatch.setattr(bump_version, "REVISION_HOLD", True)
+    root = _make_repo(str(tmp_path))
+    _init_git(root)
+    _git(root, "checkout", "-q", "-b", "feature")
+    _note(root, "feature.major.md", ADDED_NOTE)
+    _git(root, "add", "-A")
+    _git(root, "commit", "-q", "-m", "feature")
+    problems = bump_version.check_pr(root, "main")
+    assert any("'major' note" in p and "on hold" in p for p in problems)
+
+
+@needs_git
 def test_check_pr_rejects_a_hand_bumped_version(tmp_path):
     root = _make_repo(str(tmp_path))
     _init_git(root)
@@ -288,7 +301,7 @@ def test_revision_hold_keeps_the_revision_and_joins_the_top_entry(tmp_path, monk
     monkeypatch.setattr(bump_version, "REVISION_HOLD", True)
     assert bump_version.next_version("8.0.711", "patch", build=760) == "8.0.760"
     assert bump_version.next_version("8.0.711", "minor", build=760) == "8.0.760"
-    assert bump_version.next_version("8.0.711", "major", build=760) == "9.0.760"
+    assert bump_version.next_version("8.0.711", "major", build=760) == "8.0.760"
 
     root = _make_repo(str(tmp_path), version="8.0.711")
     _todo_map(root, _all_next_free(UX=5, API=9, DB=13))
