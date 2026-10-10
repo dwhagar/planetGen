@@ -524,6 +524,22 @@ def test_nav_returns_direct_course_and_route_for_same_sector(client, seeded_sect
     assert body["route"]["longest_hop_ly"] == pytest.approx(body["route"]["hops"][0]["distance_ly"])
 
 
+def test_nav_route_has_hop_and_total_times_and_a_stay(client, seeded_sector):
+    """NAV.11: each hop and the route have warp and fold times; `stay` adds time at each stop between the ends."""
+    _config, _sector_id, system_ids = seeded_sector
+    body = client.get(f"/api/nav?from={system_ids[0]}&to={system_ids[1]}&stay=90").get_json()
+    route = body["route"]
+    assert route["stay_minutes"] == 90.0 and route["stops"] == 0
+    hop = route["hops"][0]
+    assert [leg["warp_factor"] for leg in hop["warp_times"]] == [1, 2, 4, 8, 9, 9.5, 9.9, 9.995]
+    # A single hop has no stop to stay at, so the route's time is the hop's.
+    assert [leg["years"] for leg in route["warp_times"]] == pytest.approx([leg["years"] for leg in hop["warp_times"]])
+    assert [leg["fold_factor"] for leg in route["fold_times"]] == [4, 5, 6, 6.5, 7, 7.5, 8, 8.5]
+    assert client.get(f"/api/nav?from={system_ids[0]}&to={system_ids[1]}").get_json()["route"]["stay_minutes"] == 0.0
+    for bad in ("-1", "abc", "1e12"):
+        assert client.get(f"/api/nav?from={system_ids[0]}&to={system_ids[1]}&stay={bad}").status_code == 400
+
+
 def test_nav_requires_from_and_to(client, seeded_sector):
     _config, _sector_id, system_ids = seeded_sector
 
@@ -2535,3 +2551,53 @@ def test_galaxy_uncharted_sector_lists_what_the_scatters_left_in_a_cell(client, 
     assert client.get("/api/galaxy/uncharted?ring=x&layer=0&slot=1").status_code == 400
     assert client.get("/api/galaxy/uncharted?ring=3").status_code == 400
     assert client.get("/api/galaxy/uncharted?ring=-1&layer=0&slot=0").status_code == 400
+
+
+def _scatter_stars(mysql_config, luminosities=(800, 600, 900)):
+    """Scattered stars (B2V, ring 3 layer 0 slot 1) of these luminosities in solar units; returns their ids."""
+    _db.get_connection(mysql_config).close()  # the schema
+    base = (3, 0, 1, 12000, 3000, 0, "young", "B2V", "V", 1.4e31, 3.0e6, 22000.0)
+    conn = _db.get_connection(mysql_config)
+    try:
+        with conn:
+            _db.insert_bright_stars(conn, [base + (lum * 3.828e26, 0.02, 0.03, 7.0, 0.03, 42 + n)
+                                           for n, lum in enumerate(luminosities)])
+        return [row["id"] for row in conn.execute("SELECT id FROM bright_stars ORDER BY id").fetchall()]
+    finally:
+        conn.close()
+
+
+def test_uncharted_systems_list_the_scattered_stars_brightest_first(client, mysql_config):
+    """UX.87: `GET /api/uncharted-systems` pages the stars no system was built around, with coordinates, sector
+    address and position in the sector; a star with a system leaves the list."""
+    ids = _scatter_stars(mysql_config)
+    body = client.get("/api/uncharted-systems").get_json()
+    assert body["total"] == 3
+    assert [item["luminosity_sol"] for item in body["items"]] == pytest.approx([900, 800, 600], rel=1e-2)
+    star = body["items"][0]
+    assert star["id"] == ids[2] and star["star_type"] == "B2V" and star["population"] == "young"
+    assert (star["ring_index"], star["layer_index"], star["ring_slot_index"]) == (3, 0, 1) and star["designation"]
+    assert (star["x"], star["y"], star["z"]) == (12.0, 3.0, 0.0)
+    assert {"local_x", "local_y", "local_z", "galactic_radius_pc", "temperature_k", "age_gy"} <= set(star)
+    dim_first = client.get("/api/uncharted-systems?sort=luminosity&order=asc&limit=2&offset=1").get_json()
+    assert [item["id"] for item in dim_first["items"]] == [ids[0], ids[2]] and dim_first["total"] == 3
+    assert client.get("/api/uncharted-systems?sort=nope").status_code == 400
+
+
+def test_generating_an_uncharted_star_builds_a_standalone_system_and_takes_it_off_the_list(admin_client, mysql_config):
+    ids = _scatter_stars(mysql_config)
+    response = admin_client.post(f"/api/uncharted-systems/{ids[0]}/generate")
+    assert response.status_code == 201
+    system_id = response.get_json()["id"]
+    system = admin_client.get(f"/api/systems/{system_id}").get_json()
+    assert system["sector_id"] is None and system["stars"][0]["star_type"].startswith("B2V")
+    listed = admin_client.get("/api/uncharted-systems").get_json()
+    assert listed["total"] == 2 and ids[0] not in [item["id"] for item in listed["items"]]
+    # Again: it already has a system; and an unknown star.
+    assert admin_client.post(f"/api/uncharted-systems/{ids[0]}/generate").status_code == 409
+    assert admin_client.post("/api/uncharted-systems/999999/generate").status_code == 404
+
+
+def test_only_an_admin_generates_an_uncharted_star(client, mysql_config):
+    ids = _scatter_stars(mysql_config, (800,))
+    assert client.post(f"/api/uncharted-systems/{ids[0]}/generate").status_code in (401, 403)

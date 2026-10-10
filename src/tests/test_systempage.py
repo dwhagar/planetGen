@@ -112,3 +112,15 @@ def test_a_scored_body_shows_each_phi4_factor_and_the_three_scores():
     for text in ("Pressure: Blue", "Temperature: Green", "Chemistry: Yellow", "Radiation: Red",
                  "Microbial 0.50", "Complex life 0.25", "Human operability 0.75"):
         assert text in html
+
+
+def test_every_body_row_has_an_anchor():
+    """NAV.8: a planet, moon, belt and comet each have a row `id` that /system/<id>#<kind>-<id> opens."""
+    belt = {"id": 5, "density": "sparse", "distance_km": AU_KM, "lower_limit_km": None, "upper_limit_km": None,
+            "orbital_index": 1, "star_id": 1, "composition": []}
+    html = system_list_html(_system([_body(7, "Polyphemus", 5.0, moons=[_body(9, "Pandora", 0.002)])], [belt],
+                                    [_comet(3, "Halley", 0.6, 0.9)]), _SECTIONS)
+    for anchor in ("planet-7", "moon-9", "belt-5", "comet-3"):
+        assert html.count(f'<li id="{anchor}"') == 1, anchor
+    # A single star has no row of its own: its link opens the system page.
+    assert 'id="star-' not in html

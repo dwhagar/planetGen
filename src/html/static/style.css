@@ -4299,3 +4299,25 @@ body.app {
 p.hint a {
   text-decoration: underline;
 }
+
+/* NAV.8: the body a link points at on the system page (static/bodyanchor.js). */
+.system-list li.body-targeted > .body-row > summary,
+.system-list li.body-targeted > .body-row {
+  outline: 2px solid var(--accent, #4a90d9);
+  outline-offset: -2px;
+  background: var(--bg-subtle);
+}
+
+/* GEN.196: one box per scatter in "Redo scatters". */
+.redo-scatter {
+  margin: 0 0 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+.redo-scatter-check {
+  display: block;
+  margin-bottom: 0.4rem;
+  font-weight: 600;
+}

@@ -68,7 +68,8 @@ from planetgen.galaxy.drill import (
 from planetgen.db.corridor import positions_near_segment, unknown_space_flags
 from planetgen.galaxy.nav_graph import build_route_graph, shortest_path
 from planetgen.galaxy.navigation import (
-    FRAME_GALACTIC, FRAME_SECTOR, FRAME_SYSTEM, course_between, fold_travel_times, warp_travel_times,
+    FRAME_GALACTIC, FRAME_SECTOR, FRAME_SYSTEM, course_between, fold_travel_times, route_fold_times, route_warp_times,
+    warp_travel_times,
 )
 from planetgen.physics.constants import SPECTRAL_CLASS_COLORS
 from planetgen.generation.evolution import life_stage_from_paragraphs
@@ -814,7 +815,7 @@ def _galaxy_route(conn, origin_position, destination_position, from_key, to_key,
 
 
 def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
-                 from_kind="system", to_kind="system", from_type=None, to_type=None):
+                 from_kind="system", to_kind="system", from_type=None, to_type=None, stay_minutes=0.0):
     """
     Resolves full NAV information between two endpoints -- each either a
     star system or a standalone phenomenon (nebula/asteroid field/black
@@ -854,6 +855,9 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
         from_type (str, optional): Required when `from_kind ==
             "phenomenon"` -- one of `_PHENOMENON_TYPE_TO_TABLE`'s keys.
         to_type (str, optional): Same, for the destination.
+        stay_minutes (float): NAV.11: the time spent at each system the
+            route stops at between the two ends (default 0); only the
+            route's total times use it.
 
     Returns:
         dict: `scope` (`"sector"` or `"galaxy"`), `direct` (a
@@ -867,7 +871,12 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
             to the same node (the joined graph always has a path
             otherwise), else `{"path": [...node ids...], "distance_ly": float,
             "positions": {node_id: (x, y, z), ...}, "hops": [{"from", "to",
-            "distance_ly", "unknown_space"}], "longest_hop_ly": float}` (one entry per id in
+            "distance_ly", "unknown_space", "warp_times", "fold_times"}],
+            "longest_hop_ly": float, "stops": int, "stay_minutes": float,
+            "warp_times", "fold_times"}` (NAV.11: a hop's lists are
+            `WarpLeg`/`FoldLeg` dicts for that hop alone; the route's are
+            `WarpLeg`/`FoldLeg` for the whole route, a stop at every system
+            between the ends for `stay_minutes` each) (one entry per id in
             `path`, same frame as `origin_position`/`destination_position`
             -- for rendering the route, e.g. `planetgen/web/maps/navmap.py`, without
             a second position lookup). A node id is a plain `star_systems.
@@ -950,6 +959,9 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
             route_positions = {node_id: positions[node_id] for node_id in path}
             hops = [{"from": a, "to": b, "distance_ly": math.dist(positions[a], positions[b]),
                      "unknown_space": False} for a, b in zip(path, path[1:])]
+            for hop in hops:
+                hop["warp_times"] = [leg._asdict() for leg in warp_travel_times(hop["distance_ly"])]
+                hop["fold_times"] = [leg._asdict() for leg in fold_travel_times(hop["distance_ly"])]
             if galaxy_frame is not None:
                 flags = unknown_space_flags(conn, [galaxy_frame[node_id] for node_id in path])
                 for hop, flag in zip(hops, flags):
@@ -963,6 +975,10 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
                 "positions": route_positions,
                 "hops": hops,
                 "longest_hop_ly": max((hop["distance_ly"] for hop in hops), default=0.0),
+                "stops": max(len(hops) - 1, 0),
+                "stay_minutes": stay_minutes,
+                "warp_times": route_warp_times([hop["distance_ly"] for hop in hops], stay_minutes),
+                "fold_times": route_fold_times([hop["distance_ly"] for hop in hops], stay_minutes),
             }
 
     return {
@@ -1041,7 +1057,7 @@ def _nav_leg(kind, origin_ref, destination_ref, course):
     }
 
 
-def nav_course(conn, from_ref, to_ref, adjacency_k=NAV_ADJACENCY_K):
+def nav_course(conn, from_ref, to_ref, adjacency_k=NAV_ADJACENCY_K, stay_minutes=0.0):
     """
     NAV between any two objects (NAV.16): `nav_between`'s result plus
     `origin`/`destination` (`{ref, kind, name}`), `legs` and `note`.
@@ -1055,6 +1071,8 @@ def nav_course(conn, from_ref, to_ref, adjacency_k=NAV_ADJACENCY_K):
     `"system"`; positions in light-years from the system's origin, no
     route). Each leg is `{kind, from, to, direct, warp_times, fold_times}`;
     `direct` is a `navigation.Course`.
+
+    `stay_minutes` (NAV.11) is the stay at each stop of the route.
 
     Raises:
         ValueError: For a bad reference or a missing row.
@@ -1084,7 +1102,7 @@ def nav_course(conn, from_ref, to_ref, adjacency_k=NAV_ADJACENCY_K):
     from_id, from_kind, from_type = anchor_args(origin)
     to_id, to_kind, to_type = anchor_args(destination)
     result = nav_between(conn, from_id, to_id, adjacency_k, from_kind=from_kind, to_kind=to_kind,
-                         from_type=from_type, to_type=to_type)
+                         from_type=from_type, to_type=to_type, stay_minutes=stay_minutes)
 
     toward = [d - o for o, d in zip(result["origin_position"], result["destination_position"])]
     length = math.sqrt(sum(v * v for v in toward))
@@ -3339,6 +3357,73 @@ def bright_stars_in_sector(conn, ring_index, layer_index, ring_slot_index, unfil
     return [_bright_star_entry(row) for row in rows]
 
 
+UNCHARTED_SYSTEM_SORTS = {
+    "luminosity": "luminosity_w", "temperature": "temperature_k", "type": "star_type",
+    "sector": "ring_index,layer_index,ring_slot_index", "age": "age_gy",
+}
+"""dict: The sort keys `list_uncharted_systems` accepts -> the `bright_stars` column they order by."""
+
+
+def count_uncharted_systems(conn):
+    """How many scattered stars are not yet built into a system (UX.87):
+    the `bright_stars` rows with no `star_system_id`."""
+    return conn.execute("SELECT COUNT(*) AS n FROM bright_stars WHERE star_system_id IS NULL").fetchone()["n"]
+
+
+def list_uncharted_systems(conn, limit=None, offset=None, sort="luminosity", descending=True):
+    """
+    The scattered stars no system was built around yet (UX.87), a page of
+    them: each is an "uncharted" system that can be generated by itself.
+    Needs no sector: it reads `bright_stars`, which holds every star the
+    mass-limit and luminosity scatters placed.
+
+    Args:
+        conn (planetgen.db.store.Connection): An open, read-only connection.
+        limit, offset (int, optional): The page (`offset` ignored without `limit`).
+        sort (str): A key of `UNCHARTED_SYSTEM_SORTS`; ties fall back to the id.
+        descending (bool): Reverse the sort (brightest first by default).
+
+    Returns:
+        list[dict]: One row per star: `id` (the `bright_stars` id), the
+            star (`star_type`, `yerkes_class`, `population`, `mass_solar`,
+            `radius_solar`, `temperature_k`, `luminosity_sol`, `age_gy`),
+            its sector (`ring_index`, `layer_index`, `ring_slot_index`,
+            `designation`), `x`/`y`/`z` (galaxy frame, parsecs),
+            `local_x`/`local_y`/`local_z` (parsecs from the sector's
+            center, where the star's sector is in the grid) and
+            `galactic_radius_pc`.
+    """
+    if sort not in UNCHARTED_SYSTEM_SORTS:
+        raise ValueError(f"unknown uncharted system sort {sort!r}")
+    direction = "DESC" if descending else "ASC"
+    order = ", ".join(f"{column} {direction}" for column in UNCHARTED_SYSTEM_SORTS[sort].split(","))
+    query = (f"SELECT id, ring_index, layer_index, ring_slot_index, position_x_mpc, position_y_mpc, position_z_mpc,"
+             f" population, star_type, yerkes_class, mass_kg, radius_km, temperature_k, luminosity_w, age_gy"
+             f" FROM bright_stars WHERE star_system_id IS NULL ORDER BY {order}, id")
+    params = []
+    if limit is not None:
+        query += " LIMIT ? OFFSET ?"
+        params = [int(limit), int(offset or 0)]
+    skeleton = get_galaxy_shape(conn)
+    edge_pc = skeleton.edge_pc if skeleton else float(tuning.DEFAULT_SECTOR_EDGE_PC)
+    items = []
+    for row in conn.execute(query, params).fetchall():
+        address = (row["ring_index"], row["layer_index"], row["ring_slot_index"])
+        x, y, z = (row[f"position_{axis}_mpc"] / MPC_PER_PC for axis in "xyz")
+        local = galaxy_to_local_pc(sector_position_pc(*address, edge_pc), (x, y, z))
+        items.append({
+            "id": row["id"], "star_type": row["star_type"], "yerkes_class": row["yerkes_class"],
+            "population": row["population"], "mass_solar": row["mass_kg"] / constants.SOLAR_MASS_TO_KG,
+            "radius_solar": _radius_sol(row["radius_km"]), "temperature_k": row["temperature_k"],
+            "luminosity_sol": row["luminosity_w"] / constants.SOLAR_LUMINOSITY, "age_gy": row["age_gy"],
+            "ring_index": address[0], "layer_index": address[1], "ring_slot_index": address[2],
+            "designation": provisional_sector_designation(*address),
+            "x": x, "y": y, "z": z, "local_x": local[0], "local_y": local[1], "local_z": local[2],
+            "galactic_radius_pc": math.sqrt(x * x + y * y + z * z),
+        })
+    return items
+
+
 UNCHARTED_SCATTER_LIMIT = 500
 """int: Most scattered phenomena one uncharted sector lists (MAP.162)."""
 
@@ -5005,7 +5090,7 @@ def _search_result_stars(conn, spectral_tags, luminosity_tags, term, limit, offs
     where = (" AND " + " AND ".join(clauses)) if clauses else ""
     rows, page = _search_page(
         conn,
-        "SELECT s.name, s.role, s.star_type, s.radius_km, s.star_system_id, ss.name AS system_name, ss.sector_id",
+        "SELECT s.id, s.name, s.role, s.star_type, s.radius_km, s.star_system_id, ss.name AS system_name, ss.sector_id",
         f"FROM stars s JOIN star_systems ss ON ss.id = s.star_system_id WHERE 1=1{where}",
         "ss.name, s.name, s.id",
         params, limit, offset,
@@ -5035,7 +5120,7 @@ def _search_result_planets(conn, class_tags, body_tags, life_tags, term, limit, 
     rows, page = _search_page(
         conn,
         """
-        SELECT p.name, p.planet_class, p.body_type, p.life_chemical, p.equipment_tier, p.radius_km,
+        SELECT p.id, p.name, p.planet_class, p.body_type, p.life_chemical, p.equipment_tier, p.radius_km,
                p.star_system_id, ss.name AS system_name, ss.sector_id
         """,
         f"FROM planets p JOIN star_systems ss ON ss.id = p.star_system_id WHERE 1=1{where}",
@@ -5067,7 +5152,7 @@ def _search_result_moons(conn, class_tags, body_tags, life_tags, term, limit, of
     rows, page = _search_page(
         conn,
         """
-        SELECT m.name, m.planet_class, m.body_type, m.life_chemical, m.equipment_tier, m.radius_km, p.name AS planet_name,
+        SELECT m.id, m.name, m.planet_class, m.body_type, m.life_chemical, m.equipment_tier, m.radius_km, p.name AS planet_name,
                m.star_system_id, ss.name AS system_name, ss.sector_id
         """,
         f"""
@@ -5090,7 +5175,7 @@ def _search_result_belts(conn, density_tags, limit, offset):
     where = (" AND " + " AND ".join(clauses)) if clauses else ""
     rows, page = _search_page(
         conn,
-        "SELECT ab.density, ab.composition_summary, ab.star_system_id, ss.name AS system_name, ss.sector_id",
+        "SELECT ab.id, ab.density, ab.composition_summary, ab.star_system_id, ss.name AS system_name, ss.sector_id",
         f"FROM asteroid_belts ab JOIN star_systems ss ON ss.id = ab.star_system_id WHERE 1=1{where}",
         "ss.name, ss.id, ab.orbital_index, ab.id",
         params, limit, offset,

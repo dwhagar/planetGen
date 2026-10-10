@@ -159,7 +159,7 @@ CENTER_CHOICES = (
 
 SECTION_FOR_ACTION = {
     "new_galaxy": "new-galaxy", "galaxy": "generate-sectors", "plan": "plan",
-    "bright_stars": "bright-stars", "bright_band": "bright-band", "reset": "reset",
+    "redo_scatters": "redo-scatters", "bright_band": "bright-band", "reset": "reset",
 }
 """dict: The page section each form lives in, so a form shown again
 with an error is open whatever the browser remembered."""
@@ -699,6 +699,37 @@ def directive_argv(form):
     return argv
 
 
+REDO_SCATTERS_LABEL = "Redo the chosen scatters"
+REDO_CHOICES = (("mass", "redo_mass"), ("luminosity", "redo_luminosity"), ("phenomena", "redo_phenomena"))
+"""tuple: `--redo-scatters` word and the form's checkbox for each scatter (GEN.196)."""
+
+
+def redo_scatters_argv(form):
+    """
+    `planetgen plan --redo-scatters` with the scatters whose boxes are ticked
+    and the setting of each (GEN.196): the stellar mass limit for the massive
+    stars, the luminosity floor for the bright stars, the neutron star and
+    black hole limit for the phenomena. A scatter left unticked gets none of
+    its settings, so it is left as it was.
+
+    Raises:
+        FormError: Nothing ticked, or a setting that isn't one of its presets.
+    """
+    ticked = [word for word, field in REDO_CHOICES if form.get(field)]
+    if not ticked:
+        _problem("Tick at least one scatter to redo.")
+        return []
+    argv = ["plan", "--redo-scatters", *ticked]
+    if "mass" in ticked:
+        argv += mass_limit_argv({key: value for key, value in form.items()
+                                 if key not in ("compact_use_star", "compact_min_mass")})
+    if "luminosity" in ticked:
+        argv += scatter_argv(form, with_mass_limit=False)[2:]
+    if "phenomena" in ticked:
+        argv += compact_limit_argv(form)
+    return argv
+
+
 def phenomena_step(generate, form):
     """The phenomena scatter as its own step (`planetgen plan --phenomena-only`,
     GEN.185's passes 1 and 5), at the form's mass limit. The bright-star scatter
@@ -831,10 +862,9 @@ def _build_job_steps(action, form, edge_pc=None):
         return "new_galaxy", "New galaxy", [reset_step, plan, {"label": label, "argv": argv}]
     if action == "plan":
         return "plan", "Plan the galaxy", plan_steps(generate, form)
-    if action == "bright_stars":
-        argv = generate + scatter_argv(form)
-        return "bright_stars", "Rebuild the bright stars", [{"label": SCATTER_LABEL, "argv": argv},
-                                                            phenomena_step(generate, form)]
+    if action == "redo_scatters":
+        return "redo_scatters", "Redo scatters", [{"label": REDO_SCATTERS_LABEL,
+                                                    "argv": generate + redo_scatters_argv(form)}]
     if action == "bright_band":
         down_to = _number(form, "down_to", "Go down to (solar luminosities)", float, required=True, minimum=1.0)
         if down_to is None:

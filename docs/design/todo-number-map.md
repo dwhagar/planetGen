@@ -13,7 +13,7 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.92 |
+| UX | UX.93 |
 | MAP | MAP.167 |
 | NAV | NAV.58 |
 | GEN | GEN.198 |
@@ -694,7 +694,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.193 | Phenomena table stays empty after the scatter: scattered unbuilt phenomena are not listed (bug) | none | done, PR #1019 |
 | GEN.194 | Default mass limit 14 solar masses and default luminosity floor 9,000 solar luminosities | none | done, PR #1051 |
 | GEN.195 | A separate mass limit for neutron stars and black holes, and the central black hole or quasar always created | none | done, PR #1081 |
-| GEN.196 | One "Redo scatters" box on Generate: choose which scatters to redo, with new settings for each | none | open |
+| GEN.196 | One "Redo scatters" box on Generate: choose which scatters to redo, with new settings for each | none | done, PR #1093 |
 | GEN.197 | Object IDs on ejection, merger and split events | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
@@ -869,10 +869,10 @@ Parents marked "new parent" had no old number of their own.
 | NAV.5 | Show a course on the Galaxy Map | none | open |
 | NAV.6 | Courses that steer clear of gravity wells | none | open |
 | NAV.7 | One reference for every object, with its parents | none | done, PR #688 |
-| NAV.8 | Pages and anchors for stars, planets, moons and belts | none | open |
+| NAV.8 | Pages and anchors for stars, planets, moons and belts | none | done, PR #1095 |
 | NAV.9 | Search and locate return references for every kind | none | open |
 | NAV.10 | Routing that scales past a few thousand systems | none | done, PR #814 |
-| NAV.11 | Travel times for the system-to-system route too | none | open |
+| NAV.11 | Travel times for the system-to-system route too | none | done, PR #1099 |
 | NAV.12 | No maximum hop length: a route always reaches the nearest star it can, across any number of sectors | none | done, PR #841 |
 | NAV.13 | A picker module: select, step out, step in, step sideways | none | done, PR #564 |
 | NAV.14 | One breadcrumb for every level | none | done, PR #571 |
@@ -1159,11 +1159,12 @@ Parents marked "new parent" had no old number of their own.
 | UX.84 | Every sub-step must show a progress bar that starts by itself when it is predicted to take over 15 seconds (bug) | none | done, PR #930 |
 | UX.85 | Button menus open out of sight and make the user scroll to see them (bug) | none | done, PR #932 |
 | UX.86 | The Galaxy Map controls take too much room: buttons too large and filters one character wide (bug) | none | done, PR #936 |
-| UX.87 | The system list shows uncharted systems: every scattered star, with its location and a way to generate it | none | open |
+| UX.87 | The system list shows uncharted systems: every scattered star, with its location and a way to generate it | none | done, PR #1097 |
 | UX.88 | Say "uncharted" instead of "unbuilt" or "not generated" in all user-facing text outside Generate and admin | none | done, PR #1049 |
 | UX.89 | Staged jobs show wrong stage counts and numbers, and skipped stages are not listed (bug) | none | done, PR #1057 |
 | UX.90 | Explain the habitability chips in the web interface: a visible legend with the equipment labels, colours, thresholds and scores | none | done, PR #1065 |
 | UX.91 | Planet and moon description carries a full PHI-4 explanation, each colour factor and why | none | open |
+| UX.92 | A Bookmark button for planets, moons and belts | UX.45 | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |

@@ -73,6 +73,16 @@ def plan_stages(args):
     """The stages of one `planetgen plan` run, in order."""
     if getattr(args, "bright_stars_down_to", None) is not None:
         return [Stage("band", "Add the dimmer band of bright stars")]
+    redo = getattr(args, "redo_scatters", None)
+    if redo:
+        not_chosen = "not chosen to be redone"
+        new_limit = getattr(args, "phenomenon_min_mass", None) is not None
+        luminosity = None if "luminosity" in redo else (
+            None if "mass" in redo and new_limit else not_chosen + (
+                " (it is redone if the mass limit changes)" if "mass" in redo else ""))
+        return [Stage("phenomena", "Scatter the phenomena", None if "phenomena" in redo else not_chosen),
+                Stage("mass", "Scatter the massive stars", None if "mass" in redo else not_chosen),
+                Stage("luminosity", "Scatter the bright stars", luminosity)]
     if getattr(args, "phenomena_only", False):
         return [Stage("phenomena", "Scatter the phenomena")]
     if getattr(args, "bright_stars_only", False):
@@ -118,7 +128,8 @@ def stage_settings(key, args):
     elif key == "luminosity":
         settings["mass_limit_sol"], settings["luminosity_floor_sol"] = mass, floor
     elif key == "phenomena":
-        settings["mass_limit_sol"] = mass
+        compact = getattr(args, "compact_min_mass", None)
+        settings["compact_limit_sol"] = mass if compact in (None, tuning.COMPACT_MIN_MASS_STAR) else float(compact)
     elif key == "backfill":
         settings["backfill_from"] = getattr(args, "backfill_from", "edge") or "edge"
     elif key == "skeleton":

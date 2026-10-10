@@ -344,7 +344,7 @@ def _write_settings_file(args, galaxy_seed, naming_key_value, edge_pc, outer_rin
     log.normal(f"Settings file {entry['path']}.")
 
 
-def scatter_bright_stars(args):
+def scatter_bright_stars(args, passes=("mass", "luminosity")):
     """
     Pre-places the galaxy's bright stars on the stored plan into
     `bright_stars`, replacing any earlier scatter, in the three star passes
@@ -364,6 +364,13 @@ def scatter_bright_stars(args):
     filled are always left out (GEN.30): the scatter never adds stars to a
     generated sector. `--force` is still accepted and does nothing more.
 
+    `passes` (GEN.196) names the passes to redo. Both (the default) replace
+    the whole scatter. One alone clears and rewrites only that pass's stars
+    (`store.clear_bright_star_pass`) and keeps the other's: the luminosity
+    pass alone works at the mass limit already stored, the mass pass alone at
+    the luminosity floor already stored. With no scatter stored yet a single
+    pass becomes both.
+
     Returns:
         dict: `counts` (per population), `total` and `elapsed_s`.
     """
@@ -379,24 +386,50 @@ def scatter_bright_stars(args):
             log.normal(f"Leaving out the {len(filled):,} sectors already filled.")
         min_luminosity_sol = float(args.bright_star_min_luminosity)
         mass_limit = _stellar_mass_limit(args, conn)
+        stored_limit = store.bright_star_mass_limit(conn)
+        stored_settings = store.bright_star_scatter_settings(conn)
+        passes = set(passes)
+        if passes != {"mass", "luminosity"} and (stored_limit is None or stored_settings is None):
+            log.normal("No complete scatter is stored yet, so both passes run.")
+            passes = {"mass", "luminosity"}
+        elif passes == {"mass"} and not math.isclose(mass_limit, stored_limit):
+            log.normal(f"The mass limit changed from {stored_limit:g} to {mass_limit:g} solar masses, so the "
+                       "luminosity pass is redone with it.")
+            passes = {"mass", "luminosity"}
         seed = _bright_star_seed(skeleton, "scatter")
         mass_seed = _bright_star_seed(skeleton, "mass-scatter")
-        store.clear_bright_stars(conn)
+        if passes == {"mass", "luminosity"}:
+            store.clear_bright_stars(conn)
+        elif passes == {"luminosity"}:
+            mass_limit = stored_limit
+            store.clear_bright_star_pass(conn, "luminosity", stored_limit)
+        else:
+            min_luminosity_sol = float(stored_settings[0])
+            store.clear_bright_star_pass(conn, "mass", stored_limit)
 
         t0 = time.perf_counter()
-        stages.enter("mass")
-        counts = _scatter_layers(args, mysql_config, skeleton, extents, filled,
-                                 starPopulation.MASS_PASS_MIN_LUMINOSITY_SOL, mass_seed, "Massive stars",
-                                 mass_range=(mass_limit, None))
-        massive = sum(counts.values())
-        marked = store.bright_star_marked_addresses(conn, mass_limit, min_luminosity_sol * constants.SOLAR_LUMINOSITY)
-        log.normal(f"{len(marked):,} sectors hold a star born at {mass_limit:g} solar masses or more and at least "
-                   f"{min_luminosity_sol:g} L_sun bright; the luminosity pass skips them.")
-        stages.enter("luminosity")
-        light = _scatter_layers(args, mysql_config, skeleton, extents, set(filled) | marked, min_luminosity_sol, seed,
-                                "Bright stars", mass_range=(None, mass_limit))
-        for population, count in light.items():
-            counts[population] += count
+        counts = {population: 0 for population in brightStars.POPULATIONS}
+        massive = 0
+        if "mass" in passes:
+            stages.enter("mass")
+            counts = _scatter_layers(args, mysql_config, skeleton, extents, filled,
+                                     starPopulation.MASS_PASS_MIN_LUMINOSITY_SOL, mass_seed, "Massive stars",
+                                     mass_range=(mass_limit, None))
+            massive = sum(counts.values())
+        else:
+            stages.skip("mass", "not chosen to be redone")
+        if "luminosity" in passes:
+            marked = store.bright_star_marked_addresses(conn, mass_limit,
+                                                        min_luminosity_sol * constants.SOLAR_LUMINOSITY)
+            log.normal(f"{len(marked):,} sectors hold a star born at {mass_limit:g} solar masses or more and at "
+                       f"least {min_luminosity_sol:g} L_sun bright; the luminosity pass skips them.")
+            stages.enter("luminosity")
+            light = _scatter_layers(args, mysql_config, skeleton, extents, set(filled) | marked, min_luminosity_sol,
+                                    seed, "Bright stars", mass_range=(None, mass_limit))
+            for population, count in light.items():
+                counts[population] += count
+        else:
+            stages.skip("luminosity", "not chosen to be redone")
         store.record_bright_star_scatter(conn, min_luminosity_sol, seed, mass_limit)
         conn.commit()
     finally:
@@ -411,6 +444,26 @@ def scatter_bright_stars(args):
     log.debug(f"bright-star scatter: {total} stars, seed {seed}, threshold {min_luminosity_sol:g} L_sun, "
               f"mass limit {mass_limit:g} solar masses")
     return {"counts": counts, "total": total, "elapsed_s": elapsed}
+
+
+def redo_scatters(args):
+    """
+    Redoes the scatters `--redo-scatters` names, each at this run's settings
+    (GEN.196), in the order of the plan's own run: the phenomena (neutron
+    stars and black holes at the compact-object limit, everything else, and
+    the nucleus), then the star passes. A star pass alone clears and rewrites
+    only its own stars (`scatter_bright_stars(passes=...)`); the phenomena
+    scatter clears and rewrites the phenomena. A scatter not named is left
+    exactly as it was, and its stage is listed as skipped.
+    """
+    chosen = list(args.redo_scatters)
+    if "phenomena" in chosen:
+        with workQueue.job_node("phenomena", "Phenomena"):
+            scatter_phenomena(args)
+    star_passes = [name for name in ("mass", "luminosity") if name in chosen]
+    if star_passes:
+        with workQueue.job_node("bright-stars", "Bright stars"):
+            scatter_bright_stars(args, passes=star_passes)
 
 
 def _bright_star_seed(skeleton, address):
@@ -1224,6 +1277,10 @@ def run_plan(args):
         stages.enter("band")
         with workQueue.job_node("bright-stars", f"Bright stars down to {args.bright_stars_down_to:g} L_sun"):
             add_bright_star_band(args)
+        stages.finish()
+        return
+    if getattr(args, "redo_scatters", None):
+        redo_scatters(args)
         stages.finish()
         return
     if getattr(args, "phenomena_only", False):

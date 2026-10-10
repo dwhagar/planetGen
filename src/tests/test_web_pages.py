@@ -54,6 +54,7 @@ class FakeData:
     def __init__(self, sectors=3, systems=2):
         self.sectors = [_sector(i) for i in range(sectors)]
         self.systems = [_system(i) for i in range(systems)]
+        self.uncharted = []
         self.calls = []
         self.asked = []
         self.admin = None
@@ -79,6 +80,12 @@ class FakeData:
                               "octant": [{"value": "I", "count": 2}]}
         return body
 
+    def get_uncharted_systems(self, db, limit=None, offset=None, sort=None, descending=False):
+        self.calls.append(("get_uncharted_systems", db, limit, offset))
+        self.asked.append(("uncharted", sort, descending))
+        return {"items": self.uncharted[offset or 0:(offset or 0) + (limit or 50)], "total": len(self.uncharted),
+                "limit": limit, "offset": offset}
+
     def get_phenomena(self, db, limit=None, offset=None, **kwargs):
         self.calls.append(("get_phenomena", db, limit, offset))
         return {"items": [], "total": 4, "limit": limit, "offset": offset}
@@ -91,7 +98,7 @@ class FakeData:
 @pytest.fixture
 def fake(monkeypatch):
     data = FakeData()
-    for name in ("get_sectors", "get_systems", "get_phenomena", "auth_me"):
+    for name in ("get_sectors", "get_systems", "get_uncharted_systems", "get_phenomena", "auth_me"):
         monkeypatch.setattr(apiclient, name, getattr(data, name))
     return data
 
@@ -596,3 +603,94 @@ def test_table_route_serves_the_sectors_and_systems_tables(client, fake):
     assert [cell["text"] for cell in body["rows"][0]] == ["System 000", "Standalone", "–", "No", "G2V"]
     assert {o["value"]: o["label"] for o in body["facets"]["binary"]} == {"yes": "Binary", "no": "Single star"}
     assert client.get("/table/standalone-systems").status_code == 404
+
+
+# --- Uncharted stars on the Systems page (UX.87) ------------------------------------
+
+def _uncharted_star(i):
+    return {"id": 50 + i, "star_type": "B2V", "yerkes_class": "V", "population": "young", "mass_solar": 9.0,
+            "radius_solar": 5.0, "temperature_k": 22000.0, "luminosity_sol": 6000.0 - i, "age_gy": 0.02,
+            "ring_index": 3, "layer_index": 0, "ring_slot_index": 1, "designation": "6000100001",
+            "x": 12.0, "y": 3.0, "z": 0.5, "local_x": 0.4, "local_y": -0.2, "local_z": 0.1, "galactic_radius_pc": 12.4}
+
+
+def test_the_systems_page_offers_the_uncharted_stars_off_by_default(client, fake):
+    fake.uncharted = [_uncharted_star(i) for i in range(3)]
+    html = client.get("/systems").get_data(as_text=True)
+    assert 'id="all-systems"' in html and "3 uncharted stars" in html
+    assert "/systems?uncharted=1" in html
+    assert "Uncharted B2V star" not in html
+    assert not [call for call in fake.calls if call[0] == "get_uncharted_systems" and call[2] != 1]
+
+
+def test_the_uncharted_filter_lists_every_scattered_star_with_where_it_is(client, fake):
+    fake.uncharted = [_uncharted_star(i) for i in range(3)]
+    html = client.get("/systems?uncharted=1").get_data(as_text=True)
+    assert ("uncharted", "luminosity", True) in fake.asked, "brightest first"
+    assert "Uncharted B2V star 50" in html and "6,000" in html and "B2V (Young disk)" in html
+    assert "6000100001 (ring 3, layer 0, slot 1)" in html
+    assert "/galaxy?sector=6000100001&amp;open=1" in html
+    assert "12.00, 3.00, 0.50 pc" in html and "0.40, -0.20, 0.10 pc" in html
+    assert "generating the whole sector" in html or "recommended" in html
+    assert 'value="Generate"' not in html and ">Generate<" not in html.replace("Generate</th>", ""), "no button for visitors"
+
+
+def test_an_admin_gets_a_generate_button_per_uncharted_star(client, fake, monkeypatch):
+    fake.uncharted = [_uncharted_star(0)]
+    fake.admin = {"username": "boss", "must_change_credentials": False}
+    client.set_cookie(SESSION_COOKIE_NAME, "token-value")
+    html = client.get("/systems?uncharted=1").get_data(as_text=True)
+    assert 'action="/systems/uncharted/50/generate"' in html and "Generate" in html
+
+
+def _csrf_form(app, client):
+    nonce = "n" * 43
+    client.set_cookie(csrf.COOKIE_NAME, nonce)
+    session = client.get_cookie(SESSION_COOKIE_NAME)
+    with app.app_context():
+        return {csrf.FIELD_NAME: csrf._sign(nonce, session.value if session else "")}
+
+
+def test_generating_an_uncharted_star_opens_its_system(app, client, fake, monkeypatch):
+    fake.admin = {"username": "boss", "must_change_credentials": False}
+    client.set_cookie(SESSION_COOKIE_NAME, "token-value")
+    calls = []
+
+    def edit(cookie, db, method, path, body=None):
+        calls.append((method, path))
+        return {"id": 77}
+
+    monkeypatch.setattr(apiclient, "admin_edit", edit)
+    response = client.post("/systems/uncharted/50/generate", data=_csrf_form(app, client))
+    assert response.status_code == 303 and response.headers["Location"].endswith("/system/77")
+    assert calls == [("POST", "/uncharted-systems/50/generate")]
+
+
+def test_a_visitor_cannot_generate_an_uncharted_star(app, client, fake, monkeypatch):
+    monkeypatch.setattr(apiclient, "admin_edit", lambda *args, **kwargs: pytest.fail("must not call"))
+    response = client.post("/systems/uncharted/50/generate", data=_csrf_form(app, client))
+    assert response.status_code == 303 and "uncharted=1" in response.headers["Location"]
+
+
+def test_a_star_that_is_no_longer_waiting_flashes_a_message(app, client, fake, monkeypatch):
+    fake.admin = {"username": "boss", "must_change_credentials": False}
+    client.set_cookie(SESSION_COOKIE_NAME, "token-value")
+
+    def gone(*args, **kwargs):
+        raise apiclient.NotFoundError("gone")
+
+    monkeypatch.setattr(apiclient, "admin_edit", gone)
+    response = client.post("/systems/uncharted/50/generate", data=_csrf_form(app, client), follow_redirects=True)
+    assert "no longer waiting" in response.get_data(as_text=True)
+
+
+def test_an_api_refusal_is_shown_on_the_uncharted_list(app, client, fake, monkeypatch):
+    fake.admin = {"username": "boss", "must_change_credentials": False}
+    client.set_cookie(SESSION_COOKIE_NAME, "token-value")
+
+    def refuse(*args, **kwargs):
+        raise apiclient.ApiError("planetGen API error (409): That star already has a system.", 409)
+
+    monkeypatch.setattr(apiclient, "admin_edit", refuse)
+    response = client.post("/systems/uncharted/50/generate", data=_csrf_form(app, client), follow_redirects=True)
+    assert "That star already has a system." in response.get_data(as_text=True)
