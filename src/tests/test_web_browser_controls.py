@@ -131,7 +131,9 @@ def test_open_map_menus_hold_no_overlap(browser, base_url, page_targets, admin_t
                   menu.setAttribute("data-audit", "1");
                   return (""" + MENU_OVERLAPS + """)(['[data-audit]', selector]);
                 }""", [POPOVER_MENUS, index, CONTROLS])
-            menu.locator("summary").first.click()
+            # Closed in the page, not by a click: under load the open panel can still be
+            # settling over the button, and the overlap was already measured above.
+            menu.evaluate("m => { m.open = false; }")
     finally:
         context.close()
     assert not problems, f"{path} at {width} px: {sorted(set(problems))}"
