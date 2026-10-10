@@ -1124,7 +1124,7 @@
 --   `planetgen/physics/habitability_world.py`; design
 --   docs/design/habitability-index.md section 8.
 --
--- v77: object IDs (DB.20, GEN.170, `galaxy/object_uid.py`) replace v58's
+-- v78: object IDs (DB.20, GEN.170, `galaxy/object_uid.py`) replace v58's
 --   hashed `uid`s. Every object table (`star_systems`, `stars`, `planets`,
 --   `moons`, `asteroid_belts`, `comets`, the eight phenomenon tables and
 --   `facilities`) has `uid BINARY(10)`, UNIQUE on its own: 80 bits, the
@@ -2992,7 +2992,7 @@ CREATE TABLE IF NOT EXISTS facilities (
     epoch_unix           DOUBLE,  -- v66 (GEN.106), see header comment
     next_update_due      DOUBLE,
     description          TEXT,
-    uid                  BINARY(10),  -- v77 (DB.20), see header comment
+    uid                  BINARY(10),  -- v78 (DB.20), see header comment
 
     created_at           TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     modified_at          TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
@@ -3230,6 +3230,25 @@ CREATE TABLE IF NOT EXISTS phenomenon_scatter (
 
 
 -- ---------------------------------------------------------------------
+-- phenomenon_scatter_classes (v77): how many scattered phenomena of each
+-- class were placed and how many a sector's save has built since, so the
+-- Phenomena table counts and pages the scatter without scanning its
+-- hundred million rows. One row per (`kind`, `subtype`); `subtype` is ''
+-- where the class has none. `placed` is written when the scatter ends
+-- (`store.record_phenomenon_scatter_classes`) and `built` goes up as
+-- `store.mark_phenomena_built` stamps rows; a plan re-run or reset empties
+-- the table with the scatter.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS phenomenon_scatter_classes (
+    kind     VARCHAR(24) NOT NULL,
+    subtype  VARCHAR(16) NOT NULL DEFAULT '',
+    placed   BIGINT UNSIGNED NOT NULL DEFAULT 0,
+    built    BIGINT UNSIGNED NOT NULL DEFAULT 0,
+    PRIMARY KEY (kind, subtype)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- ---------------------------------------------------------------------
 -- id_blocks (v45, PERF.13): the next unreserved id for each table in
 -- `_db.ID_BLOCK_TABLES`. `_db._allocate_id` moves `next_id` up by a
 -- block at a time (never below the table's own MAX(id) + 1) and the
@@ -3242,7 +3261,7 @@ CREATE TABLE IF NOT EXISTS id_blocks (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
--- id_counters (v77, DB.20): the next number of each run-time counter of
+-- id_counters (v78, DB.20): the next number of each run-time counter of
 -- object IDs. `kind` 'sector': `scope` is a birth sector's address (5
 -- bytes) and the number the next run-time serial there. `kind` 'system':
 -- `scope` is a system's ID (10 bytes) and the number the next body number

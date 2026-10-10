@@ -8,7 +8,7 @@ from planetgen.generation import luminosity_floor as floor
 def test_presets_run_from_the_floor_to_the_ceiling_and_include_the_default():
     presets = floor.PRESETS
     assert presets[0] == 2500.0 and presets[-1] == 4_000_000.0
-    assert tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL == 5000.0 and 5000.0 in presets
+    assert tuning.BRIGHT_STAR_MIN_LUMINOSITY_SOL == 9000.0 and 9000.0 in presets
     assert list(presets) == sorted(set(presets))
 
 

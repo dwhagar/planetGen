@@ -86,7 +86,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | API.5 | API version and compatibility checking | API.4 |  |
-| API.10 | Reservations: claimed sectors and id blocks per run | API.9 | Reserved id blocks build on DB.3's id-block fix (PR #347). |
+| API.10 | Reservations: claimed sectors and id blocks per run |  | Reserved id blocks build on DB.3's id-block fix (PR #347). |
 | API.11 | Staging tables | API.10 | Galaxy schema migration (staging); after NAV.10 in the writer queue. |
 | API.12 | The download: seed, skeleton and name state | API.5 | Downloads the naming key, not name registries. Downloads the seed (what a seed means is GEN.39) and the name state (rules from GEN.46, done in PR #370). |
 
@@ -188,7 +188,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| API.18 | Generate by recipe: JSON for sectors, systems, planets, moons and phenomena | API.9 | Validation through the Pydantic models; 400 for nonsense, 422 for validation failures. |
+| API.18 | Generate by recipe: JSON for sectors, systems, planets, moons and phenomena |  | Validation through the Pydantic models; 400 for nonsense, 422 for validation failures. |
 
 ### View
 

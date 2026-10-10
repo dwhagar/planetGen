@@ -488,7 +488,7 @@ def _label_of(tooltip):
     return re.split(r"[:,] ", tooltip, maxsplit=1)[0].strip()
 
 
-GENERATED_CHOICE = r"(^|, )([1-9][\d,.]*\S* (of .+ )?sectors )?generated$"
+GENERATED_CHOICE = r"(^|, )([1-9][\d,.]*\S* (of .+ )?sectors )?charted$"
 """A tooltip for a choice holding a generated sector (the fixture's
 sectors, all near the core)."""
 
@@ -1226,7 +1226,7 @@ def test_galaxy_map_charted_only_does_not_stop_picking(page, map_site):
     page.click("#galaxymap3d-menu > summary")
     page.click('[data-action="charted-only"]')
     page.wait_for_function("() => document.querySelector('#galaxymap3d-canvas').galaxyLines().chartedLines >= 0")
-    empty = _hover_choice(page, r"(^|[ ,])0 (of .+ )?sectors generated$|not generated$")
+    empty = _hover_choice(page, r"(^|[ ,])0 (of .+ )?sectors charted$|uncharted$")
     assert empty, "no choice without generated sectors to hover"
     assert "nothing generated here to pick" not in empty[2], empty
     before = (page.url, _crumbs(page))
@@ -1419,7 +1419,7 @@ def test_galaxy_map_slab_buttons_read_on_one_line(page, map_site):
     texts = {b["slab"]: b["text"] for b in state["buttons"]}
     assert texts["0"] == "#0 < 0.01% charted" and texts["1"] == "#1 Unknown", texts
     label = page.locator('.galaxy-slab-button[data-slab="0"]').get_attribute("aria-label")
-    assert "sectors generated" in label, label
+    assert "sectors charted" in label, label
 
 
 def test_galaxy_map_slab_lines_end_on_the_nearest_edge_of_their_slab(page, map_site):

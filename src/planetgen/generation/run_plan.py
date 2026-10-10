@@ -909,6 +909,8 @@ def scatter_phenomena(args):
         if special_counts:
             log.normal("Special phenomena: " + ", ".join(f"{count:,} {kind}" for kind, count in sorted(special_counts.items())) + ".")
         store.record_phenomenon_scatter(conn, seed, min_mass_solar)
+        store.record_phenomenon_scatter_classes(
+            conn, {phenomenon_scatter.split_label(label): count for label, count in counts.items()})
         conn.commit()
     finally:
         conn.close()
@@ -918,9 +920,11 @@ def scatter_phenomena(args):
         log.normal(f"Phenomena landed in {landed[0]:,} of {len(layers):,} layers.")
     else:
         log.normal(f"No phenomena landed in any of the {len(layers):,} layers.")
-    labels = list(phenomenon_scatter.EXPECTED_LABELS) + sorted(set(counts) - set(phenomenon_scatter.EXPECTED_LABELS))
-    log.normal(f"Placed {total:,} phenomena in {elapsed:.1f}s: "
-               + ", ".join(f"{counts.get(label, 0):,} {label}" for label in labels) + ".")
+    # Like the star count: only what was created.
+    labels = [label for label in list(phenomenon_scatter.EXPECTED_LABELS) + sorted(
+        set(counts) - set(phenomenon_scatter.EXPECTED_LABELS)) if counts.get(label)]
+    listed = ": " + ", ".join(f"{counts[label]:,} {label}" for label in labels) if labels else ""
+    log.normal(f"Placed {total:,} phenomena in {elapsed:.1f}s{listed}.")
     return {"counts": counts, "total": total, "elapsed_s": elapsed}
 
 

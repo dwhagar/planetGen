@@ -351,7 +351,7 @@ GALAXY_MAP_HELP = """<h3>Moving</h3>
   </ul>
   <h3>Reading the map</h3>
   <ul>
-    <li>Blocks are colored by predicted density (brighter is denser). Unfilled space is see-through; a block
+    <li>Blocks are colored by predicted density (brighter is denser). Uncharted space is see-through; a block
     with generated sectors is more solid the more of them are generated.</li>
     <li>Glowing points are stars, sized by the star, colored by its temperature and brighter the more luminous:
     the brightest (1,000 L&#9737; and up on a new galaxy) everywhere, placed before their sectors are generated,

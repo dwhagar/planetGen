@@ -816,6 +816,17 @@ phenomenon_scatter = sa.Table(
 )
 
 
+phenomenon_scatter_classes = sa.Table(
+    'phenomenon_scatter_classes',
+    metadata,
+    sa.Column('kind', sa.String(24), primary_key=True, nullable=False),
+    sa.Column('subtype', sa.String(16), server_default=sa.text("''"), primary_key=True, nullable=False),
+    sa.Column('placed', mysql.BIGINT(unsigned=True), server_default=sa.text('0'), nullable=False),
+    sa.Column('built', mysql.BIGINT(unsigned=True), server_default=sa.text('0'), nullable=False),
+    mysql_engine="InnoDB",
+)
+
+
 planet_evolutionary_paragraphs = sa.Table(
     'planet_evolutionary_paragraphs',
     metadata,

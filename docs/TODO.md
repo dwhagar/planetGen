@@ -112,7 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.9, PERF.29, PERF.30, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, POP.8, POP.9, POP.7, POP.10, NAV.11, NAV.42, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, API.9, GEN.57, TEST.77, UX.49, PERF.31, GEN.128 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | NAV.8, NAV.9, DB.9, PERF.29, PERF.30, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, POP.8, POP.9, POP.7, POP.10, NAV.11, NAV.42, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, GEN.57, TEST.77, UX.49, PERF.31, GEN.128 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.17, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18, PERF.33, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, ADM.43, ADM.44 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, and the anomalies chosen in phase 2. | NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, GEN.114, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies. | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, GEN.55 |
@@ -451,20 +451,6 @@ with `clamp()`.
   system and leaves the sector's other contents ungenerated.
   Prerequisites: none. Related: MAP.162, ADM.32, ADM.35, NAV.48, DOC.9.
 
-- [ ] **UX.88 Say "uncharted" instead of "unbuilt" or "not generated" in all user-facing text outside Generate and admin**
-  Boss (2026-10-10 07:26Z, via the coordinator): instead of unbuilt or
-  not generated it should say "uncharted" across the entire project and
-  in all output to the user, except the Generate system and the admin
-  panels and controls. Done: a sweep of the templates, map scripts (for
-  example the sector and block labels in galaxystageview.js and
-  sectorscene.js), nav, the CLI query output, the API texts shown to
-  people, and the docs for the user; the Generate pages and the admin
-  panels keep the technical words; a test fails if a user-facing
-  template outside those areas says unbuilt or not generated. The rule
-  is recorded in docs/html-interface.md (Wording). Owner: Bugfixes lane
-  1 (coordinator, 2026-10-10 07:31Z; it was Bugfixes lane 2).
-  Prerequisites: none. Related: GEN.193, MAP.164.
-
 - [ ] **UX.89 Staged jobs show wrong stage counts and numbers, and skipped stages are not listed (bug)**
   Boss (2026-10-10 07:54Z, via the coordinator): generating a new galaxy
   says it has 4 stages, but it runs 9: 1 Math Check, 2 DB Wipe, 3 Plan
@@ -477,16 +463,15 @@ with `clamp()`.
   marked skipped, with the reason; the stage numbers on the Generate
   page, job pages, Queue page and the terminal agree; tests cover each
   staged job with and without its optional stages. Owner: Bugfixes lane
-  1, after the defaults item (GEN.194) and before UX.88.
+  1, after the defaults change (merged, PR #1051).
   Prerequisites: none. Related: PERF.33, PERF.55, GEN.185.
 
 - [ ] **UX.90 Explain the habitability chips in the web interface: a visible legend with the equipment labels, colours, thresholds and scores**
   Boss (2026-10-10 08:00Z, via the coordinator): what are the
   habitability chips on planets, and are they explained anywhere in the
-  web interface? They are not. Done: a legend on the system page, and a
-  link to it from the Equipment search filter, in visible text (tooltips
+  web interface? They are not. Done: an explanation page under Classes, linked from the habitability chips on the system page and from the Equipment search filter, in visible text (tooltips
   alone do not serve touch or screen readers) that explains the five
-  equipment labels (Shirtsleeve, Mask, Mask and scrubber, Sealed suit,
+  equipment labels (Ideal, Mask, Mask and scrubber, Sealed suit,
   Full life support) and what each means; the chip colour as the worst
   of the four PHI-4 domains (pressure, temperature, chemistry,
   radiation) with what Blue, Green, Yellow and Red mean and their
@@ -495,10 +480,27 @@ with `clamp()`.
   per-domain colours and the microbial, complex-life and
   human-operability scores, stored by GEN.89 but shown nowhere, are
   shown on the planet and moon rows or detail. docs/html-interface.md
-  (Habitability chips) is rewritten to match. Owner: unassigned.
+  (Habitability chips) is rewritten to match. Boss (2026-10-10 08:08Z,
+  via the coordinator): the lowest PHI-4 equipment label "Shirtsleeve"
+  becomes "Ideal", the only label change; this item renames it in the
+  code (physics/habitability.py, habitability_world.py), the pages, the
+  search facet, the tests and the docs, and the explanation is a page
+  under Classes. Owner: Bugfixes lane 2 (coordinator, 2026-10-10 08:08Z).
   Prerequisites: none. Related: GEN.89, GEN.84, GEN.85, GEN.86, GEN.87,
   GEN.88.
   Design: [docs/design/habitability-index.md](design/habitability-index.md)
+
+- [ ] **UX.91 Planet and moon description carries a full PHI-4 explanation, each colour factor and why**
+  Boss (2026-10-10 08:49Z, via the coordinator): PHI-4 should have a
+  full explanation in the planet or moon description, each colour factor
+  and why. Done: the planet and moon description on the system page
+  lists, for each of the four PHI-4 domains behind the chip colour, the
+  value for this world and why (the inputs that drove it), not just the
+  chip; the wording matches the Classes explanation page of UX.90 and
+  the chip names (Ideal, formerly Shirtsleeve); the text comes from the
+  same calculation as the chip, so the two cannot disagree. Owner:
+  Bugfixes lane 2, after GEN.196 (it built UX.90).
+  Prerequisites: none. Related: UX.90, GEN.89.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -868,6 +870,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   come from the per-tile cap GALAXY_TILE_MAX_BRIGHT_STARS=400 (the 400
   brightest stars per tile), not from the scatter floor. The visibility
   law must reconcile the cap with the floor.
+  Bugfixes lane 2 (2026-10-09): Bugfixes lane 2 follow-ups (2026-10-10,
+  PRs #1032, #1035): the nucleus quasar and built nucleus now show from
+  the galaxy view; the Galaxy Map slider bottom now follows the dimmest
+  star the view's tiles carry instead of a fixed 2,500 L_sun floor. The
+  2,500 L_sun floor at full zoom-out is left to this item: about 3
+  million stars qualify, while a view carries about 70,000.
   Prerequisite: MAP.153. Related: MAP.116, MAP.146, MAP.147.
   Design: [docs/design/fly-through-view-distance.md](design/fly-through-view-distance.md)
 
@@ -1165,6 +1173,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   mass and brightness, and a test checks the size ordering. Owner:
   unassigned.
   Prerequisites: none. Related: MAP.164, GEN.185, MAP.148, MAP.153.
+
+- [ ] **MAP.166 Galaxy Map "Dimmest star shown" says "every star" only when the view is complete**
+  Boss (2026-10-10 08:11Z, via Bugfixes lane 2): the slider label
+  "Dimmest star shown" may say "every star" only when the view is
+  complete, meaning no tile cap, luminosity floor or missing tile hides
+  a star; otherwise it shows the real dimmest luminosity the view
+  carries. Follow-up to MAP.163. Done: the label follows that rule at
+  every zoom, and a test covers a complete view and a capped view.
+  Owner: Bugfixes lane 2 (next).
+  Prerequisites: none. Related: MAP.163, MAP.148.
 
 ## NAV: Navigation and courses
 
@@ -3108,18 +3126,65 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   priority.
   Prerequisites: none. Related: GEN.87, GEN.89.
 
-- [ ] **GEN.194 Default mass limit 14 solar masses and default luminosity floor 9,000 solar luminosities**
-  Boss (2026-10-10 07:49Z, via the coordinator): the default mass limit
-  becomes 14 solar masses, about the middle of the 8 to 20 range, and
-  the default bright-star luminosity floor becomes 9,000 solar
-  luminosities, in the next PR that can carry it. This supersedes the 8
-  and 5,000 of GEN.188. Done: the plan form, the New galaxy form, the
-  CLI default and the stored default use 14 and 9,000; both values exist
-  among the presets; the scatter design note
-  (docs/design/phenomenon-scatter-mass-cut.md) and the TODO text name
-  the new defaults; a galaxy that stored other values keeps them; tests
-  cover the defaults. Owner: Bugfixes lane 1, first in its order.
-  Prerequisites: none. Related: GEN.183, GEN.184, GEN.188.
+- [ ] **GEN.195 A separate mass limit for neutron stars and black holes, and the central black hole or quasar always created**
+  Boss (2026-10-10 08:28Z, via the coordinator): control the stellar
+  masses with one setting and the neutron star and black hole creation
+  with another. The stellar mass limit (8 to 20 solar masses, default 14)
+  now applies to stars only. A new compact-object mass limit
+  for neutron stars and black holes has presets of 1, 2, 4 and 6 solar
+  masses and a "use the star mass setting" option, which is the default
+  and works as the single mass limit does today. Both appear in Plan the
+  galaxy, New galaxy and the CLI, are stored with the scatter settings,
+  and are used by the scatter passes of GEN.185 (and GEN.187). Hard
+  requirement: whatever either setting says, the central supermassive
+  black hole or quasar at the centre of the galaxy is always created.
+  Done: the setting exists in the form, the CLI and the plan; the
+  scatter honours the two limits; a test covers every combination of the
+  two settings and finds the central black hole or quasar each time; the
+  scatter design note (docs/design/phenomenon-scatter-mass-cut.md)
+  describes the split. Owner: Bugfixes lane 2 (coordinator, 2026-10-10
+  08:29Z).
+  Prerequisites: none. Related: GEN.183, GEN.185, GEN.187,
+  PERF.56.
+  Bugfixes lane 2 (2026-10-09): Details from Bugfixes lane 2 (2026-10-10
+  08:29Z): the compact-object control sits side by side with the stellar
+  controls in Plan the galaxy and New galaxy; CLI option
+  --compact-min-mass (1, 2, 4, 6 or star); stored with the plan and
+  shown in the stage stats settings (PERF.56); a storage warning sits
+  next to it (1 Msun about 1.17e9 rows, 161 GB; 2 Msun about 3.9e8 rows,
+  54 GB; 4 Msun about 2.2e8 rows, 30 GB; 6 Msun about 2.0e8 rows, 28
+  GB).
+  Bugfixes lane 2 (2026-10-09): Added (Bugfixes lane 2, 2026-10-10
+  08:30Z): the limits apply on every path that scatters: New galaxy,
+  Plan, Rebuild the bright stars, plan --phenomena-only,
+  --bright-stars-only and --then-scatter, and the below-cut draws of
+  sector fill. GEN.196 (the Redo scatters box) builds on this.
+
+- [ ] **GEN.196 One "Redo scatters" box on Generate: choose which scatters to redo, with new settings for each**
+  Boss (2026-10-10 08:30Z, via the coordinator): make sure the stellar
+  and compact-object mass limits (GEN.195) apply everywhere a scatter (a
+  "sweep") happens, and give Generate one box where the admin ticks
+  which scatters to redo with new settings, so the scatters can be
+  redone from one place. Done: every place that runs a scatter (New
+  galaxy, Plan, Rebuild the bright stars, the CLI, on-demand and queued
+  jobs) takes the stellar limit, the compact-object limit and the
+  luminosity floor from the stored plan or from the form; the Generate
+  page has a single Redo scatters box with a checkbox for each scatter
+  pass of GEN.185 (the mass pass for stars, the luminosity-floor pass
+  for stars, and the phenomena pass with the compact-object limit) and
+  the settings for each pass; the ticked passes run as one job with a
+  stage list in which the unticked stages are shown as skipped with the
+  reason (UX.89); the new settings are stored with the plan and the
+  stage timings of PERF.56 record them; tests cover redoing each pass
+  alone and all together. Owner: Bugfixes lane 2, after GEN.195.
+  Prerequisite: GEN.195. Related: GEN.185, GEN.187, GEN.195,
+  UX.89, PERF.56.
+  Bugfixes lane 2 (2026-10-09): Details from Bugfixes lane 2 (2026-10-10
+  08:30Z): each ticked pass has its own settings fields in the same box
+  (stellar mass limit, luminosity floor, compact-object limit); the
+  stage list builds on UX.89's structure; a redo clears and rewrites
+  only that scatter's rows and keeps the central black hole or quasar
+  guarantee.
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -3462,6 +3527,35 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   can read it. Owner: Bugfixes lane 1, after the stage-count bug (UX.89).
   Prerequisites: none. Related: PERF.32, PERF.33, PERF.52, PERF.54,
   PERF.55.
+  Layers modified (2026-10-09): Boss addition (2026-10-10 08:34Z): for
+  every scatter action also store the number of layers modified, kept in
+  separate rows per mass floor and per luminosity floor used (a run at 8
+  Msun and one at 14 Msun, or at 5,000 and 9,000 Lsun, are different
+  rows). With the early stop of PERF.57 the row records layers visited
+  and layers modified.
+
+- [ ] **PERF.57 Stop a layer-walking scatter early once the last 100 layers produced no stars**
+  Boss (2026-10-10 08:32Z, via the coordinator): this will make
+  generation faster; if the last 100 layers had 0 stars, stop looking
+  and move on to the next phase. Done: every scatter pass that walks
+  layer by layer (the mass pass, the luminosity pass, the phenomena pass
+  if it walks layers, and the bright-star back scatter of GEN.187 when
+  it lands) stops after 100 consecutive empty layers; the 100 is a named
+  constant in tuning.py, not a magic number; the stop is logged as a
+  stage result ("stopped early after 100 empty layers at layer N") that
+  feeds the stage list of UX.89 and the stage stats of PERF.56; the stop
+  never skips the galactic nucleus guarantee (GEN.195); a test shows a
+  run with the early stop produces the same rows as a full walk on a
+  small galaxy. The change is in the scatter code in run_plan.py. Owner:
+  Bugfixes lane 1, after UX.89 and PERF.56.
+  Prerequisites: none. Related: UX.89, PERF.56, GEN.185, GEN.187,
+  GEN.195.
+  Clarification (2026-10-09): Boss clarification (2026-10-10 08:32Z):
+  the test is "the last 100 layers produced 0 stars OR 0 phenomena". The
+  star passes count stars; the phenomena pass counts phenomena.
+  Stats (2026-10-09): Boss addition (2026-10-10 08:34Z): layers visited
+  versus layers modified is recorded per scatter action and per floor by
+  PERF.56 (see its note).
 
 ## DB: Database and schema
 
@@ -3657,23 +3751,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   `StarSystem.to_dict()` objects in a versioned envelope, not table rows
   (rows named after `schema.sql` would force an API bump on nearly every
   migration). Measured 58.6 KB raw and 13.8 KB gzip per system.
-
-  - [ ] **API.9 Key scopes**
-    `admin_api_keys` has no scope column today (every key is an admin
-    key). Done: a scope column (read, admin, upload), a control schema
-    migration; API.6's user-level keys and the upload right use it.
-    Research (2026-10-09, api-design-standards.md): replace "a scope
-    column (read, admin, upload)" with four scopes (`read`, `generate`,
-    `upload`, `admin`; `admin` implies all, `upload` and `generate`
-    imply `read`) in a join table `admin_api_key_scopes`, plus
-    `expires_at` and `key_prefix`; control migration v13 or later (control v11 is OPS.13's, v12 is PERF.32's; the text says "v8"); existing keys grandfathered as
-    `admin`; throttle `last_used_at` writes; per-key rate-limit buckets
-    (the 50/hour IP default must not apply to keys). Add the sweep
-    checks of design doc 5.4 to the Done text. The scope work is a
-    prerequisite for API.15's `key_id` field and for API.18.
-    Lane (2026-10-09): Queue (Boss, 2026-10-10 05:13Z): moves from
-    Foundations lane 2 to Foundations lane 1, second after GEN.170; one
-    of the three biggest blockers on the tree.
 
   - [ ] **API.10 Reservations: claimed sectors and id blocks per run**
     `id_blocks` exists (one next id per table, used by parallel
@@ -3898,7 +3975,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   `seed_used` rule. Existing routes keep 400 (open question for Boss,
   default: only recipes and uploads move to 422). The
   `require_json_body` depth fix is a prerequisite.
-  Prerequisite: API.9.
 
 - [ ] **API.19 Galaxy-scale recipes: build a whole galaxy, piece by piece, from JSON**
   Boss (2026-10-07 11:47Z): "The idea is that one could go so far as to

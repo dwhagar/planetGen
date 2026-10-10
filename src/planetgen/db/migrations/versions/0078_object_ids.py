@@ -1,6 +1,6 @@
 """Object IDs in the schema (DB.20).
 
-Schema v77. `uid` becomes `BINARY(10)` and UNIQUE on its own on every object
+Schema v78. `uid` becomes `BINARY(10)` and UNIQUE on its own on every object
 table (`star_systems`, `stars`, `planets`, `moons`, `asteroid_belts`,
 `comets`, the eight phenomenon tables) and is added to `facilities`; a new
 `id_counters` table holds the counters of run-time births. Existing rows are
@@ -15,8 +15,8 @@ meaning what it meant when it was written.
 import sqlalchemy as sa
 from alembic import op
 
-revision = "0077"
-down_revision = "0076"
+revision = "0078"
+down_revision = "0077"
 branch_labels = None
 depends_on = None
 

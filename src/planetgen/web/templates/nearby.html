@@ -91,7 +91,7 @@
   </p>
   {%- endif %}
   {%- if not_generated %}
-  <p class="hint">{{ num(not_generated) }} of the {{ num(sectors_in_range) }} sectors in range {{ "has" if not_generated == 1 else "have" }} not been generated yet, so what is there is not listed.</p>
+  <p class="hint">{{ num(not_generated) }} of the {{ num(sectors_in_range) }} sectors in range {{ "is" if not_generated == 1 else "are" }} uncharted, so what is there is not listed.</p>
   {%- endif %}
   {%- if rows %}
   <div class="table-scroll"><table>

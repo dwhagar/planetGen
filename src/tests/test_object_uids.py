@@ -174,7 +174,7 @@ def test_the_issuer_numbers_systems_then_bodies():
 def test_the_migration_numbers_existing_rows_by_row_order(mysql_config):
     import importlib
 
-    migration = importlib.import_module("planetgen.db.migrations.versions.0077_object_ids")
+    migration = importlib.import_module("planetgen.db.migrations.versions.0078_object_ids")
     from planetgen.db import alembic_runner
 
     store.save_sector(_sector("Uid Migrated", 3, "Uid Wanderer"), config=mysql_config, galaxy_position=PLACE)
