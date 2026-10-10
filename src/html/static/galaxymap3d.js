@@ -60,6 +60,7 @@ const { createBlockScene, COLOR_MODES } = await import(`./galaxyblocks.js${VERSI
 const { formatDistancePc, LIGHTYEAR_M, PARSEC_M } = await import(`./distance.js${VERSION_QUERY}`);
 const { formatNumber } = await import(`./numberformat.js${VERSION_QUERY}`);
 const { boostLight, starLightBoost } = await import(`./starlight.js${VERSION_QUERY}`);
+const { nebulaLooks } = await import(`./nebulalook.js${VERSION_QUERY}`);
 const {
   INSIDE_FACE_ALPHA, NEAR_FIELD_GLSL, nearFieldAtWorld, visibleEnough,
 } = await import(`./nearfield.js${VERSION_QUERY}`);
@@ -381,17 +382,14 @@ function showHint(text, keep) {
 
 // --- Clouds: nebulae and supernova remnants --------------------------------
 
-// A nebula's color by its type, the same hues the Sector Map uses
-// (planetgen/web/maps/starmap.py's _NEBULA_TYPE_COLORS and _NEBULA_TYPE_ALPHA, as core
-// and edge opacity). A dark nebula is a near-black silhouette.
-var NEBULA_LOOKS = {
-  diffuse: ["#e3a6c8", 0.47, 0.14],
-  emission: ["#ff6f91", 0.69, 0.25],
-  reflection: ["#6fa8ff", 0.63, 0.22],
-  planetary: ["#5be8c9", 0.66, 0.24],
-  dark: ["#1c1c24", 0.91, 0.56],
-};
-var DEFAULT_NEBULA_LOOK = ["#c9a8e0", 0.56, 0.22];
+// A nebula's color by its type, per theme (static/nebulalook.js, MAP.175): the
+// same hues the Sector Map uses (planetgen/web/maps/starmap.py's
+// _NEBULA_TYPE_COLORS and _NEBULA_TYPE_ALPHA, as core and edge opacity),
+// each reaching 3:1 against the map's background on its theme. A dark
+// nebula is a dust-coloured silhouette on the dark theme and a near-black
+// one on the light.
+var NEBULA_LOOKS = nebulaLooks(isLightBackground());
+var DEFAULT_NEBULA_LOOK = NEBULA_LOOKS.default;
 
 function capitalize(text) {
   text = String(text || "");

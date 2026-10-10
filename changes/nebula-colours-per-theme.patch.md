@@ -1,0 +1,2 @@
+### Changed
+- Nebulae on the Galaxy Map are visible on both themes (MAP.175): the dark family was near-black on a dark page (1.0:1) and the pale families faded into the light one, so each theme now has its own nebula colours and every family reaches 3:1 against the map's background. The dark family is a dust-coloured silhouette on the dark theme and keeps its near-black fill on the light one. A test checks the colours against the real background in `style.css`.
