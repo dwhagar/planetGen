@@ -76,7 +76,7 @@ def species_detail(species_id):
     return jsonify(found)
 
 
-@bp.route("/planets/<int:planet_id>/species")
+@bp.route("/planets/<uid:planet_id>/species")
 def planet_species(planet_id):
     """`GET /api/planets/<id>/species` -- the dominant species of a life
     world; 404 when the planet has none."""

@@ -908,7 +908,7 @@ _FACILITY_HOST_GAP_PX = 6.0
 
 def _facility_angle_deg(facility):
     phase = facility.get("orbit_phase_deg")
-    return phase if phase is not None else (facility["id"] * 137.5) % 360.0
+    return phase if phase is not None else (int(str(facility["id"]).replace("-", ""), 16) % 4096 * 137.5) % 360.0
 
 
 def _facility_point(anchor_x_px, anchor_y_px, radius_px, facility):

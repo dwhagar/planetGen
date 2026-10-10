@@ -354,7 +354,7 @@ def test_api(mysql_config, galaxy, client):
     one = listing["items"][0]
     assert client.get(f"/api/species/{one['id']}").get_json()["name"] == one["name"]
     assert client.get("/api/species/999999999").status_code == 404
-    assert client.get(f"/api/planets/{homeworld}/species").get_json()["homeworld_planet_id"] == homeworld
+    assert client.get(f"/api/planets/{pid('planet', homeworld, mysql_config)}/species").get_json()["homeworld_planet_id"] == pid("planet", homeworld, mysql_config)
 
     polities = client.get("/api/polities").get_json()
     assert polities["total"] >= 1

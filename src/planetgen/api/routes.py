@@ -670,6 +670,30 @@ def _resolved_ref(raw_value, name):
     return resolved
 
 
+_HOST_KINDS = {"star": "star", "planet": "planet", "moon": "moon", "asteroid_belt": "belt",
+               "asteroid_field": "asteroid_field", "space": "sector"}
+"""dict: A facility's `host_type` -> the kind of object its `host_id` names."""
+
+
+def _host_row(host_type, raw_value):
+    """The row id of the host a facility request names by its printed ID.
+
+    Raises:
+        ApiError: 400 for a host type or ID that is not one, 404 for an ID that names nothing.
+    """
+    kind = _HOST_KINDS.get(host_type)
+    if kind is None:
+        raise ApiError(f"'host_type' must be one of: {', '.join(_HOST_KINDS)}")
+    try:
+        ids.parse(kind, raw_value)
+        found = ids.row_id(get_db(), kind, raw_value)
+    except ids.IdError:
+        raise ApiError(f"host_id must be the ID of a {kind}, got {raw_value!r}")
+    if found is None:
+        raise ApiError(f"no {kind} with ID {raw_value}", 404)
+    return found
+
+
 NAV_MAX_STAY_MINUTES = 10_000_000.0
 """float: The longest stay per stop `?stay=` accepts (about 19 years)."""
 
@@ -1646,7 +1670,7 @@ def update_system_job(config, system_id, name, recipe, drop_facilities):
         conn.close()
 
 
-@bp.route("/stars/<int:star_id>", methods=["PATCH"])
+@bp.route("/stars/<uid:star_id>", methods=["PATCH"])
 @limiter.limit(WRITE_RATE_LIMIT)
 @require_admin(fresh=True)
 def rename_star(star_id):
@@ -1695,7 +1719,7 @@ def _rename_planet_or_moon(table, kind, body_id):
     return jsonify({"status": "ok", "id": body_id, "star_system_id": row["star_system_id"], "name": name})
 
 
-@bp.route("/planets/<int:planet_id>", methods=["PATCH"])
+@bp.route("/planets/<uid:planet_id>", methods=["PATCH"])
 @limiter.limit(WRITE_RATE_LIMIT)
 @require_admin(fresh=True)
 def rename_planet(planet_id):
@@ -1704,7 +1728,7 @@ def rename_planet(planet_id):
     return _rename_planet_or_moon("planets", "planet", planet_id)
 
 
-@bp.route("/moons/<int:moon_id>", methods=["PATCH"])
+@bp.route("/moons/<uid:moon_id>", methods=["PATCH"])
 @limiter.limit(WRITE_RATE_LIMIT)
 @require_admin(fresh=True)
 def rename_moon(moon_id):
@@ -1743,7 +1767,7 @@ def delete_system(system_id):
 # outposts. See planetgen/population/facilities.py for the placement rules.
 # ---------------------------------------------------------------------
 
-@bp.route("/facilities/<int:facility_id>")
+@bp.route("/facilities/<uid:facility_id>")
 def facility(facility_id):
     """`GET /api/facilities/<id>` -- one facility."""
     found = facility_detail(get_db(), facility_id)
@@ -1831,12 +1855,12 @@ def facility_orbit():
     `min_distance_km`/`max_distance_km`, the orbits the host allows (just
     above its surface to the edge of its sphere of influence)."""
     host_type = request.args.get("host_type", "")
+    host_id = _host_row(host_type, request.args.get("host_id", ""))
     try:
-        host_id = int(request.args.get("host_id", ""))
         raw_distance = request.args.get("distance_km")
         distance_km = None if raw_distance in (None, "") else float(raw_distance)
     except ValueError:
-        raise ApiError("host_id must be a whole number and distance_km a number")
+        raise ApiError("distance_km must be a number")
     try:
         return jsonify(store.facility_orbit(get_db(), host_type, host_id, distance_km))
     except store.FacilityError as exc:
@@ -1853,6 +1877,7 @@ def create_facility():
     center) and `description` -- adds a facility (`store.add_facility`).
     400 when the placement rules refuse it, 404 when the host is missing."""
     body = given(parse_body(FacilityCreate, require_json_body()))
+    body["host_id"] = _host_row(body["host_type"], body["host_id"])
     conn = _write_conn()
     try:
         with conn:
@@ -1871,7 +1896,7 @@ def create_facility():
     return jsonify({"id": facility_id}), 201
 
 
-@bp.route("/facilities/<int:facility_id>", methods=["DELETE"])
+@bp.route("/facilities/<uid:facility_id>", methods=["DELETE"])
 @limiter.limit(WRITE_RATE_LIMIT)
 @require_admin(fresh=True)
 def delete_facility(facility_id):

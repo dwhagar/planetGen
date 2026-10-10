@@ -209,7 +209,7 @@ def _row_admin_html(admin_rows, kind, body_id):
 def body_anchor(kind, body_id):
     """The fragment (without `#`) of a body's row on the system page (NAV.8): `planet-12`, `moon-7`,
     `star-3`, `belt-2`, `comet-9`. `static/bodyanchor.js` opens and highlights the row it names."""
-    return f"{kind}-{int(body_id)}"
+    return f"{kind}-{body_id}"
 
 
 def _row_html(title, stats, markdown, children_html="", children_visible=False, links=(), facilities=(), admin="",

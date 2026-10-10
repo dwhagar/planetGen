@@ -802,7 +802,7 @@ def test_system_map_gives_body_panels_nav_buttons(db_app, mysql_config):
     assert 'data-nav-start="/nav?from={ref}"' in html and 'data-nav-end="/nav?to={ref}"' in html
     assert "data-nav-take" not in html
     # Every star marker carries the id the object reference needs.
-    assert re.search(r'data-kind="star" data-id="\d+"', html) or re.search(r'data-id="\d+"[^>]*data-kind="star"', html)
+    assert re.search(r'data-kind="star" data-id="[0-9A-F-]+"', html) or re.search(r'data-id="[0-9A-F-]+"[^>]*data-kind="star"', html)
 
     picking = client.get(f"/system/{pid('system', first)}?pick=to&from=system:{pid('system', second)}").get_data(as_text=True)
     assert f'data-nav-take="/nav?from=system:{psys(second)}&amp;to={{ref}}"' in picking

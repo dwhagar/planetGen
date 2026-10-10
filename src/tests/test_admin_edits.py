@@ -128,7 +128,7 @@ def test_regenerate_planet_keeps_its_row_and_name(admin, mysql_config):
     planet = next(p for p in _load(mysql_config, system_id).planets if p.body_type != 'a' and p.moons)
     other_ids = {r["id"] for r in _rows(mysql_config, "SELECT id FROM planets WHERE star_system_id = ? AND id <> ?",
                                         (system_id, planet.db_id))}
-    response = admin.post(f"/api/planets/{planet.db_id}/regenerate")
+    response = admin.post(f"/api/planets/{pid('planet', planet.db_id)}/regenerate")
     assert response.status_code == 200, response.get_json()
     body = response.get_json()
     assert body["summary"].startswith(f"Regenerated {planet.name}")
@@ -143,33 +143,33 @@ def test_regenerate_planet_keeps_its_row_and_name(admin, mysql_config):
 def test_delete_planet_takes_its_moons(admin, mysql_config):
     _sector_id, system_id = _saved_system(mysql_config, _with_moons)
     planet = next(p for p in _load(mysql_config, system_id).planets if p.body_type != 'a' and p.moons)
-    response = admin.delete(f"/api/planets/{planet.db_id}")
+    response = admin.delete(f"/api/planets/{pid('planet', planet.db_id)}")
     assert response.status_code == 200, response.get_json()
     assert _rows(mysql_config, "SELECT id FROM planets WHERE id = ?", (planet.db_id,)) == []
     assert _rows(mysql_config, "SELECT id FROM moons WHERE planet_id = ?", (planet.db_id,)) == []
-    assert admin.delete(f"/api/planets/{planet.db_id}").status_code == 404
+    assert admin.delete(f"/api/planets/{pid('planet', planet.db_id)}").status_code == 404
 
 
 def test_regenerate_and_delete_a_moon(admin, mysql_config):
     _sector_id, system_id = _saved_system(mysql_config, _with_moons)
     planet = next(p for p in _load(mysql_config, system_id).planets if p.body_type != 'a' and p.moons)
     moon = planet.moons[0]
-    response = admin.post(f"/api/moons/{moon.db_id}/regenerate")
+    response = admin.post(f"/api/moons/{pid('moon', moon.db_id)}/regenerate")
     assert response.status_code in (200, 409), response.get_json()
     if response.status_code == 200:
         assert _rows(mysql_config, "SELECT name FROM moons WHERE id = ?", (moon.db_id,))[0]["name"] == moon.name
-    assert admin.delete(f"/api/moons/{moon.db_id}").status_code == 200
+    assert admin.delete(f"/api/moons/{pid('moon', moon.db_id)}").status_code == 200
     assert _rows(mysql_config, "SELECT id FROM moons WHERE id = ?", (moon.db_id,)) == []
 
 
 def test_regenerate_and_delete_a_belt(admin, mysql_config):
     _sector_id, system_id = _saved_system(mysql_config, lambda s: any(p.body_type == 'a' for p in s.planets))
     belt = next(p for p in _load(mysql_config, system_id).planets if p.body_type == 'a')
-    response = admin.post(f"/api/belts/{belt.db_id}/regenerate")
+    response = admin.post(f"/api/belts/{pid('belt', belt.db_id)}/regenerate")
     assert response.status_code == 200, response.get_json()
     row = _rows(mysql_config, "SELECT lower_limit_km FROM asteroid_belts WHERE id = ?", (belt.db_id,))[0]
     assert row["lower_limit_km"] == pytest.approx(belt.lower_limit * 1.495978707e8, rel=1e-6)
-    assert admin.delete(f"/api/belts/{belt.db_id}").status_code == 200
+    assert admin.delete(f"/api/belts/{pid('belt', belt.db_id)}").status_code == 200
     assert _rows(mysql_config, "SELECT id FROM asteroid_belts WHERE id = ?", (belt.db_id,)) == []
 
 
@@ -178,10 +178,10 @@ def test_delete_refuses_to_drop_facilities_unless_told(admin, mysql_config):
     planet = next(p for p in _load(mysql_config, system_id).planets if p.body_type != 'a')
     response = admin.post("/api/facilities", json={
         "name": "Relay One", "kind": "station", "placement": "orbital", "host_type": "planet",
-        "host_id": planet.db_id})
+        "host_id": pid("planet", planet.db_id)})
     assert response.status_code == 201, response.get_json()
-    assert admin.delete(f"/api/planets/{planet.db_id}").status_code == 409
-    assert admin.delete(f"/api/planets/{planet.db_id}", json={"drop_facilities": True}).status_code == 200
+    assert admin.delete(f"/api/planets/{pid('planet', planet.db_id)}").status_code == 409
+    assert admin.delete(f"/api/planets/{pid('planet', planet.db_id)}", json={"drop_facilities": True}).status_code == 200
 
 
 def test_regenerate_planet_keeps_facilities_on_the_planet(admin, mysql_config):
@@ -189,8 +189,8 @@ def test_regenerate_planet_keeps_facilities_on_the_planet(admin, mysql_config):
     planet = next(p for p in _load(mysql_config, system_id).planets if p.body_type != 'a')
     assert admin.post("/api/facilities", json={
         "name": "Relay Two", "kind": "station", "placement": "orbital", "host_type": "planet",
-        "host_id": planet.db_id}).status_code == 201
-    assert admin.post(f"/api/planets/{planet.db_id}/regenerate").status_code == 200
+        "host_id": pid("planet", planet.db_id)}).status_code == 201
+    assert admin.post(f"/api/planets/{pid('planet', planet.db_id)}/regenerate").status_code == 200
     assert len(_rows(mysql_config, "SELECT id FROM facilities WHERE planet_id = ?", (planet.db_id,))) == 1
 
 
@@ -350,7 +350,7 @@ def test_system_page_regenerates_a_planet(web_app, mysql_config):
                   if p.body_type != 'a' and p.db_id == planet.db_id)
     assert planet.name == "Ilq'Ot"
     client = _web_admin(web_app, mysql_config)
-    response = _edit(web_app, client, f"/system/{pid('system', system_id)}", "regenerate", f"planet:{planet.db_id}")
+    response = _edit(web_app, client, f"/system/{pid('system', system_id)}", "regenerate", f"planet:{pid('planet', planet.db_id)}")
     assert response.status_code == 303
     page = client.get(response.headers["Location"]).get_data(as_text=True)
     assert f"Regenerated {escape(planet.name)}" in page
@@ -424,7 +424,7 @@ def test_class_options_lists_recommended_classes(admin, mysql_config):
     assert response.status_code == 200
     body = response.get_json()
     planet = _first_planet(system)
-    recommended = body["recommended"][f"planet:{planet.db_id}"]
+    recommended = body["recommended"][f"planet:{pid('planet', planet.db_id)}"]
     assert planet.planet_class not in recommended
     assert set(recommended) <= set(body["all"])
 
@@ -438,7 +438,7 @@ def test_recommended_class_change_saves_and_validates(admin, mysql_config):
     planet = next(p for p in system.planets
                   if p.body_type != 'a' and adminEdits.recommended_classes(system, p, system.planets))
     new_class = adminEdits.recommended_classes(system, planet, system.planets)[0]
-    response = admin.post(f"/api/planets/{planet.db_id}/class", json={"class": new_class})
+    response = admin.post(f"/api/planets/{pid('planet', planet.db_id)}/class", json={"class": new_class})
     assert response.status_code == 200, response.get_json()
     row = _rows(mysql_config, "SELECT name, planet_class FROM planets WHERE id = ?", (planet.db_id,))[0]
     assert row["planet_class"] == new_class
@@ -455,9 +455,9 @@ def test_unrecommended_class_needs_force(admin, mysql_config):
                   and adminEdits.class_fits_mass(c, planet.mass)), None)
     if other is None:
         pytest.skip("every class this planet's mass fits is recommended")
-    assert admin.post(f"/api/planets/{planet.db_id}/class", json={"class": other}).status_code == 409
-    assert admin.post(f"/api/planets/{planet.db_id}/class", json={"class": "?"}).status_code == 400
-    response = admin.post(f"/api/planets/{planet.db_id}/class", json={"class": other, "force": True})
+    assert admin.post(f"/api/planets/{pid('planet', planet.db_id)}/class", json={"class": other}).status_code == 409
+    assert admin.post(f"/api/planets/{pid('planet', planet.db_id)}/class", json={"class": "?"}).status_code == 400
+    response = admin.post(f"/api/planets/{pid('planet', planet.db_id)}/class", json={"class": other, "force": True})
     assert response.status_code == 200, response.get_json()
     assert _rows(mysql_config, "SELECT planet_class FROM planets WHERE id = ?",
                  (planet.db_id,))[0]["planet_class"] == other
@@ -567,7 +567,7 @@ def test_system_page_changes_a_class(web_app, mysql_config):
     assert "Change class" in html and "Change star" in html
     other = next(c for c in sorted(tuning.PLANET_CLASSES)
                  if c != planet.planet_class and adminEdits.class_fits_mass(c, planet.mass))
-    response = _edit(web_app, client, f"/system/{pid('system', system_id)}", "class", f"planet:{planet.db_id}",
+    response = _edit(web_app, client, f"/system/{pid('system', system_id)}", "class", f"planet:{pid('planet', planet.db_id)}",
                      planet_class=f"force:{other}")
     assert response.status_code == 303
     page = client.get(response.headers["Location"]).get_data(as_text=True)

@@ -2039,7 +2039,7 @@ def test_regenerate_refuses_to_drop_facilities_unless_told(seeded_sector, admin_
     system_id = system_ids[1]
     star_id = admin_client.get(f"/api/systems/{pid('system', system_id)}").get_json()["stars"][0]["id"]
     response = admin_client.post("/api/facilities", json={
-        "name": "Relay One", "kind": "station", "placement": "orbital", "host_type": "star", "host_id": star_id})
+        "name": "Relay One", "kind": "station", "placement": "orbital", "host_type": "star", "host_id": pid("star", star_id)})
     assert response.status_code == 201, response.get_json()
 
     response = admin_client.patch(f"/api/systems/{pid('system', system_id)}", json={"regenerate": {"planets": False}})
@@ -2145,27 +2145,27 @@ def test_rename_star_planet_and_moon(admin_client, mysql_config):
     numeral = planet["name"][len(stars[primary_id].split()[0]) + 1:]
 
     # A binary's star is renamed on its own, and its planets and moons follow.
-    response = admin_client.patch(f"/api/stars/{primary_id}", json={"name": "Castor Pollux"})
+    response = admin_client.patch(f"/api/stars/{pid('star', primary_id)}", json={"name": "Castor Pollux"})
     assert response.status_code == 200
     assert _names(mysql_config, "stars", system_id)[primary_id] == "Castor Pollux"
     assert _names(mysql_config, "planets", system_id)[planet["id"]] == f"Castor {numeral}"
     assert _names(mysql_config, "moons", system_id)[moon_id].startswith(f"Castor {numeral}")
 
     # A planet renamed by hand keeps its moons' names.
-    response = admin_client.patch(f"/api/planets/{planet['id']}", json={"name": "New Terra"})
+    response = admin_client.patch(f"/api/planets/{pid('planet', planet['id'])}", json={"name": "New Terra"})
     assert response.status_code == 200
     assert _names(mysql_config, "planets", system_id)[planet["id"]] == "New Terra"
     assert _names(mysql_config, "moons", system_id)[moon_id].startswith(f"Castor {numeral}")
 
-    response = admin_client.patch(f"/api/moons/{moon_id}", json={"name": "Selene"})
+    response = admin_client.patch(f"/api/moons/{pid('moon', moon_id)}", json={"name": "Selene"})
     assert response.status_code == 200
     assert _names(mysql_config, "moons", system_id)[moon_id] == "Selene"
 
     # Only uniquely named objects (sectors, systems, stars) are checked:
     # another body's name is allowed, a star's is refused.
-    response = admin_client.patch(f"/api/moons/{moon_id}", json={"name": "New Terra"})
+    response = admin_client.patch(f"/api/moons/{pid('moon', moon_id)}", json={"name": "New Terra"})
     assert response.status_code == 200
-    response = admin_client.patch(f"/api/moons/{moon_id}", json={"name": "Castor Pollux"})
+    response = admin_client.patch(f"/api/moons/{pid('moon', moon_id)}", json={"name": "Castor Pollux"})
     assert response.status_code == 409
     assert "star" in response.get_json()["error"]
 
@@ -2174,7 +2174,7 @@ def test_rename_a_single_star_renames_its_system(admin_client, seeded_sector, my
     _config, _sector_id, system_ids = seeded_sector
     star_id = next(iter(_names(mysql_config, "stars", system_ids[0])))
 
-    response = admin_client.patch(f"/api/stars/{star_id}", json={"name": "Sirius"})
+    response = admin_client.patch(f"/api/stars/{pid('star', star_id)}", json={"name": "Sirius"})
     assert response.status_code == 200
     assert admin_client.get(f"/api/systems/{pid('system', system_ids[0])}").get_json()["name"] == "Sirius"
     assert _names(mysql_config, "stars", system_ids[0])[star_id] == "Sirius"
@@ -2193,14 +2193,21 @@ def test_rename_requires_an_admin(client):
         assert client.patch(f"/api/{kind}/1", json={"name": "x"}).status_code == 401
 
 
-def test_rename_validation(admin_client):
-    assert admin_client.patch("/api/planets/999999999", json={"name": "Nope"}).status_code == 404
-    assert admin_client.patch("/api/moons/999999999", json={"name": "Nope"}).status_code == 404
-    assert admin_client.patch("/api/stars/999999999", json={"name": "Nope"}).status_code == 404
-    assert admin_client.patch("/api/planets/1", json={"name": "   "}).status_code == 400
-    assert admin_client.patch("/api/planets/1", json={"name": 7}).status_code == 400
-    assert admin_client.patch("/api/planets/1", json={"name": "x" * 256}).status_code == 400
-    assert admin_client.patch("/api/planets/1", json={"name": "ok", "mass": 1}).status_code == 400
+def test_rename_validation(admin_client, mysql_config):
+    nowhere = "FFFFFFFFFF-FFFFFFF-FFF"
+    assert admin_client.patch(f"/api/planets/{nowhere}", json={"name": "Nope"}).status_code == 404
+    assert admin_client.patch(f"/api/moons/{nowhere}", json={"name": "Nope"}).status_code == 404
+    assert admin_client.patch(f"/api/stars/{nowhere}", json={"name": "Nope"}).status_code == 404
+    _save_wide_binary_with_moons(mysql_config)
+    conn = _db.get_connection(mysql_config)
+    try:
+        planet = pid("planet", conn.execute("SELECT id FROM planets LIMIT 1").fetchone()["id"], conn)
+    finally:
+        conn.close()
+    assert admin_client.patch(f"/api/planets/{planet}", json={"name": "   "}).status_code == 400
+    assert admin_client.patch(f"/api/planets/{planet}", json={"name": 7}).status_code == 400
+    assert admin_client.patch(f"/api/planets/{planet}", json={"name": "x" * 256}).status_code == 400
+    assert admin_client.patch(f"/api/planets/{planet}", json={"name": "ok", "mass": 1}).status_code == 400
 
 
 def test_write_endpoints_are_rate_limited_more_tightly_than_the_default(admin_client):
@@ -2434,27 +2441,27 @@ def test_facility_routes(admin_client, mysql_config):
     finally:
         conn.close()
 
-    orbit = admin_client.get(f"/api/facilities/orbit?host_type=moon&host_id={moon_id}").get_json()
+    orbit = admin_client.get(f"/api/facilities/orbit?host_type=moon&host_id={pid('moon', moon_id)}").get_json()
     assert orbit["period_years"] > 0 and orbit["orbital_speed_kms"] > 0
     assert 0 < orbit["min_distance_km"] < orbit["distance_km"] <= orbit["max_distance_km"]
-    assert admin_client.get("/api/facilities/orbit?host_type=moon&host_id=999999999").status_code == 404
+    assert admin_client.get("/api/facilities/orbit?host_type=moon&host_id=FFFFFFFFFF-FFFFFFF-FFF").status_code == 404
 
     response = admin_client.post("/api/facilities", json={
-        "name": "Moonport", "kind": "station", "placement": "orbital", "host_type": "moon", "host_id": moon_id,
+        "name": "Moonport", "kind": "station", "placement": "orbital", "host_type": "moon", "host_id": pid("moon", moon_id),
     })
     assert response.status_code == 201
     facility_id = response.get_json()["id"]
     assert admin_client.post("/api/facilities", json={
-        "name": "Bad", "kind": "mining-colony", "placement": "orbital", "host_type": "moon", "host_id": moon_id,
+        "name": "Bad", "kind": "mining-colony", "placement": "orbital", "host_type": "moon", "host_id": pid("moon", moon_id),
     }).status_code == 400
 
-    detail = admin_client.get(f"/api/facilities/{facility_id}").get_json()
-    assert (detail["name"], detail["host_type"], detail["host_id"]) == ("Moonport", "moon", moon_id)
+    detail = admin_client.get(f"/api/facilities/{pid('facility', facility_id)}").get_json()
+    assert (detail["name"], detail["host_type"], detail["host_id"]) == ("Moonport", "moon", pid("moon", moon_id))
     listed = admin_client.get(f"/api/systems/{pid('system', system_id)}/facilities").get_json()["items"]
     assert [f["id"] for f in listed] == [facility_id]
 
-    assert admin_client.delete(f"/api/facilities/{facility_id}").status_code == 200
-    assert admin_client.get(f"/api/facilities/{facility_id}").status_code == 404
+    assert admin_client.delete(f"/api/facilities/{pid('facility', facility_id)}").status_code == 200
+    assert admin_client.get(f"/api/facilities/{pid('facility', facility_id)}").status_code == 404
 
 
 def test_nebula_shape_endpoint_serves_a_mesh(client, mysql_config):
