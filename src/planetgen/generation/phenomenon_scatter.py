@@ -14,6 +14,9 @@ each ring's density averaged over angle bins, a Poisson count per kind,
 each object landing in a slot of a bin picked in proportion to the density
 there. A kind's mean is its rate per star
 (`tuning.phenomenon_rate_per_star`) times the stars the same walk expects.
+A layer's rings are drawn as numpy arrays (PERF.63, `_vector_rows`), about
+seven times faster than walking the objects one by one; the random numbers
+still come from the layer's `draw.Stream`, in bulk.
 
 The mass cut (GEN.167, docs/design/phenomenon-scatter-mass-cut.md): only
 the neutron stars and black holes at or above `--phenomenon-min-mass`
@@ -35,15 +38,18 @@ galaxy-wide, `nebula_field`).
 
 import math
 
+import numpy as np
 
 from planetgen import tuning
-from planetgen.galaxy import remnant_distribution
-from planetgen.galaxy.geometry import sector_address_at
+from planetgen.galaxy import density, remnant_distribution
+from planetgen.galaxy.geometry import (
+    layer_bounds_pc, layer_center_z_pc, ring_radius_pc, ring_sector_count, sector_address_at,
+)
 from planetgen.galaxy.sector import _sample_poisson_count
 from planetgen.generation import bright_stars
 from planetgen.generation.bright_stars import MPC_PER_PC, _place_one
-from planetgen.galaxy.geometry import layer_center_z_pc, ring_radius_pc
 from planetgen.util import draw
+from planetgen.util.poisson import poisson_count
 from planetgen.util.random import log_uniform
 
 SCATTERED_KINDS = ("black-hole", "neutron-star", "planetary-nebula", "supernova-remnant")
@@ -197,33 +203,166 @@ def scatter_layer(shape, layer_index, outer_ring, edge_pc, expected_at_density_1
     (the seed and the layer index), so layers can be drawn in any order,
     or in worker processes, and give the same objects.
 
+    The rings that hold a full set of angle bins are drawn as arrays (PERF.63,
+    `_vector_rows`): one Poisson count per ring and class, then the bins,
+    slots, points and masses of all the layer's objects at once, from the
+    layer's stream in bulk. The first rings, with fewer slots than bins, take
+    the ring-by-ring walk (`_ring_rows`).
+
     Yields:
         tuple: One row per object, in `PHENOMENON_SCATTER_COLUMNS` order.
     """
     if min_mass_solar is None:
         min_mass_solar = tuning.PHENOMENON_MIN_MASS_SOLAR
     rates = _scattered_rates(min_mass_solar)
+    if not rates or outer_ring < 0:
+        return
     rng = draw.Stream(f"{seed}:phenomena:{layer_index}")
     skip_addresses = skip_addresses or set()
-    for ring_index in range(outer_ring + 1):
-        slots, bins = bright_stars._ring_bins(ring_index, layer_index, shape, expected_at_density_1, edge_pc)
-        base = [sum(densities.values()) for densities in bins]
-        if sum(base) <= 0.0:
+    first_vector_ring = _first_full_ring()
+    for ring_index in range(min(outer_ring, first_vector_ring - 1) + 1):
+        yield from _ring_rows(shape, ring_index, layer_index, edge_pc, expected_at_density_1, rng, rates,
+                              skip_addresses, min_mass_solar)
+    if outer_ring >= first_vector_ring:
+        yield from _vector_rows(shape, layer_index, first_vector_ring, outer_ring, edge_pc, expected_at_density_1,
+                                rng, rates, skip_addresses, min_mass_solar)
+
+
+def _first_full_ring():
+    """The first ring with at least `bright_stars.ANGLE_BINS` slots, from which a ring has all its bins."""
+    ring_index = 0
+    while ring_sector_count(ring_index) < bright_stars.ANGLE_BINS:
+        ring_index += 1
+    return ring_index
+
+
+def _ring_rows(shape, ring_index, layer_index, edge_pc, expected_at_density_1, rng, rates, skip_addresses,
+               min_mass_solar):
+    """One ring walked on its own: a Poisson count per class, each object in a bin picked in proportion to
+    the density there (the walk of `bright_stars`)."""
+    slots, bins = bright_stars._ring_bins(ring_index, layer_index, shape, expected_at_density_1, edge_pc)
+    base = [sum(densities.values()) for densities in bins]
+    if sum(base) <= 0.0:
+        return
+    slots_per_bin = slots / len(bins)
+    weights_by_kind = {}
+    for kind, subtype, rate in rates:
+        if kind not in weights_by_kind:
+            weights = _kind_weights(kind, base, ring_index, layer_index, edge_pc, shape.disk_scale_height_pc)
+            weights_by_kind[kind] = (weights, sum(weights))
+        weights, weight_sum = weights_by_kind[kind]
+        count = poisson_count(rate * expected_at_density_1 * slots_per_bin * weight_sum, rng)
+        for _ in range(count):
+            spot = _place_one(rng, weights, ring_index, layer_index, slots, edge_pc)
+            if spot is None or (ring_index, layer_index, spot[0]) in skip_addresses:
+                continue
+            yield _row(ring_index, layer_index, spot[0], kind, spot[1], rng, subtype=subtype,
+                       mass_solar=draw_mass(kind, subtype, min_mass_solar, rng))
+
+
+def _uniforms(rng, count):
+    """`count` floats in [0, 1) from the stream, one `random()` call each."""
+    random = rng.random
+    return np.fromiter((random() for _ in range(count)), dtype=float, count=count)
+
+
+def _vector_rows(shape, layer_index, first_ring, outer_ring, edge_pc, expected_at_density_1, rng, rates,
+                 skip_addresses, min_mass_solar):
+    """
+    Rings `first_ring` to `outer_ring` of a layer, all at once. Per class each ring's Poisson count
+    has mean `rate * e * slots_per_bin * sum(bin weights)`; the layer's objects then get an angle bin
+    in proportion to the ring's weights (one `searchsorted` over the rings' cumulative sums), a slot
+    under the bin's angle, a uniform point in the slot, and a mass; a point that rounding carried
+    out of its cell is dropped.
+    """
+    bins = bright_stars.ANGLE_BINS
+    rings = np.arange(first_ring, outer_ring + 1)
+    ring_count = len(rings)
+    slots = np.array([ring_sector_count(int(ring)) for ring in rings], dtype=np.int64)
+    radius = (rings + 0.5) * edge_pc
+    bin_angle = (np.arange(bins) + 0.5) * (2.0 * math.pi / bins)
+    z_mid = layer_center_z_pc(layer_index, edge_pc)
+    base = density.total_density_array(radius[:, None] * np.cos(bin_angle)[None, :],
+                                       radius[:, None] * np.sin(bin_angle)[None, :], z_mid, shape)
+    z_low, z_high = layer_bounds_pc(layer_index, edge_pc)
+    r_low, r_high = rings * edge_pc, (rings + 1) * edge_pc
+    row_of_ring = np.arange(ring_count)
+    tables = {}
+    for kind, subtype, rate in rates:
+        if kind not in tables:
+            factor = np.full(ring_count, 1.0)
+            if kind in tuning.REMNANT_SCALE_HEIGHT_RATIO:
+                factor = (remnant_distribution.vertical_factor(kind, z_mid, shape.disk_scale_height_pc)
+                          * remnant_distribution.radial_factor_array(kind, radius))
+            weights = base * factor[:, None]
+            cumulative = np.cumsum(weights, axis=1)
+            top = cumulative[:, -1]
+            # Rows are offset by 2 each, so one sorted array holds every ring's cumulative shares.
+            shares = cumulative / np.where(top > 0.0, top, 1.0)[:, None] + 2.0 * row_of_ring[:, None]
+            tables[kind] = (top, shares.ravel())
+        top, shares = tables[kind]
+        means = rate * expected_at_density_1 * (slots / bins) * top
+        counts = np.array([poisson_count(float(mean), rng) for mean in means], dtype=np.int64)
+        total = int(counts.sum())
+        if not total:
             continue
-        slots_per_bin = slots / len(bins)
-        weights_by_kind = {}
-        for kind, subtype, rate in rates:
-            if kind not in weights_by_kind:
-                weights = _kind_weights(kind, base, ring_index, layer_index, edge_pc, shape.disk_scale_height_pc)
-                weights_by_kind[kind] = (weights, sum(weights))
-            weights, weight_sum = weights_by_kind[kind]
-            count = _sample_poisson_count(rate * expected_at_density_1 * slots_per_bin * weight_sum, rng=rng)
-            for _ in range(count):
-                spot = _place_one(rng, weights, ring_index, layer_index, slots, edge_pc)
-                if spot is None or (ring_index, layer_index, spot[0]) in skip_addresses:
-                    continue
-                yield _row(ring_index, layer_index, spot[0], kind, spot[1], rng, subtype=subtype,
-                           mass_solar=draw_mass(kind, subtype, min_mass_solar, rng))
+        ring_row = np.repeat(row_of_ring, counts)
+        uniform = _uniforms(rng, 6 * total).reshape(6, total)
+        angle_bin = np.minimum(np.searchsorted(shares, 2.0 * ring_row + uniform[0], side="right")
+                               - ring_row * bins, bins - 1)
+        slot_count = slots[ring_row]
+        slot_width = 2.0 * math.pi / slot_count
+        slot = np.minimum(((angle_bin + uniform[1]) * (2.0 * math.pi / bins) / slot_width).astype(np.int64),
+                          slot_count - 1)
+        theta = (slot + uniform[2]) * slot_width
+        inner, outer = r_low[ring_row], r_high[ring_row]
+        # Uniform over the cell's area, which grows with radius.
+        cylinder = np.sqrt(inner * inner + uniform[3] * (outer * outer - inner * inner))
+        mpc = np.stack([np.rint(cylinder * np.cos(theta) * MPC_PER_PC), np.rint(cylinder * np.sin(theta) * MPC_PER_PC),
+                        np.rint((z_low + uniform[4] * (z_high - z_low)) * MPC_PER_PC)]).astype(np.int64)
+        ring_index = rings[ring_row]
+        kept = _stored_in_cells(mpc, ring_index, layer_index, slot, slot_count, edge_pc)
+        masses = _masses(kind, subtype, min_mass_solar, uniform[5])
+        seeds = [rng.getrandbits(63) for _ in range(total)]
+        columns = [ring_index.tolist(), slot.tolist(), kept.tolist(), seeds, *mpc.tolist(),
+                   masses.tolist() if masses is not None else [None] * total]
+        for ring, slot_here, in_cell, seed, x, y, z, mass in zip(*columns):
+            if in_cell and (ring, layer_index, slot_here) not in skip_addresses:
+                yield (ring, layer_index, slot_here, kind, subtype, x, y, z, None, None, None, seed, mass)
+
+
+def _masses(kind, subtype, min_mass_solar, uniform):
+    """The solar masses `draw_mass` gives from the uniform draws `uniform` (one per object); `None` for a
+    kind not drawn by mass."""
+    bounds = mass_range(kind, subtype, min_mass_solar, True)
+    if bounds is None:
+        return None
+    low, high = bounds
+    if low >= high:
+        return np.full(len(uniform), low)
+    if mass_law(kind, subtype)[1]:
+        return np.exp(math.log(low) + uniform * (math.log(high) - math.log(low)))
+    return low + uniform * (high - low)
+
+
+def _stored_in_cells(mpc, ring_index, layer_index, slot, slot_count, edge_pc):
+    """Whether each stored point (whole milliparsecs, one column each of `mpc`) is still in its cell after
+    rounding: a float test with a margin of a few milliparsecs, and the exact `sector_address_at` for the
+    few points within the margin of a face."""
+    x, y, z = mpc / MPC_PER_PC
+    margin = 4.0 / MPC_PER_PC
+    cylinder = np.sqrt(x * x + y * y)
+    width = 2.0 * math.pi / slot_count
+    theta = np.arctan2(y, x) % (2.0 * math.pi)
+    angle_margin = margin / np.maximum(cylinder, 1e-9)
+    z_low, z_high = layer_bounds_pc(layer_index, edge_pc)
+    inside = ((cylinder > ring_index * edge_pc + margin) & (cylinder < (ring_index + 1) * edge_pc - margin)
+              & (z > z_low + margin) & (z < z_high - margin)
+              & (theta > slot * width + angle_margin) & (theta < (slot + 1) * width - angle_margin))
+    for i in np.nonzero(~inside)[0].tolist():
+        inside[i] = (sector_address_at((x[i], y[i], z[i]), edge_pc)
+                     == (int(ring_index[i]), layer_index, int(slot[i])))
+    return inside
 
 
 def below_cut_draws(address, center_pc, shape, expected_stars, min_mass_solar, seed):
