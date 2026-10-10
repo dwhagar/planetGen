@@ -163,6 +163,23 @@ def _run_line(job):
     return version_key.run_line(seed, run)
 
 
+def _stage_estimate(conn, argv):
+    """The summed stage times of a `galaxy` or `plan` command line (`generation.stages.estimate_seconds`), or `None`."""
+    from planetgen.cli import generate as generate_cli
+    from planetgen.generation import stages
+    from planetgen.web import jobs
+
+    start = len(jobs.GENERATE_COMMAND) + 1
+    if len(argv) <= start or argv[1:start] != list(jobs.GENERATE_COMMAND) or argv[start] not in ("galaxy", "plan"):
+        return None
+    try:
+        _parser, parsers = generate_cli.build_parser()
+        args = parsers[argv[start]].parse_args(argv[start + 1:])
+        return stages.estimate_seconds(conn, argv[start], args)
+    except (SystemExit, Exception):  # noqa: BLE001 -- the step then uses its recorded time
+        return None
+
+
 class _JobTree:
     """The job's nodes in the control database's job tree, or nothing at
     all when planetGen's modules or the control database aren't there."""
@@ -191,19 +208,27 @@ class _JobTree:
         except Exception:  # noqa: BLE001
             return None
 
-    def step_estimates(self, labels):
-        """Seconds each step took in earlier runs (`None` where there is no record), for the overall bar (PERF.55)."""
+    def step_estimates(self, steps):
+        """
+        Seconds each step is expected to take (`None` where there is no record), for the overall bar (PERF.55):
+        a `galaxy` or `plan` step from the stored time of each of its stages with the settings it runs with
+        (PERF.56), any other step, or one with a stage not yet recorded, from what the step took in earlier runs.
+        """
+        labels = [step["label"] for step in steps]
         if self.queue is None or not self.root.store.available:
             return [None] * len(labels)
         try:
             conn = self.root.store._connect()
             try:
                 recorded = self.queue.recorded_step_seconds(conn)
+                estimates = []
+                for step in steps:
+                    estimates.append(_stage_estimate(conn, step.get("argv") or []) or recorded.get(step["label"]))
             finally:
                 conn.close()
         except Exception:  # noqa: BLE001 -- the bar then estimates from the running step alone
             return [None] * len(labels)
-        return [recorded.get(label) for label in labels]
+        return estimates
 
     def close(self, node, state):
         if self.queue is None or node is None:
@@ -272,7 +297,7 @@ def run(job_dir):
     steps = job["steps"]
     tree = _JobTree(job)
     step_node = None
-    state["step_estimates"] = tree.step_estimates([step["label"] for step in steps])
+    state["step_estimates"] = tree.step_estimates(steps)
     _write_json(state_path, state)
     try:
         with open(os.path.join(job_dir, "output.log"), "ab", buffering=0) as log:
