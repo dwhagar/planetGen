@@ -849,8 +849,7 @@ def generate_spin(planet, primary_mass_kg):
     again when a move changes the body's period, since that can flip the
     lock.
     """
-    min_hours, max_hours = constants.ROTATION_PERIOD_RANGE_HOURS[planet.body_type]
-    candidate_rotation_period_hours = draw.uniform(min_hours, max_hours)
+    candidate_rotation_period_hours = spin.planet_day_hours(planet.body_type)
 
     # GEN.104: planets lock to their star by the same rule as moons to
     # their planet (close-in worlds end up with one face to the star).

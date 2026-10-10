@@ -396,15 +396,16 @@ atmospheric greenhouse-effect calculations.
 PLANET_ORBITAL_INCLINATION_MAX_DEG = 10.0
 MOON_ORBITAL_INCLINATION_MAX_DEG = 25.0
 
-# Axial rotation ("day length") ranges, by body_type, in hours. Terrestrial:
-# real solar-system terrestrial bodies span Earth/Mars-fast (~24-25h) to
-# Mercury/Venus-slow (~1400-5800h) -- capped at 1400h (Mercury's own,
-# real 58.6-day rotation) rather than reaching all the way to Venus' still
-# slower, retrograde ~5800h, so the range stays "slow" without a separate
-# retrograde-rotation concept. Gas giant: real gas giants all spin fast
-# (Jupiter ~9.9h, Saturn ~10.7h, Uranus ~17.2h, Neptune ~16.1h).
+# Axial rotation ("day length") ranges, by body_type, in hours, for a body
+# no tide has slowed (`spin.planet_day_hours`). Terrestrial: giant impacts
+# leave a newly formed rocky planet spinning in a few hours to about two
+# days (Kokubo & Genda 2010, ApJ 714:L21), drawn log-uniform; the slow days
+# of Mercury and Venus come from tides, which the tidal-locking rule
+# covers (Boss, 2026-10-10: realistic days). Gas giant: real gas giants
+# all spin fast (Jupiter ~9.9h, Saturn ~10.7h, Uranus ~17.2h, Neptune
+# ~16.1h), drawn uniform.
 ROTATION_PERIOD_RANGE_HOURS = {
-    "t": (10.0, 1400.0),
+    "t": (8.0, 48.0),
     "g": (8.0, 20.0),
 }
 
