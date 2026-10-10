@@ -3,6 +3,7 @@
 ## [9.0.911] - 2026-10-10
 
 ### Changed
+- The Galaxy Map keeps the tiles it has fetched in the browser's IndexedDB instead of localStorage (MAP.158), so a revisit or reload finds them (localStorage filled up after one sector link). The prefetch is gentler: only the tiles one zoom step in, only after the camera has been still for a moment, not with the browser's data saver on or on a slow connection, and no more than about 1.5 MB per page visit. Tiles an earlier version left in localStorage are removed.
 - TODO list: TEST.123 retired (merged, PR #1121).
 - TODO list: API.22 retired (merged, PR #1119); API.23 stage 1 of 3 done; DB.22 filed.
 - **Sectors, systems and phenomena are named by their object ID everywhere (API.23, stage 1).** Pages, URLs, the API's `id`/`sector_id`/`ref` fields, the `from`/`to`/`course` references and the Nearby, Nav and Galaxy Map links carry the printed 80-bit ID (`0008000000-4000000-000`) in place of the database row number; a row number is refused with a 404, and the old `/sector.py`, `/system.py`, `/phenomenon.py` and `/nav.py` links with ids go to the list page. This breaks the API (version 2, header `X-PlanetGen-API-Version`, shown on the admin page). Sectors made by hand with no grid address get an ID at creation. Bodies and facilities follow in the next stages.
