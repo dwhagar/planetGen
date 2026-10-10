@@ -3300,6 +3300,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   bar's are weights), so it needs a recorded rate in the bar's own
   units, or it keeps the live rate. The migration bar (DB.15) stays its
   own item.
+  Bugfixes lane 1 (2026-10-09): Part 1 built (2026-10-10, Bugfixes lane
+  1, PR #1021): a multi-step job adds each not-yet-started step's
+  estimate to its ETA. Still open: the scatter-bar recorded rate (after
+  GEN.187) and the UX.3 banner reading the same estimator (the banner is
+  not built yet, so nothing to read from).
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
   Replace the one-`sector_stats`-row-per-visited-cell ledger of
@@ -3445,6 +3450,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   layers, including ones that generated nothing, per Boss 06:28Z) does
   not exist yet; the progress bar measures the whole job but nothing is
   stored. Add it here if wanted.
+  Bugfixes lane 1 (2026-10-09): Web half built (2026-10-10, Bugfixes
+  lane 1, PR #1023): the overall bar with ETA is on the Generate and job
+  pages. Still open: the command-line overall bar, only if Boss asks;
+  and the whole-job layers-per-second stat noted above.
 
 ## DB: Database and schema
 
