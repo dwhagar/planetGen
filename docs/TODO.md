@@ -868,6 +868,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   come from the per-tile cap GALAXY_TILE_MAX_BRIGHT_STARS=400 (the 400
   brightest stars per tile), not from the scatter floor. The visibility
   law must reconcile the cap with the floor.
+  Bugfixes lane 2 (2026-10-09): Bugfixes lane 2 follow-ups (2026-10-10,
+  PRs #1032, #1035): the nucleus quasar and built nucleus now show from
+  the galaxy view; the Galaxy Map slider bottom now follows the dimmest
+  star the view's tiles carry instead of a fixed 2,500 L_sun floor. The
+  2,500 L_sun floor at full zoom-out is left to this item: about 3
+  million stars qualify, while a view carries about 70,000.
   Prerequisite: MAP.153. Related: MAP.116, MAP.146, MAP.147.
   Design: [docs/design/fly-through-view-distance.md](design/fly-through-view-distance.md)
 
