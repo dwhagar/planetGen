@@ -309,6 +309,20 @@ Boss, 2026-10-10 20:37Z: "that's standard procedure, always make those changes w
 
 The mapping from issue to items is in this file (the list of GitHub issues under the 2026-10-07 rebuild) and in the Related and source lines of the items.
 
+## Standing process: headline features
+
+Boss (2026-10-10 21:05Z): every release has one headline feature. Past
+releases got theirs from a read of the whole changelog (582 releases,
+each with a 1-5 score; the README lists the score-5 and a few score-4
+ones). Upcoming headlines are tagged in TODO.md with a `Headline:
+VERSION (name).` line (8.0 GEN.105, 8.1 MAP.146, 8.5 NAV.59, 9.0
+MAP.167) and shown with every open item they need on the tier plan, the
+TODO reference, the TODO tree and the execution plan. When the stamp
+Action adds a release, the TODO thread adds its **Headline:** line under
+the heading in CHANGELOG.md in the next docs PR. When a headline's items
+are retired, rebuild the pages (`python scripts/build_todo_docs.py`) and
+refresh the execution plan's headline section.
+
 ## Judgment calls
 
 - **The engine in phase 0**: MAP.65 to MAP.68, NAV.7, NAV.13 to NAV.15, NAV.29, NAV.33, NAV.32 and MAP.95 moved into phase 0 because the breadcrumb, empty-slab, filter and picker bugs are fixed by them, which is Boss's rule for architecture that takes care of a bug.

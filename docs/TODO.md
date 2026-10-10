@@ -113,8 +113,8 @@ that files it.
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
 | 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | DB.9, PERF.29, PERF.30, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, POP.8, POP.9, POP.7, POP.10, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, GEN.57, TEST.77, UX.49, PERF.31, GEN.128, PERF.63 |
-| 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.17, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18, PERF.33, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, ADM.43, ADM.44 |
-| 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, and the anomalies chosen in phase 2. | NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.27, NAV.28, NAV.6, API.13, API.14, API.8, ADM.13, API.3, API.17, GEN.114, API.19 |
+| 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.17, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18, PERF.33, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, ADM.43, ADM.44, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.56, NAV.55, NAV.27, NAV.28, NAV.51, NAV.54, NAV.6 |
+| 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, and the anomalies chosen in phase 2. | API.13, API.14, API.8, ADM.13, API.3, API.17, GEN.114, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies. | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, GEN.55 |
 
 Phases overlap: a phase's later threads can start while the next
@@ -131,8 +131,14 @@ declares phase 1 complete.
 Seminal features (Boss, 2026-10-10 20:58Z): 8.0 the orbital update
 system, 8.1 infinite zoom (the fly-through Galaxy Map), 9.0 the
 gravitational map (MAP.167: foundations in phase 2, roll-out in phase
-3). Phase 2, when finished, is 8.5, and its seminal feature is still to
-be chosen (see the card in the TODO thread, 2026-10-10).
+3). Phase 2, when finished, is 8.5, and Boss (21:05Z) chose its
+headline: courses that bend around gravity wells, with waypoints,
+editable and saved courses (NAV.59). A headline feature carries a
+`Headline: VERSION (name).` line in its item; `scripts/build_todo_docs.py`
+reads it and shows, in every plan page, each headline with all the open
+items it needs in build order. Every release in CHANGELOG.md opens with a
+**Headline:** line (Boss, 2026-10-10); the TODO thread adds one to each
+newly stamped release.
 
 Boss's list of 2026-10-01 23:53Z (`new todos.txt`, with research notes;
 the files are in the project's shared files under `todo-tasks/research/`)
@@ -795,6 +801,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and MAP.158; one cache stamp bump with MAP.154 and MAP.151's tile
   keys), MAP.151 (needs ADM.29 from Foundations lane 1) and MAP.152 (needs MAP.148,
   MAP.150 and MAP.154); this umbrella closes last.
+  Headline: 8.1 (infinite zoom: the fly-through Galaxy Map).
   Prerequisites: MAP.150, MAP.151, MAP.152, MAP.153,
   MAP.154, MAP.155, MAP.157, MAP.159. Related:
   MAP.120, MAP.121, MAP.141, MAP.140, MAP.59, MAP.116, MAP.122, MAP.125,
@@ -1083,6 +1090,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   same layer on the System Map; subitems GEN.198, TEST.131, PERF.72 and
   GEN.199 (phase 2), then API.24, MAP.168, MAP.169 and UX.94 (phase 3),
   with MAP.170 (Galaxy Map layer) later.
+  Headline: 9.0 (the gravity map).
   Prerequisites: GEN.199, MAP.168, MAP.169, UX.94, API.24. Related:
   GEN.105, NAV.6.
   Design: [docs/design/gravity-map.md](design/gravity-map.md)
@@ -1479,6 +1487,30 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   A frame type and the rule for choosing it (stage 2 of GEN.9).
   Prerequisite: GEN.157.
   Design: [docs/design/multiple-galaxies.md](design/multiple-galaxies.md)
+
+- [ ] **NAV.58 Edit a course: add, remove, reorder and drag its waypoints, then save the edit**
+  Boss (2026-10-10 21:05Z): the 8.5 headline is courses with waypoints
+  that are editable and saved. Waypoints today are picked once and
+  plotted (NAV.49). Done: a course drawn on the map (any display) can be
+  edited in place: add a waypoint by picking an object, remove one,
+  reorder them, or drag a waypoint to another object; the course is
+  re-planned after each edit (bending around gravity wells once NAV.6 is
+  built) and the edit is saved over the saved course or as a new one
+  (NAV.4); a test checks add, remove, reorder and save.
+  Prerequisites: NAV.49, NAV.4. Related: NAV.6, NAV.18, NAV.59.
+
+- [ ] **NAV.59 Headline of 8.5: courses that bend around gravity wells, with waypoints, editable and saved courses**
+  Boss (2026-10-10 21:05Z) chose this as the seminal feature of 8.5 (the
+  end of phase 2). Umbrella: it is done when a viewer plots a course
+  through waypoints, sees it bend around the gravity wells and Hill
+  spheres of the objects it passes (NAV.6 and its subitems), edits the
+  waypoints (NAV.58), saves the course and opens it again on the map
+  (NAV.4, NAV.23). It is the pull model of the gravity map (GEN.198,
+  9.0) seen from the course planner: NAV.6 reuses the evaluator once it
+  exists.
+  Headline: 8.5 (courses that bend around gravity wells).
+  Prerequisites: NAV.6, NAV.49, NAV.58, NAV.4, NAV.23. Related: GEN.198,
+  MAP.167.
 
 ## GEN: Generation and physics
 
@@ -2150,6 +2182,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   its last update (one day of real time is one day of orbit), and an
   option advances it by a stated extra span in one go. Done when its
   subitems are.
+  Headline: 8.0 (the orbital update system).
   Prerequisites: GEN.115, GEN.109, GEN.110.
   Design: [docs/design/orbital-updates.md](design/orbital-updates.md)
   Research (2026-10-09, orbital-solvers-and-integrators.md): the Full

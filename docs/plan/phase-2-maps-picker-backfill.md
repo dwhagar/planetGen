@@ -53,6 +53,20 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | NAV.36 | Unknown-space jumps drawn red and glowing |  | Route strip, navmap.py and the Galaxy Map course; legend; reduced motion; both themes. |
 | NAV.39 | Saved courses remember their unknown-space jumps and check them again | NAV.17 | With NAV.17. |
 | NAV.49 | Waypoints: pick objects in Star select mode and plot a course through them, kept on the map until cleared | MAP.122, NAV.17 | Merges "Plotted courses should appear on the galactic map and stay until cleared". |
+| NAV.22 | Courses inside a sector and a system |  |  |
+| NAV.23 | Open a saved course on the map | NAV.4, NAV.21 |  |
+| NAV.5 | Show a course on the Galaxy Map | NAV.21, NAV.22, NAV.23 | Courses stay drawn until cleared (NAV.49). Parent; most of it exists (MAP.27). |
+| NAV.25 | Find the obstacles along a path |  | Corridor query from NAV.10; sectors along the line from NAV.38. |
+| NAV.26 | Bend the path around keep-out spheres | NAV.25 |  |
+| NAV.56 | Census of overlapping keep-out spheres in a generated galaxy | NAV.51 | Research: decides the overlap policy. |
+| NAV.55 | A tuning block for the keep-out knobs |  | Research: keep-out knobs. |
+| NAV.27 | Moving bodies inside a system | NAV.26 |  |
+| NAV.28 | Show and save the adjusted course | NAV.26, NAV.4 |  |
+| NAV.51 | Courses route around asteroid fields | NAV.25, NAV.26 | Boss 2026-10-09 01:02Z. Parked with the NAV chain (2026-10-09). |
+| NAV.54 | Keep-out radii for asteroid fields, supermassive holes, moons and nebulae (NAV.24 built) | NAV.51 | Research: NAV.24 (built) follow-ups. |
+| NAV.6 | Courses that steer clear of gravity wells | NAV.25, NAV.26, NAV.27, NAV.28, NAV.51 | Parent; closes with its subitems. |
+| NAV.59 | Headline of 8.5: courses that bend around gravity wells, with waypoints, editable and saved courses | NAV.6, NAV.49, NAV.58, NAV.4, NAV.23 | 8.5 headline (Boss 2026-10-10 21:05Z). Parent. |
+| NAV.58 | Edit a course: add, remove, reorder and drag its waypoints, then save the edit | NAV.49, NAV.4 | 8.5 headline (Boss 2026-10-10 21:05Z). |
 
 ### Pages
 
