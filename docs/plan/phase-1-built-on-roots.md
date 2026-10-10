@@ -26,7 +26,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 
 | ID | Item | Needs | Note |
 |---|---|---|---|
-| NAV.9 | Search and locate return references for every kind |  | queryDb search and galaxy_locate. |
 
 ### Picker
 
@@ -192,6 +191,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | TEST.111 | test_ensure_sector_generated_creates_then_reuses_the_same_sector fails in a busy parallel run (bug) |  | Test flake reported 2026-10-09; Bugfixes lane 1. |
+| TEST.125 | Three browser-map tests fail on main with "no generated system has a moon" (bug) |  |  |
 | TEST.116 | test_bughunt_end_to_end stores M2V or M6V where it expects K2V on the MySQL 8.4 and MariaDB legs once (bug) |  | Bugfixes lane 1 report 03:57Z. |
 
 ### Foundations for the issue features
