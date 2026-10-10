@@ -4525,9 +4525,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   by this). No backward compatibility.
   Prerequisites: none. Related: TEST.115, OPS.34, OPS.16, OPS.17,
   OPS.28, OPS.30.
-  Lane (2026-10-09): Lane not assigned yet (coordinator, 2026-10-10
-  04:26Z): Boss meant it for a thread other than Foundations lane 1; the
-  owner follows.
+  Lane (Boss, 2026-10-10 04:26Z): Foundations lane 3 (not lane 1).
 
 ## DOC: Documentation
 
