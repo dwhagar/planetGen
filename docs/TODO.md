@@ -3868,22 +3868,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   are `noindex,follow`, top pages only in the sitemap, switchable with
   `seo.detail_pages`.
 
-- [ ] **ADM.49 Galaxy shape density settings: the user changes the density range of the spiral arms, the inter-arm space, the core and the bulge**
-  Boss (2026-10-10 06:16Z): let the user change the variables that set
-  the density range of the spiral arms, the space between the arms
-  (inter-arm), the core and the bulge. These are the galaxy shape fields
-  of `galaxy/density.py` (`arm_amplitude`, `arm_count`,
-  `pitch_angle_rad`, `bulge_amplitude`, `bulge_scale_radius_pc` and the
-  disk terms), today fixed by the preset. Done: the Customize window's
-  galaxy shape tab and the New galaxy section offer the arm density,
-  inter-arm density, core density and bulge density (and their ranges)
-  with sane limits and presets, they are stored in `galaxy_shape`, the
-  density model uses them, and a test checks that a changed value
-  changes the density at an arm, between arms, in the core and in the
-  bulge. Owner: Bugfixes lane 2 (coordinator, 2026-10-10 12:52Z), now
-  that MAP.165 has merged.
-  Prerequisites: none. Related: GEN.183, GEN.184, GEN.186.
-
 ## SEC: Security
 
 The login protection of 2026-10-01 (SEC.1, SEC.20 to
