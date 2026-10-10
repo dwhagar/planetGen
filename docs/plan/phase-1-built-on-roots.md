@@ -40,7 +40,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | DB.16 | Store the generator epoch and run id on each sector instead of four version text columns | OPS.28 | Research follow-up to DB.7 (built). |
 | DB.9 | Repair a damaged galaxy database from a parity file | GEN.57 | Boss 02:13Z: phase 1. Reed-Solomon parity over groups of sector exports; seed regeneration as fallback. |
-| DB.21 | A deep pass for the database check: validate every star system, with the estimated time shown first | PERF.33 | Boss 23:32Z; Foundations lane 1, small, near the end of its list. |
 | DB.17 | Repair by regenerating a damaged sector from its seed when parity cannot rebuild it | DB.9, GEN.57 | Research split of DB.9: the regenerate-from-seed fallback. |
 
 ### Generation
@@ -57,7 +56,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.181 | Directives: refuse impossible requests up front from the compound-Poisson tables |  | Left over from GEN.96. |
 | GEN.180 | Directives: a forced fill (met_forced) after K failed draws |  | Left over from GEN.96. |
 | GEN.179 | Store each sector's generation directive and attempt record with the sector |  | Left over from GEN.96. |
-| GEN.186 | Random neighborhoods: an option to keep away from filled space |  | Left over from GEN.97 (merged, PR #950). |
 | TEST.122 | Browser map tests fail on plain main in Bugfixes lane 2's container (fixture maps, controls, system-page maps) (bug) |  |  |
 | ADM.49 | Galaxy shape density settings: the user changes the density range of the spiral arms, the inter-arm space, the core and the bulge |  | Boss 06:16Z via coordinator; unassigned. |
 
@@ -122,7 +120,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.119 | Expected star density editable by admins on the Galaxy Map |  |  |
 | MAP.122 | A Select mode on every galaxy view: Galaxy (blocks and sectors) or Star |  | Merges the 2026-10-07 "button to select a star" ask; MAP.101 (PR #431) made stars unpickable by default. |
 | UX.87 | The system list shows uncharted systems: every scattered star, with its location and a way to generate it |  | Boss issue #929, 01:51Z. |
-| MAP.162 | A sector holding scattered objects but never generated can still be opened, marked uncharted |  | Boss issue #928, 01:44Z. |
 | MAP.146 | Fly through the galaxy: scroll-zoom, double-click flight, distance-based visibility and a see-through near field | MAP.148, MAP.149, MAP.150, MAP.151, MAP.152, MAP.154, MAP.155, MAP.157, MAP.158, MAP.159 | Boss 2026-10-09 22:24Z and 22:56Z. Umbrella for MAP.148 to MAP.152; replaces the fixed ladder in galaxy/drill.py and galaxyprisms.js. |
 | MAP.147 | The Galaxy Map wire format: the investigation (done) and the record of what was built from it | MAP.157, MAP.158, MAP.159 | Research Lane 3 report in docs/design/galaxy-map-wire-format.md; record until the build items are done. |
 | MAP.157 | Trim the Galaxy Map tile JSON and serve it from prebuilt, precompressed bytes |  | MAP.147 recommendation step 1; no client change. |
@@ -137,8 +134,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.159 | Packed binary Galaxy Map tiles (quantised planes) with the nested tile lists, on one cache stamp bump | MAP.154, MAP.158 | MAP.147 recommendation step 2; one stamp bump with MAP.154 and MAP.151. |
 | MAP.155 | Other objects fade in too: point objects from level 8, a size ramp for cloud sprites, and stars that grow from a faint dot |  | Zoom visibility note stage 3. |
 | UX.91 | Planet and moon description carries a full PHI-4 explanation, each colour factor and why |  |  |
-| GEN.196 | One "Redo scatters" box on Generate: choose which scatters to redo, with new settings for each | GEN.195 |  |
-| GEN.195 | A separate mass limit for neutron stars and black holes, and the central black hole or quasar always created |  |  |
+| GEN.196 | One "Redo scatters" box on Generate: choose which scatters to redo, with new settings for each |  |  |
 | MAP.165 | Scattered phenomena store a mass so the Galaxy Map sizes them exactly |  |  |
 | PERF.61 | Object-first sampler for the phenomena pass, own prototype first | PERF.58, PERF.60 |  |
 | PERF.60 | Large-mean Poisson helper for per-layer counts (top priority) |  |  |

@@ -44,6 +44,7 @@ from planetgen.db.query import (
     NO_SECTOR,
     bright_star_scatter_status,
     bright_stars_in_sector,
+    uncharted_sector_contents,
     NavUnavailable,
     SEARCH_RESULT_LIMIT,
     SEARCH_RESULT_PANELS,
@@ -1660,6 +1661,37 @@ def galaxy_bright_stars_in_cell():
     except pymysql.err.ProgrammingError:  # no bright_stars table yet (before v43)
         items = []
     return jsonify({"items": items})
+
+
+@bp.route("/galaxy/uncharted")
+def galaxy_uncharted_sector():
+    """`GET /api/galaxy/uncharted?ring=&layer=&slot=` -- one sector cell's
+    place and what the scatters left in it, for opening a cell nothing was
+    generated in (MAP.162): `designation`, `center_pc`, `edge_pc`,
+    `sector_id` (the generated sector there, or `null`), `stars` (its
+    waiting bright stars, `queryDb.bright_stars_in_sector`) and `scattered`
+    (its unbuilt scattered phenomena, `queryDb.uncharted_sector_contents`).
+    A cell outside the grid is a 400."""
+    try:
+        ring, layer, slot = (int(request.args[key]) for key in ("ring", "layer", "slot"))
+    except (KeyError, ValueError):
+        raise ApiError("'ring', 'layer' and 'slot' must be integers")
+    if ring < 0:
+        raise ApiError("ring must be >= 0")
+    conn = get_db()
+    skeleton = get_galaxy_shape(conn)
+    edge_pc = skeleton.edge_pc if skeleton else float(tuning.DEFAULT_SECTOR_EDGE_PC)
+    try:
+        cell = describe_sector_cell(ring, layer, slot, edge_pc)
+    except OverflowError:
+        raise ApiError("that cell is too far out")
+    except ValueError as err:
+        raise ApiError(str(err))
+    return jsonify({
+        "ring_index": ring, "layer_index": layer, "ring_slot_index": slot, "designation": cell["designation"],
+        "center_pc": cell["cartesian_pc"], "edge_pc": edge_pc, "sector_id": get_sector_id_at(conn, ring, layer, slot),
+        **uncharted_sector_contents(conn, ring, layer, slot),
+    })
 
 
 @bp.route("/facilities/orbit")

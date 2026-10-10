@@ -26,6 +26,7 @@ command's work is in `planetgen.generation.run_<command>`.
 
 import argparse
 import getpass
+import json
 import math
 import secrets
 import sys
@@ -662,6 +663,11 @@ def add_galaxy_arguments(parser):
                         help="With --neighborhoods: bias the starts toward dense space. A start is kept with "
                              "probability min(1, relative density) ** G; 0 (the default) keeps every one, "
                              "so starts are uniform by volume.")
+    parser.add_argument('--avoid-filled-space', action='store_true',
+                        help="Random-start mode (GEN.186): drop any random centre whose neighborhood touches a "
+                             "sector that is already generated, so every neighborhood grows in empty space. "
+                             "Logs how many candidate centres qualified. Without it, a neighborhood may "
+                             "overlap filled space (the sectors already there are kept, not redone).")
     parser.add_argument('--cylinder-sectors', type=finite_float, metavar='X',
                         help="Instead of --radius-pc, with --center-sector or --ring --slot: a radial fill "
                              "(ADM.30), a round disc X sectors across the plane (1 is the centre and its "
@@ -837,6 +843,8 @@ def validate_galaxy_args(args, parser):
     if (args.neighborhoods > 1 or args.neighborhood_gamma) and not random_start:
         parser.error("--neighborhoods and --neighborhood-gamma only apply to random-start mode (neither "
                      "--ring nor --center-sector).")
+    if args.avoid_filled_space and not random_start:
+        parser.error("--avoid-filled-space only applies to random-start mode (neither --ring nor --center-sector).")
     if args.max_ring is not None and not random_start:
         parser.error("--max-ring only applies to random-start mode (neither --ring nor --center-sector).")
     if args.max_ring is not None and args.max_ring < 0:
@@ -1165,7 +1173,13 @@ def add_check_db_arguments(parser):
     parser.add_argument('--sector', type=int, nargs=3, action='append', metavar=('RING', 'LAYER', 'SLOT'),
                         help="Check only the sector at this address for values, counts and version keys "
                              "(repeatable).")
-    parser.add_argument('--deep', action='store_true', help="Run CHECK TABLE ... EXTENDED (slow).")
+    parser.add_argument('--deep', action='store_true',
+                        help="Also run CHECK TABLE ... EXTENDED and validate every star system (slow: the time "
+                             "is estimated first and a yes asked for).")
+    parser.add_argument('--yes', action='store_true',
+                        help="With --deep: go ahead after the estimate without asking (needed off a terminal).")
+    parser.add_argument('--estimate-only', action='store_true',
+                        help="With --deep: print the time estimate and stop (the Generate page uses it).")
     parser.add_argument('--no-check-table', action='store_true', help="Skip CHECK TABLE.")
     store.add_mysql_connection_args(parser)
     add_logging_arguments(parser)
@@ -1381,11 +1395,27 @@ def run_check_db(args):
     """`planetgen check-db`: prints the database check's report; exits 1 on
     damage, 2 when a check could not run (DB.8)."""
     config = store.mysql_config_from_args(args)
+    scope = db_check.Scope(tuple(args.ring or ()), tuple(tuple(a) for a in args.sector or ()))
+    if args.estimate_only and not args.deep:
+        raise SystemExit("check-db: --estimate-only is for --deep.")
     conn = store.get_connection(config, ensure_schema=False)
     try:
+        if args.deep:
+            estimate = db_check.deep_estimate(conn, config, scope)
+            log.normal(estimate.summary())
+            if args.estimate_only:
+                sys.stdout.write(run_common.ESTIMATE_PREFIX + json.dumps(estimate.as_dict()) + "\n")
+                sys.stdout.flush()
+                return
+            if not args.yes:
+                if not run_common._interactive():
+                    log.normal("Nothing was checked: a deep check off a terminal needs --yes.")
+                    raise SystemExit(db_check.EXIT_UNCHECKED)
+                if run_common._ask(None, "Run the deep check? [y/N] ") not in ("y", "yes"):
+                    log.normal("Nothing was checked.")
+                    raise SystemExit(0)
         report = db_check.run_checks(
-            conn, config, scope=db_check.Scope(tuple(args.ring or ()), tuple(tuple(a) for a in args.sector or ())),
-            deep=args.deep, check_table=not args.no_check_table,
+            conn, config, scope=scope, deep=args.deep, check_table=not args.no_check_table,
             on_progress=lambda name: log.normal(f"Checking {name} ..."))
     finally:
         conn.close()

@@ -38,6 +38,9 @@
 // - canGenerate, courseSectors, sectorUrl(id), locate(name);
 // - fetchSectorScene(id): a Promise of GET /sector/<id>/scene's JSON, the
 //   sector opened in place (MAP.66; galaxysector.js);
+// - fetchUnchartedScene({ring, layer, slot}) (optional): a Promise of the
+//   scene JSON of a cell nothing was generated in, which opens in place
+//   with an "Uncharted" mark when the scatters left objects in it (MAP.162);
 // - fetchSystemScene(href): a Promise of GET /system/<id>/scene's JSON, a
 //   system of the open sector opened in place (MAP.125; galaxysystem.js); lightBackground,
 //   pixelRatio(), showInfo(spec), hideCell(bounds or null);
@@ -1109,6 +1112,7 @@ export function createStageView(host) {
       const block = at >= 0 ? display.options[at].blocks[0] : null;
       const record = block ? sectorRecord(block) : null;
       if (record) enterSector(block, record, { push: false });
+      else if (block && host.fetchUnchartedScene) enterSector(block, null, { push: false });
     }
   }
 
@@ -1244,7 +1248,7 @@ export function createStageView(host) {
     THREE: THREE, scene: host.scene, camera: camera, canvasEl: canvasEl, picker: picker,
     accentColor: host.accentColor || "#4f5fe8", lightBackground: !!host.lightBackground,
     pixelRatio: host.pixelRatio || function () { return 1; },
-    fetchScene: host.fetchSectorScene, showInfo: host.showInfo || function () {}, navPick: host.navPick || null,
+    fetchScene: host.fetchSectorScene, fetchUnchartedScene: host.fetchUnchartedScene, showInfo: host.showInfo || function () {}, navPick: host.navPick || null,
     hideCell: host.hideCell || function () {},
     viewport: host.viewport || null, opened: host.opened, closed: host.closed, kindsChanged: kindsChanged,
     deselected: function () { host.showHint(pinned && host.restingHint ? host.restingHint : hintFor(resolved)); },
@@ -1555,7 +1559,16 @@ export function createStageView(host) {
     if (pinned) return;
     const sector = sectorRecord(block);
     if (sector) host.showPlacedInfo(sectorEntry(block, sector));
-    else host.showCellInfo({ m: 1, bounds: block.bounds, address: { ring: block.ring, layer: block.slab, slot: block.wedge }, filled: 0 });
+    else host.showCellInfo({
+      m: 1, bounds: block.bounds, address: { ring: block.ring, layer: block.slab, slot: block.wedge }, filled: 0,
+      uncharted: isEnteredCell(block) && entered.uncharted ? sectorStage.unchartedSummary() : null,
+    });
+  }
+
+  // Whether `block` is the sector open in place.
+  function isEnteredCell(block) {
+    return !!entered && entered.sector.ring === block.ring && entered.sector.layer === block.slab
+      && entered.sector.slot === block.wedge;
   }
 
   // A stage's own hint in the info panel.
@@ -1604,6 +1617,12 @@ export function createStageView(host) {
         if (!entered || entered.id !== record.id) enterSector(block, record, { push: true });
         return;
       }
+      if (!record && host.fetchUnchartedScene) {
+        // Nothing generated here: what the scatters left in it still opens
+        // (MAP.162); an empty cell is only selected, as below.
+        if (!isEnteredCell(block)) enterSector(block, null, { push: true });
+        return;
+      }
       if (entered) closeSector();
       selectedSector = { ring: block.ring, layer: block.slab, slot: block.wedge };
       setHover({ option: index, sticky: true });
@@ -1649,16 +1668,19 @@ export function createStageView(host) {
   // camera flies to fit it, and (push) it takes its own history entry,
   // ?sector=<designation>&open=1. A sector that can't be opened (not
   // placed, or its scene didn't load) is only selected, as an ungenerated
-  // one is. `block` is its cell, `record` the stage's sector record.
+  // one is. `block` is its cell, `record` the stage's sector record; with no
+  // record the cell is one nothing was generated in, which opens (as
+  // "Uncharted") only when the scatters left objects in it (MAP.162).
   function enterSector(block, record, options) {
     const token = ++enterToken;
     const at = { ring: block.ring, layer: block.slab, slot: block.wedge };
-    notice("Opening " + (record.name || "the sector") + "…");
-    sectorStage.open(record.id, block.bounds).then(function (geo) {
+    notice("Opening " + (record ? record.name || "the sector" : "the sector") + "…");
+    sectorStage.open(record ? record.id : null, block.bounds, record ? null : at).then(function (geo) {
       if (!active || token !== enterToken) return;
       notice("");
       selectedSector = at;
       if (!geo) {
+        if (!record && entered) closeSector();
         const index = sectorOption(at);
         if (index >= 0) setHover({ option: index, sticky: true });
         showSectorInfo(block);
@@ -1666,7 +1688,10 @@ export function createStageView(host) {
         renderTravel();
         return;
       }
-      entered = { sector: at, id: record.id, center: geo.center, halfEdge: geo.halfEdge, fitPoints: geo.fitPoints };
+      entered = {
+        sector: at, id: record ? record.id : null, uncharted: !record, center: geo.center, halfEdge: geo.halfEdge,
+        fitPoints: geo.fitPoints,
+      };
       if (options.push) pushEntry(withKept("?sector=" + S.sectorDesignation(at.ring, at.layer, at.slot) + "&open=1"));
       showSectorInfo(block);
       applyHover();
@@ -1682,6 +1707,18 @@ export function createStageView(host) {
       });
     }, function () {
       if (!active || token !== enterToken) return;
+      if (!record) {
+        // Only a bonus on a cell nothing was generated in: it is just selected.
+        notice("");
+        if (entered) closeSector();
+        selectedSector = at;
+        const index = sectorOption(at);
+        if (index >= 0) setHover({ option: index, sticky: true });
+        showSectorInfo(block);
+        renderCrumbs();
+        renderTravel();
+        return;
+      }
       notice("The sector could not be loaded. Please try again shortly.");
     });
   }
@@ -2110,7 +2147,12 @@ export function createStageView(host) {
     const items = S.crumbs(stage, getOutline(), edgePc);
     if (homeStep) items.unshift({ label: homeStep.label, href: homeStep.href, last: false });
     if (selectedSector && !(resolved && resolved.sector)) {
-      items.push({ label: "Sector " + S.blockLabel({ m: 1, ring: selectedSector.ring, wedge: selectedSector.slot, slab: selectedSector.layer }), last: true, sector: true });
+      const uncharted = entered && entered.uncharted && !pinned;
+      items.push({
+        label: "Sector " + S.blockLabel({ m: 1, ring: selectedSector.ring, wedge: selectedSector.slot, slab: selectedSector.layer })
+          + (uncharted ? " (uncharted)" : ""),
+        last: true, sector: true,
+      });
       items[items.length - 2].last = false;
     }
     if (enteredSystem) {

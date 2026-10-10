@@ -481,7 +481,7 @@ Parents marked "new parent" had no old number of their own.
 | DB.18 | Migration helpers for slow DDL: online indexes, instant columns and batched updates | none | open |
 | DB.19 | Compact or derive phenomenon rows (needed only if the mass cut is lowered to 10 solar masses or less) | none | closed, not needed at the 20 solar mass cut (PR #866); reopen if the cut is lowered to 10 solar masses or less |
 | DB.20 | Object IDs in the schema: uid becomes BINARY(10), unique on its own, plus an id_counters table | none | done, PR #1055 |
-| DB.21 | A deep pass for the database check: validate every star system, with the estimated time shown first | none | open |
+| DB.21 | A deep pass for the database check: validate every star system, with the estimated time shown first | none | done, PR #1082 |
 | DOC.1 | Number TODO items by category (this renumbering) | 80 (2026-10-01 02:41Z to 05:29Z) | done in the docs-refresh PR (version-scheme questions moved to OPS.1) |
 | DOC.2 | Architecture document | 81 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
 | DOC.3 | Design documents current, with reasons | 82 (2026-10-01 02:51Z to 05:29Z) | done in the docs-refresh PR |
@@ -684,7 +684,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.183 | A mass cut the user sets: preset values on a slider from 8 to 20 solar masses | none | done, PR #969 |
 | GEN.184 | A luminosity floor the user sets: presets from 2500 to 4 million solar luminosities, default 3000 | none | done, PR #965 |
 | GEN.185 | The scatter in five passes: mass-limit objects, mass-limit stars, brightest-star sector marks, the luminosity pass, then other phenomena | none | done, PR #953 |
-| GEN.186 | Random neighborhoods: an option to keep away from filled space | none | open |
+| GEN.186 | Random neighborhoods: an option to keep away from filled space | none | done, PR #1088 |
 | GEN.187 | Bright-star back scatter by mass: rings of 1, 2, 5 and 8 solar masses around filled space | none | done, PR #1059 |
 | GEN.188 | Mass limit default is 8, and the mass slider and luminosity dropdown sit side by side on Generate and New galaxy | none | done, PR #1007 |
 | GEN.189 | Gamma-ray burst and AGN ozone loss for the ozone_loss_flag (low priority) | none | open |
@@ -693,7 +693,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.192 | Phenomena scatter log is thin and the Phenomena table page needs checking after a run (bug) | none | done, PR #1013 |
 | GEN.193 | Phenomena table stays empty after the scatter: scattered unbuilt phenomena are not listed (bug) | none | done, PR #1019 |
 | GEN.194 | Default mass limit 14 solar masses and default luminosity floor 9,000 solar luminosities | none | done, PR #1051 |
-| GEN.195 | A separate mass limit for neutron stars and black holes, and the central black hole or quasar always created | none | open |
+| GEN.195 | A separate mass limit for neutron stars and black holes, and the central black hole or quasar always created | none | done, PR #1081 |
 | GEN.196 | One "Redo scatters" box on Generate: choose which scatters to redo, with new settings for each | none | open |
 | GEN.197 | Object IDs on ejection, merger and split events | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
@@ -857,7 +857,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.159 | Packed binary Galaxy Map tiles (quantised planes) with the nested tile lists, on one cache stamp bump | none | open |
 | MAP.160 | Quantise the Galaxy Map GPU buffers (deferred) | none | open |
 | MAP.161 | Load the Galaxy Map faster on a first visit: bundle or preload its scripts | none | open |
-| MAP.162 | A sector holding scattered objects but never generated can still be opened, marked uncharted | none | open |
+| MAP.162 | A sector holding scattered objects but never generated can still be opened, marked uncharted | none | done, PR #1085 |
 | MAP.163 | Galaxy Map brightness scale: floor 2,500 L_sun at full zoom, then min/max scaling per zoom | none | done, PR #1029 |
 | MAP.164 | Galaxy Map shows phenomena: black holes purple, neutron stars dark blue, sized by mass, dark colors out-shine brighter stars | none | done, PR #1029 |
 | MAP.165 | Scattered phenomena store a mass so the Galaxy Map sizes them exactly | none | open |
@@ -1020,7 +1020,7 @@ Parents marked "new parent" had no old number of their own.
 | PERF.59 | Share the ring inputs across the three scatter passes (top priority) | none | open |
 | PERF.60 | Large-mean Poisson helper for per-layer counts (top priority) | none | open |
 | PERF.61 | Object-first sampler for the phenomena pass, own prototype first | none | open |
-| PERF.62 | Interim early stop in the current layer-walking scatters: 100 empty layers in a row (superseded by PERF.58) | none | dropped, superseded by PERF.58 |
+| PERF.62 | Interim early stop in the current layer-walking scatters: 100 empty layers in a row (tuning.SCATTER_DRY_LAYERS) | none | done, PR #1087 |
 | POP.1 | Government ownership of systems | 12 (2026-09-24 01:32Z to 02:18Z); 9 (2026-09-24 01:57Z to 02:02Z); 7 (2026-09-24 02:25Z to 05:38Z); 6 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 15 (2026-09-30 16:44Z); 16 (2026-09-30 16:49Z); 17 (2026-09-30 16:51Z to 18:09Z); 34 (2026-09-30 18:14Z); 39 (2026-09-30 18:39Z to 18:41Z); 59 (2026-09-30 19:02Z to 19:17Z); 63 (2026-09-30 20:01Z to 20:27Z); 46 (2026-09-30 20:07Z); 50 (2026-09-30 20:08Z to 20:48Z); 51 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 (optional since 7.58.2, PR #180) |
 | POP.2 | Names for dominant species on living worlds | 13 (2026-09-24 01:32Z to 02:18Z); 10 (2026-09-24 01:57Z to 02:02Z); 8 (2026-09-24 02:25Z to 05:38Z); 7 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 16 (2026-09-30 16:44Z); 17 (2026-09-30 16:49Z); 18 (2026-09-30 16:51Z to 18:09Z); 35 (2026-09-30 18:14Z); 40 (2026-09-30 18:39Z to 18:41Z); 60 (2026-09-30 19:02Z to 19:17Z); 64 (2026-09-30 20:01Z to 20:27Z); 47 (2026-09-30 20:07Z); 51 (2026-09-30 20:08Z to 20:48Z); 52 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
 | POP.3 | Database of spacefaring species | 14 (2026-09-24 01:32Z to 02:18Z); 11 (2026-09-24 01:57Z to 02:02Z); 9 (2026-09-24 02:25Z to 05:38Z); 8 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 17 (2026-09-30 16:44Z); 18 (2026-09-30 16:49Z); 19 (2026-09-30 16:51Z to 18:09Z); 36 (2026-09-30 18:14Z); 41 (2026-09-30 18:39Z to 18:41Z); 61 (2026-09-30 19:02Z to 19:17Z); 65 (2026-09-30 20:01Z to 20:27Z); 48 (2026-09-30 20:07Z); 52 (2026-09-30 20:08Z to 20:48Z); 53 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |

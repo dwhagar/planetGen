@@ -98,6 +98,7 @@ STEP_KINDS = {
     "warm-map": "Galaxy Map warm-up",
     "dedupe-sectors": "Sector name pass",
     "dedupe-systems": "System name pass",
+    "db-check": "Database check: validating star systems",
 }
 """dict: Every kind of step the program times (UX.84): the `generation_stats`
 kind and what the Stats page calls it. A step built with a kind that is not

@@ -490,7 +490,7 @@ def system_list_html(system, sections, class_url=None, facilities=(), species=No
     overview_html = markdown_to_html(sections["overview"]) if sections["overview"] else ""
     scored = any(body.get("equipment_tier") is not None
                  for planet in planets for body in [planet, *(planet.get("moons") or [])])
-    help_html = (f'<p class="hint"><a href="{esc(habitability_url)}">Habitability levels</a>: what the equipment '
+    help_html = (f'<p class="hint inline-links"><a href="{esc(habitability_url)}">Habitability levels</a>: what the equipment '
                  "labels and their colours mean.</p>") if habitability_url and scored else ""
     return f"""
 <div class="prose system-overview">{overview_html}</div>

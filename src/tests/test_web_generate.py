@@ -618,6 +618,21 @@ def test_check_the_database_job_runs_check_db_alone(site, client, no_spawn):
     assert [_argv(step) for step in job["steps"]] == [["check-db"]]
 
 
+def test_a_deep_check_shows_its_time_before_starting(site, client, no_spawn, monkeypatch):
+    asked = []
+    deep = {"deep_check": True, "systems": 1200, "seconds": 72.0, "measured": False, "what": "the deep database check",
+            "summary": "Deep check: 1,200 star systems"}
+    monkeypatch.setattr(generate_page, "run_estimate", lambda argv, env: asked.append(argv) or dict(deep))
+    resp = _post(client, action="check_db", deep="1")
+    assert resp.status_code == 200 and no_spawn == []
+    html = resp.get_data(as_text=True)
+    assert "1,200" in html and "rough guess" in html and 'name="estimate_ok" value="1"' in html
+    assert asked[0][-2:] == ["--deep", "--yes"]
+    assert _post(client, action="check_db", deep="1", estimate_ok="1").status_code == 303
+    (job,) = no_spawn
+    assert [_argv(step) for step in job["steps"]] == [["check-db", "--deep", "--yes"]]
+
+
 def test_dimmer_layer_needs_a_level(site, client, no_spawn):
     resp = _post(client, action="bright_band", down_to="")
     assert resp.status_code == 400
@@ -1300,6 +1315,7 @@ def test_random_start_argv_carries_the_neighborhood_count():
     assert generate_page.random_start_argv({"neighborhoods": "1", "neighborhood_gamma": "2"}) == []
     with pytest.raises(generate_page.FormError):
         generate_page.random_start_argv({"neighborhoods": "101"})
+    assert generate_page.random_start_argv({"avoid_filled_space": "1"}) == ["--avoid-filled-space"]
 
 
 # --- Mass limit slider (GEN.183) --------------------------------------------------
