@@ -3,6 +3,7 @@
 ## [8.0.911] - 2026-10-10
 
 ### Changed
+- TODO list: PERF.62 (interim early stop) dropped, superseded by PERF.58.
 - Filed PERF.62 (interim 100-empty-layer early stop, already built by lane 1, superseded by PERF.58) and noted on PERF.58 and PERF.61 that it goes away with the old walk.
 - Retired PERF.56 (stage timings stored with their settings, PR #1077).
 - Each stage of a galaxy or plan run is now stored with how long it took and the settings it ran with (mass limit, luminosity floor, workers, radius ...) and what it did (layers visited and changed, objects placed); skipped stages are stored with their reason. The admin Stats page lists the latest stage times, and the estimate helper `stage_seconds` reads the runs with matching settings (PERF.56, control schema v14).
