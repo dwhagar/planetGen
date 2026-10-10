@@ -2,24 +2,8 @@
 
 ## [8.0.866] - 2026-10-10
 
-### Fixed
-- The Generate page's job-status script test used the old `remaining_text` field, so it failed on main since the time-left range text (`remaining_label`) arrived (TEST.113).
-- The disk-space check and the admin Stats tile measure the drive that actually holds the database's data directory (asked of the server with `SELECT @@datadir`, symlinks and mounts resolved), not the boot drive. They show which path and drive were measured, and say "unknown" when a remote server's disk can't be reached.
-- A moon's Hill sphere (and so its minimum orbit spacing and the facility orbit slider) is measured about its planet, not its star (GEN.138); the Hill sphere uses the pair's total mass.
-- Class N (a Venus analog) no longer carries a life chemical or a life timeline; Class Q is a habitable class capped at microbial life (GEN.147).
-- The progress ETA is a ratio of decayed sums, so the early estimate of a run on several workers is no longer up to twice too long (PERF.37).
-- The phenomenon render uses `THREE.Timer` in place of the deprecated `THREE.Clock` (MAP.144).
-- The macOS update daemon's plist is well-formed XML again (OPS.32).
-- A 100,000-deep nested JSON body is a 400 ("nested too deeply") instead of a 500 (API.20), and `Retry-After` is only sent on a 429, no longer on every response Flask-Limiter counts (API.21).
-- The admin page's creation-settings download answers an anonymous or non-admin caller with a plain 403, like the other file and data views, instead of a redirect (ADM.18).
-- A neighbourhood or single-address run now reports the first sector (the one named outright) with the same stats as every other sector, each summary has a "Totals" line (star systems, stars, planets, phenomena), and a batch says how many sectors it runs with how many workers before the first report (ADM.47).
-- Hypervelocity stars now move in a straight line (position plus velocity times time) when the orbit update runs, keeping their velocity, instead of being turned about the galactic axis like bound objects (GEN.137). `phenomenon_scatter` gains `epoch_unix` (schema v69), the time a scattered star's position holds at, and the built system inherits it.
-- The sector search reached by a radius now covers every cell that touches the sphere, not only cells whose centers lie inside it (`cells_touching_sphere`, NAV.53); the center-based listing's misses are documented.
-- Python and the browser now round half-way numbers the same way (away from zero, on the shortest decimal), so 9.995 reads "10" and 1.005 reads "1.01" in both; Python used to give "9.99" and "1".
-- A negative number that rounds to zero prints "0", not "-0", in both.
-- A checkout with `core.autocrlf=true` no longer changes the bytes of the lock files and the word list, so their hashes agree between Windows and Linux.
-
 ### Changed
+- TODO: PERF.51 and TEST.113 retired (PRs #919, #920); PERF.50 notes the worker relay.
 - Every generation and maintenance step reports its progress through one helper (`planetgen.generation.steps`): a bar is drawn by itself at the start of a step predicted to take longer than 15 seconds from the speeds this server recorded for its kind, nothing is drawn for a shorter one, and a step that runs past 15 seconds gets its bar at that moment. A step with no recorded speed yet is treated as long, so a first run still shows its bar. Finished steps record their speed back, so the next prediction has history; the Stats page lists each kind.
 - The sector bars, neighbour linking, sector paths, bright-star backfill and top-up, the phenomenon scatter (now timed in the bar's own units, so its bar starts from a recorded rate too), the population pass, `reset` and the orbit update draw through it. Steps inside a worker can report to the parent through a channel (`worker_step` and `Relay`).
 - TODO: GEN.182 notes that the comet ejection may be a rendering issue.
@@ -97,6 +81,23 @@
 - The TODO list files the phenomenon scatter mass cut (GEN.166 to GEN.169) and reworks DB.19 around it: at the recommended 20 solar masses the scatter table falls from 1.17 billion rows (161 GB) to about 2.7e5 rows. The design notes drop the unverified 1.6e8 rows and 21 GB figures.
 - Two systems in one sector are routed by their nearest stars even when those lie in the sector next door.
 - The Generate page progress-line to-do item (ADM.46) was withdrawn at Boss's word.
+
+### Fixed
+- The Generate page's job-status script test used the old `remaining_text` field, so it failed on main since the time-left range text (`remaining_label`) arrived (TEST.113).
+- The disk-space check and the admin Stats tile measure the drive that actually holds the database's data directory (asked of the server with `SELECT @@datadir`, symlinks and mounts resolved), not the boot drive. They show which path and drive were measured, and say "unknown" when a remote server's disk can't be reached.
+- A moon's Hill sphere (and so its minimum orbit spacing and the facility orbit slider) is measured about its planet, not its star (GEN.138); the Hill sphere uses the pair's total mass.
+- Class N (a Venus analog) no longer carries a life chemical or a life timeline; Class Q is a habitable class capped at microbial life (GEN.147).
+- The progress ETA is a ratio of decayed sums, so the early estimate of a run on several workers is no longer up to twice too long (PERF.37).
+- The phenomenon render uses `THREE.Timer` in place of the deprecated `THREE.Clock` (MAP.144).
+- The macOS update daemon's plist is well-formed XML again (OPS.32).
+- A 100,000-deep nested JSON body is a 400 ("nested too deeply") instead of a 500 (API.20), and `Retry-After` is only sent on a 429, no longer on every response Flask-Limiter counts (API.21).
+- The admin page's creation-settings download answers an anonymous or non-admin caller with a plain 403, like the other file and data views, instead of a redirect (ADM.18).
+- A neighbourhood or single-address run now reports the first sector (the one named outright) with the same stats as every other sector, each summary has a "Totals" line (star systems, stars, planets, phenomena), and a batch says how many sectors it runs with how many workers before the first report (ADM.47).
+- Hypervelocity stars now move in a straight line (position plus velocity times time) when the orbit update runs, keeping their velocity, instead of being turned about the galactic axis like bound objects (GEN.137). `phenomenon_scatter` gains `epoch_unix` (schema v69), the time a scattered star's position holds at, and the built system inherits it.
+- The sector search reached by a radius now covers every cell that touches the sphere, not only cells whose centers lie inside it (`cells_touching_sphere`, NAV.53); the center-based listing's misses are documented.
+- Python and the browser now round half-way numbers the same way (away from zero, on the shortest decimal), so 9.995 reads "10" and 1.005 reads "1.01" in both; Python used to give "9.99" and "1".
+- A negative number that rounds to zero prints "0", not "-0", in both.
+- A checkout with `core.autocrlf=true` no longer changes the bytes of the lock files and the word list, so their hashes agree between Windows and Linux.
 
 ### Added
 - Generation directives (GEN.96): `--directive systems>=N`, `habitable>=N` or `type:X>=N` on `sector` and `galaxy` (with `--directive-attempts`, default 200) redraw each sector until it holds at least that much, from a repeatable per-attempt seed. If no draw meets it, the closest is kept and the log says which minimum it missed. The Generate page's "Generate sectors" form has an Override section for the same.
