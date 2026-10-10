@@ -845,12 +845,50 @@ def run_ring_batch(args, edge_pc, progress):
     )
 
 
-def _neighborhood_candidates(center, radius_pc, edge_pc, config, bounds):
+CYLINDER_EDGE_ALLOWANCE = 0.385
+"""float: Edges added to a radial fill's radius in sectors. A disc of exactly
+x edges holds only the centre and two neighbours at x = 1, because most face
+neighbours sit 1.0 to 1.38 edges away; x + 0.385 returns the centre and its
+in-plane face neighbours at x = 1 and a round shape joined by face adjacency
+above it (docs/design/fill-order-curves-and-core.md section 3.3)."""
+
+
+def cylinder_extent(sectors, layers, edge_pc):
+    """
+    The `(horizontal_pc, half_layers, sphere_pc)` of a radial fill (ADM.30):
+    the in-plane radius for `sectors` sectors, the layers either side of
+    the centre's, and the radius of a sphere that holds the whole can.
+    """
+    horizontal_pc = (sectors + CYLINDER_EDGE_ALLOWANCE) * edge_pc
+    return horizontal_pc, layers, math.hypot(horizontal_pc, (layers + 0.5) * edge_pc)
+
+
+def _cylinder_of(args, edge_pc):
+    """`(horizontal_pc, half_layers)` when `args` asks for a radial fill, else `None`."""
+    sectors = getattr(args, "cylinder_sectors", None)
+    if sectors is None:
+        return None
+    return cylinder_extent(sectors, args.cylinder_layers, edge_pc)[:2]
+
+
+def _region_text(args, edge_pc):
+    """The fill's size in words, for logs and the estimate."""
+    cylinder = _cylinder_of(args, edge_pc)
+    if cylinder is None:
+        return f"within {args.radius_pc:g} pc"
+    return f"within {args.cylinder_sectors:g} sectors and {args.cylinder_layers} layers either side"
+
+
+def _neighborhood_candidates(center, radius_pc, edge_pc, config, bounds, cylinder=None):
     """
     Every address within `radius_pc` of `center` that lies inside the
     galaxy's outline, the set of those already occupied, and how many
     addresses in the sphere were left out for lying outside it -- the
-    sphere is trimmed to the galaxy before anything is generated.
+    sphere is trimmed to the galaxy before anything is generated. With
+    `cylinder` (`(horizontal_pc, half_layers)`, ADM.30) the sphere is
+    only the search volume: a cell stays when it is within
+    `horizontal_pc` of the centre across the plane and within
+    `half_layers` layers of the centre's.
     """
     if bounds:
         # Nothing in the galaxy lies farther from `center` than this, so a
@@ -862,7 +900,12 @@ def _neighborhood_candidates(center, radius_pc, edge_pc, config, bounds):
         radius_pc = min(radius_pc, reach_pc)
     candidates = []
     outside = 0
+    center_layer = sector_address_at(center, edge_pc)[1]
     for candidate in enumerate_sectors_within_radius(center, radius_pc, edge_pc):
+        if cylinder is not None and (
+                abs(candidate[1] - center_layer) > cylinder[1]
+                or math.hypot(candidate[3] - center[0], candidate[4] - center[1]) > cylinder[0]):
+            continue
         if bounds.contains(candidate[0], candidate[1]):
             candidates.append(candidate)
         else:
@@ -950,23 +993,24 @@ def run_local_neighborhood(args, edge_pc, progress):
     _require_inside(args, batch_density.bounds, center_ring, center_layer,
                     f"sector_id={args.center_sector} sits at {_format_address(sector_address_at(center, edge_pc))}")
     candidates, occupied, outside = _neighborhood_candidates(
-        center, args.radius_pc, edge_pc, mysql_config, batch_density.bounds,
+        center, args.radius_pc, edge_pc, mysql_config, batch_density.bounds, _cylinder_of(args, edge_pc),
     )
+    region = _region_text(args, edge_pc)
 
     batch, already_existed, skipped = _neighborhood_batch(
         args, candidates, occupied, batch_density, f", {{distance:.2f}} pc from sector_id={args.center_sector}",
     )
     run_common._check_estimate(args, [item[2] for item in batch],
-                    f"the sectors within {args.radius_pc:g} pc of sector {args.center_sector}", progress)
+                    f"the sectors {region} of sector {args.center_sector}", progress)
     with run_common.sector_bar(progress, args, "Sectors (local neighborhood)", len(batch)) as bar:
-        _submit_batch(args, batch, f"Sectors (within {args.radius_pc:g} pc of sector {args.center_sector})",
+        _submit_batch(args, batch, f"Sectors ({region} of sector {args.center_sector})",
                       edge_pc, progress, bar)
     generated = len(batch)
 
     skip_note = f", {skipped} skipped (outside the outline)" if skipped else ""
     outside_note = f", {outside} beyond the galaxy's edge left out" if outside else ""
     log.normal(
-        f"Generated {generated} new sector(s) within {args.radius_pc} pc of sector_id={args.center_sector} "
+        f"Generated {generated} new sector(s) {region} of sector_id={args.center_sector} "
         f"({len(candidates)} candidate slot(s) inside the galaxy{outside_note}, {already_existed} already "
         f"existed{skip_note})."
     )
@@ -1241,11 +1285,11 @@ def run_single_slot(args, edge_pc, progress):
     what = _format_address(address)
     if args.radius_pc is not None:
         candidates, occupied, _outside = _neighborhood_candidates(
-            position_pc, args.radius_pc, edge_pc, mysql_config, batch_density.bounds,
+            position_pc, args.radius_pc, edge_pc, mysql_config, batch_density.bounds, _cylinder_of(args, edge_pc),
         )
         batch, _existed, _skipped = _neighborhood_batch(args, candidates, occupied, batch_density, skip={address})
         sectors += [item[2] for item in batch]
-        what += f" and the sectors within {args.radius_pc:g} pc of it"
+        what += f" and the sectors {_region_text(args, edge_pc)} of it"
     run_common._check_estimate(args, sectors, what, progress)
     # The backfill waits for the end of the run (backfill_after_run), with
     # its own bar, instead of stalling this one at 0 of 1 (PERF.28).

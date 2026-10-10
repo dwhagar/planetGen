@@ -611,6 +611,13 @@ def add_galaxy_arguments(parser):
                              "address is (see RANDOM_START_MAX_PLACEMENT_ATTEMPTS). Cannot "
                              "be combined with --density/--num-systems (those override every position's "
                              "density uniformly, leaving no per-position value to compare against).")
+    parser.add_argument('--cylinder-sectors', type=finite_float, metavar='X',
+                        help="Instead of --radius-pc, with --center-sector or --ring --slot: a radial fill "
+                             "(ADM.30), a round disc X sectors across the plane (1 is the centre and its "
+                             "face neighbours) through --cylinder-layers layers either side.")
+    parser.add_argument('--cylinder-layers', type=int, metavar='H',
+                        help="With --cylinder-sectors: layers above and below the centre's to include. "
+                             "Default: the same as --cylinder-sectors, rounded down.")
     parser.add_argument('--no-settle', action='store_true',
                         help="Skip the last step of the run, which saves the path every star system, "
                              "rogue planet and comet takes through its sector (for the sectors the run "
@@ -717,6 +724,26 @@ def validate_galaxy_args(args, parser):
                      "mode) -- ensure_sector_generated always uses this address's own real predicted "
                      "density, the same as when the galaxy map's own live view found it.")
 
+    if args.cylinder_layers is not None and args.cylinder_sectors is None:
+        parser.error("--cylinder-layers requires --cylinder-sectors.")
+    if args.cylinder_sectors is not None:
+        if args.radius_pc is not None:
+            parser.error("--cylinder-sectors replaces --radius-pc; give one.")
+        if args.center_sector is None and args.slot is None:
+            parser.error("--cylinder-sectors needs --center-sector or --ring --layer --slot.")
+        if args.cylinder_sectors <= 0:
+            parser.error("--cylinder-sectors must be a positive number.")
+        if args.cylinder_layers is None:
+            args.cylinder_layers = int(args.cylinder_sectors)
+        if args.cylinder_layers < 0:
+            parser.error("--cylinder-layers must be 0 or more.")
+        edge = program_constants.DEFAULT_SECTOR_EDGE_PC
+        # The search sphere that holds the whole can; the fill trims it to the can.
+        args.radius_pc = run_galaxy.cylinder_extent(args.cylinder_sectors, args.cylinder_layers, edge)[2]
+        if args.radius_pc > limits.MAX_GENERATE_RADIUS_PC:
+            parser.error("That radial fill is larger than the most a run may cover "
+                         f"({limits.MAX_GENERATE_RADIUS_PC:g} pc across its longest reach); use a smaller "
+                         "--cylinder-sectors or --cylinder-layers.")
     if args.center_sector is not None and args.radius_pc is None:
         parser.error("--center-sector requires --radius-pc.")
     if args.radius_pc is not None and args.ring is not None and args.slot is None:
@@ -773,6 +800,7 @@ def _validate_span(args, parser):
         ("--ring", args.ring), ("--layer", args.layer), ("--slot", args.slot),
         ("--center-sector", args.center_sector), ("--radius-pc", args.radius_pc),
         ("--max-ring", args.max_ring), ("--min-start-density", args.min_start_density),
+        ("--cylinder-sectors", args.cylinder_sectors),
     ) if value is not None] + [flag for flag, on in (("--column", args.column), ("--shell", args.shell)) if on]
     if others:
         parser.error(f"--rings/--layers/--slots can't be combined with {', '.join(others)}.")
