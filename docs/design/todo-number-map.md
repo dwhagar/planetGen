@@ -22,7 +22,7 @@ release is stamped.
 | API | API.24 |
 | ADM | ADM.49 |
 | SEC | SEC.33 |
-| TEST | TEST.118 |
+| TEST | TEST.119 |
 | USR | USR.10 |
 | OPS | OPS.39 |
 | DOC | DOC.17 |
@@ -679,7 +679,7 @@ Parents marked "new parent" had no old number of their own.
 | GEN.180 | Directives: a forced fill (met_forced) after K failed draws | none | open |
 | GEN.181 | Directives: refuse impossible requests up front from the compound-Poisson tables | none | open |
 | GEN.182 | Some comets' orbits do not bring them back: they are ejected into space (bug) | none | done, PR #938 |
-| GEN.183 | A mass cut the user sets: preset values on a slider from 8 to 20 solar masses | none | open |
+| GEN.183 | A mass cut the user sets: preset values on a slider from 8 to 20 solar masses | none | done, PR #969 |
 | GEN.184 | A luminosity floor the user sets: presets from 2500 to 4 million solar luminosities, default 3000 | none | done, PR #965 |
 | GEN.185 | The scatter in five passes: mass-limit objects, mass-limit stars, brightest-star sector marks, the luminosity pass, then other phenomena | none | done, PR #953 |
 | GEN.186 | Random neighborhoods: an option to keep away from filled space | none | open |
@@ -1345,6 +1345,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.115 | Three tests fail on the Windows CI leg in every recent run: Redis in WSL is unreachable (bug) | none | open |
 | TEST.116 | test_bughunt_end_to_end stores M2V or M6V where it expects K2V on the MySQL 8.4 and MariaDB legs once (bug) | none | open |
 | TEST.117 | generatejobs.test.mjs fails on main since PERF.33 (PR #910) (bug) | none | done, PR #920 |
+| TEST.118 | test_star_scatter_passes.py fails twice on main since GEN.184 raised the luminosity floor to 2500 or more (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

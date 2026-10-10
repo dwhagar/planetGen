@@ -219,6 +219,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | TEST.111 | test_ensure_sector_generated_creates_then_reuses_the_same_sector fails in a busy parallel run (bug) |  | Test flake reported 2026-10-09; Bugfixes lane 1. |
+| TEST.118 | test_star_scatter_passes.py fails twice on main since GEN.184 raised the luminosity floor to 2500 or more (bug) |  | Foundations lane 2 report 04:23Z. |
 | TEST.116 | test_bughunt_end_to_end stores M2V or M6V where it expects K2V on the MySQL 8.4 and MariaDB legs once (bug) |  | Bugfixes lane 1 report 03:57Z. |
 | TEST.115 | Three tests fail on the Windows CI leg in every recent run: Redis in WSL is unreachable (bug) |  | Bugfixes lane 1 report 03:57Z. |
 
@@ -231,7 +232,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | PERF.46 | Planets and moons: set the position once per body |  | Generation performance study. |
 | GEN.169 | Decide the phenomenon scatter rates: regional factors and the 0.1% intermediate-mass black holes |  | Needs Boss to decide. |
 | GEN.187 | Bright-star back scatter by mass: rings of 1, 2, 5 and 8 solar masses around filled space |  | Boss issue #952, 03:43Z. |
-| GEN.183 | A mass cut the user sets: preset values on a slider from 8 to 20 solar masses |  | Boss rush job 03:01Z; Foundations lane 2 (Boss, 03:04Z). |
 | PERF.41 | Stamp the tile and page caches with a TILE_FORMAT constant instead of the version (optional) | PERF.31 | Research follow-up to PERF.25 (built). |
 | PERF.40 | Two shared queues, a reserved interactive worker and a real "cancel now" | PERF.39 | Research follow-up to PERF.24 (built). |
 | PERF.39 | Every API job costs 2.4 s and 195 MB: import lazily and cap the burst workers |  | Research follow-up to PERF.24 (built); before batch wiki uploads. |
