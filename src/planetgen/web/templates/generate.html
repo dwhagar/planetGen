@@ -222,6 +222,12 @@
         {{ field("block_layer", "Layer", placeholder="every layer", step="1") }}
         {{ field("block_limit", "Limit (sectors)", placeholder="the whole block", step="1", min=1, max=max_limit) }}
         <label class="search-field generate-check"><span><input type="checkbox" name="whole_block" value="1"> Allow a block over 2,000 sectors without a limit</span></label>
+      {%- elif mode == "span" %}
+        {{ field("span_rings", "Rings", kind="text", placeholder="all, e.g. 10:20") }}
+        {{ field("span_layers", "Layers", kind="text", placeholder="all, e.g. -2:2") }}
+        {{ field("span_slots", "Slots (one ring only)", kind="text", placeholder="whole ring, e.g. 50:5") }}
+        {{ field("span_limit", "Limit (sectors)", placeholder="the whole span", step="1", min=1, max=max_limit) }}
+        <label class="search-field generate-check"><span><input type="checkbox" name="whole_span" value="1"> Allow a span over 2,000 sectors without a limit</span></label>
       {%- elif mode == "shell" %}
         {{ field("shell_ring", "Ring", step="1", min=0, max=max_ring) }}
         {{ field("shell_limit", "Limit (sectors)", placeholder="the whole shell", step="1", min=1, max=max_limit) }}

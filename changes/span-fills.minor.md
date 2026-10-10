@@ -1,0 +1,2 @@
+### Added
+- Span fills (ADM.29): `planetgen galaxy --rings 3:5`, `--layers=-1:1` and `--slots 50:5` (an arc, wrapping through slot 0, inside one ring) generate every missing sector in a range of rings, layers or both, inside the galaxy's outline. Ranges are inclusive, and the sector count comes from prefix sums so the size warning is instant. The Generate page has a "A span of rings, layers or slots" mode. `galaxy/span.py` holds the shape for the Galaxy Map's region data layer to reuse.

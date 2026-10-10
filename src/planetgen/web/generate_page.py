@@ -67,6 +67,7 @@ from planetgen import tuning
 from planetgen.util import log
 from planetgen.galaxy.drill import format_drill_key, parse_drill_key
 from planetgen.galaxy.geometry import sector_address_at
+from planetgen.galaxy.span import Span, SpanError, parse_range
 from planetgen.physics.units import ly_to_pc, pc_to_ly
 from planetgen.util.format import format_number
 from planetgen.generation.limits import (
@@ -129,6 +130,11 @@ GALAXY_MODES = (
      "Every sector the galaxy allows inside one drill-down block, by its key (size.ring.wedge.slab, "
      "as in the Galaxy Map's links), or only one of its layers. A size-3 block holds about 9 sectors "
      "a layer; bigger ones need a limit or the confirmation box past 2,000."),
+    ("span", "A span of rings, layers or slots",
+     "Every not-yet-generated sector in a range of rings, a range of layers, or both (the columns of "
+     "those rings through those layers), or one arc of slots in a single ring. Leave a box blank for "
+     "all of it. Ranges are FIRST:LAST, both included; a single number is just that one. Large spans "
+     "need a limit or the confirmation box past 2,000."),
     ("shell", "A shell (not recommended)",
      "Every sector of one ring through every layer: a whole cylinder, usually thousands of sectors, "
      "so it needs a limit or the confirmation box."),
@@ -443,6 +449,8 @@ def galaxy_argv(form, edge_pc=None):
         elif form.get("whole_block"):
             argv.append("--yes")
         return argv, description
+    if mode == "span":
+        return span_argv(form)
     if mode == "shell":
         ring = _number(form, "shell_ring", "Ring", int, required=True, minimum=0, maximum=MAX_GENERATE_RING)
         argv = ["--ring", str(ring), "--shell"]
@@ -453,6 +461,42 @@ def galaxy_argv(form, edge_pc=None):
             argv.append("--yes")
         return argv, f"in the shell at ring {ring}"
     raise FormError("Choose what to generate.")
+
+
+def span_argv(form):
+    """
+    `planetgen galaxy` arguments for the span mode (ADM.29): the Rings,
+    Layers and Slots ranges, each blank for all, and the limit.
+
+    Returns:
+        tuple: `(argv, description)`.
+
+    Raises:
+        FormError: A range that can't be read, nothing asked for, or a
+            slot arc without exactly one ring.
+    """
+    argv, ranges = [], {}
+    for key, label in (("rings", "Rings"), ("layers", "Layers"), ("slots", "Slots")):
+        text = (form.get(f"span_{key}") or "").strip()
+        if not text:
+            continue
+        try:
+            ranges[key] = parse_range(text, label)
+            argv.append(f"--{key}={text}")
+        except SpanError as exc:
+            raise FormError(str(exc)) from None
+    if not argv:
+        raise FormError("Give at least one range: rings, layers or slots.")
+    try:
+        span = Span(**ranges)
+    except SpanError as exc:
+        raise FormError(str(exc)) from None
+    limit = _number(form, "span_limit", "Limit", int, minimum=1, maximum=MAX_GENERATE_LIMIT)
+    if limit is not None:
+        argv += ["--limit", str(limit)]
+    elif form.get("whole_span"):
+        argv.append("--yes")
+    return argv, f"in {span.describe()}"
 
 
 def scatter_argv(form):
