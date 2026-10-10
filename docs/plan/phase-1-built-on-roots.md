@@ -118,7 +118,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.151 | The region data layer: exact-centred frame, aligned cells, per-level aggregates and slot-wrap ranges |  | Fly-through report item 4. Decide cache keys with MAP.147. |
 | MAP.152 | Scale hand-offs: galaxy, sector and system cross-fade with hysteresis, and per-tile camera-relative origins | MAP.150, MAP.154 | Fly-through report item 5. |
 | TEST.135 | Big-galaxy query-budget test for the nebula reads | TEST.133, DB.24 | Foundations lane 1. |
-| MAP.175 | The dark-family nebula fill is invisible on the dark theme (bug) |  | Foundations lane 2. |
 | GEN.202 | Scattered nebulae (planetary nebulae and remnants) join the nebula index, deduplicated by object id | DB.24 | Foundations lane 1. |
 | MAP.174 | Nebula cover in the stage-view cell statistics, for filled and unfilled cells | DB.24 | Foundations lane 2. |
 | MAP.173 | The Galaxy Map tile carries a nebula layer: regions and singles, nested like the star lists | DB.24, MAP.172, MAP.154 | Foundations lane 2. |
@@ -199,6 +198,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | TEST.125 | Three browser-map tests fail on main with "no generated system has a moon" (bug) |  |  |
 | TEST.132 | test_a_fill_after_a_layer_failed_mid_scatter_builds_no_leftover_star failed once in a full parallel run (bug) |  | Lane 2 report 2026-10-10 21:06Z; Bugfixes lane 2 after its current items. |
 | TEST.137 | test_a_neighborhood_from_the_generate_page[core] fails once under load (bug) |  |  |
+| TEST.138 | test_open_map_menus_hold_no_overlap[web.galaxy-1280] fails once in a full parallel run (bug) |  |  |
 | TEST.130 | test_the_scene_positions_at_the_epoch_match_the_stored_ones fails when a random system has comets (bug) |  | Lane 1 report 2026-10-10 20:55Z; Bugfixes lane 1 after its current items. |
 | TEST.134 | test_many_processes_starting_at_once_start_one_job fails under a parallel run (bug) |  | Flaky under load. Bugfixes lane 1. |
 | TEST.129 | Two orbit-update tests fail on the MySQL 8.4 leg: the stored last_updated_at rounds up (bug) |  | Lane 1 report 2026-10-10 20:55Z; Bugfixes lane 1 after its current items. |
