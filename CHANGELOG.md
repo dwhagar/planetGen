@@ -3,6 +3,7 @@
 ## [8.0.866] - 2026-10-10
 
 ### Changed
+- TODO: moved MAP.161 (first-visit script load) into Phase 1, on Foundations lane 2 next to MAP.157 and MAP.158.
 - TODO: added the wire format detail from Research Lane 3 and Research Lane 2 to MAP.157 to MAP.160 and filed the first-visit load item MAP.161.
 - TODO: recorded the measured Galaxy Map wire format facts on MAP.147 and split its recommendation into MAP.157 (trim the tile JSON), MAP.158 (gentler prefetch, IndexedDB), MAP.159 (packed binary tiles, with MAP.154) and MAP.160 (deferred GPU buffer quantising); fixed prerequisite lines on MAP.146, MAP.148, MAP.151 and MAP.152.
 - TODO: recorded Boss's approval of the MAP.156 default.
