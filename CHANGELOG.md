@@ -3,6 +3,7 @@
 ## [8.0.911] - 2026-10-10
 
 ### Changed
+- PERF.58: the shunting amendment is withdrawn; objects over a sector's capacity are dropped (Boss 10:09Z).
 - PERF.58: objects over a sector's capacity are shunted to a face-adjacent sector with room instead of dropped (Boss 10:07Z).
 - PERF.58: Boss dropped the stack-of-layers rule; the sampler runs per layer only.
 - Retired MAP.166 (honest Dimmest star shown label, PR #1070).
