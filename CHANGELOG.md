@@ -3,6 +3,7 @@
 ## [8.0.866] - 2026-10-10
 
 ### Changed
+- The TODO list records the seeding requirements for lazy names and the mass cut (PERF.43, GEN.167, GEN.168) and the ordering note on GEN.57.
 - The plan drops the user-facing rebuild of a galaxy from a seed and a version: OPS.12, GEN.59, GEN.61, OPS.18, ADM.17, ADM.19, ADM.20, API.16 and DB.10 are removed, and GEN.55 becomes the internal same-seed umbrella. The seed stays an internal mechanism for parallel workers, fills, backfills and settle.
 - The TODO list and plan record Boss's decision that lazy names (PERF.43) and the 20 solar mass cut (GEN.166 to GEN.168) share one combined reseed.
 - The TODO list corrects the name-reservation timing quoted on PERF.31, PERF.43 and PERF.49 (the 30 s figure was a contaminated measurement; alone it was 1.7 s of a 17.8 s sector), and the execution plan moves PERF.49 behind PERF.44, PERF.45, PERF.47, DB.19 and OPS.14, with a re-measure as its first step.
