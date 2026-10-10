@@ -3,6 +3,7 @@
 ## [8.0.911] - 2026-10-10
 
 ### Changed
+- **Docs only:** the lane queue puts GEN.170, API.9 (moved to Foundations lane 1) and MAP.153 first.
 - **Docs only:** OPS.39 (Windows support removed, PR #981), TEST.115, OPS.34 (superseded) and TEST.118 (PR #975) are retired.
 - **Docs only:** OPS.40 (update.sh step 8 bug) is filed.
 - **Docs only:** GEN.188 is owned by Foundations lane 2.
