@@ -1112,6 +1112,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   every zoom, the full-zoom floor is 2,500 L_sun, and a test checks the
   scaling at two zoom levels. Open question for Boss (default: use the
   same log scale the map uses now, only with the per-zoom range).
+  Bugfixes lane 2 (2026-10-09): Cause found by Bugfixes lane 2
+  (2026-10-10, relayed): the zoomed-out map bottoms out where the 400th
+  brightest star sits, not at the scatter floor, because of the per-tile
+  cap GALAXY_TILE_MAX_BRIGHT_STARS=400 (db/query.py) that keeps only the
+  400 brightest stars per tile. The 2,500 L_sun wish needs that cap and
+  the floor reconciled (a floor-based cut, or a higher cap, with
+  MAP.148's visibility law).
   Prerequisites: none. Related: MAP.148, MAP.153, GEN.184.
 
 - [ ] **MAP.164 Galaxy Map shows phenomena: black holes purple, neutron stars dark blue, sized by mass, dark colors out-shine brighter stars**
@@ -3121,22 +3128,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none (GEN.184 merged, PR #965). Related: GEN.30, GEN.40, GEN.99, GEN.183,
   GEN.184, MAP.120, PERF.18.
 
-- [ ] **GEN.188 Mass limit default is 8, and the mass slider and luminosity dropdown sit side by side on Generate and New galaxy**
-  Decided (Boss, 2026-10-10 04:38Z, via the coordinator; owner Foundations lane 2): change the
-  Generate-galaxy defaults so the mass limit default is 8 solar masses
-  (GEN.183 shipped 20); put the mass slider and the luminosity floor
-  dropdown (GEN.184, default 3000 L_sun) next to each other on the
-  Generate page, and show both in the New galaxy section as well. Done:
-  a fresh galaxy plan, the CLI default and the stored default use 8, the
-  two controls sit together in both places with the same presets, and
-  tests cover the default and the controls. A galaxy that stored 20
-  keeps its stored limit.
-  Lane (2026-10-09): Update (coordinator, 2026-10-10 06:15Z): the
-  luminosity default moves to 5,000 L_sun together with the mass default
-  of 8 solar masses; GEN.188 is a one-off on Bugfixes lane 2 (not
-  Foundations lane 2).
-  Prerequisites: none. Related: GEN.183, GEN.184, GEN.185.
-
 - [ ] **GEN.189 Gamma-ray burst and AGN ozone loss for the ozone_loss_flag (low priority)**
   Foundations lane 2 (2026-10-10 06:20Z), design 4.5 of
   activity-magnetism-radiation-hydrosphere.md: GEN.87 stores
@@ -3506,7 +3497,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   phases. Unassigned: in no lane's queue. Related: PERF.33 (progress
   bars and ETAs from measured performance), PERF.51 (the progress-bar
   mechanism), PERF.52 and PERF.53 (the generation stats), UX.83, UX.3.
-  Prerequisites: PERF.33. Related: PERF.33, PERF.51, PERF.52, PERF.53,
+  Prerequisite: PERF.33. Related: PERF.33, PERF.51, PERF.52, PERF.53,
   UX.83, UX.3.
 
 ## DB: Database and schema
@@ -4225,6 +4216,17 @@ clears each one.
   open until it recurs, then investigate with the failing run's data).
   Prerequisites: none. Related: TEST.111, TEST.71.
 
+- [ ] **TEST.122 Browser map tests fail on plain main in Bugfixes lane 2's container (fixture maps, controls, system-page maps) (bug)**
+  Bugfixes lane 2 (2026-10-10, relayed):
+  test_web_browser_fixture_maps.py, test_web_browser_controls.py and the
+  system page in test_web_browser_maps.py fail on plain main in its
+  container, not only on a branch (2 system map browser tests failed in
+  the GEN.188 run). Find whether it is the container's browser or a real
+  regression; if real, fix it; if the container, record what the lane
+  needs. Related to the earlier TEST.119 and TEST.120 fixes. Owner:
+  unassigned.
+  Prerequisites: none. Related: TEST.119, TEST.120.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -4499,14 +4501,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   `generator_epoch` are the same number, bumped only when output changes
   for the same seed.
   Prerequisite: OPS.28.
-
-- [ ] **OPS.40 update.sh step 8 fails: setup-debug-log.sh loads the deleted util/appconfig.py (bug)**
-  Reported by Bugfixes lane 2 (2026-10-10 04:39Z): step 8 of update.sh
-  runs setup-debug-log.sh, which still loads util/appconfig.py after
-  that module was deleted, so the step fails. Done: setup-debug-log.sh
-  uses the current settings loader, update.sh step 8 completes, and a
-  test or check covers the script's import.
-  Prerequisites: none.
 
 ## DOC: Documentation
 
