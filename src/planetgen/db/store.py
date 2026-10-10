@@ -187,7 +187,7 @@ collision renames an existing system, which the holder's nearest-neighbor
 rows then reference) neither would move until InnoDB's own 50 s timeout.
 Giving up early breaks that wait at once."""
 
-CONTROL_SCHEMA_VERSION = 11
+CONTROL_SCHEMA_VERSION = 12
 """int: Version counter for `control_schema.sql`, independent of
 `SCHEMA_VERSION` above -- see that file's header comment for why the
 control plane (admin identities/sessions/API keys/audit log) is a
@@ -197,7 +197,8 @@ separate schema with its own versioning. v2 added `login_throttle`
 PERF.10), v7 the job tree's columns on `work_jobs` and the queue pause
 on `work_lease` (ADM.12, ADM.10), v8 the drop of `login_throttle`
 (SEC.30), v9 `galaxy_naming` (GEN.70), v10 `work_job_args` and the drop
-of the JSON columns `work_jobs.argv`, `work_tasks.result` (DB.13), v11 `version_key_history` (OPS.13). New tables need nothing more than
+of the JSON columns `work_jobs.argv`, `work_tasks.result` (DB.13), v11 `version_key_history` (OPS.13), v12 `generation_stats` keyed by worker count and
+version key (PERF.32). New tables need nothing more than
 `CREATE TABLE IF NOT EXISTS`; new columns on an existing table are
 added by `_add_control_columns`."""
 
@@ -1587,6 +1588,7 @@ def _apply_control_schema(conn):
     """`_ensure_control_schema`'s work, under the control schema's lock."""
     _refuse_newer(conn, _stored_version(conn, "control_schema_migrations"), CONTROL_SCHEMA_VERSION,
                   "control schema")
+    _drop_old_generation_stats(conn)
     with open(CONTROL_SCHEMA_PATH, "r", encoding="utf-8") as f:
         conn.executescript(f.read())
     _add_control_columns(conn)
@@ -1599,6 +1601,23 @@ def _apply_control_schema(conn):
         if row["v"] is not None:
             activity_log.event("DB", "migrate", db=configured_control_database(), from_version=row["v"],
                               to_version=CONTROL_SCHEMA_VERSION)
+
+
+def _drop_old_generation_stats(conn):
+    """
+    v12 (PERF.32): `generation_stats` gained `workers` and `version_key`
+    and a new primary key. Its rows are deleted by the first run of any
+    other version anyway, so an older table is dropped (the schema file
+    then creates the new one) rather than rebuilt.
+    """
+    old = conn.execute(
+        "SELECT COUNT(*) AS n FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE()"
+        " AND TABLE_NAME = 'generation_stats'").fetchone()["n"] and not conn.execute(
+        "SELECT COUNT(*) AS n FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE()"
+        " AND TABLE_NAME = 'generation_stats' AND COLUMN_NAME = 'workers'").fetchone()["n"]
+    if old:
+        conn.execute("DROP TABLE generation_stats")
+        conn.commit()
 
 
 def _retire_control_json_columns(conn):

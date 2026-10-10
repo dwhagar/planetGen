@@ -520,7 +520,8 @@ def _scatter_layers(args, mysql_config, skeleton, extents, filled, min_luminosit
                         drew.add(layer_index)
                     slots = _layer_slots(outer_rings[layer_index])
                     density = expected[layer_index] / (e_value * band_share * slots) if band_share and slots else 0.0
-                    run_common._generation_stats(args).record("scatter", density, seconds, systems=stars, stars=stars)
+                    run_common._generation_stats(args).record("scatter", density, seconds, systems=stars, stars=stars,
+                                                                 workers=run_common._worker_count(args))
                 return layer_done
 
             stop = threading.Event()
@@ -778,9 +779,12 @@ def scatter_phenomena(args):
         log.normal(f"Phenomena: about {round(sum(weights.values())):,} to place in {len(layers):,} layers "
                    f"(neutron stars and black holes from {min_mass_solar:g} solar masses).")
 
-        def layer_done(layer_counts, _seconds, _weight):
+        def layer_done(layer_counts, seconds, _weight):
             for kind, count in layer_counts.items():
                 counts[kind] = counts.get(kind, 0) + count
+            placed = sum(layer_counts.values())
+            run_common._generation_stats(args).record("phenomena", 0.0, seconds, systems=placed, stars=placed,
+                                                      workers=run_common._worker_count(args))
 
         with run_common._generation_progress() as progress:
             log.set_console(progress.console)

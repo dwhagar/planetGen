@@ -276,18 +276,26 @@ CREATE TABLE IF NOT EXISTS work_lease (
     paused_at        DATETIME(6) NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- v6 (PERF.3, PERF.10): how fast this server generates and how much
--- space a galaxy takes (`planetgen/generation/stats.py`).
--- `generation_stats` is one row per kind of task ("sector" fill, or a
--- "scatter" layer of bright stars) and log-scale density bucket (two per
--- decade from 0.01, open-ended upward), each a decaying average over
--- every task that ever finished in it. `generation_size` is one row per
--- galaxy database: its bytes per star system, measured from its own
--- tables after each run. Bulk generation reads both for its size and
--- time estimate. A galaxy reset keeps them (they describe the server).
+-- v6 (PERF.3, PERF.10), v12 (PERF.32): how fast this server generates and
+-- how much space a galaxy takes (`planetgen/generation/stats.py`).
+-- `generation_stats` is one row per kind of task ("sector" fill, a
+-- "scatter" layer of bright stars, "phenomena"), worker count and
+-- log-scale density bucket (two per decade from 0.01, open-ended upward),
+-- each a decaying average over every task that finished in it with that
+-- many workers. `version_key` is the release, Python, OS and architecture
+-- that measured it (`galaxy/version_key.py`): rows of any other key are
+-- deleted by the next run, so a new release starts from nothing (Boss,
+-- PERF.32), and an admin can delete them all. A benchmark's rows (PERF.31)
+-- use a "bench:" kind prefix so they never feed a live estimate.
+-- `generation_size` is one row per galaxy database: its bytes per star
+-- system, measured from its own tables after each run. Bulk generation
+-- reads both for its size and time estimate. A galaxy reset keeps them
+-- (they describe the server).
 CREATE TABLE IF NOT EXISTS generation_stats (
-    kind                 VARCHAR(16) NOT NULL,     -- sector, scatter
+    kind                 VARCHAR(32) NOT NULL,     -- sector, scatter, phenomena, bench:...
+    workers              INT NOT NULL DEFAULT 1,   -- worker processes of the runs it averages
     bucket               INT NOT NULL,             -- floor(2 * log10(density / 0.01))
+    version_key          CHAR(22) NOT NULL DEFAULT '',
     density_low          DOUBLE NOT NULL,
     density_high         DOUBLE NOT NULL,
     samples              BIGINT UNSIGNED NOT NULL DEFAULT 0,
@@ -298,7 +306,7 @@ CREATE TABLE IF NOT EXISTS generation_stats (
     max_density          DOUBLE NOT NULL DEFAULT 0,
     updated_at           DATETIME(6) NOT NULL,
 
-    PRIMARY KEY (kind, bucket)
+    PRIMARY KEY (kind, workers, bucket)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS generation_size (

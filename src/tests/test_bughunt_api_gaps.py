@@ -226,6 +226,11 @@ def test_generation_stats_answers_for_an_admin(admin_client):
     assert set(body) == {"buckets", "sizes", "available"}
 
 
+def test_resetting_the_generation_stats_answers_for_an_admin(admin_client):
+    body = admin_client.post("/api/admin/generation-stats/reset", json={}).get_json()
+    assert body == {"deleted": 0}
+
+
 # --- Auth-boundary sweep across every write/admin route ----------------------
 
 _WRITE_ROUTES = [

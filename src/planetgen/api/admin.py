@@ -200,7 +200,7 @@ def generation_stats():
     """
     `GET /api/admin/generation-stats` -- how fast this server generates
     and how big a galaxy gets (PERF.10, `planetgen/generation/stats.py`):
-    `{"buckets": [{"kind", "bucket", "density_low", "density_high",
+    `{"buckets": [{"kind", "workers", "bucket", "density_low", "density_high",
     "samples", "seconds_per_task", "seconds_per_system",
     "systems_per_task", "stars_per_system", "max_density"}], "sizes":
     {database: {"bytes_per_system", "systems", "total_bytes"}},
@@ -214,6 +214,20 @@ def generation_stats():
     except Exception:  # noqa: BLE001 -- update.sh not run yet
         available = False
     return jsonify({"buckets": stats.rows(), "sizes": stats.sizes, "available": available})
+
+
+@bp.route("/generation-stats/reset", methods=["POST"])
+@require_admin(fresh=True)
+def reset_generation_stats():
+    """
+    `POST /api/admin/generation-stats/reset` -- deletes every recorded
+    generation rate (PERF.32); the next run records afresh and estimates
+    from defaults until it has. Returns `{"deleted": n}`. Written to the
+    audit and activity logs as `generation_stats.reset`.
+    """
+    deleted = generationStats.GenerationStats().reset(get_control_db())
+    audit("generation_stats.reset", target="generation_stats", detail=f"deleted={deleted}")
+    return jsonify({"deleted": deleted})
 
 
 def _naming_view(database, stored):

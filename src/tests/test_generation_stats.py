@@ -185,9 +185,80 @@ def test_buckets_and_sizes_survive_a_round_trip(control_config):
     again.record("sector", 1.0, seconds=4.0, systems=10, stars=13)
     again.flush()
     third = GenerationStats(control_config)
-    bucket = third.buckets[("sector", bucket_index(1.0))]
+    bucket = third.buckets[("sector", 1, bucket_index(1.0))]
     assert bucket.samples == 2
     assert math.isclose(bucket.seconds_per_task, 2.0 + generationStats.DECAY * 2.0)
+
+
+def test_rates_are_kept_per_worker_count_and_blended_between(control_config):
+    stats = GenerationStats(control_config)
+    stats.record("sector", 1.0, seconds=1.0, systems=10, stars=10, workers=1)    # 0.1 s per system
+    stats.record("sector", 1.0, seconds=7.0, systems=10, stars=10, workers=4)    # 0.7 s per system
+    assert stats.seconds_per_system("sector", 1.0, workers=1) == 0.1
+    assert stats.seconds_per_system("sector", 1.0, workers=4) == 0.7
+    assert math.isclose(stats.seconds_per_system("sector", 1.0, workers=2), 0.1 + (0.7 - 0.1) / 3)
+    assert stats.seconds_per_system("sector", 1.0, workers=8) == 0.7     # only one side measured
+    stats.flush()
+    assert [row["workers"] for row in GenerationStats(control_config).rows()] == [1, 4]
+
+
+def test_a_benchmark_kind_never_feeds_a_live_estimate(control_config):
+    stats = GenerationStats(control_config)
+    stats.record(generationStats.BENCH_PREFIX + "sector", 1.0, seconds=9.0, systems=1, stars=1)
+    assert not estimate([(1.0, 10.0)], stats, "galaxy").measured
+    assert stats.seconds_per_system("sector", 1.0) == generationStats.DEFAULT_SECONDS_PER_SYSTEM
+
+
+def test_rates_of_another_version_are_deleted_by_the_next_write(control_config, monkeypatch):
+    monkeypatch.setattr(generationStats, "current_version_key", lambda: "A" * 22)
+    old = GenerationStats(control_config)
+    old.record("sector", 1.0, seconds=2.0, systems=10, stars=10)
+    old.flush()
+    assert len(GenerationStats(control_config).rows()) == 1
+
+    monkeypatch.setattr(generationStats, "current_version_key", lambda: "B" * 22)
+    new = GenerationStats(control_config)
+    assert new.rows() == []                       # never read
+    new.record("scatter", 1.0, seconds=1.0, systems=1, stars=1)
+    new.flush()
+    conn = store.get_control_connection(control_config)
+    try:
+        rows = conn.execute("SELECT kind, version_key FROM generation_stats").fetchall()
+    finally:
+        conn.close()
+    assert [(r["kind"], r["version_key"]) for r in rows] == [("scatter", "B" * 22)]
+
+
+def test_reset_deletes_every_rate(control_config):
+    stats = GenerationStats(control_config)
+    stats.record("sector", 1.0, seconds=2.0, systems=10, stars=10, workers=2)
+    stats.flush()
+    conn = store.get_control_connection(control_config)
+    try:
+        assert stats.reset(conn) == 1
+    finally:
+        conn.close()
+    assert stats.rows() == [] and GenerationStats(control_config).rows() == []
+
+
+def test_an_older_stats_table_is_replaced_by_the_new_one(mysql_config):
+    conn = store.get_control_connection(mysql_config, ensure_schema=True)
+    try:
+        conn.execute("DROP TABLE generation_stats")
+        conn.execute("CREATE TABLE generation_stats (kind VARCHAR(16) NOT NULL, bucket INT NOT NULL,"
+                     " density_low DOUBLE NOT NULL, density_high DOUBLE NOT NULL, samples BIGINT UNSIGNED NOT NULL"
+                     " DEFAULT 0, updated_at DATETIME(6) NOT NULL, PRIMARY KEY (kind, bucket))")
+        conn.commit()
+    finally:
+        conn.close()
+    conn = store.get_control_connection(mysql_config, ensure_schema=True)
+    try:
+        columns = {row["c"] for row in conn.execute(
+            "SELECT column_name AS c FROM information_schema.columns"
+            " WHERE table_schema = DATABASE() AND table_name = 'generation_stats'").fetchall()}
+    finally:
+        conn.close()
+    assert {"workers", "version_key"} <= columns
 
 
 def test_the_size_is_measured_from_the_galaxy_database(control_config):

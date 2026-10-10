@@ -38,6 +38,7 @@ import shutil
 import time
 from dataclasses import dataclass, field
 
+from planetgen.galaxy.version_key import version_key as current_version_key
 from planetgen.util import log
 
 MIN_DENSITY = 0.01
@@ -88,9 +89,15 @@ test suite sets it, so test runs never touch a real server's numbers)."""
 FLUSH_SECONDS = 30
 """int: How often a run writes its new averages back while it runs."""
 
-KINDS = ("sector", "scatter")
-"""tuple: What a bucket times: a sector's fill, or (PERF.9) a layer of
-the bright-star scatter, by the layer's mean density."""
+KINDS = ("sector", "scatter", "phenomena")
+"""tuple: What a bucket times: a sector's fill, (PERF.9) a layer of the
+bright-star scatter by the layer's mean density, or (PERF.32) a layer of
+the phenomenon scatter. A benchmark's kinds start with `BENCH_PREFIX`."""
+
+BENCH_PREFIX = "bench:"
+"""str: Starts the kind of every row a benchmark (PERF.31) writes, so none
+feeds a live estimate; `estimate` and `seconds_per_system` only read the
+kind they are asked for."""
 
 
 MAX_BUCKET = BUCKETS_PER_DECADE * 12
@@ -120,8 +127,10 @@ class Bucket:
     """One density bucket's decaying averages.
 
     Attributes:
-        kind (str): `"sector"` or `"scatter"`.
+        kind (str): One of `KINDS`.
         index (int): `bucket_index`.
+        workers (int): The worker count of the runs it averages (rates
+            at four workers are not rates at one).
         samples (int): Tasks counted, ever.
         seconds_per_task (float): Wall time of one task (a sector).
         seconds_per_system (float): That time over the systems it made
@@ -133,6 +142,7 @@ class Bucket:
 
     kind: str
     index: int
+    workers: int = 1
     samples: int = 0
     seconds_per_task: float = 0.0
     seconds_per_system: float = 0.0
@@ -161,7 +171,8 @@ class Bucket:
     def as_dict(self):
         low, high = bucket_bounds(self.index)
         return {
-            "kind": self.kind, "bucket": self.index, "density_low": low, "density_high": high,
+            "kind": self.kind, "workers": self.workers, "bucket": self.index,
+            "density_low": low, "density_high": high,
             "samples": self.samples, "seconds_per_task": self.seconds_per_task,
             "seconds_per_system": self.seconds_per_system, "systems_per_task": self.systems_per_task,
             "stars_per_system": self.stars_per_system, "max_density": self.max_density,
@@ -185,9 +196,11 @@ class GenerationStats:
     def __init__(self, control_config=None):
         self.control_config = control_config
         self.buckets = {}
+        """dict: `(kind, workers, bucket index)` -> `Bucket`."""
         self.sizes = {}
         self._dirty = set()
         self._dirty_sizes = set()
+        self._purged = False
         self._last_flush = time.monotonic()
         self.available = False
         if control_config is not None:
@@ -213,13 +226,17 @@ class GenerationStats:
             conn.close()
 
     def read(self, conn):
-        """Loads every stored bucket and size from an open control
-        database connection (raises when the tables aren't there)."""
-        for row in conn.execute(f"SELECT kind, bucket, {', '.join(_COLUMNS)} FROM generation_stats").fetchall():
-            bucket = Bucket(row["kind"], int(row["bucket"]),
+        """Loads the stored buckets of this version (`version_key`, PERF.32;
+        rows of any other are left alone here and deleted by the first
+        `flush`) and every size from an open control database connection
+        (raises when the tables aren't there)."""
+        for row in conn.execute(
+                f"SELECT kind, workers, bucket, {', '.join(_COLUMNS)} FROM generation_stats WHERE version_key = ?",
+                (current_version_key(),)).fetchall():
+            bucket = Bucket(row["kind"], int(row["bucket"]), workers=int(row["workers"]),
                             **{name: (int(row[name]) if name == "samples" else float(row[name] or 0.0))
                                for name in _COLUMNS})
-            self.buckets[(bucket.kind, bucket.index)] = bucket
+            self.buckets[(bucket.kind, bucket.workers, bucket.index)] = bucket
         for row in conn.execute("SELECT database_name, bytes_per_system, systems, total_bytes"
                                 " FROM generation_size").fetchall():
             self.sizes[row["database_name"]] = {
@@ -230,15 +247,17 @@ class GenerationStats:
 
     # -- recording --------------------------------------------------------
 
-    def record(self, kind, density, seconds, systems=0, stars=0):
+    def record(self, kind, density, seconds, systems=0, stars=0, workers=1):
         """Adds one finished task (a sector filled, a scatter layer) to
-        its density's bucket, writing back every `FLUSH_SECONDS`."""
+        its density's bucket for the run's `workers`, writing back every
+        `FLUSH_SECONDS`."""
         if seconds is None or not math.isfinite(seconds) or seconds < 0:
             return
+        workers = max(1, int(workers or 1))
         index = bucket_index(density)
-        bucket = self.buckets.setdefault((kind, index), Bucket(kind, index))
+        bucket = self.buckets.setdefault((kind, workers, index), Bucket(kind, index, workers=workers))
         bucket.add(density, seconds, systems, stars)
-        self._dirty.add((kind, index))
+        self._dirty.add((kind, workers, index))
         if time.monotonic() - self._last_flush >= FLUSH_SECONDS:
             self.flush()
 
@@ -285,14 +304,15 @@ class GenerationStats:
             return
         try:
             with conn:
+                self._delete_other_versions(conn)
                 for key in sorted(self._dirty):
                     b = self.buckets[key]
                     low, high = bucket_bounds(b.index)
                     conn.execute(
-                        f"INSERT INTO generation_stats (kind, bucket, density_low, density_high, {', '.join(_COLUMNS)},"
-                        " updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(6)) ON DUPLICATE KEY UPDATE "
-                        + ", ".join(f"{name} = VALUES({name})" for name in _COLUMNS) + ", updated_at = NOW(6)",
-                        (b.kind, b.index, low, high) + tuple(getattr(b, name) for name in _COLUMNS),
+                        "REPLACE INTO generation_stats (kind, workers, bucket, version_key, density_low, density_high,"
+                        f" {', '.join(_COLUMNS)}, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(6))",
+                        (b.kind, b.workers, b.index, current_version_key(), low, high)
+                        + tuple(getattr(b, name) for name in _COLUMNS),
                     )
                 for database in sorted(self._dirty_sizes):
                     size = self.sizes[database]
@@ -310,16 +330,56 @@ class GenerationStats:
         finally:
             conn.close()
 
+    def _delete_other_versions(self, conn):
+        """PERF.32: a rate measured by another release, Python, OS or
+        architecture says nothing about this one, so the first write of a
+        new version deletes them (once per run), logging how many."""
+        if self._purged:
+            return
+        removed = conn.execute("DELETE FROM generation_stats WHERE version_key <> ?",
+                               (current_version_key(),)).rowcount
+        self._purged = True
+        if removed:
+            log.debug(f"Generation stats: deleted {removed} rate(s) measured by another version.")
+
+    def reset(self, conn):
+        """Deletes every stored rate (the Admin Reset stats button) through
+        the open control connection `conn`, and forgets the loaded ones.
+
+        Returns:
+            int: Rows deleted.
+        """
+        self.buckets.clear()
+        self._dirty.clear()
+        with conn:
+            return conn.execute("DELETE FROM generation_stats").rowcount
+
     # -- reading ----------------------------------------------------------
 
-    def seconds_per_system(self, kind, density):
-        """The measured worker seconds per star system at `density`: its
-        own bucket's, else the nearest measured bucket's, else
-        `DEFAULT_SECONDS_PER_SYSTEM`."""
-        index = bucket_index(density)
-        measured = [b for (k, _i), b in self.buckets.items() if k == kind and b.samples]
-        if not measured:
+    def seconds_per_system(self, kind, density, workers=1):
+        """The measured worker seconds per star system at `density` for a
+        run of `workers`: the nearest measured density bucket among the
+        rows for that worker count; with none for it, the rows of the
+        neighbouring worker counts blended by distance (the nearest one
+        when only one side has any); else `DEFAULT_SECONDS_PER_SYSTEM`."""
+        workers = max(1, int(workers or 1))
+        counts = sorted({w for (k, w, _i), b in self.buckets.items() if k == kind and b.samples})
+        if not counts:
             return DEFAULT_SECONDS_PER_SYSTEM
+        if workers in counts:
+            return self._nearest_bucket(kind, density, workers)
+        below = [w for w in counts if w < workers]
+        above = [w for w in counts if w > workers]
+        if below and above:
+            low, high = below[-1], above[0]
+            fraction = (workers - low) / (high - low)
+            return ((1 - fraction) * self._nearest_bucket(kind, density, low)
+                    + fraction * self._nearest_bucket(kind, density, high))
+        return self._nearest_bucket(kind, density, (below or above)[-1 if below else 0])
+
+    def _nearest_bucket(self, kind, density, workers):
+        index = bucket_index(density)
+        measured = [b for (k, w, _i), b in self.buckets.items() if k == kind and w == workers and b.samples]
         nearest = min(measured, key=lambda b: (abs(b.index - index), -b.samples))
         return nearest.seconds_per_system
 
@@ -328,8 +388,8 @@ class GenerationStats:
         return size["bytes_per_system"] if size else DEFAULT_BYTES_PER_SYSTEM
 
     def rows(self, kind=None):
-        """Every bucket as a dict, densest last."""
-        return [b.as_dict() for (k, i), b in sorted(self.buckets.items()) if kind is None or k == kind]
+        """Every bucket as a dict, by kind, worker count, density."""
+        return [b.as_dict() for (k, _w, _i), b in sorted(self.buckets.items()) if kind is None or k == kind]
 
 
 @dataclass
@@ -524,16 +584,16 @@ def estimate(sectors, stats, database, workers=1, kind="sector"):
         expected = min(max(float(expected or 0.0), 0.0), MAX_SYSTEMS_PER_SECTOR)
         result.sectors += 1
         result.systems += expected
-        worker_seconds += stats.seconds_per_system(kind, density) * max(expected, 1.0)
+        worker_seconds += stats.seconds_per_system(kind, density, result.workers) * max(expected, 1.0)
     result.stars = result.systems * stars_ratio
     result.bytes = int(math.ceil(round(result.systems * stats.bytes_per_system(database) * (1 + SIZE_MARGIN), 6)))
     result.seconds = worker_seconds / min(result.workers, max(result.sectors, 1))
-    result.measured = any(b.samples for (k, _i), b in stats.buckets.items() if k == kind)
+    result.measured = any(b.samples for (k, _w, _i), b in stats.buckets.items() if k == kind)
     return result
 
 
 def _stars_per_system(stats, kind):
-    measured = [b for (k, _i), b in stats.buckets.items() if k == kind and b.samples and b.stars_per_system]
+    measured = [b for (k, _w, _i), b in stats.buckets.items() if k == kind and b.samples and b.stars_per_system]
     if not measured:
         return 1.3
     return sum(b.stars_per_system * b.samples for b in measured) / sum(b.samples for b in measured)
