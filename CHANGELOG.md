@@ -3,6 +3,11 @@
 ## [8.0.866] - 2026-10-10
 
 ### Fixed
+- A moon's Hill sphere (and so its minimum orbit spacing and the facility orbit slider) is measured about its planet, not its star (GEN.138); the Hill sphere uses the pair's total mass.
+- Class N (a Venus analog) no longer carries a life chemical or a life timeline; Class Q is a habitable class capped at microbial life (GEN.147).
+- The progress ETA is a ratio of decayed sums, so the early estimate of a run on several workers is no longer up to twice too long (PERF.37).
+- The phenomenon render uses `THREE.Timer` in place of the deprecated `THREE.Clock` (MAP.144).
+- The macOS update daemon's plist is well-formed XML again (OPS.32).
 - A 100,000-deep nested JSON body is a 400 ("nested too deeply") instead of a 500 (API.20), and `Retry-After` is only sent on a 429, no longer on every response Flask-Limiter counts (API.21).
 - The admin page's creation-settings download answers an anonymous or non-admin caller with a plain 403, like the other file and data views, instead of a redirect (ADM.18).
 - A neighbourhood or single-address run now reports the first sector (the one named outright) with the same stats as every other sector, each summary has a "Totals" line (star systems, stars, planets, phenomena), and a batch says how many sectors it runs with how many workers before the first report (ADM.47).
