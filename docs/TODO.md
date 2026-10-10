@@ -112,7 +112,7 @@ that files it.
 
 | Phase | Plan | Goal | Items |
 |---|---|---|---|
-| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | DB.9, PERF.29, PERF.30, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, POP.8, POP.9, POP.7, POP.10, NAV.47, NAV.48, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, GEN.57, TEST.77, UX.49 |
+| 1 | [phase-1-built-on-roots.md](plan/phase-1-built-on-roots.md) | Object references and the picker finished, the database check and repair, resumable runs, the reworked Generate page (spans, radial fills, random neighborhoods, directives, show on the map), galaxy generation changes (phenomena placed galaxy-wide first, fill order, backfill from the run's edge, nebula volume backfill, star-type tiers), the habitability index, tech levels and facility types, spin and orbital-update thresholds with their limits, routing with unknown-space stops and charting along a course, the nearby search, Select mode and view filters on the maps, bookmarks, admin control from every screen, in-universe wording, the API log and scopes, and reproducible galaxies up to the golden-seed test. | DB.9, PERF.29, PERF.30, GEN.24, GEN.99, GEN.101, GEN.102, GEN.103, POP.8, POP.9, POP.7, POP.10, NAV.47, MAP.119, MAP.122, UX.46, UX.47, ADM.32, MAP.120, ADM.35, UX.23, UX.22, UX.3, UX.42, ADM.15, API.15, API.4, API.7, GEN.57, TEST.77, UX.49 |
 | 2 | [phase-2-maps-picker-backfill.md](plan/phase-2-maps-picker-backfill.md) | The planet class refactor around the habitability index (with GEN.33, GEN.28, GEN.27 and GEN.29), nebula conditions on planets, n-body orbital updates and rogue collisions, editable trajectories, courses and waypoints, generate-by-recipe in the API, the backfill density pass, daily maintenance, the pilot-style visual design, light-travel positions, the asteroid-field and anomaly plans, and the API pieces remote generation needs first. | GEN.33, GEN.28, GEN.27, GEN.91, GEN.92, GEN.29, GEN.90, MAP.75, MAP.59, NAV.21, NAV.17, NAV.18, NAV.4, NAV.36, NAV.39, NAV.49, UX.32, UX.30, UX.43, GEN.42, PERF.18, GEN.40, PERF.20, API.5, API.10, API.11, API.12, OPS.15, OPS.16, OPS.17, NAV.45, UX.48, UX.45, GEN.115, GEN.109, ADM.36, GEN.110, GEN.105, GEN.95, GEN.93, GEN.112, GEN.113, MAP.121, MAP.132, API.18, PERF.33, MAP.139, MAP.140, MAP.141, MAP.142, MAP.143, GEN.129, GEN.130, ADM.43, ADM.44, NAV.22, NAV.23, NAV.5, NAV.25, NAV.26, NAV.56, NAV.55, NAV.27, NAV.28, NAV.51, NAV.54, NAV.6 |
 | 3 | [phase-3-engine-3d-remote.md](plan/phase-3-engine-3d-remote.md) | The 3D system view and infinite zoom from galaxy to moon on one interface, orbital trajectories in their own frame, courses that bend around gravity wells, remote generation through the API (with galaxy-scale recipes) reproducing what the server would make, and the anomalies chosen in phase 2. | API.13, API.14, API.8, ADM.13, API.3, API.17, GEN.114, API.19 |
 | 3+ | [phase-3plus-accounts-sky-galaxies.md](plan/phase-3plus-accounts-sky-galaxies.md) | The open-ended tail: user accounts (with API.6 keys, saved courses and Hill-radius emails), the view of the sky from a planet, the plan for more galaxies. | USR.2, API.6, USR.3, USR.4, USR.5, USR.6, USR.7, USR.8, USR.1, NAV.19, GEN.111, VIEW.1, VIEW.4, VIEW.2, VIEW.3, GEN.9, GEN.55 |
@@ -1668,29 +1668,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   18:44Z, defaults approved; default: no): do planetary nebulae and
   supernova remnants count as
   stops?
-  Lane (2026-10-09): Owner: Bugfixes lane 2 (moved from Foundations lane
-  1 by the coordinator, 2026-10-10).
-  Design: [docs/design/course-routing.md](design/course-routing.md)
-
-- [ ] **NAV.48 Offer to generate the uncharted sectors that block a course**
-  Boss (2026-10-07 11:47Z): "From navigation menu if there are
-  unexplored / uncharted / unfilled sectors in the way that cannot be
-  bypassed, it should have the option to generate all sectors between
-  the two points." Done: when a route has to cross uncharted sectors,
-  the NAV page offers (to admins) a job that charts the sectors along
-  the line, with the estimate first, and re-plots after.
-  Research (2026-10-09, course-routing.md): add the bypass test (flagged
-  edges removed), "chart the cells of the unknown hops only" as the
-  default, a one-cell-border checkbox, outside-the-galaxy cells
-  excluded, the estimate from `generation.stats.estimate` shown first
-  (not a fixed figure; PERF.3's default is 0.2 s per system while the
-  research costed charting at about 1 s per system), the confirmation at
-  the existing 5,000-sector threshold, and a call to the bright-star
-  backfill (GEN.30) per block. Decided (Boss, 2026-10-10 18:44Z,
-  defaults approved; default: the
-  unknown hops only, then re-plot): or every cell on the straight line?
-  And how long may a charting job be before the page refuses (default:
-  the 5,000-sector confirmation plus the PERF.3 disk refusal)?
   Lane (2026-10-09): Owner: Bugfixes lane 2 (moved from Foundations lane
   1 by the coordinator, 2026-10-10).
   Design: [docs/design/course-routing.md](design/course-routing.md)
@@ -4832,6 +4809,17 @@ clears each one.
   Foundations lane 1.
   Prerequisite: GEN.152. Related: GEN.203, GEN.204.
   Design: [docs/design/nebula-density-vs-reality.md](design/nebula-density-vs-reality.md)
+
+- [ ] **TEST.137 test_a_neighborhood_from_the_generate_page[core] fails once under load (bug)**
+  Reported by Bugfixes lane 2 (2026-10-10 22:47Z):
+  tests/test_neighborhood_edge.py::test_a_neighborhood_from_the_generate_page[core]
+  failed once in a full run (started 21:43Z, 57 min) under load and
+  passed alone; the traceback was not kept. Done: the next failure's
+  traceback is captured (or a loaded run reproduces it), the cause is
+  found (a timeout, a shared table between workers, or a real defect in
+  the neighborhood path) and the test is made reliable without loosening
+  it. Owner: Bugfixes lane 2, after TEST.128.
+  Prerequisites: none. Related: TEST.111, TEST.128, TEST.132.
 
 ## USR: User accounts
 
