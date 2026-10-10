@@ -3,6 +3,7 @@
 ## [8.0.911] - 2026-10-10
 
 ### Changed
+- **Docs only:** GEN.190 and GEN.191 (Generate-page phenomena scatter, New galaxy mass limit) retired.
 - **Docs only:** OPS.40 and GEN.188 retired; TEST.122 (browser map tests fail on plain main in one container) filed; MAP.163 notes the 400-star tile cap; the scatter design note now says the defaults are 8 solar masses and 5,000 L_sun.
 - The Generate page's New galaxy, Plan and Rebuild the bright stars jobs now scatter the phenomena too (black holes, neutron stars, nebulae and the rest) after the stars; they ran only the star scatter, so a new galaxy had no phenomena scatter at all. New galaxy also passes the form's mass limit to its scatters (it used 20 whatever was chosen).
 - On the Generate page, the mass limit slider and the luminosity floor dropdown now sit side by side, in Plan the galaxy and in the New galaxy section (GEN.188). The defaults are 8 solar masses and 5,000 solar luminosities.
