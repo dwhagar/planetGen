@@ -2,14 +2,8 @@
 
 ## [8.0.911] - 2026-10-10
 
-### Fixed
-- The Galaxy Map's "Dimmest star shown" slider says "every star" only when the view holds every star there is (an open sector). At galaxy scale, where tiles are capped and some sectors are uncharted, it names the dimmest star the view actually carries (MAP.166).
-- Galaxy Map: the "Dimmest star shown" slider now runs from the dimmest to the brightest star the current view's tiles actually carry, at galaxy scale too, instead of stopping at a fixed 2,500 solar luminosities (MAP.163 follow-up). 0 still shows every star.
-- Galaxy Map: the galactic nucleus now shows from the whole-galaxy view whether it is a quasar or a supermassive black hole, and stays there once its sector is filled (MAP.164 follow-up). The nucleus quasar was missing from the scattered objects the map lists.
-- `./update.sh` step 8 ("Checking the cache, jobs and debug log locations") no longer fails with `FileNotFoundError` on `util/appconfig.py`; `setup-debug-log.sh` now loads the log paths from `util/logpaths.py`, so the logs and their rotation are set up again. Two new tests (the log-location check runs against the checkout; deploy scripts only name repo paths that exist) fail on the old script.
-- The star scatter pass tests use a luminosity floor the toy galaxy can fill with lighter stars, since the real floor now starts at 2,500 solar luminosities (GEN.184).
-
 ### Changed
+- Retired MAP.166 (honest Dimmest star shown label, PR #1070).
 - PERF.58: final stack rule (no layer grouping; per-layer sampler) and several objects per sector by capacity tiers, from Research lane 3 (PR #1068); PERF.61 follows the same tiers.
 - Filed PERF.58 to PERF.61 (object-first scatter sampler, shared ring inputs, large-mean Poisson helper, phenomena sampler; top priority) from the scatter study; PERF.57 is superseded by PERF.58.
 - Retired UX.90 (habitability explanation page and Ideal rename, PR #1065).
@@ -109,6 +103,13 @@
 - **Docs only:** GEN.88 (hydrosphere and ocean chemistry, PR #963, schema v74) is retired from the TODO list and the plans; OPS.38 (committed Redis dump files) and TEST.117 (generatejobs.test.mjs failing since PERF.33) are filed.
 - Rogue planet oceans now stop at the depth where high-pressure ice forms (the rest is stored as high-pressure ice), their ice lid is compared with the water in matching units and melts lower under its own weight, and an ocean under a hydrogen envelope is shown as a hycean ocean. New seeded output differs from earlier versions.
 - **Docs only:** Boss confirmed the defaults on GEN.183, GEN.184, GEN.187 and UX.87; their open questions are now decisions.
+
+### Fixed
+- The Galaxy Map's "Dimmest star shown" slider says "every star" only when the view holds every star there is (an open sector). At galaxy scale, where tiles are capped and some sectors are uncharted, it names the dimmest star the view actually carries (MAP.166).
+- Galaxy Map: the "Dimmest star shown" slider now runs from the dimmest to the brightest star the current view's tiles actually carry, at galaxy scale too, instead of stopping at a fixed 2,500 solar luminosities (MAP.163 follow-up). 0 still shows every star.
+- Galaxy Map: the galactic nucleus now shows from the whole-galaxy view whether it is a quasar or a supermassive black hole, and stays there once its sector is filled (MAP.164 follow-up). The nucleus quasar was missing from the scattered objects the map lists.
+- `./update.sh` step 8 ("Checking the cache, jobs and debug log locations") no longer fails with `FileNotFoundError` on `util/appconfig.py`; `setup-debug-log.sh` now loads the log paths from `util/logpaths.py`, so the logs and their rotation are set up again. Two new tests (the log-location check runs against the checkout; deploy scripts only name repo paths that exist) fail on the old script.
+- The star scatter pass tests use a luminosity floor the toy galaxy can fill with lighter stars, since the real floor now starts at 2,500 solar luminosities (GEN.184).
 
 ### Added
 - A "Habitability levels" page under Classes (`/classes/habitability`, UX.90) explains the five equipment levels, the four PHI-4 domains with their Blue, Green, Yellow and Red thresholds, the pulsar, neutron star and black hole host rule, and the Habitable, Habitable moon and Inhabited chips. It is linked from the Classes list, from a visible line above a system's body list and from the Equipment tags on the search page.
