@@ -245,7 +245,7 @@ export function createStageView(host) {
               sectors.set(key, sector);
               entry.value.sectorGenerated.set(key, 1);
             });
-          }, function () { /* that child's sectors read as not generated */ });
+          }, function () { /* that child's sectors read as uncharted */ });
         })).then(function () {
           entry.ready = true;
           return entry.value;
@@ -1442,8 +1442,8 @@ export function createStageView(host) {
     const parts = [(block.m === 1 ? "Sector " : "Block ") + S.blockLabel(block),
       "bearing " + bearing[0].toFixed(1) + "°–" + bearing[1].toFixed(1) + "°",
       Math.round(b.r0) + "–" + Math.round(b.r1) + " pc from the core"];
-    if (block.m === 1) parts.push(generated > 0 ? "generated" : "not generated");
-    else parts.push(S.formatCount(generated) + (block.total != null ? " of " + S.formatCount(block.total) : "") + " sectors generated");
+    if (block.m === 1) parts.push(generated > 0 ? "charted" : "uncharted");
+    else parts.push(S.formatCount(generated) + (block.total != null ? " of " + S.formatCount(block.total) : "") + " sectors charted");
     return parts.join(", ");
   }
 
@@ -1468,7 +1468,7 @@ export function createStageView(host) {
     const data = display.data;
     if (option.blocks.length === 1) return blockText(option.blocks[0], data);
     const sum = sumOf(option.blocks, data);
-    const counts = S.formatCount(sum.generated) + (getOutline().shapeless ? "" : " of " + S.formatCount(sum.total)) + " sectors generated";
+    const counts = S.formatCount(sum.generated) + (getOutline().shapeless ? "" : " of " + S.formatCount(sum.total)) + " sectors charted";
     if (option.pick && option.pick.kind === "layer") return layerText(option.pick) + ", " + counts;
     const span = spanOf(option.blocks, (option.a0 + option.a1) / 2);
     return (option.pick ? S.pickLabel(option.pick, stage.at, option) : "Here") + ", "
@@ -2284,7 +2284,7 @@ export function createStageView(host) {
       button.appendChild(count);
       button.title = S.pickLabel(pick, stage.at, resolved.view) + ": " + label.slice(number.length + 1);
       button.setAttribute("aria-label", layerText(pick) + ", " + S.formatInt(sum.generated)
-        + (getOutline().shapeless ? "" : " of " + S.formatInt(sum.total)) + " sectors generated"
+        + (getOutline().shapeless ? "" : " of " + S.formatInt(sum.total)) + " sectors charted"
         + (takeable ? "" : " (nothing generated here to pick)"));
       if (!takeable) button.setAttribute("aria-disabled", "true");
       const light = function () { if (!animation) setHover({ layer: pick, sticky: true }); };

@@ -1652,7 +1652,7 @@ def _scattered_classes(conn, types=(), descriptors=(), placed=None, ignore=()):
 
 def _scattered_page(conn, classes, limit, offset):
     """`limit` unbuilt scatter rows from `offset` among the `classes`, in id order, shaped like the Phenomena rows
-    (`scattered` True, named "Unbuilt <kind> <ring>.<layer>.<slot>")."""
+    (`scattered` True, named "Uncharted <kind> <ring>.<layer>.<slot>")."""
     if not classes:
         return []
     by_class = {(entry["kind"], entry["subtype"]): entry for entry in classes}
@@ -1667,7 +1667,7 @@ def _scattered_page(conn, classes, limit, offset):
         params.extend([limit, offset or 0])
     return [
         {"id": row["id"], "type": by_class[(row["kind"], row["subtype"])]["type"],
-         "name": f"Unbuilt {row['kind'].replace('-', ' ')} {row['ring_index']}.{row['layer_index']}."
+         "name": f"Uncharted {row['kind'].replace('-', ' ')} {row['ring_index']}.{row['layer_index']}."
                  f"{row['ring_slot_index']}",
          "descriptor": by_class[(row["kind"], row["subtype"])]["descriptor"], "radius_ly": 0.0,
          "sector_id": None, "sector_name": None, "placed": True, "scattered": True}

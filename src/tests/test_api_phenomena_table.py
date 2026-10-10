@@ -126,7 +126,7 @@ def test_scattered_phenomena_not_yet_built_are_listed_for_every_kind(client, mys
     assert all(item["scattered"] and item["placed"] for item in body["items"])
     assert {f["value"]: f["count"] for f in body["facets"]["type"]}["black_hole"] == 2
     assert client.get("/api/phenomena?type=neutron_star").get_json()["total"] == 1
-    assert "Unbuilt neutron star 0.0.2" in _names(client.get("/api/phenomena"))
+    assert "Uncharted neutron star 0.0.2" in _names(client.get("/api/phenomena"))
 
 
 def test_scattered_phenomena_are_paged_after_the_built_ones_without_scanning(client, mysql_config):
@@ -138,13 +138,13 @@ def test_scattered_phenomena_are_paged_after_the_built_ones_without_scanning(cli
     conn.commit()
     everything = client.get("/api/phenomena").get_json()
     assert everything["total"] == 9
-    assert [i["name"] for i in everything["items"]][4:] == [f"Unbuilt neutron star 0.0.{n}" for n in range(5)]
+    assert [i["name"] for i in everything["items"]][4:] == [f"Uncharted neutron star 0.0.{n}" for n in range(5)]
     # A page that straddles the built rows and the scattered ones, and one wholly inside the scattered ones.
     straddle = client.get("/api/phenomena?limit=3&offset=3").get_json()
-    assert [i["name"] for i in straddle["items"]] == ["Zeta Cloud", "Unbuilt neutron star 0.0.0",
-                                                       "Unbuilt neutron star 0.0.1"]
+    assert [i["name"] for i in straddle["items"]] == ["Zeta Cloud", "Uncharted neutron star 0.0.0",
+                                                       "Uncharted neutron star 0.0.1"]
     deep = client.get("/api/phenomena?limit=2&offset=7").get_json()
-    assert [i["name"] for i in deep["items"]] == ["Unbuilt neutron star 0.0.3", "Unbuilt neutron star 0.0.4"]
+    assert [i["name"] for i in deep["items"]] == ["Uncharted neutron star 0.0.3", "Uncharted neutron star 0.0.4"]
     # Building a scattered phenomenon takes it off the unbuilt count.
     store.mark_phenomena_built(conn, [conn.execute("SELECT MIN(id) AS i FROM phenomenon_scatter").fetchone()["i"]])
     conn.commit()
