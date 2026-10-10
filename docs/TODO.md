@@ -3158,24 +3158,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.169, GEN.166, GEN.167, GEN.168,
   PERF.18.
 
-- [ ] **GEN.184 A luminosity floor the user sets: presets from 2500 to 4 million solar luminosities, default 3000**
-  Boss (2026-10-10 03:01Z): "Change the luminosity code, the user has
-  preset settings, default is 3000 solar luminosities, user can choose
-  no lower than 2500, but goes up to 4 million in an exponential scale,
-  so the user has the best control (jumps of 100 solar luminosities)
-  near 2500 but ending with 500,000 jumps near the 4 million mark."
-  Done: the bright-star luminosity floor is one of a preset list that
-  starts at 2500 L_sun with steps of 100, grows exponentially and ends
-  at 4,000,000 L_sun with steps near 500,000; the default is 3000 L_sun.
-  This replaces the fixed 1000 L_sun floor (GEN.30) as the default and
-  sets 2500 as the lowest allowed. Decided (Boss, 2026-10-10 04:06Z, "your defaults are confirmed"): a
-  geometric ladder of about 60 presets built from the step rule, rounded
-  to 2 significant digits above 10,000, and a database already filled
-  below the new floor keeps its stars.
-  Note (2026-10-10, GEN.185 merged, PR #953): the five passes are built with one mass limit (phenomenon_min_mass_solar) for phenomena and stars, and galaxy_shape.bright_star_mass_limit_sol records it (phenomenon-scatter-mass-cut.md, "The star passes").
-  Lane (Boss, 2026-10-10 03:04Z): Foundations lane 1.
-  Prerequisites: none. Related: GEN.30, PERF.18, GEN.40, MAP.120.
-
 - [ ] **GEN.186 Random neighborhoods: an option to keep away from filled space**
   Left over from GEN.97 (merged, PR #950; Foundations lane 1 report,
   2026-10-10 03:37Z). The research note
@@ -3203,7 +3185,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (GEN.183) applies. Decided (Boss, 2026-10-10 04:06Z, "your defaults are confirmed"): the nearest ring
   takes the lowest mass cut, as above, and each ring is counted from the
   previous ring's outer edge; the GEN.30 luminosity tiers go away.
-  Prerequisite: GEN.184. Related: GEN.30, GEN.40, GEN.99, GEN.183,
+  Prerequisites: none (GEN.184 merged, PR #965). Related: GEN.30, GEN.40, GEN.99, GEN.183,
   GEN.184, MAP.120, PERF.18.
 
 ## PERF: Speed, caching, bulk generation and parallel work
