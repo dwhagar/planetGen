@@ -1618,6 +1618,7 @@ def run_galaxy(args):
     # scatter nor the backfill draws stars for a sector the run filled.
     if getattr(args, "then_scatter", False):
         run_plan.scatter_bright_stars(args)
+        run_plan.scatter_phenomena(args)    # the last pass of GEN.185: the other phenomena, after the stars
     backfill_after_run(args, edge_pc, started_at)
     run_population.run_population_after(args)
     settle_after_run(args, started_at)
