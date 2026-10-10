@@ -3,6 +3,7 @@
 ## [8.0.911] - 2026-10-10
 
 ### Changed
+- **Docs only:** OPS.40 (update.sh step 8 bug) is filed.
 - **Docs only:** GEN.188 is owned by Foundations lane 2.
 - **Docs only:** GEN.188 (mass limit default 8; mass slider and luminosity dropdown side by side on Generate and New galaxy) is filed, and the mass-cut design note records the new default.
 - **Docs only:** ADM.31 (every generate action offers the Galaxy Map, PR #976) is retired from the TODO list and the plans.
