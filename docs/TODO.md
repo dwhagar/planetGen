@@ -3443,29 +3443,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   record compute time and write time separately for the phenomena pass.
   Prerequisites: none. Related: PERF.52, PERF.53, GEN.185.
 
-- [ ] **PERF.59 Share the ring inputs between the phenomena pass and the backfill rings (top priority)**
-  From the scatter study (docs/design/scatter-queue-feasibility.md): the
-  scatter passes recomputed identical _ring_bins inputs, about 87 of 168
-  s at quarter scale. Boss (09:52Z): follow the study recommendations,
-  top priority. Re-scoped (Bugfixes lane 1, 2026-10-10, after PERF.58,
-  PR #1108): the mass and luminosity passes are object-first now and no
-  longer walk rings, so only the phenomena pass and the mass backfill
-  rings still use the ring inputs. Done: those ring inputs are built once
-  per run and shared, and cached across runs by the same key as the map
-  warm-up where that is safe; results do not change (a test shows the
-  same rows with and without sharing). The phenomena pass keeps its ring
-  walk (PERF.61 found no gain, PR #1113), so this item stands. Owner:
-  Bugfixes lane 1.
-  Prerequisites: none. Related: PERF.58, PERF.61, PERF.63, GEN.185.
-  Benchmark (coordinator, 2026-10-10): once Boss reseeds with the PERF.58
-  sampler, read the stage stats of PERF.56 for the mass and luminosity
-  passes at default scale and compare with the study's forecast of
-  about 35 times faster; Boss times the reseed himself. PERF.58 finding:
-  the old ring walk overstated expected counts about 6% on the toy test
-  galaxy (density read at bin centres); the new sampler integrates the
-  true density. PERF.61 side result (PR #1113): the star scatter checks
-  the cell address only after the density test, about 20% faster.
-
 - [ ] **PERF.65 The text output of a multi-step job counts its steps, not its tasks: "Step 1 of 4" when the job has 12 (bug)**
   Boss (2026-10-10 19:54Z, with a Generate-page log): a new-galaxy run
   prints "=== Step 1 of 4: Check the math ===" up to "Step 4 of 4:
@@ -4560,6 +4537,16 @@ clears each one.
   Foundations lane 1.
   Prerequisites: none. Related: PERF.68, PERF.69, PERF.70, PERF.71.
   Design: [docs/design/slow-reads-and-timeouts.md](design/slow-reads-and-timeouts.md)
+
+- [ ] **TEST.134 test_many_processes_starting_at_once_start_one_job fails under a parallel run (bug)**
+  Bugfixes lane 1 (2026-10-10, full local suite 19:41Z to 20:54Z, -n 4):
+  src/tests/test_web_jobs_damage.py::test_many_processes_starting_at_once_start_one_job
+  fails when the suite runs in parallel and passes alone. Done: the
+  cause is found (a shared Redis or database state with the other
+  workers, or a timing limit) and the test is made to pass under -n 4
+  without skipping, disabling or loosening it away from what it checks.
+  Owner: Bugfixes lane 1.
+  Prerequisites: none. Related: TEST.126, TEST.127, TEST.128.
 
 ## USR: User accounts
 
