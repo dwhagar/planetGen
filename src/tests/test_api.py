@@ -1264,6 +1264,9 @@ def test_galaxy_tiles_list_the_scattered_black_holes_and_neutron_stars_before_th
             conn.execute("INSERT INTO phenomenon_scatter (ring_index, layer_index, ring_slot_index, kind, subtype,"
                          " position_x_mpc, position_y_mpc, position_z_mpc, seed, built_at)"
                          " VALUES (0, 0, 0, 'black-hole', 'stellar', 1, 1, 1, 2, NOW())")
+            conn.execute("INSERT INTO phenomenon_scatter (ring_index, layer_index, ring_slot_index, kind, subtype,"
+                         " position_x_mpc, position_y_mpc, position_z_mpc, seed, built_at)"
+                         " VALUES (0, 0, 0, 'quasar', NULL, 2, 2, 2, 3, NOW())")
     finally:
         conn.close()
 
@@ -1276,7 +1279,11 @@ def test_galaxy_tiles_list_the_scattered_black_holes_and_neutron_stars_before_th
         ("black_hole", "supermassive", 1.0), ("black_hole", "intermediate", 0.8),
         ("black_hole", "stellar", 0.55), ("neutron_star", "scattered", 0.35)]
     assert all(p["scattered"] for p in fine_points)
-    assert [p["descriptor"] for p in tiles[coarse]["points"]] == ["supermassive", "intermediate"]
+    # The nucleus quasar is listed from the whole-galaxy view even once built, and the unbuilt ones keep "(uncharted)".
+    coarse_points = {p["descriptor"]: p for p in tiles[coarse]["points"]}
+    assert set(coarse_points) == {"scattered", "supermassive", "intermediate"} and len(tiles[coarse]["points"]) == 3
+    assert coarse_points["scattered"]["type"] == "quasar" and coarse_points["scattered"]["name"] == "Quasar"
+    assert coarse_points["supermassive"]["name"].endswith("(uncharted)")
 
 
 def test_galaxy_shape_reports_the_bright_star_scatter(client, mysql_config):
