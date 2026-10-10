@@ -232,6 +232,16 @@ def star_rotation_period_hours(mass_kg, radius_km, temperature_k, age_gy, yerkes
     return max(period, period_hours_from_speed(radius_km, cap))
 
 
+def planet_day_hours(body_type):
+    """An untidal planet's day, hours: log-uniform over
+    `constants.ROTATION_PERIOD_RANGE_HOURS` for a rocky body, uniform for a
+    gas giant."""
+    low, high = constants.ROTATION_PERIOD_RANGE_HOURS[body_type]
+    if body_type == "t":
+        return math.exp(draw.uniform(math.log(low), math.log(high)))
+    return draw.uniform(low, high)
+
+
 def small_body_period_hours():
     """A comet's or asteroid's period, hours, never under the spin barrier."""
     return max(SPIN_BARRIER_HOURS, math.exp(draw.gauss(SMALL_BODY_PERIOD_MU, SMALL_BODY_PERIOD_SIGMA)))

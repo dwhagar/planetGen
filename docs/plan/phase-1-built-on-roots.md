@@ -241,7 +241,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | DB.15 | A migration progress bar with the time remaining | PERF.51 | GitHub issue [#727](https://github.com/dwhagar/planetGen/issues/727). Bugfixes lane 1 (Boss, 23:38Z). |
 | PERF.51 | One progress mechanism for every sub-step: a bar starts by itself when a step is predicted to take over 15 seconds | PERF.33 | Boss 23:34Z: one mechanism, bars start themselves over 15 s. Bugfixes lane 1 (Boss, 23:38Z). |
 | GEN.128 | Design: multi-star hierarchies and compact-object primaries |  | GitHub issues [#777](https://github.com/dwhagar/planetGen/issues/777) and [#778](https://github.com/dwhagar/planetGen/issues/778): the research both builds wait on. |
-| ADM.42 | One settings model describes every config.json option |  | Foundation for GitHub issues [#515](https://github.com/dwhagar/planetGen/issues/515) and [#743](https://github.com/dwhagar/planetGen/issues/743). |
 
 ## Open questions for Boss
 
