@@ -433,24 +433,6 @@ with `clamp()`.
   Prerequisites: none.
   Design: [docs/design/map-ui-and-frontend-libraries.md](design/map-ui-and-frontend-libraries.md)
 
-- [ ] **UX.87 The system list shows uncharted systems: every scattered star, with its location and a way to generate it**
-  Boss (GitHub issue
-  [#929](https://github.com/dwhagar/planetGen/issues/929), 2026-10-10
-  01:51Z): "Every star that is scattered throughout in the brightness
-  scatter needs to be also listed or able to be listed as 'uncharted' in
-  the star system list. Information about that star and its location is
-  displayed, its coordinates, sector coordinates, and other information
-  including layer, shell, and slot that it occupies. This interface
-  should also allow the user to generate that star system by itself,
-  though the system will recommend generating the entire sector." Done:
-  the system list has an 'uncharted' filter (off by default) that lists
-  scattered stars with their coordinates, sector coordinates, layer,
-  shell and slot and the star's own data; each row has a Generate button
-  for that one system, with a note recommending the whole sector. Decided (Boss, 2026-10-10 04:06Z, "your defaults are confirmed"): scattered stars from the mass-limit and
-  luminosity passes both count; generating one system fills only that
-  system and leaves the sector's other contents ungenerated.
-  Prerequisites: none. Related: MAP.162, ADM.32, ADM.35, NAV.48, DOC.9.
-
 - [ ] **UX.91 Planet and moon description carries a full PHI-4 explanation, each colour factor and why**
   Boss (2026-10-10 08:49Z, via the coordinator): PHI-4 should have a
   full explanation in the planet or moon description, each colour factor
@@ -475,7 +457,7 @@ with `clamp()`.
   be bookmarked and listed in the bookmark manager (UX.47) with its
   kind; a test covers it. Small. Phase 2 unless Foundations lane 1 says
   otherwise.
-  Prerequisites: UX.45. Related: ('NAV.9', 'UX.47').
+  Prerequisite: UX.45. Related: ('NAV.9', 'UX.47').
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
