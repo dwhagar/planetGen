@@ -2,13 +2,8 @@
 
 ## [8.0.911] - 2026-10-10
 
-### Fixed
-- Galaxy Map: the "Dimmest star shown" slider now runs from the dimmest to the brightest star the current view's tiles actually carry, at galaxy scale too, instead of stopping at a fixed 2,500 solar luminosities (MAP.163 follow-up). 0 still shows every star.
-- Galaxy Map: the galactic nucleus now shows from the whole-galaxy view whether it is a quasar or a supermassive black hole, and stays there once its sector is filled (MAP.164 follow-up). The nucleus quasar was missing from the scattered objects the map lists.
-- `./update.sh` step 8 ("Checking the cache, jobs and debug log locations") no longer fails with `FileNotFoundError` on `util/appconfig.py`; `setup-debug-log.sh` now loads the log paths from `util/logpaths.py`, so the logs and their rotation are set up again. Two new tests (the log-location check runs against the checkout; deploy scripts only name repo paths that exist) fail on the old script.
-- The star scatter pass tests use a luminosity floor the toy galaxy can fill with lighter stars, since the real floor now starts at 2,500 solar luminosities (GEN.184).
-
 ### Changed
+- **Docs only:** MAP.148 notes the follow-ups to MAP.163 and MAP.164 (PRs #1032, #1035).
 - **Docs only:** API.9 (key scopes, expiry, prefix, per-key rate bucket) retired; control schema is v13.
 - **Docs only:** UX.90 (explain the habitability chips in the web interface) filed as an unassigned Phase 1 item; docs/html-interface.md notes the chips.
 - **Docs only:** MAP.163 and MAP.164 retired; MAP.165 (store a mass for scattered phenomena) filed; MAP.148 notes the 400-star tile cap.
@@ -77,6 +72,12 @@
 - **Docs only:** GEN.88 (hydrosphere and ocean chemistry, PR #963, schema v74) is retired from the TODO list and the plans; OPS.38 (committed Redis dump files) and TEST.117 (generatejobs.test.mjs failing since PERF.33) are filed.
 - Rogue planet oceans now stop at the depth where high-pressure ice forms (the rest is stored as high-pressure ice), their ice lid is compared with the water in matching units and melts lower under its own weight, and an ocean under a hydrogen envelope is shown as a hycean ocean. New seeded output differs from earlier versions.
 - **Docs only:** Boss confirmed the defaults on GEN.183, GEN.184, GEN.187 and UX.87; their open questions are now decisions.
+
+### Fixed
+- Galaxy Map: the "Dimmest star shown" slider now runs from the dimmest to the brightest star the current view's tiles actually carry, at galaxy scale too, instead of stopping at a fixed 2,500 solar luminosities (MAP.163 follow-up). 0 still shows every star.
+- Galaxy Map: the galactic nucleus now shows from the whole-galaxy view whether it is a quasar or a supermassive black hole, and stays there once its sector is filled (MAP.164 follow-up). The nucleus quasar was missing from the scattered objects the map lists.
+- `./update.sh` step 8 ("Checking the cache, jobs and debug log locations") no longer fails with `FileNotFoundError` on `util/appconfig.py`; `setup-debug-log.sh` now loads the log paths from `util/logpaths.py`, so the logs and their rotation are set up again. Two new tests (the log-location check runs against the checkout; deploy scripts only name repo paths that exist) fail on the old script.
+- The star scatter pass tests use a luminosity floor the toy galaxy can fill with lighter stars, since the real floor now starts at 2,500 solar luminosities (GEN.184).
 
 ### Added
 - API keys have scopes (API.9): `read`, `generate`, `upload` and `admin` (admin implies all; generate and upload imply read), an optional expiry, and a visible prefix. Existing keys become admin keys. A key short of a route's scope gets `403` with `required_scope`; every key has its own rate limit bucket and skips the per-address defaults; `last_used_at` is written at most once a minute. The admin page's new-key form takes scopes and a lifetime. Control schema v13.
