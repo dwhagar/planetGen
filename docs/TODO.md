@@ -3234,6 +3234,25 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   in the Generate page and the CLI.
   Prerequisites: none. Related: GEN.96, GEN.180.
 
+- [ ] **GEN.182 Some comets' orbits do not bring them back: they are ejected into space (bug)**
+  Boss (2026-10-10 01:12Z): "in a star system orbital path of some
+  comets doesn't bring them back, it ejects them out into space, if this
+  is intentional, no problem, if not then we need to fix it". Done:
+  first, check whether the ejection is intended by design: read how the
+  generator draws comet orbits (semi-major axis and eccentricity, and
+  whether any can be unbound, e >= 1 or an energy above zero) against
+  the Hill-sphere and stability rules of GEN.109, and say what was found
+  in the PR. If the ejection is intended (for example a hyperbolic
+  interloper), record that on the comet page and in the docs, make the
+  system page say the orbit is unbound instead of drawing an open path
+  as if it returned, and close the item. If it is not intended, fix the
+  generator so every bound comet gets a closed orbit that stays inside
+  the star's Hill sphere, with a test that draws many comets and checks
+  that none is unbound, and make the orbit-update step (GEN.105) never
+  eject one by accident. Bugfixes lane 1, after its current queue (the
+  progress-bar chain, the main CI errors, UX.85 and UX.86).
+  Prerequisites: none. Related: GEN.109, GEN.105, GEN.104.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.18 Run the GEN.30 bright-star backfill in parallel on the work queue**
