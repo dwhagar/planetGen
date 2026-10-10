@@ -3,6 +3,7 @@
 ## [8.0.911] - 2026-10-10
 
 ### Changed
+- The Phenomena table now lists every phenomenon the scatter has placed but no sector has built yet (black holes, neutron stars, nebulae, remnants, hypervelocity stars), as greyed "Uncharted ..." rows without a page. Before, a fresh scatter left the table empty until sectors were filled.
 - **Docs only:** GEN.170 retired; TEST.123 (a flaky spatial-position test) filed.
 - **Docs only:** PERF.53 retired; PERF.55 notes the missing whole-job layers-per-second stat.
 - The generation-speed stats no longer count a sector, bright-star layer or phenomena layer that produced nothing, so empty ones stop skewing the per-sector, per-layer and per-unit times (the progress bar still counts every layer of the job).
