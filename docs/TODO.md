@@ -3422,6 +3422,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none.
   Design: [docs/design/generation-performance-study.md](design/generation-performance-study.md)
 
+- [ ] **PERF.53 Timing stats are skewed by layers and sectors that generated nothing (bug)**
+  Boss (2026-10-10 06:28Z): when scattering of any kind is done, the
+  timing stats get skewed because they include layers generated or
+  sectors generated that produced nothing. Done: the per-layer,
+  per-sector and per-unit timing stats count a run only when something
+  was actually generated; the total layers-per-second figure keeps
+  counting every layer, including the ones that produced nothing,
+  because it measures the whole job; a test on a small galaxy with empty
+  layers checks both. Related to PERF.52 (the admin generation-stats
+  table).
+  Prerequisites: none. Related: PERF.52, PERF.33, GEN.185.
+
 ## DB: Database and schema
 
 DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
