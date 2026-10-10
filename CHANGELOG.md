@@ -3,6 +3,7 @@
 ## [8.0.911] - 2026-10-10
 
 ### Changed
+- **Docs only:** MAP.163 and MAP.164 retired; MAP.165 (store a mass for scattered phenomena) filed; MAP.148 notes the 400-star tile cap.
 - Galaxy Map: black holes are drawn purple and neutron stars dark blue (MAP.164), at the top of the star scale with full core brightness so they out-shine brighter stars. Scattered black holes and neutron stars that no sector has built yet are now listed in the map tiles too, sized by mass class, and the biggest classes (the nucleus and intermediate-mass black holes) show from the whole-galaxy view.
 - Galaxy Map: the "Dimmest star shown" slider now runs from the dimmest to the brightest star at the current zoom (an open sector's stars, else the loaded tiles', down to 2,500 solar luminosities at galaxy scale), 0 still showing every star (MAP.163).
 - **Docs only:** GEN.194 (defaults 14 Msun and 9,000 Lsun), UX.89 (stage counts bug) and PERF.56 (per-stage timing with settings) filed for Bugfixes lane 1.
