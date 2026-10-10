@@ -3,6 +3,7 @@
 ## [8.0.911] - 2026-10-10
 
 ### Changed
+- **Docs only:** GEN.89 and its umbrella GEN.83 (habitability index) retired; schema is v76.
 - **Docs only:** UX.88 moves to Bugfixes lane 1.
 - A Generate-page job with several steps now shows one overall bar above the step bar, with the time left across all steps: the running step's own estimate plus what earlier runs of each later step took ("at least" when a later step has no record yet).
 - **Docs only:** PERF.33 (job ETA adds unstarted steps, PR #1021) and PERF.55 (overall bar on the web pages, PR #1023) noted as partly built.
