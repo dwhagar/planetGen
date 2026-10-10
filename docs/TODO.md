@@ -504,6 +504,18 @@ with `clamp()`.
   GEN.88.
   Design: [docs/design/habitability-index.md](design/habitability-index.md)
 
+- [ ] **UX.91 Planet and moon description carries a full PHI-4 explanation, each colour factor and why**
+  Boss (2026-10-10 08:49Z, via the coordinator): PHI-4 should have a
+  full explanation in the planet or moon description, each colour factor
+  and why. Done: the planet and moon description on the system page
+  lists, for each of the four PHI-4 domains behind the chip colour, the
+  value for this world and why (the inputs that drove it), not just the
+  chip; the wording matches the Classes explanation page of UX.90 and
+  the chip names (Ideal, formerly Shirtsleeve); the text comes from the
+  same calculation as the chip, so the two cannot disagree. Owner:
+  Bugfixes lane 2, after GEN.196 (it built UX.90).
+  Prerequisites: none. Related: UX.90, GEN.89.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.

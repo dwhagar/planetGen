@@ -13,7 +13,7 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.91 |
+| UX | UX.92 |
 | MAP | MAP.167 |
 | NAV | NAV.58 |
 | GEN | GEN.197 |
@@ -1156,6 +1156,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.88 | Say "uncharted" instead of "unbuilt" or "not generated" in all user-facing text outside Generate and admin | none | open |
 | UX.89 | Staged jobs show wrong stage counts and numbers, and skipped stages are not listed (bug) | none | open |
 | UX.90 | Explain the habitability chips in the web interface: a visible legend with the equipment labels, colours, thresholds and scores | none | open |
+| UX.91 | Planet and moon description carries a full PHI-4 explanation, each colour factor and why | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
