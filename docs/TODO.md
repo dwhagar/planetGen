@@ -2983,22 +2983,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none.
   Design: [docs/design/phenomenon-scatter-mass-cut.md](design/phenomenon-scatter-mass-cut.md)
 
-- [ ] **GEN.171 The sector fill gives object IDs by generation rank**
-  Source: docs/design/object-id-options.md section 0 (Boss decided
-  2026-10-09 22:39Z: birth location plus serial, galaxy-wide; the same
-  length for every object; always identifies that one object; up to 128
-  bits but shorter preferred; fix the deficits; no backward
-  compatibility). Filed from the object-ID research thread. Nothing is
-  built until Boss asks.
-  Done: the fill assigns generated serials by generation rank inside the
-  sector (replaces `_UidIssuer` hashing and the `assign_uids` rank
-  recount); one worker owns a sector, so no coordination and no database
-  read. Re-measure the insert rate on the real fill order and on MySQL
-  8.4 and MariaDB 11.4 (research model: 63,000 to 67,000 rows a second
-  against 46,000 for the hash, one run on MariaDB 10.11).
-  Prerequisite: DB.20.
-  Design: [docs/design/object-id-options.md](design/object-id-options.md)
-
 - [ ] **GEN.172 Run-time births get object IDs from the counters**
   Source: docs/design/object-id-options.md section 0 (Boss decided
   2026-10-09 22:39Z: birth location plus serial, galaxy-wide; the same
@@ -3013,7 +2997,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   retires the other; a split gives each fragment a new run-time serial;
   a deleted ID is never reused.
   Open question for Boss (default yes): an ejected planet keeps its ID?
-  Prerequisite: DB.20.
+  Built so far (2026-10-09): Lane 1 (2026-10-10, PR #1055): facilities
+  already take a run-time ID in add_facility, and
+  store.keep_body_numbers and _runtime_uids exist. The rest of GEN.172
+  (ejection, merger, split, admin-added system) is still open.
   Design: [docs/design/object-id-options.md](design/object-id-options.md)
 
 - [ ] **GEN.176 A nebula or remnant is born in the sector holding the centre of the space it occupies**
@@ -3037,7 +3024,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   object stored by a sector other than its own.
   Open question for Boss (default 1 mpc): the rounding used before the
   birth sector is taken from the centroid?
-  Prerequisite: DB.20.
   Design: [docs/design/object-id-options.md](design/object-id-options.md)
 
 - [ ] **GEN.177 Planetary magnetic fields: a stagnant-lid factor**
@@ -3671,28 +3657,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   tables.
   Design: [docs/design/db-check-and-parity-repair.md](design/db-check-and-parity-repair.md)
 
-- [ ] **DB.20 Object IDs in the schema: uid becomes BINARY(10), unique on its own, plus an id_counters table**
-  Source: docs/design/object-id-options.md section 0 (Boss decided
-  2026-10-09 22:39Z: birth location plus serial, galaxy-wide; the same
-  length for every object; always identifies that one object; up to 128
-  bits but shorter preferred; fix the deficits; no backward
-  compatibility). Filed from the object-ID research thread. Nothing is
-  built until Boss asks.
-  Done: one Alembic revision. `uid` becomes BINARY(10) on the object
-  tables that belong to a sector (star_systems, stars, planets, moons,
-  asteroid_belts, comets, every phenomenon table, facilities) and is
-  UNIQUE on `uid` alone (drops UNIQUE (star_system_id, uid)). A new
-  `id_counters` table (per sector for run-time serials, per system for
-  body numbers) whose counters only grow and survive the deletion of the
-  object or the sector, with an upsert-and-LAST_INSERT_ID allocator like
-  `_reserve_id_block`. The row `id` stays as the foreign key. Existing
-  rows are migrated (rank = row id order within each sector or system,
-  which is how the old ranks were counted) unless the combined reseed
-  has not run yet, in which case the change rides it; nebulae need their
-  centroid recomputed (see the nebula item). Boss resets by hand anyway,
-  so a fresh galaxy is acceptable. Takes the next free Alembic revision.
-  Design: [docs/design/object-id-options.md](design/object-id-options.md)
-
 - [ ] **DB.21 A deep pass for the database check: validate every star system, with the estimated time shown first**
   Boss (2026-10-09 23:32Z): "Yes, add an option for a deep pass but warn
   the user the estimated time it will take." Foundations lane 1 left
@@ -4038,7 +4002,7 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   stay internal. No compatibility shim. This is a breaking API change,
   so it bumps API.22's API version number.
   Decided (Boss, 2026-10-10 02:48Z, via Foundations lane 1): yes, the 80-bit object ID replaces row ids in pages, URLs and the API, and Boss accepts the API break. Cleared to build once API.22, GEN.171 and GEN.172 are in.
-  Prerequisites: API.22, GEN.171, GEN.172.
+  Prerequisites: API.22, GEN.172.
   Design: [docs/design/object-id-options.md](design/object-id-options.md)
 
 ## ADM: Admin tools
@@ -4244,7 +4208,7 @@ clears each one.
   reused after a delete; an ejected planet keeps its ID; every object in
   a saved sector has a 20-digit ID; the golden fill digests (TEST.77)
   use the new IDs.
-  Prerequisites: GEN.171, GEN.172, GEN.176.
+  Prerequisites: GEN.172, GEN.176.
   Design: [docs/design/object-id-options.md](design/object-id-options.md)
 
 - [ ] **TEST.111 test_ensure_sector_generated_creates_then_reuses_the_same_sector fails in a busy parallel run (bug)**
