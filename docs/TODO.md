@@ -3249,29 +3249,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the coordinator).
   Prerequisites: none. Related: PERF.59, GEN.185.
 
-- [ ] **PERF.64 The Galaxy Map and the Systems list stop with "Took too long" and the whole site is sluggish (bug)**
-  Boss (2026-10-10 19:45Z, with a screenshot): the Galaxy Map and the
-  Systems list show the 504 page "Took too long: This page asked the
-  database for more than it could answer in time, so it was stopped. Try
-  a narrower search or a smaller page.", and the site as a whole feels
-  sluggish; "I've had this happen before, so we need to fix it". The
-  page is the web statement timeout at work
-  (`statement_timeout_seconds`, 10 s, `MAX_EXECUTION_TIME` on the
-  read-only connections), so some query on those pages now runs past 10
-  s on his database. Done: find which statements time out on the Galaxy
-  Map tiles and the Systems list (log the statement and its time, run
-  EXPLAIN on his database size), fix them with an index, a narrower
-  query or a cache, and show the slow pages and the sluggishness no
-  longer happen while the database is busy and idle alike; add a test
-  that fails when a page query reads more than a page needs. Earlier
-  work on the same family: PERF.34 (site responsive during heavy jobs,
-  PR #811), PERF.38 (cache fixes under a fill, PR #1144), PERF.36 (never
-  list more than about 50,000 candidate cells), PERF.39 (API job cost,
-  PR #1151) and PERF.40 (reserved interactive worker). Owner:
-  Foundations lane 1.
-  Prerequisites: none. Related: PERF.34, PERF.36, PERF.38, PERF.39,
-  PERF.40.
-
 - [ ] **PERF.65 The text output of a multi-step job counts its steps, not its tasks: "Step 1 of 4" when the job has 12 (bug)**
   Boss (2026-10-10 19:54Z, with a Generate-page log): a new-galaxy run
   prints "=== Step 1 of 4: Check the math ===" up to "Step 4 of 4:
@@ -3346,6 +3323,39 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Bugfixes lane 1, after PERF.66 (the bar fix does not wait for it).
   Prerequisites: none. Related: PERF.32, PERF.33, PERF.55, PERF.56,
   PERF.66.
+
+- [ ] **PERF.68 Measure the Galaxy Map tile queries on a big galaxy and make them fit the time limit (bug)**
+  Left over from PERF.64 (PR #1161, Foundations lane 1, 2026-10-10
+  20:47Z): the Galaxy Map's tile queries were not measured on a big
+  galaxy, only the Systems list and the busy behaviour were fixed. Boss
+  saw the Galaxy Map hit the 'Took too long' page. Done: the tile
+  queries are run with EXPLAIN and timed on a database of millions of
+  systems (a synthetic one is fine), the slow ones get an index, a
+  narrower read or a cache until each answers well inside the statement
+  limit while a fill is running, and a test fails when a tile query
+  reads more rows than a tile needs.
+  Prerequisites: none. Related: PERF.64, PERF.34, PERF.36.
+
+- [ ] **PERF.69 Store the Planets, Moons and Phenomena table counts like the Systems and Sectors counts (bug)**
+  Left over from PERF.64 (PR #1161): the Systems and Sectors tables show
+  stored totals and filter-menu counts from db/countcache.py (setting
+  page_cache.stored_counts, PLANETGEN_COUNT_CACHE), but the Planets,
+  Moons and Phenomena tables still count their whole tables in the
+  request, so they can hit the same 'Took too long' page on a big
+  galaxy. Done: their totals and facet counts go through the same
+  stored-count cache (last value served while a new one is made, an
+  estimate before the first), and a test fails when a table page counts
+  a whole table in the request.
+  Prerequisites: none. Related: PERF.64, PERF.34, PERF.36.
+
+- [ ] **PERF.70 Sorting the Systems list by Sector or Octant on millions of rows must not sort them all (bug)**
+  Left over from PERF.64 (PR #1161): sorting the Systems list by Sector
+  or Octant on millions of rows still sorts every row before the page is
+  cut, which can pass the statement limit. Done: the sort is served by
+  an index (or a stored sort key) so a page reads only the rows it
+  shows, measured on a database of millions of systems, and a test fails
+  when the sorted page reads more than a page needs.
+  Prerequisites: none. Related: PERF.64, PERF.34, PERF.36.
 
 ## DB: Database and schema
 
