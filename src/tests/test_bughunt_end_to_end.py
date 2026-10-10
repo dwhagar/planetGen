@@ -16,6 +16,7 @@ literally.
 
 from tests.bughunt_support import forced_system_config, mysql_argv, run_cli
 from tests.webpage_support import live_api  # noqa: F401
+from tests.publicids import pid, pids
 
 
 def test_system_generated_via_cli_is_correct_through_db_api_and_webpage(mysql_config, live_api):
@@ -56,7 +57,7 @@ def test_system_generated_via_cli_is_correct_through_db_api_and_webpage(mysql_co
     import json
     import urllib.request
 
-    with urllib.request.urlopen(f"{live_api}/systems/{system_id}?db={mysql_config.database}") as resp:
+    with urllib.request.urlopen(f"{live_api}/systems/{pid('system', system_id, mysql_config)}?db={mysql_config.database}") as resp:
         api_body = json.loads(resp.read())
     assert api_body["name"] == system_name
     assert api_body["stars"][0]["star_type"].startswith("K2V")
@@ -65,7 +66,7 @@ def test_system_generated_via_cli_is_correct_through_db_api_and_webpage(mysql_co
     # the actual thing a human visiting the site sees.
     # The system page is served by the Flask app (`/system/<id>`), with
     # the database taken from its config.
-    resp = _web_client(mysql_config).get(f"/system/{system_id}")
+    resp = _web_client(mysql_config).get(f"/system/{pid('system', system_id)}")
     assert resp.status_code == 200
     page_html = resp.get_data(as_text=True)
     assert system_name in page_html
@@ -95,7 +96,7 @@ def test_sector_generated_via_cli_is_correct_through_db_api_and_webpage(mysql_co
     import json
     import urllib.request
 
-    with urllib.request.urlopen(f"{live_api}/sectors/{sector_id}?db={mysql_config.database}") as resp:
+    with urllib.request.urlopen(f"{live_api}/sectors/{pid('sector', sector_id, mysql_config)}?db={mysql_config.database}") as resp:
         api_body = json.loads(resp.read())
     assert api_body["name"] == sector_name
     assert len(api_body["systems"]) == 2
@@ -113,7 +114,7 @@ def test_sector_generated_via_cli_is_correct_through_db_api_and_webpage(mysql_co
 
     app = create_app(_PageConfig)
     app.testing = True
-    resp = app.test_client().get(f"/sector/{sector_id}")
+    resp = app.test_client().get(f"/sector/{pid('sector', sector_id)}")
     assert resp.status_code == 200
     assert sector_name in resp.get_data(as_text=True)
 

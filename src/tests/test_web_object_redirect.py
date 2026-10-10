@@ -31,7 +31,6 @@ def client(monkeypatch):
 @pytest.mark.parametrize("ref,target", [
     ("planet:12", "/system/9#planet-12"),
     ("system:9", "/system/9"),
-    ("9", "/system/9"),
     ("sector:4", "/sector/4"),
     ("nebula:3", "/phenomenon/nebula/3"),
 ])

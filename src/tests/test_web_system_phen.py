@@ -31,6 +31,7 @@ from planetgen.generation.config import SystemConfig  # noqa: E402
 from planetgen.galaxy.sector import SpaceSector  # noqa: E402
 from planetgen.generation.system import StarSystem  # noqa: E402
 from planetgen.web import csrf  # noqa: E402
+from tests.publicids import pid, pids, psys
 
 DB = "planetgen_web_test"
 
@@ -93,7 +94,7 @@ class FakeData:
 
     def get_system(self, db, system_id):
         self.calls.append(("get_system", db, system_id))
-        if int(system_id) != self.system["id"]:
+        if str(system_id) != str(self.system["id"]):
             raise apiclient.NotFoundError(f"no such system: {system_id}")
         return self.system
 
@@ -289,7 +290,7 @@ def test_standalone_system_breadcrumbs_and_no_nav(client, fake):
 
 def test_system_page_code_views(client, fake):
     html = client.get("/system/5?code=wikitext").get_data(as_text=True)
-    assert ("get_system_text", DB, 5, "wikitext") in fake.calls
+    assert ("get_system_text", DB, "5", "wikitext") in fake.calls
     assert 'id="system-code"' in html and 'data-copy-target="system-code"' in html
     assert "== wikitext &lt;page&gt; ==" in html
     assert 'href="/system/5#system-panel"' in html and ">Hide Wikitext</a>" in html
@@ -340,7 +341,7 @@ def test_upload_post_redirects_to_get(app, client, fake):
     assert resp.status_code == 303
     assert resp.headers["Location"] == "/system/5?wiki=uploaded#wiki-upload"
     upload = [c for c in fake.calls if c[0] == "upload_system_to_wiki"][0]
-    assert upload[2:] == (DB, 5, "wikijs", "systems/k42")
+    assert upload[2:] == (DB, "5", "wikijs", "systems/k42")
     assert f"{SESSION_COOKIE_NAME}=token-value" in upload[1]
     html = client.get("/system/5?wiki=uploaded").get_data(as_text=True)
     assert "Uploaded to the wiki." in html
@@ -477,7 +478,7 @@ def test_phenomenon_detail(app, client, fake):
     resp = client.get("/phenomenon/nebula/4")
     html = resp.get_data(as_text=True)
     assert resp.status_code == 200
-    assert ("get_phenomenon", DB, "nebula", 4) in fake.calls
+    assert ("get_phenomenon", DB, "nebula", "4") in fake.calls
     assert '<h1 class="page-title">Crab &lt;Nebula&gt;</h1>' in html
     assert '<a href="/phenomena">Phenomena</a>' in html
     assert _section_current(html, "Phenomena")
@@ -554,11 +555,11 @@ def test_location_link_hook():
 # --- Old CGI URLs ---------------------------------------------------------------------
 
 @pytest.mark.parametrize("url,location", [
-    ("/system.py?db=x&id=12", "/system/12"),
-    ("/system.py?db=x&id=12&code=markdown", "/system/12?code=markdown"),
+    ("/system.py?db=x&id=12", "/systems"),
+    ("/system.py?db=x&id=12&code=markdown", "/systems"),
     ("/system.py?db=x&id=../admin", "/systems"),
     ("/system.py", "/systems"),
-    ("/phenomenon.py?db=x&type=black_hole&id=3", "/phenomenon/black_hole/3"),
+    ("/phenomenon.py?db=x&type=black_hole&id=3", "/phenomena"),
     ("/phenomenon.py?db=x&type=../x&id=3", "/phenomena"),
     ("/phenomenon.py?db=x", "/phenomena"),
     ("/phenomena.py?db=x&page=3", "/phenomena?page=3"),
@@ -612,7 +613,7 @@ def _save_system(mysql_config, name=None, moons=True):
 def test_real_system_page_lists_bodies_and_code(db_app, mysql_config):
     client = db_app.test_client()
     system_id = _save_system(mysql_config)
-    resp = client.get(f"/system/{system_id}")
+    resp = client.get(f"/system/{pid('system', system_id)}")
     html = resp.get_data(as_text=True)
     assert resp.status_code == 200
     assert 'class="system-list system-list-root"' in html
@@ -623,7 +624,7 @@ def test_real_system_page_lists_bodies_and_code(db_app, mysql_config):
     assert html.index("<h2>Stars</h2>") < html.index('id="system-panel"')
     assert 'id="system-code"' not in html
     for fmt, marker in (("wikitext", "[[Category:Star Systems]]"), ("markdown", "| Property | Value |")):
-        page = client.get(f"/system/{system_id}?code={fmt}").get_data(as_text=True)
+        page = client.get(f"/system/{pid('system', system_id)}?code={fmt}").get_data(as_text=True)
         assert 'id="system-code"' in page
         assert marker in page.replace("&#39;", "'")
 
@@ -643,15 +644,15 @@ def test_real_system_in_sector_links_neighbours(db_app, mysql_config):
             "SELECT id FROM star_systems WHERE sector_id = ? ORDER BY id", (sector_id,)).fetchall()]
     finally:
         conn.close()
-    html = db_app.test_client().get(f"/system/{ids[0]}").get_data(as_text=True)
-    assert f'<a href="/system/{ids[1]}">' in html
-    assert f'<a href="{_url(db_app, "sector", sector_id=sector_id)}">Web Sector</a>' in html
+    html = db_app.test_client().get(f"/system/{pid('system', ids[0])}").get_data(as_text=True)
+    assert f'<a href="/system/{psys(ids[1])}">' in html
+    assert f'<a href="{_url(db_app, "sector", sector_id=pid("sector", sector_id, mysql_config))}">Web Sector</a>' in html
     assert "Navigate from here" in html
 
 
 def test_real_system_name_is_escaped(db_app, mysql_config):
     system_id = _save_system(mysql_config, name="<script>alert(1)</script>", moons=False)
-    html = db_app.test_client().get(f"/system/{system_id}").get_data(as_text=True)
+    html = db_app.test_client().get(f"/system/{pid('system', system_id)}").get_data(as_text=True)
     assert "<script>alert(1)</script>" not in html
     assert "&lt;script&gt;alert(1)&lt;/script&gt;" in html
 
@@ -674,7 +675,7 @@ def test_real_phenomena_list_and_detail(db_app, mysql_config):
 
     html = client.get("/phenomena").get_data(as_text=True)
     assert "2 phenomena" in html
-    links = re.findall(r'<a href="(/phenomenon/[a-z_]+/\d+)">', html)
+    links = re.findall(r'<a href="(/phenomenon/[a-z_]+/[0-9A-F-]+)">', html)
     assert len(links) == 2
     for link in links:
         resp = client.get(link)
@@ -698,20 +699,20 @@ def test_real_admin_upload_without_wiki_config(db_app, mysql_config):
     system_id = _save_system(mysql_config, moons=False)
     client = db_app.test_client()
     assert client.post("/api/auth/login", json={"username": "admin", "password": first_password}).status_code == 200
-    html = client.get(f"/system/{system_id}").get_data(as_text=True)
+    html = client.get(f"/system/{pid('system', system_id)}").get_data(as_text=True)
     assert 'id="wiki-upload"' not in html
     token = _csrf(db_app, client)
-    resp = client.post(f"/system/{system_id}", data={csrf.FIELD_NAME: token, "backend": "mediawiki"})
-    assert resp.headers["Location"] == f"/system/{system_id}?wiki=forbidden#wiki-upload"
+    resp = client.post(f"/system/{pid('system', system_id)}", data={csrf.FIELD_NAME: token, "backend": "mediawiki"})
+    assert resp.headers["Location"] == f"/system/{pid('system', system_id)}?wiki=forbidden#wiki-upload"
     assert "Change the admin username and password the installer set first." in client.get(resp.headers["Location"]).get_data(as_text=True)
 
     assert client.post("/api/auth/change-credentials", json={
         "current_password": first_password, "new_username": "boss", "new_password": "a-long-new-password-1",
     }).status_code == 200
     token = _csrf(db_app, client)  # the change re-issued the session; tokens are bound to it
-    resp = client.post(f"/system/{system_id}", data={csrf.FIELD_NAME: token, "backend": "mediawiki"})
+    resp = client.post(f"/system/{pid('system', system_id)}", data={csrf.FIELD_NAME: token, "backend": "mediawiki"})
     assert resp.status_code == 303
-    assert resp.headers["Location"] == f"/system/{system_id}?wiki=unconfigured#wiki-upload"
+    assert resp.headers["Location"] == f"/system/{pid('system', system_id)}?wiki=unconfigured#wiki-upload"
     html = client.get(resp.headers["Location"]).get_data(as_text=True)
     assert "That wiki is not configured for this site." in html
 
@@ -797,22 +798,22 @@ def _save_sector_system(mysql_config):
 def test_system_map_gives_body_panels_nav_buttons(db_app, mysql_config):
     first, second = _save_sector_system(mysql_config)
     client = db_app.test_client()
-    html = client.get(f"/system/{first}").get_data(as_text=True)
+    html = client.get(f"/system/{pid('system', first)}").get_data(as_text=True)
     assert 'data-nav-start="/nav?from={ref}"' in html and 'data-nav-end="/nav?to={ref}"' in html
     assert "data-nav-take" not in html
     # Every star marker carries the id the object reference needs.
     assert re.search(r'data-kind="star" data-id="\d+"', html) or re.search(r'data-id="\d+"[^>]*data-kind="star"', html)
 
-    picking = client.get(f"/system/{first}?pick=to&from=system:{second}").get_data(as_text=True)
-    assert f'data-nav-take="/nav?from=system:{second}&amp;to={{ref}}"' in picking
+    picking = client.get(f"/system/{pid('system', first)}?pick=to&from=system:{pid('system', second)}").get_data(as_text=True)
+    assert f'data-nav-take="/nav?from=system:{psys(second)}&amp;to={{ref}}"' in picking
     assert 'data-nav-label="End Here"' in picking and "data-nav-start" not in picking
-    choosing_start = client.get(f"/system/{first}?pick=from&to=system:{second}").get_data(as_text=True)
-    assert f'data-nav-take="/nav?from={{ref}}&amp;to=system:{second}"' in choosing_start
+    choosing_start = client.get(f"/system/{pid('system', first)}?pick=from&to=system:{pid('system', second)}").get_data(as_text=True)
+    assert f'data-nav-take="/nav?from={{ref}}&amp;to=system:{psys(second)}"' in choosing_start
 
 
 def test_a_system_with_no_sector_has_no_body_nav(db_app, mysql_config):
     system_id = _save_system(mysql_config)
-    assert "data-nav-" not in db_app.test_client().get(f"/system/{system_id}").get_data(as_text=True)
+    assert "data-nav-" not in db_app.test_client().get(f"/system/{pid('system', system_id)}").get_data(as_text=True)
 
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="Node isn't installed")

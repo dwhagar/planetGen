@@ -170,7 +170,7 @@ def _load_system_of(conn, kind, body_id):
     return row["star_system_id"], store.load_star_system(conn, row["star_system_id"])
 
 
-@bp.route("/systems/<int:system_id>/class-options")
+@bp.route("/systems/<uid:system_id>/class-options")
 @require_admin()
 def system_class_options(system_id):
     """`GET /api/systems/<id>/class-options` -- for each planet and moon
@@ -260,7 +260,7 @@ def _body_ids(system):
     return ids
 
 
-@bp.route("/systems/<int:system_id>/star", methods=["POST"])
+@bp.route("/systems/<uid:system_id>/star", methods=["POST"])
 @limiter.limit(WRITE_RATE_LIMIT)
 @require_admin(fresh=True)
 def change_system_star(system_id):
@@ -317,7 +317,7 @@ def change_star_job(config, system_id, star_type, drop_facilities):
 # Phenomena
 # ---------------------------------------------------------------------
 
-@bp.route("/phenomena/<phenomenon_type>/<int:phenomenon_id>", methods=["DELETE"])
+@bp.route("/phenomena/<phenomenon_type>/<uid:phenomenon_id>", methods=["DELETE"])
 @limiter.limit(WRITE_RATE_LIMIT)
 @require_admin(fresh=True)
 def delete_phenomenon(phenomenon_type, phenomenon_id):
@@ -350,7 +350,7 @@ def delete_phenomenon_job(config, phenomenon_type, phenomenon_id):
     return {"status": "ok", "summary": "Deleted."}
 
 
-@bp.route("/phenomena/<phenomenon_type>/<int:phenomenon_id>/regenerate", methods=["POST"])
+@bp.route("/phenomena/<phenomenon_type>/<uid:phenomenon_id>/regenerate", methods=["POST"])
 @limiter.limit(WRITE_RATE_LIMIT)
 @require_admin(fresh=True)
 def regenerate_phenomenon(phenomenon_type, phenomenon_id):
@@ -390,7 +390,7 @@ def regenerate_phenomenon_job(config, phenomenon_type, phenomenon_id):
 # Sectors
 # ---------------------------------------------------------------------
 
-@bp.route("/sectors/<int:sector_id>/contents", methods=["DELETE"])
+@bp.route("/sectors/<uid:sector_id>/contents", methods=["DELETE"])
 @limiter.limit(WRITE_RATE_LIMIT)
 @require_admin(fresh=True)
 def delete_sector_with_contents(sector_id):
@@ -423,7 +423,7 @@ def delete_sector_job(config, sector_id):
                                        f"{counts['phenomena']} phenomena.", **counts}
 
 
-@bp.route("/sectors/<int:sector_id>/regenerate", methods=["POST"])
+@bp.route("/sectors/<uid:sector_id>/regenerate", methods=["POST"])
 @limiter.limit(WRITE_RATE_LIMIT)
 @require_admin(fresh=True)
 def regenerate_sector(sector_id):

@@ -5,9 +5,11 @@ One reference form for every object (NAV.7): `<kind>:<id>`.
 
 Kinds: `sector`, `system`, `star`, `planet`, `moon`, `belt`, `comet`, and the
 standalone phenomenon types (`nebula`, `black_hole`, ...). `id` is the
-object's own row id. A bare number means a system, so the `system:12` that
-`/nav` and the Sector Map already write is the same reference. The galaxy
-itself is the root of every parent chain and has the reference `galaxy`.
+object's own row id inside the code (`parse`, `format`) and its printed object
+ID in everything a person or a client sees (`parse_public`, `format_public`, API.23):
+`system:FE81000A2B-0000005-000`, `sector:FE81000A2B`. A bare number means a system
+(row id), a bare three-part ID is a system's too. The galaxy itself is the root of
+every parent chain and has the reference `galaxy`.
 
 `static/objectref.js` is the JavaScript twin of `parse` and `format`.
 """
@@ -49,6 +51,7 @@ TABLES = {
 `queryDb._PHENOMENON_TYPE_TO_TABLE`)."""
 
 _REF_RE = re.compile(r"^(?:([a-z_]+):)?(\d+)$")
+_PUBLIC_RE = re.compile(r"^(?:([a-z_]+):)?([0-9A-Fa-f]+(?:-[0-9A-Fa-f]+){0,2})$")
 
 
 def format(kind, object_id):
@@ -80,3 +83,31 @@ def parse(raw):
     if not match or match.group(1) not in (None, *KINDS):
         raise ValueError(f"not an object reference: {raw!r}")
     return (match.group(1) or "system"), int(match.group(2))
+
+
+def parse_public(raw):
+    """
+    Parses a reference as a person or a client writes it: `<kind>:<printed ID>` (a bare three-part object ID is a
+    system's). The ID is returned as the upper-case text it was written in, never as a number: a sector's printed
+    ID can be all decimal digits.
+
+    Returns:
+        tuple: `(kind, printed id)`.
+
+    Raises:
+        ValueError: For anything that is not `<kind>:<id>` with a known kind.
+    """
+    match = _PUBLIC_RE.match(str(raw).strip())
+    if not match or match.group(1) not in (None, *KINDS) or (match.group(1) is None and "-" not in match.group(2)):
+        raise ValueError(f"not an object reference: {raw!r}")
+    return (match.group(1) or "system"), match.group(2).upper()
+
+
+def format_public(kind, printed_id):
+    """The reference for an object by its printed ID: `format_public("moon", "FE81000A2B-0000005-003")`."""
+    if kind not in KINDS:
+        raise ValueError(f"unknown object kind: {kind!r}")
+    if not _PUBLIC_RE.match(str(printed_id)):
+        raise ValueError(f"not an object ID: {printed_id!r}")
+    return f"{kind}:{str(printed_id).upper()}"
+

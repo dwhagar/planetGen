@@ -247,7 +247,7 @@ def _territory(db, system_id):
             "url": page_url("polity_page", polity_id=owner["polity_id"])}
 
 
-@bp.route("/system/<int:system_id>/scene")
+@bp.route("/system/<uid:system_id>/scene")
 def system_scene(system_id):
     """The 3D system view's scene JSON (`GET /api/systems/<id>/scene`,
     MAP.69), for `static/systempage3d.js`."""
@@ -259,7 +259,7 @@ def system_scene(system_id):
 system_scene.json_only = True  # not a page: tests/test_web_a11y.py skips it
 
 
-@bp.route("/system/<int:system_id>", methods=["GET", "POST"])
+@bp.route("/system/<uid:system_id>", methods=["GET", "POST"])
 def system(system_id):
     """One star system. A POST with a `facility_action` is the admin
     facility form (`web/system_facilities.py`); any other POST is the
@@ -391,7 +391,7 @@ def _edit_post(system_id):
     allowed = {("system", system_id)}
     for row in _edit_rows(detail):
         kind, _sep, raw_id = row["target"].partition(":")
-        allowed.add((kind, int(raw_id)))
+        allowed.add((kind, raw_id))
     gone = (page_url("sector", sector_id=detail["sector_id"]) if detail["sector_id"] is not None
             else page_url("systems"))
     return edit_actions.handle_post(allowed, page_url("system", system_id=system_id, _anchor="admin-menu"),
@@ -740,16 +740,15 @@ def object_url(kind, object_id, system_id=None):
 
 @bp.route("/object/<ref>")
 def object_page(ref):
-    """Any object reference (`planet:12`, `nebula:3`, a bare number is a
-    system) redirected to the page or row that shows it (NAV.8)."""
+    """Any object reference (`planet:12`, `nebula:3`, `system:` and a printed ID) redirected to the page or row that shows it (NAV.8)."""
     try:
-        kind, object_id = objectref.parse(ref)
+        kind, object_id = objectref.parse_public(ref)
     except ValueError:
         abort(404)
     system_id = None
     if kind in BODY_REF_KINDS:
-        found = apiclient.get_object(db_name(), objectref.format(kind, object_id))
-        system_id = next((int(p["ref"].split(":")[1]) for p in found["parents"] if p["kind"] == "system"), None)
+        found = apiclient.get_object(db_name(), objectref.format_public(kind, object_id))
+        system_id = next((p["ref"].split(":")[1] for p in found["parents"] if p["kind"] == "system"), None)
         if system_id is None:
             abort(404)
     return redirect(object_url(kind, object_id, system_id), code=302)
@@ -758,7 +757,7 @@ def object_page(ref):
 object_page.json_only = True  # a redirect, not a page: tests/test_web_a11y.py skips it
 
 
-@bp.route("/phenomenon/<phenomenon_type>/<int:phenomenon_id>", methods=["GET", "POST"])
+@bp.route("/phenomenon/<phenomenon_type>/<uid:phenomenon_id>", methods=["GET", "POST"])
 def phenomenon(phenomenon_type, phenomenon_id):
     """One phenomenon: its view (a render, the AU-scale diagram, or none
     for an asteroid field; see `phenomenonrender.view_kind`) and its data

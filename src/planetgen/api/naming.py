@@ -18,6 +18,7 @@ import time
 from flask import current_app, g, has_request_context, request
 from flask.json.provider import DefaultJSONProvider
 
+from planetgen.api import ids
 from planetgen.api.common import get_control_db
 from planetgen.names import naming_key
 
@@ -68,6 +69,7 @@ class NamingJSONProvider(DefaultJSONProvider):
 
     def dumps(self, obj, **kwargs):
         if has_request_context():
+            obj = ids.translate_response(obj)
             obj = naming_key.rename_names(obj, request_key)
         return super().dumps(obj, **kwargs)
 

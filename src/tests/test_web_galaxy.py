@@ -525,7 +525,7 @@ def test_nebula_shape_endpoint_passes_the_mesh_through(client, fake, monkeypatch
     resp = client.get("/galaxy/nebula/5/shape?lod=full")
     assert resp.get_json()["lod"] == "full"
     assert client.get("/galaxy/nebula/5/shape").get_json()["lod"] == "low"
-    assert calls == [(DB, 5, "full"), (DB, 5, "low")]
+    assert calls == [(DB, "5", "full"), (DB, "5", "low")]
 
 
 def test_nebula_shape_endpoint_reports_a_missing_nebula_and_an_api_failure(client, fake, monkeypatch):
@@ -553,7 +553,7 @@ def test_nebula_surroundings_endpoint_passes_the_stars_through(client, fake, mon
 
     monkeypatch.setattr(apiclient, "get_nebula_surroundings", fake_surroundings)
     assert client.get("/galaxy/nebula/6/surroundings").get_json()["half_width_pc"] == 30.0
-    assert calls == [(DB, 6)]
+    assert calls == [(DB, "6")]
 
     def missing(db, nebula_id):
         raise apiclient.NotFoundError("no such nebula: 9")

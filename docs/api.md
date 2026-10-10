@@ -36,6 +36,13 @@ generated API-contract docs the way a JS single-page app
 would. Worth revisiting if a richer JS frontend is ever built against
 this API instead.
 
+## API version and object IDs
+
+Every `/api` answer carries the API version in the `X-PlanetGen-API-Version` header, and `/api/health` reports it as `api_version` (`src/planetgen/api/version.py`, API.22). A breaking change bumps it, the route snapshot `src/tests/fixtures/api_routes.json` moves with it, and it gets a line here.
+
+- **2** (API.23, stage 1): sectors, systems and phenomena are named by their object ID, printed as `0008000000-4000000-000`, and not by their database row number. IDs appear in every `id`, `sector_id` and `ref` field of those answers, in the URLs (`/api/systems/<id>`, `/api/sectors/<id>`, `/api/phenomena/<type>/<id>`, `/api/nebulae/<id>/...`) and in `from`/`to`/`course` references such as `system:0008000000-4000000-000`. A row number is refused (404). A sector's ID is its short hex designation (`243.7.14`'s hex form), or `(1 << 40) + id` when it was made by hand with no grid address. Bodies (stars, planets, moons, belts, comets) and facilities keep row numbers until the next stage.
+- **1**: the first numbered version.
+
 ## Endpoints
 
 All under `/api/`, all JSON in, JSON out. Every endpoint below except

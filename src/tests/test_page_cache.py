@@ -16,6 +16,7 @@ from planetgen.web.lib import apiclient  # noqa: E402
 from planetgen.web.lib import pagecache  # noqa: E402
 from planetgen.db import store  # noqa: E402
 from planetgen.galaxy.sector import SpaceSector  # noqa: E402
+from tests.publicids import pid, pids
 
 
 class _Clock:
@@ -154,10 +155,10 @@ def test_repeat_visit_is_served_from_the_cache(db_app, mysql_config, monkeypatch
     sector_id = store.save_sector(sector, config=mysql_config)
     client = db_app.test_client()
     seen = _count_sends(monkeypatch)
-    first = client.get(f"/sector/{sector_id}").get_data(as_text=True)
-    assert ("GET", f"/sectors/{sector_id}") in seen
+    first = client.get(f"/sector/{pid('sector', sector_id)}").get_data(as_text=True)
+    assert ("GET", f"/sectors/{pid('sector', sector_id)}") in seen
     del seen[:]
-    second = client.get(f"/sector/{sector_id}").get_data(as_text=True)
+    second = client.get(f"/sector/{pid('sector', sector_id)}").get_data(as_text=True)
     assert "Cached Sector" in first and "Cached Sector" in second
     assert ("GET", f"/sectors/{sector_id}") not in seen
 
@@ -174,7 +175,7 @@ def test_a_write_through_the_api_clears_the_cache(db_app, mysql_config):
     sector = SpaceSector(name="Before", edge_ly=40.0)
     sector_id = store.save_sector(sector, config=mysql_config)
     client = db_app.test_client()
-    client.get(f"/sector/{sector_id}")
+    client.get(f"/sector/{pid('sector', sector_id)}")
     cache = db_app.extensions[web.PAGE_CACHE_EXTENSION]
     assert len(cache) > 0
     # A refused write changes nothing, so the cache stays...

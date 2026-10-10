@@ -18,6 +18,7 @@ from planetgen.generation.system import StarSystem
 from tests.test_api import (  # noqa: F401
     _place_sector, admin_client, client, default_admin_client, first_admin_password,
 )
+from tests.publicids import pid, pids
 
 
 def _planet_sector(mysql_config, name, center_pc):
@@ -49,11 +50,11 @@ def _planet_sector(mysql_config, name, center_pc):
 
 def test_a_course_inside_one_system_is_one_leg(client, mysql_config):
     system_id, planets = _planet_sector(mysql_config, "Home", (10.0, 0.0, 0.0))
-    body = client.get(f"/api/nav?from=planet:{planets[0]}&to=system:{system_id}").get_json()
+    body = client.get(f"/api/nav?from=planet:{planets[0]}&to=system:{pid('system', system_id)}").get_json()
     assert body["scope"] == "system" and body["route"] is None
     assert [leg["kind"] for leg in body["legs"]] == ["within"]
     assert body["direct"]["frame"] == "system" and body["direct"]["distance_ly"] > 0
-    assert body["origin"]["ref"] == f"planet:{planets[0]}" and body["destination"]["ref"] == f"system:{system_id}"
+    assert body["origin"]["ref"] == f"planet:{planets[0]}" and body["destination"]["ref"] == f"system:{pid('system', system_id)}"
     assert "same warp and fold tables" in body["note"]
     assert len(body["warp_times"]) > 0
 
@@ -65,30 +66,30 @@ def test_a_course_between_bodies_in_two_systems_has_three_legs(client, mysql_con
     assert body["scope"] == "galaxy"
     assert [leg["kind"] for leg in body["legs"]] == ["out", "between", "into"]
     out, between, into = body["legs"]
-    assert out["from"] == f"planet:{a_planets[0]}" and out["to"] == f"system:{a_system}"
-    assert between["from"] == f"system:{a_system}" and between["to"] == f"system:{b_system}"
+    assert out["from"] == f"planet:{a_planets[0]}" and out["to"] == f"system:{pid('system', a_system)}"
+    assert between["from"] == f"system:{pid('system', a_system)}" and between["to"] == f"system:{pid('system', b_system)}"
     assert into["to"] == f"planet:{b_planets[0]}"
     assert between["direct"]["distance_ly"] == body["direct"]["distance_ly"]
     assert out["direct"]["frame"] == into["direct"]["frame"] == "system"
     # The in-system legs are a heliopause long -- far shorter than the jump between systems.
     assert 0 < out["direct"]["distance_ly"] < between["direct"]["distance_ly"] / 100
-    assert body["route"]["path"][0] == a_system and body["route"]["path"][-1] == b_system
+    assert body["route"]["path"][0] == pid("system", a_system) and body["route"]["path"][-1] == pid("system", b_system)
 
 
 def test_system_to_system_is_unchanged_with_one_leg(client, mysql_config):
     a_system, _ = _planet_sector(mysql_config, "Near", (10.0, 0.0, 0.0))
     b_system, _ = _planet_sector(mysql_config, "Far", (40.0, 0.0, 0.0))
-    body = client.get(f"/api/nav?from={a_system}&to=system:{b_system}").get_json()
+    body = client.get(f"/api/nav?from={pid('system', a_system)}&to=system:{pid('system', b_system)}").get_json()
     assert [leg["kind"] for leg in body["legs"]] == ["between"] and body["note"] is None
 
 
 def test_nav_refuses_a_sector_and_bad_references(client, mysql_config):
     a_system, _ = _planet_sector(mysql_config, "Near", (10.0, 0.0, 0.0))
     for params, status in (
-        (f"from=sector:1&to=system:{a_system}", 400),
-        (f"from=ship:1&to=system:{a_system}", 400),
-        (f"from=moon:99999999&to=system:{a_system}", 404),
-        (f"from={a_system}", 400),
+        (f"from=sector:{pid('sector', 1)}&to=system:{pid('system', a_system)}", 400),
+        (f"from=ship:1&to=system:{pid('system', a_system)}", 400),
+        (f"from=moon:99999999&to=system:{pid('system', a_system)}", 404),
+        (f"from={pid('system', a_system)}", 400),
     ):
         response = client.get(f"/api/nav?{params}")
         assert response.status_code == status, (params, response.get_json())

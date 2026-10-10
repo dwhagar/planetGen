@@ -48,8 +48,10 @@ from planetgen.web.lib import pagecache  # noqa: E402
 from planetgen.web.lib import tilecache  # noqa: E402
 from planetgen.db import store  # noqa: E402
 from planetgen import tuning
+from tests.publicids import pid
 from planetgen.galaxy.density import build_galaxy_shape  # noqa: E402
 from planetgen.physics.units import ly_to_pc  # noqa: E402
+from tests.publicids import pid, pids
 
 EDGE_PC = ly_to_pc(tuning.DEFAULT_SECTOR_EDGE_LY)
 
@@ -237,8 +239,8 @@ def test_sector_map_shows_neighbors_the_cli_generated(site, mysql_config):
     _plan_galaxy(mysql_config)
     _generate(mysql_config, "galaxy", "--ring", "0", "--limit", "1", "--num-systems", "1")
     [first] = _sectors(mysql_config)
-    scene_url = f"/sector/{first['id']}/scene"
-    assert escape(first["name"]) in site.html(f"/sector/{first['id']}")
+    scene_url = f"/sector/{pid('sector', first['id'])}/scene"
+    assert escape(first["name"]) in site.html(f"/sector/{pid('sector', first['id'])}")
 
     def linked():
         return {entry["sectorId"] for entry in site.get(scene_url).get_json()["neighbors"] if entry.get("sectorId")}
@@ -250,7 +252,7 @@ def test_sector_map_shows_neighbors_the_cli_generated(site, mysql_config):
     assert len(others) == 2
     assert linked() == set(), "still the cached answer"
     site.let_stamp_checks_fall_due()
-    assert linked() == {row["id"] for row in others}
+    assert linked() == {pid("sector", row["id"], mysql_config) for row in others}
 
 
 def test_sector_and_system_lists_show_cli_sectors_and_systems(site, mysql_config):
@@ -288,7 +290,7 @@ def test_sector_page_and_tiles_show_a_phenomenon_the_cli_added(site, mysql_confi
     _plan_galaxy(mysql_config)
     _generate(mysql_config, "galaxy", "--ring", "0", "--limit", "1", "--num-systems", "1")
     [first] = _sectors(mysql_config)
-    page_url = f"/sector/{first['id']}"
+    page_url = f"/sector/{pid('sector', first['id'])}"
     tiles_url = f"/galaxy/tiles?tiles={WHOLE_GALAXY_TILE}"
     before = site.html(page_url)
     warm = site.get(tiles_url).get_json()

@@ -188,8 +188,8 @@ def render_nebula_view_panel(detail):
     color, core, edge = nebula_look(detail.get("nebula_type"))
     name = detail.get("name") or "Nebula"
     data = json.dumps({
-        "shapePath": NEBULA_SHAPE_PATH.replace("{id}", str(int(detail["id"]))),
-        "surroundingsPath": NEBULA_SURROUNDINGS_PATH.replace("{id}", str(int(detail["id"]))),
+        "shapePath": NEBULA_SHAPE_PATH.replace("{id}", str(detail["id"])),
+        "surroundingsPath": NEBULA_SURROUNDINGS_PATH.replace("{id}", str(detail["id"])),
         "color": color, "coreOpacity": core, "edgeOpacity": edge,
     })
     still = (f'<svg class="phenomrender-still" viewBox="-100 -100 200 200" role="img" '

@@ -30,6 +30,7 @@ from planetgen.web.lib import apiclient  # noqa: E402
 
 # Imported fixtures (see test_bughunt_api_gaps.py for why this works).
 from tests.test_web_galaxy import _place_sector, _scene, app, client, db_client, fake  # noqa: F401,E402
+from tests.publicids import pid, pids
 
 
 def _assert_clean_page(response, statuses=(200,)):
@@ -165,11 +166,22 @@ def _delete(mysql_config, table, row_id):
         conn.close()
 
 
+def store_row_of_pid(config, printed):
+    """The row id of the system a printed ID names."""
+    from planetgen.api import ids
+    conn = store.get_connection(config)
+    try:
+        return ids.row_id(conn, "system", printed)
+    finally:
+        conn.close()
+
+
 def test_course_to_deleted_objects_is_a_clean_404(db_client, mysql_config):
     sector_id = _place_sector(mysql_config, "Course Sector", address=(5, 1, 20))
     gone = _system_in(mysql_config, sector_id, "Gone Away")
     kept = _system_in(mysql_config, sector_id, "Still Here")
-    _delete(mysql_config, "star_systems", gone)
+    gone, kept = pid("system", gone, mysql_config), pid("system", kept, mysql_config)
+    _delete(mysql_config, "star_systems", store_row_of_pid(mysql_config, gone))
 
     for course in (f"system:{gone},system:{kept}", f"system:{kept},system:{gone}", f"{gone},{kept}",
                    f"nebula:999999999,system:{kept}", f"system:{kept},black_hole:999999999",
@@ -187,6 +199,7 @@ def test_course_whose_sector_was_deleted_still_renders(db_client, mysql_config):
     sector_id = _place_sector(mysql_config, "Vanishing Sector", address=(6, 0, 7))
     first = _system_in(mysql_config, sector_id, "Left Behind")
     second = _system_in(mysql_config, sector_id, "Also Left")
+    first, second = pid("system", first, mysql_config), pid("system", second, mysql_config)
     _delete(mysql_config, "sectors", sector_id)
 
     html = _assert_clean_page(db_client.get(f"/galaxy?course=system:{first},system:{second}&at=243.7.14.0"))
@@ -199,7 +212,7 @@ def test_real_page_with_every_parameter_at_once(db_client, mysql_config):
     sector_id = _place_sector(mysql_config, "Busy Sector", address=(5, 1, 20))
     system_id = _system_in(mysql_config, sector_id, "Busy Star")
     query = (f"/galaxy?at=243.7.14.0&p=1,2&sector=R5.L1.S20&quadrant=III&page=999"
-             f"&pick=from&to=system:{system_id}&course=system:{system_id},system:{system_id}")
+             f"&pick=from&to=system:{pid('system', system_id)}&course=system:{pid('system', system_id)},system:{pid('system', system_id)}")
     _assert_clean_page(db_client.get(query))
 
 
@@ -256,7 +269,7 @@ def test_locate_ambiguous_names(db_client, mysql_config):
     assert set(names) == {"Vega", "Vega Prime", "Old Vega", "Vega Minor"}
     assert names.index("Old Vega") > max(names.index("Vega Prime"), names.index("Vega Minor"))
     minor = next(m for m in matches if m["name"] == "Vega Minor")
-    assert (minor["kind"], minor["sector_id"], minor["ring"], minor["slot"]) == ("system", vega, 5, 20)
+    assert (minor["kind"], minor["sector_id"], minor["ring"], minor["slot"]) == ("system", pid("sector", vega, mysql_config), 5, 20)
 
     # Still ambiguous after the exact match is gone: no 500, the rest
     # remain. Asked of the API itself: the page's answer comes through

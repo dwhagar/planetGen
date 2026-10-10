@@ -15,6 +15,7 @@ import pytest
 from planetgen.db import store
 from tests.column_read_support import columns_read, tracking_reads
 from tests.rich_galaxy_support import rich_galaxy  # noqa: F401  (fixture)
+from tests.publicids import pid, pids
 
 pytestmark = pytest.mark.db
 
@@ -79,7 +80,6 @@ contain (the cases are exercised in their own tests)."""
 NEVER_READ = {
     # GEN.69: a system's and a star's own ID is written when it is saved and
     # looked up by it from GEN.72 on; nothing reads it back yet.
-    ("star_systems", "uid"): "looked up by ID from GEN.72",
     ("stars", "uid"): "looked up by ID from GEN.72",
     ("facilities", "uid"): "looked up by ID from API.23",
     # Row order in a child table: the loaders read them ORDER BY position.
@@ -178,12 +178,12 @@ def test_every_column_is_read_back(rich_galaxy, monkeypatch):
         from planetgen.db import query
 
         with tracking_reads(monkeypatch) as reads:
-            pages = [f"/api/sectors/{i}" for i in ids("sectors")]
-            pages += [f"/api/systems/{i}{part}" for i in ids("star_systems")
+            pages = [f"/api/sectors/{pid('sector', i, conn)}" for i in ids("sectors")]
+            pages += [f"/api/systems/{pid('system', i, conn)}{part}" for i in ids("star_systems")
                       for part in ("", "/sections", "/owner", "/facilities")]
-            pages += [f"/api/phenomena/{label}/{i}" for table, label, *_ in query._PHENOMENON_TABLES
+            pages += [f"/api/phenomena/{label}/{pid(label, i, conn)}" for table, label, *_ in query._PHENOMENON_TABLES
                       for i in ids(table)]
-            pages += [f"/api/nebulae/{i}/shape" for i in ids("nebulae")]
+            pages += [f"/api/nebulae/{pid('nebula', i, conn)}/shape" for i in ids("nebulae")]
             pages += [f"/api/facilities/{i}" for i in ids("facilities")]
             pages += [f"/api/species/{i}" for i in ids("species")]
             pages += [f"/api/polities/{i}" for i in ids("polities")]

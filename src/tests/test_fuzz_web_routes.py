@@ -64,6 +64,7 @@ from planetgen.api.authz import SESSION_COOKIE_NAME
 from planetgen.api.common import is_http_url
 from planetgen.api.config import Config
 from planetgen.db import store
+from tests.publicids import pid, pids
 from planetgen.admin import auth as adminAuth
 from planetgen.db.store import MySQLConfig
 from planetgen.generation.config import SystemConfig
@@ -183,7 +184,8 @@ def fuzz_db(_mysql_server_available):
 
     Yields:
         dict: `config`, `sector_id`, `system_ids`, `nebula_id`,
-            `scratch_sector_id`, `scratch_system_id`.
+            `scratch_sector_id`, `scratch_system_id` (row ids), and the printed IDs
+            of those: `sector_pid`, `system_pids`, `nebula_pid`, `scratch_sector_pid`, `scratch_system_pid`.
     """
     kwargs = _test_server_kwargs()
     db_name = f"planetgen_test_{uuid.uuid4().hex[:16]}"
@@ -231,7 +233,11 @@ def fuzz_db(_mysql_server_available):
             conn.close()
 
         yield {"config": config, "sector_id": sector_id, "system_ids": system_ids, "nebula_id": nebula_id,
-               "scratch_sector_id": scratch_sector_id, "scratch_system_id": scratch_system_id}
+               "scratch_sector_id": scratch_sector_id, "scratch_system_id": scratch_system_id,
+               "sector_pid": pid("sector", sector_id, config), "system_pids": pids("system", system_ids, config),
+               "nebula_pid": pid("nebula", nebula_id, config),
+               "scratch_sector_pid": pid("sector", scratch_sector_id, config),
+               "scratch_system_pid": pid("system", scratch_system_id, config)}
     finally:
         store.close_pool(config)
         admin_conn = pymysql.connect(**kwargs)
@@ -427,8 +433,10 @@ def real_values(rule, seed):
     values = {}
     for name in rule.arguments:
         values[name] = {
-            "sector_id": seed["sector_id"], "system_id": seed["system_ids"][0], "phenomenon_type": "nebula",
-            "phenomenon_id": seed["nebula_id"], "filename": "style.css", "key_id": 1,
+            "sector_id": pid("sector", seed["sector_id"], seed["config"]),
+            "system_id": pid("system", seed["system_ids"][0], seed["config"]), "phenomenon_type": "nebula",
+            "phenomenon_id": pid("nebula", seed["nebula_id"], seed["config"]),
+            "nebula_id": pid("nebula", seed["nebula_id"], seed["config"]), "filename": "style.css", "key_id": 1,
             "job_id": "20260101-000000-abcdef", "star_id": 1, "planet_id": 1, "moon_id": 1, "facility_id": 1,
             "type_slug": "nebula", "code": "D", "body_id": 1, "bright_star_id": 1,
         }.get(name, "x")
@@ -449,9 +457,12 @@ _URL_MAP_APP = create_app(Config)
 GET_RULES = _rules(_URL_MAP_APP, "GET")
 PAGE_AND_API_GET_RULES = [rule for rule in GET_RULES if rule.endpoint != "static"]
 DYNAMIC_GET_RULES = [rule for rule in GET_RULES if rule.arguments]
+ID_CONVERTERS = ("IntegerConverter", "UidConverter")
 INT_ID_GET_RULES = [rule for rule in DYNAMIC_GET_RULES
-                    if "IntegerConverter" in {type(c).__name__ for c in rule._converters.values()}
+                    if {type(c).__name__ for c in rule._converters.values()} & set(ID_CONVERTERS)
                     and rule.endpoint != "edits.system_class_options"]  # admin-only: a 401 first
+DIGIT_ALIAS_GET_RULES = [rule for rule in INT_ID_GET_RULES
+                         if "IntegerConverter" in {type(c).__name__ for c in rule._converters.values()}]
 UNSAFE_RULES = sorted((rule for rule in _URL_MAP_APP.url_map.iter_rules() if rule.methods & csrf.UNSAFE_METHODS),
                       key=lambda rule: rule.rule)
 PAGE_UNSAFE_RULES = [rule for rule in UNSAFE_RULES if not _is_api(rule.rule)]
@@ -472,7 +483,7 @@ def test_route_tables_are_complete():
             "/api/sectors", "/api/search", "/api/nav", "/api/galaxy/cell", "/static/<path:filename>"} <= rules
     assert len(GET_RULES) >= 45
     assert {rule.rule for rule in PAGE_UNSAFE_RULES} >= {"/login", "/logout", "/account", "/admin",
-                                                        "/admin/generate", "/sector/<int:sector_id>"}
+                                                        "/admin/generate", "/sector/<uid:sector_id>"}
     assert len(API_UNSAFE_RULES) >= 14
     assert len(ADMIN_PAGE_RULES) >= 7 and len(ADMIN_API_GET_RULES) >= 4
 
@@ -588,7 +599,7 @@ id_value = st.one_of(
 def test_get_routes_survive_hostile_path_segments(app, fuzz_db, rule, data):
     values = {}
     for name in rule.arguments:
-        if _converter_kind(rule, name) == "IntegerConverter":
+        if _converter_kind(rule, name) in ID_CONVERTERS:
             values[name] = data.draw(st.one_of(id_value, path_segment), label=name)
         elif name == "phenomenon_type":
             values[name] = data.draw(st.one_of(st.sampled_from(PHENOMENON_TYPES), path_segment), label=name)
@@ -614,7 +625,7 @@ def test_int_path_params_reject_non_ids_cleanly(app, fuzz_db, rule, bad_id):
     decimal digits, `/system/٢` is `/system/2`; those are real ids.)"""
     values = real_values(rule, fuzz_db)
     for name in rule.arguments:
-        if _converter_kind(rule, name) == "IntegerConverter":
+        if _converter_kind(rule, name) in ID_CONVERTERS:
             values[name] = bad_id
     path = build_path(rule, values)
     response = app.test_client().get(path)
@@ -622,12 +633,12 @@ def test_int_path_params_reject_non_ids_cleanly(app, fuzz_db, rule, bad_id):
     assert response.status_code in (400, 404), f"{path} -> {response.status_code}"
 
 
-@pytest.mark.parametrize("rule", INT_ID_GET_RULES, ids=_rule_ids(INT_ID_GET_RULES))
+@pytest.mark.parametrize("rule", DIGIT_ALIAS_GET_RULES, ids=_rule_ids(DIGIT_ALIAS_GET_RULES))
 @pytest.mark.parametrize("alias", ["0001", "١", "𝟏", "0" * 60 + "1"])
 def test_int_path_params_accept_digit_aliases(app, fuzz_db, rule, alias):
     values = real_values(rule, fuzz_db)
     for name in rule.arguments:
-        if _converter_kind(rule, name) == "IntegerConverter":
+        if _converter_kind(rule, name) in ID_CONVERTERS:
             values[name] = alias
     path = build_path(rule, values)
     response = app.test_client().get(path)
@@ -673,7 +684,7 @@ def test_static_files_never_escape_the_static_dir(app):
 _API_BAD_INPUT = [
     ("/api/sectors", {"limit": "abc"}), ("/api/sectors", {"limit": "0"}), ("/api/sectors", {"limit": "-1"}),
     ("/api/sectors", {"limit": "1.5"}), ("/api/sectors", {"limit": ""}), ("/api/sectors", {"offset": "-1"}),
-    ("/api/sectors", {"offset": "x"}), ("/api/sectors", {"offset": "nan"}), ("/api/systems", {"sector_id": "abc"}),
+    ("/api/sectors", {"offset": "x"}), ("/api/sectors", {"offset": "nan"}), ("/api/systems", {"sector_id": "xyz"}),
     ("/api/systems", {"sector_id": "1.0"}), ("/api/systems", {"sector_id": ""}), ("/api/phenomena", {"limit": "nan"}),
     ("/api/phenomena", {"offset": "1e3"}), ("/api/nav", {}), ("/api/nav", {"from": "1"}), ("/api/nav", {"to": "1"}),
     ("/api/nav", {"from": "x", "to": "1"}), ("/api/nav", {"from": "1", "to": "1.5"}),
@@ -721,7 +732,7 @@ def test_api_databases_never_lists_system_schemas(app):
     ({}, 200), ({"format": "MARKDOWN"}, 400), ({"format": XSS_MARKER}, 400),
 ])
 def test_api_system_text_format(app, fuzz_db, params, status):
-    path = f"/api/systems/{fuzz_db['system_ids'][0]}/text"
+    path = f"/api/systems/{fuzz_db['system_pids'][0]}/text"
     response = app.test_client().get(path, query_string=params)
     check_response(response, path)
     assert response.status_code == status
@@ -732,7 +743,7 @@ def test_api_system_text_format(app, fuzz_db, params, status):
     ("1e300", 400), ("50", 200), ("51", 400), ("1_0", 200), (" 5 ", 200), ("nan", 400), ("inf", 400),
 ])
 def test_api_near_distance(app, fuzz_db, distance, status):
-    params = {"from": f"system:{fuzz_db['system_ids'][0]}"}
+    params = {"from": f"system:{fuzz_db['system_pids'][0]}"}
     if distance is not None:
         params["distance"] = distance
     response = app.test_client().get("/api/near", query_string=params)
@@ -793,7 +804,7 @@ def test_page_numbers_clamp(app, admin_client, fuzz_db, monkeypatch, path, param
     """Every page-number parameter clamps: a page past the end shows the
     last page, a zero/negative/non-numeric one the first -- including
     pages whose row offset would pass MySQL's range (B2)."""
-    base = path.format(sector=fuzz_db["sector_id"])
+    base = path.format(sector=fuzz_db["sector_pid"])
     if base.startswith(_POPULATION_PAGES):
         from planetgen.web.lib import apiclient
 
@@ -1004,7 +1015,7 @@ _ADMIN_FUZZ_POSTS = ["/admin", "/account", "/sector/{sector}", "/system/{system}
 @example(body={"current_password": "wrong", "new_username": "", "new_password": ""})
 @example(body={"format": "markdown", "title": '"; filename=evil.exe\r\nX-Injected: 1', "text": XSS_MARKER})
 def test_admin_page_posts_with_garbage_bodies(app, fuzz_db, path, body):
-    path = path.format(sector=fuzz_db["scratch_sector_id"], system=fuzz_db["scratch_system_id"])
+    path = path.format(sector=fuzz_db["scratch_sector_pid"], system=fuzz_db["scratch_system_pid"])
     client = app.test_client()
     login_api(client)
     response = client.post(path, data={**body, csrf.FIELD_NAME: with_csrf(client)})
@@ -1112,7 +1123,7 @@ def test_admin_api_writes_with_garbage_bodies(admin_client, fuzz_db, method, pat
     can't be valid: a JSON 4xx, never a 5xx. (Garbage that happens to be
     valid -- a real rename of the scratch sector -- is a 2xx, also fine;
     a sector it creates is deleted again.)"""
-    path = path.format(missing=_MISSING_ID, sector=fuzz_db["scratch_sector_id"], system=fuzz_db["scratch_system_id"])
+    path = path.format(missing=_MISSING_ID, sector=fuzz_db["scratch_sector_pid"], system=fuzz_db["scratch_system_pid"])
     response = admin_client.open(path, method=method, json=body)
     check_response(response, path)
     assert _is_json(response)
@@ -1130,7 +1141,7 @@ def test_admin_api_writes_with_garbage_bodies(admin_client, fuzz_db, method, pat
 
 
 def test_api_writes_reject_non_json_bodies(admin_client, fuzz_db):
-    for method, path in (("POST", "/api/sectors"), ("PATCH", f"/api/sectors/{fuzz_db['scratch_sector_id']}"),
+    for method, path in (("POST", "/api/sectors"), ("PATCH", f"/api/sectors/{fuzz_db['scratch_sector_pid']}"),
                          ("POST", "/api/auth/api-keys"), ("POST", "/api/systems")):
         for data, content_type in ((b"", "application/json"), (b"{", "application/json"), (b"[]", "application/json"),
                                    (b"null", "application/json"), (b'{"name": "x"}', "text/plain"),
@@ -1461,14 +1472,14 @@ def test_regression_health_unknown_db_is_a_404(app, fuzz_db, db):
 # B8 (fixed): generate-neighborhood calls body.get() on a non-object JSON body -> AttributeError -> 500
 @pytest.mark.parametrize("body", [[""], ["x", 1], "x", 5, True])
 def test_regression_generate_neighborhood_non_object_body_is_a_400(admin_client, fuzz_db, body):
-    response = admin_client.post(f"/api/sectors/{_MISSING_ID}/generate-neighborhood", json=body)
+    response = admin_client.post(f"/api/sectors/{fuzz_db["scratch_sector_pid"]}/generate-neighborhood", json=body)
     assert response.status_code == 400
 
 
 # B10 (fixed): generate-neighborhood accepts radius_ly Infinity/NaN (only checks <= 0) -- an unbounded run on a real sector
 @pytest.mark.parametrize("raw", ['{"radius_ly": Infinity}', '{"radius_ly": NaN}', '{"radius_ly": 1e999}'])
 def test_regression_generate_neighborhood_non_finite_radius_is_a_400(admin_client, fuzz_db, raw):
-    response = admin_client.post(f"/api/sectors/{_MISSING_ID}/generate-neighborhood", data=raw,
+    response = admin_client.post(f"/api/sectors/{fuzz_db["scratch_sector_pid"]}/generate-neighborhood", data=raw,
                                  content_type="application/json")
     assert response.status_code == 400
 
@@ -1479,7 +1490,7 @@ def test_regression_generate_neighborhood_non_finite_radius_is_a_400(admin_clien
     ("POST", '{"name": "n", "edge_ly": ' + "9" * 400 + "}"), ("PATCH", '{"edge_ly": Infinity}'),
 ])
 def test_regression_sector_edge_ly_non_finite_is_a_400(admin_client, fuzz_db, method, raw):
-    path = "/api/sectors" if method == "POST" else f"/api/sectors/{fuzz_db['scratch_sector_id']}"
+    path = "/api/sectors" if method == "POST" else f"/api/sectors/{fuzz_db['scratch_sector_pid']}"
     response = admin_client.open(path, method=method, data=raw, content_type="application/json")
     assert response.status_code == 400
 
@@ -1494,7 +1505,7 @@ def test_regression_sector_edge_ly_non_finite_is_a_400(admin_client, fuzz_db, me
     ("POST", "/admin", None),
 ])
 def test_regression_overlong_strings_are_a_400(admin_client, fuzz_db, method, path, body):
-    path = path.format(sector=fuzz_db["scratch_sector_id"], system=fuzz_db["scratch_system_id"])
+    path = path.format(sector=fuzz_db["scratch_sector_pid"], system=fuzz_db["scratch_system_pid"])
     if body is None:  # the /admin page's "create key" form, same bug through the web
         response = admin_client.post(path, data={"action": "create_key", "label": "l" * 129,
                                                   csrf.FIELD_NAME: with_csrf(admin_client)})

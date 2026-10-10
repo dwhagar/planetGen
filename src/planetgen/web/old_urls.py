@@ -9,12 +9,11 @@ lands somewhere sensible. GET only: an old form POST gets the CSRF check's
 The query string is carried over as it is, minus `db` (the pages take the
 database from config), since the new pages kept the old parameter names
 (`sectors_page`, `quadrant`, the search filters, ...); empty values are
-dropped. The detail pages
-turn their `id` (and a phenomenon's `type`) into the new path, falling back
-to the bare list page without a valid one. An unknown name gets the normal 404 page.
+dropped. The detail pages and the NAV page go to their bare list page: the
+row numbers their old URLs carried name nothing since objects have IDs
+(API.23). An unknown name gets the normal 404 page.
 """
 
-import re
 from urllib.parse import urlencode
 
 from flask import abort, redirect, request, url_for
@@ -42,24 +41,6 @@ OLD_PAGES = {
 }
 """dict: Old script name (without `.py`) -> the endpoint that replaced it."""
 
-_TYPE = re.compile(r"^[a-z_]{1,40}$")
-
-
-def _nav_query(args):
-    """The old NAV picker's `from=12&from_kind=phenomenon&from_type=nebula`
-    becomes `/nav`'s `from=nebula:12` (a bare id is a system)."""
-    query = []
-    for prefix in ("from", "to"):
-        raw = args.get(prefix, "").strip()
-        if not raw.isdigit():
-            continue
-        kind = args.get(f"{prefix}_type", "")
-        if args.get(f"{prefix}_kind") != "phenomenon" or not _TYPE.match(kind):
-            kind = "system"
-        query.append((prefix, f"{kind}:{int(raw)}"))
-    query += [(name, args[name]) for name in ("from_sector", "to_sector") if args.get(name, "").isdigit()]
-    return query
-
 
 def new_url(name, args):
     """The new URL for old script `name` with query `args` (a MultiDict),
@@ -67,19 +48,10 @@ def new_url(name, args):
     endpoint = OLD_PAGES.get(name)
     if endpoint is None:
         return None
-    raw_id = args.get("id", "").strip()
     query = [(key, value) for key, values in args.lists() if key not in ("db", "id")
              for value in values if value.strip()]
-    if name == "nav":
-        query = _nav_query(args)
-    elif name in ("sector", "system") and raw_id.isdigit() and int(raw_id) > 0:
-        endpoint = f"web.{name}"
-        query = [(key, value) for key, value in query if key in ("contents_page", "code")]
-        return url_for(endpoint, **{f"{name}_id": int(raw_id)}) + (f"?{urlencode(query)}" if query else "")
-    elif name == "phenomenon" and raw_id.isdigit() and _TYPE.match(args.get("type", "")):
-        return url_for("web.phenomenon", phenomenon_type=args["type"], phenomenon_id=int(raw_id))
-    elif name in ("sector", "system", "phenomenon"):
-        query = []  # no valid id: the bare list page
+    if name in ("nav", "sector", "system", "phenomenon"):
+        query = []  # the old row numbers name nothing now (API.23): the page's bare list
     url = url_for(endpoint)
     return f"{url}?{urlencode(query, safe=':')}" if query else url
 

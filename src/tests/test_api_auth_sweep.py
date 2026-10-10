@@ -46,6 +46,7 @@ from planetgen.generation.system import StarSystem
 
 from tests.test_fuzz_web_routes import csrf_pair, session_of
 from tests.test_two_factor import _now_code, _one_totp_step  # noqa: F401 (the autouse clock pin)
+from tests.publicids import pid, pids
 
 PASSWORD_A = "violet-orbit-ledger-91"
 PASSWORD_B = "amber-comet-harbor-42"
@@ -147,7 +148,7 @@ def _concrete(rule):
     accepts (ids that don't exist; a real phenomenon type)."""
     def value(match):
         converter, name = match.group(1), match.group(2)
-        if converter == "int":
+        if converter in ("int", "uid"):
             return "999999"
         if name == "phenomenon_type":
             return "nebula"
@@ -378,9 +379,9 @@ def _seed_system(config):
 
 def test_two_admins_editing_the_same_system(admins):
     system_id = _seed_system(admins.config)
-    assert admins.a.patch(f"/api/systems/{system_id}", json={"name": "Alpha Haven"}).status_code == 200
-    assert admins.b.patch(f"/api/systems/{system_id}", json={"name": "Beta Haven"}).status_code == 200
-    assert admins.a.get(f"/api/systems/{system_id}").get_json()["name"] == "Beta Haven"
+    assert admins.a.patch(f"/api/systems/{pid('system', system_id)}", json={"name": "Alpha Haven"}).status_code == 200
+    assert admins.b.patch(f"/api/systems/{pid('system', system_id)}", json={"name": "Beta Haven"}).status_code == 200
+    assert admins.a.get(f"/api/systems/{pid('system', system_id)}").get_json()["name"] == "Beta Haven"
 
     conn = _control(admins)
     try:
@@ -393,8 +394,8 @@ def test_two_admins_editing_the_same_system(admins):
 
     # B deletes it; A's edit, made from a page that still showed it, is a
     # clean 404.
-    assert admins.b.delete(f"/api/systems/{system_id}").status_code == 200
-    late = admins.a.patch(f"/api/systems/{system_id}", json={"name": "Gamma Haven"})
+    assert admins.b.delete(f"/api/systems/{pid('system', system_id)}").status_code == 200
+    late = admins.a.patch(f"/api/systems/{pid('system', system_id)}", json={"name": "Gamma Haven"})
     assert late.status_code == 404
     assert "error" in late.get_json()
 

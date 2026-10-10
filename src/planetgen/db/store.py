@@ -5961,7 +5961,7 @@ def insert_sector(conn, sector: SpaceSector, galaxy_position=None, link_neighbor
     if issuer is None or not issuer.complete:
         assign_uids(conn, sector_id=sector_id)
     else:
-        _set_sector_uid(conn, sector_id)
+        set_sector_uid(conn, sector_id)
     address = None if galaxy_position is None else tuple(
         galaxy_position.get(key) for key in ("ring_index", "layer_index", "ring_slot_index"))
     if address is not None and None not in address:
@@ -6876,22 +6876,22 @@ def _sector_address_of(galaxy_position):
 
 def _uid_issuer_for_sector(conn, sector_id, galaxy_position):
     """The `_UidIssuer` for a sector just inserted (its `uid` is set by
-    `_set_sector_uid`), or `None` when the sector has no grid address to be
+    `set_sector_uid`), or `None` when the sector has no grid address to be
     born in: its rows then take run-time IDs from `assign_uids`."""
     address = _sector_address_of(galaxy_position)
     return None if address is None else _UidIssuer(sector_id, address)
 
 
-def _set_sector_uid(conn, sector_id):
-    """Writes a grid sector's own `uid` (its designation) when it has none."""
+def set_sector_uid(conn, sector_id):
+    """Writes a sector's own `uid` when it has none: its designation, or for a sector with no grid address
+    `galaxyUid.unplaced_sector_uid` (API.23: every sector has a public ID)."""
     row = conn.execute("SELECT ring_index, layer_index, ring_slot_index, uid FROM sectors WHERE id = ?",
                        (sector_id,)).fetchone()
     if row is None or row["uid"] is not None:
         return
     address = (row["ring_index"], row["layer_index"], row["ring_slot_index"])
-    if None not in address:
-        conn.execute("UPDATE sectors SET uid = ?, modified_at = modified_at WHERE id = ?",
-                     (galaxyUid.sector_uid(*address), sector_id))
+    uid = galaxyUid.sector_uid(*address) if None not in address else galaxyUid.unplaced_sector_uid(sector_id)
+    conn.execute("UPDATE sectors SET uid = ?, modified_at = modified_at WHERE id = ?", (uid, sector_id))
 
 
 _UID_ISSUED_TABLES = frozenset(("star_systems", "stars", "planets", "moons", "asteroid_belts", "comets",
@@ -7071,7 +7071,7 @@ def assign_uids(conn, sector_id=None, system_ids=(), phenomenon=None):
 
 
 def _assign_sector_uids(conn, sector_id):
-    _set_sector_uid(conn, sector_id)
+    set_sector_uid(conn, sector_id)
     ids = [row["id"] for row in conn.execute("SELECT id FROM star_systems WHERE sector_id = ? ORDER BY id",
                                              (sector_id,)).fetchall()]
     for first in range(0, len(ids), _UID_SYSTEM_BATCH):
