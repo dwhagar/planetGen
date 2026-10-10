@@ -17,6 +17,7 @@ against the skeleton `run_plan` builds.
 import argparse
 import copy
 import math
+import threading
 import time
 
 import pymysql
@@ -25,6 +26,7 @@ from planetgen.db import sector_paths, store
 from planetgen.generation import bright_stars as brightStars
 from planetgen.galaxy import seed as galaxySeed, version_check
 from planetgen.physics import mathcheck
+from planetgen.queue import redisqueue
 from planetgen import tuning as program_constants
 from planetgen.util import log
 from planetgen.galaxy.density import relative_density
@@ -445,7 +447,7 @@ def settle_after_run(args, started_at):
     return saved
 
 
-def generate_and_save_sector_at(args, address, position_pc, edge_pc):
+def generate_and_save_sector_at(args, address, position_pc, edge_pc, channel=None):
     """
     Generates one sector via `generate_sector` inside its real grid cell
     and saves it -- the per-sector unit of work every `galaxy` mode
@@ -457,6 +459,8 @@ def generate_and_save_sector_at(args, address, position_pc, edge_pc):
         address (tuple): This sector's `(ring, layer, slot)`.
         position_pc (tuple): Its `(x, y, z)` center, parsecs.
         edge_pc (float): The sector edge length, parsecs.
+        channel (optional): Where a worker reports the save's progress
+            (`steps.worker_step`, PERF.50); `None` reports nowhere.
 
     Returns:
         tuple: `(sector_id, sector_name, sector)` of the newly saved sector
@@ -490,9 +494,14 @@ def generate_and_save_sector_at(args, address, position_pc, edge_pc):
         sector.place_in_galaxy(tuple(pc_to_ly(c) for c in position_pc))
         # PERF.45: a run links its sectors to their neighbours once, at its end
         # (`link_after_run`), instead of one at a time under a lock.
-        sector_id = store.save_sector(sector, config=store.mysql_config_from_args(args),
-                                    galaxy_position=galaxy_position,
-                                    link_neighbors=not getattr(args, "link_later", False))
+        units = len(sector.entries) + len(sector.phenomena)
+        with steps.worker_step(channel, "save:" + ",".join(str(part) for part in address),
+                               f"Saving sector {provisional_sector_designation(*address)}", "save", units,
+                               workers=run_common._worker_count(args)) as save_step:
+            sector_id = store.save_sector(sector, config=store.mysql_config_from_args(args),
+                                        galaxy_position=galaxy_position,
+                                        link_neighbors=not getattr(args, "link_later", False),
+                                        progress=save_step)
     run_common._count_sector(sector)
     return sector_id, sector.name, sector
 
@@ -683,12 +692,29 @@ def _log_saved(saved, address, suffix=""):
 def _submit_batch(args, batch, title, edge_pc, progress, bar):
     """Queues every `(address, position_pc, sector_args, suffix)` of
     `batch` (`_submit_sector`) and waits for them."""
-    with run_common._work_queue(args, title) as queue:
-        queue.expect(len(batch))
-        log.normal(f"Generating {len(batch):,} sector(s) with {queue.workers} worker(s); each is reported below as it "
-                   f"is saved, so the first report can take a while in a dense region.")
-        for address, position_pc, sector_args, suffix in batch:
-            _submit_sector(queue, sector_args, address, position_pc, edge_pc, bar, suffix=suffix)
+    relay = steps.Relay(args, progress)
+    stop = threading.Event()
+    channel = drain = None
+    try:
+        with run_common._work_queue(args, title) as queue:
+            if queue.parallel:
+                channel = queue.channel("sector-progress")
+                drain = threading.Thread(target=relay.drain, args=(channel, stop), name="sector-progress", daemon=True)
+                drain.start()
+            else:
+                channel = relay   # one worker saves in this process: its reports go straight to the relay
+            queue.expect(len(batch))
+            log.normal(f"Generating {len(batch):,} sector(s) with {queue.workers} worker(s); each is reported below as "
+                       f"it is saved, so the first report can take a while in a dense region.")
+            for address, position_pc, sector_args, suffix in batch:
+                _submit_sector(queue, sector_args, address, position_pc, edge_pc, bar, suffix=suffix, channel=channel)
+    finally:
+        stop.set()
+        if drain is not None:
+            drain.join(timeout=5)
+        if isinstance(channel, redisqueue.Channel):
+            channel.close()
+        relay.close()
 
 
 def _fill_sector_task(payload):
@@ -706,6 +732,7 @@ def _fill_sector_task(payload):
     sector_args = payload["args"]
     sector_id, sector_name, sector = generate_and_save_sector_at(
         sector_args, payload["address"], payload["position_pc"], payload["edge_pc"],
+        channel=payload.get("channel"),
     )
     return {
         "sector_id": sector_id, "name": sector_name, "systems": len(sector.entries),
@@ -714,7 +741,7 @@ def _fill_sector_task(payload):
     }
 
 
-def _submit_sector(queue, sector_args, address, position_pc, edge_pc, bar, suffix=""):
+def _submit_sector(queue, sector_args, address, position_pc, edge_pc, bar, suffix="", channel=None):
     """Queues one galaxy sector (`_fill_sector_task`); when it's saved,
     advances `bar`, logs it and adds its time to the speed stats."""
     def saved(result, seconds, _weight):
@@ -727,7 +754,8 @@ def _submit_sector(queue, sector_args, address, position_pc, edge_pc, bar, suffi
         bar.update(advance=1)
         _log_saved(result, address, suffix=suffix)
 
-    payload = {"args": sector_args, "address": address, "position_pc": position_pc, "edge_pc": edge_pc}
+    payload = {"args": sector_args, "address": address, "position_pc": position_pc, "edge_pc": edge_pc,
+               "channel": channel}
     queue.submit("sector", ",".join(str(part) for part in address), _fill_sector_task, payload, on_done=saved)
 
 
