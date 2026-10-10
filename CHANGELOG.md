@@ -3,6 +3,7 @@
 ## [8.0.866] - 2026-10-10
 
 ### Changed
+- TODO: retired UX.35 (PR #879); recorded the dependencies between the zoom visibility items (MAP.148 builds after MAP.153, MAP.152 needs MAP.154, MAP.151 needs MAP.147) and added section 8a to the fly-through design note.
 - TODO: filed MAP.153 to MAP.155 from the zoom star visibility research note (rank birth-radius fade, nested tile lists, other objects fading), and marked them as the first stages of MAP.148's visibility rule.
 - Rewrote MAP.146 as the fly-through umbrella (scroll-zoom, double-click flight, distance-based visibility, see-through near field) and split it into MAP.148 to MAP.152; added the two research reports under docs/design.
 - The NAV page's route now runs left to right with the distance of each hop after its stop, wrapping onto more lines as the panel narrows, and a route of more than nine stops shows its first stop, last three stops, longest hop and every jump through unknown space, with the whole route under "All N stops" (UX.35).
