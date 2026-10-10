@@ -473,7 +473,7 @@ with `clamp()`.
   and the closing special rows and insert; one sector's save (PERF.50,
   needs a worker-to-parent channel); `cli/warm_map.py` (prints a line,
   no bar); the migration (DB.15) and the name registry passes.
-  Prerequisites: PERF.51, PERF.50. Related: UX.83, PERF.33, PERF.34,
+  Prerequisite: PERF.50. Related: UX.83, PERF.33, PERF.34,
   PERF.32, DB.15, DB.21.
   Lane (Boss, 2026-10-09 23:38Z): Bugfixes lane 1, order PERF.32, PERF.33, PERF.51, PERF.50, DB.15, then UX.84.
 
@@ -3567,27 +3567,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   progress mechanism); registered by UX.84.
   Prerequisite: PERF.51. Related: UX.83, PERF.33, PERF.34, PERF.32.
   Lane (Boss, 2026-10-09 23:38Z): Bugfixes lane 1, order PERF.32, PERF.33, PERF.51, PERF.50, DB.15, then UX.84.
-
-- [ ] **PERF.51 One progress mechanism for every sub-step: a bar starts by itself when a step is predicted to take over 15 seconds**
-  Source: Boss (2026-10-09 23:34Z): "I believe I said a progress bar on
-  all substeps that automatically activates on the start of that
-  sub-item if it's predicted to take longer than 15 seconds to
-  complete." This is the mechanism UX.84 applies. Done: every generation
-  and maintenance step reports its progress through one shared helper (a
-  step with a name, a stats kind and a work count, in the terminal bar,
-  the progress file the Generate and Queue pages read, and the work
-  queue), and the helper starts a visible bar by itself at the start of
-  a step when the predicted duration exceeds 15 seconds, from the step's kind and work count and the recorded generation timing statistics (Boss, 23:35Z: "That's why we are tracking the stats for generation"): the `generation_stats` table of PERF.32, the rate per `(kind, workers)`, read through the PERF.33 estimator, not a hard-coded cost model. Only a step with no recorded history yet (the first run after a version change, or a kind never timed) uses a conservative fallback, and the fallback treats an unknown cost as long, so a first run still shows its bar. Every step the helper runs records its measured rate back into `generation_stats` under its kind, so the next prediction has history; the kinds that are not timed today (everything outside the work queue's kinds: see UX.84's list) are added as part of this item. A step predicted under 15 seconds draws
-  nothing, and a step that runs past its prediction gets its bar the
-  moment it passes 15 seconds. A step can run inside a worker: the
-  helper carries a worker-to-parent progress channel (see PERF.50), so a
-  bar can show progress from inside one task. Replaces the hand-built
-  `add_task` calls in `run_galaxy`, `run_plan`, `StageProgress` and
-  `store` with the one helper (no compatibility wrappers). Open question
-  for Boss (default 15 seconds, fixed in `tuning.py`, and the fallback used only while a kind has no recorded history): other?
-  Prerequisite: PERF.33. Related: UX.84, PERF.50, PERF.33, PERF.32,
-  PERF.34, UX.3.
-  Lane (Boss, 2026-10-09 23:38Z): Bugfixes lane 1, order PERF.32, PERF.33, PERF.51, PERF.50, DB.15, then UX.84.
+  Built with PERF.51 (PR #919): the shared Step progress mechanism
+  (a bar from 15 s predicted, the measured rate recorded back) and the
+  worker-to-parent relay are in place; the sector, link, paths,
+  backfill, top-up, phenomena and stage bars already run on it. What is
+  left here is the bar inside one sector's save, using the relay.
 
 ## DB: Database and schema
 
@@ -3667,7 +3651,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   heavy revision. Open question for Boss (default: raise the wait for
   the migration process only and have the update script say when a
   revision is expected to be long).
-  Prerequisite: PERF.51.
   Lane (Boss, 2026-10-09 23:38Z): Bugfixes lane 1, order PERF.32, PERF.33, PERF.51, PERF.50, DB.15, then UX.84.
 
 - [ ] **DB.16 Store the generator epoch and run id on each sector instead of four version text columns**
@@ -4370,16 +4353,6 @@ clears each one.
   product bug it hides is fixed. Bugfixes lane 1 or whichever lane
   touches regeneration next.
   Prerequisites: none. Related: TEST.111, TEST.71, TEST.73, OPS.19.
-
-- [ ] **TEST.113 tests/js/generatejobs.test.mjs fails on main: "asks for the job's status two seconds in" (bug)**
-  Reported by Foundations lane 1 (2026-10-10 00:58Z), unrelated to PR
-  #915: the case "asks for the job's status two seconds in" expects
-  "about 36 s left" and gets an empty string. Likely from the new ETA
-  range text of PERF.33 (PR #910), which shows "estimating" early in a
-  job. Done: the cause is found and the test or the page is fixed so
-  main's CI passes, without skipping or loosening the test. Bugfixes
-  lane 1, with the main CI errors Boss asked it to fix after PERF.51.
-  Prerequisites: none. Related: PERF.33, TEST.111.
 
 ## USR: User accounts
 
