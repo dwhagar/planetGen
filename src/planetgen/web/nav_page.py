@@ -50,7 +50,7 @@ from planetgen.physics.units import ly_to_pc
 
 from . import bp
 from .sector_page import PHENOMENON_TYPE_LABELS
-from .helpers import crumb, db_name, page_url, render_page, trusted_html
+from .helpers import crumb, current_admin, db_name, page_url, render_page, trusted_html
 
 SECTOR_PICKER_LIMIT = 500
 """int: How many sectors the pickers offer: `GET /api/sectors`'s own
@@ -501,6 +501,66 @@ READOUT_WARP_FACTORS = (1, 9)
 readout shows."""
 
 
+CHART_ERROR_PREFIX = re.compile(r"^planetGen API error \(\d+\): ")
+
+
+@bp.route("/nav/chart")
+def nav_chart():
+    """
+    NAV.48 (admins): the uncharted sectors that block a course. Shows what charting would take (the cells
+    of the route's hops through unknown space, whether a route through charted space exists, a one-cell
+    border to tick), and a form that sends the job to the Generate page, which shows the size and time and
+    asks to confirm before it starts. A visitor who is not logged in is sent to log in first.
+    """
+    admin = current_admin()
+    here = request.full_path.rstrip("?")
+    if admin is None:
+        return redirect(page_url("login", next=here), code=302)
+    if admin.get("must_change_credentials"):
+        return redirect(page_url("account", next=here), code=302)
+
+    from_raw = (request.args.get("from") or "").strip()
+    to_raw = (request.args.get("to") or "").strip()
+    if not from_raw or not to_raw:
+        return redirect(page_url("nav"), code=302)
+    origin = _resolve(*parse_endpoint(from_raw))
+    destination = _resolve(*parse_endpoint(to_raw))
+    border = request.args.get("border") == "1"
+    title = f"Chart the course: {origin['name']} \u2192 {destination['name']}"
+    crumbs = [crumb("Nav", "nav"), crumb(f"{origin['name']} \u2192 {destination['name']}", "nav",
+                                          **{"from": _param_of(origin), "to": _param_of(destination)}),
+              crumb("Chart")]
+    course_url = nav_url(_param_of(origin), _param_of(destination))
+    page = {"section": "nav", "description": "Generate the uncharted sectors that block a course."}
+    try:
+        plan = apiclient.get_nav_chart(db_name(), origin["ref"], destination["ref"], border=border)
+    except apiclient.NotFoundError:
+        raise
+    except apiclient.ApiError as exc:
+        if exc.status_code != 400:
+            raise
+        return render_page("nav_chart.html", title=title, breadcrumbs=crumbs, origin=origin, destination=destination,
+                           error=CHART_ERROR_PREFIX.sub("", str(exc)), course_url=course_url, **page)
+    bypass = plan.get("bypass")
+    return render_page(
+        "nav_chart.html", title=title, breadcrumbs=crumbs, origin=origin, destination=destination, plan=plan,
+        border=border, course_url=course_url, needs_confirm=plan["count"] > plan["confirm_over"],
+        bypass_text=_bypass_text(bypass, plan), generate_url=page_url("generate"),
+        from_param=_param_of(origin), to_param=_param_of(destination), **page)
+
+
+def _bypass_text(bypass, plan):
+    """NAV.48: what the bypass test found, in a sentence (empty when no hop is unknown)."""
+    if not bypass:
+        return ""
+    if bypass["found"]:
+        return (f"A route through charted space exists, {format_distance_ly(bypass['distance_ly'])} against "
+                f"{format_distance_ly(plan['route_distance_ly'])} for the shortest route, so charting is optional.")
+    if not bypass["checked"]:
+        return "Whether a route through charted space exists could not be worked out in time."
+    return "No route through charted space exists, so these sectors have to be generated before the course can avoid unknown space."
+
+
 def _course_readout(result, direct, route, stops):
     """
     The course readout beside the Galaxy Map (NAV.20): `distance`,
@@ -611,6 +671,9 @@ def nav():
         short_stops=_route_short_list(_route_stops(route, names), route) if route and route["path"] else None,
         longest_hop_text=format_distance_ly(route["longest_hop_ly"]) if route and "longest_hop_ly" in route else None,
         unknown_jumps=sum(1 for hop in route.get("hops", []) if hop.get("unknown_space")) if route else 0,
+        chart_url=page_url("nav_chart", **{"from": _param_of(origin), "to": _param_of(destination)})
+        if current_admin() is not None and route and any(hop.get("unknown_space") for hop in route.get("hops", []))
+        else None,
         map_html=trusted_html(map_html),
         reverse_url=nav_url(_param_of(destination), _param_of(origin)),
         bookmark_changes=[_bookmark_pick("from", _param_of(destination), "New start"),

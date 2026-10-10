@@ -65,6 +65,7 @@ from planetgen.admin import activity_log
 from planetgen.generation import luminosity_floor, prevalence, stages, stats
 from planetgen import tuning
 from planetgen.util import log
+from planetgen.galaxy import objectref
 from planetgen.galaxy.drill import format_drill_key, parse_drill_key
 from planetgen.galaxy.geometry import sector_address_at
 from planetgen.galaxy.span import Span, SpanError, parse_range
@@ -517,6 +518,8 @@ def galaxy_argv(form, edge_pc=None):
         return argv, description
     if mode == "span":
         return span_argv(form)
+    if mode == "course":
+        return course_argv(form)
     if mode == "shell":
         ring = _number(form, "shell_ring", "Ring", int, required=True, minimum=0, maximum=MAX_GENERATE_RING)
         argv = ["--ring", str(ring), "--shell"]
@@ -527,6 +530,38 @@ def galaxy_argv(form, edge_pc=None):
             argv.append("--yes")
         return argv, f"in the shell at ring {ring}"
     raise FormError("Choose what to generate.")
+
+
+def course_argv(form):
+    """
+    `planetgen galaxy` arguments for charting a course (NAV.48, from the NAV chart page): the two ends
+    (object references, as the NAV page writes them), `--course-border` when ticked, and `--yes` once the
+    admin has confirmed a chart past `tuning.NAV_CHART_CONFIRM_SECTORS` sectors.
+
+    Returns:
+        tuple: `(argv, description)`.
+
+    Raises:
+        FormError: An end that is not an object reference, or is a sector.
+    """
+    ends = []
+    for field, label in (("course_from", "Start"), ("course_to", "Destination")):
+        text = (form.get(field) or "").strip()
+        try:
+            kind, printed = objectref.parse_public(text)
+        except ValueError:
+            kind = printed = None
+        if kind is None or kind == "sector":
+            raise FormError(f"{label} must be the object ID of a system, a body in one, or a phenomenon.")
+        ends.append(objectref.format_public(kind, printed))
+    argv = ["--course", *ends]
+    description = f"the uncharted sectors on the course {ends[0]} to {ends[1]}"
+    if form.get("course_border"):
+        argv.append("--course-border")
+        description += " and a border of one cell"
+    if form.get("course_confirm"):
+        argv.append("--yes")
+    return argv, description
 
 
 def span_argv(form):

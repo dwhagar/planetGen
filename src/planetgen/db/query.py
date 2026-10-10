@@ -68,7 +68,9 @@ from planetgen.galaxy.viewport import (
 from planetgen.galaxy.drill import (
     DRILL_TOP, DrillBlock, drill_chain_of, drill_wedge_count, format_drill_key, parse_drill_key,
 )
-from planetgen.db.corridor import positions_near_segment, unknown_space_flags
+from planetgen.db.corridor import (
+    BypassBudgetExceeded, UnknownEdges, generated_cells, positions_near_segment, unknown_cells,
+)
 from planetgen.galaxy.nav_graph import build_route_graph, shortest_path
 from planetgen.galaxy.navigation import (
     FRAME_GALACTIC, FRAME_SECTOR, FRAME_SYSTEM, course_between, fold_travel_times, route_fold_times, route_warp_times,
@@ -78,7 +80,8 @@ from planetgen.physics.constants import SPECTRAL_CLASS_COLORS
 from planetgen.generation.evolution import life_stage_from_paragraphs
 from planetgen.tuning import (
     DEFAULT_SECTOR_EDGE_LY, HABITABLE_PLANET_CLASSES, NAV_ADJACENCY_K, NAV_CORRIDOR_FRACTION, NAV_CORRIDOR_MAX_LY,
-    NAV_CORRIDOR_MAX_SYSTEMS, NAV_CORRIDOR_MIN_LY, NAV_CORRIDOR_START_MAX_LY, NAV_ISLAND_LINKS, PLANET_CLASSES,
+    NAV_BYPASS_MAX_EDGES, NAV_CORRIDOR_MAX_SYSTEMS, NAV_CORRIDOR_MIN_LY, NAV_CORRIDOR_START_MAX_LY,
+    NAV_ISLAND_LINKS, PLANET_CLASSES,
 )
 from planetgen.physics.units import ly_to_pc, milliparsecs_to_ly, mpc_to_pc, pc_to_ly
 
@@ -836,7 +839,7 @@ def _longest_hop(path, positions):
     return max((math.dist(positions[a], positions[b]) for a, b in zip(path, path[1:])), default=0.0)
 
 
-def _galaxy_route(conn, origin_position, destination_position, from_key, to_key, adjacency_k):
+def _galaxy_route(conn, origin_position, destination_position, from_key, to_key, adjacency_k, unknown_edges=None):
     """
     The cross-sector route between two galaxy-frame positions, searched among
     the systems near the straight line between them instead of every placed
@@ -847,6 +850,9 @@ def _galaxy_route(conn, origin_position, destination_position, from_key, to_key,
     the half-width -- a hop that long may be hugging the corridor's edge with
     stepping stones just outside it. A corridor holding more than
     `NAV_CORRIDOR_MAX_SYSTEMS` is not widened. The route is found with A*.
+
+    With `unknown_edges` (`corridor.UnknownEdges`, NAV.48's bypass test) a hop through an uncharted
+    sector may not be used, so the answer is `None` when there is no route through known space.
 
     Returns:
         tuple: `(positions, found)`: the positions the graph was built from
@@ -861,7 +867,9 @@ def _galaxy_route(conn, origin_position, destination_position, from_key, to_key,
         positions[from_key] = origin_position
         positions[to_key] = destination_position
         graph = build_route_graph(positions, adjacency_k, NAV_ISLAND_LINKS)
-        found = shortest_path(graph, from_key, to_key, positions)
+        found = shortest_path(
+            graph, from_key, to_key, positions,
+            blocked=None if unknown_edges is None else (lambda a, b: unknown_edges(positions[a], positions[b])))
         settled = (found is not None and _longest_hop(found[0], positions) <= half_width / 2.0)
         if settled or half_width >= NAV_CORRIDOR_MAX_LY or len(positions) > NAV_CORRIDOR_MAX_SYSTEMS:
             return positions, found
@@ -910,8 +918,26 @@ def _hop_course(hop, places, galaxy_frame, local_positions):
             "frame": course.frame}
 
 
+def _bypass_route(conn, origin_position, destination_position, from_key, to_key, adjacency_k):
+    """
+    NAV.48's bypass test: whether a route exists that crosses no uncharted sector, and how long it is.
+
+    Returns:
+        dict: `found` (a route through known space exists), `distance_ly` (its length, else `None`) and
+            `checked` (false when the search gave up after `tuning.NAV_BYPASS_MAX_EDGES` hops: the answer is
+            then unknown and `found` is false).
+    """
+    try:
+        _positions, found = _galaxy_route(conn, origin_position, destination_position, from_key, to_key,
+                                          adjacency_k, unknown_edges=UnknownEdges(conn, NAV_BYPASS_MAX_EDGES))
+    except BypassBudgetExceeded:
+        return {"found": False, "distance_ly": None, "checked": False}
+    return {"found": found is not None, "distance_ly": found[1] if found is not None else None, "checked": True}
+
+
 def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
-                 from_kind="system", to_kind="system", from_type=None, to_type=None, stay_minutes=0.0):
+                 from_kind="system", to_kind="system", from_type=None, to_type=None, stay_minutes=0.0,
+                 chart=False):
     """
     Resolves full NAV information between two endpoints -- each either a
     star system or a standalone phenomenon (nebula/asteroid field/black
@@ -954,6 +980,10 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
         stay_minutes (float): NAV.11: the time spent at each system the
             route stops at between the two ends (default 0); only the
             route's total times use it.
+        chart (bool): NAV.48: each hop through unknown space also lists its
+            uncharted `unknown_cells`, and a route with such a hop gets a
+            `bypass` entry (`_bypass_route`: whether a route through known
+            space exists). `nav_chart_plan` asks for these.
 
     Returns:
         dict: `scope` (`"sector"` or `"galaxy"`), `direct` (a
@@ -1052,6 +1082,7 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
                                       if sector_offset is not None else (origin_position, destination_position))
             positions, found = _galaxy_route(conn, search_from, search_to, from_key, to_key, adjacency_k)
             galaxy_frame = positions
+            search_ends = (search_from, search_to)
         if found is not None:
             path, distance_ly = found
             route_positions = {node_id: positions[node_id] for node_id in path}
@@ -1062,10 +1093,15 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
                 hop.update(_hop_course(hop, places, galaxy_frame, positions))
                 hop["warp_times"] = [leg._asdict() for leg in warp_travel_times(hop["distance_ly"])]
                 hop["fold_times"] = [leg._asdict() for leg in fold_travel_times(hop["distance_ly"])]
+            bypass = None
             if galaxy_frame is not None:
-                flags = unknown_space_flags(conn, [galaxy_frame[node_id] for node_id in path])
-                for hop, flag in zip(hops, flags):
-                    hop["unknown_space"] = flag
+                cells = unknown_cells(conn, [galaxy_frame[node_id] for node_id in path])
+                for hop, hop_cells in zip(hops, cells):
+                    hop["unknown_space"] = bool(hop_cells)
+                    if chart:
+                        hop["unknown_cells"] = hop_cells
+                if chart and any(cells):
+                    bypass = _bypass_route(conn, *search_ends, from_key, to_key, adjacency_k)
                 if sector_offset is not None:
                     route_positions = {node_id: tuple(c - o for c, o in zip(position, sector_offset))
                                        for node_id, position in route_positions.items()}
@@ -1081,6 +1117,8 @@ def nav_between(conn, from_id, to_id, adjacency_k=NAV_ADJACENCY_K,
                 "warp_times": route_warp_times([hop["distance_ly"] for hop in hops], stay_minutes),
                 "fold_times": route_fold_times([hop["distance_ly"] for hop in hops], stay_minutes),
             }
+            if bypass is not None:
+                route["bypass"] = bypass
 
     return {
         "scope": scope,
@@ -1156,6 +1194,49 @@ def _nav_leg(kind, origin_ref, destination_ref, course):
         "kind": kind, "from": origin_ref, "to": destination_ref, "direct": course,
         "warp_times": warp_travel_times(course.distance_ly), "fold_times": fold_travel_times(course.distance_ly),
     }
+
+
+def nav_chart_plan(conn, from_ref, to_ref, border=False, adjacency_k=NAV_ADJACENCY_K):
+    """
+    NAV.48: the uncharted sectors that block a course, to be generated so it can be plotted again.
+
+    The route is the one `nav_course` finds; its hops through unknown space name the cells to chart
+    (the cells of those hops only, not every cell on the straight line), left out where they lie
+    outside the galaxy's outline. `border` adds the cells sharing a face with those that are not
+    charted either.
+
+    Returns:
+        dict: `unknown_hops` (how many), `cells` (`(ring, layer, slot)` to chart, in the order the
+            route enters them), `outside_galaxy` (uncharted cells past the outline, never offered),
+            `route_distance_ly` and `bypass` (`_bypass_route`'s answer, `None` when no hop is unknown).
+
+    Raises:
+        ValueError: For a bad reference or a missing row.
+        NavUnavailable: As `nav_between`, and for a sector endpoint.
+    """
+    origin, destination = _nav_endpoint(conn, from_ref), _nav_endpoint(conn, to_ref)
+    if origin["anchor"] == destination["anchor"] and origin["anchor"][0] == "system":
+        return {"unknown_hops": 0, "cells": [], "outside_galaxy": 0, "route_distance_ly": 0.0, "bypass": None}
+    from_kind, from_id, from_type = origin["anchor"]
+    to_kind, to_id, to_type = destination["anchor"]
+    result = nav_between(conn, from_id, to_id, adjacency_k, from_kind=from_kind, to_kind=to_kind,
+                         from_type=from_type, to_type=to_type, chart=True)
+    route = result["route"]
+    hops = [hop for hop in (route["hops"] if route else []) if hop.get("unknown_space")]
+    bounds = get_galaxy_bounds(conn)
+    cells = list(dict.fromkeys(cell for hop in hops for cell in hop["unknown_cells"]))
+    inside = [cell for cell in cells if bounds.contains(cell[0], cell[1])]
+    outside = len(cells) - len(inside)
+    if border and inside:
+        listed = set(inside)
+        around = dict.fromkeys(
+            near for cell in inside for near in neighbor_addresses(*cell)
+            if bounds.contains(near[0], near[1]) and near not in listed)
+        charted = generated_cells(conn, set(around))
+        inside += [cell for cell in around if cell not in charted]
+    return {"unknown_hops": len(hops), "cells": inside, "outside_galaxy": outside,
+            "route_distance_ly": route["distance_ly"] if route else 0.0,
+            "bypass": route.get("bypass") if route else None}
 
 
 def nav_course(conn, from_ref, to_ref, adjacency_k=NAV_ADJACENCY_K, stay_minutes=0.0):

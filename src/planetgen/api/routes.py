@@ -74,6 +74,7 @@ from planetgen.db.query import (
     systems_facets,
     list_sectors,
     list_systems,
+    nav_chart_plan,
     nav_course,
     open_readonly,
     phenomenon_detail as query_phenomenon_detail,
@@ -755,6 +756,30 @@ def nav():
         } for leg in result["legs"]],
         "note": result["note"],
     })
+
+
+@bp.route("/nav/chart")
+def nav_chart():
+    """
+    NAV.48: the uncharted sectors that block the course between two objects (`?from=...&to=...`, written
+    as for `/api/nav`; `border=1` adds the uncharted cells next to them) -- see `queryDb.nav_chart_plan`.
+    Answers `unknown_hops`, `cells` (`[ring, layer, slot]`, in the order the route enters them, inside the
+    galaxy's outline), `count`, `outside_galaxy`, `route_distance_ly`, `bypass` (`{found, distance_ly,
+    checked}`: whether a route through charted space exists, or `null` when no hop is unknown) and
+    `confirm_over` (past this many cells the Generate page asks for a confirmation). Nothing is generated;
+    the NAV chart page starts the job through the Generate page.
+    """
+    from_ref = _nav_ref_param(request.args, "from")
+    to_ref = _nav_ref_param(request.args, "to")
+    border = request.args.get("border", "") in ("1", "true", "yes", "on")
+    try:
+        plan = nav_chart_plan(get_db(), from_ref, to_ref, border=border)
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 404
+    except NavUnavailable as exc:
+        return jsonify({"error": str(exc)}), 400
+    return jsonify({**plan, "cells": [list(cell) for cell in plan["cells"]], "count": len(plan["cells"]),
+                    "confirm_over": tuning.NAV_CHART_CONFIRM_SECTORS})
 
 
 def _route_for_json(route):

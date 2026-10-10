@@ -25,7 +25,7 @@ import time
 from planetgen.queue import progress_file
 from planetgen.util import log
 
-SECTOR_MODES = ("block", "span", "column", "shell", "slot", "ring", "center_sector")
+SECTOR_MODES = ("block", "span", "course", "column", "shell", "slot", "ring", "center_sector")
 
 JOB_KEY = "job"
 """str: The `stage_key` the whole-job row is stored under (`finish`)."""
