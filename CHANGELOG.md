@@ -3,6 +3,7 @@
 ## [8.0.911] - 2026-10-10
 
 ### Changed
+- **Docs only:** Foundations lane 1 queue notes (ADM.28 and ADM.45 first, then the object-ID block and API.9); ADM.45 star mix decision.
 - **Docs only:** the lane queue puts GEN.170, API.9 (moved to Foundations lane 1) and MAP.153 first.
 - **Docs only:** OPS.39 (Windows support removed, PR #981), TEST.115, OPS.34 (superseded) and TEST.118 (PR #975) are retired.
 - **Docs only:** OPS.40 (update.sh step 8 bug) is filed.
