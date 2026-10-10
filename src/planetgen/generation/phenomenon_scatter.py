@@ -97,6 +97,12 @@ def class_label(kind, subtype):
     return f"{subtype} {kind}" if subtype else kind
 
 
+def split_label(label):
+    """`(kind, subtype)` of a `class_label`; the subtype is `""` for a class without one."""
+    subtype, _space, kind = label.rpartition(" ")
+    return kind, subtype
+
+
 EXPECTED_LABELS = tuple(class_label(kind, subtype) for kind, subtype in SCATTER_CLASSES) + (
     HYPERVELOCITY_KIND, class_label("black-hole", NUCLEUS_SUBTYPE), "quasar")
 """tuple: Every class a phenomena scatter can place, so a summary lists the ones that drew none too."""

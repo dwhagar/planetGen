@@ -1419,6 +1419,7 @@ def _table_marker(table):
 
 
 _VERSION_MARKERS = (
+    (77, _table_marker("phenomenon_scatter_classes")),
     (76, _column_marker("planets", "equipment_tier")),
     (75, _column_marker("planets", "surface_dose_msv_yr")),
     (74, _column_marker("planets", "ocean_class")),
@@ -5384,6 +5385,7 @@ def clear_phenomenon_scatter(conn):
     plan re-run or a new galaxy starts over. `TRUNCATE` (an implicit
     commit), since a real scatter leaves over a hundred million rows."""
     conn.execute("TRUNCATE TABLE phenomenon_scatter")
+    conn.execute("TRUNCATE TABLE phenomenon_scatter_classes")
     conn.execute("UPDATE galaxy_shape SET phenomenon_scatter_seed = NULL, phenomenon_min_mass_solar = NULL")
     conn.commit()
 
@@ -5395,6 +5397,24 @@ def record_phenomenon_scatter(conn, seed, min_mass_solar):
     neutron stars and black holes below the cut itself (GEN.168)."""
     conn.execute("UPDATE galaxy_shape SET phenomenon_scatter_seed = ?, phenomenon_min_mass_solar = ? WHERE id = 1",
                  (seed, min_mass_solar))
+
+
+def record_phenomenon_scatter_classes(conn, counts):
+    """Stores how many phenomena of each class the scatter placed
+    (`{(kind, subtype): count}`, `subtype` `""` for none), none built yet, so
+    the Phenomena table counts them without scanning `phenomenon_scatter`."""
+    conn.execute("DELETE FROM phenomenon_scatter_classes")
+    conn.executemany(
+        "INSERT INTO phenomenon_scatter_classes (kind, subtype, placed, built) VALUES (?, ?, ?, 0)",
+        [(kind, subtype, int(count)) for (kind, subtype), count in sorted(counts.items()) if count])
+
+
+def phenomenon_scatter_classes(conn):
+    """`[{"kind", "subtype", "unbuilt"}]`: each scattered class with phenomena no sector has built yet."""
+    return [{"kind": row["kind"], "subtype": row["subtype"], "unbuilt": int(row["unbuilt"])}
+            for row in conn.execute(
+                "SELECT kind, subtype, placed - built AS unbuilt FROM phenomenon_scatter_classes"
+                " WHERE placed > built ORDER BY kind, subtype").fetchall()]
 
 
 def phenomenon_scatter_settings(conn):
@@ -5455,9 +5475,16 @@ def phenomena_for_sector(conn, ring_index, layer_index, ring_slot_index):
 
 def mark_phenomena_built(conn, scatter_ids):
     """Stamps the scattered phenomena a sector's save has built."""
-    ids = [(int(value),) for value in scatter_ids]
+    ids = [int(value) for value in scatter_ids]
     if ids:
-        conn.executemany("UPDATE phenomenon_scatter SET built_at = CURRENT_TIMESTAMP WHERE id = ?", ids)
+        marks = ", ".join("?" * len(ids))
+        for row in conn.execute(
+                f"SELECT kind, COALESCE(subtype, '') AS subtype, COUNT(*) AS n FROM phenomenon_scatter"
+                f" WHERE id IN ({marks}) AND built_at IS NULL GROUP BY kind, COALESCE(subtype, '')", ids).fetchall():
+            conn.execute("UPDATE phenomenon_scatter_classes SET built = built + ? WHERE kind = ? AND subtype = ?",
+                         (int(row["n"]), row["kind"], row["subtype"]))
+        conn.executemany("UPDATE phenomenon_scatter SET built_at = CURRENT_TIMESTAMP WHERE id = ?",
+                         [(value,) for value in ids])
 
 
 UNTOUCHED_LEVEL = -1.0

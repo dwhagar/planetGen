@@ -2037,3 +2037,7 @@ relationship.
 
 `planets` and `moons` gain `phi4`, `phi4_pressure`, `phi4_temperature`, `phi4_chemistry`, `phi4_radiation`, `tier_pressure`, `tier_temperature`, `tier_chemistry`, `tier_radiation`, `phi_bio`, `phi_cpx`, `phi_tech`, `l_solv`, `l_chem`, `l_ener`, `l_rad`, `equipment_tier`, `hab_note` and `energy_flux_w_m2`, all NULL for a gas giant and on a row generated before v76. Computed last in a body's generation (after its air, water, dose and light) and again by `refresh_containment` when the dose changes. See `planetgen/physics/habitability_world.py` and docs/design/habitability-index.md section 8.
 
+
+### v77: `phenomenon_scatter_classes`
+
+`phenomenon_scatter_classes` (`kind`, `subtype`, `placed`, `built`; `subtype` is `''` where a class has none) holds how many scattered phenomena of each class the plan placed and how many a sector's save has built since. The Phenomena table counts and pages the unbuilt ones from it instead of scanning `phenomenon_scatter`, which holds over a hundred million rows in a real galaxy. Written when a phenomena scatter ends, kept by `mark_phenomena_built`, emptied with the scatter.

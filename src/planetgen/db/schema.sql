@@ -3216,6 +3216,25 @@ CREATE TABLE IF NOT EXISTS phenomenon_scatter (
 
 
 -- ---------------------------------------------------------------------
+-- phenomenon_scatter_classes (v77): how many scattered phenomena of each
+-- class were placed and how many a sector's save has built since, so the
+-- Phenomena table counts and pages the scatter without scanning its
+-- hundred million rows. One row per (`kind`, `subtype`); `subtype` is ''
+-- where the class has none. `placed` is written when the scatter ends
+-- (`store.record_phenomenon_scatter_classes`) and `built` goes up as
+-- `store.mark_phenomena_built` stamps rows; a plan re-run or reset empties
+-- the table with the scatter.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS phenomenon_scatter_classes (
+    kind     VARCHAR(24) NOT NULL,
+    subtype  VARCHAR(16) NOT NULL DEFAULT '',
+    placed   BIGINT UNSIGNED NOT NULL DEFAULT 0,
+    built    BIGINT UNSIGNED NOT NULL DEFAULT 0,
+    PRIMARY KEY (kind, subtype)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+
+-- ---------------------------------------------------------------------
 -- id_blocks (v45, PERF.13): the next unreserved id for each table in
 -- `_db.ID_BLOCK_TABLES`. `_db._allocate_id` moves `next_id` up by a
 -- block at a time (never below the table's own MAX(id) + 1) and the
