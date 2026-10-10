@@ -1,6 +1,7 @@
 # Running CI on your own computers (optional)
 
-CI runs on GitHub's machines by default (`ubuntu-latest`,
+The CI workflow runs only when started by hand (Actions > CI > Run
+workflow). When it runs, it uses GitHub's machines by default (`ubuntu-latest`,
 `windows-latest`, `macos-latest`), and nothing in this guide is needed for
 it to work. Self-hosted runners are **off by default**. This guide is for
 turning them back on later: it covers what each machine needs, how to

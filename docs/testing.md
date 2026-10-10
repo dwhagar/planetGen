@@ -253,6 +253,15 @@ prints it, together with a `@reproduce_failure(...)` line. To fix it:
    `parametrize` case), so it runs on every future run.
 2. Fix the code, not the test, unless the rule itself was wrong.
 
+## CI runs by hand
+
+`.github/workflows/ci.yml` (every test leg: math check, MySQL 8.4, MariaDB
+11.4, Python 3.9, Windows, browser and accessibility, the JS tests, the
+installer checks) runs only on **Actions > CI > Run workflow**, on main or
+any branch. It does not run on a push or a pull request. The post-merge
+`stamp-version.yml` and the PR check `release-note.yml` still run on their
+own. Run the suite locally before merging (see above).
+
 ## The Deep fuzz workflow
 
 `.github/workflows/deep-fuzz.yml` runs every fuzz file under the `deep`

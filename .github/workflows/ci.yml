@@ -1,11 +1,11 @@
 name: CI
 
+# Manual only (Boss, 2026-10-10): the test legs no longer run on a push or a
+# pull request. Start them by hand: Actions > CI > Run workflow (or the API's
+# workflow_dispatch), on main or any branch. The jobs are unchanged, so a
+# manual run behaves as a push run did. stamp-version.yml and
+# release-note.yml still run on their own.
 on:
-  push:
-    branches: ["main"]
-  pull_request:
-  # Run it by hand: Actions > CI > Run workflow (or the API's
-  # workflow_dispatch), on main or any branch.
   workflow_dispatch:
 
 # A new push to a PR cancels that PR's still-running CI, so self-hosted
