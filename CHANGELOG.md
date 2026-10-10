@@ -2,7 +2,15 @@
 
 ## [8.0.866] - 2026-10-10
 
+### Added
+- Planets and moons store their mantle redox (reduced, intermediate or oxidized, with its offset from the iron-wustite buffer) and the partial pressures of O2, CO2, CO, N2, Ar, H2, H2O, CH4, H2S and SO2 (GEN.85, schema v70). Each class's mix shifts with the redox, and no gas exceeds its vapour pressure at the surface temperature.
+- A route now reports its longest hop and flags each hop whose line crosses sectors that have not been generated as unknown space (NAV.12). `/api/nav` returns `route.hops` and `route.longest_hop_ly`, and the NAV page states the longest hop and the unknown-space jumps.
+- Eight to-do items from the generation performance study (a warmed worker, lazy names, uids in Python, the phenomenon-row size decision, a later pass for links, one position per body, benchmark records and a faster INSERT).
+- A to-do item (generating a neighbourhood from the Generate page shows no per-sector stats).
+- A to-do item (the Generate page shows a progress line and per-layer counts instead of one line per sector).
+
 ### Changed
+- A planet's atmosphere text is now written from its gases ("a mix of nitrogen, oxygen, and argon, with traces of water vapor and carbon dioxide"), and its surface pressure drops by any gas too cold to stay in the air.
 - The TODO list retires ADM.47 (PR #846) and records Bugfixes lane 1's measurement that name reservation takes 30 s of a dense sector's 84 s (PERF.31, PERF.43).
 - The TODO list records that Boss accepted the 20 solar mass cut for the phenomenon scatter (DB.19, GEN.166 to GEN.168), and the execution plan moves those items to the front of Foundations lane 2.
 - The TODO list retires GEN.137, NAV.53, OPS.33, UX.79 and UX.80 (PR #843).
@@ -20,12 +28,6 @@
 - Python and the browser now round half-way numbers the same way (away from zero, on the shortest decimal), so 9.995 reads "10" and 1.005 reads "1.01" in both; Python used to give "9.99" and "1".
 - A negative number that rounds to zero prints "0", not "-0", in both.
 - A checkout with `core.autocrlf=true` no longer changes the bytes of the lock files and the word list, so their hashes agree between Windows and Linux.
-
-### Added
-- A route now reports its longest hop and flags each hop whose line crosses sectors that have not been generated as unknown space (NAV.12). `/api/nav` returns `route.hops` and `route.longest_hop_ly`, and the NAV page states the longest hop and the unknown-space jumps.
-- Eight to-do items from the generation performance study (a warmed worker, lazy names, uids in Python, the phenomenon-row size decision, a later pass for links, one position per body, benchmark records and a faster INSERT).
-- A to-do item (generating a neighbourhood from the Generate page shows no per-sector stats).
-- A to-do item (the Generate page shows a progress line and per-layer counts instead of one line per sector).
 
 ## [8.0.783] - 2026-10-09
 
