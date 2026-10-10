@@ -2371,3 +2371,18 @@ def test_galaxy_map_does_not_prefetch_on_a_data_saving_connection(page, map_site
     normal = visit(False)
     saving = visit(True)
     assert saving < normal, f"saving: {sorted(saving)}, normal: {sorted(normal)}"
+
+
+# --- MAP.161: the map's modules are preloaded, each fetched once ---------------------------
+
+def test_galaxy_map_fetches_each_of_its_modules_once_with_the_hints_it_was_given(page, map_site):
+    """MAP.161: the page's `modulepreload` hints name the same URLs the script's own import()
+    asks for, so no module is fetched twice, and every hinted module is one the page used."""
+    urls = []
+    page.on("request", lambda request: urls.append(request.url) if "/static/" in request.url and ".js" in request.url else None)
+    _open_galaxy(page, map_site)
+    hinted = page.evaluate("[...document.querySelectorAll('link[rel=modulepreload]')].map(l => l.href)")
+    assert len(hinted) >= 20
+    repeated = sorted({url for url in urls if urls.count(url) > 1})
+    assert not repeated, f"fetched more than once: {repeated}"
+    assert set(hinted) <= set(urls)
