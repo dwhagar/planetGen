@@ -3,6 +3,7 @@
 ## [8.0.911] - 2026-10-10
 
 ### Changed
+- The Stats page's generation-speed table says what each row counts: a sector fill is seconds per sector and systems per sector, a bright-star or phenomena layer is seconds per layer and stars (objects) per layer, and so on. Layers showed "1,262 systems per sector" in a galaxy of 7,663 systems; they were stars per layer all along.
 - A reload keeps a highlighted kind when a hidden-by-default kind (rogue planets) is also shown; taking the hidden kinds up rewrote the address before the highlight was read, and dropped it. The browser tests for the grouped Galaxy Map Menu (UX.86) find its button again and show rogue planets before checking a highlight.
 - **Docs only:** ADM.28 (simpler Generate page, closes issue #736) and ADM.45 (star mix, PR #991) are retired.
 - The Generate page's binary-system and wide-pair prevalence boxes become a star mix (ADM.45): the share of systems with one star, a close binary and a wide pair, which must total exactly 100%. The page keeps a running total and says which way to move; the server refuses any other total. The command line has `--star-mix SINGLE CLOSE WIDE` with the same rule (it replaces `--prevalence` for `binary_system` and `wide_binary`).
