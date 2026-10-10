@@ -136,7 +136,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | PERF.60 | Large-mean Poisson helper for per-layer counts (top priority) |  |  |
 | PERF.59 | Share the ring inputs across the three scatter passes (top priority) |  |  |
 | PERF.58 | Object-first star sampler for the mass and luminosity passes (top priority, replaces PERF.57) | PERF.60 |  |
-| TEST.124 | Phenomena page tests fail with KeyError scattered in system_pages._phenomena_load (bug) |  |  |
 
 ### System Map
 
