@@ -39,8 +39,16 @@ def test_system_generated_via_cli_is_correct_through_db_api_and_webpage(mysql_co
     finally:
         conn.close()
     assert row is not None, f"system {system_name!r} was not found in star_systems after CLI generation"
-    assert row["star_type"].startswith("K2V"), f"expected a K2V star, got {row['star_type']!r}"
     system_id = row["id"]
+    # TEST.116: once on MySQL 8.4 and once on MariaDB the stored star was M2V
+    # or M6V; listing every star of the system names the cause next time.
+    conn = _db_get_connection(mysql_config)
+    try:
+        stars = [dict(r) for r in conn.execute(
+            "SELECT id, role, star_type, name FROM stars WHERE star_system_id = ? ORDER BY id", (system_id,)).fetchall()]
+    finally:
+        conn.close()
+    assert row["star_type"].startswith("K2V"), f"expected a K2V star, got {row['star_type']!r}; the system's stars: {stars}"
 
     # 3. Confirm the JSON API serves back the same system, with the same
     # star type -- the read path a real client/browser actually uses,
