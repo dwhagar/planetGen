@@ -857,7 +857,7 @@ Parents marked "new parent" had no old number of their own.
 | MAP.159 | Packed binary Galaxy Map tiles (quantised planes) with the nested tile lists, on one cache stamp bump | none | open |
 | MAP.160 | Quantise the Galaxy Map GPU buffers (deferred) | none | open |
 | MAP.161 | Load the Galaxy Map faster on a first visit: bundle or preload its scripts | none | open |
-| MAP.162 | A sector holding scattered objects but never generated can still be opened, marked uncharted | none | open |
+| MAP.162 | A sector holding scattered objects but never generated can still be opened, marked uncharted | none | done, PR #1085 |
 | MAP.163 | Galaxy Map brightness scale: floor 2,500 L_sun at full zoom, then min/max scaling per zoom | none | done, PR #1029 |
 | MAP.164 | Galaxy Map shows phenomena: black holes purple, neutron stars dark blue, sized by mass, dark colors out-shine brighter stars | none | done, PR #1029 |
 | MAP.165 | Scattered phenomena store a mass so the Galaxy Map sizes them exactly | none | open |
