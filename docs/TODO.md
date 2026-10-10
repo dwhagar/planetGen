@@ -771,7 +771,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the investigation until MAP.157 to MAP.159 are done.
   Open question for Boss (default each sub-item goes ahead as written;
   MAP.160 is deferred): other?
-  Prerequisites: MAP.157, MAP.158, MAP.159.
+  Prerequisites: MAP.158, MAP.159.
   Linked (2026-10-09, fly-through-view-distance.md): the tile and stage
   cache keys follow MAP.151 (the region data layer), so decide the wire
   format and those keys together; the star visibility law (MAP.148) sets
@@ -977,37 +977,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: MAP.146, MAP.150, MAP.141, MAP.122,
   ADM.29.
 
-- [ ] **MAP.157 Trim the Galaxy Map tile JSON and serve it from prebuilt, precompressed bytes**
-  Source: docs/design/galaxy-map-wire-format.md (section 1, steps 1 and
-  2; MAP.147's recommendation). Measured by Research Lane 3
-  (2026-10-09): a star is about 270 bytes of JSON on the wire (45
-  gzipped); the `placed`, `planned` and `filled` sections are 9 to 35%
-  of every tile and the client never reads them. Done: the tile JSON
-  drops the sections and star fields the client never reads, writes
-  `star_type` as its letter code only and rounds the floats; the cache
-  stores the finished bytes (not parsed dicts that are serialised again
-  on every hit) and a brotli copy made at cache-write time, which Apache
-  serves. Measured on 400 real tiles the gzipped size falls 48% (3.52 MB
-  to 1.83 MB) with no change to what the page draws; a warm hit falls
-  from 22-75 ms to about 2 ms. No client change, so it can land at once
-  and does not wait for the fly-through work; it changes the tile cache
-  stamp. Open question for Boss (default yes, do it now and first in the
-  fly-through step): go ahead?
-  Prerequisites: none. Related: MAP.147, MAP.158, MAP.159, PERF.38,
-  PERF.41, MAP.109.
-  Detail (2026-10-09, galaxy-map-wire-format.md): detail from Research
-  Lane 3 (Boss said yes, 2026-10-09 23:26Z): drop `placed`, `planned`
-  and `filled` and the star fields `ring_index`, `layer_index`,
-  `ring_slot_index`, `population`, `yerkes_class` and the generated
-  name; `star_type` to its class letter; round x/y/z to 3 decimals,
-  luminosity to 4 and radius to 3 significant digits, temperature to 10
-  K. Re-grep `static/` for readers before removing any field. Fix the
-  `GALAXY_VIEW_MAX_STARS` docstring (270 bytes a star, not about 114).
-  Serve stored response bytes in `fetch_tiles` and add `mod_brotli` (or
-  serve the `.br` copy) to `examples/apache`. Lands after or with
-  PERF.38.
-  Design: [docs/design/galaxy-map-wire-format.md](design/galaxy-map-wire-format.md)
-
 - [ ] **MAP.158 A gentler tile prefetch and an IndexedDB tile cache instead of localStorage**
   Source: docs/design/galaxy-map-wire-format.md (sections 2.3, 4.4, 1
   step 2 and 5). Measured: the opening view downloads 28 tiles (533 KB
@@ -1055,6 +1024,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   to 65,536 pc; aggregates cost about 10 bytes a cell; block responses
   are tiny, so changing block keys costs nothing on the wire. Depends on
   MAP.157 and MAP.158 and on Boss's yes on the design.
+  Foundations lane 2 (2026-10-09): Foundations lane 2 (2026-10-10,
+  MAP.157, PR #1112): the brotli copy made at cache-write time was NOT
+  built: Python has no stdlib brotli, the project has no brotli
+  dependency, and stored gzip copies joined as one gzip stream failed in
+  Chromium (it decodes only the first member). Instead the tile cache
+  stores the trimmed JSON bytes and joins them without parsing (a warm
+  hit no longer re-serialises), and Apache compresses (examples/apache
+  now also loads mod_brotli). Open question for Boss (default: leave as
+  is): add the brotli package as a dependency so tiles can be served
+  from precompressed copies.
   Design: [docs/design/galaxy-map-wire-format.md](design/galaxy-map-wire-format.md)
 
 - [ ] **MAP.160 Quantise the Galaxy Map GPU buffers (deferred)**
@@ -1091,16 +1070,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (default `modulepreload` and HTTP/2, no bundler): or bundle?
   Prerequisites: none. Related: MAP.147, MAP.157, MAP.158.
   Design: [docs/design/galaxy-map-wire-format.md](design/galaxy-map-wire-format.md)
-
-- [ ] **MAP.165 Scattered phenomena store a mass so the Galaxy Map sizes them exactly**
-  Bugfixes lane 2 (2026-10-10, MAP.164, PR #1029): the scatter rows hold
-  no mass, so the Galaxy Map sizes black holes and neutron stars by mass
-  class only; Boss asked for size by mass (2026-10-10 06:39Z). Done: the
-  phenomenon scatter stores a mass for each scattered black hole and
-  neutron star, the map sizes them by it relative to stars of similar
-  mass and brightness, and a test checks the size ordering. Owner:
-  Bugfixes lane 2 (coordinator, 2026-10-10 12:52Z), first.
-  Prerequisites: none. Related: MAP.164, GEN.185, MAP.148, MAP.153.
 
 ## NAV: Navigation and courses
 
@@ -3302,32 +3271,38 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   rings still use the ring inputs. Done: those ring inputs are built once
   per run and shared, and cached across runs by the same key as the map
   warm-up where that is safe; results do not change (a test shows the
-  same rows with and without sharing). If PERF.61 removes the phenomena
-  ring walk first, the lane checks what is left and closes this item
-  with a note if nothing is. Owner: Bugfixes lane 1.
-  Prerequisites: none. Related: PERF.58, PERF.61, GEN.185.
-
-- [ ] **PERF.61 Object-first sampler for the phenomena pass, own prototype first**
-  From the scatter study (docs/design/scatter-queue-feasibility.md): the
-  phenomena pass places millions of rows (6.7e7 expected at the 14 Msun
-  cut), so row costs dominate and the gain is smaller than for the star
-  passes, but the ring walk is still 58% of its time. Boss (09:52Z):
-  follow the study recommendations, top priority. Done: a prototype with
-  per-kind density majorants is measured against today's code (counts,
-  spatial distribution, time, reseed) before it replaces the pass; the
-  sectors take several objects by the capacity tiers of PERF.58
-  (generation/object_first.py: 1, 2, 4, 8 or 16, dropping 0.12% of
-  phenomena where a cap of 1 would drop 1.4%); stats record layers
-  visited and layers modified, per kind (PERF.56); a reseed is needed.
-  Owner: Bugfixes lane 1, next after PERF.58 (merged, PR #1108).
-  Prerequisites: none. Related: PERF.58, PERF.59, GEN.185.
+  same rows with and without sharing). The phenomena pass keeps its ring
+  walk (PERF.61 found no gain, PR #1113), so this item stands. Owner:
+  Bugfixes lane 1.
+  Prerequisites: none. Related: PERF.58, PERF.61, PERF.63, GEN.185.
   Benchmark (coordinator, 2026-10-10): once Boss reseeds with the PERF.58
   sampler, read the stage stats of PERF.56 for the mass and luminosity
   passes at default scale and compare with the study's forecast of
   about 35 times faster; Boss times the reseed himself. PERF.58 finding:
   the old ring walk overstated expected counts about 6% on the toy test
   galaxy (density read at bin centres); the new sampler integrates the
-  true density.
+  true density. PERF.61 side result (PR #1113): the star scatter checks
+  the cell address only after the density test, about 20% faster.
+
+- [ ] **PERF.63 Vectorise the candidate work of the phenomena scatter with numpy (needs Boss's call)**
+  Bugfixes lane 1 (2026-10-10, PERF.61, PR #1113): the object-first
+  phenomena sampler was built and measured on the default-scale galaxy
+  (41 of 2,041 layers, 14 Msun cut, one process): counts match
+  (1,380,928 against 1,385,251, -0.3%) but the time is the same (new
+  35.0 min, today 34.8 min for the whole pass, scaled), because layers
+  hold 33,000 to 95,000 phenomena each and per-object work dominates
+  (about 17 us an object today, about 30 us object-first). It wins only
+  on sparse outer layers (layer 700: 0.32 s to 0.08 s) and loses on
+  dense ones (layer 0: 1.4 s to 2.35 s). The prototype is not merged; it
+  lives in research/scatter-queue/scripts/ and the write-up is in
+  docs/design/scatter-queue-feasibility.md. Possible follow-up:
+  vectorise the per-object candidate work in numpy (own prototype, not
+  started). Done: a prototype is measured against today's pass (counts,
+  spatial distribution, time, reseed) and merged only if it is clearly
+  faster. Open question for Boss (default: not built; the phenomena pass
+  keeps its ring walk): is a 35 minute phenomena pass at default scale
+  worth a numpy prototype?
+  Prerequisites: none. Related: ('PERF.59', 'GEN.185').
 
 ## DB: Database and schema
 
@@ -3905,8 +3880,8 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   with sane limits and presets, they are stored in `galaxy_shape`, the
   density model uses them, and a test checks that a changed value
   changes the density at an arm, between arms, in the core and in the
-  bulge. Owner: Bugfixes lane 2 (coordinator, 2026-10-10 12:52Z), after
-  MAP.165.
+  bulge. Owner: Bugfixes lane 2 (coordinator, 2026-10-10 12:52Z), now
+  that MAP.165 has merged.
   Prerequisites: none. Related: GEN.183, GEN.184, GEN.186.
 
 ## SEC: Security

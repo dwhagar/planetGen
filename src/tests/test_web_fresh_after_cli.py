@@ -197,7 +197,7 @@ def test_galaxy_map_and_tiles_show_sectors_the_cli_placed(site, mysql_config):
     # Warm the page cache and the disk tile cache.
     assert _placed_count(site.html("/galaxy")) == 1
     warm = site.get(tiles_url).get_json()
-    assert _placed_ids(warm["tiles"][WHOLE_GALAXY_TILE]) == [first["id"]]
+    assert "placed" not in warm["tiles"][WHOLE_GALAXY_TILE], "MAP.157: the web tile carries only what the page reads"
     assert site.get(tiles_url).get_json()["cached"] == 1
     assert _placed_ids(site.get(api_tiles_url).get_json()["tiles"][WHOLE_GALAXY_TILE]) == [first["id"]]
 
@@ -220,10 +220,9 @@ def test_galaxy_map_and_tiles_show_sectors_the_cli_placed(site, mysql_config):
     fresh = site.get(tiles_url).get_json()
     assert fresh["stamp"] != warm["stamp"]
     assert fresh["cached"] == 0
-    assert _placed_ids(fresh["tiles"][WHOLE_GALAXY_TILE]) == all_ids
-    # The changed tile was cached again, now with the new contents.
+    # The changed tile was cached again.
     again = site.get(tiles_url).get_json()
-    assert again["cached"] == 1 and _placed_ids(again["tiles"][WHOLE_GALAXY_TILE]) == all_ids
+    assert again["cached"] == 1 and again["stamp"] == fresh["stamp"]
     # The browser holding the old stamp is told which tiles to drop.
     told = site.get(f"{tiles_url}&stamp={warm['stamp']}").get_json()
     assert WHOLE_GALAXY_TILE in [key for entry in told["history"] for key in entry["tiles"]]

@@ -3804,7 +3804,8 @@ sphere touches at most 2 along each axis)."""
 
 GALAXY_VIEW_MAX_STARS = 70000
 """int: MAP.109's stated cap on the stars (pre-placed and generated) one
-view's tiles can carry, about 8 MB of JSON before compression. It holds by
+view's tiles can carry (MAP.157: about 19 MB of JSON before compression at the
+old 270 bytes a star, about 100 bytes a star trimmed). It holds by
 construction -- every tile's lists are capped (`GALAXY_TILE_MAX_BRIGHT_STARS`,
 `GALAXY_TILE_STAR_BUDGET`, `GALAXY_TILE_MAX_DETAIL_STARS`) -- and
 `galaxy_view_star_cap` adds those caps up, so a test fails when a budget is
