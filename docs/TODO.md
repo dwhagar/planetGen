@@ -1290,6 +1290,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   toggles (MAP.123) and a legend block. Done: the layer, the toggles and
   the legend, with a browser test on a seeded galaxy. Default: 16 px
   cells and a 600 budget. Owner: Foundations lane 2.
+  Note (2026-10-10, nebula density research, PR #1188): add a stress
+  test with 3,000 candidate regions keeping the 600 with the largest
+  volume; the region counts stay above the 600 budget from 8 kpc to 1
+  kpc even after the density cut, so tile size is set by the budget, not
+  by density.
   Prerequisites: MAP.173, MAP.175. Related: MAP.142, MAP.123, MAP.153.
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
@@ -1317,6 +1322,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   sprites on the 1 to 4 px ramp of MAP.155, then as meshes,
   de-duplicated with stored nebulae. Done: a browser test finds one of
   each family on a seeded galaxy. Owner: Foundations lane 2.
+  Note (2026-10-10, nebula density research, PR #1188): the far sprite
+  is drawn at the equivalent radius (0.49 of the bounding radius) with
+  the 2 px floor and the MAP.155 ramp; the bounding radius stays for
+  picking and for the mesh load.
+  Note (2026-10-10, nebula density research, PR #1188): realistic cover
+  is about 2% at the median, so the ramp bins become 0, under 0.5%, 0.5
+  to 1.5%, 1.5 to 3% and 3% or more (or per-view percentiles).
   Prerequisites: MAP.173, MAP.155. Related: MAP.142.
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
@@ -1369,6 +1381,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   build. Owner: Foundations lane 2 if Boss asks.
   Prerequisites: none. Related: GEN.150, GEN.99.
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
+
+- [ ] **MAP.183 Optional, default not built for the first release: near-view P and Q nebulae from the seeded field below about 250 pc**
+  Boss (2026-10-10 22:01Z): review the cloud density against the real
+  Milky Way and decide how to manage it so things stay visible. From the
+  research (docs/design/nebula-density-vs-reality.md section 9, PR
+  #1188; report
+  /mnt/project-files/research/nebula-map-visibility/density-report.md):
+  classes P and Q are implicit in the seed (291,000 clouds of 0.2 to 1.6
+  pc) and are invisible beyond about 250 pc. Done if built: below about
+  250 pc the near view draws them from the seeded field with a per-tile
+  cell budget. Default: not built for the first release. Owner:
+  Foundations lane 2 if Boss asks.
+  Prerequisites: none. Related: DB.24, MAP.173.
+  Design: [docs/design/nebula-density-vs-reality.md](design/nebula-density-vs-reality.md)
 
 ## NAV: Navigation and courses
 
@@ -2983,7 +3009,26 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   clouds as separate rows; `GMC_ARM_FILLING_FACTOR` is still read by
   nothing. Decided (Boss, 2026-10-10 18:44Z, defaults approved; default:
   lower it to about 1%).
-  Prerequisites: none.
+  Concrete plan (nebula density research, PR #1188, 2026-10-10): class M
+  (giant molecular clouds) is about 10 times too many (102,000 against
+  8,107 to 9,710 catalogued); N is in range by count but large; P and Q
+  are in range. The volume inside bounding spheres is 2, 8, 19 and 24%
+  at gas 0.2, 0.9, 2.3 and 3.0 against 0.5 to 1% observed in the disc
+  and 1 to 2% in the arms; the shape fills only 12% of its bounding
+  sphere. Done adds: a `NEBULA_FIELD_KEEP` table in tuning.py (keep M
+  0.095, N 0.5 (lowest confidence), P 1, Q 1) applied as a hash
+  acceptance test over the full draw, so survivors keep their cells and
+  object IDs; the result is about 454,000 clouds (from 700,000), the
+  sample-box filling falls from 11.0% to 1.7% and the filling at the four
+  gas levels becomes 0.2, 1.1, 2.8 and 3.6%. Owner: Foundations lane 1.
+  Decided (Boss, 2026-10-10, "Apply all" on the nebula rates card): the
+  lower rates of docs/design/nebula-density-vs-reality.md apply to newly
+  generated galaxies (giant clouds 9.5%, dark clouds half, supernova
+  remnants about 3,000, H II regions 1 in 4 for O stars, classes P and Q
+  unchanged and kept out of the map index). Owner: Foundations lane 1,
+  with the GEN items. This item is the keep table.
+  Prerequisites: none. Related: DB.24, TEST.136, GEN.203, GEN.204,
+  GEN.205.
   Design: [docs/design/anomalies.md](design/anomalies.md)
 
 - [ ] **GEN.153 Magnetar subtype of neutron star, and an age-dependent pulsar fraction**
@@ -3318,6 +3363,72 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and a test shows it. Owner: Foundations lane 1.
   Prerequisites: DB.24, PERF.68. Related: GEN.176, PERF.71.
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
+
+- [ ] **GEN.203 Supernova-remnant and planetary-nebula scatter densities set to the catalogued counts**
+  Boss (2026-10-10 22:01Z): review the cloud density against the real
+  Milky Way and decide how to manage it so things stay visible. From the
+  research (docs/design/nebula-density-vs-reality.md section 9, PR
+  #1188; report
+  /mnt/project-files/research/nebula-map-visibility/density-report.md):
+  the scatter holds about 20,000 supernova remnants against 310
+  catalogued (400 to 3,000 expected); planetary nebulae (28,000) are in
+  range (4,000 to 46,000) and stay. Done: the supernova-remnant density
+  goes from 1e-8 to 1.5e-9 (about 3,000), the planetary-nebula density
+  stays 1.4e-8, and the tuning comments cite the sources. It applies on
+  the next plan or "Redo scatters" (GEN.196). Changes what a new galaxy
+  generates; the same kind of rate change as GEN.152, whose approved
+  default covers it. Owner: Foundations lane 1.
+  Decided (Boss, 2026-10-10, "Apply all" on the nebula rates card): the
+  lower rates of docs/design/nebula-density-vs-reality.md apply to newly
+  generated galaxies (giant clouds 9.5%, dark clouds half, supernova
+  remnants about 3,000, H II regions 1 in 4 for O stars, classes P and Q
+  unchanged and kept out of the map index). Owner: Foundations lane 1,
+  with the GEN items. This item is the remnant density.
+  Prerequisites: none. Related: GEN.152, GEN.196, GEN.185.
+  Design: [docs/design/nebula-density-vs-reality.md](design/nebula-density-vs-reality.md)
+
+- [ ] **GEN.204 Nebula host chance per O and B star lowered to the catalogued one-per-few-O-stars**
+  Boss (2026-10-10 22:01Z): review the cloud density against the real
+  Milky Way and decide how to manage it so things stay visible. From the
+  research (docs/design/nebula-density-vs-reality.md section 9, PR
+  #1188; report
+  /mnt/project-files/research/nebula-map-visibility/density-report.md):
+  hosted H II regions are one per O star (about 270,000) against about
+  8,000 catalogued. Done: the chance in `NEBULA_HOST_RULES` goes from
+  1.0 to 0.25 for O stars and from 0.5 to 0.1 for B0 to B2 (a ratio, so
+  it stays right when the O and B counts change with the mass cut), with
+  a test of the hosted-per-O-star ratio. Changes what a new galaxy
+  generates; covered by GEN.152's approved default. Owner: Foundations
+  lane 1.
+  Decided (Boss, 2026-10-10, "Apply all" on the nebula rates card): the
+  lower rates of docs/design/nebula-density-vs-reality.md apply to newly
+  generated galaxies (giant clouds 9.5%, dark clouds half, supernova
+  remnants about 3,000, H II regions 1 in 4 for O stars, classes P and Q
+  unchanged and kept out of the map index). Owner: Foundations lane 1,
+  with the GEN items. This item is the host chance.
+  Prerequisites: none. Related: GEN.152, GEN.150, GEN.99.
+  Design: [docs/design/nebula-density-vs-reality.md](design/nebula-density-vs-reality.md)
+
+- [ ] **GEN.205 `planetgen plan --redo-nebula-field`: apply the new nebula rate to an existing galaxy**
+  Boss (2026-10-10 22:01Z): review the cloud density against the real
+  Milky Way and decide how to manage it so things stay visible. From the
+  research (docs/design/nebula-density-vs-reality.md section 9, PR
+  #1188; report
+  /mnt/project-files/research/nebula-map-visibility/density-report.md):
+  a dry run first, then delete the stored field-origin dark nebulae the
+  new rule rejects (about 35% of stored field clouds) that hold nothing
+  of their own, clear `inside_nebula_id` and refresh containment.
+  Default for a test galaxy is just a new plan. Owner: Foundations lane
+  1.
+  Decided (Boss, 2026-10-10, "Apply all" on the nebula rates card): the
+  lower rates of docs/design/nebula-density-vs-reality.md apply to newly
+  generated galaxies (giant clouds 9.5%, dark clouds half, supernova
+  remnants about 3,000, H II regions 1 in 4 for O stars, classes P and Q
+  unchanged and kept out of the map index). Owner: Foundations lane 1,
+  with the GEN items. This item is the cleanup of an existing galaxy; it
+  always runs a dry run first.
+  Prerequisites: GEN.152, DB.24. Related: GEN.196, GEN.176.
+  Design: [docs/design/nebula-density-vs-reality.md](design/nebula-density-vs-reality.md)
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -4003,7 +4114,12 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Note (2026-10-10, nebula research): open dependency, Boss's separate
   call: the nebula field is probably 10 to 40 times too full (see the
   GEN.47 note); the design works at either rate, so this table is sized
-  by the rate in force when it is built.
+  by the rate in force when it is built. Refined (nebula density
+  research, PR #1188): the table holds classes M and N only (about
+  163,000 rows and 11 MB instead of 700,000 and 50 MB); classes P and Q
+  stay seeded and implicit (291,000 clouds of 0.2 to 1.6 pc, invisible
+  beyond about 250 pc). Its size and the equality test follow GEN.152's
+  keep table.
   Prerequisites: none. Related: MAP.151, MAP.142, GEN.176, GEN.99.
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
@@ -4755,6 +4871,21 @@ clears each one.
   1.
   Prerequisites: TEST.133, DB.24. Related: PERF.68.
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
+
+- [ ] **TEST.136 A nebula-rate audit test: the nebula counts and fillings stay inside the observed bands**
+  Boss (2026-10-10 22:01Z): review the cloud density against the real
+  Milky Way and decide how to manage it so things stay visible. From the
+  research (docs/design/nebula-density-vs-reality.md section 9, PR
+  #1188; report
+  /mnt/project-files/research/nebula-map-visibility/density-report.md):
+  a test reads the rates from tuning and the gas model and fails outside
+  these bands: class M 5,000 to 20,000; arm-crest filling 1 to 4%;
+  planetary nebulae 4,000 to 46,000; remnants 400 to 5,000; hosted H II
+  per O star 0.1 to 0.5; classes P and Q 5e4 to 4e5. It also reads
+  `GMC_ARM_FILLING_FACTOR`, which nothing reads today. Owner:
+  Foundations lane 1.
+  Prerequisites: GEN.152. Related: GEN.203, GEN.204.
+  Design: [docs/design/nebula-density-vs-reality.md](design/nebula-density-vs-reality.md)
 
 ## USR: User accounts
 
