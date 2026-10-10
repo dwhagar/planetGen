@@ -56,7 +56,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | GEN.180 | Directives: a forced fill (met_forced) after K failed draws |  | Left over from GEN.96. |
 | GEN.179 | Store each sector's generation directive and attempt record with the sector |  | Left over from GEN.96. |
 | TEST.122 | Browser map tests fail on plain main in Bugfixes lane 2's container (fixture maps, controls, system-page maps) (bug) |  |  |
-| ADM.49 | Galaxy shape density settings: the user changes the density range of the spiral arms, the inter-arm space, the core and the bulge |  | Boss 06:16Z via coordinator; unassigned. |
 
 ### Galaxy gen
 
