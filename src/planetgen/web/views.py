@@ -51,7 +51,8 @@ def _sectors_load(state, limit, offset, want_facets):
             {"value": option["value"],
              "label": "Unplaced" if option["value"] == "unplaced" else f"Quadrant {option['value']}",
              "count": option["count"]} for option in envelope["facets"]["quadrant"]]}
-    return Result([_sector_row(sector) for sector in envelope["items"]], envelope["total"], facets)
+    return Result([_sector_row(sector) for sector in envelope["items"]], envelope["total"], facets,
+                  envelope.get("total_capped", False))
 
 
 SECTORS_TABLE = tables.register(Table(
@@ -83,10 +84,10 @@ def _facet_options(options, labels=None):
              "count": option["count"]} for option in options]
 
 
-def _all_systems_load(state, limit, offset, want_facets):
+def _all_systems_load(state, limit, offset, want_facets, after=None):
     placement = state.filters["placement"]
     envelope = apiclient.get_systems(
-        db_name(), limit=limit, offset=offset, sort=state.sort, descending=state.descending,
+        db_name(), limit=limit, offset=offset, after=after, sort=state.sort, descending=state.descending,
         binary=_binary_filter(state.filters["binary"]),
         placement=placement[0] if len(placement) == 1 and placement[0] in _PLACEMENT_LABELS else None,
         octants=state.filters["octant"], facets=want_facets)
@@ -97,7 +98,9 @@ def _all_systems_load(state, limit, offset, want_facets):
             "binary": _facet_options(envelope["facets"]["binary"], _BINARY_LABELS),
             "octant": _facet_options(envelope["facets"]["octant"]),
         }
-    return Result([_system_row(system, True) for system in envelope["items"]], envelope["total"], facets)
+    items = envelope["items"]
+    return Result([_system_row(system, True) for system in items], envelope["total"], facets,
+                  envelope.get("total_capped", False), items[-1]["id"] if items else None)
 
 
 ALL_SYSTEMS_TABLE = tables.register(Table(
@@ -106,7 +109,7 @@ ALL_SYSTEMS_TABLE = tables.register(Table(
      Column("star_type", "Star type", sortable=False)],
     _all_systems_load,
     facets=[Facet("placement", "Where"), Facet("binary", "Stars"), Facet("octant", "Octant")],
-    prefix="systems_", noun=("system", "systems"),
+    prefix="systems_", noun=("system", "systems"), keyset=True,
 ))
 
 

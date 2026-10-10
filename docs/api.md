@@ -145,8 +145,12 @@ connectivity to that specific schema rather than the default one.
   `binary=yes|no`, `placement=sector|standalone` and `octant` (repeatable),
   and `facets=1`, which adds `facets: {"placement", "binary", "octant"}`
   (each `[{"value", "count"}]`; every menu's counts apply the other filters
-  but not its own). `total` counts the systems that pass the filters; a bad
-  `sort`, `order`, `binary` or `placement` is a 400.
+  but not its own). `total` counts the systems that pass the filters; where
+  no stored count exists yet it stops at 10,000 and `total_capped` is `true`
+  (the exact figure follows once the background count finishes). `after=<system
+  ID>` starts the page after that system in the name sort and ignores
+  `offset`, so page 40,000 costs what page 1 does (an unknown ID is a 400);
+  a bad `sort`, `order`, `binary` or `placement` is a 400.
 - `GET /api/uncharted-systems?sort=<luminosity|temperature|type|sector|age>&order=asc|desc&limit=<n>&offset=<n>` —
   the stars the brightness scatter placed that have no system yet (UX.87:
   `bright_stars` rows with a NULL `star_system_id`, so both the mass-limit

@@ -58,6 +58,7 @@ from planetgen.db.query import (
     SYSTEM_SORTS,
     count_phenomena,
     count_sectors,
+    is_capped,
     count_systems,
     MAX_TILES_PER_REQUEST,
     galaxy_changes,
@@ -457,7 +458,7 @@ def sectors():
     table (UX.41) also takes `sort` (`name`, `systems`, `density`,
     `position` or `distance`) with `order=asc|desc`, the repeatable filter
     `quadrant` (`I`-`IV`, `unplaced`) and `facets=1` for the Quadrant menu's
-    option counts (`facets`). `total` counts the sectors that pass the filter.
+    option counts (`facets`). `total` counts the sectors that pass the filter (`total_capped`: it stopped at 10,000, PERF.77).
     """
     limit, offset = _paginate(request.args)
     sort = None
@@ -466,10 +467,12 @@ def sectors():
         sort, descending = _parse_sort(request.args, SECTOR_SORTS)
     quadrants = [v for v in request.args.getlist("quadrant") if v]
     db = get_db()
+    total = count_sectors(db, quadrants=quadrants)
     body = {
         "items": list_sectors(db, limit=limit, offset=offset, sort=sort, descending=descending,
                               quadrants=quadrants),
-        "total": count_sectors(db, quadrants=quadrants),
+        "total": total,
+        "total_capped": is_capped(total),
         "limit": limit,
         "offset": offset,
     }
@@ -517,7 +520,8 @@ def systems():
     or `binary`) with `order=asc|desc`, the filters `binary=yes|no`,
     `placement=sector|standalone` and `octant` (repeatable), and `facets=1`
     for the filter menus' option counts (`facets`: `placement`, `binary`,
-    `octant`). `total` counts the systems that pass the filters.
+    `octant`). `total` counts the systems that pass the filters. `after=<system ID>` starts the page after that system in the
+    name sort instead of skipping `offset` rows (PERF.75: page 40,000 costs what page 1 does).
     """
     star_type = request.args.get("star_type")
     sector_id = _parse_sector_id_filter(request.args.get("sector_id"))
@@ -533,11 +537,20 @@ def systems():
 
     limit, offset = _paginate(request.args)
     db = get_db()
+    after = None
+    if request.args.get("after"):
+        try:
+            ids.parse("system", request.args["after"])
+        except ids.IdError:
+            raise ApiError(f"after must be a system ID, got {request.args['after']!r}")
+        after = ids.row_id(db, "system", request.args["after"])
     rows = list_systems(db, star_type_prefix=star_type, sector_id=sector_id, limit=limit, offset=offset,
-                        sort=sort, descending=descending, **filters)
+                        sort=sort, descending=descending, after=after, **filters)
+    total = count_systems(db, star_type_prefix=star_type, sector_id=sector_id, **filters)
     body = {
         "items": rows,
-        "total": count_systems(db, star_type_prefix=star_type, sector_id=sector_id, **filters),
+        "total": total,
+        "total_capped": is_capped(total),
         "limit": limit,
         "offset": offset,
     }

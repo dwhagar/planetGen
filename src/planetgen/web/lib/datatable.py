@@ -53,10 +53,11 @@ Column = namedtuple("Column", "key label sortable", defaults=(True,))
 Facet = namedtuple("Facet", "param label")
 """A filter menu: the query parameter its checked values travel in, and its name."""
 
-Result = namedtuple("Result", "rows total facets capped", defaults=(None, False))
+Result = namedtuple("Result", "rows total facets capped next", defaults=(None, False, None))
 """One loaded page: `rows` (lists of cells), the `total` rows that pass the
 filters and `facets` (`{param: [{"value", "label", "count"}]}`, or None when
-not asked for); `capped` says there are more rows than `total` (shown "300+")."""
+not asked for); `capped` says there are more rows than `total` (shown "300+"); `next` is the key a keyset
+table (PERF.75) gives the page after this one (`after=`), else None."""
 
 State = namedtuple("State", "sort descending filters page")
 """What a visitor chose: the sort key, its direction, `{param: [values]}` and the page."""
@@ -77,9 +78,12 @@ class Table:
         default_sort (str, optional): The sort key when none is asked for
             (the first sortable column if omitted).
         noun (tuple[str, str]): Singular and plural for the count line.
+        keyset (bool): `load` also takes `after=` (the key the previous page ended on) and gives `Result.next`,
+            so a page far down is read without skipping the rows before it (PERF.75).
     """
 
-    def __init__(self, name, label, columns, load, facets=(), prefix="", noun=("row", "rows"), default_sort=None):
+    def __init__(self, name, label, columns, load, facets=(), prefix="", noun=("row", "rows"), default_sort=None,
+                 keyset=False):
         self.name = name
         self.label = label
         self.columns = list(columns)
@@ -87,6 +91,7 @@ class Table:
         self.facets = list(facets)
         self.prefix = prefix
         self.noun = noun
+        self.keyset = keyset
         self.default_sort = default_sort or next((column.key for column in columns if column.sortable), None)
 
     def owned_params(self):

@@ -38,7 +38,7 @@ import time
 import pymysql
 
 from planetgen.db.store import (
-    escape_like, get_connection, get_galaxy_bounds, get_galaxy_shape, sector_deletions, surrounding_cloud,
+    STATEMENT_TIMEOUT_ERRORS, escape_like, get_connection, get_galaxy_bounds, get_galaxy_shape, sector_deletions, surrounding_cloud,
 )
 from planetgen.db import countcache
 from planetgen.physics import constants
@@ -219,9 +219,26 @@ def list_sectors(conn, limit=None, offset=None, sort=None, descending=False, qua
     ]
 
 
-COUNT_FALLBACK_CAP = 50000
-"""int: The most a request counts itself when the stored count isn't there yet (PERF.64): `count_*` answers with
-at most this many, or with the table's estimated size when nothing filters it."""
+COUNT_FALLBACK_CAP = 10001
+"""int: The most a request counts itself when the stored count isn't there yet (PERF.64, PERF.77): `count_*`
+counts to this many and stops (30 ms where the full count took 6 s), answering `CappedCount(10000)` when it got
+there, or with the table's estimated size when nothing filters it."""
+
+
+class CappedCount(int):
+    """A count that stopped at `COUNT_FALLBACK_CAP`: there are at least this many (shown "10,000+"). The API
+    sends it as `total` with `total_capped: true`; the exact figure replaces it once the stored count is made."""
+
+    capped = True
+
+
+def _capped(n):
+    return CappedCount(COUNT_FALLBACK_CAP - 1) if n >= COUNT_FALLBACK_CAP else n
+
+
+def is_capped(count):
+    """Whether `count` (from a `count_*` function) is a `CappedCount`."""
+    return bool(getattr(count, "capped", False))
 
 
 def _estimated_rows(conn, table):
@@ -259,8 +276,8 @@ def count_sectors(conn, quadrants=()):
     def estimate(c):
         if not where:
             return _estimated_rows(c, "sectors")
-        return c.execute(f"SELECT COUNT(*) AS n FROM (SELECT 1 FROM sectors sec{where} LIMIT ?) c",
-                         list(params) + [COUNT_FALLBACK_CAP]).fetchone()["n"]
+        return _capped(c.execute(f"SELECT COUNT(*) AS n FROM (SELECT 1 FROM sectors sec{where} LIMIT ?) c",
+                                 list(params) + [COUNT_FALLBACK_CAP]).fetchone()["n"])
 
     return _counted(conn, ["count_sectors", list(quadrants)], exact, estimate)
 
@@ -347,7 +364,7 @@ def _systems_filter_clause(star_type_prefix, sector_id, binary=None, octants=(),
 
 
 def list_systems(conn, star_type_prefix=None, sector_id=None, limit=None, offset=None, sort="name",
-                 descending=False, binary=None, octants=(), in_sector=None):
+                 descending=False, binary=None, octants=(), in_sector=None, after=None):
     """
     Returns systems, optionally filtered by star type and/or sector.
 
@@ -373,6 +390,9 @@ def list_systems(conn, star_type_prefix=None, sector_id=None, limit=None, offset
         octants (iterable[str]): Keep only systems in these sector octants.
         in_sector (bool, optional): Keep only systems in a sector (True) or
             standalone ones (False).
+        after (int, optional): A system's row ID: with `sort="name"` the page starts after that system (a
+            keyset page, PERF.75: the rows before it are not read and `offset` is ignored). Other sorts, and a
+            system that is gone, use `offset`.
 
     Returns:
         list[dict]: One row per matching system, with `id`, `name`,
@@ -388,6 +408,13 @@ def list_systems(conn, star_type_prefix=None, sector_id=None, limit=None, offset
     join_sql, where_sql, params = _systems_filter_clause(star_type_prefix, sector_id, binary, octants, in_sector)
     column = SYSTEM_SORTS[sort]
     direction = "DESC" if descending else "ASC"
+    if after is not None and limit is not None and sort == "name":
+        previous = conn.execute("SELECT name FROM star_systems WHERE id = ?", (after,)).fetchone()
+        if previous is not None:
+            comparison = "<" if descending else ">"
+            where_sql = _and_where(where_sql, f"(ss.name {comparison} ? OR (ss.name = ? AND ss.id > ?))")
+            params = params + [previous["name"], previous["name"], after]
+            offset = 0
     if (limit is not None and not join_sql and sector_id is None and in_sector is None
             and sort in _GROUP_WALK_SORTS):
         rows = _systems_by_group(conn, sort, descending, where_sql, params, limit, offset or 0)
@@ -597,8 +624,8 @@ def count_systems(conn, star_type_prefix=None, sector_id=None, binary=None, octa
     def estimate(c):
         if not join_sql and not where_sql:
             return _estimated_rows(c, "star_systems")
-        return c.execute(f"SELECT COUNT(*) AS n FROM (SELECT DISTINCT ss.id FROM star_systems ss{join_sql}{where_sql} "
-                         f"LIMIT ?) c", list(params) + [COUNT_FALLBACK_CAP]).fetchone()["n"]
+        return _capped(c.execute(f"SELECT COUNT(*) AS n FROM (SELECT DISTINCT ss.id FROM star_systems ss{join_sql}{where_sql} "
+                                 f"LIMIT ?) c", list(params) + [COUNT_FALLBACK_CAP]).fetchone()["n"])
 
     return _counted(conn, ["count_systems", star_type_prefix, sector_id, binary, list(octants), in_sector],
                     exact, estimate)
@@ -4284,6 +4311,25 @@ def galaxy_scattered_points_in_box(conn, lo, hi, edge_pc, limit, coarse):
     return points[:limit]
 
 
+TILE_PIECE_SECONDS = 3.0
+"""float: The statement time limit of each piece of a Galaxy Map tile (PERF.76): placed sectors, filled cells,
+clouds, bright stars, generated stars, points and scattered points. A piece that runs past it is left out of
+the tile, which is served marked `incomplete`."""
+
+
+def _tile_piece(conn, incomplete, name, compute, default):
+    """One piece of a tile under `TILE_PIECE_SECONDS`: its value, or `default` (and `name` added to
+    `incomplete`) when the database stopped it for taking too long."""
+    try:
+        with conn.statement_limit(TILE_PIECE_SECONDS):
+            return compute()
+    except pymysql.err.OperationalError as exc:
+        if exc.args and exc.args[0] in STATEMENT_TIMEOUT_ERRORS:
+            incomplete.append(name)
+            return default
+        raise
+
+
 def galaxy_tiles(conn, tile_keys):
     """
     The contents of each requested cube tile -- the interactive 3D Galaxy
@@ -4341,37 +4387,45 @@ def galaxy_tiles(conn, tile_keys):
     tiles = {}
     for key, (level, ix, iy, iz) in parsed:
         lo, hi = tile_bounds_pc(level, ix, iy, iz)
-        placed = galaxy_sectors_in_box(conn, lo, hi)
+        incomplete = []
+
+        def piece(name, compute, default):
+            return _tile_piece(conn, incomplete, name, compute, default)
+
+        placed = piece("placed", lambda: galaxy_sectors_in_box(conn, lo, hi), [])
         exclude_addresses = {
             address for address in (sector_address(sector) for sector in placed) if address is not None
         }
         planned = planned_slots_in_tile(
             level, ix, iy, iz, edge_pc, shape, expected_system_count, exclude_addresses, bounds,
         )
-        filled = galaxy_filled_in_box(conn, lo, hi, hi[0] - lo[0], edge_pc)
-        clouds = galaxy_clouds_in_box(conn, lo, hi, margins=cloud_margins)
-        stars = galaxy_bright_stars_in_box(conn, lo, hi, edge_pc, brightest=brightest)
+        filled = piece("filled", lambda: galaxy_filled_in_box(conn, lo, hi, hi[0] - lo[0], edge_pc),
+                       {"g": 1, "cells": []})
+        clouds = piece("clouds", lambda: galaxy_clouds_in_box(conn, lo, hi, margins=cloud_margins), [])
+        stars = piece("stars", lambda: galaxy_bright_stars_in_box(conn, lo, hi, edge_pc, brightest=brightest), [])
         floor = generated_star_floor_sol(level)
         generated = []
         if floor is not None:
             sector_count = len(filled["cells"]) if filled["g"] == 1 else sum(cell[3] for cell in filled["cells"])
             limit, per_sector = generated_star_budget(level, sector_count)
-            generated = galaxy_generated_stars_in_box(conn, lo, hi, floor, sector_count, limit=limit,
-                                                      per_sector=per_sector)
-        points = (galaxy_point_phenomena_in_box(
-            conn, lo, hi, limit=GALAXY_TILE_POINT_BUDGET.get(level, GALAXY_TILE_MAX_POINTS))
+            generated = piece("generated", lambda: galaxy_generated_stars_in_box(
+                conn, lo, hi, floor, sector_count, limit=limit, per_sector=per_sector), [])
+        points = (piece("points", lambda: galaxy_point_phenomena_in_box(
+            conn, lo, hi, limit=GALAXY_TILE_POINT_BUDGET.get(level, GALAXY_TILE_MAX_POINTS)), [])
             if level >= POINT_PHENOMENON_MIN_LEVEL else [])
         # MAP.164: scattered ones not yet built into a sector, the biggest
         # classes at every level so the largest show from the whole galaxy.
         coarse_scatter = level < POINT_PHENOMENON_MIN_LEVEL
-        points = points + galaxy_scattered_points_in_box(
+        points = points + piece("scattered", lambda: galaxy_scattered_points_in_box(
             conn, lo, hi, edge_pc,
             GALAXY_TILE_MAX_SCATTERED_POINTS if coarse_scatter else GALAXY_TILE_POINT_BUDGET.get(level, GALAXY_TILE_MAX_POINTS),
-            coarse_scatter)
+            coarse_scatter), [])
         tiles[key] = {
             "placed": placed, "planned": planned, "filled": filled, "clouds": clouds, "stars": stars,
             "generated": generated, "points": points,
         }
+        if incomplete:
+            tiles[key]["incomplete"] = incomplete
 
     return {"tiles": tiles, "edge_pc": edge_pc, "has_shape": shape is not None}
 

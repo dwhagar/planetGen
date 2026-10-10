@@ -859,6 +859,29 @@ class Connection:
                       f"{_sql_for_log(sql, params)}", stacklevel=4)
         return _Cursor(cur)
 
+    @contextlib.contextmanager
+    def statement_limit(self, seconds):
+        """Lowers this connection's statement time limit to `seconds` for the block (PERF.76), restoring the
+        limit it had; never raises a limit already lower, and does nothing for a connection with no server."""
+        if self._config is None:
+            yield
+            return
+        mariadb = _is_mariadb(self._config)
+        variable = "max_statement_time" if mariadb else "max_execution_time"
+        cur = self._conn.cursor()
+        cur.execute(f"SELECT @@SESSION.{variable}")
+        row = cur.fetchone()
+        current = float((list(row.values())[0] if isinstance(row, dict) else row[0]) or 0) / (1 if mariadb else 1000)
+        if current and current <= seconds:
+            yield
+            return
+        cur.execute("SET " + _statement_timeout_sql(self._config, seconds))
+        try:
+            yield
+        finally:
+            cur.execute("SET " + (_statement_timeout_sql(self._config, current) if current else
+                                  f"SESSION {variable} = 0"))
+
     def execute(self, sql, params=()):
         shape = _insert_shape(sql)
         if shape is not None:
