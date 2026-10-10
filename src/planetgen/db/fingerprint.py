@@ -24,8 +24,7 @@ later, so it is left out too, as are bookkeeping tables (run history, id
 blocks, name registries).
 
 A foreign key would carry a row id, so it is replaced by what it points
-at: a sector by its address, an object by its unique ID (`uid`, GEN.69;
-a star, planet, moon, belt or comet by its system's and its own), a
+at: a sector by its address, an object by its unique ID (`uid`, GEN.170), a
 system configuration by the digest of its content. Each row becomes one
 line of canonical JSON (keys sorted, floats in Python's shortest
 round-trip form, -0.0 as 0.0, bytes in hex), and a sector's digest is the
@@ -83,7 +82,7 @@ CONTENT_TABLES = frozenset(SECTOR_TABLES + SYSTEM_TABLES + STAR_TABLES + ADDRESS
 LEFT_OUT_TABLES = frozenset({
     "schema_migrations", "alembic_version", "orbit_simulation_state", "nearest_systems", "sector_paths",
     "sector_path_knots", "sector_stats", "sector_name_registry", "system_name_registry", "generation_runs",
-    "generation_run_arguments", "id_blocks", "species", "polities", "system_owners", "population_state",
+    "generation_run_arguments", "id_blocks", "id_counters", "phenomenon_scatter_classes", "species", "polities", "system_owners", "population_state",
     "system_configs", "system_config_slots",
 })
 """frozenset: Tables a fingerprint doesn't read as content (see the module
@@ -98,9 +97,6 @@ LEFT_OUT_TABLE_COLUMNS = {"star_systems": frozenset({"location"})}
 nearest systems."""
 
 _TIME_TYPES = frozenset({"datetime", "timestamp", "date", "time"})
-
-PER_SYSTEM_UID_TABLES = frozenset({"stars", "planets", "moons", "asteroid_belts", "comets"})
-"""frozenset: Tables whose `uid` is unique only within its system."""
 
 _IN_BATCH = 1000
 
@@ -228,14 +224,8 @@ class _Reader:
         elif table == "system_configs":
             key = "config:" + self._config_digest(row_id)
         elif "uid" in self._all_columns(table):
-            if table in PER_SYSTEM_UID_TABLES:
-                row = self.conn.execute(f"SELECT uid, star_system_id FROM `{table}` WHERE id = ?",
-                                        (row_id,)).fetchone()
-                key = None if row is None else (
-                    f"{self.key('star_systems', row['star_system_id'])}/{table}:{_uid_text(row['uid'])}")
-            else:
-                row = self.conn.execute(f"SELECT uid FROM `{table}` WHERE id = ?", (row_id,)).fetchone()
-                key = None if row is None else f"{table}:{_uid_text(row['uid'])}"
+            row = self.conn.execute(f"SELECT uid FROM `{table}` WHERE id = ?", (row_id,)).fetchone()
+            key = None if row is None else f"{table}:{_uid_text(row['uid'])}"
         else:
             key = f"{table}:unkeyed"
         self._keys[cache_key] = key
@@ -249,11 +239,7 @@ class _Reader:
         for row in rows:
             if "id" not in row:
                 continue
-            if table in PER_SYSTEM_UID_TABLES:
-                key = f"{self.key('star_systems', row['star_system_id'])}/{table}:{_uid_text(row['uid'])}"
-            else:
-                key = f"{table}:{_uid_text(row['uid'])}"
-            self._keys[(table, row["id"])] = key
+            self._keys[(table, row["id"])] = f"{table}:{_uid_text(row['uid'])}"
 
     def _config_digest(self, config_id):
         lines = [self.line("system_configs", row) for row in self.select("system_configs", "id = ?", (config_id,))]
