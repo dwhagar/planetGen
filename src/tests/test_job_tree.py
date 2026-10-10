@@ -344,6 +344,13 @@ def test_a_web_job_is_the_root_of_its_steps_runs(control_config, tmp_path, monke
     inside = tree["children"][0]["children"]
     assert [(node["title"], node["web_job_id"]) for node in inside] == [("Inside the step", None)]
     assert all(node["seconds"] is not None for _depth, node in _walk(tree))
+    state = json.loads((job_dir / "state.json").read_text())
+    assert state["step_estimates"] == [None, None] and state["step_started_at"] > 0
+    # A second run of the same steps now has their recorded times to plan by.
+    job_dir.joinpath("state.json").unlink()
+    assert jobRunner.run(str(job_dir)) == 0
+    estimates = json.loads((job_dir / "state.json").read_text())["step_estimates"]
+    assert all(seconds is not None and seconds > 0 for seconds in estimates)
 
 
 def test_a_web_job_adds_the_recorded_time_of_each_step_not_started(control_config):
