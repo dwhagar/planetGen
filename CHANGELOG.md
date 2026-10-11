@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.976] - 2026-10-11
+
+### Changed
+- The plan pages no longer list the Galaxy Map tile time budgets and the capped counts as open work, and the keyset paging item now covers only what is left.
+
 ## [8.0.975] - 2026-10-11
 
 ### Changed
