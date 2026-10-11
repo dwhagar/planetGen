@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.980] - 2026-10-11
+
+### Changed
+- The plan pages no longer list the invisible dark-theme nebula fill as open work, and list a new load-flaky map menu test.
+
 ## [8.0.979] - 2026-10-11
 
 ### Changed
