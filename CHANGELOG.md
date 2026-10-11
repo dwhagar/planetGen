@@ -2,6 +2,12 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.915] - 2026-10-11
+
+### Changed
+
+- TODO list: NAV.9, NAV.42, NAV.47, NAV.48 and NAV.52 assigned to Bugfixes lane 2; MAP.147 to Foundations lane 2.
+
 ## [8.0.914] - 2026-10-11
 
 ### Changed
