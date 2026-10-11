@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.956] - 2026-10-11
+
+### Changed
+- The TODO list closes PERF.59 (sharing the ring inputs), which PERF.58, PERF.61 and PERF.63 made moot, and files TEST.134, a job-start test that fails under a parallel run.
+
 ## [8.0.955] - 2026-10-11
 
 ### Changed
