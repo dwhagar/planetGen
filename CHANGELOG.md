@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.939] - 2026-10-11
+
+### Changed
+- The Galaxy Map draws a star at an opacity that follows its apparent magnitude from the camera (MAP.148): the limit is chosen each time the view changes so about 20,000 stars show (8,000 on a phone), counted among the stars actually on screen, so a packed core shows fewer faint stars and thin space more, and a star's core brightens or dims with its flux. The limit never dims a star at the distance you are looking at, only those much farther away, and it eases rather than jumps. Black holes, neutron stars and quasars always stay lit. The server's per-level luminosity floors stay as they are for now.
+
 ## [8.0.938] - 2026-10-11
 
 ### Changed
