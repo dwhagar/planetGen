@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.950] - 2026-10-11
+
+### Changed
+- The TODO list rewrites ADM.50: the galaxy settings files and every admin-facing part go, and only an internal record of the current galaxy is kept (no history, no import or export); DB.17, OPS.28, OPS.37 and DOC.14 now point at that record.
+
 ## [8.0.949] - 2026-10-11
 
 ### Changed
