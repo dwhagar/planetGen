@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.947] - 2026-10-11
+
+### Changed
+- Every release in CHANGELOG.md now opens with its headline feature, the README lists the headline features, and the plan pages show what each upcoming headline (8.0 orbital updates, 8.1 infinite zoom, 8.5 gravity-bent courses, 9.0 gravity map) needs.
+
 ## [8.0.946] - 2026-10-11
 
 ### Changed
