@@ -700,3 +700,60 @@ def test_the_map_sizes_scattered_points_by_their_stored_mass(mysql_config):
     assert by_mass[1.5] < by_mass[10.0] < by_mass[18.0] < by_mass[5000.0]
     unstored = [point for point in points if point["mass_solar"] is None]
     assert unstored and unstored[0]["size"] == 0.55
+
+
+def _index_names(conn):
+    return {row["name"] for row in conn.execute(
+        "SELECT DISTINCT INDEX_NAME AS name FROM information_schema.STATISTICS"
+        " WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'phenomenon_scatter'").fetchall()}
+
+
+def test_the_hand_built_insert_stores_the_same_rows_as_the_drivers(mysql_config):
+    """PERF.73: numpy numbers, None and quotes come out of the table as the driver's own escaping stores them."""
+    import numpy
+
+    rows = [
+        (1, 2, 3, "neutron-star", None, 10, -20, 30, None, None, None, 2 ** 63 - 1, 1.4),
+        (4, -5, 6, "hypervelocity-star", "it's", -7, 8, -9, 1.5, -2.25, 1e-7, 7, None),
+        (numpy.int64(2), numpy.int16(3), numpy.int32(4), "black-hole", "super\\massive", numpy.int64(-1), numpy.int64(2),
+         numpy.int64(3), numpy.float64(0.1), None, None, numpy.uint64(5), numpy.float64(12.5)),
+    ]
+    conn = store.get_connection(mysql_config)
+    try:
+        assert store.insert_phenomenon_scatter(conn, rows, batch_size=2) == 3
+        conn.commit()
+        stored = [tuple(row.values()) for row in conn.execute(
+            f"SELECT {', '.join(store.PHENOMENON_SCATTER_COLUMNS)} FROM phenomenon_scatter ORDER BY id").fetchall()]
+    finally:
+        conn.close()
+    expected = [tuple(None if v is None else (v.item() if hasattr(v, "item") else v) for v in row) for row in rows]
+    assert stored == expected
+
+
+def test_the_scatter_indexes_come_off_while_it_writes_and_go_back_once(mysql_config):
+    conn = store.get_connection(mysql_config)
+    try:
+        assert set(store.PHENOMENON_SCATTER_INDEXES) <= _index_names(conn)
+        store.drop_phenomenon_scatter_indexes(conn)
+        assert not set(store.PHENOMENON_SCATTER_INDEXES) & _index_names(conn)
+        store.drop_phenomenon_scatter_indexes(conn)  # nothing left to drop is fine
+        store.add_phenomenon_scatter_indexes(conn)
+        store.add_phenomenon_scatter_indexes(conn)
+        assert set(store.PHENOMENON_SCATTER_INDEXES) <= _index_names(conn)
+        for name, columns in store.PHENOMENON_SCATTER_INDEXES.items():
+            built = [row["COLUMN_NAME"] for row in conn.execute(
+                "SELECT COLUMN_NAME FROM information_schema.STATISTICS WHERE TABLE_SCHEMA = DATABASE()"
+                " AND TABLE_NAME = 'phenomenon_scatter' AND INDEX_NAME = ? ORDER BY SEQ_IN_INDEX", (name,)).fetchall()]
+            assert built == columns.split(", ")
+    finally:
+        conn.close()
+
+
+def test_a_finished_scatter_leaves_its_indexes_in_place(mysql_config):
+    _seed_galaxy(mysql_config)
+    run_plan.scatter_phenomena(_plan_args(mysql_config))
+    conn = store.get_connection(mysql_config)
+    try:
+        assert set(store.PHENOMENON_SCATTER_INDEXES) <= _index_names(conn)
+    finally:
+        conn.close()
