@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.961] - 2026-10-11
+
+### Changed
+- The TODO list records that MAP.150's first stage (the wheel zooms toward the cursor, PR #1182) is built and what is still open.
+
 ## [8.0.960] - 2026-10-11
 
 ### Changed
