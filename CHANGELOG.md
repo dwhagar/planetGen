@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.924] - 2026-10-11
+
+### Changed
+- **The Galaxy Map's caches hold up while a fill runs (PERF.38).** Tiles and stages missing from the disk cache are built by one request at a time (a Redis claim; the others wait for its file and build only if it never arrives), the page cache keeps its answers while a fill changes the galaxy faster than pages can be rebuilt instead of emptying at every check, and the galaxy's stamp reads a deletion counter in place of counting every placed sector (0.13 s per million sectors on every check). Deleting a sector, by the API, the sector tools or `planetgen reset`, moves the counter.
+
 ## [8.0.923] - 2026-10-11
 
 ### Changed
