@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.954] - 2026-10-11
+
+### Changed
+- The TODO list files the map luminosity of massive phenomena (a shared mass-to-luminosity function, a stored column, filling it, and using it in the Galaxy Map's visibility), files the follow-up on the cost of writing phenomenon rows, and retires the numpy phenomena pass (PERF.63, PR #1174).
+
 ## [8.0.953] - 2026-10-11
 
 ### Changed
