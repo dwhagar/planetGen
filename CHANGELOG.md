@@ -2,6 +2,12 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.916] - 2026-10-11
+
+### Changed
+
+- TODO list: every open question with a stated default is now marked Decided (Boss, 2026-10-10 18:44Z, defaults approved); PERF.63 stays open.
+
 ## [8.0.915] - 2026-10-11
 
 ### Changed
