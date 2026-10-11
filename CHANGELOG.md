@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.959] - 2026-10-11
+
+### Changed
+- On the Galaxy Map the wheel now zooms toward the point under the cursor (MAP.150, first stage): whatever is under the pointer stays under it as you zoom in or out, and the camera closes on it by the same share each step, so it never runs into it. Without a pointer position (keys, buttons, a pinch) the zoom is about the middle of the view, as before. Wheel zoom inside an opened system is still about the middle.
+
 ## [8.0.958] - 2026-10-11
 
 ### Changed
