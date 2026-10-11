@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.943] - 2026-10-11
+
+### Changed
+- The TODO list files PERF.71, a research item on keeping slow database calls on large data sets from timing out (queue them, split them, or answer in parts).
+
 ## [8.0.942] - 2026-10-11
 
 ### Changed
