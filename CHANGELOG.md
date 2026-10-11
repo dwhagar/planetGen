@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.941] - 2026-10-11
+
+### Changed
+- TODO: MAP.148 retired as built (PR #1160); the distance-cut tile choice, the server floors and the cap-versus-floor question move to MAP.152. The Foundations lane queues are reorganized (11 items move from lane 2 to lane 1).
+
 ## [8.0.940] - 2026-10-11
 
 ### Changed
