@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.926] - 2026-10-11
+
+### Changed
+- The version's BUILD number now goes up by one with every stamped release and never resets, instead of being the sum of the TODO category counters (the next stamp after 8.0.912 is 8.0.913). The "Next free IDs" table only allocates TODO IDs.
+
 ## [8.0.925] - 2026-10-11
 
 ### Changed
