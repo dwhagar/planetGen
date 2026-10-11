@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.960] - 2026-10-11
+
+### Changed
+- The TODO list files the 14 items for making nebulae visible on the Galaxy Map (a nebula table and aggregates, a tile layer, the dark-theme contrast bug, then regions, cover colouring, individual clouds, markers, picking and dust colour), from the nebula visibility research (PR #1180).
+
 ## [8.0.959] - 2026-10-11
 
 ### Changed
