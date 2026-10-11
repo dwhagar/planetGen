@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.958] - 2026-10-11
+
+### Changed
+- The TODO list retires PERF.31 (the generation benchmark, PR #1179), files its four findings (two workers slow the plan scatter, saving sector paths, neighbour search, sector inserts) and reorders Foundations lane 1.
+
 ## [8.0.957] - 2026-10-11
 
 ### Added
