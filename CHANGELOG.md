@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.938] - 2026-10-11
+
+### Changed
+- TODO notes: the standing procedure for sweeping GitHub issues (close, comment the linked items, tag "in progress") is recorded.
+
 ## [8.0.937] - 2026-10-11
 
 ### Changed
