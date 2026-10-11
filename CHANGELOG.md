@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.927] - 2026-10-11
+
+### Changed
+- TODO: PERF.64 filed (bug): the Galaxy Map and the Systems list stop with "Took too long" and the site is sluggish; Foundations lane 1 is on it ahead of PERF.39.
+
 ## [8.0.926] - 2026-10-11
 
 ### Changed
