@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.949] - 2026-10-11
+
+### Changed
+- The TODO list files ADM.50, removing the galaxy settings files (the seed JSON files) entirely, with the code, API routes, Admin panel, tests and design text that use them listed.
+
 ## [8.0.948] - 2026-10-11
 
 ### Changed
