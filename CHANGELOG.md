@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.944] - 2026-10-11
+
+### Changed
+- The TODO list files the test failures the lanes reported (TEST.126 WebGL browser-map tests under load, TEST.127 the nebula shape API test, TEST.128 two database tests under a parallel run), OPS.41 (an "updating" state during long migrations), and records that Research Lane 1 owns PERF.71.
+
 ## [8.0.943] - 2026-10-11
 
 ### Changed
