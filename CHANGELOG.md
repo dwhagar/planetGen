@@ -2,6 +2,12 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.918] - 2026-10-11
+
+### Changed
+
+- TODO list: API.8, ADM.13, USR.2 to USR.7, VIEW.3 decided (Boss, 2026-10-10 19:16Z); NAV.6, GEN.9 and VIEW.4 answers confirmed.
+
 ## [8.0.917] - 2026-10-11
 
 ### Changed
