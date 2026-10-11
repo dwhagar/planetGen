@@ -2,6 +2,12 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.972] - 2026-10-11
+
+### Changed
+- The plan pages no longer list offering to generate the uncharted sectors that block a course as open work.
+- The plan pages list a new load-flaky test for the neighborhood Generate page.
+
 ## [8.0.971] - 2026-10-11
 
 ### Added
