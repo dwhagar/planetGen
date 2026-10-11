@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.921] - 2026-10-11
+
+### Added
+- The Galaxy Map has a near field (MAP.149): blocks and stars closer to the camera than a sixth of the distance to the thing looked at dissolve, and a soft see-through tube from the camera to the focus thins whatever stands in front of it, so a near block no longer hides what you came to see. When the camera is inside a block, that block is drawn from the inside (faint walls and edges). Picking agrees with drawing: a block faded below a share of 0.35 can't be picked, so a click goes through to what is behind it, and the walls of the block you are inside never take a click. This folds in MAP.121's blocker fade and MAP.141's faint-context rule (`contextOpacity`, `prominence`, `limitingMagnitude` in `static/nearfield.js`, ready for MAP.148, MAP.150 and MAP.155); nothing is stored or fetched differently.
+
 ## [8.0.920] - 2026-10-11
 
 ### Changed
