@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.951] - 2026-10-11
+
+### Changed
+- **Route graph building is up to 18 times faster (NAV.52).** The nearest-neighbour search and the island joining behind NAV routes now use SciPy's cKDTree instead of a pure-Python k-d tree. On 106,529 systems in 2,000 clusters it takes 3.2 s instead of 57 s, and the graph is the same edge for edge and distance for distance (also checked at 3,000, 10,000 and 20,000 systems).
+
 ## [8.0.950] - 2026-10-11
 
 ### Changed
