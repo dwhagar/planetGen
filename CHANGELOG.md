@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.929] - 2026-10-11
+
+### Changed
+- TODO: PERF.66 filed (bug): the whole-job progress bar should track total elapsed time and estimate stages without performance data from the earlier stages; Bugfixes lane 1.
+
 ## [8.0.928] - 2026-10-11
 
 ### Changed
