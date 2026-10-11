@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.934] - 2026-10-11
+
+### Changed
+- TODO: PERF.66 extended: with no total-process metrics the main progress bar's time left must add an estimate for every stage still to come, so it equals the current stage's time left only on the last stage.
+
 ## [8.0.933] - 2026-10-11
 
 ### Changed
