@@ -990,6 +990,8 @@ def scatter_phenomena(args):
                                 max(store.estimated_rows(conn, "phenomenon_scatter"), 1), args=args,
                                 progress=progress):
                     store.clear_phenomenon_scatter(conn)
+                    # No index to keep up to date while tens of millions of rows go in; built once below (PERF.73).
+                    store.drop_phenomenon_scatter_indexes(conn)
             finally:
                 log.reset_console()
 
@@ -1038,6 +1040,10 @@ def scatter_phenomena(args):
                 with steps.Step("Writing the special phenomena", "phenomena-insert", max(len(special), 1), args=args,
                                 progress=progress):
                     store.insert_phenomenon_scatter(conn, special)
+                with steps.Step("Building the phenomena indexes", "phenomena-index",
+                                max(store.estimated_rows(conn, "phenomenon_scatter"), 1), args=args,
+                                progress=progress):
+                    store.add_phenomenon_scatter_indexes(conn)
                 with steps.Step("Stamping the hypervelocity stars' epoch", "phenomena-stamp",
                                 max(store.estimated_rows(conn, "phenomenon_scatter"), 1), args=args,
                                 progress=progress):

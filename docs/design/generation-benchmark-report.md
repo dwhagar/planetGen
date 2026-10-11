@@ -58,3 +58,18 @@ The plan's three scatter passes now send their layers to the workers in at most 
 | 2 | 24.2 s | 8.2 s | 6.0 s | 5.4 s | 52,517 |
 
 Before the change two workers took 593.9 s for the plan (about 12 times slower than one). The object counts match between one and two workers, so the rows are the same. The scatter is still one job on the RQ queue; the chunks are tasks of that job.
+
+## Writing the phenomenon rows (PERF.73)
+
+At the default scale the phenomena pass writes about 68 million rows, so the write is most of its time. Measured on 1,000,000 synthetic rows of the real shape (40 layers of 25,000, same machine, MariaDB 10.11, default buffer pool, one connection, commit per statement batch):
+
+| way of writing | rows per second | notes |
+|---|---|---|
+| driver `executemany`, 10,000 per statement (before) | 37,000 | |
+| same, 1,000 or 50,000 per statement, or one commit per layer | 37,000 to 40,000 | batch and commit size do not matter |
+| same, `unique_checks`/`foreign_key_checks` off | 37,000 | the table has neither |
+| multi-row `INSERT` text built in the store instead of the driver's per-value escaping | 49,000 | the driver's escaping alone is about 9 s of the 27 s |
+| built text and the two secondary indexes dropped, then built once at the end | 60,000 (79,000 for the write, 4 s to build the indexes) | **what the scatter does now** |
+| `LOAD DATA LOCAL INFILE`, indexes dropped | 89,000 | needs `local_infile` on the server and the client; not used |
+
+So the scatter now writes 1.6 times faster than before on this table, and the 68 million rows go from about 31 minutes of database time to about 19 plus the index build. The rows are the same (a test stores numpy numbers, `NULL`s and quoted names both ways). A scatter that dies half way leaves the indexes off but also no recorded seed, so no sector fill uses the table until the next scatter clears and rebuilds it. `LOAD DATA` stays an option if the host's server allows it.

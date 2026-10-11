@@ -1013,6 +1013,20 @@ class Connection:
                       f"row(s): {_sql_for_log(sql, rows[:3])}{' ...' if len(rows) > 3 else ''}", stacklevel=3)
         return _Cursor(cur)
 
+    def execute_literal(self, sql):
+        """
+        Runs one statement that already holds its values (no `?` marks, no parameter formatting, no insert
+        rewriting), for the bulk writes that build their own multi-row `INSERT` text (PERF.73).
+        """
+        self.flush()
+        cur = self._conn.cursor()
+        start = time.perf_counter()
+        cur.execute(sql)
+        if log.debug_log_active():
+            log.trace(f"SQL literal {(time.perf_counter() - start) * 1000:.2f}ms, {cur.rowcount} row(s): {sql[:120]}",
+                      stacklevel=3)
+        return _Cursor(cur)
+
     def executescript(self, script):
         """
         Runs a `;`-separated sequence of DDL statements -- `pymysql` has
@@ -5500,23 +5514,66 @@ PHENOMENON_SCATTER_COLUMNS = (
 `insert_phenomenon_scatter` expects each row's values."""
 
 
-def insert_phenomenon_scatter(conn, rows, batch_size=10000):
-    """Bulk-writes scattered phenomena (`PHENOMENON_SCATTER_COLUMNS` order)
-    in batches of `batch_size`. Returns the rows written."""
-    columns = ", ".join(PHENOMENON_SCATTER_COLUMNS)
-    marks = ", ".join("?" * len(PHENOMENON_SCATTER_COLUMNS))
+PHENOMENON_SCATTER_INDEXES = {
+    "idx_phenomenon_scatter_address": "ring_index, layer_index, ring_slot_index",
+    "idx_phenomenon_scatter_class": "kind, subtype, mass_solar",
+}
+"""dict: The secondary indexes of `phenomenon_scatter` (as `schema.sql` has them) that a scatter drops while it
+writes and builds again once, sorted, at the end (PERF.73)."""
+
+
+def _scatter_value(value):
+    """One value of a `phenomenon_scatter` row as SQL text: numbers (also numpy's) and `None` as they are, the
+    kind and subtype names quoted."""
+    if value is None:
+        return "NULL"
+    if isinstance(value, str):
+        return "'" + value.replace("\\", "\\\\").replace("'", "''") + "'"
+    return str(value)
+
+
+def insert_phenomenon_scatter(conn, rows, batch_size=5000):
+    """Bulk-writes scattered phenomena (`PHENOMENON_SCATTER_COLUMNS` order),
+    `batch_size` rows to a statement. The statement text is built here
+    (`_scatter_value`), which costs about half what the driver's own
+    per-value escaping does over tens of millions of rows (PERF.73).
+    Returns the rows written."""
+    head = f"INSERT INTO phenomenon_scatter ({', '.join(PHENOMENON_SCATTER_COLUMNS)}) VALUES "
     written = 0
     batch = []
     for row in rows:
-        batch.append(tuple(row))
+        batch.append("(" + ",".join(map(_scatter_value, row)) + ")")
         if len(batch) >= batch_size:
-            conn.executemany(f"INSERT INTO phenomenon_scatter ({columns}) VALUES ({marks})", batch)
+            conn.execute_literal(head + ",".join(batch))
             written += len(batch)
             batch = []
     if batch:
-        conn.executemany(f"INSERT INTO phenomenon_scatter ({columns}) VALUES ({marks})", batch)
+        conn.execute_literal(head + ",".join(batch))
         written += len(batch)
     return written
+
+
+def drop_phenomenon_scatter_indexes(conn):
+    """Drops the secondary indexes of `phenomenon_scatter` that exist, so a scatter's many inserts do not keep them
+    up to date row by row; `add_phenomenon_scatter_indexes` builds them again from the finished table."""
+    present = {row["name"] for row in conn.execute(
+        "SELECT DISTINCT INDEX_NAME AS name FROM information_schema.STATISTICS"
+        " WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'phenomenon_scatter'").fetchall()}
+    gone = [name for name in PHENOMENON_SCATTER_INDEXES if name in present]
+    if gone:
+        conn.execute("ALTER TABLE phenomenon_scatter " + ", ".join(f"DROP INDEX {name}" for name in gone))
+
+
+def add_phenomenon_scatter_indexes(conn):
+    """Builds the secondary indexes `drop_phenomenon_scatter_indexes` took off (those missing), in one pass over the
+    table."""
+    present = {row["name"] for row in conn.execute(
+        "SELECT DISTINCT INDEX_NAME AS name FROM information_schema.STATISTICS"
+        " WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'phenomenon_scatter'").fetchall()}
+    missing = [(name, columns) for name, columns in PHENOMENON_SCATTER_INDEXES.items() if name not in present]
+    if missing:
+        conn.execute("ALTER TABLE phenomenon_scatter " + ", ".join(
+            f"ADD KEY {name} ({columns})" for name, columns in missing))
 
 
 def phenomena_for_sector(conn, ring_index, layer_index, ring_slot_index):
