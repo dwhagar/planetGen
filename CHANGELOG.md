@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.982] - 2026-10-11
+
+### Changed
+- The plan's scatter passes now hand their layers to the workers in a few chunks instead of one task per layer, so two or more workers no longer spend more time starting tasks than drawing stars. Rows are unchanged.
+
 ## [8.0.981] - 2026-10-11
 
 ### Changed
