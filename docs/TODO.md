@@ -3673,22 +3673,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisite: GEN.198. Related: GEN.198, GEN.199, MAP.151.
   Design: [docs/design/gravity-map.md](design/gravity-map.md)
 
-- [ ] **PERF.73 Cut the cost of writing the phenomenon rows to the database (now the biggest part of a scatter run)**
-  Bugfixes lane 1 (2026-10-10, PERF.63, PR #1174): the numpy phenomena
-  pass takes 3.7 min at the default scale (2,041 layers, 68.2M objects)
-  against about 37 min, so computing the objects is no longer the cost;
-  writing the roughly 68 million rows is. Done: measure the write on the
-  default galaxy (rows a second, time per layer, index and redo-log
-  share) and cut it: batch size, one bulk statement per layer, `LOAD
-  DATA` where the connection allows it, deferring or dropping the
-  secondary index `idx_phenomenon_scatter_address` during the load and
-  rebuilding it after, unique and foreign-key checks off for the load,
-  commit size; keep the rows identical to today's (a test shows the same
-  rows). Report the before and after in the PR and update the
-  generation-time notes. Owner: Foundations lane 1, after PERF.68-70.
-  Prerequisites: none. Related: PERF.31, PERF.47, PERF.54, PERF.58,
-  GEN.185.
-
 - [ ] **PERF.75 Keyset paging for the other data tables and the jump-by-value box (Systems name sort done)**
   From the PERF.71 research (docs/design/slow-reads-and-timeouts.md, PR
   #1175; Boss's ask of 2026-10-10 20:50Z; measured on 2,000,000

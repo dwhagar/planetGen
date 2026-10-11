@@ -229,7 +229,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | UX.96 | A table that hits the statement limit says the database is busy and retries, instead of failing with a 502 |  | Decided by default. Bugfixes lane 2. |
 | UX.95 | Tables show their rows first and fill the filter-menu counts a moment later |  | Bugfixes lane 2. |
 | PERF.75 | Keyset paging for the other data tables and the jump-by-value box (Systems name sort done) |  | Decided by default. Foundations lane 1. |
-| PERF.73 | Cut the cost of writing the phenomenon rows to the database (now the biggest part of a scatter run) |  | Follow-up to PERF.63. Foundations lane 1. |
 | GEN.201 | Fill the map luminosity in the scatter and in existing galaxies | GEN.200, DB.23 | Foundations lane 1. |
 | DB.23 | Store a "map luminosity" for phenomena that are faint but massive (Alembic migration) | GEN.200 | Needs a migration. Foundations lane 1. |
 | GEN.200 | One shared function for the "map luminosity" of a mass: the luminosity a main-sequence star of that mass would have |  | Boss 2026-10-10 21:38Z. Foundations lane 1. |
