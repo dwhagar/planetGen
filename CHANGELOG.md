@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.945] - 2026-10-11
+
+### Changed
+- The TODO list files two failures from the manual CI run on main: TEST.129 (two orbit-update tests on the MySQL 8.4 leg) and TEST.130 (comet position at epoch in the scene test).
+
 ## [8.0.944] - 2026-10-11
 
 ### Changed
