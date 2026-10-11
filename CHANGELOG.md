@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.928] - 2026-10-11
+
+### Changed
+- TODO: PERF.65 filed (bug): multi-step job output says "Step 1 of 4" when the job has 12 tasks; Bugfixes lane 1, with PERF.33.
+
 ## [8.0.927] - 2026-10-11
 
 ### Changed
