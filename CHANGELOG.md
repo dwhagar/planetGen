@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.925] - 2026-10-11
+
+### Changed
+- TODO: PERF.38 retired (PR #1144); its page-time re-run under Ludicrous Speed moved to ADM.15.
+
 ## [8.0.924] - 2026-10-11
 
 ### Changed
