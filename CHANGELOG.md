@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.985] - 2026-10-11
+
+### Changed
+- The phenomena scatter writes its rows about 1.6 times faster: it builds its multi-row inserts itself and leaves the table's two secondary indexes off while it writes, building them once from the finished table. The rows are the same.
+
 ## [8.0.984] - 2026-10-11
 
 ### Changed
