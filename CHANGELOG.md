@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.962] - 2026-10-11
+
+### Changed
+- The TODO list records Boss's decision on PERF.79: the scatter stays one job on the Redis queue, never bypassing it, with parallelism only where it measurably helps.
+
 ## [8.0.961] - 2026-10-11
 
 ### Changed
