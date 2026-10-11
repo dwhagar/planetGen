@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.983] - 2026-10-11
+
+### Changed
+- The plan pages no longer list the slow two-worker plan scatter and the stored table counts as open work.
+
 ## [8.0.982] - 2026-10-11
 
 ### Changed
