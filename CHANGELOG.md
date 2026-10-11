@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.965] - 2026-10-11
+
+### Changed
+- The gravity-map plan records that the size of each gradient measure is built from the orbital update system's preset minimum movements (0.01 mpc galactic, 0.01 AU system, 100,000 km planetary), on GEN.198, GEN.199, MAP.167 and the design note.
+
 ## [8.0.964] - 2026-10-11
 
 ### Changed
