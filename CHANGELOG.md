@@ -2,6 +2,12 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.914] - 2026-10-11
+
+### Changed
+
+- TODO list: API.23 and DOC.17 retired (merged, PRs #1119, #1127 and #1133).
+
 ## [8.0.913] - 2026-10-11
 
 ### Changed
