@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.986] - 2026-10-11
+
+### Changed
+- The plan pages no longer list the cost of writing phenomenon rows during a scatter as open work.
+
 ## [8.0.985] - 2026-10-11
 
 ### Changed
