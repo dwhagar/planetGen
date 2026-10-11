@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.969] - 2026-10-11
+
+### Changed
+- **The Sectors list, the Systems list sorts and the Galaxy Map's coarse tiles stop timing out on a big galaxy (PERF.68, PERF.70, PERF.74).** The Sectors list counted every system on each request (17 s on 2 million systems); it now reads each sector's stored count (`sector_system_counts`, filled by the update and refreshed in the background no more than every 30 seconds). The Systems list sorted by Sector, Octant or Binary sorted the whole table; it now counts group by group and reads only the page. The Galaxy Map's scattered black holes and quasars at zoom levels 2 to 5 read 8.6 million rows (33 s); a `(kind, subtype, mass_solar)` index brings that to under half a second (12.7 s to 0.25 s on 3 million rows). Needs `./update.sh` (schema v82: two indexes, one replaced, and a small table).
+
 ## [8.0.968] - 2026-10-11
 
 ### Changed
