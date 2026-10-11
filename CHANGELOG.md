@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.936] - 2026-10-11
+
+### Changed
+- TODO: PERF.67 extended: separate timing records per scatter kind, one aggregate scatter record, and every ETA display reads them.
+
 ## [8.0.935] - 2026-10-11
 
 ### Changed
