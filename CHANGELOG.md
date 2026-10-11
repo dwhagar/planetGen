@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.948] - 2026-10-11
+
+### Changed
+- The TODO list files TEST.132 (a bright-scatter edge test that failed once in a full parallel run) and records one more load-sensitive map test on TEST.126.
+
 ## [8.0.947] - 2026-10-11
 
 ### Changed
