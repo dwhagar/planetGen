@@ -120,12 +120,61 @@ look; update the check only with a source for the new value.
 - `mathcheck`: the math check gate (`test_math_check.py`,
   `test_web_math_check.py`), run first.
 
+- `heavy`: the files that took over 100 s each in the 2026-10-14 baseline
+  (`HEAVY_FILES` in `src/tests/areas.py`);
+- `area_web`, `area_api`, `area_db`, `area_generation`, `area_physics`,
+  `area_names`, `area_wiki`, `area_ops`: the part of planetGen a test file
+  covers, by its file name (the rules are in `src/tests/areas.py`; no file is
+  moved, and a name no rule matches is `area_other`).
+
 ```sh
-pytest -n auto -m "not db and not slow"   # quick loop: about a minute on 4 cores
+pytest -n auto -m "not db and not slow"   # quick loop without a database
 pytest -n auto -m db                      # just the database tests
+pytest -n auto -m area_api                # one part of the program
 ```
 
-A pull request still needs the whole suite green.
+### The slice picker, `scripts/test.py`
+
+`scripts/test.py` builds those pytest commands for you (TEST.139,
+[design/test-suite-rebuild.md](design/test-suite-rebuild.md)):
+
+```sh
+scripts/test.py quick           # not database, browser or heavy tests
+scripts/test.py area web db     # the tests of those areas
+scripts/test.py browser         # the headless-browser tests alone
+scripts/test.py full            # everything: the merge gate
+scripts/test.py full -- -x      # anything after -- goes to pytest
+```
+
+Every command but `quick` and `browser` runs two phases: the tests that need
+no browser on every core, then the browser tests on 2 workers
+(`--browser-workers`). Software WebGL needs the CPU the other workers would
+have, and running both together is what timed the browser tests out
+(TEST.126). The first line printed is the start time and how long the same
+command took last time on this checkout (kept in `.test-runs.json`, not
+tracked by git); the last line is how long it took now.
+
+**Failures.** The runner keeps every failing test's full report (traceback,
+worker, the machine's load average) in `.test-failures.jsonl`, and when the run
+ends it runs each failed test again alone, on one process. The verdict is
+"passes alone" (it failed only under load or beside other tests) or "FAILS
+ALONE" (a real failure). A lane quoting a flake in a TODO item should paste
+that line and the record from `.test-failures.jsonl` instead of "failed once,
+passed alone". `--no-rerun` skips the second step.
+
+A pull request still needs the whole suite green (`scripts/test.py full`, or
+`pytest -n auto` as before).
+
+## Setting up a cloud session
+
+A fresh container needs `pip install -e ".[test,api,browser]"`, the NLTK
+corpus (`python -m nltk.downloader words`), MariaDB or MySQL with a user that
+has `ALL ... WITH GRANT OPTION` (one test creates a restricted user), Redis,
+and a Playwright whose Chromium matches the one on the machine: the image
+carries Chromium 1194, so use `pip install playwright==1.56.0` (a newer
+Playwright asks for a build the image does not have and every browser test
+skips). `markdown` must be 3.11 as in `requirements.lock`; 3.11.1 fails 74
+tests (see TEST.139 in the TODO).
 
 ## Database engines
 
