@@ -185,11 +185,40 @@ def class_fits_mass(planet_class, mass_kg):
 
 
 def _mass_refusal(body, planet_class):
-    """The message refusing `planet_class` for `body` because of its mass."""
+    """The message saying `planet_class` doesn't suit `body`'s mass."""
     low, high = planetPhysics.planet_mass_ranges[planet_class]
     earth = constants.EARTH_MASS_TO_KG
     return (f"{body.name} is {body.mass / earth:.3g} Earth masses; class {planet_class} needs "
-            f"{low / earth:.3g} to {high / earth:.3g}, so its class wasn't changed")
+            f"{low / earth:.3g} to {high / earth:.3g}")
+
+
+def class_conflicts(body, owner, planet_class):
+    """
+    What taking `planet_class` would break for `body` (ADM.51), as short
+    sentences for the confirmation: its mass outside the class's range
+    (a forced change then sets the mass to the nearest end of the range),
+    the class not forming in the body's zone, a planet too small to hold
+    its moons, or a moon bigger than its planet can hold. Empty when
+    nothing is broken. The orbits around it needing a nudge is not a
+    conflict: that is what `recommended_classes` leaves out.
+    """
+    notes = []
+    if not class_fits_mass(planet_class, body.mass):
+        notes.append(_mass_refusal(body, planet_class) + "; its mass would be set to the nearest end of that range")
+    parent_distance = owner.distance if body.is_moon else None
+    zone = validation.zone_for(body.habitable_zone, parent_distance if body.is_moon else body.distance)
+    if not tuning.PLANET_CLASSES[planet_class][zone]:
+        notes.append(f"class {planet_class} can't form in its {_ZONE_NAMES.get(zone, zone)} zone")
+    if body.is_moon:
+        if planet_class not in moon_classes(owner):
+            notes.append(f"{owner.name} is too small to hold a class {planet_class} moon")
+    elif not _can_hold_moons(body, planet_class):
+        notes.append(f"class {planet_class} is too small to hold {body.name}'s moons")
+    return notes
+
+
+_ZONE_NAMES = {"e": "inner", "c": "habitable", "h": "outer"}
+"""dict: The zone letters of `tuning.PLANET_CLASSES` by name."""
 
 
 def _hill_radius_au(distance_au, mass_kg, star_mass_kg):
@@ -364,30 +393,41 @@ def change_class(system, body, owner, planet_class, force=False):
     Changes a planet's or moon's class (ADM.6), re-generating its surface
     conditions as that class and keeping its orbit, mass and name
     (ADM.27). Without `force` only a recommended class
-    (`recommended_classes`) is accepted; with it, any known class its mass
-    fits, even one that can't exist where the body orbits. The body
+    (`recommended_classes`) is accepted; with it (the caller's
+    confirmation, ADM.51), any known class, even one that can't exist
+    where the body orbits or whose mass range it is outside (its mass
+    then goes to the nearest end of the range). The body
     keeps its new class no matter what (it is pinned); the rest of the
     system is then re-spaced from the moons outward until it validates,
     and whatever still doesn't (a forced class out of its zone, a moon too
     large for its planet) comes back as warnings. Nothing is removed.
 
     Raises:
-        ValueError: For an unknown class, a class the body's mass doesn't
-            fit, or a class that isn't recommended without `force`.
-            Nothing is changed.
+        ValueError: For an unknown class, or a class that isn't
+            recommended without `force`; the message says what the class
+            would break (`class_conflicts`). Nothing is changed.
     """
     if planet_class not in tuning.PLANET_CLASSES:
         raise ValueError(f"unknown class: {planet_class}")
+    conflicts = class_conflicts(body, owner, planet_class)
+    if not force:
+        if conflicts:
+            raise ValueError(f"class {planet_class} doesn't suit {body.name}: {'; '.join(conflicts)}. "
+                             "Confirm to set it anyway")
+        if planet_class not in recommended_classes(system, body, owner):
+            raise ValueError(f"class {planet_class} doesn't fit {body.name} where it is, so other orbits "
+                             "would have to move. Confirm to set it anyway")
+    notes = ""
     if not class_fits_mass(planet_class, body.mass):
-        raise ValueError(_mass_refusal(body, planet_class))
-    if not force and planet_class not in recommended_classes(system, body, owner):
-        raise ValueError(f"class {planet_class} doesn't fit {body.name} where it is; force it to set it anyway")
+        low, high = planetPhysics.planet_mass_ranges[planet_class]
+        body.mass = min(max(body.mass, low), high)
+        notes = f" Its mass is now {body.mass / constants.EARTH_MASS_TO_KG:.3g} Earth masses."
     old_class = body.planet_class
     for _ in range(1 if force else RECOMMENDED_ROLLS):
         _apply_class(body, owner, planet_class)
         if force or _roll_fits(body, owner):
             break
-    result = _finish(system, f"{body.name} changed from class {old_class} to class {planet_class}.", pinned=[body])
+    result = _finish(system, f"{body.name} changed from class {old_class} to class {planet_class}.{notes}", pinned=[body])
     return result
 
 
