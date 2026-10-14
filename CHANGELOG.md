@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1024] - 2026-10-14
+
+### Changed
+- **A planet's description no longer claims life where the habitability index says none can live (GEN.206).** A world whose microbial score shows 0.00 now gets no life chemistry, no evolutionary pace or timeline and no light-harvesting pigment, and its class text drops "bacterial life", "simple life" and "with vegetation" (Classes F, G and L); a world that allows microbial life only gets a timeline that stops at microbes, with no flora or fauna, and Class L loses its vegetation. A test over generated systems checks every description against its own index. In a sample, about four in ten worlds of a habitable class score no microbial life, so fewer worlds now carry a life chemistry and fewer species are placed on them.
+
 ## [8.0.1023] - 2026-10-14
 
 ### Changed
