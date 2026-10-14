@@ -1490,8 +1490,18 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   and in the middle of a filled block it makes the stars disappear too,
   when the idea was to make things more visible, not less. Boss attached
   a research note on the 3D rendering camera
-  (3d-rendering-camera-research.md, on issue #1213) for how to structure
-  the fix. Done: no visible tunnel edge or halo at any zoom level, stars
+  ([docs/design/3d-rendering-camera-research.md](design/3d-rendering-camera-research.md),
+  in the repository since 2026-10-14) for how to structure the fix.
+  What the note says to build: fade by view-space depth (distance along
+  the camera axis, not distance to the cursor or screen centre) with a
+  smoothstep ramp and hysteresis, so nothing is darker at the middle of
+  the view than at its edge; avoid sorted alpha blending in dense
+  fields (fill-rate and sorting cost, and the likely source of the dark
+  disc); use screen-door transparency with interleaved gradient noise
+  smoothed by temporal anti-aliasing, or weighted blended
+  order-independent transparency where overlapping colour must stay
+  right; never move the camera to dodge objects, since that causes
+  disorientation and cybersickness. Done: no visible tunnel edge or halo at any zoom level, stars
   never fade out because of the near-field window (the window fades the
   foreground density and cell boxes only), and a browser test measures
   star visibility inside a filled block while zooming in. Owner:
@@ -3562,10 +3572,24 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   once a full suit is needed anyway, and it is still listed among the
   reasons for the suit in the details; the overall score mixes the
   colour gates with the geometric mean, gates first; Blue overall needs
-  all six Blue. Still open: what makes Suitability Red, Yellow, Green and
-  Blue (and whether it has a 0 to 1 number): Boss is writing separate
-  research and will upload it as a Markdown file; the Suitability part
-  waits for it. Owner: Foundations lane 2, after GEN.206.
+  all six Blue. Boss's research is now in the repository
+  ([Exoplanetary Habitability.md](design/Exoplanetary%20Habitability.md),
+  added 2026-10-14, a four-tier Red, Yellow, Green, Blue ecology and
+  survivability ladder). It does not name a Suitability score, but its
+  Table 2 gives the ladder for the long-term resources: water access
+  (perchlorate brine or deep ice, glacial ice, rivers and lakes, global
+  fresh water), native food (none, chemosynthetic mats only, algae and
+  mosses whose chemistry may not suit people, forests and animals of
+  compatible chemistry), shelter from radiation, and the survival
+  timelines of Table 3 (a person alone: seconds, minutes, 2 to 4 weeks,
+  a lifetime; a colony: finite, heavy resource use, mostly
+  self-sufficient, fully self-sufficient). Open question for Boss
+  (default: Suitability is the lowest of three rungs, water access, food
+  and shelter, each read off Table 2 with the tier names above; a world
+  with no native food is at most Yellow, a sterile world with no water
+  Red; it has a 0 to 1 number that is the same geometric-mean blend of
+  the three rungs as the other dimensions, and the numbers are tuned
+  with the lane's sample worlds). Owner: Foundations lane 2, after GEN.206.
   Prerequisite: GEN.206. Related: GEN.84, GEN.90, GEN.148, UX.101, GEN.208.
 
 - [ ] **GEN.208 The habitability description is one paragraph that says where the planet falls in each category and what protection it needs**
@@ -3579,10 +3603,26 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   impossible). Boss wants more nuance about the protective equipment
   needed and why: different suits rated for low radiation with high
   temperature, or high radiation with low temperature, and so on. Boss
-  attached two research notes (Thermal Respiratory Protection Research
-  and Environmental Extremes and Protection Research, on issue #1217)
-  that this thread could not open; they must be added to the repository
-  before this is built. Done: the description names the suit or mask
+  attached two research notes, now in the repository
+  ([Environmental.Extremes.and.Protection.Research.md](design/Environmental.Extremes.and.Protection.Research.md)
+  and [Thermal.Respiratory.Protection.Research.md](design/Thermal.Respiratory.Protection.Research.md),
+  added 2026-10-14). Their gear ladder (ambient pressure of 70 kPa or
+  more: masks and modular gear; 20 to 70 kPa: counterpressure or
+  Level A style suits; under 20 kPa: a full pressurised suit; above
+  0.4 MPa: intermediate, above 5 MPa: rigid diving armour; cold: modular
+  down to minus 20 C, insulated suit to minus 40 C, an active-heated
+  sealed suit below; heat: modular to wet bulb 30 C, cooled suit to 45 C,
+  an actively cooled sealed suit above; oxygen under 19.5 kPa needs
+  supplied air; skin-permeating chemicals and perchlorate dust above
+  0.1 mg per cubic metre need a sealed barrier suit; solar-storm doses
+  above 0.5 to 1 Sv need a shelter, not a suit) supply the reasons and
+  wording. They differ from the built equipment table in
+  habitability-index.md (masks from 50 kPa, 14.3 kPa for the full suit,
+  cold limit minus 50 C, wet bulb 31 and 35 C). Open question for Boss
+  (default: keep the built numbers, which Boss already approved, and use
+  the notes only for the suit names, reasons and wording; the lane lists
+  each difference in its merge note so Boss can pick the notes' numbers
+  instead). Done: the description names the suit or mask
   classes the planet needs and why, in one short paragraph per planet,
   with tests over a sample of planets. Owner: Foundations lane 2, with
   GEN.207.
