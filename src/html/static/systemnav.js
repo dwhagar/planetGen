@@ -3,15 +3,15 @@
 // The NAV buttons of a body's info panel on the System Map, in both views
 // (NAV.50). The server gives the System Map's root element URL templates
 // (`planetgen/web/system_pages.py` `body_nav`), each with `{ref}` where the
-// body's object reference goes (`star:3`, `planet:12`, `moon:40`,
-// `belt:5`, `comet:8`):
+// body's object reference goes (`star:0008000000-4000000-001`, `planet:0008000000-4000000-002`, ...):
 // - data-nav-start, data-nav-end: "Start Here" and "End Here", which open
 //   the NAV page with that end chosen;
 // - data-nav-take and data-nav-label: while a start or destination is
 //   being picked (`?pick=...`), the one button that returns to the NAV page
 //   with the course.
 
-const REF = /^(star|planet|moon|belt|comet):\d+$/;
+// The printed object ID (API.23: `0008000000-4000000-00D`), as `objectref.js` parses it; a plain number matches too.
+const REF = /^(star|planet|moon|belt|comet):[0-9A-Fa-f]+(-[0-9A-Fa-f]+){0,2}$/;
 
 function fill(template, ref) {
   return template.replace("{ref}", encodeURIComponent(ref).replace(/%3A/gi, ":"));

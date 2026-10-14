@@ -1776,3 +1776,16 @@ def test_linking_in_small_batches_gives_the_same_lists_as_one_batch(mysql_config
     assert lists() == whole and whole
     assert len({done for done, _total, _label in steps}) > 8  # the bar moves every two sectors, not once at the end
     assert edge_ly > 0
+
+
+@pytest.mark.parametrize("end_unix, stored", [(1_800_000_000.9, 1_800_000_000), (1_800_000_000.5, 1_800_000_000),
+                                              (1_800_000_000.0, 1_800_000_000)])
+def test_the_orbit_update_stores_the_whole_second_not_a_rounded_up_one(mysql_config, end_unix, stored):
+    """TEST.129: MySQL 8.4 rounds a fraction on insert where MariaDB truncates, which stored a time up to half
+    a second ahead of the clock and made the next run read "in the future". The fraction is dropped by the code."""
+    conn = store.get_connection(mysql_config)
+    try:
+        store.finish_orbit_update(conn, store.OrbitClock(end_unix - 10, end_unix))
+        assert store.get_orbit_epoch_unix(conn) == stored
+    finally:
+        conn.close()

@@ -117,9 +117,13 @@ def test_the_scene_positions_at_the_epoch_match_the_stored_ones(mysql_config):
         cfg = SystemConfig()
         cfg.PLANETS = True
         cfg.MAX_PLANETS = True
+        cfg.MOONS = True
+        cfg.COMETS = True  # a comet by construction, not by the draw (TEST.130)
         system = StarSystem(system_config=cfg)
         if any(getattr(p, "moons", None) for p in system.planets) and system.comets and len(system.stars) > 1:
             break
+    else:
+        pytest.fail("400 systems built and none had a planet with moons, a comet and a second star")
     sector.add_system(system, position=(1.0, 1.0, 1.0), system_config=cfg)
     store.save_sector(sector, config=mysql_config)
     conn = store.get_connection(mysql_config)
@@ -141,3 +145,26 @@ def test_the_scene_positions_at_the_epoch_match_the_stored_ones(mysql_config):
         # round the second star of a wide pair was compared against the barycenter and missed by 64 AU).
         origin = here[comet["orbit"]["around"]] if comet["orbit"]["around"] != "barycenter" else [0.0, 0.0, 0.0]
         assert sub(here[comet["ref"]], origin) == pytest.approx(comet["position_km"], rel=1e-5, abs=1e6)
+
+
+@pytest.mark.parametrize("orbit_type", ["elliptical", "parabolic"])
+def test_a_comets_position_at_the_epoch_is_the_one_it_was_generated_with(orbit_type):
+    """TEST.130: the scene's comet path (`positions_at`) and the position a comet is generated and stored with
+    are the same function of the same orbit, for 2,000 comets of each type (60,000 drawn once, none differed)."""
+    from planetgen.generation.comet import Comet
+    from planetgen.generation.config import SystemConfig
+    from planetgen.physics.body_positions import _comet_relative_km
+    from planetgen.util import draw
+
+    draw.set_run_seed(130)
+    for _ in range(2000):
+        mass = draw.uniform(0.08, 5.0)
+        comet = Comet(SystemConfig(), mass, orbit_type=orbit_type)
+        orbit = {"type": comet.orbit_type, "kepler": {
+            "perihelion_distance_km": comet.perihelion_distance_au * AU_KM, "eccentricity": comet.eccentricity,
+            "inclination_deg": comet.inclination_deg, "arg_periapsis_deg": comet.arg_periapsis_deg,
+            "ascending_node_deg": comet.ascending_node_deg, "period_years": comet.orbital_period_years,
+            "mean_anomaly_deg": comet.mean_anomaly_deg, "parabolic_mean_anomaly": comet.parabolic_mean_anomaly,
+            "primary_mass_solar": mass}}
+        stored = [comet.position_x_au * AU_KM, comet.position_y_au * AU_KM, comet.position_z_au * AU_KM]
+        assert _comet_relative_km(orbit, 0.0) == pytest.approx(stored, rel=1e-5, abs=1e6), vars(comet)
