@@ -2,6 +2,46 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1105] - 2026-10-14
+
+### Changed
+- The TODO list corrects TEST.146's cause: the between-test rate-limit reset wipes every limiter key on the shared Redis.
+
+## [8.0.1104] - 2026-10-14
+
+### Added
+- The TODO list files OPS.49: update.sh stops at the database migrate step with a pymysql login error.
+
+## [8.0.1103] - 2026-10-14
+
+### Changed
+- The TODO list drops OPS.46 (Apache mod_wsgi venv checks), merged in #1359.
+
+## [8.0.1102] - 2026-10-14
+
+### Changed
+- `update.sh` and `install.sh` now check Apache's vhost against mod_wsgi's rules for a virtual environment, and only warn, printing the line to add (the vhost is never edited): `python-home` must be the venv's root (a path to `bin/python` or a parent folder is caught), the app must run in a daemon process group (`process-group=` or `WSGIProcessGroup`) in the main interpreter (`application-group=%{GLOBAL}`), and Apache's user (`www-data` or `apache`) must be able to enter every folder down to the venv and read it; the first folder that blocks it is named. The vhost is looked up under the enabled sites (and RHEL's `/etc/httpd`), and the mod_wsgi Python version warning says how to remake the venv.
+
+## [8.0.1101] - 2026-10-14
+
+### Changed
+- TODO: TEST.139 notes stage 4 first part (#1357, a full run is now about 45 minutes); DOC.40 notes the new run time; TODO items resolved: none / Added: none.
+
+## [8.0.1100] - 2026-10-14
+
+### Changed
+- **The Galaxy Map and Sector Map browser tests use a smaller window by default** (TEST.139). Reading a software-WebGL canvas back costs time in proportion to its pixels (2.5 s at 1280x900, 1.1 s at 800x600), and these tests take several screenshots each. The fixture-map file went from 23 min 34 s to 13 min 34 s on two workers and the whole browser phase from about 40 min to 25 min. A test that needs a bigger window says so with `@pytest.mark.viewport(width, height)`; five do.
+
+## [8.0.1099] - 2026-10-14
+
+### Changed
+- TODO: retire UX.99 (#1355); TODO items resolved: UX.99 / Added: none.
+
+## [8.0.1098] - 2026-10-14
+
+### Fixed
+- **Rogue planets show their surface gravity.** A rogue planet's page now has a Surface Gravity row, and the figure is in its row in a sector's contents (folded or listed) and in its popup on the sector map, worked out from its mass and radius like any other planet's.
+
 ## [8.0.1097] - 2026-10-14
 
 ### Changed

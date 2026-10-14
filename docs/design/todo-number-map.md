@@ -24,7 +24,7 @@ release is stamped.
 | SEC | SEC.33 |
 | TEST | TEST.147 |
 | USR | USR.12 |
-| OPS | OPS.49 |
+| OPS | OPS.50 |
 | DOC | DOC.45 |
 | VIEW | VIEW.11 |
 | POP | POP.12 |
@@ -1048,9 +1048,10 @@ Parents marked "new parent" had no old number of their own.
 | OPS.43 | A fresh install gets markdown 3.11.1, which removes a pattern the page renderer names, and 74 tests fail (bug) | none | done, PR #1307 |
 | OPS.44 | The docs site build (GitHub Pages, Jekyll) fails on every release commit and nothing in our tests would have caught it (bug) | none | done, PR #1307 |
 | OPS.45 | Install planetGen into its own virtual environment and clear the packages out of the system Python | none | done, PR #1333 |
-| OPS.46 | Make the installer check the Apache mod_wsgi venv rules: venv root, process group, Apache user access, matching Python | none | open |
+| OPS.46 | Make the installer check the Apache mod_wsgi venv rules: venv root, process group, Apache user access, matching Python | none | done, PR #1359 |
 | OPS.47 | update.sh stops at the database migrate step in the venv: cryptography is missing from the requirements (bug) | none | done, PR #1346 |
 | OPS.48 | Redis server settings: a documented example config and an update.sh warning (append-only file, noeviction, memory limit, loopback) | none | open |
+| OPS.49 | update.sh stops at the database migrate step with 'NoneType' object has no attribute 'is_auth_switch_request' (bug) | none | open |
 | PERF.1 | Generation at scale | none | done, PR #425 |
 | PERF.2 | Cache so pages don't hit the database every request | 6 (2026-09-24 01:32Z to 02:18Z); 3 (2026-09-24 01:57Z to 02:02Z); 1 (2026-09-24 02:25Z to 2026-09-30 18:09Z); 8 (2026-09-30 18:14Z to 2026-10-01 05:05Z) | done in 7.56.0, PR #178 |
 | PERF.3 | Estimate size and time before bulk generation | 86 (2026-10-01 03:15Z to 05:29Z) | done, PR #238 (stats in control schema v6) |
@@ -1304,7 +1305,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.96 | A table that hits the statement limit says the database is busy and retries, instead of failing with a 502 | none | done, PR #1267 |
 | UX.97 | Search results: each panel runs under its own time limit and is fetched on its own | none | done, PR #1315 |
 | UX.98 | The Generate log has odd wording and mixed section headers (bug) | none | open |
-| UX.99 | Rogue planets do not show their surface gravity (bug) | none | open |
+| UX.99 | Rogue planets do not show their surface gravity (bug) | none | done, PR #1355 |
 | UX.100 | Planet and moon lists show habitability as symbols, not notes | none | open |
 | UX.101 | PHI-6 symbols in the planet and moon lists, coloured by rating | none | open |
 | UX.102 | One logging standard for every output the user or an admin reads: the same timestamps, format, dividers and step markers everywhere | none | open |
@@ -1550,7 +1551,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.143 | test_install_checkout_leaves_a_current_editable_install_alone fails when the suite runs from a git worktree (bug) | none | done, PR #1313 |
 | TEST.144 | test_every_plain_button_does_something[web.sector] failed once in a full parallel run (bug) | none | open |
 | TEST.145 | Subprocess tests must run the checkout under test, not the installed copy of another checkout (bug) | none | open |
-| TEST.146 | Rate-limit tests fail when the one-minute window ends between their requests (bug) | none | open |
+| TEST.146 | Rate-limit tests fail when the between-test reset wipes every limiter key on the shared Redis (bug) | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

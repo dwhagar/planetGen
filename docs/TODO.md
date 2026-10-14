@@ -523,14 +523,6 @@ with `clamp()`.
   Owner: Bugfixes lane 1 (next, PERF.85 is merged in #1265).
   Prerequisites: none. Related: PERF.65, PERF.66.
 
-- [ ] **UX.99 Rogue planets do not show their surface gravity (bug)**
-  GitHub issue [#1219](https://github.com/dwhagar/planetGen/issues/1219)
-  (Boss, 2026-10-11 02:45Z): "Rogue planets need to show their surface
-  gravity with the other information." Done: a rogue planet's page, row
-  and map popup show its surface gravity like any other planet, with a
-  test. Owner: Bugfixes lane 2, after its current items.
-  Prerequisites: none. Related: GEN.142, UX.22.
-
 - [ ] **UX.100 Planet and moon lists show habitability as symbols, not notes**
   GitHub issue [#1217](https://github.com/dwhagar/planetGen/issues/1217)
   (Boss, 2026-10-11 01:34Z): "The habitability notes are too much in the
@@ -4010,7 +4002,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   from measured performance). Done when: the library passes its tests
   for the barrier, counters, stream and ETA and PERF.33's acceptance is
   met by it.
-  Prerequisites: PERF.95. Related: PERF.86, PERF.33.
+  Prerequisite: PERF.95. Related: PERF.86, PERF.33.
 
 - [ ] **PERF.97 Work queue step 3: the mass scatter end to end on the new queue**
   Part of PERF.86. Decided by Boss (2026-10-14 21:08Z): Option A of
@@ -4033,7 +4025,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-14). Done when: a galaxy fill whose mass scatter runs this way
   gives the same galaxy for the same seed at any worker count and the
   old path still runs the other stages.
-  Prerequisites: PERF.96. Related: PERF.86.
+  Prerequisite: PERF.96. Related: PERF.86.
 
 - [ ] **PERF.98 Work queue step 4: the remaining stages and the sector and backfill units on the new queue**
   Part of PERF.86. Decided by Boss (2026-10-14 21:08Z): Option A of
@@ -4055,7 +4047,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the work-horse-killed handler, and every job gets a real job_timeout.
   Done when: every generation command runs on the new queue and the old
   executor is unused.
-  Prerequisites: PERF.97. Related: PERF.86, PERF.92.
+  Prerequisite: PERF.97. Related: PERF.86, PERF.92.
 
 - [ ] **PERF.99 Work queue step 5: the Generate page, Queue page, banner and job log read Redis; cancel now through the stop command**
   Part of PERF.86. Decided by Boss (2026-10-14 21:08Z): Option A of
@@ -4077,7 +4069,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   stream is the live log and is written to the jobs directory at run end
   for the download link, last 20 kept. Done when: the pages need no
   MySQL job tree and cancel is measured under a second on a 75-job run.
-  Prerequisites: PERF.98. Related: PERF.86, UX.3.
+  Prerequisite: PERF.98. Related: PERF.86, UX.3.
 
 - [ ] **PERF.100 Work queue step 6: delete the old machinery and the work_* tables (Alembic migration)**
   Part of PERF.86. Decided by Boss (2026-10-14 21:08Z): Option A of
@@ -4100,7 +4092,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   PERF.30 (resume) are dropped when this lands: Boss decided there is no
   automatic resume. Done when: the suite is green with the old code gone
   and the line count is recorded in the PR.
-  Prerequisites: PERF.99. Related: PERF.86, PERF.29, PERF.30, DOC.20.
+  Prerequisite: PERF.99. Related: PERF.86, PERF.29, PERF.30, DOC.20.
 
 ## DB: Database and schema
 
@@ -5203,6 +5195,12 @@ clears each one.
   (`scripts/test.py full --check`) happens when a sequence is finished
   (whether "changes in a workflow" also covers CI workflow files is
   asked of Boss in that thread). Docs-only PRs still merge at once.
+  Stage 4 (2026-10-14): Stage 4 first part merged (#1357, 2026-10-14):
+  the browser phase of a full run fell from about 40 minutes to 25, so a
+  full run is now about 45 minutes. Next in the rebuild thread:
+  TEST.145, TEST.146, TEST.133. The flake sightings from Bugfixes lane 2
+  (System Map selection, galaxy breadcrumb tests) were folded into the
+  flake group TEST.126.
 
 - [ ] **TEST.140 test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing fails once in a full parallel run (bug)**
   Reported by Bugfixes lane 2 (2026-10-14 12:44Z, PERF.81 run, -n 4, 49
@@ -5271,19 +5269,18 @@ clears each one.
   not a lane.
   Prerequisites: none. Related: TEST.139.
 
-- [ ] **TEST.146 Rate-limit tests fail when the one-minute window ends between their requests (bug)**
-  Reported by the Test Suite Rebuild thread (2026-10-14 19:49Z): tests
-  that assert a 429 after N requests against a one-minute request limit
-  can fail when the limiter's fixed clock-minute window ends between
-  their requests. Seen once:
-  src/tests/test_ratelimit_redis.py::test_two_apps_on_one_redis_share_the_request_counts
-  failed in the 18:47Z full run and passed alone;
-  test_web_request_limits.py and test_web_security_limits.py have the
-  same shape. The odds are about 1 run in 100. Done when a shared test
-  helper waits for the start of a fresh minute when only a few seconds
-  remain, every test of this kind uses it, and the suite shows no time
-  flake. Owner: the Test Suite Rebuild thread (group B style), not a
-  lane.
+- [ ] **TEST.146 Rate-limit tests fail when the between-test reset wipes every limiter key on the shared Redis (bug)**
+  Reported by the Test Suite Rebuild thread (2026-10-14 19:49Z), first
+  read as a one-minute window ending between a test's requests. The
+  thread's later finding (2026-10-14 21:40Z) is the real cause: the
+  between-test rate-limit reset wipes every limiter key on the shared
+  Redis, so tests running at the same time lose each other's counts.
+  Seen once: src/tests/test_ratelimit_redis.py::test_two_apps_on_one_redis_share_the_request_counts
+  failed in the 18:47Z full run and passed alone; test_web_request_limits.py
+  and test_web_security_limits.py have the same shape. Done when each
+  test resets only its own keys and the suite shows no time flake. Owner:
+  the Test Suite Rebuild thread (group B style), not a lane. Fixed in
+  the thread's open PR, which lands with TEST.145.
   Prerequisites: none. Related: TEST.139, TEST.145.
 
 ## USR: User accounts
@@ -5620,44 +5617,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Foundations lane 1, near its other update.sh work.
   Prerequisites: none. Related: OPS.29, OPS.35, PERF.64.
 
-- [ ] **OPS.46 Make the installer check the Apache mod_wsgi venv rules: venv root, process group, Apache user access, matching Python**
-  Boss, 2026-10-14 19:15Z, pasting the Apache mod_wsgi documentation:
-  the installer and setup must follow its venv rules. Most of it is
-  already built by OPS.45 (#1333): the example vhost
-  (examples/apache/planetgen.conf.example) puts
-  python-home=/usr/local/planetgen/venv on WSGIDaemonProcess
-  planetgen-api and sets process-group and application-group=%{GLOBAL}
-  on the WSGIScriptAlias line, and scripts/deploy-common.sh has
-  check_apache_python_home and check_mod_wsgi_python. What is left,
-  found by reading those two checks against Boss's list: (1)
-  check_apache_python_home matches the text python-home=$VENV with grep
-  -F, so a path to the interpreter
-  (python-home=/usr/local/planetgen/venv/bin/python) also passes; it
-  must require the venv root exactly and warn when the path points at
-  bin/ or a parent. (2) Nothing checks that the Apache user (www-data on
-  Debian and Ubuntu, apache on RHEL and CentOS) can read and enter every
-  directory down to and inside the venv; add a check that runs as that
-  user (for example sudo -u www-data test -r and -x on the path, or
-  namei -m) and says which directory blocks it. (3) Nothing checks that
-  the vhost has WSGIProcessGroup or process-group and application-group
-  %{GLOBAL} for the planetGen app; the check should read the vhost for
-  them, accepting either form, and warn when the app runs in embedded
-  mode. (4) The vhost lookup takes the first file under /etc/apache2
-  that names WSGIDaemonProcess planetgen-api; look under the enabled
-  sites only and cover RHEL layouts (/etc/httpd) if the installer
-  supports them. (5) check_mod_wsgi_python only looks at
-  /usr/lib/apache2/modules/mod_wsgi.so; confirm it compares the
-  major.minor of the venv's python with the mod_wsgi build and says what
-  to do when they differ. (6) Add the permission and process-group rules
-  to the Apache guide and INSTALL.md, in the same pass as DOC.37, and
-  add tests next to src/tests/test_install_python_deps.py. Default: keep
-  these as warnings that print the exact line to add, never edit the
-  admin's vhost (as OPS.45 does). Bugfixes lane 1, first in the lane.
-  Decided (Boss, 2026-10-14 19:55Z, on a decision
-  card relayed by the coordinator): warn only. The warnings print the
-  exact line to add and never edit his vhost.
-  Prerequisites: none. Related: DOC.37.
-
 - [ ] **OPS.48 Redis server settings: a documented example config and an update.sh warning (append-only file, noeviction, memory limit, loopback)**
   From the Redis review Boss asked for (2026-10-14 20:01Z; Research Lane
   1; note in docs/design/redis-and-the-work-queue.md, section 5.11, and
@@ -5678,6 +5637,20 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   edits his Redis config. One Redis instance; no password while it binds
   loopback (it does today), an ACL user documented for later.
   Prerequisites: none. Related: DOC.44, OPS.21, PERF.86.
+
+- [ ] **OPS.49 update.sh stops at the database migrate step with 'NoneType' object has no attribute 'is_auth_switch_request' (bug)**
+  Boss, 2026-10-14 21:36Z: after the OPS.47 fix, update.sh runs steps 1
+  to 4 on the rebuilt venv (cryptography 50.0.2, pymysql 1.2.3,
+  SQLAlchemy 2.1.3, alembic 1.20.0, math check passed) and then fails at
+  step 5, Migrating the configured MySQL database, with: error:
+  'NoneType' object has no attribute 'is_auth_switch_request'. That text
+  comes from pymysql's login handshake, so the cause is probably the
+  auth plugin (MySQL 8 caching_sha2_password) against the locked pymysql
+  version, not the schema. Reproduce it against MySQL 8 and the lock
+  file, check the locked versions against ones known to work with that
+  plugin, fix the cause, and make the update print a clear error naming
+  the login problem instead of the bare exception.
+  Prerequisites: none.
 
 ## DOC: Documentation
 
@@ -6242,6 +6215,9 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   way to run. Done: both docs match the workflow file and the runner,
   say that the full suite stays the merge gate and changed is a fast
   loop, and give the Redis setup.
+  Full run time (2026-10-14): Stage 4 (#1357) cut a full run to about 45
+  minutes; any figure for the full run's length in docs/testing.md or
+  the rebuild note should say about 45 minutes, not 60.
   Prerequisites: none. Related: TEST.139.
 
 - [ ] **DOC.41 Fix the activity-log file name in the fail2ban guide and the shipped jail**

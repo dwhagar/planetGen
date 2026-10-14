@@ -30,7 +30,10 @@ from tests.test_web_a11y import (  # noqa: E402,F401 -- fixtures
     site_db,
 )
 
-VIEWPORT = {"width": 1280, "height": 900}
+VIEWPORT = {"width": 800, "height": 600}
+"""dict: The default window. Reading a software-WebGL canvas back costs time in proportion to its pixels (2.5 s
+at 1280x900, 1.1 s at 800x600, TEST.139); a test that needs a wide or tall window says so with
+`@pytest.mark.viewport(width, height)`."""
 GL_ARGS = ["--use-gl=angle", "--use-angle=swiftshader", "--enable-unsafe-swiftshader", "--ignore-gpu-blocklist"]
 
 
@@ -53,8 +56,10 @@ def gl_browser():
 
 
 @pytest.fixture()
-def page(gl_browser):
-    context = gl_browser.new_context(viewport=VIEWPORT, device_scale_factor=1, reduced_motion="reduce",
+def page(gl_browser, request):
+    marker = request.node.get_closest_marker("viewport")
+    viewport = {"width": marker.args[0], "height": marker.args[1]} if marker else VIEWPORT
+    context = gl_browser.new_context(viewport=viewport, device_scale_factor=1, reduced_motion="reduce",
                                      color_scheme="dark")
     page = context.new_page()
     errors = []
@@ -314,6 +319,7 @@ def _label_of(tooltip):
     return re.split(r"[:,] ", tooltip, maxsplit=1)[0].strip()
 
 
+@pytest.mark.viewport(1280, 900)
 def test_galaxy_map_drill_down_by_clicks(page, base_url):
     _open_galaxy(page, base_url)
     assert _crumbs(page) == ["Galaxy"]
@@ -447,6 +453,7 @@ def test_galaxy_map_free_camera_from_an_arc_down(page, base_url):
     assert (page.url, _crumbs(page)) == stage
 
 
+@pytest.mark.viewport(1280, 900)
 def test_galaxy_map_buttons(page, base_url):
     _open_galaxy(page, base_url)
     controls = page.locator("#galaxymap3d-controls")

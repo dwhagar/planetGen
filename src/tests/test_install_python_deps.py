@@ -96,8 +96,8 @@ def test_the_apache_example_runs_the_app_in_the_venv():
     line = next(l for l in conf.splitlines() if l.strip().startswith("WSGIDaemonProcess planetgen-api"))
     assert "python-home=/usr/local/planetgen/venv" in line
     common = _code(_read("scripts", "deploy-common.sh"))
-    assert 'python-home=$VENV' in _function(common, "check_apache_python_home")
-    assert "check_apache_python_home" in _function(common, "ensure_apache_modules")
+    assert 'python-home=$VENV' in _function(common, "check_apache_venv_rules")
+    assert "check_apache_venv_rules" in _function(common, "ensure_apache_modules")
 
 
 def test_the_services_and_scripts_use_the_venv_python():
@@ -181,7 +181,7 @@ def test_bash_scripts_avoid_bash4_only_features(parts):
     code = _code(_read(*parts))
     for word in ("mapfile", "readarray", "declare -A", "local -A", "declare -n", "local -n", ",,}", "^^}"):
         assert word not in code, (parts, word)
-    never_empty = {"REQUIREMENTS", "SPECS", "enabled", "need", "databases"}
+    never_empty = {"REQUIREMENTS", "SPECS", "enabled", "need", "databases", "args"}
     for name in re.findall(r'(?<!\+)"\$\{(\w+)\[@\]', code):
         if name not in never_empty:
             unguarded = re.search(r'(?<!\+)"\$\{%s\[@\]' % name, code.replace('+"${%s[@]' % name, ""))
