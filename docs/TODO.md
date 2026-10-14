@@ -792,6 +792,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   there is room on the map itself a small info box shows the basics with
   a Details link that scrolls to the full details; it builds on MAP.65's
   shared panel.
+  Screenshot (Boss, 2026-10-14 13:37Z, copy in
+  /mnt/project-files/screenshots/issue-758/): the top of the Galaxy Map
+  page. The header band (breadcrumb, the title "Galaxy Map" and the "0
+  placed sectors" pill) fills the full width but only its left fifth is
+  used; the "Go to" bar below it is the only control on its row; and
+  the right-hand panel holds only the help text until something is
+  selected. The empty header space to the right of the title and the
+  empty panel are the places to put the selection basics and menu items.
 
 - [ ] **MAP.140 Double-click on a selected object goes there and opens its information**
   Boss (GitHub issue [#714](https://github.com/dwhagar/planetGen/issues/714), 2026-10-09 00:26Z): "Double clicking on a
