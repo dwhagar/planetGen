@@ -1,0 +1,2 @@
+### Changed
+- The Stats page keeps a row for the massive-star pass and a row for the bright-star pass of the scatter, instead of one for both, and the bars and the job page's time left for each pass read the pass's own speed. The phenomena scatter also records how much of each layer's time went into writing its rows ("Phenomena layer: writing the rows"), the rest being the drawing. Speeds recorded before this are not carried over: the first scatter on a server starts its bars from the layer count alone.
