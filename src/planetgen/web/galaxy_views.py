@@ -187,6 +187,7 @@ def galaxy():
         db, galaxy_shape, edge_pc, initial_view,
         fetch_path=url_for("web.galaxy_tiles"),
         stage_path=url_for("web.galaxy_stage"),
+        window_path=url_for("web.galaxy_window"),
         locate_path=url_for("web.galaxy_locate"),
         territory_path=url_for("web.galaxy_territories") if _has_territories(db) else None,
         course=course,
