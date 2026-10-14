@@ -99,7 +99,7 @@ def test_a_neighborhood_finds_clouds_at_realistic_rates():
                    for step in range(300))
         return hits / 300
     arm, between = share_inside(ARM_ANGLE), share_inside(ARM_ANGLE + math.pi / 2)
-    assert 0.03 < arm < 0.5
+    assert 0.008 < arm < 0.5  # the cut keeps 9.5% of class M and half of N (GEN.152)
     assert between < arm
 
 

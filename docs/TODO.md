@@ -543,6 +543,61 @@ with `clamp()`.
   Prerequisites: none. Related: PERF.64, PERF.71.
   Design: [docs/design/slow-reads-and-timeouts.md](design/slow-reads-and-timeouts.md)
 
+- [ ] **UX.98 The Generate log has odd wording and mixed section headers (bug)**
+  GitHub issue [#1216](https://github.com/dwhagar/planetGen/issues/1216)
+  (Boss, 2026-10-11 01:17Z): the log goes "Step 1 of 12, 2 of 12", then
+  says "Steps 4 to 12 of 12", which is odd, and the section headers then
+  take a different format. Done: one format for every section separator,
+  one wording for a single stage and for a run of stages (for example
+  "Stage 4 of 12" and "Stages 4 to 12 of 12"), the same in the web log,
+  the CLI text and the downloaded log, with a test over the formatter.
+  Owner: Bugfixes lane 1, with PERF.85.
+  Prerequisites: none. Related: PERF.65, PERF.66, PERF.85.
+
+- [ ] **UX.99 Rogue planets do not show their surface gravity (bug)**
+  GitHub issue [#1219](https://github.com/dwhagar/planetGen/issues/1219)
+  (Boss, 2026-10-11 02:45Z): "Rogue planets need to show their surface
+  gravity with the other information." Done: a rogue planet's page, row
+  and map popup show its surface gravity like any other planet, with a
+  test. Owner: Bugfixes lane 2, after its current items.
+  Prerequisites: none. Related: GEN.142, UX.22.
+
+- [ ] **UX.100 Planet and moon lists show habitability as symbols, not notes**
+  GitHub issue [#1217](https://github.com/dwhagar/planetGen/issues/1217)
+  (Boss, 2026-10-11 01:34Z): "The habitability notes are too much in the
+  planet and moon list. Just use just symbols instead." Overall rating a
+  coloured star, pressure a coloured trapezoid, radiation a square,
+  temperature a thermometer, chemistry a beaker, all simple vector
+  shapes from the icon library. Superseded in part by the PHI-6 symbols
+  of GitHub issue
+  [#1221](https://github.com/dwhagar/planetGen/issues/1221) (UX.101);
+  this item removes the notes from the lists and builds the symbol
+  column, UX.101 swaps in the final shapes. Boss, 2026-10-11 01:35Z: the
+  description text at the end should be in paragraph form, simply saying
+  for each category where the planet falls and why, with no extra
+  information (GEN.208). Owner: Bugfixes lane 2 (interface), after the
+  generation items.
+  Prerequisites: none. Related: UX.30, UX.32, UX.101, GEN.208.
+
+- [ ] **UX.101 PHI-6 symbols in the planet and moon lists, coloured by rating**
+  GitHub issue [#1221](https://github.com/dwhagar/planetGen/issues/1221)
+  (Boss, 2026-10-11 03:24Z), which supersedes the symbols of #1217.
+  Symbols: Radiation, a small central circle with three radial arcs 120
+  degrees apart; Temperature, an upright equilateral triangle bisected
+  by a vertical line; Pressure, a central square flanked by two opposing
+  inward-pointing equilateral triangles; Air Chemistry, an upright
+  regular hexagon enclosing three horizontal lines; Water Chemistry, a
+  downward-pointing equilateral triangle enclosing a centred circle;
+  Suitability, a circle enclosing a nested diamond with a centre dot;
+  Overall Habitability, a solid circle inside an equilateral triangle,
+  inside an outer ring. Each symbol takes the colour of its rating
+  (Blue, Green, Yellow, Red) so the list reads at a glance. Done: the
+  six symbols and the overall symbol as vector shapes in the icon
+  library, drawn on both themes with enough contrast, used in the planet
+  and moon lists, and a test checks every rating colour. Needs the PHI-6
+  model.
+  Prerequisites: GEN.207, UX.100. Related: UX.100, GEN.207.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -716,6 +771,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   built by MAP.179 (scattered nebulae as markers from level 8) and
   MAP.176 (regions); the black-hole and habitable-world markers stay
   here.
+  Note (2026-10-14, GitHub issue sweep):
+  [#1234](https://github.com/dwhagar/planetGen/issues/1234) (Boss,
+  2026-10-14 00:19Z): "Add to the galaxy markers (optional) for
+  habitable worlds, specific classes, etc available in various star
+  systems from zoom levels in the galactic map. Also icons for space
+  stations, etc." So the markers are optional per kind (MAP.123), cover
+  specific classes as well as habitable worlds, appear at the zoom
+  levels where the map budget allows, and stations and vessels get icons
+  once they exist (USR.10, POP.11).
 
 - [ ] **MAP.139 The Galaxy View uses its spare space: an info box with a Details link, and menu items**
   Boss (GitHub issues [#758](https://github.com/dwhagar/planetGen/issues/758) and [#715](https://github.com/dwhagar/planetGen/issues/715)): "there's a lot of wasted space
@@ -1381,6 +1445,149 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: DB.24, MAP.173.
   Design: [docs/design/nebula-density-vs-reality.md](design/nebula-density-vs-reality.md)
 
+- [ ] **MAP.184 "Mark rogue planets" on the Sector Map is redundant (bug)**
+  GitHub issue [#1218](https://github.com/dwhagar/planetGen/issues/1218)
+  (Boss, 2026-10-11 02:43Z): "In the sector view the mark rogue planets
+  is redundant and should be removed." Done: the control and its code
+  are gone from the Sector Map (rogue planets keep their normal marker),
+  with the browser tests and help text updated. Owner: Foundations lane
+  2, in its map queue.
+  Prerequisites: none. Related: MAP.132, MAP.123.
+
+- [ ] **MAP.185 Black holes vanish in the Sector Map (bug)**
+  GitHub issue [#1223](https://github.com/dwhagar/planetGen/issues/1223)
+  (Boss, 2026-10-11 19:46Z): "The galaxy view shows black holes clearly,
+  but when I go to a sector view, they vanish. I think we have a
+  coordinate split somewhere between galactic view and sector view,
+  which could get in the way of infinite zoom." Done: the cause is found
+  (a coordinate or frame difference between the Galaxy Map and the
+  Sector Map, or a filter that drops phenomena), the black holes show in
+  the Sector Map at their right places, and a test covers a sector with
+  a black hole in both views. If a coordinate split is the cause, the
+  fix puts both views on the one frame used by the fly-through map
+  (MAP.152). Owner: Foundations lane 2, in its map queue before MAP.152.
+  Prerequisites: none. Related: MAP.152, MAP.146, MAP.164.
+
+- [ ] **MAP.186 A binary pair is drawn in different places on the Galaxy Map and the Sector Map (bug)**
+  GitHub issue [#1215](https://github.com/dwhagar/planetGen/issues/1215)
+  (Boss, 2026-10-11 01:08Z, with a screenshot; reproduced on any binary
+  system): the same two stars are placed differently in two views.
+  Boss's guess: the systems use a compressed distance model for the
+  orbit and the match would be exact with the real distance model,
+  probably a render flag. Done: the cause is confirmed, both views place
+  the pair by the same rule (the real separation unless a view says it
+  is compressed, with the compression shown in the legend), and a test
+  compares the two placements for a binary system. Owner: Foundations
+  lane 2, in its map queue.
+  Prerequisites: none. Related: MAP.89, GEN.62.
+
+- [ ] **MAP.187 The see-through "tunnel" in front of the camera leaves a visible halo and hides stars (bug)**
+  GitHub issue [#1211](https://github.com/dwhagar/planetGen/issues/1211)
+  (Boss, 2026-10-11 00:16Z, three screenshots) and GitHub issue
+  [#1213](https://github.com/dwhagar/planetGen/issues/1213) (Boss,
+  2026-10-11 00:20Z; the same root cause, likely): the near-field window
+  that makes the foreground vanish is obvious and leaves an odd halo,
+  and in the middle of a filled block it makes the stars disappear too,
+  when the idea was to make things more visible, not less. Boss attached
+  a research note on the 3D rendering camera
+  (3d-rendering-camera-research.md, on issue #1213) for how to structure
+  the fix. Done: no visible tunnel edge or halo at any zoom level, stars
+  never fade out because of the near-field window (the window fades the
+  foreground density and cell boxes only), and a browser test measures
+  star visibility inside a filled block while zooming in. Owner:
+  Foundations lane 2, in its map queue, with MAP.155 and MAP.150.
+  Prerequisites: none. Related: MAP.146, MAP.150, MAP.152, MAP.155,
+  MAP.188.
+
+- [ ] **MAP.188 Sector and slab borders add up to a near-opaque cube grid when zooming in (bug)**
+  GitHub issue [#1212](https://github.com/dwhagar/planetGen/issues/1212)
+  (Boss, 2026-10-11 00:19Z): "During the zoom in process the sector and
+  slab boarders kind of add up and make the general cube-grid nearly
+  opaque, we need to make them barely visible and wire-frame highlights
+  when we go to select a slab or block or sector." Done: borders are
+  barely visible by default at every zoom, the opacity does not add up
+  with the number of cells in view, and a wire-frame highlight draws
+  only for the selected or hovered slab, block or sector; a browser test
+  measures the grid's total opacity at the deepest zoom. Owner:
+  Foundations lane 2, in its map queue.
+  Prerequisites: none. Related: MAP.146, MAP.141, MAP.150.
+
+- [ ] **MAP.189 The Galaxy Map opens flown in to the created sectors**
+  GitHub issue [#1232](https://github.com/dwhagar/planetGen/issues/1232)
+  (Boss, 2026-10-13 23:16Z): one big reason for the infinite zoom is to
+  restrict the field to the created sectors: "Ideally when galactic map
+  is loaded, it should fly into the zoom where the user can see all of
+  the sectors in a region." Boss: get one group (the neighbourhood fill)
+  working first. Done: when the Galaxy Map loads and sectors have been
+  created, the camera flies in to a view that frames the group of
+  created sectors (their bounding box plus a margin) and the field shows
+  only that region at the start; the user can still zoom out to the
+  whole galaxy. A browser test loads a galaxy with one neighbourhood and
+  finds the camera framed on it. Owner: Foundations lane 2, after
+  MAP.150 and MAP.152; part of the fly-through headline.
+  Prerequisites: MAP.150, MAP.152. Related: MAP.146, MAP.151, MAP.190.
+
+- [ ] **MAP.190 Several separate regions of created sectors: which one the Galaxy Map opens on**
+  GitHub issue [#1232](https://github.com/dwhagar/planetGen/issues/1232)
+  (Boss, 2026-10-13 23:16Z): "Multiple regions will have to be handled
+  with an algorithm of some kind, not sure what yet." Done: when created
+  sectors form more than one separate group, the map has a rule for
+  which group it opens on and a way to jump between the groups (a list
+  of regions, nearest to the origin, or the most recently changed),
+  chosen by Boss from the options in the note. Decision needed from Boss
+  before building.
+  Prerequisite: MAP.189. Related: MAP.189, MAP.151.
+
+- [ ] **MAP.191 Galaxy Map default view: no density shading, only nebulae shade the stars behind them**
+  GitHub issue [#1233](https://github.com/dwhagar/planetGen/issues/1233)
+  (Boss, 2026-10-14 00:17Z): "Default view should in the galaxy map
+  should be no density shading, only shading should be that of nebulae
+  that should change the colors of the stars shining through the nebulae
+  and the boundaries should be fussy and translucent... going to the
+  infinite zoom model we don't need to see the densities and anything
+  but the stars and markers for where on the map known space is." Done:
+  the default Galaxy Map shows stars and markers for known space with no
+  density, age or luminosity fill; the "Color by" density and age views
+  stay as options; nebulae tint the colour of the stars seen through
+  them and have soft translucent boundaries (MAP.142). Owner:
+  Foundations lane 2, after MAP.155 and the nebula map work (MAP.176).
+  Prerequisite: MAP.155. Related: MAP.131, MAP.142, MAP.176, MAP.146.
+
+- [ ] **MAP.192 See the objects whose positions changed in the last orbital update**
+  GitHub issue [#1231](https://github.com/dwhagar/planetGen/issues/1231)
+  (Boss, 2026-10-13 16:41Z): "I would like to be able to see the
+  positions that updated in the last orbital update." Done: after an
+  orbital update the user can see which objects moved and how far (a
+  Galaxy and Sector Map highlight, a list in the admin page, or both)
+  from the update's own record. Needs from Boss: where to see them (map
+  highlight, list, admin report) and how long the "last update" view
+  stays (until the next update or a set time).
+  Prerequisites: none. Related: GEN.105, GEN.139, ADM.36.
+
+- [ ] **MAP.193 Show every object's axis of rotation, direction of rotation and axial tilt**
+  GitHub issue [#1227](https://github.com/dwhagar/planetGen/issues/1227)
+  (Boss, 2026-10-12 23:52Z): "For all objects show their axis of
+  rotation, direction of rotation, and the axial tilt. Also should be
+  able to see the vectors of motion, but I think that's in another item
+  already." Done: the System Map and the object pages draw the spin
+  axis, the direction of rotation and the axial tilt for every star,
+  planet, moon and compact object, each toggled in the layer menu; the
+  motion vectors are drawn by the same layer menu (no existing item
+  draws them: they come with the orbital-update work, GEN.105). Owner:
+  Foundations lane 2, after the fly-through map.
+  Prerequisites: none. Related: GEN.105, GEN.139, ADM.36, MAP.169.
+
+- [ ] **MAP.194 Nebulae and globular clusters open their own zoom window from the Galaxy Map**
+  GitHub issue [#1204](https://github.com/dwhagar/planetGen/issues/1204)
+  (Boss, 2026-10-10 23:34Z): "Groupings of items like this should get
+  their own zoom window from the galactic view that shows the specific
+  arrangements. Neither care how many sectors they go through." Done:
+  choosing a nebula or a globular cluster on the Galaxy Map flies into a
+  view of that object alone, showing its own arrangement (cloud shape,
+  cluster stars) whatever sectors it crosses. Owner: Foundations lane 2,
+  after the nebula map work (MAP.176 to MAP.180).
+  Prerequisite: MAP.176. Related: MAP.176, MAP.178, MAP.180, GEN.209.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
@@ -1820,6 +2027,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   more below the Sgr A* sector). Decided (Boss, 2026-10-10 18:44Z,
   defaults approved; default 50 pc;
   leave the model alone).
+  Note (2026-10-14, GitHub issue sweep):
+  [#1222](https://github.com/dwhagar/planetGen/issues/1222) (Boss,
+  2026-10-11): the centre of the galaxy becomes one round disc sector, 4
+  pc across and 4 pc tall (GEN.210); this item then fills that one
+  sector instead of a set of core sectors.
 
 - [ ] **GEN.27 Class P (glaciated world) only in the habitable zone, and fitting there**
   Boss (2026-10-01 15:26Z): "make sure our frozen world, Class P, only
@@ -2856,6 +3068,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   planets gain eccentricity (MAP.70 and MAP.62 are built), reuse the
   same non-iterative solver in `body_positions.py` and
   `orbitpositions.js` so the parity test stays simple.
+  Math Research (2026-10-14): production code does not yet call the vector
+  `solve_eccentric_anomalies` (1.36 us against 20.9 us for the scalar
+  `brentq`); use it wherever updates are batched (GEN.212).
   Prerequisites: none.
   Design: [docs/design/orbital-solvers-and-integrators.md](design/orbital-solvers-and-integrators.md)
 
@@ -2968,34 +3183,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none.
   Design: [docs/design/nebula-and-asteroid-field-classes.md](design/nebula-and-asteroid-field-classes.md)
 
-- [ ] **GEN.152 Nebula cloud field is 10 to 40 times too full; lower it to the observed filling (GEN.47 rate check)**
-  GEN.47's cloud field fills 3% to 46% of volume against 0.5% to 1%
-  observed. Recommended about 1e-7 pc^-3 for class M with small dark
-  clouds as separate rows; `GMC_ARM_FILLING_FACTOR` is still read by
-  nothing. Decided (Boss, 2026-10-10 18:44Z, defaults approved; default:
-  lower it to about 1%).
-  Concrete plan (nebula density research, PR #1188, 2026-10-10): class M
-  (giant molecular clouds) is about 10 times too many (102,000 against
-  8,107 to 9,710 catalogued); N is in range by count but large; P and Q
-  are in range. The volume inside bounding spheres is 2, 8, 19 and 24%
-  at gas 0.2, 0.9, 2.3 and 3.0 against 0.5 to 1% observed in the disc
-  and 1 to 2% in the arms; the shape fills only 12% of its bounding
-  sphere. Done adds: a `NEBULA_FIELD_KEEP` table in tuning.py (keep M
-  0.095, N 0.5 (lowest confidence), P 1, Q 1) applied as a hash
-  acceptance test over the full draw, so survivors keep their cells and
-  object IDs; the result is about 454,000 clouds (from 700,000), the
-  sample-box filling falls from 11.0% to 1.7% and the filling at the four
-  gas levels becomes 0.2, 1.1, 2.8 and 3.6%. Owner: Foundations lane 1.
-  Decided (Boss, 2026-10-10, "Apply all" on the nebula rates card): the
-  lower rates of docs/design/nebula-density-vs-reality.md apply to newly
-  generated galaxies (giant clouds 9.5%, dark clouds half, supernova
-  remnants about 3,000, H II regions 1 in 4 for O stars, classes P and Q
-  unchanged and kept out of the map index). Owner: Foundations lane 1,
-  with the GEN items. This item is the keep table.
-  Prerequisites: none. Related: DB.24, TEST.136, GEN.203, GEN.204,
-  GEN.205.
-  Design: [docs/design/anomalies.md](design/anomalies.md)
-
 - [ ] **GEN.153 Magnetar subtype of neutron star, and an age-dependent pulsar fraction**
   `NEUTRON_STAR_PULSAR_CHANCE` is 0.7 against about 1e-4 to 1e-3 real.
   Done: a magnetar subtype and a pulsar fraction that follows age, with
@@ -3030,6 +3217,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   `test_astropy_constants.py` tightened from 1e-4 to 1e-12 (the loose
   one hides the difference). May be done by the deterministic math
   helpers' frozen constants.
+  Math Research (2026-10-14): GEN.211 drops astropy at run time for a
+  constants table, which makes this pin moot; GEN.156 is retired when GEN.211
+  merges.
   Prerequisites: none.
   Design: [docs/design/units-and-number-formatting.md](design/units-and-number-formatting.md)
 
@@ -3329,51 +3519,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisite: DB.24. Related: GEN.176, PERF.71.
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
-- [ ] **GEN.203 Supernova-remnant and planetary-nebula scatter densities set to the catalogued counts**
-  Boss (2026-10-10 22:01Z): review the cloud density against the real
-  Milky Way and decide how to manage it so things stay visible. From the
-  research (docs/design/nebula-density-vs-reality.md section 9, PR
-  #1188; report
-  /mnt/project-files/research/nebula-map-visibility/density-report.md):
-  the scatter holds about 20,000 supernova remnants against 310
-  catalogued (400 to 3,000 expected); planetary nebulae (28,000) are in
-  range (4,000 to 46,000) and stay. Done: the supernova-remnant density
-  goes from 1e-8 to 1.5e-9 (about 3,000), the planetary-nebula density
-  stays 1.4e-8, and the tuning comments cite the sources. It applies on
-  the next plan or "Redo scatters" (GEN.196). Changes what a new galaxy
-  generates; the same kind of rate change as GEN.152, whose approved
-  default covers it. Owner: Foundations lane 1.
-  Decided (Boss, 2026-10-10, "Apply all" on the nebula rates card): the
-  lower rates of docs/design/nebula-density-vs-reality.md apply to newly
-  generated galaxies (giant clouds 9.5%, dark clouds half, supernova
-  remnants about 3,000, H II regions 1 in 4 for O stars, classes P and Q
-  unchanged and kept out of the map index). Owner: Foundations lane 1,
-  with the GEN items. This item is the remnant density.
-  Prerequisites: none. Related: GEN.152, GEN.196, GEN.185.
-  Design: [docs/design/nebula-density-vs-reality.md](design/nebula-density-vs-reality.md)
-
-- [ ] **GEN.204 Nebula host chance per O and B star lowered to the catalogued one-per-few-O-stars**
-  Boss (2026-10-10 22:01Z): review the cloud density against the real
-  Milky Way and decide how to manage it so things stay visible. From the
-  research (docs/design/nebula-density-vs-reality.md section 9, PR
-  #1188; report
-  /mnt/project-files/research/nebula-map-visibility/density-report.md):
-  hosted H II regions are one per O star (about 270,000) against about
-  8,000 catalogued. Done: the chance in `NEBULA_HOST_RULES` goes from
-  1.0 to 0.25 for O stars and from 0.5 to 0.1 for B0 to B2 (a ratio, so
-  it stays right when the O and B counts change with the mass cut), with
-  a test of the hosted-per-O-star ratio. Changes what a new galaxy
-  generates; covered by GEN.152's approved default. Owner: Foundations
-  lane 1.
-  Decided (Boss, 2026-10-10, "Apply all" on the nebula rates card): the
-  lower rates of docs/design/nebula-density-vs-reality.md apply to newly
-  generated galaxies (giant clouds 9.5%, dark clouds half, supernova
-  remnants about 3,000, H II regions 1 in 4 for O stars, classes P and Q
-  unchanged and kept out of the map index). Owner: Foundations lane 1,
-  with the GEN items. This item is the host chance.
-  Prerequisites: none. Related: GEN.152, GEN.150, GEN.99.
-  Design: [docs/design/nebula-density-vs-reality.md](design/nebula-density-vs-reality.md)
-
 - [ ] **GEN.205 `planetgen plan --redo-nebula-field`: apply the new nebula rate to an existing galaxy**
   Boss (2026-10-10 22:01Z): review the cloud density against the real
   Milky Way and decide how to manage it so things stay visible. From the
@@ -3392,8 +3537,130 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   unchanged and kept out of the map index). Owner: Foundations lane 1,
   with the GEN items. This item is the cleanup of an existing galaxy; it
   always runs a dry run first.
-  Prerequisites: GEN.152, DB.24. Related: GEN.196, GEN.176.
+  Prerequisite: DB.24. Related: GEN.196, GEN.176.
   Design: [docs/design/nebula-density-vs-reality.md](design/nebula-density-vs-reality.md)
+
+- [ ] **GEN.206 A planet's description claims life where the habitability index says none can live (bug)**
+  GitHub issue [#1220](https://github.com/dwhagar/planetGen/issues/1220)
+  (Boss, 2026-10-11 03:02Z): a planet with red chemistry (water activity
+  0.523, microbial 0.00 and complex life 0.00) still has a description
+  that says life has evolved, with an evolutionary timeline, flora and
+  oceans of macro-algae. Boss: "if microbial life can't be on a world
+  because of the chemistry then we should make sure that the planet
+  description gets edited to not make it sound like there is life."
+  Done: when the habitability index gives microbial life 0, the
+  description makes no claim of life, evolution or an evolutionary
+  timeline (it may say what the world lacks); when it allows microbial
+  life only, it never describes complex flora or fauna; a test over a
+  sample of generated planets finds no description that contradicts its
+  own index. Owner: Foundations lane 2, after PERF.80 and GEN.200.
+  Prerequisites: none. Related: GEN.84, GEN.90, GEN.207, GEN.208.
+
+- [ ] **GEN.207 PHI-6: split chemistry into air and water and add a Suitability dimension to the habitability index**
+  GitHub issue [#1221](https://github.com/dwhagar/planetGen/issues/1221)
+  (Boss, 2026-10-11 03:24Z): extend PHI-4 to six dimensions: Pressure,
+  Temperature, Air Chemistry (is the air breathable), Water Chemistry
+  (is the water drinkable), Radiation, and Suitability (long-term
+  survival: enough food and water for a person to sustain themselves,
+  from the planet's evolutionary timeline and age, whether there is any
+  food at all on the surface, enough water). The first five are the core
+  (can a person survive the surface conditions); Suitability only
+  affects the long term. Importance order: Radiation, Temperature,
+  Pressure, Air Chemistry, Water Chemistry, Suitability. Rules from
+  Boss: Radiation sets the maximum of the whole score (Yellow caps at
+  Yellow, Red at Red), Temperature likewise; Pressure matters only when
+  a full suit is not needed anyway, and red pressure makes the overall
+  rating red, yellow pressure caps it at Yellow; Air Chemistry yellow or
+  red caps the score at Yellow (red air alone cannot make the overall
+  rating red); Water Chemistry yellow or red caps it at Yellow;
+  Suitability is always Red if any of the first three are Red, at most
+  Yellow if any of the first four contains a Yellow, Green only if the
+  first five are Green or Blue, Blue only if all others are Blue; a Red
+  Suitability drops any overall score to Yellow but never to Red. Done:
+  the model, the stored values, the planet pages and the API carry the
+  six dimensions with the rules above, and tests cover each rule. Needs
+  answers from Boss to several rules before building (see the comment on
+  the issue). Owner: Foundations lane 2, after GEN.206.
+  Prerequisite: GEN.206. Related: GEN.84, GEN.90, GEN.148, UX.101, GEN.208.
+
+- [ ] **GEN.208 The habitability description is one paragraph that says where the planet falls in each category and what protection it needs**
+  GitHub issue [#1217](https://github.com/dwhagar/planetGen/issues/1217)
+  (Boss, 2026-10-11 01:35Z and 02:41Z): the text at the end should be a
+  paragraph saying, for each category, where the planet falls and why,
+  with no extra information; the chemistry line must be aware of the
+  rest of the score (when the temperature is Red the visitor needs a
+  thermal environment suit, so the air is moot, and the wording should
+  say that while one factor is green or blue another makes it
+  impossible). Boss wants more nuance about the protective equipment
+  needed and why: different suits rated for low radiation with high
+  temperature, or high radiation with low temperature, and so on. Boss
+  attached two research notes (Thermal Respiratory Protection Research
+  and Environmental Extremes and Protection Research, on issue #1217)
+  that this thread could not open; they must be added to the repository
+  before this is built. Done: the description names the suit or mask
+  classes the planet needs and why, in one short paragraph per planet,
+  with tests over a sample of planets. Owner: Foundations lane 2, with
+  GEN.207.
+  Prerequisite: GEN.207. Related: GEN.207, UX.100, GEN.206.
+
+- [ ] **GEN.209 Globular clusters are parent objects for their stars and are named when their sector is filled**
+  GitHub issue [#1204](https://github.com/dwhagar/planetGen/issues/1204)
+  (Boss, 2026-10-10 23:34Z): "Globular clusters will be a parent object
+  for the stars within, the stars within the cluster. Clusters will get
+  their own unique name when the sector is filled, not before." Done: a
+  cluster is a stored object that its stars point to as their parent, it
+  has no name until its first sector is filled and then takes one unique
+  name, and the cluster pages and the Galaxy Map use the parent link.
+  Owner: Foundations lane 2, with the globular cluster group (GEN.159 to
+  GEN.164).
+  Prerequisite: GEN.159. Related: GEN.159, GEN.160, GEN.164.
+
+- [ ] **GEN.210 The galactic core is one round disc sector in the middle of the grid, 4 pc across and 4 pc tall**
+  GitHub issue [#1222](https://github.com/dwhagar/planetGen/issues/1222)
+  (Boss, 2026-10-11 19:44Z): "I want to revamp the sector algorithm so
+  the very center of the galaxy is a round disc of a sector, like a
+  hockey puck shape in a column of similar sectors, a diameter goal of 4
+  parsecs from the center. Height of 4 pc from top to bottom. Then we
+  start splitting. I find that things placed in the center of the galaxy
+  are difficult to view." Done: ring 0 is a single cylindrical sector 4
+  pc across and 4 pc tall at the galactic centre, the sector grid
+  outside it splits from there, the nucleus lives in it, and the map
+  shows it as a disc. Changes the sector grid, so it goes with the
+  repeatable-galaxy generator version bump. Owner: Foundations lane 1,
+  after the repeatable-galaxy chain starts.
+  Prerequisites: none. Related: GEN.24, ADM.30, GEN.135, OPS.37.
+
+- [ ] **GEN.211 Constants table instead of astropy: faster start, 29 MB less memory per process**
+  Math Research (2026-10-14;
+  docs/design/math-and-library-efficiency.md). `physics/constants.py` is
+  astropy's only user (about 20 constants). Decided (Boss, 2026-10-14
+  13:00Z): drop astropy at run time. The double check is done: under astropy
+  6.0.1, 6.1.7 and 8.0.1 `constants.py` gives identical values for 89 of 90
+  numbers, and only HYDROGEN_ATOM_MASS_KG differs (1.35e-9), so astropy
+  does us no good. Done: the table is generated once from the pinned
+  CODATA 2018 and IAU 2015 values; astropy leaves setup.py,
+  install-python-deps.sh (REQUIREMENTS table and NUMPY_STACK) and
+  test_install_python_deps.py NUMPY_LINKED but stays in the `test` extra so
+  `test_astropy_constants.py` still checks the table; no stored value
+  changes; the change note says it removes a dependency. Saves 280 ms and
+  29 MB per process start and 53 MB of install. Replaces GEN.156. Owner:
+  Foundations lane 1, after OPS.42.
+  Prerequisites: none. Related: GEN.156, GEN.66.
+  Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
+
+- [ ] **GEN.212 Galactic move in the orbital update as NumPy batches (3 to 4 times on the whole update)**
+  Math Research (2026-10-14;
+  docs/design/math-and-library-efficiency.md).
+  `db/store.advance_galactic_positions` spends 25.7 us a row in Python;
+  a NumPy batch takes 3.8 us and refiles the same addresses on 100,000
+  of 100,000 rows. The whole update gains 3 to 4 times because the SQL
+  per row costs about as much. Also use the vector
+  `solve_eccentric_anomalies` wherever updates are batched (the scalar
+  `brentq` is 20.9 us against 1.36 us; production code does not call the
+  vector one yet). Done: both folded into the GEN.105 chain with
+  identical results. Owner: the Orbital Updates builders, with GEN.105.
+  Prerequisites: none. Related: GEN.105, GEN.141, PERF.88.
+  Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
 
 ## PERF: Speed, caching, bulk generation and parallel work
 
@@ -3470,6 +3737,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the backfill around the run via `sector_centers_since(started_at)`).
   Derive steps that have a natural artifact (bright level, population
   watermark) instead of duplicating them.
+  Note (2026-10-14, GitHub issue sweep):
+  [#1229](https://github.com/dwhagar/planetGen/issues/1229) (Boss,
+  2026-10-13): the whole work queue is to be redone (PERF.86). Build
+  this item only if the PERF.86 plan keeps it; otherwise it is folded
+  into or dropped by that plan.
 
 - [ ] **PERF.30 Finish an interrupted block or sector run on the next start**
   Boss (2026-10-07 11:47Z): "Add a mechanism to finish generating a
@@ -3487,6 +3759,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   duplicate task, a clock change. Check whether the uid claim and
   name-registry confirmation (#657) are inside the sector save
   transaction; if not, a crash leaves an orphan reservation.
+  Note (2026-10-14, GitHub issue sweep):
+  [#1229](https://github.com/dwhagar/planetGen/issues/1229) (Boss,
+  2026-10-13): the whole work queue is to be redone (PERF.86). Build
+  this item only if the PERF.86 plan keeps it; otherwise it is folded
+  into or dropped by that plan.
   Prerequisite: PERF.29.
 
 - [ ] **PERF.33 Progress bars and ETAs from measured performance**
@@ -3581,6 +3858,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   default yes): a reserved
   interactive worker costs one process (about 195 MB) while any bulk run
   is active; start it on demand and exit when its queue is empty.
+  Note (2026-10-14, GitHub issue sweep):
+  [#1229](https://github.com/dwhagar/planetGen/issues/1229) (Boss,
+  2026-10-13): the whole work queue is to be redone (PERF.86). Build
+  this item only if the PERF.86 plan keeps it; otherwise it is folded
+  into or dropped by that plan.
   Design: [docs/design/performance-eta-queue-and-caching.md](design/performance-eta-queue-and-caching.md)
 
 - [ ] **PERF.41 Stamp the tile and page caches with a TILE_FORMAT constant instead of the version (optional)**
@@ -3626,40 +3908,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   measures and cuts it. The per-pass stats rows here should therefore
   record compute time and write time separately for the phenomena pass.
   Moved to Phase 1 (Boss, 2026-10-10 22:19Z, generation-first priority).
-  Owner: Bugfixes lane 1, right after PERF.67 (same stats code).
+  Owner: Bugfixes lane 1, after the PERF.67 stats code (merged in #1249).
   Prerequisites: none. Related: PERF.52, PERF.53, GEN.185.
-
-- [ ] **PERF.67 Record how long every operation takes, from each stage up to the whole job, and use the records for ETAs**
-  Boss (2026-10-10 20:25Z): "we should carry stats on how long it takes
-  every single operation to finish from each stage to the whole
-  process". PERF.32 records rates per run, PERF.56 records each stage's
-  seconds with its settings, and PERF.55 draws the whole-job bar, but
-  the whole job and its steps (check the math, reset, plan, each galaxy
-  stage and its sub-operations) are not all recorded as one nested set
-  of timings. Done: every operation in a job (each step, each stage,
-  each sub-operation a stage reports) writes its start, finish and
-  seconds, with the settings it ran with, into one nested record from
-  the operation up through the stage and step to the whole job; the
-  record is kept per version like PERF.32's rates and deleted with them;
-  the estimates for the stage bars and the whole-job bar read these
-  records first (PERF.66 falls back to the average of the earlier stages
-  only when there is no record); the admin pages can show a finished
-  job's tree of timings; a test checks that a finished job's record sums
-  from operation to stage to job. Boss (2026-10-10 20:26Z): "We should
-  also have different stats for mass star scatter and bright star
-  scatter and then a common item scatter that aggregates all of the
-  scatters, and then we need to make sure all points use that
-  information to calculate ETAs." So each scatter kind keeps its own
-  timing records (the mass-limit star scatter, the bright star scatter,
-  the phenomena pass, the backfill rings and any other pass), one common
-  "scatter" record aggregates all of them, and every place that shows or
-  computes an ETA (stage bars, the whole-job bar, the CLI, the job page,
-  the Generate page's forecast) reads these records and none keeps its
-  own estimate. A test checks that the scatter aggregate equals the sum
-  of its kinds and that each ETA display reads the records. Owner:
-  Bugfixes lane 1, after PERF.66 (the bar fix does not wait for it).
-  Prerequisites: none. Related: PERF.32, PERF.33, PERF.55, PERF.56,
-  PERF.66.
 
 - [ ] **PERF.72 Research the cost of a sector's gravity grid and where to cut between exact and aggregated sources**
   Done: a note (docs/design/gravity-map.md, section 'How it is
@@ -3670,6 +3920,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   against the exact sum, and says when a grid is recomputed after an
   orbital update (every step, or only for sectors whose sources moved by
   a set amount). Ends with the build items filed.
+  Math Research (2026-10-14): the field is a sum over point masses at many
+  grid points, the same shape as the path integrator's acceleration; cost it
+  as a numba or NumPy kernel from the start (not measured in the note).
   Prerequisite: GEN.198. Related: GEN.198, GEN.199, MAP.151.
   Design: [docs/design/gravity-map.md](design/gravity-map.md)
 
@@ -3708,6 +3961,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   DB.21, exports), with a warm worker reserved for it and the admin poll
   route they already use; no public polling route. Low priority. Owner:
   Foundations lane 1.
+  Note (2026-10-14, GitHub issue sweep):
+  [#1229](https://github.com/dwhagar/planetGen/issues/1229) (Boss,
+  2026-10-13): the whole work queue is to be redone (PERF.86). Build
+  this item only if the PERF.86 plan keeps it; otherwise it is folded
+  into or dropped by that plan.
   Prerequisites: none. Related: PERF.19, PERF.24, DB.21, PERF.71.
   Design: [docs/design/slow-reads-and-timeouts.md](design/slow-reads-and-timeouts.md)
 
@@ -3726,20 +3984,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: GEN.126, PERF.31.
   Design: [docs/design/generation-benchmark-report.md](design/generation-benchmark-report.md)
 
-- [ ] **PERF.81 Nearest-neighbour search in sector generation: a spatial grid instead of 1.8 million distance calls**
-  From the PERF.31 benchmark (Foundations lane 1, PR #1179;
-  docs/design/generation-benchmark-report.md; `python -m
-  planetgen.cli.generate benchmark --workers 1,2 --profile`, 4 cores,
-  MariaDB 10.11, plan to ring 12 with 2,041 layers then 2 sectors):
-  `nearest_neighbors` makes 1.8 million `distance_to` calls for 1,916
-  systems (41 s of 227 s in the profile). Done: a spatial grid (or
-  cKDTree, as NAV.52 did for join_islands) gives the same neighbours
-  with far fewer distance calls, a test shows identical results on a
-  fixed sector, and the benchmark shows the saving. Owner: Bugfixes
-  lane 2 (moved 2026-10-10), first after its current task.
-  Prerequisites: none. Related: PERF.31, NAV.52.
-  Design: [docs/design/generation-benchmark-report.md](design/generation-benchmark-report.md)
-
 - [ ] **PERF.82 Cut the cost of inserting a sector (about 17% of the fill)**
   From the PERF.31 benchmark (Foundations lane 1, PR #1179;
   docs/design/generation-benchmark-report.md; `python -m
@@ -3749,9 +3993,150 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   measured by statement (batching, executemany, fewer round trips) and
   cut, with the rows identical. Related to the uid work in PERF.31's
   study items and the write cost of PERF.73. Owner: Bugfixes lane 1 (moved 2026-10-10),
-  after PERF.67 and PERF.54.
+  after PERF.54.
+  Math Research (2026-10-14): `pymysql` formats a 13-column row in 8.6 us, a
+  hand-built numeric-only VALUES text in 2.9 us (the approach PERF.73 took
+  for scatter writes); try it here. pymysql is 8% of the profiled fill.
   Prerequisites: none. Related: PERF.31, PERF.73.
   Design: [docs/design/generation-benchmark-report.md](design/generation-benchmark-report.md)
+
+- [ ] **PERF.83 The phenomena scatter takes about 5 minutes to start (bug)**
+  GitHub issue [#1225](https://github.com/dwhagar/planetGen/issues/1225)
+  (Boss, 2026-10-11 21:13Z): "It took about 5 minutes to start. I want
+  to look into that, find out what might cause that and if it's a bug or
+  if it needs a progress bar." Done: the cause of the wait between the
+  scatter stage starting and its first progress is found and measured
+  (the mass-limit pass reading the density skeleton, the sector marking,
+  an index build, a queue wait); if it is a fault it is fixed, otherwise
+  the wait gets its own stage line and progress bar so the job is never
+  silent for more than a few seconds. A test or timing record shows the
+  first progress within seconds on the benchmark galaxy. Owner:
+  Foundations lane 1, right after the nebula tuning chain (merged in
+  #1239), before DB.24.
+  Prerequisites: none. Related: PERF.66, PERF.79, PERF.82.
+
+- [ ] **PERF.84 Neighbour linking stalls on a large run (bug)**
+  GitHub issue [#1224](https://github.com/dwhagar/planetGen/issues/1224)
+  (Boss, 2026-10-11 21:05Z): "Neighbor linking stalled out twice, it was
+  a lot of data it was processing but it used to do it just fine with
+  the same amount of data." Done: the stall is reproduced on a run of
+  the same size, the cause is found (a query that stopped using an
+  index, a lock, a missing batch, a worker waiting on a full queue) and
+  fixed, and the stage shows steady progress instead of freezing. A test
+  or timing record keeps the link stage inside a budget. Needs from
+  Boss: the size of the runs that stalled and the job log, if still
+  around. Owner: Foundations lane 1, right after PERF.83.
+  Prerequisites: none. Related: PERF.83, PERF.85, PERF.68, PERF.79.
+
+- [ ] **PERF.85 Generation stalls after the phenomena scatter and the layer count on the progress bar is wrong (bug)**
+  GitHub issue [#1214](https://github.com/dwhagar/planetGen/issues/1214)
+  (Boss, 2026-10-11 01:01Z, with a screenshot): "The system just seems
+  stalled after the scattering of phenomena and there is a problem in
+  the layer count on the progress bar." Done: the stall after the
+  scatter is reproduced and its cause found (it may be the same cause as
+  PERF.83 or PERF.84; check them first), and the layer count shown on
+  the progress bar matches the layers the stage really works through.
+  Screenshot (Boss, 2026-10-14 13:02Z): the log says "Phenomena (2,041 of
+  2,041 layers) 100% elapsed 0:21:03", then the stage bar reads "Writing
+  the special phenomena: 6,820 of 6,820, 36 m 10 s, about 0 s left" while
+  Whole job still shows "about 1 m 09 s to 1 m 30 s left" at about 97% and
+  Cancel job is still offered. So the write stage ran longer (36 min) than
+  the scatter (21 min), its estimate sat at "about 0 s" the whole time,
+  and the job had not finished. Done also covers: the write stage reports
+  progress while it runs and its estimate comes from the stored timing
+  records (#1249). The layer count in the log (2,041) matches the plan; whether
+  the bar's count was wrong in the original screenshot is still asked on
+  the issue.
+  Owner: Bugfixes lane 1, after PERF.54, together with
+  UX.98.
+  Prerequisites: none. Related: PERF.83, PERF.84, PERF.66.
+
+- [ ] **PERF.86 Redo the work queue: drop the task and subtask logic and use Redis simply**
+  GitHub issue [#1229](https://github.com/dwhagar/planetGen/issues/1229)
+  (Boss, 2026-10-13 02:41Z): "I was mistaken about how Redis worked and
+  so I made our queuing system way too complicated. I need to look at
+  what we're doing and junk all of the logic on what makes a task and
+  subtask and all of that. It's going to be a lot of work too but I
+  think I'm wasting a lot of efficiency." Done: a design note on what
+  the queue does today, what it needs to do (resumable runs, cancel,
+  progress bars and ETAs, per-stage records, job logs, the single
+  scatter job), and the simplest design on plain Redis queues, then the
+  rebuild; PERF.40, PERF.78, ADM.15, PERF.29 and PERF.30 wait for this
+  plan and are folded in or dropped. Needs from Boss: which behaviours
+  must survive (see the comment on the issue). Owner: a research thread
+  first (coordinator to assign), then Foundations lane 1.
+  Prerequisites: none. Related: PERF.40, PERF.78, PERF.29, PERF.30,
+  ADM.15, PERF.24.
+
+- [ ] **PERF.87 Placement loop: test a new position against its neighbours as one array, not 919,000 distance calls**
+  Math Research (2026-10-14;
+  docs/design/math-and-library-efficiency.md).
+  `SpaceSector._random_position` walks `_massive_neighbors()` and calls
+  `distance_between` for each (919,000 calls in the benchmark fill).
+  PERF.81 fixed the nearest-neighbour list; this loop is separate. Done:
+  the check runs on NumPy arrays of positions and required separations,
+  drawing the same random numbers in the same order so the placed
+  positions, and the stored galaxy, are identical (a test compares a
+  fill before and after), measured with the PERF.31 benchmark. Owner:
+  Foundations lane 1, near its PERF items.
+  Prerequisites: none. Related: PERF.31.
+  Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
+
+- [ ] **PERF.88 Sector-path integrator on numba: saving the sector paths takes 13 s instead of 34 s on the benchmark fill**
+  Math Research (2026-10-14;
+  docs/design/math-and-library-efficiency.md).
+  `physics/sector_path.integrate_path` takes 1.0 ms a path; numba (mass
+  selection, integration and spline check in one compiled call) takes 34
+  to 46 us, so the save step goes from 34.2 s to 13.4 s on the benchmark
+  fill (the rest is database writes). Saved paths agree to 4e-16
+  relative (34,566 of 34,568 knots bit-identical), so tests that compare
+  saved paths use that tolerance. It also speeds the orbital update,
+  which recomputes these paths. Done: the integrator is a numba kernel,
+  the old Python loop removed (no fallback), the tolerance in the path
+  tests, timings in the benchmark report. Owner: Foundations lane 1,
+  after PERF.80 merges (Foundations lane 2 is changing the settle step)
+  and after OPS.42.
+  Decided (Boss, 2026-10-14 13:00Z): numba, Python 3.12 minimum, default cache
+  location (OPS.42). Acceptance criterion: the integrator imports as the web
+  user (see OPS.42), by keeping it out of the web app's import path or by
+  writable `__pycache__` directories, with a test.
+  Prerequisites: PERF.80, OPS.42. Related: PERF.31, GEN.105.
+  Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
+
+- [ ] **PERF.89 Bright and massive star scatters: population densities as NumPy arrays (about 4 s of 15 to 20 s)**
+  Math Research (2026-10-14;
+  docs/design/math-and-library-efficiency.md). `bright_stars._ring_bins`
+  and `layer_expected_stars` call `density.population_densities` 556,000
+  times (7.9 us each); `total_density_array` is 47 times faster per
+  point. Done: both stages call the array form, the expected counts
+  unchanged to the last digit (a test compares them), timings recorded
+  with the benchmark. Owner: Foundations lane 1, near its PERF items.
+  Prerequisites: none. Related: PERF.58, PERF.31.
+  Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
+
+- [ ] **PERF.90 Memoise the ring and slot count functions (3.2 and 6.5 million calls in the fill)**
+  Math Research (2026-10-14;
+  docs/design/math-and-library-efficiency.md).
+  `geometry.ring_sector_count`, `ring_master_count` and
+  `_ring_centerline_edges` cost 1.15 us a call, 0.064 us when cached.
+  Done: they are cached (a one-line change each), with identical
+  results. Owner: Foundations lane 1, in the same PR as the placement
+  loop item.
+  Prerequisites: none. Related: PERF.87.
+  Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
+
+- [ ] **PERF.91 Bulk random draws for the scatter layers (4 to 12 times on batches above 1,000 draws)**
+  Math Research (2026-10-14;
+  docs/design/math-and-library-efficiency.md). State is handed between
+  `random.Random` and NumPy's MT19937 so draws and generator state are
+  identical: no galaxy changes and no reseed. Only the default-scale
+  scatter reaches batches this large (0.3 s of 16 s at benchmark scale),
+  so this is low priority until the default-scale scatter is the
+  bottleneck. Done: the scatter layers draw in bulk, a test proves same
+  seed, same draws, same final state. Owner: Foundations lane 1, last of
+  the math items.
+  Prerequisites: none. Related: GEN.56, PERF.58.
+  Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
 
 ## DB: Database and schema
 
@@ -3901,8 +4286,8 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   research, PR #1188): the table holds classes M and N only (about
   163,000 rows and 11 MB instead of 700,000 and 50 MB); classes P and Q
   stay seeded and implicit (291,000 clouds of 0.2 to 1.6 pc, invisible
-  beyond about 250 pc). Its size and the equality test follow GEN.152's
-  keep table.
+  beyond about 250 pc). Its size and the equality test follow the nebula
+  keep table merged in #1239.
   Prerequisites: none. Related: MAP.151, MAP.142, GEN.176, GEN.99.
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
@@ -4270,6 +4655,11 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Foundations lane 1 (2026-10-10, PERF.38, PR #1144): the page-time re-
   run under Ludicrous Speed moved here from PERF.38; it needs this item
   built and a real fill.
+  Note (2026-10-14, GitHub issue sweep):
+  [#1229](https://github.com/dwhagar/planetGen/issues/1229) (Boss,
+  2026-10-13): the whole work queue is to be redone (PERF.86). Build
+  this item only if the PERF.86 plan keeps it; otherwise it is folded
+  into or dropped by that plan.
 
 - [ ] **ADM.32 Add a star system to a sector: at the emptiest spot, at given coordinates, or at random outside every Hill sphere**
   Boss (2026-10-07 11:47Z): "Need a way to add a single star system to a
@@ -4413,6 +4803,32 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Prerequisites: none. Related: ADM.18, OPS.28, OPS.37, DB.16, DB.17,
   DOC.14, GEN.135.
 
+- [ ] **ADM.51 Regenerating with a class the object cannot support asks to confirm, then does it (bug)**
+  GitHub issue [#1228](https://github.com/dwhagar/planetGen/issues/1228)
+  (Boss, 2026-10-13 02:27Z, labelled bug): "if the user asks to
+  regenerate anything, and selects a class not supported by the size or
+  some other parameter, ask the user to confirm and do it anyway if they
+  confirm." Done: every regenerate and Generate path that takes a class
+  or type checks it against the generation rules, shows what the object
+  would break (size, zone, mass), and does it anyway after an explicit
+  confirmation, on the web, the CLI (a confirm flag) and the API (a
+  force field); a refusal without confirmation changes nothing. Owner:
+  Bugfixes lane 2, after its current items.
+  Prerequisites: none. Related: ADM.35, ADM.32, GEN.181, ADM.52.
+
+- [ ] **ADM.52 A star system editor: plan a system as a 2D diagram or from the command line**
+  GitHub issue [#1228](https://github.com/dwhagar/planetGen/issues/1228)
+  (Boss, 2026-10-13 02:27Z): "We need a star system editor that the user
+  if admin can plan the system graphically or via the command line.
+  Graphically will be the order of objects as a 2D diagram, nice and
+  simple. Drag and drop radial distance from the star. Positions will be
+  randomized." Done: an admin editor shows a system as a simple 2D
+  diagram of its objects in order, lets the admin drag each object's
+  radial distance, then saves the system with random positions on the
+  orbits; the same plan can be written as a command line recipe. Owner:
+  Foundations lane 2, after the fly-through map.
+  Prerequisites: none. Related: ADM.32, ADM.35, ADM.36, API.18, ADM.51.
+
 ## SEC: Security
 
 The login protection of 2026-10-01 (SEC.1, SEC.20 to
@@ -4496,6 +4912,11 @@ clears each one.
   Prerequisites: none. Related: TEST.111, TEST.122.
 
 - [ ] **TEST.126 The heavy WebGL browser-map tests time out when four workers run them together (bug)**
+  Seen again on 2026-10-14 12:44Z (Bugfixes lane 2, PERF.81 suite, 49 min):
+  test_galaxy_map_free_camera_from_an_arc_down, ::test_galaxy_map_buttons (a
+  playwright error), test_bookmarks_keep_a_course_pick_on_the_galaxy_map and
+  ::test_galaxy_map_hover_lights_every_choice_while_picking_a_course, all
+  passing on re-run. The three TEST.125 moon tests still fail alone and on main.
   Reported by Foundations lane 2 (2026-10-10 20:50Z): in a full suite
   under `python3 -m pytest -n 4 -q tests` (about 15,450 tests, 65-69
   min, 4 cores, MariaDB and Redis local) these pass alone and fail
@@ -4655,21 +5076,6 @@ clears each one.
   Prerequisites: TEST.133, DB.24. Related: PERF.68.
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
-- [ ] **TEST.136 A nebula-rate audit test: the nebula counts and fillings stay inside the observed bands**
-  Boss (2026-10-10 22:01Z): review the cloud density against the real
-  Milky Way and decide how to manage it so things stay visible. From the
-  research (docs/design/nebula-density-vs-reality.md section 9, PR
-  #1188; report
-  /mnt/project-files/research/nebula-map-visibility/density-report.md):
-  a test reads the rates from tuning and the gas model and fails outside
-  these bands: class M 5,000 to 20,000; arm-crest filling 1 to 4%;
-  planetary nebulae 4,000 to 46,000; remnants 400 to 5,000; hosted H II
-  per O star 0.1 to 0.5; classes P and Q 5e4 to 4e5. It also reads
-  `GMC_ARM_FILLING_FACTOR`, which nothing reads today. Owner:
-  Foundations lane 1.
-  Prerequisite: GEN.152. Related: GEN.203, GEN.204.
-  Design: [docs/design/nebula-density-vs-reality.md](design/nebula-density-vs-reality.md)
-
 - [ ] **TEST.137 test_a_neighborhood_from_the_generate_page[core] fails once under load (bug)**
   Reported by Bugfixes lane 2 (2026-10-10 22:47Z):
   tests/test_neighborhood_edge.py::test_a_neighborhood_from_the_generate_page[core]
@@ -4692,6 +5098,65 @@ clears each one.
   moment) and the test is made reliable without loosening it. Owner:
   Bugfixes lane 2, with TEST.126.
   Prerequisites: none. Related: TEST.126, TEST.128, TEST.137.
+
+- [ ] **TEST.139 Rework, optimise and rebuild the whole test suite so it runs faster and in modules**
+  GitHub issue [#1230](https://github.com/dwhagar/planetGen/issues/1230)
+  (Boss, 2026-10-13 02:43Z): the testing scripts "have been cobbled
+  together every step of the way like a never ending set of additions on
+  a house"; a full run takes well over an hour; "I want to make sure
+  we're not wasting time or if we can make 1 test say more". Boss,
+  2026-10-14 12:17Z: a dedicated thread (Test Suite Rebuild) reworks,
+  optimises and rebuilds the entire suite from the ground up so it runs
+  faster and is modular, so a run can test only the things that changed
+  since the last run. Done: a plan and then a rebuilt suite where (1)
+  each module of the code has its own tests and a run can select the
+  modules a change touches (by changed files or by the last run), (2)
+  the time per test is measured and the slow ones are cut, merged or
+  made cheaper, (3) overlapping tests become one test that checks more,
+  (4) the full run is much shorter than the present 30 to 70 minutes,
+  and (5) the flaky tests (TEST.111, TEST.116, TEST.125 to TEST.130,
+  TEST.132, TEST.134, TEST.137, TEST.138) are fixed or replaced as part
+  of it. Owner: the Test Suite Rebuild thread (a dedicated thread,
+  started 2026-10-14 12:18Z); the lanes keep running the full suite
+  before they merge until it lands.
+  Prerequisites: none. Related: TEST.111, TEST.125, TEST.126, TEST.128,
+  TEST.133, TEST.137, TEST.138, OPS.31.
+
+- [ ] **TEST.140 test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing fails once in a full parallel run (bug)**
+  Reported by Bugfixes lane 2 (2026-10-14 12:44Z, PERF.81 run, -n 4, 49
+  min):
+  tests/test_api_object_ids.py::test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing
+  failed once in a full run and passed alone; the traceback was not
+  kept. Done: the next failure's traceback is captured, the cause is
+  found (a shared table between workers, a timeout, or a real defect in
+  the ID lookup) and the test is made reliable without loosening it.
+  Owner: Bugfixes lane 2, with TEST.128.
+  Prerequisites: none. Related: TEST.128, TEST.137, TEST.138.
+
+- [ ] **TEST.141 test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector[15-True] fails once in a full parallel run (bug)**
+  Reported by Bugfixes lane 2 (2026-10-14 12:44Z, PERF.81 run, -n 4, 49
+  min):
+  tests/test_work_queue_failures.py::test_interrupting_a_parallel_galaxy_run_leaves_no_half_written_sector[15-True]
+  failed once in a full run and passed alone; the failure message was
+  not kept. Done: the next failure's message is captured, the cause is
+  found (an interrupt landing before a worker starts, a shared Redis
+  queue between workers, or a real half-written sector) and the test is
+  made reliable without loosening it. Owner: Bugfixes lane 2, with
+  TEST.128.
+  Prerequisites: none. Related: TEST.128, TEST.132, TEST.134.
+
+- [ ] **TEST.142 test_a_table_keeps_its_sort_and_filter_across_a_reload fails on main: its fake get_systems lacks the new `after` argument (bug)**
+  Reported by the coordinator from Bugfixes lane 1 (2026-10-14 13:11Z,
+  PERF.67 suite, 50 min):
+  tests/test_web_browser_tables.py::test_a_table_keeps_its_sort_and_filter_across_a_reload
+  fails on main because its fake `get_systems` does not accept the
+  `after` argument added by PERF.75's keyset paging. Done: the fake
+  takes the new argument (or the test uses the real function) so the
+  test passes without loosening what it checks, and a grep shows no
+  other fake of a paged reader is left behind. Owner: whichever lane
+  takes test fixes next (Bugfixes lane 2 after TEST.128), before
+  PERF.75's other tables get the same change.
+  Prerequisites: none. Related: PERF.75, TEST.126.
 
 ## USR: User accounts
 
@@ -4900,6 +5365,16 @@ clears each one.
   Prerequisites: none.
   Design: [docs/design/settings-seo-and-accounts.md](design/settings-seo-and-accounts.md)
 
+- [ ] **USR.10 Users add their own objects (ships and stations) and track their movement on the map**
+  GitHub issue [#1226](https://github.com/dwhagar/planetGen/issues/1226)
+  (Boss, 2026-10-12 23:27Z): "Allow users to add their own objects, not
+  planets or anything but like a ship or a station or some such that
+  they can track the movement of in the map." Done: a signed-in user can
+  add a ship or station object, give it a position and movement, and see
+  it and its track on the maps; the object belongs to the user. Needs
+  answers from Boss (see the comment on the issue). Owner: not assigned.
+  Prerequisites: none. Related: USR.8, GEN.105, NAV.4.
+
 ## OPS: Installers, hosting, CI, releases
 
 OPS.1 shipped with the version scheme in `changes/README.md`.
@@ -5003,6 +5478,37 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   a clear message, and the Admin pages show the state. Owner:
   Foundations lane 1, near its other update.sh work.
   Prerequisites: none. Related: OPS.29, OPS.35, PERF.64.
+
+- [ ] **OPS.42 Install numba: Python 3.12 minimum, numba required, and the web app never imports its compiled code**
+  Math Research (2026-10-14;
+  docs/design/math-and-library-efficiency.md, "The default cache and the
+  web user"). Decided (Boss, 2026-10-14 13:00Z): numba is a hard
+  requirement with no pure-Python fallback; the minimum Python becomes 3.12
+  (not 3.10); numba's cache stays in its DEFAULT location (no
+  NUMBA_CACHE_DIR, no /var/cache/planetgen/numba, no change to
+  create-cache-dir.sh); the change is noted in the CHANGELOG and the
+  README. numba 0.68 and llvmlite 0.50 (about 196 MB installed) need NumPy
+  below 2.6 and are not in apt on Ubuntu 24.04, so they install with pip
+  through the NumPy stack group of scripts/install-python-deps.sh and its
+  REQUIREMENTS table (enforced by test_install_python_deps.py). Done:
+  setup.py `python_requires` 3.12, the installer checks and INSTALL.md
+  raised; the Python 3.9 to 3.11 CI legs and the matching requirements.lock
+  markers dropped (frees TEST.77); numba added to the setup, installer and
+  lock; the change note says the minimum Python changed and the README's
+  requirements text says so. Acceptance criterion: with the default cache,
+  a process that can write neither the code tree's `__pycache__` nor its
+  own home directory fails at import ("cannot cache function: no locator
+  available"), even when root warmed the tree, and a user with a writable
+  home builds its own cache under ~/.cache/numba. Apache's web user (home
+  /var/www, tree owned by the login user) is exactly that case, so either
+  the kernel module stays out of the web app's import path (imported only
+  by the settle step, the orbit update and the workers; check
+  api/edits.py, queue/api_jobs.py and db/sector_paths.py) or update.sh
+  makes those `__pycache__` directories writable for the web group; a test
+  imports the integrator as the web user. Owner: Foundations lane 1,
+  before the numba path integrator (PERF.88).
+  Prerequisites: none. Related: GEN.156, TEST.77.
+  Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
 
 ## DOC: Documentation
 
@@ -5453,3 +5959,13 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   existing kinds rather than replace them; ship the mechanism plus one
   example type.
   Design: [docs/design/population-and-politics.md](design/population-and-politics.md)
+
+- [ ] **POP.11 Scatter space vessels and stations for the races in their territories**
+  GitHub issue [#1226](https://github.com/dwhagar/planetGen/issues/1226)
+  (Boss, 2026-10-12 23:27Z): "Also part of population and tech, have the
+  ability to scatter space vessels and stations for appropriate races
+  within their territories." Done: the population pass places vessels
+  and stations for species whose tech level allows them, inside their
+  territory, as stored objects like the user objects of USR.10. Owner:
+  not assigned.
+  Prerequisites: POP.7, USR.10. Related: POP.7, POP.10, USR.10.

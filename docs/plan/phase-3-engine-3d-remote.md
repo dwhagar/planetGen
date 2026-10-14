@@ -25,6 +25,8 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | ID | Item | Needs | Note |
 |---|---|---|---|
 | MAP.167 | Gravity map: a heat map of the gravitational field inside a sector (the seminal feature of 9.0) | GEN.199, MAP.168, MAP.169, UX.94, API.24 | Seminal feature of 9.0 (Boss 2026-10-10). Parent. |
+| MAP.194 | Nebulae and globular clusters open their own zoom window from the Galaxy Map | MAP.176 |  |
+| GEN.209 | Globular clusters are parent objects for their stars and are named when their sector is filled | GEN.159 |  |
 | API.24 | GET /api/sectors/<id>/gravity: the per-zone gravity grid as JSON | GEN.199 |  |
 | MAP.168 | The Sector Map gravity layer: coloured zones for pull, well depth and tidal strength | API.24, MAP.125 |  |
 | MAP.169 | The System Map gravity layer: the orbital plane as a heat map with Lagrange points and Hill spheres | MAP.168 |  |

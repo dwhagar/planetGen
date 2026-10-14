@@ -2,6 +2,70 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.998] - 2026-10-14
+
+### Changed
+- The plan retires the finished timing statistics item and adds one test fix for a paged-table test.
+
+## [8.0.997] - 2026-10-14
+
+### Changed
+- Every staged process now stores its whole-process time, even a run that visited no layers, and each stage's seconds per layer. The scatters are stored on their own (massive stars, bright stars, phenomena, backfill) and added up in one "All scatters" row.
+- A scatter with no stored time of its own is now estimated from that common scatter figure, in the command-line bar, the Generate page's whole-job bar and each stage's bar alike, since they all read the one stored-time function.
+
+## [8.0.996] - 2026-10-14
+
+### Changed
+- The plan records the full numba and Python 3.12 requirements, including the check that the web server can import the compiled code, and confirms astropy can be dropped.
+
+## [8.0.995] - 2026-10-14
+
+### Changed
+- The math and library efficiency note records Boss's decisions: the minimum Python becomes 3.12 (numba required), numba keeps its default cache location, and astropy is dropped. The note also records a measured limit of numba's default cache for a web user that cannot write the code tree or its home, with the two ways to meet it.
+
+## [8.0.994] - 2026-10-14
+
+### Changed
+- The plan records what Boss's screenshot shows about the stall after the phenomena scatter.
+
+## [8.0.993] - 2026-10-14
+
+### Changed
+- The plan now says Python 3.12 will be the minimum and numba a required library, using numba's default cache location.
+
+## [8.0.992] - 2026-10-14
+
+### Changed
+- The plan retires the finished nebula tuning chain and adds the planned math and library speed-ups for generation and orbital updates.
+
+## [8.0.991] - 2026-10-14
+
+### Changed
+- A new galaxy holds far fewer nebulae, in line with the Milky Way: the molecular cloud field keeps 9.5% of its giant clouds and half of its dark clouds (about 454,000 field clouds instead of 700,000; survivors keep their places and object IDs), supernova remnants come to about 3,000 instead of 20,000, and an O star hosts an H II region one time in four (a B0 to B2 star one in ten) instead of always.
+
+### Added
+- A test holds the nebula counts and fillings inside their observed bands.
+
+## [8.0.990] - 2026-10-14
+
+### Added
+- **A design note on the generator's math and the libraries it uses.** It measures where the heavy numeric code still runs as plain Python (sector paths, nearest neighbours, galaxy density in the star scatters, the orbital update's per-row maths), prototypes the fixes and ranks them with the install cost of each library (numba is the only one worth adding). Research only; no behaviour changes.
+
+## [8.0.989] - 2026-10-14
+
+### Changed
+- The plan and TODO list drop the finished nearest-neighbour speed-up and add two new test-flake items from the latest full run.
+
+## [8.0.988] - 2026-10-14
+
+### Changed
+- **Saving a sector finds each system's nearest neighbours with one spatial tree (PERF.81).** It used to measure the distance from every system to every other one (1.8 million measurements for a sector of 1,916 systems, about 10 s); one cKDTree now answers all of them in 0.04 s, with the same neighbours, ties included.
+
+## [8.0.987] - 2026-10-14
+
+### Changed
+- The plan pages now list every open GitHub issue as plan items: bugs in Phase 1, the rest spread over the later phases, and the test suite rebuild as its own thread.
+
 ## [8.0.986] - 2026-10-11
 
 ### Changed
