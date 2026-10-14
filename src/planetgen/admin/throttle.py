@@ -289,8 +289,8 @@ class RedisStore:
         """A store on the Redis server at `url`, its keys under `prefix`
         (the app's `RATELIMIT_KEY_PREFIX`, so one setting keeps a test's
         or an install's counts apart)."""
-        import redis
-        return cls(redis.Redis.from_url(url, decode_responses=True), prefix)
+        from planetgen.queue import redisclient
+        return cls(redisclient.client(url, decode_responses=True), prefix)
 
     def _key(self, scope, subject):
         return f"{self.key_prefix}{scope}:{subject}"

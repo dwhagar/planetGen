@@ -38,17 +38,11 @@ that is slow is worth less than building the tile."""
 
 _PREFIX = "planetgen:build:"
 
-_clients = {}
-"""dict: `url -> redis.Redis`."""
-
 
 def _client():
-    url = redisqueue.redis_url()
-    client = _clients.get(url)
-    if client is None:
-        client = _clients[url] = redis.Redis.from_url(
-            url, socket_timeout=SOCKET_SECONDS, socket_connect_timeout=SOCKET_SECONDS)
-    return client
+    """The shared client (`redisclient`), with the short timeout and no retry: a lock service that is slow or
+    gone is not worth waiting for."""
+    return redisqueue.connect(redisqueue.redis_url(), timeout=SOCKET_SECONDS, retries=0)
 
 
 def claim(names):

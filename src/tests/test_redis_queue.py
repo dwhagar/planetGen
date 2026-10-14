@@ -90,7 +90,7 @@ def test_a_channel_carries_items_through_a_pickle(connection):
     channel = redisqueue.Channel(URL, f"test-{secrets.token_hex(6)}:progress")
     try:
         pickle.loads(pickle.dumps(channel)).put((3, 10, 20.5))
-        assert channel.get(timeout=1) == (3, 10, 20.5)
+        assert channel.get(timeout=1) == [3, 10, 20.5]   # JSON: a tuple arrives as a list
         with pytest.raises(queue_module.Empty):
             channel.get(timeout=0.1)
     finally:

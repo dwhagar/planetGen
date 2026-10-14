@@ -17,6 +17,7 @@ a process (and its imports) per job (PERF.39). The result is kept for
 """
 
 import calendar
+import importlib
 import os
 import re
 import secrets
@@ -71,9 +72,43 @@ SHORT_WAIT_SECONDS = 8.0
 before it gives up and answers `202` with the job's id."""
 
 
-def execute(function, args):
+CONFIG_TAG = "__mysql_config__"
+"""str: Marks a MySQL connection setting among a job's JSON arguments (`encode_argument`)."""
+
+
+def function_reference(function):
+    """`module:name` of a module-level function, the form a job names it in (JSON can't carry the function).
+
+    Raises:
+        ValueError: A function a worker could not import by that name.
     """
-    What a worker runs for a queued job: `function(*args)`, with a refusal
+    module = getattr(function, "__module__", None)
+    name = getattr(function, "__qualname__", None)
+    if not module or not name or "<" in name or "." in name:
+        raise ValueError(f"{function!r} is not a module-level function, so a worker cannot import it")
+    return f"{module}:{name}"
+
+
+def encode_argument(value):
+    """A job argument as plain JSON data: numbers, strings, lists and dicts as they are, the MySQL connection
+    settings tagged so `decode_argument` makes them again."""
+    if type(value).__name__ == "MySQLConfig":
+        return {CONFIG_TAG: dict(vars(value))}
+    return value
+
+
+def decode_argument(value):
+    """`encode_argument` undone."""
+    if isinstance(value, dict) and set(value) == {CONFIG_TAG}:
+        from planetgen.db import store
+        return store.MySQLConfig(**value[CONFIG_TAG])
+    return value
+
+
+def execute(reference, args):
+    """
+    What a worker runs for a queued job: the function named by `reference`
+    (`function_reference`) called with `args` (`decode_argument`), with a refusal
     the work raises on purpose (an `ApiError`: 404, 409 ...) returned as
     data, so `status` can report the HTTP status it carries.
 
@@ -81,8 +116,10 @@ def execute(function, args):
     function that raises one has imported `planetgen.api.common` already,
     and importing it here would cost every job 2 s (PERF.39).
     """
+    module, _, name = reference.partition(":")
+    function = getattr(importlib.import_module(module), name)
     try:
-        return {"result": function(*args)}
+        return {"result": function(*[decode_argument(arg) for arg in args])}
     except Exception as exc:  # noqa: BLE001 -- anything but a refusal is re-raised
         common = sys.modules.get("planetgen.api.common")
         if common is not None and isinstance(exc, common.ApiError):
@@ -90,16 +127,9 @@ def execute(function, args):
         raise
 
 
-_connections = {}
-"""dict: `url -> redis.Redis`, one connection (pool) per server for `submit`, `status` and `wait`."""
-
-
 def _connection(url=None):
-    url = url or redisqueue.redis_url()
-    connection = _connections.get(url)
-    if connection is None:
-        connection = _connections[url] = redisqueue.connect(url)
-    return connection
+    """The shared client (`redisclient`) for `submit`, `status` and `wait`."""
+    return redisqueue.connect(url or redisqueue.redis_url())
 
 
 def _process_exists(pid):
@@ -168,7 +198,7 @@ def ensure_workers(connection=None, url=None):
 def submit(function, *args):
     """
     Queues `function(*args)` (a module-level function; its arguments and
-    return value must pickle) and starts a burst worker for it unless
+    return value travel as JSON, `encode_argument`) and starts a burst worker for it unless
     enough are serving the queue already (`ensure_workers`).
 
     Returns:
@@ -186,7 +216,7 @@ def submit(function, *args):
                       f"start Redis to run this: {exc}") from exc
     job_id = new_job_id()
     redisqueue.queue(QUEUE_NAME, connection).enqueue(
-        execute, args=(function, args), job_id=QUEUE_PREFIX + job_id, job_timeout=-1,
+        execute, args=(function_reference(function), [encode_argument(arg) for arg in args]), job_id=QUEUE_PREFIX + job_id, job_timeout=-1,
         result_ttl=RESULT_TTL_SECONDS, failure_ttl=RESULT_TTL_SECONDS,
     )
     ensure_workers(connection, url)
@@ -227,7 +257,7 @@ def status(job_id):
         return None
     try:
         connection = _connection()
-        job = redisqueue.fetch_job(QUEUE_PREFIX + job_id, connection)
+        job = redisqueue.fetch_job(QUEUE_PREFIX + job_id, connection, redisqueue.serializer_for(QUEUE_NAME))
     except redisqueue.Unavailable as exc:
         raise NoQueue(str(exc)) from exc
     if job is None:
