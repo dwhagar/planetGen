@@ -1,2 +1,0 @@
-### Changed
-- **The Galaxy Map and Sector Map browser tests use a smaller window by default** (TEST.139). Reading a software-WebGL canvas back costs time in proportion to its pixels (2.5 s at 1280x900, 1.1 s at 800x600), and these tests take several screenshots each. The fixture-map file went from 23 min 34 s to 13 min 34 s on two workers and the whole browser phase from about 40 min to 25 min. A test that needs a bigger window says so with `@pytest.mark.viewport(width, height)`; five do.
