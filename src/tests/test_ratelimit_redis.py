@@ -84,3 +84,21 @@ def test_no_configured_storage_means_the_redis_server():
     assert uri(config, PLANETGEN_REDIS_URL="redis://other:6379/1") == "redis://other:6379/1"
     assert uri(config, PLANETGEN_REDIS_URL="redis://other:6379/1",
                PLANETGEN_RATELIMIT_STORAGE_URI="memory://") == "memory://"
+
+
+def test_the_reset_between_tests_leaves_another_tests_redis_counts_alone(redis_server, key_prefix):
+    """The `_reset_rate_limits` fixture used to call `limiter.reset()` on a Redis storage, which deletes every
+    limiter key on the server, so a test running in another process at that moment lost half its counts
+    (TEST.146). It resets only a limiter that counts in this process's memory."""
+    from planetgen.api.limiter import limiter
+    from tests.conftest import _counts_in_this_process
+
+    pages = {"health": "4 per minute"}
+    client = _app(redis_server, key_prefix, RATELIMIT_PAGES=pages).test_client()
+    assert [_health(client, "10.9.9.9") for _ in range(3)] and not _counts_in_this_process(limiter)
+    import redis
+
+    server = redis.Redis.from_url(redis_server)
+    assert list(server.scan_iter(match=f"*{key_prefix}*10.9.9.9*"))
+    _app("memory://", key_prefix)
+    assert _counts_in_this_process(limiter)
