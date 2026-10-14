@@ -1059,6 +1059,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   ring and wrapping slot-arc ranges (count, Span conversion, SQL
   ranges); the radial fills use it. MAP.151b to d remain; next is
   MAP.151c.
+  Status (2026-10-09): DB.24 done (Foundations lane 1, 2026-10-14,
+  #1317, schema v83): nebula_field holds every kept class M and N cloud,
+  written by plan from the seed. Deviation: rows carry no object id
+  until a sector stores the cloud (an id needs a nebula shape, about 112
+  ms each, roughly 30 CPU hours for all clouds at default scale); a save
+  fills uid and is_stored (the flag is is_stored because 'stored' is
+  reserved on MySQL 8), and plan links clouds a galaxy already holds.
+  Key unstored clouds by (cell_i, cell_j, cell_k, n).
 
 - [ ] **MAP.152 Scale hand-offs: galaxy, sector and system cross-fade with hysteresis, and per-tile camera-relative origins**
   Source: docs/design/fly-through-view-distance.md (section 7 and 8),
@@ -1257,6 +1265,14 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (MAP.146). Owner: Foundations lane 2, queued right after MAP.152.
   Prerequisites: DB.23, GEN.201, MAP.152. Related: MAP.148,
   MAP.164, MAP.165, MAP.159, MAP.146.
+  Status (2026-10-09): DB.24 done (Foundations lane 1, 2026-10-14,
+  #1317, schema v83): nebula_field holds every kept class M and N cloud,
+  written by plan from the seed. Deviation: rows carry no object id
+  until a sector stores the cloud (an id needs a nebula shape, about 112
+  ms each, roughly 30 CPU hours for all clouds at default scale); a save
+  fills uid and is_stored (the flag is is_stored because 'stored' is
+  reserved on MySQL 8), and plan links clouds a galaxy already holds.
+  Key unstored clouds by (cell_i, cell_j, cell_k, n).
 
 - [ ] **MAP.172 Nebula cell aggregates in the region pyramid**
   Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
@@ -1269,7 +1285,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   class and cover, updated when a nebula is stored. Done: the
   aggregates, and a Monte Carlo check that the stored cover is within 5%
   of the true cover. Owner: Foundations lane 1, with MAP.151.
-  Prerequisites: MAP.151, DB.24. Related: MAP.159.
+  Prerequisite: MAP.151. Related: MAP.159.
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
 - [ ] **MAP.173 The Galaxy Map tile carries a nebula layer: regions and singles, nested like the star lists**
@@ -1284,7 +1300,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   cache-stamp bump together with MAP.147 and MAP.151. Done: the layer,
   the budget and a test on a seeded galaxy. Owner: Foundations lane 2,
   with MAP.151 and MAP.159.
-  Prerequisites: DB.24, MAP.172. Related: MAP.147, MAP.151,
+  Prerequisite: MAP.172. Related: MAP.147, MAP.151,
   MAP.159.
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
@@ -4041,32 +4057,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   migrations), after PERF.70.
   Prerequisites: none. Related: GEN.201, MAP.171, MAP.165.
 
-- [ ] **DB.24 The nebula_field table: one row per field nebula cloud, built at plan time (Alembic migration)**
-  Boss (2026-10-10 21:46Z): nebulae must be visible on the Galaxy Map,
-  by colour or by combined regions; Phase 2 for the feature, foundations
-  in Phase 1. From the research (docs/design/nebula-map-visibility.md
-  section 9, PR #1180; report
-  /mnt/project-files/research/nebula-map-visibility/report.md): a
-  seed-fixed table with one row per field cloud (object id, cell,
-  centre, radius, class, stored flag), built at plan time by an RQ job
-  over 50 pc cells (about 700,000 rows and 50 MB at the default scale),
-  so the map can find nebulae that no sector holds yet. Done: the
-  migration and its previous-version fixture; the job; a test that the
-  rows equal `clouds_reaching` and match the stored nebulae by object
-  id. Default: store the field (the alternative is to recompute it per
-  tile). Owner: Foundations lane 1 (the only lane that adds migrations).
-  Note (2026-10-10, nebula research): open dependency, Boss's separate
-  call: the nebula field is probably 10 to 40 times too full (see the
-  GEN.47 note); the design works at either rate, so this table is sized
-  by the rate in force when it is built. Refined (nebula density
-  research, PR #1188): the table holds classes M and N only (about
-  163,000 rows and 11 MB instead of 700,000 and 50 MB); classes P and Q
-  stay seeded and implicit (291,000 clouds of 0.2 to 1.6 pc, invisible
-  beyond about 250 pc). Its size and the equality test follow the nebula
-  keep table merged in #1239.
-  Prerequisites: none. Related: MAP.151, MAP.142, GEN.176, GEN.99.
-  Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
-
 ## API: The JSON API
 
 - [ ] **API.3 Remote generate: generate on a local machine, upload through the API**
@@ -4928,7 +4918,7 @@ clears each one.
   implement after TEST.133 and DB.24, in the same opt-in `budget` tier;
   Foundations lane 1 drops it from its queue. Owner: the Test Suite
   Rebuild thread.
-  Prerequisites: TEST.133, DB.24. Related: PERF.68.
+  Prerequisite: TEST.133. Related: PERF.68.
   Design: [docs/design/nebula-map-visibility.md](design/nebula-map-visibility.md)
 
 - [ ] **TEST.137 test_a_neighborhood_from_the_generate_page[core] fails once under load (bug)**

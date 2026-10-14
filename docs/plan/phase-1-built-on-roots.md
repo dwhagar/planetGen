@@ -117,12 +117,11 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.150 | The free camera: wheel zoom to the cursor, double-click flight, and the observer inside, with the container named from position |  | Fly-through report item 3; needs the near field. |
 | MAP.151 | The region data layer: exact-centred frame, aligned cells, per-level aggregates and slot-wrap ranges |  | Fly-through report item 4. Decide cache keys with MAP.147. |
 | MAP.152 | Scale hand-offs: galaxy, sector and system cross-fade with hysteresis, and per-tile camera-relative origins | MAP.150 | Fly-through report item 5. |
-| TEST.135 | Big-galaxy query-budget test for the nebula reads | TEST.133, DB.24 | Foundations lane 1. |
-| GEN.202 | Scattered nebulae (planetary nebulae and remnants) join the nebula index, deduplicated by object id | DB.24 | Foundations lane 1. |
-| MAP.174 | Nebula cover in the stage-view cell statistics, for filled and unfilled cells | DB.24 | Foundations lane 2. |
-| MAP.173 | The Galaxy Map tile carries a nebula layer: regions and singles, nested like the star lists | DB.24, MAP.172 | Foundations lane 2. |
-| MAP.172 | Nebula cell aggregates in the region pyramid | MAP.151, DB.24 | Foundations lane 1. |
-| DB.24 | The nebula_field table: one row per field nebula cloud, built at plan time (Alembic migration) |  | Migration. Foundations lane 1. |
+| TEST.135 | Big-galaxy query-budget test for the nebula reads | TEST.133 | Foundations lane 1. |
+| GEN.202 | Scattered nebulae (planetary nebulae and remnants) join the nebula index, deduplicated by object id |  | Foundations lane 1. |
+| MAP.174 | Nebula cover in the stage-view cell statistics, for filled and unfilled cells |  | Foundations lane 2. |
+| MAP.173 | The Galaxy Map tile carries a nebula layer: regions and singles, nested like the star lists | MAP.172 | Foundations lane 2. |
+| MAP.172 | Nebula cell aggregates in the region pyramid | MAP.151 | Foundations lane 1. |
 | MAP.171 | The Galaxy Map keys a massive phenomenon's visibility to its map luminosity (replaces "always lit") | DB.23, GEN.201, MAP.152 | Boss 2026-10-10 21:38Z. Foundations lane 2 after MAP.152. |
 | MAP.159 | Packed binary Galaxy Map tiles (quantised planes) with the nested tile lists, on one cache stamp bump |  | MAP.147 recommendation step 2; one stamp bump with MAP.154 and MAP.151. |
 
@@ -225,7 +224,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | PERF.47 | The PERF.31 benchmark records the buffer pool, table sizes and worker start-up cost |  | Generation performance study. |
 | PERF.41 | Stamp the tile and page caches with a TILE_FORMAT constant instead of the version (optional) |  | Research follow-up to PERF.25 (built). |
 | PERF.40 | Two shared queues, a reserved interactive worker and a real "cancel now" |  | Research follow-up to PERF.24 (built). |
-| GEN.205 | `planetgen plan --redo-nebula-field`: apply the new nebula rate to an existing galaxy | DB.24 | Foundations lane 1. |
+| GEN.205 | `planetgen plan --redo-nebula-field`: apply the new nebula rate to an existing galaxy |  | Foundations lane 1. |
 | PERF.82 | Cut the cost of inserting a sector (about 17% of the fill) |  | Foundations lane 1. |
 | TEST.133 | A reusable big-galaxy query budget test: EXPLAIN every page and list query on 2,000,000 systems |  | Foundations lane 1. |
 | PERF.78 | A reserved warm worker for long admin operations, and the poll pattern for them |  | Foundations lane 1, last of the PERF.71 builds. |
