@@ -13,21 +13,21 @@ release is stamped.
 
 | Category | Next free ID |
 |---|---|
-| UX | UX.98 |
-| MAP | MAP.184 |
+| UX | UX.102 |
+| MAP | MAP.195 |
 | NAV | NAV.60 |
-| GEN | GEN.206 |
-| PERF | PERF.83 |
+| GEN | GEN.211 |
+| PERF | PERF.87 |
 | DB | DB.25 |
 | API | API.25 |
-| ADM | ADM.51 |
+| ADM | ADM.53 |
 | SEC | SEC.33 |
-| TEST | TEST.139 |
-| USR | USR.10 |
+| TEST | TEST.140 |
+| USR | USR.11 |
 | OPS | OPS.42 |
 | DOC | DOC.18 |
 | VIEW | VIEW.11 |
-| POP | POP.11 |
+| POP | POP.12 |
 
 ## Why this exists
 
@@ -439,6 +439,8 @@ Parents marked "new parent" had no old number of their own.
 | ADM.48 | Two test_api_auth_sweep tests fail: /admin/stats/galaxy-settings/<name> answers 302, not 403, to an unauthorised caller (bug) | none | done, PR #863 |
 | ADM.49 | Galaxy shape density settings: the user changes the density range of the spiral arms, the inter-arm space, the core and the bulge | none | done, PR #1116 |
 | ADM.50 | Remove the galaxy settings files and everything around them; keep only an internal record of the current galaxy | none | open |
+| ADM.51 | Regenerating with a class the object cannot support asks to confirm, then does it (bug) | none | open |
+| ADM.52 | A star system editor: plan a system as a 2D diagram or from the command line | none | open |
 | API.1 | Create a system inside an existing sector | 10 (2026-09-24 01:32Z to 02:18Z); 7 (2026-09-24 01:57Z to 02:02Z); 5 (2026-09-24 02:25Z to 05:38Z); 4 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 13 (2026-09-30 16:44Z); 14 (2026-09-30 16:49Z); 15 (2026-09-30 16:51Z to 18:09Z); 32 (2026-09-30 18:14Z); 37 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.2 | Edit a system's generated content | 11 (2026-09-24 01:32Z to 02:18Z); 8 (2026-09-24 01:57Z to 02:02Z); 6 (2026-09-24 02:25Z to 05:38Z); 5 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 14 (2026-09-30 16:44Z); 15 (2026-09-30 16:49Z); 16 (2026-09-30 16:51Z to 18:09Z); 33 (2026-09-30 18:14Z); 38 (2026-09-30 18:39Z to 2026-10-01 04:24Z) | done in 7.43.0, PR #170 |
 | API.3 | Remote generate: generate on a local machine, upload through the API | none | open |
@@ -709,6 +711,11 @@ Parents marked "new parent" had no old number of their own.
 | GEN.203 | Supernova-remnant and planetary-nebula scatter densities set to the catalogued counts | none | open |
 | GEN.204 | Nebula host chance per O and B star lowered to the catalogued one-per-few-O-stars | none | open |
 | GEN.205 | `planetgen plan --redo-nebula-field`: apply the new nebula rate to an existing galaxy | none | open |
+| GEN.206 | A planet's description claims life where the habitability index says none can live (bug) | none | open |
+| GEN.207 | PHI-6: split chemistry into air and water and add a Suitability dimension to the habitability index | none | open |
+| GEN.208 | The habitability description is one paragraph that says where the planet falls in each category and what protection it needs | none | open |
+| GEN.209 | Globular clusters are parent objects for their stars and are named when their sector is filled | none | open |
+| GEN.210 | The galactic core is one round disc sector in the middle of the grid, 4 pc across and 4 pc tall | none | open |
 | MAP.1 | Galaxy Map follow-ups (edge cases) | 11 (2026-09-30 16:44Z); 12 (2026-09-30 16:49Z to 18:09Z); 19 (2026-09-30 18:14Z to 2026-10-01 04:16Z) | done in 7.42.1, PR #168 |
 | MAP.2 | Drill-down navigation (new parent) | none | done (all subitems shipped), PR #234 |
 | MAP.3 | A bigger Galaxy Map with controls underneath | 63 (2026-10-01 01:44Z to 05:05Z) | done in 7.55.0, PR #178 |
@@ -892,6 +899,17 @@ Parents marked "new parent" had no old number of their own.
 | MAP.181 | Dust colour for the dark nebula family on both themes | none | open |
 | MAP.182 | Optional, default do not build: hosted H II and reflection nebulae for pre-placed O and B stars, drawn before their sector exists | none | open |
 | MAP.183 | Optional, default not built for the first release: near-view P and Q nebulae from the seeded field below about 250 pc | none | open |
+| MAP.184 | "Mark rogue planets" on the Sector Map is redundant (bug) | none | open |
+| MAP.185 | Black holes vanish in the Sector Map (bug) | none | open |
+| MAP.186 | A binary pair is drawn in different places on the Galaxy Map and the Sector Map (bug) | none | open |
+| MAP.187 | The see-through "tunnel" in front of the camera leaves a visible halo and hides stars (bug) | none | open |
+| MAP.188 | Sector and slab borders add up to a near-opaque cube grid when zooming in (bug) | none | open |
+| MAP.189 | The Galaxy Map opens flown in to the created sectors | none | open |
+| MAP.190 | Several separate regions of created sectors: which one the Galaxy Map opens on | none | open |
+| MAP.191 | Galaxy Map default view: no density shading, only nebulae shade the stars behind them | none | open |
+| MAP.192 | See the objects whose positions changed in the last orbital update | none | open |
+| MAP.193 | Show every object's axis of rotation, direction of rotation and axial tilt | none | open |
+| MAP.194 | Nebulae and globular clusters open their own zoom window from the Galaxy Map | none | open |
 | NAV.1 | Courses in "bearing mark mark" on nested frames | 28 (2026-09-30 18:14Z); 33 (2026-09-30 18:39Z to 2026-10-01 02:57Z) | done in 7.14.0, PR #130 (see note 4) |
 | NAV.2 | Warp and fold speeds | 29 (2026-09-30 18:14Z); 34 (2026-09-30 18:39Z to 21:54Z) | done in 7.8.0, PR #121 |
 | NAV.3 | One shared picker for the Galaxy, Sector and System displays | none | done, PR #724 |
@@ -1074,6 +1092,10 @@ Parents marked "new parent" had no old number of their own.
 | PERF.80 | "Save the sector paths" takes 24% of a small run and does not speed up with workers | none | open |
 | PERF.81 | Nearest-neighbour search in sector generation: a spatial grid instead of 1.8 million distance calls | none | open |
 | PERF.82 | Cut the cost of inserting a sector (about 17% of the fill) | none | open |
+| PERF.83 | The phenomena scatter takes about 5 minutes to start (bug) | none | open |
+| PERF.84 | Neighbour linking stalls on a large run (bug) | none | open |
+| PERF.85 | Generation stalls after the phenomena scatter and the layer count on the progress bar is wrong (bug) | none | open |
+| PERF.86 | Redo the work queue: drop the task and subtask logic and use Redis simply | none | open |
 | POP.1 | Government ownership of systems | 12 (2026-09-24 01:32Z to 02:18Z); 9 (2026-09-24 01:57Z to 02:02Z); 7 (2026-09-24 02:25Z to 05:38Z); 6 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 15 (2026-09-30 16:44Z); 16 (2026-09-30 16:49Z); 17 (2026-09-30 16:51Z to 18:09Z); 34 (2026-09-30 18:14Z); 39 (2026-09-30 18:39Z to 18:41Z); 59 (2026-09-30 19:02Z to 19:17Z); 63 (2026-09-30 20:01Z to 20:27Z); 46 (2026-09-30 20:07Z); 50 (2026-09-30 20:08Z to 20:48Z); 51 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 (optional since 7.58.2, PR #180) |
 | POP.2 | Names for dominant species on living worlds | 13 (2026-09-24 01:32Z to 02:18Z); 10 (2026-09-24 01:57Z to 02:02Z); 8 (2026-09-24 02:25Z to 05:38Z); 7 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 16 (2026-09-30 16:44Z); 17 (2026-09-30 16:49Z); 18 (2026-09-30 16:51Z to 18:09Z); 35 (2026-09-30 18:14Z); 40 (2026-09-30 18:39Z to 18:41Z); 60 (2026-09-30 19:02Z to 19:17Z); 64 (2026-09-30 20:01Z to 20:27Z); 47 (2026-09-30 20:07Z); 51 (2026-09-30 20:08Z to 20:48Z); 52 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
 | POP.3 | Database of spacefaring species | 14 (2026-09-24 01:32Z to 02:18Z); 11 (2026-09-24 01:57Z to 02:02Z); 9 (2026-09-24 02:25Z to 05:38Z); 8 (2026-09-24 02:53Z to 2026-09-30 17:58Z); 17 (2026-09-30 16:44Z); 18 (2026-09-30 16:49Z); 19 (2026-09-30 16:51Z to 18:09Z); 36 (2026-09-30 18:14Z); 41 (2026-09-30 18:39Z to 18:41Z); 61 (2026-09-30 19:02Z to 19:17Z); 65 (2026-09-30 20:01Z to 20:27Z); 48 (2026-09-30 20:07Z); 52 (2026-09-30 20:08Z to 20:48Z); 53 (2026-09-30 20:43Z to 2026-10-01 04:37Z) | done in 7.49.0, PR #169 |
@@ -1084,6 +1106,7 @@ Parents marked "new parent" had no old number of their own.
 | POP.8 | A tech-level design from the six domain indices | none | open |
 | POP.9 | A tech level generated for every technological species | none | open |
 | POP.10 | Facility types: programmable, picked from a dropdown, with affiliation and Green/Yellow/Red ratings | none | open |
+| POP.11 | Scatter space vessels and stations for the races in their territories | none | open |
 | SEC.1 | Lock out an IP after failed logins | 61 (2026-10-01 01:15Z to 05:29Z) | done, PR #220 |
 | SEC.2 | Security audit findings of 2026-09-30 (new parent) | none | done in 7.5.0, PR #112, except SEC.17 to SEC.19 |
 | SEC.3 | Seeded admin/password login claimable | 39 (2026-09-30 19:02Z to 20:27Z) | done in 7.5.0, PR #112 |
@@ -1125,6 +1148,7 @@ Parents marked "new parent" had no old number of their own.
 | USR.7 | A user-level interface with bookmarks | 69 (2026-10-01 02:13Z to 05:29Z) | open |
 | USR.8 | Every signed-in user can generate a one-off system | none | open |
 | USR.9 | `seo.privacy_note` text, "download my data" and "delete my account" on the account page | none | open |
+| USR.10 | Users add their own objects (ships and stations) and track their movement on the map | none | open |
 | UX.0 | Bugs and small fixes (standing item) | none | open while it holds bugs |
 | UX.1 | Class reference pages | 56 (2026-10-01 01:19Z to 04:37Z) | done in 7.46.0, PR #167 |
 | UX.2 | Menus sized to what they hold (bug) | 62 (2026-10-01 01:44Z to 05:29Z) | done, PR #528 |
@@ -1223,6 +1247,10 @@ Parents marked "new parent" had no old number of their own.
 | UX.95 | Tables show their rows first and fill the filter-menu counts a moment later | none | open |
 | UX.96 | A table that hits the statement limit says the database is busy and retries, instead of failing with a 502 | none | open |
 | UX.97 | Search results: each panel runs under its own time limit and is fetched on its own | none | open |
+| UX.98 | The Generate log has odd wording and mixed section headers (bug) | none | open |
+| UX.99 | Rogue planets do not show their surface gravity (bug) | none | open |
+| UX.100 | Planet and moon lists show habitability as symbols, not notes | none | open |
+| UX.101 | PHI-6 symbols in the planet and moon lists, coloured by rating | none | open |
 | VIEW.1 | View from a planet | none | open |
 | VIEW.2 | A starmap seen from a planet. RESEARCH WITH BOSS FIRST | 83 (2026-10-01 02:55Z to 05:29Z) | open |
 | VIEW.3 | Render the view as a PNG, with constellations | 84 (2026-10-01 02:55Z to 05:29Z) | open |
@@ -1458,6 +1486,7 @@ parent; it is gone, and its bugs are top-level items (UX.15, UX.16).
 | TEST.136 | A nebula-rate audit test: the nebula counts and fillings stay inside the observed bands | none | open |
 | TEST.137 | test_a_neighborhood_from_the_generate_page[core] fails once under load (bug) | none | open |
 | TEST.138 | test_open_map_menus_hold_no_overlap[web.galaxy-1280] fails once in a full parallel run (bug) | none | open |
+| TEST.139 | Rework, optimise and rebuild the whole test suite so it runs faster and in modules | none | open |
 | USR.1.1 | USR.2 |
 | USR.1.2 | USR.3 |
 | USR.1.3 | USR.4 |

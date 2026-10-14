@@ -543,6 +543,61 @@ with `clamp()`.
   Prerequisites: none. Related: PERF.64, PERF.71.
   Design: [docs/design/slow-reads-and-timeouts.md](design/slow-reads-and-timeouts.md)
 
+- [ ] **UX.98 The Generate log has odd wording and mixed section headers (bug)**
+  GitHub issue [#1216](https://github.com/dwhagar/planetGen/issues/1216)
+  (Boss, 2026-10-11 01:17Z): the log goes "Step 1 of 12, 2 of 12", then
+  says "Steps 4 to 12 of 12", which is odd, and the section headers then
+  take a different format. Done: one format for every section separator,
+  one wording for a single stage and for a run of stages (for example
+  "Stage 4 of 12" and "Stages 4 to 12 of 12"), the same in the web log,
+  the CLI text and the downloaded log, with a test over the formatter.
+  Owner: Bugfixes lane 1, with PERF.85.
+  Prerequisites: none. Related: PERF.65, PERF.66, PERF.85.
+
+- [ ] **UX.99 Rogue planets do not show their surface gravity (bug)**
+  GitHub issue [#1219](https://github.com/dwhagar/planetGen/issues/1219)
+  (Boss, 2026-10-11 02:45Z): "Rogue planets need to show their surface
+  gravity with the other information." Done: a rogue planet's page, row
+  and map popup show its surface gravity like any other planet, with a
+  test. Owner: Bugfixes lane 2, after its current items.
+  Prerequisites: none. Related: GEN.142, UX.22.
+
+- [ ] **UX.100 Planet and moon lists show habitability as symbols, not notes**
+  GitHub issue [#1217](https://github.com/dwhagar/planetGen/issues/1217)
+  (Boss, 2026-10-11 01:34Z): "The habitability notes are too much in the
+  planet and moon list. Just use just symbols instead." Overall rating a
+  coloured star, pressure a coloured trapezoid, radiation a square,
+  temperature a thermometer, chemistry a beaker, all simple vector
+  shapes from the icon library. Superseded in part by the PHI-6 symbols
+  of GitHub issue
+  [#1221](https://github.com/dwhagar/planetGen/issues/1221) (UX.101);
+  this item removes the notes from the lists and builds the symbol
+  column, UX.101 swaps in the final shapes. Boss, 2026-10-11 01:35Z: the
+  description text at the end should be in paragraph form, simply saying
+  for each category where the planet falls and why, with no extra
+  information (GEN.208). Owner: Bugfixes lane 2 (interface), after the
+  generation items.
+  Prerequisites: none. Related: UX.30, UX.32, UX.101, GEN.208.
+
+- [ ] **UX.101 PHI-6 symbols in the planet and moon lists, coloured by rating**
+  GitHub issue [#1221](https://github.com/dwhagar/planetGen/issues/1221)
+  (Boss, 2026-10-11 03:24Z), which supersedes the symbols of #1217.
+  Symbols: Radiation, a small central circle with three radial arcs 120
+  degrees apart; Temperature, an upright equilateral triangle bisected
+  by a vertical line; Pressure, a central square flanked by two opposing
+  inward-pointing equilateral triangles; Air Chemistry, an upright
+  regular hexagon enclosing three horizontal lines; Water Chemistry, a
+  downward-pointing equilateral triangle enclosing a centred circle;
+  Suitability, a circle enclosing a nested diamond with a centre dot;
+  Overall Habitability, a solid circle inside an equilateral triangle,
+  inside an outer ring. Each symbol takes the colour of its rating
+  (Blue, Green, Yellow, Red) so the list reads at a glance. Done: the
+  six symbols and the overall symbol as vector shapes in the icon
+  library, drawn on both themes with enough contrast, used in the planet
+  and moon lists, and a test checks every rating colour. Needs the PHI-6
+  model.
+  Prerequisites: GEN.207, UX.100. Related: UX.100, GEN.207.
+
 ## MAP: Galaxy Map, Sector Map, System Map
 
 MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
@@ -716,6 +771,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   built by MAP.179 (scattered nebulae as markers from level 8) and
   MAP.176 (regions); the black-hole and habitable-world markers stay
   here.
+  Note (2026-10-14, GitHub issue sweep):
+  [#1234](https://github.com/dwhagar/planetGen/issues/1234) (Boss,
+  2026-10-14 00:19Z): "Add to the galaxy markers (optional) for
+  habitable worlds, specific classes, etc available in various star
+  systems from zoom levels in the galactic map. Also icons for space
+  stations, etc." So the markers are optional per kind (MAP.123), cover
+  specific classes as well as habitable worlds, appear at the zoom
+  levels where the map budget allows, and stations and vessels get icons
+  once they exist (USR.10, POP.11).
 
 - [ ] **MAP.139 The Galaxy View uses its spare space: an info box with a Details link, and menu items**
   Boss (GitHub issues [#758](https://github.com/dwhagar/planetGen/issues/758) and [#715](https://github.com/dwhagar/planetGen/issues/715)): "there's a lot of wasted space
@@ -1381,6 +1445,149 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: DB.24, MAP.173.
   Design: [docs/design/nebula-density-vs-reality.md](design/nebula-density-vs-reality.md)
 
+- [ ] **MAP.184 "Mark rogue planets" on the Sector Map is redundant (bug)**
+  GitHub issue [#1218](https://github.com/dwhagar/planetGen/issues/1218)
+  (Boss, 2026-10-11 02:43Z): "In the sector view the mark rogue planets
+  is redundant and should be removed." Done: the control and its code
+  are gone from the Sector Map (rogue planets keep their normal marker),
+  with the browser tests and help text updated. Owner: Foundations lane
+  2, in its map queue.
+  Prerequisites: none. Related: MAP.132, MAP.123.
+
+- [ ] **MAP.185 Black holes vanish in the Sector Map (bug)**
+  GitHub issue [#1223](https://github.com/dwhagar/planetGen/issues/1223)
+  (Boss, 2026-10-11 19:46Z): "The galaxy view shows black holes clearly,
+  but when I go to a sector view, they vanish. I think we have a
+  coordinate split somewhere between galactic view and sector view,
+  which could get in the way of infinite zoom." Done: the cause is found
+  (a coordinate or frame difference between the Galaxy Map and the
+  Sector Map, or a filter that drops phenomena), the black holes show in
+  the Sector Map at their right places, and a test covers a sector with
+  a black hole in both views. If a coordinate split is the cause, the
+  fix puts both views on the one frame used by the fly-through map
+  (MAP.152). Owner: Foundations lane 2, in its map queue before MAP.152.
+  Prerequisites: none. Related: MAP.152, MAP.146, MAP.164.
+
+- [ ] **MAP.186 A binary pair is drawn in different places on the Galaxy Map and the Sector Map (bug)**
+  GitHub issue [#1215](https://github.com/dwhagar/planetGen/issues/1215)
+  (Boss, 2026-10-11 01:08Z, with a screenshot; reproduced on any binary
+  system): the same two stars are placed differently in two views.
+  Boss's guess: the systems use a compressed distance model for the
+  orbit and the match would be exact with the real distance model,
+  probably a render flag. Done: the cause is confirmed, both views place
+  the pair by the same rule (the real separation unless a view says it
+  is compressed, with the compression shown in the legend), and a test
+  compares the two placements for a binary system. Owner: Foundations
+  lane 2, in its map queue.
+  Prerequisites: none. Related: MAP.89, GEN.62.
+
+- [ ] **MAP.187 The see-through "tunnel" in front of the camera leaves a visible halo and hides stars (bug)**
+  GitHub issue [#1211](https://github.com/dwhagar/planetGen/issues/1211)
+  (Boss, 2026-10-11 00:16Z, three screenshots) and GitHub issue
+  [#1213](https://github.com/dwhagar/planetGen/issues/1213) (Boss,
+  2026-10-11 00:20Z; the same root cause, likely): the near-field window
+  that makes the foreground vanish is obvious and leaves an odd halo,
+  and in the middle of a filled block it makes the stars disappear too,
+  when the idea was to make things more visible, not less. Boss attached
+  a research note on the 3D rendering camera
+  (3d-rendering-camera-research.md, on issue #1213) for how to structure
+  the fix. Done: no visible tunnel edge or halo at any zoom level, stars
+  never fade out because of the near-field window (the window fades the
+  foreground density and cell boxes only), and a browser test measures
+  star visibility inside a filled block while zooming in. Owner:
+  Foundations lane 2, in its map queue, with MAP.155 and MAP.150.
+  Prerequisites: none. Related: MAP.146, MAP.150, MAP.152, MAP.155,
+  MAP.188.
+
+- [ ] **MAP.188 Sector and slab borders add up to a near-opaque cube grid when zooming in (bug)**
+  GitHub issue [#1212](https://github.com/dwhagar/planetGen/issues/1212)
+  (Boss, 2026-10-11 00:19Z): "During the zoom in process the sector and
+  slab boarders kind of add up and make the general cube-grid nearly
+  opaque, we need to make them barely visible and wire-frame highlights
+  when we go to select a slab or block or sector." Done: borders are
+  barely visible by default at every zoom, the opacity does not add up
+  with the number of cells in view, and a wire-frame highlight draws
+  only for the selected or hovered slab, block or sector; a browser test
+  measures the grid's total opacity at the deepest zoom. Owner:
+  Foundations lane 2, in its map queue.
+  Prerequisites: none. Related: MAP.146, MAP.141, MAP.150.
+
+- [ ] **MAP.189 The Galaxy Map opens flown in to the created sectors**
+  GitHub issue [#1232](https://github.com/dwhagar/planetGen/issues/1232)
+  (Boss, 2026-10-13 23:16Z): one big reason for the infinite zoom is to
+  restrict the field to the created sectors: "Ideally when galactic map
+  is loaded, it should fly into the zoom where the user can see all of
+  the sectors in a region." Boss: get one group (the neighbourhood fill)
+  working first. Done: when the Galaxy Map loads and sectors have been
+  created, the camera flies in to a view that frames the group of
+  created sectors (their bounding box plus a margin) and the field shows
+  only that region at the start; the user can still zoom out to the
+  whole galaxy. A browser test loads a galaxy with one neighbourhood and
+  finds the camera framed on it. Owner: Foundations lane 2, after
+  MAP.150 and MAP.152; part of the fly-through headline.
+  Prerequisites: MAP.150, MAP.152. Related: MAP.146, MAP.151, MAP.190.
+
+- [ ] **MAP.190 Several separate regions of created sectors: which one the Galaxy Map opens on**
+  GitHub issue [#1232](https://github.com/dwhagar/planetGen/issues/1232)
+  (Boss, 2026-10-13 23:16Z): "Multiple regions will have to be handled
+  with an algorithm of some kind, not sure what yet." Done: when created
+  sectors form more than one separate group, the map has a rule for
+  which group it opens on and a way to jump between the groups (a list
+  of regions, nearest to the origin, or the most recently changed),
+  chosen by Boss from the options in the note. Decision needed from Boss
+  before building.
+  Prerequisites: MAP.189. Related: MAP.189, MAP.151.
+
+- [ ] **MAP.191 Galaxy Map default view: no density shading, only nebulae shade the stars behind them**
+  GitHub issue [#1233](https://github.com/dwhagar/planetGen/issues/1233)
+  (Boss, 2026-10-14 00:17Z): "Default view should in the galaxy map
+  should be no density shading, only shading should be that of nebulae
+  that should change the colors of the stars shining through the nebulae
+  and the boundaries should be fussy and translucent... going to the
+  infinite zoom model we don't need to see the densities and anything
+  but the stars and markers for where on the map known space is." Done:
+  the default Galaxy Map shows stars and markers for known space with no
+  density, age or luminosity fill; the "Color by" density and age views
+  stay as options; nebulae tint the colour of the stars seen through
+  them and have soft translucent boundaries (MAP.142). Owner:
+  Foundations lane 2, after MAP.155 and the nebula map work (MAP.176).
+  Prerequisites: MAP.155. Related: MAP.131, MAP.142, MAP.176, MAP.146.
+
+- [ ] **MAP.192 See the objects whose positions changed in the last orbital update**
+  GitHub issue [#1231](https://github.com/dwhagar/planetGen/issues/1231)
+  (Boss, 2026-10-13 16:41Z): "I would like to be able to see the
+  positions that updated in the last orbital update." Done: after an
+  orbital update the user can see which objects moved and how far (a
+  Galaxy and Sector Map highlight, a list in the admin page, or both)
+  from the update's own record. Needs from Boss: where to see them (map
+  highlight, list, admin report) and how long the "last update" view
+  stays (until the next update or a set time).
+  Prerequisites: none. Related: GEN.105, GEN.139, ADM.36.
+
+- [ ] **MAP.193 Show every object's axis of rotation, direction of rotation and axial tilt**
+  GitHub issue [#1227](https://github.com/dwhagar/planetGen/issues/1227)
+  (Boss, 2026-10-12 23:52Z): "For all objects show their axis of
+  rotation, direction of rotation, and the axial tilt. Also should be
+  able to see the vectors of motion, but I think that's in another item
+  already." Done: the System Map and the object pages draw the spin
+  axis, the direction of rotation and the axial tilt for every star,
+  planet, moon and compact object, each toggled in the layer menu; the
+  motion vectors are drawn by the same layer menu (no existing item
+  draws them: they come with the orbital-update work, GEN.105). Owner:
+  Foundations lane 2, after the fly-through map.
+  Prerequisites: none. Related: GEN.105, GEN.139, ADM.36, MAP.169.
+
+- [ ] **MAP.194 Nebulae and globular clusters open their own zoom window from the Galaxy Map**
+  GitHub issue [#1204](https://github.com/dwhagar/planetGen/issues/1204)
+  (Boss, 2026-10-10 23:34Z): "Groupings of items like this should get
+  their own zoom window from the galactic view that shows the specific
+  arrangements. Neither care how many sectors they go through." Done:
+  choosing a nebula or a globular cluster on the Galaxy Map flies into a
+  view of that object alone, showing its own arrangement (cloud shape,
+  cluster stars) whatever sectors it crosses. Owner: Foundations lane 2,
+  after the nebula map work (MAP.176 to MAP.180).
+  Prerequisites: MAP.176. Related: MAP.176, MAP.178, MAP.180, GEN.209.
+
 ## NAV: Navigation and courses
 
 - [ ] **NAV.4 Save a course**
@@ -1820,6 +2027,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   more below the Sgr A* sector). Decided (Boss, 2026-10-10 18:44Z,
   defaults approved; default 50 pc;
   leave the model alone).
+  Note (2026-10-14, GitHub issue sweep):
+  [#1222](https://github.com/dwhagar/planetGen/issues/1222) (Boss,
+  2026-10-11): the centre of the galaxy becomes one round disc sector, 4
+  pc across and 4 pc tall (GEN.210); this item then fills that one
+  sector instead of a set of core sectors.
 
 - [ ] **GEN.27 Class P (glaciated world) only in the habitable zone, and fitting there**
   Boss (2026-10-01 15:26Z): "make sure our frozen world, Class P, only
@@ -3395,6 +3607,96 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: GEN.152, DB.24. Related: GEN.196, GEN.176.
   Design: [docs/design/nebula-density-vs-reality.md](design/nebula-density-vs-reality.md)
 
+- [ ] **GEN.206 A planet's description claims life where the habitability index says none can live (bug)**
+  GitHub issue [#1220](https://github.com/dwhagar/planetGen/issues/1220)
+  (Boss, 2026-10-11 03:02Z): a planet with red chemistry (water activity
+  0.523, microbial 0.00 and complex life 0.00) still has a description
+  that says life has evolved, with an evolutionary timeline, flora and
+  oceans of macro-algae. Boss: "if microbial life can't be on a world
+  because of the chemistry then we should make sure that the planet
+  description gets edited to not make it sound like there is life."
+  Done: when the habitability index gives microbial life 0, the
+  description makes no claim of life, evolution or an evolutionary
+  timeline (it may say what the world lacks); when it allows microbial
+  life only, it never describes complex flora or fauna; a test over a
+  sample of generated planets finds no description that contradicts its
+  own index. Owner: Foundations lane 2, after PERF.80 and GEN.200.
+  Prerequisites: none. Related: GEN.84, GEN.90, GEN.207, GEN.208.
+
+- [ ] **GEN.207 PHI-6: split chemistry into air and water and add a Suitability dimension to the habitability index**
+  GitHub issue [#1221](https://github.com/dwhagar/planetGen/issues/1221)
+  (Boss, 2026-10-11 03:24Z): extend PHI-4 to six dimensions: Pressure,
+  Temperature, Air Chemistry (is the air breathable), Water Chemistry
+  (is the water drinkable), Radiation, and Suitability (long-term
+  survival: enough food and water for a person to sustain themselves,
+  from the planet's evolutionary timeline and age, whether there is any
+  food at all on the surface, enough water). The first five are the core
+  (can a person survive the surface conditions); Suitability only
+  affects the long term. Importance order: Radiation, Temperature,
+  Pressure, Air Chemistry, Water Chemistry, Suitability. Rules from
+  Boss: Radiation sets the maximum of the whole score (Yellow caps at
+  Yellow, Red at Red), Temperature likewise; Pressure matters only when
+  a full suit is not needed anyway, and red pressure makes the overall
+  rating red, yellow pressure caps it at Yellow; Air Chemistry yellow or
+  red caps the score at Yellow (red air alone cannot make the overall
+  rating red); Water Chemistry yellow or red caps it at Yellow;
+  Suitability is always Red if any of the first three are Red, at most
+  Yellow if any of the first four contains a Yellow, Green only if the
+  first five are Green or Blue, Blue only if all others are Blue; a Red
+  Suitability drops any overall score to Yellow but never to Red. Done:
+  the model, the stored values, the planet pages and the API carry the
+  six dimensions with the rules above, and tests cover each rule. Needs
+  answers from Boss to several rules before building (see the comment on
+  the issue). Owner: Foundations lane 2, after GEN.206.
+  Prerequisites: GEN.206. Related: GEN.84, GEN.90, GEN.148, UX.101, GEN.208.
+
+- [ ] **GEN.208 The habitability description is one paragraph that says where the planet falls in each category and what protection it needs**
+  GitHub issue [#1217](https://github.com/dwhagar/planetGen/issues/1217)
+  (Boss, 2026-10-11 01:35Z and 02:41Z): the text at the end should be a
+  paragraph saying, for each category, where the planet falls and why,
+  with no extra information; the chemistry line must be aware of the
+  rest of the score (when the temperature is Red the visitor needs a
+  thermal environment suit, so the air is moot, and the wording should
+  say that while one factor is green or blue another makes it
+  impossible). Boss wants more nuance about the protective equipment
+  needed and why: different suits rated for low radiation with high
+  temperature, or high radiation with low temperature, and so on. Boss
+  attached two research notes (Thermal Respiratory Protection Research
+  and Environmental Extremes and Protection Research, on issue #1217)
+  that this thread could not open; they must be added to the repository
+  before this is built. Done: the description names the suit or mask
+  classes the planet needs and why, in one short paragraph per planet,
+  with tests over a sample of planets. Owner: Foundations lane 2, with
+  GEN.207.
+  Prerequisites: GEN.207. Related: GEN.207, UX.100, GEN.206.
+
+- [ ] **GEN.209 Globular clusters are parent objects for their stars and are named when their sector is filled**
+  GitHub issue [#1204](https://github.com/dwhagar/planetGen/issues/1204)
+  (Boss, 2026-10-10 23:34Z): "Globular clusters will be a parent object
+  for the stars within, the stars within the cluster. Clusters will get
+  their own unique name when the sector is filled, not before." Done: a
+  cluster is a stored object that its stars point to as their parent, it
+  has no name until its first sector is filled and then takes one unique
+  name, and the cluster pages and the Galaxy Map use the parent link.
+  Owner: Foundations lane 2, with the globular cluster group (GEN.159 to
+  GEN.164).
+  Prerequisites: GEN.159. Related: GEN.159, GEN.160, GEN.164.
+
+- [ ] **GEN.210 The galactic core is one round disc sector in the middle of the grid, 4 pc across and 4 pc tall**
+  GitHub issue [#1222](https://github.com/dwhagar/planetGen/issues/1222)
+  (Boss, 2026-10-11 19:44Z): "I want to revamp the sector algorithm so
+  the very center of the galaxy is a round disc of a sector, like a
+  hockey puck shape in a column of similar sectors, a diameter goal of 4
+  parsecs from the center. Height of 4 pc from top to bottom. Then we
+  start splitting. I find that things placed in the center of the galaxy
+  are difficult to view." Done: ring 0 is a single cylindrical sector 4
+  pc across and 4 pc tall at the galactic centre, the sector grid
+  outside it splits from there, the nucleus lives in it, and the map
+  shows it as a disc. Changes the sector grid, so it goes with the
+  repeatable-galaxy generator version bump. Owner: Foundations lane 1,
+  after the repeatable-galaxy chain starts.
+  Prerequisites: none. Related: GEN.24, ADM.30, GEN.135, OPS.37.
+
 ## PERF: Speed, caching, bulk generation and parallel work
 
 - [ ] **PERF.18 Run the GEN.30 bright-star backfill in parallel on the work queue**
@@ -3470,6 +3772,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   the backfill around the run via `sector_centers_since(started_at)`).
   Derive steps that have a natural artifact (bright level, population
   watermark) instead of duplicating them.
+  Note (2026-10-14, GitHub issue sweep):
+  [#1229](https://github.com/dwhagar/planetGen/issues/1229) (Boss,
+  2026-10-13): the whole work queue is to be redone (PERF.86). Build
+  this item only if the PERF.86 plan keeps it; otherwise it is folded
+  into or dropped by that plan.
 
 - [ ] **PERF.30 Finish an interrupted block or sector run on the next start**
   Boss (2026-10-07 11:47Z): "Add a mechanism to finish generating a
@@ -3487,6 +3794,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   duplicate task, a clock change. Check whether the uid claim and
   name-registry confirmation (#657) are inside the sector save
   transaction; if not, a crash leaves an orphan reservation.
+  Note (2026-10-14, GitHub issue sweep):
+  [#1229](https://github.com/dwhagar/planetGen/issues/1229) (Boss,
+  2026-10-13): the whole work queue is to be redone (PERF.86). Build
+  this item only if the PERF.86 plan keeps it; otherwise it is folded
+  into or dropped by that plan.
   Prerequisite: PERF.29.
 
 - [ ] **PERF.33 Progress bars and ETAs from measured performance**
@@ -3581,6 +3893,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   default yes): a reserved
   interactive worker costs one process (about 195 MB) while any bulk run
   is active; start it on demand and exit when its queue is empty.
+  Note (2026-10-14, GitHub issue sweep):
+  [#1229](https://github.com/dwhagar/planetGen/issues/1229) (Boss,
+  2026-10-13): the whole work queue is to be redone (PERF.86). Build
+  this item only if the PERF.86 plan keeps it; otherwise it is folded
+  into or dropped by that plan.
   Design: [docs/design/performance-eta-queue-and-caching.md](design/performance-eta-queue-and-caching.md)
 
 - [ ] **PERF.41 Stamp the tile and page caches with a TILE_FORMAT constant instead of the version (optional)**
@@ -3708,6 +4025,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   DB.21, exports), with a warm worker reserved for it and the admin poll
   route they already use; no public polling route. Low priority. Owner:
   Foundations lane 1.
+  Note (2026-10-14, GitHub issue sweep):
+  [#1229](https://github.com/dwhagar/planetGen/issues/1229) (Boss,
+  2026-10-13): the whole work queue is to be redone (PERF.86). Build
+  this item only if the PERF.86 plan keeps it; otherwise it is folded
+  into or dropped by that plan.
   Prerequisites: none. Related: PERF.19, PERF.24, DB.21, PERF.71.
   Design: [docs/design/slow-reads-and-timeouts.md](design/slow-reads-and-timeouts.md)
 
@@ -3752,6 +4074,63 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   after PERF.67 and PERF.54.
   Prerequisites: none. Related: PERF.31, PERF.73.
   Design: [docs/design/generation-benchmark-report.md](design/generation-benchmark-report.md)
+
+- [ ] **PERF.83 The phenomena scatter takes about 5 minutes to start (bug)**
+  GitHub issue [#1225](https://github.com/dwhagar/planetGen/issues/1225)
+  (Boss, 2026-10-11 21:13Z): "It took about 5 minutes to start. I want
+  to look into that, find out what might cause that and if it's a bug or
+  if it needs a progress bar." Done: the cause of the wait between the
+  scatter stage starting and its first progress is found and measured
+  (the mass-limit pass reading the density skeleton, the sector marking,
+  an index build, a queue wait); if it is a fault it is fixed, otherwise
+  the wait gets its own stage line and progress bar so the job is never
+  silent for more than a few seconds. A test or timing record shows the
+  first progress within seconds on the benchmark galaxy. Owner:
+  Foundations lane 1, right after the nebula tuning chain (GEN.152,
+  GEN.203, GEN.204, TEST.136), before DB.24.
+  Prerequisites: none. Related: PERF.66, PERF.67, PERF.79, PERF.82.
+
+- [ ] **PERF.84 Neighbour linking stalls on a large run (bug)**
+  GitHub issue [#1224](https://github.com/dwhagar/planetGen/issues/1224)
+  (Boss, 2026-10-11 21:05Z): "Neighbor linking stalled out twice, it was
+  a lot of data it was processing but it used to do it just fine with
+  the same amount of data." Done: the stall is reproduced on a run of
+  the same size, the cause is found (a query that stopped using an
+  index, a lock, a missing batch, a worker waiting on a full queue) and
+  fixed, and the stage shows steady progress instead of freezing. A test
+  or timing record keeps the link stage inside a budget. Needs from
+  Boss: the size of the runs that stalled and the job log, if still
+  around. Owner: Foundations lane 1, right after PERF.83.
+  Prerequisites: none. Related: PERF.83, PERF.85, PERF.68, PERF.79.
+
+- [ ] **PERF.85 Generation stalls after the phenomena scatter and the layer count on the progress bar is wrong (bug)**
+  GitHub issue [#1214](https://github.com/dwhagar/planetGen/issues/1214)
+  (Boss, 2026-10-11 01:01Z, with a screenshot): "The system just seems
+  stalled after the scattering of phenomena and there is a problem in
+  the layer count on the progress bar." Done: the stall after the
+  scatter is reproduced and its cause found (it may be the same cause as
+  PERF.83 or PERF.84; check them first), and the layer count shown on
+  the progress bar matches the layers the stage really works through.
+  Owner: Bugfixes lane 1, after PERF.67 and PERF.54, together with
+  UX.98.
+  Prerequisites: none. Related: PERF.83, PERF.84, PERF.66, PERF.67.
+
+- [ ] **PERF.86 Redo the work queue: drop the task and subtask logic and use Redis simply**
+  GitHub issue [#1229](https://github.com/dwhagar/planetGen/issues/1229)
+  (Boss, 2026-10-13 02:41Z): "I was mistaken about how Redis worked and
+  so I made our queuing system way too complicated. I need to look at
+  what we're doing and junk all of the logic on what makes a task and
+  subtask and all of that. It's going to be a lot of work too but I
+  think I'm wasting a lot of efficiency." Done: a design note on what
+  the queue does today, what it needs to do (resumable runs, cancel,
+  progress bars and ETAs, per-stage records, job logs, the single
+  scatter job), and the simplest design on plain Redis queues, then the
+  rebuild; PERF.40, PERF.78, ADM.15, PERF.29 and PERF.30 wait for this
+  plan and are folded in or dropped. Needs from Boss: which behaviours
+  must survive (see the comment on the issue). Owner: a research thread
+  first (coordinator to assign), then Foundations lane 1.
+  Prerequisites: none. Related: PERF.40, PERF.78, PERF.29, PERF.30,
+  ADM.15, PERF.24.
 
 ## DB: Database and schema
 
@@ -4270,6 +4649,11 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   Foundations lane 1 (2026-10-10, PERF.38, PR #1144): the page-time re-
   run under Ludicrous Speed moved here from PERF.38; it needs this item
   built and a real fill.
+  Note (2026-10-14, GitHub issue sweep):
+  [#1229](https://github.com/dwhagar/planetGen/issues/1229) (Boss,
+  2026-10-13): the whole work queue is to be redone (PERF.86). Build
+  this item only if the PERF.86 plan keeps it; otherwise it is folded
+  into or dropped by that plan.
 
 - [ ] **ADM.32 Add a star system to a sector: at the emptiest spot, at given coordinates, or at random outside every Hill sphere**
   Boss (2026-10-07 11:47Z): "Need a way to add a single star system to a
@@ -4412,6 +4796,32 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   once, and the changelog entry says the files are gone.
   Prerequisites: none. Related: ADM.18, OPS.28, OPS.37, DB.16, DB.17,
   DOC.14, GEN.135.
+
+- [ ] **ADM.51 Regenerating with a class the object cannot support asks to confirm, then does it (bug)**
+  GitHub issue [#1228](https://github.com/dwhagar/planetGen/issues/1228)
+  (Boss, 2026-10-13 02:27Z, labelled bug): "if the user asks to
+  regenerate anything, and selects a class not supported by the size or
+  some other parameter, ask the user to confirm and do it anyway if they
+  confirm." Done: every regenerate and Generate path that takes a class
+  or type checks it against the generation rules, shows what the object
+  would break (size, zone, mass), and does it anyway after an explicit
+  confirmation, on the web, the CLI (a confirm flag) and the API (a
+  force field); a refusal without confirmation changes nothing. Owner:
+  Bugfixes lane 2, after its current items.
+  Prerequisites: none. Related: ADM.35, ADM.32, GEN.181, ADM.52.
+
+- [ ] **ADM.52 A star system editor: plan a system as a 2D diagram or from the command line**
+  GitHub issue [#1228](https://github.com/dwhagar/planetGen/issues/1228)
+  (Boss, 2026-10-13 02:27Z): "We need a star system editor that the user
+  if admin can plan the system graphically or via the command line.
+  Graphically will be the order of objects as a 2D diagram, nice and
+  simple. Drag and drop radial distance from the star. Positions will be
+  randomized." Done: an admin editor shows a system as a simple 2D
+  diagram of its objects in order, lets the admin drag each object's
+  radial distance, then saves the system with random positions on the
+  orbits; the same plan can be written as a command line recipe. Owner:
+  Foundations lane 2, after the fly-through map.
+  Prerequisites: none. Related: ADM.32, ADM.35, ADM.36, API.18, ADM.51.
 
 ## SEC: Security
 
@@ -4693,6 +5103,29 @@ clears each one.
   Bugfixes lane 2, with TEST.126.
   Prerequisites: none. Related: TEST.126, TEST.128, TEST.137.
 
+- [ ] **TEST.139 Rework, optimise and rebuild the whole test suite so it runs faster and in modules**
+  GitHub issue [#1230](https://github.com/dwhagar/planetGen/issues/1230)
+  (Boss, 2026-10-13 02:43Z): the testing scripts "have been cobbled
+  together every step of the way like a never ending set of additions on
+  a house"; a full run takes well over an hour; "I want to make sure
+  we're not wasting time or if we can make 1 test say more". Boss,
+  2026-10-14 12:17Z: a dedicated thread (Test Suite Rebuild) reworks,
+  optimises and rebuilds the entire suite from the ground up so it runs
+  faster and is modular, so a run can test only the things that changed
+  since the last run. Done: a plan and then a rebuilt suite where (1)
+  each module of the code has its own tests and a run can select the
+  modules a change touches (by changed files or by the last run), (2)
+  the time per test is measured and the slow ones are cut, merged or
+  made cheaper, (3) overlapping tests become one test that checks more,
+  (4) the full run is much shorter than the present 30 to 70 minutes,
+  and (5) the flaky tests (TEST.111, TEST.116, TEST.125 to TEST.130,
+  TEST.132, TEST.134, TEST.137, TEST.138) are fixed or replaced as part
+  of it. Owner: the Test Suite Rebuild thread (a dedicated thread,
+  started 2026-10-14 12:18Z); the lanes keep running the full suite
+  before they merge until it lands.
+  Prerequisites: none. Related: TEST.111, TEST.125, TEST.126, TEST.128,
+  TEST.133, TEST.137, TEST.138, OPS.31.
+
 ## USR: User accounts
 
 - [ ] **USR.1 User accounts**
@@ -4899,6 +5332,16 @@ clears each one.
   Boss; drop if unwanted.
   Prerequisites: none.
   Design: [docs/design/settings-seo-and-accounts.md](design/settings-seo-and-accounts.md)
+
+- [ ] **USR.10 Users add their own objects (ships and stations) and track their movement on the map**
+  GitHub issue [#1226](https://github.com/dwhagar/planetGen/issues/1226)
+  (Boss, 2026-10-12 23:27Z): "Allow users to add their own objects, not
+  planets or anything but like a ship or a station or some such that
+  they can track the movement of in the map." Done: a signed-in user can
+  add a ship or station object, give it a position and movement, and see
+  it and its track on the maps; the object belongs to the user. Needs
+  answers from Boss (see the comment on the issue). Owner: not assigned.
+  Prerequisites: none. Related: USR.8, GEN.105, NAV.4.
 
 ## OPS: Installers, hosting, CI, releases
 
@@ -5453,3 +5896,13 @@ Population, species and polities (POP.1 to POP.6) shipped in PRs #169 to
   existing kinds rather than replace them; ship the mechanism plus one
   example type.
   Design: [docs/design/population-and-politics.md](design/population-and-politics.md)
+
+- [ ] **POP.11 Scatter space vessels and stations for the races in their territories**
+  GitHub issue [#1226](https://github.com/dwhagar/planetGen/issues/1226)
+  (Boss, 2026-10-12 23:27Z): "Also part of population and tech, have the
+  ability to scatter space vessels and stations for appropriate races
+  within their territories." Done: the population pass places vessels
+  and stations for species whose tech level allows them, inside their
+  territory, as stored objects like the user objects of USR.10. Owner:
+  not assigned.
+  Prerequisites: POP.7, USR.10. Related: POP.7, POP.10, USR.10.
