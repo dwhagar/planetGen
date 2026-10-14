@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.993] - 2026-10-14
+
+### Changed
+- The plan now says Python 3.12 will be the minimum and numba a required library, using numba's default cache location.
+
 ## [8.0.992] - 2026-10-14
 
 ### Changed
