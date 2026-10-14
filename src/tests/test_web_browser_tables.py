@@ -79,10 +79,13 @@ def _fake_sectors(db, limit=None, offset=None, sort=None, descending=False, quad
 
 
 def _fake_systems(db, star_type=None, sector_id=None, limit=None, offset=None, sort=None, descending=False,
-                  binary=None, placement=None, octants=(), facets=False):
+                  binary=None, placement=None, octants=(), facets=False, after=None):
     rows = [row for row in STANDALONE if binary is None or bool(row["is_binary"]) == binary]
     key = {"binary": "is_binary"}.get(sort or "name", "name")
     rows = sorted(rows, key=lambda row: (row[key], row["name"]), reverse=bool(descending))
+    if after is not None:  # PERF.75: the page that starts after the row with this id (the real reader keys on the sort)
+        ids = [row["id"] for row in rows]
+        offset = ids.index(int(after)) + 1 if int(after) in ids else offset
     body = {"items": rows[offset:offset + limit], "total": len(rows), "limit": limit, "offset": offset}
     if facets:
         body["facets"] = {"placement": [{"value": "standalone", "count": len(STANDALONE)}],
