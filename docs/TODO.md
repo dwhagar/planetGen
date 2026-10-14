@@ -1081,8 +1081,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   as a window, retire the arc, slab and segment picks (the rest of
   MAP.150, which unlocks MAP.189 and MAP.190), URLs and breadcrumb from
   the window. The 3-ary ladder (MAP.151b) needs a per-level aggregate
-  table so a window does not need about 64 stage queries: DB.25,
-  Foundations lane 1.
+  table so a window does not need about 64 stage queries: DB.25
+  (done, #1376: galaxy_block_stats, read by query.galaxy_block_stats;
+  add the new levels to drill.DRILL_LEVELS and a rebuild fills them), so
+  MAP.151b is unblocked.
 
 - [ ] **MAP.152 Scale hand-offs: galaxy, sector and system cross-fade with hysteresis, and per-tile camera-relative origins**
   Source: docs/design/fly-through-view-distance.md (section 7 and 8),
@@ -4107,20 +4109,6 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   and a per-row INSERT loop: fine today, not a pattern for the 10^8-row
   tables.
   Design: [docs/design/db-check-and-parity-repair.md](design/db-check-and-parity-repair.md)
-
-- [ ] **DB.25 A per-level aggregate table for the 3-ary block ladder so a Galaxy Map window needs one query (Alembic migration)**
-  Foundations lane 2 (2026-10-14, after #1335): with the 3-ary ladder
-  (MAP.151b, 729/243/81/27/9/3/1) a map window would need about 64 stage
-  queries unless the per-level aggregates are stored. Done: a migration
-  and its previous-version fixture for a table holding the aggregates
-  per ladder level and cell (the columns the stage views already show:
-  star count, summed luminosity, mean age, nebula cover when MAP.172
-  lands), filled by the stage run and by a backfill for existing
-  galaxies; the window query reads it in one statement; a test that the
-  stored aggregates equal the ones computed from the stage files. Owner:
-  Foundations lane 1 (the only lane that adds migrations); queue it
-  right after PERF.92 (done, #1371) because MAP.151b waits on it.
-  Prerequisites: none. Related: MAP.151, MAP.172.
 
 ## API: The JSON API
 
