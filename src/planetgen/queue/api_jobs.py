@@ -20,10 +20,12 @@ import calendar
 import os
 import re
 import secrets
+import socket
 import sys
 import time
 
 import rq
+from rq import worker_registration
 
 from planetgen.queue import redisqueue, work
 from planetgen.util import draw
@@ -100,11 +102,50 @@ def _connection(url=None):
     return connection
 
 
+def _process_exists(pid):
+    """Whether a process with this id is running here (a process of another user counts as running)."""
+    try:
+        os.kill(pid, 0)
+    except ProcessLookupError:
+        return False
+    except PermissionError:
+        return True
+    except OSError:
+        return False
+    return True
+
+
+def live_worker_count(queue):
+    """
+    How many workers serve `queue` and are alive (PERF.93). `rq.Worker.count` is the size of a Redis set that
+    only a worker's own start-up cleans, so a worker killed with `kill -9` (or by the out-of-memory killer)
+    stayed in it, and nothing replaced it. This first drops the registry entries whose worker key is gone, then
+    counts a worker only if its process still exists on this host (a worker on another host is taken as alive:
+    its key's time-to-live is all there is to go by), and removes the ones whose process is gone (from both registries, and their key).
+
+    A job a killed worker was running is not touched here: RQ notices it when the worker's heartbeat runs out,
+    about 90 s later, and runs it again (`Retry(max=1)`).
+    """
+    worker_registration.clean_worker_registry(queue)
+    here = socket.gethostname()
+    alive = 0
+    for worker in rq.Worker.all(queue=queue):
+        pid = getattr(worker, "pid", None)
+        if worker.hostname and worker.hostname != here or not isinstance(pid, int) or _process_exists(pid):
+            alive += 1
+        else:
+            queue.connection.srem(worker_registration.WORKERS_BY_QUEUE_KEY % queue.name, worker.key)
+            queue.connection.srem(worker_registration.REDIS_WORKER_KEYS, worker.key)
+            queue.connection.delete(worker.key)
+    return alive
+
+
 def ensure_workers(connection=None, url=None):
     """
     Starts burst workers for the waiting jobs, never more than
-    `work.worker_count()` in all (those serving the queue, and those
-    started a moment ago and not registered yet).
+    `work.worker_count()` in all (those serving the queue and alive,
+    `live_worker_count`, and those started a moment ago and not
+    registered yet).
 
     Returns:
         int: How many were started.
@@ -116,7 +157,7 @@ def ensure_workers(connection=None, url=None):
     if not waiting:
         return 0
     starting = int(connection.get(STARTING_KEY) or 0)
-    wanted = min(waiting, work.worker_count()) - rq.Worker.count(queue=queue) - starting
+    wanted = min(waiting, work.worker_count()) - live_worker_count(queue) - starting
     for _ in range(max(0, wanted)):
         connection.incr(STARTING_KEY)
         connection.expire(STARTING_KEY, STARTING_SECONDS)
