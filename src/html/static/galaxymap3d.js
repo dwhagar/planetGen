@@ -62,7 +62,7 @@ const { formatNumber } = await import(`./numberformat.js${VERSION_QUERY}`);
 const { boostLight, starLightBoost } = await import(`./starlight.js${VERSION_QUERY}`);
 const { nebulaLooks } = await import(`./nebulalook.js${VERSION_QUERY}`);
 const {
-  INSIDE_FACE_ALPHA, NEAR_FIELD_GLSL, nearFieldAtWorld,
+  INSIDE_FACE_ALPHA, NEAR_FIELD_GLSL, nearFieldAtWorld, visibleEnough,
 } = await import(`./nearfield.js${VERSION_QUERY}`);
 const {
   FADE_OCTAVES, POINT_FADE, birthRadius, opacitySum, starZoomOpacity, tileRanks,
