@@ -512,17 +512,6 @@ with `clamp()`.
   any of it (UX.93).
   Prerequisite: MAP.168. Related: MAP.167, UX.93.
 
-- [ ] **UX.98 The Generate log has odd wording and mixed section headers (bug)**
-  GitHub issue [#1216](https://github.com/dwhagar/planetGen/issues/1216)
-  (Boss, 2026-10-11 01:17Z): the log goes "Step 1 of 12, 2 of 12", then
-  says "Steps 4 to 12 of 12", which is odd, and the section headers then
-  take a different format. Done: one format for every section separator,
-  one wording for a single stage and for a run of stages (for example
-  "Stage 4 of 12" and "Stages 4 to 12 of 12"), the same in the web log,
-  the CLI text and the downloaded log, with a test over the formatter.
-  Owner: Bugfixes lane 1 (next, PERF.85 is merged in #1265).
-  Prerequisites: none. Related: PERF.65, PERF.66.
-
 - [ ] **UX.100 Planet and moon lists show habitability as symbols, not notes**
   GitHub issue [#1217](https://github.com/dwhagar/planetGen/issues/1217)
   (Boss, 2026-10-11 01:34Z): "The habitability notes are too much in the
@@ -565,7 +554,7 @@ with `clamp()`.
   markers, etc, etc, etc, adopt an industry based standard for file and
   log output." Today the Generate page log, the CLI text, the downloaded
   log, the job log files and the other commands each format their own
-  lines (UX.98 is the first visible symptom: stage numbering and section
+  lines (UX.98, done in #1369, was the first visible symptom: stage numbering and section
   separators differ). Done: a design note that lists every place the
   program writes a log or report a person reads (Generate log, CLI
   commands, job log files, the downloadable log, update.sh output, admin
@@ -583,10 +572,10 @@ with `clamp()`.
   ("Stage N of M: name", "Stages N to M of M: name" for a run) and one
   wording for start, finish and failure, so a downloaded log and the
   screen always agree; timestamps are always UTC in files and local time
-  only in the page display, labelled). Owner: Bugfixes lane 1 builds
-  UX.98 first as the first slice, then the rest is a Phase 2 item for
-  the interface builders.
-  Prerequisite: UX.98. Related: UX.98, PERF.66, UX.93.
+  only in the page display, labelled). Bugfixes lane 1 built
+  UX.98 as the first slice (done, #1369: one stage formatter); the rest is
+  a Phase 2 item for the interface builders.
+  Prerequisites: none. Related: PERF.66, UX.93.
 
 ## MAP: Galaxy Map, Sector Map, System Map
 
@@ -5565,6 +5554,11 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   file, check the locked versions against ones known to work with that
   plugin, fix the cause, and make the update print a clear error naming
   the login problem instead of the bare exception.
+  Cause found by Bugfixes lane 1 (2026-10-14 22:41Z, reproduced on a real
+  MySQL 8.0): pymysql 1.2.1 to 1.2.3 return nothing from the caching_sha2
+  full login on a connection without TLS. The fix in test pins pymysql
+  below 1.2.1 (1.2.0), has the library check reinstall a newer one, and
+  makes every database login failure name the server and account.
   Prerequisites: none.
 
 ## DOC: Documentation
