@@ -113,7 +113,7 @@ def set_stage(index, total, label, skipped=None):
     """Records the stage the run is in (UX.89: `index` of `total`, 1-based; `skipped` is the reason a stage that
     did not run was skipped) and writes it at once, keeping the last bar's fields."""
     global _stage
-    _stage = {"index": index, "total": total, "label": label, "skipped": skipped}
+    _stage = {"index": index, "total": total, "label": label, "skipped": skipped, "started_at": time.time()}
     path = os.environ.get(ENV_VAR)
     if not path:
         return

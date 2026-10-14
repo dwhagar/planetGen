@@ -92,17 +92,20 @@ def generated_cells(conn, cells):
     return found
 
 
-def unknown_space_flags(conn, points_ly):
+def unknown_cells(conn, points_ly):
     """
-    NAV.12: for each hop of a route (`points_ly`, the stops' galaxy-frame
-    light-year positions in order), whether its straight line crosses a sector
-    that has not been generated -- "a jump through unknown space". The cells a
+    NAV.12, NAV.48: for each hop of a route (`points_ly`, the stops' galaxy-frame
+    light-year positions in order), the cells its straight line crosses that
+    hold no generated sector -- "a jump through unknown space". The cells a
     line crosses come from `sectors_along_segment` (NAV.38); a cell is known
     when `sectors` holds a row at its address. The two cells holding a hop's
     ends do not count (a star is in them).
 
     Returns:
-        list[bool]: One flag per hop (`len(points_ly) - 1`).
+        list[list[tuple]]: One list per hop (`len(points_ly) - 1`) of
+            `(ring_index, layer_index, ring_slot_index)` cells, in the order
+            the line enters them. Cells outside the galaxy's outline are
+            listed like any other; the caller checks them against `GalaxyBounds`.
     """
     edge = _sector_edge_pc(conn)
     per_hop = []
@@ -111,7 +114,56 @@ def unknown_space_flags(conn, points_ly):
         ends = {sector_address_at(start, edge), sector_address_at(end, edge)}
         per_hop.append([cell for cell in sectors_along_segment(start, end, edge) if cell not in ends])
     known = generated_cells(conn, {cell for cells in per_hop for cell in cells})
-    return [any(cell not in known for cell in cells) for cells in per_hop]
+    return [[cell for cell in cells if cell not in known] for cells in per_hop]
+
+
+class BypassBudgetExceeded(Exception):
+    """`UnknownEdges` was asked about more edges than its budget: the bypass search gives up."""
+
+
+class UnknownEdges:
+    """
+    NAV.48's bypass test: whether a straight hop crosses a cell with no generated sector, asked
+    edge by edge as a route search looks at them. Each cell's known/unknown state is read once
+    (`generated_cells`) and kept; each answer is kept too. Positions are galaxy-frame light-years.
+
+    Args:
+        conn (planetgen.db.store.Connection): An open, read-only connection.
+        budget (int): Most distinct edges to answer before `BypassBudgetExceeded`.
+    """
+
+    def __init__(self, conn, budget):
+        self._conn = conn
+        self._edge = _sector_edge_pc(conn)
+        self._budget = budget
+        self._known = {}
+        self._answers = {}
+
+    def __call__(self, a_ly, b_ly):
+        key = (a_ly, b_ly) if a_ly <= b_ly else (b_ly, a_ly)
+        if key not in self._answers:
+            if len(self._answers) >= self._budget:
+                raise BypassBudgetExceeded
+            start, end = tuple(ly_to_pc(c) for c in a_ly), tuple(ly_to_pc(c) for c in b_ly)
+            ends = {sector_address_at(start, self._edge), sector_address_at(end, self._edge)}
+            cells = [cell for cell in sectors_along_segment(start, end, self._edge) if cell not in ends]
+            fresh = {cell for cell in cells if cell not in self._known}
+            if fresh:
+                found = generated_cells(self._conn, fresh)
+                self._known.update((cell, cell in found) for cell in fresh)
+            self._answers[key] = not all(self._known[cell] for cell in cells)
+        return self._answers[key]
+
+
+def unknown_space_flags(conn, points_ly):
+    """
+    NAV.12: for each hop of a route, whether its straight line crosses a
+    sector that has not been generated (`unknown_cells`).
+
+    Returns:
+        list[bool]: One flag per hop (`len(points_ly) - 1`).
+    """
+    return [bool(cells) for cells in unknown_cells(conn, points_ly)]
 
 
 def _sectors_near(conn, start, end, distance, edge):

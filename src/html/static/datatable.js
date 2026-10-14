@@ -205,9 +205,9 @@ function enhance(root) {
 
   // --- Fetched pages -----------------------------------------------------
   let wantFacets = true;
-  const store = createPageStore(PAGE_SIZE, (page) => {
+  const store = createPageStore(PAGE_SIZE, (page, generation, after) => {
     const withFacets = page === 0 && wantFacets;
-    return fetch(`${source}${source.includes("?") ? "&" : "?"}${dataQuery(currentState(), page * PAGE_SIZE, PAGE_SIZE, withFacets)}`,
+    return fetch(`${source}${source.includes("?") ? "&" : "?"}${dataQuery(currentState(), page * PAGE_SIZE, PAGE_SIZE, withFacets, after)}`,
       { headers: { Accept: "application/json" } }).then((response) => {
       if (!response.ok) {
         throw new Error(`table ${response.status}`);
@@ -323,7 +323,7 @@ function enhance(root) {
   function showCount() {
     const state = currentState();
     const filtered = Object.keys(state.filters).some((param) => state.filters[param].length > 0);
-    const more = root.dataset.capped === "true" ? "+" : "";
+    const more = root.dataset.capped === "true" || store.capped ? "+" : "";
     countLine.textContent = `${formatNumber(store.total)}${more} ${noun(store.total + (more ? 1 : 0))}${filtered ? " match" : ""}`;
     if (clearLink) {
       clearLink.hidden = !filtered;

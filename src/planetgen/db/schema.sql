@@ -1161,6 +1161,18 @@
 --   scale radius `tuning.CORE_RADIUS_FRACTION` of the bulge's, on top of the
 --   bulge; 0 is none). Defaults 1 and 0 are the model before v81.
 --
+-- v82: indexes and a summary table for the pages that timed out on a big galaxy
+--   (PERF.68, PERF.70, PERF.74). `phenomenon_scatter` gains
+--   `idx_phenomenon_scatter_class (kind, subtype, mass_solar)`, which serves the
+--   Galaxy Map's coarse tiles (the few biggest classes) without reading the
+--   address range; `star_systems.idx_star_systems_quadrant` becomes
+--   `(quadrant, name, id)` and `idx_star_systems_binary_name (is_binary, name,
+--   id)` is new, so the Systems list sorted by Octant or Binary reads one page
+--   of rows per group; and `sector_system_counts` stores each sector's system
+--   count, refreshed in the background by `query.list_sectors` (never more often
+--   than `countcache` allows), so the Sectors list does not count every system
+--   on each request.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -1616,7 +1628,10 @@ CREATE TABLE IF NOT EXISTS star_systems (
     -- v27: see the header comment's "v27" note.
     KEY idx_star_systems_modified_at (modified_at),
     -- v63 (DB.13): the Systems table's octant filter and sort.
-    KEY idx_star_systems_quadrant (quadrant),
+    -- v82 (PERF.70): (quadrant, name, id) serves the sort by Octant a group at a time.
+    KEY idx_star_systems_quadrant (quadrant, name, id),
+    -- v82 (PERF.70): the same for the sort by Binary.
+    KEY idx_star_systems_binary_name (is_binary, name, id),
     -- v39: containment -- see the header comment's "v39" note.
     CONSTRAINT fk_star_systems_inside_nebula
         FOREIGN KEY (inside_nebula_id) REFERENCES nebulae(id) ON DELETE SET NULL,
@@ -3254,10 +3269,23 @@ CREATE TABLE IF NOT EXISTS phenomenon_scatter (
     mass_solar           DOUBLE,  -- v80 (MAP.165): see header comment
 
     KEY idx_phenomenon_scatter_address (ring_index, layer_index, ring_slot_index),
+    KEY idx_phenomenon_scatter_class (kind, subtype, mass_solar),  -- v82 (PERF.68): see header comment
     CONSTRAINT chk_phenomenon_scatter_kind CHECK (kind IN (
         'black-hole', 'neutron-star', 'planetary-nebula', 'supernova-remnant', 'hypervelocity-star', 'quasar'))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+
+-- ---------------------------------------------------------------------
+-- sector_system_counts (v82, PERF.74): how many systems each sector holds, as of
+-- the last refresh (`query.refresh_sector_system_counts`), so the Sectors list and
+-- its sorts by systems and density read this table instead of counting every
+-- system per request. A sector with no systems has no row.
+-- ---------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS sector_system_counts (
+    sector_id     BIGINT UNSIGNED NOT NULL PRIMARY KEY,
+    system_count  INT UNSIGNED NOT NULL,
+    KEY idx_sector_system_counts_count (system_count, sector_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------
 -- phenomenon_scatter_classes (v77): how many scattered phenomena of each

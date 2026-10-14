@@ -82,6 +82,7 @@ STEP_KINDS = {
     "phenomena-clear": "Phenomena scatter: clearing",
     "phenomena-special": "Phenomena scatter: special rows",
     "phenomena-insert": "Phenomena scatter: writing the special rows",
+    "phenomena-index": "Phenomena scatter: build the indexes",
     "phenomena-stamp": "Phenomena scatter: epoch stamp",
     "link": "Neighbour linking",
     "paths": "Sector paths",
