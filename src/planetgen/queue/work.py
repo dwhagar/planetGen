@@ -87,9 +87,13 @@ WORKER_NICENESS = 10
 macOS."""
 
 CHUNKS_PER_WORKER = 8
-"""int: Most tasks `WorkQueue.submit_each` makes per worker. Every task a pool runs costs about 60 database
-statements (its rows, its worker's connection and caches) and a fork, which is more than a bright-star layer
-costs to draw, so thousands of tiny layers go out in this many chunks (PERF.79)."""
+"""int: Most items one `WorkQueue.submit_each` chunk holds is `1 / (workers * CHUNKS_PER_WORKER)` of them. Every
+task a pool runs costs about 60 database statements and a fork, which is more than a bright-star layer costs to
+draw, so thousands of tiny layers go out in few chunks (PERF.79)."""
+
+CHUNK_SECONDS = 2.0
+"""float: How long a `WorkQueue.submit_each` chunk is meant to run, so a progress line is never more than a few
+seconds behind (PERF.83: 16 chunks of 128 default-scale phenomenon layers each stayed silent for over 3 minutes)."""
 
 HEARTBEAT_SECONDS = 5
 STALE_SECONDS = 30
@@ -1532,12 +1536,16 @@ class WorkQueue:
 
     def submit_each(self, kind, items, fn):
         """
-        Queues many small tasks of one kind (a layer of the scatter each) as few: with a pool the
-        `items` -- `(key, payload, weight, on_done)` -- go out in at most `workers * CHUNKS_PER_WORKER`
-        chunks, dealt out round-robin so every chunk holds a mix of the first (densest) and last
-        (thinnest) items, each chunk one task that runs `fn(payload)` for its items in order here and
-        then `on_done(result, seconds, weight)` for each of them. With one worker it is `submit` per
-        item. A task's result does not depend on its chunk: nothing in `fn` may read the task seed.
+        Queues many small tasks of one kind (a layer of the scatter each) as fewer, sized by how long they
+        take: with a pool the `items` -- `(key, payload, weight, on_done)` -- go out in chunks, one task
+        each, that run `fn(payload)` for their items in order and then `on_done(result, seconds, weight)`
+        for each of them. The first chunk is one item; later ones hold as many as take about
+        `CHUNK_SECONDS` at the rate the finished items showed, at most `1 / (workers * CHUNKS_PER_WORKER)`
+        of the items, so thousands of millisecond items pay the task cost a few dozen times while a
+        layer that takes seconds is a task of its own and shows its progress when it ends (PERF.79,
+        PERF.83). Items are dealt out in a stride order, so a chunk mixes dense and thin ones. With one
+        worker it is `submit` per item. A task's result does not depend on its chunk: nothing in `fn` may
+        read the task seed.
         """
         items = list(items)
         if not self.parallel:
@@ -1545,16 +1553,28 @@ class WorkQueue:
             for key, payload, weight, on_done in items:
                 self.submit(kind, key, fn, payload, weight=weight, on_done=on_done)
             return
-        count = min(len(items), self.workers * CHUNKS_PER_WORKER)
-        chunks = [items[start::count] for start in range(count)]
-        self.expect(len(chunks))
-        for number, chunk in enumerate(chunks):
+        ways = self.workers * CHUNKS_PER_WORKER
+        order = [item for start in range(ways) for item in items[start::ways]]
+        largest = max(1, -(-len(order) // ways))
+        seen = {"items": 0, "seconds": 0.0}
+        position = 0
+        while position < len(order):
+            if seen["items"]:
+                size = max(1, min(largest, int(CHUNK_SECONDS * seen["items"] / max(seen["seconds"], 1e-9))))
+            else:
+                size = 1
+            chunk = order[position:position + size]
+            position += size
+
             def finished(results, _seconds, _weight, chunk=chunk):
                 for (_key, _payload, weight, on_done), (result, seconds) in zip(chunk, results):
+                    seen["items"] += 1
+                    seen["seconds"] += seconds
                     if on_done:
                         on_done(result, seconds, weight)
 
-            self.submit(kind, f"{kind} chunk {number}", run_chunk,
+            self.expect(1)
+            self.submit(kind, f"{kind} chunk {position}", run_chunk,
                         {"fn": fn, "payloads": [payload for _key, payload, _weight, _done in chunk]},
                         weight=sum(weight for _key, _payload, weight, _done in chunk), on_done=finished)
 

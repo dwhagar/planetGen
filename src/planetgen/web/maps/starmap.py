@@ -806,8 +806,15 @@ def _star_light(luminosity_w, radius_km, temperature_k):
 # of their own and keep their spheres; a rogue planet is a faint point of
 # its own (`_ROGUE_LIGHT`); nebulae, supernova remnants and asteroid
 # fields stay clouds.
+_BLACK_HOLE_LIGHT = {"color": "#a43cff", "corePx": 4.0, "sizePx": 26.0, "glow": 0.7, "bright": 1.0, "whiten": 0.0}
+"""dict: A quiescent black hole in the Sector Map (MAP.185) and a scattered one
+before its sector is made (MAP.164): a lit purple point, the colour the Galaxy
+Map's black holes are (`galaxymap3d.js` `POINT_LOOKS`). Its old dark sphere
+(`#4b2f66` rim on black) disappeared against the dark scene."""
+
 _PHENOMENON_LIGHTS = {
     "quasar": {"color": "#dfe6ff", "corePx": 5.0, "sizePx": 48.0, "glow": 0.9, "bright": 1.0},
+    "blackHoleQuiescent": _BLACK_HOLE_LIGHT,
     "blackHoleAccreting": {
         "color": "#ff9d4d", "corePx": 3.0, "sizePx": 28.0, "glow": 0.75, "bright": 0.95, "whiten": 0.0,
     },
@@ -1154,7 +1161,7 @@ in its title, its info panel and the Galaxy Map's frame."""
 # quasar, a supernova remnant and a planetary nebula keep the looks every
 # map gives them.
 _UNCHARTED_LIGHTS = {
-    "black_hole": {"color": "#a06bff", "corePx": 4.0, "sizePx": 26.0, "glow": 0.7, "bright": 1.0, "whiten": 0.0},
+    "black_hole": _BLACK_HOLE_LIGHT,
     "neutron_star": {"color": "#3f63e0", "corePx": 3.0, "sizePx": 22.0, "glow": 0.7, "bright": 1.0, "whiten": 0.0},
 }
 

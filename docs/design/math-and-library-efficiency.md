@@ -15,8 +15,8 @@ Evidence tags: [C] measured in this research (scripts under `/mnt/project-files/
 ## Method and limits
 
 - One 4-core Linux container (Ubuntu 24.04, the VPS's size and OS), MariaDB 10.11 and Redis on the same box,
-  Python 3.13.16, NumPy 2.5.4, SciPy 1.18.1, astropy 8.0.1, numba 0.68.0 [C]. The project's minimum is
-  Python 3.9 and apt's NumPy on 24.04 is 1.26 [S][C]; speeds on the VPS's Python 3.12 will differ a little.
+  Python 3.13.16, NumPy 2.5.4, SciPy 1.18.1, astropy 8.0.1, numba 0.68.0 [C]. The project's minimum was
+  Python 3.9 and is now 3.12 (see Decisions). apt's NumPy on 24.04 is 1.26 [S][C]; speeds on the VPS's Python 3.12 will differ a little.
 - The workload is the PERF.31 benchmark's: seed `...BEEF`, plan to ring 12 (2,041 layers), then `galaxy
   --ring 12 --limit 2 --yes` with one worker (1,916 systems, 17,284 bodies that get a sector path) [C].
   Profiles were taken on 8.0.9xx (`2c135ba`); the end-to-end comparisons on 8.0.986 (PERF.73 merged).
@@ -44,7 +44,7 @@ Evidence tags: [C] measured in this research (scripts under `/mnt/project-files/
    - The bright and massive star scatters evaluate the galaxy density one point at a time (556,000 calls, 7.9 us
      each); the NumPy form the phenomenon scatter already uses is 47 times faster per point.
 3. **numba is the one library worth adding, and only for the integrator and later kernels like it.** It costs 196
-   MB installed, Python 3.10 or later, and a compile cache. Everything else recommended below needs no new
+   MB installed, Python 3.12 or later (Boss's decision, 2026-10-14), and a compile cache. Everything else recommended below needs no new
    dependency.
 4. **Two libraries looked at are not worth adding:** `orjson` (JSON encoding is 1 to 4% of a tile request) and
    `mysqlclient` (no faster on inserts, GPL).
@@ -198,14 +198,14 @@ that is a names question, not a math one, and is listed only so it is not lost.
 
 | Library | Role | Installed size | Licence | Fit with install and update |
 |---|---|---|---|---|
-| **numba 0.68.0 with llvmlite 0.50.0** (the one to add) | integrator kernels, later vector kernels | numba 24 MB and llvmlite 172 MB in a venv; wheels 3.8 and 59.7 MB [C][S]; +75 MB resident per process that imports it, +307 ms | BSD; llvmlite BSD-2 with Apache-2.0 and the LLVM exception [S] | No `python3-numba` on Ubuntu 24.04 (apt has only `python3-llvmlite` 0.42) [C], so pip, through the NumPy stack group in `scripts/install-python-deps.sh`. Needs Python 3.10 or later and NumPy below 2.6 [S]; the project's floor is 3.9. First compile of the integrator kernels 5.9 s, from the disk cache 0.27 s [C]. Apache's code tree is read-only to the web user, so set `NUMBA_CACHE_DIR` (say `/var/cache/planetgen/numba`, made by `create-cache-dir.sh`) and warm it in `update.sh` as `warm_map` is. |
+| **numba 0.68.0 with llvmlite 0.50.0** (the one to add) | integrator kernels, later vector kernels | numba 24 MB and llvmlite 172 MB in a venv; wheels 3.8 and 59.7 MB [C][S]; +75 MB resident per process that imports it, +307 ms | BSD; llvmlite BSD-2 with Apache-2.0 and the LLVM exception [S] | No `python3-numba` on Ubuntu 24.04 (apt has only `python3-llvmlite` 0.42) [C], so pip, through the NumPy stack group in `scripts/install-python-deps.sh`. Supports Python 3.10 to 3.15 and needs NumPy below 2.6 [S]; the project's floor becomes 3.12 (it was 3.9). First compile of the integrator kernels 5.9 s, from the disk cache 0.27 s [C]. Cache stays in numba's default place (Boss, 2026-10-14); see "The default cache and the web user" below. |
 | scipy.spatial.cKDTree | neighbours, placement | none: scipy is already required | BSD | none |
 | orjson 3.13.0 | JSON | wheel about 0.1 MB [S] | MPL-2.0 and Apache-2.0 or MIT [S] | pip wheel; not recommended |
 | mysqlclient 2.3.0 | MySQL driver | needs `libmariadb-dev`, `pkg-config`, a compiler [C] | GPL-2.0-or-later [S] | apt has `python3-mysqldb` 1.4.6 [C]; not recommended |
 | Cython 3.3.0 | compiled kernels | wheel 3.4 MB [S] | Apache-2.0 | compiler and headers on the VPS; not measured |
 
 Boss's rule of no compatibility shims argues against a pure-Python fallback beside the numba kernel: make
-numba a hard requirement and raise the minimum Python to 3.10 (the VPS runs 3.12). Memory is the VPS's tighter
+numba a hard requirement and raise the minimum Python to 3.12 (the VPS runs 3.12). Memory is the VPS's tighter
 limit with MySQL on the same box: importing numba adds 75 MB to each process that does, so only the processes
 that integrate paths (the settle step, the orbit update, workers) should import it, not the web app.
 
@@ -214,7 +214,7 @@ that integrate paths (the settle step, the orbit update, workers) should import 
 | # | Change | Gain | New dependency | Risk |
 |---|---|---|---|---|
 | 1 | `nearest_neighbors` and the placement distance loop on `cKDTree` | 190 to 590 times on the call, about 10% of the generate stage, removes the quadratic term in dense sectors | none | Low: identical neighbours in all 51,861 rows |
-| 2 | Sector-path integrator on numba (selection, integration, spline check in one call) | 22 to 31 times; settle 34.2 s to 13.4 s; the orbital update's main cost | numba, llvmlite, Python 3.10 | Medium: new dependency and cache; paths agree to 4e-16 |
+| 2 | Sector-path integrator on numba (selection, integration, spline check in one call) | 22 to 31 times; settle 34.2 s to 13.4 s; the orbital update's main cost | numba, llvmlite, Python 3.12 | Medium: new dependency and cache; paths agree to 4e-16 |
 | 3 | Per-population density as NumPy arrays in the bright and massive star scatters | 47 times on 556,000 calls, about 4 s of a 15 to 20 s pair of stages | none | Low: same formula as `total_density_array` |
 | 4 | `lru_cache` on the ring and slot count functions | 18 times on the call | none | None |
 | 5 | Sector save: numeric-only insert formatter (PERF.73's approach) for the sector fill's tables | 3 times on the formatting, which is about half of pymysql's 8% of the fill | none | Low if limited to numeric columns |
@@ -226,12 +226,36 @@ that integrate paths (the settle step, the orbit update, workers) should import 
 Items 2 and 6 belong with the orbital update (GEN.105 chain) and should be built together, since both rewrite
 the per-body loop; 1, 3, 4, 5 and 7 are independent small changes.
 
-## Open questions for Boss (default stated)
+## Decisions (Boss, 2026-10-14)
 
-1. Accept numba as a hard requirement and raise the minimum Python to 3.10? Default: yes; the VPS is on 3.12 and
-   the alternative is a Python fallback, which the no-shims rule rules out.
-2. Where may the numba cache live? Default: `/var/cache/planetgen/numba`, owned by the web user, warmed by `update.sh`.
-3. Drop astropy for a constants table? Default: yes.
+1. **numba is a hard requirement and the minimum Python is 3.12.** The Python 3.9 CI leg, the lock-file branches
+   for 3.9 to 3.11 and the `python_requires` floor go with it. Because this changes what the project installs on,
+   the CHANGELOG and the README must say so when it lands.
+2. **The numba cache stays in numba's default place**, not `/var/cache/planetgen/numba`. See the next section for
+   the one thing this has to be checked against.
+3. **astropy is dropped** for a constants table, with astropy kept in the `test` extra. Double-check, run on
+   2026-10-14: `physics/constants.py` run under astropy 6.0.1, 6.1.7 and 8.0.1 gives the same value for 89 of 90
+   numbers; only `HYDROGEN_ATOM_MASS_KG` differs, by 1.35e-9 relative. astropy is imported for nothing else, so it
+   gives the project no behaviour beyond the numbers and makes them depend on the installed version (the problem
+   GEN.156 was filed to patch). Table plus the existing test is strictly better.
+
+## The default cache and the web user
+
+Measured 2026-10-14 with a one-function `@njit(cache=True)` module run as an unprivileged user [C]:
+
+| Tree owner | Process user's home | Result |
+|---|---|---|
+| user does not own the tree | not writable | **import fails**: `RuntimeError: cannot cache function: no locator available`, even when root already warmed the tree's `__pycache__` |
+| user does not own the tree | writable | works; numba builds its own cache under that home (`~/.cache/numba`), so a warm-up by another user does not help |
+| user owns the tree | any | works; cache in the tree's `__pycache__` |
+
+So numba's default location works for every process that can write either the checkout's `__pycache__` or its own
+home. Processes that may not (the web user under Apache, with `/var/www` normally root-owned) fail at the import of
+any module holding a cached kernel, and an `update.sh` warm-up run by the tree's owner or root does not reach them.
+Two ways to keep the default location: (a) the kernels live in a module only the settle step, the orbit update and
+the workers import (the web app imports it lazily, or not at all), which also keeps numba's 75 MB out of the web
+processes; (b) `update.sh` makes those `__pycache__` directories writable for the web group. Whichever is built
+must be tested by importing the integrator as the web user.
 
 ## What this does not predict
 
@@ -242,7 +266,7 @@ the per-body loop; 1, 3, 4, 5 and 7 are independent small changes.
 - **Workers.** Everything ran with one worker. With two workers the fill speeds up and the settle step does not
   (it is one process) [S]; numba matters more as the fill scales out.
 - **mod_wsgi.** Importing numba inside Apache processes was not tried.
-- **Python 3.9 to 3.12.** Speeds will differ; the ratios between variants should not.
+- **Python 3.12 against 3.13.** Timings are from 3.13; speeds will differ a little, the ratios between variants should not.
 
 ## Proposed items (the TODO thread assigns IDs)
 

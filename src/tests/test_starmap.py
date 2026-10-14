@@ -150,7 +150,7 @@ def test_scene_stars_carry_a_point_of_light_sized_by_luminosity():
     ("quasar", "radio-loud", True),
     ("neutron_star", "pulsar", True),
     ("black_hole", "accreting", True),
-    ("black_hole", "quiescent", False),
+    ("black_hole", "quiescent", True),
     ("rogue_planet", "terrestrial", True),
     ("interstellar_comet", "icy", False),
     ("nebula", "emission", False),
@@ -159,9 +159,10 @@ def test_scene_stars_carry_a_point_of_light_sized_by_luminosity():
 ])
 def test_only_light_giving_phenomena_are_points_of_light(type_, descriptor, lit):
     """MAP.15: quasars, neutron stars and accreting black holes are drawn
-    as points of light, and so is a rogue planet, faintly (MAP.82); a
-    quiescent black hole and an interstellar comet keep their spheres,
-    and clouds stay clouds."""
+    as points of light, and so is a rogue planet, faintly (MAP.82) and a
+    quiescent black hole, purple like the Galaxy Map's (MAP.185: its dark
+    sphere vanished against the scene); an interstellar comet keeps its
+    sphere, and clouds stay clouds."""
     phenomenon = _phenomenon(type_=type_, descriptor=descriptor)
     scene = map_scene_data(_link, 1000.0, None, None, [_make_system()], phenomena=[phenomenon])
     cloud = scene["clouds"][0]
@@ -358,6 +359,9 @@ def test_map_scene_data_draws_a_quiescent_black_hole_point():
     cloud = scene["clouds"][0]
     assert cloud["kind"] == "blackHoleQuiescent"
     assert cloud["typeLabel"] == "Black Hole (Quiescent)"
+    # MAP.185: lit, in the colour the Galaxy Map draws a black hole in (it was a dark sphere nobody could see).
+    assert cloud["light"]["color"] == _galaxy_map_black_hole_colour()
+    assert cloud["light"]["bright"] == 1.0 and cloud["light"]["corePx"] >= 3.0
 
 
 def test_map_scene_data_draws_a_neutron_star_point():
@@ -602,7 +606,7 @@ def test_an_uncharted_object_has_no_page_but_says_it_is_uncharted():
 
 def test_scattered_black_holes_and_neutron_stars_are_lit_points():
     clouds = {c["kind"]: c for c in _uncharted_scene()["clouds"]}
-    assert clouds["blackHoleQuiescent"]["light"]["color"] == "#a06bff"
+    assert clouds["blackHoleQuiescent"]["light"]["color"] == "#a43cff"
     assert clouds["neutronStar"]["light"]["color"] == "#3f63e0"
     assert clouds["quasar"]["light"]["bright"] == 1.0
 
@@ -610,3 +614,17 @@ def test_scattered_black_holes_and_neutron_stars_are_lit_points():
 def test_an_empty_uncharted_cell_has_an_empty_scene():
     scene = _uncharted_scene({"stars": [], "scattered": []})
     assert scene["stars"] == [] and scene["clouds"] == [] and scene["uncharted"] is True
+
+
+def _galaxy_map_black_hole_colour():
+    """The colour `galaxymap3d.js` draws a black hole in (`POINT_LOOKS.black_hole`)."""
+    import re
+    from pathlib import Path
+
+    source = (Path(__file__).resolve().parents[1] / "html" / "static" / "galaxymap3d.js").read_text(encoding="utf-8")
+    return re.search(r'black_hole:\s*\["(#[0-9a-fA-F]{6})"', source).group(1).lower()
+
+
+def test_a_scattered_black_hole_is_lit_the_same_as_a_made_one():
+    from planetgen.web.maps.starmap import _PHENOMENON_LIGHTS, _UNCHARTED_LIGHTS
+    assert _UNCHARTED_LIGHTS["black_hole"] == _PHENOMENON_LIGHTS["blackHoleQuiescent"]

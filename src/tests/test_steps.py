@@ -150,3 +150,17 @@ def test_the_relay_drains_a_channel_until_stopped(progress):
     stop.set()
     thread.join(timeout=3)
     assert not thread.is_alive() and not relay.steps
+
+
+def test_a_step_that_never_ticks_still_replaces_the_finished_one_in_the_progress_file(tmp_path, monkeypatch):
+    import json
+    from planetgen.queue import progress_file
+    path = tmp_path / "progress.json"
+    monkeypatch.setenv(progress_file.ENV_VAR, str(path))
+    with run_common._generation_progress(disable=True) as display:
+        with steps.Step("Writing", "write", 10, stats=GenerationStats(), progress=display) as first:
+            first.update(completed=10)
+        assert json.loads(path.read_text())["description"] == "Writing"
+        with steps.Step("Building the indexes", "index", 10, stats=GenerationStats(), progress=display):
+            body = json.loads(path.read_text())
+            assert body["description"] == "Building the indexes" and body["completed"] == 0

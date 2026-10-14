@@ -1,0 +1,2 @@
+### Changed
+- **Black holes no longer vanish in the Sector Map (MAP.185).** A quiescent black hole, the common kind, was drawn as a black sphere with a faint dark-purple rim, which cannot be seen against the dark scene, while the Galaxy Map showed it as a purple point. It is now a lit purple point in the Sector Map too, the same colour as on the Galaxy Map (and as a scattered one in a sector not yet made); it was not a coordinate split, the Sector Map has always placed it correctly.

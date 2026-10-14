@@ -239,6 +239,23 @@ def test_galaxy_quadrant_pages(client, fake):
     assert "Placed 055" in page2 and "Placed 050" not in page2
 
 
+def test_a_table_that_hit_the_statement_limit_answers_504_to_retry(client, fake, monkeypatch):
+    """UX.96: the table route answers a statement timeout with a 504, `Retry-After` and `busy`, not a 502."""
+    def timed_out(*args, **kwargs):
+        raise apiclient.ApiError("QUERY_TIMEOUT", status_code=504)
+
+    monkeypatch.setattr(apiclient, "get_galaxy_sectors", timed_out)
+    response = client.get("/table/galaxy-quadrant?quadrant=I")
+    assert response.status_code == 504 and response.headers["Retry-After"] == "10"
+    assert response.get_json()["busy"] is True and "busy" in response.get_json()["error"]
+
+    def broken(*args, **kwargs):
+        raise apiclient.ApiError("down", status_code=500)
+
+    monkeypatch.setattr(apiclient, "get_galaxy_sectors", broken)
+    assert client.get("/table/galaxy-quadrant?quadrant=I").status_code == 502
+
+
 def test_galaxy_quadrant_table_route_sorts_and_filters(client, fake):
     fake.sectors = [_placed(1, radius=900.0, name="Far"), _placed(2, radius=10.0, name="Near"),
                     _placed(3, x=-100.0, name="Elsewhere")]
