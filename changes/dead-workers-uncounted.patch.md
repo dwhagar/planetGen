@@ -1,0 +1,2 @@
+### Fixed
+- **A queued API job is no longer left waiting on a worker that was killed.** The count of workers serving the queue came from a list only a worker's own start-up cleans, so a worker killed with `kill -9` (or by the out-of-memory killer) stayed counted, and with a cap of one nothing replaced it. The count now drops entries whose worker is gone and counts only a worker whose process still runs on this host; a replacement starts and the queued job runs. A job a killed worker was running is still noticed after RQ's heartbeat runs out (about 90 s) and then runs again.
