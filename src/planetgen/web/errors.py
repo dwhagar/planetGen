@@ -34,6 +34,7 @@ _TITLES = {
     429: "Too many requests",
     500: "Something went wrong",
     502: "Data unavailable",
+    503: "Busy",
     504: "Took too long",
 }
 
@@ -50,6 +51,19 @@ def timeout_page():
     """The 504 page of a statement that hit the time limit: it reloads itself after `RETRY_AFTER_SECONDS`, so a
     page opened during a fill fills in once the database has caught up (PERF.64)."""
     html, status = render_page("error.html", title=_TITLES[504], message=TIMEOUT_MESSAGE, status=504,
+                               retry_after=RETRY_AFTER_SECONDS)
+    return html, status, {"Retry-After": str(RETRY_AFTER_SECONDS)}
+
+
+BUSY_MESSAGE = ("The database is busy with another job and this request could not get what it needed in time. "
+                "Nothing was changed; the page asks again by itself in a few seconds.")
+"""str: What a page that gave up waiting for a locked row says (ADM.53)."""
+
+
+def busy_page():
+    """The 503 page of a request that waited too long for a row a long job holds locked; it reloads itself
+    after `RETRY_AFTER_SECONDS`."""
+    html, status = render_page("error.html", title=_TITLES[503], message=BUSY_MESSAGE, status=503,
                                retry_after=RETRY_AFTER_SECONDS)
     return html, status, {"Retry-After": str(RETRY_AFTER_SECONDS)}
 

@@ -743,3 +743,16 @@ def test_a_page_whose_data_timed_out_asks_again_by_itself(client, fake, monkeypa
     assert response.status_code == 504 and response.headers["Retry-After"] == "10"
     html = response.get_data(as_text=True)
     assert '<meta http-equiv="refresh" content="10">' in html and "database is busy" in html
+
+
+def test_a_page_that_waited_on_a_locked_row_answers_503_and_asks_again(client, fake, monkeypatch):
+    """ADM.53: a lock wait timeout (1205) is a 503 with `Retry-After`, not the generic 500."""
+    import pymysql
+
+    def locked(*args, **kwargs):
+        raise pymysql.err.OperationalError(1205, "Lock wait timeout exceeded; try restarting transaction")
+
+    monkeypatch.setattr(apiclient, "get_galaxy_sectors", locked)
+    response = client.get("/galaxy")
+    assert response.status_code == 503 and response.headers["Retry-After"] == "10"
+    assert '<meta http-equiv="refresh" content="10">' in response.get_data(as_text=True)

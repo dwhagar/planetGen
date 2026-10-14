@@ -381,6 +381,10 @@ STATEMENT_TIMEOUT_ERRORS = (1969, 3024)
 """tuple: The errors a statement stopped by `statement_timeout_s` raises:
 MariaDB's `max_statement_time` and MySQL's `MAX_EXECUTION_TIME`."""
 
+LOCK_WAIT_ERRORS = (1205, 1213)
+"""tuple: The errors of a statement that waited too long for a row lock (1205) or lost a deadlock (1213): the
+transaction holding the lock is somebody else's, and a short web write gives up on it rather than wait (ADM.53)."""
+
 _mariadb_servers = {}
 
 
@@ -423,12 +427,15 @@ def _session_sql_mode():
     return mode
 
 
-def _get_pool(config, statement_timeout_s=None):
-    key = config._key() if not statement_timeout_s else (config._key(), float(statement_timeout_s))
+def _get_pool(config, statement_timeout_s=None, lock_wait_s=None):
+    key = config._key() if not (statement_timeout_s or lock_wait_s) else (
+        config._key(), float(statement_timeout_s or 0), float(lock_wait_s or 0))
     if key not in _pools:
         init = "SET time_zone = '+00:00'"
         if statement_timeout_s:
             init += ", " + _statement_timeout_sql(config, statement_timeout_s)
+        if lock_wait_s:
+            init += f", SESSION innodb_lock_wait_timeout = {max(int(lock_wait_s), 1)}"
         sql_mode = _session_sql_mode()
         if sql_mode:
             init += f", SESSION sql_mode = '{sql_mode}'"
@@ -1573,7 +1580,7 @@ def control_mysql_config(base_config=None):
     )
 
 
-def get_control_connection(config=None, ensure_schema=False):
+def get_control_connection(config=None, ensure_schema=False, lock_wait_s=None):
     """
     Opens a pooled connection to the control schema.
 
@@ -1587,12 +1594,17 @@ def get_control_connection(config=None, ensure_schema=False):
             `adminAuth.bootstrap_control_schema` passes `True`, using a
             full-access account (the same one `planetgen.cli.migrate` already
             uses), to create/update the control schema once per deploy.
+        lock_wait_s (float, optional): How many seconds a statement on this
+            connection waits for a row lock before it fails with
+            `LOCK_WAIT_ERRORS` (the server's own limit, 50 s, when `None`):
+            the web gives up on a lock sooner than that so a request does
+            not hold one of the app's few threads for the whole wait (ADM.53).
 
     Returns:
         Connection: An open connection.
     """
     config = config or control_mysql_config()
-    conn = Connection(_get_pool(config).connect(), config)
+    conn = Connection(_get_pool(config, lock_wait_s=lock_wait_s).connect(), config)
     if ensure_schema:
         try:
             _ensure_control_schema(conn)
