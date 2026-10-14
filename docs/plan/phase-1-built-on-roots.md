@@ -201,7 +201,7 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | DOC.40 | Bring docs/testing.md and docs/ci-runners.md in line with ci.yml and scripts/test.py |  |  |
 | DOC.39 | Fix the README facts, the documentation table and the headline rule (Boss decision) |  |  |
 | DOC.38 | Refresh docs/config.md prose after PERF.64 and PERF.24: page_cache, stored_counts, PLANETGEN_WORKERS |  |  |
-| DOC.37 | Rewrite the install docs for the venv install, in or right after OPS.45 | OPS.45 |  |
+| DOC.37 | Rewrite the install docs for the venv install, in or right after OPS.45 |  |  |
 | DOC.36 | Sync docs/cli.md with the 11 subcommands, the options and the real bright-star defaults |  |  |
 | DOC.35 | Document the helper command-line tools: orbits, warm_map, worker, query, migrate, reset, lockouts, dedupe, config |  |  |
 | DOC.34 | Bring docs/api.md up to date: endpoints, object references, errors and the Not done yet list |  |  |
@@ -221,7 +221,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | DOC.20 | After PERF.86: rewrite the queue and scatter notes and the queue docstrings | PERF.86 |  |
 | DOC.19 | After UX.102: document the log output standard for the CLI, the Generate page and admin logs | UX.102 |  |
 | DOC.18 | Last pass: re-run the documentation sweep when the other DOC items are done and Phase 1 is complete |  |  |
-| OPS.45 | Install planetGen into its own virtual environment and clear the packages out of the system Python |  |  |
 | TEST.144 | test_every_plain_button_does_something[web.sector] failed once in a full parallel run (bug) |  |  |
 | PERF.91 | Bulk random draws for the scatter layers (4 to 12 times on batches above 1,000 draws) |  |  |
 | PERF.88 | Sector-path integrator on numba: saving the sector paths takes 13 s instead of 34 s on the benchmark fill |  |  |
