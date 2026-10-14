@@ -3378,6 +3378,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   command saves a full reseed). Check: after a reseed and after the
   command, the same rows carry the same values (a test on a small
   galaxy). Owner: Foundations lane 1.
+  Decided (Boss, 2026-10-14 19:55Z, on a decision
+  card relayed by the coordinator): both. The scatter fills the map
+  luminosity for new galaxies and a one-off command fills existing ones.
   Prerequisite: DB.23. Related: MAP.171, GEN.185, GEN.196.
 
 - [ ] **GEN.202 Scattered nebulae (planetary nebulae and remnants) join the nebula index, deduplicated by object id**
@@ -5452,6 +5455,9 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   add tests next to src/tests/test_install_python_deps.py. Default: keep
   these as warnings that print the exact line to add, never edit the
   admin's vhost (as OPS.45 does). Bugfixes lane 1, right after PERF.82.
+  Decided (Boss, 2026-10-14 19:55Z, on a decision
+  card relayed by the coordinator): warn only. The warnings print the
+  exact line to add and never edit his vhost.
   Prerequisites: none. Related: DOC.37, PERF.82.
 
 ## DOC: Documentation
@@ -5998,6 +6004,10 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   earlier releases without one; Boss may instead drop the rule. Done:
   README facts and table are correct, and the headline rule text matches
   what is done.
+  Decided (Boss, 2026-10-14 19:54Z, on a decision
+  card relayed by the coordinator): restore the rule. Every release from
+  the next one on opens with a Headline line, and changes/README says
+  so.
   Prerequisites: none.
 
 - [ ] **DOC.40 Bring docs/testing.md and docs/ci-runners.md in line with ci.yml and scripts/test.py**
