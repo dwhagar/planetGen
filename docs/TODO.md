@@ -1114,8 +1114,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Wire format (2026-10-09, galaxy-map-wire-format.md): MAP.147's
   investigation is done (docs/design/galaxy-map-wire-format.md): the
   packed binary tile format ships with these nested lists as MAP.159, on
-  one cache stamp bump, so list order is rank and finer tiles omit stars
-  a coarser tile sent.
+  one cache stamp bump, so list order is rank. (The planned omission of
+  stars a coarser tile already sent is not part of MAP.159: see the
+  follow-up item MAP.195.)
   Prerequisite: MAP.153. Related: MAP.147, MAP.148, MAP.151.
   Design: [docs/design/zoom-star-visibility.md](design/zoom-star-visibility.md)
 
@@ -1144,9 +1145,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   MB). Done: the server writes tiles as packed typed arrays (quantised
   position, colour and scalar planes; `clouds` and `points` stay JSON),
   the client decodes them in `tileStars`, list order is rank so the rank
-  fade of MAP.153 reads it directly, and a finer tile omits the stars a
-  coarser tile already sent (31 to 43% of bright records at levels 3 to
-  6, all at 7 to 12). It ships together with MAP.154 (the nested lists)
+  fade of MAP.153 reads it directly. (Foundations lane 2, 2026-10-14: a
+  finer tile does not omit the stars a coarser tile already sent, because
+  the page would need the parent tile in hand for every child; that
+  saving, 31 to 43% of bright records at levels 3 to 6 and all at 7 to
+  12, is the follow-up item MAP.195.) It ships together with MAP.154 (the nested lists)
   and MAP.151's tile keys so the cache is invalidated once. Decided
   (Boss, 2026-10-10 18:44Z, defaults approved; default yes, with MAP.154
   and MAP.151 on one bump):
@@ -1523,6 +1526,17 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   cluster stars) whatever sectors it crosses. Owner: Foundations lane 2,
   after the nebula map work (MAP.176 to MAP.180).
   Prerequisite: MAP.176. Related: MAP.176, MAP.178, MAP.180, GEN.209.
+
+- [ ] **MAP.195 Galaxy Map finer tiles leave out the stars a coarser tile already sent**
+  Foundations lane 2 (2026-10-14): MAP.159 sends packed tiles without
+  leaving out the stars a parent tile already sent, because the page
+  would need the parent tile in hand for every child. Done: finer tiles
+  leave those stars out (31 to 43% of the bright records at levels 3 to
+  6, all of them at levels 7 to 12) and the page keeps parents available
+  so a child never draws without them, with a test that a tile and its
+  parents together hold exactly the stars the full list holds. Measure
+  the saving against the cost of holding the parents before building it.
+  Prerequisites: MAP.159. Related: ['MAP.154', 'MAP.159'].
 
 ## NAV: Navigation and courses
 
