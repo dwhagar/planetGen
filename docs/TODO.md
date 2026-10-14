@@ -501,18 +501,6 @@ with `clamp()`.
   any of it (UX.93).
   Prerequisite: MAP.168. Related: MAP.167, UX.93.
 
-- [ ] **UX.95 Tables show their rows first and fill the filter-menu counts a moment later**
-  From the PERF.71 research (docs/design/slow-reads-and-timeouts.md, PR
-  #1175; Boss's ask of 2026-10-10 20:50Z; measured on 2,000,000
-  synthetic systems, MariaDB 10.11): the first page of a table asks for
-  the filter-menu counts (`facets=1`) in the same request, so a slow
-  count holds the rows back. Done: `static/datatable.js` fetches the
-  first rows without `facets=1`, paints them at once, then fetches the
-  menus in a second request and shows "..." in place of the counts until
-  they arrive. Owner: Bugfixes lane 2, after what it has queued.
-  Prerequisites: none. Related: PERF.64, PERF.69, PERF.71.
-  Design: [docs/design/slow-reads-and-timeouts.md](design/slow-reads-and-timeouts.md)
-
 - [ ] **UX.97 Search results: each panel runs under its own time limit and is fetched on its own**
   From the PERF.71 research (docs/design/slow-reads-and-timeouts.md, PR
   #1175; Boss's ask of 2026-10-10 20:50Z; measured on 2,000,000
@@ -1536,7 +1524,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   so a child never draws without them, with a test that a tile and its
   parents together hold exactly the stars the full list holds. Measure
   the saving against the cost of holding the parents before building it.
-  Prerequisites: MAP.159. Related: MAP.154, MAP.159.
+  Prerequisite: MAP.159. Related: MAP.154, MAP.159.
 
 ## NAV: Navigation and courses
 
@@ -4863,6 +4851,11 @@ clears each one.
   Note (2026-10-10): Bugfixes lane 2 (21:06Z) adds
   tests/test_web_browser_fixture_maps.py::test_galaxy_map_color_by_switches_the_fill_with_a_legend_and_keeps_it_in_the_url:
   failed once in the NAV.9 run under load, passed alone.
+  Sighting (Bugfixes lane 2, 2026-10-14, full suite of 50 min 43 s with
+  UX.95): tests/test_web_browser_maps.py::test_galaxy_map_buttons (a
+  playwright error) and ::test_nav_ends_picked_from_bookmarks_on_every_page
+  failed once and pass alone, not checked on main. Same family; the
+  rebuild's captured traceback and serial re-run tell load from real.
   Prerequisites: none. Related: TEST.111, TEST.121, TEST.122, TEST.125.
 
 - [ ] **TEST.127 test_nebula_shape_endpoint_serves_a_mesh failed once in a full parallel run (bug)**
