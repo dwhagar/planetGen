@@ -185,8 +185,9 @@ ALONE" (a real failure). A lane quoting a flake in a TODO item should paste
 that line and the record from `.test-failures.jsonl` instead of "failed once,
 passed alone". `--no-rerun` skips the second step.
 
-A pull request still needs the whole suite green (`scripts/test.py full`, or
-`pytest -n auto` as before).
+A pull request needs a green `scripts/test.py changed` (below) or, at the end of
+a sequence of related items, a green `scripts/test.py full` (or `pytest -n auto`
+as before).
 
 ### Only the tests a change touches, `scripts/test.py changed`
 
@@ -207,8 +208,11 @@ used file imports) a changed file, every test that starts a subprocess when
 `src/planetgen/`, `src/html/` or `scripts/` changed, and every test the record
 has not seen or saw fail. A change to `conftest.py`, `pytest.ini`, a support
 module or the test fixtures runs everything, and so does a missing record
-(which that run then writes). Run it as a quick loop while you work: **it is not
-the merge gate.** `scripts/test.py full --check` is how that is proved: it
+(which that run then writes). A green `changed` run is the merge gate for small changes and for the steps
+of a sequence of related items (Boss, 2026-10-14); the whole suite
+(`scripts/test.py full --check`) is run when a sequence is finished, and the
+daily CI run on main backstops both. A PR description says which one it used.
+`scripts/test.py full --check` is also how the selection is proved: it
 should never print a `MISSED:` line, and if it does, tell the test-suite thread.
 
 ## Setting up a cloud session
