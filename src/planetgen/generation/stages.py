@@ -93,6 +93,8 @@ def plan_stages(args):
     """The stages of one `planetgen plan` run, in order."""
     if getattr(args, "bright_stars_down_to", None) is not None:
         return [Stage("band", "Add the dimmer band of bright stars")]
+    if getattr(args, "fill_map_luminosity", False):
+        return [Stage("map-luminosity", "Fill the map luminosity")]
     if getattr(args, "redo_nebula_field", None):
         return [Stage("nebula-field", "Clean up the nebula field")]
     redo = getattr(args, "redo_scatters", None)
