@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.988] - 2026-10-14
+
+### Changed
+- **Saving a sector finds each system's nearest neighbours with one spatial tree (PERF.81).** It used to measure the distance from every system to every other one (1.8 million measurements for a sector of 1,916 systems, about 10 s); one cKDTree now answers all of them in 0.04 s, with the same neighbours, ties included.
+
 ## [8.0.987] - 2026-10-14
 
 ### Changed
