@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1116] - 2026-10-14
+
+### Fixed
+- Changing a planet's or moon's class to one it can't take (its mass outside the class's range, the class not forming in its zone, too small for its moons, too big for its planet) now says what it would break and asks to confirm, then does it when confirmed. The Change class form has a "Set it anyway" box; the API takes `"force": true`. A confirmed class whose mass range excludes the body's mass sets the mass to the nearest end of that range. Until now such a class was refused even when forced.
+
 ## [8.0.1115] - 2026-10-14
 
 ### Changed
