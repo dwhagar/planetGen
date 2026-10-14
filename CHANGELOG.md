@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1085] - 2026-10-14
+
+### Fixed
+- **The test dependency record no longer keeps tests that failed or skipped, and now stores each test's time** (TEST.139). A hook that never ran meant a failing test was recorded as if it had passed, with whatever files it reached before failing, and every time was 0. The record format number goes up, so a record from before is ignored and the next full run writes a new one.
+
 ## [8.0.1084] - 2026-10-14
 
 ### Changed
