@@ -854,12 +854,7 @@ def stage_view(job):
     stages_ = job.get("stages") or []
     step = int(job.get("step") or 0)
     reported = (job.get("progress") or {}).get("stage") or {}
-    current = None
-    if 0 < step:
-        inside = [s for s in stages_ if s["step"] == step]
-        local = int(reported.get("index") or 1)
-        local = min(max(local, 1), len(inside)) if inside else 1
-        current = inside[local - 1]["n"] if inside else None
+    current = _current_stage_number(job, stages_) if 0 < step and any(s["step"] == step for s in stages_) else None
     listing = []
     for stage in stages_:
         if job.get("finished") and current is None:
@@ -1055,48 +1050,81 @@ def _job_view(job):
 
 def overall_view(job, step_remaining, now=None):
     """
-    The one bar across all of a job's steps (PERF.55), for a job with more
+    The one bar across all of a job's stages (PERF.55), for a job with more
     than one: `overall_shown`, `overall_value` (0 to 1, `None` while the
     time left is unknown), `overall_text` and `overall_remaining_label`.
 
-    The time left is the running step's own (`step_remaining`, the step
-    bar's ETA counted down) or else what earlier runs of that step took
-    less its time so far, plus what earlier runs of each later step took;
-    a later step with no record makes it "at least". The bar is the job's
-    elapsed time over elapsed plus left, so it moves forward as each
-    step's own bar reports and is corrected when a step runs long.
+    The time left is the running stage's own (`step_remaining`, the bar's
+    ETA counted down) or else what earlier runs of that stage took less its
+    time so far, plus an estimate for every stage still to run: what earlier
+    runs of it took (`stage_estimates`), else the average of the stages this
+    job has finished (PERF.66), else, in the job's first stage, what that
+    stage is expected to take in all. So the bar's time left is longer than
+    the running stage's own until the last stage. The bar is the job's
+    elapsed time over elapsed plus left, so it moves forward as each stage
+    reports and is corrected when one runs long.
     """
-    steps = job.get("steps") or []
-    view = {"overall_shown": len(steps) > 1, "overall_value": None, "overall_text": "",
+    units = job.get("stages") or [{"n": i, "step": i, "skipped": None} for i, _label in enumerate(job.get("steps") or [], 1)]
+    view = {"overall_shown": len(units) > 1, "overall_value": None, "overall_text": "",
             "overall_remaining_label": ""}
-    if len(steps) < 2:
+    if len(units) < 2:
         return view
     if job.get("finished"):
         done = job.get("status") == "succeeded"
         view["overall_value"] = 1.0 if done else None
-        view["overall_text"] = f"All {len(steps)} steps" if done else ""
+        view["overall_text"] = f"All {len(units)} stages" if done else ""
         return view
     now = time.time() if now is None else now
-    step, estimates = int(job.get("step") or 0), list(job.get("step_estimates") or [])
-    estimates += [None] * (len(steps) - len(estimates))
-    current = step_remaining
-    if current is None and 0 < step <= len(steps) and estimates[step - 1] is not None and job.get("step_started_at"):
-        current = max(0.0, estimates[step - 1] - (now - float(job["step_started_at"])))
-    later = estimates[max(step, 0):]
-    known = sum(seconds for seconds in later if seconds is not None)
-    partial = any(seconds is None for seconds in later)
-    if step == 0:
-        current = 0.0
     view["overall_text"] = "Whole job"
-    if current is None:
-        view["overall_remaining_label"] = "estimating the time left" if step else ""
+    step = int(job.get("step") or 0)
+    if step == 0:
         return view
-    remaining = current + known
+    current = _current_stage_number(job, units)
+    estimates = _stage_estimate_list(job, units)
+    stage_started = ((job.get("progress") or {}).get("stage") or {}).get("started_at") or job.get("step_started_at")
+    in_stage = max(0.0, now - float(stage_started)) if stage_started else 0.0
+    left = step_remaining
+    if left is None and estimates[current - 1] is not None and stage_started:
+        left = max(0.0, estimates[current - 1] - in_stage)
+    if left is None:
+        view["overall_remaining_label"] = "estimating the time left"
+        return view
     elapsed = job.get("elapsed_s") or 0.0
+    finished = [u for u in units if u["n"] < current and not u["skipped"]]
+    average = (max(elapsed - in_stage, 0.0) / len(finished)) if finished else in_stage + left
+    remaining = left
+    for unit in units:
+        if unit["n"] > current and not unit["skipped"]:
+            known = estimates[unit["n"] - 1]
+            remaining += known if known is not None else average
     view["overall_value"] = elapsed / (elapsed + remaining) if elapsed + remaining > 0 else None
-    label = remaining_label(remaining)
-    view["overall_remaining_label"] = ("at least " + label.replace("about ", "", 1)) if partial and label else label
+    view["overall_remaining_label"] = remaining_label(remaining)
     return view
+
+
+def _current_stage_number(job, units):
+    """The number (1-based, across the whole job) of the stage running now: the running step's stage the run
+    last reported, else the step's first."""
+    step = int(job.get("step") or 0)
+    inside = [unit for unit in units if unit["step"] == step]
+    if not inside:
+        return max(1, min(step, len(units)))
+    reported = int((((job.get("progress") or {}).get("stage")) or {}).get("index") or 1)
+    return inside[min(max(reported, 1), len(inside)) - 1]["n"]
+
+
+def _stage_estimate_list(job, units):
+    """The expected seconds of each stage, one entry per stage (`None` where nothing is known): the runner's
+    per-stage list, else each step's own estimate for a step of a single stage."""
+    stored = list(job.get("stage_estimates") or [])
+    if len(stored) == len(units):
+        return stored
+    per_step = list(job.get("step_estimates") or [])
+    sizes = {}
+    for unit in units:
+        sizes[unit["step"]] = sizes.get(unit["step"], 0) + 1
+    return [per_step[unit["step"] - 1] if sizes[unit["step"]] == 1 and unit["step"] <= len(per_step) else None
+            for unit in units]
 
 
 def remaining_label(remaining, running=True):

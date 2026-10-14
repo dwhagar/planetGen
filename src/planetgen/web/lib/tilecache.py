@@ -103,9 +103,10 @@ _TILE_STAR_KEYS = ("id", "x", "y", "z", "luminosity_sol", "temperature_k", "radi
 """tuple: The only fields of a tile's star the page's script reads (MAP.157;
 `tileStars`, `setStars` and `starShown` in `static/galaxymap3d.js`)."""
 
-_TILE_KEEP_SECTIONS = ("clouds", "stars", "generated", "points")
+_TILE_KEEP_SECTIONS = ("clouds", "stars", "generated", "points", "incomplete")
 """tuple: The sections of a tile the page reads; `placed`, `planned` and
-`filled` (9 to 35% of every tile) are not served."""
+`filled` (9 to 35% of every tile) are not served. `incomplete` (PERF.76) names the pieces the database was too busy
+to give; such a tile is served but never stored."""
 
 
 
@@ -444,6 +445,12 @@ def _tile_bytes(tile):
     return json.dumps(trim_tile(tile), separators=(",", ":")).encode("utf-8")
 
 
+def _incomplete(raw):
+    """Whether a tile's bytes say some piece of it is missing (PERF.76): it is served but not kept, so the next
+    request builds it again."""
+    return b'"incomplete":[' in raw
+
+
 def _tile_filename(prefix, key):
     level, ix, iy, iz = parse_tile_key(key)
     return f"{prefix}{level}_{ix}_{iy}_{iz}.json"
@@ -556,7 +563,7 @@ def _collect_tiles(db, tile_keys, known_stamp):
                 if generation_dir and (_read_remembered(_db_dir(root, db)) or {}).get("stamp") == stamp:
                     _write_json(os.path.join(generation_dir, "meta.json"), meta)
                     for key, raw in made.items():
-                        if key in missing:
+                        if key in missing and not _incomplete(raw):
                             _write_bytes(os.path.join(generation_dir, _tile_filename("t", key)), raw)
                     if random.random() < PRUNE_PROBABILITY:
                         prune(root)

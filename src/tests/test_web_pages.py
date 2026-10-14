@@ -69,7 +69,7 @@ class FakeData:
         return body
 
     def get_systems(self, db, star_type=None, sector_id=None, limit=None, offset=None, sort=None,
-                    descending=False, binary=None, placement=None, octants=(), facets=False):
+                    descending=False, binary=None, placement=None, octants=(), facets=False, after=None):
         self.calls.append(("get_systems", db, sector_id, limit, offset))
         self.asked.append(("systems", sort, descending, binary, placement, list(octants)))
         body = {"items": self.systems[offset:offset + limit], "total": len(self.systems),

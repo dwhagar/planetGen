@@ -190,6 +190,8 @@ NON_OPTION_VARIABLES = {
     "PLANETGEN_SETTINGS_FILE": "the web-owned settings.json",
     "PLANETGEN_MYSQL_SQL_MODE": "the test suite's SQL mode",
     "PLANETGEN_TEST_REDIS_URL": "the test suite's Redis",
+    "PLANETGEN_STAGE_OFFSET": "set by the job runner: stages before this step's",
+    "PLANETGEN_STAGE_TOTAL": "set by the job runner: stages in the whole job",
     "PLANETGEN_WORK_PARENT": "set by a job for its child processes",
     "PLANETGEN_WORKER_HOOKS": "set by a work queue for its workers",
 }

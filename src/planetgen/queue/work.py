@@ -86,6 +86,11 @@ WORKER_NICENESS = 10
 """int: How much `os.nice` lowers a worker's priority on Linux and
 macOS."""
 
+CHUNKS_PER_WORKER = 8
+"""int: Most tasks `WorkQueue.submit_each` makes per worker. Every task a pool runs costs about 60 database
+statements (its rows, its worker's connection and caches) and a fork, which is more than a bright-star layer
+costs to draw, so thousands of tiny layers go out in this many chunks (PERF.79)."""
+
 HEARTBEAT_SECONDS = 5
 STALE_SECONDS = 30
 WAIT_POLL_SECONDS = 2
@@ -169,6 +174,16 @@ def lower_priority():
         os.nice(WORKER_NICENESS)
     except Exception:  # noqa: BLE001 -- a normal-priority worker is still a worker
         pass
+
+
+def run_chunk(payload):
+    """A `WorkQueue.submit_each` task: runs `payload["fn"]` on each of `payload["payloads"]` in this process, in
+    order. Returns `[(result, seconds)]`, one per payload."""
+    results = []
+    for item in payload["payloads"]:
+        started = time.monotonic()
+        results.append((payload["fn"](item), time.monotonic() - started))
+    return results
 
 
 def task_seed(run_seed, key):
@@ -1514,6 +1529,34 @@ class WorkQueue:
         self._dispatch()
         self._collect(block=False)
         self._check_signal()
+
+    def submit_each(self, kind, items, fn):
+        """
+        Queues many small tasks of one kind (a layer of the scatter each) as few: with a pool the
+        `items` -- `(key, payload, weight, on_done)` -- go out in at most `workers * CHUNKS_PER_WORKER`
+        chunks, dealt out round-robin so every chunk holds a mix of the first (densest) and last
+        (thinnest) items, each chunk one task that runs `fn(payload)` for its items in order here and
+        then `on_done(result, seconds, weight)` for each of them. With one worker it is `submit` per
+        item. A task's result does not depend on its chunk: nothing in `fn` may read the task seed.
+        """
+        items = list(items)
+        if not self.parallel:
+            self.expect(len(items))
+            for key, payload, weight, on_done in items:
+                self.submit(kind, key, fn, payload, weight=weight, on_done=on_done)
+            return
+        count = min(len(items), self.workers * CHUNKS_PER_WORKER)
+        chunks = [items[start::count] for start in range(count)]
+        self.expect(len(chunks))
+        for number, chunk in enumerate(chunks):
+            def finished(results, _seconds, _weight, chunk=chunk):
+                for (_key, _payload, weight, on_done), (result, seconds) in zip(chunk, results):
+                    if on_done:
+                        on_done(result, seconds, weight)
+
+            self.submit(kind, f"{kind} chunk {number}", run_chunk,
+                        {"fn": fn, "payloads": [payload for _key, payload, _weight, _done in chunk]},
+                        weight=sum(weight for _key, _payload, weight, _done in chunk), on_done=finished)
 
     def _run_here(self, task):
         """One worker: runs `task` in this process, recording its row
