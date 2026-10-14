@@ -1012,7 +1012,7 @@ Parents marked "new parent" had no old number of their own.
 | OPS.39 | Remove Windows support; keep only a simple docs/WINDOWS.md | none | done, PR #981 |
 | OPS.40 | update.sh step 8 fails: setup-debug-log.sh loads the deleted util/appconfig.py (bug) | none | done, PR #989 |
 | OPS.41 | Put the site in an "updating" state while update.sh runs long database migrations | none | open |
-| OPS.42 | Install numba: Python 3.12 minimum, numba required, and the web app never imports its compiled code | none | open |
+| OPS.42 | Install numba: Python 3.12 minimum, numba required, and the web app never imports its compiled code | none | done, PR #1291 |
 | OPS.43 | A fresh install gets markdown 3.11.1, which removes a pattern the page renderer names, and 74 tests fail (bug) | none | open |
 | OPS.44 | The docs site build (GitHub Pages, Jekyll) fails on every release commit and nothing in our tests would have caught it (bug) | none | open |
 | PERF.1 | Generation at scale | none | done, PR #425 |

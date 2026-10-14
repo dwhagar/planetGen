@@ -2942,8 +2942,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   8.0.1) with a test that the astropy values equal them; `@` (BLAS)
   removed from `galaxy/nebula_shape.py` (lines 107, 163) and
   `physics/sector_path.py` (line 232). It changes stored values, so it
-  ships with a generator epoch bump, and it blocks TEST.77 on the Python
-  3.9 CI leg. Related: GEN.66 follow-up on pinning astropy's constant
+  ships with a generator epoch bump (the Python 3.9 CI leg that blocked
+  TEST.77 is gone, OPS.42 merged in #1291). Related: GEN.66 follow-up on pinning astropy's constant
   sets.
   Prerequisites: none.
   Design: [docs/design/reproducible-galaxies.md](design/reproducible-galaxies.md)
@@ -3571,7 +3571,7 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   `test_astropy_constants.py` still checks the table; no stored value
   changes; the change note says it removes a dependency. Saves 280 ms and
   29 MB per process start and 53 MB of install. Replaces GEN.156. Owner:
-  Foundations lane 1, after OPS.42.
+  Foundations lane 1.
   Prerequisites: none. Related: GEN.156, GEN.66.
   Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
 
@@ -3944,13 +3944,12 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   which recomputes these paths. Done: the integrator is a numba kernel,
   the old Python loop removed (no fallback), the tolerance in the path
   tests, timings in the benchmark report. Owner: Foundations lane 1,
-  after PERF.80 (merged in #1251)
-  and after OPS.42.
+  after PERF.80 (merged in #1251).
   Decided (Boss, 2026-10-14 13:00Z): numba, Python 3.12 minimum, default cache
-  location (OPS.42). Acceptance criterion: the integrator imports as the web
-  user (see OPS.42), by keeping it out of the web app's import path or by
+  location (OPS.42, merged in #1291). Acceptance criterion: the integrator imports as the web
+  user (as OPS.42 does), by keeping it out of the web app's import path or by
   writable `__pycache__` directories, with a test.
-  Prerequisite: OPS.42. Related: PERF.31, GEN.105.
+  Related: PERF.31, GEN.105.
   Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
 
 - [ ] **PERF.89 Bright and massive star scatters: population densities as NumPy arrays (about 4 s of 15 to 20 s)**
@@ -5485,37 +5484,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   a clear message, and the Admin pages show the state. Owner:
   Foundations lane 1, near its other update.sh work.
   Prerequisites: none. Related: OPS.29, OPS.35, PERF.64.
-
-- [ ] **OPS.42 Install numba: Python 3.12 minimum, numba required, and the web app never imports its compiled code**
-  Math Research (2026-10-14;
-  docs/design/math-and-library-efficiency.md, "The default cache and the
-  web user"). Decided (Boss, 2026-10-14 13:00Z): numba is a hard
-  requirement with no pure-Python fallback; the minimum Python becomes 3.12
-  (not 3.10); numba's cache stays in its DEFAULT location (no
-  NUMBA_CACHE_DIR, no /var/cache/planetgen/numba, no change to
-  create-cache-dir.sh); the change is noted in the CHANGELOG and the
-  README. numba 0.68 and llvmlite 0.50 (about 196 MB installed) need NumPy
-  below 2.6 and are not in apt on Ubuntu 24.04, so they install with pip
-  through the NumPy stack group of scripts/install-python-deps.sh and its
-  REQUIREMENTS table (enforced by test_install_python_deps.py). Done:
-  setup.py `python_requires` 3.12, the installer checks and INSTALL.md
-  raised; the Python 3.9 to 3.11 CI legs and the matching requirements.lock
-  markers dropped (frees TEST.77); numba added to the setup, installer and
-  lock; the change note says the minimum Python changed and the README's
-  requirements text says so. Acceptance criterion: with the default cache,
-  a process that can write neither the code tree's `__pycache__` nor its
-  own home directory fails at import ("cannot cache function: no locator
-  available"), even when root warmed the tree, and a user with a writable
-  home builds its own cache under ~/.cache/numba. Apache's web user (home
-  /var/www, tree owned by the login user) is exactly that case, so either
-  the kernel module stays out of the web app's import path (imported only
-  by the settle step, the orbit update and the workers; check
-  api/edits.py, queue/api_jobs.py and db/sector_paths.py) or update.sh
-  makes those `__pycache__` directories writable for the web group; a test
-  imports the integrator as the web user. Owner: Foundations lane 1,
-  before the numba path integrator (PERF.88).
-  Prerequisites: none. Related: GEN.156, TEST.77.
-  Design: [docs/design/math-and-library-efficiency.md](design/math-and-library-efficiency.md)
 
 - [ ] **OPS.43 A fresh install gets markdown 3.11.1, which removes a pattern the page renderer names, and 74 tests fail (bug)**
   GitHub issue [#1270](https://github.com/dwhagar/planetGen/issues/1270).
