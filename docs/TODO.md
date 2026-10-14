@@ -4986,6 +4986,15 @@ clears each one.
   failed under load twice (12:00Z and 17:03Z), passes alone; not checked
   on main. Also tests/test_web_browser_maps.py::test_galaxy_map_buttons
   again (TEST.126). For the rebuild's flake list.
+  Stage 3 (2026-10-09): Stage 3 merged (#1339, 2026-10-14): one database
+  per worker, emptied between tests; docs/testing.md and
+  docs/design/test-suite-rebuild.md sections 11 to 13 carry it. The Test
+  Suite Rebuild thread reports Boss decided (2026-10-14 19:44Z) that a
+  green `scripts/test.py changed` run replaces the full local suite as
+  the merge gate for small changes and for steps of a sequence of
+  related items, and a full run (`scripts/test.py full --check`) happens
+  when a sequence is finished. Not confirmed by me from Boss's own
+  message; docs-only PRs still merge at once.
 
 - [ ] **TEST.140 test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing fails once in a full parallel run (bug)**
   Reported by Bugfixes lane 2 (2026-10-14 12:44Z, PERF.81 run, -n 4, 49
@@ -5053,6 +5062,21 @@ clears each one.
   from anywhere else. Owner: the Test Suite Rebuild thread (its list),
   not a lane.
   Prerequisites: none. Related: TEST.139.
+
+- [ ] **TEST.146 Rate-limit tests fail when the one-minute window ends between their requests (bug)**
+  Reported by the Test Suite Rebuild thread (2026-10-14 19:49Z): tests
+  that assert a 429 after N requests against a one-minute request limit
+  can fail when the limiter's fixed clock-minute window ends between
+  their requests. Seen once:
+  src/tests/test_ratelimit_redis.py::test_two_apps_on_one_redis_share_the_request_counts
+  failed in the 18:47Z full run and passed alone;
+  test_web_request_limits.py and test_web_security_limits.py have the
+  same shape. The odds are about 1 run in 100. Done when a shared test
+  helper waits for the start of a fresh minute when only a few seconds
+  remain, every test of this kind uses it, and the suite shows no time
+  flake. Owner: the Test Suite Rebuild thread (group B style), not a
+  lane.
+  Prerequisites: none. Related: TEST.139, TEST.145.
 
 ## USR: User accounts
 
