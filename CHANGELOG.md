@@ -2,6 +2,40 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1065] - 2026-10-14
+
+### Changed
+- TODO: OPS.43 and OPS.44 (PR #1307) and ADM.53 (PR #1318) retired.
+
+## [8.0.1064] - 2026-10-14
+
+### Changed
+- TODO: DB.24 retired (PR #1317, schema v83); notes on MAP.151 and MAP.171 about clouds without object ids.
+
+## [8.0.1063] - 2026-10-14
+
+### Fixed
+- Logging in no longer fails with a server error, or hangs until Apache gives up, while a long job holds a lock on the admin's row. The web interface's database connections now wait at most 5 seconds for a locked row; a login, a session's last-seen time and an API key's last-used time are skipped (with a line in the activity log) when the row stays locked, and any other request that hits the wait answers "Busy" (503 with `Retry-After`) instead of a 500.
+
+## [8.0.1062] - 2026-10-14
+
+### Added
+- `nebula_field` (schema v83): one row for every kept class M and N cloud of the galaxy's molecular cloud field, written by `planetgen plan` (and by `plan --redo-scatters phenomena`) from the galaxy seed, so the Galaxy Map can find a nebula no generated sector holds yet. A sector's save marks the clouds it stores, with their object IDs. Classes P and Q stay in the seed (DB.24).
+
+### Changed
+- The migration to v83 only creates the empty table; the next plan fills it.
+
+## [8.0.1061] - 2026-10-14
+
+### Changed
+- TODO: UX.97 retired (PR #1315).
+
+## [8.0.1060] - 2026-10-14
+
+### Changed
+- **Each Search result panel runs and shows on its own.** A slow panel used to time out the whole page. The page now asks for each panel separately, so each has its own database time limit; a panel that runs out says "This took too long; try again or narrow the search." with a link to try again, and the others show. `GET /api/search` takes `panels=none` to answer just the facets and name suggestions.
+- **A one-word name search shorter than the full-text minimum matches the start of a name.** A 2-letter word read every name in the table (8.4 s on 2,000,000 systems); it now uses the name index, so "ar" finds "Arcturus" but no longer "Alpha Ar".
+
 ## [8.0.1059] - 2026-10-14
 
 ### Changed
