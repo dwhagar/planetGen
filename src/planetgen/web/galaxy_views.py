@@ -32,7 +32,8 @@ from planetgen.util import log
 from planetgen.tuning import DEFAULT_SECTOR_EDGE_LY
 from planetgen.physics.units import ly_to_pc, pc_to_ly
 from planetgen.web.lib import tilepack
-from planetgen.web.lib.tilecache import TileRequestError, fetch_stage, fetch_tiles, fetch_tiles_wire
+from planetgen.galaxy.window import DEFAULT_WINDOW
+from planetgen.web.lib.tilecache import TileRequestError, fetch_stage, fetch_tiles, fetch_tiles_wire, fetch_window
 
 from planetgen.api.limiter import page_limit
 
@@ -333,6 +334,33 @@ def galaxy_stage():
 
 
 galaxy_stage.json_only = True  # not a page: tests/test_web_a11y.py skips it
+
+
+@bp.route("/galaxy/window")
+@page_limit("galaxy_tiles")
+def galaxy_window():
+    """
+    JSON for the map's data window (MAP.151): `?at=<m.ring.wedge.slab>` the
+    middle cell (any level, a sector as `1.ring.slot.layer`) and `?g=` the
+    cells across (3 to 11, odd; 9 by default). Returns
+    `tilecache.fetch_window`'s payload; a malformed key or width is a 400, an
+    API failure a 502, both as `{"error": ...}` JSON.
+    """
+    try:
+        payload = fetch_window(db_name(), request.args.get("at") or "", request.args.get("g") or DEFAULT_WINDOW)
+    except TileRequestError as exc:
+        return _json_error(str(exc), 400)
+    except apiclient.NotFoundError as exc:
+        return _json_error(str(exc) or "Not found.", 404)
+    except apiclient.ApiError as exc:
+        log.exception(f"API error while fetching a galaxy window: {exc}")
+        return _json_error("The map could not be loaded. Please try again shortly.", 502)
+    response = jsonify(payload)
+    response.headers["Cache-Control"] = "no-store"
+    return response
+
+
+galaxy_window.json_only = True  # not a page: tests/test_web_a11y.py skips it
 
 
 @bp.route("/galaxy/locate")
