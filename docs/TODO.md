@@ -1461,6 +1461,16 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   is compressed, with the compression shown in the legend), and a test
   compares the two placements for a binary system. Owner: Foundations
   lane 2, in its map queue.
+  Screenshot (Boss, 2026-10-14 13:36Z, copy in
+  /mnt/project-files/screenshots/issue-1215/): the Sector Map selecting
+  the B9V system Ulalio Ngatho. A lone blue star sits far to the left of
+  the drawing, away from everything else, while two groups of planet
+  orbits overlap in the middle (one around a bright blue star with tight
+  orbits and one wide ellipse reaching across, one lower right around a
+  small blue-and-green pair), so the stars of this one system are not
+  drawn where the orbits say they are. Check both: which dot is the
+  companion, and whether the lone star is placed by the compressed rule
+  while the orbits use the real separation.
   Prerequisites: none. Related: MAP.89, GEN.62.
 
 - [ ] **MAP.187 The see-through "tunnel" in front of the camera leaves a visible halo and hides stars (bug)**
