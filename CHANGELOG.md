@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1084] - 2026-10-14
+
+### Changed
+- TODO: filed TEST.146 (rate-limit tests fail when the one-minute window ends between requests) for the Test Suite Rebuild thread and noted TEST.139 stage 3 (#1339); TODO items resolved: none / Added: TEST.146.
+
 ## [8.0.1083] - 2026-10-14
 
 ### Changed
