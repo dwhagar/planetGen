@@ -298,7 +298,7 @@ def sample_job(tmp_path_factory):
                             admin="admin", spawn=False)
     path = os.path.join(root, job_id)
     with open(os.path.join(path, "output.log"), "w", encoding="utf-8") as f:
-        f.write("=== Step 1 of 1: Reset the galaxy ===\nWiped 31 table(s).\n")
+        f.write("=== Stage 1 of 1: Reset the galaxy ===\nWiped 31 table(s).\n")
     with open(os.path.join(path, "state.json"), "w", encoding="utf-8") as f:
         f.write('{"status": "succeeded", "pid": 1, "step": 1, "started_at": 1759236000, '
                 '"finished_at": 1759236002, "exit_code": 0, "error": null}')

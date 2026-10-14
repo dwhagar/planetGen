@@ -1012,6 +1012,63 @@ def build_nebula_field(args, conn, skeleton, extents, progress):
     return written[0]
 
 
+MAP_LUMINOSITY_BATCH_IDS = 200_000
+"""int: Ids per batch of the map luminosity fill: one short statement and commit each, so readers never wait."""
+
+
+def map_luminosity_sql(column="mass_solar"):
+    """The SQL expression for `stellar_evolution.map_luminosity_sol` of `column`, from the same pieces."""
+    clauses = []
+    for piece in program_constants.MAP_MASS_LUMINOSITY_PIECES:
+        value = f"{piece['coeff']!r} * POW({column}, {piece['exponent']!r})"
+        if piece["max_mass_sol"] is None:
+            clauses.append(f"ELSE {value}")
+        else:
+            clauses.append(f"WHEN {column} < {piece['max_mass_sol']!r} THEN {value}")
+    return "CASE " + " ".join(clauses) + " END"
+
+
+def fill_map_luminosity(args):
+    """
+    Fills `phenomenon_scatter.map_luminosity_sol` (DB.23, GEN.201) for the rows that have a mass and no value yet,
+    in id-range batches of `MAP_LUMINOSITY_BATCH_IDS`, each its own short statement and commit. It only touches
+    rows still empty, so a stopped run carries on where it was. The values are `stellar_evolution.map_luminosity_sol`
+    of the stored mass, worked out by the same pieces in SQL and stored as FLOAT, so a row agrees with the one a
+    new scatter writes to float precision.
+
+    Returns:
+        int: The rows filled.
+    """
+    expression = map_luminosity_sql()
+    conn = store.get_connection(store.mysql_config_from_args(args))
+    try:
+        top = int(conn.execute("SELECT COALESCE(MAX(id), 0) AS n FROM phenomenon_scatter").fetchone()["n"])
+        remaining = conn.execute("SELECT COUNT(*) AS n FROM phenomenon_scatter WHERE mass_solar IS NOT NULL"
+                                 " AND map_luminosity_sol IS NULL").fetchone()["n"]
+        log.normal(f"Map luminosity: {remaining:,} scattered rows have a mass and no value yet.")
+        filled = 0
+        with run_common._generation_progress() as progress:
+            log.set_console(progress.console)
+            try:
+                with steps.Step("Filling the map luminosity", "map-luminosity", max(top, 1), args=args,
+                                progress=progress) as bar:
+                    for low in range(1, top + 1, MAP_LUMINOSITY_BATCH_IDS):
+                        high = min(low + MAP_LUMINOSITY_BATCH_IDS - 1, top)
+                        cursor = conn.execute(
+                            f"UPDATE phenomenon_scatter SET map_luminosity_sol = {expression}"
+                            " WHERE id BETWEEN ? AND ? AND mass_solar IS NOT NULL AND map_luminosity_sol IS NULL",
+                            (low, high))
+                        conn.commit()
+                        filled += cursor.rowcount
+                        bar.update(advance=high - low + 1)
+            finally:
+                log.reset_console()
+        log.normal(f"Filled the map luminosity of {filled:,} scattered rows.")
+        return filled
+    finally:
+        conn.close()
+
+
 def redo_nebula_field(args):
     """
     Brings an existing galaxy's stored field clouds in line with the current keep rates (GEN.205). Every stored dark
@@ -1268,6 +1325,12 @@ def run_plan(args):
         stages.enter("band")
         with workQueue.job_node("bright-stars", f"Bright stars down to {args.bright_stars_down_to:g} L_sun"):
             add_bright_star_band(args)
+        stages.finish()
+        return
+    if getattr(args, "fill_map_luminosity", False):
+        stages.enter("map-luminosity")
+        with workQueue.job_node("map-luminosity", "Map luminosity"):
+            fill_map_luminosity(args)
         stages.finish()
         return
     if getattr(args, "redo_nebula_field", None):

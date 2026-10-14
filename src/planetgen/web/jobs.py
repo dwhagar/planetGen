@@ -49,7 +49,7 @@ import time
 
 from planetgen.queue import redisqueue
 from planetgen.web.lib.privatedir import ensure_private_dir
-from planetgen.util import log
+from planetgen.util import log, stagemark
 from planetgen.util.settings import get_settings
 
 REPO_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
@@ -274,6 +274,9 @@ def get_job(job_id, root=None):
     error = state.get("error")
     if status == "interrupted" and not error:
         error = "The job stopped without finishing (the server may have restarted)."
+    in_step = sum(1 for stage in stages if stage["step"] == step)
+    step_marker = (stagemark.marker(next(stage["n"] for stage in stages if stage["step"] == step), len(stages), in_step)
+                   if in_step else (stagemark.marker(step, len(labels)) if step else ""))
     return {
         "id": job["id"],
         "kind": job.get("kind"),
@@ -286,11 +289,11 @@ def get_job(job_id, root=None):
         "finished": status in FINISHED,
         "step": step,
         "step_label": labels[step - 1] if 0 < step <= len(labels) else None,
+        "step_marker": step_marker,
         "stages": stages,
         "step_started_at": state.get("step_started_at"),
         "step_estimates": state.get("step_estimates") or [],
         "stage_estimates": state.get("stage_estimates") or [],
-        "step_first_stage": next((stage["n"] for stage in stages if stage["step"] == step), step),
         "started_at": started,
         "finished_at": finished,
         "elapsed_s": ((finished or now) - started) if started else None,

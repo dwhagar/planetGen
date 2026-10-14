@@ -300,3 +300,7 @@ class Nebula(LazySaladName):
         separated by double newlines.
         """
         return "\n\n".join(self.to_paragraph_list())
+
+
+from planetgen.generation import object_timing  # noqa: E402 -- registers the generators below (PERF.92)
+object_timing.track(Nebula, "nebula")

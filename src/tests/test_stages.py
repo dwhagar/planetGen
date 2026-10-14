@@ -407,8 +407,6 @@ def test_the_new_galaxy_log_counts_twelve_tasks_not_four(tmp_path):
              for step in steps]
     counts = job_runner._step_stage_counts(shown)
     assert counts == [1, 1, 1, 9] and sum(counts) == 12
-    headings = [job_runner._step_heading(sum(counts[:i]) + 1, count, sum(counts)) for i, count in enumerate(counts)]
-    assert headings == ["Step 1 of 12", "Step 2 of 12", "Step 3 of 12", "Steps 4 to 12 of 12"]
     job_dir = tmp_path / "jobs" / "20261010-120000-abcd"
     job_dir.mkdir(parents=True)
     (job_dir / "job.json").write_text(json.dumps({
@@ -416,9 +414,9 @@ def test_the_new_galaxy_log_counts_twelve_tasks_not_four(tmp_path):
         "cwd": str(tmp_path), "env": {}, "steps": shown}))
     assert job_runner.run(str(job_dir)) == 0
     log_text = (job_dir / "output.log").read_text()
-    assert "=== Step 1 of 12: " in log_text and "=== Step 3 of 12: " in log_text
-    assert "=== Steps 4 to 12 of 12: " in log_text and "of 4" not in log_text
-    assert "=== Steps 4 to 12 exited with status 0" in log_text
+    assert "=== Stage 1 of 12: " in log_text and "=== Stage 3 of 12: " in log_text
+    assert "=== Stages 4 to 12 of 12: " in log_text and "of 4" not in log_text
+    assert "=== Stages 4 to 12 exited with status 0" in log_text
     assert "\n3 12\n" in log_text      # the last step's process was told its stages start at 4 of 12
 
 
@@ -441,3 +439,14 @@ def test_the_command_line_bar_never_shows_the_running_stages_time_as_the_whole_j
         assert total == pytest.approx(max(60.0 + max(20.0, 10.0), 70.0 * stages.OVERALL_MARGIN))
     finally:
         stages.finish()
+
+
+def test_every_stage_marker_comes_from_one_formatter():
+    """UX.98: one wording for a single stage and for a run, in the section headers and the closing line."""
+    from planetgen.util import stagemark
+    assert stagemark.marker(4, 12) == "Stage 4 of 12"
+    assert stagemark.marker(4, 12, 9) == "Stages 4 to 12 of 12"
+    assert stagemark.section(1, 12, 1, "Reset") == "=== Stage 1 of 12: Reset ==="
+    assert stagemark.section(4, 12, 9, "Generate") == "=== Stages 4 to 12 of 12: Generate ==="
+    assert stagemark.finished(4, 9, 0, 30.6) == "=== Stages 4 to 12 exited with status 0 after 31 s ==="
+    assert stagemark.finished(2, 1, 1, 4) == "=== Stage 2 exited with status 1 after 4 s ==="

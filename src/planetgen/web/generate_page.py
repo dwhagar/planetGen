@@ -64,7 +64,7 @@ from planetgen.web.lib.pagination import PAGE_SIZE, clamp_page, page_offset, par
 from planetgen.admin import activity_log
 from planetgen.generation import luminosity_floor, prevalence, stages, stats
 from planetgen import tuning
-from planetgen.util import log
+from planetgen.util import log, stagemark
 from planetgen.galaxy import objectref
 from planetgen.galaxy.drill import format_drill_key, parse_drill_key
 from planetgen.galaxy.geometry import sector_address_at
@@ -870,7 +870,7 @@ def stage_view(job):
     text = ""
     if current is not None and not job.get("finished"):
         entry = listing[current - 1]
-        text = f"Stage {current} of {len(stages_)}: {entry['label']}"
+        text = f"{stagemark.marker(current, len(stages_))}: {entry['label']}"
         if entry["state"] == "skipped":
             text += f" (skipped: {entry['reason']})"
     return {"stage_text": text, "stage_list": listing}

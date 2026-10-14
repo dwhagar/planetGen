@@ -1041,6 +1041,11 @@ def add_plan_arguments(parser):
                                       "field clouds the rule now rejects; 'apply' counts, then deletes them "
                                       "(clearing what pointed at them, refreshing containment in the sectors they "
                                       "reached) and draws the nebula_field table again. Nothing else is touched.")
+    phenomena_group.add_argument('--fill-map-luminosity', action='store_true',
+                                 help="Fill the map luminosity (DB.23, GEN.201) of the scattered phenomena of a galaxy "
+                                      "scattered before schema v84, from their stored masses, in id-range batches "
+                                      "that readers never wait for. Resumable: it only fills rows still empty. A "
+                                      "new scatter writes the value with each row.")
     store.add_mysql_connection_args(parser)
     add_logging_arguments(parser)
 
@@ -1107,6 +1112,11 @@ def validate_plan_args(args, parser):
                                    or args.bright_stars_down_to is not None or args.no_bright_stars):
         parser.error("--redo-nebula-field can't be combined with --redo-scatters, --phenomena-only, "
                      "--bright-stars-only, --bright-stars-down-to or --no-bright-stars.")
+    if args.fill_map_luminosity and (args.redo_scatters or args.redo_nebula_field or args.phenomena_only
+                                     or args.bright_stars_only or args.bright_stars_down_to is not None
+                                     or args.no_bright_stars):
+        parser.error("--fill-map-luminosity can't be combined with --redo-scatters, --redo-nebula-field, "
+                     "--phenomena-only, --bright-stars-only, --bright-stars-down-to or --no-bright-stars.")
     if args.phenomena_only and (args.bright_stars_only or args.bright_stars_down_to is not None):
         parser.error("--phenomena-only can't be combined with --bright-stars-only or --bright-stars-down-to.")
     if args.bright_stars_down_to is not None:
@@ -1593,6 +1603,7 @@ def main():
     status = "failed"
     root = _open_run_node(args, database) if logged else None
     history = _start_history(args, seed) if logged and not getattr(args, "estimate_only", False) else None
+    args.generation_run_id = history   # the run the per-object timings (PERF.92) are saved under
     try:
         _COMMAND_HANDLERS[args.command](args)
         status = "ok"

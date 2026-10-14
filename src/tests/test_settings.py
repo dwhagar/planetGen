@@ -185,6 +185,7 @@ NON_OPTION_VARIABLES = {
     "PLANETGEN_WORKERS": "worker processes of one run",
     "PLANETGEN_PROGRESS_FILE": "a worker's progress channel",
     "PLANETGEN_GENERATION_STATS": "off in the test suite",
+    "PLANETGEN_OBJECT_TIMING_FULL": "a benchmark run keeps a timing row for every object (PERF.92)",
     "PLANETGEN_MIGRATIONS_DIR": "the migration scripts' folder",
     "PLANETGEN_SETTINGS_DIR": "the galaxy settings files' folder (ADM.18), not config.json",
     "PLANETGEN_SETTINGS_FILE": "the web-owned settings.json",

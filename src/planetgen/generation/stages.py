@@ -23,7 +23,7 @@ import os
 import time
 
 from planetgen.queue import progress_file
-from planetgen.util import log
+from planetgen.util import log, stagemark
 
 SECTOR_MODES = ("block", "span", "course", "column", "shell", "slot", "ring", "center_sector")
 
@@ -93,6 +93,8 @@ def plan_stages(args):
     """The stages of one `planetgen plan` run, in order."""
     if getattr(args, "bright_stars_down_to", None) is not None:
         return [Stage("band", "Add the dimmer band of bright stars")]
+    if getattr(args, "fill_map_luminosity", False):
+        return [Stage("map-luminosity", "Fill the map luminosity")]
     if getattr(args, "redo_nebula_field", None):
         return [Stage("nebula-field", "Clean up the nebula field")]
     redo = getattr(args, "redo_scatters", None)
@@ -383,9 +385,9 @@ def _announce(index, skipped=None):
         _state["open"] = record
     offset, job_total = _numbering()
     if skipped:
-        log.normal(f"Stage {offset + index + 1} of {job_total}: {stage.label} -- skipped: {skipped}.")
+        log.normal(f"{stagemark.marker(offset + index + 1, job_total)}: {stage.label} -- skipped: {skipped}.")
     else:
-        log.normal(f"Stage {offset + index + 1} of {job_total}: {stage.label}.")
+        log.normal(f"{stagemark.marker(offset + index + 1, job_total)}: {stage.label}.")
     progress_file.set_stage(index + 1, total, stage.label, skipped)
 
 

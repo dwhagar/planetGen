@@ -81,7 +81,7 @@ def test_job_runs_every_step_in_order_and_succeeds(tmp_path, restore_signals):
     assert state["step"] == 2 and state["exit_code"] == 0 and state["error"] is None
     assert state["finished_at"] >= state["started_at"]
     log = (job_dir / "output.log").read_text()
-    assert log.index("first") < log.index("Step 2 of 2: two") < log.index("True")
+    assert log.index("first") < log.index("Stage 2 of 2: two") < log.index("True")
     assert not (tmp_path / jobRunner.LOCK_NAME).exists()
 
 
@@ -377,7 +377,7 @@ def test_update_orbits_reports_its_five_steps_to_the_progress_file(seeded, monke
     assert _run_main(orbits, mysql_argv(seeded), monkeypatch) == 0
     body = json.loads(path.read_text())
     assert body["completed"] == body["total"] == len(orbits.STAGES) == 5
-    assert body["description"].startswith("Step 5 of 5: ")
+    assert body["description"].startswith("Stage 5 of 5: ")
 
 
 def test_the_orbit_steps_report_how_far_they_are(seeded):

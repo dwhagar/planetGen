@@ -142,6 +142,7 @@ def test_system_map_selection_drill_and_measure(page, base_url, site_app):
     info = page.locator("#sysmap-info").inner_text()
     assert "Orbits" in info and "Radius" in info and "Mass" in info, info
     # NAV.50: a moon can start or end a course.
+    page.wait_for_selector("#sysmap-info .map-info-actions a", state="attached")  # `.all()` does not wait for them
     links = {link.inner_text(): link.get_attribute("href") for link in page.locator("#sysmap-info .map-info-actions a").all()}
     assert re.fullmatch(rf"/nav\?from=moon:{PUBLIC_ID}", links.get("Start Here", "")), links
     assert re.fullmatch(rf"/nav\?to=moon:{PUBLIC_ID}", links.get("End Here", "")), links
@@ -624,6 +625,7 @@ def test_system_page_3d_view_draws_switches_scale_and_keeps_the_diagram(page, ba
     assert page.locator("#sysmap-info h3").count() == 1
     assert "object=" in page.url
     # NAV.50: the picked body can start or end a course.
+    page.wait_for_selector("#sysmap-info .map-info-actions a", state="attached")  # `.all()` does not wait for them
     hrefs = [link.get_attribute("href") for link in page.locator("#sysmap-info .map-info-actions a").all()]
     assert any(re.fullmatch(rf"/nav\?to=[a-z]+:{PUBLIC_ID}", href or "") for href in hrefs), hrefs
 
