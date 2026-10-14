@@ -1258,7 +1258,7 @@ Parents marked "new parent" had no old number of their own.
 | UX.92 | A Bookmark button for planets, moons and belts | UX.45 | open |
 | UX.93 | No TODO code (like PERF.67 or NAV.42) appears anywhere a user can see it, with a test that fails if one does | none | open |
 | UX.94 | Gravity map wording: the legend, the mode names and the Map help text | none | open |
-| UX.95 | Tables show their rows first and fill the filter-menu counts a moment later | none | open |
+| UX.95 | Tables show their rows first and fill the filter-menu counts a moment later | none | done, PR #1299 |
 | UX.96 | A table that hits the statement limit says the database is busy and retries, instead of failing with a 502 | none | done, PR #1267 |
 | UX.97 | Search results: each panel runs under its own time limit and is fetched on its own | none | open |
 | UX.98 | The Generate log has odd wording and mixed section headers (bug) | none | open |
