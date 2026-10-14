@@ -5350,36 +5350,6 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Foundations lane 1, near its other update.sh work.
   Prerequisites: none. Related: OPS.29, OPS.35, PERF.64.
 
-- [ ] **OPS.45 Install planetGen into its own virtual environment and clear the packages out of the system Python**
-  Boss (2026-10-14 15:17Z, chose the venv over system Python with apt):
-  reverses design decision 7 in docs/design/design-decisions.md, which
-  put the libraries in the system Python on Linux. His server's Apache
-  log shows planetGen's libraries (flask, pymysql, flask_limiter) living
-  in /usr/local/lib/python3.12/dist-packages. Done: install.sh and
-  update.sh build one venv, install every planetGen dependency in it
-  (numba and llvmlite included, from the lock files), remove the
-  pip-installed planetGen packages from the system Python, and point
-  both the CGI pages and the mod_wsgi entry point (WSGIDaemonProcess
-  python-home, src/html/wsgi.py, the examples in examples/apache and
-  docs/deployment/apache.md) at it; the generator, the workers, the
-  Redis queue workers and the cron or timer jobs run from the venv too.
-  Revisit numba's default cache location for the venv and the web user
-  (OPS.42's rule that the web app never imports numba still holds, and
-  PERF.88's web-user import test now runs against the venv). The venv
-  path, how update.sh rebuilds it when the Python or the lock file
-  changes, and how a system package conflict is detected are the lane's
-  to propose in the PR. Update design-decisions.md section 7,
-  INSTALL.md, README, docs/deployment/apache.md and testing.md, and keep
-  the macOS installer as it is. The change note says the install layout
-  changed and that update.sh does it for the server. Interacts with
-  OPS.43 (a fresh install gets markdown 3.11.1) and OPS.42 (merged).
-  Boss (2026-10-14 15:29Z): he has already cleared the system packages on
-  his server by hand, so the clean-up step must be safe when nothing is
-  installed, and update.sh must build the venv on a server that has no
-  libraries at all.
-  GitHub issue [#1295](https://github.com/dwhagar/planetGen/issues/1295).
-  Prerequisites: none. Related: OPS.42, OPS.43, OPS.44.
-
 ## DOC: Documentation
 
 - [ ] **DOC.4 Correct the stale statements the research found in docs, docstrings and comments**
@@ -5702,8 +5672,8 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   18:06Z); every finding was checked against the code on main
   (8.0.1072), and the findings with file, line and evidence are in
   /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-C.md, findings
-  41 to 45. Decision 7 (system Python) is reversed by OPS.45 (open, so
-  say pending); decision 10 (drill-down instead of a free camera) is
+  41 to 45. Decision 7 (system Python) is reversed by OPS.45 (merged, #1333,
+  so say reversed); decision 10 (drill-down instead of a free camera) is
   being replaced by MAP.146; decisions 11 to 13 say planned but are
   built or largely built; section 5 still describes DBUtils.PooledDB and
   schema v43 (it is now SQLAlchemy QueuePool and v83); the file has no
@@ -5883,19 +5853,19 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   time quoted is measured, not copied. Covers the cli.md part of DOC.4.
   Prerequisites: none. Related: DOC.4.
 
-- [ ] **DOC.37 Rewrite the install docs for the venv install, in or right after OPS.45**
+- [ ] **DOC.37 Rewrite the install docs for the venv install (OPS.45 merged, #1333)**
   Found by the full documentation sweep Boss asked for (2026-10-14
   18:06Z); every finding was checked against the code on main
   (8.0.1072), and the findings with file, line and evidence are in
   /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-A.md, finding
-  17. When OPS.45 merges, the install paths, the Python the services use
+  17. OPS.45 merged (#1333, 2026-10-14): the venv is at /usr/local/planetgen/venv and install.sh and update.sh were rewritten, so the install paths, the Python the services use
   and where packages live all change: INSTALL.md,
   docs/deployment/apache.md, nginx.md, caddy.md, macos.md, paas.md,
   docs/server-checklist.md, README.md and the header comments of
-  install.sh, update.sh and scripts/install-python-deps.sh. Done: every
+  install.sh, update.sh and scripts/install-python-deps.sh. Boss must add python-home=/usr/local/planetgen/venv to the
+  WSGIDaemonProcess planetgen-api line of his Apache site, so every Apache guide says so. Done: every
   one of them describes the venv, how mod_wsgi, the CGI scripts and the
   services use it, and how to rebuild it.
-  Prerequisite: OPS.45.
 
 - [ ] **DOC.38 Refresh docs/config.md prose after PERF.64 and PERF.24: page_cache, stored_counts, PLANETGEN_WORKERS**
   Found by the full documentation sweep Boss asked for (2026-10-14
