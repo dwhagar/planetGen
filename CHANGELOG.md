@@ -2,6 +2,14 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1062] - 2026-10-14
+
+### Added
+- `nebula_field` (schema v83): one row for every kept class M and N cloud of the galaxy's molecular cloud field, written by `planetgen plan` (and by `plan --redo-scatters phenomena`) from the galaxy seed, so the Galaxy Map can find a nebula no generated sector holds yet. A sector's save marks the clouds it stores, with their object IDs. Classes P and Q stay in the seed (DB.24).
+
+### Changed
+- The migration to v83 only creates the empty table; the next plan fills it.
+
 ## [8.0.1061] - 2026-10-14
 
 ### Changed
