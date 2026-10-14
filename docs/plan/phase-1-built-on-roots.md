@@ -193,8 +193,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | TEST.132 | test_a_fill_after_a_layer_failed_mid_scatter_builds_no_leftover_star failed once in a full parallel run (bug) |  | Lane 2 report 2026-10-10 21:06Z; Bugfixes lane 2 after its current items. |
 | TEST.137 | test_a_neighborhood_from_the_generate_page[core] fails once under load (bug) |  |  |
 | TEST.138 | test_open_map_menus_hold_no_overlap[web.galaxy-1280] fails once in a full parallel run (bug) |  |  |
-| TEST.145 | Subprocess tests must run the checkout under test, not the installed copy of another checkout (bug) |  |  |
-| TEST.146 | Rate-limit tests fail when the between-test reset wipes every limiter key on the shared Redis (bug) |  | Test Suite Rebuild thread |
 | TEST.147 | Two nebula-field table tests fail under load and pass alone (bug) |  |  |
 | DB.25 | A per-level aggregate table for the 3-ary block ladder so a Galaxy Map window needs one query (Alembic migration) |  |  |
 | PERF.92 | Save generation timing per object and per object type, as well as per operation, stage and job |  |  |
