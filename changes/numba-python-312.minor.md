@@ -1,0 +1,2 @@
+### Changed
+- numba is now a required library, installed by `install.sh` and `update.sh` with the rest of the NumPy stack; there is no pure-Python fallback. The minimum Python becomes 3.12 (it was 3.9, and 3.10 on macOS), the README, INSTALL.md and the lock files say so, and CI no longer runs a Python 3.9 leg (the MySQL 8.0 leg runs on 3.12). The website itself never imports numba, because numba's default cache needs a writable code or home folder that Apache's web user lacks; a test keeps it that way.

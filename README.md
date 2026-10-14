@@ -106,7 +106,7 @@ build order).
 
 ## Requirements
 
-- Python 3.9 or later (3.10+ on macOS).
+- Python 3.12 or later, with numba (the compiled numeric kernels; `install.sh` and `update.sh` install it, and there is no fallback without it). This replaced the old Python 3.9 minimum with numba (OPS.42).
 - MySQL 8.0.16+ or MariaDB 10.4+.
 - For the website, a web server: Apache2 with mod_wsgi on Debian or
   Ubuntu (the reference setup), nginx or Caddy on Linux, or nginx on

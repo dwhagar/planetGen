@@ -179,8 +179,7 @@ tests (see TEST.139 in the TODO).
 ## Database engines
 
 Local runs here use MariaDB 10.11. CI's `test` job runs the whole suite
-three times: Python 3.9 on MySQL 8.0, and Python 3.12 on MySQL 8.4 and on
-MariaDB 11.4. MySQL 8 is stricter about reserved words and `GROUP BY`
+three times on Python 3.12: MySQL 8.0, MySQL 8.4 and MariaDB 11.4. MySQL 8 is stricter about reserved words and `GROUP BY`
 than MariaDB, so a query that works locally can still fail there.
 
 ## Kinds of test
@@ -305,7 +304,7 @@ prints it, together with a `@reproduce_failure(...)` line. To fix it:
 ## When CI runs
 
 `.github/workflows/ci.yml` (every test leg: math check, MySQL 8.4, MariaDB
-11.4, Python 3.9, browser and accessibility, the JS tests, the
+11.4, MySQL 8.0, browser and accessibility, the JS tests, the
 installer checks) never runs on a push or a pull request. It runs:
 
 - **On a schedule**, on main (every day at 07:00 UTC; the `cron` line in

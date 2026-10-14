@@ -246,7 +246,7 @@ def test_server_lock_has_the_app_servers():
 
 # --- OPS.26: the NumPy stack comes from one place ------------------------------
 
-NUMPY_LINKED = {"numpy", "scipy", "astropy", "scikit-image"}
+NUMPY_LINKED = {"numpy", "scipy", "astropy", "scikit-image", "numba"}
 """Runtime requirements with compiled code built against NumPy's C API."""
 
 
@@ -364,3 +364,16 @@ def test_install_checkout_installs_another_checkout_editable(tmp_path, mode, fla
     assert len(calls) == 1
     assert calls[0].endswith(f"--no-deps -e {other}")
     assert ("--break-system-packages" in calls[0]) == flag
+
+
+def test_the_web_app_never_imports_numba():
+    """OPS.42: numba's default cache needs a writable code tree or home folder, which Apache's web user has neither
+    of, so importing a compiled function there fails ("cannot cache function: no locator available"). The web app
+    must stay clear of numba: only the workers, the settle step and the orbit update import it."""
+    code = ("import sys\n"
+            "from planetgen.web.app import create_app\n"
+            "from planetgen.api import routes  # noqa: F401\n"
+            "import planetgen.web.views, planetgen.web.system_pages  # noqa: F401\n"
+            "assert 'numba' not in sys.modules, 'numba was imported by the web app'\n")
+    done = subprocess.run([sys.executable, "-c", code], cwd=os.path.join(ROOT, "src"), capture_output=True, text=True)
+    assert done.returncode == 0, done.stderr[-1500:]
