@@ -75,9 +75,9 @@ jobs:
     strategy:
       # Without this, the default fail-fast:true cancels every other
       # still-running matrix leg the moment any one of them fails -- e.g.
-      # a real 3.12-only failure would silently cancel 3.9 mid-run rather
-      # than letting it finish and report its own (possibly different)
-      # result, hiding whether the bug is version-specific.
+      # a real MySQL 8.0 failure would silently cancel the MariaDB leg
+      # mid-run rather than letting it finish and report its own (possibly
+      # different) result, hiding whether the bug is engine-specific.
       fail-fast: false
       # One database engine per leg. Local test runs use MariaDB 10.11
       # (what Debian/Ubuntu ship), so CI covers the others:
@@ -86,7 +86,7 @@ jobs:
       # is the next MariaDB a server upgrade would bring.
       matrix:
         include:
-          - python-version: "3.9"
+          - python-version: "3.12"
             db-image: mysql:8.0
             db-health: mysqladmin ping -h 127.0.0.1
           - python-version: "3.12"

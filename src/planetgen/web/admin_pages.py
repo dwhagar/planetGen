@@ -808,8 +808,10 @@ GENERATION_KINDS = steps.STEP_KINDS
 
 GENERATION_UNITS = {
     "sector": ("sector", "system"),
-    "scatter": ("layer", "star"),
+    "scatter-mass": ("layer", "star"),
+    "scatter-bright": ("layer", "star"),
     "phenomena": ("layer", "object"),
+    "phenomena-write": ("layer", "object"),
     "backfill": ("run", "sector"),
     "migrate": ("run", "migration"),
     "warm-map": ("run", "tile"),

@@ -29,10 +29,10 @@ test("things nearer than a sixth of the focus distance are gone and half of it i
 test("the tube thins what stands between the camera and the focus and nothing else", () => {
   // Inside the tube, well in front of the focus: the minimum.
   assert.ok(Math.abs(N.tubeFade(0, 0, 0.4 * D, D, 0) - N.TUBE_MIN_ALPHA) < 1e-12);
-  // Beside it, past 1.6 radii: untouched.
+  // Beside it, past the edge: untouched.
   const rt = N.tubeRadius(D, 0);
   assert.equal(rt, 0.12 * D);
-  assert.equal(N.tubeFade(1.6 * rt + 0.01, 0, 0.4 * D, D, 0), 1);
+  assert.equal(N.tubeFade(N.TUBE_EDGE * rt + 0.01, 0, 0.4 * D, D, 0), 1);
   // At and behind the focus: untouched, however central.
   assert.equal(N.tubeFade(0, 0, D, D, 0), 1);
   assert.equal(N.tubeFade(0, 0, 2 * D, D, 0), 1);
@@ -41,6 +41,20 @@ test("the tube thins what stands between the camera and the focus and nothing el
   // A wide focus makes a wide tube.
   assert.equal(N.tubeRadius(D, 30), 30);
   assert.ok(Math.abs(N.tubeFade(25, 0, 0.4 * D, D, 30) - N.TUBE_MIN_ALPHA) < 1e-12);
+});
+
+test("the tube's edge is shallow, so it leaves no visible rim or halo (MAP.187)", () => {
+  const rt = N.tubeRadius(D, 0);
+  const step = rt / 200;
+  let steepest = 0;
+  for (let rho = 0; rho < N.TUBE_EDGE * rt + 2 * rt; rho += step) {
+    const slope = Math.abs(N.tubeFade(rho + step, 0, 0.4 * D, D, 0) - N.tubeFade(rho, 0, 0.4 * D, D, 0)) / step;
+    steepest = Math.max(steepest, slope);
+  }
+  // Across the whole window the share changes by (1 - TUBE_MIN_ALPHA); at most 1.5 times that
+  // (smoothstep's steepest) per width of the edge (the old edge was 2.3), and the window is never darker than a quarter.
+  assert.ok(steepest * rt < 0.6, String(steepest * rt));
+  assert.ok(N.TUBE_MIN_ALPHA >= 0.25);
 });
 
 test("the near field is the depth fade times the tube, worked in view space", () => {

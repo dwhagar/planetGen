@@ -858,3 +858,75 @@ def test_from_dict_with_no_phenomena_key_is_backward_compatible():
     rebuilt = SpaceSector.from_dict(data)
     assert rebuilt.phenomena == []
     assert len(rebuilt.entries) == 1
+
+
+def test_neighbor_arrays_match_the_one_by_one_distance_check():
+    # PERF.87: the array check must accept and reject exactly the points the
+    # old per-neighbour `distance_between` loop did, borderline ones too.
+    import random
+    from types import SimpleNamespace
+
+    rng = random.Random(87)
+    sector = SpaceSector("Array Check Sector", edge_ly=40.0)
+    for _ in range(60):
+        perimeter = rng.uniform(1e3, 8e4)
+        position = tuple(rng.uniform(-20, 20) for _ in range(3))
+        sector.entries.append(SimpleNamespace(star_system=SimpleNamespace(system_perimeter=perimeter),
+                                              position=position))
+    sector.phenomena.append(SimpleNamespace(phenomenon=SimpleNamespace(system_perimeter=5e4),
+                                            position=(1.0, 2.0, 3.0)))
+    sector.phenomena.append(SimpleNamespace(phenomenon=SimpleNamespace(), position=(0.0, 0.0, 0.0)))
+    new = SimpleNamespace(system_perimeter=3e4)
+
+    def reference(candidate, flat):
+        return all(
+            math.dist(candidate, position) >= (flat if flat is not None
+                                               else spaceSector_module.required_separation_ly(new, neighbor))
+            for neighbor, position in sector._massive_neighbors())
+
+    hill_new = spaceSector_module.hill_radius_ly(new)
+    for flat in (None, 2.5):
+        for _ in range(400):
+            candidate = tuple(rng.uniform(-20, 20) for _ in range(3))
+            assert sector._neighbor_cache.clear_of(sector, candidate, flat, hill_new) == reference(candidate, flat)
+        # Exactly on a neighbour's boundary: decided by math.dist, as before.
+        neighbor, position = next(iter(sector._massive_neighbors()))
+        required = flat if flat is not None else spaceSector_module.required_separation_ly(new, neighbor)
+        candidate = (position[0] + required, position[1], position[2])
+        assert sector._neighbor_cache.clear_of(sector, candidate, flat, hill_new) == reference(candidate, flat)
+
+    # Objects added later are picked up.
+    sector.entries.append(SimpleNamespace(star_system=SimpleNamespace(system_perimeter=1e4),
+                                          position=(10.0, 10.0, 10.0)))
+    assert not sector._neighbor_cache.clear_of(sector, (10.0, 10.0, 10.0), 2.5, hill_new)
+
+
+def test_random_position_fill_matches_the_one_by_one_loop():
+    # PERF.87: a whole fill places every object where the old per-neighbour
+    # loop did, because the same random numbers are drawn in the same order.
+    from types import SimpleNamespace
+
+    def old_random_position(sector, obj, min_separation_ly):
+        for _ in range(program_constants.SECTOR_MAX_PLACEMENT_ATTEMPTS):
+            candidate = sector._sample_point()
+            if all(math.dist(candidate, position) >= (
+                    min_separation_ly if min_separation_ly is not None
+                    else spaceSector_module.required_separation_ly(obj, neighbor))
+                    for neighbor, position in sector._massive_neighbors()):
+                return candidate
+        raise ValueError("full")
+
+    def fill(use_old):
+        draw.set_run_seed(8787)
+        sector = SpaceSector("Fill Sector", edge_ly=30.0)
+        placed = []
+        for i in range(250):
+            obj = SimpleNamespace(system_perimeter=2e4 + 300 * (i % 17))
+            flat = 1.5 if i % 5 == 0 else None
+            position = (old_random_position(sector, obj, flat) if use_old
+                        else sector._random_position(obj, flat))
+            sector.entries.append(SimpleNamespace(star_system=obj, position=position))
+            placed.append(position)
+        return placed
+
+    assert fill(use_old=False) == fill(use_old=True)

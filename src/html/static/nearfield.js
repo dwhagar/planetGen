@@ -16,7 +16,7 @@
 //
 //     depth fade   smoothstep(Z0 D, Z1 D, depth)
 //     tube         ahead = smoothstep(0, Rt, D - depth)      (nearer than the focus)
-//                  tube  = 1 - (1 - A_MIN) (1 - smoothstep(Rt, 1.6 Rt, rho)) ahead
+//                  tube  = 1 - (1 - A_MIN) (1 - smoothstep(Rt, 3 Rt, rho)) ahead
 //     Rt           max(focus radius, 0.12 D)
 //
 // `ahead` ramps the tube in over a distance Rt in front of the focus, so
@@ -24,12 +24,16 @@
 // the focus plane is crossed. Picking uses the same number at the point it
 // hits: only what is visible enough can be picked, so picking agrees with
 // drawing.
+//
+// MAP.187: the window thins the blocks' density and cell boxes only, never
+// a star, and its edge is wide and shallow (TUBE_EDGE, TUBE_MIN_ALPHA) so
+// it leaves no visible rim or halo.
 
 export const DEPTH_FADE_START = 0.15;
 export const DEPTH_FADE_END = 0.5;
-export const TUBE_MIN_ALPHA = 0.08;
+export const TUBE_MIN_ALPHA = 0.25;
 export const TUBE_RADIUS_FLOOR = 0.12;
-export const TUBE_EDGE = 1.6;
+export const TUBE_EDGE = 3.0;
 // A near-field share below this can't be picked (it is drawn too faint to
 // have been seen), so the pick falls through to what is behind.
 export const PICK_MIN_VISIBLE = 0.35;

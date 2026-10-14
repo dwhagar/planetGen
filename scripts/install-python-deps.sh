@@ -135,6 +135,7 @@ REQUIREMENTS=(
     "scipy>=1.13.0 python3-scipy"
     "astropy>=6.0.0 python3-astropy"
     "scikit-image>=0.22.0 python3-skimage"
+    "numba>=0.68.0 python3-numba"
 )
 
 # NumPy and the libraries built against its C API (OPS.26). A compiled
@@ -142,12 +143,12 @@ REQUIREMENTS=(
 # apt's python3-astropy, python3-erfa and python3-skimage are built for
 # apt's NumPy 1.x, so once pip puts a NumPy 2 in /usr/local (say, as a
 # dependency of a newer scipy than apt has) they fail to import. So these
-# always come from one place: when pip has to provide any of them, or
+# always come from one place (numba, OPS.42, is not in apt at all): when pip has to provide any of them, or
 # would pull any of them in, it provides all of them, with pyerfa
 # (astropy's compiled half), from requirements.lock, and apt's copies are
 # shadowed together.
-NUMPY_STACK=("numpy>=1.26.0" "scipy>=1.13.0" "astropy>=6.0.0" "scikit-image>=0.22.0" "pyerfa>=2.0")
-NUMPY_STACK_NAMES=" numpy scipy astropy scikit-image pyerfa "
+NUMPY_STACK=("numpy>=1.26.0" "scipy>=1.13.0" "astropy>=6.0.0" "scikit-image>=0.22.0" "numba>=0.68.0" "pyerfa>=2.0")
+NUMPY_STACK_NAMES=" numpy scipy astropy scikit-image numba pyerfa "
 
 if [[ -z "$PYTHON" ]]; then
     echo "error: no python3/python found on PATH." >&2

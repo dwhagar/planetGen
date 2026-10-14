@@ -19,6 +19,8 @@ the star's final age rather than a provisional pre-adjustment one.
 """
 
 
+import re
+
 from planetgen.generation.evolution import get_evolutionary_timeline
 from planetgen import tuning
 from planetgen.util import draw
@@ -149,6 +151,45 @@ def get_evolutionary_speed(planet, spectral_class=None):
     return None
 
 
+def life_ceiling(planet):
+    """
+    What the habitability index (`phi_bio`, `phi_cpx`) allows to live on
+    `planet` (GEN.206): `"none"` when it gives microbial life 0, `"microbial"`
+    when it allows microbial but not complex life, else `None` (no limit from
+    the index, including a body with no scores: a gas giant or one saved
+    without them).
+    """
+    least = tuning.HABITABILITY_LIFE_SCORE_MIN
+    microbial = getattr(planet, "phi_bio", None)
+    complex_life = getattr(planet, "phi_cpx", None)
+    if microbial is not None and microbial < least:
+        return "none"
+    if complex_life is not None and complex_life < least:
+        return "microbial"
+    return None
+
+
+def _set_description(planet, ceiling):
+    """A class whose own description claims life (F, G, L) says what the
+    index allows instead (`tuning.NO_LIFE_CLASS_DESCRIPTIONS`,
+    `MICROBIAL_ONLY_CLASS_DESCRIPTIONS`); with no limit, or any other class,
+    the class's own text stands."""
+    cls = planet.planet_class
+    if cls not in tuning.NO_LIFE_CLASS_DESCRIPTIONS and cls not in tuning.MICROBIAL_ONLY_CLASS_DESCRIPTIONS:
+        return
+    text = None
+    if ceiling == "none":
+        text = tuning.NO_LIFE_CLASS_DESCRIPTIONS.get(cls)
+    elif ceiling == "microbial":
+        text = tuning.MICROBIAL_ONLY_CLASS_DESCRIPTIONS.get(cls)
+    if text is None:
+        text = tuning.PLANET_CLASSES[cls]["description"]
+    if planet.is_moon:
+        text = re.sub(r'\bplanets\b', 'moons', text)
+        text = re.sub(r'\bplanet\b', 'moon', text)
+    planet.description = text
+
+
 def apply_life_data(planet):
     """
     Determines and assigns a planet's (or moon's) life chemistry,
@@ -167,6 +208,19 @@ def apply_life_data(planet):
                          set in place.
     """
     spectral_class = get_star_spectral_class(planet.star) if planet.star.type else None
+
+    # GEN.206: the habitability index decides what may live here. No microbial
+    # life means no chemistry, speed, timeline or claim in the description.
+    ceiling = life_ceiling(planet)
+    _set_description(planet, ceiling)
+    if ceiling == "none":
+        planet.life_chemical = None
+        planet.reflection_spectrum_visible = None
+        planet.reflection_spectrum_non_visible = None
+        planet.evolutionary_speed = None
+        planet.evolutionary_data = []
+        log.debug("Life chemistry: none, the habitability index gives microbial life 0")
+        return
 
     # Get the dictionary of viable chemicals and their weights
     viable_chems = get_viable_life_chemicals(planet, spectral_class)
@@ -196,7 +250,8 @@ def apply_life_data(planet):
     # there, so no timeline (a lifeless world used to get one, and the
     # population pass then gave it a species no page would show).
     if planet.zone == 'e' and not planet.is_moon and planet.life_chemical:
-        planet.evolutionary_data = get_evolutionary_timeline(planet.star, planet.planet_class)
+        planet.evolutionary_data = get_evolutionary_timeline(
+            planet.star, planet.planet_class, max_stage="photosynthesis" if ceiling == "microbial" else None)
 
 
 def decide_flavor_text(planet):

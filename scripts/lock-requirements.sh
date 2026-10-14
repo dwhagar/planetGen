@@ -12,7 +12,7 @@
 # aren't covered: apt checks its own signatures.
 #
 # The lock is universal: one file for Linux and macOS and every
-# Python from setup.py's python_requires (3.9) up. Where the newest
+# Python from setup.py's python_requires (3.12) up. Where the newest
 # release of a library needs a newer Python, the lock holds one pin per
 # Python range, each with an environment marker.
 #
@@ -47,12 +47,12 @@ fi
 
 cd "$ROOT"
 uv pip compile setup.py --extra api \
-    --universal --python-version 3.9 --generate-hashes \
+    --universal --python-version 3.12 --generate-hashes \
     --custom-compile-command "scripts/lock-requirements.sh" \
     ${UPGRADE[@]+"${UPGRADE[@]}"} \
     --output-file requirements.lock
 uv pip compile setup.py --extra api --extra server \
-    --universal --python-version 3.9 --generate-hashes \
+    --universal --python-version 3.12 --generate-hashes \
     --custom-compile-command "scripts/lock-requirements.sh" \
     ${UPGRADE[@]+"${UPGRADE[@]}"} \
     --output-file requirements-server.lock
