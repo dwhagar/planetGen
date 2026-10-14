@@ -3818,21 +3818,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Prerequisites: none. Related: PERF.19, PERF.24, DB.21, PERF.71.
   Design: [docs/design/slow-reads-and-timeouts.md](design/slow-reads-and-timeouts.md)
 
-- [ ] **PERF.82 Cut the cost of inserting a sector (about 17% of the fill)**
-  From the PERF.31 benchmark (Foundations lane 1, PR #1179;
-  docs/design/generation-benchmark-report.md; `python -m
-  planetgen.cli.generate benchmark --workers 1,2 --profile`, 4 cores,
-  MariaDB 10.11, plan to ring 12 with 2,041 layers then 2 sectors):
-  `insert_sector` is 40 s of the 227 s profile. Done: the insert is
-  measured by statement (batching, executemany, fewer round trips) and
-  cut, with the rows identical. Related to the uid work in PERF.31's
-  study items and the write cost of PERF.73. Owner: Bugfixes lane 1 (moved 2026-10-10).
-  Math Research (2026-10-14): `pymysql` formats a 13-column row in 8.6 us, a
-  hand-built numeric-only VALUES text in 2.9 us (the approach PERF.73 took
-  for scatter writes); try it here. pymysql is 8% of the profiled fill.
-  Prerequisites: none. Related: PERF.31, PERF.73.
-  Design: [docs/design/generation-benchmark-report.md](design/generation-benchmark-report.md)
-
 - [ ] **PERF.86 Redo the work queue: drop the task and subtask logic and use Redis simply**
   GitHub issue [#1229](https://github.com/dwhagar/planetGen/issues/1229)
   (Boss, 2026-10-13 02:41Z): "I was mistaken about how Redis worked and
@@ -5513,11 +5498,11 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   to the Apache guide and INSTALL.md, in the same pass as DOC.37, and
   add tests next to src/tests/test_install_python_deps.py. Default: keep
   these as warnings that print the exact line to add, never edit the
-  admin's vhost (as OPS.45 does). Bugfixes lane 1, right after PERF.82.
+  admin's vhost (as OPS.45 does). Bugfixes lane 1, first in the lane.
   Decided (Boss, 2026-10-14 19:55Z, on a decision
   card relayed by the coordinator): warn only. The warnings print the
   exact line to add and never edit his vhost.
-  Prerequisites: none. Related: DOC.37, PERF.82.
+  Prerequisites: none. Related: DOC.37.
 
 - [ ] **OPS.48 Redis server settings: a documented example config and an update.sh warning (append-only file, noeviction, memory limit, loopback)**
   From the Redis review Boss asked for (2026-10-14 20:01Z; Research Lane
