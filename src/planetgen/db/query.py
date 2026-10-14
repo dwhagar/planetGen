@@ -5113,6 +5113,18 @@ def _name_match(conn, column, term, prefix_last=False):
     return " AND ".join(clauses), params
 
 
+def _search_match(conn, column, term):
+    """
+    The name test of a search result panel (UX.97): `_name_match`, except that a lone word too short for the
+    FULLTEXT index matches the start of the name through the ordinary name index, instead of a REGEXP over every
+    row (a 2-letter word took 8.4 s on 2,000,000 systems). "ar" therefore finds "Arcturus", not "Alpha Ar".
+    """
+    words = re.findall(r"\w+", term or "")
+    if len(words) == 1 and len(words[0]) < _fulltext_min_word(conn):
+        return f"{column} LIKE ? ESCAPE '\\\\'", [_search_like_pattern(words[0])[1:]]
+    return _name_match(conn, column, term)
+
+
 def _search_like_pattern(term):
     """Escapes `%`/`_`/`\\` in a user-supplied substring so it's safe to
     use as a SQL LIKE pattern (paired with `ESCAPE '\\\\'` in the query)."""
@@ -5438,7 +5450,7 @@ def _with_refs(conn, rows, kind):
 
 
 def _search_result_sectors(conn, term, limit, offset):
-    match, params = _name_match(conn, "name", term)
+    match, params = _search_match(conn, "name", term)
     rows, page = _search_page(
         conn, "SELECT id, name, edge_mpc", f"FROM sectors WHERE {match}", "name, id", params, limit, offset,
     )
@@ -5446,7 +5458,7 @@ def _search_result_sectors(conn, term, limit, offset):
 
 
 def _search_result_systems(conn, term, limit, offset):
-    match, params = _name_match(conn, "ss.name", term)
+    match, params = _search_match(conn, "ss.name", term)
     rows, page = _search_page(
         conn,
         "SELECT ss.id, ss.name, ss.sector_id, ss.is_binary, ss.binary_configuration, ss.binary_type",
@@ -5476,7 +5488,7 @@ def _search_result_stars(conn, spectral_tags, luminosity_tags, term, limit, offs
         params.extend(sorted(luminosity_tags))
     _append_size_clause(clauses, params, "s.radius_km", size_range)
     if term:
-        match, match_params = _name_match(conn, "s.name", term)
+        match, match_params = _search_match(conn, "s.name", term)
         clauses.append(match)
         params.extend(match_params)
     where = (" AND " + " AND ".join(clauses)) if clauses else ""
@@ -5505,7 +5517,7 @@ def _search_result_planets(conn, class_tags, body_tags, life_tags, term, limit, 
         params.extend(sorted(life_tags))
     _append_size_clause(clauses, params, "p.radius_km", size_range)
     if term:
-        match, match_params = _name_match(conn, "p.name", term)
+        match, match_params = _search_match(conn, "p.name", term)
         clauses.append(match)
         params.extend(match_params)
     where = (" AND " + " AND ".join(clauses)) if clauses else ""
@@ -5537,7 +5549,7 @@ def _search_result_moons(conn, class_tags, body_tags, life_tags, term, limit, of
         params.extend(sorted(life_tags))
     _append_size_clause(clauses, params, "m.radius_km", size_range)
     if term:
-        match, match_params = _name_match(conn, "m.name", term)
+        match, match_params = _search_match(conn, "m.name", term)
         clauses.append(match)
         params.extend(match_params)
     where = (" AND " + " AND ".join(clauses)) if clauses else ""

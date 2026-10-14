@@ -749,7 +749,8 @@ def get_search(db, texts, tags, sizes=None, limit=None, offsets=None, panels=Non
             default when `None`).
         offsets (dict, optional): `{panel: offset}` -- sent as
             `<panel>_offset`, one page per result panel.
-        panels (iterable, optional): Run just these result panels.
+        panels (iterable, optional): Run just these result panels; an empty one runs none, which still answers
+            the facets and the name suggestions.
     """
     _require_db(db)
     pairs = [("db", db)]
@@ -768,8 +769,8 @@ def get_search(db, texts, tags, sizes=None, limit=None, offsets=None, panels=Non
         pairs.append(("limit", limit))
     for panel, offset in (offsets or {}).items():
         pairs.append((f"{panel}_offset", offset))
-    if panels:
-        pairs.append(("panels", ",".join(panels)))
+    if panels is not None:
+        pairs.append(("panels", ",".join(panels) or "none"))
     return _request("/search", pairs)
 
 
