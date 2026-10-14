@@ -5195,6 +5195,12 @@ clears each one.
   (`scripts/test.py full --check`) happens when a sequence is finished
   (whether "changes in a workflow" also covers CI workflow files is
   asked of Boss in that thread). Docs-only PRs still merge at once.
+  Stage 4 (2026-10-14): Stage 4 first part merged (#1357, 2026-10-14):
+  the browser phase of a full run fell from about 40 minutes to 25, so a
+  full run is now about 45 minutes. Next in the rebuild thread:
+  TEST.145, TEST.146, TEST.133. The flake sightings from Bugfixes lane 2
+  (System Map selection, galaxy breadcrumb tests) were folded into the
+  flake group TEST.126.
 
 - [ ] **TEST.140 test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing fails once in a full parallel run (bug)**
   Reported by Bugfixes lane 2 (2026-10-14 12:44Z, PERF.81 run, -n 4, 49
@@ -6234,6 +6240,9 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   way to run. Done: both docs match the workflow file and the runner,
   say that the full suite stays the merge gate and changed is a fast
   loop, and give the Redis setup.
+  Full run time (2026-10-14): Stage 4 (#1357) cut a full run to about 45
+  minutes; any figure for the full run's length in docs/testing.md or
+  the rebuild note should say about 45 minutes, not 60.
   Prerequisites: none. Related: TEST.139.
 
 - [ ] **DOC.41 Fix the activity-log file name in the fail2ban guide and the shipped jail**
