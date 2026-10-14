@@ -58,7 +58,7 @@ import pytest
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 MAP_PATH = os.path.join(ROOT, ".pytest-deps.json")
 PROOF_PATH = os.path.join(ROOT, ".pytest-deps-proof.json")
-FORMAT = 1
+FORMAT = 2
 
 SELECT_EVERYTHING = (
     "src/tests/conftest.py", "src/tests/depmap.py", "src/tests/areas.py", "pytest.ini", "setup.py",
@@ -72,6 +72,7 @@ OPAQUE_EVENTS = frozenset({"subprocess.Popen", "os.fork", "os.forkpty", "os.posi
 IGNORED_PARTS = ("/__pycache__/", "/.git/", "/.pytest_cache/", "/.hypothesis/", "/node_modules/", "/.test-runs.json")
 
 _recording = False
+_STATE = {}  # the plugin's state for the hooks that get no config
 _current = None  # the set of files the running test has used, or None between tests
 _opaque = False
 _lock = threading.Lock()
@@ -312,6 +313,7 @@ def _is_worker(config):
 
 def pytest_configure(config):
     state = config._depmap = _State()
+    _STATE["state"] = state
     config._depmap_recording = False
     if _is_worker(config):
         wanted = bool(config.workerinput.get("depmap_record"))
@@ -385,12 +387,15 @@ def pytest_runtest_protocol(item, nextitem):
             state.results[item.nodeid] = (used, opaque, state.times.get(item.nodeid, 0.0))
 
 
-@pytest.hookimpl(trylast=True)
-def pytest_runtest_makereport(item, call):
-    state = item.config._depmap
-    state.times[item.nodeid] += call.duration
-    if call.excinfo is not None:  # a failure, or a skip, in any phase
-        state.bad.add(item.nodeid)
+def pytest_runtest_logreport(report):
+    """Adds up each phase's time, and notes any test that did not pass in every phase (a failure or a skip).
+    (A `pytest_runtest_makereport` hook of ours never runs: pytest's own is first-result-wins and comes first.)"""
+    state = _STATE.get("state")
+    if state is None:
+        return
+    state.times[report.nodeid] += report.duration
+    if report.outcome != "passed":
+        state.bad.add(report.nodeid)
 
 
 def pytest_sessionfinish(session, exitstatus):

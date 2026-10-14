@@ -23,6 +23,9 @@ from tests.db_schema_support import (
     scratch_database,
 )
 
+# A fresh database with no schema, which these tests build and migrate themselves (TEST.139 stage 3).
+pytestmark = pytest.mark.fresh_database
+
 _fresh_snapshots = {}
 
 

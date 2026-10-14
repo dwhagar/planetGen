@@ -1093,6 +1093,15 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   containers, then the 3-ary ladder (MAP.151b).
   /galaxy/window?at=<cell>&g=<3..11> is planetgen/galaxy/window.py and
   tilecache.fetch_window.
+  Status (2026-10-09): MAP.151d part 1 done (Foundations lane 2,
+  2026-10-14, #1335): the window stage at /galaxy?win=&g= with
+  click-centred zoom, JS windowCells matching the Python Region, and
+  /galaxy/window; nothing links to it yet. Part 2 left: the galaxy home
+  as a window, retire the arc, slab and segment picks (the rest of
+  MAP.150, which unlocks MAP.189 and MAP.190), URLs and breadcrumb from
+  the window. The 3-ary ladder (MAP.151b) needs a per-level aggregate
+  table so a window does not need about 64 stage queries: DB.25,
+  Foundations lane 1.
 
 - [ ] **MAP.152 Scale hand-offs: galaxy, sector and system cross-fade with hysteresis, and per-tile camera-relative origins**
   Source: docs/design/fly-through-view-distance.md (section 7 and 8),
@@ -1503,21 +1512,6 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   cache and the browser's IndexedDB. Leaving out stars a parent tile
   already sent is NOT built; that is this item.
   Prerequisite: none. Related: MAP.159 (done, #1305).
-
-- [ ] **MAP.196 galaxystages.js reads the system= and object= parts of a sector link as digits only, so object links may fail (bug)**
-  Reported by the Test Suite Rebuild thread via the coordinator
-  (2026-10-14, from TEST.125, #1313): since the object ID change
-  (80-bit, 20 hex digits) systemnav.js only accepted number-only
-  references, so the System Map's Start Here and End Here buttons
-  vanished from every body's info panel; that is fixed. galaxystages.js
-  still reads the system= and object= parts of a sector link as digits
-  only and may have the same problem. Done: every place in the browser
-  code that parses a system or object reference accepts the current ID
-  form (hex digits), checked by grep and by a test that opens a sector
-  link carrying a hex object ID; no other digits-only reference parser
-  is left behind. Owner: Bugfixes lane 2 or the next lane taking
-  JavaScript fixes.
-  Prerequisites: none.
 
 ## NAV: Navigation and courses
 
@@ -3447,6 +3441,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Red; it has a 0 to 1 number that is the same geometric-mean blend of
   the three rungs as the other dimensions, and the numbers are tuned
   with the lane's sample worlds). Owner: Foundations lane 2.
+  Decided (Boss, 2026-10-14 19:54Z, on a decision
+  card relayed by the coordinator): Suitability is the lowest of three,
+  water access, food and shelter, as a 0 to 1 number.
   Related: GEN.84, GEN.90, GEN.148, UX.101, GEN.208.
 
 - [ ] **GEN.208 The habitability description is one paragraph that says where the planet falls in each category and what protection it needs**
@@ -3913,6 +3910,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   with its full timing; a full row per object only behind an opt-in flag
   for benchmark runs. The alternative is a row for every object, which
   costs storage and write time.
+  Decided (Boss, 2026-10-14 19:53Z, on a decision
+  card relayed by the coordinator): aggregates plus a sample. Per-type
+  aggregates per run and per sector, a repeatable 1-in-1,000 sample with
+  full timing, and a full row per object only behind an opt-in flag.
   Prerequisites: none. Related: PERF.33.
 
 ## DB: Database and schema
@@ -4041,6 +4042,20 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   measures that). Owner: Foundations lane 1 (the only lane that adds
   migrations), after PERF.70.
   Prerequisites: none. Related: GEN.201, MAP.171, MAP.165.
+
+- [ ] **DB.25 A per-level aggregate table for the 3-ary block ladder so a Galaxy Map window needs one query (Alembic migration)**
+  Foundations lane 2 (2026-10-14, after #1335): with the 3-ary ladder
+  (MAP.151b, 729/243/81/27/9/3/1) a map window would need about 64 stage
+  queries unless the per-level aggregates are stored. Done: a migration
+  and its previous-version fixture for a table holding the aggregates
+  per ladder level and cell (the columns the stage views already show:
+  star count, summed luminosity, mean age, nebula cover when MAP.172
+  lands), filled by the stage run and by a backfill for existing
+  galaxies; the window query reads it in one statement; a test that the
+  stored aggregates equal the ones computed from the stage files. Owner:
+  Foundations lane 1 (the only lane that adds migrations); queue it
+  right after PERF.92 because MAP.151b waits on it.
+  Prerequisites: none. Related: MAP.151, MAP.172.
 
 ## API: The JSON API
 
@@ -4972,6 +4987,21 @@ clears each one.
   tests/test_gen_bright_scatter_edges.py::test_a_fill_after_a_layer_failed_mid_scatter_builds_no_leftover_star
   failed once under full-suite load and passes alone. For the rebuild's
   flake list.
+  Flake (2026-10-09): Flake sighting (Bugfixes lane 2, 2026-10-14,
+  MAP.196 suite, 49 min):
+  tests/test_api_object_ids.py::test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing
+  failed under load twice (12:00Z and 17:03Z), passes alone; not checked
+  on main. Also tests/test_web_browser_maps.py::test_galaxy_map_buttons
+  again (TEST.126). For the rebuild's flake list.
+  Stage 3 (2026-10-09): Stage 3 merged (#1339, 2026-10-14): one database
+  per worker, emptied between tests; docs/testing.md and
+  docs/design/test-suite-rebuild.md sections 11 to 13 carry it. The Test
+  Suite Rebuild thread reports Boss decided (2026-10-14 19:44Z) that a
+  green `scripts/test.py changed` run replaces the full local suite as
+  the merge gate for small changes and for steps of a sequence of
+  related items, and a full run (`scripts/test.py full --check`) happens
+  when a sequence is finished. Not confirmed by me from Boss's own
+  message; docs-only PRs still merge at once.
 
 - [ ] **TEST.140 test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing fails once in a full parallel run (bug)**
   Reported by Bugfixes lane 2 (2026-10-14 12:44Z, PERF.81 run, -n 4, 49
@@ -5024,6 +5054,36 @@ clears each one.
   into the rebuild, no separate hunt; same family and fix as TEST.126.
   Owner: the Test Suite Rebuild thread.
   Prerequisites: none. Related: TEST.126, TEST.138.
+
+- [ ] **TEST.145 Subprocess tests must run the checkout under test, not the installed copy of another checkout (bug)**
+  Reported by Foundations lane 2 via the coordinator (2026-10-14,
+  MAP.151d suite): 17 full-suite tests failed when the suite ran from a
+  git worktree because tests that start subprocesses (schema-version
+  tests among them) used the editable install pointing at
+  /home/user/planetGen, not the worktree; all pass against the right
+  code, and the lane worked around it by setting PYTHONPATH to the
+  worktree src. Like TEST.143 for the install check. Done: every test
+  that spawns a subprocess puts the checkout under test first on
+  PYTHONPATH (one shared helper), so the suite passes from any checkout
+  or worktree, with a test that fails if a subprocess imports planetgen
+  from anywhere else. Owner: the Test Suite Rebuild thread (its list),
+  not a lane.
+  Prerequisites: none. Related: TEST.139.
+
+- [ ] **TEST.146 Rate-limit tests fail when the one-minute window ends between their requests (bug)**
+  Reported by the Test Suite Rebuild thread (2026-10-14 19:49Z): tests
+  that assert a 429 after N requests against a one-minute request limit
+  can fail when the limiter's fixed clock-minute window ends between
+  their requests. Seen once:
+  src/tests/test_ratelimit_redis.py::test_two_apps_on_one_redis_share_the_request_counts
+  failed in the 18:47Z full run and passed alone;
+  test_web_request_limits.py and test_web_security_limits.py have the
+  same shape. The odds are about 1 run in 100. Done when a shared test
+  helper waits for the start of a fresh minute when only a few seconds
+  remain, every test of this kind uses it, and the suite shows no time
+  flake. Owner: the Test Suite Rebuild thread (group B style), not a
+  lane.
+  Prerequisites: none. Related: TEST.139, TEST.145.
 
 ## USR: User accounts
 
@@ -5359,35 +5419,40 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   Foundations lane 1, near its other update.sh work.
   Prerequisites: none. Related: OPS.29, OPS.35, PERF.64.
 
-- [ ] **OPS.45 Install planetGen into its own virtual environment and clear the packages out of the system Python**
-  Boss (2026-10-14 15:17Z, chose the venv over system Python with apt):
-  reverses design decision 7 in docs/design/design-decisions.md, which
-  put the libraries in the system Python on Linux. His server's Apache
-  log shows planetGen's libraries (flask, pymysql, flask_limiter) living
-  in /usr/local/lib/python3.12/dist-packages. Done: install.sh and
-  update.sh build one venv, install every planetGen dependency in it
-  (numba and llvmlite included, from the lock files), remove the
-  pip-installed planetGen packages from the system Python, and point
-  both the CGI pages and the mod_wsgi entry point (WSGIDaemonProcess
-  python-home, src/html/wsgi.py, the examples in examples/apache and
-  docs/deployment/apache.md) at it; the generator, the workers, the
-  Redis queue workers and the cron or timer jobs run from the venv too.
-  Revisit numba's default cache location for the venv and the web user
-  (OPS.42's rule that the web app never imports numba still holds, and
-  PERF.88's web-user import test now runs against the venv). The venv
-  path, how update.sh rebuilds it when the Python or the lock file
-  changes, and how a system package conflict is detected are the lane's
-  to propose in the PR. Update design-decisions.md section 7,
-  INSTALL.md, README, docs/deployment/apache.md and testing.md, and keep
-  the macOS installer as it is. The change note says the install layout
-  changed and that update.sh does it for the server. Interacts with
-  OPS.43 (a fresh install gets markdown 3.11.1) and OPS.42 (merged).
-  Boss (2026-10-14 15:29Z): he has already cleared the system packages on
-  his server by hand, so the clean-up step must be safe when nothing is
-  installed, and update.sh must build the venv on a server that has no
-  libraries at all.
-  GitHub issue [#1295](https://github.com/dwhagar/planetGen/issues/1295).
-  Prerequisites: none. Related: OPS.42, OPS.43, OPS.44.
+- [ ] **OPS.46 Make the installer check the Apache mod_wsgi venv rules: venv root, process group, Apache user access, matching Python**
+  Boss, 2026-10-14 19:15Z, pasting the Apache mod_wsgi documentation:
+  the installer and setup must follow its venv rules. Most of it is
+  already built by OPS.45 (#1333): the example vhost
+  (examples/apache/planetgen.conf.example) puts
+  python-home=/usr/local/planetgen/venv on WSGIDaemonProcess
+  planetgen-api and sets process-group and application-group=%{GLOBAL}
+  on the WSGIScriptAlias line, and scripts/deploy-common.sh has
+  check_apache_python_home and check_mod_wsgi_python. What is left,
+  found by reading those two checks against Boss's list: (1)
+  check_apache_python_home matches the text python-home=$VENV with grep
+  -F, so a path to the interpreter
+  (python-home=/usr/local/planetgen/venv/bin/python) also passes; it
+  must require the venv root exactly and warn when the path points at
+  bin/ or a parent. (2) Nothing checks that the Apache user (www-data on
+  Debian and Ubuntu, apache on RHEL and CentOS) can read and enter every
+  directory down to and inside the venv; add a check that runs as that
+  user (for example sudo -u www-data test -r and -x on the path, or
+  namei -m) and says which directory blocks it. (3) Nothing checks that
+  the vhost has WSGIProcessGroup or process-group and application-group
+  %{GLOBAL} for the planetGen app; the check should read the vhost for
+  them, accepting either form, and warn when the app runs in embedded
+  mode. (4) The vhost lookup takes the first file under /etc/apache2
+  that names WSGIDaemonProcess planetgen-api; look under the enabled
+  sites only and cover RHEL layouts (/etc/httpd) if the installer
+  supports them. (5) check_mod_wsgi_python only looks at
+  /usr/lib/apache2/modules/mod_wsgi.so; confirm it compares the
+  major.minor of the venv's python with the mod_wsgi build and says what
+  to do when they differ. (6) Add the permission and process-group rules
+  to the Apache guide and INSTALL.md, in the same pass as DOC.37, and
+  add tests next to src/tests/test_install_python_deps.py. Default: keep
+  these as warnings that print the exact line to add, never edit the
+  admin's vhost (as OPS.45 does). Bugfixes lane 1, right after PERF.82.
+  Prerequisites: none. Related: DOC.37, PERF.82.
 
 ## DOC: Documentation
 
@@ -5621,7 +5686,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   docs/html-interface.md (Generate page and job log) and docs/testing.md
   need a short section on it. Done: the standard is described once and
   the three docs link to it.
-  Prerequisites: UX.102.
+  Prerequisite: UX.102.
 
 - [ ] **DOC.20 After PERF.86: rewrite the queue and scatter notes and the queue docstrings**
   Found by the full documentation sweep Boss asked for (2026-10-14
@@ -5636,7 +5701,7 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   decided against), library-migration.md section 3, architecture.md Flow
   4, and the docstrings of queue/work.py and queue/redisqueue.py. Done:
   all of them describe the queue as built.
-  Prerequisites: PERF.86.
+  Prerequisite: PERF.86.
 
 - [ ] **DOC.21 Rewrite the package docstrings that are wrong or missing, and the queryDb mentions**
   Found by the full documentation sweep Boss asked for (2026-10-14
@@ -5711,8 +5776,8 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   18:06Z); every finding was checked against the code on main
   (8.0.1072), and the findings with file, line and evidence are in
   /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-C.md, findings
-  41 to 45. Decision 7 (system Python) is reversed by OPS.45 (open, so
-  say pending); decision 10 (drill-down instead of a free camera) is
+  41 to 45. Decision 7 (system Python) is reversed by OPS.45 (merged, #1333,
+  so say reversed); decision 10 (drill-down instead of a free camera) is
   being replaced by MAP.146; decisions 11 to 13 say planned but are
   built or largely built; section 5 still describes DBUtils.PooledDB and
   schema v43 (it is now SQLAlchemy QueuePool and v83); the file has no
@@ -5892,19 +5957,19 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   time quoted is measured, not copied. Covers the cli.md part of DOC.4.
   Prerequisites: none. Related: DOC.4.
 
-- [ ] **DOC.37 Rewrite the install docs for the venv install, in or right after OPS.45**
+- [ ] **DOC.37 Rewrite the install docs for the venv install (OPS.45 merged, #1333)**
   Found by the full documentation sweep Boss asked for (2026-10-14
   18:06Z); every finding was checked against the code on main
   (8.0.1072), and the findings with file, line and evidence are in
   /mnt/project-files/reports/docs-sweep-2026-10-14/sweep-A.md, finding
-  17. When OPS.45 merges, the install paths, the Python the services use
+  17. OPS.45 merged (#1333, 2026-10-14): the venv is at /usr/local/planetgen/venv and install.sh and update.sh were rewritten, so the install paths, the Python the services use
   and where packages live all change: INSTALL.md,
   docs/deployment/apache.md, nginx.md, caddy.md, macos.md, paas.md,
   docs/server-checklist.md, README.md and the header comments of
-  install.sh, update.sh and scripts/install-python-deps.sh. Done: every
+  install.sh, update.sh and scripts/install-python-deps.sh. Boss must add python-home=/usr/local/planetgen/venv to the
+  WSGIDaemonProcess planetgen-api line of his Apache site, so every Apache guide says so. Done: every
   one of them describes the venv, how mod_wsgi, the CGI scripts and the
   services use it, and how to rebuild it.
-  Prerequisites: OPS.45.
 
 - [ ] **DOC.38 Refresh docs/config.md prose after PERF.64 and PERF.24: page_cache, stored_counts, PLANETGEN_WORKERS**
   Found by the full documentation sweep Boss asked for (2026-10-14

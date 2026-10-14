@@ -326,6 +326,8 @@ jobs:
           sudo bash ./install.sh < /dev/null 2>&1 | tee "$LOG"
           grep -q "Database is at schema v" "$LOG"
           grep -q "Control schema (admin logins) is up to date." "$LOG"
+          grep -q "Python install path: venv (/usr/local/planetgen/venv)." "$LOG"
+          sudo /usr/local/planetgen/venv/bin/python -c "import flask, planetgen; print(planetgen.__file__)"
           sudo test -f /var/log/planetgen.log
           sudo stat -c '%U:%G %a' /var/log/planetgen.log /var/log/planetgen/planetgen.log
           [ "$(sudo stat -c '%U:%G %a' /var/log/planetgen.log)" = "www-data:www-data 660" ]
@@ -337,7 +339,7 @@ jobs:
           sudo bash ./update.sh < /dev/null 2>&1 | tee "$LOG"
           grep -q "Already up to date" "$LOG"
           if grep -q "migration step(s)" "$LOG"; then echo "asked about a migration"; exit 1; fi
-          if grep -E '^  (installed|upgraded|repaired|failed) ' "$LOG"; then echo "installed something"; exit 1; fi
+          if grep -E '^(Creating the virtual|Installing the locked|Missing, too old)|^  failed ' "$LOG"; then echo "installed something"; exit 1; fi
           grep -q "Done. Nothing new was pulled." "$LOG"
 
       - name: update.sh on a database that needs migrating
@@ -434,7 +436,7 @@ jobs:
       - name: The update check installs nothing more
         run: |
           sudo env PATH=/usr/bin:/bin:/usr/sbin:/sbin /bin/bash /var/lib/planetGen/scripts/install-python-deps.sh --check | tee check.log
-          ! grep -E '^  (installed|upgraded|repaired|failed) ' check.log
+          ! grep -E '^(Creating the virtual|Installing the locked|Missing, too old)|^  failed ' check.log
 
       - name: install-maintenance-timer.sh makes launchd daemons
         run: |
@@ -475,7 +477,8 @@ jobs:
         run: pip install pip-audit && pip-audit --ignore-vuln PYSEC-2026-3740
 
       - name: Scan the locked dependencies for known vulnerabilities
-        # requirements.lock is what servers install (scripts/
+        # requirements.lock is the libraries of what servers install
+        # (requirements-server.lock adds gunicorn; scripts/
         # install-python-deps.sh, --require-hashes); same ignore as above.
         run: pip-audit --require-hashes -r requirements.lock --ignore-vuln PYSEC-2026-3740
 

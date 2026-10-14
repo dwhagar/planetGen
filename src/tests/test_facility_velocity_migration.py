@@ -10,7 +10,7 @@ import pytest
 from planetgen.db import store
 from tests.db_schema_support import load_old_schema
 
-pytestmark = pytest.mark.db
+pytestmark = [pytest.mark.db, pytest.mark.fresh_database]  # migrates a database it builds from an old schema
 
 
 def test_migrating_from_v63_gives_stand_alone_facilities_the_rotation_curves_velocity(mysql_config):

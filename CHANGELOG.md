@@ -2,6 +2,62 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1086] - 2026-10-14
+
+### Changed
+- TODO: PERF.92 storage (aggregates plus a sample) and GEN.207 Suitability (lowest of three) recorded as decided; TODO items resolved: none / Added: none.
+
+## [8.0.1085] - 2026-10-14
+
+### Fixed
+- **The test dependency record no longer keeps tests that failed or skipped, and now stores each test's time** (TEST.139). A hook that never ran meant a failing test was recorded as if it had passed, with whatever files it reached before failing, and every time was 0. The record format number goes up, so a record from before is ignored and the next full run writes a new one.
+
+## [8.0.1084] - 2026-10-14
+
+### Changed
+- TODO: filed TEST.146 (rate-limit tests fail when the one-minute window ends between requests) for the Test Suite Rebuild thread and noted TEST.139 stage 3 (#1339); TODO items resolved: none / Added: TEST.146.
+
+## [8.0.1083] - 2026-10-14
+
+### Changed
+- **Tests share one database per worker instead of creating and dropping one per test** (TEST.139). `mysql_config` hands each test process one database with the schema already in it and puts it back the way a new one is after every test, so a database test no longer pays 0.66 s for creating, filling and dropping a database. A test that needs no schema at all takes `@pytest.mark.fresh_database`; `PLANETGEN_TEST_FRESH_DB=1` turns the sharing off, and `PLANETGEN_TEST_DEEP_CHECK=1` proves every reset against a new database.
+
+## [8.0.1082] - 2026-10-14
+
+### Changed
+- TODO: filed OPS.46 (installer checks for the Apache mod_wsgi venv rules) in Bugfixes lane 1 after PERF.82; TODO items resolved: none / Added: OPS.46.
+
+## [8.0.1081] - 2026-10-14
+
+### Changed
+- TODO: DB.25 (per-level aggregates for the map window) and TEST.145 (subprocess tests use the checkout under test) filed; MAP.151 notes #1335.
+
+## [8.0.1080] - 2026-10-14
+
+### Added
+- **A window stage on the Galaxy Map (MAP.151d, first part).** `/galaxy?win=<cell>&g=<3 to 11>` shows the cells around a chosen cell of any level, nine across by default, drawn like any other stage. A click on a cell opens the window one size down centred on that cell, and Up (or Escape) opens it one size up, centred on the cell holding the middle, with the breadcrumb following. Nothing links to it yet; the galaxy and its arc, slab and segment picks open as before until the next step replaces them.
+
+## [8.0.1079] - 2026-10-14
+
+### Changed
+- TODO: OPS.45 retired (PR #1333); DOC.37 is ready and carries the python-home step for Apache.
+
+## [8.0.1078] - 2026-10-14
+
+### Changed
+- planetGen now runs from its own virtual environment on Linux too (`/usr/local/planetgen/venv`, as on macOS), not from the system Python. `install.sh` makes it and installs the hash-checked locked libraries and gunicorn into it; `update.sh` checks it and remakes only what is missing. The libraries apt packaged (`python3-flask` and the rest) and the system-wide pip installs are no longer used, and the old managed/unmanaged install paths and `PLANETGEN_PYTHON_MODE` are gone. Python 3.12 or newer is needed to make it.
+- The Apache vhost must name the venv: add `python-home=/usr/local/planetgen/venv` to the `WSGIDaemonProcess planetgen-api` line (`examples/apache/planetgen.conf.example`). `update.sh` warns with the exact line when it is missing. The gunicorn unit and the orbit-update service run the venv's gunicorn and python. Command-line tools run as `planetgen ...` or `/usr/local/planetgen/venv/bin/python -m planetgen.cli.NAME`; a bare `python3` no longer finds the libraries.
+
+## [8.0.1077] - 2026-10-14
+
+### Changed
+- TODO: MAP.196 retired (PR #1331); flake sighting noted on TEST.139.
+
+## [8.0.1076] - 2026-10-14
+
+### Fixed
+- **A Galaxy Map link that opens a system or a body now works with the current object IDs.** The map reads `system=` and `object=` in a link as digits only, but a system's and a body's printed ID is hex digits in dashed groups (`0008000000-4000000-00D`), so a reload, a shared link or Back to an opened system dropped the system. Both parts accept the printed ID now, kept in upper case; no other digits-only reference parser is left in the page scripts.
+
 ## [8.0.1075] - 2026-10-14
 
 ### Changed

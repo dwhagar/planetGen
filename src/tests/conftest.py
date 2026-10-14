@@ -37,7 +37,7 @@ import pytest
 from planetgen.db import store as _db
 from planetgen.db.store import MySQLConfig
 
-from tests import areas, failure_capture, publicids
+from tests import areas, dbpool, failure_capture, publicids
 
 # The always-on activity log (planetgen/admin/activity_log.py) would
 # otherwise go to /var/log/planetgen/ (or be skipped there); tests write it
@@ -213,11 +213,47 @@ def _mysql_server_available():
         conn.close()
 
 
+@pytest.fixture(scope="session")
+def _worker_database(_mysql_server_available):
+    """The database this test process reuses (tests/dbpool.py, TEST.139); dropped when the process ends."""
+    worker = dbpool.WorkerDatabase(_test_server_kwargs(), deep_check=bool(os.environ.get("PLANETGEN_TEST_DEEP_CHECK")))
+    yield worker
+    worker.close()
+
+
 @pytest.fixture
-def mysql_config(_mysql_server_available):
+def mysql_config(request, _mysql_server_available):
     """
-    Creates a uniquely-named, empty MySQL database for the duration of
-    one test, and drops it afterward regardless of the test's outcome.
+    A MySQL database for one test: empty, with the schema in place.
+
+    A test process keeps one such database and puts it back the way a new one is after each test
+    (`tests/dbpool.py`), which costs a few milliseconds where creating, filling with the schema and dropping
+    a database cost 0.66 s. A test that needs a database with no schema at all, or one that is not shared
+    with the tests before it, is marked `fresh_database` and gets `fresh_mysql_config` below;
+    `PLANETGEN_TEST_FRESH_DB=1` does that for every test.
+
+    Yields:
+        MySQLConfig: Points at the empty database -- pass straight to `get_connection`/`save_sector`/
+            `save_system`/etc.
+    """
+    if os.environ.get("PLANETGEN_TEST_FRESH_DB") or request.node.get_closest_marker("fresh_database"):
+        yield request.getfixturevalue("fresh_mysql_config")
+        return
+    worker = request.getfixturevalue("_worker_database")
+    config = worker.lease()
+    publicids.use(config)
+    try:
+        yield config
+    finally:
+        publicids.use(None)
+        worker.release()
+
+
+@pytest.fixture
+def fresh_mysql_config(_mysql_server_available):
+    """
+    Creates a uniquely-named, empty MySQL database for the duration of one test -- no tables at all, until
+    something connects and applies the schema -- and drops it afterward regardless of the test's outcome.
 
     Every test gets its own database name, so `planetgen.db.store`'s
     module-level pool cache (keyed by connection params, database
@@ -228,8 +264,7 @@ def mysql_config(_mysql_server_available):
     `max_connections`.
 
     Yields:
-        MySQLConfig: Points at the fresh, empty database -- pass straight
-            to `get_connection`/`save_sector`/`save_system`/etc.
+        MySQLConfig: Points at the fresh, empty database.
     """
     kwargs = _test_server_kwargs()
     db_name = f"planetgen_test_{uuid.uuid4().hex[:16]}"

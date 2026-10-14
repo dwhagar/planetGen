@@ -14,8 +14,8 @@ const VERSION_QUERY = new URL(import.meta.url).search;
 const { formatNumber } = await import(`./numberformat.js${VERSION_QUERY}`);
 
 const {
-  drillBlockBounds, drillChainOf, drillChildren, drillParent, drillSlabs, drillSlotRange, drillWedgeCount,
-  formatDrillKey, parseDrillKey, ringSectorCount, sectorAddressAt, sectorDrawable,
+  DEFAULT_WINDOW, WINDOW_WIDTHS, drillBlockBounds, drillChainOf, drillChildren, drillParent, drillSlabs, drillSlotRange,
+  drillWedgeCount, formatDrillKey, parseDrillKey, ringSectorCount, sectorAddressAt, sectorDrawable, windowCells,
 } = await import(`./galaxyprisms.js${VERSION_QUERY}`);
 
 // The flight's zoom/pan trade-off (van Wijk and Nuij's rho), and its
@@ -143,8 +143,13 @@ export function samePick(a, b) {
 }
 
 export function sameStage(a, b) {
-  return sameBlock(a.at, b.at) && a.picks.length === b.picks.length
+  return sameBlock(a.at, b.at) && sameWindow(a.win, b.win) && a.picks.length === b.picks.length
     && a.picks.every(function (pick, n) { return samePick(pick, b.picks[n]); });
+}
+
+function sameWindow(a, b) {
+  if (!a || !b) return !a && !b;
+  return a.g === b.g && sameBlock(a.centre, b.centre);
 }
 
 // The container's children grouped by child slab, lowest first, each
@@ -429,6 +434,7 @@ function pickText(pick) {
 // sector (the one sector left, if that's all there is), problem (when a
 // pick or the container doesn't fit the galaxy)}.
 export function resolveStage(stage, outline, edgePc) {
+  if (stage.win) return resolveWindow(stage, outline, edgePc);
   if (stage.at && !outline.shapeless && drillBlockTotal(stage.at, outline) === 0) {
     return { stage: stage, problem: "Block " + blockLabel(stage.at) + " is outside the galaxy." };
   }
@@ -448,6 +454,7 @@ export function resolveStage(stage, outline, edgePc) {
 // one option is taken, and one block of one slab is entered. Returns the
 // resolveStage of where it ends.
 export function settleStage(stage, outline, edgePc) {
+  if (stage.win) return resolveStage(stage, outline, edgePc);
   let resolved = resolveStage(stage, outline, edgePc);
   for (let guard = 0; guard < 200 && !resolved.problem; guard++) {
     const view = resolved.view;
@@ -522,6 +529,7 @@ export function sectorStage(ring, layer, slot, outline, edgePc) {
 // resolveStage results]): into each container the way its own picks
 // would go, then `stage`'s own picks.
 export function stageSteps(stage, outline, edgePc) {
+  if (stage.win) return windowSteps(stage, outline, edgePc);
   let steps = [];
   if (stage.at) {
     steps = walkToward(stage.at, outline, edgePc, function (r) { return sameBlock(r.stage.at, stage.at); }) || [];
@@ -564,6 +572,102 @@ export function courseStage(sectors, outline, edgePc) {
     shared = here;
   }
   return shared;
+}
+
+// --- Window stages (MAP.151) --------------------------------------------------
+//
+// A window stage is {at: null, picks: [], win: {centre, g}}: `g` cells across
+// around `centre`, a cell of any level (a sector as {m: 1, ring, wedge: slot,
+// slab: layer}), instead of the children of one container. There is nothing to
+// pick but a cell: a click takes the window one level down, centred on the cell
+// clicked, and Up takes it one level up, centred on the cell holding the
+// centre. Its data is /galaxy/window (planetgen/galaxy/window.py).
+
+// "m.ring.wedge.slab" of any level, a sector (m = 1) included, or null.
+export function parseCellKey(key) {
+  const parts = String(key == null ? "" : key).split(".");
+  if (parts.length !== 4 || !parts.every(function (p) { return /^-?\d+$/.test(p); })) return null;
+  const v = parts.map(Number);
+  const cell = { m: v[0], ring: v[1], wedge: v[2], slab: v[3] };
+  if ([243, 27, 3, 1].indexOf(cell.m) < 0 || cell.ring < 0 || !Number.isSafeInteger(cell.ring)) return null;
+  if (cell.wedge < 0 || cell.wedge >= drillWedgeCount(cell.m, cell.ring)) return null;
+  return cell;
+}
+
+// What a stage's data is read for: its window, else its container block, else
+// null (the galaxy).
+export function holder(stage) {
+  return stage.win || stage.at;
+}
+
+export function windowStage(centre, g) {
+  return { at: null, picks: [], win: { centre: stripBlock(centre), g: g || DEFAULT_WINDOW } };
+}
+
+// The window's blocks with their bounds and sector totals (those that can
+// hold none are left out), as stageChildren makes a container's.
+export function windowView(win, outline, edgePc) {
+  const blocks = [];
+  windowCells(win.centre, win.g).forEach(function (block) {
+    const total = outline.shapeless ? null : drillBlockTotal(block, outline);
+    if (total === 0) return;
+    block.bounds = drillBlockBounds(block, edgePc);
+    block.total = total;
+    blocks.push(block);
+  });
+  return { at: null, win: win, blocks: blocks, a0: 0, a1: TWO_PI, hadFirstPick: true };
+}
+
+function resolveWindow(stage, outline, edgePc) {
+  const view = windowView(stage.win, outline, edgePc);
+  if (!view.blocks.length) {
+    return { stage: stage, problem: "Nothing of the galaxy lies around " + blockLabel(stage.win.centre) + "." };
+  }
+  const options = view.blocks.map(function (block) {
+    return { pick: { kind: "cell", block: stripBlock(block) }, blocks: [block], a0: block.bounds.t0, a1: block.bounds.t1 };
+  });
+  return { stage: stage, view: view, kind: "cell", options: options, sector: null, problem: null };
+}
+
+// The cell one size down holding the middle of `block`: the centre of the
+// window a click on `block` opens. Null for a sector.
+export function windowChildCentre(block) {
+  if (block.m === 1) return null;
+  const childM = block.m === 3 ? 1 : block.m / 9;
+  const radius = (block.ring + 0.5) * block.m;
+  const turn = (block.wedge + 0.5) / drillWedgeCount(block.m, block.ring);
+  const ring = Math.floor(radius / childM);
+  const wedge = Math.min(drillWedgeCount(childM, ring) - 1, Math.floor(turn * drillWedgeCount(childM, ring)));
+  return { m: childM, ring: ring, wedge: wedge, slab: (block.slab * block.m) / childM };
+}
+
+// The window stage a click on `block` of window stage `stage` opens, or
+// null on a sector.
+export function windowInto(stage, block) {
+  const centre = windowChildCentre(block);
+  return centre ? windowStage(centre, stage.win.g) : null;
+}
+
+// The window stage one size up, centred on the cell holding the centre, or
+// null at level 243 (the galaxy's own stage is next).
+export function windowOut(stage) {
+  const parent = drillParent(stage.win.centre);
+  return parent ? windowStage(parent, stage.win.g) : null;
+}
+
+function windowSteps(stage, outline, edgePc) {
+  const steps = [settleStage({ at: null, picks: [] }, outline, edgePc)];
+  const chain = [];
+  for (let centre = stage.win.centre; centre; centre = drillParent(centre)) chain.push(centre);
+  chain.reverse().forEach(function (centre) {
+    const next = resolveStage(windowStage(centre, stage.win.g), outline, edgePc);
+    if (!next.problem) steps.push(next);
+  });
+  return steps;
+}
+
+export function windowLabel(win) {
+  return (win.centre.m === 1 ? "Sector " : "Block ") + blockLabel(win.centre) + " (" + win.centre.m + ")";
 }
 
 // --- Designations -------------------------------------------------------------
@@ -662,6 +766,11 @@ export function parsePickToken(token) {
 // "?at=m.ring.wedge.slab" and "p=" with its picks, comma-separated.
 export function stageQuery(stage) {
   const parts = [];
+  if (stage.win) {
+    parts.push("win=" + formatDrillKey(stage.win.centre));
+    if (stage.win.g !== DEFAULT_WINDOW) parts.push("g=" + stage.win.g);
+    return "?" + parts.join("&");
+  }
   if (stage.at) parts.push("at=" + formatDrillKey(stage.at));
   if (stage.picks.length) parts.push("p=" + stage.picks.map(pickToken).join(","));
   return parts.length ? "?" + parts.join("&") : "";
@@ -696,6 +805,13 @@ export function parseStageQuery(search) {
       ? wantedObject.slice(0, wantedObject.indexOf(":") + 1) + wantedObject.slice(wantedObject.indexOf(":") + 1).toUpperCase()
       : null;
     return { stage: galaxy, sector: sector, open: params.get("open") === "1", system: system, object: object, problem: null };
+  }
+  if (params.has("win")) {
+    const centre = parseCellKey(params.get("win"));
+    if (!centre) return { stage: galaxy, sector: null, problem: "There is no cell " + params.get("win") + "." };
+    const g = params.has("g") ? Number(params.get("g")) : DEFAULT_WINDOW;
+    if (WINDOW_WIDTHS.indexOf(g) < 0) return { stage: galaxy, sector: null, problem: "A window cannot be " + params.get("g") + " cells across." };
+    return { stage: windowStage(centre, g), sector: null, problem: null };
   }
   let at = null;
   if (params.has("at")) {
@@ -866,7 +982,8 @@ export function crumbs(stage, outline, edgePc) {
   return steps.map(function (r, n) {
     const s = r.stage;
     let label;
-    if (!s.picks.length) label = s.at ? "Block " + blockLabel(s.at) : "Galaxy";
+    if (s.win) label = windowLabel(s.win);
+    else if (!s.picks.length) label = s.at ? "Block " + blockLabel(s.at) : "Galaxy";
     else label = pickLabel(s.picks[s.picks.length - 1], s.at, r.view);
     return { stage: s, label: label, last: n === steps.length - 1 };
   });
