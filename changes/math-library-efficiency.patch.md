@@ -1,2 +1,0 @@
-### Added
-- **A design note on the generator's math and the libraries it uses.** It measures where the heavy numeric code still runs as plain Python (sector paths, nearest neighbours, galaxy density in the star scatters, the orbital update's per-row maths), prototypes the fixes and ranks them with the install cost of each library (numba is the only one worth adding). Research only; no behaviour changes.
