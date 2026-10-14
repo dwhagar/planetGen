@@ -713,10 +713,10 @@ def test_the_hand_built_insert_stores_the_same_rows_as_the_drivers(mysql_config)
     import numpy
 
     rows = [
-        (1, 2, 3, "neutron-star", None, 10, -20, 30, None, None, None, 2 ** 63 - 1, 1.4),
-        (4, -5, 6, "hypervelocity-star", "it's", -7, 8, -9, 1.5, -2.25, 1e-7, 7, None),
+        (1, 2, 3, "neutron-star", None, 10, -20, 30, None, None, None, 2 ** 63 - 1, 1.4, None),
+        (4, -5, 6, "hypervelocity-star", "it's", -7, 8, -9, 1.5, -2.25, 1e-7, 7, None, None),
         (numpy.int64(2), numpy.int16(3), numpy.int32(4), "black-hole", "super\\massive", numpy.int64(-1), numpy.int64(2),
-         numpy.int64(3), numpy.float64(0.1), None, None, numpy.uint64(5), numpy.float64(12.5)),
+         numpy.int64(3), numpy.float64(0.1), None, None, numpy.uint64(5), numpy.float64(12.5), None),
     ]
     conn = store.get_connection(mysql_config)
     try:

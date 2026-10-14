@@ -35,3 +35,4 @@ Commit each file came from:
 - v80: dc510bb4 (MAP.165 scatter mass, before ADM.49)
 - v81: ff1be90c (ADM.49 shape density, before PERF.68/70/74)
 - v82: d1920845 (PERF.68/70/74 slow-read indexes, before DB.24)
+- v83: fa95544a (DB.24 nebula_field, before DB.23)

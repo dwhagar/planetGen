@@ -86,6 +86,7 @@ STEP_KINDS = {
     "phenomena-insert": "Phenomena scatter: writing the special rows",
     "phenomena-index": "Phenomena scatter: build the indexes",
     "phenomena-stamp": "Phenomena scatter: epoch stamp",
+    "map-luminosity": "Map luminosity fill",
     "nebula-field": "Nebula field",
     "nebula-field-clean": "Nebula field cleanup",
     "link": "Neighbour linking",

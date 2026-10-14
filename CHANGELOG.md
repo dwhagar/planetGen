@@ -2,6 +2,26 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1108] - 2026-10-14
+
+### Changed
+- The TODO list drops PERF.93, DB.23 and GEN.201 (merged in #1364 and #1365) and files TEST.147, two nebula-field tests that fail under load.
+
+## [8.0.1107] - 2026-10-14
+
+### Added
+- `phenomenon_scatter.map_luminosity_sol` (schema v84): the luminosity a star of a scattered neutron star's or black hole's mass would have by the map's relation, so a faint but massive object can be placed on the Galaxy Map as a star of its mass would be. A scatter writes it with each row; `planetgen plan --fill-map-luminosity` fills it, resumable and in batches that never block readers, for a galaxy scattered before (DB.23, GEN.201).
+
+## [8.0.1106] - 2026-10-14
+
+### Fixed
+- **A queued API job is no longer left waiting on a worker that was killed.** The count of workers serving the queue came from a list only a worker's own start-up cleans, so a worker killed with `kill -9` (or by the out-of-memory killer) stayed counted, and with a cap of one nothing replaced it. The count now drops entries whose worker is gone and counts only a worker whose process still runs on this host; a replacement starts and the queued job runs. A job a killed worker was running is still noticed after RQ's heartbeat runs out (about 90 s) and then runs again.
+
+## [8.0.1105] - 2026-10-14
+
+### Changed
+- The TODO list corrects TEST.146's cause: the between-test rate-limit reset wipes every limiter key on the shared Redis.
+
 ## [8.0.1104] - 2026-10-14
 
 ### Added

@@ -832,6 +832,7 @@ phenomenon_scatter = sa.Table(
     sa.Column('built_at', mysql.TIMESTAMP(), nullable=True),
     sa.Column('epoch_unix', mysql.DOUBLE(), nullable=True),
     sa.Column('mass_solar', mysql.DOUBLE(), nullable=True),
+    sa.Column('map_luminosity_sol', mysql.FLOAT(), nullable=True),
     sa.Index('idx_phenomenon_scatter_address', 'ring_index', 'layer_index', 'ring_slot_index'),
     sa.Index('idx_phenomenon_scatter_class', 'kind', 'subtype', 'mass_solar'),
     sa.CheckConstraint("`kind` in ('black-hole','neutron-star','planetary-nebula','supernova-remnant','hypervelocity-star','quasar')", name='chk_phenomenon_scatter_kind'),
