@@ -253,3 +253,52 @@ def test_the_web_app_never_imports_numba():
             "assert 'numba' not in sys.modules, 'numba was imported by the web app'\n")
     done = subprocess.run([sys.executable, "-c", code], cwd=os.path.join(ROOT, "src"), capture_output=True, text=True)
     assert done.returncode == 0, done.stderr[-1500:]
+
+
+def test_cryptography_is_a_requirement_for_mysql_8_logins():
+    """The first real update.sh on a venv failed at the migration with "'cryptography' package is required for
+    sha256_password or caching_sha2_password auth methods": pymysql needs it to log in to MySQL 8's default accounts."""
+    assert "cryptography>=42.0.0" in _setup_requirements()
+    assert "cryptography>=42.0.0" in _script_requirements()
+    lock = _lock_pins().read_lock(os.path.join(ROOT, "requirements-server.lock"))
+    assert "cryptography" in {name for name, _, _, _ in lock}
+
+
+def test_the_library_check_fails_a_pymysql_that_cannot_use_cryptography():
+    """A venv with pymysql but no cryptography is "broken" at the library step, not at the migration."""
+    code = ("import sys; sys.modules['cryptography'] = None; sys.argv = ['probe', 'pymysql>=1.1.1']\n"
+            f"exec(open({os.path.join(ROOT, 'scripts', 'probe_requirements.py')!r}).read())\n")
+    done = subprocess.run([sys.executable, "-I", "-c", code], capture_output=True, text=True)
+    assert done.stdout.startswith("broken pymysql>=1.1.1 ImportError:pymysql_has_no_cryptography"), done.stdout + done.stderr
+
+
+def test_every_library_the_code_imports_is_in_the_lock():
+    """A library planetgen imports but the lock lacks is missing from a venv built from the lock alone (OPS.47: the
+    first real update.sh found none of this until the database step). Imports anywhere in the package count,
+    including inside functions."""
+    from importlib import metadata
+    lock_pins = _lock_pins()
+    locked = {name for name, _, _, _ in lock_pins.read_lock(os.path.join(ROOT, "requirements-server.lock"))}
+    distributions = metadata.packages_distributions()
+    missing = {}
+    for folder, _dirs, files in os.walk(os.path.join(ROOT, "src", "planetgen")):
+        for name in files:
+            if not name.endswith(".py"):
+                continue
+            path = os.path.join(folder, name)
+            with open(path, encoding="utf-8") as f:
+                tree = ast.parse(f.read())
+            for node in ast.walk(tree):
+                if isinstance(node, ast.Import):
+                    modules = [alias.name.split(".")[0] for alias in node.names]
+                elif isinstance(node, ast.ImportFrom) and node.level == 0 and node.module:
+                    modules = [node.module.split(".")[0]]
+                else:
+                    continue
+                for module in modules:
+                    if module in sys.stdlib_module_names or module == "planetgen":
+                        continue
+                    owners = distributions.get(module)
+                    if owners and not any(lock_pins.normalize(owner) in locked for owner in owners):
+                        missing.setdefault(module, os.path.relpath(path, ROOT))
+    assert not missing, f"imported but not in requirements-server.lock: {missing}"

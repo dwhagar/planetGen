@@ -32,6 +32,18 @@ def key(version):
 IMPORT_NAMES = {"scikit-image": "skimage"}
 
 
+def _pymysql_logs_in_to_mysql_8():
+    """pymysql can log in with caching_sha2_password and sha256_password (MySQL 8's default accounts) only with the
+    `cryptography` package; without it the first connection fails ("'cryptography' package is required")."""
+    from pymysql import _auth
+    if not _auth._have_cryptography:
+        raise ImportError("pymysql_has_no_cryptography_for_caching_sha2_password")
+
+
+# What a distribution has to be able to do beyond importing.
+EXTRA_CHECKS = {"pymysql": _pymysql_logs_in_to_mysql_8}
+
+
 for spec in sys.argv[1:]:
     name, floor = spec.split(">=")
     dist = None
@@ -50,6 +62,8 @@ for spec in sys.argv[1:]:
         continue
     try:
         importlib.import_module(IMPORT_NAMES.get(name, name.replace("-", "_")))
+        if name in EXTRA_CHECKS:
+            EXTRA_CHECKS[name]()
     except Exception as exc:  # any import failure makes it unusable
         print("broken", spec, f"{type(exc).__name__}:{exc}".replace(" ", "_").replace("\n", "_"), where)
         continue

@@ -70,6 +70,10 @@ setup(
         # not just the Flask API, so they're core requirements rather
         # than the 'api' extra below.
         'pymysql>=1.1.1',
+        # What pymysql needs to log in to MySQL 8's default accounts
+        # (caching_sha2_password, sha256_password); without it the first
+        # connection fails with "'cryptography' package is required".
+        'cryptography>=42.0.0',
         # Admin password hashing (planetgen/admin/auth.py's lazy
         # `werkzeug.security` import) -- planetgen.cli.migrate calls
         # bootstrap_control_schema() unconditionally (install.sh/update.sh

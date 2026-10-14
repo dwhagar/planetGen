@@ -523,14 +523,6 @@ with `clamp()`.
   Owner: Bugfixes lane 1 (next, PERF.85 is merged in #1265).
   Prerequisites: none. Related: PERF.65, PERF.66.
 
-- [ ] **UX.99 Rogue planets do not show their surface gravity (bug)**
-  GitHub issue [#1219](https://github.com/dwhagar/planetGen/issues/1219)
-  (Boss, 2026-10-11 02:45Z): "Rogue planets need to show their surface
-  gravity with the other information." Done: a rogue planet's page, row
-  and map popup show its surface gravity like any other planet, with a
-  test. Owner: Bugfixes lane 2, after its current items.
-  Prerequisites: none. Related: GEN.142, UX.22.
-
 - [ ] **UX.100 Planet and moon lists show habitability as symbols, not notes**
   GitHub issue [#1217](https://github.com/dwhagar/planetGen/issues/1217)
   (Boss, 2026-10-11 01:34Z): "The habitability notes are too much in the
@@ -3378,6 +3370,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   command saves a full reseed). Check: after a reseed and after the
   command, the same rows carry the same values (a test on a small
   galaxy). Owner: Foundations lane 1.
+  Decided (Boss, 2026-10-14 19:55Z, on a decision
+  card relayed by the coordinator): both. The scatter fills the map
+  luminosity for new galaxies and a one-off command fills existing ones.
   Prerequisite: DB.23. Related: MAP.171, GEN.185, GEN.196.
 
 - [ ] **GEN.202 Scattered nebulae (planetary nebulae and remnants) join the nebula index, deduplicated by object id**
@@ -3441,6 +3436,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Red; it has a 0 to 1 number that is the same geometric-mean blend of
   the three rungs as the other dimensions, and the numbers are tuned
   with the lane's sample worlds). Owner: Foundations lane 2.
+  Decided (Boss, 2026-10-14 19:54Z, on a decision
+  card relayed by the coordinator): Suitability is the lowest of three,
+  water access, food and shelter, as a 0 to 1 number.
   Related: GEN.84, GEN.90, GEN.148, UX.101, GEN.208.
 
 - [ ] **GEN.208 The habitability description is one paragraph that says where the planet falls in each category and what protection it needs**
@@ -3602,6 +3600,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-13): the whole work queue is to be redone (PERF.86). Build
   this item only if the PERF.86 plan keeps it; otherwise it is folded
   into or dropped by that plan.
+  Redis plan (2026-10-14): Dropped when PERF.100 lands: Boss decided
+  there is no automatic resume, and the Redis plan (PERF.86) keeps the
+  whole run in Redis.
 
 - [ ] **PERF.30 Finish an interrupted block or sector run on the next start**
   Boss (2026-10-07 11:47Z): "Add a mechanism to finish generating a
@@ -3624,6 +3625,9 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-13): the whole work queue is to be redone (PERF.86). Build
   this item only if the PERF.86 plan keeps it; otherwise it is folded
   into or dropped by that plan.
+  Redis plan (2026-10-14): Dropped when PERF.100 lands: Boss decided
+  there is no automatic resume, and the Redis plan (PERF.86) keeps the
+  whole run in Redis.
   Prerequisite: PERF.29.
 
 - [ ] **PERF.33 Progress bars and ETAs from measured performance**
@@ -3689,6 +3693,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   has an unknown count at start; (3) the command-line whole-job bar (built
   with PERF.55, PR #1131); (4) job-page tree estimates are by
   step label, not by settings. Folded here; (3) is done.
+  Redis plan (2026-10-14): Folded into PERF.96 (Boss adopted the Redis
+  plan, 2026-10-14 21:08Z); it is built there.
 
 - [ ] **PERF.35 An interval or chunk ledger for untouched sectors once block-first backfill lands**
   Replace the one-`sector_stats`-row-per-visited-cell ledger of
@@ -3723,6 +3729,8 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-13): the whole work queue is to be redone (PERF.86). Build
   this item only if the PERF.86 plan keeps it; otherwise it is folded
   into or dropped by that plan.
+  Redis plan (2026-10-14): Folded into PERF.95 (Boss adopted the Redis
+  plan, 2026-10-14 21:08Z); it is built there.
   Design: [docs/design/performance-eta-queue-and-caching.md](design/performance-eta-queue-and-caching.md)
 
 - [ ] **PERF.41 Stamp the tile and page caches with a TILE_FORMAT constant instead of the version (optional)**
@@ -3809,23 +3817,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   2026-10-13): the whole work queue is to be redone (PERF.86). Build
   this item only if the PERF.86 plan keeps it; otherwise it is folded
   into or dropped by that plan.
+  Redis plan (2026-10-14): Folded into PERF.95 (Boss adopted the Redis
+  plan, 2026-10-14 21:08Z); it is built there.
   Prerequisites: none. Related: PERF.19, PERF.24, DB.21, PERF.71.
   Design: [docs/design/slow-reads-and-timeouts.md](design/slow-reads-and-timeouts.md)
-
-- [ ] **PERF.82 Cut the cost of inserting a sector (about 17% of the fill)**
-  From the PERF.31 benchmark (Foundations lane 1, PR #1179;
-  docs/design/generation-benchmark-report.md; `python -m
-  planetgen.cli.generate benchmark --workers 1,2 --profile`, 4 cores,
-  MariaDB 10.11, plan to ring 12 with 2,041 layers then 2 sectors):
-  `insert_sector` is 40 s of the 227 s profile. Done: the insert is
-  measured by statement (batching, executemany, fewer round trips) and
-  cut, with the rows identical. Related to the uid work in PERF.31's
-  study items and the write cost of PERF.73. Owner: Bugfixes lane 1 (moved 2026-10-10).
-  Math Research (2026-10-14): `pymysql` formats a 13-column row in 8.6 us, a
-  hand-built numeric-only VALUES text in 2.9 us (the approach PERF.73 took
-  for scatter writes); try it here. pymysql is 8% of the profiled fill.
-  Prerequisites: none. Related: PERF.31, PERF.73.
-  Design: [docs/design/generation-benchmark-report.md](design/generation-benchmark-report.md)
 
 - [ ] **PERF.86 Redo the work queue: drop the task and subtask logic and use Redis simply**
   GitHub issue [#1229](https://github.com/dwhagar/planetGen/issues/1229)
@@ -3850,6 +3845,20 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   (coordinator to assign), then Foundations lane 1.
   Prerequisites: none. Related: PERF.40, PERF.78, PERF.29, PERF.30,
   ADM.15, PERF.24.
+  Redis review (2026-10-14): research done (Research Lane 1, PR #1350,
+  docs/design/redis-and-the-work-queue.md, with
+  /mnt/project-files/research/redis-review/). Boss adopted its Option A
+  and approved every default in it on 2026-10-14 21:08Z (see the
+  Decided line below). Filed from the same review, independent of the
+  rebuild: PERF.93 (bug), OPS.48, PERF.94, ADM.54.
+  Decided (Boss, 2026-10-14 21:08Z): Option A of
+  the Redis review, every default approved. Build steps filed as PERF.95
+  (queue spine), PERF.96 (run record and ETA library), PERF.97 (mass
+  scatter end to end), PERF.98 (remaining stages), PERF.99 (pages and
+  cancel), PERF.100 (delete old machinery, migration). PERF.86 is done
+  when they are; it follows the dead-worker bug PERF.93 and the client
+  module PERF.94 in Foundations lane 1. DOC.20 rewrites the notes after
+  step 6.
 
 - [ ] **PERF.88 Sector-path integrator on numba: saving the sector paths takes 13 s instead of 34 s on the benchmark fill**
   Math Research (2026-10-14;
@@ -3907,7 +3916,183 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   with its full timing; a full row per object only behind an opt-in flag
   for benchmark runs. The alternative is a row for every object, which
   costs storage and write time.
+  Decided (Boss, 2026-10-14 19:53Z, on a decision
+  card relayed by the coordinator): aggregates plus a sample. Per-type
+  aggregates per run and per sector, a repeatable 1-in-1,000 sample with
+  full timing, and a full row per object only behind an opt-in flag.
   Prerequisites: none. Related: PERF.33.
+
+- [ ] **PERF.93 api_jobs.ensure_workers counts dead workers as alive, so a killed API worker is never replaced (bug)**
+  From the Redis review Boss asked for (2026-10-14 20:01Z; Research Lane
+  1; note in docs/design/redis-and-the-work-queue.md, section 5.11, and
+  /mnt/project-files/research/redis-review/redis-and-the-work-queue.md,
+  benchmarks in research/redis-review/bench/). api_jobs.ensure_workers
+  starts min(waiting, worker_count()) minus Worker.count(queue) minus
+  the workers still starting. Worker.count is the size of a Redis set
+  that only a worker's start-up maintenance cleans. Measured in the
+  review: after kill -9 of a worker the count stayed at 1 for the whole
+  test, and still at 1 after the worker's own key had expired (80 s), so
+  queued API jobs wait on a phantom worker and, with a cap of one,
+  nothing replaces it. A job whose worker was killed is also noticed
+  only after about 90 s (heartbeat TTL 30 s plus 60 s) and then runs
+  again because of Retry(max=1). Not reproduced end to end through
+  planetGen's own code; the cause and the measurement are in the note
+  (finding F4, F5). Done when: ensure_workers counts live workers only
+  (a liveness check, and the worker registry is cleaned first), a test
+  kills a worker and shows a replacement starts and the queued job runs,
+  and the late-noticed killed job is covered or noted. Independent of
+  PERF.86. Bugfixes lane 2.
+  Prerequisites: none. Related: PERF.86, PERF.40, PERF.78.
+
+- [ ] **PERF.94 One Redis client module: timeouts, health checks and a cached pool, with JSON instead of pickle**
+  From the Redis review Boss asked for (2026-10-14 20:01Z; Research Lane
+  1; note in docs/design/redis-and-the-work-queue.md, section 5.11, and
+  /mnt/project-files/research/redis-review/redis-and-the-work-queue.md,
+  benchmarks in research/redis-review/bench/). Redis is opened in
+  several places with different settings (finding F9) and RQ arguments
+  are pickled (F8). Done when: one module owns the connection (timeouts,
+  retry, health check, a cached pool), every connect() call site uses
+  it, and task arguments travel as plain JSON where the old path pickled
+  them. Normal priority; PERF.86 builds on it. Foundations lane 1,
+  before PERF.40.
+  Prerequisites: none. Related: PERF.86, PERF.40.
+
+- [ ] **PERF.95 Work queue step 1: the queue spine, two queues, on-demand workers with an idle timeout and the wanted-worker count**
+  Part of PERF.86. Decided by Boss (2026-10-14 21:08Z): Option A of
+  docs/design/redis-and-the-work-queue.md (RQ and Redis stay; Redis is
+  the only place a run lives; each scatter its own queue item run in
+  order; counters plus an event stream for progress; cancel in about 0.5
+  s; the MySQL job tree retired); Redis required for every run including
+  one worker; workers on demand with an idle timeout and no always-on
+  service; one Redis instance; no Redis password while it binds
+  loopback; stage timing into the existing MySQL stage tables from the
+  completing unit; the event stream is the live log, written to the jobs
+  directory at run end with the last 20 kept. Each step leaves main
+  working, one PR, Foundations lane 1. Section 5.4 and 5.11 step 1. Two
+  queues, planetgen-bulk and planetgen-interactive, each worker serving
+  only one; ensure_workers starts idle-timeout workers (max_idle_time
+  about 60 s, not burst) up to the wanted-count key
+  planetgen:workers:wanted, counts only live workers, cleans the worker
+  registry, and is called by whoever queues and by every status poll;
+  API jobs move to the interactive queue. Folds in PERF.40 (two shared
+  queues, a reserved interactive worker, a real cancel now), PERF.78 (a
+  reserved warm worker for long admin operations) and ADM.15 (worker
+  count from the Queue page, Ludicrous Speed as a number). Done when:
+  those items' behaviours work on the new spine and a test kills a
+  worker and a replacement starts.
+  Prerequisites: PERF.93, PERF.94. Related: PERF.86, PERF.40, PERF.78,
+  ADM.15.
+
+- [ ] **PERF.96 Work queue step 2: the run record, stage counters, event stream and the ETA function, as a library**
+  Part of PERF.86. Decided by Boss (2026-10-14 21:08Z): Option A of
+  docs/design/redis-and-the-work-queue.md (RQ and Redis stay; Redis is
+  the only place a run lives; each scatter its own queue item run in
+  order; counters plus an event stream for progress; cancel in about 0.5
+  s; the MySQL job tree retired); Redis required for every run including
+  one worker; workers on demand with an idle timeout and no always-on
+  service; one Redis instance; no Redis password while it binds
+  loopback; stage timing into the existing MySQL stage tables from the
+  completing unit; the event stream is the live log, written to the jobs
+  directory at run end with the last 20 kept. Each step leaves main
+  working, one PR, Foundations lane 1. Section 5.2 and 5.11 step 2.
+  planetgen:run:<id> hash, per-stage counter hashes, the done sets, the
+  events stream (XADD with MAXLEN about 100,000) and the cost-weighted
+  ETA as a pure function of the counters, built as a library with a fake
+  clock and tests; no UI yet. Folds in PERF.33 (progress bars and ETAs
+  from measured performance). Done when: the library passes its tests
+  for the barrier, counters, stream and ETA and PERF.33's acceptance is
+  met by it.
+  Prerequisite: PERF.95. Related: PERF.86, PERF.33.
+
+- [ ] **PERF.97 Work queue step 3: the mass scatter end to end on the new queue**
+  Part of PERF.86. Decided by Boss (2026-10-14 21:08Z): Option A of
+  docs/design/redis-and-the-work-queue.md (RQ and Redis stay; Redis is
+  the only place a run lives; each scatter its own queue item run in
+  order; counters plus an event stream for progress; cancel in about 0.5
+  s; the MySQL job tree retired); Redis required for every run including
+  one worker; workers on demand with an idle timeout and no always-on
+  service; one Redis instance; no Redis password while it binds
+  loopback; stage timing into the existing MySQL stage tables from the
+  completing unit; the event stream is the live log, written to the jobs
+  directory at run end with the last 20 kept. Each step leaves main
+  working, one PR, Foundations lane 1. Section 5.1 and 5.11 step 3. One
+  stage on the new spine, the mass scatter: static chunks (units per
+  stage capped near 4,000), JSON arguments, the done-set barrier (SCARD
+  equals the unit count, SET NX on an advanced flag so one unit
+  advances), the run's seed independent of worker count, planetgen
+  galaxy following the events, and --workers 1 using the same path. Each
+  scatter layer set is its own queue item run in order (Boss,
+  2026-10-14). Done when: a galaxy fill whose mass scatter runs this way
+  gives the same galaxy for the same seed at any worker count and the
+  old path still runs the other stages.
+  Prerequisite: PERF.96. Related: PERF.86.
+
+- [ ] **PERF.98 Work queue step 4: the remaining stages and the sector and backfill units on the new queue**
+  Part of PERF.86. Decided by Boss (2026-10-14 21:08Z): Option A of
+  docs/design/redis-and-the-work-queue.md (RQ and Redis stay; Redis is
+  the only place a run lives; each scatter its own queue item run in
+  order; counters plus an event stream for progress; cancel in about 0.5
+  s; the MySQL job tree retired); Redis required for every run including
+  one worker; workers on demand with an idle timeout and no always-on
+  service; one Redis instance; no Redis password while it binds
+  loopback; stage timing into the existing MySQL stage tables from the
+  completing unit; the event stream is the live log, written to the jobs
+  directory at run end with the last 20 kept. Each step leaves main
+  working, one PR, Foundations lane 1. Section 5.1 and 5.11 step 4. Move
+  every other stage (skeleton, phenomena, luminosity, sectors, link,
+  backfill, population, settle) and the sector and backfill units onto
+  run records, units and barriers; one-shot stages are one unit. Stage
+  timing goes into generation_stage_runs and generation_stats from the
+  unit that completes the stage; a hard-killed worker is seen at once by
+  the work-horse-killed handler, and every job gets a real job_timeout.
+  Done when: every generation command runs on the new queue and the old
+  executor is unused.
+  Prerequisite: PERF.97. Related: PERF.86, PERF.92.
+
+- [ ] **PERF.99 Work queue step 5: the Generate page, Queue page, banner and job log read Redis; cancel now through the stop command**
+  Part of PERF.86. Decided by Boss (2026-10-14 21:08Z): Option A of
+  docs/design/redis-and-the-work-queue.md (RQ and Redis stay; Redis is
+  the only place a run lives; each scatter its own queue item run in
+  order; counters plus an event stream for progress; cancel in about 0.5
+  s; the MySQL job tree retired); Redis required for every run including
+  one worker; workers on demand with an idle timeout and no always-on
+  service; one Redis instance; no Redis password while it binds
+  loopback; stage timing into the existing MySQL stage tables from the
+  completing unit; the event stream is the live log, written to the jobs
+  directory at run end with the last 20 kept. Each step leaves main
+  working, one PR, Foundations lane 1. Section 5.5 and 5.11 step 5. The
+  Generate page, the Queue page, the all-visitors banner (UX.3) and the
+  job log read the run record, counters and event stream; cancel sets
+  the run to cancelling, cancels the waiting units, sends the stop
+  command to the started ones and clears planetgen:run:active (about 0.5
+  s); the stale-run Clear action (section 5.6) is added; the event
+  stream is the live log and is written to the jobs directory at run end
+  for the download link, last 20 kept. Done when: the pages need no
+  MySQL job tree and cancel is measured under a second on a 75-job run.
+  Prerequisite: PERF.98. Related: PERF.86, UX.3.
+
+- [ ] **PERF.100 Work queue step 6: delete the old machinery and the work_* tables (Alembic migration)**
+  Part of PERF.86. Decided by Boss (2026-10-14 21:08Z): Option A of
+  docs/design/redis-and-the-work-queue.md (RQ and Redis stay; Redis is
+  the only place a run lives; each scatter its own queue item run in
+  order; counters plus an event stream for progress; cancel in about 0.5
+  s; the MySQL job tree retired); Redis required for every run including
+  one worker; workers on demand with an idle timeout and no always-on
+  service; one Redis instance; no Redis password while it binds
+  loopback; stage timing into the existing MySQL stage tables from the
+  completing unit; the event stream is the live log, written to the jobs
+  directory at run end with the last 20 kept. Each step leaves main
+  working, one PR, Foundations lane 1. Section 5.3, 5.7 and 5.11 step 6.
+  Delete queue/work.py's WorkQueue, the job tree and the lease,
+  RQExecutor, RQFuture and Channel, web/jobs.py's files and
+  web/job_runner.py, queue/progress_file.py, submit_each's adaptive
+  chunking, the in-process no-Redis fallback and GENERATION_QUEUE, with
+  one Alembic revision dropping work_jobs, work_job_args, work_tasks and
+  work_lease (Foundations lane 1 only adds migrations). PERF.29 and
+  PERF.30 (resume) are dropped when this lands: Boss decided there is no
+  automatic resume. Done when: the suite is green with the old code gone
+  and the line count is recorded in the PR.
+  Prerequisite: PERF.99. Related: PERF.86, PERF.29, PERF.30, DOC.20.
 
 ## DB: Database and schema
 
@@ -4419,6 +4604,8 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   2026-10-13): the whole work queue is to be redone (PERF.86). Build
   this item only if the PERF.86 plan keeps it; otherwise it is folded
   into or dropped by that plan.
+  Redis plan (2026-10-14): Folded into PERF.95 (Boss adopted the Redis
+  plan, 2026-10-14 21:08Z); it is built there.
 
 - [ ] **ADM.32 Add a star system to a sector: at the emptiest spot, at given coordinates, or at random outside every Hill sphere**
   Boss (2026-10-07 11:47Z): "Need a way to add a single star system to a
@@ -4587,6 +4774,17 @@ DB.1 shipped in 7.35.0 (PR #152). DB.2 to DB.5 done (PR #342, PR #347).
   orbits; the same plan can be written as a command line recipe. Owner:
   Foundations lane 2, after the fly-through map.
   Prerequisites: none. Related: ADM.32, ADM.35, ADM.36, API.18, ADM.51.
+
+- [ ] **ADM.54 A Redis health check on the admin page: answering, append-only file on, memory policy, memory used, last save, worker count (optional)**
+  From the Redis review Boss asked for (2026-10-14 20:01Z; Research Lane
+  1; note in docs/design/redis-and-the-work-queue.md, section 5.11, and
+  /mnt/project-files/research/redis-review/redis-and-the-work-queue.md,
+  benchmarks in research/redis-review/bench/). Optional monitoring: the
+  admin page shows whether Redis answers, whether the append-only file
+  is on, the memory policy, used_memory, the last save status and the
+  worker count. Default: build it after the Redis settings item; Boss
+  may drop it. Foundations lane 1, after the client module.
+  Prerequisites: none. Related: OPS.48, PERF.94.
 
 ## SEC: Security
 
@@ -4986,15 +5184,17 @@ clears each one.
   failed under load twice (12:00Z and 17:03Z), passes alone; not checked
   on main. Also tests/test_web_browser_maps.py::test_galaxy_map_buttons
   again (TEST.126). For the rebuild's flake list.
-  Stage 3 (2026-10-09): Stage 3 merged (#1339, 2026-10-14): one database
-  per worker, emptied between tests; docs/testing.md and
-  docs/design/test-suite-rebuild.md sections 11 to 13 carry it. The Test
-  Suite Rebuild thread reports Boss decided (2026-10-14 19:44Z) that a
-  green `scripts/test.py changed` run replaces the full local suite as
-  the merge gate for small changes and for steps of a sequence of
-  related items, and a full run (`scripts/test.py full --check`) happens
-  when a sequence is finished. Not confirmed by me from Boss's own
-  message; docs-only PRs still merge at once.
+  Stage 3 merged (#1339, 2026-10-14): one database per worker, emptied
+  between tests; docs/testing.md and docs/design/test-suite-rebuild.md
+  sections 11 to 13 carry it. Boss (2026-10-14 19:44Z, in the Test Suite
+  Rebuild thread): "yes changed can replace a full run for small changes
+  also changes in a workflow, I don't want to do a full chain test every
+  time we merge, but when a sequence is finished of related items." So a
+  green `scripts/test.py changed` run is the merge gate for small changes
+  and for steps inside a sequence of related items, and a full run
+  (`scripts/test.py full --check`) happens when a sequence is finished
+  (whether "changes in a workflow" also covers CI workflow files is
+  asked of Boss in that thread). Docs-only PRs still merge at once.
 
 - [ ] **TEST.140 test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing fails once in a full parallel run (bug)**
   Reported by Bugfixes lane 2 (2026-10-14 12:44Z, PERF.81 run, -n 4, 49
@@ -5444,8 +5644,32 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   to the Apache guide and INSTALL.md, in the same pass as DOC.37, and
   add tests next to src/tests/test_install_python_deps.py. Default: keep
   these as warnings that print the exact line to add, never edit the
-  admin's vhost (as OPS.45 does). Bugfixes lane 1, right after PERF.82.
-  Prerequisites: none. Related: DOC.37, PERF.82.
+  admin's vhost (as OPS.45 does). Bugfixes lane 1, first in the lane.
+  Decided (Boss, 2026-10-14 19:55Z, on a decision
+  card relayed by the coordinator): warn only. The warnings print the
+  exact line to add and never edit his vhost.
+  Prerequisites: none. Related: DOC.37.
+
+- [ ] **OPS.48 Redis server settings: a documented example config and an update.sh warning (append-only file, noeviction, memory limit, loopback)**
+  From the Redis review Boss asked for (2026-10-14 20:01Z; Research Lane
+  1; note in docs/design/redis-and-the-work-queue.md, section 5.11, and
+  /mnt/project-files/research/redis-review/redis-and-the-work-queue.md,
+  benchmarks in research/redis-review/bench/). Redis here runs with its
+  defaults. In the review's test, the defaults lost every key on kill -9
+  and appendonly yes with appendfsync everysec kept them all. Done when:
+  examples/redis/planetgen.conf sets appendonly yes, appendfsync
+  everysec, maxmemory-policy noeviction, a maxmemory guard and a
+  loopback bind; update.sh warns, with the exact line to add, when
+  appendonly is off or the memory policy is not noeviction or Redis
+  listens beyond loopback, and never edits his Redis config; the install
+  guides say so (with DOC.44). Normal priority, behind the
+  generation-performance work. Bugfixes lane 1.
+  Decided (Boss, 2026-10-14 21:08Z): turn on the
+  append-only file (everysec), noeviction and a memory guard through a
+  documented example config and an update.sh warning; update.sh never
+  edits his Redis config. One Redis instance; no password while it binds
+  loopback (it does today), an ACL user documented for later.
+  Prerequisites: none. Related: DOC.44, OPS.21, PERF.86.
 
 ## DOC: Documentation
 
@@ -5991,6 +6215,10 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   earlier releases without one; Boss may instead drop the rule. Done:
   README facts and table are correct, and the headline rule text matches
   what is done.
+  Decided (Boss, 2026-10-14 19:54Z, on a decision
+  card relayed by the coordinator): restore the rule. Every release from
+  the next one on opens with a Headline line, and changes/README says
+  so.
   Prerequisites: none.
 
 - [ ] **DOC.40 Bring docs/testing.md and docs/ci-runners.md in line with ci.yml and scripts/test.py**

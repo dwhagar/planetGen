@@ -1789,3 +1789,27 @@ def test_the_orbit_update_stores_the_whole_second_not_a_rounded_up_one(mysql_con
         assert store.get_orbit_epoch_unix(conn) == stored
     finally:
         conn.close()
+
+
+def test_a_rogue_planets_detail_carries_its_surface_gravity(mysql_config):
+    """UX.99: the phenomenon detail has the rogue planet's surface gravity in g, from its mass and radius."""
+    from planetgen.db import query
+    from planetgen.generation.phenomena.rogue import RoguePlanet
+
+    conn = store.get_connection(mysql_config)
+    try:
+        with conn:
+            planet_id = store.insert_rogue_planet(conn, RoguePlanet(SystemConfig(), name="Ossandre"))
+        row = conn.execute("SELECT mass_kg, radius_km FROM rogue_planets WHERE id = ?", (planet_id,)).fetchone()
+        expected = pc.G * row["mass_kg"] / (row["radius_km"] * 1000.0) ** 2 / pc.EARTH_GRAVITY
+        detail = query.phenomenon_detail(conn, "rogue_planet", planet_id)
+        assert detail["gravity_g"] == pytest.approx(expected) and detail["gravity_g"] > 0
+    finally:
+        conn.close()
+
+
+def test_the_rogue_planet_gravity_formula_gives_one_g_for_the_earth():
+    from planetgen.db import query
+
+    assert query.rogue_planet_gravity_g(5.972e24, 6371.0) == pytest.approx(1.0, abs=0.01)
+    assert query.rogue_planet_gravity_g(None, 6371.0) is None and query.rogue_planet_gravity_g(5.972e24, 0) is None
