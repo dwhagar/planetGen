@@ -3618,11 +3618,13 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   above 0.5 to 1 Sv need a shelter, not a suit) supply the reasons and
   wording. They differ from the built equipment table in
   habitability-index.md (masks from 50 kPa, 14.3 kPa for the full suit,
-  cold limit minus 50 C, wet bulb 31 and 35 C). Open question for Boss
-  (default: keep the built numbers, which Boss already approved, and use
-  the notes only for the suit names, reasons and wording; the lane lists
-  each difference in its merge note so Boss can pick the notes' numbers
-  instead). Done: the description names the suit or mask
+  cold limit minus 50 C, wet bulb 31 and 35 C). Decided (Boss, 2026-10-14 13:58Z): where the notes and the built
+  table differ, use the more permissive value (the one that lets a person
+  go with lighter gear or a wider range), because the limits will be
+  widened later anyway: the canon has races that live in conditions
+  humans cannot. The lane lists each pair it chose from in its merge
+  note, and keeps every limit in one table so a later per-species limit
+  can replace it. Done: the description names the suit or mask
   classes the planet needs and why, in one short paragraph per planet,
   with tests over a sample of planets. Owner: Foundations lane 2, with
   GEN.207.
