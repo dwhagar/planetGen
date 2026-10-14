@@ -2,6 +2,12 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1078] - 2026-10-14
+
+### Changed
+- planetGen now runs from its own virtual environment on Linux too (`/usr/local/planetgen/venv`, as on macOS), not from the system Python. `install.sh` makes it and installs the hash-checked locked libraries and gunicorn into it; `update.sh` checks it and remakes only what is missing. The libraries apt packaged (`python3-flask` and the rest) and the system-wide pip installs are no longer used, and the old managed/unmanaged install paths and `PLANETGEN_PYTHON_MODE` are gone. Python 3.12 or newer is needed to make it.
+- The Apache vhost must name the venv: add `python-home=/usr/local/planetgen/venv` to the `WSGIDaemonProcess planetgen-api` line (`examples/apache/planetgen.conf.example`). `update.sh` warns with the exact line when it is missing. The gunicorn unit and the orbit-update service run the venv's gunicorn and python. Command-line tools run as `planetgen ...` or `/usr/local/planetgen/venv/bin/python -m planetgen.cli.NAME`; a bare `python3` no longer finds the libraries.
+
 ## [8.0.1077] - 2026-10-14
 
 ### Changed
