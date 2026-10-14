@@ -3907,6 +3907,10 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   with its full timing; a full row per object only behind an opt-in flag
   for benchmark runs. The alternative is a row for every object, which
   costs storage and write time.
+  Decided (2026-10-09): Decided (Boss, 2026-10-14 19:53Z, on a decision
+  card relayed by the coordinator): aggregates plus a sample. Per-type
+  aggregates per run and per sector, a repeatable 1-in-1,000 sample with
+  full timing, and a full row per object only behind an opt-in flag.
   Prerequisites: none. Related: PERF.33.
 
 ## DB: Database and schema
