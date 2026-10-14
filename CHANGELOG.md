@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1021] - 2026-10-14
+
+### Fixed
+- Linking a big run's sectors to their neighbours no longer looks frozen: it works in batches of 20 neighbouring sectors instead of 200 scattered ones (a batch was about ten minutes on a dense run, with the progress bar standing still and the neighbour lock held throughout), so the bar moves every minute or so and the lock is short. The links stored are the same.
+
 ## [8.0.1020] - 2026-10-14
 
 ### Changed
