@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.987] - 2026-10-14
+
+### Changed
+- The plan pages now list every open GitHub issue as plan items: bugs in Phase 1, the rest spread over the later phases, and the test suite rebuild as its own thread.
+
 ## [8.0.986] - 2026-10-11
 
 ### Changed
