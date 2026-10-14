@@ -1509,6 +1509,7 @@ def _table_marker(table):
 
 
 _VERSION_MARKERS = (
+    (84, _column_marker("phenomenon_scatter", "map_luminosity_sol")),
     (83, _table_marker("nebula_field")),
     (82, _table_marker("sector_system_counts")),
     (81, _column_marker("galaxy_shape", "core_amplitude")),
@@ -5630,7 +5631,7 @@ def phenomenon_scatter_seed(conn):
 
 PHENOMENON_SCATTER_COLUMNS = (
     "ring_index", "layer_index", "ring_slot_index", "kind", "subtype", "position_x_mpc", "position_y_mpc",
-    "position_z_mpc", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms", "seed", "mass_solar",
+    "position_z_mpc", "velocity_x_kms", "velocity_y_kms", "velocity_z_kms", "seed", "mass_solar", "map_luminosity_sol",
 )
 """tuple: The `phenomenon_scatter` columns a scatter writes, in the order
 `insert_phenomenon_scatter` expects each row's values."""

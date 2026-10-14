@@ -1179,6 +1179,15 @@
 --   fixed, so nothing in a fill changes it except `is_stored` and `uid`, set when a
 --   sector's save stores the cloud as a `nebulae` row.
 --
+-- v84: `phenomenon_scatter.map_luminosity_sol` (DB.23, GEN.200): the luminosity, in
+--   solar luminosities, of a main-sequence star of the row's `mass_solar` by the
+--   map's own mass-luminosity relation (`stellar_evolution.map_luminosity_sol`), so
+--   the Galaxy Map can show a faint but massive neutron star or black hole where a
+--   star of its mass would be visible. FLOAT, NULL for a row without a mass
+--   (planetary nebulae, supernova remnants, hypervelocity stars, the quasar).
+--   Written when the scatter inserts a row; `plan --fill-map-luminosity` fills it
+--   in a galaxy scattered before v84.
+--
 -- MySQL port -- type mapping and idempotency notes (TODO.md Phase 5):
 --   - SQLite's `INTEGER PRIMARY KEY` (a 64-bit rowid alias) becomes
 --     `BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY` throughout, with every
@@ -3273,6 +3282,7 @@ CREATE TABLE IF NOT EXISTS phenomenon_scatter (
     built_at             TIMESTAMP NULL,
     epoch_unix           DOUBLE,  -- v69 (GEN.137): when the position holds, see the header comment
     mass_solar           DOUBLE,  -- v80 (MAP.165): see header comment
+    map_luminosity_sol   FLOAT,   -- v84 (DB.23): see header comment
 
     KEY idx_phenomenon_scatter_address (ring_index, layer_index, ring_slot_index),
     KEY idx_phenomenon_scatter_class (kind, subtype, mass_solar),  -- v82 (PERF.68): see header comment

@@ -48,6 +48,7 @@ from planetgen.galaxy.geometry import (
 from planetgen.galaxy.sector import _sample_poisson_count
 from planetgen.generation import bright_stars
 from planetgen.generation.bright_stars import MPC_PER_PC, _place_one
+from planetgen.physics import stellar_evolution as stellarEvolution
 from planetgen.util import draw
 from planetgen.util.poisson import poisson_count
 from planetgen.util.random import log_uniform
@@ -83,7 +84,7 @@ NUCLEUS_SUBTYPE = "supermassive"
 PHENOMENON_SCATTER_COLUMNS = (
     "ring_index", "layer_index", "ring_slot_index", "kind", "subtype",
     "position_x_mpc", "position_y_mpc", "position_z_mpc",
-    "velocity_x_kms", "velocity_y_kms", "velocity_z_kms", "seed", "mass_solar",
+    "velocity_x_kms", "velocity_y_kms", "velocity_z_kms", "seed", "mass_solar", "map_luminosity_sol",
 )
 """tuple: The `phenomenon_scatter` columns a scatter writes, in the order
 every row below carries them."""
@@ -96,7 +97,13 @@ def _row(ring_index, layer_index, slot, kind, point, rng, subtype=None, velocity
          mass_solar=None):
     """One object in `PHENOMENON_SCATTER_COLUMNS` order."""
     return (ring_index, layer_index, slot, kind, subtype, point[0], point[1], point[2],
-            velocity[0], velocity[1], velocity[2], rng.getrandbits(63), mass_solar)
+            velocity[0], velocity[1], velocity[2], rng.getrandbits(63), mass_solar, map_luminosity(mass_solar))
+
+
+def map_luminosity(mass_solar):
+    """The map luminosity (DB.23, GEN.200) stored with a row of `mass_solar`: the luminosity of a main-sequence star
+    of that mass by the map's relation; `None` for a row with no mass."""
+    return None if mass_solar is None else stellarEvolution.map_luminosity_sol(mass_solar)
 
 
 def draw_mass(kind, subtype, min_mass_solar, rng):
@@ -328,7 +335,7 @@ def _vector_rows(shape, layer_index, first_ring, outer_ring, edge_pc, expected_a
                    masses.tolist() if masses is not None else [None] * total]
         for ring, slot_here, in_cell, seed, x, y, z, mass in zip(*columns):
             if in_cell and (ring, layer_index, slot_here) not in skip_addresses:
-                yield (ring, layer_index, slot_here, kind, subtype, x, y, z, None, None, None, seed, mass)
+                yield (ring, layer_index, slot_here, kind, subtype, x, y, z, None, None, None, seed, mass, map_luminosity(mass))
 
 
 def _masses(kind, subtype, min_mass_solar, uniform):
