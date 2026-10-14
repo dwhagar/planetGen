@@ -4990,6 +4990,14 @@ clears each one.
   2 min 33 s. Plan: docs/design/test-suite-rebuild.md.
   Prerequisites: none. Related: TEST.111, TEST.125, TEST.126, TEST.128,
   TEST.133, TEST.137, TEST.138, OPS.31.
+  Status (2026-10-09): Stage 2 merged (Test Suite Rebuild thread,
+  2026-10-14, #1323): scripts/test.py changed runs only the tests a
+  change can affect, and scripts/test.py full --check lists any failing
+  test the selection would have missed. 'changed' is a fast loop, not a
+  gate: the full suite stays the merge gate until Boss decides after a
+  proof period, which starts now. Gate run 17:04Z took 60 min 54 s with
+  one failure (a heading missing from its own release note, fixed);
+  first complete map 15,861 tests. Stage 2 of 5 done.
 
 - [ ] **TEST.140 test_a_body_is_reached_by_its_id_and_a_row_number_names_nothing fails once in a full parallel run (bug)**
   Reported by Bugfixes lane 2 (2026-10-14 12:44Z, PERF.81 run, -n 4, 49
