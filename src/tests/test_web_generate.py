@@ -874,7 +874,7 @@ def test_runner_runs_steps_in_order_and_reports_progress(jobs_root, redis_server
     assert job["status"] == "succeeded"
     assert job["step"] == 2 and job["step_label"] == "Second"
     output = jobs.log_tail(job_id)
-    assert output.index("Step 1 of 2: First") < output.index("hello from one") < output.index("Step 2 of 2: Second")
+    assert output.index("Stage 1 of 2: First") < output.index("hello from one") < output.index("Stage 2 of 2: Second")
     assert "made three" in output
     with open(os.path.join(jobs_root, job_id, "progress.json")) as f:
         assert json.load(f)["completed"] == 3

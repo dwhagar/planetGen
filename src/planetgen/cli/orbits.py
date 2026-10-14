@@ -120,6 +120,7 @@ import argparse
 import sys
 
 from planetgen.cli.stage_progress import StageProgress
+from planetgen.util import stagemark
 from planetgen.db.sector_paths import compute_sector_paths
 from planetgen.db.store import (
     add_mysql_connection_args,
@@ -167,11 +168,11 @@ STAGES = (
     "Refreshing containment, nearest systems and locations",
     "Recomputing sector paths",
 )
-"""tuple: The steps of a run, in order, as the progress bar names them."""
+"""tuple: The stages of a run, in order, as the progress bar names them."""
 
 
 def _stage_label(index):
-    return f"Step {index + 1} of {len(STAGES)}: {STAGES[index]}"
+    return f"{stagemark.marker(index + 1, len(STAGES))}: {STAGES[index]}"
 
 
 def main():

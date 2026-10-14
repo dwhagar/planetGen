@@ -37,7 +37,7 @@ function render(job) {
     status.textContent = job.status;
     status.className = `badge job-${job.status}`;
   }
-  setText("[data-job-step]", job.stage_text || (job.step_label ? `Step ${job.step} of ${job.steps.length}: ${job.step_label}` : ""));
+  setText("[data-job-step]", job.stage_text || (job.step_label ? `${job.step_marker}: ${job.step_label}` : ""));
   const stageList = panel.querySelector("[data-job-stages]");
   if (stageList && job.stage_list) {
     stageList.replaceChildren(...job.stage_list.map((stage) => {
