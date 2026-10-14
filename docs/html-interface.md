@@ -769,7 +769,7 @@ to tracked files, and it never fails on diverged history. It never runs
 among them. It then checks everything the site needs without
 reinstalling anything that's already there: the executable bits, each
 Python library (installing only one that's missing, too old or broken,
-see [`deployment/apache.md`](deployment/apache.md#managed-python)), the
+see [`deployment/apache.md`](deployment/apache.md#planetgens-own-python)), the
 NLTK corpus, the schema migration (with the optional population pass
 offered afterwards, a y/N question that defaults to no), Apache's
 modules, ownership and permissions, the cache/jobs directories and the

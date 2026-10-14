@@ -119,11 +119,12 @@ sudo ./install.sh
 
 It runs eight steps and prints each one:
 
-1. Installs the Python libraries. On a managed Python (Ubuntu 24.04+,
-   Debian 12+) they come from apt, with pip only for a library apt lacks
-   or ships too old, installed system-wide alongside apt's; no virtual
-   environment ([Managed Python](docs/deployment/apache.md#managed-python)).
-   It also adds a `planetgen` command in `/usr/local/bin`.
+1. Installs the Python libraries into planetGen's own virtual environment,
+   `/usr/local/planetgen/venv`, from the hash-checked lock; the system Python
+   is left alone ([planetGen's own Python](docs/deployment/apache.md#planetgens-own-python)).
+   It also adds a `planetgen` command in `/usr/local/bin`. The Apache vhost
+   needs `python-home=/usr/local/planetgen/venv` on its `WSGIDaemonProcess`
+   line (the example has it).
 2. Creates or migrates the database schema, and prints the admin
    password on a new database.
 3. Fetches the NLTK `words` corpus into `/usr/local/share/nltk_data`.
@@ -152,10 +153,9 @@ writes the web server's site file; it prints what to do next.
 sudo /var/lib/planetGen/install.sh
 ```
 
-The same script as on Linux, with macOS's own pieces: a virtual
-environment at `/usr/local/planetgen/venv` from Homebrew's `python3`
-with the libraries and gunicorn from `requirements-server.lock` (checked
-by hash), `_www` ownership, `newsyslog` for the debug log, and gunicorn
+The same script as on Linux (the virtual environment at
+`/usr/local/planetgen/venv` is made from Homebrew's `python3`), with macOS's
+own pieces: `_www` ownership, `newsyslog` for the debug log, and gunicorn
 installed and started as a launchd daemon on `127.0.0.1:8000`, plus the
 `planetgen` command. nginx stays yours (next step). See the [macOS guide](docs/deployment/macos.md).
 

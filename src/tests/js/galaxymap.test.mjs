@@ -1022,8 +1022,15 @@ test("on the Galaxy Map a hidden kind rides every stage URL and stays hidden aft
 
 test("a stage URL names the system opened in place (MAP.125)", () => {
   const asked = S.parseStageQuery("?sector=100000001&open=1&system=702");
-  assert.equal(asked.system, 702);
+  assert.equal(asked.system, "702");
   assert.equal(asked.open, true);
+  // MAP.196: the printed object ID (hex digits in dashed groups) is read too, not only digits.
+  const printed = S.parseStageQuery("?sector=100000001&open=1&system=0008000000-4000000-00d&object=planet:0008000000-4000000-00e");
+  assert.equal(printed.system, "0008000000-4000000-00D");
+  assert.equal(printed.object, "planet:0008000000-4000000-00E");
+  assert.equal(S.parseStageQuery("?sector=100000001&open=1&system=FE81000A2B-0000005-000").system, "FE81000A2B-0000005-000");
+  assert.equal(S.parseStageQuery("?sector=100000001&open=1&system=0008000000-4000000-00D-1").system, null);
+  assert.equal(S.parseStageQuery("?sector=100000001&open=1&system=12&object=sector:0008000000-4000000-00D").object, null);
   assert.equal(S.parseStageQuery("?sector=100000001&open=1&system=x").system, null);
   assert.equal(S.parseStageQuery("?sector=100000001&open=1").system, null);
   assert.equal(S.parseStageQuery("?sector=100000001&open=1&system=702&object=planet:12").object, "planet:12");

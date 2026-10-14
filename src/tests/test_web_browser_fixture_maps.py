@@ -525,6 +525,36 @@ def test_galaxy_map_clicks_walk_down_to_a_generated_sector(page, map_site):
     assert not re.search(r"[=,]r\d", kinds), kinds
 
 
+def test_galaxy_map_window_stage_zooms_in_and_back_out(page, map_site):
+    """MAP.151: a window stage (?win=) shows `g` cells around a cell; a click
+    opens the window one size down, centred on the cell clicked, and Up comes
+    back out, the breadcrumb following."""
+    _open_galaxy(page, map_site, "?win=243.0.1.0")
+    assert _query(page) == "win=243.0.1.0"
+    assert _crumbs(page) == ["Galaxy", "Block 0·1 (243)"], _crumbs(page)
+    _click_choice(page)
+    assert re.fullmatch(r"win=27\.\d+\.\d+\.-?\d+", _query(page)), _query(page)
+    assert len(_crumbs(page)) == 3 and _crumbs(page)[-1].endswith("(27)"), _crumbs(page)
+    page.locator(GALAXY_CANVAS).focus()
+    page.keyboard.press("Escape")
+    _settle(page)
+    assert re.fullmatch(r"win=243\.\d+\.\d+\.-?\d+", _query(page)), _query(page)
+    assert len(_crumbs(page)) == 2
+    page.keyboard.press("Escape")
+    _settle(page)
+    assert _crumbs(page) == ["Galaxy"] and _query(page) == ""
+
+
+def test_galaxy_map_window_stage_reaches_a_sector_and_opens_it(page, map_site):
+    _open_galaxy(page, map_site, "?win=3.0.0.0")
+    assert _crumbs(page)[-1] == "Block 0·0 (3)"
+    _click_choice(page, GENERATED_CHOICE)
+    assert re.fullmatch(r"win=1\.\d+\.\d+\.-?\d+", _query(page)), _query(page)
+    assert _crumbs(page)[-1].startswith("Sector ") and _crumbs(page)[-1].endswith("(1)")
+    _click_choice(page, r"^Sector .*, charted$")
+    assert "open=1" in _query(page) and "sector=" in _query(page), _query(page)
+
+
 def test_galaxy_map_arc_and_first_slab_show_their_bounds(page, map_site):
     """MAP.135: picking an arc of the galaxy, then its first slab, fills the
     info panel with where each lies and how many sectors it holds, as a

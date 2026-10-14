@@ -47,66 +47,57 @@ call `set-permissions.sh` and `create-cache-dir.sh` (below) as steps. Use
 | [`create-cache-dir.sh`](../../examples/apache/create-cache-dir.sh) | Creates the 3D Galaxy Map's on-disk tile cache (see [`config.md`](../config.md)'s `tile_cache`: `PLANETGEN_TILE_CACHE_DIR`, else `tile_cache.dir`, else `/var/cache/planetgen/tiles`) and the admin Generate page's jobs directory (`PLANETGEN_JOBS_DIR`, else `jobs.dir`, else `/var/lib/planetGen/jobs`), and `chown`s them to Apache's user, detected the same way `set-permissions.sh` does (both source [`apache-identity.sh`](../../examples/apache/apache-identity.sh)). It runs as root, so it imports nothing from the repo: it reads the paths with [`deploy-paths.py`](../../examples/apache/deploy-paths.py), run as `python3 -I` (standard library only). Creates no tile cache when `tile_cache.max_mb` is `0`. Takes the directory as an argument when it's set only by a `SetEnv` in the vhost, which the script can't see. Safe to re-run any time as root. |
 | [`setup-debug-log.sh`](../../examples/apache/setup-debug-log.sh) | Creates the debug log (`log_file`, default `/var/log/planetgen.log`) whether or not `debug` is on, owned by Apache's user and group, mode 0660, and re-applies that to an existing one; checks Apache's user and group can write it and the activity log (with [`log-locations.py`](../../examples/apache/log-locations.py)), and for anything it can't set up only warns, with the commands that fix it. Installs a logrotate config for it (`/etc/logrotate.d/planetgen`: daily or past 100 MB, 7 compressed copies) and an hourly size check. Always creates the activity log (`log_dir`, default `/var/log/planetgen/planetgen.log`; folder root and Apache's group, mode 2770, file mode 0660) and its rotation (`/etc/logrotate.d/planetgen-log`: daily or past 100 MB, 30 copies). See [the activity log](../config.md#the-activity-log). Safe to re-run any time as root. |
 
-## Managed Python
+## planetGen's own Python
 
-Newer Debian and Ubuntu releases (Debian 12+, Ubuntu 23.04+, including
-Ubuntu 26.04 LTS) mark their system Python as *externally managed*
-(PEP 668: an `EXTERNALLY-MANAGED` file in the stdlib directory), and pip
-refuses to install into it. `install.sh`'s first step
-([`scripts/install-python-deps.sh`](../../scripts/install-python-deps.sh))
-checks for that file and picks a path, printing which one it took:
+planetGen runs from its own virtual environment, `/usr/local/planetgen/venv`
+(`PLANETGEN_VENV` changes the path), on Linux and macOS alike. `install.sh`'s
+first step ([`scripts/install-python-deps.sh`](../../scripts/install-python-deps.sh))
+makes it from the system's `python3` (3.12 or newer; Debian and Ubuntu's
+`python3-venv` package is installed when `venv` needs it) and puts every
+library `setup.py` asks for, and gunicorn, into it. The system Python and its
+packages (apt's `python3-flask` and the rest) are not used and never touched,
+so Debian 12+ and Ubuntu 23.04+ marking their Python as externally managed
+(PEP 668) does not matter. Anything an older install left in the system
+Python's site-packages (`/usr/local/lib/python3.X/dist-packages`) or in a
+`/opt/planetgen/venv` is not used any more and can be removed
+(`sudo apt purge` of the `python3-*` libraries planetGen once needed, and
+`sudo rm -rf /opt/planetgen`).
 
-- **Not managed:** `pip install` of the package and its `api` extra, as
-  before.
-- **Managed:** everything goes into the system Python, no virtual
-  environment. Each library comes from apt (`python3-flask`,
-  `python3-nltk`, `python3-pymysql`,
-  `python3-werkzeug`, `python3-rich`, `python3-flask-limiter`) when the
-  distribution packages it at or above the version `setup.py` asks for.
-  Only a library apt lacks, or ships too old, is pip-installed
-  system-wide into `/usr/local/lib/python3.X/dist-packages`, which comes
-  before apt's `/usr/lib/python3/dist-packages` on `sys.path`. The same
-  goes for any dependency of it that has to be newer than apt's (Flask
-  3.1 needs a newer Werkzeug than Ubuntu 24.04 ships, for example). pip
-  never removes or overwrites apt's files: it resolves first and then
-  installs exactly those versions alongside (`--ignore-installed
-  --no-deps`). A plain `pip install --upgrade --break-system-packages`
-  deletes apt's copy of some packages (python3-pymysql, for one) and
-  leaves dpkg broken. The report lists each library with where it came
-  from, and for each pip one, why apt couldn't provide it. Servers set up
-  by earlier versions had a venv at `/opt/planetgen/venv` with a
-  `planetgen-venv.pth`. Both are removed on the next `install.sh` or
-  `update.sh`, and what they held goes system-wide.
+Everything planetGen runs uses that venv:
 
-Whatever pip installs on either path comes from
-[`requirements.lock`](../../requirements.lock): exact versions of every
-library and its dependencies, each with the sha256 hashes of its files,
-installed with `--require-hashes`. A new release on PyPI, or a file
-replaced under an existing version, never reaches the server until the
-lock is regenerated with `scripts/lock-requirements.sh` (after changing
+- **Apache:** `WSGIDaemonProcess planetgen-api ... python-home=/usr/local/planetgen/venv`
+  in the vhost ([`planetgen.conf.example`](../../examples/apache/planetgen.conf.example)).
+  A vhost made from an older example needs that one option added;
+  `update.sh` prints a warning with the exact line when it is missing.
+- **The command line and background jobs:** the `planetgen` command
+  (`/usr/local/bin/planetgen` links to the venv's) and
+  `/usr/local/planetgen/venv/bin/python -m planetgen.cli.NAME`, which is what
+  the orbit-update service runs. A bare `python3 -m planetgen.cli.NAME` finds
+  none of the libraries.
+- **gunicorn** (nginx and Caddy setups, macOS): `/usr/local/planetgen/venv/bin/gunicorn`.
+- **`install.sh` and `update.sh`** themselves, once their Python step has run.
+
+Everything pip installs comes from
+[`requirements-server.lock`](../../requirements-server.lock): exact versions of
+every library and its dependencies (gunicorn included), each with the sha256
+hashes of its files, installed with `--require-hashes`. A new release on PyPI,
+or a file replaced under an existing version, never reaches the server until
+the lock is regenerated with `scripts/lock-requirements.sh` (after changing
 `setup.py`, or with `--upgrade` to take new releases) and committed.
-Libraries already installed that satisfy what needs them, apt's
-included, are kept as they are. apt packages are covered by apt's own
-signatures instead.
 
 planetGen itself is installed as an editable package of the checkout
-(`pip install -e`, into the same system-wide site-packages), so the web
-app, the `planetgen` command and every `python3 -m planetgen.cli.NAME`
-tool run the checkout's code, and a `git pull` takes effect without a
-reinstall.
+(`pip install -e`, into the venv), so the web app, the `planetgen` command and
+every `-m planetgen.cli.NAME` tool run the checkout's code, and a `git pull`
+takes effect without a reinstall.
 
-`PLANETGEN_PYTHON_MODE=managed` or `unmanaged` overrides the detection.
-
-`update.sh` reinstalls nothing. It runs the same script with `--check`,
-which imports each library with the system Python and compares its
-version with `setup.py`'s floor. It then installs only what is missing,
-too old or fails to import, the same way `install.sh` would on that host:
-apt first, then system-wide pip. It prints one line per library
-(`present`, `installed`, `upgraded`, `repaired` or `failed`, and its
-source) and stops the update if anything is still unusable. Its last step
-imports the web app as Apache's user, so a library www-data can't read
-shows up there rather than as a 500. `sudo ./install.sh` is still the
-full reinstall.
+`update.sh` reinstalls nothing. It runs the same script with `--check`, which
+imports each library with the venv's python and compares its version with
+`setup.py`'s floor. It makes the venv again, and installs from the lock, only
+when the venv is missing or a library is missing, too old or fails to import.
+It prints one line per library and stops the update if anything is still
+unusable. Its last step imports the web app as Apache's user, so a library
+www-data can't read shows up there rather than as a 500. `sudo ./install.sh` is
+still the full reinstall.
 
 ### Migrating or deleting the database
 
@@ -138,121 +129,27 @@ asking, and `planetgen population` runs it any time.
 
 ### Which Python and libraries Apache uses
 
-Nothing in the vhost names a Python or a library path, and nothing needs
-to. mod_wsgi embeds the system Python it was built against, and that
-Python finds the libraries in its own system site-packages, exactly as
-`python3` does in a shell. Leave `python-home` off `WSGIDaemonProcess`.
+The vhost names the venv with `python-home=/usr/local/planetgen/venv` on
+`WSGIDaemonProcess`, so the daemon imports every library from there and none
+from the system Python.
 
 The one thing that has to line up is the Python version: mod_wsgi
-(`libapache2-mod-wsgi-py3`) must be built for the same Python that
-`install.sh`/`update.sh` set up. Both scripts check this and warn if
-they differ. By hand:
+(`libapache2-mod-wsgi-py3`) embeds the Python it was built for, and the venv
+is made from the system's `python3`, so the two must be the same version. Both
+scripts check this and warn if they differ. By hand:
 
     ldd /usr/lib/apache2/modules/mod_wsgi.so | grep libpython   # e.g. libpython3.12
-    python3 --version                                           # must match
-    sudo -u www-data python3 -c "import flask; print(flask.__file__)"
+    /usr/local/planetgen/venv/bin/python --version              # must match
+    sudo -u www-data /usr/local/planetgen/venv/bin/python -c "import flask; print(flask.__file__)"
 
-If they differ, install the `libapache2-mod-wsgi-py3` that matches, or run
-the scripts with that Python (`sudo PYTHON=/usr/bin/python3.12
-./update.sh`).
+If they differ, install the `libapache2-mod-wsgi-py3` that matches, or make the
+venv from the Python mod_wsgi was built for (remove the venv, then
+`sudo PYTHON=/usr/bin/python3.12 ./update.sh`). A system Python upgrade that
+moves to a new minor version needs the same.
 
 To see what the running site really uses, open the admin Stats page
 (`/admin/stats`): **Python** shows the daemon's version and prefix, and
-**Libraries from** shows the directory it imports Flask from
-(`/usr/lib/python3/dist-packages` for apt's Flask,
-`/usr/local/lib/python3.X/dist-packages` for pip's). After an update,
-`sudo systemctl reload apache2` restarts the daemon so it picks up
-anything newly installed.
-
-See [`install.sh`](../../install.sh) for the full install script,
-[`update.sh`](../../update.sh) for pulling later updates, and
-[`INSTALL.md`](../../INSTALL.md) for the install walkthrough.
-
-## Static files, compression and security headers
-
-- **Modules.** The example vhost needs `a2enmod wsgi headers deflate`
-  (no CGI module any more). `install.sh` and `update.sh` enable all three
-  themselves, installing `libapache2-mod-wsgi-py3` with apt first when
-  mod_wsgi is missing, and say when Apache needs a restart to load a
-  newly enabled module. `a2enmod brotli` is optional: with it, browsers that
-  accept Brotli get the Galaxy Map's tile JSON 10 to 29% smaller than gzip
-  (MAP.157), and the rest still get gzip.
-- **HTTP/2 and preloading (MAP.161).** The Galaxy and Sector pages name their whole module tree in `<link rel="modulepreload">` hints, so a first visit fetches the ~30 script files in parallel instead of one round trip after another (measured with a throttled slow-4G profile: the map ready in about a third of the time). Over HTTPS, turn on HTTP/2 as well: `Protocols h2 http/1.1` with `a2enmod http2` and the event MPM (see the HTTPS notes in the example vhost).
-- **Caching `static/`.** Every page links its CSS/JS/favicon as
-  `static/<file>?v=<release version>` (`src/planetgen/web/lib/fmt.py`'s
-  `static_url`), and the map modules pass that same `?v=` on to the
-  modules they import. The vhost's `<Directory .../static>` block sends
-  `Cache-Control: public, max-age=31536000, immutable` for a request that
-  carries `?v=` and `Cache-Control: no-cache` (always revalidate) for one
-  that doesn't, so a release is picked up on the next page view without
-  anyone clearing their cache.
-- **Compression.** `AddOutputFilterByType DEFLATE` covers HTML, CSS,
-  JavaScript, JSON and SVG. `three.module.min.js` goes from about 740 KB
-  to about 190 KB on the wire.
-- **Security headers have one source per response.** The HTML pages get
-  `Content-Security-Policy`, `X-Frame-Options`, `X-Content-Type-Options`
-  and `Referrer-Policy` from `src/planetgen/web/__init__.py` (`SECURITY_HEADERS`),
-  and the API gets its own from `src/planetgen/web/app.py`, so both work
-  without this vhost. The page CSP is `default-src 'self'; base-uri
-  'self'; form-action 'self'; frame-ancestors 'none'; object-src 'none'`.
-  Earlier versions of the example vhost also set three of these
-  site-wide with `Header always set ...`; **delete those three lines from
-  an existing `/etc/apache2/sites-available/planetgen.conf`** when you
-  update it. They only duplicated the application's own values. The one
-  header Apache still adds is `X-Content-Type-Options: nosniff` on
-  `static/`, which no application code serves.
-
-## Routing: the Flask app and static files
-
-| URL | Served by | Directive |
-|---|---|---|
-| `/static/...` | Apache, straight from `src/html/static/` | `Alias /static/ .../src/html/static/` |
-| everything else: `/`, `/sectors`, `/system/<id>`, `/api/...`, and the old `/<name>.py` page URLs | the Flask app in the `planetgen-api` daemon | `WSGIScriptAlias / .../src/html/wsgi.py` |
-
-mod_wsgi applies `WSGIScriptAlias` after mod_alias's `Alias`, so
-`/static/` wins for the paths it matches even though `WSGIScriptAlias /`
-matches every URL. The old CGI page URLs (`/index.py`, `/sector.py?id=5`,
-...) reach the app, which answers each with a 301 to the page that
-replaced it (see
-[`html-interface.md`](../html-interface.md#flask-pages), "Old URLs"); any
-other `.py` name gets the app's 404 page.
-
-### Updating an existing server
-
-1. `sudo ./update.sh` (pulls, then checks and fills in only what's missing).
-2. Make sure `config.json` has a `secret_key` (it signs the pages' form
-   tokens; see [`config.md`](../config.md)):
-   `python3 -c "import secrets; print(secrets.token_hex(32))"`, and that
-   its `mysql.database` (or `PLANETGEN_MYSQL_DATABASE` in Apache's
-   environment) names the database the site should show.
-3. Edit `/etc/apache2/sites-available/planetgen.conf` (and the `:443`
-   block, if you have one) to match the example:
-   - remove the `ScriptAliasMatch "^/((?!wsgi\.py$)[a-z_]+\.py)$" ...`
-     line (until you do, Apache answers old `.py` URLs with its own 404
-     instead of letting the app redirect them);
-   - in `<Directory /var/lib/planetGen/src/html>`, change `Options
-     +ExecCGI -Indexes` to `Options -Indexes` and remove `AddHandler
-     cgi-script .py`;
-   - then remove the `<Files "wsgi.py"> SetHandler wsgi-script </Files>`
-     block (it only overrode that `AddHandler`; keep it if you keep the
-     `AddHandler` line);
-   - in `<Directory .../src/html/static>`, `Options -ExecCGI -Indexes`
-     can become `Options -Indexes`;
-   - remove any `SetEnv PLANETGEN_*` lines (they only ever reached the
-     CGI pages; the app reads `config.json` or Apache's own
-     environment);
-   - keep `Alias /static/ ...` and `WSGIScriptAlias / ...`; an older
-     `WSGIScriptAlias /api ...` should be `WSGIScriptAlias / ...`.
-4. `sudo apache2ctl configtest && sudo systemctl reload apache2`. The CGI
-   module is no longer needed: `sudo a2dismod cgid` (then reload again)
-   if nothing else on the server uses it.
-5. Check: `/` shows the site, `/index.py` and `/sector.py?id=1` answer
-   301 to `/` and `/sector/1`, `/static/style.css` is served, and `curl
-   http://127.0.0.1/api/health` still answers.
-
-## MySQL accounts and the first admin login
-
-These apply to every platform and are in the deployment index:
-[MySQL accounts](README.md#mysql-accounts) and
-[the first admin login](README.md#the-first-admin-login). The admin pages
-need HTTPS: terminate TLS in this vhost (`certbot --apache`).
+**Libraries from** shows the directory it imports Flask from (it should be
+under `/usr/local/planetgen/venv`). After an update,
+`sudo systemctl reload apache2` restarts the daemon so it picks up anything
+newly installed.

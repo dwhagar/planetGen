@@ -112,8 +112,8 @@ run top to bottom inside a thread; "Needs" lists what must land first
 |---|---|---|---|
 | MAP.119 | Expected star density editable by admins on the Galaxy Map |  |  |
 | MAP.122 | A Select mode on every galaxy view: Galaxy (blocks and sectors) or Star |  | Merges the 2026-10-07 "button to select a star" ask; MAP.101 (PR #431) made stars unpickable by default. |
-| MAP.146 | Fly through the galaxy: scroll-zoom, double-click flight, distance-based visibility and a see-through near field | MAP.150, MAP.151, MAP.152, MAP.159 | Boss 2026-10-09 22:24Z and 22:56Z. Umbrella for MAP.148 to MAP.152; replaces the fixed ladder in galaxy/drill.py and galaxyprisms.js. |
-| MAP.147 | The Galaxy Map wire format: the investigation (done) and the record of what was built from it | MAP.159 | Research Lane 3 report in docs/design/galaxy-map-wire-format.md; record until the build items are done. |
+| MAP.146 | Fly through the galaxy: scroll-zoom, double-click flight, distance-based visibility and a see-through near field | MAP.150, MAP.151, MAP.152 | Boss 2026-10-09 22:24Z and 22:56Z. Umbrella for MAP.148 to MAP.152; replaces the fixed ladder in galaxy/drill.py and galaxyprisms.js. |
+| MAP.147 | The Galaxy Map wire format: the investigation (done) and the record of what was built from it |  | Research Lane 3 report in docs/design/galaxy-map-wire-format.md; record until the build items are done. |
 | MAP.150 | The free camera: wheel zoom to the cursor, double-click flight, and the observer inside, with the container named from position |  | Fly-through report item 3; needs the near field. |
 | MAP.151 | The region data layer: exact-centred frame, aligned cells, per-level aggregates and slot-wrap ranges |  | Fly-through report item 4. Decide cache keys with MAP.147. |
 | MAP.152 | Scale hand-offs: galaxy, sector and system cross-fade with hysteresis, and per-tile camera-relative origins | MAP.150 | Fly-through report item 5. |
@@ -123,7 +123,6 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | MAP.173 | The Galaxy Map tile carries a nebula layer: regions and singles, nested like the star lists | MAP.172 | Foundations lane 2. |
 | MAP.172 | Nebula cell aggregates in the region pyramid | MAP.151 | Foundations lane 1. |
 | MAP.171 | The Galaxy Map keys a massive phenomenon's visibility to its map luminosity (replaces "always lit") | DB.23, GEN.201, MAP.152 | Boss 2026-10-10 21:38Z. Foundations lane 2 after MAP.152. |
-| MAP.159 | Packed binary Galaxy Map tiles (quantised planes) with the nested tile lists, on one cache stamp bump |  | MAP.147 recommendation step 2; one stamp bump with MAP.154 and MAP.151. |
 
 ### System Map
 
@@ -194,8 +193,36 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | TEST.132 | test_a_fill_after_a_layer_failed_mid_scatter_builds_no_leftover_star failed once in a full parallel run (bug) |  | Lane 2 report 2026-10-10 21:06Z; Bugfixes lane 2 after its current items. |
 | TEST.137 | test_a_neighborhood_from_the_generate_page[core] fails once under load (bug) |  |  |
 | TEST.138 | test_open_map_menus_hold_no_overlap[web.galaxy-1280] fails once in a full parallel run (bug) |  |  |
-| MAP.196 | galaxystages.js reads the system= and object= parts of a sector link as digits only, so object links may fail (bug) |  |  |
-| OPS.45 | Install planetGen into its own virtual environment and clear the packages out of the system Python |  |  |
+| TEST.145 | Subprocess tests must run the checkout under test, not the installed copy of another checkout (bug) |  |  |
+| DB.25 | A per-level aggregate table for the 3-ary block ladder so a Galaxy Map window needs one query (Alembic migration) |  |  |
+| PERF.92 | Save generation timing per object and per object type, as well as per operation, stage and job |  |  |
+| DOC.44 | Add Redis to the install and deploy docs: it is required, and no guide lists it |  |  |
+| DOC.43 | Fix the Python 3.12 and numba leftovers in the install and CI docs and the 3.10 check in the installer |  |  |
+| DOC.42 | Describe what update.sh and install.sh really do today in INSTALL.md and the Apache and macOS guides |  |  |
+| DOC.41 | Fix the activity-log file name in the fail2ban guide and the shipped jail |  |  |
+| DOC.40 | Bring docs/testing.md and docs/ci-runners.md in line with ci.yml and scripts/test.py |  |  |
+| DOC.39 | Fix the README facts, the documentation table and the headline rule (Boss decision) |  |  |
+| DOC.38 | Refresh docs/config.md prose after PERF.64 and PERF.24: page_cache, stored_counts, PLANETGEN_WORKERS |  |  |
+| DOC.37 | Rewrite the install docs for the venv install, in or right after OPS.45 |  |  |
+| DOC.36 | Sync docs/cli.md with the 11 subcommands, the options and the real bright-star defaults |  |  |
+| DOC.35 | Document the helper command-line tools: orbits, warm_map, worker, query, migrate, reset, lockouts, dedupe, config |  |  |
+| DOC.34 | Bring docs/api.md up to date: endpoints, object references, errors and the Not done yet list |  |  |
+| DOC.33 | Rewrite the database-schema.md Versioning, Persistence and Planned changes sections for Alembic and v83 |  |  |
+| DOC.32 | Update database-schema.md: control schema, missing tables and columns, old module names |  |  |
+| DOC.31 | Fix docs/html-interface.md: routes, header sections, search parameters, error pages and rate limits |  |  |
+| DOC.30 | Fix the system-file-format.md class table, the moon blacklist and the example-systems.md module names |  |  |
+| DOC.29 | A docs link check in the test suite, and a note that the web interface has no help or about page yet |  |  |
+| DOC.28 | Rewrite the code map in docs/design/architecture.md for the planetgen packages |  |  |
+| DOC.27 | Update the architecture.md flows and add a design-notes index at docs/design/README.md |  |  |
+| DOC.26 | Give every design note a status line and refresh the stale ones |  |  |
+| DOC.25 | Refresh docs/design/design-decisions.md: mark the reversed and built decisions |  |  |
+| DOC.24 | Bring Python 3.12, numba and astropy into the research notes and three source comments |  |  |
+| DOC.23 | Update the nebula, object ID and map-data-layer notes to what merged |  |  |
+| DOC.22 | Update the orbital, slow-reads, login, ops, test-suite and db-check notes to their built state |  |  |
+| DOC.21 | Rewrite the package docstrings that are wrong or missing, and the queryDb mentions |  |  |
+| DOC.20 | After PERF.86: rewrite the queue and scatter notes and the queue docstrings | PERF.86 |  |
+| DOC.19 | After UX.102: document the log output standard for the CLI, the Generate page and admin logs | UX.102 |  |
+| DOC.18 | Last pass: re-run the documentation sweep when the other DOC items are done and Phase 1 is complete |  |  |
 | TEST.144 | test_every_plain_button_does_something[web.sector] failed once in a full parallel run (bug) |  |  |
 | PERF.91 | Bulk random draws for the scatter layers (4 to 12 times on batches above 1,000 draws) |  |  |
 | PERF.88 | Sector-path integrator on numba: saving the sector paths takes 13 s instead of 34 s on the benchmark fill |  |  |
@@ -221,8 +248,8 @@ run top to bottom inside a thread; "Needs" lists what must land first
 | PERF.47 | The PERF.31 benchmark records the buffer pool, table sizes and worker start-up cost |  | Generation performance study. |
 | PERF.41 | Stamp the tile and page caches with a TILE_FORMAT constant instead of the version (optional) |  | Research follow-up to PERF.25 (built). |
 | PERF.40 | Two shared queues, a reserved interactive worker and a real "cancel now" |  | Research follow-up to PERF.24 (built). |
-| GEN.205 | `planetgen plan --redo-nebula-field`: apply the new nebula rate to an existing galaxy |  | Foundations lane 1. |
 | PERF.82 | Cut the cost of inserting a sector (about 17% of the fill) |  | Foundations lane 1. |
+| OPS.46 | Make the installer check the Apache mod_wsgi venv rules: venv root, process group, Apache user access, matching Python |  | Boss 2026-10-14 19:15Z |
 | TEST.133 | A reusable big-galaxy query budget test: EXPLAIN every page and list query on 2,000,000 systems |  | Foundations lane 1. |
 | PERF.78 | A reserved warm worker for long admin operations, and the poll pattern for them |  | Foundations lane 1, last of the PERF.71 builds. |
 | PERF.75 | Keyset paging for the other data tables and the jump-by-value box (Systems name sort done) |  | Decided by default. Foundations lane 1. |
