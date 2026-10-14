@@ -166,3 +166,7 @@ Open questions for Boss, with defaults:
 - Ratio-2 cell squareness.
 
 Scripts for the numbers: `research/drilldown-region-sizes/scripts/` and `cut.py` (tile counts) in this folder.
+
+## Grid opacity (MAP.188)
+
+The blocks of a drill-down stage are translucent (10% to 50%, never more than `MAX_FILL_OPACITY`). A ray through n cells meets n faces, so unscaled they add up to `1 - (1 - a)^n`, which at deep zoom, looking through many cells, is nearly opaque. `static/gridopacity.js` estimates n for the stage (the longest ray's path inside the stage's box times the cells per unit length, from the median cell edge) and multiplies every block face's and line's alpha by the share that keeps `n` of the most opaque cell add up to at most `GRID_ACCUMULATION_CAP` (0.5): `min(1, (1 - 0.5^(1/n)) / a_max)`. The share is a shader uniform set with the camera; one face or a flat slab seen from above is untouched. The lines between slabs are drawn at 0.18 and scaled the same way; the outline of the hovered or selected choice stays at full strength. The map's `galaxyGridOpacity()` test hook reads the estimate.

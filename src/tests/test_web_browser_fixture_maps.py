@@ -1606,6 +1606,33 @@ def test_galaxy_map_draws_slab_lines_then_block_lines(page, map_site):
     assert kinds.count("layer") >= 2 and kinds.count("segment") >= 2, kinds
 
 
+def test_galaxy_map_grid_never_adds_up_to_more_than_the_cap_while_zooming_in(page, map_site):
+    """MAP.188: the blocks' faces and lines are drawn at a share that keeps the cells along any
+    ray from adding up to more than the cap (50%), at every stage and at the deepest zoom."""
+    problems = []
+    page.on("console", lambda message: problems.append(message.text) if message.type == "error" else None)
+    _open_galaxy(page, map_site)
+    reading = "() => document.querySelector('#galaxymap3d-canvas').galaxyGridOpacity()"
+    readings = []
+    for _ in range(12):
+        if not _on_galaxy(page) or "open=1" in _query(page):
+            break
+        readings.append(page.evaluate(reading))
+        _click_choice(page, GENERATED_CHOICE)
+    page.locator(GALAXY_CANVAS).hover()
+    for _ in range(14):
+        page.mouse.wheel(0, -400)
+        page.wait_for_timeout(120)
+        readings.append(page.evaluate(reading))
+    assert len(readings) > 4
+    assert not [text for text in problems if "shader" in text.lower() or "WebGLProgram" in text], problems
+    for entry in readings:
+        assert 0 < entry["scale"] <= 1, entry
+        assert entry["worst"] <= entry["cap"] + 1e-6, entry
+    deepest = readings[-1]
+    assert deepest["worst"] <= 0.5 + 1e-6, deepest
+
+
 def test_galaxy_map_charted_only_outlines_the_charted_blocks(page, map_site):
     """MAP.111: "Charted only" outlines the blocks holding generated
     sectors on the picked arc, and takes the outlines away when it is off."""

@@ -741,6 +741,10 @@ function initGalaxyMap3d(canvasEl, data) {
   // camera is inside (far away: none), shared by every block and star
   // material and set with the camera (setCamera).
   var NO_BLOCK_INSIDE = 1e12;
+  // MAP.188: the share every block face and line is drawn at so the
+  // blocks along a ray add up to no more than GRID_ACCUMULATION_CAP
+  // (static/gridopacity.js), set by the stage view with the camera.
+  var gridUniform = { value: 1 };
   var nearUniforms = {
     nearD: { value: 1 }, nearR: { value: 0 },
     insideCenter: { value: new THREE.Vector3(NO_BLOCK_INSIDE, NO_BLOCK_INSIDE, NO_BLOCK_INSIDE) },
@@ -763,6 +767,7 @@ function initGalaxyMap3d(canvasEl, data) {
         filledTint: { value: FILLED_TINT }, fade: { value: 1 }, gridEdges: { value: 1 },
         faceAlpha: { value: data.pinned ? 0 : 1 },
         nearD: nearUniforms.nearD, nearR: nearUniforms.nearR, insideCenter: nearUniforms.insideCenter,
+        gridScale: gridUniform,
       },
       transparent: translucent,
       depthWrite: !translucent,
@@ -807,6 +812,7 @@ function initGalaxyMap3d(canvasEl, data) {
         "uniform float nearD;",
         "uniform float nearR;",
         "uniform vec3 insideCenter;",
+        "uniform float gridScale;",
         "varying float vAlpha;",
         "varying float vFill;",
         "varying vec2 vUv;",
@@ -824,7 +830,7 @@ function initGalaxyMap3d(canvasEl, data) {
         "  vec3 edgeColor = mix(vec3(1.0), filledTint, step(0.001, vFill));",
         "  float shown = mix(edge, 1.0, faceAlpha);",
         "  if (!gl_FrontFacing) shown = mix(edge, 1.0, " + INSIDE_FACE_ALPHA.toFixed(3) + ");",
-        "  gl_FragColor = vec4(mix(face, edgeColor, (" + GRID_EDGE_MIX.toFixed(3) + " + 0.7 * vFill) * edge), vAlpha * fade * shown * nearField(vView, nearD, nearR));",
+        "  gl_FragColor = vec4(mix(face, edgeColor, (" + GRID_EDGE_MIX.toFixed(3) + " + 0.7 * vFill) * edge), vAlpha * fade * shown * gridScale * nearField(vView, nearD, nearR));",
         "  #include <colorspace_fragment>",
         "}",
       ].join("\n"),
@@ -2965,6 +2971,9 @@ function initGalaxyMap3d(canvasEl, data) {
     // center of the block the camera is inside, or null) the block drawn
     // from the inside (MAP.149).
     nearFieldAt: nearFieldAt,
+    // MAP.188: the blocks' alpha share (see gridUniform).
+    setGridScale: function (scale) { gridUniform.value = scale; },
+    gridScale: function () { return gridUniform.value; },
     setCamera: function (v) {
       target.set(v.target[0], v.target[1], v.target[2]);
       orbit.radius = v.dist;

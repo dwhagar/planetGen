@@ -59,6 +59,7 @@ const { createPicker, createTooltip } = await import(`./mappick.js${VERSION_QUER
 const { createSectorStage, DEFAULT_HIDDEN_KINDS } = await import(`./galaxysector.js${VERSION_QUERY}`);
 const { createSystemStage } = await import(`./galaxysystem.js${VERSION_QUERY}`);
 const NF = await import(`./nearfield.js${VERSION_QUERY}`);
+const GO = await import(`./gridopacity.js${VERSION_QUERY}`);
 
 // The other choices while one is hovered (MAP.18).
 const OTHER_FADE = 0.25;
@@ -112,8 +113,9 @@ const SYSTEM_ZOOM = MC.zoomPolicy(MC.ZOOM_RANGE, SYSTEM_MIN_ZOOM, MAX_ZOOM);
 // The arc under the pointer is outlined in full; its neighbors' outlines
 // are this faint (MAP.85).
 const NEIGHBOR_OUTLINE_OPACITY = 0.35;
-// The lines between slabs while one is picked (MAP.77).
-const SLAB_LINE_OPACITY = 0.45;
+// The lines between slabs while one is picked (MAP.77): barely visible,
+// and scaled with the blocks' (MAP.188); the slab picked is outlined in full.
+const SLAB_LINE_OPACITY = 0.18;
 // The outlines of charted blocks with "Charted only" on (MAP.111).
 const CHARTED_LINE_OPACITY = 0.9;
 const TWO_PI = 2 * Math.PI;
@@ -426,7 +428,8 @@ export function createStageView(host) {
     if (charted) root.add(charted);
     host.scene.add(root);
     root.updateMatrixWorld(true);
-    return { resolved: r, root: root, options: options, groups: groups, fade: 1, data: data, lines: lines, charted: charted };
+    const gridStats = GO.cellStats([].concat.apply([], cellsOf));
+    return { resolved: r, root: root, options: options, groups: groups, fade: 1, data: data, lines: lines, charted: charted, gridStats: gridStats };
   }
 
   // MAP.111: with "Charted only" on, every block holding generated
@@ -493,7 +496,7 @@ export function createStageView(host) {
 
   function setDisplayFade(d, fade) {
     d.fade = fade;
-    if (d.lines) d.lines.material.opacity = SLAB_LINE_OPACITY * fade;
+    if (d.lines) d.lines.material.opacity = SLAB_LINE_OPACITY * fade * gridScaleNow;
     if (d.charted) d.charted.material.opacity = CHARTED_LINE_OPACITY * fade;
     d.groups.forEach(function (group) {
       group.meshes.forEach(function (mesh) {
@@ -509,6 +512,7 @@ export function createStageView(host) {
     const old = display;
     display = buildDisplay(resolved);
     setDisplayFade(display, 1);
+    if (view) updateGridScale();
     disposeDisplay(old);
     applyHover();
     renderStrip();
@@ -829,7 +833,31 @@ export function createStageView(host) {
     return null;
   }
 
+  // MAP.188: the share the blocks' faces and lines are drawn at so the cells
+  // a ray crosses add up to no more than GRID_ACCUMULATION_CAP; worked out
+  // from the stage's cells and the way the camera looks. Read by the tests.
+  let gridScaleNow = 1;
+  let gridReading = { crossings: 1, scale: 1, maxOpacity: 0, worst: 0 };
+
+  function updateGridScale() {
+    const stats = display ? display.gridStats : null;
+    const forward = new THREE.Vector3(0, 0, -1).applyQuaternion(view.quat);
+    const n = GO.crossings(stats, [forward.x, forward.y, forward.z]);
+    const maxOpacity = stats ? stats.maxOpacity : 0;
+    gridScaleNow = GO.gridScale(n, maxOpacity);
+    gridReading = {
+      crossings: n, scale: gridScaleNow, maxOpacity: maxOpacity, worst: GO.accumulated(n, maxOpacity * gridScaleNow),
+    };
+    if (host.setGridScale) host.setGridScale(gridScaleNow);
+    if (display && display.lines) display.lines.material.opacity = SLAB_LINE_OPACITY * display.fade * gridScaleNow;
+  }
+
+  canvasEl.galaxyGridOpacity = function () {
+    return Object.assign({ cap: GO.GRID_ACCUMULATION_CAP, distance: view ? view.dist : null }, gridReading);
+  };
+
   function applyView() {
+    updateGridScale();
     const back = new THREE.Vector3(0, 0, view.dist).applyQuaternion(view.quat);
     const eye = [view.target[0] + back.x, view.target[1] + back.y, view.target[2] + back.z];
     host.setCamera({
