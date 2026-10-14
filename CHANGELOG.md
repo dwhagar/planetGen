@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1066] - 2026-10-14
+
+### Added
+- **A data window for the Galaxy Map (MAP.151, server part).** `/galaxy/window?at=<cell>&g=<3 to 11>` returns the cells around a chosen cell of any level of the block ladder (a sector included): every cell within half the window's width across the plane and half its height, which cells hold generated sectors, and their stats. It is cut from the stages of the parent blocks the window touches, read through the stage cache, so a window shares files with every neighbouring window and stage and needs no new query. The map starts reading it with the free camera.
+
 ## [8.0.1065] - 2026-10-14
 
 ### Changed
