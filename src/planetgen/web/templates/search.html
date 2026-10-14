@@ -63,8 +63,13 @@
 {%- else %}
 {%- for p in panels %}
 <section class="panel" id="search-{{ p.panel }}" aria-labelledby="search-{{ p.panel }}-heading">
+  {%- if p.timed_out %}
+  <h2 id="search-{{ p.panel }}-heading">{{ p.heading }}</h2>
+  <p class="hint" role="status">{{ p.message }} <a href="{{ state.url(with_pages=True) }}">Try again</a></p>
+  {%- else %}
   <h2 id="search-{{ p.panel }}-heading">{{ p.heading }} <span class="count">({{ num(p.total) }}{% if p.total_capped %}+{% endif %})</span></h2>
   {{ datatable(p.table) }}
+  {%- endif %}
 </section>
 {%- endfor %}
 {%- endif %}

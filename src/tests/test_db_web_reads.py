@@ -54,7 +54,7 @@ def _search(conn, limit=50, **texts):
 
 
 def test_name_search_matches_whole_words_only(mysql_config):
-    _save_sector(mysql_config, "Whole Word Sector", ["Kemaral", "Ossiran Mu", "Tobar IV", "Kemaralis"])
+    _save_sector(mysql_config, "Whole Word Sector", ["Kemaral", "Ossiran Mu", "Tobar IV", "Kemaralis", "Mu Arae"])
     conn = queryDb.open_readonly(mysql_config)
     try:
         def names(term):
@@ -62,7 +62,8 @@ def test_name_search_matches_whole_words_only(mysql_config):
 
         assert names("ara") == []
         assert names("kemaral") == ["Kemaral"]
-        assert names("Mu") == ["Ossiran Mu"]
+        assert names("Mu") == ["Mu Arae"]                  # a lone short word matches the start of a name (UX.97)
+        assert names("ossiran mu") == ["Ossiran Mu"]       # after another word it is a whole word anywhere
         assert names("tobar iv") == ["Tobar IV"]
         assert names("Tobar V") == []
         assert names("  ") == []

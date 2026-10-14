@@ -2,6 +2,18 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1059] - 2026-10-14
+
+### Changed
+- TODO: TEST.125, TEST.142 and TEST.143 retired (PR #1313); TEST.129 and TEST.130 notes; MAP.151a done (PR #1312); new bug for galaxystages.js reference parsing.
+
+## [8.0.1058] - 2026-10-14
+
+### Fixed
+- **The System Map's "Start Here" and "End Here" buttons were missing from every body's info panel** (TEST.125, NAV.50). `systemnav.js` only accepted an object reference made of digits (`moon:40`), and since API.23 a body's reference is its printed ID (`moon:0008000000-4000000-00D`), so the buttons were dropped for every body. It now accepts the printed ID. The three browser tests that caught it (`test_system_map_selection_drill_and_measure`, `test_system_page_3d_view_draws_switches_scale_and_keeps_the_diagram`, `test_a_body_link_opens_highlights_and_selects_it`) now match the printed ID as well.
+- **The orbit update stored a time up to half a second ahead on MySQL 8.4** (TEST.129): the column holds whole seconds, MySQL 8.4 rounds a fraction up where MariaDB drops it, and the next run read a clock that had gone backwards. `finish_orbit_update` drops the fraction itself, so both servers store the same second.
+- Test fixes: the Phenomena table fixture's fake `get_systems` takes the keyset `after` argument (TEST.142); the installer test pins which checkout `planetgen` imports from, so it passes from a git worktree (TEST.143); the comet position test builds a system with comets by construction and a second test compares the generated and scene positions of 4,000 comets of both orbit types (TEST.130, not reproduced in 400 random systems and 60,000 comets, so it stays open until it recurs).
+
 ## [8.0.1057] - 2026-10-14
 
 ### Changed

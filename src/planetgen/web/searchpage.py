@@ -392,6 +392,40 @@ def _cells(panel, row):
             _link(row["system_name"], row["system_url"]), _sector_link(row)]
 
 
+TIMED_OUT = {"timed_out": True}
+"""dict: Stands in for a panel's result when its query hit the statement time limit (UX.97)."""
+
+TIMED_OUT_MESSAGE = "This took too long; try again or narrow the search."
+"""str: What a panel that timed out says."""
+
+
+def fetch(state):
+    """
+    Everything the Search page needs from the API, one request per result panel (UX.97): the facets and name
+    suggestions come from a request that runs no panel, then each panel is asked for on its own, so each runs
+    under its own statement time limit and a panel that times out (a 504) is `TIMED_OUT` while the others show.
+    Any other API failure raises as before.
+
+    Returns:
+        dict: `get_search`'s answer, its `results` holding every panel.
+    """
+    data = apiclient.get_search(db_name(), state.name_terms(), state.tags, sizes=state.sizes(), limit=PAGE_SIZE,
+                                offsets=api_offsets(state), panels=[])
+    results = {}
+    for panel in PANEL_NAMES:
+        try:
+            answer = apiclient.get_search(
+                db_name(), state.name_terms(), state.tags, sizes=state.sizes(), limit=PAGE_SIZE,
+                offsets={panel: api_offsets(state).get(panel, 0)}, panels=[panel])
+            results[panel] = answer["results"].get(panel)
+        except apiclient.ApiError as exc:
+            if exc.status_code != 504:
+                raise
+            results[panel] = TIMED_OUT
+    data["results"] = results
+    return data
+
+
 def _panel_loader(panel):
     def load(_table_state, limit, offset, _want_facets):
         cached = (getattr(g, "search_results", None) or {}).get(panel)
@@ -424,7 +458,7 @@ def result_panels(state, results):
     shown as "300+"), each a data table (UX.41) that keeps the search and
     every other panel's page. The API's results are handed to the tables
     so the page asks it once."""
-    g.search_results = results
+    g.search_results = {panel: result for panel, result in results.items() if result is not TIMED_OUT}
     path = url_for("web.search")
     source = {}
     for key, value in state.params():
@@ -432,6 +466,10 @@ def result_panels(state, results):
     panels = []
     for panel, heading in RESULT_PANELS:
         result = results.get(panel)
+        if result is TIMED_OUT:
+            panels.append({"panel": panel, "heading": heading, "timed_out": True, "message": TIMED_OUT_MESSAGE,
+                           "total": None, "total_capped": False, "table": None})
+            continue
         if result is None or not result["total"]:
             continue  # a group with no matches is left out (UX.54)
         keep = tuple(key for key in _ALL_PARAMS if key != f"{panel}_page")

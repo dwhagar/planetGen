@@ -1068,6 +1068,11 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   Note (2026-10-09): From ADM.31 (PR #942, 2026-10-10): the 'made' rings
   on the Galaxy Map cover only the first 2,000 sectors of a run; the
   region data layer should replace that cap with ranges.
+  Status (2026-10-09): MAP.151a done (Foundations lane 2, 2026-10-14,
+  #1312): planetgen/galaxy/region.py holds the round region as layer,
+  ring and wrapping slot-arc ranges (count, Span conversion, SQL
+  ranges); the radial fills use it. MAP.151b to d remain; next is
+  MAP.151c.
 
 - [ ] **MAP.152 Scale hand-offs: galaxy, sector and system cross-fade with hysteresis, and per-tile camera-relative origins**
   Source: docs/design/fly-through-view-distance.md (section 7 and 8),
@@ -1515,6 +1520,21 @@ MAP.2 with MAP.22 and MAP.23, MAP.15 and MAP.30 shipped in PR #234.
   parents together hold exactly the stars the full list holds. Measure
   the saving against the cost of holding the parents before building it.
   Prerequisite: MAP.159. Related: MAP.159.
+
+- [ ] **MAP.196 galaxystages.js reads the system= and object= parts of a sector link as digits only, so object links may fail (bug)**
+  Reported by the Test Suite Rebuild thread via the coordinator
+  (2026-10-14, from TEST.125, #1313): since the object ID change
+  (80-bit, 20 hex digits) systemnav.js only accepted number-only
+  references, so the System Map's Start Here and End Here buttons
+  vanished from every body's info panel; that is fixed. galaxystages.js
+  still reads the system= and object= parts of a sector link as digits
+  only and may have the same problem. Done: every place in the browser
+  code that parses a system or object reference accepts the current ID
+  form (hex digits), checked by grep and by a test that opens a sector
+  link carrying a hex object ID; no other digits-only reference parser
+  is left behind. Owner: Bugfixes lane 2 or the next lane taking
+  JavaScript fixes.
+  Prerequisites: none.
 
 ## NAV: Navigation and courses
 
@@ -4696,30 +4716,6 @@ clears each one.
   product, not test luck. Owner: the Test Suite Rebuild thread.
   Prerequisites: none. Related: TEST.111, TEST.71.
 
-- [ ] **TEST.125 Three browser-map tests fail on main with "no generated system has a moon" (bug)**
-  Bugfixes lane 2 (2026-10-10, found in NAV.9's full suite):
-  test_selection_drill, test_3d_view_draws and test_body_link_opens in
-  tests/test_web_browser_maps.py fail on main with "no generated system
-  has a moon". The fixture galaxy has no system with a moon, so it looks
-  like a fixture problem, not a product bug. Find out whether a seed
-  change (the scatter or object-first sampler work) removed the moons,
-  and fix the fixture so the tests do not depend on luck; never skip
-  them. Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
-  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md):
-  implement, one small PR, number 1 in the thread's order; the fixture
-  must contain a moon by construction (it failed in the thread's
-  baseline too). Owner: the Test Suite Rebuild thread.
-  Note (2026-10-10): the names that fail on main (Foundations lane 2,
-  20:50Z; they fail on plain main in a clean worktree
-  and also alone, so they are not load flakes):
-  tests/test_web_browser_maps.py::test_system_map_selection_drill_and_measure
-  (assert None ... re.fullmatch('/nav?from=moon:d+', '')),
-  ::test_system_page_3d_view_draws_switches_scale_and_keeps_the_diagram
-  and ::test_a_body_link_opens_highlights_and_selects_it ("no generated
-  system has a moon"). The three names above in the title are the
-  earlier shorthand.
-  Prerequisites: none. Related: TEST.111, TEST.122.
-
 - [ ] **TEST.126 The heavy WebGL browser-map tests time out when four workers run them together (bug)**
   Seen again on 2026-10-14 12:44Z (Bugfixes lane 2, PERF.81 suite, 49 min):
   test_galaxy_map_free_camera_from_an_arc_down, ::test_galaxy_map_buttons (a
@@ -4775,7 +4771,7 @@ clears each one.
   playwright error) and ::test_nav_ends_picked_from_bookmarks_on_every_page
   failed once and pass alone, not checked on main. Same family; the
   rebuild's captured traceback and serial re-run tell load from real.
-  Prerequisites: none. Related: TEST.111, TEST.121, TEST.122, TEST.125.
+  Prerequisites: none. Related: TEST.111, TEST.121, TEST.122.
 
 - [ ] **TEST.127 test_nebula_shape_endpoint_serves_a_mesh failed once in a full parallel run (bug)**
   Reported by Foundations lane 2 (2026-10-10 20:50Z):
@@ -4835,6 +4831,10 @@ clears each one.
   implement, one small PR, number 4 in the thread's order; the stored
   last-updated time is compared the way MySQL 8.4 rounds it; the thread
   installs MySQL 8.4 to verify. Owner: the Test Suite Rebuild thread.
+  Status (2026-10-09): Fixed by the Test Suite Rebuild thread
+  (2026-10-14, #1313, suite green): the stored last-updated time is
+  compared the way MySQL 8.4 rounds it. Retire this item once the
+  scheduled MySQL 8.4 CI run on main is green.
   Prerequisites: none. Related: TEST.116, TEST.126.
 
 - [ ] **TEST.130 test_the_scene_positions_at_the_epoch_match_the_stored_ones fails when a random system has comets (bug)**
@@ -4854,6 +4854,10 @@ clears each one.
   implement, one small PR, number 5 in the thread's order; the test
   draws a system with a comet every time. Owner: the Test Suite Rebuild
   thread.
+  Status (2026-10-09): Test Suite Rebuild thread (2026-10-14, #1313):
+  not reproducible; the test now builds comets by construction so it
+  exercises the comet path every time. Stays open until the cause is
+  found or five clean full runs pass.
   Prerequisites: none. Related: TEST.123, GEN.122.
 
 - [ ] **TEST.131 Tests for the gravity field evaluator: two bodies, Lagrange points, softening and the rotation curve**
@@ -5054,40 +5058,6 @@ clears each one.
   the captured traceback on recurrence. Owner: the Test Suite Rebuild
   thread.
   Prerequisites: none. Related: TEST.128, TEST.132, TEST.134.
-
-- [ ] **TEST.142 test_a_table_keeps_its_sort_and_filter_across_a_reload fails on main: its fake get_systems lacks the new `after` argument (bug)**
-  Reported by the coordinator from Bugfixes lane 1 (2026-10-14 13:11Z,
-  PERF.67 suite, 50 min):
-  tests/test_web_browser_tables.py::test_a_table_keeps_its_sort_and_filter_across_a_reload
-  fails on main because its fake `get_systems` does not accept the
-  `after` argument added by PERF.75's keyset paging. Done: the fake
-  takes the new argument (or the test uses the real function) so the
-  test passes without loosening what it checks, and a grep shows no
-  other fake of a paged reader is left behind. Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
-  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md):
-  implement, one small PR, number 2 in the thread's order; the fake
-  get_systems gets the `after` parameter, plus a search for other fakes
-  of a paged reader (the lane's 14:03Z run failed on it too). Owner: the
-  Test Suite Rebuild thread.
-  Prerequisites: none. Related: PERF.75, TEST.126.
-
-- [ ] **TEST.143 test_install_checkout_leaves_a_current_editable_install_alone fails when the suite runs from a git worktree (bug)**
-  Reported by Foundations lane 2 (2026-10-14 13:17Z, shared suite, plain
-  main 8.0.998):
-  tests/test_install_python_deps.py::test_install_checkout_leaves_a_current_editable_install_alone
-  asserts that no pip call happens, but one does ('-m pip install
-  --quiet --no-deps -e /tmp/wt-...') when the suite runs from a git
-  worktree, because the container's editable install points at
-  /home/user/planetGen, not at the checkout. Probably an environment
-  artifact, not a product bug. Done: the test pins its own install
-  location (a temporary checkout and a stub for the installed package's
-  path) so it passes from any checkout and any worktree, without
-  loosening what it checks. Decided (Test Suite Rebuild thread, 2026-10-14 14:04Z, list in
-  /mnt/project-files/test-suite-rebuild/test-fix-decisions.md):
-  implement, one small PR, number 3 in the thread's order; the test pins
-  the install location, so it passes from a git worktree. Owner: the
-  Test Suite Rebuild thread.
-  Prerequisites: none. Related: TEST.142.
 
 - [ ] **TEST.144 test_every_plain_button_does_something[web.sector] failed once in a full parallel run (bug)**
   Reported by Foundations lane 2 (2026-10-14 13:17Z, shared suite -n 4,

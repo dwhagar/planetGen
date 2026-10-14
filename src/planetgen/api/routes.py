@@ -1214,7 +1214,9 @@ def search():
     validated like every other `limit`), and `sectors_offset`/
     `systems_offset`/`stars_offset`/`planets_offset`/`moons_offset`/
     `belts_offset` pick each panel's page. `panels` (comma-separated panel
-    names) runs just those panels, the rest answering `null`.
+    names; `none` for no panel at all, which still answers the facets and name suggestions) runs just those
+    panels, the rest answering `null`; the Search page fetches each panel on its own so one slow panel
+    times out alone (UX.97).
     """
     args = request.args
     texts = {
@@ -1241,7 +1243,7 @@ def search():
 
     only = None
     if args.get("panels"):
-        only = {panel for panel in args["panels"].split(",") if panel in SEARCH_RESULT_PANELS}
+        only = {panel for panel in args["panels"].split(",") if panel in SEARCH_RESULT_PANELS}  # "none": no panel
     return jsonify(run_search(get_db(), texts, tags, sizes=sizes, limit=limit, offsets=offsets, only=only))
 
 

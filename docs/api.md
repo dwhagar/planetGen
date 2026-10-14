@@ -469,8 +469,10 @@ connectivity to that specific schema rather than the default one.
   `belts_offset` pick each panel's page; `total` is that panel's full
   match count and `truncated` is true when `rows` isn't all of them. An
   offset past the last match returns the last page (with its real
-  `offset`). `panels` (comma-separated panel names) runs just those
-  panels, the others answering `null`.
+  `offset`). `panels` (comma-separated panel names, or `none`) runs just
+  those panels, the others answering `null`; `none` still answers `facets` and `autocomplete`. The Search page asks for each
+  panel on its own, so a panel that hits the statement limit (a `504`) times out alone. A name search of one word
+  shorter than the database's full-text minimum (usually 3 letters) matches the start of a name.
 - `GET /api/wiki-config` — `{"wikijs": bool, "mediawiki": bool}`, whether
   each wiki backend has a `base_url` plus credentials configured
   deployment-wide (`config.json`'s `wiki` section, or the matching
