@@ -2,6 +2,11 @@
 
 Every release starts with its **Headline**: the single best feature that release brought (Boss, 2026-10-10). The sections under it keep the full record. The headline features still to come are listed in the [README](README.md#headline-features).
 
+## [8.0.1080] - 2026-10-14
+
+### Added
+- **A window stage on the Galaxy Map (MAP.151d, first part).** `/galaxy?win=<cell>&g=<3 to 11>` shows the cells around a chosen cell of any level, nine across by default, drawn like any other stage. A click on a cell opens the window one size down centred on that cell, and Up (or Escape) opens it one size up, centred on the cell holding the middle, with the breadcrumb following. Nothing links to it yet; the galaxy and its arc, slab and segment picks open as before until the next step replaces them.
+
 ## [8.0.1079] - 2026-10-14
 
 ### Changed

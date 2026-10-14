@@ -1,2 +1,0 @@
-### Added
-- **A window stage on the Galaxy Map (MAP.151d, first part).** `/galaxy?win=<cell>&g=<3 to 11>` shows the cells around a chosen cell of any level, nine across by default, drawn like any other stage. A click on a cell opens the window one size down centred on that cell, and Up (or Escape) opens it one size up, centred on the cell holding the middle, with the breadcrumb following. Nothing links to it yet; the galaxy and its arc, slab and segment picks open as before until the next step replaces them.
