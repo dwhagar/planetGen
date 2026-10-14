@@ -525,6 +525,22 @@ MS_MASS_LUMINOSITY_PIECES = (
     {"max_mass_sol": 55.0, "coeff": 1.4, "exponent": 3.5},
     {"max_mass_sol": None, "coeff": 32000.0, "exponent": 1.0},
 )
+# The "map luminosity" relation (GEN.200): the luminosity a main-sequence star
+# of a given mass would have, used to rank a faint but massive object (a
+# neutron star, a black hole) for the Galaxy Map by the star of its mass
+# (Astronomy Notes, "Mass-Luminosity Relation Explained"; Varsity Tutors,
+# "Stellar Mass & Lifetime"). Same form as MS_MASS_LUMINOSITY_PIECES, whose
+# star generators it does not replace: it has Boss's table's constants and
+# breaks (1.5 M^3.5 from 2 to 20 Msun, not 1.4 M^3.5 to 55), and above 20 Msun
+# L is proportional to M, its coefficient fixed by continuity with the band
+# below (1.5 * 20^2.5, about 2,683 Lsun per Msun). So 20 Msun is about
+# 53,700 Lsun and a 4 million Msun black hole about 1e10 Lsun.
+MAP_MASS_LUMINOSITY_PIECES = (
+    {"max_mass_sol": 0.43, "coeff": 0.23, "exponent": 2.3},
+    {"max_mass_sol": 2.0, "coeff": 1.0, "exponent": 4.0},
+    {"max_mass_sol": 20.0, "coeff": 1.5, "exponent": 3.5},
+    {"max_mass_sol": None, "coeff": 1.5 * 20.0 ** 2.5, "exponent": 1.0},
+)
 # Main-sequence mass-radius relation, R = M^exponent (Rsun, Msun), with the
 # exponent changing at 1 Msun (Demircan & Kahraman 1991).
 MS_RADIUS_EXPONENT_BELOW_1_SOL = 0.8
