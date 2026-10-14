@@ -29,7 +29,7 @@ function panel(attrs) {
 
 function job(fields) {
   return Object.assign({
-    title: "Generate 4 sectors", status: "running", step: 1, steps: [{}, {}], step_label: "Sectors",
+    title: "Generate 4 sectors", status: "running", step: 1, steps: [{}, {}], step_label: "Sectors", step_marker: "Stage 1 of 2",
     progress_total: 4, progress_completed: 1, progress_text: "1 of 4 sectors", progress_detail_text: "",
     elapsed_text: "12 s", remaining_label: "about 36 s left", error: null, finished: false,
   }, fields || {});
@@ -58,7 +58,7 @@ test("asks for the job's status two seconds in and draws it", async () => {
   const status = el.querySelector("[data-job-status]");
   assert.equal(status.textContent, "running");
   assert.equal(status.className, "badge job-running");
-  assert.equal(el.querySelector("[data-job-step]").textContent, "Step 1 of 2: Sectors");
+  assert.equal(el.querySelector("[data-job-step]").textContent, "Stage 1 of 2: Sectors");
   const bar = el.querySelector("[data-job-progress]");
   assert.equal(Number(bar.max), 4);
   assert.equal(bar.value, 1);
@@ -178,7 +178,7 @@ test("unknown progress shows an indeterminate bar; detail text shows when given"
   const detail = el.querySelector("[data-job-progress-detail]");
   assert.equal(detail.hidden, false);
   assert.equal(detail.textContent, "sector 3: planets");
-  assert.equal(el.querySelector("[data-job-step]").textContent, "Step 1 of 2: Sectors");
+  assert.equal(el.querySelector("[data-job-step]").textContent, "Stage 1 of 2: Sectors");
 });
 
 test("the log follows new output only while it is scrolled to the bottom", async () => {
