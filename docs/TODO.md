@@ -5460,6 +5460,29 @@ OPS.1 shipped with the version scheme in `changes/README.md`.
   exact line to add and never edit his vhost.
   Prerequisites: none. Related: DOC.37, PERF.82.
 
+- [ ] **OPS.47 update.sh stops at the database migrate step in the venv: cryptography is missing from the requirements (bug)**
+  GitHub issue [#1344](https://github.com/dwhagar/planetGen/issues/1344)
+  Boss, 2026-10-14 19:58Z, first real ./update.sh on the venv (OPS.45,
+  #1333): step 2 built /usr/local/planetgen/venv and listed the
+  libraries as ok, then step 5/9 (migrate the MySQL database) stopped
+  with: error: 'cryptography' package is required for sha256_password or
+  caching_sha2_password auth methods. PyMySQL needs the cryptography
+  package for MySQL 8's default login method, and neither
+  requirements.lock nor requirements-server.lock lists it (the old
+  system install had it through apt), so the venv lacks it and every
+  database connection that uses that login fails. Done when:
+  cryptography is in both lock files and in the library check that
+  install-python-deps.sh runs (so a venv without it is rebuilt),
+  update.sh step 5/9 migrates on a MySQL 8 server that uses
+  caching_sha2_password, and a test fails when a package the database
+  layer imports for that login is missing from the locks. Also check, in
+  the same pass, that every other import the web app, the CLI and the
+  workers make is in requirements-server.lock (a venv built from the
+  lock alone must run planetgen check-db, migrate and a page request).
+  Urgent: Boss cannot update until this lands. Bugfixes lane 1, ahead of
+  PERF.82.
+  Prerequisites: none. Related: OPS.45, OPS.46.
+
 ## DOC: Documentation
 
 - [ ] **DOC.4 Correct the stale statements the research found in docs, docstrings and comments**
